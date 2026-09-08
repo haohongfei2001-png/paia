@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="840" viewBox="0 0 1512 840">
+<rect width="1512" height="840" fill="#fbfcf9"/>
+<text x="80" y="92" font-family="Arial,sans-serif" font-size="19" fill="#7c867a">大量聊天窗口</text>
+<g font-family="Arial,sans-serif">
+  <rect x="80" y="135" width="320" height="180" rx="22" fill="#fff" stroke="#dfe4dc"/>
+  <text x="110" y="178" font-size="18" fill="#7c867a">对话 A</text>
+  <rect x="110" y="205" width="210" height="18" rx="9" fill="#e8ece5"/>
+  <rect x="110" y="240" width="250" height="18" rx="9" fill="#eef1eb"/>
+  <rect x="110" y="275" width="170" height="18" rx="9" fill="#e8ece5"/>
+
+  <rect x="80" y="345" width="320" height="180" rx="22" fill="#fff" stroke="#dfe4dc"/>
+  <text x="110" y="388" font-size="18" fill="#7c867a">对话 B</text>
+  <rect x="110" y="415" width="185" height="18" rx="9" fill="#e8ece5"/>
+  <rect x="110" y="450" width="238" height="18" rx="9" fill="#eef1eb"/>
+  <rect x="110" y="485" width="205" height="18" rx="9" fill="#e8ece5"/>
+
+  <rect x="80" y="555" width="320" height="180" rx="22" fill="#fff" stroke="#dfe4dc"/>
+  <text x="110" y="598" font-size="18" fill="#7c867a">对话 C</text>
+  <rect x="110" y="625" width="225" height="18" rx="9" fill="#e8ece5"/>
+  <rect x="110" y="660" width="160" height="18" rx="9" fill="#eef1eb"/>
+  <rect x="110" y="695" width="245" height="18" rx="9" fill="#e8ece5"/>
+</g>
+<path d="M445 420 C555 420, 560 420, 660 420" stroke="#aab5a6" stroke-width="3" fill="none"/>
+<path d="M630 402 L662 420 L630 438" fill="none" stroke="#aab5a6" stroke-width="3"/>
+<text x="505" y="386" font-family="Arial,sans-serif" font-size="16" fill="#7c867a">用户自己的内容被分散</text>
+<rect x="690" y="245" width="650" height="360" rx="28" fill="#f4f7f1" stroke="#cfd8ca"/>
+<text x="735" y="302" font-family="Arial,sans-serif" font-size="17" fill="#657b59">PAIA</text>
+<text x="735" y="354" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#20251f">重新以“用户输入”为中心</text>
+<line x1="735" y1="392" x2="1290" y2="392" stroke="#d7ddd3"/>
+<g font-family="Arial,sans-serif">
+  <circle cx="765" cy="452" r="12" fill="#657b59"/><text x="795" y="460" font-size="20" fill="#344130">保存我真正说过的话</text>
+  <circle cx="765" cy="510" r="12" fill="#657b59"/><text x="795" y="518" font-size="20" fill="#344130">重新组织长期主题</text>
+  <circle cx="765" cy="568" r="12" fill="#657b59"/><text x="795" y="576" font-size="20" fill="#344130">需要时再授权给 AI</text>
+</g>
+<text x="690" y="690" font-family="Arial,sans-serif" font-size="15" fill="#8d968b">聊天仍然负责交流，PAIA 负责沉淀。</text>
+</svg>
