@@ -19,6 +19,7 @@
       <span>PAIA</span>
     </a>
     <nav class="nav" aria-label="页面导航">
+      <a href="#overview">概览</a>
       <a href="#product">产品</a>
       <a href="#decisions">产品判断</a>
       <a href="#privacy">隐私</a>
@@ -31,12 +32,28 @@
       <div class="eyebrow">PERSONAL AI INPUT ARCHIVE</div>
       <h1>Your private archive<br />for what you say to AI.</h1>
       <p class="hero-cn">保存、整理，并重新阅读你在 AI 中表达过的信息和想法。</p>
+      <div class="hero-role">PAIA｜个人 AI 输入档案与思想库 · 独立产品设计 / AI 协同开发 · 2026.08 — 至今</div>
       <div class="hero-meta">
         <span>Local-first</span>
         <span>Source-faithful</span>
         <span>Explicit AI authorization</span>
       </div>
       <a class="text-link" href="#product">查看产品 <span aria-hidden="true">↓</span></a>
+    </section>
+
+    <section class="section overview" id="overview">
+      <div class="section-kicker">Case Study · Overview</div>
+      <div class="overview-head">
+        <h2>一个从 0 到 1 的个人 AI 信息产品案例。</h2>
+        <p>从用户问题出发，围绕“如何保存自己说过的话、如何重新阅读长期思想、以及什么内容可以被未来 AI 使用”持续迭代产品结构、交互和 AI 能力边界。</p>
+      </div>
+      <div class="overview-grid">
+        <article><span>Product</span><strong>个人 AI 输入档案与思想库</strong><p>Chrome Extension · Local-first</p></article>
+        <article><span>Role</span><strong>独立产品设计 / AI 协同开发</strong><p>产品定义、信息架构、交互与验证</p></article>
+        <article><span>Core flow</span><strong>Archive → Thought → Context</strong><p>保存、组织、授权使用</p></article>
+        <article><span>Status</span><strong>Working internal build</strong><p>持续真实环境迭代</p></article>
+      </div>
+      <p class="case-note">本页中的产品界面为基于当前实际产品结构制作的脱敏演示图，用于公开展示产品逻辑与交互，不包含真实用户数据。</p>
     </section>
 
     <section class="section problem" id="problem">
@@ -47,6 +64,11 @@
           <p>长期使用 ChatGPT 等 AI 后，事实、判断、偏好、决定和想法会分散在大量聊天窗口里。聊天历史适合继续对话，却并不天然适合重新阅读自己。</p>
           <p>PAIA 不试图成为另一个聊天客户端。它把注意力重新放回用户自己的输入：先保存，再组织，最后只在用户明确允许时把必要内容提供给未来 AI。</p>
         </div>
+      </div>
+      <div class="problem-strip">
+        <div><span>01</span><strong>信息属于用户</strong><p>AI 回答会变化，但用户自己的事实、判断和想法具有长期价值。</p></div>
+        <div><span>02</span><strong>聊天不等于档案</strong><p>聊天适合继续交流，长期回看则需要另一种更稳定的阅读结构。</p></div>
+        <div><span>03</span><strong>可用不等于可共享</strong><p>私人信息即使有价值，也不意味着应该默认提供给所有 AI。</p></div>
       </div>
     </section>
 
@@ -73,6 +95,11 @@
         </article>
       </div>
       <p class="flow-note">Source Record 作为不可变事实层存在于底部，但不占据普通用户的日常阅读界面。</p>
+      <div class="principle-band">
+        <span>产品方向</span>
+        <strong>Source Record → Input Archive → Thought Library → AI Context</strong>
+        <p>事实层负责“发生过什么”，工作层负责“我现在怎么表达”，思想层负责“我长期在想什么”，AI Context 只负责“这一次允许 AI 知道什么”。</p>
+      </div>
     </section>
 
     <section class="product-section section">
@@ -85,6 +112,7 @@
           <li>用户编辑不会被后续同步静默覆盖</li>
           <li>来源、时间与版本保持可追溯</li>
         </ul>
+        <div class="experience-note"><span>核心体验</span><p>用户看到的是一份可以长期阅读的个人输入档案，而不是又一个聊天记录页面。</p></div>
       </div>
       <figure class="product-shot">
         <img src="assets/screenshots/input-archive.svg" alt="PAIA Input Archive 脱敏演示界面" loading="lazy" />
@@ -102,6 +130,7 @@
           <li>原话层始终存在，AI 不覆盖用户思想</li>
           <li>阅读优先，系统处理状态尽量退到后台</li>
         </ul>
+        <div class="experience-note"><span>核心体验</span><p>打开思想库时，用户首先看到自己的长期主题；进入主题后，先读原话和思考过程，需要时再切换到 AI 整理。</p></div>
       </div>
       <figure class="product-shot">
         <img src="assets/screenshots/thought-library.svg" alt="PAIA Thought Library 脱敏演示界面" loading="lazy" />
@@ -119,6 +148,7 @@
           <li>本地检索与 Context Preview</li>
           <li>来源可追溯，可随时撤销</li>
         </ul>
+        <div class="experience-note"><span>核心体验</span><p>用户在发送之前先看到“AI 将会知道什么”，并且可以缩小范围、临时排除或完全关闭外部上下文提供。</p></div>
       </div>
       <figure class="product-shot">
         <img src="assets/screenshots/ai-context.svg" alt="PAIA AI Context 脱敏演示界面" loading="lazy" />
@@ -146,6 +176,13 @@
           <p>个人信息系统不应默认把整个数据库交给模型。上下文应当最小、可解释、可撤销，并始终服从用户的授权边界。</p>
         </article>
       </div>
+      <div class="decision-extension">
+        <span>04</span>
+        <div>
+          <h3>为什么不把所有能力都自动化？</h3>
+          <p>PAIA 把确定性规则、用户工作和 AI 推理分开：程序负责稳定边界，用户保留最终控制，AI 只处理真正需要语义判断的部分。目标不是“AI 做得越多越好”，而是让每一层承担最适合它的职责。</p>
+        </div>
+      </div>
     </section>
 
     <section class="section privacy" id="privacy">
@@ -156,6 +193,12 @@
           <p>当前产品以 Chrome Extension 形式运行，核心数据默认保存在本机。历史补全、检索、备份和多数组织逻辑优先在本地完成。</p>
           <p>涉及 AI 的动作采用明确的用户控制与最小数据边界。这个公开展示网站本身不连接 PAIA 数据，也不设置分析脚本或跟踪器。</p>
         </div>
+      </div>
+      <div class="boundary-grid">
+        <article><span>Local-first</span><p>核心个人数据默认保存在本机，公开作品页与私人数据完全分离。</p></article>
+        <article><span>Source-faithful</span><p>AI 派生内容不会静默替换原始表达和用户编辑。</p></article>
+        <article><span>Explicit authorization</span><p>能被 AI 使用的内容必须经过明确授权，并且可以排除、撤销和预览。</p></article>
+        <article><span>Minimal context</span><p>上下文只选择与当前问题相关、且位于授权范围内的必要内容。</p></article>
       </div>
     </section>
 
@@ -170,6 +213,23 @@
             <div><dt>Period</dt><dd>2026.08 — Present</dd></div>
             <div><dt>Status</dt><dd>Working internal Chrome build · Active development</dd></div>
           </dl>
+        </div>
+      </div>
+      <div class="ownership-grid">
+        <article><span>01</span><h3>Problem & Product Definition</h3><p>从长期使用 AI 的真实痛点出发，定义产品边界与四层数据/产品结构。</p></article>
+        <article><span>02</span><h3>Information Architecture</h3><p>持续区分来源事实、用户工作、思想组织与 AI 上下文，避免不同层级互相覆盖。</p></article>
+        <article><span>03</span><h3>AI Capability Boundary</h3><p>决定哪些任务应由程序完成、哪些需要模型判断，以及用户如何保留最终控制权。</p></article>
+        <article><span>04</span><h3>Delivery & Validation</h3><p>使用 Codex 协同推进 Chrome 产品实现、自动化验证与真实环境迭代，而不是停留在概念原型。</p></article>
+      </div>
+    </section>
+
+    <section class="section current-status">
+      <div class="section-kicker">09 · Current Status</div>
+      <div class="split">
+        <h2>从概念验证，推进到可以持续使用和继续迭代的内部产品。</h2>
+        <div class="body-copy">
+          <p>当前 PAIA 已形成从输入归档、思想组织到 AI Context 的完整产品链路，并持续围绕阅读体验、数据边界、检索质量和长期可靠性进行迭代。</p>
+          <p>公开页面仅展示产品案例与脱敏演示界面；真正的扩展源码、私有数据库、API Key 与用户内容不在本仓库中公开。</p>
         </div>
       </div>
     </section>
