@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="840" viewBox="0 0 1512 840">
+<rect width="1512" height="840" fill="#fbfcf9"/>
+<text x="86" y="92" font-family="Arial,sans-serif" font-size="18" fill="#657b59">PRIVACY BOUNDARY</text>
+<text x="86" y="146" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#20251f">私人数据先留在本地，授权之后才形成最小上下文。</text>
+<g font-family="Arial,sans-serif">
+  <rect x="86" y="226" width="500" height="430" rx="28" fill="#f2f6ef" stroke="#cfd8ca"/>
+  <text x="126" y="278" font-size="15" fill="#657b59">LOCAL DEVICE</text>
+  <text x="126" y="330" font-size="30" font-weight="700" fill="#20251f">PAIA</text>
+  <rect x="126" y="370" width="420" height="74" rx="16" fill="#fff" stroke="#dfe4dc"/>
+  <text x="154" y="415" font-size="19" fill="#465244">Input Archive</text>
+  <rect x="126" y="462" width="420" height="74" rx="16" fill="#fff" stroke="#dfe4dc"/>
+  <text x="154" y="507" font-size="19" fill="#465244">Thought Library</text>
+  <rect x="126" y="554" width="420" height="74" rx="16" fill="#fff" stroke="#dfe4dc"/>
+  <text x="154" y="599" font-size="19" fill="#465244">Local retrieval &amp; preview</text>
+
+  <rect x="650" y="326" width="250" height="210" rx="26" fill="#fff" stroke="#dfe4dc"/>
+  <text x="690" y="374" font-size="14" fill="#657b59">AUTHORIZATION GATE</text>
+  <circle cx="775" cy="440" r="44" fill="#657b59"/>
+  <path d="M756 441 l13 13 27-31" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="692" y="506" font-size="16" fill="#5f695e">用户明确允许</text>
+
+  <path d="M586 432 H640" stroke="#aab5a6" stroke-width="3"/>
+  <path d="M620 416 l24 16-24 16" fill="none" stroke="#aab5a6" stroke-width="3"/>
+  <path d="M900 432 H1014" stroke="#aab5a6" stroke-width="3"/>
+  <path d="M994 416 l24 16-24 16" fill="none" stroke="#aab5a6" stroke-width="3"/>
+
+  <rect x="1030" y="286" width="390" height="292" rx="28" fill="#fff" stroke="#dfe4dc"/>
+  <text x="1070" y="338" font-size="14" fill="#657b59">MINIMAL CONTEXT</text>
+  <text x="1070" y="388" font-size="28" font-weight="700" fill="#20251f">External AI</text>
+  <line x1="1070" y1="421" x2="1376" y2="421" stroke="#e1e5df"/>
+  <text x="1070" y="466" font-size="17" fill="#5f695e">只包含与当前问题相关、</text>
+  <text x="1070" y="496" font-size="17" fill="#5f695e">且位于授权范围内的内容。</text>
+  <text x="1070" y="543" font-size="14" fill="#899188">可预览 · 可排除 · 可撤销</text>
+</g>
+<text x="86" y="732" font-family="Arial,sans-serif" font-size="15" fill="#8d968b">“能被保存”与“能被外部 AI 使用”始终是两件不同的事。</text>
+</svg>
