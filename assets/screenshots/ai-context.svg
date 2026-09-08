@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
+<rect width="1512" height="910" fill="#fff"/>
+<rect width="230" height="910" fill="#f6f7f3"/>
+<text x="32" y="62" font-family="Arial,sans-serif" font-size="36" font-weight="700" fill="#20251f">PAIA</text>
+<text x="32" y="176" font-family="Arial,sans-serif" font-size="20" fill="#666">Input Archive</text>
+<text x="32" y="225" font-family="Arial,sans-serif" font-size="20" fill="#666">Thought Library</text>
+<text x="32" y="274" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#20251f">AI Context</text>
+<text x="275" y="82" font-family="Arial,sans-serif" font-size="40" font-weight="700" fill="#20251f">AI Context</text>
+<text x="275" y="128" font-family="Arial,sans-serif" font-size="18" fill="#7b8479">只让 AI 看到你明确允许、且与当前问题相关的内容。</text>
+<rect x="275" y="180" width="980" height="82" rx="16" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="305" y="214" font-family="Arial,sans-serif" font-size="15" fill="#879085">当前问题</text>
+<text x="305" y="244" font-family="Arial,sans-serif" font-size="22" fill="#20251f">我目前求职时最应该优先考虑哪些方向？</text>
+<text x="275" y="320" font-family="Arial,sans-serif" font-size="17" fill="#657b59">已授权主题</text>
+<g font-family="Arial,sans-serif">
+<rect x="275" y="352" width="300" height="62" rx="14" fill="#eef2eb"/><text x="300" y="390" font-size="20" fill="#344130">求职规划</text>
+<rect x="590" y="352" width="300" height="62" rx="14" fill="#eef2eb"/><text x="615" y="390" font-size="20" fill="#344130">PAIA 产品设计</text>
+<rect x="905" y="352" width="300" height="62" rx="14" fill="#eef2eb"/><text x="930" y="390" font-size="20" fill="#344130">能力与偏好</text>
+</g>
+<text x="275" y="482" font-family="Arial,sans-serif" font-size="17" fill="#657b59">Context Preview</text>
+<rect x="275" y="510" width="980" height="240" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="305" y="556" font-family="Arial,sans-serif" font-size="15" fill="#8b9288">来自 · 求职规划 · 当前</text>
+<text x="305" y="596" font-family="Arial,sans-serif" font-size="22" fill="#20251f">优先考虑 AI 产品、策略分析、咨询与半导体管理培训等方向。</text>
+<text x="305" y="640" font-family="Arial,sans-serif" font-size="15" fill="#8b9288">来自 · PAIA 产品设计 · 当前</text>
+<text x="305" y="680" font-family="Arial,sans-serif" font-size="22" fill="#20251f">已独立完成从产品定义、信息架构到 Chrome 产品落地的持续迭代。</text>
+<rect x="1065" y="782" width="190" height="58" rx="29" fill="#657b59"/>
+<text x="1112" y="818" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#fff">复制上下文</text>
+</svg>
