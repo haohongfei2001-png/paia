@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="840" viewBox="0 0 1512 840">
+<rect width="1512" height="840" fill="#fbfcf9"/>
+<text x="82" y="92" font-family="Arial,sans-serif" font-size="18" fill="#657b59">PRODUCT DECISIONS</text>
+<text x="82" y="145" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#20251f">不是让 AI 做得更多，而是让每一层做对的事。</text>
+<g font-family="Arial,sans-serif">
+  <rect x="82" y="205" width="630" height="245" rx="24" fill="#fff" stroke="#dfe4dc"/>
+  <text x="118" y="250" font-size="14" fill="#657b59">01</text>
+  <text x="118" y="296" font-size="28" font-weight="700" fill="#20251f">USER INPUT FIRST</text>
+  <text x="118" y="338" font-size="18" fill="#5f695e">长期资产先从用户自己说过的话开始。</text>
+  <line x1="118" y1="375" x2="660" y2="375" stroke="#e1e5df"/>
+  <text x="118" y="414" font-size="15" fill="#899188">保存对象明确，避免把 AI 回复当成用户记忆。</text>
+
+  <rect x="800" y="205" width="630" height="245" rx="24" fill="#fff" stroke="#dfe4dc"/>
+  <text x="836" y="250" font-size="14" fill="#657b59">02</text>
+  <text x="836" y="296" font-size="28" font-weight="700" fill="#20251f">ORIGINAL BEFORE SUMMARY</text>
+  <text x="836" y="338" font-size="18" fill="#5f695e">先保留原话，再让 AI 提供派生理解。</text>
+  <line x1="836" y1="375" x2="1378" y2="375" stroke="#e1e5df"/>
+  <text x="836" y="414" font-size="15" fill="#899188">任何总结都可以关闭，原始层始终可回到。</text>
+
+  <rect x="82" y="490" width="630" height="245" rx="24" fill="#fff" stroke="#dfe4dc"/>
+  <text x="118" y="535" font-size="14" fill="#657b59">03</text>
+  <text x="118" y="581" font-size="28" font-weight="700" fill="#20251f">EXPLICIT AUTHORIZATION</text>
+  <text x="118" y="623" font-size="18" fill="#5f695e">可保存的信息，不等于默认可共享的信息。</text>
+  <line x1="118" y1="660" x2="660" y2="660" stroke="#e1e5df"/>
+  <text x="118" y="699" font-size="15" fill="#899188">用户决定哪些内容进入这一次 AI Context。</text>
+
+  <rect x="800" y="490" width="630" height="245" rx="24" fill="#f1f5ee" stroke="#cfd8ca"/>
+  <text x="836" y="535" font-size="14" fill="#657b59">04</text>
+  <text x="836" y="581" font-size="28" font-weight="700" fill="#20251f">BOUNDED AUTOMATION</text>
+  <text x="836" y="623" font-size="18" fill="#5f695e">规则管边界，用户做决定，AI 处理语义。</text>
+  <line x1="836" y1="660" x2="1378" y2="660" stroke="#d7ddd3"/>
+  <text x="836" y="699" font-size="15" fill="#899188">自动化被限制在可解释、可恢复、可控制的范围。</text>
+</g>
+</svg>
