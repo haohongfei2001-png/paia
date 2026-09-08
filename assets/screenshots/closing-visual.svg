@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
+<rect width="1512" height="910" rx="30" fill="#fbfcf9"/>
+<rect x="1" y="1" width="1510" height="908" rx="29" fill="none" stroke="#dfe4dc"/>
+<g transform="translate(756 455)">
+  <circle r="285" fill="#f7f8f4" stroke="#d9e0d5" stroke-width="2"/>
+  <circle r="220" fill="#f1f5ee" stroke="#d4ddcf" stroke-width="2"/>
+  <circle r="155" fill="#e8eee4" stroke="#cbd7c6" stroke-width="2"/>
+  <circle r="90" fill="#647b58"/>
+  <circle r="34" fill="#fbfcf9" opacity=".96"/>
+</g>
+<path d="M330 700 C520 585 650 560 756 560 C862 560 995 585 1182 700" fill="none" stroke="#647b58" stroke-width="3" opacity=".32"/>
+<path d="M398 742 C555 648 664 628 756 628 C850 628 955 649 1116 742" fill="none" stroke="#647b58" stroke-width="2" opacity=".18"/>
+<g fill="#647b58" opacity=".78">
+  <circle cx="330" cy="700" r="8"/>
+  <circle cx="1182" cy="700" r="8"/>
+</g>
+<g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',Arial,sans-serif" text-anchor="middle">
+  <text x="756" y="122" font-size="16" letter-spacing="4" fill="#7b8776">PAIA</text>
+  <text x="756" y="800" font-size="17" fill="#83907f">archive · thought · authorized context</text>
+</g>
+</svg>
