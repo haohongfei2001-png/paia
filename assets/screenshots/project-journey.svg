@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="840" viewBox="0 0 1512 840">
+<rect width="1512" height="840" fill="#fbfcf9"/>
+<text x="86" y="92" font-family="Arial,sans-serif" font-size="18" fill="#657b59">PROJECT JOURNEY</text>
+<text x="86" y="146" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#20251f">从产品问题，到可持续迭代的 Chrome 产品。</text>
+<line x1="150" y1="420" x2="1362" y2="420" stroke="#d7ddd3" stroke-width="3"/>
+<g font-family="Arial,sans-serif">
+  <circle cx="190" cy="420" r="18" fill="#657b59"/>
+  <text x="140" y="352" font-size="14" fill="#657b59">01</text>
+  <text x="140" y="386" font-size="21" font-weight="700" fill="#20251f">Problem</text>
+  <text x="140" y="476" font-size="16" fill="#5f695e">长期 AI 输入</text>
+  <text x="140" y="505" font-size="16" fill="#5f695e">难以回顾复用</text>
+
+  <circle cx="510" cy="420" r="18" fill="#657b59"/>
+  <text x="454" y="352" font-size="14" fill="#657b59">02</text>
+  <text x="454" y="386" font-size="21" font-weight="700" fill="#20251f">Architecture</text>
+  <text x="454" y="476" font-size="16" fill="#5f695e">四层产品结构</text>
+  <text x="454" y="505" font-size="16" fill="#5f695e">数据与 AI 边界</text>
+
+  <circle cx="830" cy="420" r="18" fill="#657b59"/>
+  <text x="776" y="352" font-size="14" fill="#657b59">03</text>
+  <text x="776" y="386" font-size="21" font-weight="700" fill="#20251f">Delivery</text>
+  <text x="776" y="476" font-size="16" fill="#5f695e">Chrome Extension</text>
+  <text x="776" y="505" font-size="16" fill="#5f695e">AI 协同开发</text>
+
+  <circle cx="1150" cy="420" r="18" fill="#657b59"/>
+  <text x="1082" y="352" font-size="14" fill="#657b59">04</text>
+  <text x="1082" y="386" font-size="21" font-weight="700" fill="#20251f">Iteration</text>
+  <text x="1082" y="476" font-size="16" fill="#5f695e">真实环境使用</text>
+  <text x="1082" y="505" font-size="16" fill="#5f695e">持续产品收口</text>
+</g>
+<rect x="86" y="604" width="1336" height="118" rx="22" fill="#f1f5ee" stroke="#cfd8ca"/>
+<text x="126" y="651" font-family="Arial,sans-serif" font-size="14" fill="#657b59">CURRENT STATUS</text>
+<text x="126" y="692" font-family="Arial,sans-serif" font-size="23" font-weight="700" fill="#20251f">Working internal Chrome build · Active development</text>
+<text x="1045" y="692" font-family="Arial,sans-serif" font-size="16" fill="#687267">2026.08 — Present</text>
+</svg>
