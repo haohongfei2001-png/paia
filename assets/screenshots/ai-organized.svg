@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
+  <rect width="1512" height="910" fill="#fbfcf9"/>
+  <g font-family="Arial,'PingFang SC','Microsoft YaHei',sans-serif">
+    <text x="92" y="88" font-size="18" letter-spacing="2.4" fill="#7b8479">SAME TOPIC · TWO PRESENTATIONS</text>
+    <text x="92" y="142" font-size="42" font-weight="700" fill="#20251f">同一个思想主题，原话与 AI 整理并存</text>
+    <text x="92" y="184" font-size="18" fill="#6f796e">AI整理不是替换原文，而是在同一个 Topic 上提供另一层可关闭的理解。</text>
+
+    <rect x="92" y="246" width="610" height="560" rx="22" fill="#ffffff" stroke="#dbe1d8"/>
+    <text x="124" y="292" font-size="13" letter-spacing="1.4" fill="#7b8479">SOURCE-FAITHFUL</text>
+    <text x="124" y="338" font-size="28" font-weight="700" fill="#20251f">默认阅读</text>
+    <rect x="552" y="278" width="112" height="42" rx="21" fill="#f4f6f2" stroke="#dbe1d8"/>
+    <text x="575" y="305" font-size="14" fill="#768174">AI整理 ○</text>
+    <text x="124" y="402" font-size="16" fill="#8b9388">产品定位 · 2026年9月</text>
+    <text x="124" y="452" font-size="21" fill="#20251f">“我希望 Thought Library 首先像长期阅读自己的思想，</text>
+    <text x="124" y="486" font-size="21" fill="#20251f">而不是像一个管理后台。”</text>
+    <text x="124" y="548" font-size="16" fill="#8b9388">AI 与原话的边界 · 2026年9月</text>
+    <text x="124" y="598" font-size="21" fill="#20251f">“默认要尽量保留原话，AI 主要负责找到、分类、</text>
+    <text x="124" y="632" font-size="21" fill="#20251f">放置和排序，不应该重写我的历史。”</text>
+    <line x1="124" y1="690" x2="670" y2="690" stroke="#e6e9e4"/>
+    <text x="124" y="730" font-size="14" fill="#8b9388">优先保留表达、时间和思考过程</text>
+
+    <rect x="810" y="246" width="610" height="560" rx="22" fill="#f0f4ed" stroke="#cad6c5"/>
+    <text x="842" y="292" font-size="13" letter-spacing="1.4" fill="#647b58">AI-ORGANIZED</text>
+    <text x="842" y="338" font-size="28" font-weight="700" fill="#20251f">AI 整理</text>
+    <rect x="1268" y="278" width="118" height="42" rx="21" fill="#dfe9da"/>
+    <text x="1289" y="305" font-size="14" fill="#42513f">AI整理 ●</text>
+
+    <text x="842" y="398" font-size="15" font-weight="700" fill="#647b58">当前理解</text>
+    <text x="842" y="436" font-size="20" fill="#20251f">Thought Library 的首要目标是长期阅读，而不是暴露整理机制。</text>
+    <text x="842" y="488" font-size="15" font-weight="700" fill="#647b58">核心原则</text>
+    <text x="842" y="524" font-size="18" fill="#20251f">• 原话层长期保留，AI 只提供派生理解</text>
+    <text x="842" y="558" font-size="18" fill="#20251f">• 系统状态退到后台，正文是视觉中心</text>
+    <text x="842" y="592" font-size="18" fill="#20251f">• AI toggle 只切换缓存，不自动调用 API</text>
+    <text x="842" y="646" font-size="15" font-weight="700" fill="#647b58">待解决问题</text>
+    <text x="842" y="682" font-size="18" fill="#20251f">如何让 Topic 粒度长期稳定，又不过度依赖模型。</text>
+    <line x1="842" y1="720" x2="1388" y2="720" stroke="#d7e0d3"/>
+    <text x="842" y="756" font-size="14" fill="#6d7b69">综合结果始终绑定原话证据，可随时切回左侧视图</text>
+  </g>
+</svg>
