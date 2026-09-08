@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
+<rect width="1512" height="910" fill="#fff"/>
+<rect width="230" height="910" fill="#f6f7f3"/>
+<text x="32" y="62" font-family="Arial,sans-serif" font-size="36" font-weight="700" fill="#20251f">PAIA</text>
+<text x="32" y="176" font-family="Arial,sans-serif" font-size="20" fill="#666">Input Archive</text>
+<text x="32" y="225" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#20251f">Thought Library</text>
+<text x="32" y="274" font-family="Arial,sans-serif" font-size="20" fill="#666">AI Context</text>
+<text x="275" y="78" font-family="Arial,sans-serif" font-size="40" font-weight="700" fill="#20251f">Thought Library</text>
+<rect x="275" y="122" width="960" height="54" rx="12" fill="#f7f8f4" stroke="#dde2da"/>
+<text x="300" y="157" font-family="Arial,sans-serif" font-size="18" fill="#8b9288">搜索思想、主题或内容…</text>
+<rect x="1240" y="120" width="150" height="58" rx="29" fill="#eef2eb" stroke="#cfd8ca"/>
+<text x="1264" y="155" font-family="Arial,sans-serif" font-size="18" fill="#3f503a">AI整理</text>
+<circle cx="1362" cy="149" r="18" fill="#657b59"/>
+<g font-family="Arial,sans-serif">
+<rect x="275" y="235" width="330" height="220" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="305" y="285" font-size="28" font-weight="700" fill="#20251f">PAIA 产品设计</text>
+<text x="305" y="330" font-size="18" fill="#627060">原话优先、阅读优先、最小授权</text>
+<text x="305" y="415" font-size="14" fill="#969d94">最近有新内容</text>
+<rect x="625" y="235" width="330" height="220" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="655" y="285" font-size="28" font-weight="700" fill="#20251f">求职规划</text>
+<text x="655" y="330" font-size="18" fill="#627060">岗位选择、投递节奏与长期方向</text>
+<text x="655" y="415" font-size="14" fill="#969d94">持续更新</text>
+<rect x="975" y="235" width="330" height="220" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="1005" y="285" font-size="28" font-weight="700" fill="#20251f">论文研究</text>
+<text x="1005" y="330" font-size="18" fill="#627060">计算路径、近似选择与问题记录</text>
+<text x="1005" y="415" font-size="14" fill="#969d94">最近阅读</text>
+<rect x="275" y="485" width="330" height="220" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="305" y="535" font-size="28" font-weight="700" fill="#20251f">文学创作</text>
+<text x="305" y="580" font-size="18" fill="#627060">人物、承诺与长期主题</text>
+<rect x="625" y="485" width="330" height="220" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="655" y="535" font-size="28" font-weight="700" fill="#20251f">AI 工具与工作流</text>
+<text x="655" y="580" font-size="18" fill="#627060">模型选择、成本与协作方式</text>
+<rect x="975" y="485" width="330" height="220" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="1005" y="535" font-size="28" font-weight="700" fill="#20251f">产品判断</text>
+<text x="1005" y="580" font-size="18" fill="#627060">哪些能力应该交给 AI，哪些不该</text>
+</g>
+</svg>
