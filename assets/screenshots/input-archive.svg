@@ -1,20 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
-<rect width="1512" height="910" fill="#fff"/>
-<rect width="230" height="910" fill="#f6f7f3"/>
-<text x="32" y="62" font-family="Arial,sans-serif" font-size="36" font-weight="700" fill="#20251f">PAIA</text>
-<text x="32" y="94" font-family="Arial,sans-serif" font-size="11" letter-spacing="3" fill="#7a8378">PERSONAL AI INPUT ARCHIVE</text>
-<text x="32" y="176" font-family="Arial,sans-serif" font-size="20" fill="#222">Input Archive</text>
-<text x="32" y="225" font-family="Arial,sans-serif" font-size="20" fill="#666">Thought Library</text>
-<text x="32" y="274" font-family="Arial,sans-serif" font-size="20" fill="#666">AI Context</text>
-<text x="275" y="78" font-family="Arial,sans-serif" font-size="19" fill="#7a8378">← 聊天窗口</text>
-<text x="455" y="170" font-family="Arial,sans-serif" font-size="44" font-weight="700" fill="#20251f">产品规划与迭代</text>
-<text x="455" y="248" font-family="Arial,sans-serif" font-size="18" fill="#8b9288">2026年9月8日</text>
-<text x="455" y="320" font-family="Arial,sans-serif" font-size="28" fill="#20251f">我希望把分散在 AI 对话里的输入重新整理成长期可以阅读的资料。</text>
-<text x="455" y="382" font-family="Arial,sans-serif" font-size="16" fill="#949b91">21:48</text>
-<text x="455" y="448" font-family="Arial,sans-serif" font-size="28" fill="#20251f">默认应该保留原话，AI 只负责分类、组织和必要的综合理解。</text>
-<text x="455" y="510" font-family="Arial,sans-serif" font-size="16" fill="#949b91">22:13</text>
-<text x="455" y="576" font-family="Arial,sans-serif" font-size="28" fill="#20251f">用户自己的编辑不能被后续同步静默覆盖。</text>
-<text x="455" y="638" font-family="Arial,sans-serif" font-size="16" fill="#949b91">22:27</text>
-<line x1="455" y1="700" x2="1300" y2="700" stroke="#e2e5df"/>
-<text x="455" y="752" font-family="Arial,sans-serif" font-size="15" fill="#7b8479">连续阅读 · 本地保存 · 来源可追溯</text>
+<rect width="1512" height="910" fill="#ffffff"/>
+<rect width="230" height="910" fill="#f5f7f3"/>
+<line x1="230" y1="0" x2="230" y2="910" stroke="#e3e7e0"/>
+<text x="32" y="58" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',Arial,sans-serif" font-size="34" font-weight="700" fill="#20251f">PAIA</text>
+<text x="32" y="88" font-family="Arial,sans-serif" font-size="10" letter-spacing="3" fill="#7a8378">PERSONAL AI INPUT ARCHIVE</text>
+<rect x="18" y="144" width="194" height="42" rx="10" fill="#e9eee6"/>
+<text x="32" y="171" font-family="Arial,sans-serif" font-size="17" font-weight="600" fill="#30402c">Input Archive</text>
+<text x="32" y="226" font-family="Arial,sans-serif" font-size="17" fill="#6f786d">Thought Library</text>
+<text x="32" y="274" font-family="Arial,sans-serif" font-size="17" fill="#6f786d">AI Context</text>
+<text x="32" y="842" font-family="Arial,sans-serif" font-size="15" fill="#81897f">Settings</text>
+
+<text x="278" y="62" font-family="Arial,sans-serif" font-size="16" fill="#768074">← 聊天窗口</text>
+<text x="1160" y="62" font-family="Arial,sans-serif" font-size="14" fill="#7a8378">正序</text>
+<text x="1215" y="62" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#31402d">倒序</text>
+<text x="1328" y="62" font-family="Arial,sans-serif" font-size="14" fill="#657b59">版本历史</text>
+
+<text x="454" y="150" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#20251f">产品规划与迭代</text>
+<text x="454" y="204" font-family="Arial,sans-serif" font-size="15" fill="#8c958a">2026年9月8日</text>
+
+<text x="454" y="278" font-family="Arial,sans-serif" font-size="15" fill="#9aa198">21:48</text>
+<text x="454" y="320" font-family="Arial,sans-serif" font-size="27" fill="#20251f">我希望把分散在 AI 对话里的输入重新整理成长期可以阅读的资料。</text>
+<text x="454" y="390" font-family="Arial,sans-serif" font-size="15" fill="#9aa198">22:13</text>
+<text x="454" y="432" font-family="Arial,sans-serif" font-size="27" fill="#20251f">默认应该保留原话，AI 只负责分类、组织和必要的综合理解。</text>
+<text x="454" y="502" font-family="Arial,sans-serif" font-size="15" fill="#9aa198">22:27</text>
+<text x="454" y="544" font-family="Arial,sans-serif" font-size="27" fill="#20251f">用户自己的编辑不能被后续同步静默覆盖。</text>
+<text x="454" y="614" font-family="Arial,sans-serif" font-size="15" fill="#9aa198">23:05</text>
+<text x="454" y="656" font-family="Arial,sans-serif" font-size="27" fill="#20251f">阅读界面应该把系统处理状态退到后台，让正文保持稳定。</text>
+
+<line x1="454" y1="720" x2="1320" y2="720" stroke="#e1e5de"/>
+<text x="454" y="764" font-family="Arial,sans-serif" font-size="14" fill="#7d867b">连续阅读 · 自动保存 · 来源可追溯</text>
+<circle cx="1320" cy="756" r="16" fill="#eef2eb"/>
+<text x="1315" y="762" font-family="Arial,sans-serif" font-size="18" fill="#62705f">···</text>
 </svg>
