@@ -1,21 +1,97 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
-<rect width="1512" height="910" rx="30" fill="#fbfcf9"/>
-<rect x="1" y="1" width="1510" height="908" rx="29" fill="none" stroke="#dfe4dc"/>
-<g transform="translate(756 455)">
-  <circle r="285" fill="#f7f8f4" stroke="#d9e0d5" stroke-width="2"/>
-  <circle r="220" fill="#f1f5ee" stroke="#d4ddcf" stroke-width="2"/>
-  <circle r="155" fill="#e8eee4" stroke="#cbd7c6" stroke-width="2"/>
-  <circle r="90" fill="#647b58"/>
-  <circle r="34" fill="#fbfcf9" opacity=".96"/>
-</g>
-<path d="M330 700 C520 585 650 560 756 560 C862 560 995 585 1182 700" fill="none" stroke="#647b58" stroke-width="3" opacity=".32"/>
-<path d="M398 742 C555 648 664 628 756 628 C850 628 955 649 1116 742" fill="none" stroke="#647b58" stroke-width="2" opacity=".18"/>
-<g fill="#647b58" opacity=".78">
-  <circle cx="330" cy="700" r="8"/>
-  <circle cx="1182" cy="700" r="8"/>
-</g>
-<g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',Arial,sans-serif" text-anchor="middle">
-  <text x="756" y="122" font-size="16" letter-spacing="4" fill="#7b8776">PAIA</text>
-  <text x="756" y="800" font-size="17" fill="#83907f">archive · thought · authorized context</text>
-</g>
+  <rect width="1512" height="910" rx="30" fill="#fbfcf9"/>
+  <rect x="1" y="1" width="1510" height="908" rx="29" fill="none" stroke="#dfe4dc"/>
+
+  <style>
+    .fragment { opacity:.62; animation:settle 1.15s cubic-bezier(.2,.75,.2,1) both; }
+    .fragment.f2 { animation-delay:.08s; }
+    .fragment.f3 { animation-delay:.16s; }
+    .fragment.f4 { animation-delay:.24s; }
+    .selected { animation:select-in .95s cubic-bezier(.2,.75,.2,1) .72s both; }
+    @keyframes settle {
+      from { opacity:0; transform:translateY(16px); }
+      to { opacity:.62; transform:translateY(0); }
+    }
+    @keyframes select-in {
+      from { opacity:0; transform:translateX(-34px); }
+      to { opacity:1; transform:translateX(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .fragment,.selected { animation:none; }
+    }
+  </style>
+
+  <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',Arial,sans-serif">
+    <!-- quiet fragments that have settled into the private archive -->
+    <g class="fragment f1" transform="translate(82 142)">
+      <rect width="238" height="104" rx="18" fill="#f2f5ef" stroke="#d9e1d5"/>
+      <rect x="24" y="27" width="128" height="8" rx="4" fill="#9cab97" opacity=".42"/>
+      <rect x="24" y="50" width="174" height="7" rx="3.5" fill="#8e998b" opacity=".22"/>
+      <rect x="24" y="71" width="118" height="7" rx="3.5" fill="#8e998b" opacity=".16"/>
+    </g>
+    <g class="fragment f2" transform="translate(122 658)">
+      <rect width="252" height="112" rx="18" fill="#f3f6f1" stroke="#dce3d8"/>
+      <rect x="24" y="28" width="148" height="8" rx="4" fill="#9cab97" opacity=".38"/>
+      <rect x="24" y="53" width="184" height="7" rx="3.5" fill="#8e998b" opacity=".20"/>
+      <rect x="24" y="75" width="104" height="7" rx="3.5" fill="#8e998b" opacity=".15"/>
+    </g>
+    <g class="fragment f3" transform="translate(744 104)">
+      <rect width="240" height="104" rx="18" fill="#f1f5ee" stroke="#d9e1d5"/>
+      <rect x="24" y="27" width="112" height="8" rx="4" fill="#9cab97" opacity=".36"/>
+      <rect x="24" y="50" width="166" height="7" rx="3.5" fill="#8e998b" opacity=".18"/>
+      <rect x="24" y="71" width="136" height="7" rx="3.5" fill="#8e998b" opacity=".14"/>
+    </g>
+    <g class="fragment f4" transform="translate(792 676)">
+      <rect width="224" height="96" rx="18" fill="#f4f6f2" stroke="#dce3d8"/>
+      <rect x="22" y="26" width="120" height="8" rx="4" fill="#9cab97" opacity=".34"/>
+      <rect x="22" y="50" width="154" height="7" rx="3.5" fill="#8e998b" opacity=".18"/>
+      <rect x="22" y="70" width="90" height="7" rx="3.5" fill="#8e998b" opacity=".13"/>
+    </g>
+
+    <!-- local/private boundary -->
+    <rect x="72" y="86" width="986" height="724" rx="34" fill="none" stroke="#cdd8c8" stroke-width="2" stroke-dasharray="9 11"/>
+    <rect x="96" y="100" width="190" height="34" rx="17" fill="#f7f9f5"/>
+    <text x="118" y="122" font-size="13" letter-spacing="2.2" fill="#71806d">PRIVATE · LOCAL</text>
+
+    <!-- the settled archive document -->
+    <rect x="280" y="164" width="678" height="552" rx="26" fill="#ffffff" stroke="#d6ded2"/>
+    <text x="330" y="214" font-size="14" letter-spacing="2.2" fill="#7c8978">PAIA · THOUGHT LIBRARY</text>
+    <text x="330" y="270" font-size="34" font-weight="700" fill="#20251f">PAIA 产品设计</text>
+    <text x="330" y="305" font-size="14" fill="#929b90">长期主题 · 来源与时间保持可追溯</text>
+
+    <text x="330" y="372" font-size="16" font-weight="700" fill="#63785c">产品定位</text>
+    <text x="330" y="410" font-size="19" fill="#283027">我希望它首先是一个私人信息中心，</text>
+    <text x="330" y="442" font-size="19" fill="#283027">而不是为了让外部 AI 消费数据而存在。</text>
+
+    <line x1="330" y1="478" x2="906" y2="478" stroke="#e2e7df"/>
+
+    <text x="330" y="526" font-size="16" font-weight="700" fill="#63785c">长期思路</text>
+    <text x="330" y="564" font-size="19" fill="#283027">阅读体验应该是核心；AI 整理只是可切换的派生层。</text>
+    <text x="330" y="600" font-size="19" fill="#283027">原话与思考过程始终留在用户自己的档案中。</text>
+
+    <!-- one selected piece of context -->
+    <rect x="330" y="636" width="504" height="48" rx="12" fill="#edf3e9" stroke="#cfdcc9"/>
+    <text x="350" y="666" font-size="15" fill="#52654b">已选择：AI Context 只获取当前任务真正需要的一小部分。</text>
+
+    <!-- authorization gate -->
+    <rect x="1036" y="360" width="46" height="180" rx="23" fill="#f3f6f1" stroke="#d2dcd0"/>
+    <rect x="1054" y="392" width="10" height="116" rx="5" fill="#809476"/>
+    <text x="1058" y="350" font-size="12" text-anchor="middle" letter-spacing="1.5" fill="#7c8878">YOU CHOOSE</text>
+
+    <path d="M834 660 C940 660 960 548 1058 492 C1128 452 1170 452 1210 452" fill="none" stroke="#6f8665" stroke-width="2.5" opacity=".55"/>
+    <circle cx="1058" cy="492" r="5.5" fill="#6f8665"/>
+
+    <!-- small, intentionally limited AI Context outside the private boundary -->
+    <g class="selected">
+      <rect x="1188" y="314" width="246" height="278" rx="24" fill="#f2f6ef" stroke="#cfdacb"/>
+      <text x="1218" y="354" font-size="12" letter-spacing="2" fill="#71806d">AI CONTEXT</text>
+      <text x="1218" y="398" font-size="24" font-weight="700" fill="#20251f">只带走你选择的部分</text>
+      <rect x="1218" y="438" width="186" height="70" rx="14" fill="#ffffff" stroke="#d8e2d5"/>
+      <rect x="1238" y="457" width="118" height="8" rx="4" fill="#718967" opacity=".46"/>
+      <rect x="1238" y="480" width="144" height="7" rx="3.5" fill="#8e998b" opacity=".22"/>
+      <text x="1218" y="548" font-size="13" fill="#7a8577">explicit · minimal · revocable</text>
+    </g>
+
+    <text x="756" y="850" font-size="15" text-anchor="middle" fill="#879285">keep the archive · choose the context</text>
+  </g>
 </svg>
