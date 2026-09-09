@@ -64,6 +64,23 @@
     }
   };
 
+  const metadata = {
+    zh: {
+      home: ['PAIA — Personal AI Input Archive', 'PAIA 是一个本地优先的个人 AI 输入档案与思想库：保存、整理，并重新阅读你在 AI 中表达过的信息和想法。'],
+      principles: ['PAIA 原则 — Personal AI Input Archive', 'PAIA 的产品原则：用户输入优先、原话优先、AI Context 显式授权，以及受约束的自动化。'],
+      about: ['关于 PAIA — Personal AI Input Archive', 'PAIA 是一个以用户自己的输入为中心、持续迭代的本地优先个人信息产品。'],
+      'privacy-policy': ['PAIA 隐私政策', 'PAIA 隐私政策：本地优先存储、显式 AI 授权与最小数据边界。'],
+      terms: ['PAIA 使用条款', 'PAIA Private Beta 使用条款。']
+    },
+    en: {
+      home: ['PAIA — Personal AI Input Archive', 'PAIA is a local-first personal AI input archive and thought library for preserving, organizing, and revisiting what you have expressed to AI.'],
+      principles: ['PAIA Principles — Personal AI Input Archive', 'The product principles behind PAIA: user-input first, source-faithful by default, explicit AI Context authorization, and constrained automation.'],
+      about: ['About PAIA — Personal AI Input Archive', 'Why PAIA exists, how it is designed, and how the independent product is being built.'],
+      'privacy-policy': ['PAIA Privacy Policy', 'PAIA Privacy Policy: local-first storage, explicit AI authorization, and minimal data boundaries.'],
+      terms: ['PAIA Terms', 'Terms for the PAIA private beta.']
+    }
+  };
+
   const lang = () => document.documentElement.dataset.language === 'zh' ? 'zh' : 'en';
   const setText = (selector, value) => document.querySelectorAll(selector).forEach((el) => { el.textContent = value; });
   const setHtml = (selector, value) => document.querySelectorAll(selector).forEach((el) => { el.innerHTML = value; });
@@ -84,16 +101,13 @@
     const legal = document.querySelector('[data-legal-copy]');
     if (legal) legal.innerHTML = document.body.dataset.page === 'terms' ? t.termsHTML : t.privacyHTML;
 
-    if (document.body.dataset.page === 'privacy-policy') {
-      document.title = currentLang === 'zh' ? 'PAIA 隐私政策' : 'PAIA Privacy Policy';
-    } else if (document.body.dataset.page === 'terms') {
-      document.title = currentLang === 'zh' ? 'PAIA 使用条款' : 'PAIA Terms';
-    }
-
-    const faithful = document.querySelector('.thought-scroll-story .thought-layer-faithful');
-    const organized = document.querySelector('.thought-scroll-story .thought-layer-ai');
-    if (faithful) faithful.style.backgroundImage = "url('assets/screenshots/thought-reading.svg?v=8')";
-    if (organized) organized.style.backgroundImage = "url('assets/screenshots/ai-organized.svg?v=8')";
+    const page = document.body.dataset.page || 'home';
+    const meta = (metadata[currentLang] && metadata[currentLang][page]) || metadata[currentLang].home;
+    document.title = meta[0];
+    const description = document.querySelector('meta[name="description"]');
+    if (description) description.setAttribute('content', meta[1]);
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogDescription) ogDescription.setAttribute('content', meta[1]);
   };
 
   const init = () => { apply(); window.addEventListener('paia:languagechange', apply); };
