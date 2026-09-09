@@ -20,37 +20,37 @@
 
 <g font-family="Arial,sans-serif">
 <rect x="276" y="218" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
-<text x="304" y="266" font-size="26" font-weight="700" fill="#20251f">PAIA 产品设计</text>
-<text x="304" y="308" font-size="17" fill="#5f6d5c">原话优先、阅读优先、最小授权</text>
-<text x="304" y="346" font-size="15" fill="#7d877b">如何让思想库像长期文档，而不是处理后台。</text>
+<text x="304" y="266" font-size="26" font-weight="700" fill="#20251f">产品研究</text>
+<text x="304" y="308" font-size="17" fill="#5f6d5c">用户问题、取舍与验证</text>
+<text x="304" y="346" font-size="15" fill="#7d877b">把零散判断整理成可以持续回看的主题。</text>
 <text x="304" y="405" font-size="13" fill="#9aa198">今天有新内容</text>
 
 <rect x="647" y="218" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
-<text x="675" y="266" font-size="26" font-weight="700" fill="#20251f">求职规划</text>
-<text x="675" y="308" font-size="17" fill="#5f6d5c">岗位选择、投递节奏与长期方向</text>
-<text x="675" y="346" font-size="15" fill="#7d877b">优先讨论真实选择，而不是堆岗位数量。</text>
+<text x="675" y="266" font-size="26" font-weight="700" fill="#20251f">阅读与研究</text>
+<text x="675" y="308" font-size="17" fill="#5f6d5c">文章、论文与长期问题</text>
+<text x="675" y="346" font-size="15" fill="#7d877b">保留原始理解，同时逐步形成更稳定的脉络。</text>
 <text x="675" y="405" font-size="13" fill="#9aa198">最近阅读</text>
 
 <rect x="1018" y="218" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
-<text x="1046" y="266" font-size="26" font-weight="700" fill="#20251f">论文研究</text>
-<text x="1046" y="308" font-size="17" fill="#5f6d5c">计算路径、近似选择与问题记录</text>
-<text x="1046" y="346" font-size="15" fill="#7d877b">从有效哈密顿量到数值程序的持续推进。</text>
+<text x="1046" y="266" font-size="26" font-weight="700" fill="#20251f">长期学习系统</text>
+<text x="1046" y="308" font-size="17" fill="#5f6d5c">输入、回看与复习节奏</text>
+<text x="1046" y="346" font-size="15" fill="#7d877b">从“收集更多”逐渐转向“更容易回来阅读”。</text>
 <text x="1046" y="405" font-size="13" fill="#9aa198">持续更新</text>
 
 <rect x="276" y="466" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
-<text x="304" y="514" font-size="26" font-weight="700" fill="#20251f">文学创作</text>
-<text x="304" y="556" font-size="17" fill="#5f6d5c">人物、承诺与长期主题</text>
-<text x="304" y="594" font-size="15" fill="#7d877b">保留原始语言和作品内部的价值结构。</text>
+<text x="304" y="514" font-size="26" font-weight="700" fill="#20251f">写作与创作</text>
+<text x="304" y="556" font-size="17" fill="#5f6d5c">人物、语气与长期主题</text>
+<text x="304" y="594" font-size="15" fill="#7d877b">保留原始语言，也保留尚未确定的部分。</text>
 
 <rect x="647" y="466" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
-<text x="675" y="514" font-size="26" font-weight="700" fill="#20251f">AI 工具与工作流</text>
-<text x="675" y="556" font-size="17" fill="#5f6d5c">模型选择、成本与协作方式</text>
-<text x="675" y="594" font-size="15" fill="#7d877b">复杂决策交给强模型，机械收尾降低成本。</text>
+<text x="675" y="514" font-size="26" font-weight="700" fill="#20251f">工作流</text>
+<text x="675" y="556" font-size="17" fill="#5f6d5c">工具选择、成本与协作方式</text>
+<text x="675" y="594" font-size="15" fill="#7d877b">复杂判断和机械操作分别交给合适的工具。</text>
 
 <rect x="1018" y="466" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
-<text x="1046" y="514" font-size="26" font-weight="700" fill="#20251f">产品判断</text>
-<text x="1046" y="556" font-size="17" fill="#5f6d5c">哪些能力应该交给 AI，哪些不该</text>
-<text x="1046" y="594" font-size="15" fill="#7d877b">确定性规则、用户控制和 AI 推理各自分层。</text>
+<text x="1046" y="514" font-size="26" font-weight="700" fill="#20251f">长期决策</text>
+<text x="1046" y="556" font-size="17" fill="#5f6d5c">选择、理由与后续变化</text>
+<text x="1046" y="594" font-size="15" fill="#7d877b">不仅记录结论，也保留当时为什么这样判断。</text>
 </g>
 
 <text x="276" y="770" font-family="Arial,sans-serif" font-size="14" fill="#8c958a">主题按近期新思想与阅读行为自然排序 · 无需手动置顶或切换列表</text>
