@@ -20,21 +20,21 @@
     <text x="275" y="282" font-size="13" letter-spacing="1.6" fill="#859082">最近会话</text>
 
     <rect x="275" y="312" width="1055" height="126" rx="16" fill="#fcfdfb" stroke="#dde2da"/>
-    <text x="305" y="350" font-size="24" font-weight="700" fill="#20251f">PAIA 产品设计与迭代</text>
-    <text x="305" y="385" font-size="17" fill="#687267">原话优先、思想库阅读体验、AI Context 与长期产品规划</text>
-    <text x="305" y="417" font-size="14" fill="#949b91">今天 · 38 条输入</text>
+    <text x="305" y="350" font-size="24" font-weight="700" fill="#20251f">产品研究与决策</text>
+    <text x="305" y="385" font-size="17" fill="#687267">用户访谈、功能取舍与后续验证</text>
+    <text x="305" y="417" font-size="14" fill="#949b91">今天 · 31 条输入</text>
     <text x="1245" y="377" font-size="24" fill="#9aa299">›</text>
 
     <rect x="275" y="456" width="1055" height="126" rx="16" fill="#fcfdfb" stroke="#dde2da"/>
-    <text x="305" y="494" font-size="24" font-weight="700" fill="#20251f">秋招岗位与投递规划</text>
-    <text x="305" y="529" font-size="17" fill="#687267">岗位优先级、企业研究、申请节奏与面试准备</text>
-    <text x="305" y="561" font-size="14" fill="#949b91">9 月 8 日 · 26 条输入</text>
+    <text x="305" y="494" font-size="24" font-weight="700" fill="#20251f">阅读与研究笔记</text>
+    <text x="305" y="529" font-size="17" fill="#687267">文章、论文与长期主题的持续记录</text>
+    <text x="305" y="561" font-size="14" fill="#949b91">9 月 8 日 · 24 条输入</text>
     <text x="1245" y="521" font-size="24" fill="#9aa299">›</text>
 
     <rect x="275" y="600" width="1055" height="126" rx="16" fill="#fcfdfb" stroke="#dde2da"/>
-    <text x="305" y="638" font-size="24" font-weight="700" fill="#20251f">B→K 形状因子数值计算</text>
-    <text x="305" y="673" font-size="17" fill="#687267">推导、变量映射、Fortran 数值程序与交叉核验</text>
-    <text x="305" y="705" font-size="14" fill="#949b91">9 月 6 日 · 19 条输入</text>
+    <text x="305" y="638" font-size="24" font-weight="700" fill="#20251f">旅行计划</text>
+    <text x="305" y="673" font-size="17" fill="#687267">路线、住宿选择与仍待确认的事项</text>
+    <text x="305" y="705" font-size="14" fill="#949b91">9 月 6 日 · 17 条输入</text>
     <text x="1245" y="665" font-size="24" fill="#9aa299">›</text>
 
     <line x1="275" y1="770" x2="1330" y2="770" stroke="#e2e6df"/>
