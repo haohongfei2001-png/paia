@@ -9,6 +9,6 @@
   });
 
   load('site-copy-base.js?v=3')
-    .then(() => load('experience.js?v=1'))
+    .then(() => load('experience.js?v=2'))
     .catch(() => {});
 })();
