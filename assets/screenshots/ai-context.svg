@@ -19,23 +19,23 @@
 <text x="276" y="166" font-family="Arial,sans-serif" font-size="13" fill="#8a9388">PROFILE · 默认</text>
 <rect x="276" y="190" width="1040" height="80" rx="16" fill="#fafbf8" stroke="#dfe4dc"/>
 <text x="306" y="222" font-family="Arial,sans-serif" font-size="13" fill="#8b9288">当前问题</text>
-<text x="306" y="251" font-family="Arial,sans-serif" font-size="21" fill="#20251f">我目前求职时最应该优先考虑哪些方向？</text>
+<text x="306" y="251" font-family="Arial,sans-serif" font-size="21" fill="#20251f">我应该怎样调整自己的长期学习系统，让回看旧内容更容易？</text>
 
 <text x="276" y="324" font-family="Arial,sans-serif" font-size="15" fill="#657b59">授权范围</text>
 <g font-family="Arial,sans-serif">
-<rect x="276" y="346" width="228" height="52" rx="12" fill="#eef2eb"/><text x="300" y="379" font-size="17" fill="#344130">求职规划</text>
-<rect x="520" y="346" width="228" height="52" rx="12" fill="#eef2eb"/><text x="544" y="379" font-size="17" fill="#344130">PAIA 产品设计</text>
-<rect x="764" y="346" width="228" height="52" rx="12" fill="#eef2eb"/><text x="788" y="379" font-size="17" fill="#344130">能力与偏好</text>
+<rect x="276" y="346" width="228" height="52" rx="12" fill="#eef2eb"/><text x="300" y="379" font-size="17" fill="#344130">长期学习系统</text>
+<rect x="520" y="346" width="228" height="52" rx="12" fill="#eef2eb"/><text x="544" y="379" font-size="17" fill="#344130">阅读与研究</text>
+<rect x="764" y="346" width="228" height="52" rx="12" fill="#eef2eb"/><text x="788" y="379" font-size="17" fill="#344130">工作流</text>
 <rect x="1008" y="346" width="228" height="52" rx="12" fill="#f7f8f4" stroke="#dfe4dc"/><text x="1032" y="379" font-size="17" fill="#7a8378">+ 选择主题</text>
 </g>
 
 <text x="276" y="458" font-family="Arial,sans-serif" font-size="15" fill="#657b59">Context Preview</text>
 <rect x="276" y="484" width="1040" height="246" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
-<text x="306" y="524" font-family="Arial,sans-serif" font-size="13" fill="#8b9288">当前 · 与问题高度相关 · 来自「求职规划」</text>
-<text x="306" y="562" font-family="Arial,sans-serif" font-size="20" fill="#20251f">优先考虑 AI 产品、策略分析、咨询与半导体管理培训等方向。</text>
+<text x="306" y="524" font-family="Arial,sans-serif" font-size="13" fill="#8b9288">当前 · 与问题高度相关 · 来自「长期学习系统」</text>
+<text x="306" y="562" font-family="Arial,sans-serif" font-size="20" fill="#20251f">过去几个月的判断逐渐从“收集更多”转向“降低重新阅读旧内容的成本”。</text>
 <line x1="306" y1="590" x2="1284" y2="590" stroke="#e5e8e2"/>
-<text x="306" y="624" font-family="Arial,sans-serif" font-size="13" fill="#8b9288">当前 · 人工确认 · 来自「PAIA 产品设计」</text>
-<text x="306" y="662" font-family="Arial,sans-serif" font-size="20" fill="#20251f">已独立推进从产品定义、信息架构到 Chrome 产品落地的持续迭代。</text>
+<text x="306" y="624" font-family="Arial,sans-serif" font-size="13" fill="#8b9288">当前 · 人工确认 · 来自「工作流」</text>
+<text x="306" y="662" font-family="Arial,sans-serif" font-size="20" fill="#20251f">希望减少持续手工整理，把更多注意力留给真正的阅读和判断。</text>
 <text x="1158" y="706" font-family="Arial,sans-serif" font-size="13" fill="#7f887d">本次移除</text>
 
 <text x="276" y="786" font-family="Arial,sans-serif" font-size="13" fill="#8b9288">标准预算 · 本地检索 · 来源可追溯 · 复制前可预览</text>
