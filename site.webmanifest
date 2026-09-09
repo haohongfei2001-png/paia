@@ -1,6 +1,7 @@
 {
   "name": "PAIA — Personal AI Input Archive",
   "short_name": "PAIA",
+  "id": "./",
   "description": "Your private archive for what you say to AI.",
   "start_url": "./",
   "scope": "./",
@@ -9,10 +10,22 @@
   "theme_color": "#f7f8f4",
   "icons": [
     {
-      "src": "assets/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
