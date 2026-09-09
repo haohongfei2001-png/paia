@@ -15,17 +15,17 @@
 <text x="1215" y="62" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#31402d">倒序</text>
 <text x="1328" y="62" font-family="Arial,sans-serif" font-size="14" fill="#657b59">版本历史</text>
 
-<text x="454" y="150" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#20251f">产品规划与迭代</text>
+<text x="454" y="150" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#20251f">产品研究与决策</text>
 <text x="454" y="204" font-family="Arial,sans-serif" font-size="15" fill="#8c958a">2026年9月8日</text>
 
 <text x="454" y="278" font-family="Arial,sans-serif" font-size="15" fill="#9aa198">21:48</text>
-<text x="454" y="320" font-family="Arial,sans-serif" font-size="27" fill="#20251f">我希望把分散在 AI 对话里的输入重新整理成长期可以阅读的资料。</text>
+<text x="454" y="320" font-family="Arial,sans-serif" font-size="27" fill="#20251f">我更想先解决用户真正会反复遇到的问题，而不是一次塞进很多功能。</text>
 <text x="454" y="390" font-family="Arial,sans-serif" font-size="15" fill="#9aa198">22:13</text>
-<text x="454" y="432" font-family="Arial,sans-serif" font-size="27" fill="#20251f">默认应该保留原话，AI 只负责分类、组织和必要的综合理解。</text>
+<text x="454" y="432" font-family="Arial,sans-serif" font-size="27" fill="#20251f">第一版应该让新用户很快看到价值，而不是要求他们先学习复杂的设置。</text>
 <text x="454" y="502" font-family="Arial,sans-serif" font-size="15" fill="#9aa198">22:27</text>
-<text x="454" y="544" font-family="Arial,sans-serif" font-size="27" fill="#20251f">用户自己的编辑不能被后续同步静默覆盖。</text>
+<text x="454" y="544" font-family="Arial,sans-serif" font-size="27" fill="#20251f">重要的历史信息需要能追溯来源，也要允许用户保留自己的修改。</text>
 <text x="454" y="614" font-family="Arial,sans-serif" font-size="15" fill="#9aa198">23:05</text>
-<text x="454" y="656" font-family="Arial,sans-serif" font-size="27" fill="#20251f">阅读界面应该把系统处理状态退到后台，让正文保持稳定。</text>
+<text x="454" y="656" font-family="Arial,sans-serif" font-size="27" fill="#20251f">阅读界面应该尽量安静，让正文比系统状态更突出。</text>
 
 <line x1="454" y1="720" x2="1320" y2="720" stroke="#e1e5de"/>
 <text x="454" y="764" font-family="Arial,sans-serif" font-size="14" fill="#7d867b">连续阅读 · 自动保存 · 来源可追溯</text>
