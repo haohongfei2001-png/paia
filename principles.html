@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PAIA Principles — Personal AI Input Archive</title>
+  <meta name="description" content="PAIA 的核心产品判断：以用户输入为中心、原话优先、AI Context 显式授权，以及受约束的自动化。" />
+  <meta property="og:title" content="PAIA Principles" />
+  <meta property="og:description" content="The product principles behind PAIA." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#f7f8f4" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="返回 PAIA 首页">
+      <span class="brand-mark">P</span>
+      <span>PAIA</span>
+    </a>
+    <nav class="nav" aria-label="页面导航">
+      <a href="index.html#product">产品</a>
+      <a href="principles.html" aria-current="page">产品判断</a>
+      <a href="index.html#privacy">隐私</a>
+      <a href="about.html">关于项目</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero section">
+      <div class="eyebrow">PAIA PRINCIPLES</div>
+      <h1>Product decisions<br />behind PAIA.</h1>
+      <p class="hero-cn">这些判断定义了 PAIA 与普通 AI 历史工具之间的边界。</p>
+      <a class="text-link" href="index.html">← 返回产品首页</a>
+    </section>
+
+    <section class="section story-section story-reverse" id="decisions">
+      <div class="story-copy">
+        <div class="section-kicker">Product Decisions</div>
+        <h2>三个决定，定义了 PAIA 与普通 AI 历史工具的差异。</h2>
+        <div class="decision-list">
+          <article>
+            <span>01</span>
+            <div><h3>为什么以用户输入为中心？</h3><p>AI 回复会随模型和场景变化，而用户自己的事实、判断和想法才是更稳定的长期资产。PAIA 首先保存“我说过什么”。</p></div>
+          </article>
+          <article>
+            <span>02</span>
+            <div><h3>为什么先原话，再 AI 整理？</h3><p>总结提高效率，但也会损失语气、过程和不确定性。默认层保持 source-faithful，AI 只提供可关闭的派生理解。</p></div>
+          </article>
+          <article>
+            <span>03</span>
+            <div><h3>为什么 AI Context 必须显式授权？</h3><p>个人信息系统不应默认把整个数据库交给模型。上下文应当最小、可解释、可撤销，并始终服从用户的授权边界。</p></div>
+          </article>
+          <article>
+            <span>04</span>
+            <div><h3>为什么不把所有能力都自动化？</h3><p>PAIA 把确定性规则、用户工作和 AI 推理分开：程序负责稳定边界，用户保留最终控制，AI 只处理真正需要语义判断的部分。目标不是“AI 做得越多越好”，而是让每一层承担最适合它的职责。</p></div>
+          </article>
+        </div>
+      </div>
+      <figure class="story-visual">
+        <img src="assets/screenshots/product-decisions.svg" alt="PAIA 四项核心产品判断示意图" loading="lazy" />
+        <figcaption>四项判断共同决定 PAIA 的产品边界。</figcaption>
+      </figure>
+    </section>
+  </main>
+
+  <footer>
+    <span>PAIA · Personal AI Input Archive</span>
+    <a href="index.html">返回首页</a>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
