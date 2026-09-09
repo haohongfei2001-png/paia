@@ -1,8 +1,14 @@
 (() => {
   const copy = {
     zh: {
-      navPrinciples: '原则', navAbout: '关于', heroBeta: '加入 Private Beta', heroProblem: '从问题开始',
+      navPrinciples: '原则', navAbout: '关于', heroBeta: '加入 Private Beta', heroProblem: '查看产品',
+      heroPrincipleLocal: '本地优先', heroPrincipleSource: '原话始终保留', heroPrincipleAI: 'AI 仅在你允许时访问',
       availability: 'Chrome Extension · ChatGPT Web · Private Beta',
+      thoughtTitle: '让散落在聊天里的表达，重新回到长期思考的脉络里。',
+      aiCaption: '在原话之上，打开一个可随时关闭的 AI 综合理解层。',
+      privacyTitle: 'Your archive stays yours.',
+      privacyP1: 'PAIA 的核心档案默认留在本机。保存、历史补全、检索、备份和大多数组织逻辑优先在本地完成。',
+      privacyP2: '外部 AI 不是档案的默认读取者。只有用户明确授权并预览的必要内容才会离开本地边界；来源与授权状态始终可追溯、可撤销。',
       closingTitle: '你一路对 AI 说过的话，<br />应该有一个真正属于自己的地方。',
       closingBody: 'PAIA 保存你说过的话，让散落的输入重新成为可以阅读、回看的长期记录。只有你明确选择的部分，才会成为 AI 的上下文。',
       closingButton: '加入 Private Beta', closingPrinciples: '查看产品原则',
@@ -53,8 +59,14 @@
         <h2>7. 联系</h2><p>有关 Private Beta 或这些条款的问题，请联系 <a href="mailto:haohongfei2001@gmail.com">haohongfei2001@gmail.com</a>。</p>`
     },
     en: {
-      navPrinciples: 'Principles', navAbout: 'About', heroBeta: 'Join the Private Beta', heroProblem: 'Start with the problem',
+      navPrinciples: 'Principles', navAbout: 'About', heroBeta: 'Join the Private Beta', heroProblem: 'View product',
+      heroPrincipleLocal: 'Local-first', heroPrincipleSource: 'Your words stay intact', heroPrincipleAI: 'AI access only when you allow it',
       availability: 'Chrome Extension · ChatGPT Web · Private Beta',
+      thoughtTitle: 'Bring scattered expressions back into the thread of your long-term thinking.',
+      aiCaption: 'Add a switchable AI synthesis layer on top of the source, without replacing it.',
+      privacyTitle: 'Your archive stays yours.',
+      privacyP1: 'PAIA keeps the core archive on your device by default. Capture, history backfill, retrieval, backup, and most organizational logic are designed to happen locally first.',
+      privacyP2: 'External AI is not a default reader of your archive. Only the necessary material you explicitly authorize and preview crosses that boundary; source and authorization state remain traceable and revocable.',
       closingTitle: 'What you’ve told AI over time<br />should have a place that is truly yours.',
       closingBody: 'PAIA preserves what you said and turns scattered inputs into a long-term record you can read and revisit. Only the parts you explicitly choose become context for AI.',
       closingButton: 'Join the Private Beta', closingPrinciples: 'View product principles',
@@ -140,6 +152,9 @@
     const t = copy[currentLang];
     setText('[data-site-nav-principles]', t.navPrinciples); setText('[data-site-nav-about]', t.navAbout);
     setText('[data-site-hero-beta]', t.heroBeta); setText('[data-site-hero-problem]', t.heroProblem); setText('[data-site-availability]', t.availability);
+    setText('[data-site-hero-principle-local]', t.heroPrincipleLocal); setText('[data-site-hero-principle-source]', t.heroPrincipleSource); setText('[data-site-hero-principle-ai]', t.heroPrincipleAI);
+    setText('[data-site-thought-title]', t.thoughtTitle); setText('[data-site-ai-caption]', t.aiCaption);
+    setText('[data-site-privacy-title]', t.privacyTitle); setText('[data-site-privacy-p1]', t.privacyP1); setText('[data-site-privacy-p2]', t.privacyP2);
     setHtml('[data-site-closing-title]', t.closingTitle); setText('[data-site-closing-body]', t.closingBody);
     setText('[data-site-closing-button]', t.closingButton); setText('[data-site-closing-principles]', t.closingPrinciples);
     setHtml('[data-site-about-hero-title]', t.aboutHeroTitle); setText('[data-site-about-hero-subtitle]', t.aboutHeroSubtitle);
