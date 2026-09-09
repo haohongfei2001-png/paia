@@ -17,163 +17,6 @@ if ('IntersectionObserver' in window && !reduceMotion) {
 const thoughtTransform = document.querySelector('[data-thought-transform]');
 
 if (thoughtTransform) {
-  const style = document.createElement('style');
-  style.textContent = `
-    .thought-scroll-story {
-      position: relative;
-      min-height: 122vh;
-      margin-top: 2px;
-    }
-
-    .thought-scroll-story .thought-transform {
-      position: sticky;
-      top: clamp(82px, 11vh, 116px);
-      overflow: hidden;
-      z-index: 2;
-      background: #f8faf6;
-      border-color: rgba(205,216,201,.95);
-      box-shadow: 0 22px 58px rgba(36,45,34,.08);
-    }
-
-    .thought-scroll-story .thought-transform-head,
-    .thought-scroll-story .thought-transform-caption,
-    .thought-scroll-story .thought-transform-flare {
-      display: none !important;
-    }
-
-    .thought-scroll-story .thought-transform::before {
-      display: none !important;
-    }
-
-    .thought-scroll-story .thought-transform-canvas {
-      position: relative;
-      aspect-ratio: 3 / 2;
-      overflow: hidden;
-      border-radius: 19px;
-      background: #fbfcf9;
-      isolation: isolate;
-    }
-
-    .thought-scroll-story .thought-layer {
-      position: absolute;
-      inset: 0;
-      margin: 0;
-      background-repeat: no-repeat;
-      background-size: contain;
-      background-position: center;
-      background-color: #fbfcf9;
-      transition: none !important;
-      will-change: opacity, transform, filter;
-    }
-
-    .thought-scroll-story .thought-layer img {
-      position: absolute !important;
-      width: 1px !important;
-      height: 1px !important;
-      opacity: 0 !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-      overflow: hidden !important;
-    }
-
-    .thought-scroll-story .thought-layer-faithful {
-      z-index: 1;
-      background-image: url('assets/screenshots/thought-reading.svg?v=7');
-      opacity: var(--faithful-opacity, 1) !important;
-      transform: scale(var(--faithful-scale, 1)) !important;
-      filter: blur(var(--faithful-blur, 0px)) saturate(var(--faithful-saturation, 1)) !important;
-    }
-
-    .thought-scroll-story .thought-layer-ai {
-      z-index: 2;
-      background-image: url('assets/screenshots/ai-organized.svg?v=7');
-      opacity: var(--ai-opacity, 0) !important;
-      transform: translateY(var(--ai-y, 12px)) scale(var(--ai-scale, .992)) !important;
-      filter: blur(var(--ai-blur, 7px)) saturate(var(--ai-saturation, .94)) !important;
-    }
-
-    .memory-fog {
-      position: absolute;
-      z-index: 3;
-      inset: 0;
-      pointer-events: none;
-      opacity: var(--fog-opacity, 0);
-      background: rgba(244,248,242,.38);
-      backdrop-filter: blur(var(--fog-blur, 0px));
-      -webkit-backdrop-filter: blur(var(--fog-blur, 0px));
-      will-change: opacity, backdrop-filter;
-    }
-
-    .memory-fragment {
-      position: absolute;
-      z-index: 4;
-      border: 1px solid rgba(191,205,186,.72);
-      border-radius: 14px;
-      background: rgba(248,250,247,.58);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 7px 20px rgba(43,53,40,.05);
-      opacity: 0;
-      overflow: hidden;
-      pointer-events: none;
-      will-change: transform, opacity;
-    }
-
-    .memory-fragment::before,
-    .memory-fragment::after {
-      content: '';
-      position: absolute;
-      left: 12%;
-      height: 7px;
-      border-radius: 999px;
-      background: rgba(102,123,94,.17);
-    }
-
-    .memory-fragment::before {
-      top: 31%;
-      width: 64%;
-    }
-
-    .memory-fragment::after {
-      top: 56%;
-      width: 44%;
-      background: rgba(92,106,88,.12);
-    }
-
-    .memory-fragment.fragment-1 { left: 26%; top: 28%; width: 25%; height: 13%; }
-    .memory-fragment.fragment-2 { left: 57%; top: 29%; width: 24%; height: 12%; }
-    .memory-fragment.fragment-3 { left: 27%; top: 48%; width: 19%; height: 13%; }
-    .memory-fragment.fragment-4 { left: 49%; top: 48%; width: 19%; height: 13%; }
-    .memory-fragment.fragment-5 { left: 71%; top: 48%; width: 18%; height: 13%; }
-    .memory-fragment.fragment-6 { left: 29%; top: 69%; width: 28%; height: 10%; }
-    .memory-fragment.fragment-7 { left: 61%; top: 69%; width: 25%; height: 10%; }
-
-    .memory-settled-haze {
-      position: absolute;
-      z-index: 5;
-      inset: 0;
-      pointer-events: none;
-      opacity: var(--settled-opacity, 0);
-      background:
-        radial-gradient(circle at 63% 42%, rgba(224,233,219,.18), transparent 36%),
-        linear-gradient(180deg, rgba(249,251,248,.02), rgba(236,242,233,.10));
-      mix-blend-mode: normal;
-      will-change: opacity;
-    }
-
-    @media (max-width: 900px) {
-      .thought-scroll-story { min-height: 116vh; }
-      .thought-scroll-story .thought-transform { top: 80px; }
-    }
-
-    @media (max-width: 620px) {
-      .thought-scroll-story { min-height: 112vh; }
-      .thought-scroll-story .thought-transform { top: 72px; }
-      .memory-fragment { border-radius: 10px; }
-    }
-  `;
-  document.head.appendChild(style);
-
   const faithfulLayer = thoughtTransform.querySelector('.thought-layer-faithful');
   const aiLayer = thoughtTransform.querySelector('.thought-layer-ai');
   const canvas = thoughtTransform.querySelector('.thought-transform-canvas');
@@ -182,8 +25,22 @@ if (thoughtTransform) {
     if (!layer) return;
     layer.setAttribute('role', 'img');
   });
-  if (faithfulLayer) faithfulLayer.setAttribute('aria-label', 'PAIA Thought Library 原始思路历程视图，AI整理关闭');
-  if (aiLayer) aiLayer.setAttribute('aria-label', 'PAIA Thought Library AI整理后的完整主题阅读视图，AI整理开启');
+
+  const updateThoughtAria = () => {
+    const isZh = document.documentElement.dataset.language === 'zh';
+    if (faithfulLayer) {
+      faithfulLayer.setAttribute('aria-label', isZh
+        ? 'PAIA Thought Library 原始思路历程视图，AI 整理关闭'
+        : 'PAIA Thought Library source-faithful view with AI organization off');
+    }
+    if (aiLayer) {
+      aiLayer.setAttribute('aria-label', isZh
+        ? 'PAIA Thought Library AI 整理后的完整主题阅读视图，AI 整理开启'
+        : 'PAIA Thought Library AI-organized topic view with AI organization on');
+    }
+  };
+  updateThoughtAria();
+  window.addEventListener('paia:languagechange', updateThoughtAria);
 
   thoughtTransform.querySelectorAll('.thought-layer img').forEach((img) => {
     img.alt = '';
@@ -240,13 +97,9 @@ if (thoughtTransform) {
     if (Math.abs(progress - lastProgress) < 0.001) return;
     lastProgress = progress;
 
-    const loosen = smoothstep((progress - 0.08) / 0.24);
-    const assemble = smoothstep((progress - 0.24) / 0.44);
     const resolve = smoothstep((progress - 0.50) / 0.40);
-
     const faithfulExit = smoothstep((progress - 0.20) / 0.54);
     const aiEnter = smoothstep((progress - 0.40) / 0.46);
-
     const fogIn = smoothstep((progress - 0.10) / 0.22);
     const fogOut = smoothstep((progress - 0.60) / 0.24);
     const fogOpacity = fogIn * (1 - fogOut) * 0.72;
