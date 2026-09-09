@@ -5,6 +5,8 @@
     zh: {
       headerBeta: '加入内测',
       productAlt: 'PAIA 产品界面预览',
+      product: '产品', principles: '原则', privacy: '隐私', about: '关于',
+      menuOpen: '打开导航', menuClose: '关闭导航',
       betaSubmitting: '提交中…',
       betaSuccessTitle: '申请已提交。',
       betaSuccessBody: '感谢你对 PAIA Private Beta 的兴趣。如果适合当前测试范围，我会通过邮件联系你。',
@@ -14,6 +16,8 @@
     en: {
       headerBeta: 'Join beta',
       productAlt: 'PAIA product interface preview',
+      product: 'Product', principles: 'Principles', privacy: 'Privacy', about: 'About',
+      menuOpen: 'Open navigation', menuClose: 'Close navigation',
       betaSubmitting: 'Submitting…',
       betaSuccessTitle: 'Application submitted.',
       betaSuccessBody: 'Thanks for your interest in the PAIA Private Beta. If you fit the current testing scope, I’ll follow up by email.',
@@ -23,32 +27,17 @@
   };
 
   const productViews = {
-    archive: {
-      zh: 'assets/screenshots/input-archive-home.svg?v=3',
-      en: 'assets/screenshots/input-archive-home-en.svg?v=1'
-    },
-    thoughts: {
-      zh: 'assets/screenshots/thought-library.svg?v=3',
-      en: 'assets/screenshots/thought-library-en.svg?v=1'
-    },
-    context: {
-      zh: 'assets/screenshots/ai-context.svg?v=3',
-      en: 'assets/screenshots/ai-context-en.svg?v=1'
-    }
+    archive: { zh: 'assets/screenshots/input-archive-home.svg?v=3', en: 'assets/screenshots/input-archive-home-en.svg?v=1' },
+    thoughts: { zh: 'assets/screenshots/thought-library.svg?v=3', en: 'assets/screenshots/thought-library-en.svg?v=1' },
+    context: { zh: 'assets/screenshots/ai-context.svg?v=3', en: 'assets/screenshots/ai-context-en.svg?v=1' }
   };
 
-  const installStyles = () => {
-    if (document.getElementById('paia-experience-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'paia-experience-styles';
-    style.textContent = `
-      .header-beta{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 13px;border:1px solid #cfd8cb;border-radius:999px;background:#eef2eb;color:#3f503a!important;font-size:12.5px;font-weight:650;white-space:nowrap;transition:background .2s ease,border-color .2s ease,transform .2s ease}.header-beta:hover{background:#e6ece2;border-color:#bdc9b8;transform:translateY(-1px)}
-      .hero-product-proof{margin-top:64px}.hero-product-tabs{display:flex;align-items:center;gap:8px;margin:0 0 14px;overflow-x:auto;scrollbar-width:none}.hero-product-tabs::-webkit-scrollbar{display:none}.hero-product-tab{appearance:none;border:0;border-radius:999px;background:transparent;color:#6f796d;padding:8px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s ease,color .2s ease}.hero-product-tab[aria-selected="true"]{background:#e9eee6;color:#354332}.hero-product-frame{position:relative;overflow:hidden;border:1px solid #d6ddd2;border-radius:24px;background:#fbfcf9;box-shadow:0 30px 90px rgba(36,45,34,.10)}.hero-product-frame::before{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.72);z-index:1}.hero-product-frame img{width:100%;display:block;background:#fff}.hero-product-meta{display:flex;justify-content:space-between;gap:14px;margin-top:12px;color:#687267;font-size:11.5px;line-height:1.5}.hero-product-meta span:last-child{text-align:right}
-      .beta-submit[aria-busy="true"]{opacity:.68;cursor:progress;pointer-events:none}.beta-form-status{min-height:22px;margin:0;color:#687267;font-size:13px}.beta-form-status.is-error{color:#8d4138}.beta-inline-success{padding:34px 0 12px;border-top:1px solid var(--line)}.beta-inline-success .eyebrow{margin-bottom:18px}.beta-inline-success h2{margin-bottom:14px}.beta-inline-success p{max-width:560px;margin-bottom:24px}.beta-inline-success .text-link{font-size:14px}
-      @media(max-width:900px){.nav{gap:10px}.header-beta{min-height:32px;padding:0 11px}.hero-product-proof{margin-top:48px}.hero-product-frame{border-radius:20px}}
-      @media(max-width:620px){.site-header{padding-left:16px;padding-right:16px}.nav .nav-product,.nav .nav-principles,.nav .nav-privacy,.nav .nav-about{display:none!important}.header-beta{display:inline-flex!important}.nav{gap:9px}.hero-product-proof{margin-top:42px}.hero-product-frame{border-radius:16px}.hero-product-meta{display:none}}
-    `;
-    document.head.appendChild(style);
+  const ensureExperienceStylesheet = () => {
+    if (document.querySelector('link[href^="experience.css"]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'experience.css?v=1';
+    document.head.appendChild(link);
   };
 
   const installPlatformIcons = () => {
@@ -75,6 +64,7 @@
       if (!cta) {
         cta = document.createElement('a');
         cta.className = 'header-beta';
+        cta.setAttribute('data-experience-header-beta', '');
         const toggle = nav.querySelector('[data-language-toggle]');
         nav.insertBefore(cta, toggle || null);
       }
@@ -85,7 +75,7 @@
     });
   };
 
-  const updateHeroProduct = () => {
+  const updateHeroProduct = (animate = false) => {
     const proof = document.querySelector('.hero-product-proof');
     if (!proof) return;
     const lang = currentLang();
@@ -95,41 +85,86 @@
     const src = productViews[view][lang];
     if (img.getAttribute('src') !== src) {
       img.src = src;
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && img.animate) {
-        img.animate([{opacity:.55,transform:'scale(.997)'},{opacity:1,transform:'scale(1)'}], {duration:260,easing:'ease-out'});
+      if (animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && img.animate) {
+        img.animate([{opacity:.58, transform:'scale(.997)'}, {opacity:1, transform:'scale(1)'}], {duration:240, easing:'ease-out'});
       }
     }
     const label = view === 'archive' ? 'Input Archive' : view === 'thoughts' ? 'Thought Library' : 'AI Context';
     img.alt = `${text[lang].productAlt} · ${label}`;
+    proof.querySelectorAll('[data-product-view]').forEach((button) => {
+      button.setAttribute('aria-selected', String(button.dataset.productView === view));
+    });
   };
 
-  const ensureHeroProduct = () => {
-    if (document.body.dataset.page !== 'home') return;
-    const hero = document.querySelector('.hero');
-    if (!hero) return;
-    let proof = hero.querySelector('.hero-product-proof');
-    if (!proof) {
-      proof = document.createElement('div');
-      proof.className = 'hero-product-proof';
-      proof.dataset.activeView = 'archive';
-      proof.innerHTML = `
-        <div class="hero-product-tabs" role="tablist" aria-label="PAIA product views">
-          <button class="hero-product-tab" type="button" role="tab" data-product-view="archive" aria-selected="true">Input Archive</button>
-          <button class="hero-product-tab" type="button" role="tab" data-product-view="thoughts" aria-selected="false">Thought Library</button>
-          <button class="hero-product-tab" type="button" role="tab" data-product-view="context" aria-selected="false">AI Context</button>
-        </div>
-        <div class="hero-product-frame"><img data-hero-product-image alt="" decoding="async" fetchpriority="high" /></div>
-        <div class="hero-product-meta"><span>Local-first product preview</span><span>Input Archive → Thought Library → AI Context</span></div>`;
-      hero.appendChild(proof);
-      proof.querySelectorAll('[data-product-view]').forEach((button) => {
-        button.addEventListener('click', () => {
-          proof.dataset.activeView = button.dataset.productView;
-          proof.querySelectorAll('[data-product-view]').forEach((b) => b.setAttribute('aria-selected', String(b === button)));
-          updateHeroProduct();
-        });
+  const bindHeroProduct = () => {
+    const proof = document.querySelector('.hero-product-proof');
+    if (!proof || proof.dataset.bound === 'true') return;
+    proof.dataset.bound = 'true';
+    proof.querySelectorAll('[data-product-view]').forEach((button) => {
+      button.addEventListener('click', () => {
+        proof.dataset.activeView = button.dataset.productView;
+        updateHeroProduct(true);
+      });
+    });
+    updateHeroProduct(false);
+  };
+
+  const ensureMobileMenu = () => {
+    const header = document.querySelector('.site-header');
+    const nav = header?.querySelector('.nav');
+    if (!header || !nav) return;
+    const t = text[currentLang()];
+
+    let button = nav.querySelector('[data-mobile-menu-button]');
+    if (!button) {
+      button = document.createElement('button');
+      button.className = 'mobile-menu-button';
+      button.type = 'button';
+      button.setAttribute('data-mobile-menu-button', '');
+      button.setAttribute('aria-expanded', 'false');
+      button.innerHTML = '<span></span><span></span><span></span>';
+      nav.appendChild(button);
+    }
+
+    let panel = header.querySelector('[data-mobile-menu]');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.className = 'mobile-menu-panel';
+      panel.setAttribute('data-mobile-menu', '');
+      header.appendChild(panel);
+    }
+
+    const homePrefix = document.body.dataset.page === 'home' ? '' : 'index.html';
+    panel.innerHTML = `
+      <a href="${homePrefix}#product">${t.product}</a>
+      <a href="principles.html">${t.principles}</a>
+      <a href="${homePrefix}#privacy">${t.privacy}</a>
+      <a href="about.html">${t.about}</a>`;
+
+    const syncButton = () => {
+      const open = panel.classList.contains('is-open');
+      button.setAttribute('aria-expanded', String(open));
+      button.setAttribute('aria-label', open ? t.menuClose : t.menuOpen);
+    };
+    syncButton();
+
+    if (button.dataset.bound !== 'true') {
+      button.dataset.bound = 'true';
+      button.addEventListener('click', () => {
+        panel.classList.toggle('is-open');
+        syncButton();
+      });
+      document.addEventListener('click', (event) => {
+        if (!panel.classList.contains('is-open')) return;
+        if (header.contains(event.target)) return;
+        panel.classList.remove('is-open');
+        syncButton();
       });
     }
-    updateHeroProduct();
+    panel.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
+      panel.classList.remove('is-open');
+      syncButton();
+    }));
   };
 
   const ensureAlternates = () => {
@@ -143,9 +178,9 @@
         link.hreflang = code;
         document.head.appendChild(link);
       }
-      const u = new URL(base.href);
-      if (code !== 'x-default') u.searchParams.set('lang', code);
-      link.href = u.href;
+      const url = new URL(base.href);
+      if (code !== 'x-default') url.searchParams.set('lang', code);
+      link.href = url.href;
     });
   };
 
@@ -201,9 +236,7 @@
       data.delete('_next');
       try {
         const response = await fetch('https://formsubmit.co/ajax/haohongfei2001@gmail.com', {
-          method: 'POST',
-          body: data,
-          headers: { 'Accept': 'application/json' }
+          method: 'POST', body: data, headers: { 'Accept': 'application/json' }
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         form.innerHTML = `
@@ -223,16 +256,24 @@
     });
   };
 
+  const refineFooter = () => {
+    document.querySelectorAll('.footer-brand small').forEach((small) => {
+      small.textContent = currentLang() === 'zh' ? 'Private Beta' : 'Private beta';
+    });
+  };
+
   const apply = () => {
-    installStyles();
+    ensureExperienceStylesheet();
     installPlatformIcons();
     ensureHeaderCta();
-    ensureHeroProduct();
+    ensureMobileMenu();
+    bindHeroProduct();
     ensureAlternates();
     syncLanguageUrl();
     propagateLanguageLinks();
     enhanceBetaForm();
-    updateHeroProduct();
+    refineFooter();
+    updateHeroProduct(false);
   };
 
   const init = () => {
