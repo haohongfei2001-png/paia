@@ -3,9 +3,7 @@
   const currentLang = () => zh() ? 'zh' : 'en';
   const text = {
     zh: {
-      headerBeta: '加入内测',
-      productLink: '查看产品',
-      productAlt: 'PAIA 产品界面预览',
+      headerBeta: '加入内测', productAlt: 'PAIA 产品界面预览',
       product: '产品', principles: '原则', privacy: '隐私', about: '关于',
       menuOpen: '打开导航', menuClose: '关闭导航',
       betaSubmitting: '提交中…',
@@ -15,9 +13,7 @@
       back: '返回 PAIA'
     },
     en: {
-      headerBeta: 'Join beta',
-      productLink: 'See the product',
-      productAlt: 'PAIA product interface preview',
+      headerBeta: 'Join beta', productAlt: 'PAIA product interface preview',
       product: 'Product', principles: 'Principles', privacy: 'Privacy', about: 'About',
       menuOpen: 'Open navigation', menuClose: 'Close navigation',
       betaSubmitting: 'Submitting…',
@@ -32,14 +28,6 @@
     archive: { zh: 'assets/screenshots/input-archive-home.svg?v=3', en: 'assets/screenshots/input-archive-home-en.svg?v=1' },
     thoughts: { zh: 'assets/screenshots/thought-library.svg?v=3', en: 'assets/screenshots/thought-library-en.svg?v=1' },
     context: { zh: 'assets/screenshots/ai-context.svg?v=3', en: 'assets/screenshots/ai-context-en.svg?v=1' }
-  };
-
-  const ensureExperienceStylesheet = () => {
-    if (document.querySelector('link[href^="experience.css"]')) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'experience.css?v=1';
-    document.head.appendChild(link);
   };
 
   const installPlatformIcons = () => {
@@ -88,7 +76,7 @@
     if (img.getAttribute('src') !== src) {
       img.src = src;
       if (animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && img.animate) {
-        img.animate([{opacity:.58, transform:'scale(.997)'}, {opacity:1, transform:'scale(1)'}], {duration:240, easing:'ease-out'});
+        img.animate([{ opacity: .72 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
       }
     }
     const label = view === 'archive' ? 'Input Archive' : view === 'thoughts' ? 'Thought Library' : 'AI Context';
@@ -157,8 +145,7 @@
         syncButton();
       });
       document.addEventListener('click', (event) => {
-        if (!panel.classList.contains('is-open')) return;
-        if (header.contains(event.target)) return;
+        if (!panel.classList.contains('is-open') || header.contains(event.target)) return;
         panel.classList.remove('is-open');
         syncButton();
       });
@@ -238,7 +225,7 @@
       data.delete('_next');
       try {
         const response = await fetch('https://formsubmit.co/ajax/haohongfei2001@gmail.com', {
-          method: 'POST', body: data, headers: { 'Accept': 'application/json' }
+          method: 'POST', body: data, headers: { Accept: 'application/json' }
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         form.innerHTML = `
@@ -264,14 +251,7 @@
     });
   };
 
-  const refineHeroLink = () => {
-    document.querySelectorAll('[data-site-hero-problem]').forEach((el) => {
-      el.textContent = text[currentLang()].productLink;
-    });
-  };
-
   const apply = () => {
-    ensureExperienceStylesheet();
     installPlatformIcons();
     ensureHeaderCta();
     ensureMobileMenu();
@@ -281,7 +261,6 @@
     propagateLanguageLinks();
     enhanceBetaForm();
     refineFooter();
-    refineHeroLink();
     updateHeroProduct(false);
   };
 
@@ -290,6 +269,6 @@
     window.addEventListener('paia:languagechange', apply);
   };
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
 })();
