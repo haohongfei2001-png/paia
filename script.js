@@ -15,54 +15,42 @@ if ('IntersectionObserver' in window && !reduceMotion) {
 }
 
 const thoughtTransform = document.querySelector('[data-thought-transform]');
-if (thoughtTransform) {
-  const toggle = thoughtTransform.querySelector('.thought-demo-toggle');
+if (thoughtTransform && !reduceMotion) {
   let active = false;
-  let lastScrollY = window.scrollY;
   let ticking = false;
 
   const setActive = (next) => {
     if (active === next) return;
     active = next;
     thoughtTransform.classList.toggle('ai-active', active);
-    if (toggle) toggle.setAttribute('aria-pressed', String(active));
   };
 
-  // The switch is now a visual state indicator. The page scroll controls the demo.
-  if (toggle) {
-    toggle.disabled = true;
-    toggle.setAttribute('aria-hidden', 'true');
-    toggle.setAttribute('tabindex', '-1');
-    toggle.style.pointerEvents = 'none';
-    toggle.style.cursor = 'default';
-  }
-
-  const updateFromScroll = () => {
+  const updateFromScrollPosition = () => {
     ticking = false;
-
-    const currentScrollY = window.scrollY;
-    const delta = currentScrollY - lastScrollY;
-    lastScrollY = currentScrollY;
-
-    if (Math.abs(delta) < 2) return;
 
     const rect = thoughtTransform.getBoundingClientRect();
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
-    // Only react while the transformation demo is meaningfully inside the viewport.
-    const inNarrativeZone = rect.top < viewportHeight * 0.78 && rect.bottom > viewportHeight * 0.22;
-    if (!inNarrativeZone) return;
+    // Use the element's position instead of scroll direction alone. As the user
+    // moves down through the Thought Library section, the demo crosses a stable
+    // viewport threshold and becomes the AI-organized view. Scrolling back up
+    // across the same point restores the original thought journey.
+    const narrativePoint = rect.top + rect.height * 0.44;
+    const triggerLine = viewportHeight * 0.62;
 
-    // Scrolling down reveals the AI-organized view; scrolling back up restores
-    // the original source-faithful thought journey.
-    setActive(delta > 0);
+    setActive(narrativePoint <= triggerLine);
   };
 
-  const onScroll = () => {
+  const requestUpdate = () => {
     if (ticking) return;
     ticking = true;
-    window.requestAnimationFrame(updateFromScroll);
+    window.requestAnimationFrame(updateFromScrollPosition);
   };
 
-  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate);
+
+  // Set the correct state immediately on reload, anchor navigation, or when the
+  // page is restored at a previous scroll position.
+  requestUpdate();
 }
