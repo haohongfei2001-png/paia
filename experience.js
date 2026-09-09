@@ -4,6 +4,7 @@
   const text = {
     zh: {
       headerBeta: '加入内测',
+      productLink: '查看产品',
       productAlt: 'PAIA 产品界面预览',
       product: '产品', principles: '原则', privacy: '隐私', about: '关于',
       menuOpen: '打开导航', menuClose: '关闭导航',
@@ -15,6 +16,7 @@
     },
     en: {
       headerBeta: 'Join beta',
+      productLink: 'See the product',
       productAlt: 'PAIA product interface preview',
       product: 'Product', principles: 'Principles', privacy: 'Privacy', about: 'About',
       menuOpen: 'Open navigation', menuClose: 'Close navigation',
@@ -262,6 +264,12 @@
     });
   };
 
+  const refineHeroLink = () => {
+    document.querySelectorAll('[data-site-hero-problem]').forEach((el) => {
+      el.textContent = text[currentLang()].productLink;
+    });
+  };
+
   const apply = () => {
     ensureExperienceStylesheet();
     installPlatformIcons();
@@ -273,6 +281,7 @@
     propagateLanguageLinks();
     enhanceBetaForm();
     refineFooter();
+    refineHeroLink();
     updateHeroProduct(false);
   };
 
