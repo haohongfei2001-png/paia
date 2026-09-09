@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="styles.css?v=7" />
   <link rel="stylesheet" href="i18n.css?v=1" />
   <link rel="stylesheet" href="polish.css?v=4" />
+  <link rel="stylesheet" href="demo.css?v=1" />
 </head>
 <body data-page="home">
   <header class="site-header">
@@ -58,18 +59,34 @@
       <p class="availability-line" data-site-availability>Chrome Extension · ChatGPT Web · Private Beta</p>
       <div class="hero-actions">
         <a class="beta-button" href="beta.html"><span data-site-hero-beta>加入 Private Beta</span> <span aria-hidden="true">→</span></a>
-        <a class="text-link" href="#product"><span data-site-hero-problem>查看产品</span> <span aria-hidden="true">↓</span></a>
+        <a class="text-link" href="#demo"><span data-site-hero-problem>查看产品</span> <span aria-hidden="true">↓</span></a>
       </div>
 
-      <div class="hero-product-proof" data-active-view="archive">
-        <div class="hero-product-tabs" role="tablist" aria-label="PAIA product views">
-          <button class="hero-product-tab" type="button" role="tab" data-product-view="archive" aria-selected="true">Input Archive</button>
-          <button class="hero-product-tab" type="button" role="tab" data-product-view="thoughts" aria-selected="false">Thought Library</button>
-          <button class="hero-product-tab" type="button" role="tab" data-product-view="context" aria-selected="false">AI Context</button>
+      <div class="paia-simulator" id="demo" data-paia-demo role="region" aria-label="PAIA interactive product demo">
+        <div class="demo-intro">
+          <div class="demo-intro-copy"><strong data-demo-interactive-label>交互演示</strong><span data-demo-local-label>演示数据 · 完全在浏览器本地运行</span></div>
+          <button class="demo-reset" type="button" data-demo-reset>重置演示</button>
         </div>
-        <div class="hero-product-frame">
-          <img src="assets/screenshots/input-archive-home.svg?v=3" data-hero-product-image alt="PAIA 产品界面预览 · Input Archive" decoding="async" fetchpriority="high" />
+        <div class="paia-demo-window">
+          <aside class="demo-sidebar" aria-label="PAIA demo navigation">
+            <div class="demo-brand"><strong>PAIA</strong><small>PERSONAL AI INPUT ARCHIVE</small></div>
+            <nav class="demo-nav">
+              <button class="demo-nav-button is-active" type="button" data-demo-nav="archive" aria-current="page"><span>Input Archive</span></button>
+              <button class="demo-nav-button" type="button" data-demo-nav="thoughts"><span>Thought Library</span></button>
+              <button class="demo-nav-button" type="button" data-demo-nav="context"><span>AI Context</span></button>
+            </nav>
+            <div class="demo-sidebar-settings"><button class="demo-nav-button" type="button" data-demo-nav="settings"><span>设置</span></button></div>
+          </aside>
+          <div class="demo-main">
+            <div class="demo-topbar"><strong data-demo-section-title>Input Archive</strong><span class="demo-local-badge">LOCAL</span></div>
+            <div class="demo-stage" data-demo-stage>
+              <div class="demo-page-head"><div><span class="demo-kicker">Input Archive</span><h3>你说过的话，先成为自己的档案。</h3><p>按真实会话阅读。点开一个窗口，正文可以直接修改。</p></div></div>
+            </div>
+          </div>
+          <div class="demo-toast" data-demo-toast role="status" aria-live="polite"></div>
         </div>
+        <p class="demo-hint" data-demo-hint>可以试着打开一个会话、改一句话，或进入 AI Context。这里不会使用你的真实数据。</p>
+        <noscript><p class="demo-hint">Interactive demo requires JavaScript.</p></noscript>
       </div>
     </section>
 
@@ -174,5 +191,6 @@
   <script src="i18n.js?v=1"></script>
   <script src="site-copy-base.js?v=4"></script>
   <script src="experience.js?v=3"></script>
+  <script src="demo.js?v=1"></script>
 </body>
 </html>
