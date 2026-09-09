@@ -19,7 +19,7 @@ const thoughtTransform = document.querySelector('[data-thought-transform]');
 if (thoughtTransform && !reduceMotion) {
   /*
    * Thought Library narrative:
-   * scrolling continues, but the visual itself stays pinned for a while.
+   * scrolling continues, but the visual itself stays pinned for a short beat.
    * Scroll progress is converted into a reversible transformation from the
    * source-faithful thought journey to the AI-organized presentation.
    * Scrolling upward naturally peels the AI layer back off.
@@ -29,7 +29,7 @@ if (thoughtTransform && !reduceMotion) {
   style.textContent = `
     .thought-scroll-story {
       position: relative;
-      min-height: 190vh;
+      min-height: 145vh;
       margin-top: 2px;
     }
 
@@ -121,12 +121,12 @@ if (thoughtTransform && !reduceMotion) {
     }
 
     @media (max-width: 900px) {
-      .thought-scroll-story { min-height: 165vh; }
+      .thought-scroll-story { min-height: 133vh; }
       .thought-scroll-story .thought-transform { top: 82px; }
     }
 
     @media (max-width: 620px) {
-      .thought-scroll-story { min-height: 150vh; }
+      .thought-scroll-story { min-height: 125vh; }
       .thought-scroll-story .thought-transform { top: 76px; }
       .thought-scroll-story .thought-transform-canvas { aspect-ratio: 1.15 / 1; }
     }
@@ -162,11 +162,9 @@ if (thoughtTransform && !reduceMotion) {
     if (Math.abs(progress - lastProgress) < 0.001) return;
     lastProgress = progress;
 
-    // Give the user a short beat to see the original thought journey first,
-    // then spend most of the pinned scroll distance on the actual reveal.
-    const morphRaw = clamp((progress - 0.12) / 0.68, 0, 1);
+    const morphRaw = clamp((progress - 0.10) / 0.70, 0, 1);
     const morph = smoothstep(morphRaw);
-    const finish = clamp((progress - 0.68) / 0.22, 0, 1);
+    const finish = clamp((progress - 0.66) / 0.22, 0, 1);
 
     const faithfulOpacity = 1 - morph * 0.90;
     const faithfulScale = 1 - morph * 0.028;
@@ -179,8 +177,6 @@ if (thoughtTransform && !reduceMotion) {
     const aiBlur = (1 - morph) * 9;
     const aiSaturation = 0.88 + morph * 0.12;
 
-    // A moving light sweep makes the reorganization feel like a new layer is
-    // being revealed rather than one screenshot simply cross-fading to another.
     const sheenPhase = clamp((morphRaw - 0.05) / 0.90, 0, 1);
     const sheenX = sheenPhase * Math.max(window.innerWidth * 0.64, 620);
     const sheenOpacity = Math.sin(sheenPhase * Math.PI) * 0.82;
@@ -217,9 +213,6 @@ if (thoughtTransform && !reduceMotion) {
     const pinnedHeight = Math.min(thoughtTransform.offsetHeight || viewportHeight * 0.58, viewportHeight * 0.74);
     const scrollDistance = Math.max(1, story.offsetHeight - pinnedHeight - stickyTop * 0.35);
 
-    // Progress starts when the visual reaches its sticky resting position.
-    // Because the visual is sticky, the page appears to pause here while the
-    // user's wheel/trackpad movement drives only the transformation.
     const progress = (stickyTop - rect.top) / scrollDistance;
     renderProgress(progress);
   };
