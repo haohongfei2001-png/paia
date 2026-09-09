@@ -9,7 +9,7 @@
     <text x="34" y="264" font-size="18" fill="#798276">AI Context</text>
 
     <text x="270" y="72" font-size="16" fill="#768373">← 思想库</text>
-    <text x="342" y="150" font-size="42" font-weight="700" fill="#20251f">PAIA 产品设计</text>
+    <text x="342" y="150" font-size="42" font-weight="700" fill="#20251f">长期学习系统</text>
 
     <rect x="1080" y="98" width="176" height="54" rx="27" fill="#e4ece0" stroke="#a7b99f"/>
     <text x="1104" y="132" font-size="16" font-weight="700" fill="#40513b">AI整理</text>
@@ -27,37 +27,37 @@
     <rect x="342" y="278" width="918" height="164" rx="18" fill="#f3f7f1" stroke="#d7e2d3"/>
     <text x="370" y="314" font-size="13" font-weight="700" letter-spacing="1.5" fill="#6b825f">CURRENT VIEW</text>
     <text x="370" y="356" font-size="25" font-weight="700" fill="#20251f">当前理解</text>
-    <text x="370" y="398" font-size="20" fill="#20251f">PAIA 首先服务用户自己长期阅读：保存表达、重新组织长期思考，</text>
-    <text x="370" y="430" font-size="20" fill="#20251f">并只在用户明确允许时，把必要的一小部分提供给 AI。</text>
+    <text x="370" y="398" font-size="20" fill="#20251f">这个学习系统真正需要优化的不是“收集更多”，而是降低重新回到旧内容的成本，</text>
+    <text x="370" y="430" font-size="20" fill="#20251f">同时保留最初的理解、时间和后续变化。</text>
 
     <text x="342" y="500" font-size="13" font-weight="700" letter-spacing="1.5" fill="#6b825f">KEY PRINCIPLES</text>
 
     <rect x="342" y="526" width="286" height="132" rx="16" fill="#f7f9f5" stroke="#dbe5d7"/>
-    <text x="366" y="560" font-size="15" font-weight="700" fill="#52634d">阅读优先</text>
-    <text x="366" y="596" font-size="17" fill="#20251f">界面首先服务长期回看，</text>
-    <text x="366" y="624" font-size="17" fill="#20251f">整理机制尽量退到后台。</text>
+    <text x="366" y="560" font-size="15" font-weight="700" fill="#52634d">回看优先</text>
+    <text x="366" y="596" font-size="17" fill="#20251f">减少打开旧内容的阻力，</text>
+    <text x="366" y="624" font-size="17" fill="#20251f">比继续增加收集入口更重要。</text>
 
     <rect x="658" y="526" width="286" height="132" rx="16" fill="#f7f9f5" stroke="#dbe5d7"/>
-    <text x="682" y="560" font-size="15" font-weight="700" fill="#52634d">原意优先</text>
-    <text x="682" y="596" font-size="17" fill="#20251f">AI 提供综合理解，</text>
-    <text x="682" y="624" font-size="17" fill="#20251f">但不覆盖原话和历史证据。</text>
+    <text x="682" y="560" font-size="15" font-weight="700" fill="#52634d">来源保留</text>
+    <text x="682" y="596" font-size="17" fill="#20251f">综合理解可以变化，</text>
+    <text x="682" y="624" font-size="17" fill="#20251f">但原始表达和时间不能消失。</text>
 
     <rect x="974" y="526" width="286" height="132" rx="16" fill="#f7f9f5" stroke="#dbe5d7"/>
-    <text x="998" y="560" font-size="15" font-weight="700" fill="#52634d">用户控制</text>
-    <text x="998" y="596" font-size="17" fill="#20251f">整理层可随时关闭，</text>
-    <text x="998" y="624" font-size="17" fill="#20251f">AI Context 也始终显式授权。</text>
+    <text x="998" y="560" font-size="15" font-weight="700" fill="#52634d">低维护</text>
+    <text x="998" y="596" font-size="17" fill="#20251f">结构应随着长期使用形成，</text>
+    <text x="998" y="624" font-size="17" fill="#20251f">而不是要求持续手工整理。</text>
 
     <text x="342" y="716" font-size="13" font-weight="700" letter-spacing="1.5" fill="#6b825f">THOUGHT EVOLUTION</text>
     <line x1="370" y1="762" x2="1196" y2="762" stroke="#dce4d8" stroke-width="2"/>
     <circle cx="390" cy="762" r="7" fill="#8fa286"/>
     <circle cx="730" cy="762" r="7" fill="#7e9673"/>
     <circle cx="1176" cy="762" r="7" fill="#657b59"/>
-    <text x="370" y="802" font-size="14" fill="#8b9388">最初：保存 AI 输入</text>
-    <text x="650" y="802" font-size="14" fill="#8b9388">后来：阅读比聊天结构更重要</text>
-    <text x="1010" y="802" font-size="14" fill="#657b59">现在：形成长期思想系统</text>
+    <text x="370" y="802" font-size="14" fill="#8b9388">最初：尽可能收集资料</text>
+    <text x="650" y="802" font-size="14" fill="#8b9388">后来：开始重视回看成本</text>
+    <text x="1010" y="802" font-size="14" fill="#657b59">现在：保留来源与变化</text>
 
     <rect x="342" y="842" width="918" height="66" rx="14" fill="#f8faf6" stroke="#e0e7dc"/>
     <text x="366" y="882" font-size="15" font-weight="700" fill="#596b53">待继续确认：</text>
-    <text x="472" y="882" font-size="16" fill="#20251f">如何减少 Topic 过度碎片化，同时保持来源与时间可追溯。</text>
+    <text x="472" y="882" font-size="16" fill="#20251f">怎样让主题保持稳定，同时允许新的理解自然改变它的结构。</text>
   </g>
 </svg>
