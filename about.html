@@ -4,14 +4,19 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>About PAIA — Personal AI Input Archive</title>
-  <meta name="description" content="PAIA 是一个由个人从 0 到 1 设计并持续迭代的本地优先个人 AI 输入档案与思想库项目。" />
+  <meta name="description" content="Why PAIA exists, how it is designed, and how the independent project is being built." />
   <meta property="og:title" content="About PAIA" />
-  <meta property="og:description" content="Independent Product Design / AI-assisted Development." />
+  <meta property="og:description" content="A private information space centered on what you tell AI." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://haohongfei2001-png.github.io/paia/about.html" />
+  <meta property="og:image" content="https://haohongfei2001-png.github.io/paia/assets/social-card.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="canonical" href="https://haohongfei2001-png.github.io/paia/about.html" />
   <meta name="theme-color" content="#f7f8f4" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=7" />
   <link rel="stylesheet" href="i18n.css?v=1" />
+  <link rel="stylesheet" href="polish.css?v=1" />
 </head>
 <body data-page="about">
   <header class="site-header">
@@ -19,48 +24,69 @@
       <span style="font-size:20px;font-weight:700;letter-spacing:.055em;line-height:1;">PAIA</span>
     </a>
     <nav class="nav" aria-label="页面导航" data-i18n-aria="common.navAria">
-      <a href="index.html#product" data-i18n="common.navProduct">产品</a>
-      <a href="principles.html" data-i18n="common.navPrinciples">产品判断</a>
-      <a href="index.html#privacy" data-i18n="common.navPrivacy">隐私</a>
-      <a href="about.html" aria-current="page" data-i18n="common.navAbout">关于项目</a>
+      <a class="nav-product" href="index.html#product" data-i18n="common.navProduct">产品</a>
+      <a class="nav-principles" href="principles.html" data-site-nav-principles>原则</a>
+      <a class="nav-privacy" href="index.html#privacy" data-i18n="common.navPrivacy">隐私</a>
+      <a class="nav-about" href="about.html" aria-current="page" data-site-nav-about>关于</a>
       <button class="lang-switch" type="button" data-language-toggle aria-label="Switch to English" title="Switch to English">EN</button>
     </nav>
   </header>
 
   <main id="top">
-    <section class="hero section">
+    <section class="hero section product-about-hero">
       <div class="eyebrow">ABOUT PAIA</div>
-      <h1>Independent Product Design<br />/ AI-assisted Development</h1>
-      <p class="hero-cn" data-i18n="about.heroSubtitle">PAIA 由个人从 0 到 1 设计并持续迭代。</p>
-      <a class="text-link" href="index.html" data-i18n="common.backProductHome">← 返回产品首页</a>
+      <h1 data-site-about-hero-title>Why PAIA exists.</h1>
+      <p class="hero-cn" data-site-about-hero-subtitle>PAIA 从一个简单的问题开始：长期交给 AI 的输入，能不能重新成为用户自己可阅读、可拥有的信息。</p>
+      <a class="text-link" href="index.html">← PAIA</a>
     </section>
 
-    <section class="section story-section story-reverse about-section" id="about">
+    <section class="section product-about-copy">
+      <div class="section-kicker">The product</div>
+      <h2 data-site-about-title>一个真正以用户自己的输入为中心的私人信息空间。</h2>
+      <div class="body-copy">
+        <p data-site-about-body>PAIA 不试图成为另一个聊天客户端，也不把用户档案默认变成给模型消费的数据层。它先保存用户真正说过的话，再把长期内容组织成可阅读的主题；只有用户明确选择的部分，才会成为 AI Context。</p>
+      </div>
+      <a class="text-link" href="principles.html"><span data-site-nav-principles>原则</span> <span aria-hidden="true">→</span></a>
+    </section>
+
+    <section class="section story-section story-reverse project-section" id="project">
       <div class="story-copy">
-        <div class="section-kicker">About the project</div>
-        <h2>Independent Product Design<br />/ AI-assisted Development</h2>
+        <span class="project-label">Project</span>
+        <h2 data-site-project-title>从产品定义，到一个真实运行的系统。</h2>
         <div class="body-copy">
-          <p data-i18n="about.body">PAIA 由个人从 0 到 1 设计并持续迭代：从用户问题、信息架构、交互与 AI 能力边界，到使用 Codex 协同完成 Chrome Extension 落地、测试和真实环境验证。</p>
+          <p data-site-project-body>PAIA 由个人从 0 到 1 设计并持续迭代：从用户问题、信息架构、交互与 AI 能力边界，到使用 Codex 协同完成 Chrome Extension 落地、测试和真实环境验证。</p>
         </div>
         <dl class="project-meta">
-          <div><dt>Role</dt><dd data-i18n="about.role">独立产品设计 / AI 协同开发</dd></div>
+          <div><dt>Role</dt><dd data-site-project-role>独立产品设计 / AI 协同开发</dd></div>
           <div><dt>Period</dt><dd>2026.08 — Present</dd></div>
         </dl>
-        <p class="case-note about-note" data-i18n="about.note">本页中的产品界面为基于当前实际产品结构制作的脱敏演示图，用于公开展示产品逻辑与交互，不包含真实用户数据。</p>
+        <p class="case-note about-note">本页中的产品界面为基于当前实际产品结构制作的脱敏演示图，用于说明产品逻辑与交互，不包含真实用户数据。</p>
       </div>
       <figure class="story-visual">
-        <img src="assets/screenshots/project-ownership.svg" alt="PAIA 项目中产品定义、信息架构、AI 能力边界与落地验证的职责范围" data-i18n-alt="about.alt" loading="lazy" />
-        <figcaption data-i18n="about.caption">产品定义 → 信息架构 → AI 能力边界 → 落地与验证</figcaption>
+        <img src="assets/screenshots/project-ownership.svg" alt="PAIA 项目中产品定义、信息架构、AI 能力边界与落地验证的职责范围" loading="lazy" />
+        <figcaption>产品定义 → 信息架构 → AI 能力边界 → 落地与验证</figcaption>
       </figure>
     </section>
   </main>
 
-  <footer>
-    <span>PAIA · Personal AI Input Archive</span>
-    <a href="index.html" data-i18n="common.backHome">返回首页</a>
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <strong>PAIA</strong>
+      <span>Personal AI Input Archive</span>
+      <small>Private beta · independent product</small>
+    </div>
+    <div class="footer-links">
+      <a href="index.html#product" data-i18n="common.navProduct">产品</a>
+      <a href="principles.html" data-site-nav-principles>原则</a>
+      <a href="privacy-policy.html" data-site-privacy-policy>隐私政策</a>
+      <a href="terms.html" data-site-terms>使用条款</a>
+      <a href="about.html" aria-current="page" data-site-nav-about>关于</a>
+      <span class="footer-meta">© 2026 PAIA</span>
+    </div>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=7"></script>
   <script src="i18n.js?v=1"></script>
+  <script src="site-copy.js?v=1"></script>
 </body>
 </html>
