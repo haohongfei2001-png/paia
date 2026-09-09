@@ -1,18 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
-  <defs>
-    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fbfcf9"/>
-      <stop offset="1" stop-color="#f2f6ef"/>
-    </linearGradient>
-    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="18"/>
-    </filter>
-  </defs>
-
-  <rect width="1512" height="910" fill="url(#page)"/>
-  <circle cx="1190" cy="270" r="210" fill="#dce8d6" opacity=".52" filter="url(#softGlow)"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910" preserveAspectRatio="xMidYMid meet">
+  <rect width="1512" height="910" fill="#fbfcf9"/>
   <rect width="230" height="910" fill="#f4f6f1"/>
-
   <g font-family="Arial,'PingFang SC','Microsoft YaHei',sans-serif">
     <text x="32" y="62" font-size="36" font-weight="700" fill="#20251f">PAIA</text>
     <text x="32" y="176" font-size="20" fill="#666">Input Archive</text>
@@ -22,7 +10,8 @@
     <text x="275" y="78" font-size="17" fill="#74806f">← 思想库</text>
     <text x="365" y="154" font-size="43" font-weight="700" fill="#20251f">PAIA 产品设计</text>
 
-    <rect x="1118" y="101" width="176" height="54" rx="27" fill="#dce8d7" stroke="#92a88a"/>
+    <!-- AI整理开启 -->
+    <rect x="1118" y="101" width="176" height="54" rx="27" fill="#e1eadc" stroke="#9caf94"/>
     <text x="1142" y="134" font-size="17" font-weight="700" fill="#40513b">AI整理</text>
     <rect x="1242" y="111" width="40" height="34" rx="17" fill="#718967"/>
     <circle cx="1265" cy="128" r="13" fill="#ffffff"/>
@@ -35,27 +24,27 @@
     <text x="1174" y="220" font-size="15" fill="#8a9388">倒序</text>
     <text x="1260" y="220" font-size="15" fill="#74806f">目录</text>
 
-    <text x="365" y="308" font-size="15" font-weight="700" letter-spacing="1.6" fill="#6b825f">CURRENT VIEW</text>
-    <text x="365" y="354" font-size="27" font-weight="700" fill="#20251f">当前产品定位</text>
-    <text x="365" y="401" font-size="21" fill="#20251f">PAIA 首先是一个给用户自己阅读的私人信息与思想系统。</text>
-    <text x="365" y="438" font-size="21" fill="#20251f">Input Archive 保存表达，Thought Library 组织长期思考，AI Context 只输出被允许的一小部分。</text>
+    <text x="365" y="302" font-size="14" font-weight="700" letter-spacing="1.5" fill="#6b825f">CURRENT VIEW</text>
+    <text x="365" y="348" font-size="27" font-weight="700" fill="#20251f">当前理解</text>
+    <text x="365" y="393" font-size="21" fill="#20251f">PAIA 首先是一个给用户自己长期阅读的私人信息与思想系统。</text>
+    <text x="365" y="430" font-size="21" fill="#20251f">保存表达、组织长期思考，并只把用户明确允许的一小部分提供给 AI。</text>
 
-    <rect x="365" y="482" width="925" height="1" fill="#dfe7db"/>
+    <line x1="365" y1="468" x2="1290" y2="468" stroke="#dfe7db"/>
 
-    <text x="365" y="530" font-size="15" font-weight="700" letter-spacing="1.6" fill="#6b825f">KEY PRINCIPLES</text>
-    <rect x="365" y="556" width="430" height="98" rx="14" fill="#f7faf5" stroke="#dbe5d7"/>
-    <text x="390" y="590" font-size="16" font-weight="700" fill="#52634d">阅读优先</text>
-    <text x="390" y="622" font-size="18" fill="#20251f">界面首先服务长期回看，而不是暴露整理机制。</text>
+    <text x="365" y="514" font-size="14" font-weight="700" letter-spacing="1.5" fill="#6b825f">KEY PRINCIPLES</text>
+    <rect x="365" y="540" width="430" height="108" rx="14" fill="#f5f8f3" stroke="#d8e3d4"/>
+    <text x="390" y="575" font-size="16" font-weight="700" fill="#52634d">阅读优先</text>
+    <text x="390" y="609" font-size="18" fill="#20251f">界面首先服务长期回看，整理机制退到后台。</text>
 
-    <rect x="820" y="556" width="470" height="98" rx="14" fill="#f7faf5" stroke="#dbe5d7"/>
-    <text x="845" y="590" font-size="16" font-weight="700" fill="#52634d">用户原意优先</text>
-    <text x="845" y="622" font-size="18" fill="#20251f">AI 负责组织和理解，但不静默改写用户历史。</text>
+    <rect x="820" y="540" width="470" height="108" rx="14" fill="#f5f8f3" stroke="#d8e3d4"/>
+    <text x="845" y="575" font-size="16" font-weight="700" fill="#52634d">用户原意优先</text>
+    <text x="845" y="609" font-size="18" fill="#20251f">AI 负责综合理解，但不覆盖原话与历史证据。</text>
 
-    <text x="365" y="710" font-size="15" font-weight="700" letter-spacing="1.6" fill="#6b825f">DECISIONS & OPEN QUESTIONS</text>
-    <text x="365" y="754" font-size="19" fill="#20251f">• Thought Library 保持同一 Topic identity，AI 整理只是派生视图。</text>
-    <text x="365" y="792" font-size="19" fill="#20251f">• AI Context 的外部授权必须显式、最小，并且可以完全关闭。</text>
-    <text x="365" y="830" font-size="19" fill="#20251f">• 下一步：继续降低 Topic 过度碎片化，同时保持来源可追溯。</text>
+    <text x="365" y="704" font-size="14" font-weight="700" letter-spacing="1.5" fill="#6b825f">DECISIONS & OPEN QUESTIONS</text>
+    <text x="365" y="750" font-size="19" fill="#20251f">• Thought Library 保持同一 Topic identity，AI整理只是派生视图。</text>
+    <text x="365" y="790" font-size="19" fill="#20251f">• AI Context 的授权必须显式、最小，并且可以完全关闭。</text>
+    <text x="365" y="830" font-size="19" fill="#20251f">• 下一步：降低 Topic 过度碎片化，同时保持来源与时间可追溯。</text>
 
-    <text x="1180" y="870" font-size="12" letter-spacing="1.8" fill="#82917b">AI ORGANIZED · EVIDENCE-BOUND</text>
+    <text x="1114" y="870" font-size="12" letter-spacing="1.7" fill="#82917b">AI ORGANIZED · SOURCE-BOUND</text>
   </g>
 </svg>
