@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910" preserveAspectRatio="xMidYMid meet">
   <rect width="1512" height="910" fill="#ffffff"/>
   <rect width="230" height="910" fill="#f6f7f3"/>
   <g font-family="Arial,'PingFang SC','Microsoft YaHei',sans-serif">
@@ -10,9 +10,11 @@
     <text x="275" y="78" font-size="17" fill="#74806f">← 思想库</text>
     <text x="365" y="154" font-size="43" font-weight="700" fill="#20251f">PAIA 产品设计</text>
 
-    <rect x="1120" y="102" width="168" height="52" rx="26" fill="#eef2eb" stroke="#ccd7c7"/>
-    <text x="1145" y="134" font-size="17" fill="#43523f">AI整理</text>
-    <circle cx="1260" cy="128" r="16" fill="#657b59"/>
+    <!-- AI整理关闭 -->
+    <rect x="1118" y="101" width="176" height="54" rx="27" fill="#f2f4f0" stroke="#cfd8cb"/>
+    <text x="1142" y="134" font-size="17" fill="#63705f">AI整理</text>
+    <rect x="1242" y="111" width="40" height="34" rx="17" fill="#d9ded6"/>
+    <circle cx="1259" cy="128" r="13" fill="#ffffff" stroke="#c6cdc2"/>
 
     <rect x="365" y="190" width="620" height="48" rx="10" fill="#f8f9f6" stroke="#e0e5dd"/>
     <text x="390" y="220" font-size="16" fill="#8a9388">在当前主题中查找…</text>
@@ -37,6 +39,6 @@
     <text x="1160" y="776" font-size="14" fill="#8b9288">版本历史 · 来源 · 更多</text>
 
     <rect x="365" y="812" width="925" height="2" fill="#f0f2ee"/>
-    <text x="365" y="852" font-size="14" fill="#959d94">Topic → Section → 正文。每条思想不需要单独标题，阅读时正文是视觉中心。</text>
+    <text x="365" y="852" font-size="14" fill="#959d94">Topic → Section → 正文。阅读时，用户自己的表达与思考过程始终是视觉中心。</text>
   </g>
 </svg>
