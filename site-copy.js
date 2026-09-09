@@ -8,7 +8,7 @@
     document.head.appendChild(script);
   });
 
-  load('site-copy-base.js?v=3')
-    .then(() => load('experience.js?v=2'))
+  load('site-copy-base.js?v=4')
+    .then(() => load('experience.js?v=3'))
     .catch(() => {});
 })();
