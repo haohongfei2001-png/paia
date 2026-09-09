@@ -2,33 +2,33 @@
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#f3f6f9"/>
+      <stop offset="1" stop-color="#f3f6f1"/>
     </linearGradient>
     <linearGradient id="p1" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#dce6f0" stop-opacity="0.94"/>
-      <stop offset="1" stop-color="#b8c8d8" stop-opacity="0.88"/>
+      <stop offset="0" stop-color="#e4ebe0" stop-opacity="0.98"/>
+      <stop offset="1" stop-color="#cad7c4" stop-opacity="0.94"/>
     </linearGradient>
     <linearGradient id="p2" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#b6c8da" stop-opacity="0.92"/>
-      <stop offset="1" stop-color="#718ba5" stop-opacity="0.92"/>
+      <stop offset="0" stop-color="#b8c9af" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#849b79" stop-opacity="0.96"/>
     </linearGradient>
     <linearGradient id="p3" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#8ea5bd" stop-opacity="0.94"/>
-      <stop offset="1" stop-color="#536c86" stop-opacity="0.98"/>
+      <stop offset="0" stop-color="#7f966f" stop-opacity="0.98"/>
+      <stop offset="1" stop-color="#53684b" stop-opacity="1"/>
     </linearGradient>
     <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#53697f" flood-opacity="0.18"/>
+      <feDropShadow dx="0" dy="1.4" stdDeviation="1.8" flood-color="#53684b" flood-opacity="0.18"/>
     </filter>
   </defs>
 
-  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#bg)" stroke="#e7ebef" stroke-width="1"/>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#bg)" stroke="#e5e9e2" stroke-width="1"/>
 
   <g filter="url(#shadow)">
     <path d="M13 28 Q13 24 16.5 25.5 L29 31.5 Q31 32.5 31 35 V49 Q31 52 28.5 50.5 L16 43.5 Q13 42 13 39 Z"
-          fill="url(#p1)" stroke="#cbd7e3" stroke-width="0.8"/>
+          fill="url(#p1)" stroke="#cfdbca" stroke-width="0.8"/>
     <path d="M22 20 Q22 16 25.5 17.5 L39 25 Q41 26 41 28.5 V46 Q41 49 38.5 47.5 L25 40 Q22 38.5 22 35.5 Z"
-          fill="url(#p2)" stroke="#96abc0" stroke-width="0.8"/>
+          fill="url(#p2)" stroke="#9eb392" stroke-width="0.8"/>
     <path d="M33 12 Q33 8 36.5 10 L50 17.5 Q52 18.5 52 21 V40 Q52 43 49.5 41.5 L36 34 Q33 32.5 33 29.5 Z"
-          fill="url(#p3)" stroke="#7189a1" stroke-width="0.8"/>
+          fill="url(#p3)" stroke="#647b58" stroke-width="0.8"/>
   </g>
 </svg>
