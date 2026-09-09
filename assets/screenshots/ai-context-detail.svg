@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="760" viewBox="0 0 1320 760">
+  <rect width="1320" height="760" fill="#fbfcf9"/>
+  <g font-family="Arial,'PingFang SC','Microsoft YaHei',sans-serif">
+    <text x="74" y="72" font-size="13" font-weight="700" letter-spacing="1.8" fill="#657b59">AI CONTEXT · PREVIEW</text>
+    <text x="74" y="124" font-size="34" font-weight="700" fill="#20251f">发送之前，先看清 AI 会知道什么。</text>
+    <text x="74" y="162" font-size="16" fill="#687267">授权范围、来源和当前问题都保持可见，用户可以在复制前移除任何内容。</text>
+
+    <text x="74" y="224" font-size="14" fill="#657b59">当前问题</text>
+    <rect x="74" y="246" width="1172" height="76" rx="15" fill="#ffffff" stroke="#dfe4dc"/>
+    <text x="102" y="293" font-size="20" fill="#20251f">我应该怎样调整自己的长期学习系统，让回看旧内容更容易？</text>
+
+    <text x="74" y="372" font-size="14" fill="#657b59">已授权主题</text>
+    <rect x="74" y="392" width="214" height="46" rx="12" fill="#eef2eb"/><text x="98" y="421" font-size="16" fill="#344130">长期学习系统</text>
+    <rect x="304" y="392" width="192" height="46" rx="12" fill="#eef2eb"/><text x="328" y="421" font-size="16" fill="#344130">阅读与研究</text>
+    <rect x="512" y="392" width="148" height="46" rx="12" fill="#eef2eb"/><text x="536" y="421" font-size="16" fill="#344130">工作流</text>
+
+    <text x="74" y="494" font-size="14" fill="#657b59">Context Preview</text>
+    <rect x="74" y="516" width="1172" height="164" rx="18" fill="#ffffff" stroke="#dfe4dc"/>
+    <text x="102" y="550" font-size="12.5" fill="#727c70">高度相关 · 来自「长期学习系统」</text>
+    <text x="102" y="586" font-size="18" fill="#20251f">过去几个月的判断逐渐从“收集更多”转向“降低重新阅读旧内容的成本”。</text>
+    <line x1="102" y1="612" x2="1218" y2="612" stroke="#e7eae5"/>
+    <text x="102" y="642" font-size="12.5" fill="#727c70">人工确认 · 来自「工作流」</text>
+    <text x="102" y="670" font-size="18" fill="#20251f">希望减少持续手工整理，把更多注意力留给真正的阅读和判断。</text>
+  </g>
+</svg>
