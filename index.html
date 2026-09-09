@@ -10,7 +10,7 @@
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#f7f8f4" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
   <header class="site-header">
@@ -120,15 +120,13 @@
 
         <div class="thought-transform" data-thought-transform>
           <div class="thought-transform-head">
-            <span class="thought-mode thought-mode-faithful">原话视图</span>
-            <button class="thought-demo-toggle" type="button" aria-label="切换 AI 整理演示" aria-pressed="false">
-              <span></span>
-            </button>
+            <span class="thought-mode thought-mode-faithful">原始思路历程</span>
+            <span class="thought-direction" aria-hidden="true">→</span>
             <span class="thought-mode thought-mode-ai">AI 整理</span>
           </div>
           <div class="thought-transform-canvas">
             <figure class="thought-layer thought-layer-faithful">
-              <img src="assets/screenshots/thought-reading.svg" alt="PAIA Thought Library 原话主题阅读视图" loading="lazy" />
+              <img src="assets/screenshots/thought-reading.svg" alt="PAIA Thought Library 原始思路历程视图" loading="lazy" />
             </figure>
             <figure class="thought-layer thought-layer-ai">
               <img src="assets/screenshots/ai-organized.svg" alt="PAIA Thought Library AI 整理视图" loading="lazy" />
@@ -137,7 +135,7 @@
           </div>
           <div class="thought-transform-caption">
             <span class="caption-faithful">保留用户自己的语言、时间与思考过程</span>
-            <span class="caption-ai">同一主题被重新组织成更清晰的综合视图</span>
+            <span class="caption-ai">向下继续阅读，内容逐渐转化为更清晰的 AI 综合视图</span>
           </div>
         </div>
       </div>
@@ -195,6 +193,6 @@
     <span>2026</span>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>
