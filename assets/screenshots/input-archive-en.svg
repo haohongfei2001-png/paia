@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
+<rect width="1512" height="910" fill="#ffffff"/>
+<rect width="230" height="910" fill="#f5f7f3"/>
+<line x1="230" y1="0" x2="230" y2="910" stroke="#e3e7e0"/>
+<g font-family="Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<text x="32" y="58" font-size="34" font-weight="700" fill="#20251f">PAIA</text>
+<text x="32" y="88" font-size="10" letter-spacing="3" fill="#7a8378">PERSONAL AI INPUT ARCHIVE</text>
+<rect x="18" y="144" width="194" height="42" rx="10" fill="#e9eee6"/>
+<text x="32" y="171" font-size="17" font-weight="600" fill="#30402c">Input Archive</text>
+<text x="32" y="226" font-size="17" fill="#6f786d">Thought Library</text>
+<text x="32" y="274" font-size="17" fill="#6f786d">AI Context</text>
+<text x="32" y="842" font-size="15" fill="#687267">Settings</text>
+
+<text x="278" y="62" font-size="16" fill="#687267">← Conversations</text>
+<text x="1130" y="62" font-size="14" fill="#687267">Oldest</text>
+<text x="1200" y="62" font-size="14" font-weight="700" fill="#31402d">Newest</text>
+<text x="1295" y="62" font-size="14" fill="#657b59">Version history</text>
+
+<text x="454" y="150" font-size="42" font-weight="700" fill="#20251f">Product research &amp; decisions</text>
+<text x="454" y="204" font-size="15" fill="#687267">September 8, 2026</text>
+
+<text x="454" y="278" font-size="15" fill="#727c70">21:48</text>
+<text x="454" y="320" font-size="25" fill="#20251f">I want to solve the problems users repeatedly encounter before adding more features.</text>
+<text x="454" y="390" font-size="15" fill="#727c70">22:13</text>
+<text x="454" y="432" font-size="25" fill="#20251f">Version one should show value quickly, without making users learn complex settings first.</text>
+<text x="454" y="502" font-size="15" fill="#727c70">22:27</text>
+<text x="454" y="544" font-size="25" fill="#20251f">Important history should stay traceable to its source while preserving the user’s own edits.</text>
+<text x="454" y="614" font-size="15" fill="#727c70">23:05</text>
+<text x="454" y="656" font-size="25" fill="#20251f">The reading view should stay quiet, with the content more prominent than system status.</text>
+
+<line x1="454" y1="720" x2="1320" y2="720" stroke="#e1e5de"/>
+<text x="454" y="764" font-size="14" fill="#687267">Continuous reading · Autosave · Traceable sources</text>
+<circle cx="1320" cy="756" r="16" fill="#eef2eb"/>
+<text x="1315" y="762" font-size="18" fill="#62705f">···</text>
+</g>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
+<rect width="1512" height="910" fill="#ffffff"/>
+<rect width="230" height="910" fill="#f5f7f3"/>
+<line x1="230" y1="0" x2="230" y2="910" stroke="#e3e7e0"/>
+<g font-family="Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<text x="32" y="58" font-size="34" font-weight="700" fill="#20251f">PAIA</text>
+<text x="32" y="88" font-size="10" letter-spacing="3" fill="#7a8378">PERSONAL AI INPUT ARCHIVE</text>
+<text x="32" y="171" font-size="17" fill="#6f786d">Input Archive</text>
+<text x="32" y="221" font-size="17" fill="#6f786d">Thought Library</text>
+<rect x="18" y="244" width="194" height="42" rx="10" fill="#e9eee6"/>
+<text x="32" y="271" font-size="17" font-weight="600" fill="#30402c">AI Context</text>
+<text x="32" y="842" font-size="15" fill="#687267">Settings</text>
+
+<text x="276" y="72" font-size="38" font-weight="700" fill="#20251f">AI Context</text>
+<text x="276" y="112" font-size="16" fill="#687267">Let AI see only what you explicitly allow and what matters to the current question.</text>
+<text x="1168" y="66" font-size="14" fill="#52624d">Allow external AI access</text>
+<rect x="1346" y="42" width="62" height="32" rx="16" fill="#667d59"/>
+<circle cx="1390" cy="58" r="12" fill="#ffffff"/>
+
+<text x="276" y="166" font-size="13" fill="#687267">PROFILE · Default</text>
+<rect x="276" y="190" width="1040" height="80" rx="16" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="306" y="222" font-size="13" fill="#727c70">Current question</text>
+<text x="306" y="251" font-size="20" fill="#20251f">How should I redesign my learning system so older material is easier to revisit?</text>
+
+<text x="276" y="324" font-size="15" fill="#657b59">Authorized scope</text>
+<rect x="276" y="346" width="228" height="52" rx="12" fill="#eef2eb"/><text x="300" y="379" font-size="17" fill="#344130">Learning system</text>
+<rect x="520" y="346" width="228" height="52" rx="12" fill="#eef2eb"/><text x="544" y="379" font-size="17" fill="#344130">Reading &amp; research</text>
+<rect x="764" y="346" width="228" height="52" rx="12" fill="#eef2eb"/><text x="788" y="379" font-size="17" fill="#344130">Workflows</text>
+<rect x="1008" y="346" width="228" height="52" rx="12" fill="#f7f8f4" stroke="#dfe4dc"/><text x="1032" y="379" font-size="17" fill="#687267">+ Choose topics</text>
+
+<text x="276" y="458" font-size="15" fill="#657b59">Context Preview</text>
+<rect x="276" y="484" width="1040" height="246" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="306" y="524" font-size="13" fill="#727c70">Current · highly relevant · from “Learning system”</text>
+<text x="306" y="562" font-size="19" fill="#20251f">Over the past few months, the goal has shifted from “capture more” to “make old material easier to revisit.”</text>
+<line x1="306" y1="590" x2="1284" y2="590" stroke="#e5e8e2"/>
+<text x="306" y="624" font-size="13" fill="#727c70">Current · manually confirmed · from “Workflows”</text>
+<text x="306" y="662" font-size="19" fill="#20251f">Reduce constant manual organization so more attention can go to reading and judgment.</text>
+<text x="1115" y="706" font-size="13" fill="#687267">Remove for this request</text>
+
+<text x="276" y="786" font-size="13" fill="#687267">Standard budget · Local retrieval · Traceable sources · Preview before copy</text>
+<rect x="1116" y="760" width="200" height="58" rx="15" fill="#657b59"/>
+<text x="1160" y="796" font-size="17" font-weight="700" fill="#ffffff">Copy context</text>
+</g>
+</svg>

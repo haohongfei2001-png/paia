@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://haohongfei2001-png.github.io/paia/sitemap.xml

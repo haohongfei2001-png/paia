@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960" preserveAspectRatio="xMidYMid meet">
+  <rect width="1440" height="960" fill="#fbfcf9"/>
+  <rect width="218" height="960" fill="#f5f7f3"/>
+  <line x1="218" y1="0" x2="218" y2="960" stroke="#e4e8e1"/>
+  <g font-family="Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+    <text x="34" y="62" font-size="34" font-weight="700" fill="#20251f">PAIA</text>
+    <text x="34" y="164" font-size="18" fill="#798276">Input Archive</text>
+    <text x="34" y="214" font-size="18" font-weight="700" fill="#243024">Thought Library</text>
+    <text x="34" y="264" font-size="18" fill="#798276">AI Context</text>
+
+    <text x="270" y="72" font-size="16" fill="#687267">← Thought Library</text>
+    <text x="342" y="150" font-size="42" font-weight="700" fill="#20251f">Long-term Learning System</text>
+
+    <rect x="1080" y="98" width="176" height="54" rx="27" fill="#f2f4f0" stroke="#cfd7cc"/>
+    <text x="1104" y="132" font-size="16" fill="#667163">AI Organized</text>
+    <rect x="1203" y="108" width="42" height="34" rx="17" fill="#d9ded6"/>
+    <circle cx="1220" cy="125" r="13" fill="#ffffff" stroke="#c6cdc2"/>
+
+    <rect x="342" y="190" width="604" height="48" rx="11" fill="#f8f9f6" stroke="#e0e5dd"/>
+    <text x="367" y="220" font-size="15" fill="#727c70">Search within this topic…</text>
+    <text x="1000" y="220" font-size="14" fill="#687267">Time</text>
+    <rect x="1040" y="192" width="70" height="44" rx="10" fill="#eef2eb"/>
+    <text x="1052" y="220" font-size="14" fill="#42513f">Oldest</text>
+    <text x="1128" y="220" font-size="14" fill="#687267">Newest</text>
+    <text x="1204" y="220" font-size="14" fill="#687267">Outline</text>
+
+    <text x="342" y="306" font-size="25" font-weight="700" fill="#20251f">Information capture</text>
+    <text x="342" y="344" font-size="13" fill="#727c70">July 2026</text>
+    <text x="342" y="392" font-size="20" fill="#20251f">Putting every resource into one system does not automatically improve how I learn.</text>
+    <text x="342" y="434" font-size="20" fill="#20251f">The real problem may be that I rarely return to notes I made months ago.</text>
+
+    <line x1="342" y1="478" x2="1260" y2="478" stroke="#e7eae5"/>
+
+    <text x="342" y="536" font-size="25" font-weight="700" fill="#20251f">Review and organization</text>
+    <text x="342" y="574" font-size="13" fill="#727c70">August 2026</text>
+    <text x="342" y="622" font-size="20" fill="#20251f">Instead of generating more summaries, I want to preserve the understanding I had at the time</text>
+    <text x="342" y="664" font-size="20" fill="#20251f">and place related material together. Lower review friction may be enough for structure to emerge.</text>
+
+    <line x1="342" y1="708" x2="1260" y2="708" stroke="#e7eae5"/>
+
+    <text x="342" y="766" font-size="25" font-weight="700" fill="#20251f">Open question</text>
+    <text x="342" y="804" font-size="13" fill="#727c70">September 2026</text>
+    <text x="342" y="852" font-size="20" fill="#20251f">How can long-term topics stay stable without losing detail through overly broad grouping?</text>
+
+    <text x="342" y="914" font-size="13" fill="#687267">Original wording, time, and the evolution of thought stay on the same reading path.</text>
+  </g>
+</svg>

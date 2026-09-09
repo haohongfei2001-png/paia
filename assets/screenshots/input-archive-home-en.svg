@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
+  <rect width="1512" height="910" fill="#ffffff"/>
+  <rect width="230" height="910" fill="#f6f7f3"/>
+  <g font-family="Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+    <text x="32" y="62" font-size="36" font-weight="700" fill="#20251f">PAIA</text>
+    <text x="32" y="94" font-size="11" letter-spacing="3" fill="#7a8378">PERSONAL AI INPUT ARCHIVE</text>
+    <text x="32" y="176" font-size="20" font-weight="700" fill="#20251f">Input Archive</text>
+    <text x="32" y="225" font-size="20" fill="#666">Thought Library</text>
+    <text x="32" y="274" font-size="20" fill="#666">AI Context</text>
+    <text x="32" y="832" font-size="15" fill="#687267">Settings</text>
+
+    <text x="275" y="82" font-size="40" font-weight="700" fill="#20251f">Input Archive</text>
+    <text x="275" y="126" font-size="18" fill="#687267">Continuously preserve what you send to AI, organized by real conversations.</text>
+
+    <rect x="275" y="168" width="835" height="56" rx="12" fill="#f7f8f4" stroke="#dde2da"/>
+    <text x="300" y="204" font-size="18" fill="#727c70">Search your input archive…</text>
+    <rect x="1132" y="168" width="196" height="56" rx="12" fill="#fafbf8" stroke="#d9dfd5"/>
+    <text x="1162" y="203" font-size="17" fill="#52604f">Backfill history</text>
+
+    <text x="275" y="282" font-size="13" letter-spacing="1.6" fill="#687267">RECENT CONVERSATIONS</text>
+
+    <rect x="275" y="312" width="1055" height="126" rx="16" fill="#fcfdfb" stroke="#dde2da"/>
+    <text x="305" y="350" font-size="24" font-weight="700" fill="#20251f">Product research &amp; decisions</text>
+    <text x="305" y="385" font-size="17" fill="#687267">User interviews, tradeoffs, and follow-up validation</text>
+    <text x="305" y="417" font-size="14" fill="#727c70">Today · 31 inputs</text>
+    <text x="1245" y="377" font-size="24" fill="#727c70">›</text>
+
+    <rect x="275" y="456" width="1055" height="126" rx="16" fill="#fcfdfb" stroke="#dde2da"/>
+    <text x="305" y="494" font-size="24" font-weight="700" fill="#20251f">Reading &amp; research notes</text>
+    <text x="305" y="529" font-size="17" fill="#687267">Articles, papers, and long-term questions</text>
+    <text x="305" y="561" font-size="14" fill="#727c70">Sep 8 · 24 inputs</text>
+    <text x="1245" y="521" font-size="24" fill="#727c70">›</text>
+
+    <rect x="275" y="600" width="1055" height="126" rx="16" fill="#fcfdfb" stroke="#dde2da"/>
+    <text x="305" y="638" font-size="24" font-weight="700" fill="#20251f">Travel planning</text>
+    <text x="305" y="673" font-size="17" fill="#687267">Routes, stays, and questions still to resolve</text>
+    <text x="305" y="705" font-size="14" fill="#727c70">Sep 6 · 17 inputs</text>
+    <text x="1245" y="665" font-size="24" fill="#727c70">›</text>
+
+    <line x1="275" y1="770" x2="1330" y2="770" stroke="#e2e6df"/>
+    <text x="275" y="816" font-size="14" fill="#687267">The archive keeps growing while your edits, deletions, and version history remain independent.</text>
+  </g>
+</svg>

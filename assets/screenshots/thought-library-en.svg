@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1512" height="910" viewBox="0 0 1512 910">
+<rect width="1512" height="910" fill="#ffffff"/>
+<rect width="230" height="910" fill="#f5f7f3"/>
+<line x1="230" y1="0" x2="230" y2="910" stroke="#e3e7e0"/>
+<g font-family="Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<text x="32" y="58" font-size="34" font-weight="700" fill="#20251f">PAIA</text>
+<text x="32" y="88" font-size="10" letter-spacing="3" fill="#7a8378">PERSONAL AI INPUT ARCHIVE</text>
+<text x="32" y="171" font-size="17" fill="#6f786d">Input Archive</text>
+<rect x="18" y="194" width="194" height="42" rx="10" fill="#e9eee6"/>
+<text x="32" y="221" font-size="17" font-weight="600" fill="#30402c">Thought Library</text>
+<text x="32" y="274" font-size="17" fill="#6f786d">AI Context</text>
+<text x="32" y="842" font-size="15" fill="#687267">Settings</text>
+
+<text x="276" y="76" font-size="38" font-weight="700" fill="#20251f">Thought Library</text>
+<text x="1248" y="74" font-size="16" fill="#3c4d37">AI Organized</text>
+<rect x="1344" y="48" width="64" height="34" rx="17" fill="#667d59"/>
+<circle cx="1390" cy="65" r="13" fill="#ffffff"/>
+
+<rect x="276" y="118" width="1132" height="54" rx="12" fill="#fafbf8" stroke="#dde2da"/>
+<text x="300" y="152" font-size="17" fill="#727c70">Search thoughts, topics, or content…</text>
+
+<rect x="276" y="218" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="304" y="266" font-size="26" font-weight="700" fill="#20251f">Product Research</text>
+<text x="304" y="308" font-size="17" fill="#5f6d5c">User needs, tradeoffs, validation</text>
+<text x="304" y="346" font-size="15" fill="#687267">Turn scattered judgments into a topic worth revisiting.</text>
+<text x="304" y="405" font-size="13" fill="#727c70">New today</text>
+
+<rect x="647" y="218" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="675" y="266" font-size="26" font-weight="700" fill="#20251f">Reading &amp; Research</text>
+<text x="675" y="308" font-size="17" fill="#5f6d5c">Articles, papers, long-term questions</text>
+<text x="675" y="346" font-size="15" fill="#687267">Keep the original understanding while a clearer thread forms.</text>
+<text x="675" y="405" font-size="13" fill="#727c70">Recently viewed</text>
+
+<rect x="1018" y="218" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="1046" y="266" font-size="26" font-weight="700" fill="#20251f">Learning System</text>
+<text x="1046" y="308" font-size="17" fill="#5f6d5c">Capture, revisit, review</text>
+<text x="1046" y="346" font-size="15" fill="#687267">Move from collecting more to returning more easily.</text>
+<text x="1046" y="405" font-size="13" fill="#727c70">Ongoing</text>
+
+<rect x="276" y="466" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="304" y="514" font-size="26" font-weight="700" fill="#20251f">Writing &amp; Creation</text>
+<text x="304" y="556" font-size="17" fill="#5f6d5c">Characters, voice, long-term themes</text>
+<text x="304" y="594" font-size="15" fill="#687267">Keep original language and the parts still unresolved.</text>
+
+<rect x="647" y="466" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="675" y="514" font-size="26" font-weight="700" fill="#20251f">Workflows</text>
+<text x="675" y="556" font-size="17" fill="#5f6d5c">Tools, cost, collaboration</text>
+<text x="675" y="594" font-size="15" fill="#687267">Put difficult judgment and mechanical work in the right places.</text>
+
+<rect x="1018" y="466" width="345" height="222" rx="18" fill="#fafbf8" stroke="#dfe4dc"/>
+<text x="1046" y="514" font-size="26" font-weight="700" fill="#20251f">Long-term Decisions</text>
+<text x="1046" y="556" font-size="17" fill="#5f6d5c">Choices, reasons, later changes</text>
+<text x="1046" y="594" font-size="15" fill="#687267">Preserve not only the conclusion, but why it made sense then.</text>
+
+<text x="276" y="770" font-size="14" fill="#687267">Topics naturally follow new thought and reading activity · no manual pinning required</text>
+</g>
+</svg>

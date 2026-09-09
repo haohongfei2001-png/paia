@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960" preserveAspectRatio="xMidYMid meet">
+  <rect width="1440" height="960" fill="#fbfcf9"/>
+  <rect width="218" height="960" fill="#f5f7f3"/>
+  <line x1="218" y1="0" x2="218" y2="960" stroke="#e4e8e1"/>
+  <g font-family="Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+    <text x="34" y="62" font-size="34" font-weight="700" fill="#20251f">PAIA</text>
+    <text x="34" y="164" font-size="18" fill="#798276">Input Archive</text>
+    <text x="34" y="214" font-size="18" font-weight="700" fill="#243024">Thought Library</text>
+    <text x="34" y="264" font-size="18" fill="#798276">AI Context</text>
+
+    <text x="270" y="72" font-size="16" fill="#687267">← Thought Library</text>
+    <text x="342" y="150" font-size="42" font-weight="700" fill="#20251f">Long-term Learning System</text>
+
+    <rect x="1080" y="98" width="176" height="54" rx="27" fill="#e4ece0" stroke="#a7b99f"/>
+    <text x="1104" y="132" font-size="16" font-weight="700" fill="#40513b">AI Organized</text>
+    <rect x="1203" y="108" width="42" height="34" rx="17" fill="#718967"/>
+    <circle cx="1228" cy="125" r="13" fill="#ffffff"/>
+
+    <rect x="342" y="190" width="604" height="48" rx="11" fill="#f8faf6" stroke="#dce4d8"/>
+    <text x="367" y="220" font-size="15" fill="#727c70">Search within this topic…</text>
+    <text x="1000" y="220" font-size="14" fill="#687267">Time</text>
+    <rect x="1040" y="192" width="70" height="44" rx="10" fill="#e9efe5"/>
+    <text x="1052" y="220" font-size="14" fill="#42513f">Oldest</text>
+    <text x="1128" y="220" font-size="14" fill="#687267">Newest</text>
+    <text x="1204" y="220" font-size="14" fill="#687267">Outline</text>
+
+    <rect x="342" y="278" width="918" height="164" rx="18" fill="#f3f7f1" stroke="#d7e2d3"/>
+    <text x="370" y="314" font-size="13" font-weight="700" letter-spacing="1.5" fill="#6b825f">CURRENT VIEW</text>
+    <text x="370" y="356" font-size="25" font-weight="700" fill="#20251f">Current understanding</text>
+    <text x="370" y="398" font-size="20" fill="#20251f">The system does not mainly need more capture. It needs to reduce the cost of returning to older material</text>
+    <text x="370" y="430" font-size="20" fill="#20251f">while preserving the original understanding, its timing, and how it changed later.</text>
+
+    <text x="342" y="500" font-size="13" font-weight="700" letter-spacing="1.5" fill="#6b825f">KEY PRINCIPLES</text>
+
+    <rect x="342" y="526" width="286" height="132" rx="16" fill="#f7f9f5" stroke="#dbe5d7"/>
+    <text x="366" y="560" font-size="15" font-weight="700" fill="#52634d">Review first</text>
+    <text x="366" y="596" font-size="17" fill="#20251f">Lower the friction of opening</text>
+    <text x="366" y="624" font-size="17" fill="#20251f">old material before adding more inputs.</text>
+
+    <rect x="658" y="526" width="286" height="132" rx="16" fill="#f7f9f5" stroke="#dbe5d7"/>
+    <text x="682" y="560" font-size="15" font-weight="700" fill="#52634d">Preserve sources</text>
+    <text x="682" y="596" font-size="17" fill="#20251f">Interpretation may evolve,</text>
+    <text x="682" y="624" font-size="17" fill="#20251f">but original wording and time remain.</text>
+
+    <rect x="974" y="526" width="286" height="132" rx="16" fill="#f7f9f5" stroke="#dbe5d7"/>
+    <text x="998" y="560" font-size="15" font-weight="700" fill="#52634d">Low maintenance</text>
+    <text x="998" y="596" font-size="17" fill="#20251f">Structure should emerge through use,</text>
+    <text x="998" y="624" font-size="17" fill="#20251f">not require constant manual cleanup.</text>
+
+    <text x="342" y="716" font-size="13" font-weight="700" letter-spacing="1.5" fill="#6b825f">THOUGHT EVOLUTION</text>
+    <line x1="370" y1="762" x2="1196" y2="762" stroke="#dce4d8" stroke-width="2"/>
+    <circle cx="390" cy="762" r="7" fill="#8fa286"/>
+    <circle cx="730" cy="762" r="7" fill="#7e9673"/>
+    <circle cx="1176" cy="762" r="7" fill="#657b59"/>
+    <text x="370" y="802" font-size="14" fill="#687267">Initially: collect more</text>
+    <text x="650" y="802" font-size="14" fill="#687267">Later: reduce review friction</text>
+    <text x="1010" y="802" font-size="14" fill="#657b59">Now: preserve sources &amp; change</text>
+
+    <rect x="342" y="842" width="918" height="66" rx="14" fill="#f8faf6" stroke="#e0e7dc"/>
+    <text x="366" y="882" font-size="15" font-weight="700" fill="#596b53">OPEN QUESTION:</text>
+    <text x="510" y="882" font-size="16" fill="#20251f">How can topics stay stable while new understanding reshapes them naturally?</text>
+  </g>
+</svg>
