@@ -5,19 +5,19 @@
       <stop offset="1" stop-color="#f7f8f6"/>
     </linearGradient>
     <linearGradient id="light" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#edf2eb" stop-opacity="0.92"/>
-      <stop offset="1" stop-color="#d8e2d5" stop-opacity="0.78"/>
+      <stop offset="0" stop-color="#dce9dd" stop-opacity="0.94"/>
+      <stop offset="1" stop-color="#adc7b2" stop-opacity="0.84"/>
     </linearGradient>
     <linearGradient id="mid" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#c3d0bf" stop-opacity="0.92"/>
-      <stop offset="1" stop-color="#98aa93" stop-opacity="0.86"/>
+      <stop offset="0" stop-color="#8eaf95" stop-opacity="0.94"/>
+      <stop offset="1" stop-color="#4f795d" stop-opacity="0.90"/>
     </linearGradient>
     <linearGradient id="dark" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#9eae99" stop-opacity="0.96"/>
-      <stop offset="1" stop-color="#657b63" stop-opacity="0.96"/>
+      <stop offset="0" stop-color="#60896a" stop-opacity="0.98"/>
+      <stop offset="1" stop-color="#28583d" stop-opacity="0.98"/>
     </linearGradient>
     <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="1.2" stdDeviation="1.4" flood-color="#667963" flood-opacity="0.16"/>
+      <feDropShadow dx="0" dy="1.2" stdDeviation="1.4" flood-color="#315843" flood-opacity="0.18"/>
     </filter>
   </defs>
 
@@ -25,10 +25,10 @@
 
   <g filter="url(#shadow)" stroke-linejoin="round">
     <path d="M34 11.5 Q34 8.7 36.8 10.2 L50.1 17.6 Q52 18.7 52 21.2 V40.4 Q52 43.2 49.6 41.9 L36.3 34.6 Q34 33.3 34 30.7 Z"
-          fill="url(#dark)" stroke="#81947d" stroke-width="0.65"/>
+          fill="url(#dark)" stroke="#477257" stroke-width="0.65"/>
     <path d="M23 20.1 Q23 17.2 25.8 18.7 L39.1 26.1 Q41 27.2 41 29.7 V47.1 Q41 50 38.6 48.6 L25.3 41.3 Q23 40 23 37.4 Z"
-          fill="url(#mid)" stroke="#afbeaa" stroke-width="0.65"/>
+          fill="url(#mid)" stroke="#769a7f" stroke-width="0.65"/>
     <path d="M12 28.8 Q12 25.9 14.8 27.4 L28.1 34.8 Q30 35.9 30 38.4 V50.4 Q30 53.3 27.6 51.9 L14.3 44.6 Q12 43.3 12 40.7 Z"
-          fill="url(#light)" stroke="#d5dfd2" stroke-width="0.65"/>
+          fill="url(#light)" stroke="#b8cfbb" stroke-width="0.65"/>
   </g>
 </svg>
