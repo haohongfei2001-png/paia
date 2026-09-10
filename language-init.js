@@ -27,7 +27,7 @@
   if (selected === 'en') {
     root.classList.add('paia-i18n-booting');
     const reveal = () => root.classList.remove('paia-i18n-booting');
-    window.addEventListener('paia:languagechange', reveal, { once: true });
+    window.addEventListener('paia:ready', reveal, { once: true });
     window.setTimeout(reveal, 1600);
   }
 })();
