@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="940" viewBox="0 0 720 940">
+  <rect width="720" height="940" fill="#ffffff"/>
+  <g font-family="Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+    <text x="44" y="58" font-size="15" fill="#687267">← Conversations</text>
+    <text x="556" y="58" font-size="14" fill="#657b59">Version history</text>
+
+    <text x="44" y="126" font-size="36" font-weight="700" fill="#20251f">Product research &amp; decisions</text>
+    <text x="44" y="164" font-size="14" fill="#687267">September 8, 2026 · Continuous reading</text>
+
+    <line x1="44" y1="204" x2="676" y2="204" stroke="#e6e9e3"/>
+
+    <text x="44" y="250" font-size="14" fill="#727c70">21:48</text>
+    <text x="44" y="292" font-size="22" fill="#20251f">I want to solve the problems users repeatedly encounter</text>
+    <text x="44" y="326" font-size="22" fill="#20251f">before adding more features.</text>
+
+    <text x="44" y="390" font-size="14" fill="#727c70">22:13</text>
+    <text x="44" y="432" font-size="22" fill="#20251f">Version one should show value quickly, without making</text>
+    <text x="44" y="466" font-size="22" fill="#20251f">users learn complex settings first.</text>
+
+    <text x="44" y="530" font-size="14" fill="#727c70">22:27</text>
+    <text x="44" y="572" font-size="22" fill="#20251f">Important history should stay traceable to its source</text>
+    <text x="44" y="606" font-size="22" fill="#20251f">while preserving the user’s own edits.</text>
+
+    <text x="44" y="670" font-size="14" fill="#727c70">23:05</text>
+    <text x="44" y="712" font-size="22" fill="#20251f">The reading view should stay quiet, with the content</text>
+    <text x="44" y="746" font-size="22" fill="#20251f">more prominent than system status.</text>
+
+    <line x1="44" y1="814" x2="676" y2="814" stroke="#e1e5de"/>
+    <text x="44" y="856" font-size="14" fill="#687267">Continuous reading · Autosave · Traceable sources</text>
+    <rect x="44" y="884" width="122" height="34" rx="17" fill="#eef2eb"/>
+    <text x="67" y="906" font-size="13" font-weight="700" fill="#53684b">INPUT ARCHIVE</text>
+  </g>
+</svg>
