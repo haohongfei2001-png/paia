@@ -43,11 +43,12 @@ It will:
 
 1. refuse uncommitted tracked source changes or a non-`main` branch;
 2. verify the local clone matches `origin/main` as synchronized by GitHub Desktop;
-3. locate the existing Chrome-loaded PAIA runtime by asking once on the first run and remembering that path locally;
-4. build and statically validate a current release in a temporary directory;
-5. back up the current runtime code;
-6. `rsync --delete` the validated release into the same runtime path;
-7. verify the deployed files and restore the backup automatically if verification fails;
-8. open `chrome://extensions` so the existing PAIA extension can be reloaded.
+3. first try to identify the existing Chrome-loaded PAIA unpacked directory from Chrome profile extension metadata; it reads only extension configuration needed to recover the local path, not browsing history, cookies, PAIA archive contents, or extension storage;
+4. if Chrome exposes exactly one valid PAIA runtime, use it automatically and remember the verified path locally; only fall back to a manual folder chooser when detection is unavailable or ambiguous;
+5. build and statically validate a current release in a temporary directory;
+6. back up the current runtime code;
+7. `rsync --delete` the validated release into the same runtime path;
+8. verify the deployed files and restore the backup automatically if verification fails;
+9. open `chrome://extensions` so the existing PAIA extension can be reloaded.
 
 The runtime-path preference and backups live under `~/Library/Application Support/PAIA Development/` and are not part of Git. The updater copies program files only; it does not read or move PAIA's Chrome-managed private archive database.
