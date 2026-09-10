@@ -1,8 +1,11 @@
 import {readdir,readFile,writeFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {createRequire} from 'node:module';
 import {inputDigest,goldenBundle} from './compatibility-gate.mjs';
 import {group} from './test-groups.mjs';
+const require=createRequire(import.meta.url);
+if(!process.env.PLAYWRIGHT_MODULE){try{process.env.PLAYWRIGHT_MODULE=require.resolve('playwright');}catch{}}
 process.chdir(fileURLToPath(new URL('../',import.meta.url)));
 const startingDigest=await inputDigest();
 const requested=process.argv[2];

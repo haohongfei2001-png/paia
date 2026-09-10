@@ -1,10 +1,16 @@
 {
   "name": "personal-ai-input-archive",
-  "version": "0.10.0",
+  "version": "0.11.1",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node scripts/test.mjs",
-    "check": "python3 scripts/check_package.py"
+    "check": "python3 scripts/check_package.py",
+    "test:unit": "node scripts/test.mjs unit",
+    "test:browser": "node scripts/test.mjs \"browser E2E\"",
+    "build:release": "python3 scripts/build_current_release.py"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
   }
 }

@@ -28,6 +28,9 @@
 
 - Keep adapters, capture/import logic, storage/model logic, UI, and provider-facing logic separated according to the current architecture.
 - Add or update targeted tests for behavioral changes and run the relevant regression checks when feasible.
+- On a fresh clone, use `npm install` and `npx playwright install chromium` under `extension/` before the complete browser regression suite. `npm test` is the current full-suite entry point; `npm run check` is the static package audit.
+- `npm run build:release` is the current source-of-truth release build. It builds from the GitHub working tree and validates the emitted release without requiring historical local `work/` receipts. Version-specific historical acceptance packagers remain for release history and may depend on generated evidence from their original sessions.
+- For the user's existing unpacked Chrome installation, preserve the same loaded runtime path to preserve extension identity and Chrome-managed IndexedDB. `development/Update PAIA.command` is the supported local sync/deploy helper; see `DEVELOPMENT_WORKFLOW.md`.
 - Keep documentation aligned with actual behavior; do not claim unsupported compatibility, live-provider success, or real-user validation.
 - The user has limited programming experience. Agents should perform code and file changes themselves when tools allow it and give only concise manual smoke-test steps when direct browser interaction is genuinely required.
 - Do not ask the user to maintain a second authoritative local copy. If a local clone diverges, reconcile it with GitHub `main`; do not treat the local directory as newer merely because it exists.
