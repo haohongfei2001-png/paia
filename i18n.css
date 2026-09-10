@@ -1,3 +1,7 @@
+html.paia-i18n-booting body {
+  visibility: hidden;
+}
+
 .nav {
   align-items: center;
 }
