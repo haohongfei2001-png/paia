@@ -1,10 +1,9 @@
 (() => {
   const currentLang = () => document.documentElement.dataset.language === 'zh' ? 'zh' : 'en';
-  const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const text = {
     zh: {
-      headerBeta: '加入内测', productAlt: 'PAIA 产品界面预览',
+      headerBeta: '加入内测',
       product: '产品', demo: '体验', homeDemo: '体验 PAIA', principles: '原则', privacy: '隐私', about: '关于',
       demoTitle: '体验 PAIA。',
       demoSubtitle: '打开一个会话，改一句话，再看看它如何进入 Thought Library 与 AI Context。',
@@ -20,7 +19,7 @@
       back: '返回 PAIA'
     },
     en: {
-      headerBeta: 'Join beta', productAlt: 'PAIA product interface preview',
+      headerBeta: 'Join beta',
       product: 'Product', demo: 'Demo', homeDemo: 'Try PAIA', principles: 'Principles', privacy: 'Privacy', about: 'About',
       demoTitle: 'Try PAIA.',
       demoSubtitle: 'Open a conversation, edit one sentence, then see how it carries into Thought Library and AI Context.',
@@ -35,12 +34,6 @@
       betaError: 'The application could not be submitted. Please try again, or contact the project by email.',
       back: 'Back to PAIA'
     }
-  };
-
-  const productViews = {
-    archive: { zh: 'assets/screenshots/input-archive-home.svg?v=3', en: 'assets/screenshots/input-archive-home-en.svg?v=1' },
-    thoughts: { zh: 'assets/screenshots/thought-library.svg?v=3', en: 'assets/screenshots/thought-library-en.svg?v=1' },
-    context: { zh: 'assets/screenshots/ai-context.svg?v=3', en: 'assets/screenshots/ai-context-en.svg?v=1' }
   };
 
   const t = () => text[currentLang()];
@@ -135,67 +128,6 @@
       if (page() === 'beta') cta.setAttribute('aria-current', 'page');
       else cta.removeAttribute('aria-current');
     });
-  };
-
-  const updateHeroProduct = (animate = false) => {
-    const proof = document.querySelector('.hero-product-proof');
-    if (!proof) return;
-
-    const view = proof.dataset.activeView || 'archive';
-    const lang = currentLang();
-    const image = proof.querySelector('[data-hero-product-image]');
-    const panel = proof.querySelector('[role="tabpanel"]');
-    const buttons = [...proof.querySelectorAll('[data-product-view]')];
-    if (!image || !productViews[view]) return;
-
-    const src = productViews[view][lang];
-    if (image.getAttribute('src') !== src) {
-      image.src = src;
-      if (animate && !prefersReducedMotion() && image.animate) {
-        image.animate([{ opacity: .72 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
-      }
-    }
-
-    const label = view === 'archive' ? 'Input Archive' : view === 'thoughts' ? 'Thought Library' : 'AI Context';
-    image.alt = `${t().productAlt} · ${label}`;
-
-    buttons.forEach((button) => {
-      const active = button.dataset.productView === view;
-      button.setAttribute('aria-selected', String(active));
-      button.tabIndex = active ? 0 : -1;
-    });
-
-    const activeButton = buttons.find((button) => button.dataset.productView === view);
-    if (panel && activeButton?.id) panel.setAttribute('aria-labelledby', activeButton.id);
-  };
-
-  const bindHeroProduct = () => {
-    const proof = document.querySelector('.hero-product-proof');
-    if (!proof || proof.dataset.bound === 'true') return;
-    proof.dataset.bound = 'true';
-
-    const buttons = [...proof.querySelectorAll('[data-product-view]')];
-    const activate = (button, focus = false) => {
-      proof.dataset.activeView = button.dataset.productView;
-      updateHeroProduct(true);
-      if (focus) button.focus();
-    };
-
-    buttons.forEach((button, index) => {
-      button.addEventListener('click', () => activate(button));
-      button.addEventListener('keydown', (event) => {
-        let next = null;
-        if (event.key === 'ArrowRight') next = buttons[(index + 1) % buttons.length];
-        if (event.key === 'ArrowLeft') next = buttons[(index - 1 + buttons.length) % buttons.length];
-        if (event.key === 'Home') next = buttons[0];
-        if (event.key === 'End') next = buttons[buttons.length - 1];
-        if (!next) return;
-        event.preventDefault();
-        activate(next, true);
-      });
-    });
-
-    updateHeroProduct(false);
   };
 
   const ensureMobileMenu = () => {
@@ -380,14 +312,12 @@
     ensureDemoLinks();
     ensureHeaderCta();
     ensureMobileMenu();
-    bindHeroProduct();
     ensureAlternates();
     syncLanguageUrl();
     propagateLanguageLinks();
     enhanceBetaForm();
     refineFooter();
     applyDemoPageCopy();
-    updateHeroProduct(false);
   };
 
   const init = () => {
