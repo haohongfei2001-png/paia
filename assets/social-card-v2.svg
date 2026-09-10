@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f7f8f4"/>
+  <rect x="72" y="72" width="1056" height="486" rx="30" fill="#fbfcf9" stroke="#dfe4dc"/>
+  <g transform="translate(118 150)">
+    <path d="M0 126 Q0 114 11 119 L72 148 Q82 153 82 165 V244 Q82 256 72 250 L12 217 Q0 211 0 199 Z" fill="#dfe8db" stroke="#cbd8c6" stroke-width="3"/>
+    <path d="M48 75 Q48 62 60 68 L126 104 Q137 110 137 122 V224 Q137 237 126 230 L61 194 Q48 187 48 175 Z" fill="#a9bea0" stroke="#91aa88" stroke-width="3"/>
+    <path d="M108 24 Q108 10 120 17 L188 54 Q198 60 198 73 V187 Q198 201 187 194 L120 157 Q108 150 108 137 Z" fill="#647b58" stroke="#536a49" stroke-width="3"/>
+  </g>
+  <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+    <text x="390" y="230" font-size="80" font-weight="700" letter-spacing="2" fill="#1f241f">PAIA</text>
+    <text x="392" y="286" font-size="23" letter-spacing="5" fill="#647b58">PERSONAL AI INPUT ARCHIVE</text>
+    <text x="392" y="365" font-size="34" font-weight="560" fill="#2f372f">Your private archive for what you say to AI.</text>
+    <text x="392" y="422" font-size="21" fill="#687267">Local-first · AI never overwrites your words</text>
+    <text x="392" y="458" font-size="21" fill="#687267">AI access only when you allow it</text>
+  </g>
+</svg>
