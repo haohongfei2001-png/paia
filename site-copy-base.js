@@ -2,7 +2,7 @@
   const copy = {
     zh: {
       navPrinciples: '原则', navAbout: '关于', heroBeta: '加入 Private Beta', heroProblem: '查看产品',
-      heroPrincipleLocal: '本地优先', heroPrincipleSource: '原话始终保留', heroPrincipleAI: 'AI 仅在你允许时访问',
+      heroPrincipleLocal: '本地优先', heroPrincipleSource: 'AI 不覆盖你的原话', heroPrincipleAI: 'AI 仅在你允许时访问',
       availability: 'Chrome Extension · ChatGPT Web · Private Beta',
       thoughtTitle: '让散落在聊天里的表达，重新回到长期思考的脉络里。',
       aiCaption: '在原话之上，打开一个可随时关闭的 AI 综合理解层。',
@@ -60,7 +60,7 @@
     },
     en: {
       navPrinciples: 'Principles', navAbout: 'About', heroBeta: 'Join the Private Beta', heroProblem: 'View product',
-      heroPrincipleLocal: 'Local-first', heroPrincipleSource: 'Your words stay intact', heroPrincipleAI: 'AI access only when you allow it',
+      heroPrincipleLocal: 'Local-first', heroPrincipleSource: 'AI never overwrites your words', heroPrincipleAI: 'AI access only when you allow it',
       availability: 'Chrome Extension · ChatGPT Web · Private Beta',
       thoughtTitle: 'Bring scattered expressions back into the thread of your long-term thinking.',
       aiCaption: 'Add a switchable AI synthesis layer on top of the source, without replacing it.',
@@ -91,7 +91,7 @@
       legalPrivacySubtitle: 'Local-first storage. Explicit user control. Minimal data boundaries.', legalTermsSubtitle: 'Terms for the evolving PAIA Private Beta.',
       meta: {
         home: ['PAIA — Personal AI Input Archive', 'PAIA is a local-first personal AI input archive and thought library for preserving, organizing, and revisiting what you have expressed to AI.'],
-        principles: ['PAIA Principles — Personal AI Input Archive', 'The product principles behind PAIA: user-input first, source-faithful by default, explicit AI Context authorization, and constrained automation.'],
+        principles: ['PAIA Principles — Personal AI Input Archive', 'The product principles behind PAIA: user-input first, source before synthesis, explicit AI Context authorization, and constrained automation.'],
         about: ['About PAIA — Personal AI Input Archive', 'Why PAIA exists, how its product boundaries are designed, and how the independent project is being built.'],
         'privacy-policy': ['PAIA Privacy Policy', 'PAIA privacy policy for local-first storage, explicit AI authorization, and minimal data boundaries.'],
         terms: ['PAIA Terms', 'Terms for the PAIA Private Beta.'],
