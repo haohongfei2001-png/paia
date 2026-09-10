@@ -4,7 +4,11 @@
   const text = {
     zh: {
       headerBeta: '加入内测', productAlt: 'PAIA 产品界面预览',
-      product: '产品', principles: '原则', privacy: '隐私', about: '关于',
+      product: '产品', demo: '体验', homeDemo: '体验 PAIA', principles: '原则', privacy: '隐私', about: '关于',
+      demoTitle: '体验 PAIA。',
+      demoSubtitle: '用演示数据探索 Input Archive、Thought Library 和 AI Context。这里的状态会真实联动，但不会使用你的个人数据。',
+      demoNote: '演示数据 · 所有交互都在浏览器本地运行',
+      demoBack: '← 返回产品首页',
       menuOpen: '打开导航', menuClose: '关闭导航',
       betaSubmitting: '提交中…',
       betaSuccessTitle: '申请已提交。',
@@ -14,7 +18,11 @@
     },
     en: {
       headerBeta: 'Join beta', productAlt: 'PAIA product interface preview',
-      product: 'Product', principles: 'Principles', privacy: 'Privacy', about: 'About',
+      product: 'Product', demo: 'Demo', homeDemo: 'Try PAIA', principles: 'Principles', privacy: 'Privacy', about: 'About',
+      demoTitle: 'Try PAIA.',
+      demoSubtitle: 'Explore Input Archive, Thought Library, and AI Context with demo data. The state is genuinely connected, but none of your personal data is used.',
+      demoNote: 'Demo data · every interaction runs entirely in your browser',
+      demoBack: '← Back to product home',
       menuOpen: 'Open navigation', menuClose: 'Close navigation',
       betaSubmitting: 'Submitting…',
       betaSuccessTitle: 'Application submitted.',
@@ -45,6 +53,69 @@
       link.href = href;
       document.head.appendChild(link);
     });
+  };
+
+  const ensureDemoLinks = () => {
+    const t = text[currentLang()];
+    const isDemo = document.body.dataset.page === 'demo';
+
+    document.querySelectorAll('.site-header .nav').forEach((nav) => {
+      let link = nav.querySelector('.nav-demo');
+      if (!link) {
+        link = document.createElement('a');
+        link.className = 'nav-demo';
+        link.setAttribute('data-site-nav-demo', '');
+        const principles = nav.querySelector('.nav-principles');
+        if (principles) nav.insertBefore(link, principles);
+        else {
+          const cta = nav.querySelector('.header-beta');
+          nav.insertBefore(link, cta || nav.querySelector('[data-language-toggle]') || null);
+        }
+      }
+      link.href = 'demo.html';
+      link.textContent = t.demo;
+      if (isDemo) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+
+    document.querySelectorAll('.footer-links').forEach((footer) => {
+      let link = footer.querySelector('[data-site-nav-demo]');
+      if (!link) {
+        link = document.createElement('a');
+        link.setAttribute('data-site-nav-demo', '');
+        link.href = 'demo.html';
+        const principles = footer.querySelector('a[href^="principles.html"]');
+        if (principles) footer.insertBefore(link, principles);
+        else footer.insertBefore(link, footer.querySelector('.footer-meta') || null);
+      }
+      link.textContent = t.demo;
+      if (isDemo) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+
+    document.querySelectorAll('[data-site-nav-demo]').forEach((link) => { link.textContent = t.demo; });
+    document.querySelectorAll('[data-site-home-demo-link]').forEach((link) => { link.textContent = t.homeDemo; });
+  };
+
+  const applyDemoPageCopy = () => {
+    if (document.body.dataset.page !== 'demo') return;
+    const t = text[currentLang()];
+    document.querySelectorAll('[data-site-demo-title]').forEach((el) => { el.textContent = t.demoTitle; });
+    document.querySelectorAll('[data-site-demo-subtitle]').forEach((el) => { el.textContent = t.demoSubtitle; });
+    document.querySelectorAll('[data-site-demo-note]').forEach((el) => { el.textContent = t.demoNote; });
+    document.querySelectorAll('[data-site-demo-back]').forEach((el) => { el.textContent = t.demoBack; });
+
+    const title = currentLang() === 'zh' ? '体验 PAIA — Interactive Demo' : 'Try PAIA — Interactive Demo';
+    const description = currentLang() === 'zh'
+      ? '使用演示数据体验 PAIA 的 Input Archive、Thought Library 与 AI Context。所有交互都在浏览器本地运行。'
+      : 'Explore PAIA Input Archive, Thought Library, and AI Context with demo data. Every interaction runs entirely in your browser.';
+    document.title = title;
+    const meta = document.querySelector('meta[name="description"]');
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (meta) meta.setAttribute('content', description);
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    if (ogDescription) ogDescription.setAttribute('content', description);
   };
 
   const ensureHeaderCta = () => {
@@ -125,8 +196,10 @@
     }
 
     const homePrefix = document.body.dataset.page === 'home' ? '' : 'index.html';
+    const current = document.body.dataset.page === 'demo' ? ' aria-current="page"' : '';
     panel.innerHTML = `
       <a href="${homePrefix}#product">${t.product}</a>
+      <a href="demo.html" data-site-nav-demo${current}>${t.demo}</a>
       <a href="principles.html">${t.principles}</a>
       <a href="${homePrefix}#privacy">${t.privacy}</a>
       <a href="about.html">${t.about}</a>`;
@@ -253,6 +326,7 @@
 
   const apply = () => {
     installPlatformIcons();
+    ensureDemoLinks();
     ensureHeaderCta();
     ensureMobileMenu();
     bindHeroProduct();
@@ -261,6 +335,7 @@
     propagateLanguageLinks();
     enhanceBetaForm();
     refineFooter();
+    applyDemoPageCopy();
     updateHeroProduct(false);
   };
 
