@@ -6,9 +6,11 @@
       headerBeta: '加入内测', productAlt: 'PAIA 产品界面预览',
       product: '产品', demo: '体验', homeDemo: '体验 PAIA', principles: '原则', privacy: '隐私', about: '关于',
       demoTitle: '体验 PAIA。',
-      demoSubtitle: '用演示数据探索 Input Archive、Thought Library 和 AI Context。这里的状态会真实联动，但不会使用你的个人数据。',
+      demoSubtitle: '打开一个会话，改一句话，再看看它如何进入 Thought Library 与 AI Context。',
       demoNote: '演示数据 · 所有交互都在浏览器本地运行',
       demoBack: '← 返回产品首页',
+      demoExitTitle: '想用自己的档案试试 PAIA？',
+      demoExitPrinciples: '看看背后的产品原则',
       menuOpen: '打开导航', menuClose: '关闭导航',
       betaSubmitting: '提交中…',
       betaSuccessTitle: '申请已提交。',
@@ -20,9 +22,11 @@
       headerBeta: 'Join beta', productAlt: 'PAIA product interface preview',
       product: 'Product', demo: 'Demo', homeDemo: 'Try PAIA', principles: 'Principles', privacy: 'Privacy', about: 'About',
       demoTitle: 'Try PAIA.',
-      demoSubtitle: 'Explore Input Archive, Thought Library, and AI Context with demo data. The state is genuinely connected, but none of your personal data is used.',
+      demoSubtitle: 'Open a conversation, edit one sentence, then see how it carries into Thought Library and AI Context.',
       demoNote: 'Demo data · every interaction runs entirely in your browser',
       demoBack: '← Back to product home',
+      demoExitTitle: 'Ready to try PAIA with your own archive?',
+      demoExitPrinciples: 'Read the product principles',
       menuOpen: 'Open navigation', menuClose: 'Close navigation',
       betaSubmitting: 'Submitting…',
       betaSuccessTitle: 'Application submitted.',
@@ -104,6 +108,8 @@
     document.querySelectorAll('[data-site-demo-subtitle]').forEach((el) => { el.textContent = t.demoSubtitle; });
     document.querySelectorAll('[data-site-demo-note]').forEach((el) => { el.textContent = t.demoNote; });
     document.querySelectorAll('[data-site-demo-back]').forEach((el) => { el.textContent = t.demoBack; });
+    document.querySelectorAll('[data-site-demo-exit-title]').forEach((el) => { el.textContent = t.demoExitTitle; });
+    document.querySelectorAll('[data-site-demo-exit-principles]').forEach((el) => { el.textContent = t.demoExitPrinciples; });
 
     const title = currentLang() === 'zh' ? '体验 PAIA — Interactive Demo' : 'Try PAIA — Interactive Demo';
     const description = currentLang() === 'zh'
