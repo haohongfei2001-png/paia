@@ -21,13 +21,13 @@
       projectTitle: '从产品定义，到一个真实运行的系统。',
       principlesHeroTitle: 'Principles behind PAIA.', principlesHeroSubtitle: '这些原则决定 PAIA 做什么，也决定它刻意不做什么。',
       principlesIntro: '四条原则，定义 PAIA 与普通 AI 历史工具之间的边界。',
-      privacyPolicy: '隐私政策', terms: '使用条款', contact: '联系', lastUpdated: '最后更新：2026 年 9 月 10 日',
+      privacyPolicy: '隐私政策', terms: '使用条款', contact: '联系', lastUpdated: '最后更新：2026 年 9 月 11 日',
       betaTitle: '加入 PAIA Private Beta',
       betaSubtitle: 'PAIA 正在测试一个本地优先的 Chrome Extension，用来保存、组织并重新阅读你向 AI 发送过的内容。',
       betaEmail: '邮箱', betaFrequency: '你使用 AI 的频率？', betaGoal: '你希望 PAIA 最先帮你解决什么？',
       betaGoalPlaceholder: '可选。写一两句话即可。', betaSubmit: '提交申请',
       betaFreqPlaceholder: '请选择', betaFreqDaily: '每天', betaFreqSeveral: '每周数次', betaFreqWeekly: '每周左右', betaFreqOccasional: '偶尔',
-      betaPrivacy: '申请信息会通过 FormSubmit 发送到项目联系邮箱。请不要填写敏感信息。',
+      betaPrivacy: '申请信息仅用于 Private Beta 招募与联系，经 FormSubmit 转发到项目邮箱。你可以随时通过项目邮箱要求删除已提交的申请信息，请不要填写敏感信息。',
       thanksTitle: '申请已提交。', thanksBody: '感谢你对 PAIA Private Beta 的兴趣。如果适合当前测试范围，我会通过邮件联系你。', backHome: '返回 PAIA',
       notFoundTitle: '这个页面不存在。', notFoundBody: '链接可能已经改变，或者这个页面还没有公开。',
       legalPrivacySubtitle: '本地优先。用户显式控制。最小数据边界。', legalTermsSubtitle: '适用于持续迭代中的 PAIA Private Beta。',
@@ -42,10 +42,10 @@
         <h2>1. 核心原则</h2><p>PAIA 当前以本地优先方式运行。核心档案数据默认保存在用户设备上，产品设计优先让保存、检索、备份和多数组织逻辑在本地完成。</p>
         <h2>2. AI 相关数据使用</h2><p>PAIA 不默认把完整档案交给外部 AI。需要调用外部 AI 的功能，应由用户明确触发，并尽量只处理完成当前任务所必要的内容。AI Context 的授权、排除和预览应当先由用户确认。</p>
         <h2>3. 本网站</h2><p>当前公开展示网站不连接用户的 PAIA 档案，也不设置分析脚本或行为跟踪器。网站仅用于说明产品理念、交互与当前开发状态。</p>
-        <h2>4. Private Beta 申请</h2><p>Private Beta 申请表通过第三方表单转发服务 FormSubmit 将你主动填写的信息发送到项目联系邮箱 haohongfei2001@gmail.com。申请表只要求测试招募所需的基本信息，请不要提交敏感信息。</p>
+        <h2>4. Private Beta 申请</h2><p>Private Beta 申请表通过第三方表单转发服务 FormSubmit 将你主动填写的信息发送到项目联系邮箱 haohongfei2001@gmail.com。申请信息仅用于当前 Beta 的招募、筛选与联系，并会在不再需要用于 Beta 招募后删除。你可以随时通过项目联系邮箱要求提前删除已提交的申请信息。请不要提交敏感信息。</p>
         <h2>5. Private Beta</h2><p>PAIA 仍处于 Private Beta。具体数据结构、同步方式和可选 AI 功能可能继续调整。若未来引入云同步、账户系统或新的外部服务，会在正式启用前更新本政策并说明相应数据边界。</p>
         <h2>6. 用户控制与删除</h2><p>产品目标是让用户保留对自己档案的最终控制权，包括查看、编辑、导出和删除。具体能力以当前 Beta 版本实际提供的功能为准。</p>
-        <h2>7. 联系</h2><p>有关隐私或 Beta 的问题，请联系 <a href="mailto:haohongfei2001@gmail.com">haohongfei2001@gmail.com</a>。</p>`,
+        <h2>7. 联系</h2><p>有关隐私、Beta 申请删除或其他问题，请联系 <a href="mailto:haohongfei2001@gmail.com">haohongfei2001@gmail.com</a>。</p>`,
       termsHTML: `
         <h2>1. Beta 状态</h2><p>PAIA 当前处于 Private Beta。功能、数据结构、界面和支持范围可能持续变化，部分能力可能不稳定或暂时不可用。</p>
         <h2>2. 用户数据</h2><p>用户对自己输入、编辑和导入的内容保留相应权利。PAIA 的产品目标是让这些内容保持可查看、可管理和可导出，而不是通过锁定用户数据建立使用门槛。</p>
@@ -74,13 +74,13 @@
       projectTitle: 'From product definition to a working system.',
       principlesHeroTitle: 'Principles behind PAIA.', principlesHeroSubtitle: 'These principles define what PAIA does — and what it deliberately refuses to do.',
       principlesIntro: 'Four principles define the boundary between PAIA and ordinary AI history tools.',
-      privacyPolicy: 'Privacy Policy', terms: 'Terms', contact: 'Contact', lastUpdated: 'Last updated: September 10, 2026',
+      privacyPolicy: 'Privacy Policy', terms: 'Terms', contact: 'Contact', lastUpdated: 'Last updated: September 11, 2026',
       betaTitle: 'Join the PAIA Private Beta',
       betaSubtitle: 'PAIA is testing a local-first Chrome Extension for preserving, organizing, and revisiting what you send to AI.',
       betaEmail: 'Email', betaFrequency: 'How often do you use AI?', betaGoal: 'What would you want PAIA to help you with first?',
       betaGoalPlaceholder: 'Optional. One or two sentences is enough.', betaSubmit: 'Submit application',
       betaFreqPlaceholder: 'Select one', betaFreqDaily: 'Daily', betaFreqSeveral: 'Several times a week', betaFreqWeekly: 'About weekly', betaFreqOccasional: 'Occasionally',
-      betaPrivacy: 'Your application is sent via FormSubmit to the project contact email. Please do not submit sensitive information.',
+      betaPrivacy: 'Applications are used only for Private Beta recruitment and contact, and are forwarded to the project email via FormSubmit. You can request deletion of a submitted application at any time by email. Please do not submit sensitive information.',
       thanksTitle: 'Application submitted.', thanksBody: 'Thanks for your interest in the PAIA Private Beta. If you fit the current testing scope, I’ll follow up by email.', backHome: 'Back to PAIA',
       notFoundTitle: 'This page isn’t here.', notFoundBody: 'The link may have changed, or this page may not be public yet.',
       legalPrivacySubtitle: 'Local-first storage. Explicit user control. Minimal data boundaries.', legalTermsSubtitle: 'Terms for the evolving PAIA Private Beta.',
@@ -95,10 +95,10 @@
         <h2>1. Core principle</h2><p>PAIA currently operates local-first. Core archive data is stored on the user’s device by default, and the product is designed to keep storage, retrieval, backup, and most organizational logic local whenever practical.</p>
         <h2>2. AI-related data use</h2><p>PAIA does not hand the full archive to external AI by default. Features that use external AI should be explicitly triggered by the user and should process only the material necessary for the current task. AI Context authorization, exclusions, and preview remain under user control.</p>
         <h2>3. This website</h2><p>This public showcase site does not connect to a user’s PAIA archive and currently includes no analytics scripts or behavioral trackers. It exists to explain the product, interaction model, and current development state.</p>
-        <h2>4. Private Beta applications</h2><p>The Private Beta form uses FormSubmit, a third-party form forwarding service, to send information you choose to provide to the project contact email at haohongfei2001@gmail.com. The form asks only for basic information relevant to Beta recruitment. Please do not submit sensitive information.</p>
+        <h2>4. Private Beta applications</h2><p>The Private Beta form uses FormSubmit, a third-party form forwarding service, to send information you choose to provide to the project contact email at haohongfei2001@gmail.com. Application data is used only for current Beta recruitment, screening, and contact, and is deleted when it is no longer needed for Beta recruitment. You may request earlier deletion of a submitted application at any time by contacting the project email. Please do not submit sensitive information.</p>
         <h2>5. Private Beta</h2><p>PAIA is still in Private Beta. Data structures, sync methods, and optional AI features may change. If cloud sync, accounts, or new external services are introduced, this policy will be updated before broader use to explain the relevant data boundaries.</p>
         <h2>6. User control and deletion</h2><p>The product is intended to keep the user in control of their archive, including viewing, editing, exporting, and deleting content. Exact capabilities depend on the current Beta build.</p>
-        <h2>7. Contact</h2><p>For privacy or Beta questions, contact <a href="mailto:haohongfei2001@gmail.com">haohongfei2001@gmail.com</a>.</p>`,
+        <h2>7. Contact</h2><p>For privacy questions, Beta application deletion, or other inquiries, contact <a href="mailto:haohongfei2001@gmail.com">haohongfei2001@gmail.com</a>.</p>`,
       termsHTML: `
         <h2>1. Beta status</h2><p>PAIA is currently a Private Beta. Features, data structures, interfaces, and supported sources may continue to change, and some capabilities may be unstable or temporarily unavailable.</p>
         <h2>2. Your data</h2><p>You retain the applicable rights to content you input, edit, or import. PAIA is designed to keep that material viewable, manageable, and exportable rather than using data lock-in as a product dependency.</p>
