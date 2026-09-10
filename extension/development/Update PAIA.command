@@ -32,14 +32,21 @@ APPLESCRIPT
 
 mkdir -p "$CONFIG_DIR" "$BACKUP_ROOT"
 
-# GitHub main is authoritative. Refuse to overwrite uncommitted tracked work.
+# GitHub main is authoritative. GitHub Desktop owns network sync because its
+# network/proxy path may differ from the system git used by this .command file.
 if [[ -n "$(git -C "$REPO_DIR" status --porcelain --untracked-files=no)" ]]; then
   fail "This GitHub clone has uncommitted tracked changes. Commit/revert them before updating the runtime."
 fi
 
-echo "Updating local clone from GitHub main..."
-git -C "$REPO_DIR" fetch origin main
-git -C "$REPO_DIR" pull --ff-only origin main
+BRANCH="$(git -C "$REPO_DIR" branch --show-current)"
+[[ "$BRANCH" == "main" ]] || fail "This updater must run from the main branch. Switch to main in GitHub Desktop first."
+
+LOCAL_HEAD="$(git -C "$REPO_DIR" rev-parse HEAD)"
+ORIGIN_HEAD="$(git -C "$REPO_DIR" rev-parse refs/remotes/origin/main 2>/dev/null || true)"
+[[ -n "$ORIGIN_HEAD" ]] || fail "origin/main is not available locally. Open GitHub Desktop, Fetch/Pull origin, then run this updater again."
+[[ "$LOCAL_HEAD" == "$ORIGIN_HEAD" ]] || fail "This clone is not synchronized with origin/main. Open GitHub Desktop, Fetch/Pull origin until it shows no pending Pull/Push, then run this updater again."
+
+echo "Using GitHub Desktop-synchronized main: $LOCAL_HEAD"
 
 RUNTIME=""
 if [[ -f "$CONFIG_FILE" ]]; then
