@@ -3,6 +3,51 @@
   scroll-margin-top: 88px;
 }
 
+/* The standalone demo behaves like a tool page, not a second landing page. */
+.demo-page-hero {
+  padding-top: 58px;
+  padding-bottom: 58px;
+}
+.demo-page-hero .eyebrow { margin-bottom: 14px; }
+.demo-page-hero h1 {
+  max-width: 720px;
+  margin-bottom: 12px;
+  font-size: clamp(42px, 5vw, 64px);
+  line-height: 1.03;
+}
+.demo-page-lead {
+  max-width: 760px;
+  margin: 0 0 15px;
+  color: #535d52;
+  font-size: clamp(16px, 1.65vw, 19px);
+  line-height: 1.62;
+}
+.demo-page-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 24px;
+  color: #687267;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.demo-page-meta .text-link { font-size: 12.5px; }
+.demo-page-hero .paia-simulator { margin-top: 28px; }
+.demo-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 11px;
+}
+.demo-exit {
+  padding-top: 64px;
+  padding-bottom: 70px;
+}
+.demo-exit-copy { max-width: 760px; }
+.demo-exit h2 {
+  margin-bottom: 24px;
+  font-size: clamp(28px, 3vw, 40px);
+}
+
 .demo-intro {
   display: flex;
   align-items: center;
@@ -234,6 +279,17 @@
 
 @media (max-width: 620px) {
   .paia-simulator { margin-top: 46px; }
+  .demo-page-hero { padding-top: 42px; padding-bottom: 46px; }
+  .demo-page-hero .eyebrow { margin-bottom: 12px; }
+  .demo-page-hero h1 { margin-bottom: 10px; font-size: 40px; }
+  .demo-page-lead { margin-bottom: 12px; font-size: 15px; }
+  .demo-page-meta { align-items: flex-start; flex-direction: column; gap: 7px; font-size: 11.5px; }
+  .demo-page-meta .text-link { font-size: 11.5px; }
+  .demo-page-hero .paia-simulator { margin-top: 22px; }
+  .demo-controls { margin-bottom: 9px; }
+  .demo-exit { padding-top: 52px; padding-bottom: 56px; }
+  .demo-exit h2 { margin-bottom: 20px; }
+
   .demo-intro { align-items: flex-start; }
   .demo-intro-copy { display: grid; gap: 2px; }
   .demo-intro-copy span + span::before { display: none; }
