@@ -81,6 +81,9 @@ footer { color: #687267; }
   letter-spacing: .14em;
   text-transform: uppercase;
 }
+.lang-copy-en { display: none; }
+html[data-language="en"] .lang-copy-zh { display: none; }
+html[data-language="en"] .lang-copy-en { display: inline; }
 
 .principles-list-wrap { max-width: 900px; }
 .principles-list-wrap .decision-list { margin-top: 12px; }
@@ -192,6 +195,7 @@ footer { color: #687267; }
 .product-section .detail-shot { overflow: hidden; }
 .detail-shot img { transform-origin: center; }
 .context-detail-shot img { background: #fbfcf9; }
+.mobile-product-shot { display: none; }
 
 /* Thought Library: AI appears as a derived layer; the source never disappears. */
 .thought-scroll-story {
@@ -321,31 +325,36 @@ footer { color: #687267; }
   .availability-line { margin-top: -14px; margin-bottom: 24px; }
 
   .product-section .detail-shot {
-    aspect-ratio: 1.08 / 1;
+    aspect-ratio: auto;
     height: auto;
     border: 1px solid #d7ddd3;
     border-radius: 16px;
     background: #fff;
     box-shadow: 0 12px 34px rgba(36,45,34,.05);
   }
-  .product-section .detail-shot img {
+  .product-section .detail-shot .desktop-product-shot { display: none; }
+  .product-section .detail-shot .mobile-product-shot {
     width: 100%;
     max-width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: left center;
+    height: auto;
     border: 0;
     border-radius: 0;
     box-shadow: none;
     transform: none;
   }
-  .product-section .context-detail-shot img { object-position: center; }
+  html[data-language="zh"] .mobile-product-shot-zh { display: block; }
+  html[data-language="en"] .mobile-product-shot-en { display: block; }
 
   .thought-scroll-story { min-height: auto; }
   .thought-scroll-story .thought-transform { position: relative; top: auto; box-shadow: 0 12px 34px rgba(36,45,34,.05); }
   .thought-scroll-story .thought-transform-head,
   .thought-scroll-story .thought-transform-caption { display: flex !important; }
-  .thought-scroll-story .thought-transform-canvas { aspect-ratio: 1.04 / 1; }
+  .thought-scroll-story .thought-transform-canvas { aspect-ratio: 720 / 980; }
+  .thought-scroll-story .thought-layer { background-size: contain; }
+  html[data-language="zh"] .thought-scroll-story .thought-layer-faithful { background-image: url('assets/screenshots/thought-reading-mobile.svg?v=1'); }
+  html[data-language="zh"] .thought-scroll-story .thought-layer-ai { background-image: url('assets/screenshots/ai-organized-mobile.svg?v=1'); }
+  html[data-language="en"] .thought-scroll-story .thought-layer-faithful { background-image: url('assets/screenshots/thought-reading-mobile-en.svg?v=1'); }
+  html[data-language="en"] .thought-scroll-story .thought-layer-ai { background-image: url('assets/screenshots/ai-organized-mobile-en.svg?v=1'); }
   .thought-scroll-story .thought-layer-faithful,
   .thought-scroll-story .thought-layer-ai { transition: opacity .36s ease, transform .36s ease, filter .36s ease !important; }
   .thought-scroll-story .thought-transform:not(.ai-active) .thought-layer-faithful { opacity: 1 !important; filter: none !important; transform: none !important; }
