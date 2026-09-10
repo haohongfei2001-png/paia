@@ -1,25 +1,37 @@
 # PAIA — Personal AI Input Archive
 
-A lightweight public product case study for **PAIA**, a local-first personal AI input archive and thought library.
+**PAIA** is a local-first personal archive for what you say to AI. It is designed to preserve user inputs as a readable long-term record, organize them into a Thought Library, and let users explicitly decide what may become AI Context.
 
-The public site focuses on the user problem, product model, core experience, product decisions, and privacy/authorization boundaries. It does not contain the private PAIA extension source code or any real user data.
+This repository contains the public PAIA product website and its browser-local interactive demo. It does not contain real user data or the complete private Chrome Extension source.
 
-## Public site
+## Product site
 
-After GitHub Pages is enabled for the `main` branch root, the site will be available at:
+https://haohongfei2001-png.github.io/paia/
 
-`https://haohongfei2001-png.github.io/paia/`
+The site is organized around three layers:
 
-## Structure
+- **Home** — what PAIA is and the problem it is designed to solve.
+- **Demo** — a deterministic interactive simulation of Input Archive, Thought Library, AI Context, editing, filtering, sync, provenance, and authorization state.
+- **Principles** — the product decisions that constrain how PAIA uses automation and AI.
 
-- `index.html` — single-page product case study
-- `styles.css` — responsive styles
-- `script.js` — subtle reveal interactions
-- `assets/screenshots/` — synthetic/sanitized product visuals
-- `assets/favicon.svg` — site icon
+Additional pages document privacy boundaries, terms, project background, and the current Private Beta.
 
-No backend, analytics, cookies, database, or external API is used by this site.
+## Repository structure
+
+- `index.html` — product home
+- `demo.html` — interactive product demo
+- `demo.js` / `demo.css` — browser-local demo state and UI
+- `principles.html` — product principles
+- `about.html` — product and project background
+- `privacy-policy.html` / `terms.html` — public policies
+- `styles.css` / `polish.css` — shared responsive styles
+- `i18n.js` / `site-copy-base.js` / `experience.js` — localization and shared site behavior
+- `assets/screenshots/` — synthetic, sanitized product visuals used for public presentation
+
+## Data boundaries of this public site
+
+The public website does not connect to a visitor's PAIA archive and currently includes no analytics or behavioral tracking scripts. The interactive demo uses fixed demo data and runs in the browser. The Private Beta application form is the exception: information a visitor explicitly submits is forwarded through FormSubmit to the project contact email.
 
 ## Project status
 
-PAIA is an independently designed Chrome extension in active development. The public page is a portfolio/product case study and does not claim public production scale.
+PAIA is an independently designed Chrome Extension in active development and Private Beta. The product model, data structures, interaction details, and optional AI capabilities may continue to evolve as the implementation is tested.
