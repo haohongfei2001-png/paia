@@ -1,4 +1,6 @@
 (() => {
+  // This file owns data-site-* copy, legal-page copy, and localized product media.
+  // data-i18n/data-i18n-* copy lives in i18n.js.
   const copy = {
     zh: {
       navPrinciples: '原则', navAbout: '关于', heroBeta: '加入 Private Beta', heroProblem: '查看产品',
@@ -17,24 +19,19 @@
       aboutTitle: '一个真正以用户自己的输入为中心的私人信息空间。',
       aboutBody: 'PAIA 不试图成为另一个聊天客户端，也不把用户档案默认变成给模型消费的数据层。它先保存用户真正说过的话，再把长期内容组织成可阅读的主题；只有用户明确选择的部分，才会成为 AI Context。',
       projectTitle: '从产品定义，到一个真实运行的系统。',
-      projectBody: 'PAIA 由个人从 0 到 1 设计并持续迭代：从用户问题、信息架构、交互与 AI 能力边界，到使用 Codex 协同完成 Chrome Extension 落地、测试和真实环境验证。',
-      projectRole: '独立产品设计 / AI 协同开发',
       principlesHeroTitle: 'Principles behind PAIA.', principlesHeroSubtitle: '这些原则决定 PAIA 做什么，也决定它刻意不做什么。',
       principlesIntro: '四条原则，定义 PAIA 与普通 AI 历史工具之间的边界。',
       privacyPolicy: '隐私政策', terms: '使用条款', contact: '联系', lastUpdated: '最后更新：2026 年 9 月 10 日',
       betaTitle: '加入 PAIA Private Beta',
       betaSubtitle: 'PAIA 正在测试一个本地优先的 Chrome Extension，用来保存、组织并重新阅读你向 AI 发送过的内容。',
-      betaEmail: '邮箱', betaTools: '你主要使用哪些 AI？', betaFrequency: '你使用 AI 的频率？', betaGoal: '你希望 PAIA 最先帮你解决什么？',
-      betaToolsPlaceholder: '例如 ChatGPT、Claude、Gemini', betaGoalPlaceholder: '可选。写一两句话即可。', betaSubmit: '提交申请',
+      betaEmail: '邮箱', betaFrequency: '你使用 AI 的频率？', betaGoal: '你希望 PAIA 最先帮你解决什么？',
+      betaGoalPlaceholder: '可选。写一两句话即可。', betaSubmit: '提交申请',
       betaFreqPlaceholder: '请选择', betaFreqDaily: '每天', betaFreqSeveral: '每周数次', betaFreqWeekly: '每周左右', betaFreqOccasional: '偶尔',
       betaPrivacy: '申请信息会通过 FormSubmit 发送到项目联系邮箱。请不要填写敏感信息。',
       thanksTitle: '申请已提交。', thanksBody: '感谢你对 PAIA Private Beta 的兴趣。如果适合当前测试范围，我会通过邮件联系你。', backHome: '返回 PAIA',
       notFoundTitle: '这个页面不存在。', notFoundBody: '链接可能已经改变，或者这个页面还没有公开。',
       legalPrivacySubtitle: '本地优先。用户显式控制。最小数据边界。', legalTermsSubtitle: '适用于持续迭代中的 PAIA Private Beta。',
       meta: {
-        home: ['PAIA — Personal AI Input Archive', 'PAIA 是一个本地优先的个人 AI 输入档案与思想库：保存、整理，并重新阅读你在 AI 中表达过的信息和想法。'],
-        principles: ['PAIA 原则 — Personal AI Input Archive', 'PAIA 的核心产品原则：以用户输入为中心、原话优先、AI Context 显式授权，以及受约束的自动化。'],
-        about: ['关于 PAIA — Personal AI Input Archive', '了解 PAIA 为什么存在、它的产品边界，以及这个独立项目如何从 0 到 1 落地。'],
         'privacy-policy': ['PAIA 隐私政策', 'PAIA 的本地优先存储、AI 显式授权和最小数据边界说明。'],
         terms: ['PAIA 使用条款', '适用于 PAIA Private Beta 的使用条款。'],
         beta: ['加入 PAIA Private Beta', '申请加入 PAIA Private Beta，帮助测试一个本地优先的个人 AI 输入档案。'],
@@ -75,24 +72,19 @@
       aboutTitle: 'A private information space centered on your own inputs.',
       aboutBody: 'PAIA is not another chat client, and it does not treat your archive as a data layer that models can read by default. It preserves what you actually said, organizes long-term material into readable themes, and only turns explicitly selected material into AI Context.',
       projectTitle: 'From product definition to a working system.',
-      projectBody: 'PAIA is independently designed and continuously iterated from 0 to 1: from the user problem, information architecture, interaction design, and AI capability boundaries to using Codex to help implement, test, and validate the Chrome Extension in real environments.',
-      projectRole: 'Independent Product Design / AI-assisted Development',
       principlesHeroTitle: 'Principles behind PAIA.', principlesHeroSubtitle: 'These principles define what PAIA does — and what it deliberately refuses to do.',
       principlesIntro: 'Four principles define the boundary between PAIA and ordinary AI history tools.',
       privacyPolicy: 'Privacy Policy', terms: 'Terms', contact: 'Contact', lastUpdated: 'Last updated: September 10, 2026',
       betaTitle: 'Join the PAIA Private Beta',
       betaSubtitle: 'PAIA is testing a local-first Chrome Extension for preserving, organizing, and revisiting what you send to AI.',
-      betaEmail: 'Email', betaTools: 'Which AI tools do you use most?', betaFrequency: 'How often do you use AI?', betaGoal: 'What would you want PAIA to help you with first?',
-      betaToolsPlaceholder: 'e.g. ChatGPT, Claude, Gemini', betaGoalPlaceholder: 'Optional. One or two sentences is enough.', betaSubmit: 'Submit application',
+      betaEmail: 'Email', betaFrequency: 'How often do you use AI?', betaGoal: 'What would you want PAIA to help you with first?',
+      betaGoalPlaceholder: 'Optional. One or two sentences is enough.', betaSubmit: 'Submit application',
       betaFreqPlaceholder: 'Select one', betaFreqDaily: 'Daily', betaFreqSeveral: 'Several times a week', betaFreqWeekly: 'About weekly', betaFreqOccasional: 'Occasionally',
       betaPrivacy: 'Your application is sent via FormSubmit to the project contact email. Please do not submit sensitive information.',
       thanksTitle: 'Application submitted.', thanksBody: 'Thanks for your interest in the PAIA Private Beta. If you fit the current testing scope, I’ll follow up by email.', backHome: 'Back to PAIA',
       notFoundTitle: 'This page isn’t here.', notFoundBody: 'The link may have changed, or this page may not be public yet.',
       legalPrivacySubtitle: 'Local-first storage. Explicit user control. Minimal data boundaries.', legalTermsSubtitle: 'Terms for the evolving PAIA Private Beta.',
       meta: {
-        home: ['PAIA — Personal AI Input Archive', 'PAIA is a local-first personal AI input archive and thought library for preserving, organizing, and revisiting what you have expressed to AI.'],
-        principles: ['PAIA Principles — Personal AI Input Archive', 'The product principles behind PAIA: user-input first, source before synthesis, explicit AI Context authorization, and constrained automation.'],
-        about: ['About PAIA — Personal AI Input Archive', 'Why PAIA exists, how its product boundaries are designed, and how the independent project is being built.'],
         'privacy-policy': ['PAIA Privacy Policy', 'PAIA privacy policy for local-first storage, explicit AI authorization, and minimal data boundaries.'],
         terms: ['PAIA Terms', 'Terms for the PAIA Private Beta.'],
         beta: ['Join the PAIA Private Beta', 'Apply to join the PAIA Private Beta and help test a local-first personal AI input archive.'],
@@ -125,7 +117,8 @@
 
   const applyMeta = (currentLang, t) => {
     const page = document.body.dataset.page || 'home';
-    const pair = t.meta[page] || t.meta.home;
+    const pair = t.meta[page];
+    if (!pair) return;
     document.title = pair[0];
     const description = document.querySelector('meta[name="description"]');
     const ogTitle = document.querySelector('meta[property="og:title"]');
@@ -140,11 +133,14 @@
       const next = currentLang === 'zh' ? img.dataset.zhSrc : img.dataset.enSrc;
       if (next && img.getAttribute('src') !== next) img.setAttribute('src', next);
     });
+
+    // Thought Library uses CSS backgrounds for the desktop cross-fade, so it
+    // needs explicit language switching in addition to ordinary <img> sources.
     const faithful = document.querySelector('.thought-scroll-story .thought-layer-faithful');
     const organized = document.querySelector('.thought-scroll-story .thought-layer-ai');
     const suffix = currentLang === 'zh' ? '' : '-en';
-    if (faithful) faithful.style.backgroundImage = `url('assets/screenshots/thought-reading${suffix}.svg?v=1')`;
-    if (organized) organized.style.backgroundImage = `url('assets/screenshots/ai-organized${suffix}.svg?v=1')`;
+    if (faithful) faithful.style.backgroundImage = `url('assets/screenshots/thought-reading${suffix}.svg?v=9')`;
+    if (organized) organized.style.backgroundImage = `url('assets/screenshots/ai-organized${suffix}.svg?v=9')`;
   };
 
   const apply = () => {
@@ -158,13 +154,12 @@
     setHtml('[data-site-closing-title]', t.closingTitle); setText('[data-site-closing-body]', t.closingBody);
     setText('[data-site-closing-button]', t.closingButton); setText('[data-site-closing-principles]', t.closingPrinciples);
     setHtml('[data-site-about-hero-title]', t.aboutHeroTitle); setText('[data-site-about-hero-subtitle]', t.aboutHeroSubtitle);
-    setText('[data-site-about-title]', t.aboutTitle); setText('[data-site-about-body]', t.aboutBody);
-    setText('[data-site-project-title]', t.projectTitle); setText('[data-site-project-body]', t.projectBody); setText('[data-site-project-role]', t.projectRole);
+    setText('[data-site-about-title]', t.aboutTitle); setText('[data-site-about-body]', t.aboutBody); setText('[data-site-project-title]', t.projectTitle);
     setHtml('[data-site-principles-hero-title]', t.principlesHeroTitle); setText('[data-site-principles-hero-subtitle]', t.principlesHeroSubtitle); setText('[data-site-principles-intro]', t.principlesIntro);
     setText('[data-site-privacy-policy]', t.privacyPolicy); setText('[data-site-terms]', t.terms); setText('[data-site-contact]', t.contact); setText('[data-site-last-updated]', t.lastUpdated);
     setText('[data-site-beta-title]', t.betaTitle); setText('[data-site-beta-subtitle]', t.betaSubtitle); setText('[data-site-beta-email]', t.betaEmail);
-    setText('[data-site-beta-tools]', t.betaTools); setText('[data-site-beta-frequency]', t.betaFrequency); setText('[data-site-beta-goal]', t.betaGoal); setText('[data-site-beta-submit]', t.betaSubmit); setText('[data-site-beta-privacy]', t.betaPrivacy);
-    setAttr('[data-site-beta-tools-input]', 'placeholder', t.betaToolsPlaceholder); setAttr('[data-site-beta-goal-input]', 'placeholder', t.betaGoalPlaceholder);
+    setText('[data-site-beta-frequency]', t.betaFrequency); setText('[data-site-beta-goal]', t.betaGoal); setText('[data-site-beta-submit]', t.betaSubmit); setText('[data-site-beta-privacy]', t.betaPrivacy);
+    setAttr('[data-site-beta-goal-input]', 'placeholder', t.betaGoalPlaceholder);
     setText('[data-site-beta-freq-placeholder]', t.betaFreqPlaceholder); setText('[data-site-beta-freq-daily]', t.betaFreqDaily); setText('[data-site-beta-freq-several]', t.betaFreqSeveral); setText('[data-site-beta-freq-weekly]', t.betaFreqWeekly); setText('[data-site-beta-freq-occasional]', t.betaFreqOccasional);
     setText('[data-site-thanks-title]', t.thanksTitle); setText('[data-site-thanks-body]', t.thanksBody); setText('[data-site-back-home]', t.backHome);
     setText('[data-site-notfound-title]', t.notFoundTitle); setText('[data-site-notfound-body]', t.notFoundBody);
