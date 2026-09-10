@@ -24,6 +24,23 @@
   root.dataset.language = selected;
   root.lang = selected === 'zh' ? 'zh-CN' : 'en';
 
+  // Keep the homepage tab label deliberately short and brand-first.
+  if (/\/(?:paia\/)?(?:index\.html)?$/.test(window.location.pathname)) {
+    document.title = 'PAIA';
+  }
+
+  // Force the refreshed favicon and avoid stale browser favicon caches.
+  const iconLinks = Array.from(document.querySelectorAll('link[rel~="icon"]'));
+  iconLinks.forEach((link, index) => {
+    if (index === 0) {
+      link.setAttribute('href', 'assets/favicon.svg?v=20260911-1');
+      link.setAttribute('type', 'image/svg+xml');
+      link.removeAttribute('sizes');
+    } else {
+      link.remove();
+    }
+  });
+
   if (selected === 'en') {
     root.classList.add('paia-i18n-booting');
     let revealed = false;
