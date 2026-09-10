@@ -103,8 +103,8 @@
   animation: demo-guide-target-in .22s cubic-bezier(.2,.8,.2,1);
 }
 @keyframes demo-guide-target-in {
-  from { box-shadow: 0 0 0 0 rgba(100,123,88,0) !important; }
-  to { box-shadow: 0 0 0 4px rgba(100,123,88,.08) !important; }
+  from { box-shadow: 0 0 0 0 rgba(100,123,88,0); }
+  to { box-shadow: 0 0 0 4px rgba(100,123,88,.08); }
 }
 
 @media (max-width: 620px) {
