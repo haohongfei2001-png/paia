@@ -1,0 +1,46 @@
+{
+  "scope": "offline synthetic embedding spike; not runtime",
+  "model": "Apple NaturalLanguage NLEmbedding sentence prototypes",
+  "source": "https://developer.apple.com/documentation/naturallanguage/nlembedding",
+  "samples": 2444,
+  "measurement": {
+    "confidenceMeaning": "uncalibrated cosine-softmax score",
+    "dimensions": {
+      "en": 512,
+      "zh": 640
+    },
+    "downloadedModel": false,
+    "inferenceCpuMs": 11936.188,
+    "loadMs": 143.07041675783694,
+    "modelAvailable": [
+      "en",
+      "zh"
+    ],
+    "p50Ms": 2.4435832165181637,
+    "p95Ms": 3.4290417097508907,
+    "peakProcessRSSBytes": 74973184,
+    "samples": 2444
+  },
+  "metrics": {
+    "rawTop1Pure": 1039,
+    "rawTop1FalsePure": 873,
+    "rawAdditionalTruePure": 10,
+    "atThresholdPure": 0,
+    "atThresholdFalsePure": 0,
+    "protectedTop1FalsePure": 200,
+    "acceptedAdditionalPure": 0
+  },
+  "threshold": 0.995,
+  "thresholdIsNotPrecisionProof": true,
+  "modelWeightsBytes": null,
+  "experimentBinaryBytes": 120344,
+  "runtimeModelBytes": 0,
+  "runtimeIncluded": false,
+  "reasons": [
+    "uncalibrated confidence",
+    "unsafe raw classifications",
+    "native macOS API is not a Chrome JS provider",
+    "no private coverage evidence"
+  ],
+  "swiftSourceSha256": "e3b1b6fc4b95f6d20517851f9a3d6e3ff24b8f257c6813953d40a843b881c2a0"
+}

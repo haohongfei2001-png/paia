@@ -1,0 +1,12 @@
+{
+  "productVersion": "0.6.2",
+  "build": "internal-candidate",
+  "file": "Personal-AI-Input-Archive-v0.6.2-internal-candidate.zip",
+  "sha256": "d462715f4dbe9addaa215bf53f34411db1539cf87eb54a3eee4381328e766b7f",
+  "bytes": 287144,
+  "files": 74,
+  "archiveEqualsDirectory": true,
+  "permissionsUnchanged": true,
+  "semanticModelIncluded": false,
+  "dailyDeployment": false
+}

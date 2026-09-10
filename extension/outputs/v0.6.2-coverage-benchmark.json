@@ -1,0 +1,37 @@
+{
+  "scope": "synthetic-only",
+  "cases": 2432,
+  "fixedHighRiskCases": 123,
+  "positive": 279,
+  "negative": 2153,
+  "reports": {
+    "baseline": {
+      "filtered": 19,
+      "falseFiltered": 0,
+      "precision": 1,
+      "coverage": 0.0078125
+    },
+    "current": {
+      "filtered": 279,
+      "falseFiltered": 0,
+      "precision": 1,
+      "coverage": 0.1147203947368421
+    }
+  },
+  "reasonCounts": {
+    "pure_continue": 153,
+    "pure_start": 30,
+    "pure_retry": 54,
+    "pure_regenerate": 42,
+    "substantive_content": 1695,
+    "reference_possible": 21,
+    "ambiguous_ack": 18,
+    "rule_no_match": 201,
+    "unsupported_expression": 36,
+    "user_protected": 78,
+    "reference_or_attachment": 78,
+    "metadata_unknown": 26
+  },
+  "realCoverageKnown": false,
+  "populationPrecisionGuarantee": false
+}

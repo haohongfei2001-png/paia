@@ -1,0 +1,12 @@
+[
+  {
+    "kind": "internal",
+    "archive": "PAIA-v0.7.0-foundation-internal.zip",
+    "sha256": "c625e6fbfe7ca72aa351cfee0d4a5de0a6733dd3fa0f28ba953252e8c00d5fa2"
+  },
+  {
+    "kind": "release-structure",
+    "archive": "PAIA-v0.7.0-foundation-release-structure.zip",
+    "sha256": "2632c6125ac886f1260d4c2037e2bba3f5cb3cfc888cfdc3a958f4ef851a0b16"
+  }
+]

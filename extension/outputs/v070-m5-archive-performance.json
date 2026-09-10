@@ -1,0 +1,383 @@
+{
+  "format": "paia-synthetic-performance-v1",
+  "reports": [
+    {
+      "m1": {
+        "physicalSchema": 5,
+        "fanout": 1001,
+        "migrationMs": 385,
+        "mapped": 1000,
+        "quarantined": 1000,
+        "edits": [
+          {
+            "ms": 2.299999952316284,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 1.7000000476837158,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 1.5,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 1.5,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 1.4000000953674316,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          }
+        ],
+        "editP50": 1.5,
+        "editP95": 2.299999952316284,
+        "invalidationMs": 1966.2999999523163,
+        "invalidationEvents": [
+          350,
+          401.39999985694885,
+          409.90000009536743,
+          360.7999999523163,
+          444
+        ],
+        "eventP95": 444,
+        "invalidationBatches": 55,
+        "stale": "stale",
+        "fenceBodyEmpty": true,
+        "purgeMs": 447.5,
+        "purgeBatches": 52,
+        "remaining": {
+          "thoughts": 0,
+          "dependencies": 0,
+          "revisions": 1000
+        },
+        "transactionP50": 14.399999856948853,
+        "transactionP95": 48.40000009536743,
+        "transactionMax": 66.29999995231628,
+        "transactionCount": 149
+      },
+      "size": 1000,
+      "seedMs": 368.2999999523163,
+      "sfCount": 1001,
+      "sfMigrationMs": 182.19999980926514,
+      "sfPageMetrics": {
+        "ms": 3.5,
+        "reads": 104,
+        "writes": 0,
+        "scans": 0,
+        "count": 20
+      },
+      "sfEvaluation": {
+        "ms": 27.700000047683716,
+        "reads": 702,
+        "writes": 101,
+        "scans": 1,
+        "processed": 100
+      },
+      "sfSearch": {
+        "ms": 22.5,
+        "reads": 801,
+        "writes": 0,
+        "scans": 0
+      },
+      "iaCount": 1001,
+      "iaMigrationMs": 347.59999990463257,
+      "iaEdit": {
+        "ms": 1.7000000476837158,
+        "reads": 7,
+        "writes": 7,
+        "scans": 0
+      },
+      "iaThoughtCount": 0,
+      "iaHistory": 50,
+      "collection": {
+        "ms": 26.90000009536743,
+        "reads": 6,
+        "bodyCount": 0
+      },
+      "document": {
+        "ms": 3.200000047683716,
+        "reads": 63,
+        "bodyCount": 20
+      },
+      "edit": {
+        "ms": 1.2000000476837158,
+        "reads": 4,
+        "writes": 2,
+        "ok": true
+      },
+      "capture": {
+        "ms": 7,
+        "reads": 14,
+        "writes": 9,
+        "added": 1
+      },
+      "searchMatched": true,
+      "count": 1001,
+      "bytes": 3851217,
+      "localHasText": false
+    },
+    {
+      "m1": {
+        "physicalSchema": 5,
+        "fanout": 10001,
+        "migrationMs": 5737.200000047684,
+        "mapped": 10000,
+        "quarantined": 10000,
+        "edits": [
+          {
+            "ms": 2.700000047683716,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 2.3000001907348633,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 1.7000000476837158,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 1.7000000476837158,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 1.5,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          }
+        ],
+        "editP50": 1.7000000476837158,
+        "editP95": 2.700000047683716,
+        "invalidationMs": 38940.700000047684,
+        "invalidationEvents": [
+          7701.099999904633,
+          7393.799999952316,
+          7259.700000047684,
+          8062.299999952316,
+          8523.5
+        ],
+        "eventP95": 8523.5,
+        "invalidationBatches": 505,
+        "stale": "stale",
+        "fenceBodyEmpty": true,
+        "purgeMs": 12354.600000143051,
+        "purgeBatches": 412,
+        "remaining": {
+          "thoughts": 0,
+          "dependencies": 0,
+          "revisions": 10000
+        },
+        "transactionP50": 37.5,
+        "transactionP95": 113.5,
+        "transactionMax": 609.5,
+        "transactionCount": 1229
+      },
+      "size": 10000,
+      "seedMs": 4529.5,
+      "sfCount": 10001,
+      "sfMigrationMs": 1904.6000001430511,
+      "sfPageMetrics": {
+        "ms": 12.799999952316284,
+        "reads": 104,
+        "writes": 0,
+        "scans": 0,
+        "count": 20
+      },
+      "sfEvaluation": {
+        "ms": 28.40000009536743,
+        "reads": 702,
+        "writes": 101,
+        "scans": 1,
+        "processed": 100
+      },
+      "sfSearch": {
+        "ms": 19.59999990463257,
+        "reads": 801,
+        "writes": 0,
+        "scans": 0
+      },
+      "iaCount": 10001,
+      "iaMigrationMs": 4464.600000143051,
+      "iaEdit": {
+        "ms": 2.1999998092651367,
+        "reads": 7,
+        "writes": 7,
+        "scans": 0
+      },
+      "iaThoughtCount": 0,
+      "iaHistory": 50,
+      "collection": {
+        "ms": 41.60000014305115,
+        "reads": 51,
+        "bodyCount": 0
+      },
+      "document": {
+        "ms": 13.199999809265137,
+        "reads": 63,
+        "bodyCount": 20
+      },
+      "edit": {
+        "ms": 0.8000001907348633,
+        "reads": 4,
+        "writes": 2,
+        "ok": true
+      },
+      "capture": {
+        "ms": 10.699999809265137,
+        "reads": 14,
+        "writes": 9,
+        "added": 1
+      },
+      "searchMatched": true,
+      "count": 10001,
+      "bytes": 37822839,
+      "localHasText": false
+    },
+    {
+      "m1": {
+        "physicalSchema": 5,
+        "fanout": 10001,
+        "migrationMs": 11210.900000095367,
+        "mapped": 10000,
+        "quarantined": 10000,
+        "edits": [
+          {
+            "ms": 7.800000190734863,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 2.700000047683716,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 3.4000000953674316,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 3,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          },
+          {
+            "ms": 3,
+            "reads": 11,
+            "writes": 9,
+            "scans": 0
+          }
+        ],
+        "editP50": 3,
+        "editP95": 7.800000190734863,
+        "invalidationMs": 33805.40000009537,
+        "invalidationEvents": [
+          7028.900000095367,
+          6714.799999952316,
+          7258.299999952316,
+          6916.900000095367,
+          5886.199999809265
+        ],
+        "eventP95": 7258.299999952316,
+        "invalidationBatches": 505,
+        "stale": "stale",
+        "fenceBodyEmpty": true,
+        "purgeMs": 7181.699999809265,
+        "purgeBatches": 412,
+        "remaining": {
+          "thoughts": 0,
+          "dependencies": 0,
+          "revisions": 100000
+        },
+        "transactionP50": 10.600000143051147,
+        "transactionP95": 68.5,
+        "transactionMax": 364.40000009536743,
+        "transactionCount": 2129
+      },
+      "size": 100000,
+      "seedMs": 79091.60000014305,
+      "sfCount": 100001,
+      "sfMigrationMs": 27207.200000047684,
+      "sfPageMetrics": {
+        "ms": 100.70000004768372,
+        "reads": 104,
+        "writes": 0,
+        "scans": 0,
+        "count": 20
+      },
+      "sfEvaluation": {
+        "ms": 32.299999952316284,
+        "reads": 702,
+        "writes": 101,
+        "scans": 1,
+        "processed": 100
+      },
+      "sfSearch": {
+        "ms": 25.90000009536743,
+        "reads": 801,
+        "writes": 0,
+        "scans": 0
+      },
+      "iaCount": 100001,
+      "iaMigrationMs": 44935.700000047684,
+      "iaEdit": {
+        "ms": 3.5999999046325684,
+        "reads": 7,
+        "writes": 7,
+        "scans": 0
+      },
+      "iaThoughtCount": 0,
+      "iaHistory": 50,
+      "collection": {
+        "ms": 139,
+        "reads": 101,
+        "bodyCount": 0
+      },
+      "document": {
+        "ms": 106.89999985694885,
+        "reads": 63,
+        "bodyCount": 20
+      },
+      "edit": {
+        "ms": 1.1000001430511475,
+        "reads": 4,
+        "writes": 2,
+        "ok": true
+      },
+      "capture": {
+        "ms": 10.199999809265137,
+        "reads": 14,
+        "writes": 9,
+        "added": 1
+      },
+      "searchMatched": true,
+      "count": 100001,
+      "bytes": 315703649,
+      "localHasText": false
+    }
+  ]
+}

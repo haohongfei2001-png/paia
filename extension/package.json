@@ -1,0 +1,10 @@
+{
+  "name": "personal-ai-input-archive",
+  "version": "0.10.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "check": "python3 scripts/check_package.py"
+  }
+}

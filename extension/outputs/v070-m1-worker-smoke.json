@@ -1,0 +1,17 @@
+{
+  "scope": "isolated-synthetic-only",
+  "runtimeDigest": "64d4e05983f1ea11e3815c10a7df34889a54b0249ebf3f59a3d1cc7dddfeaeda",
+  "chromeVersion": "Chrome/152.0.7977.82",
+  "checks": 3,
+  "pass": 3,
+  "fail": 0,
+  "frozenV3AndV4BinaryDowngradeClosed": [
+    true,
+    true
+  ],
+  "twoActualTabsCAS": true,
+  "firstCommittedBatch": 100,
+  "afterWorkerRestart": 151,
+  "sourceFieldEquality": true,
+  "networkRequests": 0
+}

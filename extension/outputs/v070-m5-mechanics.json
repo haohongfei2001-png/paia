@@ -1,0 +1,72 @@
+{
+  "syntheticOnly": true,
+  "actualIndexedDB": true,
+  "backgroundWriter": true,
+  "reports": [
+    {
+      "name": "M3 synthetic pipeline creates Entry Topic Section and receipts",
+      "passed": true,
+      "ms": 76.59999990463257
+    },
+    {
+      "name": "M3 exact replay preserves one Entry and one provenance contribution",
+      "passed": true,
+      "ms": 86.30000019073486
+    },
+    {
+      "name": "M3 cancel fences late provider result",
+      "passed": true,
+      "ms": 65.89999985694885
+    },
+    {
+      "name": "M3 small budget pauses without dispatch",
+      "passed": true,
+      "ms": 34.5
+    },
+    {
+      "name": "M3 timeout is bounded and late response cannot write",
+      "passed": true,
+      "ms": 112.29999995231628
+    },
+    {
+      "name": "M3 logical budget survives restart and dispatched attempts are charged",
+      "passed": true,
+      "ms": 53.90000009536743
+    },
+    {
+      "name": "M3 tombstone fences pending provider and cleanup removes artifacts",
+      "passed": true,
+      "ms": 49.09999990463257
+    },
+    {
+      "name": "M3 note-only input edit does not stale body-only dependency",
+      "passed": true,
+      "ms": 50.60000014305115
+    },
+    {
+      "name": "M3 genuinely new non-context evidence suggests reconsideration without restoration",
+      "passed": true,
+      "ms": 72.89999985694885
+    },
+    {
+      "name": "M3 retry eventually succeeds within durable attempt limit",
+      "passed": true,
+      "ms": 42.40000009536743
+    },
+    {
+      "name": "M3 superseded protected refresh cannot later be accepted",
+      "passed": true,
+      "ms": 89.70000004768372
+    },
+    {
+      "name": "M3 write failure after first candidate rolls back the entire transaction",
+      "passed": true,
+      "ms": 33.89999985694885
+    },
+    {
+      "name": "M3 old worker result cannot commit after durable lease takeover",
+      "passed": true,
+      "ms": 37.90000009536743
+    }
+  ]
+}

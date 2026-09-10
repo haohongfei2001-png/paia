@@ -1,0 +1,26 @@
+{
+  "version": "0.7.2.19",
+  "tag": "checkpoint-v0.7.2b-original-organizer-complete",
+  "tests": {
+    "node": 253,
+    "isolatedChrome": 21,
+    "total": 274,
+    "passed": 274,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "packageGuardrails": 4035,
+  "runtimeResources": 97,
+  "synthetic": {
+    "inputCount": 20,
+    "manualBatches": 4,
+    "entries": 19,
+    "provenanceRows": 20,
+    "batchReceipts": 4,
+    "itemReceipts": 20
+  },
+  "realPaidProviderTest": false,
+  "privateDatabaseRead": false,
+  "fullRegressionRun": false
+}

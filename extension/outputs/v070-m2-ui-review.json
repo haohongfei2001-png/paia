@@ -1,0 +1,13 @@
+{
+  "syntheticOnly": true,
+  "visibleChrome": true,
+  "runtimeDigest": "6c8f1296dd90ca013a537df0d805e76400b1b6a9fe5fcdfb63cc445d9e1ae8ce",
+  "chrome": "Chrome/152.0.7977.82",
+  "topics": 2,
+  "entries": 3,
+  "sharedEntryTopics": 2,
+  "visibleSections": 2,
+  "entryCards": false,
+  "networkRequests": 0,
+  "pageErrors": 0
+}

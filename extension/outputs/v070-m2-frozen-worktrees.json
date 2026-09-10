@@ -1,0 +1,38 @@
+[
+  {
+    "worktree": "2026-09-07/paia-thought-library-v070-m1",
+    "head": "7d5df85041ce1a023beafa4bb0bea2ae30622ee3",
+    "expected": "7d5df85",
+    "clean": true
+  },
+  {
+    "worktree": "2026-09-07/paia-thought-library-v070-design",
+    "head": "77176f559f28330a80e01b79b8b9d8324b1bbd7a",
+    "expected": "77176f5",
+    "clean": true
+  },
+  {
+    "worktree": "2026-09-06/paia-ia-refactor-v060",
+    "head": "01a635032e7b178490106dcfecd11ff6c75f8a77",
+    "expected": "01a6350",
+    "clean": true
+  },
+  {
+    "worktree": "2026-09-07/paia-smart-filter-v061",
+    "head": "f3fa0e7505c5dd176958761c257d0028b8c1331f",
+    "expected": "f3fa0e7",
+    "clean": true
+  },
+  {
+    "worktree": "2026-09-07/paia-smart-filter-diagnostics-v0611",
+    "head": "1e00c233e2ae41983140b6fce31b136a9bcf28e2",
+    "expected": "1e00c23",
+    "clean": true
+  },
+  {
+    "worktree": "2026-09-07/paia-light-filter-coverage-v062",
+    "head": "2b07582c33ca68a91672d6e8a0162773fa8251f8",
+    "expected": "2b07582",
+    "clean": true
+  }
+]

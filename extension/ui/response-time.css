@@ -1,0 +1,4 @@
+:root{color-scheme:light;font-family:system-ui,sans-serif;color:#263d35;background:#f7f6f0}main{max-width:850px;margin:40px auto;padding:24px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:24px;border:1px solid #cbd5ce;border-radius:12px;line-height:1.8}button{background:#264d3e;color:white;padding:14px 24px;border:0;border-radius:8px;font:inherit}button:disabled{opacity:.45}p{line-height:1.65}
+h2{margin-top:36px;font-size:1.25rem}#rejection-summary{font-size:.9rem}
+select { max-width: 100%; padding: 8px 12px; margin: 8px; font: inherit; border: 1px solid #b6c3c2; border-radius: 6px; background: white; color: #183c39; }
+summary { cursor: pointer; padding: 12px 0; }

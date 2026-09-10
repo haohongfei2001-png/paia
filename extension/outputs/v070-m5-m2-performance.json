@@ -1,0 +1,195 @@
+{
+  "syntheticOnly": true,
+  "reports": [
+    {
+      "size": 1000,
+      "first40": {
+        "ms": 25.199999809265137,
+        "reads": 202,
+        "writes": 0,
+        "scans": 40,
+        "count": 40,
+        "transportBytes": 77729
+      },
+      "next": {
+        "ms": 20.5,
+        "reads": 202,
+        "writes": 0,
+        "scans": 40,
+        "count": 40
+      },
+      "memberships": [
+        {
+          "topicsPerEntry": 1,
+          "ms": 24.100000143051147,
+          "reads": 202,
+          "writes": 0,
+          "scans": 40,
+          "count": 40
+        },
+        {
+          "topicsPerEntry": 3,
+          "ms": 25.699999809265137,
+          "reads": 202,
+          "writes": 0,
+          "scans": 40,
+          "count": 40
+        },
+        {
+          "topicsPerEntry": 10,
+          "ms": 30.90000009536743,
+          "reads": 202,
+          "writes": 0,
+          "scans": 40,
+          "count": 40
+        }
+      ],
+      "rebuild": {
+        "ms": 3174.7999999523163,
+        "reads": 5234,
+        "writes": 13125,
+        "scans": 0
+      },
+      "search": {
+        "ms": 6.700000047683716,
+        "reads": 38,
+        "writes": 0,
+        "scans": 2,
+        "matches": 1
+      },
+      "longEdit": {
+        "ms": 8.200000047683716,
+        "reads": 40,
+        "writes": 28,
+        "scans": 1
+      },
+      "longPage": {
+        "ms": 27.90000009536743,
+        "reads": 202,
+        "writes": 0,
+        "scans": 40,
+        "separate": true,
+        "exactBodyBytes": 204800
+      },
+      "reorder": {
+        "ms": 7.799999952316284,
+        "reads": 49,
+        "writes": 33,
+        "scans": 1
+      },
+      "merge": {
+        "ms": 874.9000000953674,
+        "reads": 6123,
+        "writes": 3080,
+        "scans": 0
+      },
+      "rows": {
+        "entries": 1000,
+        "placements": 11000,
+        "postings": 9024,
+        "stores": 37
+      },
+      "editorMemory": {
+        "journalBytes": 1638694,
+        "undoSteps": 4,
+        "mountedEntries": 1
+      },
+      "chrome": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+    },
+    {
+      "size": 10000,
+      "first40": {
+        "ms": 46.59999990463257,
+        "reads": 202,
+        "writes": 0,
+        "scans": 40,
+        "count": 40,
+        "transportBytes": 77729
+      },
+      "next": {
+        "ms": 36.59999990463257,
+        "reads": 202,
+        "writes": 0,
+        "scans": 40,
+        "count": 40
+      },
+      "memberships": [
+        {
+          "topicsPerEntry": 1,
+          "ms": 212.40000009536743,
+          "reads": 202,
+          "writes": 0,
+          "scans": 40,
+          "count": 40
+        },
+        {
+          "topicsPerEntry": 3,
+          "ms": 30,
+          "reads": 202,
+          "writes": 0,
+          "scans": 40,
+          "count": 40
+        },
+        {
+          "topicsPerEntry": 10,
+          "ms": 48,
+          "reads": 202,
+          "writes": 0,
+          "scans": 40,
+          "count": 40
+        }
+      ],
+      "rebuild": {
+        "ms": 42578.700000047684,
+        "reads": 51314,
+        "writes": 130215,
+        "scans": 0
+      },
+      "search": {
+        "ms": 62.40000009536743,
+        "reads": 38,
+        "writes": 0,
+        "scans": 2,
+        "matches": 1
+      },
+      "longEdit": {
+        "ms": 12.700000047683716,
+        "reads": 40,
+        "writes": 28,
+        "scans": 1
+      },
+      "longPage": {
+        "ms": 45.5,
+        "reads": 202,
+        "writes": 0,
+        "scans": 40,
+        "separate": true,
+        "exactBodyBytes": 204800
+      },
+      "reorder": {
+        "ms": 14,
+        "reads": 49,
+        "writes": 33,
+        "scans": 1
+      },
+      "merge": {
+        "ms": 11636.300000190735,
+        "reads": 60663,
+        "writes": 30260,
+        "scans": 0
+      },
+      "rows": {
+        "entries": 10000,
+        "placements": 110000,
+        "postings": 90024,
+        "stores": 37
+      },
+      "editorMemory": {
+        "journalBytes": 1638694,
+        "undoSteps": 4,
+        "mountedEntries": 1
+      },
+      "chrome": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+    }
+  ]
+}

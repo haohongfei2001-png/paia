@@ -1,0 +1,2 @@
+export async function exported(service){const {sessionId,header}=await service.beginExport(),items=[header];let sequence=0;for(;;){const p=await service.exportPage({sessionId,sequence:sequence++});items.push(...p.items);if(p.done)break;}return items;}
+export async function prepared(service,items){const {sessionId}=await service.beginRestore();for(let i=0;i<items.length;i+=30)await service.stageRestore({sessionId,items:items.slice(i,i+30)});return {sessionId,preview:await service.previewRestore({sessionId})};}

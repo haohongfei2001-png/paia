@@ -1,0 +1,24 @@
+[
+  {
+    "kind": "internal",
+    "version": "0.7.0",
+    "actualFinalArtifact": true,
+    "capture": 3,
+    "sourceTimeEnrichment": true,
+    "manualEntryCreated": true,
+    "providerRejected": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "kind": "release-structure",
+    "version": "0.7.0",
+    "actualFinalArtifact": true,
+    "capture": 3,
+    "sourceTimeEnrichment": true,
+    "manualEntryCreated": true,
+    "providerRejected": true,
+    "networkRequests": 0,
+    "errors": []
+  }
+]

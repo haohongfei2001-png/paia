@@ -1,0 +1,42 @@
+.DS_Store
+node_modules/
+work/
+*.log
+*.zip
+exports/
+downloads/
+archive-export-*
+personal-ai-archive-*
+!outputs/
+
+# Dedicated real QA browser: browser-managed login data, never commit or package.
+/tests/qa-browser-profile/
+/tests/qa-local/
+
+# Generated internal reload candidate; no user archive data.
+/outputs/PAIA-v*-internal-candidate/
+/outputs/*.zip.sha256
+__pycache__/
+
+/outputs/PAIA-v0.7.0-foundation-*/
+
+# Reproducible v0.8.0 internal/release packages; receipts are committed separately.
+/outputs/v080-artifacts/
+
+# Generated v0.8.1 packages; keep selected acceptance receipts separately.
+/outputs/v081-artifacts/
+
+# Generated v0.9.0 artifacts; selected acceptance receipts are tracked.
+/outputs/v090-artifacts/
+
+/outputs/v091-artifacts/
+
+/outputs/v092-artifacts/
+
+/outputs/v0100-artifacts/
+
+/outputs/v0101-artifacts/
+
+/outputs/v0110-artifacts/
+
+/outputs/v0111-artifacts/

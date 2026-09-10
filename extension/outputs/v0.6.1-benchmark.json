@@ -1,0 +1,37 @@
+{
+  "scope": "synthetic adversarial, not independent user-labeled population evidence",
+  "cases": 524,
+  "filtered": 6,
+  "falseFiltered": 0,
+  "precision": 1,
+  "coverage": 0.011450381679389313,
+  "byRisk": {
+    "standalone": {
+      "total": 20,
+      "falseFiltered": 0
+    },
+    "control": {
+      "total": 6,
+      "falseFiltered": 0
+    },
+    "mixed_information": {
+      "total": 360,
+      "falseFiltered": 0
+    },
+    "reference_or_ambiguous": {
+      "total": 72,
+      "falseFiltered": 0
+    },
+    "quoted_content": {
+      "total": 30,
+      "falseFiltered": 0
+    },
+    "protection": {
+      "total": 36,
+      "falseFiltered": 0
+    }
+  },
+  "durationMs": 1.851666999999999,
+  "statisticalGuarantee": false,
+  "productionSemanticProviders": 0
+}

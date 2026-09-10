@@ -1,0 +1,203 @@
+{
+  "format": "paia-m1-synthetic-performance-v1",
+  "reports": [
+    {
+      "inputs": 1000,
+      "bytes": 3851217,
+      "physicalSchema": 5,
+      "fanout": 1001,
+      "migrationMs": 385,
+      "mapped": 1000,
+      "quarantined": 1000,
+      "edits": [
+        {
+          "ms": 2.299999952316284,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 1.7000000476837158,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 1.5,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 1.5,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 1.4000000953674316,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        }
+      ],
+      "editP50": 1.5,
+      "editP95": 2.299999952316284,
+      "invalidationMs": 1966.2999999523163,
+      "invalidationEvents": [
+        350,
+        401.39999985694885,
+        409.90000009536743,
+        360.7999999523163,
+        444
+      ],
+      "eventP95": 444,
+      "invalidationBatches": 55,
+      "stale": "stale",
+      "fenceBodyEmpty": true,
+      "purgeMs": 447.5,
+      "purgeBatches": 52,
+      "remaining": {
+        "thoughts": 0,
+        "dependencies": 0,
+        "revisions": 1000
+      },
+      "transactionP50": 14.399999856948853,
+      "transactionP95": 48.40000009536743,
+      "transactionMax": 66.29999995231628,
+      "transactionCount": 149
+    },
+    {
+      "inputs": 10000,
+      "bytes": 37822839,
+      "physicalSchema": 5,
+      "fanout": 10001,
+      "migrationMs": 5737.200000047684,
+      "mapped": 10000,
+      "quarantined": 10000,
+      "edits": [
+        {
+          "ms": 2.700000047683716,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 2.3000001907348633,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 1.7000000476837158,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 1.7000000476837158,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 1.5,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        }
+      ],
+      "editP50": 1.7000000476837158,
+      "editP95": 2.700000047683716,
+      "invalidationMs": 38940.700000047684,
+      "invalidationEvents": [
+        7701.099999904633,
+        7393.799999952316,
+        7259.700000047684,
+        8062.299999952316,
+        8523.5
+      ],
+      "eventP95": 8523.5,
+      "invalidationBatches": 505,
+      "stale": "stale",
+      "fenceBodyEmpty": true,
+      "purgeMs": 12354.600000143051,
+      "purgeBatches": 412,
+      "remaining": {
+        "thoughts": 0,
+        "dependencies": 0,
+        "revisions": 10000
+      },
+      "transactionP50": 37.5,
+      "transactionP95": 113.5,
+      "transactionMax": 609.5,
+      "transactionCount": 1229
+    },
+    {
+      "inputs": 100000,
+      "bytes": 315703649,
+      "physicalSchema": 5,
+      "fanout": 10001,
+      "migrationMs": 11210.900000095367,
+      "mapped": 10000,
+      "quarantined": 10000,
+      "edits": [
+        {
+          "ms": 7.800000190734863,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 2.700000047683716,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 3.4000000953674316,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 3,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        },
+        {
+          "ms": 3,
+          "reads": 11,
+          "writes": 9,
+          "scans": 0
+        }
+      ],
+      "editP50": 3,
+      "editP95": 7.800000190734863,
+      "invalidationMs": 33805.40000009537,
+      "invalidationEvents": [
+        7028.900000095367,
+        6714.799999952316,
+        7258.299999952316,
+        6916.900000095367,
+        5886.199999809265
+      ],
+      "eventP95": 7258.299999952316,
+      "invalidationBatches": 505,
+      "stale": "stale",
+      "fenceBodyEmpty": true,
+      "purgeMs": 7181.699999809265,
+      "purgeBatches": 412,
+      "remaining": {
+        "thoughts": 0,
+        "dependencies": 0,
+        "revisions": 100000
+      },
+      "transactionP50": 10.600000143051147,
+      "transactionP95": 68.5,
+      "transactionMax": 364.40000009536743,
+      "transactionCount": 2129
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+ <title>PAIA · 本地导出结构检查</title>
+ <link rel="stylesheet" href="probe.css">
+ <script src="reader.js" defer></script>
+ <script src="page.js" defer></script>
+</head>
+<body><main>
+ <p class="eyebrow">PAIA · v0.5.1 开发准备</p>
+ <h1>本地导出结构检查</h1>
+ <p>用于验证官方导出文件的字段类型和消息关系。只在本机内存中检查，不上传、不保存文件，不读取或修改 PAIA 档案。</p>
+ <p>结果只包含固定字段类型、计数和校验状态，不显示正文、标题、消息 ID、文件名、精确时间或未知字段名。检查完成不代表历史已导入。</p>
+ <section>
+  <label class="consent"><input id="consent" type="checkbox">我同意本次在本机读取我主动选择的官方导出文件，以生成不含正文的结构摘要。</label>
+  <input id="file" type="file" accept=".zip,.json" hidden>
+  <div class="actions"><button id="choose" disabled>选择官方 ZIP / JSON</button><button id="cancel" disabled>停止并清空</button></div>
+ </section>
+ <p id="status" role="status">等待本次读取同意。文件不会自动选择。</p>
+ <p class="subtle">开发检查上限：16 MiB 解压文本、3 个聊天、单聊天 4096 个节点、JSON 深度 32。仅探测首个候选 conversation JSON；其他分片和整个导出包未验证。ZIP64、加密包或未知文件名将明确拒绝，不作格式猜测。</p>
+ <pre id="summary" aria-label="脱敏结构摘要" hidden></pre>
+</main></body></html>

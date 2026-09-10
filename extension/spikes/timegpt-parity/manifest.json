@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "PAIA TimeGPT Parity Spike",
+  "version": "0.1.0",
+  "description": "独立实验：仅内存观察现有 ChatGPT conversation 响应的用户时间 metadata，不写档案。",
+  "incognito": "not_allowed",
+  "content_scripts": [
+    {"matches":["https://chatgpt.com/*"],"js":["contract.js","interceptor.js"],"run_at":"document_start","world":"MAIN","all_frames":false},
+    {"matches":["https://chatgpt.com/*"],"js":["contract.js","dom-adapter.js","content.js"],"run_at":"document_idle","world":"ISOLATED","all_frames":false}
+  ],
+  "content_security_policy": {"extension_pages":"default-src 'none'; script-src 'self'; connect-src 'none'; object-src 'none'"}
+}

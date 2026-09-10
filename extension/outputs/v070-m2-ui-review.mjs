@@ -1,0 +1,16 @@
+import {inputDigest} from '../scripts/compatibility-gate.mjs';
+// Standalone visible UI review. All content below is invented; fresh Chrome profile only.
+import {mkdir,writeFile} from 'node:fs/promises';
+import {FakeChatGPT,eventually} from '../tests/harness/fake-chatgpt.mjs';
+const h=await FakeChatGPT.start({headless:false}),op=()=>crypto.randomUUID();
+try{const p=h.archive,send=(type,data={})=>p.evaluate(async({type,data})=>{const r=await chrome.runtime.sendMessage({type,...data});if(!r.ok)throw Error(r.error);return r.data;},{type,data});await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+const a=await send('CREATE_LIBRARY_TOPIC',{topic:{name:'虚构主题：写作与学习',operationId:op()}}),b=await send('CREATE_LIBRARY_TOPIC',{topic:{name:'虚构主题：工作方法',operationId:op()}});
+await send('EDIT_LIBRARY_TOPIC',{edit:{id:a.id,expectedRevision:0,changes:{summary:'合成验收文档。记录如何把零散观察写成清楚的文字，以及下一次可以尝试的方法。',pinned:true},operationId:op()}});
+await send('EDIT_LIBRARY_SECTION',{edit:{topicId:a.id,sectionId:a.sectionId,expectedRevision:0,title:'从观察开始',operationId:op()}});
+const section=await send('CREATE_LIBRARY_SECTION',{section:{topicId:a.id,title:'下一次尝试',expectedTopicRevision:(await send('GET_LIBRARY_TOPIC',{id:a.id})).organizationRevision,operationId:op()}});
+const rows=[['把问题写具体','这是为界面验收编写的虚构内容。\n\n开始写作前，先描述一个能够看见的场景：谁遇到了什么问题，当时有哪些限制，以及怎样判断事情有了改善。具体的问题会帮助后面的讨论保持清楚。','idea',a.sectionId],['保留尚未想清楚的部分','另一条合成内容。学习笔记不必急着给出结论。可以把已知事实、自己的解释与仍然存在的问题分开写，等得到新的证据后再回来修改。','reflection',a.sectionId],['安排一次小练习','下次用十分钟写一段说明，再检查每句话是否都为读者补充了信息。这个计划只是测试文字，不会创建提醒或调用任何外部服务。','goal_plan',section.sectionId]];
+let shared;for(const [title,body,type,sectionId]of rows){const e=await send('CREATE_LIBRARY_ENTRY',{entry:{title,body,type,note:'',operationId:op()}});shared??=e.id;await send('PLACE_LIBRARY_ENTRY',{placement:{entryId:e.id,topicId:a.id,sectionId,expectedEntryRevision:0,expectedTopicRevision:(await send('GET_LIBRARY_TOPIC',{id:a.id})).organizationRevision,operationId:op()}});}
+const current=await send('GET_LIBRARY_ENTRY',{id:shared});await send('PLACE_LIBRARY_ENTRY',{placement:{entryId:shared,topicId:b.id,expectedEntryRevision:current.revision,expectedTopicRevision:0,operationId:op()}});
+await p.locator('[data-view=thoughts]').click();await eventually(async()=>(await send('LIBRARY_INDEX_PAGE')).items.every(t=>t.countComplete));await eventually(async()=>!(await p.locator('#thought-list').textContent()).includes('正在统计'));await mkdir('outputs/v070-m2-ui',{recursive:true});await p.screenshot({path:'outputs/v070-m2-ui/library-index.png',fullPage:true});await p.locator(`[data-topic-id="${a.id}"]`).click();await p.locator('[data-entry-field=body]').first().waitFor();await p.screenshot({path:'outputs/v070-m2-ui/topic-document.png',fullPage:true});
+await writeFile('outputs/v070-m2-ui-review.json',JSON.stringify({syntheticOnly:true,visibleChrome:true,runtimeDigest:await inputDigest({runtimeOnly:true}),chrome:(await h.cdp.send('Browser.getVersion')).product,topics:2,entries:3,sharedEntryTopics:2,visibleSections:2,entryCards:false,networkRequests:h.extensionNetworkRequests,pageErrors:h.errors.length},null,2)+'\n');if(h.errors.length||h.extensionNetworkRequests)throw Error('UI_REVIEW_FAILED');
+}finally{await h.close();}

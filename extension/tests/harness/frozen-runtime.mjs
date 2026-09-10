@@ -1,0 +1,2 @@
+import {mkdtemp,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';import {execFileSync} from 'node:child_process';
+export async function frozenRuntime(ref){const path=await mkdtemp(join(tmpdir(),'paia-frozen-synthetic-'));const tar=join(path,'frozen.tar');execFileSync('git',['archive',ref,'-o',tar]);execFileSync('tar',['-xf',tar,'-C',path]);await rm(tar);return {path,close:()=>rm(path,{recursive:true,force:true})};}

@@ -1,0 +1,125 @@
+{
+  "format": "paia-synthetic-performance-v1",
+  "reports": [
+    {
+      "size": 1000,
+      "seedMs": 266.90000009536743,
+      "iaCount": 1001,
+      "iaMigrationMs": 328.10000014305115,
+      "iaEdit": {
+        "ms": 2,
+        "reads": 7,
+        "writes": 7,
+        "scans": 0
+      },
+      "iaThoughtCount": 0,
+      "iaHistory": 50,
+      "collection": {
+        "ms": 7.6000001430511475,
+        "reads": 6,
+        "bodyCount": 0
+      },
+      "document": {
+        "ms": 2.5,
+        "reads": 63,
+        "bodyCount": 20
+      },
+      "edit": {
+        "ms": 6.5,
+        "reads": 4,
+        "writes": 2,
+        "ok": true
+      },
+      "capture": {
+        "ms": 5.8999998569488525,
+        "reads": 14,
+        "writes": 9,
+        "added": 1
+      },
+      "searchMatched": true,
+      "count": 1001,
+      "bytes": 3662872,
+      "localHasText": false
+    },
+    {
+      "size": 10000,
+      "seedMs": 4183,
+      "iaCount": 10001,
+      "iaMigrationMs": 3778.5999999046326,
+      "iaEdit": {
+        "ms": 2.4000000953674316,
+        "reads": 7,
+        "writes": 7,
+        "scans": 0
+      },
+      "iaThoughtCount": 0,
+      "iaHistory": 50,
+      "collection": {
+        "ms": 45.09999990463257,
+        "reads": 51,
+        "bodyCount": 0
+      },
+      "document": {
+        "ms": 14.800000190734863,
+        "reads": 63,
+        "bodyCount": 20
+      },
+      "edit": {
+        "ms": 1.2999999523162842,
+        "reads": 4,
+        "writes": 2,
+        "ok": true
+      },
+      "capture": {
+        "ms": 8.599999904632568,
+        "reads": 14,
+        "writes": 9,
+        "added": 1
+      },
+      "searchMatched": true,
+      "count": 10001,
+      "bytes": 49222812,
+      "localHasText": false
+    },
+    {
+      "size": 100000,
+      "seedMs": 68427.39999985695,
+      "iaCount": 100001,
+      "iaMigrationMs": 43857.299999952316,
+      "iaEdit": {
+        "ms": 3.5999999046325684,
+        "reads": 7,
+        "writes": 7,
+        "scans": 0
+      },
+      "iaThoughtCount": 0,
+      "iaHistory": 50,
+      "collection": {
+        "ms": 149.79999995231628,
+        "reads": 101,
+        "bodyCount": 0
+      },
+      "document": {
+        "ms": 113.60000014305115,
+        "reads": 63,
+        "bodyCount": 20
+      },
+      "edit": {
+        "ms": 1.3999998569488525,
+        "reads": 4,
+        "writes": 2,
+        "ok": true
+      },
+      "capture": {
+        "ms": 10.400000095367432,
+        "reads": 14,
+        "writes": 9,
+        "added": 1
+      },
+      "searchMatched": true,
+      "count": 100001,
+      "bytes": 295766260,
+      "localHasText": false
+    }
+  ]
+}

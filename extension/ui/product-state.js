@@ -1,0 +1,7 @@
+export const PRODUCT_STATES=Object.freeze(['idle','loading','ready','empty','saving','saved','updating','partial','stale','failed','paused','budget_limited','credential_missing','offline']);
+export function setProductState(node,state){if(!node||!PRODUCT_STATES.includes(state))return;node.dataset.state=state;node.setAttribute('aria-busy',String(['loading','saving','updating'].includes(state)));}
+const activeLoads=new WeakMap();
+export function beginLoading(host,text){if(!host)return ()=>{};activeLoads.get(host)?.();let notice;setProductState(host,'loading');const timer=setTimeout(()=>{notice=document.createElement('p');notice.className='loading-placeholder';notice.setAttribute('role','status');notice.textContent=text;host.prepend(notice);},180);const done=(state='ready')=>{clearTimeout(timer);notice?.remove();if(activeLoads.get(host)===done){activeLoads.delete(host);setProductState(host,state);}};activeLoads.set(host,done);return done;}
+export function showLocalFailure(text='这次操作未能完成。请重试；尚未保存的修改会留在当前页面。'){const host=document.getElementById('error');if(host){host.textContent=text;host.hidden=false;setProductState(host,'failed');}}
+export function productAction(run){return (...args)=>void Promise.resolve().then(()=>run(...args)).catch(()=>showLocalFailure());}
+export function announce(text){const host=document.getElementById('notice');if(host){host.replaceChildren(document.createTextNode(text));host.hidden=false;setProductState(host,'saved');}return host;}

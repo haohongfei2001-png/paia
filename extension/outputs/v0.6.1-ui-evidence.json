@@ -1,0 +1,17 @@
+{
+  "productVersion": "0.6.1",
+  "scope": "isolated-synthetic",
+  "runtimeDigest": "12e25cab8dd38a902ca24e1ae54022a556deb8a010e462df1dc0b075eebf38ee",
+  "defaultLight": true,
+  "readingFilter": true,
+  "fullSearch": true,
+  "contextDoesNotKeep": true,
+  "restoreProtects": true,
+  "lightOff": true,
+  "editUndo": true,
+  "removalUndo": true,
+  "workerRestart": true,
+  "noDocumentFilterControls": true,
+  "sourceTimesUnchanged": true,
+  "networkRequests": 0
+}

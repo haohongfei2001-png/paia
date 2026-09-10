@@ -1,0 +1,67 @@
+{
+  "scope": "isolated-synthetic-background-writer",
+  "chromeVersion": "Chrome/152.0.7977.82",
+  "results": [
+    {
+      "fromVersion": 3,
+      "toVersion": 5,
+      "storeCount": 37,
+      "quarantined": 1,
+      "empty": true,
+      "marker": {
+        "id": "thought-library",
+        "schemaVersion": 1,
+        "migrationVersion": 1,
+        "fromVersion": 3,
+        "targetVersion": 5,
+        "phase": "active",
+        "cursor": null,
+        "mapped": 1,
+        "quarantined": 1,
+        "sealed": 0,
+        "startedAt": "2026-09-07T10:06:34.778Z",
+        "libraryActivation": "ready",
+        "verified": true,
+        "completedAt": "2026-09-07T10:06:34.782Z",
+        "pendingInvalidations": 0,
+        "pendingCleanupJobs": 0
+      },
+      "fieldEquality": true,
+      "controlEquality": true,
+      "afterAbort": 3,
+      "blockedClosed": true,
+      "downgradeClosed": true
+    },
+    {
+      "fromVersion": 4,
+      "toVersion": 5,
+      "storeCount": 37,
+      "quarantined": 1,
+      "empty": true,
+      "marker": {
+        "id": "thought-library",
+        "schemaVersion": 1,
+        "migrationVersion": 1,
+        "fromVersion": 4,
+        "targetVersion": 5,
+        "phase": "active",
+        "cursor": null,
+        "mapped": 1,
+        "quarantined": 1,
+        "sealed": 0,
+        "startedAt": "2026-09-07T10:06:34.912Z",
+        "libraryActivation": "ready",
+        "verified": true,
+        "completedAt": "2026-09-07T10:06:34.916Z",
+        "pendingInvalidations": 0,
+        "pendingCleanupJobs": 0
+      },
+      "fieldEquality": true,
+      "controlEquality": true,
+      "afterAbort": 4,
+      "blockedClosed": true,
+      "downgradeClosed": true
+    }
+  ],
+  "networkRequests": 0
+}

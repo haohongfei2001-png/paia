@@ -1,0 +1,7 @@
+import * as base from '../../../paia-ai-context-v0101/core/memory/retrieval.js';import * as current from '../../core/memory/retrieval.js';import {intelligenceDataset} from './dataset.mjs';import {writeFileSync} from 'node:fs';import assert from 'node:assert/strict';
+const d=intelligenceDataset(),es=d.entries.filter(e=>e.eligible),timings={baseline:[],optimized:[]};let compared=0;
+for(const q of d.queries){const a=es.map(e=>base.rankCandidate(e,q.query)).filter(e=>e.score>0).sort(base.compareCandidates),b=current.rankAll(es,q.query);assert.deepEqual(a,b);compared++;}
+// Alternating same-process rounds, same candidates/queries; warm-up omitted.
+const qs=d.queries.filter((q,i)=>i<8);for(let round=0;round<7;round++){for(const mode of round%2?['optimized','baseline']:['baseline','optimized']){const t=performance.now();for(const q of qs){if(mode==='baseline')es.map(e=>base.rankCandidate(e,q.query)).filter(e=>e.score>0).sort(base.compareCandidates);else current.rankAll(es,q.query);}if(round>0)timings[mode].push(performance.now()-t);}}
+const median=xs=>[...xs].sort((a,b)=>a-b)[Math.floor(xs.length/2)],gain=1-median(timings.optimized)/median(timings.baseline);assert.ok(gain>=.2,JSON.stringify(timings));
+writeFileSync('outputs/v0110-acceptance/parity-performance.json',JSON.stringify({syntheticOnly:true,comparedQueries:compared,allRankedItemsAndScoresExactlyEqual:true,timings,medianImprovement:gain,gatePassed:true},null,2));console.log({compared,gain});

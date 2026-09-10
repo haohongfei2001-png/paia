@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {SafetyRunner} from '../core/thought-runner.js';
+test('M1 maintenance runner yields bounded batches and persisted work resumes after failure',async()=>{let batches=0,yields=0,fail=true;const store={async processPurgeCleanup(){if(fail)throw Error('SYNTHETIC_FAILURE');return {pending:false,processed:0};},async processInvalidations(){return {pending:++batches<3,processed:1};}};const r=new SafetyRunner(store,{yieldBatch:async()=>{yields++;}});await r.wake();assert.equal(r.failed,true);fail=false;await r.wake({retry:true});assert.equal(r.failed,false);assert.equal(batches,3);assert.equal(yields,2);});

@@ -1,0 +1,63 @@
+{
+  "baseline": "48b3405b1bef47a2a904379e32952f0a89bd8d66",
+  "runtimeDigest": "2f02f84713aa919ccd68c949f2600d8c68b4d38814f3ec6cbaa1e1bb3db41414",
+  "inputDigest": "e400362beee1f26ffd3fbdbfb8b5ebde5d1c97f2b403a437ce6681cebeccaacc",
+  "unchangedPaths": [
+    "core",
+    "background",
+    "adapter",
+    "content",
+    "manifest.json",
+    "ui/library.js",
+    "ui/library-entry-editor.js",
+    "ui/editor-primitives.js"
+  ],
+  "originalM2Clean": true,
+  "syntheticOnly": true,
+  "visibleChromeTests": 9,
+  "providerCalls": 0,
+  "extensionNetworkRequests": 0,
+  "pageErrors": 0,
+  "screenshots": [
+    {
+      "file": "outputs/v070-m2-polish-ui/01-empty-index.png",
+      "sha256": "2addf855a6d06aea56e3aa23b00614c9622abd2ebfbedcd0a23adb30092b5280"
+    },
+    {
+      "file": "outputs/v070-m2-polish-ui/02-reading.png",
+      "sha256": "c8b863172ffaf2dd5cf421ac3cd870260630766c77747fcc486162d59405ad66"
+    },
+    {
+      "file": "outputs/v070-m2-polish-ui/03-entry-menu.png",
+      "sha256": "70fdc233c51d145ca99efe341b6631bd8eff9413ccf9365c6481bb166a8598ac"
+    },
+    {
+      "file": "outputs/v070-m2-polish-ui/04-expanded-details.png",
+      "sha256": "6aaae62fdbe98bacd70ce80810bf71f3630fe2d3207f7673eb41bafe1a993132"
+    },
+    {
+      "file": "outputs/v070-m2-polish-ui/05-section-menu.png",
+      "sha256": "b02ff87dd0d4054063433f916bf3aad5ebaba36b00d67cb6d7f20c7b17261ce3"
+    },
+    {
+      "file": "outputs/v070-m2-polish-ui/06-topic-menu.png",
+      "sha256": "d8f1d597eb2f35f199905103312824f21bfa41b814ef7deaaebb709e5f922ed4"
+    },
+    {
+      "file": "outputs/v070-m2-polish-ui/07-library-index.png",
+      "sha256": "3e0c1961a663c609f8071ee7387e4860363f0cb6398d531f26c252ffd4fd4a24"
+    },
+    {
+      "file": "outputs/v070-m2-polish-ui/08-settings-management.png",
+      "sha256": "4e2c0e7f74a6503a35021aeeaff9d2fd8500bc5fed7da899820c0e3d1a791ac7"
+    },
+    {
+      "file": "outputs/v070-m2-polish-ui/09-source-natural-language.png",
+      "sha256": "b5f5d87fa9d236130feb7cb529bced25938b10b8f2260774a8686227df4d58bd"
+    },
+    {
+      "file": "outputs/v070-m2-polish-ui/10-source-advanced.png",
+      "sha256": "dbcf73ad3ce1328b621639d8e89c69228eca7332704361b294e06b81f4fdada6"
+    }
+  ]
+}

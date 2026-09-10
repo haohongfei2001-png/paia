@@ -1,0 +1,126 @@
+{
+  "syntheticOnly": true,
+  "memory": {
+    "scope": "archive renderer V8 heap sampled every 100ms during workload; not OS process peak",
+    "sampledPeakBytes": 17067932,
+    "samples": 117
+  },
+  "reports": [
+    {
+      "size": 1000,
+      "selection": {
+        "ms": 6.3999998569488525,
+        "reads": 80,
+        "writes": 0,
+        "scans": 0,
+        "count": 8
+      },
+      "commit": {
+        "ms": 23,
+        "reads": 59,
+        "writes": 30,
+        "scans": 4
+      },
+      "exact": {
+        "ms": 10.200000047683716,
+        "reads": 52,
+        "writes": 13,
+        "scans": 4
+      },
+      "document": {
+        "ms": 45.5,
+        "reads": 810,
+        "writes": 0,
+        "scans": 40,
+        "count": 40
+      },
+      "suggestions": {
+        "ms": 7,
+        "reads": 40,
+        "writes": 0,
+        "scans": 0,
+        "count": 40
+      },
+      "stale": {
+        "ms": 68.70000004768372,
+        "reads": 313,
+        "writes": 401,
+        "scans": 0,
+        "processed": 100
+      },
+      "resume": {
+        "ms": 8,
+        "reads": 59,
+        "writes": 30,
+        "scans": 4
+      },
+      "revisionGrowth": {
+        "ms": 369.59999990463257,
+        "reads": 3516,
+        "writes": 701,
+        "scans": 200,
+        "edits": 100,
+        "firstPage": 3
+      },
+      "providerLatencyMs": 26.09999990463257
+    },
+    {
+      "size": 10000,
+      "selection": {
+        "ms": 3.5,
+        "reads": 80,
+        "writes": 0,
+        "scans": 0,
+        "count": 8
+      },
+      "commit": {
+        "ms": 8.099999904632568,
+        "reads": 59,
+        "writes": 30,
+        "scans": 4
+      },
+      "exact": {
+        "ms": 9,
+        "reads": 52,
+        "writes": 13,
+        "scans": 4
+      },
+      "document": {
+        "ms": 50.39999985694885,
+        "reads": 810,
+        "writes": 0,
+        "scans": 40,
+        "count": 40
+      },
+      "suggestions": {
+        "ms": 33.799999952316284,
+        "reads": 40,
+        "writes": 0,
+        "scans": 0,
+        "count": 40
+      },
+      "stale": {
+        "ms": 58.09999990463257,
+        "reads": 313,
+        "writes": 401,
+        "scans": 0,
+        "processed": 100
+      },
+      "resume": {
+        "ms": 8.400000095367432,
+        "reads": 59,
+        "writes": 30,
+        "scans": 4
+      },
+      "revisionGrowth": {
+        "ms": 358.59999990463257,
+        "reads": 3516,
+        "writes": 701,
+        "scans": 200,
+        "edits": 100,
+        "firstPage": 3
+      },
+      "providerLatencyMs": 25.700000047683716
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+import {organizeSingleUI} from './harness/reading-closure.mjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,mkdir,rm,readFile,writeFile,readdir} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {productHistory,productReply} from './fixtures/product-history-v080.mjs';
+import {BackupValidator} from '../core/backup-format.js';
+const out='work/v081-release-e2e/',name='PAIA-v0.8.1-daily-use-reliability',op=()=>crypto.randomUUID();
+const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
+test('v081 internal/release structures: capture, Organizer, reading, Settings backup and stripped debug controls',{timeout:120000},async()=>{
+ const parent=await mkdtemp(join(tmpdir(),'paia-v081-package-'));await mkdir(out,{recursive:true});const reports=[];
+ try{for(const kind of ['internal','release']){const target=process.env.PAIA_ARTIFACT_DIRECTORY?join(process.env.PAIA_ARTIFACT_DIRECTORY,name+'-'+kind):join(parent,kind);if(!process.env.PAIA_ARTIFACT_DIRECTORY){const build=`import sys;sys.path.insert(0,'scripts');from ${kind==='internal'?'build_internal import build_internal':'build_daily_use import build_release'};${kind==='internal'?'build_internal':'build_release'}(sys.argv[1],sys.argv[2])`;execFileSync('/usr/bin/python3',['-c',build,process.cwd(),target]);}
+  if(kind==='release'){execFileSync('/usr/bin/python3',['-c',"import sys;from pathlib import Path;sys.path.insert(0,'scripts');import check_package;check_package.ROOT=Path(sys.argv[1]).resolve();sys.exit(check_package.main())",target]);assert.equal((await readdir(target+'/ui')).includes('development-reload.js'),false);assert.equal((await readdir(target+'/ui')).includes('response-time.html'),false);}
+  const h=await FakeChatGPT.start({extensionPath:target,headless:false,deepSeekFixture:productReply}),p=h.archive;
+  try{await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await rpc(p,'FILTER_MODE',{mode:'off'});await h.open({id:'package-v081-'+kind,title:'虚构打包验收',base:1785542400,messages:productHistory.slice(0,5)});await eventually(async()=>(await h.state()).records.length===5);await rpc(p,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-package-key'}});await p.locator('[data-view=thoughts]').click();await organizeSingleUI(p);await eventually(async()=>await p.locator('.topic-index-row').count()===1);await p.locator('.topic-index-row').click();await eventually(async()=>await p.locator('#topic-body .entry-prose').count()===5);assert.equal(await p.locator('.entry-sent-time').count()>0,true);await p.screenshot({path:out+kind+'-reading.png',fullPage:true});await p.locator('[data-view=settings]').click();await eventually(async()=>await p.locator('#backup-create').isVisible());assert.equal(await p.locator('#organizer-budget-status').isVisible(),false);await p.locator('#organizer-advanced > summary').click();await eventually(async()=>/1 \/ 20/.test(await p.locator('#organizer-budget-status').textContent()));await p.locator('#organizer-advanced > summary').click();
+   if(kind==='release'){assert.equal(await p.locator('#diagnostics,#filter-advanced,#library-organizer-jobs').count(),0);assert.equal(await p.locator('#original-organizer-trace').isVisible(),false);assert.equal((await p.evaluate(()=>chrome.runtime.sendMessage({type:'RESPONSE_ARM'}))).ok,false);}await p.screenshot({path:out+kind+'-settings.png',fullPage:true});const download=p.waitForEvent('download');await p.locator('#backup-create').click();const file=await download;const temporary=join(parent,kind+'.paia-backup');await file.saveAs(temporary);const text=await readFile(temporary,'utf8');assert.doesNotMatch(text,/synthetic-package-key|apiKey/);const validator=new BackupValidator();for(const line of text.trim().split('\n'))await validator.add(JSON.parse(line));assert.equal(validator.preview().counts.entries,5);assert.equal(h.deepSeekRequests.length,1);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);reports.push({kind,capture:true,reading:true,backup:true,requests:1,externalRequests:0,errors:[]});
+  }finally{await h.close();}
+ }await writeFile(out+'acceptance.json',JSON.stringify({syntheticOnly:true,visibleChrome:true,actualArtifacts:!!process.env.PAIA_ARTIFACT_DIRECTORY,structures:reports,externalRequests:0,errors:[]},null,2));
+ }finally{await rm(parent,{recursive:true,force:true});}
+});

@@ -1,0 +1,15 @@
+// Wholly invented history. No private chats, provider responses or keys.
+export const themes=[
+ {name:'PAIA 产品设计',tag:'PAIA',sentences:['我想让 PAIA 保存已经表达过的输入。','PAIA 应先保留原话，再加入组织。','PAIA 的思想库可以呈现我的思考变化。','我偏好 PAIA 在本地保存资料。','我决定 PAIA 只在点击时请求整理。','我判断 PAIA 的依据追溯比华丽动画更有价值。','我曾想让 PAIA 合并所有类似表达，现在决定保留修正。','PAIA 需要保护用户人工修改的标题。','PAIA 的原话值得保留。','PAIA 的原话值得保留。']},
+ {name:'求职与职业选择',tag:'求职',sentences:['求职时我希望找到能够持续学习的岗位。','求职初期我更看重薪水，现在也考虑稳定的成长。','求职偏好：团队能够安静讨论不同看法。','求职决定：先完成一个能展示实际能力的项目。','求职判断：岗位名称不能说明全部工作内容。','求职时我要记录面试中尚未解答的问题。','求职计划：下个月比较两种工作环境。','求职修正：我不再把一次拒绝当作能力结论。','求职重要决定：不夸大履历。','求职下一步操作：整理一个面试日历。']},
+ {name:'文学与创作',tag:'文学',sentences:['文学创作里我喜欢留下人物的不确定性。','文学故事起初只有一个结尾，后来想到不同的选择。','文学偏好：简洁语言也能承载复杂的感情。','文学决定：先完成初稿再逐段修改。','文学判断：人物的行动比解释更能说明他。','文学修正：不把作者判断直接塞进人物的话。','文学待解决：故事中间为何缺少推进？','文学创作计划：记录一周的城市声音。','文学重要原则：保留反例。','文学的开放结尾让我想到读者自己的经验。']},
+ {name:'理论物理研究',tag:'研究',sentences:['研究中我想区分假设、推导和实验依据。','研究偏好：先用简单模型观察边界。','研究决定：在计算之前写清楚量纲。','研究判断：一个反例可能比重复验证更有价值。','研究修正：先前使用的近似在强耦合条件下不再适用。','研究计划：比较两种边界条件。','研究待解决：这一步近似的误差有多大？','研究的重要决定：不把猜想写成已经证明。','研究曾经追求更复杂的模型，现在先理解可检验的问题。','研究需要记录失败计算和最后的修正。']},
+ {name:'AI 工具与工作流',tag:'AI工具',sentences:['AI工具应该帮助我整理已经形成的想法。','AI工具偏好：切换阅读模式不产生费用。','AI工具决定：不用自动无限重试。','AI工具判断：可检查的单次更新比连续请求更清楚。','AI工具的 chat窗口 满了，我需要保留会话中的工作过程。','AI工具的安装状态只是一次临时操作，不是长期主题。','AI工具修正：我不再一次发送所有历史。','AI工具下一步操作：确认本次要整理的内容。','AI工具重要原则：原始记录不能被改写。','AI工具的长期价值来自可追溯、可编辑的资料。']}
+];
+export const productHistory=themes.flatMap((t,group)=>t.sentences.map((text,i)=>({id:`product-${group}-${i}`,text:i===6&&group===3?text+' '+('这是一段虚构的长研究记录，讨论假设的适用范围，并保留对先前结论的修正。'.repeat(70)):text})));
+export function productReply(body,{partial=false}={}){
+ const request=JSON.parse(body.messages[1].content);
+ if(request.taskProfile==='original_classification')return {choices:[{finish_reason:'stop',message:{content:JSON.stringify({items:request.inputs.map((input,i)=>{const theme=themes.find(t=>input.text.includes(t.tag))||themes[4],existing=request.topicCandidates.find(x=>x.name===theme.name);return {inputRef:input.ref,topic:existing?{existingTopicId:existing.id}:{proposedName:theme.name},section:{proposedName:'想法与过程'},type:partial&&i===1?'invalid':input.text.includes('决定')?'decision':input.text.includes('偏好')?'preference':input.text.includes('判断')?'judgment':'idea',spans:[],uncertain:false};})})}}]};
+ const ids=request.inputs.map(x=>x.ref),old=JSON.parse(request.context.find(x=>x.ref==='existing-presentation')?.text||'null'),all=[...new Set([...ids,...(old?.evidenceEntryIds||[])])],item=text=>({text,evidenceEntryIds:all});
+ return {choices:[{finish_reason:'stop',message:{content:JSON.stringify({topicId:request.topicCandidates[0].id,blockSummary:'从初始想法走向有依据、可检验的选择',currentView:'这些虚构表达呈现出从记录问题、比较选择到保留修正的过程。',keyInformation:[item('记录原始表达，并保留思想形成的过程。')],preferences:[item('更看重清楚的边界和可持续的推进。')],decisions:[item('先完成一个有界的步骤，再决定下一步。')],judgments:[{...item('依据和反例有助于检验当前判断。'),confidence:0.8}],openQuestions:[item('接下来用什么观察来验证当前理解？')],possibleEvolution:[],evidenceEntryIds:all,harmlessExtra:'must not persist'})}}]};
+}

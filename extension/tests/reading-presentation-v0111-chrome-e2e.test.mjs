@@ -1,0 +1,23 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {mkdir,writeFile} from 'node:fs/promises';
+import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';import {productHistory,productReply} from './fixtures/product-history-v080.mjs';
+const rpc=async(p,type,fields={})=>{const r=await p.evaluate(q=>chrome.runtime.sendMessage(q),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
+test('Cached presentation, search and time ordering retain the Topic; pending preference switches immediately with zero new Provider requests',{timeout:60000},async()=>{
+ const h=await FakeChatGPT.start({headless:true,deepSeekFixture:productReply}),p=h.archive;
+ try{
+  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await rpc(p,'FILTER_MODE',{mode:'off'});await h.open({id:'reading-cache-fixture',title:'Synthetic reading cache',base:1785542400,messages:productHistory.slice(0,5)});await eventually(async()=>(await h.state()).records.length===5);
+  await rpc(p,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-reading-only'}});await rpc(p,'UPDATE_ORIGINAL_LIBRARY_VIEW',{userActionId:crypto.randomUUID()});const topic=(await rpc(p,'LIBRARY_INDEX_PAGE')).items[0];await rpc(p,'UPDATE_AI_PRESENTATION',{userActionId:crypto.randomUUID(),topicId:topic.id});
+  const calls=h.deepSeekRequests.length;await p.locator('[data-view=thoughts]').click();await p.locator(`[data-topic-id="${topic.id}"]`).click();await p.locator('#original-reading-body [data-entry-id]').first().waitFor();
+  const initial=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc'}});const ids=initial.items.map(x=>x.entry.id),first=ids[0];
+  await p.evaluate(()=>{window.readingRoot=document.querySelector('#topic-body');window.readingHeading=document.querySelector('#topic-heading h1');window.originalFirst=document.querySelector('#original-reading-body [data-entry-id]');});
+  await p.locator('#ai-presentation-toggle').check();await p.locator('[data-ai-field=currentView]').waitFor();await p.locator('#ai-presentation-toggle').uncheck();await p.locator('#original-reading-body').waitFor();
+  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.restoreReadingSend=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=async q=>{if(q.type==='SET_ORGANIZER_CONTROLS'&&q.changes.libraryView==='ai'){window.readingSaveEntered=true;await new Promise(r=>window.releaseReadingSave=r);}return send(q);};});
+  await p.locator('#ai-presentation-toggle').check();await eventually(()=>p.evaluate(()=>window.readingSaveEntered));assert.equal(await p.locator('#ai-reading-body').isVisible(),true);assert.equal(await p.locator('#ai-presentation-toggle').isDisabled(),true);assert.equal(await p.locator('.loading-placeholder').count(),0);
+  await p.evaluate(()=>window.releaseReadingSave());await eventually(async()=>!await p.locator('#ai-presentation-toggle').isDisabled());await p.evaluate(()=>window.restoreReadingSend());await p.locator('#ai-presentation-toggle').uncheck();await p.locator('#original-reading-body').waitFor();
+  assert.equal(await p.evaluate(()=>document.querySelector('#original-reading-body [data-entry-id]')===window.originalFirst),true);
+  await p.locator('[data-reading-sort=desc]').click();await eventually(async()=>JSON.stringify(await p.locator('#original-reading-body [data-entry-id]').evaluateAll(ns=>ns.map(n=>n.dataset.entryId)))===JSON.stringify([...ids].reverse()));
+  await p.locator('#topic-search').fill(productHistory[0].text);await eventually(async()=>await p.locator('#original-reading-body [data-entry-id]').count()===1);await p.locator('#topic-search').fill('');await eventually(async()=>await p.locator('#original-reading-body [data-entry-id]').count()===ids.length);
+  assert.equal(await p.evaluate(()=>document.querySelector('#topic-body')===window.readingRoot&&document.querySelector('#topic-heading h1')===window.readingHeading),true);
+  const after=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc'}});assert.deepEqual(after.items.map(x=>[x.entry.id,x.entry.revision,x.entry.body]),initial.items.map(x=>[x.entry.id,x.entry.revision,x.entry.body]));assert.equal(h.deepSeekRequests.length,calls);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+  await mkdir('work/reading-v0111',{recursive:true});await writeFile('work/reading-v0111/presentation.json',JSON.stringify({syntheticOnly:true,headless:true,cachedImmediate:true,retainedTopic:true,retainedOriginalNode:true,search:true,sort:true,entryRevisionsUnchanged:true,setupMockRequests:calls,readingRequests:0,errors:h.errors},null,2));
+ }finally{await h.close();}
+});

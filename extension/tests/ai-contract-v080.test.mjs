@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateAIPresentation,AI_FIELDS,AI_LIST_FIELDS,aiSynthesisPrompt} from '../core/organizer/ai-contract.js';
+const request={inputs:[{ref:'entry-1'},{ref:'entry-2'}],context:[],topicCandidates:[{id:'topic-1'}]};
+const base=()=>({topicId:'topic-1',blockSummary:'从记录输入走向思想主题',currentView:'保留证据，再形成判断。',...Object.fromEntries(AI_LIST_FIELDS.map(f=>[f,[]]))});
+test('canonical contract accepts user schema with empty categories and optional summary evidence',()=>{const r=validateAIPresentation(base(),request);assert.deepEqual(r.evidenceEntryIds,['entry-1','entry-2']);assert.deepEqual(Object.keys(r),['topicId',...AI_FIELDS,'evidenceEntryIds']);});
+test('harmless extensions are discarded at every durable boundary',()=>{const r=validateAIPresentation({...base(),explanation:'ignored',decisions:[{text:'先保留原话',evidenceEntryIds:['entry-1'],confidence:0.9}]},request);assert.equal(r.explanation,undefined);assert.deepEqual(Object.keys(r.decisions[0]),['text','evidenceEntryIds']);});
+test('item evidence degrades locally; duplicate and foreign refs never persist',()=>{const r=validateAIPresentation({...base(),keyInformation:[{text:'valid',evidenceEntryIds:['entry-1','outside','entry-1']},{text:'invalid',evidenceEntryIds:['outside']},null],evidenceEntryIds:['outside','entry-2']},request);assert.deepEqual(r.keyInformation,[{text:'valid',evidenceEntryIds:['entry-1']}]);assert.deepEqual(r.evidenceEntryIds,['entry-2','entry-1']);});
+test('missing categories normalize to empty arrays and text is bounded',()=>{const r=validateAIPresentation({topicId:'topic-1',blockSummary:'文'.repeat(500)},request);assert.equal(r.blockSummary.length,300);assert.ok(AI_LIST_FIELDS.every(f=>r[f].length===0));});
+test('uninterpretable objects, wrong topic and fabricated top evidence fail closed',()=>{for(const x of [null,[],{}, {topicId:'wrong',currentView:'x'}, {topicId:'topic-1',nonsense:'x'}])assert.throws(()=>validateAIPresentation(x,request));assert.throws(()=>validateAIPresentation({...base(),evidenceEntryIds:['outside']},request),{code:'INVALID_OUTPUT'});});
+test('prompt keys come from canonical contract and declare no psychological inference',()=>{const p=aiSynthesisPrompt();for(const f of AI_FIELDS)assert.ok(p.includes('"'+f+'"'));assert.match(p,/psychological/i);assert.match(p,/\[\]/);});

@@ -1,0 +1,26 @@
+{
+  "version": "0.7.2.20",
+  "tag": "checkpoint-v0.7.2c-ai-organizer-mvp",
+  "tests": {
+    "total": 112,
+    "node": 107,
+    "isolatedChrome": 5,
+    "passed": 112,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "staticGuardrails": 4139,
+  "runtimeResources": 100,
+  "newAiTests": 23,
+  "oneClickMaxProviderRequests": 1,
+  "maxTopicsPerClick": 1,
+  "maxChangedEntriesPerClick": 8,
+  "automaticProviderRequests": 0,
+  "realPaidAiTest": false,
+  "privateDatabaseRead": false,
+  "fullRegressionRun": false,
+  "originalCoreUnchanged": true,
+  "schemaUnchanged": true,
+  "permissionsUnchanged": true
+}

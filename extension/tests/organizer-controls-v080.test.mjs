@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {completeFixture,append,meta,sessionStorage} from './harness/original-complete.mjs';
+import {organizerControls,setOrganizerControls} from '../core/organizer/controls.js';
+import {bindBudgetSession} from '../core/organizer/budget.js';
+const click=()=>({userActionId:crypto.randomUUID()});
+test('conservative daily limit persists, denies clearly and cannot be reset by worker/session',async()=>{const f=await completeFixture({texts:['人工合成第一条'],batchLimit:20});assert.equal((await organizerControls(f.s)).dailyRequests,20);await setOrganizerControls(f.s,{dailyRequests:1});await f.runner.wake(click());await append(f.s,'人工合成第二条');assert.equal((await f.runner.wake(click())).error,'BUDGET_EXCEEDED');await bindBudgetSession(f.s.organizerLedger,sessionStorage());assert.equal((await f.runner.wake(click())).error,'BUDGET_EXCEEDED');assert.equal(f.requests.length,1);await setOrganizerControls(f.s,{dailyRequests:2});assert.equal((await f.runner.wake(click())).error,undefined);assert.equal(f.requests.length,2);assert.equal((await organizerControls(f.s)).usedRequests,2);});
+test('control changes/onboarding are local, bounded and leave daily usage untouched',async()=>{const f=await completeFixture();await setOrganizerControls(f.s,{batchMode:'compact',aiOnboardingSeen:true});assert.equal((await organizerControls(f.s)).aiOnboardingSeen,true);assert.equal(await meta(f.s,'organizer-budget'),undefined);assert.equal(f.requests.length,0);for(const changes of [{dailyRequests:0},{dailyRequests:201},{dailyRequests:'20'},{batchMode:'infinite'},{apiKey:'never'}])await assert.rejects(()=>setOrganizerControls(f.s,changes));});

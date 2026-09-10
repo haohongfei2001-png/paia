@@ -1,0 +1,191 @@
+{
+  "format": "paia-synthetic-performance-v1",
+  "reports": [
+    {
+      "size": 1000,
+      "seedMs": 298.7999999523163,
+      "sfCount": 1001,
+      "sfMigrationMs": 238.29999995231628,
+      "sfPageMetrics": {
+        "ms": 7.5,
+        "reads": 104,
+        "writes": 0,
+        "scans": 0,
+        "count": 20
+      },
+      "sfEvaluation": {
+        "ms": 39.799999952316284,
+        "reads": 702,
+        "writes": 101,
+        "scans": 1,
+        "processed": 100
+      },
+      "sfSearch": {
+        "ms": 42.40000009536743,
+        "reads": 801,
+        "writes": 0,
+        "scans": 0
+      },
+      "iaCount": 1001,
+      "iaMigrationMs": 335.7999999523163,
+      "iaEdit": {
+        "ms": 2.5999999046325684,
+        "reads": 7,
+        "writes": 7,
+        "scans": 0
+      },
+      "iaThoughtCount": 0,
+      "iaHistory": 50,
+      "collection": {
+        "ms": 8.799999952316284,
+        "reads": 6,
+        "bodyCount": 0
+      },
+      "document": {
+        "ms": 2.9000000953674316,
+        "reads": 63,
+        "bodyCount": 20
+      },
+      "edit": {
+        "ms": 8.099999904632568,
+        "reads": 4,
+        "writes": 2,
+        "ok": true
+      },
+      "capture": {
+        "ms": 6.400000095367432,
+        "reads": 14,
+        "writes": 9,
+        "added": 1
+      },
+      "searchMatched": true,
+      "count": 1001,
+      "bytes": 3691719,
+      "localHasText": false
+    },
+    {
+      "size": 10000,
+      "seedMs": 7175,
+      "sfCount": 10001,
+      "sfMigrationMs": 2678.100000143051,
+      "sfPageMetrics": {
+        "ms": 13.200000047683716,
+        "reads": 104,
+        "writes": 0,
+        "scans": 0,
+        "count": 20
+      },
+      "sfEvaluation": {
+        "ms": 34,
+        "reads": 702,
+        "writes": 101,
+        "scans": 1,
+        "processed": 100
+      },
+      "sfSearch": {
+        "ms": 26.199999809265137,
+        "reads": 801,
+        "writes": 0,
+        "scans": 0
+      },
+      "iaCount": 10001,
+      "iaMigrationMs": 6510.200000047684,
+      "iaEdit": {
+        "ms": 2.9000000953674316,
+        "reads": 7,
+        "writes": 7,
+        "scans": 0
+      },
+      "iaThoughtCount": 0,
+      "iaHistory": 50,
+      "collection": {
+        "ms": 53.89999985694885,
+        "reads": 51,
+        "bodyCount": 0
+      },
+      "document": {
+        "ms": 20.600000143051147,
+        "reads": 63,
+        "bodyCount": 20
+      },
+      "edit": {
+        "ms": 1.0999999046325684,
+        "reads": 4,
+        "writes": 2,
+        "ok": true
+      },
+      "capture": {
+        "ms": 13.700000047683716,
+        "reads": 14,
+        "writes": 9,
+        "added": 1
+      },
+      "searchMatched": true,
+      "count": 10001,
+      "bytes": 37417124,
+      "localHasText": false
+    },
+    {
+      "size": 100000,
+      "seedMs": 88475.10000014305,
+      "sfCount": 100001,
+      "sfMigrationMs": 29790.39999985695,
+      "sfPageMetrics": {
+        "ms": 124.80000019073486,
+        "reads": 104,
+        "writes": 0,
+        "scans": 0,
+        "count": 20
+      },
+      "sfEvaluation": {
+        "ms": 46.09999990463257,
+        "reads": 702,
+        "writes": 101,
+        "scans": 1,
+        "processed": 100
+      },
+      "sfSearch": {
+        "ms": 40,
+        "reads": 801,
+        "writes": 0,
+        "scans": 0
+      },
+      "iaCount": 100001,
+      "iaMigrationMs": 55624.09999990463,
+      "iaEdit": {
+        "ms": 5.700000047683716,
+        "reads": 7,
+        "writes": 7,
+        "scans": 0
+      },
+      "iaThoughtCount": 0,
+      "iaHistory": 50,
+      "collection": {
+        "ms": 151.20000004768372,
+        "reads": 101,
+        "bodyCount": 0
+      },
+      "document": {
+        "ms": 114.19999980926514,
+        "reads": 63,
+        "bodyCount": 20
+      },
+      "edit": {
+        "ms": 1.2000000476837158,
+        "reads": 4,
+        "writes": 2,
+        "ok": true
+      },
+      "capture": {
+        "ms": 10.400000095367432,
+        "reads": 14,
+        "writes": 9,
+        "added": 1
+      },
+      "searchMatched": true,
+      "count": 100001,
+      "bytes": 304322094,
+      "localHasText": false
+    }
+  ]
+}

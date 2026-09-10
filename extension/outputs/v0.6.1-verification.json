@@ -1,0 +1,430 @@
+{
+  "format": "paia-smart-filter-isolated-acceptance-v1",
+  "productVersion": "0.6.1",
+  "date": "2026-09-07",
+  "scope": "isolated-synthetic",
+  "dailyDeployment": false,
+  "privateChatGPTCompatibilityVerified": false,
+  "baseCheckpoint": "01a635032e7b178490106dcfecd11ff6c75f8a77",
+  "checkpointTag": "checkpoint-v0.6.1-smart-filter-internal",
+  "runtimeDigest": "12e25cab8dd38a902ca24e1ae54022a556deb8a010e462df1dc0b075eebf38ee",
+  "automatic": {
+    "total": 490,
+    "pass": 490,
+    "fail": 0,
+    "skipped": 0,
+    "groups": {
+      "adapter contract": {
+        "pass": 95,
+        "fail": 0,
+        "skipped": 0
+      },
+      "unit": {
+        "pass": 253,
+        "fail": 0,
+        "skipped": 0
+      },
+      "browser E2E": {
+        "pass": 100,
+        "fail": 0,
+        "skipped": 0
+      },
+      "privacy/security": {
+        "pass": 42,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "files": {
+      "adapter.test.mjs": {
+        "pass": 74,
+        "fail": 0,
+        "skipped": 0
+      },
+      "backfill-bridge.test.mjs": {
+        "pass": 5,
+        "fail": 0,
+        "skipped": 0
+      },
+      "backfill-e2e.test.mjs": {
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "background-security.test.mjs": {
+        "pass": 20,
+        "fail": 0,
+        "skipped": 0
+      },
+      "capture.test.mjs": {
+        "pass": 11,
+        "fail": 0,
+        "skipped": 0
+      },
+      "compat-package.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "compat-replay.test.mjs": {
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "compat-sanitizer.test.mjs": {
+        "pass": 10,
+        "fail": 0,
+        "skipped": 0
+      },
+      "development-reload-e2e.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "development-reload.test.mjs": {
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0
+      },
+      "diagnostic-ui.test.mjs": {
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "diagnostics-integration.test.mjs": {
+        "pass": 7,
+        "fail": 0,
+        "skipped": 0
+      },
+      "diagnostics.test.mjs": {
+        "pass": 7,
+        "fail": 0,
+        "skipped": 0
+      },
+      "enrichment.test.mjs": {
+        "pass": 18,
+        "fail": 0,
+        "skipped": 0
+      },
+      "export-probe-e2e.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "export-probe.test.mjs": {
+        "pass": 19,
+        "fail": 0,
+        "skipped": 0
+      },
+      "export.test.mjs": {
+        "pass": 6,
+        "fail": 0,
+        "skipped": 0
+      },
+      "extension.test.mjs": {
+        "pass": 9,
+        "fail": 0,
+        "skipped": 0
+      },
+      "frozen-capture.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "frozen-v040.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "historical-budget.test.mjs": {
+        "pass": 5,
+        "fail": 0,
+        "skipped": 0
+      },
+      "history-contract.test.mjs": {
+        "pass": 12,
+        "fail": 0,
+        "skipped": 0
+      },
+      "history-observer.test.mjs": {
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "history-store.test.mjs": {
+        "pass": 9,
+        "fail": 0,
+        "skipped": 0
+      },
+      "ia-foundation.test.mjs": {
+        "pass": 12,
+        "fail": 0,
+        "skipped": 0
+      },
+      "ia-ui-e2e.test.mjs": {
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0
+      },
+      "import-coordinator.test.mjs": {
+        "pass": 6,
+        "fail": 0,
+        "skipped": 0
+      },
+      "import-ledger.test.mjs": {
+        "pass": 17,
+        "fail": 0,
+        "skipped": 0
+      },
+      "import-reader.test.mjs": {
+        "pass": 19,
+        "fail": 0,
+        "skipped": 0
+      },
+      "import-security.test.mjs": {
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "import-ui-e2e.test.mjs": {
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0
+      },
+      "import-upgrade.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "json-fingerprint.test.mjs": {
+        "pass": 9,
+        "fail": 0,
+        "skipped": 0
+      },
+      "library-e2e.test.mjs": {
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0
+      },
+      "library.test.mjs": {
+        "pass": 12,
+        "fail": 0,
+        "skipped": 0
+      },
+      "multi-source-e2e.test.mjs": {
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0
+      },
+      "privacy-product.test.mjs": {
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0
+      },
+      "product-e2e.test.mjs": {
+        "pass": 12,
+        "fail": 0,
+        "skipped": 0
+      },
+      "real-verification-gate.test.mjs": {
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "response-time-integration.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "response-time.test.mjs": {
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      },
+      "smart-filter-benchmark.test.mjs": {
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0
+      },
+      "smart-filter-migration-e2e.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "smart-filter-store.test.mjs": {
+        "pass": 11,
+        "fail": 0,
+        "skipped": 0
+      },
+      "smart-filter-ui-e2e.test.mjs": {
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "smart-filter.test.mjs": {
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0
+      },
+      "source-time-integration.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "source-time-resolver.test.mjs": {
+        "pass": 18,
+        "fail": 0,
+        "skipped": 0
+      },
+      "source-time.test.mjs": {
+        "pass": 15,
+        "fail": 0,
+        "skipped": 0
+      },
+      "storage-foundation.test.mjs": {
+        "pass": 17,
+        "fail": 0,
+        "skipped": 0
+      },
+      "storage-migration-e2e.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "storage-performance.test.mjs": {
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "store.test.mjs": {
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      },
+      "structural-discovery.test.mjs": {
+        "pass": 11,
+        "fail": 0,
+        "skipped": 0
+      },
+      "timeline.test.mjs": {
+        "pass": 4,
+        "fail": 0,
+        "skipped": 0
+      },
+      "ui.test.mjs": {
+        "pass": 9,
+        "fail": 0,
+        "skipped": 0
+      },
+      "workspace-e2e.test.mjs": {
+        "pass": 5,
+        "fail": 0,
+        "skipped": 0
+      },
+      "workspace.test.mjs": {
+        "pass": 5,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "fullSuite": true,
+    "auditPassed": true,
+    "inputDigest": "20a39642d375f589101bd4f139f839e428e69a1a8166d9003bb569e6653c7b00",
+    "realGolden": "UNAVAILABLE"
+  },
+  "migration": {
+    "productVersion": "0.6.1",
+    "scope": "isolated-synthetic",
+    "runtimeDigest": "12e25cab8dd38a902ca24e1ae54022a556deb8a010e462df1dc0b075eebf38ee",
+    "sameExtensionId": true,
+    "selfReload": true,
+    "physicalSchema": 4,
+    "controlSchema": 6,
+    "marker": {
+      "id": "smart-filter",
+      "phase": "active",
+      "migrationVersion": 1,
+      "cursor": null,
+      "mapped": 2,
+      "legacyCount": 2,
+      "mode": "light",
+      "noticePending": false,
+      "decisionSequence": 0,
+      "policyEpoch": 0,
+      "filterVersion": 1,
+      "policyVersion": 1,
+      "classifierVersion": "deterministic-light-1",
+      "verified": true,
+      "completedAt": "2026-09-06T18:29:51.927Z",
+      "noticeShownAt": "2026-09-06T18:29:51.936Z",
+      "pending": 0
+    },
+    "sourceTimeAndHistoryFieldEquality": true,
+    "removalsAndTombstonesPreserved": true,
+    "historyCompletionPreserved": true,
+    "onboardingOnce": true,
+    "captureAfterUpgrade": true,
+    "networkRequests": 0
+  },
+  "ui": {
+    "productVersion": "0.6.1",
+    "scope": "isolated-synthetic",
+    "runtimeDigest": "12e25cab8dd38a902ca24e1ae54022a556deb8a010e462df1dc0b075eebf38ee",
+    "defaultLight": true,
+    "readingFilter": true,
+    "fullSearch": true,
+    "contextDoesNotKeep": true,
+    "restoreProtects": true,
+    "lightOff": true,
+    "editUndo": true,
+    "removalUndo": true,
+    "workerRestart": true,
+    "noDocumentFilterControls": true,
+    "sourceTimesUnchanged": true,
+    "networkRequests": 0
+  },
+  "benchmark": {
+    "scope": "synthetic adversarial, not independent user-labeled population evidence",
+    "cases": 524,
+    "filtered": 6,
+    "falseFiltered": 0,
+    "precision": 1,
+    "coverage": 0.011450381679389313,
+    "byRisk": {
+      "standalone": {
+        "total": 20,
+        "falseFiltered": 0
+      },
+      "control": {
+        "total": 6,
+        "falseFiltered": 0
+      },
+      "mixed_information": {
+        "total": 360,
+        "falseFiltered": 0
+      },
+      "reference_or_ambiguous": {
+        "total": 72,
+        "falseFiltered": 0
+      },
+      "quoted_content": {
+        "total": 30,
+        "falseFiltered": 0
+      },
+      "protection": {
+        "total": 36,
+        "falseFiltered": 0
+      }
+    },
+    "durationMs": 1.851666999999999,
+    "statisticalGuarantee": false,
+    "productionSemanticProviders": 0
+  },
+  "audit": {
+    "packageGuardrails": 2829,
+    "runtimeResources": 63,
+    "developmentPrivacyPermissionNetworkPassed": true,
+    "addedPermissions": [],
+    "addedNetworkRequests": 0
+  }
+}

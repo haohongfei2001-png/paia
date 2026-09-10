@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>响应时间诊断</title><link rel="stylesheet" href="response-time.css"><script type="module" src="response-time.js"></script></head>
+<body><main>
+<h1>响应时间诊断</h1><p>v0.3.1 · 仅内存，不修改档案时间</p>
+<p>仅保留一个普通 ChatGPT 标签。启用捕获后刷新该标签，等待约 5 秒。</p>
+<h2>source time semantic validation</h2>
+<label for="period">当前可见用户消息实际所属时期</label>
+<select id="period" disabled>
+<option value="unknown">请选择时期</option><option value="today">today（不到 24 小时）</option><option value="days_ago">1–7天</option><option value="weeks_ago">1–4周</option><option value="older">1个月以上（至少 28 天）</option>
+</select>
+<p>时期按距现在的时长：1–7天为 [1,7) 天，1–4周为 [7,28) 天。请按可见消息的发送时期选择，勿按聊天创建日期；跨时期样本会显示不一致。</p>
+<pre id="semantic-summary" aria-live="polite">等待时间语义样本…</pre>
+<p>本次只需反馈上方安全摘要，不用发送新消息。high 仅表示本次样本全部检查及人工时期比对通过。刷新、切换、暂停或多标签失去资格清空结果。</p>
+<details><summary>此前响应诊断与受控发送检查</summary>
+<pre id="summary" aria-live="polite">等待诊断连接…</pre>
+<button type="button" id="arm" disabled>受控时间验证</button>
+<p id="control-status">先等 canonical 数量稳定，再点击按钮。看到“已开始”后返回当前聊天发送一条虚构消息；不要滚动补载、切换分支或编辑旧消息。</p>
+<p>差值 = 首次 canonical 观察 − 候选 create_time（秒），包含页面渲染与扫描延迟。仅按钮后开始的发送响应可参与；首次出现本身不证明新发送。</p>
+<p>刷新或切换聊天清空全部 ID 与时间映射。刷新后的相同计数/年龄不证明逐 ID 时间稳定：该验收项仍为 unknown。</p>
+<h2>other JSON structural fingerprints / historical candidate</h2><pre id="fingerprint-summary">等待结构指纹…</pre>
+<h2>响应结构拒绝原因诊断</h2><p>请先观察 B 旧聊天加载，再单独测试 A 新消息发送。发送流不含完整会话数据不代表历史来源不存在。RSC 等未知类型仅分类，不解析或接受。</p><pre id="rejection-summary">等待分阶段诊断…</pre>
+<p>可以截取本诊断页内容；不要截取 ChatGPT 正文、地址栏或完整档案页。</p>
+</details>
+</main></body></html>

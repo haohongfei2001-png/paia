@@ -1,0 +1,3 @@
+// Only move/insert the changed siblings. Unchanged live editors never detach.
+export function placeChildren(parent,nodes){const wanted=new Set(nodes);let cursor=parent.firstChild;for(const node of nodes){if(node===cursor){cursor=cursor.nextSibling;continue;}if(parent.moveBefore&&node.isConnected&&parent.isConnected)parent.moveBefore(node,cursor);else parent.insertBefore(node,cursor);}for(const node of [...parent.childNodes])if(!wanted.has(node))node.remove();}
+export function reconcile(parent,nodes,key){const old=new Map([...parent.children].map(n=>[key(n),n]));placeChildren(parent,nodes.map(node=>{const prior=old.get(key(node));return prior&&prior.textContent===node.textContent?prior:node;}));}
