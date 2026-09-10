@@ -26,8 +26,17 @@
 
   if (selected === 'en') {
     root.classList.add('paia-i18n-booting');
-    const reveal = () => root.classList.remove('paia-i18n-booting');
-    window.addEventListener('paia:ready', reveal, { once: true });
-    window.setTimeout(reveal, 1600);
+    let revealed = false;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      root.classList.remove('paia-i18n-booting');
+    };
+
+    // i18n.js fires this while the remaining synchronous site scripts are
+    // still being parsed. Deferring one task keeps the first painted frame
+    // from exposing the Chinese fallback copy, without holding the page blank.
+    window.addEventListener('paia:languagechange', () => window.setTimeout(reveal, 0), { once: true });
+    window.setTimeout(reveal, 900);
   }
 })();
