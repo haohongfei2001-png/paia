@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="980" viewBox="0 0 720 980">
+  <rect width="720" height="980" fill="#fbfcf9"/>
+  <g font-family="Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+    <text x="44" y="56" font-size="13" font-weight="700" letter-spacing="1.7" fill="#657b59">AI CONTEXT · PREVIEW</text>
+    <text x="44" y="112" font-size="32" font-weight="700" fill="#20251f">See exactly what AI will know</text>
+    <text x="44" y="152" font-size="32" font-weight="700" fill="#20251f">before you send it.</text>
+    <text x="44" y="194" font-size="15" fill="#687267">Authorization scope, sources, and the current question stay visible.</text>
+    <text x="44" y="220" font-size="15" fill="#687267">Remove anything before copying.</text>
+
+    <text x="44" y="278" font-size="14" fill="#657b59">Current question</text>
+    <rect x="44" y="300" width="632" height="112" rx="16" fill="#ffffff" stroke="#dfe4dc"/>
+    <text x="68" y="340" font-size="19" fill="#20251f">How should I redesign my learning system</text>
+    <text x="68" y="374" font-size="19" fill="#20251f">so older material is easier to revisit?</text>
+
+    <text x="44" y="468" font-size="14" fill="#657b59">Authorized topics</text>
+    <rect x="44" y="490" width="166" height="42" rx="11" fill="#eef2eb"/>
+    <text x="65" y="517" font-size="15" fill="#344130">Learning system</text>
+    <rect x="222" y="490" width="188" height="42" rx="11" fill="#eef2eb"/>
+    <text x="243" y="517" font-size="15" fill="#344130">Reading &amp; research</text>
+    <rect x="422" y="490" width="126" height="42" rx="11" fill="#eef2eb"/>
+    <text x="443" y="517" font-size="15" fill="#344130">Workflows</text>
+
+    <text x="44" y="590" font-size="14" fill="#657b59">Context Preview</text>
+    <rect x="44" y="612" width="632" height="282" rx="18" fill="#ffffff" stroke="#dfe4dc"/>
+    <text x="68" y="648" font-size="12.5" fill="#727c70">Highly relevant · from “Learning system”</text>
+    <text x="68" y="686" font-size="17" fill="#20251f">The goal has shifted from “capture more” to</text>
+    <text x="68" y="716" font-size="17" fill="#20251f">“make old material easier to revisit.”</text>
+    <line x1="68" y1="752" x2="652" y2="752" stroke="#e7eae5"/>
+    <text x="68" y="788" font-size="12.5" fill="#727c70">Manually confirmed · from “Workflows”</text>
+    <text x="68" y="826" font-size="17" fill="#20251f">Reduce constant manual organization so more attention</text>
+    <text x="68" y="856" font-size="17" fill="#20251f">can go to reading and judgment.</text>
+
+    <text x="44" y="938" font-size="13" fill="#687267">Preview before send · Minimal access · Traceable sources</text>
+  </g>
+</svg>
