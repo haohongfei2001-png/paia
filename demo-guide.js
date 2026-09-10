@@ -67,6 +67,7 @@
   let dismissed = false;
   let targetFrame = 0;
   let lastCopyKey = '';
+  let editStartText = null;
 
   const lang = () => document.documentElement.dataset.language === 'zh' ? 'zh' : 'en';
   const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -158,6 +159,7 @@
       step = 0;
       dismissed = false;
       lastCopyKey = '';
+      editStartText = null;
       render(false);
       return;
     }
@@ -172,10 +174,19 @@
     if (step === 2 && topic?.dataset.demoTopic === 'learning') advance(3);
   });
 
-  // Advance only when editing is actually finished. This avoids changing the
-  // guide while the user is still typing and matches the demo's save-on-blur behavior.
+  root.addEventListener('focusin', (event) => {
+    const editable = event.target.closest('[data-demo-editable]');
+    if (step === 1 && editable) editStartText = editable.textContent.trim();
+  });
+
+  // Advance only after a real edit is finished. This keeps the guide still while
+  // the user types and mirrors the demo's save-on-blur behavior.
   root.addEventListener('focusout', (event) => {
-    if (step === 1 && event.target.closest('[data-demo-editable]')) advance(2);
+    const editable = event.target.closest('[data-demo-editable]');
+    if (step !== 1 || !editable) return;
+    const changed = editStartText != null && editable.textContent.trim() !== editStartText;
+    editStartText = null;
+    if (changed) advance(2);
   });
 
   // Observe only the demo stage. Guide updates no longer trigger the observer,
@@ -194,6 +205,7 @@
 
   window.addEventListener('paia:languagechange', () => {
     lastCopyKey = '';
+    editStartText = null;
     render(false);
   });
 
