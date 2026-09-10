@@ -25,14 +25,24 @@ This builds `work/current-release/` from the current GitHub source and runs the 
 
 ## Existing daily Chrome installation
 
-To preserve the existing unpacked extension identity and its Chrome-managed IndexedDB, keep Chrome pointed at the same runtime path. On macOS, double-click:
+To preserve the existing unpacked extension identity and its Chrome-managed IndexedDB, keep Chrome pointed at the same runtime path.
+
+### 1. Synchronize in GitHub Desktop
+
+Before deploying, use GitHub Desktop to **Fetch origin** and, if offered, **Pull origin**. Continue only when the repository is on `main`, shows no pending Pull/Push, and has no local tracked changes.
+
+The updater intentionally does not contact GitHub itself. GitHub Desktop and macOS command-line Git may use different network/proxy paths, so the updater instead verifies that local `HEAD` exactly matches the locally known `origin/main`. If they differ, it stops and asks for GitHub Desktop synchronization rather than deploying an uncertain revision.
+
+### 2. Run the updater
+
+On macOS, double-click:
 
 `development/Update PAIA.command`
 
 It will:
 
-1. refuse uncommitted tracked source changes;
-2. fetch and fast-forward the local clone to GitHub `main`;
+1. refuse uncommitted tracked source changes or a non-`main` branch;
+2. verify the local clone matches `origin/main` as synchronized by GitHub Desktop;
 3. locate the existing Chrome-loaded PAIA runtime by asking once on the first run and remembering that path locally;
 4. build and statically validate a current release in a temporary directory;
 5. back up the current runtime code;
