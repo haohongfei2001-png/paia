@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="980" viewBox="0 0 720 980">
+  <rect width="720" height="980" fill="#fbfcf9"/>
+  <g font-family="Arial,'PingFang SC','Microsoft YaHei',sans-serif">
+    <text x="44" y="58" font-size="14" fill="#768373">← 思想库</text>
+    <text x="44" y="120" font-size="38" font-weight="700" fill="#20251f">长期学习系统</text>
+    <rect x="502" y="86" width="174" height="46" rx="23" fill="#f2f4f0" stroke="#cfd7cc"/>
+    <text x="524" y="115" font-size="14" fill="#667163">AI整理</text>
+    <rect x="614" y="94" width="48" height="30" rx="15" fill="#d9ded6"/>
+    <circle cx="629" cy="109" r="11" fill="#ffffff" stroke="#c6cdc2"/>
+
+    <rect x="44" y="164" width="632" height="46" rx="11" fill="#f8f9f6" stroke="#e0e5dd"/>
+    <text x="66" y="193" font-size="14" fill="#8a9388">在当前主题中查找…</text>
+
+    <text x="44" y="274" font-size="24" font-weight="700" fill="#20251f">信息获取</text>
+    <text x="44" y="306" font-size="13" fill="#919991">2026年7月</text>
+    <text x="44" y="350" font-size="19" fill="#20251f">我发现把所有资料都塞进一个系统，</text>
+    <text x="44" y="380" font-size="19" fill="#20251f">并不会自然提高学习效率。</text>
+    <text x="44" y="418" font-size="19" fill="#20251f">真正的问题可能不是收集得不够，</text>
+    <text x="44" y="448" font-size="19" fill="#20251f">而是很少重新回到过去的笔记。</text>
+
+    <line x1="44" y1="498" x2="676" y2="498" stroke="#e7eae5"/>
+
+    <text x="44" y="554" font-size="24" font-weight="700" fill="#20251f">回看与整理</text>
+    <text x="44" y="586" font-size="13" fill="#919991">2026年8月</text>
+    <text x="44" y="630" font-size="19" fill="#20251f">比起自动生成更多摘要，我更希望保留</text>
+    <text x="44" y="660" font-size="19" fill="#20251f">当时的理解，再把相近内容放到一起。</text>
+    <text x="44" y="698" font-size="19" fill="#20251f">如果回看成本足够低，长期积累本身</text>
+    <text x="44" y="728" font-size="19" fill="#20251f">就会慢慢形成结构。</text>
+
+    <line x1="44" y1="778" x2="676" y2="778" stroke="#e7eae5"/>
+
+    <text x="44" y="834" font-size="24" font-weight="700" fill="#20251f">还在形成的问题</text>
+    <text x="44" y="866" font-size="13" fill="#919991">2026年9月</text>
+    <text x="44" y="910" font-size="19" fill="#20251f">怎样让长期主题保持稳定，又不会因为</text>
+    <text x="44" y="940" font-size="19" fill="#20251f">分类过粗而失去细节？</text>
+  </g>
+</svg>
