@@ -54,7 +54,10 @@
     ].forEach(([rel, type, sizes, href]) => {
       if (document.querySelector(`link[rel="${rel}"][sizes="${sizes}"]`)) return;
       const link = document.createElement('link');
-      Object.assign(link, { rel, type, sizes, href });
+      link.rel = rel;
+      link.type = type;
+      link.sizes = sizes;
+      link.href = href;
       document.head.appendChild(link);
     });
   };
@@ -232,9 +235,10 @@
       <a href="about.html">${copy.about}</a>`;
 
     const sync = () => {
+      const labels = t();
       const open = panel.classList.contains('is-open');
       button.setAttribute('aria-expanded', String(open));
-      button.setAttribute('aria-label', open ? copy.menuClose : copy.menuOpen);
+      button.setAttribute('aria-label', open ? labels.menuClose : labels.menuOpen);
       panel.setAttribute('aria-hidden', String(!open));
     };
 
@@ -388,6 +392,7 @@
 
   const init = () => {
     apply();
+    window.dispatchEvent(new CustomEvent('paia:ready'));
     window.addEventListener('paia:languagechange', apply);
   };
 
