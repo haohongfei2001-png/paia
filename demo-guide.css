@@ -1,44 +1,78 @@
 .demo-guide {
   display: grid;
   grid-template-columns: auto minmax(0,1fr) auto;
-  gap: 14px 18px;
+  gap: 12px 16px;
   align-items: center;
-  margin: 0 0 14px;
-  padding: 14px 16px;
+  min-height: 66px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
   border: 1px solid #d8dfd4;
   border-radius: 13px;
-  background: #f7f9f5;
+  background: rgba(247,249,245,.92);
+  box-shadow: 0 8px 24px rgba(36,45,34,.035);
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
 }
 .demo-guide[hidden] { display: none; }
+.demo-guide-progress-wrap {
+  display: grid;
+  gap: 7px;
+  min-width: 52px;
+}
 .demo-guide-progress {
-  min-width: 42px;
   color: #647b58;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: .04em;
   font-variant-numeric: tabular-nums;
 }
-.demo-guide-copy { display: grid; gap: 3px; min-width: 0; }
+.demo-guide-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.demo-guide-dots i {
+  display: block;
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: #dbe1d7;
+  transform-origin: left center;
+  transition: width .18s cubic-bezier(.2,.8,.2,1), background .18s ease, transform .18s ease;
+}
+.demo-guide-dots i.is-current {
+  width: 22px;
+  background: #718768;
+  transform: scaleY(1.15);
+}
+.demo-guide-dots i.is-done { background: #a9b8a2; }
+.demo-guide-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  will-change: transform, opacity;
+}
 .demo-guide-copy strong {
   color: #313b2f;
   font-size: 13px;
   font-weight: 650;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 .demo-guide-copy span {
   color: #687267;
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 11.5px;
+  line-height: 1.48;
 }
 .demo-guide-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 7px 11px;
 }
 .demo-guide-actions button,
 .demo-guide-actions a {
+  min-height: 30px;
+  padding: 0 2px;
   border: 0;
   background: transparent;
   color: #5c7153;
@@ -49,28 +83,56 @@
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
+  transition: color .16s ease, transform .16s ease;
 }
 .demo-guide-actions button:hover,
-.demo-guide-actions a:hover { color: #35452f; }
+.demo-guide-actions a:hover {
+  color: #35452f;
+  transform: translateY(-1px);
+}
 .demo-guide.is-complete {
-  border-color: #ccd9c6;
-  background: #f2f6ef;
+  border-color: #c9d7c3;
+  background: rgba(242,246,239,.94);
+  box-shadow: 0 10px 28px rgba(61,80,54,.055);
 }
 .is-guide-target {
-  outline: 2px solid rgba(100,123,88,.58) !important;
+  outline: 1px solid rgba(100,123,88,.66) !important;
   outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(100,123,88,.08) !important;
+  transition: outline-color .16s ease, box-shadow .2s ease, background .16s ease !important;
+  animation: demo-guide-target-in .22s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes demo-guide-target-in {
+  from { box-shadow: 0 0 0 0 rgba(100,123,88,0) !important; }
+  to { box-shadow: 0 0 0 4px rgba(100,123,88,.08) !important; }
 }
 
 @media (max-width: 620px) {
   .demo-guide {
-    grid-template-columns: 1fr;
-    gap: 7px;
-    padding: 13px 14px;
+    grid-template-columns: auto minmax(0,1fr);
+    gap: 8px 11px;
+    min-height: 0;
+    padding: 11px 12px;
   }
-  .demo-guide-progress { min-width: 0; }
-  .demo-guide-actions { justify-content: flex-start; margin-top: 3px; }
+  .demo-guide-progress-wrap { min-width: 46px; }
+  .demo-guide-dots i { width: 12px; }
+  .demo-guide-dots i.is-current { width: 17px; }
+  .demo-guide-copy strong { font-size: 12.5px; }
+  .demo-guide-copy span { font-size: 11px; }
+  .demo-guide-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+    margin-top: -2px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .is-guide-target { scroll-behavior: auto; }
+  .demo-guide,
+  .demo-guide-dots i,
+  .demo-guide-actions button,
+  .demo-guide-actions a,
+  .is-guide-target {
+    transition: none !important;
+    animation: none !important;
+  }
 }
