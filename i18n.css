@@ -50,7 +50,7 @@ html[data-language="en"] .about-note {
   line-height: 1.68;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 620px) {
   .site-header {
     padding: 0 18px;
   }
