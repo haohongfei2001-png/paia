@@ -20,8 +20,10 @@ export function stabilizeTopicProposal({inputText,proposedName,relatedGroupingCa
  const proposal=typeof proposedName==='string'?proposedName.trim():'',related=typeof relatedGroupingCandidate==='string'?relatedGroupingCandidate.trim():'',candidates=Array.isArray(topicCandidates)?topicCandidates.filter(item=>item&&typeof item.id==='string'&&typeof item.name==='string'):[];
  if(proposal){const duplicate=candidates.find(candidate=>closeNames(proposal,candidate.name));if(duplicate)return {existingTopicId:duplicate.id,suppressNewTopic:false,promotedSectionName:null,reason:'near_duplicate'};}
  if(!proposal||!isLowDurabilityTopic(proposal))return {existingTopicId:null,suppressNewTopic:false,promotedSectionName:null,reason:null};
- const relatedMatch=related?candidates.find(candidate=>closeNames(related,candidate.name)&&strongCandidateMatch(inputText,candidate)):null,strong=relatedMatch||candidates.find(candidate=>strongCandidateMatch(inputText,candidate));
- if(strong)return {existingTopicId:strong.id,suppressNewTopic:false,promotedSectionName:isSectionWorthyFragment(proposal)?proposal:null,reason:'low_durability_reuse'};
+ const strongMatches=candidates.filter(candidate=>strongCandidateMatch(inputText,candidate)),relatedMatch=related?strongMatches.find(candidate=>closeNames(related,candidate.name)):null;
+ if(relatedMatch)return {existingTopicId:relatedMatch.id,suppressNewTopic:false,promotedSectionName:isSectionWorthyFragment(proposal)?proposal:null,reason:'low_durability_related_reuse'};
+ if(strongMatches.length===1)return {existingTopicId:strongMatches[0].id,suppressNewTopic:false,promotedSectionName:isSectionWorthyFragment(proposal)?proposal:null,reason:'low_durability_reuse'};
+ if(strongMatches.length>1)return {existingTopicId:null,suppressNewTopic:true,promotedSectionName:null,reason:'low_durability_ambiguous'};
  return {existingTopicId:null,suppressNewTopic:true,promotedSectionName:null,reason:'low_durability_unassigned'};
 }
 export function existingSectionForProposal(topicCandidate,proposedName){if(!topicCandidate||typeof proposedName!=='string'||!proposedName.trim())return null;const section=(topicCandidate.sections||[]).find(item=>item&&typeof item.id==='string'&&typeof item.name==='string'&&!isGenericSectionName(item.name)&&closeNames(proposedName,item.name));return section?.id||null;}
