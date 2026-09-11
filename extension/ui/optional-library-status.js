@@ -16,7 +16,14 @@ export async function readOptionalLibraryStatus(read,{isCurrent=()=>true,timeout
  const results=await Promise.all(Object.entries(STATUS_READS).map(async([key,type])=>[key,await boundedLocalRead(()=>read(type),{timeoutMs})]));
  if(!isCurrent())return null;
  const values={},unavailable=[];
- for(const [key,result]of results){if(result.ok&&result.value&&typeof result.value==='object')values[key]=result.value;else unavailable.push(key);}
+ for(const [key,result]of results){
+  // GET_BOUNDED_ORGANIZER returns null when no bounded job exists. This is an
+  // observed idle state, not a failed read. Other null/undefined responses are
+  // still unavailable and must never enable a paid action through fallback.
+  const idle=key==='bounded'&&result.ok&&result.value===null;
+  const record=result.value!==null&&typeof result.value==='object'&&!Array.isArray(result.value);
+  if(result.ok&&(idle||record))values[key]=result.value;else unavailable.push(key);
+ }
  return {values,unavailable};
 }
 export function libraryReadFailureText(retained){
