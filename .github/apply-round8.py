@@ -22,11 +22,4 @@ proc = subprocess.run(
 if proc.returncode:
     raise SystemExit(proc.returncode)
 
-workflow = ROOT / '.github' / 'workflows' / 'round8-shared-context.yml'
-text = workflow.read_text(encoding='utf-8')
-old = 'permissions:\n  contents: write\n'
-new = 'permissions:\n  contents: read\n'
-if text.count(old) != 1:
-    raise SystemExit('Round 8 workflow permission guard changed; refusing to guess.')
-workflow.write_text(text.replace(old, new, 1), encoding='utf-8')
-print('Applied Round 8 candidate and reduced subsequent CI permissions to contents:read.')
+print('Applied Round 8 candidate. Bootstrap files will be removed by the workflow before publishing the code commit.')
