@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if os.environ.get('GITHUB_REF_NAME') != 'round8/shared-working-context':
     raise SystemExit('Round 8 bootstrap refuses to run on another branch.')
 
-parts = sorted((ROOT / '.github').glob('round8-patch.part*'))
+parts = sorted((ROOT / '.github').glob('round8-payload.*'))
 if not parts:
     raise SystemExit('Round 8 patch payload is missing.')
 encoded = ''.join(p.read_text(encoding='utf-8').strip() for p in parts)
