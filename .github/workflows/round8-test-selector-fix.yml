@@ -1,0 +1,46 @@
+name: Round 8 test selector fix
+
+on:
+  push:
+    branches:
+      - round8/selector-fix-staging
+    paths:
+      - .github/workflows/round8-test-selector-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: round8/selector-fix-staging
+      - name: Scope navigation selectors to the primary sidebar
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('extension/tests')
+          old="locator('[data-view=settings]')"
+          new="locator('.sidebar [data-view=settings]')"
+          changed=[]
+          for p in root.glob('*.test.mjs'):
+              text=p.read_text(encoding='utf-8')
+              if old in text:
+                  p.write_text(text.replace(old,new),encoding='utf-8')
+                  changed.append(str(p))
+          print('patched', len(changed), 'files')
+          for p in changed: print(p)
+          if not changed:
+              raise SystemExit('No selector occurrences found; refusing empty patch')
+          PY
+      - name: Commit test-only hardening
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add extension/tests
+          git commit -m 'test: scope Settings navigation selectors to sidebar'
+          git push origin HEAD:refs/heads/round8/selector-fix-staging
