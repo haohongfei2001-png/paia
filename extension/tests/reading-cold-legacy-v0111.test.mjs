@@ -102,6 +102,30 @@ test('cold upgrade infers generation 1 only when the matching active section pro
   assert.equal(status.unresolvedLayouts,0);
 });
 
+test('cold upgrade prefers a proven later layoutSequence over stale generation 1 rows',async()=>{
+  const {s,storage,indexedDB,topic,entry}=await seedTopic();
+  await s.repository.transaction(true,async t=>{
+    const row=await t.get('topics',topic.id);
+    const section=await t.get('sections',JSON.stringify([topic.id,1,row.defaultSectionId]));
+    const placement=await t.get('placements',JSON.stringify([topic.id,1,entry.id]));
+    assert.ok(section&&placement);
+    await t.put('sections',{...section,id:JSON.stringify([topic.id,2,row.defaultSectionId]),layoutGeneration:2});
+    await t.put('placements',{...placement,id:JSON.stringify([topic.id,2,entry.id]),layoutGeneration:2});
+    row.layoutSequence=2;delete row.activeLayoutGeneration;await t.put('topics',row);
+    await t.delete('meta','library-documents-compat-v2');
+  },['topics','sections','placements','meta']);
+
+  const reopened=new LibraryDocumentsStore(storage,{indexedDB});
+  await reopened.libraryIndexPage();
+  const repaired=await rawTopic(reopened,topic.id);
+  assert.equal(repaired.activeLayoutGeneration,2);
+  const document=await reopened.topicDocumentPage({topicId:topic.id});
+  assert.equal(document.items[0].entry.id,entry.id);
+  const status=await reopened.libraryCompatibilityStatus();
+  assert.equal(status.repairedGenerationTopics,1);
+  assert.equal(status.unresolvedLayouts,0);
+});
+
 test('compatibility pass does not guess stale generation 1 when a later layoutSequence cannot be proven',async()=>{
   const {s,storage,indexedDB,topic}=await seedTopic();
 
