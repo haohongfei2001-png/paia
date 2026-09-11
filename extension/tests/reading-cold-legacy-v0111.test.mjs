@@ -6,6 +6,10 @@ import {aiPresentationStatus} from '../core/organizer/ai-presentation.js';
 
 const op=()=>crypto.randomUUID();
 
+async function resetCompatibilityMarker(store){
+  await store.repository.transaction(true,t=>t.delete('meta','library-documents-compat-v2'),['meta']);
+}
+
 async function seedTopic(){
   const {s,storage,indexedDB}=await setup(LibraryDocumentsStore);
   const topic=await s.createTopic({name:'Synthetic long-lived topic',operationId:op()});
@@ -15,6 +19,10 @@ async function seedTopic(){
   await s.drainLibraryMaintenance();
   const page=await s.libraryIndexPage();
   assert.ok(page.items.some(item=>item.id===topic.id));
+  // The production upgrade starts without the new Round 2 marker. The current
+  // fixture has already executed new code while seeding, so remove only that
+  // synthetic marker before the cold reopen.
+  await resetCompatibilityMarker(s);
   return {s,storage,indexedDB,topic,entry};
 }
 
@@ -47,9 +55,9 @@ test('v0.11.1 current-shaped Topic remains readable after a cold store reopen',a
   });
 });
 
-test('cold upgrade repairs durable Topic index metadata without changing identity or organization',async()=>{
+test('cold upgrade repairs durable Topic index metadata without changing identity, organization, Source or Input',async()=>{
   const {s,storage,indexedDB,topic}=await seedTopic();
-  const before=await rawTopic(s,topic.id);
+  const before=await rawTopic(s,topic.id),beforeSnapshot=await s.snapshot();
 
   await rewriteTopic(s,topic.id,row=>{delete row.activeKey;delete row.pinKey;delete row.pinRank;delete row.negativeUpdatedSequence;});
   assert.ok(await rawTopic(s,topic.id));
@@ -59,7 +67,7 @@ test('cold upgrade repairs durable Topic index metadata without changing identit
   const reopened=new LibraryDocumentsStore(storage,{indexedDB});
   const index=await reopened.libraryIndexPage();
   assert.ok(index.items.some(item=>item.id===topic.id),'cold compatibility pass must restore Home visibility');
-  const after=await rawTopic(reopened,topic.id);
+  const after=await rawTopic(reopened,topic.id),afterSnapshot=await reopened.snapshot();
   assert.equal(after.id,before.id);
   assert.equal(after.name,before.name);
   assert.equal(after.revision,before.revision);
@@ -68,6 +76,8 @@ test('cold upgrade repairs durable Topic index metadata without changing identit
   assert.ok(after.pinKey===0||after.pinKey===1);
   assert.match(after.pinRank,/^\d{12}$/);
   assert.equal(typeof after.negativeUpdatedSequence,'number');
+  assert.deepEqual(afterSnapshot.records,beforeSnapshot.records);
+  assert.deepEqual(afterSnapshot.library,beforeSnapshot.library);
   const status=await reopened.libraryCompatibilityStatus();
   assert.equal(status.indexGap,0);
   assert.equal(status.repairedIndexTopics,1);
