@@ -8,7 +8,7 @@ concurrency:
   group: p0-round3-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  apply-candidate:
+  apply-followup:
     if: github.ref == 'refs/heads/p0/thought-library-ui-readonly-round3'
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -20,63 +20,28 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
-      - name: Apply only the checksum-verified candidate
-        run: |
-          python3 - <<'PYAPPLY'
-          import base64, gzip, hashlib, json, pathlib, subprocess
-          root=pathlib.Path.cwd()
-          parts=[root/f'.github/round3-payload-{i}.txt' for i in range(1,5)]
-          text=''.join(p.read_text().strip() for p in parts)
-          text=text.replace('oBN1GAwWPY6c09FuKKke2kKiqWE7EWLNE','oBN1GAwWPY6c09FuKke2kKiqWE7EWLNE')
-          text=text.replace('Ofv7h7Xe/dfCtHx+AP/8+APbrfuK1IKK8SR','Ofv7h7Xe/dfCtHx+8+APbrfu1IKK8SR')
-          raw=base64.b64decode(text,validate=True)
-          assert hashlib.sha256(raw).hexdigest()=='38efaa2c2cb4a7c068b1085941225cf5e34f9f6304ca4de345939d371d80da0e', 'transport digest mismatch'
-          data=json.loads(gzip.decompress(raw))
-          assert hashlib.sha256((root/'extension/ui/thoughts.js').read_bytes()).hexdigest()=='7154819f26ba3d2ec4e61f0c4ca43d5ef277581a90d05adc20c2c06da5ecf16d', 'UI baseline moved'
-          allowed={
-           'extension/V0111_ROUND3_READING.md',
-           'extension/development/inspect-library-readonly.js',
-           'extension/tests/harness/library-ui-round3.mjs',
-           'extension/tests/harness/readonly-diagnostic-round3.mjs',
-           'extension/tests/optional-library-status-v0111.test.mjs',
-           'extension/tests/reading-optional-round3-chrome-e2e.test.mjs',
-           'extension/tests/reading-ui-round3-chrome-e2e.test.mjs',
-           'extension/tests/readonly-diagnostic-round3-chrome-e2e.test.mjs',
-           'extension/tests/readonly-diagnostic-round3.test.mjs',
-           'extension/ui/optional-library-status.js',
-           'extension/ui/thoughts.js',
-          }
-          stats=subprocess.check_output(['git','apply','--numstat','-'],input=data['patch'].encode()).decode()
-          assert {line.split('\t')[2] for line in stats.splitlines()}==allowed, 'unexpected patch paths'
-          for name in allowed:
-           p=root/name
-           assert not p.is_symlink() and p.resolve().is_relative_to(root), 'unsafe path'
-          subprocess.run(['git','apply','--check','-'],input=data['patch'].encode(),check=True)
-          subprocess.run(['git','apply','-'],input=data['patch'].encode(),check=True)
-          for p in parts:p.unlink()
-          subprocess.run(['git','diff','--check'],check=True)
-          print('Applied exact checksum-verified candidate; temporary transport removed.')
-          PYAPPLY
-      - name: Commit to this review branch only
+      - name: Apply hash-guarded three-file follow-up
+        run: python3 .github/round3-followup.py
+      - name: Commit to review branch only
         id: commit
         run: |
           set -euo pipefail
           branch='p0/thought-library-ui-readonly-round3'
           remote=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
           test "$remote" = "$GITHUB_SHA"
-          git add -- extension .github/round3-payload-*.txt
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'P0 Round 3: isolate reading and add native read-only diagnostics'
+          git add -- extension/ui/thoughts.js extension/tests/readonly-diagnostic-round3-chrome-e2e.test.mjs extension/tests/reading-ui-round3-chrome-e2e.test.mjs .github/round3-followup.py
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'P0 Round 3: restore editor after no-op and fix native diagnostic test execution'
           git push origin "HEAD:refs/heads/$branch"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
   unit-and-package:
-    needs: apply-candidate
+    needs: apply-followup
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ needs.apply-candidate.outputs.sha }}
+          ref: ${{ needs.apply-followup.outputs.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -100,7 +65,7 @@ jobs:
           path: artifacts/
           retention-days: 14
   browser:
-    needs: apply-candidate
+    needs: apply-followup
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -109,16 +74,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ needs.apply-candidate.outputs.sha }}
+          ref: ${{ needs.apply-followup.outputs.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install isolated test browser
+      - name: Install isolated full Chromium browser
         working-directory: extension
         run: |
           npm install --ignore-scripts
           npx playwright install --with-deps chromium
           echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/extension/node_modules/playwright" >> "$GITHUB_ENV"
+          node -e 'console.log("CHROME_PATH="+require("playwright").chromium.executablePath())' >> "$GITHUB_ENV"
       - name: Record tested revision
         run: mkdir -p artifacts; git rev-parse HEAD | tee artifacts/tested-sha.txt
       - name: Native DOM, native IDB and installed-extension regressions
