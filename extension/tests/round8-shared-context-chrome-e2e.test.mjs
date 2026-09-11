@@ -14,7 +14,7 @@ test('Round 8 browser: opt-in direct Input Context, no denied-topic bypass, and 
     await eventually(async()=>(await h.state()).records.length===1);
 
     // Direct Input is fail-closed until the explicit Settings switch is saved.
-    assert.equal((await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'ROUND8_BROWSER_SHARED'}})).items.length,0);
+    await eventually(async()=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type:'PAIA_MEMORY_BUILD',options:{query:'ROUND8_BROWSER_SHARED'}});if(!r.ok&&r.error==='MEMORY_STALE')return false;assert.equal(r.ok,true,JSON.stringify(r));return r.data.items.length===0;},'initial direct Input remains denied while capture state settles');
     await p.locator('.sidebar [data-view=settings]').click();
     await eventually(async()=>!(await p.locator('#memory-include-unorganized-inputs').isChecked()));
     await p.locator('#memory-include-unorganized-inputs').check();await p.locator('#memory-settings-save').click();
