@@ -24,6 +24,16 @@ export class OrganizerStore extends LibraryDocumentsStore {
  clearDerivedMetadata(t,marker){return clearDerivedMetadata(this,t,marker);}
  async canonicalTopic(t,id){return safeOrganization(this,t,'topic',await super.canonicalTopic(t,id));}
  async libraryIndexPage(o){const page=await super.libraryIndexPage(o);return this.run(()=>this.repository.transaction(false,async t=>{for(let i=0;i<page.items.length;i++)page.items[i]=await safeOrganization(this,t,'topic',page.items[i]);return page;}));}
+ // Read-only expression chronology; never use capture/model time as expression time.
+ async readingEntry(id){
+  const entry=await this.entry(id);
+  return this.run(()=>this.repository.transaction(false,async t=>{
+   const current=await this.readableEntry(t,id);
+   if(current.staleReasons?.includes('source_purged'))return this.documentEntry({...current,body:current.thoughtText});
+   if(current.revision!==entry.revision)reject('STALE_BASE');
+   return {...this.documentEntry(entry),...await entryTime(t,id),createdAt:entry.createdAt,provenanceType:entry.provenanceType};
+  }));
+ }
  async topicDocumentPage(o={}){
   const view=o.view??'original';if(!['original','ai'].includes(view))reject('INVALID_OUTPUT');
   if(view==='original'&&!o.sort)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort?await topicReadingPage(this,o):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;
