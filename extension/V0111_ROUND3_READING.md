@@ -1,6 +1,6 @@
 # v0.11.1 Round 3 — independent reading and pre-repair diagnostics
 
-Status: **draft, not merged or deployed to the daily Chrome profile**.
+Status: **draft repair candidate, not merged to main or deployed to the daily Chrome profile**.
 Base: Round 2 commit `3ea54ba31247c1c67181cdc939604ccb3fdfa815`.
 Branch: `p0/thought-library-ui-readonly-round3`.
 Draft PR: #2, stacked on the Round 2 branch / PR #1, not on main.
@@ -76,7 +76,7 @@ Diagnostic SHA-256:
 Authoritative final GitHub Actions run: **34605423714**.
 Both jobs checked out the exact tested commit
 `59c46a8bc3b2226f7a6d2364b96e49ff056eb080`.
-Subsequent changes to this report are documentation-only.
+Subsequent changes to this report and removal of temporary CI are non-runtime changes.
 
 - Targeted Node regressions: **133/133 passed, 0 failed, 0 skipped**.
   This includes 12 new status/diagnostic tests and 121 related existing tests
@@ -130,17 +130,18 @@ This round does not claim a clean full-repository suite result.
 
 ## CI and review hygiene
 
-Temporary transport files and application helpers are absent from the final PR
-diff. The remaining branch-only workflow has `contents: read`, does not persist
-checkout credentials, cannot push code, and runs isolated tests/builds only. It
-ignores documentation-only changes. It neither deploys nor invokes paid providers.
+Temporary transport files, application helpers and the branch-only verification
+workflow were removed after evidence capture. The final stacked repair contains no
+workflow that can mutate repository state and no temporary payload transport. It
+neither deploys nor invokes paid providers.
 
 ## Still gated
 
-No merge/deployment merely from synthetic passes. Real pre-repair structural
-measurements are still missing. Ambiguous layouts remain intentionally unresolved.
-Round 2 AI-productization migration bookkeeping for skipped unresolved Topics is a
-separate storage follow-up, not silently changed in this UI/diagnostic patch.
+No merge to main or daily deployment merely from synthetic passes. Real pre-repair
+structural measurements are still missing. Ambiguous layouts remain intentionally
+unresolved. Round 2 AI-productization migration bookkeeping for skipped unresolved
+Topics is a separate storage follow-up, not silently changed in this UI/diagnostic
+patch.
 
 The next evidence needed is one explicit execution of the read-only snippet in
 the existing daily extension context, returning only its aggregate report. Do not
