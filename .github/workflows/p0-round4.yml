@@ -28,16 +28,15 @@ jobs:
           end=text.index('async function aiJournal',start)
           old=text[start:end]
           assert 'aiProductizationMigration' in old and 'foundationWrite' in old
-          new="""const migrations=new WeakMap(),completedMigrations=new WeakMap();
-export async function migrateAIPresentations(s){
- if(completedMigrations.has(s))return completedMigrations.get(s);
- if(!migrations.has(s)){
-  const task=migrateAIPresentationProductization(s).then(marker=>{if(marker.complete)completedMigrations.set(s,marker);return marker;}).finally(()=>{if(migrations.get(s)===task)migrations.delete(s);});
-  migrations.set(s,task);
- }
- return migrations.get(s);
-}
-"""
+          new=("const migrations=new WeakMap(),completedMigrations=new WeakMap();\n"
+               "export async function migrateAIPresentations(s){\n"
+               " if(completedMigrations.has(s))return completedMigrations.get(s);\n"
+               " if(!migrations.has(s)){\n"
+               "  const task=migrateAIPresentationProductization(s).then(marker=>{if(marker.complete)completedMigrations.set(s,marker);return marker;}).finally(()=>{if(migrations.get(s)===task)migrations.delete(s);});\n"
+               "  migrations.set(s,task);\n"
+               " }\n"
+               " return migrations.get(s);\n"
+               "}\n")
           p.write_text(text[:start]+new+text[end:])
           PY
           git diff --check
