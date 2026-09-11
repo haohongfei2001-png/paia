@@ -2,46 +2,20 @@ name: P0 Round 3 isolated verification
 on:
   push:
     branches: [p0/thought-library-ui-readonly-round3]
+    paths-ignore: ['**/*.md']
 permissions:
   contents: read
 concurrency:
   group: p0-round3-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  apply-followup:
-    if: github.ref == 'refs/heads/p0/thought-library-ui-readonly-round3'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    outputs:
-      sha: ${{ steps.commit.outputs.sha }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-      - name: Apply hash-guarded three-file follow-up
-        run: python3 .github/round3-followup.py
-      - name: Commit to review branch only
-        id: commit
-        run: |
-          set -euo pipefail
-          branch='p0/thought-library-ui-readonly-round3'
-          remote=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
-          test "$remote" = "$GITHUB_SHA"
-          git add -- extension/ui/thoughts.js extension/tests/readonly-diagnostic-round3-chrome-e2e.test.mjs extension/tests/reading-ui-round3-chrome-e2e.test.mjs .github/round3-followup.py
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'P0 Round 3: restore editor after no-op and fix native diagnostic test execution'
-          git push origin "HEAD:refs/heads/$branch"
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
   unit-and-package:
-    needs: apply-followup
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ needs.apply-followup.outputs.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -65,7 +39,6 @@ jobs:
           path: artifacts/
           retention-days: 14
   browser:
-    needs: apply-followup
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -74,17 +47,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ needs.apply-followup.outputs.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install isolated full Chromium browser
+      - name: Install isolated test browser
         working-directory: extension
         run: |
           npm install --ignore-scripts
           npx playwright install --with-deps chromium
-          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/extension/node_modules/playwright" >> "$GITHUB_ENV"
           node -e 'console.log("CHROME_PATH="+require("playwright").chromium.executablePath())' >> "$GITHUB_ENV"
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/extension/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Record tested revision
         run: mkdir -p artifacts; git rev-parse HEAD | tee artifacts/tested-sha.txt
       - name: Native DOM, native IDB and installed-extension regressions
