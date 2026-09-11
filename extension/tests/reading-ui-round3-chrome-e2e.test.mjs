@@ -89,3 +89,15 @@ test('Round 3 native DOM: a search failure cannot claim a previous query as a re
  assert.match(await p.locator('#error').innerText(),/尚未获得/);assert.doesNotMatch(await p.locator('#error').innerText(),/上次成功读取/);
  }finally{await h.close();}
 });
+
+for(const failure of [true,false])test('Round 3 native DOM: original action '+(failure?'preflight failure':'no delta')+' restores the reader without a paid request',{timeout:15000},async()=>{
+ const h=await uiHarness();try{const p=await h.page();await p.evaluate(id=>workspace.open(id),h.topics[0].id);await p.waitForTimeout(100);
+ await p.evaluate(failure=>{if(failure)behavior.GET_ORIGINAL_ORGANIZER_STATUS='fail';return workspace.updateOriginal();},failure);
+ assert.equal(await p.locator('#topic-body').evaluate(n=>n.inert),false);
+ assert.equal(await p.evaluate(()=>!!workspace.editor),true);
+ assert.equal(await p.evaluate(()=>calls.some(t=>t==='UPDATE_ORIGINAL_LIBRARY_VIEW')),false);
+ assert.match(await p.locator('#original-reading-body').innerText(),/Synthetic original/);
+ if(failure)assert.match(await p.locator('#ai-update-feedback').innerText(),/本次未调用 AI/);
+ assert.equal(h.externalRequests,0);
+ }finally{await h.close();}
+});
