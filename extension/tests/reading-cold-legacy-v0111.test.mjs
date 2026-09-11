@@ -13,7 +13,6 @@ async function seedTopic(){
   const currentEntry=await s.entry(entry.id),currentTopic=await s.topic(topic.id);
   await s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:currentEntry.revision,expectedTopicRevision:currentTopic.organizationRevision,operationId:op()});
   await s.drainLibraryMaintenance();
-  // Complete the current library-document bootstrap before introducing legacy damage.
   const page=await s.libraryIndexPage();
   assert.ok(page.items.some(item=>item.id===topic.id));
   return {s,storage,indexedDB,topic,entry};
@@ -29,7 +28,8 @@ async function rewriteTopic(store,id,mutate){
     assert.ok(row,'synthetic Topic must still exist in the durable object store');
     mutate(row);
     await t.put('topics',row);
-  },['topics']);
+    await t.delete('meta','library-documents-compat-v2');
+  },['topics','meta']);
 }
 
 test('v0.11.1 current-shaped Topic remains readable after a cold store reopen',async()=>{
@@ -42,37 +42,67 @@ test('v0.11.1 current-shaped Topic remains readable after a cold store reopen',a
   const document=await reopened.topicDocumentPage({topicId:topic.id});
   assert.equal(document.items[0].entry.id,entry.id);
   assert.equal(document.items[0].entry.body,'Synthetic long-lived thought');
+  assert.deepEqual(await reopened.libraryCompatibilityStatus(),{
+    complete:true,activeTopics:1,indexedActiveTopics:1,indexGap:0,repairedTopics:0,repairedIndexTopics:0,repairedGenerationTopics:0,repairedDefaultSections:0,unresolvedLayouts:0
+  });
 });
 
-test('durable Topic can survive while disappearing from the compound byIndex after legacy metadata loss',async()=>{
+test('cold upgrade repairs durable Topic index metadata without changing identity or organization',async()=>{
   const {s,storage,indexedDB,topic}=await seedTopic();
+  const before=await rawTopic(s,topic.id);
 
-  await rewriteTopic(s,topic.id,row=>{delete row.negativeUpdatedSequence;});
-  const durable=await rawTopic(s,topic.id);
-  assert.equal(durable.id,topic.id);
-
-  const indexedKeys=await s.repository.transaction(false,t=>t.keys('topics','byIndex'),['topics']);
-  assert.ok(!indexedKeys.includes(topic.id),'compound IndexedDB index omits a row with an incomplete index key');
-
-  const reopened=new LibraryDocumentsStore(storage,{indexedDB});
-  assert.ok(await rawTopic(reopened,topic.id),'cold reopen must not be confused with durable deletion');
-  const index=await reopened.libraryIndexPage();
-  assert.ok(!index.items.some(item=>item.id===topic.id),'current Home listing cannot see the durable Topic through byIndex');
-});
-
-test('legacy Topic with missing activeLayoutGeneration remains indexed but breaks document and AI-status reads on cold reopen',async()=>{
-  const {s,storage,indexedDB,topic}=await seedTopic();
-
-  await rewriteTopic(s,topic.id,row=>{delete row.activeLayoutGeneration;});
+  await rewriteTopic(s,topic.id,row=>{delete row.activeKey;delete row.pinKey;delete row.pinRank;delete row.negativeUpdatedSequence;});
   assert.ok(await rawTopic(s,topic.id));
   const indexedKeys=await s.repository.transaction(false,t=>t.keys('topics','byIndex'),['topics']);
-  assert.ok(indexedKeys.includes(topic.id),'activeLayoutGeneration is not part of byIndex, so the Topic remains index-visible');
+  assert.ok(!indexedKeys.includes(topic.id),'legacy compound index can omit a durable Topic');
 
+  const reopened=new LibraryDocumentsStore(storage,{indexedDB});
+  const index=await reopened.libraryIndexPage();
+  assert.ok(index.items.some(item=>item.id===topic.id),'cold compatibility pass must restore Home visibility');
+  const after=await rawTopic(reopened,topic.id);
+  assert.equal(after.id,before.id);
+  assert.equal(after.name,before.name);
+  assert.equal(after.revision,before.revision);
+  assert.equal(after.organizationRevision,before.organizationRevision);
+  assert.equal(after.activeKey,0);
+  assert.ok(after.pinKey===0||after.pinKey===1);
+  assert.match(after.pinRank,/^\d{12}$/);
+  assert.equal(typeof after.negativeUpdatedSequence,'number');
+  const status=await reopened.libraryCompatibilityStatus();
+  assert.equal(status.indexGap,0);
+  assert.equal(status.repairedIndexTopics,1);
+});
+
+test('cold upgrade infers generation 1 only when the matching active section proves it',async()=>{
+  const {s,storage,indexedDB,topic,entry}=await seedTopic();
+
+  await rewriteTopic(s,topic.id,row=>{delete row.activeLayoutGeneration;});
   const reopened=new LibraryDocumentsStore(storage,{indexedDB});
   const index=await reopened.libraryIndexPage();
   assert.ok(index.items.some(item=>item.id===topic.id));
+  const repaired=await rawTopic(reopened,topic.id);
+  assert.equal(repaired.activeLayoutGeneration,1);
 
-  const invalidIndexedKey=error=>error?.code==='STORAGE_FAILED'&&error?.dbCategory==='invalid_key_or_index_value';
-  await assert.rejects(()=>reopened.topicDocumentPage({topicId:topic.id}),invalidIndexedKey);
-  await assert.rejects(()=>aiPresentationStatus(reopened),invalidIndexedKey);
+  const document=await reopened.topicDocumentPage({topicId:topic.id});
+  assert.equal(document.items[0].entry.id,entry.id);
+  const ai=await aiPresentationStatus(reopened);
+  assert.ok(ai.topics.some(item=>item.topicId===topic.id));
+  const status=await reopened.libraryCompatibilityStatus();
+  assert.equal(status.repairedGenerationTopics,1);
+  assert.equal(status.unresolvedLayouts,0);
+});
+
+test('compatibility pass does not guess stale generation 1 when a later layoutSequence cannot be proven',async()=>{
+  const {s,storage,indexedDB,topic}=await seedTopic();
+
+  await rewriteTopic(s,topic.id,row=>{delete row.activeLayoutGeneration;row.layoutSequence=2;});
+  const reopened=new LibraryDocumentsStore(storage,{indexedDB});
+  const index=await reopened.libraryIndexPage();
+  assert.ok(index.items.some(item=>item.id===topic.id),'index repair remains independent from unresolved layout recovery');
+  const after=await rawTopic(reopened,topic.id);
+  assert.equal(after.activeLayoutGeneration,undefined,'do not silently point a Topic at an older generation');
+  const status=await reopened.libraryCompatibilityStatus();
+  assert.equal(status.unresolvedLayouts,1);
+  assert.equal(status.indexGap,0);
+  await assert.rejects(()=>reopened.topicDocumentPage({topicId:topic.id}),error=>error?.code==='INVALID_REQUEST');
 });
