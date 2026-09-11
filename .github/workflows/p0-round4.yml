@@ -1,26 +1,21 @@
 name: P0 Round 4 AI migration verification
-
 on:
   push:
     branches:
       - p0/ai-presentation-migration-round4
-
 permissions:
   contents: write
-
 jobs:
   integrate-and-verify:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Apply guarded source replacement
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -58,6 +53,7 @@ export async function migrateAIPresentations(s){
           npm run check
           npm run build:release
       - name: Commit verified candidate and remove temporary verification files
+        shell: bash
         run: |
           set -euo pipefail
           rm -f .github/round4-ai-migration.patch .github/workflows/p0-round4.yml
