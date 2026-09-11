@@ -1,0 +1,26 @@
+name: Round 5 Topic Quality
+
+on:
+  push:
+    branches:
+      - round5/topic-quality-stability
+
+permissions:
+  contents: read
+
+jobs:
+  topic-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Focused Round 5 regressions
+        run: node --test --test-concurrency=1 tests/topic-quality-round5.test.mjs tests/topic-quality-v080.test.mjs tests/deepseek-provider-v072a.test.mjs
+      - name: Package audit
+        run: python3 scripts/check_package.py
