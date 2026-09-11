@@ -13,11 +13,12 @@ export const isGenericSectionName=name=>genericSection.test(normalized(name));
 export function topicTokens(text){const parts=String(text||'').normalize('NFKC').toLocaleLowerCase().match(/[a-z0-9]{2,}|[\p{Script=Han}]+/gu)||[],out=new Set();for(const part of parts){if(/^[a-z0-9]/.test(part))out.add(part);else for(let i=0;i<part.length-1;i++)out.add(part.slice(i,i+2));}return out;}
 const tokenWeight=token=>/^[a-z0-9]/.test(token)?(token.length>=4?3:2):1;
 const tokenStats=(left,right)=>{const a=topicTokens(left),b=topicTokens(right);let weighted=0,common=0;for(const token of a)if(b.has(token)){common++;weighted+=tokenWeight(token);}return {weighted,common,left:a.size,right:b.size};};
+const asciiTokens=text=>new Set([...topicTokens(text)].filter(token=>/^[a-z0-9]/.test(token)));
 const closeSectionNames=(a,b)=>{const left=normalized(a),right=normalized(b);if(!left||!right)return false;if(left===right)return true;if(Math.min(left.length,right.length)>=4&&(left.includes(right)||right.includes(left)))return true;const stats=tokenStats(a,b),den=Math.max(1,Math.min(stats.left,stats.right));return stats.common>=2&&stats.common/den>=0.6;};
-// Topic identity is intentionally stricter than Section similarity. A generic
-// suffix such as “产品设计” must not collapse a distinct durable subject into
-// “PAIA 产品设计” merely because their short tail overlaps.
-const closeTopicNames=(a,b)=>{const left=normalized(a),right=normalized(b);if(!left||!right)return false;if(left===right)return true;const lengthRatio=Math.min(left.length,right.length)/Math.max(left.length,right.length);if(lengthRatio<0.7)return false;if(Math.min(left.length,right.length)>=4&&(left.includes(right)||right.includes(left)))return true;const stats=tokenStats(a,b),den=Math.max(1,Math.min(stats.left,stats.right));return stats.common>=2&&stats.common/den>=0.7;};
+// Topic identity is intentionally stricter than Section similarity. Generic
+// Chinese tails such as “产品设计” cannot substitute for an entity anchor such
+// as PAIA/AI, and substantially shorter names are not near-duplicates.
+const closeTopicNames=(a,b)=>{const left=normalized(a),right=normalized(b);if(!left||!right)return false;if(left===right)return true;const aAscii=asciiTokens(a),bAscii=asciiTokens(b);if((aAscii.size||bAscii.size)&&![...aAscii].some(token=>bAscii.has(token)))return false;const lengthRatio=Math.min(left.length,right.length)/Math.max(left.length,right.length);if(lengthRatio<0.7)return false;if(Math.min(left.length,right.length)>=4&&(left.includes(right)||right.includes(left)))return true;const stats=tokenStats(a,b),den=Math.max(1,Math.min(stats.left,stats.right));return stats.common>=2&&stats.common/den>=0.7;};
 const candidateText=candidate=>[candidate?.name,...(candidate?.sections||[]).map(section=>section?.name).filter(name=>name&&!isGenericSectionName(name)&&!isLowDurabilityTopic(name))].filter(Boolean).join(' ');
 const strongCandidateMatch=(inputText,candidate)=>{const candidateName=normalized(candidate?.name),input=normalized(inputText);if(candidateName&&candidateName.length>=4&&input.includes(candidateName))return true;return tokenStats(inputText,candidateText(candidate)).weighted>=3;};
 export function stabilizeTopicProposal({inputText,proposedName,relatedGroupingCandidate=null,topicCandidates=[]}={}){
