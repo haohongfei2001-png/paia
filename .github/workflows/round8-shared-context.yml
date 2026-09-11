@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -18,20 +18,9 @@ jobs:
         with:
           fetch-depth: 0
           ref: round8/shared-working-context
-      - name: Apply one-time Round 8 candidate payload
+      - name: Record candidate SHA
         shell: bash
-        run: |
-          set -euo pipefail
-          if [ -f .github/apply-round8.py ]; then
-            python3 .github/apply-round8.py
-            git add extension .github/workflows/round8-shared-context.yml
-            git rm .github/apply-round8.py .github/round8-patch.part* .github/round8-payload.*
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'feat: share exact working bodies and open explicit direct Input Context'
-            git push origin HEAD:refs/heads/round8/shared-working-context
-          fi
-          echo "REVIEW_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+        run: echo "REVIEW_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
