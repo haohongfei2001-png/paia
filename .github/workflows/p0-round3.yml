@@ -1,0 +1,28 @@
+name: P0 Round 3 isolated verification
+
+on:
+  push:
+    branches: [p0/thought-library-ui-readonly-round3]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p0-round3-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Archive tracked source only
+        run: git archive --format=zip --output=repository.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: round3-source
+          path: repository.zip
+          retention-days: 7
