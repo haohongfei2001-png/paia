@@ -6,7 +6,7 @@ import {completeFixture,append,rows,success} from './harness/original-complete.m
 
 const limits={maxOutputBytes:64*1024};
 const request=(text,topicCandidates=[])=>({inputs:[{ref:'i0',role:'primary',text}],topicCandidates});
-const output=(topic,section={proposedName:'后续计划'})=>({items:[{inputRef:'i0',topic,section,type:'idea',relatedGroupingCandidate:null,spans:[],uncertain:false}]});
+const output=(topic,section={proposedName:'后续计划'},relatedGroupingCandidate=null)=>({items:[{inputRef:'i0',topic,section,type:'idea',relatedGroupingCandidate,spans:[],uncertain:false}]});
 const action=()=>({userActionId:crypto.randomUUID()});
 
 test('Round 5: DeepSeek validated DTO remains compatible with the production Simple Original runner',async()=>{
@@ -31,6 +31,22 @@ test('Round 5: low-durability Topic without a credible existing candidate falls 
  const checked=validateDeepSeekResponse('original_classification',output({proposedName:'想法与后续计划'}),request('PAIA 的页面动效还要再调一次。',candidates),limits);
  assert.deepEqual(checked.items[0].topic,{});
  assert.deepEqual(checked.items[0].section,{});
+});
+
+test('Round 5: ambiguous low-durability input does not pick the first strong Topic by array order',()=>{
+ const candidates=[{id:'t-paia',name:'PAIA 产品设计',sections:[]},{id:'t-workflow',name:'AI 工具与工作流',sections:[]}];
+ const checked=validateDeepSeekResponse('original_classification',output({proposedName:'版本发布'}),request('比较 PAIA 产品设计和 AI 工具与工作流的版本发布策略。',candidates),limits);
+ assert.deepEqual(checked.items[0].topic,{});
+ assert.deepEqual(checked.items[0].section,{});
+ const decision=stabilizeTopicProposal({inputText:'比较 PAIA 产品设计和 AI 工具与工作流的版本发布策略。',proposedName:'版本发布',topicCandidates:candidates});
+ assert.equal(decision.reason,'low_durability_ambiguous');
+});
+
+test('Round 5: explicit related grouping can resolve an otherwise ambiguous low-durability input',()=>{
+ const candidates=[{id:'t-paia',name:'PAIA 产品设计',sections:[]},{id:'t-workflow',name:'AI 工具与工作流',sections:[{id:'s-release',name:'版本发布'}]}];
+ const checked=validateDeepSeekResponse('original_classification',output({proposedName:'版本发布'},{proposedName:'后续计划'},'AI 工具与工作流'),request('比较 PAIA 产品设计和 AI 工具与工作流的版本发布策略。',candidates),limits);
+ assert.deepEqual(checked.items[0].topic,{existingTopicId:'t-workflow'});
+ assert.deepEqual(checked.items[0].section,{existingSectionId:'s-release'});
 });
 
 test('Round 5: durable distinct Topic proposals are not force-folded into unrelated candidates',()=>{
