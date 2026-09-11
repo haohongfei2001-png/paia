@@ -1,6 +1,6 @@
 # v0.11.1 Round 6 — Core Experience Closure
 
-Status: **in development on a stacked review branch; not merged to `main` and not deployed to the daily Chrome profile**.
+Status: **development-closed on its stacked review branch; not merged to `main` and not deployed to the daily Chrome profile**.
 
 Base branch: `round5/topic-quality-stability`.
 Base SHA: `10abdf99ef73bb50a5da345a6eea5bd0ff316434`.
@@ -83,13 +83,32 @@ The product copy/layout closure is implemented in `ui/archive.html` and delibera
 
 No second runtime entry script is introduced.
 
-## Verification plan
+## Final verification evidence
 
-Before Round 6 is development-closed, the branch must pass:
+Authoritative GitHub Actions run: **34626520150**.
+Tested branch SHA: **`35e52c61335acf804f5f16b3751e037b8294c8aa`**.
 
-- focused Round 6 UI-contract regressions;
-- the portable unit suite, excluding only the same three already-documented non-portable migrated-history/hosted-runner fixtures from Round 5;
-- package audit;
-- release build and emitted-product guard.
+The final branch-only gate passed every selected check:
 
-The temporary branch-only CI workflow is development scaffolding and will be removed after a final green run. Automated tests do not replace the real long-lived IndexedDB deployment gate.
+- focused Round 6 UI-contract regressions: **4/4 passed**, 0 failed, 0 skipped;
+- broad portable unit suite: **708/708 passed** across **82 unit files**, 0 failed, 0 skipped;
+- package audit: **6,490 guardrails across 139 runtime resources**;
+- release-build package audit: **6,078 guardrails across 132 runtime resources**;
+- emitted-product audit: **`RELEASE_PRODUCT_GUARD_PASS` for 147 files**;
+- release build remains extension version `0.11.1`, version name `v0.11.1 Thought Library Reading Closure`.
+
+Exactly the same three already-documented non-portable fixtures from Round 5 were excluded from the hosted portable-unit gate:
+
+- `history-performance-v090.test.mjs` — the 10,000-input synthetic History case exceeds the GitHub-hosted timeout;
+- `light-coverage.test.mjs` — the migrated repository does not contain historical short SHA `1e00c23` required by its frozen comparison;
+- `smart-filter-diagnostics.test.mjs` — the migrated repository does not contain historical short SHA `f3fa0e7` required by its frozen comparison.
+
+No additional unit failure was waived. The Round 6 focused contract is intentionally narrow: it verifies the first-value route, AI Context trust-boundary copy, Organizer hierarchy and the absence of an added runtime entry script. Existing broad tests continue to cover Organizer cost/single-flight behavior, Thought reading, AI Context privacy/retrieval, Source/Input invariants and package boundaries.
+
+The temporary branch-only GitHub Actions workflow is development scaffolding and is removed after this green run. Its successful run remains the authoritative synthetic/build evidence for the tested SHA above.
+
+## Remaining deployment gate
+
+Round 6 is closed only at the **development / synthetic verification** level.
+
+Automated GitHub verification cannot inspect the user's existing long-lived local IndexedDB. The Round 2–4 real-data structural gate therefore remains mandatory before the stacked P0 + Round 5 + Round 6 line can be merged for daily Chrome deployment. Round 6 itself does not authorize deployment and does not modify the real browser database.
