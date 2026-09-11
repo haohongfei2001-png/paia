@@ -2,6 +2,7 @@ import {IndexedArchiveStore} from './indexed-store.js';
 import {ArchiveError} from './constants.js';
 import {hashText} from './dedupe.js';
 import {nextSequence} from './thought-journal.js';
+import {propagateInputWorkingChange} from './shared-working-content.js';
 
 const fail=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -75,9 +76,10 @@ export class IAStore extends IndexedArchiveStore {
    if(removed){meta.removalState=b.excluded?'user_removed':'active';await this.markRemoval(t,b,b.excluded);}
    if(textChanged||removed)meta.deltaSequence=await nextSequence(t,'input-delta-sequence');
    await t.put('inputStates',meta);
+   if((textChanged||removed)&&this.repository.thoughtLibrary)await propagateInputWorkingChange(this,t,a,b,meta,request);
    const reason=removed?(b.excluded?'remove':'restore'):request.revisionReason==='restore'?'restore':major(a.libraryText,b.libraryText)?'major_edit':'edit';
    await this.journal(t,{kind:'input',entityId:b.id,documentId:b.documentId,before:blockSnapshot(a),after:blockSnapshot(b),reason,important:reason!=='edit',sourceRecordIds:refIds(b)});
-   if(textChanged||removed)await this.invalidate(t,b.id,b.excluded?'input_removed':'source_updated',meta.contentRevision);
+   if(textChanged||removed)await this.invalidate(t,b.id,b.excluded?'input_removed':'source_updated',meta.contentRevision,{operationId:request.operationId,revisionReason:request.revisionReason});
   }
   if(request.title!==undefined){await this.journal(t,{kind:'title',entityId:newDoc.id,documentId:newDoc.id,before:{title:oldDoc.userTitle},after:{title:newDoc.userTitle},reason:request.revisionReason==='restore'?'restore':'title_edit',important:true,sourceRecordIds:[]});}
  }

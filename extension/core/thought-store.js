@@ -8,6 +8,7 @@ import {evidenceFor,validateEvidence,checkEvidenceInTransaction,dependencyState}
 import {enqueueInvalidation,beforeSourcePurge,invalidationBatch,purgeBatch} from './thought-maintenance.js';
 import {journal,nextSequence,receipt,saveReceipt} from './thought-journal.js';
 import {FAMILY_BY_TYPE,ENTRY_FIELDS,fail,keys,idOK,revisionOK,prefix,same,validateFields,validateGenerator,protections,markHuman,refreshEntryIndex,entrySnapshot,entryDTO,keyedHash,rankBetween,normalizeRank} from './thought-model.js';
+import {editSharedBodyFromEntry} from './shared-working-content.js';
 
 // M1 data boundary only. There is no extraction runner, provider, or runtime
 // creation command. Internal calls still revalidate all evidence and CAS guards.
@@ -104,11 +105,12 @@ export class LibraryFoundationStore extends SmartFilterStore {
   const exactSignature=await keyedHash(signature.secret,['body',request.changes.type??signature.row.type,request.changes.body??signature.row.thoughtText]);
   return this.operation(request,async t=>{
    if(request.restoreRevisionId){const saved=await t.get('revisions',request.restoreRevisionId);if(!saved||saved.entityId!==request.id||!await this.sourcePresent(t,saved.sourceRecordIds))fail();}
-   const row=await t.get('thoughts',request.id);if(!row||row.storageSchema!==2||row.lifecycle!=='active'||!await this.sourcePresent(t,row.sourceRecordIds))fail();
+   let row=await t.get('thoughts',request.id);if(!row||row.storageSchema!==2||row.lifecycle!=='active'||!await this.sourcePresent(t,row.sourceRecordIds))fail();
    if(request.expectedFieldRevisions?Object.keys(request.changes).some(f=>row.fieldRevisions[f]!==request.expectedFieldRevisions[f]):row.revision!==request.expectedRevision)return {conflict:true};
    if(row.thoughtText!==signature.row.thoughtText||row.type!==signature.row.type)return {conflict:true};
+   let sharedBody=false;if(Object.hasOwn(request.changes,'body')&&request.changes.body!==row.thoughtText){const shared=await editSharedBodyFromEntry(this,t,row,request.changes.body,request.operationId,{reason:request.revisionReason==='restore'?'restore':'shared_input_edit'});sharedBody=!!shared?.shared;if(sharedBody)row=await t.get('thoughts',request.id);}
    const before=entrySnapshot(row),at=this.clock(),fields=[];
-   for(const [f,value]of Object.entries(request.changes)){const key=f==='body'?'thoughtText':f;if(row[key]===value)continue;row[key]=value;row.fieldRevisions[f]++;markHuman(row,f,request.operationId,at);fields.push(f);}
+   for(const [f,value]of Object.entries(request.changes)){if(f==='body'&&sharedBody)continue;const key=f==='body'?'thoughtText':f;if(row[key]===value)continue;row[key]=value;row.fieldRevisions[f]++;markHuman(row,f,request.operationId,at);fields.push(f);}
    if(!fields.length)return {id:row.id,revision:row.revision};
    if(fields.includes('body')||fields.includes('title'))row.contentRevision++;
    row.family=FAMILY_BY_TYPE[row.type];row.types=['type:'+row.type];row.revision++;row.updatedAt=at;row.updatedSequence=await nextSequence(t);row.exactSignature=exactSignature;delete row.exactKey;

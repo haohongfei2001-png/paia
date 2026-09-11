@@ -57,7 +57,7 @@ export async function dependencyState(store,row) {
  const read=await store.run(()=>store.repository.transaction(false,async t=>{
   const current=await store.readableEntry(t,row.id);if(!current)return null;
   const epoch=(await t.get('meta','thought-epoch'))?.value||0,dependencies=await t.all('dependencies','byTarget',IDBKeyRange.bound(['entry',row.id],['entry',row.id,[]],false,true)),items=[];
-  for(const dep of dependencies){let input=await inputProjection(store,t,dep.inputId);if(input&&(input.lastRemovalSequence||0)>(dep.eligibilityEpochAtUse||0))input=null;items.push({dep,input});}
+  for(const dep of dependencies){let input=await inputProjection(store,t,dep.inputId);if(input&&(input.lastRemovalSequence||0)>(dep.eligibilityEpochAtUse||0)&&current.workingInputId!==dep.inputId)input=null;items.push({dep,input});}
   return {row:current,items,epoch};
  }));
  if(!read)return null;
