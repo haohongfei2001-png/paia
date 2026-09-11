@@ -2,28 +2,24 @@ name: P0 Round 4 AI migration verification
 
 on:
   push:
-    branches: [p0/ai-presentation-migration-round4]
+    branches:
+      - p0/ai-presentation-migration-round4
 
 permissions:
-  contents: read
-
-concurrency:
-  group: p0-round4-${{ github.ref }}
-  cancel-in-progress: true
+  contents: write
 
 jobs:
-  apply-candidate:
-    if: github.event.head_commit.message == 'Retry Round 4 integration with guarded source replacement'
+  integrate-and-verify:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    outputs:
-      sha: ${{ steps.commit.outputs.sha }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Apply guarded source replacement
         run: |
           python3 - <<'PY'
@@ -36,7 +32,7 @@ jobs:
           start=text.index('const migrations=new WeakMap();')
           end=text.index('async function aiJournal',start)
           old=text[start:end]
-          assert "aiProductizationMigration" in old and "foundationWrite" in old
+          assert 'aiProductizationMigration' in old and 'foundationWrite' in old
           new="""const migrations=new WeakMap(),completedMigrations=new WeakMap();
 export async function migrateAIPresentations(s){
  if(completedMigrations.has(s))return completedMigrations.get(s);
@@ -47,52 +43,29 @@ export async function migrateAIPresentations(s){
  return migrations.get(s);
 }
 """
-          text=text[:start]+new+text[end:]
-          p.write_text(text)
-          patch=Path('.github/round4-ai-migration.patch')
-          if patch.exists():patch.unlink()
+          p.write_text(text[:start]+new+text[end:])
           PY
           git diff --check
-      - name: Commit candidate on review branch only
-        id: commit
-        run: |
-          set -euo pipefail
-          branch='p0/ai-presentation-migration-round4'
-          remote=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
-          test "$remote" = "$GITHUB_SHA"
-          git add -- extension/core/organizer/ai-presentation.js .github/round4-ai-migration.patch
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'P0 Round 4: make AI presentation migration resumable'
-          git push origin "HEAD:refs/heads/$branch"
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-  verify:
-    needs: apply-candidate
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          ref: ${{ needs.apply-candidate.outputs.sha }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Record tested revision
-        run: mkdir -p artifacts; git rev-parse HEAD | tee artifacts/tested-sha.txt
+      - name: Install development dependencies
+        working-directory: extension
+        run: npm install --ignore-scripts
       - name: Run migration and related regressions
         working-directory: extension
-        run: |
-          set -o pipefail
-          node --test tests/ai-migration-round4.test.mjs tests/ai-product-v080.test.mjs tests/ai-presentation-v072c.test.mjs tests/reading-cold-legacy-v0111.test.mjs tests/thought-m1.test.mjs tests/thought-m2.test.mjs tests/backup-v081.test.mjs tests/memory-safety-v0100.test.mjs | tee ../artifacts/node.tap
+        run: node --test tests/ai-migration-round4.test.mjs tests/ai-product-v080.test.mjs tests/ai-presentation-v072c.test.mjs tests/reading-cold-legacy-v0111.test.mjs tests/thought-m1.test.mjs tests/thought-m2.test.mjs tests/backup-v081.test.mjs tests/memory-safety-v0100.test.mjs
       - name: Static package audit and release build
         working-directory: extension
         run: |
-          set -o pipefail
-          npm run check | tee ../artifacts/package.txt
-          npm run build:release | tee ../artifacts/build.txt
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: round4-evidence
-          path: artifacts/
-          retention-days: 14
+          npm run check
+          npm run build:release
+      - name: Commit verified candidate and remove temporary verification files
+        run: |
+          set -euo pipefail
+          rm -f .github/round4-ai-migration.patch .github/workflows/p0-round4.yml
+          git diff --check
+          branch='p0/ai-presentation-migration-round4'
+          remote=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+          test "$remote" = "$GITHUB_SHA"
+          git add -- extension/core/organizer/ai-presentation.js
+          git add -u -- .github/round4-ai-migration.patch .github/workflows/p0-round4.yml
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'P0 Round 4: make AI presentation migration resumable'
+          git push origin "HEAD:refs/heads/$branch"
