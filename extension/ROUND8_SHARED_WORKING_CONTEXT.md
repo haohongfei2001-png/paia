@@ -37,3 +37,7 @@ Before this round can reach `main` or the daily Chrome profile:
 - the inherited existing-database structural gate must still be checked against the user's long-lived archive before daily deployment.
 
 No uninstall, extension-ID change, database clearing or alternate unpacked path is authorized by this round.
+
+## Revalidation note
+
+The first full Round 8 GitHub Actions run passed all 878 portable tests and both package audits, but several browser journeys stopped before exercising product logic because the test selector `[data-view=settings]` became ambiguous after Round 6 added a second Settings entry in the Thought Library empty state. The browser harness now scopes Settings navigation to the primary sidebar (`.sidebar [data-view=settings]`). This is test-only hardening; runtime product behavior is unchanged. A fresh full Round 8 verification is required on the resulting candidate SHA before this round can be considered development-closed.
