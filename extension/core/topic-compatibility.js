@@ -17,7 +17,7 @@ export function normalizeTopicIndexMetadata(row){
   if(row.activeKey!==activeKey){row.activeKey=activeKey;changed=true;}
  }
  if(row.lifecycle==='active'&&!row.redirectTo){
-  if(row.pinKey!==0&&row.pinKey!==1){row.pinKey=1;changed=true;}
+  if(row.pinKey!==0&&row.pinKey!==1){row.pinKey=row.pinned===true?0:1;changed=true;}
   if(!validRank(row.pinRank)){row.pinRank=DEFAULT_RANK;changed=true;}
   if(!validIndexNumber(row.negativeUpdatedSequence)){
    const sequence=Number.isSafeInteger(row.updatedSequence)&&row.updatedSequence>=0?row.updatedSequence:0;
@@ -34,8 +34,8 @@ async function activeSectionFor(t,row,generation){
   const section=await t.get('sections',JSON.stringify([row.id,generation,row.defaultSectionId]));
   if(section?.topicId===row.id&&section.layoutGeneration===generation&&section.lifecycle==='active'&&!section.redirectTo)return section;
  }
- const section=await t.edge('sections','byTopicOrder',prefix([row.id,generation,0]));
- return section?.lifecycle==='active'&&!section.redirectTo?section:null;
+ const sections=await t.all('sections','byTopicOrder',prefix([row.id,generation,0]));
+ return sections.find(section=>section?.lifecycle==='active'&&!section.redirectTo)||null;
 }
 
 export async function inferTopicGeneration(t,row){
