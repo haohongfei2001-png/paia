@@ -33,7 +33,7 @@ Round 1 proved that a Topic can remain in the durable `topics` object store whil
 Round 2 adds `core/topic-compatibility.js` and a one-time, resumable compatibility pass before Library document reads. The pass scans the raw `topics` object store rather than trusting `byIndex`, and repairs only deterministic index metadata:
 
 - `activeKey` from Topic lifecycle/redirect state;
-- missing/invalid `pinKey` to the conservative unpinned state;
+- missing/invalid `pinKey` from a legacy `pinned === true` signal when present, otherwise the conservative unpinned state;
 - missing/invalid `pinRank` to the deterministic midpoint rank;
 - missing/invalid `negativeUpdatedSequence` from an existing valid `updatedSequence`, otherwise `0`;
 - missing `nameKey` from the existing Topic name.
@@ -50,6 +50,8 @@ Round 2 infers a generation only when an active Section already proves that gene
 2. if `layoutSequence` is valid, use it only when a matching active Section exists;
 3. use legacy generation `1` only when generation `1` has a matching active Section and there is no contradictory later `layoutSequence`;
 4. if the structure is ambiguous, leave the Topic unresolved rather than pointing it at stale generation-1 content.
+
+The compatibility reader checks all Sections in the candidate generation rather than assuming the first indexed Section is usable, so a removed/redirected legacy Section cannot hide a later active Section in the same generation.
 
 A proven later generation therefore wins over stale earlier rows. An unproven later generation remains unresolved.
 
@@ -89,7 +91,7 @@ The compatibility pass persists only aggregate structural counters:
 
 ## Cold-reload regression gate
 
-`tests/reading-cold-legacy-v0111.test.mjs` now contains five repair regressions:
+`tests/reading-cold-legacy-v0111.test.mjs` contains five repair regressions:
 
 1. current-shaped Topic survives a cold store reopen;
 2. a durable Topic missing compound-index metadata becomes Home-visible again without changing identity, organization, Source, or Input;
@@ -99,25 +101,25 @@ The compatibility pass persists only aggregate structural counters:
 
 ## GitHub Actions evidence
 
-A temporary branch-only workflow was used only to execute the repair candidate. It is not part of the intended final product change.
+Temporary branch-only workflows were used only to execute the repair candidate and were removed after verification; they are not part of the PR diff.
 
-Authoritative run for the current repair code before documentation cleanup: GitHub Actions run `34564182641` at branch head `42583ff08d0269dce09cd1b6552f44113ec4977e`.
+### Targeted P0 gate — latest code
 
-### Targeted P0 gate
+After the final compatibility hardening, GitHub Actions run `34564760796` at head `32f18755f886a873b0724ba12107327ca8820b22` completed successfully. `reading-cold-legacy-v0111.test.mjs`: **5/5 passed, 0 failed, 0 skipped**.
 
-`reading-cold-legacy-v0111.test.mjs`: **5/5 passed, 0 failed, 0 skipped**.
+The branch then removed the temporary workflow; that cleanup changes no extension runtime code.
 
 ### Unit group
 
-The repository unit group reported **691/694 passed, 3 failed, 0 skipped**. The three failures are not Round-2 functional failures:
+The broader unit-group evidence comes from GitHub Actions run `34564182641` at head `42583ff08d0269dce09cd1b6552f44113ec4977e`, before the final small `topic-compatibility.js` hardening. It reported **691/694 passed, 3 failed, 0 skipped**. The three failures are not Round-2 functional failures:
 
 1. `history-performance-v090.test.mjs` — the existing 10,000-input performance case exceeded its 180,000 ms test timeout on the hosted runner; the 1,000-input case passed.
 2. `light-coverage.test.mjs` — its frozen-byte assertion invokes `git show 1e00c23:core/smart-filter.js`, but the GitHub remote history available to Actions does not contain object `1e00c23`.
 3. `smart-filter-diagnostics.test.mjs` — its frozen-byte assertion invokes `git show f3fa0e7:adapter/input-presence.js`, but the GitHub remote history available to Actions does not contain object `f3fa0e7`.
 
-The same run passed the directly relevant existing suites, including all 23 `ai-presentation-v072c` tests, all 7 `ai-product-v080` tests, all 46 `thought-m1` tests, all 21 `thought-m2` tests, and all 5 new cold-reload repair regressions.
+That run passed the directly relevant existing suites, including all 23 `ai-presentation-v072c` tests, all 7 `ai-product-v080` tests, all 46 `thought-m1` tests, all 21 `thought-m2` tests, and all 5 cold-reload repair regressions. The latest targeted 5/5 run then re-verified the final compatibility hardening.
 
-Therefore this round does **not** claim a clean 694/694 unit run. The exact evidence is 691/694 plus a clean 5/5 targeted P0 gate.
+Therefore this round does **not** claim a clean 694/694 unit run. The exact evidence is a clean latest 5/5 P0 gate plus the earlier 691/694 broader unit-group run with the three baseline/environment failures described above.
 
 ## Remaining limitations before any real-data deployment
 
