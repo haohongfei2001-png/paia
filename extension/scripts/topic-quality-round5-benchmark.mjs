@@ -13,6 +13,8 @@ const cases=[
  {name:'PAIA update folds to PAIA',inputText:'PAIA 本次更新主要是 Topic 稳定性。',proposedName:'本次更新',candidates:[paia],expect:'t-paia'},
  {name:'career progress folds to career',inputText:'求职与职业选择最近的项目进展是继续筛岗位。',proposedName:'项目进展',candidates:[career],expect:'t-career'},
  {name:'generic follow-up folds when candidate is strong',inputText:'PAIA 还有一些后续计划要处理。',proposedName:'想法与后续计划',candidates:[paia],expect:'t-paia'},
+ {name:'ambiguous release does not choose by candidate order',inputText:'比较 PAIA 产品设计和 AI 工具与工作流的版本发布策略。',proposedName:'版本发布',candidates:[paia,workflow],expect:'fallback'},
+ {name:'related grouping resolves ambiguous release',inputText:'比较 PAIA 产品设计和 AI 工具与工作流的版本发布策略。',proposedName:'版本发布',relatedGroupingCandidate:'AI 工具与工作流',candidates:[paia,workflow],expect:'t-workflow'},
  {name:'temporary label falls back without candidate',inputText:'这个窗口满了，先记下来。',proposedName:'chat窗口',candidates:[],expect:'fallback'},
  {name:'generic plan falls back when unrelated',inputText:'PAIA 的页面还要调整。',proposedName:'后续计划',candidates:[career],expect:'fallback'},
  {name:'version release falls back when unrelated',inputText:'一个未命名软件要发布。',proposedName:'软件版本发布',candidates:[career],expect:'fallback'},
@@ -29,7 +31,7 @@ const cases=[
 ];
 
 let correct=0,falseFold=0,fragmentHandled=0;
-for(const item of cases){const decision=stabilizeTopicProposal({inputText:item.inputText,proposedName:item.proposedName,relatedGroupingCandidate:item.relatedGroupingCandidate,topicCandidates:item.candidates});const actual=decision.existingTopicId||decision.suppressNewTopic?'fallback':'new';const resolved=decision.existingTopicId||actual;if(resolved===item.expect)correct++;if(item.expect==='new'&&decision.existingTopicId)falseFold++;if(item.expect!=='new'&&(decision.existingTopicId||decision.suppressNewTopic))fragmentHandled++;else if(item.expect==='new'){};}
+for(const item of cases){const decision=stabilizeTopicProposal({inputText:item.inputText,proposedName:item.proposedName,relatedGroupingCandidate:item.relatedGroupingCandidate,topicCandidates:item.candidates});const actual=decision.existingTopicId||decision.suppressNewTopic?'fallback':'new';const resolved=decision.existingTopicId||actual;if(resolved===item.expect)correct++;if(item.expect==='new'&&decision.existingTopicId)falseFold++;if(item.expect!=='new'&&(decision.existingTopicId||decision.suppressNewTopic))fragmentHandled++;}
 const result={cases:cases.length,correct,accuracy:correct/cases.length,falseFold,fragmentHandled,fragmentCases:cases.filter(x=>x.expect!=='new').length};
 assert.equal(correct,cases.length,'Round 5 deterministic Topic policy benchmark regression');
 assert.equal(falseFold,0,'Round 5 must not fold durable new subjects into an existing Topic');
