@@ -9,7 +9,7 @@ const physics=topic('t-physics','理论物理研究',['B→K 形状因子']);
 
 const cases=[
  {name:'PAIA release folds to PAIA',inputText:'PAIA v0.12 的软件版本发布主要调整思想库阅读。',proposedName:'软件版本发布',candidates:[paia,workflow],expect:'t-paia'},
- {name:'workflow release folds to workflow',inputText:'Chrome 扩展的版本发布要跑完整测试。',proposedName:'版本发布',candidates:[workflow,paia],expect:'t-workflow'},
+ {name:'generic release with insufficient durable evidence stays unassigned',inputText:'Chrome 扩展的版本发布要跑完整测试。',proposedName:'版本发布',candidates:[workflow,paia],expect:'fallback'},
  {name:'PAIA update folds to PAIA',inputText:'PAIA 本次更新主要是 Topic 稳定性。',proposedName:'本次更新',candidates:[paia],expect:'t-paia'},
  {name:'career progress folds to career',inputText:'求职与职业选择最近的项目进展是继续筛岗位。',proposedName:'项目进展',candidates:[career],expect:'t-career'},
  {name:'generic follow-up folds when candidate is strong',inputText:'PAIA 还有一些后续计划要处理。',proposedName:'想法与后续计划',candidates:[paia],expect:'t-paia'},
