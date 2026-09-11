@@ -2,6 +2,8 @@
 
 CLOSED. Source, emitted artifacts and exact daily deployment verified. Baseline: `22111fa34b32ed9d4d8db4b7fdbb5a2726bfe034`. No private profile, real database or Provider was used.
 
+> **Post-acceptance field note (2026-09-11):** a later cold-reload report from a long-lived real installation exposed a Thought Library Topic visibility/read failure that this isolated synthetic acceptance matrix did not model. The receipts below remain valid evidence for the original v0.11.1 release scope, but `CLOSED` must not be read as proof that every long-lived real database is cold-reload safe. Round 1 characterization is documented in [V0111_REAL_DATA_FORENSIC.md](V0111_REAL_DATA_FORENSIC.md). No destructive repair, Topic rebuild, Organizer run, schema change, or private-database read is authorized by that characterization.
+
 1. **Flicker cause:** global local-storage subscription and 15-second polling shared a whole-document refresh path. Refresh unconditionally entered loading, rebuilt tiles and disposed editing sessions. Baseline reproduction: one unrelated status write caused one loading transition, seven direct list mutations and replaced the first tile.
 2. **Render architecture:** retained route snapshots, typed content invalidation, single-flight queued refresh, stale-response generation guards and keyed DOM reconciliation. Equal content retains nodes; real insertions update locally. No new loading delay.
 3. **Home subtraction:** removed subtitle, write/create Topic buttons, three Tabs, pin controls, queue/batch controls and normal success banners. Title, AI presentation toggle, search and Topic grid remain.
