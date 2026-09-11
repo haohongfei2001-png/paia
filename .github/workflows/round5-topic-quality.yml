@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - round5/topic-quality-stability
+    paths-ignore:
+      - 'extension/V0111_ROUND5_TOPIC_QUALITY.md'
 
 permissions:
   contents: read
+
+concurrency:
+  group: round5-topic-quality-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   topic-quality:
