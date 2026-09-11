@@ -24,7 +24,7 @@ for(const count of process.env.PAIA_HISTORY_STRESS==='100000'?[100000]:[1000,100
   if(count===1000){
    await rpc(h,'FILTER_MODE',{mode:'off'});await rpc(h,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-history-scale-key'}});await h.archive.locator('[data-view="thoughts"]').click();
    assert.equal((await rpc(h,'GET_ORIGINAL_ORGANIZER_STATUS')).pendingInput,1000);
-   await h.archive.locator('[data-view=settings]').click();await h.archive.locator('#bounded-original-start').click();await h.archive.locator('[name="requests"]').selectOption('3');await h.archive.locator('[name="inputs"]').selectOption('50');await h.archive.locator('#library-form button[type="submit"]').click();
+   await h.archive.locator('.sidebar [data-view=settings]').click();await h.archive.locator('#bounded-original-start').click();await h.archive.locator('[name="requests"]').selectOption('3');await h.archive.locator('[name="inputs"]').selectOption('50');await h.archive.locator('#library-form button[type="submit"]').click();
    await eventually(async()=>(await rpc(h,'GET_BOUNDED_ORGANIZER'))?.state==='completed','explicit bounded complete',60000);explicitOriginalRequests=h.deepSeekRequests.length;assert.equal(explicitOriginalRequests,3);
    const topic=(await rpc(h,'LIBRARY_INDEX_PAGE',{options:{mode:'all'}})).items[0];
    await rpc(h,'UPDATE_AI_PRESENTATION',{userActionId:crypto.randomUUID(),topicId:topic.id});explicitAIRequests=h.deepSeekRequests.length-explicitOriginalRequests;assert.equal(explicitAIRequests,1);

@@ -14,7 +14,7 @@ for(const mode of ['throws','pending'])test('Settings exits running when its tru
   // Same watchdog logic; compressed clock only in this disposable test build.
   await writeFile(ui,(await readFile(ui,'utf8')).replace(',35000)',',200)'));
   h=await FakeChatGPT.start({extensionPath:dir});const page=h.archive;
-  await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await h.open(conversation('message-'+mode));await eventually(async()=>(await h.state()).records.length===3);await page.locator('[data-view=settings]').click();
+  await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await h.open(conversation('message-'+mode));await eventually(async()=>(await h.state()).records.length===3);await page.locator('.sidebar [data-view=settings]').click();
   const button=page.locator('#original-organizer-status + button');if(!await button.isVisible())await page.locator('#organizer-advanced > summary').click();await button.click();const expected=mode==='throws'?'INTERNAL_RUNTIME_ERROR':'MESSAGE_RESPONSE_TIMEOUT';
   await eventually(async()=>(await page.locator('#original-organizer-trace').textContent()).includes(expected));assert.equal(await button.textContent(),'重试');assert.equal(await button.isEnabled(),true);assert.equal(await page.locator('#original-organizer-cost-note').isVisible(),true);
   const text=await page.locator('#original-organizer-trace').textContent();assert.match(text,new RegExp(expected));assert.match(text,new RegExp('阶段：'+(mode==='throws'?'message_handler':'message_response')));assert.doesNotMatch(await page.locator('body').textContent(),/SYNTHETIC_PRIVATE_ERROR|状态暂不可用/);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);

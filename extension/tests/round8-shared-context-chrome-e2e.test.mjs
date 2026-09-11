@@ -15,7 +15,7 @@ test('Round 8 browser: opt-in direct Input Context, no denied-topic bypass, and 
 
     // Direct Input is fail-closed until the explicit Settings switch is saved.
     assert.equal((await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'ROUND8_BROWSER_SHARED'}})).items.length,0);
-    await p.locator('[data-view=settings]').click();
+    await p.locator('.sidebar [data-view=settings]').click();
     await eventually(async()=>!(await p.locator('#memory-include-unorganized-inputs').isChecked()));
     await p.locator('#memory-include-unorganized-inputs').check();await p.locator('#memory-settings-save').click();
     await eventually(async()=>(await rpc(p,'PAIA_MEMORY_STATUS')).config.includeUnorganizedInputs===true);
@@ -28,7 +28,7 @@ test('Round 8 browser: opt-in direct Input Context, no denied-topic bypass, and 
 
     // Organize the exact full Input once. It is no longer a direct-Input candidate;
     // the new Topic is still default-denied, so the opt-in cannot bypass Topic policy.
-    await p.locator('[data-view=settings]').click();await p.locator('#deepseek-api-key').fill('round8-synthetic-key');await p.locator('#deepseek-save').click();
+    await p.locator('.sidebar [data-view=settings]').click();await p.locator('#deepseek-api-key').fill('round8-synthetic-key');await p.locator('#deepseek-save').click();
     await eventually(async()=>(await p.locator('#deepseek-status').textContent()).includes('已配置'));
     if(!await p.locator('#original-organizer-status + button').isVisible())await p.locator('#organizer-advanced > summary').click();
     await p.locator('#original-organizer-status + button').click();

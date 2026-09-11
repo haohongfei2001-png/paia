@@ -26,9 +26,9 @@ for(const mode of ['refresh','status-poll'])test('reading '+mode+' handles worke
 });
 test('Original preflight channel failure releases the UI gate without dispatching a Provider',{timeout:30000},async()=>{
  const h=await FakeChatGPT.start(),p=h.archive;try{
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await p.locator('[data-view=thoughts]').click();await p.locator('[data-view=settings]').click();await p.locator('#start-thought-library').waitFor();
+  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await p.locator('[data-view=thoughts]').click();await p.locator('.sidebar [data-view=settings]').click();await p.locator('#start-thought-library').waitFor();
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.restoreReadingChannel=()=>{chrome.runtime.sendMessage=send;};window.readingFaults=0;chrome.runtime.sendMessage=q=>{if(q.type==='GET_AI_PRESENTATION_STATUS'){window.readingFaults++;return Promise.reject(new Error('The message port closed before a response was received.'));}return send(q);};});
-  await p.locator('[data-view=settings]').click();await p.locator('#start-thought-library').click();await eventually(()=>p.evaluate(()=>window.readingFaults>0));await pause(200);assert.deepEqual(h.errors,[]);
-  await p.evaluate(()=>window.restoreReadingChannel());await p.locator('[data-view=settings]').click();await p.locator('#start-thought-library').click();await eventually(async()=>(await p.locator('#ai-update-feedback').textContent()).includes('先在 ChatGPT'),'preflight gate released for next explicit action');assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
+  await p.locator('.sidebar [data-view=settings]').click();await p.locator('#start-thought-library').click();await eventually(()=>p.evaluate(()=>window.readingFaults>0));await pause(200);assert.deepEqual(h.errors,[]);
+  await p.evaluate(()=>window.restoreReadingChannel());await p.locator('.sidebar [data-view=settings]').click();await p.locator('#start-thought-library').click();await eventually(async()=>(await p.locator('#ai-update-feedback').textContent()).includes('先在 ChatGPT'),'preflight gate released for next explicit action');assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
