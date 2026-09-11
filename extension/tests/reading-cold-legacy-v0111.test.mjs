@@ -126,17 +126,24 @@ test('cold upgrade prefers a proven later layoutSequence over stale generation 1
   assert.equal(status.unresolvedLayouts,0);
 });
 
-test('compatibility pass does not guess stale generation 1 when a later layoutSequence cannot be proven',async()=>{
+test('compatibility pass keeps an unresolved Topic visible and stops count polling without guessing a layout',async()=>{
   const {s,storage,indexedDB,topic}=await seedTopic();
 
   await rewriteTopic(s,topic.id,row=>{delete row.activeLayoutGeneration;row.layoutSequence=2;});
   const reopened=new LibraryDocumentsStore(storage,{indexedDB});
   const index=await reopened.libraryIndexPage();
-  assert.ok(index.items.some(item=>item.id===topic.id),'index repair remains independent from unresolved layout recovery');
+  const item=index.items.find(item=>item.id===topic.id);
+  assert.ok(item,'index repair remains independent from unresolved layout recovery');
+  assert.equal(item.countComplete,true,'unresolved compatibility rows must not trigger one-second Home count polling');
+  assert.equal(item.countApproximate,true);
+  assert.equal(item.visibleEntryCount,1);
   const after=await rawTopic(reopened,topic.id);
   assert.equal(after.activeLayoutGeneration,undefined,'do not silently point a Topic at an older generation');
   const status=await reopened.libraryCompatibilityStatus();
   assert.equal(status.unresolvedLayouts,1);
   assert.equal(status.indexGap,0);
+  const foundation=await reopened.libraryStatus();
+  assert.equal(foundation.compatibility.unresolvedLayouts,1);
+  assert.equal(foundation.compatibility.indexGap,0);
   await assert.rejects(()=>reopened.topicDocumentPage({topicId:topic.id}),error=>error?.code==='INVALID_REQUEST');
 });
