@@ -26,6 +26,7 @@ const cases=[
  {name:'near duplicate workflow reuses',inputText:'整理 AI 工具。',proposedName:'AI工具工作流',candidates:[workflow],expect:'t-workflow'},
  {name:'near duplicate career reuses',inputText:'继续求职。',proposedName:'求职与职业选择规划',candidates:[career],expect:'t-career'},
  {name:'distinct PAIA subproduct stays new when durable',inputText:'PAIA 之外单独做一个职业匹配产品。',proposedName:'职业匹配产品',candidates:[paia],expect:'new'},
+ {name:'overlapping durable product design stays separate',inputText:'职业匹配产品设计需要建立独立定位。',proposedName:'职业匹配产品设计',candidates:[paia],expect:'new'},
  {name:'distinct physics project stays new',inputText:'新开一个量子信息学习项目。',proposedName:'量子信息学习',candidates:[physics],expect:'new'},
  {name:'related grouping only does not force durable proposal',inputText:'PAIA 的官网之外考虑独立品牌。',proposedName:'品牌命名',relatedGroupingCandidate:'PAIA 产品设计',candidates:[paia],expect:'new'}
 ];
