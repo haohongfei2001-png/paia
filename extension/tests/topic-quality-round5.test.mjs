@@ -49,6 +49,13 @@ test('Round 5: explicit related grouping can resolve an otherwise ambiguous low-
  assert.deepEqual(checked.items[0].section,{existingSectionId:'s-release'});
 });
 
+test('Round 5: overlapping generic words do not collapse a distinct durable product Topic',()=>{
+ const candidates=[{id:'t0',name:'PAIA 产品设计',sections:[{id:'s0',name:'产品定位'}]}];
+ const checked=validateDeepSeekResponse('original_classification',output({proposedName:'职业匹配产品设计'},{proposedName:'产品定位'}),request('职业匹配产品设计需要建立独立的产品定位和用户流程。',candidates),limits);
+ assert.deepEqual(checked.items[0].topic,{proposedName:'职业匹配产品设计'});
+ assert.deepEqual(checked.items[0].section,{proposedName:'产品定位'});
+});
+
 test('Round 5: durable distinct Topic proposals are not force-folded into unrelated candidates',()=>{
  const candidates=[{id:'t0',name:'PAIA 产品设计',sections:[{id:'s0',name:'产品定位'}]}];
  const checked=validateDeepSeekResponse('original_classification',output({proposedName:'理论物理研究'},{proposedName:'B→K 形状因子'}),request('理论物理研究里继续计算 B→K 形状因子。',candidates),limits);
