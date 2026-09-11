@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   apply-candidate:
-    if: github.event.head_commit.message == 'Apply and verify Round 4 AI migration bookkeeping'
+    if: github.event.head_commit.message == 'Retry Round 4 integration with guarded source replacement'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -24,12 +24,34 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
-      - name: Apply staged integration patch
+      - name: Apply guarded source replacement
         run: |
-          set -euo pipefail
-          git apply --check .github/round4-ai-migration.patch
-          git apply .github/round4-ai-migration.patch
-          rm .github/round4-ai-migration.patch
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('extension/core/organizer/ai-presentation.js')
+          text=p.read_text()
+          anchor="import {planDelta} from '../dual-view.js';\n"
+          assert text.count(anchor)==1
+          text=text.replace(anchor,anchor+"import {migrateAIPresentationProductization} from './ai-presentation-migration.js';\n")
+          start=text.index('const migrations=new WeakMap();')
+          end=text.index('async function aiJournal',start)
+          old=text[start:end]
+          assert "aiProductizationMigration" in old and "foundationWrite" in old
+          new="""const migrations=new WeakMap(),completedMigrations=new WeakMap();
+export async function migrateAIPresentations(s){
+ if(completedMigrations.has(s))return completedMigrations.get(s);
+ if(!migrations.has(s)){
+  const task=migrateAIPresentationProductization(s).then(marker=>{if(marker.complete)completedMigrations.set(s,marker);return marker;}).finally(()=>{if(migrations.get(s)===task)migrations.delete(s);});
+  migrations.set(s,task);
+ }
+ return migrations.get(s);
+}
+"""
+          text=text[:start]+new+text[end:]
+          p.write_text(text)
+          patch=Path('.github/round4-ai-migration.patch')
+          if patch.exists():patch.unlink()
+          PY
           git diff --check
       - name: Commit candidate on review branch only
         id: commit
