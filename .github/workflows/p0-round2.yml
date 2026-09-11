@@ -21,3 +21,20 @@ jobs:
       - name: Run cold legacy regression
         working-directory: extension
         run: node --test tests/reading-cold-legacy-v0111.test.mjs
+
+  unit-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: extension/package-lock.json
+      - name: Install development dependency
+        working-directory: extension
+        run: npm ci --ignore-scripts
+      - name: Run unit regression group
+        working-directory: extension
+        run: npm run test:unit
