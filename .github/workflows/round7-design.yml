@@ -1,0 +1,55 @@
+name: Round 7 design verification
+on:
+  push:
+    branches: ['round7/evolution-recomposition']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: round7-design-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies only
+        working-directory: extension
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Run Round 7 checks when present
+        working-directory: extension
+        env:
+          PAIA_HEADLESS: '1'
+        run: |
+          if [ -f scripts/verify-round7.mjs ]; then
+            npx playwright install --with-deps chromium
+            node scripts/verify-round7.mjs
+          else
+            echo 'Source preparation only; implementation verification has not run.'
+          fi
+      - name: Package public source for isolated review
+        if: always()
+        run: |
+          tar --exclude='./.git' --exclude='./.github' --exclude='./extension/work' --exclude='./extension/outputs' -czf "$RUNNER_TEMP/paia-round7-source.tgz" .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paia-round7-source-${{ github.sha }}
+          path: ${{ runner.temp }}/paia-round7-source.tgz
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paia-round7-evidence-${{ github.sha }}
+          path: |
+            extension/work/round7/**
+            extension/outputs/PAIA-*.zip
+          if-no-files-found: ignore
+          retention-days: 7
