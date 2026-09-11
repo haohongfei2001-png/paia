@@ -1,0 +1,55 @@
+name: Round 8 shared working context verification
+
+on:
+  push:
+    branches:
+      - round8/shared-working-context
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: round8/shared-working-context
+      - name: Apply one-time Round 8 candidate payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f .github/apply-round8.py ]; then
+            python3 .github/apply-round8.py
+            git add extension .github/workflows/round8-shared-context.yml
+            git rm .github/apply-round8.py
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'feat: share exact working bodies and open explicit direct Input Context'
+            git push origin HEAD:refs/heads/round8/shared-working-context
+          fi
+          echo "REVIEW_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated test dependencies and Chromium
+        working-directory: extension
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify actual Round 8 candidate
+        working-directory: extension
+        env:
+          PAIA_HEADLESS: '1'
+        run: node scripts/verify-round8.mjs
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paia-round8-evidence-${{ env.REVIEW_SHA }}
+          path: extension/work/round8/**
+          if-no-files-found: warn
+          retention-days: 7
