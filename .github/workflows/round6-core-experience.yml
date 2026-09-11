@@ -1,0 +1,53 @@
+name: Round 6 Core Experience
+
+on:
+  push:
+    branches:
+      - round6/core-experience-closure
+    paths-ignore:
+      - 'extension/V0111_ROUND6_CORE_EXPERIENCE.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: round6-core-experience-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-experience:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Focused Round 6 regressions
+        run: node --test --test-concurrency=1 tests/core-experience-round6.test.mjs
+      - name: Broad portable unit suite
+        run: |
+          node --input-type=module <<'NODE'
+          import {readdirSync} from 'node:fs';
+          import {spawnSync} from 'node:child_process';
+          import {group} from './scripts/test-groups.mjs';
+          const excluded=new Set([
+            'history-performance-v090.test.mjs',
+            'light-coverage.test.mjs',
+            'smart-filter-diagnostics.test.mjs'
+          ]);
+          const files=readdirSync('tests').filter(name=>name.endsWith('.test.mjs')&&group(name)==='unit'&&!excluded.has(name)).sort().map(name=>'tests/'+name);
+          console.log('Explicitly excluded non-portable fixtures:',[...excluded].join(', '));
+          console.log('Running portable unit files:',files.length);
+          const result=spawnSync(process.execPath,['--test','--test-concurrency=4',...files],{stdio:'inherit'});
+          process.exit(result.status??1);
+          NODE
+      - name: Package audit
+        run: npm run check
+      - name: Release build verification
+        run: npm run build:release
