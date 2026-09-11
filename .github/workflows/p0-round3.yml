@@ -1,28 +1,136 @@
 name: P0 Round 3 isolated verification
-
 on:
   push:
     branches: [p0/thought-library-ui-readonly-round3]
-
 permissions:
   contents: read
-
 concurrency:
   group: p0-round3-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
-  source-snapshot:
+  apply-candidate:
+    if: github.ref == 'refs/heads/p0/thought-library-ui-readonly-round3'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Apply only the checksum-verified candidate
+        run: |
+          python3 - <<'PYAPPLY'
+          import base64, gzip, hashlib, json, pathlib, subprocess
+          root=pathlib.Path.cwd()
+          parts=[root/f'.github/round3-payload-{i}.txt' for i in range(1,5)]
+          text=''.join(p.read_text().strip() for p in parts)
+          text=text.replace('oBN1GAwWPY6c09FuKKke2kKiqWE7EWLNE','oBN1GAwWPY6c09FuKke2kKiqWE7EWLNE')
+          text=text.replace('Ofv7h7Xe/dfCtHx+AP/8+APbrfuK1IKK8SR','Ofv7h7Xe/dfCtHx+8+APbrfu1IKK8SR')
+          raw=base64.b64decode(text,validate=True)
+          assert hashlib.sha256(raw).hexdigest()=='38efaa2c2cb4a7c068b1085941225cf5e34f9f6304ca4de345939d371d80da0e', 'transport digest mismatch'
+          data=json.loads(gzip.decompress(raw))
+          assert hashlib.sha256((root/'extension/ui/thoughts.js').read_bytes()).hexdigest()=='7154819f26ba3d2ec4e61f0c4ca43d5ef277581a90d05adc20c2c06da5ecf16d', 'UI baseline moved'
+          allowed={
+           'extension/V0111_ROUND3_READING.md',
+           'extension/development/inspect-library-readonly.js',
+           'extension/tests/harness/library-ui-round3.mjs',
+           'extension/tests/harness/readonly-diagnostic-round3.mjs',
+           'extension/tests/optional-library-status-v0111.test.mjs',
+           'extension/tests/reading-optional-round3-chrome-e2e.test.mjs',
+           'extension/tests/reading-ui-round3-chrome-e2e.test.mjs',
+           'extension/tests/readonly-diagnostic-round3-chrome-e2e.test.mjs',
+           'extension/tests/readonly-diagnostic-round3.test.mjs',
+           'extension/ui/optional-library-status.js',
+           'extension/ui/thoughts.js',
+          }
+          stats=subprocess.check_output(['git','apply','--numstat','-'],input=data['patch'].encode()).decode()
+          assert {line.split('\t')[2] for line in stats.splitlines()}==allowed, 'unexpected patch paths'
+          for name in allowed:
+           p=root/name
+           assert not p.is_symlink() and p.resolve().is_relative_to(root), 'unsafe path'
+          subprocess.run(['git','apply','--check','-'],input=data['patch'].encode(),check=True)
+          subprocess.run(['git','apply','-'],input=data['patch'].encode(),check=True)
+          for p in parts:p.unlink()
+          subprocess.run(['git','diff','--check'],check=True)
+          print('Applied exact checksum-verified candidate; temporary transport removed.')
+          PYAPPLY
+      - name: Commit to this review branch only
+        id: commit
+        run: |
+          set -euo pipefail
+          branch='p0/thought-library-ui-readonly-round3'
+          remote=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+          test "$remote" = "$GITHUB_SHA"
+          git add -- extension .github/round3-payload-*.txt
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'P0 Round 3: isolate reading and add native read-only diagnostics'
+          git push origin "HEAD:refs/heads/$branch"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  unit-and-package:
+    needs: apply-candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Archive tracked source only
-        run: git archive --format=zip --output=repository.zip HEAD
-      - uses: actions/upload-artifact@v4
+          ref: ${{ needs.apply-candidate.outputs.sha }}
+      - uses: actions/setup-node@v4
         with:
-          name: round3-source
-          path: repository.zip
-          retention-days: 7
+          node-version: '22'
+      - name: Record tested revision
+        run: mkdir -p artifacts; git rev-parse HEAD | tee artifacts/tested-sha.txt
+      - name: Run targeted Node regressions
+        working-directory: extension
+        run: |
+          set -o pipefail
+          node --test tests/optional-library-status-v0111.test.mjs tests/readonly-diagnostic-round3.test.mjs tests/reading-cold-legacy-v0111.test.mjs tests/ai-presentation-v072c.test.mjs tests/ai-product-v080.test.mjs tests/thought-m1.test.mjs tests/thought-m2.test.mjs tests/backup-v081.test.mjs tests/memory-safety-v0100.test.mjs | tee ../artifacts/node.tap
+      - name: Static package audit and release build
+        working-directory: extension
+        run: |
+          set -o pipefail
+          npm run check | tee ../artifacts/package.txt
+          npm run build:release | tee ../artifacts/build.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: round3-node-evidence
+          path: artifacts/
+          retention-days: 14
+  browser:
+    needs: apply-candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PAIA_HEADLESS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ needs.apply-candidate.outputs.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated test browser
+        working-directory: extension
+        run: |
+          npm install --ignore-scripts
+          npx playwright install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/extension/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Record tested revision
+        run: mkdir -p artifacts; git rev-parse HEAD | tee artifacts/tested-sha.txt
+      - name: Native DOM, native IDB and installed-extension regressions
+        working-directory: extension
+        run: |
+          set -o pipefail
+          node --test --test-concurrency=1 tests/reading-ui-round3-chrome-e2e.test.mjs tests/readonly-diagnostic-round3-chrome-e2e.test.mjs tests/reading-optional-round3-chrome-e2e.test.mjs tests/reading-idle-v0111-chrome-e2e.test.mjs | tee ../artifacts/browser.tap
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: round3-browser-evidence
+          path: |
+            artifacts/
+            extension/work/reading-v0111/
+          retention-days: 14
