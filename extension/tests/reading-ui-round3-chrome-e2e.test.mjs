@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {uiHarness} from './harness/library-ui-round3.mjs';
+import {inputEdit} from './harness/thought-m1.mjs';
 const optional=['GET_AI_PRESENTATION_STATUS','GET_ORIGINAL_ORGANIZER_STATUS','GET_ORGANIZER_CONTROLS','GET_BOUNDED_ORGANIZER','GET_DEEPSEEK_STATUS','GET_LIBRARY_UNPLACED'];
 
 test('Round 3 native DOM: every optional failure leaves the core Home readable',{timeout:30000},async()=>{
@@ -91,7 +92,7 @@ test('Round 3 native DOM: a search failure cannot claim a previous query as a re
 });
 
 for(const failure of [true,false])test('Round 3 native DOM: original action '+(failure?'preflight failure':'no delta')+' restores the reader without a paid request',{timeout:15000},async()=>{
- const h=await uiHarness();try{const p=await h.page();await p.evaluate(id=>workspace.open(id),h.topics[0].id);await p.waitForTimeout(100);
+ const h=await uiHarness();try{if(!failure){for(const block of (await h.s.snapshot()).library.blocks)await inputEdit(h.s,block.id,{excluded:true});assert.equal((await h.s.originalOrganizerStatus()).pendingInput,0);}const p=await h.page();await p.evaluate(id=>workspace.open(id),h.topics[0].id);await p.waitForTimeout(100);
  await p.evaluate(failure=>{if(failure)behavior.GET_ORIGINAL_ORGANIZER_STATUS='fail';return workspace.updateOriginal();},failure);
  assert.equal(await p.locator('#topic-body').evaluate(n=>n.inert),false);
  assert.equal(await p.evaluate(()=>!!workspace.editor),true);
