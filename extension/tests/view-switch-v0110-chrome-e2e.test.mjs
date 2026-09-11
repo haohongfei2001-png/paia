@@ -3,7 +3,8 @@ test('Pending view save survives passive refresh; failure restores old mode and 
  const h=await FakeChatGPT.start({headless:true}),p=h.archive;
  try{await p.locator('#consent-check').check();await p.locator('#enable-consent').click();const result=await p.evaluate(async()=>{
   const {ThoughtWorkspace}=await import('../ui/thoughts.js'),actual=chrome.runtime.sendMessage.bind(chrome.runtime),toggle=document.getElementById('ai-presentation-toggle');
-  const w=Object.assign(Object.create(ThoughtWorkspace.prototype),{id:null,view:'original',readingSort:'asc',leave:async()=>true,refresh:async()=>{},renderBounded:()=>{}});
+  // Model the initialized Round 3+ workspace counters, not undefined++ (NaN).
+  const w=Object.assign(Object.create(ThoughtWorkspace.prototype),{id:null,view:'original',readingSort:'asc',statusEpoch:0,statusReadSerial:0,aiTopics:new Map(),leave:async()=>true,refresh:async()=>{},renderBounded:()=>{}});
   let release,entered,fail=false;let waiting=new Promise(r=>entered=r);
   chrome.runtime.sendMessage=async m=>{if(m.type==='SET_ORGANIZER_CONTROLS'){entered();await new Promise(r=>release=r);if(fail)return {ok:false,error:'STORAGE_WRITE_FAILED'};}return actual(m);};
   try{const change=w.switchView('ai');await waiting;await w.updateViewStatus();const pending={checked:toggle.checked,disabled:toggle.disabled};release();await change;const saved={checked:toggle.checked,disabled:toggle.disabled,view:w.view};
