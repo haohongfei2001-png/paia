@@ -145,5 +145,8 @@ test('compatibility pass keeps an unresolved Topic visible and stops count polli
   const foundation=await reopened.libraryStatus();
   assert.equal(foundation.compatibility.unresolvedLayouts,1);
   assert.equal(foundation.compatibility.indexGap,0);
+  const ai=await aiPresentationStatus(reopened);
+  assert.equal(ai.degraded?.reason,'topic_compatibility_unresolved','optional AI status must degrade instead of aborting the core Home read');
+  assert.equal(ai.degraded?.unresolvedLayouts,1);
   await assert.rejects(()=>reopened.topicDocumentPage({topicId:topic.id}),error=>error?.code==='INVALID_REQUEST');
 });
