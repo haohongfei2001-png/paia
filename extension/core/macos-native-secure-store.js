@@ -4,6 +4,7 @@ const HOST_NAME='com.paia.secure_store';
 const PROTOCOL_VERSION=1;
 const B64_RE=/^[A-Za-z0-9_-]+$/;
 const OPAQUE_RE=/^[A-Za-z0-9_.:-]{3,160}$/;
+const NATIVE_PERMISSION=Object.freeze({permissions:Object.freeze(['nativeMessaging'])});
 
 const fail=code=>{throw new SecureKeyPersistenceError(code);};
 
@@ -37,6 +38,22 @@ function runtimeOrFail(runtime){
   runtime=runtime??globalThis.chrome?.runtime;
   if(!runtime||typeof runtime.sendNativeMessage!=='function')fail('SECURE_NATIVE_MESSAGING_UNAVAILABLE');
   return runtime;
+}
+
+function permissionApi(permissions){return permissions??globalThis.chrome?.permissions??null;}
+
+export async function hasMacOSNativeSecureStorePermission({permissions}={}){
+  const api=permissionApi(permissions);
+  if(!api||typeof api.contains!=='function')return false;
+  try{return Boolean(await api.contains(NATIVE_PERMISSION));}
+  catch{return false;}
+}
+
+export async function requestMacOSNativeSecureStorePermission({permissions}={}){
+  const api=permissionApi(permissions);
+  if(!api||typeof api.request!=='function')fail('SECURE_NATIVE_MESSAGING_PERMISSION_API_UNAVAILABLE');
+  try{return Boolean(await api.request(NATIVE_PERMISSION));}
+  catch{fail('SECURE_NATIVE_MESSAGING_PERMISSION_REQUEST_FAILED');}
 }
 
 function mapRuntimeFailure(message=''){
@@ -83,7 +100,8 @@ export class MacOSNativeSecureSecretProvider{
     this.#runtime=runtime;
     this.capabilities=capabilities;
   }
-  static async connect({runtime}={}){
+  static async connect({runtime,permissions}={}){
+    if(!(await hasMacOSNativeSecureStorePermission({permissions})))fail('SECURE_NATIVE_MESSAGING_PERMISSION_REQUIRED');
     runtime=runtimeOrFail(runtime);
     const response=await sendNative(runtime,{version:PROTOCOL_VERSION,operation:'probe'});
     return new MacOSNativeSecureSecretProvider(HOST_NAME,{runtime,capabilities:capabilitiesFromProbe(response)});
@@ -132,9 +150,10 @@ export class MacOSNativeSecureSecretProvider{
   }
 }
 
-export async function probeCurrentExtensionSecurePersistenceReadiness({runtime}={}){
+export async function probeCurrentExtensionSecurePersistenceReadiness({runtime,permissions}={}){
+  if(!(await hasMacOSNativeSecureStorePermission({permissions})))return Object.freeze({version:1,platform:'chrome_extension_macos',available:false,providerId:null,reason:'SECURE_NATIVE_MESSAGING_PERMISSION_REQUIRED'});
   try{
-    const provider=await MacOSNativeSecureSecretProvider.connect({runtime});
+    const provider=await MacOSNativeSecureSecretProvider.connect({runtime,permissions});
     return Object.freeze({version:1,platform:'chrome_extension_macos',available:true,providerId:provider.capabilities.providerId,reason:null});
   }catch(error){
     const code=error instanceof SecureKeyPersistenceError?error.code:'SECURE_NATIVE_HOST_COMMUNICATION_FAILED';
