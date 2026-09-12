@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {mkdir,writeFile} from 'node:fs/promises';
 import {completeFixture,rows} from './harness/original-complete.mjs';import {ImportCoordinator} from '../core/import/coordinator.js';import {ImportLedger} from '../core/import/ledger.js';import {officialExportAdapter} from '../core/import/chatgpt-export.js';import {conversation,historyFile} from './fixtures/history-v090.mjs';
-for(const n of [1000,10000])test(n+' synthetic historical Inputs: bounded batches, direct reading/search and idempotent repeat',{timeout:180000},async()=>{
+for(const n of [1000,10000])test(n+' synthetic historical Inputs: bounded batches, direct reading/search and idempotent repeat',{timeout:process.env.CI?240000:180000},async()=>{
  const f=await completeFixture({texts:[]}),ledger=new ImportLedger(f.s),batchTimes=[];let maxRows=0,maxBytes=0;
  const transport=async(m,q)=>{if(q.rows){maxRows=Math.max(maxRows,q.rows.length);maxBytes=Math.max(maxBytes,new TextEncoder().encode(q.rows.map(x=>x.text+x.title).join('')).length);}const at=performance.now(),r=await ledger[m](q,'performance-page');if(m==='commit')batchTimes.push(performance.now()-at);return r;};
  const controller=new ImportCoordinator({adapter:officialExportAdapter,transport}),file=historyFile(Array.from({length:n/50},(_,i)=>conversation(i+1,50)));
@@ -12,9 +12,9 @@ for(const n of [1000,10000])test(n+' synthetic historical Inputs: bounded batche
  const task=await ledger.latest();assert.equal(task.lastImport.counts.duplicates,n);
  await mkdir('work/history-v090',{recursive:true});await writeFile('work/history-v090/performance-'+n+'.json',JSON.stringify({synthetic:true,indexedDB:'fake-indexeddb',inputs:n,fileBytes:file.size,preflightMs,commitMs,repeatMs,readingMs,searchMs,searchPages,maxRows,maxBytes,maxBatchMs:Math.max(...batchTimes),adapterPeakNodes:preview.detection.maxNodes,adapterPeakTextChars:preview.detection.maxBufferedTextChars,observedHeapDeltaMiB:(process.memoryUsage().heapUsed-heapBefore)/1024/1024,heapIncludesSyntheticFixtureAndDatabase:true,automaticProviderRequests:f.requests.length},null,2));
  // The 120 s total-commit target is a controlled-machine benchmark, not a portable
- // correctness invariant for GitHub-hosted runners + fake-indexeddb. CI still gates
- // bounded batch size/bytes, every commit batch, idempotence, reading/search and
- // final data-layer results, while recording commitMs for regression observation.
+ // correctness invariant for GitHub-hosted runners + fake-indexeddb. CI uses a wider
+ // outer watchdog for runner variance while still gating bounded batch size/bytes,
+ // every commit batch, idempotence, reading/search and final data-layer results.
  if(!process.env.CI)assert.ok(commitMs<120000,'10k fake-IDB commit must remain below 120 seconds on the controlled benchmark');
  assert.ok(Number.isFinite(commitMs)&&commitMs>=0);assert.ok(readingMs<10000);assert.ok(batchTimes.every(x=>x<10000));
 });
