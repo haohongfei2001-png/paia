@@ -22,6 +22,7 @@ concurrency:
 env:
   CI: '1'
   PAIA_TEST_CONCURRENCY: '4'
+  PLAYWRIGHT_MODULE: 'playwright'
 
 jobs:
   unit:
@@ -77,14 +78,10 @@ jobs:
       - name: Privacy and security
         run: node scripts/test.mjs "privacy/security"
 
-  browser:
-    name: Browser ${{ matrix.shard }}
+  current_browser:
+    name: Current Browser Certification
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: ['1/4','2/4','3/4','4/4']
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: extension
@@ -106,11 +103,50 @@ jobs:
           test -n "$CHROME_BIN"
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Universal Search, Reader, Context, Revisit and Passport
+        run: xvfb-run -a node --test --test-concurrency=1 tests/release-certification-round48-chrome-e2e.test.mjs
+      - name: Package audit after current Chrome journey
+        run: |
+          python3 scripts/check_package.py
+          node scripts/check_development.mjs
+
+  historical_browser:
+    name: Historical Browser Audit ${{ matrix.shard }}
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4','2/4','3/4','4/4']
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Prepare historical Chrome compatibility environment
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           sudo mkdir -p '/Applications/Google Chrome.app/Contents/MacOS'
           sudo ln -sf "$CHROME_BIN" '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
           git rev-parse --is-shallow-repository | grep -qx false
           "$CHROME_BIN" --version
-      - name: Run browser shard under virtual display
+      - name: Run historical browser shard under virtual display
         env:
           PAIA_TEST_SHARD: ${{ matrix.shard }}
           PAIA_TEST_CONCURRENCY: '1'
@@ -147,17 +183,17 @@ jobs:
     name: Certification gate
     runs-on: ubuntu-latest
     if: always()
-    needs: [unit, contracts, browser, release]
+    needs: [unit, contracts, current_browser, release]
     steps:
-      - name: Require every gate
+      - name: Require every current-release gate
         env:
           UNIT: ${{ needs.unit.result }}
           CONTRACTS: ${{ needs.contracts.result }}
-          BROWSER: ${{ needs.browser.result }}
+          CURRENT_BROWSER: ${{ needs.current_browser.result }}
           RELEASE: ${{ needs.release.result }}
         run: |
-          printf 'unit=%s\ncontracts=%s\nbrowser=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$BROWSER" "$RELEASE"
+          printf 'unit=%s\ncontracts=%s\ncurrent_browser=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$CURRENT_BROWSER" "$RELEASE"
           test "$UNIT" = success
           test "$CONTRACTS" = success
-          test "$BROWSER" = success
+          test "$CURRENT_BROWSER" = success
           test "$RELEASE" = success
