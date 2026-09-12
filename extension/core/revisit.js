@@ -33,16 +33,16 @@ async function newInputs(store,t,marker,filterState){
  return {count:visible,truncated,items:items.reverse()};
 }
 
-async function oldInputs(store,t,filterState,now){
+async function oldInputs(store,t,filterState,now,{excludeFromSequence=null}={}){
  const cutoff=now-REVISIT_OLD_DAYS*86400000,candidates=[];let cursor=null,scanned=0,truncated=false;
- do{const page=await t.rangePage('blockIndex','bySequence',null,cursor,Math.min(100,MAX_OLD_SCAN-scanned),'prev');if(!page.rows.length)break;for(const {value:ix}of page.rows){scanned++;const item=await inputDTO(store,t,ix,filterState,{oldCutoff:cutoff});if(item)candidates.push(item);}cursor=page.next;if(candidates.length>=28)break;if(scanned>=MAX_OLD_SCAN&&cursor!==null){truncated=true;break;}}while(cursor!==null&&scanned<MAX_OLD_SCAN);
+ do{const page=await t.rangePage('blockIndex','bySequence',null,cursor,Math.min(100,MAX_OLD_SCAN-scanned),'prev');if(!page.rows.length)break;for(const {value:ix}of page.rows){scanned++;if(Number.isSafeInteger(excludeFromSequence)&&ix.sequence>=excludeFromSequence)continue;const item=await inputDTO(store,t,ix,filterState,{oldCutoff:cutoff});if(item)candidates.push(item);}cursor=page.next;if(candidates.length>=28)break;if(scanned>=MAX_OLD_SCAN&&cursor!==null){truncated=true;break;}}while(cursor!==null&&scanned<MAX_OLD_SCAN);
  return {items:selectResurface(candidates,dayKey(now)),truncated};
 }
 
 export class RevisitService {
  constructor(store,{clock=()=>Date.now()}={}){this.store=store;this.clock=clock;}
  async status(){
-  const now=this.clock(),base=await this.store.run(()=>this.store.repository.transaction(false,async t=>{const raw=await t.get('meta',REVISIT_ROW),marker=validRow(raw)?raw:null,sequence=await t.get('meta','sequence'),filterState=await t.get('meta','smart-filter'),fresh=await newInputs(this.store,t,marker,filterState),old=await oldInputs(this.store,t,filterState,now);return {marker,anchor:{blockSequence:Number.isSafeInteger(sequence?.blocks)?sequence.blocks:0},fresh,old};}));
+  const now=this.clock(),base=await this.store.run(()=>this.store.repository.transaction(false,async t=>{const raw=await t.get('meta',REVISIT_ROW),marker=validRow(raw)?raw:null,sequence=await t.get('meta','sequence'),filterState=await t.get('meta','smart-filter'),fresh=await newInputs(this.store,t,marker,filterState),old=await oldInputs(this.store,t,filterState,now,{excludeFromSequence:marker?.lastBlockSequence??null});return {marker,anchor:{blockSequence:Number.isSafeInteger(sequence?.blocks)?sequence.blocks:0},fresh,old};}));
   const ai=await this.store.aiPresentationStatus().catch(()=>({topics:[]})),topics=(ai?.topics||[]).filter(t=>Number.isSafeInteger(t.pendingEntryCount)&&t.pendingEntryCount>0).sort((a,b)=>b.pendingEntryCount-a.pendingEntryCount||String(a.name).localeCompare(String(b.name))).slice(0,6).map(t=>({topicId:t.topicId,name:t.name||'未命名主题',pendingEntryCount:t.pendingEntryCount,hasPresentation:!!t.presentation}));
   return {version:REVISIT_VERSION,firstRun:!base.marker,lastSeenAt:base.marker?.lastSeenAt||null,anchor:base.anchor,newInputs:base.fresh,topicUpdates:topics,resurface:base.old.items,resurfaceTruncated:base.old.truncated,localOnly:true,storesBody:false};
  }
