@@ -1,0 +1,39 @@
+name: Read-only gate tool verification
+
+on:
+  push:
+    branches:
+      - tool/readonly-gate-one-click
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tool/readonly-gate-one-click
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser test dependencies
+        working-directory: extension
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify dynamic same-origin read-only page
+        working-directory: extension
+        env:
+          PAIA_HEADLESS: '1'
+        run: node --test tests/readonly-gate-tool.test.mjs
+      - name: Verify release exclusion and macOS command syntax
+        working-directory: extension
+        run: |
+          python3 scripts/build_current_release.py work/readonly-gate-release
+          test ! -e work/readonly-gate-release/development
+          sudo apt-get install -y zsh >/dev/null
+          zsh -n "development/Inspect PAIA.command"
