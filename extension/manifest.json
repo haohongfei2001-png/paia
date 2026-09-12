@@ -6,7 +6,8 @@
   "description": "经主动同意后，仅在本机归档 ChatGPT 已显示的用户文字。以连续文档阅读与整理，支持暂停、检索和导出。",
   "minimum_chrome_version": "114",
   "permissions": [
-    "storage"
+    "storage",
+    "nativeMessaging"
   ],
   "host_permissions": [
     "https://api.deepseek.com/*"
