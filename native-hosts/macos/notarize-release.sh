@@ -41,10 +41,11 @@ PY
 /usr/sbin/spctl -a -vv -t install "$PACKAGE"
 
 EVIDENCE="${PACKAGE%.pkg}.notarization.json"
-/usr/bin/python3 - "$EVIDENCE" "$PACKAGE" "$SUBMISSION_ID" <<'PY'
+METADATA="${PACKAGE%.pkg}.json"
+/usr/bin/python3 - "$EVIDENCE" "$METADATA" "$PACKAGE" "$SUBMISSION_ID" <<'PY'
 import json, pathlib, sys
-out, package, submission = sys.argv[1:]
-payload={
+out, metadata_path, package, submission = sys.argv[1:]
+evidence={
   "schemaVersion": 1,
   "package": pathlib.Path(package).name,
   "submissionId": submission,
@@ -52,8 +53,26 @@ payload={
   "stapled": True,
   "gatekeeperAccepted": True,
 }
-pathlib.Path(out).write_text(json.dumps(payload,indent=2)+"\n",encoding='utf-8')
+out_path=pathlib.Path(out)
+tmp=out_path.with_name(out_path.name+'.new')
+tmp.write_text(json.dumps(evidence,indent=2)+"\n",encoding='utf-8')
+tmp.replace(out_path)
+
+meta_path=pathlib.Path(metadata_path)
+if meta_path.exists():
+    metadata=json.loads(meta_path.read_text(encoding='utf-8'))
+    if metadata.get('schemaVersion') != 1 or metadata.get('signingMode') != 'developer-id':
+        raise SystemExit('build metadata is not a Developer ID production build')
+    metadata['notarized']=True
+    metadata['notarizationSubmissionId']=submission
+    metadata['gatekeeperAccepted']=True
+    meta_tmp=meta_path.with_name(meta_path.name+'.new')
+    meta_tmp.write_text(json.dumps(metadata,indent=2)+"\n",encoding='utf-8')
+    meta_tmp.replace(meta_path)
 PY
 
 printf 'Notarized and stapled: %s\n' "$PACKAGE"
 printf 'Evidence: %s\n' "$EVIDENCE"
+if [[ -f "$METADATA" ]]; then
+  printf 'Updated metadata: %s\n' "$METADATA"
+fi
