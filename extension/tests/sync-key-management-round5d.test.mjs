@@ -9,12 +9,12 @@ import {
   TrustedDeviceRegistry,
   confirmTrustedDeviceOnboarding,
   createRecoveryKit,
-  createTrustedDeviceOnboardingPackage,
+  prepareTrustedDeviceOnboarding,
   recoverKeyring,
 } from '../core/sync-key-management.js';
 import {canonicalPayloadHash,createDeviceIdentity,nextDeviceOperation} from '../core/sync-crypto.js';
 
-async function envelopeFactory(prefix='device'){
+async function envelopeFactory(){
   let state=createDeviceIdentity();
   return async(payload,{entityId='input:round5d',baseHash=null}={})=>{
     const next=nextDeviceOperation(state);state=next.state;
@@ -36,6 +36,18 @@ function flipBase64url(value){
   return first+value.slice(1);
 }
 
+async function onboard({keyring=new LocalSyncKeyring(),inviter,joining}={}){
+  inviter=inviter??await LocalTrustedDeviceCredential.create();
+  joining=joining??await LocalTrustedDeviceCredential.create();
+  const session=await PendingTrustedDeviceOnboarding.begin(joining);
+  const approval=await prepareTrustedDeviceOnboarding({request:session.request,inviterCredential:inviter});
+  const inspected=await session.inspectChallenge(approval.challenge);
+  assert.equal(inspected.pairingCode,approval.pairingCode);
+  const released=await approval.release({keyring,confirmedPairingCode:approval.pairingCode});
+  const accepted=await session.accept({onboardingPackage:released.onboardingPackage,confirmedPairingCode:inspected.pairingCode});
+  return {keyring,inviter,joining,session,approval,inspected,released,accepted};
+}
+
 test('Round 5D keyring keeps historical versions and selects remote-object keyVersion after rotation',async()=>{
   const keyring=new LocalSyncKeyring(),makeEnvelope=await envelopeFactory();
   const firstPayload={body:'version one'},firstEnvelope=await makeEnvelope(firstPayload);
@@ -50,60 +62,116 @@ test('Round 5D keyring keeps historical versions and selects remote-object keyVe
   assert.deepEqual((await keyring.open(second)).payload,secondPayload);
 });
 
-test('Round 5D trusted-device onboarding transfers the full keyring only after matching pairing code',async()=>{
+test('Round 5D keyring is not released until the inviter explicitly confirms the independently displayed pairing code',async()=>{
   const inviterKeyring=new LocalSyncKeyring();inviterKeyring.rotate();
   const inviter=await LocalTrustedDeviceCredential.create(),joining=await LocalTrustedDeviceCredential.create();
   const session=await PendingTrustedDeviceOnboarding.begin(joining);
-  const {onboardingPackage,pairingCode,joiningCredential}=await createTrustedDeviceOnboardingPackage({request:session.request,inviterCredential:inviter,keyring:inviterKeyring});
-  assert.match(pairingCode,/^[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$/);
-  await assert.rejects(()=>session.accept({onboardingPackage,confirmedPairingCode:'0000-0000-0000'}),e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_PAIRING_CODE_MISMATCH');
-  const accepted=await session.accept({onboardingPackage,confirmedPairingCode:pairingCode});
+  const approval=await prepareTrustedDeviceOnboarding({request:session.request,inviterCredential:inviter});
+  assert.match(approval.pairingCode,/^[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$/);
+
+  await assert.rejects(
+    ()=>approval.release({keyring:inviterKeyring,confirmedPairingCode:'0000-0000-0000'}),
+    e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_PAIRING_CODE_MISMATCH'
+  );
+
+  const localView=await session.inspectChallenge(approval.challenge);
+  assert.equal(localView.pairingCode,approval.pairingCode);
+  const released=await approval.release({keyring:inviterKeyring,confirmedPairingCode:approval.pairingCode});
+  const accepted=await session.accept({onboardingPackage:released.onboardingPackage,confirmedPairingCode:localView.pairingCode});
   assert.deepEqual(accepted.keyring.versions(),[1,2]);
   assert.equal(accepted.keyring.currentVersion,2);
   assert.equal(accepted.inviterCredential.credentialId,inviter.publicCredential.credentialId);
-  assert.equal(joiningCredential.credentialId,joining.publicCredential.credentialId);
+  assert.equal(released.joiningCredential.credentialId,joining.publicCredential.credentialId);
   assert.deepEqual([...accepted.keyring.rootKeyFor(1)],[...inviterKeyring.rootKeyFor(1)]);
   assert.deepEqual([...accepted.keyring.rootKeyFor(2)],[...inviterKeyring.rootKeyFor(2)]);
-
-  const inviterRegistry=new TrustedDeviceRegistry(),joiningRegistry=new TrustedDeviceRegistry();
-  await confirmTrustedDeviceOnboarding({registry:inviterRegistry,joiningCredential,expectedPairingCode:pairingCode,confirmedPairingCode:pairingCode,keyVersion:inviterKeyring.currentVersion});
-  await joiningRegistry.trust(accepted.inviterCredential,{keyVersion:accepted.keyring.currentVersion});
-  assert.equal(inviterRegistry.isTrusted(joining.publicCredential.credentialId),true);
-  assert.equal(joiningRegistry.isTrusted(inviter.publicCredential.credentialId),true);
+  await assert.rejects(
+    ()=>approval.release({keyring:inviterKeyring,confirmedPairingCode:approval.pairingCode}),
+    e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_ONBOARDING_ALREADY_RELEASED'
+  );
 });
 
-test('Round 5D onboarding request and package signatures fail closed on transcript/ciphertext tampering',async()=>{
+test('Round 5D joining device must verify the signed challenge before it can accept any keyring package',async()=>{
+  const keyring=new LocalSyncKeyring(),inviter=await LocalTrustedDeviceCredential.create(),joining=await LocalTrustedDeviceCredential.create();
+  const session=await PendingTrustedDeviceOnboarding.begin(joining);
+  const approval=await prepareTrustedDeviceOnboarding({request:session.request,inviterCredential:inviter});
+  const released=await approval.release({keyring,confirmedPairingCode:approval.pairingCode});
+  await assert.rejects(
+    ()=>session.accept({onboardingPackage:released.onboardingPackage,confirmedPairingCode:approval.pairingCode}),
+    e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_ONBOARDING_CHALLENGE_REQUIRED'
+  );
+  const localView=await session.inspectChallenge(approval.challenge);
+  assert.equal(localView.pairingCode,approval.pairingCode);
+  assert.deepEqual((await session.accept({onboardingPackage:released.onboardingPackage,confirmedPairingCode:localView.pairingCode})).keyring.versions(),[1]);
+});
+
+test('Round 5D request, challenge and final package signatures fail closed on transcript/ciphertext tampering',async()=>{
   const keyring=new LocalSyncKeyring(),inviter=await LocalTrustedDeviceCredential.create(),joining=await LocalTrustedDeviceCredential.create();
   const tamperedSession=await PendingTrustedDeviceOnboarding.begin(joining);
   const badRequest={...tamperedSession.request,sessionId:'session_tampered_request_123'};
-  await assert.rejects(()=>createTrustedDeviceOnboardingPackage({request:badRequest,inviterCredential:inviter,keyring}),e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_ONBOARDING_REQUEST_SIGNATURE');
+  await assert.rejects(
+    ()=>prepareTrustedDeviceOnboarding({request:badRequest,inviterCredential:inviter}),
+    e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_ONBOARDING_REQUEST_SIGNATURE'
+  );
 
   const session=await PendingTrustedDeviceOnboarding.begin(joining);
-  const {onboardingPackage,pairingCode}=await createTrustedDeviceOnboardingPackage({request:session.request,inviterCredential:inviter,keyring});
-  const badPackage={...onboardingPackage,ciphertext:flipBase64url(onboardingPackage.ciphertext)};
-  await assert.rejects(()=>session.accept({onboardingPackage:badPackage,confirmedPairingCode:pairingCode}),e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_ONBOARDING_PACKAGE_SIGNATURE');
+  const approval=await prepareTrustedDeviceOnboarding({request:session.request,inviterCredential:inviter});
+  const badChallenge={...approval.challenge,inviterEphemeralPublic:flipBase64url(approval.challenge.inviterEphemeralPublic)};
+  await assert.rejects(
+    ()=>session.inspectChallenge(badChallenge),
+    e=>e instanceof SyncKeyManagementError&&(e.code==='SYNC_ONBOARDING_CHALLENGE_SIGNATURE'||e.code==='SYNC_ONBOARDING_EPHEMERAL_INVALID')
+  );
+
+  const localView=await session.inspectChallenge(approval.challenge);
+  const released=await approval.release({keyring,confirmedPairingCode:approval.pairingCode});
+  const badPackage={...released.onboardingPackage,ciphertext:flipBase64url(released.onboardingPackage.ciphertext)};
+  await assert.rejects(
+    ()=>session.accept({onboardingPackage:badPackage,confirmedPairingCode:localView.pairingCode}),
+    e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_ONBOARDING_PACKAGE_SIGNATURE'
+  );
+});
+
+test('Round 5D trusted-device registries are updated only after the verified ceremony completes',async()=>{
+  const result=await onboard();
+  const inviterRegistry=new TrustedDeviceRegistry(),joiningRegistry=new TrustedDeviceRegistry();
+  assert.equal(inviterRegistry.isTrusted(result.joining.publicCredential.credentialId),false);
+  await confirmTrustedDeviceOnboarding({
+    registry:inviterRegistry,
+    joiningCredential:result.released.joiningCredential,
+    expectedPairingCode:result.approval.pairingCode,
+    confirmedPairingCode:result.inspected.pairingCode,
+    keyVersion:result.keyring.currentVersion,
+  });
+  await joiningRegistry.trust(result.accepted.inviterCredential,{keyVersion:result.accepted.keyring.currentVersion});
+  assert.equal(inviterRegistry.isTrusted(result.joining.publicCredential.credentialId),true);
+  assert.equal(joiningRegistry.isTrusted(result.inviter.publicCredential.credentialId),true);
 });
 
 test('Round 5D revoked device keeps old keys but cannot read future objects after trusted side rotates',async()=>{
-  const inviterKeyring=new LocalSyncKeyring(),inviter=await LocalTrustedDeviceCredential.create(),joining=await LocalTrustedDeviceCredential.create();
-  const session=await PendingTrustedDeviceOnboarding.begin(joining);
-  const packageResult=await createTrustedDeviceOnboardingPackage({request:session.request,inviterCredential:inviter,keyring:inviterKeyring});
-  const accepted=await session.accept({onboardingPackage:packageResult.onboardingPackage,confirmedPairingCode:packageResult.pairingCode});
+  const result=await onboard();
   const registry=new TrustedDeviceRegistry();
-  await confirmTrustedDeviceOnboarding({registry,joiningCredential:packageResult.joiningCredential,expectedPairingCode:packageResult.pairingCode,confirmedPairingCode:packageResult.pairingCode,keyVersion:1});
+  await confirmTrustedDeviceOnboarding({
+    registry,
+    joiningCredential:result.released.joiningCredential,
+    expectedPairingCode:result.approval.pairingCode,
+    confirmedPairingCode:result.inspected.pairingCode,
+    keyVersion:1,
+  });
 
   const makeEnvelope=await envelopeFactory();
   const oldPayload={body:'old readable object'},oldEnvelope=await makeEnvelope(oldPayload);
-  const oldObject=await inviterKeyring.seal({syncEnvelope:oldEnvelope,payload:oldPayload});
-  assert.deepEqual((await accepted.keyring.open(oldObject)).payload,oldPayload);
+  const oldObject=await result.keyring.seal({syncEnvelope:oldEnvelope,payload:oldPayload});
+  assert.deepEqual((await result.accepted.keyring.open(oldObject)).payload,oldPayload);
 
-  registry.revoke(joining.publicCredential.credentialId);
-  assert.equal(registry.isTrusted(joining.publicCredential.credentialId),false);
-  inviterKeyring.rotate();
+  registry.revoke(result.joining.publicCredential.credentialId);
+  assert.equal(registry.isTrusted(result.joining.publicCredential.credentialId),false);
+  result.keyring.rotate();
   const newPayload={body:'future object after revocation'},newEnvelope=await makeEnvelope(newPayload,{entityId:'input:after-revoke'});
-  const newObject=await inviterKeyring.seal({syncEnvelope:newEnvelope,payload:newPayload});
-  await assert.rejects(()=>accepted.keyring.open(newObject),e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_KEY_VERSION_UNAVAILABLE');
-  assert.deepEqual((await accepted.keyring.open(oldObject)).payload,oldPayload);
+  const newObject=await result.keyring.seal({syncEnvelope:newEnvelope,payload:newPayload});
+  await assert.rejects(
+    ()=>result.accepted.keyring.open(newObject),
+    e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_KEY_VERSION_UNAVAILABLE'
+  );
+  assert.deepEqual((await result.accepted.keyring.open(oldObject)).payload,oldPayload);
 });
 
 test('Round 5D recovery kit uses a separate random high-entropy secret and restores all retained key versions',async()=>{
@@ -116,16 +184,21 @@ test('Round 5D recovery kit uses a separate random high-entropy secret and resto
   assert.equal(recovered.currentVersion,3);
   for(const version of recovered.versions())assert.deepEqual([...recovered.rootKeyFor(version)],[...keyring.rootKeyFor(version)]);
   const wrongSecret=recoverySecret.slice(0,-1)+(recoverySecret.endsWith('A')?'B':'A');
-  await assert.rejects(()=>recoverKeyring({recoverySecret:wrongSecret,recoveryPackage}),e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_RECOVERY_DECRYPT_FAILED');
+  await assert.rejects(
+    ()=>recoverKeyring({recoverySecret:wrongSecret,recoveryPackage}),
+    e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_RECOVERY_DECRYPT_FAILED'
+  );
 });
 
 test('Round 5D onboarding artifacts do not expose root key bytes in plaintext and no password-derived flow is introduced',async()=>{
   const keyring=new LocalSyncKeyring(),inviter=await LocalTrustedDeviceCredential.create(),joining=await LocalTrustedDeviceCredential.create();
   const session=await PendingTrustedDeviceOnboarding.begin(joining);
-  const {onboardingPackage}=await createTrustedDeviceOnboardingPackage({request:session.request,inviterCredential:inviter,keyring});
+  const approval=await prepareTrustedDeviceOnboarding({request:session.request,inviterCredential:inviter});
+  const localView=await session.inspectChallenge(approval.challenge);
+  const released=await approval.release({keyring,confirmedPairingCode:localView.pairingCode});
   const rootHex=Array.from(keyring.rootKeyFor(1),b=>b.toString(16).padStart(2,'0')).join('');
-  const serialized=JSON.stringify(onboardingPackage);
-  assert.equal(serialized.includes(rootHex),false);
+  assert.equal(JSON.stringify(approval.challenge).includes(rootHex),false);
+  assert.equal(JSON.stringify(released.onboardingPackage).includes(rootHex),false);
   const source=await readFile(new URL('../core/sync-key-management.js',import.meta.url),'utf8');
   assert.equal(/PBKDF2|scrypt|argon|password|passphrase/i.test(source),false);
 });
