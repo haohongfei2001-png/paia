@@ -57,9 +57,27 @@ A revoked device loses service authority immediately. Its existing local root ke
 
 The service must not claim that changing a directory row retroactively revokes old ciphertext already decryptable by that device.
 
-## 4. Pairing relay
+## 4. Pairing invitation capability
 
-The account service may provide a short-lived relay for the Round 5D onboarding ceremony.
+Knowing an `accountId` is not sufficient authority to open a pairing relay.
+
+An already trusted device first creates a short-lived, opaque, one-shot pairing invitation capability through its authenticated service session.
+
+The joining device receives only that invitation token out-of-band and uses it once to open a relay with its signed Round 5D onboarding request.
+
+Properties:
+
+- invitation creation requires a trusted device session;
+- the invitation expires after a bounded lifetime;
+- one invitation opens at most one relay;
+- an expired or already-consumed invitation cannot be reused;
+- raw `accountId` alone is not a joining capability.
+
+This does not replace the Round 5D human comparison code. The invitation authorizes creation of a relay; it does not authorize key release.
+
+## 5. Pairing relay
+
+After a valid one-shot invitation is consumed, the account service may provide a short-lived relay for the Round 5D onboarding ceremony.
 
 The relay state machine is:
 
@@ -77,7 +95,7 @@ An expired relay becomes unusable.
 
 The relay is not allowed to decide whether the pairing code matched. That decision remains on the trusted client before the keyring-bearing package is generated.
 
-## 5. Relay artifact rules
+## 6. Relay artifact rules
 
 Relay artifacts are bounded JSON messages.
 
@@ -87,17 +105,21 @@ The contract rejects plaintext secret/content/merge-authority fields such as:
 - private keys;
 - Recovery Secret;
 - Source/Input body/title/note/query;
-- entity IDs or revision hashes intended for content merge authority.
+- entity IDs, operation IDs, device sequence or revision hashes intended for content merge authority;
+- tombstone/revision graph metadata unrelated to onboarding.
 
 Public onboarding credentials, public ECDH keys, signatures, salts/nonces and ciphertext are permitted because the Round 5D protocol authenticates/encrypts the sensitive keyring payload.
 
-A future service should treat relay data as short-lived state, not a permanent device-history archive.
+A future service should treat invitation and relay data as short-lived state, not a permanent device-history archive.
 
-## 6. Replay and expiry
+## 7. Replay and expiry
 
 Round 5E local simulation enforces:
 
-- bounded relay lifetime;
+- trusted-session-only invitation issuance;
+- bounded invitation lifetime;
+- one-time invitation consumption;
+- bounded relay lifetime inherited from the invitation;
 - one challenge publication per relay;
 - one final package publication per relay;
 - one final package consumption;
@@ -106,7 +128,7 @@ Round 5E local simulation enforces:
 
 A production service still needs durable expiry, replay protection, rate limiting and abuse controls.
 
-## 7. Merge authority remains client-side
+## 8. Merge authority remains client-side
 
 The account/device service is not allowed to choose the winning Source/Input/Thought revision.
 
@@ -122,7 +144,7 @@ The service must never use:
 
 as a substitute for the Round 5B ancestry/tombstone merge rules.
 
-## 8. Local simulator
+## 9. Local simulator
 
 `core/account-device-service-contract.js` provides an in-memory service simulator.
 
@@ -130,22 +152,23 @@ It can exercise:
 
 - bootstrap of the first trusted public device credential;
 - authenticated local service sessions;
+- trusted-device issuance of short-lived one-shot pairing invitations;
 - adding a second trusted device after local onboarding;
 - revoking a device and invalidating its service session;
 - short-lived pairing relay request/challenge/package/consume flow;
-- relay expiry and one-shot behavior;
+- invitation/relay expiry and one-shot behavior;
 - rejection of plaintext secret or merge-authority fields.
 
 It has no network, database, account provider or backend SDK.
 
-## 9. Production gates after Round 5E
+## 10. Production gates after Round 5E
 
 Before a live service may ship, PAIA still needs:
 
 1. a real account authentication model independent from content encryption;
 2. durable device-directory authorization and revocation semantics;
-3. authenticated pairing relay with server-side expiry/replay/rate-limit controls;
-4. privacy review of account/device/relay metadata leakage;
+3. authenticated pairing invitation/relay with server-side expiry/replay/rate-limit controls;
+4. privacy review of account/device/invitation/relay metadata leakage;
 5. integration with actual platform secure-key persistence;
 6. bounded encrypted remote-object listing/cursor/retention/compaction;
 7. conflict-resolution UI and actual offline multi-device testing.
