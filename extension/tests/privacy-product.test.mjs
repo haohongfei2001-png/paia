@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
-test('privacy: manifest keeps an exact reviewed permission allowlist and the sole approved remote origin',async()=>{
+test('privacy: manifest keeps an exact reviewed required and optional permission allowlist',async()=>{
  const m=JSON.parse(await readFile(new URL('manifest.json',root),'utf8'));
- assert.deepEqual(m.permissions,['storage','nativeMessaging']);
+ assert.deepEqual(m.permissions,['storage']);
+ assert.deepEqual(m.optional_permissions,['nativeMessaging']);
  assert.deepEqual(m.host_permissions,['https://api.deepseek.com/*']);
- for(const key of ['optional_host_permissions','optional_permissions','externally_connectable','web_accessible_resources'])assert.equal(m[key],undefined);
+ for(const key of ['optional_host_permissions','externally_connectable','web_accessible_resources'])assert.equal(m[key],undefined);
  for(const s of m.content_scripts){assert.deepEqual(s.matches,['https://chatgpt.com/*']);assert.equal(s.all_frames,false);assert.ok(s.js.every(p=>!/^tests|^work/.test(p)));}
  assert.match(m.content_security_policy.extension_pages,/connect-src https:\/\/api\.deepseek\.com/);
 });
