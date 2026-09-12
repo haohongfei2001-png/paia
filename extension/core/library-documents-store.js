@@ -4,14 +4,40 @@ import {countBatch} from './library-counts.js';
 import {editLibraryBatch} from './library-edit.js';
 import {LibraryFoundationStore} from './thought-store.js';
 import {fail,keys,idOK,revisionOK,prefix,markHuman,entryDTO,rankBetween} from './thought-model.js';
+import {repairTopicCompatibility,validTopicGeneration} from './topic-compatibility.js';
 import {journal,nextSequence} from './thought-journal.js';
 import {queueSearch,searchBatch,rebuildBatch,searchLibrary} from './library-search.js';
 import {startLayout,layoutBatch,reorderPlacement} from './library-layout.js';
 const limitOK=n=>Number.isInteger(n)&&n>0&&n<=100;
 const bytes=x=>new TextEncoder().encode(JSON.stringify(x)).length;
 export class LibraryDocumentsStore extends LibraryFoundationStore {
- constructor(local,options={}){super(local,options);this.libraryDocumentMode=true;}
- async finishFoundation(){await super.finishFoundation();if(this.documentsLoaded)return;for(;;){const complete=await this.run(()=>this.repository.transaction(true,async t=>{const marker=await t.get('meta','library-documents-bootstrap')||{id:'library-documents-bootstrap',cursor:null,complete:false};if(marker.complete)return true;const page=await t.page('topics',{after:marker.cursor??undefined,limit:100});for(const {value:topic}of page.rows){if(topic.defaultSectionId)continue;const section=await t.edge('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));if(section){topic.defaultSectionId=section.sectionId;section.isDefault=true;await t.put('topics',topic);await t.put('sections',section);}}marker.cursor=page.next;marker.complete=!page.next;await t.put('meta',marker);return marker.complete;}));if(complete){this.documentsLoaded=true;return;}await this.repository.checkpoint('library-documents-bootstrap-batch');}}
+ constructor(local,options={}){super(local,options);this.libraryDocumentMode=true;this.compatibilityStatus=null;}
+ async finishFoundation(){
+  await super.finishFoundation();if(this.documentsLoaded)return;
+  for(;;){
+   const marker=await this.run(()=>this.repository.transaction(true,async t=>{
+    const row=await t.get('meta','library-documents-compat-v2')||{id:'library-documents-compat-v2',cursor:null,complete:false,activeTopics:0,repairedTopics:0,repairedIndexTopics:0,repairedGenerationTopics:0,repairedDefaultSections:0,unresolvedLayouts:0,indexedActiveTopics:0,indexGap:0};
+    if(row.complete)return row;
+    const page=await t.page('topics',{after:row.cursor??undefined,limit:100});
+    for(const {value:topic}of page.rows){
+     const result=await repairTopicCompatibility(t,topic);
+     if(result.active)row.activeTopics++;
+     if(result.changed)row.repairedTopics++;
+     if(result.repairedIndex)row.repairedIndexTopics++;
+     if(result.repairedGeneration)row.repairedGenerationTopics++;
+     if(result.repairedDefaultSection)row.repairedDefaultSections++;
+     if(result.unresolvedLayout)row.unresolvedLayouts++;
+    }
+    row.cursor=page.next;row.complete=!page.next;
+    if(row.complete){row.indexedActiveTopics=await t.count('topics','byIndex',prefix([0]));row.indexGap=Math.max(0,row.activeTopics-row.indexedActiveTopics);row.completedAt=this.clock();}
+    await t.put('meta',row);return row;
+   }));
+   if(marker.complete){this.compatibilityStatus=marker;this.documentsLoaded=true;return;}
+   await this.repository.checkpoint('library-documents-compat-v2-batch');
+  }
+ }
+ async libraryCompatibilityStatus(){await this.finishFoundation();const row=this.compatibilityStatus||await this.run(()=>this.repository.transaction(false,t=>t.get('meta','library-documents-compat-v2'),['meta']));return {complete:!!row?.complete,activeTopics:row?.activeTopics||0,indexedActiveTopics:row?.indexedActiveTopics||0,indexGap:row?.indexGap||0,repairedTopics:row?.repairedTopics||0,repairedIndexTopics:row?.repairedIndexTopics||0,repairedGenerationTopics:row?.repairedGenerationTopics||0,repairedDefaultSections:row?.repairedDefaultSections||0,unresolvedLayouts:row?.unresolvedLayouts||0};}
+ async libraryStatus(){const base=await super.libraryStatus();return {...base,compatibility:await this.libraryCompatibilityStatus()};}
  async librarySafetyChange(t,row,priorFields){if(row.storageSchema!==2||row.lifecycle==='quarantined')return;if(priorFields){let contentChanged=false;for(const [field,before]of Object.entries(priorFields)){if(before!==row[field==='body'?'thoughtText':field]){row.fieldRevisions[field]++;if(field==='body')row.meaningfulContentAt=this.clock();if(field!=='note')contentChanged=true;}}if(contentChanged)row.contentRevision++;}row.searchSafetyVersion=(row.searchSafetyVersion||0)+1;await queueSearch(t,'entry',row);}
  async libraryMaintenanceWrite(fn){await this.finishFoundation();return this.run(()=>this.repository.transaction(true,fn));}
  async operation(request,fn){return super.operation(request,async t=>{
@@ -47,11 +73,11 @@ export class LibraryDocumentsStore extends LibraryFoundationStore {
   return {items:items.slice(offset,offset+limit),nextCursor:offset+limit<items.length?{mode:'reading',offset:offset+limit}:null};
  }
  async topicCount(topicId,{cursor=null,limit=200}={}){
-  await this.finishFoundation();return this.run(()=>this.repository.transaction(true,async t=>{const topic=await t.get('topics',topicId),epoch=(await t.get('meta','thought-epoch'))?.value||0,key=`reading1:${topic.activeLayoutGeneration}:${topic.countVersion||0}:${epoch}`;if(topic.countCache?.key===key&&topic.countCache.complete)return {visibleEntryCount:topic.countCache.count,countComplete:true};const task={id:JSON.stringify(['count',topicId]),entityKind:'count',statusKey:0,ownerId:topicId,key,cursor:null,count:0,sourceRecordIds:[]},existing=await t.get('libraryMigrationItems',task.id);if(!existing||existing.key!==key)await t.put('libraryMigrationItems',task);return {visibleEntryCount:topic.countCache?.key===key?topic.countCache.count:0,countComplete:false};}));
+  await this.finishFoundation();return this.run(()=>this.repository.transaction(true,async t=>{const topic=await t.get('topics',topicId);if(!topic)return {visibleEntryCount:0,countComplete:true,compatibilityUnavailable:true};if(!validTopicGeneration(topic.activeLayoutGeneration)){const ids=new Set((await t.all('placements')).filter(p=>p.topicId===topicId&&p.lifecycle==='active').map(p=>p.entryId));let visibleEntryCount=0;for(const id of ids){const e=await t.get('thoughts',id);if(e?.lifecycle==='active')visibleEntryCount++;}return {visibleEntryCount,countComplete:true,countApproximate:true,compatibilityUnavailable:true};}const epoch=(await t.get('meta','thought-epoch'))?.value||0,key=`reading1:${topic.activeLayoutGeneration}:${topic.countVersion||0}:${epoch}`;if(topic.countCache?.key===key&&topic.countCache.complete)return {visibleEntryCount:topic.countCache.count,countComplete:true};const task={id:JSON.stringify(['count',topicId]),entityKind:'count',statusKey:0,ownerId:topicId,key,cursor:null,count:0,sourceRecordIds:[]},existing=await t.get('libraryMigrationItems',task.id);if(!existing||existing.key!==key)await t.put('libraryMigrationItems',task);return {visibleEntryCount:topic.countCache?.key===key?topic.countCache.count:0,countComplete:false};}));
  }
  async topicDocumentPage({topicId,cursor=null,limit=40,sectionCursor=null,trackedEntryIds=[]}={}){
   if(!idOK(topicId)||!limitOK(limit)||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id)))fail();await this.finishFoundation();
-  const raw=await this.run(()=>this.repository.transaction(false,async t=>{const topic=await this.canonicalTopic(t,topicId);if(cursor&&(cursor.topicId!==topic.id||cursor.generation!==topic.activeLayoutGeneration||cursor.organizationRevision!==topic.organizationRevision))return {cursorInvalid:true,topic};const sections=await t.rangePage('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),sectionCursor,100),page=await t.rangePage('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),cursor?.key||null,limit);return {topic,sections:sections.rows.map(x=>x.value),sectionCursor:sections.next,page};}));
+  const raw=await this.run(()=>this.repository.transaction(false,async t=>{const topic=await this.canonicalTopic(t,topicId);if(!validTopicGeneration(topic.activeLayoutGeneration))fail();if(cursor&&(cursor.topicId!==topic.id||cursor.generation!==topic.activeLayoutGeneration||cursor.organizationRevision!==topic.organizationRevision))return {cursorInvalid:true,topic};const sections=await t.rangePage('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),sectionCursor,100),page=await t.rangePage('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),cursor?.key||null,limit);return {topic,sections:sections.rows.map(x=>x.value),sectionCursor:sections.next,page};}));
   const tracked=[];for(const id of trackedEntryIds){try{const e=await this.entry(id);tracked.push({id,lifecycle:e.lifecycle,purged:e.staleReasons?.includes('source_purged')||false,revision:e.revision,fieldRevisions:e.fieldRevisions});}catch{tracked.push({id,lifecycle:'unavailable',purged:true});}}
   if(raw.cursorInvalid)return {...raw,tracked};const items=[];let size=bytes(raw.sections)+bytes(raw.topic),last=null,hasMore=!!raw.page.next;
   for(const {key,value:p}of raw.page.rows){let e;try{e=await this.entry(p.entryId);}catch{last=key;continue;}if(e.lifecycle!=='active'){last=key;continue;}let dto=this.documentEntry(e);if(bytes(dto)>128*1024)dto={id:e.id,revision:e.revision,large:true,bodyBytes:bytes(e.body),title:e.title};if(!raw.sections.some(s=>s.sectionId===p.sectionId)){const section=await this.run(()=>this.repository.transaction(false,t=>t.get('sections',JSON.stringify([raw.topic.id,raw.topic.activeLayoutGeneration,p.sectionId]))));if(section)raw.sections.push(section);}const item={placement:p,entry:dto};if(items.length&&size+bytes(item)>256*1024){hasMore=true;break;}items.push(item);size+=bytes(item);last=key;}

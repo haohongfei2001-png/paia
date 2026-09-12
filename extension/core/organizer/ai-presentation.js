@@ -4,8 +4,10 @@ import {commitBoundedProgress} from './bounded-workflow.js';
 import {sourceFaithfulSummary} from './source-summary.js';
 import {bytes,reject,SAFE_ERRORS} from './contracts.js';
 import {prefix,idOK} from '../thought-model.js';
+import {validTopicGeneration} from '../topic-compatibility.js';
 import {inputProjection} from '../thought-evidence.js';
 import {planDelta} from '../dual-view.js';
+import {migrateAIPresentationProductization} from './ai-presentation-migration.js';
 
 import {AI_FIELDS,AI_LIST_FIELDS,AI_SCHEMA_VERSION,isStoredAIPresentation,presentationContent,validateAIPresentation} from './ai-contract.js';
 import {validateDeepSeekRequest} from './deepseek.js';
@@ -18,6 +20,7 @@ const safe=e=>SAFE_ERRORS.has(e?.code)?e.code:'INTERNAL_RUNTIME_ERROR';
 // Trusted projection only. Neither provider nor UI receives repository handles,
 // Source snapshots, Input identifiers, hidden Inputs, titles/URLs or raw history.
 async function topicSnapshot(s,t,topic){
+ if(!validTopicGeneration(topic.activeLayoutGeneration))reject('STALE_BASE');
  const placements=await t.all('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));
  const entries=[],versions={},inputVersions={},filter=await t.get('meta','smart-filter');
  for(const placement of placements){let row;try{row=await s.readableEntry(t,placement.entryId);}catch{continue;}if(!row||row.lifecycle!=='active')continue;
@@ -29,7 +32,7 @@ async function topicSnapshot(s,t,topic){
 }
 async function snapshot(s){await migrateAIPresentations(s);return s.run(()=>s.repository.transaction(false,async t=>{
  const gate=await t.get('meta','gate'),cp=await t.get('meta',CHECKPOINT)||{id:CHECKPOINT,view:'ai',version:3,inputVersions:{},topicVersions:{},lastSequence:0},topics=[];
- for(const raw of await t.all('topics')){if(raw.lifecycle!=='active'||raw.redirectTo)continue;const topic=await s.canonicalTopic(t,raw.id),current=await topicSnapshot(s,t,topic),rawPrior=cp.topicVersions?.[topic.id]||{},stored=await t.get('meta',ROW+topic.id),allowed=new Set(current.entries.map(x=>x.id));
+ for(const raw of await t.all('topics')){if(raw.lifecycle!=='active'||raw.redirectTo)continue;const topic=await s.canonicalTopic(t,raw.id);if(!validTopicGeneration(topic.activeLayoutGeneration))continue;const current=await topicSnapshot(s,t,topic),rawPrior=cp.topicVersions?.[topic.id]||{},stored=await t.get('meta',ROW+topic.id),allowed=new Set(current.entries.map(x=>x.id));
   // Never render or resend a derived cache after any of its evidence is removed.
   const readable=stored&&stored.topicId===topic.id&&isStoredAIPresentation(stored,allowed),presentation=readable?stored:null,prior=readable||!current.entries.length?rawPrior:{};
   const changed=current.entries.filter(e=>prior[e.id]!==current.versions[e.id]),removed=Object.keys(prior).filter(id=>!allowed.has(id));
@@ -42,10 +45,19 @@ function acknowledgedInputs(checkpoint,topic,delta,completedVersions,topics){
  const versions={...checkpoint.inputVersions},ids=new Set([...Object.keys(topic.inputVersions),...Object.values(topic.prior).flatMap(versionInputs)]);
  for(const id of ids){const pending=topics.some(other=>{const acknowledged=other.id===topic.id?completedVersions:checkpoint.topicVersions?.[other.id]||{};return [...new Set([...Object.keys(other.versions),...Object.keys(acknowledged)])].some(entryId=>(versionInputs(other.versions[entryId]).includes(id)||versionInputs(acknowledged[entryId]).includes(id))&&other.versions[entryId]!==acknowledged[entryId]);});if(pending)continue;const current=delta.nextCheckpoint.inputVersions[id];if(current)versions[id]=current;else delete versions[id];}return versions;
 }
-export async function aiPresentationStatus(s){const [all,delta]=await Promise.all([snapshot(s),planDelta(s,'ai')]);const runtime=await s.run(()=>s.repository.transaction(false,async t=>{const pointer=await t.get('meta',CURRENT);return pointer?await t.get('meta',REQUEST+pointer.requestId):null;},['meta']));return {topics:all.topics.map(t=>({topicId:t.id,name:t.name,sourceHint:sourceFaithfulSummary(t.entries),userDraft:t.userDraft,presentation:t.presentation?{...presentationContent(t.presentation),revision:t.presentation.revision,schemaVersion:t.presentation.schemaVersion,protections:t.presentation.protections||{},updatedAt:t.presentation.updatedAt,stale:t.stale}:null,stale:t.stale,pending:t.pending,pendingEntryCount:t.changed.length+t.removed.length})),pendingTopics:all.topics.filter(t=>t.pending).length,nextTopic:all.topics.filter(t=>t.pending).map(t=>({topicId:t.id,name:t.name,inputCount:Math.min(t.changed.length||t.entries.length,8)}))[0]||null,counts:delta.counts,approximateBytes:all.topics.filter(t=>t.pending).reduce((n,t)=>n+bytes(t.changed.slice(0,8).map(e=>e.body)),0),runtime:runtime?{phase:runtime.phase,state:runtime.state,errorCode:runtime.errorCode||null,httpStatus:runtime.httpStatus??null,responseBytes:runtime.responseBytes||0,requestCount:runtime.requestCount||0}:null};}
-const migrations=new WeakMap();
+async function readAIPresentationStatus(s){const [all,delta]=await Promise.all([snapshot(s),planDelta(s,'ai')]);const runtime=await s.run(()=>s.repository.transaction(false,async t=>{const pointer=await t.get('meta',CURRENT);return pointer?await t.get('meta',REQUEST+pointer.requestId):null;},['meta']));return {topics:all.topics.map(t=>({topicId:t.id,name:t.name,sourceHint:sourceFaithfulSummary(t.entries),userDraft:t.userDraft,presentation:t.presentation?{...presentationContent(t.presentation),revision:t.presentation.revision,schemaVersion:t.presentation.schemaVersion,protections:t.presentation.protections||{},updatedAt:t.presentation.updatedAt,stale:t.stale}:null,stale:t.stale,pending:t.pending,pendingEntryCount:t.changed.length+t.removed.length})),pendingTopics:all.topics.filter(t=>t.pending).length,nextTopic:all.topics.filter(t=>t.pending).map(t=>({topicId:t.id,name:t.name,inputCount:Math.min(t.changed.length||t.entries.length,8)}))[0]||null,counts:delta.counts,approximateBytes:all.topics.filter(t=>t.pending).reduce((n,t)=>n+bytes(t.changed.slice(0,8).map(e=>e.body)),0),runtime:runtime?{phase:runtime.phase,state:runtime.state,errorCode:runtime.errorCode||null,httpStatus:runtime.httpStatus??null,responseBytes:runtime.responseBytes||0,requestCount:runtime.requestCount||0}:null};}
+export async function aiPresentationStatus(s){
+ const result=await readAIPresentationStatus(s),compatibility=await s.libraryCompatibilityStatus?.().catch(()=>null);
+ return compatibility?.unresolvedLayouts>0?{...result,degraded:{reason:'topic_compatibility_unresolved',unresolvedLayouts:compatibility.unresolvedLayouts}}:result;
+}
+const migrations=new WeakMap(),completedMigrations=new WeakMap();
 export async function migrateAIPresentations(s){
- if(!migrations.has(s)){const task=s.foundationWrite(async t=>{if(await t.get('meta','aiProductizationMigration'))return;for(const topic of await t.all('topics')){const row=await t.get('meta',ROW+topic.id);if(row&&row.schemaVersion!==AI_SCHEMA_VERSION)await t.put('meta',{...row,schemaVersion:0,needsUpdate:true});if(row){const ids=[];for(const p of await t.all('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]))){const e=await t.get('thoughts',p.entryId);ids.push(...(e?.sourceRecordIds||[]));}await t.put('libraryMigrationItems',{id:'ai-presentation-fence:'+topic.id,entityKind:'organizer_metadata',ownerKind:'ai_presentation',ownerId:topic.id,statusKey:1,sourceRecordIds:[...new Set(ids)]});}}await t.put('meta',{id:'aiProductizationMigration',version:1,at:s.clock()});});migrations.set(s,task);task.catch(()=>migrations.delete(s));}return migrations.get(s);
+ if(completedMigrations.has(s))return completedMigrations.get(s);
+ if(!migrations.has(s)){
+  const task=migrateAIPresentationProductization(s).then(marker=>{if(marker.complete)completedMigrations.set(s,marker);return marker;}).finally(()=>{if(migrations.get(s)===task)migrations.delete(s);});
+  migrations.set(s,task);
+ }
+ return migrations.get(s);
 }
 async function aiJournal(s,t,before,after,actor,operationId){
  const evidenceEntryIds=[...new Set([...(before?.evidenceEntryIds||[]),...(after?.evidenceEntryIds||[])])],sourceRecordIds=[];
