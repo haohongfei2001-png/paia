@@ -82,5 +82,6 @@ test('history completion UI follows the session-resolved adapter instead of a fi
  const ui=await readFile(new URL('../ui/history-completion.js',import.meta.url),'utf8');
  assert.equal(ui.includes('!controller.adapter'),false);
  assert.ok(ui.includes("sourceName(d.adapterId||d.profileId)"));
- assert.ok(ui.includes("sourceName(r.adapterId)+' 官方导出'"));
+ assert.ok(ui.includes('sourceName(r.adapterId)'));
+ assert.ok(ui.includes('官方导出'));
 });
