@@ -133,7 +133,7 @@ Product exit criterion: **not met**.
 
 # Round 5 — Portability & Sync Readiness
 
-Status: **gated overall; Round 5A, Round 5B, Round 5C, Round 5D, Round 5E and Round 5F were opened by explicit product-owner override**
+Status: **gated overall; Round 5A, Round 5B, Round 5C, Round 5D, Round 5E, Round 5F and Round 5F.1 were opened by explicit product-owner override**
 
 The override changes implementation order only. It does **not** mean the broader Round 5 product prerequisites have been satisfied, and it does not open live multi-provider capture, cloud sync, Web/Desktop/mobile expansion or broad autonomous-agent access.
 
@@ -366,13 +366,54 @@ Transport exit criterion: **not met**.
 
 Product exit criterion: **not met**.
 
+## Round 5F.1 — Physical macOS Validation & Native Host Distribution Hardening
+
+Status: **implementation and automated CI-level distribution certification completed 2026-09-13; physical Secure Enclave validation, stable production Chrome extension identity and an actually Developer-ID-signed/notarized package remain external release gates**
+
+Purpose: turn the Round 5F native-host prototype into a reproducible macOS validation and direct-distribution path without pretending hosted CI or unsigned artifacts are public-release evidence.
+
+Delivered:
+
+- `native-hosts/macos/verify-physical.mjs` validates Keychain replace/read/delete and persistent Secure Enclave signing across separate native-host processes, including cryptographic signature verification and post-delete lookup failure;
+- physical evidence is deliberately coarse and excludes generated secret material, slot identifiers, public-key fingerprints and machine identifiers;
+- hosted CI may execute the verifier only in `--allow-no-enclave` mode; only `--require-enclave` on a real supported Mac can close the physical-hardware gate;
+- the developer installer now compiles for an explicit macOS 13 target, applies an ad-hoc Hardened Runtime signature and atomically replaces the user-level native-host manifest;
+- `build-release.sh` cross-compiles arm64 and x86_64, produces one universal host, pins the system-wide Chrome native-host manifest to one exact extension ID, and has separate CI-only and production modes;
+- production package building fails closed unless both Developer ID Application and Developer ID Installer identities are supplied;
+- production host signing requires Hardened Runtime and a secure timestamp, and production `.pkg` creation requires Developer ID Installer signing;
+- `notarize-release.sh` uses `notarytool`, requires an Accepted result, staples and validates the ticket, requires Gatekeeper install assessment, and promotes companion build metadata only after those checks succeed;
+- `uninstall.sh` separates user/system filesystem removal from cryptographic device revocation and does not blindly erase Keychain/Secure Enclave state;
+- CI validates script syntax, universal architecture output, ad-hoc Hardened Runtime signing, exact package payload paths, production fail-closed behavior without Apple signing identities and non-distributable CI metadata;
+- the secure-persistence contract now states the local-process threat boundary honestly: Chrome `allowed_origins` is a Chrome-mediated launch restriction, not cryptographic caller authentication against arbitrary same-user local code;
+- public distribution is explicitly blocked until PAIA has a final stable production Chrome extension ID to bind into `allowed_origins`.
+
+External gates still open:
+
+- no authorized physical Mac is connected to this session, so the real `--require-enclave` lifecycle has not been executed and must not be claimed as passed;
+- PAIA's final production Chrome extension ID is not yet fixed;
+- no Apple Developer ID identities or notarization credentials are stored in the repository or available to this branch;
+- therefore no real Developer-ID-signed/notarized PAIA Secure Store package has been produced yet;
+- automatic signed-host update/removal UX remains unimplemented.
+
+CI/distribution-tooling engineering exit criterion: **met**.
+
+Physical macOS hardware validation exit criterion: **not met**.
+
+Signed/notarized distribution exit criterion: **not met**.
+
+Production account/device-service exit criterion: **not met**.
+
+Transport exit criterion: **not met**.
+
+Product exit criterion: **not met**.
+
 ## Broader Round 5 work remains gated
 
 The next legitimate steps are not automatically “connect Supabase/Drive/iCloud”. They are, in order of evidence:
 
 1. verify Round 5A against a real Claude export;
 2. continue Round 4.8 real-use observation;
-3. complete Round 5F physical-macOS Secure Enclave verification and signed/notarized native-host distribution before claiming public secure-store readiness;
+3. finish the external Round 5F.1 release gates: fix the production Chrome extension ID, run `verify-physical.mjs --require-enclave` on a real supported Mac, then execute the Developer ID + notarization + Gatekeeper pipeline;
 4. if multi-device value remains deliberately prioritized, implement a production account authentication/device-directory/pairing-relay service satisfying `ACCOUNT_DEVICE_SERVICE.md`, without making that service encryption or merge authority;
 5. design bounded encrypted remote-object listing/cursor/retention/compaction plus old-key re-encryption/retirement semantics;
 6. before any public multi-device release, build explicit conflict-resolution UI and test offline divergence/tombstone/retry/device-reset/revocation scenarios over the actual transport.
@@ -393,6 +434,7 @@ Constraints:
 - Absence of an approved platform secure-store adapter must disable durable live sync rather than trigger an insecure storage fallback.
 - The account/device service may coordinate public device trust and short-lived pairing messages but cannot become client-content merge authority.
 - Native Messaging must remain pinned to reviewed host/origin boundaries and must not become a general privileged escape hatch from the extension sandbox.
+- The macOS native host must not be described as protection against arbitrary same-user local malware; that is outside the current adapter threat model.
 - Early Passport implementation is not permission for broad autonomous agent access.
 
 ---

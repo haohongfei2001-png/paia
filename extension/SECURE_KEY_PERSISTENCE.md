@@ -1,8 +1,8 @@
 # PAIA Secure Key Persistence Contract
 
-Status: **Round 5F source of truth — macOS Chrome native-host adapter implemented and automated engineering certification established; real Secure Enclave device validation remains required before claiming public production readiness**
+Status: **Round 5F.1 source of truth — macOS Chrome native-host adapter and signed/notarized distribution pipeline implemented; physical Secure Enclave validation and execution of the real Developer ID/notarization pipeline remain required before public production readiness**
 
-Version: **2**
+Version: **3**
 
 This contract defines what a storage provider must guarantee before PAIA is allowed to persist root-key material or a trusted-device private signing credential.
 
@@ -35,6 +35,8 @@ Round 5F additionally requires a production provider claiming non-exportable sig
 A provider that merely stores bytes in normal extension/browser application storage is not allowed to claim production readiness.
 
 The capability gate is an **integration safety boundary**, not a sandbox against code that has already compromised the PAIA process. A production provider is trusted code: its capability claims must be backed by an actual reviewed platform adapter and platform-specific tests.
+
+The macOS Native Messaging boundary does **not** claim to resist arbitrary code already executing as the same local user. Chrome enforces the native-host manifest and `allowed_origins` when Chrome launches the host, but the host executable is still a local executable; a separate same-user process can attempt to invoke it directly outside Chrome's mediation. The caller origin passed by Chrome is public routing context, not cryptographic proof of caller identity. Therefore Round 5F/5F.1 claims are limited to isolating secret persistence from ordinary extension/web storage and keeping the device signing private key non-exportable. Defending against arbitrary same-user local malware would require a stronger OS service/access-control design and is outside this adapter's current threat model.
 
 ## 3. macOS Chrome adapter
 
@@ -158,9 +160,63 @@ A denied optional native-messaging permission must be treated as the user's choi
 
 A Secure Enclave failure must not silently create an exportable software ECDSA private key.
 
-## 11. Certification and remaining work
+## 11. Physical hardware validation gate
 
-Round 5F automated engineering certification requires:
+Round 5F.1 adds `native-hosts/macos/verify-physical.mjs` as the canonical physical-device lifecycle check.
+
+A physical validation pass must run the installed host across separate processes and prove all of the following on a real supported Mac:
+
+- Keychain root-key write/read survives process restart;
+- root-key replacement returns the replacement value rather than stale data;
+- root-key deletion is observable;
+- a persistent Secure Enclave P-256 signing key can be created;
+- the public key is stable after native-host process restart;
+- signatures from independent post-restart host processes verify with that public key;
+- signing-key deletion makes subsequent lookup fail.
+
+The verifier must not emit secret material, generated slot IDs, public-key fingerprints or machine identifiers into durable evidence.
+
+`--require-enclave` is the only mode that can close the physical production gate. `--allow-no-enclave` exists solely so hosted CI can prove the fail-closed branch without pretending hosted CI is physical hardware evidence.
+
+## 12. macOS distribution gate
+
+Round 5F.1 adds a formal direct-distribution path under `native-hosts/macos/`.
+
+`build-release.sh` production mode must:
+
+- require an exact 32-character Chrome extension ID;
+- build both arm64 and x86_64 native-host slices and combine them into one universal executable;
+- use an explicit macOS deployment target rather than inheriting the build machine's current OS as the minimum;
+- sign the native host with a **Developer ID Application** identity, Hardened Runtime and a secure timestamp;
+- place the binary at `/Library/Application Support/PAIA/SecureStore/paia-secure-store`;
+- place the Chrome system-wide native-host manifest at `/Library/Google/Chrome/NativeMessagingHosts/com.paia.secure_store.json`;
+- pin `allowed_origins` to the exact production extension ID with no wildcard;
+- build a `.pkg` signed with a **Developer ID Installer** identity;
+- verify package payload and signature before returning success.
+
+`--ci-adhoc` is a separate certification-only mode. It may use an ad-hoc Hardened Runtime binary and unsigned installer package solely to exercise architecture and payload layout. Such artifacts are explicitly non-distributable.
+
+`notarize-release.sh` is the release notarization gate. It must reject a package that is not Developer ID Installer-signed, submit with Apple's current `notarytool` flow, require `Accepted`, staple and validate the ticket, and require Gatekeeper `spctl -t install` acceptance.
+
+No Apple signing identity, private key, notarization credential or keychain profile may be stored in the repository.
+
+An actually signed/notarized package has **not** been produced merely because these scripts exist. That release gate closes only when the production pipeline is executed successfully with authorized Apple credentials.
+
+## 13. Installation and removal semantics
+
+The developer installer remains user-scoped. The production `.pkg` uses system-wide Chrome Native Messaging registration.
+
+Filesystem uninstall and cryptographic device revocation are intentionally separate operations:
+
+- user/system uninstall scripts may remove the host binary, native-host manifest and package receipt;
+- they must not blindly enumerate or erase account/device secret state from Keychain or Secure Enclave;
+- secret destruction must remain an explicit trusted-device removal operation with account/device context.
+
+This prevents a generic filesystem uninstall from becoming an unaudited bulk cryptographic erase primitive.
+
+## 14. Certification and remaining work
+
+Automated engineering certification now requires:
 
 - existing PAIA unit/privacy/browser/release gates remain green;
 - JavaScript adapter restart/reopen tests pass against a simulated persistent native host;
@@ -168,13 +224,21 @@ Round 5F automated engineering certification requires:
 - the Swift host compiles on macOS CI;
 - macOS CI exercises actual Keychain root-key write/read/replace/delete;
 - hosts without persistent Secure Enclave capability prove the fail-closed path;
-- the Round 5D onboarding ceremony can use persistent credentials and persist the transferred keyring after a simulated restart.
+- the Round 5D onboarding ceremony can use persistent credentials and persist the transferred keyring after a simulated restart;
+- the physical verifier executes in CI-safe fail-closed mode without treating lack of Secure Enclave as a physical pass;
+- the universal package builder succeeds in CI-only mode and proves both architectures plus exact package payload paths;
+- all distribution scripts pass syntax checks.
 
-Before public production-readiness is claimed, at least one physical supported Secure Enclave Mac must additionally verify create -> sign -> process restart -> reopen -> sign -> delete with the installed native host.
+Before public production-readiness is claimed, both external gates remain required:
 
-Still not implemented by Round 5F:
+1. at least one physical supported Secure Enclave Mac passes `verify-physical.mjs --require-enclave` against the installed host;
+2. an authorized Developer ID build passes `build-release.sh` production mode and `notarize-release.sh`, including stapler and Gatekeeper validation.
 
-- signed/notarized native-host distribution;
+Still not implemented by Round 5F.1:
+
+- a completed real-device physical validation record;
+- a real Developer ID-signed/notarized PAIA Secure Store package;
+- automatic signed-host update/removal UX;
 - Windows secure-store adapter;
 - iOS Keychain/Secure Enclave adapter;
 - Android Keystore adapter;

@@ -116,7 +116,7 @@ jobs:
   macos_secure_store:
     name: macOS Secure Store Certification
     runs-on: macos-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -128,6 +128,36 @@ jobs:
         run: xcrun swiftc -O -framework Security native-hosts/macos/paia-secure-store.swift -o /tmp/paia-secure-store
       - name: Exercise Keychain protocol and Secure Enclave fail-closed path
         run: node native-hosts/macos/test-host.mjs /tmp/paia-secure-store
+      - name: Exercise physical lifecycle verifier without pretending CI is physical hardware
+        run: node native-hosts/macos/verify-physical.mjs /tmp/paia-secure-store --allow-no-enclave
+      - name: Validate macOS distribution scripts
+        run: |
+          zsh -n native-hosts/macos/install.sh
+          zsh -n native-hosts/macos/build-release.sh
+          zsh -n native-hosts/macos/notarize-release.sh
+          zsh -n native-hosts/macos/uninstall.sh
+      - name: Production build fails closed without Apple signing identities
+        run: |
+          rm -rf /tmp/paia-secure-store-missing-identities
+          if env -u PAIA_DEVELOPER_ID_APPLICATION -u PAIA_DEVELOPER_ID_INSTALLER \
+            zsh native-hosts/macos/build-release.sh aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa /tmp/paia-secure-store-missing-identities; then
+            echo 'production package unexpectedly built without Apple signing identities' >&2
+            exit 1
+          fi
+          test ! -e /tmp/paia-secure-store-missing-identities/PAIA-SecureStore-1.0.0.pkg
+      - name: Build universal CI-only installer package
+        run: |
+          rm -rf /tmp/paia-secure-store-distribution
+          zsh native-hosts/macos/build-release.sh aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa /tmp/paia-secure-store-distribution --ci-adhoc
+          test -f /tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.pkg
+          test -f /tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.pkg.sha256
+          test -f /tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.json
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const row=JSON.parse(fs.readFileSync('/tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.json','utf8'));
+          if(row.schemaVersion!==1||row.hostName!=='com.paia.secure_store'||row.extensionId!=='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'||row.signingMode!=='adhoc-ci'||row.notarized!==false)process.exit(1);
+          if(!Array.isArray(row.architectures)||!row.architectures.includes('arm64')||!row.architectures.includes('x86_64'))process.exit(1);
+          NODE
 
   historical_browser:
     name: Historical Browser Audit ${{ matrix.shard }}
