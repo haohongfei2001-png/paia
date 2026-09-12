@@ -18,7 +18,7 @@ Round 5D still does **not** implement a live account backend, cloud sync, OS sec
 Round 5D must answer four questions before a real multi-device transport is allowed:
 
 1. How does a new device obtain the retained root-key versions?
-2. How does the user verify that the pairing endpoint was not silently substituted?
+2. How does the user verify that the pairing endpoint was not silently substituted **before any root-key material is released**?
 3. How are root keys rotated when a device is revoked?
 4. How can a user recover the keyring without putting plaintext root keys into the ordinary PAIA Backup?
 
@@ -88,7 +88,11 @@ The device signing key authenticates onboarding transcripts. It is not a content
 
 ## 5. Trusted-device onboarding
 
-Round 5D uses an explicit two-device pairing ceremony.
+Round 5D uses an explicit **two-phase** pairing ceremony. The critical rule is:
+
+> **The trusted device must not create or release a keyring-bearing package until the human comparison code has been confirmed on the trusted device.**
+
+This prevents a self-signed attacker device from obtaining an encrypted keyring merely by sending a syntactically valid onboarding request.
 
 ### 5.1 Joining device request
 
@@ -99,24 +103,29 @@ The joining device creates:
 - an onboarding request containing its public device credential and ephemeral public key;
 - an ECDSA signature over the request.
 
-The signing key proves that the onboarding request was created by the holder of the joining device credential.
+The signing key proves that the request is internally bound to the joining device credential. It does **not** by itself make that new credential trusted.
 
-### 5.2 Existing trusted device response
+### 5.2 Trusted device challenge — no keyring yet
 
 The existing trusted device:
 
 1. validates the joining request and signature;
 2. creates its own ephemeral ECDH P-256 key pair;
-3. derives a 256-bit shared secret using ECDH;
-4. derives an AES-256-GCM wrapping key using HKDF-SHA-256 and a fresh random salt;
-5. encrypts the complete retained root-key keyring into an onboarding package;
-6. signs the package with its long-term ECDSA device credential.
+3. creates a signed challenge containing the session, both credential references and both ephemeral public keys;
+4. computes the human comparison code from that transcript;
+5. sends only the signed challenge to the joining device.
 
-The package header is authenticated as AES-GCM AAD.
+At this stage:
+
+- no root-key snapshot is read for transfer;
+- no keyring ciphertext exists;
+- the joining device cannot receive decryption authority yet.
+
+The joining device validates the trusted device signature on the challenge and independently computes the same comparison code.
 
 ### 5.3 Human verification code
 
-Both devices independently derive the same comparison code from:
+Both devices independently derive the comparison code from:
 
 ```text
 sessionId
@@ -132,15 +141,31 @@ The current display form is 48 bits of the transcript hash:
 ABCD-EF12-3456
 ```
 
-The user must compare the code on both devices before accepting the root-key package.
+The user compares the value displayed by both devices.
 
-This code is not a decryption password. It is a short authentication string intended to expose man-in-the-middle public-key substitution.
+This code is not a decryption password. It is a short authentication string intended to expose public-key substitution or a pairing with the wrong device.
 
-If the code does not match, onboarding fails closed.
+If the values do not match, the trusted device must not release the keyring.
 
-## 6. What the onboarding package contains
+### 5.4 Trusted device approval and key release
 
-The public package carries only the pairing transcript and encrypted keyring material needed for the ceremony.
+Only after the user confirms the matching code on the existing trusted device does `PendingTrustedDeviceApproval.release()` proceed.
+
+It then:
+
+1. derives the 256-bit ECDH shared secret;
+2. derives an AES-256-GCM wrapping key with HKDF-SHA-256 and fresh random salt;
+3. reads the complete retained root-key keyring for transfer;
+4. encrypts the keyring into the final onboarding package;
+5. authenticates the package header as AES-GCM AAD;
+6. signs the final package with the trusted device ECDSA credential;
+7. allows that approval session to release at most once.
+
+The joining device will not accept the final package unless it previously verified the signed challenge for the same transcript and the user confirms the same pairing code locally.
+
+## 6. What the final onboarding package contains
+
+The public final package carries only the already-verified pairing transcript, wrapping metadata and encrypted keyring material.
 
 Inside AES-GCM ciphertext:
 
@@ -150,9 +175,11 @@ complete retained keyring snapshot
 approved joining public credential
 ```
 
-The keyring snapshot contains raw root-key material and is therefore sensitive plaintext **before encryption and after decryption**. It may exist only inside the trusted-device process boundary during the ceremony.
+The keyring snapshot contains raw root-key material and is therefore sensitive plaintext **before encryption and after decryption**. It may exist only inside the trusted-device process boundary during the approved release operation.
 
-Round 5D does not define a relay server. If a future backend relays onboarding messages, it must treat them as bounded pairing artifacts rather than turning them into a permanent plaintext device directory.
+A signed challenge is safe to relay before approval because it contains no root-key material. The keyring-bearing final package is not generated until explicit trusted-device confirmation.
+
+Round 5D does not define a relay server. If a future backend relays onboarding messages, it must treat them as bounded, expiring pairing artifacts rather than turning them into a permanent plaintext device directory.
 
 ## 7. Trusted device registry
 
@@ -237,8 +264,9 @@ These are separate trust mechanisms:
 Requires:
 
 - an already trusted device;
-- live user comparison of the pairing code;
-- ECDH + signed transcript.
+- signed request and signed challenge;
+- live user comparison of the pairing code **before keyring release**;
+- ECDH + HKDF + AES-GCM protected key transfer after approval.
 
 ### Recovery kit
 
@@ -270,16 +298,18 @@ The project must not silently put raw secrets into ordinary IndexedDB or `chrome
 Round 5D provides protection against:
 
 - onboarding-request tampering through joining-device signature verification;
-- onboarding-package tampering through inviter signature + AES-GCM;
+- a self-generated attacker request obtaining a keyring **before human approval**, because the pre-approval challenge contains no keyring ciphertext;
+- trusted-device challenge tampering through inviter signature verification;
+- final onboarding-package tampering through inviter signature + AES-GCM;
 - silent ephemeral-key substitution when the user correctly compares the pairing code;
-- accidental plaintext root-key transmission in the onboarding artifact;
+- accidental plaintext root-key transmission in onboarding artifacts;
 - future-object access by a revoked device after root-key rotation;
 - low-entropy password-based recovery being introduced by default.
 
 It does not protect against:
 
 - a compromised trusted device reading its live root keys;
-- a user approving mismatched devices without comparing the code;
+- a user approving the wrong device or ignoring a mismatched comparison code;
 - malware capturing the recovery secret;
 - a future insecure storage implementation that leaks private keys;
 - retroactively revoking old data from a device that already possessed old root keys;
@@ -291,7 +321,7 @@ Before a real remote sync service may ship, PAIA still needs:
 
 1. platform-specific secure key storage design and implementation;
 2. authenticated account/device directory semantics without making the server plaintext merge authority;
-3. onboarding relay transport and expiry/replay limits;
+3. onboarding relay transport with expiry, replay limits and explicit challenge/approval state;
 4. device revocation + key-rotation distribution workflow;
 5. remote listing/cursor/retention/compaction and old-key retirement rules;
 6. explicit conflict-resolution UI;
