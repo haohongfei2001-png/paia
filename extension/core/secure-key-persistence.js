@@ -2,6 +2,7 @@ const OPAQUE_RE=/^[A-Za-z0-9_.:-]{3,160}$/;
 const SECRET_CLASSES=new Set(['root_keyring','device_signing_private']);
 const PRODUCTION_PROTECTIONS=new Set(['os_keystore','hardware_keystore']);
 const MAX_SECRET_BYTES=256*1024;
+const SIGNING_METHODS=['createSigningKey','getSigningPublicKey','sign','deleteSigningKey'];
 
 export const SECURE_KEY_PERSISTENCE_VERSION=1;
 
@@ -64,21 +65,11 @@ export class TestMemorySecretProvider{
     supportsNonExportableSigningKey:false,
     testOnly:true,
   });
-  async write(slot,secret){
-    this.#rows.set(slotKey(slot),copyBytes(secret));
-  }
-  async read(slot){
-    const value=this.#rows.get(slotKey(slot));
-    return value?new Uint8Array(value):null;
-  }
-  async delete(slot){
-    this.#rows.delete(slotKey(slot));
-  }
+  async write(slot,secret){this.#rows.set(slotKey(slot),copyBytes(secret));}
+  async read(slot){const value=this.#rows.get(slotKey(slot));return value?new Uint8Array(value):null;}
+  async delete(slot){this.#rows.delete(slotKey(slot));}
   async has(slot){return this.#rows.has(slotKey(slot));}
-  async clear(){
-    for(const value of this.#rows.values())value.fill(0);
-    this.#rows.clear();
-  }
+  async clear(){for(const value of this.#rows.values())value.fill(0);this.#rows.clear();}
 }
 
 export class SecureKeyPersistenceGate{
@@ -91,18 +82,46 @@ export class SecureKeyPersistenceGate{
     this.#allowTestProvider=Boolean(allowTestProvider);
     if(this.capabilities.testOnly&&!this.#allowTestProvider)fail('SECURE_TEST_PROVIDER_FORBIDDEN');
     if(!this.capabilities.testOnly&&!isProductionSecurePersistenceProvider(this.capabilities))fail('SECURE_PROVIDER_NOT_PRODUCTION_READY');
+    if(!this.capabilities.testOnly&&SIGNING_METHODS.some(name=>typeof provider[name]!=='function'))fail('SECURE_PROVIDER_SIGNING_INTERFACE_INVALID');
   }
   get productionReady(){return isProductionSecurePersistenceProvider(this.capabilities);}
   async store(slot,secret){
+    slot=createSecureSecretSlot(slot);
     if(this.capabilities.testOnly&&!this.#allowTestProvider)fail('SECURE_TEST_PROVIDER_FORBIDDEN');
-    await this.#provider.write(createSecureSecretSlot(slot),copyBytes(secret));
+    if(this.productionReady&&slot.secretClass==='device_signing_private')fail('SECURE_NON_EXPORTABLE_SIGNING_KEY_REQUIRED');
+    await this.#provider.write(slot,copyBytes(secret));
   }
   async load(slot){
-    const value=await this.#provider.read(createSecureSecretSlot(slot));
+    slot=createSecureSecretSlot(slot);
+    if(this.productionReady&&slot.secretClass==='device_signing_private')fail('SECURE_NON_EXPORTABLE_SIGNING_KEY_REQUIRED');
+    const value=await this.#provider.read(slot);
     if(value===null)return null;
     return copyBytes(value);
   }
-  async remove(slot){await this.#provider.delete(createSecureSecretSlot(slot));}
+  async remove(slot){
+    slot=createSecureSecretSlot(slot);
+    if(this.productionReady&&slot.secretClass==='device_signing_private')return this.#provider.deleteSigningKey(slot);
+    await this.#provider.delete(slot);
+  }
+  async createSigningKey(slot){
+    slot=createSecureSecretSlot(slot);
+    if(slot.secretClass!=='device_signing_private')fail('SECURE_SIGNING_SLOT_REQUIRED');
+    if(!this.productionReady||typeof this.#provider.createSigningKey!=='function')fail('SECURE_NON_EXPORTABLE_SIGNER_UNAVAILABLE');
+    return this.#provider.createSigningKey(slot);
+  }
+  async getSigningPublicKey(slot){
+    slot=createSecureSecretSlot(slot);
+    if(slot.secretClass!=='device_signing_private')fail('SECURE_SIGNING_SLOT_REQUIRED');
+    if(!this.productionReady||typeof this.#provider.getSigningPublicKey!=='function')fail('SECURE_NON_EXPORTABLE_SIGNER_UNAVAILABLE');
+    return this.#provider.getSigningPublicKey(slot);
+  }
+  async sign(slot,message){
+    slot=createSecureSecretSlot(slot);
+    if(slot.secretClass!=='device_signing_private')fail('SECURE_SIGNING_SLOT_REQUIRED');
+    if(!this.productionReady||typeof this.#provider.sign!=='function')fail('SECURE_NON_EXPORTABLE_SIGNER_UNAVAILABLE');
+    const signature=await this.#provider.sign(slot,copyBytes(message));
+    return copyBytes(signature);
+  }
 }
 
 export function requireProductionSecurePersistence(provider){
