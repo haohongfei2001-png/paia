@@ -132,6 +132,7 @@ The current package contract includes:
 ```text
 type / version
 packageId / previewId
+grantId (null for ordinary manual share)
 resourceScope = profile
 profileId
 consumer
@@ -152,7 +153,9 @@ Important boundaries:
 - Context compilation still reads current authorized Source/Input/Thought-derived state through AI Context.
 - Stale content/authorization continues to invalidate Memory share/export.
 - Existing manual AI Context copy/export is treated as an explicit one-time manual authorization and remains backward compatible.
-- A Passport-protected export is fail-closed: the result body is cleared before Grant validation and restored to the trusted UI only after the Grant passes.
+- Passport use requires an explicit preview-to-Grant bind before export. Binding fixes `grantId`, consumer, purpose and Profile scope in the Package metadata but does not consume the Grant.
+- A Passport-protected export is fail-closed: the result body is cleared before Grant validation and restored to the trusted UI only after the already-bound Grant passes and is consumed.
+- An unbound Package cannot be released merely by supplying an otherwise valid Grant ID at share time.
 - Defining Context Package does not authorize a persistent package-body history. That remains a separate future privacy/product decision.
 
 ## 7. Passport architecture
@@ -221,7 +224,7 @@ New work must preserve the following unless the user explicitly approves a chang
 - Credentials do not enter archive bodies, backups, Git evidence or ordinary logs.
 - Local Context preparation does not become automatic external sharing.
 - Passport does not own body text and cannot expand the content scope granted by AI Context Profile rules.
-- Revoked, expired, consumed-once or mismatched Passport Grants must not release protected Context text.
+- Revoked, expired, consumed-once, unbound or mismatched Passport Grants must not release protected Context text.
 - Synthetic/headless tests must not be described as proof of real private-data behavior or live-provider quality.
 
 Detailed implemented contracts remain in `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md` and feature-specific acceptance records.
@@ -268,7 +271,7 @@ For each behavioral change:
 - use selected browser journeys for user-visible flows;
 - run package/release guards when release assets change.
 
-Round 4 adds explicit contract tests for Package metadata, Grant validation/expiry/revocation/one-time consumption, metadata-only audit and fail-closed protected export. These tests still require execution in an available development runtime before a release claim.
+Round 4 adds explicit contract tests for Package metadata/binding, Grant validation/expiry/revocation/one-time consumption, metadata-only audit, unbound/mismatched denial and fail-closed protected export. These tests still require execution in an available development runtime before a release claim.
 
 ## 12. Documentation authority
 
