@@ -7,8 +7,7 @@ const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/Users/hhf/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const root=fileURLToPath(new URL('../..',import.meta.url));
 export const pause=ms=>new Promise(r=>setTimeout(r,ms));
-const DEFAULT_EVENTUALLY_TIMEOUT=process.env.CI?60000:14000;
-export async function eventually(fn,label='synthetic expected state',timeout=DEFAULT_EVENTUALLY_TIMEOUT) {
+export async function eventually(fn,label='synthetic expected state',timeout=14000) {
  const deadline=Date.now()+timeout;while(Date.now()<deadline){if(await fn())return;await pause(100);}assert.fail(label);
 }
 export function conversation(id,offset=0) {
