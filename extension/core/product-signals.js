@@ -1,3 +1,5 @@
+import {ArchiveError} from './constants.js';
+
 // Local-only aggregate product signals for validating PAIA's repeat-use loops.
 // This is derived diagnostic metadata, not user content and not a backup truth layer.
 
@@ -22,6 +24,7 @@ const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const dayKey=value=>new Date(value).toISOString().slice(0,10);
 const count=value=>Number.isSafeInteger(value)&&value>=0?value:0;
 const ratio=(a,b)=>b?Math.round(a/b*1000)/1000:0;
+const invalid=()=>{throw new ArchiveError('INVALID_REQUEST');};
 
 export function validateProductSignal(signal){
  if(!plain(signal)||typeof signal.name!=='string'||!Object.hasOwn(definitions,signal.name))return null;
@@ -53,7 +56,7 @@ export function emptyProductSignals(now=Date.now(),enabled=false){
 }
 
 export function applyProductSignal(row,signal,now=Date.now()){
- const key=productSignalKey(signal);if(!key)throw Error('INVALID_PRODUCT_SIGNAL');
+ const key=productSignalKey(signal);if(!key)invalid();
  const next=plain(row)&&row.id===PRODUCT_SIGNAL_ROW&&row.version===PRODUCT_SIGNAL_VERSION?structuredClone(row):emptyProductSignals(now,false);
  if(!plain(next.daily))next.daily={};
  const today=dayKey(now),cutoff=dayKey(now-PRODUCT_SIGNAL_RETENTION_DAYS*86400000);
@@ -86,14 +89,16 @@ export class ProductSignals {
  client(sender){return String(sender?.documentId||sender?.url||'extension-ui').slice(0,300);}
  async row(write=false,fn){return this.store.run(()=>this.store.repository.transaction(write,fn,['meta']));}
  async status(){const row=await this.row(false,t=>t.get('meta',PRODUCT_SIGNAL_ROW));return summarizeProductSignals(row||emptyProductSignals(this.clock(),false),this.clock());}
- async settings({enabled}={}){if(typeof enabled!=='boolean')throw Error('INVALID_PRODUCT_SIGNAL');return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),enabled);row.enabled=enabled;row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);return {enabled};});}
+ async settings({enabled}={}){if(typeof enabled!=='boolean')invalid();return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),enabled);row.enabled=enabled;row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);return {enabled};});}
  async clear(){return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=emptyProductSignals(this.clock(),current?.enabled===true);await t.put('meta',row);return {ok:true,enabled:row.enabled};});}
- async record(signal){const clean=validateProductSignal(signal);if(!clean)throw Error('INVALID_PRODUCT_SIGNAL');return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),false);if(row.enabled!==true)return {recorded:false,enabled:false};await t.put('meta',applyProductSignal(row,clean,this.clock()));return {recorded:true,enabled:true};});}
+ async record(signal){const clean=validateProductSignal(signal);if(!clean)invalid();return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),false);if(row.enabled!==true)return {recorded:false,enabled:false};await t.put('meta',applyProductSignal(row,clean,this.clock()));return {recorded:true,enabled:true};});}
  async noteSearch(surface,options,result,sender){
   if(!['input','thought'].includes(surface)||typeof options?.query!=='string'||!options.query.trim())return;
   const terminal=Array.isArray(result?.items)&&result.items.length>0||result?.nextCursor==null;if(!terminal)return;
   const now=this.clock(),query=options.query.normalize('NFKC').trim().toLocaleLowerCase(),client=this.client(sender),key=surface+'\u0000'+client+'\u0000'+query,last=this.searchSeen.get(key)||0;
-  if(now-last<60000)return;this.searchSeen.set(key,now);const outcome=result.items.length?'hit':'miss';if(outcome==='hit')this.recentSearch.set(surface+'\u0000'+client,now);await this.record({name:surface+'_search',dimensions:{outcome}});
+  if(now-last<60000)return;
+  const outcome=result.items.length?'hit':'miss',saved=await this.record({name:surface+'_search',dimensions:{outcome}});if(!saved?.recorded)return;
+  this.searchSeen.set(key,now);if(outcome==='hit')this.recentSearch.set(surface+'\u0000'+client,now);
  }
  consumeRecentSearch(surface,sender){const key=surface+'\u0000'+this.client(sender),at=this.recentSearch.get(key);if(!at||this.clock()-at>5*60*1000)return false;this.recentSearch.delete(key);return true;}
 }
