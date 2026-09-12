@@ -242,7 +242,7 @@ Round 5B delivers:
 - this protocol contract;
 - `core/sync-contract.js` pure merge planner;
 - automated contract tests;
-- architecture/product/roadmap integration.
+- release-distribution integration so the current packaged source includes the active sync contract.
 
 Round 5B does **not** deliver:
 
