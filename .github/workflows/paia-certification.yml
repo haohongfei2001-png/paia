@@ -184,7 +184,7 @@ jobs:
           node-version: '22'
       - uses: actions/setup-python@v5
         with:
-          node-version: '3.12'
+          python-version: '3.12'
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - name: Prepare historical Chrome compatibility environment
