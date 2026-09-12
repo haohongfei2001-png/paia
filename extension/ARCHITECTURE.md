@@ -4,135 +4,127 @@ Status: **current architecture source of truth**
 
 Current runtime baseline: **v0.12.0 + post-release consolidation rounds**
 
-This document defines the architecture boundaries that new work must preserve unless an explicit migration is approved. Historical implementation documents remain useful evidence, but they do not define new architecture direction by default.
+This document defines the architecture boundaries that new work must preserve unless an explicit migration is approved. Historical implementation documents remain evidence, but they do not define new architecture direction by default.
 
 ## 1. Architectural goals
 
-PAIA should make future product iteration cheaper, not more dangerous, as the archive grows.
-
-The architecture therefore optimizes for:
+PAIA should become easier, not more dangerous, to change as the archive grows. The architecture therefore optimizes for:
 
 1. **Trustworthy source history** — captured facts remain attributable and are not silently rewritten.
 2. **User-work preservation** — edits, organization and explicit exclusions survive enrichment and migration.
-3. **Derived-view replaceability** — AI presentation and retrieval projections can evolve without becoming the only copy of personal truth.
+3. **Derived-view replaceability** — AI presentation, search indexes and Context projections do not become the only copy of personal truth.
 4. **Local-first operation** — ordinary reading/search/editing does not require a server.
-5. **Explicit external use** — network/provider access and Context export are bounded and user-authorized.
-6. **Complexity control** — new UI/product capabilities should reuse existing durable state whenever possible.
+5. **Explicit external use** — Provider access and Context export are bounded and user-authorized.
+6. **Complexity control** — new UI capabilities should reuse existing durable state before adding new stores or body copies.
 
 ## 2. Runtime boundaries
-
-The Chrome extension remains organized around these runtime boundaries:
 
 ```text
 ChatGPT Web
    │
-   ├─ adapter/ + content/        provider-specific capture/observation
+   ├─ adapter/ + content/       provider-specific observation/capture
    │
    ▼
-background/service-worker       trusted command dispatch boundary
+background/service-worker      trusted caller validation + command dispatch
+   │
+   ├─ archive / thought / search domain services
+   ├─ MemoryService            Context selection/reconstruction
+   ├─ ContextPackageService    trusted package lifecycle + release gate
+   ├─ PassportService          authorization metadata + audit
+   └─ ProductSignals           observation-only aggregate metrics
    │
    ▼
-core/                           archive, thought, search, context, policy and persistence logic
-   │
-   ▼
-IndexedDB + chrome.storage      durable local state
+IndexedDB + chrome.storage     durable local state
 
-ui/                             trusted extension reading/editing surfaces
-
-provider-facing core/background explicit authorized network path
+ui/                            trusted extension reading/editing surfaces
 ```
 
 Responsibilities:
 
 - `adapter/`: provider/web-structure interpretation. Keep ChatGPT-specific assumptions here where feasible.
-- `content/`: bounded observation/capture bridge. It must not gain broad Library/Context authority.
-- `background/`: trusted caller validation and command dispatch. It should become thinner over time rather than accumulate domain behavior.
+- `content/`: bounded capture bridge. It must not gain Library/Context authority.
+- `background/`: trusted caller validation and dispatch. Security-sensitive export decisions must be on this main path.
 - `core/`: domain services and persistence contracts.
-- `ui/`: presentation, editing interaction and local view state; it must not become an alternate content persistence implementation.
+- `ui/`: presentation/editing interaction and local view state; it must not become an alternate persistence or authorization implementation.
+
+### 2.1 Security path vs observation path
+
+Round 4.5 establishes a strict rule:
+
+> **Authorization is a main-path responsibility. Analytics is an observer.**
+
+The trusted Context path is:
+
+```text
+trusted UI request
+    ↓
+service-worker caller / consent validation
+    ↓
+ContextPackageService
+    ↓
+PassportService (when Grant-bound)
+    ↓
+MemoryService
+    ↓
+returned Context text
+```
+
+`ProductSignals.observe()` runs only after the trusted command succeeds. It may count a fixed event, but it cannot bind a Package, resolve a Grant, reconstruct Context text, mutate an export result, or decide whether text is released.
+
+This replaces the Round 4 tactical implementation where Passport enforcement temporarily lived in the Product Signals side-channel.
 
 ## 3. Canonical data layers
 
-PAIA has three important content/trust layers plus derived projections.
-
 ### 3.1 Source Record
 
-Source Record is the immutable captured/imported fact layer.
-
-It owns:
-
-- provider/source identity;
-- captured original user text snapshot;
-- source/capture time evidence;
-- dedupe/source lineage needed for archive integrity;
-- permanent deletion fences/tombstones.
-
-Ordinary editing does not rewrite Source Record text.
+Source Record is the immutable captured/imported fact layer. It owns provider/source identity, original user text snapshot, time evidence, dedupe/source lineage and permanent deletion fences/tombstones. Ordinary editing never overwrites it.
 
 ### 3.2 Working Input
 
-Working Input is the user's editable archive representation.
+Working Input is the user's editable archive representation and owns the canonical editable Input body.
 
-It owns the canonical editable body for an Input. Enrichment may add facts, but it must not reset user work.
-
-The standing rule remains:
+Standing rule:
 
 > **Sync/enrichment may add or improve source facts; it must not silently reset user work.**
 
 ### 3.3 Thought Library
 
-Thought entities organize or derive durable material from Inputs while preserving provenance.
-
-A Thought may have independent editable content. The only case where a Thought and Input share the same canonical editable body is the existing strict exact-original relationship: one full-body non-context Input with no ambiguous or previously divergent human Thought body.
-
-Partial excerpts, multi-Input synthesis, AI prose, context-only evidence, user-created entries and independently edited Thoughts do not reverse-write an Input.
+Thought entities organize or derive durable material from Inputs while preserving provenance. Independent Thoughts do not reverse-write Inputs. Exact-original content may share working content only under the existing strict unambiguous relationship.
 
 ### 3.4 Derived projections
 
-AI presentation, evolution reading, search ranking, Context previews and summaries are projections.
-
-A projection may be cached when safe, but it is not allowed to become an untraceable replacement for the Source/Working Input trust chain.
+AI presentation, evolution reading, search ranking, Context previews and summaries are projections. They may be rebuilt and must not become an untraceable replacement for Source / Working Input truth.
 
 ## 4. Reader is a presentation layer
 
-`Input Reader` is a product capability, not a new persistent content layer.
-
-Reader can render:
-
-- Input documents;
-- Thought Topics/Entries;
-- AI-organized projections;
-- Context Package previews and future reusable views.
-
-Reader-specific state should normally be ephemeral or lightweight preference state: reading order, current position, collapsed sections, display mode and similar UI concerns.
+`Input Reader` is a product capability, not a persistent content layer. Reader may render Input documents, Thought Topics/Entries, AI-organized projections and Context Package previews. Reader-specific state should normally remain ephemeral or lightweight preference state.
 
 Do not introduce a Reader body store that copies canonical Input or Thought text.
 
 ## 5. Search architecture
 
-Round 2 introduced `core/search-service.js` as the provider-neutral lexical Search Service foundation shared by Input, Thought and Context preparation.
+Round 2 introduced `core/search-service.js` as the shared lexical Search Service foundation for Input, Thought and Context preparation.
 
-The current boundary provides common behavior for:
+It currently provides:
 
 - NFKC normalization;
-- established exact-title → partial-title → body ranking compatibility;
+- exact-title → partial-title → body ranking compatibility;
 - Chinese 2/3-character query terms;
-- lexical overlap/relevance signals;
+- lexical overlap/relevance primitives;
 - Unicode-safe excerpts.
 
-Input and Thought retain their existing pagination/index structures where required for compatibility, while Context consumes the same shared query/relevance primitives.
-
-Semantic/vector retrieval may later become one implementation component, but only after real retrieval failure modes justify it. A vector index, if ever added, is a rebuildable derived index, not a new truth store.
+Input and Thought retain existing pagination/index structures where required for compatibility. Semantic/vector retrieval may later become a rebuildable implementation component only when real retrieval failures justify it; it is not a new truth store.
 
 ## 6. Context Package architecture
 
-AI Context remains a local Context Compiler over current trusted state. Round 4 adds a stable, ephemeral **Context Package** metadata contract around its existing preview/share lifecycle.
+AI Context remains a local Context Compiler. `core/context-package-service.js` now owns the trusted ephemeral Package lifecycle around `MemoryService`.
 
-The current package contract includes:
+The stable Package metadata contract includes:
 
 ```text
 type / version
 packageId / previewId
-grantId (null for ordinary manual share)
+grantId (null for manual export)
 resourceScope = profile
 profileId
 consumer
@@ -146,33 +138,32 @@ retrievalConfidence / partial
 localOnly / persistedBody=false
 ```
 
-Important boundaries:
+Current invariants:
 
-- Package metadata is tied to the existing in-memory Memory preview lifecycle and expires after a bounded interval.
-- Package body text is not persisted as a new canonical copy.
-- Context compilation still reads current authorized Source/Input/Thought-derived state through AI Context.
-- Stale content/authorization continues to invalidate Memory share/export.
-- Existing manual AI Context copy/export is treated as an explicit one-time manual authorization and remains backward compatible.
-- Passport use requires an explicit preview-to-Grant bind before export. Binding fixes `grantId`, consumer, purpose and Profile scope in the Package metadata but does not consume the Grant.
-- A Passport-protected export is fail-closed: the result body is cleared before Grant validation and restored to the trusted UI only after the already-bound Grant passes and is consumed.
-- An unbound Package cannot be released merely by supplying an otherwise valid Grant ID at share time.
-- Defining Context Package does not authorize a persistent package-body history. That remains a separate future privacy/product decision.
+- Package metadata is in-memory and bounded by the same short-lived preview lifecycle; Package body text is not persisted.
+- `ContextPackageService.build()` wraps the existing local Context build and creates the Package metadata.
+- Existing manual AI Context copy/export remains backward compatible as an explicit user action.
+- Passport use requires explicit `ContextPackageService.bind(previewId, grantId)` before protected export. Binding fixes Grant/consumer/purpose/Profile metadata but does not consume the Grant.
+- `ContextPackageService.share()` validates the already-bound Grant **before calling `MemoryService.share()`**. Invalid, expired, revoked, consumed-once, mismatched or unbound Grants therefore do not trigger protected Context reconstruction.
+- If a Grant changes after initial validation but before consumption, failure still prevents the service result from being returned to the caller.
+- The existing AI Context `externalAccess` switch and stale-generation checks remain stronger gates inside the Memory path.
+- Persistent Context Package body history remains unapproved and requires a separate privacy/product decision.
 
 ## 7. Passport architecture
 
-Round 4 implements a **minimum Passport governance layer** over existing AI Context Profile authorization; it does not replace Topic/Profile rules.
+`core/passport.js` implements the minimum governance layer over existing AI Context Profile authorization.
 
-The division of responsibility is:
+Division of responsibility:
 
 ```text
 AI Context Profile
   -> what content may participate
 
 Passport Grant
-  -> who may export a package, for what purpose, under which Profile scope, and for how long
+  -> who may export a Context Package, for what purpose, under which Profile scope, and for how long
 ```
 
-The current Grant model is metadata-only and expresses:
+Grant metadata:
 
 ```text
 consumer
@@ -186,59 +177,68 @@ revokedAt / consumedAt
 lastUsedAt / useCount
 ```
 
-Current consumers and purposes are fixed enums rather than free-text metadata. This prevents Passport from becoming another place that silently accumulates private user prose.
+Consumers and purposes are fixed enums, not private free text. Grant and audit rows reuse the existing `meta` store; no Passport object store or body cache exists.
 
-Grant and access-audit rows reuse the existing `meta` store; Round 4 adds no IndexedDB object store and no body cache. Access audit records only Grant/consumer/purpose/Profile reference, export action and time. Audit history is bounded to 90 days / 200 rows and can be cleared independently.
+Access audit stores only Grant/consumer/purpose/Profile reference, export action and time. It is bounded to 90 days / 200 rows and can be cleared independently.
 
-Passport rows are deliberately excluded from PAIA Backup in this implementation. Restoring a backup must not silently reactivate old external-use permissions. Re-authorizing on a restored/new device remains an explicit user action.
+Passport rows are deliberately excluded from PAIA Backup. Restore must not silently reactivate external-use permissions.
 
-The existing `externalAccess` AI Context switch remains a stronger gate: a valid Passport Grant cannot bypass it. Existing Topic/Profile deny/never rules likewise continue to constrain what a package can contain.
+Passport currently governs explicit Context copy/Markdown export only. It does not grant autonomous agent access, background reads, remote API access or Provider credentials.
 
-Passport currently governs explicit copy/Markdown Context export only. It does **not** grant autonomous agent access, background reads, remote API access or provider credentials.
+## 8. Runtime command boundaries
 
-## 8. Durable schema freeze
+Round 4.5 separates command namespaces by responsibility:
 
-Beginning with the post-v0.12 consolidation phase, the current durable content schema is **frozen by default**.
+```text
+PAIA_PRODUCT_*    local aggregate product metrics only
+PAIA_PASSPORT_*   Grant status/create/revoke/audit maintenance
+PAIA_CONTEXT_*    Package binding / future package lifecycle commands
+PAIA_MEMORY_*     Context authorization, build, share and Context content operations
+```
 
-A feature may not add a new object store, canonical body copy, major durable content entity family or destructive migration unless its design explicitly answers:
+`PAIA_MEMORY_BUILD` and `PAIA_MEMORY_SHARE` are routed through `ContextPackageService` at the trusted background boundary. `PAIA_PASSPORT_*` and `PAIA_CONTEXT_*` are local-tool commands and must not wake Smart Filter/Library maintenance or broadcast ordinary archive-content changes.
 
-1. Why can this not be represented as a read model/projection over existing state?
-2. What user-visible behavior requires durability across reload/device boundaries?
-3. What is the ownership/source-of-truth rule?
+Revocation/status/audit clearing remain available without requiring capture consent so a user can always reduce or inspect permission state. Creating a new Grant and binding a Package require active PAIA consent.
+
+## 9. Durable schema freeze
+
+The post-v0.12 durable content schema is **frozen by default**. A feature may not add a new object store, canonical body copy, major durable content entity family or destructive migration unless it explicitly answers:
+
+1. Why cannot this be a projection/read model over existing state?
+2. What user-visible behavior requires durability?
+3. What is the source-of-truth rule?
 4. How do deletion, tombstones, backup/restore and provenance apply?
-5. How will old data migrate without resetting user work?
-6. What product evidence justifies the additional long-term complexity?
+5. How does migration preserve human work?
+6. What product evidence justifies long-term complexity?
 
-Round 3 Product Signals and Round 4 Passport intentionally reuse the existing `meta` store and do not create canonical content copies. This does not exempt them from privacy/retention rules; it simply avoids speculative object-store growth.
+Round 3 Product Signals and Round 4/4.5 Passport intentionally reuse `meta`; Context Package bodies remain ephemeral.
 
-## 9. Privacy and authorization invariants
+## 10. Privacy and authorization invariants
 
-New work must preserve the following unless the user explicitly approves a changed contract:
+New work must preserve:
 
-- Do not capture drafts, keystrokes, assistant replies, unrelated pages, browser history, cookies or credentials as archive content.
-- Source Record and user-edited content remain separate.
-- Permanent deletion/tombstone semantics take precedence over re-import or derived caches.
-- Smart Filter does not silently delete Source data.
-- Provider calls require an explicit authorized action and remain bounded.
-- No hidden automatic paid retries.
-- Credentials do not enter archive bodies, backups, Git evidence or ordinary logs.
-- Local Context preparation does not become automatic external sharing.
-- Passport does not own body text and cannot expand the content scope granted by AI Context Profile rules.
-- Revoked, expired, consumed-once, unbound or mismatched Passport Grants must not release protected Context text.
-- Synthetic/headless tests must not be described as proof of real private-data behavior or live-provider quality.
+- no capture of drafts, keystrokes, assistant replies, unrelated pages, browser history, cookies or credentials as archive content;
+- Source Record and user-edited content remain separate;
+- permanent deletion/tombstones outrank re-import and caches;
+- Smart Filter never silently deletes Source data;
+- Provider calls require explicit authorized bounded actions; no hidden paid retry loops;
+- credentials never enter archive bodies, backups or ordinary logs;
+- local Context preparation never implies external sharing;
+- Passport cannot expand the content scope granted by AI Context Profile rules;
+- revoked, expired, consumed-once, mismatched or unbound Grants cannot release protected Context text;
+- Product Signals must remain incapable of making an authorization decision;
+- synthetic/headless tests are not proof of live private-data or Provider behavior.
 
-Detailed implemented contracts remain in `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md` and feature-specific acceptance records.
+Detailed implemented contracts remain in `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md` and feature-specific acceptance evidence.
 
-## 10. Engineering simplification direction
+## 11. Engineering simplification direction
 
-PAIA should gradually reduce large coordination files without changing behavior merely for stylistic reasons.
-
-Preferred direction:
+Preferred gradual boundary:
 
 ```text
 background/
   service-worker.js        validation + dispatch
-  commands/                domain command handlers
+  commands/                future domain command handlers when useful
 
 core/
   archive/
@@ -256,31 +256,29 @@ ui/
   settings/
 ```
 
-This is a module-boundary target, not an instruction to perform a risky all-at-once folder migration.
+Do not perform cosmetic all-at-once folder moves. Refactor only when product work touches the domain and targeted regression coverage exists.
 
-Refactor when touching a domain for real product work, with targeted regression coverage. Avoid large cosmetic moves that create diff noise without reducing coupling.
-
-## 11. Testing strategy
-
-The existing regression suite is an asset and should be preserved, but engineering test count is not itself a product objective.
+## 12. Testing strategy
 
 For each behavioral change:
 
 - add targeted unit/domain tests;
-- keep privacy/authorization tests for trust-boundary changes;
+- keep explicit privacy/authorization tests for trust-boundary changes;
 - use selected browser journeys for user-visible flows;
-- run package/release guards when release assets change.
+- run package/release guards before release claims.
 
-Round 4 adds explicit contract tests for Package metadata/binding, Grant validation/expiry/revocation/one-time consumption, metadata-only audit, unbound/mismatched denial and fail-closed protected export. These tests still require execution in an available development runtime before a release claim.
+Round 4.5 adds `context-passport-round45.test.mjs` and `architecture-round45.test.mjs`. The first asserts authorization happens before protected Memory reconstruction; the second prevents Passport/Context ownership from drifting back into Product Signals.
 
-## 12. Documentation authority
+A release claim still requires executable `npm test`, package audit and relevant Chrome E2E/smoke checks in an available development runtime.
+
+## 13. Documentation authority
 
 For new development, read in this order:
 
 1. `PRODUCT.md` — what and why;
 2. `ARCHITECTURE.md` — ownership/boundaries/invariants;
 3. `ROADMAP.md` — what is next and what is frozen;
-4. feature-specific current contracts only when changing that feature;
-5. historical specs/acceptance records only for compatibility and evidence.
+4. current feature contracts when changing that feature;
+5. historical specs only for compatibility/evidence.
 
 `PRODUCT_SPEC.md`, `DECISIONS.md`, old version acceptance documents and historical round documents do not override the first three for new direction.
