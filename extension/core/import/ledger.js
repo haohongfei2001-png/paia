@@ -11,6 +11,14 @@ const sequence=v=>{if(!Number.isSafeInteger(v)||v<0||v>LIMITS.rows)fail('INVALID
 const terminal=['completed','partial','cancelled'];
 const counts=()=>({added:0,duplicates:0,ignored:0,enriched:0,issues:0,newSources:0,newInputs:0,review:0,removed:0,timeEnriched:0,metadataEnriched:0});
 const view=t=>({taskId:t.id,phase:t.phase,checkedBatches:t.checkedBatches,committedBatches:t.committedBatches,rows:t.rows,preview:{...t.preview},counts:{...counts(),...t.counts},inspection:t.inspection||null,provider:'official_export',adapterId:t.adapterId,profileVersion:t.profileVersion||1,realExportVerified:false,createdAt:t.createdAt||null,completedAt:t.completedAt||null});
+const chatKey=r=>`${r.platform}:${r.chatId}`;
+const chatUrl=r=>r.platform==='chatgpt'?`https://chatgpt.com/c/${r.chatId}`:'';
+async function importedRecords(store,t,r,sourceVersions,legacyVersions){
+ const chat={id:r.chatId,url:chatUrl(r),title:r.title};
+ if(r.platform==='chatgpt')return sourceVersions||legacyVersions?store.recordsFor(t,chat,r.messageId,r.sourceKey,r,[]):[];
+ if(!sourceVersions)return [];
+ const out=[];for(const ix of await t.all('recordIndex','bySource',r.sourceKey)){const row=await t.get('records',ix.id),record=row?.value;if(record?.platform===r.platform&&record.chatId===r.chatId&&record.sourceMessageId===r.messageId)out.push({r:record,index:ix});}return out;
+}
 export class ImportLedger {
  constructor(store,{verifiedAdapters=SUPPORTED_EXPORT_ADAPTER_IDS}={}){this.store=store;this.adapters=new Set(verifiedAdapters);this.grants=new Map();}
  authorize(q,owner){const g=this.grants.get(q.grant);if(!g||g.owner!==owner||g.taskId!==q.taskId||g.expires<Date.now())fail('IMPORT_SESSION_EXPIRED');return g;}
@@ -99,15 +107,14 @@ export class ImportLedger {
    const seq=await t.get('meta','sequence'),docs=new Set(),titledChats=new Set(),count=counts();
    for(const r of batch.rows){
     if(await t.get('tombstones','source:'+r.sourceKey)||await t.get('tombstones','snapshot:'+r.dedupeKey)){count.ignored++;continue;}
-    const sourceVersions=await t.count('recordIndex','bySource',r.sourceKey),legacyVersions=await t.count('recordIndex','byLegacyChat','chatgpt:'+r.chatId);
+    const sourceVersions=await t.count('recordIndex','bySource',r.sourceKey),legacyVersions=r.platform==='chatgpt'?await t.count('recordIndex','byLegacyChat','chatgpt:'+r.chatId):0;
     if(sourceVersions>2048||legacyVersions>2048)fail('RESOURCE_LIMIT');
-    const chat={id:r.chatId,url:'https://chatgpt.com/c/'+r.chatId,title:r.title},selected=sourceVersions||legacyVersions?await this.store.recordsFor(t,chat,r.messageId,r.sourceKey,r,[]):[];
-    const exists=await t.count('recordIndex','byDedupe',r.dedupeKey),newSource=selected.length===0;
+    const selected=await importedRecords(this.store,t,r,sourceVersions,legacyVersions),url=chatUrl(r),exists=await t.count('recordIndex','byDedupe',r.dedupeKey),newSource=selected.length===0;
     const removed=this.store.repository.ia&&!!await t.get('inputRemovals',r.sourceKey);
     if(removed)count.removed++;
     let addedRecord=null;
     if(!exists){
-     const now=this.store.clock();addedRecord={id:this.store.uuid(),platform:'chatgpt',chatId:r.chatId,chatUrl:chat.url,chatTitle:r.title,sourceMessageId:r.messageId,pageOrder:r.order,originalText:r.text,contentHash:r.contentHash,dedupeKey:r.dedupeKey,sourceKey:r.sourceKey,...unknownTime(),conversationOrder:r.order,capturedAt:now,importedAt:now,importProvider:'official_export',importProfile:task.adapterId,previousVersionId:selected.at(-1)?.r.id||null,note:'',editedText:'',hidden:false,deletedAt:null,updatedAt:now};
+     const now=this.store.clock();addedRecord={id:this.store.uuid(),platform:r.platform,chatId:r.chatId,chatUrl:url,chatTitle:r.title,sourceMessageId:r.messageId,pageOrder:r.order,originalText:r.text,contentHash:r.contentHash,dedupeKey:r.dedupeKey,sourceKey:r.sourceKey,...unknownTime(),conversationOrder:r.order,capturedAt:now,importedAt:now,importProvider:'official_export',importProfile:task.adapterId,previousVersionId:selected.at(-1)?.r.id||null,note:'',editedText:'',hidden:false,deletedAt:null,updatedAt:now};
      selected.push({r:addedRecord,index:{sequence:seq.records++}});count.added++;if(newSource)count.newSources++;
     }else count.duplicates++;
     const timeProof=await t.get('importEvidence',q.taskId+':source:'+r.sourceKey);if(!timeProof)fail('IMPORT_STATE');
@@ -134,12 +141,12 @@ export class ImportLedger {
      }
      // A newly inserted source has already returned its owning document from
      // defaultBlock. Only existing records need these compatibility lookups.
-     if(changed&&old){for(const b of await t.all('blockIndex','byRecord',record.id))docs.add(b.documentId);for(const d of await t.all('documents','byChat','chatgpt:'+record.chatId))docs.add(d.id);}
+     if(changed&&old){for(const b of await t.all('blockIndex','byRecord',record.id))docs.add(b.documentId);for(const d of await t.all('documents','byChat',chatKey(record)))docs.add(d.id);}
     }
     if(metadataChanged)count.metadataEnriched++;
-    // Titles are conversation metadata. Checking the same chat once per bounded
-    // commit batch preserves enrichment semantics without an index scan per Input.
-    if(r.title&&!titledChats.has(r.chatId)){titledChats.add(r.chatId);for(const doc of await t.all('documents','byChat','chatgpt:'+r.chatId,2)){
+    // Titles are conversation metadata. Checking the same provider/chat once per
+    // bounded commit batch preserves enrichment semantics without an index scan per Input.
+    const titleKey=chatKey(r);if(r.title&&!titledChats.has(titleKey)){titledChats.add(titleKey);for(const doc of await t.all('documents','byChat',titleKey,2)){
      if(!doc.value.originalConversationTitle){doc.value.originalConversationTitle=r.title;await t.put('documents',doc);const ld=await t.get('libraryDocuments',doc.id);if(ld&&!ld.value.originalConversationTitle){ld.value.originalConversationTitle=r.title;await t.put('libraryDocuments',ld);}}
     }}
     const nextRelation={id:r.sourceKey,sourceKey:r.sourceKey,provider:'official_export',profileId:task.adapterId,profileVersion:task.profileVersion||1,...relation};if(JSON.stringify(priorRelation)!==JSON.stringify(nextRelation))await t.put('importSources',nextRelation);
@@ -189,8 +196,9 @@ export class ImportLedger {
    const before=structuredClone(b),oldDocumentId=b.documentId;
    if(action==='existing'){if(!await t.get('documents',q.documentId))fail('IMPORT_STATE');b.documentId=q.documentId;}
    if(action==='standalone'){
+    const firstSource=b.provenance.length?(await t.get('records',b.provenance[0].sourceRecordId))?.value:null,platform=firstSource?.platform||'chatgpt';
     const id='document:'+this.store.uuid(),seq=await t.get('meta','sequence');
-    const doc={id,platform:'chatgpt',sourceConversationId:null,originalConversationTitle:'',userTitle:'待确认输入 · 独立整理',summaryPlaceholder:'',futureAISummary:null,firstSourceSentAt:null,lastSourceSentAt:null,status:'active',aiSuggestionStatus:'none',titleRevision:0};
+    const doc={id,platform,sourceConversationId:null,originalConversationTitle:'',userTitle:'待确认输入 · 独立整理',summaryPlaceholder:'',futureAISummary:null,firstSourceSentAt:null,lastSourceSentAt:null,status:'active',aiSuggestionStatus:'none',titleRevision:0};
     await t.put('documents',{id,value:doc,sequence:seq.documents++,displayKey:[0,id]});const working={...doc};delete working.titleRevision;await t.put('libraryDocuments',{id,value:working});await t.put('meta',seq);b.documentId=id;
    }
    delete b.branchStatus;b.excluded=action==='ignore';b.status=b.excluded?'excluded_by_user':'active';b.revision++;

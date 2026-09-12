@@ -44,14 +44,20 @@ Purpose: reliably acquire eligible user-authored AI inputs with stable source id
 
 Current state:
 
-- ChatGPT Web capture is implemented.
+- ChatGPT Web live capture is implemented.
 - Historical completion/import paths exist under explicit user action.
+- User-selected official-export import can structurally distinguish registered ChatGPT and Claude export adapters and fails closed on unknown or ambiguous formats.
+- The Claude adapter currently validates the provider-neutral import boundary at synthetic-contract level only: `realExportVerified=false` until an actual user-exported Claude file is verified.
+- Claude import accepts only user/human-authored text into the existing Source/Input pipeline. Assistant text is not imported as user evidence, and non-current branches remain review-only.
+- Live `claude.ai` capture is **not** implemented, no Claude page/network capture permission has been added, and Claude source permalinks are intentionally left blank rather than guessed before real verification.
 - Source snapshots are immutable facts and remain separate from editable working content.
 
 Direction:
 
-- Keep the capture adapter boundary provider-specific and the archive model provider-neutral.
-- A second source adapter is useful later as an architecture test, but broad source expansion is not the next product priority.
+- Keep the capture/import adapter boundary provider-specific and the archive model provider-neutral.
+- Round 5A has demonstrated that a second import adapter can reuse the existing Source/Input model without creating another durable fact store or changing historical ChatGPT identity semantics.
+- Do not treat synthetic Claude compatibility as proof of real export compatibility or product demand. Verify a real export before claiming support.
+- Do not proliferate additional providers or live capture adapters until real-source evidence and user value justify the added trust, maintenance and permission surface.
 
 ### 3.2 Input Reader
 
@@ -233,7 +239,7 @@ Before prioritizing cloud sync, Web App, native apps or broad Passport integrati
 - Thought organization produces repeat visits rather than one-time curiosity.
 - Context reuse occurs repeatedly enough that cross-AI authorization solves an observed problem.
 
-The explicit decision to implement Minimum Passport early is an implementation-order override, not evidence that this gate has been met.
+The explicit decisions to implement Minimum Passport and the Round 5A second-import-adapter validation early are implementation-order overrides, not evidence that this gate has been met.
 
 ## 9. Relationship to historical documents
 
