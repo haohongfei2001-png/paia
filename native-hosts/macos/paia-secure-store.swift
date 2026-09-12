@@ -73,7 +73,7 @@ func writeRootSecret(slot: Slot, data: Data) throws {
     guard !data.isEmpty, data.count <= maxSecretBytes else { try fail("SECURE_SECRET_INVALID") }
     let account = try rootAccount(slot)
     let query: [CFString: Any] = [kSecClass: kSecClassGenericPassword, kSecAttrService: rootService, kSecAttrAccount: account]
-    let update: [CFString: Any] = [kSecValueData: data, kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly]
+    let update: [CFString: Any] = [kSecValueData: data]
     var status = SecItemUpdate(query as CFDictionary, update as CFDictionary)
     if status == errSecItemNotFound {
         var add = query
@@ -115,8 +115,8 @@ func lookupSigningKey(slot: Slot) throws -> SecKey? {
     var item: CFTypeRef?
     let status = SecItemCopyMatching(query as CFDictionary, &item)
     if status == errSecItemNotFound { return nil }
-    guard status == errSecSuccess, let key = item as! SecKey? else { try fail("SECURE_SIGNING_KEY_LOOKUP_FAILED") }
-    return key
+    guard status == errSecSuccess, let item else { try fail("SECURE_SIGNING_KEY_LOOKUP_FAILED") }
+    return (item as! SecKey)
 }
 
 func secureEnclaveAvailable() -> Bool {
@@ -215,7 +215,8 @@ func handle(_ request: [String: Any]) throws -> [String: Any] {
         guard let encoded = request["secret"] as? String else { try fail("SECURE_NATIVE_HOST_PROTOCOL_INVALID") }
         try writeRootSecret(slot: slot, data: try unbase64url(encoded)); return ["ok": true]
     case "readSecret":
-        return ["ok": true, "secret": try readRootSecret(slot: slot).map(base64url) as Any]
+        let secret = try readRootSecret(slot: slot)
+        return ["ok": true, "secret": secret.map(base64url) ?? NSNull()]
     case "deleteSecret":
         try deleteRootSecret(slot: slot); return ["ok": true]
     case "createSigningKey":
