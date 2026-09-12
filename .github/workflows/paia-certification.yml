@@ -58,6 +58,8 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
+      - name: Install Chromium for adapter contracts
+        run: npx playwright install --with-deps chromium
       - name: Adapter contract
         run: node scripts/test.mjs "adapter contract"
       - name: Privacy and security
