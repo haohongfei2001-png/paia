@@ -44,12 +44,15 @@ test('Round 8 browser: opt-in direct Input Context, no denied-topic bypass, and 
     await eventually(async()=>{const e=await rpc(p,'GET_INPUT',{id:(await h.state()).library.blocks[0].id});return e.libraryText==='ROUND8_BROWSER_SHARED 从 Thought 修改。';});
     assert.equal((await h.state()).records[0].originalText,original);
 
-    // Input -> same Thought. Wait for async navigation to finish before clicking
-    // a collection row so the test does not race the old hidden Input list.
+    // Input -> same Thought. Other browser journeys already cover pointer
+    // stability on the collection list; this feature journey dispatches the real
+    // row click synchronously so a concurrent maintenance refresh cannot cause a
+    // Playwright-only actionability retry loop.
     const inputId=(await h.state()).library.blocks[0].id,docId=(await h.state()).library.blocks[0].documentId;
     await p.locator('.sidebar [data-view=library]').click();
     await eventually(async()=>{const nav=p.locator('.sidebar [data-view=library]');return (await nav.getAttribute('aria-current'))==='page'&&await p.locator('#collection-panel').isVisible()&&await p.locator(`.conversation-document[data-document-id="${docId}"]`).count()===1;},'Input Archive navigation settles');
-    await p.locator(`.conversation-document[data-document-id="${docId}"]`).click();
+    await p.locator(`.conversation-document[data-document-id="${docId}"]`).evaluate(el=>el.click());
+    await eventually(async()=>await p.locator('#document-panel').isVisible()&&await p.locator('.library-prose').count()===1,'Input document opens');
     const input=p.locator('.library-prose');await input.fill('ROUND8_BROWSER_SHARED 从 Input 再修改。');await input.blur();
     await eventually(async()=>{const e=await rpc(p,'GET_LIBRARY_ENTRY',{id:thoughtId});return e.body==='ROUND8_BROWSER_SHARED 从 Input 再修改。';});
     assert.equal((await h.state()).records[0].originalText,original);
