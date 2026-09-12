@@ -2,7 +2,7 @@
 
 Status: **current architecture source of truth**
 
-Current runtime: **v0.12.0**
+Current runtime baseline: **v0.12.0 + post-release consolidation rounds**
 
 This document defines the architecture boundaries that new work must preserve unless an explicit migration is approved. Historical implementation documents remain useful evidence, but they do not define new architecture direction by default.
 
@@ -16,7 +16,7 @@ The architecture therefore optimizes for:
 2. **User-work preservation** — edits, organization and explicit exclusions survive enrichment and migration.
 3. **Derived-view replaceability** — AI presentation and retrieval projections can evolve without becoming the only copy of personal truth.
 4. **Local-first operation** — ordinary reading/search/editing does not require a server.
-5. **Explicit external use** — network/provider access is bounded and user-authorized.
+5. **Explicit external use** — network/provider access and Context export are bounded and user-authorized.
 6. **Complexity control** — new UI/product capabilities should reuse existing durable state whenever possible.
 
 ## 2. Runtime boundaries
@@ -32,7 +32,7 @@ ChatGPT Web
 background/service-worker       trusted command dispatch boundary
    │
    ▼
-core/                           archive, thought, context, policy and persistence logic
+core/                           archive, thought, search, context, policy and persistence logic
    │
    ▼
 IndexedDB + chrome.storage      durable local state
@@ -48,7 +48,7 @@ Responsibilities:
 - `content/`: bounded observation/capture bridge. It must not gain broad Library/Context authority.
 - `background/`: trusted caller validation and command dispatch. It should become thinner over time rather than accumulate domain behavior.
 - `core/`: domain services and persistence contracts.
-- `ui/`: presentation, editing interaction and local view state; it must not become an alternate persistence implementation.
+- `ui/`: presentation, editing interaction and local view state; it must not become an alternate content persistence implementation.
 
 ## 3. Canonical data layers
 
@@ -88,7 +88,7 @@ Partial excerpts, multi-Input synthesis, AI prose, context-only evidence, user-c
 
 ### 3.4 Derived projections
 
-AI presentation, evolution reading, search ranking, Context previews and future summaries are projections.
+AI presentation, evolution reading, search ranking, Context previews and summaries are projections.
 
 A projection may be cached when safe, but it is not allowed to become an untraceable replacement for the Source/Working Input trust chain.
 
@@ -96,89 +96,108 @@ A projection may be cached when safe, but it is not allowed to become an untrace
 
 `Input Reader` is a product capability, not a new persistent content layer.
 
-Reader should be able to render:
+Reader can render:
 
 - Input documents;
 - Thought Topics/Entries;
 - AI-organized projections;
-- later, Context Package history or other reusable views.
+- Context Package previews and future reusable views.
 
 Reader-specific state should normally be ephemeral or lightweight preference state: reading order, current position, collapsed sections, display mode and similar UI concerns.
 
 Do not introduce a Reader body store that copies canonical Input or Thought text.
 
-## 5. Search architecture direction
+## 5. Search architecture
 
-Current production retrieval is primarily lexical/structural and deliberately conservative. That is acceptable for the current release but should not lead to separate search implementations growing independently.
+Round 2 introduced `core/search-service.js` as the provider-neutral lexical Search Service foundation shared by Input, Thought and Context preparation.
 
-The next architecture target is a provider-neutral **Search Service boundary**:
+The current boundary provides common behavior for:
+
+- NFKC normalization;
+- established exact-title → partial-title → body ranking compatibility;
+- Chinese 2/3-character query terms;
+- lexical overlap/relevance signals;
+- Unicode-safe excerpts.
+
+Input and Thought retain their existing pagination/index structures where required for compatibility, while Context consumes the same shared query/relevance primitives.
+
+Semantic/vector retrieval may later become one implementation component, but only after real retrieval failure modes justify it. A vector index, if ever added, is a rebuildable derived index, not a new truth store.
+
+## 6. Context Package architecture
+
+AI Context remains a local Context Compiler over current trusted state. Round 4 adds a stable, ephemeral **Context Package** metadata contract around its existing preview/share lifecycle.
+
+The current package contract includes:
 
 ```text
-search(query, scope, filters, limit) -> ranked references + evidence
+type / version
+packageId / previewId
+resourceScope = profile
+profileId
+consumer
+purpose
+permission = context_export
+budget
+createdAt / expiresAt
+generation
+itemCount / characters / tokens
+retrievalConfidence / partial
+localOnly / persistedBody=false
 ```
 
-Expected scopes include Input, Thought and Context preparation.
+Important boundaries:
 
-The service should initially wrap existing local lexical/indexed behavior. Semantic/vector retrieval may later become one implementation component, but only after:
+- Package metadata is tied to the existing in-memory Memory preview lifecycle and expires after a bounded interval.
+- Package body text is not persisted as a new canonical copy.
+- Context compilation still reads current authorized Source/Input/Thought-derived state through AI Context.
+- Stale content/authorization continues to invalidate Memory share/export.
+- Existing manual AI Context copy/export is treated as an explicit one-time manual authorization and remains backward compatible.
+- A Passport-protected export is fail-closed: the result body is cleared before Grant validation and restored to the trusted UI only after the Grant passes.
+- Defining Context Package does not authorize a persistent package-body history. That remains a separate future privacy/product decision.
 
-- the shared boundary exists;
-- real retrieval failure modes are measured;
-- privacy/storage cost is understood;
-- it can be added without changing canonical content ownership.
+## 7. Passport architecture
 
-A vector index, if ever added, is a rebuildable derived index, not a new truth store.
+Round 4 implements a **minimum Passport governance layer** over existing AI Context Profile authorization; it does not replace Topic/Profile rules.
 
-## 6. Context architecture direction
+The division of responsibility is:
 
-The current AI Context feature is a local Context Compiler. It selects authorized material, builds a preview and supports explicit copy/export.
+```text
+AI Context Profile
+  -> what content may participate
 
-Future work should converge on a stable **Context Package** contract instead of adding more one-off output paths.
+Passport Grant
+  -> who may export a package, for what purpose, under which Profile scope, and for how long
+```
 
-A Context Package may contain metadata such as:
-
-- purpose/query reference or digest;
-- selected Input/Thought evidence references;
-- compiled text or structured sections;
-- freshness/generation information;
-- authorization/grant reference;
-- created time and bounded export metadata.
-
-Important boundary:
-
-- Context compilation reads current trusted state.
-- It does not silently write conclusions back into Source or Working Input.
-- Stale authorization/content invalidates share/export capability.
-- Persistent Context Package bodies are not approved merely by defining this contract; persistence requires a separate product/privacy decision.
-
-## 7. Passport architecture direction
-
-Passport is a future governance layer over existing authorization semantics.
-
-It should unify rather than duplicate Topic/Profile permissions, external-access settings and provider action authorization.
-
-A minimum future Grant model should be capable of expressing:
+The current Grant model is metadata-only and expresses:
 
 ```text
 consumer
 purpose
-resource scope
-permissions
-createdAt
-expiresAt / duration
-revokedAt
+resourceScope = profile
+profileId
+permission = context_export
+duration = once | 7d | 30d
+createdAt / expiresAt
+revokedAt / consumedAt
+lastUsedAt / useCount
 ```
 
-An Access Log should be metadata-only where possible and should answer which consumer used which resource scope under which grant and when.
+Current consumers and purposes are fixed enums rather than free-text metadata. This prevents Passport from becoming another place that silently accumulates private user prose.
 
-Passport does not own body text.
+Grant and access-audit rows reuse the existing `meta` store; Round 4 adds no IndexedDB object store and no body cache. Access audit records only Grant/consumer/purpose/Profile reference, export action and time. Audit history is bounded to 90 days / 200 rows and can be cleared independently.
 
-No new Passport schema/store is authorized by this document alone. First implementation should reuse existing authorization metadata where possible and add durable entities only when required by an approved user-facing behavior.
+Passport rows are deliberately excluded from PAIA Backup in this implementation. Restoring a backup must not silently reactivate old external-use permissions. Re-authorizing on a restored/new device remains an explicit user action.
+
+The existing `externalAccess` AI Context switch remains a stronger gate: a valid Passport Grant cannot bypass it. Existing Topic/Profile deny/never rules likewise continue to constrain what a package can contain.
+
+Passport currently governs explicit copy/Markdown Context export only. It does **not** grant autonomous agent access, background reads, remote API access or provider credentials.
 
 ## 8. Durable schema freeze
 
 Beginning with the post-v0.12 consolidation phase, the current durable content schema is **frozen by default**.
 
-A feature may not add a new object store, canonical body copy, major durable entity family or destructive migration unless its design explicitly answers:
+A feature may not add a new object store, canonical body copy, major durable content entity family or destructive migration unless its design explicitly answers:
 
 1. Why can this not be represented as a read model/projection over existing state?
 2. What user-visible behavior requires durability across reload/device boundaries?
@@ -187,7 +206,7 @@ A feature may not add a new object store, canonical body copy, major durable ent
 5. How will old data migrate without resetting user work?
 6. What product evidence justifies the additional long-term complexity?
 
-This is not a permanent ban on schema evolution. It is a default decision rule intended to stop speculative ontology growth.
+Round 3 Product Signals and Round 4 Passport intentionally reuse the existing `meta` store and do not create canonical content copies. This does not exempt them from privacy/retention rules; it simply avoids speculative object-store growth.
 
 ## 9. Privacy and authorization invariants
 
@@ -201,6 +220,8 @@ New work must preserve the following unless the user explicitly approves a chang
 - No hidden automatic paid retries.
 - Credentials do not enter archive bodies, backups, Git evidence or ordinary logs.
 - Local Context preparation does not become automatic external sharing.
+- Passport does not own body text and cannot expand the content scope granted by AI Context Profile rules.
+- Revoked, expired, consumed-once or mismatched Passport Grants must not release protected Context text.
 - Synthetic/headless tests must not be described as proof of real private-data behavior or live-provider quality.
 
 Detailed implemented contracts remain in `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md` and feature-specific acceptance records.
@@ -247,7 +268,7 @@ For each behavioral change:
 - use selected browser journeys for user-visible flows;
 - run package/release guards when release assets change.
 
-Do not create elaborate test infrastructure for speculative features that have not passed a product-value gate.
+Round 4 adds explicit contract tests for Package metadata, Grant validation/expiry/revocation/one-time consumption, metadata-only audit and fail-closed protected export. These tests still require execution in an available development runtime before a release claim.
 
 ## 12. Documentation authority
 
