@@ -156,6 +156,31 @@ Product exit criterion: **not met**. The interaction loop is now coherent and me
 
 ---
 
+## Round 4.10 — Activation & Return Loop
+
+Status: **implementation and automated engineering certification completed 2026-09-13; real-world activation and retention evidence remains open**
+
+Purpose: make the same Round 4.9 home explain PAIA at first meaningful use and become useful again when the user voluntarily returns, without adding a tutorial subsystem or engagement machinery.
+
+Delivered:
+
+- the empty Archive home now explains that the first captured AI input will appear locally in PAIA instead of presenting an abstract feature dashboard;
+- after the first captured Input, the home states explicitly that PAIA stores the user's inputs rather than AI answers and promotes continuing the recent document;
+- no separate onboarding-complete flag or durable activation database was added; activation state is derived from existing Archive content and Revisit state;
+- the existing Revisit first-run marker remains the sole baseline for later return-state calculation;
+- real post-baseline Inputs or Thought topic updates promote “回来看看” as the primary home action, while a quiet return keeps “继续阅读” primary rather than manufacturing urgency;
+- the home responds to the existing privacy-bounded `ARCHIVE_CHANGED` runtime event and also refreshes local state when the PAIA tab becomes visible/focused, with no polling or network request;
+- the Round 4.10 browser journey certifies empty activation → first capture → Revisit baseline → later meaningful capture → `return-new` → Revisit detail over the actual extension lifecycle;
+- the browser journey separately verifies Revisit semantics before home presentation, so future regressions distinguish data-state errors from UI-refresh errors;
+- current-release certification continues to require zero hidden DeepSeek, extension-network or external requests for this path;
+- no push notification, streak, opaque recommendation engine, new durable content schema, new IndexedDB store, backend, network sync or automatic AI call was introduced.
+
+Engineering exit criterion: **met**.
+
+Product exit criterion: **not met**. The product now has a coherent first-use explanation and a bounded return-state surface, but whether users understand the value quickly and voluntarily reopen PAIA still requires real daily-use evidence; this round does not claim retention or product-market evidence.
+
+---
+
 # Round 5 — Portability & Sync Readiness
 
 Status: **gated overall; Round 5A, Round 5B, Round 5C, Round 5D, Round 5E, Round 5F and Round 5F.1 were opened by explicit product-owner override**

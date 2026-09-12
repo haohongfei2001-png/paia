@@ -18,6 +18,7 @@ function isArchiveHome(){
  const nav=document.querySelector('#primary-nav [data-view="library"]');
  return nav?.getAttribute('aria-current')==='page'&&!$('collection-panel')?.hidden&&!String($('search')?.value||'').trim();
 }
+function hasArchiveDocuments(){return !!$('document-list')?.querySelector('.conversation-document');}
 function installStyles(){
  if(document.querySelector('link[data-core-loop]'))return;
  const link=document.createElement('link');link.rel='stylesheet';link.href=chrome.runtime.getURL('ui/core-loop.css');link.dataset.coreLoop='true';document.head.append(link);
@@ -31,6 +32,32 @@ function tuneExistingTools(){
  const universal=$('universal-search-open'),dialog=$('universal-search-dialog');
  if(universal&&universal.textContent!=='搜索')universal.textContent='搜索';
  if(dialog){const title=$('universal-search-title'),help=dialog.querySelector('.universal-search-box p');if(title&&title.textContent!=='找回以前的表达')title.textContent='找回以前的表达';if(help&&help.textContent!=='同时查找你的输入、思想与已有整理。完全本机，不调用 AI。')help.textContent='同时查找你的输入、思想与已有整理。完全本机，不调用 AI。';for(const reuse of dialog.querySelectorAll('.universal-context')){if(reuse.textContent!=='继续使用')reuse.textContent='继续使用';reuse.title='把这条作为本地上下文重点，随后由你补充现在要问的问题；不会自动发送。';}}
+}
+function setPrimaryAction(id){
+ const home=$('core-loop-home');if(!home)return;
+ for(const card of home.querySelectorAll('.core-loop-card'))card.classList.toggle('core-loop-card-primary',!!id&&card.id===id);
+}
+function setHomeState(state,{eyebrow,title,copy,primary=null}={}){
+ const home=$('core-loop-home');if(!home)return;home.dataset.state=state;
+ if(eyebrow)$('core-loop-eyebrow').textContent=eyebrow;
+ if(title)$('core-loop-title').textContent=title;
+ if(copy)$('core-loop-copy').textContent=copy;
+ setPrimaryAction(primary);
+}
+function setActivationEmpty(){
+ setHomeState('activation-empty',{eyebrow:'第一次使用',title:'第一条输入会从这里开始',copy:'PAIA 收录到你在已支持 AI 页面发送的输入后，会把它留在本机。以后可以继续读、找回来，再继续使用。'});
+}
+function setActivationReady(){
+ setHomeState('activation-ready',{eyebrow:'已经开始记录',title:'这里保存的是你给 AI 的输入',copy:'不是 AI 的回答。先打开最近一份继续读；以后想找回一句以前说过的话，直接搜索即可。',primary:'core-loop-continue'});
+}
+function setReturnState({fresh=0,topics=0,old=0}={}){
+ if(fresh||topics){
+  const title=fresh?`${fresh} 条新输入已经回到 PAIA`:`${topics} 个思想主题有了新材料`;
+  const copy=fresh&&topics?`从上次回访后还有 ${topics} 个思想主题出现新材料。先看看变化，或从最近内容继续。`:'从上次回访后有新内容。先看看变化，或从最近内容继续。';
+  setHomeState('return-new',{eyebrow:'欢迎回来',title,copy,primary:'core-loop-return'});return;
+ }
+ if(old){setHomeState('return-resurface',{eyebrow:'欢迎回来',title:'没有新输入，也有以前的内容值得重看',copy:'PAIA 没有制造新的提醒；这里有几条较早内容可重新打开，也可以直接从最近内容继续。',primary:'core-loop-return'});return;}
+ setHomeState('return-quiet',{eyebrow:'欢迎回来',title:'继续上次的阅读，或者找回以前的表达',copy:'没有新的回访提醒。你的输入仍然留在本机，需要时可以继续读、搜索或继续使用。',primary:'core-loop-continue'});
 }
 
 async function prepareReaderReuse(text,buttonNode){
@@ -68,10 +95,11 @@ function decorateReader(){
 
 function createHome(){
  const panel=$('collection-panel'),search=$('search');if(!panel||!search||$('core-loop-home'))return null;
- const home=node('section','core-loop-home');home.id='core-loop-home';
- const intro=node('div','core-loop-intro');intro.append(node('p','core-loop-eyebrow','回到你的内容'),node('h2','','继续阅读，找回以前的表达'),node('p','core-loop-copy','先看最近的输入，也可以直接搜索，或者看看上次之后有什么值得回来读。'));
+ const home=node('section','core-loop-home');home.id='core-loop-home';home.dataset.state='loading';
+ const intro=node('div','core-loop-intro'),eyebrow=node('p','core-loop-eyebrow','回到你的内容'),title=node('h2','','继续阅读，找回以前的表达'),copy=node('p','core-loop-copy','先看最近的输入，也可以直接搜索，或者看看上次之后有什么值得回来读。');
+ eyebrow.id='core-loop-eyebrow';title.id='core-loop-title';copy.id='core-loop-copy';intro.append(eyebrow,title,copy);
  const actions=node('div','core-loop-actions');
- const recent=button('','core-loop-card core-loop-card-primary');recent.id='core-loop-continue';recent.append(node('span','core-loop-card-label','继续阅读'),node('strong','','还没有可继续阅读的内容'),node('small','','新的输入收录后，会从这里回到最近的聊天文档。'));recent.disabled=true;
+ const recent=button('','core-loop-card');recent.id='core-loop-continue';recent.append(node('span','core-loop-card-label','继续阅读'),node('strong','','还没有可继续阅读的内容'),node('small','','新的输入收录后，会从这里回到最近的聊天文档。'));recent.disabled=true;
  const find=button('','core-loop-card');find.id='core-loop-find';find.append(node('span','core-loop-card-label','找回'),node('strong','','搜索以前的表达'),node('small','','跨输入、思想和已有整理查找，并可继续使用。'));
  const revisit=button('','core-loop-card');revisit.id='core-loop-return';revisit.append(node('span','core-loop-card-label','回来看看'),node('strong','','看看最近有什么变化'),node('small','core-loop-return-state','只读取本机变化，不调用 AI。'));
  actions.append(recent,find,revisit);home.append(intro,actions);
@@ -87,20 +115,21 @@ async function refreshReturnCard(){
  const home=$('core-loop-home');if(!home||home.hidden)return;const token=++revisitToken,state=home.querySelector('.core-loop-return-state'),strong=$('core-loop-return')?.querySelector('strong');
  try{
   const data=await request('PAIA_REVISIT_STATUS');if(token!==revisitToken)return;
-  const key=JSON.stringify([data.firstRun,data.newInputs?.count,data.topicUpdates?.length,data.resurface?.length]);if(key===lastRevisitKey)return;lastRevisitKey=key;
-  if(data.firstRun){strong.textContent='从现在开始记录变化';state.textContent='不会把已有历史全部标成未读；先建立你的回访起点。';return;}
-  const fresh=data.newInputs?.count||0,topics=data.topicUpdates?.length||0,old=data.resurface?.length||0;
+  const hasDocs=hasArchiveDocuments(),key=JSON.stringify([hasDocs,data.firstRun,data.newInputs?.count,data.topicUpdates?.length,data.resurface?.length]);if(key===lastRevisitKey)return;lastRevisitKey=key;
+  if(data.firstRun){if(hasDocs)setActivationReady();else setActivationEmpty();strong.textContent='从现在开始记录变化';state.textContent='不会把已有历史全部标成未读；先建立你的回访起点。';return;}
+  const fresh=data.newInputs?.count||0,topics=data.topicUpdates?.length||0,old=data.resurface?.length||0;setReturnState({fresh,topics,old});
   if(fresh){strong.textContent=`${fresh}${data.newInputs?.truncated?'+':''} 条新输入值得看看`;state.textContent=topics?`另有 ${topics} 个思想主题出现新材料。`:'从上次位置之后新增的本机内容。';return;}
   if(topics){strong.textContent=`${topics} 个思想主题有新材料`;state.textContent='没有新的 Input 提醒，但已有主题出现了新内容。';return;}
   strong.textContent=old?'重新看看以前的内容':'已经读到最新';state.textContent=old?`${old} 条较早内容值得重新打开。`:'没有新提醒；需要时仍可搜索以前的表达。';
- }catch{if(token===revisitToken){strong.textContent='回来看看';state.textContent='暂时无法读取回访状态，仍可打开查看。';}}
+ }catch{if(token===revisitToken){if(hasArchiveDocuments())setActivationReady();else setActivationEmpty();strong.textContent='回来看看';state.textContent='暂时无法读取回访状态，仍可打开查看。';}}
 }
 function refreshHome(){
  const home=$('core-loop-home'),browse=$('core-loop-browse-title');if(!home)return;
  const visible=isArchiveHome();home.hidden=!visible;if(browse)browse.hidden=!visible;if(!visible)return;
- const first=$('document-list')?.querySelector('.conversation-document'),recent=$('core-loop-continue');
- if(first&&recent){recent.disabled=false;recent.querySelector('strong').textContent=first.querySelector('strong')?.textContent||'继续最近的聊天文档';recent.querySelector('small').textContent=first.querySelector('small')?.textContent||'回到最近收录的内容。';}
- else if(recent){recent.disabled=true;recent.querySelector('strong').textContent='还没有可继续阅读的内容';recent.querySelector('small').textContent='新的输入收录后，会从这里回到最近的聊天文档。';}
+ const first=$('document-list')?.querySelector('.conversation-document'),recent=$('core-loop-continue'),state=String(home.dataset.state||'');
+ const preserveReturnState=state.startsWith('return-');
+ if(first&&recent){recent.disabled=false;recent.querySelector('strong').textContent=first.querySelector('strong')?.textContent||'继续最近的聊天文档';recent.querySelector('small').textContent=first.querySelector('small')?.textContent||'回到最近收录的内容。';if(!preserveReturnState)setActivationReady();}
+ else if(recent){recent.disabled=true;recent.querySelector('strong').textContent='还没有可继续阅读的内容';recent.querySelector('small').textContent='新的输入收录后，会从这里回到最近的聊天文档。';setActivationEmpty();}
  void refreshReturnCard();
 }
 function preserveInternalToolAccess(){
@@ -110,11 +139,16 @@ function preserveInternalToolAccess(){
 
 export function installCoreLoop(){
  if($('core-loop-home'))return;installStyles();demoteInternalNavigation();createHome();preserveInternalToolAccess();tuneExistingTools();
- const documentBody=$('document-body'),documentList=$('document-list'),collection=$('collection-panel'),dialog=$('universal-search-dialog');
+ const documentBody=$('document-body'),documentList=$('document-list'),collection=$('collection-panel'),dialog=$('universal-search-dialog'),revisitDialog=$('revisit-dialog');
  if(documentBody)new MutationObserver(decorateReader).observe(documentBody,{subtree:true,childList:true});
  if(documentList)new MutationObserver(refreshHome).observe(documentList,{subtree:true,childList:true});
  if(collection)new MutationObserver(refreshHome).observe(collection,{attributes:true,attributeFilter:['hidden']});
  for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(refreshHome).observe(nav,{attributes:true,attributeFilter:['aria-current']});
  if(dialog)new MutationObserver(tuneExistingTools).observe(dialog,{subtree:true,childList:true});
- $('search')?.addEventListener('input',refreshHome);decorateReader();refreshHome();
+ if(revisitDialog)revisitDialog.addEventListener('close',()=>{lastRevisitKey='';refreshHome();});
+ $('search')?.addEventListener('input',refreshHome);
+ chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED'){lastRevisitKey='';refreshHome();}});
+ window.addEventListener('focus',refreshHome);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHome();});
+ decorateReader();refreshHome();
 }

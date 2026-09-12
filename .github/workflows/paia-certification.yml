@@ -106,11 +106,12 @@ jobs:
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
-      - name: Core product loop, Search, Reader, Context, Revisit and Passport
+      - name: Core product loop, activation/return, Search, Reader, Context, Revisit and Passport
         run: >-
           xvfb-run -a node --test --test-concurrency=1
           tests/release-certification-round48-chrome-e2e.test.mjs
           tests/release-certification-round49-chrome-e2e.test.mjs
+          tests/activation-return-round410-chrome-e2e.test.mjs
       - name: Package audit after current Chrome journey
         run: |
           python3 scripts/check_package.py

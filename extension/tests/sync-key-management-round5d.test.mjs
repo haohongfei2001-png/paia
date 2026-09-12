@@ -183,7 +183,7 @@ test('Round 5D recovery kit uses a separate random high-entropy secret and resto
   assert.deepEqual(recovered.versions(),[1,2,3]);
   assert.equal(recovered.currentVersion,3);
   for(const version of recovered.versions())assert.deepEqual([...recovered.rootKeyFor(version)],[...keyring.rootKeyFor(version)]);
-  const wrongSecret=recoverySecret.slice(0,-1)+(recoverySecret.endsWith('A')?'B':'A');
+  const prefix='recovery_',payload=recoverySecret.slice(prefix.length),wrongSecret=prefix+(payload[0]==='A'?'B':'A')+payload.slice(1);
   await assert.rejects(
     ()=>recoverKeyring({recoverySecret:wrongSecret,recoveryPackage}),
     e=>e instanceof SyncKeyManagementError&&e.code==='SYNC_RECOVERY_DECRYPT_FAILED'
