@@ -1,0 +1,65 @@
+name: PAIA Certification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'extension/**'
+      - '.github/workflows/paia-certification.yml'
+  pull_request:
+    paths:
+      - 'extension/**'
+      - '.github/workflows/paia-certification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paia-certification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  certify:
+    name: Full regression and release guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PAIA_TEST_CONCURRENCY: '4'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install JavaScript dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Run complete regression suite
+        run: npm test
+
+      - name: Build and audit current release
+        run: npm run build:release
+
+      - name: Upload certified release tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: paia-current-release-${{ github.sha }}
+          path: extension/work/current-release
+          if-no-files-found: error
+          retention-days: 7
