@@ -1,0 +1,50 @@
+import {request} from './common.js';
+import {contextReuseQuery} from '../core/universal-search.js';
+
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const signal=(name,dimensions)=>request('PAIA_PRODUCT_SIGNAL',{signal:{name,dimensions}}).catch(()=>{});
+
+async function waitFor(read,{attempts=80,delay=50}={}){
+ for(let i=0;i<attempts;i++){const value=read();if(value)return value;await sleep(delay);}return null;
+}
+function button(label,className=''){const node=document.createElement('button');node.type='button';node.className=className;node.textContent=label;return node;}
+function labelMonth(key){if(key==='unknown')return '时间未知';const date=new Date(key+'-01T00:00:00');return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'long'}).format(date):key;}
+function itemLabel(item){
+ if(item.kind==='input')return item.title||'Input';
+ if(item.kind==='ai')return `${item.topicName||'思想主题'} · ${item.sectionTitle||'AI整理'}`;
+ const path=item.paths?.[0]||item;return item.topicName||path.topicName||item.title||item.sectionTitle||'Thought';
+}
+function itemDetail(item){
+ if(item.kind==='input')return item.sourceSentAt?new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(item.sourceSentAt)):'发送时间未知';
+ if(item.kind==='ai')return 'AI 整理投影 · 可回到思想依据';
+ const path=item.paths?.[0]||item;return [path.topicName&&path.topicName!==itemLabel(item)?path.topicName:null,path.sectionTitle,item.type].filter(Boolean).join(' · ')||'Thought Library';
+}
+function thoughtRenderKey(item){const path=item.paths?.[0]||item;return JSON.stringify([item.kind,item.entryId,path.topicId,path.sectionId,item.aiField]);}
+
+export function installUniversalSearch(){
+ if($('universal-search-open'))return;
+ const header=document.querySelector('.workspace-header');if(!header)return;
+ if(!document.querySelector('link[data-universal-search]')){const link=document.createElement('link');link.rel='stylesheet';link.href=chrome.runtime.getURL('ui/universal-search.css');link.dataset.universalSearch='true';document.head.append(link);}
+ const open=button('全局搜索');open.id='universal-search-open';open.setAttribute('aria-haspopup','dialog');$('workspace-heading')?.after(open);
+ const dialog=document.createElement('dialog');dialog.id='universal-search-dialog';dialog.setAttribute('aria-labelledby','universal-search-title');
+ const shell=document.createElement('div');shell.className='universal-shell';
+ const top=document.createElement('header');top.className='universal-header';const title=document.createElement('h2');title.id='universal-search-title';title.textContent='在 PAIA 中搜索';const close=button('×','universal-close');close.setAttribute('aria-label','关闭全局搜索');top.append(title,close);
+ const box=document.createElement('div');box.className='universal-search-box';const input=document.createElement('input');input.type='search';input.placeholder='搜索你以前说过、想过或整理过的内容…';input.maxLength=300;input.autocomplete='off';input.setAttribute('aria-label','全局搜索');const help=document.createElement('p');help.textContent='同时检索 Input Archive、Thought Library 与已有 AI整理。完全本机，不调用 AI。';box.append(input,help);
+ const modes=document.createElement('div');modes.className='universal-modes';const all=button('全部'),past=button('以前的我');all.dataset.mode='all';past.dataset.mode='timeline';all.setAttribute('aria-pressed','true');past.setAttribute('aria-pressed','false');modes.append(all,past);
+ const status=document.createElement('p');status.className='universal-status';status.setAttribute('role','status');const results=document.createElement('div');results.className='universal-results';shell.append(top,box,modes,status,results);dialog.append(shell);document.body.append(dialog);
+ let timer=null,serial=0,last=null,mode='all';
+ const setMode=next=>{mode=next;for(const b of modes.querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.mode===mode));render();};
+ all.addEventListener('click',()=>setMode('all'));past.addEventListener('click',()=>setMode('timeline'));close.addEventListener('click',()=>dialog.close());
+ dialog.addEventListener('close',()=>{serial++;clearTimeout(timer);});
+ open.addEventListener('click',async()=>{const s=await request('GET_STATUS').catch(()=>null);if(!s?.consented){status.textContent='请先完成 PAIA 的本机保存授权，再使用全局搜索。';last=null;results.replaceChildren();}dialog.showModal();input.focus();input.select();if(s?.consented&&input.value.trim())void run();});
+ input.addEventListener('input',()=>{clearTimeout(timer);const value=input.value.trim();if(!value){serial++;last=null;status.textContent='';results.replaceChildren();return;}timer=setTimeout(()=>void run(),180);});
+ async function run(){const query=input.value.trim();if(!query)return;const token=++serial;status.textContent='正在检索本机档案、思想和整理…';results.setAttribute('aria-busy','true');try{const data=await request('SEARCH_UNIVERSAL',{options:{query,inputLimit:24,thoughtLimit:18,aiLimit:8}});if(token!==serial)return;last=data;render();status.textContent=data.hasAny?`${data.input.items.length} 条 Input · ${data.thought.items.length} 条 Thought · ${data.ai.items.length} 条 AI整理${!data.input.complete||!data.thought.complete?' · 当前为有界结果':''}`:'没有找到匹配内容。试试更短的关键词或另一种表达。';}catch(e){if(token!==serial)return;last=null;results.replaceChildren();status.textContent=e.code==='CONSENT_REQUIRED'?'请先完成 PAIA 的本机保存授权。':'全局搜索暂时无法读取本机内容，请重试。';}finally{if(token===serial)results.removeAttribute('aria-busy');}}
+ function render(){results.replaceChildren();if(!last)return;if(mode==='timeline'){renderTimeline();return;}for(const [name,items,meta]of [['Input Archive',last.input.items,last.input],['Thought Library',last.thought.items,last.thought],['AI整理',last.ai.items,last.ai]])renderGroup(name,items,meta);if(!last.hasAny){const empty=document.createElement('p');empty.className='universal-empty';empty.textContent='没有匹配内容。';results.append(empty);}}
+ function renderGroup(name,items,meta){const group=document.createElement('section');group.className='universal-group';const head=document.createElement('header'),h=document.createElement('h3'),count=document.createElement('span');h.textContent=name;count.textContent=items.length+(meta.complete?'':' +');head.append(h,count);group.append(head);for(const item of items)group.append(hit(item));if(!items.length){const empty=document.createElement('p');empty.className='universal-empty';empty.textContent='本区没有匹配。';group.append(empty);}results.append(group);}
+ function hit(item){const row=document.createElement('article');row.className='universal-hit';const primary=button('','universal-open');const strong=document.createElement('strong'),snippet=document.createElement('p'),small=document.createElement('small');strong.textContent=itemLabel(item);snippet.textContent=item.snippet||'';small.textContent=itemDetail(item);primary.append(strong,snippet,small);primary.addEventListener('click',()=>void openResult(item));const reuse=button('用于 AI Context','universal-context');reuse.title='只把这条作为本地检索重点，不会自动生成或发送上下文';reuse.addEventListener('click',()=>void prepareContext(item));row.append(primary,reuse);return row;}
+ function renderTimeline(){const note=document.createElement('p');note.className='universal-timeline-note';note.textContent='按发送时间从早到晚展示本次搜索命中的 Input。它只呈现你的历史表达，不推断你的观点已经改变。'+(last.input.complete?'':' 当前只显示有界搜索结果，不代表全部历史。');results.append(note);if(!last.timeline.length){const empty=document.createElement('p');empty.className='universal-empty';empty.textContent='没有带时间信息的匹配 Input。';results.append(empty);return;}for(const month of last.timeline){const section=document.createElement('section');section.className='universal-month';const h=document.createElement('h3');h.textContent=labelMonth(month.key);section.append(h);for(const item of month.items)section.append(hit(item));results.append(section);}}
+ async function openResult(item){void signal('universal_result_open',{kind:item.kind==='input'?'input':item.kind==='ai'?'ai':'thought'});const query=last?.query||input.value.trim();dialog.close();if(item.kind==='input'){document.querySelector('[data-view="library"]')?.click();const field=await waitFor(()=>{const el=$('search');return el&&!$('collection-panel')?.hidden?el:null;});if(!field)return;field.value=query;field.dispatchEvent(new Event('input',{bubbles:true}));const target=await waitFor(()=>[...document.querySelectorAll('#document-list .search-input[data-input-id]')].find(node=>node.dataset.inputId===item.id),{attempts:100});target?.click();return;}
+  document.querySelector('[data-view="thoughts"]')?.click();const field=await waitFor(()=>{const el=$('thought-search');return el&&!$('thought-panel')?.hidden?el:null;});if(!field)return;field.value=query;field.dispatchEvent(new Event('input',{bubbles:true}));const key=thoughtRenderKey(item),target=await waitFor(()=>[...document.querySelectorAll('#thought-list [data-render-key]')].find(node=>node.dataset.renderKey===key),{attempts:120});target?.click();}
+ async function prepareContext(item){void signal('context_prepare_from_search',{kind:item.kind==='input'?'input':item.kind==='ai'?'ai':'thought'});const text=contextReuseQuery(item,last?.query||input.value.trim());dialog.close();document.querySelector('[data-view="memory"]')?.click();const prepare=await waitFor(()=>{const el=$('memory-prepare');return el&&!$('memory-panel')?.hidden&&!el.disabled?el:null;},{attempts:120});if(!prepare)return;prepare.click();const queryBox=await waitFor(()=>{const el=$('memory-query');return el&&!$('memory-builder')?.hidden?el:null;},{attempts:80});if(!queryBox)return;queryBox.value=text;queryBox.focus();queryBox.setSelectionRange(queryBox.value.length,queryBox.value.length);}
+ }
