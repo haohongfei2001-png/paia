@@ -37,8 +37,16 @@ async function prepareReaderReuse(text,buttonNode){
  buttonNode.disabled=true;buttonNode.textContent='正在准备…';
  try{
   const prompt=contextReuseQuery({kind:'input',snippet:clean},'继续围绕这段表达思考或推进');
+  const eligibility=await request('PAIA_MEMORY_STATUS',{options:{profileId:'default'}});
   document.querySelector('[data-view="memory"]')?.click();
-  const prepare=await waitFor(()=>{const el=$('memory-prepare');return el&&!$('memory-panel')?.hidden&&!el.disabled?el:null;},{attempts:140});
+  const panel=await waitFor(()=>{const el=$('memory-panel');return el&&!el.hidden?el:null;},{attempts:100});
+  if(!panel)throw Error('MEMORY_UNAVAILABLE');
+  if((eligibility?.total||0)===0&&eligibility?.config?.includeUnorganizedInputs!==true){
+   const status=$('memory-status'),notice=$('memory-no-authorization');
+   if(status)status.textContent='这条 Input 还没有被允许进入 AI Context。你可以先选择允许的主题，或在 Settings 明确开启“从 Input Archive 补充尚未进入思想库的有效输入”。';
+   notice?.scrollIntoView?.({block:'center'});return;
+  }
+  const prepare=await waitFor(()=>{const el=$('memory-prepare');return el&&!el.disabled?el:null;},{attempts:100});
   if(!prepare)throw Error('MEMORY_UNAVAILABLE');
   prepare.click();
   const query=await waitFor(()=>{const el=$('memory-query');return el&&!$('memory-builder')?.hidden?el:null;},{attempts:100});
