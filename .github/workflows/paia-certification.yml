@@ -22,6 +22,7 @@ concurrency:
 env:
   CI: '1'
   PAIA_TEST_CONCURRENCY: '4'
+  PLAYWRIGHT_MODULE: 'playwright'
 
 jobs:
   unit:
