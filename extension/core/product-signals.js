@@ -122,11 +122,15 @@ export class ProductSignals {
   this.registerPackage(request,result);const budget=['short','standard','detailed'].includes(request.options?.budget)?request.options.budget:'standard';await this.record({name:'context_build',dimensions:{outcome:result?.items?.length?'hit':'empty',profile:request.options?.profileId&&request.options.profileId!=='default'?'custom':'default',budget}});
  }
  async observeMemoryShare(request,result){
-  const format=request.options?.format;if(!['copy','markdown'].includes(format))return;const current=this.package(request.options?.previewId),grantId=request.options?.grantId;let pkg=current;
+  const format=request.options?.format;if(!['copy','markdown'].includes(format))return;const grantId=request.options?.grantId;
   if(grantId!==undefined){
-   if(typeof grantId!=='string'||!grantId)invalid();const status=await this.passport.status(),grant=status.grants.find(row=>row.grantId===grantId);if(!grant)throw new ArchiveError('MEMORY_DENIED');await this.passport.authorize({grantId,consumer:grant.consumer,purpose:grant.purpose,profileId:current.profileId});await this.passport.consume(grantId,format);pkg={...current,consumer:grant.consumer,purpose:grant.purpose};
-  }else await this.passport.audit({consumer:'manual',purpose:'current_task',profileId:current.profileId,action:format==='copy'?'manual_copy':'manual_markdown'});
-  pkg={...pkg,generation:result.generation||pkg.generation,characters:result.characters||pkg.characters,tokens:result.tokens||pkg.tokens};this.packages.set(pkg.previewId,pkg);result.contextPackage=contextPackageEnvelope(pkg,result.text,{format:format==='markdown'?'markdown':'plain',generation:pkg.generation}).package;await this.record({name:'context_share',dimensions:{format}});
+   const released={text:result.text,characters:result.characters,tokens:result.tokens};result.text='';result.characters=0;result.tokens=0;result.permissionDenied=true;result.permissionError='MEMORY_DENIED';
+   try{
+    if(typeof grantId!=='string'||!grantId)invalid();const current=this.package(request.options?.previewId),status=await this.passport.status(),grant=status.grants.find(row=>row.grantId===grantId);if(!grant)throw new ArchiveError('MEMORY_DENIED');await this.passport.authorize({grantId,consumer:grant.consumer,purpose:grant.purpose,profileId:current.profileId});await this.passport.consume(grantId,format);let pkg={...current,consumer:grant.consumer,purpose:grant.purpose,generation:result.generation||current.generation,characters:released.characters||current.characters,tokens:released.tokens||current.tokens};this.packages.set(pkg.previewId,pkg);result.text=released.text;result.characters=released.characters;result.tokens=released.tokens;result.permissionDenied=false;delete result.permissionError;result.contextPackage=contextPackageEnvelope(pkg,result.text,{format:format==='markdown'?'markdown':'plain',generation:pkg.generation}).package;await this.record({name:'context_share',dimensions:{format}});return;
+   }catch(error){result.permissionError=['MEMORY_DENIED','MEMORY_STALE','INVALID_REQUEST'].includes(error?.code)?error.code:'MEMORY_DENIED';return;}
+  }
+  let current;try{current=this.package(request.options?.previewId);}catch{await this.record({name:'context_share',dimensions:{format}});return;}
+  await this.passport.audit({consumer:'manual',purpose:'current_task',profileId:current.profileId,action:format==='copy'?'manual_copy':'manual_markdown'}).catch(()=>{});const pkg={...current,generation:result.generation||current.generation,characters:result.characters||current.characters,tokens:result.tokens||current.tokens};this.packages.set(pkg.previewId,pkg);try{result.contextPackage=contextPackageEnvelope(pkg,result.text,{format:format==='markdown'?'markdown':'plain',generation:pkg.generation}).package;}catch{}await this.record({name:'context_share',dimensions:{format}});
  }
  async observe(request,result,sender){
   switch(request?.type){
