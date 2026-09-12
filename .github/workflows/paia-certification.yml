@@ -49,6 +49,7 @@ jobs:
       - name: Run unit shard
         env:
           PAIA_TEST_SHARD: ${{ matrix.shard }}
+          PAIA_TEST_CONCURRENCY: '1'
         run: npm run test:unit
 
   contracts:
@@ -112,6 +113,7 @@ jobs:
       - name: Run browser shard under virtual display
         env:
           PAIA_TEST_SHARD: ${{ matrix.shard }}
+          PAIA_TEST_CONCURRENCY: '1'
         run: xvfb-run -a npm run test:browser
 
   release:
