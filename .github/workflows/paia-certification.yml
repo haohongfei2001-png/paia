@@ -25,9 +25,13 @@ env:
 
 jobs:
   unit:
-    name: Unit and package audit
+    name: Unit ${{ matrix.shard }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4','2/4','3/4','4/4']
     defaults:
       run:
         working-directory: extension
@@ -42,7 +46,10 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
-      - run: npm run test:unit
+      - name: Run unit shard
+        env:
+          PAIA_TEST_SHARD: ${{ matrix.shard }}
+        run: npm run test:unit
 
   contracts:
     name: Adapter and privacy contracts
@@ -70,9 +77,13 @@ jobs:
         run: node scripts/test.mjs "privacy/security"
 
   browser:
-    name: Browser E2E
+    name: Browser ${{ matrix.shard }}
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4','2/4','3/4','4/4']
     defaults:
       run:
         working-directory: extension
@@ -98,7 +109,9 @@ jobs:
           sudo ln -sf "$CHROME_BIN" '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
           git rev-parse --is-shallow-repository | grep -qx false
           "$CHROME_BIN" --version
-      - name: Run browser E2E under virtual display
+      - name: Run browser shard under virtual display
+        env:
+          PAIA_TEST_SHARD: ${{ matrix.shard }}
         run: xvfb-run -a npm run test:browser
 
   release:
