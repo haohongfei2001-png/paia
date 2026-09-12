@@ -4,10 +4,7 @@ import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {readFile} from 'node:fs/promises';
 const require=createRequire(import.meta.url);
-let playwright;
-try{playwright=require(process.env.PLAYWRIGHT_MODULE||'playwright');}
-catch(error){if(process.env.PLAYWRIGHT_MODULE)throw error;playwright=require('/Users/hhf/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');}
-const {chromium}=playwright;
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'/Users/hhf/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const root=fileURLToPath(new URL('../..',import.meta.url));
 export const pause=ms=>new Promise(r=>setTimeout(r,ms));
 export async function eventually(fn,label='synthetic expected state',timeout=14000) {
@@ -51,23 +48,70 @@ export class FakeChatGPT {
   try {
    await h.context.route(/^https?:\/\//,async route=>{
     const request=route.request(),url=new URL(request.url());
-    if(url.origin==='https://chatgpt.com'){
-     if(url.pathname.startsWith('/backend-api/fixture-history')){h.historyRequests++;const id=url.searchParams.get('chat'),entry=h.pending.get(id);if(entry){h.pending.delete(id);await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(entry)});return;}}
-     const id=url.pathname.split('/').filter(Boolean).at(-1),entry=h.pages.get(id)||{c:{id,title:'Fake ChatGPT',messages:[]},arrival:'normal'};await route.fulfill({status:200,contentType:'text/html',body:fakePage(entry.c,entry.arrival)});return;
+    if(url.origin==='https://api.deepseek.com'&&request.serviceWorker()&&deepSeekFixture){h.extensionNetworkRequests++;const body=JSON.parse(request.postData()||'{}');h.deepSeekRequests.push(body);return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(await deepSeekFixture(body))});}
+    if(url.origin!=='https://chatgpt.com'){h.externalRequests++;return route.abort();}
+    if(request.serviceWorker()){h.extensionNetworkRequests++;return route.abort();}
+    if(url.pathname==='/backend-api/fixture-history'){
+     h.historyRequests++;const id=url.searchParams.get('chat');const pending=h.pending.get(id);
+     const c=h.pages.get(id)?.c;const value=pending??(c?h.response(c):{});h.pending.delete(id);
+     return route.fulfill({contentType:'application/json',body:typeof value==='string'?value:JSON.stringify(value)});
     }
-    if(url.origin==='https://api.deepseek.com'){
-     h.extensionNetworkRequests++;const body=request.postDataJSON?.()||{};h.deepSeekRequests.push(body);if(deepSeekFixture){const response=typeof deepSeekFixture==='function'?await deepSeekFixture(body,h.deepSeekRequests.length):deepSeekFixture;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(response)});return;}await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'synthetic provider disabled'})});return;
-    }
-    h.externalRequests++;await route.abort();
+    const id=url.pathname.split('/').at(-1),entry=h.pages.get(id);
+    if(!entry)return route.abort();
+    return route.fulfill({contentType:'text/html',body:fakePage(entry.c,entry.arrival)});
    });
-   let workers=h.context.serviceWorkers();if(!workers.length){const trigger=await h.context.newPage();await trigger.goto('https://chatgpt.com/c/bootstrap');await pause(300);workers=h.context.serviceWorkers();await trigger.close();}
-   h.worker=workers[0];assert.ok(h.worker,'extension service worker did not start');h.extensionId=new URL(h.worker.url()).host;
-   h.archive=await h.context.newPage();await h.archive.goto(`chrome-extension://${h.extensionId}/ui/archive.html${onboarding?'?onboarding=1':''}`);await h.archive.waitForLoadState('domcontentloaded');
-   h.archive.on('pageerror',e=>h.errors.push(String(e)));
+   h.cdp=await h.context.browser().newBrowserCDPSession();
+   const {id}=await h.cdp.send('Extensions.loadUnpacked',{path:extensionPath});h.extensionId=id;
+   h.archive=await h.context.newPage();h.archive.on('pageerror',e=>h.errors.push(e.message));await h.archive.goto(`chrome-extension://${id}/ui/archive.html`);
+   if(!onboarding&&await h.archive.locator('#onboarding-start').count()){await h.archive.locator('#onboarding-start').click();await h.archive.locator('#consent-check').waitFor();}
    return h;
-  } catch(error){await h.context.close();throw error;}
+  }catch(e){await h.context.close();throw e;}
  }
- async open(c,{arrival='normal'}={}){this.pages.set(c.id,{c,arrival});if(arrival==='metadata-first')this.pending.set(c.id,{id:c.id,title:c.title,create_time:c.base,mapping:Object.fromEntries(c.messages.map((m,i)=>[m.id,{id:m.id,message:{id:m.id,author:{role:'user'},create_time:c.base+i,content:{content_type:'text',parts:[m.text]}}}]))});let page=this.chat;if(!page||page.isClosed()){page=await this.context.newPage();this.chat=page;}await page.goto('https://chatgpt.com/c/'+c.id);await pause(150);return page;}
- async state(){const response=await this.archive.evaluate(()=>new Promise(resolve=>chrome.runtime.sendMessage({type:'GET_STATE'},resolve)));assert.equal(response.ok,true);return response.data;}
+ response(c) {
+  const keys=['first','second','third'];
+  return {conversation_id:c.id,mapping:Object.fromEntries([
+   ...c.messages.map((m,i)=>[keys[i]||'node'+i,{message:{id:m.id,author:{role:'user'},create_time:c.base+i*60,update_time:c.base+i*60+1,content:{parts:['FAKE_RESPONSE_BODY_NEVER_ARCHIVED']}}}]),
+   ['assistant',{message:{id:c.id+'-assistant',author:{role:'assistant'},create_time:c.base+1,content:{parts:['FAKE_ASSISTANT_RESPONSE']}}}]
+  ])};
+ }
+ async open(c,{arrival='metadata-first'}={}) {
+  this.pages.set(c.id,{c,arrival});const page=await this.context.newPage();page.on('pageerror',e=>this.errors.push(e.message));await page.goto('https://chatgpt.com/c/'+c.id);return page;
+ }
+ async ready(page){await page.waitForFunction(()=>window.historyGateActive===true);}
+ async render(page,c){await page.evaluate(c=>window.fake.render(c),c);}
+ async respond(page,c,value=this.response(c)) {
+  this.pending.set(c.id,value);
+  await page.evaluate(id=>window.fetch('/backend-api/fixture-history?chat='+id).then(r=>r.text()).then(()=>undefined),c.id);
+ }
+ async edit(page,id,text,editing){await page.evaluate(args=>window.fake.edit(...args),[id,text,editing]);}
+ async send(page,message){await page.evaluate(m=>window.fake.send(m),message);}
+ async draft(page,text){await page.locator('textarea').fill(text);}
+ async spa(page,c) {
+  this.pages.set(c.id,{c,arrival:'manual'});
+  await page.evaluate(id=>{window.historyGateActive=false;history.pushState({},'', '/c/'+id);document.getElementById('messages').replaceChildren();document.querySelector('[data-message-author-role="user"][contenteditable]')?.remove();},c.id);
+  await pause(750);await this.render(page,c);
+ }
+ async state(){const r=await this.archive.evaluate(()=>chrome.runtime.sendMessage({type:'GET_STATE'}));assert.equal(r.ok,true);return r.data;}
+ async restartWorker() {
+  const url=`chrome-extension://${this.extensionId}/background/service-worker.js`;
+  const worker=this.context.serviceWorkers().find(w=>w.url()===url);assert.ok(worker);
+  await worker.evaluate(()=>{globalThis.__fakeLifetimeMarker=true;});
+  const c=await this.context.newCDPSession(this.archive);const versions=[];
+  c.on('ServiceWorker.workerVersionUpdated',e=>versions.push(...e.versions.filter(v=>v.scriptURL===url)));
+  try {
+   await c.send('ServiceWorker.enable');await eventually(()=>versions.some(v=>v.runningStatus==='running'));
+   const version=versions.at(-1).versionId;versions.length=0;
+   await c.send('ServiceWorker.stopWorker',{versionId:version});
+   await eventually(()=>versions.some(v=>v.runningStatus==='stopped'),'worker must emit stopped');
+   await this.state();await eventually(()=>versions.at(-1)?.runningStatus==='running','worker must wake');
+   const awake=this.context.serviceWorkers().find(w=>w.url()===url);assert.ok(awake);
+   assert.equal(await awake.evaluate(()=>typeof globalThis.__fakeLifetimeMarker),'undefined','worker heap must be fresh even when Chrome reuses target ID');
+  }finally{await c.detach();}
+ }
+ async download(format) {
+  if(!await this.archive.locator('#export-'+format).isVisible())await this.archive.locator('#export-menu > summary').click();
+  const promise=this.archive.waitForEvent('download');await this.archive.locator('#export-'+format).click();
+  const download=await promise;return readFile(await download.path(),'utf8');
+ }
  async close(){await this.context.close();}
 }
