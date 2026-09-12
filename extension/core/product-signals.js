@@ -69,9 +69,8 @@ export class ProductSignals {
  async noteTopicRead(repeat,sender){const saved=await this.record({name:'thought_topic_open',dimensions:{repeat:repeat?'repeat':'first'}});if(saved?.recorded&&this.consumeRecentSearch('thought',sender))await this.record({name:'thought_search_open',dimensions:{}});}
  async observe(request,result,sender){
   switch(request?.type){
-   case 'SEARCH_INPUTS': return this.noteSearch('input',request.options,result,sender);
+   case 'SEARCH_INPUTS': if(request.options?.universal===true)return this.record({name:'universal_search',dimensions:{outcome:result?.hasAny?'hit':'miss'}});return this.noteSearch('input',request.options,result,sender);
    case 'SEARCH_LIBRARY': return this.noteSearch('thought',request.options,result,sender);
-   case 'SEARCH_UNIVERSAL': return this.record({name:'universal_search',dimensions:{outcome:result?.hasAny?'hit':'miss'}});
    case 'GET_PAGE': {const id=request.page?.contextInputId;if(request.page?.view!=='library'||typeof id!=='string'||!result?.pageItemIds?.includes(id))return;const block=result.library?.blocks?.find(row=>row.id===id),origin=this.consumeRecentSearch('input',sender)?'search':'targeted';return this.record({name:'input_target_open',dimensions:{origin,age:contentAgeBucket(block?.sourceSentAt,this.clock())}});}
    case 'SET_ORGANIZER_CONTROLS': {const view=request.changes?.libraryView;if(!['ai','original'].includes(view))return;return this.record({name:'thought_ai_view',dimensions:{view}});}
    case 'EDIT_AI_PRESENTATION': return this.record({name:'thought_ai_edit',dimensions:{result:'saved'}});
