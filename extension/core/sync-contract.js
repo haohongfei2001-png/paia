@@ -53,21 +53,25 @@ export function validateSyncEnvelope(input){
   if(Object.keys(input).some(key=>FORBIDDEN_PLAINTEXT_FIELDS.has(key)))fail('SYNC_PLAINTEXT_FORBIDDEN');
   const allowed=new Set(['version','entityType','entityId','payloadHash','baseHash','factsHash','deviceId','deviceSequence','operationId','permanentTombstone']);
   if(Object.keys(input).some(key=>!allowed.has(key)))fail('SYNC_ENVELOPE_INVALID');
-  if(input.version!==SYNC_CONTRACT_VERSION||!SYNCABLE.has(input.entityType)||!ENTITY_RE.test(input.entityId||'')||!HASH_RE.test(input.payloadHash||'')||!OPAQUE_RE.test(input.deviceId||'')||!OPAQUE_RE.test(input.operationId||'')||!Number.isSafeInteger(input.deviceSequence)||input.deviceSequence<1)fail('SYNC_ENVELOPE_INVALID');
-  if(input.baseHash!==null&&input.baseHash!==undefined&&!HASH_RE.test(input.baseHash))fail('SYNC_ENVELOPE_INVALID');
-  if(input.factsHash!==null&&input.factsHash!==undefined&&!HASH_RE.test(input.factsHash))fail('SYNC_ENVELOPE_INVALID');
   const tombstone=input.permanentTombstone===true;
+  if(input.version!==SYNC_CONTRACT_VERSION||!SYNCABLE.has(input.entityType)||!ENTITY_RE.test(input.entityId||'')||!OPAQUE_RE.test(input.deviceId||'')||!OPAQUE_RE.test(input.operationId||'')||!Number.isSafeInteger(input.deviceSequence)||input.deviceSequence<1)fail('SYNC_ENVELOPE_INVALID');
   if(input.permanentTombstone!==undefined&&typeof input.permanentTombstone!=='boolean')fail('SYNC_ENVELOPE_INVALID');
   if(tombstone&&input.entityType!=='source_record')fail('SYNC_TOMBSTONE_SCOPE');
+  if(tombstone){
+    if(input.payloadHash!==null&&input.payloadHash!==undefined)fail('SYNC_TOMBSTONE_BODY_FORBIDDEN');
+    if(input.factsHash!==null&&input.factsHash!==undefined)fail('SYNC_TOMBSTONE_BODY_FORBIDDEN');
+  }else if(!HASH_RE.test(input.payloadHash||''))fail('SYNC_ENVELOPE_INVALID');
+  if(input.baseHash!==null&&input.baseHash!==undefined&&!HASH_RE.test(input.baseHash))fail('SYNC_ENVELOPE_INVALID');
+  if(input.factsHash!==null&&input.factsHash!==undefined&&!HASH_RE.test(input.factsHash))fail('SYNC_ENVELOPE_INVALID');
   if(input.entityType==='source_record'&&input.baseHash!==null&&input.baseHash!==undefined)fail('SYNC_SOURCE_MUTATION');
   if(input.entityType!=='source_record'&&input.factsHash!==null&&input.factsHash!==undefined)fail('SYNC_ENVELOPE_INVALID');
   return Object.freeze({
     version:SYNC_CONTRACT_VERSION,
     entityType:input.entityType,
     entityId:input.entityId,
-    payloadHash:input.payloadHash,
+    payloadHash:tombstone?null:input.payloadHash,
     baseHash:input.baseHash??null,
-    factsHash:input.factsHash??null,
+    factsHash:tombstone?null:(input.factsHash??null),
     deviceId:input.deviceId,
     deviceSequence:input.deviceSequence,
     operationId:input.operationId,
@@ -85,11 +89,16 @@ const conflict=(reason,local,remote)=>Object.freeze({
   resolution:'user_required',
 });
 
+const sameOperation=(a,b)=>a.version===b.version&&a.entityType===b.entityType&&a.entityId===b.entityId&&a.payloadHash===b.payloadHash&&a.baseHash===b.baseHash&&a.factsHash===b.factsHash&&a.deviceId===b.deviceId&&a.deviceSequence===b.deviceSequence&&a.permanentTombstone===b.permanentTombstone;
+
 export function planSyncMerge({local,remote}={}){
   local=validateSyncEnvelope(local);remote=validateSyncEnvelope(remote);
   if(local.entityType!==remote.entityType||local.entityId!==remote.entityId)fail('SYNC_ENTITY_MISMATCH');
 
-  if(local.operationId===remote.operationId)return Object.freeze({action:'duplicate_operation',entityType:local.entityType,entityId:local.entityId});
+  if(local.operationId===remote.operationId){
+    if(!sameOperation(local,remote))fail('SYNC_OPERATION_COLLISION');
+    return Object.freeze({action:'duplicate_operation',entityType:local.entityType,entityId:local.entityId});
+  }
 
   if(local.entityType==='source_record'){
     if(local.permanentTombstone||remote.permanentTombstone)return Object.freeze({
