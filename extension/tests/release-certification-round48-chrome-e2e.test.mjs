@@ -22,6 +22,12 @@ test('Round 4.8 current release: Universal Search -> Reader / Context and Revisi
   await hit.locator('.universal-open').click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND48_SEARCH_TARGET'),'search result opens its Input document');
 
+  // Direct unorganized Inputs are opt-in by design. Satisfy that explicit user
+  // eligibility before testing Search -> Context; the journey must not weaken
+  // the default authorization boundary merely to make a search hit reusable.
+  await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{includeUnorganizedInputs:true}});
+  const memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,true);
+
   // Search -> Context only prepares a bounded local retrieval query. It must not
   // invoke the remote organizer or any external request.
   hit=await openUniversal(p,'ROUND48_SEARCH_TARGET');
