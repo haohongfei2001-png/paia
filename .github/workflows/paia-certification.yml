@@ -19,47 +19,109 @@ concurrency:
   group: paia-certification-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  CI: '1'
+  PAIA_TEST_CONCURRENCY: '4'
+
 jobs:
-  certify:
-    name: Full regression and release guard
+  unit:
+    name: Unit and package audit
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: extension
-    env:
-      CI: '1'
-      PAIA_TEST_CONCURRENCY: '4'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npm run test:unit
 
-      - name: Install JavaScript dependencies
-        run: npm install --no-audit --no-fund
+  contracts:
+    name: Adapter and privacy contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - name: Adapter contract
+        run: node scripts/test.mjs "adapter contract"
+      - name: Privacy and security
+        run: node scripts/test.mjs "privacy/security"
 
-      - name: Install Chromium for Playwright
-        run: npx playwright install --with-deps chromium
+  browser:
+    name: Browser E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
 
-      - name: Run complete regression suite
-        run: npm test
-
-      - name: Build and audit current release
+  release:
+    name: Current release build and guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build and audit release
         run: npm run build:release
-
-      - name: Upload certified release tree
+      - name: Upload release tree
         uses: actions/upload-artifact@v4
         with:
           name: paia-current-release-${{ github.sha }}
           path: extension/work/current-release
           if-no-files-found: error
           retention-days: 7
+
+  certified:
+    name: Certification gate
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [unit, contracts, browser, release]
+    steps:
+      - name: Require every gate
+        env:
+          UNIT: ${{ needs.unit.result }}
+          CONTRACTS: ${{ needs.contracts.result }}
+          BROWSER: ${{ needs.browser.result }}
+          RELEASE: ${{ needs.release.result }}
+        run: |
+          printf 'unit=%s\ncontracts=%s\nbrowser=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$BROWSER" "$RELEASE"
+          test "$UNIT" = success
+          test "$CONTRACTS" = success
+          test "$BROWSER" = success
+          test "$RELEASE" = success
