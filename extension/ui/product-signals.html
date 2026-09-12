@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>本机产品验证 · PAIA</title>
+  <link rel="icon" href="../icons/icon32.png">
+  <link rel="stylesheet" href="product-signals.css">
+  <script type="module" src="product-signals.js"></script>
+</head>
+<body>
+<main>
+  <p class="eyebrow">PAIA · LOCAL PRODUCT VALIDATION</p>
+  <h1>本机产品验证</h1>
+  <p class="intro">这些统计只用于判断 PAIA 的阅读、检索、思想库与 AI Context 是否真的产生重复使用价值。统计保存在本机，不上传，也不包含搜索词、正文、标题、主题名、Profile 名或对象 ID。</p>
+  <section class="privacy">
+    <label><input id="signals-enabled" type="checkbox"> 记录本机聚合使用统计</label>
+    <p>默认关闭。开启后只记录固定事件名、粗粒度枚举、日期桶与计数，最多保留 90 天；不会改变 Source / Input / Thought / Context 内容，也不会进入 PAIA Backup。</p>
+    <p id="signals-status" role="status"></p>
+  </section>
+  <section>
+    <header><div><h2>最近 30 天</h2><p id="signals-range" class="muted"></p></div><button id="signals-refresh">刷新</button></header>
+    <div id="signals-summary"></div>
+  </section>
+  <section>
+    <h2>产品循环</h2>
+    <div id="signals-loops"></div>
+    <p class="muted">这些数字只描述可观察行为。例如“切回原文”不等同于拒绝 AI，“重复访问”也不等同于满意；产品判断应结合一段时间的真实使用再做。</p>
+  </section>
+  <section class="actions">
+    <h2>数据控制</h2>
+    <button id="signals-export">导出统计 JSON</button>
+    <button id="signals-clear" class="danger">清空本机产品统计</button>
+    <p class="muted">导出的文件只包含本页可见的聚合统计。清空不会删除任何档案、思想、授权或版本历史。</p>
+  </section>
+</main>
+</body>
+</html>
