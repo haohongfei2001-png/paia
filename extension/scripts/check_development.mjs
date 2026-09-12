@@ -2,7 +2,7 @@ import {readFile,readdir} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const root=new URL('../',import.meta.url);
 const manifest=JSON.parse(await readFile(new URL('manifest.json',root),'utf8'));
-assert.deepEqual(manifest.permissions,['storage','nativeMessaging']);assert.ok(!JSON.stringify(manifest).includes('development/'));
+assert.deepEqual(manifest.permissions,['storage']);assert.deepEqual(manifest.optional_permissions,['nativeMessaging']);assert.ok(!JSON.stringify(manifest).includes('development/'));
 for(const folder of ['development/compat/','development/reload/','development/export-probe/'])for(const file of (await readdir(new URL(folder,root))).filter(x=>x.endsWith('.js'))){
  const source=await readFile(new URL(folder+file,root),'utf8');
  assert.ok(!/\b(?:fetch|XMLHttpRequest|WebSocket|EventSource)\s*\(|sendBeacon|document\.cookie|localStorage|sessionStorage|indexedDB|innerHTML|outerHTML|innerText|document\.title|console\./.test(source),'DEV_PRIVACY_NETWORK_AUDIT');
