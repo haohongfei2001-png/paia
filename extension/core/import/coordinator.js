@@ -1,6 +1,6 @@
 import {allowed,checkStop,fail,LIMITS,safeImportError,ImportError} from './errors.js';
 import {inspectFile,fingerprintFile} from './reader.js';
-import {detectHistoryFile} from './detector.js';
+import {detectHistoryFile,detectHistoryFileForAdapter} from './detector.js';
 import {validateRows} from './contract.js';
 // File/decoded strings belong only to this page session, never to task storage.
 export class ImportCoordinator {
@@ -30,7 +30,8 @@ export class ImportCoordinator {
    this.publish({phase:'checking'},s);
    s.fingerprint=await fingerprintFile(s.file,{consent:true,signal:s.abort.signal,onProgress:p=>this.progress(s,'checking',{processedBytes:p.bytes,fileBytes:s.file?.size})});
    if(this.resolveAdapter||this.adapter?.profile){
-    s.detection=await detectHistoryFile(s.file,{consent:true,signal:s.abort.signal,onProgress:p=>this.progress(s,'checking',{processedBytes:p.bytes})});
+    const detectionOptions={consent:true,signal:s.abort.signal,onProgress:p=>this.progress(s,'checking',{processedBytes:p.bytes})};
+    s.detection=this.resolveAdapter?await detectHistoryFile(s.file,detectionOptions):await detectHistoryFileForAdapter(s.file,this.adapter,detectionOptions);
     if(['unknown','paia_backup'].includes(s.detection.support)){
      s.file=null;s.consent=false;
      return this.publish({phase:'unsupported',reason:s.detection.support==='paia_backup'?'PAIA_BACKUP_FILE':'SCHEMA_UNSUPPORTED'},s);
