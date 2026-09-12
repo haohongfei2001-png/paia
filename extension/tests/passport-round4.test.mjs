@@ -7,6 +7,7 @@ import {PassportService,grantState,validateGrantRequest,validatePassportRow} fro
 import {createContextPackage,contextPackageEnvelope,contextPackageExpired} from '../core/context-package.js';
 
 const now=Date.parse('2026-09-12T12:00:00Z');
+const stored=row=>{const {state,...value}=row;return value;};
 
 test('Context Package is an ephemeral metadata envelope and never duplicates body storage',()=>{
  const pkg=createContextPackage({packageId:'pkg-1',previewId:'preview-1',profileId:'default',consumer:'chatgpt',purpose:'research',budget:'standard',generation:4,itemCount:3,characters:800,tokens:600,retrievalConfidence:'medium',partial:false,createdAt:now});
@@ -33,11 +34,11 @@ test('Passport grant is profile-scoped, expires/revokes, consumes once grants an
  const memory=new MemoryService(s,{clock:()=>now});await memory.ready();
  let clock=now,n=0;const passport=new PassportService(s,{clock:()=>clock,uuid:()=>`id-${++n}`});
  const once=await passport.create({consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'});
- assert.equal(validatePassportRow(once),true);assert.equal(grantState(once,clock),'active');
+ assert.equal(validatePassportRow(stored(once)),true);assert.equal(grantState(stored(once),clock),'active');
  await passport.authorize({grantId:once.grantId,consumer:'chatgpt',purpose:'research',profileId:'default'});
  const used=await passport.consume(once.grantId,'copy');assert.equal(used.state,'consumed');
  await assert.rejects(passport.authorize({grantId:once.grantId,consumer:'chatgpt',purpose:'research',profileId:'default'}),{code:'MEMORY_DENIED'});
- const seven=await passport.create({consumer:'coding_agent',purpose:'coding',profileId:'default',duration:'7d'});assert.equal(grantState(seven,clock),'active');
+ const seven=await passport.create({consumer:'coding_agent',purpose:'coding',profileId:'default',duration:'7d'});assert.equal(grantState(stored(seven),clock),'active');
  clock+=8*86400000;const status=await passport.status(),expired=status.grants.find(x=>x.grantId===seven.grantId);assert.equal(expired.state,'expired');
  const active=await passport.create({consumer:'claude',purpose:'writing',profileId:'default',duration:'30d'});const revoked=await passport.revoke(active.grantId);assert.equal(revoked.state,'revoked');
  const audit=(await passport.status()).audits[0];assert.equal(Object.hasOwn(audit,'query'),false);assert.equal(Object.hasOwn(audit,'text'),false);assert.equal(audit.permission,'context_export');
