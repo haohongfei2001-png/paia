@@ -87,29 +87,53 @@ Product exit criterion: **deferred to Round 3**. Repeatable reread/retrieval adv
 
 ## Round 3 — Local Product Validation
 
-Goal: shift PAIA from engineering-validated to product-validated.
+Status: **instrumentation implemented 2026-09-12; real-use evidence accumulation pending explicit local opt-in; full regression execution pending an available development runtime**
 
-Deliverables:
+Goal: shift PAIA from engineering-validated to product-validated without creating a second behavioral-content archive.
 
-- Add privacy-preserving local-only product signals for reread/search/reuse behavior.
-- No raw archive text in metrics.
-- Build a local product diagnostics view or export that can answer questions such as:
-  - how often old Inputs are reopened;
-  - search → open/copy success;
-  - Thought Topic repeat visits;
-  - AI-organized view acceptance/edit/rejection;
-  - Context preview → copy/export conversion;
-  - repeated Context use by purpose.
+Delivered:
 
-Decision use:
+- Added `core/product-signals.js` as a local-only aggregate Product Signals service.
+- Product Signals is **off by default** and can be enabled, disabled, cleared and exported by the user.
+- Signals accept only a fixed event taxonomy and fixed enum dimensions. Search text, archive text, titles, Topic names, Profile names, object IDs and arbitrary metadata are rejected rather than stored.
+- Signals are aggregated into date buckets and counters only, with a hard 90-day retention window enforced both on writes and diagnostics reads.
+- The Product Signals row is derived diagnostic metadata and is explicitly outside PAIA Backup; it is not a Source / Input / Thought / Context truth layer.
+- Added observable signals for Input search hit/miss, search-result open, coarse content-age buckets and successful Reader copy/reuse.
+- Added observable signals for Thought search hit/miss, search-result Topic open, first/repeat Topic visits, AI-organized view opens, returns to Original and successful saved AI-presentation edits.
+- Added observable signals for Context preview generation outcome, default/custom Profile use, detail level and explicit copy/Markdown share actions.
+- Reused existing `readingActivity` to classify first/repeat Topic reading instead of creating a per-Topic analytics history.
+- Added `ui/product-signals.html` as a dedicated local diagnostics surface showing recent 30-day Input / Thought / Context loops, with export and destructive clear controls.
+- Linked the diagnostics surface from the extension popup rather than adding another primary product navigation item.
+- Product-signal writes are side-channel only: failures do not fail search, reading, Context generation, AI editing or copying, and `PAIA_PRODUCT_*` messages do not wake Smart Filter / Library maintenance or broadcast `ARCHIVE_CHANGED`.
+- Added `tests/product-signals-round3.test.mjs` covering fixed-field validation, no arbitrary private metadata, retention, exact 30-day summaries, coarse age buckets, observational loop summaries and explicit exclusion from Backup.
 
-- If Reader/Search drives repeat use and Thought does not, prioritize retrieval over deeper organization.
-- If Thought repeat visits are strong, improve organization quality selectively.
-- If Context reuse is weak, do not build a large Passport system yet.
+Runtime/data impact:
 
-Exit criterion:
+- No IndexedDB version or object-store change; aggregate counters reuse the existing `meta` store.
+- No new canonical content copy, event-body log, query history or per-object analytics table.
+- No new network request, analytics SDK, Provider call or Manifest permission.
+- Product statistics are local-only and are not restored through PAIA Backup.
 
-At least one core repeat-use loop is supported by observed behavior rather than design intuition alone.
+Interpretation rules:
+
+- A repeat Topic open is an observed revisit, not proof of satisfaction.
+- Switching from AI整理 back to Original is an observed view change, not a rejection label.
+- Saving an AI整理 edit is an observed maintenance action, not proof that the AI output was accepted wholesale.
+- A Context copy/export signal is an explicit share action, not evidence that the receiving AI used the context successfully.
+- Product decisions should use patterns accumulated over time, not one isolated counter.
+
+Validation status:
+
+- The Round 3 test file is automatically discoverable by the existing test runner as a unit test.
+- Source-level comparison from the Round 2 baseline is deliberately bounded to Product Signals, the background routing boundary, Reader copy/search-origin instrumentation, the diagnostics UI and roadmap/tests; Manifest, capture adapters, durable schema and Provider code are unchanged.
+- This development session still does not claim a green `npm test` / browser E2E suite because the connected development runtime is unavailable.
+- No product-value claim is made yet: the counters begin at zero and remain off until explicitly enabled.
+
+Engineering exit criterion: **met at source level**. PAIA can now measure its main reread/search/reuse loops locally without collecting the private content those loops operate on.
+
+Product exit criterion: **not yet met**. At least one core repeat-use loop must accumulate observed local behavior before the project can claim product validation or use Round 3 as evidence for a major new product surface.
+
+Round 4 gate: **closed until evidence exists**. In particular, a larger Passport/Context system should not be justified merely because the instrumentation now exists.
 
 ---
 
