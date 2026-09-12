@@ -54,18 +54,19 @@ export function emptyProductSignals(now=Date.now(),enabled=false){
  const at=new Date(now).toISOString();
  return {id:PRODUCT_SIGNAL_ROW,kind:'product_signals',version:PRODUCT_SIGNAL_VERSION,enabled:enabled===true,createdAt:at,updatedAt:at,daily:{}};
 }
+function pruneDaily(row,now=Date.now()){
+ if(!plain(row.daily))row.daily={};const cutoff=dayKey(now-(PRODUCT_SIGNAL_RETENTION_DAYS-1)*86400000);let changed=false;
+ for(const day of Object.keys(row.daily))if(day<cutoff){delete row.daily[day];changed=true;}return changed;
+}
 
 export function applyProductSignal(row,signal,now=Date.now()){
  const key=productSignalKey(signal);if(!key)invalid();
  const next=plain(row)&&row.id===PRODUCT_SIGNAL_ROW&&row.version===PRODUCT_SIGNAL_VERSION?structuredClone(row):emptyProductSignals(now,false);
- if(!plain(next.daily))next.daily={};
- const today=dayKey(now),cutoff=dayKey(now-PRODUCT_SIGNAL_RETENTION_DAYS*86400000);
- for(const day of Object.keys(next.daily))if(day<cutoff)delete next.daily[day];
- const bucket=plain(next.daily[today])?next.daily[today]:{};bucket[key]=count(bucket[key])+1;next.daily[today]=bucket;next.updatedAt=new Date(now).toISOString();return next;
+ pruneDaily(next,now);const today=dayKey(now),bucket=plain(next.daily[today])?next.daily[today]:{};bucket[key]=count(bucket[key])+1;next.daily[today]=bucket;next.updatedAt=new Date(now).toISOString();return next;
 }
 
 function collapsed(row,days=null,now=Date.now()){
- const out={};if(!plain(row?.daily))return out;const cutoff=days===null?'':dayKey(now-(days-1)*86400000);
+ const out={};if(!plain(row?.daily))return out;const cutoff=days===null?dayKey(now-(PRODUCT_SIGNAL_RETENTION_DAYS-1)*86400000):dayKey(now-(days-1)*86400000);
  for(const [day,bucket]of Object.entries(row.daily))if(day>=cutoff&&plain(bucket))for(const [key,value]of Object.entries(bucket))out[key]=count(out[key])+count(value);
  return out;
 }
@@ -73,7 +74,7 @@ const get=(counts,name,dimensions={})=>count(counts[productSignalKey({name,dimen
 const sum=(counts,name,prefix={})=>Object.entries(counts).filter(([key])=>key===name||key.startsWith(name+'|')).filter(([key])=>Object.entries(prefix).every(([k,v])=>key.includes('|'+k+'='+v))).reduce((n,[,v])=>n+count(v),0);
 
 export function summarizeProductSignals(row,now=Date.now()){
- const all=collapsed(row,null,now),recent=collapsed(row,30,now),daily=plain(row?.daily)?Object.keys(row.daily).sort().slice(-30).map(day=>({day,total:Object.values(row.daily[day]||{}).reduce((n,v)=>n+count(v),0)})):[];
+ const all=collapsed(row,null,now),recent=collapsed(row,30,now),recentCutoff=dayKey(now-29*86400000),daily=plain(row?.daily)?Object.keys(row.daily).filter(day=>day>=recentCutoff).sort().map(day=>({day,total:Object.values(row.daily[day]||{}).reduce((n,v)=>n+count(v),0)})):[];
  const build=counts=>{
   const inputSearch=sum(counts,'input_search'),inputHits=get(counts,'input_search',{outcome:'hit'}),inputTarget=sum(counts,'input_target_open'),inputSearchOpen=sum(counts,'input_target_open',{origin:'search'}),inputOld180=sum(counts,'input_target_open',{age:'180_364'})+sum(counts,'input_target_open',{age:'365_plus'}),inputCopies=sum(counts,'reading_copy',{surface:'input'}),inputSearchCopies=sum(counts,'reading_copy',{surface:'input',origin:'search'});
   const thoughtSearch=sum(counts,'thought_search'),thoughtHits=get(counts,'thought_search',{outcome:'hit'}),thoughtSearchOpen=sum(counts,'thought_search_open'),topicOpen=sum(counts,'thought_topic_open'),topicRepeat=get(counts,'thought_topic_open',{repeat:'repeat'}),thoughtCopies=sum(counts,'reading_copy',{surface:'thought'})+sum(counts,'reading_copy',{surface:'ai_evolution'}),aiOpen=get(counts,'thought_ai_view',{view:'ai'}),aiOriginal=get(counts,'thought_ai_view',{view:'original'}),aiEdits=get(counts,'thought_ai_edit',{result:'saved'});
@@ -88,8 +89,8 @@ export class ProductSignals {
  constructor(store,{clock=()=>Date.now()}={}){this.store=store;this.clock=clock;this.searchSeen=new Map();this.recentSearch=new Map();}
  client(sender){return String(sender?.documentId||sender?.url||'extension-ui').slice(0,300);}
  async row(write=false,fn){return this.store.run(()=>this.store.repository.transaction(write,fn,['meta']));}
- async status(){const row=await this.row(false,t=>t.get('meta',PRODUCT_SIGNAL_ROW));return summarizeProductSignals(row||emptyProductSignals(this.clock(),false),this.clock());}
- async settings({enabled}={}){if(typeof enabled!=='boolean')invalid();return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),enabled);row.enabled=enabled;row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);return {enabled};});}
+ async status(){return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW);if(!current)return summarizeProductSignals(emptyProductSignals(this.clock(),false),this.clock());const row=structuredClone(current);if(pruneDaily(row,this.clock())){row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);}return summarizeProductSignals(row,this.clock());});}
+ async settings({enabled}={}){if(typeof enabled!=='boolean')invalid();return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),enabled);pruneDaily(row,this.clock());row.enabled=enabled;row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);return {enabled};});}
  async clear(){return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=emptyProductSignals(this.clock(),current?.enabled===true);await t.put('meta',row);return {ok:true,enabled:row.enabled};});}
  async record(signal){const clean=validateProductSignal(signal);if(!clean)invalid();return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),false);if(row.enabled!==true)return {recorded:false,enabled:false};await t.put('meta',applyProductSignal(row,clean,this.clock()));return {recorded:true,enabled:true};});}
  async noteSearch(surface,options,result,sender){
