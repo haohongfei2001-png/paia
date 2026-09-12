@@ -1,7 +1,182 @@
-# PAIA roadmap
+# PAIA Roadmap
 
-公开测试前：加入轻量 Thought Library revision history。v0.4.1 仅当前文档会话 Undo/Redo，不宣称跨重载历史。
+Status: **current roadmap source of truth**
 
-v0.5 规划一键同步，单入口内区分历史输入/可靠发送时间补全与后续多设备同步。长历史需分批、增量、断点继续或用户授权的导入路径，保持逐批资源限制、稳定来源身份、去重及来源时间证据。不得不断增大单 response 内存预算；v0.4.1 保持2MiB。网络、文件导入及设备授权在对应阶段另行设计，不由本版预授权。
+Baseline: **v0.12.0 — Thought Evolution & Shared Context**
 
-AI过滤/分类/合并仅设置结构预留；本版不做生成式AI、MCP、Claude、云同步、桌面App、知识图谱或一键同步。
+The next stage is not a race to add more features. PAIA already has a comparatively deep archive, Thought and Context foundation. The roadmap now prioritizes product validation, reading/retrieval quality and architectural simplification before cloud or multi-platform expansion.
+
+## Decision rules
+
+Across all rounds:
+
+- Preserve Source / Working Input / Thought trust boundaries.
+- Durable schema is frozen by default; prefer projections/read models over new fact stores.
+- Do not silently overwrite user work.
+- Do not introduce hidden background provider calls or automatic paid retries.
+- Do not turn each product capability into a separate page or database by default.
+- A later round may be reordered if real usage evidence shows a stronger bottleneck.
+
+---
+
+## Round 1 — Product & Architecture Consolidation
+
+Status: **in progress / first post-v0.12 round**
+
+Goal: remove documentation ambiguity and freeze speculative complexity before more runtime work.
+
+Deliverables:
+
+- Create `PRODUCT.md` as the current product source of truth.
+- Create `ARCHITECTURE.md` as the current architecture source of truth.
+- Replace the obsolete pre-v0.5 roadmap with this roadmap.
+- Update `AGENTS.md` so future AI development reads current truth before historical specs.
+- Update `README.md` so the repository clearly distinguishes current release behavior from forward product direction.
+- Explicitly freeze new durable schema/Thought ontology by default.
+
+Not in scope:
+
+- runtime feature changes;
+- IndexedDB migration;
+- UI redesign;
+- new Provider/network permission;
+- cloud sync.
+
+Exit criterion:
+
+A fresh developer/agent should be able to answer, without version archaeology: what PAIA is, which data layer owns what, what is currently implemented, what is frozen and what should be built next.
+
+---
+
+## Round 2 — Reader & Unified Search Foundation
+
+Goal: make PAIA materially better than returning to ChatGPT history for rereading and retrieval.
+
+Product work:
+
+- Treat Reader as a reusable presentation layer for Input and Thought content.
+- Reduce navigation/UI noise around ordinary reading.
+- Improve long-document position continuity, source jumps, copy/reuse and older-material discovery.
+- Define one Search Service boundary used by Input search, Thought search and Context candidate retrieval.
+
+Engineering work:
+
+- Wrap existing lexical/indexed retrieval behind the shared Search Service before adding semantic retrieval.
+- Begin incremental decomposition of oversized archive/UI/background coordination files when touched by this work.
+- Do not add a Reader body database.
+
+Validation:
+
+- Measure retrieval failures on real personal-use queries without committing private content.
+- Compare whether users can find known old material faster/more reliably through PAIA than through original chat history.
+
+Exit criterion:
+
+Reader/Search demonstrates a repeatable retrieval/reread advantage and the three existing retrieval surfaces no longer need to evolve separate search contracts.
+
+---
+
+## Round 3 — Local Product Validation
+
+Goal: shift PAIA from engineering-validated to product-validated.
+
+Deliverables:
+
+- Add privacy-preserving local-only product signals for reread/search/reuse behavior.
+- No raw archive text in metrics.
+- Build a local product diagnostics view or export that can answer questions such as:
+  - how often old Inputs are reopened;
+  - search → open/copy success;
+  - Thought Topic repeat visits;
+  - AI-organized view acceptance/edit/rejection;
+  - Context preview → copy/export conversion;
+  - repeated Context use by purpose.
+
+Decision use:
+
+- If Reader/Search drives repeat use and Thought does not, prioritize retrieval over deeper organization.
+- If Thought repeat visits are strong, improve organization quality selectively.
+- If Context reuse is weak, do not build a large Passport system yet.
+
+Exit criterion:
+
+At least one core repeat-use loop is supported by observed behavior rather than design intuition alone.
+
+---
+
+## Round 4 — Context Package & Minimum Passport
+
+Prerequisite: Round 3 shows repeated Context/reuse demand.
+
+Goal: turn AI Context from an isolated preview/export feature into a stable reusable interface while consolidating authorization semantics.
+
+Deliverables:
+
+- Define a stable Context Package contract over current trusted data.
+- Reuse the unified Search Service for candidate retrieval.
+- Define a minimum Grant model: consumer, purpose, resource scope, permissions, duration/expiry and revocation.
+- Add metadata-only access audit where feasible.
+- Unify existing Topic/Profile/external-access/provider authorization concepts instead of duplicating them.
+
+Constraints:
+
+- Passport owns permission metadata, not archive body text.
+- No broad autonomous agent access by default.
+- No new persistent Context body cache without a separate privacy/product decision.
+
+Exit criterion:
+
+The same Context/authorization contract can support at least two explicit reuse surfaces without bespoke permission logic for each.
+
+---
+
+## Round 5 — Portability, Second Adapter & Sync Readiness
+
+Prerequisites:
+
+- core reread/retrieval loop is validated;
+- Context/Passport direction is justified if included;
+- schema ownership is stable enough to reason about conflicts.
+
+Goal: prove PAIA can become a personal data layer without prematurely building a distributed system.
+
+Deliverables:
+
+- Add a second capture/import adapter to validate provider-neutral Source/Input boundaries.
+- Specify an encrypted sync contract, conflict model and deletion/tombstone propagation semantics.
+- Define device identity and merge rules before implementing general cloud sync.
+- Evaluate a Web/Desktop surface only for tasks the extension cannot serve well.
+
+Constraints:
+
+- Do not implement multi-device sync by copying the local database wholesale.
+- Do not silently resolve conflicting human edits by latest-write-wins.
+- Sync must enrich facts and preserve user work/deletion fences.
+
+Exit criterion:
+
+PAIA has a tested provider-neutral input boundary and an explicit sync/conflict specification strong enough to implement without guessing ownership rules.
+
+---
+
+## Later, only after the gates above
+
+Potential later directions:
+
+- encrypted multi-device sync;
+- Web App / Desktop / mobile Reader surfaces;
+- MCP/API/agent access through Passport grants;
+- semantic/vector retrieval as a rebuildable Search implementation;
+- additional capture sources;
+- stronger on-device/hybrid organization.
+
+These are not current commitments.
+
+## Explicitly deprioritized now
+
+- More Thought Library ontology/features merely because v0.12 can support them.
+- Knowledge graph as a product goal.
+- Provider proliferation.
+- Automatic background AI organization.
+- Cloud sync before conflict semantics and product value are proven.
+- Native apps that only duplicate the current extension UI.
