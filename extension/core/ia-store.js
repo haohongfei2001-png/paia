@@ -36,20 +36,22 @@ export class IAStore extends IndexedArchiveStore {
   }while(m.phase!=='active');
  }
  iaStatus(){return this.run(()=>this.repository.transaction(false,t=>t.get('meta','ia-migration')));}
- async initializeInput(t,b,reason='baseline'){
-  if(await t.get('inputStates',b.id))return;
+ async initializeInput(t,b,reason='baseline',options={}){
+  if(!options.newRecord&&await t.get('inputStates',b.id))return;
   const policy=b.branchStatus?'branch_pending':b.status?.startsWith('excluded_legacy')?'legacy_excluded':b.excluded?'user_removed':'active';
   await t.put('inputStates',{id:b.id,documentId:b.documentId,contentRevision:0,removalState:policy,filteringPolicyState:'none',sourceRecordIds:refIds(b),deltaSequence:await nextSequence(t,'input-delta-sequence')});
   if(policy==='user_removed')await this.markRemoval(t,b,true);
   await this.journal(t,{kind:'input',entityId:b.id,documentId:b.documentId,before:blockSnapshot(b),after:blockSnapshot(b),reason,important:true,sourceRecordIds:refIds(b)});
  }
- async saveRecord(t,r,index){
-  await super.saveRecord(t,r,index);
-  if(r.sourceKey){const legacy=await t.get('inputRemovals','legacy:'+r.id);if(legacy){await t.put('inputRemovals',{...legacy,id:r.sourceKey});await t.delete('inputRemovals',legacy.id);}}
+ async saveRecord(t,r,index,options={}){
+  await super.saveRecord(t,r,index,options);
+  // Fresh imported source ids cannot have legacy removal aliases keyed by their
+  // newly-created record id. Existing records retain the migration repair path.
+  if(!options.newRecord&&r.sourceKey){const legacy=await t.get('inputRemovals','legacy:'+r.id);if(legacy){await t.put('inputRemovals',{...legacy,id:r.sourceKey});await t.delete('inputRemovals',legacy.id);}}
  }
- async prepareInput(t,b,r){
+ async prepareInput(t,b,r,options={}){
   if(await t.get('inputRemovals',r.sourceKey||'legacy:'+r.id)){b.excluded=true;b.status='excluded_by_user';}
-  await this.initializeInput(t,b);
+  await this.initializeInput(t,b,'baseline',options);
  }
  async markRemoval(t,b,removed){
   for(const id of refIds(b)){const ix=await t.get('recordIndex',id);if(!ix)continue;const key=ix.sourceKey||'legacy:'+id;if(removed)await t.put('inputRemovals',{id:key,blockId:b.id,at:this.clock(),reason:'user_removed'});else await t.delete('inputRemovals',key);}
@@ -148,33 +150,18 @@ export class IAStore extends IndexedArchiveStore {
  }
  async categoriesFor(t,dimension,values){
   if(!Array.isArray(values)||values.length>30||values.some(v=>typeof v!=='string'||v.trim().length<1||v.length>100))fail();
-  const ids=[];for(const value of [...new Set(values.map(v=>v.trim()))]){const id=dimension+':'+value.toLocaleLowerCase();if(!await t.get('categories',id))await t.put('categories',{id,name:value,dimension,createdBy:'user',userAdjusted:true});ids.push(id);}return ids;
- }
+  const ids=[];for(const value of [...new Set(values.map(v=>v.trim()))]){const id=dimension+':'+value.toLocaleLowerCase();if(!await t.get('categories',id))await t.put('categories',{id,name:value,dimension,createdBy:'user',userAdjusted:true});ids.push(id);}return ids;}
  // Foundation API only, deliberately NOT exposed as a runtime UI creation command.
  createThought(data){return this.write(async t=>{
-  if(!data||!['input_derived','user_created'].includes(data.provenanceType)||!Array.isArray(data.inputRefs)||data.inputRefs.length>100||data.inputRefs.some(id=>!validId(id))||new Set(data.inputRefs).size!==data.inputRefs.length||data.provenanceType==='input_derived'&&!data.inputRefs.length)fail();
-  this.validateThoughtChanges({thoughtText:data.thoughtText,title:data.title??'',note:data.note??''});
-  const id=this.uuid(),refs=[],sourceRecordIds=new Set();
-  for(const inputId of data.inputRefs){const b=(await t.get('blocks',inputId))?.value,meta=await t.get('inputStates',inputId);if(!b||b.excluded||!meta)fail();if(this.validateThoughtInput)await this.validateThoughtInput(t,b);refs.push({inputBlockId:inputId,basedOnContentRevision:meta.contentRevision});refIds(b).forEach(x=>sourceRecordIds.add(x));}
-  const topics=await this.categoriesFor(t,'topic',data.topics||[]),types=await this.categoriesFor(t,'type',data.types||[]);
-  const row={id,provenanceType:data.provenanceType,inputRefs:refs,sourceRecordIds:[...sourceRecordIds],provenance:{createdBy:data.provenanceType==='user_created'?'user':'input_derivation',createdAt:this.clock()},multiSourceOrigin:sourceRecordIds.size>1||refs.length>1,title:data.title??'',thoughtText:data.thoughtText,note:data.note??'',topics,types,userEdited:data.provenanceType==='user_created',revision:0,contentRevision:0,lifecycle:'active',freshness:'current',integrity:refs.length?'complete':'detached',staleReason:null,updatedAt:this.clock(),listKey:[0,id]};
-  await t.put('thoughts',row);for(const r of refs)await t.put('dependencies',{id:JSON.stringify([r.inputBlockId,id]),inputId:r.inputBlockId,inputList:[r.inputBlockId,id],thoughtId:id,basedOnContentRevision:r.basedOnContentRevision});
-  await this.journal(t,{kind:'thought',entityId:id,documentId:id,before:thoughtSnapshot(row),after:thoughtSnapshot(row),reason:'baseline',important:true,sourceRecordIds:[...sourceRecordIds]});return row;
+  if(!data||!['input_derived','user_created'].includes(data.provenanceType)||!Array.isArray(data.inputRefs)||data.inputRefs.length>100||data.inputRefs.some(id=>!validId(id))||data.provenanceType==='input_derived'&&!data.inputRefs.length||data.provenanceType==='user_created'&&data.inputRefs.length)fail();
+  const title=typeof data.title==='string'?data.title.trim():'';if(!title||title.length>300||typeof data.thoughtText!=='string'||data.thoughtText.length>20000||typeof data.note!=='string'&&data.note!==undefined)fail();
+  const id=this.uuid(),refs=[];for(const inputId of data.inputRefs){const b=(await t.get('blocks',inputId))?.value;if(!b||b.excluded)fail();const meta=await t.get('inputStates',inputId);if(!meta||meta.sourcePurged)fail();refs.push({inputBlockId:inputId,contentRevision:meta.contentRevision,sourceRecordIds:[...meta.sourceRecordIds]});}
+  const topics=await this.categoriesFor(t,'topic',data.topics||[]),types=await this.categoriesFor(t,'type',data.types||[]),sourceRecordIds=[...new Set(refs.flatMap(r=>r.sourceRecordIds))],now=this.clock(),thought={id,title,thoughtText:data.thoughtText,note:data.note||'',topics,types,provenanceType:data.provenanceType,inputRefs:refs,userEdited:false,multiSourceOrigin:refs.length>1,revision:0,lifecycle:'active',freshness:'fresh',integrity:'complete',createdAt:now,updatedAt:now,sourceRecordIds,listKey:[0,id]};await t.put('thoughts',thought);for(const ref of refs)await t.put('dependencies',{id:JSON.stringify([ref.inputBlockId,id]),inputId:ref.inputBlockId,thoughtId:id,basedOnContentRevision:ref.contentRevision,sourceRecordIds:ref.sourceRecordIds});await this.journal(t,{kind:'thought',entityId:id,documentId:id,before:null,after:thoughtSnapshot(thought),reason:'create',important:true,sourceRecordIds});return thought;
  });}
- validateThoughtChanges(changes){if(!changes||typeof changes!=='object'||Array.isArray(changes)||!Object.keys(changes).length||Object.entries(changes).some(([k,v])=>!['title','thoughtText','note','topics','types'].includes(k)||(['topics','types'].includes(k)?!Array.isArray(v):typeof v!=='string'||v.length>(k==='title'?300:200000))))fail();}
- async thoughtSources(t,row){const ids=new Set();for(const r of row.inputRefs){const b=(await t.get('blocks',r.inputBlockId))?.value;if(b)refIds(b).forEach(id=>ids.add(id));}return [...ids];}
- async checkedThought(t,id){const row=await t.get('thoughts',id);if(!row)fail();for(const ref of row.inputRefs){const meta=await t.get('inputStates',ref.inputBlockId),b=(await t.get('blocks',ref.inputBlockId))?.value;if(!b||b.excluded||meta?.contentRevision!==ref.basedOnContentRevision){row.freshness='stale';row.staleReason='source_updated';}}return row;}
- thought(id){if(!validId(id))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,t=>this.checkedThought(t,id)));}
- thoughtPage({query='',topic='',type='',cursor=null,limit=50}={}){if(typeof query!=='string'||query.length>1000||typeof topic!=='string'||typeof type!=='string'||cursor!==null&&!Array.isArray(cursor)||!Number.isInteger(limit)||limit<1||limit>100)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,async t=>{const page=await t.rangePage('thoughts','byList',prefix([0]),cursor,limit),items=[];for(const {value:r}of page.rows){const row=await this.checkedThought(t,r.id);if((!topic||row.topics.includes(topic))&&(!type||row.types.includes(type))&&(!query||[row.title,row.thoughtText,row.note].some(x=>x.toLocaleLowerCase().includes(query.toLocaleLowerCase()))))items.push(row);}return {items,nextCursor:page.next,categories:await t.all('categories'),emptyText:'尚未整理思想内容'};}));}
- async editThought(request){
-  const {id,expectedRevision,changes,operationId,revisionReason='edit',restoreRevisionId}=request||{};if(!validId(id)||!Number.isSafeInteger(expectedRevision))fail();this.validateThoughtChanges(changes);if(operationId!==undefined&&(!validId(operationId)||operationId.length<8))fail();const digest=operationId?await hashText(JSON.stringify(request)):null;
-  return this.write(async t=>{if(operationId){const receipt=await t.get('operationReceipts',operationId);if(receipt){if(receipt.digest!==digest)fail();return receipt.result;}}if(restoreRevisionId&&!await t.get('revisions',restoreRevisionId))fail();const row=await this.checkedThought(t,id);if(row.revision!==expectedRevision)return {conflict:true};const before=thoughtSnapshot(row);
-   for(const [k,v]of Object.entries(changes)){if(['topics','types'].includes(k)){if(revisionReason==='restore'){for(const categoryId of v)if(!await t.get('categories',categoryId))fail();row[k]=v;}else row[k]=await this.categoriesFor(t,k==='topics'?'topic':'type',v);}else row[k]=v;}
-   row.userEdited=true;row.revision++;row.contentRevision++;row.updatedAt=this.clock();await t.put('thoughts',row);const reason=revisionReason==='restore'?'restore':major(before.thoughtText,row.thoughtText)?'major_edit':'edit';await this.journal(t,{kind:'thought',entityId:id,documentId:id,before,after:thoughtSnapshot(row),reason,important:reason!=='edit',sourceRecordIds:await this.thoughtSources(t,row)});const result={ok:true,revision:row.revision};if(operationId)await t.put('operationReceipts',{id:operationId,digest,result});return result;
-  });
+ thoughtPage({cursor=null,limit=50}={}){if(!Number.isInteger(limit)||limit<1||limit>100)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,async t=>{const page=await t.rangePage('thoughts','byList',null,cursor,limit);return {items:page.rows.map(r=>r.value),nextCursor:page.next};}));}
+ thought(id){if(!validId(id))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,async t=>{const row=await t.get('thoughts',id);if(!row)fail();return row;}));}
+ editThought({id,expectedRevision,thoughtText,note,topics,types}={}){if(!validId(id)||!Number.isInteger(expectedRevision)||typeof thoughtText!=='string'||thoughtText.length>20000||typeof note!=='string'||note.length>5000)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const row=await t.get('thoughts',id);if(!row||row.lifecycle!=='active')fail();if(row.revision!==expectedRevision)return {conflict:true};const before=thoughtSnapshot(row);row.thoughtText=thoughtText;row.note=note;row.topics=await this.categoriesFor(t,'topic',topics);row.types=await this.categoriesFor(t,'type',types);row.userEdited=true;row.revision++;row.updatedAt=this.clock();await t.put('thoughts',row);await this.journal(t,{kind:'thought',entityId:id,documentId:id,before,after:thoughtSnapshot(row),reason:'edit',important:true,sourceRecordIds:row.sourceRecordIds});return {conflict:false,revision:row.revision};});}
+ async beforeSourcePurge(t,records,blocks){
+  await super.beforeSourcePurge?.(t,records,blocks);
  }
- // No generator runs in this version. A future provider must supply exact versions.
- refreshThought({id,expectedRevision,inputVersions,thoughtText}={}){this.validateThoughtChanges({thoughtText});return this.write(async t=>{const row=await this.checkedThought(t,id);if(row.userEdited)return {protected:true};if(row.revision!==expectedRevision||row.lifecycle!=='active'||!row.inputRefs.length)return {conflict:true};for(const ref of row.inputRefs){const meta=await t.get('inputStates',ref.inputBlockId),b=(await t.get('blocks',ref.inputBlockId))?.value;if(!b||b.excluded||meta?.contentRevision!==inputVersions?.[ref.inputBlockId])return {conflict:true};}
-  const before=thoughtSnapshot(row);row.thoughtText=thoughtText;row.revision++;row.contentRevision++;row.freshness='current';row.staleReason=null;row.updatedAt=this.clock();for(const r of row.inputRefs){r.basedOnContentRevision=inputVersions[r.inputBlockId];await t.put('dependencies',{id:JSON.stringify([r.inputBlockId,id]),inputId:r.inputBlockId,inputList:[r.inputBlockId,id],thoughtId:id,basedOnContentRevision:r.basedOnContentRevision});}await t.put('thoughts',row);await this.journal(t,{kind:'thought',entityId:id,documentId:id,before,after:thoughtSnapshot(row),reason:'ai_update',important:true,sourceRecordIds:await this.thoughtSources(t,row)});return {ok:true};
- });}
 }
