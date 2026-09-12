@@ -48,29 +48,40 @@ Exit criterion: **met**. A fresh developer/agent can identify the current produc
 
 ## Round 2 — Reader & Unified Search Foundation
 
-Goal: make PAIA materially better than returning to ChatGPT history for rereading and retrieval.
+Status: **implementation completed 2026-09-12; full regression execution pending an available development runtime**
 
-Product work:
+Goal: make PAIA materially better than returning to ChatGPT history for rereading and retrieval, while stopping Input / Thought / Context search logic from drifting into separate lexical systems.
 
-- Treat Reader as a reusable presentation layer for Input and Thought content.
-- Reduce navigation/UI noise around ordinary reading.
-- Improve long-document position continuity, source jumps, copy/reuse and older-material discovery.
-- Define one Search Service boundary used by Input search, Thought search and Context candidate retrieval.
+Delivered:
 
-Engineering work:
+- Added `core/search-service.js` as the provider-neutral shared lexical search foundation.
+- Preserved the established Input/Thought ranking contract (`exact title → partial title → body`) while routing the legacy `search-ranking.js` API through the shared service.
+- Moved Context query normalization, Chinese 2/3-character query terms, overlap scoring, shared lexical relevance and Unicode-safe excerpt selection into the shared Search Service.
+- Changed Thought Library search to consume the shared ranking/excerpt primitives without changing its durable postings/index schema.
+- Changed Input search result excerpts to use the same Unicode-safe excerpt selection rather than normalized-string offsets or raw UTF-16 slicing.
+- Added Reader behavior for Input search results: after opening the bounded document page around a matching Input, PAIA waits for the target reading DOM, centers the exact Input and highlights the search phrase without stealing focus into the editable body.
+- Confirmed Thought Library already had equivalent result-to-reading behavior through `focusSection` / `focusEntry` plus reading highlights, so no second Thought navigation mechanism was added.
+- Added `tests/search-service-round2.test.mjs` covering compatibility ranking, shared Chinese/Latin query preparation, Context/shared score identity and Unicode/emoji-safe excerpts.
+- Kept `search-ranking.js` as a compatibility facade so existing callers can migrate incrementally rather than requiring a large coordinated rewrite.
 
-- Wrap existing lexical/indexed retrieval behind the shared Search Service before adding semantic retrieval.
-- Begin incremental decomposition of oversized archive/UI/background coordination files when touched by this work.
-- Do not add a Reader body database.
+Runtime/data impact:
 
-Validation:
+- No IndexedDB version or object-store change.
+- No new canonical text copy or Reader persistence layer.
+- No vector database, embeddings, local model or new Provider request.
+- No Manifest permission/network change.
+- Existing Thought search postings remain rebuildable derived indexes.
 
-- Measure retrieval failures on real personal-use queries without committing private content.
-- Compare whether users can find known old material faster/more reliably through PAIA than through original chat history.
+Validation status:
 
-Exit criterion:
+- The new test file is automatically discovered by `scripts/test.mjs` and classified as a unit test by the existing test grouping rules.
+- Existing `search-hardening-v092.test.mjs` and `memory-ranking-v0100.test.mjs` remain the principal regression contracts for ranked Input/Thought search and Context retrieval behavior.
+- This development session did not claim a green full suite: the connected development machine/runtime was unavailable, so `npm test` / browser journeys could not be executed here. The source changes were kept deliberately bounded for that reason.
+- Real-use retrieval advantage is **not** claimed by this round. Measuring whether PAIA actually beats returning to ChatGPT history is a product question and is carried into Round 3.
 
-Reader/Search demonstrates a repeatable retrieval/reread advantage and the three existing retrieval surfaces no longer need to evolve separate search contracts.
+Engineering exit criterion: **met at source level**. Input, Thought and Context now share one lexical search foundation and Input search opens into an explicit Reader target rather than merely the right document page.
+
+Product exit criterion: **deferred to Round 3**. Repeatable reread/retrieval advantage must be demonstrated from local real-use signals rather than inferred from implementation quality.
 
 ---
 
