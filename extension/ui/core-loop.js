@@ -10,6 +10,7 @@ function node(tag,className='',text=''){
 function button(text,className=''){
  const el=node('button',className,text);el.type='button';return el;
 }
+function noteCoreLoop(action){void request('PAIA_CORE_LOOP_ACTION',{action}).catch(()=>{});}
 async function waitFor(read,{attempts=100,delay=50}={}){
  for(let i=0;i<attempts;i++){const value=read();if(value)return value;await sleep(delay);}return null;
 }
@@ -61,7 +62,7 @@ function decorateReader(){
   if(section.querySelector('.core-loop-reuse'))continue;
   const prose=section.querySelector('.library-prose');if(!prose)continue;
   const reuse=button('继续使用','core-loop-reuse');reuse.setAttribute('aria-label','继续使用这条输入');reuse.title='把这段表达带到本地 AI 上下文准备页';
-  reuse.addEventListener('click',()=>void prepareReaderReuse(prose.innerText,reuse));section.append(reuse);
+  reuse.addEventListener('click',()=>{noteCoreLoop('reuse');void prepareReaderReuse(prose.innerText,reuse);});section.append(reuse);
  }
 }
 
@@ -76,9 +77,9 @@ function createHome(){
  actions.append(recent,find,revisit);home.append(intro,actions);
  const browse=node('h2','core-loop-browse-title','按聊天浏览');browse.id='core-loop-browse-title';
  panel.insertBefore(home,search);panel.insertBefore(browse,search);
- recent.addEventListener('click',()=>{const first=$('document-list')?.querySelector('.conversation-document');first?.click();});
- find.addEventListener('click',()=>$('universal-search-open')?.click());
- revisit.addEventListener('click',()=>$('revisit-open')?.click());
+ recent.addEventListener('click',()=>{noteCoreLoop('continue');const first=$('document-list')?.querySelector('.conversation-document');first?.click();});
+ find.addEventListener('click',()=>{noteCoreLoop('find');$('universal-search-open')?.click();});
+ revisit.addEventListener('click',()=>{noteCoreLoop('return');$('revisit-open')?.click();});
  return home;
 }
 let revisitToken=0,lastRevisitKey='';
