@@ -1,3 +1,15 @@
+# Round 8 candidate — Thought 不再是 Context 的准入门槛
+
+Round 8 保留既有 Topic/Profile 授权语义，但允许用户在 Settings **明确开启**后，让尚未进入 Thought Library 的有效 Input 直接参与本地 AI Context 检索。默认关闭；旧配置缺少该字段时原子补 `false`，不会因为升级扩大可用范围。
+
+直接 Input 候选必须同时满足：Input 当前 active、Source 未永久删除、Smart Filter 未过滤、未被用户移除、未被单条长期排除，并且没有任何仍存在的 Thought 以非 context-only provenance 表示该 Input。后一条是权限边界：一旦 Input 已进入 Thought Library，就继续服从 Topic 的 allow/deny/never 与 Entry/Section 排除，不能借“未整理 Input”路径绕过被拒绝的 Topic。移除后再恢复也使用持久 provenance 判定，不因依赖暂时失效而重新变成授权旁路。
+
+直接 Input 的正文只在 Build/Preview/Share 时从当前工作正文读取；不建立新的持久正文副本。活动记录只保存 Input ID、Topic/Entry ID 与 query digest，不保存 query 或 Context 正文。Preview 后 Input 被编辑、删除、过滤、永久删除或授权状态变化时，Share 必须以 `MEMORY_STALE` 拒绝旧预览并要求重建。直接 Input 的长期排除可在 Settings 一次性恢复；Source 永久删除会清理对应排除 metadata。Backup 保存“是否允许未整理 Input”与单条排除，但不保存 Preview/Context/query。
+
+Round 8 同时引入 1:1 共享工作正文：只有“一个完整 Input → 一个 exact full-body `input_original` Thought”且没有既有独立人工正文时，Input 与 Thought 才共享同一工作正文。Input/Thought 任一处编辑会更新同一 canonical Input working body；不可变 Source snapshot 始终不变。局部摘录、多 Input 合并、AI 综合段落、旧的独立人工 Thought 都不会反向覆盖 Input。Context 只读取当前状态，不反写档案。
+
+---
+
 # v0.11.0 — selected behavior
 
 Production uses the same lexical relevance ordering with invocation-local query preparation. No embedding/model/vector store or new API path. Low coverage and incomplete scans are explained in Preview; unknown queries remain empty. See INTELLIGENCE.md for benchmark evidence, rejected alternatives, reproduction and limits. Tests run headless via PAIA_HEADLESS=1; historical test names/receipt fields saying visibleChrome do not override this run mode.

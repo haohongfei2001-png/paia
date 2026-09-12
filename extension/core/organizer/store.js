@@ -29,7 +29,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
   // Evidence validation and chronology use separate bounded reads. An edit may
   // commit between them; retry the read, never publish mixed versions.
   for(let attempt=0;attempt<3;attempt++){
-   const entry=await this.entry(id);
+   let entry;try{entry=await this.entry(id);}catch(error){if(error?.code==='INVALID_REQUEST'&&attempt<2){await new Promise(resolve=>setTimeout(resolve,0));continue;}throw error;}
    const result=await this.run(()=>this.repository.transaction(false,async t=>{
     const current=await this.readableEntry(t,id);
     if(current.staleReasons?.includes('source_purged'))return {value:this.documentEntry({...current,body:current.thoughtText})};

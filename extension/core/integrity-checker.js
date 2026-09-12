@@ -2,7 +2,7 @@ import {validateMemoryRow,key} from './memory/model.js';
 import {ArchiveError} from './constants.js';
 
 const tables=['records','blocks','thoughts','topics','sections','placements','provenance','revisions','meta'];
-export const INTEGRITY_CATEGORIES=Object.freeze(['orphan_entries','orphan_topics','broken_provenance','missing_revision_refs','duplicate_stable_identity','invalid_organizer_checkpoint','dangling_redirects','dangling_memory_authorization','missing_memory_topic','excluded_missing_entry','invalid_memory_profile_ref']);
+export const INTEGRITY_CATEGORIES=Object.freeze(['orphan_entries','orphan_topics','broken_provenance','missing_revision_refs','duplicate_stable_identity','invalid_organizer_checkpoint','dangling_redirects','dangling_memory_authorization','missing_memory_topic','excluded_missing_entry','excluded_missing_input','invalid_memory_profile_ref']);
 const generation=async t=>(await t.get('meta','backup-data-generation'))?.value||0;
 // Read-only, bounded pages. Only aggregate counts cross the UI boundary; no row,
 // identity, body, credential or provider response is retained in a session.
@@ -32,6 +32,7 @@ async function inspect(t,name,raw,c){const r=['records','blocks'].includes(name)
    if(!validateMemoryRow(r))c.invalid_memory_profile_ref++;
    if(r.kind==='topic'||r.kind==='section'){if(!await t.get('topics',r.topicId)){c.missing_memory_topic++;c.dangling_memory_authorization++;}}
    if(r.kind==='entry'&&!await t.get('thoughts',r.entryId))c.excluded_missing_entry++;
+   if(r.kind==='input'&&(!await t.get('inputStates',r.inputId)||!await t.get('blocks',r.inputId)))c.excluded_missing_input++;
    if(r.kind==='topic'&&!await t.get('meta',key('profile',r.profileId))){c.invalid_memory_profile_ref++;c.dangling_memory_authorization++;}
    if(r.kind==='profile'&&!await t.get('meta','memory:config'))c.invalid_memory_profile_ref++;
   }
