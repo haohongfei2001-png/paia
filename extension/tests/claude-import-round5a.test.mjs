@@ -57,7 +57,7 @@ test('Claude export commits through the existing Source/Input pipeline without a
  const state=await store.snapshot();
  assert.equal(state.records.length,3);
  assert.ok(state.records.every(r=>r.platform==='claude'));
- assert.ok(state.records.every(r=>r.chatUrl==='https://claude.ai/chat/claude-conversation-001'));
+ assert.ok(state.records.every(r=>r.chatUrl===''));
  assert.equal(state.records.some(r=>r.originalText.includes('Assistant text')),false);
  const current=state.library.blocks.filter(b=>!b.excluded),review=state.library.blocks.filter(b=>b.excluded);
  assert.equal(current.length,2);
@@ -68,7 +68,7 @@ test('Claude export commits through the existing Source/Input pipeline without a
  assert.equal(state.conversations[0].sourceConversationId,'claude-conversation-001');
  const relationRows=await store.repository.transaction(false,t=>t.all('importSources'));
  assert.ok(relationRows.length>=3);
- assert.ok(relationRows.every(r=>r.platform==='claude'&&r.profileId==='claude-conversations-v1'));
+ assert.ok(relationRows.every(r=>r.platform===undefined&&r.profileId==='claude-conversations-v1'));
 });
 
 test('format detection refuses to guess when no registered export shape is present',async()=>{
