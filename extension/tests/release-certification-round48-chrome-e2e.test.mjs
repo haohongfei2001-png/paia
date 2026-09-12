@@ -43,7 +43,7 @@ test('Round 4.8 current release: Universal Search -> Reader / Context and Revisi
   await eventually(async()=>!(await p.locator('.revisit-intro').textContent()).includes('第一次打开回访'),'Revisit baseline is stored');
   const baseline=await rpc(p,'PAIA_REVISIT_STATUS');assert.equal(baseline.firstRun,false);assert.equal(baseline.newInputs.count,0);await p.locator('.revisit-close').click();
   await h.open({id:'round48-current',title:'Round 4.8 Current Release',base:1609459200,messages:[{id:'round48-one',text:first},{id:'round48-two',text:second}]});
-  await eventually(async()=>{const s=await h.state();return s.records.length===2&&s.library?.blocks?.some(b=>!b.excluded&&String(b.libraryText||'').includes('ROUND48_REVISIT_NEW'));},'later Input is visible in Input Archive after baseline');
+  await eventually(async()=>{const s=await h.state(),source=s.records.find(r=>r.originalText===second);return s.records.length===2&&!!source&&s.library?.blocks?.some(b=>!b.excluded&&b.originalTextReference===source.id);},'later Input is linked into Input Archive after baseline');
   let revisitStatus=null;await eventually(async()=>{revisitStatus=await rpc(p,'PAIA_REVISIT_STATUS');return revisitStatus.newInputs.items.some(item=>String(item.snippet||'').includes('ROUND48_REVISIT_NEW'));},'Revisit service sees the newly captured Input');assert.ok(revisitStatus.newInputs.count>=1);
   await p.locator('#revisit-open').click();
   const newCard=p.locator('.revisit-card').filter({hasText:'ROUND48_REVISIT_NEW'});await eventually(async()=>await newCard.count()===1,'Revisit UI renders the service-visible new Input');await newCard.locator('.revisit-card-open').click();
