@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Personal AI Input Archive",
-  "version": "0.11.1",
-  "version_name": "v0.11.1 Thought Library Reading Closure",
+  "version": "0.12.0",
+  "version_name": "v0.12.0 Thought Evolution & Shared Context",
   "description": "经主动同意后，仅在本机归档 ChatGPT 已显示的用户文字。以连续文档阅读与整理，支持暂停、检索和导出。",
   "minimum_chrome_version": "114",
   "permissions": [

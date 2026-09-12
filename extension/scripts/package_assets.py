@@ -10,7 +10,7 @@ RUNTIME_DIRS = ('adapter', 'content', 'background', 'core', 'ui', 'icons')
 def release_files(root):
     root = Path(root).resolve()
     files = [root / name for name in ('manifest.json', *DOCS)]
-    files.extend(root / name for name in ('BACKUP.md','HISTORY_COMPLETION.md','AI_MEMORY.md', 'AI_CONTEXT.md', 'INTELLIGENCE.md', 'READING_CLOSURE.md') if (root / name).is_file())
+    files.extend(root / name for name in ('BACKUP.md','HISTORY_COMPLETION.md','AI_MEMORY.md', 'AI_CONTEXT.md', 'INTELLIGENCE.md', 'READING_CLOSURE.md', 'V0120_RELEASE.md') if (root / name).is_file())
     for folder in RUNTIME_DIRS:
         files.extend(sorted(p for p in (root / folder).rglob('*')
                             if p.is_file() and p.suffix in ('.js', '.html', '.css', '.png', '.svg')))
