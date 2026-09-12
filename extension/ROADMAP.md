@@ -34,11 +34,11 @@ Exit criterion: **met**.
 
 ## Round 2 — Reader & Unified Search Foundation
 
-Status: **source implementation completed 2026-09-12; executable full regression still pending an available development runtime**
+Status: **implementation completed 2026-09-12; executable engineering regression later certified by Round 4.8**
 
 Delivered shared lexical Search Service primitives across Input, Thought and Context, ranking compatibility, CJK query terms, Unicode-safe excerpts and exact Input result → Reader positioning.
 
-Engineering exit criterion: **met at source level**.
+Engineering exit criterion: **met**.
 
 Product exit criterion: **still depends on real-use evidence**.
 
@@ -46,13 +46,13 @@ Product exit criterion: **still depends on real-use evidence**.
 
 ## Round 3 — Local Product Validation
 
-Status: **instrumentation implemented 2026-09-12; real-use evidence accumulation still pending explicit local opt-in; full regression execution pending**
+Status: **instrumentation implemented and executable regression certified 2026-09-12; real-use evidence accumulation still pending explicit local opt-in**
 
 Delivered local-only aggregate Product Signals, fixed privacy-preserving event taxonomy, 90-day aggregate retention, Input/Thought/Context loop metrics and the low-frequency local tools surface.
 
 Interpretation remains conservative: counters describe observable behavior, not satisfaction or user intent.
 
-Engineering exit criterion: **met at source level**.
+Engineering exit criterion: **met**.
 
 Product exit criterion: **not met**. Real repeat-use evidence has not yet accumulated.
 
@@ -72,7 +72,7 @@ Product exit criterion: **not met**. Broader agent/API work remains unjustified 
 
 ## Round 4.5 — Runtime Hardening & Context/Passport Architecture Cleanup
 
-Status: **source implementation completed 2026-09-12; full executable regression/package/Chrome validation pending an available development runtime**
+Status: **implementation completed 2026-09-12; executable regression/package/Chrome validation later certified by Round 4.8**
 
 Delivered:
 
@@ -83,13 +83,13 @@ Delivered:
 - low-frequency UI migrated to the explicit APIs;
 - source-level architecture/security regression tests.
 
-Engineering exit criterion: **met at source level**.
+Engineering exit criterion: **met**.
 
 ---
 
 ## Round 4.6 — Reader & Search Productization
 
-Status: **source implementation completed 2026-09-12; browser/product validation pending**
+Status: **implementation completed 2026-09-12; current browser engineering paths later certified by Round 4.8; product validation pending**
 
 Delivered:
 
@@ -108,7 +108,7 @@ Runtime/data impact:
 - no vector/embedding/model;
 - no new Manifest permission, capture adapter, Provider or network request.
 
-Engineering exit criterion: **met at source level**.
+Engineering exit criterion: **met**.
 
 Product exit criterion: **not met**. Reader/Search advantage still requires real-use evidence.
 
@@ -116,7 +116,7 @@ Product exit criterion: **not met**. Reader/Search advantage still requires real
 
 ## Round 4.7 — Revisit / Retention Surface
 
-Status: **source implementation completed 2026-09-12; browser/product validation pending**
+Status: **implementation completed 2026-09-12; current browser engineering paths later certified by Round 4.8; product validation pending**
 
 Goal: give users a reason to return by resurfacing real local value, without becoming an engagement-notification system or generating more AI content.
 
@@ -150,11 +150,11 @@ Runtime/data impact:
 
 Validation status:
 
-- Round 4.7 source tests are present and automatically discoverable by the existing Node test runner.
-- The connected development device remains unavailable, so this session does **not** claim green `npm test`, package audit, Chrome E2E or live UI smoke results.
+- Round 4.7 source tests are automatically discovered by the current Node regression suite.
+- Round 4.8 current-browser certification covers the integrated Revisit/Search/Reader/Context/Passport daily-use path at engineering level.
 - Product value remains unproven until real Product Signals show that Revisit leads to voluntary reopening of old/new material rather than becoming an ignored control.
 
-Engineering exit criterion: **met at source level**.
+Engineering exit criterion: **met**.
 
 Product exit criterion: **not yet met**.
 
