@@ -16,6 +16,16 @@ function b64url(bytes){
   return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
 
+function unb64url(value){
+  if(typeof value!=='string'||!B64_RE.test(value))fail('SECURE_KEYRING_TRANSFER_INVALID');
+  const padded=value.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-value.length%4)%4);
+  let binary;
+  try{binary=atob(padded);}catch{fail('SECURE_KEYRING_TRANSFER_INVALID');}
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  return bytes;
+}
+
 function normalizeIdentity(identity){
   if(!plainObject(identity)||identity.version!==1||!OPAQUE_RE.test(identity.deviceId||'')||!Number.isSafeInteger(identity.sequence)||identity.sequence<0)fail('SECURE_DEVICE_IDENTITY_INVALID');
   return Object.freeze({version:1,deviceId:identity.deviceId,sequence:identity.sequence});
@@ -45,6 +55,21 @@ function normalizeKeyringManifest(input){
   if(versions.length!==input.versions.length||versions.some(v=>!Number.isSafeInteger(v)||v<1||v>1_000_000)||!versions.includes(input.currentVersion))fail('SECURE_KEYRING_MANIFEST_INVALID');
   versions.sort((a,b)=>a-b);
   return Object.freeze({version:1,currentVersion:input.currentVersion,versions:Object.freeze(versions)});
+}
+
+function transferSnapshot(keyring){
+  if(!keyring||typeof keyring[KEYRING_TRANSFER]!=='function')fail('SECURE_KEYRING_TRANSFER_REQUIRED');
+  let input;
+  try{input=keyring[KEYRING_TRANSFER]();}catch{fail('SECURE_KEYRING_TRANSFER_INVALID');}
+  if(!plainObject(input)||input.version!==1||!Number.isSafeInteger(input.currentVersion)||input.currentVersion<1||!Array.isArray(input.keys)||input.keys.length<1||Object.keys(input).some(key=>!['version','currentVersion','keys'].includes(key)))fail('SECURE_KEYRING_TRANSFER_INVALID');
+  const seen=new Set(),keys=[];
+  for(const row of input.keys){
+    if(!plainObject(row)||Object.keys(row).some(key=>!['keyVersion','keyMaterial'].includes(key))||!Number.isSafeInteger(row.keyVersion)||row.keyVersion<1||row.keyVersion>1_000_000||seen.has(row.keyVersion))fail('SECURE_KEYRING_TRANSFER_INVALID');
+    const key=unb64url(row.keyMaterial);if(key.length!==32)fail('SECURE_KEYRING_TRANSFER_INVALID');
+    seen.add(row.keyVersion);keys.push([row.keyVersion,key]);
+  }
+  keys.sort((a,b)=>a[0]-b[0]);if(!seen.has(input.currentVersion))fail('SECURE_KEYRING_TRANSFER_INVALID');
+  return Object.freeze({currentVersion:input.currentVersion,keys:Object.freeze(keys)});
 }
 
 export class SecurePersistentTrustedDeviceCredential{
@@ -85,8 +110,23 @@ export class SecurePersistentSyncKeyring{
   static async create({gate,accountId,deviceId}={}){
     if(!gate?.productionReady)fail('SECURE_PROVIDER_NOT_PRODUCTION_READY');
     const key=generateRootKeyMaterial(),slot=createSecureSecretSlot({accountId,deviceId,secretClass:'root_keyring',keyVersion:1});
+    if(await gate.load(slot)!==null)fail('SECURE_KEYRING_TARGET_NOT_EMPTY');
     await gate.store(slot,key);
     return new SecurePersistentSyncKeyring(INTERNAL,{gate,accountId,deviceId,currentVersion:1,keys:[[1,key]]});
+  }
+  static async importTransferred({gate,accountId,deviceId,keyring}={}){
+    if(!gate?.productionReady)fail('SECURE_PROVIDER_NOT_PRODUCTION_READY');
+    const snapshot=transferSnapshot(keyring),slots=[];
+    for(const [version] of snapshot.keys){
+      const slot=createSecureSecretSlot({accountId,deviceId,secretClass:'root_keyring',keyVersion:version});
+      if(await gate.load(slot)!==null)fail('SECURE_KEYRING_TARGET_NOT_EMPTY');
+      slots.push(slot);
+    }
+    const written=[];
+    try{
+      for(let i=0;i<snapshot.keys.length;i++){await gate.store(slots[i],snapshot.keys[i][1]);written.push(slots[i]);}
+    }catch(error){for(const slot of written){try{await gate.remove(slot);}catch{}}throw error;}
+    return new SecurePersistentSyncKeyring(INTERNAL,{gate,accountId,deviceId,currentVersion:snapshot.currentVersion,keys:snapshot.keys});
   }
   static async open({gate,accountId,deviceId,manifest}={}){
     if(!gate?.productionReady)fail('SECURE_PROVIDER_NOT_PRODUCTION_READY');
@@ -108,6 +148,7 @@ export class SecurePersistentSyncKeyring{
   async rotate(){
     if(this.#currentVersion>=1_000_000)fail('SECURE_KEY_VERSION_EXHAUSTED');
     const version=this.#currentVersion+1,key=generateRootKeyMaterial(),slot=createSecureSecretSlot({accountId:this.#accountId,deviceId:this.#deviceId,secretClass:'root_keyring',keyVersion:version});
+    if(await this.#gate.load(slot)!==null)fail('SECURE_KEYRING_TARGET_NOT_EMPTY');
     await this.#gate.store(slot,key);this.#keys.set(version,new Uint8Array(key));this.#currentVersion=version;return version;
   }
   async seal({syncEnvelope,payload,objectId}={}){return sealRemoteObject({rootKey:this.rootKeyFor(this.#currentVersion),keyVersion:this.#currentVersion,syncEnvelope,payload,objectId});}
