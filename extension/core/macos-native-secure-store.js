@@ -65,7 +65,7 @@ function capabilitiesFromProbe(response){
   const capabilities={
     version:1,
     providerId:response.providerId,
-    protection:'hardware_keystore',
+    protection:'os_keystore',
     isolatedFromAppStorage:response.isolatedFromAppStorage===true,
     supportsAtomicReplace:response.supportsAtomicReplace===true,
     supportsDelete:response.supportsDelete===true,
