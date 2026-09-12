@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 
-DOCS = ('README.md', 'PRODUCT.md', 'ARCHITECTURE.md', 'ROADMAP.md', 'SYNC_CONTRACT.md',
+DOCS = ('README.md', 'PRODUCT.md', 'ARCHITECTURE.md', 'ROADMAP.md', 'SYNC_CONTRACT.md', 'REMOTE_OBJECT_PROTOCOL.md',
         'AGENTS.md', 'PRIVACY.md', 'PRODUCT_SPEC.md', 'TEST_PLAN.md',
         'TEST_RESULTS.md', 'DECISIONS.md', 'TIME_METADATA_INVESTIGATION.md')
 RUNTIME_DIRS = ('adapter', 'content', 'background', 'core', 'ui', 'icons')
