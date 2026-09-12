@@ -94,6 +94,11 @@ export class ProductSignals {
  prunePackages(){for(const [id,pkg]of this.packages)if(contextPackageExpired(pkg,this.clock()))this.packages.delete(id);}
  package(previewId){this.prunePackages();const pkg=this.packages.get(previewId);if(!pkg)throw new ArchiveError('MEMORY_STALE');return pkg;}
  registerPackage(request,result){this.prunePackages();const budget=['short','standard','detailed'].includes(request.options?.budget)?request.options.budget:(result.budget||'standard'),pkg=createContextPackage({packageId:this.uuid(),previewId:result.previewId,profileId:request.options?.profileId||'default',consumer:'manual',purpose:'current_task',budget,generation:result.generation||0,itemCount:result.items?.length||0,characters:result.characters||0,tokens:result.tokens||0,retrievalConfidence:result.retrievalConfidence||'low',partial:result.partial===true,createdAt:this.clock()});this.packages.set(result.previewId,pkg);result.contextPackage=pkg;return pkg;}
+ async bindPackage(previewId,grantId){
+  if(typeof previewId!=='string'||!previewId||typeof grantId!=='string'||!grantId)invalid();const current=this.package(previewId);if(current.grantId!==null){if(current.grantId===grantId)return current;throw new ArchiveError('MEMORY_DENIED');}
+  const status=await this.passport.status(),grant=status.grants.find(row=>row.grantId===grantId);if(!grant)throw new ArchiveError('MEMORY_DENIED');await this.passport.authorize({grantId,consumer:grant.consumer,purpose:grant.purpose,profileId:current.profileId});
+  const bound=createContextPackage({...current,grantId,consumer:grant.consumer,purpose:grant.purpose,createdAt:Date.parse(current.createdAt)});this.packages.set(previewId,bound);return bound;
+ }
  async status(){const summary=await this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW);if(!current)return summarizeProductSignals(emptyProductSignals(this.clock(),false),this.clock());const row=structuredClone(current);if(pruneDaily(row,this.clock())){row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);}return summarizeProductSignals(row,this.clock());});return {...summary,passport:await this.passport.status()};}
  async settings(settings={}){
   if(!plain(settings))invalid();
@@ -102,6 +107,7 @@ export class ProductSignals {
    const p=settings.passport,action=p.action;if(action==='create'&&Object.keys(p).every(k=>['action','consumer','purpose','profileId','duration'].includes(k)))return this.passport.create({consumer:p.consumer,purpose:p.purpose,profileId:p.profileId,duration:p.duration});
    if(action==='revoke'&&Object.keys(p).every(k=>['action','grantId'].includes(k)))return this.passport.revoke(p.grantId);
    if(action==='clear_audits'&&Object.keys(p).length===1)return this.passport.clearAudits();
+   if(action==='bind_package'&&Object.keys(p).every(k=>['action','previewId','grantId'].includes(k)))return this.bindPackage(p.previewId,p.grantId);
   }
   invalid();
  }
@@ -126,10 +132,10 @@ export class ProductSignals {
   if(grantId!==undefined){
    const released={text:result.text,characters:result.characters,tokens:result.tokens};result.text='';result.characters=0;result.tokens=0;result.permissionDenied=true;result.permissionError='MEMORY_DENIED';
    try{
-    if(typeof grantId!=='string'||!grantId)invalid();const current=this.package(request.options?.previewId),status=await this.passport.status(),grant=status.grants.find(row=>row.grantId===grantId);if(!grant)throw new ArchiveError('MEMORY_DENIED');await this.passport.authorize({grantId,consumer:grant.consumer,purpose:grant.purpose,profileId:current.profileId});await this.passport.consume(grantId,format);let pkg={...current,consumer:grant.consumer,purpose:grant.purpose,generation:result.generation||current.generation,characters:released.characters||current.characters,tokens:released.tokens||current.tokens};this.packages.set(pkg.previewId,pkg);result.text=released.text;result.characters=released.characters;result.tokens=released.tokens;result.permissionDenied=false;delete result.permissionError;result.contextPackage=contextPackageEnvelope(pkg,result.text,{format:format==='markdown'?'markdown':'plain',generation:pkg.generation}).package;await this.record({name:'context_share',dimensions:{format}});return;
+    if(typeof grantId!=='string'||!grantId)invalid();const current=this.package(request.options?.previewId);if(current.grantId!==grantId)throw new ArchiveError('MEMORY_DENIED');await this.passport.authorize({grantId,consumer:current.consumer,purpose:current.purpose,profileId:current.profileId});await this.passport.consume(grantId,format);const pkg={...current,generation:result.generation||current.generation,characters:released.characters||current.characters,tokens:released.tokens||current.tokens};this.packages.set(pkg.previewId,pkg);result.text=released.text;result.characters=released.characters;result.tokens=released.tokens;result.permissionDenied=false;delete result.permissionError;result.contextPackage=contextPackageEnvelope(pkg,result.text,{format:format==='markdown'?'markdown':'plain',generation:pkg.generation}).package;await this.record({name:'context_share',dimensions:{format}});return;
    }catch(error){result.permissionError=['MEMORY_DENIED','MEMORY_STALE','INVALID_REQUEST'].includes(error?.code)?error.code:'MEMORY_DENIED';return;}
   }
-  let current;try{current=this.package(request.options?.previewId);}catch{await this.record({name:'context_share',dimensions:{format}});return;}
+  let current;try{current=this.package(request.options?.previewId);}catch{await this.record({name:'context_share',dimensions:{format}});return;}if(current.grantId!==null){result.text='';result.characters=0;result.tokens=0;result.permissionDenied=true;result.permissionError='MEMORY_DENIED';return;}
   await this.passport.audit({consumer:'manual',purpose:'current_task',profileId:current.profileId,action:format==='copy'?'manual_copy':'manual_markdown'}).catch(()=>{});const pkg={...current,generation:result.generation||current.generation,characters:result.characters||current.characters,tokens:result.tokens||current.tokens};this.packages.set(pkg.previewId,pkg);try{result.contextPackage=contextPackageEnvelope(pkg,result.text,{format:format==='markdown'?'markdown':'plain',generation:pkg.generation}).package;}catch{}await this.record({name:'context_share',dimensions:{format}});
  }
  async observe(request,result,sender){
