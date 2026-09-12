@@ -17,9 +17,10 @@ export function revealSearchResult(itemId,query,{attempts=40}={}){
    requestAnimationFrame(()=>requestAnimationFrame(()=>{
     if(token!==revealToken||!target.isConnected)return;
     highlightReading(root,needle);
-    const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
+    const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true,section=target.closest('section');
+    if(section)section.dataset.searchOrigin='true';
     target.scrollIntoView({block:'center',behavior:reduced?'auto':'smooth'});
-    if(!reduced)target.closest('section')?.animate?.([{backgroundColor:'#eef3e9'},{backgroundColor:'transparent'}],{duration:900,easing:'ease-out'});
+    if(!reduced)section?.animate?.([{backgroundColor:'#eef3e9'},{backgroundColor:'transparent'}],{duration:900,easing:'ease-out'});
    }));
    return;
   }
