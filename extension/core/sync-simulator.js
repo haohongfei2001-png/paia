@@ -1,4 +1,4 @@
-import {openRemoteObject,sealRemoteObject,createDeviceIdentity,nextDeviceOperation,validateRemoteObject} from './sync-crypto.js';
+import {canonicalJson,openRemoteObject,sealRemoteObject,createDeviceIdentity,nextDeviceOperation,validateRemoteObject} from './sync-crypto.js';
 import {planSyncMerge,replayDecision,validateSyncEnvelope} from './sync-contract.js';
 
 export class SyncSimulationError extends Error{
@@ -14,7 +14,7 @@ export class LocalRemoteObjectStore{
     const value=validateRemoteObject(remoteObject);
     const existing=this.#objects.get(value.objectId);
     if(existing){
-      if(JSON.stringify(existing)!==JSON.stringify(value))fail('SYNC_REMOTE_OBJECT_COLLISION');
+      if(canonicalJson(existing)!==canonicalJson(value))fail('SYNC_REMOTE_OBJECT_COLLISION');
       return Object.freeze({status:'duplicate',objectId:value.objectId});
     }
     this.#objects.set(value.objectId,clone(value));
