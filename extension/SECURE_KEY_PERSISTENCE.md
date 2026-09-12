@@ -32,6 +32,8 @@ A provider is production-ready only when all of the following are true:
 
 A provider that merely stores bytes in normal extension/browser application storage is not allowed to claim production readiness.
 
+The capability gate is an **integration safety boundary**, not a sandbox against code that has already compromised the PAIA process. A production provider is trusted code: its capability claims must be backed by an actual reviewed platform adapter and platform-specific tests. An in-process malicious provider could lie about its own capabilities; Round 5E does not claim to defend against that threat.
+
 ## 3. Current Chrome Extension status
 
 The current PAIA Chrome Extension has no integrated OS/hardware keystore provider.
