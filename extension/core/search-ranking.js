@@ -1,3 +1,3 @@
-export const normalizeSearch=value=>String(value||'').normalize('NFKC').toLocaleLowerCase().trim();
-export function searchRank(query,title,body='',ai=false){const q=normalizeSearch(query),t=normalizeSearch(title);if(!q)return -1;if(ai)return normalizeSearch(body).includes(q)?3:-1;if(t===q)return 0;if(t.includes(q))return 1;return normalizeSearch(body).includes(q)?2:-1;}
-export function rankSearchPage(items){return items.sort((a,b)=>(a.rank??2)-(b.rank??2)||(Date.parse(b.updatedAt||b.sourceSentAt)||0)-(Date.parse(a.updatedAt||a.sourceSentAt)||0)||String(a.id||a.entryId||a.topicId).localeCompare(String(b.id||b.entryId||b.topicId)));}
+// Compatibility facade for existing Input/Thought callers.
+// New shared lexical behavior lives in search-service.js.
+export {normalizeSearch,searchRank,rankSearchPage} from './search-service.js';
