@@ -1,0 +1,63 @@
+name: Round 8 final browser fixes
+
+on:
+  push:
+    branches:
+      - round8/final-browser-fixes
+    paths:
+      - .github/workflows/round8-final-browser-fixes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: round8/final-browser-fixes
+      - name: Fix Memory preview invalidation race and harden browser acceptance
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          archive=Path('extension/ui/archive.js')
+          text=archive.read_text(encoding='utf-8')
+          old="chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'){memory.invalidate();smartFilter.changed();$('revision-dialog').close();$('revision-list').replaceChildren();if(view==='thoughts'){if(!['SET_ORGANIZER_CONTROLS','RECORD_TOPIC_READ'].includes(m.cause))void thoughts.refresh();}else void refresh();}});"
+          new="chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'){smartFilter.changed();$('revision-dialog').close();$('revision-list').replaceChildren();if(view==='thoughts'){if(!['SET_ORGANIZER_CONTROLS','RECORD_TOPIC_READ'].includes(m.cause))void thoughts.refresh();}else if(view==='memory'){void refresh();}else{memory.invalidate();void refresh();}}});"
+          if old not in text: raise SystemExit('archive invalidation target not found')
+          archive.write_text(text.replace(old,new,1),encoding='utf-8')
+
+          backup=Path('extension/tests/backup-v081-chrome-e2e.test.mjs')
+          text=backup.read_text(encoding='utf-8')
+          text2=text.replace("const download=p.waitForEvent('download');await p.locator('#backup-create').click();","const download=p.waitForEvent('download',{timeout:90000});await p.locator('#backup-create').click();",1)
+          if text2==text: raise SystemExit('backup download wait target not found')
+          backup.write_text(text2,encoding='utf-8')
+
+          memory=Path('extension/tests/memory-v0100-chrome-e2e.test.mjs')
+          text=memory.read_text(encoding='utf-8')
+          old="getByRole('button',{name:'在 Thought Library 查看依据'})"
+          if old not in text: raise SystemExit('memory provenance label target not found')
+          text=text.replace(old,"getByRole('button',{name:'在 Thought Library 查看'})",1)
+          old="await q.locator('#backup-restore').click();await eventually(async()=>(await rpc(q,'PAIA_MEMORY_STATUS')).allowed===1);assert.equal((await rpc(q,'PAIA_MEMORY_STATUS')).excluded,1);"
+          new="await q.locator('#backup-restore').click();await eventually(async()=>/恢复已完成/.test(await q.locator('#backup-status').textContent()),'memory backup restore completes',60000);assert.equal((await rpc(q,'PAIA_MEMORY_STATUS')).allowed,1);assert.equal((await rpc(q,'PAIA_MEMORY_STATUS')).excluded,1);"
+          if old not in text: raise SystemExit('memory restore target not found')
+          memory.write_text(text.replace(old,new,1),encoding='utf-8')
+
+          r8=Path('extension/tests/round8-shared-context-chrome-e2e.test.mjs')
+          text=r8.read_text(encoding='utf-8')
+          old="await p.locator('.memory-context-entry details').click();assert.equal(await p.getByRole('button',{name:'在 Input Archive 查看'}).count(),1);"
+          new="await p.locator('.memory-context-entry details summary').click();await eventually(async()=>await p.getByRole('button',{name:'在 Input Archive 查看'}).count()===1,'direct Input provenance control remains mounted');"
+          if old not in text: raise SystemExit('round8 provenance click target not found')
+          r8.write_text(text.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Commit fixes
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add extension/ui/archive.js extension/tests/backup-v081-chrome-e2e.test.mjs extension/tests/memory-v0100-chrome-e2e.test.mjs extension/tests/round8-shared-context-chrome-e2e.test.mjs
+          git commit -m 'fix: keep Memory previews stable across delayed local change notifications'
+          git push origin HEAD:refs/heads/round8/final-browser-fixes
