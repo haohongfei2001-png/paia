@@ -1,5 +1,6 @@
 import {element} from './common.js';
 import {installUniversalSearch} from './universal-search.js';
+import {installRevisit} from './revisit.js';
 // Literal text only. Reading highlights use CSS ranges, never mutate editable DOM.
 export function highlightText(node,text,query){node.replaceChildren();const value=String(text||''),needle=String(query||'').trim().toLocaleLowerCase();let from=0,found;if(!needle){node.textContent=value;return;}while((found=value.toLocaleLowerCase().indexOf(needle,from))>=0){node.append(document.createTextNode(value.slice(from,found)),element('mark','search-match',value.slice(found,found+needle.length)));from=found+needle.length;}node.append(document.createTextNode(value.slice(from)));}
 export function highlightReading(root,query){if(!globalThis.CSS?.highlights||!globalThis.Highlight)return;CSS.highlights.delete('paia-search');const q=String(query||'').trim().toLocaleLowerCase();if(!q||!root)return;const ranges=[],walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode())&&ranges.length<500){if(node.parentElement.closest('[hidden],button,select'))continue;const text=node.data.toLocaleLowerCase();let from=0,index;while((index=text.indexOf(q,from))>=0&&ranges.length<500){const range=new Range();range.setStart(node,index);range.setEnd(node,index+q.length);ranges.push(range);from=index+q.length;}}CSS.highlights.set('paia-search',new Highlight(...ranges));}
@@ -34,3 +35,4 @@ export function wireSearchKeyboard(input,results){input.addEventListener('keydow
 export async function findLibraryPage(read,{query,cursor=null,isCurrent=()=>true,onProgress=()=>{}}){let next=cursor;for(;;){if(!isCurrent())return null;const page=await read({query,cursor:next,ranked:true});if(!isCurrent())return null;if(page.items.length||!page.nextCursor)return page;if(JSON.stringify(next)===JSON.stringify(page.nextCursor))throw Error('Search did not advance');next=page.nextCursor;onProgress();await new Promise(r=>setTimeout(r,0));}}
 
 queueMicrotask(installUniversalSearch);
+queueMicrotask(installRevisit);
