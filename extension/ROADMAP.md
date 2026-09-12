@@ -21,6 +21,7 @@ Across all rounds:
 - A product-owner override may change implementation order, but it is not evidence that a product gate was satisfied.
 - Multi-device work must follow `SYNC_CONTRACT.md`; a cloud backend may implement the contract but may not redefine merge semantics.
 - Encrypted remote transport work must follow `REMOTE_OBJECT_PROTOCOL.md`; a backend must not require plaintext entity/device/revision metadata merely for convenience.
+- Trusted-device/key-management work must follow `TRUSTED_DEVICE_PROTOCOL.md`; ordinary Backup, account passwords and server-readable secrets are not substitutes for a real key lifecycle.
 
 ---
 
@@ -130,7 +131,7 @@ Product exit criterion: **not met**.
 
 # Round 5 — Portability & Sync Readiness
 
-Status: **gated overall; Round 5A, Round 5B and Round 5C were opened by explicit product-owner override**
+Status: **gated overall; Round 5A, Round 5B, Round 5C and Round 5D were opened by explicit product-owner override**
 
 The override changes implementation order only. It does **not** mean the broader Round 5 product prerequisites have been satisfied, and it does not open live multi-provider capture, cloud sync, Web/Desktop/mobile expansion or broad autonomous-agent access.
 
@@ -200,7 +201,7 @@ Product exit criterion: **not met**.
 
 ## Round 5C — Encryption / Device Identity / Remote Object Protocol Simulation
 
-Status: **local protocol/simulation implementation and engineering certification completed 2026-09-13; real remote transport and production key management not implemented**
+Status: **local protocol/simulation implementation and engineering certification completed 2026-09-13; real remote transport and production key persistence/account integration not implemented**
 
 Purpose: prove that the Round 5B merge contract can travel through a backend-neutral encrypted-object layer without exposing PAIA entity/revision/device identity to the remote store.
 
@@ -212,28 +213,62 @@ Delivered:
 - backend-visible header is limited to protocol/object/key versions, cipher/KDF labels, salt, nonce and ciphertext;
 - entity ID/type, device identity, operation ID, revision ancestry/hashes, tombstone target and private content remain inside ciphertext;
 - public remote header is authenticated as AES-GCM AAD, so header mutation fails closed;
-- decrypted private payload is cryptographically authenticated and then semantically bound back to the Round 5B hash contract before merge: human work must match `payloadHash`; Source `{immutable,facts}` separately binds `payloadHash` and `factsHash`;
+- decrypted private payload is cryptographically authenticated and then semantically bound back to the Round 5B hash contract before merge;
 - `core/sync-simulator.js` provides an in-memory remote object store plus simulated devices with no network or persistent storage;
 - device identity is random per installation simulation and resets on reinstall rather than deriving from account/hardware identity;
 - wrong root key, ciphertext/header tampering, hash mismatch, object-ID collision, concurrent edit conflict and body-free Source tombstone behavior are covered by Round 5C tests;
-- release packaging requires the active remote-object protocol document;
-- current Release, Unit, Adapter/Privacy and Browser certification gates pass with the 5C protocol code present.
+- release packaging requires the active remote-object protocol document.
 
-Explicit limitations:
-
-- no real account/device onboarding;
-- no root-key distribution, wrapping, recovery or rotation implementation;
-- no platform secure-key storage integration;
-- no remote service, account API, network/background sync or remote authorization layer;
-- no device registration/revocation UI;
-- no conflict-resolution UI;
-- no transport padding/traffic-analysis defenses;
-- no new IndexedDB object stores;
-- the local simulator passes root-key material directly between simulated devices and is not a production key-sharing design.
+Round 5D later adds a local key-management/onboarding protocol on top of this encrypted-object boundary. That does not change the 5C conclusion that a production transport/account/security-storage layer is still absent.
 
 Engineering exit criterion: **met at local protocol/simulation level**.
 
-Key-management exit criterion: **not met**.
+Transport exit criterion: **not met**.
+
+Product exit criterion: **not met**.
+
+## Round 5D — Key Management & Trusted Device Onboarding
+
+Status: **local key-management/trusted-device protocol implementation and engineering certification completed 2026-09-13; production secure storage/account/device service not implemented**
+
+Purpose: replace the Round 5C simulator’s direct shared-root-key shortcut with an explicit local protocol for key lifecycle, trusted-device onboarding, revocation/rotation semantics and offline recovery.
+
+Delivered:
+
+- `TRUSTED_DEVICE_PROTOCOL.md` as the active key-management/trusted-device contract;
+- `core/sync-key-management.js` with an in-memory multi-version root-key keyring;
+- explicit root-key rotation while retaining older key versions needed for historical ciphertext;
+- keyVersion-based opening of Round 5C remote objects;
+- random per-install device identity plus ECDSA P-256 long-term device signing credentials;
+- one-time ECDH P-256 onboarding sessions;
+- joining-device signatures over onboarding requests and inviter signatures over encrypted onboarding packages;
+- HKDF-SHA-256 + AES-256-GCM wrapping of the complete retained keyring;
+- 48-bit human comparison code binding session, both long-term credentials and both ephemeral ECDH public keys;
+- explicit fail-closed behavior for request/package tampering and mismatched comparison codes;
+- local `TrustedDeviceRegistry` simulation with trusted/revoked state and latest confirmed key version;
+- revocation semantics that do not pretend to erase keys a device already learned: future secrecy requires a fresh root-key rotation and withholding the new key from revoked devices;
+- independent high-entropy Recovery Kit using random 256-bit recovery material, HKDF-SHA-256 and AES-256-GCM rather than a password/passphrase-derived root key;
+- recovery secret and private/root key material remain outside ordinary PAIA Backup and outside Product/Passport telemetry;
+- no new IndexedDB object store, Manifest permission, network request or backend SDK;
+- dedicated Round 5D regression tests plus release-document guard integration.
+
+Explicit limitations:
+
+- root keys, device private signing keys and trusted-device registry are still memory-only in this protocol simulation;
+- no production Chrome/Web/macOS/iOS/Android secure-key storage design is implemented;
+- no account/device directory or authenticated remote authorization service exists;
+- no network onboarding relay, invitation expiry service or server-side replay protection exists;
+- no automatic background key distribution;
+- revocation does not retroactively remove access to old ciphertext encrypted under keys the revoked device already possessed;
+- no old-object re-encryption/compaction or old-key retirement workflow;
+- no user-facing device/recovery management UI;
+- no live multi-device sync.
+
+Engineering exit criterion: **met at local protocol/simulation level**.
+
+Secure-storage exit criterion: **not met**.
+
+Account/device-service exit criterion: **not met**.
 
 Transport exit criterion: **not met**.
 
@@ -245,9 +280,10 @@ The next legitimate steps are not automatically “connect Supabase/Drive/iCloud
 
 1. verify Round 5A against a real Claude export;
 2. continue Round 4.8 real-use observation;
-3. if multi-device value remains deliberately prioritized, design root-key onboarding/distribution/recovery/rotation and secure per-platform key storage against `REMOTE_OBJECT_PROTOCOL.md`;
-4. only after the key-management model is accepted, design a bounded remote listing/cursor/retention/compaction transport that carries opaque encrypted objects without becoming merge authority;
-5. before any public multi-device release, build explicit conflict-resolution UI and test offline divergence/tombstone/retry/device-reset scenarios from `SYNC_CONTRACT.md`.
+3. if multi-device value remains deliberately prioritized, design and implement secure local persistence for the root-key keyring and device private credential per supported platform;
+4. define the authenticated account/device directory and pairing relay without turning the server into plaintext merge/key authority;
+5. design bounded remote listing/cursor/retention/compaction plus old-key re-encryption/retirement semantics;
+6. before any public multi-device release, build explicit conflict-resolution UI and test offline divergence/tombstone/retry/device-reset/revocation scenarios over the actual transport.
 
 Constraints:
 
@@ -259,6 +295,9 @@ Constraints:
 - Derived caches/projections should be rebuilt locally unless a later explicit design changes their scope.
 - Provider credentials, Product Signals, Revisit cursor and Passport Grants remain device-local by default.
 - A remote backend must not require plaintext entity/device/revision metadata for convenience.
+- Ordinary PAIA Backup must not silently become a root-key/private-device-credential backup.
+- Password/passphrase-derived account login must not silently become the encryption root key.
+- Device revocation must be described honestly: blocking future key versions is different from erasing historical knowledge.
 - Early Passport implementation is not permission for broad autonomous agent access.
 
 ---
@@ -283,7 +322,7 @@ These are not current commitments.
 - knowledge graph as a product goal;
 - Provider proliferation;
 - automatic background AI organization;
-- cloud sync before product value, key management, transport privacy and conflict UI justify it;
+- cloud sync before product value, secure key persistence, account/device authorization, transport privacy and conflict UI justify it;
 - native apps that only duplicate the extension UI;
 - broad Passport/agent integration before repeated Context reuse is observed;
 - embeddings/vector storage before measured lexical-search failures justify them;
