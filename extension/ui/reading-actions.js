@@ -10,7 +10,12 @@ export async function copyReadingText(text){
   const close=document.createElement('button');close.type='button';close.textContent='完成';close.addEventListener('click',()=>dialog.close());dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.append(title,help,body,close);document.body.append(dialog);dialog.showModal();body.focus();body.select();return false;
  }
 }
+function recordReadingCopy(button){
+ const surface=button.closest('.library-block')?'input':button.closest('.evolution-excerpt')?'ai_evolution':button.closest('.library-entry')?'thought':'other';
+ const origin=button.closest('[data-search-origin="true"]')?'search':'reader';
+ try{void chrome.runtime.sendMessage({type:'PAIA_PRODUCT_SIGNAL',signal:{name:'reading_copy',dimensions:{surface,origin}}}).catch(()=>{});}catch{/* Optional local metric never affects copying. */}
+}
 export function readingCopyButton(readText,onError=()=>{}){
  const button=document.createElement('button');button.type='button';button.className='reading-copy';button.textContent='复制';button.setAttribute('aria-label','复制整条正文');
- button.addEventListener('click',async()=>{button.disabled=true;try{const text=await readText(),copied=await copyReadingText(text);if(copied){button.textContent='已复制';setTimeout(()=>{if(button.isConnected)button.textContent='复制';},1200);}}catch{onError('内容尚未读完，未复制旧文本。请重试。','error');}finally{button.disabled=false;}});return button;
+ button.addEventListener('click',async()=>{button.disabled=true;try{const text=await readText(),copied=await copyReadingText(text);if(copied){recordReadingCopy(button);button.textContent='已复制';setTimeout(()=>{if(button.isConnected)button.textContent='复制';},1200);}}catch{onError('内容尚未读完，未复制旧文本。请重试。','error');}finally{button.disabled=false;}});return button;
 }
