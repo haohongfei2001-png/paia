@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {applyProductSignal,contentAgeBucket,emptyProductSignals,productSignalKey,summarizeProductSignals,validateProductSignal} from '../core/product-signals.js';
+import {applyProductSignal,contentAgeBucket,emptyProductSignals,PRODUCT_SIGNAL_ROW,productSignalKey,summarizeProductSignals,validateProductSignal} from '../core/product-signals.js';
+import {backupMetaAllowed} from '../core/backup-format.js';
 
 const day=Date.parse('2026-09-12T12:00:00Z');
 
@@ -11,6 +12,7 @@ test('product signals accept only fixed event names and fixed enum dimensions',(
  assert.equal(validateProductSignal({name:'context_build',dimensions:{outcome:'hit',profile:'default',budget:'standard',topicId:'private'}}),null);
  assert.equal(validateProductSignal({name:'unknown',dimensions:{}}),null);
  assert.equal(productSignalKey(valid),'context_build|budget=standard|outcome=hit|profile=default');
+ assert.equal(backupMetaAllowed(PRODUCT_SIGNAL_ROW),false);
 });
 
 test('product signal rows retain aggregate counters only and prune old date buckets',()=>{
@@ -29,6 +31,16 @@ test('product signal rows retain aggregate counters only and prune old date buck
  assert.equal(summary.all.input.searchCopies,1);
  assert.equal(summary.all.input.old180DayOpens,1);
  assert.equal(summary.all.input.searchCopyPerOpen,1);
+});
+
+test('30-day activity summary excludes sparse activity older than 30 days',()=>{
+ let row=emptyProductSignals(day,true);
+ row=applyProductSignal(row,{name:'thought_topic_open',dimensions:{repeat:'first'}},day-45*86400000);
+ row=applyProductSignal(row,{name:'thought_topic_open',dimensions:{repeat:'repeat'}},day-2*86400000);
+ const summary=summarizeProductSignals(row,day);
+ assert.equal(summary.activeDaysLast30,1);
+ assert.equal(summary.last30Days.thought.topicOpens,1);
+ assert.equal(summary.all.thought.topicOpens,2);
 });
 
 test('summaries expose observable product loops without claiming user intent',()=>{
