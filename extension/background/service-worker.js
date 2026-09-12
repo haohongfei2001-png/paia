@@ -58,6 +58,7 @@ ready.catch(() => {});
 const backupReady=ready.then(()=>backups.recoverSettings());backupReady.catch(()=>{});
 const originalReady=Promise.all([ready,providerReady,backupReady]).then(()=>Promise.all([originalOrganizer.reconcileInterrupted(),aiOrganizer.reconcileInterrupted(),boundedOrganizer.reconcileInterrupted()]));
 originalReady.catch(()=>{});
+const CORE_LOOP_ACTIONS=new Set(['continue','find','return','reuse']);
 
 function isExtensionPage(sender) {
   if (sender.id !== chrome.runtime.id) return false;
@@ -109,7 +110,7 @@ async function handle(request, sender) {
   if(['GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))await providerReady;
   if(['START_BOUNDED_ORGANIZER','STOP_BOUNDED_ORGANIZER','GET_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_STATUS','EDIT_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW','STOP_ORIGINAL_LIBRARY_VIEW','GET_ORIGINAL_ORGANIZER_STATUS'].includes(request.type))await originalReady;
   if(request.type.startsWith('PAIA_BACKUP_'))await backupReady;
-  const needsConsent=request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
+  const needsConsent=request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
   if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   if(request.type==='PAIA_BACKUP_BEGIN_EXPORT')await memory.ready();
   switch (request.type) {
@@ -117,6 +118,10 @@ async function handle(request, sender) {
     case 'PAIA_PRODUCT_SETTINGS': return productSignals.settings(request.settings);
     case 'PAIA_PRODUCT_CLEAR': if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return productSignals.clear();
     case 'PAIA_PRODUCT_SIGNAL': return productSignals.record(request.signal);
+    case 'PAIA_CORE_LOOP_ACTION': {
+      if(Object.keys(request).some(key=>!['type','action'].includes(key))||!CORE_LOOP_ACTIONS.has(request.action))throw new ArchiveError('INVALID_REQUEST');
+      return {accepted:true};
+    }
     case 'PAIA_REVISIT_STATUS': return revisit.status();
     case 'PAIA_REVISIT_MARK': return revisit.mark(request.anchor);
     case 'PAIA_PASSPORT_STATUS': return passport.status();
@@ -263,7 +268,7 @@ const libraryRunner=new LibraryRunner(store);
 // Original Organizer is cost-gated: capture, startup, timers, and rerenders may
 // maintain local state but can never dispatch its remote provider.
 const scheduleFilter=(options)=>{void safety.wake(options);void libraryRunner.wake(options);return runner.wake(options);};
-const localToolRequest=type=>type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_');
+const localToolRequest=type=>type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
 runtime.onStartup?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 runtime.onInstalled?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 // Startup may reconcile an unknown prior outcome, but it never dispatches Original.
