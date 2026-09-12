@@ -36,6 +36,8 @@ A provider that merely stores bytes in normal extension/browser application stor
 
 The capability gate is an **integration safety boundary**, not a sandbox against code that has already compromised the PAIA process. A production provider is trusted code: its capability claims must be backed by an actual reviewed platform adapter and platform-specific tests.
 
+The macOS Native Messaging boundary does **not** claim to resist arbitrary code already executing as the same local user. Chrome enforces the native-host manifest and `allowed_origins` when Chrome launches the host, but the host executable is still a local executable; a separate same-user process can attempt to invoke it directly outside Chrome's mediation. The caller origin passed by Chrome is public routing context, not cryptographic proof of caller identity. Therefore Round 5F/5F.1 claims are limited to isolating secret persistence from ordinary extension/web storage and keeping the device signing private key non-exportable. Defending against arbitrary same-user local malware would require a stronger OS service/access-control design and is outside this adapter's current threat model.
+
 ## 3. macOS Chrome adapter
 
 Round 5F adds the first concrete platform adapter:
