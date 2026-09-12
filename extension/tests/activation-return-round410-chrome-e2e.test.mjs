@@ -78,9 +78,13 @@ test('Round 4.10 current release: activation explains the product and return sta
 
   await p.locator('#core-loop-return').click();
   await eventually(async()=>await p.locator('#revisit-dialog').evaluate(el=>el.open)&&(await p.locator('#revisit-dialog').textContent()).includes('ROUND410_RETURN'),'promoted return action opens the existing local Revisit result');
+  // Merely opening Revisit must not silently mark content as read. The existing
+  // user-controlled contract advances the marker only after “已读到这里”.
+  assert.equal((await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count,1,'opening Revisit alone keeps the new-input marker');
+  await p.locator('#revisit-dialog footer .primary').click();
+  await eventually(async()=>(await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count===0,'explicit Revisit mark advances the new-input marker');
   await p.locator('.revisit-close').click();
-  await eventually(async()=>(await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count===0,'viewing Revisit advances the new-input marker');
-  await eventually(async()=>(await p.locator('#core-loop-home').getAttribute('data-state'))!=='return-new','closing Revisit clears the viewed-new state from home');
+  await eventually(async()=>(await p.locator('#core-loop-home').getAttribute('data-state'))!=='return-new','closing Revisit clears explicitly viewed-new state from home');
   assert.doesNotMatch(await p.locator('#core-loop-title').textContent(),/1 条新输入/);
 
   assert.equal(h.deepSeekRequests.length,0);
