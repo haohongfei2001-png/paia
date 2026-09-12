@@ -28,6 +28,7 @@ ChatGPT Web
 background/service-worker      trusted caller validation + command dispatch
    │
    ├─ archive / thought / search domain services
+   ├─ RevisitService           local return/read projection + lightweight cursor
    ├─ MemoryService            Context selection/reconstruction
    ├─ ContextPackageService    trusted package lifecycle + release gate
    ├─ PassportService          authorization metadata + audit
@@ -91,20 +92,56 @@ Thought entities organize or derive durable material from Inputs while preservin
 
 ### 3.4 Derived projections
 
-AI presentation, evolution reading, search ranking, Context previews and summaries are projections. They may be rebuilt and must not become an untraceable replacement for Source / Working Input truth.
+AI presentation, evolution reading, search ranking, Revisit, Context previews and summaries are projections. They may be rebuilt and must not become an untraceable replacement for Source / Working Input truth.
 
 ## 4. Reader is a presentation layer
 
-`Input Reader` is a product capability, not a persistent content layer. Reader may render Input documents, Thought Topics/Entries, AI-organized projections, longitudinal expression views and Context Package previews.
+`Input Reader` is a product capability, not a persistent content layer. Reader may render Input documents, Thought Topics/Entries, AI-organized projections, longitudinal expression views, Revisit views and Context Package previews.
 
-Round 4.6 adds two Reader projections without adding durable state:
+Reader projections include:
 
 - **Universal Search** — a grouped read model over existing Input search, Thought search and existing AI-organized projection text.
-- **“以前的我”** — a chronological projection over the Input matches returned by that search, ordered using available source-send-time evidence.
+- **“以前的我”** — a chronological projection over matching Input expressions, ordered using available source-send-time evidence.
+- **Revisit / 回访** — an on-demand projection combining newly collected visible Inputs, Thought topics with currently pending supporting material, and a small set of older Inputs selected by explicit local criteria.
 
 The longitudinal view describes **when matching expressions were recorded**. It must not infer that a belief, preference or identity changed merely because expressions differ over time.
 
-Reader-specific state should remain ephemeral or lightweight preference state. Do not introduce a Reader body store that copies canonical Input or Thought text.
+### 4.1 Revisit architecture
+
+Round 4.7 adds `core/revisit.js` as a bounded local Reader service.
+
+It does not create another content feed or recommendation database. Its inputs are existing local facts:
+
+```text
+Input sequence / visibility / Smart Filter state
+Input edit metadata / Thought dependency presence
+existing Thought / AI-presentation pending-delta state
+source-send-time evidence
+```
+
+Its only persistent state is one lightweight `meta` row:
+
+```text
+id = revisit:v1
+version
+lastBlockSequence
+lastSeenAt
+```
+
+This row is a Reader cursor, not personal content, and is deliberately excluded from PAIA Backup. Restoring archive content should not pretend that the user already reviewed the restored device's Revisit surface.
+
+Important boundaries:
+
+- The first Revisit does **not** classify all historical Inputs as new. The user explicitly establishes the initial baseline.
+- Opening Revisit does not advance the cursor. Only explicit **“从现在开始记录 / 已读到这里”** writes the current anchor.
+- New-Input scanning is bounded and only surfaces Inputs still visible under current removal/Smart Filter policy.
+- Older resurfacing requires source-send-time evidence at least 90 days old. It prefers Inputs the user edited or Inputs already used as Thought evidence.
+- The daily rotation is deterministic for the same local day. It is not a randomized engagement sampler and does not call a recommendation model.
+- Revisit is computed only after explicit user action; ordinary Reader startup does not run the old-content scan merely to display a badge.
+- Thought “new material” uses already-computed local pending-delta state; Revisit does not invoke the Organizer or any Provider.
+- Revisit navigation returns to the existing Input/Thought Reader/search paths. It does not own a second navigation or body state machine.
+
+Reader-specific state should remain ephemeral or lightweight preference/cursor state. Do not introduce a Reader/Revisit body store that copies canonical Input or Thought text.
 
 ## 5. Search architecture
 
@@ -229,13 +266,16 @@ Passport governs explicit Context copy/Markdown export only. It does not grant a
 
 ```text
 PAIA_PRODUCT_*    local aggregate product metrics only
+PAIA_REVISIT_*    on-demand Revisit read / explicit Reader-cursor mark
 PAIA_PASSPORT_*   Grant status/create/revoke/audit maintenance
 PAIA_CONTEXT_*    Package binding / future package lifecycle commands
 PAIA_MEMORY_*     Context authorization, build, share and Context content operations
 SEARCH_INPUTS     ordinary Input search; `universal:true` invokes bounded Universal Search coordination
 ```
 
-`PAIA_MEMORY_BUILD` and `PAIA_MEMORY_SHARE` are routed through `ContextPackageService`. Passport/Context local-tool commands do not wake Smart Filter/Library maintenance or broadcast archive-content changes.
+`PAIA_MEMORY_BUILD` and `PAIA_MEMORY_SHARE` are routed through `ContextPackageService`. Passport/Context/Revisit local commands do not wake Smart Filter/Library maintenance or broadcast archive-content changes.
+
+Revisit status/mark requires active PAIA consent because it reads archive/Thought state and advances a Reader cursor. The Revisit cursor itself contains no body text and is not an authorization grant.
 
 ## 9. Durable schema freeze
 
@@ -248,7 +288,7 @@ The post-v0.12 durable content schema is **frozen by default**. A feature may no
 5. How does migration preserve human work?
 6. What product evidence justifies long-term complexity?
 
-Round 3 Product Signals and Round 4/4.5 Passport reuse `meta`; Context Package bodies and Round 4.6 Universal Search/longitudinal Reader state remain ephemeral.
+Round 3 Product Signals, Round 4/4.5 Passport and Round 4.7 Revisit cursor reuse `meta`; Context Package bodies and Universal Search/longitudinal Reader/Revisit bodies remain ephemeral.
 
 ## 10. Privacy and authorization invariants
 
@@ -264,7 +304,8 @@ New work must preserve:
 - Passport cannot expand AI Context Profile scope;
 - revoked, expired, consumed-once, mismatched or unbound Grants cannot release protected Context text;
 - Product Signals cannot make authorization decisions;
-- longitudinal Reader views must distinguish chronology from interpretation;
+- longitudinal/Revisit Reader views must distinguish chronology/resurfacing facts from interpretation;
+- Revisit must not become a hidden background recommendation or notification channel;
 - synthetic/headless tests are not proof of live private-data or Provider behavior.
 
 ## 11. Engineering simplification direction
@@ -280,6 +321,7 @@ core/
   archive/
   thoughts/
   search/
+  reader/
   context/
   permissions/
   providers/
@@ -303,7 +345,11 @@ For each behavioral change:
 - use selected browser journeys for user-visible flows;
 - run package/release guards before release claims.
 
-Round 4.6 adds `universal-search-round46.test.mjs` for bounded coordination, snippet-only results, local AI projection matching, chronology, Search → Context query bounds and the no-persistence/no-vector boundary.
+Current post-release contracts include:
+
+- `context-passport-round45.test.mjs` / `architecture-round45.test.mjs` for trusted Context/Passport boundaries;
+- `universal-search-round46.test.mjs` for bounded coordination, snippets, chronology and Search → Context boundaries;
+- `revisit-round47.test.mjs` for first-run baseline semantics, explainable old-material selection, backup exclusion and fixed-field retention signals.
 
 A release claim still requires executable `npm test`, package audit and relevant Chrome E2E/smoke checks in an available development runtime.
 
