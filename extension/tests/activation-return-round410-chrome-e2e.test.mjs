@@ -28,6 +28,7 @@ test('Round 4.10 current release: activation explains the product and return sta
   const first={id:'round410-first',title:'Round 4.10 First Input',base:1609459200,messages:[{id:'round410-first-message',text:'ROUND410_ACTIVATION 这是我第一次看到 PAIA 的价值。'}]};
   await h.open(first);
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText.includes('ROUND410_ACTIVATION')),'first activation Input is captured');
+  await p.bringToFront();
   await homeState(p,'activation-ready');
   assert.match(await p.locator('#core-loop-title').textContent(),/这里保存的是你给 AI 的输入/);
   assert.match(await p.locator('#core-loop-copy').textContent(),/不是 AI 的回答/);
@@ -44,12 +45,13 @@ test('Round 4.10 current release: activation explains the product and return sta
   await eventually(async()=>!(await rpc(p,'PAIA_REVISIT_STATUS')).firstRun,'Revisit baseline becomes durable');
   await p.locator('.revisit-close').click();
 
-  // A later Input after that baseline is the return trigger. The home should
-  // promote the existing Revisit surface rather than create notifications,
-  // streaks or a separate recommendation engine.
+  // A later Input after that baseline is the return trigger. Switching back to
+  // an already-open PAIA tab must refresh local Revisit state; the user should
+  // not have to reload the page or receive a push notification.
   const second={id:'round410-second',title:'Round 4.10 Return Input',base:1609462800,messages:[{id:'round410-second-message',text:'ROUND410_RETURN 这是我建立回访基线之后新增的一条输入。'}]};
   await h.open(second);
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText.includes('ROUND410_RETURN')),'post-baseline Input is captured');
+  await p.bringToFront();
   await homeState(p,'return-new');
   assert.equal((await p.locator('#core-loop-eyebrow').textContent()).trim(),'欢迎回来');
   assert.match(await p.locator('#core-loop-title').textContent(),/1 条新输入/);
