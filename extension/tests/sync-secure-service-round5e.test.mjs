@@ -63,13 +63,15 @@ test('Round 5E production provider contract requires OS/hardware isolation and n
   assert.equal(isProductionSecurePersistenceProvider({...ready,testOnly:true,protection:'test_memory'}),false);
 });
 
-test('Round 5E local account/device relay carries the real 5D ceremony without becoming key or merge authority',async()=>{
+test('Round 5E trusted invite + local relay carries the real 5D ceremony without becoming key or merge authority',async()=>{
   const service=new LocalAccountDeviceServiceSimulator();
   const inviter=await LocalTrustedDeviceCredential.create(),joining=await LocalTrustedDeviceCredential.create();
   const boot=service.bootstrap({publicCredential:inviter.publicCredential,keyVersion:1});
   const keyring=new LocalSyncKeyring();keyring.rotate();
   const joiningSession=await PendingTrustedDeviceOnboarding.begin(joining);
-  const relay=service.createPairingRelay({accountId:boot.accountId,request:joiningSession.request});
+  const invite=service.createPairingInvite({sessionToken:boot.sessionToken});
+  const relay=service.createPairingRelay({inviteToken:invite.inviteToken,request:joiningSession.request});
+  assert.throws(()=>service.createPairingRelay({inviteToken:invite.inviteToken,request:joiningSession.request}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_INVITE_USED');
 
   const request=service.readPairingRequest({sessionToken:boot.sessionToken,relayId:relay.relayId});
   const approval=await prepareTrustedDeviceOnboarding({request,inviterCredential:inviter});
@@ -89,7 +91,7 @@ test('Round 5E local account/device relay carries the real 5D ceremony without b
   assert.throws(()=>service.consumePairingPackage({relayId:relay.relayId,accessToken:relay.accessToken}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_RELAY_STATE');
 });
 
-test('Round 5E revoked device session loses account/device-service authority',async()=>{
+test('Round 5E revoked device session loses account/device-service authority including invite issuance',async()=>{
   const service=new LocalAccountDeviceServiceSimulator();
   const first=await LocalTrustedDeviceCredential.create(),second=await LocalTrustedDeviceCredential.create();
   const boot=service.bootstrap({publicCredential:first.publicCredential,keyVersion:1});
@@ -97,20 +99,35 @@ test('Round 5E revoked device session loses account/device-service authority',as
   assert.equal(service.listDevices({sessionToken:secondAuth.sessionToken}).length,2);
   service.revokeDevice({sessionToken:boot.sessionToken,credentialId:second.publicCredential.credentialId});
   assert.throws(()=>service.listDevices({sessionToken:secondAuth.sessionToken}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_SESSION_REVOKED');
+  assert.throws(()=>service.createPairingInvite({sessionToken:secondAuth.sessionToken}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_SESSION_REVOKED');
   const rows=service.listDevices({sessionToken:boot.sessionToken});
   assert.equal(rows.find(row=>row.publicCredential.credentialId===second.publicCredential.credentialId).status,'revoked');
 });
 
-test('Round 5E pairing relay is bounded, expiring and rejects plaintext secret or merge-authority fields',async()=>{
+test('Round 5E invite/relay is bounded, expiring and rejects plaintext secret or merge-authority fields',async()=>{
   let now=1_000_000;
   const service=new LocalAccountDeviceServiceSimulator({now:()=>now});
   const credential=await LocalTrustedDeviceCredential.create();
   const boot=service.bootstrap({publicCredential:credential.publicCredential,keyVersion:1});
-  assert.throws(()=>service.createPairingRelay({accountId:boot.accountId,request:{rootKey:'secret'}}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_RELAY_SECRET_FORBIDDEN');
-  assert.throws(()=>service.createPairingRelay({accountId:boot.accountId,request:{entityId:'input:private'}}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_RELAY_SECRET_FORBIDDEN');
-  const relay=service.createPairingRelay({accountId:boot.accountId,request:{protocolVersion:1,sessionId:'session_safe_123'},ttlMs:30_000});
+  const secretInvite=service.createPairingInvite({sessionToken:boot.sessionToken});
+  assert.throws(()=>service.createPairingRelay({inviteToken:secretInvite.inviteToken,request:{rootKey:'secret'}}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_RELAY_SECRET_FORBIDDEN');
+  const mergeInvite=service.createPairingInvite({sessionToken:boot.sessionToken});
+  assert.throws(()=>service.createPairingRelay({inviteToken:mergeInvite.inviteToken,request:{entityId:'input:private'}}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_RELAY_SECRET_FORBIDDEN');
+  const invite=service.createPairingInvite({sessionToken:boot.sessionToken,ttlMs:30_000});
+  const relay=service.createPairingRelay({inviteToken:invite.inviteToken,request:{protocolVersion:1,sessionId:'session_safe_123'}});
   now+=30_000;
   assert.throws(()=>service.readPairingRequest({sessionToken:boot.sessionToken,relayId:relay.relayId}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_RELAY_EXPIRED');
+});
+
+test('Round 5E expired invite cannot open a relay and accountId alone is not a joining capability',async()=>{
+  let now=2_000_000;
+  const service=new LocalAccountDeviceServiceSimulator({now:()=>now});
+  const credential=await LocalTrustedDeviceCredential.create();
+  const boot=service.bootstrap({publicCredential:credential.publicCredential,keyVersion:1});
+  const invite=service.createPairingInvite({sessionToken:boot.sessionToken,ttlMs:30_000});
+  now+=30_000;
+  assert.throws(()=>service.createPairingRelay({inviteToken:invite.inviteToken,request:{protocolVersion:1}}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_INVITE_EXPIRED');
+  assert.throws(()=>service.createPairingRelay({accountId:boot.accountId,request:{protocolVersion:1}}),e=>e instanceof AccountDeviceServiceError&&e.code==='ACCOUNT_INVITE_INVALID');
 });
 
 test('Round 5E service directory accepts only public credentials, never private JWK material',async()=>{
