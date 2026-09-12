@@ -121,7 +121,7 @@ export class SmartFilterStore extends IAStore {
   await super.afterInputEdit(t,before,after,oldDoc,newDoc,request);
   for(let i=0;i<after.length;i++){const a=before[i],b=after[i],edited=a.libraryText!==b.libraryText||a.note!==b.note;if(edited||a.excluded&&!b.excluded||request.revisionReason==='restore')await this.protect(t,b,edited?'user_edit':'revision_restore',edited);}
  }
- async saveRecord(t,r,index,options={}){await super.saveRecord(t,r,index,options);if(!options.newRecord&&r.sourceKey){const old=await t.get('filterIntents','legacy:'+r.id);if(old){await t.put('filterIntents',{...old,id:r.sourceKey});await t.delete('filterIntents',old.id);}}}
+ async saveRecord(t,r,index){await super.saveRecord(t,r,index);if(r.sourceKey){const old=await t.get('filterIntents','legacy:'+r.id);if(old){await t.put('filterIntents',{...old,id:r.sourceKey});await t.delete('filterIntents',old.id);}}}
  async beforeSourcePurge(t,records,blocks){
   await super.beforeSourcePurge(t,records,blocks);
   for(const [id]of blocks)await t.delete('filterInputs',id);for(const r of records)await t.delete('filterIntents',r.sourceKey||'legacy:'+r.id);
@@ -152,7 +152,7 @@ export class SmartFilterStore extends IAStore {
  }));}
  recentFiltered({cursor=null,limit=50,query=''}={}){if(typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(!Array.isArray(cursor)||cursor.length!==3||cursor[0]!==0||!Number.isSafeInteger(cursor[1])||!idOK(cursor[2])))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,async t=>{
   const page=await t.rangePage('filterInputs','byFiltered',prefix([0]),cursor,limit),items=[];
-  for(const {value:row}of page.rows){const b=(await t.get('blocks',row.id))?.value;if(!b||b.excluded||b.branchStatus||!await this.isFiltered(t,b,{mode:'light'}))continue;const doc=(await t.get('documents',b.documentId))?.value,r=b.originalTextReference?(await t.get('records',b.originalTextReference))?.value:null;const text=b.libraryText??r?.originalText??'',title=doc?.userTitle||doc?.originalConversationTitle||'';if(query.trim()&&![text,title].some(v=>(v||'').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())))continue;items.push({id:b.id,documentId:b.documentId,text,title,sourceSentAt:r?.sourceSentAt??null,evaluatedAt:row.evaluatedAt,reason:FILTER_REASONS[row.reasonCode]||FILTER_REASONS.uncertain});}
+  for(const {value:row}of page.rows){const b=(await t.get('blocks',row.id))?.value;if(!b||b.excluded||b.branchStatus||!await this.isFiltered(t,b,{mode:'light'}))continue;const doc=(await t.get('documents',b.documentId))?.value,r=b.originalTextReference?(await t.get('records',b.originalTextReference))?.value:null;const text=b.libraryText??r?.originalText??'',title=doc?.userTitle||doc?.originalConversationTitle||'';if(query.trim()&&![text,title].some(v=>v.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())))continue;items.push({id:b.id,documentId:b.documentId,text,title,sourceSentAt:r?.sourceSentAt??null,evaluatedAt:row.evaluatedAt,reason:FILTER_REASONS[row.reasonCode]||FILTER_REASONS.uncertain});}
   return {items,nextCursor:page.next};
  }));}
  // Internal candidate/context contract only; no Organizer or public Memory endpoint.
