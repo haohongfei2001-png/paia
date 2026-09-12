@@ -14,8 +14,6 @@ import {
 import {LocalRemoteObjectStore,LocalSyncDeviceSimulator,SyncSimulationError} from '../core/sync-simulator.js';
 import {planSyncMerge} from '../core/sync-contract.js';
 
-const hash=ch=>ch.repeat(64);
-
 async function workingEnvelope(device,payload,{entityId='input:round5c',baseHash=null}={}){
   return device.nextEnvelope({version:1,entityType:'working_input',entityId,payloadHash:await canonicalPayloadHash(payload),baseHash,factsHash:null,permanentTombstone:false});
 }
@@ -44,6 +42,19 @@ test('Round 5C AES-GCM fails closed for wrong root key, ciphertext tampering and
   await assert.rejects(()=>openRemoteObject({rootKey,remoteObject:{...remoteObject,objectId:'object_tampered_123456'}}),e=>e instanceof SyncCryptoError&&e.code==='SYNC_DECRYPT_FAILED');
 });
 
+test('Round 5C encrypted payload is semantically bound to the Round 5B hash contract before upload',async()=>{
+  const rootKey=generateRootKeyMaterial(),device=new LocalSyncDeviceSimulator({rootKey});
+  const payload={body:'actual body'};
+  const wrongEnvelope=device.nextEnvelope({version:1,entityType:'working_input',entityId:'input:hash-bound',payloadHash:await canonicalPayloadHash({body:'different body'}),baseHash:null,factsHash:null,permanentTombstone:false});
+  await assert.rejects(()=>sealRemoteObject({rootKey,syncEnvelope:wrongEnvelope,payload}),e=>e instanceof SyncCryptoError&&e.code==='SYNC_PAYLOAD_HASH_MISMATCH');
+
+  const immutable={original:'source body'},facts={sentAt:'2026-01-01T00:00:00Z'};
+  const source=device.nextEnvelope({version:1,entityType:'source_record',entityId:'source:hash-bound',payloadHash:await canonicalPayloadHash(immutable),baseHash:null,factsHash:await canonicalPayloadHash(facts),permanentTombstone:false});
+  const sealed=await sealRemoteObject({rootKey,syncEnvelope:source,payload:{immutable,facts}});
+  assert.deepEqual((await openRemoteObject({rootKey,remoteObject:sealed})).payload,{immutable,facts});
+  await assert.rejects(()=>sealRemoteObject({rootKey,syncEnvelope:source,payload:{immutable,facts:{sentAt:'wrong'}}}),e=>e instanceof SyncCryptoError&&e.code==='SYNC_FACTS_HASH_MISMATCH');
+});
+
 test('Round 5C device identity is random per installation and sequence is local replay metadata only',()=>{
   const first=createDeviceIdentity(),second=createDeviceIdentity();
   assert.notEqual(first.deviceId,second.deviceId);
@@ -64,7 +75,7 @@ test('Round 5C local remote store is opaque/idempotent by objectId and rejects o
   const payload={body:'one'},envelope=await workingEnvelope(device,payload);
   const first=await device.seal({syncEnvelope:envelope,payload,objectId:'object_collision_test_1'});
   assert.equal(store.put(first).status,'stored');
-  assert.equal(store.put(first).status,'duplicate');
+  assert.equal(store.put({...first}).status,'duplicate');
   const otherPayload={body:'two'},otherEnvelope=await workingEnvelope(device,otherPayload);
   const second=await device.seal({syncEnvelope:otherEnvelope,payload:otherPayload,objectId:'object_collision_test_1'});
   assert.throws(()=>store.put(second),e=>e instanceof SyncSimulationError&&e.code==='SYNC_REMOTE_OBJECT_COLLISION');
@@ -94,8 +105,8 @@ test('Round 5C two-device local simulation decrypts shared remote objects but pr
 test('Round 5C body-free permanent tombstone encrypts/decrypts and still dominates a stale Source object',async()=>{
   const rootKey=generateRootKeyMaterial(),store=new LocalRemoteObjectStore();
   const a=new LocalSyncDeviceSimulator({rootKey}),b=new LocalSyncDeviceSimulator({rootKey});
-  const sourcePayload={original:'source body',facts:{sentAt:'2026-01-01T00:00:00Z'}};
-  const source=a.nextEnvelope({version:1,entityType:'source_record',entityId:'source:shared',payloadHash:hash('a'),baseHash:null,factsHash:hash('b'),permanentTombstone:false});
+  const immutable={original:'source body'},facts={sentAt:'2026-01-01T00:00:00Z'},sourcePayload={immutable,facts};
+  const source=a.nextEnvelope({version:1,entityType:'source_record',entityId:'source:shared',payloadHash:await canonicalPayloadHash(immutable),baseHash:null,factsHash:await canonicalPayloadHash(facts),permanentTombstone:false});
   const tombstone=b.nextEnvelope({version:1,entityType:'source_record',entityId:'source:shared',payloadHash:null,baseHash:null,factsHash:null,permanentTombstone:true});
   await a.upload(store,{syncEnvelope:source,payload:sourcePayload});
   await b.upload(store,{syncEnvelope:tombstone,payload:null});
