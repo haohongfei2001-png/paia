@@ -70,6 +70,12 @@ export async function sha256Hex(value){
   return Array.from(digest,byte=>byte.toString(16).padStart(2,'0')).join('');
 }
 
+export async function canonicalPayloadHash(payload){
+  const hash=await sha256Hex(canonicalJson(payload));
+  if(!HASH_RE.test(hash))fail('SYNC_HASH_INVALID');
+  return hash;
+}
+
 export function generateRootKeyMaterial(){
   return randomBytes(32);
 }
@@ -99,6 +105,24 @@ export function nextDeviceOperation(state){
     state:Object.freeze({version:1,deviceId:state.deviceId,sequence}),
     operation:Object.freeze({deviceId:state.deviceId,deviceSequence:sequence,operationId:randomOpaque('operation_',18)}),
   });
+}
+
+async function assertPayloadBinding(envelope,payload){
+  if(envelope.permanentTombstone){
+    if(payload!==null)fail('SYNC_TOMBSTONE_PAYLOAD_FORBIDDEN');
+    return;
+  }
+  if(envelope.entityType==='source_record'){
+    if(!plainObject(payload)||Object.keys(payload).some(key=>!['immutable','facts'].includes(key))||!Object.hasOwn(payload,'immutable')||!Object.hasOwn(payload,'facts'))fail('SYNC_SOURCE_PAYLOAD_INVALID');
+    if(await canonicalPayloadHash(payload.immutable)!==envelope.payloadHash)fail('SYNC_PAYLOAD_HASH_MISMATCH');
+    if(envelope.factsHash===null){
+      if(payload.facts!==null)fail('SYNC_FACTS_HASH_MISMATCH');
+    }else{
+      if(payload.facts===null||await canonicalPayloadHash(payload.facts)!==envelope.factsHash)fail('SYNC_FACTS_HASH_MISMATCH');
+    }
+    return;
+  }
+  if(await canonicalPayloadHash(payload)!==envelope.payloadHash)fail('SYNC_PAYLOAD_HASH_MISMATCH');
 }
 
 function publicHeader({objectId,keyVersion,salt,nonce}){
@@ -142,6 +166,7 @@ export async function sealRemoteObject({rootKey,keyVersion=1,syncEnvelope,payloa
     if(payload!==null&&payload!==undefined)fail('SYNC_TOMBSTONE_PAYLOAD_FORBIDDEN');
     payload=null;
   }else if(payload===undefined)fail('SYNC_PAYLOAD_REQUIRED');
+  await assertPayloadBinding(envelope,payload);
   const bundle={bundleVersion:1,syncEnvelope:envelope,payload};
   const plaintext=encoder.encode(canonicalJson(bundle));
   if(plaintext.length>MAX_PLAINTEXT_BYTES)fail('SYNC_PAYLOAD_TOO_LARGE');
@@ -169,12 +194,6 @@ export async function openRemoteObject({rootKey,remoteObject}={}){
   try{parsed=JSON.parse(decoder.decode(plaintext));}catch{fail('SYNC_DECRYPT_PAYLOAD_INVALID');}
   if(!plainObject(parsed)||parsed.bundleVersion!==1||Object.keys(parsed).some(key=>!['bundleVersion','syncEnvelope','payload'].includes(key)))fail('SYNC_DECRYPT_PAYLOAD_INVALID');
   const envelope=validateSyncEnvelope(parsed.syncEnvelope);
-  if(envelope.permanentTombstone&&parsed.payload!==null)fail('SYNC_DECRYPT_PAYLOAD_INVALID');
+  await assertPayloadBinding(envelope,parsed.payload);
   return Object.freeze({bundleVersion:1,syncEnvelope:envelope,payload:parsed.payload});
-}
-
-export async function canonicalPayloadHash(payload){
-  const hash=await sha256Hex(canonicalJson(payload));
-  if(!HASH_RE.test(hash))fail('SYNC_HASH_INVALID');
-  return hash;
 }
