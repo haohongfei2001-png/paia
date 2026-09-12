@@ -40,7 +40,7 @@ test('Round 5B sync scope excludes derived/device-local state and keeps canonica
   assert.equal(Object.isFrozen(SYNC_ENTITY_POLICY),true);
 });
 
-test('Round 5B source merge is enrichment-only, immutable-body mismatch conflicts, and permanent tombstone wins',()=>{
+test('Round 5B source merge is enrichment-only, immutable-body mismatch conflicts, and body-free permanent tombstone wins',()=>{
   const local=base({entityType:'source_record',entityId:'source:stable123',payloadHash:hash('a'),factsHash:hash('b'),baseHash:null});
   const remote=base({entityType:'source_record',entityId:'source:stable123',payloadHash:hash('a'),factsHash:hash('c'),baseHash:null,deviceId:'device_B1',deviceSequence:2,operationId:'operation_B1'});
   assert.deepEqual(planSyncMerge({local,remote}),{
@@ -51,8 +51,10 @@ test('Round 5B source merge is enrichment-only, immutable-body mismatch conflict
   assert.equal(conflict.action,'conflict');
   assert.equal(conflict.reason,'immutable_source_mismatch');
   assert.equal(conflict.resolution,'user_required');
-  const tombstone={...remote,permanentTombstone:true};
+  const tombstone={...remote,payloadHash:null,factsHash:null,permanentTombstone:true};
   assert.equal(planSyncMerge({local,remote:tombstone}).action,'permanent_tombstone_wins');
+  assert.equal(validateSyncEnvelope(tombstone).payloadHash,null);
+  assert.throws(()=>validateSyncEnvelope({...tombstone,payloadHash:hash('a')}),e=>e instanceof SyncContractError&&e.code==='SYNC_TOMBSTONE_BODY_FORBIDDEN');
 });
 
 test('Round 5B human work only fast-forwards with ancestry proof and never latest-write-wins concurrent edits',()=>{
@@ -78,10 +80,17 @@ test('Round 5B unproven ancestry conflicts and identical payloads dedupe without
   assert.equal(planSyncMerge({local,remote:{...remote,payloadHash:hash('b')}}).action,'equivalent');
 });
 
+test('Round 5B operation idempotence requires the exact same envelope and rejects operation-id collisions',()=>{
+  const local=base();
+  assert.equal(planSyncMerge({local,remote:{...local}}).action,'duplicate_operation');
+  assert.throws(()=>planSyncMerge({local,remote:{...local,payloadHash:hash('b')}}),e=>e instanceof SyncContractError&&e.code==='SYNC_OPERATION_COLLISION');
+  assert.throws(()=>planSyncMerge({local,remote:{...local,deviceSequence:2}}),e=>e instanceof SyncContractError&&e.code==='SYNC_OPERATION_COLLISION');
+});
+
 test('Round 5B envelopes are metadata-only and reject raw private text or tombstones outside immutable Source',()=>{
   assert.throws(()=>validateSyncEnvelope({...base(),text:'private'}),e=>e instanceof SyncContractError&&e.code==='SYNC_PLAINTEXT_FORBIDDEN');
   assert.throws(()=>validateSyncEnvelope({...base(),title:'private'}),e=>e instanceof SyncContractError&&e.code==='SYNC_PLAINTEXT_FORBIDDEN');
-  assert.throws(()=>validateSyncEnvelope({...base(),permanentTombstone:true}),e=>e instanceof SyncContractError&&e.code==='SYNC_TOMBSTONE_SCOPE');
+  assert.throws(()=>validateSyncEnvelope({...base(),payloadHash:null,permanentTombstone:true}),e=>e instanceof SyncContractError&&e.code==='SYNC_TOMBSTONE_SCOPE');
   assert.throws(()=>validateSyncEnvelope({...base({entityType:'source_record',entityId:'source:stable123'}),baseHash:hash('a')}),e=>e instanceof SyncContractError&&e.code==='SYNC_SOURCE_MUTATION');
 });
 
