@@ -13,7 +13,11 @@ import {
   SecurePersistentSyncKeyring,
   SecurePersistentTrustedDeviceCredential,
 } from '../core/secure-sync-identity.js';
-import {TrustedDeviceRegistry} from '../core/sync-key-management.js';
+import {
+  PendingTrustedDeviceOnboarding,
+  TrustedDeviceRegistry,
+  prepareTrustedDeviceOnboarding,
+} from '../core/sync-key-management.js';
 
 const enc=new TextEncoder();
 const b64=bytes=>Buffer.from(bytes).toString('base64url');
@@ -92,6 +96,33 @@ test('Round 5F Secure Enclave credential can reopen without exporting the privat
   const canonical='{"counter":1,"purpose":"round5f"}';
   assert.equal(await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},publicKey,unb64(signed),enc.encode(canonical)),true);
   await reopened.remove();
+});
+
+test('Round 5F secure persistent identities complete the 5D onboarding ceremony and persist the received keyring',async()=>{
+  const fake=createFakeNativeHost(),accountId='account_pairing_round5f';
+  const inviterGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
+  const joinerGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
+  const inviterCredential=await SecurePersistentTrustedDeviceCredential.create({gate:inviterGate,accountId});
+  const joinerCredential=await SecurePersistentTrustedDeviceCredential.create({gate:joinerGate,accountId});
+  const inviterKeyring=await SecurePersistentSyncKeyring.create({gate:inviterGate,accountId,deviceId:inviterCredential.deviceIdentity.deviceId});
+  await inviterKeyring.rotate();
+  const expected1=inviterKeyring.rootKeyFor(1),expected2=inviterKeyring.rootKeyFor(2);
+
+  const joining=await PendingTrustedDeviceOnboarding.begin(joinerCredential);
+  const approval=await prepareTrustedDeviceOnboarding({request:joining.request,inviterCredential});
+  const inspected=await joining.inspectChallenge(approval.challenge);
+  assert.equal(inspected.pairingCode,approval.pairingCode);
+  const released=await approval.release({keyring:inviterKeyring,confirmedPairingCode:inspected.pairingCode});
+  const accepted=await joining.accept({onboardingPackage:released.onboardingPackage,confirmedPairingCode:inspected.pairingCode});
+  const imported=await SecurePersistentSyncKeyring.importTransferred({gate:joinerGate,accountId,deviceId:joinerCredential.deviceIdentity.deviceId,keyring:accepted.keyring});
+  assert.deepEqual(imported.versions(),[1,2]);assert.equal(imported.currentVersion,2);
+  assert.deepEqual([...imported.rootKeyFor(1)],[...expected1]);assert.deepEqual([...imported.rootKeyFor(2)],[...expected2]);
+
+  const manifest=imported.exportManifest(),reconnectedGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
+  const reopened=await SecurePersistentSyncKeyring.open({gate:reconnectedGate,accountId,deviceId:joinerCredential.deviceIdentity.deviceId,manifest});
+  assert.deepEqual([...reopened.rootKeyFor(1)],[...expected1]);assert.deepEqual([...reopened.rootKeyFor(2)],[...expected2]);
+
+  await inviterKeyring.removeAll();await reopened.removeAll();await inviterCredential.remove();await joinerCredential.remove();
 });
 
 test('Round 5F production capability claims require the non-exportable signer interface',()=>{
