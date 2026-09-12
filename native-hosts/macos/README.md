@@ -1,6 +1,6 @@
 # PAIA macOS Secure Store Host
 
-Status: **Round 5F.1 distribution hardening implemented; physical Secure Enclave validation on a real user Mac is still required before public production-readiness may be claimed.**
+Status: **Round 5F.1 distribution hardening implemented; physical Secure Enclave validation on a real user Mac and execution of the real Apple signing/notarization pipeline are still required before public production-readiness may be claimed.**
 
 This directory contains PAIA's macOS Native Messaging host for production-grade sync secret persistence.
 
@@ -16,6 +16,8 @@ Chrome extension
 ```
 
 The host name and extension origin are pinned. Wildcard `allowed_origins` are not permitted. The extension must never fall back to IndexedDB, `chrome.storage`, local files or an exportable software signing key when this host is unavailable.
+
+`allowed_origins` is a **Chrome launch boundary**, not cryptographic authentication of every local process. The native host is still a local executable, so this design does not claim to resist arbitrary malicious code already running as the same macOS user. Chrome-provided origin arguments are public routing context and must not be treated as an unforgeable credential outside Chrome's own mediation. Round 5F.1 therefore claims separation from ordinary extension/web storage and non-exportability of the device signing key, not a sandbox against same-user local malware.
 
 Chrome documents the system-wide Google Chrome manifest path on macOS as:
 
@@ -63,6 +65,14 @@ Developer uninstall:
 ```sh
 zsh native-hosts/macos/uninstall.sh --user
 ```
+
+## Production extension identity
+
+A production native-host package must be bound to PAIA's **final, stable Chrome extension ID**. A local unpacked-extension ID is not a production identity.
+
+Do not produce or notarize a public package until the extension distribution channel has fixed that ID (for example, the final Chrome Web Store identity or another deliberately controlled stable extension identity). Rebuilding a native-host package for a temporary ID would create a validly signed package that the eventual production extension cannot use.
+
+The package builder therefore always requires the extension ID as an explicit argument and writes exactly one `allowed_origins` entry.
 
 ## Production package build
 
@@ -149,10 +159,10 @@ The filesystem uninstaller deliberately does **not** enumerate or blindly erase 
 A public macOS secure-store release is blocked unless all of these are true:
 
 - repository certification is green;
+- the production Chrome extension ID has been fixed and is the exact manifest `allowed_origins` value;
 - production package uses Developer ID Application + Developer ID Installer signatures;
 - notarization and Gatekeeper checks pass;
 - at least one physical supported Mac passes `verify-physical.mjs --require-enclave`;
-- the production Chrome extension ID is the exact manifest `allowed_origins` value;
 - no live sync code silently bypasses the secure-store readiness gate.
 
 Round 5F.1 does not add account login, a device-directory backend, a pairing relay, encrypted remote transport or live multi-device sync.
