@@ -145,6 +145,7 @@ export function installCoreLoop(){
  for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(refreshHome).observe(nav,{attributes:true,attributeFilter:['aria-current']});
  if(dialog)new MutationObserver(tuneExistingTools).observe(dialog,{subtree:true,childList:true});
  $('search')?.addEventListener('input',refreshHome);
+ chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED'){lastRevisitKey='';refreshHome();}});
  window.addEventListener('focus',refreshHome);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHome();});
  decorateReader();refreshHome();
