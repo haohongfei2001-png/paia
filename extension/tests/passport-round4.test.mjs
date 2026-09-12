@@ -10,7 +10,7 @@ const now=Date.parse('2026-09-12T12:00:00Z');
 const stored=row=>{const {state,...value}=row;return value;};
 
 test('Context Package is an ephemeral metadata envelope and never duplicates body storage',()=>{
- const pkg=createContextPackage({packageId:'pkg-1',previewId:'preview-1',profileId:'default',consumer:'chatgpt',purpose:'research',budget:'standard',generation:4,itemCount:3,characters:800,tokens:600,retrievalConfidence:'medium',partial:false,createdAt:now});
+ const pkg=createContextPackage({packageId:'pkg-1',previewId:'preview-1',grantId:'grant-1',profileId:'default',consumer:'chatgpt',purpose:'research',budget:'standard',generation:4,itemCount:3,characters:800,tokens:600,retrievalConfidence:'medium',partial:false,createdAt:now});
  assert.equal(pkg.type,'paia.context-package');
  assert.equal(pkg.persistedBody,false);
  assert.equal(Object.hasOwn(pkg,'text'),false);
