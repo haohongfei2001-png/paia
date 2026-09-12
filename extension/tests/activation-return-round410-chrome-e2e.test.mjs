@@ -65,8 +65,24 @@ test('Round 4.10 current release: activation explains the product and return sta
   assert.equal(await p.locator('#core-loop-return').evaluate(el=>el.classList.contains('core-loop-card-primary')),true,'return/revisit becomes primary when real new material exists');
   assert.equal(await p.locator('#core-loop-continue').evaluate(el=>el.classList.contains('core-loop-card-primary')),false);
 
+  // A focus refresh must not briefly regress an established return state back
+  // through activation-ready while the async Revisit read catches up.
+  const focusTransitions=await p.evaluate(()=>new Promise(resolve=>{
+   const home=document.getElementById('core-loop-home'),seen=[];
+   const observer=new MutationObserver(()=>seen.push(home?.dataset.state||''));
+   observer.observe(home,{attributes:true,attributeFilter:['data-state']});
+   window.dispatchEvent(new Event('focus'));
+   setTimeout(()=>{observer.disconnect();resolve(seen);},150);
+  }));
+  assert.equal(focusTransitions.includes('activation-ready'),false,JSON.stringify(focusTransitions));
+
   await p.locator('#core-loop-return').click();
   await eventually(async()=>await p.locator('#revisit-dialog').evaluate(el=>el.open)&&(await p.locator('#revisit-dialog').textContent()).includes('ROUND410_RETURN'),'promoted return action opens the existing local Revisit result');
+  await p.locator('.revisit-close').click();
+  await eventually(async()=>(await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count===0,'viewing Revisit advances the new-input marker');
+  await eventually(async()=>(await p.locator('#core-loop-home').getAttribute('data-state'))!=='return-new','closing Revisit clears the viewed-new state from home');
+  assert.doesNotMatch(await p.locator('#core-loop-title').textContent(),/1 条新输入/);
+
   assert.equal(h.deepSeekRequests.length,0);
   assert.equal(h.extensionNetworkRequests,0);
   assert.equal(h.externalRequests,0);
