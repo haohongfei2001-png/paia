@@ -12,7 +12,7 @@ async function collect(read,query,limit,maxPages=12){
   const page=await read({query,cursor,ranked:true,limit:Math.min(100,Math.max(1,limit-items.length))});pages++;indexing||=page.indexing===true;
   items.push(...(page.items||[]));cursor=page.nextCursor??null;
  }while(cursor&&items.length<limit&&pages<maxPages);
- return {items:items.slice(0,limit),complete:cursor===null,indexing,nextCursor:cursor,pages};
+ return {items:items.slice(0,limit),complete:cursor===null&&!indexing,indexing,nextCursor:cursor,pages};
 }
 
 export function aiProjectionMatches(topics,query,limit=8){
@@ -42,7 +42,7 @@ export function inputTimeline(items){
 
 export function contextReuseQuery(item,query=''){
  const focus=String(item?.snippet||item?.title||item?.topicName||'').trim().slice(0,620),current=String(query||'').trim().slice(0,300);
- return [`重点参考我以前的这段表达：${focus}`,current?`我现在想继续了解：${current}`:''].filter(Boolean).join('\n\n').slice(0,1000);
+ return [focus?`重点参考我以前的这段表达：${focus}`:'',current?`我现在想继续了解：${current}`:''].filter(Boolean).join('\n\n').slice(0,1000);
 }
 
 export class UniversalSearchService {
