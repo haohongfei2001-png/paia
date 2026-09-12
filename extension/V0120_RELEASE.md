@@ -52,7 +52,7 @@ The real daily database structural gate was then executed before and after deplo
 
 Because the v0.12.0 branch is a version/documentation closure rather than another product-runtime change, the formal release gate proves identity with the already validated Round 8 runtime instead of making hosted-runner timing determine the release.
 
-GitHub Actions run `34666128898` completed successfully and verified that:
+GitHub Actions run `34666169880` at tested release-doc head `0293a203773444964ed222fa4248af0c6a53fd7a` completed successfully and verified that:
 
 - `adapter/`, `content/`, `background/`, `core/`, `ui/` and `icons/` are byte-identical to verified `main` commit `5e8d743c16211506498f64bce5050383470e86ce`;
 - `manifest.json` differs from that verified runtime only in `version` and `version_name`;
