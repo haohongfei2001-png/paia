@@ -1,6 +1,6 @@
 # PAIA Secure Key Persistence Contract
 
-Status: **Round 5F source of truth — macOS Chrome native-host adapter implemented; CI compilation/Keychain certification required; real Secure Enclave device validation remains required before claiming public production readiness**
+Status: **Round 5F source of truth — macOS Chrome native-host adapter implemented and automated engineering certification established; real Secure Enclave device validation remains required before claiming public production readiness**
 
 Version: **2**
 
@@ -42,6 +42,7 @@ Round 5F adds the first concrete platform adapter:
 
 ```text
 Chrome Extension
+  -> explicit optional nativeMessaging grant
   -> chrome.runtime.sendNativeMessage("com.paia.secure_store")
   -> macOS native messaging host
   -> Keychain for root-key material
@@ -51,6 +52,8 @@ Chrome Extension
 The packaged JavaScript adapter is `core/macos-native-secure-store.js`.
 
 The native host source is `native-hosts/macos/paia-secure-store.swift` and is distributed separately from the Chrome extension package. Chrome's native-host manifest restricts access to an explicit extension ID.
+
+The extension keeps its ambient required permissions at `storage` only. `nativeMessaging` is declared as the sole optional permission. PAIA must not request it during normal archive/Reader/Search/Thought operation or during a passive readiness probe. A future user-facing secure-sync flow must explain the need and invoke the explicit permission-request helper from a user gesture before the native host can be contacted.
 
 Root-key slots use macOS Keychain generic-password items with `ThisDeviceOnly` accessibility. Replacement uses `SecItemUpdate`; deletion uses `SecItemDelete`.
 
@@ -62,17 +65,21 @@ If Secure Enclave is unavailable, the provider is **not** production-ready and d
 
 `currentExtensionSecurePersistenceReadiness()` remains a conservative static baseline and therefore returns unavailable until a platform provider is actually probed.
 
-On macOS, `probeCurrentExtensionSecurePersistenceReadiness()` performs the real native-host handshake.
+On macOS, `probeCurrentExtensionSecurePersistenceReadiness()` is passive with respect to privileges:
 
-It returns `available=true` only when:
+- if `nativeMessaging` has not already been granted, it returns `SECURE_NATIVE_MESSAGING_PERMISSION_REQUIRED` and makes **zero** native-host calls;
+- it never requests the optional permission itself;
+- after an explicit grant, it performs the real native-host handshake.
+
+After permission is already granted, the probe returns `available=true` only when:
 
 - the reviewed native host is installed and reachable;
 - the protocol version and provider identity are valid;
 - Keychain-backed secret operations are exposed;
-- Secure Enclave is available;
+- persistent Secure Enclave key creation/lookup/delete capability is available;
 - the provider advertises every capability required by the production gate.
 
-Missing native host, forbidden host access, protocol mismatch or missing Secure Enclave all remain fail-closed states.
+Missing optional permission, missing native host, forbidden host access, protocol mismatch or missing persistent Secure Enclave capability all remain fail-closed states.
 
 ## 5. Test-only provider
 
@@ -111,6 +118,8 @@ For root-key material, Round 5F stores each retained key version in its own secu
 - `SecurePersistentSyncKeyring` creates, rotates, reopens and removes versioned root keys through secure slots;
 - `SecurePersistentTrustedDeviceCredential` creates or reopens a hardware-backed signer while persisting only a non-secret manifest in ordinary application state;
 - reopening verifies that the hardware-backed public key still matches the persisted public credential;
+- the existing Round 5D onboarding ceremony accepts these validated signing/keyring capabilities without weakening its pairing-code or human-confirmation rules;
+- an approved transferred keyring can be imported into the joining device's own secure slots only when those slots are empty; partial writes roll back;
 - private signing material never enters ordinary application storage or PAIA Backup.
 
 These primitives do not enable live sync by themselves.
@@ -145,18 +154,23 @@ If production secure storage is unavailable:
 - PAIA must not silently downgrade to ordinary app storage;
 - live background sync requiring durable root keys must remain disabled.
 
+A denied optional native-messaging permission must be treated as the user's choice, not as an error to retry automatically.
+
 A Secure Enclave failure must not silently create an exportable software ECDSA private key.
 
 ## 11. Certification and remaining work
 
-Round 5F certification requires:
+Round 5F automated engineering certification requires:
 
 - existing PAIA unit/privacy/browser/release gates remain green;
 - JavaScript adapter restart/reopen tests pass against a simulated persistent native host;
+- optional `nativeMessaging` remains unrequested during passive probe and normal product operation;
 - the Swift host compiles on macOS CI;
 - macOS CI exercises actual Keychain root-key write/read/replace/delete;
-- hosts without Secure Enclave prove the fail-closed path;
-- at least one physical Secure Enclave Mac must later verify create -> sign -> process restart -> reopen -> sign -> delete before public production-readiness is claimed.
+- hosts without persistent Secure Enclave capability prove the fail-closed path;
+- the Round 5D onboarding ceremony can use persistent credentials and persist the transferred keyring after a simulated restart.
+
+Before public production-readiness is claimed, at least one physical supported Secure Enclave Mac must additionally verify create -> sign -> process restart -> reopen -> sign -> delete with the installed native host.
 
 Still not implemented by Round 5F:
 
