@@ -200,11 +200,11 @@ Product exit criterion: **not met**.
 
 ## Round 5C — Encryption / Device Identity / Remote Object Protocol Simulation
 
-Status: **implementation in progress 2026-09-13; real remote transport and production key management not implemented**
+Status: **local protocol/simulation implementation and engineering certification completed 2026-09-13; real remote transport and production key management not implemented**
 
 Purpose: prove that the Round 5B merge contract can travel through a backend-neutral encrypted-object layer without exposing PAIA entity/revision/device identity to the remote store.
 
-Current implementation scope:
+Delivered:
 
 - `REMOTE_OBJECT_PROTOCOL.md` defines the active encrypted remote-object boundary;
 - `core/sync-crypto.js` uses standard Web Crypto primitives only: random 256-bit root key material, HKDF-SHA-256 per-object key derivation and AES-256-GCM authenticated encryption;
@@ -212,10 +212,12 @@ Current implementation scope:
 - backend-visible header is limited to protocol/object/key versions, cipher/KDF labels, salt, nonce and ciphertext;
 - entity ID/type, device identity, operation ID, revision ancestry/hashes, tombstone target and private content remain inside ciphertext;
 - public remote header is authenticated as AES-GCM AAD, so header mutation fails closed;
+- decrypted private payload is cryptographically authenticated and then semantically bound back to the Round 5B hash contract before merge: human work must match `payloadHash`; Source `{immutable,facts}` separately binds `payloadHash` and `factsHash`;
 - `core/sync-simulator.js` provides an in-memory remote object store plus simulated devices with no network or persistent storage;
 - device identity is random per installation simulation and resets on reinstall rather than deriving from account/hardware identity;
-- wrong root key, ciphertext/header tampering, object-ID collision, concurrent edit conflict and body-free Source tombstone behavior are covered by Round 5C tests;
-- release packaging requires the active remote-object protocol document.
+- wrong root key, ciphertext/header tampering, hash mismatch, object-ID collision, concurrent edit conflict and body-free Source tombstone behavior are covered by Round 5C tests;
+- release packaging requires the active remote-object protocol document;
+- current Release, Unit, Adapter/Privacy and Browser certification gates pass with the 5C protocol code present.
 
 Explicit limitations:
 
@@ -229,7 +231,7 @@ Explicit limitations:
 - no new IndexedDB object stores;
 - the local simulator passes root-key material directly between simulated devices and is not a production key-sharing design.
 
-Engineering exit criterion: **pending final Certification**.
+Engineering exit criterion: **met at local protocol/simulation level**.
 
 Key-management exit criterion: **not met**.
 
