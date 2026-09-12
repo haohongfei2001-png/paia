@@ -13,10 +13,12 @@ const invalid=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const idOK=value=>typeof value==='string'&&value.length>0&&value.length<=200;
 const enumOK=(value,allowed)=>typeof value==='string'&&allowed.includes(value);
 
-export function createContextPackage({packageId,previewId,profileId='default',consumer='manual',purpose='current_task',budget='standard',generation=0,itemCount=0,characters=0,tokens=0,retrievalConfidence='low',partial=false,createdAt=Date.now()}={}){
- if(!idOK(packageId)||!idOK(previewId)||!idOK(profileId)||!enumOK(consumer,CONTEXT_CONSUMERS)||!enumOK(purpose,CONTEXT_PURPOSES)||!BUDGETS.has(budget)||!Number.isSafeInteger(generation)||generation<0||!Number.isSafeInteger(itemCount)||itemCount<0||!Number.isSafeInteger(characters)||characters<0||!Number.isSafeInteger(tokens)||tokens<0||!CONFIDENCE.has(retrievalConfidence)||typeof partial!=='boolean'||!Number.isFinite(createdAt))invalid();
+export function createContextPackage({packageId,previewId,grantId=null,profileId='default',consumer='manual',purpose='current_task',budget='standard',generation=0,itemCount=0,characters=0,tokens=0,retrievalConfidence='low',partial=false,createdAt=Date.now()}={}){
+ if(!idOK(packageId)||!idOK(previewId)||grantId!==null&&!idOK(grantId)||!idOK(profileId)||!enumOK(consumer,CONTEXT_CONSUMERS)||!enumOK(purpose,CONTEXT_PURPOSES)||!BUDGETS.has(budget)||!Number.isSafeInteger(generation)||generation<0||!Number.isSafeInteger(itemCount)||itemCount<0||!Number.isSafeInteger(characters)||characters<0||!Number.isSafeInteger(tokens)||tokens<0||!CONFIDENCE.has(retrievalConfidence)||typeof partial!=='boolean'||!Number.isFinite(createdAt))invalid();
+ if(grantId===null&&(consumer!=='manual'||purpose!=='current_task'))invalid();
+ if(grantId!==null&&(consumer==='manual'||purpose==='current_task'))invalid();
  const created=new Date(createdAt).toISOString();
- return Object.freeze({type:CONTEXT_PACKAGE_TYPE,version:CONTEXT_PACKAGE_VERSION,packageId,previewId,resourceScope:CONTEXT_PACKAGE_RESOURCE_SCOPE,profileId,consumer,purpose,permission:'context_export',budget,createdAt:created,expiresAt:new Date(createdAt+CONTEXT_PACKAGE_TTL_MS).toISOString(),generation,itemCount,characters,tokens,retrievalConfidence,partial,localOnly:true,persistedBody:false});
+ return Object.freeze({type:CONTEXT_PACKAGE_TYPE,version:CONTEXT_PACKAGE_VERSION,packageId,previewId,grantId,resourceScope:CONTEXT_PACKAGE_RESOURCE_SCOPE,profileId,consumer,purpose,permission:'context_export',budget,createdAt:created,expiresAt:new Date(createdAt+CONTEXT_PACKAGE_TTL_MS).toISOString(),generation,itemCount,characters,tokens,retrievalConfidence,partial,localOnly:true,persistedBody:false});
 }
 
 export function contextPackageExpired(pkg,now=Date.now()){
