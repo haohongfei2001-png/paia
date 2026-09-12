@@ -24,13 +24,27 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   // not a duplicate dashboard document view.
   await recent.click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND49_CORE_LOOP'),'continue-reading opens canonical Input Reader');
-  const reuse=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.core-loop-reuse');
+  let reuse=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.core-loop-reuse');
   await eventually(async()=>await reuse.count()===1,'Reader exposes one bounded reuse action for the Input');
 
-  // Read -> reuse: leaving Reader still goes through the existing save lifecycle,
-  // then opens the local Context builder with a bounded query. Nothing is sent.
+  // The loop must not silently opt unorganized Inputs into AI Context merely to
+  // make Reader reuse convenient. Default click explains the boundary and keeps
+  // the global setting unchanged.
+  let memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false);
   await reuse.click();
-  await eventually(async()=>await p.locator('#memory-builder').isVisible(),'Reader reuse reaches the existing local Context builder');
+  await eventually(async()=>await p.locator('#memory-panel').isVisible()&&(await p.locator('#memory-status').textContent()).includes('还没有被允许进入 AI Context'),'Reader reuse explains the explicit authorization boundary');
+  memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false,'Reader reuse must not auto-enable unorganized Input eligibility');
+
+  // Once the user has explicitly enabled unorganized Input eligibility, the same
+  // Reader action reaches the existing local Context builder with a bounded query.
+  await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{includeUnorganizedInputs:true}});
+  memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,true);
+  await p.locator('#primary-nav [data-view="library"]').click();
+  await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'return to Archive home after explicit Context setting');
+  await p.locator('#core-loop-continue').click();
+  await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND49_CORE_LOOP'),'Reader reopens after explicit Context setting');
+  reuse=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.core-loop-reuse');await reuse.click();
+  await eventually(async()=>await p.locator('#memory-builder').isVisible(),'Reader reuse reaches the existing local Context builder after explicit eligibility');
   const prepared=await p.locator('#memory-query').inputValue();
   assert.match(prepared,/重点参考我以前的这段表达/);assert.match(prepared,/ROUND49_CORE_LOOP/);assert.match(prepared,/继续围绕这段表达/);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);
