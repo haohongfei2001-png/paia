@@ -136,6 +136,15 @@ jobs:
           zsh -n native-hosts/macos/build-release.sh
           zsh -n native-hosts/macos/notarize-release.sh
           zsh -n native-hosts/macos/uninstall.sh
+      - name: Production build fails closed without Apple signing identities
+        run: |
+          rm -rf /tmp/paia-secure-store-missing-identities
+          if env -u PAIA_DEVELOPER_ID_APPLICATION -u PAIA_DEVELOPER_ID_INSTALLER \
+            zsh native-hosts/macos/build-release.sh aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa /tmp/paia-secure-store-missing-identities; then
+            echo 'production package unexpectedly built without Apple signing identities' >&2
+            exit 1
+          fi
+          test ! -e /tmp/paia-secure-store-missing-identities/PAIA-SecureStore-1.0.0.pkg
       - name: Build universal CI-only installer package
         run: |
           rm -rf /tmp/paia-secure-store-distribution
