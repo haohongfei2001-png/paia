@@ -24,7 +24,7 @@ transport/backend (not implemented)
 
 The backend is a carrier of encrypted objects, not the authority for entity merge semantics.
 
-The client decrypts a remote object first, validates its Round 5B Sync Envelope, and only then invokes the Round 5B merge planner.
+The client decrypts a remote object first, validates its Round 5B Sync Envelope, validates that the decrypted private payload matches the envelope's hash semantics, and only then invokes the Round 5B merge planner.
 
 ## 2. Cryptographic primitives
 
@@ -137,6 +137,34 @@ syncEnvelope = Round 5B validated envelope
 payload = private canonical entity payload or null for a permanent Source tombstone
 ```
 
+The ciphertext and envelope are not allowed to disagree semantically.
+
+For human-authored sync entities (`working_input`, `document_metadata`, `thought_user`, `user_visibility_intent`):
+
+```text
+SHA-256(canonical payload) == syncEnvelope.payloadHash
+```
+
+For a non-deleted Source Record, the encrypted payload has the explicit shape:
+
+```text
+{
+  immutable: <canonical immutable source identity/body>,
+  facts: <canonical enrichable source facts or null>
+}
+```
+
+and the client requires:
+
+```text
+SHA-256(canonical immutable) == syncEnvelope.payloadHash
+SHA-256(canonical facts) == syncEnvelope.factsHash   // when factsHash exists
+```
+
+If `factsHash` is null, `facts` must also be null.
+
+This prevents an implementation bug from encrypting body A while advertising revision hash B and later misleading the Round 5B merge planner.
+
 Permanent Source tombstones stay body-free. A tombstone remote object contains only the encrypted deletion envelope and `payload = null`; it never needs the deleted Source body in order to propagate deletion.
 
 Round 5C limits plaintext bundle size to 2 MiB per object. A future chunking/large-object protocol, if needed, must be designed separately rather than silently bypassing this limit.
@@ -167,6 +195,7 @@ The simulator can verify:
 - two devices using the same root key can exchange encrypted objects;
 - a wrong root key cannot decrypt another account/key domain;
 - ciphertext or authenticated-header tampering fails closed;
+- encrypted payloads are bound to their Round 5B revision/source hash semantics;
 - the remote store never needs plaintext entity/device metadata;
 - duplicate identical object IDs are idempotent;
 - same object ID with different ciphertext is an explicit collision;
@@ -193,10 +222,11 @@ Round 5C does not replace Round 5B replay rules.
 After decrypting an object:
 
 1. validate the Sync Envelope;
-2. use `deviceId + deviceSequence` for per-device replay checks;
-3. use `operationId` for exact-operation idempotence;
-4. use revision ancestry / Source tombstone rules for merge;
-5. never use object arrival time, remote list order or remote object ID to choose the winning human edit.
+2. validate payload ↔ hash binding;
+3. use `deviceId + deviceSequence` for per-device replay checks;
+4. use `operationId` for exact-operation idempotence;
+5. use revision ancestry / Source tombstone rules for merge;
+6. never use object arrival time, remote list order or remote object ID to choose the winning human edit.
 
 ## 11. Key/version mismatch behavior
 
