@@ -4,7 +4,7 @@ Status: **current roadmap source of truth**
 
 Baseline: **v0.12.0 — Thought Evolution & Shared Context**
 
-The next stage is not a race to add more features. PAIA already has a comparatively deep archive, Thought and Context foundation. The roadmap now prioritizes product validation, reading/retrieval quality and architectural simplification before cloud or multi-platform expansion.
+The next stage is not a race to add more features. PAIA already has a comparatively deep archive, Thought and Context foundation. The roadmap prioritizes product validation, reading/retrieval quality and architectural simplification before cloud or multi-platform expansion.
 
 ## Decision rules
 
@@ -15,7 +15,7 @@ Across all rounds:
 - Do not silently overwrite user work.
 - Do not introduce hidden background provider calls or automatic paid retries.
 - Do not turn each product capability into a separate page or database by default.
-- A later round may be reordered if real usage evidence shows a stronger bottleneck.
+- A later round may be reordered by an explicit product-owner decision, but an implementation override is not evidence that the original product gate was satisfied.
 
 ---
 
@@ -30,11 +30,9 @@ Delivered:
 - Created `PRODUCT.md` as the current product source of truth.
 - Created `ARCHITECTURE.md` as the current architecture source of truth.
 - Replaced the obsolete pre-v0.5 roadmap with this roadmap.
-- Updated `AGENTS.md` so future AI development reads current truth before historical specs.
-- Updated `README.md` so the repository clearly distinguishes current release behavior from forward product direction.
+- Updated `AGENTS.md` and `README.md` so current truth outranks historical specs for new development.
 - Explicitly froze new durable schema/Thought ontology by default.
-- Added `PRODUCT.md`, `ARCHITECTURE.md` and `ROADMAP.md` to the formal release allowlist.
-- Added a release-product guard that fails if the current product documents are omitted from an emitted release.
+- Added the current truth-source documents to formal release packaging/guards.
 
 Runtime impact:
 
@@ -42,7 +40,7 @@ Runtime impact:
 - No capture/Reader/Thought/Context behavior change.
 - No Manifest permission or Provider/network change.
 
-Exit criterion: **met**. A fresh developer/agent can identify the current product definition, data ownership rules, deliberate freezes and next development round without treating historical version plans as current direction.
+Exit criterion: **met**.
 
 ---
 
@@ -55,14 +53,12 @@ Goal: make PAIA materially better than returning to ChatGPT history for rereadin
 Delivered:
 
 - Added `core/search-service.js` as the provider-neutral shared lexical search foundation.
-- Preserved the established Input/Thought ranking contract (`exact title → partial title → body`) while routing the legacy `search-ranking.js` API through the shared service.
-- Moved Context query normalization, Chinese 2/3-character query terms, overlap scoring, shared lexical relevance and Unicode-safe excerpt selection into the shared Search Service.
-- Changed Thought Library search to consume the shared ranking/excerpt primitives without changing its durable postings/index schema.
-- Changed Input search result excerpts to use the same Unicode-safe excerpt selection rather than normalized-string offsets or raw UTF-16 slicing.
-- Added Reader behavior for Input search results: after opening the bounded document page around a matching Input, PAIA waits for the target reading DOM, centers the exact Input and highlights the search phrase without stealing focus into the editable body.
-- Confirmed Thought Library already had equivalent result-to-reading behavior through `focusSection` / `focusEntry` plus reading highlights, so no second Thought navigation mechanism was added.
-- Added `tests/search-service-round2.test.mjs` covering compatibility ranking, shared Chinese/Latin query preparation, Context/shared score identity and Unicode/emoji-safe excerpts.
-- Kept `search-ranking.js` as a compatibility facade so existing callers can migrate incrementally rather than requiring a large coordinated rewrite.
+- Preserved the established Input/Thought ranking contract (`exact title → partial title → body`) while routing legacy ranking through the shared service.
+- Shared Context query normalization, Chinese 2/3-character query terms, overlap scoring, lexical relevance and Unicode-safe excerpt selection.
+- Moved Thought and Input search onto shared ranking/excerpt primitives without replacing existing durable postings/index structures.
+- Added explicit Input Reader result targeting: center the exact matched Input and highlight the query without stealing edit focus.
+- Kept Thought's existing `focusSection` / `focusEntry` behavior rather than building a second navigation mechanism.
+- Added `tests/search-service-round2.test.mjs`.
 
 Runtime/data impact:
 
@@ -70,110 +66,111 @@ Runtime/data impact:
 - No new canonical text copy or Reader persistence layer.
 - No vector database, embeddings, local model or new Provider request.
 - No Manifest permission/network change.
-- Existing Thought search postings remain rebuildable derived indexes.
 
-Validation status:
+Engineering exit criterion: **met at source level**.
 
-- The new test file is automatically discovered by `scripts/test.mjs` and classified as a unit test by the existing test grouping rules.
-- Existing `search-hardening-v092.test.mjs` and `memory-ranking-v0100.test.mjs` remain the principal regression contracts for ranked Input/Thought search and Context retrieval behavior.
-- This development session did not claim a green full suite: the connected development machine/runtime was unavailable, so `npm test` / browser journeys could not be executed here. The source changes were kept deliberately bounded for that reason.
-- Real-use retrieval advantage is **not** claimed by this round. Measuring whether PAIA actually beats returning to ChatGPT history is a product question and is carried into Round 3.
-
-Engineering exit criterion: **met at source level**. Input, Thought and Context now share one lexical search foundation and Input search opens into an explicit Reader target rather than merely the right document page.
-
-Product exit criterion: **deferred to Round 3**. Repeatable reread/retrieval advantage must be demonstrated from local real-use signals rather than inferred from implementation quality.
+Product exit criterion: **deferred to Round 3**. Repeatable reread/retrieval advantage must be demonstrated from real use rather than inferred from implementation quality.
 
 ---
 
 ## Round 3 — Local Product Validation
 
-Status: **instrumentation implemented 2026-09-12; real-use evidence accumulation pending explicit local opt-in; full regression execution pending an available development runtime**
+Status: **instrumentation implemented 2026-09-12; real-use evidence accumulation still pending explicit local opt-in; full regression execution pending an available development runtime**
 
 Goal: shift PAIA from engineering-validated to product-validated without creating a second behavioral-content archive.
 
 Delivered:
 
-- Added `core/product-signals.js` as a local-only aggregate Product Signals service.
-- Product Signals is **off by default** and can be enabled, disabled, cleared and exported by the user.
-- Signals accept only a fixed event taxonomy and fixed enum dimensions. Search text, archive text, titles, Topic names, Profile names, object IDs and arbitrary metadata are rejected rather than stored.
-- Signals are aggregated into date buckets and counters only, with a hard 90-day retention window enforced both on writes and diagnostics reads.
-- The Product Signals row is derived diagnostic metadata and is explicitly outside PAIA Backup; it is not a Source / Input / Thought / Context truth layer.
-- Added observable signals for Input search hit/miss, search-result open, coarse content-age buckets and successful Reader copy/reuse.
-- Added observable signals for Thought search hit/miss, search-result Topic open, first/repeat Topic visits, AI-organized view opens, returns to Original and successful saved AI-presentation edits.
-- Added observable signals for Context preview generation outcome, default/custom Profile use, detail level and explicit copy/Markdown share actions.
-- Reused existing `readingActivity` to classify first/repeat Topic reading instead of creating a per-Topic analytics history.
-- Added `ui/product-signals.html` as a dedicated local diagnostics surface showing recent 30-day Input / Thought / Context loops, with export and destructive clear controls.
-- Linked the diagnostics surface from the extension popup rather than adding another primary product navigation item.
-- Product-signal writes are side-channel only: failures do not fail search, reading, Context generation, AI editing or copying, and `PAIA_PRODUCT_*` messages do not wake Smart Filter / Library maintenance or broadcast `ARCHIVE_CHANGED`.
-- Added `tests/product-signals-round3.test.mjs` covering fixed-field validation, no arbitrary private metadata, retention, exact 30-day summaries, coarse age buckets, observational loop summaries and explicit exclusion from Backup.
+- Added a local-only aggregate Product Signals service, off by default.
+- Signals accept only fixed event names and fixed enum dimensions; search text, archive text, titles, Topic names, Profile names, object IDs and arbitrary metadata are rejected rather than stored.
+- Aggregate date buckets/counters have a hard 90-day retention window and are outside PAIA Backup.
+- Added observable signals for Input search/reopen/reuse, Thought search/repeat visits/AI-view maintenance, and Context build/share actions.
+- Reused existing Topic `readingActivity` rather than introducing a per-Topic analytics history.
+- Added the low-frequency local tools surface for viewing/exporting/clearing the aggregate statistics.
+- Added `tests/product-signals-round3.test.mjs`.
 
-Runtime/data impact:
+Interpretation rules remain strict:
 
-- No IndexedDB version or object-store change; aggregate counters reuse the existing `meta` store.
-- No new canonical content copy, event-body log, query history or per-object analytics table.
-- No new network request, analytics SDK, Provider call or Manifest permission.
-- Product statistics are local-only and are not restored through PAIA Backup.
+- A repeat Topic open is not proof of satisfaction.
+- Switching back to Original is not labeled as rejecting AI.
+- Saving an AI整理 edit is not proof of accepting the AI output wholesale.
+- Context copy/export does not prove a receiving AI used the context successfully.
 
-Interpretation rules:
+Engineering exit criterion: **met at source level**.
 
-- A repeat Topic open is an observed revisit, not proof of satisfaction.
-- Switching from AI整理 back to Original is an observed view change, not a rejection label.
-- Saving an AI整理 edit is an observed maintenance action, not proof that the AI output was accepted wholesale.
-- A Context copy/export signal is an explicit share action, not evidence that the receiving AI used the context successfully.
-- Product decisions should use patterns accumulated over time, not one isolated counter.
+Product exit criterion: **not yet met**. The counters begin at zero and remain off until explicitly enabled; no repeat-use loop has yet been established by observed local behavior.
 
-Validation status:
-
-- The Round 3 test file is automatically discoverable by the existing test runner as a unit test.
-- Source-level comparison from the Round 2 baseline is deliberately bounded to Product Signals, the background routing boundary, Reader copy/search-origin instrumentation, the diagnostics UI and roadmap/tests; Manifest, capture adapters, durable schema and Provider code are unchanged.
-- This development session still does not claim a green `npm test` / browser E2E suite because the connected development runtime is unavailable.
-- No product-value claim is made yet: the counters begin at zero and remain off until explicitly enabled.
-
-Engineering exit criterion: **met at source level**. PAIA can now measure its main reread/search/reuse loops locally without collecting the private content those loops operate on.
-
-Product exit criterion: **not yet met**. At least one core repeat-use loop must accumulate observed local behavior before the project can claim product validation or use Round 3 as evidence for a major new product surface.
-
-Round 4 gate: **closed until evidence exists**. In particular, a larger Passport/Context system should not be justified merely because the instrumentation now exists.
+Round 4 prerequisite status: **not satisfied by evidence**. Round 4 was nevertheless implemented after an explicit product-owner request to proceed. That override changes implementation order only; it does not convert missing Round 3 evidence into validation.
 
 ---
 
 ## Round 4 — Context Package & Minimum Passport
 
-Prerequisite: Round 3 shows repeated Context/reuse demand.
+Status: **source implementation completed 2026-09-12 by explicit product-owner override; product validation remains pending; full regression execution pending an available development runtime**
 
-Goal: turn AI Context from an isolated preview/export feature into a stable reusable interface while consolidating authorization semantics.
+Goal: turn AI Context from an isolated preview/export feature into a stable reusable interface and add the smallest useful authorization layer without building an autonomous permissions platform.
 
-Deliverables:
+Delivered:
 
-- Define a stable Context Package contract over current trusted data.
-- Reuse the unified Search Service for candidate retrieval.
-- Define a minimum Grant model: consumer, purpose, resource scope, permissions, duration/expiry and revocation.
-- Add metadata-only access audit where feasible.
-- Unify existing Topic/Profile/external-access/provider authorization concepts instead of duplicating them.
+- Added `core/context-package.js` with a stable, ephemeral Context Package metadata contract over the existing AI Context preview lifecycle.
+- Context Package carries `packageId`, `previewId`, optional/bound `grantId`, `resourceScope=profile`, `profileId`, consumer, purpose, `context_export` permission, budget, freshness/generation and size metadata.
+- Package bodies remain ephemeral: no new persistent Context body cache or canonical text copy was introduced.
+- Existing manual AI Context copy/export remains backward compatible and is treated as an explicit manual one-time authorization.
+- Added `core/passport.js` with a minimum metadata-only Grant model:
+  - fixed consumer;
+  - fixed purpose;
+  - `resourceScope=profile`;
+  - Profile reference;
+  - `permission=context_export`;
+  - duration `once | 7d | 30d`;
+  - expiry, revocation, one-time consumption and use metadata.
+- Passport reuses the existing AI Context Profile as the content-selection scope. It does not duplicate Topic allow/deny/never rules.
+- Added metadata-only access audit, bounded to 90 days / 200 rows and independently clearable.
+- Passport Grant/audit rows reuse the existing `meta` store and are deliberately excluded from PAIA Backup so restore cannot silently reactivate old external-use permissions.
+- Added explicit preview-to-Grant binding. Binding fixes Grant/consumer/purpose/Profile metadata in the Context Package but does not consume the Grant.
+- Protected share is fail-closed even though the existing background observation hook is side-channel: reconstructed text is blanked before Passport validation and restored to the trusted UI only after the already-bound Grant validates and is consumed.
+- Unbound, mismatched, revoked, expired or consumed-once Grants cannot release protected Context text.
+- The existing `externalAccess` switch and AI Context Profile rules remain stronger gates; Passport cannot expand what content is eligible.
+- Expanded the existing low-frequency local tools page rather than adding Passport to primary navigation. It supports Grant creation/revocation, access-audit review/clear, Package preview binding, and Grant-protected copy/Markdown export.
+- Added `tests/passport-round4.test.mjs` and `tests/passport-product-gate-round4.test.mjs` covering Package metadata, fixed Grant fields, Profile scope, expiry/revocation/one-time consumption, metadata-only audit, explicit binding, mismatch/unbound denial, Backup exclusion and fail-closed release.
+- Updated `ARCHITECTURE.md` so Search, Context Package and Passport are current architecture rather than future proposals.
 
-Constraints:
+Runtime/data impact:
 
-- Passport owns permission metadata, not archive body text.
-- No broad autonomous agent access by default.
-- No new persistent Context body cache without a separate privacy/product decision.
+- No IndexedDB version or object-store change.
+- No Manifest permission change.
+- No capture adapter change.
+- No additional network request, analytics SDK or Provider integration.
+- No persistent Context body history.
+- No autonomous agent/background access.
 
-Exit criterion:
+Validation status:
 
-The same Context/authorization contract can support at least two explicit reuse surfaces without bespoke permission logic for each.
+- Round 4 tests are automatically discoverable by the existing Node test runner at source level.
+- The development runtime was unavailable and an isolated clone could not resolve GitHub, so this session does **not** claim a green `npm test`, package audit or Chrome E2E run.
+- The security contract is represented in source-level regression tests, but a release still requires execution of those tests and relevant browser journeys.
+- Round 3 product evidence is still absent; implementing Passport early does not prove users need a larger Passport product.
+
+Engineering exit criterion: **met at source level**. The same AI Context compiler now supports ordinary explicit manual export and a Grant-bound Context Package export without separate content-permission systems.
+
+Product exit criterion: **not met**. Passport/Context reuse must still be observed in real use before it justifies broader agent/API integration.
 
 ---
 
 ## Round 5 — Portability, Second Adapter & Sync Readiness
 
+Status: **gated**
+
 Prerequisites:
 
-- core reread/retrieval loop is validated;
-- Context/Passport direction is justified if included;
-- schema ownership is stable enough to reason about conflicts.
+- core reread/retrieval loop is validated with real-use evidence;
+- the Context/Passport direction is justified by use if Round 5 depends on it;
+- schema ownership is stable enough to reason about conflicts;
+- Round 2–4 runtime tests can be executed in an available development environment.
 
 Goal: prove PAIA can become a personal data layer without prematurely building a distributed system.
 
-Deliverables:
+Potential deliverables after the gate is deliberately opened:
 
 - Add a second capture/import adapter to validate provider-neutral Source/Input boundaries.
 - Specify an encrypted sync contract, conflict model and deletion/tombstone propagation semantics.
@@ -185,6 +182,7 @@ Constraints:
 - Do not implement multi-device sync by copying the local database wholesale.
 - Do not silently resolve conflicting human edits by latest-write-wins.
 - Sync must enrich facts and preserve user work/deletion fences.
+- Do not treat early Passport implementation as permission for broad autonomous agent access.
 
 Exit criterion:
 
