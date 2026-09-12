@@ -150,6 +150,9 @@ def audit_js(path, text):
         if label == "website storage or nonlocal extension storage" and path in {ROOT / "core/organizer/deepseek.js", ROOT / "background/service-worker.js"}:
             # Credentials, budget binding and transient Memory grants use trusted session storage.
             scanned = scanned.replace("chrome.storage.session", "APPROVED_SESSION_CREDENTIAL_STORAGE")
+        if label == "clipboard access" and path == ROOT / "ui/reading-actions.js":
+            # Narrow explicit copy only; reads and other clipboard APIs remain prohibited.
+            scanned = scanned.replace("navigator.clipboard.writeText(text)", "EXPLICIT_READING_COPY(text)")
         if label == "clipboard access" and path == ROOT / "ui/memory.js":
             # Explicit preview Copy only; clipboard reads and other APIs remain forbidden.
             scanned = scanned.replace("navigator.clipboard.writeText(result.text)", "EXPLICIT_MEMORY_CONTEXT_COPY(result.text)")

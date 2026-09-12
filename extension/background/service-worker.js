@@ -170,7 +170,7 @@ async function handle(request, sender) {
     case 'LIBRARY_INDEX_PAGE': return store.libraryIndexPage(request.options);
     case 'TOPIC_DOCUMENT_PAGE': return store.topicDocumentPage(request.options);
     case 'GET_LIBRARY_TOPIC': return store.topic(request.id);
-    case 'GET_LIBRARY_ENTRY': return store.entry(request.id).then(e=>store.documentEntry(e));
+    case 'GET_LIBRARY_ENTRY': return store.readingEntry(request.id);
     case 'GET_LIBRARY_PLACEMENT': return store.libraryPlacement(request.topicId,request.entryId);
     case 'GET_LIBRARY_PATHS': return store.entryPaths(request.id);
     case 'GET_LIBRARY_PROVENANCE': return store.libraryProvenance(request.id);

@@ -24,6 +24,24 @@ export class OrganizerStore extends LibraryDocumentsStore {
  clearDerivedMetadata(t,marker){return clearDerivedMetadata(this,t,marker);}
  async canonicalTopic(t,id){return safeOrganization(this,t,'topic',await super.canonicalTopic(t,id));}
  async libraryIndexPage(o){const page=await super.libraryIndexPage(o);return this.run(()=>this.repository.transaction(false,async t=>{for(let i=0;i<page.items.length;i++)page.items[i]=await safeOrganization(this,t,'topic',page.items[i]);return page;}));}
+ // Read-only expression chronology; never use capture/model time as expression time.
+ async readingEntry(id){
+  // Evidence validation and chronology use separate bounded reads. An edit may
+  // commit between them; retry the read, never publish mixed versions.
+  for(let attempt=0;attempt<3;attempt++){
+   const entry=await this.entry(id);
+   const result=await this.run(()=>this.repository.transaction(false,async t=>{
+    const current=await this.readableEntry(t,id);
+    if(current.staleReasons?.includes('source_purged'))return {value:this.documentEntry({...current,body:current.thoughtText})};
+    if(current.revision!==entry.revision)return {changed:true};
+    return {value:{...this.documentEntry(entry),...await entryTime(t,id),createdAt:entry.createdAt,provenanceType:entry.provenanceType}};
+   }));
+   if(!result.changed)return result.value;
+  }
+  // Throw outside the transaction so a version conflict is not relabeled as
+  // an IndexedDB failure. This performs no provider call or persistent write.
+  reject('STALE_BASE');
+ }
  async topicDocumentPage(o={}){
   const view=o.view??'original';if(!['original','ai'].includes(view))reject('INVALID_OUTPUT');
   if(view==='original'&&!o.sort)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort?await topicReadingPage(this,o):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;
