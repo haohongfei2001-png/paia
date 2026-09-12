@@ -1,4 +1,4 @@
-import {searchRank,rankSearchPage} from './search-ranking.js';
+import {searchRank,rankSearchPage,searchExcerpt} from './search-service.js';
 import {prefix,fail} from './thought-model.js';
 export const SEARCH_VERSION=1;
 const normalize=s=>s.normalize('NFKC').toLocaleLowerCase();
@@ -46,7 +46,7 @@ export async function searchLibrary(store,{query='',cursor=null,limit=40,ranked=
    const topic=await t.get('topics',row.topicId);if(!topic||topic.lifecycle!=='active'||topic.redirectTo||topic.activeLayoutGeneration!==row.layoutGeneration||row.redirectTo||!normalize(row.title).includes(normalized))return null;
    return {kind:'section',topicId:topic.id,topicName:topic.name,sectionId:row.sectionId,sectionTitle:row.title,rank:searchRank(normalized,row.title),updatedAt:row.updatedAt};
   }));if(!result)continue;
-  if(result.kind==='entry'){let e;try{e=await store.entry(result.id);}catch{continue;}if(e.lifecycle!=='active'||![e.title,e.body,e.type].some(x=>normalize(x).includes(normalized)))continue;const paths=await store.entryPaths(e.id);const rank=searchRank(normalized,e.title,e.body+' '+e.type);if(ranked&&rank!==phase)continue;items.push({kind:'entry',entryId:e.id,title:e.title,snippet:e.body.slice(Math.max(0,normalize(e.body).indexOf(normalized)-50),Math.max(0,normalize(e.body).indexOf(normalized)-50)+180),type:e.type,paths,rank,updatedAt:e.updatedAt});}else{if(ranked&&result.rank!==phase)continue;items.push(result);}
+  if(result.kind==='entry'){let e;try{e=await store.entry(result.id);}catch{continue;}if(e.lifecycle!=='active'||![e.title,e.body,e.type].some(x=>normalize(x).includes(normalized)))continue;const paths=await store.entryPaths(e.id);const rank=searchRank(normalized,e.title,e.body+' '+e.type);if(ranked&&rank!==phase)continue;items.push({kind:'entry',entryId:e.id,title:e.title,snippet:searchExcerpt(e.body,normalized,180),type:e.type,paths,rank,updatedAt:e.updatedAt});}else{if(ranked&&result.rank!==phase)continue;items.push(result);}
   if(items.length===limit){more=true;break;}
  }
  const nextCursor=more&&lastKey?{query:normalized,key:lastKey,lastOwner:lastKey[1]+lastKey[2],...(ranked?{phase}:{})}:ranked&&phase<2?{query:normalized,key:null,lastOwner:null,phase:phase+1}:null;
