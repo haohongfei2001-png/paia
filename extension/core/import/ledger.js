@@ -12,7 +12,7 @@ const terminal=['completed','partial','cancelled'];
 const counts=()=>({added:0,duplicates:0,ignored:0,enriched:0,issues:0,newSources:0,newInputs:0,review:0,removed:0,timeEnriched:0,metadataEnriched:0});
 const view=t=>({taskId:t.id,phase:t.phase,checkedBatches:t.checkedBatches,committedBatches:t.committedBatches,rows:t.rows,preview:{...t.preview},counts:{...counts(),...t.counts},inspection:t.inspection||null,provider:'official_export',adapterId:t.adapterId,profileVersion:t.profileVersion||1,realExportVerified:false,createdAt:t.createdAt||null,completedAt:t.completedAt||null});
 const chatKey=r=>`${r.platform}:${r.chatId}`;
-const chatUrl=r=>r.platform==='claude'?`https://claude.ai/chat/${r.chatId}`:`https://chatgpt.com/c/${r.chatId}`;
+const chatUrl=r=>r.platform==='chatgpt'?`https://chatgpt.com/c/${r.chatId}`:'';
 async function importedRecords(store,t,r,sourceVersions,legacyVersions){
  const chat={id:r.chatId,url:chatUrl(r),title:r.title};
  if(r.platform==='chatgpt')return sourceVersions||legacyVersions?store.recordsFor(t,chat,r.messageId,r.sourceKey,r,[]):[];
@@ -149,7 +149,7 @@ export class ImportLedger {
     const titleKey=chatKey(r);if(r.title&&!titledChats.has(titleKey)){titledChats.add(titleKey);for(const doc of await t.all('documents','byChat',titleKey,2)){
      if(!doc.value.originalConversationTitle){doc.value.originalConversationTitle=r.title;await t.put('documents',doc);const ld=await t.get('libraryDocuments',doc.id);if(ld&&!ld.value.originalConversationTitle){ld.value.originalConversationTitle=r.title;await t.put('libraryDocuments',ld);}}
     }}
-    const nextRelation={id:r.sourceKey,sourceKey:r.sourceKey,provider:'official_export',platform:r.platform,profileId:task.adapterId,profileVersion:task.profileVersion||1,...relation};if(JSON.stringify(priorRelation)!==JSON.stringify(nextRelation))await t.put('importSources',nextRelation);
+    const nextRelation={id:r.sourceKey,sourceKey:r.sourceKey,provider:'official_export',profileId:task.adapterId,profileVersion:task.profileVersion||1,...relation};if(JSON.stringify(priorRelation)!==JSON.stringify(nextRelation))await t.put('importSources',nextRelation);
    }
    for(const id of docs)await this.store.refreshDoc(t,id);
    task.phase='importing';task.committedBatches++;task.counts={...counts(),...task.counts};
