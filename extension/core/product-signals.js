@@ -1,4 +1,6 @@
 import {ArchiveError} from './constants.js';
+import {PassportService} from './passport.js';
+import {createContextPackage,contextPackageEnvelope,contextPackageExpired} from './context-package.js';
 
 // Local-only aggregate product signals for validating PAIA's repeat-use loops.
 // This is derived diagnostic metadata, not user content and not a backup truth layer.
@@ -86,11 +88,23 @@ export function summarizeProductSignals(row,now=Date.now()){
 }
 
 export class ProductSignals {
- constructor(store,{clock=()=>Date.now()}={}){this.store=store;this.clock=clock;this.searchSeen=new Map();this.recentSearch=new Map();}
+ constructor(store,{clock=()=>Date.now(),uuid=()=>crypto.randomUUID()}={}){this.store=store;this.clock=clock;this.uuid=uuid;this.searchSeen=new Map();this.recentSearch=new Map();this.packages=new Map();this.passport=new PassportService(store,{clock,uuid});}
  client(sender){return String(sender?.documentId||sender?.url||'extension-ui').slice(0,300);}
  async row(write=false,fn){return this.store.run(()=>this.store.repository.transaction(write,fn,['meta']));}
- async status(){return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW);if(!current)return summarizeProductSignals(emptyProductSignals(this.clock(),false),this.clock());const row=structuredClone(current);if(pruneDaily(row,this.clock())){row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);}return summarizeProductSignals(row,this.clock());});}
- async settings({enabled}={}){if(typeof enabled!=='boolean')invalid();return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),enabled);pruneDaily(row,this.clock());row.enabled=enabled;row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);return {enabled};});}
+ prunePackages(){for(const [id,pkg]of this.packages)if(contextPackageExpired(pkg,this.clock()))this.packages.delete(id);}
+ package(previewId){this.prunePackages();const pkg=this.packages.get(previewId);if(!pkg)throw new ArchiveError('MEMORY_STALE');return pkg;}
+ registerPackage(request,result){this.prunePackages();const budget=['short','standard','detailed'].includes(request.options?.budget)?request.options.budget:(result.budget||'standard'),pkg=createContextPackage({packageId:this.uuid(),previewId:result.previewId,profileId:request.options?.profileId||'default',consumer:'manual',purpose:'current_task',budget,generation:result.generation||0,itemCount:result.items?.length||0,characters:result.characters||0,tokens:result.tokens||0,retrievalConfidence:result.retrievalConfidence||'low',partial:result.partial===true,createdAt:this.clock()});this.packages.set(result.previewId,pkg);result.contextPackage=pkg;return pkg;}
+ async status(){const summary=await this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW);if(!current)return summarizeProductSignals(emptyProductSignals(this.clock(),false),this.clock());const row=structuredClone(current);if(pruneDaily(row,this.clock())){row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);}return summarizeProductSignals(row,this.clock());});return {...summary,passport:await this.passport.status()};}
+ async settings(settings={}){
+  if(!plain(settings))invalid();
+  if(Object.keys(settings).length===1&&typeof settings.enabled==='boolean')return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),settings.enabled);pruneDaily(row,this.clock());row.enabled=settings.enabled;row.updatedAt=new Date(this.clock()).toISOString();await t.put('meta',row);return {enabled:settings.enabled};});
+  if(Object.keys(settings).length===1&&plain(settings.passport)){
+   const p=settings.passport,action=p.action;if(action==='create'&&Object.keys(p).every(k=>['action','consumer','purpose','profileId','duration'].includes(k)))return this.passport.create({consumer:p.consumer,purpose:p.purpose,profileId:p.profileId,duration:p.duration});
+   if(action==='revoke'&&Object.keys(p).every(k=>['action','grantId'].includes(k)))return this.passport.revoke(p.grantId);
+   if(action==='clear_audits'&&Object.keys(p).length===1)return this.passport.clearAudits();
+  }
+  invalid();
+ }
  async clear(){return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=emptyProductSignals(this.clock(),current?.enabled===true);await t.put('meta',row);return {ok:true,enabled:row.enabled};});}
  async record(signal){const clean=validateProductSignal(signal);if(!clean)invalid();return this.row(true,async t=>{const current=await t.get('meta',PRODUCT_SIGNAL_ROW),row=plain(current)&&current.version===PRODUCT_SIGNAL_VERSION?current:emptyProductSignals(this.clock(),false);if(row.enabled!==true)return {recorded:false,enabled:false};await t.put('meta',applyProductSignal(row,clean,this.clock()));return {recorded:true,enabled:true};});}
  async noteSearch(surface,options,result,sender){
@@ -103,6 +117,16 @@ export class ProductSignals {
  consumeRecentSearch(surface,sender){const key=surface+'\u0000'+this.client(sender),at=this.recentSearch.get(key);if(!at||this.clock()-at>5*60*1000)return false;this.recentSearch.delete(key);return true;}
  async noteTopicRead(repeat,sender){
   const saved=await this.record({name:'thought_topic_open',dimensions:{repeat:repeat?'repeat':'first'}});if(saved?.recorded&&this.consumeRecentSearch('thought',sender))await this.record({name:'thought_search_open',dimensions:{}});
+ }
+ async observeMemoryBuild(request,result){
+  this.registerPackage(request,result);const budget=['short','standard','detailed'].includes(request.options?.budget)?request.options.budget:'standard';await this.record({name:'context_build',dimensions:{outcome:result?.items?.length?'hit':'empty',profile:request.options?.profileId&&request.options.profileId!=='default'?'custom':'default',budget}});
+ }
+ async observeMemoryShare(request,result){
+  const format=request.options?.format;if(!['copy','markdown'].includes(format))return;const current=this.package(request.options?.previewId),grantId=request.options?.grantId;let pkg=current;
+  if(grantId!==undefined){
+   if(typeof grantId!=='string'||!grantId)invalid();const status=await this.passport.status(),grant=status.grants.find(row=>row.grantId===grantId);if(!grant)throw new ArchiveError('MEMORY_DENIED');await this.passport.authorize({grantId,consumer:grant.consumer,purpose:grant.purpose,profileId:current.profileId});await this.passport.consume(grantId,format);pkg={...current,consumer:grant.consumer,purpose:grant.purpose};
+  }else await this.passport.audit({consumer:'manual',purpose:'current_task',profileId:current.profileId,action:format==='copy'?'manual_copy':'manual_markdown'});
+  pkg={...pkg,generation:result.generation||pkg.generation,characters:result.characters||pkg.characters,tokens:result.tokens||pkg.tokens};this.packages.set(pkg.previewId,pkg);result.contextPackage=contextPackageEnvelope(pkg,result.text,{format:format==='markdown'?'markdown':'plain',generation:pkg.generation}).package;await this.record({name:'context_share',dimensions:{format}});
  }
  async observe(request,result,sender){
   switch(request?.type){
@@ -118,14 +142,8 @@ export class ProductSignals {
     return this.record({name:'thought_ai_view',dimensions:{view}});
    }
    case 'EDIT_AI_PRESENTATION': return this.record({name:'thought_ai_edit',dimensions:{result:'saved'}});
-   case 'PAIA_MEMORY_BUILD': {
-    const budget=['short','standard','detailed'].includes(request.options?.budget)?request.options.budget:'standard';
-    return this.record({name:'context_build',dimensions:{outcome:result?.items?.length?'hit':'empty',profile:request.options?.profileId&&request.options.profileId!=='default'?'custom':'default',budget}});
-   }
-   case 'PAIA_MEMORY_SHARE': {
-    const format=request.options?.format;if(!['copy','markdown'].includes(format))return;
-    return this.record({name:'context_share',dimensions:{format}});
-   }
+   case 'PAIA_MEMORY_BUILD': return this.observeMemoryBuild(request,result);
+   case 'PAIA_MEMORY_SHARE': return this.observeMemoryShare(request,result);
   }
  }
 }
