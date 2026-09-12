@@ -1,4 +1,5 @@
 import {highlightText} from './search-experience.js';
+import {searchExcerpt} from '../core/search-service.js';
 import {request,element,dateLabel} from './common.js';
 const $=id=>document.getElementById(id);
 export class SmartFilterUI {
@@ -29,7 +30,7 @@ export class SmartFilterUI {
   try{const r=await request('FILTER_NOTICE');if(r.show&&!$('collection-panel').hidden){$('filter-onboarding').textContent='已启用轻度智能过滤。仅隐藏高度确定的对话操作输入，内容未删除，可在设置中调整。';$('filter-onboarding').hidden=false;setTimeout(()=>{$('filter-onboarding').hidden=true;},12000);}}catch{/* Optional notice never blocks reading. */}
  }
  renderResults(result){const list=$('document-list');list.replaceChildren();$('result-count').textContent=`${result.items.length} 条匹配输入`;
-  for(const hit of result.items){const b=element('button','conversation-document search-input');b.dataset.inputId=hit.id;b.append(element('strong','',hit.title||'独立整理文档'),element('span','search-excerpt',hit.text),element('small','',hit.sourceSentAt?dateLabel(hit.sourceSentAt):'发送时间未知'));highlightText(b.querySelector('strong'),hit.title||'独立整理文档',$('search').value);const at=hit.text.toLocaleLowerCase().indexOf($('search').value.trim().toLocaleLowerCase()),excerpt=hit.text.slice(Math.max(0,at-50),Math.max(0,at-50)+240);highlightText(b.querySelector('.search-excerpt'),excerpt,$('search').value);if(hit.filtered)b.append(element('small','filter-search-label','智能过滤内容'));b.addEventListener('click',()=>void this.onContext(hit.documentId,hit.id));list.append(b);}
+  for(const hit of result.items){const b=element('button','conversation-document search-input');b.dataset.inputId=hit.id;b.append(element('strong','',hit.title||'独立整理文档'),element('span','search-excerpt',hit.text),element('small','',hit.sourceSentAt?dateLabel(hit.sourceSentAt):'发送时间未知'));highlightText(b.querySelector('strong'),hit.title||'独立整理文档',$('search').value);const excerpt=searchExcerpt(hit.text,$('search').value,240);highlightText(b.querySelector('.search-excerpt'),excerpt,$('search').value);if(hit.filtered)b.append(element('small','filter-search-label','智能过滤内容'));b.addEventListener('click',()=>void this.onContext(hit.documentId,hit.id));list.append(b);}
   $('empty-list').textContent='没有找到匹配内容。试试聊天标题或另一种表达。';$('empty-list').hidden=result.items.length>0;$('empty-sync').hidden=true;
  }
  async recent(more=false){const serial=++this.serial;try{
