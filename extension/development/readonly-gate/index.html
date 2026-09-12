@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PAIA Read-only Check</title>
+  <link rel="stylesheet" href="gate.css">
+</head>
+<body>
+  <main>
+    <p class="eyebrow">PAIA · existing archive gate</p>
+    <h1>Read-only database check</h1>
+    <p class="lead">This page inspects only aggregate structure in the existing PAIA IndexedDB. It does not install a candidate build, run migrations, call AI, or read Source/Input/Thought body text.</p>
+    <section class="status-card" aria-live="polite">
+      <strong id="gate-status">Running the local read-only check…</strong>
+      <p id="gate-detail">Keep this page open for a few seconds.</p>
+    </section>
+    <div class="actions">
+      <button id="copy-result" type="button" disabled>Copy check result</button>
+      <button id="retry" type="button">Run again</button>
+    </div>
+    <pre id="gate-report" aria-label="PAIA read-only diagnostic result"></pre>
+    <p class="footnote">Only send the line beginning with <code>PAIA_READONLY_DIAGNOSTIC</code>. The report contains counts and structural flags, not your archived text, topic names, URLs, credentials, or durable IDs.</p>
+  </main>
+  <script type="module" src="gate.js"></script>
+</body>
+</html>
