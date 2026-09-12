@@ -25,8 +25,8 @@ test('import commits recheck concurrent capture, user edits, removal and Source 
  const pending=controller.commit();await append(f.s,'Synthetic live capture during import','synthetic-concurrent-new',c.id);const result=await pending;
  assert.equal(result.counts.ignored,1);assert.equal((await f.s.input(block(0).id)).libraryText,'Synthetic concurrent edit');assert.equal((await f.s.input(block(1).id)).excluded,true);assert.equal((await rows(f.s,'records')).length,3);assert.equal(f.requests.length,0);
 });
-test('history provider is explicitly local and permissions/CSP remain frozen v081 boundaries',async()=>{
+test('history provider stays local while permissions remain an exact reviewed allowlist',async()=>{
  const provider=new OfficialExportProvider();assert.equal(provider.describe().network,false);assert.equal(provider.describe().input,'user_selected_file');assert.equal(provider.describe().realExportVerified,false);
- const current=JSON.parse(await readFile('manifest.json','utf8'));assert.deepEqual(current.permissions,['storage']);assert.deepEqual(current.host_permissions,['https://api.deepseek.com/*']);
- for(const file of ['core/import/chatgpt-export.js','core/import/detector.js','core/import/reader.js','core/import/provider.js','core/import/coordinator.js','core/import/ledger.js'])assert.doesNotMatch(await readFile(file,'utf8'),/\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|document\.cookie|chrome\.storage\.sync/);
+ const current=JSON.parse(await readFile('manifest.json','utf8'));assert.deepEqual(current.permissions,['storage','nativeMessaging']);assert.deepEqual(current.host_permissions,['https://api.deepseek.com/*']);
+ for(const file of ['core/import/chatgpt-export.js','core/import/detector.js','core/import/reader.js','core/import/provider.js','core/import/coordinator.js','core/import/ledger.js'])assert.doesNotMatch(await readFile(file,'utf8'),/\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|document\.cookie|chrome\.storage\.sync|sendNativeMessage|connectNative/);
 });
