@@ -33,15 +33,17 @@ export class IndexedArchiveStore {
    if(exact){r.chatId??=chat.id;r.sourceMessageId??=messageId;r.sourceKey??=key;out.push({r,index:row});}
   }return out;
  }
- async saveRecord(t,r,index){this.changedSources.add(r.sourceKey||'legacy:'+r.id);await t.put('records',{id:r.id,value:r});await t.put('recordIndex',recordIndex(r,index.sequence));
-  for(const ix of await t.all('blockIndex','byRecord',r.id)){const b=(await t.get('blocks',ix.id)).value;if(!index.sourceKey&&r.sourceKey)await t.delete('sourceCounts',JSON.stringify([b.documentId,'legacy:'+r.id]));if(b.sourceRecordId===r.id)await t.put('blockIndex',blockIndex(b,ix.sequence,[r]));}
+ async saveRecord(t,r,index,{newRecord=false}={}){this.changedSources.add(r.sourceKey||'legacy:'+r.id);await t.put('records',{id:r.id,value:r});await t.put('recordIndex',recordIndex(r,index.sequence));
+  // A newly inserted source cannot have a pre-existing block pointing at its fresh
+  // record id. Existing/enriched sources keep the compatibility refresh below.
+  if(!newRecord)for(const ix of await t.all('blockIndex','byRecord',r.id)){const b=(await t.get('blocks',ix.id)).value;if(!index.sourceKey&&r.sourceKey)await t.delete('sourceCounts',JSON.stringify([b.documentId,'legacy:'+r.id]));if(b.sourceRecordId===r.id)await t.put('blockIndex',blockIndex(b,ix.sequence,[r]));}
  }
  async defaultBlock(t,r,sequence,options={}){
-  if(await t.get('blocks','block:'+r.id))return;
-  let row=(await t.all('documents','byChat',chatOf(r)))[0];
+  if(!options.newRecord&&await t.get('blocks','block:'+r.id))return;
+  let row=options.documentId?{id:options.documentId}:((await t.all('documents','byChat',chatOf(r)))[0]);
   const state={records:[r],library:emptyLibrary()};syncLibrary(state);let doc=state.library.documents[0],b=state.library.blocks[0];
   if(row)b.documentId=row.id;else{doc={...doc,titleRevision:0};delete doc.sourceRecordIds;row={id:doc.id,chatKey:chatOf(r),sequence:sequence.documents++,displayKey:[-(Date.parse(doc.lastSourceSentAt)||0),doc.id],value:doc};await t.put('documents',row);const ld={...doc};delete ld.titleRevision;await t.put('libraryDocuments',{id:doc.id,value:ld});}
-  if(options.branch&&options.branch!=='current'){b.excluded=true;b.branchStatus=options.branch;b.status='import_branch_review';}b.revision=0;b.provenanceSignature=JSON.stringify(b.provenance);if(this.prepareInput)await this.prepareInput(t,b,r);await t.put('blocks',{id:b.id,value:b});await t.put('blockIndex',blockIndex(b,sequence.blocks++,[r]));return row.id;
+  if(options.branch&&options.branch!=='current'){b.excluded=true;b.branchStatus=options.branch;b.status='import_branch_review';}b.revision=0;b.provenanceSignature=JSON.stringify(b.provenance);if(this.prepareInput)await this.prepareInput(t,b,r,options);await t.put('blocks',{id:b.id,value:b});await t.put('blockIndex',blockIndex(b,sequence.blocks++,[r]));return row.id;
  }
  async trackBlock(t,b){for(const p of b.provenance){const r=await t.get('recordIndex',p.sourceRecordId);if(r)this.changedSources.add(r.sourceKey||'legacy:'+r.id);}}
  async refreshDoc(t,id){
@@ -96,35 +98,20 @@ export class IndexedArchiveStore {
   const result=await this.repository.transaction(true,async t=>{
    this.changedSources.add(key);const current=await t.get('records',id);if(!current||!permanent&&!current.value.deletedAt)error('INVALID_REQUEST');
    const indexes=await t.all('recordIndex','bySource',key);if(r.chatId&&r.sourceMessageId)for(const ix of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))if(!/^[a-f0-9]{64}$/.test(ix.sourceKey||'')&&!indexes.some(x=>x.id===ix.id))indexes.push(ix);if(!indexes.some(x=>x.id===id))indexes.push(await t.get('recordIndex',id));const removed=[];for(const ix of indexes)removed.push((await t.get('records',ix.id)).value);
-   const docs=new Set((await t.all('documents','byChat',chatOf(r))).map(d=>d.id)),blocks=new Map();for(const r of removed)for(const b of await t.all('blockIndex','byRecord',r.id))blocks.set(b.id,{index:b,value:(await t.get('blocks',b.id)).value});
-   if(this.beforeSourcePurge)await this.beforeSourcePurge(t,removed,blocks);
-   const s={library:{blocks:[...blocks.values()].map(b=>b.value)}};detachSources(s,removed);const kept=new Map(s.library.blocks.map(b=>[b.id,b]));
-   await t.put('tombstones',{id:'source:'+key,sequence:Date.parse(this.clock()),value:{sourceIdentityHash:key,deletedAt:this.clock(),status:'permanently_ignored'}});
-   for(const r of removed){await t.delete('records',r.id);await t.delete('recordIndex',r.id);await t.delete('tombstones','snapshot:'+r.dedupeKey);}await t.delete('times',key);
-   for(const name of ['importEvidence','importSources'])for(const evidenceId of await t.keys(name,'bySource',key))await t.delete(name,evidenceId);
-   for(const [id,old]of blocks){docs.add(old.value.documentId);const b=kept.get(id);if(!b){await t.delete('blocks',id);await t.delete('blockIndex',id);}else{b.revision++;b.provenanceSignature=JSON.stringify(b.provenance);await t.put('blocks',{id,value:b});const rec=b.sourceRecordId?(await t.get('records',b.sourceRecordId))?.value:null;await t.put('blockIndex',blockIndex(b,old.index.sequence,rec?[rec]:[]));}}
-   for(const id of docs)await this.refreshDoc(t,id);return {id};
-  });await this.publish();return result;
+   const docs=new Set((await t.all('documents','byChat',chatOf(r))).map(d=>d.id)),blocks=new Map();for(const r of removed)for(const b of await t.all('blockIndex','byRecord',r.id))blocks.set(b.id,{value:(await t.get('blocks',b.id)).value,index:b});for(const {value:b}of blocks.values())docs.add(b.documentId);
+   for(const record of removed){await this.beforeSourcePurge?.(t,[record],blocks);await t.delete('records',record.id);await t.delete('recordIndex',record.id);await t.delete('times',record.sourceKey||key);this.changedSources.add(record.sourceKey||key);if(record.sourceKey)await t.put('tombstones',{id:'source:'+record.sourceKey,sourceIdentityHash:record.sourceKey,deletedAt:this.clock()});await t.put('tombstones',{id:'snapshot:'+record.dedupeKey,dedupeKey:record.dedupeKey,deletedAt:this.clock()});}
+   for(const [id,{value:b,index}]of blocks){const before=structuredClone(b);b.provenance=b.provenance.filter(p=>!removed.some(r=>r.id===p.sourceRecordId));b.mergedSourceIds=b.mergedSourceIds.filter(x=>!removed.some(r=>r.id===x));if(!b.provenance.length){if(b.libraryText===null&&!b.note){await t.delete('blocks',id);await t.delete('blockIndex',id);continue;}b.originalTextReference=null;b.sourceRecordId=null;}b.provenanceSignature=JSON.stringify(b.provenance);b.revision++;await this.afterSourceDetach?.(t,b,before,removed);await t.put('blocks',{id,value:b});const records=[];for(const p of b.provenance){const rr=await t.get('records',p.sourceRecordId);if(rr)records.push(rr.value);}await t.put('blockIndex',blockIndex(b,index.sequence,records));await this.trackBlock(t,b);}
+   for(const doc of docs)await this.refreshDoc(t,doc);return {purged:true,tombstones:removed.length};
+  });return result;
  });}
- async editDocument(request){const operationId=request?.operationId;if(operationId!==undefined&&(typeof operationId!=='string'||operationId.length>128||operationId.length<8))error('INVALID_REQUEST');const digest=operationId?await hashText(JSON.stringify(request)):null;return this.write(async t=>{
-  if(operationId){const receipt=await t.get('operationReceipts',operationId);if(receipt){if(receipt.digest!==digest)error('INVALID_REQUEST');return receipt.result;}}
-  if(!request||!Array.isArray(request.blocks)||request.blocks.length>1000)error('INVALID_REQUEST');const row=await t.get('documents',request.documentId);if(!row)error('INVALID_REQUEST');const ld=await t.get('libraryDocuments',row.id),blocks=[];
-  for(const change of request.blocks){const b=await t.get('blocks',change.id);if(b)blocks.push(b.value);}
-  if(this.validateInputEdit)await this.validateInputEdit(t,request);
-  const state={conversations:[row.value],library:{documents:[ld.value],blocks}};const before=blocks.map(b=>b.excluded),priorBlocks=structuredClone(blocks),priorTitle=structuredClone(row.value);const result=applyDocumentEdit(state,request,this.clock());if(!result.ok)return result;
-  if(this.afterInputEdit)await this.afterInputEdit(t,priorBlocks,blocks,priorTitle,row.value,request);
-  for(const b of blocks){await t.put('blocks',{id:b.id,value:b});const ix=await t.get('blockIndex',b.id);ix.excluded=b.excluded;ix.excludedKey=b.excluded?1:0;ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);}
-  if(request.title!==undefined){await t.put('documents',row);await t.put('libraryDocuments',ld);}
-  if(blocks.some((b,i)=>b.excluded!==before[i])){for(const b of blocks)await this.trackBlock(t,b);await this.refreshDoc(t,row.id);}if(operationId)await t.put('operationReceipts',{id:operationId,digest,result});return result;
- });}
- updateLibrary(id,changes){return this.write(async t=>{const row=await t.get('blocks',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,validateLibraryChanges(changes));row.value.editedAt=this.clock();row.value.revision++;await t.put('blocks',row);return {id};});}
- excludeLibrary(id,excluded){return this.write(async t=>{if(typeof excluded!=='boolean')error('INVALID_REQUEST');const row=await t.get('blocks',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,{excluded,status:excluded?'excluded_by_user':'active',revision:row.value.revision+1});await t.put('blocks',row);const ix=await t.get('blockIndex',id);Object.assign(ix,{excluded,excludedKey:excluded?1:0});ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);await this.trackBlock(t,row.value);await this.refreshDoc(t,row.value.documentId);return {id};});}
- updateDocument(id,changes){return this.write(async t=>{const row=await t.get('documents',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,validateLibraryChanges(changes,true));row.value.titleRevision++;const ld=await t.get('libraryDocuments',id);ld.value.userTitle=row.value.userTitle;await t.put('documents',row);await t.put('libraryDocuments',ld);return {id};});}
- updatePreferences(changes){return this.write(async t=>{const c=await this.control(t);Object.assign(c.preferences,validatePreferences(changes));await this.saveControl(t,c);return {ok:true};});}
- resolveLegacy(id,include){return this.write(async t=>{if(typeof include!=='boolean')error('INVALID_REQUEST');const row=await t.get('records',id);if(!row||!row.value.hidden&&!row.value.deletedAt)error('INVALID_REQUEST');row.value.hidden=false;row.value.deletedAt=null;await this.saveRecord(t,row.value,await t.get('recordIndex',id));for(const ix of await t.all('blockIndex','byRecord',id)){const b=await t.get('blocks',ix.id);if(b.value.sourceRecordId!==id)continue;const prior=structuredClone(b.value);Object.assign(b.value,{excluded:!include,status:include?'active':'excluded_by_user',revision:b.value.revision+1});if(this.afterLegacyResolve)await this.afterLegacyResolve(t,prior,b.value);await t.put('blocks',b);Object.assign(ix,{excluded:!include,excludedKey:include?0:1});ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);await this.refreshDoc(t,b.value.documentId);}return {ok:true};});}
- memoryContext(){return Promise.resolve(memoryContext());}
- migrationStatus(){return this.repository.transaction(false,t=>t.get('meta','migration'));}
- recoverMigration(){const task=this.tail.then(async()=>{await this.repository.recoverMigration();this.loaded=false;return {ok:true};});this.tail=task.catch(()=>{});return task;}
- snapshot(){return this.run(async()=>{if(await this.repository.transaction(false,t=>t.count('records'))>1000)error('INVALID_REQUEST');const s=await this.repository.materialize();const total=s.records.filter(r=>!r.deletedAt).length;return {...s,schemaVersion:6,stats:{total,hidden:s.records.filter(r=>r.hidden&&!r.deletedAt).length,trash:s.records.filter(r=>r.deletedAt).length,bytes:0,quotaBytes:0},diagnostics:this.volatileError?{...s.diagnostics,lastError:this.volatileError}:s.diagnostics,adapterVersion:ADAPTER_VERSION};});}
- page(options={}){return this.run(()=>this.repository.transaction(false,async t=>queryPage(t,await this.control(t),options)));}
+ updatePreferences(changes){return this.write(async t=>{const c=await this.control(t);c.preferences=validatePreferences(changes,c.preferences);await this.saveControl(t,c);return c.preferences;});}
+ migrationStatus(){return this.run(()=>this.repository.transaction(false,t=>t.get('meta','migration')));}
+ recoverMigration(){return this.run(async()=>{const result=await this.repository.transaction(true,async t=>{const m=await t.get('meta','migration');if(!m||m.phase==='active')return {recovered:false};const backup=await t.get('migrationBackup','schema5');if(!backup||await hashText(JSON.stringify(backup.state))!==m.digest)throw new ArchiveError('STORAGE_FAILED');for(const name of ['records','recordIndex','blocks','blockIndex','documents','libraryDocuments','times','tombstones','sourceCounts'])await t.clear(name);m.phase='copying';m.cursor=0;m.verified=false;m.recoveryVerified=false;await t.put('meta',m);return {recovered:true};});this.loaded=false;return result;});
+ page(options){return this.run(()=>this.repository.transaction(false,t=>queryPage(t,this.controlCache,options)));}
+ async snapshot(){return this.run(()=>this.repository.materialize());}
+ memoryContext(){return this.run(()=>this.repository.transaction(false,async t=>memoryContext({records:(await t.all('records')).map(x=>x.value),library:{documents:(await t.all('libraryDocuments')).map(x=>x.value),blocks:(await t.all('blocks')).map(x=>x.value)}})));}
+ updateLibrary(id,changes){return this.write(async t=>{const b=(await t.get('blocks',id)).value;Object.assign(b,validateChanges(changes));await t.put('blocks',{id,value:b});return b;});}
+ excludeLibrary(id,excluded){return this.write(async t=>{const b=(await t.get('blocks',id)).value;b.excluded=excluded;await t.put('blocks',{id,value:b});return {id,excluded};});}
+ updateDocument(id,changes){return this.write(async t=>{const d=(await t.get('libraryDocuments',id)).value;if(changes.userTitle!==undefined)d.userTitle=changes.userTitle;await t.put('libraryDocuments',{id,value:d});return d;});}
+ resolveLegacy(id,include){return this.write(async t=>{const r=(await t.get('records',id)).value;r.hidden=false;r.deletedAt=null;await this.saveRecord(t,r,await t.get('recordIndex',id));const b=(await t.get('blocks','block:'+id)).value;b.excluded=!include;await t.put('blocks',{id:b.id,value:b});return {id};});}
 }
