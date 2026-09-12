@@ -4,7 +4,7 @@ Status: **current roadmap source of truth**
 
 Baseline: **v0.12.0 — Thought Evolution & Shared Context + post-release consolidation rounds**
 
-PAIA is no longer in a phase where the main goal is to add more feature categories. Current priorities are product validation, Reader/Search quality, trust-boundary hardening and keeping future expansion cheap.
+PAIA is no longer in a phase where the main goal is to add more feature categories. Current priorities are product validation, Reader/Search/Revisit quality, trust-boundary hardening and keeping future expansion cheap.
 
 ## Decision rules
 
@@ -16,7 +16,8 @@ Across all rounds:
 - Do not introduce hidden background Provider calls or automatic paid retries.
 - Do not turn every capability into a separate page/database.
 - Security decisions must live on trusted main paths, never in analytics side channels.
-- Search/Reader projections must not become new content truth layers.
+- Search/Reader/Revisit projections must not become new content truth layers.
+- Retention work must create return value, not push-notification or opaque engagement machinery.
 - A product-owner override may change implementation order, but it is not evidence that a product gate was satisfied.
 
 ---
@@ -90,62 +91,96 @@ Engineering exit criterion: **met at source level**.
 
 Status: **source implementation completed 2026-09-12; browser/product validation pending**
 
-Goal: turn the shared Search foundation into a visibly better reread/reuse experience without adding another search truth layer.
-
 Delivered:
 
-- Added `core/universal-search.js` as a bounded coordinator over existing Input search, Thought search and already-stored AI-organized projection text.
-- Universal Search is exposed through the existing `SEARCH_INPUTS` domain path with `universal:true`; ordinary Input search is unchanged.
-- `OrganizerStore` delegates only that explicit mode to `UniversalSearchService`, keeping the service worker unchanged and thin.
-- One query returns grouped Input Archive / Thought Library / AI整理 result DTOs with bounded snippets rather than full duplicate bodies.
-- No Provider call is made for Universal Search. AI整理 matching searches only existing saved projection text.
-- Added a header-level **全局搜索** dialog installed from the shared Search experience module rather than another primary navigation destination.
-- Universal Search results reuse existing Input/Thought Reader routes. The UI follows existing local-search pagination when needed so deeper bounded results can still open the exact Reader target.
-- Added **“以前的我”** as a chronological projection over the matching Input results. It orders available source-send-time evidence from old to new and explicitly states that chronology is not inferred belief change.
-- Added explicit **“用于 AI Context”** on search results. It prefills the existing Context Builder with a bounded local retrieval query using the selected snippet/current search; it does not change authorization, generate a preview, call a Provider or share anything automatically.
-- Preserved the Round 2 search-origin marker so successful copy after a located Input remains measurable as search-driven reuse.
-- Expanded Product Signals with fixed-field Universal Search hit/miss, result-open and Search → Context-preparation counters. No query text or object ID is stored.
-- The local product-validation page now shows Universal Search / Reader follow-through rates alongside Input, Thought and Context metrics.
-- Added `tests/universal-search-round46.test.mjs` covering bounded coordination, snippet-only DTOs, local AI projection matching, longitudinal ordering, Search → Context query bounds, fixed metric fields and the no-persistence/no-vector boundary.
-- Updated `PRODUCT.md` and `ARCHITECTURE.md` so Universal Search and longitudinal Reader are current behavior, not future proposals.
+- bounded `UniversalSearchService` over existing Input/Thought/AI-organized projection reads;
+- header-level **全局搜索** without another primary navigation destination;
+- grouped Input / Thought / AI整理 results with bounded snippets;
+- deeper-result navigation through existing Reader pagination;
+- **“以前的我”** chronology over matching Input expressions without inferred belief change;
+- explicit Search → AI Context preparation without automatic build/share;
+- fixed-field Universal Search follow-through metrics;
+- Round 4.6 tests and truth-source documentation updates.
 
 Runtime/data impact:
 
-- No IndexedDB version or object-store change.
-- No new search/body truth store.
-- No embedding/vector index or model.
-- No Manifest permission change.
-- No capture-adapter change.
-- No new Provider/network request.
-- No automatic Context build/share or authorization expansion.
-
-Validation status:
-
-- Round 4.6 source tests are present and automatically discoverable by the existing Node test runner.
-- The connected development device remains unavailable, so this session does **not** claim green `npm test`, package audit, Chrome E2E or live UI smoke results.
-- Product value remains unproven until real Product Signals show that Universal Search leads to result opening, rereading/copying or Context preparation.
+- no new object store/body truth layer;
+- no vector/embedding/model;
+- no new Manifest permission, capture adapter, Provider or network request.
 
 Engineering exit criterion: **met at source level**.
 
-Product exit criterion: **not yet met**. Reader/Search advantage still requires real-use evidence.
+Product exit criterion: **not met**. Reader/Search advantage still requires real-use evidence.
 
 ---
 
 ## Round 4.7 — Revisit / Retention Surface
 
-Status: **recommended next product round, not started**
+Status: **source implementation completed 2026-09-12; browser/product validation pending**
 
-Goal: give users a reason to return without relying on push notifications or more AI generation.
+Goal: give users a reason to return by resurfacing real local value, without becoming an engagement-notification system or generating more AI content.
 
-Candidate work:
+Delivered:
 
-- surface meaningful newly accumulated Inputs;
-- show Topics with materially new supporting expressions;
-- resurface older relevant material using local facts/history;
-- connect resurfacing back into Reader/Universal Search rather than generating a separate feed truth;
-- keep generated interpretation clearly separate from original user wording.
+- Added `core/revisit.js` as a bounded local Revisit read model over existing Input/Thought/AI-presentation facts.
+- Revisit persists only one lightweight `meta` cursor (`revisit:v1`: last Input block sequence + last-seen time). It stores no body text and is excluded from PAIA Backup.
+- First use establishes a baseline only after explicit user action; existing archive history is not falsely classified as unread/new.
+- Opening Revisit never advances the cursor. Only explicit **“从现在开始记录 / 已读到这里”** marks the current anchor.
+- Added **newly collected Input** resurfacing since the explicit baseline. Scan is bounded and excludes removed/branch-pending/Smart-Filtered Inputs from the return surface.
+- Added **Thought topics with new material** using existing local AI-presentation pending-delta state. Revisit itself never calls the Organizer or Provider.
+- Added **older material resurfacing** with an explainable policy: source-send-time at least 90 days old, with priority for Inputs the user edited or Inputs already used as Thought evidence.
+- Old-material rotation is deterministic for the same local day; it is not random recommendation sampling.
+- Revisit computes its heavier old-content scan only after explicit user action. Normal Reader startup does not precompute the feed merely to show a badge.
+- Added a header-level **回访** dialog beside Universal Search rather than another first-level navigation page.
+- Revisit opens existing Input/Thought Reader/search routes rather than creating another body/navigation state machine.
+- Added fixed-field local Product Signals for Revisit open state, item type opened and explicit mark-seen action. No content text, title, topic ID or query is stored.
+- The local validation page now shows Revisit follow-through alongside Search/Reader/Thought/Context metrics.
+- Added `tests/revisit-round47.test.mjs` covering deterministic/meaningful resurfacing, first-use baseline semantics, cursor Backup exclusion/validation and privacy-safe signal fields.
+- Updated `PRODUCT.md` / `ARCHITECTURE.md` so Revisit is current Reader behavior rather than a planned feed concept.
 
-Constraint: this round should use Round 3/4.6 local signals where available and should not become an engagement-notification system.
+Runtime/data impact:
+
+- No IndexedDB version or object-store change.
+- No new body/search/recommendation truth store.
+- No Manifest permission change.
+- No capture-adapter change.
+- No Provider/network request.
+- No push notifications, alarms or background recommendation job.
+- Revisit cursor writes do not wake Smart Filter/Library maintenance or emit ordinary archive-change broadcasts.
+
+Validation status:
+
+- Round 4.7 source tests are present and automatically discoverable by the existing Node test runner.
+- The connected development device remains unavailable, so this session does **not** claim green `npm test`, package audit, Chrome E2E or live UI smoke results.
+- Product value remains unproven until real Product Signals show that Revisit leads to voluntary reopening of old/new material rather than becoming an ignored control.
+
+Engineering exit criterion: **met at source level**.
+
+Product exit criterion: **not yet met**.
+
+---
+
+## Round 4.8 — Release Certification & Real-use Observation
+
+Status: **recommended next operational round, not started**
+
+Goal: stop adding product scope long enough to determine whether Rounds 2–4.7 actually form a stable daily-use product.
+
+Work when an executable development environment is available:
+
+- run the complete Node regression suite including Rounds 2–4.7;
+- run current release packaging and package/release guards;
+- run targeted Chrome journeys for Universal Search, Revisit, Search → Reader, Search → Context, Context Package and Passport revoke/expire/once semantics;
+- fix only regressions, performance problems and confusing daily-use friction discovered by those runs;
+- enable local Product Signals explicitly on a real daily-use profile and accumulate evidence over time;
+- review whether Universal Search/Revisit produce result opening, old-content rereading, copying or Context preparation.
+
+Constraint: Round 4.8 is a certification/observation round, not permission to add another major feature category.
+
+Exit criterion:
+
+- executable regression/package/browser checks are green or have explicit known limitations;
+- at least one Reader/Search/Revisit loop has real repeat-use evidence strong enough to guide the next product decision.
 
 ---
 
@@ -155,9 +190,9 @@ Status: **gated**
 
 Prerequisites:
 
-- core reread/retrieval loop has real-use evidence;
+- core reread/retrieval/return loop has real-use evidence;
 - Context/Passport direction is justified by use if Round 5 depends on it;
-- Round 2–4.6 runtime tests can execute in a real development environment;
+- Round 2–4.7 runtime tests can execute successfully in a real development environment;
 - schema ownership is stable enough to reason about conflicts.
 
 Potential work after the gate is deliberately opened:
@@ -198,4 +233,5 @@ These are not current commitments.
 - cloud sync before conflict semantics and product value are proven;
 - native apps that only duplicate the extension UI;
 - broad Passport/agent integration before repeated Context reuse is observed;
-- embeddings/vector storage before measured lexical-search failures justify them.
+- embeddings/vector storage before measured lexical-search failures justify them;
+- push notifications, streaks or opaque engagement recommendations merely to increase return frequency.
