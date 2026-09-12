@@ -29,6 +29,7 @@ jobs:
         working-directory: extension
         env:
           PAIA_HEADLESS: '1'
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/extension/node_modules/playwright
         run: node --test tests/readonly-gate-tool.test.mjs
       - name: Verify release exclusion and macOS command syntax
         working-directory: extension
