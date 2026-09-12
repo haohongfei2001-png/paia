@@ -21,30 +21,28 @@ Across all rounds:
 
 ## Round 1 — Product & Architecture Consolidation
 
-Status: **in progress / first post-v0.12 round**
+Status: **completed 2026-09-12**
 
 Goal: remove documentation ambiguity and freeze speculative complexity before more runtime work.
 
-Deliverables:
+Delivered:
 
-- Create `PRODUCT.md` as the current product source of truth.
-- Create `ARCHITECTURE.md` as the current architecture source of truth.
-- Replace the obsolete pre-v0.5 roadmap with this roadmap.
-- Update `AGENTS.md` so future AI development reads current truth before historical specs.
-- Update `README.md` so the repository clearly distinguishes current release behavior from forward product direction.
-- Explicitly freeze new durable schema/Thought ontology by default.
+- Created `PRODUCT.md` as the current product source of truth.
+- Created `ARCHITECTURE.md` as the current architecture source of truth.
+- Replaced the obsolete pre-v0.5 roadmap with this roadmap.
+- Updated `AGENTS.md` so future AI development reads current truth before historical specs.
+- Updated `README.md` so the repository clearly distinguishes current release behavior from forward product direction.
+- Explicitly froze new durable schema/Thought ontology by default.
+- Added `PRODUCT.md`, `ARCHITECTURE.md` and `ROADMAP.md` to the formal release allowlist.
+- Added a release-product guard that fails if the current product documents are omitted from an emitted release.
 
-Not in scope:
+Runtime impact:
 
-- runtime feature changes;
-- IndexedDB migration;
-- UI redesign;
-- new Provider/network permission;
-- cloud sync.
+- No IndexedDB/schema migration.
+- No capture/Reader/Thought/Context behavior change.
+- No Manifest permission or Provider/network change.
 
-Exit criterion:
-
-A fresh developer/agent should be able to answer, without version archaeology: what PAIA is, which data layer owns what, what is currently implemented, what is frozen and what should be built next.
+Exit criterion: **met**. A fresh developer/agent can identify the current product definition, data ownership rules, deliberate freezes and next development round without treating historical version plans as current direction.
 
 ---
 
