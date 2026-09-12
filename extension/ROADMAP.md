@@ -131,6 +131,31 @@ Product exit criterion: **not met**.
 
 ---
 
+## Round 4.9 — Core Product Loop Closure
+
+Status: **implementation and automated engineering certification completed 2026-09-13; real activation/return evidence remains open**
+
+Purpose: turn existing Reader, Universal Search, Revisit and Context capabilities into one user-facing loop instead of separate product islands.
+
+Delivered:
+
+- the Input Archive root becomes the task-oriented PAIA home around continue reading, find prior expression and return/revisit;
+- AI Context is demoted from primary content navigation to a secondary “用于 AI” action while preserving all existing authorization boundaries;
+- existing Universal Search and Revisit services are reused rather than duplicated;
+- Input Reader gains an explicit “继续使用” action that routes through the existing save lifecycle into the local Context preparation flow and never auto-sends content;
+- search-result reuse is presented as the user task “继续使用” rather than exposing the internal AI Context implementation as the primary concept;
+- popup primary action becomes “回到 PAIA”, while Product/Passport diagnostics remain available without competing with the normal entry path;
+- four bounded local aggregate `core_loop_action` observations cover continue/find/return/reuse without storing body text, search queries or entity identifiers;
+- Product Signals remain observation-only and cannot grant permissions, rank content or alter the core loop;
+- no new durable content schema, IndexedDB store, backend, network sync or automatic AI call was introduced;
+- the Round 4.9 Chrome journey is part of Current Browser Certification and verifies the loop without hidden external requests.
+
+Engineering exit criterion: **met**.
+
+Product exit criterion: **not met**. The interaction loop is now coherent and measurable, but voluntary return, retrieval and reuse still require real-use observation; this round does not claim retention or product-market evidence.
+
+---
+
 # Round 5 — Portability & Sync Readiness
 
 Status: **gated overall; Round 5A, Round 5B, Round 5C, Round 5D, Round 5E, Round 5F and Round 5F.1 were opened by explicit product-owner override**

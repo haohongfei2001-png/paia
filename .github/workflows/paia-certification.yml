@@ -83,7 +83,7 @@ jobs:
   current_browser:
     name: Current Browser Certification
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     defaults:
       run:
         working-directory: extension
@@ -106,8 +106,11 @@ jobs:
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
-      - name: Universal Search, Reader, Context, Revisit and Passport
-        run: xvfb-run -a node --test --test-concurrency=1 tests/release-certification-round48-chrome-e2e.test.mjs
+      - name: Core product loop, Search, Reader, Context, Revisit and Passport
+        run: >-
+          xvfb-run -a node --test --test-concurrency=1
+          tests/release-certification-round48-chrome-e2e.test.mjs
+          tests/release-certification-round49-chrome-e2e.test.mjs
       - name: Package audit after current Chrome journey
         run: |
           python3 scripts/check_package.py

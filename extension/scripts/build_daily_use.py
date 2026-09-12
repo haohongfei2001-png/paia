@@ -47,7 +47,7 @@ def build_release(source, target):
         shutil.copyfile(path, output)
     # Remove capture probing controls and legacy job controls from the release.
     # Ordinary read-only error details and the user-requested usage audit remain.
-    sub_once(target/'ui/popup.html', r'    <details><summary>捕获诊断</summary>.*?</details>', '')
+    sub_once(target/'ui/popup.html', r'    <details id="popup-internal-tools">.*?</details>', '')
     sub_once(target/'ui/popup.js', r"import \{ briefStructure \} from './structure-diagnostics.js';\n", '')
     cut(target/'ui/popup.js', "    $('diagnostic-status')", '\n  } catch')
     sub_once(target/'ui/archive.html', r'<details id="diagnostics">.*?</details>', '<section aria-label="捕获设置"><p id="enabled-state"></p><button id="toggle-capture">暂停捕获</button><p id="storage-usage"></p></section>')
