@@ -102,16 +102,22 @@ func deleteRootSecret(slot: Slot) throws {
     guard status == errSecSuccess || status == errSecItemNotFound else { try fail("SECURE_KEYCHAIN_DELETE_FAILED") }
 }
 
-func lookupSigningKey(slot: Slot) throws -> SecKey? {
-    let tag = try signingTag(slot)
-    let query: [CFString: Any] = [
+func signingKeyQuery(tag: Data, returnRef: Bool = false) -> [CFString: Any] {
+    var query: [CFString: Any] = [
         kSecClass: kSecClassKey,
         kSecAttrApplicationTag: tag,
         kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
-        kSecAttrKeyClass: kSecAttrKeyClassPrivate,
-        kSecReturnRef: true,
-        kSecMatchLimit: kSecMatchLimitOne
+        kSecAttrKeyClass: kSecAttrKeyClassPrivate
     ]
+    if returnRef {
+        query[kSecReturnRef] = true
+        query[kSecMatchLimit] = kSecMatchLimitOne
+    }
+    return query
+}
+
+func lookupSigningKey(slot: Slot) throws -> SecKey? {
+    let query = signingKeyQuery(tag: try signingTag(slot), returnRef: true)
     var item: CFTypeRef?
     let status = SecItemCopyMatching(query as CFDictionary, &item)
     if status == errSecItemNotFound { return nil }
@@ -119,22 +125,29 @@ func lookupSigningKey(slot: Slot) throws -> SecKey? {
     return (item as! SecKey)
 }
 
-func secureEnclaveAvailable() -> Bool {
+func persistentSecureEnclaveAvailable() -> Bool {
+    let probeTag = Data((signingTagPrefix + "probe." + UUID().uuidString).utf8)
+    defer { _ = SecItemDelete(signingKeyQuery(tag: probeTag) as CFDictionary) }
     var accessError: Unmanaged<CFError>?
     guard let access = SecAccessControlCreateWithFlags(nil, kSecAttrAccessibleWhenUnlockedThisDeviceOnly, .privateKeyUsage, &accessError) else { return false }
     let attributes: [CFString: Any] = [
         kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
         kSecAttrKeySizeInBits: 256,
         kSecAttrTokenID: kSecAttrTokenIDSecureEnclave,
-        kSecPrivateKeyAttrs: [kSecAttrIsPermanent: false, kSecAttrAccessControl: access]
+        kSecPrivateKeyAttrs: [kSecAttrIsPermanent: true, kSecAttrApplicationTag: probeTag, kSecAttrAccessControl: access]
     ]
-    var error: Unmanaged<CFError>?
-    return SecKeyCreateRandomKey(attributes as CFDictionary, &error) != nil
+    var createError: Unmanaged<CFError>?
+    guard SecKeyCreateRandomKey(attributes as CFDictionary, &createError) != nil else { return false }
+    var item: CFTypeRef?
+    let lookupStatus = SecItemCopyMatching(signingKeyQuery(tag: probeTag, returnRef: true) as CFDictionary, &item)
+    guard lookupStatus == errSecSuccess, item != nil else { return false }
+    let deleteStatus = SecItemDelete(signingKeyQuery(tag: probeTag) as CFDictionary)
+    return deleteStatus == errSecSuccess
 }
 
 func createSigningKey(slot: Slot) throws -> SecKey {
     if let existing = try lookupSigningKey(slot: slot) { return existing }
-    guard secureEnclaveAvailable() else { try fail("SECURE_ENCLAVE_UNAVAILABLE") }
+    guard persistentSecureEnclaveAvailable() else { try fail("SECURE_ENCLAVE_UNAVAILABLE") }
     var accessError: Unmanaged<CFError>?
     guard let access = SecAccessControlCreateWithFlags(nil, kSecAttrAccessibleWhenUnlockedThisDeviceOnly, .privateKeyUsage, &accessError) else { try fail("SECURE_SIGNING_ACCESS_CONTROL_FAILED") }
     let attributes: [CFString: Any] = [
@@ -197,16 +210,14 @@ func sign(slot: Slot, payload: Data) throws -> Data {
 }
 
 func deleteSigningKey(slot: Slot) throws {
-    let tag = try signingTag(slot)
-    let query: [CFString: Any] = [kSecClass: kSecClassKey, kSecAttrApplicationTag: tag, kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyClass: kSecAttrKeyClassPrivate]
-    let status = SecItemDelete(query as CFDictionary)
+    let status = SecItemDelete(signingKeyQuery(tag: try signingTag(slot)) as CFDictionary)
     guard status == errSecSuccess || status == errSecItemNotFound else { try fail("SECURE_SIGNING_KEY_DELETE_FAILED") }
 }
 
 func handle(_ request: [String: Any]) throws -> [String: Any] {
     guard request["version"] as? Int == protocolVersion, let operation = request["operation"] as? String else { try fail("SECURE_NATIVE_HOST_PROTOCOL_INVALID") }
     if operation == "probe" {
-        let enclave = secureEnclaveAvailable()
+        let enclave = persistentSecureEnclaveAvailable()
         return ["ok": true, "version": protocolVersion, "platform": "macos", "providerId": providerId, "secureEnclaveAvailable": enclave, "isolatedFromAppStorage": true, "supportsAtomicReplace": true, "supportsDelete": true, "supportsNonExportableSigningKey": enclave]
     }
     let slot = try parseSlot(request["slot"])
