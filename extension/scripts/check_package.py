@@ -65,7 +65,8 @@ def audit_manifest():
         require(False, "manifest.json is not valid readable JSON")
         return
     require(manifest.get("manifest_version") == 3, "Manifest must be version 3")
-    require(manifest.get("permissions") == ["storage"], "Only the storage API permission is allowed")
+    require(manifest.get("permissions") == ["storage", "nativeMessaging"],
+            "Only storage plus the reviewed nativeMessaging bridge are allowed")
     require(manifest.get("host_permissions") in (None, ["https://api.deepseek.com/*"]),
             "DeepSeek host permission must be the sole exact approved origin")
     for key in ("optional_host_permissions", "optional_permissions",
@@ -145,19 +146,16 @@ def audit_js(path, text):
     for label, pattern in FORBIDDEN_JS.items():
         scanned = text
         if label == "network API" and path == ROOT / "core/organizer/deepseek.js":
-            # This provider may call only its literal, CSP-constrained HTTPS origin.
             scanned = scanned.replace("this.fetchImpl(", "APPROVED_DEEPSEEK_FETCH(")
         if label == "website storage or nonlocal extension storage" and path in {ROOT / "core/organizer/deepseek.js", ROOT / "background/service-worker.js"}:
-            # Credentials, budget binding and transient Memory grants use trusted session storage.
             scanned = scanned.replace("chrome.storage.session", "APPROVED_SESSION_CREDENTIAL_STORAGE")
+        if label == "native messaging" and path == ROOT / "core/macos-native-secure-store.js":
+            scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
         if label == "clipboard access" and path == ROOT / "ui/reading-actions.js":
-            # Narrow explicit copy only; reads and other clipboard APIs remain prohibited.
             scanned = scanned.replace("navigator.clipboard.writeText(text)", "EXPLICIT_READING_COPY(text)")
         if label == "clipboard access" and path == ROOT / "ui/memory.js":
-            # Explicit preview Copy only; clipboard reads and other APIs remain forbidden.
             scanned = scanned.replace("navigator.clipboard.writeText(result.text)", "EXPLICIT_MEMORY_CONTEXT_COPY(result.text)")
         if label == "keyboard listener" and path in (ROOT / "ui/library.js", ROOT / "ui/library-entry-editor.js"):
-            # Approved document-session undo shortcuts, scoped to the extension editor root.
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_EDITOR_SHORTCUT(")
         if label == "keyboard listener" and path == ROOT / "ui/ai-presentation.js":
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_AI_EDITOR_SHORTCUT(")
@@ -170,6 +168,13 @@ def audit_js(path, text):
         match = re.search(pattern, scanned, re.I if label == "system keychain" else 0)
         line = text.count("\n", 0, match.start()) + 1 if match else 0
         require(not match, f"{path.relative_to(ROOT)}:{line}: forbidden {label}")
+    if path == ROOT / "core/macos-native-secure-store.js":
+        require("const HOST_NAME='com.paia.secure_store';" in text,
+                "macOS secure-store adapter must pin the reviewed native host name")
+        require(text.count("sendNativeMessage(") == 1,
+                "macOS secure-store adapter must keep one audited native messaging call site")
+        require("connectNative(" not in text,
+                "macOS secure-store adapter must use one-shot native messages, not a long-lived port")
     for match in re.finditer(r"['\"`](https?://[^'\"`\s]+)", text):
         parsed = urlsplit(match.group(1))
         require(parsed.scheme == "https" and parsed.netloc in {"chatgpt.com", "api.deepseek.com"} and (parsed.netloc != "api.deepseek.com" or path == ROOT / "core/organizer/deepseek.js"),
@@ -177,8 +182,6 @@ def audit_js(path, text):
     for match in re.finditer(r"\b(?:chrome\s*\.\s*)?runtime\s*\.\s*getURL\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
         local_reference(match.group(1), ROOT / "manifest.json",
                         f"{path.relative_to(ROOT)} runtime.getURL")
-    # Static ES module imports/exports must resolve to packaged files. Never run
-    # the code during this audit; synthetic tests exercise its behavior separately.
     for match in re.finditer(r"(?:\bfrom\s*|\bimport\s*)['\"]([^'\"]+)['\"]", text):
         local_reference(match.group(1), path, f"{path.relative_to(ROOT)} import")
     for match in re.finditer(r"\bimport\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
