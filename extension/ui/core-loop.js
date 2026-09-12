@@ -126,8 +126,9 @@ async function refreshReturnCard(){
 function refreshHome(){
  const home=$('core-loop-home'),browse=$('core-loop-browse-title');if(!home)return;
  const visible=isArchiveHome();home.hidden=!visible;if(browse)browse.hidden=!visible;if(!visible)return;
- const first=$('document-list')?.querySelector('.conversation-document'),recent=$('core-loop-continue');
- if(first&&recent){recent.disabled=false;recent.querySelector('strong').textContent=first.querySelector('strong')?.textContent||'继续最近的聊天文档';recent.querySelector('small').textContent=first.querySelector('small')?.textContent||'回到最近收录的内容。';setActivationReady();}
+ const first=$('document-list')?.querySelector('.conversation-document'),recent=$('core-loop-continue'),state=String(home.dataset.state||'');
+ const preserveReturnState=state.startsWith('return-');
+ if(first&&recent){recent.disabled=false;recent.querySelector('strong').textContent=first.querySelector('strong')?.textContent||'继续最近的聊天文档';recent.querySelector('small').textContent=first.querySelector('small')?.textContent||'回到最近收录的内容。';if(!preserveReturnState)setActivationReady();}
  else if(recent){recent.disabled=true;recent.querySelector('strong').textContent='还没有可继续阅读的内容';recent.querySelector('small').textContent='新的输入收录后，会从这里回到最近的聊天文档。';setActivationEmpty();}
  void refreshReturnCard();
 }
@@ -138,12 +139,13 @@ function preserveInternalToolAccess(){
 
 export function installCoreLoop(){
  if($('core-loop-home'))return;installStyles();demoteInternalNavigation();createHome();preserveInternalToolAccess();tuneExistingTools();
- const documentBody=$('document-body'),documentList=$('document-list'),collection=$('collection-panel'),dialog=$('universal-search-dialog');
+ const documentBody=$('document-body'),documentList=$('document-list'),collection=$('collection-panel'),dialog=$('universal-search-dialog'),revisitDialog=$('revisit-dialog');
  if(documentBody)new MutationObserver(decorateReader).observe(documentBody,{subtree:true,childList:true});
  if(documentList)new MutationObserver(refreshHome).observe(documentList,{subtree:true,childList:true});
  if(collection)new MutationObserver(refreshHome).observe(collection,{attributes:true,attributeFilter:['hidden']});
  for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(refreshHome).observe(nav,{attributes:true,attributeFilter:['aria-current']});
  if(dialog)new MutationObserver(tuneExistingTools).observe(dialog,{subtree:true,childList:true});
+ if(revisitDialog)revisitDialog.addEventListener('close',()=>{lastRevisitKey='';refreshHome();});
  $('search')?.addEventListener('input',refreshHome);
  chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED'){lastRevisitKey='';refreshHome();}});
  window.addEventListener('focus',refreshHome);
