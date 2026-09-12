@@ -95,8 +95,7 @@ export class ProductSignals {
  async noteSearch(surface,options,result,sender){
   if(!['input','thought'].includes(surface)||typeof options?.query!=='string'||!options.query.trim())return;
   const terminal=Array.isArray(result?.items)&&result.items.length>0||result?.nextCursor==null;if(!terminal)return;
-  const now=this.clock(),query=options.query.normalize('NFKC').trim().toLocaleLowerCase(),client=this.client(sender),key=surface+'\u0000'+client+'\u0000'+query,last=this.searchSeen.get(key)||0;
-  if(now-last<60000)return;
+  const now=this.clock(),client=this.client(sender),key=surface+'\u0000'+client,last=this.searchSeen.get(key)||0;if(now-last<60000)return;
   const outcome=result.items.length?'hit':'miss',saved=await this.record({name:surface+'_search',dimensions:{outcome}});if(!saved?.recorded)return;
   this.searchSeen.set(key,now);if(outcome==='hit')this.recentSearch.set(surface+'\u0000'+client,now);
  }
