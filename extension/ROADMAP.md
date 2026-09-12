@@ -20,6 +20,7 @@ Across all rounds:
 - Retention work must create return value, not push-notification or opaque engagement machinery.
 - A product-owner override may change implementation order, but it is not evidence that a product gate was satisfied.
 - Multi-device work must follow `SYNC_CONTRACT.md`; a cloud backend may implement the contract but may not redefine merge semantics.
+- Encrypted remote transport work must follow `REMOTE_OBJECT_PROTOCOL.md`; a backend must not require plaintext entity/device/revision metadata merely for convenience.
 
 ---
 
@@ -129,7 +130,7 @@ Product exit criterion: **not met**.
 
 # Round 5 — Portability & Sync Readiness
 
-Status: **gated overall; Round 5A and Round 5B were opened by explicit product-owner override**
+Status: **gated overall; Round 5A, Round 5B and Round 5C were opened by explicit product-owner override**
 
 The override changes implementation order only. It does **not** mean the broader Round 5 product prerequisites have been satisfied, and it does not open live multi-provider capture, cloud sync, Web/Desktop/mobile expansion or broad autonomous-agent access.
 
@@ -172,7 +173,7 @@ Product exit criterion: **not met**.
 
 ## Round 5B — Sync Contract & Readiness
 
-Status: **protocol/merge-contract implementation completed 2026-09-12; transport and real multi-device sync not implemented**
+Status: **protocol/merge-contract implementation and certification completed 2026-09-12; transport and real multi-device sync not implemented**
 
 Purpose: define how PAIA is allowed to synchronize before choosing a cloud/backend implementation.
 
@@ -191,19 +192,48 @@ Delivered:
 - release packaging requires the active sync contract;
 - dedicated contract regression tests.
 
-Explicit exclusions:
+Engineering exit criterion: **met at protocol-contract level**.
 
-- no cloud account/login;
-- no remote storage/backend;
-- no network or background sync;
-- no encryption/key-management implementation yet;
-- no device-registration UI;
+Transport exit criterion: **not met**.
+
+Product exit criterion: **not met**.
+
+## Round 5C — Encryption / Device Identity / Remote Object Protocol Simulation
+
+Status: **local protocol/simulation implementation and engineering certification completed 2026-09-13; real remote transport and production key management not implemented**
+
+Purpose: prove that the Round 5B merge contract can travel through a backend-neutral encrypted-object layer without exposing PAIA entity/revision/device identity to the remote store.
+
+Delivered:
+
+- `REMOTE_OBJECT_PROTOCOL.md` defines the active encrypted remote-object boundary;
+- `core/sync-crypto.js` uses standard Web Crypto primitives only: random 256-bit root key material, HKDF-SHA-256 per-object key derivation and AES-256-GCM authenticated encryption;
+- every remote object receives random salt, random 96-bit GCM nonce and opaque random object ID;
+- backend-visible header is limited to protocol/object/key versions, cipher/KDF labels, salt, nonce and ciphertext;
+- entity ID/type, device identity, operation ID, revision ancestry/hashes, tombstone target and private content remain inside ciphertext;
+- public remote header is authenticated as AES-GCM AAD, so header mutation fails closed;
+- decrypted private payload is cryptographically authenticated and then semantically bound back to the Round 5B hash contract before merge: human work must match `payloadHash`; Source `{immutable,facts}` separately binds `payloadHash` and `factsHash`;
+- `core/sync-simulator.js` provides an in-memory remote object store plus simulated devices with no network or persistent storage;
+- device identity is random per installation simulation and resets on reinstall rather than deriving from account/hardware identity;
+- wrong root key, ciphertext/header tampering, hash mismatch, object-ID collision, concurrent edit conflict and body-free Source tombstone behavior are covered by Round 5C tests;
+- release packaging requires the active remote-object protocol document;
+- current Release, Unit, Adapter/Privacy and Browser certification gates pass with the 5C protocol code present.
+
+Explicit limitations:
+
+- no real account/device onboarding;
+- no root-key distribution, wrapping, recovery or rotation implementation;
+- no platform secure-key storage integration;
+- no remote service, account API, network/background sync or remote authorization layer;
+- no device registration/revocation UI;
 - no conflict-resolution UI;
+- no transport padding/traffic-analysis defenses;
 - no new IndexedDB object stores;
-- no syncable Passport Grant/Context Package history;
-- no live multi-device behavior.
+- the local simulator passes root-key material directly between simulated devices and is not a production key-sharing design.
 
-Engineering exit criterion: **met at protocol-contract level once current Certification is green**.
+Engineering exit criterion: **met at local protocol/simulation level**.
+
+Key-management exit criterion: **not met**.
 
 Transport exit criterion: **not met**.
 
@@ -211,12 +241,13 @@ Product exit criterion: **not met**.
 
 ## Broader Round 5 work remains gated
 
-The next legitimate steps are not automatically “build cloud sync”. They are, in order of evidence:
+The next legitimate steps are not automatically “connect Supabase/Drive/iCloud”. They are, in order of evidence:
 
 1. verify Round 5A against a real Claude export;
 2. continue Round 4.8 real-use observation;
-3. only if multi-device value is deliberately prioritized, design the encryption/key-management and remote-object layer that implements `SYNC_CONTRACT.md`;
-4. before any public multi-device release, build explicit conflict-resolution UI and test offline divergence/tombstone/retry scenarios from the contract.
+3. if multi-device value remains deliberately prioritized, design root-key onboarding/distribution/recovery/rotation and secure per-platform key storage against `REMOTE_OBJECT_PROTOCOL.md`;
+4. only after the key-management model is accepted, design a bounded remote listing/cursor/retention/compaction transport that carries opaque encrypted objects without becoming merge authority;
+5. before any public multi-device release, build explicit conflict-resolution UI and test offline divergence/tombstone/retry/device-reset scenarios from `SYNC_CONTRACT.md`.
 
 Constraints:
 
@@ -224,8 +255,10 @@ Constraints:
 - Do not silently resolve conflicting human edits with latest-write-wins.
 - Sync must enrich source facts while preserving user work and deletion fences.
 - Device sequence and wall-clock time are not merge authority.
+- Remote object IDs are opaque transport identifiers, not canonical entity IDs.
 - Derived caches/projections should be rebuilt locally unless a later explicit design changes their scope.
 - Provider credentials, Product Signals, Revisit cursor and Passport Grants remain device-local by default.
+- A remote backend must not require plaintext entity/device/revision metadata for convenience.
 - Early Passport implementation is not permission for broad autonomous agent access.
 
 ---
@@ -234,7 +267,7 @@ Constraints:
 
 Potential later directions:
 
-- encrypted multi-device sync implementing the approved contract;
+- encrypted multi-device sync implementing the approved contracts;
 - Web / Desktop / mobile Reader surfaces;
 - Google Drive or other portable Context backends;
 - MCP/API/agent access through Passport Grants;
@@ -250,7 +283,7 @@ These are not current commitments.
 - knowledge graph as a product goal;
 - Provider proliferation;
 - automatic background AI organization;
-- cloud sync before product value, encryption/key management and conflict UI justify it;
+- cloud sync before product value, key management, transport privacy and conflict UI justify it;
 - native apps that only duplicate the extension UI;
 - broad Passport/agent integration before repeated Context reuse is observed;
 - embeddings/vector storage before measured lexical-search failures justify them;
