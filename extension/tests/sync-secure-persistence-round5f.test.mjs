@@ -7,7 +7,9 @@ import {
 } from '../core/secure-key-persistence.js';
 import {
   MacOSNativeSecureSecretProvider,
+  hasMacOSNativeSecureStorePermission,
   probeCurrentExtensionSecurePersistenceReadiness,
+  requestMacOSNativeSecureStorePermission,
 } from '../core/macos-native-secure-store.js';
 import {
   SecurePersistentSyncKeyring,
@@ -24,8 +26,17 @@ const b64=bytes=>Buffer.from(bytes).toString('base64url');
 const unb64=value=>new Uint8Array(Buffer.from(value,'base64url'));
 const slotKey=slot=>`${slot.accountId}\0${slot.deviceId}\0${slot.secretClass}\0${slot.keyVersion??''}`;
 
-function createFakeNativeHost(){
-  const roots=new Map(),signers=new Map();
+function createFakePermissions(initial=false){
+  let granted=initial,requests=0;
+  return {
+    async contains(query){return granted&&query?.permissions?.length===1&&query.permissions[0]==='nativeMessaging';},
+    async request(query){requests++;if(query?.permissions?.length===1&&query.permissions[0]==='nativeMessaging')granted=true;return granted;},
+    get requests(){return requests;},
+  };
+}
+
+function createFakeNativeHost({permissionGranted=true}={}){
+  const roots=new Map(),signers=new Map(),permissions=createFakePermissions(permissionGranted);let nativeCalls=0;
   async function handle(request){
     if(request.operation==='probe')return {ok:true,version:1,platform:'macos',providerId:'paia.fake.secure_enclave',secureEnclaveAvailable:true,isolatedFromAppStorage:true,supportsAtomicReplace:true,supportsDelete:true,supportsNonExportableSigningKey:true};
     const key=slotKey(request.slot||{});
@@ -47,19 +58,30 @@ function createFakeNativeHost(){
     if(request.operation==='deleteSigningKey'){signers.delete(key);return {ok:true};}
     return {ok:false,code:'SECURE_NATIVE_HOST_OPERATION_INVALID'};
   }
-  const runtime={lastError:null,sendNativeMessage(host,request,callback){assert.equal(host,'com.paia.secure_store');handle(request).then(callback);}};
-  return {runtime,roots,signers};
+  const runtime={lastError:null,sendNativeMessage(host,request,callback){nativeCalls++;assert.equal(host,'com.paia.secure_store');handle(request).then(callback);}};
+  return {runtime,permissions,roots,signers,get nativeCalls(){return nativeCalls;}};
 }
 
-test('Round 5F probes the native bridge and fails closed when the host is unavailable',async()=>{
-  const fake=createFakeNativeHost();
-  assert.deepEqual(await probeCurrentExtensionSecurePersistenceReadiness({runtime:fake.runtime}),{version:1,platform:'chrome_extension_macos',available:true,providerId:'paia.fake.secure_enclave',reason:null});
-  const missing={lastError:null,sendNativeMessage(_host,_request,callback){this.lastError={message:'Specified native messaging host not found.'};callback(undefined);this.lastError=null;}};
-  assert.equal((await probeCurrentExtensionSecurePersistenceReadiness({runtime:missing})).reason,'SECURE_NATIVE_HOST_UNAVAILABLE');
+const connectFake=fake=>MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime,permissions:fake.permissions});
+
+test('Round 5F keeps native messaging optional, never probes before grant, and exposes explicit request',async()=>{
+  const fake=createFakeNativeHost({permissionGranted:false});
+  assert.equal(await hasMacOSNativeSecureStorePermission({permissions:fake.permissions}),false);
+  assert.deepEqual(await probeCurrentExtensionSecurePersistenceReadiness({runtime:fake.runtime,permissions:fake.permissions}),{version:1,platform:'chrome_extension_macos',available:false,providerId:null,reason:'SECURE_NATIVE_MESSAGING_PERMISSION_REQUIRED'});
+  assert.equal(fake.nativeCalls,0);assert.equal(fake.permissions.requests,0);
+  assert.equal(await requestMacOSNativeSecureStorePermission({permissions:fake.permissions}),true);assert.equal(fake.permissions.requests,1);
+  assert.equal(await hasMacOSNativeSecureStorePermission({permissions:fake.permissions}),true);
+  assert.deepEqual(await probeCurrentExtensionSecurePersistenceReadiness({runtime:fake.runtime,permissions:fake.permissions}),{version:1,platform:'chrome_extension_macos',available:true,providerId:'paia.fake.secure_enclave',reason:null});
+  assert.equal(fake.nativeCalls,1);
+});
+
+test('Round 5F fails closed when permission exists but the pinned native host is unavailable',async()=>{
+  const permissions=createFakePermissions(true),missing={lastError:null,sendNativeMessage(_host,_request,callback){this.lastError={message:'Specified native messaging host not found.'};callback(undefined);this.lastError=null;}};
+  assert.equal((await probeCurrentExtensionSecurePersistenceReadiness({runtime:missing,permissions})).reason,'SECURE_NATIVE_HOST_UNAVAILABLE');
 });
 
 test('Round 5F production provider persists root material but forbids raw private signing-key persistence',async()=>{
-  const fake=createFakeNativeHost(),provider=await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}),gate=new SecureKeyPersistenceGate(provider);
+  const fake=createFakeNativeHost(),provider=await connectFake(fake),gate=new SecureKeyPersistenceGate(provider);
   assert.equal(gate.productionReady,true);
   const rootSlot=createSecureSecretSlot({accountId:'account_round5f',deviceId:'device_round5f',secretClass:'root_keyring',keyVersion:1});
   await gate.store(rootSlot,new Uint8Array([1,2,3,4]));assert.deepEqual([...await gate.load(rootSlot)],[1,2,3,4]);
@@ -69,10 +91,10 @@ test('Round 5F production provider persists root material but forbids raw privat
 
 test('Round 5F persistent keyring survives provider reconnect and preserves rotated roots',async()=>{
   const fake=createFakeNativeHost();
-  const firstGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
+  const firstGate=new SecureKeyPersistenceGate(await connectFake(fake));
   const first=await SecurePersistentSyncKeyring.create({gate:firstGate,accountId:'account_restart',deviceId:'device_restart'});
   const root1=first.rootKeyFor(1);await first.rotate();const root2=first.rootKeyFor(2),manifest=first.exportManifest();
-  const secondGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
+  const secondGate=new SecureKeyPersistenceGate(await connectFake(fake));
   const reopened=await SecurePersistentSyncKeyring.open({gate:secondGate,accountId:'account_restart',deviceId:'device_restart',manifest});
   assert.deepEqual(reopened.versions(),[1,2]);assert.equal(reopened.currentVersion,2);
   assert.deepEqual([...reopened.rootKeyFor(1)],[...root1]);assert.deepEqual([...reopened.rootKeyFor(2)],[...root2]);
@@ -81,12 +103,12 @@ test('Round 5F persistent keyring survives provider reconnect and preserves rota
 
 test('Round 5F Secure Enclave credential can reopen without exporting the private key and stays 5D-public-credential compatible',async()=>{
   const fake=createFakeNativeHost();
-  const firstGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
+  const firstGate=new SecureKeyPersistenceGate(await connectFake(fake));
   const credential=await SecurePersistentTrustedDeviceCredential.create({gate:firstGate,accountId:'account_signer'}),manifest=credential.exportManifest();
   const value={purpose:'round5f',counter:1},signature=credential.sign(value);
   assert.equal(typeof await signature,'string');
 
-  const secondGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
+  const secondGate=new SecureKeyPersistenceGate(await connectFake(fake));
   const reopened=await SecurePersistentTrustedDeviceCredential.open({gate:secondGate,accountId:'account_signer',manifest});
   assert.equal(reopened.publicCredential.credentialId,credential.publicCredential.credentialId);
   const registry=new TrustedDeviceRegistry();await registry.trust(reopened.publicCredential,{keyVersion:1});assert.equal(registry.isTrusted(reopened.publicCredential.credentialId),true);
@@ -100,8 +122,8 @@ test('Round 5F Secure Enclave credential can reopen without exporting the privat
 
 test('Round 5F secure persistent identities complete the 5D onboarding ceremony and persist the received keyring',async()=>{
   const fake=createFakeNativeHost(),accountId='account_pairing_round5f';
-  const inviterGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
-  const joinerGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
+  const inviterGate=new SecureKeyPersistenceGate(await connectFake(fake));
+  const joinerGate=new SecureKeyPersistenceGate(await connectFake(fake));
   const inviterCredential=await SecurePersistentTrustedDeviceCredential.create({gate:inviterGate,accountId});
   const joinerCredential=await SecurePersistentTrustedDeviceCredential.create({gate:joinerGate,accountId});
   const inviterKeyring=await SecurePersistentSyncKeyring.create({gate:inviterGate,accountId,deviceId:inviterCredential.deviceIdentity.deviceId});
@@ -118,7 +140,7 @@ test('Round 5F secure persistent identities complete the 5D onboarding ceremony 
   assert.deepEqual(imported.versions(),[1,2]);assert.equal(imported.currentVersion,2);
   assert.deepEqual([...imported.rootKeyFor(1)],[...expected1]);assert.deepEqual([...imported.rootKeyFor(2)],[...expected2]);
 
-  const manifest=imported.exportManifest(),reconnectedGate=new SecureKeyPersistenceGate(await MacOSNativeSecureSecretProvider.connect({runtime:fake.runtime}));
+  const manifest=imported.exportManifest(),reconnectedGate=new SecureKeyPersistenceGate(await connectFake(fake));
   const reopened=await SecurePersistentSyncKeyring.open({gate:reconnectedGate,accountId,deviceId:joinerCredential.deviceIdentity.deviceId,manifest});
   assert.deepEqual([...reopened.rootKeyFor(1)],[...expected1]);assert.deepEqual([...reopened.rootKeyFor(2)],[...expected2]);
 
