@@ -3,19 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>本机产品验证 · PAIA</title>
+  <title>本机工具 · PAIA</title>
   <link rel="icon" href="../icons/icon32.png">
   <link rel="stylesheet" href="product-signals.css">
   <script type="module" src="product-signals.js"></script>
 </head>
 <body>
 <main>
-  <p class="eyebrow">PAIA · LOCAL PRODUCT VALIDATION</p>
-  <h1>本机产品验证</h1>
-  <p class="intro">这些统计只用于判断 PAIA 的阅读、检索、思想库与 AI Context 是否真的产生重复使用价值。统计保存在本机，不上传，也不包含搜索词、正文、标题、主题名、Profile 名或对象 ID。</p>
+  <p class="eyebrow">PAIA · LOCAL TOOLS</p>
+  <h1>本机工具</h1>
+  <p class="intro">这里放置低频、可审计的本机能力：产品验证只保存聚合计数；Passport 只保存授权元数据。两者都不保存新的正文副本，也不增加网络请求。</p>
   <section class="privacy">
+    <h2>本机产品验证</h2>
     <label><input id="signals-enabled" type="checkbox"> 记录本机聚合使用统计</label>
-    <p>默认关闭。开启后只记录固定事件名、粗粒度枚举、日期桶与计数，最多保留 90 天；不会改变 Source / Input / Thought / Context 内容，也不会进入 PAIA Backup。</p>
+    <p>默认关闭。开启后只记录固定事件名、粗粒度枚举、日期桶与计数，最多保留 90 天；不会保存搜索词、正文、标题、主题名、Profile 名或对象 ID，也不会进入 PAIA Backup。</p>
     <p id="signals-status" role="status"></p>
   </section>
   <section>
@@ -28,10 +29,42 @@
     <p class="muted">这些数字只描述可观察行为。例如“切回原文”不等同于拒绝 AI，“重复访问”也不等同于满意；产品判断应结合一段时间的真实使用再做。</p>
   </section>
   <section class="actions">
-    <h2>数据控制</h2>
+    <h2>统计数据控制</h2>
     <button id="signals-export">导出统计 JSON</button>
     <button id="signals-clear" class="danger">清空本机产品统计</button>
-    <p class="muted">导出的文件只包含本页可见的聚合统计。清空不会删除任何档案、思想、授权或版本历史。</p>
+    <p class="muted">导出的文件只包含本页的聚合统计与 Passport 状态摘要；清空产品统计不会删除档案、思想、Passport Grant 或版本历史。</p>
+  </section>
+
+  <section id="passport-section" class="passport">
+    <p class="eyebrow">PAIA PASSPORT · MINIMUM GRANT</p>
+    <h2>AI 权限 Passport</h2>
+    <p class="muted">Thought / AI Context Profile 决定“哪些内容可以进入上下文”；Passport 只决定“哪个 AI、为了什么目的、在多长时间内，可以把这个 Profile 生成的 Context Package 带出 PAIA”。Passport 不保存正文。</p>
+    <form id="passport-form" class="passport-form">
+      <label>Consumer<select id="passport-consumer"><option value="chatgpt">ChatGPT</option><option value="claude">Claude</option><option value="gemini">Gemini</option><option value="coding_agent">Coding Agent</option><option value="other_ai">其他 AI</option></select></label>
+      <label>Purpose<select id="passport-purpose"><option value="general">通用协助</option><option value="research">研究</option><option value="coding">编程</option><option value="career">职业 / 求职</option><option value="writing">写作</option></select></label>
+      <label>Profile<select id="passport-profile"></select></label>
+      <label>有效期<select id="passport-duration"><option value="once">仅一次导出</option><option value="7d">7 天</option><option value="30d">30 天</option></select></label>
+      <button type="submit" class="primary">创建 Grant</button>
+    </form>
+    <p id="passport-status" role="status"></p>
+    <div id="passport-grants"></div>
+    <details id="passport-audit"><summary>访问审计</summary><p class="muted">只记录 Grant、Consumer、Purpose、Profile 引用、时间和 copy / markdown 动作；不记录 query 或 Context 正文。</p><div id="passport-audit-list"></div><button id="passport-clear-audits" class="danger" type="button">清空访问审计</button></details>
+  </section>
+
+  <section id="context-package-section">
+    <p class="eyebrow">CONTEXT PACKAGE · EPHEMERAL</p>
+    <h2>用 Passport 导出一次 Context Package</h2>
+    <p class="muted">先选择一个仍有效的 Grant。PAIA 会用该 Grant 的 Profile 在本机生成预览；复制或导出前会再次校验 Grant。Package 元数据稳定存在于本次预览中，正文不持久化。</p>
+    <div class="package-form">
+      <label>Grant<select id="package-grant"></select></label>
+      <label>详细度<select id="package-budget"><option value="short">简洁</option><option value="standard" selected>标准</option><option value="detailed">详细</option></select></label>
+      <label class="wide">你准备向 AI 问什么？<textarea id="package-query" rows="4" maxlength="1000" placeholder="例如：结合我过去关于 PAIA 的想法，下一步产品重点应该是什么？"></textarea></label>
+      <button id="package-build" class="primary" type="button">生成 Context Package 预览</button>
+    </div>
+    <p id="package-status" role="status"></p>
+    <pre id="package-meta" class="package-meta" hidden></pre>
+    <pre id="package-preview" class="package-preview" hidden></pre>
+    <div id="package-actions" hidden><button id="package-copy" class="primary" type="button">用 Grant 复制</button><button id="package-markdown" type="button">用 Grant 导出 Markdown</button></div>
   </section>
 </main>
 </body>
