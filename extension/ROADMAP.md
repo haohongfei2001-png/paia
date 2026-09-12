@@ -368,11 +368,11 @@ Product exit criterion: **not met**.
 
 ## Round 5F.1 — Physical macOS Validation & Native Host Distribution Hardening
 
-Status: **implementation and CI-level distribution certification in progress on the Round 5F.1 branch; physical Secure Enclave validation and an actually Developer-ID-signed/notarized package remain external release gates**
+Status: **implementation and automated CI-level distribution certification completed 2026-09-13; physical Secure Enclave validation, stable production Chrome extension identity and an actually Developer-ID-signed/notarized package remain external release gates**
 
 Purpose: turn the Round 5F native-host prototype into a reproducible macOS validation and direct-distribution path without pretending hosted CI or unsigned artifacts are public-release evidence.
 
-Delivered on the branch:
+Delivered:
 
 - `native-hosts/macos/verify-physical.mjs` validates Keychain replace/read/delete and persistent Secure Enclave signing across separate native-host processes, including cryptographic signature verification and post-delete lookup failure;
 - physical evidence is deliberately coarse and excludes generated secret material, slot identifiers, public-key fingerprints and machine identifiers;
@@ -381,9 +381,9 @@ Delivered on the branch:
 - `build-release.sh` cross-compiles arm64 and x86_64, produces one universal host, pins the system-wide Chrome native-host manifest to one exact extension ID, and has separate CI-only and production modes;
 - production package building fails closed unless both Developer ID Application and Developer ID Installer identities are supplied;
 - production host signing requires Hardened Runtime and a secure timestamp, and production `.pkg` creation requires Developer ID Installer signing;
-- `notarize-release.sh` uses `notarytool`, requires an Accepted result, staples and validates the ticket, and requires Gatekeeper install assessment;
+- `notarize-release.sh` uses `notarytool`, requires an Accepted result, staples and validates the ticket, requires Gatekeeper install assessment, and promotes companion build metadata only after those checks succeed;
 - `uninstall.sh` separates user/system filesystem removal from cryptographic device revocation and does not blindly erase Keychain/Secure Enclave state;
-- CI validates script syntax, universal architecture output, ad-hoc Hardened Runtime signing, exact package payload paths and non-distributable CI metadata;
+- CI validates script syntax, universal architecture output, ad-hoc Hardened Runtime signing, exact package payload paths, production fail-closed behavior without Apple signing identities and non-distributable CI metadata;
 - the secure-persistence contract now states the local-process threat boundary honestly: Chrome `allowed_origins` is a Chrome-mediated launch restriction, not cryptographic caller authentication against arbitrary same-user local code;
 - public distribution is explicitly blocked until PAIA has a final stable production Chrome extension ID to bind into `allowed_origins`.
 
@@ -395,7 +395,7 @@ External gates still open:
 - therefore no real Developer-ID-signed/notarized PAIA Secure Store package has been produced yet;
 - automatic signed-host update/removal UX remains unimplemented.
 
-CI/distribution-tooling engineering exit criterion: **pending final branch certification**.
+CI/distribution-tooling engineering exit criterion: **met**.
 
 Physical macOS hardware validation exit criterion: **not met**.
 
