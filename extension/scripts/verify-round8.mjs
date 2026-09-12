@@ -9,7 +9,12 @@ process.env.PAIA_HEADLESS='1';
 process.env.CHROME_PATH ||= require('playwright').chromium.executablePath();
 await mkdir('work/round8',{recursive:true});
 
-const exclusions=['history-performance-v090.test.mjs','light-coverage.test.mjs','smart-filter-diagnostics.test.mjs'];
+const historicalExclusions=['history-performance-v090.test.mjs','light-coverage.test.mjs','smart-filter-diagnostics.test.mjs'];
+// This development-only helper intentionally launches a headed standard
+// --load-extension browser and has its own Xvfb verification gate. It is not a
+// release runtime resource and must not be pulled into the portable Round 8 set.
+const developmentExclusions=['readonly-gate-tool.test.mjs'];
+const exclusions=[...historicalExclusions,...developmentExclusions];
 const all=(await readdir('tests')).filter(n=>n.endsWith('.test.mjs'));
 const portable=all.filter(n=>['unit','adapter contract','privacy/security'].includes(group(n))&&!exclusions.includes(n));
 const browser=[
@@ -40,7 +45,7 @@ for(const [label,args] of [['package',['scripts/check_package.py']],['release',[
 }
 const sha=spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim();
 await writeFile('work/round8/verification.json',JSON.stringify({
- sha,exclusions,portableFiles:portable.length,browserFiles:browser,results,
+ sha,historicalExclusions,developmentExclusions,exclusions,portableFiles:portable.length,browserFiles:browser,results,
  sharedWorkingBody:true,directUnorganizedInputContext:true,
  realUserData:false,realProvider:false,dailyDeployment:false
 },null,2)+'\n');
