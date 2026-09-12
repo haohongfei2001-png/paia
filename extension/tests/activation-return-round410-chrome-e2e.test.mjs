@@ -45,12 +45,19 @@ test('Round 4.10 current release: activation explains the product and return sta
   await eventually(async()=>!(await rpc(p,'PAIA_REVISIT_STATUS')).firstRun,'Revisit baseline becomes durable');
   await p.locator('.revisit-close').click();
 
-  // A later Input after that baseline is the return trigger. Switching back to
-  // an already-open PAIA tab must refresh local Revisit state; the user should
-  // not have to reload the page or receive a push notification.
-  const second={id:'round410-second',title:'Round 4.10 Return Input',base:1609462800,messages:[{id:'round410-second-message',text:'ROUND410_RETURN 这是我建立回访基线之后新增的一条输入。'}]};
+  // A later Input after that baseline is the return trigger. Verify the Revisit
+  // semantic contract directly before asserting its home presentation, so a
+  // future failure tells us whether data semantics or UI refresh regressed.
+  const second={id:'round410-second',title:'Round 4.10 Return Input',base:1609462800,messages:[{id:'round410-second-message',text:'ROUND410_RETURN 我决定把 PAIA 的下一步重点放在第一次理解产品价值和第二次主动回来，而不是继续增加功能页。'}]};
   await h.open(second);
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText.includes('ROUND410_RETURN')),'post-baseline Input is captured');
+  const revisitAfterCapture=await rpc(p,'PAIA_REVISIT_STATUS');
+  assert.equal(revisitAfterCapture.firstRun,false,JSON.stringify(revisitAfterCapture));
+  assert.equal(revisitAfterCapture.newInputs.count,1,JSON.stringify(revisitAfterCapture));
+  assert.match(revisitAfterCapture.newInputs.items[0]?.snippet||'',/ROUND410_RETURN/,JSON.stringify(revisitAfterCapture));
+
+  // Switching back to an already-open PAIA tab must refresh the local return
+  // state; ARCHIVE_CHANGED is the primary trigger and focus is only a fallback.
   await p.bringToFront();
   await homeState(p,'return-new');
   assert.equal((await p.locator('#core-loop-eyebrow').textContent()).trim(),'欢迎回来');
