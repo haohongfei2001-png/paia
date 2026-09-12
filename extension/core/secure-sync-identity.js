@@ -1,4 +1,5 @@
 import {canonicalJson,createDeviceIdentity,generateRootKeyMaterial,inspectRemoteObjectHeader,openRemoteObject,sealRemoteObject,sha256Hex} from './sync-crypto.js';
+import {KEYRING_TRANSFER} from './sync-key-management.js';
 import {SecureKeyPersistenceError,createSecureSecretSlot} from './secure-key-persistence.js';
 
 const encoder=new TextEncoder();
@@ -111,6 +112,9 @@ export class SecurePersistentSyncKeyring{
   }
   async seal({syncEnvelope,payload,objectId}={}){return sealRemoteObject({rootKey:this.rootKeyFor(this.#currentVersion),keyVersion:this.#currentVersion,syncEnvelope,payload,objectId});}
   async open(remoteObject){const header=inspectRemoteObjectHeader(remoteObject);return openRemoteObject({rootKey:this.rootKeyFor(header.keyVersion),remoteObject});}
+  [KEYRING_TRANSFER](){
+    return Object.freeze({version:1,currentVersion:this.#currentVersion,keys:Object.freeze([...this.#keys.entries()].sort((a,b)=>a[0]-b[0]).map(([keyVersion,keyMaterial])=>Object.freeze({keyVersion,keyMaterial:b64url(keyMaterial)})))});
+  }
   async removeAll(){
     for(const [version,key] of this.#keys){await this.#gate.remove(createSecureSecretSlot({accountId:this.#accountId,deviceId:this.#deviceId,secretClass:'root_keyring',keyVersion:version}));key.fill(0);}
     this.#keys.clear();
