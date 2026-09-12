@@ -1,0 +1,69 @@
+name: PAIA v0.12.0 release verification
+
+on:
+  push:
+    branches:
+      - release/v0.12.0
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/v0.12.0
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser dependencies
+        working-directory: extension
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify release metadata contract
+        working-directory: extension
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest=json.loads(Path('manifest.json').read_text())
+          package=json.loads(Path('package.json').read_text())
+          assert manifest['version']=='0.12.0'
+          assert manifest['version_name']=='v0.12.0 Thought Evolution & Shared Context'
+          assert package['version']=='0.12.0'
+          assert Path('README.md').read_text().startswith('# PAIA — Personal AI Input Archive\n\n**Current release: v0.12.0')
+          assert Path('README_HISTORY.md').read_text().startswith('## v0.11.1 reading closure')
+          assert Path('V0120_RELEASE.md').is_file()
+          PY
+      - name: Re-run verified Round 8 runtime and browser gate
+        working-directory: extension
+        env:
+          PAIA_HEADLESS: '1'
+        run: node scripts/verify-round8.mjs
+      - name: Verify emitted v0.12.0 release
+        working-directory: extension
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          release=Path('work/round8/release')
+          manifest=json.loads((release/'manifest.json').read_text())
+          assert manifest['version']=='0.12.0'
+          assert manifest['version_name']=='v0.12.0 Thought Evolution & Shared Context'
+          assert (release/'V0120_RELEASE.md').is_file()
+          assert not (release/'development').exists()
+          assert not (release/'README_HISTORY.md').exists()
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paia-v0.12.0-release-evidence-${{ github.sha }}
+          path: extension/work/round8/**
+          if-no-files-found: warn
+          retention-days: 14
