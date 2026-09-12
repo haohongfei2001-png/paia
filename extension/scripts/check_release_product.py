@@ -26,9 +26,13 @@ def check_release(target):
             assert 'id="'+id+'"' in html,id
         assert 'navigator.clipboard.read' not in (target/'ui/memory.js').read_text()
     manifest=json.loads((target/'manifest.json').read_text())
-    assert manifest['permissions']==['storage']
+    assert manifest['permissions']==['storage','nativeMessaging']
     assert manifest['host_permissions']==['https://api.deepseek.com/*']
     assert "connect-src https://api.deepseek.com;" in manifest['content_security_policy']['extension_pages']
+    adapter=(target/'core/macos-native-secure-store.js').read_text()
+    assert "const HOST_NAME='com.paia.secure_store';" in adapter
+    assert adapter.count('sendNativeMessage(')==1
+    assert 'connectNative(' not in adapter
     print('RELEASE_PRODUCT_GUARD_PASS',len(files),'files')
 if __name__=='__main__':
     check_release(sys.argv[1])
