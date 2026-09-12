@@ -96,7 +96,7 @@ export class ImportLedger {
    if(proof.digest!==batch.digest)fail('IMPORT_BATCH_MISMATCH');if(proof.receipt)return proof.receipt;
    if(q.sequence!==task.committedBatches)fail('IMPORT_STATE');
    const c=await this.store.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)fail('CONSENT_REQUIRED');
-   const seq=await t.get('meta','sequence'),docs=new Set(),titledChats=new Set(),count=counts();
+   const seq=await t.get('meta','sequence'),docs=new Set(),titledChats=new Set(),documentIds=new Map(),count=counts();
    for(const r of batch.rows){
     if(await t.get('tombstones','source:'+r.sourceKey)||await t.get('tombstones','snapshot:'+r.dedupeKey)){count.ignored++;continue;}
     const sourceVersions=await t.count('recordIndex','bySource',r.sourceKey),legacyVersions=await t.count('recordIndex','byLegacyChat','chatgpt:'+r.chatId);
@@ -124,11 +124,11 @@ export class ImportLedger {
     for(const {r:record,index}of selected){
      const old=await t.get('records',record.id);
      if(old){if(!record.chatTitle&&r.title){record.chatTitle=r.title;metadataChanged=true;}if(record.conversationOrder==null&&relation.branch==='current'&&r.order!==null){record.conversationOrder=r.order;metadataChanged=true;}}
-     const changed=!old||JSON.stringify(old.value)!==JSON.stringify(record);if(changed)await this.store.saveRecord(t,record,index);
+     const changed=!old||JSON.stringify(old.value)!==JSON.stringify(record);if(changed)await this.store.saveRecord(t,record,index,{newRecord:!old});
      if(old&&old.value.sourceSentAt!==record.sourceSentAt)await importedTimeChanged(this.store,t,record.id);
      if(old)for(const id of await importedBranchChanged(this.store,t,record.id,relation.branch))docs.add(id);
      if(record===addedRecord&&newSource){
-      const doc=await this.store.defaultBlock(t,record,seq,{branch:relation.branch});if(doc)docs.add(doc);
+      const knownDocumentId=documentIds.get(r.chatId),doc=await this.store.defaultBlock(t,record,seq,{branch:relation.branch,newRecord:true,...(knownDocumentId?{documentId:knownDocumentId}:{})});if(doc){documentIds.set(r.chatId,doc);docs.add(doc);}
       const b=(await t.get('blocks','block:'+record.id))?.value;
       if(b){count.newInputs+=!b.excluded?1:0;if(this.store.initialFilter){const m=await t.get('inputStates',b.id);await t.put('filterInputs',this.store.initialFilter(b,m));}}
      }
