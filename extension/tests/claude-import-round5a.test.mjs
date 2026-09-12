@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
 import {IndexedArchiveStore} from '../core/indexed-store.js';
 import {ImportLedger} from '../core/import/ledger.js';
@@ -75,4 +76,11 @@ test('format detection refuses to guess when no registered export shape is prese
  const detected=await detectHistoryFile(new Blob([JSON.stringify([{uuid:'random-object-001',messages:[{text:'private'}]}])]),{consent:true});
  assert.equal(detected.support,'unknown');
  assert.equal(detected.userMessages,0);
+});
+
+test('history completion UI follows the session-resolved adapter instead of a fixed provider',async()=>{
+ const ui=await readFile(new URL('../ui/history-completion.js',import.meta.url),'utf8');
+ assert.equal(ui.includes('!controller.adapter'),false);
+ assert.ok(ui.includes("sourceName(d.adapterId||d.profileId)"));
+ assert.ok(ui.includes("sourceName(r.adapterId)+' 官方导出'"));
 });
