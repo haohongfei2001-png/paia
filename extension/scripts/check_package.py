@@ -65,12 +65,13 @@ def audit_manifest():
         require(False, "manifest.json is not valid readable JSON")
         return
     require(manifest.get("manifest_version") == 3, "Manifest must be version 3")
-    require(manifest.get("permissions") == ["storage", "nativeMessaging"],
-            "Only storage plus the reviewed nativeMessaging bridge are allowed")
+    require(manifest.get("permissions") == ["storage"],
+            "Required permissions must remain storage-only")
+    require(manifest.get("optional_permissions") == ["nativeMessaging"],
+            "nativeMessaging must be the sole reviewed optional permission")
     require(manifest.get("host_permissions") in (None, ["https://api.deepseek.com/*"]),
             "DeepSeek host permission must be the sole exact approved origin")
-    for key in ("optional_host_permissions", "optional_permissions",
-                "externally_connectable", "web_accessible_resources", "sandbox",
+    for key in ("optional_host_permissions", "externally_connectable", "web_accessible_resources", "sandbox",
                 "update_url", "devtools_page", "chrome_url_overrides"):
         require(not manifest.get(key), f"Unexpected manifest capability: {key}")
     minimum_version = str(manifest.get("minimum_chrome_version", "0"))
@@ -175,6 +176,8 @@ def audit_js(path, text):
                 "macOS secure-store adapter must keep one audited native messaging call site")
         require("connectNative(" not in text,
                 "macOS secure-store adapter must use one-shot native messages, not a long-lived port")
+        require("SECURE_NATIVE_MESSAGING_PERMISSION_REQUIRED" in text and "requestMacOSNativeSecureStorePermission" in text,
+                "macOS secure-store adapter must fail closed before optional permission and expose only explicit request")
     for match in re.finditer(r"['\"`](https?://[^'\"`\s]+)", text):
         parsed = urlsplit(match.group(1))
         require(parsed.scheme == "https" and parsed.netloc in {"chatgpt.com", "api.deepseek.com"} and (parsed.netloc != "api.deepseek.com" or path == ROOT / "core/organizer/deepseek.js"),
