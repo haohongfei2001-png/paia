@@ -1,9 +1,13 @@
 const encoder=new TextEncoder();
 const OPAQUE_RE=/^[A-Za-z0-9_-]{8,160}$/;
 const MAX_RELAY_BYTES=96*1024;
-const DEFAULT_RELAY_TTL_MS=5*60*1000;
-const MAX_RELAY_TTL_MS=15*60*1000;
-const SENSITIVE_KEYS=new Set(['keyMaterial','rootKey','rootKeys','privateKey','privateKeyJwk','recoverySecret','password','passphrase','body','title','note','query','contextText','payloadHash','baseHash','factsHash','entityId','revisionId']);
+const DEFAULT_INVITE_TTL_MS=5*60*1000;
+const MAX_INVITE_TTL_MS=15*60*1000;
+const SENSITIVE_KEYS=new Set([
+  'keyMaterial','rootKey','rootKeys','privateKey','privateKeyJwk','recoverySecret','password','passphrase',
+  'body','title','note','query','contextText','payloadHash','baseHash','factsHash','entityId','revisionId',
+  'operationId','deviceSequence','permanentTombstone','tombstoneTarget','ancestorHash','revisionGraph',
+]);
 
 export const ACCOUNT_DEVICE_SERVICE_CONTRACT_VERSION=1;
 
@@ -66,6 +70,7 @@ function boundedArtifact(input){
 export class LocalAccountDeviceServiceSimulator{
   #accounts=new Map();
   #sessions=new Map();
+  #invites=new Map();
   #relays=new Map();
   #now;
   constructor({now=()=>Date.now()}={}){
@@ -133,12 +138,26 @@ export class LocalAccountDeviceServiceSimulator{
     row.status='revoked';row.revokedAt=this.#now();account.membershipEpoch++;
     return account.membershipEpoch;
   }
-  createPairingRelay({accountId,request,ttlMs=DEFAULT_RELAY_TTL_MS}={}){
-    const account=this.#account(accountId);
-    if(!Number.isSafeInteger(ttlMs)||ttlMs<30_000||ttlMs>MAX_RELAY_TTL_MS)fail('ACCOUNT_RELAY_TTL_INVALID');
-    const relayId=randomOpaque('relay_',18),accessToken=randomOpaque('relay_access_',24),now=this.#now();
-    this.#relays.set(relayId,{accountId:account.accountId,accessToken,request:boundedArtifact(request),challenge:null,finalPackage:null,state:'request',createdAt:now,expiresAt:now+ttlMs});
-    return Object.freeze({relayId,accessToken,expiresAt:now+ttlMs});
+  createPairingInvite({sessionToken,ttlMs=DEFAULT_INVITE_TTL_MS}={}){
+    const {account}=this.#authorized(sessionToken);
+    if(!Number.isSafeInteger(ttlMs)||ttlMs<30_000||ttlMs>MAX_INVITE_TTL_MS)fail('ACCOUNT_INVITE_TTL_INVALID');
+    const inviteToken=randomOpaque('invite_',24),now=this.#now();
+    this.#invites.set(inviteToken,{accountId:account.accountId,state:'active',createdAt:now,expiresAt:now+ttlMs});
+    return Object.freeze({inviteToken,expiresAt:now+ttlMs});
+  }
+  #invite(inviteToken){
+    if(!OPAQUE_RE.test(inviteToken||''))fail('ACCOUNT_INVITE_INVALID');
+    const invite=this.#invites.get(inviteToken);
+    if(!invite)fail('ACCOUNT_INVITE_INVALID');
+    if(this.#now()>=invite.expiresAt){invite.state='expired';fail('ACCOUNT_INVITE_EXPIRED');}
+    if(invite.state!=='active')fail('ACCOUNT_INVITE_USED');
+    return invite;
+  }
+  createPairingRelay({inviteToken,request}={}){
+    const invite=this.#invite(inviteToken),relayId=randomOpaque('relay_',18),accessToken=randomOpaque('relay_access_',24),now=this.#now();
+    invite.state='used';
+    this.#relays.set(relayId,{accountId:invite.accountId,accessToken,request:boundedArtifact(request),challenge:null,finalPackage:null,state:'request',createdAt:now,expiresAt:invite.expiresAt});
+    return Object.freeze({relayId,accessToken,expiresAt:invite.expiresAt});
   }
   #relay(relayId){
     const relay=this.#relays.get(relayId);
