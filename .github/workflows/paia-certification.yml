@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'extension/**'
+      - 'native-hosts/**'
       - '.github/workflows/paia-certification.yml'
   pull_request:
     paths:
       - 'extension/**'
+      - 'native-hosts/**'
       - '.github/workflows/paia-certification.yml'
   workflow_dispatch:
 
@@ -111,6 +113,22 @@ jobs:
           python3 scripts/check_package.py
           node scripts/check_development.mjs
 
+  macos_secure_store:
+    name: macOS Secure Store Certification
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile native secure-store host
+        run: xcrun swiftc -O -framework Security native-hosts/macos/paia-secure-store.swift -o /tmp/paia-secure-store
+      - name: Exercise Keychain protocol and Secure Enclave fail-closed path
+        run: node native-hosts/macos/test-host.mjs /tmp/paia-secure-store
+
   historical_browser:
     name: Historical Browser Audit ${{ matrix.shard }}
     if: github.event_name == 'workflow_dispatch'
@@ -183,17 +201,19 @@ jobs:
     name: Certification gate
     runs-on: ubuntu-latest
     if: always()
-    needs: [unit, contracts, current_browser, release]
+    needs: [unit, contracts, current_browser, macos_secure_store, release]
     steps:
       - name: Require every current-release gate
         env:
           UNIT: ${{ needs.unit.result }}
           CONTRACTS: ${{ needs.contracts.result }}
           CURRENT_BROWSER: ${{ needs.current_browser.result }}
+          MACOS_SECURE_STORE: ${{ needs.macos_secure_store.result }}
           RELEASE: ${{ needs.release.result }}
         run: |
-          printf 'unit=%s\ncontracts=%s\ncurrent_browser=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$CURRENT_BROWSER" "$RELEASE"
+          printf 'unit=%s\ncontracts=%s\ncurrent_browser=%s\nmacos_secure_store=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$CURRENT_BROWSER" "$MACOS_SECURE_STORE" "$RELEASE"
           test "$UNIT" = success
           test "$CONTRACTS" = success
           test "$CURRENT_BROWSER" = success
+          test "$MACOS_SECURE_STORE" = success
           test "$RELEASE" = success

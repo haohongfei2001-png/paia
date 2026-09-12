@@ -133,7 +133,7 @@ Product exit criterion: **not met**.
 
 # Round 5 — Portability & Sync Readiness
 
-Status: **gated overall; Round 5A, Round 5B, Round 5C, Round 5D and Round 5E were opened by explicit product-owner override**
+Status: **gated overall; Round 5A, Round 5B, Round 5C, Round 5D, Round 5E and Round 5F were opened by explicit product-owner override**
 
 The override changes implementation order only. It does **not** mean the broader Round 5 product prerequisites have been satisfied, and it does not open live multi-provider capture, cloud sync, Web/Desktop/mobile expansion or broad autonomous-agent access.
 
@@ -231,7 +231,7 @@ Product exit criterion: **not met**.
 
 ## Round 5D — Key Management & Trusted Device Onboarding
 
-Status: **local key-management/trusted-device protocol implementation and engineering certification completed 2026-09-13; production secure storage/account/device service not implemented**
+Status: **local key-management/trusted-device protocol implementation and engineering certification completed 2026-09-13; later integrated with the macOS secure-persistence path by Round 5F**
 
 Purpose: replace the Round 5C simulator’s direct shared-root-key shortcut with an explicit local protocol for key lifecycle, trusted-device onboarding, revocation/rotation semantics and offline recovery.
 
@@ -257,10 +257,10 @@ Delivered:
 - no new IndexedDB object store, Manifest permission, network request or backend SDK;
 - dedicated Round 5D regression tests plus release-document guard integration.
 
-Explicit limitations:
+Round 5F later replaces the local-only credential/keyring implementation on the macOS production path without weakening this ceremony or its comparison-code/approval semantics.
 
-- root keys, device private signing keys and trusted-device registry are still memory-only in this protocol simulation;
-- no concrete production Chrome/Web/macOS/iOS/Android secure-key storage adapter is implemented;
+Explicit limitations that remain after Round 5F:
+
 - no production account/device directory or authenticated remote authorization service exists;
 - no network onboarding relay, invitation expiry service or server-side replay protection exists;
 - no automatic background key distribution;
@@ -269,9 +269,7 @@ Explicit limitations:
 - no user-facing device/recovery management UI;
 - no live multi-device sync.
 
-Engineering exit criterion: **met at local protocol/simulation level**.
-
-Secure-storage exit criterion: **not met**.
+Engineering exit criterion: **met at protocol level**.
 
 Account/device-service exit criterion: **not met**.
 
@@ -281,7 +279,7 @@ Product exit criterion: **not met**.
 
 ## Round 5E — Secure Key Persistence & Account/Device Service Contract
 
-Status: **contract/local-simulation implementation completed 2026-09-13; final certification pending on this branch; production secure-store adapter and account/backend service not implemented**
+Status: **contract/local-simulation implementation and final engineering certification completed 2026-09-13; macOS secure-store implementation later supplied by Round 5F; production account/backend service not implemented**
 
 Purpose: define the production boundary for durable secret storage and for any future account/device backend before network sync is allowed.
 
@@ -289,7 +287,7 @@ Delivered:
 
 - `SECURE_KEY_PERSISTENCE.md` as the active secret-persistence contract;
 - `core/secure-key-persistence.js` production capability gate for root-key and device-private-key storage;
-- explicit current Chrome Extension readiness of `available=false` when no approved OS/hardware secure-store adapter exists;
+- explicit fail-closed readiness when no approved OS/hardware secure-store adapter exists;
 - fail-closed rejection of test-only or inadequate providers in production mode rather than silently using ordinary application storage;
 - test-only in-memory provider for lifecycle tests, explicitly incapable of production readiness;
 - `ACCOUNT_DEVICE_SERVICE.md` as the maximum-authority contract for a future account/device service;
@@ -301,22 +299,66 @@ Delivered:
 - the real Round 5D onboarding ceremony is exercised end-to-end through the Round 5E relay simulator;
 - ordinary PAIA Backup remains separate from secret persistence;
 - release packaging requires both new active contracts;
-- no Manifest permission, host permission, network request, backend SDK or new IndexedDB object store is introduced.
+- Round 5E itself introduced no network request, backend SDK or new IndexedDB object store.
 
-Explicit limitations:
+Explicit limitations that remain after Round 5F:
 
 - the capability gate prevents accidental product-code downgrade; it does not sandbox malicious code already running inside the PAIA process;
-- no concrete OS/hardware secure-store adapter is implemented on Chrome/Web/macOS/iOS/Android/Windows;
-- the current Chrome Extension therefore remains unable to persist sync root keys in a production-approved way;
 - no production account login/authentication provider exists;
 - no durable remote device directory or authorization service exists;
 - no network pairing relay, rate limiting, abuse prevention or server-side replay store exists;
 - no encrypted remote-object transport/listing service exists;
 - no live multi-device sync.
 
-Engineering contract exit criterion: **met at local contract/simulation level, subject to final branch certification**.
+Engineering contract exit criterion: **met**.
 
-Production secure-storage implementation exit criterion: **not met**.
+Production secure-storage contract exit criterion: **met; first concrete platform implementation is Round 5F**.
+
+Production account/device-service exit criterion: **not met**.
+
+Transport exit criterion: **not met**.
+
+Product exit criterion: **not met**.
+
+## Round 5F — Production Secure Store Adapter
+
+Status: **macOS adapter implementation and automated engineering certification completed 2026-09-13; physical Secure Enclave device validation and signed/notarized native-host distribution remain release gates**
+
+Purpose: implement the first concrete platform secure-storage path satisfying `SECURE_KEY_PERSISTENCE.md` without downgrading root keys or device signing credentials into ordinary extension storage.
+
+Delivered:
+
+- Chrome Native Messaging is the explicit bridge from the extension to the reviewed macOS native host `com.paia.secure_store`;
+- `core/macos-native-secure-store.js` pins that host name and exposes only bounded probe/root-secret/signing operations;
+- root-key material is stored per retained key version in macOS Keychain using device-local accessibility rather than IndexedDB, `chrome.storage` or normal files;
+- the long-term P-256 device signing private key is generated directly in Secure Enclave and is never returned to JavaScript as private-key bytes;
+- production readiness requires the real non-exportable signing interface; generic production `store/load` of `device_signing_private` is rejected;
+- `core/secure-sync-identity.js` provides persistent root-keyring and hardware-backed device-credential primitives with non-secret restart manifests;
+- the Round 5D onboarding ceremony now accepts validated signer/keyring capabilities rather than requiring only in-memory class instances;
+- a joining device can persist an approved transferred keyring into its own secure slots; target collisions fail closed and partial writes roll back;
+- native-host readiness probes the persistent Secure Enclave create → lookup → delete lifecycle rather than treating temporary key creation as sufficient;
+- hosts without persistent Secure Enclave support remain unavailable instead of falling back to an exportable software signing key;
+- `nativeMessaging` is the only newly added extension permission; package/privacy/release guards permit only the pinned audited call site and continue to reject other native-messaging access;
+- the macOS native host has a developer installer with an exact Chrome extension origin allowlist;
+- CI now includes a required macOS secure-store job that compiles the Swift host, exercises real Keychain root-secret lifecycle and certifies the Secure Enclave available-or-fail-closed path;
+- all existing unit, privacy/adapter, current-browser and release guards remain green alongside the new macOS gate.
+
+Explicit limitations:
+
+- GitHub-hosted macOS CI does not establish that a physical user Mac can complete the successful persistent Secure Enclave create → sign → process restart → reopen → sign → delete lifecycle; that must be verified on real supported hardware before public production-readiness is claimed;
+- the native host is not yet code-signed/notarized or packaged for user-friendly installation/update/removal;
+- the current installer is a developer installation path and requires the exact extension ID;
+- Windows, iOS, Android and browser-only clients still have no approved secure-store adapter;
+- no production account login/device-directory backend exists;
+- no network pairing relay exists;
+- no encrypted remote-object transport/listing service exists;
+- no live multi-device sync or conflict-resolution UI exists.
+
+Automated engineering adapter exit criterion: **met**.
+
+Physical macOS hardware validation exit criterion: **not met**.
+
+Distribution/release-readiness exit criterion: **not met**.
 
 Production account/device-service exit criterion: **not met**.
 
@@ -330,8 +372,8 @@ The next legitimate steps are not automatically “connect Supabase/Drive/iCloud
 
 1. verify Round 5A against a real Claude export;
 2. continue Round 4.8 real-use observation;
-3. if multi-device value remains deliberately prioritized, implement and review at least one real platform secure-store adapter satisfying `SECURE_KEY_PERSISTENCE.md`;
-4. define and implement a production account authentication/device-directory/pairing-relay service satisfying `ACCOUNT_DEVICE_SERVICE.md`, without making that service encryption or merge authority;
+3. complete Round 5F physical-macOS Secure Enclave verification and signed/notarized native-host distribution before claiming public secure-store readiness;
+4. if multi-device value remains deliberately prioritized, implement a production account authentication/device-directory/pairing-relay service satisfying `ACCOUNT_DEVICE_SERVICE.md`, without making that service encryption or merge authority;
 5. design bounded encrypted remote-object listing/cursor/retention/compaction plus old-key re-encryption/retirement semantics;
 6. before any public multi-device release, build explicit conflict-resolution UI and test offline divergence/tombstone/retry/device-reset/revocation scenarios over the actual transport.
 
@@ -350,6 +392,7 @@ Constraints:
 - Device revocation must be described honestly: blocking future key versions is different from erasing historical knowledge.
 - Absence of an approved platform secure-store adapter must disable durable live sync rather than trigger an insecure storage fallback.
 - The account/device service may coordinate public device trust and short-lived pairing messages but cannot become client-content merge authority.
+- Native Messaging must remain pinned to reviewed host/origin boundaries and must not become a general privileged escape hatch from the extension sandbox.
 - Early Passport implementation is not permission for broad autonomous agent access.
 
 ---

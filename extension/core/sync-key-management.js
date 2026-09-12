@@ -3,7 +3,7 @@ import {canonicalJson,createDeviceIdentity,generateRootKeyMaterial,inspectRemote
 const encoder=new TextEncoder();
 const decoder=new TextDecoder();
 const INTERNAL=Symbol('paia-keyring-internal');
-const KEYRING_TRANSFER=Symbol('paia-keyring-transfer');
+export const KEYRING_TRANSFER=Symbol('paia-keyring-transfer');
 const OPAQUE_RE=/^[A-Za-z0-9_-]{8,128}$/;
 const B64_RE=/^[A-Za-z0-9_-]+$/;
 const PAIRING_CODE_RE=/^[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$/;
@@ -88,6 +88,19 @@ function normalizeKeyringSnapshot(input){
   keys.sort((a,b)=>a.keyVersion-b.keyVersion);
   if(!seen.has(input.currentVersion))fail('SYNC_KEYRING_SNAPSHOT_INVALID');
   return Object.freeze({version:1,currentVersion:input.currentVersion,keys:Object.freeze(keys.map(Object.freeze))});
+}
+
+async function requireSigningCredential(credential,code){
+  if(!credential||typeof credential.sign!=='function')fail(code);
+  await validatePublicCredential(credential.publicCredential);
+  return credential;
+}
+
+function transferKeyringSnapshot(keyring,code){
+  if(!keyring||typeof keyring[KEYRING_TRANSFER]!=='function')fail(code);
+  let snapshot;
+  try{snapshot=keyring[KEYRING_TRANSFER]();}catch{fail(code);}
+  return normalizeKeyringSnapshot(snapshot);
 }
 
 export class LocalSyncKeyring{
@@ -281,7 +294,7 @@ export class PendingTrustedDeviceOnboarding{
     this.#credential=credential;this.#privateKey=privateKey;this.#request=request;
   }
   static async begin(credential){
-    if(!(credential instanceof LocalTrustedDeviceCredential))fail('SYNC_ONBOARDING_CREDENTIAL_REQUIRED');
+    credential=await requireSigningCredential(credential,'SYNC_ONBOARDING_CREDENTIAL_REQUIRED');
     const pair=await cryptoApi().subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);
     const joiningEphemeralPublic=await exportEcdhPublic(pair.publicKey),sessionId=randomOpaque('session_',18);
     const core={protocolVersion:KEY_MANAGEMENT_PROTOCOL_VERSION,sessionId,keyAgreement:ONBOARDING_KEY_AGREEMENT,joiningCredential:credential.publicCredential,joiningEphemeralPublic};
@@ -328,7 +341,7 @@ export class PendingTrustedDeviceApproval{
   }
   static async prepare({request,inviterCredential}={}){
     request=await validateOnboardingRequest(request);
-    if(!(inviterCredential instanceof LocalTrustedDeviceCredential))fail('SYNC_ONBOARDING_INVITER_INVALID');
+    inviterCredential=await requireSigningCredential(inviterCredential,'SYNC_ONBOARDING_INVITER_INVALID');
     const pair=await cryptoApi().subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);
     const inviterEphemeralPublic=await exportEcdhPublic(pair.publicKey);
     const core={protocolVersion:KEY_MANAGEMENT_PROTOCOL_VERSION,sessionId:request.sessionId,joiningCredentialId:request.joiningCredential.credentialId,inviterCredential:inviterCredential.publicCredential,keyAgreement:ONBOARDING_KEY_AGREEMENT,joiningEphemeralPublic:request.joiningEphemeralPublic,inviterEphemeralPublic};
@@ -341,13 +354,13 @@ export class PendingTrustedDeviceApproval{
   get joiningCredential(){return this.#request.joiningCredential;}
   async release({keyring,confirmedPairingCode}={}){
     if(this.#released)fail('SYNC_ONBOARDING_ALREADY_RELEASED');
-    if(!(keyring instanceof LocalSyncKeyring))fail('SYNC_ONBOARDING_KEYRING_REQUIRED');
+    const keyringSnapshot=transferKeyringSnapshot(keyring,'SYNC_ONBOARDING_KEYRING_REQUIRED');
     if(typeof confirmedPairingCode!=='string'||!PAIRING_CODE_RE.test(confirmedPairingCode)||confirmedPairingCode!==this.#pairingCode)fail('SYNC_PAIRING_CODE_MISMATCH');
     const salt=randomBytes(16),nonce=randomBytes(12),sharedSecret=await deriveSharedSecret(this.#privateKey,this.#request.joiningEphemeralPublic);
     const info=pairingInfo({sessionId:this.#request.sessionId,joiningCredentialId:this.#request.joiningCredential.credentialId,inviterCredentialId:this.#inviterCredential.publicCredential.credentialId,joiningEphemeralPublic:this.#request.joiningEphemeralPublic,inviterEphemeralPublic:this.#challenge.inviterEphemeralPublic});
     const key=await deriveWrappingKey(sharedSecret,salt,info);
     const header=packageHeader({sessionId:this.#request.sessionId,joiningCredentialId:this.#request.joiningCredential.credentialId,inviterCredential:this.#inviterCredential.publicCredential,salt:b64url(salt),nonce:b64url(nonce),joiningEphemeralPublic:this.#request.joiningEphemeralPublic,inviterEphemeralPublic:this.#challenge.inviterEphemeralPublic});
-    const payload={bundleVersion:1,keyring:keyring[KEYRING_TRANSFER](),approvedJoiningCredential:this.#request.joiningCredential};
+    const payload={bundleVersion:1,keyring:keyringSnapshot,approvedJoiningCredential:this.#request.joiningCredential};
     const ciphertext=b64url(new Uint8Array(await cryptoApi().subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:encoder.encode(canonicalJson(header)),tagLength:128},key,encoder.encode(canonicalJson(payload)))));
     const signedCore={...header,ciphertext},signature=await this.#inviterCredential.sign(signedCore);
     this.#released=true;
@@ -396,9 +409,9 @@ async function deriveRecoveryKey(secretBytes,salt,recoveryId){
 }
 
 export async function createRecoveryKit(keyring){
-  if(!(keyring instanceof LocalSyncKeyring))fail('SYNC_RECOVERY_KEYRING_REQUIRED');
+  const keyringSnapshot=transferKeyringSnapshot(keyring,'SYNC_RECOVERY_KEYRING_REQUIRED');
   const secretBytes=randomBytes(32),recoverySecret='recovery_'+b64url(secretBytes),recoveryId=randomOpaque('recovery_',18),salt=randomBytes(16),nonce=randomBytes(12),header=recoveryHeader({recoveryId,salt,nonce});
-  const key=await deriveRecoveryKey(secretBytes,salt,recoveryId),plaintext=encoder.encode(canonicalJson({bundleVersion:1,keyring:keyring[KEYRING_TRANSFER]()}));
+  const key=await deriveRecoveryKey(secretBytes,salt,recoveryId),plaintext=encoder.encode(canonicalJson({bundleVersion:1,keyring:keyringSnapshot}));
   const ciphertext=b64url(new Uint8Array(await cryptoApi().subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:encoder.encode(canonicalJson(header)),tagLength:128},key,plaintext)));
   return Object.freeze({recoverySecret,recoveryPackage:Object.freeze({...header,ciphertext})});
 }
