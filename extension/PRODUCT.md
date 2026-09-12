@@ -55,19 +55,23 @@ Direction:
 
 ### 3.2 Input Reader
 
-Purpose: make archived inputs substantially better to read and revisit than the original chat history.
+Purpose: make archived inputs substantially better to read, find and reuse than the original chat history.
 
 Current state:
 
-- Continuous reading, editing, search, ordering and source navigation exist.
+- Continuous reading, editing, ordering, source navigation and local per-surface search exist.
 - Reader search results can open directly around the matched Input and highlight the query.
-- Input/Thought/Context lexical retrieval now shares a common Search Service foundation.
+- Input/Thought/Context lexical retrieval shares a common Search Service foundation.
+- **Universal Search** now provides one bounded local entry point across Input Archive, Thought Library and existing AI-organized projections without creating another search index or truth layer.
+- Universal Search can reopen the matching Input/Thought/AI-organized location and can explicitly carry a selected result into AI Context as a local retrieval focus; it never auto-generates or auto-shares Context.
+- **“以前的我”** is a time-oriented projection over matching Input expressions. It orders available source-send-time evidence from earlier to later and explicitly does not infer that the user's belief changed.
 
 Direction:
 
 - Reader is a **presentation capability**, not a new database.
-- It should remain reusable for Inputs, Thoughts and Context Package previews.
-- Reader/Search product advantage still requires real-use validation rather than being inferred from implementation quality.
+- Universal Search is a coordinator over existing search contracts, not a fourth retrieval store.
+- Longitudinal reading should remain grounded in attributable user expression; AI may later help retrieval only if it does not silently convert chronology into invented personal conclusions.
+- Reader/Search advantage still requires real-use validation rather than being inferred from implementation quality.
 
 ### 3.3 Thought Record
 
@@ -108,9 +112,10 @@ Current state:
 
 - Local Context retrieval/build/preview exists over existing AI Context Profile authorization.
 - Retrieval shares the common lexical Search Service foundation with Input and Thought search.
-- A stable **Context Package** metadata contract now wraps the existing preview/share lifecycle.
+- A stable **Context Package** metadata contract wraps the existing preview/share lifecycle.
 - Context Package bodies remain ephemeral and are not stored as another canonical content layer.
 - Existing copy/export remains explicit and stale previews cannot be shared until rebuilt.
+- Universal Search may prefill Context Builder with a selected historical result as a retrieval focus, but this does not change authorization, invoke an external AI, generate a preview, or share anything until the user explicitly continues.
 
 Direction:
 
@@ -154,7 +159,7 @@ Organized projections         │
   ↓                           │
 Context Package ─────→ AI     │
                               │
-Reader shows trusted layers ──┘
+Reader + Search show layers ──┘
 
 Passport governs external Context use without owning content.
 ```
@@ -162,6 +167,7 @@ Passport governs external Context use without owning content.
 Important consequences:
 
 - Reader does not own another canonical copy of text.
+- Search does not own another canonical copy of text or a parallel product truth.
 - AI Context does not become a fourth body-text truth store.
 - Passport does not own content; it owns authorization and audit metadata.
 - Derived views may be rebuilt. User-authored facts and edits must not be silently regenerated away.
@@ -171,10 +177,11 @@ Important consequences:
 For the next development stages, priorities are:
 
 1. **Rereading quality** — opening PAIA should feel useful before the user invokes any AI organization.
-2. **Retrieval quality** — users should be able to find an old expression even when they do not remember the original chat.
-3. **Reuse rate** — Context generation/copy/export should solve a real repeated task rather than exist as an impressive demo.
-4. **Trust** — source identity, deletion, edit boundaries, authorization and provenance must remain understandable and reliable.
-5. **Complexity control** — new product value should not automatically imply a new durable entity or schema store.
+2. **Retrieval quality** — Universal Search and local Reader search should make old expression retrieval visibly easier than returning to the original chat product.
+3. **Longitudinal understanding without fabrication** — time-oriented views should help the user compare their own earlier expressions without silently claiming a change of belief.
+4. **Reuse rate** — Search → Read → Context preparation and Context copy/export should solve repeated tasks rather than exist as impressive demos.
+5. **Trust** — source identity, deletion, edit boundaries, authorization and provenance must remain understandable and reliable.
+6. **Complexity control** — new product value should not automatically imply a new durable entity, index or schema store.
 
 ## 6. Deliberate freezes
 
@@ -198,13 +205,14 @@ PAIA currently has stronger engineering validation than product-market validatio
 
 The current Product Signals implementation can observe coarse behavior such as:
 
-- Input searches that hit or miss and lead to opening/copying a result;
+- local Input/Thought searches that hit or miss and lead to opening/copying a result;
+- Universal Search hit/miss, result opening and explicit Search → AI Context preparation;
 - revisits to older Inputs using coarse age buckets;
 - Thought Topic first/repeat visits;
 - opening AI-organized view, returning to Original and saving AI-organized edits;
 - Context previews that find content and explicit copy/Markdown actions.
 
-These signals are fixed-field aggregate counters, are off by default, and do not store raw private text. They still require real use over time before they support product conclusions.
+These signals are fixed-field aggregate counters, are off by default, and do not store raw private text, search text, titles or object identifiers. They still require real use over time before they support product conclusions.
 
 ## 8. Success gates for expansion
 
@@ -214,6 +222,7 @@ Before prioritizing cloud sync, Web App, native apps or broad Passport integrati
 
 - Reader/Search is clearly better than returning to ChatGPT history for a meaningful class of tasks.
 - Users repeatedly retrieve material older than the current session/week.
+- Universal Search produces result opening, rereading or Context preparation rather than only searches with no follow-through.
 - Thought organization produces repeat visits rather than one-time curiosity.
 - Context reuse occurs repeatedly enough that cross-AI authorization solves an observed problem.
 
