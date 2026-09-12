@@ -22,6 +22,8 @@ Across all rounds:
 - Multi-device work must follow `SYNC_CONTRACT.md`; a cloud backend may implement the contract but may not redefine merge semantics.
 - Encrypted remote transport work must follow `REMOTE_OBJECT_PROTOCOL.md`; a backend must not require plaintext entity/device/revision metadata merely for convenience.
 - Trusted-device/key-management work must follow `TRUSTED_DEVICE_PROTOCOL.md`; ordinary Backup, account passwords and server-readable secrets are not substitutes for a real key lifecycle.
+- Secure-key persistence must follow `SECURE_KEY_PERSISTENCE.md`; absence of an approved OS/hardware secure-store adapter is fail-closed, not permission to downgrade into ordinary app storage.
+- Account/device coordination must follow `ACCOUNT_DEVICE_SERVICE.md`; the service may coordinate public trust metadata and short-lived pairing relay state but must not become encryption-key authority or content-merge authority.
 
 ---
 
@@ -131,7 +133,7 @@ Product exit criterion: **not met**.
 
 # Round 5 — Portability & Sync Readiness
 
-Status: **gated overall; Round 5A, Round 5B, Round 5C and Round 5D were opened by explicit product-owner override**
+Status: **gated overall; Round 5A, Round 5B, Round 5C, Round 5D and Round 5E were opened by explicit product-owner override**
 
 The override changes implementation order only. It does **not** mean the broader Round 5 product prerequisites have been satisfied, and it does not open live multi-provider capture, cloud sync, Web/Desktop/mobile expansion or broad autonomous-agent access.
 
@@ -241,10 +243,13 @@ Delivered:
 - keyVersion-based opening of Round 5C remote objects;
 - random per-install device identity plus ECDSA P-256 long-term device signing credentials;
 - one-time ECDH P-256 onboarding sessions;
-- joining-device signatures over onboarding requests and inviter signatures over encrypted onboarding packages;
-- HKDF-SHA-256 + AES-256-GCM wrapping of the complete retained keyring;
+- joining-device signatures over onboarding requests;
+- signed inviter challenge with no keyring material before human confirmation;
 - 48-bit human comparison code binding session, both long-term credentials and both ephemeral ECDH public keys;
-- explicit fail-closed behavior for request/package tampering and mismatched comparison codes;
+- trusted-device confirmation is required before a keyring-bearing package can be generated;
+- HKDF-SHA-256 + AES-256-GCM wrapping of the complete retained keyring only after approval;
+- joining-device challenge verification plus inviter signature verification on the final package;
+- explicit fail-closed behavior for request/challenge/package tampering and mismatched comparison codes;
 - local `TrustedDeviceRegistry` simulation with trusted/revoked state and latest confirmed key version;
 - revocation semantics that do not pretend to erase keys a device already learned: future secrecy requires a fresh root-key rotation and withholding the new key from revoked devices;
 - independent high-entropy Recovery Kit using random 256-bit recovery material, HKDF-SHA-256 and AES-256-GCM rather than a password/passphrase-derived root key;
@@ -255,8 +260,8 @@ Delivered:
 Explicit limitations:
 
 - root keys, device private signing keys and trusted-device registry are still memory-only in this protocol simulation;
-- no production Chrome/Web/macOS/iOS/Android secure-key storage design is implemented;
-- no account/device directory or authenticated remote authorization service exists;
+- no concrete production Chrome/Web/macOS/iOS/Android secure-key storage adapter is implemented;
+- no production account/device directory or authenticated remote authorization service exists;
 - no network onboarding relay, invitation expiry service or server-side replay protection exists;
 - no automatic background key distribution;
 - revocation does not retroactively remove access to old ciphertext encrypted under keys the revoked device already possessed;
@@ -274,15 +279,60 @@ Transport exit criterion: **not met**.
 
 Product exit criterion: **not met**.
 
+## Round 5E — Secure Key Persistence & Account/Device Service Contract
+
+Status: **contract/local-simulation implementation completed 2026-09-13; final certification pending on this branch; production secure-store adapter and account/backend service not implemented**
+
+Purpose: define the production boundary for durable secret storage and for any future account/device backend before network sync is allowed.
+
+Delivered:
+
+- `SECURE_KEY_PERSISTENCE.md` as the active secret-persistence contract;
+- `core/secure-key-persistence.js` production capability gate for root-key and device-private-key storage;
+- explicit current Chrome Extension readiness of `available=false` when no approved OS/hardware secure-store adapter exists;
+- fail-closed rejection of test-only or inadequate providers in production mode rather than silently using ordinary application storage;
+- test-only in-memory provider for lifecycle tests, explicitly incapable of production readiness;
+- `ACCOUNT_DEVICE_SERVICE.md` as the maximum-authority contract for a future account/device service;
+- `core/account-device-service-contract.js` local in-memory device-directory and pairing-relay simulator;
+- service directory stores only public device credentials, trust/revocation state and latest confirmed keyVersion;
+- revoked device sessions immediately lose account/device-service authority;
+- pairing relay is bounded, expiring and one-shot across request → challenge → final package → consume;
+- relay rejects plaintext root/private/recovery secrets, private JWK material and content/merge-authority fields such as entity IDs or revision hashes;
+- the real Round 5D onboarding ceremony is exercised end-to-end through the Round 5E relay simulator;
+- ordinary PAIA Backup remains separate from secret persistence;
+- release packaging requires both new active contracts;
+- no Manifest permission, host permission, network request, backend SDK or new IndexedDB object store is introduced.
+
+Explicit limitations:
+
+- the capability gate prevents accidental product-code downgrade; it does not sandbox malicious code already running inside the PAIA process;
+- no concrete OS/hardware secure-store adapter is implemented on Chrome/Web/macOS/iOS/Android/Windows;
+- the current Chrome Extension therefore remains unable to persist sync root keys in a production-approved way;
+- no production account login/authentication provider exists;
+- no durable remote device directory or authorization service exists;
+- no network pairing relay, rate limiting, abuse prevention or server-side replay store exists;
+- no encrypted remote-object transport/listing service exists;
+- no live multi-device sync.
+
+Engineering contract exit criterion: **met at local contract/simulation level, subject to final branch certification**.
+
+Production secure-storage implementation exit criterion: **not met**.
+
+Production account/device-service exit criterion: **not met**.
+
+Transport exit criterion: **not met**.
+
+Product exit criterion: **not met**.
+
 ## Broader Round 5 work remains gated
 
 The next legitimate steps are not automatically “connect Supabase/Drive/iCloud”. They are, in order of evidence:
 
 1. verify Round 5A against a real Claude export;
 2. continue Round 4.8 real-use observation;
-3. if multi-device value remains deliberately prioritized, design and implement secure local persistence for the root-key keyring and device private credential per supported platform;
-4. define the authenticated account/device directory and pairing relay without turning the server into plaintext merge/key authority;
-5. design bounded remote listing/cursor/retention/compaction plus old-key re-encryption/retirement semantics;
+3. if multi-device value remains deliberately prioritized, implement and review at least one real platform secure-store adapter satisfying `SECURE_KEY_PERSISTENCE.md`;
+4. define and implement a production account authentication/device-directory/pairing-relay service satisfying `ACCOUNT_DEVICE_SERVICE.md`, without making that service encryption or merge authority;
+5. design bounded encrypted remote-object listing/cursor/retention/compaction plus old-key re-encryption/retirement semantics;
 6. before any public multi-device release, build explicit conflict-resolution UI and test offline divergence/tombstone/retry/device-reset/revocation scenarios over the actual transport.
 
 Constraints:
@@ -298,6 +348,8 @@ Constraints:
 - Ordinary PAIA Backup must not silently become a root-key/private-device-credential backup.
 - Password/passphrase-derived account login must not silently become the encryption root key.
 - Device revocation must be described honestly: blocking future key versions is different from erasing historical knowledge.
+- Absence of an approved platform secure-store adapter must disable durable live sync rather than trigger an insecure storage fallback.
+- The account/device service may coordinate public device trust and short-lived pairing messages but cannot become client-content merge authority.
 - Early Passport implementation is not permission for broad autonomous agent access.
 
 ---
