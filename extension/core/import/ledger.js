@@ -96,11 +96,12 @@ export class ImportLedger {
    if(proof.digest!==batch.digest)fail('IMPORT_BATCH_MISMATCH');if(proof.receipt)return proof.receipt;
    if(q.sequence!==task.committedBatches)fail('IMPORT_STATE');
    const c=await this.store.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)fail('CONSENT_REQUIRED');
-   const seq=await t.get('meta','sequence'),docs=new Set(),count=counts();
+   const seq=await t.get('meta','sequence'),docs=new Set(),titledChats=new Set(),count=counts();
    for(const r of batch.rows){
     if(await t.get('tombstones','source:'+r.sourceKey)||await t.get('tombstones','snapshot:'+r.dedupeKey)){count.ignored++;continue;}
-    if(await t.count('recordIndex','bySource',r.sourceKey)>2048||await t.count('recordIndex','byLegacyChat','chatgpt:'+r.chatId)>2048)fail('RESOURCE_LIMIT');
-    const chat={id:r.chatId,url:'https://chatgpt.com/c/'+r.chatId,title:r.title},selected=await this.store.recordsFor(t,chat,r.messageId,r.sourceKey,r,[]);
+    const sourceVersions=await t.count('recordIndex','bySource',r.sourceKey),legacyVersions=await t.count('recordIndex','byLegacyChat','chatgpt:'+r.chatId);
+    if(sourceVersions>2048||legacyVersions>2048)fail('RESOURCE_LIMIT');
+    const chat={id:r.chatId,url:'https://chatgpt.com/c/'+r.chatId,title:r.title},selected=sourceVersions||legacyVersions?await this.store.recordsFor(t,chat,r.messageId,r.sourceKey,r,[]):[];
     const exists=await t.count('recordIndex','byDedupe',r.dedupeKey),newSource=selected.length===0;
     const removed=this.store.repository.ia&&!!await t.get('inputRemovals',r.sourceKey);
     if(removed)count.removed++;
@@ -123,7 +124,7 @@ export class ImportLedger {
     for(const {r:record,index}of selected){
      const old=await t.get('records',record.id);
      if(old){if(!record.chatTitle&&r.title){record.chatTitle=r.title;metadataChanged=true;}if(record.conversationOrder==null&&relation.branch==='current'&&r.order!==null){record.conversationOrder=r.order;metadataChanged=true;}}
-     let changed=!old||JSON.stringify(old.value)!==JSON.stringify(record);if(changed)await this.store.saveRecord(t,record,index);
+     const changed=!old||JSON.stringify(old.value)!==JSON.stringify(record);if(changed)await this.store.saveRecord(t,record,index);
      if(old&&old.value.sourceSentAt!==record.sourceSentAt)await importedTimeChanged(this.store,t,record.id);
      if(old)for(const id of await importedBranchChanged(this.store,t,record.id,relation.branch))docs.add(id);
      if(record===addedRecord&&newSource){
@@ -131,12 +132,16 @@ export class ImportLedger {
       const b=(await t.get('blocks','block:'+record.id))?.value;
       if(b){count.newInputs+=!b.excluded?1:0;if(this.store.initialFilter){const m=await t.get('inputStates',b.id);await t.put('filterInputs',this.store.initialFilter(b,m));}}
      }
-     if(changed){for(const b of await t.all('blockIndex','byRecord',record.id))docs.add(b.documentId);for(const d of await t.all('documents','byChat','chatgpt:'+record.chatId))docs.add(d.id);}
+     // A newly inserted source has already returned its owning document from
+     // defaultBlock. Only existing records need these compatibility lookups.
+     if(changed&&old){for(const b of await t.all('blockIndex','byRecord',record.id))docs.add(b.documentId);for(const d of await t.all('documents','byChat','chatgpt:'+record.chatId))docs.add(d.id);}
     }
     if(metadataChanged)count.metadataEnriched++;
-    if(r.title)for(const doc of await t.all('documents','byChat','chatgpt:'+r.chatId,2)){
+    // Titles are conversation metadata. Checking the same chat once per bounded
+    // commit batch preserves enrichment semantics without an index scan per Input.
+    if(r.title&&!titledChats.has(r.chatId)){titledChats.add(r.chatId);for(const doc of await t.all('documents','byChat','chatgpt:'+r.chatId,2)){
      if(!doc.value.originalConversationTitle){doc.value.originalConversationTitle=r.title;await t.put('documents',doc);const ld=await t.get('libraryDocuments',doc.id);if(ld&&!ld.value.originalConversationTitle){ld.value.originalConversationTitle=r.title;await t.put('libraryDocuments',ld);}}
-    }
+    }}
     const nextRelation={id:r.sourceKey,sourceKey:r.sourceKey,provider:'official_export',profileId:task.adapterId,profileVersion:task.profileVersion||1,...relation};if(JSON.stringify(priorRelation)!==JSON.stringify(nextRelation))await t.put('importSources',nextRelation);
    }
    for(const id of docs)await this.store.refreshDoc(t,id);
