@@ -1,14 +1,15 @@
 import {allowed,fail,LIMITS} from './errors.js';
 import {inspectFile} from './reader.js';
-import {getOfficialExportAdapters} from './registry.js';
+import * as registry from './registry.js';
 const fresh=adapter=>({adapter,projection:null,conversations:0,userMessages:0,issues:0,review:0,unknownEntries:0,maxNodes:0,maxBufferedTextChars:0,skippedConversations:0,skippedMessages:0,invalidTimes:0,backup:false});
+const availableAdapters=()=>typeof registry.getOfficialExportAdapters==='function'?registry.getOfficialExportAdapters():[registry.getOfficialExportAdapter?.()].filter(Boolean);
 // A complete bounded structural/integrity pass, with no persistence.
 export async function detectHistoryFile(file,options={}){
  allowed(file,options);
  // PAIA Backup is NDJSON. Only its bounded first header line is considered here.
  const prefix=new Uint8Array(await file.slice(0,Math.min(file.size,65536)).arrayBuffer());
  if(prefix[0]===123){try{const line=new TextDecoder('utf-8',{fatal:true}).decode(prefix).split('\n',1)[0],header=JSON.parse(line);if(header.type==='header'&&header.format==='PAIA Backup'&&header.formatVersion===1)return {support:'paia_backup',realExportVerified:false,conversations:0,userMessages:0};}catch{}}
- const states=getOfficialExportAdapters().map(fresh);if(!states.length)fail('SCHEMA_UNVERIFIED');
+ const states=availableAdapters().map(fresh);if(!states.length)fail('SCHEMA_UNVERIFIED');
  const integrity=await inspectFile(file,{...options,candidateMode:'structural',
   selectString:path=>states.some(s=>s.projection?.selectString(path)===true),
   onEntry:()=>{for(const s of states)s.projection=s.adapter.createProjection();},
