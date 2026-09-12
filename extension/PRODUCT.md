@@ -62,16 +62,19 @@ Current state:
 - Continuous reading, editing, ordering, source navigation and local per-surface search exist.
 - Reader search results can open directly around the matched Input and highlight the query.
 - Input/Thought/Context lexical retrieval shares a common Search Service foundation.
-- **Universal Search** now provides one bounded local entry point across Input Archive, Thought Library and existing AI-organized projections without creating another search index or truth layer.
+- **Universal Search** provides one bounded local entry point across Input Archive, Thought Library and existing AI-organized projections without creating another search index or truth layer.
 - Universal Search can reopen the matching Input/Thought/AI-organized location and can explicitly carry a selected result into AI Context as a local retrieval focus; it never auto-generates or auto-shares Context.
 - **“以前的我”** is a time-oriented projection over matching Input expressions. It orders available source-send-time evidence from earlier to later and explicitly does not infer that the user's belief changed.
+- **Revisit / 回访** is an on-demand local Reader surface. After the user explicitly establishes a baseline, it shows newly collected visible Inputs, Thought topics whose current organization has new/changed supporting material, and a small rotating set of older Inputs worth reopening.
+- Older resurfacing is deliberately explainable: PAIA prefers Inputs at least 90 days old that the user edited or that already became Thought evidence; it does not use random engagement sampling or a hidden recommendation model.
 
 Direction:
 
 - Reader is a **presentation capability**, not a new database.
-- Universal Search is a coordinator over existing search contracts, not a fourth retrieval store.
+- Universal Search and Revisit are coordinators/projections over existing trusted state, not new truth stores.
+- Revisit should remain user-initiated: no push-notification growth loop, no background AI generation, and no automatic marking-as-seen merely because the surface was opened.
 - Longitudinal reading should remain grounded in attributable user expression; AI may later help retrieval only if it does not silently convert chronology into invented personal conclusions.
-- Reader/Search advantage still requires real-use validation rather than being inferred from implementation quality.
+- Reader/Search/Revisit advantage still requires real-use validation rather than being inferred from implementation quality.
 
 ### 3.3 Thought Record
 
@@ -159,7 +162,7 @@ Organized projections         │
   ↓                           │
 Context Package ─────→ AI     │
                               │
-Reader + Search show layers ──┘
+Reader + Search + Revisit ────┘
 
 Passport governs external Context use without owning content.
 ```
@@ -167,7 +170,7 @@ Passport governs external Context use without owning content.
 Important consequences:
 
 - Reader does not own another canonical copy of text.
-- Search does not own another canonical copy of text or a parallel product truth.
+- Search/Revisit do not own another canonical copy of text or a parallel product truth.
 - AI Context does not become a fourth body-text truth store.
 - Passport does not own content; it owns authorization and audit metadata.
 - Derived views may be rebuilt. User-authored facts and edits must not be silently regenerated away.
@@ -178,17 +181,18 @@ For the next development stages, priorities are:
 
 1. **Rereading quality** — opening PAIA should feel useful before the user invokes any AI organization.
 2. **Retrieval quality** — Universal Search and local Reader search should make old expression retrieval visibly easier than returning to the original chat product.
-3. **Longitudinal understanding without fabrication** — time-oriented views should help the user compare their own earlier expressions without silently claiming a change of belief.
-4. **Reuse rate** — Search → Read → Context preparation and Context copy/export should solve repeated tasks rather than exist as impressive demos.
-5. **Trust** — source identity, deletion, edit boundaries, authorization and provenance must remain understandable and reliable.
-6. **Complexity control** — new product value should not automatically imply a new durable entity, index or schema store.
+3. **Return value without engagement tricks** — Revisit should give a concrete reason to come back by surfacing real newly accumulated or older meaningful material, without push loops or opaque recommendation logic.
+4. **Longitudinal understanding without fabrication** — time-oriented views should help the user compare their own earlier expressions without silently claiming a change of belief.
+5. **Reuse rate** — Search → Read → Context preparation and Context copy/export should solve repeated tasks rather than exist as impressive demos.
+6. **Trust** — source identity, deletion, edit boundaries, authorization and provenance must remain understandable and reliable.
+7. **Complexity control** — new product value should not automatically imply a new durable entity, index or schema store.
 
 ## 6. Deliberate freezes
 
 Until evidence justifies reopening them:
 
 - No new Thought Library ontology layer.
-- No new durable fact database for Reader.
+- No new durable fact database for Reader/Revisit.
 - No automatic background Organizer.
 - No broad cloud-sync implementation.
 - No Web/mobile app merely to duplicate the extension UI.
@@ -196,6 +200,7 @@ Until evidence justifies reopening them:
 - No provider proliferation.
 - No embedding/vector-store migration before measured retrieval failures justify it.
 - No broad Passport agent/API/MCP access solely because the minimum Grant model is implemented.
+- No notification/engagement machinery justified only by wanting higher return frequency.
 
 These are product freezes, not claims that the ideas are permanently rejected.
 
@@ -207,6 +212,7 @@ The current Product Signals implementation can observe coarse behavior such as:
 
 - local Input/Thought searches that hit or miss and lead to opening/copying a result;
 - Universal Search hit/miss, result opening and explicit Search → AI Context preparation;
+- Revisit opens, whether a visit has new material, opening newly collected/older Inputs or updated Thought topics, and explicit “read to here” marks;
 - revisits to older Inputs using coarse age buckets;
 - Thought Topic first/repeat visits;
 - opening AI-organized view, returning to Original and saving AI-organized edits;
@@ -223,6 +229,7 @@ Before prioritizing cloud sync, Web App, native apps or broad Passport integrati
 - Reader/Search is clearly better than returning to ChatGPT history for a meaningful class of tasks.
 - Users repeatedly retrieve material older than the current session/week.
 - Universal Search produces result opening, rereading or Context preparation rather than only searches with no follow-through.
+- Revisit produces voluntary opening of older/newly accumulated material rather than becoming an ignored badge or notification substitute.
 - Thought organization produces repeat visits rather than one-time curiosity.
 - Context reuse occurs repeatedly enough that cross-AI authorization solves an observed problem.
 
