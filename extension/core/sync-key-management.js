@@ -43,9 +43,7 @@ function unb64url(value){
   return bytes;
 }
 
-function randomOpaque(prefix,length=18){
-  return prefix+b64url(randomBytes(length));
-}
+function randomOpaque(prefix,length=18){return prefix+b64url(randomBytes(length));}
 
 function normalizeSigningJwk(input){
   if(!plainObject(input)||input.kty!=='EC'||input.crv!=='P-256'||typeof input.x!=='string'||typeof input.y!=='string'||!B64_RE.test(input.x)||!B64_RE.test(input.y))fail('SYNC_DEVICE_CREDENTIAL_INVALID');
@@ -70,7 +68,10 @@ async function importSigningPublic(publicCredential){
 }
 
 async function verifyCredentialSignature(publicCredential,value,signature){
-  const key=await importSigningPublic(publicCredential),bytes=unb64url(signature);
+  if(typeof signature!=='string')return false;
+  let bytes;
+  try{bytes=unb64url(signature);}catch{return false;}
+  const key=await importSigningPublic(publicCredential);
   return cryptoApi().subtle.verify({name:'ECDSA',hash:'SHA-256'},key,bytes,encoder.encode(canonicalJson(value)));
 }
 
@@ -199,8 +200,38 @@ async function validateOnboardingRequest(input){
   if(input.protocolVersion!==KEY_MANAGEMENT_PROTOCOL_VERSION||input.keyAgreement!==ONBOARDING_KEY_AGREEMENT||!OPAQUE_RE.test(input.sessionId||''))fail('SYNC_ONBOARDING_REQUEST_INVALID');
   const joiningCredential=await validatePublicCredential(input.joiningCredential);
   validateEphemeralPublic(input.joiningEphemeralPublic);
-  if(typeof input.signature!=='string'||!(await verifyCredentialSignature(joiningCredential,onboardingRequestCore({...input,joiningCredential}),input.signature)))fail('SYNC_ONBOARDING_REQUEST_SIGNATURE');
+  if(!(await verifyCredentialSignature(joiningCredential,onboardingRequestCore({...input,joiningCredential}),input.signature)))fail('SYNC_ONBOARDING_REQUEST_SIGNATURE');
   return Object.freeze({...input,joiningCredential});
+}
+
+function challengeCore(input){
+  return {
+    protocolVersion:KEY_MANAGEMENT_PROTOCOL_VERSION,
+    sessionId:input.sessionId,
+    joiningCredentialId:input.joiningCredentialId,
+    inviterCredential:input.inviterCredential,
+    keyAgreement:ONBOARDING_KEY_AGREEMENT,
+    joiningEphemeralPublic:input.joiningEphemeralPublic,
+    inviterEphemeralPublic:input.inviterEphemeralPublic,
+  };
+}
+
+async function validateOnboardingChallenge(input){
+  if(!plainObject(input)||Object.keys(input).some(key=>!['protocolVersion','sessionId','joiningCredentialId','inviterCredential','keyAgreement','joiningEphemeralPublic','inviterEphemeralPublic','signature'].includes(key)))fail('SYNC_ONBOARDING_CHALLENGE_INVALID');
+  if(input.protocolVersion!==KEY_MANAGEMENT_PROTOCOL_VERSION||input.keyAgreement!==ONBOARDING_KEY_AGREEMENT||!OPAQUE_RE.test(input.sessionId||'')||!OPAQUE_RE.test(input.joiningCredentialId||''))fail('SYNC_ONBOARDING_CHALLENGE_INVALID');
+  const inviterCredential=await validatePublicCredential(input.inviterCredential);
+  validateEphemeralPublic(input.joiningEphemeralPublic);validateEphemeralPublic(input.inviterEphemeralPublic);
+  if(!(await verifyCredentialSignature(inviterCredential,challengeCore({...input,inviterCredential}),input.signature)))fail('SYNC_ONBOARDING_CHALLENGE_SIGNATURE');
+  return Object.freeze({...input,inviterCredential});
+}
+
+function pairingInfo({sessionId,joiningCredentialId,inviterCredentialId,joiningEphemeralPublic,inviterEphemeralPublic}){
+  return {protocolVersion:KEY_MANAGEMENT_PROTOCOL_VERSION,sessionId,joiningCredentialId,inviterCredentialId,joiningEphemeralPublic,inviterEphemeralPublic};
+}
+
+async function pairingCodeFor(info){
+  const hash=(await sha256Hex(canonicalJson(pairingInfo(info)))).slice(0,12).toUpperCase();
+  return `${hash.slice(0,4)}-${hash.slice(4,8)}-${hash.slice(8,12)}`;
 }
 
 function packageHeader(input){
@@ -221,15 +252,30 @@ function packageHeader(input){
 
 function packageSignedCore(input){return {...packageHeader(input),ciphertext:input.ciphertext};}
 
-async function pairingCodeFor({sessionId,joiningCredentialId,inviterCredentialId,joiningEphemeralPublic,inviterEphemeralPublic}){
-  const hash=(await sha256Hex(canonicalJson({protocolVersion:KEY_MANAGEMENT_PROTOCOL_VERSION,sessionId,joiningCredentialId,inviterCredentialId,joiningEphemeralPublic,inviterEphemeralPublic}))).slice(0,12).toUpperCase();
-  return `${hash.slice(0,4)}-${hash.slice(4,8)}-${hash.slice(8,12)}`;
+async function validateOnboardingPackage(input){
+  if(!plainObject(input)||Object.keys(input).some(key=>!['protocolVersion','sessionId','joiningCredentialId','inviterCredential','keyAgreement','cipher','kdf','salt','nonce','joiningEphemeralPublic','inviterEphemeralPublic','ciphertext','signature'].includes(key)))fail('SYNC_ONBOARDING_PACKAGE_INVALID');
+  if(input.protocolVersion!==KEY_MANAGEMENT_PROTOCOL_VERSION||input.keyAgreement!==ONBOARDING_KEY_AGREEMENT||input.cipher!==KEY_WRAP_CIPHER||input.kdf!==KEY_WRAP_KDF||!OPAQUE_RE.test(input.sessionId||'')||!OPAQUE_RE.test(input.joiningCredentialId||''))fail('SYNC_ONBOARDING_PACKAGE_INVALID');
+  const inviterCredential=await validatePublicCredential(input.inviterCredential),salt=unb64url(input.salt),nonce=unb64url(input.nonce);
+  validateEphemeralPublic(input.joiningEphemeralPublic);validateEphemeralPublic(input.inviterEphemeralPublic);
+  if(salt.length!==16||nonce.length!==12||typeof input.ciphertext!=='string'||unb64url(input.ciphertext).length<16)fail('SYNC_ONBOARDING_PACKAGE_INVALID');
+  if(!(await verifyCredentialSignature(inviterCredential,packageSignedCore({...input,inviterCredential}),input.signature)))fail('SYNC_ONBOARDING_PACKAGE_SIGNATURE');
+  return Object.freeze({...input,inviterCredential});
+}
+
+function sameChallengeTranscript(challenge,pkg){
+  return challenge.sessionId===pkg.sessionId&&
+    challenge.joiningCredentialId===pkg.joiningCredentialId&&
+    challenge.inviterCredential.credentialId===pkg.inviterCredential.credentialId&&
+    challenge.joiningEphemeralPublic===pkg.joiningEphemeralPublic&&
+    challenge.inviterEphemeralPublic===pkg.inviterEphemeralPublic;
 }
 
 export class PendingTrustedDeviceOnboarding{
   #credential;
   #privateKey;
   #request;
+  #challenge=null;
+  #pairingCode=null;
   constructor(token,{credential,privateKey,request}={}){
     if(token!==INTERNAL)fail('SYNC_ONBOARDING_SESSION_CONSTRUCTOR');
     this.#credential=credential;this.#privateKey=privateKey;this.#request=request;
@@ -243,13 +289,20 @@ export class PendingTrustedDeviceOnboarding{
     return new PendingTrustedDeviceOnboarding(INTERNAL,{credential,privateKey:pair.privateKey,request});
   }
   get request(){return this.#request;}
+  async inspectChallenge(challenge){
+    challenge=await validateOnboardingChallenge(challenge);
+    if(challenge.sessionId!==this.#request.sessionId||challenge.joiningCredentialId!==this.#credential.publicCredential.credentialId||challenge.joiningEphemeralPublic!==this.#request.joiningEphemeralPublic)fail('SYNC_ONBOARDING_SESSION_MISMATCH');
+    const pairingCode=await pairingCodeFor({sessionId:challenge.sessionId,joiningCredentialId:challenge.joiningCredentialId,inviterCredentialId:challenge.inviterCredential.credentialId,joiningEphemeralPublic:challenge.joiningEphemeralPublic,inviterEphemeralPublic:challenge.inviterEphemeralPublic});
+    this.#challenge=challenge;this.#pairingCode=pairingCode;
+    return Object.freeze({pairingCode,inviterCredential:challenge.inviterCredential});
+  }
   async accept({onboardingPackage,confirmedPairingCode}={}){
+    if(!this.#challenge||!this.#pairingCode)fail('SYNC_ONBOARDING_CHALLENGE_REQUIRED');
     const pkg=await validateOnboardingPackage(onboardingPackage);
-    if(pkg.sessionId!==this.#request.sessionId||pkg.joiningCredentialId!==this.#credential.publicCredential.credentialId||pkg.joiningEphemeralPublic!==this.#request.joiningEphemeralPublic)fail('SYNC_ONBOARDING_SESSION_MISMATCH');
-    const pairingCode=await pairingCodeFor({sessionId:pkg.sessionId,joiningCredentialId:pkg.joiningCredentialId,inviterCredentialId:pkg.inviterCredential.credentialId,joiningEphemeralPublic:pkg.joiningEphemeralPublic,inviterEphemeralPublic:pkg.inviterEphemeralPublic});
-    if(typeof confirmedPairingCode!=='string'||!PAIRING_CODE_RE.test(confirmedPairingCode)||confirmedPairingCode!==pairingCode)fail('SYNC_PAIRING_CODE_MISMATCH');
+    if(!sameChallengeTranscript(this.#challenge,pkg))fail('SYNC_ONBOARDING_SESSION_MISMATCH');
+    if(typeof confirmedPairingCode!=='string'||!PAIRING_CODE_RE.test(confirmedPairingCode)||confirmedPairingCode!==this.#pairingCode)fail('SYNC_PAIRING_CODE_MISMATCH');
     const sharedSecret=await deriveSharedSecret(this.#privateKey,pkg.inviterEphemeralPublic),salt=unb64url(pkg.salt),nonce=unb64url(pkg.nonce);
-    const key=await deriveWrappingKey(sharedSecret,salt,{protocolVersion:KEY_MANAGEMENT_PROTOCOL_VERSION,sessionId:pkg.sessionId,joiningCredentialId:pkg.joiningCredentialId,inviterCredentialId:pkg.inviterCredential.credentialId,joiningEphemeralPublic:pkg.joiningEphemeralPublic,inviterEphemeralPublic:pkg.inviterEphemeralPublic});
+    const key=await deriveWrappingKey(sharedSecret,salt,pairingInfo({sessionId:pkg.sessionId,joiningCredentialId:pkg.joiningCredentialId,inviterCredentialId:pkg.inviterCredential.credentialId,joiningEphemeralPublic:pkg.joiningEphemeralPublic,inviterEphemeralPublic:pkg.inviterEphemeralPublic}));
     let plaintext;
     try{plaintext=new Uint8Array(await cryptoApi().subtle.decrypt({name:'AES-GCM',iv:nonce,additionalData:encoder.encode(canonicalJson(packageHeader(pkg))),tagLength:128},key,unb64url(pkg.ciphertext)));}
     catch{fail('SYNC_ONBOARDING_DECRYPT_FAILED');}
@@ -258,35 +311,52 @@ export class PendingTrustedDeviceOnboarding{
     if(!plainObject(parsed)||parsed.bundleVersion!==1||Object.keys(parsed).some(key=>!['bundleVersion','keyring','approvedJoiningCredential'].includes(key)))fail('SYNC_ONBOARDING_PAYLOAD_INVALID');
     const approved=await validatePublicCredential(parsed.approvedJoiningCredential);
     if(approved.credentialId!==this.#credential.publicCredential.credentialId||approved.deviceId!==this.#credential.publicCredential.deviceId)fail('SYNC_ONBOARDING_PAYLOAD_INVALID');
-    return Object.freeze({keyring:keyringFromSnapshot(parsed.keyring),inviterCredential:pkg.inviterCredential,pairingCode});
+    return Object.freeze({keyring:keyringFromSnapshot(parsed.keyring),inviterCredential:pkg.inviterCredential,pairingCode:this.#pairingCode});
   }
 }
 
-async function validateOnboardingPackage(input){
-  if(!plainObject(input)||Object.keys(input).some(key=>!['protocolVersion','sessionId','joiningCredentialId','inviterCredential','keyAgreement','cipher','kdf','salt','nonce','joiningEphemeralPublic','inviterEphemeralPublic','ciphertext','signature'].includes(key)))fail('SYNC_ONBOARDING_PACKAGE_INVALID');
-  if(input.protocolVersion!==KEY_MANAGEMENT_PROTOCOL_VERSION||input.keyAgreement!==ONBOARDING_KEY_AGREEMENT||input.cipher!==KEY_WRAP_CIPHER||input.kdf!==KEY_WRAP_KDF||!OPAQUE_RE.test(input.sessionId||'')||!OPAQUE_RE.test(input.joiningCredentialId||''))fail('SYNC_ONBOARDING_PACKAGE_INVALID');
-  const inviterCredential=await validatePublicCredential(input.inviterCredential),salt=unb64url(input.salt),nonce=unb64url(input.nonce);
-  validateEphemeralPublic(input.joiningEphemeralPublic);validateEphemeralPublic(input.inviterEphemeralPublic);
-  if(salt.length!==16||nonce.length!==12||typeof input.ciphertext!=='string'||unb64url(input.ciphertext).length<16||typeof input.signature!=='string')fail('SYNC_ONBOARDING_PACKAGE_INVALID');
-  if(!(await verifyCredentialSignature(inviterCredential,packageSignedCore({...input,inviterCredential}),input.signature)))fail('SYNC_ONBOARDING_PACKAGE_SIGNATURE');
-  return Object.freeze({...input,inviterCredential});
+export class PendingTrustedDeviceApproval{
+  #request;
+  #inviterCredential;
+  #privateKey;
+  #challenge;
+  #pairingCode;
+  #released=false;
+  constructor(token,{request,inviterCredential,privateKey,challenge,pairingCode}={}){
+    if(token!==INTERNAL)fail('SYNC_ONBOARDING_APPROVAL_CONSTRUCTOR');
+    this.#request=request;this.#inviterCredential=inviterCredential;this.#privateKey=privateKey;this.#challenge=challenge;this.#pairingCode=pairingCode;
+  }
+  static async prepare({request,inviterCredential}={}){
+    request=await validateOnboardingRequest(request);
+    if(!(inviterCredential instanceof LocalTrustedDeviceCredential))fail('SYNC_ONBOARDING_INVITER_INVALID');
+    const pair=await cryptoApi().subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);
+    const inviterEphemeralPublic=await exportEcdhPublic(pair.publicKey);
+    const core={protocolVersion:KEY_MANAGEMENT_PROTOCOL_VERSION,sessionId:request.sessionId,joiningCredentialId:request.joiningCredential.credentialId,inviterCredential:inviterCredential.publicCredential,keyAgreement:ONBOARDING_KEY_AGREEMENT,joiningEphemeralPublic:request.joiningEphemeralPublic,inviterEphemeralPublic};
+    const challenge=Object.freeze({...core,signature:await inviterCredential.sign(core)});
+    const pairingCode=await pairingCodeFor({sessionId:request.sessionId,joiningCredentialId:request.joiningCredential.credentialId,inviterCredentialId:inviterCredential.publicCredential.credentialId,joiningEphemeralPublic:request.joiningEphemeralPublic,inviterEphemeralPublic});
+    return new PendingTrustedDeviceApproval(INTERNAL,{request,inviterCredential,privateKey:pair.privateKey,challenge,pairingCode});
+  }
+  get challenge(){return this.#challenge;}
+  get pairingCode(){return this.#pairingCode;}
+  get joiningCredential(){return this.#request.joiningCredential;}
+  async release({keyring,confirmedPairingCode}={}){
+    if(this.#released)fail('SYNC_ONBOARDING_ALREADY_RELEASED');
+    if(!(keyring instanceof LocalSyncKeyring))fail('SYNC_ONBOARDING_KEYRING_REQUIRED');
+    if(typeof confirmedPairingCode!=='string'||!PAIRING_CODE_RE.test(confirmedPairingCode)||confirmedPairingCode!==this.#pairingCode)fail('SYNC_PAIRING_CODE_MISMATCH');
+    const salt=randomBytes(16),nonce=randomBytes(12),sharedSecret=await deriveSharedSecret(this.#privateKey,this.#request.joiningEphemeralPublic);
+    const info=pairingInfo({sessionId:this.#request.sessionId,joiningCredentialId:this.#request.joiningCredential.credentialId,inviterCredentialId:this.#inviterCredential.publicCredential.credentialId,joiningEphemeralPublic:this.#request.joiningEphemeralPublic,inviterEphemeralPublic:this.#challenge.inviterEphemeralPublic});
+    const key=await deriveWrappingKey(sharedSecret,salt,info);
+    const header=packageHeader({sessionId:this.#request.sessionId,joiningCredentialId:this.#request.joiningCredential.credentialId,inviterCredential:this.#inviterCredential.publicCredential,salt:b64url(salt),nonce:b64url(nonce),joiningEphemeralPublic:this.#request.joiningEphemeralPublic,inviterEphemeralPublic:this.#challenge.inviterEphemeralPublic});
+    const payload={bundleVersion:1,keyring:keyring[KEYRING_TRANSFER](),approvedJoiningCredential:this.#request.joiningCredential};
+    const ciphertext=b64url(new Uint8Array(await cryptoApi().subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:encoder.encode(canonicalJson(header)),tagLength:128},key,encoder.encode(canonicalJson(payload)))));
+    const signedCore={...header,ciphertext},signature=await this.#inviterCredential.sign(signedCore);
+    this.#released=true;
+    return Object.freeze({onboardingPackage:Object.freeze({...signedCore,signature}),pairingCode:this.#pairingCode,joiningCredential:this.#request.joiningCredential});
+  }
 }
 
-export async function createTrustedDeviceOnboardingPackage({request,inviterCredential,keyring}={}){
-  request=await validateOnboardingRequest(request);
-  if(!(inviterCredential instanceof LocalTrustedDeviceCredential)||!(keyring instanceof LocalSyncKeyring))fail('SYNC_ONBOARDING_INVITER_INVALID');
-  const pair=await cryptoApi().subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);
-  const inviterEphemeralPublic=await exportEcdhPublic(pair.publicKey),salt=randomBytes(16),nonce=randomBytes(12);
-  const sharedSecret=await deriveSharedSecret(pair.privateKey,request.joiningEphemeralPublic);
-  const info={protocolVersion:KEY_MANAGEMENT_PROTOCOL_VERSION,sessionId:request.sessionId,joiningCredentialId:request.joiningCredential.credentialId,inviterCredentialId:inviterCredential.publicCredential.credentialId,joiningEphemeralPublic:request.joiningEphemeralPublic,inviterEphemeralPublic};
-  const key=await deriveWrappingKey(sharedSecret,salt,info);
-  const header=packageHeader({sessionId:request.sessionId,joiningCredentialId:request.joiningCredential.credentialId,inviterCredential:inviterCredential.publicCredential,salt:b64url(salt),nonce:b64url(nonce),joiningEphemeralPublic:request.joiningEphemeralPublic,inviterEphemeralPublic});
-  const payload={bundleVersion:1,keyring:keyring[KEYRING_TRANSFER](),approvedJoiningCredential:request.joiningCredential};
-  const ciphertext=b64url(new Uint8Array(await cryptoApi().subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:encoder.encode(canonicalJson(header)),tagLength:128},key,encoder.encode(canonicalJson(payload)))));
-  const signedCore={...header,ciphertext},signature=await inviterCredential.sign(signedCore);
-  const onboardingPackage=Object.freeze({...signedCore,signature});
-  const pairingCode=await pairingCodeFor(info);
-  return Object.freeze({onboardingPackage,pairingCode,joiningCredential:request.joiningCredential});
+export async function prepareTrustedDeviceOnboarding({request,inviterCredential}={}){
+  return PendingTrustedDeviceApproval.prepare({request,inviterCredential});
 }
 
 export class TrustedDeviceRegistry{
