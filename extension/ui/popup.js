@@ -14,7 +14,7 @@ async function refresh() {
     $('status-dot').classList.toggle('active', consented && state.settings.enabled);
     $('record-count').textContent = state.stats.total.toLocaleString('zh-CN');
     $('first-use').hidden = consented;
-    $('open-archive').textContent = consented ? '打开档案 ↗' : '阅读说明并启用 ↗';
+    $('open-archive').textContent = consented ? '回到 PAIA ↗' : '阅读说明并启用 ↗';
     $('toggle-capture').hidden = !consented;
     $('toggle-capture').disabled = busy;
     $('toggle-capture').textContent = state.settings.enabled ? '暂停捕获' : '恢复捕获';
