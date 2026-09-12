@@ -23,7 +23,7 @@ test('Round 8 browser: opt-in direct Input Context, no denied-topic bypass, and 
     await p.locator('#memory-prepare').click();await p.locator('#memory-query').fill('ROUND8_BROWSER_SHARED');await p.locator('#memory-build').click();
     await eventually(async()=>await p.locator('.memory-context-entry').count()===1);
     assert.match(await p.locator('#memory-preview-body').textContent(),/ROUND8_BROWSER_SHARED/);
-    await p.locator('.memory-context-entry details').click();assert.equal(await p.getByRole('button',{name:'在 Input Archive 查看'}).count(),1);
+    await p.locator('.memory-context-entry details summary').click();await eventually(async()=>await p.getByRole('button',{name:'在 Input Archive 查看'}).count()===1,'direct Input provenance control remains mounted');
     assert.equal(h.deepSeekRequests.length,0);
 
     // Organize the exact full Input once. It is no longer a direct-Input candidate;
