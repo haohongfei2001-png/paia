@@ -9,6 +9,8 @@ EXTENSION_ID="${1:-}"
 OUTPUT_DIR="${2:-}"
 MODE="${3:-}"
 VERSION="${PAIA_SECURE_STORE_VERSION:-1.0.0}"
+APP_IDENTITY="${PAIA_DEVELOPER_ID_APPLICATION:-}"
+INSTALLER_IDENTITY="${PAIA_DEVELOPER_ID_INSTALLER:-}"
 
 if [[ ! "$EXTENSION_ID" =~ '^[a-p]{32}$' ]]; then
   echo "usage: $0 <32-character Chrome extension id> <output-dir> [--ci-adhoc]" >&2
@@ -25,6 +27,10 @@ fi
 if [[ -n "$MODE" && "$MODE" != "--ci-adhoc" ]]; then
   echo "third argument may only be --ci-adhoc" >&2
   exit 2
+fi
+if [[ "$MODE" != "--ci-adhoc" && ( -z "$APP_IDENTITY" || -z "$INSTALLER_IDENTITY" ) ]]; then
+  echo "production release requires PAIA_DEVELOPER_ID_APPLICATION and PAIA_DEVELOPER_ID_INSTALLER" >&2
+  exit 5
 fi
 
 for tool in xcrun lipo codesign pkgbuild pkgutil python3 shasum; do
@@ -58,12 +64,6 @@ if [[ "$MODE" == "--ci-adhoc" ]]; then
   /usr/bin/codesign --force --sign - --options runtime --timestamp=none "$BINARY"
   SIGNING_MODE="adhoc-ci"
 else
-  APP_IDENTITY="${PAIA_DEVELOPER_ID_APPLICATION:-}"
-  INSTALLER_IDENTITY="${PAIA_DEVELOPER_ID_INSTALLER:-}"
-  if [[ -z "$APP_IDENTITY" || -z "$INSTALLER_IDENTITY" ]]; then
-    echo "production release requires PAIA_DEVELOPER_ID_APPLICATION and PAIA_DEVELOPER_ID_INSTALLER" >&2
-    exit 5
-  fi
   /usr/bin/codesign --force --sign "$APP_IDENTITY" --options runtime --timestamp "$BINARY"
   SIGNING_MODE="developer-id"
 fi
@@ -87,9 +87,9 @@ path.chmod(0o644)
 PY
 
 if [[ "$MODE" == "--ci-adhoc" ]]; then
-  /usr/bin/pkgbuild --root "$STAGE" --identifier "$PACKAGE_ID" --version "$VERSION" --install-location / "$PACKAGE"
+  /usr/bin/pkgbuild --root "$STAGE" --identifier "$PACKAGE_ID" --version "$VERSION" --install-location / --ownership recommended "$PACKAGE"
 else
-  /usr/bin/pkgbuild --root "$STAGE" --identifier "$PACKAGE_ID" --version "$VERSION" --install-location / \
+  /usr/bin/pkgbuild --root "$STAGE" --identifier "$PACKAGE_ID" --version "$VERSION" --install-location / --ownership recommended \
     --sign "$INSTALLER_IDENTITY" "$PACKAGE"
   /usr/sbin/pkgutil --check-signature "$PACKAGE" >/dev/null
 fi
