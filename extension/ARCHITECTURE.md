@@ -71,8 +71,6 @@ returned Context text
 
 `ProductSignals.observe()` runs only after the trusted command succeeds. It may count a fixed event, but it cannot bind a Package, resolve a Grant, reconstruct Context text, mutate an export result, or decide whether text is released.
 
-This replaces the Round 4 tactical implementation where Passport enforcement temporarily lived in the Product Signals side-channel.
-
 ## 3. Canonical data layers
 
 ### 3.1 Source Record
@@ -97,15 +95,22 @@ AI presentation, evolution reading, search ranking, Context previews and summari
 
 ## 4. Reader is a presentation layer
 
-`Input Reader` is a product capability, not a persistent content layer. Reader may render Input documents, Thought Topics/Entries, AI-organized projections and Context Package previews. Reader-specific state should normally remain ephemeral or lightweight preference state.
+`Input Reader` is a product capability, not a persistent content layer. Reader may render Input documents, Thought Topics/Entries, AI-organized projections, longitudinal expression views and Context Package previews.
 
-Do not introduce a Reader body store that copies canonical Input or Thought text.
+Round 4.6 adds two Reader projections without adding durable state:
+
+- **Universal Search** — a grouped read model over existing Input search, Thought search and existing AI-organized projection text.
+- **“以前的我”** — a chronological projection over the Input matches returned by that search, ordered using available source-send-time evidence.
+
+The longitudinal view describes **when matching expressions were recorded**. It must not infer that a belief, preference or identity changed merely because expressions differ over time.
+
+Reader-specific state should remain ephemeral or lightweight preference state. Do not introduce a Reader body store that copies canonical Input or Thought text.
 
 ## 5. Search architecture
 
 Round 2 introduced `core/search-service.js` as the shared lexical Search Service foundation for Input, Thought and Context preparation.
 
-It currently provides:
+It provides:
 
 - NFKC normalization;
 - exact-title → partial-title → body ranking compatibility;
@@ -113,11 +118,52 @@ It currently provides:
 - lexical overlap/relevance primitives;
 - Unicode-safe excerpts.
 
-Input and Thought retain existing pagination/index structures where required for compatibility. Semantic/vector retrieval may later become a rebuildable implementation component only when real retrieval failures justify it; it is not a new truth store.
+Input and Thought retain their existing pagination/index structures. Semantic/vector retrieval may later become a rebuildable implementation component only when measured retrieval failures justify it; it is not a new truth store.
+
+### 5.1 Universal Search coordination
+
+Round 4.6 adds `core/universal-search.js`. It is a bounded **coordinator**, not another search engine or index.
+
+The flow is:
+
+```text
+one user query
+   ├─ existing Input search
+   ├─ existing Thought search
+   └─ existing AI-presentation read projection
+        ↓
+Universal Search grouped result DTO
+        ↓
+Reader / “以前的我” / explicit Context preparation
+```
+
+Important boundaries:
+
+- No new object store, normalized body store, embedding index or vector database is created.
+- Input and Thought result bodies are returned only as bounded snippets needed for the Reader result list.
+- AI-organized results search only already-stored projection fields; Universal Search does not call a Provider or generate new AI text.
+- Universal Search is exposed through the existing trusted `SEARCH_INPUTS` command with `universal:true`; `OrganizerStore` delegates that mode to `UniversalSearchService` while ordinary Input search remains unchanged.
+- Internal Input/Thought reads are direct domain calls, not additional runtime messages, so one Universal Search is counted once rather than as multiple product searches.
+- Result navigation reuses the existing Input/Thought Reader and its pagination; Universal Search does not create a second document-opening state machine.
+
+### 5.2 Search → Context boundary
+
+A Universal Search result may be explicitly carried into AI Context preparation. This action creates only a bounded local retrieval query containing the selected result snippet and the user's current search query.
+
+It does **not**:
+
+- alter AI Context Profile authorization;
+- enable unorganized Inputs;
+- build a Context preview automatically;
+- call an external Provider;
+- bind or consume a Passport Grant;
+- share Context externally.
+
+The user must continue through the existing AI Context Builder and existing authorization/export path.
 
 ## 6. Context Package architecture
 
-AI Context remains a local Context Compiler. `core/context-package-service.js` now owns the trusted ephemeral Package lifecycle around `MemoryService`.
+AI Context remains a local Context Compiler. `core/context-package-service.js` owns the trusted ephemeral Package lifecycle around `MemoryService`.
 
 The stable Package metadata contract includes:
 
@@ -140,20 +186,18 @@ localOnly / persistedBody=false
 
 Current invariants:
 
-- Package metadata is in-memory and bounded by the same short-lived preview lifecycle; Package body text is not persisted.
-- `ContextPackageService.build()` wraps the existing local Context build and creates the Package metadata.
+- Package metadata is in-memory and bounded by the short-lived preview lifecycle; Package body text is not persisted.
+- `ContextPackageService.build()` wraps local Context build and creates Package metadata.
 - Existing manual AI Context copy/export remains backward compatible as an explicit user action.
-- Passport use requires explicit `ContextPackageService.bind(previewId, grantId)` before protected export. Binding fixes Grant/consumer/purpose/Profile metadata but does not consume the Grant.
-- `ContextPackageService.share()` validates the already-bound Grant **before calling `MemoryService.share()`**. Invalid, expired, revoked, consumed-once, mismatched or unbound Grants therefore do not trigger protected Context reconstruction.
-- If a Grant changes after initial validation but before consumption, failure still prevents the service result from being returned to the caller.
-- The existing AI Context `externalAccess` switch and stale-generation checks remain stronger gates inside the Memory path.
-- Persistent Context Package body history remains unapproved and requires a separate privacy/product decision.
+- Passport use requires explicit `ContextPackageService.bind(previewId, grantId)` before protected export.
+- `ContextPackageService.share()` validates the already-bound Grant **before calling `MemoryService.share()`**.
+- Invalid, expired, revoked, consumed-once, mismatched or unbound Grants do not trigger protected Context reconstruction.
+- Existing AI Context `externalAccess` and stale-generation checks remain stronger gates.
+- Persistent Context Package body history remains unapproved.
 
 ## 7. Passport architecture
 
-`core/passport.js` implements the minimum governance layer over existing AI Context Profile authorization.
-
-Division of responsibility:
+`core/passport.js` implements the minimum governance layer over AI Context Profile authorization.
 
 ```text
 AI Context Profile
@@ -177,28 +221,21 @@ revokedAt / consumedAt
 lastUsedAt / useCount
 ```
 
-Consumers and purposes are fixed enums, not private free text. Grant and audit rows reuse the existing `meta` store; no Passport object store or body cache exists.
+Consumers and purposes are fixed enums, not private free text. Grant and audit rows reuse the existing `meta` store; no Passport object store or body cache exists. Access audit is bounded and metadata-only. Passport rows remain excluded from PAIA Backup so restore cannot reactivate external-use permissions.
 
-Access audit stores only Grant/consumer/purpose/Profile reference, export action and time. It is bounded to 90 days / 200 rows and can be cleared independently.
-
-Passport rows are deliberately excluded from PAIA Backup. Restore must not silently reactivate external-use permissions.
-
-Passport currently governs explicit Context copy/Markdown export only. It does not grant autonomous agent access, background reads, remote API access or Provider credentials.
+Passport governs explicit Context copy/Markdown export only. It does not grant autonomous agent access, background reads, remote API access or Provider credentials.
 
 ## 8. Runtime command boundaries
-
-Round 4.5 separates command namespaces by responsibility:
 
 ```text
 PAIA_PRODUCT_*    local aggregate product metrics only
 PAIA_PASSPORT_*   Grant status/create/revoke/audit maintenance
 PAIA_CONTEXT_*    Package binding / future package lifecycle commands
 PAIA_MEMORY_*     Context authorization, build, share and Context content operations
+SEARCH_INPUTS     ordinary Input search; `universal:true` invokes bounded Universal Search coordination
 ```
 
-`PAIA_MEMORY_BUILD` and `PAIA_MEMORY_SHARE` are routed through `ContextPackageService` at the trusted background boundary. `PAIA_PASSPORT_*` and `PAIA_CONTEXT_*` are local-tool commands and must not wake Smart Filter/Library maintenance or broadcast ordinary archive-content changes.
-
-Revocation/status/audit clearing remain available without requiring capture consent so a user can always reduce or inspect permission state. Creating a new Grant and binding a Package require active PAIA consent.
+`PAIA_MEMORY_BUILD` and `PAIA_MEMORY_SHARE` are routed through `ContextPackageService`. Passport/Context local-tool commands do not wake Smart Filter/Library maintenance or broadcast archive-content changes.
 
 ## 9. Durable schema freeze
 
@@ -211,7 +248,7 @@ The post-v0.12 durable content schema is **frozen by default**. A feature may no
 5. How does migration preserve human work?
 6. What product evidence justifies long-term complexity?
 
-Round 3 Product Signals and Round 4/4.5 Passport intentionally reuse `meta`; Context Package bodies remain ephemeral.
+Round 3 Product Signals and Round 4/4.5 Passport reuse `meta`; Context Package bodies and Round 4.6 Universal Search/longitudinal Reader state remain ephemeral.
 
 ## 10. Privacy and authorization invariants
 
@@ -224,12 +261,11 @@ New work must preserve:
 - Provider calls require explicit authorized bounded actions; no hidden paid retry loops;
 - credentials never enter archive bodies, backups or ordinary logs;
 - local Context preparation never implies external sharing;
-- Passport cannot expand the content scope granted by AI Context Profile rules;
+- Passport cannot expand AI Context Profile scope;
 - revoked, expired, consumed-once, mismatched or unbound Grants cannot release protected Context text;
-- Product Signals must remain incapable of making an authorization decision;
+- Product Signals cannot make authorization decisions;
+- longitudinal Reader views must distinguish chronology from interpretation;
 - synthetic/headless tests are not proof of live private-data or Provider behavior.
-
-Detailed implemented contracts remain in `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md` and feature-specific acceptance evidence.
 
 ## 11. Engineering simplification direction
 
@@ -267,7 +303,7 @@ For each behavioral change:
 - use selected browser journeys for user-visible flows;
 - run package/release guards before release claims.
 
-Round 4.5 adds `context-passport-round45.test.mjs` and `architecture-round45.test.mjs`. The first asserts authorization happens before protected Memory reconstruction; the second prevents Passport/Context ownership from drifting back into Product Signals.
+Round 4.6 adds `universal-search-round46.test.mjs` for bounded coordination, snippet-only results, local AI projection matching, chronology, Search → Context query bounds and the no-persistence/no-vector boundary.
 
 A release claim still requires executable `npm test`, package audit and relevant Chrome E2E/smoke checks in an available development runtime.
 
