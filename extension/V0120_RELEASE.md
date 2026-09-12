@@ -1,6 +1,6 @@
 # PAIA v0.12.0 — Thought Evolution & Shared Context
 
-Release status: **daily-use release candidate prepared from the verified Round 2–8 stack**.
+Release status: **daily-use release prepared from the verified and real-profile-validated Round 2–8 stack**.
 
 Version:
 
@@ -38,7 +38,7 @@ A stale Context preview remains visible for review, but copy/export is disabled 
 
 ## Verification
 
-The runtime behavior in this release is the Round 8 candidate that passed GitHub Actions run `34662095494`:
+The product runtime in this release is the Round 8 runtime previously verified in GitHub Actions run `34662095494`:
 
 - 879 / 879 portable unit, adapter-contract and privacy/security tests passed;
 - 16 / 16 selected unpacked-extension browser journeys passed;
@@ -47,6 +47,21 @@ The runtime behavior in this release is the Round 8 candidate that passed GitHub
 - the Round 7 evolution UI, shared working body, direct Input Context, authorization bypass prevention, backup/restore and worker interruption paths were exercised with synthetic data.
 
 The real daily database structural gate was then executed before and after deployment. The post-update read-only diagnostic completed with no index gap, no invalid compound-index metadata, no invalid/missing active layout generation and no unresolved layout candidate. The compatibility pass completed successfully without requiring a schema bump, uninstall, alternate extension path or database rebuild.
+
+### v0.12.0 release-closure gate
+
+Because the v0.12.0 branch is a version/documentation closure rather than another product-runtime change, the formal release gate proves identity with the already validated Round 8 runtime instead of making hosted-runner timing determine the release.
+
+GitHub Actions run `34666128898` completed successfully and verified that:
+
+- `adapter/`, `content/`, `background/`, `core/`, `ui/` and `icons/` are byte-identical to verified `main` commit `5e8d743c16211506498f64bce5050383470e86ce`;
+- `manifest.json` differs from that verified runtime only in `version` and `version_name`;
+- `package.json` differs only in `version`;
+- source package and development-boundary audits pass;
+- the emitted release is exactly `0.12.0 / v0.12.0 Thought Evolution & Shared Context`;
+- `V0120_RELEASE.md` is included in the formal package while development helpers and `README_HISTORY.md` are excluded.
+
+Earlier attempts to rerun the complete historical browser suite on this metadata-only branch exposed hosted-runner timing flakes in old backup tests and one 30 ms mock-provider timeout. Those runs were not waived as successful evidence; the final release gate instead uses exact runtime identity to the already green Round 8 build plus the completed real-profile structural gate.
 
 No private body text, Topic names, credentials, URLs or raw database rows are part of the repository evidence.
 
