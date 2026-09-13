@@ -1,0 +1,454 @@
+/* PAIA Website D3 — Product Reality
+   Aligns the public product sandbox and product-facing surfaces with the current
+   extension shell while preserving existing copy and product semantics. */
+
+:root {
+  --paia-product-sidebar: 218px;
+  --paia-product-sidebar-bg: #f6f7f5;
+  --paia-product-workspace: #ffffff;
+  --paia-product-ink: #292c2b;
+  --paia-product-muted: #757e77;
+  --paia-product-line: #eceeea;
+  --paia-product-active: #e7ece6;
+  --paia-product-active-ink: #244535;
+}
+
+/* Product screenshots should behave like product surfaces, not marketing cards. */
+body[data-page="home"] .hero-window,
+body[data-page="home"] .product-shot,
+body[data-page="home"] .story-visual,
+body[data-page="home"] .thought-transform {
+  -webkit-font-smoothing: antialiased;
+  backface-visibility: hidden;
+}
+
+body[data-page="home"] .hero-window,
+body[data-page="home"] .product-shot img,
+body[data-page="home"] .story-visual img {
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 12px 34px rgba(31,45,35,.045);
+}
+
+body[data-page="home"] .semantic-stage.is-semantic-active {
+  will-change: opacity, border-color, transform;
+}
+body[data-page="home"] .semantic-stage:not(.is-semantic-active) {
+  will-change: auto;
+}
+
+/* Demo becomes a product workspace rather than a framed marketing demo. */
+body[data-page="demo"] .demo-page-hero {
+  width: min(1480px, calc(100% - 32px));
+  padding-top: 58px;
+  padding-bottom: 78px;
+}
+
+body[data-page="demo"] .demo-page-hero > .eyebrow,
+body[data-page="demo"] .demo-page-hero > h1,
+body[data-page="demo"] .demo-page-hero > .demo-page-lead,
+body[data-page="demo"] .demo-page-hero > .demo-page-meta {
+  width: min(880px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body[data-page="demo"] .demo-page-meta {
+  align-items: baseline;
+}
+
+body[data-page="demo"] .paia-simulator {
+  width: min(1520px, calc(100vw - 28px));
+  margin: 42px 0 0 50%;
+  transform: translateX(-50%);
+  scroll-margin-top: 70px;
+}
+
+body[data-page="demo"] .demo-controls {
+  width: min(1380px, 100%);
+  margin: 0 auto 9px;
+  padding: 0 2px;
+}
+
+body[data-page="demo"] .demo-reset {
+  min-height: 34px;
+  padding: 0 4px;
+  color: #747d77;
+}
+body[data-page="demo"] .demo-reset:focus-visible {
+  outline: 2px solid #567364;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+body[data-page="demo"] .paia-demo-window {
+  grid-template-columns: var(--paia-product-sidebar) minmax(0, 1fr);
+  width: min(1380px, 100%);
+  height: min(820px, calc(100svh - 92px));
+  min-height: 680px;
+  margin: 0 auto;
+  border: 1px solid #dde1dc;
+  border-radius: 12px;
+  background: var(--paia-product-workspace);
+  box-shadow: 0 18px 54px rgba(31,45,35,.055), 0 1px 0 rgba(255,255,255,.95) inset;
+}
+
+body[data-page="demo"] .demo-sidebar {
+  padding: 30px 16px 18px;
+  gap: 35px;
+  border-right: 1px solid var(--paia-product-line);
+  background: var(--paia-product-sidebar-bg);
+}
+
+body[data-page="demo"] .demo-brand {
+  padding: 0 12px;
+}
+body[data-page="demo"] .demo-brand strong {
+  color: var(--paia-product-ink);
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+body[data-page="demo"] .demo-brand small {
+  margin-top: 8px;
+  color: var(--paia-product-muted);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+body[data-page="demo"] .demo-nav {
+  gap: 6px;
+}
+body[data-page="demo"] .demo-nav-button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #5e675f;
+  font-size: 14px;
+}
+body[data-page="demo"] .demo-nav-button:hover {
+  background: #eef1ee;
+  color: #344039;
+}
+body[data-page="demo"] .demo-nav-button.is-active {
+  background: var(--paia-product-active);
+  color: var(--paia-product-active-ink);
+  font-weight: 600;
+}
+body[data-page="demo"] .demo-sidebar-settings {
+  padding-top: 12px;
+  border-top: 1px solid var(--paia-product-line);
+}
+
+body[data-page="demo"] .demo-main {
+  grid-template-rows: 78px minmax(0, 1fr);
+  background: var(--paia-product-workspace);
+}
+body[data-page="demo"] .demo-topbar {
+  align-items: end;
+  padding: 28px 48px 10px;
+  border-bottom: 0;
+  background: var(--paia-product-workspace);
+}
+body[data-page="demo"] .demo-topbar strong {
+  color: var(--paia-product-ink);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -.018em;
+}
+body[data-page="demo"] .demo-local-badge {
+  color: #7b847e;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+}
+body[data-page="demo"] .demo-stage {
+  padding: 14px 48px 80px;
+  background: var(--paia-product-workspace);
+  scrollbar-width: thin;
+  scrollbar-color: #d9dfda transparent;
+}
+
+body[data-page="demo"] .demo-page-head {
+  margin-bottom: 30px;
+}
+body[data-page="demo"] .demo-page-head h3 {
+  color: var(--paia-product-ink);
+  font-size: clamp(26px, 2.35vw, 32px);
+  font-weight: 600;
+  line-height: 1.28;
+}
+body[data-page="demo"] .demo-page-head p {
+  color: #747c76;
+  font-size: 14px;
+  line-height: 1.7;
+}
+body[data-page="demo"] .demo-kicker {
+  color: #818a83;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .11em;
+}
+
+/* Current product archive lists are vertical documents, not dashboard cards. */
+body[data-page="demo"] .demo-conversation-grid {
+  margin-top: 8px;
+  border-top: 1px solid #eceeea;
+  border-bottom: 0;
+}
+body[data-page="demo"] .demo-conversation-card {
+  grid-template-columns: 1fr;
+  gap: 8px;
+  min-height: 0;
+  padding: 23px 4px;
+  border-top: 0;
+  border-bottom: 1px solid #e9ece6;
+  border-radius: 0;
+  background: transparent;
+}
+body[data-page="demo"] .demo-conversation-card:hover {
+  background: #fafbf9;
+}
+body[data-page="demo"] .demo-card-title {
+  color: #313634;
+  font-size: 19px;
+  font-weight: 500;
+}
+body[data-page="demo"] .demo-card-summary {
+  color: #878e88;
+  font-size: 13px;
+  line-height: 1.65;
+}
+body[data-page="demo"] .demo-card-meta {
+  color: #7e877e;
+  font-size: 12px;
+}
+body[data-page="demo"] .demo-card-meta b {
+  display: inline;
+  margin: 0 0 0 8px;
+  color: #6e786f;
+  font-weight: 500;
+}
+
+body[data-page="demo"] .demo-document {
+  max-width: 790px;
+  padding-top: 18px;
+}
+body[data-page="demo"] .demo-entry {
+  padding: 20px 0 24px;
+  border-top-color: #eceeea;
+}
+body[data-page="demo"] .demo-editable {
+  color: #292c2b;
+  font-size: 18px;
+  line-height: 1.95;
+}
+body[data-page="demo"] .demo-editable:hover {
+  background: #fafbf9;
+}
+body[data-page="demo"] .demo-editable:focus {
+  background: #fbfcfa;
+  box-shadow: inset 0 0 0 1px #dce2d7;
+}
+
+/* Current Thought Library presentation is also document-led. */
+body[data-page="demo"] .demo-topic-grid {
+  display: block;
+  border-top: 1px solid #eceeea;
+}
+body[data-page="demo"] .demo-topic-card {
+  min-height: 0;
+  padding: 23px 4px;
+  border: 0;
+  border-bottom: 1px solid #e9ece6;
+  border-radius: 0;
+  background: transparent;
+}
+body[data-page="demo"] .demo-topic-card:hover {
+  border-color: #e9ece6;
+  background: #fafbf9;
+  transform: none;
+}
+body[data-page="demo"] .demo-topic-count {
+  margin-bottom: 8px;
+  color: #858d86;
+  font-size: 11px;
+}
+body[data-page="demo"] .demo-topic-card .demo-card-meta {
+  margin-top: 10px;
+  padding-top: 0;
+}
+
+/* Derived content remains visibly derived; explicit context gets the stronger green boundary. */
+body[data-page="demo"] .demo-derived-card {
+  border-color: #dce2dd;
+  border-radius: 8px;
+  background: rgba(247,249,247,.78);
+  box-shadow: none;
+}
+body[data-page="demo"] .demo-context-picker,
+body[data-page="demo"] .demo-preview {
+  border-color: rgba(82,109,89,.38);
+  box-shadow: 0 0 0 1px rgba(82,109,89,.035) inset;
+}
+
+body[data-page="demo"] button:focus-visible,
+body[data-page="demo"] [contenteditable="true"]:focus-visible,
+body[data-page="demo"] input:focus-visible,
+body[data-page="demo"] textarea:focus-visible,
+body[data-page="demo"] select:focus-visible {
+  outline: 2px solid #567364;
+  outline-offset: 2px;
+}
+
+/* When the sandbox owns most of the viewport, the website chrome recedes instead of disappearing. */
+body[data-page="demo"].product-sandbox-active .site-header {
+  background: rgba(247,248,244,.94);
+  border-bottom-color: rgba(71,91,77,.08);
+  box-shadow: none;
+}
+body[data-page="demo"].product-sandbox-active .demo-page-hero > .eyebrow,
+body[data-page="demo"].product-sandbox-active .demo-page-hero > h1,
+body[data-page="demo"].product-sandbox-active .demo-page-hero > .demo-page-lead,
+body[data-page="demo"].product-sandbox-active .demo-page-hero > .demo-page-meta {
+  opacity: .72;
+  transition: opacity .22s ease;
+}
+
+/* Keep below-the-fold presentation cheap without changing layout geometry used by D2. */
+body[data-page="home"] #privacy,
+body[data-page="home"] .closing {
+  contain: paint;
+}
+body[data-page="demo"] .paia-demo-window {
+  contain: layout paint;
+}
+
+@media (max-width: 900px) {
+  body[data-page="demo"] .paia-simulator {
+    width: calc(100vw - 20px);
+  }
+  body[data-page="demo"] .paia-demo-window {
+    grid-template-columns: 184px minmax(0,1fr);
+    min-height: 650px;
+  }
+  body[data-page="demo"] .demo-sidebar {
+    padding: 24px 10px 14px;
+  }
+  body[data-page="demo"] .demo-brand {
+    padding-inline: 8px;
+  }
+  body[data-page="demo"] .demo-brand strong {
+    font-size: 21px;
+  }
+  body[data-page="demo"] .demo-topbar {
+    padding-inline: 28px;
+  }
+  body[data-page="demo"] .demo-stage {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
+@media (max-width: 680px) {
+  body[data-page="demo"] .demo-page-hero {
+    width: calc(100% - 24px);
+    padding-top: 48px;
+  }
+  body[data-page="demo"] .demo-page-hero > .eyebrow,
+  body[data-page="demo"] .demo-page-hero > h1,
+  body[data-page="demo"] .demo-page-hero > .demo-page-lead,
+  body[data-page="demo"] .demo-page-hero > .demo-page-meta {
+    width: 100%;
+  }
+  body[data-page="demo"] .demo-page-meta {
+    align-items: flex-start;
+  }
+  body[data-page="demo"] .paia-simulator {
+    width: calc(100vw - 12px);
+    margin-top: 30px;
+  }
+  body[data-page="demo"] .paia-demo-window {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0,1fr);
+    height: min(760px, 80svh);
+    min-height: 620px;
+    border-radius: 10px;
+  }
+  body[data-page="demo"] .demo-sidebar {
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--paia-product-line);
+  }
+  body[data-page="demo"] .demo-brand {
+    padding: 0;
+  }
+  body[data-page="demo"] .demo-brand strong {
+    font-size: 18px;
+  }
+  body[data-page="demo"] .demo-brand small {
+    display: none;
+  }
+  body[data-page="demo"] .demo-nav {
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  body[data-page="demo"] .demo-nav::-webkit-scrollbar {
+    display: none;
+  }
+  body[data-page="demo"] .demo-nav-button {
+    min-height: 34px;
+    padding: 7px 9px;
+    font-size: 11.5px;
+    white-space: nowrap;
+  }
+  body[data-page="demo"] .demo-sidebar-settings {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  body[data-page="demo"] .demo-sidebar-settings .demo-nav-button {
+    width: auto;
+  }
+  body[data-page="demo"] .demo-main {
+    grid-template-rows: 62px minmax(0,1fr);
+  }
+  body[data-page="demo"] .demo-topbar {
+    padding: 18px 18px 8px;
+  }
+  body[data-page="demo"] .demo-topbar strong {
+    font-size: 18px;
+  }
+  body[data-page="demo"] .demo-stage {
+    padding: 10px 18px 54px;
+  }
+  body[data-page="demo"] .demo-conversation-card,
+  body[data-page="demo"] .demo-topic-card {
+    padding-top: 19px;
+    padding-bottom: 19px;
+  }
+  body[data-page="demo"] .demo-card-title {
+    font-size: 17px;
+  }
+  body[data-page="demo"] .demo-editable {
+    font-size: 16.5px;
+    line-height: 1.86;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="demo"].product-sandbox-active .demo-page-hero > .eyebrow,
+  body[data-page="demo"].product-sandbox-active .demo-page-hero > h1,
+  body[data-page="demo"].product-sandbox-active .demo-page-hero > .demo-page-lead,
+  body[data-page="demo"].product-sandbox-active .demo-page-hero > .demo-page-meta {
+    opacity: 1;
+    transition: none;
+  }
+}
