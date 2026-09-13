@@ -8,7 +8,7 @@ The repository does not contain real user data, browser profiles, session creden
 
 ## Product site
 
-https://haohongfei2001-png.github.io/paia/
+https://inputarchive.com/
 
 The site is organized around three layers:
 
