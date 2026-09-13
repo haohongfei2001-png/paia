@@ -55,6 +55,7 @@ test('Round 4.8 current release: Passport grant binds a Context package and revo
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive;await consent(p);
+  await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{externalAccess:true}});
   const status=await rpc(p,'PAIA_PASSPORT_STATUS');assert.equal(status.localOnly,true);assert.equal(status.storesBody,false);assert.equal(status.permission,'context_export');
   const built=await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'ROUND48 passport certification',profileId:'default',budget:'short'}});assert.equal(built.contextPackage.grantId,null);assert.equal(built.contextPackage.persistedBody,false);
   const grant=await rpc(p,'PAIA_PASSPORT_CREATE',{grant:{consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'}});assert.equal(grant.state,'active');
