@@ -83,7 +83,7 @@ jobs:
   current_browser:
     name: Current Browser Certification
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: extension
@@ -113,6 +113,10 @@ jobs:
           tests/release-certification-round48-chrome-e2e.test.mjs
           tests/release-certification-round49-chrome-e2e.test.mjs
           tests/activation-return-round410-chrome-e2e.test.mjs
+      - name: Run complete current browser suite
+        env:
+          PAIA_TEST_CONCURRENCY: '1'
+        run: xvfb-run -a npm run test:browser
       - name: Package and development guards
         run: |
           npm run check
@@ -126,12 +130,10 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  historical_full_suite:
-    name: Historical Full Suite Audit
-    if: github.event_name == 'workflow_dispatch'
-    continue-on-error: true
+  full_suite:
+    name: Full Suite Certification
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: extension
@@ -147,27 +149,33 @@ jobs:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - name: Prepare historical full-suite environment
+      - name: Prepare current full-suite Chrome environment
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
           test -n "$CHROME_BIN"
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
-          sudo mkdir -p '/Applications/Google Chrome.app/Contents/MacOS'
-          sudo ln -sf "$CHROME_BIN" '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-          git rev-parse --is-shallow-repository | grep -qx false
           "$CHROME_BIN" --version
-      - name: Run historical unsharded suite
+      - name: Run unsharded current full suite
         env:
           PAIA_TEST_CONCURRENCY: '4'
         run: xvfb-run -a npm test
-      - name: Upload historical suite receipt when available
+      - name: Require current full-suite receipt
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const row=JSON.parse(fs.readFileSync('work/test-summary.json','utf8'));
+          if(row.fullSuite!==true||row.auditPassed!==true||typeof row.inputDigest!=='string'||!row.inputDigest)process.exit(1);
+          if(row.historicalBrowserAudit!=='SEPARATE_PRE_MIGRATION_EVIDENCE'||!Number.isInteger(row.historicalBrowserFiles))process.exit(1);
+          console.log(`fullSuite=${row.fullSuite} auditPassed=${row.auditPassed} historicalBrowserFiles=${row.historicalBrowserFiles} digest=${row.inputDigest}`);
+          NODE
+      - name: Upload current full-suite receipt
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: paia-historical-full-suite-${{ github.sha }}
+          name: paia-current-full-suite-${{ github.sha }}
           path: extension/work/test-summary.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
 
   macos_secure_store:
@@ -221,7 +229,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     continue-on-error: true
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -249,13 +257,12 @@ jobs:
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           sudo mkdir -p '/Applications/Google Chrome.app/Contents/MacOS'
           sudo ln -sf "$CHROME_BIN" '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-          git rev-parse --is-shallow-repository | grep -qx false
           "$CHROME_BIN" --version
-      - name: Run historical browser shard under virtual display
+      - name: Run pre-migration browser evidence shard
         env:
           PAIA_TEST_SHARD: ${{ matrix.shard }}
           PAIA_TEST_CONCURRENCY: '1'
-        run: xvfb-run -a npm run test:browser
+        run: xvfb-run -a npm run test:historical-browser
 
   release:
     name: Current release build and guards
@@ -288,19 +295,21 @@ jobs:
     name: Certification gate
     runs-on: ubuntu-latest
     if: always()
-    needs: [unit, contracts, current_browser, macos_secure_store, release]
+    needs: [unit, contracts, current_browser, full_suite, macos_secure_store, release]
     steps:
       - name: Require every current-release gate
         env:
           UNIT: ${{ needs.unit.result }}
           CONTRACTS: ${{ needs.contracts.result }}
           CURRENT_BROWSER: ${{ needs.current_browser.result }}
+          FULL_SUITE: ${{ needs.full_suite.result }}
           MACOS_SECURE_STORE: ${{ needs.macos_secure_store.result }}
           RELEASE: ${{ needs.release.result }}
         run: |
-          printf 'unit=%s\ncontracts=%s\ncurrent_browser=%s\nmacos_secure_store=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$CURRENT_BROWSER" "$MACOS_SECURE_STORE" "$RELEASE"
+          printf 'unit=%s\ncontracts=%s\ncurrent_browser=%s\nfull_suite=%s\nmacos_secure_store=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$CURRENT_BROWSER" "$FULL_SUITE" "$MACOS_SECURE_STORE" "$RELEASE"
           test "$UNIT" = success
           test "$CONTRACTS" = success
           test "$CURRENT_BROWSER" = success
+          test "$FULL_SUITE" = success
           test "$MACOS_SECURE_STORE" = success
           test "$RELEASE" = success
