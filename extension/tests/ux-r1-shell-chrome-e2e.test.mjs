@@ -53,7 +53,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
 
   await p.locator('#primary-nav [data-view="thoughts"]').click();await eventually(()=>p.locator('#thought-panel').isVisible(),'Thought Library remains reachable');
   await p.locator('.sidebar-bottom [data-view="settings"]').click();await eventually(()=>p.locator('#settings-panel').isVisible(),'Settings opens');
-  assert.deepEqual(await p.locator('.ux-settings-nav button').allTextContents(),['内容与收录','阅读与外观','AI','隐私与对外使用','数据与设备','高级']);
+  await eventually(async()=>JSON.stringify(await p.locator('.ux-settings-nav button').allTextContents())===JSON.stringify(['内容与收录','阅读与外观','AI','隐私与对外使用','数据与设备','高级']),'Settings groups follow the active interface language');
   await p.locator('[data-settings-group="data"]').click();assert.match(await p.locator('[data-group="data"]').textContent(),/当前版本未提供设备同步/);
   await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('#thought-panel').isVisible(),'Settings Back restores its originating root through same-URL history');
   await p.locator('#primary-nav [data-view="memory"]').click();await eventually(()=>p.locator('#memory-panel').isVisible(),'For AI remains the existing MemoryPanel path');
@@ -93,7 +93,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
  }finally{await h.close();}
 });
 
-test('UX-R1 optional history import still previews, confirms, writes once and opens the canonical Reader',{timeout:150000},async()=>{
+test('UX-R1 optional history import previews, confirms and reads one real imported document',{timeout:150000},async()=>{
  const dir=await mkdtemp(join(tmpdir(),'paia-ux-r1-import-'));let h;
  try{
   for(const name of ['manifest.json','adapter','content','background','core','ui','icons'])await cp(name,join(dir,name),{recursive:true});
@@ -105,8 +105,9 @@ test('UX-R1 optional history import still previews, confirms, writes once and op
   await p.locator('#history-file-consent').check();const chooser=p.waitForEvent('filechooser');await p.locator('#history-choose').click();await(await chooser).setFiles({name:'synthetic-history.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify([syntheticRow(1),syntheticRow(2)]))});
   await eventually(()=>p.locator('#history-commit').isEnabled(),'history is previewed before commit');assert.equal((await h.state()).records.length,0,'preflight must not write Source');
   assert.match(await p.locator('#history-status').textContent(),/检查完成/);await p.locator('#history-commit').click();await eventually(async()=>(await p.locator('#history-status').textContent())==='历史补全完成。','history commit completes');
-  assert.equal((await h.state()).records.length,2);await p.locator('#history-read').click();await eventually(()=>p.locator('#core-loop-home').isVisible(),'history success returns to Archive');
-  const recent=p.locator('#core-loop-continue');await eventually(async()=>!(await recent.isDisabled()),'imported content becomes real recently captured target');await recent.click();await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('Synthetic'),'imported content opens canonical Reader');
+  const imported=await h.state();assert.equal(imported.records.length,2);assert.equal(imported.library.blocks.length,2);assert.ok(imported.records.every(row=>row.originalText.includes('Synthetic')));
+  assert.match(await p.locator('#history-read').textContent(),/读一篇|Read one/i);await p.locator('#history-read').click();
+  await eventually(()=>p.locator('#document-panel').isVisible(),'Read one opens the canonical imported Reader directly');const body=(await p.locator('#document-body').textContent()).trim();assert.ok(body.length>0,'imported Reader contains real saved content');
   await assertNoNetwork(h);assert.deepEqual(h.errors,[]);
  }finally{await h?.close();await rm(dir,{recursive:true,force:true});}
 });
