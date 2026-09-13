@@ -1,0 +1,94 @@
+name: UX-R4 UI stability recovery
+
+on:
+  push:
+    branches: [recovery-r4-1]
+    paths:
+      - '.github/workflows/recovery-r4-ui-stability.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: recovery-r4-1
+          fetch-depth: 0
+      - name: Close maintenance repaint races
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_one(path, old, new, label):
+              p=Path(path); text=p.read_text(encoding='utf-8')
+              if old not in text: raise SystemExit(f'{label} target not found')
+              p.write_text(text.replace(old,new,1),encoding='utf-8')
+
+          replace_one(
+            'extension/ui/archive.js',
+            "chrome.storage.onChanged.addListener((changes,area)=>{if(area!=='local')return;if(view==='thoughts'){if(Object.keys(changes).some(k=>['settings','paia-settings'].includes(k)))void refresh();return;}void refresh();});",
+            "chrome.storage.onChanged.addListener((changes,area)=>{if(area!=='local'||!Object.keys(changes).some(k=>['settings','paia-settings'].includes(k)))return;void refresh();});",
+            'archive storage listener')
+          replace_one(
+            'extension/ui/archive.js',
+            "chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'){smartFilter.changed();",
+            "chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'){smartFilter.changed();if(!m.cause)return;",
+            'archive maintenance notification')
+
+          replace_one(
+            'extension/ui/core-loop.js',
+            "root.dataset.paiaTheme=theme;root.dataset.paiaLanguage=language();root.lang=language();root.style.setProperty('--paia-prose-size',`${FONT_PX[uxPreferences.fontSize]||17}px`);",
+            "const lang=language();root.dataset.paiaTheme=theme;root.dataset.paiaLanguage=lang;if(root.lang!==lang)root.lang=lang;root.style.setProperty('--paia-prose-size',`${FONT_PX[uxPreferences.fontSize]||17}px`);",
+            'core-loop language mutation')
+          replace_one(
+            'extension/ui/core-loop.js',
+            "if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type)){if(message.type==='PAIA_READER_POLICY_CHANGED')",
+            "if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type)){if(message.type==='ARCHIVE_CHANGED'&&!message.cause){lastRevisitKey='';refreshHome();return;}if(message.type==='PAIA_READER_POLICY_CHANGED')",
+            'core-loop maintenance notification')
+
+          replace_one(
+            'extension/ui/material-tray.js',
+            "this.invalidateOutput();if(this.rechecking)this.render();void this.refresh(epoch);",
+            "this.invalidateOutput();void this.refresh(epoch);",
+            'material tray eager recheck render')
+          replace_one(
+            'extension/ui/material-tray.js',
+            "const next=await this.rpc('read');if(epoch!==this.sourceEpoch)return null;this.data=next;",
+            "const previous=this.data,next=await this.rpc('read');if(epoch!==this.sourceEpoch)return null;this.data=next;",
+            'material tray previous snapshot')
+          replace_one(
+            'extension/ui/material-tray.js',
+            "}else this.render();return true;});}\n activate(active){",
+            "}else if(this.mode==='preview'||this.visibleChanged(previous,next))this.render();return true;});}\n visibleChanged(a,b){if(!a||!b||a.state!==b.state||a.note!==b.note||a.text!==b.text||a.characters!==b.characters||a.items.length!==b.items.length)return true;return b.items.some((item,index)=>{const old=a.items[index];return !old||old.itemId!==item.itemId||old.state!==item.state||old.body!==item.body||old.title!==item.title||old.edited!==item.edited||JSON.stringify(old.ref)!==JSON.stringify(item.ref)||JSON.stringify(old.restriction)!==JSON.stringify(item.restriction);});}\n activate(active){",
+            'material tray stable refresh')
+
+          test=Path('extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs')
+          text=test.read_text(encoding='utf-8')
+          old="try{await search(p,'UXR4_SEARCH');\n// A delayed older response must not replace the newer query; composition must not issue requests."
+          new="try{await search(p,'UXR4_SEARCH');const worker=h.context.serviceWorkers().find(w=>w.url().includes('/background/service-worker.js'));assert.ok(worker);await p.evaluate(()=>{globalThis.__uxr4StableHit=document.querySelector('.universal-hit');});await worker.evaluate(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED'}).catch(()=>{});});await pause(250);assert.equal(await p.evaluate(()=>globalThis.__uxr4StableHit===document.querySelector('.universal-hit')),true,'maintenance notification must not remount Universal Search results');\n// A delayed older response must not replace the newer query; composition must not issue requests."
+          if old not in text: raise SystemExit('R4 search stability test target not found')
+          text=text.replace(old,new,1)
+          old="await until(async()=>(await tray(p))?.items.length===3);const before=(await tray(p)).items.map(i=>i.ref);"
+          new="await until(async()=>(await tray(p))?.items.length===3);await p.evaluate(()=>{globalThis.__uxr4StablePreview=document.querySelector('#material-preview');});await worker.evaluate(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED'}).catch(()=>{});});await pause(250);assert.equal(await p.evaluate(()=>globalThis.__uxr4StablePreview===document.querySelector('#material-preview')),true,'maintenance notification must not remount the Material Tray');const before=(await tray(p)).items.map(i=>i.ref);"
+          if old not in text: raise SystemExit('R4 tray stability test target not found')
+          test.write_text(text.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Syntax check patched modules
+        run: |
+          node --check extension/ui/archive.js
+          node --check extension/ui/core-loop.js
+          node --check extension/ui/material-tray.js
+          node --check extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+      - name: Commit recovery patch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add extension/ui/archive.js extension/ui/core-loop.js extension/ui/material-tray.js extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+          git rm .github/workflows/recovery-r4-ui-stability.yml
+          git commit -m 'fix(ux-r4): stop maintenance repaint races'
+          git push origin HEAD:refs/heads/recovery-r4-1
