@@ -19,16 +19,28 @@ const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const safe=e=>SAFE_ERRORS.has(e?.code)?e.code:'INTERNAL_RUNTIME_ERROR';
 // Trusted projection only. Neither provider nor UI receives repository handles,
 // Source snapshots, Input identifiers, hidden Inputs, titles/URLs or raw history.
-async function topicSnapshot(s,t,topic){
+async function topicSnapshot(s,t,topic,{limit=null,summaryOnly=false}={}){
  if(!validTopicGeneration(topic.activeLayoutGeneration))reject('STALE_BASE');
- const placements=await t.all('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));
+ const scanned=await t.all('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),limit===null?undefined:limit+1),placements=limit===null?scanned:scanned.slice(0,limit);
  const entries=[],versions={},inputVersions={},filter=await t.get('meta','smart-filter');
  for(const placement of placements){let row;try{row=await s.readableEntry(t,placement.entryId);}catch{continue;}if(!row||row.lifecycle!=='active')continue;
   const deps=await t.all('dependencies','byTarget',prefix(['entry',row.id])),provenance=await t.all('provenance','byOwner',prefix(['entry',row.id]));if(!provenance.length&&row.provenanceType!=='user_created')continue;const refs=[...new Map([...deps,...provenance].map(d=>[d.inputId,d])).values()];let allowed=true;const tokens=[];
   for(const dep of refs){const input=await inputProjection(s,t,dep.inputId),state=await t.get('inputStates',dep.inputId);if(!input||await s.isFiltered(t,input.block,filter)){allowed=false;break;}tokens.push([dep.inputId,state.contentRevision,state.lastRemovalSequence||0]);inputVersions[dep.inputId]={contentRevision:state.contentRevision,removalState:state.removalState,sourcePurged:!!state.sourcePurged,eligible:true};}
-  if(!allowed)continue;versions[row.id]=JSON.stringify([row.revision,row.dependencyRevision||0,tokens]);entries.push({...await entryTime(t,row.id),id:row.id,body:row.thoughtText,type:row.type,userEdited:row.userEdited,protections:row.protections,createdAt:row.createdAt,updatedAt:row.updatedAt});
+  if(!allowed)continue;versions[row.id]=JSON.stringify([row.revision,row.dependencyRevision||0,tokens]);entries.push(summaryOnly?{id:row.id}:{...await entryTime(t,row.id),id:row.id,body:row.thoughtText,type:row.type,userEdited:row.userEdited,protections:row.protections,createdAt:row.createdAt,updatedAt:row.updatedAt});
  }
- return {entries,versions,inputVersions};
+ return {entries,versions,inputVersions,truncated:limit!==null&&scanned.length>limit,scanned:placements.length};
+}
+// UX-R2 reuses the canonical pending-delta tokens without loading every topic's
+// bodies or invoking the organizer/migration path just to display Revisit.
+export async function revisitTopicDeltas(s,t){
+ const cp=await t.get('meta',CHECKPOINT),rows=await t.all('topics','byIndex',prefix([0]),25),topics=[];let budget=240,truncated=rows.length>24;
+ for(const topic of rows.slice(0,24)){
+  if(!budget){truncated=true;break;}if(topic.redirectTo||!validTopicGeneration(topic.activeLayoutGeneration))continue;
+  const current=await topicSnapshot(s,t,topic,{limit:Math.min(60,budget),summaryOnly:true});budget-=current.scanned;truncated ||= current.truncated;
+  const prior=cp?.topicVersions?.[topic.id]||{},changed=current.entries.filter(e=>prior[e.id]!==current.versions[e.id]).length,removed=current.truncated?0:Object.keys(prior).filter(id=>!Object.hasOwn(current.versions,id)).length;
+  if(changed+removed)topics.push({topicId:topic.id,name:topic.name,pendingEntryCount:changed+removed,truncated:current.truncated});
+ }
+ return {topics,truncated};
 }
 async function snapshot(s){await migrateAIPresentations(s);return s.run(()=>s.repository.transaction(false,async t=>{
  const gate=await t.get('meta','gate'),cp=await t.get('meta',CHECKPOINT)||{id:CHECKPOINT,view:'ai',version:3,inputVersions:{},topicVersions:{},lastSequence:0},topics=[];

@@ -1,16 +1,17 @@
+import {readRevisitPolicy,inputRevisitExcluded} from './reader-state.js';
 import {ArchiveError} from './constants.js';
 const views=['library','archive','excluded','settings','legacy','memory'];
 function validCursor(c){return c===null||Array.isArray(c)&&c.length<=8&&c.every(x=>typeof x==='string'&&x.length<600||typeof x==='number'&&Number.isFinite(x));}
 const prefixRange=p=>IDBKeyRange.bound(p,[...p,[]],false,true);
 async function recentCapturedDocument(t){
- let cursor=null,scanned=0;
+ let cursor=null,scanned=0;const policy=await readRevisitPolicy(t);
  while(scanned<1000){
   const page=await t.rangePage('recordIndex','bySequence',null,cursor,100,'prev');
   if(!page.rows.length)break;
   for(const {key,value:ix} of page.rows){
    cursor=key;scanned++;
    if(ix.hidden||ix.deletedAt)continue;
-   const record=(await t.get('records',ix.id))?.value;if(!record)continue;
+   const record=(await t.get('records',ix.id))?.value;if(!record)continue;const b=(await t.get('blocks','block:'+ix.id))?.value;if(b&&(b.excluded||await inputRevisitExcluded(t,b,policy)))continue;
    const docs=await t.all('documents','byChat',ix.chatKey,2);
    for(const row of docs){
     const d=row.value;if(!d)continue;

@@ -373,3 +373,10 @@ test('v081 backup, bounded workflow, Topic governance and AI draft commands reje
 });
 
 test('v0100 Memory commands reject content/foreign callers and all require consent',async()=>{const h=await fixture();for(const type of ['PAIA_MEMORY_STATUS','PAIA_MEMORY_AUTHORIZE','PAIA_MEMORY_EXCLUDE','PAIA_MEMORY_SETTINGS','PAIA_MEMORY_PROFILE','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES']){await expectError(h.send({type,options:{query:'synthetic-only'}},content),'FORBIDDEN');await expectError(h.send({type},{id:'foreign',url:'https://example.invalid'}),'FORBIDDEN');await expectError(h.send({type}),'CONSENT_REQUIRED');}});
+
+test('UX-R2 Reader, Revisit and capture policy RPCs require exact trusted UI and consent',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});const app=await fixture();
+ const messages=[{type:'PAIA_READER_RECENT'},{type:'PAIA_READER_RESOLVE',documentId:'synthetic-doc'},{type:'PAIA_READER_SAVE',anchor:{}},{type:'PAIA_READER_POLICY'},{type:'PAIA_READER_CONFIGURE',change:{oldContent:true}},{type:'PAIA_READER_CAPTURE_SCOPE',options:{documentId:'synthetic-doc',excluded:true}},{type:'PAIA_REVISIT_OPEN'},{type:'PAIA_REVISIT_CLOSE',options:{windowId:'synthetic'}},{type:'PAIA_REVISIT_STATUS',options:{includeOld:true}}];
+ for(const request of messages){await expectError(app.send(request,content),'FORBIDDEN');await expectError(app.send(request,{...ui,url:ui.url+'?spoof=1'}),'FORBIDDEN');await expectError(app.send(request,ui),'CONSENT_REQUIRED');}
+ await app.send({type:'CONSENT',accepted:true});assert.equal((await app.send({type:'PAIA_READER_POLICY'})).data.revisit.oldContent,false);assert.deepEqual((await app.send({type:'PAIA_READER_RECENT'})).data,[]);
+});

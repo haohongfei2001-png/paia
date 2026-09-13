@@ -22,6 +22,8 @@ test('Round 4.8 current release: Universal Search -> Reader / Context and Revisi
   await hit.locator('.universal-open').click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND48_SEARCH_TARGET'),'search result opens its Input document');
 
+  await p.locator('#back').click();await eventually(()=>p.locator('#collection-panel').isVisible(),'Reader returns to Archive search');assert.equal(await p.locator('#search').inputValue(),'ROUND48_SEARCH_TARGET','Universal Search origin survives Reader return');await eventually(()=>p.locator('#document-list .search-input').isVisible());await p.locator('#document-list .search-input').first().click();await eventually(()=>p.locator('#document-panel').isVisible());
+
   // Direct unorganized Inputs are opt-in by design. Satisfy that explicit user
   // eligibility before testing Search -> Context; the journey must not weaken
   // the default authorization boundary merely to make a search hit reusable.
@@ -36,16 +38,18 @@ test('Round 4.8 current release: Universal Search -> Reader / Context and Revisi
   const prepared=await p.locator('#memory-query').inputValue();assert.match(prepared,/重点参考我以前的这段表达/);assert.match(prepared,/我现在想继续了解/);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);
 
-  // First Revisit establishes a baseline; a later captured Input becomes the
+  p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#collection-panel').isVisible());await p.locator('#search').fill('');await eventually(()=>p.locator('#core-loop-home').isVisible());
+  // UX-R2 creates a fixed visit window; a later captured Input becomes the
   // only new-item signal and can navigate back to the canonical reader.
-  await p.locator('#revisit-open').click();await eventually(async()=>await p.locator('#revisit-dialog').evaluate(el=>el.open),'Revisit opens');
-  assert.match(await p.locator('.revisit-intro').textContent(),/第一次打开回访/);await p.locator('#revisit-dialog footer button').click();
-  await eventually(async()=>!(await p.locator('.revisit-intro').textContent()).includes('第一次打开回访'),'Revisit baseline is stored');
-  const baseline=await rpc(p,'PAIA_REVISIT_STATUS');assert.equal(baseline.firstRun,false);assert.equal(baseline.newInputs.count,0);await p.locator('.revisit-close').click();
+  await p.locator('#revisit-open').click();await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'Revisit opens');
+  assert.match(await p.locator('.revisit-intro').textContent(),/不表示|does not mark/i);
+  assert.equal(await p.locator('#revisit-panel footer .primary').count(),0,'no mark-all or baseline action');
+  await p.locator('.revisit-close').click();
+  const baseline=await rpc(p,'PAIA_REVISIT_STATUS');assert.equal(baseline.firstRun,false);assert.equal(baseline.newInputs.count,0);
   await h.open({id:'round48-current',title:'Round 4.8 Current Release',base:1609459200,messages:[{id:'round48-one',text:first},{id:'round48-two',text:second}]});
   await eventually(async()=>{const s=await h.state(),source=s.records.find(r=>r.originalText===second);return s.records.length===2&&!!source&&s.library?.blocks?.some(b=>!b.excluded&&b.originalTextReference===source.id);},'later Input is linked into Input Archive after baseline');
   let revisitStatus=null;await eventually(async()=>{revisitStatus=await rpc(p,'PAIA_REVISIT_STATUS');return revisitStatus.newInputs.items.some(item=>String(item.snippet||'').includes('ROUND48_REVISIT_NEW'));},'Revisit service sees the newly captured Input');assert.ok(revisitStatus.newInputs.count>=1);
-  await p.locator('#revisit-open').click();await eventually(async()=>await p.locator('#revisit-dialog').evaluate(el=>el.open),'Revisit reopens after later Input');
+  await p.locator('#revisit-open').click();await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'Revisit reopens after later Input');
   const newCard=p.locator('.revisit-card').filter({hasText:'ROUND48_REVISIT_NEW'});await eventually(async()=>await newCard.count()===1,'Revisit UI renders the service-visible new Input');await newCard.locator('.revisit-card-open').click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND48_REVISIT_NEW'),'Revisit item opens canonical Input reader');
   await pause(100);assert.deepEqual(h.errors,[]);

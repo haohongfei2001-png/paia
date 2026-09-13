@@ -23,6 +23,8 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
 
   // Capture -> read: the Archive home should return to the canonical Reader,
   // not a duplicate dashboard document view.
+  // Retain real worker results but delay onboarding UI reads to exercise the stale-root refresh race.
+  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async message=>{const result=await send(message);if(message.type==='GET_ONBOARDING')await new Promise(resolve=>setTimeout(resolve,120));return result;};});
   await recent.click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND49_CORE_LOOP'),'recently captured opens canonical Input Reader');
   let reuse=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.core-loop-reuse');
@@ -63,8 +65,8 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   await p.locator('.universal-close').click();
 
   await p.locator('#core-loop-return').click();
-  await eventually(async()=>await p.locator('#revisit-dialog').evaluate(el=>el.open),'home Return opens existing Revisit service');
-  assert.match(await p.locator('.revisit-intro').textContent(),/第一次打开回访/);
+  await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'home Return opens existing Revisit service');
+  assert.match(await p.locator('.revisit-intro').textContent(),/不表示|does not mark/i);
   await p.locator('.revisit-close').click();
 
   const popup=await h.context.newPage();await popup.goto(`chrome-extension://${h.extensionId}/ui/popup.html`);

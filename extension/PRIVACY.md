@@ -1,3 +1,9 @@
+## UX-R2 Reader / Revisit privacy
+
+Formal reading positions are bounded, body-free, local metadata and are not backed up. Revisit windows are visit boundaries, never read-all assertions. Older material requires explicit opt-in, which is off for upgrades and after restore. Input, source-conversation and topic exclusions apply to active Revisit cards, Continue/Recently Captured recommendations and derived previews; explicit Search and AI authorization remain independently controlled.
+
+Exact source-conversation capture exclusion is enforced by the trusted worker in the capture/enrichment transaction. It preserves already-saved content and applies only to that conversation. Content scripts cannot set policy or reading positions. Source purge invalidates current previews, clears removed reading targets and retains only opaque restriction fences; no old Source/revision body becomes readable again. No new site permission, website storage, provider call or notification channel is added.
+
 ## v0.11.1 reading closure
 
 See [READING_CLOSURE.md](READING_CLOSURE.md) for the reading contract, reproduced root cause and acceptance evidence. No new network or Provider capability.

@@ -106,10 +106,11 @@ jobs:
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
-      - name: UX-R1 shell plus current core product journeys
+      - name: UX-R1 shell and UX-R2 Reader plus current core product journeys
         run: >-
           xvfb-run -a node --test --test-concurrency=1
           tests/ux-r1-shell-chrome-e2e.test.mjs
+          tests/ux-r2-reader-revisit-chrome-e2e.test.mjs
           tests/release-certification-round48-chrome-e2e.test.mjs
           tests/release-certification-round49-chrome-e2e.test.mjs
           tests/activation-return-round410-chrome-e2e.test.mjs
@@ -127,6 +128,14 @@ jobs:
         with:
           name: ux-r1-visual-evidence-${{ github.sha }}
           path: extension/work/ux-r1
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload UX-R2 visual and browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ux-r2-evidence-${{ github.sha }}
+          path: extension/work/ux-r2
           if-no-files-found: warn
           retention-days: 14
 

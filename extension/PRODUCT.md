@@ -71,14 +71,14 @@ Current state:
 - **Universal Search** provides one bounded local entry point across Input Archive, Thought Library and existing AI-organized projections without creating another search index or truth layer.
 - Universal Search can reopen the matching Input/Thought/AI-organized location and can explicitly carry a selected result into AI Context as a local retrieval focus; it never auto-generates or auto-shares Context.
 - **“以前的我”** is a time-oriented projection over matching Input expressions. It orders available source-send-time evidence from earlier to later and explicitly does not infer that the user's belief changed.
-- **Revisit / 回访** is an on-demand local Reader surface. After the user explicitly establishes a baseline, it shows newly collected visible Inputs, Thought topics whose current organization has new/changed supporting material, and a small rotating set of older Inputs worth reopening.
+- **Revisit / 回访** is an on-demand local Reader surface. UX-R2 shows true reading positions, a fixed window of newly collected visible Inputs and bounded topic material changes. Older Inputs appear only after explicit opt-in; Input/conversation/topic exclusions also suppress related previews.
 - Older resurfacing is deliberately explainable: PAIA prefers Inputs at least 90 days old that the user edited or that already became Thought evidence; it does not use random engagement sampling or a hidden recommendation model.
 
 Direction:
 
 - Reader is a **presentation capability**, not a new database.
 - Universal Search and Revisit are coordinators/projections over existing trusted state, not new truth stores.
-- Revisit should remain user-initiated: no push-notification growth loop, no background AI generation, and no automatic marking-as-seen merely because the surface was opened.
+- Revisit should remain user-initiated: no push-notification growth loop, no background AI generation, and no inference of read completion. Visit boundaries advance separately on leaving or beginning a later visit; imports do not create unread debt.
 - Longitudinal reading should remain grounded in attributable user expression; AI may later help retrieval only if it does not silently convert chronology into invented personal conclusions.
 - Reader/Search/Revisit advantage still requires real-use validation rather than being inferred from implementation quality.
 
@@ -218,7 +218,7 @@ The current Product Signals implementation can observe coarse behavior such as:
 
 - local Input/Thought searches that hit or miss and lead to opening/copying a result;
 - Universal Search hit/miss, result opening and explicit Search → AI Context preparation;
-- Revisit opens, whether a visit has new material, opening newly collected/older Inputs or updated Thought topics, and explicit “read to here” marks;
+- Revisit opens, whether a visit has new material, opening newly collected/older Inputs or updated Thought topics, and explicit reading-position actions (legacy mark events remain historical only);
 - revisits to older Inputs using coarse age buckets;
 - Thought Topic first/repeat visits;
 - opening AI-organized view, returning to Original and saving AI-organized edits;

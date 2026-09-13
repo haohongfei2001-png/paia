@@ -29,20 +29,17 @@ test('Round 4.10 current release: activation explains the product and return sta
   await h.open(first);
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText.includes('ROUND410_ACTIVATION')),'first activation Input is captured');
   await p.bringToFront();
-  await homeState(p,'activation-ready');
-  assert.match(await p.locator('#core-loop-title').textContent(),/这里保存的是你给 AI 的输入|keeps what you sent to AI/i);
-  assert.match(await p.locator('#core-loop-copy').textContent(),/不是 AI 的回答|not AI replies/i);
+  await homeState(p,'return-new');
+  assert.match(await p.locator('#core-loop-title').textContent(),/档案|Archive/i);
+  assert.match(await p.locator('#core-loop-copy').textContent(),/上次停下|where you stopped/i);
   assert.equal(await p.locator('#core-loop-continue').isDisabled(),false);
   assert.equal(await p.locator('#core-loop-continue').evaluate(el=>el.classList.contains('core-loop-card-primary')),true,'continue reading is primary after first capture');
 
-  // Establish the existing Revisit baseline through the real UI. This is the
-  // only persistent return marker; Round 4.10 must not create a second tutorial
-  // completion or engagement state store.
+  // UX-R2 fixes the visit window and advances it on exit. Visiting creates no read position.
   await p.locator('#core-loop-return').click();
-  await eventually(async()=>await p.locator('#revisit-dialog').evaluate(el=>el.open),'Revisit opens for first-run baseline');
-  assert.match(await p.locator('.revisit-intro').textContent(),/第一次打开回访/);
-  await p.locator('#revisit-dialog footer .primary').click();
-  await eventually(async()=>!(await rpc(p,'PAIA_REVISIT_STATUS')).firstRun,'Revisit baseline becomes durable');
+  await eventually(()=>p.locator('#revisit-panel').isVisible(),'Revisit opens as its own page');
+  assert.match(await p.locator('.revisit-intro').textContent(),/不表示|does not mark/i);
+  assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[]);
   await p.locator('.revisit-close').click();
 
   // A later Input after that baseline is the return trigger. Verify the Revisit
@@ -61,14 +58,9 @@ test('Round 4.10 current release: activation explains the product and return sta
   // Observe the semantic state and its primary action together so an intermediate
   // async paint cannot be mistaken for the settled return presentation.
   await p.bringToFront();
-  await eventually(async()=>
-   await p.locator('#core-loop-home').isVisible()
-   &&(await p.locator('#core-loop-home').getAttribute('data-state'))==='return-new'
-   &&await p.locator('#core-loop-return').evaluate(el=>el.classList.contains('core-loop-card-primary'))
-   &&!await p.locator('#core-loop-continue').evaluate(el=>el.classList.contains('core-loop-card-primary')),
-  'return-new settles with Revisit as the primary action');
-  assert.match((await p.locator('#core-loop-eyebrow').textContent()).trim(),/欢迎回来|welcome back/i);
-  assert.match(await p.locator('#core-loop-title').textContent(),/1 条新输入|1 new input/i);
+  await homeState(p,'return-new');
+  assert.match(await p.locator('#core-loop-title').textContent(),/档案|Archive/i);
+  assert.doesNotMatch(await p.locator('#core-loop-return').textContent(),/\d+ 条|\d+ new input/i,'no unread debt count');
 
   // A focus refresh must not briefly regress an established return state back
   // through activation-ready while the async Revisit read catches up.
@@ -82,15 +74,12 @@ test('Round 4.10 current release: activation explains the product and return sta
   assert.equal(focusTransitions.includes('activation-ready'),false,JSON.stringify(focusTransitions));
 
   await p.locator('#core-loop-return').click();
-  await eventually(async()=>await p.locator('#revisit-dialog').evaluate(el=>el.open)&&(await p.locator('#revisit-dialog').textContent()).includes('ROUND410_RETURN'),'promoted return action opens the existing local Revisit result');
-  // Merely opening Revisit must not silently mark content as read. The existing
-  // user-controlled contract advances the marker only after “已读到这里”.
-  assert.equal((await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count,1,'opening Revisit alone keeps the new-input marker');
-  await p.locator('#revisit-dialog footer .primary').click();
-  await eventually(async()=>(await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count===0,'explicit Revisit mark advances the new-input marker');
+  await eventually(async()=>await p.locator('#revisit-panel').isVisible()&&(await p.locator('#revisit-panel').textContent()).includes('ROUND410_RETURN'),'promoted return action opens the existing local Revisit result');
+  assert.equal((await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count,1,'opening fixes a window without claiming read completion');
+  assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[],'visiting cannot fabricate a reading position');
   await p.locator('.revisit-close').click();
-  await eventually(async()=>(await p.locator('#core-loop-home').getAttribute('data-state'))!=='return-new','closing Revisit clears explicitly viewed-new state from home');
-  assert.doesNotMatch(await p.locator('#core-loop-title').textContent(),/1 条新输入|1 new input/i);
+  await eventually(async()=>(await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count===0,'leaving advances only the visit boundary');
+  await homeState(p,'return-quiet');
 
   assert.equal(h.deepSeekRequests.length,0);
   assert.equal(h.extensionNetworkRequests,0);

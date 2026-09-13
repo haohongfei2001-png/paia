@@ -106,42 +106,20 @@ Reader projections include:
 
 The longitudinal view describes **when matching expressions were recorded**. It must not infer that a belief, preference or identity changed merely because expressions differ over time.
 
-### 4.1 Revisit architecture
+### 4.1 Reader positions and Revisit (UX-R2)
 
-Round 4.7 adds `core/revisit.js` as a bounded local Reader service.
+`core/reader-state.js` and `core/revisit.js` are bounded projections over existing Input/Source, visibility/Smart Filter, provenance and topic-delta facts. They add no content store and invoke no Provider.
 
-It does not create another content feed or recommendation database. Its inputs are existing local facts:
+The existing `meta` store owns four versioned, body-free records:
 
-```text
-Input sequence / visibility / Smart Filter state
-Input edit metadata / Thought dependency presence
-existing Thought / AI-presentation pending-delta state
-source-send-time evidence
-```
+- `reading:v1`: at most 200 document positions (stable Input/revision, grapheme-safe character offset, sort and expanded IDs). A visible Reader dwell of 3 seconds or explicit “记住这里” records a position. New capture and Revisit visits cannot fabricate a read. Removed/purged targets resolve nearby; proactive Continue items obey Revisit exclusions. Positions stay device-local and are excluded from Backup.
+- `revisit:v2`: a safe current-sequence initialization and at most 20 fixed visit windows. Re-entering the same window preserves its range; leaving or beginning the next visit advances its boundary. The old `revisit:v1` remains read-only compatibility evidence; current UI has no baseline/read-all action. Explicit history imports do not create new-input debt. Backup restore drops local visit/read positions and initializes a fresh boundary.
+- `revisit-policy:v1`: explicit old-content opt-in (default off) and Input/document/topic exclusions. Shared-source and derived-topic previews enforce the rules; explicit Search and AI authorization retain their own existing contracts. Removed target references are cleared on purge, retaining opaque body-free exclusion fences.
+- `capture-policy:v1`: exact ChatGPT conversation exclusions, enforced in the existing capture/enrichment transaction before writes. Existing saved content remains intact, other conversations continue normally and site permissions remain unchanged.
 
-Its only persistent state is one lightweight `meta` row:
+New candidates scan at most 400 Inputs and display at most five. Opted-in old candidates require actual source-send-time evidence of at least 90 days, scan at most 1,200 Inputs and display at most four; edited/reused candidates retain deterministic selection. The Archive home does not request old resurfacing. Topic updates reuse the canonical AI-presentation delta tokens through a read-only bounded projection (24 topics, 60 entries per topic, 240 entries total), without loading an entire library or invoking organizer migration. Truncated ranges are explicitly labeled; these counts are not unread totals.
 
-```text
-id = revisit:v1
-version
-lastBlockSequence
-lastSeenAt
-```
-
-This row is a Reader cursor, not personal content, and is deliberately excluded from PAIA Backup. Restoring archive content should not pretend that the user already reviewed the restored device's Revisit surface.
-
-Important boundaries:
-
-- The first Revisit does **not** classify all historical Inputs as new. The user explicitly establishes the initial baseline.
-- Opening Revisit does not advance the cursor. Only explicit **“从现在开始记录 / 已读到这里”** writes the current anchor.
-- New-Input scanning is bounded and only surfaces Inputs still visible under current removal/Smart Filter policy.
-- Older resurfacing requires source-send-time evidence at least 90 days old. It prefers Inputs the user edited or Inputs already used as Thought evidence.
-- The daily rotation is deterministic for the same local day. It is not a randomized engagement sampler and does not call a recommendation model.
-- Revisit is computed only after explicit user action; ordinary Reader startup does not run the old-content scan merely to display a badge.
-- Thought “new material” uses already-computed local pending-delta state; Revisit does not invoke the Organizer or any Provider.
-- Revisit navigation returns to the existing Input/Thought Reader/search paths. It does not own a second navigation or body state machine.
-
-Reader-specific state should remain ephemeral or lightweight preference/cursor state. Do not introduce a Reader/Revisit body store that copies canonical Input or Thought text.
+The single same-URL Reader navigation coordinator owns roots, Reader, Revisit and Back/Forward. Query/page/scroll state remains local to the view, while a body-free current Revisit window ID lives in browser history state. Source and revision dialogs remain transient views over canonical records. No website storage or duplicate feed/navigation body state is added.
 
 ## 5. Search architecture
 
@@ -266,7 +244,8 @@ Passport governs explicit Context copy/Markdown export only. It does not grant a
 
 ```text
 PAIA_PRODUCT_*    local aggregate product metrics only
-PAIA_REVISIT_*    on-demand Revisit read / explicit Reader-cursor mark
+PAIA_REVISIT_*    bounded local visit windows and Revisit projections
+PAIA_READER_*     device-local reading positions and explicit privacy/capture policy
 PAIA_PASSPORT_*   Grant status/create/revoke/audit maintenance
 PAIA_CONTEXT_*    Package binding / future package lifecycle commands
 PAIA_MEMORY_*     Context authorization, build, share and Context content operations
@@ -275,7 +254,7 @@ SEARCH_INPUTS     ordinary Input search; `universal:true` invokes bounded Univer
 
 `PAIA_MEMORY_BUILD` and `PAIA_MEMORY_SHARE` are routed through `ContextPackageService`. Passport/Context/Revisit local commands do not wake Smart Filter/Library maintenance or broadcast archive-content changes.
 
-Revisit status/mark requires active PAIA consent because it reads archive/Thought state and advances a Reader cursor. The Revisit cursor itself contains no body text and is not an authorization grant.
+Reader/Revisit commands require active PAIA consent and exact trusted-extension callers. Positions, visit windows and policy contain no body text and grant no AI authorization. Policy changes broadcast a dedicated invalidation event; they do not wake Smart Filter or organizer work.
 
 ## 9. Durable schema freeze
 
@@ -349,7 +328,7 @@ Current post-release contracts include:
 
 - `context-passport-round45.test.mjs` / `architecture-round45.test.mjs` for trusted Context/Passport boundaries;
 - `universal-search-round46.test.mjs` for bounded coordination, snippets, chronology and Search → Context boundaries;
-- `revisit-round47.test.mjs` for first-run baseline semantics, explainable old-material selection, backup exclusion and fixed-field retention signals.
+- `revisit-round47.test.mjs` for legacy-compatible visit semantics, explainable old-material selection, backup exclusion and fixed-field retention signals; `ux-r2-reader-revisit.test.mjs` and its Chrome counterpart cover the current UX-R2 contract.
 
 A release claim still requires executable `npm test`, package audit and relevant Chrome E2E/smoke checks in an available development runtime.
 
