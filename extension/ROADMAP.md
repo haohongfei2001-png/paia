@@ -6,6 +6,22 @@ Baseline: **v0.12.0 — Thought Evolution & Shared Context + post-release consol
 
 PAIA is no longer in a phase where the main goal is to add more feature categories. Current priorities are product validation, Reader/Search/Revisit quality, trust-boundary hardening and keeping future expansion cheap.
 
+## UX/UI Redesign Execution
+
+Authority:
+- PAIA Design Core v1.0
+- PAIA UX/UI Development Specification v1.0
+
+Execution:
+UX-R1 → UX-R2 → UX-R3 → UX-R4 → UX-R5 → UX-R6
+
+Current state:
+See `extension/docs/ux/UX_IMPLEMENTATION_STATUS.md`.
+
+These six rounds are the current UI/UX redesign implementation route. They do not delete or replace the longer-term product directions and gates retained below.
+
+---
+
 ## Decision rules
 
 Across all rounds:

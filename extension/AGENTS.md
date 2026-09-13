@@ -22,6 +22,30 @@ Before proposing or changing product behavior, read in this order:
 
 If a historical contract and current product direction conflict, preserve already-shipped safety/data behavior until an explicit migration is approved, but do not continue the historical product plan merely because it is documented in detail.
 
+## UX/UI Redesign execution
+
+For the active UX-R1 → UX-R6 redesign, the UX execution package is the controlling overlay on the general documentation order above. Before doing any UX round work, read in this exact order:
+
+1. `docs/ux/PAIA_DESIGN_CORE_v1.0.md` — highest product constraint for this redesign.
+2. `docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md` — complete UX-R1 → UX-R6 implementation contract.
+3. `docs/ux/UX_IMPLEMENTATION_STATUS.md` — the only UX execution-state source for the current round and readiness.
+4. `PRODUCT.md` — current product definition and shipped capability facts.
+5. `ARCHITECTURE.md` — current ownership, trust and implementation boundaries.
+6. `ROADMAP.md` — route-level product and UX execution navigation.
+7. Inspect the real current repository, then execute **only** the round named as current in `docs/ux/UX_IMPLEMENTATION_STATUS.md`.
+
+UX authority and execution rules:
+
+- `PAIA_DESIGN_CORE_v1.0.md` > `PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md` > old UI behavior, copy and screenshots. Existing domain/security/migration contracts remain implementation facts unless the Development Specification explicitly authorizes a semantic change.
+- Do not redefine PAIA, reopen accepted product direction, or remove long-term directions merely because they are not implemented in the current UX round.
+- Do not expand the current round scope. Do not implement later-round controls as placeholders and do not automatically enter the next round after finishing the current one.
+- Prefer and extend existing domain services, stores, revision paths and trusted authorization paths. Do not create a duplicate Source/Input/Thought/AI/Context truth store to make a UI easier to implement.
+- Migration, Backup/export compatibility, authorization compatibility, deletion/tombstone behavior and affected DTO/read/write paths belong to the round that introduces the change; they may not be deferred to UX-R6 as cleanup.
+- Every round must execute the Development Specification's required unit/domain, real-browser, adapter/privacy, visual/accessibility, package/development, full-suite and release gates. Missing required execution is `BLOCKED`, not an assumed pass.
+- If the Design Core or Development Specification materially conflicts with the real architecture, stop the affected implementation and report the exact Spec ID, file/function/location, conflict, risk and smallest viable adjustment. Do not make a large product/data-ownership/permission decision unilaterally.
+- A round is `COMPLETE` only after all required gates pass. Then update both `docs/ux/UX_IMPLEMENTATION_STATUS.md` and that round's `docs/ux/rounds/UX_RN_REPORT.md`. If any required gate is blocked, keep the round incomplete and record the blocker.
+- `docs/ux/PAIA_DESIGN_TOKENS_v1.json` is the machine-readable visual/default parameter source corresponding to Development Specification §5. Token tuning is allowed only within the Spec's change policy and must never alter fixed semantics or authorization defaults.
+
 ## Before changing behavior
 
 - Identify which current roadmap round the change belongs to.

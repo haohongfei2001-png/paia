@@ -1,0 +1,186 @@
+{
+  "name": "PAIA Design Tokens",
+  "version": "1.0",
+  "specificationVersion": "1.0",
+  "classification": "v1 visual and implementation defaults",
+  "normativeSource": "PAIA_UX_UI_Development_Specification_v1.0.md, section 5",
+  "changePolicy": "可在视觉验收中微调，须同步主规范和截图；不得改变固定语义或授权默认值。",
+  "units": {
+    "length": "CSS px",
+    "duration": "ms",
+    "lineHeight": "unitless",
+    "fontWeight": "numeric"
+  },
+  "font": {
+    "family": {
+      "ui": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+      "prose": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+      "mono": "ui-monospace, \"SFMono-Regular\", Consolas, monospace"
+    },
+    "size": {
+      "body": 17,
+      "ui": 14,
+      "label": 15,
+      "meta": 13,
+      "caption": 12,
+      "title": 32,
+      "title.mobile": 28,
+      "section": 21,
+      "card": 20
+    },
+    "weight": {
+      "normal": 400,
+      "medium": 500,
+      "strong": 600
+    },
+    "lineHeight": {
+      "body": 1.9,
+      "body.mobile": 1.8,
+      "ui": 1.5,
+      "heading": 1.4
+    },
+    "letterSpacing": 0
+  },
+  "space": {
+    "0": 0,
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 20,
+    "6": 24,
+    "8": 32,
+    "10": 40,
+    "12": 48,
+    "16": 64
+  },
+  "layout": {
+    "sidebar": 208,
+    "sidebar.narrow": 176,
+    "workspace.max": 1120,
+    "prose.default": 680,
+    "prose.narrow": 640,
+    "prose.wide": 720,
+    "prose.minimumPaired": 560,
+    "pageInset.desktop": 48,
+    "pageInset.narrow": 28,
+    "pageInset.mobile": 20,
+    "topbar.minHeight": 56,
+    "panel.width": 400,
+    "panel.gap": 24,
+    "dialog.default": 560,
+    "dialog.compare": 980,
+    "topicCard.minWidth": 280,
+    "breakpoint.mobileMax": 800,
+    "breakpoint.desktopMin": 1200,
+    "touchTarget": 44,
+    "pointerTarget": 40,
+    "bottomNav.height": 56
+  },
+  "layoutNotes": {
+    "breakpoints": "mobile <800; narrow 800–1199; desktop >=1200",
+    "bottomNavigation": "height加设备safe-area inset；Reader按UI-19收起根导航",
+    "pairedPanel": "容纳导航/边距/gap/400px面板后正文至少560px，否则覆盖或全页"
+  },
+  "color": {
+    "light": {
+      "canvas": "#F7F7F3",
+      "surface": "#FFFFFF",
+      "sidebar": "#F1F2EE",
+      "text.primary": "#272E2A",
+      "text.secondary": "#5F6962",
+      "text.meta": "#626D65",
+      "accent": "#486351",
+      "onAccent": "#FFFFFF",
+      "hover": "#EEF1EB",
+      "selected": "#E7EDE5",
+      "border.subtle": "#DEE4DB",
+      "border.control": "#7B877D",
+      "focus": "#49694C",
+      "danger": "#A33A37",
+      "warning": "#8B622E",
+      "scrim": "rgba(20,28,22,0.24)"
+    },
+    "dark": {
+      "canvas": "#171C19",
+      "surface": "#1E2521",
+      "sidebar": "#1A201C",
+      "text.primary": "#E6ECE4",
+      "text.secondary": "#B9C3B8",
+      "text.meta": "#A4B0A4",
+      "accent": "#A6C5AA",
+      "onAccent": "#17221A",
+      "hover": "#29322B",
+      "selected": "#2D3C31",
+      "border.subtle": "#364139",
+      "border.control": "#7E8E7F",
+      "focus": "#B8D3B7",
+      "danger": "#F0A39D",
+      "warning": "#DDBA79",
+      "scrim": "rgba(0,0,0,0.48)"
+    }
+  },
+  "border": {
+    "width": 1
+  },
+  "focus": {
+    "width": 2,
+    "offset": 3
+  },
+  "radius": {
+    "control": 6,
+    "surface": 8,
+    "overlay": 12
+  },
+  "shadow": {
+    "overlay.light": "0 12px 40px rgba(20,28,22,0.14)",
+    "overlay.dark": "0 12px 40px rgba(0,0,0,0.35)"
+  },
+  "icon": {
+    "size": 20,
+    "stroke": 1.75
+  },
+  "motion": {
+    "fast": 120,
+    "standard": 180,
+    "panel": 220,
+    "ai.cached": 220,
+    "ai.firstReady": 550,
+    "ai.maxTranslate": 4,
+    "ai.maxBlur": 4,
+    "ai.maxFragments": 12,
+    "easing": "cubic-bezier(0.22, 0.61, 0.36, 1)",
+    "reduced": 0,
+    "reduced.optionalFadeMax": 80
+  },
+  "interactionDefaults": {
+    "autosaveDebounceMs": 500,
+    "searchDebounceMs": 180,
+    "readingAnchorDwellMs": 3000,
+    "loadingPlaceholderDelayMs": 150,
+    "savedFeedbackMs": 1500,
+    "undoToastMs": 6000
+  },
+  "readingOptions": {
+    "bodySizes": [
+      16,
+      17,
+      19,
+      21
+    ],
+    "proseWidths": [
+      640,
+      680,
+      720
+    ]
+  },
+  "excludedFromAdjustableTokens": [
+    "authorization defaults",
+    "Source historical truth",
+    "deletion and tombstones",
+    "human edit protection",
+    "explicit material selection",
+    "truth-store ownership"
+  ],
+  "note": "数据规范，不含产品实现代码；JSON无任何运行授权或服务连接行为。"
+}
