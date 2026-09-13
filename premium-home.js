@@ -4,6 +4,15 @@
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const lang = () => document.documentElement.dataset.language === 'zh' ? 'zh' : 'en';
 
+  const installCompatibilityStyles = () => {
+    if (document.querySelector('link[data-premium-home-fix]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'premium-home-fix.css?v=1';
+    link.dataset.premiumHomeFix = '';
+    document.head.appendChild(link);
+  };
+
   // These strings already existed in the premium product-stage UI. This file does
   // not own or alter the site's marketing/product copy.
   const stageCopy = {
@@ -113,6 +122,7 @@
   };
 
   const init = () => {
+    installCompatibilityStyles();
     applyStageCopy();
     installHeaderMotion();
     installHeroMotion();
