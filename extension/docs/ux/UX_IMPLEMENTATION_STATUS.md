@@ -17,11 +17,11 @@ This file is the single execution-state entry point for the UX/UI redesign. It r
 
 ## Current execution state
 
-- Current round: **UX-R4**
+- Current round: **UX-R5**
 - Status: **READY**
-- Completed: **UX-R1, UX-R2, UX-R3**
+- Completed: **UX-R1, UX-R2, UX-R3, UX-R4**
 - Blockers: **none**
-- Next action: **UX-R3 is certified and checkpointed. Execute the authorized UX-R4 next, then UX-R5 only after R4 is truly COMPLETE. Do not skip rounds, merge main or begin UX-R6.**
+- Next action: **UX-R4 is certified and checkpointed. Execute the explicitly authorized UX-R5 to COMPLETE. Do not merge main or begin UX-R6.**
 
 A round may be marked `COMPLETE` only after every required round gate, including G-01 through G-08, has actually passed and its report has been committed. Completion of documentation or partial implementation is not sufficient.
 
@@ -32,8 +32,8 @@ A round may be marked `COMPLETE` only after every required round gate, including
 | UX-R1 | COMPLETE | `extension/docs/ux/rounds/UX_R1_REPORT.md` |
 | UX-R2 | COMPLETE | `extension/docs/ux/rounds/UX_R2_REPORT.md` |
 | UX-R3 | COMPLETE | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
-| UX-R4 | READY | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
-| UX-R5 | NOT STARTED | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
+| UX-R4 | COMPLETE | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
+| UX-R5 | READY | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
 | UX-R6 | NOT STARTED | `extension/docs/ux/rounds/UX_R6_REPORT.md` |
 
 The report files are created by the implementation Agent only when the corresponding round is actually executed. `rounds/README.md` defines the required report format.
@@ -98,6 +98,19 @@ UX-R2 was completed within the Development Specification boundary: UI-05 / UI-08
 - Report: `rounds/UX_R3_REPORT.md`; local evidence: `work/ux-r3/`, including the preserved full receipt, 47 screenshots and real IndexedDB F-LARGE measurements.
 
 UX-R3 completes stable Topic reading, whole/selected Add to Topic, independent unplaced writing, default Thought-only edits, explicit advanced dual edits, transactional Undo and Source/current-Input comparison/restoration. MIG-05/06/10 preserve original text, provenance, deletion priority, prior versions and Backup compatibility. No new body store or permission expansion. Headless synthetic certification is not real-user or live-provider validation; historical browser evidence remains separate. UX-R4 is READY under renewed user authorization; UX-R5 is authorized only after R4 certification. UX-R6 is not authorized in this pass because UX-R5 was not COMPLETE when the latest instruction arrived.
+
+## UX-R4 completion summary
+
+- Certified implementation/test HEAD: `c338f1bff8b569c62240b71cf5c896e0303e7ca0`.
+- All eight required local commands exit 0 on 2026-09-13; unsharded full suite **1,035/1,035 PASS, zero fail/skipped**, `fullSuite=true`, `auditPassed=true`, `testConcurrency=1`.
+- Unit **867**, current real browser **21**, adapter **95**, privacy/security **52**; package **8,252 / 188 runtime resources**; development audit PASS; release **7,824 / 181 runtime resources / 205 files**.
+- Input digest: `3a181819ca8a92d042c9ed44322048e6805b141fe935c6488e385b4d6b4e41ab`.
+- Runtime digest: `741024fb4e6d7040de8a36f453151c46b4d9e06e212a7752bc9b086668e27daf`.
+- Reports: `rounds/UX_R4_REPORT.md`, independent `rounds/UX_R4_SECURITY_REPORT.md`; local evidence `work/ux-r4/` includes final full receipt, 37 screenshots, large-fixture measurements and earlier failed-run diagnostics.
+
+UX-R4 completes scoped/paged Search and Reader return, immutable Source history, fixed material references, local full editable preview, redaction, exact copy/file output and stale/blocked/expired enforcement. DELTA-04/05 and MIG-07/08/10 preserve explicit/inherited restrictions, legacy Grant identity/once-use/revoke, old externalAccess=false and Backup semantics. Local-only blocks real provider dispatch while explicit manual output remains local. No new body store, permissions or provider.
+
+Full Suite uses the repository-supported single-concurrency mode locally and in mandatory CI, after competing large fixtures exceeded the timed import benchmark at concurrency four. All tests and original watchdogs remain. Synthetic headless evidence is not live-provider, user-sampled-golden or real-user retention validation; separate historical evidence is retained. R5 may start under renewed user authorization. R6 is not authorized in this pass because R5 was not COMPLETE when the latest instruction arrived.
 
 ## Status update protocol
 
