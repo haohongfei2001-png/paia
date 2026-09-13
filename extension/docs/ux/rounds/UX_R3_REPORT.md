@@ -1,5 +1,109 @@
 # UX-R3 Implementation and Certification Report
 
+## Recovery certification — 2026-09-14
+
+- Round: **UX-R3 — COMPLETE**. All eight required commands passed on the same fixed implementation snapshot; the report/status checkpoint is documentation only.
+- Recovery start commit: `ce037bc8dd6154ec873bb85679ae2b35b9ce65f5` on `ux-r2`.
+- Certified implementation/test commit: `e0d7fb09cae70e42c6a92c91e0a56d08ccb379da`. The documentation checkpoint preserves the certified runtime/test digest.
+- Scope remains UI-09 / UI-10 / UI-11 / UI-12 and related UI-20, the existing Thought binding contract, MIG-05 / MIG-06 / MIG-10. Earlier completion statements are historical evidence, not a substitute for current execution.
+- Unfinished later-round work remains separate from this R3 receipt. Certification used the R2 checkpoint plus only the eight R3 runtime/test changes listed below. All 755 tracked extension paths were independently compared with that expected snapshot; its only other differences were older R2 report/status Markdown, which are not runtime or test inputs. The unfinished R4/R5 changes remain in the main working tree for their own rounds.
+
+### Repairs and regression coverage
+
+The recovery audit found two related failures in the existing editing/history path: an advanced complete-reference edit could save its body and note together but return a revision that could not undo that complete operation; and the first Input propagation within a batch could make another live sibling Thought's in-memory revision stale. `core/library-edit.js` now rereads the current transaction's sibling rows and completes the existing shared-body revision with companion fields before the transaction commits. `core/thought-history.js` preflights shared target bodies, writes each shared Input once, rereads propagated siblings and restores every field belonging to the selected edit. It retains both Input and Thought revision checks and the existing one-time archive confirmation when the advanced setting is off.
+
+Further mixed-batch review found that a shared-body edit followed by a sibling metadata-only edit could reuse a hash computed for the sibling's previous body. In the opposite order, later Input propagation could make an earlier returned Save DTO stale; mixed metadata/body Undo had the same returned-version problem. Save and history results now reread all affected rows after the entire transaction has finished its writes. A precomputed exact signature is stored only when both the final body and type still match the hash inputs; otherwise it is removed for existing maintenance to rebuild, instead of indexing old content. Hash computation stays outside the IndexedDB transaction.
+
+The same history repair keeps note-only Undo independent of a later Input body revision. Restoring an older body also preserves surviving human note/title/organization protection, so aggregate human flags cannot make a later independent note eligible for source-dependent deletion.
+
+An additional batch conflict was reproduced in both orders: a shared-body Undo could target one Input body while another historical restoration tried to rebind a Thought to a different body of the same Input. History now validates all planned rebindings against all shared Input targets before the first write. An incompatible batch returns a conflict without changing bodies, provenance, dependencies, revision history or operation receipts.
+
+`core/topic-reading-state.js` now stores an ordering point with the existing bounded device reading anchor. A removed placement or cleared source-dependent quote can resolve to the next safe Thought in the selected reading order, or the last safe remaining Thought when there is no successor. The Topic page announces that the former location was removed instead of silently returning to the beginning. Existing section ordering and source/capture/creation chronology remain authoritative.
+
+Eleven focused domain regressions were added, with existing assertions retained:
+
+1. Shared body plus note Undo/Redo restores the complete edit, checks current authority, and rolls the entire transaction back after an injected write failure.
+2. One batch can update two distinct live Thoughts referencing the same Input and Undo/Redo both without stale sibling revisions or duplicate Input writes.
+3. Note-only Undo after a later Input edit keeps the current body and live binding intact.
+4. Restoring an automatic whole body cannot clear protection on a later independent human note; the note survives subsequent source purge while the source-dependent body is cleared.
+5. A removed middle Topic placement resumes at its safe successor in both ascending and descending order, including legacy anchors whose order can be recovered from retained metadata; anchor storage contains no body and is absent from Backup.
+6. A purged middle quote cannot remain a resume target; its safe neighbor remains selected before and after purge cleanup.
+7. A body-first mixed batch with a metadata-only sibling returns final versions and cannot leave an exact signature for the old body/type.
+8. A metadata-first mixed batch followed by shared-body propagation returns the sibling's final revision, field revisions and binding/Input revision; returned values can be used for the next edit.
+9. Mixed history with note-only restoration before shared Input Undo/Redo returns revisions after every later sibling propagation.
+10. A shared-body Undo followed by an incompatible historical Input rebind rejects the entire batch before any write.
+11. The reverse order, historical rebind before shared-body Undo, rejects identically and preserves all data and operation receipts.
+
+The real-browser suite adds a middle-of-topic removal journey using actual trusted worker commands, placement revisions and persisted reading state. It verifies the neighbor is the first returned reading item, the removed placement is absent, the underlying Thought remains unchanged, and the nearby-location notice is visible. The existing advanced-edit journey now changes a whole body and its note in one editor input event; declining Undo leaves both intact, and accepting the one-time confirmation restores both without enabling the global setting. The strengthened journey first focuses the real editable body and asserts Undo actionability; its first certification attempt exposed an unfocused synthetic input event that left the focus-revealed Undo control unavailable. That failed attempt is retained as failure evidence, and the corrected journey retains the original confirmation assertions while adding note preservation after cancellation. Existing whole/partial binding, two-Topic consistency, Source identity, IME/draft retention, responsive and zero-network assertions remain in place.
+
+### Exact changed paths and reused ownership
+
+| Path | Responsibility |
+|---|---|
+| `core/library-edit.js` | Atomic batch edit, shared revision completion, safe exact signatures and final transaction DTOs |
+| `core/thought-history.js` | Whole-operation Undo/Redo, sibling propagation, final returned revisions and human-field protection |
+| `core/topic-reading-state.js` | Safe resume resolution using bounded body-free ordering metadata |
+| `ui/thoughts.js` | Visible nearby-location notice during existing anchor restoration |
+| `ui/thought-copy.js` | English copy for the same location notice |
+| `tests/ux-r3-thought-binding.test.mjs` | Nine editing/history regressions, including both mixed-batch and conflicting rebind orders |
+| `tests/ux-r3-topic-actions.test.mjs` | Two removed/purged-anchor regressions |
+| `tests/ux-r3-thought-chrome-e2e.test.mjs` | New nearby-anchor journey and strengthened shared body/note Undo journey |
+
+All paths are relative to `extension/`. The implementation reuses the existing Thought/Input binding services, `editSharedBodyFromEntry`, field authorship/protection, revision journal, operation transaction/receipt, placement index, chronology projection and `reading:v1` meta row. It adds no duplicate Source/Input/Thought body store, entity family, provider, permission or dependency.
+
+### Migration, Backup and limits
+
+- **MIG-05:** Existing binding migration remains metadata-only, resumable and conservative for ambiguous legacy links. This repair preserves Source identity/body, user work, placement semantics and existing binding/revision DTOs; it does not reattach an independent Thought through a read path.
+- **MIG-06:** Advanced reverse editing remains off by default and off after Backup restore. A one-time Undo confirmation authorizes only that operation and does not change the setting. Historical authorized Input edits are not retroactively undone.
+- **MIG-10:** Existing Backup round-trip, old-format restore, interrupted migration, malformed/unknown binding rejection, re-capture and deletion/fence tests remain required. Shared edit snapshots continue through the existing revision format; no new body format is introduced.
+- New anchor order contains only `sectionId`, `sectionRank`, `time` and `entryId`. It shares the existing maximum of 200 device reading anchors. Neighbor discovery reads the existing placement index in pages of 100 and retains only two body-free candidates; it does not retain a collection of entry bodies. Reading anchors remain excluded from Backup, with no grants or credentials added to export.
+- A legacy anchor without saved ordering first uses the old entry and placement metadata when both remain available. If deletion or layout replacement has removed that information too, its exact former neighborhood cannot be reconstructed: the resolver uses the first safe remaining location in the selected order and shows the location-change notice. It does not infer missing order from content or recover purged text. An empty or removed Topic supplies no unsafe fallback.
+- Design Tokens and product defaults: **unchanged**. No sorting, authorization, capture, deletion or source-identity semantics were relaxed.
+
+### Required commands and evidence
+
+The additional mixed-batch cases first reproduced three failures: body-first retained an outdated signature, metadata-first returned revision 3 instead of 4, and mixed history returned revision 5 instead of 6. `work/recovery-r3-diagnostics/paia-r3-mixed-batch-red.log` records 12 passes and those 3 failures. After the repair, `work/recovery-r3-diagnostics/paia-r3-mixed-batch-green.log` records both R3 domain files at **23/23 PASS, zero failures/skips**. These focused results demonstrate the repaired failures; they do not replace any required gate below.
+
+The incompatible rebind diagnosis separately reproduced **0/2 PASS** before repair. The final focused run, `work/recovery-r3-diagnostics/paia-r3-mixed-and-rebind-final.log`, records **25/25 PASS, zero failures/skips**, including both atomic rejection orders. An in-progress full certification attempt was explicitly stopped when this additional real conflict was found; its incomplete output remains diagnostic only. All eight commands below were restarted on the final fixed source.
+
+| Command | Exit | Executed / result | Skipped | Evidence |
+|---|---:|---|---:|---|
+| `npm run test:unit` | 0 | 878/878 PASS | 0 | `work/recovery-r3/unit.log` |
+| `npm run test:browser` | 0 | 23/23 PASS | 0 | `work/recovery-r3/browser.log` |
+| `node scripts/test.mjs "adapter contract"` | 0 | 95/95 PASS | 0 | `work/recovery-r3/adapter.log` |
+| `node scripts/test.mjs "privacy/security"` | 0 | 52/52 PASS | 0 | `work/recovery-r3/privacy.log` |
+| `npm run check` | 0 | 8,255 guards / 188 resources PASS | — | `work/recovery-r3/check.log` |
+| `node scripts/check_development.mjs` | 0 | Privacy / permissions / network audit PASS | — | `work/recovery-r3/development.log` |
+| `npm test` | 0 | 1,048/1,048 PASS; unsharded, fullSuite/auditPassed=true | 0 | `work/recovery-r3/full.log` |
+| `npm run build:release` | 0 | 7,827 guards / 181 resources PASS / 205 files | — | `work/recovery-r3/release.log` |
+
+- Input digest: `f65d659aa6e391cb23b28c34ea7473b7da83e207be6b2ece1e0258e80e4a425e`.
+- Runtime digest: `40b5532fdefcbe8ce4a453166252b6bff19753c1fb13f8d089f558832fd15557`.
+- All required commands executed on the same snapshot and independently confirmed `sourceUnchanged=true`. Earlier failed/interrupted attempts are preserved under `work/recovery-r3-diagnostics/`; none counts as PASS.
+- Final receipt: `work/recovery-r3/receipt.json`; `fullSuite=true`, `auditPassed=true`, concurrency 1, zero failures/skips, with 128 hashed browser PNG/JSON artifacts. Environment: macOS arm64, Node 24.19.0, Playwright 1.63.0, headless Chrome 152.0.7977.83. Remote CI uses Node 22; no remote CI run is claimed.
+- Browser evidence: `work/recovery-r3/browser/ux-r3/`, including `removed-topic-anchor.png`, `mobile-done.png`, `draft-save-error.png`, four viewport sizes in light/dark, keyboard, IME, 200% text, reduced-motion and no-network assertions. Direct review covered the new nearby-anchor screenshot, 320px dark Topic, mobile Done and failed-save retained draft. All five R3 journeys passed in both the browser gate and the unsharded full suite.
+- F-LARGE: 100,000 Inputs / 1,000 documents / 300 Topics / 5,000 Thoughts; actual IndexedDB seeding and rendering. Topic read returned 40 items with truthful pagination, 0 writes, about 908 ms, 10,242 reads and 5,162 scans. Evidence: `work/recovery-r3/browser/ux-r3/large-fixture.json`. Existing ordering descriptors remain body-free; the nearby resolver retains only two candidates.
+- Source/Input equality, exact shared edits and one-time authority, zero Provider/unexpected network calls and no page errors are asserted in the real-worker journeys. These are synthetic isolated headless tests; no everyday profile or live Provider was used.
+
+### Completion gates and handoff
+
+| Gate | Certification status |
+|---|---|
+| G-01 Repo baseline | PASS — active ux-r2; exact scoped commit and source proof above |
+| G-02 Scope / compatibility | PASS — existing ownership, MIG-05/06/10 and eleven domain regressions |
+| G-03 Unit / domain | PASS — unit 878/878 and complete full suite |
+| G-04 Real browser | PASS — browser 23/23, all five R3 journeys twice |
+| G-05 Trust regression | PASS — adapter 95/95, privacy/security 52/52, deletion/Backup/history regressions |
+| G-06 Visual / a11y | PASS — current viewport/theme matrix and reviewed screenshots above |
+| G-07 Release | PASS — both audits, exact full receipt and current release build |
+| G-08 Handoff | PASS — report/status aligned to certified code and documentation checkpoint |
+
+The implementation audit has identified no unresolved R3 product/architecture blocker. This report does not claim live-provider validation, remote CI execution, product retention or optional user-sampled review. Next round may start: **YES — UX-R4**, under the user's explicit authorization. Stay on `ux-r2` and stop after UX-R6 and its final regression.
+
+---
+
+## Historical certification — 2026-09-13
+
 ## Round identity
 
 - Round: **UX-R3**; local certification on 2026-09-13.

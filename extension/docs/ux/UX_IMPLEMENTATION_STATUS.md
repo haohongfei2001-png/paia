@@ -17,11 +17,12 @@ This file is the single execution-state entry point for the UX/UI redesign. It r
 
 ## Current execution state
 
-- Current round: **UX-R3**
-- Status: **IN PROGRESS — UX-R2 recertified; UX-R3 corrections require full certification**
+- Current round: **UX-R4**
+- Status: **IN PROGRESS — UX-R2 and UX-R3 recertified; UX-R4 safety corrections require full certification**
 - Previously checkpointed: **UX-R1, UX-R2, UX-R3, UX-R4**; this is historical evidence, not current recertification.
-- Known issues under repair: deleted Topic anchors and shared body/note transaction history (R3); final output races, AI source/Backup fences and safe connection defaults (R4). Prepared corrections remain unverified until their own required gates pass.
-- Next action: **Certify the UX-R3 corrections with all eight required commands, checkpoint them, then do the same for UX-R4 before resuming preserved R5 work. The user authorized UX-R2 → UX-R6 and a final UX-R1 → UX-R6 release regression on 2026-09-14. Keep `ux-r2`; never switch to or merge `main`; stop after UX-R6.**
+- Completed in recovery: **UX-R2, UX-R3**.
+- Known issues under repair: R4 final output/binding races, stale Material Tray repaint/response races, exact output item counts, AI source/Backup fences and safe connection defaults. Prepared R4 corrections remain unverified until their own required gates pass.
+- Next action: **Complete and certify the UX-R4 safety corrections with all eight required commands, then checkpoint them before resuming preserved R5 work. The user authorized UX-R2 → UX-R6 and a final UX-R1 → UX-R6 release regression on 2026-09-14. Keep `ux-r2`; never switch to or merge `main`; stop after UX-R6.**
 
 Earlier “R6 not authorized” / “do not begin the next round” statements in the historical summaries below describe superseded sessions. They do not limit the renewed authorization above.
 
@@ -33,7 +34,7 @@ A round may be marked `COMPLETE` only after every required round gate, including
 |---|---|---|
 | UX-R1 | COMPLETE | `extension/docs/ux/rounds/UX_R1_REPORT.md` |
 | UX-R2 | COMPLETE — recertified 2026-09-14 | `extension/docs/ux/rounds/UX_R2_REPORT.md` |
-| UX-R3 | CORRECTION IN PROGRESS | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
+| UX-R3 | COMPLETE — recertified 2026-09-14 | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
 | UX-R4 | CORRECTION IN PROGRESS | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
 | UX-R5 | PAUSED — unfinished work preserved | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
 | UX-R6 | NOT STARTED | `extension/docs/ux/rounds/UX_R6_REPORT.md` |
@@ -47,7 +48,10 @@ The report files are created by the implementation Agent only when the correspon
 - Full receipt: `work/recovery-r2/receipt.json`; immutable browser evidence: `work/recovery-r2/browser/`. `fullSuite=true`, `auditPassed=true`, single concurrency, source unchanged across every command.
 - Input digest: `232c8c2f25056d37e033b5bb883a8f1ea7e194538a65f7c1b056c939be561961`; runtime digest: `56fb32c3b92f58f1aeb4e798c4892c642ced0afa46ebfa865685de56ea75fbc3`.
 - Fixed a real superseded-refresh race that lost Reader positions and could show obsolete read errors. Both response orders, true dwell, exact character alignment and late rejection are covered by actual-worker browser tests.
-- R3/R4 corrections and unfinished R5 work are preserved separately. Their historical completion summaries below are not renewed certification. No remote CI, deployment, live provider, everyday profile or retention validation is claimed.
+- UX-R3 certified implementation/test commit: `e0d7fb09cae70e42c6a92c91e0a56d08ccb379da`. Unit **878/878**, browser **23/23**, adapter **95/95**, privacy/security **52/52**, package **8,255 guards / 188 resources**, development audit PASS, unsharded full suite **1,048/1,048**, release **7,827 guards / 181 resources / 205 files**. All eight commands exit 0, source unchanged, zero test failures/skips; `fullSuite=true`, `auditPassed=true`.
+- UX-R3 receipt: `work/recovery-r3/receipt.json`; 128 hashed browser artifacts under `work/recovery-r3/browser/`. Input digest `f65d659aa6e391cb23b28c34ea7473b7da83e207be6b2ece1e0258e80e4a425e`; runtime digest `40b5532fdefcbe8ce4a453166252b6bff19753c1fb13f8d089f558832fd15557`.
+- UX-R3 repairs complete shared body/note history, mixed-batch final revisions/signatures, atomic rejection of incompatible historical rebindings, preservation of independent human notes, and nearby deleted/purged Topic anchors.
+- R4 corrections and unfinished R5 work are preserved separately. Their historical completion summaries below are not renewed certification. No remote CI, deployment, live provider, everyday profile or retention validation is claimed.
 
 ## UX-R1 completion summary
 
