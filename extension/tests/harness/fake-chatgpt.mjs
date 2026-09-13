@@ -63,7 +63,11 @@ export class FakeChatGPT {
    h.cdp=await h.context.browser().newBrowserCDPSession();
    const {id}=await h.cdp.send('Extensions.loadUnpacked',{path:extensionPath});h.extensionId=id;
    h.archive=await h.context.newPage();h.archive.on('pageerror',e=>h.errors.push(e.message));await h.archive.goto(`chrome-extension://${id}/ui/archive.html`);
-   if(!onboarding&&await h.archive.locator('#onboarding-start').count()){await h.archive.locator('#onboarding-start').click();await h.archive.locator('#consent-check').waitFor();}
+   if(!onboarding){
+    const start=h.archive.locator('#onboarding-start');
+    if(await start.count()&&await start.isVisible())await start.click();
+    await h.archive.locator('#consent-check').waitFor({state:'visible'});
+   }
    return h;
   }catch(e){await h.context.close();throw e;}
  }

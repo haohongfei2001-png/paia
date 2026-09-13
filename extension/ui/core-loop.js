@@ -1,154 +1,118 @@
 import {request} from './common.js';
 import {contextReuseQuery} from '../core/universal-search.js';
+import {normalizeUXPreferences,resolveAppearance,resolveLanguage,validReturnTarget,SETTINGS_GROUPS} from './ux-r1-state.js';
 
 const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const FONT_PX={small:16,standard:17,large:19,xlarge:21};
+const WIDTH_PX={narrow:640,standard:680,wide:720};
+let uxPreferences=normalizeUXPreferences(),settingsReturn='library',recentTarget=null,revisitToken=0,lastRevisitKey='',preferenceBusy=false;
 
-function node(tag,className='',text=''){
- const el=document.createElement(tag);if(className)el.className=className;if(text)el.textContent=text;return el;
-}
-function button(text,className=''){
- const el=node('button',className,text);el.type='button';return el;
-}
+function node(tag,className='',text=''){const el=document.createElement(tag);if(className)el.className=className;if(text)el.textContent=text;return el;}
+function button(text,className=''){const el=node('button',className,text);el.type='button';return el;}
 function noteCoreLoop(action){void request('PAIA_CORE_LOOP_ACTION',{action}).catch(()=>{});}
-async function waitFor(read,{attempts=100,delay=50}={}){
- for(let i=0;i<attempts;i++){const value=read();if(value)return value;await sleep(delay);}return null;
-}
-function isArchiveHome(){
- const nav=document.querySelector('#primary-nav [data-view="library"]');
- return nav?.getAttribute('aria-current')==='page'&&!$('collection-panel')?.hidden&&!String($('search')?.value||'').trim();
-}
+async function waitFor(read,{attempts=100,delay=50}={}){for(let i=0;i<attempts;i++){const value=read();if(value)return value;await sleep(delay);}return null;}
+function isArchiveHome(){const nav=document.querySelector('#primary-nav [data-view="library"]');return nav?.getAttribute('aria-current')==='page'&&!$('collection-panel')?.hidden&&!String($('search')?.value||'').trim();}
 function hasArchiveDocuments(){return !!$('document-list')?.querySelector('.conversation-document');}
-function installStyles(){
- if(document.querySelector('link[data-core-loop]'))return;
- const link=document.createElement('link');link.rel='stylesheet';link.href=chrome.runtime.getURL('ui/core-loop.css');link.dataset.coreLoop='true';document.head.append(link);
+function installStyles(){if(document.querySelector('link[data-core-loop]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=chrome.runtime.getURL('ui/core-loop.css');link.dataset.coreLoop='true';document.head.append(link);}
+function language(){return resolveLanguage(uxPreferences.language,navigator.language);}
+function copy(zh,en){return language()==='zh-CN'?zh:en;}
+
+function applyPreferences(){
+ const dark=globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches===true,theme=resolveAppearance(uxPreferences.appearance,dark),root=document.documentElement;
+ root.dataset.paiaTheme=theme;root.dataset.paiaLanguage=language();root.lang=language();root.style.setProperty('--paia-prose-size',`${FONT_PX[uxPreferences.fontSize]||17}px`);root.style.setProperty('--paia-prose-width',`${WIDTH_PX[uxPreferences.readingWidth]||680}px`);
+ document.body?.classList.toggle('ux-sidebar-collapsed',uxPreferences.sidebarCollapsed===true);applyLabels();syncPreferenceControls();
 }
-function demoteInternalNavigation(){
- const memory=document.querySelector('#primary-nav [data-view="memory"]'),bottom=document.querySelector('.sidebar-bottom'),settings=bottom?.querySelector('[data-view="settings"]');
- if(memory&&bottom&&memory.parentElement!==bottom){memory.classList.add('core-loop-secondary-nav');memory.textContent='用于 AI';bottom.insertBefore(memory,settings||bottom.firstChild);}
- if(settings)settings.textContent='设置';
+function applyLabels(){
+ const labels=language()==='zh-CN'?{library:'档案',thoughts:'思想库',memory:'用于 AI',settings:'设置',archive:'来源记录'}:{library:'Archive',thoughts:'Thought Library',memory:'For AI',settings:'Settings',archive:'Source Records'};
+ for(const [view,label] of Object.entries(labels))for(const el of document.querySelectorAll(`[data-view="${view}"]`))if(el.closest('#primary-nav,.sidebar-bottom'))el.textContent=label;
+ const current=document.querySelector('#primary-nav [aria-current="page"],.sidebar-bottom [aria-current="page"]')?.dataset.view,title=$('view-title');if(title&&current&&labels[current]&&!title.hidden)title.textContent=labels[current];
+ const global=$('universal-search-open');if(global)global.textContent=copy('搜索','Search');
+ const settingsTitle=$('ux-settings-title');if(settingsTitle)settingsTitle.textContent=copy('设置','Settings');
 }
-function tuneExistingTools(){
- const universal=$('universal-search-open'),dialog=$('universal-search-dialog');
- if(universal&&universal.textContent!=='搜索')universal.textContent='搜索';
- if(dialog){const title=$('universal-search-title'),help=dialog.querySelector('.universal-search-box p');if(title&&title.textContent!=='找回以前的表达')title.textContent='找回以前的表达';if(help&&help.textContent!=='同时查找你的输入、思想与已有整理。完全本机，不调用 AI。')help.textContent='同时查找你的输入、思想与已有整理。完全本机，不调用 AI。';for(const reuse of dialog.querySelectorAll('.universal-context')){if(reuse.textContent!=='继续使用')reuse.textContent='继续使用';reuse.title='把这条作为本地上下文重点，随后由你补充现在要问的问题；不会自动发送。';}}
+async function loadPreferences(){
+ try{const page=await request('GET_PAGE',{page:{view:'settings'}});uxPreferences=normalizeUXPreferences(page.preferences);applyPreferences();updateLocalStatus(page);return page;}catch{applyPreferences();const state=$('ux-local-state');if(state)state.textContent=copy('本机保存遇到问题','Local storage unavailable');return null;}
 }
-function setPrimaryAction(id){
- const home=$('core-loop-home');if(!home)return;
- for(const card of home.querySelectorAll('.core-loop-card'))card.classList.toggle('core-loop-card-primary',!!id&&card.id===id);
+async function savePreference(key,value,control){
+ if(preferenceBusy)return;preferenceBusy=true;const before=uxPreferences[key],status=$('ux-settings-feedback');
+ try{await request('UPDATE_PREFERENCES',{changes:{[key]:value}});uxPreferences={...uxPreferences,[key]:value};applyPreferences();if(status){status.textContent=copy('立即应用','Applied');status.dataset.kind='success';}}
+ catch{uxPreferences={...uxPreferences,[key]:before};if(control){if(control.type==='checkbox')control.checked=!!before;else control.value=String(before);}applyPreferences();if(status){status.textContent=copy('设置尚未保存，已恢复原值。','Setting was not saved; the previous value was restored.');status.dataset.kind='error';}}
+ finally{preferenceBusy=false;}
 }
-function setHomeState(state,{eyebrow,title,copy,primary=null}={}){
- const home=$('core-loop-home');if(!home)return;home.dataset.state=state;
- if(eyebrow)$('core-loop-eyebrow').textContent=eyebrow;
- if(title)$('core-loop-title').textContent=title;
- if(copy)$('core-loop-copy').textContent=copy;
- setPrimaryAction(primary);
+function updateLocalStatus(page){const el=$('ux-local-state');if(!el)return;const failed=page?.diagnostics?.lastError?.code==='STORAGE_FAILED'||page?.diagnostics?.lastError?.code==='STORAGE_FULL';el.textContent=failed?copy('本机保存遇到问题','Local storage unavailable'):copy('本机保存','Saved locally');el.dataset.kind=failed?'error':'ok';}
+
+function setupShell(){
+ const sidebar=document.querySelector('.sidebar'),workspace=document.querySelector('.workspace'),nav=$('primary-nav'),bottom=document.querySelector('.sidebar-bottom');if(!sidebar||!workspace||!nav||!bottom)return;
+ if(!$('ux-skip-main')){const skip=node('a','ux-skip-main',copy('跳到主要内容','Skip to main content'));skip.id='ux-skip-main';skip.href='#paia-main';document.body.prepend(skip);}workspace.id='paia-main';workspace.tabIndex=-1;nav.setAttribute('aria-label',copy('主要导航','Primary navigation'));
+ const brand=sidebar.querySelector('.brand');if(brand){brand.childNodes[0].textContent='PAIA';const small=brand.querySelector('small');if(small)small.textContent=copy('私人输入与思想','PERSONAL ARCHIVE');}
+ const memory=nav.querySelector('[data-view="memory"]');if(memory)memory.classList.add('ux-nav-ai');
+ let status=bottom.querySelector('#ux-local-state');if(!status){status=node('span','ux-local-state',copy('本机保存','Saved locally'));status.id='ux-local-state';bottom.append(status);}
+ if(!$('ux-sidebar-toggle')){const toggle=button(copy('收起侧栏','Collapse sidebar'),'ux-sidebar-toggle');toggle.id='ux-sidebar-toggle';toggle.setAttribute('aria-label',copy('收起或展开侧栏','Collapse or expand sidebar'));toggle.addEventListener('click',()=>void savePreference('sidebarCollapsed',!uxPreferences.sidebarCollapsed,toggle));brand?.after(toggle);}
+ document.addEventListener('click',event=>{const hit=event.target.closest?.('[data-view="settings"]');if(!hit)return;const active=document.querySelector('#primary-nav [aria-current="page"]')?.dataset.view;if(active&&active!=='settings')settingsReturn=validReturnTarget(active);},{capture:true});
+ document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&!event.altKey&&event.key.toLocaleLowerCase()==='k'){event.preventDefault();$('universal-search-open')?.click();}});
+ const title=$('view-title');if(title)new MutationObserver(applyLabels).observe(title,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+ const panels=[$('document-panel'),$('thought-document')].filter(Boolean);for(const panel of panels)new MutationObserver(updateSurfaceClass).observe(panel,{attributes:true,attributeFilter:['hidden']});updateSurfaceClass();
 }
-function setActivationEmpty(){
- setHomeState('activation-empty',{eyebrow:'第一次使用',title:'第一条输入会从这里开始',copy:'PAIA 收录到你在已支持 AI 页面发送的输入后，会把它留在本机。以后可以继续读、找回来，再继续使用。'});
-}
-function setActivationReady(){
- setHomeState('activation-ready',{eyebrow:'已经开始记录',title:'这里保存的是你给 AI 的输入',copy:'不是 AI 的回答。先打开最近一份继续读；以后想找回一句以前说过的话，直接搜索即可。',primary:'core-loop-continue'});
-}
-function setReturnState({fresh=0,topics=0,old=0}={}){
- if(fresh||topics){
-  const title=fresh?`${fresh} 条新输入已经回到 PAIA`:`${topics} 个思想主题有了新材料`;
-  const copy=fresh&&topics?`从上次回访后还有 ${topics} 个思想主题出现新材料。先看看变化，或从最近内容继续。`:'从上次回访后有新内容。先看看变化，或从最近内容继续。';
-  setHomeState('return-new',{eyebrow:'欢迎回来',title,copy,primary:'core-loop-return'});return;
+function updateSurfaceClass(){const reader=!$('document-panel')?.hidden||!$('thought-document')?.hidden;document.body.classList.toggle('ux-reader-active',reader);}
+
+function tuneOnboarding(){
+ const consent=$('consent-panel');if(consent){const eyebrow=consent.querySelector('.eyebrow'),title=$('consent-title'),paras=[...consent.querySelectorAll(':scope > p:not(.muted)')];if(eyebrow)eyebrow.textContent=copy('本机保存','LOCAL SAVE');if(title)title.textContent=copy('你对 AI 说过的，不必只留在那次聊天里。','What you told AI does not have to stay in that one chat.');if(paras[0])paras[0].textContent=copy('PAIA 把你发给 AI 的文字留在本机，方便以后阅读、找到，并继续使用。','PAIA keeps the text you send to AI on this device so you can read, find and reuse it later.');if(paras[1])paras[1].textContent=copy('保存范围：普通聊天中已经发送、已经显示的用户文字；不保存草稿、完整 AI 回复、附件正文或账户凭证。Temporary Chat 默认跳过。','Saved scope: user text already sent and visible in normal chats. Drafts, full AI replies, attachment bodies and credentials are excluded. Temporary Chat is skipped by default.');if(paras[2])paras[2].textContent=copy('捕获、历史导入和普通阅读都在本机。云端 AI 处理、同步和对外提供是另外的授权。','Capture, history import and ordinary reading stay local. Cloud AI processing, sync and external access are separate permissions.');const enable=$('enable-consent');if(enable)enable.textContent=copy('开始在本机保存','Start saving locally');
+  if(!$('ux-onboarding-example')){const demo=button(copy('先看看示例','View an example'),'ux-onboarding-example');demo.id='ux-onboarding-example';demo.addEventListener('click',()=>$('ux-example-dialog')?.showModal());enable?.after(demo);}
  }
- if(old){setHomeState('return-resurface',{eyebrow:'欢迎回来',title:'没有新输入，也有以前的内容值得重看',copy:'PAIA 没有制造新的提醒；这里有几条较早内容可重新打开，也可以直接从最近内容继续。',primary:'core-loop-return'});return;}
- setHomeState('return-quiet',{eyebrow:'欢迎回来',title:'继续上次的阅读，或者找回以前的表达',copy:'没有新的回访提醒。你的输入仍然留在本机，需要时可以继续读、搜索或继续使用。',primary:'core-loop-continue'});
+ const history=$('onboarding-history-step');if(history){const h=history.querySelector('h2'),p=history.querySelector('p');if(h)h.textContent=copy('把以前的内容也带进来。','Bring your earlier content too.');if(p)p.textContent=copy('可选择 ChatGPT 官方导出 ZIP 或聊天 JSON。先预览，再确认写入；整个导入过程不会调用 AI。','Choose an official ChatGPT export ZIP or chat JSON. Preview first, then confirm; importing does not call AI.');if($('onboarding-history'))$('onboarding-history').textContent=copy('选择历史导出文件','Choose history export');if($('onboarding-skip'))$('onboarding-skip').textContent=copy('以后再说','Maybe later');}
+ if(!$('ux-example-dialog')){const dialog=node('dialog','ux-example-dialog');dialog.id='ux-example-dialog';dialog.setAttribute('aria-labelledby','ux-example-title');const h=node('h2','',copy('一条输入在 PAIA 里会这样留下','An input can stay in PAIA like this'));h.id='ux-example-title';const body=node('div','ux-example-body');body.append(node('small','',copy('2026年9月 · 示例，不会写入你的档案','September 2026 · Example only; not saved')),node('p','',copy('我希望把散落在 AI 聊天里的长期想法真正留给自己，而不是每次从头开始。','I want the long-term ideas scattered across AI chats to remain mine, instead of starting over each time.')));const close=button(copy('关闭示例','Close example'));close.addEventListener('click',()=>dialog.close());dialog.append(h,body,close);document.body.append(dialog);}
 }
 
-async function prepareReaderReuse(text,buttonNode){
- const clean=String(text||'').replace(/\s+/g,' ').trim();if(!clean)return;
- buttonNode.disabled=true;buttonNode.textContent='正在准备…';
- try{
-  const prompt=contextReuseQuery({kind:'input',snippet:clean},'继续围绕这段表达思考或推进');
-  const eligibility=await request('PAIA_MEMORY_STATUS',{options:{profileId:'default'}});
-  document.querySelector('[data-view="memory"]')?.click();
-  const panel=await waitFor(()=>{const el=$('memory-panel');return el&&!el.hidden?el:null;},{attempts:100});
-  if(!panel)throw Error('MEMORY_UNAVAILABLE');
-  if((eligibility?.total||0)===0&&eligibility?.config?.includeUnorganizedInputs!==true){
-   const status=$('memory-status'),notice=$('memory-no-authorization');
-   if(status)status.textContent='这条 Input 还没有被允许进入 AI Context。你可以先选择允许的主题，或在 Settings 明确开启“从 Input Archive 补充尚未进入思想库的有效输入”。';
-   notice?.scrollIntoView?.({block:'center'});return;
-  }
-  const prepare=await waitFor(()=>{const el=$('memory-prepare');return el&&!el.disabled?el:null;},{attempts:100});
-  if(!prepare)throw Error('MEMORY_UNAVAILABLE');
-  prepare.click();
-  const query=await waitFor(()=>{const el=$('memory-query');return el&&!$('memory-builder')?.hidden?el:null;},{attempts:100});
-  if(!query)throw Error('MEMORY_BUILDER_UNAVAILABLE');
-  query.value=prompt;query.dispatchEvent(new Event('input',{bubbles:true}));query.focus();query.setSelectionRange(query.value.length,query.value.length);
- }catch{
-  if(buttonNode.isConnected){buttonNode.textContent='继续使用';buttonNode.disabled=false;}
- }
-}
-function decorateReader(){
- for(const section of document.querySelectorAll('#document-body .library-block')){
-  if(section.querySelector('.core-loop-reuse'))continue;
-  const prose=section.querySelector('.library-prose');if(!prose)continue;
-  const reuse=button('继续使用','core-loop-reuse');reuse.setAttribute('aria-label','继续使用这条输入');reuse.title='把这段表达带到本地 AI 上下文准备页';
-  reuse.addEventListener('click',()=>{noteCoreLoop('reuse');void prepareReaderReuse(prose.innerText,reuse);});section.append(reuse);
- }
+function preferenceSelect(id,labelText,options,key){const label=node('label','setting ux-preference-setting');label.htmlFor=id;label.append(node('span','',labelText));const select=node('select');select.id=id;for(const [value,text] of options){const option=node('option','',text);option.value=value;select.append(option);}select.addEventListener('change',()=>void savePreference(key,select.value,select));label.append(select);return label;}
+function syncPreferenceControls(){for(const [id,key] of [['ux-appearance','appearance'],['ux-language','language'],['ux-font-size','fontSize'],['ux-reading-width','readingWidth']]){const el=$(id);if(el&&document.activeElement!==el)el.value=String(uxPreferences[key]);}}
+function setupSettingsShell(){
+ const panel=$('settings-panel');if(!panel||$('ux-settings-shell'))return;
+ const shell=node('div','ux-settings-shell');shell.id='ux-settings-shell';const head=node('header','ux-settings-header'),back=button(copy('‹ 返回','‹ Back'),'ux-settings-back'),title=node('h1','',copy('设置','Settings')),feedback=node('p','ux-settings-feedback');title.id='ux-settings-title';feedback.id='ux-settings-feedback';feedback.setAttribute('role','status');back.addEventListener('click',()=>document.querySelector(`#primary-nav [data-view="${settingsReturn}"]`)?.click());head.append(back,title,feedback);
+ const layout=node('div','ux-settings-layout'),nav=node('nav','ux-settings-nav'),body=node('div','ux-settings-body');nav.setAttribute('aria-label',copy('设置分组','Settings groups'));const groups=new Map();
+ for(const [key,zh] of SETTINGS_GROUPS){const section=node('section','ux-settings-group');section.dataset.group=key;section.hidden=key!=='content';const h=node('h2','',language()==='zh-CN'?zh:({content:'Content & capture',reading:'Reading & appearance',ai:'AI',privacy:'Privacy & external use',data:'Data & devices',advanced:'Advanced'}[key]));section.append(h);groups.set(key,section);body.append(section);const tab=button(h.textContent);tab.dataset.settingsGroup=key;tab.setAttribute('aria-current',key==='content'?'page':'false');tab.addEventListener('click',()=>{for(const [k,s] of groups)s.hidden=k!==key;for(const b of nav.querySelectorAll('button'))b.setAttribute('aria-current',b.dataset.settingsGroup===key?'page':'false');section.querySelector('button,input,select,summary')?.focus({preventScroll:true});});nav.append(tab);}
+ layout.append(nav,body);shell.append(head,layout);panel.prepend(shell);
+ const move=(target,key)=>{const el=typeof target==='string'?$(target):target;if(el&&groups.get(key))groups.get(key).append(el);};
+ move('enabled-state','content');move('toggle-capture','content');move('smart-filter-settings','content');move('history-settings','content');
+ move($('time-display')?.closest('.setting'),'reading');move($('time-emphasis')?.closest('.setting'),'reading');
+ groups.get('reading').prepend(preferenceSelect('ux-reading-width',copy('阅读宽度','Reading width'),[['narrow','640 px'],['standard','680 px'],['wide','720 px']],'readingWidth'));
+ groups.get('reading').prepend(preferenceSelect('ux-font-size',copy('正文字号','Body text size'),[['small','16 px'],['standard','17 px'],['large','19 px'],['xlarge','21 px']],'fontSize'));
+ groups.get('reading').prepend(preferenceSelect('ux-language',copy('界面语言','Interface language'),[['system',copy('跟随系统','Follow system')],['zh-CN','简体中文'],['en','English']],'language'));
+ groups.get('reading').prepend(preferenceSelect('ux-appearance',copy('外观','Appearance'),[['system',copy('跟随系统','Follow system')],['light',copy('浅色','Light')],['dark',copy('深色','Dark')]],'appearance'));
+ for(const id of ['organizer-reading-actions','deepseek-settings','library-updates-drawer'])move(id,'ai');move('memory-settings','privacy');
+ for(const id of ['backup-settings','manage-excluded','legacy-entry'])move(id,'data');const sourceButton=[...panel.querySelectorAll('[data-view="archive"]')].find(el=>!el.closest('#primary-nav'));move(sourceButton,'data');const syncFact=node('div','ux-capability-fact');syncFact.append(node('strong','',copy('设备同步','Device sync')),node('p','muted',copy('当前版本未提供设备同步。','Device sync is not available in this version.')));groups.get('data').append(syncFact);
+ for(const id of ['library-management','product-diagnostics','diagnostics'])move(id,'advanced');const prune=$('prune-revisions');if(prune){move(prune.previousElementSibling,'advanced');move(prune,'advanced');}
+ for(const child of [...panel.children]){if(child===shell)continue;if(child.tagName==='H2'){child.remove();continue;}groups.get('advanced').append(child);}
+ syncPreferenceControls();
 }
 
+function tuneExistingTools(){const universal=$('universal-search-open'),dialog=$('universal-search-dialog');if(universal)universal.textContent=copy('搜索','Search');if(dialog){const title=$('universal-search-title'),help=dialog.querySelector('.universal-search-box p');if(title)title.textContent=copy('找回以前的表达','Find an earlier expression');if(help)help.textContent=copy('同时查找你的输入、思想与已有整理。完全本机，不调用 AI。','Search your inputs, thoughts and existing organization locally. No AI call.');for(const reuse of dialog.querySelectorAll('.universal-context')){reuse.textContent=copy('继续使用','Reuse');reuse.title=copy('把这条作为本地上下文重点，随后由你补充现在要问的问题；不会自动发送。','Use this as local context focus; nothing is sent automatically.');}}}
+function setPrimaryAction(id){const home=$('core-loop-home');if(!home)return;for(const item of home.querySelectorAll('.core-loop-card'))item.classList.toggle('core-loop-card-primary',!!id&&item.id===id);}
+function setHomeState(state,{eyebrow,title,copy:body,primary=null}={}){const home=$('core-loop-home');if(!home)return;home.dataset.state=state;if(eyebrow)$('core-loop-eyebrow').textContent=eyebrow;if(title)$('core-loop-title').textContent=title;if(body)$('core-loop-copy').textContent=body;setPrimaryAction(primary);}
+function setActivationEmpty(){setHomeState('activation-empty',{eyebrow:copy('第一次使用','First use'),title:copy('你的表达会留在这里。第一条输入会从这里开始','Your expressions will stay here. Your first input starts here.'),copy:copy('同意本机保存后，PAIA 会收录已支持 AI 页面中你已经发送的文字；也可以导入以前的历史。','After local-save consent, PAIA collects text you already sent on supported AI pages; you can also import earlier history.')});}
+function setActivationReady(){setHomeState('activation-ready',{eyebrow:copy('最近收录','Recently saved'),title:copy('这里保存的是你给 AI 的输入','This keeps what you sent to AI'),copy:copy('不是 AI 的回答。最近收录只表示保存顺序；表达时间仍按来源事实显示。','Not AI replies. Recently saved reflects capture order; expression time still comes from source evidence.'),primary:'core-loop-continue'});}
+function setReturnState({fresh=0,topics=0,old=0}={}){if(fresh||topics){setHomeState('return-new',{eyebrow:copy('欢迎回来','Welcome back'),title:fresh?copy(`${fresh} 条新输入已经回到 PAIA`,`${fresh} new inputs are in PAIA`):copy(`${topics} 个思想主题有了新材料`,`${topics} thought topics have new material`),copy:copy('从上次回访后有新内容。这里不会把历史变成待处理债务。','There is new local material since your last revisit. History is not turned into a task debt.'),primary:'core-loop-return'});return;}if(old){setHomeState('return-resurface',{eyebrow:copy('欢迎回来','Welcome back'),title:copy('有一些以前的内容可以重新看看','Some earlier material can be revisited'),copy:copy('这是已有的本机回访能力，不调用 AI。','This uses the existing local revisit path and does not call AI.'),primary:'core-loop-return'});return;}setHomeState('return-quiet',{eyebrow:copy('最近收录','Recently saved'),title:copy('从最近保存的内容继续浏览','Browse from what was saved most recently'),copy:copy('没有新的回访提醒；搜索和档案仍然随时可用。','There is no new revisit alert; Search and Archive remain available.'),primary:'core-loop-continue'});}
+
+async function openDocumentById(id){
+ if(!id)return false;for(let page=0;page<20;page++){const target=[...document.querySelectorAll('#document-list .conversation-document')].find(el=>el.dataset.documentId===id);if(target){target.click();return true;}const next=[...document.querySelectorAll('.pagination button')].at(-1);if(!next||next.disabled||next.hidden||!next.getClientRects().length)break;const before=$('document-list')?.textContent;next.click();await waitFor(()=>$('document-list')?.textContent!==before,{attempts:80,delay:50});}return false;
+}
 function createHome(){
  const panel=$('collection-panel'),search=$('search');if(!panel||!search||$('core-loop-home'))return null;
- const home=node('section','core-loop-home');home.id='core-loop-home';home.dataset.state='loading';
- const intro=node('div','core-loop-intro'),eyebrow=node('p','core-loop-eyebrow','回到你的内容'),title=node('h2','','继续阅读，找回以前的表达'),copy=node('p','core-loop-copy','先看最近的输入，也可以直接搜索，或者看看上次之后有什么值得回来读。');
- eyebrow.id='core-loop-eyebrow';title.id='core-loop-title';copy.id='core-loop-copy';intro.append(eyebrow,title,copy);
- const actions=node('div','core-loop-actions');
- const recent=button('','core-loop-card');recent.id='core-loop-continue';recent.append(node('span','core-loop-card-label','继续阅读'),node('strong','','还没有可继续阅读的内容'),node('small','','新的输入收录后，会从这里回到最近的聊天文档。'));recent.disabled=true;
- const find=button('','core-loop-card');find.id='core-loop-find';find.append(node('span','core-loop-card-label','找回'),node('strong','','搜索以前的表达'),node('small','','跨输入、思想和已有整理查找，并可继续使用。'));
- const revisit=button('','core-loop-card');revisit.id='core-loop-return';revisit.append(node('span','core-loop-card-label','回来看看'),node('strong','','看看最近有什么变化'),node('small','core-loop-return-state','只读取本机变化，不调用 AI。'));
- actions.append(recent,find,revisit);home.append(intro,actions);
- const browse=node('h2','core-loop-browse-title','按聊天浏览');browse.id='core-loop-browse-title';
- panel.insertBefore(home,search);panel.insertBefore(browse,search);
- recent.addEventListener('click',()=>{noteCoreLoop('continue');const first=$('document-list')?.querySelector('.conversation-document');first?.click();});
- find.addEventListener('click',()=>{noteCoreLoop('find');$('universal-search-open')?.click();});
- revisit.addEventListener('click',()=>{noteCoreLoop('return');$('revisit-open')?.click();});
- return home;
+ const home=node('section','core-loop-home');home.id='core-loop-home';home.dataset.state='loading';const intro=node('div','core-loop-intro'),eyebrow=node('p','core-loop-eyebrow',copy('档案','Archive')),title=node('h2','',copy('正在读取本机档案…','Loading your local archive…')),body=node('p','core-loop-copy','');eyebrow.id='core-loop-eyebrow';title.id='core-loop-title';body.id='core-loop-copy';intro.append(eyebrow,title,body);
+ const recent=button('','core-loop-card core-loop-recent');recent.id='core-loop-continue';recent.append(node('span','core-loop-card-label',copy('最近收录','Recently saved')),node('strong','',copy('还没有收录内容','Nothing saved yet')),node('small','',copy('同意本机保存或导入历史后，这里会指向最近收录的真实内容。','After local-save consent or history import, this points to real recently saved content.')));recent.disabled=true;
+ const revisit=button('','core-loop-card core-loop-return');revisit.id='core-loop-return';revisit.append(node('span','core-loop-card-label',copy('回来看看','Revisit')),node('strong','',copy('查看本机变化','See local changes')),node('small','core-loop-return-state',copy('只读取本机变化，不调用 AI。','Reads local changes only; no AI call.')));
+ home.append(intro,recent,revisit);const browse=node('div','core-loop-browse-header');const browseTitle=node('h2','',copy('按来源浏览','Browse by source'));browseTitle.id='core-loop-browse-title';browse.append(browseTitle,node('span','muted',copy('默认按最近有表达排序','Default: most recent expression')));panel.insertBefore(home,search);panel.insertBefore(browse,search);
+ recent.addEventListener('click',()=>{if(recentTarget?.id){noteCoreLoop('continue');void openDocumentById(recentTarget.id);}});revisit.addEventListener('click',()=>{noteCoreLoop('return');$('revisit-open')?.click();});return home;
 }
-let revisitToken=0,lastRevisitKey='';
-async function refreshReturnCard(){
- const home=$('core-loop-home');if(!home||home.hidden)return;const token=++revisitToken,state=home.querySelector('.core-loop-return-state'),strong=$('core-loop-return')?.querySelector('strong');
- try{
-  const data=await request('PAIA_REVISIT_STATUS');if(token!==revisitToken)return;
-  const hasDocs=hasArchiveDocuments(),key=JSON.stringify([hasDocs,data.firstRun,data.newInputs?.count,data.topicUpdates?.length,data.resurface?.length]);if(key===lastRevisitKey)return;lastRevisitKey=key;
-  if(data.firstRun){if(hasDocs)setActivationReady();else setActivationEmpty();strong.textContent='从现在开始记录变化';state.textContent='不会把已有历史全部标成未读；先建立你的回访起点。';return;}
-  const fresh=data.newInputs?.count||0,topics=data.topicUpdates?.length||0,old=data.resurface?.length||0;setReturnState({fresh,topics,old});
-  if(fresh){strong.textContent=`${fresh}${data.newInputs?.truncated?'+':''} 条新输入值得看看`;state.textContent=topics?`另有 ${topics} 个思想主题出现新材料。`:'从上次位置之后新增的本机内容。';return;}
-  if(topics){strong.textContent=`${topics} 个思想主题有新材料`;state.textContent='没有新的 Input 提醒，但已有主题出现了新内容。';return;}
-  strong.textContent=old?'重新看看以前的内容':'已经读到最新';state.textContent=old?`${old} 条较早内容值得重新打开。`:'没有新提醒；需要时仍可搜索以前的表达。';
- }catch{if(token===revisitToken){if(hasArchiveDocuments())setActivationReady();else setActivationEmpty();strong.textContent='回来看看';state.textContent='暂时无法读取回访状态，仍可打开查看。';}}
-}
-function refreshHome(){
- const home=$('core-loop-home'),browse=$('core-loop-browse-title');if(!home)return;
- const visible=isArchiveHome();home.hidden=!visible;if(browse)browse.hidden=!visible;if(!visible)return;
- const first=$('document-list')?.querySelector('.conversation-document'),recent=$('core-loop-continue'),state=String(home.dataset.state||'');
- const preserveReturnState=state.startsWith('return-');
- if(first&&recent){recent.disabled=false;recent.querySelector('strong').textContent=first.querySelector('strong')?.textContent||'继续最近的聊天文档';recent.querySelector('small').textContent=first.querySelector('small')?.textContent||'回到最近收录的内容。';if(!preserveReturnState)setActivationReady();}
- else if(recent){recent.disabled=true;recent.querySelector('strong').textContent='还没有可继续阅读的内容';recent.querySelector('small').textContent='新的输入收录后，会从这里回到最近的聊天文档。';setActivationEmpty();}
- void refreshReturnCard();
-}
-function preserveInternalToolAccess(){
- const details=$('product-diagnostics');if(!details||$('core-loop-product-signals'))return;
- const link=node('a','core-loop-internal-link','查看本机产品验证数据 / Passport');link.id='core-loop-product-signals';link.href='product-signals.html';link.target='_blank';link.rel='noopener';details.append(link);
-}
+let recentToken=0;
+async function refreshRecent(){const token=++recentToken,recent=$('core-loop-continue');if(!recent)return;try{const page=await request('GET_PAGE',{page:{view:'library',limit:1}});if(token!==recentToken)return;recentTarget=page.recentCapturedDocument||null;if(!recentTarget){recent.disabled=true;recent.querySelector('strong').textContent=copy('还没有收录内容','Nothing saved yet');recent.querySelector('small').textContent=copy('同意本机保存或导入历史后，这里会指向最近收录的真实内容。','After local-save consent or history import, this points to real recently saved content.');return;}recent.disabled=false;recent.querySelector('strong').textContent=recentTarget.userTitle||recentTarget.originalConversationTitle||copy('最近收录的对话','Recently saved conversation');const at=recentTarget.capturedAt?new Intl.DateTimeFormat(language(),{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(recentTarget.capturedAt)):copy('收录时间未知','Capture time unknown');recent.querySelector('small').textContent=copy(`最近保存到本机 · ${at}`,`Saved locally most recently · ${at}`);}catch{recentTarget=null;recent.disabled=true;recent.querySelector('strong').textContent=copy('最近收录暂时不可读','Recently saved item unavailable');recent.querySelector('small').textContent=copy('档案仍可按来源浏览。','You can still browse the archive by source.');}}
+async function refreshReturnCard(){const home=$('core-loop-home');if(!home||home.hidden)return;const token=++revisitToken,state=home.querySelector('.core-loop-return-state'),strong=$('core-loop-return')?.querySelector('strong');try{const data=await request('PAIA_REVISIT_STATUS');if(token!==revisitToken)return;const hasDocs=hasArchiveDocuments(),key=JSON.stringify([hasDocs,data.firstRun,data.newInputs?.count,data.topicUpdates?.length,data.resurface?.length]);if(key===lastRevisitKey)return;lastRevisitKey=key;if(data.firstRun){if(hasDocs)setActivationReady();else setActivationEmpty();strong.textContent=copy('从现在开始记录变化','Start tracking changes from now');state.textContent=copy('不会把已有历史全部标成未读。','Existing history will not become unread debt.');return;}const fresh=data.newInputs?.count||0,topics=data.topicUpdates?.length||0,old=data.resurface?.length||0;setReturnState({fresh,topics,old});if(fresh){strong.textContent=copy(`${fresh}${data.newInputs?.truncated?'+':''} 条新输入值得看看`,`${fresh}${data.newInputs?.truncated?'+':''} new inputs to revisit`);state.textContent=topics?copy(`另有 ${topics} 个思想主题出现新材料。`,`${topics} thought topics also changed.`):copy('从上次回访后新增的本机内容。','Local content added since your last revisit.');return;}if(topics){strong.textContent=copy(`${topics} 个思想主题有新材料`,`${topics} thought topics have new material`);state.textContent=copy('没有新的 Input 提醒，但已有主题出现了新内容。','No new input alert, but existing topics changed.');return;}strong.textContent=old?copy('重新看看以前的内容','Revisit earlier material'):copy('已经读到最新','You are up to date');state.textContent=old?copy(`${old} 条较早内容可以重新打开。`,`${old} earlier items can be reopened.`):copy('没有新提醒；需要时仍可搜索以前的表达。','No new alert; Search remains available.');}catch{if(token===revisitToken){if(hasArchiveDocuments())setActivationReady();else setActivationEmpty();strong.textContent=copy('回来看看','Revisit');state.textContent=copy('暂时无法读取回访状态，档案仍可使用。','Revisit status is unavailable; Archive still works.');}}}
+function refreshHome(){const home=$('core-loop-home'),browse=$('core-loop-browse-title')?.parentElement;if(!home)return;const visible=isArchiveHome();home.hidden=!visible;if(browse)browse.hidden=!visible;if(!visible)return;const docs=hasArchiveDocuments();if(docs)setActivationReady();else setActivationEmpty();void refreshRecent();void refreshReturnCard();}
+
+async function prepareReaderReuse(text,buttonNode){const clean=String(text||'').replace(/\s+/g,' ').trim();if(!clean)return;buttonNode.disabled=true;buttonNode.textContent=copy('正在准备…','Preparing…');try{const prompt=contextReuseQuery({kind:'input',snippet:clean},'继续围绕这段表达思考或推进');const eligibility=await request('PAIA_MEMORY_STATUS',{options:{profileId:'default'}});document.querySelector('[data-view="memory"]')?.click();const panel=await waitFor(()=>{const el=$('memory-panel');return el&&!el.hidden?el:null;});if(!panel)throw Error('MEMORY_UNAVAILABLE');if((eligibility?.total||0)===0&&eligibility?.config?.includeUnorganizedInputs!==true){const status=$('memory-status'),notice=$('memory-no-authorization');if(status)status.textContent='这条 Input 还没有被允许进入 AI Context。你可以先选择允许的主题，或在 Settings 明确开启“从 Input Archive 补充尚未进入思想库的有效输入”。';notice?.scrollIntoView?.({block:'center'});return;}const prepare=await waitFor(()=>{const el=$('memory-prepare');return el&&!el.disabled?el:null;});if(!prepare)throw Error('MEMORY_UNAVAILABLE');prepare.click();const query=await waitFor(()=>{const el=$('memory-query');return el&&!$('memory-builder')?.hidden?el:null;});if(!query)throw Error('MEMORY_BUILDER_UNAVAILABLE');query.value=prompt;query.dispatchEvent(new Event('input',{bubbles:true}));query.focus();query.setSelectionRange(query.value.length,query.value.length);}catch{if(buttonNode.isConnected){buttonNode.textContent=copy('继续使用','Reuse');buttonNode.disabled=false;}}}
+function decorateReader(){for(const section of document.querySelectorAll('#document-body .library-block')){if(section.querySelector('.core-loop-reuse'))continue;const prose=section.querySelector('.library-prose');if(!prose)continue;const reuse=button(copy('继续使用','Reuse'),'core-loop-reuse');reuse.setAttribute('aria-label',copy('继续使用这条输入','Reuse this input'));reuse.title=copy('把这段表达带到本地 AI 上下文准备页','Bring this expression to the local AI context builder');reuse.addEventListener('click',()=>{noteCoreLoop('reuse');void prepareReaderReuse(prose.innerText,reuse);});section.append(reuse);}}
+function preserveInternalToolAccess(){const details=$('product-diagnostics');if(!details||$('core-loop-product-signals'))return;const link=node('a','core-loop-internal-link',copy('查看本机产品验证数据 / Passport','Local product validation / Passport'));link.id='core-loop-product-signals';link.href='product-signals.html';link.target='_blank';link.rel='noopener';details.append(link);}
 
 export function installCoreLoop(){
- if($('core-loop-home'))return;installStyles();demoteInternalNavigation();createHome();preserveInternalToolAccess();tuneExistingTools();
- const documentBody=$('document-body'),documentList=$('document-list'),collection=$('collection-panel'),dialog=$('universal-search-dialog'),revisitDialog=$('revisit-dialog');
- if(documentBody)new MutationObserver(decorateReader).observe(documentBody,{subtree:true,childList:true});
- if(documentList)new MutationObserver(refreshHome).observe(documentList,{subtree:true,childList:true});
- if(collection)new MutationObserver(refreshHome).observe(collection,{attributes:true,attributeFilter:['hidden']});
- for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(refreshHome).observe(nav,{attributes:true,attributeFilter:['aria-current']});
- if(dialog)new MutationObserver(tuneExistingTools).observe(dialog,{subtree:true,childList:true});
- if(revisitDialog)revisitDialog.addEventListener('close',()=>{lastRevisitKey='';refreshHome();});
- $('search')?.addEventListener('input',refreshHome);
- chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED'){lastRevisitKey='';refreshHome();}});
- window.addEventListener('focus',refreshHome);
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHome();});
- decorateReader();refreshHome();
+ if($('core-loop-home'))return;installStyles();setupShell();setupSettingsShell();tuneOnboarding();createHome();preserveInternalToolAccess();tuneExistingTools();void loadPreferences();
+ const documentBody=$('document-body'),documentList=$('document-list'),collection=$('collection-panel'),dialog=$('universal-search-dialog'),revisitDialog=$('revisit-dialog');if(documentBody)new MutationObserver(decorateReader).observe(documentBody,{subtree:true,childList:true});if(documentList)new MutationObserver(refreshHome).observe(documentList,{subtree:true,childList:true});if(collection)new MutationObserver(refreshHome).observe(collection,{attributes:true,attributeFilter:['hidden']});for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(()=>{applyLabels();refreshHome();}).observe(nav,{attributes:true,attributeFilter:['aria-current']});if(dialog)new MutationObserver(tuneExistingTools).observe(dialog,{subtree:true,childList:true});if(revisitDialog)revisitDialog.addEventListener('close',()=>{lastRevisitKey='';refreshHome();});$('search')?.addEventListener('input',refreshHome);chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED'){lastRevisitKey='';void loadPreferences();refreshHome();}});const media=globalThis.matchMedia?.('(prefers-color-scheme: dark)');media?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});decorateReader();refreshHome();
 }

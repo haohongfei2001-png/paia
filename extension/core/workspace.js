@@ -1,15 +1,20 @@
 import {ArchiveError} from './constants.js';
 import {documentBlocks} from './library.js';
-export const defaults=()=>({settingsVersion:1,autoSave:true,permanentSourceIgnore:true,libraryDeleteAlsoDeletesOriginal:false,timeDisplay:'date_and_time',timeEmphasis:'subtle',aiEnabled:false,aiExecutionMode:'suggest_only'});
+export const defaults=()=>({settingsVersion:2,autoSave:true,permanentSourceIgnore:true,libraryDeleteAlsoDeletesOriginal:false,timeDisplay:'date_and_time',timeEmphasis:'subtle',aiEnabled:false,aiExecutionMode:'suggest_only',appearance:'system',language:'system',fontSize:'standard',readingWidth:'standard',sidebarCollapsed:false});
 export function syncWorkspace(state){
- state.preferences={...defaults(),...state.preferences,autoSave:true,permanentSourceIgnore:true,libraryDeleteAlsoDeletesOriginal:false,aiEnabled:false,aiExecutionMode:'suggest_only'};
+ state.preferences={...defaults(),...state.preferences,settingsVersion:2,autoSave:true,permanentSourceIgnore:true,libraryDeleteAlsoDeletesOriginal:false,aiEnabled:false,aiExecutionMode:'suggest_only'};
  state.conversations??=[];
  for(const b of state.library.blocks){const signature=JSON.stringify(b.provenance);b.revision??=0;if(b.provenanceSignature!==undefined&&b.provenanceSignature!==signature)b.revision++;b.provenanceSignature=signature;}
  state.conversations=state.library.documents.map(d=>{const old=state.conversations.find(c=>c.id===d.id);const c={...d,userTitle:old?.userTitle??d.userTitle,titleRevision:old?.titleRevision??0};d.userTitle=c.userTitle;return c;});
 }
 export function validatePreferences(changes){
- const allowed={timeDisplay:['date_only','date_and_time','date_and_seconds'],timeEmphasis:['subtle','standard']};
- if(!changes||typeof changes!=='object'||Array.isArray(changes)||!Object.keys(changes).length||Object.entries(changes).some(([k,v])=>!allowed[k]?.includes(v)))throw new ArchiveError('INVALID_REQUEST');return changes;
+ const allowed={timeDisplay:['date_only','date_and_time','date_and_seconds'],timeEmphasis:['subtle','standard'],appearance:['system','light','dark'],language:['system','zh-CN','en'],fontSize:['small','standard','large','xlarge'],readingWidth:['narrow','standard','wide']};
+ if(!changes||typeof changes!=='object'||Array.isArray(changes)||!Object.keys(changes).length)throw new ArchiveError('INVALID_REQUEST');
+ for(const [key,value] of Object.entries(changes)){
+  if(key==='sidebarCollapsed'){if(typeof value!=='boolean')throw new ArchiveError('INVALID_REQUEST');continue;}
+  if(!allowed[key]?.includes(value))throw new ArchiveError('INVALID_REQUEST');
+ }
+ return changes;
 }
 export function sourceCompare(a,b){return Number(!a.sourceSentAt)-Number(!b.sourceSentAt)||(a.sourceSentAt&&b.sourceSentAt?Date.parse(a.sourceSentAt)-Date.parse(b.sourceSentAt):0)||(a.conversationOrder??Infinity)-(b.conversationOrder??Infinity)||a.id.localeCompare(b.id);}
 export function archiveRows(state,documentId){const d=state.conversations.find(c=>c.id===documentId);return d?state.records.filter(r=>r.platform===d.platform&&r.chatId===d.sourceConversationId&&!r.hidden&&!r.deletedAt).sort(sourceCompare):[];}
