@@ -242,7 +242,6 @@
       try {
         const url = new URL(raw, window.location.href);
         if (url.origin !== window.location.origin) return;
-        if (!url.pathname.startsWith('/paia/') && url.pathname !== '/paia') return;
         url.searchParams.set('lang', lang);
         anchor.href = `${url.pathname}${url.search}${url.hash}`;
       } catch (_) {}
