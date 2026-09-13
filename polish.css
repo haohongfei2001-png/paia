@@ -347,7 +347,6 @@ html[data-language="en"] .lang-copy-en { display: inline; }
 
   .thought-scroll-story { min-height: auto; }
   .thought-scroll-story .thought-transform { position: relative; top: auto; box-shadow: 0 12px 34px rgba(36,45,34,.05); }
-  .thought-scroll-story .thought-transform-head,
   .thought-scroll-story .thought-transform-caption { display: flex !important; }
   .thought-scroll-story .thought-transform-canvas { aspect-ratio: 720 / 980; }
   .thought-scroll-story .thought-layer { background-size: contain; }
@@ -371,4 +370,19 @@ html[data-language="en"] .lang-copy-en { display: inline; }
   .footer-links { justify-content: flex-start; gap: 8px 14px; }
   .closing { padding-top: 78px; padding-bottom: 82px; }
   .status-hero { min-height: calc(100vh - 128px); }
+}
+
+/* Navigation is intentionally sparse on desktop; complete IA stays in the menu/footer. */
+.site-header .nav-privacy,
+.site-header .nav-about { display: none !important; }
+
+@media (max-width: 900px) {
+  .site-header { padding-left: 18px; padding-right: 18px; }
+  .site-header .nav .nav-product,
+  .site-header .nav .nav-demo,
+  .site-header .nav .nav-principles,
+  .site-header .nav .nav-privacy,
+  .site-header .nav .nav-about { display: none !important; }
+  .mobile-menu-button { display: inline-block; }
+  .lang-switch { padding-inline: 8px; }
 }
