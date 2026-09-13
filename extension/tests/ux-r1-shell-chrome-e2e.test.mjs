@@ -7,7 +7,7 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {syntheticRow} from './fixtures/import-adapter.mjs';
 
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
+async function consent(page){await page.locator('#consent-check').waitFor({state:'visible'});await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
 async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);}
 
 test('UX-R1 clean install keeps example isolated until explicit local-save consent',{timeout:90000},async()=>{
@@ -16,11 +16,11 @@ test('UX-R1 clean install keeps example isolated until explicit local-save conse
   const p=h.archive;
   await eventually(()=>p.locator('#consent-panel').isVisible(),'consent intro is the first-use surface');
   assert.equal(await p.locator('#onboarding-welcome').isVisible(),false,'old module-teaching welcome must not precede consent');
-  assert.match(await p.locator('#consent-title').textContent(),/你对 AI 说过的/);
-  assert.equal((await p.locator('#enable-consent').textContent()).trim(),'开始在本机保存');
+  assert.match(await p.locator('#consent-title').textContent(),/你对 AI 说过的|What you told AI/i);
+  assert.match((await p.locator('#enable-consent').textContent()).trim(),/开始在本机保存|Start saving locally/i);
   const before=await rpc(p,'GET_STATUS');assert.equal(before.consented,false);assert.equal(before.enabled,false);
   await p.locator('#ux-onboarding-example').click();await eventually(()=>p.locator('#ux-example-dialog').evaluate(el=>el.open),'example dialog opens');
-  assert.match(await p.locator('#ux-example-dialog').textContent(),/示例，不会写入你的档案/);
+  assert.match(await p.locator('#ux-example-dialog').textContent(),/示例，不会写入你的档案|Example only; not saved/i);
   await p.locator('#ux-example-dialog button').click();
   const after=await rpc(p,'GET_STATUS');assert.deepEqual(after,before,'example must not change consent/capture state');
   assert.equal((await h.state()).records.length,0,'example must not write a real Source record');
@@ -33,6 +33,7 @@ test('UX-R1 shell uses real recently-captured content, three roots, reversible s
  try{
   const p=h.archive,text='UXR1_CAPTURE 这是一条用于验证最近收录与新外壳的合成输入。';
   await consent(p);
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.lang)==='zh-CN','explicit zh-CN shell preference applies');
   const chat={id:'ux-r1-capture',title:'UX-R1 最近收录',base:1609459200,messages:[{id:'ux-r1-message',text}]};
   await h.open(chat);await eventually(async()=>(await h.state()).records.some(row=>row.originalText===text),'real synthetic capture reaches Source');
   await p.bringToFront();await eventually(()=>p.locator('#core-loop-home').isVisible(),'Archive home is visible');
@@ -96,7 +97,7 @@ test('UX-R1 optional history import still previews, confirms, writes once and op
   await eventually(()=>p.locator('#history-commit').isEnabled(),'history is previewed before commit');assert.equal((await h.state()).records.length,0,'preflight must not write Source');
   assert.match(await p.locator('#history-status').textContent(),/检查完成/);await p.locator('#history-commit').click();await eventually(async()=>(await p.locator('#history-status').textContent())==='历史补全完成。','history commit completes');
   assert.equal((await h.state()).records.length,2);await p.locator('#history-read').click();await eventually(()=>p.locator('#core-loop-home').isVisible(),'history success returns to Archive');
-  const recent=p.locator('#core-loop-continue');await eventually(async()=>!(await recent.isDisabled()),'imported content becomes real recently captured target');await recent.click();await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('SYNTHETIC'),'imported content opens canonical Reader');
+  const recent=p.locator('#core-loop-continue');await eventually(async()=>!(await recent.isDisabled()),'imported content becomes real recently captured target');await recent.click();await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('Synthetic'),'imported content opens canonical Reader');
   await assertNoNetwork(h);assert.deepEqual(h.errors,[]);
  }finally{await h?.close();await rm(dir,{recursive:true,force:true});}
 });
