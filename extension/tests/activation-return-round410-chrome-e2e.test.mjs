@@ -58,12 +58,17 @@ test('Round 4.10 current release: activation explains the product and return sta
 
   // Switching back to an already-open PAIA tab must refresh the local return
   // state; ARCHIVE_CHANGED is the primary trigger and focus is only a fallback.
+  // Observe the semantic state and its primary action together so an intermediate
+  // async paint cannot be mistaken for the settled return presentation.
   await p.bringToFront();
-  await homeState(p,'return-new');
+  await eventually(async()=>
+   await p.locator('#core-loop-home').isVisible()
+   &&(await p.locator('#core-loop-home').getAttribute('data-state'))==='return-new'
+   &&await p.locator('#core-loop-return').evaluate(el=>el.classList.contains('core-loop-card-primary'))
+   &&!await p.locator('#core-loop-continue').evaluate(el=>el.classList.contains('core-loop-card-primary')),
+  'return-new settles with Revisit as the primary action');
   assert.match((await p.locator('#core-loop-eyebrow').textContent()).trim(),/欢迎回来|welcome back/i);
   assert.match(await p.locator('#core-loop-title').textContent(),/1 条新输入|1 new input/i);
-  assert.equal(await p.locator('#core-loop-return').evaluate(el=>el.classList.contains('core-loop-card-primary')),true,'return/revisit becomes primary when real new material exists');
-  assert.equal(await p.locator('#core-loop-continue').evaluate(el=>el.classList.contains('core-loop-card-primary')),false);
 
   // A focus refresh must not briefly regress an established return state back
   // through activation-ready while the async Revisit read catches up.
