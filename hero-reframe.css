@@ -1,0 +1,178 @@
+/* PAIA Hero Reframe — brand first, product evidence follows.
+   Presentation only. Existing product and marketing copy is untouched. */
+
+/* The D2 continuity idea stays semantic, not diagrammatic. */
+body[data-page="home"] .paia-semantic-thread,
+body[data-page="home"] .semantic-stage::after {
+  display: none !important;
+}
+
+/* Hero: a quiet brand field first; the product surface arrives from below. */
+body[data-page="home"] .hero.section {
+  display: block;
+  width: min(1240px, calc(100% - 64px));
+  min-height: 0;
+  padding: 0;
+  border-bottom: 0;
+}
+
+body[data-page="home"] .hero-copy {
+  display: flex;
+  min-height: calc(100svh - 170px);
+  max-width: 980px;
+  margin: 0 auto;
+  padding: clamp(72px, 10vh, 118px) 0 clamp(76px, 10vh, 112px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+body[data-page="home"] .hero .eyebrow {
+  margin-bottom: 28px;
+}
+
+body[data-page="home"] .hero h1 {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 28px;
+  font-size: clamp(62px, 7vw, 98px);
+  line-height: .96;
+  letter-spacing: -.055em;
+  font-weight: 600;
+}
+
+body[data-page="home"] .hero-cn {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 28px;
+}
+
+body[data-page="home"] .hero-meta {
+  justify-content: center;
+  margin-bottom: 29px;
+}
+
+body[data-page="home"] .availability-line {
+  text-align: center;
+}
+
+body[data-page="home"] .hero-actions {
+  justify-content: center;
+}
+
+/* The product is no longer a right-hand dashboard mockup. It becomes the next
+   object in the page and peeks into the first viewport on typical desktop sizes. */
+body[data-page="home"] .hero-product-stage {
+  width: min(1180px, calc(100vw - 72px));
+  min-height: 620px;
+  margin: -22px auto 0;
+  perspective: none !important;
+}
+
+body[data-page="home"] .hero-stage-glow,
+body[data-page="home"] .hero-signal,
+body[data-page="home"] .hero-window-dots,
+body[data-page="home"] .hero-window-bar {
+  display: none !important;
+}
+
+body[data-page="home"] .hero-window {
+  inset: 0 !important;
+  border: 1px solid rgba(59, 72, 63, .14);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(255,255,255,.92) inset, 0 18px 54px rgba(31,45,35,.05);
+  transform: none !important;
+}
+
+body[data-page="home"] .hero-window-frame {
+  height: 100% !important;
+  background: #fff;
+}
+
+body[data-page="home"] .hero-window-frame img {
+  object-fit: cover;
+  object-position: top left;
+}
+
+/* Let the next section feel like a continuation instead of a second hero. */
+body[data-page="home"] #problem {
+  margin-top: clamp(40px, 6vw, 78px);
+}
+
+/* Context keeps a visible boundary because the boundary itself has semantic
+   meaning; no generic line connects the rest of the page. */
+body[data-page="home"] #ai-context .context-detail-shot::before,
+body[data-page="home"] #privacy .story-visual::before {
+  width: 1px;
+}
+
+@media (max-width: 1080px) {
+  body[data-page="home"] .hero.section {
+    width: min(920px, calc(100% - 48px));
+  }
+  body[data-page="home"] .hero-copy {
+    min-height: auto;
+    padding: 96px 0 62px;
+  }
+  body[data-page="home"] .hero h1 {
+    font-size: clamp(58px, 9vw, 86px);
+  }
+  body[data-page="home"] .hero-product-stage {
+    width: min(900px, calc(100vw - 48px));
+    min-height: 560px;
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 680px) {
+  body[data-page="home"] .hero.section {
+    width: calc(100% - 30px);
+  }
+  body[data-page="home"] .hero-copy {
+    align-items: flex-start;
+    padding: 74px 0 38px;
+    text-align: left;
+  }
+  body[data-page="home"] .hero h1 {
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    font-size: clamp(48px, 15vw, 66px);
+    line-height: .99;
+  }
+  body[data-page="home"] .hero-cn {
+    margin-left: 0;
+    margin-right: 0;
+    font-size: 19px;
+  }
+  body[data-page="home"] .hero-meta,
+  body[data-page="home"] .hero-actions {
+    justify-content: flex-start;
+  }
+  body[data-page="home"] .availability-line {
+    text-align: left;
+  }
+  body[data-page="home"] .hero-product-stage {
+    width: calc(100vw - 20px);
+    min-height: 410px;
+    margin: 22px 0 0 50%;
+    transform: translateX(-50%);
+  }
+  body[data-page="home"] .hero-window {
+    border-radius: 11px;
+  }
+  body[data-page="home"] #problem {
+    margin-top: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="home"] .hero-product-stage,
+  body[data-page="home"] .hero-window {
+    transform: none !important;
+  }
+}
