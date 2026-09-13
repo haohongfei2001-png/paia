@@ -37,6 +37,9 @@ export class ContextPackageService {
    if(grantId!==current.grantId)throw new ArchiveError('MEMORY_DENIED');
    await this.passport.authorize({grantId,consumer:current.consumer,purpose:current.purpose,profileId:current.profileId});
    const result=await this.memory.share({previewId,format,removed});
+   // The external-access switch or grant can change while content is rebuilt.
+   // Recheck immediately before consumption/release so the final boundary fails closed.
+   await this.passport.authorize({grantId,consumer:current.consumer,purpose:current.purpose,profileId:current.profileId});
    await this.passport.consume(grantId,format);
    const next={...current,generation:result.generation??current.generation,itemCount:result.itemCount??current.itemCount,characters:result.characters??current.characters,tokens:result.tokens??current.tokens};this.packages.set(previewId,next);
    return {...result,contextPackage:contextPackageEnvelope(next,result.text,{format:format==='markdown'?'markdown':'plain',generation:next.generation}).package};
