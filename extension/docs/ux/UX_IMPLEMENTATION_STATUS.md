@@ -17,11 +17,11 @@ This file is the single execution-state entry point for the UX/UI redesign. It r
 
 ## Current execution state
 
-- Current round: **UX-R3**
+- Current round: **UX-R4**
 - Status: **READY**
-- Completed: **UX-R1, UX-R2**
+- Completed: **UX-R1, UX-R2, UX-R3**
 - Blockers: **none**
-- Next action: **Await an explicit UX-R3 start instruction; this checkpoint completes UX-R2 only.**
+- Next action: **UX-R3 is certified and checkpointed. Execute the authorized UX-R4 next, then UX-R5 only after R4 is truly COMPLETE. Do not skip rounds, merge main or begin UX-R6.**
 
 A round may be marked `COMPLETE` only after every required round gate, including G-01 through G-08, has actually passed and its report has been committed. Completion of documentation or partial implementation is not sufficient.
 
@@ -31,8 +31,8 @@ A round may be marked `COMPLETE` only after every required round gate, including
 |---|---|---|
 | UX-R1 | COMPLETE | `extension/docs/ux/rounds/UX_R1_REPORT.md` |
 | UX-R2 | COMPLETE | `extension/docs/ux/rounds/UX_R2_REPORT.md` |
-| UX-R3 | READY | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
-| UX-R4 | NOT STARTED | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
+| UX-R3 | COMPLETE | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
+| UX-R4 | READY | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
 | UX-R5 | NOT STARTED | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
 | UX-R6 | NOT STARTED | `extension/docs/ux/rounds/UX_R6_REPORT.md` |
 
@@ -74,7 +74,7 @@ UX-R2 delivers the continuous Input Reader, true device-local reading positions,
 
 The final validation uses synthetic isolated headless Chrome and the required 100,000-Input fixture. It is not real-user retention, live-provider or user-sampled-golden certification. The separate 76 historical browser files remain preserved. Existing Backup limits and bounded Revisit discovery are detailed in the report.
 
-UX-R3 is **READY but not executed**. The renewed user instruction arrived while UX-R2 was still incomplete, so this pass completed UX-R2 without skipping rounds. No UX-R3 report or implementation was created; the final documentation checkpoint leaves the certified runtime/test digest unchanged.
+At the UX-R2 checkpoint, UX-R3 was **READY but not executed**. The renewed user instruction arrived while UX-R2 was still incomplete, so this pass completed UX-R2 without skipping rounds. No UX-R3 report or implementation was created; the final documentation checkpoint leaves the certified runtime/test digest unchanged.
 
 ## UX-R2 initial preflight (historical)
 
@@ -87,6 +87,17 @@ Before UX-R2 implementation, the first read-only preflight confirmed the approve
 - no architecture conflict requiring a new product decision was found before UX-R2.
 
 UX-R2 was completed within the Development Specification boundary: UI-05 / UI-08 / UI-20, the real UI-03 reading anchor, DELTA-02 / DELTA-08, MIG-02 / MIG-03 / MIG-04 / MIG-10, and their required tests. Thought reverse-write semantics, vector retrieval, Revisit model calls, notifications/streaks and rich-text schema replacement remain out of scope.
+
+## UX-R3 completion summary
+
+- Certified implementation/test HEAD: `ff0475edb67b4aa185da7c4daeeec29841e97d95`.
+- All eight required local commands exit 0 on 2026-09-13; unsharded full suite **1,017/1,017 PASS, zero fail/skipped**, `fullSuite=true`, `auditPassed=true`.
+- Unit **855**, real browser **16**, adapter **95**, privacy/security **51**; package **8,055 / 182 resources**; development audit PASS; release **7,627 / 175 resources / 199 files**.
+- Input digest: `cf8eec92525d7af88e72a82de689fc1b5a997dd1b549d774e991dd45f07c0b1f`.
+- Runtime digest: `5086ad92e06443ee84890e4307009456575b3b1723be8309ca2e49af326c871a`.
+- Report: `rounds/UX_R3_REPORT.md`; local evidence: `work/ux-r3/`, including the preserved full receipt, 47 screenshots and real IndexedDB F-LARGE measurements.
+
+UX-R3 completes stable Topic reading, whole/selected Add to Topic, independent unplaced writing, default Thought-only edits, explicit advanced dual edits, transactional Undo and Source/current-Input comparison/restoration. MIG-05/06/10 preserve original text, provenance, deletion priority, prior versions and Backup compatibility. No new body store or permission expansion. Headless synthetic certification is not real-user or live-provider validation; historical browser evidence remains separate. UX-R4 is READY under renewed user authorization; UX-R5 is authorized only after R4 certification. UX-R6 is not authorized in this pass because UX-R5 was not COMPLETE when the latest instruction arrived.
 
 ## Status update protocol
 
