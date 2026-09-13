@@ -2,12 +2,31 @@ import {ArchiveError} from './constants.js';
 const views=['library','archive','excluded','settings','legacy','memory'];
 function validCursor(c){return c===null||Array.isArray(c)&&c.length<=8&&c.every(x=>typeof x==='string'&&x.length<600||typeof x==='number'&&Number.isFinite(x));}
 const prefixRange=p=>IDBKeyRange.bound(p,[...p,[]],false,true);
+async function recentCapturedDocument(t){
+ let cursor=null,scanned=0;
+ while(scanned<1000){
+  const page=await t.rangePage('recordIndex','bySequence',null,cursor,100,'prev');
+  if(!page.rows.length)break;
+  for(const {key,value:ix} of page.rows){
+   cursor=key;scanned++;
+   if(ix.hidden||ix.deletedAt)continue;
+   const record=(await t.get('records',ix.id))?.value;if(!record)continue;
+   const docs=await t.all('documents','byChat',ix.chatKey,2);
+   for(const row of docs){
+    const d=row.value;if(!d)continue;
+    if(await t.count('blockIndex','byExcluded',[d.id,0]))return {id:d.id,userTitle:d.userTitle||null,originalConversationTitle:d.originalConversationTitle||null,capturedAt:record.capturedAt||null,sourceSentAt:record.sourceSentAt||null};
+   }
+  }
+  if(page.next===null)break;cursor=page.next;
+ }
+ return null;
+}
 export async function queryPage(t,control,{view='library',query='',limit=50,cursor=null,documentId=null,trackedBlockIds=[],sort=null}={}){
  if(sort!==null&&!['asc','desc'].includes(sort))throw new ArchiveError('INVALID_REQUEST');
  if(!views.includes(view)||typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||!validCursor(cursor)||documentId!==null&&(typeof documentId!=='string'||documentId.length>200))throw new ArchiveError('INVALID_REQUEST');
  if(!Array.isArray(trackedBlockIds)||trackedBlockIds.length>1000||trackedBlockIds.some(id=>typeof id!=='string'||id.length>200))throw new ArchiveError('INVALID_REQUEST');
  const trash=await t.count('recordIndex','byTrash',1),hidden=await t.count('recordIndex','byHidden',1);
- const state={schemaVersion:6,...control,records:[],conversations:[],library:{documents:[],blocks:[],classificationRules:control.classificationRules,filterRules:control.filterRules},adapterVersion:'0.3.0',stats:{total:await t.count('records')-trash,trash,hidden,bytes:0,quotaBytes:0},documents:[],pageItemIds:[],nextCursor:null};
+ const state={schemaVersion:6,...control,records:[],conversations:[],library:{documents:[],blocks:[],classificationRules:control.classificationRules,filterRules:control.filterRules},adapterVersion:'0.3.0',stats:{total:await t.count('records')-trash,trash,hidden,bytes:0,quotaBytes:0},documents:[],pageItemIds:[],nextCursor:null,recentCapturedDocument:null};
  if(['settings','memory'].includes(view))return state;
  if(view==='legacy'){
   const candidates=await t.page('recordIndex',{index:'bySequence',after:cursor?.[0],limit:100});for(const {value:r}of candidates.rows)if(r.hidden||r.deletedAt)state.records.push((await t.get('records',r.id)).value);state.nextCursor=candidates.next===null?null:[candidates.next];return state;
@@ -23,6 +42,7 @@ export async function queryPage(t,control,{view='library',query='',limit=50,curs
   state.nextCursor=page.next;return state;
  }
  const needle=query.trim().toLocaleLowerCase();
+ if(view==='library'&&!needle)state.recentCapturedDocument=await recentCapturedDocument(t);
  const scan=await t.rangePage('documents',view+'Display',null,cursor,100);let last=null;
  for(const {key,value:row}of scan.rows){last=key;const d=row.value;
   const rowCount=view==='archive'?(row.chatKey?await t.count('recordIndex','byList',prefixRange([row.chatKey,0])):0):await t.count('blockIndex','byExcluded',[d.id,view==='excluded'?1:0]);if(!rowCount)continue;

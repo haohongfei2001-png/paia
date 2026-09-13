@@ -100,8 +100,10 @@ const initialLoad=beginLoading(document.querySelector('.workspace'),'正在打�
 
 for(const b of $('input-time-order').querySelectorAll('button'))b.addEventListener('click',async()=>{if(!await leave(true))return;try{await request('SET_ORGANIZER_CONTROLS',{changes:{inputReadingSort:b.dataset.inputSort}});inputSortSnapshot=b.dataset.inputSort;pageCursor=null;pageHistory=[];readingSnapshot=null;contextInputId=null;await refresh();}catch{await refresh();error('排序偏好尚未保存，已恢复原来的显示。请重试。');}});
 
-// Preserve native text editing shortcuts; intercept only the product find action.
-document.addEventListener('keydown',event=>{if(view==='memory'&&(event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='f'){event.preventDefault();(memory.page==='authorizations'?$('memory-auth-search'):$('memory-query')).focus();return;}
+// Preserve native text editing shortcuts; intercept only explicit PAIA navigation/search shortcuts.
+document.addEventListener('keydown',event=>{
+ if((event.metaKey||event.ctrlKey)&&!event.altKey&&event.key.toLowerCase()==='k'&&!document.querySelector('dialog[open]')){event.preventDefault();$('universal-search-open')?.click();return;}
+ if(view==='memory'&&(event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='f'){event.preventDefault();(memory.page==='authorizations'?$('memory-auth-search'):$('memory-query')).focus();return;}
  if((event.metaKey||event.ctrlKey)&&!event.altKey&&event.key.toLowerCase()==='f'&&!document.querySelector('dialog[open]')){
   event.preventDefault();void (async()=>{if(view==='thoughts'){const input=thoughts.id?$('topic-search'):$('thought-search');input.focus();input.select();}else{if(view!=='library'||documentId)await navigate('library');$('search').focus();$('search').select();}})().catch(()=>showLocalFailure());
  }

@@ -5,12 +5,19 @@ export class OnboardingService {
  constructor(store){this.store=store;}
  async row(t){
   let row=await t.get('meta',ID);const c=await this.store.control(t),consented=c.settings.consentVersion===CONSENT_VERSION;
+  const hasContent=await t.count('records')>0||await t.count('blocks')>0||await t.count('thoughts')>0;
   if(!row){
-   const existing=consented||await t.count('records')>0||await t.count('blocks')>0||await t.count('thoughts')>0;
-   row={id:ID,version:1,step:existing?'done':'welcome',historyState:'not_started',existingUser:!!existing,updatedAt:this.store.clock()};
+   const existing=consented||hasContent;
+   row={id:ID,version:1,step:existing?'done':'consent',historyState:'not_started',existingUser:!!existing,updatedAt:this.store.clock()};
    await t.put('meta',row);
-  }else if(consented&&['welcome','consent'].includes(row.step)){
-   row.step='history';row.updatedAt=this.store.clock();await t.put('meta',row);
+  }else{
+   let changed=false;
+   if(!consented&&row.step==='welcome'&&!row.existingUser){row.step='consent';changed=true;}
+   if(consented&&['welcome','consent'].includes(row.step)){
+    row.step=row.existingUser||hasContent?'done':'history';changed=true;
+   }
+   if(hasContent&&!row.existingUser){row.existingUser=true;changed=true;}
+   if(changed){row.updatedAt=this.store.clock();await t.put('meta',row);}
   }
   return {row,consented};
  }

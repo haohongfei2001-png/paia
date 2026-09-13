@@ -16,10 +16,10 @@ test('Round 4.10 current release: activation explains the product and return sta
   await consent(p);
 
   // Empty activation: explain the product before inventing any onboarding modal
-  // or durable tutorial state. The home itself is the explanation surface.
+  // or durable tutorial state. UX-R1 may render the shell in the system locale.
   await homeState(p,'activation-empty');
-  assert.match(await p.locator('#core-loop-title').textContent(),/第一条输入/);
-  assert.match(await p.locator('#core-loop-copy').textContent(),/留在本机/);
+  assert.match(await p.locator('#core-loop-title').textContent(),/第一条输入|first input/i);
+  assert.match(await p.locator('#core-loop-copy').textContent(),/本机|local/i);
   assert.equal(await p.locator('#core-loop-continue').isDisabled(),true);
   assert.equal(await p.locator('#core-loop-home .core-loop-card-primary').count(),0,'empty activation must not fabricate a primary action');
 
@@ -30,8 +30,8 @@ test('Round 4.10 current release: activation explains the product and return sta
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText.includes('ROUND410_ACTIVATION')),'first activation Input is captured');
   await p.bringToFront();
   await homeState(p,'activation-ready');
-  assert.match(await p.locator('#core-loop-title').textContent(),/这里保存的是你给 AI 的输入/);
-  assert.match(await p.locator('#core-loop-copy').textContent(),/不是 AI 的回答/);
+  assert.match(await p.locator('#core-loop-title').textContent(),/这里保存的是你给 AI 的输入|keeps what you sent to AI/i);
+  assert.match(await p.locator('#core-loop-copy').textContent(),/不是 AI 的回答|not AI replies/i);
   assert.equal(await p.locator('#core-loop-continue').isDisabled(),false);
   assert.equal(await p.locator('#core-loop-continue').evaluate(el=>el.classList.contains('core-loop-card-primary')),true,'continue reading is primary after first capture');
 
@@ -58,12 +58,17 @@ test('Round 4.10 current release: activation explains the product and return sta
 
   // Switching back to an already-open PAIA tab must refresh the local return
   // state; ARCHIVE_CHANGED is the primary trigger and focus is only a fallback.
+  // Observe the semantic state and its primary action together so an intermediate
+  // async paint cannot be mistaken for the settled return presentation.
   await p.bringToFront();
-  await homeState(p,'return-new');
-  assert.equal((await p.locator('#core-loop-eyebrow').textContent()).trim(),'欢迎回来');
-  assert.match(await p.locator('#core-loop-title').textContent(),/1 条新输入/);
-  assert.equal(await p.locator('#core-loop-return').evaluate(el=>el.classList.contains('core-loop-card-primary')),true,'return/revisit becomes primary when real new material exists');
-  assert.equal(await p.locator('#core-loop-continue').evaluate(el=>el.classList.contains('core-loop-card-primary')),false);
+  await eventually(async()=>
+   await p.locator('#core-loop-home').isVisible()
+   &&(await p.locator('#core-loop-home').getAttribute('data-state'))==='return-new'
+   &&await p.locator('#core-loop-return').evaluate(el=>el.classList.contains('core-loop-card-primary'))
+   &&!await p.locator('#core-loop-continue').evaluate(el=>el.classList.contains('core-loop-card-primary')),
+  'return-new settles with Revisit as the primary action');
+  assert.match((await p.locator('#core-loop-eyebrow').textContent()).trim(),/欢迎回来|welcome back/i);
+  assert.match(await p.locator('#core-loop-title').textContent(),/1 条新输入|1 new input/i);
 
   // A focus refresh must not briefly regress an established return state back
   // through activation-ready while the async Revisit read catches up.
@@ -85,7 +90,7 @@ test('Round 4.10 current release: activation explains the product and return sta
   await eventually(async()=>(await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count===0,'explicit Revisit mark advances the new-input marker');
   await p.locator('.revisit-close').click();
   await eventually(async()=>(await p.locator('#core-loop-home').getAttribute('data-state'))!=='return-new','closing Revisit clears explicitly viewed-new state from home');
-  assert.doesNotMatch(await p.locator('#core-loop-title').textContent(),/1 条新输入/);
+  assert.doesNotMatch(await p.locator('#core-loop-title').textContent(),/1 条新输入|1 new input/i);
 
   assert.equal(h.deepSeekRequests.length,0);
   assert.equal(h.extensionNetworkRequests,0);

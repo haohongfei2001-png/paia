@@ -83,7 +83,7 @@ jobs:
   current_browser:
     name: Current Browser Certification
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: extension
@@ -106,16 +106,69 @@ jobs:
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
-      - name: Core product loop, activation/return, Search, Reader, Context, Revisit and Passport
+      - name: UX-R1 shell plus current core product journeys
         run: >-
           xvfb-run -a node --test --test-concurrency=1
+          tests/ux-r1-shell-chrome-e2e.test.mjs
           tests/release-certification-round48-chrome-e2e.test.mjs
           tests/release-certification-round49-chrome-e2e.test.mjs
           tests/activation-return-round410-chrome-e2e.test.mjs
-      - name: Package audit after current Chrome journey
+      - name: Package and development guards
         run: |
-          python3 scripts/check_package.py
+          npm run check
           node scripts/check_development.mjs
+      - name: Upload UX-R1 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ux-r1-visual-evidence-${{ github.sha }}
+          path: extension/work/ux-r1
+          if-no-files-found: warn
+          retention-days: 14
+
+  historical_full_suite:
+    name: Historical Full Suite Audit
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Prepare historical full-suite environment
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          sudo mkdir -p '/Applications/Google Chrome.app/Contents/MacOS'
+          sudo ln -sf "$CHROME_BIN" '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+          git rev-parse --is-shallow-repository | grep -qx false
+          "$CHROME_BIN" --version
+      - name: Run historical unsharded suite
+        env:
+          PAIA_TEST_CONCURRENCY: '4'
+        run: xvfb-run -a npm test
+      - name: Upload historical suite receipt when available
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paia-historical-full-suite-${{ github.sha }}
+          path: extension/work/test-summary.json
+          if-no-files-found: warn
+          retention-days: 14
 
   macos_secure_store:
     name: macOS Secure Store Certification

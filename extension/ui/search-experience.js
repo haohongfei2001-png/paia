@@ -2,6 +2,7 @@ import {element} from './common.js';
 import {installUniversalSearch} from './universal-search.js';
 import {installRevisit} from './revisit.js';
 import {installCoreLoop} from './core-loop.js';
+import {installUXR1ShellCoordinator} from './ux-r1-shell-coordinator.js';
 
 // `data-view` is the primary-navigation contract. Auxiliary CTAs may navigate to
 // a view, but they must not masquerade as another nav item (it also makes test
@@ -49,3 +50,4 @@ export async function findLibraryPage(read,{query,cursor=null,isCurrent=()=>true
 queueMicrotask(installUniversalSearch);
 queueMicrotask(installRevisit);
 queueMicrotask(installCoreLoop);
+queueMicrotask(installUXR1ShellCoordinator);

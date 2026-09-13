@@ -14,16 +14,17 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText===text),'core-loop Input is captured');
 
   await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'Archive core-loop home is visible');
-  assert.equal(await p.locator('#primary-nav [data-view="memory"]').count(),0,'AI Context is no longer primary navigation');
-  assert.equal(await p.locator('.sidebar-bottom [data-view="memory"]').count(),1,'AI reuse remains available as a secondary action');
-  assert.equal((await p.locator('.sidebar-bottom [data-view="memory"]').textContent()).trim(),'用于 AI');
+  assert.equal(await p.locator('#primary-nav [data-view="memory"]').count(),1,'For AI remains a primary root under DELTA-01');
+  assert.match((await p.locator('#primary-nav [data-view="memory"]').textContent()).trim(),/用于 AI|For AI/i);
+  assert.equal(await p.locator('.sidebar-bottom [data-view="memory"]').count(),0,'For AI must not have a duplicate secondary navigation entry');
   const recent=p.locator('#core-loop-continue');
-  await eventually(async()=>!(await recent.isDisabled())&&(await recent.textContent()).includes('Round 4.9 Core Loop'),'recent document becomes the continue-reading target');
+  await eventually(async()=>!(await recent.isDisabled())&&(await recent.textContent()).includes('Round 4.9 Core Loop'),'recently captured document becomes the Archive home target');
+  assert.match(await recent.textContent(),/最近收录|Recently saved/i);
 
   // Capture -> read: the Archive home should return to the canonical Reader,
   // not a duplicate dashboard document view.
   await recent.click();
-  await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND49_CORE_LOOP'),'continue-reading opens canonical Input Reader');
+  await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND49_CORE_LOOP'),'recently captured opens canonical Input Reader');
   let reuse=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.core-loop-reuse');
   await eventually(async()=>await reuse.count()===1,'Reader exposes one bounded reuse action for the Input');
 
@@ -49,16 +50,16 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   assert.match(prepared,/重点参考我以前的这段表达/);assert.match(prepared,/ROUND49_CORE_LOOP/);assert.match(prepared,/继续围绕这段表达/);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);
 
-  // Return to the Archive home and prove that retrieve/revisit are first-class
-  // tasks there rather than hidden implementation pages.
+  // Return to the Archive home and prove that global retrieval and revisit remain
+  // first-class tasks without duplicating Search as another Archive card.
   await p.locator('#primary-nav [data-view="library"]').click();
   await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'return to Archive home');
-  await p.locator('#core-loop-find').click();
-  await eventually(async()=>await p.locator('#universal-search-dialog').evaluate(el=>el.open),'home Find opens Universal Search');
-  assert.equal((await p.locator('#universal-search-title').textContent()).trim(),'找回以前的表达');
+  await p.locator('#universal-search-open').click();
+  await eventually(async()=>await p.locator('#universal-search-dialog').evaluate(el=>el.open),'header Search opens Universal Search');
+  assert.match((await p.locator('#universal-search-title').textContent()).trim(),/找回以前的表达|Find an earlier expression/i);
   const box=p.getByRole('searchbox',{name:'全局搜索'});await box.fill('ROUND49_CORE_LOOP');
   await eventually(async()=>await p.locator('#universal-search-dialog .universal-hit').count()>0,'Find returns the captured Input');
-  assert.equal((await p.locator('#universal-search-dialog .universal-context').first().textContent()).trim(),'继续使用');
+  assert.match((await p.locator('#universal-search-dialog .universal-context').first().textContent()).trim(),/继续使用|Reuse/i);
   await p.locator('.universal-close').click();
 
   await p.locator('#core-loop-return').click();
