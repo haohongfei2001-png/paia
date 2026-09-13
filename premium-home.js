@@ -4,14 +4,8 @@
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const lang = () => document.documentElement.dataset.language === 'zh' ? 'zh' : 'en';
 
-  const copy = {
+  const stageCopy = {
     zh: {
-      heroSubtitle: '把你对 AI 说过的话，变成真正属于自己的长期记录。',
-      contextTitle: '把需要的过去，带进下一次 AI 讨论。',
-      contextBody: '从档案、搜索或思想库直接选择这次真正需要的材料。你明确选中的内容始终优先，PAIA 只补充相关信息；预览确认后，再复制或导出。',
-      contextItems: ['明确选择优先于算法补充', '本机准备，发送前看见实际内容', '限制、删除与来源状态始终生效'],
-      contextCaption: '你选择什么、PAIA 补充什么、最终会复制什么，在离开本机前都清楚可见。',
-      closingBody: 'PAIA 让散落在一次次 AI 对话里的输入重新成为可以阅读、理解和继续使用的长期材料。不是替你重写过去，而是让真正重要的内容不再消失在聊天历史里。',
       stageStatus: '本机优先',
       archiveLabel: 'INPUT ARCHIVE',
       archiveValue: '继续阅读自己的表达',
@@ -22,12 +16,6 @@
       stageAlt: 'PAIA 档案首页产品界面示意'
     },
     en: {
-      heroSubtitle: 'Turn what you tell AI into a long-term record you can truly own.',
-      contextTitle: 'Bring the right parts of your past into the next AI conversation.',
-      contextBody: 'Choose exactly what you need from Archive, Search, or Thought Library. Your explicit selections stay fixed; PAIA can suggest related material, but never replace what you chose. Preview the real output before you copy or export it.',
-      contextItems: ['Explicit selection comes before retrieval', 'Prepared locally, with the real output visible first', 'Restrictions, deletion, and provenance remain in force'],
-      contextCaption: 'What you chose, what PAIA suggested, and what will actually leave the device stay visible before export.',
-      closingBody: 'PAIA turns the things scattered across AI conversations into long-term material you can read, understand, and reuse. It does not rewrite your past. It keeps the parts that still matter from disappearing into chat history.',
       stageStatus: 'Local-first',
       archiveLabel: 'INPUT ARCHIVE',
       archiveValue: 'Continue reading your own words',
@@ -78,20 +66,12 @@
     hero.appendChild(stage);
   };
 
-  const applyCopy = () => {
-    const c = copy[lang()];
+  const applyStageCopy = () => {
+    const c = stageCopy[lang()];
     const set = (selector, value) => {
       document.querySelectorAll(selector).forEach((node) => { node.textContent = value; });
     };
 
-    set('.hero-cn', c.heroSubtitle);
-    set('[data-i18n="home.contextTitle"]', c.contextTitle);
-    set('[data-i18n="home.contextP"]', c.contextBody);
-    document.querySelectorAll('#ai-context .quiet-list li').forEach((item, index) => {
-      if (c.contextItems[index]) item.textContent = c.contextItems[index];
-    });
-    set('[data-i18n="home.contextCaption"]', c.contextCaption);
-    set('[data-site-closing-body]', c.closingBody);
     set('[data-premium-stage-status]', c.stageStatus);
     set('[data-premium-archive-label]', c.archiveLabel);
     set('[data-premium-archive-value]', c.archiveValue);
@@ -107,14 +87,6 @@
         : 'assets/screenshots/input-archive-home-en.svg?v=1';
       stageImage.alt = c.stageAlt;
     }
-
-    const description = document.querySelector('meta[name="description"]');
-    const ogDescription = document.querySelector('meta[property="og:description"]');
-    const nextDescription = lang() === 'zh'
-      ? 'PAIA 是一个本地优先的个人 AI 输入、思想与上下文系统，让你对 AI 说过的话能够长期保存、阅读、理解并再次使用。'
-      : 'PAIA is a local-first personal AI input, thought, and context system for preserving, understanding, and reusing what you tell AI.';
-    description?.setAttribute('content', nextDescription);
-    ogDescription?.setAttribute('content', nextDescription);
   };
 
   const installHeaderMotion = () => {
@@ -189,7 +161,7 @@
 
   const init = () => {
     ensureHeroStage();
-    applyCopy();
+    applyStageCopy();
     installHeaderMotion();
     installHeroMotion();
     installImageDepth();
@@ -199,5 +171,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
 
-  window.addEventListener('paia:languagechange', () => requestAnimationFrame(applyCopy));
+  window.addEventListener('paia:languagechange', () => requestAnimationFrame(applyStageCopy));
 })();
