@@ -17,11 +17,11 @@ This file is the single execution-state entry point for the UX/UI redesign. It r
 
 ## Current execution state
 
-- Current round: **UX-R2**
+- Current round: **UX-R3**
 - Status: **READY**
-- Completed: **UX-R1**
+- Completed: **UX-R1, UX-R2**
 - Blockers: **none**
-- Next action: **Execute UX-R2**
+- Next action: **Await an explicit UX-R3 start instruction; this checkpoint completes UX-R2 only.**
 
 A round may be marked `COMPLETE` only after every required round gate, including G-01 through G-08, has actually passed and its report has been committed. Completion of documentation or partial implementation is not sufficient.
 
@@ -30,8 +30,8 @@ A round may be marked `COMPLETE` only after every required round gate, including
 | Round | Status | Report path |
 |---|---|---|
 | UX-R1 | COMPLETE | `extension/docs/ux/rounds/UX_R1_REPORT.md` |
-| UX-R2 | READY | `extension/docs/ux/rounds/UX_R2_REPORT.md` |
-| UX-R3 | NOT STARTED | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
+| UX-R2 | COMPLETE | `extension/docs/ux/rounds/UX_R2_REPORT.md` |
+| UX-R3 | READY | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
 | UX-R4 | NOT STARTED | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
 | UX-R5 | NOT STARTED | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
 | UX-R6 | NOT STARTED | `extension/docs/ux/rounds/UX_R6_REPORT.md` |
@@ -59,17 +59,34 @@ Final UX-R1 certification #157 proves:
 
 The 76 pre-migration historical browser files remain available through `npm run test:historical-browser` / manual workflow dispatch. They are not part of the current GitHub-reproducible completion suite because their frozen environment includes old UI contracts and/or Git objects intentionally absent from the authoritative source snapshot.
 
-## UX-R2 preflight
+## UX-R2 completion summary
 
-The first read-only UX-R2 preflight has already confirmed the approved reuse boundary:
+- Final certified implementation/test head: `bc2d2800a7281123e061d75d8e4df9cb2f550481`.
+- Certification: **local, 2026-09-13**, all eight required commands exit 0; no remote CI execution or deployment claimed.
+- Unsharded `npm test`: **998/998 PASS, 0 fail, 0 skipped**, `fullSuite=true`, `auditPassed=true`.
+- Unit: **841/841**; current real browser: **12/12**; adapter contract: **95/95**; privacy/security: **50/50**.
+- Package: **7,854 guardrails / 175 runtime resources PASS**; development audit PASS; release: **7,426 guards / 168 runtime resources / 192 files PASS**.
+- Input digest: `71cf2283808b05f0940fcde1db8d60c38a0d4a3cafe95e932b66872b4dcd00b7`.
+- Runtime digest: `a78dd8d246a6c040db93ea61dd68a942b779b29501bf5bb6e3686460a8ba7a33`.
+- Report: `extension/docs/ux/rounds/UX_R2_REPORT.md`; local logs, full receipt, 29 screenshots and F-LARGE measurements: `extension/work/ux-r2/`.
 
-- `ui/library.js` `DocumentEditor` already provides IME-aware editing, dirty-buffer retention, Undo/Redo, revision conflict handling and existing Input edit writes;
-- `ui/editor-primitives.js` already provides the 750 ms autosave debounce, 3 s max wait, bounded Undo journal and stable operation IDs;
-- `ui/session-lifecycle.js` already flushes pending trusted-editor changes on page lifecycle events;
-- `core/revisit.js` currently stores a single `revisit:v1` sequence marker and automatically produces old-content resurfacing, so UX-R2 must separate visit boundary from reading anchors and add the approved opt-in/exclusion semantics rather than treating the old marker as a reading position;
-- no architecture conflict has been found that requires a new product decision before UX-R2.
+UX-R2 delivers the continuous Input Reader, true device-local reading positions, safe visit windows, explicit old-content opt-in and derived-preview exclusions, exact conversation capture exclusion, Source/working-version comparison, removal/purge compatibility and MIG-02/03/04/10 Backup handling. It preserves Source/Input/Thought ownership, authorization, physical schema and existing mandatory CI. The fixed-source final suite includes regressions for failed saves, concurrent edits, late root refresh, startup navigation, new-content layout and Universal Search return state.
 
-UX-R2 remains bounded to the Development Specification: UI-05 / UI-08 / UI-20, the real UI-03 reading anchor, DELTA-02 / DELTA-08, MIG-02 / MIG-03 / MIG-04 / MIG-10, and their required tests. Thought reverse-write semantics, vector retrieval, Revisit model calls, notifications/streaks and rich-text schema replacement remain out of scope.
+The final validation uses synthetic isolated headless Chrome and the required 100,000-Input fixture. It is not real-user retention, live-provider or user-sampled-golden certification. The separate 76 historical browser files remain preserved. Existing Backup limits and bounded Revisit discovery are detailed in the report.
+
+UX-R3 is **READY but not executed**. The renewed user instruction arrived while UX-R2 was still incomplete, so this pass completed UX-R2 without skipping rounds. No UX-R3 report or implementation was created; the final documentation checkpoint leaves the certified runtime/test digest unchanged.
+
+## UX-R2 initial preflight (historical)
+
+Before UX-R2 implementation, the first read-only preflight confirmed the approved reuse boundary:
+
+- `ui/library.js` `DocumentEditor` already provided IME-aware editing, dirty-buffer retention, Undo/Redo, revision conflict handling and existing Input edit writes;
+- `ui/editor-primitives.js` already provided the 750 ms autosave debounce, 3 s max wait, bounded Undo journal and stable operation IDs;
+- `ui/session-lifecycle.js` already flushed pending trusted-editor changes on page lifecycle events;
+- `core/revisit.js` at that baseline stored a single `revisit:v1` sequence marker and automatically produced old-content resurfacing, so UX-R2 needed to separate visit boundary from reading anchors and add the approved opt-in/exclusion semantics rather than treating the old marker as a reading position;
+- no architecture conflict requiring a new product decision was found before UX-R2.
+
+UX-R2 was completed within the Development Specification boundary: UI-05 / UI-08 / UI-20, the real UI-03 reading anchor, DELTA-02 / DELTA-08, MIG-02 / MIG-03 / MIG-04 / MIG-10, and their required tests. Thought reverse-write semantics, vector retrieval, Revisit model calls, notifications/streaks and rich-text schema replacement remain out of scope.
 
 ## Status update protocol
 
