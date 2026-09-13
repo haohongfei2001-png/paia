@@ -1,20 +1,10 @@
 (() => {
   if (document.body?.dataset.page !== 'home') return;
 
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const lang = () => document.documentElement.dataset.language === 'zh' ? 'zh' : 'en';
 
-  const installCompatibilityStyles = () => {
-    if (document.querySelector('link[data-premium-home-fix]')) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'premium-home-fix.css?v=1';
-    link.dataset.premiumHomeFix = '';
-    document.head.appendChild(link);
-  };
-
-  // These strings already existed in the premium product-stage UI. This file does
-  // not own or alter the site's marketing/product copy.
+  // These strings already existed in the product-stage UI. This file does not
+  // own or alter the site's marketing/product copy.
   const stageCopy = {
     zh: {
       stageStatus: '本机优先',
@@ -61,7 +51,7 @@
     }
   };
 
-  const installHeaderMotion = () => {
+  const installHeaderState = () => {
     const header = document.querySelector('.site-header');
     if (!header) return;
     let ticking = false;
@@ -78,54 +68,9 @@
     window.addEventListener('scroll', request, { passive: true });
   };
 
-  // Intentionally subtle: the product should feel alive, not like a tilt-card demo.
-  const installHeroMotion = () => {
-    const stage = document.querySelector('[data-premium-hero-stage]');
-    const windowCard = stage?.querySelector('[data-premium-window]');
-    if (!stage || !windowCard || reduceMotion || !window.matchMedia('(pointer:fine)').matches) return;
-
-    let frame = 0;
-    let targetX = 0;
-    let targetY = 0;
-    let currentX = 0;
-    let currentY = 0;
-
-    const render = () => {
-      frame = 0;
-      currentX += (targetX - currentX) * 0.085;
-      currentY += (targetY - currentY) * 0.085;
-
-      windowCard.style.setProperty('--hero-rotate-x', `${(-currentY * 0.55).toFixed(2)}deg`);
-      windowCard.style.setProperty('--hero-rotate-y', `${(currentX * 0.68).toFixed(2)}deg`);
-      stage.style.setProperty('--hero-shift-x', `${(currentX * 2.1).toFixed(2)}px`);
-      stage.style.setProperty('--hero-shift-y', `${(currentY * 1.7).toFixed(2)}px`);
-
-      if (Math.abs(targetX - currentX) > 0.003 || Math.abs(targetY - currentY) > 0.003) {
-        frame = requestAnimationFrame(render);
-      }
-    };
-
-    const requestRender = () => { if (!frame) frame = requestAnimationFrame(render); };
-
-    stage.addEventListener('pointermove', (event) => {
-      const rect = stage.getBoundingClientRect();
-      targetX = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width - 0.5) * 2));
-      targetY = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height - 0.5) * 2));
-      requestRender();
-    });
-
-    stage.addEventListener('pointerleave', () => {
-      targetX = 0;
-      targetY = 0;
-      requestRender();
-    });
-  };
-
   const init = () => {
-    installCompatibilityStyles();
     applyStageCopy();
-    installHeaderMotion();
-    installHeroMotion();
+    installHeaderState();
     document.body.classList.add('premium-home-ready');
   };
 
