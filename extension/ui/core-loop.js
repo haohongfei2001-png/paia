@@ -49,7 +49,6 @@ function setupShell(){
  let status=bottom.querySelector('#ux-local-state');if(!status){status=node('span','ux-local-state',copy('本机保存','Saved locally'));status.id='ux-local-state';bottom.append(status);}
  if(!$('ux-sidebar-toggle')){const toggle=button(copy('收起侧栏','Collapse sidebar'),'ux-sidebar-toggle');toggle.id='ux-sidebar-toggle';toggle.setAttribute('aria-label',copy('收起或展开侧栏','Collapse or expand sidebar'));toggle.addEventListener('click',()=>void savePreference('sidebarCollapsed',!uxPreferences.sidebarCollapsed,toggle));brand?.after(toggle);}
  document.addEventListener('click',event=>{const hit=event.target.closest?.('[data-view="settings"]');if(!hit)return;const active=document.querySelector('#primary-nav [aria-current="page"]')?.dataset.view;if(active&&active!=='settings')settingsReturn=validReturnTarget(active);},{capture:true});
- document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&!event.altKey&&event.key.toLocaleLowerCase()==='k'){event.preventDefault();$('universal-search-open')?.click();}});
  const title=$('view-title');if(title)new MutationObserver(applyLabels).observe(title,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
  const panels=[$('document-panel'),$('thought-document')].filter(Boolean);for(const panel of panels)new MutationObserver(updateSurfaceClass).observe(panel,{attributes:true,attributeFilter:['hidden']});updateSurfaceClass();
 }
