@@ -164,6 +164,8 @@ def audit_js(path, text):
             scanned = scanned.replace("input.addEventListener('keydown',", "SCOPED_SEARCH_INPUT(").replace("results.addEventListener('keydown',", "SCOPED_SEARCH_RESULTS(")
         if label == "keyboard listener" and path == ROOT / "ui/archive.js":
             scanned = scanned.replace("document.addEventListener('keydown',", "TRUSTED_ARCHIVE_FIND_ESCAPE(")
+        if label == "keyboard listener" and path == ROOT / "ui/topic-actions.js":
+            scanned = scanned.replace("draft.onkeydown=", "SCOPED_TODAY_THOUGHT_SHORTCUT=")
         if label == "keyboard listener" and path == ROOT / "ui/thoughts.js":
             scanned = scanned.replace("menu.addEventListener('keydown',", "SCOPED_LIBRARY_MENU_ESCAPE(")
         match = re.search(pattern, scanned, re.I if label == "system keychain" else 0)

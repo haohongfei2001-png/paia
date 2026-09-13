@@ -107,6 +107,7 @@ export class ReaderStateService {
  async resolve(documentId){if(!idOK(documentId))fail();return this.store.run(()=>this.store.repository.transaction(false,async t=>{const row=await t.get('meta',READING_ROW);if(row&&row.version!==1)fail();const anchor=row?.anchors.find(x=>x.documentId===documentId);return anchor?resolveReadingAnchor(t,anchor):null;}));}
 }
 export async function resolveReadingAnchor(t,anchor){
+ if(anchor.kind==='topic')return null;
  if(!await t.get('documents',anchor.documentId))return null;
  let b=anchor.inputId?(await t.get('blocks',anchor.inputId))?.value:null,nearby=!b||b.excluded||b.branchStatus||b.documentId!==anchor.documentId;
  if(nearby){const start=[anchor.documentId,0,...anchor.position],end=[anchor.documentId,0,[]];let ix=await t.edge('blockIndex','byList',IDBKeyRange.bound(start,end,false,true));if(!ix)ix=await t.edge('blockIndex','byList',prefix([anchor.documentId,0]),'prev');b=ix?(await t.get('blocks',ix.id))?.value:null;}

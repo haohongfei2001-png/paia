@@ -1,3 +1,4 @@
+import {THOUGHT_LAYOUT_ROW,validThoughtLayout} from './thought-binding.js';
 import {REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW,validReaderPolicy} from './reader-state.js';
 import {memoryMetaAllowed,validateMemoryRow} from './memory/model.js';
 import {ArchiveError} from './constants.js';
@@ -15,7 +16,7 @@ export const BACKUP_SECTIONS=Object.freeze({
  timeEvidence:fields('id value'),
  filterIntents:fields('id keep reason at'),
  filterStates:fields('id documentId authorship userEdited filterOverride presence presenceInvalid evaluationRevision pendingKey decision reasonCode filterVersion policyVersion classifierVersion basedOnContentRevision evaluatedAt failed overrideReason overrideAt filteredKey'),
- entries:fields('id storageSchema title body note family type formation origin revision contentRevision fieldRevisions organizationRevision dependencyRevision createdAt updatedAt createdSequence updatedSequence meaningfulContentAt hasHumanAction userEdited protections authorship organizationIntents lifecycle freshness integrity staleReasons sourceRecordIds inputRefs exactSignature exactKey topics types provenanceType workingInputId removedAt removedSequence restoredAt deletionOperationId suppressionId quarantineSealed quarantineKey legacyHumanEvidence staleReason generationId generator'),
+ entries:fields('id storageSchema title body note family type formation origin revision contentRevision fieldRevisions organizationRevision dependencyRevision createdAt updatedAt createdSequence updatedSequence meaningfulContentAt hasHumanAction userEdited protections authorship organizationIntents lifecycle freshness integrity staleReasons sourceRecordIds inputRefs exactSignature exactKey topics types provenanceType bodyBinding bindingRevision bindingLength thoughtEditedAt workingInputId removedAt removedSequence restoredAt deletionOperationId suppressionId quarantineSealed quarantineKey legacyHumanEvidence staleReason generationId generator'),
  topics:fields('id defaultSectionId name summary sourceRecordIds revision organizationRevision activeLayoutGeneration pinKey pinRank negativeUpdatedSequence lifecycle createdBy createdAt updatedAt protections authorship hasHumanAction userEdited redirectTo layoutSequence removalOperationId removedAt'),
  sections:fields('id topicId layoutGeneration sectionId isDefault title rank revision lifecycle protections authorship sourceRecordIds redirectTo hasHumanAction userEdited'),
  placements:fields('id topicId layoutGeneration entryId sectionId rank sectionRank revision lifecycle membershipAuthorship sectionProtection orderProtection sourceRecordIds membershipOperationId excludedByUser removedWithTopicOperationId'),
@@ -31,7 +32,7 @@ export const BACKUP_SECTIONS=Object.freeze({
  settings:fields('id preferences memoryAccessPolicy classificationRules filterRules')
 });
 export const BACKUP_META_KEYS=new Set(['thought-suppression-key','thought-sequence','revision-sequence','input-delta-sequence','thought-epoch','organizer-controls','originalOrganizerCheckpoint','aiOrganizerCheckpoint','originalOrganizerBootstrap','organizer-budget','smart-filter']);
-export const backupMetaAllowed=id=>[REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(id)||memoryMetaAllowed(id)||BACKUP_META_KEYS.has(id)||id.startsWith('aiPresentation:')||id.startsWith('topicKeepSeparate:');
+export const backupMetaAllowed=id=>[THOUGHT_LAYOUT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(id)||memoryMetaAllowed(id)||BACKUP_META_KEYS.has(id)||id.startsWith('aiPresentation:')||id.startsWith('topicKeepSeparate:');
 export const backupError=code=>{throw new ArchiveError(code);};
 export const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 export function safeJSON(value,depth=0){if(depth>32)backupError('BACKUP_INVALID');if(typeof value==='number'&&!Number.isFinite(value))backupError('BACKUP_INVALID');if(value===null||['string','number','boolean'].includes(typeof value))return;if(Array.isArray(value)){if(value.length>100000)backupError('BACKUP_INVALID');for(const v of value)safeJSON(v,depth+1);return;}if(!plain(value))backupError('BACKUP_INVALID');for(const [key,v]of Object.entries(value)){if(['__proto__','constructor','prototype'].includes(key)||/^(api.?key|credentials?|authorization|password|access.?token)$/i.test(key))backupError('BACKUP_INVALID');safeJSON(v,depth+1);}}
@@ -46,9 +47,11 @@ export function validateBackupItem(row){safeJSON(row);if(!plain(row)||row.type!=
  if(row.section==='inputs'&&(!Array.isArray(row.value.provenance)||typeof row.value.documentId!=='string'||!Number.isSafeInteger(row.order)))backupError('BACKUP_INVALID');
  if(row.section==='inputDocuments'&&(!Number.isSafeInteger(row.order)||!plain(row.working)||row.working.id!==row.value.id||Object.keys(row.working).some(k=>!BACKUP_SECTIONS.inputDocuments.includes(k))))backupError('BACKUP_INVALID');
  if(row.section==='entries'&&(row.value.storageSchema!==2||typeof row.value.body!=='string'||!Array.isArray(row.value.sourceRecordIds)||!plain(row.value.protections)))backupError('BACKUP_INVALID');
+ if(row.section==='entries'&&row.value.bodyBinding!==undefined&&(!['input','thought'].includes(row.value.bodyBinding)||row.value.bodyBinding==='thought'&&['workingInputId','bindingRevision','bindingLength'].some(key=>row.value[key]!==undefined)||row.value.bodyBinding==='input'&&(!Number.isSafeInteger(row.value.bindingRevision)||!Number.isSafeInteger(row.value.bindingLength)||row.value.bindingRevision<0||row.value.bindingLength<0||typeof row.value.workingInputId!=='string'||!row.value.workingInputId.length)))backupError('BACKUP_INVALID');
  if(row.section==='organizationState'&&(!backupMetaAllowed(row.value.id)||!plain(row.value.data)||row.value.data.id!==row.value.id))backupError('BACKUP_INVALID');
  if(row.section==='organizationState'&&row.value.id.startsWith('memory:')&&!validateMemoryRow(row.value.data))backupError('BACKUP_INVALID');
  if(row.section==='organizationState'&&[REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(row.value.id)&&!validReaderPolicy(row.value.data))backupError('BACKUP_INVALID');
+ if(row.section==='organizationState'&&row.value.id===THOUGHT_LAYOUT_ROW&&!validThoughtLayout(row.value.data))backupError('BACKUP_INVALID');
  if(row.section==='settings'&&row.value.id!=='preferences')backupError('BACKUP_INVALID');
  return row;
 }

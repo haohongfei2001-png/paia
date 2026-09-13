@@ -88,7 +88,9 @@ Standing rule:
 
 ### 3.3 Thought Library
 
-Thought entities organize or derive durable material from Inputs while preserving provenance. Independent Thoughts do not reverse-write Inputs. Exact-original content may share working content only under the existing strict unambiguous relationship.
+Thought entities organize or derive durable material from Inputs while preserving provenance. UX-R3 stores `bodyBinding` on the existing Thought: a provable whole one-to-one reference may follow its Input until the first actual Thought body edit. Default editing detaches and protects that same Thought; it does not create another body store. Advanced reverse editing is off by default and after restore, and requires both revisions plus a still-valid whole binding. Excerpts, independent edits and AI drafts cannot reverse-write. Explicit reconnection compares current Input text and creates a protected revision. Undo restores binding and body state atomically; undoing a shared edit after the setting is off requires one-time confirmation.
+
+`core/thought-binding.js` owns the shared classifier, resumable metadata migration and reverse-edit preference. `core/topic-actions.js` reuses creation, evidence and placement transactions for explicit whole/span selections and today's independent Thoughts. The narrow internal `independentContext` option permits a user-authored new Thought to cite one bounded response Input as `context_only`; general extraction/evidence authorization is unchanged. A Source purge clears referenced rewrites and response quotations while preserving independently authored new text and notes. Topic anchors share the existing bounded, device-only `reading:v1` metadata; layout preference is portable, reverse-edit permission is not.
 
 ### 3.4 Derived projections
 

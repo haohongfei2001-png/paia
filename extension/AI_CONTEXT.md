@@ -6,7 +6,7 @@ Round 8 保留既有 Topic/Profile 授权语义，但允许用户在 Settings **
 
 直接 Input 的正文只在 Build/Preview/Share 时从当前工作正文读取；不建立新的持久正文副本。活动记录只保存 Input ID、Topic/Entry ID 与 query digest，不保存 query 或 Context 正文。Preview 后 Input 被编辑、删除、过滤、永久删除或授权状态变化时，Share 必须以 `MEMORY_STALE` 拒绝旧预览并要求重建。直接 Input 的长期排除可在 Settings 一次性恢复；Source 永久删除会清理对应排除 metadata。Backup 保存“是否允许未整理 Input”与单条排除，但不保存 Preview/Context/query。
 
-Round 8 同时引入 1:1 共享工作正文：只有“一个完整 Input → 一个 exact full-body `input_original` Thought”且没有既有独立人工正文时，Input 与 Thought 才共享同一工作正文。Input/Thought 任一处编辑会更新同一 canonical Input working body；不可变 Source snapshot 始终不变。局部摘录、多 Input 合并、AI 综合段落、旧的独立人工 Thought 都不会反向覆盖 Input。Context 只读取当前状态，不反写档案。
+UX-R3 将 Round 8 的完整引用改为明确的 `bodyBinding`：可证明的一对一完整引用先跟随 Input，默认第一次实际 Thought 正文编辑在既有 Thought 内解除跟随并保护人工正文，Input 与不可变 Source 不变。高级反写设置首次引入和 Backup 恢复后均关闭；仅显式开启后、仍跟随完整单一 Input 且两侧版本匹配的未来编辑可原子修改两侧。局部摘录、多 Input 综合、AI 稿和独立 Thought 始终不反写。恢复档案当前文字须单独对照确认；历史版本恢复只修改 Thought。Context、Search 和 evidence 读取同一现有 Thought 正文，解除跟随不解除来源、删除或拒绝策略。
 
 ---
 

@@ -1,3 +1,4 @@
+import {BINDING_ROW,REVERSE_ROW} from './thought-binding.js';
 import {READING_ROW,VISIT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW,validReaderPolicy} from './reader-state.js';
 import {validateMemoryRow,memoryRange,key,DEFAULT_PROFILE} from './memory/model.js';
 import {BACKUP_VERSION,BACKUP_SCHEMA,BACKUP_SECTIONS,BACKUP_LIMITS,BackupValidator,backupMetaAllowed,backupHash,backupError,projectBackupEntity,projectImportEvidence,validateBackupItem} from './backup-format.js';
@@ -61,7 +62,7 @@ export class BackupService {
  async previewRestore({sessionId}){const state=this.session(this.restores,sessionId);if(state.staging)backupError('BACKUP_BUSY');const preview=state.validator.preview();await this.s.finishFoundation();if(!state.validated)await this.validateReferences(state);const reason=await this.s.run(()=>this.s.repository.transaction(false,t=>this.targetSafety(t,state)));return {...preview,canRestore:!reason,reason,restoreScope:'empty-library-only'};}
  async restore({sessionId,confirmation}){const state=this.session(this.restores,sessionId),preview=await this.previewRestore({sessionId});if(confirmation!==preview.integrity)backupError('BACKUP_CONFIRMATION_REQUIRED');if(!preview.canRestore)backupError(preview.reason);
   const result=await this.s.run(()=>this.s.repository.transaction(true,async t=>{const reason=await this.targetSafety(t,state);if(reason)backupError(reason);const max={records:0,blocks:0,documents:0};for(const row of await t.all('meta',null,memoryRange()))await t.delete('meta',row.id);
-   await t.delete('meta',READING_ROW);await t.delete('meta',VISIT_ROW);await t.delete('meta','revisit:v1');
+   await t.delete('meta',BINDING_ROW);await t.put('meta',{id:REVERSE_ROW,version:1,enabled:false});this.s.bindingsLoaded=false;await t.delete('meta',READING_ROW);await t.delete('meta',VISIT_ROW);await t.delete('meta','revisit:v1');
    const localCapture=await t.get('meta',CAPTURE_POLICY_ROW);if(localCapture&&!validReaderPolicy(localCapture))backupError('BACKUP_INVALID');const localRevisit=await t.get('meta',REVISIT_POLICY_ROW);if(localRevisit)await t.put('meta',{...localRevisit,oldContent:false});
    for(const item of state.items){const {section,value,order}=item,row=structuredClone(value);if(section==='settings'){await t.put('meta',{id:'backup-recovery-settings',value:row});continue;}
     if(section==='sources'){if(row.importEvidence){await t.put('importSources',row.importEvidence);delete row.importEvidence;}await t.put('records',{id:row.id,value:row});await t.put('recordIndex',recordIndex(row,order));max.records=Math.max(max.records,order+1);continue;}

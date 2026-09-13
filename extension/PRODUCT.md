@@ -72,6 +72,7 @@ Current state:
 - Universal Search can reopen the matching Input/Thought/AI-organized location and can explicitly carry a selected result into AI Context as a local retrieval focus; it never auto-generates or auto-shares Context.
 - **“以前的我”** is a time-oriented projection over matching Input expressions. It orders available source-send-time evidence from earlier to later and explicitly does not infer that the user's belief changed.
 - **Revisit / 回访** is an on-demand local Reader surface. UX-R2 shows true reading positions, a fixed window of newly collected visible Inputs and bounded topic material changes. Older Inputs appear only after explicit opt-in; Input/conversation/topic exclusions also suppress related previews.
+- **Thought Library / 思想库** uses stable topic cards or a saved list layout, with recent reading shown separately. UX-R3 adds explicit whole/selected-text placement, today's independent Thoughts without a required topic, and safe editing of the existing Thought body. The first actual edit normally stops following its Input and leaves the archive unchanged. Following can be restored through an explicit comparison. Advanced reverse editing remains off by default and after Backup restore, applies only to a valid whole one-to-one reference, and never broadens AI or external-use authorization.
 - Older resurfacing is deliberately explainable: PAIA prefers Inputs at least 90 days old that the user edited or that already became Thought evidence; it does not use random engagement sampling or a hidden recommendation model.
 
 Direction:

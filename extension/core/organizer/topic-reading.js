@@ -5,7 +5,7 @@ const normalized=value=>String(value||'').normalize('NFKC').toLocaleLowerCase();
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 // The time order is a read projection. It never changes manual layout ranks.
 // Only lightweight ordered descriptors survive the scan; bodies are paginated.
-export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[]}){
+export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null}){
  if(!idOK(topicId)||!['asc','desc'].includes(sort)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>100||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id)))fail();
  await s.finishFoundation();const needle=normalized(query.trim());
  const scan=await s.run(()=>s.repository.transaction(false,async t=>{
@@ -25,8 +25,8 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  if(scan.cursorInvalid)return {...scan,tracked};
  const viewRevision=await hashText(JSON.stringify(scan.descriptors.map(d=>[d.placement.id,d.placement.sectionId,d.value])));
  if(cursor&&cursor.viewRevision!==viewRevision)return {cursorInvalid:true,topic:scan.topic,tracked};
- let offset=cursor?.offset||0,size=bytes(scan.topic)+bytes(scan.sections);const items=[];
+ let offset=anchorId?Math.max(0,scan.descriptors.findIndex(d=>d.placement.entryId===anchorId)):cursor?.offset||0,size=bytes(scan.topic)+bytes(scan.sections);const items=[],startOffset=offset;
  while(offset<scan.descriptors.length&&items.length<limit){const d=scan.descriptors[offset];let e;try{e=await s.entry(d.placement.entryId);}catch{offset++;continue;}if(e.lifecycle!=='active'){offset++;continue;}let entry={...s.documentEntry(e),...d.time,createdAt:e.createdAt,provenanceType:e.provenanceType};if(bytes(entry)>128*1024)entry={id:e.id,revision:e.revision,large:true,title:e.title,bodyBytes:bytes(e.body),...d.time};const item={placement:d.placement,entry};if(items.length&&size+bytes(item)>256*1024)break;items.push(item);size+=bytes(item);offset++;}
  const sectionStarts={};scan.descriptors.forEach((d,i)=>{sectionStarts[d.placement.sectionId]??={topicId:scan.topic.id,generation:scan.generation,organizationRevision:scan.organizationRevision,viewRevision,sort,query:needle,offset:i};});
- return {sectionStarts,topic:scan.topic,sections:scan.sections,sectionCursor:null,items,tracked,matchCount:scan.descriptors.length,sort,query:needle,nextCursor:offset<scan.descriptors.length?{topicId:scan.topic.id,generation:scan.generation,organizationRevision:scan.organizationRevision,viewRevision,sort,query:needle,offset}:null};
+ return {currentCursor:startOffset?{topicId:scan.topic.id,generation:scan.generation,organizationRevision:scan.organizationRevision,viewRevision,sort,query:needle,offset:startOffset}:null,sectionStarts,topic:scan.topic,sections:scan.sections,sectionCursor:null,items,tracked,matchCount:scan.descriptors.length,sort,query:needle,nextCursor:offset<scan.descriptors.length?{topicId:scan.topic.id,generation:scan.generation,organizationRevision:scan.organizationRevision,viewRevision,sort,query:needle,offset}:null};
 }

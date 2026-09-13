@@ -47,22 +47,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
   const view=o.view??'original';if(!['original','ai'].includes(view))reject('INVALID_OUTPUT');
   if(view==='original'&&!o.sort)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort?await topicReadingPage(this,o):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;
   if(view==='ai')return {...page,items:[],view,viewState:'not_updated'};
-  const items=await this.run(()=>this.repository.transaction(false,async t=>{
-   const out=[];for(const item of page.items){
-    const provenance=await t.all('provenance','byOwner',prefix(['entry',item.entry.id]));
-    const primary=provenance.find(x=>x.role==='primary')||provenance.find(x=>x.role!=='context_only');
-    let originalBody=null;
-    if(primary){
-     const block=(await t.get('blocks',primary.inputId))?.value,input=await t.get('inputStates',primary.inputId);
-     if(block&&input?.removalState==='active'&&!input.sourcePurged)originalBody=block.libraryText??(block.originalTextReference?(await t.get('records',block.originalTextReference))?.value?.originalText:null);
-    }
-    // Keep the exact source wording until the user edits this Library field.
-    // A protected user field then takes precedence without changing shared evidence.
-    const stored=await t.get('thoughts',item.entry.id),originalSource=originalBody!==null&&!item.entry.protections?.body?.locked&&stored?.provenanceType!=='input_original';
-    const timing=await entryTime(t,item.entry.id);const entry={...item.entry,...timing,body:originalSource?originalBody:item.entry.body,originalSource,originalInputId:originalSource?primary.inputId:null};
-    out.push({...item,entry});
-   }return out;
-  }));
+  const items=await this.run(()=>this.repository.transaction(false,async t=>{const out=[];for(const item of page.items)out.push({...item,entry:{...item.entry,...await entryTime(t,item.entry.id),originalSource:false,originalInputId:null}});return out;}));
   return {...page,items,view,viewState:'automatic'};
  }
  removeTopic(r){return changeTopicContainer(this,r);}

@@ -1,4 +1,10 @@
-# UX-R2 / v0.12 compatibility
+# UX-R3 / v0.12 compatibility
+
+UX-R3 adds binding metadata (`bodyBinding`, `workingInputId`, `bindingRevision`, `bindingLength`, `thoughtEditedAt`) to the existing Thought Backup whitelist. Existing revision snapshots retain the body/binding and protection state required for safe Undo. The portable `thought-layout:v1` preference preserves grid/list choice. `thought-binding:v1` migration progress, `thought-reverse-edit:v1` permission and Topic/Input reading anchors are not exported. Restore resumes the same strict classifier and resets reverse editing to off. Old Backups without binding metadata remain supported; ambiguous references preserve their existing text as protected independent Thoughts. Unknown binding values are rejected. Source/Input bodies and historical edits are never rewritten by this migration.
+
+Response-only evidence for a new, independently authored Thought is `context_only`. Purging that Source clears the citation; a referenced rewrite is cleared, while the independent new body and independently authored notes are preserved. Binding changes do not remove tombstones, source dependencies or existing refusal policies. See `docs/ux/rounds/UX_R3_REPORT.md` for certification evidence.
+
+## UX-R2 compatibility retained
 
 Backup v1/schema 5 now explicitly accepts current v0.12 application headers and validates the two body-free policy records `revisit-policy:v1` and `capture-policy:v1` in the existing organization-state allowlist. Known editable shell preferences round-trip through their validator. Unknown newer formats, policy versions and fields are rejected.
 
