@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="styles.css?v=7" />
   <link rel="stylesheet" href="i18n.css?v=2" />
   <link rel="stylesheet" href="polish.css?v=6" />
-  <link rel="stylesheet" href="premium.css?v=1" />
+  <link rel="stylesheet" href="premium.css?v=2" />
 </head>
 <body data-page="home">
   <header class="site-header">
@@ -56,18 +56,43 @@
 
   <main id="top">
     <section class="hero section">
-      <div class="eyebrow">PERSONAL AI INPUT ARCHIVE</div>
-      <h1>Your private archive<br />for what you say to AI.</h1>
-      <p class="hero-cn" data-i18n="home.heroSubtitle">保存、整理，并重新阅读你在 AI 中表达过的信息和想法。</p>
-      <div class="hero-meta">
-        <span data-site-hero-principle-local>本地优先</span>
-        <span data-site-hero-principle-source>AI 不覆盖你的原话</span>
-        <span data-site-hero-principle-ai>AI 仅在你允许时访问</span>
+      <div class="hero-copy">
+        <div class="eyebrow">PERSONAL AI INPUT ARCHIVE</div>
+        <h1>Your private archive<br />for what you say to AI.</h1>
+        <p class="hero-cn" data-i18n="home.heroSubtitle">保存、整理，并重新阅读你在 AI 中表达过的信息和想法。</p>
+        <div class="hero-meta">
+          <span data-site-hero-principle-local>本地优先</span>
+          <span data-site-hero-principle-source>AI 不覆盖你的原话</span>
+          <span data-site-hero-principle-ai>AI 仅在你允许时访问</span>
+        </div>
+        <p class="availability-line" data-site-availability>Chrome Extension · ChatGPT Web · Private Beta</p>
+        <div class="hero-actions">
+          <a class="beta-button" href="demo.html"><span data-site-home-demo-link>体验 PAIA</span> <span aria-hidden="true">→</span></a>
+          <a class="text-link" href="beta.html"><span data-site-hero-beta>加入 Private Beta</span> <span aria-hidden="true">→</span></a>
+        </div>
       </div>
-      <p class="availability-line" data-site-availability>Chrome Extension · ChatGPT Web · Private Beta</p>
-      <div class="hero-actions">
-        <a class="beta-button" href="demo.html"><span data-site-home-demo-link>体验 PAIA</span> <span aria-hidden="true">→</span></a>
-        <a class="text-link" href="beta.html"><span data-site-hero-beta>加入 Private Beta</span> <span aria-hidden="true">→</span></a>
+
+      <div class="hero-product-stage" data-premium-hero-stage>
+        <div class="hero-stage-glow" aria-hidden="true"></div>
+        <div class="hero-window" data-premium-window>
+          <div class="hero-window-bar">
+            <span class="hero-window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <strong>PAIA</strong>
+            <span data-premium-stage-status>本机优先</span>
+          </div>
+          <div class="hero-window-frame">
+            <img data-premium-stage-image src="assets/screenshots/input-archive-home.svg?v=1" alt="PAIA 档案首页产品界面示意" decoding="async" fetchpriority="high" />
+          </div>
+        </div>
+        <div class="hero-signal hero-signal-archive" aria-hidden="true">
+          <span data-premium-archive-label>INPUT ARCHIVE</span><strong data-premium-archive-value>继续阅读自己的表达</strong>
+        </div>
+        <div class="hero-signal hero-signal-thought" aria-hidden="true">
+          <span data-premium-thought-label>THOUGHT LIBRARY</span><strong data-premium-thought-value>长期主题正在形成</strong>
+        </div>
+        <div class="hero-signal hero-signal-context" aria-hidden="true">
+          <span data-premium-context-label>用于 AI</span><strong data-premium-context-value>只带走这次需要的部分</strong>
+        </div>
       </div>
     </section>
 
@@ -160,6 +185,6 @@
   <script src="i18n.js?v=1"></script>
   <script src="site-copy-base.js?v=5"></script>
   <script src="experience.js?v=7"></script>
-  <script src="premium-home.js?v=1"></script>
+  <script src="premium-home.js?v=2"></script>
 </body>
 </html>
