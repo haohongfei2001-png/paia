@@ -8,6 +8,7 @@
     "check": "python3 scripts/check_package.py",
     "test:unit": "node scripts/test.mjs unit",
     "test:browser": "node scripts/test.mjs \"browser E2E\"",
+    "test:historical-browser": "node scripts/test.mjs \"historical browser E2E\"",
     "build:release": "python3 scripts/build_current_release.py"
   },
   "devDependencies": {
