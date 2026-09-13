@@ -19,7 +19,6 @@ const thoughtTransform = document.querySelector('[data-thought-transform]');
 if (thoughtTransform) {
   const faithfulLayer = thoughtTransform.querySelector('.thought-layer-faithful');
   const aiLayer = thoughtTransform.querySelector('.thought-layer-ai');
-  const toggle = thoughtTransform.querySelector('[data-thought-toggle]');
   const mobileQuery = window.matchMedia('(max-width: 620px)');
 
   [faithfulLayer, aiLayer].forEach((layer) => {
@@ -31,15 +30,14 @@ if (thoughtTransform) {
     const isZh = document.documentElement.dataset.language === 'zh';
     if (faithfulLayer) {
       faithfulLayer.setAttribute('aria-label', isZh
-        ? 'PAIA Thought Library 原始表达视图，AI 整理关闭'
-        : 'PAIA Thought Library source view with AI organization off');
+        ? 'PAIA Thought Library 原始表达视图'
+        : 'PAIA Thought Library source view');
     }
     if (aiLayer) {
       aiLayer.setAttribute('aria-label', isZh
-        ? 'PAIA Thought Library AI 综合理解层，AI 整理开启'
-        : 'PAIA Thought Library AI synthesis layer with AI organization on');
+        ? 'PAIA Thought Library AI 综合理解层'
+        : 'PAIA Thought Library AI synthesis layer');
     }
-    if (toggle) toggle.setAttribute('aria-label', isZh ? '切换 AI 整理层' : 'Toggle AI organization layer');
   };
   updateThoughtAria();
   window.addEventListener('paia:languagechange', updateThoughtAria);
@@ -68,15 +66,6 @@ if (thoughtTransform) {
       .forEach((name) => thoughtTransform.style.removeProperty(name));
   };
 
-  const setManualState = (active) => {
-    thoughtTransform.classList.toggle('ai-active', active);
-    if (toggle) toggle.setAttribute('aria-pressed', String(active));
-  };
-
-  if (toggle) {
-    toggle.addEventListener('click', () => setManualState(!thoughtTransform.classList.contains('ai-active')));
-  }
-
   let ticking = false;
   let lastProgress = -1;
 
@@ -96,9 +85,19 @@ if (thoughtTransform) {
 
   const update = () => {
     ticking = false;
-    if (mobileQuery.matches || reduceMotion) return;
+    if (reduceMotion) return;
+
     const rect = story.getBoundingClientRect();
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+    if (mobileQuery.matches) {
+      clearScrollState();
+      const switchPoint = rect.top + rect.height * 0.35;
+      thoughtTransform.classList.toggle('ai-active', switchPoint <= viewportHeight * 0.48);
+      return;
+    }
+
+    thoughtTransform.classList.remove('ai-active');
     const stickyTop = clamp(viewportHeight * 0.11, 82, 112);
     const pinnedHeight = Math.min(thoughtTransform.offsetHeight || viewportHeight * 0.60, viewportHeight * 0.78);
     const scrollDistance = Math.max(1, story.offsetHeight - pinnedHeight - stickyTop * 0.18);
@@ -113,13 +112,9 @@ if (thoughtTransform) {
 
   const syncMode = () => {
     lastProgress = -1;
-    if (mobileQuery.matches || reduceMotion) {
-      clearScrollState();
-      setManualState(false);
-    } else {
-      setManualState(false);
-      requestUpdate();
-    }
+    clearScrollState();
+    thoughtTransform.classList.remove('ai-active');
+    if (!reduceMotion) requestUpdate();
   };
 
   if (!reduceMotion) {
