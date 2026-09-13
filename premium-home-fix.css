@@ -1,0 +1,17 @@
+/* Narrow compatibility overrides for the Thought Library signature transition. */
+body[data-page="home"] .thought-scroll-story .thought-transform::before {
+  opacity: var(--ai-opacity, 0) !important;
+  background:
+    radial-gradient(55% 38% at 53% 48%, rgba(230, 237, 226, .34), transparent 70%),
+    linear-gradient(100deg, transparent 18%, rgba(247, 250, 245, .20) 50%, transparent 82%) !important;
+}
+body[data-page="home"] .thought-scroll-story .thought-transform::after {
+  opacity: var(--ai-opacity, 0) !important;
+  background: linear-gradient(90deg, transparent, rgba(92, 119, 98, .09), transparent) !important;
+}
+body[data-page="home"] .thought-scroll-story .thought-layer-faithful {
+  filter: blur(var(--faithful-blur, 0px)) !important;
+}
+body[data-page="home"] .thought-scroll-story .thought-layer-ai {
+  filter: blur(var(--ai-blur, 2.5px)) !important;
+}
