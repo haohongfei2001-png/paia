@@ -83,7 +83,7 @@ jobs:
   current_browser:
     name: Current Browser Certification
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: extension
@@ -113,9 +113,13 @@ jobs:
           tests/release-certification-round48-chrome-e2e.test.mjs
           tests/release-certification-round49-chrome-e2e.test.mjs
           tests/activation-return-round410-chrome-e2e.test.mjs
-      - name: Package audit after current Chrome journey
+      - name: Run complete browser suite
+        env:
+          PAIA_TEST_CONCURRENCY: '4'
+        run: xvfb-run -a npm run test:browser
+      - name: Package and development guards
         run: |
-          python3 scripts/check_package.py
+          npm run check
           node scripts/check_development.mjs
       - name: Upload UX-R1 visual evidence
         if: always()
