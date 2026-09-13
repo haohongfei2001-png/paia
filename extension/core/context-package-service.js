@@ -1,3 +1,4 @@
+import {ManualContext} from './manual-context.js';
 import {ArchiveError} from './constants.js';
 import {createContextPackage,contextPackageEnvelope,contextPackageExpired} from './context-package.js';
 
@@ -8,8 +9,9 @@ const idOK=value=>typeof value==='string'&&value.length>0&&value.length<=200;
 // authorizes, binds, reconstructs or releases Context text.
 export class ContextPackageService {
  constructor(memory,passport,{clock=()=>Date.now(),uuid=()=>crypto.randomUUID()}={}){
-  this.memory=memory;this.passport=passport;this.clock=clock;this.uuid=uuid;this.packages=new Map();
+  this.memory=memory;this.passport=passport;this.clock=clock;this.uuid=uuid;this.packages=new Map();this.manualSelections=new ManualContext(memory,{clock,uuid});
  }
+ manual(options,owner){return this.manualSelections.run(options,owner);}
  prune(){for(const [id,pkg]of this.packages)if(contextPackageExpired(pkg,this.clock()))this.packages.delete(id);}
  package(previewId){this.prune();if(!idOK(previewId))invalid();const pkg=this.packages.get(previewId);if(!pkg)throw new ArchiveError('MEMORY_STALE');return pkg;}
  register(result,options={}){

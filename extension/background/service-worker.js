@@ -1,3 +1,4 @@
+import {assertLocalNetworkAllowed} from '../core/local-network-policy.js';
 import {MemoryService} from '../core/memory/service.js';
 import {PassportService} from '../core/passport.js';
 import {ContextPackageService} from '../core/context-package-service.js';
@@ -38,7 +39,7 @@ const organizer = new OrganizerRunner(store);
 const unavailableSession={get:async()=>{throw new ArchiveError('UNAVAILABLE');},set:async()=>{throw new ArchiveError('UNAVAILABLE');},remove:async()=>{throw new ArchiveError('UNAVAILABLE');}};
 const deepSeekSession=chrome.storage.session||unavailableSession;
 const deepSeekCredentials=new DeepSeekSessionCredentials(deepSeekSession);
-const deepSeekProvider=new DeepSeekOrganizerProvider({limits:store.organizerBudget.limits,networkGuard:organizerNetworkGuard()});
+const deepSeekProvider=new DeepSeekOrganizerProvider({limits:store.organizerBudget.limits,networkGuard:async()=>{await assertLocalNetworkAllowed(store);await organizerNetworkGuard()();}});
 const originalOrganizer=new SimpleOriginalOrganizerRunner(store,{provider:deepSeekProvider,credentials:deepSeekCredentials});
 const aiOrganizer=new AIPresentationRunner(store,{provider:deepSeekProvider,credentials:deepSeekCredentials});
 const boundedOrganizer=new BoundedOrganizerWorkflow(store,{original:originalOrganizer,ai:aiOrganizer});
@@ -112,7 +113,7 @@ async function handle(request, sender) {
   if(['GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))await providerReady;
   if(['START_BOUNDED_ORGANIZER','STOP_BOUNDED_ORGANIZER','GET_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_STATUS','EDIT_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW','STOP_ORIGINAL_LIBRARY_VIEW','GET_ORIGINAL_ORGANIZER_STATUS'].includes(request.type))await originalReady;
   if(request.type.startsWith('PAIA_BACKUP_'))await backupReady;
-  const needsConsent=['ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
+  const needsConsent=['ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_CONTEXT_')||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
   if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   if(request.type==='PAIA_BACKUP_BEGIN_EXPORT')await memory.ready();
   switch (request.type) {
@@ -138,6 +139,7 @@ async function handle(request, sender) {
     case 'PAIA_PASSPORT_CREATE': await memory.ready();return passport.create(request.grant);
     case 'PAIA_PASSPORT_REVOKE': return passport.revoke(request.grantId);
     case 'PAIA_PASSPORT_CLEAR_AUDITS': if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return passport.clearAudits();
+    case 'PAIA_CONTEXT_MANUAL': return contextPackages.manual(request.options,String(sender.tab?.id??sender.documentId??sender.url));
     case 'PAIA_CONTEXT_BIND': return contextPackages.bind(request.previewId,request.grantId);
     case 'REMOVE_LIBRARY_TOPIC': return store.removeTopic(request.edit);
     case 'RESTORE_LIBRARY_TOPIC': return store.restoreTopicContainer(request.edit);
@@ -148,7 +150,7 @@ async function handle(request, sender) {
     case 'PAIA_MEMORY_STATUS': return memory.status(request.options);
     case 'PAIA_MEMORY_AUTHORIZE': return memory.authorize(request.options);
     case 'PAIA_MEMORY_EXCLUDE': return memory.exclude(request.options);
-    case 'PAIA_MEMORY_SETTINGS': return memory.settings(request.options);
+    case 'PAIA_MEMORY_SETTINGS': {const result=await memory.settings(request.options);if(request.options?.localOnly===true)await boundedOrganizer.stop();return result;}
     case 'PAIA_MEMORY_PROFILE': return memory.profile(request.options);
     case 'PAIA_MEMORY_BUILD': return contextPackages.build(request.options);
     case 'PAIA_MEMORY_SHARE': return contextPackages.share(request.options);

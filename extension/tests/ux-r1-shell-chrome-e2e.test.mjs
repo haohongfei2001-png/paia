@@ -62,7 +62,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   assert.equal(await p.evaluate(()=>location.hash+location.search),'','Back/Forward keeps the verified archive URL unchanged');
   await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#core-loop-home').isVisible());
 
-  await p.keyboard.press('Control+k');await eventually(()=>p.locator('#universal-search-dialog').evaluate(el=>el.open),'Ctrl/Cmd+K opens global Search');await p.locator('.universal-close').click();
+  await p.keyboard.press('Control+k');await eventually(()=>p.locator('#universal-search-dialog').isVisible(),'Ctrl/Cmd+K opens global Search');await p.locator('.universal-close').click();
   const skip=p.locator('#ux-skip-main');await skip.focus();assert.equal(await skip.isVisible(),true,'skip link is keyboard reachable');
 
   await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'dark',fontSize:'large',readingWidth:'wide',language:'zh-CN'}});

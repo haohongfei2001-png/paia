@@ -22,20 +22,15 @@ test('Round 4.8 current release: Universal Search -> Reader / Context and Revisi
   await hit.locator('.universal-open').click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND48_SEARCH_TARGET'),'search result opens its Input document');
 
-  await p.locator('#back').click();await eventually(()=>p.locator('#collection-panel').isVisible(),'Reader returns to Archive search');assert.equal(await p.locator('#search').inputValue(),'ROUND48_SEARCH_TARGET','Universal Search origin survives Reader return');await eventually(()=>p.locator('#document-list .search-input').isVisible());await p.locator('#document-list .search-input').first().click();await eventually(()=>p.locator('#document-panel').isVisible());
+  await p.locator('#back').click();await eventually(()=>p.locator('#universal-search-dialog').isVisible(),'Reader returns to its Search task');assert.equal(await p.getByRole('searchbox',{name:'全局搜索'}).inputValue(),'ROUND48_SEARCH_TARGET');
 
-  // Direct unorganized Inputs are opt-in by design. Satisfy that explicit user
-  // eligibility before testing Search -> Context; the journey must not weaken
-  // the default authorization boundary merely to make a search hit reusable.
-  await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{includeUnorganizedInputs:true}});
-  const memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,true);
-
-  // Search -> Context only prepares a bounded local retrieval query. It must not
-  // invoke the remote organizer or any external request.
-  hit=await openUniversal(p,'ROUND48_SEARCH_TARGET');
-  await hit.locator('.universal-context').click();
-  await eventually(async()=>await p.locator('#memory-builder').isVisible()&&(await p.locator('#memory-query').inputValue()).includes('ROUND48_SEARCH_TARGET'),'search result prepares AI Context query');
-  const prepared=await p.locator('#memory-query').inputValue();assert.match(prepared,/重点参考我以前的这段表达/);assert.match(prepared,/我现在想继续了解/);
+  // DELTA-04: fixed explicit Input selection replaces snippet-driven retrieval.
+  // It remains local and does not grant future access to unorganized Inputs.
+  hit=p.locator('#universal-search-dialog .universal-hit').first();await hit.locator('.universal-context').click();
+  await eventually(()=>p.locator('#material-preview').isVisible(),'Search adds a real material reference');
+  await p.locator('#material-preview').click();await eventually(()=>p.locator('#material-output-text').isVisible(),'explicit material reaches trusted Preview');
+  assert.match(await p.locator('#material-output-text').textContent(),/ROUND48_SEARCH_TARGET/);
+  assert.equal((await rpc(p,'PAIA_MEMORY_STATUS')).config.includeUnorganizedInputs,false);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);
 
   p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#collection-panel').isVisible());await p.locator('#search').fill('');await eventually(()=>p.locator('#core-loop-home').isVisible());

@@ -255,3 +255,5 @@ The following remain important evidence but are not current product source-of-tr
 - `README_HISTORY.md`
 
 `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md` and other feature contracts still contain detailed behavioral/security constraints for existing implemented features. Consult them when changing those features, but do not infer new product priorities from old version plans.
+
+UX-R4 connects global local Search, verifiable Source history, fixed manual materials and an editable exact-output Preview. Explicit Inputs need no Topic/Profile setup; selection does not expand future permissions. Local-only blocks active cloud/connection access while preserving user-directed local copy and file export. Source restrictions and existing Passport checks remain authoritative; historical coverage and partial search are stated explicitly.

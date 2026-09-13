@@ -201,6 +201,8 @@ retrievalConfidence / partial
 localOnly / persistedBody=false
 ```
 
+UX-R4 adds a separate `manual_selection` lifecycle owned by this same service (`core/manual-context.js` and `manual-materials.js`), with strict per-tab ownership, refs/revisions/spans, transient mapped edits/redactions, final lifecycle/policy checks and exact release. It cannot bind or downgrade a Grant package. `core/local-network-policy.js` enforces Local-only before actual provider requests and protected Passport authorization. Search extends `UniversalSearchService` through `search-material-page.js`, reusing canonical stores and lexical primitives with bounded pages and a Source-only historical read model. No durable store, schema version or body entity is added.
+
 Current invariants:
 
 - Package metadata is in-memory and bounded by the short-lived preview lifecycle; Package body text is not persisted.
@@ -209,7 +211,7 @@ Current invariants:
 - Passport use requires explicit `ContextPackageService.bind(previewId, grantId)` before protected export.
 - `ContextPackageService.share()` validates the already-bound Grant **before calling `MemoryService.share()`**.
 - Invalid, expired, revoked, consumed-once, mismatched or unbound Grants do not trigger protected Context reconstruction.
-- Existing AI Context `externalAccess` and stale-generation checks remain stronger gates.
+- Existing grant-bound `externalAccess` and stale-generation checks remain gates. Fixed manual output checks explicit source restrictions and exact preview generation independently; Local-only blocks active cloud/connection access, not user-directed local copying or file export.
 - Persistent Context Package body history remains unapproved.
 
 ## 7. Passport architecture

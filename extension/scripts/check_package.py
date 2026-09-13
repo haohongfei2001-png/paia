@@ -154,7 +154,7 @@ def audit_js(path, text):
             scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
         if label == "clipboard access" and path == ROOT / "ui/reading-actions.js":
             scanned = scanned.replace("navigator.clipboard.writeText(text)", "EXPLICIT_READING_COPY(text)")
-        if label == "clipboard access" and path == ROOT / "ui/memory.js":
+        if label == "clipboard access" and path in (ROOT / "ui/memory.js", ROOT / "ui/material-tray.js"):
             scanned = scanned.replace("navigator.clipboard.writeText(result.text)", "EXPLICIT_MEMORY_CONTEXT_COPY(result.text)")
         if label == "keyboard listener" and path in (ROOT / "ui/library.js", ROOT / "ui/library-entry-editor.js"):
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_EDITOR_SHORTCUT(")
@@ -162,6 +162,8 @@ def audit_js(path, text):
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_AI_EDITOR_SHORTCUT(")
         if label == "keyboard listener" and path == ROOT / "ui/search-experience.js":
             scanned = scanned.replace("input.addEventListener('keydown',", "SCOPED_SEARCH_INPUT(").replace("results.addEventListener('keydown',", "SCOPED_SEARCH_RESULTS(")
+        if label == "keyboard listener" and path == ROOT / "ui/universal-search.js":
+            scanned = scanned.replace("input.addEventListener('keydown',", "SCOPED_UNIVERSAL_INPUT(").replace("root.addEventListener('keydown',", "SCOPED_UNIVERSAL_RESULTS(")
         if label == "keyboard listener" and path == ROOT / "ui/archive.js":
             scanned = scanned.replace("document.addEventListener('keydown',", "TRUSTED_ARCHIVE_FIND_ESCAPE(")
         if label == "keyboard listener" and path == ROOT / "ui/topic-actions.js":

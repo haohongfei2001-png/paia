@@ -1,3 +1,7 @@
+## UX-R4 compatibility (MIG-07/08/10)
+
+Existing Memory config gains a strictly validated optional boolean `localOnly`, defaulting only when absent. Backup preserves its value, the independent `externalAccess` value, Profiles and exact exclusions. Old false connection access remains false; restore creates no consumers or Grants. The new fixed manual materials, revisions/spans selected for this task, output generations, overrides, redactions and note remain ephemeral and never enter Backup. Old Preview identity is not migrated into manual authorization. Unknown config fields/types remain rejected; format version, physical schema and existing size limits are unchanged.
+
 # UX-R3 / v0.12 compatibility
 
 UX-R3 adds binding metadata (`bodyBinding`, `workingInputId`, `bindingRevision`, `bindingLength`, `thoughtEditedAt`) to the existing Thought Backup whitelist. Existing revision snapshots retain the body/binding and protection state required for safe Undo. The portable `thought-layout:v1` preference preserves grid/list choice. `thought-binding:v1` migration progress, `thought-reverse-edit:v1` permission and Topic/Input reading anchors are not exported. Restore resumes the same strict classifier and resets reverse editing to off. Old Backups without binding metadata remain supported; ambiguous references preserve their existing text as protected independent Thoughts. Unknown binding values are rejected. Source/Input bodies and historical edits are never rewritten by this migration.

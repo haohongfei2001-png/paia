@@ -106,12 +106,13 @@ jobs:
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
-      - name: UX-R1 shell, UX-R2 Reader and UX-R3 Thought plus current core product journeys
+      - name: UX-R1 shell, UX-R2 Reader and UX-R3 Thought and UX-R4 reuse plus current core product journeys
         run: >-
           xvfb-run -a node --test --test-concurrency=1
           tests/ux-r1-shell-chrome-e2e.test.mjs
           tests/ux-r2-reader-revisit-chrome-e2e.test.mjs
           tests/ux-r3-thought-chrome-e2e.test.mjs
+          tests/ux-r4-search-reuse-chrome-e2e.test.mjs
           tests/release-certification-round48-chrome-e2e.test.mjs
           tests/release-certification-round49-chrome-e2e.test.mjs
           tests/activation-return-round410-chrome-e2e.test.mjs
@@ -148,6 +149,14 @@ jobs:
           path: extension/work/ux-r3
           if-no-files-found: warn
           retention-days: 14
+      - name: Upload UX-R4 visual and browser evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ux-r4-evidence-${{ github.sha }}
+          path: extension/work/ux-r4
+          if-no-files-found: warn
+          retention-days: 14
 
   full_suite:
     name: Full Suite Certification
@@ -177,7 +186,7 @@ jobs:
           "$CHROME_BIN" --version
       - name: Run unsharded current full suite
         env:
-          PAIA_TEST_CONCURRENCY: '4'
+          PAIA_TEST_CONCURRENCY: '1'
         run: xvfb-run -a npm test
       - name: Require current full-suite receipt
         run: |
