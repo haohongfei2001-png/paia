@@ -17,11 +17,13 @@ This file is the single execution-state entry point for the UX/UI redesign. It r
 
 ## Current execution state
 
-- Current round: **UX-R5**
-- Status: **READY**
-- Completed: **UX-R1, UX-R2, UX-R3, UX-R4**
-- Blockers: **none**
-- Next action: **UX-R4 is certified and checkpointed. Execute the explicitly authorized UX-R5 to COMPLETE. Do not merge main or begin UX-R6.**
+- Current round: **UX-R3**
+- Status: **IN PROGRESS — UX-R2 recertified; UX-R3 corrections require full certification**
+- Previously checkpointed: **UX-R1, UX-R2, UX-R3, UX-R4**; this is historical evidence, not current recertification.
+- Known issues under repair: deleted Topic anchors and shared body/note transaction history (R3); final output races, AI source/Backup fences and safe connection defaults (R4). Prepared corrections remain unverified until their own required gates pass.
+- Next action: **Certify the UX-R3 corrections with all eight required commands, checkpoint them, then do the same for UX-R4 before resuming preserved R5 work. The user authorized UX-R2 → UX-R6 and a final UX-R1 → UX-R6 release regression on 2026-09-14. Keep `ux-r2`; never switch to or merge `main`; stop after UX-R6.**
+
+Earlier “R6 not authorized” / “do not begin the next round” statements in the historical summaries below describe superseded sessions. They do not limit the renewed authorization above.
 
 A round may be marked `COMPLETE` only after every required round gate, including G-01 through G-08, has actually passed and its report has been committed. Completion of documentation or partial implementation is not sufficient.
 
@@ -30,13 +32,22 @@ A round may be marked `COMPLETE` only after every required round gate, including
 | Round | Status | Report path |
 |---|---|---|
 | UX-R1 | COMPLETE | `extension/docs/ux/rounds/UX_R1_REPORT.md` |
-| UX-R2 | COMPLETE | `extension/docs/ux/rounds/UX_R2_REPORT.md` |
-| UX-R3 | COMPLETE | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
-| UX-R4 | COMPLETE | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
-| UX-R5 | READY | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
+| UX-R2 | COMPLETE — recertified 2026-09-14 | `extension/docs/ux/rounds/UX_R2_REPORT.md` |
+| UX-R3 | CORRECTION IN PROGRESS | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
+| UX-R4 | CORRECTION IN PROGRESS | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
+| UX-R5 | PAUSED — unfinished work preserved | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
 | UX-R6 | NOT STARTED | `extension/docs/ux/rounds/UX_R6_REPORT.md` |
 
 The report files are created by the implementation Agent only when the corresponding round is actually executed. `rounds/README.md` defines the required report format.
+
+## Recovery certification — 2026-09-14
+
+- UX-R2 certified implementation/test commit: `0f5c7308b7b079eaaa75dbbb844a69400fc5760c`; the report/status checkpoint is documentation only.
+- All eight required commands PASS on the same source snapshot: unit **867/867**, browser **22/22**, adapter **95/95**, privacy/security **52/52**, package **8,252 guards / 188 resources**, development audit PASS, unsharded full suite **1,036/1,036**, release **7,824 guards / 181 resources / 205 files**. All test groups have zero failures/skips.
+- Full receipt: `work/recovery-r2/receipt.json`; immutable browser evidence: `work/recovery-r2/browser/`. `fullSuite=true`, `auditPassed=true`, single concurrency, source unchanged across every command.
+- Input digest: `232c8c2f25056d37e033b5bb883a8f1ea7e194538a65f7c1b056c939be561961`; runtime digest: `56fb32c3b92f58f1aeb4e798c4892c642ced0afa46ebfa865685de56ea75fbc3`.
+- Fixed a real superseded-refresh race that lost Reader positions and could show obsolete read errors. Both response orders, true dwell, exact character alignment and late rejection are covered by actual-worker browser tests.
+- R3/R4 corrections and unfinished R5 work are preserved separately. Their historical completion summaries below are not renewed certification. No remote CI, deployment, live provider, everyday profile or retention validation is claimed.
 
 ## UX-R1 completion summary
 
@@ -114,7 +125,7 @@ Full Suite uses the repository-supported single-concurrency mode locally and in 
 
 ## Status update protocol
 
-At the start of every round, re-check the real `main` HEAD and repository paths rather than assuming an earlier snapshot is still current. If the current architecture materially conflicts with the Design Core or Development Specification, set the current round to `BLOCKED`, record the exact blocker, and stop the affected implementation.
+At the start of every round, re-check the real active `ux-r2` HEAD, working tree and repository paths under the current user authorization; do not switch to or merge `main`. If the current architecture materially conflicts with the Design Core or Development Specification, set the current round to `BLOCKED`, record the exact blocker, and stop the affected implementation.
 
 After a round actually passes all required gates:
 

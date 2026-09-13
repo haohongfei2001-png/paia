@@ -1,5 +1,69 @@
 # UX-R2 Implementation and Certification Report
 
+## Recovery certification — 2026-09-14
+
+- Round: **UX-R2 — COMPLETE** after the required commands below actually passed.
+- Recovery start commit: `e6556cc1347a51d846773deb831196e9a70c437f` on `ux-r2`.
+- Certified implementation/test commit: `0f5c7308b7b079eaaa75dbbb844a69400fc5760c`. The documentation checkpoint containing this report preserves its runtime/test digest.
+- Start tree contained unfinished R5 changes. They were preserved. Certification used an isolated copy of the committed start tree plus only the R2 repair; the corresponding commit contains exactly those runtime/test changes. Later-round corrections were not silently included in this receipt.
+- Scope remains UI-03 / UI-05 / UI-08 / UI-20, DELTA-02 / DELTA-08, MIG-02 / MIG-03 / MIG-04 / MIG-10. The authority order and original migration evidence below remain applicable; earlier PASS claims were treated as historical evidence and rerun.
+
+### Verified repair and compatibility
+
+`ui/archive.js` now ties awaited refresh completion to the latest applicable read. A superseded response cannot release navigation before the Reader renders, consume another navigation's position, or show a stale read error on a successful newer page. Navigation anchors belong to their own intent. Sorting and explicit new-content refresh use the same completion ownership and refuse late restoration after navigation changes.
+
+`tests/ux-r2-reader-revisit-chrome-e2e.test.mjs` retains the existing dwell, saved character, scroll, sorting, editing, privacy and visual assertions. A new actual-worker test controls delivery of real `GET_PAGE` responses around a real preference mutation. It proves stale-first and latest-first completion, an obsolete response that remains pending while the current Reader becomes usable, and rejection of obsolete error feedback. The original failure was reproduced at scroll 0 with the saved character near 944 px; the fixed deterministic journey aligns that character at 140 px.
+
+No Source/Input/Thought body, identity, deletion rule, permission, schema or Backup format changes in this repair. Existing Reader-state migration, old-content opt-in, capture exclusions, restore defaults, Unicode/IME, failed-save retention and Source purge compatibility were executed again through the unit and full suites. The same domain and Reader services are reused; no duplicate body store or new dependency was introduced.
+
+### Required commands
+
+| Command | Exit | Executed / validated | Skipped | Evidence |
+|---|---:|---|---:|---|
+| `npm run test:unit` | 0 | 867 PASS | 0 | `work/recovery-r2/unit.log` |
+| `npm run test:browser` | 0 | 22 PASS | 0 | `work/recovery-r2/browser.log` |
+| `node scripts/test.mjs "adapter contract"` | 0 | 95 PASS | 0 | `work/recovery-r2/adapter.log` |
+| `node scripts/test.mjs "privacy/security"` | 0 | 52 PASS | 0 | `work/recovery-r2/privacy.log` |
+| `npm run check` | 0 | 8,252 guards / 188 resources PASS | n/a | `work/recovery-r2/check.log` |
+| `node scripts/check_development.mjs` | 0 | Privacy / permission / network audit PASS | n/a | `work/recovery-r2/development.log` |
+| `npm test` | 0 | 1,036 PASS | 0 | `work/recovery-r2/full.log` |
+| `npm run build:release` | 0 | 7,824 guards / 181 resources / 205 files PASS | n/a | `work/recovery-r2/release.log` |
+
+- Input digest: `232c8c2f25056d37e033b5bb883a8f1ea7e194538a65f7c1b056c939be561961`.
+- Runtime digest: `56fb32c3b92f58f1aeb4e798c4892c642ced0afa46ebfa865685de56ea75fbc3`.
+- Unsharded receipt requires `fullSuite=true`, `auditPassed=true`, zero failures/skips and an unchanged source digest. Every command also checks that the source digest stayed unchanged.
+- Complete local evidence: `work/recovery-r2/receipt.json`, command logs and group summaries. The first failed baseline browser run remains separately preserved; it is not PASS evidence.
+
+### Browser, visual and network evidence
+
+The complete current browser group ran twice, once through `test:browser` and once through the unsharded full suite. Both use the real unpacked extension, service worker and Chrome IndexedDB in isolated headless synthetic profiles. They include the required 100,000-Input / 1,000-document / 300-Topic fixture, its 5,000-entry Topic and 50,000-character Input.
+
+Immutable screenshots and measurements are in `work/recovery-r2/browser/ux-r2/`: `overlapping-resume.png`, Reader / Revisit / Source four-viewport light/dark matrices, selected and save-failure states, 200% and purge-empty views, and `large-fixture.json`. The receipt includes checksums. The UI/style contract is unchanged; keyboard, IME, narrow-screen editing and reduced-motion assertions remain mandatory.
+
+R2 journeys assert zero provider, extension-network and unexpected external requests. No visible browser, everyday browser profile, private archive, live provider or deployment was used. Design Token changes: **none**.
+
+### Completion gates and handoff
+
+| Gate | Result | Evidence |
+|---|---|---|
+| G-01 Repo baseline | PASS | Branch/HEAD/tree audit; isolated R2 snapshot and recorded digests |
+| G-02 Scope / compatibility | PASS | Existing MIG-02/03/04/10 tests rerun; repair changes refresh ownership only |
+| G-03 Unit / domain | PASS | Complete unit and full-suite summaries |
+| G-04 Real browser | PASS | Current headless Chrome suite and new deterministic overlap journey |
+| G-05 Trust regression | PASS | Adapter, privacy/security, deletion and Backup regressions |
+| G-06 Visual / a11y | PASS | Regenerated required visual matrices and retained interaction assertions |
+| G-07 Release | PASS | Package/development audits, current release build, unchanged source digests |
+| G-08 Handoff | PASS | This report, status update and named checkpoint |
+
+No known unresolved R2 blocker. This is local engineering/UX certification; it does not claim product retention, live-provider validation, remote CI execution or the optional user-sampled golden bundle. The 76 frozen pre-migration browser files and the mandatory CI jobs remain unchanged.
+
+Next: **UX-R3**, authorized by the user, after this checkpoint. Its prepared corrections require their own complete gates.
+
+---
+
+## Historical certification — 2026-09-13
+
+
 ## Round identity
 
 - Round: **UX-R2 — COMPLETE**. All required local gates passed on 2026-09-13.
