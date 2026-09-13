@@ -64,6 +64,7 @@ function syncHistory(){
 }
 function installShellHistory(){
  const roots=[...document.querySelectorAll('#primary-nav [data-view],.sidebar-bottom [data-view="settings"]')];if(!roots.length)return;
+ const settingsBack=document.querySelector('.ux-settings-back');if(settingsBack&&!settingsBack.id)settingsBack.id='ux-settings-back';
  for(const node of roots)new MutationObserver(syncHistory).observe(node,{attributes:true,attributeFilter:['aria-current']});
  window.addEventListener('popstate',event=>{
   const raw=event.state?.paiaShell?.view,target=SHELL_VIEWS.has(raw)?raw:'library';
