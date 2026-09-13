@@ -19,7 +19,7 @@ function installConsentPrimaryAction(){
  const button=$('enable-consent'),check=$('consent-check');if(!button)return;
  // UX-R1: the primary action itself is explicit local-save consent. Keep the
  // legacy checkbox as a compatible acknowledgement, but never require it.
- const unlock=()=>{if(!button.closest('#consent-panel')?.hidden&&button.disabled)button.disabled=false;};
+ const unlock=()=>{if(button.disabled)button.disabled=false;};
  unlock();new MutationObserver(unlock).observe(button,{attributes:true,attributeFilter:['disabled']});
  button.addEventListener('click',()=>{if(check)check.checked=true;},{capture:true});
  const label=check?.closest('.consent-checkbox');if(label){
