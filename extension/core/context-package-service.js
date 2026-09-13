@@ -9,8 +9,9 @@ const idOK=value=>typeof value==='string'&&value.length>0&&value.length<=200;
 // authorizes, binds, reconstructs or releases Context text.
 export class ContextPackageService {
  constructor(memory,passport,{clock=()=>Date.now(),uuid=()=>crypto.randomUUID()}={}){
-  this.memory=memory;this.passport=passport;this.clock=clock;this.uuid=uuid;this.packages=new Map();this.manualSelections=new ManualContext(memory,{clock,uuid});
+  this.memory=memory;this.passport=passport;this.clock=clock;this.uuid=uuid;this.packages=new Map();this.manualSelections=new ManualContext(memory,{clock,uuid});this.tail=Promise.resolve();
  }
+ serial(fn){const task=this.tail.then(fn,fn);this.tail=task.then(()=>undefined,()=>undefined);return task;}
  manual(options,owner){return this.manualSelections.run(options,owner);}
  prune(){for(const [id,pkg]of this.packages)if(contextPackageExpired(pkg,this.clock()))this.packages.delete(id);}
  package(previewId){this.prune();if(!idOK(previewId))invalid();const pkg=this.packages.get(previewId);if(!pkg)throw new ArchiveError('MEMORY_STALE');return pkg;}
@@ -23,27 +24,27 @@ export class ContextPackageService {
   const result=await this.memory.build(options),pkg=this.register(result,options);
   return {...result,contextPackage:pkg};
  }
- async bind(previewId,grantId){
+ bind(previewId,grantId){return this.serial(async()=>{
   if(!idOK(grantId))invalid();const current=this.package(previewId);
   if(current.grantId!==null){if(current.grantId===grantId)return current;throw new ArchiveError('MEMORY_DENIED');}
   const grant=await this.passport.resolve(grantId,{profileId:current.profileId});
   const bound=createContextPackage({...current,grantId,consumer:grant.consumer,purpose:grant.purpose,createdAt:Date.parse(current.createdAt)});
   this.packages.set(previewId,bound);return bound;
- }
- async share({previewId,grantId,format='copy',removed=[]}={}){
+ });}
+ share({previewId,grantId,format='copy',removed=[]}={}){return this.serial(async()=>{
   if(!['copy','markdown'].includes(format)||!Array.isArray(removed)||removed.length>200)invalid();const current=this.package(previewId);
   if(current.grantId!==null){
    if(grantId!==current.grantId)throw new ArchiveError('MEMORY_DENIED');
    await this.passport.authorize({grantId,consumer:current.consumer,purpose:current.purpose,profileId:current.profileId});
    const result=await this.memory.share({previewId,format,removed});
    await this.passport.consume(grantId,format);
-   const next={...current,generation:result.generation||current.generation,characters:result.characters||current.characters,tokens:result.tokens||current.tokens};this.packages.set(previewId,next);
+   const next={...current,generation:result.generation??current.generation,itemCount:result.itemCount??current.itemCount,characters:result.characters??current.characters,tokens:result.tokens??current.tokens};this.packages.set(previewId,next);
    return {...result,contextPackage:contextPackageEnvelope(next,result.text,{format:format==='markdown'?'markdown':'plain',generation:next.generation}).package};
   }
   if(grantId!==undefined)throw new ArchiveError('MEMORY_DENIED');
   const result=await this.memory.share({previewId,format,removed});
   await this.passport.audit({consumer:'manual',purpose:'current_task',profileId:current.profileId,action:format==='markdown'?'manual_markdown':'manual_copy'}).catch(()=>{});
-  const next={...current,generation:result.generation||current.generation,characters:result.characters||current.characters,tokens:result.tokens||current.tokens};this.packages.set(previewId,next);
+  const next={...current,generation:result.generation??current.generation,itemCount:result.itemCount??current.itemCount,characters:result.characters??current.characters,tokens:result.tokens??current.tokens};this.packages.set(previewId,next);
   return {...result,contextPackage:contextPackageEnvelope(next,result.text,{format:format==='markdown'?'markdown':'plain',generation:next.generation}).package};
- }
+ });}
 }
