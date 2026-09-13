@@ -107,14 +107,14 @@ function installRecentRouteFallback(){
 }
 
 function installHistoryReadThrough(){
- const read=$('history-read');if(!read)return;syncShellLocale();
+ const read=$('history-read'),workspace=document.querySelector('.workspace');if(!read||!workspace)return;syncShellLocale();
  read.addEventListener('click',()=>{
-  let attempts=0;const open=()=>{
-   const home=$('core-loop-home'),recent=$('core-loop-continue');
-   if(!$('history-dialog')?.open&&home&&!home.hidden&&recent&&!recent.disabled){recent.click();return;}
-   if(attempts++<160)setTimeout(open,50);
-  };setTimeout(open,0);
- });
+  let sawLoading=workspace.dataset.state==='loading',done=false;const token=++recentFallbackToken;
+  const finish=()=>{if(done)return;done=true;observer.disconnect();clearTimeout(timeout);void retryRecentRoute(token);};
+  const observer=new MutationObserver(()=>{if(workspace.dataset.state==='loading')sawLoading=true;else if(sawLoading&&workspace.dataset.state==='ready')finish();});
+  observer.observe(workspace,{attributes:true,attributeFilter:['data-state']});
+  const timeout=setTimeout(()=>{observer.disconnect();},10000);
+ },{capture:true});
 }
 
 export function installUXR1ShellCoordinator(){
