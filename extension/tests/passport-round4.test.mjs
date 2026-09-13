@@ -31,7 +31,7 @@ test('Passport accepts only fixed consumer/purpose/profile/duration metadata',()
 
 test('Passport grant is profile-scoped, expires/revokes, consumes once grants and keeps metadata-only audit',async()=>{
  const {s}=await setup(OrganizerStore,{clock:()=>new Date(now).toISOString()});
- const memory=new MemoryService(s,{clock:()=>now});await memory.ready();
+ const memory=new MemoryService(s,{clock:()=>now});await memory.ready();await memory.settings({externalAccess:true});
  let clock=now,n=0;const passport=new PassportService(s,{clock:()=>clock,uuid:()=>`id-${++n}`});
  const once=await passport.create({consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'});
  assert.equal(validatePassportRow(stored(once)),true);assert.equal(grantState(stored(once),clock),'active');
