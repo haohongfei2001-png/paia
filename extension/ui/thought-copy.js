@@ -4,6 +4,7 @@ const english={
  '这次撤销也会修改档案。仅确认本次操作，不会开启全局开关。':'This undo also changes the archive. Confirm this operation only; the global setting stays off.',
  '内容已变化，请核对版本历史。':'Content changed. Check version history.',
  '档案或思想已变化，撤销未写入。':'The archive or thought changed. Undo was not applied.',
+ '原位置已移除，从附近继续。':'The previous location was removed. Continuing nearby.',
  '撤销尚未保存，文字仍在这里。':'Undo was not saved. Your text is still here.',
  '已保存到本机':'Saved locally','正在保存…':'Saving…','查看':'View',
  '‹ 返回思想库':'‹ Back to Thought Library','思想库 / 主题阅读':'Thought Library / Topic',
