@@ -1,13 +1,10 @@
-import {request} from './common.js';
-
 const $=id=>document.getElementById(id);
 const SHELL_VIEWS=new Set(['library','thoughts','memory','settings']);
 const SETTINGS_LABELS={
  content:['内容与收录','Content & capture'],reading:['阅读与外观','Reading & appearance'],ai:['AI','AI'],
  privacy:['隐私与对外使用','Privacy & external use'],data:['数据与设备','Data & devices'],advanced:['高级','Advanced']
 };
-let installed=false,initialized=false,lastView=null,applyingTarget=null,recentFallbackToken=0;
-const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+let installed=false,initialized=false,lastView=null,applyingTarget=null;
 
 function currentView(){
  const active=document.querySelector('#primary-nav [aria-current="page"],.sidebar-bottom [data-view="settings"][aria-current="page"]');
@@ -80,37 +77,20 @@ function installShellHistory(){
  syncHistory();
 }
 
-async function waitForReader(token,attempts=12){
- for(let i=0;i<attempts&&token===recentFallbackToken;i++){if(!$('document-panel')?.hidden)return true;await delay(50);}return !$('document-panel')?.hidden;
+function openRecentAfterHistory(){
+ let attempts=0;
+ const open=()=>{
+  const dialog=$('history-dialog'),home=$('core-loop-home'),recent=$('core-loop-continue');
+  if(!dialog?.open&&home&&!home.hidden&&recent&&!recent.disabled){recent.click();return;}
+  if(attempts++<120)setTimeout(open,50);
+ };
+ open();
 }
-async function retryRecentRoute(token){
- if(await waitForReader(token))return;
- let recent;try{recent=(await request('GET_PAGE',{page:{view:'library',limit:1}})).recentCapturedDocument;}catch{return;}
- const id=recent?.id;if(!id||token!==recentFallbackToken)return;
- if(currentView()!=='library'){targetButton('library')?.click();for(let i=0;i<40&&currentView()!=='library'&&token===recentFallbackToken;i++)await delay(50);}
- for(let page=0;page<20&&token===recentFallbackToken;page++){
-  let row=[...document.querySelectorAll('#document-list .conversation-document')].find(el=>el.dataset.documentId===id);
-  if(row){
-   for(let attempt=0;attempt<3&&token===recentFallbackToken;attempt++){
-    row.click();if(await waitForReader(token,20))return;row=[...document.querySelectorAll('#document-list .conversation-document')].find(el=>el.dataset.documentId===id);if(!row)break;
-   }
-   return;
-  }
-  const next=document.querySelector('.workspace > .pagination button:last-child');if(!next||next.disabled||next.hidden||!next.getClientRects().length)return;
-  const before=$('document-list')?.textContent||'';next.click();for(let i=0;i<40&&token===recentFallbackToken&&($('document-list')?.textContent||'')===before;i++)await delay(50);
- }
-}
-function installRecentRouteFallback(){
- document.addEventListener('click',event=>{
-  if(!event.target.closest?.('#core-loop-continue'))return;const token=++recentFallbackToken;void retryRecentRoute(token);
- },{capture:true});
-}
-
 function installHistoryReadThrough(){
  const read=$('history-read'),workspace=document.querySelector('.workspace');if(!read||!workspace)return;syncShellLocale();
  read.addEventListener('click',()=>{
-  let sawLoading=workspace.dataset.state==='loading',done=false;const token=++recentFallbackToken;
-  const finish=()=>{if(done)return;done=true;observer.disconnect();clearTimeout(timeout);void retryRecentRoute(token);};
+  let sawLoading=workspace.dataset.state==='loading',done=false;
+  const finish=()=>{if(done)return;done=true;observer.disconnect();clearTimeout(timeout);openRecentAfterHistory();};
   const observer=new MutationObserver(()=>{if(workspace.dataset.state==='loading')sawLoading=true;else if(sawLoading&&workspace.dataset.state==='ready')finish();});
   observer.observe(workspace,{attributes:true,attributeFilter:['data-state']});
   const timeout=setTimeout(()=>{observer.disconnect();},10000);
@@ -118,5 +98,5 @@ function installHistoryReadThrough(){
 }
 
 export function installUXR1ShellCoordinator(){
- if(installed)return;installed=true;installConsentPrimaryAction();installShellHistory();installRecentRouteFallback();installHistoryReadThrough();installLocaleSync();
+ if(installed)return;installed=true;installConsentPrimaryAction();installShellHistory();installHistoryReadThrough();installLocaleSync();
 }
