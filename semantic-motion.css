@@ -1,5 +1,5 @@
-/* PAIA Website D2 — Semantic Motion
-   Motion follows meaning: one persistent content path from archive → thought → context.
+/* PAIA Website D2 — Semantic Motion, revised after D3.
+   Motion follows meaning; the page no longer draws a diagrammatic path.
    No product or marketing copy lives in this layer. */
 
 body[data-page="home"] main {
@@ -7,8 +7,7 @@ body[data-page="home"] main {
   isolation: isolate;
 }
 
-/* D2 removes generic vertical slide-in. Ordinary sections simply become present;
-   semantic state changes carry the motion budget. */
+/* Ordinary sections arrive quietly. Semantic state changes carry the motion. */
 body[data-page="home"] .section.reveal {
   transform: none !important;
 }
@@ -17,120 +16,120 @@ body[data-page="home"] .section.reveal.visible {
   transition: opacity .52s ease !important;
 }
 
-/* The path is deliberately hairline-thin. It is not a progress UI; it is a
-   continuity cue between the same information in different semantic states. */
-.paia-semantic-thread {
-  position: absolute;
-  z-index: 0;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity .45s ease;
-}
-body.d2-semantic-ready .paia-semantic-thread { opacity: 1; }
-.paia-semantic-thread-base,
-.paia-semantic-thread-progress {
-  fill: none;
-  vector-effect: non-scaling-stroke;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.paia-semantic-thread-base {
-  stroke: rgba(55, 67, 59, .075);
-  stroke-width: 1;
-}
-.paia-semantic-thread-progress {
-  stroke: rgba(55, 67, 59, .20);
-  stroke-width: 1.15;
-  transition: stroke .42s ease;
-}
-.paia-semantic-thread-marker {
-  fill: #f7f8f4;
-  stroke: rgba(55, 67, 59, .38);
-  stroke-width: 1.1;
-  vector-effect: non-scaling-stroke;
-  transition: stroke .42s ease, fill .42s ease, r .32s ease;
-}
-.paia-semantic-thread.is-context .paia-semantic-thread-progress {
-  stroke: rgba(75, 103, 82, .46);
-}
-.paia-semantic-thread.is-context .paia-semantic-thread-marker {
-  fill: #eef3eb;
-  stroke: rgba(75, 103, 82, .68);
+/* No visible connector, route, marker, or generic active-stage line. */
+.paia-semantic-thread,
+.semantic-stage::after {
+  display: none !important;
 }
 
-/* Every stage keeps the same physical grammar: thin edge, paper surface,
-   almost no elevation. Active state is perceptible without looking selected. */
 .semantic-stage {
   position: relative;
   z-index: 1;
 }
-.semantic-stage::after {
-  content: "";
-  position: absolute;
-  z-index: 8;
-  top: 18%;
-  bottom: 18%;
-  left: -1px;
-  width: 1px;
-  background: rgba(58, 72, 62, .0);
-  pointer-events: none;
-  transition: background .38s ease, top .38s ease, bottom .38s ease;
-}
-.semantic-stage.is-semantic-active::after {
-  top: 11%;
-  bottom: 11%;
-  background: rgba(58, 72, 62, .20);
-}
-.semantic-stage.semantic-context.is-semantic-active::after,
-.semantic-stage.semantic-boundary.is-semantic-active::after {
-  background: rgba(78, 108, 85, .58);
+
+/* --------------------------------------------------------------------------
+   Hero reframe: brand first, product evidence follows from below.
+   -------------------------------------------------------------------------- */
+body[data-page="home"] .hero.section {
+  display: block;
+  width: min(1240px, calc(100% - 64px));
+  min-height: 0;
+  padding: 0;
+  border-bottom: 0;
 }
 
-/* Hero surface is now a product object, not a floating presentation card. */
-body[data-page="home"] .hero-stage-glow,
-body[data-page="home"] .hero-signal,
-body[data-page="home"] .hero-window-dots {
-  display: none !important;
+body[data-page="home"] .hero-copy {
+  display: flex;
+  min-height: calc(100svh - 170px);
+  max-width: 980px;
+  margin: 0 auto;
+  padding: clamp(72px, 10vh, 118px) 0 clamp(76px, 10vh, 112px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
+
+body[data-page="home"] .hero .eyebrow {
+  margin-bottom: 28px;
+}
+
+body[data-page="home"] .hero h1 {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 28px;
+  font-size: clamp(62px, 7vw, 98px);
+  line-height: .96;
+  letter-spacing: -.055em;
+  font-weight: 600;
+}
+
+body[data-page="home"] .hero-cn {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 28px;
+}
+
+body[data-page="home"] .hero-meta {
+  justify-content: center;
+  margin-bottom: 29px;
+}
+
+body[data-page="home"] .availability-line {
+  text-align: center;
+}
+
+body[data-page="home"] .hero-actions {
+  justify-content: center;
+}
+
 body[data-page="home"] .hero-product-stage {
+  width: min(1180px, calc(100vw - 72px));
+  min-height: 620px;
+  margin: -22px auto 0;
   perspective: none !important;
 }
+
+body[data-page="home"] .hero-stage-glow,
+body[data-page="home"] .hero-signal,
+body[data-page="home"] .hero-window-dots,
+body[data-page="home"] .hero-window-bar {
+  display: none !important;
+}
+
 body[data-page="home"] .hero-window {
-  inset: 42px 0 52px;
+  inset: 0 !important;
   transform: none !important;
-  border-color: rgba(59, 72, 63, .145);
-  border-radius: 13px;
-  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 14px 42px rgba(31,45,35,.045);
+  border: 1px solid rgba(59, 72, 63, .14);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(255,255,255,.92) inset, 0 18px 54px rgba(31,45,35,.05);
   transition: border-color .35s ease, box-shadow .35s ease, opacity .35s ease;
 }
 body[data-page="home"] .hero-product-stage:hover .hero-window {
-  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 14px 42px rgba(31,45,35,.045);
+  box-shadow: 0 1px 0 rgba(255,255,255,.92) inset, 0 18px 54px rgba(31,45,35,.05);
 }
-body[data-page="home"] .hero-window-bar {
-  grid-template-columns: auto 1fr;
-  min-height: 38px;
-  padding: 0 13px;
-  background: rgba(249,250,247,.92);
-}
-body[data-page="home"] .hero-window-bar strong {
-  justify-self: start;
-  color: #3d4941;
-  font-size: 10.5px;
-  letter-spacing: .075em;
-}
-body[data-page="home"] .hero-window-bar > span:last-child {
-  justify-self: end;
-  grid-column: 2;
-  grid-row: 1;
-  color: #778179;
-}
-body[data-page="home"] .hero-window-frame { height: calc(100% - 38px); }
 
-/* The visual surfaces after Hero use the same low-elevation material. */
+body[data-page="home"] .hero-window-frame {
+  height: 100% !important;
+  background: #fff;
+}
+body[data-page="home"] .hero-window-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+}
+
+body[data-page="home"] #problem {
+  margin-top: clamp(40px, 6vw, 78px);
+}
+
+/* --------------------------------------------------------------------------
+   Shared product surfaces: physical continuity without a drawn route.
+   -------------------------------------------------------------------------- */
 body[data-page="home"] .archive-detail-shot img,
 body[data-page="home"] .context-detail-shot img,
 body[data-page="home"] #privacy .story-visual img,
@@ -148,13 +147,16 @@ body[data-page="home"] .semantic-boundary.is-semantic-active img {
   border-color: rgba(78, 108, 85, .34) !important;
 }
 
-/* Thought Library signature transformation.
-   The source remains present while clipped bands of that same source separate,
-   settle, and make room for the AI-derived structure underneath. */
+/* --------------------------------------------------------------------------
+   Thought Library signature transformation.
+   The source remains identifiable while bands of that same source separate and
+   make room for the derived structure underneath.
+   -------------------------------------------------------------------------- */
 body[data-page="home"] .thought-transform-canvas {
   isolation: isolate;
   overflow: hidden;
 }
+
 .paia-semantic-fragments {
   position: absolute;
   z-index: 4;
@@ -162,6 +164,7 @@ body[data-page="home"] .thought-transform-canvas {
   overflow: hidden;
   pointer-events: none;
 }
+
 .paia-semantic-fragment {
   position: absolute;
   inset: 0;
@@ -190,7 +193,6 @@ body[data-page="home"] .thought-transform-canvas {
   will-change: opacity;
 }
 
-/* AI-derived material is translucent and slightly cooler; Source stays paper. */
 body[data-page="home"] .thought-scroll-story .thought-layer-faithful {
   background-color: #fbfcf9 !important;
 }
@@ -198,8 +200,7 @@ body[data-page="home"] .thought-scroll-story .thought-layer-ai {
   background-color: rgba(246,249,246,.96) !important;
 }
 
-/* Context is where semantic green becomes explicit: this is the boundary through
-   which selected material may leave the archive. */
+/* Context is the one place where a visible semantic boundary is intentional. */
 body[data-page="home"] #ai-context .context-detail-shot,
 body[data-page="home"] #privacy .story-visual {
   position: relative;
@@ -224,36 +225,102 @@ body[data-page="home"] #privacy .story-visual.is-semantic-active::before {
   background: rgba(80, 109, 87, .72);
 }
 
-/* Section copy stays stable; nearby semantic stage gets a nearly imperceptible
-   emphasis so the eye follows content rather than animation. */
+/* Copy stays still; active semantic state only changes presence slightly. */
 body[data-page="home"] .product-copy,
 body[data-page="home"] .story-copy {
   transition: opacity .38s ease;
 }
 body[data-page="home"] .section.is-semantic-section:not(.is-semantic-current) .product-copy,
 body[data-page="home"] .section.is-semantic-section:not(.is-semantic-current) .story-copy {
-  opacity: .91;
+  opacity: .93;
 }
 body[data-page="home"] .section.is-semantic-current .product-copy,
 body[data-page="home"] .section.is-semantic-current .story-copy {
   opacity: 1;
 }
 
+@media (max-width: 1080px) {
+  body[data-page="home"] .hero.section {
+    width: min(920px, calc(100% - 48px));
+  }
+  body[data-page="home"] .hero-copy {
+    min-height: auto;
+    padding: 96px 0 62px;
+  }
+  body[data-page="home"] .hero h1 {
+    font-size: clamp(58px, 9vw, 86px);
+  }
+  body[data-page="home"] .hero-product-stage {
+    width: min(900px, calc(100vw - 48px));
+    min-height: 560px;
+    margin-top: 4px;
+  }
+}
+
 @media (max-width: 900px) {
-  .paia-semantic-thread { display: none !important; }
-  .semantic-stage::after { display: none; }
   body[data-page="home"] .section.is-semantic-section .product-copy,
-  body[data-page="home"] .section.is-semantic-section .story-copy { opacity: 1 !important; }
+  body[data-page="home"] .section.is-semantic-section .story-copy {
+    opacity: 1 !important;
+  }
   .paia-semantic-fragments,
-  .paia-semantic-resolve-field { display: none !important; }
-  body[data-page="home"] .hero-window { inset: 30px 0 40px; }
+  .paia-semantic-resolve-field {
+    display: none !important;
+  }
+}
+
+@media (max-width: 680px) {
+  body[data-page="home"] .hero.section {
+    width: calc(100% - 30px);
+  }
+  body[data-page="home"] .hero-copy {
+    align-items: flex-start;
+    padding: 74px 0 38px;
+    text-align: left;
+  }
+  body[data-page="home"] .hero h1 {
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    font-size: clamp(48px, 15vw, 66px);
+    line-height: .99;
+  }
+  body[data-page="home"] .hero-cn {
+    margin-left: 0;
+    margin-right: 0;
+    font-size: 19px;
+  }
+  body[data-page="home"] .hero-meta,
+  body[data-page="home"] .hero-actions {
+    justify-content: flex-start;
+  }
+  body[data-page="home"] .availability-line {
+    text-align: left;
+  }
+  body[data-page="home"] .hero-product-stage {
+    width: calc(100vw - 20px);
+    min-height: 410px;
+    margin: 22px 0 0 50%;
+    transform: translateX(-50%);
+  }
+  body[data-page="home"] .hero-window {
+    border-radius: 11px;
+  }
+  body[data-page="home"] #problem {
+    margin-top: 34px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .paia-semantic-thread,
   .paia-semantic-fragments,
-  .paia-semantic-resolve-field { display: none !important; }
-  .semantic-stage::after { display: none; }
+  .paia-semantic-resolve-field {
+    display: none !important;
+  }
   body[data-page="home"] .section.is-semantic-section .product-copy,
-  body[data-page="home"] .section.is-semantic-section .story-copy { opacity: 1 !important; }
+  body[data-page="home"] .section.is-semantic-section .story-copy {
+    opacity: 1 !important;
+  }
+  body[data-page="home"] .hero-product-stage,
+  body[data-page="home"] .hero-window {
+    transform: none !important;
+  }
 }
