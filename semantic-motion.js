@@ -33,6 +33,8 @@
   let mainTop = 0;
   let ticking = false;
   let resizeTimer = 0;
+  let pageVisible = document.visibilityState === 'visible';
+  let thoughtVisible = true;
 
   const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
   const smoothstep = (value) => {
@@ -56,7 +58,7 @@
   };
 
   const geometry = () => {
-    if (!desktopQuery.matches || reducedMotion) return;
+    if (!desktopQuery.matches || reducedMotion || !pageVisible) return;
     ensureThread();
 
     const mainRect = main.getBoundingClientRect();
@@ -102,6 +104,7 @@
   };
 
   const updateThoughtFragments = () => {
+    if (!thoughtVisible || !pageVisible) return;
     const thought = document.querySelector('#thought-library .thought-transform');
     const fragments = thought?._semanticFragments || [];
     const field = thought?._semanticResolveField;
@@ -136,7 +139,7 @@
 
   const render = () => {
     ticking = false;
-    if (!desktopQuery.matches || reducedMotion || !svg || !pathLength) return;
+    if (!pageVisible || !desktopQuery.matches || reducedMotion || !svg || !pathLength) return;
 
     const y = window.scrollY + window.innerHeight * 0.56 - mainTop;
     const first = stages[0].y;
@@ -161,7 +164,7 @@
   };
 
   const requestRender = () => {
-    if (ticking) return;
+    if (!pageVisible || ticking) return;
     ticking = true;
     window.requestAnimationFrame(render);
   };
@@ -224,6 +227,23 @@
     installThoughtFragments();
     geometry();
   };
+
+  const thoughtSection = document.querySelector('#thought-library');
+  if (thoughtSection && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      thoughtVisible = Boolean(entries[0]?.isIntersecting);
+      if (thoughtVisible) requestRender();
+    }, { rootMargin: '45% 0px 45% 0px', threshold: 0 });
+    observer.observe(thoughtSection);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    pageVisible = document.visibilityState === 'visible';
+    if (pageVisible) {
+      geometry();
+      requestRender();
+    }
+  }, { passive: true });
 
   window.addEventListener('scroll', requestRender, { passive: true });
   window.addEventListener('resize', () => {
