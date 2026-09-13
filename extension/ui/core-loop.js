@@ -25,10 +25,10 @@ function applyPreferences(){
 }
 function applyLabels(){
  const labels=language()==='zh-CN'?{library:'档案',thoughts:'思想库',memory:'用于 AI',settings:'设置',archive:'来源记录'}:{library:'Archive',thoughts:'Thought Library',memory:'For AI',settings:'Settings',archive:'Source Records'};
- for(const [view,label] of Object.entries(labels))for(const el of document.querySelectorAll(`[data-view="${view}"]`))if(el.closest('#primary-nav,.sidebar-bottom'))el.textContent=label;
- const current=document.querySelector('#primary-nav [aria-current="page"],.sidebar-bottom [aria-current="page"]')?.dataset.view,title=$('view-title');if(title&&current&&labels[current]&&!title.hidden)title.textContent=labels[current];
- const global=$('universal-search-open');if(global)global.textContent=copy('搜索','Search');
- const settingsTitle=$('ux-settings-title');if(settingsTitle)settingsTitle.textContent=copy('设置','Settings');
+ for(const [view,label] of Object.entries(labels))for(const el of document.querySelectorAll(`[data-view="${view}"]`))if(el.closest('#primary-nav,.sidebar-bottom')&&el.textContent!==label)el.textContent=label;
+ const current=document.querySelector('#primary-nav [aria-current="page"],.sidebar-bottom [aria-current="page"]')?.dataset.view,title=$('view-title');if(title&&current&&labels[current]&&!title.hidden&&title.textContent!==labels[current])title.textContent=labels[current];
+ const global=$('universal-search-open'),globalText=copy('搜索','Search');if(global&&global.textContent!==globalText)global.textContent=globalText;
+ const settingsTitle=$('ux-settings-title'),settingsText=copy('设置','Settings');if(settingsTitle&&settingsTitle.textContent!==settingsText)settingsTitle.textContent=settingsText;
 }
 async function loadPreferences(){
  try{const page=await request('GET_PAGE',{page:{view:'settings'}});uxPreferences=normalizeUXPreferences(page.preferences);applyPreferences();updateLocalStatus(page);return page;}catch{applyPreferences();const state=$('ux-local-state');if(state)state.textContent=copy('本机保存遇到问题','Local storage unavailable');return null;}
@@ -84,7 +84,14 @@ function setupSettingsShell(){
  syncPreferenceControls();
 }
 
-function tuneExistingTools(){const universal=$('universal-search-open'),dialog=$('universal-search-dialog');if(universal)universal.textContent=copy('搜索','Search');if(dialog){const title=$('universal-search-title'),help=dialog.querySelector('.universal-search-box p');if(title)title.textContent=copy('找回以前的表达','Find an earlier expression');if(help)help.textContent=copy('同时查找你的输入、思想与已有整理。完全本机，不调用 AI。','Search your inputs, thoughts and existing organization locally. No AI call.');for(const reuse of dialog.querySelectorAll('.universal-context')){reuse.textContent=copy('继续使用','Reuse');reuse.title=copy('把这条作为本地上下文重点，随后由你补充现在要问的问题；不会自动发送。','Use this as local context focus; nothing is sent automatically.');}}}
+function tuneExistingTools(){
+ const universal=$('universal-search-open'),dialog=$('universal-search-dialog'),searchText=copy('搜索','Search');if(universal&&universal.textContent!==searchText)universal.textContent=searchText;
+ if(dialog){
+  const title=$('universal-search-title'),help=dialog.querySelector('.universal-search-box p'),titleText=copy('找回以前的表达','Find an earlier expression'),helpText=copy('同时查找你的输入、思想与已有整理。完全本机，不调用 AI。','Search your inputs, thoughts and existing organization locally. No AI call.'),reuseText=copy('继续使用','Reuse'),reuseTitle=copy('把这条作为本地上下文重点，随后由你补充现在要问的问题；不会自动发送。','Use this as local context focus; nothing is sent automatically.');
+  if(title&&title.textContent!==titleText)title.textContent=titleText;if(help&&help.textContent!==helpText)help.textContent=helpText;
+  for(const reuse of dialog.querySelectorAll('.universal-context')){if(reuse.textContent!==reuseText)reuse.textContent=reuseText;if(reuse.title!==reuseTitle)reuse.title=reuseTitle;}
+ }
+}
 function setPrimaryAction(id){const home=$('core-loop-home');if(!home)return;for(const item of home.querySelectorAll('.core-loop-card'))item.classList.toggle('core-loop-card-primary',!!id&&item.id===id);}
 function setHomeState(state,{eyebrow,title,copy:body,primary=null}={}){const home=$('core-loop-home');if(!home)return;home.dataset.state=state;if(eyebrow)$('core-loop-eyebrow').textContent=eyebrow;if(title)$('core-loop-title').textContent=title;if(body)$('core-loop-copy').textContent=body;setPrimaryAction(primary);}
 function setActivationEmpty(){setHomeState('activation-empty',{eyebrow:copy('第一次使用','First use'),title:copy('你的表达会留在这里。第一条输入会从这里开始','Your expressions will stay here. Your first input starts here.'),copy:copy('同意本机保存后，PAIA 会收录已支持 AI 页面中你已经发送的文字；也可以导入以前的历史。','After local-save consent, PAIA collects text you already sent on supported AI pages; you can also import earlier history.')});}
