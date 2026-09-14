@@ -24,7 +24,7 @@ Close all applicable UX-R5 UI-13/UI-14, DELTA-06, MIG-09/10 and G-01 through G-0
 
 Only complete actual PASS evidence permits official UX_R5_REPORT.md and UX_IMPLEMENTATION_STATUS.md to claim VERIFIED_COMPLETE. Record tested source and reviewed doc-only handoff delta separately; recheck final handoff CI and final product HEAD. Otherwise publish an honest recovery checkpoint with R5 incomplete and exact blockers. V2 records predecessor refs, repair commits, certified source, authority, frozen baseline, PR, evidence and next action. Set next_allowed_slice=UX-R6 only if R5 truly passes, but never start it here. Release owner and stop. No new opportunity count or automation is inferred.
 
-## Precisely registered publication RP-01
+## Precisely registered publication RP-01 — sealed
 
 - Parent H: `6517763883c95e9a8901e5095db2a7d846da0ef6`.
 - Candidate C: `6bda0643443595874b9f43cf39e4ea0dfcfa1ae2`.
@@ -33,5 +33,18 @@ Only complete actual PASS evidence permits official UX_R5_REPORT.md and UX_IMPLE
 - Target: `ux-r2`, single-parent fast-forward only.
 - Allowed files: `extension/core/organizer/ai-presentation.js`, `extension/tests/ai-product-v080.test.mjs`, `extension/tests/ux-r5-ai-result-contract.test.mjs`.
 - Purpose: post-commit ReferenceError repair and stronger current/candidate/receipt/rollback assertions, with the old automatic-revision test aligned to approved R5 explicit adoption.
-- Certification before publication: NOT_RUN. Product remains uncertified until the complete required gates actually pass.
-- Exact recovery: with matching owner, if HEAD=H publish C after rechecking refs; if HEAD=C verify the single-parent/tree pair and seal State.expected_head=C. Any other HEAD or owner stops writes. Once sealed, the record is historical and cannot authorize unrelated drift.
+- Publication sealed at control `519fe3852af2709243ce7d8e6ee379b110c5141e`. Historical record; it does not authorize subsequent HEAD drift. Run #264 is associated with the published source, not the later RP-02 candidate.
+
+## Precisely registered publication RP-02
+
+- Parent H: `6bda0643443595874b9f43cf39e4ea0dfcfa1ae2`.
+- Candidate C: `277ddaaa9a3ddc0722f43867730c6bc68f456555`.
+- Tree T: `6f3fc5e9ce44e15fe69c630dda997663d0886575`.
+- Owner: `recovery-20260915-651776-6c94b7e1`.
+- Target: `ux-r2`, single-parent fast-forward only.
+- Allowed files: `extension/ui/ai-candidate.js`, `extension/ui/thought-reader.css`, `extension/tests/ux-r5-certification-chrome-e2e.test.mjs`, `.github/workflows/paia-certification.yml`.
+- Purpose: repair keyboard focus loss caused by replacing the candidate panel, use existing theme tokens instead of light-only fallbacks, retain 44px R5 action targets, and supply missing actual-worker R5 acceptance evidence. This is R5 G-04/G-06 repair, not R6 general settings or release expansion.
+- Reviewed diff: exactly four files +79/-5. Workflow only adds existing ON-02 and new R5 acceptance journey filenames; no gate, test, permission, timeout, failure condition or receipt requirement removed or weakened.
+- New journeys cover R5 first-generation/candidate viewport and theme matrices, contrast, touch targets, keyboard staging, IME protection, stale revision refusal, explicit failure and actual worker interruption with zero automatic paid retries. Screenshots and measurements go to the existing work/ux-r5 artifact. A test definition is not execution evidence.
+- Certification before publication: NOT_RUN. Prefer collecting the completed #264 result before advancing to avoid canceling useful root-cause-only evidence.
+- Exact recovery: with matching owner, if HEAD=H publish C after rechecking refs; if HEAD=C verify the single-parent/tree pair and seal State.expected_head=C. Any other HEAD or owner stops writes. Once sealed this registration cannot authorize unrelated drift.
