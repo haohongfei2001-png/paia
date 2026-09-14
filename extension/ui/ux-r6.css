@@ -1,0 +1,18 @@
+html[data-paia-private-preview="hidden"] #thought-list .topic-index-row .summary,
+html[data-paia-private-preview="hidden"] #thought-recent button,
+html[data-paia-private-preview="hidden"] .revisit-card .revisit-card-open p{
+  display:none!important;
+}
+html[data-paia-private-preview="hidden"] #thought-list .topic-index-row::after{
+  content:'预览已隐藏';display:block;margin-top:5px;color:var(--paia-meta);font-size:12px;font-weight:400;
+}
+html[lang="en"][data-paia-private-preview="hidden"] #thought-list .topic-index-row::after{content:'Preview hidden'}
+.ux-r6-setting-block{margin:22px 0;padding:18px 0;border-top:1px solid var(--paia-subtle)}
+.ux-r6-setting-block h3{margin:0 0 8px;font-size:16px;font-weight:620;color:var(--paia-text)}
+.ux-r6-setting-block>p{margin:6px 0;line-height:1.65}
+.ux-r6-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ux-r6-actions button{border:1px solid var(--paia-subtle);background:var(--paia-surface)}
+#ux-r6-export-status{min-height:20px}
+#ux-r6-backup-history{margin-top:0}
+@media(max-width:799px){.ux-r6-actions{display:grid;grid-template-columns:1fr}.ux-r6-actions button{width:100%;min-height:44px;text-align:left}.ux-r6-setting-block{padding:16px 0;margin:18px 0}}
+@media(prefers-reduced-motion:reduce){.ux-r6-setting-block,.ux-r6-actions button{scroll-behavior:auto;transition:none!important;animation:none!important}}
