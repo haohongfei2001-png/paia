@@ -58,7 +58,7 @@ export class MaterialTray {
  }
  renderPreview(){
   this.root.append(button('返回材料','Back to materials',()=>{this.mode='tray';this.render();}),element('p','',c('这些修改只影响本次输出。请检查所有文字，包括间接身份线索。','Edits affect only this output. Review all text, including indirect identifying details.')));
-  if(this.data.state!=='ready')this.root.append(element('p','material-blocked',this.data.state==='blocked'?c('受阻材料已从可输出正文移除。请返回材料盘处理。','Blocked materials were removed from the output. Resolve them in the tray.'):message({code:'MEMORY_STALE'})));
+  if(['blocked','stale'].includes(this.data.state)){this.root.append(element('p','material-blocked',this.data.state==='blocked'?c('受阻材料已从可输出正文移除。请返回材料盘处理。','Blocked materials were removed from the output. Resolve them in the tray.'):message({code:'MEMORY_STALE'})));return;}
   if(this.editing||this.data.state==='dirty'){
    this.root.append(this.field('note',this.data.note,c('本次说明（不是历史表达）','Task note (not historical expression)')).wrap);
    for(const item of this.data.items){if(item.state!=='ready')continue;const {wrap,area}=this.field(item.itemId,item.body,c('本次材料文字','Material text for this output'));wrap.append(button('遮去所选文字','Redact selected text',()=>{const start=area.selectionStart,end=area.selectionEnd;return this.change('redact',{itemId:item.itemId,start,end});}));this.root.append(wrap);}
