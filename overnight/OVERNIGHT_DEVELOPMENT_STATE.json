@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "campaign": "paia-continuation-20260915-v2",
-  "status": "UX_R5_STALE_OWNER_RECOVERED_CERTIFICATION_265_FAILED",
-  "checkpoint_sequence": 6,
-  "control_parent_head": "f6cc9472f91c81b6b6cda746416072e25e12d93f",
+  "status": "UX_R5_RP03_PREPARED",
+  "checkpoint_sequence": 7,
+  "control_parent_head": "3f290c3b801418e29db70f244ec28ffae5b69dd5",
   "control_branch": "overnight/control-20260915-v2",
   "predecessor": {
     "campaign": "paia-overnight-20260914-v1",
@@ -35,7 +35,7 @@
     ],
     "certified_head": null,
     "official_status": "UX-R5 READY / NOT_STARTED in inherited product status; implementation and recovery repairs published but not certified",
-    "current_state": "UX-R5 / ON-02 CERTIFICATION_265_FAILED_REPAIR_REQUIRED"
+    "current_state": "UX-R5 / ON-02 RP03_PREPARED"
   },
   "authority": {
     "ref": "6517763883c95e9a8901e5095db2a7d846da0ef6",
@@ -75,10 +75,42 @@
       "browser": "FAIL",
       "full_suite": "FAIL",
       "aggregate_certification": "FAIL"
+    },
+    "full_suite_265": {
+      "total": 1076,
+      "pass": 1074,
+      "fail": 2,
+      "skipped": 0,
+      "unit": {"pass": 898, "fail": 0},
+      "browser_e2e": {"pass": 29, "fail": 2},
+      "adapter_contract": {"pass": 95, "fail": 0},
+      "privacy_security": {"pass": 52, "fail": 0},
+      "successful_receipt": false,
+      "artifact_id": 10364545675,
+      "artifact_digest": "sha256:7c0f539aed7c0f21fc3d4bcc7e83c665497cd0fcc5c94c7cb6f19ea019254e90"
+    },
+    "ux_r5_artifact_265": {
+      "artifact_id": 10363895905,
+      "artifact_digest": "sha256:d52d4ed89e9af98f6e44aaf4c7ff00538ae38146aa8400a880de19711b4ee2b6"
     }
   },
-  "recovery_audit_outcome": "ON-02 candidateCreated post-commit regression was repaired in RP-01 and the historical automatic-revision contract was aligned with UI-14 explicit candidate adoption. RP-02 added keyboard/theme/viewport/IME/stale/failure/outcome-unknown acceptance coverage. Certification #265 ran against exact product HEAD 277ddaaa9a3ddc0722f43867730c6bc68f456555 and completed failure: Unit 1-4, Adapter/Privacy, Release and macOS Secure Store passed; Current Browser, Full Suite and aggregate certification failed. Browser and full-suite final evidence must be diagnosed before RP-03.",
-  "pending_publication": null,
+  "recovery_audit_outcome": "Certification #265 has exactly two failures and both are in ux-r5-certification-chrome-e2e.test.mjs; Full Suite has no independent domain/unit/adapter/privacy failure. Failure 1 is a real R5 theme defect: candidate eyebrow inherits legacy #748574, whose light-surface contrast is exactly 3.9253780852339277; RP-03 binds it to the current --paia-meta token without changing the 4.5 threshold. Failure 2 is a test route-synchronization race after reload: the app may restore the Topic document while openTopic waits only for the parent Thought panel then samples document visibility once; RP-03 waits for the actual Thought document/home-list route state before selecting the Topic, without increasing timeouts or changing product navigation semantics.",
+  "pending_publication": {
+    "id": "RP-03",
+    "kind": "UX_R5_BROWSER_ACCEPTANCE_REPAIR",
+    "owner": "recovery-20260915-r5-82f1c4d7",
+    "branch": "ux-r2",
+    "expected_parent": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
+    "candidate_commit": "599c224e5a12bb65a13c20425a7edee01a36f0fc",
+    "candidate_tree": "bc61405fc749aa078c8c770ee4b8f3cfdcdac3f1",
+    "allowed_paths": [
+      "extension/ui/thought-reader.css",
+      "extension/tests/ux-r5-certification-chrome-e2e.test.mjs"
+    ],
+    "diff_review": "PASS: candidate is exactly one commit ahead of expected parent; exactly two files changed; +2/-1. Contrast threshold remains 4.5 and no existing gate is removed or skipped.",
+    "certification": "NOT_RUN",
+    "recovery_protocol": "Publish only when active owner, control HEAD and product expected parent still match this registration. Use non-force fast-forward. Read back product commit/tree and then seal control state. Any unknown drift stops writes."
+  },
   "publication_receipts": [
     {
       "id": "RP-01",
@@ -88,13 +120,7 @@
       "tree": "21a22861d0228ae0150d485a5cf366620462fc31",
       "result": "PUBLISHED_AND_READ_BACK",
       "force": false,
-      "changed_files": [
-        "extension/core/organizer/ai-presentation.js",
-        "extension/tests/ai-product-v080.test.mjs",
-        "extension/tests/ux-r5-ai-result-contract.test.mjs"
-      ],
-      "diff_review": "PASS: exactly one parent and three files; +63/-4; runtime blob matches diagnosed transaction-result patch",
-      "local_diagnostic": "PASS: actual runner class with synthetic seams, not full repository tests"
+      "changed_files": ["extension/core/organizer/ai-presentation.js", "extension/tests/ai-product-v080.test.mjs", "extension/tests/ux-r5-ai-result-contract.test.mjs"]
     },
     {
       "id": "RP-02",
@@ -104,22 +130,12 @@
       "tree": "6f3fc5e9ce44e15fe69c630dda997663d0886575",
       "result": "PUBLISHED_AND_READ_BACK",
       "force": false,
-      "changed_files": [
-        "extension/ui/ai-candidate.js",
-        "extension/ui/thought-reader.css",
-        "extension/tests/ux-r5-certification-chrome-e2e.test.mjs",
-        ".github/workflows/paia-certification.yml"
-      ],
-      "diff_review": "PASS: single parent, four files +79/-5; workflow only adds two R5 journey filenames; no existing gate weakened",
-      "verified_blobs": {
-        "ui_candidate": "d3579b302dce4ba94357a3d46832cb5bd6add145",
-        "new_browser_test": "9c12e44bb4b385dc07910e68e0851c67db468435"
-      }
+      "changed_files": ["extension/ui/ai-candidate.js", "extension/ui/thought-reader.css", "extension/tests/ux-r5-certification-chrome-e2e.test.mjs", ".github/workflows/paia-certification.yml"]
     }
   ],
   "last_run_report": "overnight/recovery/UX_R5_RECOVERY_AUDIT.md",
   "next_allowed_slice": "UX-R5_RECOVERY",
-  "next_action": "Read complete Certification #265 Browser and Full Suite logs, receipt and UX-R5 artifacts; diagnose all failures together; prepare bounded RP-03 under the active owner. Do not start UX-R6.",
+  "next_action": "Publish the precisely registered RP-03 after exact owner/ref recheck, seal its read-back, then certify every required UX-R5 gate. Do not start UX-R6.",
   "ux_r5_verified_complete": false,
   "ux_r6_started": false,
   "scheduled_execution_authorized": false
