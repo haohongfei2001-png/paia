@@ -102,9 +102,9 @@ export class ThoughtWorkspace {
  async previewAIUpdate(){if(this.aiPending||this.originalPending||this.boundedPending)return;this.clearActionFeedback();this.actionKind='ai';$('thought-panel').prepend($('ai-update-feedback'));this.aiPending=true;if(!await this.leave()){this.aiPending=false;return;}$('ai-library-update').disabled=true;const feedback=$('ai-update-feedback');feedback.textContent='正在更新 AI整理…';$('library-update-details').hidden=true;let timer;
   try{const result=await Promise.race([request('UPDATE_AI_PRESENTATION',{userActionId:op(),...(this.id?{topicId:this.id}:{})}),new Promise((_,reject)=>{timer=setTimeout(()=>reject({code:'MESSAGE_RESPONSE_TIMEOUT'}),35000);})]);if(result.error)throw {code:result.error,phase:result.phase};feedback.textContent='';}catch(e){await this.showUpdateFailure(e);}finally{clearTimeout(timer);this.aiPending=false;await this.refresh();}
  }
- async updateViewStatus({strict=true,isCurrent=()=>true}={}){
+ async updateViewStatus({strict=true,isCurrent=()=>true,includeOriginal=true}={}){
   const attempt=++this.statusReadSerial,epoch=this.statusEpoch;
-  const result=await readOptionalLibraryStatus(type=>request(type),{isCurrent:()=>attempt===this.statusReadSerial&&epoch===this.statusEpoch&&isCurrent()});
+  const result=await readOptionalLibraryStatus(type=>request(type),{isCurrent:()=>attempt===this.statusReadSerial&&epoch===this.statusEpoch&&isCurrent(),includeOriginal});
   if(!result){if(strict)throw {code:'MESSAGE_CHANNEL_INTERRUPTED'};return null;}
   const {values,unavailable}=result;this.statusUnavailable=unavailable;
   const state=values.ai&&Array.isArray(values.ai.topics)?values.ai:{topics:[],pendingTopics:0,nextTopic:null,runtime:null};
@@ -144,11 +144,11 @@ export class ThoughtWorkspace {
   const intent=this.openIntent=(this.openIntent||0)+1;if(!await this.leave()||intent!==this.openIntent)return;this.clearActionFeedback();
   if(this.id!==id){this.snapshotRoute=null;this.homeSignature=null;$('topic-body').replaceChildren();$('topic-heading').replaceChildren();this.originalPane=null;this.aiPane=null;this.aiSignature=undefined;this.document=null;this.topic=null;}
   if(this.id!==id)this.view=id?(this.topicViews.get(id)||'original'):'original';this.id=id;this.onOpen();
-  const saved=this.homePositions.get(id||'home'),sameSessionResume=!!id&&!!saved?.cursor&&(!saved.sort||saved.sort===this.readingSort),position=id?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
-  if(!sameSessionResume){this.resumeAnchor=await position;if(intent!==this.openIntent)return;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;
+  const saved=this.homePositions.get(id||'home'),sameSessionResume=!!id&&!!saved?.cursor&&(!saved.sort||saved.sort===this.readingSort),readPosition=()=>id?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
+  if(!sameSessionResume){this.resumeAnchor=await readPosition();if(intent!==this.openIntent)return;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;
   $('topic-search').value=id?saved?.query||'':'';if(!id&&saved)$('thought-search').value=saved.query;this.cursor=saved?.cursor||null;this.pages=saved?.pages||[];this.history=null;
   await this.refresh();if(intent!==this.openIntent)return;this.onOpen();scrollTo(0,saved?.scroll||0);
-  if(id&&sameSessionResume){void position.then(async anchor=>{if(intent!==this.openIntent||this.id!==id)return;if(anchor?.sort&&anchor.sort!==this.readingSort){this.readingSort=anchor.sort;this.cursor=null;this.pages=[];this.resumeAnchor=anchor;await this.refresh();if(intent!==this.openIntent||this.id!==id)return;}await this.restorePosition(anchor);if(intent===this.openIntent&&this.id===id)this.schedulePosition();});}
+  if(id&&sameSessionResume){void readPosition().then(async anchor=>{if(intent!==this.openIntent||this.id!==id)return;if(anchor?.sort&&anchor.sort!==this.readingSort){this.readingSort=anchor.sort;this.cursor=null;this.pages=[];this.resumeAnchor=anchor;await this.refresh();if(intent!==this.openIntent||this.id!==id)return;}await this.restorePosition(anchor);if(intent===this.openIntent&&this.id===id)this.schedulePosition();});}
   else if(id){await this.restorePosition(this.resumeAnchor);this.resumeAnchor=null;this.schedulePosition();}
  }
  setBusy(value){for(const b of document.querySelectorAll('#topic-toolbar button,#topic-body button'))b.disabled=value;}
@@ -159,7 +159,7 @@ export class ThoughtWorkspace {
   if(!this.id&&this.view==='original'&&!$('thought-organize-tools')?.open&&!this.aiPending&&!this.originalPending&&!this.boundedPending){$('library-unplaced').parentElement.hidden=!this.homePage?.page.entryCountHint;return;}
   const epoch=this.statusEpoch,route=this.id,key=this.readKey(),beforeView=this.view,beforeSort=this.readingSort;
   const current=()=>epoch===this.statusEpoch&&route===this.id&&key===this.readKey()&&!this.readFailed&&!$('thought-panel').hidden;
-  void this.updateViewStatus({strict:false,isCurrent:current}).then(()=>{
+  void this.updateViewStatus({strict:false,isCurrent:current,includeOriginal:!this.id}).then(()=>{
    if(epoch!==this.statusEpoch||route!==this.id||this.readFailed||$('thought-panel').hidden)return;
    if(beforeView!==this.view||beforeSort!==this.readingSort){void this.refresh();return;}
    if(current()&&!this.id&&this.homePage?.key===key)this.paintHome(this.homePage.page,this.homePage.query,false);
