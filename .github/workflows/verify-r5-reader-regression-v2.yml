@@ -1,0 +1,95 @@
+name: Verify R5 reader regression fix v2
+
+on:
+  push:
+    branches: [ux-r5-history-resume-fix]
+    paths:
+      - .github/workflows/verify-r5-reader-regression-v2.yml
+
+permissions:
+  contents: write
+
+env:
+  CI: '1'
+  PLAYWRIGHT_MODULE: playwright
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ux-r5-history-resume-fix
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Prepare Chrome
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+      - name: Run R3 focused regressions and all R5 journeys
+        run: >-
+          xvfb-run -a node --test --test-concurrency=1
+          --test-name-pattern='UX-R3 (browser history restore preempts|same-session Back restores|removed mid-topic reading anchor opens)|UX-R5 '
+          tests/ux-r3-history-preemption-chrome-e2e.test.mjs
+          tests/ux-r3-thought-chrome-e2e.test.mjs
+          tests/ux-r5-ai-organize-chrome-e2e.test.mjs
+
+  large:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ux-r5-history-resume-fix
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Prepare Chrome and evidence directory
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          mkdir -p work/ux-r3
+      - name: Run F-LARGE only
+        run: >-
+          xvfb-run -a node --test --test-concurrency=1
+          --test-name-pattern='UX-R3 F-LARGE'
+          tests/ux-r3-thought-chrome-e2e.test.mjs
+
+  cleanup:
+    if: always()
+    needs: [focused, large]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ux-r5-history-resume-fix
+          fetch-depth: 0
+      - name: Remove temporary verification workflow
+        shell: bash
+        run: |
+          rm -f .github/workflows/verify-r5-reader-regression-v2.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/verify-r5-reader-regression-v2.yml
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: remove R5 reader verification workflow v2'
+            git push origin HEAD:ux-r5-history-resume-fix
+          fi
