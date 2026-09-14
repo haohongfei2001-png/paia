@@ -83,14 +83,14 @@ export class ThoughtWorkspace {
   if(!this.id||!['original','ai'].includes(view))return;
   if(this.viewSwitchPromise){await this.viewSwitchPromise;return this.switchView(view);}
   if(view===this.view)return;
-  const topicId=this.id;this.pendingView=view;$('ai-presentation-toggle').checked=view==='ai';$('ai-presentation-toggle').disabled=true;
+  const topicId=this.id,restoreFocus=document.activeElement===$('ai-presentation-toggle');this.pendingView=view;$('ai-presentation-toggle').checked=view==='ai';$('ai-presentation-toggle').disabled=true;
   const change=(async()=>{
    if(!await this.flushEditors())return;
    this.topicViews.set(topicId,view);
    await recomposeMemory(document.querySelector('.workspace'),async()=>{if(this.id!==topicId)return;this.clearActionFeedback();this.view=view;this.cursor=null;this.pages=[];await this.refresh();});
   })();
   this.viewSwitchPromise=change;
-  try{await change;}finally{this.viewSwitchPromise=null;this.pendingView=null;$('ai-presentation-toggle').checked=this.view==='ai';$('ai-presentation-toggle').disabled=false;}
+  try{await change;}finally{this.viewSwitchPromise=null;this.pendingView=null;$('ai-presentation-toggle').checked=this.view==='ai';$('ai-presentation-toggle').disabled=false;if(restoreFocus&&this.id===topicId)$('ai-presentation-toggle').focus({preventScroll:true});}
  }
 
  clearActionFeedback(){this.lastFailedAction=null;this.actionKind=null;this.boundedAttempted=false;$('ai-update-feedback').replaceChildren();$('library-cost-preview').textContent='';$('ai-library-retry').hidden=true;$('bounded-progress').hidden=true;$('library-update-details').hidden=true;}
