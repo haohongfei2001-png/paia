@@ -73,7 +73,7 @@ export class BackupService {
     if(section==='entries'){row.thoughtText=row.body;delete row.body;refreshEntryIndex(row);}
     if(section==='topics'){row.nameKey=row.name.toLocaleLowerCase();row.activeKey=row.lifecycle==='active'?0:1;row.countVersion=1;}
     if(['sections','placements'].includes(section))row.activeKey=row.lifecycle==='active'?0:1;
-    if(section==='organizationState'){const data=row.data;if(row.id===REVISIT_POLICY_ROW)data.oldContent=false;if(row.id===CAPTURE_POLICY_ROW&&localCapture)data.excludedChats=[...new Set([...localCapture.excludedChats,...data.excludedChats])];if([REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(row.id)&&!validReaderPolicy(data))backupError('BACKUP_INVALID');if(row.id==='originalOrganizerBootstrap'&&data.state==='running')data.state='paused';await t.put('meta',data);continue;}
+    if(section==='organizationState'){const data=row.data;if(row.id===REVISIT_POLICY_ROW)data.oldContent=false;if(row.id===CAPTURE_POLICY_ROW&&localCapture)data.excludedChats=[...new Set([...localCapture.excludedChats,...data.excludedChats])];if(row.id==='memory:config')data.externalAccess=false;if([REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(row.id)&&!validReaderPolicy(data))backupError('BACKUP_INVALID');if(row.id==='originalOrganizerBootstrap'&&data.state==='running')data.state='paused';await t.put('meta',data);continue;}
     await t.put(stores[section],row);
    }
    await t.put('meta',{id:'sequence',...max});
