@@ -3,11 +3,12 @@ import {recomposeMemory} from './memory-recomposition.js';
 import {request} from './common.js';
 import {TopicAIViewSession} from '../core/topic-ai-view-session.js';
 import {firstAIGenerationPanel} from './ai-first-generation.js';
+import {aiCandidateKey,renderAICandidateComparison} from './ai-candidate.js';
 
 const $=id=>document.getElementById(id);
 
 export class ThoughtWorkspace extends BaseThoughtWorkspace{
- constructor(options){super(options);this.aiViewSession=new TopicAIViewSession();this.viewPreferenceChosen=true;}
+ constructor(options){super(options);this.aiViewSession=new TopicAIViewSession();this.viewPreferenceChosen=true;this.aiCandidateChoices=new Map();}
  rememberView(){if(this.id)this.aiViewSession.remember(this.id,this.view,{scroll:Math.max(0,scrollY||0),cursor:this.cursor,pages:this.pages,query:$('topic-search').value||''});}
  async switchView(view){
   if(!['original','ai'].includes(view))return;if(!this.id){this.requestedTopicView=view;return;}if(this.viewSwitchPromise){await this.viewSwitchPromise;return this.switchView(view);}if(view===this.view)return;
@@ -22,7 +23,19 @@ export class ThoughtWorkspace extends BaseThoughtWorkspace{
   const count=this.firstGenerationCount(),name=this.topic?.name||this.document?.topic?.name||'当前主题',choice=await this.form('生成 AI整理',[{key:'approval',label:`仅整理“${name}” · 最多 ${count} 段当前材料 · DeepSeek`,required:true,options:[['','请选择'],['confirm','确认本次生成']]}]);
   if(choice?.approval!=='confirm'||this.id!==topicId||this.view!=='ai')return;await super.previewAIUpdate();
  }
- async readRefresh(){const result=await super.readRefresh();if(result!==true||!this.id||this.view!=='ai')return result;const row=this.aiTopics.get(this.id);if(!row?.presentation){this.originalPane.hidden=false;this.aiPane.hidden=false;if(!row?.userDraft&&!this.aiPane.querySelector('[data-ai-first-generation]'))this.aiPane.replaceChildren(firstAIGenerationPanel({topicName:this.topic?.name||this.document?.topic?.name||'当前主题',count:this.firstGenerationCount(),onGenerate:()=>this.confirmFirstGeneration(this.id)}));}return result;}
+ candidateState(row){const key=aiCandidateKey(row?.candidate);if(!key)return null;let state=this.aiCandidateChoices.get(row.topicId);if(!state||state.key!==key){state={key,values:{}};this.aiCandidateChoices.set(row.topicId,state);}return state;}
+ renderCandidate(row){
+  if(!this.aiPane||!row?.presentation||!row?.candidate){this.aiPane?.querySelector('[data-ai-candidate]')?.remove();return;}
+  const state=this.candidateState(row);renderAICandidateComparison(this.aiPane,{candidate:row.candidate,current:row.presentation,choices:state.values,onChoice:(field,decision)=>{state.values[field]=decision;this.renderCandidate(row);},onSave:()=>this.saveCandidate(row.topicId,state.key),onRefresh:()=>this.previewAIUpdate()});
+ }
+ async saveCandidate(topicId,key){
+  if(this.id!==topicId||this.view!=='ai')return;if(this.aiEditor){this.aiEditor.collect();if(!await this.aiEditor.flush())return;}
+  await this.updateViewStatus({strict:false});const row=this.aiTopics.get(topicId),state=this.aiCandidateChoices.get(topicId);if(!row?.candidate||!state||state.key!==key||aiCandidateKey(row.candidate)!==key||row.candidate.stale){this.onStatus('内容刚有更新，请重新核对后再保存。','conflict');this.renderCandidate(row);return;}
+  if(row.candidate.changedFields.some(field=>!['adopt','keep'].includes(state.values[field])))return;
+  try{await request('EDIT_AI_PRESENTATION',{edit:{topicId,expectedRevision:row.presentation.revision,candidateDecisions:{...state.values},operationId:crypto.randomUUID()}});this.aiCandidateChoices.delete(topicId);this.onStatus('已保存这些选择 · 未采用的部分保持原样');await this.refresh();}
+  catch(error){await this.updateViewStatus({strict:false}).catch(()=>{});this.onStatus(error?.code==='STALE_BASE'?'内容刚有更新，请重新核对后再保存。':'候选尚未保存，当前稿和选择仍保留。',error?.code==='STALE_BASE'?'conflict':'error');this.renderCandidate(this.aiTopics.get(topicId));}
+ }
+ async readRefresh(){const result=await super.readRefresh();if(result!==true||!this.id||this.view!=='ai')return result;const row=this.aiTopics.get(this.id);if(!row?.presentation){this.originalPane.hidden=false;this.aiPane.hidden=false;if(!row?.userDraft&&!this.aiPane.querySelector('[data-ai-first-generation]'))this.aiPane.replaceChildren(firstAIGenerationPanel({topicName:this.topic?.name||this.document?.topic?.name||'当前主题',count:this.firstGenerationCount(),onGenerate:()=>this.confirmFirstGeneration(this.id)}));}else this.renderCandidate(row);return result;}
  async leave(){this.rememberView();const keepOriginal=this.view==='ai'&&this.aiPending&&!this.aiTopics.get(this.id)?.presentation;if(!keepOriginal)return super.leave();this.view='original';try{return await super.leave();}finally{this.view='ai';}}
  async open(id){
   this.rememberView();this.homePositions.set(this.id||'home',{scroll:scrollY,cursor:this.cursor,pages:this.pages,query:this.id?$('topic-search').value:$('thought-search').value,sort:this.readingSort});const intent=this.openIntent=(this.openIntent||0)+1;if(!await this.leave()||intent!==this.openIntent)return;this.clearActionFeedback();
