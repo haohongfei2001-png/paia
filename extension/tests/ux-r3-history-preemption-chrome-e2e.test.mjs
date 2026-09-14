@@ -63,3 +63,55 @@ test('UX-R3 browser history restore preempts an invalidated Thought home read',{
   await h.close();
  }
 });
+
+test('UX-R3 same-session Back restores a saved Topic page before durable position metadata resolves',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start({onboarding:true});
+ try{
+  const p=await ready(h),topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'R3 saved page resume',operationId:op()}});
+  for(let i=0;i<90;i++)await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:`R3 saved page entry ${String(i).padStart(2,'0')}`,topicId:topic.id}});
+  const first=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}});
+  assert.ok(first.nextCursor,'fixture must span more than one Topic page');
+  const second=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',cursor:first.nextCursor,limit:40}}),anchor=second.items[10].entry;
+  await rpc(p,'THOUGHT_POSITION',{position:{topicId:topic.id,entryId:anchor.id,revision:anchor.revision,offset:4,sort:'asc',expanded:[]}});
+
+  await nav(p,'thoughts');
+  await p.locator(`[data-topic-id="${topic.id}"]`).click();
+  await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor({timeout:30000});
+  await p.locator('#back').click();
+  await p.locator(`[data-topic-id="${topic.id}"]`).waitFor({timeout:30000});
+
+  await p.evaluate(topicId=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);
+   let releasePosition;
+   const positionGate=new Promise(resolve=>{releasePosition=resolve;});
+   window.r3PositionPreemption={topicId,positionDelayed:false,positionReleased:false,topicReadStarted:false};
+   window.r3ReleasePositionRead=()=>{if(window.r3PositionPreemption.positionReleased)return;window.r3PositionPreemption.positionReleased=true;releasePosition();};
+   window.r3RestorePositionSendMessage=()=>{chrome.runtime.sendMessage=send;};
+   chrome.runtime.sendMessage=(message,...args)=>{
+    const position=message?.position;
+    if(message?.type==='THOUGHT_POSITION'&&position?.topicId===topicId&&!position?.entryId&&!window.r3PositionPreemption.positionDelayed){
+     window.r3PositionPreemption.positionDelayed=true;
+     return positionGate.then(()=>send(message,...args));
+    }
+    if(message?.type==='TOPIC_DOCUMENT_PAGE'&&message?.options?.topicId===topicId)window.r3PositionPreemption.topicReadStarted=true;
+    return send(message,...args);
+   };
+  },topic.id);
+
+  await p.goBack();
+  await p.waitForFunction(()=>window.r3PositionPreemption?.positionDelayed===true,null,{timeout:5000});
+  await p.waitForFunction(()=>window.r3PositionPreemption?.topicReadStarted===true,null,{timeout:5000});
+  await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor({timeout:10000});
+  assert.equal(await p.evaluate(()=>window.r3PositionPreemption.positionReleased),false,'saved Topic page must render before durable position metadata resolves');
+  assert.equal(await p.evaluate(id=>history.state?.paiaReader?.topicId===id,topic.id),true);
+  await p.evaluate(()=>window.r3ReleasePositionRead());
+  await eventually(async()=>await p.evaluate(()=>window.r3PositionPreemption.positionReleased===true));
+  assert.equal(h.externalRequests,0);
+  assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.deepSeekRequests.length,0);
+  assert.deepEqual(h.errors,[]);
+ }finally{
+  await h.archive.evaluate(()=>{window.r3ReleasePositionRead?.();window.r3RestorePositionSendMessage?.();}).catch(()=>{});
+  await h.close();
+ }
+});
