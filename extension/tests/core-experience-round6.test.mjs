@@ -46,7 +46,7 @@ test('Round 6: Settings exposes one normal Thought Library update path and colla
   assert.match(settings,/id="start-thought-library" hidden aria-hidden="true" tabindex="-1"/u);
   assert.match(settings,/默认使用单次整理/u);
   assert.match(settings,/达到上限后不会自动继续/u);
-  assert.match(thoughtControllerSources,/\$('start-thought-library'\)\.addEventListener/u,'hidden compatibility node must remain because the current controller still binds it');
+  assert.match(thoughtControllerSources,/\$\('start-thought-library'\)\.addEventListener/u,'hidden compatibility node must remain because the current controller still binds it');
 });
 
 test('Round 6: closure is UI-only and does not add a second runtime entry script',()=>{
