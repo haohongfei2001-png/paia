@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "campaign": "paia-continuation-20260915-v2",
-  "status": "UX_R5_RP03_PREPARED",
-  "checkpoint_sequence": 7,
-  "control_parent_head": "3f290c3b801418e29db70f244ec28ffae5b69dd5",
+  "status": "UX_R5_RP03_PUBLISHED_AWAITING_CERTIFICATION",
+  "checkpoint_sequence": 8,
+  "control_parent_head": "b2bd8d2804eb4ca20958040b725819d63656163b",
   "control_branch": "overnight/control-20260915-v2",
   "predecessor": {
     "campaign": "paia-overnight-20260914-v1",
@@ -21,21 +21,21 @@
       "previous_owner": "recovery-20260915-651776-6c94b7e1",
       "disposition": "STALE_CHAT_EXECUTION_ENDED",
       "recovered_at_control_parent": "f6cc9472f91c81b6b6cda746416072e25e12d93f",
-      "replacement_owner": "recovery-20260915-r5-82f1c4d7",
-      "basis": "User confirmed the previous Chat execution ended and no background development Agent remained. Repository refs, expected product HEAD and pending publication were independently revalidated before takeover."
+      "replacement_owner": "recovery-20260915-r5-82f1c4d7"
     }
   ],
   "product": {
     "branch": "ux-r2",
-    "expected_head": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
+    "expected_head": "599c224e5a12bb65a13c20425a7edee01a36f0fc",
     "repair_start_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
     "repair_commits": [
       "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
-      "277ddaaa9a3ddc0722f43867730c6bc68f456555"
+      "277ddaaa9a3ddc0722f43867730c6bc68f456555",
+      "599c224e5a12bb65a13c20425a7edee01a36f0fc"
     ],
     "certified_head": null,
     "official_status": "UX-R5 READY / NOT_STARTED in inherited product status; implementation and recovery repairs published but not certified",
-    "current_state": "UX-R5 / ON-02 RP03_PREPARED"
+    "current_state": "UX-R5 / ON-02 RP03_PUBLISHED_AWAITING_CERTIFICATION"
   },
   "authority": {
     "ref": "6517763883c95e9a8901e5095db2a7d846da0ef6",
@@ -53,89 +53,33 @@
     "purpose": "CI_ONLY_DO_NOT_MERGE",
     "historical_failed_run": 34871354407,
     "historical_failed_run_number": 263,
-    "prior_repair_run": {
-      "id": 34879726600,
-      "number": 264,
-      "product_head": "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
-      "use": "Intermediate root-cause repair evidence only; superseded by RP-02; do not claim final certification PASS"
+    "prior_repair_run": {"id": 34879726600, "number": 264, "product_head": "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2", "use": "intermediate_only"},
+    "failed_acceptance_run": {
+      "id": 34881612592,
+      "number": 265,
+      "product_head": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
+      "result": "FAIL",
+      "jobs": {"unit_1":"PASS","unit_2":"PASS","unit_3":"PASS","unit_4":"PASS","adapter_privacy":"PASS","macos_secure_store":"PASS","release":"PASS","browser":"FAIL","full_suite":"FAIL","aggregate_certification":"FAIL"},
+      "full_suite": {"total":1076,"pass":1074,"fail":2,"skipped":0,"unit_pass":898,"browser_pass":29,"browser_fail":2,"adapter_pass":95,"privacy_pass":52,"successful_receipt":false,"artifact_id":10364545675,"artifact_digest":"sha256:7c0f539aed7c0f21fc3d4bcc7e83c665497cd0fcc5c94c7cb6f19ea019254e90"},
+      "ux_r5_artifact_id": 10363895905,
+      "ux_r5_artifact_digest": "sha256:d52d4ed89e9af98f6e44aaf4c7ff00538ae38146aa8400a880de19711b4ee2b6"
     },
-    "current_recovery_run": 34881612592,
-    "current_recovery_run_number": 265,
-    "current_recovery_product_head": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
-    "current_recovery_status": "COMPLETED",
-    "recovery_result": "FAIL",
-    "observed_required_jobs": {
-      "unit_1": "PASS",
-      "unit_2": "PASS",
-      "unit_3": "PASS",
-      "unit_4": "PASS",
-      "adapter_privacy": "PASS",
-      "macos_secure_store": "PASS",
-      "release": "PASS",
-      "browser": "FAIL",
-      "full_suite": "FAIL",
-      "aggregate_certification": "FAIL"
-    },
-    "full_suite_265": {
-      "total": 1076,
-      "pass": 1074,
-      "fail": 2,
-      "skipped": 0,
-      "unit": {"pass": 898, "fail": 0},
-      "browser_e2e": {"pass": 29, "fail": 2},
-      "adapter_contract": {"pass": 95, "fail": 0},
-      "privacy_security": {"pass": 52, "fail": 0},
-      "successful_receipt": false,
-      "artifact_id": 10364545675,
-      "artifact_digest": "sha256:7c0f539aed7c0f21fc3d4bcc7e83c665497cd0fcc5c94c7cb6f19ea019254e90"
-    },
-    "ux_r5_artifact_265": {
-      "artifact_id": 10363895905,
-      "artifact_digest": "sha256:d52d4ed89e9af98f6e44aaf4c7ff00538ae38146aa8400a880de19711b4ee2b6"
-    }
+    "current_recovery_run": null,
+    "current_recovery_run_number": null,
+    "current_recovery_product_head": "599c224e5a12bb65a13c20425a7edee01a36f0fc",
+    "current_recovery_status": "AWAITING_CI",
+    "recovery_result": "WAITING_CI"
   },
-  "recovery_audit_outcome": "Certification #265 has exactly two failures and both are in ux-r5-certification-chrome-e2e.test.mjs; Full Suite has no independent domain/unit/adapter/privacy failure. Failure 1 is a real R5 theme defect: candidate eyebrow inherits legacy #748574, whose light-surface contrast is exactly 3.9253780852339277; RP-03 binds it to the current --paia-meta token without changing the 4.5 threshold. Failure 2 is a test route-synchronization race after reload: the app may restore the Topic document while openTopic waits only for the parent Thought panel then samples document visibility once; RP-03 waits for the actual Thought document/home-list route state before selecting the Topic, without increasing timeouts or changing product navigation semantics.",
-  "pending_publication": {
-    "id": "RP-03",
-    "kind": "UX_R5_BROWSER_ACCEPTANCE_REPAIR",
-    "owner": "recovery-20260915-r5-82f1c4d7",
-    "branch": "ux-r2",
-    "expected_parent": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
-    "candidate_commit": "599c224e5a12bb65a13c20425a7edee01a36f0fc",
-    "candidate_tree": "bc61405fc749aa078c8c770ee4b8f3cfdcdac3f1",
-    "allowed_paths": [
-      "extension/ui/thought-reader.css",
-      "extension/tests/ux-r5-certification-chrome-e2e.test.mjs"
-    ],
-    "diff_review": "PASS: candidate is exactly one commit ahead of expected parent; exactly two files changed; +2/-1. Contrast threshold remains 4.5 and no existing gate is removed or skipped.",
-    "certification": "NOT_RUN",
-    "recovery_protocol": "Publish only when active owner, control HEAD and product expected parent still match this registration. Use non-force fast-forward. Read back product commit/tree and then seal control state. Any unknown drift stops writes."
-  },
+  "recovery_audit_outcome": "#265 had exactly two browser failures and no independent Full Suite domain failure. RP-03 fixes the real candidate light-theme contrast defect by binding the candidate eyebrow to --paia-meta while preserving the 4.5 gate. The outcome_unknown timeout was a browser helper synchronization race after reload; the helper now waits for the actual restored Topic document or Thought home list before selecting the Topic, without increasing timeouts or changing product navigation semantics.",
+  "pending_publication": null,
   "publication_receipts": [
-    {
-      "id": "RP-01",
-      "prepared_control_head": "665c51c1b8b6ba90086e7eff8ff270c4a7af88e3",
-      "parent": "6517763883c95e9a8901e5095db2a7d846da0ef6",
-      "commit": "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
-      "tree": "21a22861d0228ae0150d485a5cf366620462fc31",
-      "result": "PUBLISHED_AND_READ_BACK",
-      "force": false,
-      "changed_files": ["extension/core/organizer/ai-presentation.js", "extension/tests/ai-product-v080.test.mjs", "extension/tests/ux-r5-ai-result-contract.test.mjs"]
-    },
-    {
-      "id": "RP-02",
-      "prepared_control_head": "8809efe0c1da4711e6a7a68dd529dd99414696aa",
-      "parent": "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
-      "commit": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
-      "tree": "6f3fc5e9ce44e15fe69c630dda997663d0886575",
-      "result": "PUBLISHED_AND_READ_BACK",
-      "force": false,
-      "changed_files": ["extension/ui/ai-candidate.js", "extension/ui/thought-reader.css", "extension/tests/ux-r5-certification-chrome-e2e.test.mjs", ".github/workflows/paia-certification.yml"]
-    }
+    {"id":"RP-01","parent":"6517763883c95e9a8901e5095db2a7d846da0ef6","commit":"6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","tree":"21a22861d0228ae0150d485a5cf366620462fc31","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/core/organizer/ai-presentation.js","extension/tests/ai-product-v080.test.mjs","extension/tests/ux-r5-ai-result-contract.test.mjs"]},
+    {"id":"RP-02","parent":"6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","commit":"277ddaaa9a3ddc0722f43867730c6bc68f456555","tree":"6f3fc5e9ce44e15fe69c630dda997663d0886575","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/ui/ai-candidate.js","extension/ui/thought-reader.css","extension/tests/ux-r5-certification-chrome-e2e.test.mjs",".github/workflows/paia-certification.yml"]},
+    {"id":"RP-03","prepared_control_head":"b2bd8d2804eb4ca20958040b725819d63656163b","parent":"277ddaaa9a3ddc0722f43867730c6bc68f456555","commit":"599c224e5a12bb65a13c20425a7edee01a36f0fc","tree":"bc61405fc749aa078c8c770ee4b8f3cfdcdac3f1","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/ui/thought-reader.css","extension/tests/ux-r5-certification-chrome-e2e.test.mjs"],"diff_review":"PASS: one parent, exactly two files, +2/-1; acceptance threshold unchanged"}
   ],
   "last_run_report": "overnight/recovery/UX_R5_RECOVERY_AUDIT.md",
   "next_allowed_slice": "UX-R5_RECOVERY",
-  "next_action": "Publish the precisely registered RP-03 after exact owner/ref recheck, seal its read-back, then certify every required UX-R5 gate. Do not start UX-R6.",
+  "next_action": "Read the exact-head certification triggered by RP-03. If any required gate fails, diagnose all final evidence and prepare the next bounded repair. If all gates pass, inspect the complete UX-R5 visual artifact, publish canonical R5 report/status, seal certified_head, set next_allowed_slice UX-R6, release active_owner, and stop without starting UX-R6.",
   "ux_r5_verified_complete": false,
   "ux_r6_started": false,
   "scheduled_execution_authorized": false
