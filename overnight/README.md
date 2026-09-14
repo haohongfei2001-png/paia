@@ -1,39 +1,13 @@
-# PAIA Overnight Development — Start Here
+# PAIA continuation control v2
 
-Campaign: `paia-overnight-20260914-v1`.
+Campaign: `paia-continuation-20260915-v2`.
+Control branch: `overnight/control-20260915-v2`.
+Product branch: `ux-r2`.
 
-## Two branches, two different responsibilities
+This branch was created from the verified v1 control commit `b46a2edda95424934da23784a424d47f0a44f739`. V1 is EXHAUSTED / HISTORICAL, with 8/8 opportunities used. Its branch and published history must never be edited. Inherited `overnight/runs/001` through `008` records are historical v1 evidence, not v2 executions. No ninth opportunity or new scheduled task is authorized.
 
-- **Product source and all product changes:** `haohongfei2001-png/paia` → `ux-r2`.
-- **This plan, execution state, and run reports:** `overnight/control-20260914` → `overnight/`.
-- **Frozen CI-only base:** `overnight/ci-base-20260914` at `ad386c07cff59b9b3472a5aa03626fe89514f8d1`.
-- **CI carrier:** Draft PR #28, `ux-r2` → frozen CI base. NEVER merge or retarget it. Never change `main`.
+Read this README, `OVERNIGHT_DEVELOPMENT_STATE.json`, `OVERNIGHT_DEVELOPMENT_PLAN.md`, and State.last_run_report at one pinned control commit. Then verify State.product.expected_head against `ux-r2` before reading its `extension/AGENTS.md` and UX authority order. **All extension files on this control branch are an old snapshot, not product authority or current source.**
 
-IMPORTANT: the control branch was created from a product snapshot. Its `extension/` and `native-hosts/` copies will become stale. NEVER use those copies as the active product source. Fetch product files from the pinned current `ux-r2` commit specified by the verified state. Do not merge the control branch into the product branch.
+Current independent recovery is limited to: audit v1; diagnose and repair UX-R5; run every required gate; publish accurate report/status; establish a continuation checkpoint; stop. UX-R6, Apple/MCP slices, main changes, merges, force pushes, baseline moves, destructive migrations, secrets and private-data tests are forbidden.
 
-Keeping state off the product branch prevents lease/report updates from repeatedly triggering or cancelling the product PR's certification. A control-state commit is not a product checkpoint or product certification.
-
-## Bootstrap read set for every independent execution
-
-1. Resolve the control branch HEAD and read, at that exact ref, `OVERNIGHT_DEVELOPMENT_STATE.json`, this README, `OVERNIGHT_DEVELOPMENT_PLAN.md`, and the run report pointed to by `last_run_report`.
-2. Resolve `ux-r2` HEAD and the frozen CI base. Verify them against the state BEFORE claiming work or writing product files.
-3. From the verified product HEAD read `extension/AGENTS.md`, then follow its authority order. Always read current `extension/docs/ux/UX_IMPLEMENTATION_STATUS.md`; fetch the complete governing Spec and relevant feature contracts/source/test files, not just this plan's summaries.
-4. Inspect the previous product diff, actual CI jobs/logs/receipts/artifacts and acceptance gaps. Only then select the first eligible incomplete functional slice.
-
-The small bootstrap set locates all necessary context; it does not excuse reading the governing documents or actual implementation. State/report assertions are navigation and evidence references, not substitutes for code, tests or CI.
-
-## Scheduling
-
-Use ONE hourly task with at most EIGHT scheduled deliveries, all with the same prompt in `TASK_PROMPT.md`. Do not create eight prompts that force ON-01 through ON-08 by wall-clock position. A delivery may repair, verify, wait for CI, or safely stop instead of finishing a new slice.
-
-The scheduled trigger limit and the state's admitted-execution limit are distinct. A skipped overlapping delivery still consumes the scheduler's eight-delivery allowance. Never add catch-up deliveries automatically. This bootstrap is execution 000 and does not consume an opportunity.
-
-No task is created by these files. GitHub access, write approval, runnable validation and model availability must be established in the actual scheduled environment. Do not assume Codex, an always-on Mac, Xcode, physical hardware, signing identities, production accounts or secrets exist.
-
-## Deliverables
-
-- `OVERNIGHT_DEVELOPMENT_PLAN.md`: scope, eight slices, gates, concurrency, publication and recovery protocol.
-- `OVERNIGHT_DEVELOPMENT_STATE.json`: single machine-readable campaign state; product HEAD is an actual SHA, not a self-referential placeholder.
-- `BASELINE_AUDIT.md`: pinned repository findings and evidence limitations.
-- `TASK_PROMPT.md`: identical instructions for each hourly delivery.
-- `runs/000-bootstrap.md`: planning-only handoff; later runs use monotonically numbered reports.
+All publication uses a single parent, exact expected refs and non-force fast-forward. Record a prepared product commit and tree in State.pending_publication before advancing the product ref. Immediately before each write, recheck the target HEAD and active owner. Only the exact prepared H/C pair may be recovered. Any other HEAD or owner drift stops writes. Release the owner at a safe final checkpoint. CI-only draft PR #28 stays unmerged against the frozen baseline.

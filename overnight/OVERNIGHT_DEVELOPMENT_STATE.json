@@ -1,95 +1,54 @@
 {
-  "schema_version": 1,
-  "campaign_id": "paia-overnight-20260914-v1",
-  "plan_version": "1.0",
-  "status": "CAMPAIGN_ENDED_PARTIAL_ON02_VALIDATION_FAILED",
-  "repository": "haohongfei2001-png/paia",
-  "control_branch": "overnight/control-20260914",
-  "control_checkpoint": {
-    "sequence": 24,
-    "parent_head": "01f3d03322a427e941a535b696935690a44111ac",
-    "kind": "final_campaign_handoff_after_required_ci_failure"
+  "schema_version": 2,
+  "campaign": "paia-continuation-20260915-v2",
+  "status": "UX_R5_RECOVERY_IN_PROGRESS",
+  "checkpoint_sequence": 1,
+  "control_parent_head": "b46a2edda95424934da23784a424d47f0a44f739",
+  "control_branch": "overnight/control-20260915-v2",
+  "predecessor": {
+    "campaign": "paia-overnight-20260914-v1",
+    "status": "EXHAUSTED / HISTORICAL",
+    "control_head": "b46a2edda95424934da23784a424d47f0a44f739",
+    "final_product_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+    "execution_opportunities_used": 8,
+    "execution_opportunities_total": 8,
+    "history_mutable": false
   },
+  "active_owner": "recovery-20260915-651776-6c94b7e1",
+  "authorization": "Independent user-authorized UX-R5 recovery only; no scheduled continuation and no UX-R6 execution",
   "product": {
     "branch": "ux-r2",
     "expected_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
-    "start_head_execution_008": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-    "end_head_execution_008": "6517763883c95e9a8901e5095db2a7d846da0ef6",
-    "end_tree_execution_008": "6ded7b5ba60fec390048200b54bda8422d2aaba9",
-    "main_observed_head": "c1c37f749a80f96ce3b1e5f19efad75679c3142c",
-    "main_access": "READ_ONLY_NO_MERGE",
-    "official_ux_status_path": "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md",
-    "official_ux_round_observed": "UX-R5",
-    "official_ux_status_observed": "READY / NOT STARTED",
-    "official_status_intentionally_not_advanced": true
+    "repair_start_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+    "repair_commits": [],
+    "certified_head": null,
+    "official_status": "UX-R5 READY / NOT_STARTED in inherited product status; ON-02 implementation published but not certified",
+    "current_state": "UX-R5 / ON-02 PUBLISHED_VALIDATION_FAILED"
   },
-  "execution_budget": {
-    "max_admitted_executions": 8,
-    "admitted_executions": 8,
-    "remaining_opportunities": 0,
-    "campaign_started_at": "2026-09-14T09:34:40Z",
-    "stop_new_work_at": "2026-09-14T17:34:40Z",
-    "budget_exhausted": true,
-    "new_product_work_forbidden": true
+  "authority": {
+    "ref": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+    "agents": "extension/AGENTS.md",
+    "design_core": "extension/docs/ux/PAIA_DESIGN_CORE_v1.0.md",
+    "development_spec": "extension/docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md",
+    "official_status": "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md"
   },
-  "active_execution": null,
-  "pending_publication": null,
-  "current_slice": "ON-02",
-  "slices": [
-    {"id":"ON-01","status":"COMPLETE","verified_product_head":"19fe4ed19bc686ff715c5604616ea7fad1eed2fa","certification_run":262},
-    {"id":"ON-02","status":"PUBLISHED_VALIDATION_FAILED","product_head":"6517763883c95e9a8901e5095db2a7d846da0ef6","certification_run":263},
-    {"id":"ON-03","status":"NOT_STARTED"},
-    {"id":"ON-04","status":"NOT_STARTED"},
-    {"id":"ON-05","status":"NOT_STARTED"},
-    {"id":"ON-06","status":"NOT_STARTED"},
-    {"id":"ON-07","status":"NOT_STARTED"},
-    {"id":"ON-08","status":"NOT_STARTED"}
-  ],
   "ci": {
-    "carrier_pr": 28,
-    "carrier_draft": true,
-    "carrier_never_merge": true,
-    "base_branch": "overnight/ci-base-20260914",
-    "base_expected_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
-    "run": {
-      "purpose": "ON-02 final execution certification",
-      "product_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
-      "product_tree": "6ded7b5ba60fec390048200b54bda8422d2aaba9",
-      "run_id": 34871354407,
-      "run_number": 263,
-      "observed_status_at_finalization": "in_progress_with_required_failures",
-      "observed_conclusion_at_finalization": null,
-      "required_failure": true,
-      "required_job_observations": {
-        "Unit 1/4": "FAILURE",
-        "Unit 2/4": "FAILURE",
-        "Unit 3/4": "FAILURE",
-        "Unit 4/4": "FAILURE",
-        "Adapter and privacy contracts": "SUCCESS",
-        "Current Browser Certification": "IN_PROGRESS_AT_FINALIZATION",
-        "Full Suite Certification": "IN_PROGRESS_AT_FINALIZATION",
-        "macOS Secure Store Certification": "SUCCESS",
-        "Current release build and guards": "SUCCESS",
-        "Certification gate": "CANNOT_PASS_WITH_REQUIRED_UNIT_FAILURES"
-      },
-      "diagnostic_summary": "Unit 1/4 recorded 278 PASS / 7 FAIL, including one legacy ai-presentation-v072c failure and all six ux-r5-ai-candidates tests. Unit 2/4 recorded 195 PASS / 3 FAIL, including one ai-product-v080 failure and two ux-r5-ai-states failures. Repeated assertion symptom: runner result.completed was undefined where true was required. Unit 3/4 and 4/4 also concluded failure. This is sufficient to fail the mandatory certification contract regardless of still-running browser/full-suite jobs."
-    },
-    "latest_completed_good_run": 262
+    "baseline_branch": "overnight/ci-base-20260914",
+    "baseline_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
+    "pull_request": 28,
+    "draft": true,
+    "purpose": "CI_ONLY_DO_NOT_MERGE",
+    "historical_failed_run": 34871354407,
+    "historical_failed_run_number": 263,
+    "current_recovery_run": null,
+    "recovery_result": "NOT_RUN"
   },
-  "validation": {
-    "local_unit": "NOT_RUN_NO_CHECKOUT_RUNTIME",
-    "local_browser": "NOT_RUN_NO_CHECKOUT_RUNTIME",
-    "local_build": "NOT_RUN_NO_CHECKOUT_RUNTIME",
-    "local_static": "NOT_RUN_NO_CHECKOUT_RUNTIME",
-    "lint": "NOT_CONFIGURED",
-    "diff_review": "PASS_PREPUBLICATION_REVIEW",
-    "final_ci_acceptance": "FAIL_REQUIRED_UNIT_GATES"
-  },
-  "blocking_reasons": [
-    "CERTIFICATION_263_REQUIRED_UNIT_FAILURE",
-    "STOP_BUDGET"
-  ],
-  "last_run_report": "overnight/runs/008.md",
-  "next_recommended_action": "Campaign is closed and must not continue automatically. A future explicitly authorized campaign should begin from ux-r2@6517763883c95e9a8901e5095db2a7d846da0ef6, reproduce and repair ON-02 AIPresentationRunner/candidate result-contract regressions, then rerun every UX-R5 gate. Do not start UX-R6 until UX-R5 is actually certified and its official report/status are committed.",
-  "human_resolution_required": true
+  "recovery_audit_outcome": "No unknown product/control/baseline drift. ON-02 introduces a reproduced post-commit ReferenceError for callback-scoped candidateCreated. Full suite #263: 1070 total, 1056 pass, 14 fail, 0 skipped; browser 28 pass. R5 report absent and inherited official status not updated.",
+  "pending_publication": null,
+  "last_run_report": "overnight/recovery/UX_R5_RECOVERY_AUDIT.md",
+  "next_allowed_slice": "UX-R5_RECOVERY",
+  "next_action": "Publish the minimal transaction-result repair with focused regression coverage, then complete required certification. Stop after the recovery checkpoint; do not execute UX-R6.",
+  "ux_r5_verified_complete": false,
+  "ux_r6_started": false,
+  "scheduled_execution_authorized": false
 }
