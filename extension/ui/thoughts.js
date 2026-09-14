@@ -177,6 +177,7 @@ export class ThoughtWorkspace {
    const read=await this.readRefresh();
    if(read!==true||this.loadToken!==token||epoch!==this.statusEpoch){done();return;}
    this.snapshotKey=this.readKey();this.snapshotRoute=this.id||'home';if(!this.id)this.homeLoaded=true;
+   if(this.id&&this.view==='original'&&!this.pendingView){const toggle=$('ai-presentation-toggle');toggle.checked=false;toggle.disabled=false;}
    for(const id of ['topic-body','topic-heading'])$(id).inert=false;
    highlightReading(this.id?$('topic-body'):null,this.id?$('topic-search').value:'');
    done(host.dataset.state==='empty'?'empty':'ready');this.readRetry.hidden=true;
