@@ -2,14 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "ACTIVE_IMPLEMENTATION",
+  "status": "PENDING_PUBLICATION",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 4,
-    "parent_head": "34fa37e5b54c636446d5ec15a560df5eb9dde0a6",
-    "kind": "execution_claim",
+    "sequence": 5,
+    "parent_head": "bdadb1f3d528bc578c73dd8fd0d9379eb2cd0c80",
+    "kind": "publication_prepare",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
@@ -58,7 +58,17 @@
     "start_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
     "run_report": "overnight/runs/002.md"
   },
-  "pending_publication": null,
+  "pending_publication": {
+    "slice": "ON-01",
+    "run": 2,
+    "prepared_by": "run-002-20260914T103539Z",
+    "product_parent": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
+    "candidate_commit": "825c1644da4effd104ad6d250aa2344b9b4a0ca8",
+    "candidate_tree": "c79ce29c53c18ca45236d6b81c8f79b181282a8b",
+    "status": "PREPARED",
+    "changed_files": [".github/workflows/paia-certification.yml", "extension/core/topic-ai-view-session.js", "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs", "extension/tests/ux-r5-on01.test.mjs", "extension/ui/ai-first-generation.js", "extension/ui/thoughts-base.js", "extension/ui/thoughts.js"],
+    "publication_rule": "Publish only by force=false fast-forward if ux-r2 still equals product_parent and control ownership remains current."
+  },
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
@@ -141,13 +151,13 @@
     "mcp_adapter": "NOT_STARTED"
   },
   "blocking_reasons": [],
-  "preflight_requirements": ["Execution 002 owns ON-01. Re-read current authority and transplant only topic-local Original/Organized first-generation/cache/view behavior; exclude update-candidate workflow and unrelated R3 fixes."],
+  "preflight_requirements": ["Publish only the pre-registered ON-01 candidate if all refs remain unchanged; then require the full PAIA Certification before any ON-02 progress."],
   "last_run_report": "overnight/runs/002.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
     {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "result": "INHERITED_BASELINE_VERIFIED"},
-    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": null, "result": "IN_PROGRESS"}
+    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": null, "result": "PREPARED"}
   ],
-  "next_recommended_action": "Execution 002 is active: implement and validate ON-01 only, then seal or record pending CI without entering ON-02.",
+  "next_recommended_action": "Execution 002 owns ON-01. Publish candidate 825c1644da4effd104ad6d250aa2344b9b4a0ca8 only by non-force fast-forward if product/control/CI carrier refs still match; then wait for and inspect required CI.",
   "human_resolution_required": false
 }
