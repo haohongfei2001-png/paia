@@ -1,9 +1,8 @@
 {
   "schema_version": 3,
   "campaign": "paia-ux-r6-20260915-v3",
-  "status": "UX_R6_R603_PREPARED_AFTER_R602_BROWSER_FAILURE",
-  "checkpoint_sequence": 7,
-  "control_parent_head": "fa92e169cc198099334bef395a19089cabee3c61",
+  "status": "UX_R6_R603_PUBLISHED_AWAITING_CERTIFICATION",
+  "checkpoint_sequence": 8,
   "control_branch": "overnight/control-20260915-v3",
   "predecessor": {
     "campaign": "paia-continuation-20260915-v2",
@@ -11,22 +10,19 @@
     "control_head": "a692345d338e440bc6125d3da41468fbc472684b",
     "product_checkpoint": "18c9c2972c05dad1e45f748244f5947d2192e044",
     "certified_head": "fe10e182aa09a9860f248e38713bd69e9b27555f",
-    "certification_run": 34887855731,
     "certification_number": 267,
-    "docs_checkpoint_certification_run": 34891697881,
     "docs_checkpoint_certification_number": 268,
     "docs_checkpoint_certification_result": "PASS",
     "history_mutable": false
   },
   "active_owner": "ux-r6-20260915-7e4c19b2",
-  "authorization": "User-authorized continuation after the sealed UX-R5 checkpoint. Execute UX-R6 only, then publish its verified checkpoint before the separately authorized final UX-R1 through UX-R6 regression.",
+  "authorization": "User-authorized UX-R6 execution only; final UX-R1 through UX-R6 release regression begins only after a certified and sealed UX-R6 checkpoint.",
   "product": {
     "branch": "ux-r2",
     "start_head": "18c9c2972c05dad1e45f748244f5947d2192e044",
-    "expected_head": "c65b751fe25b1f11ab84eb943cc51826045d6bc5",
+    "expected_head": "86bc60001665138837288131fe11714871bd3618",
     "certified_head": null,
-    "official_status": "UX-R6 READY / NOT STARTED in inherited canonical status; R6-02 browser certification failed a test-contract assertion and R6-03 is prepared but not published",
-    "current_state": "UX-R6 / R6-03 PREPARED_AFTER_R6-02_BROWSER_FAILURE"
+    "current_state": "UX-R6 / R6-03 PUBLISHED_AWAITING_CERTIFICATION"
   },
   "authority": {
     "ref": "18c9c2972c05dad1e45f748244f5947d2192e044",
@@ -40,18 +36,15 @@
     "r5_seal_verified": true,
     "docs_checkpoint_268_verified": true,
     "scope": "UI-17/UI-18/UI-19, complete Settings, Backup/Restore/open export, preview masking, storage honesty, migration/compatibility and cross-size release acceptance",
-    "non_goals": ["production sync", "remote API/MCP", "native mobile app", "voice", "new hosted provider", "brand rename"],
-    "existing_reuse": ["six-group Settings shell", "Backup/Restore domain service", "Source archive export", "Reader/Revisit policies", "Memory privacy controls", "R1-R5 responsive/design system"]
+    "non_goals": ["production sync", "remote API/MCP", "native mobile app", "voice", "new hosted provider", "brand rename"]
   },
   "control_audit": [
     {
       "event": "ACCIDENTAL_CONTROL_STAGING_FILE_CORRECTED",
       "staging_commit": "735154e489c77fde7be23607356e977261860380",
       "cleanup_commit": "3786d8c8b123102edc94d52646e2212314c4ab08",
-      "path": "extension/core/open-export.js",
       "product_affected": false,
-      "history_rewritten": false,
-      "disposition": "Normal fast-forward delete restored the control working tree; audit history retained."
+      "history_rewritten": false
     }
   ],
   "ci": {
@@ -60,28 +53,24 @@
     "pull_request": 28,
     "draft": true,
     "purpose": "CI_ONLY_DO_NOT_MERGE",
-    "current_run": 34900090571,
-    "current_run_number": 270,
-    "current_product_head": "c65b751fe25b1f11ab84eb943cc51826045d6bc5",
-    "result": "FAIL_BROWSER_FULL_SUITE_STILL_RUNNING",
-    "observed_pass": ["unit_1","unit_2","unit_3","unit_4","adapter_privacy","macos_secure_store","release"],
-    "observed_failure": ["browser"],
-    "observed_running": ["full_suite"],
+    "current_run": 34901967413,
+    "current_run_number": 271,
+    "current_product_head": "86bc60001665138837288131fe11714871bd3618",
+    "result": "WAITING_CI",
     "failed_runs": [
       {
         "id": 34897197286,
         "number": 269,
         "product_head": "7631b91b166142911fae788d85af486ac0de0f2d",
         "result": "FAIL",
-        "browser_failure": "Formal restore preserved hideContentPreviews=true but the open page did not immediately re-apply paia-hide-content-previews.",
-        "classification": "R6 UI projection lifecycle defect after formal restore; restored domain data was correct."
+        "classification": "R6 UI projection lifecycle defect after formal restore: durable hideContentPreviews restored correctly but the open page did not immediately re-apply its mask class."
       },
       {
         "id": 34900090571,
         "number": 270,
         "product_head": "c65b751fe25b1f11ab84eb943cc51826045d6bc5",
-        "result": "FAIL_BROWSER_FULL_SUITE_PENDING",
-        "required_jobs_observed": {
+        "result": "FAIL",
+        "required_jobs": {
           "unit_1": "PASS",
           "unit_2": "PASS",
           "unit_3": "PASS",
@@ -90,32 +79,30 @@
           "macos_secure_store": "PASS",
           "release": "PASS",
           "browser": "FAIL",
-          "full_suite": "RUNNING",
-          "aggregate_certification": "CANNOT_PASS_WITH_BROWSER_FAILURE"
+          "full_suite": "FAIL",
+          "aggregate_certification": "FAIL"
         },
-        "browser_failure": "R6 release acceptance read archive.records from the archive collection DTO; the existing query contract returns Source records only after a concrete documentId is opened.",
-        "classification": "TEST_CONTRACT_ERROR. Product restore data is not implicated by this assertion; correct acceptance by resolving the restored Source document then reading its archive document page."
+        "full_suite": {
+          "total": 1087,
+          "pass": 1086,
+          "fail": 1,
+          "skipped": 0,
+          "unit_pass": 908,
+          "browser_pass": 31,
+          "browser_fail": 1,
+          "adapter_pass": 95,
+          "privacy_pass": 52,
+          "artifact_id": 10371271703,
+          "artifact_digest": "sha256:11f411f31e329a8c028f188b52a7936f127267c626c18eb8ababbe49b7fbfd76"
+        },
+        "classification": "TEST_CONTRACT_ERROR: R6 acceptance read archive.records from an archive collection DTO. Existing API returns Source records only after opening a concrete documentId; no second Full Suite failure existed."
       }
     ]
   },
-  "pending_publication": {
-    "id": "R6-03",
-    "parent": "c65b751fe25b1f11ab84eb943cc51826045d6bc5",
-    "candidate_commit": "86bc60001665138837288131fe11714871bd3618",
-    "tree": "e656ef4013b36b2aa695c36a248ad27d7176633e",
-    "changed_files": [
-      "extension/core/backup-service.js",
-      "extension/tests/ux-r6-release-chrome-e2e.test.mjs",
-      "extension/tests/ux-r6-settings-compatibility.test.mjs",
-      "extension/ui/r6-settings.js"
-    ],
-    "diff_review": "PASS: exactly one parent, four UX-R6-scoped files, +16/-6; no CI gate, timeout, provider, sender, consent, restore-range or acceptance weakening",
-    "repair": "Force restored memory:config.externalAccess=false so old external-access authorization cannot silently reactivate; preserve other portable memory policy without inventing Local-only. Add domain round-trip regression and honest unencrypted-file/download-started copy. Correct only the invalid archive collection-level test read by following the existing collection -> document Source query contract."
-  },
+  "pending_publication": null,
   "publication_receipts": [
     {
       "id": "R6-01",
-      "prepared_control_head": "6b022beaff3902aad978eb6206c1cebc56fe07a6",
       "parent": "18c9c2972c05dad1e45f748244f5947d2192e044",
       "commit": "7631b91b166142911fae788d85af486ac0de0f2d",
       "tree": "1f9d5a1a3c5bb3485d44f71fcdec781187f59693",
@@ -124,17 +111,26 @@
     },
     {
       "id": "R6-02",
-      "prepared_control_head": "c536ebbd2b17d5068c07e670f4f599e16677989f",
       "parent": "7631b91b166142911fae788d85af486ac0de0f2d",
       "commit": "c65b751fe25b1f11ab84eb943cc51826045d6bc5",
       "tree": "85307d66abfe35f1eb471b75157a1e069a811607",
       "result": "PUBLISHED_AND_READ_BACK",
       "force": false
+    },
+    {
+      "id": "R6-03",
+      "prepared_control_head": "7537f753a788db0fc9f8c92307d32b812e6b6a26",
+      "parent": "c65b751fe25b1f11ab84eb943cc51826045d6bc5",
+      "commit": "86bc60001665138837288131fe11714871bd3618",
+      "tree": "e656ef4013b36b2aa695c36a248ad27d7176633e",
+      "result": "PUBLISHED_AND_READ_BACK",
+      "force": false,
+      "changed_files": ["extension/core/backup-service.js", "extension/tests/ux-r6-release-chrome-e2e.test.mjs", "extension/tests/ux-r6-settings-compatibility.test.mjs", "extension/ui/r6-settings.js"],
+      "diff_review": "PASS: single parent, four UX-R6-scoped files, +16/-6; no timeout, CI gate, sender/consent, provider, restore-range or acceptance weakening"
     }
   ],
-  "last_run_report": null,
   "next_allowed_slice": "UX-R6",
-  "next_action": "Allow Certification #270 Full Suite to finish so no second independent defect is hidden. Then re-read product/control/baseline/PR. If no additional failure exists, fast-forward ux-r2 non-force from c65b751f... to prepared R6-03 86bc6000... and consume its exact-head certification.",
+  "next_action": "Consume Certification #271 exact-head evidence. If every mandatory current-release gate passes, publish the formal UX-R6 report/status checkpoint; otherwise classify and repair only the exact R6 failure.",
   "ux_r5_verified_complete": true,
   "ux_r6_started": true,
   "ux_r6_verified_complete": false,
