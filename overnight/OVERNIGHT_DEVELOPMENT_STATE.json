@@ -2,14 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "READY",
+  "status": "ACTIVE_IMPLEMENTATION",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 3,
-    "parent_head": "2dd11f9e4e3b64945a650099ae682e8d85cc8e5b",
-    "kind": "execution_seal",
+    "sequence": 4,
+    "parent_head": "34fa37e5b54c636446d5ec15a560df5eb9dde0a6",
+    "kind": "execution_claim",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
@@ -37,8 +37,8 @@
   "execution_budget": {
     "max_scheduled_deliveries": 8,
     "max_admitted_executions": 8,
-    "admitted_executions": 1,
-    "scheduler_deliveries_observed": 1,
+    "admitted_executions": 2,
+    "scheduler_deliveries_observed": 2,
     "scheduler_task_created_by_bootstrap": false,
     "campaign_started_at": "2026-09-14T09:34:40Z",
     "stop_new_work_at": "2026-09-14T17:34:40Z",
@@ -48,12 +48,21 @@
     "platform_runtime_guarantee": false,
     "automatic_catchup_or_extension": false
   },
-  "active_execution": null,
+  "active_execution": {
+    "number": 2,
+    "token": "run-002-20260914T103539Z",
+    "mode": "IMPLEMENT_ON01",
+    "slice": "ON-01",
+    "started_at": "2026-09-14T10:35:39Z",
+    "lease_expires_at": "2026-09-14T11:30:39Z",
+    "start_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
+    "run_report": "overnight/runs/002.md"
+  },
   "pending_publication": null,
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
-    {"id": "ON-01", "status": "NOT_STARTED", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
+    {"id": "ON-01", "status": "IN_PROGRESS", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
     {"id": "ON-02", "status": "NOT_STARTED", "owner_ux_round": "UX-R5", "requires": ["ON-01"]},
     {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-02", "UX-R5_CERTIFIED"]},
     {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-03"]},
@@ -132,12 +141,13 @@
     "mcp_adapter": "NOT_STARTED"
   },
   "blocking_reasons": [],
-  "preflight_requirements": ["Before ON-01 product writes, audit the non-authoritative ux-r5 implementation evidence and current ux-r2 touched code; transplant only ON-01 scope and exclude ON-02 candidate/update work and unrelated R3 fixes."],
-  "last_run_report": "overnight/runs/001.md",
+  "preflight_requirements": ["Execution 002 owns ON-01. Re-read current authority and transplant only topic-local Original/Organized first-generation/cache/view behavior; exclude update-candidate workflow and unrelated R3 fixes."],
+  "last_run_report": "overnight/runs/002.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
-    {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "result": "INHERITED_BASELINE_VERIFIED"}
+    {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "result": "INHERITED_BASELINE_VERIFIED"},
+    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": null, "result": "IN_PROGRESS"}
   ],
-  "next_recommended_action": "Execution 002: revalidate refs and ownership, then implement ON-01 only. Audit/reuse narrowly selected ux-r5 evidence for Topic-level Original/Organized first-generation/cache/view behavior; do not wholesale merge ux-r5 and do not include protected update-candidate workflow (ON-02) or unrelated R3 fixes. Validate and publish through the plan protocol.",
+  "next_recommended_action": "Execution 002 is active: implement and validate ON-01 only, then seal or record pending CI without entering ON-02.",
   "human_resolution_required": false
 }
