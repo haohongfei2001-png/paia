@@ -61,6 +61,9 @@ async function refreshLastBackup(){
  const value=await readLastBackup(),valid=value&&Number.isFinite(Date.parse(value));
  lastBackupNode.textContent=valid?(english()?`Last successful backup in this browser: ${new Date(value).toLocaleString()}`:`此浏览器最近成功创建备份：${new Date(value).toLocaleString()}`):(english()?'No successful backup has been recorded in this browser yet.':'此浏览器尚未记录成功创建的备份。');
 }
+export async function refreshR6Settings(){
+ await Promise.all([syncPrivacy(),refreshStorage(),refreshLastBackup()]);
+}
 export async function recordR6BackupSuccess(at=new Date().toISOString()){
  const value=Number.isFinite(Date.parse(at))?new Date(at).toISOString():new Date().toISOString();
  try{await chrome.storage.local.set({[LAST_BACKUP_KEY]:value});}catch{}
