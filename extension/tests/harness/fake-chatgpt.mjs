@@ -42,7 +42,7 @@ export class FakeChatGPT {
   if(process.env.PAIA_HEADLESS==='1')headless=true;
   const h=new FakeChatGPT();h.pages=new Map();h.pending=new Map();h.historyRequests=0;h.externalRequests=0;h.extensionNetworkRequests=0;h.deepSeekRequests=[];h.errors=[];
   h.manifest=JSON.parse(await readFile(extensionPath+'/manifest.json','utf8'));
-  h.context=await chromium.launchPersistentContext('',{headless,acceptDownloads:true,
+  h.context=await chromium.launchPersistentContext('',{headless,acceptDownloads:true,locale:'zh-CN',
    executablePath:process.env.CHROME_PATH||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':undefined),
    ignoreDefaultArgs:['--disable-extensions'],args:['--enable-unsafe-extension-debugging','--disable-background-networking','--disable-component-update','--disable-sync','--host-resolver-rules=MAP * ~NOTFOUND']});
   try {
