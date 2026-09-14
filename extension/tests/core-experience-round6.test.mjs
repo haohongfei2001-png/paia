@@ -4,6 +4,8 @@ import {readFileSync} from 'node:fs';
 
 const html=readFileSync(new URL('../ui/archive.html',import.meta.url),'utf8');
 const thoughts=readFileSync(new URL('../ui/thoughts.js',import.meta.url),'utf8');
+const thoughtsBase=readFileSync(new URL('../ui/thoughts-base.js',import.meta.url),'utf8');
+const thoughtControllerSources=thoughts+'\n'+thoughtsBase;
 
 const between=(start,end)=>{
   const a=html.indexOf(start),b=html.indexOf(end,a+start.length);
@@ -44,7 +46,7 @@ test('Round 6: Settings exposes one normal Thought Library update path and colla
   assert.match(settings,/id="start-thought-library" hidden aria-hidden="true" tabindex="-1"/u);
   assert.match(settings,/默认使用单次整理/u);
   assert.match(settings,/达到上限后不会自动继续/u);
-  assert.match(thoughts,/\$\('start-thought-library'\)\.addEventListener/u,'hidden compatibility node must remain because the current controller still binds it');
+  assert.match(thoughtControllerSources,/\$('start-thought-library'\)\.addEventListener/u,'hidden compatibility node must remain because the current controller still binds it');
 });
 
 test('Round 6: closure is UI-only and does not add a second runtime entry script',()=>{
