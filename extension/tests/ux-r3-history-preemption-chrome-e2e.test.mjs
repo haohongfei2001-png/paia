@@ -80,29 +80,33 @@ test('UX-R3 same-session Back restores a saved Topic page before durable positio
   await p.locator('#back').click();
   await p.locator(`[data-topic-id="${topic.id}"]`).waitFor({timeout:30000});
 
-  await p.evaluate(topicId=>{
+  await p.evaluate(({topicId,anchorId})=>{
    const send=chrome.runtime.sendMessage.bind(chrome.runtime);
    let releasePosition;
    const positionGate=new Promise(resolve=>{releasePosition=resolve;});
-   window.r3PositionPreemption={topicId,positionDelayed:false,positionReleased:false,topicReadStarted:false};
+   window.r3PositionPreemption={topicId,anchorId,positionDelayed:false,positionReleased:false,positionSawAnchor:false,topicReadStarted:false,originalStatusRequests:0};
    window.r3ReleasePositionRead=()=>{if(window.r3PositionPreemption.positionReleased)return;window.r3PositionPreemption.positionReleased=true;releasePosition();};
    window.r3RestorePositionSendMessage=()=>{chrome.runtime.sendMessage=send;};
    chrome.runtime.sendMessage=(message,...args)=>{
     const position=message?.position;
+    if(message?.type==='GET_ORIGINAL_ORGANIZER_STATUS')window.r3PositionPreemption.originalStatusRequests++;
     if(message?.type==='THOUGHT_POSITION'&&position?.topicId===topicId&&!position?.entryId&&!window.r3PositionPreemption.positionDelayed){
      window.r3PositionPreemption.positionDelayed=true;
+     window.r3PositionPreemption.positionSawAnchor=!!document.querySelector(`[data-entry-id="${anchorId}"]`);
      return positionGate.then(()=>send(message,...args));
     }
     if(message?.type==='TOPIC_DOCUMENT_PAGE'&&message?.options?.topicId===topicId)window.r3PositionPreemption.topicReadStarted=true;
     return send(message,...args);
    };
-  },topic.id);
+  },{topicId:topic.id,anchorId:anchor.id});
 
   await p.goBack();
-  await p.waitForFunction(()=>window.r3PositionPreemption?.positionDelayed===true,null,{timeout:5000});
   await p.waitForFunction(()=>window.r3PositionPreemption?.topicReadStarted===true,null,{timeout:5000});
   await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor({timeout:10000});
-  assert.equal(await p.evaluate(()=>window.r3PositionPreemption.positionReleased),false,'saved Topic page must render before durable position metadata resolves');
+  await p.waitForFunction(()=>window.r3PositionPreemption?.positionDelayed===true,null,{timeout:5000});
+  assert.equal(await p.evaluate(()=>window.r3PositionPreemption.positionSawAnchor),true,'durable position metadata must be requested only after the saved Topic page is committed to DOM');
+  assert.equal(await p.evaluate(()=>window.r3PositionPreemption.originalStatusRequests),0,'passive Topic restore must not dispatch the 100k-capable Original planner');
+  assert.equal(await p.evaluate(()=>window.r3PositionPreemption.positionReleased),false,'saved Topic page must not depend on durable position metadata resolving');
   assert.equal(await p.evaluate(id=>history.state?.paiaReader?.topicId===id,topic.id),true);
   await p.evaluate(()=>window.r3ReleasePositionRead());
   await eventually(async()=>await p.evaluate(()=>window.r3PositionPreemption.positionReleased===true));
