@@ -2,13 +2,15 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "PREPARED_ON02",
+  "status": "WAITING_CI_ON02_FINAL_EXECUTION",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "product": {
     "branch": "ux-r2",
-    "expected_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+    "expected_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
     "start_head_execution_008": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+    "end_head_execution_008": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+    "end_tree_execution_008": "6ded7b5ba60fec390048200b54bda8422d2aaba9",
     "main_observed_head": "c1c37f749a80f96ce3b1e5f19efad75679c3142c",
     "main_access": "READ_ONLY_NO_MERGE",
     "official_ux_status_path": "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md",
@@ -24,41 +26,17 @@
   },
   "active_execution": {
     "number": 8,
-    "mode": "IMPLEMENT_ON02",
+    "mode": "VERIFY_ON02_CI_ONLY",
     "slice": "ON-02",
     "token": "execution-008-20260914T1633Z",
-    "started_at": "2026-09-14T16:33:23Z",
-    "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa"
+    "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+    "product_end_head": "6517763883c95e9a8901e5095db2a7d846da0ef6"
   },
-  "pending_publication": {
-    "kind": "product_fast_forward",
-    "slice": "ON-02",
-    "parent_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-    "candidate_commit": "6517763883c95e9a8901e5095db2a7d846da0ef6",
-    "candidate_tree": "6ded7b5ba60fec390048200b54bda8422d2aaba9",
-    "force": false,
-    "changed_files": [
-      "extension/core/backup-service.js",
-      "extension/core/organizer/ai-candidate.js",
-      "extension/core/organizer/ai-presentation.js",
-      "extension/core/organizer/metadata.js",
-      "extension/tests/ux-r5-ai-candidates.test.mjs",
-      "extension/tests/ux-r5-ai-states.test.mjs",
-      "extension/tests/ux-r5-ai-update-chrome-e2e.test.mjs",
-      "extension/ui/action-feedback.js",
-      "extension/ui/ai-candidate.js",
-      "extension/ui/thought-reader.css",
-      "extension/ui/thoughts.js"
-    ],
-    "diff_stats": {"files":11,"additions":220,"deletions":25},
-    "local_validation": "NOT_RUN_NO_CHECKOUT_RUNTIME",
-    "lint": "NOT_CONFIGURED",
-    "required_next_action": "Re-read control/product refs. If unchanged, fast-forward ux-r2 exactly to candidate_commit with force=false, then seal state and inspect PR #28 CI."
-  },
+  "pending_publication": null,
   "current_slice": "ON-02",
   "slices": [
     {"id":"ON-01","status":"COMPLETE","verified_product_head":"19fe4ed19bc686ff715c5604616ea7fad1eed2fa","certification_run":262},
-    {"id":"ON-02","status":"PREPARED"},
+    {"id":"ON-02","status":"WAITING_CI","product_head":"6517763883c95e9a8901e5095db2a7d846da0ef6"},
     {"id":"ON-03","status":"NOT_STARTED"},
     {"id":"ON-04","status":"NOT_STARTED"},
     {"id":"ON-05","status":"NOT_STARTED"},
@@ -72,10 +50,27 @@
     "carrier_never_merge": true,
     "base_branch": "overnight/ci-base-20260914",
     "base_expected_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
-    "pending": null,
+    "pending": {
+      "purpose": "ON-02 final execution certification",
+      "product_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+      "product_tree": "6ded7b5ba60fec390048200b54bda8422d2aaba9",
+      "run_id": 34871354407,
+      "run_number": 263,
+      "observed_status": "queued",
+      "observed_conclusion": null,
+      "required_action": "Inspect all mandatory jobs, full-suite receipt, browser evidence and release gate. Any failure may only be repaired inside ON-02 if execution-008 time remains."
+    },
     "latest_completed_run": 262
   },
+  "validation": {
+    "local_unit": "NOT_RUN_NO_CHECKOUT_RUNTIME",
+    "local_browser": "NOT_RUN_NO_CHECKOUT_RUNTIME",
+    "local_build": "NOT_RUN_NO_CHECKOUT_RUNTIME",
+    "local_static": "NOT_RUN_NO_CHECKOUT_RUNTIME",
+    "lint": "NOT_CONFIGURED",
+    "diff_review": "PASS_PREPUBLICATION_REVIEW"
+  },
   "last_run_report": "overnight/runs/008.md",
-  "next_recommended_action": "Publish only the pre-registered ON-02 candidate if all ownership refs remain exact; otherwise stop. After publication, validate mandatory CI and do not start another slice.",
+  "next_recommended_action": "Remain in execution 008 and inspect Certification #263 only. Do not start another slice. If #263 passes all required gates, complete R5 report/status only if the full R5 acceptance contract is met; otherwise record the exact partial state. If it fails, repair ON-02 only while the current execution window remains.",
   "human_resolution_required": false
 }
