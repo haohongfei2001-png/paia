@@ -2,14 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "VERIFYING_ON01",
+  "status": "PREPARED_ON01_REPAIR",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 16,
-    "parent_head": "a40deb4c2d34e69f73931768ce87df77c0b7b485",
-    "kind": "execution_claim",
+    "sequence": 17,
+    "parent_head": "1563ca9eea7cb2298de0f6011d9b91e0ce50cbf0",
+    "kind": "product_publication_prepare",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
@@ -50,7 +50,7 @@
   },
   "active_execution": {
     "number": 6,
-    "mode": "VERIFY_ON01",
+    "mode": "REPAIR_ON01",
     "slice": "ON-01",
     "token": "execution-006-20260914T1442Z",
     "started_at": "2026-09-14T14:42:08Z",
@@ -58,11 +58,23 @@
     "product_start_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
     "control_parent_head": "a40deb4c2d34e69f73931768ce87df77c0b7b485"
   },
-  "pending_publication": null,
+  "pending_publication": {
+    "kind": "product_commit",
+    "slice": "ON-01",
+    "expected_parent": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
+    "candidate_commit": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+    "candidate_tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
+    "changed_files": [
+      "extension/ui/thoughts.js",
+      "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs"
+    ],
+    "reason": "Certification #261 passed executable gates, but manual review of its first-generation UX-R5 evidence showed the entire Topic content blurred before provider confirmation. This contradicts UI-13/section 9.1/section 5.7: Original must remain readable and structural recomposition belongs only after generated structure exists. Candidate skips recomposition when no cached presentation exists and adds a real-browser assertion for that boundary.",
+    "publication_rule": "Publish only by force=false fast-forward if ux-r2 still equals expected_parent and control ownership remains execution 006. Then verify exact two-file diff and recertify; do not mark ON-01 complete from #261."
+  },
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
-    {"id": "ON-01", "status": "PENDING_CI", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
+    {"id": "ON-01", "status": "REPAIR_PREPARED", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
     {"id": "ON-02", "status": "NOT_STARTED", "owner_ux_round": "UX-R5", "requires": ["ON-01"]},
     {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-02", "UX-R5_CERTIFIED"]},
     {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-03"]},
@@ -90,74 +102,46 @@
     "carrier_never_merge": true,
     "base_branch": "overnight/ci-base-20260914",
     "base_expected_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
-    "pending": {
+    "pending": null,
+    "latest_completed": {
       "purpose": "ON-01 execution-005 test-only repair recertification",
       "product_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
       "product_tree": "f5fcf0e9edb13f5c1e96104e9f910926cc168981",
+      "merge_ref": "6cc155db61da2fb619eb0a90d2e7b6388276d8c1",
       "run_id": 34851553017,
       "run_number": 261,
-      "observed_status": "in_progress",
-      "observed_conclusion": null,
-      "required_action": "Inspect every mandatory job, full-suite receipt, browser/visual evidence, release result and exact one-file diff. Any failure repairs ON-01 only; only all-green evidence may complete ON-01."
-    },
-    "failed_latest": {
-      "purpose": "ON-01 execution-004 repair recertification",
-      "product_head": "1b80bbbe925348248ed0ae0699505310593991f0",
-      "product_tree": "11f2769850d1cc46187bf4de257e2da882d4d509",
-      "run_id": 34846037684,
-      "run_number": 260,
       "observed_status": "completed",
-      "observed_conclusion": "failure",
-      "failures": [
-        "Unit 4/4 failed only core-experience-round6.test.mjs.",
-        "Full Suite receipt: 1057 total / 1056 pass / 1 fail / 0 skipped; unit 882/1, browser E2E 27/27, adapter 95/95, privacy/security 52/52. core-experience-round6.test.mjs was the sole failed file.",
-        "Current Browser, macOS Secure Store and current release build/guards passed; final Certification gate failed because Unit 4/4 and Full Suite did not pass."
-      ],
-      "artifact_review": "Downloaded and inspected paia-current-full-suite receipt and UX-R5 evidence artifact. UX-R5 artifact contains on01-first-generation.png and on01-organized-cached.png.",
-      "repair_direction": "Restore the missing escape before the literal opening parenthesis in the controller-binding regex. Runtime behavior and acceptance criteria stay unchanged."
-    },
-    "failed_predecessor": {
-      "purpose": "ON-01 repair recertification",
-      "product_head": "ad889dc59ff78d1318515ac56d4d571125997cec",
-      "product_tree": "48e9e2377c17391f8ba2f008ce39d64f60f142fb",
-      "run_id": 34840192608,
-      "run_number": 259,
-      "observed_status": "completed",
-      "observed_conclusion": "failure"
-    },
-    "last_verified": {
-      "purpose": "Fresh inherited-product certification before ON-01",
-      "product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
-      "run_id": 34826604211,
-      "run_number": 257,
-      "conclusion": "success"
+      "observed_conclusion": "success",
+      "mandatory_jobs_success": 10,
+      "full_suite": {"total": 1060, "pass": 1060, "fail": 0, "skipped": 0, "unit": 886, "browser_e2e": 27, "adapter_contract": 95, "privacy_security": 52},
+      "input_digest": "c156358939e680d59ad417cd430ecabec2da1cc8dd01916c910ac5f32f38e555",
+      "browser_suite": "27/27 PASS",
+      "package_guard": "8331 guardrails / 191 runtime resources PASS",
+      "development_audit": "PASS",
+      "release": "7903 guardrails / 184 runtime resources / 208 files PASS",
+      "macos_secure_store": "PASS",
+      "aggregate_gate": "PASS",
+      "acceptance_review": "FAIL_VISUAL_FIRST_GENERATION_BLUR",
+      "visual_artifact_id": 10352671337,
+      "visual_artifact_zip_sha256": "2007cde6c7c2dd9e2a102d7b2708df51f0c8fbddc5e7942a6cb5d8de79a56c96",
+      "visual_files": ["on01-first-generation.png", "on01-organized-cached.png"],
+      "review": "The first-generation screenshot is visibly blurred before provider confirmation. Test code captures this screenshot immediately after uncached AI-view entry and before any provider request. Green executable gates therefore do not satisfy ON-01 visual/acceptance criteria."
     },
     "required_jobs": ["Unit 1/4", "Unit 2/4", "Unit 3/4", "Unit 4/4", "Adapter and privacy contracts", "Current Browser Certification", "Full Suite Certification", "macOS Secure Store Certification", "Current release build and guards", "Certification gate"]
   },
   "repository_evidence": {
-    "non_authoritative_ux_r5_branch": {
-      "branch": "ux-r5",
-      "observed_head": "6adfd1886d381ec1353a05a4de19dedea9799685",
-      "use_policy": "Evidence/salvage source only. Do not merge or fast-forward wholesale."
-    },
-    "execution_003_repair": {
-      "commit": "ad889dc59ff78d1318515ac56d4d571125997cec",
-      "tree": "48e9e2377c17391f8ba2f008ce39d64f60f142fb",
-      "changed_files": ["extension/scripts/check_package.py"],
-      "policy": "Exact reviewed moved-listener audit only; one unchanged Escape handler required; all other keyboard listeners remain forbidden."
-    },
-    "execution_004_repair": {
-      "commit": "1b80bbbe925348248ed0ae0699505310593991f0",
-      "tree": "11f2769850d1cc46187bf4de257e2da882d4d509",
-      "changed_files": ["extension/ui/thoughts.js", "extension/tests/core-experience-round6.test.mjs"],
-      "policy": "Restore bounded Original-topic opening and keep the hidden compatibility binding assertion across the reviewed module split; no timeout, skip, permission/provider/migration or ON-02 change."
-    },
     "execution_005_repair": {
       "commit": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
       "tree": "f5fcf0e9edb13f5c1e96104e9f910926cc168981",
       "changed_files": ["extension/tests/core-experience-round6.test.mjs"],
       "diff": "1 addition / 1 deletion",
       "policy": "Test-only literal-regex correction; preserves the hidden compatibility binding requirement and changes no runtime behavior."
+    },
+    "execution_006_visual_review": {
+      "source_run": 261,
+      "finding": "Uncached Original-to-AI switch starts memory recomposition and blurs the Topic before an organized structure exists.",
+      "affected_runtime": "extension/ui/thoughts.js switchView() always called recomposeMemory regardless of cached presentation.",
+      "repair": "Only run recomposeMemory for a valid cached presentation; otherwise apply the view-state update directly. Strengthen browser test to require paia-recomposing=false on first-generation staging."
     }
   },
   "highest_campaign_verified_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
@@ -170,18 +154,18 @@
     "apple_codec": "NOT_STARTED",
     "mcp_adapter": "NOT_STARTED"
   },
-  "blocking_reasons": ["ON-01 cannot be marked complete until PAIA Certification #261 finishes and every required current-release gate is independently verified."],
-  "preflight_requirements": ["Execution 006: verify refs and Draft PR #28, then inspect PAIA Certification #261 actual jobs/logs/receipt/artifacts and exact diff. Repair ON-01 if any gate fails; otherwise close ON-01 before considering ON-02."],
+  "blocking_reasons": ["ON-01 visual acceptance failed on Certification #261 evidence: first-generation staging is blurred before confirmation. Exact two-file repair candidate is prepared but not yet published/recertified."],
+  "preflight_requirements": ["Execution 006 must publish only the preregistered candidate if refs still match, verify exact diff, then leave ON-01 pending the new certification and regenerated first-generation screenshot."],
   "last_run_report": "overnight/runs/006.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
-    {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "result": "INHERITED_BASELINE_VERIFIED"},
-    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "result": "WAITING_CI"},
-    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "product_start_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "product_end_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "result": "WAITING_CI"},
-    {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "product_start_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "product_end_head": "1b80bbbe925348248ed0ae0699505310593991f0", "result": "WAITING_CI"},
-    {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "product_start_head": "1b80bbbe925348248ed0ae0699505310593991f0", "product_end_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "result": "WAITING_CI"},
-    {"number": 6, "mode": "VERIFY_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_start_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "product_end_head": null, "result": "IN_PROGRESS"}
+    {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "result": "INHERITED_BASELINE_VERIFIED"},
+    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "result": "WAITING_CI"},
+    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "result": "WAITING_CI"},
+    {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "result": "WAITING_CI"},
+    {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "result": "WAITING_CI"},
+    {"number": 6, "mode": "REPAIR_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_start_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "product_end_head": null, "result": "PREPARED"}
   ],
-  "next_recommended_action": "Execution 006 owns verification of PAIA Certification #261. No ON-02 work until every ON-01 gate is proven green and this execution seals that result.",
+  "next_recommended_action": "Publish only candidate 19fe4ed19bc686ff715c5604616ea7fad1eed2fa by force=false fast-forward after rechecking refs. Then verify exact two-file diff and leave ON-01 pending fresh CI plus regenerated screenshot inspection; do not enter ON-02.",
   "human_resolution_required": false
 }
