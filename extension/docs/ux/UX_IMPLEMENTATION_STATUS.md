@@ -16,16 +16,16 @@ This file is the single execution-state entry point for the UX/UI redesign. GitH
 
 ## Current execution state
 
-- Current round: **UX-R6**
-- Status: **READY / NOT STARTED**
-- Completed in recovery: **UX-R2, UX-R3, UX-R4, UX-R5**
-- UX-R5 exact certified head: `fe10e182aa09a9860f248e38713bd69e9b27555f`
-- UX-R5 certification: PAIA Certification **#267**, run id `34887855731`, conclusion `success`
-- UX-R5 Full Suite: **1,076/1,076 PASS**, 0 fail, 0 skipped; `fullSuite=true`, `auditPassed=true`
-- UX-R5 Browser / visual acceptance: **PASS**; current UX-R5 evidence artifact uploaded successfully
-- Next action: **Begin UX-R6 only in a later execution after a fresh preflight against the current `ux-r2` HEAD and governing documents. The v2 R5 recovery session is sealed here and must not start R6.**
+- Current round: **UX-R6 COMPLETE / FINAL RELEASE REGRESSION NEXT**
+- Status: **UX-R6 VERIFIED_COMPLETE**
+- Completed in recovery/continuation: **UX-R2, UX-R3, UX-R4, UX-R5, UX-R6**
+- UX-R6 exact certified head: `2d5de7e19d4756ecf90babf5101ff0127d7c6d50`
+- UX-R6 certification: PAIA Certification **#272**, run id `34903574502`, conclusion `success`
+- UX-R6 Full Suite: **1,088/1,088 PASS**, 0 fail, 0 skipped; `fullSuite=true`, `auditPassed=true`
+- UX-R6 Browser / visual acceptance: **PASS**; current UX-R6 evidence artifact uploaded successfully
+- Next action: **Run the user-authorized final UX-R1 -> UX-R6 release regression from the sealed UX-R6 checkpoint before any broader release claim.**
 
-The broader user authorization permits later UX-R6 work, but `paia-continuation-20260915-v2` was explicitly bounded to completing and sealing UX-R5. A round may be marked `COMPLETE` only after its implementation is in GitHub, every required gate has passed on the certified source, and its round report is committed.
+A round is marked `COMPLETE` only after its implementation is in GitHub, every required gate has passed on the exact certified source, and its round report is committed. The documentation checkpoint after certification is not the certified implementation/test head.
 
 ## Round reports
 
@@ -35,10 +35,8 @@ The broader user authorization permits later UX-R6 work, but `paia-continuation-
 | UX-R2 | COMPLETE — recertified 2026-09-14 | `extension/docs/ux/rounds/UX_R2_REPORT.md` |
 | UX-R3 | COMPLETE — recertified 2026-09-14 | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
 | UX-R4 | COMPLETE — recertified 2026-09-14 | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
-| UX-R5 | **COMPLETE — certified 2026-09-14** | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
-| UX-R6 | **NOT STARTED** | — |
-
-There is currently no `UX_R6_REPORT.md` in GitHub. It must be created only when UX-R6 is actually executed and certified.
+| UX-R5 | COMPLETE — certified 2026-09-14 | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
+| UX-R6 | **COMPLETE — certified 2026-09-14** | `extension/docs/ux/rounds/UX_R6_REPORT.md` |
 
 ## Recovery certification — UX-R2
 
@@ -89,9 +87,30 @@ The exact certified source preserves R5's core contract: current human-readable 
 
 See `rounds/UX_R5_REPORT.md` for the full R5 correction, browser/visual evidence, gate matrix, limitations and handoff record.
 
+## Continuation certification — UX-R6
+
+- Execution campaign: `paia-ux-r6-20260915-v3`.
+- Round start checkpoint: `18c9c2972c05dad1e45f748244f5947d2192e044`.
+- Exact certified implementation/test head: `2d5de7e19d4756ecf90babf5101ff0127d7c6d50`.
+- CI carrier: draft PR **#28** against frozen `overnight/ci-base-20260914` at `ad386c07cff59b9b3472a5aa03626fe89514f8d1`; PR #28 remained unmerged.
+- GitHub Actions: **PAIA Certification #272**, run id `34903574502`, overall `success`.
+- Mandatory jobs: Unit 1–4 PASS; Adapter/Privacy PASS; Current release build/guards PASS; macOS Secure Store PASS; Current Browser Certification PASS; Full Suite PASS; aggregate Certification gate PASS.
+- Full Suite: **1,088/1,088 PASS**, 0 fail, 0 skipped — unit 909, browser E2E 32, adapter 95, privacy/security 52.
+- Full-suite receipt: `fullSuite=true`, `auditPassed=true`, `historicalBrowserFiles=76`; input digest `5fc617fd38ef01ef34fd9a8c4c5ce48a8f2206ced13ae214a56fe3240381f5a5`.
+- Full-suite artifact: id `10371802551`, digest `sha256:bdae83eab591e1555e11723b6838ed03e9c518f6c0a34dc6c88338db190fb6dc`.
+- UX-R6 visual/browser evidence artifact: id `10371638768`, digest `sha256:9558c24859b6b8f599a1c0994dfcc98996cc005258db72ebc15a62dcc90cb1ac`.
+- Release artifact: id `10371522875`, digest `sha256:62db763c7508b7e433852ead76fec6f06d2543dc834ec6fcd34f0c9126cfebf8`.
+- Package/development audit: **8,438 package guardrails / 196 runtime resources PASS** and `DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS`.
+
+R6 closes the governed Settings/data-exit round without turning planned contracts into shipped network features. It adds complete open JSON/Markdown export, explicit privacy-preview masking, honest storage/last-Backup/device-sync status, compatible preference/Backup integration, and fail-closed external-access restoration. The certified R6 browser path exercised 1440x900, 1024x768, 390x844 and 320x720 in light/dark themes, retained the `>=4.5` contrast threshold, checked mobile 44px targets and reduced motion, and emitted no hidden provider/external requests.
+
+The R6 repair loop closed one real post-restore UI projection defect and two acceptance-test defects. #269 exposed the product lifecycle issue; #270 corrected a collection-vs-document Source assertion; #271 was 1087/1088 with only a block-scoped `marker` ReferenceError; #272 passed every gate without timeout, threshold or gate weakening.
+
+See `rounds/UX_R6_REPORT.md` for the full implementation, certification, artifact, visual, trust and handoff record.
+
 ## Historical evidence policy
 
-Earlier local round summaries remain historical evidence only where they disagree with the recovery certifications above. The current recovery records take precedence for execution state.
+Earlier local round summaries remain historical evidence only where they disagree with the recovery/continuation certifications above. The current certification records take precedence for execution state.
 
 The 76 pre-migration historical browser files remain separately available and are not counted as current-source PASS results. Synthetic/current-browser certification does not establish live-provider success, real-user retention or every everyday-profile condition.
 
@@ -112,4 +131,4 @@ After a round actually passes all required gates:
 4. advance the current round to the next round only after the checkpoint exists in GitHub;
 5. never mark absent local or conversational work as implemented.
 
-After UX-R6 is COMPLETE, run the user-authorized final UX-R1 → UX-R6 release regression before any broader release claim.
+After UX-R6 is COMPLETE, run the user-authorized final UX-R1 -> UX-R6 release regression before any broader release claim.
