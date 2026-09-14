@@ -5,14 +5,15 @@ import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 
 const dir='work/ux-r5';
 const op=()=>crypto.randomUUID();
+const originalText='R5 原始表达：这一段必须始终可以直接阅读。';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 const nav=(p,view)=>p.locator(`[data-view="${view}"]`).first().click();
 const requestOf=body=>JSON.parse(body.messages[1].content);
 const aiOutput=(request,n)=>({choices:[{finish_reason:'stop',message:{content:JSON.stringify({topicId:request.topicCandidates[0].id,blockSummary:`R5 AI 摘要 ${n}`,currentView:`R5 AI 当前理解 ${n}`,keyInformation:[],preferences:[],decisions:[],judgments:[],openQuestions:[],possibleEvolution:[],evidenceEntryIds:request.inputs.map(row=>row.ref)})}}]});
 
 async function ready(h){const p=h.archive;await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{externalAccess:true,localOnly:false}});await rpc(p,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-r5-browser-key'}});return p;}
-async function createTopic(p,name='R5 双视图主题'){const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name,operationId:op()}});await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:'R5 原始表达：这一段必须始终可以直接阅读。',topicId:topic.id}});return topic;}
-async function openTopic(p,topic){await nav(p,'thoughts');await p.locator(`[data-topic-id="${topic.id}"]`).click();await p.locator('#topic-heading h1').filter({hasText:topic.name}).waitFor();}
+async function createTopic(p,name='R5 双视图主题'){const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name,operationId:op()}});await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:originalText,topicId:topic.id}});return topic;}
+async function openTopic(p,topic){await nav(p,'thoughts');await p.locator('#thought-panel').waitFor({state:'visible'});if(await p.locator('#thought-document').isVisible()){await p.locator('#back').click();await p.locator('#thought-list').waitFor({state:'visible'});}await p.locator(`[data-topic-id="${topic.id}"]`).click();await p.locator('#topic-heading h1').filter({hasText:topic.name}).waitFor();}
 async function aiStatus(p,topicId){const state=await rpc(p,'GET_AI_PRESENTATION_STATUS');return {state,topic:state.topics.find(row=>row.topicId===topicId)};}
 
 
@@ -20,14 +21,14 @@ test('UX-R5 Original -> explicit first AI generation -> cached topic view -> pro
  let releaseFirst;const firstGate=new Promise(resolve=>{releaseFirst=resolve;});let call=0;
  const h=await FakeChatGPT.start({onboarding:true,deepSeekFixture:async body=>{const request=requestOf(body);assert.equal(request.taskProfile,'ai_synthesis');call++;if(call===1)await firstGate;return aiOutput(request,call);}});
  try{
-  const p=await ready(h),topic=await createTopic(p);await mkdir(dir,{recursive:true});await openTopic(p,topic);
-  await p.getByText('R5 原始表达：这一段必须始终可以直接阅读。',{exact:true}).waitFor();assert.equal(h.deepSeekRequests.length,0);
+  const p=await ready(h),topic=await createTopic(p);await mkdir(dir,{recursive:true});await openTopic(p,topic);const original=p.getByLabel('内容正文').filter({hasText:originalText}).first();
+  await original.waitFor();assert.equal(h.deepSeekRequests.length,0);
   const toggle=p.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'Topic AI switch enabled with zero provider calls');assert.equal(h.deepSeekRequests.length,0);await toggle.check();await p.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0,'switching to Organized must not call DeepSeek');
   await p.screenshot({path:`${dir}/first-generation.png`,fullPage:true});
-  await p.getByRole('button',{name:'生成 AI整理',exact:true}).click();await eventually(()=>Promise.resolve(h.deepSeekRequests.length===1),'first paid request');assert.equal(requestOf(h.deepSeekRequests[0]).inputs.length,1);assert.equal(await p.getByText('R5 原始表达：这一段必须始终可以直接阅读。',{exact:true}).isVisible(),true,'Original must stay readable while first generation is pending');
+  await p.getByRole('button',{name:'生成 AI整理',exact:true}).click();await eventually(()=>Promise.resolve(h.deepSeekRequests.length===1),'first paid request');assert.equal(requestOf(h.deepSeekRequests[0]).inputs.length,1);assert.equal(await original.isVisible(),true,'Original must stay readable while first generation is pending');
   releaseFirst();await p.locator('[data-ai-field="blockSummary"]').filter({hasText:'R5 AI 摘要 1'}).waitFor();assert.equal(h.deepSeekRequests.length,1);await p.screenshot({path:`${dir}/organized-cached.png`,fullPage:true});
 
-  await p.emulateMedia({reducedMotion:'reduce'});await toggle.focus();await toggle.uncheck();await p.getByText('R5 原始表达：这一段必须始终可以直接阅读。',{exact:true}).waitFor();assert.equal(await p.evaluate(()=>document.activeElement?.id),'ai-presentation-toggle','reduced-motion switch must preserve focus');assert.equal(await p.evaluate(()=>document.documentElement.classList.contains('paia-recomposing')),false,'reduced-motion switch must not enter fragment recomposition');assert.equal(h.deepSeekRequests.length,1);
+  await p.emulateMedia({reducedMotion:'reduce'});await toggle.focus();await toggle.uncheck();await original.waitFor();assert.equal(await p.evaluate(()=>document.activeElement?.id),'ai-presentation-toggle','reduced-motion switch must preserve focus');assert.equal(await p.evaluate(()=>document.documentElement.classList.contains('paia-recomposing')),false,'reduced-motion switch must not enter fragment recomposition');assert.equal(h.deepSeekRequests.length,1);
   await toggle.check();await p.locator('[data-ai-field="blockSummary"]').filter({hasText:'R5 AI 摘要 1'}).waitFor();assert.equal(await p.evaluate(()=>document.activeElement?.id),'ai-presentation-toggle','cached reduced-motion switch must preserve focus');assert.equal(await p.evaluate(()=>document.documentElement.classList.contains('paia-recomposing')),false);assert.equal(h.deepSeekRequests.length,1,'cached view switch must not call DeepSeek');await p.emulateMedia({reducedMotion:'no-preference'});
   await p.locator('#back').click();await p.locator(`[data-topic-id="${topic.id}"]`).click();await p.locator('[data-ai-field="blockSummary"]').filter({hasText:'R5 AI 摘要 1'}).waitFor();assert.equal(await toggle.isChecked(),true,'same-tab Topic view should stay Organized');assert.equal(h.deepSeekRequests.length,1);
 
