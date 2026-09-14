@@ -170,6 +170,12 @@ def audit_js(path, text):
             scanned = scanned.replace("draft.onkeydown=", "SCOPED_TODAY_THOUGHT_SHORTCUT=")
         if label == "keyboard listener" and path == ROOT / "ui/thoughts.js":
             scanned = scanned.replace("menu.addEventListener('keydown',", "SCOPED_LIBRARY_MENU_ESCAPE(")
+        if label == "keyboard listener" and path == ROOT / "ui/thoughts-base.js":
+            reviewed = "menu.addEventListener('keydown',"
+            exact = "menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;trigger.focus({preventScroll:true});}});"
+            require(text.count(reviewed) == 1 and exact in text,
+                    "ui/thoughts-base.js: reviewed Library menu Escape listener changed or duplicated")
+            scanned = scanned.replace(reviewed, "SCOPED_LIBRARY_MENU_ESCAPE(", 1)
         match = re.search(pattern, scanned, re.I if label == "system keychain" else 0)
         line = text.count("\n", 0, match.start()) + 1 if match else 0
         require(not match, f"{path.relative_to(ROOT)}:{line}: forbidden {label}")
