@@ -1,0 +1,47 @@
+name: UX-R4 final maintenance race
+on:
+  push:
+    branches: [recovery-r4-1]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: recovery-r4-1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Patch final maintenance race
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          tray=Path('extension/ui/material-tray.js')
+          s=tray.read_text()
+          old="chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'&&!['UPDATE_PREFERENCES','RECORD_TOPIC_READ'].includes(m.cause)){"
+          new="chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'&&m.cause&&!['UPDATE_PREFERENCES','RECORD_TOPIC_READ'].includes(m.cause)){"
+          assert s.count(old)==1, s.count(old)
+          tray.write_text(s.replace(old,new,1))
+
+          test=Path('extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs')
+          s=test.read_text()
+          marker="assert.equal(await p.evaluate(()=>globalThis.__uxr4StableEdit===[...document.querySelectorAll('#material-workbench button')].find(b=>b.textContent==='修改本次输出')),true,'same-data activation recheck must not remount confirmed Preview');await p.getByRole('button',{name:'修改本次输出',exact:true}).click();"
+          replacement="assert.equal(await p.evaluate(()=>globalThis.__uxr4StableEdit===[...document.querySelectorAll('#material-workbench button')].find(b=>b.textContent==='修改本次输出')),true,'same-data activation recheck must not remount confirmed Preview');const worker=h.context.serviceWorkers().find(w=>w.url().includes('/background/service-worker.js'));assert.ok(worker);await worker.evaluate(()=>{for(let i=0;i<5;i++)setTimeout(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED'}).catch(()=>{});},i*30);});await pause(300);assert.equal(await p.evaluate(()=>globalThis.__uxr4StableEdit===[...document.querySelectorAll('#material-workbench button')].find(b=>b.textContent==='修改本次输出')),true,'filter maintenance notifications must not remount confirmed Preview');await p.getByRole('button',{name:'修改本次输出',exact:true}).click();"
+          assert s.count(marker)==1, s.count(marker)
+          test.write_text(s.replace(marker,replacement,1))
+          PY
+          node --check extension/ui/material-tray.js
+          node --check extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+          git diff --check
+      - name: Commit final implementation
+        run: |
+          git rm .github/workflows/recovery-r4-final-maintenance.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add extension/ui/material-tray.js extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+          git commit -m 'fix(ux-r4): ignore filter maintenance in manual preview'
+          git push origin HEAD:recovery-r4-1
