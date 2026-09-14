@@ -76,10 +76,11 @@ test('UX-R5 candidate adoption is CAS guarded against a concurrent human edit',a
 });
 
 test('UX-R5 purging candidate-only evidence removes the candidate without deleting the current presentation',async()=>{
- const f=await fixture(),topic=await protectAndAddDelta(f),candidateFence=(await rows(f.s,'libraryMigrationItems')).find(row=>row.ownerKind==='ai_presentation_candidate'&&row.ownerId===topic.topicId);
- assert.ok(candidateFence);
- const added=(await rows(f.s,'records')).find(row=>row.sourceMessageId==='ux-r5-added');assert.ok(added);
- await f.s.permanentDelete(added.id);await f.s.drainPurgeCleanup();
+ const f=await fixture(),topic=await protectAndAddDelta(f),fences=await rows(f.s,'libraryMigrationItems');
+ const candidateFence=fences.find(row=>row.ownerKind==='ai_presentation_candidate'&&row.ownerId===topic.topicId),currentFence=fences.find(row=>row.ownerKind==='ai_presentation'&&row.ownerId===topic.topicId);
+ assert.ok(candidateFence);assert.ok(currentFence);
+ const currentSources=new Set(currentFence.sourceRecordIds||[]),candidateOnlySource=(candidateFence.sourceRecordIds||[]).find(id=>!currentSources.has(id));assert.ok(candidateOnlySource);
+ await f.s.permanentDelete(candidateOnlySource);await f.s.drainPurgeCleanup();
  const stored=await meta(f.s,'aiPresentation:'+topic.topicId);assert.ok(stored);assert.equal(stored.candidate,undefined);
  const after=(await aiPresentationStatus(f.s)).topics[0];assert.ok(after.presentation);assert.equal(after.presentation.currentView,'人工维护的当前理解');assert.equal(after.candidate,null);
 });
