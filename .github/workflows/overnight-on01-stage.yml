@@ -1,0 +1,68 @@
+name: Overnight ON-01 staging
+
+on:
+  push:
+    branches: [overnight/on01-stage-20260914-e2]
+    paths:
+      - '.github/workflows/overnight-on01-stage.yml'
+      - 'scripts/overnight_on01_patch.py'
+
+permissions:
+  contents: write
+
+jobs:
+  build-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: overnight/on01-stage-20260914-e2
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply exact ON-01 patch
+        run: python3 scripts/overnight_on01_patch.py
+      - name: Syntax and scope guard
+        run: |
+          node --check extension/ui/thoughts.js
+          node --check extension/tests/ux-r5-ai-states.test.mjs
+          node --check extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs
+          ! grep -q 'candidateDecision' extension/ui/thoughts.js
+          ! grep -q 'ai-candidate' extension/ui/thoughts.js
+      - name: Install test dependencies
+        working-directory: extension
+        run: npm install --no-audit --no-fund
+      - name: Targeted unit tests
+        working-directory: extension
+        run: node --test --test-concurrency=1 tests/ux-r5-ai-states.test.mjs
+      - name: Install Chromium
+        working-directory: extension
+        run: npx playwright install --with-deps chromium
+      - name: Prepare Chrome
+        working-directory: extension
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+      - name: Targeted real-browser ON-01 journeys
+        working-directory: extension
+        run: xvfb-run -a node --test --test-concurrency=1 tests/ux-r5-ai-organize-chrome-e2e.test.mjs
+      - name: Package and development guards
+        working-directory: extension
+        run: |
+          npm run check
+          node scripts/check_development.mjs
+      - name: Remove staging machinery and commit candidate
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/overnight-on01-stage.yml scripts/overnight_on01_patch.py
+          git add .github/workflows/paia-certification.yml extension/ui/thoughts.js extension/ui/thought-reader.css extension/tests/ux-r5-ai-states.test.mjs extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs
+          git commit -m 'feat(ux-r5): implement ON-01 topic-local first generation'
+          git push origin HEAD:overnight/on01-stage-20260914-e2
