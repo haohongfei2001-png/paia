@@ -79,7 +79,7 @@ async function completeExport(format,panel){
   const begin=await request('PAIA_BACKUP_BEGIN_EXPORT');sessionId=begin.sessionId;const writer=new OpenExportWriter(format,begin.header),stamp=new Date().toISOString().replace(/[:.]/g,'-');let sequence=0;
   for(;;){const page=await request('PAIA_BACKUP_EXPORT_PAGE',{options:{sessionId,sequence:sequence++}});writer.add(page.items);if(page.done)break;await new Promise(resolve=>setTimeout(resolve,0));}
   const parts=writer.finish();downloadParts(parts,`PAIA-Complete-Open-Export-${stamp}.${format==='json'?'json':'md'}`,format==='json'?'application/json':'text/markdown');
-  panel.status(english()?'Complete export created. It is separate from the filtered Source Records export and from PAIA Backup.':'完整导出已生成。它与“当前筛选 Source Records 导出”和 PAIA Backup 是不同用途的文件。','saved');
+  panel.status(english()?'File generated and download started. Confirm that you saved it in a secure location; the complete export file is not encrypted.':'文件已生成并开始下载。请确认保存在安全位置；完整导出文件本身未加密。','saved');
  }catch{panel.status(english()?'Complete export was not created. No automatic retry was made.':'完整导出未生成，也没有自动重试。','failed');}
  finally{if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});panel.lock(false);}
 }
@@ -93,7 +93,7 @@ function installPrivacy(){
 function installData(panel){
  const host=$('backup-settings');if(!host||$('r6-complete-export'))return;
  const section=element('section','r6-data-exit');section.id='r6-complete-export';
- section.append(text('h3','','完整导出','Complete export'),text('p','muted','完整导出覆盖 Source、Input、Thought、人工版本与 AI 整理等明确角色；当前筛选 Source Records 的导出仍只代表当前筛选来源，不能冒充完整导出。','Complete export separates Source, Input, Thought, human revision and AI-presentation roles. The filtered Source Records export remains a filtered source export and is not a complete export.'));
+ section.append(text('h3','','完整导出','Complete export'),text('p','muted','完整导出覆盖 Source、Input、Thought、人工版本与 AI 整理等明确角色；当前筛选 Source Records 的导出仍只代表当前筛选来源，不能冒充完整导出。PAIA Backup 与完整导出文件本身均未做应用层加密。','Complete export separates Source, Input, Thought, human revision and AI-presentation roles. The filtered Source Records export remains a filtered source export and is not a complete export. PAIA Backup and complete-export files are not application-layer encrypted.'));
  const actions=element('div','r6-export-actions'),json=text('button','','完整导出 JSON','Complete JSON export'),markdown=text('button','','完整导出 Markdown','Complete Markdown export');json.id='r6-export-json';markdown.id='r6-export-markdown';actions.append(json,markdown);section.append(actions);
  storageNode=text('p','muted','正在读取本机存储…','Reading local storage…');storageNode.id='r6-storage-estimate';lastBackupNode=element('p','muted');lastBackupNode.id='r6-last-backup';section.append(storageNode,lastBackupNode,text('p','muted','卸载扩展会清除扩展本机档案；导出或备份文件离开 PAIA 后由你自行保管。当前版本未提供设备同步。','Uninstalling the extension clears its local archive. Export/backup files are yours to store after they leave PAIA. Device sync is not available in this version.'));
  host.append(section);json.addEventListener('click',()=>void completeExport('json',panel));markdown.addEventListener('click',()=>void completeExport('markdown',panel));void refreshStorage();void refreshLastBackup();
