@@ -2,81 +2,69 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "WAITING_CI",
+  "status": "VERIFYING_ON01",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 18,
-    "parent_head": "5fbef19d112e80b7f8d44e3ed53cfed85945dedf",
-    "kind": "execution_seal",
-    "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
+    "sequence": 19,
+    "parent_head": "14a392bad4a0a661c2065830a9bcca0fe90f0307",
+    "kind": "execution_claim"
   },
   "product": {
     "branch": "ux-r2",
     "expected_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
     "current_tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
-    "last_certified_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
-    "last_certified_tree": "fb40053c4ce93ec42d8a7989e95d794fc0c2d34b",
     "main_observed_head": "c1c37f749a80f96ce3b1e5f19efad75679c3142c",
     "main_access": "READ_ONLY_NO_MERGE",
     "merge_base_with_main": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
     "official_ux_status_path": "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md",
     "official_ux_round_observed": "UX-R5",
     "official_ux_status_observed": "READY / NOT STARTED",
-    "official_ux_completed_observed": ["UX-R1", "UX-R2", "UX-R3", "UX-R4"],
-    "state_observations_are_not_certification": true
+    "official_ux_completed_observed": ["UX-R1", "UX-R2", "UX-R3", "UX-R4"]
   },
   "authority_baseline": {
     "source_branch": "ux-r2",
     "agents": {"path": "extension/AGENTS.md", "blob": "858688dbe484a7bb1a782004a7555825313ecd54"},
     "design_core": {"path": "extension/docs/ux/PAIA_DESIGN_CORE_v1.0.md", "blob": "33ce0e94901fc5d0a0bbc4c41c793bb18c1cc1dd"},
-    "ux_spec": {"path": "extension/docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md", "blob": "806723810289a8b3c16ff02aa4b5b2e6f6f1277e"},
-    "rule": "Read actual authority content at verified product HEAD. A hash or summary never substitutes for that read. Unexpected authority changes stop work; intentional allowed implementation-fact updates must be reviewed."
+    "ux_spec": {"path": "extension/docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md", "blob": "806723810289a8b3c16ff02aa4b5b2e6f6f1277e"}
   },
   "execution_budget": {
     "max_scheduled_deliveries": 8,
     "max_admitted_executions": 8,
-    "admitted_executions": 6,
-    "scheduler_deliveries_observed": 6,
-    "scheduler_task_created_by_bootstrap": false,
+    "admitted_executions": 7,
+    "scheduler_deliveries_observed": 7,
     "campaign_started_at": "2026-09-14T09:34:40Z",
     "stop_new_work_at": "2026-09-14T17:34:40Z",
-    "deadline_rule": "First admitted execution start + 8 hours; scheduler COUNT=8 remains an independent primary cap.",
     "stop_starting_implementation_after_minutes": 40,
-    "target_handoff_after_minutes": 55,
-    "platform_runtime_guarantee": false,
-    "automatic_catchup_or_extension": false
+    "target_handoff_after_minutes": 55
   },
-  "active_execution": null,
+  "active_execution": {
+    "number": 7,
+    "mode": "VERIFY_ON01",
+    "slice": "ON-01",
+    "token": "execution-007-20260914T1537Z",
+    "started_at": "2026-09-14T15:37:00Z",
+    "lease_expires_at": "2026-09-14T16:47:00Z",
+    "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+    "control_parent_head": "14a392bad4a0a661c2065830a9bcca0fe90f0307"
+  },
   "pending_publication": null,
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
-    {"id": "ON-01", "status": "PENDING_CI", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
-    {"id": "ON-02", "status": "NOT_STARTED", "owner_ux_round": "UX-R5", "requires": ["ON-01"]},
-    {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-02", "UX-R5_CERTIFIED"]},
-    {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-03"]},
-    {"id": "ON-05", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-04"]},
-    {"id": "ON-06", "status": "NOT_STARTED", "owner_ux_round": "FINAL_UX_REGRESSION", "requires": ["ON-05", "UX-R6_CERTIFIED"]},
-    {"id": "ON-07", "status": "NOT_STARTED", "owner_ux_round": null, "requires": ["ON-06", "APPLE_TEST_RUNTIME_VERIFIED"]},
-    {"id": "ON-08", "status": "NOT_STARTED", "owner_ux_round": null, "requires": ["ON-07", "MCP_TEST_RUNTIME_VERIFIED"]}
+    {"id": "ON-01", "status": "PENDING_CI", "owner_ux_round": "UX-R5"},
+    {"id": "ON-02", "status": "NOT_STARTED", "owner_ux_round": "UX-R5"},
+    {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
+    {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
+    {"id": "ON-05", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
+    {"id": "ON-06", "status": "NOT_STARTED", "owner_ux_round": "FINAL_UX_REGRESSION"},
+    {"id": "ON-07", "status": "NOT_STARTED", "owner_ux_round": null},
+    {"id": "ON-08", "status": "NOT_STARTED", "owner_ux_round": null}
   ],
-  "inherited_certification": {
-    "fresh_campaign_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
-    "fresh_campaign_product_tree": "fb40053c4ce93ec42d8a7989e95d794fc0c2d34b",
-    "fresh_run_id": 34826604211,
-    "fresh_run_number": 257,
-    "fresh_status": "completed",
-    "fresh_conclusion": "success",
-    "mandatory_jobs_observed_success": 10,
-    "full_suite": {"total": 1054, "pass": 1054, "fail": 0, "skipped": 0, "unit": 884, "browser_e2e": 23, "adapter_contract": 95, "privacy_security": 52},
-    "input_digest": "81bcb268380b0502f9fd07b0085106633f8735fafabda5cf3b51d078fcabdb37"
-  },
   "ci": {
     "workflow_path": ".github/workflows/paia-certification.yml",
     "carrier_pr": 28,
-    "carrier_url": "https://github.com/haohongfei2001-png/paia/pull/28",
     "carrier_draft": true,
     "carrier_never_merge": true,
     "base_branch": "overnight/ci-base-20260914",
@@ -87,33 +75,9 @@
       "product_tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
       "run_id": 34859053846,
       "run_number": 262,
-      "observed_status": "in_progress",
-      "observed_conclusion": null,
-      "observed_partial": ["macOS Secure Store Certification PASS", "Current release build and guards PASS"],
-      "required_action": "Inspect every mandatory job, full-suite receipt, regenerated UX-R5 visual evidence, release result and exact repair diff. The first-generation screenshot must be unblurred. Any failure repairs ON-01 only; only all-green executable and acceptance evidence may complete ON-01."
-    },
-    "latest_completed": {
-      "purpose": "ON-01 execution-005 test-only repair recertification",
-      "product_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
-      "product_tree": "f5fcf0e9edb13f5c1e96104e9f910926cc168981",
-      "merge_ref": "6cc155db61da2fb619eb0a90d2e7b6388276d8c1",
-      "run_id": 34851553017,
-      "run_number": 261,
       "observed_status": "completed",
       "observed_conclusion": "success",
-      "mandatory_jobs_success": 10,
-      "full_suite": {"total": 1060, "pass": 1060, "fail": 0, "skipped": 0, "unit": 886, "browser_e2e": 27, "adapter_contract": 95, "privacy_security": 52},
-      "input_digest": "c156358939e680d59ad417cd430ecabec2da1cc8dd01916c910ac5f32f38e555",
-      "browser_suite": "27/27 PASS",
-      "package_guard": "8331 guardrails / 191 runtime resources PASS",
-      "development_audit": "PASS",
-      "release": "7903 guardrails / 184 runtime resources / 208 files PASS",
-      "macos_secure_store": "PASS",
-      "aggregate_gate": "PASS",
-      "acceptance_review": "FAIL_VISUAL_FIRST_GENERATION_BLUR",
-      "visual_artifact_id": 10352671337,
-      "visual_artifact_zip_sha256": "2007cde6c7c2dd9e2a102d7b2708df51f0c8fbddc5e7942a6cb5d8de79a56c96",
-      "visual_files": ["on01-first-generation.png", "on01-organized-cached.png"]
+      "required_action": "Execution 007 is verifying all mandatory jobs, full-suite receipt, exact diff and regenerated UX-R5 visual evidence before closing ON-01."
     },
     "required_jobs": ["Unit 1/4", "Unit 2/4", "Unit 3/4", "Unit 4/4", "Adapter and privacy contracts", "Current Browser Certification", "Full Suite Certification", "macOS Secure Store Certification", "Current release build and guards", "Certification gate"]
   },
@@ -122,9 +86,7 @@
       "commit": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
       "tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
       "parent": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
-      "changed_files": ["extension/ui/thoughts.js", "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs"],
-      "compare": "single commit; exactly two files; no permission/provider/data/migration/schema changes",
-      "finding_repaired": "Uncached AI-view entry no longer invokes structural recomposition before generated structure exists; real-browser test now asserts paia-recomposing=false during first-generation staging."
+      "changed_files": ["extension/ui/thoughts.js", "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs"]
     }
   },
   "highest_campaign_verified_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
@@ -138,18 +100,19 @@
     "apple_codec": "NOT_STARTED",
     "mcp_adapter": "NOT_STARTED"
   },
-  "blocking_reasons": ["ON-01 cannot be marked complete until PAIA Certification #262 finishes every mandatory current-release gate and regenerated UX-R5 visual evidence proves first-generation staging is no longer blurred/recomposing."],
-  "preflight_requirements": ["Execution 007: verify refs and Draft PR #28, then inspect PAIA Certification #262 jobs/logs/full-suite receipt/artifacts and exact diff. Repair ON-01 if any gate or screenshot fails; otherwise seal ON-01 COMPLETE before considering ON-02."],
-  "last_run_report": "overnight/runs/006.md",
+  "blocking_reasons": [],
+  "last_run_report": "overnight/runs/007.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
     {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "result": "INHERITED_BASELINE_VERIFIED"},
-    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_end_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "result": "WAITING_CI"},
-    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "product_end_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "result": "WAITING_CI"},
-    {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "product_end_head": "1b80bbbe925348248ed0ae0699505310593991f0", "result": "WAITING_CI"},
-    {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "product_end_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "result": "WAITING_CI"},
-    {"number": 6, "mode": "REPAIR_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_start_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "WAITING_CI"}
+    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "result": "WAITING_CI"},
+    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "result": "WAITING_CI"},
+    {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "result": "WAITING_CI"},
+    {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "result": "WAITING_CI"},
+    {"number": 6, "mode": "REPAIR_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "WAITING_CI"},
+    {"number": 7, "mode": "VERIFY_ON01", "path": "overnight/runs/007.md", "consumes_opportunity": true, "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "product_end_head": null, "result": "IN_PROGRESS"}
   ],
-  "next_recommended_action": "Execution 007 must verify Certification #262 and manually inspect regenerated UX-R5 evidence before any progression. If all executable and visual gates pass, close ON-01; otherwise repair ON-01 only. Do not start ON-02 from an unverified or visually failing ON-01.",
-  "human_resolution_required": false
+  "next_recommended_action": "Execution 007 is verification-only. Close ON-01 only if executable and visual evidence for Certification #262 pass; do not start ON-02 in this execution.",
+  "human_resolution_required": false,
+  "state_compaction_note": "Execution 007 compacted historical detail from the machine state; authoritative prior evidence remains in overnight/runs/001.md through 006.md and GitHub Actions records."
 }
