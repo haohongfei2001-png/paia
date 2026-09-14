@@ -55,17 +55,23 @@ test('UX-R5 leaving a Topic during one paid request never starts a second reques
 });
 
 
-test('UX-R5 worker interruption becomes outcome_unknown with zero automatic retry; Source purge removes derived AI output',{timeout:120000},async()=>{
+test('UX-R5 worker interruption becomes outcome_unknown and status checks never retry the paid request',{timeout:90000},async()=>{
  let release;const gate=new Promise(resolve=>{release=resolve;});let call=0;
  const h=await FakeChatGPT.start({onboarding:true,deepSeekFixture:async body=>{const request=requestOf(body);call++;if(call===1)await gate;return aiOutput(request,call);}});
  try{
   const p=await ready(h),topic=await createTopic(p,'R5 outcome unknown');await openTopic(p,topic);await p.locator('#ai-presentation-toggle').check();const requestPromise=p.getByRole('button',{name:'生成 AI整理',exact:true}).click().catch(()=>{});await eventually(()=>Promise.resolve(h.deepSeekRequests.length===1),'request crossed network boundary');
   await h.restartWorker();release();await requestPromise;await eventually(async()=>{const state=await rpc(p,'GET_AI_PRESENTATION_STATUS');return state.runtime?.state==='outcome_unknown';},'outcome unknown after restart');
-  const before=h.deepSeekRequests.length;await rpc(p,'GET_AI_PRESENTATION_STATUS');await rpc(p,'GET_AI_PRESENTATION_STATUS');await pause(300);assert.equal(h.deepSeekRequests.length,before,'status checks must not retry outcome_unknown');
+  const before=h.deepSeekRequests.length;await rpc(p,'GET_AI_PRESENTATION_STATUS');await rpc(p,'GET_AI_PRESENTATION_STATUS');await pause(300);assert.equal(h.deepSeekRequests.length,before,'status checks must not retry outcome_unknown');assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
 
-  const sourceText='R5_SOURCE_PURGE 这条来源删除后，AI整理不能继续冒充有证据。';const chat=await h.open({id:'uxr5-source',title:'R5 source',base:1609459200,messages:[{id:'uxr5-source-msg',text:sourceText}]});await eventually(async()=>(await h.state()).records.length===1);await p.bringToFront();await nav(p,'library');await p.locator('.conversation-document').first().click();const archiveField=p.locator('.library-prose').filter({hasText:'R5_SOURCE_PURGE'}).first();await archiveField.waitFor();const inputId=await archiveField.getAttribute('data-edit-id'),input=await rpc(p,'GET_INPUT',{id:inputId}),sourceTopic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'R5 Source purge Topic',operationId:op()}});await rpc(p,'ADD_TO_TOPICS',{selection:{kind:'input',id:inputId,expectedRevision:input.revision,topicIds:[sourceTopic.id],operationId:op()}});
-  // Use a fresh successful request after the unknown request. No status read above is allowed to trigger it.
-  await openTopic(p,sourceTopic);await p.locator('#ai-presentation-toggle').check();await p.getByRole('button',{name:'生成 AI整理',exact:true}).click();await eventually(async()=>{const {topic:row}=await aiStatus(p,sourceTopic.id);return !!row?.presentation;},'source-bound AI presentation');assert.equal(h.deepSeekRequests.length,before+1);
-  const source=(await rpc(p,'GET_INPUT',{id:inputId})).originalTextReference;await rpc(p,'PURGE_SOURCE',{id:source,confirm:true});await eventually(async()=>{const {topic:row}=await aiStatus(p,sourceTopic.id);return !row?.presentation&&!row?.candidate;},'purge clears derived AI presentation');await pause(300);assert.equal(h.deepSeekRequests.length,before+1,'purge must not regenerate AI');assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);await chat.close();
+
+test('UX-R5 Source purge removes source-bound AI output without regeneration',{timeout:90000},async()=>{
+ let call=0;
+ const h=await FakeChatGPT.start({onboarding:true,deepSeekFixture:async body=>{const request=requestOf(body);call++;return aiOutput(request,call);}});
+ try{
+  const p=await ready(h),sourceText='R5_SOURCE_PURGE 这条来源删除后，AI整理不能继续冒充有证据。';const chat=await h.open({id:'uxr5-source',title:'R5 source',base:1609459200,messages:[{id:'uxr5-source-msg',text:sourceText}]});await eventually(async()=>(await h.state()).records.length===1);await p.bringToFront();await nav(p,'library');await p.locator('.conversation-document').first().click();const archiveField=p.locator('.library-prose').filter({hasText:'R5_SOURCE_PURGE'}).first();await archiveField.waitFor();const inputId=await archiveField.getAttribute('data-edit-id'),input=await rpc(p,'GET_INPUT',{id:inputId}),sourceTopic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'R5 Source purge Topic',operationId:op()}});await rpc(p,'ADD_TO_TOPICS',{selection:{kind:'input',id:inputId,expectedRevision:input.revision,topicIds:[sourceTopic.id],operationId:op()}});
+  await openTopic(p,sourceTopic);await p.locator('#ai-presentation-toggle').check();await p.getByRole('button',{name:'生成 AI整理',exact:true}).click();await eventually(async()=>{const {topic:row}=await aiStatus(p,sourceTopic.id);return !!row?.presentation;},'source-bound AI presentation');assert.equal(h.deepSeekRequests.length,1);
+  const source=(await rpc(p,'GET_INPUT',{id:inputId})).originalTextReference;await rpc(p,'PURGE_SOURCE',{id:source,confirm:true});await eventually(async()=>{const {topic:row}=await aiStatus(p,sourceTopic.id);return !row?.presentation&&!row?.candidate;},'purge clears derived AI presentation');await pause(300);assert.equal(h.deepSeekRequests.length,1,'purge must not regenerate AI');assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);await chat.close();
  }finally{await h.close();}
 });
