@@ -6,6 +6,7 @@ import {normalizeUXPreferences,SETTINGS_GROUPS} from '../ui/ux-r1-state.js';
 import {storageEstimateText,previewMaskClass} from '../ui/r6-settings.js';
 import {completeFixture} from './harness/original-complete.mjs';
 import {BackupService} from '../core/backup-service.js';
+import {MemoryService} from '../core/memory/service.js';
 
 async function exported(service){const {sessionId,header}=await service.beginExport(),items=[header];let sequence=0;for(;;){const page=await service.exportPage({sessionId,sequence:sequence++});items.push(...page.items);if(page.done)break;}return items;}
 async function prepared(service,items){const {sessionId}=await service.beginRestore();for(let i=0;i<items.length;i+=30)await service.stageRestore({sessionId,items:items.slice(i,i+30)});return {sessionId,preview:await service.previewRestore({sessionId})};}
@@ -22,6 +23,13 @@ test('UX-R6 old workspace preferences migrate fail-safe without changing content
 test('UX-R6 privacy preview preference survives a formal Backup round trip instead of silently reverting',async()=>{
  const source=await completeFixture({texts:[]});await source.s.updatePreferences({hideContentPreviews:true,appearance:'dark'});const items=await exported(new BackupService(source.s,{appVersion:'0.12.0'}));assert.equal(items.find(row=>row.section==='settings').value.preferences.hideContentPreviews,true);
  const target=await completeFixture({texts:[]}),service=new BackupService(target.s,{appVersion:'0.12.0'}),stage=await prepared(service,items);assert.equal(stage.preview.canRestore,true);await service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity});const restored=(await target.s.snapshot()).preferences;assert.equal(restored.hideContentPreviews,true);assert.equal(restored.appearance,'dark');assert.equal(target.requests.length,0);
+});
+
+test('UX-R6 Backup may preserve policy history but restore always disables old external access authorization',async()=>{
+ const source=await completeFixture({texts:[]}),memory=new MemoryService(source.s);await memory.ready();await memory.settings({externalAccess:true});
+ const items=await exported(new BackupService(source.s,{appVersion:'0.12.0'})),portable=items.find(row=>row.section==='organizationState'&&row.value.id==='memory:config')?.value.data;assert.equal(portable?.externalAccess,true,'the file can describe the prior setting without turning it into an active restore authorization');
+ const target=await completeFixture({texts:[]}),service=new BackupService(target.s,{appVersion:'0.12.0'}),stage=await prepared(service,items);assert.equal(stage.preview.canRestore,true);await service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity});
+ const restored=await target.s.run(()=>target.s.repository.transaction(false,t=>t.get('meta','memory:config'),['meta']));assert.equal(restored.externalAccess,false,'old external access permission must fail closed after restore');assert.equal(restored.localOnly,false,'restore must not invent a separate Local-only opt-in');assert.equal(target.requests.length,0);
 });
 
 test('UX-R6 Settings retains exactly the six governed groups and honest storage reporting',()=>{
