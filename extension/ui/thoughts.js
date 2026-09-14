@@ -144,12 +144,17 @@ export class ThoughtWorkspace {
   const intent=this.openIntent=(this.openIntent||0)+1;if(!await this.leave()||intent!==this.openIntent)return;this.clearActionFeedback();
   if(this.id!==id){this.snapshotRoute=null;this.homeSignature=null;$('topic-body').replaceChildren();$('topic-heading').replaceChildren();this.originalPane=null;this.aiPane=null;this.aiSignature=undefined;this.document=null;this.topic=null;}
   if(this.id!==id)this.view=id?(this.topicViews.get(id)||'original'):'original';this.id=id;this.onOpen();
-  const saved=this.homePositions.get(id||'home'),sameSessionResume=!!id&&!!saved?.cursor&&(!saved.sort||saved.sort===this.readingSort),position=id?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
-  if(!sameSessionResume){this.resumeAnchor=await position;if(intent!==this.openIntent)return;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;
-  $('topic-search').value=id?saved?.query||'':'';if(!id&&saved)$('thought-search').value=saved.query;this.cursor=saved?.cursor||null;this.pages=saved?.pages||[];this.history=null;
-  await this.refresh();if(intent!==this.openIntent)return;this.onOpen();scrollTo(0,saved?.scroll||0);
-  if(id&&sameSessionResume){void position.then(async anchor=>{if(intent!==this.openIntent||this.id!==id)return;if(anchor?.sort&&anchor.sort!==this.readingSort){this.readingSort=anchor.sort;this.cursor=null;this.pages=[];this.resumeAnchor=anchor;await this.refresh();if(intent!==this.openIntent||this.id!==id)return;}await this.restorePosition(anchor);if(intent===this.openIntent&&this.id===id)this.schedulePosition();});}
-  else if(id){await this.restorePosition(this.resumeAnchor);this.resumeAnchor=null;this.schedulePosition();}
+  const saved=this.homePositions.get(id||'home'),sameSessionResume=!!id&&!!saved?.cursor&&(!saved.sort||saved.sort===this.readingSort),position=id?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null),canRestoreCursor=!!saved?.cursor&&(!saved.sort||saved.sort===this.readingSort);
+  this.resumeAnchor=null;$('topic-search').value=id?saved?.query||'':'';if(!id&&saved)$('thought-search').value=saved.query;this.cursor=canRestoreCursor?saved.cursor:null;this.pages=canRestoreCursor?(saved.pages||[saved.cursor]):[];this.history=null;
+  const initialRefresh=this.refresh();
+  if(id&&!sameSessionResume){
+   const [,anchor]=await Promise.all([initialRefresh,position]);if(intent!==this.openIntent||this.id!==id)return;
+   let needsAnchorPage=false;if(anchor?.sort&&anchor.sort!==this.readingSort){this.readingSort=anchor.sort;needsAnchorPage=true;}if(anchor?.entryId&&![...$('topic-body').querySelectorAll('[data-entry-id]')].some(node=>node.dataset.entryId===anchor.entryId))needsAnchorPage=true;
+   if(needsAnchorPage){this.cursor=null;this.pages=[];this.resumeAnchor=anchor;await this.refresh();if(intent!==this.openIntent||this.id!==id)return;}
+   this.onOpen();scrollTo(0,saved?.scroll||0);await this.restorePosition(anchor);this.resumeAnchor=null;if(intent===this.openIntent&&this.id===id)this.schedulePosition();return;
+  }
+  await initialRefresh;if(intent!==this.openIntent)return;this.onOpen();scrollTo(0,saved?.scroll||0);
+  if(id&&sameSessionResume){void position.then(async anchor=>{if(intent!==this.openIntent||this.id!==id)return;if(anchor?.sort&&anchor.sort!==this.readingSort){this.readingSort=anchor.sort;this.cursor=null;this.pages=[];this.resumeAnchor=anchor;await this.refresh();if(intent!==this.openIntent||this.id!==id)return;}await this.restorePosition(anchor);this.resumeAnchor=null;if(intent===this.openIntent&&this.id===id)this.schedulePosition();});}
  }
  setBusy(value){for(const b of document.querySelectorAll('#topic-toolbar button,#topic-body button'))b.disabled=value;}
  async mutate(run){if(this.mutating)return;this.mutating=true;this.setBusy(true);if(!await this.leave()){this.mutating=false;this.setBusy(false);return;}try{await run();this.cursor=null;this.pages=[];this.onStatus('更改已保存到本机');return true;}catch{showLocalFailure();return false;}finally{this.mutating=false;this.history=null;await this.refresh();this.setBusy(false);}}
