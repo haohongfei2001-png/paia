@@ -2,14 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "WAITING_CI",
+  "status": "VERIFYING_ON01",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 15,
-    "parent_head": "e5ac3c31eacdd0481f8d66281c8cba1680368ac9",
-    "kind": "execution_seal",
+    "sequence": 16,
+    "parent_head": "a40deb4c2d34e69f73931768ce87df77c0b7b485",
+    "kind": "execution_claim",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
@@ -37,8 +37,8 @@
   "execution_budget": {
     "max_scheduled_deliveries": 8,
     "max_admitted_executions": 8,
-    "admitted_executions": 5,
-    "scheduler_deliveries_observed": 5,
+    "admitted_executions": 6,
+    "scheduler_deliveries_observed": 6,
     "scheduler_task_created_by_bootstrap": false,
     "campaign_started_at": "2026-09-14T09:34:40Z",
     "stop_new_work_at": "2026-09-14T17:34:40Z",
@@ -48,7 +48,16 @@
     "platform_runtime_guarantee": false,
     "automatic_catchup_or_extension": false
   },
-  "active_execution": null,
+  "active_execution": {
+    "number": 6,
+    "mode": "VERIFY_ON01",
+    "slice": "ON-01",
+    "token": "execution-006-20260914T1442Z",
+    "started_at": "2026-09-14T14:42:08Z",
+    "lease_expires_at": "2026-09-14T15:57:08Z",
+    "product_start_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
+    "control_parent_head": "a40deb4c2d34e69f73931768ce87df77c0b7b485"
+  },
   "pending_publication": null,
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
@@ -162,16 +171,17 @@
     "mcp_adapter": "NOT_STARTED"
   },
   "blocking_reasons": ["ON-01 cannot be marked complete until PAIA Certification #261 finishes and every required current-release gate is independently verified."],
-  "preflight_requirements": ["Next execution: verify refs and Draft PR #28, then inspect PAIA Certification #261 actual jobs/logs/receipt/artifacts and exact diff. Repair ON-01 if any gate fails; otherwise close ON-01 before considering ON-02."],
-  "last_run_report": "overnight/runs/005.md",
+  "preflight_requirements": ["Execution 006: verify refs and Draft PR #28, then inspect PAIA Certification #261 actual jobs/logs/receipt/artifacts and exact diff. Repair ON-01 if any gate fails; otherwise close ON-01 before considering ON-02."],
+  "last_run_report": "overnight/runs/006.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
     {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "result": "INHERITED_BASELINE_VERIFIED"},
     {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "result": "WAITING_CI"},
     {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "product_start_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "product_end_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "result": "WAITING_CI"},
     {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "product_start_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "product_end_head": "1b80bbbe925348248ed0ae0699505310593991f0", "result": "WAITING_CI"},
-    {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "product_start_head": "1b80bbbe925348248ed0ae0699505310593991f0", "product_end_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "result": "WAITING_CI"}
+    {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "product_start_head": "1b80bbbe925348248ed0ae0699505310593991f0", "product_end_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "result": "WAITING_CI"},
+    {"number": 6, "mode": "VERIFY_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_start_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "product_end_head": null, "result": "IN_PROGRESS"}
   ],
-  "next_recommended_action": "Validate PAIA Certification #261 completely. Do not start ON-02 unless ON-01's required gates all pass and the control state is updated accordingly.",
+  "next_recommended_action": "Execution 006 owns verification of PAIA Certification #261. No ON-02 work until every ON-01 gate is proven green and this execution seals that result.",
   "human_resolution_required": false
 }
