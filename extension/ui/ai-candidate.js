@@ -10,7 +10,9 @@ export function aiCandidateKey(candidate){
 }
 
 export function renderAICandidateComparison(root,{candidate,current,choices,onChoice,onSave,onRefresh}){
- root.querySelector('[data-ai-candidate]')?.remove();
+ const previous=root.querySelector('[data-ai-candidate]'),active=root.ownerDocument.activeElement;
+ const focus=previous?.contains(active)?{field:active.closest('[data-ai-candidate-field]')?.dataset.aiCandidateField,decision:active.dataset.candidateDecision,footer:!!active.closest('.ai-candidate-footer')}:null;
+ previous?.remove();
  if(!candidate||!current)return null;
  const panel=element('section','ai-update-candidate');panel.dataset.aiCandidate='true';panel.setAttribute('aria-label','AI 更新候选');
  panel.append(element('p','eyebrow','AI 更新候选'),element('h2','',candidate.stale?'内容刚有更新，请重新核对':'新的整理已准备好，当前稿不会自动改变'));
@@ -31,5 +33,8 @@ export function renderAICandidateComparison(root,{candidate,current,choices,onCh
  const footer=element('div','ai-candidate-footer');
  if(candidate.stale){const refresh=button('重新更新 AI整理',()=>onRefresh());refresh.className='primary';footer.append(refresh);}
  else{const save=button('保存这些选择',()=>onSave());save.className='primary';save.disabled=(candidate.changedFields||[]).some(field=>!['adopt','keep'].includes(choices[field]));footer.append(save,element('span','muted',save.disabled?'请先为每个变化选择采用或保留。':'所有选择已准备好，保存时一次提交。'));}
- panel.append(footer);root.prepend(panel);return panel;
+ panel.append(footer);root.prepend(panel);
+ // Rebuilding local choices must not eject keyboard users to the document body.
+ if(focus){const card=[...panel.querySelectorAll('[data-ai-candidate-field]')].find(node=>node.dataset.aiCandidateField===focus.field),target=focus.decision?[...(card?.querySelectorAll('[data-candidate-decision]')||[])].find(node=>node.dataset.candidateDecision===focus.decision):focus.footer?footer.querySelector('button'):null;if(target&&!target.disabled)target.focus({preventScroll:true});else{panel.tabIndex=-1;panel.focus({preventScroll:true});}}
+ return panel;
 }

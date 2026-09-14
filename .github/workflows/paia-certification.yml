@@ -114,6 +114,8 @@ jobs:
           tests/ux-r3-thought-chrome-e2e.test.mjs
           tests/ux-r4-search-reuse-chrome-e2e.test.mjs
           tests/ux-r5-ai-organize-chrome-e2e.test.mjs
+          tests/ux-r5-ai-update-chrome-e2e.test.mjs
+          tests/ux-r5-certification-chrome-e2e.test.mjs
           tests/release-certification-round48-chrome-e2e.test.mjs
           tests/release-certification-round49-chrome-e2e.test.mjs
           tests/activation-return-round410-chrome-e2e.test.mjs
