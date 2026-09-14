@@ -45,6 +45,19 @@ test('UX-R3 independent today draft: empty, cancelled, failed save, IME and keyb
 });
 
 
+
+test('UX-R3 first Topic open renders body before durable reading position resolves, then restores the exact off-page anchor',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start({onboarding:true});try{
+  const p=await ready(h),topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'R3 first-open position preemption',operationId:op()}});
+  for(let i=0;i<60;i++)await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:`R3 first-open entry ${String(i).padStart(2,'0')}`,topicId:topic.id}});
+  const first=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}});assert.ok(first.nextCursor);const second=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',cursor:first.nextCursor,limit:40}}),anchor=second.items[10].entry;
+  await rpc(p,'THOUGHT_POSITION',{position:{topicId:topic.id,entryId:anchor.id,revision:anchor.revision,offset:4,sort:'asc',expanded:[]}});await nav(p,'thoughts');await p.locator(`[data-topic-id="${topic.id}"]`).waitFor({timeout:30000});
+  await p.evaluate(topicId=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);let release;const gate=new Promise(resolve=>release=resolve);window.r3FirstOpen={positionDelayed:false,positionReleased:false,pageStarted:false};window.r3ReleaseFirstOpen=()=>{if(window.r3FirstOpen.positionReleased)return;window.r3FirstOpen.positionReleased=true;release();};window.r3RestoreFirstOpen=()=>{chrome.runtime.sendMessage=send;};chrome.runtime.sendMessage=(message,...args)=>{if(message?.type==='THOUGHT_POSITION'&&message?.position?.topicId===topicId&&!message.position.entryId&&!window.r3FirstOpen.positionDelayed){window.r3FirstOpen.positionDelayed=true;return gate.then(()=>send(message,...args));}if(message?.type==='TOPIC_DOCUMENT_PAGE'&&message?.options?.topicId===topicId)window.r3FirstOpen.pageStarted=true;return send(message,...args);};},topic.id);
+  await p.locator(`[data-topic-id="${topic.id}"]`).click();await p.waitForFunction(()=>window.r3FirstOpen?.positionDelayed===true,null,{timeout:5000});await p.waitForFunction(()=>window.r3FirstOpen?.pageStarted===true,null,{timeout:5000});await p.locator('#topic-body [data-entry-id]').first().waitFor({timeout:10000});assert.equal(await p.evaluate(()=>window.r3FirstOpen.positionReleased),false);assert.equal(await p.locator(`[data-entry-id="${anchor.id}"]`).count(),0);
+  await p.evaluate(()=>window.r3ReleaseFirstOpen());await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor({timeout:30000});assert.equal(await p.evaluate(id=>history.state?.paiaReader?.topicId===id,topic.id),true);offline(h);
+ }finally{await h.archive.evaluate(()=>{window.r3ReleaseFirstOpen?.();window.r3RestoreFirstOpen?.();}).catch(()=>{});await h.close();}
+});
+
 test('UX-R3 F-LARGE 100k Inputs / 1000 documents / 300 Topics / 5000 Thoughts: bounded page, real UI, anchor and Back/Forward',{timeout:420000},async()=>{
  const h=await FakeChatGPT.start({onboarding:true});try{const p=await ready(h);const report=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),{recordIndex,blockIndex,sourceCount}=await import('../core/idb-repository.js'),{ReaderStateService}=await import('../core/reader-state.js'),{RevisitService}=await import('../core/revisit.js');
