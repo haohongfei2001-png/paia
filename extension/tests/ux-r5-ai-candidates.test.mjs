@@ -4,6 +4,7 @@ import {append,completeFixture,meta,rows,response} from './harness/original-comp
 import {DeepSeekOrganizerProvider} from '../core/organizer/deepseek.js';
 import {AIPresentationRunner,aiPresentationStatus,editAIPresentation,aiPresentationRevisions} from '../core/organizer/ai-presentation.js';
 import {AI_LIST_FIELDS} from '../core/organizer/ai-contract.js';
+import {BackupService} from '../core/backup-service.js';
 
 const action=()=>({userActionId:crypto.randomUUID()});
 
@@ -34,6 +35,19 @@ async function protectAndAddDelta(f){
  assert.equal((await f.ai.wake(action())).completed,true);
  state=await aiPresentationStatus(f.s);
  return state.topics[0];
+}
+
+async function exportBackup(store){
+ const service=new BackupService(store,{appVersion:'0.12.0'}),{sessionId,header}=await service.beginExport(),items=[header];let sequence=0;
+ for(;;){const page=await service.exportPage({sessionId,sequence:sequence++});items.push(...page.items);if(page.done)break;}
+ return items;
+}
+
+async function restoreBackup(store,items){
+ const service=new BackupService(store,{appVersion:'0.12.0'}),{sessionId}=await service.beginRestore();
+ for(let i=0;i<items.length;i+=30)await service.stageRestore({sessionId,items:items.slice(i,i+30)});
+ const preview=await service.previewRestore({sessionId});assert.equal(preview.canRestore,true,JSON.stringify(preview));
+ const result=await service.restore({sessionId,confirmation:preview.integrity});assert.equal(result.restored,true);return result;
 }
 
 test('UX-R5 protected update creates a candidate and never overwrites the current human draft',async()=>{
@@ -86,6 +100,15 @@ test('UX-R5 purging candidate-only evidence removes the candidate without deleti
  await f.s.permanentDelete(candidateOnlySource);await f.s.drainPurgeCleanup();
  const stored=await meta(f.s,'aiPresentation:'+topic.topicId);assert.ok(stored);assert.equal(stored.candidate,undefined);
  const after=(await aiPresentationStatus(f.s)).topics[0];assert.ok(after.presentation);assert.equal(after.presentation.currentView,'人工维护的当前理解');assert.equal(after.candidate,null);
+});
+
+test('UX-R5 Backup round-trip preserves a valid evidence-bound candidate without changing the current human draft',async()=>{
+ const f=await fixture(),before=await protectAndAddDelta(f);assert.ok(before.candidate);
+ const items=await exportBackup(f.s),target=await completeFixture({texts:[]});await restoreBackup(target.s,items);
+ const state=await aiPresentationStatus(target.s),after=state.topics.find(row=>row.topicId===before.topicId);assert.ok(after);assert.ok(after.presentation);assert.ok(after.candidate);
+ assert.equal(after.presentation.currentView,'人工维护的当前理解');assert.equal(after.presentation.blockSummary,'AI 摘要 1');
+ assert.equal(after.candidate.proposal.currentView,'AI 当前理解 2');assert.equal(after.candidate.proposal.blockSummary,'AI 摘要 2');assert.equal(after.candidate.stale,false);
+ assert.deepEqual(new Set(after.candidate.changedFields),new Set(['blockSummary','currentView']));assert.equal(target.requests.length,0);
 });
 
 test('UX-R5 cached status and no-delta update never spend another provider request',async()=>{
