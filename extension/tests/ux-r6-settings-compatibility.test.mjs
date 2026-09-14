@@ -36,6 +36,7 @@ test('UX-R6 Settings retains exactly the six governed groups and honest storage 
  assert.deepEqual(SETTINGS_GROUPS.map(([key])=>key),['content','reading','ai','privacy','data','advanced']);assert.match(storageEstimateText({usage:10*1024*1024,quota:30*1024*1024}),/已用约 10\.0 MiB/);assert.match(storageEstimateText({usage:10*1024*1024}),/无法估计剩余空间/);assert.match(storageEstimateText({},true),/not available/i);assert.equal(previewMaskClass(true),'paia-hide-content-previews');assert.equal(previewMaskClass(false),'');
 });
 
-test('UX-R6 preview mask is visual-only and never hides direct Reader or Thought body selectors',async()=>{
- const css=await readFile(new URL('../ui/r6.css',import.meta.url),'utf8');assert.match(css,/universal-open p/);assert.match(css,/revisit-card-open p/);assert.match(css,/topic-index-row/);assert.doesNotMatch(css,/document-body/);assert.doesNotMatch(css,/library-prose/);assert.doesNotMatch(css,/original-prose/);assert.doesNotMatch(css,/#topic-body\s*\{/);const ui=await readFile(new URL('../ui/r6-settings.js',import.meta.url),'utf8');assert.match(ui,/not encryption|不是加密/);assert.match(ui,/Device sync is not available|未提供设备同步/);
+test('UX-R6 preview mask and data-exit copy state their real privacy boundary without hiding Reader/Thought bodies',async()=>{
+ const css=await readFile(new URL('../ui/r6.css',import.meta.url),'utf8');assert.match(css,/universal-open p/);assert.match(css,/revisit-card-open p/);assert.match(css,/topic-index-row/);assert.doesNotMatch(css,/document-body/);assert.doesNotMatch(css,/library-prose/);assert.doesNotMatch(css,/original-prose/);assert.doesNotMatch(css,/#topic-body\s*\{/);
+ const ui=await readFile(new URL('../ui/r6-settings.js',import.meta.url),'utf8');assert.match(ui,/not encryption|不是加密/);assert.match(ui,/Device sync is not available|未提供设备同步/);assert.match(ui,/not application-layer encrypted|未做应用层加密/);assert.match(ui,/File generated and download started|文件已生成并开始下载/);
 });
