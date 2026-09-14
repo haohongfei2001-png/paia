@@ -6,6 +6,10 @@ test('optional local RPCs retain successful siblings when one fails',async()=>{
  const calls=[];const result=await readOptionalLibraryStatus(async type=>{calls.push(type);if(type==='GET_AI_PRESENTATION_STATUS')throw Error('PRIVATE_BODY_MUST_NOT_ESCAPE');return {safe:true};});
  assert.equal(calls.length,5);assert.deepEqual(result.unavailable,['ai']);assert.equal(Object.keys(result.values).length,4);assert.ok(!JSON.stringify(result).includes('PRIVATE'));
 });
+test('Topic passive status can omit the heavy Original planner without marking it unavailable',async()=>{
+ const calls=[];const result=await readOptionalLibraryStatus(async type=>{calls.push(type);return type==='GET_BOUNDED_ORGANIZER'?null:{safe:true};},{includeOriginal:false});
+ assert.equal(calls.includes('GET_ORIGINAL_ORGANIZER_STATUS'),false);assert.equal(calls.length,4);assert.deepEqual(result.unavailable,[]);assert.equal(Object.hasOwn(result.values,'original'),false);
+});
 test('hanging optional RPC settles without publishing its late result',async()=>{
  let late;const result=await readOptionalLibraryStatus(type=>type==='GET_AI_PRESENTATION_STATUS'?new Promise(resolve=>late=resolve):Promise.resolve({safe:true}),{timeoutMs:15});
  assert.deepEqual(result.unavailable,['ai']);late({private:'late'});await new Promise(resolve=>setTimeout(resolve,1));assert.ok(!result.values.ai);
