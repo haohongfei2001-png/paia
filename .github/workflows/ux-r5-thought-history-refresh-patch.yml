@@ -1,0 +1,35 @@
+name: UX-R5 Thought history refresh patch
+on:
+  push:
+    paths:
+      - '.github/workflows/ux-r5-thought-history-refresh-patch.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ux-r5
+          fetch-depth: 0
+      - name: Avoid duplicate Thought refresh on routed Topic open
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('extension/ui/archive.js')
+          s=p.read_text()
+          old="const loaded=beginLoading(document.querySelector('.workspace'),'正在读取本机内容…');try{if(view==='thoughts'&&options.topicId!==undefined)await thoughts.open(options.topicId);await refresh();if(view==='revisit')await revisitPage.show();}finally{loaded();}"
+          new="const loaded=beginLoading(document.querySelector('.workspace'),'正在读取本机内容…');try{const openedThought=view==='thoughts'&&options.topicId!==undefined;if(openedThought)await thoughts.open(options.topicId);if(!openedThought)await refresh();if(view==='revisit')await revisitPage.show();}finally{loaded();}"
+          assert s.count(old)==1
+          p.write_text(s.replace(old,new))
+          PY
+          node --check extension/ui/archive.js
+      - name: Commit patch and remove staging workflow
+        run: |
+          rm .github/workflows/ux-r5-thought-history-refresh-patch.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add extension/ui/archive.js .github/workflows/ux-r5-thought-history-refresh-patch.yml
+          git commit -m 'fix(reader): avoid duplicate Thought refresh on history restore'
+          git push origin HEAD:ux-r5
