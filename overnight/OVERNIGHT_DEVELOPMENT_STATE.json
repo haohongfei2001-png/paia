@@ -1,23 +1,126 @@
 {
-  "schema_version":2,
-  "campaign":"paia-continuation-20260915-v2",
-  "status":"UX_R5_ACCEPTANCE_REPAIR_PUBLISHED_AWAITING_CERTIFICATION",
-  "checkpoint_sequence":5,
-  "control_parent_head":"8809efe0c1da4711e6a7a68dd529dd99414696aa",
-  "control_branch":"overnight/control-20260915-v2",
-  "predecessor":{"campaign":"paia-overnight-20260914-v1","status":"EXHAUSTED / HISTORICAL","control_head":"b46a2edda95424934da23784a424d47f0a44f739","final_product_head":"6517763883c95e9a8901e5095db2a7d846da0ef6","execution_opportunities_used":8,"execution_opportunities_total":8,"history_mutable":false},
-  "active_owner":"recovery-20260915-651776-6c94b7e1",
-  "authorization":"Independent user-authorized UX-R5 recovery only; no scheduled continuation and no UX-R6 execution",
-  "product":{"branch":"ux-r2","expected_head":"277ddaaa9a3ddc0722f43867730c6bc68f456555","repair_start_head":"6517763883c95e9a8901e5095db2a7d846da0ef6","repair_commits":["6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","277ddaaa9a3ddc0722f43867730c6bc68f456555"],"certified_head":null,"official_status":"UX-R5 READY / NOT_STARTED in inherited product status; implementation and recovery repairs published but not certified","current_state":"UX-R5 / ON-02 ACCEPTANCE_REPAIR_PUBLISHED_AWAITING_CERTIFICATION"},
-  "authority":{"ref":"6517763883c95e9a8901e5095db2a7d846da0ef6","unchanged_in_repair":true,"agents":"extension/AGENTS.md","design_core":"extension/docs/ux/PAIA_DESIGN_CORE_v1.0.md","development_spec":"extension/docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md","official_status":"extension/docs/ux/UX_IMPLEMENTATION_STATUS.md"},
-  "ci":{"baseline_branch":"overnight/ci-base-20260914","baseline_head":"ad386c07cff59b9b3472a5aa03626fe89514f8d1","pull_request":28,"draft":true,"purpose":"CI_ONLY_DO_NOT_MERGE","historical_failed_run":34871354407,"historical_failed_run_number":263,"current_recovery_run":null,"recovery_result":"WAITING_CI","prior_repair_run":{"id":34879726600,"number":264,"product_head":"6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","use":"Intermediate root-cause repair evidence only; superseded by RP-02; do not claim final full-suite PASS","last_observed_jobs":{"unit_1":"PASS","unit_2":"PASS","unit_3":"PASS","unit_4":"PASS","adapter_privacy":"PASS","macos_secure_store":"PASS","release":"PASS","browser":"WAITING_CI","full_suite":"WAITING_CI"}}},
-  "recovery_audit_outcome":"No unknown product/control/baseline drift. ON-02 post-commit candidateCreated ReferenceError reproduced and repaired. #263 final: 1070 total, 1056 pass, 14 fail, 0 skipped; browser 28 pass. Report 008 incorrectly states +220/-25: actual ON-02 diff is 11 files +230/-23. #263 synthetic merge tree exactly matches product tree. Formal R5 report absent; inherited status stale. RP-02 repairs R5 keyboard/theme defects and adds missing acceptance journeys; execution and visual inspection still required.",
-  "pending_publication":null,
-  "publication_receipts":[{"id":"RP-01","prepared_control_head":"665c51c1b8b6ba90086e7eff8ff270c4a7af88e3","parent":"6517763883c95e9a8901e5095db2a7d846da0ef6","commit":"6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","tree":"21a22861d0228ae0150d485a5cf366620462fc31","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/core/organizer/ai-presentation.js","extension/tests/ai-product-v080.test.mjs","extension/tests/ux-r5-ai-result-contract.test.mjs"],"diff_review":"PASS: exactly one parent and three files; +63/-4; runtime blob 1e68d3c8231d804a2a8dd1db3719d5a21a9c602c matches diagnosed patch","local_diagnostic":"PASS: actual runner class with synthetic seams, not full repository tests"},{"id":"RP-02","prepared_control_head":"8809efe0c1da4711e6a7a68dd529dd99414696aa","parent":"6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","commit":"277ddaaa9a3ddc0722f43867730c6bc68f456555","tree":"6f3fc5e9ce44e15fe69c630dda997663d0886575","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/ui/ai-candidate.js","extension/ui/thought-reader.css","extension/tests/ux-r5-certification-chrome-e2e.test.mjs",".github/workflows/paia-certification.yml"],"diff_review":"PASS: single parent, four files +79/-5; workflow only adds two R5 journey filenames; no existing gate weakened","verified_blobs":{"ui_candidate":"d3579b302dce4ba94357a3d46832cb5bd6add145","new_browser_test":"9c12e44bb4b385dc07910e68e0851c67db468435"}}],
-  "last_run_report":"overnight/recovery/UX_R5_RECOVERY_AUDIT.md",
-  "next_allowed_slice":"UX-R5_RECOVERY",
-  "next_action":"Complete every required CI and R5 acceptance gate on the new product HEAD, inspect actual screenshot artifacts, then publish accurate canonical report/status and stop. Do not start UX-R6.",
-  "ux_r5_verified_complete":false,
-  "ux_r6_started":false,
-  "scheduled_execution_authorized":false
+  "schema_version": 2,
+  "campaign": "paia-continuation-20260915-v2",
+  "status": "UX_R5_STALE_OWNER_RECOVERED_CERTIFICATION_265_FAILED",
+  "checkpoint_sequence": 6,
+  "control_parent_head": "f6cc9472f91c81b6b6cda746416072e25e12d93f",
+  "control_branch": "overnight/control-20260915-v2",
+  "predecessor": {
+    "campaign": "paia-overnight-20260914-v1",
+    "status": "EXHAUSTED / HISTORICAL",
+    "control_head": "b46a2edda95424934da23784a424d47f0a44f739",
+    "final_product_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+    "execution_opportunities_used": 8,
+    "execution_opportunities_total": 8,
+    "history_mutable": false
+  },
+  "active_owner": "recovery-20260915-r5-82f1c4d7",
+  "authorization": "User-authorized stale-owner takeover for UX-R5 recovery only; do not start UX-R6 in this recovery session.",
+  "ownership_history": [
+    {
+      "previous_owner": "recovery-20260915-651776-6c94b7e1",
+      "disposition": "STALE_CHAT_EXECUTION_ENDED",
+      "recovered_at_control_parent": "f6cc9472f91c81b6b6cda746416072e25e12d93f",
+      "replacement_owner": "recovery-20260915-r5-82f1c4d7",
+      "basis": "User confirmed the previous Chat execution ended and no background development Agent remained. Repository refs, expected product HEAD and pending publication were independently revalidated before takeover."
+    }
+  ],
+  "product": {
+    "branch": "ux-r2",
+    "expected_head": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
+    "repair_start_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+    "repair_commits": [
+      "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
+      "277ddaaa9a3ddc0722f43867730c6bc68f456555"
+    ],
+    "certified_head": null,
+    "official_status": "UX-R5 READY / NOT_STARTED in inherited product status; implementation and recovery repairs published but not certified",
+    "current_state": "UX-R5 / ON-02 CERTIFICATION_265_FAILED_REPAIR_REQUIRED"
+  },
+  "authority": {
+    "ref": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+    "unchanged_in_repair": true,
+    "agents": "extension/AGENTS.md",
+    "design_core": "extension/docs/ux/PAIA_DESIGN_CORE_v1.0.md",
+    "development_spec": "extension/docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md",
+    "official_status": "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md"
+  },
+  "ci": {
+    "baseline_branch": "overnight/ci-base-20260914",
+    "baseline_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
+    "pull_request": 28,
+    "draft": true,
+    "purpose": "CI_ONLY_DO_NOT_MERGE",
+    "historical_failed_run": 34871354407,
+    "historical_failed_run_number": 263,
+    "prior_repair_run": {
+      "id": 34879726600,
+      "number": 264,
+      "product_head": "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
+      "use": "Intermediate root-cause repair evidence only; superseded by RP-02; do not claim final certification PASS"
+    },
+    "current_recovery_run": 34881612592,
+    "current_recovery_run_number": 265,
+    "current_recovery_product_head": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
+    "current_recovery_status": "COMPLETED",
+    "recovery_result": "FAIL",
+    "observed_required_jobs": {
+      "unit_1": "PASS",
+      "unit_2": "PASS",
+      "unit_3": "PASS",
+      "unit_4": "PASS",
+      "adapter_privacy": "PASS",
+      "macos_secure_store": "PASS",
+      "release": "PASS",
+      "browser": "FAIL",
+      "full_suite": "FAIL",
+      "aggregate_certification": "FAIL"
+    }
+  },
+  "recovery_audit_outcome": "ON-02 candidateCreated post-commit regression was repaired in RP-01 and the historical automatic-revision contract was aligned with UI-14 explicit candidate adoption. RP-02 added keyboard/theme/viewport/IME/stale/failure/outcome-unknown acceptance coverage. Certification #265 ran against exact product HEAD 277ddaaa9a3ddc0722f43867730c6bc68f456555 and completed failure: Unit 1-4, Adapter/Privacy, Release and macOS Secure Store passed; Current Browser, Full Suite and aggregate certification failed. Browser and full-suite final evidence must be diagnosed before RP-03.",
+  "pending_publication": null,
+  "publication_receipts": [
+    {
+      "id": "RP-01",
+      "prepared_control_head": "665c51c1b8b6ba90086e7eff8ff270c4a7af88e3",
+      "parent": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+      "commit": "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
+      "tree": "21a22861d0228ae0150d485a5cf366620462fc31",
+      "result": "PUBLISHED_AND_READ_BACK",
+      "force": false,
+      "changed_files": [
+        "extension/core/organizer/ai-presentation.js",
+        "extension/tests/ai-product-v080.test.mjs",
+        "extension/tests/ux-r5-ai-result-contract.test.mjs"
+      ],
+      "diff_review": "PASS: exactly one parent and three files; +63/-4; runtime blob matches diagnosed transaction-result patch",
+      "local_diagnostic": "PASS: actual runner class with synthetic seams, not full repository tests"
+    },
+    {
+      "id": "RP-02",
+      "prepared_control_head": "8809efe0c1da4711e6a7a68dd529dd99414696aa",
+      "parent": "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
+      "commit": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
+      "tree": "6f3fc5e9ce44e15fe69c630dda997663d0886575",
+      "result": "PUBLISHED_AND_READ_BACK",
+      "force": false,
+      "changed_files": [
+        "extension/ui/ai-candidate.js",
+        "extension/ui/thought-reader.css",
+        "extension/tests/ux-r5-certification-chrome-e2e.test.mjs",
+        ".github/workflows/paia-certification.yml"
+      ],
+      "diff_review": "PASS: single parent, four files +79/-5; workflow only adds two R5 journey filenames; no existing gate weakened",
+      "verified_blobs": {
+        "ui_candidate": "d3579b302dce4ba94357a3d46832cb5bd6add145",
+        "new_browser_test": "9c12e44bb4b385dc07910e68e0851c67db468435"
+      }
+    }
+  ],
+  "last_run_report": "overnight/recovery/UX_R5_RECOVERY_AUDIT.md",
+  "next_allowed_slice": "UX-R5_RECOVERY",
+  "next_action": "Read complete Certification #265 Browser and Full Suite logs, receipt and UX-R5 artifacts; diagnose all failures together; prepare bounded RP-03 under the active owner. Do not start UX-R6.",
+  "ux_r5_verified_complete": false,
+  "ux_r6_started": false,
+  "scheduled_execution_authorized": false
 }
