@@ -77,7 +77,7 @@ async function navigate(next,id=null,contextId=null,options={}){ if(!options.res
  returnTo=options.returnTo||(id&&origin==='revisit'?'revisit':id?origin:null);view=next;documentId=id;menuId=null;
  if(next==='library'&&id&&options.searchQuery!==undefined){routeStates.set('library:',{query:options.searchQuery,cursor:null,pages:[],scroll:0});queries.set('library',options.searchQuery);}
  const saved=routeStates.get(next+':'+(id||''));pageCursor=!id?saved?.cursor??null:null;pageHistory=!id?saved?.pages||[]:[];query=options.searchQuery??saved?.query??queries.get(view)??'';$('search').value=query;
- notify('');$('context-menu').hidden=true;const loaded=beginLoading(document.querySelector('.workspace'),'正在读取本机内容…');try{if(view==='thoughts'&&options.topicId!==undefined)await thoughts.open(options.topicId);await refresh();if(view==='revisit')await revisitPage.show();}finally{loaded();}
+ notify('');$('context-menu').hidden=true;const loaded=beginLoading(document.querySelector('.workspace'),'正在读取本机内容…');try{const openedThought=view==='thoughts'&&options.topicId!==undefined;if(openedThought)await thoughts.open(options.topicId);if(!openedThought)await refresh();if(view==='revisit')await revisitPage.show();}finally{loaded();}
  if(intent!==navigationIntent)return false;
  if(id&&contextInputId){const field=[...$('document-body').querySelectorAll('[data-edit-id]')].find(el=>el.dataset.editId===contextInputId);if(field){reader.expand(field);field.scrollIntoView({block:'center'});}}
  else window.scrollTo(0,saved?.scroll||0);

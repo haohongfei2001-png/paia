@@ -12,8 +12,9 @@ export function boundedLocalRead(read,{timeoutMs=1500}={}){
   Promise.resolve().then(read).then(value=>finish({ok:true,value}),()=>finish({ok:false,reason:'unavailable'}));
  });
 }
-export async function readOptionalLibraryStatus(read,{isCurrent=()=>true,timeoutMs=1500}={}){
- const results=await Promise.all(Object.entries(STATUS_READS).map(async([key,type])=>[key,await boundedLocalRead(()=>read(type),{timeoutMs})]));
+export async function readOptionalLibraryStatus(read,{isCurrent=()=>true,timeoutMs=1500,includeOriginal=true}={}){
+ const entries=Object.entries(STATUS_READS).filter(([key])=>includeOriginal||key!=='original');
+ const results=await Promise.all(entries.map(async([key,type])=>[key,await boundedLocalRead(()=>read(type),{timeoutMs})]));
  if(!isCurrent())return null;
  const values={},unavailable=[];
  for(const [key,result]of results){

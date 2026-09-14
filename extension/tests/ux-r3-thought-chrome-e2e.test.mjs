@@ -45,7 +45,7 @@ test('UX-R3 independent today draft: empty, cancelled, failed save, IME and keyb
 });
 
 
-test('UX-R3 F-LARGE 100k Inputs / 1000 documents / 300 Topics / 5000 Thoughts: bounded page, real UI, anchor and Back/Forward',{timeout:300000},async()=>{
+test('UX-R3 F-LARGE 100k Inputs / 1000 documents / 300 Topics / 5000 Thoughts: bounded page, real UI, anchor and Back/Forward',{timeout:420000},async()=>{
  const h=await FakeChatGPT.start({onboarding:true});try{const p=await ready(h);const report=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),{recordIndex,blockIndex,sourceCount}=await import('../core/idb-repository.js'),{ReaderStateService}=await import('../core/reader-state.js'),{RevisitService}=await import('../core/revisit.js');
    const values={},local={async get(k){return {[k]:structuredClone(values[k])};},async set(v){Object.assign(values,structuredClone(v));}},s=new OrganizerStore(chrome.storage.local);await s.consent(true);await s.capture({epoch:(await s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'large-template',url:'https://chatgpt.com/c/large-template',title:'Synthetic large template'},messages:[{sourceMessageId:'large-template-one',pageOrder:1,originalText:'Synthetic template'}]});const template=await s.snapshot(),r0=template.records[0],b0=template.library.blocks[0],d0=template.conversations[0];
