@@ -2,14 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "ACTIVE_PREFLIGHT",
+  "status": "READY",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 2,
-    "parent_head": "1cdc28c0bc63468b657cda652491b82af8ffbc42",
-    "kind": "execution_claim",
+    "sequence": 3,
+    "parent_head": "2dd11f9e4e3b64945a650099ae682e8d85cc8e5b",
+    "kind": "execution_seal",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
@@ -48,17 +48,9 @@
     "platform_runtime_guarantee": false,
     "automatic_catchup_or_extension": false
   },
-  "active_execution": {
-    "number": 1,
-    "token": "run-001-20260914T093440Z",
-    "mode": "PREFLIGHT",
-    "slice": "ON-01",
-    "started_at": "2026-09-14T09:34:40Z",
-    "lease_expires_at": "2026-09-14T10:34:40Z",
-    "start_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
-    "run_report": "overnight/runs/001.md"
-  },
+  "active_execution": null,
   "pending_publication": null,
+  "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
     {"id": "ON-01", "status": "NOT_STARTED", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
@@ -71,23 +63,32 @@
     {"id": "ON-08", "status": "NOT_STARTED", "owner_ux_round": null, "requires": ["ON-07", "MCP_TEST_RUNTIME_VERIFIED"]}
   ],
   "inherited_certification": {
-    "certified_source_head": "37c0d64683a4dc3ca2bd823e7c46f3c431f252d3",
-    "source_tree": "2b3aa4aff7da7e6d22368246457f95a9ab9a31a5",
-    "integrated_squash_head": "ee7fe62f543b4354206b9e3a46b298bbbce79f46",
-    "integrated_squash_tree": "2b3aa4aff7da7e6d22368246457f95a9ab9a31a5",
-    "subsequent_product_diff": "Three report/status Markdown files only, independently compared.",
-    "pr": 23,
-    "run_id": 34799718496,
-    "run_number": 205,
-    "mandatory_job_statuses_checked": true,
+    "historical_r4_certified_source_head": "37c0d64683a4dc3ca2bd823e7c46f3c431f252d3",
+    "historical_r4_integrated_squash_head": "ee7fe62f543b4354206b9e3a46b298bbbce79f46",
+    "historical_r4_run_id": 34799718496,
+    "historical_r4_run_number": 205,
+    "fresh_campaign_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
+    "fresh_campaign_product_tree": "fb40053c4ce93ec42d8a7989e95d794fc0c2d34b",
+    "fresh_ci_merge_head": "f219a3ac6e35182bde1c3bead23344b83fb3f2a2",
+    "fresh_ci_merge_tree": "fb40053c4ce93ec42d8a7989e95d794fc0c2d34b",
+    "fresh_run_id": 34826604211,
+    "fresh_run_number": 257,
+    "fresh_status": "completed",
+    "fresh_conclusion": "success",
     "mandatory_jobs_observed_success": 10,
     "optional_historical_job_observed": "skipped",
-    "product_tests_rerun_by_bootstrap": false,
-    "receipt_bytes_independently_checked_by_bootstrap": false,
-    "screenshots_independently_reviewed_by_bootstrap": false,
-    "test_counts_source": "Committed UX_R4_REPORT.md, not a new execution in this session",
-    "full_suite_reported": {"pass": 1054, "fail": 0, "skipped": 0},
-    "reported_input_digest": "81bcb268380b0502f9fd07b0085106633f8735fafabda5cf3b51d078fcabdb37"
+    "receipt_independently_read": true,
+    "screenshots_sample_reviewed": true,
+    "full_suite": {"total": 1054, "pass": 1054, "fail": 0, "skipped": 0, "unit": 884, "browser_e2e": 23, "adapter_contract": 95, "privacy_security": 52},
+    "package_guard": {"guardrails": 8258, "runtime_resources": 188, "result": "PASS"},
+    "development_audit": "PASS",
+    "release_job": "PASS",
+    "macos_secure_store_job": "PASS",
+    "aggregate_certification_gate": "PASS",
+    "input_digest": "81bcb268380b0502f9fd07b0085106633f8735fafabda5cf3b51d078fcabdb37",
+    "historical_browser_files": 76,
+    "historical_browser_audit": "SEPARATE_PRE_MIGRATION_EVIDENCE",
+    "real_golden": "UNAVAILABLE"
   },
   "ci": {
     "workflow_path": ".github/workflows/paia-certification.yml",
@@ -98,19 +99,29 @@
     "carrier_never_merge": true,
     "base_branch": "overnight/ci-base-20260914",
     "base_expected_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
-    "pending": {
+    "pending": null,
+    "last_verified": {
       "purpose": "Fresh inherited-product certification before ON-01",
       "product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
+      "product_tree": "fb40053c4ce93ec42d8a7989e95d794fc0c2d34b",
       "run_id": 34826604211,
       "run_number": 257,
-      "observed_status": "in_progress",
-      "observed_conclusion": null,
+      "conclusion": "success",
       "merge_head": "f219a3ac6e35182bde1c3bead23344b83fb3f2a2",
-      "required_action": "Refresh actual run/jobs/attempt, verify checked-out tree, inspect receipts/artifacts and previous diff before progress."
+      "merge_tree_matches_product_tree": true
     },
     "required_jobs": ["Unit 1/4", "Unit 2/4", "Unit 3/4", "Unit 4/4", "Adapter and privacy contracts", "Current Browser Certification", "Full Suite Certification", "macOS Secure Store Certification", "Current release build and guards", "Certification gate"]
   },
-  "highest_campaign_verified_product_head": null,
+  "repository_evidence": {
+    "non_authoritative_ux_r5_branch": {
+      "branch": "ux-r5",
+      "observed_head": "6adfd1886d381ec1353a05a4de19dedea9799685",
+      "relation_to_product_at_review": {"ahead_by": 53, "behind_by": 0},
+      "changed_files": 19,
+      "use_policy": "Evidence/salvage source only. Do not merge or fast-forward wholesale. Audit each reused hunk against current ux-r2 authority and the active overnight slice."
+    }
+  },
+  "highest_campaign_verified_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
   "final_ux_regression": "NOT_RUN",
   "production_readiness": {
     "public_1_0": "NOT_RELEASED",
@@ -121,9 +132,12 @@
     "mcp_adapter": "NOT_STARTED"
   },
   "blocking_reasons": [],
-  "preflight_requirements": ["Verify Scheduled Task GitHub read/write and approval behavior", "Verify safe single-parent fast-forward publication and control ownership", "Verify executable validation environment or permitted CI plus required artifact/log access", "Close fresh inherited certification and evidence review", "Re-read full UX authorities and ON-01 touched code at actual target HEAD"],
-  "last_run_report": "overnight/runs/000-bootstrap.md",
-  "run_index": [{"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false}],
-  "next_recommended_action": "Execution 001 has claimed preflight ownership. Finish inherited CI/evidence review; if CI is still running, seal WAITING_CI without product changes.",
+  "preflight_requirements": ["Before ON-01 product writes, audit the non-authoritative ux-r5 implementation evidence and current ux-r2 touched code; transplant only ON-01 scope and exclude ON-02 candidate/update work and unrelated R3 fixes."],
+  "last_run_report": "overnight/runs/001.md",
+  "run_index": [
+    {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
+    {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "result": "INHERITED_BASELINE_VERIFIED"}
+  ],
+  "next_recommended_action": "Execution 002: revalidate refs and ownership, then implement ON-01 only. Audit/reuse narrowly selected ux-r5 evidence for Topic-level Original/Organized first-generation/cache/view behavior; do not wholesale merge ux-r5 and do not include protected update-candidate workflow (ON-02) or unrelated R3 fixes. Validate and publish through the plan protocol.",
   "human_resolution_required": false
 }
