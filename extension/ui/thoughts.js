@@ -144,7 +144,7 @@ export class ThoughtWorkspace {
   const intent=this.openIntent=(this.openIntent||0)+1;if(!await this.leave()||intent!==this.openIntent)return;this.clearActionFeedback();
   if(this.id!==id){this.snapshotRoute=null;this.homeSignature=null;$('topic-body').replaceChildren();$('topic-heading').replaceChildren();this.originalPane=null;this.aiPane=null;this.aiSignature=undefined;this.document=null;this.topic=null;}
   if(this.id!==id)this.view=id?(this.topicViews.get(id)||'original'):'original';this.id=id;this.onOpen();
-  const saved=this.homePositions.get(id||'home'),sameSessionResume=!!id&&!!saved?.cursor&&(!saved.sort||saved.sort===this.readingSort),readPosition=()=>id?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
+  const saved=this.homePositions.get(id||'home'),sameSessionResume=!!id&&!!saved&&(!saved.sort||saved.sort===this.readingSort),readPosition=()=>id?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
   if(!sameSessionResume){this.resumeAnchor=await readPosition();if(intent!==this.openIntent)return;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;
   $('topic-search').value=id?saved?.query||'':'';if(!id&&saved)$('thought-search').value=saved.query;this.cursor=saved?.cursor||null;this.pages=saved?.pages||[];this.history=null;
   await this.refresh();if(intent!==this.openIntent)return;this.onOpen();scrollTo(0,saved?.scroll||0);
