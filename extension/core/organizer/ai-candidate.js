@@ -1,4 +1,4 @@
-import {AI_FIELDS,isStoredAIPresentation,presentationContent} from './ai-contract.js';
+import {AI_FIELDS,AI_LIST_FIELDS,isStoredAIPresentation,presentationContent} from './ai-contract.js';
 import {reject} from './contracts.js';
 
 export const AI_CANDIDATE_SCHEMA_VERSION=1;
@@ -43,6 +43,11 @@ export function publicAIPresentationCandidate(row,allowed){
  };
 }
 
+function adoptedEvidence(candidate,field){
+ if(AI_LIST_FIELDS.includes(field))return [...new Set((candidate.proposal[field]||[]).flatMap(item=>item.evidenceEntryIds||[]))];
+ return [...candidate.proposal.evidenceEntryIds];
+}
+
 export function applyAIPresentationCandidateDecision(row,{field,decision,expectedRevision},allowed,clock){
  const visible=publicAIPresentationCandidate(row,allowed);
  if(!visible||visible.stale||!Number.isSafeInteger(expectedRevision)||row.revision!==expectedRevision||visible.expectedRevision!==expectedRevision)reject('STALE_BASE');
@@ -52,6 +57,7 @@ export function applyAIPresentationCandidateDecision(row,{field,decision,expecte
  let changed=false;
  if(decision==='adopt'){
   next[field]=clone(candidate.proposal[field]);
+  next.evidenceEntryIds=[...new Set([...(next.evidenceEntryIds||[]),...adoptedEvidence(candidate,field)])];
   next.revision++;
   next.protections={...(next.protections||{}),[field]:true};
   next.userEditedAt=clock;
