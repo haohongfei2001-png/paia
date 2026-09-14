@@ -2,9 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "WAITING_CI_ON02_FINAL_EXECUTION",
+  "status": "CAMPAIGN_ENDED_PARTIAL_ON02_VALIDATION_FAILED",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
+  "control_checkpoint": {
+    "sequence": 24,
+    "parent_head": "01f3d03322a427e941a535b696935690a44111ac",
+    "kind": "final_campaign_handoff_after_required_ci_failure"
+  },
   "product": {
     "branch": "ux-r2",
     "expected_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
@@ -15,28 +20,24 @@
     "main_access": "READ_ONLY_NO_MERGE",
     "official_ux_status_path": "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md",
     "official_ux_round_observed": "UX-R5",
-    "official_ux_status_observed": "READY / NOT STARTED"
+    "official_ux_status_observed": "READY / NOT STARTED",
+    "official_status_intentionally_not_advanced": true
   },
   "execution_budget": {
     "max_admitted_executions": 8,
     "admitted_executions": 8,
     "remaining_opportunities": 0,
     "campaign_started_at": "2026-09-14T09:34:40Z",
-    "stop_new_work_at": "2026-09-14T17:34:40Z"
+    "stop_new_work_at": "2026-09-14T17:34:40Z",
+    "budget_exhausted": true,
+    "new_product_work_forbidden": true
   },
-  "active_execution": {
-    "number": 8,
-    "mode": "VERIFY_ON02_CI_ONLY",
-    "slice": "ON-02",
-    "token": "execution-008-20260914T1633Z",
-    "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-    "product_end_head": "6517763883c95e9a8901e5095db2a7d846da0ef6"
-  },
+  "active_execution": null,
   "pending_publication": null,
   "current_slice": "ON-02",
   "slices": [
     {"id":"ON-01","status":"COMPLETE","verified_product_head":"19fe4ed19bc686ff715c5604616ea7fad1eed2fa","certification_run":262},
-    {"id":"ON-02","status":"WAITING_CI","product_head":"6517763883c95e9a8901e5095db2a7d846da0ef6"},
+    {"id":"ON-02","status":"PUBLISHED_VALIDATION_FAILED","product_head":"6517763883c95e9a8901e5095db2a7d846da0ef6","certification_run":263},
     {"id":"ON-03","status":"NOT_STARTED"},
     {"id":"ON-04","status":"NOT_STARTED"},
     {"id":"ON-05","status":"NOT_STARTED"},
@@ -50,17 +51,30 @@
     "carrier_never_merge": true,
     "base_branch": "overnight/ci-base-20260914",
     "base_expected_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
-    "pending": {
+    "run": {
       "purpose": "ON-02 final execution certification",
       "product_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
       "product_tree": "6ded7b5ba60fec390048200b54bda8422d2aaba9",
       "run_id": 34871354407,
       "run_number": 263,
-      "observed_status": "queued",
-      "observed_conclusion": null,
-      "required_action": "Inspect all mandatory jobs, full-suite receipt, browser evidence and release gate. Any failure may only be repaired inside ON-02 if execution-008 time remains."
+      "observed_status_at_finalization": "in_progress_with_required_failures",
+      "observed_conclusion_at_finalization": null,
+      "required_failure": true,
+      "required_job_observations": {
+        "Unit 1/4": "FAILURE",
+        "Unit 2/4": "FAILURE",
+        "Unit 3/4": "FAILURE",
+        "Unit 4/4": "FAILURE",
+        "Adapter and privacy contracts": "SUCCESS",
+        "Current Browser Certification": "IN_PROGRESS_AT_FINALIZATION",
+        "Full Suite Certification": "IN_PROGRESS_AT_FINALIZATION",
+        "macOS Secure Store Certification": "SUCCESS",
+        "Current release build and guards": "SUCCESS",
+        "Certification gate": "CANNOT_PASS_WITH_REQUIRED_UNIT_FAILURES"
+      },
+      "diagnostic_summary": "Unit 1/4 recorded 278 PASS / 7 FAIL, including one legacy ai-presentation-v072c failure and all six ux-r5-ai-candidates tests. Unit 2/4 recorded 195 PASS / 3 FAIL, including one ai-product-v080 failure and two ux-r5-ai-states failures. Repeated assertion symptom: runner result.completed was undefined where true was required. Unit 3/4 and 4/4 also concluded failure. This is sufficient to fail the mandatory certification contract regardless of still-running browser/full-suite jobs."
     },
-    "latest_completed_run": 262
+    "latest_completed_good_run": 262
   },
   "validation": {
     "local_unit": "NOT_RUN_NO_CHECKOUT_RUNTIME",
@@ -68,9 +82,14 @@
     "local_build": "NOT_RUN_NO_CHECKOUT_RUNTIME",
     "local_static": "NOT_RUN_NO_CHECKOUT_RUNTIME",
     "lint": "NOT_CONFIGURED",
-    "diff_review": "PASS_PREPUBLICATION_REVIEW"
+    "diff_review": "PASS_PREPUBLICATION_REVIEW",
+    "final_ci_acceptance": "FAIL_REQUIRED_UNIT_GATES"
   },
+  "blocking_reasons": [
+    "CERTIFICATION_263_REQUIRED_UNIT_FAILURE",
+    "STOP_BUDGET"
+  ],
   "last_run_report": "overnight/runs/008.md",
-  "next_recommended_action": "Remain in execution 008 and inspect Certification #263 only. Do not start another slice. If #263 passes all required gates, complete R5 report/status only if the full R5 acceptance contract is met; otherwise record the exact partial state. If it fails, repair ON-02 only while the current execution window remains.",
-  "human_resolution_required": false
+  "next_recommended_action": "Campaign is closed and must not continue automatically. A future explicitly authorized campaign should begin from ux-r2@6517763883c95e9a8901e5095db2a7d846da0ef6, reproduce and repair ON-02 AIPresentationRunner/candidate result-contract regressions, then rerun every UX-R5 gate. Do not start UX-R6 until UX-R5 is actually certified and its official report/status are committed.",
+  "human_resolution_required": true
 }
