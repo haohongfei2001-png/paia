@@ -1,0 +1,43 @@
+name: UX-R4 startup and purge race closure
+on:
+  push:
+    branches: [recovery-r4-1]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: recovery-r4-1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply focused race fixes
+        run: |
+          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgphcmNoaXZlID0gUGF0aCgiZXh0ZW5zaW9uL3VpL2FyY2hpdmUuanMiKQpzID0gYXJjaGl2ZS5yZWFkX3RleHQoKQpvbGQgPSAicmVjb3ZlcnkuaGlkZGVuPXRydWU7YXdhaXQgb25ib2FyZGluZy5sb2FkKCk7aWYoc2VxIT09c2VyaWFsKXJldHVybjtzdGF0ZT1uZXh0OyIKbmV3ID0gInJlY292ZXJ5LmhpZGRlbj10cnVlO2lmKCFzdGF0ZSYmbmV4dC5zZXR0aW5ncy5jb25zZW50VmVyc2lvbj09PTEpe3N0YXRlPW5leHQ7cmVuZGVyKCk7fWF3YWl0IG9uYm9hcmRpbmcubG9hZCgpO2lmKHNlcSE9PXNlcmlhbClyZXR1cm47c3RhdGU9bmV4dDsiCmFzc2VydCBzLmNvdW50KG9sZCkgPT0gMSwgKCJhcmNoaXZlIHN0YXJ0dXAgbWFya2VyIiwgcy5jb3VudChvbGQpKQphcmNoaXZlLndyaXRlX3RleHQocy5yZXBsYWNlKG9sZCwgbmV3LCAxKSkKCndvcmtlciA9IFBhdGgoImV4dGVuc2lvbi9iYWNrZ3JvdW5kL3NlcnZpY2Utd29ya2VyLmpzIikKcyA9IHdvcmtlci5yZWFkX3RleHQoKQpvbGQgPSAiIiJmdW5jdGlvbiBub3RpZnlBcmNoaXZlQ2hhbmdlZCh0eXBlKXsKIGNvbnN0IHNlbmQ9KCk9PntpbXBvcnROb3RpZmljYXRpb249bnVsbDt2b2lkIGNocm9tZS5ydW50aW1lLnNlbmRNZXNzYWdlPy4oe3R5cGU6J0FSQ0hJVkVfQ0hBTkdFRCcsY2F1c2U6dHlwZX0pLmNhdGNoKCgpPT57fSk7fTsKIGlmKHR5cGU9PT0nSU1QT1JUX0NPTU1JVCcpe2lmKCFpbXBvcnROb3RpZmljYXRpb24paW1wb3J0Tm90aWZpY2F0aW9uPXNldFRpbWVvdXQoc2VuZCw1MDApO30KIGVsc2Uge2lmKGltcG9ydE5vdGlmaWNhdGlvbiljbGVhclRpbWVvdXQoaW1wb3J0Tm90aWZpY2F0aW9uKTtzZW5kKCk7fQp9IiIiCm5ldyA9ICIiImZ1bmN0aW9uIG5vdGlmeUFyY2hpdmVDaGFuZ2VkKHR5cGUpewogY29uc3Qgc2VuZD0oKT0+e2ltcG9ydE5vdGlmaWNhdGlvbj1udWxsO3JldHVybiBQcm9taXNlLnJlc29sdmUoY2hyb21lLnJ1bnRpbWUuc2VuZE1lc3NhZ2U/Lih7dHlwZTonQVJDSElWRV9DSEFOR0VEJyxjYXVzZTp0eXBlfSkpLmNhdGNoKCgpPT57fSk7fTsKIGlmKHR5cGU9PT0nSU1QT1JUX0NPTU1JVCcpe2lmKCFpbXBvcnROb3RpZmljYXRpb24paW1wb3J0Tm90aWZpY2F0aW9uPXNldFRpbWVvdXQoKCk9Pnt2b2lkIHNlbmQoKTt9LDUwMCk7cmV0dXJuIFByb21pc2UucmVzb2x2ZSgpO30KIGlmKGltcG9ydE5vdGlmaWNhdGlvbiljbGVhclRpbWVvdXQoaW1wb3J0Tm90aWZpY2F0aW9uKTtyZXR1cm4gc2VuZCgpOwp9IiIiCmFzc2VydCBzLmNvdW50KG9sZCkgPT0gMSwgKCJub3RpZnkgbWFya2VyIiwgcy5jb3VudChvbGQpKQpzID0gcy5yZXBsYWNlKG9sZCwgbmV3LCAxKQpvbGQgPSAiIiIgICAgICBhd2FpdCBwcm9kdWN0U2lnbmFscy5vYnNlcnZlKHJlcXVlc3QsZGF0YSxzZW5kZXIpLmNhdGNoKCgpPT57fSk7CiAgICAgIHNlbmRSZXNwb25zZSh7IG9rOiB0cnVlLCBkYXRhIH0pOwogICAgICBjb25zdCBhcmNoaXZlTXV0YXRpb249cmVxdWVzdC50eXBlPT09J0NBUFRVUkUnP051bWJlcihkYXRhPy5hZGRlZCk+MDpyZXF1ZXN0LnR5cGU9PT0nRU5SSUNIX1NPVVJDRV9NRVRBREFUQSc/TnVtYmVyKGRhdGE/LmVucmljaGVkKT4wOnRydWU7IiIiCm5ldyA9ICIiIiAgICAgIGF3YWl0IHByb2R1Y3RTaWduYWxzLm9ic2VydmUocmVxdWVzdCxkYXRhLHNlbmRlcikuY2F0Y2goKCk9Pnt9KTsKICAgICAgY29uc3QgYXJjaGl2ZU11dGF0aW9uPXJlcXVlc3QudHlwZT09PSdDQVBUVVJFJz9OdW1iZXIoZGF0YT8uYWRkZWQpPjA6cmVxdWVzdC50eXBlPT09J0VOUklDSF9TT1VSQ0VfTUVUQURBVEEnP051bWJlcihkYXRhPy5lbnJpY2hlZCk+MDp0cnVlOwogICAgICBpZihyZXF1ZXN0LnR5cGU9PT0nUFVSR0VfU09VUkNFJylhd2FpdCBub3RpZnlBcmNoaXZlQ2hhbmdlZChyZXF1ZXN0LnR5cGUpOwogICAgICBzZW5kUmVzcG9uc2UoeyBvazogdHJ1ZSwgZGF0YSB9KTsiIiIKYXNzZXJ0IHMuY291bnQob2xkKSA9PSAxLCAoInJlc3BvbnNlIG1hcmtlciIsIHMuY291bnQob2xkKSkKcyA9IHMucmVwbGFjZShvbGQsIG5ldywgMSkKb2xkID0gIiIiICAgICAgaWYoYXJjaGl2ZU11dGF0aW9uJiYhbG9jYWxUb29sUmVxdWVzdChyZXF1ZXN0LnR5cGUpJiYhWydQQUlBX01FTU9SWV9TVEFUVVMnLCdQQUlBX01FTU9SWV9CVUlMRCcsJ1BBSUFfTUVNT1JZX1NIQVJFJywnUEFJQV9NRU1PUllfRU5UUklFUyddLmluY2x1ZGVzKHJlcXVlc3QudHlwZSkiIiIKbmV3ID0gIiIiICAgICAgaWYocmVxdWVzdC50eXBlIT09J1BVUkdFX1NPVVJDRScmJmFyY2hpdmVNdXRhdGlvbiYmIWxvY2FsVG9vbFJlcXVlc3QocmVxdWVzdC50eXBlKSYmIVsnUEFJQV9NRU1PUllfU1RBVFVTJywnUEFJQV9NRU1PUllfQlVJTEQnLCdQQUlBX01FTU9SWV9TSEFSRScsJ1BBSUFfTUVNT1JZX0VOVFJJRVMnXS5pbmNsdWRlcyhyZXF1ZXN0LnR5cGUpIiIiCmFzc2VydCBzLmNvdW50KG9sZCkgPT0gMSwgKCJwb3N0IG5vdGlmeSBtYXJrZXIiLCBzLmNvdW50KG9sZCkpCndvcmtlci53cml0ZV90ZXh0KHMucmVwbGFjZShvbGQsIG5ldywgMSkpCg==' | base64 -d > /tmp/patch.py
+          python3 /tmp/patch.py
+          node --check extension/ui/archive.js
+          node --check extension/background/service-worker.js
+          git diff --check
+      - name: Install targeted browser dependencies
+        run: |
+          cd extension
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Run three failing journeys
+        run: |
+          cd extension
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          PAIA_CHROME="$CHROME_BIN" CHROME_PATH="$CHROME_BIN" xvfb-run -a node --test --test-concurrency=1 --test-name-pattern='overlapping startup|true dwell position|unorganized Input' tests/ux-r2-reader-revisit-chrome-e2e.test.mjs tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+      - name: Commit verified fixes
+        run: |
+          git rm .github/workflows/recovery-r4-startup-purge.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add extension/ui/archive.js extension/background/service-worker.js
+          git commit -m 'fix(ux-r4): close startup and purge races'
+          git push origin HEAD:recovery-r4-1
