@@ -1,42 +1,98 @@
-# UX-R4 DELTA-04 / DELTA-05 security report
+# UX-R4 DELTA-04 / DELTA-05 Security Report
+
+## Status
+
+- Round: **UX-R4**
+- Security status: **PASS — recertified 2026-09-14**
+- Certified head: `37c0d64683a4dc3ca2bd823e7c46f3c431f252d3`
+- Certification: PAIA Certification **#205**, run id `34799718496`, conclusion `success`
+- PR: **#23**, merged to `ux-r2` as `ee7fe62f543b4354206b9e3a46b298bbbce79f46`
+- Privacy/security contracts: **52/52 PASS**
+- Adapter contracts: **95/95 PASS**
+- Current browser suite: **23/23 PASS**
+
+This report supersedes the earlier R4 security checkpoint where Recovery-1 changed or strengthened a boundary.
 
 ## Boundary and ownership
 
-Manual reuse is a new explicit intent inside the existing ContextPackageService. ManualContext owns only bounded worker-RAM sessions; it does not create a body store, Profile, Grant, consumer or background network request. The service worker derives ownership from the trusted extension tab/document sender. A caller cannot supply an owner or promote an old preview into a manual selection. All PAIA_CONTEXT messages require consent and the existing exact trusted sender check.
+Manual reuse remains an explicit local intent inside the existing ContextPackageService. ManualContext owns only bounded worker-memory sessions. It does not create a body store, Profile, Passport Grant, consumer or network request. Trusted extension sender identity and consent remain mandatory at the service-worker boundary.
 
-The manual DTO accepts canonical kind/id/revision, and a validated optional range, Source ID or saved AI field. Full text is resolved by the domain owner from current IndexedDB records. UI snippets never authorize or supply the source body. Every preview and output rechecks dependencies, revisions, removal state, tombstones and explicit restrictions. Source, human Thought and generated AI sections retain distinct roles; an optional task note is new instruction context, never presented as a past fact.
+The UI cannot authorize a body by passing a snippet. Canonical ids/revisions/ranges are resolved again by domain owners. Every final preview/release rechecks current source/evidence state, removal, tombstones, revision validity and restrictions.
+
+Manual selection identity and Grant identity are intentionally separate. A local manual package cannot be converted into a Grant-bound package and a Grant identity cannot be injected into a manual request.
 
 ## DELTA-04 threat matrix
 
-| Attempt | Result / verification |
+| Attempt | Certified result |
 |---|---|
-| Content script, foreign extension URL, spoofed sender or missing consent | Trusted worker dispatch rejects. The added background-security test covers the actual message path. |
-| Arbitrary manual intent, injected owner, unknown fields or legacy Grant preview ID | Strict DTO validation or MEMORY_EXPIRED; no identity conversion. Unit and real worker tests. |
-| Read another tab's selection or replay a stale generation | Owner/generation check rejects. Worker restart and fixed 15-minute lifetime expire the session. |
-| Explicit Input/Thought exclusion, never/denied Topic, inherited section/Topic restriction | Canonical provenance checks block the affected item. Only a separate explicit rule-change action can remove that exact rule. Blocked selections remain blocked and require removal/reselection. |
-| Source purge, Input removal or revision change after selection | Body is cleared or marked stale; preview/copy/file output cannot return the previous text. Independent context-only human writing is preserved where its body does not depend on the removed source. |
-| Hidden truncation, suggested-item replacement or automatic query-based reselection | Selected refs remain fixed. Full bodies are used. Suggestions start unselected and do not replace prior choices. Explicit capacity errors require manual batching. |
-| Redacted words reappear after additions, edits or preview rebuild | Global literal redactions apply to resolved items, notes and suggestions; output is the exact server-confirmed preview. Real clipboard sink and downloaded Markdown match byte-for-byte. |
-| Copy after stale/blocked/expired state, including a worker restart | Domain share rejects; displayed export text and fallback are invalidated. Browser tests inspect worker state and output controls, not just labels. |
+| Content script, foreign extension page, spoofed sender or missing consent | Rejected by the existing trusted-worker dispatch boundary. |
+| Inject owner/generation, reuse foreign/stale session, or convert a Grant id to manual identity | Strict validation/owner/generation checks reject. Worker restart and expiry remain fail-closed. |
+| Use a stale bind/share race to publish an older package after a new bind | Prevented by one serialized ContextPackage boundary shared by bind and final output. |
+| Report a pre-removal material count after final revalidation | Prevented; package metadata now uses the exact emitted item count. |
+| Source purge succeeds while an old preview remains temporarily releasable | Prevented; `PURGE_SOURCE` broadcasts invalidation before the success response returns. |
+| Delayed read, policy response, language rerender or archive refresh repaints old output | Prevented by Material Tray epoch/revalidation fencing and stale-output removal. |
+| Redaction, local edit or material removal disappears on rebuild | Existing explicit preview state is retained; final output still revalidates canonical evidence. |
+| Source/Input removal or tombstone followed by Backup restore | Deletion wins. Evidence-incomplete derived state cannot be restored into a valid output. |
 
-Manual selection deliberately permits otherwise default-ungranted local items. It never permits explicit deny/never/inherited restrictions. Existing automatic retrieval continues using Memory's approved candidate scope and the shared lexical ranking function.
+Manual local selection may include otherwise default-ungranted local material because the user explicitly selected it. It does not override explicit deny/never/inherited restrictions and it does not grant external access.
 
-## DELTA-05 network and legacy Grant matrix
+## DELTA-05 connection / network matrix
 
-- Local-only is a strict boolean in existing Memory configuration. It blocks actual provider dispatch and Passport authorization, and enabling it stops the existing bounded organizer's future processing. Disabling it never replays a task.
-- The old externalAccess=false remains a connection denial. It does not disable explicitly selected local manual copy/file output. Existing externalAccess=true does not mint a consumer, Grant or additional permission.
-- The legacy Memory/Passport path retains purpose, consumer, Profile, expiry, revocation, once-use atomic consumption and preview-generation checks. Local manual output cannot downgrade a bound package.
-- Real worker verification concurrently shares an once Grant twice: exactly one succeeds and useCount is one. A separately revoked Grant rejects. A configured synthetic credential plus actual organizer update under Local-only produces zero extension/provider requests.
-- No manifest, host permission, provider endpoint, dependency or physical schema expansion.
+The Recovery-1 distinction is explicit:
 
-## Compatibility and data lifetime
+- `externalAccess=false` means **no external/connection access**.
+- Missing legacy `externalAccess` also migrates fail-closed to **false**.
+- Local-only continues to block provider/connection access.
+- Explicit local manual copy or Markdown export is **not** a connection and therefore remains available when its selected material is otherwise valid.
+- Grant-bound output requires `externalAccess=true` and rechecks that state after reconstruction and immediately before release.
+- Existing Passport purpose, consumer, Profile, expiry, revocation and once-use semantics remain independent of manual output.
 
-MIG-07 stores no new durable Context text. Sessions are limited to 20 per worker, 200 refs / 4 million material characters, 15 minutes; edits/notes/redactions have explicit bounds. Worker restart deliberately expires selections. Invalidated bodies are not returned in error DTOs; restriction descriptions are body-free.
+The Round 4.8 Passport browser journey now explicitly opts into external access before exercising revoke/once-use behavior. This ensures the certification reaches the intended Grant boundary instead of being short-circuited by the new safe default.
 
-MIG-08 fills only a missing localOnly=false value; it preserves the previous externalAccess and every Profile/Grant/exclusion. MIG-10 round-trips the strict portable policy through existing Backup validation while excluding transient selection IDs, bodies, queries, generations, edited previews and credentials. Source purge, tombstones and restore tests remain in the full suite.
+Real-worker certification concurrently exercises once-use and revocation. The current browser suite passed the real Grant once/revoke/manual-identity fences with no weakening of the existing Passport contract.
 
-## Evidence and limits
+No new provider endpoint, manifest permission, host permission or required dependency was added.
 
-Domain evidence: ux-r4-selection-preview, ux-r4-context-authorization and ux-r4-search-history tests. Trust evidence: retained Passport/Memory/Backup suites plus background-security and privacy-product. Real browser evidence: ux-r4-search-reuse-chrome-e2e, including exact rule removal, Source purge, once-use/revoke, output redaction, TTL/restart and Local-only provider denial. Exact command counts, final digests and G-01–08 are recorded in UX_R4_REPORT.md.
+## Backup and deletion safety
 
-All test content, credentials and browser profiles are synthetic and isolated. No live AI request or real-user authorization is claimed. The clipboard test captures the actual writeText argument with an isolated sink; Markdown verification downloads the real generated file. A human can manually copy visible text outside PAIA's controlled output path; the application does not claim operating-system clipboard or browser-level DRM.
+Ordinary Backup must not become a resurrection path for AI-derived state whose evidence is no longer safely restorable.
+
+Recovery-1 therefore requires AI presentation Backup rows to have:
+
+- a valid Topic;
+- non-empty evidence entry ids;
+- stored-presentation validity against those entries;
+- every referenced entry itself safely exportable/restorable.
+
+Export drops derived presentation cache that does not meet this closure. Restore rejects evidence-incomplete AI presentation state. This fence does not blindly delete human-authored work or independent human text merely because generated state is stale.
+
+Source purge remains dominant over derived evidence, context output and restored derived presentation state.
+
+## Startup / mutation-notification safety
+
+Archive startup no longer blocks its primary `GET_PAGE` rendering path on onboarding reads. This closes the Continue-card timing failure without weakening onboarding consent semantics.
+
+Idempotent duplicate capture no longer publishes a false archive mutation solely to trigger repaint. Real capture additions and real metadata enrichment still publish mutations. Source purge is the deliberate exception: its invalidation notification is awaited before success is returned, because deletion safety requires fail-closed ordering.
+
+## Certified evidence
+
+PAIA Certification #205 passed every required current-release job and the aggregate Certification gate.
+
+- Unit: **884/884 PASS**
+- Browser E2E: **23/23 PASS**
+- Adapter contract: **95/95 PASS**
+- Privacy/security: **52/52 PASS**
+- Package guard: **8,258 / 188 PASS**
+- Development privacy/permission/network audit: **PASS**
+- Full Suite: **1,054/1,054 PASS**, zero fail/skipped
+- Release build: **7,830 / 181 / 205 PASS**
+- macOS Secure Store Certification: **PASS**
+- Aggregate Certification gate: **PASS**
+
+R4 browser evidence specifically covers exact local output, Source purge, once-use/revoke, Local-only/connection separation, worker expiry, responsive/IME/keyboard states and F-LARGE behavior. Recovery regressions also cover the overlapping startup/read path and purge-before-success invalidation.
+
+## Limits
+
+Test data, credentials and browser profiles are synthetic and isolated. Certification proves current-source behavior in the repository’s controlled CI/browser environment; it does not claim live-provider success, operating-system clipboard DRM, real-user retention or physical-device UX beyond the separately scoped macOS secure-store gate.
+
+Within those limits, DELTA-04 and DELTA-05 have no unresolved blocker after Recovery-1 certification.
