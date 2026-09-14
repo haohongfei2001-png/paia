@@ -79,3 +79,10 @@ once(
     "await h.send(chatPage,{id:'uxr2-interleaved-message-003',text:'UXR2_INTERLEAVED concurrent capture 3'});await eventually(async()=>(await h.state()).records.length===3);await eventually(()=>p.evaluate(()=>globalThis.__uxR2Reads.length>=2));",
     "second overlap trigger",
 )
+
+once(
+    "extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs",
+    "const assertPosition=async()=>{await eventually(()=>p.evaluate(id=>history.state?.paiaReader?.documentId===id,b.documentId));await p.locator('.library-prose').waitFor();assert.ok(await p.evaluate(()=>scrollY)>100,'resume enters long prose');assert.ok(Math.abs(await p.locator('.library-prose').evaluate((el,offset)=>{const r=document.createRange();r.setStart(el.firstChild,offset);r.collapse(true);return r.getBoundingClientRect().top;},offset)-140)<=2,'the saved character aligns after the authoritative render');};",
+    "const assertPosition=async()=>{await eventually(()=>p.evaluate(id=>history.state?.paiaReader?.documentId===id,b.documentId));const prose=p.locator(`.library-prose[data-item-id=\"${b.id}\"]`);await prose.waitFor();assert.ok(await p.evaluate(()=>scrollY)>100,'resume enters long prose');assert.ok(Math.abs(await prose.evaluate((el,offset)=>{const r=document.createRange();r.setStart(el.firstChild,offset);r.collapse(true);return r.getBoundingClientRect().top;},offset)-140)<=2,'the saved character aligns after the authoritative render');};",
+    "anchored overlap position",
+)
