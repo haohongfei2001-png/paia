@@ -1,38 +1,39 @@
 {
   "schema_version": 2,
   "campaign": "paia-continuation-20260915-v2",
-  "status": "UX_R5_RP04_PREPARED",
-  "checkpoint_sequence": 9,
-  "control_parent_head": "9fecf6aa1eb499d1e10d7af459596d2a9fe892b2",
+  "status": "UX_R5_RP04_PUBLISHED_AWAITING_CERTIFICATION",
+  "checkpoint_sequence": 10,
+  "control_parent_head": "11cc6b6249997611df3a2b4d613efcc455d0af23",
   "control_branch": "overnight/control-20260915-v2",
   "predecessor": {"campaign":"paia-overnight-20260914-v1","status":"EXHAUSTED / HISTORICAL","control_head":"b46a2edda95424934da23784a424d47f0a44f739","final_product_head":"6517763883c95e9a8901e5095db2a7d846da0ef6","execution_opportunities_used":8,"execution_opportunities_total":8,"history_mutable":false},
   "active_owner": "recovery-20260915-r5-82f1c4d7",
   "authorization": "User-authorized stale-owner takeover for UX-R5 recovery only; do not start UX-R6 in this recovery session.",
   "ownership_history": [{"previous_owner":"recovery-20260915-651776-6c94b7e1","disposition":"STALE_CHAT_EXECUTION_ENDED","recovered_at_control_parent":"f6cc9472f91c81b6b6cda746416072e25e12d93f","replacement_owner":"recovery-20260915-r5-82f1c4d7"}],
-  "product": {"branch":"ux-r2","expected_head":"599c224e5a12bb65a13c20425a7edee01a36f0fc","repair_start_head":"6517763883c95e9a8901e5095db2a7d846da0ef6","repair_commits":["6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","277ddaaa9a3ddc0722f43867730c6bc68f456555","599c224e5a12bb65a13c20425a7edee01a36f0fc"],"certified_head":null,"official_status":"UX-R5 READY / NOT_STARTED in inherited product status; recovery source not yet certified","current_state":"UX-R5 / ON-02 RP04_PREPARED"},
+  "product": {"branch":"ux-r2","expected_head":"fe10e182aa09a9860f248e38713bd69e9b27555f","repair_start_head":"6517763883c95e9a8901e5095db2a7d846da0ef6","repair_commits":["6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","277ddaaa9a3ddc0722f43867730c6bc68f456555","599c224e5a12bb65a13c20425a7edee01a36f0fc","fe10e182aa09a9860f248e38713bd69e9b27555f"],"certified_head":null,"official_status":"UX-R5 READY / NOT_STARTED in inherited product status; recovery source not yet certified","current_state":"UX-R5 / ON-02 RP04_PUBLISHED_AWAITING_CERTIFICATION"},
   "authority": {"ref":"6517763883c95e9a8901e5095db2a7d846da0ef6","unchanged_in_repair":true,"agents":"extension/AGENTS.md","design_core":"extension/docs/ux/PAIA_DESIGN_CORE_v1.0.md","development_spec":"extension/docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md","official_status":"extension/docs/ux/UX_IMPLEMENTATION_STATUS.md"},
   "ci": {
     "baseline_branch":"overnight/ci-base-20260914","baseline_head":"ad386c07cff59b9b3472a5aa03626fe89514f8d1","pull_request":28,"draft":true,"purpose":"CI_ONLY_DO_NOT_MERGE",
     "failed_runs":[
       {"id":34881612592,"number":265,"product_head":"277ddaaa9a3ddc0722f43867730c6bc68f456555","result":"FAIL","reason":"two R5 browser acceptance failures; repaired by RP-03"},
-      {"id":34885462577,"number":266,"product_head":"599c224e5a12bb65a13c20425a7edee01a36f0fc","result":"FAIL_FULL_SUITE","required_jobs":{"unit_1":"PASS","unit_2":"PASS","unit_3":"PASS","unit_4":"PASS","adapter_privacy":"PASS","macos_secure_store":"PASS","release":"PASS","r1_r5_serial_acceptance":"PASS","full_suite":"FAIL","browser":"IN_PROGRESS_AT_RP04_PREPARATION","aggregate_certification":"CANNOT_PASS_WITH_FULL_SUITE_FAILURE"},"full_suite":{"total":1076,"pass":1075,"fail":1,"skipped":0,"unit_pass":898,"browser_pass":30,"browser_fail":1,"adapter_pass":95,"privacy_pass":52,"successful_receipt":false,"artifact_id":10365815587,"artifact_digest":"sha256:c1b929bf7c0d2abc579fb52ac080a7e360d275febc646a9c4ce2c5030e861fb8"}}
+      {"id":34885462577,"number":266,"product_head":"599c224e5a12bb65a13c20425a7edee01a36f0fc","result":"FAIL_FULL_SUITE","required_jobs":{"unit_1":"PASS","unit_2":"PASS","unit_3":"PASS","unit_4":"PASS","adapter_privacy":"PASS","macos_secure_store":"PASS","release":"PASS","r1_r5_serial_acceptance":"PASS","full_suite":"FAIL","browser":"SUPERSEDED_BY_RP04","aggregate_certification":"CANNOT_PASS_WITH_FULL_SUITE_FAILURE"},"full_suite":{"total":1076,"pass":1075,"fail":1,"skipped":0,"unit_pass":898,"browser_pass":30,"browser_fail":1,"adapter_pass":95,"privacy_pass":52,"successful_receipt":false,"artifact_id":10365815587,"artifact_digest":"sha256:c1b929bf7c0d2abc579fb52ac080a7e360d275febc646a9c4ce2c5030e861fb8"}}
     ],
     "current_recovery_run": null,
     "current_recovery_run_number": null,
     "current_recovery_product_head": "fe10e182aa09a9860f248e38713bd69e9b27555f",
-    "current_recovery_status": "NOT_RUN",
-    "recovery_result": "NOT_RUN"
+    "current_recovery_status": "AWAITING_CI",
+    "recovery_result": "WAITING_CI"
   },
-  "recovery_audit_outcome": "RP-03 closed the #265 contrast defect and prior outcome_unknown navigation race: #266's dedicated R1-R5 serial acceptance journey passed. #266 Full Suite has exactly one remaining failure, in the first long ux-r5-certification browser test. At failure, the Thought nav control already has aria-current=page but the helper clicks it again after a 640px reload and Playwright observes it transition from unstable to not visible. This is a test-only reentry race: the product is already on the Thought route and the helper must wait for route state rather than re-click the current navigation control. RP-04 changes only the helper; no timeout, product navigation, acceptance threshold, provider, domain, security or privacy behavior is changed.",
-  "pending_publication": {"id":"RP-04","kind":"UX_R5_BROWSER_ROUTE_SYNC_TEST_REPAIR","owner":"recovery-20260915-r5-82f1c4d7","branch":"ux-r2","expected_parent":"599c224e5a12bb65a13c20425a7edee01a36f0fc","candidate_commit":"fe10e182aa09a9860f248e38713bd69e9b27555f","candidate_tree":"58dc13fb139ff287972f17fdd4f3469e24ed87d2","allowed_paths":["extension/tests/ux-r5-certification-chrome-e2e.test.mjs"],"diff_review":"PASS: one commit, one test file, +1/-1. If Thought nav is already aria-current=page, helper waits for the route instead of clicking it again. No timeout increase and no gate weakening.","certification":"NOT_RUN","recovery_protocol":"Publish only if active owner, control HEAD and ux-r2 exact parent still match; force=false; read back and seal before certification claims."},
+  "recovery_audit_outcome": "RP-03 closed the #265 contrast and outcome_unknown failures. #266 dedicated R1-R5 acceptance passed; Full Suite narrowed to one helper reentry failure after a 640px reload. The failed locator already carried aria-current=page, proving the product route was Thought while the helper redundantly clicked the current nav control. RP-04 changes only the test helper to skip the click when Thought is already current and wait for the real route state. No timeout, product code, acceptance threshold or trust behavior changed.",
+  "pending_publication": null,
   "publication_receipts": [
     {"id":"RP-01","parent":"6517763883c95e9a8901e5095db2a7d846da0ef6","commit":"6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","tree":"21a22861d0228ae0150d485a5cf366620462fc31","result":"PUBLISHED_AND_READ_BACK","force":false},
     {"id":"RP-02","parent":"6bda0643443595874b9f43cf39e4ea0dfcfa1ae2","commit":"277ddaaa9a3ddc0722f43867730c6bc68f456555","tree":"6f3fc5e9ce44e15fe69c630dda997663d0886575","result":"PUBLISHED_AND_READ_BACK","force":false},
-    {"id":"RP-03","parent":"277ddaaa9a3ddc0722f43867730c6bc68f456555","commit":"599c224e5a12bb65a13c20425a7edee01a36f0fc","tree":"bc61405fc749aa078c8c770ee4b8f3cfdcdac3f1","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/ui/thought-reader.css","extension/tests/ux-r5-certification-chrome-e2e.test.mjs"]}
+    {"id":"RP-03","parent":"277ddaaa9a3ddc0722f43867730c6bc68f456555","commit":"599c224e5a12bb65a13c20425a7edee01a36f0fc","tree":"bc61405fc749aa078c8c770ee4b8f3cfdcdac3f1","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/ui/thought-reader.css","extension/tests/ux-r5-certification-chrome-e2e.test.mjs"]},
+    {"id":"RP-04","prepared_control_head":"11cc6b6249997611df3a2b4d613efcc455d0af23","parent":"599c224e5a12bb65a13c20425a7edee01a36f0fc","commit":"fe10e182aa09a9860f248e38713bd69e9b27555f","tree":"58dc13fb139ff287972f17fdd4f3469e24ed87d2","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/tests/ux-r5-certification-chrome-e2e.test.mjs"],"diff_review":"PASS: one parent, one test file, +1/-1; no timeout or gate weakening"}
   ],
   "last_run_report": "overnight/recovery/UX_R5_RECOVERY_AUDIT.md",
   "next_allowed_slice": "UX-R5_RECOVERY",
-  "next_action": "Publish exact registered RP-04 after owner/ref recheck; seal read-back; certify exact head. Do not start UX-R6.",
+  "next_action": "Read exact-head certification triggered by RP-04. Repair any real remaining R5 failure. Only after every required gate, full-suite receipt and visual acceptance pass may canonical R5 report/status be published and owner released. Do not start UX-R6.",
   "ux_r5_verified_complete": false,
   "ux_r6_started": false,
   "scheduled_execution_authorized": false
