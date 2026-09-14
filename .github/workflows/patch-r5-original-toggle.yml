@@ -1,0 +1,41 @@
+name: Patch R5 Original toggle readiness
+
+on:
+  push:
+    branches: [ux-r5-history-resume-fix]
+    paths:
+      - .github/workflows/patch-r5-original-toggle.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ux-r5-history-resume-fix
+          fetch-depth: 0
+      - name: Enable cheap Original-to-AI view switch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('extension/ui/thoughts.js')
+          s=p.read_text()
+          old="this.snapshotKey=this.readKey();this.snapshotRoute=this.id||'home';if(!this.id)this.homeLoaded=true;\n   for(const id of ['topic-body','topic-heading'])$(id).inert=false;"
+          new="this.snapshotKey=this.readKey();this.snapshotRoute=this.id||'home';if(!this.id)this.homeLoaded=true;\n   if(this.id&&this.view==='original'&&!this.pendingView){const toggle=$('ai-presentation-toggle');toggle.checked=false;toggle.disabled=false;}\n   for(const id of ['topic-body','topic-heading'])$(id).inert=false;"
+          assert s.count(old)==1, s.count(old)
+          p.write_text(s.replace(old,new))
+          Path('.github/workflows/patch-r5-original-toggle.yml').unlink()
+          stale=Path('.github/workflows/patch-r3-topic-scoped-ai-status.yml')
+          if stale.exists(): stale.unlink()
+          PY
+          node --check extension/ui/thoughts.js
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add extension/ui/thoughts.js .github/workflows/patch-r5-original-toggle.yml .github/workflows/patch-r3-topic-scoped-ai-status.yml
+          git diff --cached --check
+          git commit -m 'fix(reader): keep R5 view switch cheap in Original mode'
+          git push origin HEAD:ux-r5-history-resume-fix
