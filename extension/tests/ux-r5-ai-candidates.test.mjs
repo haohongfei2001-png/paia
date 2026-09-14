@@ -65,7 +65,7 @@ test('UX-R5 candidate decisions adopt only the selected section and keep the res
  assert.equal(f.calls(),2);
 });
 
-test('UX-R5 candidate adoption is CAS guarded against a concurrent human edit',async()=>{
+test('UX-R5 candidate adoption is CAS guarded against a concurrent human edit and requires explicit refresh',async()=>{
  const f=await fixture();let topic=await protectAndAddDelta(f),revision=topic.presentation.revision;
  await editAIPresentation(f.s,{topicId:topic.topicId,field:'blockSummary',value:'并发人工摘要',expectedRevision:revision,operationId:crypto.randomUUID()});
  await assert.rejects(()=>editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:revision+1,candidateDecision:{field:'currentView',decision:'adopt'},operationId:crypto.randomUUID()}),error=>error?.code==='STALE_BASE');
@@ -73,6 +73,9 @@ test('UX-R5 candidate adoption is CAS guarded against a concurrent human edit',a
  assert.equal(topic.presentation.blockSummary,'并发人工摘要');
  assert.equal(topic.presentation.currentView,'人工维护的当前理解');
  assert.equal(topic.candidate.stale,true);
+ assert.equal(topic.pending,true);
+ const before=f.calls();assert.equal((await f.ai.wake(action())).completed,true);assert.equal(f.calls(),before+1);
+ topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.candidate.stale,false);assert.equal(topic.pending,false);
 });
 
 test('UX-R5 purging candidate-only evidence removes the candidate without deleting the current presentation',async()=>{
