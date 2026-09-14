@@ -41,7 +41,7 @@ jobs:
           test -s /tmp/product.patch
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout --detach 468d1dfb308409c585993357349e094e6640b5b0
+          git reset --hard 468d1dfb308409c585993357349e094e6640b5b0
           git apply /tmp/product.patch
           git add extension/ui/archive.js extension/ui/material-tray.js extension/background/service-worker.js extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs
           git commit -m 'fix(ux-r4): close startup and purge races'
