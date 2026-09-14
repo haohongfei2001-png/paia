@@ -41,6 +41,7 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 
 /* UX-R5 AI update comparison */
 .ai-first-generation,.ai-update-candidate{max-width:760px;margin:18px auto;padding:18px;border:1px solid var(--paia-subtle);border-radius:14px;background:var(--paia-surface);color:var(--paia-text)}
+.ai-update-candidate>.eyebrow{color:var(--paia-meta)}
 .ai-candidate-field{padding:14px 0;border-top:1px solid var(--paia-subtle)}
 .ai-candidate-compare{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
 .ai-candidate-version{min-width:0;padding:12px;border-radius:10px;background:var(--paia-canvas)}
