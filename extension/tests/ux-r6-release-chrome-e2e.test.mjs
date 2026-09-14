@@ -20,9 +20,9 @@ async function matrix(page){
 }
 
 test('UX-R6 complete Settings closes preview privacy, open export, Backup status and cross-size release paths without network',{timeout:300000},async()=>{
- const h=await FakeChatGPT.start({onboarding:true});let backupBytes;
+ const marker='UXR6_PRIVATE_PREVIEW 合成私人预览只用于本机发布验收。',h=await FakeChatGPT.start({onboarding:true});let backupBytes;
  try{
-  const p=h.archive,marker='UXR6_PRIVATE_PREVIEW 合成私人预览只用于本机发布验收。';await consent(p);await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
+  const p=h.archive;await consent(p);await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
   await h.open({id:'ux-r6-private',title:'UX-R6 私密预览',base:1609459200,messages:[{id:'ux-r6-private-message',text:marker}]});await eventually(async()=>(await h.state()).records.some(row=>row.originalText===marker),'synthetic Source is captured');await p.bringToFront();
   await p.keyboard.press('Control+k');await eventually(()=>p.locator('#universal-search-dialog').isVisible());const search=p.locator('#universal-search-dialog input[type="search"]');await search.fill('UXR6_PRIVATE_PREVIEW');await eventually(async()=>await p.locator('.universal-open p').first().isVisible());assert.match(await p.locator('.universal-open p').first().textContent(),/UXR6_PRIVATE_PREVIEW/);await p.locator('.universal-close').click();
   await openSettings(p,'privacy');const mask=p.locator('#r6-hide-content-previews');await mask.waitFor();assert.equal(await mask.isChecked(),false,'MIG-01/new preference defaults fail-visible, not hidden');await mask.check();await eventually(async()=>await p.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews')));assert.match(await p.locator('#r6-preview-status').textContent(),/不是加密/);
