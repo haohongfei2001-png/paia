@@ -22,7 +22,7 @@ test('UX-R5 Original -> explicit first AI generation -> cached topic view -> pro
  try{
   const p=await ready(h),topic=await createTopic(p);await mkdir(dir,{recursive:true});await openTopic(p,topic);
   await p.getByText('R5 原始表达：这一段必须始终可以直接阅读。',{exact:true}).waitFor();assert.equal(h.deepSeekRequests.length,0);
-  const toggle=p.locator('#ai-presentation-toggle');await toggle.check();await p.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0,'switching to Organized must not call DeepSeek');
+  const toggle=p.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'Topic AI switch enabled with zero provider calls');assert.equal(h.deepSeekRequests.length,0);await toggle.check();await p.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0,'switching to Organized must not call DeepSeek');
   await p.screenshot({path:`${dir}/first-generation.png`,fullPage:true});
   await p.getByRole('button',{name:'生成 AI整理',exact:true}).click();await eventually(()=>Promise.resolve(h.deepSeekRequests.length===1),'first paid request');assert.equal(requestOf(h.deepSeekRequests[0]).inputs.length,1);assert.equal(await p.getByText('R5 原始表达：这一段必须始终可以直接阅读。',{exact:true}).isVisible(),true,'Original must stay readable while first generation is pending');
   releaseFirst();await p.locator('[data-ai-field="blockSummary"]').filter({hasText:'R5 AI 摘要 1'}).waitFor();assert.equal(h.deepSeekRequests.length,1);await p.screenshot({path:`${dir}/organized-cached.png`,fullPage:true});
