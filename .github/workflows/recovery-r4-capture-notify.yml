@@ -1,7 +1,8 @@
 name: UX-R4 duplicate capture notification fix
 on:
   push:
-    branches: [recovery-r4-1]
+    branches:
+      - recovery-r4-1
 permissions:
   contents: write
 jobs:
@@ -16,43 +17,40 @@ jobs:
         with:
           node-version: 22
       - name: Patch duplicate capture broadcast
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
-          sw=Path('extension/background/service-worker.js')
-          s=sw.read_text()
-          old="""      sendResponse({ ok: true, data });
-      if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);"""
-          new="""      sendResponse({ ok: true, data });
-      const archiveMutation=request.type==='CAPTURE'?Number(data?.added)>0:request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:true;
-      if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);"""
-          assert s.count(old)==1, s.count(old)
-          s=s.replace(old,new,1)
-          old2="""      if(!localToolRequest(request.type)&&!['PAIA_MEMORY_STATUS','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES'].includes(request.type)"""
-          new2="""      if(archiveMutation&&!localToolRequest(request.type)&&!['PAIA_MEMORY_STATUS','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES'].includes(request.type)"""
-          assert s.count(old2)==1, s.count(old2)
-          sw.write_text(s.replace(old2,new2,1))
-
-          test=Path('extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs')
-          s=test.read_text()
-          old3="""await h.open({id:'uxr4-synthetic',title:'UX-R4 synthetic',base:1609459200,messages:messages.map((text,i)=>({id:'uxr4-input-'+i,text}))});await until(async()=>(await h.state()).records.length===messages.length,'fixture capture');return {h,p};"""
-          new3="""const chat=await h.open({id:'uxr4-synthetic',title:'UX-R4 synthetic',base:1609459200,messages:messages.map((text,i)=>({id:'uxr4-input-'+i,text}))});await until(async()=>(await h.state()).records.length===messages.length,'fixture capture');return {h,p,chat};"""
-          assert s.count(old3)==1, s.count(old3)
-          s=s.replace(old3,new3,1)
-          old4="""test('UX-R4 real Search pages retain 3 fixed refs through Reader return, query change and 20 new Inputs',{timeout:180000},async()=>{const {h,p}=await start(Array.from({length:45},(_,i)=>'UXR4_SEARCH 合成材料 '+i));"""
-          new4="""test('UX-R4 real Search pages retain 3 fixed refs through Reader return, query change and 20 new Inputs',{timeout:180000},async()=>{const {h,p,chat}=await start(Array.from({length:45},(_,i)=>'UXR4_SEARCH 合成材料 '+i));"""
-          assert s.count(old4)==1, s.count(old4)
-          s=s.replace(old4,new4,1)
-          marker="""assert.equal(await p.evaluate(()=>globalThis.__uxr4StablePreview===document.querySelector('#material-preview')),true,'maintenance notification must not remount the Material Tray');const before=(await tray(p)).items.map(i=>i.ref);await p.getByRole('button',{name:'关闭材料盘',exact:true}).click();"""
-          replacement="""assert.equal(await p.evaluate(()=>globalThis.__uxr4StablePreview===document.querySelector('#material-preview')),true,'maintenance notification must not remount the Material Tray');await p.evaluate(()=>{globalThis.__uxr4StableClose=[...document.querySelectorAll('#material-workbench button')].find(b=>b.textContent==='关闭材料盘');});const scanBefore=(await rpc(p,'GET_PAGE',{page:{view:'settings'}})).diagnostics.lastScanAt;await h.edit(chat,'uxr4-input-0','UXR4_SEARCH 合成材料 0',false);await until(async()=>String((await rpc(p,'GET_PAGE',{page:{view:'settings'}})).diagnostics.lastScanAt)!==String(scanBefore),'duplicate capture scan');await pause(300);assert.equal(await p.evaluate(()=>globalThis.__uxr4StablePreview===document.querySelector('#material-preview')),true,'idempotent duplicate capture must not remount Preview action');assert.equal(await p.evaluate(()=>globalThis.__uxr4StableClose===[...document.querySelectorAll('#material-workbench button')].find(b=>b.textContent==='关闭材料盘')),true,'idempotent duplicate capture must not remount Drawer action');const before=(await tray(p)).items.map(i=>i.ref);await p.getByRole('button',{name:'关闭材料盘',exact:true}).click();"""
-          assert s.count(marker)==1, s.count(marker)
-          test.write_text(s.replace(marker,replacement,1))
+          sw = Path('extension/background/service-worker.js')
+          s = sw.read_text()
+          old = "      sendResponse({ ok: true, data });\n      if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);"
+          new = "      sendResponse({ ok: true, data });\n      const archiveMutation=request.type==='CAPTURE'?Number(data?.added)>0:request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:true;\n      if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);"
+          assert s.count(old) == 1, s.count(old)
+          s = s.replace(old, new, 1)
+          old = "      if(!localToolRequest(request.type)&&!['PAIA_MEMORY_STATUS','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES'].includes(request.type)"
+          new = "      if(archiveMutation&&!localToolRequest(request.type)&&!['PAIA_MEMORY_STATUS','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES'].includes(request.type)"
+          assert s.count(old) == 1, s.count(old)
+          sw.write_text(s.replace(old, new, 1))
+          test = Path('extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs')
+          s = test.read_text()
+          old = "await h.open({id:'uxr4-synthetic',title:'UX-R4 synthetic',base:1609459200,messages:messages.map((text,i)=>({id:'uxr4-input-'+i,text}))});await until(async()=>(await h.state()).records.length===messages.length,'fixture capture');return {h,p};"
+          new = "const chat=await h.open({id:'uxr4-synthetic',title:'UX-R4 synthetic',base:1609459200,messages:messages.map((text,i)=>({id:'uxr4-input-'+i,text}))});await until(async()=>(await h.state()).records.length===messages.length,'fixture capture');return {h,p,chat};"
+          assert s.count(old) == 1, s.count(old)
+          s = s.replace(old, new, 1)
+          old = "test('UX-R4 real Search pages retain 3 fixed refs through Reader return, query change and 20 new Inputs',{timeout:180000},async()=>{const {h,p}=await start(Array.from({length:45},(_,i)=>'UXR4_SEARCH 合成材料 '+i));"
+          new = "test('UX-R4 real Search pages retain 3 fixed refs through Reader return, query change and 20 new Inputs',{timeout:180000},async()=>{const {h,p,chat}=await start(Array.from({length:45},(_,i)=>'UXR4_SEARCH 合成材料 '+i));"
+          assert s.count(old) == 1, s.count(old)
+          s = s.replace(old, new, 1)
+          old = "assert.equal(await p.evaluate(()=>globalThis.__uxr4StablePreview===document.querySelector('#material-preview')),true,'maintenance notification must not remount the Material Tray');const before=(await tray(p)).items.map(i=>i.ref);await p.getByRole('button',{name:'关闭材料盘',exact:true}).click();"
+          new = "assert.equal(await p.evaluate(()=>globalThis.__uxr4StablePreview===document.querySelector('#material-preview')),true,'maintenance notification must not remount the Material Tray');await p.evaluate(()=>{globalThis.__uxr4StableClose=[...document.querySelectorAll('#material-workbench button')].find(b=>b.textContent==='关闭材料盘');});const scanBefore=(await rpc(p,'GET_PAGE',{page:{view:'settings'}})).diagnostics.lastScanAt;await h.edit(chat,'uxr4-input-0','UXR4_SEARCH 合成材料 0',false);await until(async()=>String((await rpc(p,'GET_PAGE',{page:{view:'settings'}})).diagnostics.lastScanAt)!==String(scanBefore),'duplicate capture scan');await pause(300);assert.equal(await p.evaluate(()=>globalThis.__uxr4StablePreview===document.querySelector('#material-preview')),true,'idempotent duplicate capture must not remount Preview action');assert.equal(await p.evaluate(()=>globalThis.__uxr4StableClose===[...document.querySelectorAll('#material-workbench button')].find(b=>b.textContent==='关闭材料盘')),true,'idempotent duplicate capture must not remount Drawer action');const before=(await tray(p)).items.map(i=>i.ref);await p.getByRole('button',{name:'关闭材料盘',exact:true}).click();"
+          assert s.count(old) == 1, s.count(old)
+          test.write_text(s.replace(old, new, 1))
           PY
           node --check extension/background/service-worker.js
           node --check extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs
           git diff --check
       - name: Commit final implementation
+        shell: bash
         run: |
           git rm .github/workflows/recovery-r4-capture-notify.yml
           git config user.name 'github-actions[bot]'
