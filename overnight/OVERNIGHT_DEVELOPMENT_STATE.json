@@ -2,14 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "WAITING_CI",
+  "status": "REPAIR_REQUIRED",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 6,
-    "parent_head": "396712d77785822b2ecb2ca76655f635db53cc15",
-    "kind": "execution_seal",
+    "sequence": 7,
+    "parent_head": "a420f4a3433a143f4c07b31e1e26c01f3b4e421c",
+    "kind": "execution_claim",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
@@ -37,8 +37,8 @@
   "execution_budget": {
     "max_scheduled_deliveries": 8,
     "max_admitted_executions": 8,
-    "admitted_executions": 2,
-    "scheduler_deliveries_observed": 2,
+    "admitted_executions": 3,
+    "scheduler_deliveries_observed": 3,
     "scheduler_task_created_by_bootstrap": false,
     "campaign_started_at": "2026-09-14T09:34:40Z",
     "stop_new_work_at": "2026-09-14T17:34:40Z",
@@ -48,12 +48,21 @@
     "platform_runtime_guarantee": false,
     "automatic_catchup_or_extension": false
   },
-  "active_execution": null,
+  "active_execution": {
+    "number": 3,
+    "token": "run-003-20260914T1135Z",
+    "mode": "REPAIR_ON01",
+    "slice": "ON-01",
+    "started_at": "2026-09-14T11:35:00Z",
+    "lease_expires_at": "2026-09-14T12:30:00Z",
+    "start_product_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8",
+    "run_report": "overnight/runs/003.md"
+  },
   "pending_publication": null,
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
-    {"id": "ON-01", "status": "PENDING_CI", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
+    {"id": "ON-01", "status": "REPAIR_REQUIRED", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
     {"id": "ON-02", "status": "NOT_STARTED", "owner_ux_round": "UX-R5", "requires": ["ON-01"]},
     {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-02", "UX-R5_CERTIFIED"]},
     {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-03"]},
@@ -87,9 +96,9 @@
       "product_tree": "c79ce29c53c18ca45236d6b81c8f79b181282a8b",
       "run_id": 34838202885,
       "run_number": 258,
-      "observed_status": "queued",
+      "observed_status": "in_progress_with_failures",
       "observed_conclusion": null,
-      "required_action": "Inspect all required jobs, checked-out merge tree, full-suite receipt, R5 browser evidence and candidate diff. Repair ON-01 before any ON-02 progress if any gate fails."
+      "required_action": "Repair ON-01 only. CI #258 shows package guard failure ui/thoughts-base.js:24 forbidden keyboard listener; unit/adapter/release jobs fail after otherwise passing tests because the moved reviewed handler is no longer on its reviewed path. Do not weaken the guard or begin ON-02."
     },
     "last_verified": {
       "purpose": "Fresh inherited-product certification before ON-01",
@@ -117,14 +126,15 @@
     "apple_codec": "NOT_STARTED",
     "mcp_adapter": "NOT_STARTED"
   },
-  "blocking_reasons": [],
-  "preflight_requirements": ["Execution 003 must first inspect PAIA Certification #258 for exact product candidate 825c1644da4effd104ad6d250aa2344b9b4a0ca8. Do not enter ON-02 unless every ON-01 required gate and evidence review passes."],
-  "last_run_report": "overnight/runs/002.md",
+  "blocking_reasons": ["ON-01 CI #258: package guard rejects ui/thoughts-base.js:24 forbidden keyboard listener. Repair implementation/source decomposition; do not relax the guard."],
+  "preflight_requirements": ["Execution 003 owns ON-01 repair only. Preserve the reviewed keyboard listener under its approved path or otherwise remove the source decomposition conflict without broadening package-guard exceptions, then recertify."],
+  "last_run_report": "overnight/runs/003.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
     {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "result": "INHERITED_BASELINE_VERIFIED"},
-    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "result": "WAITING_CI"}
+    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "result": "WAITING_CI"},
+    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "product_start_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "product_end_head": null, "result": "IN_PROGRESS"}
   ],
-  "next_recommended_action": "Validate PAIA Certification #258 and R5 evidence for ON-01. On any failure, repair ON-01 only. If all gates pass, mark ON-01 COMPLETE and only then admit ON-02 in a later execution opportunity.",
+  "next_recommended_action": "Repair ON-01 package-guard/source-decomposition failure only, add or preserve regression coverage, publish by prepare→publish→seal, and recertify. Do not begin ON-02 in this execution.",
   "human_resolution_required": false
 }
