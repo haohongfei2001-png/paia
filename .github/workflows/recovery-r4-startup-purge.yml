@@ -32,7 +32,7 @@ jobs:
           cd extension
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
           test -n "$CHROME_BIN"
-          PAIA_CHROME="$CHROME_BIN" CHROME_PATH="$CHROME_BIN" xvfb-run -a node --test --test-concurrency=1 --test-name-pattern='overlapping startup|true dwell position|unorganized Input' tests/ux-r2-reader-revisit-chrome-e2e.test.mjs tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+          PLAYWRIGHT_MODULE=playwright PAIA_CHROME="$CHROME_BIN" CHROME_PATH="$CHROME_BIN" xvfb-run -a node --test --test-concurrency=1 --test-name-pattern='overlapping startup|true dwell position|unorganized Input' tests/ux-r2-reader-revisit-chrome-e2e.test.mjs tests/ux-r4-search-reuse-chrome-e2e.test.mjs
       - name: Commit verified fixes
         run: |
           git rm .github/workflows/recovery-r4-startup-purge.yml
