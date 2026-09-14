@@ -1,57 +1,47 @@
 {
-  "schema_version": 2,
-  "campaign": "paia-continuation-20260915-v2",
-  "status": "UX_R5_COMPLETE_SEALED",
-  "checkpoint_sequence": 11,
-  "control_parent_head": "d007527f1257ae9734917b3fd158b68478d0a1b7",
-  "control_branch": "overnight/control-20260915-v2",
+  "schema_version": 3,
+  "campaign": "paia-ux-r6-20260915-v3",
+  "status": "UX_R6_ACTIVE_PREFLIGHT_COMPLETE",
+  "checkpoint_sequence": 1,
+  "control_parent_head": "a692345d338e440bc6125d3da41468fbc472684b",
+  "control_branch": "overnight/control-20260915-v3",
   "predecessor": {
-    "campaign": "paia-overnight-20260914-v1",
-    "status": "EXHAUSTED / HISTORICAL",
-    "control_head": "b46a2edda95424934da23784a424d47f0a44f739",
-    "final_product_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
-    "execution_opportunities_used": 8,
-    "execution_opportunities_total": 8,
+    "campaign": "paia-continuation-20260915-v2",
+    "status": "UX_R5_COMPLETE_SEALED",
+    "control_head": "a692345d338e440bc6125d3da41468fbc472684b",
+    "product_checkpoint": "18c9c2972c05dad1e45f748244f5947d2192e044",
+    "certified_head": "fe10e182aa09a9860f248e38713bd69e9b27555f",
+    "certification_run": 34887855731,
+    "certification_number": 267,
+    "docs_checkpoint_certification_run": 34891697881,
+    "docs_checkpoint_certification_number": 268,
+    "docs_checkpoint_certification_result": "PASS",
     "history_mutable": false
   },
-  "active_owner": null,
-  "authorization": "User-authorized stale-owner takeover for UX-R5 recovery only; this v2 recovery session ends after the certified R5 seal and does not start UX-R6.",
-  "ownership_history": [
-    {
-      "previous_owner": "recovery-20260915-651776-6c94b7e1",
-      "disposition": "STALE_CHAT_EXECUTION_ENDED",
-      "recovered_at_control_parent": "f6cc9472f91c81b6b6cda746416072e25e12d93f",
-      "replacement_owner": "recovery-20260915-r5-82f1c4d7"
-    },
-    {
-      "owner": "recovery-20260915-r5-82f1c4d7",
-      "disposition": "RELEASED_AFTER_UX_R5_CERTIFIED_SEAL",
-      "certified_head": "fe10e182aa09a9860f248e38713bd69e9b27555f",
-      "product_checkpoint": "18c9c2972c05dad1e45f748244f5947d2192e044"
-    }
-  ],
+  "active_owner": "ux-r6-20260915-7e4c19b2",
+  "authorization": "User-authorized continuation after the sealed UX-R5 checkpoint. Execute UX-R6 only, then publish its verified checkpoint before the separately authorized final UX-R1 through UX-R6 regression.",
   "product": {
     "branch": "ux-r2",
+    "start_head": "18c9c2972c05dad1e45f748244f5947d2192e044",
     "expected_head": "18c9c2972c05dad1e45f748244f5947d2192e044",
-    "repair_start_head": "6517763883c95e9a8901e5095db2a7d846da0ef6",
-    "repair_commits": [
-      "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
-      "277ddaaa9a3ddc0722f43867730c6bc68f456555",
-      "599c224e5a12bb65a13c20425a7edee01a36f0fc",
-      "fe10e182aa09a9860f248e38713bd69e9b27555f"
-    ],
-    "checkpoint_commit": "18c9c2972c05dad1e45f748244f5947d2192e044",
-    "certified_head": "fe10e182aa09a9860f248e38713bd69e9b27555f",
-    "official_status": "UX-R5 COMPLETE / CERTIFIED; UX-R6 READY / NOT_STARTED",
-    "current_state": "UX-R5 COMPLETE / SEALED"
+    "certified_head": null,
+    "official_status": "UX-R6 READY / NOT STARTED at entry; fresh R6 execution now claimed",
+    "current_state": "UX-R6 / ACTIVE"
   },
   "authority": {
-    "ref": "6517763883c95e9a8901e5095db2a7d846da0ef6",
-    "unchanged_in_repair": true,
+    "ref": "18c9c2972c05dad1e45f748244f5947d2192e044",
     "agents": "extension/AGENTS.md",
     "design_core": "extension/docs/ux/PAIA_DESIGN_CORE_v1.0.md",
     "development_spec": "extension/docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md",
     "official_status": "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md"
+  },
+  "preflight": {
+    "result": "PASS",
+    "r5_seal_verified": true,
+    "docs_checkpoint_268_verified": true,
+    "scope": "UI-17/UI-18/UI-19, complete Settings, Backup/Restore/open export, preview masking, storage honesty, migration/compatibility and cross-size release acceptance",
+    "non_goals": ["production sync", "remote API/MCP", "native mobile app", "voice", "new hosted provider", "brand rename"],
+    "existing_reuse": ["six-group Settings shell", "Backup/Restore domain service", "Source archive export", "Reader/Revisit policies", "Memory privacy controls", "R1-R5 responsive/design system"]
   },
   "ci": {
     "baseline_branch": "overnight/ci-base-20260914",
@@ -59,159 +49,20 @@
     "pull_request": 28,
     "draft": true,
     "purpose": "CI_ONLY_DO_NOT_MERGE",
-    "failed_runs": [
-      {
-        "id": 34881612592,
-        "number": 265,
-        "product_head": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
-        "result": "FAIL",
-        "reason": "R5 browser acceptance failures: real light-theme contrast defect and outcome_unknown topic-open synchronization timeout; repaired by RP-03."
-      },
-      {
-        "id": 34885462577,
-        "number": 266,
-        "product_head": "599c224e5a12bb65a13c20425a7edee01a36f0fc",
-        "result": "FAIL_FULL_SUITE",
-        "required_jobs": {
-          "unit_1": "PASS",
-          "unit_2": "PASS",
-          "unit_3": "PASS",
-          "unit_4": "PASS",
-          "adapter_privacy": "PASS",
-          "macos_secure_store": "PASS",
-          "release": "PASS",
-          "r1_r5_serial_acceptance": "PASS",
-          "full_suite": "FAIL",
-          "browser": "SUPERSEDED_BY_RP04",
-          "aggregate_certification": "CANNOT_PASS_WITH_FULL_SUITE_FAILURE"
-        },
-        "full_suite": {
-          "total": 1076,
-          "pass": 1075,
-          "fail": 1,
-          "skipped": 0,
-          "unit_pass": 898,
-          "browser_pass": 30,
-          "browser_fail": 1,
-          "adapter_pass": 95,
-          "privacy_pass": 52,
-          "successful_receipt": false,
-          "artifact_id": 10365815587,
-          "artifact_digest": "sha256:c1b929bf7c0d2abc579fb52ac080a7e360d275febc646a9c4ce2c5030e861fb8"
-        }
-      }
-    ],
-    "successful_run": {
-      "id": 34887855731,
-      "number": 267,
-      "product_head": "fe10e182aa09a9860f248e38713bd69e9b27555f",
-      "ci_merge_ref": "5749f461e1275d0326ea0767d0e41436e1d439bb",
-      "result": "PASS",
-      "required_jobs": {
-        "unit_1": "PASS",
-        "unit_2": "PASS",
-        "unit_3": "PASS",
-        "unit_4": "PASS",
-        "adapter_privacy": "PASS",
-        "macos_secure_store": "PASS",
-        "release": "PASS",
-        "browser": "PASS",
-        "full_suite": "PASS",
-        "aggregate_certification": "PASS"
-      },
-      "full_suite": {
-        "total": 1076,
-        "pass": 1076,
-        "fail": 0,
-        "skipped": 0,
-        "unit_pass": 898,
-        "browser_pass": 31,
-        "browser_fail": 0,
-        "adapter_pass": 95,
-        "privacy_pass": 52,
-        "fullSuite": true,
-        "auditPassed": true,
-        "historicalBrowserFiles": 76,
-        "input_digest": "360ac1d9a95fade78c6a40ec3546c09719a494b8548724655181bd080cec970b",
-        "artifact_id": 10365763713,
-        "artifact_digest": "sha256:9a96f3636ad256d3eded138cf836f8700921a5fef34dd1731210dc19db2609d9"
-      },
-      "visual_browser_evidence": {
-        "result": "PASS",
-        "artifact_id": 10366179710,
-        "artifact_name": "ux-r5-evidence-5749f461e1275d0326ea0767d0e41436e1d439bb",
-        "artifact_digest": "sha256:0e15a08d9d3c373df8045d2a4166849f3962a7f1d3daa396c4c4bca07917bb22"
-      }
-    },
-    "current_recovery_run": 34887855731,
-    "current_recovery_run_number": 267,
-    "current_recovery_product_head": "fe10e182aa09a9860f248e38713bd69e9b27555f",
-    "current_recovery_status": "COMPLETED_SUCCESS",
-    "recovery_result": "PASS"
+    "current_run": null,
+    "current_run_number": null,
+    "current_product_head": null,
+    "result": "NOT_RUN"
   },
-  "recovery_audit_outcome": "UX-R5 recovered and certified. RP-01 closed the ON-02 post-commit candidateCreated ReferenceError while preserving the explicit candidate model; RP-02 added/preserved keyboard and full R5 acceptance coverage; RP-03 fixed real light-theme contrast and topic-open synchronization without threshold/timeout weakening; RP-04 fixed the remaining responsive test-only current-route reentry race. Certification #267 passed every required gate, successful Full Suite receipt and R5 visual evidence. Canonical report/status were published in docs-only checkpoint 18c9c2972c05dad1e45f748244f5947d2192e044.",
   "pending_publication": null,
-  "publication_receipts": [
-    {
-      "id": "RP-01",
-      "parent": "6517763883c95e9a8901e5095db2a7d846da0ef6",
-      "commit": "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
-      "tree": "21a22861d0228ae0150d485a5cf366620462fc31",
-      "result": "PUBLISHED_AND_READ_BACK",
-      "force": false
-    },
-    {
-      "id": "RP-02",
-      "parent": "6bda0643443595874b9f43cf39e4ea0dfcfa1ae2",
-      "commit": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
-      "tree": "6f3fc5e9ce44e15fe69c630dda997663d0886575",
-      "result": "PUBLISHED_AND_READ_BACK",
-      "force": false
-    },
-    {
-      "id": "RP-03",
-      "parent": "277ddaaa9a3ddc0722f43867730c6bc68f456555",
-      "commit": "599c224e5a12bb65a13c20425a7edee01a36f0fc",
-      "tree": "bc61405fc749aa078c8c770ee4b8f3cfdcdac3f1",
-      "result": "PUBLISHED_AND_READ_BACK",
-      "force": false,
-      "changed_files": [
-        "extension/ui/thought-reader.css",
-        "extension/tests/ux-r5-certification-chrome-e2e.test.mjs"
-      ]
-    },
-    {
-      "id": "RP-04",
-      "prepared_control_head": "11cc6b6249997611df3a2b4d613efcc455d0af23",
-      "parent": "599c224e5a12bb65a13c20425a7edee01a36f0fc",
-      "commit": "fe10e182aa09a9860f248e38713bd69e9b27555f",
-      "tree": "58dc13fb139ff287972f17fdd4f3469e24ed87d2",
-      "result": "PUBLISHED_AND_READ_BACK",
-      "force": false,
-      "changed_files": [
-        "extension/tests/ux-r5-certification-chrome-e2e.test.mjs"
-      ],
-      "diff_review": "PASS: one parent, one test file, +1/-1; no timeout or gate weakening"
-    }
-  ],
-  "canonical_checkpoint": {
-    "parent": "fe10e182aa09a9860f248e38713bd69e9b27555f",
-    "commit": "18c9c2972c05dad1e45f748244f5947d2192e044",
-    "tree": "d963fa33c162a26890f05318a298b35262679f35",
-    "kind": "UX_R5_REPORT_AND_STATUS_ONLY",
-    "changed_files": [
-      "extension/docs/ux/rounds/UX_R5_REPORT.md",
-      "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md"
-    ],
-    "result": "PUBLISHED_AND_READ_BACK",
-    "force": false,
-    "certified_head_unchanged": "fe10e182aa09a9860f248e38713bd69e9b27555f"
-  },
-  "last_run_report": "overnight/recovery/UX_R5_RECOVERY_FINAL.md",
+  "publication_receipts": [],
+  "last_run_report": null,
   "next_allowed_slice": "UX-R6",
-  "next_action": "STOP_V2_RECOVERY_SESSION. UX-R5 is sealed and owner-free. A later execution may begin UX-R6 only after a fresh preflight from the current GitHub state.",
+  "next_action": "Implement the first bounded UX-R6 settings/data-exit slice, publish only after exact-parent prepare review, and certify through PR #28. Repair failures before expanding scope.",
   "ux_r5_verified_complete": true,
-  "ux_r6_started": false,
-  "session_closed": true,
+  "ux_r6_started": true,
+  "ux_r6_verified_complete": false,
+  "final_regression_started": false,
+  "session_closed": false,
   "scheduled_execution_authorized": false
 }
