@@ -2,14 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "REPAIR_REQUIRED",
+  "status": "PUBLISHING",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 7,
-    "parent_head": "a420f4a3433a143f4c07b31e1e26c01f3b4e421c",
-    "kind": "execution_claim",
+    "sequence": 8,
+    "parent_head": "0339b22872b2319ecd020d15c527807462baf2ea",
+    "kind": "publication_prepare",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
@@ -58,11 +58,21 @@
     "start_product_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8",
     "run_report": "overnight/runs/003.md"
   },
-  "pending_publication": null,
+  "pending_publication": {
+    "kind": "single_parent_fast_forward",
+    "slice": "ON-01",
+    "reason": "Repair CI #258 static-audit failure without changing runtime behavior or broadening keyboard permissions.",
+    "expected_product_parent": "825c1644da4effd104ad6d250aa2344b9b4a0ca8",
+    "candidate_head": "ad889dc59ff78d1318515ac56d4d571125997cec",
+    "candidate_tree": "48e9e2377c17391f8ba2f008ce39d64f60f142fb",
+    "changed_files": ["extension/scripts/check_package.py"],
+    "diff_review": "PASS: one file only; six-line exact moved-listener audit plus newline-at-EOF normalization artifact. No runtime source, manifest, permission, provider or network change.",
+    "publish_rule": "Re-read product ref and control ref. Publish only if product remains exact expected parent and control ownership remains execution 003; update ux-r2 force=false to candidate."
+  },
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
-    {"id": "ON-01", "status": "REPAIR_REQUIRED", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
+    {"id": "ON-01", "status": "REPAIR_PREPARED", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
     {"id": "ON-02", "status": "NOT_STARTED", "owner_ux_round": "UX-R5", "requires": ["ON-01"]},
     {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-02", "UX-R5_CERTIFIED"]},
     {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-03"]},
@@ -91,14 +101,13 @@
     "base_branch": "overnight/ci-base-20260914",
     "base_expected_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
     "pending": {
-      "purpose": "ON-01 UX-R5 topic-local dual-view certification",
+      "purpose": "Failed ON-01 candidate retained as repair evidence",
       "product_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8",
       "product_tree": "c79ce29c53c18ca45236d6b81c8f79b181282a8b",
       "run_id": 34838202885,
       "run_number": 258,
-      "observed_status": "in_progress_with_failures",
-      "observed_conclusion": null,
-      "required_action": "Repair ON-01 only. CI #258 shows package guard failure ui/thoughts-base.js:24 forbidden keyboard listener; unit/adapter/release jobs fail after otherwise passing tests because the moved reviewed handler is no longer on its reviewed path. Do not weaken the guard or begin ON-02."
+      "observed_status": "failed_required_package_audit",
+      "required_action": "Publish only the exact prepared repair, then use the new PR run for all required evidence. Do not infer PASS from functional partials in #258."
     },
     "last_verified": {
       "purpose": "Fresh inherited-product certification before ON-01",
@@ -126,15 +135,15 @@
     "apple_codec": "NOT_STARTED",
     "mcp_adapter": "NOT_STARTED"
   },
-  "blocking_reasons": ["ON-01 CI #258: package guard rejects ui/thoughts-base.js:24 forbidden keyboard listener. Repair implementation/source decomposition; do not relax the guard."],
-  "preflight_requirements": ["Execution 003 owns ON-01 repair only. Preserve the reviewed keyboard listener under its approved path or otherwise remove the source decomposition conflict without broadening package-guard exceptions, then recertify."],
+  "blocking_reasons": [],
+  "preflight_requirements": ["Before publication re-read ux-r2 and control refs and PR #28. Publish candidate ad889dc59ff78d1318515ac56d4d571125997cec only by force=false fast-forward if ownership still matches."],
   "last_run_report": "overnight/runs/003.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
     {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "result": "INHERITED_BASELINE_VERIFIED"},
     {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "result": "WAITING_CI"},
-    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "product_start_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "product_end_head": null, "result": "IN_PROGRESS"}
+    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "product_start_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "product_end_head": null, "result": "PREPARED"}
   ],
-  "next_recommended_action": "Repair ON-01 package-guard/source-decomposition failure only, add or preserve regression coverage, publish by prepare→publish→seal, and recertify. Do not begin ON-02 in this execution.",
+  "next_recommended_action": "Publish the exact prepared ON-01 audit repair if refs still match, seal execution 003 as WAITING_CI, and do not begin ON-02 in this execution.",
   "human_resolution_required": false
 }
