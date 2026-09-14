@@ -1,9 +1,8 @@
 {
   "schema_version": 3,
   "campaign": "paia-ux-r6-20260915-v3",
-  "status": "UX_R6_R604_PREPARED_FOR_PUBLICATION",
-  "checkpoint_sequence": 9,
-  "control_parent_head": "77d37249d2990de62b6e93fa48417295938c30e0",
+  "status": "UX_R6_R604_PUBLISHED_AWAITING_CERTIFICATION",
+  "checkpoint_sequence": 10,
   "control_branch": "overnight/control-20260915-v3",
   "predecessor": {
     "campaign": "paia-continuation-20260915-v2",
@@ -21,9 +20,9 @@
   "product": {
     "branch": "ux-r2",
     "start_head": "18c9c2972c05dad1e45f748244f5947d2192e044",
-    "expected_head": "86bc60001665138837288131fe11714871bd3618",
+    "expected_head": "2d5de7e19d4756ecf90babf5101ff0127d7c6d50",
     "certified_head": null,
-    "current_state": "UX-R6 / R6-04 PREPARED_FOR_PUBLICATION"
+    "current_state": "UX-R6 / R6-04 PUBLISHED_AWAITING_CERTIFICATION"
   },
   "authority": {
     "ref": "18c9c2972c05dad1e45f748244f5947d2192e044",
@@ -52,53 +51,25 @@
     "pull_request": 28,
     "draft": true,
     "purpose": "CI_ONLY_DO_NOT_MERGE",
-    "current_run": 34901967413,
-    "current_run_number": 271,
-    "current_product_head": "86bc60001665138837288131fe11714871bd3618",
-    "result": "FAIL",
+    "current_run": 34903574502,
+    "current_run_number": 272,
+    "current_product_head": "2d5de7e19d4756ecf90babf5101ff0127d7c6d50",
+    "result": "WAITING_CI",
     "failed_runs": [
-      {
-        "id": 34897197286,
-        "number": 269,
-        "product_head": "7631b91b166142911fae788d85af486ac0de0f2d",
-        "result": "FAIL",
-        "classification": "R6 UI projection lifecycle defect after formal restore: durable hideContentPreviews restored correctly but the open page did not immediately re-apply its mask class."
-      },
-      {
-        "id": 34900090571,
-        "number": 270,
-        "product_head": "c65b751fe25b1f11ab84eb943cc51826045d6bc5",
-        "result": "FAIL",
-        "full_suite": {"total":1087,"pass":1086,"fail":1,"skipped":0,"unit_pass":908,"browser_pass":31,"browser_fail":1,"adapter_pass":95,"privacy_pass":52,"artifact_id":10371271703,"artifact_digest":"sha256:11f411f31e329a8c028f188b52a7936f127267c626c18eb8ababbe49b7fbfd76"},
-        "classification": "TEST_CONTRACT_ERROR: R6 acceptance read Source records from the archive collection DTO instead of opening the concrete restored Source document."
-      },
-      {
-        "id": 34901967413,
-        "number": 271,
-        "product_head": "86bc60001665138837288131fe11714871bd3618",
-        "result": "FAIL",
-        "required_jobs": {"unit_1":"PASS","unit_2":"PASS","unit_3":"PASS","unit_4":"PASS","adapter_privacy":"PASS","macos_secure_store":"PASS","release":"PASS","browser":"FAIL","full_suite":"FAIL","aggregate_certification":"FAIL"},
-        "full_suite": {"total":1088,"pass":1087,"fail":1,"skipped":0,"unit_pass":909,"browser_pass":31,"browser_fail":1,"adapter_pass":95,"privacy_pass":52,"artifact_id":10371458576,"artifact_digest":"sha256:57da1bc9eba29febc0ee1525bdd8815f2f8bd35040f550d11e6df41c043ea295"},
-        "classification": "TEST_SCOPE_ERROR: the R6 browser test declared synthetic marker inside the first try block and referenced it from the second restore try, producing ReferenceError: marker is not defined. No product/domain/security job failed and no second Full Suite failure existed."
-      }
+      {"id":34897197286,"number":269,"product_head":"7631b91b166142911fae788d85af486ac0de0f2d","result":"FAIL","classification":"R6 UI projection lifecycle defect after formal restore."},
+      {"id":34900090571,"number":270,"product_head":"c65b751fe25b1f11ab84eb943cc51826045d6bc5","result":"FAIL","full_suite":{"total":1087,"pass":1086,"fail":1,"skipped":0,"unit_pass":908,"browser_pass":31,"browser_fail":1,"adapter_pass":95,"privacy_pass":52,"artifact_id":10371271703,"artifact_digest":"sha256:11f411f31e329a8c028f188b52a7936f127267c626c18eb8ababbe49b7fbfd76"},"classification":"TEST_CONTRACT_ERROR: Source restore assertion used the archive collection DTO instead of the collection -> document contract."},
+      {"id":34901967413,"number":271,"product_head":"86bc60001665138837288131fe11714871bd3618","result":"FAIL","required_jobs":{"unit_1":"PASS","unit_2":"PASS","unit_3":"PASS","unit_4":"PASS","adapter_privacy":"PASS","macos_secure_store":"PASS","release":"PASS","browser":"FAIL","full_suite":"FAIL","aggregate_certification":"FAIL"},"full_suite":{"total":1088,"pass":1087,"fail":1,"skipped":0,"unit_pass":909,"browser_pass":31,"browser_fail":1,"adapter_pass":95,"privacy_pass":52,"artifact_id":10371458576,"artifact_digest":"sha256:57da1bc9eba29febc0ee1525bdd8815f2f8bd35040f550d11e6df41c043ea295"},"classification":"TEST_SCOPE_ERROR: marker declared inside first try block, then referenced by the restore try; ReferenceError only."}
     ]
   },
-  "pending_publication": {
-    "id": "R6-04",
-    "parent": "86bc60001665138837288131fe11714871bd3618",
-    "candidate_commit": "2d5de7e19d4756ecf90babf5101ff0127d7c6d50",
-    "tree": "ec8aad0d276f3534fb079c0c40d7bab835f87dea",
-    "changed_files": ["extension/tests/ux-r6-release-chrome-e2e.test.mjs"],
-    "diff_review": "PASS: exactly one parent, one test file, +2/-2. Synthetic marker is moved to the whole test callback scope; no product code, timeout, CI gate, expected value, matrix, privacy assertion, network assertion or acceptance strength changed.",
-    "repair": "Move the immutable synthetic Source marker outside the first try block so the restore verification can read the same test value."
-  },
+  "pending_publication": null,
   "publication_receipts": [
     {"id":"R6-01","parent":"18c9c2972c05dad1e45f748244f5947d2192e044","commit":"7631b91b166142911fae788d85af486ac0de0f2d","tree":"1f9d5a1a3c5bb3485d44f71fcdec781187f59693","result":"PUBLISHED_AND_READ_BACK","force":false},
     {"id":"R6-02","parent":"7631b91b166142911fae788d85af486ac0de0f2d","commit":"c65b751fe25b1f11ab84eb943cc51826045d6bc5","tree":"85307d66abfe35f1eb471b75157a1e069a811607","result":"PUBLISHED_AND_READ_BACK","force":false},
-    {"id":"R6-03","parent":"c65b751fe25b1f11ab84eb943cc51826045d6bc5","commit":"86bc60001665138837288131fe11714871bd3618","tree":"e656ef4013b36b2aa695c36a248ad27d7176633e","result":"PUBLISHED_AND_READ_BACK","force":false}
+    {"id":"R6-03","parent":"c65b751fe25b1f11ab84eb943cc51826045d6bc5","commit":"86bc60001665138837288131fe11714871bd3618","tree":"e656ef4013b36b2aa695c36a248ad27d7176633e","result":"PUBLISHED_AND_READ_BACK","force":false},
+    {"id":"R6-04","prepared_control_head":"f91981874af2a08b75c5bd5484041ae536b913e1","parent":"86bc60001665138837288131fe11714871bd3618","commit":"2d5de7e19d4756ecf90babf5101ff0127d7c6d50","tree":"ec8aad0d276f3534fb079c0c40d7bab835f87dea","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/tests/ux-r6-release-chrome-e2e.test.mjs"],"diff_review":"PASS: one parent, one test file, +2/-2; no product, timeout, gate, expected behavior or acceptance change."}
   ],
   "next_allowed_slice": "UX-R6",
-  "next_action": "Re-read product/control/baseline/PR. If unchanged, fast-forward ux-r2 non-force to prepared R6-04 2d5de7e1... and consume its exact-head certification. Publish formal UX-R6 report/status only after every mandatory current-release gate passes.",
+  "next_action": "Consume Certification #272 exact-head evidence. If all mandatory current-release gates pass, publish the formal UX-R6 report/status checkpoint; otherwise classify and repair only the exact R6 failure.",
   "ux_r5_verified_complete": true,
   "ux_r6_started": true,
   "ux_r6_verified_complete": false,
