@@ -1,8 +1,8 @@
 {
   "schema_version": 3,
   "campaign": "paia-ux-r6-20260915-v3",
-  "status": "UX_R6_CERTIFIED_DOCS_PREPARED",
-  "checkpoint_sequence": 11,
+  "status": "UX_R6_COMPLETE_SEALED_FINAL_REGRESSION_RUNNING",
+  "checkpoint_sequence": 12,
   "control_branch": "overnight/control-20260915-v3",
   "predecessor": {
     "campaign": "paia-continuation-20260915-v2",
@@ -16,16 +16,17 @@
     "history_mutable": false
   },
   "active_owner": "ux-r6-20260915-7e4c19b2",
-  "authorization": "User-authorized UX-R6 execution; after a certified and sealed UX-R6 checkpoint, proceed to final UX-R1 through UX-R6 release regression.",
+  "authorization": "User-authorized UX-R6 execution and, after a certified/sealed UX-R6 checkpoint, final UX-R1 through UX-R6 release regression.",
   "product": {
     "branch": "ux-r2",
     "start_head": "18c9c2972c05dad1e45f748244f5947d2192e044",
-    "expected_head": "2d5de7e19d4756ecf90babf5101ff0127d7c6d50",
+    "expected_head": "d8abc05cffba627295a8921b68457643f6c013dd",
     "certified_head": "2d5de7e19d4756ecf90babf5101ff0127d7c6d50",
-    "current_state": "UX-R6 CERTIFIED / CANONICAL_DOCS_PREPARED"
+    "docs_checkpoint": "d8abc05cffba627295a8921b68457643f6c013dd",
+    "current_state": "UX-R6 COMPLETE / FINAL RELEASE REGRESSION RUNNING"
   },
   "authority": {
-    "ref": "18c9c2972c05dad1e45f748244f5947d2192e044",
+    "ref": "d8abc05cffba627295a8921b68457643f6c013dd",
     "agents": "extension/AGENTS.md",
     "design_core": "extension/docs/ux/PAIA_DESIGN_CORE_v1.0.md",
     "development_spec": "extension/docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md",
@@ -34,97 +35,87 @@
   "preflight": {
     "result": "PASS",
     "r5_seal_verified": true,
-    "docs_checkpoint_268_verified": true,
+    "ux_r6_certified": true,
     "scope": "UI-17/UI-18/UI-19, complete Settings, Backup/Restore/open export, preview masking, storage honesty, migration/compatibility and cross-size release acceptance",
     "non_goals": ["production sync", "remote API/MCP", "native mobile app", "voice", "new hosted provider", "brand rename"]
   },
-  "control_audit": [{
-    "event": "ACCIDENTAL_CONTROL_STAGING_FILE_CORRECTED",
-    "staging_commit": "735154e489c77fde7be23607356e977261860380",
-    "cleanup_commit": "3786d8c8b123102edc94d52646e2212314c4ab08",
-    "product_affected": false,
-    "history_rewritten": false
-  }],
   "ci": {
     "baseline_branch": "overnight/ci-base-20260914",
     "baseline_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
     "pull_request": 28,
     "draft": true,
     "purpose": "CI_ONLY_DO_NOT_MERGE",
-    "current_run": 34903574502,
-    "current_run_number": 272,
-    "current_product_head": "2d5de7e19d4756ecf90babf5101ff0127d7c6d50",
-    "result": "PASS",
-    "required_jobs": {
-      "unit_1": "PASS",
-      "unit_2": "PASS",
-      "unit_3": "PASS",
-      "unit_4": "PASS",
-      "adapter_privacy": "PASS",
-      "macos_secure_store": "PASS",
-      "release": "PASS",
-      "browser": "PASS",
-      "full_suite": "PASS",
-      "aggregate_certification": "PASS"
+    "ux_r6_certification": {
+      "run": 34903574502,
+      "number": 272,
+      "product_head": "2d5de7e19d4756ecf90babf5101ff0127d7c6d50",
+      "result": "PASS",
+      "required_jobs": {
+        "unit_1": "PASS",
+        "unit_2": "PASS",
+        "unit_3": "PASS",
+        "unit_4": "PASS",
+        "adapter_privacy": "PASS",
+        "macos_secure_store": "PASS",
+        "release": "PASS",
+        "browser": "PASS",
+        "full_suite": "PASS",
+        "aggregate_certification": "PASS"
+      },
+      "full_suite": {
+        "total": 1088,
+        "pass": 1088,
+        "fail": 0,
+        "skipped": 0,
+        "unit_pass": 909,
+        "browser_pass": 32,
+        "adapter_pass": 95,
+        "privacy_pass": 52,
+        "fullSuite": true,
+        "auditPassed": true,
+        "historicalBrowserFiles": 76,
+        "inputDigest": "5fc617fd38ef01ef34fd9a8c4c5ce48a8f2206ced13ae214a56fe3240381f5a5",
+        "artifact_id": 10371802551,
+        "artifact_digest": "sha256:bdae83eab591e1555e11723b6838ed03e9c518f6c0a34dc6c88338db190fb6dc"
+      },
+      "browser_evidence": {
+        "artifact_id": 10371638768,
+        "artifact_digest": "sha256:9558c24859b6b8f599a1c0994dfcc98996cc005258db72ebc15a62dcc90cb1ac",
+        "screenshots": 16,
+        "serial_browser_pass": 32
+      },
+      "release_artifact": {
+        "artifact_id": 10371522875,
+        "artifact_digest": "sha256:62db763c7508b7e433852ead76fec6f06d2543dc834ec6fcd34f0c9126cfebf8"
+      },
+      "package_audit": "PASS: 8438 guardrails / 196 runtime resources; DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS"
     },
-    "full_suite": {
-      "total": 1088,
-      "pass": 1088,
-      "fail": 0,
-      "skipped": 0,
-      "unit_pass": 909,
-      "browser_pass": 32,
-      "adapter_pass": 95,
-      "privacy_pass": 52,
-      "fullSuite": true,
-      "auditPassed": true,
-      "historicalBrowserFiles": 76,
-      "inputDigest": "5fc617fd38ef01ef34fd9a8c4c5ce48a8f2206ced13ae214a56fe3240381f5a5",
-      "artifact_id": 10371802551,
-      "artifact_digest": "sha256:bdae83eab591e1555e11723b6838ed03e9c518f6c0a34dc6c88338db190fb6dc"
+    "final_regression": {
+      "run": 34906311782,
+      "number": 273,
+      "product_head": "d8abc05cffba627295a8921b68457643f6c013dd",
+      "result": "WAITING_CI"
     },
-    "browser_evidence": {
-      "artifact_id": 10371638768,
-      "artifact_digest": "sha256:9558c24859b6b8f599a1c0994dfcc98996cc005258db72ebc15a62dcc90cb1ac",
-      "screenshots": 16,
-      "serial_browser_pass": 32
-    },
-    "release_artifact": {
-      "artifact_id": 10371522875,
-      "artifact_digest": "sha256:62db763c7508b7e433852ead76fec6f06d2543dc834ec6fcd34f0c9126cfebf8"
-    },
-    "package_audit": "PASS: 8438 guardrails / 196 runtime resources; DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS",
     "failed_runs": [
       {"id":34897197286,"number":269,"product_head":"7631b91b166142911fae788d85af486ac0de0f2d","result":"FAIL","classification":"R6 UI projection lifecycle defect after formal restore."},
-      {"id":34900090571,"number":270,"product_head":"c65b751fe25b1f11ab84eb943cc51826045d6bc5","result":"FAIL","classification":"TEST_CONTRACT_ERROR: Source restore assertion used the archive collection DTO instead of the collection -> document contract."},
-      {"id":34901967413,"number":271,"product_head":"86bc60001665138837288131fe11714871bd3618","result":"FAIL","classification":"TEST_SCOPE_ERROR: marker declared inside first try block, then referenced by the restore try; ReferenceError only."}
+      {"id":34900090571,"number":270,"product_head":"c65b751fe25b1f11ab84eb943cc51826045d6bc5","result":"FAIL","classification":"TEST_CONTRACT_ERROR: Source restore assertion used archive collection DTO instead of collection -> document contract."},
+      {"id":34901967413,"number":271,"product_head":"86bc60001665138837288131fe11714871bd3618","result":"FAIL","classification":"TEST_SCOPE_ERROR: restore marker was block-scoped; ReferenceError only."}
     ]
   },
-  "pending_publication": {
-    "id": "R6-DOCS-SEAL",
-    "parent": "2d5de7e19d4756ecf90babf5101ff0127d7c6d50",
-    "candidate": "d8abc05cffba627295a8921b68457643f6c013dd",
-    "tree": "b60f437771c94d4e8af52e026e4f634aae6905c9",
-    "target": "ux-r2",
-    "force": false,
-    "purpose": "Publish the formal UX-R6 report and official status after exact-head #272 certification; documentation-only checkpoint, not a new certified implementation source.",
-    "allowed_files": [
-      "extension/docs/ux/rounds/UX_R6_REPORT.md",
-      "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md"
-    ]
-  },
+  "pending_publication": null,
   "publication_receipts": [
     {"id":"R6-01","parent":"18c9c2972c05dad1e45f748244f5947d2192e044","commit":"7631b91b166142911fae788d85af486ac0de0f2d","tree":"1f9d5a1a3c5bb3485d44f71fcdec781187f59693","result":"PUBLISHED_AND_READ_BACK","force":false},
     {"id":"R6-02","parent":"7631b91b166142911fae788d85af486ac0de0f2d","commit":"c65b751fe25b1f11ab84eb943cc51826045d6bc5","tree":"85307d66abfe35f1eb471b75157a1e069a811607","result":"PUBLISHED_AND_READ_BACK","force":false},
     {"id":"R6-03","parent":"c65b751fe25b1f11ab84eb943cc51826045d6bc5","commit":"86bc60001665138837288131fe11714871bd3618","tree":"e656ef4013b36b2aa695c36a248ad27d7176633e","result":"PUBLISHED_AND_READ_BACK","force":false},
-    {"id":"R6-04","parent":"86bc60001665138837288131fe11714871bd3618","commit":"2d5de7e19d4756ecf90babf5101ff0127d7c6d50","tree":"ec8aad0d276f3534fb079c0c40d7bab835f87dea","result":"PUBLISHED_AND_READ_BACK","force":false}
+    {"id":"R6-04","parent":"86bc60001665138837288131fe11714871bd3618","commit":"2d5de7e19d4756ecf90babf5101ff0127d7c6d50","tree":"ec8aad0d276f3534fb079c0c40d7bab835f87dea","result":"PUBLISHED_AND_READ_BACK","force":false},
+    {"id":"R6-DOCS-SEAL","parent":"2d5de7e19d4756ecf90babf5101ff0127d7c6d50","commit":"d8abc05cffba627295a8921b68457643f6c013dd","tree":"b60f437771c94d4e8af52e026e4f634aae6905c9","result":"PUBLISHED_AND_READ_BACK","force":false,"changed_files":["extension/docs/ux/rounds/UX_R6_REPORT.md","extension/docs/ux/UX_IMPLEMENTATION_STATUS.md"],"certified_source_remains":"2d5de7e19d4756ecf90babf5101ff0127d7c6d50"}
   ],
-  "next_allowed_slice": "UX-R6_CANONICAL_SEAL",
-  "next_action": "With matching owner and exact product/control refs, non-force fast-forward ux-r2 from 2d5de7e1 to d8abc05c; read back the two-doc diff, seal R6 COMPLETE, then begin final UX-R1 through UX-R6 release regression.",
+  "next_allowed_slice": "FINAL_UX_RELEASE_REGRESSION",
+  "next_action": "Consume exact-head Certification #273 on the sealed R6 docs checkpoint. Confirm it satisfies current final UX-R1 through UX-R6 release-regression authority; repair only real regressions. On full PASS, publish final regression record and release owner.",
   "ux_r5_verified_complete": true,
   "ux_r6_started": true,
-  "ux_r6_verified_complete": false,
-  "final_regression_started": false,
+  "ux_r6_verified_complete": true,
+  "final_regression_started": true,
   "session_closed": false,
   "scheduled_execution_authorized": false
 }
