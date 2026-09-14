@@ -2,7 +2,7 @@ import {element} from './common.js';
 
 const LABELS={blockSummary:'主题速览',currentView:'当前理解',keyInformation:'核心信息',preferences:'偏好与原则',decisions:'重要决定',judgments:'判断',openQuestions:'待解决问题',possibleEvolution:'可能变化'};
 const text=value=>Array.isArray(value)?value.map(item=>item?.text||'').filter(Boolean).join('\n\n'):typeof value==='string'?value:'';
-const button=(label,run)=>{const node=element('button','',label);node.type='button';node.addEventListener('click',()=>void run(node));return node;};
+const button=(label,run)=>{const node=element('button','',label);node.type='button';node.addEventListener('click',()=>void Promise.resolve().then(()=>run(node)).catch(()=>{}));return node;};
 
 export function renderAICandidateComparison(root,{candidate,current,onDecision}){
  root.querySelector('[data-ai-candidate]')?.remove();
