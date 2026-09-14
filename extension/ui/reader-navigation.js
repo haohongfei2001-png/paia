@@ -1,3 +1,5 @@
+import './ux-r6-settings.js';
+
 // A single same-URL history coordinator, shared by roots, Reader and Revisit.
 // Search text and transient filters stay in the owning page's memory.
 const views=new Set(['library','archive','excluded','legacy','thoughts','memory','settings','revisit']);
