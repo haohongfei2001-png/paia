@@ -7,9 +7,9 @@
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 13,
-    "parent_head": "54a1f9fdfaa89472e1b0998da94be54f485b519a",
-    "kind": "execution_claim",
+    "sequence": 14,
+    "parent_head": "c26352745ba204d9c80abf4db343872a221e7507",
+    "kind": "publication_prepare",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
@@ -58,7 +58,18 @@
     "product_start_head": "1b80bbbe925348248ed0ae0699505310593991f0",
     "control_parent_head": "54a1f9fdfaa89472e1b0998da94be54f485b519a"
   },
-  "pending_publication": null,
+  "pending_publication": {
+    "execution": 5,
+    "slice": "ON-01",
+    "owner": "execution-005-20260914T1341Z",
+    "parent_product_head": "1b80bbbe925348248ed0ae0699505310593991f0",
+    "candidate_commit": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
+    "candidate_tree": "f5fcf0e9edb13f5c1e96104e9f910926cc168981",
+    "intended_paths": ["extension/tests/core-experience-round6.test.mjs"],
+    "purpose": "Repair only the malformed literal-regex assertion introduced by the ON-01 controller module split while preserving the existing hidden compatibility binding requirement.",
+    "validation_status": "IMPLEMENTED_PENDING_VALIDATION",
+    "diff_review": "One test-only character-level semantic fix: restore the escaped literal opening parenthesis in the controller-binding regex. Runtime code, permissions, data model, Provider behavior and acceptance criteria are unchanged."
+  },
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
@@ -157,7 +168,7 @@
     "PAIA Certification #260 failed required Unit 4/4, Full Suite and final Certification gate.",
     "ON-01 remains incomplete; repair-before-progress forbids ON-02."
   ],
-  "preflight_requirements": ["Repair only the malformed static compatibility regex, preserve the existing controller binding assertion, then recertify ON-01."],
+  "preflight_requirements": ["Publish only the exact prepared execution-005 candidate if control ownership and product parent are unchanged, then recertify ON-01."],
   "last_run_report": "overnight/runs/004.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
@@ -166,6 +177,6 @@
     {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "product_start_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "product_end_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "result": "WAITING_CI"},
     {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "product_start_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "product_end_head": "1b80bbbe925348248ed0ae0699505310593991f0", "result": "WAITING_CI"}
   ],
-  "next_recommended_action": "Repair only ON-01's malformed compatibility regex, publish with exact-parent fast-forward, then run fresh complete certification. Do not start ON-02 in this execution.",
+  "next_recommended_action": "If refs still match, fast-forward ux-r2 only to prepared candidate 9b4d7b41ef2fa0b711a2e41264bef19511a247e7, seal execution 005 and recertify ON-01.",
   "human_resolution_required": false
 }
