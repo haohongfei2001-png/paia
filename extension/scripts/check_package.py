@@ -154,7 +154,7 @@ def audit_js(path, text):
             scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
         if label == "clipboard access" and path == ROOT / "ui/reading-actions.js":
             scanned = scanned.replace("navigator.clipboard.writeText(text)", "EXPLICIT_READING_COPY(text)")
-        if label == "clipboard access" and path == ROOT / "ui/memory.js":
+        if label == "clipboard access" and path in (ROOT / "ui/memory.js", ROOT / "ui/material-tray.js"):
             scanned = scanned.replace("navigator.clipboard.writeText(result.text)", "EXPLICIT_MEMORY_CONTEXT_COPY(result.text)")
         if label == "keyboard listener" and path in (ROOT / "ui/library.js", ROOT / "ui/library-entry-editor.js"):
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_EDITOR_SHORTCUT(")
@@ -162,10 +162,20 @@ def audit_js(path, text):
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_AI_EDITOR_SHORTCUT(")
         if label == "keyboard listener" and path == ROOT / "ui/search-experience.js":
             scanned = scanned.replace("input.addEventListener('keydown',", "SCOPED_SEARCH_INPUT(").replace("results.addEventListener('keydown',", "SCOPED_SEARCH_RESULTS(")
+        if label == "keyboard listener" and path == ROOT / "ui/universal-search.js":
+            scanned = scanned.replace("input.addEventListener('keydown',", "SCOPED_UNIVERSAL_INPUT(").replace("root.addEventListener('keydown',", "SCOPED_UNIVERSAL_RESULTS(")
         if label == "keyboard listener" and path == ROOT / "ui/archive.js":
             scanned = scanned.replace("document.addEventListener('keydown',", "TRUSTED_ARCHIVE_FIND_ESCAPE(")
+        if label == "keyboard listener" and path == ROOT / "ui/topic-actions.js":
+            scanned = scanned.replace("draft.onkeydown=", "SCOPED_TODAY_THOUGHT_SHORTCUT=")
         if label == "keyboard listener" and path == ROOT / "ui/thoughts.js":
             scanned = scanned.replace("menu.addEventListener('keydown',", "SCOPED_LIBRARY_MENU_ESCAPE(")
+        if label == "keyboard listener" and path == ROOT / "ui/thoughts-base.js":
+            reviewed = "menu.addEventListener('keydown',"
+            exact = "menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;trigger.focus({preventScroll:true});}});"
+            require(text.count(reviewed) == 1 and exact in text,
+                    "ui/thoughts-base.js: reviewed Library menu Escape listener changed or duplicated")
+            scanned = scanned.replace(reviewed, "SCOPED_LIBRARY_MENU_ESCAPE(", 1)
         match = re.search(pattern, scanned, re.I if label == "system keychain" else 0)
         line = text.count("\n", 0, match.start()) + 1 if match else 0
         require(not match, f"{path.relative_to(ROOT)}:{line}: forbidden {label}")

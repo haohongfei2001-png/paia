@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
@@ -23,6 +23,8 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
 
   // Capture -> read: the Archive home should return to the canonical Reader,
   // not a duplicate dashboard document view.
+  // Retain real worker results but delay onboarding UI reads to exercise the stale-root refresh race.
+  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async message=>{const result=await send(message);if(message.type==='GET_ONBOARDING')await new Promise(resolve=>setTimeout(resolve,120));return result;};});
   await recent.click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND49_CORE_LOOP'),'recently captured opens canonical Input Reader');
   let reuse=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.core-loop-reuse');
@@ -32,39 +34,28 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   // make Reader reuse convenient. Default click explains the boundary and keeps
   // the global setting unchanged.
   let memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false);
-  await reuse.click();
-  await eventually(async()=>await p.locator('#memory-panel').isVisible()&&(await p.locator('#memory-status').textContent()).includes('还没有被允许进入 AI Context'),'Reader reuse explains the explicit authorization boundary');
-  memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false,'Reader reuse must not auto-enable unorganized Input eligibility');
-
-  // Once the user has explicitly enabled unorganized Input eligibility, the same
-  // Reader action reaches the existing local Context builder with a bounded query.
-  await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{includeUnorganizedInputs:true}});
-  memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,true);
-  await p.locator('#primary-nav [data-view="library"]').click();
-  await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'return to Archive home after explicit Context setting');
-  await p.locator('#core-loop-continue').click();
-  await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND49_CORE_LOOP'),'Reader reopens after explicit Context setting');
-  reuse=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.core-loop-reuse');await reuse.click();
-  await eventually(async()=>await p.locator('#memory-builder').isVisible(),'Reader reuse reaches the existing local Context builder after explicit eligibility');
-  const prepared=await p.locator('#memory-query').inputValue();
-  assert.match(prepared,/重点参考我以前的这段表达/);assert.match(prepared,/ROUND49_CORE_LOOP/);assert.match(prepared,/继续围绕这段表达/);
+  await reuse.click();await eventually(()=>p.locator('#material-preview').isVisible(),'Reader adds the exact saved Input to the tray');
+  await p.locator('#material-preview').click();await eventually(()=>p.locator('#material-output-text').isVisible(),'Reader selection reaches trusted manual Preview');
+  assert.match(await p.locator('#material-output-text').textContent(),/ROUND49_CORE_LOOP/);
+  memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false,'explicit manual selection grants no future automatic retrieval');
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);
 
   // Return to the Archive home and prove that global retrieval and revisit remain
   // first-class tasks without duplicating Search as another Archive card.
   await p.locator('#primary-nav [data-view="library"]').click();
   await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'return to Archive home');
+  await p.locator('.conversation-document').first().evaluate(el=>{globalThis.__round49StableDocument=el;});const worker=h.context.serviceWorkers()[0];await worker.evaluate(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'CAPTURE'}).catch(()=>{});});await pause(250);assert.equal(await p.locator('.conversation-document').first().evaluate(el=>el===globalThis.__round49StableDocument),true,'same Archive data keeps the same document action node');
   await p.locator('#universal-search-open').click();
-  await eventually(async()=>await p.locator('#universal-search-dialog').evaluate(el=>el.open),'header Search opens Universal Search');
+  await eventually(async()=>await p.locator('#universal-search-dialog').isVisible(),'header Search opens Universal Search');
   assert.match((await p.locator('#universal-search-title').textContent()).trim(),/找回以前的表达|Find an earlier expression/i);
   const box=p.getByRole('searchbox',{name:'全局搜索'});await box.fill('ROUND49_CORE_LOOP');
   await eventually(async()=>await p.locator('#universal-search-dialog .universal-hit').count()>0,'Find returns the captured Input');
-  assert.match((await p.locator('#universal-search-dialog .universal-context').first().textContent()).trim(),/继续使用|Reuse/i);
+  assert.match((await p.locator('#universal-search-dialog .universal-context').first().textContent()).trim(),/已在本次材料中|Already selected/i);
   await p.locator('.universal-close').click();
 
   await p.locator('#core-loop-return').click();
-  await eventually(async()=>await p.locator('#revisit-dialog').evaluate(el=>el.open),'home Return opens existing Revisit service');
-  assert.match(await p.locator('.revisit-intro').textContent(),/第一次打开回访/);
+  await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'home Return opens existing Revisit service');
+  assert.match(await p.locator('.revisit-intro').textContent(),/不表示|does not mark/i);
   await p.locator('.revisit-close').click();
 
   const popup=await h.context.newPage();await popup.goto(`chrome-extension://${h.extensionId}/ui/popup.html`);

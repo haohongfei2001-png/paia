@@ -1,3 +1,4 @@
+import {classifyBinding,applyBinding,REVERSE_ROW,validReverse} from './thought-binding.js';
 import {entrySnapshot,markHuman,prefix,refreshEntryIndex} from './thought-model.js';
 import {journal,nextSequence} from './thought-journal.js';
 import {inputProjection} from './thought-evidence.js';
@@ -9,30 +10,11 @@ const bodyOf=async(t,b)=>{
  return row?.value?.originalText||'';
 };
 const nonContext=dep=>Array.isArray(dep.roles)&&dep.roles.some(role=>role!=='context_only');
-const bodyHuman=row=>row.protections?.body?.locked===true||row.authorship?.body?.everHumanConfirmed===true;
 const liveEntry=row=>row?.storageSchema===2&&['active','invalidated'].includes(row.lifecycle);
 
-async function exactFullSource(t,row,inputId,body,revision){
- const deps=(await t.all('dependencies','byTarget',prefix(['entry',row.id]))).filter(nonContext);
- if(deps.length!==1||deps[0].inputId!==inputId||deps[0].basedOnContentRevision!==revision||!deps[0].selectedFields?.includes('body'))return null;
- const provenance=(await t.all('provenance','byOwner',prefix(['entry',row.id]))).filter(p=>p.role!=='context_only'&&p.contributionType==='exact_excerpt');
- const exact=provenance.filter(p=>p.inputId===inputId&&p.basedOnContentRevision===revision&&p.span?.field==='body'&&p.span.start===0&&p.span.end===body.length);
- return exact.length===1?deps[0]:null;
-}
-
 export async function sharedWorkingProjection(store,t,row){
- if(!liveEntry(row))return null;
- if(row.workingInputId){
-  const p=await inputProjection(store,t,row.workingInputId);if(!p)return null;
-  const deps=(await t.all('dependencies','byTarget',prefix(['entry',row.id]))).filter(nonContext);
-  if(deps.length!==1||deps[0].inputId!==row.workingInputId)return null;
-  return {...p,dep:deps[0],inferred:false};
- }
- if(row.provenanceType!=='input_original'||bodyHuman(row)||row.lifecycle!=='active')return null;
- const deps=(await t.all('dependencies','byTarget',prefix(['entry',row.id]))).filter(nonContext);
- if(deps.length!==1)return null;
- const p=await inputProjection(store,t,deps[0].inputId);if(!p||p.contentRevision!==deps[0].basedOnContentRevision||row.thoughtText!==p.body)return null;
- const dep=await exactFullSource(t,row,p.inputId,p.body,p.contentRevision);return dep?{...p,dep,inferred:true}:null;
+ if(!liveEntry(row))return null;const binding=await classifyBinding(store,t,row);if(binding.bodyBinding!=='input')return null;
+ const p=await inputProjection(store,t,binding.workingInputId);return p?{...p,inferred:!row.workingInputId}:null;
 }
 
 // Keep the user-facing mirror atomic with the canonical Input, but deliberately
@@ -42,8 +24,8 @@ export async function sharedWorkingProjection(store,t,row){
 // explicit authority for this exact 1:1 body.
 async function saveLinkedBody(store,t,row,inputId,body,{operationId,reason='shared_input_edit',markAsHuman=true}={}){
  const before=entrySnapshot(row),changed=row.thoughtText!==body,wasInvalid=row.lifecycle==='invalidated';
- row.workingInputId=inputId;
- if(changed){row.thoughtText=body;row.fieldRevisions.body=(row.fieldRevisions.body||0)+1;row.contentRevision=(row.contentRevision||0)+1;row.revision=(row.revision||0)+1;if(markAsHuman&&operationId)markHuman(row,'body',operationId,store.clock(),reason);row.meaningfulContentAt=store.clock();}
+ row.workingInputId=inputId;row.bodyBinding='input';row.bindingLength=body.length;row.bindingRevision=(await t.get('inputStates',inputId))?.contentRevision;
+ if(changed){if(reason==='shared_entry_edit')row.thoughtEditedAt=store.clock();row.thoughtText=body;row.fieldRevisions.body=(row.fieldRevisions.body||0)+1;row.contentRevision=(row.contentRevision||0)+1;row.revision=(row.revision||0)+1;if(markAsHuman&&operationId)markHuman(row,'body',operationId,store.clock(),reason);row.meaningfulContentAt=store.clock();}
  if(wasInvalid){row.lifecycle='active';row.revision=(row.revision||0)+1;}
  row.freshness='current';row.staleReasons=(row.staleReasons||[]).filter(x=>!['source_updated','input_removed','context_updated','shared_sync_pending'].includes(x));row.integrity='complete';
  // Never leave an old-body dedupe/suppression hash attached to the new body.
@@ -61,24 +43,24 @@ export async function propagateInputWorkingChange(store,t,beforeBlock,afterBlock
  // this Input; synthetic/auxiliary dependencies cannot turn an edit into a
  // synchronous scan of every downstream consumer.
  const evidence=await t.all('provenance','byInputVersion',prefix([inputId])),ownerIds=[...new Set(evidence.filter(p=>p.ownerKind==='entry'&&p.role!=='context_only').map(p=>p.ownerId))];
- for(const ownerId of ownerIds){let row=await t.get('thoughts',ownerId);if(!liveEntry(row))continue;
-  let linked=row.workingInputId===inputId;
-  if(row.workingInputId&&row.workingInputId!==inputId)continue;
-  if(linked){const primary=(await t.all('dependencies','byTarget',prefix(['entry',row.id]))).filter(nonContext);if(primary.length!==1||primary[0].inputId!==inputId){delete row.workingInputId;await t.put('thoughts',row);continue;}}
-  if(!linked&&!bodyHuman(row)&&row.provenanceType==='input_original'&&row.thoughtText===beforeBody)linked=!!await exactFullSource(t,row,inputId,beforeBody,previousRevision);
-  if(!linked)continue;
-  if(!row.workingInputId){row.workingInputId=inputId;await t.put('thoughts',row);}
+ for(const ownerId of ownerIds){let row=await t.get('thoughts',ownerId);if(!liveEntry(row)||row.bodyBinding==='thought')continue;
+  const input=await inputProjection(store,t,inputId);if(!input)continue;
+  const binding=await classifyBinding(store,t,row,{...input,body:beforeBody,contentRevision:previousRevision});
+  applyBinding(row,binding);await t.put('thoughts',row);
+  if(binding.bodyBinding!=='input')continue;
   if(afterBlock.excluded)continue;
   row=await t.get('thoughts',row.id);
-  await saveLinkedBody(store,t,row,inputId,afterBody,{operationId:request.operationId,reason:request.revisionReason==='restore'?'restore':'shared_input_edit',markAsHuman:beforeBody!==afterBody});
+  await saveLinkedBody(store,t,row,inputId,afterBody,{operationId:request.operationId,reason:request.revisionReason==='restore'?'restore':request.revisionReason==='shared_entry_edit'?'shared_entry_edit':'shared_input_edit',markAsHuman:beforeBody!==afterBody});
  }
 }
 
-export async function editSharedBodyFromEntry(store,t,row,newBody,operationId,{reason='shared_input_edit'}={}){
+export async function editSharedBodyFromEntry(store,t,row,newBody,operationId,{reason='shared_input_edit',expectedInputRevision,undoAuthorized=false}={}){
+ const policy=await t.get('meta',REVERSE_ROW);if((!validReverse(policy)||!policy.enabled)&&!undoAuthorized)return null;
  const projection=await sharedWorkingProjection(store,t,row);if(!projection||projection.body===newBody)return projection?{shared:true,inputId:projection.inputId,changed:false}:null;
+ if(projection.contentRevision!==expectedInputRevision)return {conflict:true};
  const saved=await t.get('blocks',projection.inputId);if(!saved)return null;const before=structuredClone(saved.value),after=structuredClone(saved.value);after.libraryText=newBody;after.editedAt=store.clock();after.revision=(after.revision||0)+1;
  const meta=await t.get('inputStates',projection.inputId);if(!meta||meta.removalState!=='active'||meta.sourcePurged)return null;
- await store.afterInputEdit(t,[before],[after],{}, {},{operationId,revisionReason:reason,blocks:[{id:after.id}]});
+ await store.afterInputEdit(t,[before],[after],{}, {},{operationId,revisionReason:'shared_entry_edit',blocks:[{id:after.id}]});
  await t.put('blocks',{id:after.id,value:after});const ix=await t.get('blockIndex',after.id);if(ix){ix.excluded=after.excluded;ix.excludedKey=after.excluded?1:0;ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);}
  return {shared:true,inputId:projection.inputId,changed:true};
 }
@@ -90,5 +72,5 @@ export async function markCreatedSharedWorkingEntry(store,t,entry,candidate,maps
  const p=await inputProjection(store,t,mapped.inputId);if(!p||span.end!==p.body.length||entry.thoughtText!==p.body)return false;
  if(entry.workingInputId&&entry.workingInputId!==p.inputId){delete entry.workingInputId;return false;}
  const deps=(await t.all('dependencies','byTarget',prefix(['entry',entry.id]))).filter(nonContext);if(deps.some(d=>d.inputId!==p.inputId)){delete entry.workingInputId;return false;}
- entry.workingInputId=p.inputId;return true;
+ if(entry.bodyBinding==='thought')return false;for(const ref of await t.all('provenance','byOwner',prefix(['entry',entry.id])))if(ref.inputId===p.inputId&&ref.span?.start===0&&ref.span.end===p.body.length){ref.span.full=true;await t.put('provenance',ref);}applyBinding(entry,{bodyBinding:'input',workingInputId:p.inputId,bindingRevision:p.contentRevision,bindingLength:p.body.length});return true;
 }

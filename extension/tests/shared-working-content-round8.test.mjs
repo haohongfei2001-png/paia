@@ -29,10 +29,10 @@ test('Round 8: a full original Input is safely bound and Input edits update ever
   assert.equal(await sourceText(f.s),f.text);
 });
 
-test('Round 8: direct Thought editing writes the same canonical Input and leaves the immutable Source intact',async()=>{
+test('Round 8: explicit advanced Thought editing writes the same canonical Input and leaves the immutable Source intact',async()=>{
   const f=await organized();
-  const before=await f.s.entry(f.thought.id),changed='合成输入：这是从 Thought Library 直接维护后的同一份正文。';
-  const saved=await f.s.editLibraryFields({operationId:op(),id:before.id,expectedRevision:before.revision,expectedFieldRevisions:before.fieldRevisions,changes:{body:changed}});
+  await f.s.reverseEditSetting(true);const before=await f.s.entry(f.thought.id),changed='合成输入：这是从 Thought Library 直接维护后的同一份正文。';
+  const saved=await f.s.editLibraryFields({operationId:op(),id:before.id,expectedRevision:before.revision,expectedInputRevision:before.currentInputRevision,expectedFieldRevisions:before.fieldRevisions,changes:{body:changed}});
   assert.equal(saved.id,before.id);
   const input=await f.s.input(f.block.id),entry=await f.s.entry(before.id),raw=(await rows(f.s,'thoughts'))[0];
   assert.equal(input.libraryText,changed);

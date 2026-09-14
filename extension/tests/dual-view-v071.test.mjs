@@ -16,7 +16,7 @@ async function seeded(){
 
 test('v071 original and AI views share Topic/Section/provenance but AI read model is naturally empty',async()=>{
  const f=await seeded();const original=await f.s.topicDocumentPage({topicId:f.topic.id,view:'original'}),ai=await f.s.topicDocumentPage({topicId:f.topic.id,view:'ai'});
- assert.equal(original.topic.id,ai.topic.id);assert.deepEqual(original.sections.map(x=>x.sectionId),ai.sections.map(x=>x.sectionId));assert.equal(original.items.length,1);assert.equal(original.items[0].entry.body,'Synthetic explicit working input');assert.equal(original.items[0].entry.originalSource,true);assert.equal(original.items[0].entry.originalInputId,f.input.id);assert.equal(ai.items.length,0);assert.equal(ai.viewState,'not_updated');
+ assert.equal(original.topic.id,ai.topic.id);assert.deepEqual(original.sections.map(x=>x.sectionId),ai.sections.map(x=>x.sectionId));assert.equal(original.items.length,1);assert.equal(original.items[0].entry.body,f.entry.body);assert.equal(original.items[0].entry.originalSource,false);assert.equal(original.items[0].entry.originalInputId,null);assert.equal(ai.items.length,0);assert.equal(ai.viewState,'not_updated');
  const provenance=await f.s.libraryProvenance(f.entry.id);assert.equal(provenance.items[0].inputId,f.input.id);
 });
 

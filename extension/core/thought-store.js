@@ -1,3 +1,4 @@
+import {BINDING_ROW,applyBinding,classifyBinding,thoughtLayout,bindingRead,migrateBindings,reverseSetting,prepareBodyEdit} from './thought-binding.js';
 import {IndexedArchiveStore} from './indexed-store.js';
 import {editSection,checkRestore,restoreOrganization} from './thought-organization.js';
 import {SmartFilterStore} from './smart-filter-store.js';
@@ -15,11 +16,14 @@ import {editSharedBodyFromEntry} from './shared-working-content.js';
 export class LibraryFoundationStore extends SmartFilterStore {
  constructor(local,options={}) {super(local,{...options,thoughtLibrary:true});this.foundationLoaded=false;}
  run(fn) {return super.run(async()=>{if(!this.foundationLoaded&&!this.foundationFailure){try{const marker=await migrateThoughtLibrary(this,{maxBatches:1});this.foundationLoaded=marker.phase==='active';}catch{this.foundationFailure=true;}}return fn();});}
- async finishFoundation(){while(!this.foundationLoaded){await this.run(()=>Promise.resolve());if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}}
+ async finishFoundation(){while(!this.foundationLoaded){await this.run(()=>Promise.resolve());if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}if(!this.bindingsLoaded){await migrateBindings(this);this.bindingsLoaded=true;}}
  async foundationWrite(fn){await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn);}
- async libraryStatus() {await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>({...await t.get('meta','thought-library'),pendingInvalidations:await t.count('invalidations','byPending',prefix([0])),pendingCleanupJobs:await t.count('organizerJobs','byMaintenance',prefix(['purge_cleanup',0]))}),['meta','invalidations','organizerJobs']));}
+ thoughtLayout(layout){return thoughtLayout(this,layout);}
+ reverseEditSetting(enabled){return reverseSetting(this,enabled);}
+ async bindingMigrationStatus(t){const {version,complete,input,thought}=await t.get('meta',BINDING_ROW)||{};return {version,complete,input,thought};}
+ async libraryStatus() {await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>({...await t.get('meta','thought-library'),bindingMigration:await this.bindingMigrationStatus(t),pendingInvalidations:await t.count('invalidations','byPending',prefix([0])),pendingCleanupJobs:await t.count('organizerJobs','byMaintenance',prefix(['purge_cleanup',0]))}),['meta','invalidations','organizerJobs']));}
  async snapshot(){await this.finishFoundation();return super.snapshot();}
- evidenceFor(specs) {return evidenceFor(this,specs);}
+ evidenceFor(specs,options) {return evidenceFor(this,specs,options);}
  invalidate(t,inputId,reason,revision) {return enqueueInvalidation(this,t,inputId,reason,revision);}
  async purge(id,permanent=false){const result=await super.purge(id,permanent);return {...result,libraryCleanup:'pending'};}
  permanentDelete(id){return this.purge(id,true);}
@@ -42,17 +46,17 @@ export class LibraryFoundationStore extends SmartFilterStore {
   const row=await t.get('thoughts',id);if(!row||row.storageSchema!==2||row.lifecycle==='quarantined')fail();
   if(!await this.sourcePresent(t,row.sourceRecordIds)) {
    const safe=structuredClone(row);safe.freshness='stale';safe.staleReasons=['source_purged'];safe.integrity='detached';
-   safe.thoughtText=safe.hasHumanAction&&safe.protections.body.locked?safe.thoughtText:'';
+   safe.thoughtText=safe.provenanceType==='user_created'&&safe.hasHumanAction&&safe.protections.body.locked?safe.thoughtText:'';
    safe.title=safe.hasHumanAction&&safe.protections.title.locked?safe.title:'';
    safe.note=safe.hasHumanAction&&safe.protections.note.locked?safe.note:'';
    if(!safe.hasHumanAction)safe.lifecycle='invalidated';return safe;
   }
-  return row;
+  return applyBinding(structuredClone(row),await classifyBinding(this,t,row));
  }
  async entry(id) {
-  if(!idOK(id))fail();await this.finishFoundation();const row=await this.run(()=>this.repository.transaction(false,t=>this.readableEntry(t,id)));
+  if(!idOK(id))fail();await this.finishFoundation();const row=await this.run(()=>this.repository.transaction(false,async t=>bindingRead(this,t,await this.readableEntry(t,id))));
   if(row.staleReasons?.includes('source_purged'))return entryDTO(row);
-  const state=await dependencyState(this,row);if(!state)fail();return entryDTO(state);
+  const state=await dependencyState(this,row,bindingRead);if(!state)fail();return entryDTO(state);
  }
  async entryPage({cursor=null,limit=50}={}) {
   await this.finishFoundation();
@@ -65,12 +69,12 @@ export class LibraryFoundationStore extends SmartFilterStore {
  async entryProvenance(id) {
   await this.entry(id);return this.run(()=>this.repository.transaction(false,async t=>{const rows=await t.all('provenance','byOwner',prefix(['entry',id])),out=[];for(const row of rows){const m=await t.get('inputStates',row.inputId);if(m?.removalState==='active'&&!m.sourcePurged&&await this.sourcePresent(t,row.sourceRecordIds))out.push({...row,availability:m.contentRevision===row.basedOnContentRevision?'resolvable':'version_unavailable'});}return out;}));
  }
- async createEntry(request) {
+ async createEntry(request,hooks={}) {
   keys(request,['operationId','actor','title','body','note','type','formation','evidence','generator'],['operationId','actor','body','type','formation','evidence']);
   if(!['user','ai'].includes(request.actor))fail();validateFields({body:request.body,title:request.title??'',note:request.note??'',type:request.type,formation:request.formation});
   if(request.actor==='ai'&&request.formation==='inferred')fail();
-  const prior=await this.priorOperation(request);if(prior)return prior;
-  const evidence=await validateEvidence(this,request.evidence),primary=evidence.filter(e=>e.role==='primary'),nonContext=evidence.filter(e=>e.role!=='context_only');
+  const prior=await this.priorOperation(hooks.receiptRequest||request);if(prior)return prior;
+  const evidence=await validateEvidence(this,request.evidence,{independentContext:hooks.independentContext===true}),primary=evidence.filter(e=>e.role==='primary'),nonContext=evidence.filter(e=>e.role!=='context_only');
   if(request.actor==='ai'&&!primary.length||request.formation==='synthesized'&&nonContext.length<2)fail();
   const emptyDigest=await hashText('');if(request.actor==='ai'&&(!request.body.length||nonContext.every(e=>e.selectedFields.every(f=>e.fieldDigests[f]===emptyDigest))))fail();
   const generator=request.actor==='ai'?validateGenerator(request.generator):null;
@@ -78,26 +82,27 @@ export class LibraryFoundationStore extends SmartFilterStore {
   const secret=await this.run(()=>this.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key')).value,['meta']));
   const exactSignature=await keyedHash(secret,['body',request.type,request.body]);
   await this.repository.checkpoint('thought-evidence-validated');
-  return this.operation(request,async t=>{
-   if((await t.get('meta','thought-library')).sealed)fail();await checkEvidenceInTransaction(this,t,evidence);
+  return this.operation(hooks.receiptRequest||request,async t=>{
+   if((await t.get('meta','thought-library')).sealed)fail();await checkEvidenceInTransaction(this,t,evidence);const reused=await hooks.before?.(t,evidence);if(reused)return reused;
    if(request.actor==='ai') {
     const suppressed=new Map();for(const e of nonContext)for(const s of await t.all('thoughtSuppressions','byScope',e.scopeToken))if(s.status==='active')suppressed.set(s.id,s);
     for(const s of await t.all('thoughtSuppressions','byExact',exactSignature))if(s.status==='active')suppressed.set(s.id,s);
     if(suppressed.size){const oldScopes=new Set([...suppressed.values()].flatMap(s=>s.scopeTokens));return {suppressed:true,eligibleFutureCandidate:nonContext.some(e=>!oldScopes.has(e.scopeToken))};}
    }
    const id=this.uuid(),at=this.clock(),sequence=await nextSequence(t),human=request.actor==='user';
-   const row={id,storageSchema:2,...(request.title?.trim()?{title:request.title}:{}),thoughtText:request.body,note:request.note??'',family:FAMILY_BY_TYPE[request.type],type:request.type,formation:request.formation,origin:request.actor,revision:0,contentRevision:0,fieldRevisions:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,0])),organizationRevision:0,dependencyRevision:0,createdAt:at,updatedAt:at,updatedSequence:sequence,createdSequence:sequence,hasHumanAction:human,userEdited:human,protections:protections(request.actor,request.operationId,at),authorship:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,{actor:request.actor,everHumanConfirmed:human,operationId:request.operationId,at}])),organizationIntents:{included:[],excluded:[]},lifecycle:'active',freshness:'current',integrity:evidence.length?'complete':'detached',staleReasons:[],sourceRecordIds:[...new Set(evidence.flatMap(e=>e.sourceRecordIds))],inputRefs:evidence.map(e=>({inputBlockId:e.inputId,basedOnContentRevision:e.basedOnContentRevision})),exactSignature,topics:[],types:['type:'+request.type],provenanceType:evidence.length?'input_derived':'user_created'};
+   const row={id,storageSchema:2,...(request.title?.trim()?{title:request.title}:{}),thoughtText:request.body,note:request.note??'',family:FAMILY_BY_TYPE[request.type],type:request.type,formation:request.formation,origin:request.actor,revision:0,contentRevision:0,fieldRevisions:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,0])),organizationRevision:0,dependencyRevision:0,createdAt:at,updatedAt:at,updatedSequence:sequence,createdSequence:sequence,hasHumanAction:human,userEdited:human,protections:protections(request.actor,request.operationId,at),authorship:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,{actor:request.actor,everHumanConfirmed:human,operationId:request.operationId,at}])),organizationIntents:{included:[],excluded:[]},lifecycle:'active',freshness:'current',integrity:evidence.length?'complete':'detached',staleReasons:[],sourceRecordIds:[...new Set(evidence.flatMap(e=>e.sourceRecordIds))],inputRefs:evidence.map(e=>({inputBlockId:e.inputId,basedOnContentRevision:e.basedOnContentRevision})),exactSignature,topics:[],types:['type:'+request.type],bodyBinding:'thought',provenanceType:nonContext.length?'input_derived':'user_created'};
    refreshEntryIndex(row);await t.put('thoughts',row);
    const generationId=this.uuid();for(const e of evidence) {
     const p={id:this.uuid(),ownerKind:'entry',ownerId:id,generationId,inputId:e.inputId,basedOnContentRevision:e.basedOnContentRevision,actualVersion:{inputRevision:e.basedOnContentRevision,projectionVersion:1,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests},role:e.role,contributionType:e.role==='context_only'?'context':request.formation==='synthesized'?'combination':'paraphrase',formation:request.formation,generatedAt:at,generator,inputAuthorshipAtUse:'working_input',entryFieldAuthorshipAtCommit:request.actor,sourceRecordIds:e.sourceRecordIds,sourceIdentityTokens:e.sourceIdentityTokens,scopeToken:e.scopeToken,versionToken:e.versionToken,availability:'resolvable',contributionKey:JSON.stringify([id,e.inputId,e.basedOnContentRevision,e.role,generationId])};
     await t.put('provenance',p);await t.put('dependencies',{id:JSON.stringify([e.inputId,'entry',id]),inputId:e.inputId,inputList:[e.inputId,id],thoughtId:id,targetKind:'entry',targetId:id,eligibilityEpochAtUse:e.epoch,basedOnContentRevision:e.basedOnContentRevision,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests,validatedAgainstContentRevision:e.basedOnContentRevision,status:'valid',roles:[e.role],sourceRecordIds:e.sourceRecordIds,scopeToken:e.scopeToken,versionToken:e.versionToken});
    }
+   await hooks.after?.(t,row,evidence);await t.put('thoughts',row);
    await journal(this,t,{kind:'library_entry',entityId:id,before:entrySnapshot(row),after:entrySnapshot(row),fieldMask:ENTRY_FIELDS,actor:request.actor,reason:'baseline',important:true,operationId:request.operationId,baseRevision:0,afterRevision:0,sourceRecordIds:row.sourceRecordIds});
-   return {id,revision:0};
+   return {id,revision:row.revision};
   });
  }
  async editEntry(request) {
-  keys(request,['id','operationId','expectedRevision','changes','actor','revisionReason','restoreRevisionId','expectedFieldRevisions'],['id','operationId','expectedRevision','changes']);
+  keys(request,['id','operationId','expectedRevision','changes','actor','revisionReason','restoreRevisionId','expectedFieldRevisions','expectedInputRevision'],['id','operationId','expectedRevision','changes']);
   if(!idOK(request.id)||!revisionOK(request.expectedRevision)||request.actor&&request.actor!=='user')fail();validateFields(request.changes);
   if(request.expectedFieldRevisions!==undefined){keys(request.expectedFieldRevisions,ENTRY_FIELDS);for(const f of Object.keys(request.changes))if(!revisionOK(request.expectedFieldRevisions[f]))fail();}
   const prior=await this.priorOperation(request);if(prior)return prior;
@@ -108,11 +113,12 @@ export class LibraryFoundationStore extends SmartFilterStore {
    let row=await t.get('thoughts',request.id);if(!row||row.storageSchema!==2||row.lifecycle!=='active'||!await this.sourcePresent(t,row.sourceRecordIds))fail();
    if(request.expectedFieldRevisions?Object.keys(request.changes).some(f=>row.fieldRevisions[f]!==request.expectedFieldRevisions[f]):row.revision!==request.expectedRevision)return {conflict:true};
    if(row.thoughtText!==signature.row.thoughtText||row.type!==signature.row.type)return {conflict:true};
-   let sharedBody=false;if(Object.hasOwn(request.changes,'body')&&request.changes.body!==row.thoughtText){const shared=await editSharedBodyFromEntry(this,t,row,request.changes.body,request.operationId,{reason:request.revisionReason==='restore'?'restore':'shared_input_edit'});sharedBody=!!shared?.shared;if(sharedBody)row=await t.get('thoughts',request.id);}
-   const before=entrySnapshot(row),at=this.clock(),fields=[];
+   const originalSnapshot=entrySnapshot(row);let detached=false,sharedBody=false;
+   if(Object.hasOwn(request.changes,'body')&&request.changes.body!==row.thoughtText){const mode=await prepareBodyEdit(this,t,row,request,request.revisionReason);if(mode.conflict)return mode;detached=mode.detached;if(mode.shared){const shared=await editSharedBodyFromEntry(this,t,row,request.changes.body,request.operationId,{expectedInputRevision:request.expectedInputRevision});if(shared?.conflict)return shared;sharedBody=!!shared?.shared;if(sharedBody)row=await t.get('thoughts',request.id);}}
+   const before=originalSnapshot,at=this.clock(),fields=[];
    for(const [f,value]of Object.entries(request.changes)){if(f==='body'&&sharedBody)continue;const key=f==='body'?'thoughtText':f;if(row[key]===value)continue;row[key]=value;row.fieldRevisions[f]++;markHuman(row,f,request.operationId,at);fields.push(f);}
    if(!fields.length)return {id:row.id,revision:row.revision};
-   if(fields.includes('body')||fields.includes('title'))row.contentRevision++;
+   if(fields.includes('body'))row.thoughtEditedAt=at;if(fields.includes('body')||fields.includes('title'))row.contentRevision++;
    row.family=FAMILY_BY_TYPE[row.type];row.types=['type:'+row.type];row.revision++;row.updatedAt=at;row.updatedSequence=await nextSequence(t);row.exactSignature=exactSignature;delete row.exactKey;
    refreshEntryIndex(row);await t.put('thoughts',row);
    await journal(this,t,{kind:'library_entry',entityId:row.id,before,after:entrySnapshot(row),fieldMask:fields,actor:'user',reason:request.revisionReason==='restore'?'restore':'edit',important:request.revisionReason==='restore',operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:row.sourceRecordIds});return {id:row.id,revision:row.revision};
@@ -158,7 +164,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
   if(!idOK(id)||!revisionOK(expectedRevision)||!['before','after'].includes(side))fail();
   const saved=await this.run(()=>this.repository.transaction(false,async t=>{const row=await t.get('revisions',id);if(!row||row.kind!=='library_entry'||!await this.sourcePresent(t,row.sourceRecordIds))fail();return row;}));
   const changes=Object.fromEntries(ENTRY_FIELDS.filter(f=>saved.fieldMask.includes(f)).map(f=>[f,saved[side][f]]));
-  if(!Object.keys(changes).length)fail();return this.editEntry({id:saved.entityId,operationId,expectedRevision,changes,revisionReason:'restore',restoreRevisionId:id});
+  if(!Object.keys(changes).length)fail();const current=await this.entry(saved.entityId);return this.editEntry({id:saved.entityId,operationId,expectedRevision,expectedInputRevision:current.currentInputRevision,changes,revisionReason:'restore',restoreRevisionId:id});
  }
  // Old runtime routes never expose quarantined payloads or bypass the new writer.
  async thought(id) {return this.entry(id);}
@@ -190,7 +196,9 @@ export class LibraryFoundationStore extends SmartFilterStore {
   keys(request,['entryId','topicId','sectionId','rank','operationId','expectedEntryRevision','expectedTopicRevision','expectedPlacementRevision','remove','restoreRevisionId'],['entryId','topicId','operationId','expectedEntryRevision','expectedTopicRevision']);
   if(!idOK(request.entryId)||!idOK(request.topicId)||!revisionOK(request.expectedEntryRevision)||!revisionOK(request.expectedTopicRevision))fail();
   if(request.remove!==undefined&&typeof request.remove!=='boolean')fail();
-  return this.operation(request,async t=>{
+  return this.operation(request,t=>this.placeEntryInTransaction(t,request));
+ }
+ async placeEntryInTransaction(t,request){
    const e=await this.readableEntry(t,request.entryId),topic=await this.canonicalTopic(t,request.topicId);if(e.lifecycle!=='active'||topic.id!==request.topicId)fail();if(e.revision!==request.expectedEntryRevision||topic.organizationRevision!==request.expectedTopicRevision)return {conflict:true};
    const id=JSON.stringify([topic.id,topic.activeLayoutGeneration,e.id]);await checkRestore(this,t,request.restoreRevisionId,'placement',id);const old=await t.get('placements',id);if(old&&old.revision!==request.expectedPlacementRevision&&!(this.libraryDocumentMode&&old.lifecycle==='removed'&&request.expectedPlacementRevision===undefined))return {conflict:true};
    const section=request.sectionId?await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,request.sectionId])):topic.defaultSectionId?await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,topic.defaultSectionId])):await t.edge('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));if(!section||section.lifecycle!=='active'||section.redirectTo)fail();
@@ -199,6 +207,5 @@ export class LibraryFoundationStore extends SmartFilterStore {
    e.organizationIntents??={included:[],excluded:[]};for(const k of ['included','excluded'])e.organizationIntents[k]=e.organizationIntents[k].filter(x=>x!==topic.id);e.organizationIntents[request.remove?'excluded':'included'].push(topic.id);e.organizationRevision++;e.revision++;markHuman(e,'topics',request.operationId,this.clock());markHuman(e,'section',request.operationId,this.clock());markHuman(e,'order',request.operationId,this.clock());e.topics=e.organizationIntents.included;
    topic.organizationRevision++;await t.put('thoughts',e);await t.put('topics',topic);await t.put('placements',row);
    await journal(this,t,{kind:'placement',entityId:id,documentId:topic.id,before:old||null,after:row,fieldMask:['membership','section','order'],actor:'user',reason:request.restoreRevisionId?'restore':request.remove?'remove':'place',important:true,operationId:request.operationId,sourceRecordIds:e.sourceRecordIds});return {id:e.id,revision:e.revision,placementRevision:row.revision,topicRevision:topic.organizationRevision};
-  });
  }
 }

@@ -62,7 +62,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   assert.equal(await p.evaluate(()=>location.hash+location.search),'','Back/Forward keeps the verified archive URL unchanged');
   await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#core-loop-home').isVisible());
 
-  await p.keyboard.press('Control+k');await eventually(()=>p.locator('#universal-search-dialog').evaluate(el=>el.open),'Ctrl/Cmd+K opens global Search');await p.locator('.universal-close').click();
+  await p.keyboard.press('Control+k');await eventually(()=>p.locator('#universal-search-dialog').isVisible(),'Ctrl/Cmd+K opens global Search');await p.locator('.universal-close').click();
   const skip=p.locator('#ux-skip-main');await skip.focus();assert.equal(await skip.isVisible(),true,'skip link is keyboard reachable');
 
   await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'dark',fontSize:'large',readingWidth:'wide',language:'zh-CN'}});
@@ -105,7 +105,7 @@ test('UX-R1 optional history import previews, confirms and reads one real import
   await p.locator('#history-file-consent').check();const chooser=p.waitForEvent('filechooser');await p.locator('#history-choose').click();await(await chooser).setFiles({name:'synthetic-history.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify([syntheticRow(1),syntheticRow(2)]))});
   await eventually(()=>p.locator('#history-commit').isEnabled(),'history is previewed before commit');assert.equal((await h.state()).records.length,0,'preflight must not write Source');
   assert.match(await p.locator('#history-status').textContent(),/检查完成/);await p.locator('#history-commit').click();await eventually(async()=>(await p.locator('#history-status').textContent())==='历史补全完成。','history commit completes');
-  const imported=await h.state();assert.equal(imported.records.length,2);assert.equal(imported.library.blocks.length,2);assert.ok(imported.records.every(row=>row.originalText.includes('Synthetic')));
+  const imported=await h.state();assert.equal(imported.records.length,2);assert.equal(imported.library.blocks.length,2);assert.ok(imported.records.every(row=>row.originalText.includes('Synthetic')));assert.equal((await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count,0,'UX-R2: imported history creates no new-input debt');assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[],'import is not a formal read');
   assert.match(await p.locator('#history-read').textContent(),/读一篇|Read one/i);await p.locator('#history-read').click();
   await eventually(()=>p.locator('#document-panel').isVisible(),'Read one opens the canonical imported Reader directly');const body=(await p.locator('#document-body').textContent()).trim();assert.ok(body.length>0,'imported Reader contains real saved content');
   await assertNoNetwork(h);assert.deepEqual(h.errors,[]);

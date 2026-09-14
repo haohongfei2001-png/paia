@@ -1,3 +1,9 @@
+## UX-R2 Reader / Revisit privacy
+
+Formal reading positions are bounded, body-free, local metadata and are not backed up. Revisit windows are visit boundaries, never read-all assertions. Older material requires explicit opt-in, which is off for upgrades and after restore. Input, source-conversation and topic exclusions apply to active Revisit cards, Continue/Recently Captured recommendations and derived previews; explicit Search and AI authorization remain independently controlled.
+
+Exact source-conversation capture exclusion is enforced by the trusted worker in the capture/enrichment transaction. It preserves already-saved content and applies only to that conversation. Content scripts cannot set policy or reading positions. Source purge invalidates current previews, clears removed reading targets and retains only opaque restriction fences; no old Source/revision body becomes readable again. No new site permission, website storage, provider call or notification channel is added.
+
 ## v0.11.1 reading closure
 
 See [READING_CLOSURE.md](READING_CLOSURE.md) for the reading contract, reproduced root cause and acceptance evidence. No new network or Provider capability.
@@ -337,3 +343,9 @@ From approved `48b3405`: quieter reading chrome only. Entry/Section actions appe
 Foundation data/UI and Organizer mechanics passed final integrated acceptance. Real Organizer intelligence is not connected; production provider registry remains empty. Only synthetic isolated Chrome validation is authorized. Dedicated Foundation artifacts use version 0.7.0, while the source manifest retains the frozen compatibility harness version. Release-structure packaging removes internal diagnostic UI and response diagnostic arming without changing capture, storage, filtering or import semantics. No daily installation or network permission changes. CLOSED / FROZEN requires the final report and all gates.
 
 M5 final: 668/668 tests, 0 failed, 0 skipped. See `outputs/v070-m5-acceptance.md` and the final checkpoint `checkpoint-v0.7.0-thought-library-foundation`. Dedicated internal/release-structure artifacts use `scripts/build_foundation.py`; they are not deployed to the daily installation. Thought Library data/UI foundation complete; Organizer mechanics complete; deterministic/mock full-chain validation complete; real Organizer intelligence NOT yet connected.
+
+## UX-R4 manual reuse and Local-only
+
+Explicit manual selection is a per-tab, short-lived trusted Context path. It can read a selected unorganized Input without granting future retrieval or external access. Deny/never and persistent/ inherited source restrictions remain release fences, including for generated material. Preview edits/redactions stay local and preserve source mapping; export revalidates the exact generation and every dependency. Removal/purge blocks old output and clears its dependent body. Native user copying is not represented as remotely revocable.
+
+Local-only stops active organizing and blocks the actual Provider/Passport paths. It does not block user-directed local copy/file export of allowed explicit materials. Turning it off never resumes work or creates authorization. Existing externalAccess=false stays connection-disabled. No new site/host permission, collection surface, external provider, remote Connector, analytics payload or durable Context body store is added.
