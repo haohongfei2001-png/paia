@@ -144,7 +144,7 @@ export class ThoughtWorkspace {
   const intent=this.openIntent=(this.openIntent||0)+1;if(!await this.leave()||intent!==this.openIntent)return;this.clearActionFeedback();
   if(this.id!==id){this.snapshotRoute=null;this.homeSignature=null;$('topic-body').replaceChildren();$('topic-heading').replaceChildren();this.originalPane=null;this.aiPane=null;this.aiSignature=undefined;this.document=null;this.topic=null;}
   if(this.id!==id)this.view=id?(this.topicViews.get(id)||'original'):'original';this.id=id;this.onOpen();
-  const saved=this.homePositions.get(id||'home'),sameSessionResume=!!id&&!!saved?.cursor&&(!saved.sort||saved.sort===this.readingSort),readPosition=()=>id?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
+  const saved=this.homePositions.get(id||'home'),sameSessionResume=!!id&&!!saved&&(!saved.sort||saved.sort===this.readingSort),readPosition=()=>id?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
   if(!sameSessionResume){this.resumeAnchor=await readPosition();if(intent!==this.openIntent)return;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;
   $('topic-search').value=id?saved?.query||'':'';if(!id&&saved)$('thought-search').value=saved.query;this.cursor=saved?.cursor||null;this.pages=saved?.pages||[];this.history=null;
   await this.refresh();if(intent!==this.openIntent)return;this.onOpen();scrollTo(0,saved?.scroll||0);
@@ -156,7 +156,7 @@ export class ThoughtWorkspace {
  readKey(){return JSON.stringify([this.id,this.view,this.readingSort,this.cursor,this.id?$('topic-search').value.trim():$('thought-search').value.trim()]);}
  readFailure(){clearTimeout(this.refreshTimer);this.readFailed=true;this.readRetry.hidden=false;const retained=this.snapshotKey===this.readKey()&&(this.id?$('topic-body').children.length>0:$('thought-list').children.length>0);if(!retained&&!this.id)$('thought-empty').hidden=true;this.onStatus(libraryReadFailureText(retained),'read_error');}
  queueOptionalStatus(){
-  if(!this.id&&this.view==='original'&&!$('thought-organize-tools')?.open&&!this.aiPending&&!this.originalPending&&!this.boundedPending){$('library-unplaced').parentElement.hidden=!this.homePage?.page.entryCountHint;return;}
+  if(this.view==='original'&&!$('thought-organize-tools')?.open&&!this.aiPending&&!this.originalPending&&!this.boundedPending){if(!this.id)$('library-unplaced').parentElement.hidden=!this.homePage?.page.entryCountHint;return;}
   const epoch=this.statusEpoch,route=this.id,key=this.readKey(),beforeView=this.view,beforeSort=this.readingSort;
   const current=()=>epoch===this.statusEpoch&&route===this.id&&key===this.readKey()&&!this.readFailed&&!$('thought-panel').hidden;
   void this.updateViewStatus({strict:false,isCurrent:current,includeOriginal:!this.id}).then(()=>{
@@ -177,6 +177,7 @@ export class ThoughtWorkspace {
    const read=await this.readRefresh();
    if(read!==true||this.loadToken!==token||epoch!==this.statusEpoch){done();return;}
    this.snapshotKey=this.readKey();this.snapshotRoute=this.id||'home';if(!this.id)this.homeLoaded=true;
+   if(this.id&&this.view==='original'&&!this.pendingView){const toggle=$('ai-presentation-toggle');toggle.checked=false;toggle.disabled=false;}
    for(const id of ['topic-body','topic-heading'])$(id).inert=false;
    highlightReading(this.id?$('topic-body'):null,this.id?$('topic-search').value:'');
    done(host.dataset.state==='empty'?'empty':'ready');this.readRetry.hidden=true;
