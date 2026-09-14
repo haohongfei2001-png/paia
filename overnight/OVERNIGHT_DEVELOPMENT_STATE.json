@@ -2,14 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "VERIFYING_ON01",
+  "status": "READY_ON02",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 19,
-    "parent_head": "14a392bad4a0a661c2065830a9bcca0fe90f0307",
-    "kind": "execution_claim"
+    "sequence": 20,
+    "parent_head": "b5824974cc786f19021b185a57ee6b01f9fb2bca",
+    "kind": "execution_seal"
   },
   "product": {
     "branch": "ux-r2",
@@ -36,24 +36,16 @@
     "scheduler_deliveries_observed": 7,
     "campaign_started_at": "2026-09-14T09:34:40Z",
     "stop_new_work_at": "2026-09-14T17:34:40Z",
+    "remaining_opportunities": 1,
     "stop_starting_implementation_after_minutes": 40,
     "target_handoff_after_minutes": 55
   },
-  "active_execution": {
-    "number": 7,
-    "mode": "VERIFY_ON01",
-    "slice": "ON-01",
-    "token": "execution-007-20260914T1537Z",
-    "started_at": "2026-09-14T15:37:00Z",
-    "lease_expires_at": "2026-09-14T16:47:00Z",
-    "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-    "control_parent_head": "14a392bad4a0a661c2065830a9bcca0fe90f0307"
-  },
+  "active_execution": null,
   "pending_publication": null,
   "inherited_baseline_verified": true,
-  "current_slice": "ON-01",
+  "current_slice": "ON-02",
   "slices": [
-    {"id": "ON-01", "status": "PENDING_CI", "owner_ux_round": "UX-R5"},
+    {"id": "ON-01", "status": "COMPLETE", "owner_ux_round": "UX-R5", "verified_product_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "certification_run": 262},
     {"id": "ON-02", "status": "NOT_STARTED", "owner_ux_round": "UX-R5"},
     {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
     {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
@@ -69,15 +61,29 @@
     "carrier_never_merge": true,
     "base_branch": "overnight/ci-base-20260914",
     "base_expected_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
-    "pending": {
+    "pending": null,
+    "latest_completed": {
       "purpose": "ON-01 execution-006 visual-acceptance repair recertification",
       "product_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
       "product_tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
+      "merge_ref": "b8175d37fc257478d017ef4bae4f878f5638e7b2",
       "run_id": 34859053846,
       "run_number": 262,
       "observed_status": "completed",
       "observed_conclusion": "success",
-      "required_action": "Execution 007 is verifying all mandatory jobs, full-suite receipt, exact diff and regenerated UX-R5 visual evidence before closing ON-01."
+      "mandatory_jobs_success": 10,
+      "full_suite": {"total": 1060, "pass": 1060, "fail": 0, "skipped": 0, "unit": 886, "browser_e2e": 27, "adapter_contract": 95, "privacy_security": 52},
+      "input_digest": "9973165e39df3c4959d1f49a079236ffe6fc6e6b84ab84b9a4c82458878d5b8a",
+      "browser_suite": "27/27 PASS",
+      "package_guard": "8331 guardrails / 191 runtime resources PASS",
+      "development_audit": "PASS",
+      "release": "7903 guardrails / 184 runtime resources / 208 files PASS",
+      "macos_secure_store": "PASS",
+      "aggregate_gate": "PASS",
+      "acceptance_review": "PASS_VISUAL_FIRST_GENERATION_UNBLURRED",
+      "visual_artifact_id": 10355746163,
+      "visual_artifact_zip_sha256": "3f7a2aa802354d0c66ba0d75192235d5f0bdade047f7fa17771585c683ad2f57",
+      "visual_files": ["on01-first-generation.png", "on01-organized-cached.png"]
     },
     "required_jobs": ["Unit 1/4", "Unit 2/4", "Unit 3/4", "Unit 4/4", "Adapter and privacy contracts", "Current Browser Certification", "Full Suite Certification", "macOS Secure Store Certification", "Current release build and guards", "Certification gate"]
   },
@@ -86,11 +92,12 @@
       "commit": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
       "tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
       "parent": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
-      "changed_files": ["extension/ui/thoughts.js", "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs"]
+      "changed_files": ["extension/ui/thoughts.js", "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs"],
+      "acceptance": "Certification #262 all mandatory jobs PASS; first-generation evidence is readable and not in structural recomposition before provider confirmation."
     }
   },
-  "highest_campaign_verified_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
-  "highest_executable_green_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
+  "highest_campaign_verified_product_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+  "highest_executable_green_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
   "final_ux_regression": "NOT_RUN",
   "production_readiness": {
     "public_1_0": "NOT_RELEASED",
@@ -110,9 +117,9 @@
     {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "result": "WAITING_CI"},
     {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "result": "WAITING_CI"},
     {"number": 6, "mode": "REPAIR_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "WAITING_CI"},
-    {"number": 7, "mode": "VERIFY_ON01", "path": "overnight/runs/007.md", "consumes_opportunity": true, "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "product_end_head": null, "result": "IN_PROGRESS"}
+    {"number": 7, "mode": "VERIFY_ON01", "path": "overnight/runs/007.md", "consumes_opportunity": true, "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "ON01_COMPLETE"}
   ],
-  "next_recommended_action": "Execution 007 is verification-only. Close ON-01 only if executable and visual evidence for Certification #262 pass; do not start ON-02 in this execution.",
+  "next_recommended_action": "Execution 008 is the final admitted opportunity. Re-read refs/state/authorities. If still eligible, work only on ON-02 under the UX-R5 contract. Do not skip to UX-R6, Apple or MCP. If ON-02 cannot be fully implemented and certified, leave an exact partial-completion handoff without lowering acceptance criteria.",
   "human_resolution_required": false,
-  "state_compaction_note": "Execution 007 compacted historical detail from the machine state; authoritative prior evidence remains in overnight/runs/001.md through 006.md and GitHub Actions records."
+  "state_compaction_note": "Historical execution detail remains authoritative in overnight/runs/001.md through 007.md and GitHub Actions records."
 }
