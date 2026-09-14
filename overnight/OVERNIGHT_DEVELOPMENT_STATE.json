@@ -1,9 +1,9 @@
 {
   "schema_version": 3,
   "campaign": "paia-ux-r6-20260915-v3",
-  "status": "UX_R6_R601_PUBLISHED_AWAITING_CERTIFICATION",
-  "checkpoint_sequence": 3,
-  "control_parent_head": "6b022beaff3902aad978eb6206c1cebc56fe07a6",
+  "status": "UX_R6_R602_PREPARED_FOR_PUBLICATION",
+  "checkpoint_sequence": 4,
+  "control_parent_head": "033a00ed86b7c3196f5c60cdc4c8ed6421991dae",
   "control_branch": "overnight/control-20260915-v3",
   "predecessor": {
     "campaign": "paia-continuation-20260915-v2",
@@ -25,8 +25,8 @@
     "start_head": "18c9c2972c05dad1e45f748244f5947d2192e044",
     "expected_head": "7631b91b166142911fae788d85af486ac0de0f2d",
     "certified_head": null,
-    "official_status": "UX-R6 READY / NOT STARTED in inherited canonical status; R6-01 implementation is published but not yet certified",
-    "current_state": "UX-R6 / R6-01 PUBLISHED_AWAITING_CERTIFICATION"
+    "official_status": "UX-R6 READY / NOT STARTED in inherited canonical status; R6-01 published but Certification #269 failed one R6 browser lifecycle assertion",
+    "current_state": "UX-R6 / R6-02 PREPARED_FOR_PUBLICATION"
   },
   "authority": {
     "ref": "18c9c2972c05dad1e45f748244f5947d2192e044",
@@ -63,9 +63,33 @@
     "current_run": 34897197286,
     "current_run_number": 269,
     "current_product_head": "7631b91b166142911fae788d85af486ac0de0f2d",
-    "result": "WAITING_CI"
+    "result": "FAIL",
+    "failed_run": {
+      "required_jobs": {
+        "unit_1": "PASS",
+        "unit_2": "PASS",
+        "unit_3": "PASS",
+        "unit_4": "PASS",
+        "adapter_privacy": "PASS",
+        "macos_secure_store": "PASS",
+        "release": "PASS",
+        "browser": "FAIL",
+        "full_suite": "FAIL",
+        "aggregate_certification": "FAIL"
+      },
+      "browser_failure": "The restored Backup already contained hideContentPreviews=true, but the open Settings page did not immediately re-apply paia-hide-content-previews after PAIA_BACKUP_RESTORE. All preceding R1-R5 serial browser cases and R6 data/backup assertions passed.",
+      "classification": "R6 UI projection lifecycle defect after formal restore; domain restore data is correct."
+    }
   },
-  "pending_publication": null,
+  "pending_publication": {
+    "id": "R6-02",
+    "parent": "7631b91b166142911fae788d85af486ac0de0f2d",
+    "candidate_commit": "c65b751fe25b1f11ab84eb943cc51826045d6bc5",
+    "tree": "85307d66abfe35f1eb471b75157a1e069a811607",
+    "changed_files": ["extension/ui/backup.js", "extension/ui/r6-settings.js"],
+    "diff_review": "PASS: exactly one parent, two R6 UI files, +5/-2; no test, timeout, gate, permission, Backup-domain or privacy-boundary weakening",
+    "repair": "After formal Backup restore completes, explicitly refresh the R6 Settings projection so restored preferences immediately update the page class and controls."
+  },
   "publication_receipts": [
     {
       "id": "R6-01",
@@ -92,7 +116,7 @@
   ],
   "last_run_report": null,
   "next_allowed_slice": "UX-R6",
-  "next_action": "Consume Certification #269 exact-head evidence. Repair any real R6 failure before further progress. Only after all required gates, Full Suite receipt, Browser/visual artifact and aggregate certification pass may UX-R6 report/status be published.",
+  "next_action": "Re-read product/control/baseline/PR refs. If unchanged, fast-forward ux-r2 from 7631b91b... to prepared R6-02 c65b751f... without force, read back exact diff, and consume the next PR #28 certification run.",
   "ux_r5_verified_complete": true,
   "ux_r6_started": true,
   "ux_r6_verified_complete": false,
