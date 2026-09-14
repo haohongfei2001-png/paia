@@ -23,3 +23,15 @@ Close all applicable UX-R5 UI-13/UI-14, DELTA-06, MIG-09/10 and G-01 through G-0
 ## Certification and stop
 
 Only complete actual PASS evidence permits official UX_R5_REPORT.md and UX_IMPLEMENTATION_STATUS.md to claim VERIFIED_COMPLETE. Record tested source and reviewed doc-only handoff delta separately; recheck final handoff CI and final product HEAD. Otherwise publish an honest recovery checkpoint with R5 incomplete and exact blockers. V2 records predecessor refs, repair commits, certified source, authority, frozen baseline, PR, evidence and next action. Set next_allowed_slice=UX-R6 only if R5 truly passes, but never start it here. Release owner and stop. No new opportunity count or automation is inferred.
+
+## Precisely registered publication RP-01
+
+- Parent H: `6517763883c95e9a8901e5095db2a7d846da0ef6`.
+- Candidate C: `6bda0643443595874b9f43cf39e4ea0dfcfa1ae2`.
+- Tree T: `21a22861d0228ae0150d485a5cf366620462fc31`.
+- Owner: `recovery-20260915-651776-6c94b7e1`.
+- Target: `ux-r2`, single-parent fast-forward only.
+- Allowed files: `extension/core/organizer/ai-presentation.js`, `extension/tests/ai-product-v080.test.mjs`, `extension/tests/ux-r5-ai-result-contract.test.mjs`.
+- Purpose: post-commit ReferenceError repair and stronger current/candidate/receipt/rollback assertions, with the old automatic-revision test aligned to approved R5 explicit adoption.
+- Certification before publication: NOT_RUN. Product remains uncertified until the complete required gates actually pass.
+- Exact recovery: with matching owner, if HEAD=H publish C after rechecking refs; if HEAD=C verify the single-parent/tree pair and seal State.expected_head=C. Any other HEAD or owner stops writes. Once sealed, the record is historical and cannot authorize unrelated drift.
