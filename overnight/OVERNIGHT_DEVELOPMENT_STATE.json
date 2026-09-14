@@ -2,20 +2,20 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "PREPARED_ON01_REPAIR",
+  "status": "WAITING_CI",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 17,
-    "parent_head": "1563ca9eea7cb2298de0f6011d9b91e0ce50cbf0",
-    "kind": "product_publication_prepare",
+    "sequence": 18,
+    "parent_head": "5fbef19d112e80b7f8d44e3ed53cfed85945dedf",
+    "kind": "execution_seal",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
     "branch": "ux-r2",
-    "expected_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
-    "current_tree": "f5fcf0e9edb13f5c1e96104e9f910926cc168981",
+    "expected_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+    "current_tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
     "last_certified_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
     "last_certified_tree": "fb40053c4ce93ec42d8a7989e95d794fc0c2d34b",
     "main_observed_head": "c1c37f749a80f96ce3b1e5f19efad75679c3142c",
@@ -48,33 +48,12 @@
     "platform_runtime_guarantee": false,
     "automatic_catchup_or_extension": false
   },
-  "active_execution": {
-    "number": 6,
-    "mode": "REPAIR_ON01",
-    "slice": "ON-01",
-    "token": "execution-006-20260914T1442Z",
-    "started_at": "2026-09-14T14:42:08Z",
-    "lease_expires_at": "2026-09-14T15:57:08Z",
-    "product_start_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
-    "control_parent_head": "a40deb4c2d34e69f73931768ce87df77c0b7b485"
-  },
-  "pending_publication": {
-    "kind": "product_commit",
-    "slice": "ON-01",
-    "expected_parent": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
-    "candidate_commit": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-    "candidate_tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
-    "changed_files": [
-      "extension/ui/thoughts.js",
-      "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs"
-    ],
-    "reason": "Certification #261 passed executable gates, but manual review of its first-generation UX-R5 evidence showed the entire Topic content blurred before provider confirmation. This contradicts UI-13/section 9.1/section 5.7: Original must remain readable and structural recomposition belongs only after generated structure exists. Candidate skips recomposition when no cached presentation exists and adds a real-browser assertion for that boundary.",
-    "publication_rule": "Publish only by force=false fast-forward if ux-r2 still equals expected_parent and control ownership remains execution 006. Then verify exact two-file diff and recertify; do not mark ON-01 complete from #261."
-  },
+  "active_execution": null,
+  "pending_publication": null,
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
-    {"id": "ON-01", "status": "REPAIR_PREPARED", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
+    {"id": "ON-01", "status": "PENDING_CI", "owner_ux_round": "UX-R5", "requires": ["INHERITED_BASELINE_VERIFIED"]},
     {"id": "ON-02", "status": "NOT_STARTED", "owner_ux_round": "UX-R5", "requires": ["ON-01"]},
     {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-02", "UX-R5_CERTIFIED"]},
     {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6", "requires": ["ON-03"]},
@@ -102,7 +81,17 @@
     "carrier_never_merge": true,
     "base_branch": "overnight/ci-base-20260914",
     "base_expected_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
-    "pending": null,
+    "pending": {
+      "purpose": "ON-01 execution-006 visual-acceptance repair recertification",
+      "product_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+      "product_tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
+      "run_id": 34859053846,
+      "run_number": 262,
+      "observed_status": "in_progress",
+      "observed_conclusion": null,
+      "observed_partial": ["macOS Secure Store Certification PASS", "Current release build and guards PASS"],
+      "required_action": "Inspect every mandatory job, full-suite receipt, regenerated UX-R5 visual evidence, release result and exact repair diff. The first-generation screenshot must be unblurred. Any failure repairs ON-01 only; only all-green executable and acceptance evidence may complete ON-01."
+    },
     "latest_completed": {
       "purpose": "ON-01 execution-005 test-only repair recertification",
       "product_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
@@ -124,27 +113,22 @@
       "acceptance_review": "FAIL_VISUAL_FIRST_GENERATION_BLUR",
       "visual_artifact_id": 10352671337,
       "visual_artifact_zip_sha256": "2007cde6c7c2dd9e2a102d7b2708df51f0c8fbddc5e7942a6cb5d8de79a56c96",
-      "visual_files": ["on01-first-generation.png", "on01-organized-cached.png"],
-      "review": "The first-generation screenshot is visibly blurred before provider confirmation. Test code captures this screenshot immediately after uncached AI-view entry and before any provider request. Green executable gates therefore do not satisfy ON-01 visual/acceptance criteria."
+      "visual_files": ["on01-first-generation.png", "on01-organized-cached.png"]
     },
     "required_jobs": ["Unit 1/4", "Unit 2/4", "Unit 3/4", "Unit 4/4", "Adapter and privacy contracts", "Current Browser Certification", "Full Suite Certification", "macOS Secure Store Certification", "Current release build and guards", "Certification gate"]
   },
   "repository_evidence": {
-    "execution_005_repair": {
-      "commit": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
-      "tree": "f5fcf0e9edb13f5c1e96104e9f910926cc168981",
-      "changed_files": ["extension/tests/core-experience-round6.test.mjs"],
-      "diff": "1 addition / 1 deletion",
-      "policy": "Test-only literal-regex correction; preserves the hidden compatibility binding requirement and changes no runtime behavior."
-    },
-    "execution_006_visual_review": {
-      "source_run": 261,
-      "finding": "Uncached Original-to-AI switch starts memory recomposition and blurs the Topic before an organized structure exists.",
-      "affected_runtime": "extension/ui/thoughts.js switchView() always called recomposeMemory regardless of cached presentation.",
-      "repair": "Only run recomposeMemory for a valid cached presentation; otherwise apply the view-state update directly. Strengthen browser test to require paia-recomposing=false on first-generation staging."
+    "execution_006_repair": {
+      "commit": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+      "tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
+      "parent": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
+      "changed_files": ["extension/ui/thoughts.js", "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs"],
+      "compare": "single commit; exactly two files; no permission/provider/data/migration/schema changes",
+      "finding_repaired": "Uncached AI-view entry no longer invokes structural recomposition before generated structure exists; real-browser test now asserts paia-recomposing=false during first-generation staging."
     }
   },
   "highest_campaign_verified_product_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b",
+  "highest_executable_green_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
   "final_ux_regression": "NOT_RUN",
   "production_readiness": {
     "public_1_0": "NOT_RELEASED",
@@ -154,18 +138,18 @@
     "apple_codec": "NOT_STARTED",
     "mcp_adapter": "NOT_STARTED"
   },
-  "blocking_reasons": ["ON-01 visual acceptance failed on Certification #261 evidence: first-generation staging is blurred before confirmation. Exact two-file repair candidate is prepared but not yet published/recertified."],
-  "preflight_requirements": ["Execution 006 must publish only the preregistered candidate if refs still match, verify exact diff, then leave ON-01 pending the new certification and regenerated first-generation screenshot."],
+  "blocking_reasons": ["ON-01 cannot be marked complete until PAIA Certification #262 finishes every mandatory current-release gate and regenerated UX-R5 visual evidence proves first-generation staging is no longer blurred/recomposing."],
+  "preflight_requirements": ["Execution 007: verify refs and Draft PR #28, then inspect PAIA Certification #262 jobs/logs/full-suite receipt/artifacts and exact diff. Repair ON-01 if any gate or screenshot fails; otherwise seal ON-01 COMPLETE before considering ON-02."],
   "last_run_report": "overnight/runs/006.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
     {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "result": "INHERITED_BASELINE_VERIFIED"},
-    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "result": "WAITING_CI"},
-    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "result": "WAITING_CI"},
-    {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "result": "WAITING_CI"},
-    {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "result": "WAITING_CI"},
-    {"number": 6, "mode": "REPAIR_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_start_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "product_end_head": null, "result": "PREPARED"}
+    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_end_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "result": "WAITING_CI"},
+    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "product_end_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "result": "WAITING_CI"},
+    {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "product_end_head": "1b80bbbe925348248ed0ae0699505310593991f0", "result": "WAITING_CI"},
+    {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "product_end_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "result": "WAITING_CI"},
+    {"number": 6, "mode": "REPAIR_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_start_head": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7", "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "WAITING_CI"}
   ],
-  "next_recommended_action": "Publish only candidate 19fe4ed19bc686ff715c5604616ea7fad1eed2fa by force=false fast-forward after rechecking refs. Then verify exact two-file diff and leave ON-01 pending fresh CI plus regenerated screenshot inspection; do not enter ON-02.",
+  "next_recommended_action": "Execution 007 must verify Certification #262 and manually inspect regenerated UX-R5 evidence before any progression. If all executable and visual gates pass, close ON-01; otherwise repair ON-01 only. Do not start ON-02 from an unverified or visually failing ON-01.",
   "human_resolution_required": false
 }
