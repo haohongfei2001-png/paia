@@ -2,43 +2,25 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "IN_PROGRESS_ON02",
+  "status": "PREPARED_ON02",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
-  "control_directory": "overnight",
-  "control_checkpoint": {
-    "sequence": 21,
-    "parent_head": "3f6c7fe272c80ea91a46aea664f6aa10f639c86a",
-    "kind": "execution_claim"
-  },
   "product": {
     "branch": "ux-r2",
     "expected_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-    "current_tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
+    "start_head_execution_008": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
     "main_observed_head": "c1c37f749a80f96ce3b1e5f19efad75679c3142c",
     "main_access": "READ_ONLY_NO_MERGE",
-    "merge_base_with_main": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
     "official_ux_status_path": "extension/docs/ux/UX_IMPLEMENTATION_STATUS.md",
     "official_ux_round_observed": "UX-R5",
-    "official_ux_status_observed": "READY / NOT STARTED",
-    "official_ux_completed_observed": ["UX-R1", "UX-R2", "UX-R3", "UX-R4"]
-  },
-  "authority_baseline": {
-    "source_branch": "ux-r2",
-    "agents": {"path": "extension/AGENTS.md", "blob": "858688dbe484a7bb1a782004a7555825313ecd54"},
-    "design_core": {"path": "extension/docs/ux/PAIA_DESIGN_CORE_v1.0.md", "blob": "33ce0e94901fc5d0a0bbc4c41c793bb18c1cc1dd"},
-    "ux_spec": {"path": "extension/docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md", "blob": "806723810289a8b3c16ff02aa4b5b2e6f6f1277e"}
+    "official_ux_status_observed": "READY / NOT STARTED"
   },
   "execution_budget": {
-    "max_scheduled_deliveries": 8,
     "max_admitted_executions": 8,
     "admitted_executions": 8,
-    "scheduler_deliveries_observed": 8,
-    "campaign_started_at": "2026-09-14T09:34:40Z",
-    "stop_new_work_at": "2026-09-14T17:34:40Z",
     "remaining_opportunities": 0,
-    "stop_starting_implementation_after_minutes": 40,
-    "target_handoff_after_minutes": 55
+    "campaign_started_at": "2026-09-14T09:34:40Z",
+    "stop_new_work_at": "2026-09-14T17:34:40Z"
   },
   "active_execution": {
     "number": 8,
@@ -46,90 +28,54 @@
     "slice": "ON-02",
     "token": "execution-008-20260914T1633Z",
     "started_at": "2026-09-14T16:33:23Z",
-    "lease_expires_at": "2026-09-14T17:34:40Z",
-    "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-    "control_parent_head": "3f6c7fe272c80ea91a46aea664f6aa10f639c86a"
+    "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa"
   },
-  "pending_publication": null,
-  "inherited_baseline_verified": true,
+  "pending_publication": {
+    "kind": "product_fast_forward",
+    "slice": "ON-02",
+    "parent_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+    "candidate_commit": "6517763883c95e9a8901e5095db2a7d846da0ef6",
+    "candidate_tree": "6ded7b5ba60fec390048200b54bda8422d2aaba9",
+    "force": false,
+    "changed_files": [
+      "extension/core/backup-service.js",
+      "extension/core/organizer/ai-candidate.js",
+      "extension/core/organizer/ai-presentation.js",
+      "extension/core/organizer/metadata.js",
+      "extension/tests/ux-r5-ai-candidates.test.mjs",
+      "extension/tests/ux-r5-ai-states.test.mjs",
+      "extension/tests/ux-r5-ai-update-chrome-e2e.test.mjs",
+      "extension/ui/action-feedback.js",
+      "extension/ui/ai-candidate.js",
+      "extension/ui/thought-reader.css",
+      "extension/ui/thoughts.js"
+    ],
+    "diff_stats": {"files":11,"additions":220,"deletions":25},
+    "local_validation": "NOT_RUN_NO_CHECKOUT_RUNTIME",
+    "lint": "NOT_CONFIGURED",
+    "required_next_action": "Re-read control/product refs. If unchanged, fast-forward ux-r2 exactly to candidate_commit with force=false, then seal state and inspect PR #28 CI."
+  },
   "current_slice": "ON-02",
   "slices": [
-    {"id": "ON-01", "status": "COMPLETE", "owner_ux_round": "UX-R5", "verified_product_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "certification_run": 262},
-    {"id": "ON-02", "status": "IN_PROGRESS", "owner_ux_round": "UX-R5"},
-    {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
-    {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
-    {"id": "ON-05", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
-    {"id": "ON-06", "status": "NOT_STARTED", "owner_ux_round": "FINAL_UX_REGRESSION"},
-    {"id": "ON-07", "status": "NOT_STARTED", "owner_ux_round": null},
-    {"id": "ON-08", "status": "NOT_STARTED", "owner_ux_round": null}
+    {"id":"ON-01","status":"COMPLETE","verified_product_head":"19fe4ed19bc686ff715c5604616ea7fad1eed2fa","certification_run":262},
+    {"id":"ON-02","status":"PREPARED"},
+    {"id":"ON-03","status":"NOT_STARTED"},
+    {"id":"ON-04","status":"NOT_STARTED"},
+    {"id":"ON-05","status":"NOT_STARTED"},
+    {"id":"ON-06","status":"NOT_STARTED"},
+    {"id":"ON-07","status":"NOT_STARTED"},
+    {"id":"ON-08","status":"NOT_STARTED"}
   ],
   "ci": {
-    "workflow_path": ".github/workflows/paia-certification.yml",
     "carrier_pr": 28,
     "carrier_draft": true,
     "carrier_never_merge": true,
     "base_branch": "overnight/ci-base-20260914",
     "base_expected_head": "ad386c07cff59b9b3472a5aa03626fe89514f8d1",
     "pending": null,
-    "latest_completed": {
-      "purpose": "ON-01 execution-006 visual-acceptance repair recertification",
-      "product_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-      "product_tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
-      "merge_ref": "b8175d37fc257478d017ef4bae4f878f5638e7b2",
-      "run_id": 34859053846,
-      "run_number": 262,
-      "observed_status": "completed",
-      "observed_conclusion": "success",
-      "mandatory_jobs_success": 10,
-      "full_suite": {"total": 1060, "pass": 1060, "fail": 0, "skipped": 0, "unit": 886, "browser_e2e": 27, "adapter_contract": 95, "privacy_security": 52},
-      "input_digest": "9973165e39df3c4959d1f49a079236ffe6fc6e6b84ab84b9a4c82458878d5b8a",
-      "browser_suite": "27/27 PASS",
-      "package_guard": "8331 guardrails / 191 runtime resources PASS",
-      "development_audit": "PASS",
-      "release": "7903 guardrails / 184 runtime resources / 208 files PASS",
-      "macos_secure_store": "PASS",
-      "aggregate_gate": "PASS",
-      "acceptance_review": "PASS_VISUAL_FIRST_GENERATION_UNBLURRED",
-      "visual_artifact_id": 10355746163,
-      "visual_artifact_zip_sha256": "3f7a2aa802354d0c66ba0d75192235d5f0bdade047f7fa17771585c683ad2f57",
-      "visual_files": ["on01-first-generation.png", "on01-organized-cached.png"]
-    },
-    "required_jobs": ["Unit 1/4", "Unit 2/4", "Unit 3/4", "Unit 4/4", "Adapter and privacy contracts", "Current Browser Certification", "Full Suite Certification", "macOS Secure Store Certification", "Current release build and guards", "Certification gate"]
+    "latest_completed_run": 262
   },
-  "repository_evidence": {
-    "execution_006_repair": {
-      "commit": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-      "tree": "e50adbaef0a4b2548ff26875e97449ade1db95f1",
-      "parent": "9b4d7b41ef2fa0b711a2e41264bef19511a247e7",
-      "changed_files": ["extension/ui/thoughts.js", "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs"],
-      "acceptance": "Certification #262 all mandatory jobs PASS; first-generation evidence is readable and not in structural recomposition before provider confirmation."
-    }
-  },
-  "highest_campaign_verified_product_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-  "highest_executable_green_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
-  "final_ux_regression": "NOT_RUN",
-  "production_readiness": {
-    "public_1_0": "NOT_RELEASED",
-    "ios_app": "NOT_ESTABLISHED_BY_THIS_AUDIT",
-    "production_sync": "NOT_IMPLEMENTED_IN_AUDITED_TARGET",
-    "production_mcp": "NOT_IMPLEMENTED_IN_AUDITED_TARGET",
-    "apple_codec": "NOT_STARTED",
-    "mcp_adapter": "NOT_STARTED"
-  },
-  "blocking_reasons": [],
   "last_run_report": "overnight/runs/008.md",
-  "run_index": [
-    {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
-    {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "result": "INHERITED_BASELINE_VERIFIED"},
-    {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "result": "WAITING_CI"},
-    {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "result": "WAITING_CI"},
-    {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "result": "WAITING_CI"},
-    {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "result": "WAITING_CI"},
-    {"number": 6, "mode": "REPAIR_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "WAITING_CI"},
-    {"number": 7, "mode": "VERIFY_ON01", "path": "overnight/runs/007.md", "consumes_opportunity": true, "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "ON01_COMPLETE"},
-    {"number": 8, "mode": "IMPLEMENT_ON02", "path": "overnight/runs/008.md", "consumes_opportunity": true, "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "product_end_head": null, "result": "IN_PROGRESS"}
-  ],
-  "next_recommended_action": "Execution 008 owns the final opportunity and may work only on ON-02. Complete or leave a precise partial handoff; do not start UX-R6, Apple or MCP work.",
-  "human_resolution_required": false,
-  "state_compaction_note": "Historical execution detail remains authoritative in overnight/runs/001.md through 007.md and GitHub Actions records."
+  "next_recommended_action": "Publish only the pre-registered ON-02 candidate if all ownership refs remain exact; otherwise stop. After publication, validate mandatory CI and do not start another slice.",
+  "human_resolution_required": false
 }
