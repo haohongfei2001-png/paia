@@ -2,14 +2,14 @@
   "schema_version": 1,
   "campaign_id": "paia-overnight-20260914-v1",
   "plan_version": "1.0",
-  "status": "READY_ON02",
+  "status": "IN_PROGRESS_ON02",
   "repository": "haohongfei2001-png/paia",
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 20,
-    "parent_head": "b5824974cc786f19021b185a57ee6b01f9fb2bca",
-    "kind": "execution_seal"
+    "sequence": 21,
+    "parent_head": "3f6c7fe272c80ea91a46aea664f6aa10f639c86a",
+    "kind": "execution_claim"
   },
   "product": {
     "branch": "ux-r2",
@@ -32,21 +32,30 @@
   "execution_budget": {
     "max_scheduled_deliveries": 8,
     "max_admitted_executions": 8,
-    "admitted_executions": 7,
-    "scheduler_deliveries_observed": 7,
+    "admitted_executions": 8,
+    "scheduler_deliveries_observed": 8,
     "campaign_started_at": "2026-09-14T09:34:40Z",
     "stop_new_work_at": "2026-09-14T17:34:40Z",
-    "remaining_opportunities": 1,
+    "remaining_opportunities": 0,
     "stop_starting_implementation_after_minutes": 40,
     "target_handoff_after_minutes": 55
   },
-  "active_execution": null,
+  "active_execution": {
+    "number": 8,
+    "mode": "IMPLEMENT_ON02",
+    "slice": "ON-02",
+    "token": "execution-008-20260914T1633Z",
+    "started_at": "2026-09-14T16:33:23Z",
+    "lease_expires_at": "2026-09-14T17:34:40Z",
+    "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa",
+    "control_parent_head": "3f6c7fe272c80ea91a46aea664f6aa10f639c86a"
+  },
   "pending_publication": null,
   "inherited_baseline_verified": true,
   "current_slice": "ON-02",
   "slices": [
     {"id": "ON-01", "status": "COMPLETE", "owner_ux_round": "UX-R5", "verified_product_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "certification_run": 262},
-    {"id": "ON-02", "status": "NOT_STARTED", "owner_ux_round": "UX-R5"},
+    {"id": "ON-02", "status": "IN_PROGRESS", "owner_ux_round": "UX-R5"},
     {"id": "ON-03", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
     {"id": "ON-04", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
     {"id": "ON-05", "status": "NOT_STARTED", "owner_ux_round": "UX-R6"},
@@ -108,7 +117,7 @@
     "mcp_adapter": "NOT_STARTED"
   },
   "blocking_reasons": [],
-  "last_run_report": "overnight/runs/007.md",
+  "last_run_report": "overnight/runs/008.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
     {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "result": "INHERITED_BASELINE_VERIFIED"},
@@ -117,9 +126,10 @@
     {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "result": "WAITING_CI"},
     {"number": 5, "mode": "REPAIR_ON01", "path": "overnight/runs/005.md", "consumes_opportunity": true, "result": "WAITING_CI"},
     {"number": 6, "mode": "REPAIR_ON01", "path": "overnight/runs/006.md", "consumes_opportunity": true, "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "WAITING_CI"},
-    {"number": 7, "mode": "VERIFY_ON01", "path": "overnight/runs/007.md", "consumes_opportunity": true, "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "ON01_COMPLETE"}
+    {"number": 7, "mode": "VERIFY_ON01", "path": "overnight/runs/007.md", "consumes_opportunity": true, "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "product_end_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "result": "ON01_COMPLETE"},
+    {"number": 8, "mode": "IMPLEMENT_ON02", "path": "overnight/runs/008.md", "consumes_opportunity": true, "product_start_head": "19fe4ed19bc686ff715c5604616ea7fad1eed2fa", "product_end_head": null, "result": "IN_PROGRESS"}
   ],
-  "next_recommended_action": "Execution 008 is the final admitted opportunity. Re-read refs/state/authorities. If still eligible, work only on ON-02 under the UX-R5 contract. Do not skip to UX-R6, Apple or MCP. If ON-02 cannot be fully implemented and certified, leave an exact partial-completion handoff without lowering acceptance criteria.",
+  "next_recommended_action": "Execution 008 owns the final opportunity and may work only on ON-02. Complete or leave a precise partial handoff; do not start UX-R6, Apple or MCP work.",
   "human_resolution_required": false,
   "state_compaction_note": "Historical execution detail remains authoritative in overnight/runs/001.md through 007.md and GitHub Actions records."
 }
