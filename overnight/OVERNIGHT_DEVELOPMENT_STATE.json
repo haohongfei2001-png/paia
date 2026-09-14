@@ -7,9 +7,9 @@
   "control_branch": "overnight/control-20260914",
   "control_directory": "overnight",
   "control_checkpoint": {
-    "sequence": 10,
-    "parent_head": "afe390de7dd78ed557a933192bb86775b7f1757a",
-    "kind": "execution_claim",
+    "sequence": 11,
+    "parent_head": "a85b0ab4cfe72761142329c0644514373edb0945",
+    "kind": "publication_prepare",
     "current_head_resolution": "Resolve control branch ref; verify this commit parent and campaign trailer. Do not embed a commit's own SHA in its content."
   },
   "product": {
@@ -58,7 +58,18 @@
     "product_start_head": "ad889dc59ff78d1318515ac56d4d571125997cec",
     "control_parent_head": "afe390de7dd78ed557a933192bb86775b7f1757a"
   },
-  "pending_publication": null,
+  "pending_publication": {
+    "execution": 4,
+    "slice": "ON-01",
+    "owner": "execution-004-20260914T1241Z",
+    "parent_product_head": "ad889dc59ff78d1318515ac56d4d571125997cec",
+    "candidate_commit": "1b80bbbe925348248ed0ae0699505310593991f0",
+    "candidate_tree": "11f2769850d1cc46187bf4de257e2da882d4d509",
+    "intended_paths": ["extension/ui/thoughts.js", "extension/tests/core-experience-round6.test.mjs"],
+    "purpose": "Repair Certification #259 stale controller-location assertion and restore bounded Original-topic opening without weakening timeout or product assertions.",
+    "validation_status": "IMPLEMENTED_PENDING_VALIDATION",
+    "diff_review": "One cheap local view-control synchronization replaces an unnecessary global optional AI-status read on Original-topic open; the existing compatibility assertion now reads both reviewed controller modules. No timeout, skip, permission, provider or migration change."
+  },
   "inherited_baseline_verified": true,
   "current_slice": "ON-01",
   "slices": [
@@ -148,15 +159,15 @@
     "PAIA Certification #259 failed required Unit 4/4, Current Browser, Full Suite and final Certification gate.",
     "ON-01 remains incomplete; repair-before-progress forbids ON-02."
   ],
-  "preflight_requirements": ["Execution 004 owns the campaign. Repair only ON-01 failures from Certification #259; preserve acceptance criteria and rerun certification."],
+  "preflight_requirements": ["Publish only the exact prepared execution-004 candidate if control ownership and product parent are unchanged, then recertify ON-01."],
   "last_run_report": "overnight/runs/004.md",
   "run_index": [
     {"number": 0, "mode": "PLANNING_ONLY", "path": "overnight/runs/000-bootstrap.md", "consumes_opportunity": false},
     {"number": 1, "mode": "PREFLIGHT_VALIDATION", "path": "overnight/runs/001.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "result": "INHERITED_BASELINE_VERIFIED"},
     {"number": 2, "mode": "IMPLEMENT_ON01", "path": "overnight/runs/002.md", "consumes_opportunity": true, "product_start_head": "c8bcecd4c8a49a069e66225c199fc3d49c7b8b1b", "product_end_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "result": "WAITING_CI"},
     {"number": 3, "mode": "REPAIR_ON01", "path": "overnight/runs/003.md", "consumes_opportunity": true, "product_start_head": "825c1644da4effd104ad6d250aa2344b9b4a0ca8", "product_end_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "result": "WAITING_CI"},
-    {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "product_start_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "product_end_head": null, "result": "IN_PROGRESS"}
+    {"number": 4, "mode": "REPAIR_ON01", "path": "overnight/runs/004.md", "consumes_opportunity": true, "product_start_head": "ad889dc59ff78d1318515ac56d4d571125997cec", "product_end_head": null, "result": "PREPARED"}
   ],
-  "next_recommended_action": "Repair only ON-01 Certification #259 failures; do not start ON-02.",
+  "next_recommended_action": "If refs still match, fast-forward ux-r2 only to prepared candidate 1b80bbbe925348248ed0ae0699505310593991f0, seal execution 004 and recertify ON-01.",
   "human_resolution_required": false
 }
