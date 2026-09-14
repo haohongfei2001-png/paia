@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
@@ -44,6 +44,7 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   // first-class tasks without duplicating Search as another Archive card.
   await p.locator('#primary-nav [data-view="library"]').click();
   await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'return to Archive home');
+  await p.locator('.conversation-document').first().evaluate(el=>{globalThis.__round49StableDocument=el;});const worker=h.context.serviceWorkers()[0];await worker.evaluate(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'CAPTURE'}).catch(()=>{});});await pause(250);assert.equal(await p.locator('.conversation-document').first().evaluate(el=>el===globalThis.__round49StableDocument),true,'same Archive data keeps the same document action node');
   await p.locator('#universal-search-open').click();
   await eventually(async()=>await p.locator('#universal-search-dialog').isVisible(),'header Search opens Universal Search');
   assert.match((await p.locator('#universal-search-title').textContent()).trim(),/找回以前的表达|Find an earlier expression/i);
