@@ -156,7 +156,7 @@ export class ThoughtWorkspace {
  readKey(){return JSON.stringify([this.id,this.view,this.readingSort,this.cursor,this.id?$('topic-search').value.trim():$('thought-search').value.trim()]);}
  readFailure(){clearTimeout(this.refreshTimer);this.readFailed=true;this.readRetry.hidden=false;const retained=this.snapshotKey===this.readKey()&&(this.id?$('topic-body').children.length>0:$('thought-list').children.length>0);if(!retained&&!this.id)$('thought-empty').hidden=true;this.onStatus(libraryReadFailureText(retained),'read_error');}
  queueOptionalStatus(){
-  if(!this.id&&this.view==='original'&&!$('thought-organize-tools')?.open&&!this.aiPending&&!this.originalPending&&!this.boundedPending){$('library-unplaced').parentElement.hidden=!this.homePage?.page.entryCountHint;return;}
+  if(this.view==='original'&&!$('thought-organize-tools')?.open&&!this.aiPending&&!this.originalPending&&!this.boundedPending){if(!this.id)$('library-unplaced').parentElement.hidden=!this.homePage?.page.entryCountHint;return;}
   const epoch=this.statusEpoch,route=this.id,key=this.readKey(),beforeView=this.view,beforeSort=this.readingSort;
   const current=()=>epoch===this.statusEpoch&&route===this.id&&key===this.readKey()&&!this.readFailed&&!$('thought-panel').hidden;
   void this.updateViewStatus({strict:false,isCurrent:current,includeOriginal:!this.id}).then(()=>{
