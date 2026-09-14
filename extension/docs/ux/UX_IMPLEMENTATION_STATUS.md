@@ -1,6 +1,6 @@
 # PAIA UX/UI Implementation Status
 
-This file is the single execution-state entry point for the UX/UI redesign. It records what may be executed next; it does not duplicate the design or implementation requirements in the governing specifications.
+This file is the single execution-state entry point for the UX/UI redesign. GitHub is the durable source of truth: a round is not implemented, certified or resumable merely because work existed locally or in an earlier chat.
 
 ## Authority and baseline
 
@@ -11,22 +11,22 @@ This file is the single execution-state entry point for the UX/UI redesign. It r
 - Design Tokens: `extension/docs/ux/PAIA_DESIGN_TOKENS_v1.json`
 - Spec baseline commit: `f98dd94dbe44a6087eb56ecb6a759570a5a0077b`
 - UX bootstrap commit: `fb109f6fcce365b5999031c5d33163c281ec0f31`
-- UX-R1 product implementation merge: `7cb2ca155e95ed712fee8b81809ebfff1bd3a598`
-- UX-R1 final certified code/test head: `07ed0b1352f48098c2030a8625dc1ebc64e656f0`
-- UX-R1 final certification: PAIA Certification **#157**, run id `34742272987`, certified PR merge ref `c42d57ca78329eb57677537b2c3541a2909776e7`
+- Active UX integration branch: **`ux-r2`**
+- `main` is not to be merged into this recovery sequence unless the user explicitly changes that instruction.
 
 ## Current execution state
 
-- Current round: **UX-R4**
-- Status: **IN PROGRESS — UX-R2 and UX-R3 recertified; UX-R4 safety corrections require full certification**
-- Previously checkpointed: **UX-R1, UX-R2, UX-R3, UX-R4**; this is historical evidence, not current recertification.
-- Completed in recovery: **UX-R2, UX-R3**.
-- Known issues under repair: R4 final output/binding races, stale Material Tray repaint/response races, exact output item counts, AI source/Backup fences and safe connection defaults. Prepared R4 corrections remain unverified until their own required gates pass.
-- Next action: **Complete and certify the UX-R4 safety corrections with all eight required commands, then checkpoint them before resuming preserved R5 work. The user authorized UX-R2 → UX-R6 and a final UX-R1 → UX-R6 release regression on 2026-09-14. Keep `ux-r2`; never switch to or merge `main`; stop after UX-R6.**
+- Current round: **UX-R5**
+- Status: **READY / NOT STARTED**
+- Completed in recovery: **UX-R2, UX-R3, UX-R4**
+- UX-R4 Recovery-1 merged to `ux-r2`: `ee7fe62f543b4354206b9e3a46b298bbbce79f46`
+- UX-R4 certified head: `37c0d64683a4dc3ca2bd823e7c46f3c431f252d3`
+- UX-R4 certification: PAIA Certification **#205**, run id `34799718496`, conclusion `success`
+- Next action: **Begin UX-R5 from the current `ux-r2` HEAD, perform its preflight against the governing documents and actual GitHub source, implement only the approved R5 scope, then pass G-01 through G-08 and all eight required commands before marking it COMPLETE.**
 
-Earlier “R6 not authorized” / “do not begin the next round” statements in the historical summaries below describe superseded sessions. They do not limit the renewed authorization above.
+The user renewed authorization on 2026-09-14 to continue UX-R2 → UX-R6 and then run a final UX-R1 → UX-R6 release regression. That authorization permits proceeding to R5 now that R4 is actually complete; it does not permit skipping certification gates or pretending absent GitHub work exists.
 
-A round may be marked `COMPLETE` only after every required round gate, including G-01 through G-08, has actually passed and its report has been committed. Completion of documentation or partial implementation is not sufficient.
+A round may be marked `COMPLETE` only after its implementation is in GitHub, every required gate has passed on the certified source, and its round report is committed.
 
 ## Round reports
 
@@ -35,107 +35,71 @@ A round may be marked `COMPLETE` only after every required round gate, including
 | UX-R1 | COMPLETE | `extension/docs/ux/rounds/UX_R1_REPORT.md` |
 | UX-R2 | COMPLETE — recertified 2026-09-14 | `extension/docs/ux/rounds/UX_R2_REPORT.md` |
 | UX-R3 | COMPLETE — recertified 2026-09-14 | `extension/docs/ux/rounds/UX_R3_REPORT.md` |
-| UX-R4 | CORRECTION IN PROGRESS | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
-| UX-R5 | PAUSED — unfinished work preserved | `extension/docs/ux/rounds/UX_R5_REPORT.md` |
-| UX-R6 | NOT STARTED | `extension/docs/ux/rounds/UX_R6_REPORT.md` |
+| UX-R4 | **COMPLETE — recertified 2026-09-14** | `extension/docs/ux/rounds/UX_R4_REPORT.md` |
+| UX-R5 | **NOT STARTED** | — |
+| UX-R6 | **NOT STARTED** | — |
 
-The report files are created by the implementation Agent only when the corresponding round is actually executed. `rounds/README.md` defines the required report format.
+There is currently no `UX_R5_REPORT.md` and no `UX_R6_REPORT.md` in GitHub. Their reports must be created only when those rounds are actually executed.
 
-## Recovery certification — 2026-09-14
+## Recovery certification — UX-R2
 
-- UX-R2 certified implementation/test commit: `0f5c7308b7b079eaaa75dbbb844a69400fc5760c`; the report/status checkpoint is documentation only.
-- All eight required commands PASS on the same source snapshot: unit **867/867**, browser **22/22**, adapter **95/95**, privacy/security **52/52**, package **8,252 guards / 188 resources**, development audit PASS, unsharded full suite **1,036/1,036**, release **7,824 guards / 181 resources / 205 files**. All test groups have zero failures/skips.
-- Full receipt: `work/recovery-r2/receipt.json`; immutable browser evidence: `work/recovery-r2/browser/`. `fullSuite=true`, `auditPassed=true`, single concurrency, source unchanged across every command.
-- Input digest: `232c8c2f25056d37e033b5bb883a8f1ea7e194538a65f7c1b056c939be561961`; runtime digest: `56fb32c3b92f58f1aeb4e798c4892c642ced0afa46ebfa865685de56ea75fbc3`.
-- Fixed a real superseded-refresh race that lost Reader positions and could show obsolete read errors. Both response orders, true dwell, exact character alignment and late rejection are covered by actual-worker browser tests.
-- UX-R3 certified implementation/test commit: `e0d7fb09cae70e42c6a92c91e0a56d08ccb379da`. Unit **878/878**, browser **23/23**, adapter **95/95**, privacy/security **52/52**, package **8,255 guards / 188 resources**, development audit PASS, unsharded full suite **1,048/1,048**, release **7,827 guards / 181 resources / 205 files**. All eight commands exit 0, source unchanged, zero test failures/skips; `fullSuite=true`, `auditPassed=true`.
-- UX-R3 receipt: `work/recovery-r3/receipt.json`; 128 hashed browser artifacts under `work/recovery-r3/browser/`. Input digest `f65d659aa6e391cb23b28c34ea7473b7da83e207be6b2ece1e0258e80e4a425e`; runtime digest `40b5532fdefcbe8ce4a453166252b6bff19753c1fb13f8d089f558832fd15557`.
-- UX-R3 repairs complete shared body/note history, mixed-batch final revisions/signatures, atomic rejection of incompatible historical rebindings, preservation of independent human notes, and nearby deleted/purged Topic anchors.
-- R4 corrections and unfinished R5 work are preserved separately. Their historical completion summaries below are not renewed certification. No remote CI, deployment, live provider, everyday profile or retention validation is claimed.
+- Certified implementation/test commit: `0f5c7308b7b079eaaa75dbbb844a69400fc5760c`.
+- Required commands: unit **867/867**, browser **22/22**, adapter **95/95**, privacy/security **52/52**, package **8,252 / 188**, development audit PASS, full suite **1,036/1,036**, release **7,824 / 181 / 205**.
+- All reported groups had zero failures/skips.
+- Recovery fixed the superseded Reader refresh race and preserved exact reading-position behavior.
 
-## UX-R1 completion summary
+## Recovery certification — UX-R3
 
-UX-R1 implemented the approved application shell, consent-first local-save onboarding, optional history-import entry, truthful Recently Captured Archive entry, six-group Settings shell, responsive/light-dark/system-language presentation and same-URL root navigation without changing Source/Input/Thought ownership or trusted sender semantics.
+- Certified implementation/test commit: `e0d7fb09cae70e42c6a92c91e0a56d08ccb379da`.
+- Required commands: unit **878/878**, browser **23/23**, adapter **95/95**, privacy/security **52/52**, package **8,255 / 188**, development audit PASS, full suite **1,048/1,048**, release **7,827 / 181 / 205**.
+- All eight commands passed with zero test failures/skips.
+- Recovery closed shared body/note history, final-revision/signature, atomic rebind rejection, independent-note and deleted/purged anchor issues.
 
-Formal completion was closed after the initial product merge because Development Specification §7.3 requires both `npm run test:browser` and unsharded `npm test` as per-round gates. The GitHub source migration had intentionally excluded the previous nested local `.git` object database while some frozen pre-migration browser tests still required those old objects. The final test runner therefore preserves those files as an explicit `historical browser E2E` evidence group and restores a reproducible current-source full suite without deleting the historical tests or claiming they pass.
+## Recovery certification — UX-R4
 
-Final UX-R1 certification #157 proves:
+- Recovery baseline: `c4a373824646e576814c80cc9fe24c46d4507d5a`.
+- Certified head: `37c0d64683a4dc3ca2bd823e7c46f3c431f252d3`.
+- PR: **#23**, certified merge ref `843e34717f78671d13d8bd8ad18e4d011b59ae56`.
+- GitHub Actions: **PAIA Certification #205**, run id `34799718496`, overall `success`.
+- Merged `ux-r2` implementation commit: `ee7fe62f543b4354206b9e3a46b298bbbce79f46`.
+- Required commands: unit **884/884**, browser **23/23**, adapter **95/95**, privacy/security **52/52**, package **8,258 / 188**, development audit PASS, full suite **1,054/1,054**, release **7,830 / 181 / 205**.
+- macOS Secure Store Certification and final aggregate Certification gate also passed.
+- Full-suite receipt: `fullSuite=true`, `auditPassed=true`, zero fail/skipped; input digest `81bcb268380b0502f9fd07b0085106633f8735fafabda5cf3b51d078fcabdb37`.
 
-- all four unit shards PASS;
-- current unsharded `npm test`: **982/982 PASS, 0 fail, 0 skipped**;
-- `npm run test:browser`: **7/7 PASS** for the current real-browser group;
-- adapter contract: **95/95 PASS**;
-- privacy/security: **49/49 PASS**;
-- package guard: **7,726 guardrails across 171 runtime resources PASS**;
-- development privacy/permission/network audit PASS;
-- current release build PASS;
-- macOS Secure Store mandatory gate PASS;
-- final aggregate Certification gate PASS.
+R4 Recovery-1 closed:
 
-The 76 pre-migration historical browser files remain available through `npm run test:historical-browser` / manual workflow dispatch. They are not part of the current GitHub-reproducible completion suite because their frozen environment includes old UI contracts and/or Git objects intentionally absent from the authoritative source snapshot.
+- fail-closed external connection defaults and legacy missing-field migration;
+- manual-local vs external/Grant-bound authorization separation;
+- ContextPackage bind/final-output race and exact emitted item count;
+- AI presentation Backup evidence closure;
+- stale Material Tray response/output repaint paths;
+- Source purge invalidation before success response;
+- Archive/Continue startup race and avoidable duplicate-capture repaint churn;
+- deterministic locale and Passport browser-test preconditions.
 
-## UX-R2 completion summary
+See `rounds/UX_R4_REPORT.md` and `rounds/UX_R4_SECURITY_REPORT.md` for the current evidence and threat-boundary record.
 
-- Final certified implementation/test head: `bc2d2800a7281123e061d75d8e4df9cb2f550481`.
-- Certification: **local, 2026-09-13**, all eight required commands exit 0; no remote CI execution or deployment claimed.
-- Unsharded `npm test`: **998/998 PASS, 0 fail, 0 skipped**, `fullSuite=true`, `auditPassed=true`.
-- Unit: **841/841**; current real browser: **12/12**; adapter contract: **95/95**; privacy/security: **50/50**.
-- Package: **7,854 guardrails / 175 runtime resources PASS**; development audit PASS; release: **7,426 guards / 168 runtime resources / 192 files PASS**.
-- Input digest: `71cf2283808b05f0940fcde1db8d60c38a0d4a3cafe95e932b66872b4dcd00b7`.
-- Runtime digest: `a78dd8d246a6c040db93ea61dd68a942b779b29501bf5bb6e3686460a8ba7a33`.
-- Report: `extension/docs/ux/rounds/UX_R2_REPORT.md`; local logs, full receipt, 29 screenshots and F-LARGE measurements: `extension/work/ux-r2/`.
+## Historical evidence policy
 
-UX-R2 delivers the continuous Input Reader, true device-local reading positions, safe visit windows, explicit old-content opt-in and derived-preview exclusions, exact conversation capture exclusion, Source/working-version comparison, removal/purge compatibility and MIG-02/03/04/10 Backup handling. It preserves Source/Input/Thought ownership, authorization, physical schema and existing mandatory CI. The fixed-source final suite includes regressions for failed saves, concurrent edits, late root refresh, startup navigation, new-content layout and Universal Search return state.
+Earlier local round summaries remain historical evidence only where they disagree with the recovery certifications above. The current recovery records take precedence for execution state.
 
-The final validation uses synthetic isolated headless Chrome and the required 100,000-Input fixture. It is not real-user retention, live-provider or user-sampled-golden certification. The separate 76 historical browser files remain preserved. Existing Backup limits and bounded Revisit discovery are detailed in the report.
-
-At the UX-R2 checkpoint, UX-R3 was **READY but not executed**. The renewed user instruction arrived while UX-R2 was still incomplete, so this pass completed UX-R2 without skipping rounds. No UX-R3 report or implementation was created; the final documentation checkpoint leaves the certified runtime/test digest unchanged.
-
-## UX-R2 initial preflight (historical)
-
-Before UX-R2 implementation, the first read-only preflight confirmed the approved reuse boundary:
-
-- `ui/library.js` `DocumentEditor` already provided IME-aware editing, dirty-buffer retention, Undo/Redo, revision conflict handling and existing Input edit writes;
-- `ui/editor-primitives.js` already provided the 750 ms autosave debounce, 3 s max wait, bounded Undo journal and stable operation IDs;
-- `ui/session-lifecycle.js` already flushed pending trusted-editor changes on page lifecycle events;
-- `core/revisit.js` at that baseline stored a single `revisit:v1` sequence marker and automatically produced old-content resurfacing, so UX-R2 needed to separate visit boundary from reading anchors and add the approved opt-in/exclusion semantics rather than treating the old marker as a reading position;
-- no architecture conflict requiring a new product decision was found before UX-R2.
-
-UX-R2 was completed within the Development Specification boundary: UI-05 / UI-08 / UI-20, the real UI-03 reading anchor, DELTA-02 / DELTA-08, MIG-02 / MIG-03 / MIG-04 / MIG-10, and their required tests. Thought reverse-write semantics, vector retrieval, Revisit model calls, notifications/streaks and rich-text schema replacement remain out of scope.
-
-## UX-R3 completion summary
-
-- Certified implementation/test HEAD: `ff0475edb67b4aa185da7c4daeeec29841e97d95`.
-- All eight required local commands exit 0 on 2026-09-13; unsharded full suite **1,017/1,017 PASS, zero fail/skipped**, `fullSuite=true`, `auditPassed=true`.
-- Unit **855**, real browser **16**, adapter **95**, privacy/security **51**; package **8,055 / 182 resources**; development audit PASS; release **7,627 / 175 resources / 199 files**.
-- Input digest: `cf8eec92525d7af88e72a82de689fc1b5a997dd1b549d774e991dd45f07c0b1f`.
-- Runtime digest: `5086ad92e06443ee84890e4307009456575b3b1723be8309ca2e49af326c871a`.
-- Report: `rounds/UX_R3_REPORT.md`; local evidence: `work/ux-r3/`, including the preserved full receipt, 47 screenshots and real IndexedDB F-LARGE measurements.
-
-UX-R3 completes stable Topic reading, whole/selected Add to Topic, independent unplaced writing, default Thought-only edits, explicit advanced dual edits, transactional Undo and Source/current-Input comparison/restoration. MIG-05/06/10 preserve original text, provenance, deletion priority, prior versions and Backup compatibility. No new body store or permission expansion. Headless synthetic certification is not real-user or live-provider validation; historical browser evidence remains separate. UX-R4 is READY under renewed user authorization; UX-R5 is authorized only after R4 certification. UX-R6 is not authorized in this pass because UX-R5 was not COMPLETE when the latest instruction arrived.
-
-## UX-R4 completion summary
-
-- Certified implementation/test HEAD: `c338f1bff8b569c62240b71cf5c896e0303e7ca0`.
-- All eight required local commands exit 0 on 2026-09-13; unsharded full suite **1,035/1,035 PASS, zero fail/skipped**, `fullSuite=true`, `auditPassed=true`, `testConcurrency=1`.
-- Unit **867**, current real browser **21**, adapter **95**, privacy/security **52**; package **8,252 / 188 runtime resources**; development audit PASS; release **7,824 / 181 runtime resources / 205 files**.
-- Input digest: `3a181819ca8a92d042c9ed44322048e6805b141fe935c6488e385b4d6b4e41ab`.
-- Runtime digest: `741024fb4e6d7040de8a36f453151c46b4d9e06e212a7752bc9b086668e27daf`.
-- Reports: `rounds/UX_R4_REPORT.md`, independent `rounds/UX_R4_SECURITY_REPORT.md`; local evidence `work/ux-r4/` includes final full receipt, 37 screenshots, large-fixture measurements and earlier failed-run diagnostics.
-
-UX-R4 completes scoped/paged Search and Reader return, immutable Source history, fixed material references, local full editable preview, redaction, exact copy/file output and stale/blocked/expired enforcement. DELTA-04/05 and MIG-07/08/10 preserve explicit/inherited restrictions, legacy Grant identity/once-use/revoke, old externalAccess=false and Backup semantics. Local-only blocks real provider dispatch while explicit manual output remains local. No new body store, permissions or provider.
-
-Full Suite uses the repository-supported single-concurrency mode locally and in mandatory CI, after competing large fixtures exceeded the timed import benchmark at concurrency four. All tests and original watchdogs remain. Synthetic headless evidence is not live-provider, user-sampled-golden or real-user retention validation; separate historical evidence is retained. R5 may start under renewed user authorization. R6 is not authorized in this pass because R5 was not COMPLETE when the latest instruction arrived.
+The 76 pre-migration historical browser files remain separately available and are not counted as current-source PASS results. Synthetic headless/browser certification does not establish live-provider success, real-user retention or everyday-profile behavior.
 
 ## Status update protocol
 
-At the start of every round, re-check the real active `ux-r2` HEAD, working tree and repository paths under the current user authorization; do not switch to or merge `main`. If the current architecture materially conflicts with the Design Core or Development Specification, set the current round to `BLOCKED`, record the exact blocker, and stop the affected implementation.
+At the start of each round:
+
+1. inspect the real current `ux-r2` HEAD and governing documents;
+2. verify the round has not already been implemented in GitHub before claiming prior work;
+3. keep scope inside that round and preserve Source/Input/Thought ownership and trust boundaries;
+4. if architecture materially conflicts with the Design Core or Development Specification, mark the round `BLOCKED` with the exact blocker.
 
 After a round actually passes all required gates:
 
-1. create/update its `rounds/UX_RN_REPORT.md` with the evidence required by `rounds/README.md` and Development Specification §9.4;
+1. create/update `rounds/UX_RN_REPORT.md` with the required evidence;
 2. mark that round `COMPLETE` here;
-3. add it to `Completed`;
-4. update the last certified implementation/test head and certification evidence;
-5. advance `Current round` to the next round and set its status to `READY` only if no blocker remains;
-6. never begin the next round automatically without the user's instruction.
+3. record the certified head/run/counts and resulting integration commit;
+4. advance the current round to the next round only after the checkpoint exists in GitHub;
+5. never mark absent local or conversational work as implemented.
+
+After UX-R6 is COMPLETE, run the user-authorized final UX-R1 → UX-R6 release regression before any broader release claim.
