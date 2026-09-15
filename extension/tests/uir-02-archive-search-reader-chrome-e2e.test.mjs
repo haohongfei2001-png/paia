@@ -64,6 +64,15 @@ async function openSearch(page,query){
   return input;
 }
 
+async function navigate(page,detail){
+  await page.evaluate(value=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:value})),detail);
+}
+
+async function readerMenu(page,label,field=page.locator('.library-prose').first()){
+  await field.click({button:'right'});
+  await page.locator('#context-menu button').filter({hasText:label}).click();
+}
+
 async function sourceJourney(page,h){
   await page.setViewportSize({width:1440,height:900});
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});
@@ -107,11 +116,41 @@ async function sourceJourney(page,h){
   assert.doesNotMatch(await page.locator('.universal-open small').first().textContent(),/T\d{2}:\d{2}/,'Search does not expose raw ISO timestamps');
   await shot(page,'uir-02-search-1440x900-light');
 
+  await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:true}});
+  await eventually(async()=>await page.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews')),'preview mask applies');
+  await page.getByRole('button',{name:/按时间看/}).click();
+  await eventually(async()=>await page.locator('.historical-body').count()>0,'historical Search bodies are rendered before presentation masking');
+  assert.equal(await page.locator('.historical-body').first().evaluate(el=>getComputedStyle(el).display),'none','preview mask hides Search historical source bodies');
+  await page.getByRole('button',{name:'全部结果'}).click();
+  await eventually(async()=>(await page.getByRole('button',{name:'全部结果'}).getAttribute('aria-pressed'))==='true'&&await page.locator('.universal-open').count()>0,'Search returns to current results');
+
   await page.locator('.universal-open').first().click();
   await eventually(()=>page.locator('#document-panel').isVisible(),'Search result opens Reader');
+  assert.match(await page.locator('#document-body').textContent(),/UIR02_TARGET/,'explicit Reader full text remains readable while preview mask is enabled');
+  const detailField=page.locator('.library-prose').first();
+  const detailId=await detailField.getAttribute('data-edit-id');
+  assert.ok(detailId,'Reader exposes the existing Input identity for review restoration');
+
+  await readerMenu(page,'查看当时记录',detailField);
+  await eventually(()=>page.locator('#info-dialog').evaluate(el=>el.open),'Source panel opens');
+  assert.equal(await page.locator('#info-dialog h2').textContent(),'查看当时记录','Source mode is named as the immutable record');
+  assert.equal(await page.locator('#info-content [contenteditable]').count(),0,'Source record stays read-only');
+  assert.match(await page.locator('#info-content .source-original').textContent(),/UIR02_TARGET/,'explicit Source full text remains readable while preview mask is enabled');
+  await shot(page,'uir-02-source-1440x900-light');
+  await page.locator('#close-info').click();
+
+  await readerMenu(page,'版本历史',detailField);
+  await eventually(()=>page.locator('#revision-dialog').evaluate(el=>el.open),'Revision panel opens');
+  assert.equal(await page.locator('#revision-dialog h2').textContent(),'版本历史','revision mode remains distinct from Source');
+  assert.match(await page.locator('#revision-dialog > p').textContent(),/恢复会建立新版本/,'revision copy keeps restore-as-new-version semantics');
+  await shot(page,'uir-02-revision-1440x900-light');
+  await page.locator('#close-revisions').click();
+
   await page.locator('#back').click();
   await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'Reader Back restores Search task');
   assert.equal(await query.inputValue(),'UIR02_TARGET','Search query survives Reader return');
+  await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:false}});
+  await eventually(async()=>!(await page.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews'))),'preview mask can be removed without leaving Search');
   await page.locator('.universal-close').click();
   await eventually(()=>page.locator('#collection-panel').isVisible(),'Search close restores Archive');
   assert.equal(await page.locator('#search').inputValue(),'UIR02_TARGET','Reader result query remains the existing Archive filter after Search closes');
@@ -126,8 +165,19 @@ async function sourceJourney(page,h){
   await page.locator('.revisit-close').click();
   await eventually(()=>page.locator('#collection-panel').isVisible(),'Revisit returns to Archive');
 
+  await rpc(page,'EXCLUDE_LIBRARY',{id:detailId,excluded:true});
+  await navigate(page,{view:'excluded'});
+  await eventually(()=>page.locator('#review-navigation').isVisible(),'removed-input review opens');
+  await eventually(()=>page.locator('.conversation-document').isVisible(),'removed document remains reachable for review');
   await page.locator('.conversation-document').first().click();
-  await eventually(()=>page.locator('#document-panel').isVisible(),'Reader reopens for mobile save-failure evidence');
+  const removed=page.locator('.review-actions[data-review-state="removed"]').first();
+  await eventually(()=>removed.isVisible(),'removed Input has an explicit review state');
+  assert.match(await removed.textContent(),/已移除/,'removed state is named at the real recovery action');
+  assert.match(await removed.textContent(),/当时记录不会被改写/,'review copy separates working text recovery from Source');
+  await shot(page,'uir-02-review-removed-1440x900-light');
+  await removed.getByRole('button',{name:'恢复到输入档案'}).click();
+  await eventually(()=>page.locator('#document-panel').isVisible(),'restoring the removed working copy returns to Reader');
+
   await page.setViewportSize({width:390,height:844});
   await page.evaluate(()=>{
     const send=chrome.runtime.sendMessage.bind(chrome.runtime);
@@ -161,8 +211,16 @@ async function releaseJourney(page,h){
   await eventually(()=>page.locator('.conversation-document').isVisible(),'built release Archive is usable');
   await shot(page,'uir-02-current-release-archive-1440x900-light');
   const input=await openSearch(page,'UIR02_TARGET');
+  await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:true}});
+  await eventually(async()=>await page.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews')),'built release preview mask applies');
+  await page.getByRole('button',{name:/按时间看/}).click();
+  await eventually(async()=>await page.locator('.historical-body').count()>0,'built release history results render');
+  assert.equal(await page.locator('.historical-body').first().evaluate(el=>getComputedStyle(el).display),'none','built release masks historical Search bodies');
+  await page.getByRole('button',{name:'全部结果'}).click();
+  await eventually(async()=>(await page.getByRole('button',{name:'全部结果'}).getAttribute('aria-pressed'))==='true'&&await page.locator('.universal-open').count()>0);
   await page.locator('.universal-open').first().click();
   await eventually(()=>page.locator('#document-panel').isVisible(),'built release Search opens Reader');
+  assert.match(await page.locator('#document-body').textContent(),/UIR02_TARGET/,'built release Reader full text is not masked');
   await page.locator('#back').click();
   await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'built release Reader returns to Search');
   assert.equal(await input.inputValue(),'UIR02_TARGET');
