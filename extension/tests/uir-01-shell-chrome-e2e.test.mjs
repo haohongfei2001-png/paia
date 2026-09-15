@@ -19,6 +19,11 @@ async function assertShell(p){
  assert.match(await p.locator('#universal-search-open').textContent(),/搜索档案与思想/);assert.equal(await p.locator('#universal-search-open .ux-search-icon').count(),1);assert.equal(await p.locator('#universal-search-open .ux-search-shortcut').count(),1);
  assert.equal(await p.locator('#uir-archive-main').count(),1);assert.equal(await p.locator('#uir-archive-assist').count(),1);assert.equal(await p.evaluate(()=>location.hash+location.search),'','UI refresh must not invent URL routes');
 }
+async function assertLocaleChrome(p){
+ await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.lang)==='en','English shell applies');
+ assert.deepEqual(await p.locator('#primary-nav .ux-nav-label').allTextContents(),['Archive','Thought Library','For AI']);assert.equal(await p.locator('#primary-nav .ux-nav-icon').count(),3);assert.match(await p.locator('#universal-search-open').textContent(),/Search Archive & Thoughts/);assert.equal(await p.locator('#universal-search-open .ux-search-icon').count(),1);
+ await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.lang)==='zh-CN','Chinese shell restores');await assertShell(p);
+}
 async function screenshotArchiveMatrix(p){
  await mkdir('work/ux-r1',{recursive:true});
  for(const [width,height,theme] of [[1440,900,'light'],[1440,900,'dark'],[1024,768,'light'],[390,844,'light']]){
@@ -33,7 +38,7 @@ async function screenshotArchiveMatrix(p){
 test('UIR-01 shell and Archive frame stay semantic across source and current-release Chrome',{timeout:240000},async()=>{
  let h;
  try{
-  h=await FakeChatGPT.start({onboarding:true});const {p}=await prepareArchive(h);await assertShell(p);await screenshotArchiveMatrix(p);
+  h=await FakeChatGPT.start({onboarding:true});const {p}=await prepareArchive(h);await assertShell(p);await assertLocaleChrome(p);await screenshotArchiveMatrix(p);
   await p.setViewportSize({width:1440,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await p.locator('.sidebar-bottom > [data-view="settings"]').click();await eventually(()=>p.locator('#settings-panel').isVisible(),'Settings opens');assert.equal(await p.locator('h1:visible').count(),1,'Settings has one visible page-level heading');assert.equal((await p.locator('#ux-settings-title').textContent()).trim(),'设置');await mkdir('work/ux-r6',{recursive:true});await p.screenshot({path:'work/ux-r6/uir-01-settings-1440x900-light.png',fullPage:true});
   await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('#core-loop-home').isVisible(),'Settings Back restores Archive root');await p.locator('#universal-search-open').click();await eventually(()=>p.locator('#universal-search-dialog').isVisible(),'existing global Search opens from launcher');assert.equal(await p.locator('#universal-search-title').evaluate(el=>el.tagName),'H1');assert.equal(await p.locator('h1:visible').count(),1,'Search task has one visible page-level heading');const input=p.locator('#universal-search-dialog input[type="search"]');await eventually(async()=>await input.evaluate(el=>document.activeElement===el),'Search input receives focus');await p.locator('.universal-close').click();await eventually(()=>p.locator('#core-loop-home').isVisible(),'closing Search restores Archive');assert.equal(await p.evaluate(()=>location.hash+location.search),'');await assertNoNetwork(h);
  }finally{await h?.close();}
