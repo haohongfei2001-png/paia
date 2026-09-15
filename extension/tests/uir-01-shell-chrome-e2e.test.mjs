@@ -17,6 +17,7 @@ async function assertShell(p){
  assert.equal((await p.locator('#workspace-heading').textContent()).trim(),'档案');
  assert.equal(await p.locator('h1:visible').count(),1,'Archive has one visible page-level heading');
  assert.match(await p.locator('#universal-search-open').textContent(),/搜索档案与思想/);assert.equal(await p.locator('#universal-search-open .ux-search-icon').count(),1);assert.equal(await p.locator('#universal-search-open .ux-search-shortcut').count(),1);
+ assert.equal(await p.locator('#revisit-open').isVisible(),false,'legacy Revisit launcher is hidden when the Archive auxiliary entry is present');assert.equal(await p.locator('#core-loop-return').isVisible(),true,'the canonical Archive Revisit entry remains reachable');
  assert.equal(await p.locator('#uir-archive-main').count(),1);assert.equal(await p.locator('#uir-archive-assist').count(),1);assert.equal(await p.evaluate(()=>location.hash+location.search),'','UI refresh must not invent URL routes');
 }
 async function assertLocaleChrome(p){
