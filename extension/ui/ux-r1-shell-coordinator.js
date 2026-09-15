@@ -15,6 +15,7 @@ let installed=false;
 const observedSurfaces=new WeakSet();
 function zh(){return document.documentElement.lang==='zh-CN';}
 function copy(pair){return pair[zh()?0:1];}
+function installRefreshStyles(){if(document.querySelector('link[data-ui-refresh]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=chrome.runtime.getURL('ui/ui-refresh.css');link.dataset.uiRefresh='true';document.head.append(link);}
 function icon(path,className='ux-nav-icon'){
  const svg=document.createElementNS(SVG_NS,'svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');svg.classList.add(className);
  const shape=document.createElementNS(SVG_NS,'path');shape.setAttribute('d',path);shape.setAttribute('fill','none');shape.setAttribute('stroke','currentColor');shape.setAttribute('stroke-width','1.7');shape.setAttribute('stroke-linecap','round');shape.setAttribute('stroke-linejoin','round');svg.append(shape);return svg;
@@ -76,4 +77,4 @@ function installHistoryReadThrough(){
  const read=$('history-read'),workspace=document.querySelector('.workspace');if(!read||!workspace)return;syncShellLocale();
  read.addEventListener('click',()=>{let sawLoading=workspace.dataset.state==='loading',done=false;const finish=()=>{if(done)return;done=true;observer.disconnect();clearTimeout(timeout);openRecentAfterHistory();};const observer=new MutationObserver(()=>{if(workspace.dataset.state==='loading')sawLoading=true;else if(sawLoading&&workspace.dataset.state==='ready')finish();});observer.observe(workspace,{attributes:true,attributeFilter:['data-state']});const timeout=setTimeout(()=>{observer.disconnect();},10000);},{capture:true});
 }
-export function installUXR1ShellCoordinator(){if(installed)return;installed=true;installConsentPrimaryAction();installHistoryReadThrough();installLocaleSync();}
+export function installUXR1ShellCoordinator(){if(installed)return;installed=true;installRefreshStyles();installConsentPrimaryAction();installHistoryReadThrough();installLocaleSync();}
