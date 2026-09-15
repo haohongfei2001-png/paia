@@ -114,6 +114,9 @@ async function sourceJourney(page,h){
   assert.equal(await query.inputValue(),'UIR02_TARGET','Search query survives Reader return');
   await page.locator('.universal-close').click();
   await eventually(()=>page.locator('#collection-panel').isVisible(),'Search close restores Archive');
+  assert.equal(await page.locator('#search').inputValue(),'UIR02_TARGET','Reader result query remains the existing Archive filter after Search closes');
+  await page.locator('#search').fill('');
+  await eventually(()=>page.locator('#core-loop-home').isVisible(),'clearing the Archive filter restores the Archive home before Revisit');
 
   await page.locator('#revisit-open').click();
   await eventually(()=>page.locator('#revisit-panel').isVisible(),'Revisit task opens');
