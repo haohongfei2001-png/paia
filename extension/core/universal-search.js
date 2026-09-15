@@ -1,3 +1,4 @@
+import {searchMaterialPage} from './search-material-page.js';
 import {ArchiveError} from './constants.js';
 import {normalizeSearch,searchExcerpt} from './search-service.js';
 
@@ -47,6 +48,7 @@ export function contextReuseQuery(item,query=''){
 
 export class UniversalSearchService {
  constructor(store,{aiStatus=()=>store.aiPresentationStatus(),maxPages=12}={}){this.store=store;this.aiStatus=aiStatus;this.maxPages=maxPages;}
+ page(options){return searchMaterialPage(this.store,options);}
  async search({query='',inputLimit=24,thoughtLimit=18,aiLimit=8}={}){
   if(typeof query!=='string'||query.length>300||!query.trim()||![inputLimit,thoughtLimit,aiLimit].every(n=>Number.isInteger(n)&&n>=1&&n<=50))invalid();
   const [input,thought,aiState]=await Promise.all([

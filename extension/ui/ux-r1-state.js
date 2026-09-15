@@ -1,5 +1,5 @@
 export const UX_PREF_VERSION=2;
-export const UX_DEFAULTS=Object.freeze({settingsVersion:UX_PREF_VERSION,appearance:'system',language:'system',fontSize:'standard',readingWidth:'standard',sidebarCollapsed:false});
+export const UX_DEFAULTS=Object.freeze({settingsVersion:UX_PREF_VERSION,appearance:'system',language:'system',fontSize:'standard',readingWidth:'standard',sidebarCollapsed:false,hideContentPreviews:false});
 const ROOTS=new Set(['library','thoughts','memory']);
 const APPEARANCE=new Set(['system','light','dark']);
 const LANGUAGE=new Set(['system','zh-CN','en']);
@@ -13,7 +13,8 @@ export function normalizeUXPreferences(value={}){
   language:LANGUAGE.has(source.language)?source.language:UX_DEFAULTS.language,
   fontSize:FONT_SIZE.has(source.fontSize)?source.fontSize:UX_DEFAULTS.fontSize,
   readingWidth:READING_WIDTH.has(source.readingWidth)?source.readingWidth:UX_DEFAULTS.readingWidth,
-  sidebarCollapsed:typeof source.sidebarCollapsed==='boolean'?source.sidebarCollapsed:UX_DEFAULTS.sidebarCollapsed
+  sidebarCollapsed:typeof source.sidebarCollapsed==='boolean'?source.sidebarCollapsed:UX_DEFAULTS.sidebarCollapsed,
+  hideContentPreviews:typeof source.hideContentPreviews==='boolean'?source.hideContentPreviews:UX_DEFAULTS.hideContentPreviews
  };
 }
 export function resolveLanguage(value,systemLanguage='zh-CN'){

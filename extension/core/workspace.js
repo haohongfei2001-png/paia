@@ -1,6 +1,6 @@
 import {ArchiveError} from './constants.js';
 import {documentBlocks} from './library.js';
-export const defaults=()=>({settingsVersion:2,autoSave:true,permanentSourceIgnore:true,libraryDeleteAlsoDeletesOriginal:false,timeDisplay:'date_and_time',timeEmphasis:'subtle',aiEnabled:false,aiExecutionMode:'suggest_only',appearance:'system',language:'system',fontSize:'standard',readingWidth:'standard',sidebarCollapsed:false});
+export const defaults=()=>({settingsVersion:2,autoSave:true,permanentSourceIgnore:true,libraryDeleteAlsoDeletesOriginal:false,timeDisplay:'date_and_time',timeEmphasis:'subtle',aiEnabled:false,aiExecutionMode:'suggest_only',appearance:'system',language:'system',fontSize:'standard',readingWidth:'standard',sidebarCollapsed:false,hideContentPreviews:false});
 export function syncWorkspace(state){
  state.preferences={...defaults(),...state.preferences,settingsVersion:2,autoSave:true,permanentSourceIgnore:true,libraryDeleteAlsoDeletesOriginal:false,aiEnabled:false,aiExecutionMode:'suggest_only'};
  state.conversations??=[];
@@ -11,7 +11,7 @@ export function validatePreferences(changes){
  const allowed={timeDisplay:['date_only','date_and_time','date_and_seconds'],timeEmphasis:['subtle','standard'],appearance:['system','light','dark'],language:['system','zh-CN','en'],fontSize:['small','standard','large','xlarge'],readingWidth:['narrow','standard','wide']};
  if(!changes||typeof changes!=='object'||Array.isArray(changes)||!Object.keys(changes).length)throw new ArchiveError('INVALID_REQUEST');
  for(const [key,value] of Object.entries(changes)){
-  if(key==='sidebarCollapsed'){if(typeof value!=='boolean')throw new ArchiveError('INVALID_REQUEST');continue;}
+  if(['sidebarCollapsed','hideContentPreviews'].includes(key)){if(typeof value!=='boolean')throw new ArchiveError('INVALID_REQUEST');continue;}
   if(!allowed[key]?.includes(value))throw new ArchiveError('INVALID_REQUEST');
  }
  return changes;
