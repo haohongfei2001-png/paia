@@ -18,7 +18,9 @@ async function consent(page){
   await eventually(async()=>!(await action.isDisabled()),'UIR-02 consent action is available');
   await action.click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-02 consent is durable');
-  if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();
+  await eventually(async()=>await page.locator('#onboarding-skip').isVisible(),'optional history onboarding appears');
+  await page.locator('#onboarding-skip').click();
+  await eventually(async()=>!(await page.locator('#onboarding-history-step').isVisible()),'optional history onboarding is dismissed before Archive evidence');
 }
 
 async function prepare(h,label='UIR02_SOURCE'){
@@ -68,6 +70,7 @@ async function sourceJourney(page,h){
   await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','light theme applies');
 
   assert.equal(await page.locator('h1:visible').count(),1,'Archive has one visible page heading');
+  assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive evidence is not dominated by optional onboarding');
   assert.equal(await page.locator('.conversation-document .summary').first().evaluate(el=>getComputedStyle(el).display),'none','generic Archive subtitle is not presented');
   assert.match(await page.locator('#result-count').evaluate(el=>getComputedStyle(el,'::before').content),/当前范围/,'Archive count is explicitly scoped');
   const archiveOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
@@ -100,6 +103,8 @@ async function sourceJourney(page,h){
   const searchBox=await page.locator('#universal-search-dialog').boundingBox();
   assert.ok(searchBox&&searchBox.width>900,'Search uses the main workspace instead of a narrow modal composition');
   assert.equal(await page.locator('.universal-results').evaluate(el=>getComputedStyle(el).overflowY),'visible','Search results use window flow rather than an internal y-scroll');
+  assert.equal(await page.locator('.universal-modes').evaluate((m,f)=>m.compareDocumentPosition(document.querySelector(f))&Node.DOCUMENT_POSITION_FOLLOWING,'.universal-filters')!==0,true,'Search modes precede optional filters');
+  assert.doesNotMatch(await page.locator('.universal-open small').first().textContent(),/T\d{2}:\d{2}/,'Search does not expose raw ISO timestamps');
   await shot(page,'uir-02-search-1440x900-light');
 
   await page.locator('.universal-open').first().click();
