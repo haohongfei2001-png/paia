@@ -25,9 +25,9 @@ function applyPreferences(){
 }
 function applyLabels(){
  const labels=language()==='zh-CN'?{library:'档案',thoughts:'思想库',memory:'用于 AI',settings:'设置',archive:'来源记录'}:{library:'Archive',thoughts:'Thought Library',memory:'For AI',settings:'Settings',archive:'Source Records'};
- for(const [view,label] of Object.entries(labels))for(const el of document.querySelectorAll(`[data-view="${view}"]`))if(el.closest('#primary-nav,.sidebar-bottom')&&el.textContent!==label)el.textContent=label;
+ for(const [view,label] of Object.entries(labels))for(const el of document.querySelectorAll(`[data-view="${view}"]`))if(el.closest('#primary-nav,.sidebar-bottom')){const chromeLabel=el.querySelector('.ux-nav-label');if(chromeLabel){if(chromeLabel.textContent!==label)chromeLabel.textContent=label;}else if(el.textContent!==label)el.textContent=label;}
  const current=document.querySelector('#primary-nav [aria-current="page"],.sidebar-bottom [aria-current="page"]')?.dataset.view,title=$('view-title');if(title&&current&&labels[current]&&!title.hidden&&title.textContent!==labels[current])title.textContent=labels[current];
- const global=$('universal-search-open'),globalText=copy('搜索','Search');if(global&&global.textContent!==globalText)global.textContent=globalText;
+ const global=$('universal-search-open'),globalLabel=global?.querySelector('.ux-search-label'),globalText=copy('搜索档案与思想…','Search Archive & Thoughts…');if(globalLabel){if(globalLabel.textContent!==globalText)globalLabel.textContent=globalText;}else{const fallback=copy('搜索','Search');if(global&&global.textContent!==fallback)global.textContent=fallback;}
  const settingsTitle=$('ux-settings-title'),settingsText=copy('设置','Settings');if(settingsTitle&&settingsTitle.textContent!==settingsText)settingsTitle.textContent=settingsText;
 }
 async function loadPreferences(){
@@ -85,7 +85,7 @@ function setupSettingsShell(){
 }
 
 function tuneExistingTools(){
- const universal=$('universal-search-open'),dialog=$('universal-search-dialog'),searchText=copy('搜索','Search');if(universal&&universal.textContent!==searchText)universal.textContent=searchText;
+ const universal=$('universal-search-open'),dialog=$('universal-search-dialog'),fallbackText=copy('搜索','Search'),launcherText=copy('搜索档案与思想…','Search Archive & Thoughts…'),launcherLabel=universal?.querySelector('.ux-search-label');if(launcherLabel){if(launcherLabel.textContent!==launcherText)launcherLabel.textContent=launcherText;}else if(universal&&universal.textContent!==fallbackText)universal.textContent=fallbackText;
  if(dialog){
   const title=$('universal-search-title'),help=dialog.querySelector('.universal-search-box p'),titleText=copy('找回以前的表达','Find an earlier expression'),helpText=copy('同时查找你的输入、思想与已有整理。完全本机，不调用 AI。','Search your inputs, thoughts and existing organization locally. No AI call.'),reuseText=copy('继续使用','Reuse'),reuseTitle=copy('把这条作为本地上下文重点，随后由你补充现在要问的问题；不会自动发送。','Use this as local context focus; nothing is sent automatically.');
   if(title&&title.textContent!==titleText)title.textContent=titleText;if(help&&help.textContent!==helpText)help.textContent=helpText;

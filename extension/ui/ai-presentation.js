@@ -1,27 +1,39 @@
-import {request,element} from './common.js';
+import {request,element,statusLabel} from './common.js';
 import {textOf,AutosaveSession,UndoJournal,RevisionSession} from './editor-primitives.js';
 import {LibraryEntryEditor} from './library-entry-editor.js';
 import {boundedLocalRead} from './optional-library-status.js';
 import {evolutionEntryIds,evolutionPlan,evolutionDateLabel,usableEvolutionEntry} from './evolution-model.js';
 import {readingCopyButton} from './reading-actions.js';
 const labels={keyInformation:'已有信息',decisions:'已有决定',preferences:'已有偏好',judgments:'已有判断',openQuestions:'已有问题'};
+const runningStatus={prepared:'正在准备当前主题的材料。',sent:'本次材料已发送给 DeepSeek，正在整理。',response_received:'已收到整理结果，正在核对。',validated:'整理结果已校验，正在保存到本机。'};
+export function aiTopicStatusModel({view='original',hasTopic=false,aiPending=false,statusUnavailable=false,runtime=null,selected=null}={}){
+ if(view!=='ai'||!hasTopic)return null;
+ const readable=selected?.presentation?'当前已保存的整理保持可读。':'原话保持可读。';
+ if(statusUnavailable)return {state:'unavailable',text:'AI 整理状态暂时无法确认。'+readable};
+ if(aiPending){const state=Object.hasOwn(runningStatus,runtime?.state)?runtime.state:'prepared';return {state,text:runningStatus[state]+' '+readable};}
+ if(selected?.candidate)return selected.candidate.stale?{state:'stale',text:'更新候选已过期，当前稿保持不变。请重新更新后再核对。'}:{state:'candidate',text:'新整理已准备好。当前稿尚未被替换；请核对更新候选后再保存。'};
+ if(runtime?.state==='outcome_unknown')return {state:'outcome_unknown',text:'最近一次 AI 整理结果尚未确认。请先检查当前状态；再次发起可能计费，本次不会自动重试。'};
+ if(runtime?.state==='failed')return {state:'failed',text:'最近一次 AI 整理未完成'+(runtime.errorCode?'：'+statusLabel(runtime.errorCode):'')+'。'+readable};
+ if(selected?.presentation&&selected.pending)return {state:'pending',text:'这个主题有新材料。当前已保存的 AI 整理仍可阅读；只有你主动更新时才会再次调用 AI。'};
+ return null;
+}
 export class AIReadingEditor {
  constructor(root,presentation,onEvidence,onStatus){
   this.root=root;this.row=structuredClone(presentation);this.onStatus=onStatus;this.pending=null;this.failed=false;this.disposed=false;this.nodes=new Map();this.controller=new AbortController();this.autosave=new AutosaveSession(()=>void this.flush(),{delay:650,maxWait:3000});this.journal=new UndoJournal();this.revisions=new RevisionSession();this.draft={};this.excerptEditors=[];this.excerptHosts=new Map();this.evidenceEpoch=0;this.evidenceRows=new Map();
   const overview=element('section','ai-reading-section ai-overview');overview.append(element('h2','','当前理解'));
-  this.field('blockSummary',this.row.blockSummary,overview,'总体脉络','ai-summary');
+  this.field('blockSummary',this.row.blockSummary,overview,'主题速览','ai-summary');
   this.field('currentView',this.row.currentView,overview,'当前理解','entry-prose');
   if(!this.row.currentView?.trim()&&!this.row.blockSummary?.trim())overview.append(element('p','evolution-note','尚没有已保存的概括。下方保留本次可读取的表达。'));
   root.append(overview);
-  const evolution=element('div','ai-evolution'),main=element('div','ai-evolution-main'),header=element('header');header.append(element('h2','','思考演化'));
-  this.coverage=element('p','evolution-note',this.row.possibleEvolution?.length?'按本次整理的脉络展开；正文保留你的表达。':'当前整理尚未形成演化脉络。先按表达时间阅读，不推断你的观点已经改变。');header.append(this.coverage);main.append(header);
+  const evolution=element('div','ai-evolution'),main=element('div','ai-evolution-main'),header=element('header');header.append(element('h2','','思考线索'));
+  this.coverage=element('p','evolution-note',this.row.possibleEvolution?.length?'按已保存整理中的线索展开；下方原话只来自已有证据，不把线索当作固定阶段。':'当前整理没有保存思考线索；下面按表达时间阅读原话，不推断观点已经改变。');header.append(this.coverage);main.append(header);
   this.stages=element('div','evolution-stages');main.append(this.stages);
-  this.rail=element('nav','evolution-rail');this.rail.setAttribute('aria-label','思考演化位置');this.rail.hidden=true;evolution.append(main,this.rail);root.append(evolution);
+  this.rail=element('nav','evolution-rail');this.rail.setAttribute('aria-label','思考线索位置');this.rail.hidden=true;evolution.append(main,this.rail);root.append(evolution);
   this.evolutionNodes=[];
   for(const [index,item]of (this.row.possibleEvolution||[]).entries()){
-   const stage=this.stageShell('stage-'+index,index+1);
-   const prose=this.fieldNode('possibleEvolution',item.text,stage,'演化说明 '+(index+1),'evolution-frame');this.evolutionNodes.push(prose);
-   const host=element('div','evolution-excerpts');host.append(element('p','evolution-unavailable','正在读取这段表达…'));stage.append(host);this.excerptHosts.set('stage-'+index,host);this.stages.append(stage);
+   const stage=this.stageShell('stage-'+index,index+1,'线索');
+   const prose=this.fieldNode('possibleEvolution',item.text,stage,'思考线索 '+(index+1),'evolution-frame');this.evolutionNodes.push(prose);
+   const host=element('div','evolution-excerpts');host.append(element('p','evolution-unavailable','正在读取相关原话…'));stage.append(host);this.excerptHosts.set('stage-'+index,host);this.stages.append(stage);
   }
   if(this.evolutionNodes.length){this.nodes.set('possibleEvolution',this.evolutionNodes);this.draft.possibleEvolution=this.values('possibleEvolution');}
   // Preserve older authored fields without presenting them as invented evolution stages.
@@ -40,7 +52,7 @@ export class AIReadingEditor {
   prose.addEventListener('blur',()=>{if(!this.composing)void this.flush();},options);host.append(prose);return prose;
  }
  field(field,text,host,label,className){if(!text?.trim())return;const prose=this.fieldNode(field,text,host,label,className);this.nodes.set(field,[prose]);this.draft[field]=this.values(field);}
- stageShell(key,index){const stage=element('section','ai-reading-section evolution-stage');stage.dataset.stageKey=key;stage.id='evolution-'+key;stage.append(element('h2','','第 '+String(index).padStart(2,'0')+' 段'),element('p','evolution-date',''));return stage;}
+ stageShell(key,index,kind='线索'){const stage=element('section','ai-reading-section evolution-stage');stage.dataset.stageKey=key;stage.dataset.readingKind=kind==='原话'?'original':'line';stage.id='evolution-'+key;stage.append(element('h2','',kind+' '+String(index).padStart(2,'0')),element('p','evolution-date',''));return stage;}
  async refreshEvidence(){
   const epoch=++this.evidenceEpoch,ids=evolutionEntryIds(this.row),rows=[],unavailable=[];
   for(let offset=0;offset<ids.length;offset+=8){
@@ -63,12 +75,12 @@ export class AIReadingEditor {
   if(!plan.inferred)this.stages.replaceChildren();
   for(const [i,stage]of plan.stages.entries()){
    let shell=[...this.stages.children].find(n=>n.dataset.stageKey===stage.key);
-   if(!shell){shell=this.stageShell(stage.key,i+1);const host=element('div','evolution-excerpts');shell.append(host);this.excerptHosts.set(stage.key,host);this.stages.append(shell);}
+   if(!shell){shell=this.stageShell(stage.key,i+1,plan.inferred?'线索':'原话');const host=element('div','evolution-excerpts');shell.append(host);this.excerptHosts.set(stage.key,host);this.stages.append(shell);}
    shell.querySelector('.evolution-date').textContent=evolutionDateLabel(stage.dates);
    this.mountExcerpts(this.excerptHosts.get(stage.key),stage.items);
   }
-  if(plan.remaining.length){const more=element('details','ai-legacy');more.dataset.remainder='true';more.append(element('summary','','尚未归入这条脉络的表达'));const host=element('div','evolution-excerpts');more.append(host);this.root.append(more);this.mountExcerpts(host,plan.remaining);}
-  if(!plan.stages.length)this.stages.append(element('p','ai-evolution-empty','尚没有可读取的演化内容。可以关闭 AI 整理，继续阅读思想库。'));
+  if(plan.remaining.length){const more=element('details','ai-legacy');more.dataset.remainder='true';more.append(element('summary','','其他相关原话'));const host=element('div','evolution-excerpts');more.append(host);this.root.append(more);this.mountExcerpts(host,plan.remaining);}
+  if(!plan.stages.length)this.stages.append(element('p','ai-evolution-empty','尚没有可读取的线索或原话。可以关闭 AI 整理，继续阅读思想库。'));
   if(unavailable.length){const note=element('p','evolution-unavailable','部分表达暂时无法读取，不以概括代替缺失的正文。');const retry=element('button','','重试读取');retry.type='button';retry.addEventListener('click',()=>{if(!this.dirty()){this.evidenceMounted=false;this.excerptEditors.forEach(e=>e.dispose());this.excerptEditors=[];this.stages.querySelectorAll('.evolution-unavailable').forEach(n=>n.remove());this.root.querySelectorAll('[data-remainder]').forEach(n=>n.remove());void this.refreshEvidence();}else this.onStatus('先保存当前修改，再重试读取。','error');},{signal:this.controller.signal});note.append(retry);this.stages.append(note);}
   if(new Set(this.row.evidenceEntryIds).size>ids.length)this.coverage.textContent+=' 本页读取范围有限，完整内容仍在思想库中；不表示其余内容已被整理完。';
   this.evidenceMounted=true;this.installRail();
@@ -81,15 +93,15 @@ export class AIReadingEditor {
    item.append(readingCopyButton(async()=>{const editor=this.excerptEditors.find(e=>e.entries.has(row.id));if(editor){editor.collect();if(!await editor.flush())throw Error('UNSAVED');}const latest=await request('GET_LIBRARY_ENTRY',{id:row.id});if(!usableEvolutionEntry(latest))throw Error('UNAVAILABLE');return latest.body;},this.onStatus));host.append(item);
   }
   if(rows.length)this.excerptEditors.push(new LibraryEntryEditor(host,rows,this.onStatus));
-  else host.append(element('p','evolution-unavailable','这段脉络没有可独立展开的表达，或表达已出现在前段。'));
+  else host.append(element('p','evolution-unavailable','这里没有可独立展开的原话，或原话已在前面的线索中出现。'));
  }
  installRail(){
-  this.observer?.disconnect();this.rail.replaceChildren();const stages=[...this.stages.querySelectorAll('.evolution-stage')];this.rail.hidden=stages.length<2;if(stages.length<2)return;
-  const label=element('strong','','沿着思路阅读'),range=element('input');range.type='range';range.min='1';range.max=String(stages.length);range.step='1';range.value='1';range.setAttribute('aria-label','拖动定位思考阶段');this.rail.append(label,range);
-  const go=(i,smooth=true)=>{stages[i]?.scrollIntoView({block:'start',behavior:smooth&&!matchMedia('(prefers-reduced-motion: reduce)').matches?'smooth':'instant'});range.value=String(i+1);range.setAttribute('aria-valuetext','第 '+(i+1)+' 段，共 '+stages.length+' 段');};
+  this.observer?.disconnect();this.rail.replaceChildren();const stages=[...this.stages.querySelectorAll('.evolution-stage')],savedLines=(this.row.possibleEvolution||[]).length;this.rail.hidden=stages.length<2||savedLines<2;if(this.rail.hidden)return;
+  const label=element('strong','','定位线索'),range=element('input');range.type='range';range.min='1';range.max=String(stages.length);range.step='1';range.value='1';range.setAttribute('aria-label','拖动定位思考线索');this.rail.append(label,range);
+  const go=(i,smooth=true)=>{stages[i]?.scrollIntoView({block:'start',behavior:smooth&&!matchMedia('(prefers-reduced-motion: reduce)').matches?'smooth':'instant'});range.value=String(i+1);range.setAttribute('aria-valuetext','线索 '+(i+1)+'，共 '+stages.length+' 条');};
   range.addEventListener('input',()=>go(Number(range.value)-1,false),{signal:this.controller.signal});
-  stages.forEach((stage,i)=>{const button=element('button','','第 '+String(i+1).padStart(2,'0')+' 段');button.type='button';button.addEventListener('click',()=>go(i),{signal:this.controller.signal});this.rail.append(button);});
-  if(typeof IntersectionObserver==='function'){this.observer=new IntersectionObserver(records=>{for(const record of records)if(record.isIntersecting){const index=stages.indexOf(record.target);range.value=String(index+1);range.setAttribute('aria-valuetext','第 '+(index+1)+' 段，共 '+stages.length+' 段');this.rail.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-current',String(i===index)));}},{rootMargin:'-12% 0px -65% 0px'});stages.forEach(stage=>this.observer.observe(stage));}
+  stages.forEach((stage,i)=>{const button=element('button','','线索 '+String(i+1).padStart(2,'0'));button.type='button';button.addEventListener('click',()=>go(i),{signal:this.controller.signal});this.rail.append(button);});
+  if(typeof IntersectionObserver==='function'){this.observer=new IntersectionObserver(records=>{for(const record of records)if(record.isIntersecting){const index=stages.indexOf(record.target);range.value=String(index+1);range.setAttribute('aria-valuetext','线索 '+(index+1)+'，共 '+stages.length+' 条');this.rail.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-current',String(i===index)));}},{rootMargin:'-12% 0px -65% 0px'});stages.forEach(stage=>this.observer.observe(stage));}
  }
  collect(){if(this.composing||this.disposed)return;this.excerptEditors.forEach(e=>e.collect());const changes=[];for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)!==JSON.stringify(this.draft[field]))changes.push({field,before:this.draft[field],after:value});}if(changes.length){this.journal.record(changes);for(const c of changes)this.draft[c.field]=structuredClone(c.after);}}
  async history(redo=false){if(this.composing)return;this.collect();const from=redo?this.journal.redo:this.journal.undo,to=redo?this.journal.undo:this.journal.redo;if(!from.length)return;const changes=from.pop();to.push(changes);for(const c of changes){const value=structuredClone(redo?c.after:c.before);this.draft[c.field]=value;this.nodes.get(c.field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i].text:value);}this.failed=false;await this.flush();}

@@ -2,16 +2,19 @@
 .r6-data-exit h3{margin:0 0 8px;font-size:15px}.r6-export-actions{display:flex;gap:8px;flex-wrap:wrap}.r6-export-actions button{min-height:40px}
 html.paia-hide-content-previews .topic-index-row .summary,
 html.paia-hide-content-previews .universal-open p,
+html.paia-hide-content-previews .universal-results .historical-body,
 html.paia-hide-content-previews .revisit-card-open p{display:none!important}
 html.paia-hide-content-previews #thought-list .topic-index-row:not([data-topic-id]){font-size:0}
 html.paia-hide-content-previews #thought-list .topic-index-row:not([data-topic-id]) small{font-size:11px}
 html.paia-hide-content-previews #thought-list .topic-index-row:not([data-topic-id])::before,
 html.paia-hide-content-previews .topic-index-row[data-topic-id]::after,
 html.paia-hide-content-previews .universal-open::after,
+html.paia-hide-content-previews .historical-comparison::after,
 html.paia-hide-content-previews .revisit-card-open::after{content:'内容预览已隐藏';display:block;margin-top:5px;font-size:12px;line-height:1.6;color:var(--paia-meta,#69756c);font-weight:400}
 html[lang="en"].paia-hide-content-previews #thought-list .topic-index-row:not([data-topic-id])::before,
 html[lang="en"].paia-hide-content-previews .topic-index-row[data-topic-id]::after,
 html[lang="en"].paia-hide-content-previews .universal-open::after,
+html[lang="en"].paia-hide-content-previews .historical-comparison::after,
 html[lang="en"].paia-hide-content-previews .revisit-card-open::after{content:'Content preview hidden'}
 @media(max-width:800px){.r6-export-actions{display:grid;grid-template-columns:1fr}.r6-export-actions button,.r6-privacy-preview input{min-height:44px;min-width:44px}}
 @media(prefers-reduced-motion:reduce){.r6-privacy-preview *,.r6-data-exit *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
