@@ -1,0 +1,4 @@
+.uir-settings-active #page-breadcrumb,
+.uir-settings-active .workspace-header #back {
+  display: none !important;
+}
