@@ -1,1 +1,0 @@
-UIR-01 evidence is sourced from PAIA Certification #298 artifacts. The final checkpoint will contain the persisted representative screenshots and VISUAL_REVIEW.md.
