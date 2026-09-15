@@ -2,3 +2,54 @@
 .uir-settings-active .workspace-header #back {
   display: none !important;
 }
+
+.uir-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.uir-revisit-row {
+  position: relative;
+}
+
+.uir-revisit-row #core-loop-return {
+  padding-right: 56px;
+}
+
+.uir-revisit-row #core-loop-return > strong {
+  display: none;
+}
+
+.uir-revisit-shortcut {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--paia-subtle);
+  border-radius: 8px;
+  background: var(--paia-surface);
+  color: var(--paia-secondary);
+}
+
+.uir-revisit-shortcut:hover:not(:disabled) {
+  background: var(--paia-hover);
+}
+
+.uir-revisit-icon {
+  width: 18px;
+  height: 18px;
+}
