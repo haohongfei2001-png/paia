@@ -1,4 +1,5 @@
 const $=id=>document.getElementById(id);
+const SVG_NS='http:'+'//www.w3.org/2000/svg';
 const SETTINGS_LABELS={
  content:['内容与收录','Content & capture'],reading:['阅读与外观','Reading & appearance'],ai:['AI','AI'],
  privacy:['隐私与对外使用','Privacy & external use'],data:['数据与设备','Data & devices'],advanced:['高级','Advanced']
@@ -14,8 +15,8 @@ let installed=false,shellObserver=null;
 function zh(){return document.documentElement.lang==='zh-CN';}
 function copy(pair){return pair[zh()?0:1];}
 function icon(path,className='ux-nav-icon'){
- const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');svg.classList.add(className);
- const shape=document.createElementNS('http://www.w3.org/2000/svg','path');shape.setAttribute('d',path);shape.setAttribute('fill','none');shape.setAttribute('stroke','currentColor');shape.setAttribute('stroke-width','1.7');shape.setAttribute('stroke-linecap','round');shape.setAttribute('stroke-linejoin','round');svg.append(shape);return svg;
+ const svg=document.createElementNS(SVG_NS,'svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');svg.classList.add(className);
+ const shape=document.createElementNS(SVG_NS,'path');shape.setAttribute('d',path);shape.setAttribute('fill','none');shape.setAttribute('stroke','currentColor');shape.setAttribute('stroke-width','1.7');shape.setAttribute('stroke-linecap','round');shape.setAttribute('stroke-linejoin','round');svg.append(shape);return svg;
 }
 function syncNavChrome(){
  for(const [view,pair] of Object.entries(NAV_LABELS)){
