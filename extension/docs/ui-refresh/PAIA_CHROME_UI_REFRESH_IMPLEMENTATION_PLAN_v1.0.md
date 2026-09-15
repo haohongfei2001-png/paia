@@ -4,7 +4,7 @@
 
 ## 1. 为什么是四轮
 
-当前运行层是原生ES modules，archive.html + archive.js拥有统一主入口，core-loop动态重排Shell/Settings；Reader/Search/Thought/Context已有独立控制器与现成可信服务。无需换框架、引入新模型或重做UX-R1～R6。
+当前运行层是原生ES modules，archive.html + archive.js拥有统一主入口，core-loop动态重排Shell/Settings；Reader/Search/Thought/Context已有独立控制器与现成可信服务。无需换框架、引入新模型或重做UX-R1～UX-R6。
 
 先统一Shell和宽度，后改Archive/Reader，再改Thought/AI，最后完成Context/Settings和跨页验收，可以减少同一DOM被两轮反复重排。R4语义和R5AI流程已存在，本次不再拆成实现新权限/新pipeline的工程。四轮的工作量是不均匀的；UIR-04预留较多时间给最终完整回归，不把“回归”挤成不存在的第五轮。
 
@@ -21,7 +21,7 @@
 
 ## 3. 总体路径安排
 
-路径相对extension，除特别注明仓库根。
+路径相对extension，除特别注明仓库根。下表未写目录的JS/CSS/HTML运行文件短名均位于`ui/`；`foo.js/css`表示同目录的`foo.js`与`foo.css`两个文件，不是字面路径。`scripts/`、`tests/`、`core/`等明确前缀保持不变。
 
 | 文件/组件 | 主要owner round | 其他轮允许的交接 |
 |---|---|---|
@@ -34,9 +34,9 @@
 | thoughts.js、thoughts-base.js、thought-reader.css、thought-copy.js | 03 | 04回归修复，仅本轮必要 |
 | ai-presentation.js、ai-candidate.js、ai-first-generation.js、memory-recomposition.js | 03 | 04 shared/error/a11y修复，不改AI业务 |
 | memory.js、material-tray.js、reuse.css | 04 | 02/03只保持现有调用入口，不提前重排输出 |
-| r6-settings.js/css、backup.js、smart-filter.js、product-signals页面 | 04 | r6.css的preview遮挡selector可在02/03随DOM同步 |
+| r6-settings.js、r6.css、backup.js、smart-filter.js、product-signals页面 | 04 | r6.css的preview遮挡selector可在02/03随DOM同步 |
 | tests/ux-r1～r6 当前测试 | 对应页面round | 修改定位/纯旧视觉值需保留全部行为与安全断言 |
-| scripts/build_daily_use.py、test-groups.mjs、根.github/workflows/paia-certification.yml | 谨慎例外 | 只为被证明的DOM发布耦合/当前测试注册/原证据上传调整；不建新gate体系 |
+| scripts/build_daily_use.py、scripts/test-groups.mjs、根.github/workflows/paia-certification.yml | 谨慎例外 | 只为被证明的DOM发布耦合/当前测试注册/原证据上传调整；不建新gate体系 |
 | core / background / adapter / content / manifest / native-hosts / 根网站 / overnight | 默认冻结 | 只有round列明的最小只读DTO例外，绝无写入/权限/schema例外 |
 
 ## 4. 共同开始检查（普通Git，不建协议）

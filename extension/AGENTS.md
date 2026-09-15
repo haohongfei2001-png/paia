@@ -1,5 +1,18 @@
 # PAIA current engineering instructions
 
+## Chrome UI Refresh v1 — scoped execution overlay
+
+For user-authorized Chrome UI Refresh work on `chrome-ui-refresh-v1`, read `docs/ui-refresh/README.md`, the v1.0 Specification, `UI_REFRESH_STATUS.md`, and the named current round at the same resolved GitHub commit. The four UIR rounds are a separate presentation/interaction refresh, not a restart of UX-R1–R6.
+
+- Design Core and existing product, architecture, ownership, authorization, deletion, privacy, migration and compatibility contracts remain binding. The UIR package replaces only the earlier visual/presentation decisions and the execution/validation cadence for this scoped task; it does not authorize new durable data, permissions, providers or paid behavior.
+- `docs/ui-refresh/UI_REFRESH_STATUS.md` is the only UIR execution-state source. Read old UX status/reports as shipped-capability evidence, not instructions to resume `ux-r2` or an overnight recovery. Do not rewrite the old UX records as UIR state.
+- Execute only the current UIR round after documentation delivery is READY. Use its focused gates and real-browser screenshot review; UIR-04 must close the complete current suite, release and existing mandatory CI gates. Never weaken an existing test, timeout, privacy check or certification job.
+- Commit only to `chrome-ui-refresh-v1`; resolve its real HEAD before work and verify it after pushing. Do not merge into main, deploy, touch PR #28, move frozen baselines, or create control/carrier/lease/scheduler/pending-publication machinery.
+- Preserve existing services and state owners. Ordinary DOM/CSS/copy decisions are already fixed in the UIR Specification; do not restart baseline/design analysis. Only a proved, round-authorized minimal read-only adapter may be considered under its documented safeguards.
+- Keep status/report HEADs as explicitly timed snapshots and tested-code references; obtain the live branch HEAD from GitHub instead of chasing a self-referential commit hash inside its own file.
+
+All instructions below remain applicable outside this limited overlay; their product and trust constraints remain applicable inside it.
+
 ## Authoritative source
 
 - `haohongfei2001-png/paia` on GitHub is the authoritative development repository for PAIA.

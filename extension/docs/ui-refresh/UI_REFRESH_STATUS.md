@@ -7,17 +7,17 @@
 - 仓库：`haohongfei2001-png/paia`
 - 冻结设计与产品起点 main HEAD：`c7d132a7359c82a3402a1fbcfbf4d618c0e4d17e`
 - 唯一开发分支：`chrome-ui-refresh-v1`
-- 更新本文件前已核对的 branch HEAD：`9fcd1d19a6c6a3d361a41213b34cc651b04b365b`
+- 更新本文件前已核对的 branch HEAD：`c1a73f3ad464b6b98295810ab138991b5a74934d`
 - 实时 branch HEAD：每轮从GitHub `refs/heads/chrome-ui-refresh-v1`重新解析；上行是快照，不是包含本文件提交的自引用SHA。
 - main核对结果：本次开始仍等于冻结基线；未向main写入。
 
 ## 当前状态
 
-- 设计交付：全部任务书已补齐，等待本次最终文档一致性/远端差异核验；在设计交付标为READY之前不得启动产品实施。
+- 设计交付：**READY**。README、SPEC、capability mapping、实施计划、统一Developer Run Prompt、四轮完整任务书与文档一致性核对已完成；必要的AGENTS限域指引一并交付。
 - 当前实施轮：UIR-01
 - 当前实施状态：NOT_STARTED
 - 最后完成实施轮：无
-- 下一轮：UIR-01（设计交付READY后）
+- 下一轮：UIR-01；用户发送DEVELOPER_RUN_PROMPT.md中的同一段即可开始。
 - 固定总轮数：4；不默认新增第五轮。
 
 | Round | Status | 任务书 | 实施报告 |
@@ -29,10 +29,11 @@
 
 ## 最后验证结果与blocker
 
-- 已实际完成：GitHub main/开发分支初始HEAD核对；恢复上一轮tree为提交9fcd1d19a6c6a3d361a41213b34cc651b04b365b并移动分支；其compare仅7份文档，0产品代码。
-- 本次只交付设计档案：未执行UIR产品开发、单元/browser/release/视觉认证；旧R6 PASS不计本阶段PASS。
-- 待关闭：最终文档链接/范围/轮次/测试与状态一致性检查，以及完整分支docs-only差异核验。
-- 已知产品/架构阻塞：本次延续设计未新增；这不代表未来实施或真实环境无缺陷。
+- GitHub写入已实际完成两次文档checkpoint并分别核对分支HEAD：`9fcd1d19a6c6a3d361a41213b34cc651b04b365b`、`c1a73f3ad464b6b98295810ab138991b5a74934d`。本文件随最后文档核对提交发布；最终SHA以GitHub实时ref为准。
+- 文档一致性：通过；详见DELIVERY_VERIFICATION.md。固定基线/分支/四轮顺序、scope、真实能力映射、两级gate、最终矩阵、独立执行条件、报告/状态路径、统一prompt及HEAD快照规则一致。
+- 发布前compare已核对前两提交为11份新增Markdown、0产品代码；最后提交仅追加AGENTS文档指引、路径文字勘误、交付检查与本状态。发布时须再次核对完整main...branch差异和远端HEAD。
+- **未执行**：任何UIR产品开发、单元/browser/release/CI/视觉认证。文档READY不等于UI改版完成；旧R6 PASS不计UIR PASS。
+- 已知文档blocker：无。未来实施环境/产品问题须按实际执行记录，不由本次文档检查保证。
 
 ## 后续更新规则
 
