@@ -1,6 +1,6 @@
 # PAIA Chrome UI Refresh — Execution Status
 
-本文件是 UIR 阶段唯一执行状态，不继承旧 UX-R1～R6 / overnight 任务派发。版本 v1.3，2026-09-16。
+本文件是 UIR 阶段唯一执行状态，不继承旧 UX-R1～R6 / overnight 任务派发。版本 v1.4，2026-09-16。
 
 ## Baseline / branch / HEAD
 
@@ -11,7 +11,7 @@
 - UIR-01 收口文档 HEAD：`3e849b539362ad365c461191c291a49ce9f2edee`
 - UIR-01 最终认证：PAIA Certification `#298` / run `34934973743` — **SUCCESS**。
 - UIR-02 恢复审计 runtime entry：`563de7c60c29a18a0ffa5bd65e8d2cb3710fa3da`。
-- UIR-02 本次 Source/revision/review + preview-mask runtime commit：`199f53107372ff883518f5001accf4cd4d525c78`（待/正在以分支 CI 验证）。
+- UIR-02 本次 Source/revision/review + preview-mask runtime commit：`80aa1a3826afa5f6d827f349a983d86027e7c387`。
 - 实时 branch HEAD：每次 execution 从 GitHub `refs/heads/chrome-ui-refresh-v1` 重新解析；本文件不通过自引用提交无限追写 HEAD。
 - main 仍保持冻结基线；UIR-02 不合并 main、不部署。
 
@@ -51,36 +51,53 @@
 - Reader：工作区与保存的 640/680/720px 正文宽度分离；正文去厚卡；light/dark surface 对齐；390px 保存失败保留真实 buffer、Retry/复制当前文字/编辑入口仍可见。
 - Search：作为主 workspace task 展开；主 query、模式、可选 filters、结果与选择区层级已重排；Search → Reader → Back 恢复 query；关闭内部 Search 不错误离开 Archive；来源时间不暴露 raw ISO；stale-scope copy 已恢复正确语义。
 - Revisit：已重排为轻量阅读分区；从 Archive home 进入的 browser journey 已补回，未改 fixed-window / exclusion / old opt-in 底层策略。
-- 新增 `uir-02-archive-search-reader-chrome-e2e.test.mjs` 并接入 current browser group；覆盖 source 与 built release、Archive/Reader/Search/Revisit、Reader dark、390px save-failure、离线/零 Provider 请求和关键截图。
-- 恢复 entry HEAD 对应 PAIA Certification `#305` / run `34970250345` 为 **SUCCESS**：Current Browser、complete current browser suite、Full Suite、release build/guards、4/4 unit shards、adapter/privacy、macOS secure-store、Certification gate 均通过。
-- 同一 run 的 `ux-r2-evidence` artifact `10398561867` 已包含 UIR-02 Archive/Reader/Search/Revisit/390 save-failure/current-release 截图，以及既有 Reader/Source/Revisit 响应式 matrix。
-- recovery 已实际打开检查 7 张 UIR-02 原始 PNG，并把 runtime SHA、run/artifact、原始文件名、SHA-256 与逐图结论固化到 `evidence/UIR-02/RECOVERY_VISUAL_REVIEW.md`。
+- 恢复 entry HEAD `563de7c…` 对应 PAIA Certification `#305` / run `34970250345` 为 **SUCCESS**，并有 `ux-r2-evidence` artifact `10398561867`；recovery 已把 7 张原始 PNG 的逐图检查记录在 `evidence/UIR-02/RECOVERY_VISUAL_REVIEW.md`。
 
-### 本次 execution 子集：Source / revision / review + preview mask
+## 本次 execution 子集：Source / revision / review + preview mask
 
-Runtime commit `199f53107372ff883518f5001accf4cd4d525c78` 只改 3 个文件：`ui/review.js`、`ui/r6.css`、`tests/uir-02-archive-search-reader-chrome-e2e.test.mjs`。
+实际 runtime commit 为 `80aa1a3826afa5f6d827f349a983d86027e7c387`，只改 3 个文件：`ui/review.js`、`ui/r6.css`、`tests/uir-02-archive-search-reader-chrome-e2e.test.mjs`。曾生成但未挂到分支的中间 commit object `199f531…` 不作为任何完成/验证依据。
 
-- Review：在真实操作现场区分 `待确认归属` 与 `已移除`，说明归属/恢复只作用于工作层，当时记录不被改写；底层 `IMPORT_RESOLVE_BRANCH` / `EXCLUDE_LIBRARY` 请求、恢复与归属语义不变。
-- Source：不改数据 owner；UIR-02 browser journey 明确检查 `查看当时记录` 命名、只读 Source、mask 开启时用户主动打开的 Source 全文仍可读，并输出 Source 截图。
-- Revision：不改 revision model 或历史恢复算法；journey 明确检查 `版本历史` 与 Source 分离，保留“恢复会建立新版本”语义，并输出 revision 截图。
-- Preview mask：补齐 Universal Search `按时间看` 的 `.historical-body` 正文遮挡；comparison 仍显示明确的“内容预览已隐藏”提示，不把被遮文字塞入 tooltip/aria-label；Reader/Source 用户明确打开的全文保持可读。
-- Browser journey 新增真实 `EXCLUDE_LIBRARY → 已移除 review → 恢复到 Input Archive` 路径及 review 截图，并在 source 与 built-release 两条路径验证 historical Search mask 与 Reader full-text exception。
+- Review：在真实操作现场区分 `待确认归属` 与 `已移除`，说明归属/恢复只作用于工作层，当时记录不被改写；底层 `IMPORT_RESOLVE_BRANCH` / `EXCLUDE_LIBRARY` 请求与恢复/归属语义不变。
+- Source：不改数据 owner；新增 browser acceptance 检查 `查看当时记录` 命名、只读 Source、mask 开启时用户主动打开的 Source 全文仍可读，并计划输出 Source 截图。
+- Revision：不改 revision model 或恢复算法；新增 acceptance 检查 `版本历史` 与 Source 分离，保留“恢复会建立新版本”语义，并计划输出 revision 截图。
+- Preview mask：补齐 Universal Search `按时间看` 的 `.historical-body` 正文遮挡；comparison 继续显示明确的“内容预览已隐藏”提示；Reader/Source 明确打开的全文不被遮挡。
+- Browser journey 新增真实 `EXCLUDE_LIBRARY → 已移除 review → 恢复到 Input Archive` 路径及 review 截图，并在 source/built-release 两条路径验证 historical Search mask 与 Reader full-text exception。
 
-### 验证状态
+## 本次验证结果 / 未决项
 
-- 当前执行环境仍没有在线 Remote Desktop 设备，因此不能伪称本机执行 focused/browser 命令。
-- 代码以单一 runtime commit 组织，后续验证以该 SHA 的 PR Actions 为准。仓库 `pull_request` 工作流会自动包含 Full Suite；这是现有 CI 策略自动触发，不是本 execution 以 Full Suite 代替 focused 选择。
-- 若 CI 暴露本子集问题，必须只修本子集并重新验证；不能以恢复 entry `563de7c…` 的旧绿灯替代 runtime 变化后的验证。
+PAIA Certification `#308` / run `35015568812` 验证 runtime `80aa1a…`。本 execution 没有主动以 Full Suite 代替 focused 验证；Full Suite 是仓库 `pull_request` 工作流自动启动。
 
-### 仍未完成
+已通过：
+- Unit `1/4`, `2/4`, `3/4`, `4/4`：**SUCCESS**。
+- Adapter and privacy contracts：**SUCCESS**。
+- Current release build and guards：**SUCCESS**。
+- macOS Secure Store Certification：**SUCCESS**。
 
-- 本次 runtime commit 的实际 Actions 结果、由本次 journey 生成的 Source/revision/review 新截图和逐图视觉检查尚需收口记录。
+Current Browser：**FAILURE before the new UIR-02 test ran**。
+- Step 8（既有 UX-R1～R6/core product journeys）共 `32` 个 subtest，`31 PASS / 1 FAIL`。
+- 唯一失败：`UX-R5 ON-01 keeps Original readable, scopes generation to one Topic and reuses cache without provider calls`。
+- 失败断言位于既有 `tests/ux-r5-ai-organize-chrome-e2e.test.mjs`：切回 Original 后期望 `document.activeElement.id === 'ai-presentation-toggle'`，本次实际为 `''`。
+- 本次 runtime 三文件 diff 不修改 AI presentation、focus、Topic navigation 或该测试；其余 UX-R5 tests 与 UX-R6 均通过。因此当前没有因果证据支持为此修改 UIR-02 runtime code。
+- 因 step 8 失败，GitHub 将 step 9 `Run complete current browser suite` 标记为 **SKIPPED**；本次扩展后的 `uir-02-archive-search-reader-chrome-e2e.test.mjs` 尚未实际执行，Source/revision/review 新截图也尚未生成。不得把旧 `563de7c…` 绿灯冒充本次 runtime 验证。
+- 尝试仅重跑失败的 Current Browser job 时，GitHub 因同一 workflow 的 Full Suite 仍在运行返回 403；没有通过改测试/改无关生产代码绕过。
+
+自动 Full Suite 在本 checkpoint 写入时仍为 **IN_PROGRESS**，不得记录为 PASS 或 FAIL。后续必须读取 run `35015568812` 的最终状态。
+
+## 仍未完成
+
+- 收口 run `35015568812` 的自动 Full Suite 最终结果。
+- 在 workflow 完全结束后，优先仅重跑失败的 Current Browser job；若既有 UX-R5 focus 断言通过，step 9 将真正执行本次 UIR-02 browser journey。
+- 若同一 UX-R5 focus 断言重复失败，先证明是否为既有 flake/独立回归；没有因果证据不得修改 UIR-02 runtime 或降低断言。
+- 本次 UIR-02 journey 真正通过后，下载新的 `ux-r2-evidence` artifact，逐图检查 `uir-02-source-1440x900-light.png`、`uir-02-revision-1440x900-light.png`、`uir-02-review-removed-1440x900-light.png` 以及受影响现有画面。
 - UIR-02 最终 focused/guards/release acceptance、最终认可 PNG + `evidence/UIR-02/VISUAL_REVIEW.md`、`rounds/UIR_02_REPORT.md` 仍未完成。
-- 以上任一项未闭环前 STATUS 必须保持 IN_PROGRESS。
+- 以上任一项未闭环前 STATUS 必须保持 **IN_PROGRESS**。
 
 ## 下一次继续点
 
-先收口 **`199f531…` 的 CI 与新截图视觉检查**。若本次 Source/revision/review + mask 子集全部通过，则把该子集记为完成，下一 execution 再进入 UIR-02 最终 acceptance/evidence/report；不要提前进入 UIR-03。
+1. 重新解析 `chrome-ui-refresh-v1` 真实 HEAD，并读取 run `35015568812` 最终状态；不要重新实现本次三文件 runtime diff。
+2. workflow 已结束后，对 Current Browser job `104538437313` 做 targeted rerun；不要先重跑整个 workflow。
+3. 若 step 8 通过，确认 step 9 中新的 UIR-02 journey PASS；随后下载/逐图检查新 Source/revision/review 截图。
+4. 只有该子集验证和视觉检查闭环后，才把 Source/revision/review + preview-mask 子集记为完成，再进入 UIR-02 最终 acceptance/evidence/report；不得进入 UIR-03。
 
 只有 UIR-02 全部功能、最终 focused/guards/release、真实 Chrome、关键截图逐图视觉检查、最终 `VISUAL_REVIEW.md` 与 `UIR_02_REPORT.md` 均闭环后，才能改为 COMPLETE。
 
@@ -98,7 +115,7 @@ Runtime commit `199f53107372ff883518f5001accf4cd4d525c78` 只改 3 个文件：`
 
 - Browser 证据来自 GitHub Actions 隔离 Linux/Xvfb + 真实 Google Chrome 与合成 profile，不是用户日常 macOS Chrome profile。
 - macOS secure-store job 认证 CI 路径，不宣称完成真实物理 Secure Enclave 生命周期验证。
-- 当前环境没有在线 Remote Desktop 设备。
+- 当前环境没有在线 Remote Desktop 设备，因此没有伪称本机 focused/browser 执行。
 
 ## 后续更新规则
 
