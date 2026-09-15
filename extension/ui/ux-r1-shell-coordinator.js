@@ -11,7 +11,8 @@ const NAV_PATHS={
  memory:'M12 4.5l1.25 3.25L16.5 9l-3.25 1.25L12 13.5l-1.25-3.25L7.5 9l3.25-1.25zM18 14l.75 1.75L20.5 16.5l-1.75.75L18 19l-.75-1.75-1.75-.75 1.75-.75z',
  settings:'M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM12 4v2M12 18v2M4 12h2M18 12h2M6.35 6.35l1.4 1.4M16.25 16.25l1.4 1.4M17.65 6.35l-1.4 1.4M7.75 16.25l-1.4 1.4'
 };
-let installed=false,shellObserver=null;
+let installed=false;
+const observedSurfaces=new WeakSet();
 function zh(){return document.documentElement.lang==='zh-CN';}
 function copy(pair){return pair[zh()?0:1];}
 function icon(path,className='ux-nav-icon'){
@@ -47,6 +48,7 @@ function syncSurfaceClasses(){
  const body=document.body,settings=$('settings-panel'),search=$('universal-search-dialog');if(!body)return;
  body.classList.toggle('uir-settings-active',!!settings&&!settings.hidden);body.classList.toggle('uir-search-active',!!search&&!search.hidden);
 }
+function observeSurface(id){const surface=$(id);if(!surface||observedSurfaces.has(surface))return;observedSurfaces.add(surface);new MutationObserver(syncSurfaceClasses).observe(surface,{attributes:true,attributeFilter:['hidden']});}
 function syncShellLocale(){
  for(const [key,pair] of Object.entries(SETTINGS_LABELS)){
   const text=copy(pair),tab=document.querySelector(`[data-settings-group="${key}"]`),heading=document.querySelector(`.ux-settings-group[data-group="${key}"] > h2`);
@@ -55,11 +57,14 @@ function syncShellLocale(){
  const capability=document.querySelector('.ux-capability-fact');if(capability){const heading=capability.querySelector('strong'),detail=capability.querySelector('p'),headingText=zh()?'设备同步':'Device sync',detailText=zh()?'当前版本未提供设备同步。':'Device sync is not available in this version.';if(heading&&heading.textContent!==headingText)heading.textContent=headingText;if(detail&&detail.textContent!==detailText)detail.textContent=detailText;}
  const read=$('history-read');if(read){const text=zh()?'读一篇':'Read one';if(read.textContent!==text)read.textContent=text;}
  const optional=$('consent-check')?.closest('.consent-checkbox')?.querySelector('.ux-consent-optional');if(optional){const text=zh()?' 可选：用于标记你已阅读上面的完整说明。':' Optional: mark that you read the detailed explanation.';if(optional.textContent!==text)optional.textContent=text;}
- syncNavChrome();syncSearchLauncher();syncSearchHeading();syncArchiveFrame();syncSurfaceClasses();
+ syncNavChrome();syncSearchLauncher();syncSearchHeading();syncArchiveFrame();syncSurfaceClasses();observeSurface('settings-panel');observeSurface('universal-search-dialog');
 }
 function installLocaleSync(){
  syncShellLocale();new MutationObserver(syncShellLocale).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
- const root=document.querySelector('.app-shell')||document.body;shellObserver=new MutationObserver(()=>syncShellLocale());shellObserver.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class']});
+ const ready=()=>!!$('universal-search-open')&&!!$('core-loop-home'),workspace=document.querySelector('.workspace');
+ if(workspace&&!ready()){
+  const bootstrap=new MutationObserver(()=>{syncShellLocale();if(ready())bootstrap.disconnect();});bootstrap.observe(workspace,{subtree:true,childList:true});
+ }
 }
 function installConsentPrimaryAction(){
  const button=$('enable-consent'),check=$('consent-check');if(!button)return;
