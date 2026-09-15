@@ -2,3 +2,7 @@
 .uir-settings-active .workspace-header #back {
   display: none !important;
 }
+
+.workspace:has(#core-loop-home:not([hidden])) #revisit-open {
+  display: none !important;
+}
