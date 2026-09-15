@@ -1,4 +1,5 @@
 import {queryPage} from './archive-query.js';
+import {captureIsExcluded,clearReadingTargets,clearPurgedReaderPolicy} from './reader-state.js';
 import {ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
 import {ADAPTER_VERSION,CONSENT_VERSION,STORAGE_KEY,ArchiveError,STATUS_CODES,ERROR_CODES} from './constants.js';
 import {validateCapture,validateEnrichment,validateChanges,canonicalChat} from './validation.js';
@@ -65,7 +66,9 @@ export class IndexedArchiveStore {
   const legacy=await this.repository.transaction(false,t=>t.all('recordIndex','byLegacyChat','chatgpt:'+chat.id));
   const prepared=[];for(const m of messages){const key=await identifySource(chat.id,m.sourceMessageId),proofs=[];for(const r of legacy)if(/^[a-f0-9]{64}$/.test(r.contentHash||'')&&r.dedupeKey===await hashText(JSON.stringify([key,r.contentHash])))proofs.push({id:r.id,dedupeKey:r.dedupeKey});prepared.push({m,key,proofs,identity:enrich?null:await identify(chat.id,m.sourceMessageId,m.originalText)});}
   const result=await this.repository.transaction(true,async t=>{
-   const c=await this.control(t);protectedConsent(c,request.epoch);const seq=await t.get('meta','sequence'),docs=new Set();let added=0,enriched=0,timeChanged=false;
+   const c=await this.control(t);protectedConsent(c,request.epoch);
+   if(await captureIsExcluded(t,chat.id))return enrich?{enriched:0,excluded:true}:{added:0,duplicates:0,excluded:true,status:'PAUSED'};
+   const seq=await t.get('meta','sequence'),docs=new Set();let added=0,enriched=0,timeChanged=false;
    for(const {m,key,identity,proofs}of prepared){
     if(await t.get('tombstones','source:'+key))continue;
     let selected=await this.recordsFor(t,chat,m.sourceMessageId,key,identity,proofs),records=selected.map(x=>x.r);
@@ -98,12 +101,13 @@ export class IndexedArchiveStore {
    const indexes=await t.all('recordIndex','bySource',key);if(r.chatId&&r.sourceMessageId)for(const ix of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))if(!/^[a-f0-9]{64}$/.test(ix.sourceKey||'')&&!indexes.some(x=>x.id===ix.id))indexes.push(ix);if(!indexes.some(x=>x.id===id))indexes.push(await t.get('recordIndex',id));const removed=[];for(const ix of indexes)removed.push((await t.get('records',ix.id)).value);
    const docs=new Set((await t.all('documents','byChat',chatOf(r))).map(d=>d.id)),blocks=new Map();for(const r of removed)for(const b of await t.all('blockIndex','byRecord',r.id))blocks.set(b.id,{index:b,value:(await t.get('blocks',b.id)).value});
    if(this.beforeSourcePurge)await this.beforeSourcePurge(t,removed,blocks);
+   await clearReadingTargets(t,new Set(blocks.keys()));
    const s={library:{blocks:[...blocks.values()].map(b=>b.value)}};detachSources(s,removed);const kept=new Map(s.library.blocks.map(b=>[b.id,b]));
    await t.put('tombstones',{id:'source:'+key,sequence:Date.parse(this.clock()),value:{sourceIdentityHash:key,deletedAt:this.clock(),status:'permanently_ignored'}});
    for(const r of removed){await t.delete('records',r.id);await t.delete('recordIndex',r.id);await t.delete('tombstones','snapshot:'+r.dedupeKey);}await t.delete('times',key);
    for(const name of ['importEvidence','importSources'])for(const evidenceId of await t.keys(name,'bySource',key))await t.delete(name,evidenceId);
    for(const [id,old]of blocks){docs.add(old.value.documentId);const b=kept.get(id);if(!b){await t.delete('blocks',id);await t.delete('blockIndex',id);}else{b.revision++;b.provenanceSignature=JSON.stringify(b.provenance);await t.put('blocks',{id,value:b});const rec=b.sourceRecordId?(await t.get('records',b.sourceRecordId))?.value:null;await t.put('blockIndex',blockIndex(b,old.index.sequence,rec?[rec]:[]));}}
-   for(const id of docs)await this.refreshDoc(t,id);return {id};
+   for(const id of docs)await this.refreshDoc(t,id);await clearPurgedReaderPolicy(t,new Set(blocks.keys()),key);return {id};
   });await this.publish();return result;
  });}
  async editDocument(request){const operationId=request?.operationId;if(operationId!==undefined&&(typeof operationId!=='string'||operationId.length>128||operationId.length<8))error('INVALID_REQUEST');const digest=operationId?await hashText(JSON.stringify(request)):null;return this.write(async t=>{

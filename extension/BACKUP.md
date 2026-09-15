@@ -1,3 +1,21 @@
+## UX-R4 compatibility (MIG-07/08/10)
+
+Existing Memory config gains a strictly validated optional boolean `localOnly`, defaulting only when absent. Backup preserves its value, the independent `externalAccess` value, Profiles and exact exclusions. Old false connection access remains false; restore creates no consumers or Grants. The new fixed manual materials, revisions/spans selected for this task, output generations, overrides, redactions and note remain ephemeral and never enter Backup. Old Preview identity is not migrated into manual authorization. Unknown config fields/types remain rejected; format version, physical schema and existing size limits are unchanged.
+
+# UX-R3 / v0.12 compatibility
+
+UX-R3 adds binding metadata (`bodyBinding`, `workingInputId`, `bindingRevision`, `bindingLength`, `thoughtEditedAt`) to the existing Thought Backup whitelist. Existing revision snapshots retain the body/binding and protection state required for safe Undo. The portable `thought-layout:v1` preference preserves grid/list choice. `thought-binding:v1` migration progress, `thought-reverse-edit:v1` permission and Topic/Input reading anchors are not exported. Restore resumes the same strict classifier and resets reverse editing to off. Old Backups without binding metadata remain supported; ambiguous references preserve their existing text as protected independent Thoughts. Unknown binding values are rejected. Source/Input bodies and historical edits are never rewritten by this migration.
+
+Response-only evidence for a new, independently authored Thought is `context_only`. Purging that Source clears the citation; a referenced rewrite is cleared, while the independent new body and independently authored notes are preserved. Binding changes do not remove tombstones, source dependencies or existing refusal policies. See `docs/ux/rounds/UX_R3_REPORT.md` for certification evidence.
+
+## UX-R2 compatibility retained
+
+Backup v1/schema 5 now explicitly accepts current v0.12 application headers and validates the two body-free policy records `revisit-policy:v1` and `capture-policy:v1` in the existing organization-state allowlist. Known editable shell preferences round-trip through their validator. Unknown newer formats, policy versions and fields are rejected.
+
+Input/document/topic Revisit exclusions and exact conversation capture exclusions travel with the content. Restore always resets old-content resurfacing to **off**, preserves existing local capture exclusions, and clears `reading:v1`, `revisit:v2` and historical `revisit:v1` positions before establishing a fresh local visit boundary. It never infers read completion, restores AI credentials, changes capture consent or bypasses tombstones. This adds no new body section, format version or database schema.
+
+The existing empty-library, 64 MB / 100,000 item limits remain. The UX-R2 100,000-Input browser fixture verifies bounded Reader/Revisit reads; it does not claim that a 100,000-Source whole-library Backup fits those limits.
+
 # v0.9.2 大库与归属一致性补充
 
 恢复继续限制空库、64 MB / 100000 项。Source、Input、状态、版本分别计项，100000 Sources 的导出通常超出当前恢复边界。导出超限会明确提醒保留原库；本轮不扩大恢复上限、不宣称 100k 全库恢复已通过。分段导出与 UI 心跳在 10k/100k 合成数据上验证。恢复重建索引同时覆盖工作文档与原始 Source 聊天，移走最后 Input 不能令原始档案失去计数。

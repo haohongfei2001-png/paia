@@ -40,7 +40,7 @@ export function refreshEntryIndex(row) {
  row.activeKey=row.lifecycle==='active'?0:1;row.listKey=[row.activeKey,row.id];row.negativeUpdatedSequence=-(row.updatedSequence||0);
 }
 export function entrySnapshot(row) {
- return {title:row.title??'',body:row.thoughtText,note:row.note,type:row.type,formation:row.formation,lifecycle:row.lifecycle};
+ return {...(row.bodyBinding?{bodyProtection:structuredClone(row.protections?.body),bodyAuthorship:structuredClone(row.authorship?.body),hasHumanAction:row.hasHumanAction,userEdited:row.userEdited}:{}),title:row.title??'',body:row.thoughtText,note:row.note,type:row.type,formation:row.formation,lifecycle:row.lifecycle,...Object.fromEntries(['bodyBinding','workingInputId','bindingRevision','bindingLength','thoughtEditedAt'].filter(k=>row[k]!==undefined).map(k=>[k,row[k]]))};
 }
 export function entryDTO(row) {return {...structuredClone(row),title:row.title??'',body:row.thoughtText};}
 export function normalizeRank(rank) {if(typeof rank!=='string'||!/^\d{12}$/.test(rank))fail();return rank;}

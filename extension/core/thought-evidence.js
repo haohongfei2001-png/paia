@@ -13,7 +13,7 @@ export async function inputProjection(store,t,inputId) {
  }
  return {inputId,documentId:b.documentId,contentRevision:m.contentRevision,lastRemovalSequence:m.lastRemovalSequence||0,body:b.libraryText??original,note:b.note||'',sourceRecordIds:sources.sort(),identities:identities.sort(),block:b};
 }
-export async function evidenceFor(store,specs) {
+export async function evidenceFor(store,specs,{independentContext=false}={}) {
  await store.finishFoundation();
  if(!Array.isArray(specs)||specs.length>100||new Set(specs.map(x=>x?.inputId)).size!==specs.length)fail();
  let contexts=0;
@@ -25,9 +25,9 @@ export async function evidenceFor(store,specs) {
   for(const s of specs){const p=await inputProjection(store,t,s.inputId);if(!p)fail();if(s.role!=='context_only'&&await store.isFiltered(t,p.block,await t.get('meta','smart-filter')))fail();rows.push(p);}
   let contextBytes=0;
   for(let i=0;i<specs.length;i++)if(specs[i].role==='context_only'){
-   const p=rows[i],anchor=rows.find((r,j)=>specs[j].role==='primary'&&r.documentId===p.documentId&&(!specs[i].anchorId||r.inputId===specs[i].anchorId));if(!anchor)fail();
-   const a=await t.get('blockIndex',anchor.inputId),b=await t.get('blockIndex',p.inputId),cmp=store.repository.factory.cmp(a.listKey,b.listKey);
-   if(await t.count('blockIndex','byList',IDBKeyRange.bound(cmp<0?a.listKey:b.listKey,cmp<0?b.listKey:a.listKey))>3)fail();
+   const p=rows[i],anchor=rows.find((r,j)=>specs[j].role==='primary'&&r.documentId===p.documentId&&(!specs[i].anchorId||r.inputId===specs[i].anchorId));if(!anchor&&!(independentContext&&specs.length===1&&!specs[i].anchorId))fail();
+   if(anchor){const a=await t.get('blockIndex',anchor.inputId),b=await t.get('blockIndex',p.inputId),cmp=store.repository.factory.cmp(a.listKey,b.listKey);
+   if(await t.count('blockIndex','byList',IDBKeyRange.bound(cmp<0?a.listKey:b.listKey,cmp<0?b.listKey:a.listKey))>3)fail();}
    for(const field of specs[i].selectedFields)contextBytes+=new TextEncoder().encode(p[field]).length;if(contextBytes>4096)fail();
   }
   return {rows,secret,epoch};
@@ -40,9 +40,9 @@ export async function evidenceFor(store,specs) {
  }
  return evidence;
 }
-export async function validateEvidence(store,evidence) {
+export async function validateEvidence(store,evidence,options) {
  if(!Array.isArray(evidence)||evidence.length>100)fail();
- const actual=await evidenceFor(store,evidence.map(e=>({inputId:e.inputId,role:e.role,selectedFields:e.selectedFields,...(e.anchorId?{anchorId:e.anchorId}:{})})));
+ const actual=await evidenceFor(store,evidence.map(e=>({inputId:e.inputId,role:e.role,selectedFields:e.selectedFields,...(e.anchorId?{anchorId:e.anchorId}:{})})),options);
  if(!same(actual,evidence))fail();return actual;
 }
 export async function checkEvidenceInTransaction(store,t,evidence) {
@@ -53,12 +53,12 @@ export async function checkEvidenceInTransaction(store,t,evidence) {
   if(e.role!=='context_only'&&await store.isFiltered(t,p.block,await t.get('meta','smart-filter')))fail();
  }
 }
-export async function dependencyState(store,row) {
+export async function dependencyState(store,row,project=async(_store,_t,value)=>value) {
  const read=await store.run(()=>store.repository.transaction(false,async t=>{
   const current=await store.readableEntry(t,row.id);if(!current)return null;
   const epoch=(await t.get('meta','thought-epoch'))?.value||0,dependencies=await t.all('dependencies','byTarget',IDBKeyRange.bound(['entry',row.id],['entry',row.id,[]],false,true)),items=[];
   for(const dep of dependencies){let input=await inputProjection(store,t,dep.inputId);if(input&&(input.lastRemovalSequence||0)>(dep.eligibilityEpochAtUse||0)&&current.workingInputId!==dep.inputId)input=null;items.push({dep,input});}
-  return {row:current,items,epoch};
+  return {row:await project(store,t,current),items,epoch};
  }));
  if(!read)return null;
  const reasons=new Set(read.row.staleReasons||[]);let valid=0,missing=0,changed=false;

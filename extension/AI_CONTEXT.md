@@ -1,4 +1,20 @@
-# Round 8 candidate — Thought 不再是 Context 的准入门槛
+# UX-R4 — 固定的本次材料与精确输出
+
+本节是 DELTA-04/05、MIG-07/08/10 的当前契约。下面保留的 Round 8 / v0.10 / v0.11 检索、预算与 Profile 规则继续约束旧的允许范围检索及 Grant-bound 路径；它们不再要求新手动选择先进入 Thought 或开启未整理 Input 自动检索。
+
+`ContextPackageService.manual()` 在可信主路径内拥有 `ManualContext`。只有经过精确扩展页面和 consent 检查的本次操作可以创建标签页绑定的 `manual_selection`。Input、Thought、可核验的 Source snapshot、既有 AI 字段均保留稳定 ID、saved revision、完整/选段范围、角色与依赖版本。正文仅存于有界的 worker 短期内存：最多 20 个会话，每个固定 15 分钟、200 项、400 万材料字符；达到限制明确拒绝，不截断选中正文。重启/过期须重新选择，不从旧 DOM 或 Backup 重建授权。
+
+新材料盘保留明确选择、顺序、本次排除、逐段 override、遮挡和独立的本次说明。默认未授权不等于明确禁止；显式 deny/never、Input/Entry/Section 排除及相关 Topic 的继承禁止继续阻断。受阻项保留占位，正文不可输出；修改限制只确认并修改对应来源规则，不以单项允许覆盖继承禁止。建议沿用 Memory 的已允许候选范围与 lexical ranking，默认未选，排除本次已删材料并应用本次遮挡，不能替换固定项。
+
+Preview 确认后，输出必须匹配同一 generation，重新核验 Source/工作版本/来源生命周期/限制后释放用户检查的完整文本。手动输出不调用旧 `MemoryService.share()` 重新组装正文；复制与 Markdown 文件逐字一致。编辑变为 dirty；源编辑使快照 stale；删除、purge、禁止使其 blocked 并清除受阻正文；worker 重启与 15 分钟期限产生 expired。重新预览保留改写/遮挡，不能自动恢复未遮挡原文。遮挡是字面规则，不声称能发现全部同义或间接身份信息。
+
+`externalAccess=false` 仍禁止连接/旧受控输出；它不再阻止本次固定手动复制或文件导出。新增可选严格 boolean `localOnly` 缺失时补 false，保留旧设置；开启后停止正在运行的 Organizer，且 Provider 实际请求前及 Passport 授权前再次拒绝网络/连接访问。关闭不重放任务，不创建 Grant。现有 Profile、Grant 的消费者/用途/范围/到期/撤销/一次消费检查保留。manual 的会话 ID 不能绑定或替代 Grant 包。
+
+MIG-07 无持久正文迁移；旧 Preview 保留旧身份与失效规则，不能升级为新手动授权。MIG-08 只补缺失配置，旧 false 保持连接关闭，旧 true 不创建消费者或 Grant。MIG-10 严格 Backup whitelist round-trip `localOnly`/`externalAccess` 与现有禁止规则，临时材料、query、正文 override、遮挡、Passport Grants、凭证和游标都不导出。
+
+Search 使用同一 provider-neutral lexical 基础及现有 Source/Input/Thought owner。分页绑定查询和筛选；后台变化明确标示覆盖变化，全结果选择必须完成稳定枚举再确认。指定文档使用现有 blockIndex；普通分页最多检查 200 行、返回 40 项。历史阅读在 Source 原文上匹配，未知时间单列，不使用今天工作版冒充过去；独立 Thought 与 AI 稿不被混入此 Source 范围。
+
+# Retained allowed-scope retrieval: Round 8 — Thought 不再是 Context 的准入门槛
 
 Round 8 保留既有 Topic/Profile 授权语义，但允许用户在 Settings **明确开启**后，让尚未进入 Thought Library 的有效 Input 直接参与本地 AI Context 检索。默认关闭；旧配置缺少该字段时原子补 `false`，不会因为升级扩大可用范围。
 
@@ -6,7 +22,7 @@ Round 8 保留既有 Topic/Profile 授权语义，但允许用户在 Settings **
 
 直接 Input 的正文只在 Build/Preview/Share 时从当前工作正文读取；不建立新的持久正文副本。活动记录只保存 Input ID、Topic/Entry ID 与 query digest，不保存 query 或 Context 正文。Preview 后 Input 被编辑、删除、过滤、永久删除或授权状态变化时，Share 必须以 `MEMORY_STALE` 拒绝旧预览并要求重建。直接 Input 的长期排除可在 Settings 一次性恢复；Source 永久删除会清理对应排除 metadata。Backup 保存“是否允许未整理 Input”与单条排除，但不保存 Preview/Context/query。
 
-Round 8 同时引入 1:1 共享工作正文：只有“一个完整 Input → 一个 exact full-body `input_original` Thought”且没有既有独立人工正文时，Input 与 Thought 才共享同一工作正文。Input/Thought 任一处编辑会更新同一 canonical Input working body；不可变 Source snapshot 始终不变。局部摘录、多 Input 合并、AI 综合段落、旧的独立人工 Thought 都不会反向覆盖 Input。Context 只读取当前状态，不反写档案。
+UX-R3 将 Round 8 的完整引用改为明确的 `bodyBinding`：可证明的一对一完整引用先跟随 Input，默认第一次实际 Thought 正文编辑在既有 Thought 内解除跟随并保护人工正文，Input 与不可变 Source 不变。高级反写设置首次引入和 Backup 恢复后均关闭；仅显式开启后、仍跟随完整单一 Input 且两侧版本匹配的未来编辑可原子修改两侧。局部摘录、多 Input 综合、AI 稿和独立 Thought 始终不反写。恢复档案当前文字须单独对照确认；历史版本恢复只修改 Thought。Context、Search 和 evidence 读取同一现有 Thought 正文，解除跟随不解除来源、删除或拒绝策略。
 
 ---
 
@@ -24,7 +40,7 @@ Thought Library 是正文来源。Memory durable state 仅保存授权、排除�
 
 默认 Topic 未授权。先检查当前 Profile 的允许/禁止、跨 Profile 的 never、Entry/Section 排除、共享 placement 的禁止路径、Source 存在性与墓碑、Input 可用性，再读取候选 Thought。临时允许不能突破 deny/never；结构合并后需重新授权。未授权或删除内容不会成为召回兜底。
 
-Settings 的“允许向外部 AI 提供 AI 上下文”由“保存 AI Context 设置”提交。持久关闭后，后端 SHARE 在复制与 Markdown 导出前拒绝操作；本地 Build/Preview、既有授权、Input/Thought 和 Backup 不受影响。重新开启不扩大 Topic 权限。这不是全产品 closed mode，不改变已有 Organizer 的单独授权流程。
+Settings 的独立连接访问开关继续控制旧受控 SHARE；新固定手动选择按本文件 UX-R4 主契约输出。Local-only 是额外的主动网络限制，手动本机输出仍可用。两个开关都不扩大 Topic 权限。
 
 config 的可选 boolean `externalAccess` 兼容旧行。旧行缺字段时原子补 true，保持 v0.10.0 已有显式分享能力，绝不新增 Topic 授权；false 不被初始化覆盖。重复初始化安全、失败回滚。备份保存开关/授权/排除/Profile，不保存 API Key、session grant、query 或 Context cache 正文；空库恢复与既有大小限制不变。
 

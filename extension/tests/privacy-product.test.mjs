@@ -14,7 +14,7 @@ test('privacy: manifest keeps an exact reviewed required and optional permission
 test('privacy: runtime ships no fake environment hooks, analytics or credential/history APIs',async()=>{
  for(const folder of ['adapter','content','core','background','ui'])for(const name of await readdir(new URL(folder+'/',root)))if(name.endsWith('.js')) {
   let source=await readFile(new URL(folder+'/'+name,root),'utf8');
-  if(folder==='ui'&&name==='memory.js'){const explicit='navigator.clipboard.writeText(result.text)';assert.equal(source.split(explicit).length-1,1);source=source.replace(explicit,'EXPLICIT_MEMORY_CONTEXT_COPY(result.text)');}
+  if(folder==='ui'&&['memory.js','material-tray.js'].includes(name)){const explicit='navigator.clipboard.writeText(result.text)';assert.equal(source.split(explicit).length-1,1);source=source.replace(explicit,'EXPLICIT_MEMORY_CONTEXT_COPY(result.text)');}
   if(folder==='ui'&&name==='reading-actions.js'){const explicit='navigator.clipboard.writeText(text)';assert.equal(source.split(explicit).length-1,1);source=source.replace(explicit,'EXPLICIT_USER_TEXT_COPY(text)');}
   if(folder==='core'&&name==='macos-native-secure-store.js'){const explicit='runtime.sendNativeMessage(HOST_NAME,request,response=>';assert.equal(source.split(explicit).length-1,1);source=source.replace(explicit,'APPROVED_MACOS_SECURE_STORE_MESSAGE(HOST_NAME,request,response=>');}
   for(const forbidden of [/FakeChatGPT/,/__fake/,/chrome\.(cookies|history|webRequest)/,/navigator\.(credentials|clipboard|sendBeacon)/,/localStorage|sessionStorage/,/\b(?:connectNative|sendNativeMessage)\s*\(/,/\b(?:gtag|mixpanel|posthog|amplitude)\b/])assert.doesNotMatch(source,forbidden,folder+'/'+name);
