@@ -43,13 +43,15 @@ function syncArchiveFrame(){
  const browse=$('core-loop-browse-title')?.parentElement,materials=$('archive-select-materials');
  for(const item of [browse,materials,search,$('result-count'),$('document-list'),$('empty-list'),$('empty-sync'),$('export-menu')])if(item&&item.parentElement!==main)main.append(item);
  if(home.parentElement!==assist)assist.append(home);
- const proxy=$('core-loop-return');if(proxy)proxy.hidden=true;
- revisit.classList.add('core-loop-card','uir-revisit-entry');
- let label=revisit.querySelector('.core-loop-card-label'),strong=revisit.querySelector('strong'),status=revisit.querySelector('.core-loop-return-state');
- if(!label||!strong||!status){label=document.createElement('span');label.className='core-loop-card-label';strong=document.createElement('strong');status=document.createElement('small');status.className='core-loop-return-state';revisit.replaceChildren(label,strong,status);}
- label.textContent=copy(['回来看看','Revisit']);strong.textContent=copy(['查看本机变化','See local changes']);status.textContent=copy(['只读取本机变化，不调用 AI。','Reads local changes only; no AI call.']);revisit.setAttribute('aria-label',copy(['回来看看','Revisit']));
- if(revisit.parentElement!==home)home.append(revisit);
- const assistLabel=zh()?'继续与最近内容':'Continue and recent items';if(assist.getAttribute('aria-label')!==assistLabel)assist.setAttribute('aria-label',assistLabel);
+ const proxy=$('core-loop-return');
+ if(proxy){
+  let row=$('uir-revisit-row');if(!row){row=document.createElement('div');row.id='uir-revisit-row';row.className='uir-revisit-row';proxy.before(row);}if(row.parentElement!==home)home.append(row);
+  if(proxy.parentElement!==row)row.append(proxy);if(revisit.parentElement!==row)row.append(revisit);proxy.hidden=false;
+  const stateLabel=proxy.querySelector('.core-loop-card-label');if(stateLabel)stateLabel.textContent=copy(['本机变化','Local changes']);proxy.setAttribute('aria-label',copy(['查看本机变化','View local changes']));
+ }
+ revisit.classList.remove('core-loop-card','uir-revisit-entry');revisit.classList.add('uir-revisit-shortcut');
+ let shortcutLabel=revisit.querySelector('.uir-revisit-label');if(!shortcutLabel){shortcutLabel=document.createElement('span');shortcutLabel.className='uir-visually-hidden uir-revisit-label';revisit.replaceChildren(icon('M7 7h5a6 6 0 1 1-5.2 9M7 7v5M7 7l4-4','uir-revisit-icon'),shortcutLabel);}shortcutLabel.textContent=copy(['打开回来看看','Open Revisit']);revisit.setAttribute('aria-label',copy(['打开回来看看','Open Revisit']));
+ const assistLabel=zh()?'继续、最近内容与本机变化':'Continue, recent items and local changes';if(assist.getAttribute('aria-label')!==assistLabel)assist.setAttribute('aria-label',assistLabel);
 }
 function syncSurfaceClasses(){
  const body=document.body,settings=$('settings-panel'),search=$('universal-search-dialog');if(!body)return;
