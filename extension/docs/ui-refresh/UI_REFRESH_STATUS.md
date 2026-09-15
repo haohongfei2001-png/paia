@@ -1,6 +1,6 @@
 # PAIA Chrome UI Refresh — Execution Status
 
-本文件是 UIR 阶段唯一执行状态，不继承旧 UX-R1～R6 / overnight 任务派发。版本 v1.1，2026-09-16。
+本文件是 UIR 阶段唯一执行状态，不继承旧 UX-R1～R6 / overnight 任务派发。版本 v1.2，2026-09-16。
 
 ## Baseline / branch / HEAD
 
@@ -53,18 +53,21 @@
 - 新增 `uir-02-archive-search-reader-chrome-e2e.test.mjs` 并接入 current browser group；覆盖 source 与 built release、Archive/Reader/Search/Revisit、Reader dark、390px save-failure、离线/零 Provider 请求和关键截图。
 - entry HEAD 对应 PAIA Certification `#305` / run `34970250345` 为 **SUCCESS**：Current Browser、complete current browser suite、Full Suite、release build/guards、4/4 unit shards、adapter/privacy、macOS secure-store、Certification gate 均通过。
 - 同一 run 的 `ux-r2-evidence` artifact `10398561867` 已包含 UIR-02 Archive/Reader/Search/Revisit/390 save-failure/current-release 截图，以及既有 Reader/Source/Revisit 响应式 matrix。
+- 本次 recovery 已实际打开检查 7 张 UIR-02 原始 PNG，并把 runtime SHA、run/artifact、原始文件名、SHA-256 与逐图结论固化到 `evidence/UIR-02/RECOVERY_VISUAL_REVIEW.md`。该文件明确是 IN_PROGRESS recovery checkpoint，不冒充最终 `VISUAL_REVIEW.md`。
 
 ### 仍未完成
 
 - UIR-02 专属 Source / revision / review 面板层级与危险确认需要按任务书再次专项核对，不能只借用旧 UX-R2 绿测视为完成。
 - `r6.css` preview mask 对 UIR-02 新/移动 class 的覆盖仍需专项 regression 证明，不能仅凭当前普通 Reader 全文截图推断。
-- 需要把最终认可的关键 PNG 与 `evidence/UIR-02/VISUAL_REVIEW.md` 固化到仓库；已有 Actions artifact 只能作为恢复证据，不能替代最终证据目录。
-- 最终 focused 命令、guards、release、必要 browser smoke 与 UIR-02 最终截图/逐图视觉检查要在剩余代码稳定后执行；本次恢复不重复触发 Full Suite。
+- 最终认可的关键 PNG 与 `evidence/UIR-02/VISUAL_REVIEW.md` 尚未作为最终证据固化；当前 Actions PNG + recovery ledger 只证明已存在实现和可恢复证据。后续若 Source/revision/review 或 preview-mask 改动影响画面，必须刷新受影响截图。
+- 最终 focused 命令、guards、release、必要 browser smoke 与 UIR-02 最终截图/逐图视觉检查要在剩余代码稳定后执行；本次 recovery 没有为了文档 checkpoint 重复触发 Full Suite。
 - `rounds/UIR_02_REPORT.md` 尚未形成最终报告；以上任一项未闭环前 STATUS 必须保持 IN_PROGRESS。
 
-## 本次 execution 范围与 handoff
+## 本次 execution 结果与 handoff
 
-本次 execution 只做 UIR-02 恢复审计、状态纠正和既有真实 browser/截图证据核验，不重做已经通过的 Archive/Reader/Search/Revisit 实现，也不进入 UIR-03。
+本次 execution 的自洽子集已完成：先审计 `3e849b… → 563de7c…` 全部 7 个提交和 diff，确认已做工作；纠正 STATUS 为 UIR-02 IN_PROGRESS；核对同一 runtime SHA 的成功 CI；下载并逐图检查现有真实 Chrome screenshots；写入 recovery visual evidence ledger。没有重做已经通过的 Archive/Reader/Search/Revisit 实现，没有改 runtime UI code，没有进入 UIR-03。
+
+本次没有新跑 focused/browser 命令：当前执行环境没有在线 Remote Desktop 设备，且文档 checkpoint 后不应仅为制造新绿灯而重复 Full Suite。复用的是**完全相同 runtime SHA `563de7c…`** 已完成的 PAIA Certification #305 及其真实 browser artifact；后续 runtime code 一旦变化，不能继续拿该 run 代替新验证。
 
 下一次继续点：优先完成 **Source / revision / review presentation + preview-mask regression** 这一自洽子集；先跑相关 focused tests，再跑必要 Chrome smoke。除非该子集暴露跨域回归，不主动触发 Full Suite。完成后再补最终 UIR-02 evidence/report；只有全部功能、截图、视觉检查和最终验证闭环后才改为 COMPLETE。
 
@@ -82,7 +85,7 @@
 
 - Browser 证据来自 GitHub Actions 隔离 Linux/Xvfb + 真实 Google Chrome 与合成 profile，不是用户日常 macOS Chrome profile。
 - macOS secure-store job 认证 CI 路径，不宣称完成真实物理 Secure Enclave 生命周期验证。
-- 当前环境没有在线 Remote Desktop 设备，因此本次 recovery 没有伪称本机执行 focused/browser 命令；使用的是同一 entry HEAD 的已完成 CI 和其真实 artifact。
+- 当前环境没有在线 Remote Desktop 设备，因此本次 recovery 没有伪称本机执行 focused/browser 命令；使用的是同一 entry runtime HEAD 的已完成 CI 和其真实 artifact。
 
 ## 后续更新规则
 
