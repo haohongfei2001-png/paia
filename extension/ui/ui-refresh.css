@@ -53,3 +53,430 @@
   width: 18px;
   height: 18px;
 }
+
+/* UIR-02: Archive stays a bounded metadata list; no body previews are introduced. */
+#uir-archive-main > #search {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--paia-subtle);
+  border-radius: 8px;
+  background: var(--paia-surface);
+  color: var(--paia-text);
+}
+
+#uir-archive-main > #search::placeholder {
+  color: var(--paia-meta);
+}
+
+#uir-archive-main > #result-count {
+  margin: 12px 0 4px;
+  color: var(--paia-meta);
+  font-size: 13px;
+}
+
+body:has(#primary-nav [data-view="library"][aria-current="page"]) #uir-archive-main > #result-count::before {
+  content: "当前范围 · 已显示 ";
+}
+
+#uir-archive-main .conversation-document {
+  width: 100%;
+  min-height: 0;
+  padding: 18px 8px;
+  gap: 7px;
+  border: 0;
+  border-bottom: 1px solid var(--paia-subtle);
+  border-radius: 0;
+  background: transparent;
+  color: var(--paia-text);
+}
+
+#uir-archive-main .conversation-document strong {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 18px;
+  font-weight: 620;
+  line-height: 1.45;
+}
+
+body:has(#primary-nav [data-view="library"][aria-current="page"]) #uir-archive-main .conversation-document .summary {
+  display: none;
+}
+
+#uir-archive-main .conversation-document small {
+  color: var(--paia-meta);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+#uir-archive-main .conversation-document:hover,
+#uir-archive-main .conversation-document:focus-visible {
+  background: var(--paia-hover);
+}
+
+/* Reader shell may breathe; the actual prose keeps the saved 640/680/720px reading width. */
+body.ux-reader-active #document-panel .document-page {
+  width: 100%;
+  max-width: min(960px, 100%);
+  margin: 0 auto;
+}
+
+#document-panel #document-title,
+#document-panel #input-time-order,
+#document-panel #document-body {
+  width: min(100%, var(--paia-prose-width, 680px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#document-panel #document-title {
+  margin-top: 16px;
+  margin-bottom: 20px;
+  font-size: 36px;
+  line-height: 1.3;
+}
+
+#document-panel #input-time-order {
+  margin-top: 0;
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--paia-subtle);
+}
+
+#document-panel #document-body .library-block,
+#document-panel #document-body .archive-block {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+#document-panel #document-body .library-prose:focus-visible {
+  background: var(--paia-surface);
+}
+
+#info-dialog,
+#revision-dialog {
+  background: var(--paia-surface);
+  color: var(--paia-text);
+  border-color: var(--paia-subtle);
+}
+
+#info-dialog pre,
+#revision-dialog pre {
+  background: var(--paia-canvas);
+  color: var(--paia-text);
+}
+
+/* Search is a task in the main workspace, not a modal-looking second app. */
+.workspace.search-task #universal-search-dialog {
+  display: block;
+  width: min(1180px, 100%);
+  max-height: none;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--paia-text);
+  box-shadow: none;
+}
+
+.workspace.search-task .universal-shell {
+  max-height: none;
+  overflow: visible;
+}
+
+.workspace.search-task .universal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--paia-subtle);
+}
+
+.workspace.search-task .universal-header h1 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.25;
+  font-weight: 640;
+  color: var(--paia-text);
+}
+
+.workspace.search-task .universal-close {
+  order: -1;
+  margin: 0;
+  min-height: 40px;
+  padding: 7px 10px;
+  color: var(--paia-secondary);
+  background: transparent;
+}
+
+.workspace.search-task .universal-search-box {
+  padding: 20px 0 12px;
+}
+
+.workspace.search-task .universal-search-box input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--paia-subtle);
+  border-radius: 8px;
+  background: var(--paia-surface);
+  color: var(--paia-text);
+  font-size: 16px;
+}
+
+.workspace.search-task .universal-search-box input::placeholder {
+  color: var(--paia-meta);
+}
+
+.workspace.search-task .universal-filters {
+  margin: 0 0 12px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--paia-subtle);
+  color: var(--paia-secondary);
+}
+
+.workspace.search-task .universal-filters > summary {
+  min-height: 40px;
+  padding: 9px 0;
+  color: var(--paia-secondary);
+}
+
+.workspace.search-task .universal-filters[open] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.workspace.search-task .universal-filters[open] > summary {
+  flex-basis: 100%;
+}
+
+.workspace.search-task .universal-filters select,
+.workspace.search-task .universal-filters input[type="date"] {
+  min-height: 40px;
+  border: 1px solid var(--paia-subtle);
+  border-radius: 8px;
+  background: var(--paia-surface);
+  color: var(--paia-text);
+}
+
+.workspace.search-task .universal-modes,
+.workspace.search-task .universal-status,
+.workspace.search-task .universal-selection,
+.workspace.search-task .universal-results,
+.workspace.search-task .universal-pagination {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.workspace.search-task .universal-modes {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 12px;
+}
+
+.workspace.search-task .universal-modes button[aria-pressed="true"] {
+  background: var(--paia-selected);
+  color: var(--paia-text);
+}
+
+.workspace.search-task .universal-status {
+  min-height: 20px;
+  padding-bottom: 10px;
+  color: var(--paia-meta);
+}
+
+.workspace.search-task .universal-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0 14px;
+  border-bottom: 1px solid var(--paia-subtle);
+}
+
+.workspace.search-task .universal-results {
+  overflow: visible;
+  padding-bottom: 20px;
+}
+
+.workspace.search-task .universal-hit {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 14px;
+  padding: 16px 8px;
+  border-bottom: 1px solid var(--paia-subtle);
+  background: transparent;
+}
+
+.workspace.search-task .universal-hit:has(input[type="checkbox"]:checked) {
+  background: var(--paia-selected);
+}
+
+.workspace.search-task .universal-open {
+  color: var(--paia-text);
+}
+
+.workspace.search-task .universal-open p {
+  color: var(--paia-secondary);
+}
+
+.workspace.search-task .universal-open small {
+  color: var(--paia-meta);
+}
+
+.workspace.search-task .universal-context {
+  color: var(--paia-accent);
+  background: transparent;
+  border: 1px solid var(--paia-subtle);
+}
+
+.workspace.search-task .historical-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--paia-text);
+  background: var(--paia-surface);
+  border: 1px solid var(--paia-subtle);
+}
+
+.workspace.search-task mark.universal-match {
+  background: var(--paia-selected);
+  color: var(--paia-text);
+}
+
+.workspace.search-task .universal-pagination {
+  display: flex;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+/* Revisit remains a light reading task and does not become a debt dashboard. */
+body #revisit-panel {
+  width: min(980px, 100%);
+  max-width: 980px;
+  margin: 0 auto;
+  color: var(--paia-text);
+}
+
+body #revisit-panel > header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--paia-subtle);
+}
+
+body #revisit-panel h1 {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.3;
+  color: var(--paia-text);
+}
+
+body #revisit-panel .revisit-intro {
+  margin: 14px 0 6px;
+  color: var(--paia-secondary);
+}
+
+body #revisit-panel .revisit-section {
+  padding: 22px 0;
+  border-top: 1px solid var(--paia-subtle);
+}
+
+body #revisit-panel .revisit-card {
+  margin: 0;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid var(--paia-subtle);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body #revisit-panel .revisit-card-open {
+  padding: 8px 4px;
+  background: transparent;
+  color: var(--paia-text);
+}
+
+body #revisit-panel .revisit-card-open p {
+  color: var(--paia-secondary);
+}
+
+body #revisit-panel .revisit-card-open small {
+  color: var(--paia-meta);
+}
+
+body #revisit-panel .revisit-more {
+  color: var(--paia-secondary);
+}
+
+@media (max-width: 799px) {
+  #uir-archive-main > #search {
+    min-height: 44px;
+  }
+
+  #uir-archive-main .conversation-document {
+    padding: 16px 4px;
+  }
+
+  #document-panel #document-title {
+    font-size: 28px;
+  }
+
+  .workspace.search-task #universal-search-dialog {
+    width: 100%;
+  }
+
+  .workspace.search-task .universal-header {
+    flex-wrap: wrap;
+  }
+
+  .workspace.search-task .universal-header h1 {
+    font-size: 28px;
+  }
+
+  .workspace.search-task .universal-filters[open] {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .workspace.search-task .universal-filters select,
+  .workspace.search-task .universal-filters input[type="date"] {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .workspace.search-task .universal-hit {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace.search-task .universal-selection button,
+  .workspace.search-task .universal-pagination button,
+  body #revisit-panel button,
+  body #revisit-panel summary {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  body #revisit-panel > header {
+    flex-wrap: wrap;
+  }
+
+  body #revisit-panel h1 {
+    font-size: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace.search-task #universal-search-dialog *,
+  #revisit-panel *,
+  #document-panel * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
