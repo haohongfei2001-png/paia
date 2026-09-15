@@ -17,12 +17,12 @@ async function assertShell(p){
  assert.equal((await p.locator('#workspace-heading').textContent()).trim(),'档案');
  assert.equal(await p.locator('h1:visible').count(),1,'Archive has one visible page-level heading');
  assert.match(await p.locator('#universal-search-open').textContent(),/搜索档案与思想/);assert.equal(await p.locator('#universal-search-open .ux-search-icon').count(),1);assert.equal(await p.locator('#universal-search-open .ux-search-shortcut').count(),1);
- assert.equal(await p.locator('#revisit-open').isVisible(),false,'legacy Revisit launcher is hidden when the Archive auxiliary entry is present');assert.equal(await p.locator('#core-loop-return').isVisible(),true,'the canonical Archive Revisit entry remains reachable');
+ assert.equal(await p.locator('#revisit-open').isVisible(),true,'the existing Revisit contract remains visible and clickable');assert.equal(await p.locator('#revisit-open').evaluate(el=>el.parentElement?.id),'core-loop-home','the canonical Revisit control is moved into the Archive auxiliary surface');assert.equal(await p.locator('#core-loop-return').isVisible(),false,'the proxy Revisit card is not presented as a duplicate control');
  assert.equal(await p.locator('#uir-archive-main').count(),1);assert.equal(await p.locator('#uir-archive-assist').count(),1);assert.equal(await p.evaluate(()=>location.hash+location.search),'','UI refresh must not invent URL routes');
 }
 async function assertLocaleChrome(p){
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.lang)==='en','English shell applies');
- assert.deepEqual(await p.locator('#primary-nav .ux-nav-label').allTextContents(),['Archive','Thought Library','For AI']);assert.equal(await p.locator('#primary-nav .ux-nav-icon').count(),3);assert.match(await p.locator('#universal-search-open').textContent(),/Search Archive & Thoughts/);assert.equal(await p.locator('#universal-search-open .ux-search-icon').count(),1);
+ assert.deepEqual(await p.locator('#primary-nav .ux-nav-label').allTextContents(),['Archive','Thought Library','For AI']);assert.equal(await p.locator('#primary-nav .ux-nav-icon').count(),3);assert.match(await p.locator('#universal-search-open').textContent(),/Search Archive & Thoughts/);assert.equal(await p.locator('#universal-search-open .ux-search-icon').count(),1);assert.match(await p.locator('#revisit-open').textContent(),/Revisit/);
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.lang)==='zh-CN','Chinese shell restores');await assertShell(p);
 }
 async function screenshotArchiveMatrix(p){
