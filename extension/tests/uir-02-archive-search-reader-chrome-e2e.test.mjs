@@ -121,8 +121,8 @@ async function sourceJourney(page,h){
   await page.getByRole('button',{name:/按时间看/}).click();
   await eventually(async()=>await page.locator('.historical-body').count()>0,'historical Search bodies are rendered before presentation masking');
   assert.equal(await page.locator('.historical-body').first().evaluate(el=>getComputedStyle(el).display),'none','preview mask hides Search historical source bodies');
-  await page.getByRole('button',{name:'全部结果'}).click();
-  await eventually(async()=>(await page.getByRole('button',{name:'全部结果'}).getAttribute('aria-pressed'))==='true'&&await page.locator('.universal-open').count()>0,'Search returns to current results');
+  await page.getByRole('button',{name:'全部结果',exact:true}).click();
+  await eventually(async()=>(await page.getByRole('button',{name:'全部结果',exact:true}).getAttribute('aria-pressed'))==='true'&&await page.locator('.universal-open').count()>0,'Search returns to current results');
 
   await page.locator('.universal-open').first().click();
   await eventually(()=>page.locator('#document-panel').isVisible(),'Search result opens Reader');
@@ -216,8 +216,8 @@ async function releaseJourney(page,h){
   await page.getByRole('button',{name:/按时间看/}).click();
   await eventually(async()=>await page.locator('.historical-body').count()>0,'built release history results render');
   assert.equal(await page.locator('.historical-body').first().evaluate(el=>getComputedStyle(el).display),'none','built release masks historical Search bodies');
-  await page.getByRole('button',{name:'全部结果'}).click();
-  await eventually(async()=>(await page.getByRole('button',{name:'全部结果'}).getAttribute('aria-pressed'))==='true'&&await page.locator('.universal-open').count()>0);
+  await page.getByRole('button',{name:'全部结果',exact:true}).click();
+  await eventually(async()=>(await page.getByRole('button',{name:'全部结果',exact:true}).getAttribute('aria-pressed'))==='true'&&await page.locator('.universal-open').count()>0);
   await page.locator('.universal-open').first().click();
   await eventually(()=>page.locator('#document-panel').isVisible(),'built release Search opens Reader');
   assert.match(await page.locator('#document-body').textContent(),/UIR02_TARGET/,'built release Reader full text is not masked');
