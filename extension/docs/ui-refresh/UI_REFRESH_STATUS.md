@@ -1,6 +1,6 @@
 # PAIA Chrome UI Refresh — Execution Status
 
-本文件是 UIR 阶段唯一执行状态。版本 v1.8，2026-09-16。
+本文件是 UIR 阶段唯一执行状态。版本 v1.9，2026-09-16。
 
 ## Baseline / branch / checkpoints
 
@@ -13,6 +13,7 @@
 - UIR-03 entry audit HEAD：`fa48fd5b284e6208c3833b68f4ba5fe4a46f2128`；开始时与远端分支 identical，无未知提交。
 - UIR-03 Execution 01 runtime/test HEAD：`bc4fe4a1c390850809c45d947a44d651f88d678f`；Certification `#314` / run `35028697337` — **SUCCESS**。
 - UIR-03 Execution 02 最终 runtime/test HEAD：`b6a3cfea75c401df8ba940620bef52c8fe4bc933`；Certification `#320` / run `35043264919` — **SUCCESS**。
+- UIR-03 Execution 03 最终 runtime/test HEAD：`ce4c0cb865c5b558d09f8483c3699199a2e98883`；Certification `#324` / run `35047605444` — **SUCCESS**。
 - 每次 execution 重新解析实时 branch HEAD；状态文件不追写自引用 HEAD。
 - main 未 merge、未部署。
 
@@ -37,6 +38,7 @@
 - Thought 首页 owner：`ThoughtWorkspace.paintHome()` / `paintRecent()`；Topic identity、stable ordering、layout preference、local search、recent read 已存在。
 - Topic Original owner：`renderDocument()` / `entryNode()`；Topic heading/body、Section/Entry editors、Source compare、revision、provenance、mobile Edit/Done 已存在。
 - `thoughts.js` 继续拥有 `switchView()`、首次 AI 生成、candidate save、per-topic view session；不得绕过。
+- Candidate presentation owner：`ui/ai-candidate.js`；candidate durable state、staged choices、pre-save flush、expectedRevision 与 CAS 仍由既有 `ThoughtWorkspace.renderCandidate()` / `saveCandidate()` 和服务端 owner 负责。
 - UIR-03 只授权 presentation / interaction；不新增 durable data、Provider 行为、授权、schema、AI runner、CAS 或业务算法。
 
 ## Execution 01 — Thought 首页 + Topic shell / Original — COMPLETE subset
@@ -85,25 +87,55 @@ Runtime/test commit：`bc4fe4a1c390850809c45d947a44d651f88d678f`。
 - Processing 最终图只保留顶部真实 in-flight 状态；重复 first-generation 生成卡已消失，Original 仍直接可读。
 - Organized light/dark 与 built release 保持同一信息层级；没有发现亮白泄漏、明显裁切、厚卡回退或需要继续修改本子集 runtime 的视觉问题。
 
+因此 **Execution 02 子集闭环**。
+
+## Execution 03 — Candidate comparison — COMPLETE subset
+
+最终 runtime/test HEAD：`ce4c0cb865c5b558d09f8483c3699199a2e98883`。
+
+### Presentation / ownership
+
+- `ui/ai-candidate.js` 仍只渲染现有 candidate：每个真实 changed field 显示“当前稿 / 更新候选”，宽屏并列；comparison min column 为 `450px`，因此不大于 900px 的可用容器按 DOM 顺序转为单列。
+- adopt / keep 仍写入现有页面内 staged choices；没有把选择展示成已持久化。只有每个 changed field 都处理后，底部唯一保存入口才可用；保存继续走既有 `saveCandidate()`、AI editor flush、candidate key、expectedRevision 与 CAS。
+- stale candidate 仍保留当前稿、旧候选和已暂存选择意图；adopt / keep 控件禁用、旧保存入口不存在，只允许重新更新。没有把 stale UI 变成绕过 CAS 的恢复路径。
+- candidate DOM 重建继续恢复键盘焦点；Topic 内重开/resize 不因 presentation 重排清空同一 candidate key 的 choices。
+- `tests/uir-03-ai-candidate-chrome-e2e.test.mjs` 覆盖 source + built release、1440 双栏、900/390 单栏、light/dark、staged-vs-saved、一次原子保存、stale、零隐藏 Provider 请求与代表截图。
+- 未修改 core candidate/CAS 服务、Provider、AI runner、预算、durable schema、background、adapter、content、manifest 或 Preview mask。
+
+### Validation — #324
+
+- Certification `#324` / run `35047605444`：**SUCCESS**；head SHA `ce4c0cb865c5b558d09f8483c3699199a2e98883`。
+- Full Suite：**1093 / 1093 PASS**；unit `909` / browser E2E `37` / adapter contract `95` / privacy-security `52`；新 UIR-03 Candidate test 明确 PASS。
+- Current Browser step 8：**32 / 32 PASS**；complete current browser suite：**37 / 37 PASS**；UIR-03 Candidate test 再次明确 PASS。
+- 既有 UX-R5 candidate/update、IME/keyboard/stale visual matrix、provider failure 与 `outcome_unknown` 路径同时 PASS；没有降低旧断言。
+- Package/development guards：`PASS: 8446 package guardrails across 197 runtime resources`；`DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS`。
+- 4 个 unit shards、Adapter/privacy、Current release build/guards、macOS Secure Store CI path、最终 Certification Gate：全部 SUCCESS。
+- Full-suite receipt artifact：`10428615254`，digest `9771b01794964a6f21348e3d9ac62fb2ab1dbbe6e935ecb434a2307c97e266a1`。
+
+### Visual evidence
+
+- 最终 UX-R3 artifact：`10427763459`，digest `df1c10c7f3c13af4d95fa02b57b56585443fc12e76c04f90cdc4e67a85ffcb3b`。
+- Checkpoint visual review：`evidence/UIR-03/EXECUTION_03_VISUAL_REVIEW.md`。
+- 人工打开并检查 6 张最终 PNG：Candidate 1440 light/dark、900 light、390 light、stale 1440 light、built-release Candidate 1440 light。
+- 1440 当前稿/候选关系清楚；900/390 正确转单列且未见明显根级横向溢出；dark 没有亮白块或低对比度回归；stale 可见保留选择意图但禁用旧操作，保存入口消失；built release 与 source 一致。
+
 ### 诊断历史
 
-- `#316` / `752d5491…`：实质 browser/full-suite/guards 步骤通过，但 Current Browser 恰好撞到 30 分钟 job timeout，最终被 GitHub 记 `cancelled`；不是产品断言失败。
-- `#319` / `d49df626…`：Certification 全绿，但最终 processing PNG 人工检查发现首次生成卡会被 optional status refresh 再创建，因此没有把视觉子集误标完成。
-- `b6a3cfea…` 修正 `readRefresh()` 的 in-flight 创建条件并新增直接 Chrome 回归断言；`#320` 功能、回归、guards、artifact 与最终视觉全部通过。
+- `#323` / `42c040938a3c31720588f594304aa8ae4245a551` 的短 gate 通过，但旧 UX-R5 candidate visual matrix 在 1440 light 测得最低文字对比度 `3.925322502977779`，低于既有 `4.5` 门槛，因此没有收口。
+- `ce4c0cb865c5b558d09f8483c3699199a2e98883` 只修 Candidate supporting copy 的颜色层级；`#324` 随后通过旧 visual matrix、新 UIR-03 Candidate acceptance 与全部 current-release gate。
 
-因此 **Execution 02 子集闭环**，但 UIR-03 整轮仍为 **IN_PROGRESS**。
+因此 **Execution 03 子集闭环**，但 UIR-03 整轮仍为 **IN_PROGRESS**。
 
 ## UIR-03 仍需完成
 
-1. **Candidate comparison**：当前稿/候选并列关系、逐字段 adopt/keep、staged vs saved、stale/CAS、≤900px 单列、IME/focus/resize；必须继续沿用现有 candidate 与 save owner，不复制第二套状态/数据模型。
-2. **Preview mask**：Topic card summary/sourceHint 与材料 preview 的新/移动 class 同步 R6 mask；明确打开正文不误遮，也不把隐藏正文搬进 title/ARIA。
-3. **整轮最终封口**：完成剩余子集后再做最终 focused/guards/release/current browser/Full Suite、代表 PNG 与人工视觉验收、`evidence/UIR-03/VISUAL_REVIEW.md`、`rounds/UIR_03_REPORT.md`；全部闭环后才能把 UIR-03 标记 COMPLETE。
+1. **Preview mask**：Topic card summary/sourceHint 与相关材料 preview 的新/移动 class 同步 R6 mask；明确打开的 Topic Original / Organized / evidence 正文不误遮，也不把被遮正文搬进 title 或 aria-label。
+2. **整轮最终封口**：Preview mask 子集闭环后，再做 UIR-03 最终 focused/guards/release/current browser/Full Suite、最终代表 PNG 与人工视觉验收、`evidence/UIR-03/VISUAL_REVIEW.md`、`rounds/UIR_03_REPORT.md`；全部闭环后才能把 UIR-03 标记 COMPLETE。
 
 ## 下一次继续点
 
-先重新解析 `chrome-ui-refresh-v1` 真实 HEAD，确认 `b6a3cfea…` 与本 checkpoint docs 都在远端；不要重做 Thought home / Topic Original / Organized runtime state。
+先重新解析 `chrome-ui-refresh-v1` 真实 HEAD，确认 Execution 03 runtime/test 与本 checkpoint docs 都在远端；不要重做 Thought home / Topic Original / Organized / Candidate comparison。
 
-下一自洽 execution 只做 **Candidate comparison**：先审计 `ui/ai-candidate.js`、`ThoughtWorkspace.renderCandidate()` / `saveCandidate()` 与现有 UX-R5 candidate tests；保持当前稿不被候选静默覆盖、选择只 staged 到显式保存、stale/CAS fail closed、窄屏单列、IME/focus/resize 正常。Preview mask 原则上留到后一个 execution。
+下一自洽 execution **只做 Preview mask**：审计 R6 当前 `html.paia-hide-content-previews` selector、Thought home Topic card 的 summary/sourceHint class、Organized/related-material preview class 与明确全文边界；只补 presentation selector / 必要 class，不新增正文副本、title/ARIA 泄漏、Provider 行为或业务写入。
 
 UIR-03 必须保持 **IN_PROGRESS**；不得进入 UIR-04，不 merge main，不部署。
 
