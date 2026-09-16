@@ -1,6 +1,6 @@
 # PAIA Chrome UI Refresh — Execution Status
 
-本文件是 UIR 阶段唯一执行状态。版本 v1.14，2026-09-16。
+本文件是 UIR 阶段唯一执行状态。版本 v1.15，2026-09-17。
 
 ## 1. Baseline / branch / current state
 
@@ -11,7 +11,7 @@
 - UIR-02：**COMPLETE**
 - UIR-03：**COMPLETE**
 - UIR-04：**IN_PROGRESS**
-- 当前 implementation round：**UIR-04**；**Execution 01 — Context / MaterialTray presentation COMPLETE**。下一 execution：**Execution 02 — Settings shell / six-group owner audit（NOT_STARTED）**。
+- 当前 implementation round：**UIR-04**；**Execution 02 — Settings shell / six-group owner audit COMPLETE**。下一 execution：**Execution 03 — Data & devices / Backup + restore + complete/open export presentation（NOT_STARTED）**。
 - `main` 未 merge，未部署，未发布。
 
 下一次 execution 必须重新解析 GitHub 上 `chrome-ui-refresh-v1` 的真实 HEAD。STATUS 不追写包含自身的 closure SHA。
@@ -140,14 +140,27 @@ UIR-04 于 branch entry `b2201ea41e4af032358135607c6685e4138822e3` 开始。PR #
 
 UIR-04 **仍为 IN_PROGRESS**。Execution 01 完成不等于整轮完成；本 checkpoint 不切 PR Ready、不运行 round-final full certification、不 merge `main`、不部署、不发布。
 
-### Next entry — Execution 02 — Settings shell / six-group owner audit
+### Execution 02 — Settings shell / six-group owner audit — COMPLETE
 
-下一 execution 必须先重新解析 GitHub 上 `chrome-ui-refresh-v1` 的真实 HEAD，再读取本 STATUS、`CI_WORKFLOW.md`、UIR-04 任务书与 Execution 01 visual review。只从 Settings 继续：
+- Runtime/test HEAD：`a81fa050d0ed1b386075d53e1b329733a9d503fc`；父提交精确为 `cc4d65f66a5f9c13e792f5e79c0b7256007d996b`。
+- `core-loop.setupSettingsShell` 继续只做 presentation projection；同一现有控件/handler 不复制。六组 owner 清单与 release 状态记录于 `evidence/UIR-04/EXECUTION_02_VISUAL_REVIEW.md`。
+- Settings 唯一可见 h1；desktop 使用 180px 分组导航 + `minmax(0,840px)` 正文、32px gap；<800px 用同一个 `#ux-settings-group-switch` 切换当前组，六个 desktop tabs 隐藏。
+- mobile 往返切组后 `#memory-settings` 仍为同一 DOM owner；导航 focus 保持；语言切换同步 tab / heading / option；保存失败继续由原 handler 回滚同一 control。
+- source + built release focused journey 验证 owner 唯一性、release transform、暂停状态不被 Settings 打开动作改变、0 unexpected network。
+- 本地 checkpoint：UIR-04 Settings `1/1`、UX-R3 `17/17`、UX-R4 + Round48 `7/7`、privacy/security `52/52`；package guard `8446` PASS；`DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS`；current release `8018` guards / 214 files / `RELEASE_PRODUCT_GUARD_PASS`。
+- PR #31 Draft Development Gate run `35153174080`：**SUCCESS**；head 精确为 `a81fa050...`。Full Certification `#332` / run `35153174083`：**SKIPPED as designed**。
+- Visual evidence：`evidence/UIR-04/EXECUTION_02_VISUAL_REVIEW.md`。
 
-1. 固定 `core-loop.setupSettingsShell`、`r6-settings.js`、现有 controller/handler 与 release transform 的真实 owner；先做旧 selector / owner → 六组归属清单，不复制控件。
-2. 实现 Settings 自身唯一 h1、desktop 180px 组导航 + `minmax(0,840px)` 正文、<800px 同一导航的窄屏切换；保持同一控件/handler、focus 与保存语义。
-3. 本 execution 优先完成 Settings shell 与六组 owner projection；Backup/恢复/开放导出、Popup/本机工具若无法在同一自洽 execution 内完成，留在后续 UIR-04 execution，不为了“做完”混入 Context 或 core 语义修改。
-4. Context Execution 01 已闭环；除 Settings 改动证明造成跨页回归外，不重做 MaterialTray presentation。
+UIR-04 **仍为 IN_PROGRESS**。Execution 02 完成不等于整轮完成；PR #31 继续 open + Draft，不 merge `main`、不部署、不发布。
+
+### Next entry — Execution 03 — Data & devices / Backup + restore + complete/open export presentation
+
+下一 execution 必须先重新解析 GitHub 上 `chrome-ui-refresh-v1` 的真实 HEAD，再读取本 STATUS、`CI_WORKFLOW.md`、UIR-04 任务书与 Execution 02 visual review。只从数据与设备继续：
+
+1. 保留现有 `BackupController`、Backup format/restore/tombstone、`OpenExportWriter` 与 download 行为；只整理现有 Backup / restore / complete JSON/Markdown / scoped Source Records 的层级和现场说明。
+2. 继续投影真实 `navigator.storage.estimate()`、last-successful-backup 与“当前无设备同步”事实；未知值不伪造百分比或容量。
+3. source 与 built current release 都要证明同一 owner、无重复动作、恢复仍为 inspect → preview → explicit confirm → restore，release transform/cut anchors 不放宽。
+4. Popup / 本机工具、跨页最终一致性和 round-final certification 留给后续 UIR-04 execution；不进入 UIR-05。
 
 ## 7. Recovery / timeout rule
 
