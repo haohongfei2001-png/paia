@@ -1,6 +1,8 @@
 .r6-privacy-preview,.r6-data-exit{margin-top:16px;padding-top:16px;border-top:1px solid var(--paia-line,#dfe5dc)}
 .r6-data-exit h3{margin:0 0 8px;font-size:15px}.r6-export-actions{display:flex;gap:8px;flex-wrap:wrap}.r6-export-actions button{min-height:40px}
 html.paia-hide-content-previews .topic-index-row .summary,
+html.paia-hide-content-previews .topic-action-content:has(> .topic-choice-list) > .topic-selection-preview,
+html.paia-hide-content-previews .topic-action-content details > .topic-selection-preview,
 html.paia-hide-content-previews .universal-open p,
 html.paia-hide-content-previews .universal-results .historical-body,
 html.paia-hide-content-previews .revisit-card-open p{display:none!important}
