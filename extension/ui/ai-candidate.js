@@ -18,7 +18,7 @@ export function renderAICandidateComparison(root,{candidate,current,choices,onCh
  const header=element('header','ai-candidate-header');header.append(element('p','eyebrow','AI整理更新'),element('h2','',candidate.stale?'更新候选已过期':'核对更新候选'),element('p','muted',candidate.stale?'当前稿或主题材料在候选生成后又发生了变化。已暂存的选择仍显示在下方，但旧候选不能保存；重新更新后再核对。':'当前稿不会自动改变。逐段比较“当前稿”和“更新候选”，为每个实际变化选择采用或保留；所有选择只暂存在本页，最后一次保存。'));panel.append(header);
  for(const field of candidate.changedFields||[]){
   const label=LABELS[field]||field,card=element('section','ai-candidate-field');card.dataset.aiCandidateField=field;const heading=element('h3','',label);heading.id=`ai-candidate-${field}`;card.setAttribute('aria-labelledby',heading.id);card.append(heading);
-  const compare=element('div','ai-candidate-compare'),before=element('div','ai-candidate-version'),after=element('div','ai-candidate-version');compare.style.gridTemplateColumns='repeat(auto-fit,minmax(min(430px,100%),1fr))';
+  const compare=element('div','ai-candidate-compare'),before=element('div','ai-candidate-version'),after=element('div','ai-candidate-version');compare.style.gridTemplateColumns='repeat(auto-fit,minmax(min(450px,100%),1fr))';
   before.dataset.candidateVersion='current';before.setAttribute('aria-label',`${label} · 当前稿`);after.dataset.candidateVersion='proposal';after.setAttribute('aria-label',`${label} · 更新候选`);
   before.append(element('strong','','当前稿'),element('p','entry-prose',text(current[field])||'（空）'));
   after.append(element('strong','','更新候选'),element('p','entry-prose',text(candidate.proposal?.[field])||'（空）'));
