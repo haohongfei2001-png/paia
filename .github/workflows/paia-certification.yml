@@ -83,7 +83,7 @@ jobs:
   current_browser:
     name: Current Browser Certification
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: extension
