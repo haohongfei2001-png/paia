@@ -70,7 +70,7 @@ UIR browser 文件按 `uir-<round>-...-chrome-e2e.test.mjs` 命名后会自动�
 - 它们全部仍属于 current `browser E2E`；
 - 所有 UIR browser 文件也属于 current `browser E2E`。
 
-`npm run test:browser` 自身仍执行 package/development audits，因此不需要在同一 job 再重复一次相同 guards。最终测试集合、断言、阈值、F-LARGE、privacy/security 与 mandatory jobs没有减少。
+`npm run test:browser` 自身仍执行 package/development audits，因此不需要在同一 job 再重复一次相同 guards。最终测试集合、断言、阈值、F-LARGE、privacy/security 与 mandatory jobs 没有减少。
 
 ## 6. Agent 执行规则
 
@@ -99,3 +99,51 @@ UIR browser 文件按 `uir-<round>-...-chrome-e2e.test.mjs` 命名后会自动�
 - Full certification 失败：不得用 fast gate 替代；必须修复后重新 final certification。
 - 不删除测试、不降 threshold、不把 current test 移入 historical、不增加单测/browser test timeout 掩盖竞态。
 - CI job 的 wall-clock budget 可以只为允许原测试完整结束而调整，但必须记录原因，不得替代竞态修复。
+
+## 8. 机制验收 — 2026-09-16
+
+实施 commit：`f7a825182f47d8c7820f2647def96705d0e7404a` (`ci(ui): add fast UIR development gate`)。
+
+### Draft / development mode
+
+PR #31 保持 Draft 后，同一 HEAD 的实际结果：
+
+- Full `PAIA Certification` `#329` / run `35080686792`：**SKIPPED as designed**；没有启动原 20–30 分钟完整链。
+- `PAIA UI Refresh Development Gate` run `35080686871`：**SUCCESS**。
+- 4 unit shards：SUCCESS。
+- Adapter/privacy contracts：SUCCESS。
+- UI Refresh Browser + Release：SUCCESS；包含 current release build、coverage contract、全部现有 UIR Chrome journeys 与 package/development guards。
+- aggregate `UI Refresh Development Gate`：SUCCESS。
+
+这证明普通 UIR execution 的 runtime/test push 可以只走快速开发验证。
+
+### Ready / final-certification mode
+
+随后 Agent 临时将 PR #31 切为 Ready，在**同一个 branch HEAD** 上实际触发完整认证：
+
+- Full `PAIA Certification` `#330` / run `35081073772`：**SUCCESS**。
+- tested branch HEAD：`f7a825182f47d8c7820f2647def96705d0e7404a`。
+- PR merge test ref：`89e07df862937e41ec37c833c2633abd2977f542`，仅为 PR test ref，不代表 merge `main`。
+- Full Suite：**1094 / 1094 PASS**；unit 909 / browser E2E 38 / adapter contract 95 / privacy-security 52。
+- Current Browser：**38 / 38 PASS**。
+- 4 unit shards、Adapter/privacy、Current release、macOS Secure Store、Certification gate：全部 SUCCESS。
+- package guard：`8446` PASS；`DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS`。
+- Full-suite receipt：`fullSuite=true auditPassed=true historicalBrowserFiles=76`。
+- input digest：`99f792446a2b8a53ab1a17598c45d51f36a706a2a8c7e9604ccdc42536e26612`。
+- full-suite artifact：`10440612642`；ZIP SHA-256 `ffa9a695c8d1332ffe5f8eee0186af04558f0406680f6064a9c40c37c1f6d991`。
+
+认证成功后 Agent 已把 PR #31 恢复为 **Draft**。
+
+### 去重效果
+
+旧 #328 Current Browser 在同一 job 里先跑 32 个 core tests，再跑完整 38-test current suite，整体约 27 分钟。#330 删除第一遍重复执行后，Current Browser 约 15–16 分钟结束，同时仍是 **38 / 38 PASS**。
+
+`check-ui-refresh-ci.mjs` 在运行前验证旧 11 个 core browser 文件全部仍在 current group，且所有 UIR browser tests 自动进入 current group；因此减少的是重复执行，不是测试覆盖。
+
+## 9. 当前交接状态
+
+- PR #31：open、unmerged、**Draft**。
+- UIR-01/02/03：COMPLETE。
+- UIR-04：NOT_STARTED。
+- 下一 UIR execution 直接按 `UI_REFRESH_STATUS.md` 开始 UIR-04 entry audit；开发阶段保持 Draft fast mode。
+- 用户无需手工管理 Draft/Ready、Actions 或 test registration；Agent 按本文件自行完成。

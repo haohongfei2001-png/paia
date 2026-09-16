@@ -1,117 +1,160 @@
 # PAIA Chrome UI Refresh — Execution Status
 
-本文件是 UIR 阶段唯一执行状态。版本 v1.11，2026-09-16。
+本文件是 UIR 阶段唯一执行状态。版本 v1.12，2026-09-16。
 
-## Baseline / branch / checkpoints
+## 1. Baseline / branch / current state
 
 - 仓库：`haohongfei2001-png/paia`
-- 冻结 main：`c7d132a7359c82a3402a1fbcfbf4d618c0e4d17e`
-- 唯一开发分支：`chrome-ui-refresh-v1`
-- UIR-01 最终认证代码 HEAD：`d2e6f92f1a73c7a092f2dd24429a098a312cf6ad`
-- UIR-02 最终认证代码/测试 HEAD：`786eeee7d5a31c4d49e2b0e56dc834a57dcd07bd`；Certification `#310` / run `35018869252` — **SUCCESS**。
-- UIR-02 docs closure / UIR-03 entry：`fa48fd5b284e6208c3833b68f4ba5fe4a46f2128`。
-- UIR-03 Execution 01 runtime/test HEAD：`bc4fe4a1c390850809c45d947a44d651f88d678f`；Certification `#314` — **SUCCESS**。
-- UIR-03 Execution 02 final runtime/test HEAD：`b6a3cfea75c401df8ba940620bef52c8fe4bc933`；Certification `#320` — **SUCCESS**。
-- UIR-03 Execution 03 final runtime/test HEAD：`ce4c0cb865c5b558d09f8483c3699199a2e98883`；Certification `#324` — **SUCCESS**。
-- UIR-03 Execution 04 runtime/test HEAD：`02cad33c0af62c8f6586bf97b34e4265d16fe3ec`；Certification `#325` — **SUCCESS**。
-- UIR-03 final certification branch HEAD：`0b7c7d966a51c1e8e5ddf68d91849b8132b65e10`；Certification `#328` / run `35069245744` — **SUCCESS**。
-- STATUS 记录被认证代码/测试 HEAD，不追写包含自身的 docs closure SHA；下一次 execution 仍必须重新解析 GitHub 真实 branch HEAD。
-- main 未 merge、未部署。
+- 冻结 `main`：`c7d132a7359c82a3402a1fbcfbf4d618c0e4d17e`
+- 唯一 UI Refresh 开发分支：`chrome-ui-refresh-v1`
+- UIR-01：**COMPLETE**
+- UIR-02：**COMPLETE**
+- UIR-03：**COMPLETE**
+- UIR-04：**NOT_STARTED**
+- 当前没有已开始的 implementation round。
+- `main` 未 merge，未部署，未发布。
 
-## 当前状态
+下一次 execution 必须重新解析 GitHub 上 `chrome-ui-refresh-v1` 的真实 HEAD。STATUS 不追写包含自身的 closure SHA。
 
-- 设计交付：**READY**。
-- UIR-01：**COMPLETE**。
-- UIR-02：**COMPLETE**。
-- UIR-03：**COMPLETE**。
-- UIR-04：**NOT_STARTED**。
-- 当前没有已开始的 implementation round；本次 execution 在 UIR-03 closure 结束。
-
-| Round | Status | 任务书 | 实施报告 |
+| Round | Status | 任务书 | 报告 |
 |---|---|---|---|
 | UIR-01 | **COMPLETE** | `rounds/UIR_01_SHELL_AND_ARCHIVE_FRAME.md` | `rounds/UIR_01_REPORT.md` |
 | UIR-02 | **COMPLETE** | `rounds/UIR_02_ARCHIVE_SEARCH_READER.md` | `rounds/UIR_02_REPORT.md` |
 | UIR-03 | **COMPLETE** | `rounds/UIR_03_THOUGHT_AND_AI_PRESENTATION.md` | `rounds/UIR_03_REPORT.md` |
 | UIR-04 | **NOT_STARTED** | `rounds/UIR_04_CONTEXT_SETTINGS_AND_ACCEPTANCE.md` | 尚无 |
 
-## UIR-03 closure summary
+## 2. Certified checkpoints
 
-### Execution 01 — Thought home / Topic Original
+- UIR-01 final certified runtime：`d2e6f92f1a73c7a092f2dd24429a098a312cf6ad`
+- UIR-02 final certified runtime/test：`786eeee7d5a31c4d49e2b0e56dc834a57dcd07bd`；Certification `#310` / run `35018869252` — **SUCCESS**
+- UIR-02 docs closure / UIR-03 entry：`fa48fd5b284e6208c3833b68f4ba5fe4a46f2128`
+- UIR-03 final certified branch HEAD：`0b7c7d966a51c1e8e5ddf68d91849b8132b65e10`；Certification `#328` / run `35069245744` — **SUCCESS**
+- UIR-03 docs closure：`6a9e603eff58ef0f07351847a2d95d4aa7a6f857`
+- UI Refresh CI cadence implementation：`f7a825182f47d8c7820f2647def96705d0e7404a` (`ci(ui): add fast UIR development gate`)
 
-- Thought 首页 grid/list、recent、tool row 与 Topic card presentation 收敛；保留真实 name、existing summary/sourceHint、Topic ID、稳定排序与 layout preference。
-- Topic shell 拓宽，但 Original 正文继续服从保存的 reading width；bodyBinding、editor、revision、provenance、Source compare、mobile Edit/Done owner 不变。
-- Browser acceptance：`uir-03-thought-original-chrome-e2e.test.mjs` source + built release。
+UIR-03 的完整实现、视觉证据和边界以 `rounds/UIR_03_REPORT.md` 与 `evidence/UIR-03/VISUAL_REVIEW.md` 为准；不要在 UIR-04 重做 UIR-03。
 
-### Execution 02 — Organized / truthful runtime state
+## 3. UI Refresh CI cadence — VALIDATED
 
-- Organized 主面只由已有 `blockSummary/currentView`、思考线索/evidence 与其他非空保存字段组成；不虚构固定思想阶段。
-- 映射真实 `prepared/sent/response_received/validated/candidate/stale/outcome_unknown/failed/unavailable` 状态；处理中当前稿持续可读。
-- 首次生成仍需显式确认；cache switch/status/reopen/resize/theme 不产生隐藏 Provider 请求。
-- Browser acceptance：`uir-03-ai-presentation-chrome-e2e.test.mjs` source + built release。
+执行节奏的权威文件：`CI_WORKFLOW.md`。从现在开始，任何 UIR execution 在读取本 STATUS 后都必须读取它。它只改变验证调度，不放宽产品、隐私、授权、删除、数据所有权、测试断言或 round COMPLETE 标准。
 
-### Execution 03 — Candidate comparison
+### PR #31
 
-- 当前稿/更新候选使用现有 candidate owner；adopt/keep 只做 staged choices，全部变更字段处理后才允许一次 guarded save。
-- stale 保留当前稿、候选与选择意图，但禁止旧保存，不放宽 CAS。
-- 1440/900/390、dark、stale、built release 在 #324 闭环；final closure 另补任务书明确点名的 1024 viewport evidence，未改 runtime。
-- `3b53ded…` 只修 Candidate browser test 在 `ARCHIVE_CHANGED` 后的 route/reopen synchronization，没有删除/降低 Candidate/CAS/Provider/network 断言。
-- Browser acceptance：`uir-03-ai-candidate-chrome-e2e.test.mjs` source + built release。
+- PR #31：`chrome-ui-refresh-v1 → main`
+- 用途：**CI-only validation，永不 merge**
+- 当前应保持：**open + Draft**
+- **Draft = development mode**
+- **Ready for review = round-final full-certification mode**
+- Draft/Ready 切换由 Agent 自己完成；用户不需要操作 GitHub UI。
 
-### Execution 04 — Preview mask
+### Development mode
 
-- R6 mask 覆盖 Topic card summary/sourceHint 与 Topic action selection/quote material preview。
-- 不全局隐藏 `.topic-selection-preview`；明确 compare/full-body、Original、Organized、evidence 仍可读。
-- 检查被遮正文不复制到 `title` / `aria-label`。
-- Browser acceptance：`uir-03-preview-mask-chrome-e2e.test.mjs` source + built release。
+普通 UIR runtime/test push 时，PR #31 保持 Draft：
 
-## UIR-03 final diff boundary
+- 完整 `PAIA Certification` 对该 Draft UIR PR 跳过；
+- 自动运行 `PAIA UI Refresh Development Gate`；
+- 快速 gate 包含 4 unit shards、Adapter/privacy、current release build、全部 `uir-*-chrome-e2e.test.mjs`、package/development guards 和 aggregate gate；
+- 不在每个小 execution 重复 1094 Full Suite、完整 UX/F-LARGE browser matrix、macOS Secure Store final certification。
 
-从 entry `fa48fd5…` 到 certified HEAD `0b7c7d…` 的 product presentation runtime 只涉及：
+验证事实：
 
-- `ui/thought-reader.css`
-- `ui/thoughts.js`
-- `ui/ai-presentation.js`
-- `ui/ai-candidate.js`
-- `ui/r6.css`
+- CI implementation HEAD：`f7a825182f47d8c7820f2647def96705d0e7404a`
+- Draft 下 Full Certification `#329` / run `35080686792`：**SKIPPED as designed**
+- `PAIA UI Refresh Development Gate` run `35080686871`：**SUCCESS**
+- 4 unit shards、Contracts、UI Refresh Browser + Release、package/development guards、aggregate gate：全部 SUCCESS
 
-另有 4 个 UIR-03 browser tests、current browser test registration、本轮 docs/evidence，以及 `.github/workflows/paia-certification.yml` 的 Current Browser job wall-clock `30 → 40`。该 CI 调整没有改变 test timeout、suite 内容、顺序、断言或 threshold；它只允许原串行 32 + 38 browser gate 在当前规模下完整结束。
+### Final-certification mode
 
-没有 durable schema、core/business write、Provider runner、authorization、background、adapter、content、manifest、backup format、migration 或 native-host 修改。
+当前 round 的 runtime/tests 冻结、fast gate 通过、准备正式 COMPLETE 时：
 
-## Final certification — #328
+1. Agent 核对 PR #31 head 等于待认证 branch HEAD；
+2. Agent 将 PR #31 临时切为 Ready for review；
+3. 完整 `PAIA Certification` 自动运行；
+4. Unit 1/4～4/4、Adapter/privacy、Current Browser、Full Suite、macOS Secure Store、Current release、Certification gate 必须全部 SUCCESS；
+5. 若失败，Agent 先把 PR #31 切回 Draft，再修复；fast gate 不能替代最终认证；
+6. 成功后 Agent 立即将 PR #31 切回 Draft，再写 report/evidence/STATUS closure。
 
-Run `35069245744`，branch HEAD `0b7c7d966a51c1e8e5ddf68d91849b8132b65e10` — **SUCCESS**。
+端到端机制已在同一 CI implementation HEAD 上实际验证：
 
-- Full Suite：**1094 / 1094 PASS**；unit 909 / browser E2E 38 / adapter contract 95 / privacy-security 52。
-- Current Browser core journey：**32 / 32 PASS**。
-- Complete current browser suite：**38 / 38 PASS**。
-- 四个 UIR-03 专用 browser tests：全部 PASS。
-- Package/development guards：`8446` package guardrails PASS；`DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS`。
-- 4 unit shards、Adapter/privacy、Current release build/guards、macOS Secure Store CI path、Certification gate：全部 SUCCESS。
-- Current release artifact：`10435094698`，digest `463493fa…4fbb18`。
-- Final full-suite receipt artifact：`10436906920`，digest `9aa5ed90…3c340`。
-- Final UX-R3 artifact：`10435977874`，digest `aaaedf7e…f6a613`。
-- Final visual review：`evidence/UIR-03/VISUAL_REVIEW.md` — **PASS**。
+- Ready 后 Full Certification `#330` / run `35081073772`：**SUCCESS**
+- tested branch HEAD：`f7a825182f47d8c7820f2647def96705d0e7404a`
+- PR merge test ref：`89e07df862937e41ec37c833c2633abd2977f542`（仅 PR test ref，不是 merge `main`）
+- Full Suite：**1094 / 1094 PASS**；unit 909 / browser E2E 38 / adapter contract 95 / privacy-security 52
+- Current Browser：**38 / 38 PASS**
+- package guard：`8446` PASS
+- `DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS`
+- 4 unit shards、Adapter/privacy、release、macOS Secure Store、Certification gate：全部 SUCCESS
+- Full-suite receipt：`fullSuite=true auditPassed=true historicalBrowserFiles=76`
+- input digest：`99f792446a2b8a53ab1a17598c45d51f36a706a2a8c7e9604ccdc42536e26612`
+- full-suite artifact：`10440612642`；ZIP SHA-256 `ffa9a695c8d1332ffe5f8eee0186af04558f0406680f6064a9c40c37c1f6d991`
+- Full certification 成功后 PR #31 已恢复 **Draft**。
 
-## Closure diagnostics retained
+## 4. Current Browser optimization boundary
 
-- #326 的失败是 Candidate test 首次 update 后 route repaint 导致隐藏 Back locator timeout；只修 test synchronization，runtime 未改。
-- #327 的 Full Suite 已 1094/1094，Current Browser core 与四个 UIR-03 tests 也已通过，但整个 browser job 在约 30 分钟被 job wall-clock 取消。
-- #328 只增加 Current Browser job 的总 wall-clock budget 后，原 suite 完整跑完并 SUCCESS；没有以 skip、降 threshold、删 F-LARGE 或放宽业务断言收口。
+旧 Current Browser job 在同一 job 中：
 
-## Next allowed round
+1. 先显式串行跑 11 个 core browser 文件（32 tests）；
+2. 再 `npm run test:browser`，把这些文件作为 current browser 集合的一部分再次跑一遍。
 
-下一正式 round 是 **UIR-04 — Context / Settings / Acceptance**，但当前保持 **NOT_STARTED**。任何后续 UIR-04 execution 必须：
+现在删除第 1 次重复执行，只保留一次完整 `npm run test:browser`。覆盖没有减少：
 
-1. 重新解析 `chrome-ui-refresh-v1` 远端真实 HEAD；
-2. 在同一 ref 读取 README、SPEC、本 STATUS、`rounds/UIR_03_REPORT.md` 和 `rounds/UIR_04_CONTEXT_SETTINGS_AND_ACCEPTANCE.md`；
-3. 先做 UIR-04 entry/owner 审计，再选择第一个自洽 subset。
+- `scripts/check-ui-refresh-ci.mjs` 在 final Current Browser 前强制验证旧 11 个 core browser 文件仍存在且仍属于 current `browser E2E`；
+- 所有 `uir-<round>-...-chrome-e2e.test.mjs` 自动属于 current `browser E2E`；
+- #330 最终仍为 **38 / 38 PASS**；
+- Full Suite 仍为 **1094 / 1094 PASS**；
+- F-LARGE、contrast/keyboard/IME/CAS/privacy 等既有断言没有删除、skip 或降 threshold。
 
-本 execution 不实现 UIR-04，不 merge `main`，不部署。
+实测 wall-clock：旧 #328 Current Browser 因重复 pass 整体约 27 分钟；去重后的 #330 Current Browser 约 15–16 分钟，同时保持完整 38-test current coverage。该变化是去重复，不是削弱 certification。
 
-## 验证限制
+## 5. Test registration rule
 
-- Browser 证据来自 GitHub Actions 隔离 Linux/Xvfb + Google Chrome synthetic profile，不是用户日常 macOS Chrome profile。
-- synthetic DeepSeek fixture 只证明请求边界，不代表 live Provider 成功；UIR-03 live paid Provider requests = 0。
-- macOS secure-store CI path 不代表物理 Secure Enclave 生命周期验证。
-- 当前没有在线 Remote Desktop，因此没有伪称用户本机 browser smoke。
+未来新增 UIR browser test 使用命名：
+
+`uir-<round>-<scope>-chrome-e2e.test.mjs`
+
+即可自动进入：
+
+- Draft fast UI Refresh browser gate；
+- current `browser E2E`；
+- final Current Browser；
+- final Full Suite。
+
+不再为每个 UIR test 手工维护 current-browser 白名单。coverage contract 会在 final gate 前防止漏测。
+
+## 6. 下一窗口 / UIR-04 唯一入口
+
+UIR-04 仍是 **NOT_STARTED**。新窗口不需要用户记 CI 细节，也不需要粘贴长 handoff。
+
+Agent 收到“继续 PAIA Chrome UI Refresh，按仓库当前 STATUS 开始下一轮”后必须自行：
+
+1. 解析 `chrome-ui-refresh-v1` 真实 HEAD；
+2. 在同一固定 SHA 读取：
+   - `extension/AGENTS.md`
+   - `extension/docs/ui-refresh/README.md`
+   - `extension/docs/ui-refresh/PAIA_CHROME_UI_REFRESH_SPEC_v1.0.md`
+   - `extension/docs/ui-refresh/UI_REFRESH_STATUS.md`
+   - `extension/docs/ui-refresh/CI_WORKFLOW.md`
+   - `extension/docs/ui-refresh/rounds/UIR_03_REPORT.md`
+   - `extension/docs/ui-refresh/rounds/UIR_04_CONTEXT_SETTINGS_AND_ACCEPTANCE.md`
+3. 确认 PR #31 为 Draft；若不是 Draft 且没有正在恢复的 final certification，先切回 Draft；
+4. 做 UIR-04 entry/owner audit；
+5. 只开始 UIR-04 第一个自洽 execution，不重做 UIR-01/02/03；
+6. 开发 execution 使用 fast Development Gate；只有 UIR-04 最终封口才切 Ready 跑完整 Certification；
+7. 不 merge `main`，不部署，不自动进入不存在的下一 round。
+
+## 7. Recovery / timeout rule
+
+如果聊天、工具或网页消息超时：
+
+- 不重做；
+- 先重新读取 branch HEAD、PR #31 Draft/Ready、GitHub Actions 和本 STATUS；
+- 已提交/已通过工作继续沿用；
+- 只从真实未完成项继续。
+
+不要高频轮询 Actions。长 job 运行时先完成不依赖结果的 diff audit、报告框架或视觉索引，只在关键阶段查询状态。
+
+## 8. 验证限制
+
+- Browser CI 证据来自 GitHub Actions Linux/Xvfb + Google Chrome synthetic profile，不等于用户日常 macOS Chrome profile。
+- macOS Secure Store CI path 不等于物理 Secure Enclave 生命周期验证。
+- CI cadence 优化没有改变任何产品 runtime 行为。
