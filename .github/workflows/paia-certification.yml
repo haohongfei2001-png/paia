@@ -8,6 +8,7 @@ on:
       - 'native-hosts/**'
       - '.github/workflows/paia-certification.yml'
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'extension/**'
       - 'native-hosts/**'
@@ -28,6 +29,10 @@ env:
 
 jobs:
   unit:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.head_ref != 'chrome-ui-refresh-v1' ||
+      github.event.pull_request.draft == false
     name: Unit ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -56,6 +61,10 @@ jobs:
         run: npm run test:unit
 
   contracts:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.head_ref != 'chrome-ui-refresh-v1' ||
+      github.event.pull_request.draft == false
     name: Adapter and privacy contracts
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -81,6 +90,10 @@ jobs:
         run: node scripts/test.mjs "privacy/security"
 
   current_browser:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.head_ref != 'chrome-ui-refresh-v1' ||
+      github.event.pull_request.draft == false
     name: Current Browser Certification
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -106,28 +119,12 @@ jobs:
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
-      - name: UX-R1 shell through UX-R6 data-exit plus current core product journeys
-        run: >-
-          xvfb-run -a node --test --test-concurrency=1
-          tests/ux-r1-shell-chrome-e2e.test.mjs
-          tests/ux-r2-reader-revisit-chrome-e2e.test.mjs
-          tests/ux-r3-thought-chrome-e2e.test.mjs
-          tests/ux-r4-search-reuse-chrome-e2e.test.mjs
-          tests/ux-r5-ai-organize-chrome-e2e.test.mjs
-          tests/ux-r5-ai-update-chrome-e2e.test.mjs
-          tests/ux-r5-certification-chrome-e2e.test.mjs
-          tests/ux-r6-release-chrome-e2e.test.mjs
-          tests/release-certification-round48-chrome-e2e.test.mjs
-          tests/release-certification-round49-chrome-e2e.test.mjs
-          tests/activation-return-round410-chrome-e2e.test.mjs
-      - name: Run complete current browser suite
+      - name: Verify current browser coverage contract
+        run: node scripts/check-ui-refresh-ci.mjs
+      - name: Run complete current browser suite and guards
         env:
           PAIA_TEST_CONCURRENCY: '1'
         run: xvfb-run -a npm run test:browser
-      - name: Package and development guards
-        run: |
-          npm run check
-          node scripts/check_development.mjs
       - name: Upload UX-R1 visual evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -153,24 +150,24 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Upload UX-R4 visual and browser evidence
-        uses: actions/upload-artifact@v4
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: ux-r4-evidence-${{ github.sha }}
           path: extension/work/ux-r4
           if-no-files-found: warn
           retention-days: 14
       - name: Upload UX-R5 visual and browser evidence
-        uses: actions/upload-artifact@v4
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: ux-r5-evidence-${{ github.sha }}
           path: extension/work/ux-r5
           if-no-files-found: warn
           retention-days: 14
       - name: Upload UX-R6 visual and browser evidence
-        uses: actions/upload-artifact@v4
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: ux-r6-evidence-${{ github.sha }}
           path: extension/work/ux-r6
@@ -178,6 +175,10 @@ jobs:
           retention-days: 14
 
   full_suite:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.head_ref != 'chrome-ui-refresh-v1' ||
+      github.event.pull_request.draft == false
     name: Full Suite Certification
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -226,6 +227,10 @@ jobs:
           retention-days: 14
 
   macos_secure_store:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.head_ref != 'chrome-ui-refresh-v1' ||
+      github.event.pull_request.draft == false
     name: macOS Secure Store Certification
     runs-on: macos-latest
     timeout-minutes: 12
@@ -312,6 +317,10 @@ jobs:
         run: xvfb-run -a npm run test:historical-browser
 
   release:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.head_ref != 'chrome-ui-refresh-v1' ||
+      github.event.pull_request.draft == false
     name: Current release build and guards
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -341,7 +350,11 @@ jobs:
   certified:
     name: Certification gate
     runs-on: ubuntu-latest
-    if: always()
+    if: >-
+      always() &&
+      (github.event_name != 'pull_request' ||
+       github.head_ref != 'chrome-ui-refresh-v1' ||
+       github.event.pull_request.draft == false)
     needs: [unit, contracts, current_browser, full_suite, macos_secure_store, release]
     steps:
       - name: Require every current-release gate

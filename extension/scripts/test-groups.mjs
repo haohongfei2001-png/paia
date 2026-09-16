@@ -14,9 +14,10 @@ const LEGACY_BROWSER=new Set([
  'storage-migration-e2e.test.mjs','storage-performance.test.mjs','workspace-e2e.test.mjs','development-reload-e2e.test.mjs','library-e2e.test.mjs','extension.test.mjs','ui.test.mjs','diagnostic-ui.test.mjs','diagnostics-integration.test.mjs','response-time-integration.test.mjs','source-time-integration.test.mjs','product-e2e.test.mjs','backfill-e2e.test.mjs','structural-discovery.test.mjs','multi-source-e2e.test.mjs','compat-replay.test.mjs','historical-budget.test.mjs'
 ]);
 function isCurrentUxBrowser(name){return /^ux-r\d+-.*-chrome-e2e\.test\.mjs$/.test(name);}
+function isCurrentUirBrowser(name){return /^uir-\d+-.*-chrome-e2e\.test\.mjs$/.test(name);}
 export function group(file) {
  const name=file.split('/').at(-1);
- if(CURRENT_BROWSER.has(name)||isCurrentUxBrowser(name))return 'browser E2E';
+ if(CURRENT_BROWSER.has(name)||isCurrentUxBrowser(name)||isCurrentUirBrowser(name))return 'browser E2E';
  if(name.endsWith('-chrome-e2e.test.mjs')||LEGACY_BROWSER.has(name))return 'historical browser E2E';
  if(['adapter.test.mjs','history-contract.test.mjs','json-fingerprint.test.mjs'].includes(name))return 'adapter contract';
  if(['history-privacy-v090.test.mjs','import-security.test.mjs','background-security.test.mjs','privacy-product.test.mjs','diagnostics.test.mjs','compat-sanitizer.test.mjs'].includes(name))return 'privacy/security';

@@ -1,0 +1,150 @@
+name: PAIA UI Refresh Development Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'extension/ui/**'
+      - 'extension/tests/**'
+      - 'extension/scripts/**'
+      - 'extension/package.json'
+      - 'extension/package-lock.json'
+      - '.github/workflows/paia-ui-refresh-development.yml'
+      - '.github/workflows/paia-certification.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paia-ui-refresh-dev-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  CI: '1'
+  PLAYWRIGHT_MODULE: 'playwright'
+
+jobs:
+  unit:
+    if: github.head_ref == 'chrome-ui-refresh-v1' && github.event.pull_request.draft == true
+    name: UI Refresh Unit ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4','2/4','3/4','4/4']
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - name: Run unit shard
+        env:
+          PAIA_TEST_SHARD: ${{ matrix.shard }}
+          PAIA_TEST_CONCURRENCY: '1'
+        run: npm run test:unit
+
+  contracts:
+    if: github.head_ref == 'chrome-ui-refresh-v1' && github.event.pull_request.draft == true
+    name: UI Refresh Contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Adapter contract
+        run: node scripts/test.mjs "adapter contract"
+      - name: Privacy and security
+        run: node scripts/test.mjs "privacy/security"
+
+  ui_refresh_browser:
+    if: github.head_ref == 'chrome-ui-refresh-v1' && github.event.pull_request.draft == true
+    name: UI Refresh Browser + Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Prepare portable Chrome test environment
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Build current release
+        run: npm run build:release
+      - name: Verify UI Refresh browser registration
+        run: node scripts/check-ui-refresh-ci.mjs
+      - name: Run UI Refresh browser journeys
+        env:
+          PAIA_TEST_CONCURRENCY: '1'
+        run: xvfb-run -a npm run test:ui-refresh
+      - name: Package and development guards
+        run: |
+          npm run check
+          node scripts/check_development.mjs
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-refresh-dev-failure-${{ github.sha }}
+          path: |
+            extension/work/ux-r1
+            extension/work/ux-r2
+            extension/work/ux-r3
+            extension/work/ux-r4
+            extension/work/ux-r5
+            extension/work/ux-r6
+          if-no-files-found: warn
+          retention-days: 7
+
+  development_gate:
+    if: always() && github.head_ref == 'chrome-ui-refresh-v1' && github.event.pull_request.draft == true
+    name: UI Refresh Development Gate
+    runs-on: ubuntu-latest
+    needs: [unit, contracts, ui_refresh_browser]
+    steps:
+      - name: Require fast development gates
+        env:
+          UNIT: ${{ needs.unit.result }}
+          CONTRACTS: ${{ needs.contracts.result }}
+          UI_REFRESH_BROWSER: ${{ needs.ui_refresh_browser.result }}
+        run: |
+          printf 'unit=%s\ncontracts=%s\nui_refresh_browser=%s\n' "$UNIT" "$CONTRACTS" "$UI_REFRESH_BROWSER"
+          test "$UNIT" = success
+          test "$CONTRACTS" = success
+          test "$UI_REFRESH_BROWSER" = success
