@@ -1,6 +1,6 @@
 # PAIA Chrome UI Refresh — Execution Status
 
-本文件是 UIR 阶段唯一执行状态。版本 v1.9，2026-09-16。
+本文件是 UIR 阶段唯一执行状态。版本 v1.10，2026-09-16。
 
 ## Baseline / branch / checkpoints
 
@@ -14,6 +14,7 @@
 - UIR-03 Execution 01 runtime/test HEAD：`bc4fe4a1c390850809c45d947a44d651f88d678f`；Certification `#314` / run `35028697337` — **SUCCESS**。
 - UIR-03 Execution 02 最终 runtime/test HEAD：`b6a3cfea75c401df8ba940620bef52c8fe4bc933`；Certification `#320` / run `35043264919` — **SUCCESS**。
 - UIR-03 Execution 03 最终 runtime/test HEAD：`ce4c0cb865c5b558d09f8483c3699199a2e98883`；Certification `#324` / run `35047605444` — **SUCCESS**。
+- UIR-03 Execution 04 runtime/test HEAD：`02cad33c0af62c8f6586bf97b34e4265d16fe3ec`；Certification `#325` / run `35052309393` — **SUCCESS**。
 - 每次 execution 重新解析实时 branch HEAD；状态文件不追写自引用 HEAD。
 - main 未 merge、未部署。
 
@@ -126,18 +127,47 @@ Runtime/test commit：`bc4fe4a1c390850809c45d947a44d651f88d678f`。
 
 因此 **Execution 03 子集闭环**，但 UIR-03 整轮仍为 **IN_PROGRESS**。
 
+## Execution 04 — Preview mask — COMPLETE subset
+
+Runtime/test HEAD：`02cad33c0af62c8f6586bf97b34e4265d16fe3ec`。
+
+### Presentation / boundary
+
+- `ui/r6.css` 保留 Topic card `.summary` 遮挡，并用 DOM 结构精确补齐 Topic action 的 selection/material preview：有直接 `.topic-choice-list` 的“加入主题”preview，以及 `<details>` 内引用/相关材料 preview。
+- 没有全局隐藏 `.topic-selection-preview`；同 class 用作明确 compare/full-body 时仍可读，避免把 preview selector 扩散成正文 selector。
+- 明确打开的 Topic Original、Organized `currentView` 与 evidence `.entry-prose` 保持可读；测试同时检查 mask 不把私人正文复制到 `title` / `aria-label`。
+- 未修改 Context/UIR-04 owner、core、Provider、AI runner、durable schema、authorization、background、adapter、content 或 manifest。
+- `tests/uir-03-preview-mask-chrome-e2e.test.mjs` 覆盖 source + built release、mask on/off、卡片 preview、结构化 selection/quote preview、explicit full-body、Original、Organized/evidence、title/ARIA 与网络计数；并注册为 current browser test。
+
+### Validation — #325
+
+- Certification `#325` / run `35052309393`：**SUCCESS**；runtime/test head SHA `02cad33c0af62c8f6586bf97b34e4265d16fe3ec`。
+- Full Suite：**1094 / 1094 PASS**；unit `909` / browser E2E `38` / adapter contract `95` / privacy-security `52`；新 Preview-mask test 明确 PASS。
+- Current Browser step 8：**32 / 32 PASS**；complete current browser suite：**38 / 38 PASS**；Preview-mask test 再次明确 PASS。
+- Package/development guards：`PASS: 8446 package guardrails across 197 runtime resources`；`DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS`。
+- 4 个 unit shards、Adapter/privacy、Current release build/guards、macOS Secure Store CI path、最终 Certification Gate：全部 SUCCESS。
+- Full-suite receipt artifact：`10429593797`，digest `57b402d30058ea0a91e4b496649bd1ecb88331a891187a691bf3b69698775744`。
+
+### Visual evidence
+
+- UX-R3 artifact：`10429574442`，digest `8717d2d7a49948b2ddef480468f160580b6eda26e1e386f0545636248752cc9d`。
+- Checkpoint visual review：`evidence/UIR-03/EXECUTION_04_VISUAL_REVIEW.md`。
+- 人工打开并检查 4 张本次 PNG：source/built-release Thought home 1440 light 与 source/built-release Organized 1440 light。
+- 两张 home 图均保留 Topic identity/date，但私人 summary/sourceHint 被“内容预览已隐藏”取代；两张 Organized 图均保持 `currentView` 与 evidence 原文直接可读，未见 source/release 漂移、明显裁切或 mask 误伤正文。
+
+因此 **Execution 04 子集闭环**，但 UIR-03 整轮仍为 **IN_PROGRESS**。
+
 ## UIR-03 仍需完成
 
-1. **Preview mask**：Topic card summary/sourceHint 与相关材料 preview 的新/移动 class 同步 R6 mask；明确打开的 Topic Original / Organized / evidence 正文不误遮，也不把被遮正文搬进 title 或 aria-label。
-2. **整轮最终封口**：Preview mask 子集闭环后，再做 UIR-03 最终 focused/guards/release/current browser/Full Suite、最终代表 PNG 与人工视觉验收、`evidence/UIR-03/VISUAL_REVIEW.md`、`rounds/UIR_03_REPORT.md`；全部闭环后才能把 UIR-03 标记 COMPLETE。
+1. **整轮最终封口**：对 Execution 01–04 的最终状态做 focused/guards/release/current browser/Full Suite 最终确认，选定最终代表 PNG 并逐张人工验收，完成 `evidence/UIR-03/VISUAL_REVIEW.md` 与 `rounds/UIR_03_REPORT.md`；全部闭环后才能把 UIR-03 标记 COMPLETE。
 
 ## 下一次继续点
 
-先重新解析 `chrome-ui-refresh-v1` 真实 HEAD，确认 Execution 03 runtime/test 与本 checkpoint docs 都在远端；不要重做 Thought home / Topic Original / Organized / Candidate comparison。
+先重新解析 `chrome-ui-refresh-v1` 真实 HEAD，确认 Execution 04 runtime/test 与本 checkpoint docs 都在远端；不要重做 Thought home / Topic Original / Organized / Candidate comparison / Preview mask。
 
-下一自洽 execution **只做 Preview mask**：审计 R6 当前 `html.paia-hide-content-previews` selector、Thought home Topic card 的 summary/sourceHint class、Organized/related-material preview class 与明确全文边界；只补 presentation selector / 必要 class，不新增正文副本、title/ARIA 泄漏、Provider 行为或业务写入。
+下一自洽 execution **只做 UIR-03 整轮最终封口**：以 Execution 01–04 已验证 runtime 为事实，做最终 focused/guards/release/current browser/Full Suite 核验、代表证据与最终报告；除非最终 gate 发现真实回归，否则不再扩大 runtime 改动。
 
-UIR-03 必须保持 **IN_PROGRESS**；不得进入 UIR-04，不 merge main，不部署。
+UIR-03 在最终报告、最终代表图和最终验收闭环前必须保持 **IN_PROGRESS**；不得进入 UIR-04，不 merge main，不部署。
 
 ## 验证限制
 
