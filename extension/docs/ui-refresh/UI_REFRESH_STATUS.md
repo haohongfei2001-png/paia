@@ -1,6 +1,6 @@
 # PAIA Chrome UI Refresh — Execution Status
 
-本文件是 UIR 阶段唯一执行状态。版本 v1.15，2026-09-17。
+本文件是 UIR 阶段唯一执行状态。版本 v1.16，2026-09-17。
 
 ## 1. Baseline / branch / current state
 
@@ -11,7 +11,7 @@
 - UIR-02：**COMPLETE**
 - UIR-03：**COMPLETE**
 - UIR-04：**IN_PROGRESS**
-- 当前 implementation round：**UIR-04**；**Execution 02 — Settings shell / six-group owner audit COMPLETE**。下一 execution：**Execution 03 — Data & devices / Backup + restore + complete/open export presentation（NOT_STARTED）**。
+- 当前 implementation round：**UIR-04**；**Execution 03 — Data & devices / Backup + restore + complete/open export presentation COMPLETE**。下一 execution：**Execution 04 — Popup / 本机工具 + cross-page final consistency（NOT_STARTED）**。
 - `main` 未 merge，未部署，未发布。
 
 下一次 execution 必须重新解析 GitHub 上 `chrome-ui-refresh-v1` 的真实 HEAD。STATUS 不追写包含自身的 closure SHA。
@@ -151,16 +151,29 @@ UIR-04 **仍为 IN_PROGRESS**。Execution 01 完成不等于整轮完成；本 c
 - PR #31 Draft Development Gate run `35153174080`：**SUCCESS**；head 精确为 `a81fa050...`。Full Certification `#332` / run `35153174083`：**SKIPPED as designed**。
 - Visual evidence：`evidence/UIR-04/EXECUTION_02_VISUAL_REVIEW.md`。
 
-UIR-04 **仍为 IN_PROGRESS**。Execution 02 完成不等于整轮完成；PR #31 继续 open + Draft，不 merge `main`、不部署、不发布。
+UIR-04 **仍为 IN_PROGRESS**。Execution 02 完成不等于整轮完成；PR #31 继续 open + Draft，不 merge `main`、��部署、不发布。
 
-### Next entry — Execution 03 — Data & devices / Backup + restore + complete/open export presentation
+### Execution 03 — Data & devices / Backup + restore + complete/open export presentation — COMPLETE
 
-下一 execution 必须先重新解析 GitHub 上 `chrome-ui-refresh-v1` 的真实 HEAD，再读取本 STATUS、`CI_WORKFLOW.md`、UIR-04 任务书与 Execution 02 visual review。只从数据与设备继续：
+- Runtime/test HEAD：`8dc2ea69628e77ae6f993e2cfd5167f8c5bbc844`；父提交精确为 Execution 02 docs closure `06efeab327f5a5dab041cab9ce958675e07b6fc6`。
+- `#backup-settings` 继续拥有既有 Backup / restore handler；`#r6-complete-export`、`#r6-data-status`、`#r6-source-records` 变为 Data & devices 下独立同级 presentation owner，不复制动作或业务状态。
+- Backup format、restore transaction、tombstone / purge、`OpenExportWriter` 与下载语义未修改；scoped Source Records 明确不是完整导出，完整 JSON / Markdown 继续区分 Source / Input / Thought / human revision / AI presentation 角色。
+- source Chrome 实际完成 Backup download → local validation preview → explicit `确认恢复到空库` → restore completion，并验证恢复后的 Source 仍可读；built current release 验证相同 owner 与 release pruning。
+- 本机数据状态继续来自真实 `navigator.storage.estimate()` 与 last-successful-backup；“当前版本未提供设备同步”继续是能力事实，不虚构设备或同步状态。
+- 本地 focused：UIR-04 Data `1/1`；Settings + UX-R6 release/open-export/compatibility `13/13`；完整 `npm run test:ui-refresh` **9/9 PASS**；privacy/security `52/52`；package guard `8446` PASS；`DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS`；current release `8018` guards / 214 files / `RELEASE_PRODUCT_GUARD_PASS`；`git diff --check` PASS。
+- PR #31 Draft Development Gate run `35161966867`：**SUCCESS**；4 unit shards、Contracts/privacy、Browser + Release、aggregate gate 全部 SUCCESS。Full Certification `#333` / run `35161966879`：**SKIPPED as designed**。
+- Visual evidence：`evidence/UIR-04/EXECUTION_03_VISUAL_REVIEW.md`。
 
-1. 保留现有 `BackupController`、Backup format/restore/tombstone、`OpenExportWriter` 与 download 行为；只整理现有 Backup / restore / complete JSON/Markdown / scoped Source Records 的层级和现场说明。
-2. 继续投影真实 `navigator.storage.estimate()`、last-successful-backup 与“当前无设备同步”事实；未知值不伪造百分比或容量。
-3. source 与 built current release 都要证明同一 owner、无重复动作、恢复仍为 inspect → preview → explicit confirm → restore，release transform/cut anchors 不放宽。
-4. Popup / 本机工具、跨页最终一致性和 round-final certification 留给后续 UIR-04 execution；不进入 UIR-05。
+UIR-04 **仍为 IN_PROGRESS**。Execution 03 完成不等于整轮完成；PR #31 继续 open + Draft，不 merge `main`、��部署、不发布。
+
+### Next entry — Execution 04 — Popup / 本机工具 + cross-page final consistency
+
+下一 execution 必须先重新解析 GitHub 上 `chrome-ui-refresh-v1` 的真实 HEAD，再读取本 STATUS、`CI_WORKFLOW.md`、UIR-04 任务书与 Execution 03 visual review。只做最后的 presentation consistency subset：
+
+1. 沿 UIR-01 已有 shell 基础检查 Popup / 本机工具的可读性、主题与窄屏；主回到 PAIA、暂停/恢复、Passport / 既有本机工具动作与授权语义不变。
+2. 保留 source / built release 的 diagnostics、`filter-advanced`、`library-organizer-jobs`、`popup-internal-tools` 等既定裁剪边界；不得为了视觉统一放宽 release transform。
+3. 对 01～03 页面只做已证明的 shared tokens / 标题 / loading-empty-error / mask / responsive 一致性修复；不重开产品设计，不改 Context / Backup / Grant / core 算法。
+4. 本 execution 不预先宣告 UIR-04 COMPLETE；只有 Execution 04 自身 fast gate / 视觉证据完成后，才另行判断是否冻结 runtime/tests 并进入 round-final full certification。
 
 ## 7. Recovery / timeout rule
 
