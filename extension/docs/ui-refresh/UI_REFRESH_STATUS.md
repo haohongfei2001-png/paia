@@ -1,6 +1,6 @@
 # PAIA Chrome UI Refresh — Execution Status
 
-本文件是 UIR 阶段唯一执行状态。版本 v1.12，2026-09-16。
+本文件是 UIR 阶段唯一执行状态。版本 v1.13，2026-09-16。
 
 ## 1. Baseline / branch / current state
 
@@ -10,8 +10,8 @@
 - UIR-01：**COMPLETE**
 - UIR-02：**COMPLETE**
 - UIR-03：**COMPLETE**
-- UIR-04：**NOT_STARTED**
-- 当前没有已开始的 implementation round。
+- UIR-04：**IN_PROGRESS**
+- 当前 implementation round：**UIR-04**；当前 execution：**Execution 01 — Context / MaterialTray presentation**。
 - `main` 未 merge，未部署，未发布。
 
 下一次 execution 必须重新解析 GitHub 上 `chrome-ui-refresh-v1` 的真实 HEAD。STATUS 不追写包含自身的 closure SHA。
@@ -21,7 +21,7 @@
 | UIR-01 | **COMPLETE** | `rounds/UIR_01_SHELL_AND_ARCHIVE_FRAME.md` | `rounds/UIR_01_REPORT.md` |
 | UIR-02 | **COMPLETE** | `rounds/UIR_02_ARCHIVE_SEARCH_READER.md` | `rounds/UIR_02_REPORT.md` |
 | UIR-03 | **COMPLETE** | `rounds/UIR_03_THOUGHT_AND_AI_PRESENTATION.md` | `rounds/UIR_03_REPORT.md` |
-| UIR-04 | **NOT_STARTED** | `rounds/UIR_04_CONTEXT_SETTINGS_AND_ACCEPTANCE.md` | 尚无 |
+| UIR-04 | **IN_PROGRESS** | `rounds/UIR_04_CONTEXT_SETTINGS_AND_ACCEPTANCE.md` | 尚无 |
 
 ## 2. Certified checkpoints
 
@@ -121,26 +121,28 @@ UIR-03 的完整实现、视觉证据和边界以 `rounds/UIR_03_REPORT.md` 与 
 
 不再为每个 UIR test 手工维护 current-browser 白名单。coverage contract 会在 final gate 前防止漏测。
 
-## 6. 下一窗口 / UIR-04 唯一入口
+## 6. UIR-04 current execution / handoff
 
-UIR-04 仍是 **NOT_STARTED**。新窗口不需要用户记 CI 细节，也不需要粘贴长 handoff。
+UIR-04 已于 branch entry `b2201ea41e4af032358135607c6685e4138822e3` 开始。PR #31 在 entry audit 时为 **open + Draft**，development mode 正常。
 
-Agent 收到“继续 PAIA Chrome UI Refresh，按仓库当前 STATUS 开始下一轮”后必须自行：
+### Entry / owner audit
 
-1. 解析 `chrome-ui-refresh-v1` 真实 HEAD；
-2. 在同一固定 SHA 读取：
-   - `extension/AGENTS.md`
-   - `extension/docs/ui-refresh/README.md`
-   - `extension/docs/ui-refresh/PAIA_CHROME_UI_REFRESH_SPEC_v1.0.md`
-   - `extension/docs/ui-refresh/UI_REFRESH_STATUS.md`
-   - `extension/docs/ui-refresh/CI_WORKFLOW.md`
-   - `extension/docs/ui-refresh/rounds/UIR_03_REPORT.md`
-   - `extension/docs/ui-refresh/rounds/UIR_04_CONTEXT_SETTINGS_AND_ACCEPTANCE.md`
-3. 确认 PR #31 为 Draft；若不是 Draft 且没有正在恢复的 final certification，先切回 Draft；
-4. 做 UIR-04 entry/owner audit；
-5. 只开始 UIR-04 第一个自洽 execution，不重做 UIR-01/02/03；
-6. 开发 execution 使用 fast Development Gate；只有 UIR-04 最终封口才切 Ready 跑完整 Certification；
-7. 不 merge `main`，不部署，不自动进入不存在的下一 round。
+- `MemoryPanel.activate(true)` 先委托 `MaterialTray.activate(true)`；当前“用于 AI”默认由 MaterialTray 呈现。旧 `memory-legacy` / Profile / authorization 页面只由高级入口 `materials.legacy()` 打开，不是第二个首页。
+- MaterialTray 只有一个 `#material-workbench` root；主页面位于 `#memory-panel`，打开抽屉时通过 `append()` 移入 `.material-drawer`，关闭后 `prepend()` 回原 panel，没有 clone。
+- selection refs/revisions、`sourceEpoch` / recheck、draft / IME、order / remove / redact、stale / blocked / expiry 与最终 copy / Markdown 都继续由既有 `PAIA_CONTEXT_MANUAL` + MaterialTray owner 负责；本轮不改 ContextPackage / Grant / Backup 语义。
+- 现有 `reuse.css` 把整个 `.material-workbench` 限为 680px，和 SPEC S3/S7 “Context 框架可用完整主区宽度、正文才使用 640/680/720px 读宽”的最终构图不一致，是 Execution 01 的主要 presentation 缺口。
+
+### Execution 01 — Context / MaterialTray presentation
+
+本 execution 只做一个自洽子集：
+
+1. 在同一个 MaterialTray root 内重排材料选择、列表、说明、建议与 preview hierarchy；
+2. Context 工作区拓宽，最终输出/可编辑正文继续受 `--paia-prose-width` 约束；
+3. 保持约 400px desktop drawer 和 `<=600px` modal/inert/focus 边界，补齐 1024 / 390 / 320 响应式；
+4. 补 `uir-04-context-chrome-e2e.test.mjs`，验证唯一 Context h1、同 root 移动、真实条数/来源角色、reading-width、drawer/mobile、draft/IME、stale/blocked/expiry、0 unexpected network 与 current release；
+5. focused 复用既有 UX-R4 trusted manual Context journey；runtime/test push 后只等待 Draft fast Development Gate。
+
+**本 execution 不做：** Settings 六组、Backup/数据与设备、Popup/本机工具、UIR-04 final full certification。上述内容仍属于 UIR-04 后续 execution；本轮保持 `IN_PROGRESS`。
 
 ## 7. Recovery / timeout rule
 
