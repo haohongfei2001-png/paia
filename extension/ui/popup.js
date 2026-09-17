@@ -1,13 +1,22 @@
 import { request, enabledLabel, diagnosticText, dateLabel, statusLabel } from './common.js';
 import { briefStructure } from './structure-diagnostics.js';
+import { normalizeUXPreferences, resolveAppearance } from './ux-r1-state.js';
 
 const $ = (id) => document.getElementById(id);
 let state;
 let busy = false;
+let uxPreferences = normalizeUXPreferences();
+const appearanceMedia = globalThis.matchMedia?.('(prefers-color-scheme: dark)');
+function applyAppearance(value) {
+  uxPreferences = normalizeUXPreferences(value);
+  document.documentElement.dataset.paiaTheme = resolveAppearance(uxPreferences.appearance, appearanceMedia?.matches);
+}
+appearanceMedia?.addEventListener?.('change', () => { if (uxPreferences.appearance === 'system') applyAppearance(uxPreferences); });
 
 async function refresh() {
   try {
     state = await request('GET_PAGE',{page:{view:'settings'}});
+    applyAppearance(state.preferences);
     $('error').hidden = true;
     const consented = state.settings.consentVersion === 1;
     $('enabled-state').textContent = enabledLabel(state.settings);
