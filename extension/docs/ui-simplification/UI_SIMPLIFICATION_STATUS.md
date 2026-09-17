@@ -4,13 +4,13 @@ Status file: **canonical execution state for UI Simplification v1**
 
 Version: v1.1
 
-Date: 2026-09-17
+Date: 2026-09-18
 
 Repository: `haohongfei2001-png/paia`
 
 Authoritative branch: `main`
 
-Current round: **UIS-02 — READY**
+Current round: **UIS-03 — READY**
 
 Always resolve the live `main` HEAD before execution. Do not encode this file's own commit as a self-referential required HEAD.
 
@@ -132,7 +132,7 @@ UIS-01 is closed. Do not reopen it merely because attempt 1 contained a non-repr
 
 ## 4. UIS-02 — Page-scoped search and removal of the visible global search model
 
-Status: **READY**
+Status: **COMPLETE**
 
 ### Objective
 
@@ -186,13 +186,59 @@ Run affected search tests, affected browser tests, `npm run test:ui-refresh`, an
 
 ### Completion record
 
-Ready after certified UIS-01 closure. Not started.
+Runtime/test commits:
+
+- `fe2f6528095211878dbf24118ef33f9bc059e6e9` — `Implement UIS-02 page-scoped search`.
+- `dbd1521e6424127830c64bf08d32d0e87ba41900` — `Align legacy browser gates with UIS-02 search scope`.
+
+Implemented behavior:
+
+- Archive root retains one Archive-scoped search over eligible Archive/Input content.
+- Opening an Archive document presents one search scoped to that document only and preserves exact result-to-Reader positioning/highlight behavior.
+- Thought Library root retains one Thought-scoped search; opening a Thought topic/document scopes the visible search to that topic/document.
+- Settings exposes no search box and no normal visible/global search launcher.
+- the normal shell no longer exposes the `搜索档案与思想… / Search Archive & Thoughts…` launcher as a competing second search model.
+- current-surface keyboard focus behavior (`Ctrl/Cmd+K`, `Ctrl/Cmd+F`, `/` where applicable) resolves to the current surface search; Settings does not open a hidden global search task.
+- Archive query state is preserved across Settings and Reader round-trips where the existing navigation model supports it.
+- the internal reusable Universal Search/material-search coordination remains available to explicit internal owners; `UniversalSearchService` and shared lexical primitives were not deleted.
+- the existing hide-content-previews preference now masks the page-scoped Archive search excerpt as well as prior preview surfaces, while explicitly opened Reader content remains readable.
+- no new durable search store, Source/Input/Thought ownership change, storage/schema change, tombstone/revision change, capture-scope change, Provider permission change or paid-AI behavior change was introduced.
+
+Validation / recovery receipt:
+
+- GitHub remote `main`, canonical status and GitHub Actions were used as execution facts; no local clone state was used to declare completion.
+- Focused `uis-02-page-scoped-search-chrome-e2e.test.mjs`: PASS, covering Archive root/document, Thought root/topic, Settings-none scope, keyboard focus routing, Reader positioning/highlight, and zero Provider/external-network activity.
+- Existing Universal Search domain/security coverage remained green; the reusable internal material-search path was preserved.
+- recovery validation after CI run #344 exposed two stale browser contracts that still required the removed visible global launcher (`ux-r1-shell-chrome-e2e.test.mjs`, `ux-r6-release-chrome-e2e.test.mjs`) plus a privacy-preview gap for the new Archive `.search-excerpt` surface. Those were corrected in `dbd1521e…` without restoring the launcher or weakening any gate.
+- the existing `ux-r5-certification-chrome-e2e.test.mjs` focus path was not weakened; it independently reproduced **3 / 3 PASS** on the exact UIS-02 source during recovery.
+- local exact-SHA recovery validation before the follow-up push:
+  - `npm run test:ui-refresh`: **10 / 10 PASS**;
+  - `npm run check`: **8528 package guardrails PASS**;
+  - `ux-r1-shell-chrome-e2e.test.mjs`: **3 / 3 PASS**;
+  - `ux-r6-release-chrome-e2e.test.mjs`: **1 / 1 PASS**;
+  - `uis-02-page-scoped-search-chrome-e2e.test.mjs`: **1 / 1 PASS**.
+- PAIA Certification run `35257262970`, run #345, head SHA `dbd1521e…`: **SUCCESS** on attempt 1.
+  - Certification gate: SUCCESS.
+  - Current Browser Certification: SUCCESS.
+  - Full Suite Certification: SUCCESS.
+  - Adapter and privacy contracts: SUCCESS.
+  - Unit 1/4, Unit 2/4, Unit 3/4, Unit 4/4: SUCCESS.
+  - Current release build and guards: SUCCESS.
+  - macOS Secure Store Certification: SUCCESS.
+- Full-suite receipt on `dbd1521e…`: **1100 / 1100 PASS**, fail 0, skipped 0:
+  - unit: 909;
+  - browser E2E: 44;
+  - adapter contract: 95;
+  - privacy/security: 52;
+  - `fullSuite=true`, `auditPassed=true`, `historicalBrowserFiles=76`, input digest `064bd7e6c570e45d2d4df3c47e32ea992083ed38907c8fb9f13d31c6fce7ff1f`.
+
+UIS-02 is closed. Do not reopen it merely because run #344 failed against stale superseded visible-global-search assertions; any future reproducible regression should be handled from the then-current round and current remote evidence.
 
 ---
 
 ## 5. UIS-03 — Thought Library simplification
 
-Status: **PENDING UIS-02**
+Status: **READY**
 
 ### Objective
 
@@ -233,7 +279,7 @@ Run affected Thought tests, affected UI Refresh browser tests, `npm run test:ui-
 
 ### Completion record
 
-Waiting for UIS-02.
+Ready after certified UIS-02 closure. Not started.
 
 ---
 
@@ -299,4 +345,4 @@ Every round must preserve:
 
 **Next user / Supervisor execution message required: `继续开发`**
 
-That next message authorizes **UIS-02 only**. UIS-02 has not been started by the UIS-01 recovery execution.
+That next message authorizes **UIS-03 only**. UIS-02 is COMPLETE and must not be reopened without new regression evidence.
