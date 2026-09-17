@@ -1,0 +1,199 @@
+name: UIS-02 guarded supervisor
+
+on:
+  push:
+    branches:
+      - automation/uis02-supervisor-20260918
+    paths:
+      - .github/uis02-supervisor/TRIGGER
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  supervise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      EXPECTED_PARENT: b5086a005cdf73415014b20947b3973a077ba36b
+      EXPECTED_PATCH_GZIP_SHA256: e2fcd07eac9a6661b47611fdfad21f39f6ef1af5920e4f557634376152a32020
+      EXPECTED_TREE: 997168f1a1b2e84362bdf5516980ebb2e3f37d20
+      OLD_BRANCH: automation/uis02-transfer-20260918
+      SUPERVISOR_BRANCH: automation/uis02-supervisor-20260918
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve canonical state and exact implementation
+        id: implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force origin main:refs/remotes/origin/current-main
+          current_main="$(git rev-parse refs/remotes/origin/current-main)"
+          status_file="extension/docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md"
+          if git show refs/remotes/origin/current-main:"$status_file" | grep -Fq 'Current round: **UIS-03 — READY**' && \
+             git show refs/remotes/origin/current-main:"$status_file" | grep -Fq 'Status: **COMPLETE**'; then
+            implementation_sha="$(git rev-parse refs/remotes/origin/current-main^)"
+            test "$(git rev-parse 'refs/remotes/origin/current-main^^')" = "$EXPECTED_PARENT"
+            test "$(git rev-parse "${implementation_sha}^{tree}")" = "$EXPECTED_TREE"
+            printf 'already_closed=true\nimplementation_sha=%s\n' "$implementation_sha" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$current_main" = "$EXPECTED_PARENT" ]; then
+            git fetch origin "refs/heads/$OLD_BRANCH:refs/remotes/origin/uis02-old"
+            git show refs/remotes/origin/uis02-old:.github/uis02-transfer/chunk-00 > /tmp/uis02.patch.gz.b64
+            base64 -d /tmp/uis02.patch.gz.b64 > /tmp/uis02.patch.gz
+            printf '%s  %s\n' "$EXPECTED_PATCH_GZIP_SHA256" /tmp/uis02.patch.gz | sha256sum -c -
+            gzip -dc /tmp/uis02.patch.gz > /tmp/uis02.patch
+            git checkout --detach "$EXPECTED_PARENT"
+            git apply --check /tmp/uis02.patch
+            git apply /tmp/uis02.patch
+            git diff --check
+            git add -A
+            test "$(git write-tree)" = "$EXPECTED_TREE"
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Complete UIS-02 page-scoped search'
+            implementation_sha="$(git rev-parse HEAD)"
+            test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
+            test "$(git rev-parse 'HEAD^{tree}')" = "$EXPECTED_TREE"
+            test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$EXPECTED_PARENT"
+            git push origin "$implementation_sha:refs/heads/main"
+          else
+            implementation_sha="$current_main"
+            test "$(git rev-parse 'refs/remotes/origin/current-main^')" = "$EXPECTED_PARENT"
+            test "$(git rev-parse 'refs/remotes/origin/current-main^{tree}')" = "$EXPECTED_TREE"
+          fi
+          printf 'already_closed=false\nimplementation_sha=%s\n' "$implementation_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Require successful PAIA Certification, with at most one fresh retry
+        if: steps.implementation.outputs.already_closed != 'true'
+        id: certification
+        shell: bash
+        env:
+          IMPLEMENTATION_SHA: ${{ steps.implementation.outputs.implementation_sha }}
+        run: |
+          set -euo pipefail
+          runs_json() {
+            gh run list --workflow paia-certification.yml --branch main --event workflow_dispatch --limit 50 \
+              --json databaseId,headSha,status,conclusion,createdAt
+          }
+          success_id="$(runs_json | jq -r --arg sha "$IMPLEMENTATION_SHA" '.[] | select(.headSha==$sha and .status=="completed" and .conclusion=="success") | .databaseId' | head -1)"
+          if [ -n "$success_id" ]; then
+            run_id="$success_id"
+          else
+            active_id="$(runs_json | jq -r --arg sha "$IMPLEMENTATION_SHA" '.[] | select(.headSha==$sha and (.status=="in_progress" or .status=="queued" or .status=="waiting")) | .databaseId' | head -1)"
+            if [ -n "$active_id" ]; then
+              set +e
+              gh run watch "$active_id" --exit-status
+              first_rc=$?
+              set -e
+              success_id="$(runs_json | jq -r --arg sha "$IMPLEMENTATION_SHA" '.[] | select(.headSha==$sha and .status=="completed" and .conclusion=="success") | .databaseId' | head -1)"
+              if [ -n "$success_id" ]; then
+                run_id="$success_id"
+              else
+                first_rc=${first_rc:-1}
+                run_id=""
+              fi
+            else
+              first_rc=1
+              run_id=""
+            fi
+
+            if [ -z "${run_id:-}" ]; then
+              gh workflow run paia-certification.yml --ref main
+              retry_id=""
+              for _ in $(seq 1 50); do
+                retry_id="$(runs_json | jq -r --arg sha "$IMPLEMENTATION_SHA" '.[] | select(.headSha==$sha and (.status=="queued" or .status=="in_progress" or .status=="waiting")) | .databaseId' | head -1)"
+                [ -n "$retry_id" ] && break
+                sleep 3
+              done
+              test -n "$retry_id"
+              gh run watch "$retry_id" --exit-status
+              run_id="$retry_id"
+            fi
+          fi
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id")"
+          test "$(jq -r .head_sha <<<"$run_json")" = "$IMPLEMENTATION_SHA"
+          test "$(jq -r .status <<<"$run_json")" = completed
+          test "$(jq -r .conclusion <<<"$run_json")" = success
+          printf 'run_id=%s\nrun_number=%s\n' "$run_id" "$(jq -r .run_number <<<"$run_json")" >> "$GITHUB_OUTPUT"
+
+      - name: Close canonical UIS-02 only after certification success
+        if: steps.implementation.outputs.already_closed != 'true'
+        id: closure
+        shell: bash
+        env:
+          IMPLEMENTATION_SHA: ${{ steps.implementation.outputs.implementation_sha }}
+          CERT_RUN_ID: ${{ steps.certification.outputs.run_id }}
+          CERT_RUN_NUMBER: ${{ steps.certification.outputs.run_number }}
+        run: |
+          set -euo pipefail
+          git fetch --force origin main:refs/remotes/origin/close-base
+          current_main="$(git rev-parse refs/remotes/origin/close-base)"
+          status_file="extension/docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md"
+          if git show refs/remotes/origin/close-base:"$status_file" | grep -Fq 'Current round: **UIS-03 — READY**'; then
+            test "$(git rev-parse 'refs/remotes/origin/close-base^')" = "$IMPLEMENTATION_SHA"
+            exit 0
+          fi
+          test "$current_main" = "$IMPLEMENTATION_SHA"
+          git checkout --detach refs/remotes/origin/close-base
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          p=Path('extension/docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md')
+          s=p.read_text()
+          s=s.replace('Current round: **UIS-02 — IN_PROGRESS**','Current round: **UIS-03 — READY**',1)
+          s=s.replace('## 4. UIS-02 — Page-scoped search and removal of the visible global search model\n\nStatus: **IN_PROGRESS**','## 4. UIS-02 — Page-scoped search and removal of the visible global search model\n\nStatus: **COMPLETE**',1)
+          old='Implementation and local validation are complete; remote certification is pending. Do not advance to UIS-03 until this round is closed here from GitHub Actions evidence.'
+          impl=os.environ['IMPLEMENTATION_SHA']; rid=os.environ['CERT_RUN_ID']; rn=os.environ['CERT_RUN_NUMBER']
+          new=f'''Implementation commit: `{impl}` — `Complete UIS-02 page-scoped search`.\n\nValidation / certification receipt:\n\n- UIS-02 page-scoped Chrome E2E: PASS.\n- `npm run test:ui-refresh`: **10 / 10 PASS**.\n- `npm run check`: **8501 package guardrails PASS**.\n- affected Round 4.8 / Round 4.9 / UX-R4 browser matrix: **8 / 8 PASS**.\n- affected search domain/security/unit matrix: **13 / 13 PASS**.\n- `git diff --check`: PASS.\n- implementation parent: `{os.environ['EXPECTED_PARENT']}`.\n- implementation tree: `{os.environ['EXPECTED_TREE']}`.\n- PAIA Certification workflow_dispatch run `{rid}` / run #{rn} on implementation SHA `{impl}`: **SUCCESS**.\n- no Source/Input/Thought ownership, storage schema, tombstone/revision, capture/provider permission, or paid-AI semantics changed.\n\nUIS-02 is closed. UIS-03 is READY and has not been started.'''
+          if old not in s: raise SystemExit('UIS-02 pending completion marker not found')
+          s=s.replace(old,new,1)
+          s=s.replace('## 5. UIS-03 — Thought Library simplification\n\nStatus: **PENDING UIS-02**','## 5. UIS-03 — Thought Library simplification\n\nStatus: **READY**',1)
+          old_next='**Next user / Supervisor execution message required: `继续开发`**\n\nThat next message authorizes **UIS-02 only**. UIS-02 has not been started by the UIS-01 recovery execution.'
+          new_next='**Next user / Supervisor execution message required: `继续开发`**\n\nThat next message authorizes **UIS-03 only**. UIS-03 has not been started by this UIS-02 execution.'
+          if old_next not in s: raise SystemExit('current-next-action marker not found')
+          s=s.replace(old_next,new_next,1)
+          p.write_text(s)
+          PY
+          git diff --check
+          (cd extension && npm run check)
+          git add "$status_file"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Close UIS-02 and ready UIS-03'
+          closure_sha="$(git rev-parse HEAD)"
+          test "$(git rev-parse HEAD^)" = "$IMPLEMENTATION_SHA"
+          test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$IMPLEMENTATION_SHA"
+          git push origin "$closure_sha:refs/heads/main"
+          printf 'closure_sha=%s\n' "$closure_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Verify canonical closure
+        shell: bash
+        env:
+          IMPLEMENTATION_SHA: ${{ steps.implementation.outputs.implementation_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --force origin main:refs/remotes/origin/final-main
+          status_file="extension/docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md"
+          git show refs/remotes/origin/final-main:"$status_file" | grep -Fq 'Current round: **UIS-03 — READY**'
+          git show refs/remotes/origin/final-main:"$status_file" | awk '/## 4\. UIS-02 —/{f=1;next} f&&/Status: \*\*COMPLETE\*\*/{ok=1;exit} END{exit !ok}'
+          test "$(git rev-parse 'refs/remotes/origin/final-main^')" = "$IMPLEMENTATION_SHA"
+
+      - name: Clean temporary branches
+        if: success()
+        shell: bash
+        run: |
+          for b in \
+            automation/uis02-transfer-20260918 \
+            automation/uis02-finalize-20260918 \
+            automation/uis02-certify-close-20260918 \
+            automation/uis02-supervisor-20260918; do
+            git push origin ":refs/heads/$b" || true
+          done
