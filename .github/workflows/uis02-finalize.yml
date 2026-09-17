@@ -1,0 +1,67 @@
+name: UIS-02 guarded finalizer
+
+on:
+  push:
+    branches:
+      - automation/uis02-finalize-20260918
+    paths:
+      - .github/uis02-finalize/TRIGGER
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify remote state and finalize exact tested UIS-02 tree
+        shell: bash
+        env:
+          EXPECTED_PARENT: b5086a005cdf73415014b20947b3973a077ba36b
+          EXPECTED_PATCH_GZIP_SHA256: e2fcd07eac9a6661b47611fdfad21f39f6ef1af5920e4f557634376152a32020
+          EXPECTED_TREE: 997168f1a1b2e84362bdf5516980ebb2e3f37d20
+          OLD_BRANCH: automation/uis02-transfer-20260918
+          FINAL_BRANCH: automation/uis02-finalize-20260918
+        run: |
+          set -euo pipefail
+          remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          if [ "$remote_main" != "$EXPECTED_PARENT" ]; then
+            git fetch --force origin main:refs/remotes/origin/uis02-main
+            actual_tree="$(git rev-parse 'refs/remotes/origin/uis02-main^{tree}')"
+            actual_parent="$(git rev-parse 'refs/remotes/origin/uis02-main^')"
+            printf 'existing_main=%s\nexisting_parent=%s\nexisting_tree=%s\n' "$remote_main" "$actual_parent" "$actual_tree"
+            test "$actual_parent" = "$EXPECTED_PARENT"
+            test "$actual_tree" = "$EXPECTED_TREE"
+            git push origin ":refs/heads/$OLD_BRANCH" || true
+            git push origin ":refs/heads/$FINAL_BRANCH" || true
+            exit 0
+          fi
+
+          git fetch origin "refs/heads/$OLD_BRANCH:refs/remotes/origin/uis02-old"
+          git show refs/remotes/origin/uis02-old:.github/uis02-transfer/chunk-00 > /tmp/uis02.patch.gz.b64
+          base64 -d /tmp/uis02.patch.gz.b64 > /tmp/uis02.patch.gz
+          printf '%s  %s\n' "$EXPECTED_PATCH_GZIP_SHA256" /tmp/uis02.patch.gz | sha256sum -c -
+          gzip -dc /tmp/uis02.patch.gz > /tmp/uis02.patch
+          git checkout --detach "$EXPECTED_PARENT"
+          git apply --check /tmp/uis02.patch
+          git apply /tmp/uis02.patch
+          git diff --check
+          git add -A
+          actual_tree="$(git write-tree)"
+          printf 'expected_tree=%s\nactual_tree=%s\n' "$EXPECTED_TREE" "$actual_tree"
+          test "$actual_tree" = "$EXPECTED_TREE"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Complete UIS-02 page-scoped search'
+          commit_sha="$(git rev-parse HEAD)"
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$EXPECTED_TREE"
+          remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          test "$remote_main" = "$EXPECTED_PARENT"
+          git push origin "$commit_sha:refs/heads/main"
+          git push origin ":refs/heads/$OLD_BRANCH" || true
+          git push origin ":refs/heads/$FINAL_BRANCH" || true
