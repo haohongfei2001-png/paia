@@ -6,9 +6,9 @@ const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.run
 const rawRpc=(page,type,fields={})=>page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});
 
 async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
-async function openUniversal(page,query){await eventually(async()=>await page.locator('#universal-search-open').isVisible(),'Universal Search control is mounted');await page.locator('#universal-search-open').click();const box=page.getByRole('searchbox',{name:'全局搜索'});await box.fill(query);await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()>0,'Universal Search returns a current-runtime result');return page.locator('#universal-search-dialog .universal-hit').first();}
+async function openUniversal(page,query){assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');await page.locator('#archive-select-materials').click();const box=page.getByRole('searchbox',{name:'全局搜索'});await box.fill(query);await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()>0,'internal material Search returns a current-runtime result');return page.locator('#universal-search-dialog .universal-hit').first();}
 
-test('Round 4.8 current release: Universal Search -> Reader / Context and Revisit are real Chrome journeys',{timeout:120000},async()=>{
+test('Round 4.8 current release: internal material Search -> Reader / Context and Revisit are real Chrome journeys',{timeout:120000},async()=>{
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive,first='ROUND48_SEARCH_TARGET 我决定把 PAIA 做成长期可阅读的个人输入档案。',second='ROUND48_REVISIT_NEW 我后来补充：回访应该只提示真正新增的本机内容。';
@@ -16,7 +16,7 @@ test('Round 4.8 current release: Universal Search -> Reader / Context and Revisi
   await h.open({id:'round48-current',title:'Round 4.8 Current Release',base:1609459200,messages:[{id:'round48-one',text:first}]});
   await eventually(async()=>(await h.state()).records.length===1,'first Input is captured');
 
-  // Search -> Reader uses the production Universal Search overlay and the real
+  // Explicit material selection uses the retained internal Search coordinator and the real
   // Input Archive navigation path, rather than a unit-only projection.
   let hit=await openUniversal(p,'ROUND48_SEARCH_TARGET');
   await hit.locator('.universal-open').click();

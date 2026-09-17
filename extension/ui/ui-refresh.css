@@ -124,6 +124,7 @@ body.ux-reader-active #document-panel .document-page {
 }
 
 #document-panel #document-title,
+#document-panel #document-search-tools,
 #document-panel #input-time-order,
 #document-panel #document-body {
   width: min(100%, var(--paia-prose-width, 680px));

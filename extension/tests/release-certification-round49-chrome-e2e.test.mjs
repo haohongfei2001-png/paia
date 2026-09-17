@@ -40,13 +40,14 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false,'explicit manual selection grants no future automatic retrieval');
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);
 
-  // Return to the Archive home and prove that global retrieval and revisit remain
-  // first-class tasks without duplicating Search as another Archive card.
+  // Return to the Archive home and prove that page-scoped retrieval and Revisit remain
+  // first-class tasks; the retained cross-surface coordinator is only an internal material-selection task.
   await p.locator('#primary-nav [data-view="library"]').click();
   await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'return to Archive home');
   await p.locator('.conversation-document').first().evaluate(el=>{globalThis.__round49StableDocument=el;});const worker=h.context.serviceWorkers()[0];await worker.evaluate(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'CAPTURE'}).catch(()=>{});});await pause(250);assert.equal(await p.locator('.conversation-document').first().evaluate(el=>el===globalThis.__round49StableDocument),true,'same Archive data keeps the same document action node');
-  await p.locator('#universal-search-open').click();
-  await eventually(async()=>await p.locator('#universal-search-dialog').isVisible(),'header Search opens Universal Search');
+  assert.equal(await p.locator('#universal-search-open').isVisible(),false,'normal Archive home exposes no global Search launcher');
+  await p.locator('#archive-select-materials').click();
+  await eventually(async()=>await p.locator('#universal-search-dialog').isVisible(),'explicit material selection opens the retained internal Search coordinator');
   assert.match((await p.locator('#universal-search-title').textContent()).trim(),/找回以前的表达|Find an earlier expression/i);
   const box=p.getByRole('searchbox',{name:'全局搜索'});await box.fill('ROUND49_CORE_LOOP');
   await eventually(async()=>await p.locator('#universal-search-dialog .universal-hit').count()>0,'Find returns the captured Input');

@@ -5,7 +5,7 @@ const c=(zh,en)=>document.documentElement.lang.startsWith('en')?en:zh;
 const button=(zh,en,fn,cls='')=>{const b=element('button',cls,c(zh,en));b.type='button';b.addEventListener('click',()=>void fn());return b;};
 export function installUniversalSearch(){
  if(document.getElementById('universal-search-open'))return;const workspace=document.querySelector('.workspace');if(!workspace)return;
- const open=button('搜索','Search',()=>show());open.id='universal-search-open';document.getElementById('workspace-heading').after(open);
+ const open=button('搜索','Search',()=>show());open.id='universal-search-open';open.hidden=true;open.tabIndex=-1;open.setAttribute('aria-hidden','true');open.style.display='none';document.getElementById('workspace-heading').after(open);
  const root=element('section','universal-shell');root.id='universal-search-dialog';root.hidden=true;root.setAttribute('aria-label',c('全局搜索','Global search'));workspace.append(root);
  const header=element('header','universal-header'),title=element('h2','',c('找回以前的表达','Find past expressions'));title.id='universal-search-title';header.append(title,button('返回','Back',()=>close(),'universal-close'));
  const box=element('div','universal-search-box'),input=element('input');input.type='search';input.maxLength=300;input.setAttribute('aria-label','全局搜索');input.placeholder=c('搜索档案、思想与已有 AI 整理','Search Archive, Thoughts and saved AI output');box.append(input);

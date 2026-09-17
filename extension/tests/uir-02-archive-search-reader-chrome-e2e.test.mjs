@@ -56,11 +56,12 @@ async function assertOffline(h){
 }
 
 async function openSearch(page,query){
-  await page.locator('#universal-search-open').click();
-  await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'Search task opens');
+  assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');
+  await page.locator('#archive-select-materials').click();
+  await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'internal material Search opens from explicit selection task');
   const input=page.getByRole('searchbox',{name:'全局搜索'});
   await input.fill(query);
-  await eventually(async()=>await page.locator('#universal-search-dialog').getAttribute('data-query')===query&&await page.locator('.universal-hit').count()>0,'Search returns current-scope results');
+  await eventually(async()=>await page.locator('#universal-search-dialog').getAttribute('data-query')===query&&await page.locator('.universal-hit').count()>0,'internal material Search returns current-scope results');
   return input;
 }
 
