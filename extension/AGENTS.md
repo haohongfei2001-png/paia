@@ -1,106 +1,143 @@
 # PAIA current engineering instructions
 
-## Chrome UI Refresh v1 — scoped execution overlay
+## Active execution overlay — UI Simplification v1
 
-For user-authorized Chrome UI Refresh work on `chrome-ui-refresh-v1`, read `docs/ui-refresh/README.md`, the v1.0 Specification, `UI_REFRESH_STATUS.md`, and the named current round at the same resolved GitHub commit. The four UIR rounds are a separate presentation/interaction refresh, not a restart of UX-R1–R6.
+The current user-authorized PAIA UI work is **UI Simplification v1** on GitHub `main`.
 
-- Design Core and existing product, architecture, ownership, authorization, deletion, privacy, migration and compatibility contracts remain binding. The UIR package replaces only the earlier visual/presentation decisions and the execution/validation cadence for this scoped task; it does not authorize new durable data, permissions, providers or paid behavior.
-- `docs/ui-refresh/UI_REFRESH_STATUS.md` is the only UIR execution-state source. Read old UX status/reports as shipped-capability evidence, not instructions to resume `ux-r2` or an overnight recovery. Do not rewrite the old UX records as UIR state.
-- Execute only the current UIR round after documentation delivery is READY. Use its focused gates and real-browser screenshot review; UIR-04 must close the complete current suite, release and existing mandatory CI gates. Never weaken an existing test, timeout, privacy check or certification job.
-- Commit only to `chrome-ui-refresh-v1`; resolve its real HEAD before work and verify it after pushing. Do not merge into main, deploy, touch PR #28, move frozen baselines, or create control/carrier/lease/scheduler/pending-publication machinery.
-- Preserve existing services and state owners. Ordinary DOM/CSS/copy decisions are already fixed in the UIR Specification; do not restart baseline/design analysis. Only a proved, round-authorized minimal read-only adapter may be considered under its documented safeguards.
-- Keep status/report HEADs as explicitly timed snapshots and tested-code references; obtain the live branch HEAD from GitHub instead of chasing a self-referential commit hash inside its own file.
+Before executing any request equivalent to **“继续开发”** in the PAIA context, read in this exact order:
 
-All instructions below remain applicable outside this limited overlay; their product and trust constraints remain applicable inside it.
+1. `docs/ui-simplification/README.md` — fixed decisions, scope, resume protocol and engineering guardrails.
+2. `docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md` — the **only canonical current-round execution state** for this package.
+3. `PRODUCT.md` — current product definition and shipped capability facts.
+4. `ARCHITECTURE.md` — data ownership, trust and schema boundaries.
+5. Relevant current source/tests for the one round marked `READY`.
+
+Execution semantics:
+
+- One product-owner message **“继续开发”** authorizes exactly **one** current UI Simplification round.
+- Resolve the live remote `main` HEAD before work. GitHub `main` is the authoritative source; do not resume from an old branch, chat SHA, frozen worktree or unpacked Chrome folder.
+- Implement only the round marked `READY` / `CURRENT` in `UI_SIMPLIFICATION_STATUS.md`.
+- After implementation, run that round's required tests, commit to `main` unless the user explicitly asks for a branch/PR, update `UI_SIMPLIFICATION_STATUS.md`, and stop.
+- Do **not** automatically begin the next round. The next round requires another product-owner **“继续开发”** message.
+- Do not ask the product owner to restate decisions already fixed in the UI Simplification package. Ask only if a genuine destructive-data, ownership, privacy, authorization, or architecture conflict cannot be resolved safely from repository contracts.
+- The active overlay may change current visible UI/search/action-placement behavior only within its documented scope. It does not override Source/Input/Thought ownership, privacy, authorization, deletion, migration, Backup, or capture contracts.
+
+## Completed UI execution packages — historical evidence, not active work
+
+### Chrome UI Refresh v1
+
+Chrome UI Refresh UIR-01 through UIR-04 is complete and was merged to `main` on 2026-09-17 via PR #31. `chrome-ui-refresh-v1` is **not** the active development branch. `docs/ui-refresh/` remains certification/design history and should not be used to resume a new UIR round.
+
+Do not:
+
+- resume UIR-01 through UIR-04;
+- recreate PR #31's old branch-state workflow;
+- treat stale pre-merge wording in historical reports as current branch instructions;
+- create UIR-05 merely because UIR-04 was completed.
+
+The shipped UI Refresh implementation is the baseline from which UI Simplification v1 now proceeds.
+
+### UX-R1 through UX-R6 redesign
+
+The earlier UX-R1 → UX-R6 package is also shipped historical implementation evidence. Its Design Core and trust/product principles remain useful constraints, but its old round-status machinery is not the current execution queue.
+
+When a UI Simplification decision intentionally supersedes an earlier visible presentation decision, follow the active UI Simplification package while preserving the underlying domain/security contracts.
 
 ## Authoritative source
 
-- `haohongfei2001-png/paia` on GitHub is the authoritative development repository for PAIA.
-- The active Chrome Extension source lives under `extension/`; the public product website lives at the repository root.
-- From the 2026-09-11 migration onward, `main` is the source of truth. Local clones, unpacked Chrome folders, temporary worktrees, packaged builds, and old project directories are runtime or working copies only.
-- When the user explicitly asks to implement, fix, refactor, document, or otherwise change PAIA, changes may be made directly in this GitHub repository and committed to `main` unless the user asks for a branch or pull request.
-- Historical imported documents may contain task-specific instructions such as “do not push”, “local checkpoint only”, fixed timeboxes, frozen worktrees, or old deployment paths. Those were constraints for earlier development sessions and do **not** override the current GitHub-source-of-truth workflow.
+- Repository: `haohongfei2001-png/paia`.
+- Active Chrome Extension source: `extension/`.
+- Public product website: repository root.
+- `main` is the source of truth. Local clones, unpacked Chrome folders, generated releases, temporary worktrees and old project directories are runtime/working copies only.
+- When the user explicitly asks to implement, fix, refactor, document or otherwise change PAIA, changes may be committed directly to `main` unless the user asks for a branch or pull request.
+- Historical documents may contain task-specific old constraints such as “do not push”, fixed timeboxes, frozen worktrees or old deployment paths. Those do not override current `main`-based instructions.
 
-## Current documentation order
+## Current documentation order outside the active overlay
 
-Before proposing or changing product behavior, read in this order:
+For general new product/engineering work not governed by a more specific active execution package, read:
 
-1. `PRODUCT.md` — current product definition, priorities, capability model and deliberate freezes.
-2. `ARCHITECTURE.md` — current ownership rules, trust boundaries, schema-freeze rule and architecture direction.
-3. `ROADMAP.md` — approved development sequence and decision gates.
-4. Relevant current feature contract only when the change touches that feature, for example `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md`, `SMART_FILTER.md` or a current release record.
-5. Historical specifications/acceptance documents only when needed for compatibility, migration evidence or an exact legacy behavior.
+1. `PRODUCT.md`
+2. `ARCHITECTURE.md`
+3. `ROADMAP.md`
+4. Relevant current feature contracts such as `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md`, `SMART_FILTER.md`, sync/security protocol files, or a current release record
+5. Historical specifications only for compatibility, migration evidence, or exact legacy behavior
 
-`PRODUCT_SPEC.md`, `DECISIONS.md`, `README_HISTORY.md`, version-specific `V*.md`, `ROUND*.md`, M1/M2 foundation documents and old outputs are historical evidence. They do **not** override `PRODUCT.md`, `ARCHITECTURE.md` or `ROADMAP.md` for new direction.
+`PRODUCT_SPEC.md`, `DECISIONS.md`, `README_HISTORY.md`, version-specific `V*.md`, old `ROUND*.md`, M1/M2 foundation documents and completed UX/UI reports are historical evidence. They do not override current product/architecture sources or an active user-authorized execution overlay.
 
-If a historical contract and current product direction conflict, preserve already-shipped safety/data behavior until an explicit migration is approved, but do not continue the historical product plan merely because it is documented in detail.
-
-## UX/UI Redesign execution
-
-For the active UX-R1 → UX-R6 redesign, the UX execution package is the controlling overlay on the general documentation order above. Before doing any UX round work, read in this exact order:
-
-1. `docs/ux/PAIA_DESIGN_CORE_v1.0.md` — highest product constraint for this redesign.
-2. `docs/ux/PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md` — complete UX-R1 → UX-R6 implementation contract.
-3. `docs/ux/UX_IMPLEMENTATION_STATUS.md` — the only UX execution-state source for the current round and readiness.
-4. `PRODUCT.md` — current product definition and shipped capability facts.
-5. `ARCHITECTURE.md` — current ownership, trust and implementation boundaries.
-6. `ROADMAP.md` — route-level product and UX execution navigation.
-7. Inspect the real current repository, then execute **only** the round named as current in `docs/ux/UX_IMPLEMENTATION_STATUS.md`.
-
-UX authority and execution rules:
-
-- `PAIA_DESIGN_CORE_v1.0.md` > `PAIA_UX_UI_DEVELOPMENT_SPEC_v1.0.md` > old UI behavior, copy and screenshots. Existing domain/security/migration contracts remain implementation facts unless the Development Specification explicitly authorizes a semantic change.
-- Do not redefine PAIA, reopen accepted product direction, or remove long-term directions merely because they are not implemented in the current UX round.
-- Do not expand the current round scope. Do not implement later-round controls as placeholders and do not automatically enter the next round after finishing the current one.
-- Prefer and extend existing domain services, stores, revision paths and trusted authorization paths. Do not create a duplicate Source/Input/Thought/AI/Context truth store to make a UI easier to implement.
-- Migration, Backup/export compatibility, authorization compatibility, deletion/tombstone behavior and affected DTO/read/write paths belong to the round that introduces the change; they may not be deferred to UX-R6 as cleanup.
-- Every round must execute the Development Specification's required unit/domain, real-browser, adapter/privacy, visual/accessibility, package/development, full-suite and release gates. Missing required execution is `BLOCKED`, not an assumed pass.
-- If the Design Core or Development Specification materially conflicts with the real architecture, stop the affected implementation and report the exact Spec ID, file/function/location, conflict, risk and smallest viable adjustment. Do not make a large product/data-ownership/permission decision unilaterally.
-- A round is `COMPLETE` only after all required gates pass. Then update both `docs/ux/UX_IMPLEMENTATION_STATUS.md` and that round's `docs/ux/rounds/UX_RN_REPORT.md`. If any required gate is blocked, keep the round incomplete and record the blocker.
-- `docs/ux/PAIA_DESIGN_TOKENS_v1.json` is the machine-readable visual/default parameter source corresponding to Development Specification §5. Token tuning is allowed only within the Spec's change policy and must never alter fixed semantics or authorization defaults.
+If historical behavior conflicts with current direction, preserve already-shipped safety/data guarantees until an explicit migration is approved, but do not continue an obsolete product plan simply because it is documented.
 
 ## Before changing behavior
 
-- Identify which current roadmap round the change belongs to.
-- Preserve compatibility with the current data model, source identity, user edits, tombstones, provenance and explicit authorization semantics unless the user explicitly approves a migration.
-- The post-v0.12 durable schema is frozen by default. Before adding a store, canonical body copy, new durable entity family or destructive migration, satisfy the schema-change questions in `ARCHITECTURE.md` and obtain explicit product justification.
+- Identify the current active package/round or roadmap decision that authorizes the change.
+- Preserve compatibility with current source identity, Working Input edits, Thought work, tombstones, provenance, revisions and explicit authorization semantics unless the product owner explicitly approves a migration.
+- The post-v0.12 durable content schema is frozen by default. Before adding an object store, canonical body copy, durable entity family or destructive migration, answer the schema-change questions in `ARCHITECTURE.md` and obtain explicit product justification.
 - Prefer a read model, derived projection, lightweight preference or reusable service boundary over a new canonical data layer.
-- Reader is a presentation capability, not an additional body-text database.
-- Passport is a governance/authorization direction, not a body-text database.
+- Reader is a presentation capability, not a body-text database.
+- Search/Revisit are projections/coordinators, not parallel truth stores.
+- AI Context is a compiler over authorized material, not a fourth canonical body store.
+- Passport is authorization/audit metadata, not content ownership.
 
 ## Product and privacy boundaries
 
 - PAIA is currently a desktop Google Chrome Manifest V3 extension centered on ChatGPT Web.
-- Source records must remain distinct from user-edited working text and AI-derived organization. AI must never silently overwrite the user's original expression or protected user work.
-- Capture and import behavior must remain constrained by explicit product contracts. Do not broaden collection to drafts, keystrokes, assistant replies, unrelated pages, browser history, cookies, credentials, or other local/private data without explicit product authorization.
-- Never commit real user archive contents, browser profiles, session state, cookies, API credentials, private exports, or personally identifying test fixtures to Git.
-- Tests and public acceptance evidence should use synthetic or sanitized data. Be precise about the difference between automated/headless validation and real-user Chrome smoke testing.
-- Existing external-AI/provider behavior must follow the current product contracts and manifest permissions. Do not add new providers, broader permissions, hidden background requests, automatic paid calls, or automatic retries without explicit user approval.
-- User-controlled authorization, exclusion, revocation and local-first behavior take precedence over convenience automation.
+- Source records remain distinct from user-edited Working Input and AI-derived organization.
+- AI must never silently overwrite original Source evidence or protected user work.
+- Do not broaden collection to drafts, keystrokes, assistant replies, unrelated pages, browser history, cookies, credentials, clipboard or other private local data without explicit product authorization.
+- Never commit real user archive contents, browser profiles, session state, cookies, API credentials, private exports or identifying fixtures to Git.
+- Tests and public evidence must use synthetic or sanitized data.
+- Existing provider behavior must follow current manifest permissions and explicit user authorization. Do not add providers, broader permissions, hidden background requests, automatic paid calls or automatic retries without explicit approval.
+- User-controlled authorization, exclusion, revocation, provenance and local-first behavior take precedence over convenience automation.
+- Permanent deletion/tombstones outrank re-import, caches and derived projections.
+- Smart Filter must not silently delete Source data.
+- Product Signals are observers only and cannot grant permissions or change trusted output.
+
+## UI and interaction engineering
+
+- Reuse existing domain services/state owners. UI code must not become an alternate persistence or authorization implementation.
+- Do not create duplicate Source/Input/Thought/AI/Context body truth merely to simplify a screen.
+- Keep page navigation/search/menu state local and bounded where possible.
+- Preserve autosave, conflict, revision and leave-guard behavior when moving controls.
+- Maintain keyboard accessibility and focus return for menus/dialogs/search.
+- Removing a visible UI projection does not authorize deleting underlying metadata/services if they support other trusted behavior.
+- When current approved UI behavior invalidates an old screenshot/UI assertion, update that assertion to the new behavior while preserving security/data invariants. Do not disable tests merely to get a green build.
 
 ## Engineering and delivery
 
 - Keep adapters, capture/import logic, storage/model logic, UI, search/context logic and provider-facing logic separated according to `ARCHITECTURE.md`.
-- `background/service-worker.js` should trend toward trusted validation/dispatch rather than absorbing more domain behavior. Refactor incrementally when doing real product work; avoid large cosmetic moves with no behavioral benefit.
-- Add or update targeted tests for behavioral changes and run the relevant regression checks when feasible.
-- On a fresh clone, use `npm install` and `npx playwright install chromium` under `extension/` before the complete browser regression suite. `npm test` is the current full-suite entry point; `npm run check` is the static package audit.
-- `npm run build:release` is the current source-of-truth release build. It builds from the GitHub working tree and validates the emitted release without requiring historical local `work/` receipts. Version-specific historical acceptance packagers remain for release history and may depend on generated evidence from their original sessions.
-- For the user's existing unpacked Chrome installation, preserve the same loaded runtime path to preserve extension identity and Chrome-managed IndexedDB. `development/Update PAIA.command` is the supported local sync/deploy helper; see `DEVELOPMENT_WORKFLOW.md`.
-- Keep documentation aligned with actual behavior; do not claim unsupported compatibility, live-provider success, real-user validation, semantic understanding or sync capability.
-- The user has limited programming experience. Agents should perform code and file changes themselves when tools allow it and give only concise manual smoke-test steps when direct browser interaction is genuinely required.
-- Do not ask the user to maintain a second authoritative local copy. If a local clone diverges, reconcile it with GitHub `main`; do not treat the local directory as newer merely because it exists.
+- `background/service-worker.js` should remain primarily trusted validation/dispatch; do not absorb unrelated UI/domain behavior into it.
+- Add/update targeted tests for behavioral changes and run the relevant regression gates.
+- Fresh clone setup under `extension/`:
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+- Current test/package commands:
+
+```bash
+npm test
+npm run check
+npm run test:ui-refresh
+npm run build:release
+```
+
+- Do not weaken test assertions, privacy checks, release guards, certification jobs or timeouts to make a change pass.
+- `npm run build:release` is the current source-of-truth release build.
+- Preserve the existing unpacked Chrome runtime path/extension identity when deploying to the user's daily profile. Use `development/Update PAIA.command` after GitHub Desktop has synchronized `main`; see `DEVELOPMENT_WORKFLOW.md`.
+- Do not ask the user to maintain a second authoritative local copy. Reconcile local work with GitHub `main`.
+- Keep documentation aligned with actual behavior. Do not claim unsupported live-provider success, real-user validation, sync, semantic understanding or security properties.
+- The user should not be required to perform manual coding. Agents should make repository changes themselves when tools permit and request only genuinely necessary real-browser smoke steps.
 
 ## Product validation discipline
 
-PAIA currently has stronger engineering validation than product validation. Do not treat additional test count or ontology depth as product progress by itself.
+PAIA still has stronger engineering validation than product validation.
 
-When a roadmap round includes product validation:
-
-- prefer local-only metrics that do not transmit private archive text;
-- distinguish observed repeat use from one-time feature completion;
-- use real retrieval/reread/reuse failures to justify later architecture work such as semantic retrieval, Passport or sync;
-- do not expand a feature whose value has not been demonstrated simply because the implementation path is available.
+- Prefer privacy-preserving local metrics.
+- Distinguish observed repeat use from one-time implementation completion.
+- Use real retrieval/reread/reuse failures to justify later semantic retrieval, Passport or sync expansion.
+- Do not expand a feature merely because the implementation path exists.
 
 ## Migration note
 
-The initial GitHub source import came from local commit `063ddb5cfae3a8b1ec637c2604639cbde11529c7`, tag `checkpoint-v0.11.1-thought-library-reading-closure`. See `SOURCE_SNAPSHOT.md` for the migration record. Earlier authorization history remains in Git history and the imported version/acceptance documents, but it is not the current execution policy.
+The initial GitHub source import came from local commit `063ddb5cfae3a8b1ec637c2604639cbde11529c7`, tag `checkpoint-v0.11.1-thought-library-reading-closure`. See `SOURCE_SNAPSHOT.md` for migration history. Earlier authorization history remains in Git history and imported acceptance documents, but it is not the current execution policy.
