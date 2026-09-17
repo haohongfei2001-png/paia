@@ -5,7 +5,7 @@ on:
     branches:
       - automation/uis02-transfer-20260918
     paths:
-      - .github/uis02-transfer/patch.gz.b64
+      - .github/uis02-transfer/TRIGGER
 
 permissions:
   contents: write
@@ -29,7 +29,7 @@ jobs:
           set -euo pipefail
           remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
           test "$remote_main" = "$EXPECTED_PARENT"
-          base64 -d .github/uis02-transfer/patch.gz.b64 > /tmp/uis02.patch.gz
+          cat .github/uis02-transfer/chunk-* | base64 -d > /tmp/uis02.patch.gz
           printf '%s  %s\n' "$EXPECTED_PATCH_GZIP_SHA256" /tmp/uis02.patch.gz | sha256sum -c -
           gzip -dc /tmp/uis02.patch.gz > /tmp/uis02.patch
           git checkout --detach "$EXPECTED_PARENT"
