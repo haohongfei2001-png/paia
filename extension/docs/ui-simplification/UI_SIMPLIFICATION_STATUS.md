@@ -2,13 +2,15 @@
 
 Status file: **canonical execution state for UI Simplification v1**
 
-Version: v1.0
+Version: v1.1
 
 Date: 2026-09-17
 
 Repository: `haohongfei2001-png/paia`
 
 Authoritative branch: `main`
+
+Current round: **UIS-02 — READY**
 
 Always resolve the live `main` HEAD before execution. Do not encode this file's own commit as a self-referential required HEAD.
 
@@ -51,7 +53,7 @@ Implementation rounds begin at UIS-01.
 
 ## 3. UIS-01 — Archive home and Archive action consolidation
 
-Status: **READY**
+Status: **COMPLETE**
 
 ### Objective
 
@@ -94,13 +96,43 @@ At minimum:
 
 ### Completion record
 
-Not started.
+Runtime/test commit: `74bdd87656add03c5116398ed728695b1cc5b166` — `Complete UIS-01 Archive action consolidation`.
+
+Implemented behavior:
+
+- the redundant Archive intro/title presentation is no longer visible on the Archive root;
+- `按来源浏览 / Browse by source` and its explanatory subtitle are removed while the existing conversation/document list and ordering remain intact;
+- the existing `#document-menu` overflow control is reused as the Archive-root `···` owner instead of adding a competing menu control;
+- history completion and existing Source Records JSON/Markdown export are reached through that menu by delegating to their existing handlers;
+- standalone history/export controls are removed from normal visible Archive-root chrome without changing import/export payload semantics;
+- Settings complete export, Backup and restore remain distinct system-level data actions;
+- no Source/Input/Thought ownership, storage schema, tombstone, revision, capture, Provider, permission or paid-AI behavior changed.
+
+Validation / recovery receipt:
+
+- GitHub remote `main` and GitHub Actions were used as execution facts; no local clone state was used to declare completion.
+- `uis-01-archive-actions-chrome-e2e.test.mjs`: PASS on the tested runtime, including quiet Archive hierarchy, one accessible overflow menu, Escape focus return, history-completion reachability, unchanged filtered Source Records export semantics, and Settings complete-export separation.
+- PAIA Certification run `35229562214`, run #342, runtime SHA `74bdd876…`:
+  - attempt 1 failed only in the independent Current Browser job on one existing UX-R5 focus assertion (`ai-presentation-toggle` focus expected, empty active-element id observed);
+  - the same UX-R5 certification path passed in the Full Suite on the same SHA, so no runtime change was made solely to satisfy a non-reproduced focus failure;
+  - failed jobs were rerun on the exact same SHA; attempt 2 concluded **SUCCESS**, including **Current Browser Certification = SUCCESS** and **Certification gate = SUCCESS**.
+- Attempt 2 Full Suite: **1099 / 1099 PASS**, fail 0, skipped 0:
+  - unit: 909;
+  - browser E2E: 43;
+  - adapter contract: 95;
+  - privacy/security: 52.
+- Remote CI package audit (`check_package.py`, the same audit implementation invoked by `npm run check`) reported **8467 package guardrails PASS**; the current-release build/guard job also passed.
+- Current release build and guards: SUCCESS.
+- macOS Secure Store Certification: SUCCESS.
+- Full-suite receipt: `fullSuite=true`, `auditPassed=true`, `historicalBrowserFiles=76`, input digest `8ec99c18b31ef01f4d176dfa16b6ea01a19919154d2123c1dbe5950c1d4298df`.
+
+UIS-01 is closed. Do not reopen it merely because attempt 1 contained a non-reproduced CI focus failure; any future reproducible regression should be handled from the then-current round and current remote evidence.
 
 ---
 
 ## 4. UIS-02 — Page-scoped search and removal of the visible global search model
 
-Status: **PENDING UIS-01**
+Status: **READY**
 
 ### Objective
 
@@ -154,7 +186,7 @@ Run affected search tests, affected browser tests, `npm run test:ui-refresh`, an
 
 ### Completion record
 
-Waiting for UIS-01.
+Ready after certified UIS-01 closure. Not started.
 
 ---
 
@@ -265,6 +297,6 @@ Every round must preserve:
 
 ## 8. Current next action
 
-**Next user command required: `继续开发`**
+**Next user / Supervisor execution message required: `继续开发`**
 
-That command authorizes **UIS-01 only**.
+That next message authorizes **UIS-02 only**. UIS-02 has not been started by the UIS-01 recovery execution.
