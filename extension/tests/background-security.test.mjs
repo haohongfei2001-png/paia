@@ -35,7 +35,7 @@ function sourceObservation(epoch,changes={}) {
     scope:'current_conversation',epoch,session:'ans03-worker-session',generation:1,
     observedAt:'2026-09-19T00:20:00.000Z',
     subject:{kind:'conversation',conversationId:CHAT_ID},
-    observation:{sourceStatus:'observed_active'}
+    observation:{}
   };
   return {type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
     chat:{id:CHAT_ID,url:CHAT_URL},observation,...changes};
