@@ -370,7 +370,7 @@ Do not claim completion if a required gate is skipped or failed. Record exact en
 
 Cleanup implementation and recovery are certified on remote `main` source `72ca7946996b6b1255f67d76f9d1af0b8f92fb33`. PAIA Certification #353 passed before this status-only closure. Earlier candidates below are recovery history, not substitutes for the final exact-source receipt.
 
-- Audited starting remote main: `76dac80c2a598a13ae31fb4ed4f1daf6a429a4`.
+- Audited starting remote main: `76dac80c2a598a13ae31fb4ed4f4d1daf6a429a4`.
 - Removed the obsolete hidden search launcher, its shell locale/chrome wiring and dead styles. The explicit material-selection search retains its real dialog owner and reusable domain coordinator.
 - Revisit now mounts from the workspace heading; removing the obsolete launcher cannot remove the Revisit entry.
 - Removed Thought Recent Reading rendering calls, visibility checks, translation hook and styles while preserving read metadata/services.
@@ -430,7 +430,7 @@ Final acceptance audit:
 4. **PASS — documentation and trust scope aligned.** Re-read `PRODUCT.md`, `ARCHITECTURE.md`, `ROADMAP.md`, `AGENTS.md` and this package README. They reflect scoped visible search, internal reusable cross-surface selection, contextual menus, removed Thought-root Recent Reading/AI controls, preserved metadata, and completion-aware execution. The baseline-to-certified-source comparison changes only UI, tests, documentation and additive explicit CI commands; no core storage, capture, manifest/provider permissions, durable ownership, tombstone/revision or paid-AI semantics were changed.
 5. **PASS — final receipts and terminal package state recorded.** UIS-01, UIS-02, UIS-03 and UIS-04 are COMPLETE; there is no next READY round.
 
-Affected-test results are individually named in both Full Suite and Current Browser logs, so no redundant separate browser rerun is needed: `uis-04-cleanup.test.mjs` **4 / 4**, `uis-04-cleanup-chrome-e2e.test.mjs` **1 / 1**, UIS-01 and UIS-02 Chrome journeys **1 / 1** each, all ten UI Refresh journeys, UX-R3 Thought **5 / 5**, and UX-R5 certification **3 / 3**. UIS-04 Chrome asserts zero DeepSeek, extension-network and external requests and no browser errors.
+Affected source-test results are individually named in Full Suite logs; affected browser results are individually named in both Full Suite and Current Browser logs, so no redundant separate browser rerun is needed: `uis-04-cleanup.test.mjs` **4 / 4**, `uis-04-cleanup-chrome-e2e.test.mjs` **1 / 1**, UIS-01 and UIS-02 Chrome journeys **1 / 1** each, all ten UI Refresh journeys, UX-R3 Thought **5 / 5**, and UX-R5 certification **3 / 3**. UIS-04 Chrome asserts zero DeepSeek, extension-network and external requests and no browser errors.
 
 Visual confirmation used the certified run's `ux-r3-evidence-72ca7946996b6b1255f67d76f9d1af0b8f92fb33` artifact, ID `10529989261`, with downloaded ZIP SHA-256 verified as `ae1e7856640512e3318d45e593f8b7eae4f76c2e85451f19965ed1ef37897bb3`. Reviewed `uir-03-current-release-thought-home-1440x900-light.png` and `uir-03-current-release-topic-original-1440x900-light.png`: the root has the scoped search and contextual overflow without the old AI organizer/Recent Reading projection; the open topic retains its contextual AI switch and topic search. These are synthetic built-release evidence, not screenshots from the user's daily profile.
 
