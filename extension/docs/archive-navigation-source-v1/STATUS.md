@@ -3,16 +3,17 @@
 ## Package
 
 - package_id: `PAIA-ARCHIVE-NAVIGATION-SOURCE-v1`
-- package_status: `READY`
+- package_status: `IN_PROGRESS`
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
-- implementation_started: `false`
+- implementation_started: `true`
 - current_round: `ANS-01`
-- current_round_status: `READY`
-- execution_id: `NONE`
+- current_round_status: `IN_PROGRESS`
+- execution_id: `ANS01-20260918-1845`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
-- canonical_head: `RESOLVE_GITHUB_REF_AT_EXECUTION_START`
+- canonical_head_at_execution_start: `1ed8720b9dee14d810fa43b64c5413b9aaab560e`
+- candidate_branch: `ans/v1/ANS-01-20260918-1845`
 - verified_baseline_ci: `PAIA Certification #357 / run 35322458613 / attempt 3 / success / head 38804b99153074f54148f875e2e09c76568bc1cd`
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
@@ -23,7 +24,7 @@
 
 | Round | Status | Dependency | Goal | Runtime/evidence |
 |---|---|---|---|---|
-| ANS-01 | READY | Canonical planning publication | Reader选择surface精简、单排序切换、时间常显、测试登记 | NOT_STARTED |
+| ANS-01 | IN_PROGRESS | Canonical planning publication | Reader选择surface精简、单排序切换、时间常显、测试登记 | execution `ANS01-20260918-1845` · start `1ed8720b9…` |
 | ANS-02 | PLANNED | ANS-01 COMPLETE | 来源关系/历史/生命周期、purge与Backup兼容基础 | NOT_STARTED |
 | ANS-03 | PLANNED | ANS-02 COMPLETE | adapter逐能力证据审核、可信source observation管线 | NOT_STARTED |
 | ANS-04 | PLANNED | ANS-03 COMPLETE | 有界Navigator读模型、索引/覆盖/游标/迁移 | NOT_STARTED |
@@ -42,8 +43,8 @@ R6/R7实站能力可能unknown；Project/order/delete要逐项实证。当前没
 
 ## Current execution record
 
-没有领取任何implementation round。规划执行只写本目录Markdown，并做现有实现的只读/隔离UI检查。
-下一条明确执行消息才可领取ANS-01；本规划execution不得自动开发它。
+ANS-01 已由 execution `ANS01-20260918-1845` 领取；起点远端 main 为 `1ed8720b9dee14d810fa43b64c5413b9aaab560e`，候选分支为 `ans/v1/ANS-01-20260918-1845`。
+本 execution 只完成 ANS-01；成功发布并远端认证后将 ANS-01 标 COMPLETE、ANS-02 标 READY，然后停止。失败或中断保持 ANS-01 IN_PROGRESS，不推进下一轮。
 
 ## Completion protocol
 
@@ -53,5 +54,4 @@ R6/R7实站能力可能unknown；Project/order/delete要逐项实证。当前没
 
 ## Next action
 
-`ANS-01`，严格按DEVELOPMENT_PLAN对应section与EXECUTION_PROTOCOL执行。
-当前planning到此停止。
+当前执行：`ANS-01`。严格按 DEVELOPMENT_PLAN 对应 section 与 EXECUTION_PROTOCOL 执行。
