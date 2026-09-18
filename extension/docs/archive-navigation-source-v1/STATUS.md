@@ -3,32 +3,34 @@
 ## Package
 
 - package_id: `PAIA-ARCHIVE-NAVIGATION-SOURCE-v1`
-- package_status: `READY`
+- package_status: `IN_PROGRESS`
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
 - current_round: `ANS-02`
-- current_round_status: `READY`
-- execution_id: `NONE`
+- current_round_status: `IN_PROGRESS`
+- execution_id: `ANS02-20260919-0109`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
-- canonical_head_at_execution_start: `1ed8720b9dee14d810fa43b64c5413b9aaab560e`
+- canonical_head_at_execution_start: `0f394d66bf8e84e82eb3dd72a45c05e1d17152b1`
+- candidate_branch: `ans/v1/ANS-02-20260919-0109`
 - completed_ans01_branch: `ans/v1/ANS-01-20260918-1845`
 - ans01_implementation_commit: `7947c869ccffcbda9d2a0a77fdafbb498b4eb0d5`
 - ans01_certified_head: `91941891ecb4002690312959677e9975f590c0c1`
 - ans01_certification: `PAIA Certification #362 / run 35360097931 / attempt 1 / success / head 91941891ecb4002690312959677e9975f590c0c1`
+- ans01_closure_certification: `PAIA Certification #363 / run 35362881392 / attempt 3 / success / head 0f394d66bf8e84e82eb3dd72a45c05e1d17152b1`
 - verified_baseline_ci: `PAIA Certification #357 / run 35322458613 / attempt 3 / success / head 38804b99153074f54148f875e2e09c76568bc1cd`
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。`planning_round=COMPLETE`仅表示规划完成；ANS-01 已完成并有独立 receipt，后续轮次仍必须逐轮领取、认证和停止。
+本文件是本包唯一执行队列。ANS-02 已由本次独立 execution 领取；本 execution 只处理 ANS-02，完成后只推进 ANS-03 为 READY 并停止。
 
 ## Round queue
 
 | Round | Status | Dependency | Goal | Runtime/evidence |
 |---|---|---|---|---|
-| ANS-01 | COMPLETE | Canonical planning publication | Reader选择surface精简、单排序切换、时间常显、测试登记 | certified `91941891…` · CI #362 success · `receipts/ANS-01.md` |
-| ANS-02 | READY | ANS-01 COMPLETE | 来源关系/历史/生命周期、purge与Backup兼容基础 | NOT_STARTED |
+| ANS-01 | COMPLETE | Canonical planning publication | Reader选择surface精简、单排序切换、时间常显、测试登记 | certified `91941891…` · runtime CI #362 success · closure CI #363 success on `0f394d66…` · `receipts/ANS-01.md` |
+| ANS-02 | IN_PROGRESS | ANS-01 COMPLETE | 来源关系/历史/生命周期、purge与Backup兼容基础 | execution `ANS02-20260919-0109` · start `0f394d66…` |
 | ANS-03 | PLANNED | ANS-02 COMPLETE | adapter逐能力证据审核、可信source observation管线 | NOT_STARTED |
 | ANS-04 | PLANNED | ANS-03 COMPLETE | 有界Navigator读模型、索引/覆盖/游标/迁移 | NOT_STARTED |
 | ANS-05 | PLANNED | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | NOT_STARTED |
@@ -46,9 +48,9 @@ R6/R7实站能力可能unknown；Project/order/delete要逐项实证。当前没
 
 ## Current execution record
 
-ANS-01 execution `ANS01-20260918-1845` 已完成。实现 commit 为 `7947c869ccffcbda9d2a0a77fdafbb498b4eb0d5`；首次 CI `35355933206` 暴露 ANS focused test 的异步等待竞态，未降低门禁，随后 test-only synchronization commit `91941891ecb4002690312959677e9975f590c0c1` 修正等待条件。该 exact head 的 PAIA Certification #362 / run `35360097931` / attempt 1 全部 required jobs success；详见 `receipts/ANS-01.md`。
+ANS-01 runtime certification已在 `91941891ecb4002690312959677e9975f590c0c1` 通过。ANS-01 completion docs 推进 main 到 `0f394d66bf8e84e82eb3dd72a45c05e1d17152b1` 后，PAIA Certification #363 / run `35362881392` 的前序尝试暴露 browser timing flakes；未降低门禁、未改产品代码，latest attempt 3 的 Current Browser Certification、Full Suite Certification、Unit 1–4、Adapter and privacy contracts、Current release build and guards、macOS Secure Store Certification 与最终 Certification gate 均为 success。该 closure gate 已解除 ANS-02 的前置阻塞。
 
-当前没有 implementation execution 在运行。ANS-02 仅被推进为 READY；本次 ANS-01 execution 到此停止，不实施 ANS-02。
+本次 execution `ANS02-20260919-0109` 从 exact remote main `0f394d66bf8e84e82eb3dd72a45c05e1d17152b1` 领取 ANS-02，候选分支为 `ans/v1/ANS-02-20260919-0109`。本轮仅实现 provenance-safe source structure foundation：关系/历史/生命周期 reducer、可信 store、purge/backup/restore 保护与 mixed-provider 兼容；不进入 ANS-03，不做实站提取、Navigator 生产 UI、来源排序设置、新 objectstore/DB version、新 Source identity 或新 provider capture。
 
 ## Completion protocol
 
@@ -58,4 +60,4 @@ ANS-01 execution `ANS01-20260918-1845` 已完成。实现 commit 为 `7947c869cc
 
 ## Next action
 
-下一次独立产品所有者/监督器执行可领取 `ANS-02`。开始时必须重新解析远端 main、读取本文件和 ANS-02 计划，并建立新的 execution ID / candidate branch；当前 execution 不得继续。
+当前执行：`ANS-02`。严格按 DEVELOPMENT_PLAN 的 ANS-02 section、ARCHITECTURE B/C/H、VERIFICATION V07–V12/V20–V23、M01–M08 与共同 G0–G7 执行；完成并远端认证后仅将 ANS-03 置 READY，然后停止。
