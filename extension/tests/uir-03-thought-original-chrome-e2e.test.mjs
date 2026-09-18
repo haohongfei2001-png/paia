@@ -59,7 +59,20 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await page.bringToFront();
   await nav(page,'thoughts');
   await eventually(async()=>await page.locator('#thought-list [data-topic-id]').count()===3,'Thought home renders the seeded Topics');
-  await eventually(()=>page.locator('#thought-recent button').count().then(count=>count>0),'recent reading is a separate home section');
+  assert.equal(await page.locator('input[type="search"]:visible').count(),1,'Thought root exposes exactly one visible search control');
+  assert.equal(await page.locator('#thought-search').isVisible(),true,'Thought root keeps its page-scoped search');
+  assert.equal(await page.locator('#library-view-switch').isVisible(),false,'Thought root hides AI presentation controls until a Topic is open');
+  assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),false,'Thought root has no visible AI organize toggle');
+  assert.equal(await page.locator('#thought-recent').count(),0,'Thought root no longer renders 最近阅读');
+  const index=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}});
+  assert.ok(index.recent?.some(item=>item.id===topics[1].id),'recent-read metadata remains available behind the removed root section');
+  const homeMenu=page.locator('#thought-home-tools .library-actions').first();
+  await homeMenu.locator('summary').click();
+  assert.equal(await homeMenu.getByRole('button',{name:'添加主题',exact:true}).isVisible(),true,'root menu keeps Add Topic');
+  assert.equal(await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).isVisible(),true,'root menu keeps layout control');
+  assert.equal(await homeMenu.getByRole('button',{name:'整理新增内容',exact:true}).count(),0,'root menu no longer starts AI organization');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#thought-home-tools').getByRole('button',{name:'接着写',exact:true}).isVisible(),true,'independent Thought creation remains reachable');
 
   await page.setViewportSize({width:1440,height:900});
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});
@@ -104,8 +117,16 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.ok(shell&&section&&shell.width>900,'Topic shell uses the main workspace rather than the old narrow document shell');
   assert.ok(section.width<=722,`Original prose keeps the saved 640/680/720px reading-width boundary; got ${section?.width}`);
   assert.ok(shell.width-section.width>120,'Topic shell and readable prose width remain distinct');
+  assert.equal(await page.locator('input[type="search"]:visible').count(),1,'open Topic exposes exactly one visible search control');
   assert.equal(await page.locator('#topic-search').isVisible(),true,'current-Topic search remains in the existing toolbar');
+  assert.equal(await page.locator('#library-view-switch').isVisible(),true,'AI presentation controls appear only with a concrete open Topic');
+  assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),true,'Topic keeps its contextual AI presentation switch');
   assert.equal(await page.locator('#create-entry').isVisible(),true,'continue-thinking entry remains reachable');
+  const topicMenu=page.locator('#topic-menu .library-actions');
+  await topicMenu.locator('summary').click();
+  assert.equal(await topicMenu.getByRole('button',{name:'导出主题',exact:true}).isVisible(),true,'Topic-scoped export remains reachable in the Topic ··· menu');
+  assert.equal(await page.getByRole('button',{name:'导出思想库',exact:true}).count(),0,'no whole-Library export scope is invented');
+  await page.keyboard.press('Escape');
   await shot(page,release?'uir-03-current-release-topic-original-1440x900-light':'uir-03-topic-original-1440x900-light');
 
   if(!release){
