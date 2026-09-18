@@ -121,6 +121,10 @@ jobs:
           "$CHROME_BIN" --version
       - name: Verify current browser coverage contract
         run: node scripts/check-ui-refresh-ci.mjs
+      - name: Run explicit UI Refresh closure gate
+        run: xvfb-run -a npm run test:ui-refresh
+      - name: Run explicit package closure gate
+        run: npm run check
       - name: Run complete current browser suite and guards
         env:
           PAIA_TEST_CONCURRENCY: '1'

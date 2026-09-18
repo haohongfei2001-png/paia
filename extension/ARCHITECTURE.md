@@ -102,7 +102,7 @@ AI presentation, evolution reading, search ranking, Revisit, Context previews an
 
 Reader projections include:
 
-- **Universal Search** — a grouped read model over existing Input search, Thought search and existing AI-organized projection text.
+- **Universal Search** — an internal grouped read model over existing Input search, Thought search and existing AI-organized projection text, retained for explicit material selection/Context workflows rather than exposed as a normal competing search launcher.
 - **“以前的我”** — a chronological projection over matching Input expressions, ordered using available source-send-time evidence.
 - **Revisit / 回访** — an on-demand projection combining newly collected visible Inputs, Thought topics with currently pending supporting material, and a small set of older Inputs selected by explicit local criteria.
 
@@ -136,6 +136,18 @@ It provides:
 - Unicode-safe excerpts.
 
 Input and Thought retain their existing pagination/index structures. Semantic/vector retrieval may later become a rebuildable implementation component only when measured retrieval failures justify it; it is not a new truth store.
+
+### 5.0 Visible page scope and internal selection
+
+UI Simplification v1 keeps one visible search per content container: Archive root → eligible Archive/Input content; Archive document → current document/window; Thought root → Thought Library; Thought topic → current topic/document. Settings owns no search. Keyboard search-focus routing follows that scope and cannot open hidden global search from Settings.
+
+The existing UI-level scope/navigation owners retain bounded local query, page and scroll state and exact result-to-Reader positioning. They do not add an index, durable body, object store or parallel navigation state machine.
+
+`ui/universal-search.js` still serves explicit material-selection events and uses its own existing dialog as its installation guard. It no longer creates a hidden shell launcher. Revisit mounts from the actual workspace heading, not from a removed search button. Shell observers and locale updates no longer reconstruct launcher chrome.
+
+Thought Recent Reading rendering and its dead selectors/copy are removed. `RECORD_TOPIC_READ`, `LIBRARY_INDEX_PAGE.recent` and bounded Reader/Revisit metadata remain owned by their existing services. Removing a projection does not authorize deleting its metadata.
+
+Archive history completion and scoped Source export use the existing handlers through `···`; Topic export remains topic-scoped. Settings complete export/Backup/restore retain their separate ownership and payload contracts. No data/schema/trust boundary is changed by this presentation package.
 
 ### 5.1 Universal Search coordination
 

@@ -48,7 +48,7 @@ async function settings(){
 export function installRevisit(){
  if($('revisit-open'))return;
  windowId=history.state?.paiaRevisitWindow||null;
- const open=button(copy('回来看看','Revisit'));open.id='revisit-open';open.onclick=()=>{opener=document.activeElement;requestNavigation({view:'revisit'});};$('universal-search-open')?.after(open);
+ const open=button(copy('回来看看','Revisit'));open.id='revisit-open';open.onclick=()=>{opener=document.activeElement;requestNavigation({view:'revisit'});};$('workspace-heading')?.after(open);
  const panel=element('section');panel.id='revisit-panel';panel.hidden=true;const head=element('header'),back=button(copy('‹ 返回档案','‹ Back to Archive')),title=element('h1','',copy('回来看看','Revisit'));back.className='revisit-close';back.onclick=()=>{requestNavigation({view:'library'});opener?.isConnected&&opener.focus({preventScroll:true});};head.append(back,title);
  const intro=element('p','muted revisit-intro',copy('这里呈现上次打开后的本机变化，不表示哪些内容已经读完。','Local changes since your last visit. This does not mark anything as read.')),body=element('div');body.id='revisit-body';
  const label=element('label','setting',copy('偶尔回顾以前的内容','Occasionally revisit earlier material')),toggle=document.createElement('input');toggle.type='checkbox';toggle.id='revisit-old-toggle';label.append(toggle);

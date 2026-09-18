@@ -26,17 +26,6 @@ function syncNavChrome(){
   let label=button.querySelector('.ux-nav-label');if(!label){label=document.createElement('span');label.className='ux-nav-label';button.replaceChildren(icon(NAV_PATHS[view]),label);}const text=copy(pair);if(label.textContent!==text)label.textContent=text;
  }
 }
-function syncSearchLauncher(){
- const button=$('universal-search-open');if(!button)return;
- let label=button.querySelector('.ux-search-label'),key=button.querySelector('.ux-search-shortcut');
- if(!label||!key){label=document.createElement('span');label.className='ux-search-label';key=document.createElement('kbd');key.className='ux-search-shortcut';button.replaceChildren(icon('M10.5 5.5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM14.25 14.25L19 19','ux-search-icon'),label,key);}
- const shortcut=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘K':'Ctrl K',prompt=zh()?'搜索档案与思想…':'Search Archive & Thoughts…',aria=zh()?`搜索档案与思想，快捷键 ${shortcut}`:`Search Archive and Thoughts, shortcut ${shortcut}`;
- if(label.textContent!==prompt)label.textContent=prompt;if(key.textContent!==shortcut)key.textContent=shortcut;if(button.getAttribute('aria-label')!==aria)button.setAttribute('aria-label',aria);
-}
-function syncSearchHeading(){
- const title=$('universal-search-title');if(title&&title.tagName!=='H1'){const h=document.createElement('h1');h.id=title.id;h.className=title.className;h.textContent=title.textContent;title.replaceWith(h);}
-}
-
 function archiveRootScope(){
  const panel=$('collection-panel'),reader=$('document-panel');if(!panel||panel.hidden||reader&&!reader.hidden)return null;
  if(document.querySelector('[data-view="library"][aria-current="page"]'))return 'library';
@@ -75,7 +64,7 @@ function syncArchiveFrame(){
  const panel=$('collection-panel'),home=$('core-loop-home'),search=$('search'),revisit=$('revisit-open');if(!panel||!home||!search||!revisit)return;
  let frame=$('uir-archive-frame'),main=$('uir-archive-main'),assist=$('uir-archive-assist');
  if(!frame){frame=document.createElement('div');frame.id='uir-archive-frame';frame.className='uir-archive-frame';main=document.createElement('div');main.id='uir-archive-main';main.className='uir-archive-main';assist=document.createElement('aside');assist.id='uir-archive-assist';assist.className='uir-archive-assist';frame.append(main,assist);panel.prepend(frame);}
- const intro=home.querySelector('.core-loop-intro'),browse=$('core-loop-browse-title')?.parentElement,materials=$('archive-select-materials');if(intro)intro.hidden=true;browse?.remove();
+ const intro=home.querySelector('.core-loop-intro'),materials=$('archive-select-materials');if(intro)intro.hidden=true;
  for(const item of [materials,search,$('result-count'),$('document-list'),$('empty-list'),$('empty-sync'),$('export-menu')])if(item&&item.parentElement!==main)main.append(item);
  if(home.parentElement!==assist)assist.append(home);syncArchiveActions();
  const proxy=$('core-loop-return');
@@ -102,11 +91,11 @@ function syncShellLocale(){
  const capability=document.querySelector('.ux-capability-fact');if(capability){const heading=capability.querySelector('strong'),detail=capability.querySelector('p'),headingText=zh()?'设备同步':'Device sync',detailText=zh()?'当前版本未提供设备同步。':'Device sync is not available in this version.';if(heading&&heading.textContent!==headingText)heading.textContent=headingText;if(detail&&detail.textContent!==detailText)detail.textContent=detailText;}
  const read=$('history-read');if(read){const text=zh()?'读一篇':'Read one';if(read.textContent!==text)read.textContent=text;}
  const optional=$('consent-check')?.closest('.consent-checkbox')?.querySelector('.ux-consent-optional');if(optional){const text=zh()?' 可选：用于标记你已阅读上面的完整说明。':' Optional: mark that you read the detailed explanation.';if(optional.textContent!==text)optional.textContent=text;}
- syncNavChrome();syncSearchLauncher();syncSearchHeading();syncArchiveFrame();syncSurfaceClasses();observeSurface('settings-panel');observeSurface('universal-search-dialog');
+ syncNavChrome();syncArchiveFrame();syncSurfaceClasses();observeSurface('settings-panel');observeSurface('universal-search-dialog');
 }
 function installLocaleSync(){
  syncShellLocale();new MutationObserver(syncShellLocale).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
- const ready=()=>!!$('universal-search-open')&&!!$('core-loop-home')&&!!$('revisit-open'),workspace=document.querySelector('.workspace');
+ const ready=()=>!!$('universal-search-dialog')&&!!$('core-loop-home')&&!!$('revisit-open'),workspace=document.querySelector('.workspace');
  if(workspace&&!ready()){
   const bootstrap=new MutationObserver(()=>{syncShellLocale();if(ready())bootstrap.disconnect();});bootstrap.observe(workspace,{subtree:true,childList:true});
  }

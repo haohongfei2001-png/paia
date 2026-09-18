@@ -6,21 +6,13 @@ Baseline: **v0.12.0 — Thought Evolution & Shared Context + post-release consol
 
 PAIA is no longer in a phase where the main goal is to add more feature categories. Current priorities are product validation, Reader/Search/Revisit quality, trust-boundary hardening and keeping future expansion cheap.
 
-## UX/UI Redesign Execution
+## UI execution state
 
-Authority:
-- PAIA Design Core v1.0
-- PAIA UX/UI Development Specification v1.0
+UI Simplification v1 (`docs/ui-simplification/README.md`) supersedes the visible presentation choices it explicitly changes. Its only execution queue and completion state is `docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md`: UIS-01 → UIS-02 → UIS-03 → UIS-04. Once all four are COMPLETE there is no next round; a completed package does not authorize UIS-05 or a new roadmap task.
 
-Execution:
-UX-R1 → UX-R2 → UX-R3 → UX-R4 → UX-R5 → UX-R6
+UX-R1 through UX-R6 and Chrome UI Refresh UIR-01 through UIR-04 are shipped historical evidence, not current execution queues. Their Design Core and trust constraints remain relevant. Do not resume their old branches/status machinery.
 
-Current state:
-See `extension/docs/ux/UX_IMPLEMENTATION_STATUS.md`.
-
-These six rounds are the current UI/UX redesign implementation route. They do not delete or replace the longer-term product directions and gates retained below.
-
----
+Current presentation uses page-scoped search, contextual import/export menus, topic-only AI presentation controls, and no Thought-root Recent Reading section. The internal cross-surface search coordinator and existing read metadata remain reusable. These changes do not alter durable ownership, schema, capture, authorization, Backup or paid-AI behavior and are not evidence that real-use product-validation gates have been met.
 
 ## Decision rules
 

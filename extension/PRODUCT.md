@@ -68,11 +68,12 @@ Current state:
 - Continuous reading, editing, ordering, source navigation and local per-surface search exist.
 - Reader search results can open directly around the matched Input and highlight the query.
 - Input/Thought/Context lexical retrieval shares a common Search Service foundation.
-- **Universal Search** provides one bounded local entry point across Input Archive, Thought Library and existing AI-organized projections without creating another search index or truth layer.
+- **Visible search is page-scoped**: Archive root, one Archive document, Thought Library root and one Thought topic each expose one search for that container; Settings has no content search or search launcher.
+- **Universal Search** remains a bounded internal coordinator across Input Archive, Thought Library and existing AI-organized projections for explicit material selection and Context preparation. It is not a competing normal-page launcher and creates no additional search index or truth layer.
 - Universal Search can reopen the matching Input/Thought/AI-organized location and can explicitly carry a selected result into AI Context as a local retrieval focus; it never auto-generates or auto-shares Context.
 - **“以前的我”** is a time-oriented projection over matching Input expressions. It orders available source-send-time evidence from earlier to later and explicitly does not infer that the user's belief changed.
 - **Revisit / 回访** is an on-demand local Reader surface. UX-R2 shows true reading positions, a fixed window of newly collected visible Inputs and bounded topic material changes. Older Inputs appear only after explicit opt-in; Input/conversation/topic exclusions also suppress related previews.
-- **Thought Library / 思想库** uses stable topic cards or a saved list layout, with recent reading shown separately. UX-R3 adds explicit whole/selected-text placement, today's independent Thoughts without a required topic, and safe editing of the existing Thought body. The first actual edit normally stops following its Input and leaves the archive unchanged. Following can be restored through an explicit comparison. Advanced reverse editing remains off by default and after Backup restore, applies only to a valid whole one-to-one reference, and never broadens AI or external-use authorization.
+- **Thought Library / 思想库** uses stable topic cards or a saved list layout, without a Recent Reading section on its root. Reading-position and recent-read metadata remain available to existing Reader/Revisit services. UX-R3 adds explicit whole/selected-text placement, today's independent Thoughts without a required topic, and safe editing of the existing Thought body. The first actual edit normally stops following its Input and leaves the archive unchanged. Following can be restored through an explicit comparison. Advanced reverse editing remains off by default and after Backup restore, applies only to a valid whole one-to-one reference, and never broadens AI or external-use authorization.
 - Older resurfacing is deliberately explainable: PAIA prefers Inputs at least 90 days old that the user edited or that already became Thought evidence; it does not use random engagement sampling or a hidden recommendation model.
 
 Direction:
@@ -104,7 +105,7 @@ Purpose: help the user turn accumulated expressions into a more useful current v
 
 Current state:
 
-- Explicit bounded Organizer/AI presentation flows exist.
+- Explicit bounded Organizer/AI presentation flows exist. Thought Library root does not expose AI organization/presentation controls; concrete open topics retain their existing AI presentation/update controls, and Settings retains bounded organizer maintenance.
 - v0.12.0 includes evidence-grounded current understanding and thought-evolution reading.
 - AI-generated organization is separated from Source and protected human work.
 
@@ -182,12 +183,30 @@ Important consequences:
 - Passport does not own content; it owns authorization and audit metadata.
 - Derived views may be rebuilt. User-authored facts and edits must not be silently regenerated away.
 
+### Current interface — UI Simplification v1
+
+The interaction model is current location → current content → current actions.
+
+| Surface | Visible search scope |
+| --- | --- |
+| Archive root | Eligible Archive/Input content |
+| One Archive document | That document/window only |
+| Thought Library root | Thought Library content |
+| One Thought topic | That topic/document only |
+| Settings | No search box or search launcher |
+
+Search-focus shortcuts target the current surface rather than opening global search. Explicit material selection retains its existing internal search and authorization path.
+
+Archive root has no redundant Archive intro or Browse by source heading. Its accessible `···` menu contains history completion/import and the existing Source Records JSON/Markdown export actions. A concrete Thought topic keeps its existing topic-scoped export in `···`; no whole-Library export was added. System-level complete export, Backup and restore remain distinct Settings / Data & devices actions.
+
+Thought Library root has no Recent Reading section and no primary AI organization controls. Topic-only AI controls, independent Thoughts, user edits, saved AI projections, version history and read metadata remain intact. This package changes presentation and action placement only: no Source/Input/Thought ownership, durable schema, tombstone, revision, capture, Provider permission or paid-AI semantics changed.
+
 ## 5. Current product priorities
 
 For the next development stages, priorities are:
 
 1. **Rereading quality** — opening PAIA should feel useful before the user invokes any AI organization.
-2. **Retrieval quality** — Universal Search and local Reader search should make old expression retrieval visibly easier than returning to the original chat product.
+2. **Retrieval quality** — page-scoped Archive/Thought search and local Reader search should make old expression retrieval visibly easier than returning to the original chat product.
 3. **Return value without engagement tricks** — Revisit should give a concrete reason to come back by surfacing real newly accumulated or older meaningful material, without push loops or opaque recommendation logic.
 4. **Longitudinal understanding without fabrication** — time-oriented views should help the user compare their own earlier expressions without silently claiming a change of belief.
 5. **Reuse rate** — Search → Read → Context preparation and Context copy/export should solve repeated tasks rather than exist as impressive demos.
@@ -218,7 +237,7 @@ PAIA currently has stronger engineering validation than product-market validatio
 The current Product Signals implementation can observe coarse behavior such as:
 
 - local Input/Thought searches that hit or miss and lead to opening/copying a result;
-- Universal Search hit/miss, result opening and explicit Search → AI Context preparation;
+- internal Universal Search/material-selection hit/miss, result opening and explicit Search → AI Context preparation; these counters do not imply a visible global launcher;
 - Revisit opens, whether a visit has new material, opening newly collected/older Inputs or updated Thought topics, and explicit reading-position actions (legacy mark events remain historical only);
 - revisits to older Inputs using coarse age buckets;
 - Thought Topic first/repeat visits;
@@ -235,7 +254,7 @@ Before prioritizing cloud sync, Web App, native apps or broad Passport integrati
 
 - Reader/Search is clearly better than returning to ChatGPT history for a meaningful class of tasks.
 - Users repeatedly retrieve material older than the current session/week.
-- Universal Search produces result opening, rereading or Context preparation rather than only searches with no follow-through.
+- Page-scoped search and explicit material selection produce result opening, rereading or Context preparation rather than only searches with no follow-through.
 - Revisit produces voluntary opening of older/newly accumulated material rather than becoming an ignored badge or notification substitute.
 - Thought organization produces repeat visits rather than one-time curiosity.
 - Context reuse occurs repeatedly enough that cross-AI authorization solves an observed problem.
@@ -256,4 +275,4 @@ The following remain important evidence but are not current product source-of-tr
 
 `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md` and other feature contracts still contain detailed behavioral/security constraints for existing implemented features. Consult them when changing those features, but do not infer new product priorities from old version plans.
 
-UX-R4 connects global local Search, verifiable Source history, fixed manual materials and an editable exact-output Preview. Explicit Inputs need no Topic/Profile setup; selection does not expand future permissions. Local-only blocks active cloud/connection access while preserving user-directed local copy and file export. Source restrictions and existing Passport checks remain authoritative; historical coverage and partial search are stated explicitly.
+The retained UX-R4 explicit material-selection workflow connects internal cross-surface lexical retrieval, verifiable Source history, fixed manual materials and an editable exact-output Preview. It is not the normal page-search launcher; normal content surfaces follow the page-scoped search contract above. Explicit Inputs need no Topic/Profile setup; selection does not expand future permissions. Local-only blocks active cloud/connection access while preserving user-directed local copy and file export. Source restrictions and existing Passport checks remain authoritative; historical coverage and partial search are stated explicitly.

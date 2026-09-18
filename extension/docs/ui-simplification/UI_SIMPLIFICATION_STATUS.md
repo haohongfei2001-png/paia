@@ -2,7 +2,7 @@
 
 Status file: **canonical execution state for UI Simplification v1**
 
-Version: v1.1
+Version: v1.2
 
 Date: 2026-09-18
 
@@ -10,7 +10,7 @@ Repository: `haohongfei2001-png/paia`
 
 Authoritative branch: `main`
 
-Current round: **UIS-04 — READY**
+Current round: **UIS-04 — IN_PROGRESS**
 
 Always resolve the live `main` HEAD before execution. Do not encode this file's own commit as a self-referential required HEAD.
 
@@ -326,7 +326,7 @@ UIS-03 is closed. Dead selectors/copy and other obsolete presentation wiring int
 
 ## 6. UIS-04 — Cleanup, documentation alignment, and final certification
 
-Status: **READY**
+Status: **IN_PROGRESS**
 
 ### Objective
 
@@ -362,7 +362,20 @@ Do not claim completion if a required gate is skipped or failed. Record exact en
 
 ### Completion record
 
-Ready after certified UIS-03 closure. Not started.
+Cleanup implementation is committed; final certification is pending. Do not mark COMPLETE from this implementation commit alone.
+
+- Audited starting remote main: `76dac80c2a598a13ae31fb4ed4f4d1daf6a429a4`.
+- Removed the obsolete hidden search launcher, its shell locale/chrome wiring and dead styles. The explicit material-selection search retains its real dialog owner and reusable domain coordinator.
+- Revisit now mounts from the workspace heading; removing the obsolete launcher cannot remove the Revisit entry.
+- Removed Thought Recent Reading rendering calls, visibility checks, translation hook and styles while preserving read metadata/services.
+- Removed obsolete Browse by source heading generation and styles rather than repeatedly creating/removing it.
+- Added cleanup source contracts and Chrome coverage for locale/navigation changes, idempotent installation, Revisit keyboard access and explicit local material selection.
+- Replaced the old hidden-launcher DOM assertion with the stronger assertion that the launcher does not exist. No acceptance threshold was lowered.
+- Aligned PRODUCT, ARCHITECTURE, ROADMAP and completion-aware execution pointers. No historical package was made active.
+- Added explicit `npm run test:ui-refresh` and `npm run check` steps to Current Browser Certification, without changing existing jobs, thresholds, timeouts or certification dependencies. Full-suite and release gates remain mandatory.
+- Applied the reviewed transformation in GitHub Actions from a guarded remote baseline; the one-time application workflow deletes itself in the implementation commit. No local clone was used or synchronized, and no daily Chrome profile was opened.
+
+Required next action within UIS-04: certify the exact remote implementation head, recover any reproducible UIS-04 regression, then record final receipts and close this last predefined round.
 
 ---
 
@@ -384,6 +397,6 @@ Every round must preserve:
 
 ## 8. Current next action
 
-**Next user / Supervisor execution message required: `继续开发`**
+**UIS-04 is IN_PROGRESS; exact-source final certification and closure are required.**
 
-That next message authorizes **UIS-04 only**. UIS-03 is COMPLETE and must not be reopened without new regression evidence.
+Do not start another round. UIS-04 is the final predefined round; after its gates pass, mark the package complete and stop.

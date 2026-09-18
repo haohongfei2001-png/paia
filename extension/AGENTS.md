@@ -2,7 +2,7 @@
 
 ## Active execution overlay — UI Simplification v1
 
-The current user-authorized PAIA UI work is **UI Simplification v1** on GitHub `main`.
+The UI Simplification v1 execution contract is on GitHub `main`; its canonical status file determines whether a round is active or the package is complete. Once UIS-01 through UIS-04 are all COMPLETE, no current round remains. Do not invent UIS-05 or resume historical UIR/UX work.
 
 Before executing any request equivalent to **“继续开发”** in the PAIA context, read in this exact order:
 

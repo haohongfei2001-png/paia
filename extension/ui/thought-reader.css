@@ -62,9 +62,6 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #thought-home-tools #thought-search::placeholder {color:var(--paia-meta);}
 #thought-home-tools>button,#thought-home-tools>.library-actions>summary {min-height:40px;padding:8px 10px;color:var(--paia-secondary);}
 #thought-collection {width:100%;max-width:none;margin:0 auto;}
-#thought-recent {margin:0 0 24px;padding:0 0 20px;border-bottom:1px solid var(--paia-subtle);}
-#thought-recent h2 {margin:0 0 8px;font-size:16px;line-height:1.5;font-weight:620;color:var(--paia-secondary);}
-#thought-recent button {min-height:36px;padding:7px 8px;text-align:left;color:var(--paia-text);background:transparent;}
 #thought-list.topic-grid {display:grid;grid-template-columns:repeat(2,minmax(300px,1fr));gap:16px 20px;margin:0;}
 #thought-list.topic-grid .topic-tile {min-width:0;}
 #thought-list.topic-grid .topic-index-row {height:auto!important;min-height:176px!important;padding:20px 22px!important;gap:12px!important;border:1px solid var(--paia-subtle)!important;border-radius:12px!important;background:var(--paia-surface)!important;color:var(--paia-text)!important;box-shadow:none!important;transform:none!important;transition:background-color 140ms ease,border-color 140ms ease;}
@@ -113,7 +110,7 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 @media(max-width:799px){
  #thought-home-tools {align-items:stretch;}
  #thought-home-tools .thought-search-row {flex-basis:100%;}
- #thought-home-tools>button,#thought-home-tools>.library-actions>summary,#thought-recent button,#thought-list.topic-grid .topic-tile>.library-actions>summary {min-height:44px;min-width:44px;}
+ #thought-home-tools>button,#thought-home-tools>.library-actions>summary,#thought-list.topic-grid .topic-tile>.library-actions>summary {min-height:44px;min-width:44px;}
  #thought-list.topic-grid .topic-index-row {min-height:0!important;padding:18px!important;}
  #thought-list.topic-grid .topic-tile>.library-actions {opacity:1;}
  #thought-document .topic-title-row {grid-template-columns:1fr;gap:10px;}

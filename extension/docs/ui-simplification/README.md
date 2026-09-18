@@ -1,6 +1,6 @@
 # PAIA UI Simplification v1 — Development Instructions
 
-Status: **ACTIVE EXECUTION OVERLAY**
+Status: **EXECUTION CONTRACT — live active/completed state is canonical in `UI_SIMPLIFICATION_STATUS.md`**
 
 Created: 2026-09-17
 
@@ -30,7 +30,7 @@ The executing agent must:
 6. Run the round gates defined in `UI_SIMPLIFICATION_STATUS.md`.
 7. Commit completed changes to `main` unless the product owner explicitly asks for a branch/PR.
 8. Update `UI_SIMPLIFICATION_STATUS.md` with what actually changed, tests run, commit/checkpoint, known limitations, and mark the next round `READY` if appropriate.
-9. Stop. The next implementation round requires the product owner to say **“继续开发”** again.
+9. Stop. The next predefined implementation round requires a new execution message. After UIS-04 is COMPLETE, this package has no next round; do not create UIS-05 or resume historical UIR/UX queues.
 
 Do not ask the product owner to restate the requirements already captured here. Ask only when a genuine data-ownership/privacy/destructive-semantics conflict cannot be safely resolved from the repository contracts.
 

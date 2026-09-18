@@ -36,7 +36,7 @@ const english={
  '单独写下的想法':'Thoughts without a topic','布局尚未保存，已保留原值。':'Layout was not saved. The previous layout is kept.',
  '同时修改档案中的对应完整内容':'Also edit the matching whole input in the archive',
  '仅对仍与档案完整对应的内容生效；已改写、选段和 AI 稿不反向修改。':'Only applies to whole inputs still being followed. Independent edits, excerpts and AI drafts do not write back.',
- '最近阅读':'Recently read','去档案留下表达':'Open Archive','同时修改档案':'Also editing the archive',
+ '去档案留下表达':'Open Archive','同时修改档案':'Also editing the archive',
  '已在思想库编辑':'Edited in Thought Library','档案有更新 · 查看':'Archive updated · Compare',
  '加入所选文字':'Add selected text','请先在这条思想中选择文字。':'Select text in this thought first.','编辑':'Edit','完成':'Done','内容正文':'Thought text'
 };
@@ -45,7 +45,7 @@ export function watchThoughtCopy(){
  const reverse=new Map(Object.entries(english).map(([zh,en])=>[en,zh]));
  const apply=()=>{
   // These roots contain product controls only, never topic names or body text.
-  for(const root of document.querySelectorAll('#thought-home-tools,#thought-empty,#create-entry,#library-unplaced,#thought-recent h2,.reader-selection')){
+  for(const root of document.querySelectorAll('#thought-home-tools,#thought-empty,#create-entry,#library-unplaced,.reader-selection')){
    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
    while(node=walker.nextNode()){const key=reverse.get(node.data)||node.data;if(Object.hasOwn(english,key))node.data=thoughtCopy(key);}
    for(const element of root.querySelectorAll('[aria-label]')){const label=element.getAttribute('aria-label'),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute('aria-label',thoughtCopy(key));}
