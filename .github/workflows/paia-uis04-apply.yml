@@ -1,5 +1,8 @@
 name: One-time UIS-04 cleanup application
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/paia-uis04-apply.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -19,293 +22,27 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify the audited remote baseline and apply only UIS-04
+      - name: Apply the immutable reviewed UIS-04 transformation
         env:
           EXPECTED_RUN_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import os, re, subprocess
-          base = '76dac80c2a598a13ae31fb4ed4f4d1daf6a429a4'
+          import subprocess, textwrap
+          # The full reviewed transformation is pinned in Git history. Its own
+          # remote-HEAD, canonical-round, baseline and exact-file guards all run.
+          staged = '8895b4f307abdc7b8668370c5f1a012512c23b9e'
           runner = '.github/workflows/paia-uis04-apply.yml'
-          def git(*args):
-              return subprocess.check_output(['git', *args], text=True).strip()
-          assert git('rev-parse', 'HEAD') == os.environ['EXPECTED_RUN_SHA'], 'Remote main moved before execution'
-          assert git('diff', '--name-only', base, 'HEAD').splitlines() == [runner], 'Unaudited changes after baseline'
-          status_path = 'extension/docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md'
-          assert 'Current round: **UIS-04 — READY**' in Path(status_path).read_text()
-          files = {}
-          def read(path):
-              return files.get(path, Path(path).read_text())
-          def write(path, text):
-              files[path] = text
-          def replace(path, old, new, count=1):
-              text = read(path)
-              assert text.count(old) == count, (path, old[:100], text.count(old), count)
-              write(path, text.replace(old, new))
-          def cut(path, start, end):
-              text = read(path)
-              assert text.count(start) == 1 and text.count(end) == 1, path
-              first = text.index(start)
-              last = text.index(end, first)
-              write(path, text[:first] + text[last:])
-
-          path = 'extension/ui/universal-search.js'
-          replace(path, "if(document.getElementById('universal-search-open'))return;", "if(document.getElementById('universal-search-dialog'))return;")
-          text = read(path)
-          lines = text.splitlines(keepends=True)
-          removed = [line for line in lines if "open.id='universal-search-open'" in line]
-          assert len(removed) == 1
-          write(path, ''.join(line for line in lines if line not in removed))
-          replace(path, "title=element('h2','',c('找回以前的表达','Find past expressions'))", "title=element('h1','',c('找回以前的表达','Find an earlier expression'))")
-          replace(path, "const localize=()=>{input.placeholder=", "const localize=()=>{title.textContent=c('找回以前的表达','Find an earlier expression');root.setAttribute('aria-label',c('全局搜索','Global search'));input.placeholder=")
-
-          path = 'extension/ui/revisit.js'
-          replace(path, "$('universal-search-open')?.after(open);", "$('workspace-heading')?.after(open);")
-
-          path = 'extension/ui/ux-r1-shell-coordinator.js'
-          cut(path, 'function syncSearchLauncher(){', 'function archiveRootScope(){')
-          replace(path, 'syncNavChrome();syncSearchLauncher();syncSearchHeading();', 'syncNavChrome();')
-          replace(path, "const ready=()=>!!$('universal-search-open')&&", "const ready=()=>!!$('universal-search-dialog')&&")
-          replace(path, "const intro=home.querySelector('.core-loop-intro'),browse=$('core-loop-browse-title')?.parentElement,materials=$('archive-select-materials');if(intro)intro.hidden=true;browse?.remove();", "const intro=home.querySelector('.core-loop-intro'),materials=$('archive-select-materials');if(intro)intro.hidden=true;")
-
-          path = 'extension/ui/core-loop.js'
-          lines = read(path).splitlines(keepends=True)
-          removed = [line for line in lines if "const global=$('universal-search-open')" in line]
-          assert len(removed) == 1
-          write(path, ''.join(line for line in lines if line not in removed))
-          cut(path, 'function tuneExistingTools(){', 'function setPrimaryAction(')
-          replace(path, 'preserveInternalToolAccess();tuneExistingTools();', 'preserveInternalToolAccess();')
-          replace(path, ",dialog=$('universal-search-dialog')", '')
-          replace(path, "if(dialog)new MutationObserver(tuneExistingTools).observe(dialog,{subtree:true,childList:true});", '')
-          replace(path, "home.append(intro,recent,revisit);const browse=node('div','core-loop-browse-header');const browseTitle=node('h2','',copy('按来源浏览','Browse by source'));browseTitle.id='core-loop-browse-title';browse.append(browseTitle,node('span','muted',copy('默认按最近有表达排序','Default: most recent expression')));panel.insertBefore(home,search);panel.insertBefore(browse,search);", "intro.hidden=true;home.append(intro,recent,revisit);panel.insertBefore(home,search);")
-          replace(path, "const home=$('core-loop-home'),browse=$('core-loop-browse-title')?.parentElement;", "const home=$('core-loop-home');")
-          replace(path, 'if(browse)browse.hidden=!visible;', '')
-
-          path = 'extension/ui/thoughts-base.js'
-          replace(path, 'this.paintRecent();', '')
-          replace(path, " paintRecent(){$('thought-recent')?.remove();}\n", '')
-          replace(path, "if($('thought-recent'))$('thought-recent').hidden=!!this.id;", '')
-          path = 'extension/ui/thought-copy.js'
-          replace(path, ",'#unused-never-present'", '', count=0)
-          replace(path, ",#thought-recent h2", '')
-          replace(path, "'最近阅读':'Recently read',", '')
-
-          dead = ('#universal-search-open', '.ux-search-icon', '.ux-search-label', '.ux-search-shortcut', '.core-loop-browse-header', '#thought-recent')
-          for path in ['extension/ui/core-loop.css', 'extension/ui/universal-search.css', 'extension/ui/thought-reader.css']:
-              def clean_rule(match):
-                  selector, body = match.groups()
-                  if not any(token in selector for token in dead):
-                      return match.group(0)
-                  parts = selector.split(',')
-                  kept = [part for part in parts if not any(token in part for token in dead)]
-                  return ','.join(kept) + '{' + body + '}' if kept else ''
-              before = read(path)
-              after = re.sub(r'([^{}]+)\{([^{}]*)\}', clean_rule, before)
-              assert after != before, path
-              write(path, after)
-          path = 'extension/ui/universal-search.css'
-          write(path, read(path).replace('.universal-header h2', '.universal-header h1'))
-
-          path = 'extension/tests/uir-01-shell-chrome-e2e.test.mjs'
-          replace(path, "assert.equal(await p.locator('#universal-search-open').getAttribute('aria-hidden'),'true');", "assert.equal(await p.locator('#universal-search-open').count(),0,'obsolete launcher is removed from the DOM, not merely hidden');")
-
-          write('extension/tests/uis-04-cleanup.test.mjs', '''import test from 'node:test';
-          import assert from 'node:assert/strict';
-          import {readdir,readFile} from 'node:fs/promises';
-          const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
-          test('UIS-04 removes obsolete presentation wiring rather than hiding it',async()=>{
-            const names=await readdir(new URL('../ui/',import.meta.url));
-            for(const name of names.filter(name=>/\\.(js|css|html)$/.test(name))){
-              const text=await read('ui/'+name);
-              for(const token of ['universal-search-open','thought-recent','syncSearchLauncher','tuneExistingTools','core-loop-browse-title','.core-loop-browse-header','.ux-search-label','.ux-search-shortcut','.ux-search-icon']){
-                assert.equal(text.includes(token),false,`${name} retains obsolete ${token}`);
-              }
-            }
-          });
-          test('UIS-04 keeps real bootstrap owners and reusable search/read capabilities',async()=>{
-            const search=await read('ui/universal-search.js');
-            assert.match(search,/if\\(document.getElementById\\('universal-search-dialog'\\)\\)return/);
-            assert.match(search,/paia:search-open/,'explicit material selection still owns an internal search entry');
-            assert.match(search,/universal:true,paged:true/,'internal picker still reuses the bounded coordinator');
-            assert.match(await read('ui/revisit.js'),/\\$\\('workspace-heading'\\)\\?\\.after\\(open\\)/,'Revisit no longer depends on a removed control');
-            assert.match(await read('core/universal-search.js'),/UniversalSearchService/);
-            assert.match(await read('ui/thoughts-base.js'),/RECORD_TOPIC_READ/,'read metadata remains recorded');
-          });
-          ''')
-          write('extension/tests/uis-04-cleanup-chrome-e2e.test.mjs', '''import test from 'node:test';
-          import assert from 'node:assert/strict';
-          import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
-          const rpc=async(page,type,fields={})=>{
-            const result=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});
-            assert.equal(result.ok,true,JSON.stringify(result));return result.data;
-          };
-          const nav=(page,view)=>page.locator(view==='settings'?'.sidebar-bottom [data-view="settings"]':`#primary-nav [data-view="${view}"]`).click();
-          async function noRemovedControls(page){
-            for(const selector of ['#universal-search-open','#thought-recent','#core-loop-browse-title'])assert.equal(await page.locator(selector).count(),0,selector+' cannot be recreated');
-          }
-          test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit and explicit material selection',{timeout:180000},async()=>{
-            const h=await FakeChatGPT.start({onboarding:true});
-            try{
-              const page=h.archive;
-              await page.locator('#enable-consent').click();
-              await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent is durable');
-              if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();
-              await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
-              await h.open({id:'uis04-cleanup',title:'UIS04 清理验证',base:1609459200,messages:[{id:'uis04-input',text:'UIS04_KEEP_INTERNAL_MATERIAL 本地材料仍可明确选择。'}]});
-              await eventually(async()=>(await h.state()).records.length===1,'synthetic input is captured');
-              const topic=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:'UIS04 保留阅读元数据',operationId:crypto.randomUUID()}});
-              await rpc(page,'CONTINUE_THINKING',{thought:{topicId:topic.id,body:'UIS04 独立思想保持原样。',operationId:crypto.randomUUID()}});
-              await rpc(page,'RECORD_TOPIC_READ',{id:topic.id});
-              await page.bringToFront();await nav(page,'library');
-              await eventually(()=>page.locator('#revisit-open').isVisible(),'Revisit mounts without a dummy search button');
-              await page.evaluate(async()=>{
-                const search=await import(chrome.runtime.getURL('ui/universal-search.js'));
-                const revisit=await import(chrome.runtime.getURL('ui/revisit.js'));
-                search.installUniversalSearch();search.installUniversalSearch();revisit.installRevisit();revisit.installRevisit();
-              });
-              assert.equal(await page.locator('#universal-search-dialog').count(),1,'internal search installation is idempotent');
-              assert.equal(await page.locator('#revisit-open').count(),1,'Revisit installation is idempotent');
-              for(const language of ['en','zh-CN']){
-                await nav(page,'settings');
-                await rpc(page,'UPDATE_PREFERENCES',{changes:{language}});
-                await eventually(async()=>await page.evaluate(()=>document.documentElement.lang)===language,'locale applied');
-                assert.equal(await page.locator('input[type="search"]:visible').count(),0,'Settings has no search');
-                await page.evaluate(()=>{for(const init of [{key:'/'},{key:'k',metaKey:true},{key:'f',ctrlKey:true}])document.dispatchEvent(new KeyboardEvent('keydown',{...init,bubbles:true,cancelable:true}));});
-                await pause(60);await noRemovedControls(page);
-                assert.equal(await page.locator('#universal-search-dialog').isVisible(),false,'Settings shortcuts do not open the picker');
-                await nav(page,'thoughts');
-                await eventually(()=>page.locator('#thought-search').isVisible(),'Thought root is ready');
-                assert.equal(await page.locator('input[type="search"]:visible').count(),1);
-                assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),false);
-                await noRemovedControls(page);
-                const index=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}});
-                assert.ok(index.recent.some(item=>item.id===topic.id),'recent metadata survives presentation cleanup');
-                await nav(page,'library');
-                await eventually(()=>page.locator('#search').isVisible(),'Archive root is ready');
-                assert.equal(await page.locator('input[type="search"]:visible').count(),1);
-                await noRemovedControls(page);
-              }
-              await page.locator('#revisit-open').focus();await page.keyboard.press('Enter');
-              await eventually(()=>page.locator('#revisit-panel').isVisible(),'keyboard opens the retained Revisit owner');
-              await page.locator('.revisit-close').click();
-              await eventually(()=>page.locator('#search').isVisible(),'Revisit returns to Archive');
-              await page.locator('#archive-select-materials').click();
-              await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'explicit material selection still opens internal search');
-              await page.locator('#universal-search-dialog input[type="search"]').fill('UIS04_KEEP_INTERNAL_MATERIAL');
-              await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()===1,'internal coordinator finds the synthetic input');
-              await page.locator('#universal-search-dialog .universal-context').click();
-              await eventually(async()=>await page.evaluate(async()=>{
-                const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));return getMaterialTray()?.data?.items.length===1;
-              }),'explicit selection reaches the existing material tray');
-              await page.locator('.universal-close').click();
-              await eventually(()=>page.locator('#search').isVisible(),'closing selection restores scoped Archive search');
-              await noRemovedControls(page);
-              assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
-            }finally{await h.close();}
-          });
-          ''')
-
-          path = '.github/workflows/paia-certification.yml'
-          replace(path, '      - name: Run complete current browser suite and guards\n', '      - name: Run explicit UI Refresh closure gate\n        run: xvfb-run -a npm run test:ui-refresh\n      - name: Run explicit package closure gate\n        run: npm run check\n      - name: Run complete current browser suite and guards\n')
-
-          path = 'extension/PRODUCT.md'
-          replace(path, '- **Universal Search** provides one bounded local entry point across Input Archive, Thought Library and existing AI-organized projections without creating another search index or truth layer.', '- **Visible search is page-scoped**: Archive root, one Archive document, Thought Library root and one Thought topic each expose one search for that container; Settings has no content search or search launcher.\n- **Universal Search** remains a bounded internal coordinator across Input Archive, Thought Library and existing AI-organized projections for explicit material selection and Context preparation. It is not a competing normal-page launcher and creates no additional search index or truth layer.')
-          replace(path, 'with recent reading shown separately.', 'without a Recent Reading section on its root. Reading-position and recent-read metadata remain available to existing Reader/Revisit services.')
-          replace(path, '- Explicit bounded Organizer/AI presentation flows exist.', '- Explicit bounded Organizer/AI presentation flows exist. Thought Library root does not expose AI organization/presentation controls; concrete open topics retain their existing AI presentation/update controls, and Settings retains bounded organizer maintenance.')
-          replace(path, '**Retrieval quality** — Universal Search and local Reader search', '**Retrieval quality** — page-scoped Archive/Thought search and local Reader search')
-          replace(path, '- Universal Search hit/miss, result opening and explicit Search → AI Context preparation;', '- internal Universal Search/material-selection hit/miss, result opening and explicit Search → AI Context preparation; these counters do not imply a visible global launcher;')
-          replace(path, '- Universal Search produces result opening, rereading or Context preparation rather than only searches with no follow-through.', '- Page-scoped search and explicit material selection produce result opening, rereading or Context preparation rather than only searches with no follow-through.')
-          replace(path, 'UX-R4 connects global local Search, verifiable Source history, fixed manual materials and an editable exact-output Preview.', 'The retained UX-R4 explicit material-selection workflow connects internal cross-surface lexical retrieval, verifiable Source history, fixed manual materials and an editable exact-output Preview. It is not the normal page-search launcher; normal content surfaces follow the page-scoped search contract below.')
-          replace(path, '## 5. Current product priorities', '''### Current interface — UI Simplification v1
-
-          The interaction model is current location → current content → current actions.
-
-          | Surface | Visible search scope |
-          | --- | --- |
-          | Archive root | Eligible Archive/Input content |
-          | One Archive document | That document/window only |
-          | Thought Library root | Thought Library content |
-          | One Thought topic | That topic/document only |
-          | Settings | No search box or search launcher |
-
-          Search-focus shortcuts target the current surface rather than opening global search. Explicit material selection retains its existing internal search and authorization path.
-
-          Archive root has no redundant Archive intro or Browse by source heading. Its accessible `···` menu contains history completion/import and the existing Source Records JSON/Markdown export actions. A concrete Thought topic keeps its existing topic-scoped export in `···`; no whole-Library export was added. System-level complete export, Backup and restore remain distinct Settings / Data & devices actions.
-
-          Thought Library root has no Recent Reading section and no primary AI organization controls. Topic-only AI controls, independent Thoughts, user edits, saved AI projections, version history and read metadata remain intact. This package changes presentation and action placement only: no Source/Input/Thought ownership, durable schema, tombstone, revision, capture, Provider permission or paid-AI semantics changed.
-
-          ## 5. Current product priorities''')
-
-          path = 'extension/ARCHITECTURE.md'
-          replace(path, '- **Universal Search** — a grouped read model over existing Input search, Thought search and existing AI-organized projection text.', '- **Universal Search** — an internal grouped read model over existing Input search, Thought search and existing AI-organized projection text, retained for explicit material selection/Context workflows rather than exposed as a normal competing search launcher.')
-          replace(path, '### 5.1 Universal Search coordination', '''### 5.0 Visible page scope and internal selection
-
-          UI Simplification v1 keeps one visible search per content container: Archive root → eligible Archive/Input content; Archive document → current document/window; Thought root → Thought Library; Thought topic → current topic/document. Settings owns no search. Keyboard search-focus routing follows that scope and cannot open hidden global search from Settings.
-
-          The existing UI-level scope/navigation owners retain bounded local query, page and scroll state and exact result-to-Reader positioning. They do not add an index, durable body, object store or parallel navigation state machine.
-
-          `ui/universal-search.js` still serves explicit material-selection events and uses its own existing dialog as its installation guard. It no longer creates a hidden shell launcher. Revisit mounts from the actual workspace heading, not from a removed search button. Shell observers and locale updates no longer reconstruct launcher chrome.
-
-          Thought Recent Reading rendering and its dead selectors/copy are removed. `RECORD_TOPIC_READ`, `LIBRARY_INDEX_PAGE.recent` and bounded Reader/Revisit metadata remain owned by their existing services. Removing a projection does not authorize deleting its metadata.
-
-          Archive history completion and scoped Source export use the existing handlers through `···`; Topic export remains topic-scoped. Settings complete export/Backup/restore retain their separate ownership and payload contracts. No data/schema/trust boundary is changed by this presentation package.
-
-          ### 5.1 Universal Search coordination''')
-
-          path = 'extension/ROADMAP.md'
-          cut(path, '## UX/UI Redesign Execution', '## Decision rules')
-          replace(path, '## Decision rules', '''## UI execution state
-
-          UI Simplification v1 (`docs/ui-simplification/README.md`) supersedes the visible presentation choices it explicitly changes. Its only execution queue and completion state is `docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md`: UIS-01 → UIS-02 → UIS-03 → UIS-04. Once all four are COMPLETE there is no next round; a completed package does not authorize UIS-05 or a new roadmap task.
-
-          UX-R1 through UX-R6 and Chrome UI Refresh UIR-01 through UIR-04 are shipped historical evidence, not current execution queues. Their Design Core and trust constraints remain relevant. Do not resume their old branches/status machinery.
-
-          Current presentation uses page-scoped search, contextual import/export menus, topic-only AI presentation controls, and no Thought-root Recent Reading section. The internal cross-surface search coordinator and existing read metadata remain reusable. These changes do not alter durable ownership, schema, capture, authorization, Backup or paid-AI behavior and are not evidence that real-use product-validation gates have been met.
-
-          ## Decision rules''')
-
-          path = 'extension/AGENTS.md'
-          replace(path, 'The current user-authorized PAIA UI work is **UI Simplification v1** on GitHub `main`.', 'The UI Simplification v1 execution contract is on GitHub `main`; its canonical status file determines whether a round is active or the package is complete. Once UIS-01 through UIS-04 are all COMPLETE, no current round remains. Do not invent UIS-05 or resume historical UIR/UX work.')
-          path = 'extension/docs/ui-simplification/README.md'
-          replace(path, 'Status: **ACTIVE EXECUTION OVERLAY**', 'Status: **EXECUTION CONTRACT — live active/completed state is canonical in `UI_SIMPLIFICATION_STATUS.md`**')
-          replace(path, '9. Stop. The next implementation round requires the product owner to say **“继续开发”** again.', '9. Stop. The next predefined implementation round requires a new execution message. After UIS-04 is COMPLETE, this package has no next round; do not create UIS-05 or resume historical UIR/UX queues.')
-          path = status_path
-          replace(path, 'Version: v1.1', 'Version: v1.2')
-          replace(path, 'Current round: **UIS-04 — READY**', 'Current round: **UIS-04 — IN_PROGRESS**')
-          replace(path, 'Status: **READY**', 'Status: **IN_PROGRESS**')
-          replace(path, 'Ready after certified UIS-03 closure. Not started.', '''Cleanup implementation is committed; final certification is pending. Do not mark COMPLETE from this implementation commit alone.
-
-          - Audited starting remote main: `76dac80c2a598a13ae31fb4ed4f4d1daf6a429a4`.
-          - Removed the obsolete hidden search launcher, its shell locale/chrome wiring and dead styles. The explicit material-selection search retains its real dialog owner and reusable domain coordinator.
-          - Revisit now mounts from the workspace heading; removing the obsolete launcher cannot remove the Revisit entry.
-          - Removed Thought Recent Reading rendering calls, visibility checks, translation hook and styles while preserving read metadata/services.
-          - Removed obsolete Browse by source heading generation and styles rather than repeatedly creating/removing it.
-          - Added cleanup source contracts and Chrome coverage for locale/navigation changes, idempotent installation, Revisit keyboard access and explicit local material selection.
-          - Replaced the old hidden-launcher DOM assertion with the stronger assertion that the launcher does not exist. No acceptance threshold was lowered.
-          - Aligned PRODUCT, ARCHITECTURE, ROADMAP and completion-aware execution pointers. No historical package was made active.
-          - Added explicit `npm run test:ui-refresh` and `npm run check` steps to Current Browser Certification, without changing existing jobs, thresholds, timeouts or certification dependencies. Full-suite and release gates remain mandatory.
-          - Applied the reviewed transformation in GitHub Actions from a guarded remote baseline; the one-time application workflow deletes itself in the implementation commit. No local clone was used or synchronized, and no daily Chrome profile was opened.
-
-          Required next action within UIS-04: certify the exact remote implementation head, recover any reproducible UIS-04 regression, then record final receipts and close this last predefined round.''')
-          replace(path, '**Next user / Supervisor execution message required: `继续开发`**\n\nThat next message authorizes **UIS-04 only**. UIS-03 is COMPLETE and must not be reopened without new regression evidence.', '**UIS-04 is IN_PROGRESS; exact-source final certification and closure are required.**\n\nDo not start another round. UIS-04 is the final predefined round; after its gates pass, mark the package complete and stop.')
-
-          # Reject accidental changes to domain, capture, provider, schema or other packages.
-          allowed = {
-              'extension/ui/universal-search.js','extension/ui/revisit.js','extension/ui/ux-r1-shell-coordinator.js',
-              'extension/ui/core-loop.js','extension/ui/thoughts-base.js','extension/ui/thought-copy.js',
-              'extension/ui/core-loop.css','extension/ui/universal-search.css','extension/ui/thought-reader.css',
-              'extension/tests/uir-01-shell-chrome-e2e.test.mjs','extension/tests/uis-04-cleanup.test.mjs',
-              'extension/tests/uis-04-cleanup-chrome-e2e.test.mjs','.github/workflows/paia-certification.yml',
-              'extension/PRODUCT.md','extension/ARCHITECTURE.md','extension/ROADMAP.md','extension/AGENTS.md',
-              'extension/docs/ui-simplification/README.md',status_path
-          }
-          assert set(files) == allowed, set(files) ^ allowed
-          for path, text in files.items():
-              Path(path).write_text(text)
-          Path(runner).unlink()
+          text = subprocess.check_output(['git','show',staged+':'+runner],text=True)
+          start = "          python3 - <<'PY'\n"
+          end = '\n          PY\n'
+          assert text.count(start) == 1 and text.count(end) == 1
+          code = textwrap.dedent(text.split(start,1)[1].split(end,1)[0])
+          exec(compile(code, staged+':'+runner, 'exec'))
+          # Correct a directional prose reference without changing any contract.
+          product = Path('extension/PRODUCT.md')
+          product.write_text(product.read_text().replace('normal content surfaces follow the page-scoped search contract below.', 'normal content surfaces follow the page-scoped search contract above.'))
           subprocess.run(['git','diff','--check'],check=True)
-          print(git('diff','--stat'))
           PY
       - name: Commit and fast-forward remote main
         run: |
