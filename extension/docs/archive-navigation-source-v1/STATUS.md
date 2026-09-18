@@ -4,13 +4,13 @@
 
 - package_id: `PAIA-ARCHIVE-NAVIGATION-SOURCE-v1`
 - package_status: `READY`
-- planning_round: `COMPLETE`（文档内容已完成；实际远端发布证据见PUBLICATION）
+- planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `false`
 - current_round: `ANS-01`
 - current_round_status: `READY`
 - execution_id: `NONE`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
-- planning_commit_sha: `RESOLVE_FROM_PUBLICATION`
+- planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
 - canonical_head: `RESOLVE_GITHUB_REF_AT_EXECUTION_START`
 - verified_baseline_ci: `PAIA Certification #357 / run 35322458613 / attempt 3 / success / head 38804b99153074f54148f875e2e09c76568bc1cd`
