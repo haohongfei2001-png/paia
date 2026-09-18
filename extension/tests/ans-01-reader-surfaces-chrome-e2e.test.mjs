@@ -117,8 +117,9 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
     await eventually(async()=>await p.locator('#input-time-toggle').getAttribute('data-current-sort')==='desc','desc persists across reload');
 
     await p.locator('#input-time-toggle').focus();
+    await eventually(async()=>await p.evaluate(()=>document.activeElement?.id)==='input-time-toggle','keyboard sort toggle receives focus');
     await p.keyboard.press('Enter');
-    await eventually(async()=>(await rpc(p,'GET_ORGANIZER_CONTROLS')).inputReadingSort==='asc','keyboard toggles back to asc');
+    await eventually(async()=>{const controls=await rpc(p,'GET_ORGANIZER_CONTROLS');return controls.inputReadingSort==='asc'&&await p.locator('#input-time-toggle').getAttribute('data-current-sort')==='asc';},'keyboard toggles back to asc');
 
     await mkdir('work/ans-01',{recursive:true});
     for(const appearance of ['light','dark']){
