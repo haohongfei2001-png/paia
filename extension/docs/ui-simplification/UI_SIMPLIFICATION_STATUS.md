@@ -375,7 +375,14 @@ Cleanup implementation is committed; final certification is pending. Do not mark
 - Added explicit `npm run test:ui-refresh` and `npm run check` steps to Current Browser Certification, without changing existing jobs, thresholds, timeouts or certification dependencies. Full-suite and release gates remain mandatory.
 - Applied the reviewed transformation in GitHub Actions from a guarded remote baseline; the one-time application workflow deletes itself in the implementation commit. No local clone was used or synchronized, and no daily Chrome profile was opened.
 
-Required next action within UIS-04: certify the exact remote implementation head, recover any reproducible UIS-04 regression, then record final receipts and close this last predefined round.
+Visual recovery before closure:
+
+- Candidate `c7ed2dcec22c0b5e30dbb258724fa21820d286d2` passed UI Refresh 10/10 and Current Browser 45/45 in run #351, but review of its built-release Thought-root screenshot exposed a missed contract: `applyPreferences()` recreated `thought-organize-tools` and moved live Settings organizer controls to the Thought root. Passing the existing tests was not accepted as sufficient final certification.
+- Removed that obsolete reparenting hook and its dead toggle/visibility/status references. The same bounded organizer controls now remain in the existing Settings AI group; their Provider/authorization handlers are unchanged.
+- Strengthened source assertions to reproduce the bad projection before the fix, and strengthened Chrome assertions across locale/navigation changes to require no collapsed root organizer, one Settings AI owner, reachable bounded controls, and cancellation without a Provider request.
+- This is recovery within UIS-04, not a new round or reopening of the historical execution queue. Final closure requires a new exact-head complete certification run.
+
+Required next action within UIS-04: certify the exact recovery head and close only after every required gate passes.
 
 ---
 

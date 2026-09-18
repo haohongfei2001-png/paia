@@ -21,7 +21,7 @@ function copy(zh,en){return language()==='zh-CN'?zh:en;}
 function applyPreferences(){
  const dark=globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches===true,theme=resolveAppearance(uxPreferences.appearance,dark),root=document.documentElement;
  const lang=language();root.dataset.paiaTheme=theme;root.dataset.paiaLanguage=lang;if(root.lang!==lang)root.lang=lang;root.style.setProperty('--paia-prose-size',`${FONT_PX[uxPreferences.fontSize]||17}px`);root.style.setProperty('--paia-prose-width',`${WIDTH_PX[uxPreferences.readingWidth]||680}px`);
- document.body?.classList.toggle('ux-sidebar-collapsed',uxPreferences.sidebarCollapsed===true);applyLabels();if(!$('thought-organize-tools')){const details=document.createElement('details');details.id='thought-organize-tools';const summary=document.createElement('summary');summary.textContent='归类工具';details.append(summary,$('organizer-reading-actions'));$('thought-home-tools')?.after(details);}syncPreferenceControls();
+ document.body?.classList.toggle('ux-sidebar-collapsed',uxPreferences.sidebarCollapsed===true);applyLabels();syncPreferenceControls();
 }
 function applyLabels(){
  const labels=language()==='zh-CN'?{library:'档案',thoughts:'思想库',memory:'用于 AI',settings:'设置',archive:'来源记录'}:{library:'Archive',thoughts:'Thought Library',memory:'For AI',settings:'Settings',archive:'Source Records'};
@@ -84,7 +84,7 @@ function setupSettingsShell(){
  groups.get('reading').prepend(preferenceSelect('ux-font-size',copy('正文字号','Body text size'),[['small','16 px'],['standard','17 px'],['large','19 px'],['xlarge','21 px']],'fontSize'));
  groups.get('reading').prepend(preferenceSelect('ux-language',copy('界面语言','Interface language'),[['system',copy('跟随系统','Follow system')],['zh-CN','简体中文'],['en','English']],'language'));
  groups.get('reading').prepend(preferenceSelect('ux-appearance',copy('外观','Appearance'),[['system',copy('跟随系统','Follow system')],['light',copy('浅色','Light')],['dark',copy('深色','Dark')]],'appearance'));
- for(const id of ['deepseek-settings','library-updates-drawer'])move(id,'ai');move(panel.querySelector('.library-updates-bar'),'ai');move('memory-settings','privacy');
+ for(const id of ['organizer-reading-actions','deepseek-settings','library-updates-drawer'])move(id,'ai');move(panel.querySelector('.library-updates-bar'),'ai');move('memory-settings','privacy');
  for(const id of ['backup-settings','r6-complete-export','r6-data-status','r6-source-records','manage-excluded','legacy-entry'])move(id,'data');if(!$('r6-source-records')){const sourceButton=[...panel.querySelectorAll('[data-view="archive"]')].find(el=>!el.closest('#primary-nav'));move(sourceButton,'data');}const syncFact=node('div','ux-capability-fact');syncFact.append(node('strong','',copy('设备同步','Device sync')),node('p','muted',copy('当前版本未提供设备同步。','Device sync is not available in this version.')));groups.get('data').append(syncFact);
  for(const id of ['library-management','product-diagnostics','diagnostics'])move(id,'advanced');const prune=$('prune-revisions');if(prune){move(prune.previousElementSibling,'advanced');move(prune,'advanced');}
  for(const child of [...panel.children]){if(child===shell)continue;if(child.tagName==='H2'){child.remove();continue;}groups.get('advanced').append(child);}

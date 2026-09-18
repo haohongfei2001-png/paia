@@ -68,7 +68,7 @@ export class ThoughtWorkspace {
  $('thought-empty-settings').removeAttribute('data-view');$('thought-empty-settings').textContent=tc('添加主题');$('thought-empty-settings').onclick=()=>this.createTopic();$('thought-empty').querySelector('p').textContent=tc('先留下几段表达，主题可以慢慢形成。');
  $('create-entry').textContent=tc('补充今天的想法');$('library-unplaced').textContent=tc('单独写下的想法');
  watchThoughtCopy();
- document.addEventListener('toggle',event=>{if(event.target.id==='thought-organize-tools'&&event.target.open)this.queueOptionalStatus();},true);this.homePositions=new Map();window.addEventListener('scroll',()=>this.schedulePosition(),{passive:true});document.addEventListener('visibilitychange',()=>this.schedulePosition());this.mobileMedia=matchMedia('(max-width:799px)');this.mobileMedia.addEventListener('change',()=>this.updateMobileEditing());this.layout='grid';void request('GET_THOUGHT_LAYOUT').then(r=>{this.layout=r.layout;this.applyLayout();}).catch(()=>{});
+ this.homePositions=new Map();window.addEventListener('scroll',()=>this.schedulePosition(),{passive:true});document.addEventListener('visibilitychange',()=>this.schedulePosition());this.mobileMedia=matchMedia('(max-width:799px)');this.mobileMedia.addEventListener('change',()=>this.updateMobileEditing());this.layout='grid';void request('GET_THOUGHT_LAYOUT').then(r=>{this.layout=r.layout;this.applyLayout();}).catch(()=>{});
  $('library-dialog-close').addEventListener('click',productAction(()=>this.requestCloseDialog()));$('library-dialog').addEventListener('cancel',e=>{e.preventDefault();void this.requestCloseDialog();});
  }
  applyLayout(){$('thought-list').classList.toggle('topic-list-layout',this.layout==='list');}
@@ -144,7 +144,7 @@ export class ThoughtWorkspace {
  readKey(){return JSON.stringify([this.id,this.view,this.readingSort,this.cursor,this.id?$('topic-search').value.trim():$('thought-search').value.trim()]);}
  readFailure(){clearTimeout(this.refreshTimer);this.readFailed=true;this.readRetry.hidden=false;const retained=this.snapshotKey===this.readKey()&&(this.id?$('topic-body').children.length>0:$('thought-list').children.length>0);if(!retained&&!this.id)$('thought-empty').hidden=true;this.onStatus(libraryReadFailureText(retained),'read_error');}
  queueOptionalStatus(){
-  if(this.view==='original'&&!$('thought-organize-tools')?.open&&!this.aiPending&&!this.originalPending&&!this.boundedPending){if(!this.id)$('library-unplaced').parentElement.hidden=!this.homePage?.page.entryCountHint;return;}
+  if(this.view==='original'&&!this.aiPending&&!this.originalPending&&!this.boundedPending){if(!this.id)$('library-unplaced').parentElement.hidden=!this.homePage?.page.entryCountHint;return;}
   const epoch=this.statusEpoch,route=this.id,key=this.readKey(),beforeView=this.view,beforeSort=this.readingSort;
   const current=()=>epoch===this.statusEpoch&&route===this.id&&key===this.readKey()&&!this.readFailed&&!$('thought-panel').hidden;
   void this.updateViewStatus({strict:false,isCurrent:current}).then(()=>{
@@ -173,7 +173,7 @@ export class ThoughtWorkspace {
   }catch{done('failed');if(this.loadToken===token&&epoch===this.statusEpoch)this.readFailure();}
   finally{if(this.loadToken===token)this.searching=false;}
  }
- async readRefresh(){if(this.mutating)return false;const serial=++this.serial;$('thought-home-tools').hidden=!!this.id;if($('thought-organize-tools'))$('thought-organize-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
+ async readRefresh(){if(this.mutating)return false;const serial=++this.serial;$('thought-home-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
   if(!this.id){const query=$('thought-search').value.trim();const page=query?await findLibraryPage(options=>request('SEARCH_LIBRARY',{options}),{query,cursor:this.cursor,isCurrent:()=>serial===this.serial,onProgress:()=>{$('library-search-status').textContent='正在继续检索本机索引…';}}):await request('LIBRARY_INDEX_PAGE',{options:{mode:this.mode,cursor:this.cursor}});if(!page||serial!==this.serial)return false;this.homePage={page,query,key:this.readKey()};this.paintHome(page,query);return true;}
   if(!$('topic-material-select')){const choose=button('选择本主题材料',()=>this.selectTopicMaterials());choose.id='topic-material-select';$('topic-time-order').before(choose);}$('topic-material-select').hidden=!this.id;$('ai-topic-tools').hidden=true;$('topic-time-order').hidden=this.view==='ai';$('topic-search-count').textContent='';for(const b of $('topic-time-order').querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.readingSort===this.readingSort));
   this.ensurePanes();this.originalPane.hidden=this.view==='ai';this.aiPane.hidden=this.view!=='ai';

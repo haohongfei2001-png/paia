@@ -7,7 +7,7 @@ const rpc=async(page,type,fields={})=>{
 };
 const nav=(page,view)=>page.locator(view==='settings'?'.sidebar-bottom [data-view="settings"]':`#primary-nav [data-view="${view}"]`).click();
 async function noRemovedControls(page){
-  for(const selector of ['#universal-search-open','#thought-recent','#core-loop-browse-title'])assert.equal(await page.locator(selector).count(),0,selector+' cannot be recreated');
+  for(const selector of ['#universal-search-open','#thought-recent','#thought-organize-tools','#core-loop-browse-title'])assert.equal(await page.locator(selector).count(),0,selector+' cannot be recreated');
 }
 test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit and explicit material selection',{timeout:180000},async()=>{
   const h=await FakeChatGPT.start({onboarding:true});
@@ -39,10 +39,25 @@ test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit an
       await page.evaluate(()=>{for(const init of [{key:'/'},{key:'k',metaKey:true},{key:'f',ctrlKey:true}])document.dispatchEvent(new KeyboardEvent('keydown',{...init,bubbles:true,cancelable:true}));});
       await pause(60);await noRemovedControls(page);
       assert.equal(await page.locator('#universal-search-dialog').isVisible(),false,'Settings shortcuts do not open the picker');
+await page.locator('.ux-settings-nav [data-settings-group="ai"]').click();
+assert.equal(await page.locator('#ux-settings-ai-group #organizer-reading-actions').count(),1,'the existing organizer has one Settings AI owner');
+assert.equal(await page.locator('#organizer-reading-actions').isVisible(),true);
+await page.locator('#organizer-batch-actions > summary').click();
+assert.equal(await page.locator('#bounded-original-start').isVisible(),true);
+assert.equal(await page.locator('#bounded-ai-start').isVisible(),true);
+await page.locator('#bounded-original-start').click();
+await eventually(()=>page.locator('#library-dialog').isVisible(),'Settings reaches the unchanged bounded confirmation');
+assert.equal(await page.locator('#library-form [name="requests"]').inputValue(),'1');
+await page.locator('#library-dialog-close').click();
+await eventually(async()=>!(await page.locator('#library-dialog').isVisible()),'cancel leaves the Provider unauthorized');
+await page.locator('#organizer-batch-actions > summary').click();
+assert.equal(h.deepSeekRequests.length,0);
       await nav(page,'thoughts');
       await eventually(()=>page.locator('#thought-search').isVisible(),'Thought root is ready');
       assert.equal(await page.locator('input[type="search"]:visible').count(),1);
       assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),false);
+assert.equal(await page.locator('#thought-panel #organizer-reading-actions').count(),0,'Thought root cannot own a collapsed AI organizer');
+assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,'Settings organizer stays outside the Thought root');
       await noRemovedControls(page);
       const index=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}});
       assert.ok(index.recent.some(item=>item.id===topic.id),'recent metadata survives presentation cleanup');
