@@ -64,8 +64,8 @@ function syncArchiveFrame(){
  const panel=$('collection-panel'),home=$('core-loop-home'),search=$('search'),revisit=$('revisit-open');if(!panel||!home||!search||!revisit)return;
  let frame=$('uir-archive-frame'),main=$('uir-archive-main'),assist=$('uir-archive-assist');
  if(!frame){frame=document.createElement('div');frame.id='uir-archive-frame';frame.className='uir-archive-frame';main=document.createElement('div');main.id='uir-archive-main';main.className='uir-archive-main';assist=document.createElement('aside');assist.id='uir-archive-assist';assist.className='uir-archive-assist';frame.append(main,assist);panel.prepend(frame);}
- const intro=home.querySelector('.core-loop-intro'),materials=$('archive-select-materials');if(intro)intro.hidden=true;
- for(const item of [materials,search,$('result-count'),$('document-list'),$('empty-list'),$('empty-sync'),$('export-menu')])if(item&&item.parentElement!==main)main.append(item);
+ const intro=home.querySelector('.core-loop-intro');if(intro)intro.hidden=true;
+ for(const item of [search,$('result-count'),$('document-list'),$('empty-list'),$('empty-sync'),$('export-menu')])if(item&&item.parentElement!==main)main.append(item);
  if(home.parentElement!==assist)assist.append(home);syncArchiveActions();
  const proxy=$('core-loop-return');
  if(proxy){

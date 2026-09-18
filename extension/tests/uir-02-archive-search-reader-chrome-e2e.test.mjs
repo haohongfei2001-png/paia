@@ -57,8 +57,11 @@ async function assertOffline(h){
 
 async function openSearch(page,query){
   assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');
-  await page.locator('#archive-select-materials').click();
-  await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'internal material Search opens from explicit selection task');
+  assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root no longer duplicates the material-selection entry');
+  await page.locator('#primary-nav [data-view="memory"]').click();
+  await eventually(()=>page.locator('#material-workbench').isVisible(),'For AI material tray opens');
+  await page.getByRole('button',{name:'从档案选择',exact:true}).click();
+  await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'internal material Search opens from retained tray selection task');
   const input=page.getByRole('searchbox',{name:'全局搜索'});
   await input.fill(query);
   await eventually(async()=>await page.locator('#universal-search-dialog').getAttribute('data-query')===query&&await page.locator('.universal-hit').count()>0,'internal material Search returns current-scope results');
@@ -153,7 +156,9 @@ async function sourceJourney(page,h){
   await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:false}});
   await eventually(async()=>!(await page.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews'))),'preview mask can be removed without leaving Search');
   await page.locator('.universal-close').click();
-  await eventually(()=>page.locator('#collection-panel').isVisible(),'Search close restores Archive');
+  await eventually(()=>page.locator('#material-workbench').isVisible(),'Search close restores the retained For AI material surface');
+  await page.locator('#primary-nav [data-view="library"]').click();
+  await eventually(()=>page.locator('#collection-panel').isVisible(),'Archive remains directly reachable after material selection');
   assert.equal(await page.locator('#search').inputValue(),'UIR02_TARGET','Reader result query remains the existing Archive filter after Search closes');
   await page.locator('#search').fill('');
   await eventually(()=>page.locator('#core-loop-home').isVisible(),'clearing the Archive filter restores the Archive home before Revisit');

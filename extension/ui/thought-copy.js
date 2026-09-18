@@ -8,7 +8,7 @@ const english={
  '撤销尚未保存，文字仍在这里。':'Undo was not saved. Your text is still here.',
  '已保存到本机':'Saved locally','正在保存…':'Saving…','查看':'View',
  '‹ 返回思想库':'‹ Back to Thought Library','思想库 / 主题阅读':'Thought Library / Topic',
- '加入主题':'Add to topic','补充今天的想法':'Add a thought from today','接着写':'Continue thinking','关闭':'Close',
+ '加入主题':'Add to topic','选择本主题材料':'Select topic materials','补充今天的想法':'Add a thought from today','接着写':'Continue thinking','关闭':'Close',
  '内容已变化，请重新打开核对。':'The content changed. Reopen to compare.',
  '文字尚未保存。放弃这份草稿？取消可保留在此继续写。':'This draft is not saved. Discard it? Cancel to keep writing.',
  '搜索主题':'Search topics','加载更多主题':'Load more topics','还没有主题，可以新建一个。':'No topics yet. Create one to begin.',

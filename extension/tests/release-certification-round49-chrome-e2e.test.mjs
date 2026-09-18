@@ -27,14 +27,13 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async message=>{const result=await send(message);if(message.type==='GET_ONBOARDING')await new Promise(resolve=>setTimeout(resolve,120));return result;};});
   await recent.click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND49_CORE_LOOP'),'recently captured opens canonical Input Reader');
-  let reuse=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.core-loop-reuse');
-  await eventually(async()=>await reuse.count()===1,'Reader exposes one bounded reuse action for the Input');
+  const sourceInput=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.library-prose');
+  assert.equal(await p.locator('.core-loop-reuse').count(),0,'Reader no longer adds a persistent per-Input material button');
 
-  // The loop must not silently opt unorganized Inputs into AI Context merely to
-  // make Reader reuse convenient. Default click explains the boundary and keeps
-  // the global setting unchanged.
+  // The retained Input more menu still supports explicit one-off reuse without
+  // silently opting unorganized Inputs into future AI Context retrieval.
   let memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false);
-  await reuse.click();await eventually(()=>p.locator('#material-preview').isVisible(),'Reader adds the exact saved Input to the tray');
+  await sourceInput.click({button:'right'});await p.locator('#context-menu button').filter({hasText:'加入本次材料'}).click();await eventually(()=>p.locator('#material-preview').isVisible(),'Input more menu adds the exact saved Input to the tray');
   await p.locator('#material-preview').click();await eventually(()=>p.locator('#material-output-text').isVisible(),'Reader selection reaches trusted manual Preview');
   assert.match(await p.locator('#material-output-text').textContent(),/ROUND49_CORE_LOOP/);
   memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false,'explicit manual selection grants no future automatic retrieval');
@@ -46,13 +45,17 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'return to Archive home');
   await p.locator('.conversation-document').first().evaluate(el=>{globalThis.__round49StableDocument=el;});const worker=h.context.serviceWorkers()[0];await worker.evaluate(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'CAPTURE'}).catch(()=>{});});await pause(250);assert.equal(await p.locator('.conversation-document').first().evaluate(el=>el===globalThis.__round49StableDocument),true,'same Archive data keeps the same document action node');
   assert.equal(await p.locator('#universal-search-open').isVisible(),false,'normal Archive home exposes no global Search launcher');
-  await p.locator('#archive-select-materials').click();
-  await eventually(async()=>await p.locator('#universal-search-dialog').isVisible(),'explicit material selection opens the retained internal Search coordinator');
+  assert.equal(await p.locator('#archive-select-materials').count(),0,'Archive root duplicate selection launcher stays removed');
+  await p.locator('#primary-nav [data-view="memory"]').click();await eventually(()=>p.locator('#material-workbench').isVisible(),'For AI material surface opens');
+  const backToMaterials=p.getByRole('button',{name:/返回材料|Back to materials/});if(await backToMaterials.isVisible().catch(()=>false))await backToMaterials.click();
+  await p.getByRole('button',{name:/从档案选择|Choose from Archive/}).click();
+  await eventually(async()=>await p.locator('#universal-search-dialog').isVisible(),'retained material tray opens the internal Search coordinator');
   assert.match((await p.locator('#universal-search-title').textContent()).trim(),/找回以前的表达|Find an earlier expression/i);
   const box=p.getByRole('searchbox',{name:'全局搜索'});await box.fill('ROUND49_CORE_LOOP');
   await eventually(async()=>await p.locator('#universal-search-dialog .universal-hit').count()>0,'Find returns the captured Input');
   assert.match((await p.locator('#universal-search-dialog .universal-context').first().textContent()).trim(),/已在本次材料中|Already selected/i);
   await p.locator('.universal-close').click();
+  await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#core-loop-home').isVisible(),'return from material selection to Archive');
 
   await p.locator('#core-loop-return').click();
   await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'home Return opens existing Revisit service');

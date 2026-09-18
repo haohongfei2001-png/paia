@@ -73,8 +73,11 @@ assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,
     await eventually(()=>page.locator('#revisit-panel').isVisible(),'keyboard opens the retained Revisit owner');
     await page.locator('.revisit-close').click();
     await eventually(()=>page.locator('#search').isVisible(),'Revisit returns to Archive');
-    await page.locator('#archive-select-materials').click();
-    await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'explicit material selection still opens internal search');
+    assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root duplicate material launcher stays removed');
+    await page.locator('#primary-nav [data-view="memory"]').click();
+    await eventually(()=>page.locator('#material-workbench').isVisible(),'For AI material surface is available');
+    await page.getByRole('button',{name:'从档案选择',exact:true}).click();
+    await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'retained material selection still opens internal search');
     await page.locator('#universal-search-dialog input[type="search"]').fill('UIS04_KEEP_INTERNAL_MATERIAL');
     await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()===1,'internal coordinator finds the synthetic input');
     await page.locator('#universal-search-dialog .universal-context').click();
@@ -82,7 +85,9 @@ assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,
       const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));return getMaterialTray()?.data?.items.length===1;
     }),'explicit selection reaches the existing material tray');
     await page.locator('.universal-close').click();
-    await eventually(()=>page.locator('#search').isVisible(),'closing selection restores scoped Archive search');
+    await eventually(()=>page.locator('#material-workbench').isVisible(),'closing selection restores For AI');
+    await nav(page,'library');
+    await eventually(()=>page.locator('#search').isVisible(),'Archive scoped search remains reachable');
     await noRemovedControls(page);
     assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
   }finally{await h.close();}
