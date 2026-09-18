@@ -10,7 +10,7 @@ Repository: `haohongfei2001-png/paia`
 
 Authoritative branch: `main`
 
-Current round: **UIS-03 — READY**
+Current round: **UIS-04 — READY**
 
 Always resolve the live `main` HEAD before execution. Do not encode this file's own commit as a self-referential required HEAD.
 
@@ -238,7 +238,7 @@ UIS-02 is closed. Do not reopen it merely because run #344 failed against stale 
 
 ## 5. UIS-03 — Thought Library simplification
 
-Status: **READY**
+Status: **COMPLETE**
 
 ### Objective
 
@@ -279,13 +279,54 @@ Run affected Thought tests, affected UI Refresh browser tests, `npm run test:ui-
 
 ### Completion record
 
-Ready after certified UIS-02 closure. Not started.
+Runtime/test commits:
+
+- `2cabcc1441b37ebe1ece557cfc95d536293990a8` — `Simplify Thought Library root for UIS-03`.
+- `58d0b9a23730b91a6a5f406a42cf06cfa801c6d5` — `Scope Thought AI controls to open topics`.
+- `af6c374aff34339b543abd97fa45f25ed38fba20` — `Align UIR-03 Thought acceptance with UIS-03`.
+- `c0e1890bac049eadfa0b16809eea9571bbf796b3` — `Align UX-R3 recent-reading contract with UIS-03`.
+
+Implemented behavior:
+
+- Thought Library root keeps the single page-scoped search established by UIS-02 and no longer exposes the AI presentation/organization toggle or a root AI-organization action.
+- opening a concrete Thought topic keeps the existing contextual AI presentation switch and update/retry behavior; no Provider capability was moved to the root.
+- the `最近阅读 / Recent reading` root section is no longer rendered, while `RECORD_TOPIC_READ` / `LIBRARY_INDEX_PAGE.recent` metadata remains intact for Reader/Revisit and future internal use.
+- root `···` keeps `添加主题` and `列表 / 网格`; independent `接着写` creation remains directly reachable.
+- the existing topic-scoped `导出主题` action remains in the concrete Topic `···` menu and continues to call the existing topic export path; no whole-Library export scope was invented.
+- Settings bounded organizer controls remain available; saved AI presentation, user-authored Thought edits, version/undo behavior and user/AI ownership separation are unchanged.
+- no Source/Input/Thought ownership, storage schema, tombstone/revision, capture scope, Provider permission, paid-AI, Backup/restore or complete-export semantics changed.
+
+Validation / recovery receipt:
+
+- recovery audit started from remote `main` `8e496e59…`, where canonical UIS-03 was READY / not started; no partial UIS-03 implementation was present, so no completed work was repeated.
+- PAIA Certification run `35295440470`, run #349, head `af6c374…`, exposed one deterministic stale UX-R3 assertion that still required the intentionally removed `#thought-recent` UI. That assertion was replaced in `c0e1890…` with the stronger current contract: no Recent Reading root surface while recent-read metadata remains recorded. No runtime behavior was changed for that recovery.
+- the same #349 Current Browser run also produced one non-reproduced UX-R5 provider-failure visibility failure. No UX-R5 runtime or acceptance threshold was changed; the exact path subsequently passed in both independent browser executions on the certified head.
+- PAIA Certification run `35296717805`, run #350, head SHA `c0e1890…`: **SUCCESS** on attempt 1.
+  - Certification gate: SUCCESS.
+  - Current Browser Certification: **44 / 44 PASS**, fail 0, skipped 0.
+  - Full Suite Certification: **1100 / 1100 PASS**, fail 0, skipped 0:
+    - unit: 909;
+    - browser E2E: 44;
+    - adapter contract: 95;
+    - privacy/security: 52.
+  - `uir-03-thought-original-chrome-e2e.test.mjs`: PASS, including one root search, no root AI toggle, absent Recent Reading UI with retained metadata, Topic-only AI controls, and Topic `···` export scope.
+  - `uir-03-ai-presentation-chrome-e2e.test.mjs`: PASS; saved AI presentation remains readable and Provider work stays explicit.
+  - `ux-r3-thought-chrome-e2e.test.mjs`: **5 / 5 PASS**, including independent user editing/draft/undo and the updated recent-metadata contract.
+  - `ux-r5-certification-chrome-e2e.test.mjs`: **3 / 3 PASS** in Current Browser and Full Suite, including Original readability after provider failure and no automatic paid retry.
+  - remote package audit: **8528 package guardrails PASS** across 197 runtime resources; `DEVELOPMENT_PRIVACY_PERMISSION_NETWORK_AUDIT_PASS`.
+  - Current release build and guards: SUCCESS.
+  - macOS Secure Store Certification: SUCCESS.
+  - Full-suite receipt: `fullSuite=true`, `auditPassed=true`, `historicalBrowserFiles=76`, input digest `659085b34ce2a1878bed77aeb56427244308059c7b69d80a0467b84e0443aaaa`.
+- the Current Browser job runs the complete current browser suite, a strict superset of the affected UI Refresh browser set, and executes the same package audit used by `npm run check`; both passed on the exact certified remote head.
+- a supplementary exact-SHA `/tmp` Mac validation attempt on the pre-recovery head never entered npm because the GitHub HTTPS clone stalled and was terminated. It is not counted as validation evidence; completion is based on the authoritative exact-SHA GitHub Actions receipts above.
+
+UIS-03 is closed. Dead selectors/copy and other obsolete presentation wiring intentionally remain for UIS-04 cleanup; do not reopen UIS-03 merely to perform that next-round work.
 
 ---
 
 ## 6. UIS-04 — Cleanup, documentation alignment, and final certification
 
-Status: **PENDING UIS-03**
+Status: **READY**
 
 ### Objective
 
@@ -321,7 +362,7 @@ Do not claim completion if a required gate is skipped or failed. Record exact en
 
 ### Completion record
 
-Waiting for UIS-03.
+Ready after certified UIS-03 closure. Not started.
 
 ---
 
@@ -345,4 +386,4 @@ Every round must preserve:
 
 **Next user / Supervisor execution message required: `继续开发`**
 
-That next message authorizes **UIS-03 only**. UIS-02 is COMPLETE and must not be reopened without new regression evidence.
+That next message authorizes **UIS-04 only**. UIS-03 is COMPLETE and must not be reopened without new regression evidence.
