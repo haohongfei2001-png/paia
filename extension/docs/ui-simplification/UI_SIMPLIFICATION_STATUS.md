@@ -2,7 +2,7 @@
 
 Status file: **canonical execution state for UI Simplification v1**
 
-Version: v1.2
+Version: v1.3
 
 Date: 2026-09-18
 
@@ -10,7 +10,13 @@ Repository: `haohongfei2001-png/paia`
 
 Authoritative branch: `main`
 
-Current round: **UIS-04 — IN_PROGRESS**
+Package status: **COMPLETE**
+
+Current round: **NONE — package COMPLETE**
+
+Last completed round: **UIS-04**
+
+Next round: **NONE — all predefined rounds UIS-01 through UIS-04 are COMPLETE**
 
 Always resolve the live `main` HEAD before execution. Do not encode this file's own commit as a self-referential required HEAD.
 
@@ -326,7 +332,7 @@ UIS-03 is closed. Dead selectors/copy and other obsolete presentation wiring int
 
 ## 6. UIS-04 — Cleanup, documentation alignment, and final certification
 
-Status: **IN_PROGRESS**
+Status: **COMPLETE**
 
 ### Objective
 
@@ -362,9 +368,9 @@ Do not claim completion if a required gate is skipped or failed. Record exact en
 
 ### Completion record
 
-Cleanup implementation is committed; final certification is pending. Do not mark COMPLETE from this implementation commit alone.
+Cleanup implementation and recovery are certified on remote `main` source `72ca7946996b6b1255f67d76f9d1af0b8f92fb33`. PAIA Certification #353 passed before this status-only closure. Earlier candidates below are recovery history, not substitutes for the final exact-source receipt.
 
-- Audited starting remote main: `76dac80c2a598a13ae31fb4ed4f4d1daf6a429a4`.
+- Audited starting remote main: `76dac80c2a598a13ae31fb4ed4f1daf6a429a4`.
 - Removed the obsolete hidden search launcher, its shell locale/chrome wiring and dead styles. The explicit material-selection search retains its real dialog owner and reusable domain coordinator.
 - Revisit now mounts from the workspace heading; removing the obsolete launcher cannot remove the Revisit entry.
 - Removed Thought Recent Reading rendering calls, visibility checks, translation hook and styles while preserving read metadata/services.
@@ -380,16 +386,57 @@ Visual recovery before closure:
 - Candidate `c7ed2dcec22c0b5e30dbb258724fa21820d286d2` passed UI Refresh 10/10 and Current Browser 45/45 in run #351, but review of its built-release Thought-root screenshot exposed a missed contract: `applyPreferences()` recreated `thought-organize-tools` and moved live Settings organizer controls to the Thought root. Passing the existing tests was not accepted as sufficient final certification.
 - Removed that obsolete reparenting hook and its dead toggle/visibility/status references. The same bounded organizer controls now remain in the existing Settings AI group; their Provider/authorization handlers are unchanged.
 - Strengthened source assertions to reproduce the bad projection before the fix, and strengthened Chrome assertions across locale/navigation changes to require no collapsed root organizer, one Settings AI owner, reachable bounded controls, and cancellation without a Provider request.
-- This is recovery within UIS-04, not a new round or reopening of the historical execution queue. Final closure requires a new exact-head complete certification run.
+- This was recovery within UIS-04, not a new round or reopening of the historical execution queue. The required new exact-head complete certification is recorded below.
 
 Additional reachability audit of the relocated owner found that the removed root-details toggle had also been the lazy local-status trigger. Without transferring that trigger, the existing single-pass `original-library-update` action could be absent even though batch actions remained reachable.
 
 - The existing Settings group activation and panel-visible lifecycle now notify the existing Thought workspace only when Settings AI is visible. The workspace reuses its bounded, cancellable-by-current-surface local status reads; no Provider action, authorization, request limit, polling interval, or durable state is added.
 - The same local status path remains available to an already-active bounded operation while Settings AI is visible. Leaving the surface makes pending status results ineligible; no Thought root organizer is restored.
 - A new source contract was proven RED before the lifecycle correction and GREEN afterward. The Chrome journey additionally requires the single-pass organizer action to become visible and enabled while Provider request count remains zero.
-- `45e1395e…` was an intermediate recovery candidate, not final closure. A fresh full certification is required on this completed recovery source.
+- `45e1395e…` was an intermediate recovery candidate, not final closure. The completed recovery source was certified by run #353 below.
 
-Required next action within UIS-04: certify the exact completed recovery head and close only after every required gate passes.
+### Final exact-source certification receipt — 2026-09-18
+
+- Certified source SHA: `72ca7946996b6b1255f67d76f9d1af0b8f92fb33`.
+- Authoritative PAIA Certification: run `35301646855`, run **#353**, attempt **1**, **completed / SUCCESS**; final run update `2026-09-18T03:24:40Z`.
+- Run URL: https://github.com/haohongfei2001-png/paia/actions/runs/35301646855
+- Checkout logs, workflow commands, job results and artifact `head_sha` were checked against this same source. The status-only closure records this tested source; it does not relabel a different commit as tested or encode its own unknown SHA.
+
+Required gates, actually executed from `extension/` by the current workflow:
+
+| Gate | Exact-source result | Authoritative job |
+| --- | --- | --- |
+| `npm run test:ui-refresh` | **10 / 10 PASS**, fail 0, skipped 0; source and built-release journeys | Current Browser `105465414202`, explicit UI Refresh closure step |
+| `npm test` | **1105 / 1105 PASS**, fail 0, skipped 0; unsharded full suite | Full Suite `105465414341` |
+| `npm run check` | **8528 package guardrails PASS** across 197 runtime resources | Current Browser `105465414202`, explicit package closure step |
+| `npm run build:release` | **SUCCESS**, build/audit and release upload successful | Current release build and guards `105465413950` |
+
+Additional required certification jobs also passed: Current Browser **45 / 45**, Adapter and privacy contracts, Unit 1/4 through 4/4, macOS Secure Store Certification, and final Certification gate `105469654339`. No required gate was skipped, failed, weakened or bypassed. The workflow's existing dispatch-only historical browser audit was not requested by this push and is not a required certification dependency; its separate status is not counted as a passing current gate.
+
+Full-suite receipt:
+
+- unit **913**, browser E2E **45**, adapter contract **95**, privacy/security **52**;
+- `fullSuite=true`, `auditPassed=true`, `testConcurrency=1`;
+- input digest `c22c5f18db1ee7bf616ac6ebea8c9238ff3861ff351a0288fd64a864ee55b371`;
+- `historicalBrowserFiles=76`, `historicalBrowserAudit=SEPARATE_PRE_MIGRATION_EVIDENCE`, `realGolden=UNAVAILABLE`;
+- artifact `paia-current-full-suite-72ca7946996b6b1255f67d76f9d1af0b8f92fb33`, ID `10530274537`; downloaded ZIP SHA-256 verified as `dd37888f025ecad4306143283df684741a7e62ea449c6860be908ab7c5d5f3e9`;
+- release artifact `paia-current-release-72ca7946996b6b1255f67d76f9d1af0b8f92fb33`, ID `10529902918`; GitHub-reported ZIP SHA-256 `524dc8f2321306e7f75a6b6884abaeddc689c0c65ba161ae21eae68cb17199a8`.
+
+Final acceptance audit:
+
+1. **PASS — obsolete search wiring removed, reusable services retained.** `uis-04-cleanup.test.mjs` scans runtime UI JS/CSS/HTML for the obsolete launcher/copy/style/reparenting tokens; internal search dialog installation is idempotent. Chrome proves explicit material selection still reaches the existing material tray, and Revisit remains keyboard reachable from its real workspace-heading owner.
+2. **PASS — Recent Reading presentation removed, metadata retained.** Source checks retain `RECORD_TOPIC_READ`; the Chrome journey verifies `LIBRARY_INDEX_PAGE.recent` still contains the read topic while the removed root section is absent.
+3. **PASS — removed controls do not reappear.** Locale changes, repeated installation, Settings/Thought/Archive navigation and keyboard shortcuts do not recreate the global launcher, Recent Reading, Browse by source or root organizer. Settings has no search; content roots retain one scoped search. The existing Settings AI group owns one organizer, its single-pass action becomes visible/enabled through bounded read-only status loads, batch confirmation stays reachable, and cancellation causes no Provider request.
+4. **PASS — documentation and trust scope aligned.** Re-read `PRODUCT.md`, `ARCHITECTURE.md`, `ROADMAP.md`, `AGENTS.md` and this package README. They reflect scoped visible search, internal reusable cross-surface selection, contextual menus, removed Thought-root Recent Reading/AI controls, preserved metadata, and completion-aware execution. The baseline-to-certified-source comparison changes only UI, tests, documentation and additive explicit CI commands; no core storage, capture, manifest/provider permissions, durable ownership, tombstone/revision or paid-AI semantics were changed.
+5. **PASS — final receipts and terminal package state recorded.** UIS-01, UIS-02, UIS-03 and UIS-04 are COMPLETE; there is no next READY round.
+
+Affected-test results are individually named in both Full Suite and Current Browser logs, so no redundant separate browser rerun is needed: `uis-04-cleanup.test.mjs` **4 / 4**, `uis-04-cleanup-chrome-e2e.test.mjs` **1 / 1**, UIS-01 and UIS-02 Chrome journeys **1 / 1** each, all ten UI Refresh journeys, UX-R3 Thought **5 / 5**, and UX-R5 certification **3 / 3**. UIS-04 Chrome asserts zero DeepSeek, extension-network and external requests and no browser errors.
+
+Visual confirmation used the certified run's `ux-r3-evidence-72ca7946996b6b1255f67d76f9d1af0b8f92fb33` artifact, ID `10529989261`, with downloaded ZIP SHA-256 verified as `ae1e7856640512e3318d45e593f8b7eae4f76c2e85451f19965ed1ef37897bb3`. Reviewed `uir-03-current-release-thought-home-1440x900-light.png` and `uir-03-current-release-topic-original-1440x900-light.png`: the root has the scoped search and contextual overflow without the old AI organizer/Recent Reading projection; the open topic retains its contextual AI switch and topic search. These are synthetic built-release evidence, not screenshots from the user's daily profile.
+
+Scope and limitations: this is completed automated engineering certification, not a claim of live logged-in ChatGPT verification, real paid-provider success, real-user retention validation, or deployment to the user's existing Chrome profile. This recovery closure used remote GitHub facts and downloaded CI evidence only; it did not use/synchronize a local clone or access the daily profile. Existing product-validation limitations in ROADMAP remain unchanged.
+
+UIS-04 is closed. No unresolved UIS-04 acceptance blocker remains. This completion does not authorize UIS-05, another roadmap task, historical UIR/UX work, or local deployment.
 
 ---
 
@@ -411,6 +458,6 @@ Every round must preserve:
 
 ## 8. Current next action
 
-**UIS-04 is IN_PROGRESS; exact-source final certification and closure are required.**
+**UI Simplification v1 is COMPLETE. UIS-01 through UIS-04 are COMPLETE. No current or next READY round remains.**
 
-Do not start another round. UIS-04 is the final predefined round; after its gates pass, mark the package complete and stop.
+Stop this execution. UIS-04 is the final predefined round; do not create UIS-05, begin another roadmap task, or reactivate historical UIR/UX queues under this package grant.
