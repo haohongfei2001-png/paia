@@ -24,6 +24,17 @@ const frozen={
 // import-ledger.test.mjs exercises the regression; stripping only this exact addition
 // must reproduce the frozen bytes. Network/capture/resolver algorithms remain pinned.
 const officialGuard="    // Export is accepted only by the separately authorized import writer.\n    // A subsequent page scan without evidence must not erase that reliable time.\n    if(r.timeSource==='official_export'&&r.timeConfidence==='high'){\n      if(values.sourceSentAt&&values.sourceSentAt!==r.sourceSentAt){ledger.officialExport={...(ledger.officialExport||{}),conflict:true};state.sourceTimes[sourceKey]=ledger;changed=true;}\n      continue;\n    }\n";
+// Capture Foundation Hardening v1 is explicitly authorized by the product-owner execution specification.
+// Each changed file has reproduced regressions recorded in docs/capture-foundation/CERTIFICATION.md.
+// These are exact reviewed bytes, NOT a wildcard or removal of the original freeze.
+const captureFoundationV1={
+  "adapter/chatgpt-adapter.js": "700852c8fa41b48065d25efded01576d079731aa5943a1ab10f15836718ba3f3",
+  "adapter/history-contract.js": "75772088523de882908123756b8673e646fc779aabb20ea0aeed5d732695b96a",
+  "content/capture.js": "779062fcc02d1aaff79e056dca6a76cb936bf2013977df6d63b16f5aa1bebbc3",
+  "content/response-bridge.js": "eb4920f85e8b0e94201dd68c300b7757426da41b6a38f6498879fcd3ed4d00b1",
+  "content/response-observer.js": "c5f139ca99bb9340c25bb774ebda53278b80c401616f8f7e299f245967270da9",
+  "core/record-time.js": "b343e72c4be7a36e34bca5092e1dc7140c702b710d818293cb10459c520ae0db"
+};
 test('frozen capture/network/resolver bytes remain pinned with authorized official-time and presence-only additions',async()=>{
- for(const [path,hash] of Object.entries(frozen)){let bytes=await readFile(new URL('../'+path,import.meta.url));if(path==='adapter/chatgpt-adapter.js'){const addition="        if(globalThis.PAIAInputPresence)messages.at(-1).presence=globalThis.PAIAInputPresence.collect(root,container);\n";const source=bytes.toString();assert.equal(source.split(addition).length,2);bytes=Buffer.from(source.replace(addition,''));}if(path==='core/record-time.js'){const source=bytes.toString();assert.equal(source.split(officialGuard).length,2);bytes=Buffer.from(source.replace(officialGuard,''));}assert.equal(createHash('sha256').update(bytes).digest('hex'),hash,path);}
+ for(const [path,hash] of Object.entries(frozen)){let bytes=await readFile(new URL('../'+path,import.meta.url));if(captureFoundationV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),captureFoundationV1[path],path+' authorized CFH-v1 bytes');continue;}if(path==='adapter/chatgpt-adapter.js'){const addition="        if(globalThis.PAIAInputPresence)messages.at(-1).presence=globalThis.PAIAInputPresence.collect(root,container);\n";const source=bytes.toString();assert.equal(source.split(addition).length,2);bytes=Buffer.from(source.replace(addition,''));}if(path==='core/record-time.js'){const source=bytes.toString();assert.equal(source.split(officialGuard).length,2);bytes=Buffer.from(source.replace(officialGuard,''));}assert.equal(createHash('sha256').update(bytes).digest('hex'),hash,path);}
 });

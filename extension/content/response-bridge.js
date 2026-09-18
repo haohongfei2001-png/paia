@@ -20,6 +20,9 @@
   let active = false;
   let arm = 0;
   let stopped = false;
+  let polling = false;
+  let pollTimer = null;
+  let responseObservation={state:'NOT_OBSERVED',acceptedRows:0,rejectedFrames:0};
   let canonicalAt = 0;
   function control() {
     window.postMessage({channel: 'archive-response-control-v1', active, chat: model.chat, epoch, session, historySession, arm, fingerprint: fingerprintAllowed, history: active}, 'https://chatgpt.com');
@@ -27,13 +30,27 @@
   function clear() {
     fingerprints.clear(); semantics.clear(); fingerprintAllowed = false;
     model.reset(); active = false; arm = 0; canonicalAt = 0; session = crypto.randomUUID(); control();
+    responseObservation={state:'NOT_OBSERVED',acceptedRows:0,rejectedFrames:0};
     history.reset(); proofs.clear(); acknowledged.clear(); proofChat = null; historySession = crypto.randomUUID();
+  }
+  async function request(message) {
+    let deadline;
+    try {
+      return await Promise.race([chrome.runtime.sendMessage(message),new Promise(resolve=>{
+        deadline=setTimeout(()=>resolve({ok:false,error:'MESSAGE_RESPONSE_TIMEOUT'}),35000);
+      })]);
+    } finally { globalThis.clearTimeout?.(deadline); }
   }
   function eligible() { return active && adapter.route().id === model.chat && adapter.route().code === 'READY'; }
   window.addEventListener('message', event => {
     if (event.source !== window || event.origin !== 'https://chatgpt.com' || !eligible()) return;
     const data = event.data;
     if (data?.channel !== 'archive-response-metadata-v1' || data.epoch !== epoch || data.chat !== model.chat) return;
+    if(data.historyState&&data.historySession===historySession){
+      const value=globalThis.ArchiveDiagnostics?.sanitizeResponseObservation(data.historyState);
+      if(value)responseObservation=value;
+      return;
+    }
     if (data.history) {
       if (data.historySession === historySession && history.ingest(data.history)) void flush();
       return;
@@ -76,9 +93,16 @@
         for (let start = 0; start < pending.length; start += 200) {
           if (!eligible() || historySession !== generation || epoch !== batchEpoch) return;
           const messages = pending.slice(start, start + 200);
-          const reply = await chrome.runtime.sendMessage({type:'ENRICH_SOURCE_METADATA',epoch:batchEpoch,adapterVersion:globalThis.ChatGPTAdapter.version,chat,messages});
+          const reply = await request({type:'ENRICH_SOURCE_METADATA',epoch:batchEpoch,adapterVersion:globalThis.ChatGPTAdapter.version,chat,messages});
           if (!reply?.ok || historySession !== generation) return; // Keep evidence for the next authorized poll.
-          for (const message of messages) acknowledged.set(message.sourceMessageId,JSON.stringify(message));
+          // Only the trusted writer can confirm persistence or an explicit exclusion.
+          // Missing sources keep their evidence pending, even after an OK response.
+          for (let index=0; index<messages.length; index++) {
+            if (reply.data?.settled?.[index] === true || reply.data?.excluded === true) {
+              const message=messages[index];
+              acknowledged.set(message.sourceMessageId,JSON.stringify(message));
+            }
+          }
         }
       }
     } catch {} finally {
@@ -87,6 +111,15 @@
     }
   }
   globalThis.ArchiveResponseTime = Object.freeze({
+    persisted() { void flush(); },
+    owns(chatId,messageId) { return eligible()&&chatId===model.chat&&history.rows.has(messageId); },
+    health(snapshot,status) {
+      if(!eligible()||status?.epoch!==epoch||snapshot?.chat?.id!==model.chat)return null;
+      const evidence=history.match((snapshot.messages||[]).map(m=>m.sourceMessageId));
+      let available=0,missing=0,blocked=0;
+      for(const message of snapshot.messages||[]){const e=evidence.get(message.sourceMessageId);if(e?.state==='valid')available++;else if(e?.state==='blocked'&&e.reason!=='MISSING')blocked++;else missing++;}
+      return globalThis.ArchiveDiagnostics?.sanitizeCaptureHealth({schemaVersion:1,responseState:history.limited?'LIMIT':responseObservation.state,responseRows:responseObservation.acceptedRows,rejectedFrames:responseObservation.rejectedFrames,canonicalProofs:proofs.size,unsettledSources:Math.max(0,proofs.size-acknowledged.size),sourceTimesAvailable:available,sourceTimesMissing:missing,sourceTimesBlocked:blocked})||null;
+    },
     evidence(snapshot,status) {
       if(!active||status.epoch!==epoch||!eligible()||snapshot.chat?.id!==model.chat)return new Map();
       return history.match(snapshot.messages.map(m=>m.sourceMessageId));
@@ -111,9 +144,10 @@
     }
   });
   async function poll() {
-    if (stopped) return;
+    if (stopped || polling) return;
+    polling = true;
     try {
-      const response = await chrome.runtime.sendMessage({type: 'GET_STATUS'});
+      const response = await request({type: 'GET_STATUS'});
       if (stopped) return;
       const status = response?.ok ? response.data : null;
       const route = adapter.route();
@@ -128,7 +162,7 @@
       await flush();
       let reply;
       // Diagnostic transport/lease failure must not clear authorized formal evidence.
-      try { reply = await chrome.runtime.sendMessage({type: 'RESPONSE_POLL', session, epoch, summary: {...model.summary(), fingerprints: fingerprints.summary(model.chat, model.canonical, fingerprintAllowed), semantics: semantics.summary(fingerprintAllowed)}}); } catch {}
+      try { reply = await request({type: 'RESPONSE_POLL', session, epoch, summary: {...model.summary(), fingerprints: fingerprints.summary(model.chat, model.canonical, fingerprintAllowed), semantics: semantics.summary(fingerprintAllowed)}}); } catch {}
       const allowFingerprint = reply?.ok === true && reply.data?.fingerprintAllowed === true && eligible();
       if (!allowFingerprint) {
         fingerprints.clear(); semantics.clear();
@@ -140,11 +174,18 @@
         model.arm(); arm++; control();
       }
     } catch { clear(); }
-    if (!stopped) setTimeout(() => void poll(), 500);
+    finally {
+      polling = false;
+      if (!stopped) pollTimer=setTimeout(() => { pollTimer=null; void poll(); }, 500);
+    }
   }
   window.addEventListener('pagehide', () => {
-    stopped = true; clear();
+    stopped = true; globalThis.clearTimeout?.(pollTimer); pollTimer=null; clear();
     try { void chrome.runtime.sendMessage({type: 'RESPONSE_POLL', session, epoch, summary: model.summary()}).catch(() => {}); } catch {}
+  });
+  window.addEventListener('pageshow', () => {
+    if (!stopped) return;
+    stopped=false; void poll();
   });
   void poll();
 })();

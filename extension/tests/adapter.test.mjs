@@ -390,3 +390,51 @@ test('chat titles conform to the backend 500-character bound', async () => {
   assert.equal((await collect(page)).second.chat.title.length, 500);
   await page.close();
 });
+
+test('foundation adapter: a newly appended message cannot starve an already stable message',async()=>{
+ const page=await fixture('<main>'+user('foundation-stable-001','stable synthetic')+'</main>');
+ try{await collect(page);await page.evaluate(html=>document.querySelector('main').insertAdjacentHTML('beforeend',html),user('foundation-new-001','new synthetic'));
+  const result=await page.evaluate(()=>window.adapter.collect({now:2100}));
+  assert.deepEqual(result.messages?.map(m=>m.sourceMessageId),['foundation-stable-001']);
+ }finally{await page.close();}
+});
+test('foundation adapter: an unstable user node does not reset the stability of other user nodes',async()=>{
+ const page=await fixture('<main>'+user('foundation-stable-001','stable synthetic')+user('foundation-changing-001','changing synthetic')+'</main>');
+ try{await page.evaluate(()=>{window.adapter.watch(()=>{});window.adapter.collect({now:1000});});
+  await page.evaluate(()=>{document.querySelector('[data-message-id="foundation-changing-001"] .whitespace-pre-wrap').textContent='changed synthetic';});
+  const result=await page.evaluate(()=>window.adapter.collect({now:2000}));assert.deepEqual(result.messages?.map(m=>m.sourceMessageId),['foundation-stable-001']);
+ }finally{await page.close();}
+});
+test('foundation adapter: nested assistant text cannot inherit an enclosing user role',async()=>{
+ const page=await fixture('<main><div data-message-author-role="user" data-message-id="foundation-wrong-001"><div data-message-author-role="assistant"><div class="whitespace-pre-wrap" id="poison">SYNTHETIC_ASSISTANT</div></div></div></main>');
+ try{await page.evaluate(()=>Object.defineProperty(document.getElementById('poison'),'innerText',{get(){throw Error('forbidden nested assistant read');}}));
+  assert.equal((await collect(page)).second.code,'ADAPTER_MISMATCH');
+ }finally{await page.close();}
+});
+test('foundation adapter: rendered turn markers with lost roles are degraded, not an empty chat',async()=>{
+ const page=await fixture('<main><article data-testid="conversation-turn-1"><p>SYNTHETIC UNKNOWN ROLE</p></article></main>');
+ try{assert.equal((await collect(page)).second.code,'ADAPTER_MISMATCH');}finally{await page.close();}
+});
+test('foundation adapter: partial identity failure remains visible while safe messages are captured',async()=>{
+ const page=await fixture('<main>'+user('foundation-valid-001','synthetic valid')+'<div data-message-author-role="user"><div class="whitespace-pre-wrap">missing identity synthetic</div></div></main>');
+ try{const result=(await collect(page)).second;assert.equal(result.messages.length,1);assert.equal(result.code,'ADAPTER_MISMATCH');}finally{await page.close();}
+});
+
+test('foundation adapter: shared branch IDs require exact current-chat metadata and a fresh DOM binding',async()=>{
+ const page=await fixture('<main>'+user('foundation-shared-001','synthetic branch text')+'</main>');
+ try{await collect(page);await page.evaluate(()=>{
+  window.syntheticLocation.href='https://chatgpt.com/c/foundation-branch-002';
+  window.ArchiveResponseTime={owns:(chat,id)=>chat==='foundation-branch-002'&&id==='foundation-shared-001'};
+ });
+ assert.equal((await collect(page)).second.code,'UNSTABLE_PAGE','old node is never reassigned');
+ await page.evaluate(html=>{document.querySelector('main').innerHTML=html;},user('foundation-shared-001','synthetic branch text'));
+ const result=(await collect(page)).second;assert.equal(result.code,'CAPTURING');assert.equal(result.chat.id,'foundation-branch-002');
+ }finally{await page.close();}
+});
+test('foundation adapter: identity cache fails visibly at its bound rather than evicting safety evidence',async()=>{
+ const page=await fixture('<main>'+user('foundation-overflow-001','synthetic unread')+'</main>');
+ try{await page.evaluate(()=>{
+  window.adapter.identities=new Map(Array.from({length:10000},(_,i)=>['synthetic-known-'+i,new Set(['chat-fixture-001'])]));window.adapter.identityBindings=10000;
+  Object.defineProperty(document.querySelector('.whitespace-pre-wrap'),'innerText',{get(){throw Error('over-limit content read');}});
+ });assert.equal((await collect(page)).second.code,'ADAPTER_LIMIT');}finally{await page.close();}
+});

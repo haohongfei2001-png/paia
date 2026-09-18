@@ -146,15 +146,15 @@ test('new document, same-count route session, expiry, pause and second known tab
 });
 
 test('revoked fingerprint lease changes session and rejects a late old payload after reauthorization', async () => {
-  const handlers=new Map(), controls=[], requests=[], timers=[];
-  let allow=true, serial=0;
+  const handlers=new Map(), controls=[], requests=[], timers=new Map();
+  let allow=true, serial=0, timerSerial=0;
   const window={addEventListener(k,fn){handlers.set(k,fn);},postMessage(data){controls.push(data);}};
   class Adapter {route(){return {code:'READY',id:chat};}}
   const context=vm.createContext({window,ChatGPTAdapter:Adapter,crypto:{randomUUID:()=>`test-session-${++serial}`},Date,
-    setTimeout:fn=>timers.push(fn),chrome:{runtime:{async sendMessage(req){requests.push(req);return {ok:true,data:req.type==='GET_STATUS'?{enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'}:{fingerprintAllowed:allow}};}}}});
+    setTimeout:(fn,delay)=>{const id=++timerSerial;timers.set(id,{fn,delay});return id;},clearTimeout:id=>timers.delete(id),chrome:{runtime:{async sendMessage(req){requests.push(req);return {ok:true,data:req.type==='GET_STATUS'?{enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'}:{fingerprintAllowed:allow}};}}}});
   for(const file of ['core/json-fingerprint.js','core/history-time.js','core/source-time.js','core/response-time.js','content/response-bridge.js']) vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context);
   const tick=async()=>{await new Promise(r=>setImmediate(r));};
-  const poll=async()=>{const timer=timers.shift();assert.ok(timer);timer();await tick();};
+  const poll=async()=>{const entry=[...timers].sort((a,b)=>a[1].delay-b[1].delay)[0];assert.ok(entry);const [id,timer]=entry;assert.equal(timer.delay,500,'settled request watchdogs must be cancelled');timers.delete(id);timer.fn();await tick();};
   await tick();
   const observe=()=>context.ArchiveResponseTime.observe({chat:{id:chat},messages:visible.map(sourceMessageId=>({sourceMessageId}))},{epoch:1});
   observe();const old=controls.at(-1);

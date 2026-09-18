@@ -35,12 +35,13 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
   let reads = 0;
   let writes = 0;
   let isolate;
-  const accessRequests = [];
+  const accessRequests = [],notifications=[];
   const isolation = delayedIsolation ? new Promise(resolve => { isolate = resolve; }) : Promise.resolve();
   globalThis.chrome = {
     runtime: {
       id: EXTENSION_ID,
       getManifest: () => ({version:'0.8.1'}),
+      sendMessage: async message => {notifications.push(structuredClone(message));},
       getURL: path => `${EXTENSION_ORIGIN}${path}`,
       onMessage: { addListener: callback => { listener = callback; } }
     },
@@ -58,7 +59,7 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
   await import(`../background/service-worker.js?synthetic-test=${crypto.randomUUID()}`);
   assert.equal(typeof listener, 'function');
   return {
-    accessRequests,
+    accessRequests,notifications,
     releaseIsolation: () => isolate?.(),
     persisted: () => structuredClone(persisted),
     counts: () => ({ reads, writes }),
@@ -241,7 +242,12 @@ test('service worker enforces caller capabilities, consent and immutable capture
       url: privateSentinel, error: { message: privateSentinel }, structure
     }, content)).ok, true);
     const diagnostics = (await app.send({ type: 'GET_STATE' })).data.diagnostics;
-    assert.deepEqual(Object.keys(diagnostics).sort(), ['adapterVersion', 'added', 'lastError', 'lastScanAt', 'lastSuccessAt', 'scanned', 'status', 'structure', 'structureAt']);
+    assert.deepEqual(Object.keys(diagnostics).sort(), ['adapterVersion', 'added', 'ingestion', 'ingestionAt', 'lastError', 'lastScanAt', 'lastSuccessAt', 'scanned', 'status', 'structure', 'structureAt']);
+    assert.deepEqual(Object.keys(diagnostics.ingestion).sort(), ['added','attempted','duplicates','ignored','kind','knownTimes','schemaVersion','unknownTimes','unresolved']);
+    assert.equal(diagnostics.ingestion.schemaVersion,1);
+    assert.ok(['capture','enrich'].includes(diagnostics.ingestion.kind));
+    for(const key of ['added','attempted','duplicates','ignored','knownTimes','unknownTimes','unresolved'])assert.ok(Number.isSafeInteger(diagnostics.ingestion[key])&&diagnostics.ingestion[key]>=0&&diagnostics.ingestion[key]<=1000000);
+    assert.ok(Number.isFinite(Date.parse(diagnostics.ingestionAt)));
     assert.deepEqual(Object.keys(diagnostics.lastError).sort(), ['at', 'code']);
     assert.deepEqual(diagnostics.structure, sanitizeStructure(structure));
     assert.ok(diagnostics.structureAt);
@@ -382,3 +388,15 @@ test('UX-R2 Reader, Revisit and capture policy RPCs require exact trusted UI and
 });
 test('UX-R3 Thought selection, binding, reverse policy, history and positions require exact trusted UI and consent',async t=>{const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});const h=await fixture();for(const type of ['ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT']){for(const sender of [content,{...ui,id:'foreign-extension'},{...ui,url:ui.url+'#spoof'}])await expectError(h.send({type,enabled:true},sender),'FORBIDDEN');await expectError(h.send({type}),'CONSENT_REQUIRED');}await h.send({type:'CONSENT',accepted:true});assert.equal((await h.send({type:'GET_THOUGHT_REVERSE_EDIT'})).data.enabled,false);});
 test('UX-R4 manual Context intent is minted only by exact trusted UI with consent and cannot accept a Grant identity',async t=>{const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});const h=await fixture(),request={type:'PAIA_CONTEXT_MANUAL',options:{action:'create'}};for(const sender of [content,{...ui,id:'foreign-extension'},{...ui,url:ui.url+'?manual=1'}])await expectError(h.send(request,sender),'FORBIDDEN');await expectError(h.send(request),'CONSENT_REQUIRED');await h.send({type:'CONSENT',accepted:true});const data=(await h.send(request)).data;assert.equal(data.intent,'manual_selection');await expectError(h.send({type:'PAIA_CONTEXT_MANUAL',options:{action:'create',grantId:'forged'}}),'MEMORY_INVALID');await expectError(h.send({type:'PAIA_CONTEXT_MANUAL',options:{action:'share',selectionId:'protected-preview',generation:0,format:'copy'}}),'MEMORY_EXPIRED');});
+
+
+test('foundation worker: time-only CAPTURE notifies readers but unchanged replay does not',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});
+ const app=await fixture();await app.send({type:'CONSENT',accepted:true});const epoch=(await app.send({type:'GET_STATUS'})).data.epoch;
+ const q=capture(epoch);assert.equal((await app.send(q,content)).ok,true);app.notifications.length=0;
+ q.messages[0].sourceTime={state:'valid',createTime:1609459200,updateTime:null};
+ const result=await app.send(q,content);assert.equal(result.ok,true);assert.equal(result.data.added,0);assert.equal(result.data.timeChanged,true);
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(app.notifications.filter(n=>n.cause==='CAPTURE').length,1);
+ app.notifications.length=0;assert.equal((await app.send(q,content)).data.timeChanged,false);
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(app.notifications.filter(n=>n.cause==='CAPTURE').length,0);
+});

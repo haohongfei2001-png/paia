@@ -1,3 +1,4 @@
+import {captureHealthText} from './common.js';
 import { request, enabledLabel, diagnosticText, dateLabel, statusLabel } from './common.js';
 import { briefStructure } from './structure-diagnostics.js';
 import { normalizeUXPreferences, resolveAppearance } from './ux-r1-state.js';
@@ -29,6 +30,7 @@ async function refresh() {
     $('toggle-capture').textContent = state.settings.enabled ? '暂停捕获' : '恢复捕获';
     $('resume-note').hidden = !consented || state.settings.enabled;
     $('diagnostic-status').textContent = diagnosticText(state);
+    $('diagnostic-capture-health').textContent = captureHealthText(state.diagnostics);
     $('diagnostic-time').textContent = `最近扫描：${dateLabel(state.diagnostics.lastScanAt)}`;
     $('diagnostic-version').textContent = `适配器版本：${state.adapterVersion}`;
     $('diagnostic-structure').textContent = briefStructure(state.diagnostics.structure, state.diagnostics.structureAt);

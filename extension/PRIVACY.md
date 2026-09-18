@@ -1,3 +1,11 @@
+## Capture Foundation Hardening v1 — 2026-09-18
+
+Capture remains limited to confirmed user text and its existing provenance boundary. Bounded passive copies of already-started allowed responses can transiently contain mixed response bytes; only explicitly validated user identity/time metadata is projected for canonical matching. No assistant body, draft, keystroke, request body, cookie or credential is added to the archive or diagnostics by this change. No extra request, host permission, telemetry or provider service is introduced.
+
+New local health fields contain fixed states, bounded counters and diagnostic times, not message text, titles, URLs or source IDs. Source-time candidates remain subject to exact identity, consent epoch, conflict and tombstone rules; capturedAt is never substituted for sourceSentAt. Existing raw text and user edits retain their owners.
+
+The task used synthetic offline browser profiles and did not modify the daily archive, installation or real ChatGPT conversations. Current logged-in ChatGPT validation remains unavailable; see [the certification and limits](docs/capture-foundation/CERTIFICATION.md). This section records the authorized CFH-v1 changes; older version-specific frozen/task wording below remains historical evidence, not a claim that these files never change.
+
 ## UX-R2 Reader / Revisit privacy
 
 Formal reading positions are bounded, body-free, local metadata and are not backed up. Revisit windows are visit boundaries, never read-all assertions. Older material requires explicit opt-in, which is off for upgrades and after restore. Input, source-conversation and topic exclusions apply to active Revisit cards, Continue/Recently Captured recommendations and derived previews; explicit Search and AI authorization remain independently controlled.

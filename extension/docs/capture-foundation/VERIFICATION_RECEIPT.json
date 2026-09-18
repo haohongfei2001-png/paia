@@ -1,0 +1,211 @@
+{
+  "format": "paia-capture-foundation-verification-v1",
+  "generatedAt": "2026-09-18T05:09:02.196Z",
+  "baseline": "9d996b725150010e6c2b760b937b25790e852be5",
+  "runtimeDigest": "51f2999f5643a6c208ce3d1cedc62db39e00771d68240b55d43bf1f962e26ecd",
+  "inputDigest": "412f1e5625f73f0c0d4f46c41c6b9044db20b5ec1076e39670307bd45c2bbd5d",
+  "environment": {
+    "node": "v26.8.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "playwright": "1.63.0",
+    "chrome": "153.0.8010.48",
+    "browserMode": "headless disposable offline profiles"
+  },
+  "implementationStatus": "IMPLEMENTED",
+  "acceptanceComplete": false,
+  "productionCertified": false,
+  "fullAttempt": {
+    "command": "PAIA_HEADLESS=1 npm test",
+    "exitCode": 1,
+    "total": 1129,
+    "pass": 1119,
+    "fail": 10,
+    "skipped": 0,
+    "groups": {
+      "unit": {
+        "pass": 923,
+        "fail": 3,
+        "skipped": 0
+      },
+      "browser E2E": {
+        "pass": 41,
+        "fail": 7,
+        "skipped": 0
+      },
+      "adapter contract": {
+        "pass": 102,
+        "fail": 0,
+        "skipped": 0
+      },
+      "privacy/security": {
+        "pass": 53,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "failedFiles": [
+      {
+        "file": "history-performance-v090.test.mjs",
+        "fail": 1
+      },
+      {
+        "file": "original-trace-rescue-v072b.test.mjs",
+        "fail": 1
+      },
+      {
+        "file": "source-time.test.mjs",
+        "fail": 1
+      },
+      {
+        "file": "uir-03-ai-presentation-chrome-e2e.test.mjs",
+        "fail": 1
+      },
+      {
+        "file": "uir-03-preview-mask-chrome-e2e.test.mjs",
+        "fail": 1
+      },
+      {
+        "file": "ux-r2-reader-revisit-chrome-e2e.test.mjs",
+        "fail": 1
+      },
+      {
+        "file": "ux-r3-thought-chrome-e2e.test.mjs",
+        "fail": 1
+      },
+      {
+        "file": "ux-r4-search-reuse-chrome-e2e.test.mjs",
+        "fail": 1
+      },
+      {
+        "file": "ux-r5-ai-organize-chrome-e2e.test.mjs",
+        "fail": 1
+      },
+      {
+        "file": "ux-r5-certification-chrome-e2e.test.mjs",
+        "fail": 1
+      }
+    ],
+    "logSha256": "3e0ee979c2620674ee5a10e4b49345ff769c1cd4ad1ea8f4d77f242a510a8a0c",
+    "summarySha256": "3747f2cdc04bd7b6dd3c083ae80f523e0dff47a2a17b29df4de303ab0e7f0115",
+    "provenance": "Runtime unchanged after this run; two test fixtures were corrected/strengthened, then independently rerun. This is not a passing final full-suite receipt."
+  },
+  "followup": [
+    {
+      "command": "PAIA_HEADLESS=1 node --test --test-concurrency=1 tests/adapter.test.mjs tests/backfill-bridge.test.mjs tests/background-security.test.mjs tests/capture-foundation.test.mjs tests/capture.test.mjs tests/diagnostics.test.mjs tests/enrichment.test.mjs tests/history-contract.test.mjs tests/history-observer.test.mjs tests/history-store.test.mjs tests/source-time.test.mjs tests/source-time-resolver.test.mjs tests/storage-foundation.test.mjs tests/import-upgrade.test.mjs tests/import-ledger.test.mjs tests/frozen-capture.test.mjs tests/privacy-product.test.mjs",
+      "logName": "capture-regression-final.log",
+      "sha256": "32d34acea115ec97c1b3a535e5d0276d7275bb472b1cb000fddc4fe7aa9ff84a",
+      "total": 262,
+      "pass": 262,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "PLAYWRIGHT_MODULE=$(node -p \"require.resolve('playwright')\") PAIA_HEADLESS=1 node --test tests/capture-foundation-chrome-e2e.test.mjs",
+      "logName": "browser-foundation-delivery.log",
+      "sha256": "18c6acf32805fefd6fc838a817f38f5a0d4f61b26cea551496141629fb628218",
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "PAIA_HEADLESS=1 npm run test:ui-refresh",
+      "logName": "ui-refresh.log",
+      "sha256": "79bdd427f153ad8c55107c5cb492375dd8188edddb34fbf516386b44bd86bcf9",
+      "total": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node --test tests/source-time.test.mjs tests/original-trace-rescue-v072b.test.mjs",
+      "logName": "failed-unit-rerun.log",
+      "sha256": "dcfe6fea632302277ac2753a6416a8b292a77603f2cf2889374a2cb51ec880b4",
+      "total": 22,
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "At baseline 9d996b7: PAIA_HEADLESS=1 node --test --test-concurrency=1 --test-name-pattern=\"keeps Original readable|recovery certifies readable themes\" tests/ux-r5-ai-organize-chrome-e2e.test.mjs tests/ux-r5-certification-chrome-e2e.test.mjs",
+      "logName": "baseline-ux5-recheck.log",
+      "sha256": "1ad0133d55319725437d0e2ef44165b65cdd423b438304d340dcb241869386db",
+      "total": 3,
+      "pass": 1,
+      "fail": 2,
+      "skipped": 0
+    }
+  ],
+  "baselineUnit": {
+    "command": "PAIA_HEADLESS=1 npm run test:unit",
+    "total": 913,
+    "pass": 912,
+    "fail": 1,
+    "skipped": 0,
+    "logSha256": "6ca3cc4220fb59c1dfec8199a282b655ef65048471c86d7d791aa5b73786e267",
+    "failure": "history-performance-v090 10000 inputs timeout"
+  },
+  "staticChecks": [
+    {
+      "command": "npm run check",
+      "logName": "package-check.log",
+      "sha256": "fb7dc6e1e6625e54538bc087b1db9231da287ea8729287be192e0f6a3bc5ec83",
+      "exitCode": 0,
+      "guardrails": 8570,
+      "runtimeResources": 198
+    },
+    {
+      "command": "node scripts/check_development.mjs",
+      "logName": "development-check.log",
+      "sha256": "66e1dfa89e34d979e477b4526fac622c585d39148b7ef36ca797e4694de5d118",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build:release",
+      "logName": "release-build.log",
+      "sha256": "15a084abb0397f5fc184544202f64ae637b08f2aa17d19171ba9b2dc620bfd57",
+      "exitCode": 0,
+      "guardrails": 8135,
+      "runtimeResources": 191,
+      "files": 215
+    },
+    {
+      "command": "node scripts/compatibility-gate.mjs",
+      "logName": "compatibility-gate.log",
+      "sha256": "60446a0101db16d695cbfcabdc665fcaae71bd66a1351217e499e70840f4c1b3",
+      "exitCode": 1,
+      "result": "AUTOMATIC_VALIDATION_REQUIRED"
+    }
+  ],
+  "liveSite": {
+    "status": "NOT_VERIFIED",
+    "debugContext": "no ChatGPT targets",
+    "activeTabProbe": "out of scope",
+    "matchingChromeTabProbe": "no matching ChatGPT tab",
+    "realMessagesMutated": false,
+    "dailyArchiveMutated": false,
+    "dailyExtensionReplaced": false
+  },
+  "remaining": [
+    "Current logged-in ChatGPT DOM/response contract and actual affected-record attribution",
+    "Three 100k fixture performance gates failed in the full run and are not closed",
+    "Baseline 10k import performance failure and two baseline UX-R5 failures remain",
+    "Normal daily-profile direct extension self-reload/real-data upgrade not verified"
+  ],
+  "browserChecks": [
+    "source extension and emitted release",
+    "same-text distinct identities",
+    "late metadata after DOM removal",
+    "open Reader timestamp repaint",
+    "source text and capturedAt unchanged",
+    "remount/reload/A-B-A idempotence",
+    "source edit snapshots",
+    "worker restart",
+    "whole browser restart with same isolated profile and extension ID",
+    "complete source-record equality across restart",
+    "network/error checks before and after restart",
+    "dirty text/selection/node identity/order preserved",
+    "role-loss degradation"
+  ]
+}

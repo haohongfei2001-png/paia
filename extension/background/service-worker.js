@@ -98,7 +98,7 @@ async function handle(request, sender) {
       return store.diagnose({ code: 'ADAPTER_VERSION_MISMATCH', scanned: 0 });
     }
     if (request.adapterVersion !== ADAPTER_VERSION) throw new ArchiveError('INVALID_REQUEST');
-    return store.diagnose({ code: request.code, scanned: request.scanned, structure: request.structure });
+    return store.diagnose({ code: request.code, scanned: request.scanned, structure: request.structure, captureHealth: request.captureHealth });
   }
   if (content && ['CAPTURE', 'ENRICH_SOURCE_METADATA'].includes(request.type)) {
     // sender.url can stay at the document's initial address after pushState.
@@ -302,7 +302,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       // Analytics observes only successful results. It cannot change authorization
       // or mutate the payload returned by handle().
       await productSignals.observe(request,data,sender).catch(()=>{});
-      const archiveMutation=request.type==='CAPTURE'?Number(data?.added)>0:request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:true;
+      const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:true;
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
       sendResponse({ ok: true, data });
       if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);

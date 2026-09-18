@@ -6,7 +6,9 @@ export function applySourceTime(state,sourceKey,evidence,pageOrder,now,records=s
   let changed=false;
   for(const r of records)if(r.conversationOrder==null){r.conversationOrder=pageOrder;changed=true;}
   const identity={chatId:records[0].chatId,sourceMessageId:records[0].sourceMessageId};
-  const limit=Math.min(Date.parse(now),...records.map(r=>Date.parse(r.capturedAt)));
+  // Local observation time is not an upper bound on provider creation time.
+  // Validate against the current clock without rewriting the historical capture clock.
+  const limit=Date.parse(now);
   const prior=state.sourceTimes[sourceKey];
   const ledger=structuredClone(prior||{blocked:false,createTime:null});
   ledger.candidates ||= {};
@@ -28,7 +30,7 @@ export function applySourceTime(state,sourceKey,evidence,pageOrder,now,records=s
   const e=globalThis.HistoryTime.sanitize(evidence,limit);
   if(e&&!globalThis.HistoryTime.unavailable(e)){
     const previous=ledger.candidates.chatgpt_response_create_time;
-    if(e.state==='blocked'||previous&&Date.parse(previous.timestamp)!==e.createTime*1000||ledger.blocked)ledger.blocked=true;
+    if(e.state==='blocked'||previous&&Date.parse(previous.timestamp)!==Math.trunc(e.createTime*1000)||ledger.blocked)ledger.blocked=true;
     else {
       const c=SourceTimeResolver.normalize({source:'chatgpt_response_create_time',timestamp:new Date(e.createTime*1000).toISOString(),identity},identity,limit);
       if(c){ledger.candidates[c.source]=c;ledger.createTime=e.createTime;}

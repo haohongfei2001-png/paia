@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 const chat='fake-passive-history';
 const value={conversation_id:chat,mapping:{one:{message:{id:'fake-passive-user',author:{role:'user'},create_time:1609459200,update_time:null,content:{parts:['FAKE_BODY']}}}}};
-async function observe({active=true,type='application/json',url=`https://chatgpt.com/backend-api/conversation/${chat}`,body=JSON.stringify(value),ok=true,formal=true,expectedClones,streamed=false,cancelHistory=false,startBeforeGate=false,changeDiagnostic=false}={}) {
+async function observe({active=true,type='application/json',url=`https://chatgpt.com/backend-api/conversation/${chat}`,body=JSON.stringify(value),ok=true,formal=true,expectedClones,streamed=false,cancelHistory=false,startBeforeGate=false,changeDiagnostic=false,waitForMetadata=false}={}) {
  const sent=[],handlers=new Map(),copies=[],listeners=new Set();let calls=0,controller;
  // Deadlines only fail stalled tests; successful assertions follow actual completion events.
  function until(predicate) {
@@ -41,8 +41,9 @@ async function observe({active=true,type='application/json',url=`https://chatgpt
    if(changeDiagnostic)control('fake-next-diagnostic-session');
    if(streamed){
     assert.equal(sent.some(v=>v.history||v.trace),false,'fetch returns before either side finishes parsing');
-    const bytes=new TextEncoder().encode(body),split=cancelHistory?2097153:Math.floor(bytes.length/2);
+    const bytes=new TextEncoder().encode(body),split=cancelHistory?2097153:waitForMetadata?new TextEncoder().encode(body.slice(0,body.indexOf('\n\n')+2)).length:Math.floor(bytes.length/2);
     controller.enqueue(bytes.slice(0,split));
+    if(waitForMetadata)await until(()=>sent.some(v=>v.history));
     if(cancelHistory)await until(()=>sent.some(v=>v.fingerprintFailure));
     controller.enqueue(bytes.slice(split));controller.close();
    }
@@ -87,4 +88,18 @@ test('formal observer: request begun before initial status can be read only when
 });
 test('formal observer: diagnostic lease changes cannot cancel the authorized formal reader',async()=>{
  const sent=await observe({changeDiagnostic:true,streamed:true,expectedClones:2,formal:false});assert.ok(sent.some(v=>v.history));
+});
+
+
+test('foundation observer: sent user metadata reaches the formal channel before stream EOF',async()=>{
+ const event={conversation_id:chat,message:value.mapping.one.message};
+ const body='data: '+JSON.stringify(event)+'\n\ndata: {"type":"unknown-heartbeat"}\n\ndata: [DONE]\n\n';
+ const sent=await observe({url:'https://chatgpt.com/backend-api/conversation',type:'text/event-stream',body,streamed:true,waitForMetadata:true,expectedClones:2});
+ assert.equal(sent.find(v=>v.history)?.history.rows[0].id,'fake-passive-user');
+ assert.equal(JSON.stringify(sent.filter(v=>v.history)).includes('FAKE_BODY'),false);
+});
+test('foundation observer: diagnostic lease rotation cannot cancel formal sent-message metadata',async()=>{
+ const body='data: '+JSON.stringify({conversation_id:chat,message:value.mapping.one.message})+'\n\n';
+ const sent=await observe({url:'https://chatgpt.com/backend-api/f/conversation',type:'text/event-stream',body,streamed:true,changeDiagnostic:true,expectedClones:2,formal:false});
+ assert.ok(sent.some(v=>v.history));
 });

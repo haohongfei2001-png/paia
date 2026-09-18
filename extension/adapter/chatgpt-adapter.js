@@ -20,9 +20,10 @@
       this.location = location;
       this.version = VERSION;
       this.observer = null;
-      this.pending = null;
+      this.pending = new WeakMap();
       this.lastRoute = null;
       this.identities = new Map();
+      this.identityBindings = 0;
       this.nodeBindings = new WeakMap();
       this.nodeTokens = new WeakMap();
       this.nodeRevisions = new WeakMap();
@@ -52,7 +53,7 @@
       this.invalidate();
     }
 
-    invalidate() { this.pending = null; }
+    invalidate() { this.pending = new WeakMap(); }
 
     route() {
       let url;
@@ -174,13 +175,13 @@
       row.roleMatchesTextSelector = root.matches(TEXT);
       const matches = [...root.querySelectorAll(TEXT)];
       row.textMatches = matches.length;
-      const owned = matches.filter((node) => node.closest(USER) === root);
+      const owned = matches.filter((node) => node.closest('[data-message-author-role]') === root);
       row.ownedTextMatches = owned.length;
       const visible = owned.filter((node) => this.visible(node));
       row.visibleTextMatches = visible.length;
       row.unsafeAncestorMatches = visible.filter((node) => node.closest(UNSAFE)).length;
       row.unsafeDescendantMatches = visible.filter((node) => node.querySelector(UNSAFE)).length;
-      const containers = visible.filter((node) => !node.closest(UNSAFE) && !node.querySelector(UNSAFE));
+      const containers = visible.filter((node) => !node.closest(UNSAFE) && !node.querySelector(UNSAFE) && !node.querySelector('[data-message-author-role]'));
       row.safeTextMatches = containers.length;
       return {root, turn, sourceMessageId, row, containers};
     }
@@ -211,7 +212,10 @@
       structure.visibleUserRoleCount = roots.length;
       if (!roots.length) {
         this.invalidate();
-        return {code: 'NO_MESSAGES', scanned: 0, structure};
+        const unknownTurns = allRoots.length ? [] : [...main.querySelectorAll('[data-testid^="conversation-turn-"]')]
+          .filter(node => this.visible(node) && !node.matches('[data-message-author-role]') && !node.querySelector('[data-message-author-role]'));
+        structure.turnMarkerCount = unknownTurns.length;
+        return {code: unknownTurns.length ? 'ADAPTER_MISMATCH' : 'NO_MESSAGES', scanned: 0, structure};
       }
       // Every visible role gets a structural report, even when turn or ID validation fails.
       const inspected = roots.map((root) => this.inspectRole(root, main));
@@ -233,7 +237,7 @@
       };
       const candidates = [];
       const seenIds = new Set();
-      let stale = false;
+      let stale = false, limited = false;
       for (let index = 0; index < inspected.length; index += 1) {
         const {root, sourceMessageId, row, containers} = inspected[index];
         if (!row.idOnRole) continue;
@@ -247,15 +251,19 @@
           return {code: 'UNSTABLE_PAGE', scanned: roots.length, structure};
         }
         seenIds.add(sourceMessageId);
-        const bound = this.nodeBindings.get(root);
+        const bound = this.nodeBindings.get(root), knownChats=this.identities.get(sourceMessageId);
+        const sharedProof=(!bound||bound.messageId!==sourceMessageId)&&globalThis.ArchiveResponseTime?.owns?.(route.id,sourceMessageId)===true;
         if ((bound && bound.messageId === sourceMessageId && bound.chatId !== route.id) ||
-            (this.identities.has(sourceMessageId) && this.identities.get(sourceMessageId) !== route.id)) {
+            (knownChats && !knownChats.has(route.id) && !sharedProof)) {
           stale = true;
           row.staleIdentity = true;
           continue;
         }
+        if(!knownChats?.has(route.id)&&this.identityBindings>=10000){limited=true;continue;}
         this.nodeBindings.set(root, {chatId: route.id, messageId: sourceMessageId});
-        this.identities.set(sourceMessageId, route.id);
+        const chats=knownChats||new Set();
+        if(!chats.has(route.id)){chats.add(route.id);this.identityBindings++;}
+        this.identities.set(sourceMessageId,chats);
         if (!row.editorPassed) continue;
         if (row.busy) continue;
         if (containers.length !== 1) continue;
@@ -270,20 +278,24 @@
       structure.finalCandidateCount = candidates.length;
       if (!candidates.length) {
         this.invalidate();
-        return {code: 'ADAPTER_MISMATCH', scanned: roots.length, structure};
+        return {code: limited ? 'ADAPTER_LIMIT' : 'ADAPTER_MISMATCH', scanned: roots.length, structure};
       }
       const title = this.document.title.replace(/\s*[-–—|]\s*ChatGPT\s*$/i, '').trim() || 'ChatGPT';
-      const signature = JSON.stringify([route.id, title, candidates.map(({root, container, sourceMessageId, pageOrder}) => [
-        sourceMessageId, pageOrder, this.token(root), this.token(container), this.nodeRevisions.get(root) || 0
-      ])]);
-      if (!this.pending || this.pending.signature !== signature) {
-        this.pending = {signature, since: now};
-        return {code: 'UNSTABLE_PAGE', scanned: roots.length, structure};
+      // Stability belongs to a message, not to the entire changing conversation.
+      // Keep unconfirmed text unread and avoid starving stable neighbours.
+      const stable = [];
+      for (const candidate of candidates) {
+        const {root,container,sourceMessageId}=candidate;
+        const signature=JSON.stringify([route.id,sourceMessageId,this.token(container),this.nodeRevisions.get(root)||0]);
+        const pending=this.pending.get(root);
+        if(!pending||pending.signature!==signature){this.pending.set(root,{signature,since:now});continue;}
+        if(now-pending.since>=STABILITY_MS)stable.push(candidate);
       }
-      if (now - this.pending.since < STABILITY_MS) return {code: 'UNSTABLE_PAGE', scanned: roots.length, structure};
+      if(!stable.length)return {code:'UNSTABLE_PAGE',scanned:roots.length,structure};
+      const degraded=inspected.some(({row,containers})=>!row.idOnRole||row.editorPassed&&!row.busy&&containers.length!==1);
       const messages = [];
       let oversized = false;
-      for (const {root,container, sourceMessageId, pageOrder} of candidates) {
+      for (const {root,container, sourceMessageId, pageOrder} of stable) {
         // Read only a confirmed, rendered text leaf; never a turn, role root, or page.
         const originalText = container.innerText;
         if (!originalText.trim()) continue;
@@ -298,7 +310,8 @@
         return {code: 'UNSTABLE_PAGE', scanned: roots.length, structure};
       }
       return {
-        code: oversized ? 'MESSAGE_TOO_LARGE' : (messages.length ? 'CAPTURING' : 'NO_MESSAGES'),
+        code: oversized ? 'MESSAGE_TOO_LARGE' : limited ? 'ADAPTER_LIMIT' : degraded ? 'ADAPTER_MISMATCH' : (messages.length ? 'CAPTURING' : 'NO_MESSAGES'),
+        pendingCandidates: candidates.length-stable.length,
         scanned: roots.length,
         structure,
         chat: {id: route.id, url: route.url, title: title.slice(0, 500)},

@@ -8,7 +8,7 @@ async function fixture(){
  const handlers=new Map(),controls=[],timers=[],requests=[];let allowed=true,diagnosticError=false,enrichmentError=false,serial=0;
  const window={addEventListener(k,fn){handlers.set(k,fn);},postMessage(d){controls.push(d);}};
  class Adapter{route(){return {code:'READY',id:chat,url:'https://chatgpt.com/c/'+chat};}}
- const context=vm.createContext({window,ChatGPTAdapter:Adapter,Date,crypto:{randomUUID:()=>`fake-session-${++serial}`},setTimeout:fn=>timers.push(fn),chrome:{runtime:{async sendMessage(req){
+ const context=vm.createContext({window,ChatGPTAdapter:Adapter,Date,crypto:{randomUUID:()=>`fake-session-${++serial}`},setTimeout:(fn,delay)=>delay===35000?0:timers.push(fn),chrome:{runtime:{async sendMessage(req){
   requests.push(req);if(req.type==='GET_STATUS')return {ok:true,data:{enabled:true,consented:true,epoch:1,adapterVersion:ADAPTER_VERSION}};
   if(req.type==='RESPONSE_POLL'){if(diagnosticError)throw Error('fake transient diagnostic outage');return {ok:true,data:{fingerprintAllowed:allowed}};}
   return enrichmentError?{ok:false,error:'STORAGE_FAILED'}:{ok:true,data:{enriched:1}};

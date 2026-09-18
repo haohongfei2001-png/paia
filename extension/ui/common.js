@@ -1,4 +1,5 @@
 export const STATUS_LABELS = Object.freeze({
+  ADAPTER_LIMIT: '页面内身份缓存已达上限，请刷新该聊天后继续',
   CAPTURING: '最近一次扫描完成',
   WAITING_CHAT: '等待普通聊天生成正式聊天 ID',
   TEMPORARY_CHAT: '已跳过临时聊天',
@@ -108,4 +109,15 @@ export function diagnosticText(state) {
   if (!Number.isFinite(lastScan)) return '等待 ChatGPT 页面首次扫描';
   const stale = Date.now() - lastScan > 60_000;
   return `${statusLabel(diagnostics.status)}${stale ? ' · 状态已过期，请查看 ChatGPT 标签页' : ' · 仅代表最近一次扫描'}`;
+}
+
+// Bounded local capture metadata, not a completeness claim or a source timestamp.
+export function captureHealthText(diagnostics={}) {
+  const h=diagnostics.captureHealth,i=diagnostics.ingestion;
+  const count=value=>Number.isSafeInteger(value)&&value>=0?Math.min(value,1000000):0;
+  const states={NOT_OBSERVED:'尚未观察到响应',READING:'正在读取有限响应副本',ACCEPTED:'存在通过契约的用户时间元数据',NO_ACCEPTED_METADATA:'响应未提供可接受的用户时间元数据',LIMIT:'时间读取或缓存达到上限',READ_FAILED:'时间证据读取失败'};
+  const parts=[];
+  if(h)parts.push(`时间证据：${states[h.responseState]||'状态不可用'}。响应候选：可用 ${count(h.sourceTimesAvailable)}，缺失 ${count(h.sourceTimesMissing)}，拒绝 ${count(h.sourceTimesBlocked)}；尚未确认落盘的来源 ${count(h.unsettledSources)}。`);
+  if(i)parts.push(`最近一批${i.kind==='enrich'?'补全':'抓取'}：新增快照 ${count(i.added)}，重复抑制 ${count(i.duplicates)}，忽略 ${count(i.ignored)}，来源未落盘 ${count(i.unresolved)}；存储时间已知 ${count(i.knownTimes)}，未知 ${count(i.unknownTimes)}。`);
+  return parts.join(' ')||'捕获底座：尚无本机诊断记录。';
 }

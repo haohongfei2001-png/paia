@@ -359,3 +359,13 @@ For new development, read in this order:
 5. historical specs only for compatibility/evidence.
 
 `PRODUCT_SPEC.md`, `DECISIONS.md`, old version acceptance documents and historical round documents do not override the first three for new direction.
+
+## Capture Foundation Hardening v1 — 2026-09-18
+
+The capture path keeps the existing Source/Input/Thought ownership and schema. Provider-specific observation stays in `adapter/` and `content/`; the trusted worker and transactional store remain the persistence authority. A logical source may own several immutable text snapshots, while repeated delivery of one snapshot is idempotent.
+
+The metadata bridge now requires a writer acknowledgement that its source exists (or is explicitly suppressed), retries unsettled evidence, and accepts only bounded formal user time events matched to canonical DOM proofs. Source time never falls back to capture time. Per-message stability, bounded identity/proof caches and fixed diagnostics replace page-global assumptions or silent success claims.
+
+Metadata-only changes notify readers and update timestamp presentation without replacing editable text. Capture health is recent bounded metadata, not a completeness guarantee. No schema upgrade, new host permission, extra provider request or daily-profile deployment is introduced.
+
+See [the audit and certification](docs/capture-foundation/CERTIFICATION.md) and [verification receipt](docs/capture-foundation/VERIFICATION_RECEIPT.json). Targeted source/release Chrome checks passed, but the full automated gate and actual current-site verification are not complete; this is not a production reliability certification.

@@ -7,7 +7,7 @@ import {identify,identifySource,hashText} from './dedupe.js';
 import {unknownTime,applySourceTime} from './record-time.js';
 import {syncLibrary,emptyLibrary,detachSources,validateLibraryChanges,memoryContext} from './library.js';
 import {applyDocumentEdit,validatePreferences} from './workspace.js';
-import {sanitizeDiagnostics,sanitizeStructure} from './diagnostics.js';
+import {sanitizeDiagnostics,sanitizeStructure,sanitizeCaptureHealth} from './diagnostics.js';
 
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const error=code=>{throw new ArchiveError(code);};
@@ -68,8 +68,9 @@ export class IndexedArchiveStore {
   const result=await this.repository.transaction(true,async t=>{
    const c=await this.control(t);protectedConsent(c,request.epoch);
    if(await captureIsExcluded(t,chat.id))return enrich?{enriched:0,excluded:true}:{added:0,duplicates:0,excluded:true,status:'PAUSED'};
-   const seq=await t.get('meta','sequence'),docs=new Set();let added=0,enriched=0,timeChanged=false;
+   const seq=await t.get('meta','sequence'),docs=new Set(),settled=[];let added=0,enriched=0,timeChanged=false,processedSources=0,knownTimes=0,unknownTimes=0;
    for(const {m,key,identity,proofs}of prepared){
+    settled.push(true);
     if(await t.get('tombstones','source:'+key))continue;
     let selected=await this.recordsFor(t,chat,m.sourceMessageId,key,identity,proofs),records=selected.map(x=>x.r);
     const known=identity?await t.count('recordIndex','byDedupe',identity.dedupeKey):0;
@@ -77,19 +78,27 @@ export class IndexedArchiveStore {
      const now=this.clock(),prior=records.at(-1);const r={id:this.uuid(),platform:'chatgpt',chatId:chat.id,chatUrl:chat.url,chatTitle:chat.title,sourceMessageId:m.sourceMessageId,pageOrder:m.pageOrder,originalText:m.originalText,...identity,...unknownTime(),capturedAt:now,previousVersionId:prior?.id||null,note:'',editedText:'',hidden:false,deletedAt:null,updatedAt:now};
      selected.push({r,index:{sequence:seq.records++}});records.push(r);added++;
     }
-    if(!records.length)continue;
+    // Successful transport is not proof that a source exists yet.
+    if(!records.length){settled[settled.length-1]=false;continue;}
     const prior=await t.get('times',key);const s={records,sourceTimes:prior?{[key]:prior.value}:{}};
     const changed=applySourceTime(s,key,m.sourceTime,m.pageOrder,this.clock(),records,m.domTime);timeChanged||=changed;
     if(s.sourceTimes[key])await t.put('times',{id:key,value:s.sourceTimes[key]});
     let recordsChanged=false;for(const {r,index}of selected){const old=await t.get('records',r.id);if(!old||!same(old.value,r)){recordsChanged=true;await this.saveRecord(t,r,index);const doc=await this.defaultBlock(t,r,seq);if(doc)docs.add(doc);for(const b of await t.all('blockIndex','byRecord',r.id))docs.add(b.documentId);for(const d of await t.all('documents','byChat',chatOf(r)))docs.add(d.id);}}
+    processedSources++;if(records.at(-1).sourceSentAt)knownTimes++;else unknownTimes++;
     if(enrich&&(changed||recordsChanged))enriched+=records.length;
    }
    for(const id of docs)await this.refreshDoc(t,id);await t.put('meta',seq);
+   const unresolved=settled.filter(value=>!value).length,ignored=settled.length-unresolved-processedSources;
+   const ingestion={schemaVersion:1,kind:enrich?'enrich':'capture',attempted:messages.length,added,duplicates:enrich?0:messages.length-added-ignored-unresolved,ignored,unresolved,knownTimes,unknownTimes};
+   if(!same(c.diagnostics.ingestion,ingestion)){
+    c.diagnostics.ingestion=ingestion;c.diagnostics.ingestionAt=this.clock();
+    if(enrich)await this.saveControl(t,c);
+   }
    if(!enrich){const now=this.clock();Object.assign(c.diagnostics,{status:'CAPTURING',lastScanAt:now,lastSuccessAt:now,adapterVersion:ADAPTER_VERSION,scanned:messages.length,added});await this.saveControl(t,c);}
-   return enrich?{enriched}:{added,duplicates:messages.length-added,status:'CAPTURING'};
+   return enrich?{enriched,settled}:{added,duplicates:messages.length-added,status:'CAPTURING',timeChanged,settled};
   });await this.publish();return result;
  });}
- diagnose({code,scanned=0,structure=null}){return this.write(async t=>{if(!STATUS_CODES.has(code)||!Number.isSafeInteger(scanned)||scanned<0||scanned>1000000)error('INVALID_REQUEST');const c=await this.control(t),now=this.clock();const status=!c.settings.consentVersion?'CONSENT_REQUIRED':!c.settings.enabled?'PAUSED':code;const allowed=c.settings.consentVersion===CONSENT_VERSION&&c.settings.enabled&&!['PAUSED','CONSENT_REQUIRED','TEMPORARY_CHAT','WAITING_CHAT','ADAPTER_VERSION_MISMATCH'].includes(status);Object.assign(c.diagnostics,{status,adapterVersion:ADAPTER_VERSION,lastScanAt:now,scanned,added:0,structure:allowed?sanitizeStructure(structure):null,structureAt:allowed?now:null});if(ERROR_CODES.has(status))c.diagnostics.lastError={code,at:now};c.diagnostics=sanitizeDiagnostics(c.diagnostics);await this.saveControl(t,c);return {status};});}
+ diagnose({code,scanned=0,structure=null,captureHealth=null}){return this.write(async t=>{if(!STATUS_CODES.has(code)||!Number.isSafeInteger(scanned)||scanned<0||scanned>1000000)error('INVALID_REQUEST');const c=await this.control(t),now=this.clock();const status=!c.settings.consentVersion?'CONSENT_REQUIRED':!c.settings.enabled?'PAUSED':code;const allowed=c.settings.consentVersion===CONSENT_VERSION&&c.settings.enabled&&!['PAUSED','CONSENT_REQUIRED','TEMPORARY_CHAT','WAITING_CHAT','ADAPTER_VERSION_MISMATCH'].includes(status);Object.assign(c.diagnostics,{status,adapterVersion:ADAPTER_VERSION,lastScanAt:now,scanned,added:0,structure:allowed?sanitizeStructure(structure):null,structureAt:allowed?now:null});if(ERROR_CODES.has(status))c.diagnostics.lastError={code,at:now};const health=allowed?sanitizeCaptureHealth(captureHealth):null;if(health){c.diagnostics.captureHealth=health;c.diagnostics.captureHealthAt=now;}else if(!allowed){delete c.diagnostics.captureHealth;delete c.diagnostics.captureHealthAt;}c.diagnostics=sanitizeDiagnostics(c.diagnostics);await this.saveControl(t,c);return {status};});}
  changeRecord(id,fn){return this.write(async t=>{const row=await t.get('records',id);if(!row)error('INVALID_REQUEST');fn(row.value);row.value.updatedAt=this.clock();await this.saveRecord(t,row.value,await t.get('recordIndex',id));for(const b of await t.all('blockIndex','byRecord',id))await this.refreshDoc(t,b.documentId);for(const d of await t.all('documents','byChat',chatOf(row.value)))await this.refreshDoc(t,d.id);return {id};});}
  update(id,changes){return this.changeRecord(id,r=>{if(r.deletedAt)error('INVALID_REQUEST');Object.assign(r,validateChanges(changes));});}
  trash(id){return this.changeRecord(id,r=>{r.deletedAt=this.clock();});}

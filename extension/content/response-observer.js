@@ -41,6 +41,57 @@
   function emitHistory(g, history) {
     if (currentHistory(g)) window.postMessage({channel:'archive-response-metadata-v1',chat:g.chat,epoch:g.epoch,historySession:g.historySession,history}, 'https://chatgpt.com');
   }
+  function emitHistoryState(g,state,acceptedRows=0,rejectedFrames=0) {
+    if(currentHistory(g))window.postMessage({channel:'archive-response-metadata-v1',chat:g.chat,epoch:g.epoch,historySession:g.historySession,historyState:{state,acceptedRows,rejectedFrames}},'https://chatgpt.com');
+  }
+  let liveJobs=0;
+  // Formal sent-message evidence has its own bounded reader, independent of a
+  // diagnostic lease. Only explicit user metadata is projected; no body leaves it.
+  async function liveMetadata(response,g,type) {
+    let reader,timer,accepted=0,rejected=0,expired=false,events=0;
+    if(!currentHistory(g))return;
+    const report=state=>emitHistoryState(g,state,accepted,rejected);
+    try {
+      if(liveJobs>=1||Number(response.headers.get('content-length'))>2097152){report('LIMIT');return;}
+      const copy=Reflect.apply(clone,response,[]);
+      if(!copy.body){report('READ_FAILED');return;}
+      reader=copy.body.getReader();liveJobs++;readers.add(reader);report('READING');
+      timer=setTimeout(()=>{expired=true;void reader.cancel().catch(()=>{});},15000);
+      let bytes=0,buffer='',data=[];
+      const decoder=new TextDecoder('utf-8',{fatal:true});
+      const project=text=>{
+        if(!text||text==='[DONE]')return;
+        if(++events>2000)throw new RangeError();
+        let value;try{value=JSON.parse(text);}catch{rejected++;return;}
+        const history=globalThis.ChatGPTHistoryContract?.parseEvent(value,g.chat);
+        if(history&&currentHistory(g)){accepted+=history.rows.length;emitHistory(g,history);report('ACCEPTED');}
+        else rejected++;
+      };
+      const lines=final=>{
+        while(true){
+          const index=buffer.search(/[\r\n]/);if(index<0)return;
+          if(!final&&buffer[index]==='\r'&&index===buffer.length-1)return;
+          const line=buffer.slice(0,index),length=buffer[index]==='\r'&&buffer[index+1]==='\n'?2:1;
+          buffer=buffer.slice(index+length);
+          if(line===''){project(data.join('\n'));data=[];}
+          else if(line.startsWith('data:'))data.push(line.slice(5).replace(/^ /,''));
+        }
+      };
+      while(true){
+        const chunk=await reader.read();
+        if(!currentHistory(g))return;
+        if(expired){report('LIMIT');return;}
+        if(chunk.done)break;
+        bytes+=chunk.value.byteLength;if(bytes>2097152){report('LIMIT');return;}
+        buffer+=decoder.decode(chunk.value,{stream:true});
+        if(type==='text/event-stream')lines(false);
+      }
+      buffer+=decoder.decode();
+      if(type==='text/event-stream')lines(true);else project(buffer);
+      report(accepted?'ACCEPTED':'NO_ACCEPTED_METADATA');
+    }catch(error){report(error instanceof RangeError?'LIMIT':'READ_FAILED');}
+    finally{clearTimeout(timer);if(reader){readers.delete(reader);liveJobs--;void reader.cancel().catch(()=>{});}}
+  }
   async function fingerprint(response, g) {
     let reader; let timer;
     // Real historical detail loads can contain large assistant turns even when
@@ -51,23 +102,23 @@
       ['/backend-api/conversation/', '/backend-api/conversations/'].some(prefix => responseURL.pathname === prefix + g.chat);
     const byteLimit = exactHistory ? 2097152 : 524288;
     const allowed = () => currentHistory(g) || current(g) && g.fingerprint && gate.fingerprint;
-    const failed = () => { if (allowed()) emit(g, {fingerprintFailure: true}); };
+    const failed = (state='READ_FAILED') => { if (allowed()) { emit(g, {fingerprintFailure: true}); emitHistoryState(g,state); } };
     if (!allowed()) return;
     try {
-      if (fingerprintJobs >= 1 || Number(response.headers.get('content-length')) > byteLimit) { failed(); return; }
+      if (fingerprintJobs >= 1 || Number(response.headers.get('content-length')) > byteLimit) { failed('LIMIT'); return; }
       const copy = Reflect.apply(clone, response, []);
       if (!copy.body) { failed(); return; }
-      reader = copy.body.getReader(); fingerprintJobs++; readers.add(reader);
+      reader = copy.body.getReader(); fingerprintJobs++; readers.add(reader); emitHistoryState(g,'READING');
       let expired = false;
       timer = setTimeout(() => { expired = true; void reader.cancel().catch(() => {}); }, 5000);
       let text = ''; let bytes = 0; const decoder = new TextDecoder();
       while (true) {
         const chunk = await reader.read();
         if (!allowed()) return;
-        if (expired) { failed(); return; }
+        if (expired) { failed('LIMIT'); return; }
         if (chunk.done) break;
         bytes += chunk.value.byteLength;
-        if (bytes > byteLimit) { failed(); return; }
+        if (bytes > byteLimit) { failed('LIMIT'); return; }
         text += decoder.decode(chunk.value, {stream: true});
       }
       text += decoder.decode();
@@ -75,7 +126,8 @@
       if(currentHistory(g)) {
         const contract=globalThis.ChatGPTHistoryContract;
         const history=contract?.parse(value)||contract?.parseStructural(value,g.chat);
-        if(history)emitHistory(g,history);
+        if(history){emitHistory(g,history);emitHistoryState(g,'ACCEPTED',history.rows.length);}
+        else emitHistoryState(g,'NO_ACCEPTED_METADATA',0,1);
       }
       if(g.fingerprint && gate?.fingerprint && allowed()) {
         const result = globalThis.ChatGPTJSONFingerprint.inspect(value);
@@ -129,6 +181,7 @@
       if (!snapshot && !sending) { finish('endpoint', 'ENDPOINT_NOT_ALLOWED', 'skipped'); return; }
       if (snapshot && snapshot[1] !== g.chat) { finish('endpoint', 'ENDPOINT_CHAT_MISMATCH', 'skipped'); return; }
       if (!['application/json', 'text/event-stream'].includes(type) || (snapshot && type !== 'application/json')) { finish('content_type', 'CONTENT_TYPE_NOT_ALLOWED', 'rejected', {error: 'SCHEMA'}); return; }
+      if(sending&&g.history)void liveMetadata(response,g,type);
       if (jobs >= 2) { finish('limit', 'CONCURRENCY_LIMIT', 'rejected', {error: 'LIMIT'}); return; }
       const declared = Number(response.headers.get('content-length'));
       if (declared > 2097152) { finish('limit', 'DECLARED_SIZE_LIMIT', 'rejected', {error: 'LIMIT'}); return; }

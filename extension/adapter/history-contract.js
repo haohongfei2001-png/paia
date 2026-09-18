@@ -88,5 +88,16 @@
       return found===1&&rows.length?{contract:'chatgpt-history-user-v1',rows}:null;
     }catch{return null;}
   }
-  globalThis.ChatGPTHistoryContract=Object.freeze({parse,parseStructural});
+  // A known sent-message event is independent of the historical collection format.
+  // It supplies metadata only; a canonical DOM proof is still required to save it.
+  function parseEvent(root,currentChat) {
+    try {
+      if(!object(root)||!ID.test(currentChat||'')||root.conversation_id!==currentChat||Object.keys(root).length>64)return null;
+      const m=root.message;
+      if(!object(m)||!object(m.author)||m.author.role!=='user'||Object.keys(m).length>64||Object.keys(m.author).length>64)return null;
+      if(typeof m.id!=='string'||!ID.test(m.id))return null;
+      return {contract:'chatgpt-history-user-v1',rows:[{chat:currentChat,id:m.id,create:scalar(m.create_time),update:scalar(m.update_time)}]};
+    }catch{return null;}
+  }
+  globalThis.ChatGPTHistoryContract=Object.freeze({parse,parseStructural,parseEvent});
 })();

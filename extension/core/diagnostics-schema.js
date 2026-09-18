@@ -52,5 +52,25 @@
     }
     return { schemaVersion: 1, ...summary, rows, rowsTruncated: value.rowsTruncated || value.rows.length > MAX_ROWS };
   }
-  globalThis.ArchiveDiagnostics = Object.freeze({ SUMMARY_FIELDS, ROW_FIELDS, MAX_ROWS, MAX_COUNT, emptyStructure, emptyRow, sanitizeStructure });
+  const RESPONSE_STATES=Object.freeze(['NOT_OBSERVED','READING','ACCEPTED','NO_ACCEPTED_METADATA','LIMIT','READ_FAILED']);
+  const HEALTH_COUNTS=Object.freeze(['responseRows','rejectedFrames','canonicalProofs','unsettledSources','sourceTimesAvailable','sourceTimesMissing','sourceTimesBlocked']);
+  const INGESTION_COUNTS=Object.freeze(['attempted','added','duplicates','ignored','unresolved','knownTimes','unknownTimes']);
+  function counts(value,keys){
+    const result={};
+    for(const key of keys){if(!Number.isSafeInteger(value?.[key])||value[key]<0)return null;result[key]=Math.min(value[key],MAX_COUNT);}
+    return result;
+  }
+  function sanitizeResponseObservation(value){
+    const numbers=counts(value,['acceptedRows','rejectedFrames']);
+    return numbers&&RESPONSE_STATES.includes(value?.state)?{state:value.state,...numbers}:null;
+  }
+  function sanitizeCaptureHealth(value){
+    const numbers=counts(value,HEALTH_COUNTS);
+    return numbers&&value?.schemaVersion===1&&RESPONSE_STATES.includes(value.responseState)?{schemaVersion:1,responseState:value.responseState,...numbers}:null;
+  }
+  function sanitizeIngestion(value){
+    const numbers=counts(value,INGESTION_COUNTS);
+    return numbers&&value?.schemaVersion===1&&['capture','enrich'].includes(value.kind)?{schemaVersion:1,kind:value.kind,...numbers}:null;
+  }
+  globalThis.ArchiveDiagnostics = Object.freeze({ SUMMARY_FIELDS, ROW_FIELDS, MAX_ROWS, MAX_COUNT, emptyStructure, emptyRow, sanitizeStructure, RESPONSE_STATES, sanitizeResponseObservation, sanitizeCaptureHealth, sanitizeIngestion });
 })();

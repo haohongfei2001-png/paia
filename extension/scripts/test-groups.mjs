@@ -1,4 +1,5 @@
 const CURRENT_BROWSER=new Set([
+ 'capture-foundation-chrome-e2e.test.mjs',
  'release-certification-round48-chrome-e2e.test.mjs',
  'release-certification-round49-chrome-e2e.test.mjs',
  'activation-return-round410-chrome-e2e.test.mjs',

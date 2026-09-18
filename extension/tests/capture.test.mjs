@@ -10,7 +10,7 @@ const schemaSource = await readFile(new URL('../core/diagnostics-schema.js', imp
 async function schedulerFixture(status, options = {}) {
   const sent = [];
   const state = {reads: 0, watching: 0, stops: 0, captures: 0, invalidations: 0, diagnostics: 0};
-  const timers = [];
+  const timers = [],deadlines=new Map();let serial=0;const handlers=new Map();
   class FakeAdapter {
     version = '0.3.0';
     watch() { state.watching += 1; }
@@ -20,17 +20,19 @@ async function schedulerFixture(status, options = {}) {
     collect() {
       state.reads += 1;
       if (options.adapterThrows) throw new Error('synthetic adapter failure');
-      return {code: options.code || 'CAPTURING', structure: options.structures?.[Math.min(state.reads - 1, options.structures.length - 1)], scanned: options.count || 1, chat: {id: 'chat-fixture-001', url: 'https://chatgpt.com/c/chat-fixture-001', title: '虚构'}, messages: options.noMessages ? [] : Array.from({length: options.count || 1}, (_, index) => ({sourceMessageId: `message-fixture-${index}`, pageOrder: index + 1, originalText: '虚构'}))};
+      return {code: options.code || 'CAPTURING', structure: options.structures?.[Math.min(state.reads - 1, options.structures.length - 1)], scanned: options.count || 1, chat: {id: 'chat-fixture-001', url: 'https://chatgpt.com/c/chat-fixture-001', title: '虚构'}, messages: options.noMessages ? [] : Array.from({length: options.count || 1}, (_, index) => ({sourceMessageId: `message-fixture-${index}`, pageOrder: index + 1, originalText: options.text||'虚构'}))};
     }
   }
   const context = vm.createContext({
-    ChatGPTAdapter: FakeAdapter,
+    ChatGPTAdapter: FakeAdapter, TextEncoder,
+    addEventListener:(key,fn)=>handlers.set(key,fn),
     ArchiveResponseTime: options.responseDiagnosticThrows ? {observe() {throw new Error('synthetic optional diagnostic failure');}} : undefined,
     chrome: {runtime: {id: options.invalidated ? undefined : 'synthetic-extension', async sendMessage(message) {
       sent.push(message);
       if (options.fail) throw new Error('synthetic error that must not be logged');
       if (message.type === 'CAPTURE') {
         state.captures += 1;
+        if(options.hangFirstCapture&&state.captures===1)return new Promise(()=>{});
         if (options.failedCaptureAt === state.captures) return {ok: false, error: options.error || 'PAUSED'};
       }
       if (message.type === 'DIAGNOSTIC') {
@@ -39,13 +41,13 @@ async function schedulerFixture(status, options = {}) {
       }
       return message.type === 'GET_STATUS' ? {ok: true, data: status} : {ok: true, data: {added: 1}};
     }}},
-    setTimeout(callback, delay) { timers.push({callback, delay}); return timers.length; },
-    clearTimeout() {}, Date
+    setTimeout(callback, delay) { const id=++serial;if(delay===35000)deadlines.set(id,callback);else timers.push({callback,delay});return id; },
+    clearTimeout(id) {deadlines.delete(id);}, Date
   });
   vm.runInContext(schemaSource, context);
   vm.runInContext(captureSource, context);
   await new Promise((resolve) => setImmediate(resolve));
-  return {sent, state, timers};
+  return {sent, state, timers,deadlines,handlers};
 }
 
 test('capture scheduler never reads content before consent, while paused, or after status failure', async () => {
@@ -177,4 +179,20 @@ test('optional response diagnostic failure cannot stop the canonical capture pat
   const result = await schedulerFixture({enabled: true, consented: true, epoch: 42, adapterVersion: '0.3.0'}, {responseDiagnosticThrows: true});
   assert.equal(result.state.captures, 1);
   assert.equal(result.sent.some(message => message.type === 'CAPTURE'), true);
+});
+
+
+test('foundation scheduler: stalled transport releases the cycle and safely retries',async()=>{
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'},{hangFirstCapture:true});
+ assert.equal(f.state.captures,1);assert.equal(f.deadlines.size,1);
+ [...f.deadlines.values()][0]();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.sent.at(-1).code,'MESSAGE_RESPONSE_TIMEOUT');assert.equal(f.deadlines.size,0);
+ f.timers.at(-1).callback();await new Promise(resolve=>setImmediate(resolve));assert.equal(f.state.captures,2);assert.equal(f.deadlines.size,0);
+});
+test('foundation scheduler: batches are bounded by serialized UTF-8 bytes as well as count',async()=>{
+ const text='中文\n🙂'.repeat(30000);
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'},{count:12,text});
+ const batches=f.sent.filter(m=>m.type==='CAPTURE');assert.ok(batches.length>1);
+ assert.equal(batches.flatMap(m=>m.messages).length,12);
+ for(const batch of batches){assert.ok(new TextEncoder().encode(JSON.stringify(batch)).byteLength<=2097152);assert.ok(batch.messages.every(m=>m.originalText===text));}
 });
