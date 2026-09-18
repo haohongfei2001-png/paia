@@ -159,7 +159,7 @@ export class ThoughtWorkspace {
  }
 
  async flushEditors(){for(const active of [this.editor,this.aiEditor,this.dialogEditor]){active?.collect?.();if(active&&!await active.flush()&&active.dirty())return false;}return true;}
- async refresh(){if(this.refreshPromise){this.refreshQueued=true;return this.refreshPromise;}const run=(async()=>{do{this.refreshQueued=false;await this.refreshOnce();}while(this.refreshQueued);})();this.refreshPromise=run;try{return await run;}finally{if(this.refreshPromise===run)this.refreshPromise=null;}}
+ async refresh(){const key=this.readKey(),active=this.refreshRun;if(active&&active.key===key){active.queued=true;return active.promise;}const run={key,queued:false,promise:null};run.promise=(async()=>{do{run.queued=false;await this.refreshOnce();}while(run.queued&&run.key===this.readKey());})();this.refreshRun=run;try{return await run.promise;}finally{if(this.refreshRun===run)this.refreshRun=null;}}
  async refreshOnce(){
   const token=Symbol(),epoch=this.statusEpoch;this.loadToken=token;this.searching=!this.id&&!!$('thought-search').value.trim();
   const key=this.readKey(),host=this.id?$('thought-document'):$('thought-collection');
