@@ -32,13 +32,12 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   const chat=await h.open(a,{arrival:'dom-first'});
   await eventually(async()=>(await h.state()).records.filter(r=>r.chatId===a.id).length===2,
     'ANS-03 production capture completes');
-  await eventually(async()=>(await sourceRow(archive,a.id)).row?.sourceStatus==='observed_active',
-    'ANS-03 production presence settles after source exists');
+  await eventually(async()=>Boolean((await sourceRow(archive,a.id)).row?.lastObservedAt),
+    'ANS-03 production identity observation settles after source exists');
   let observed=await sourceRow(archive,a.id);
-  assert.equal(observed.row.membership.state,'unknown');assert.equal(observed.row.relationshipRevision,1);
-  assert.equal(observed.history.length,1);
-  assert.equal(observed.history[0].evidence.contractId,'chatgpt.current-conversation-presence');
-  assert.equal(observed.history[0].evidence.channel,'isolated_route');
+  assert.equal(observed.row.membership.state,'unknown');assert.equal(observed.row.sourceStatus,'unknown');
+  assert.equal(observed.row.relationshipRevision,0);assert.match(observed.row.lastEvidenceId,/^obs:/);
+  assert.equal(observed.history.length,0,'identity-only observation creates no lifecycle history');
   const captured=(await h.state()).records.filter(r=>r.chatId===a.id);
   assert.equal(new Set(captured.map(r=>r.sourceKey)).size,2,'same text with different IDs remains separate');
   const documentId=(await h.state()).library.documents.find(d=>d.sourceConversationId===a.id)?.id;
@@ -48,15 +47,15 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   await chat.reload();await pause(2600);
   observed=await sourceRow(archive,a.id);
   assert.equal(observed.row.lastObservedAt,lastObservedAt,'capture exclusion blocks later structure writes');
-  assert.equal(observed.history.length,1);
+  assert.equal(observed.history.length,0);
 
   const b={id:'ans03-browser-lifecycle',title:'ANS-03 Lifecycle',base:1609469200,messages:[
    {id:'ans03-life-message-001',text:'ANS03 lifecycle source'}
   ]};
   await h.spa(chat,b);
   await eventually(async()=>(await h.state()).records.some(r=>r.chatId===b.id),'ANS-03 second source captures');
-  await eventually(async()=>(await sourceRow(archive,b.id)).row?.sourceStatus==='observed_active',
-    'ANS-03 second production presence settles');
+  await eventually(async()=>Boolean((await sourceRow(archive,b.id)).row?.lastObservedAt),
+    'ANS-03 second production identity observation settles');
   const synthetic=await archive.evaluate(async id=>{
    const {OrganizerStore}=await import('../core/organizer/store.js');
    const {SourceStructureStore}=await import('../core/source-structure-store.js');
@@ -100,13 +99,13 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
    return {current,project,history:history.items};
   },b.id);
   assert.equal(synthetic.current.membership.projectRef.projectId,'browser-project-b');
-  assert.equal(synthetic.current.sourceStatus,'observed_active');assert.equal(synthetic.current.relationshipRevision,6);
+  assert.equal(synthetic.current.sourceStatus,'observed_active');assert.equal(synthetic.current.relationshipRevision,5);
   assert.equal(synthetic.project.currentName,'Browser B Renamed');assert.equal(synthetic.project.relationshipRevision,2);
-  assert.equal(synthetic.history.length,6);
+  assert.equal(synthetic.history.length,5);
   await h.restartWorker();await chat.reload();await pause(2600);
   const afterRestart=await sourceRow(archive,b.id);
-  assert.equal(afterRestart.row.relationshipRevision,6,'duplicate active presence after restart creates no history spam');
-  assert.equal(afterRestart.history.length,6);
+  assert.equal(afterRestart.row.relationshipRevision,5,'identity-only observation after restart creates no history spam');
+  assert.equal(afterRestart.history.length,5);
 
   await rpc(archive,'SET_ENABLED',{enabled:false});
   const c={id:'ans03-browser-paused',title:'ANS-03 Paused',base:1609479200,messages:[

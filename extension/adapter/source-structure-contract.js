@@ -38,7 +38,9 @@
       channel:'isolated_route',scope:'current_conversation',
       epoch,session,generation,observedAt,
       subject:{kind:'conversation',conversationId:safe.id},
-      observation:{sourceStatus:'observed_active'}
+      // A current canonical route proves conversation identity only. It is not
+      // evidence that can create or reverse external source lifecycle state.
+      observation:{}
     };
   }
   function orderCandidate(capability){

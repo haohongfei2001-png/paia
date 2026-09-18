@@ -11,7 +11,7 @@ const base=()=>({
  providerKey:'chatgpt',capability:'conversationIdentity',channel:'isolated_route',
  scope:'current_conversation',epoch:11,session:'ans03-private-session',generation:1,observedAt:at,
  subject:{kind:'conversation',conversationId:'ans03-private-chat'},
- observation:{sourceStatus:'observed_active'}
+ observation:{}
 });
 const code=(expected)=>error=>error?.code===expected;
 
@@ -25,6 +25,8 @@ test('ANS-03 production admission rejects body/title/token/credential fields and
  }
  const nested=base();nested.observation.originalText='Project A';
  await assert.rejects(()=>admitSourceStructureDTO(nested),code('INVALID_REQUEST'));
+ const lifecycle=base();lifecycle.observation={sourceStatus:'observed_active'};
+ await assert.rejects(()=>admitSourceStructureDTO(lifecycle),code('INVALID_REQUEST'));
  for(const invalid of [
   {...base(),schemaVersion:2},
   {...base(),contractVersion:2},

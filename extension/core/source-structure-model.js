@@ -149,7 +149,8 @@ export function reduceConversation(current,input){
  if(observation.sourceStatus&&observation.sourceStatus!=='unknown')next.sourceStatus=observation.sourceStatus;
  const after=conversationSnapshot(next),change=changes(before,after);
  if(freshness===0&&change.length)invalid('SOURCE_STRUCTURE_CONFLICT');
- if(!current&&!change.length)return {changed:false,current:null};
+ // An identity-only observation may materialize metadata for an already
+ // archived Conversation without inventing membership or lifecycle state.
  next.lastObservedAt=observation.observedAt;next.lastEvidenceId=observation.evidence.id;
  if(!change.length)return {changed:!same(base,next),current:next,event:null};
  next.relationshipRevision=base.relationshipRevision+1;

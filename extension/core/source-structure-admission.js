@@ -65,7 +65,7 @@ export const CHATGPT_SOURCE_STRUCTURE_POLICY=createSourceStructurePolicy({
   membership:'unverified',projectOrder:'unverified',windowOrder:'unverified',
   rename:'unverified',move:'unverified',conversationDeletion:'unverified',projectDeletion:'unverified'
  },
- rules:{conversationIdentity:{subject:'conversation',fields:['sourceStatus'],sourceStatus:['observed_active']}}
+ rules:{conversationIdentity:{subject:'conversation',fields:[]}}
 });
 function validateEnvelope(value,policy){
  byteLength(value);
@@ -96,7 +96,7 @@ function membership(value,providerKey,namespace){
 function conversationObservation(value,rule,providerKey,namespace){
  exact(value,['membership','projectName','sourceStatus'],[]);
  const present=Object.keys(value);
- if(!present.length||present.some(field=>!rule.fields.includes(field)))fail();
+ if(present.some(field=>!rule.fields.includes(field))||(!present.length&&rule.fields.length))fail();
  const out={};
  if(value.membership!==undefined)out.membership=membership(value.membership,providerKey,namespace);
  if(value.projectName!==undefined){if(!validName(value.projectName))fail();out.projectName=value.projectName;}

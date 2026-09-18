@@ -49,7 +49,7 @@ test('ANS-03 production adapter declares capabilities individually and emits onl
  const adapter={version:'0.3.0',route:()=>({code:'READY',id,url:`https://chatgpt.com/c/${id}`})};
  const source=new context.ChatGPTSourceStructure({adapter,clock:()=>at(1)});
  const emitted=source.observe({enabled:true,consented:true,adapterVersion:'0.3.0',epoch:7},{session});
- assert.deepEqual(JSON.parse(JSON.stringify(emitted.dto.observation)),{sourceStatus:'observed_active'});
+ assert.deepEqual(JSON.parse(JSON.stringify(emitted.dto.observation)),{});
  assert.deepEqual(Object.keys(emitted.dto.subject),['kind','conversationId']);
  assert.equal(source.observe({enabled:true,consented:true,adapterVersion:'0.3.0',epoch:7},{session}),null);
  assert.equal(context.SourceStructureContract.currentConversationPresence({
@@ -64,18 +64,41 @@ test('ANS-03 production admission persists presence only after the conversation 
   schemaVersion:1,contractId:CHATGPT_SOURCE_STRUCTURE_POLICY.contractId,contractVersion:1,
   providerKey:'chatgpt',capability:'conversationIdentity',channel:'isolated_route',
   scope:'current_conversation',epoch:3,session,generation:1,observedAt:at(2),
-  subject:{kind:'conversation',conversationId:conv},observation:{sourceStatus:'observed_active'}
+  subject:{kind:'conversation',conversationId:conv},observation:{}
  };
  const admitted=await admitSourceStructureDTO(value);
  const result=await structure.observeAdmitted(admitted);
- assert.equal(result.settled,true);assert.equal(result.changed,true);assert.equal(result.event,true);
+ assert.equal(result.settled,true);assert.equal(result.changed,true);assert.equal(result.event,false);
  const row=await structure.conversation({platform:'chatgpt',sourceConversationId:conv});
- assert.equal(row.sourceStatus,'observed_active');assert.equal(row.membership.state,'unknown');
- assert.equal(row.relationshipRevision,1);
+ assert.equal(row.sourceStatus,'unknown');assert.equal(row.membership.state,'unknown');
+ assert.equal(row.relationshipRevision,0);
+ assert.match(row.lastEvidenceId,/^obs:/);
  const missing=await admitSourceStructureDTO({...value,generation:2,observedAt:at(3),
   subject:{kind:'conversation',conversationId:'ans03-not-archived'}});
  assert.deepEqual(await structure.observeAdmitted(missing),
   {settled:false,excluded:false,changed:false});
+});
+
+test('ANS-03 production identity evidence cannot resurrect a confirmed deletion',async()=>{
+ const {s}=await completeFixture({texts:['ANS03 deleted source stays deleted']});
+ const state=await s.snapshot(),conv=state.conversations[0].sourceConversationId;
+ const structure=new SourceStructureStore(s),conversation={kind:'conversation',conversationId:conv};
+ const apply=async value=>structure.observeAdmitted(await admitSourceStructureDTO(value,synthetic));
+ await apply(dto('conversationDeletion',conversation,{sourceStatus:'confirmed_deleted'},1));
+ const before=await structure.conversation({platform:'chatgpt',sourceConversationId:conv});
+ assert.equal(before.sourceStatus,'confirmed_deleted');assert.equal(before.relationshipRevision,1);
+ const production={
+  schemaVersion:1,contractId:CHATGPT_SOURCE_STRUCTURE_POLICY.contractId,contractVersion:1,
+  providerKey:'chatgpt',capability:'conversationIdentity',channel:'isolated_route',
+  scope:'current_conversation',epoch:8,session:'ans03-route-after-delete',generation:2,observedAt:at(2),
+  subject:{kind:'conversation',conversationId:conv},observation:{}
+ };
+ const result=await structure.observeAdmitted(await admitSourceStructureDTO(production));
+ const after=await structure.conversation({platform:'chatgpt',sourceConversationId:conv});
+ const history=await structure.history({kind:'conversation',conversationRef:{platform:'chatgpt',sourceConversationId:conv}});
+ assert.equal(result.settled,true);assert.equal(result.event,false);
+ assert.equal(after.sourceStatus,'confirmed_deleted');assert.equal(after.relationshipRevision,1);
+ assert.equal(history.items.length,1);assert.equal(history.items[0].after.sourceStatus,'confirmed_deleted');
 });
 test('ANS-03 generic admitted DTO path handles none → A → B → rename → delete → reappear without changing Input truth',async()=>{
  const {s}=await completeFixture({texts:['ANS03 stable original','ANS03 stable original']});
