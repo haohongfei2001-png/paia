@@ -1,4 +1,5 @@
 import {textBlock} from './export.js';
+import {sourceStructureMetaAllowed} from './source-structure-backup.js';
 
 export const OPEN_EXPORT_FORMAT='PAIA Open Export';
 export const OPEN_EXPORT_VERSION=1;
@@ -7,7 +8,7 @@ const clone=value=>structuredClone(value);
 const ROLE_LABELS={
  immutable_source_record:'Source Record · 不可变来源',input_document:'Input document · 文档元数据',input_working_copy:'Input Archive · 工作副本',
  independent_thought:'Thought Library · 独立思想',input_bound_thought:'Thought Library · Input 绑定思想',thought:'Thought Library · 思想内容',
- ai_presentation:'AI presentation · AI 整理',revision:'Version history · 版本历史',portable_settings:'Portable settings · 可迁移设置'
+ ai_presentation:'AI presentation · AI 整理',source_relationship:'Source relationship · 来源关系',source_relationship_history:'Source relationship history · 来源关系历史',revision:'Version history · 版本历史',portable_settings:'Portable settings · 可迁移设置'
 };
 const EXPLANATION=Object.freeze({
  sourceRecords:'Immutable source snapshots captured or imported by PAIA.',
@@ -15,6 +16,7 @@ const EXPLANATION=Object.freeze({
  thoughts:'Thought Library content. Each row retains its original origin/binding fields.',
  aiPresentations:'Saved AI-organized presentation state, separate from human-authored Thought text.',
  revisions:'Version history with actor/reason fields preserved.',
+ sourceStructure:'Source Project membership and lifecycle facts are exported as metadata/history, never merged into Input text.',
  omittedOperationalState:'Runtime receipts, completed organizer jobs, provider ledgers, transient sessions, credentials, grants and runnable jobs are not open-export content roles.'
 });
 function thoughtRole(value){if(value.origin==='user_created'||value.formation==='user_created')return 'independent_thought';if(value.bodyBinding==='input')return 'input_bound_thought';return 'thought';}
@@ -22,6 +24,7 @@ export function openExportRecord(row){
  if(row?.type!=='item'||!row.value||typeof row.value!=='object'||OMITTED.has(row.section))return null;
  const value=clone(row.value);
  if(row.section==='organizationState'){
+  if(sourceStructureMetaAllowed(value.id)){const data=clone(value.data||value);return {role:data.kind==='event'?'source_relationship_history':'source_relationship',section:row.section,...data};}
   if(!value.id?.startsWith('aiPresentation:'))return null;
   return {role:'ai_presentation',section:row.section,...clone(value.data||value)};
  }

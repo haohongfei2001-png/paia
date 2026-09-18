@@ -8,6 +8,7 @@ import {unknownTime,applySourceTime} from './record-time.js';
 import {syncLibrary,emptyLibrary,detachSources,validateLibraryChanges,memoryContext} from './library.js';
 import {applyDocumentEdit,validatePreferences} from './workspace.js';
 import {sanitizeDiagnostics,sanitizeStructure,sanitizeCaptureHealth} from './diagnostics.js';
+import {purgeSourceStructureForRecords} from './source-structure-store.js';
 
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const error=code=>{throw new ArchiveError(code);};
@@ -109,6 +110,7 @@ export class IndexedArchiveStore {
    this.changedSources.add(key);const current=await t.get('records',id);if(!current||!permanent&&!current.value.deletedAt)error('INVALID_REQUEST');
    const indexes=await t.all('recordIndex','bySource',key);if(r.chatId&&r.sourceMessageId)for(const ix of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))if(!/^[a-f0-9]{64}$/.test(ix.sourceKey||'')&&!indexes.some(x=>x.id===ix.id))indexes.push(ix);if(!indexes.some(x=>x.id===id))indexes.push(await t.get('recordIndex',id));const removed=[];for(const ix of indexes)removed.push((await t.get('records',ix.id)).value);
    const docs=new Set((await t.all('documents','byChat',chatOf(r))).map(d=>d.id)),blocks=new Map();for(const r of removed)for(const b of await t.all('blockIndex','byRecord',r.id))blocks.set(b.id,{index:b,value:(await t.get('blocks',b.id)).value});
+   await purgeSourceStructureForRecords(this,t,removed);
    if(this.beforeSourcePurge)await this.beforeSourcePurge(t,removed,blocks);
    await clearReadingTargets(t,new Set(blocks.keys()));
    const s={library:{blocks:[...blocks.values()].map(b=>b.value)}};detachSources(s,removed);const kept=new Map(s.library.blocks.map(b=>[b.id,b]));
