@@ -7,12 +7,13 @@
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
 - current_round: `ANS-03`
-- current_round_status: `READY`
-- execution_id: `NONE`
+- current_round_status: `IN_PROGRESS`
+- execution_id: `ANS03-20260919-0633`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
-- canonical_head_at_execution_start: `0f394d66bf8e84e82eb3dd72a45c05e1d17152b1`
+- canonical_head_at_execution_start: `0a32abc8731823ea13c6b15a574875ff0f3ebe30`
+- current_candidate_branch: `ans/v1/ANS-03-20260919-0633`
 - completed_ans01_branch: `ans/v1/ANS-01-20260918-1845`
 - ans01_implementation_commit: `7947c869ccffcbda9d2a0a77fdafbb498b4eb0d5`
 - ans01_certified_head: `91941891ecb4002690312959677e9975f590c0c1`
@@ -27,7 +28,7 @@
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。ANS-02 已完成并在 main exact runtime head 上通过 required PAIA Certification；ANS-03 仅被推进为 READY。本 execution 到此停止，不实现 ANS-03。
+本文件是本包唯一执行队列。ANS-02 已完成并在 main exact runtime head 上通过 required PAIA Certification；ANS-03 execution `ANS03-20260919-0633` 已领取并进入 IN_PROGRESS。只执行 ANS-03，不进入 ANS-04。
 
 ## Round queue
 
@@ -35,7 +36,7 @@
 |---|---|---|---|---|
 | ANS-01 | COMPLETE | Canonical planning publication | Reader选择surface精简、单排序切换、时间常显、测试登记 | certified `91941891…` · runtime CI #362 success · closure CI #363 success on `0f394d66…` · `receipts/ANS-01.md` |
 | ANS-02 | COMPLETE | ANS-01 COMPLETE | 来源关系/历史/生命周期、purge与Backup兼容基础 | implementation `6de0f4a5…` · certified/published `a9fd811a…` · candidate CI #366 attempt 3 success · main CI #367 attempt 2 success · `receipts/ANS-02.md` |
-| ANS-03 | READY | ANS-02 COMPLETE | adapter逐能力证据审核、可信source observation管线 | NOT_STARTED |
+| ANS-03 | IN_PROGRESS | ANS-02 COMPLETE | adapter逐能力证据审核、可信source observation管线 | execution `ANS03-20260919-0633` · branch `ans/v1/ANS-03-20260919-0633` |
 | ANS-04 | PLANNED | ANS-03 COMPLETE | 有界Navigator读模型、索引/覆盖/游标/迁移 | NOT_STARTED |
 | ANS-05 | PLANNED | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | NOT_STARTED |
 | ANS-06 | PLANNED | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | NOT_STARTED |
@@ -52,13 +53,9 @@ R6/R7实站能力可能unknown；Project/order/delete要逐项实证。ANS-02只
 
 ## Current execution record
 
-ANS-02 execution `ANS02-20260919-0109` 已完成。实现 commit `6de0f4a525b181562b9873f7ee3da220d8b18d79` 增加 provenance-safe source structure foundation；test-only synchronization commit `a9fd811a3d5aadddc7a99e492cd4a0dab970ea2b` 只修复认证暴露的既有异步UI测试等待问题，未降低断言/timeout/privacy/security gate。
+ANS-03 execution `ANS03-20260919-0633` started from remote main `0a32abc8731823ea13c6b15a574875ff0f3ebe30` after re-reading the canonical package contracts and verifying ANS-02 closure. Candidate branch: `ans/v1/ANS-03-20260919-0633`.
 
-Candidate exact head 的 PAIA Certification #366 / run `35386445629` / attempt 3 全部 required jobs success。该 head 相对当时 main 为 ahead 2 / behind 0，随后非强制 fast-forward 到 main；GitHub PR #32 记录为 merged，merge SHA 即 `a9fd811a…`，没有额外 merge tree。
-
-Main exact runtime head `a9fd811a…` 的 PAIA Certification #367 / run `35394493831` / attempt 2 最终全部 required jobs与 Certification gate success。attempt 1 的唯一失败是已知 UX-R5 transient focus assertion；同一 exact-head Current Browser 已通过该用例，失败 Full Suite job重跑后无代码变化即通过。详见 `receipts/ANS-02.md`。
-
-当前没有 implementation execution 在运行。ANS-03 仅为 READY；不得把本次 ANS-02 execution 延伸为 ANS-03 实现。
+Recovery audit found no pre-existing ANS-03 implementation or failing previous-round closure gate on canonical main. Per SOURCE_CAPABILITIES, production capabilities without compliant live evidence remain explicit unavailable; synthetic contracts may exercise the trusted pipeline but cannot certify a live ChatGPT Project/order/delete capability.
 
 ## Completion protocol
 
@@ -68,4 +65,4 @@ Main exact runtime head `a9fd811a…` 的 PAIA Certification #367 / run `3539449
 
 ## Next action
 
-下一次独立产品所有者/监督器 execution 可领取 `ANS-03`。开始时必须重新解析远端 main、读取本文件和 ANS-03 计划，并建立新的 execution ID / candidate branch；当前 ANS-02 execution 到此停止。
+Continue only ANS-03 in execution `ANS03-20260919-0633`: implement the capability contract/trusted observation bridge, run required gates, publish and certify the exact runtime head, then write the ANS-03 receipt and mark only ANS-04 READY. Do not implement ANS-04 in this execution.
