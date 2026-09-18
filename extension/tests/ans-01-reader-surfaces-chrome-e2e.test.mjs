@@ -95,11 +95,11 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
       };
     });
     await toggle.click();
-    await eventually(async()=>{
-      const controls=await rpc(p,'GET_ORGANIZER_CONTROLS');
-      return controls.inputReadingSort==='asc'&&await toggle.getAttribute('data-current-sort')==='asc';
-    },'failed sort restores persisted asc state');
-    assert.match(await p.locator('#error').textContent(),/排序偏好尚未保存/);
+    await eventually(async()=>(await p.locator('#error').textContent()).includes('排序偏好尚未保存'),'failed sort reports the completed rollback');
+    const failedControls=await rpc(p,'GET_ORGANIZER_CONTROLS');
+    assert.equal(failedControls.inputReadingSort,'asc','failed sort keeps the persisted preference');
+    assert.equal(await toggle.getAttribute('data-current-sort'),'asc','failed sort keeps the rendered preference');
+    assert.equal(await toggle.getAttribute('aria-pressed'),'false','failed sort leaves the single toggle in ascending state');
     assert.equal(await p.locator('.library-prose').first().textContent(),failureAnchorText,'failed sort keeps the original Reader ordering');
 
     await toggle.click();
