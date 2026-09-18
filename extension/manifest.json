@@ -44,11 +44,14 @@
         "core/diagnostics-schema.js",
         "adapter/input-presence.js",
         "adapter/chatgpt-adapter.js",
+        "adapter/source-structure-contract.js",
+        "adapter/chatgpt-source-structure.js",
         "core/json-fingerprint.js",
         "core/history-time.js",
         "core/source-time.js",
         "core/response-time.js",
-        "content/response-bridge.js"
+        "content/response-bridge.js",
+        "content/source-structure-bridge.js"
       ],
       "run_at": "document_start",
       "all_frames": false,

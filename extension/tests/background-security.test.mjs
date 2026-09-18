@@ -28,6 +28,19 @@ function capture(epoch, changes = {}) {
   };
 }
 
+function sourceObservation(epoch,changes={}) {
+  const observation={
+    schemaVersion:1,contractId:'chatgpt.current-conversation-presence',contractVersion:1,
+    providerKey:'chatgpt',capability:'conversationIdentity',channel:'isolated_route',
+    scope:'current_conversation',epoch,session:'ans03-worker-session',generation:1,
+    observedAt:'2026-09-19T00:20:00.000Z',
+    subject:{kind:'conversation',conversationId:CHAT_ID},
+    observation:{sourceStatus:'observed_active'}
+  };
+  return {type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
+    chat:{id:CHAT_ID,url:CHAT_URL},observation,...changes};
+}
+
 async function fixture({ isolationFailure = false, delayedIsolation = false } = {}) {
   globalThis.indexedDB=new IDBFactory();
   let listener;
@@ -323,6 +336,31 @@ test('service worker fails closed if storage isolation fails', async t => {
   await expectError(app.send({ type: 'GET_STATUS' }, content), 'STORAGE_FAILED');
   await expectError(app.send({ type: 'CONSENT', accepted: true }), 'STORAGE_FAILED');
   assert.deepEqual(app.counts(), { reads: 0, writes: 0 });
+});
+
+test('ANS-03 source observations require trusted current-route sender, current epoch and archived source before settle',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});
+ const app=await fixture();await app.send({type:'CONSENT',accepted:true});
+ const epoch=(await app.send({type:'GET_STATUS'})).data.epoch,req=sourceObservation(epoch);
+ const before=await app.send(req,content);assert.equal(before.ok,true);assert.equal(before.data.settled,false);
+ for(const sender of [ui,popup,{...content,id:'fake-extension'},{...content,frameId:1},
+   {...content,tab:{id:23,incognito:false,url:'https://chatgpt.com/c/other-chat'}},
+   {...content,tab:{id:23,incognito:true}}])await expectError(app.send(req,sender),'FORBIDDEN');
+ await expectError(app.send(sourceObservation(epoch-1),content),'STALE_CAPTURE');
+ await expectError(app.send({...req,adapterVersion:'0.2.9'},content),'INVALID_REQUEST');
+ await expectError(app.send({...req,observation:{...req.observation,epoch:epoch+1}},content),'STALE_CAPTURE');
+ const unverified={...req,observation:{...req.observation,capability:'membership',
+   observation:{membership:{state:'project',namespace:'account-main',projectId:'synthetic'}}}};
+ await expectError(app.send(unverified,content),'UNAVAILABLE');
+ const poisoned={...req,observation:{...req.observation,originalText:'SYNTHETIC_PRIVATE_BODY'}};
+ await expectError(app.send(poisoned,content),'INVALID_REQUEST');
+ assert.equal((await app.send(capture(epoch),content)).ok,true);
+ const notificationsBefore=app.notifications.length;
+ const settled=await app.send(sourceObservation(epoch),content);
+ assert.equal(settled.ok,true);assert.equal(settled.data.settled,true);
+ assert.equal(app.notifications.slice(notificationsBefore).some(x=>x.type==='ARCHIVE_CHANGED'),false);
+ await app.send({type:'SET_ENABLED',enabled:false},popup);
+ await expectError(app.send(sourceObservation(epoch),content),'PAUSED');
 });
 
 test('metadata enrichment uses the same trusted top-level sender and epoch gates as capture',async()=>{

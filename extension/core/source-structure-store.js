@@ -1,5 +1,6 @@
 import {ArchiveError} from './constants.js';
 import {canonicalChat} from './validation.js';
+import {captureIsExcluded} from './reader-state.js';
 import {
  SOURCE_STRUCTURE_PREFIXES,conversationRef,projectRef,subjectRef,
  conversationMetaId,projectMetaId,eventMetaPrefix,
@@ -101,6 +102,38 @@ export class SourceStructureStore{
  }
  async observeConversation(input){return (await this.observeBatch([{...input,kind:'conversation'}]))[0];}
  async observeProject(input){return (await this.observeBatch([{...input,kind:'project'}]))[0];}
+ async observeAdmitted(input){
+  if(!input||!['conversation','project'].includes(input.kind)||Object.hasOwn(input,'expectedRevision'))invalid();
+  await this.ready();
+  if(input.kind==='conversation'){
+   const ref=conversationRef(input.conversationRef);
+   const gate=await this.store.run(()=>this.store.repository.transaction(false,async t=>({
+    excluded:ref.platform==='chatgpt'&&await captureIsExcluded(t,ref.sourceConversationId),
+    archived:await t.count('documents','byChat',ref.platform+':'+ref.sourceConversationId)>0
+   }),['meta','documents']));
+   if(gate.excluded)return {settled:true,excluded:true,changed:false};
+   if(!gate.archived)return {settled:false,excluded:false,changed:false};
+   for(let attempt=0;attempt<2;attempt++){
+    const current=await this.conversation(ref),expectedRevision=current?.relationshipRevision||0;
+    try{
+     const result=await this.observeConversation({...input,expectedRevision});
+     return {settled:true,excluded:false,changed:result?.changed===true,event:result?.event!==null&&result?.event!==undefined};
+    }catch(error){if(error?.code!=='SOURCE_STRUCTURE_CONFLICT'||attempt)throw error;}
+   }
+  }
+  const witness=input.witnessConversationRef?conversationRef(input.witnessConversationRef):null;
+  if(witness?.platform==='chatgpt'){
+   const excluded=await this.store.run(()=>this.store.repository.transaction(false,t=>captureIsExcluded(t,witness.sourceConversationId),['meta']));
+   if(excluded)return {settled:true,excluded:true,changed:false};
+  }
+  for(let attempt=0;attempt<2;attempt++){
+   const current=await this.project(input.projectRef),expectedRevision=current?.relationshipRevision||0;
+   try{
+    const result=await this.observeProject({...input,expectedRevision});
+    return {settled:true,excluded:false,changed:result?.changed===true,event:result?.event!==null&&result?.event!==undefined};
+   }catch(error){if(error?.code!=='SOURCE_STRUCTURE_CONFLICT'||attempt)throw error;}
+  }
+ }
  async conversation(ref){
   await this.ready();const normalized=conversationRef(ref),id=await conversationMetaId(normalized);
   return this.store.run(()=>this.store.repository.transaction(false,async t=>clone(await t.get('meta',id)||null),['meta']));

@@ -24,6 +24,8 @@ import { OrganizerStore as IndexedArchiveStore } from '../core/organizer/store.j
 import {SafetyRunner} from '../core/thought-runner.js';
 import { ADAPTER_VERSION, ArchiveError, safeErrorCode } from '../core/constants.js';
 import { canonicalChat } from '../core/validation.js';
+import {SourceStructureStore} from '../core/source-structure-store.js';
+import {admitSourceStructureDTO,CHATGPT_SOURCE_STRUCTURE_POLICY} from '../core/source-structure-admission.js';
 import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from '../core/organizer/deepseek.js';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 
@@ -32,6 +34,7 @@ const productSignals = new ProductSignals(store);
 const passport = new PassportService(store);
 const revisit = new RevisitService(store);
 const readerState = new ReaderStateService(store);
+const sourceStructure = new SourceStructureStore(store);
 // Empty production registry: no extraction is scheduled until a provider stage is approved.
 const organizer = new OrganizerRunner(store);
 // DeepSeek stays outside the generic production registry. Only the explicit
@@ -100,6 +103,21 @@ async function handle(request, sender) {
     if (request.adapterVersion !== ADAPTER_VERSION) throw new ArchiveError('INVALID_REQUEST');
     return store.diagnose({ code: request.code, scanned: request.scanned, structure: request.structure, captureHealth: request.captureHealth });
   }
+  if (content && request.type === 'OBSERVE_SOURCE_STRUCTURE') {
+    if(Object.keys(request).some(key=>!['type','epoch','adapterVersion','chat','observation'].includes(key))||
+       request.adapterVersion!==ADAPTER_VERSION)throw new ArchiveError('INVALID_REQUEST');
+    const source=canonicalChat(sender.tab.url ?? sender.url);
+    const target=canonicalChat(request.chat?.url);
+    if(!source||!target||source.id!==target.id||source.id!==request.chat?.id)throw new ArchiveError('FORBIDDEN');
+    const status=await store.status();
+    if(!status.consented)throw new ArchiveError('CONSENT_REQUIRED');
+    if(!status.enabled)throw new ArchiveError('PAUSED');
+    if(status.epoch!==request.epoch||request.observation?.epoch!==request.epoch)throw new ArchiveError('STALE_CAPTURE');
+    const admitted=await admitSourceStructureDTO(request.observation,CHATGPT_SOURCE_STRUCTURE_POLICY);
+    if(admitted.kind!=='conversation'||admitted.conversationRef.platform!=='chatgpt'||
+       admitted.conversationRef.sourceConversationId!==source.id)throw new ArchiveError('FORBIDDEN');
+    return sourceStructure.observeAdmitted(admitted);
+  }
   if (content && ['CAPTURE', 'ENRICH_SOURCE_METADATA'].includes(request.type)) {
     // sender.url can stay at the document's initial address after pushState.
     // Chrome supplies the tab's current URL on MessageSender without a tabs
@@ -109,7 +127,7 @@ async function handle(request, sender) {
     if (!source || !target || source.id !== target.id || source.id !== request.chat?.id) throw new ArchiveError('FORBIDDEN');
     return request.type === 'CAPTURE' ? store.capture(request) : store.enrich(request);
   }
-  if (!ui || request.type === 'ENRICH_SOURCE_METADATA') throw new ArchiveError('FORBIDDEN');
+  if (!ui || ['ENRICH_SOURCE_METADATA','OBSERVE_SOURCE_STRUCTURE'].includes(request.type)) throw new ArchiveError('FORBIDDEN');
   if(['GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))await providerReady;
   if(['START_BOUNDED_ORGANIZER','STOP_BOUNDED_ORGANIZER','GET_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_STATUS','EDIT_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW','STOP_ORIGINAL_LIBRARY_VIEW','GET_ORIGINAL_ORGANIZER_STATUS'].includes(request.type))await originalReady;
   if(request.type.startsWith('PAIA_BACKUP_'))await backupReady;
@@ -302,12 +320,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       // Analytics observes only successful results. It cannot change authorization
       // or mutate the payload returned by handle().
       await productSignals.observe(request,data,sender).catch(()=>{});
-      const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:true;
+      const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:request.type==='OBSERVE_SOURCE_STRUCTURE'?false:true;
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
       sendResponse({ ok: true, data });
       if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);
       if(['PAIA_READER_CONFIGURE','PAIA_READER_CAPTURE_SCOPE'].includes(request.type))void chrome.runtime.sendMessage?.({type:'PAIA_READER_POLICY_CHANGED'}).catch(()=>{});
-      if(!localToolRequest(request.type)&&(!request.type.startsWith('IMPORT_')||['IMPORT_COMMIT','IMPORT_COMPLETE','IMPORT_RESOLVE_BRANCH'].includes(request.type))&&!['GET_ONBOARDING','SET_ONBOARDING'].includes(request.type)&&!request.type.startsWith('PAIA_MEMORY_')&&!request.type.startsWith('PAIA_INTEGRITY_')&&!request.type.startsWith('PAIA_BACKUP_')&&request.type!=='GET_BOUNDED_ORGANIZER'&&request.type!=='GET_AI_PRESENTATION_STATUS'&&request.type!=='GET_ORIGINAL_ORGANIZER_STATUS'&&request.type!=='GET_DEEPSEEK_STATUS'&&request.type!=='FILTER_DIAGNOSTICS'&&!['SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))void scheduleFilter({retry:['FILTER_RECOVER','FILTER_MODE'].includes(request.type)});
+      if(request.type!=='OBSERVE_SOURCE_STRUCTURE'&&!localToolRequest(request.type)&&(!request.type.startsWith('IMPORT_')||['IMPORT_COMMIT','IMPORT_COMPLETE','IMPORT_RESOLVE_BRANCH'].includes(request.type))&&!['GET_ONBOARDING','SET_ONBOARDING'].includes(request.type)&&!request.type.startsWith('PAIA_MEMORY_')&&!request.type.startsWith('PAIA_INTEGRITY_')&&!request.type.startsWith('PAIA_BACKUP_')&&request.type!=='GET_BOUNDED_ORGANIZER'&&request.type!=='GET_AI_PRESENTATION_STATUS'&&request.type!=='GET_ORIGINAL_ORGANIZER_STATUS'&&request.type!=='GET_DEEPSEEK_STATUS'&&request.type!=='FILTER_DIAGNOSTICS'&&!['SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))void scheduleFilter({retry:['FILTER_RECOVER','FILTER_MODE'].includes(request.type)});
       if(request.type!=='PURGE_SOURCE'&&archiveMutation&&!localToolRequest(request.type)&&!['PAIA_MEMORY_STATUS','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES'].includes(request.type)&&!request.type.startsWith('PAIA_INTEGRITY_')&&!['PAIA_BACKUP_BEGIN_EXPORT','PAIA_BACKUP_EXPORT_PAGE','PAIA_BACKUP_BEGIN_RESTORE','PAIA_BACKUP_STAGE','PAIA_BACKUP_PREVIEW','PAIA_BACKUP_CANCEL','GET_BOUNDED_ORGANIZER','GET_LIBRARY_REMOVED_TOPICS','GET_LIBRARY_RENAME_SUGGESTIONS','GET_LIBRARY_MERGE_SUGGESTIONS','GET_ORGANIZER_CONTROLS','GET_AI_PRESENTATION_REVISIONS','GET_AI_PRESENTATION_STATUS','GET_ORIGINAL_ORGANIZER_STATUS','GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK','LIBRARY_UPDATES','LIBRARY_ORGANIZER_JOBS','GET_LIBRARY_UNPLACED','GET_LIBRARY_PLACEMENT','LIBRARY_INDEX_PAGE','TOPIC_DOCUMENT_PAGE','GET_LIBRARY_TOPIC','GET_LIBRARY_ENTRY','GET_LIBRARY_PATHS','GET_LIBRARY_PROVENANCE','GET_LIBRARY_REMOVED','SEARCH_LIBRARY','GET_LIBRARY_LAYOUT','GET_LIBRARY_FOUNDATION_STATUS','GET_LIBRARY_DUAL_VIEW_STATUS','PREVIEW_AI_LIBRARY_UPDATE','FILTER_DIAGNOSTICS','FILTER_STATUS','FILTER_NOTICE','FILTER_RECENT','SEARCH_INPUTS','GET_INPUT','GET_IA_STATUS','GET_REVISIONS','GET_THOUGHTS','GET_THOUGHT','GET_STATUS','GET_STATE','GET_PAGE','GET_MIGRATION_STATUS','RESPONSE_POLL','RESPONSE_VIEW','RESPONSE_ARM','DIAGNOSTIC','GET_ONBOARDING','SET_ONBOARDING','IMPORT_LATEST','IMPORT_CANCEL','IMPORT_CAPABILITIES','IMPORT_TASKS','IMPORT_STATUS','IMPORT_BEGIN','IMPORT_PREFLIGHT','IMPORT_READY','IMPORT_PAUSE'].includes(request.type))notifyArchiveChanged(request.type);
     })
     .catch(error => sendResponse({ ok: false, ...(['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)?{phase:'message_handler'}:{}), error: typeof request?.type==='string' && request.type.startsWith('IMPORT_') ? safeImportError(error) : ['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)&&!(error instanceof ArchiveError)?'INTERNAL_RUNTIME_ERROR':safeErrorCode(error) }));
