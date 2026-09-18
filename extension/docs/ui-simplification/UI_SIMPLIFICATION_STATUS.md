@@ -382,7 +382,14 @@ Visual recovery before closure:
 - Strengthened source assertions to reproduce the bad projection before the fix, and strengthened Chrome assertions across locale/navigation changes to require no collapsed root organizer, one Settings AI owner, reachable bounded controls, and cancellation without a Provider request.
 - This is recovery within UIS-04, not a new round or reopening of the historical execution queue. Final closure requires a new exact-head complete certification run.
 
-Required next action within UIS-04: certify the exact recovery head and close only after every required gate passes.
+Additional reachability audit of the relocated owner found that the removed root-details toggle had also been the lazy local-status trigger. Without transferring that trigger, the existing single-pass `original-library-update` action could be absent even though batch actions remained reachable.
+
+- The existing Settings group activation and panel-visible lifecycle now notify the existing Thought workspace only when Settings AI is visible. The workspace reuses its bounded, cancellable-by-current-surface local status reads; no Provider action, authorization, request limit, polling interval, or durable state is added.
+- The same local status path remains available to an already-active bounded operation while Settings AI is visible. Leaving the surface makes pending status results ineligible; no Thought root organizer is restored.
+- A new source contract was proven RED before the lifecycle correction and GREEN afterward. The Chrome journey additionally requires the single-pass organizer action to become visible and enabled while Provider request count remains zero.
+- `45e1395e…` was an intermediate recovery candidate, not final closure. A fresh full certification is required on this completed recovery source.
+
+Required next action within UIS-04: certify the exact completed recovery head and close only after every required gate passes.
 
 ---
 

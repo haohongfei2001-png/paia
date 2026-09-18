@@ -69,14 +69,15 @@ function setupSettingsShell(){
  const layout=node('div','ux-settings-layout'),nav=node('nav','ux-settings-nav'),body=node('div','ux-settings-body');nav.setAttribute('aria-label',copy('设置分组','Settings groups'));const groups=new Map(),tabs=new Map();
  const groupEnglish={content:'Content & capture',reading:'Reading & appearance',ai:'AI',privacy:'Privacy & external use',data:'Data & devices',advanced:'Advanced'};
  const mobileSwitch=node('label','ux-settings-mobile-switch'),mobileSwitchLabel=node('span','',copy('当前分组','Current group')),mobileSelect=node('select');mobileSelect.id='ux-settings-group-switch';mobileSelect.setAttribute('aria-label',copy('切换设置分组','Switch settings group'));mobileSwitch.append(mobileSwitchLabel,mobileSelect);nav.append(mobileSwitch);
- const activateGroup=key=>{const section=groups.get(key);if(!section)return;for(const [group,item] of groups)item.hidden=group!==key;for(const [group,tab] of tabs)tab.setAttribute('aria-current',group===key?'page':'false');if(mobileSelect.value!==key)mobileSelect.value=key;};
+ const notifyOrganizerSettings=()=>{const group=groups.get('ai');if(group&&!panel.hidden&&!group.hidden)document.dispatchEvent(new CustomEvent('paia:organizer-settings-visible'));};
+ const activateGroup=key=>{const section=groups.get(key);if(!section)return;for(const [group,item] of groups)item.hidden=group!==key;for(const [group,tab] of tabs)tab.setAttribute('aria-current',group===key?'page':'false');if(mobileSelect.value!==key)mobileSelect.value=key;notifyOrganizerSettings();};
  for(const [key,zh] of SETTINGS_GROUPS){
   const label=language()==='zh-CN'?zh:groupEnglish[key],section=node('section','ux-settings-group'),h=node('h2','',label),tab=button(label),option=node('option','',label);section.dataset.group=key;section.id=`ux-settings-${key}-group`;section.hidden=key!=='content';h.id=`ux-settings-${key}-title`;section.setAttribute('aria-labelledby',h.id);section.append(h);groups.set(key,section);body.append(section);
   tab.dataset.settingsGroup=key;tab.setAttribute('aria-current',key==='content'?'page':'false');tab.setAttribute('aria-controls',section.id);tab.addEventListener('click',()=>activateGroup(key));tabs.set(key,tab);nav.append(tab);
   option.value=key;mobileSelect.append(option);
  }
  mobileSelect.value='content';mobileSelect.addEventListener('change',()=>activateGroup(mobileSelect.value));
- layout.append(nav,body);shell.append(head,layout);panel.prepend(shell);
+ layout.append(nav,body);shell.append(head,layout);panel.prepend(shell);new MutationObserver(notifyOrganizerSettings).observe(panel,{attributes:true,attributeFilter:['hidden']});
  const move=(target,key)=>{const el=typeof target==='string'?$(target):target;if(el&&groups.get(key))groups.get(key).append(el);};
  move('enabled-state','content');move('toggle-capture','content');move('smart-filter-settings','content');move('history-settings','content');
  move($('time-display')?.closest('.setting'),'reading');move($('time-emphasis')?.closest('.setting'),'reading');

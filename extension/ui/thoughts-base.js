@@ -68,7 +68,7 @@ export class ThoughtWorkspace {
  $('thought-empty-settings').removeAttribute('data-view');$('thought-empty-settings').textContent=tc('添加主题');$('thought-empty-settings').onclick=()=>this.createTopic();$('thought-empty').querySelector('p').textContent=tc('先留下几段表达，主题可以慢慢形成。');
  $('create-entry').textContent=tc('补充今天的想法');$('library-unplaced').textContent=tc('单独写下的想法');
  watchThoughtCopy();
- this.homePositions=new Map();window.addEventListener('scroll',()=>this.schedulePosition(),{passive:true});document.addEventListener('visibilitychange',()=>this.schedulePosition());this.mobileMedia=matchMedia('(max-width:799px)');this.mobileMedia.addEventListener('change',()=>this.updateMobileEditing());this.layout='grid';void request('GET_THOUGHT_LAYOUT').then(r=>{this.layout=r.layout;this.applyLayout();}).catch(()=>{});
+ document.addEventListener('paia:organizer-settings-visible',()=>this.queueOptionalStatus());this.homePositions=new Map();window.addEventListener('scroll',()=>this.schedulePosition(),{passive:true});document.addEventListener('visibilitychange',()=>this.schedulePosition());this.mobileMedia=matchMedia('(max-width:799px)');this.mobileMedia.addEventListener('change',()=>this.updateMobileEditing());this.layout='grid';void request('GET_THOUGHT_LAYOUT').then(r=>{this.layout=r.layout;this.applyLayout();}).catch(()=>{});
  $('library-dialog-close').addEventListener('click',productAction(()=>this.requestCloseDialog()));$('library-dialog').addEventListener('cancel',e=>{e.preventDefault();void this.requestCloseDialog();});
  }
  applyLayout(){$('thought-list').classList.toggle('topic-list-layout',this.layout==='list');}
@@ -143,7 +143,10 @@ export class ThoughtWorkspace {
  async mutate(run){if(this.mutating)return;this.mutating=true;this.setBusy(true);if(!await this.leave()){this.mutating=false;this.setBusy(false);return;}try{await run();this.cursor=null;this.pages=[];this.onStatus('更改已保存到本机');return true;}catch{showLocalFailure();return false;}finally{this.mutating=false;this.history=null;await this.refresh();this.setBusy(false);}}
  readKey(){return JSON.stringify([this.id,this.view,this.readingSort,this.cursor,this.id?$('topic-search').value.trim():$('thought-search').value.trim()]);}
  readFailure(){clearTimeout(this.refreshTimer);this.readFailed=true;this.readRetry.hidden=false;const retained=this.snapshotKey===this.readKey()&&(this.id?$('topic-body').children.length>0:$('thought-list').children.length>0);if(!retained&&!this.id)$('thought-empty').hidden=true;this.onStatus(libraryReadFailureText(retained),'read_error');}
+ organizerSettingsVisible(){const panel=$('settings-panel'),group=$('ux-settings-ai-group');return !!panel&&!panel.hidden&&!!group&&!group.hidden;}
  queueOptionalStatus(){
+  // Reuse the existing bounded local reads; opening Settings is not AI authorization.
+  if(this.organizerSettingsVisible()){void this.updateViewStatus({strict:false,isCurrent:()=>this.organizerSettingsVisible()}).catch(()=>{});return;}
   if(this.view==='original'&&!this.aiPending&&!this.originalPending&&!this.boundedPending){if(!this.id)$('library-unplaced').parentElement.hidden=!this.homePage?.page.entryCountHint;return;}
   const epoch=this.statusEpoch,route=this.id,key=this.readKey(),beforeView=this.view,beforeSort=this.readingSort;
   const current=()=>epoch===this.statusEpoch&&route===this.id&&key===this.readKey()&&!this.readFailed&&!$('thought-panel').hidden;

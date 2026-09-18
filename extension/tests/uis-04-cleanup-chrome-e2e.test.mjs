@@ -42,6 +42,9 @@ test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit an
 await page.locator('.ux-settings-nav [data-settings-group="ai"]').click();
 assert.equal(await page.locator('#ux-settings-ai-group #organizer-reading-actions').count(),1,'the existing organizer has one Settings AI owner');
 assert.equal(await page.locator('#organizer-reading-actions').isVisible(),true);
+await eventually(()=>page.locator('#original-library-update').isVisible(),'single-pass organizer is reachable after bounded local status loads');
+await eventually(()=>page.locator('#original-library-update').isEnabled(),'the available single-pass action is not left in an unknown-status disabled state');
+assert.equal(h.deepSeekRequests.length,0,'loading Settings organizer status is not authorization');
 await page.locator('#organizer-batch-actions > summary').click();
 assert.equal(await page.locator('#bounded-original-start').isVisible(),true);
 assert.equal(await page.locator('#bounded-ai-start').isVisible(),true);
