@@ -7,12 +7,14 @@
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
 - current_round: `ANS-05`
-- current_round_status: `READY`
-- execution_id: `NONE`
+- current_round_status: `IN_PROGRESS`
+- execution_id: `ANS05-20260919-exec01`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
-- canonical_head_at_execution_start: `NONE`
+- canonical_head_at_execution_start: `386fca6ede8079736d980ab7d69b9c4521b506a1`
+- candidate_branch: `ans/v1/ANS-05-20260919-exec01`
+- previous_receipt_read: `receipts/ANS-04.md`
 - ans04_execution_start_sha: `b0b3038a79e479314dfa8505cb8dbfb62fcf67d3`
 - ans04_implementation_commit: `54e6ddb3568a2c1431b0c1235854d20febf91371`
 - ans04_certified_head: `3ac136b694055dc2fb17613f4757dddbe4a527c3`
@@ -36,7 +38,7 @@
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。ANS-04 已完成：有界 body-free Navigator read model、分代索引/coverage/cursor、durable invalidation 与 lossless rebuild 已发布至 main，并在 exact runtime head `3ac136b6…` 通过 PAIA Certification #381 / run `35429870723` / attempt 1。ANS-05 仅推进为 READY；本 execution 不实现 ANS-05。
+本文件是本包唯一执行队列。ANS-04 已完成并认证；ANS-05 execution `ANS05-20260919-exec01` 已从远端 `main@386fca6ede8079736d980ab7d69b9c4521b506a1` 领取并进入 IN_PROGRESS。本 execution 只实现 ANS-05；ANS-06 保持 PLANNED。
 
 ## Round queue
 
@@ -46,7 +48,7 @@
 | ANS-02 | COMPLETE | ANS-01 COMPLETE | 来源关系/历史/生命周期、purge与Backup兼容基础 | implementation `6de0f4a5…` · certified/published `a9fd811a…` · candidate CI #366 attempt 3 success · main CI #367 attempt 2 success · `receipts/ANS-02.md` |
 | ANS-03 | COMPLETE | ANS-02 COMPLETE | adapter逐能力证据审核、可信source observation管线 | implementation `82c49a55…` · certified/published `2a4851ff…` · candidate CI #372 attempt 3 success · main CI #373 attempt 3 success · `receipts/ANS-03.md` |
 | ANS-04 | COMPLETE | ANS-03 COMPLETE | 有界Navigator读模型、索引/覆盖/游标/迁移 | implementation `54e6ddb3…` · certified/published `3ac136b6…` · main CI #381 success · `receipts/ANS-04.md` |
-| ANS-05 | READY | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | NOT_STARTED |
+| ANS-05 | IN_PROGRESS | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | execution `ANS05-20260919-exec01` · candidate `ans/v1/ANS-05-20260919-exec01` · runtime NOT_STARTED |
 | ANS-06 | PLANNED | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | NOT_STARTED |
 | ANS-07 | PLANNED | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | NOT_STARTED |
 | ANS-08 | PLANNED | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | NOT_STARTED |
@@ -61,7 +63,11 @@ ANS-03 只认证了现有 current-conversation identity / presence 的可信生�
 
 ## Current execution record
 
-ANS-04 execution `ANS04-20260919-exec01` 已完成。领取起点为 `main@b0b3038a79e479314dfa8505cb8dbfb62fcf67d3`，claim commit 为 `40afc703cc7953ada4516ce26e705b36da2579dd`。实现以 `54e6ddb3568a2c1431b0c1235854d20febf91371` 建立 bounded Navigator read model，并以 `df86ecf8bd64ae0ccb0a09505eaf0f2db5d8ae73` 补齐并发 writer / release parity 证据；最终 certified runtime head 为 `3ac136b694055dc2fb17613f4757dddbe4a527c3`。
+ANS-05 execution `ANS05-20260919-exec01` 从重新核验的 `main@386fca6ede8079736d980ab7d69b9c4521b506a1` 领取。已重新读取 `extension/AGENTS.md`、本包 `STATUS.md`、`EXECUTION_PROTOCOL.md`、`DEVELOPMENT_PLAN.md`、`VERIFICATION.md` 与 `README.md`；前轮 `receipts/ANS-04.md` 已读。当前 scope 仅为三层 Archive Navigator / Reader responsive workspace、current/deleted/unknown/unassigned 投影、跨 Window 安全切换与 source detail/history 展示；不实现 source-order setting/provider、Thought continuous reader、AI authorization 或正文数据模型变化。
+
+领取提交仅修改 STATUS；runtime 尚未开始。必须先消费 ANS-04 的 bounded query，使用既有 `leave/navigate`/Reader anchor/Source detail/version/material 路径，保留 dirty/composition/selection/save-failure 安全；移动端 sheet 必须有 focus trap/Esc/trigger restore，Project 首次折叠且 deep-link 只展开目标父 Project。完成 requirements/tests、runtime main publication、exact-head Certification、receipt/STATUS 更新与远端回读后停止，不进入 ANS-06。
+
+前轮记录（历史证据）：ANS-04 execution `ANS04-20260919-exec01` 已完成。领取起点为 `main@b0b3038a79e479314dfa8505cb8dbfb62fcf67d3`，claim commit 为 `40afc703cc7953ada4516ce26e705b36da2579dd`。实现以 `54e6ddb3568a2c1431b0c1235854d20febf91371` 建立 bounded Navigator read model，并以 `df86ecf8bd64ae0ccb0a09505eaf0f2db5d8ae73` 补齐并发 writer / release parity 证据；最终 certified runtime head 为 `3ac136b694055dc2fb17613f4757dddbe4a527c3`。
 
 本轮新增可重建、无正文的 Navigator projection/index，documents cold build 与 dirty reconciliation 每批最多 100 源对象，scope query 每页最多 40 item；coverage 区分 building/complete，cursor 绑定 scope hash + generation + mode，shadow generation 完成后才原子切 active generation，旧 cursor 明确 invalid。capture/import/title/exclusion/remove/restore/source structure/purge/Backup 等 durable writer 通过 transaction-level invalidation 使索引失效；清索引/重建不修改 Source/Input/Thought truth。
 
@@ -79,4 +85,4 @@ Certification 收口期间发现旧 ANS-01 与 UX-R5 焦点断言会受四路浏
 
 ## Next action
 
-下一次独立产品所有者/监督器 execution 可领取 `ANS-05`。开始时必须重新解析远端 main、读取本文件和 ANS-05 计划，并建立新的 execution ID / candidate branch；当前 ANS-04 execution 到此停止，不实现 ANS-05。
+继续当前 `ANS05-20260919-exec01`，只完成 ANS-05 runtime、验证、main publication、exact-head Certification 与 completion receipt。成功后仅将 ANS-06 置 READY 并停止；失败/中断保留本轮 IN_PROGRESS，不越过 gate。
