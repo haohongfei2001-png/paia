@@ -46,7 +46,8 @@ export class ThoughtWorkspace {
   this.updates=new LibraryUpdates(()=>this.refresh(),id=>this.openStandalone(id));
   this.onSettings=onSettings||(()=>{});this.onStatus=onStatus;this.onOpen=onOpen;this.onInput=onInput;this.id=null;this.cursor=null;this.editor=null;this.mode='stable';this.view='original';this.readingSort='asc';this.serial=0;this.pages=[];this.aiTopics=new Map();this.statusEpoch=0;this.statusReadSerial=0;this.statusUnavailable=['ai','original','controls','bounded','credential'];
   this.readRetry=button('重试读取思想库',()=>this.refresh());this.readRetry.id='library-read-retry';this.readRetry.hidden=true;$('error').after(this.readRetry);
-  $('ai-presentation-toggle').addEventListener('change',productAction(()=>this.switchView($('ai-presentation-toggle').checked?'ai':'original')));
+  const changeAIView=productAction(view=>this.switchView(view,{restoreFocus:true}));
+  $('ai-presentation-toggle').addEventListener('change',event=>changeAIView(event.currentTarget.checked?'ai':'original'));
   $('bounded-original-start').addEventListener('click',productAction(()=>this.startBounded('original')));$('bounded-ai-start').addEventListener('click',productAction(()=>this.startBounded('ai')));$('bounded-stop').addEventListener('click',productAction(()=>request('STOP_BOUNDED_ORGANIZER').then(()=>this.refresh())));
   $('ai-library-update').addEventListener('click',productAction(()=>this.previewAIUpdate()));$('ai-library-retry').addEventListener('click',productAction(()=>this.previewAIUpdate()));
   $('topic-merge-suggestions').addEventListener('click',productAction(()=>this.mergeSuggestions()));
