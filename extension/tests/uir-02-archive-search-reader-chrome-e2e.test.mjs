@@ -4,6 +4,7 @@ import {mkdir} from 'node:fs/promises';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
+import {openArchiveWindow,waitArchiveWindow} from './harness/archive-navigator.mjs';
 
 const execFileAsync=promisify(execFile);
 const rpc=async(page,type,fields={})=>{
@@ -39,7 +40,7 @@ async function prepare(h,label='UIR02_SOURCE'){
   });
   await eventually(async()=>(await h.state()).records.length>=3,'UIR-02 synthetic inputs captured');
   await page.bringToFront();
-  await eventually(()=>page.locator('.conversation-document').isVisible(),'Archive document row is visible');
+  await waitArchiveWindow(page,{label:'Archive document row is reachable'});
   return page;
 }
 
@@ -90,7 +91,7 @@ async function sourceJourney(page,h){
   assert.ok(archiveOverflow<=2,`Archive has no root horizontal overflow; got ${archiveOverflow}`);
   await shot(page,'uir-02-archive-1440x900-light');
 
-  await page.locator('.conversation-document').first().click();
+  await openArchiveWindow(page,{label:'Archive window opens through current navigation'});
   await eventually(()=>page.locator('#document-panel').isVisible(),'Reader opens from Archive');
   const shell=await page.locator('#document-page').boundingBox();
   const body=await page.locator('#document-body').boundingBox();
@@ -214,7 +215,7 @@ async function sourceJourney(page,h){
 async function releaseJourney(page,h){
   await page.setViewportSize({width:1440,height:900});
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN'}});
-  await eventually(()=>page.locator('.conversation-document').isVisible(),'built release Archive is usable');
+  await waitArchiveWindow(page,{label:'built release Archive is usable'});
   await shot(page,'uir-02-current-release-archive-1440x900-light');
   const input=await openSearch(page,'UIR02_TARGET');
   await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:true}});
