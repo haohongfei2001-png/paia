@@ -26,6 +26,7 @@ import {SafetyRunner} from '../core/thought-runner.js';
 import { ADAPTER_VERSION, ArchiveError, safeErrorCode } from '../core/constants.js';
 import { canonicalChat } from '../core/validation.js';
 import {SourceStructureStore} from '../core/source-structure-store.js';
+import {subjectRef,sourceStructureSnapshot} from '../core/source-structure-model.js';
 import {admitSourceStructureDTO,CHATGPT_SOURCE_STRUCTURE_POLICY} from '../core/source-structure-admission.js';
 import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from '../core/organizer/deepseek.js';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
@@ -139,6 +140,11 @@ async function handle(request, sender) {
   switch (request.type) {
     case 'PAIA_ARCHIVE_NAV_PAGE': return archiveNavigation.page(request.page);
     case 'PAIA_ARCHIVE_NAV_STATUS': return archiveNavigation.status(request.page);
+    case 'PAIA_ARCHIVE_SOURCE_DETAIL': {
+      if(Object.keys(request).some(key=>!['type','subject'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      const subject=subjectRef(request.subject),current=subject.kind==='conversation'?await sourceStructure.conversation(subject.conversationRef):await sourceStructure.project(subject.projectRef),history=await sourceStructure.history(subject,{limit:40});
+      return {subject,current:current?{...sourceStructureSnapshot(current),lastObservedAt:current.lastObservedAt,relationshipRevision:current.relationshipRevision}:null,history:history.items.map(row=>({observedAt:row.observedAt,change:[...row.change],after:structuredClone(row.after)})),hasMore:history.nextCursor!==null};
+    }
     case 'PAIA_PRODUCT_STATUS': return productSignals.status();
     case 'PAIA_PRODUCT_SETTINGS': return productSignals.settings(request.settings);
     case 'PAIA_PRODUCT_CLEAR': if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return productSignals.clear();

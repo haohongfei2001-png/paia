@@ -40,7 +40,7 @@ test('ANS-04 real Chrome: cold bounded navigation, worker restart, lossless Read
    await s.write(t=>t.put('meta',{...sequence,documents:sequence.documents+1001}));
    return keys.sort((a,b)=>a.key[0]-b.key[0]||(a.id<b.id?-1:a.id>b.id?1:0)).map(x=>x.id);
   },doc.id);
-  await guard(h);const options={providerKey:'chatgpt',groupKind:'unknown',selectedDocumentId:doc.id};
+  await guard(h);await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),{NAV_CATALOG}=await import('../core/read-projection-keys.js');const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();await s.repository.transaction(true,t=>t.delete('meta',NAV_CATALOG));});const options={providerKey:'chatgpt',groupKind:'unknown',selectedDocumentId:doc.id};
   const coldStart=performance.now(),cold=await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:options}),coldMs=performance.now()-coldStart;
   assert.equal(cold.coverage.state,'building');assert.deepEqual(cold.items,[]);assert.equal(cold.selectedPath.documentId,doc.id);assert.ok(coldMs<=1500);
   await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:options});
