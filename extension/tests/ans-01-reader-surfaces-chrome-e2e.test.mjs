@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
+import {openArchiveWindow,waitArchiveWindow} from './harness/archive-navigator.mjs';
 
 const op=()=>crypto.randomUUID();
 const rpc=async(page,type,fields={})=>{
@@ -20,8 +21,7 @@ async function consent(page){
 
 async function openReader(page){
   await page.locator('#primary-nav [data-view="library"]').click();
-  await eventually(()=>page.locator('.conversation-document').isVisible(),'ANS-01 Archive document appears');
-  await page.locator('.conversation-document').first().click();
+  await openArchiveWindow(page,{label:'ANS-01 Archive document appears'});
   await eventually(()=>page.locator('#input-time-toggle').isVisible(),'ANS-01 Reader opens');
 }
 
@@ -53,7 +53,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
       return state.records.length===3&&state.records.every(row=>!!row.sourceSentAt);
     },'ANS-01 source times are known');
     await p.bringToFront();
-    await eventually(()=>p.locator('.conversation-document').isVisible());
+    await waitArchiveWindow(p,{label:'ANS-01 Archive document appears'});
 
     assert.equal(await p.locator('#archive-select-materials').count(),0,'Archive root duplicate material launcher is removed');
     await openReader(p);
@@ -112,7 +112,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
     assert.equal(descBodies[0].includes('ANS01_THIRD'),true,'descending Reader places latest Input first');
 
     await p.reload();
-    await eventually(async()=>await p.locator('#input-time-toggle').isVisible()||await p.locator('.conversation-document').isVisible(),'reload restores a usable Archive route');
+    await eventually(async()=>await p.locator('#input-time-toggle').isVisible()||await p.locator('#archive-navigator').isVisible()||await p.locator('.conversation-document').first().isVisible().catch(()=>false),'reload restores a usable Archive route');
     if(!await p.locator('#input-time-toggle').isVisible())await openReader(p);
     await eventually(async()=>await p.locator('#input-time-toggle').getAttribute('data-current-sort')==='desc','desc persists across reload');
 
@@ -146,8 +146,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
       const state=await h.state(),row=state.records.find(r=>r.sourceMessageId==='ans01-unknown-message');return row&&row.sourceSentAt===null;
     },'unknown source time remains unknown instead of borrowing capture time');
     await p.bringToFront();await p.locator('#primary-nav [data-view="library"]').click();
-    await eventually(()=>p.locator('.conversation-document').filter({hasText:'ANS-01 unknown time'}).isVisible(),'unknown-time document appears');
-    await p.locator('.conversation-document').filter({hasText:'ANS-01 unknown time'}).click();
+    await openArchiveWindow(p,{text:'ANS-01 unknown time',label:'unknown-time document appears'});
     await eventually(async()=>(await p.locator('#document-title').textContent()).includes('ANS-01 unknown time'),'unknown-time Reader opens');
     await eventually(async()=>await p.locator('.block-time').count()===1,'unknown-time document replaces the prior Reader body');
     assert.match(await p.locator('.block-time').first().textContent(),/未知/,'unknown source time has an honest visible label');
