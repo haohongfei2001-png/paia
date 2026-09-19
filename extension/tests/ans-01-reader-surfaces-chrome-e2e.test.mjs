@@ -116,6 +116,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
     if(!await p.locator('#input-time-toggle').isVisible())await openReader(p);
     await eventually(async()=>await p.locator('#input-time-toggle').getAttribute('data-current-sort')==='desc','desc persists across reload');
 
+    await p.bringToFront();
     await p.locator('#input-time-toggle').focus();
     await eventually(async()=>await p.evaluate(()=>document.activeElement?.id)==='input-time-toggle','keyboard sort toggle receives focus');
     await p.keyboard.press('Enter');
