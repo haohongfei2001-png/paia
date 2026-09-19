@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
+import {openArchiveWindow,waitArchiveWindow} from './harness/archive-navigator.mjs';
 
 const op=()=>crypto.randomUUID();
 const rpc=async(page,type,fields={})=>{
@@ -66,10 +67,10 @@ test('UIS-02 search is page-scoped across Archive, Reader, Thought root/topic an
     await eventually(async()=>await page.locator('#document-list .search-input').count()===1,'Archive root search finds the other document');
     assert.match(await page.locator('#document-list').innerText(),/UIS02_DOC_B_TARGET/);
     await page.locator('#search').fill('');
-    await eventually(async()=>await page.locator('#document-list .conversation-document').count()===2,'clearing Archive root search restores browse list');
+    await waitArchiveWindow(page,{label:'clearing Archive root search restores browse navigation'});
 
     // One Archive document: current-document search uses documentId and never leaks another document.
-    await page.locator('#document-list .conversation-document').filter({hasText:'UIS02 文档甲'}).click();
+    await openArchiveWindow(page,{text:'UIS02 文档甲',label:'UIS02 文档甲 is reachable from current Archive navigation'});
     await eventually(()=>page.locator('#document-search').isVisible(),'Archive Reader exposes its scoped search');
     await expectSingleSearch(page,'document-search','Archive document');
     await page.evaluate(()=>{globalThis.__uis02SearchRequests=[];const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async message=>{if(message?.type==='SEARCH_INPUTS')globalThis.__uis02SearchRequests.push(structuredClone(message.options));return send(message);};});
