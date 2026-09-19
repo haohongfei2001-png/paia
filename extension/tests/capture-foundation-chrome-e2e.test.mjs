@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {FakeChatGPT,conversation,eventually,pause} from './harness/fake-chatgpt.mjs';
+import {openArchiveWindow} from './harness/archive-navigator.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(r.ok,true);return r.data;};
 async function consent(h){
@@ -27,8 +28,7 @@ async function journey(extensionPath){
   assert.equal(before.find(r=>r.sourceMessageId===a.messages[0].id).originalText,a.messages[0].text);
   assert.equal(new Set(before.map(r=>r.sourceKey)).size,3,'same-text different source IDs stay distinct');
   assert.ok(before.every(r=>!r.originalText.includes('FAKE_')),'assistant and draft content never enter archive');
-  await eventually(()=>h.archive.locator('.conversation-document').first().isVisible());
-  await h.archive.locator('.conversation-document').first().click();await eventually(()=>h.archive.locator('#document-panel').isVisible());
+  await openArchiveWindow(h.archive,{label:'capture foundation Archive window is reachable'});await eventually(()=>h.archive.locator('#document-panel').isVisible());
   assert.match(await h.archive.locator('#document-body').textContent(),/时间未知/);
   // Metadata arrives after a canonical message has left the virtualized DOM.
   await p.evaluate(id=>document.querySelector(`[data-message-id="${id}"]`).remove(),a.messages[0].id);
