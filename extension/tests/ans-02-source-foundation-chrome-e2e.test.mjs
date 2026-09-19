@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {openArchiveWindow} from './harness/archive-navigator.mjs';
 
 const rpc=async(page,type,fields={})=>{
  const response=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});
@@ -13,8 +14,8 @@ async function consent(page){
  const skip=page.locator('#onboarding-skip');if(await skip.isVisible().catch(()=>false))await skip.click();
 }
 async function openReader(page){
- await page.locator('#primary-nav [data-view="library"]').click();await eventually(()=>page.locator('.conversation-document').isVisible(),'ANS-02 Archive document appears');
- await page.locator('.conversation-document').first().click();await eventually(async()=>await page.locator('.library-block').count()>0&&await page.locator('.library-block').first().isVisible(),'ANS-02 Reader opens');
+ await page.locator('#primary-nav [data-view="library"]').click();await openArchiveWindow(page,{label:'ANS-02 Archive document appears'});
+ await eventually(async()=>await page.locator('.library-block').count()>0&&await page.locator('.library-block').first().isVisible(),'ANS-02 Reader opens');
 }
 
 test('ANS-02 trusted source metadata survives restart and Backup restore while edited Input/source truth remains unchanged',{timeout:240000},async()=>{
@@ -64,7 +65,7 @@ test('ANS-02 trusted source metadata survives restart and Backup restore while e
    return {current:await structure.conversation(conv),history:history.items,snapshot:{records:snapshot.records.map(r=>[r.id,r.sourceKey,r.originalText,r.contentHash]),working:snapshot.library.blocks.map(x=>[x.id,x.libraryText,x.revision])}};
   },persisted.items);
   assert.deepEqual(restored.snapshot.records,setup.original);assert.deepEqual(restored.snapshot.working,setup.working);assert.equal(restored.current.sourceStatus,'confirmed_deleted');assert.equal(restored.history.length,3);assert.ok(restored.history.every(e=>e.evidence.channel==='restored'));
-  await p.reload();await eventually(async()=>await p.locator('.conversation-document').count()>0||await p.locator('.library-block').count()>0,'ANS-02 UI recovers after worker restart');if(!await p.locator('.library-block').count())await openReader(p);
+  await p.reload();await eventually(async()=>await p.locator('.library-block').count()>0||await p.locator('#archive-navigator').isVisible()||await p.locator('.conversation-document').first().isVisible().catch(()=>false),'ANS-02 UI recovers after worker restart');if(!await p.locator('.library-block').count())await openReader(p);
   assert.equal(await p.locator('.library-prose').filter({hasText:'ANS02_BROWSER_WORKING_EDIT'}).count(),1);
   await mkdir('work/ans-02',{recursive:true});await p.screenshot({path:'work/ans-02/source-foundation-reader.png',fullPage:false});
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
