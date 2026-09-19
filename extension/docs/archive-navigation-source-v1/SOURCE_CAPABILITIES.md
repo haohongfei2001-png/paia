@@ -62,3 +62,30 @@ R6/R7完成要求可用可信证据的通用模型、同步/移动/删除保留�
 
 没有可靠metadata时使用unknown/last-known；没有可靠顺序时使用PAIA；没有可靠删除事实时不标deleted。这些已由本包用户要求允许。
 真正需要block的是：要改来源身份、放松原文/删除/授权保护、读凭据、主动全账户抓取、增加新正文库或改变本包产品范围。此时只停止受影响round并写canonical blocker，不私自把它标COMPLETE。
+
+
+## 7. ANS-03 completion as-of — 2026-09-19
+
+Certified runtime head: `2a4851ffd9ab734b90802aee58f3306f3ebdf85a`.
+Production contract: `chatgpt.current-conversation-presence` v1.
+
+| Capability | As-of state | Certified production behavior |
+|---|---|---|
+| conversationIdentity | verified | Current canonical ChatGPT conversation route can emit a body-free identity/presence observation only for the matching archived Source |
+| projectIdentity | unverified / unavailable | No live typed Project ID contract certified |
+| projectName | unverified / unavailable | No live Project name contract certified |
+| membership | unverified / unavailable | No explicit live conversation↔Project relation certified |
+| projectOrder | unverified / unavailable | No complete-scope/rank live ordering contract certified |
+| windowOrder | unverified / unavailable | No complete-scope/rank live ordering contract certified |
+| rename | unverified / unavailable | Generic synthetic transition only |
+| move | unverified / unavailable | Generic synthetic transition only |
+| conversationDeletion | unverified / unavailable | Generic synthetic confirmed-deletion path only; no real deletion performed |
+| projectDeletion | unverified / unavailable | No live deletion contract certified |
+
+For Project/order/delete capability discovery in ANS-03, the compliant live target status was `LIVE_TARGET_UNAVAILABLE`. The implementation therefore keeps those production capabilities unavailable instead of guessing endpoint fields, DOM selectors or semantics.
+
+Synthetic fixtures certify the validator/reconciler safety path, including Project A→B, rename, deletion/reappearance and complete-order admission, but **do not** certify ChatGPT real-site support.
+
+The production path remains passive and bounded: no new manifest permission or host, no active source enumeration request, no credential/header/cookie/token access, no assistant/draft/body persistence, no new provider capture, and no AI request. Current-route observation reuses consent/enabled/epoch/route gates and requires the Source to already exist before durable metadata enrichment.
+
+Certification evidence: candidate PAIA Certification #372 / run `35407564216` / attempt 3 success; main PAIA Certification #373 / run `35411623422` / attempt 3 success, both at exact runtime head `2a4851ffd9ab734b90802aee58f3306f3ebdf85a`.
