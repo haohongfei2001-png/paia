@@ -11,7 +11,7 @@ import {repairTopicCompatibility,validTopicGeneration} from './topic-compatibili
 import {journal,nextSequence} from './thought-journal.js';
 import {queueSearch,searchBatch,rebuildBatch,searchLibrary} from './library-search.js';
 import {startLayout,layoutBatch,reorderPlacement} from './library-layout.js';
-import {advanceThoughtRootIndex,syncThoughtRootTopic,thoughtRootIndexPage} from './thought-read-index.js';
+import {syncThoughtRootTopic,thoughtRootIndexPage} from './thought-read-index.js';
 const limitOK=n=>Number.isInteger(n)&&n>0&&n<=100;
 const bytes=x=>new TextEncoder().encode(JSON.stringify(x)).length;
 export class LibraryDocumentsStore extends LibraryFoundationStore {
@@ -113,6 +113,6 @@ export class LibraryDocumentsStore extends LibraryFoundationStore {
  startLayout(r){return startLayout(this,r);}
  reorderPlacement(r){return reorderPlacement(this,r);}
  layoutStatus(id){return this.run(()=>this.repository.transaction(false,async t=>{const r=await t.get('organizerJobs',id);if(!r||r.kind!=='library_layout')fail();return {jobId:r.id,state:r.state==='complete'?'complete':this.libraryMaintenanceFailed?'paused':r.state,phase:r.phase};}));}
- async processLibraryMaintenance(){await this.ensureLibrarySearch();const root=await advanceThoughtRootIndex(this);if(root.pending)return root;const l=await layoutBatch(this);if(l.pending)return l;const c=await countBatch(this);if(c.pending)return c;const r=await rebuildBatch(this);if(r.pending)return r;return searchBatch(this);}
+ async processLibraryMaintenance(){await this.ensureLibrarySearch();const l=await layoutBatch(this);if(l.pending)return l;const c=await countBatch(this);if(c.pending)return c;const r=await rebuildBatch(this);if(r.pending)return r;return searchBatch(this);}
  async drainLibraryMaintenance(){for(;;){const r=await this.processLibraryMaintenance();if(!r.pending)return;await this.repository.checkpoint('library-maintenance-batch');}}
 }
