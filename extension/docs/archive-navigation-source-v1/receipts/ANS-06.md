@@ -109,6 +109,21 @@ The push-triggered Historical Browser Audit matrix is intentionally skipped by w
 - `SOURCE_CAPABILITIES.md` therefore requires no new verified-provider claim in this round.
 - Invalid/stale/partial/conflicting order state fails back to the existing PAIA comparator; no archive body or last-known source metadata is cleared and no network recovery is started.
 
+## P02 performance evidence
+
+After exact-head certification, the same certified runtime tree `8c3d40a367f4788bd22b7e121b2fb52951862680` was exercised in isolated headless Chrome with a temporary, non-committed probe:
+
+- synthetic source scope: **240 refs**
+- warmed source-order Navigator page samples: **30**
+- warmed source-order Navigator page p95: **55.03 ms** (required ≤500 ms)
+- local Archive-order preference switch samples: **30**
+- preference-switch p95: **25.99 ms** (required ≤500 ms)
+- external requests: **0**
+- extension active provider/source requests: **0**
+- DeepSeek requests: **0**
+
+The probe did not modify runtime source or the certified Git tree. Hard resource boundaries are separately enforced by the committed ANS-06 tests and implementation: ≤100 refs per source-order batch, ≤10,000 refs per scope, and incomplete generations never become active.
+
 ## Handoff
 
 ANS-06 is complete at certified runtime/test closure head `8c133a398fd025feef8d3142d46a6fff52e45ca2`, published on `main` and certified by PAIA Certification #389 attempt 1.
