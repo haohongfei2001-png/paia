@@ -55,10 +55,10 @@ export class ContinuousTopicReader{
     this.initialized=true;this.indexing=page?.indexing===true;this.coverage=page?.coverage||this.coverage;this.pageMeta=page||this.pageMeta;this.addSections(page?.sections);
     if(page?.sectionCursor!==undefined)this.sectionCursor=page.sectionCursor;
     const added=this.merge(page?.items||[],kind==='previous'?'previous':'next');addedTotal+=added;
-    this.nextCursor=page?.nextCursor??(kind==='previous'?this.nextCursor:null);
-    this.previousCursor=page?.previousCursor??(kind==='previous'?null:this.previousCursor);
+    if(kind==='initial'){this.nextCursor=page?.nextCursor??null;this.previousCursor=page?.previousCursor??null;}
+    else if(kind==='previous')this.previousCursor=page?.previousCursor??null;
+    else this.nextCursor=page?.nextCursor??null;
     if(kind==='initial'){
-      this.nextCursor=page?.nextCursor??null;this.previousCursor=page?.previousCursor??null;
       this.terminalPrevious=!this.previousCursor;this.terminalNext=!this.nextCursor&&!this.indexing;
       const target=this.anchorId&&this.index.get(this.anchorId);if(Number.isInteger(target))this.windowStart=clamp(Math.floor(target/this.chunk)*this.chunk-this.chunk,0,Math.max(0,this.items.length-this.windowSize));
     }else if(kind==='previous'){
