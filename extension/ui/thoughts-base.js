@@ -15,6 +15,7 @@ import {downloadParts} from './backup.js';
 import {AIReadingEditor} from './ai-presentation.js';
 import {LibraryUpdates} from './library-updates.js';
 import {ContinuousCollection,continuousItemKey} from './continuous-collection.js';
+import {ContinuousTopicReader} from './continuous-topic-reader.js';
 import {request,element,statusLabel} from './common.js';
 import {LibraryEntryEditor} from './library-entry-editor.js';
 import {AutosaveSession,RevisionSession,textOf} from './editor-primitives.js';
@@ -45,7 +46,7 @@ class DocumentSession {
 export class ThoughtWorkspace {
  constructor({onStatus,onOpen,onInput,onSettings}){
   this.updates=new LibraryUpdates(()=>this.refresh(),id=>this.openStandalone(id));
-  this.onSettings=onSettings||(()=>{});this.onStatus=onStatus;this.onOpen=onOpen;this.onInput=onInput;this.id=null;this.cursor=null;this.editor=null;this.mode='stable';this.view='original';this.readingSort='asc';this.serial=0;this.pages=[];this.aiTopics=new Map();this.statusEpoch=0;this.statusReadSerial=0;this.statusUnavailable=['ai','original','controls','bounded','credential'];this.homeCollection=null;this.unplacedCollection=null;this.homeDesiredCount=40;this.homeRestoring=false;
+  this.onSettings=onSettings||(()=>{});this.onStatus=onStatus;this.onOpen=onOpen;this.onInput=onInput;this.id=null;this.cursor=null;this.editor=null;this.mode='stable';this.view='original';this.readingSort='asc';this.serial=0;this.pages=[];this.aiTopics=new Map();this.statusEpoch=0;this.statusReadSerial=0;this.statusUnavailable=['ai','original','controls','bounded','credential'];this.homeCollection=null;this.unplacedCollection=null;this.homeDesiredCount=40;this.homeRestoring=false;this.topicReader=null;this.topicReaderInstalled=false;this.topicNavigationAnchor=null;this.topicNavigationSection=null;this.topicResetFromStart=false;
   this.readRetry=button('重试读取思想库',()=>this.refresh());this.readRetry.id='library-read-retry';this.readRetry.hidden=true;$('error').after(this.readRetry);
   const changeAIView=productAction(view=>this.switchView(view,{restoreFocus:true}));
   $('ai-presentation-toggle').addEventListener('change',event=>changeAIView(event.currentTarget.checked?'ai':'original'));
@@ -62,7 +63,7 @@ export class ThoughtWorkspace {
   $('library-unplaced').addEventListener('click',productAction(()=>this.unplaced()));$('create-entry').addEventListener('click',productAction(()=>this.createEntry()));
   document.addEventListener('click',event=>{for(const menu of document.querySelectorAll('.library-actions[open]'))if(!menu.contains(event.target))menu.open=false;});
   $('library-undo').addEventListener('click',()=>void this.editor?.entry.history());$('library-redo').addEventListener('click',()=>void this.editor?.entry.history(true));
-  $('topic-next').addEventListener('click',productAction(()=>this.page(true)));$('topic-previous').addEventListener('click',productAction(()=>this.page(false)));$('topic-sections-more').addEventListener('click',productAction(()=>this.moreSections()));
+  this.ensureTopicContinuous();
   $('library-removed-topics').addEventListener('click',productAction(()=>this.removedTopics()));$('library-removed').addEventListener('click',productAction(()=>this.removed()));$('library-rebuild-search').addEventListener('click',productAction(()=>this.checked('REBUILD_LIBRARY_SEARCH').then(()=>{$('library-maintenance-status').textContent='已请求更新本地搜索索引；搜索时会显示进度。';})));
   $('topic-menu').append(actionMenu('主题操作',[["管理结构",()=>this.createSection()],["合并主题",()=>this.mergeTopic()],["重命名",()=>this.renameTopic(this.id)],["删除主题",()=>this.deleteTopic(this.id)],["导出主题",()=>this.exportTopic(this.id)],[tc('选择本主题材料'),()=>this.selectTopicMaterials()]]));$('topic-menu').querySelector('button').id='topic-structure';$('topic-menu').querySelectorAll('button')[1].id='topic-merge';
  const homeMenu=actionMenu(tc('思想库更多'),[[tc('添加主题'),()=>this.createTopic()],[tc('列表 / 网格'),()=>this.toggleLayout()]]);$('thought-home-tools').append(homeMenu,button(tc('接着写'),()=>this.createStandalone()));
