@@ -91,13 +91,13 @@ async function invalidateForTimeMismatch(s,topicId){
 // Time-sorted Topic reading now pages a body-free generation projection.
 // Only the descriptor chunk selected for this response resolves canonical
 // Thought bodies, so a warm next chunk never rescans the entire Topic.
-export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionCursor=null,direction='next'}={}){
- if(!idOK(topicId)||!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||anchorId!==null&&!idOK(anchorId))fail();
+export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next'}={}){
+ if(!idOK(topicId)||!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||anchorId!==null&&!idOK(anchorId)||sectionId!==null&&!idOK(sectionId))fail();
  await s.finishFoundation();const needle=normalized(query.trim());
  if(cursor&&(cursor.topicId!==topicId||cursor.query!==needle||cursor.sort!==sort))return {cursorInvalid:true,items:[],tracked:[]};
  const descriptor=await thoughtTopicDescriptorPage(s,{
   topicId,sort,cursor:cursorView(cursor),limit,direction,
-  anchorId:anchorId||null,describe:descriptorReader(s)
+  anchorId:anchorId||null,sectionId:sectionId||null,describe:descriptorReader(s)
  });
  const tracked=trackedEntryIds.length?await s.trackedLibraryEntries({ids:trackedEntryIds}):[];
  const topic=await s.topic(topicId);
@@ -115,26 +115,27 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  if(placements.size!==descriptor.items.length)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
 
  const sectionIds=descriptor.items.map(d=>d.sectionId),candidateSections=await sectionRowsFor(s,topic,sectionIds),sectionById=new Map(candidateSections.map(row=>[row.sectionId,row]));
- const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false;
+ const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false,lastConsumedKey=null,payloadStopped=false;
  for(const d of descriptor.items){
   const p=placements.get(d.entryId),section=sectionById.get(d.sectionId);
-  if(!p||!section)continue;
-  let e;try{e=await s.readingEntry(d.entryId);}catch{continue;}
-  if(e.lifecycle!=='active')continue;
+  if(!p||!section){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  let e;try{e=await s.readingEntry(d.entryId);}catch{lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(e.lifecycle!=='active'){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   if((e.sourceSentAt||null)!==(d.sourceSentAt||null)||(e.capturedAt||null)!==(d.capturedAt||null)){timeMismatch=true;break;}
-  if(needle&&![e.body,e.title,e.note,section.title].some(value=>normalized(value).includes(needle)))continue;
+  if(needle&&![e.body,e.title,e.note,section.title].some(value=>normalized(value).includes(needle))){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   let entry={...e,effectiveTime:d.effectiveTime,timeBasis:d.timeBasis};
   if(bytes(entry)>128*1024)entry={id:e.id,revision:e.revision,large:true,title:e.title,bodyBytes:bytes(e.body),sourceSentAt:e.sourceSentAt||null,capturedAt:e.capturedAt||null,effectiveTime:d.effectiveTime,timeBasis:d.timeBasis,createdAt:e.createdAt,provenanceType:e.provenanceType};
   const item={placement:p,entry};
-  if(items.length&&size+bytes(item)>256*1024)break;
-  items.push(item);size+=bytes(item);
+  if(items.length&&size+bytes(item)>256*1024){payloadStopped=true;break;}
+  items.push(item);size+=bytes(item);lastConsumedKey=d._cursorKey||lastConsumedKey;
  }
  if(timeMismatch){await invalidateForTimeMismatch(s,topicId);return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};}
 
  const sectionPage=await topicSectionsPage(s,{topicId,cursor:sectionCursor,limit:100});
  if(sectionPage.cursorInvalid)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  const sectionMap=new Map(sectionPage.items.map(row=>[row.sectionId,row]));for(const row of candidateSections)sectionMap.set(row.sectionId,row);
- const nextCursor=wrapCursor(topic.id,needle,descriptor.nextCursor),previousCursor=wrapCursor(topic.id,needle,descriptor.previousCursor);
+ const limitedNext=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey}:descriptor.nextCursor;
+ const nextCursor=wrapCursor(topic.id,needle,limitedNext),previousCursor=wrapCursor(topic.id,needle,descriptor.previousCursor);
  return {
   currentCursor:cursor||null,
   sectionStarts:{},
