@@ -146,6 +146,7 @@ const topicSnapshot=meta=>({
  sourceCursor:meta?.sourceCursor??null,
  scanned:meta?.scanned||0,
  indexed:meta?.indexed||0,
+ activeCount:meta?.activeCount||0,
  timeRevision:meta?.timeRevision||0,
  complete:!!meta?.activeGeneration,
  building:!!meta?.buildingGeneration
