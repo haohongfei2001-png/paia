@@ -116,7 +116,8 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
 
  const sectionIds=descriptor.items.map(d=>d.sectionId),candidateSections=await sectionRowsFor(s,topic,sectionIds),sectionById=new Map(candidateSections.map(row=>[row.sectionId,row]));
  const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false,lastConsumedKey=null,payloadStopped=false;
- for(const d of descriptor.items){
+ const descriptorRows=direction==='prev'?[...descriptor.items].reverse():descriptor.items;
+ for(const d of descriptorRows){
   const p=placements.get(d.entryId),section=sectionById.get(d.sectionId);
   if(!p||!section){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   let e;try{e=await s.readingEntry(d.entryId);}catch{lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
@@ -125,17 +126,19 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   if(needle&&![e.body,e.title,e.note,section.title].some(value=>normalized(value).includes(needle))){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   let entry={...e,effectiveTime:d.effectiveTime,timeBasis:d.timeBasis};
   if(bytes(entry)>128*1024)entry={id:e.id,revision:e.revision,large:true,title:e.title,bodyBytes:bytes(e.body),sourceSentAt:e.sourceSentAt||null,capturedAt:e.capturedAt||null,effectiveTime:d.effectiveTime,timeBasis:d.timeBasis,createdAt:e.createdAt,provenanceType:e.provenanceType};
-  const item={placement:p,entry};
-  if(items.length&&size+bytes(item)>256*1024){payloadStopped=true;break;}
-  items.push(item);size+=bytes(item);lastConsumedKey=d._cursorKey||lastConsumedKey;
+  const item={placement:p,entry},itemBytes=bytes(item);
+  if(items.length&&size+itemBytes>256*1024){payloadStopped=true;break;}
+  items.push(item);size+=itemBytes;lastConsumedKey=d._cursorKey||lastConsumedKey;
  }
+ if(direction==='prev')items.reverse();
  if(timeMismatch){await invalidateForTimeMismatch(s,topicId);return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};}
 
  const sectionPage=await topicSectionsPage(s,{topicId,cursor:sectionCursor,limit:100});
  if(sectionPage.cursorInvalid)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  const sectionMap=new Map(sectionPage.items.map(row=>[row.sectionId,row]));for(const row of candidateSections)sectionMap.set(row.sectionId,row);
- const limitedNext=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey}:descriptor.nextCursor;
- const nextCursor=wrapCursor(topic.id,needle,limitedNext),previousCursor=wrapCursor(topic.id,needle,descriptor.previousCursor);
+ const boundary=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey}:null;
+ const limitedNext=direction==='next'&&boundary?boundary:descriptor.nextCursor,limitedPrevious=direction==='prev'&&boundary?boundary:descriptor.previousCursor;
+ const nextCursor=wrapCursor(topic.id,needle,limitedNext),previousCursor=wrapCursor(topic.id,needle,limitedPrevious);
  return {
   currentCursor:cursor||null,
   sectionStarts:{},
