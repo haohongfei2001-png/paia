@@ -1,11 +1,13 @@
 import {request} from './common.js';
 import {normalizeUXPreferences,resolveAppearance,resolveLanguage,validReturnTarget,SETTINGS_GROUPS} from './ux-r1-state.js';
+import {ArchiveOrderSettings} from './archive-order-settings.js';
 
 const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const FONT_PX={small:16,standard:17,large:19,xlarge:21};
 const WIDTH_PX={narrow:640,standard:680,wide:720};
 let uxPreferences=normalizeUXPreferences(),settingsReturn='library',recentTarget=null,revisitToken=0,lastRevisitKey='',preferenceBusy=false;
+const archiveOrderSettings=new ArchiveOrderSettings();
 
 function node(tag,className='',text=''){const el=document.createElement(tag);if(className)el.className=className;if(text)el.textContent=text;return el;}
 function button(text,className=''){const el=node('button',className,text);el.type='button';return el;}
@@ -84,6 +86,7 @@ function setupSettingsShell(){
  groups.get('reading').prepend(preferenceSelect('ux-font-size',copy('正文字号','Body text size'),[['small','16 px'],['standard','17 px'],['large','19 px'],['xlarge','21 px']],'fontSize'));
  groups.get('reading').prepend(preferenceSelect('ux-language',copy('界面语言','Interface language'),[['system',copy('跟随系统','Follow system')],['zh-CN','简体中文'],['en','English']],'language'));
  groups.get('reading').prepend(preferenceSelect('ux-appearance',copy('外观','Appearance'),[['system',copy('跟随系统','Follow system')],['light',copy('浅色','Light')],['dark',copy('深色','Dark')]],'appearance'));
+ groups.get('reading').append(archiveOrderSettings.element());
  for(const id of ['organizer-reading-actions','deepseek-settings','library-updates-drawer'])move(id,'ai');move(panel.querySelector('.library-updates-bar'),'ai');move('memory-settings','privacy');
  for(const id of ['backup-settings','r6-complete-export','r6-data-status','r6-source-records','manage-excluded','legacy-entry'])move(id,'data');if(!$('r6-source-records')){const sourceButton=[...panel.querySelectorAll('[data-view="archive"]')].find(el=>!el.closest('#primary-nav'));move(sourceButton,'data');}const syncFact=node('div','ux-capability-fact');syncFact.append(node('strong','',copy('设备同步','Device sync')),node('p','muted',copy('当前版本未提供设备同步。','Device sync is not available in this version.')));groups.get('data').append(syncFact);
  for(const id of ['library-management','product-diagnostics','diagnostics'])move(id,'advanced');const prune=$('prune-revisions');if(prune){move(prune.previousElementSibling,'advanced');move(prune,'advanced');}
@@ -114,7 +117,7 @@ function refreshHome(){const home=$('core-loop-home');if(!home)return;const visi
 function preserveInternalToolAccess(){const details=$('product-diagnostics');if(!details||$('core-loop-product-signals'))return;const link=node('a','core-loop-internal-link',copy('查看本机产品验证数据 / Passport','Local product validation / Passport'));link.id='core-loop-product-signals';link.href='product-signals.html';link.target='_blank';link.rel='noopener';details.append(link);}
 
 export function installCoreLoop(){
- if($('core-loop-home'))return;installStyles();setupShell();setupSettingsShell();tuneOnboarding();createHome();preserveInternalToolAccess();void loadPreferences();
+ if($('core-loop-home'))return;installStyles();setupShell();setupSettingsShell();tuneOnboarding();createHome();preserveInternalToolAccess();void loadPreferences();void archiveOrderSettings.load();
  const documentList=$('document-list'),collection=$('collection-panel'),revisitDialog=$('revisit-dialog');if(documentList)new MutationObserver(refreshHome).observe(documentList,{subtree:true,childList:true});if(collection)new MutationObserver(refreshHome).observe(collection,{attributes:true,attributeFilter:['hidden']});for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(()=>{applyLabels();refreshHome();}).observe(nav,{attributes:true,attributeFilter:['aria-current']});if(revisitDialog)revisitDialog.addEventListener('close',()=>{lastRevisitKey='';refreshHome();});$('search')?.addEventListener('input',refreshHome);chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type)){if(message.type==='ARCHIVE_CHANGED'&&!message.cause){lastRevisitKey='';refreshHome();return;}if(message.type==='PAIA_READER_POLICY_CHANGED'){recentTarget=null;$('core-loop-continue').disabled=true;$('core-loop-continue').querySelector('strong').textContent='';$('reader-resume')?.replaceChildren();if($('reader-resume'))delete $('reader-resume').dataset.signature;}lastRevisitKey='';void loadPreferences();refreshHome();}});const media=globalThis.matchMedia?.('(prefers-color-scheme: dark)');media?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});refreshHome();
 }
 

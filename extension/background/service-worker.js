@@ -28,6 +28,7 @@ import { canonicalChat } from '../core/validation.js';
 import {SourceStructureStore} from '../core/source-structure-store.js';
 import {subjectRef,sourceStructureSnapshot} from '../core/source-structure-model.js';
 import {admitSourceStructureDTO,CHATGPT_SOURCE_STRUCTURE_POLICY} from '../core/source-structure-admission.js';
+import {ArchiveOrderPreferenceService,SourceOrderRegistry,unavailableSourceOrderProvider} from '../core/source-ordering.js';
 import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from '../core/organizer/deepseek.js';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 
@@ -38,7 +39,9 @@ const revisit = new RevisitService(store);
 const readerState = new ReaderStateService(store);
 const sourceStructure = new SourceStructureStore(store);
 const archiveNavigation = new ArchiveNavigationQuery(store);
-// Empty production registry: no extraction is scheduled until a provider stage is approved.
+const archiveOrderPreference = new ArchiveOrderPreferenceService(store);
+const sourceOrderRegistry = new SourceOrderRegistry([['chatgpt',unavailableSourceOrderProvider('UNVERIFIED')]]);
+// ChatGPT source ordering remains unavailable until a live provider contract is certified.
 const organizer = new OrganizerRunner(store);
 // DeepSeek stays outside the generic production registry. Only the explicit
 // manual Organizer actions can invoke this provider through their typed DTOs.
@@ -140,6 +143,11 @@ async function handle(request, sender) {
   switch (request.type) {
     case 'PAIA_ARCHIVE_NAV_PAGE': return archiveNavigation.page(request.page);
     case 'PAIA_ARCHIVE_NAV_STATUS': return archiveNavigation.status(request.page);
+    case 'PAIA_ARCHIVE_ORDER_PREFERENCE': {
+      if(Object.keys(request).some(key=>!['type','mode'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      const preference=request.mode===undefined?await archiveOrderPreference.read():await archiveOrderPreference.write(request.mode);
+      return {...preference,providers:{chatgpt:sourceOrderRegistry.status('chatgpt')}};
+    }
     case 'PAIA_ARCHIVE_SOURCE_DETAIL': {
       if(Object.keys(request).some(key=>!['type','subject'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
       const subject=subjectRef(request.subject),current=subject.kind==='conversation'?await sourceStructure.conversation(subject.conversationRef):await sourceStructure.project(subject.projectRef),history=await sourceStructure.history(subject,{limit:40});
