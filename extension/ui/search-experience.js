@@ -51,3 +51,5 @@ queueMicrotask(installUniversalSearch);
 queueMicrotask(installRevisit);
 queueMicrotask(installCoreLoop);
 queueMicrotask(installUXR1ShellCoordinator);
+
+export function wireContinuousKeyboard(results,run){results.addEventListener('keydown',event=>{if(!['Enter',' '].includes(event.key))return;event.preventDefault();void Promise.resolve().then(run);});}
