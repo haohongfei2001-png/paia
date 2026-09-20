@@ -56,8 +56,15 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   await page.locator('#topic-outline>summary').click();const deepSection='ANS08 section 0011';await page.locator('#topic-section-nav').getByRole('button',{name:deepSection,exact:true}).click();
   await eventually(async()=>await page.locator('.topic-section').filter({hasText:deepSection}).count()===1,'deep section seek',20000);
 
-  const beforeSort=await visibleAnchor(page);assert.ok(beforeSort?.id);await page.locator('[data-reading-sort=desc]').click();
-  await eventually(async()=>await page.locator('#topic-body [data-entry-id="'+beforeSort.id+'"]').count()===1,'sort keeps content anchor',20000);
+  const beforeSort=await visibleAnchor(page);assert.ok(beforeSort?.id);
+  // Activate without Playwright scrolling the non-sticky toolbar into view first: the contract
+  // under test is the Topic Reader's sort transition, not an automation-induced navigation.
+  await page.locator('[data-reading-sort=desc]').evaluate(button=>button.click());
+  await eventually(async()=>{
+   const node=page.locator('#topic-body [data-entry-id="'+beforeSort.id+'"]');if(await node.count()!==1)return false;
+   const top=await node.evaluate(n=>n.getBoundingClientRect().top);
+   return Math.abs(top-beforeSort.top)<180;
+  },'sort retains visible anchor',20000);
   const afterSort=await page.locator('#topic-body [data-entry-id="'+beforeSort.id+'"]').evaluate(n=>({top:n.getBoundingClientRect().top}));assert.ok(Math.abs(afterSort.top-beforeSort.top)<180,'sort retains visible anchor');
 
   const beforeBack=await visibleAnchor(page);await page.locator('#back').click();await eventually(async()=>await page.locator('[data-topic-id="'+seed.topicId+'"]').count()===1,'back to root',20000);await page.locator('[data-topic-id="'+seed.topicId+'"]').click();

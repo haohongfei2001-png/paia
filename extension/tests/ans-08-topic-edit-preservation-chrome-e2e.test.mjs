@@ -41,6 +41,9 @@ test('ANS-08 Chrome windowing preserves dirty, IME, selection and bounded save/u
 
   await page.evaluate(()=>document.getElementById('topic-continuous-after').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})));
   await eventually(async()=>await page.evaluate(()=>window.ans08Edit.tracked.length>=2),'tracked batches over 100',20000);
+  // Tracking is the preflight; the bounded read/render happens afterwards. Wait for the actual
+  // protected layout so the assertion observes 120 clean rows plus off-window dirty/IME pins.
+  await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>120,'pinned rows materialize beyond the clean 120-row window',20000);
   const afterIme=await page.evaluate(({dirtyId,imeId,imeText})=>{const dirty=document.querySelector('[data-entry-id="'+dirtyId+'"]'),ime=document.querySelector('[data-entry-id="'+imeId+'"]'),sel=getSelection();return {dirtySame:dirty===window.ans08Nodes.dirty,imeSame:ime===window.ans08Nodes.ime,imeText:ime?.querySelector('[data-entry-field="body"]')?.textContent,focused:document.activeElement===ime?.querySelector('[data-entry-field="body"]'),caret:sel?.isCollapsed?sel.anchorOffset:null,expected:imeText,dom:document.querySelectorAll('#topic-body [data-entry-id]').length};},setup);
   assert.equal(afterIme.dirtySame,true);assert.equal(afterIme.imeSame,true);assert.equal(afterIme.imeText,setup.imeText);assert.equal(afterIme.focused,true);assert.equal(afterIme.caret,7);assert.ok(afterIme.dom>120,'pins may exceed the clean 120-row target rather than discard user work');
   const tracked1=await page.evaluate(()=>[...window.ans08Edit.tracked]);assert.ok(tracked1.some(n=>n===100));assert.ok(tracked1.some(n=>n>0&&n<=100));
