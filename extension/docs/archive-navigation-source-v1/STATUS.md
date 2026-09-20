@@ -7,11 +7,13 @@
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
 - current_round: `ANS-06`
-- current_round_status: `READY`
-- execution_id: `NONE (ANS-06 not claimed)`
+- current_round_status: `IN_PROGRESS`
+- execution_id: `ANS06-20260920-exec01`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
+- ans06_execution_start_sha: `c8e3e9f05415667a3fd26428caf167c556be7380`
+- ans06_candidate_branch: `ans/v1/ANS-06-20260920-exec01`
 - ans05_canonical_head_at_execution_start: `386fca6ede8079736d980ab7d69b9c4521b506a1`
 - ans05_candidate_branch: `ans/v1/ANS-05-20260919-exec01`
 - previous_receipt_read: `receipts/ANS-05.md`
@@ -43,7 +45,7 @@
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。ANS-05 execution `ANS05-20260919-exec01` 已完成、发布并通过 exact-head PAIA Certification #385 attempt 2；completion receipt 已发布。ANS-06 现仅为 READY，尚未领取、尚未开始实现。
+本文件是本包唯一执行队列。ANS-06 execution `ANS06-20260920-exec01` 已从 `main@c8e3e9f05415667a3fd26428caf167c556be7380` 正式领取；本轮严格只执行 source ordering providers / Settings / fallback / production UI integration。ANS-07 仍为 PLANNED。
 
 ## Round queue
 
@@ -54,7 +56,7 @@
 | ANS-03 | COMPLETE | ANS-02 COMPLETE | adapter逐能力证据审核、可信source observation管线 | implementation `82c49a55…` · certified/published `2a4851ff…` · candidate CI #372 attempt 3 success · main CI #373 attempt 3 success · `receipts/ANS-03.md` |
 | ANS-04 | COMPLETE | ANS-03 COMPLETE | 有界Navigator读模型、索引/覆盖/游标/迁移 | implementation `54e6ddb3…` · certified/published `3ac136b6…` · main CI #381 success · `receipts/ANS-04.md` |
 | ANS-05 | COMPLETE | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | implementation `dce0d578…` · certified/published `f4fbd204…` · main CI #385 attempt 2 success · Current Browser 57/57 · Full Suite 1177/1177 · `receipts/ANS-05.md` |
-| ANS-06 | READY | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | NOT_STARTED · not claimed |
+| ANS-06 | IN_PROGRESS | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | execution `ANS06-20260920-exec01` · start `c8e3e9f0…` · candidate `ans/v1/ANS-06-20260920-exec01` |
 | ANS-07 | PLANNED | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | NOT_STARTED |
 | ANS-08 | PLANNED | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | NOT_STARTED |
 | ANS-09 | PLANNED | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | NOT_STARTED |
@@ -68,7 +70,7 @@ ANS-03 只认证了现有 current-conversation identity / presence 的可信生�
 
 ## Current execution record
 
-No execution is currently active. ANS-05 execution `ANS05-20260919-exec01` is closed.
+ANS-06 execution `ANS06-20260920-exec01` is active. It was claimed from `main@c8e3e9f05415667a3fd26428caf167c556be7380`; candidate branch is `ans/v1/ANS-06-20260920-exec01`. ANS-05 is closed and its receipt was read before claim.
 
 ANS-05 was claimed from `main@386fca6ede8079736d980ab7d69b9c4521b506a1` at claim commit `74c53f9c9abc114766e3781c6cc1cf351e7178d8`. Core runtime implementation landed at `dce0d5784b375e8e7020a40f8183d57b1b633256`; certification-closure test routing changes produced exact certified head `f4fbd204518e7de8aea9ffd98fa0895a0b2ac6d7`.
 
@@ -90,4 +92,4 @@ Completion evidence is in `receipts/ANS-05.md`. The receipt commit and this STAT
 
 ## Next action
 
-**STOP after ANS-05 closure.** ANS-06 is READY only. A new execution must re-read remote `main`, this STATUS, the execution protocol, ANS-06 round contract and `receipts/ANS-05.md`, then explicitly claim ANS-06 in a separate one-round execution. This ANS-05 execution must not implement ANS-06.
+**EXECUTE ANS-06 ONLY.** Continue execution `ANS06-20260920-exec01` through implementation, required verification, exact-head PAIA Certification, receipt and canonical closure. Do not start ANS-07 in this execution.
