@@ -1,32 +1,153 @@
 import {prefix,fail,idOK} from '../thought-model.js';
 import {entryTime} from './topic-chronology.js';
-import {hashText} from '../dedupe.js';
+import {thoughtTopicDescriptorPage,invalidateThoughtTopicIndex} from '../thought-read-index.js';
+
 const normalized=value=>String(value||'').normalize('NFKC').toLocaleLowerCase();
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
-// The time order is a read projection. It never changes manual layout ranks.
-// Only lightweight ordered descriptors survive the scan; bodies are paginated.
-export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null}){
- if(!idOK(topicId)||!['asc','desc'].includes(sort)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>100||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id)))fail();
- await s.finishFoundation();const needle=normalized(query.trim());
- const scan=await s.run(()=>s.repository.transaction(false,async t=>{
-  const topic=await s.canonicalTopic(t,topicId),sections=await t.all('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0])),sectionMap=new Map(sections.map(x=>[x.sectionId,x]));
-  const generation=topic.activeLayoutGeneration,organizationRevision=topic.organizationRevision;
-  if(cursor&&(cursor.topicId!==topic.id||cursor.generation!==generation||cursor.organizationRevision!==organizationRevision||cursor.sort!==sort||cursor.query!==needle||!Number.isInteger(cursor.offset)||cursor.offset<0))return {cursorInvalid:true,topic};
-  const descriptors=[];for(const p of await t.all('placements','byTopicOrder',prefix([topic.id,generation,0]))){
-   let row;try{row=await s.readableEntry(t,p.entryId);}catch{continue;}if(row.lifecycle!=='active')continue;
-   if(needle&&![row.thoughtText,row.title,row.note,sectionMap.get(p.sectionId)?.title].some(v=>normalized(v).includes(needle)))continue;
-   const time=await entryTime(t,row.id),effectiveTime=time.sourceSentAt||time.capturedAt||row.createdAt||null;
-   descriptors.push({placement:p,time:{...time,effectiveTime,timeBasis:time.sourceSentAt?'source':time.capturedAt?'capture':'created'},value:Date.parse(effectiveTime)||0});
+const activePlacement=p=>p?.lifecycle==='active';
+const sectionCursorOK=(cursor,topic)=>!cursor||(cursor.topicId===topic.id&&cursor.generation===topic.activeLayoutGeneration&&cursor.organizationRevision===topic.organizationRevision);
+
+async function describePlacement(s,t,topic,p){
+ if(!activePlacement(p))return null;
+ const row=await t.get('thoughts',p.entryId);
+ if(!row||row.storageSchema!==2||row.lifecycle!=='active')return null;
+ const time=await entryTime(t,row.id),effectiveTime=time.sourceSentAt||time.capturedAt||row.createdAt||null;
+ return {
+  topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,
+  entryId:p.entryId,sectionId:p.sectionId,sectionRank:p.sectionRank,rank:p.rank,
+  placementRevision:p.revision,
+  ...time,effectiveTime,
+  timeBasis:time.sourceSentAt?'source':time.capturedAt?'capture':row.createdAt?'created':'unknown'
+ };
+}
+const descriptorReader=s=>(t,topic,p)=>describePlacement(s,t,topic,p);
+const cursorView=cursor=>cursor?{generation:cursor.generation,viewKey:cursor.viewKey,sort:cursor.sort,key:cursor.key}:null;
+const wrapCursor=(topicId,query,cursor)=>cursor?{topicId,query,...cursor}:null;
+
+export async function topicSectionsPage(s,{topicId,cursor=null,limit=100}={}){
+ if(!idOK(topicId)||!Number.isInteger(limit)||limit<1||limit>100)fail();
+ await s.finishFoundation();
+ return s.run(()=>s.repository.transaction(false,async t=>{
+  const topic=await s.canonicalTopic(t,topicId);
+  if(!sectionCursorOK(cursor,topic))return {cursorInvalid:true,topic,items:[],nextCursor:null};
+  const page=await t.rangePage('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),cursor?.key||null,limit),items=[];
+  for(const {value:raw} of page.rows){
+   const row=s.safeOrganization?await s.safeOrganization(t,'section',raw):raw;
+   if(row?.lifecycle==='active'&&!row.redirectTo)items.push(row);
   }
-  const direction=sort==='asc'?1:-1;descriptors.sort((a,b)=>String(sectionMap.get(a.placement.sectionId)?.rank||a.placement.sectionRank).localeCompare(String(sectionMap.get(b.placement.sectionId)?.rank||b.placement.sectionRank))||a.placement.sectionId.localeCompare(b.placement.sectionId)||direction*(a.value-b.value||a.placement.entryId.localeCompare(b.placement.entryId)));
-  return {topic,sections,descriptors,generation,organizationRevision};
+  return {
+   topic,items,
+   nextCursor:page.next?{topicId:topic.id,generation:topic.activeLayoutGeneration,organizationRevision:topic.organizationRevision,key:page.next}:null
+  };
  }));
- const tracked=[];for(const id of trackedEntryIds){try{const e=await s.entry(id);tracked.push({id,lifecycle:e.lifecycle,purged:e.staleReasons?.includes('source_purged')||false,revision:e.revision,fieldRevisions:e.fieldRevisions});}catch{tracked.push({id,lifecycle:'unavailable',purged:true});}}
- if(scan.cursorInvalid)return {...scan,tracked};
- const viewRevision=await hashText(JSON.stringify(scan.descriptors.map(d=>[d.placement.id,d.placement.sectionId,d.value])));
- if(cursor&&cursor.viewRevision!==viewRevision)return {cursorInvalid:true,topic:scan.topic,tracked};
- let offset=anchorId?Math.max(0,scan.descriptors.findIndex(d=>d.placement.entryId===anchorId)):cursor?.offset||0,size=bytes(scan.topic)+bytes(scan.sections);const items=[],startOffset=offset;
- while(offset<scan.descriptors.length&&items.length<limit){const d=scan.descriptors[offset];let e;try{e=await s.entry(d.placement.entryId);}catch{offset++;continue;}if(e.lifecycle!=='active'){offset++;continue;}let entry={...s.documentEntry(e),...d.time,createdAt:e.createdAt,provenanceType:e.provenanceType};if(bytes(entry)>128*1024)entry={id:e.id,revision:e.revision,large:true,title:e.title,bodyBytes:bytes(e.body),...d.time};const item={placement:d.placement,entry};if(items.length&&size+bytes(item)>256*1024)break;items.push(item);size+=bytes(item);offset++;}
- const sectionStarts={};scan.descriptors.forEach((d,i)=>{sectionStarts[d.placement.sectionId]??={topicId:scan.topic.id,generation:scan.generation,organizationRevision:scan.organizationRevision,viewRevision,sort,query:needle,offset:i};});
- return {currentCursor:startOffset?{topicId:scan.topic.id,generation:scan.generation,organizationRevision:scan.organizationRevision,viewRevision,sort,query:needle,offset:startOffset}:null,sectionStarts,topic:scan.topic,sections:scan.sections,sectionCursor:null,items,tracked,matchCount:scan.descriptors.length,sort,query:needle,nextCursor:offset<scan.descriptors.length?{topicId:scan.topic.id,generation:scan.generation,organizationRevision:scan.organizationRevision,viewRevision,sort,query:needle,offset}:null};
+}
+
+export async function topicAdjacency(s,{topicId,kind,id,direction,sectionId=null}={}){
+ if(!idOK(topicId)||!idOK(id)||!['section','entry'].includes(kind)||!['up','down'].includes(direction)||kind==='entry'&&!idOK(sectionId))fail();
+ await s.finishFoundation();
+ return s.run(()=>s.repository.transaction(false,async t=>{
+  const topic=await s.canonicalTopic(t,topicId);
+  const store=kind==='section'?'sections':'placements',index=kind==='section'?'byTopicOrder':'bySectionOrder';
+  const range=kind==='section'?prefix([topic.id,topic.activeLayoutGeneration,0]):prefix([topic.id,topic.activeLayoutGeneration,sectionId,0]);
+  let cursor=null,previous=null,found=false,scanned=0;
+  for(let batches=0;batches<100;batches++){
+   const page=await t.rangePage(store,index,range,cursor,100);
+   for(const {value:raw} of page.rows){
+    scanned++;
+    const active=raw?.lifecycle==='active'&&!raw.redirectTo;
+    if(!active)continue;
+    const currentId=kind==='section'?raw.sectionId:raw.entryId;
+    if(found)return {id:currentId,boundary:false,scanned};
+    if(currentId===id){
+     if(direction==='up')return {id:previous,boundary:previous===null,scanned};
+     found=true;continue;
+    }
+    previous=currentId;
+   }
+   if(!page.next)break;cursor=page.next;
+  }
+  if(found&&direction==='down')return {id:null,boundary:true,scanned};
+  return {id:null,boundary:true,missing:true,scanned};
+ }));
+}
+
+async function sectionRowsFor(s,topic,ids){
+ const unique=[...new Set(ids.filter(Boolean))],out=[];
+ if(!unique.length)return out;
+ return s.run(()=>s.repository.transaction(false,async t=>{
+  for(const id of unique){
+   const raw=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,id]));
+   const row=raw&&(s.safeOrganization?await s.safeOrganization(t,'section',raw):raw);
+   if(row?.lifecycle==='active'&&!row.redirectTo)out.push(row);
+  }
+  return out;
+ }));
+}
+
+async function invalidateForTimeMismatch(s,topicId){
+ await s.run(()=>s.repository.transaction(true,t=>invalidateThoughtTopicIndex(s,t,topicId,{sourceTime:true})));
+}
+
+// Time-sorted Topic reading now pages a body-free generation projection.
+// Only the descriptor chunk selected for this response resolves canonical
+// Thought bodies, so a warm next chunk never rescans the entire Topic.
+export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next'}={}){
+ if(!idOK(topicId)||!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||anchorId!==null&&!idOK(anchorId)||sectionId!==null&&!idOK(sectionId))fail();
+ await s.finishFoundation();const needle=normalized(query.trim());
+ if(cursor&&(cursor.topicId!==topicId||cursor.query!==needle||cursor.sort!==sort))return {cursorInvalid:true,items:[],tracked:[]};
+ const descriptor=await thoughtTopicDescriptorPage(s,{
+  topicId,sort,cursor:cursorView(cursor),limit,direction,
+  anchorId:anchorId||null,sectionId:sectionId||null,describe:descriptorReader(s)
+ });
+ const tracked=trackedEntryIds.length?await s.trackedLibraryEntries({ids:trackedEntryIds}):[];
+ const topic=await s.topic(topicId);
+ if(descriptor.cursorInvalid)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(descriptor.indexing)return {topic,tracked,items:[],sort,query:needle,indexing:true,coverage:descriptor.coverage,operations:descriptor.operations,nextCursor:null,previousCursor:null,sections:[],sectionCursor:null,matchCount:null};
+
+ const placements=await s.run(()=>s.repository.transaction(false,async t=>{
+  const rows=new Map();
+  for(const d of descriptor.items){
+   const p=await t.get('placements',JSON.stringify([topic.id,topic.activeLayoutGeneration,d.entryId]));
+   if(activePlacement(p)&&p.revision===d.placementRevision)rows.set(d.entryId,p);
+  }
+  return rows;
+ }));
+ if(placements.size!==descriptor.items.length)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+
+ const sectionIds=descriptor.items.map(d=>d.sectionId),candidateSections=await sectionRowsFor(s,topic,sectionIds),sectionById=new Map(candidateSections.map(row=>[row.sectionId,row]));
+ const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false,lastConsumedKey=null,payloadStopped=false;
+ const descriptorRows=direction==='prev'?[...descriptor.items].reverse():descriptor.items;
+ for(const d of descriptorRows){
+  const p=placements.get(d.entryId),section=sectionById.get(d.sectionId);
+  if(!p||!section){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  let e;try{e=await s.readingEntry(d.entryId);}catch{lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(e.lifecycle!=='active'){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if((e.sourceSentAt||null)!==(d.sourceSentAt||null)||(e.capturedAt||null)!==(d.capturedAt||null)){timeMismatch=true;break;}
+  if(needle&&![e.body,e.title,e.note,section.title].some(value=>normalized(value).includes(needle))){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  let entry={...e,effectiveTime:d.effectiveTime,timeBasis:d.timeBasis};
+  if(bytes(entry)>128*1024)entry={id:e.id,revision:e.revision,large:true,title:e.title,bodyBytes:bytes(e.body),sourceSentAt:e.sourceSentAt||null,capturedAt:e.capturedAt||null,effectiveTime:d.effectiveTime,timeBasis:d.timeBasis,createdAt:e.createdAt,provenanceType:e.provenanceType};
+  const item={placement:p,entry},itemBytes=bytes(item);
+  if(items.length&&size+itemBytes>256*1024){payloadStopped=true;break;}
+  items.push(item);size+=itemBytes;lastConsumedKey=d._cursorKey||lastConsumedKey;
+ }
+ if(direction==='prev')items.reverse();
+ if(timeMismatch){await invalidateForTimeMismatch(s,topicId);return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};}
+
+ const sectionPage=await topicSectionsPage(s,{topicId,cursor:sectionCursor,limit:100});
+ if(sectionPage.cursorInvalid)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ const sectionMap=new Map(sectionPage.items.map(row=>[row.sectionId,row]));for(const row of candidateSections)sectionMap.set(row.sectionId,row);
+ const boundary=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey}:null;
+ const limitedNext=direction==='next'&&boundary?boundary:descriptor.nextCursor,limitedPrevious=direction==='prev'&&boundary?boundary:descriptor.previousCursor;
+ const nextCursor=wrapCursor(topic.id,needle,limitedNext),previousCursor=wrapCursor(topic.id,needle,limitedPrevious);
+ return {
+  currentCursor:cursor||null,
+  sectionStarts:{},
+  topic,sections:[...sectionMap.values()],sectionCursor:sectionPage.nextCursor,
+  items,tracked,sort,query:needle,
+  matchCount:needle?null:(descriptor.coverage?.activeCount??null),
+  nextCursor,previousCursor,
+  complete:descriptor.complete,
+  coverage:descriptor.coverage,
+  operations:descriptor.operations
+ };
 }

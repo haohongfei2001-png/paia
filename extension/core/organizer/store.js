@@ -1,6 +1,7 @@
 import {recoverAIDraft} from './ai-draft.js';
 import {changeTopicContainer,removedTopics} from '../topic-governance.js';
-import {topicReadingPage} from './topic-reading.js';
+import {topicReadingPage,topicSectionsPage,topicAdjacency} from './topic-reading.js';
+import {importedTimeChanged} from '../import/library-integration.js';
 import {topicMergeSuggestions,keepTopicsSeparate,topicRenameSuggestions} from './topic-quality.js';
 import {entryTime,ensureTopicChronology} from './topic-chronology.js';
 import {organizerControls,setOrganizerControls} from './controls.js';
@@ -43,6 +44,9 @@ export class OrganizerStore extends LibraryDocumentsStore {
   // an IndexedDB failure. This performs no provider call or persistent write.
   reject('STALE_BASE');
  }
+ async afterSourceTimeChanged(t,recordId){return importedTimeChanged(this,t,recordId);}
+ async topicSectionsPage(o={}){return topicSectionsPage(this,o);}
+ async topicAdjacency(o={}){return topicAdjacency(this,o);}
  async topicDocumentPage(o={}){
   const view=o.view??'original';if(!['original','ai'].includes(view))reject('INVALID_OUTPUT');
   if(view==='original'&&!o.sort)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort?await topicReadingPage(this,o):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;

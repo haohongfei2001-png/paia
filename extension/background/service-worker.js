@@ -246,6 +246,9 @@ async function handle(request, sender) {
     }
     case 'LIBRARY_INDEX_PAGE': return store.libraryIndexPage(request.options);
     case 'TOPIC_DOCUMENT_PAGE': return store.topicDocumentPage(request.options);
+    case 'GET_LIBRARY_TRACKED_ENTRIES': return store.trackedLibraryEntries(request.options);
+    case 'GET_LIBRARY_TOPIC_SECTIONS': return store.topicSectionsPage(request.options);
+    case 'GET_LIBRARY_TOPIC_ADJACENCY': return store.topicAdjacency(request.options);
     case 'GET_LIBRARY_TOPIC': return store.topic(request.id);
     case 'THOUGHT_POSITION': return store.topicPosition(request.position);
     case 'THOUGHT_EDIT_HISTORY': return store.thoughtEditHistory(request.edit);
@@ -326,7 +329,7 @@ const libraryRunner=new LibraryRunner(store);
 // Original Organizer is cost-gated: capture, startup, timers, and rerenders may
 // maintain local state but can never dispatch its remote provider.
 const scheduleFilter=(options)=>{void safety.wake(options);void libraryRunner.wake(options);return runner.wake(options);};
-const localToolRequest=type=>type.startsWith('PAIA_ARCHIVE_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','COMPARE_THOUGHT_INPUT'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
+const localToolRequest=type=>type.startsWith('PAIA_ARCHIVE_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
 runtime.onStartup?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 runtime.onInstalled?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 // Startup may reconcile an unknown prior outcome, but it never dispatches Original.
