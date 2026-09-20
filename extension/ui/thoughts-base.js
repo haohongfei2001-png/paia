@@ -38,6 +38,7 @@ class DocumentSession {
  constructor(entry,metadata){this.entry=entry;this.metadata=metadata;}
  collect(){this.entry.collect();this.metadata.forEach(m=>m.collect());}
  dirty(){return this.entry.dirty()||this.metadata.some(m=>m.dirty());}
+ protectedSectionIds(){const ids=new Set(),active=document.activeElement;for(const m of this.metadata){if(m.kind!=='section')continue;if(m.dirty()||m.composing||m.saving||m.failed||m.conflicted||m.root.contains(active))ids.add(m.row.sectionId);}return ids;}
  get saving(){return this.entry.saving||this.metadata.some(m=>m.saving);}
  set failed(v){this.entry.failed=v;this.metadata.forEach(m=>m.failed=v);}
  async flush(){for(const m of this.metadata)if(!await m.flush())return false;return this.entry.flush();}
