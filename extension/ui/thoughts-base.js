@@ -244,7 +244,7 @@ export class ThoughtWorkspace {
    const state=await stateRead;if(serial!==this.serial)return false;if(!state)throw {code:'MESSAGE_CHANNEL_INTERRUPTED'};
    if(!$('topic-heading').children.length)$('topic-heading').append(element('h1','',topic.name));
    if(this.editor&&!await this.checkAllTracked(serial))return false;
-   const cached=this.aiTopics.get(this.id)?.presentation;$('topic-toolbar').hidden=false;$('create-entry').hidden=true;$('topic-continuous-before').hidden=true;$('topic-continuous-after').hidden=true;
+   const cached=this.aiTopics.get(this.id)?.presentation;this.originalPane.hidden=!!cached;this.aiPane.hidden=false;$('topic-toolbar').hidden=false;$('create-entry').hidden=true;$('topic-continuous-before').hidden=true;$('topic-continuous-after').hidden=true;
    if(this.aiEditor){await this.aiEditor.refreshEvidence?.();if(serial!==this.serial)return false;}
    if(this.aiEditor&&cached&&(this.aiEditor.dirty()||this.aiEditor.saving||this.aiEditor.row.revision>=cached.revision)){this.filterAIReading();return true;}
    const signature=JSON.stringify(cached||this.aiTopics.get(this.id)?.userDraft||null);if(!cached&&this.aiSignature===signature){this.filterAIReading();return true;}
