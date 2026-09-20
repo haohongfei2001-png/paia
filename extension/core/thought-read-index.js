@@ -280,7 +280,7 @@ export async function thoughtTopicDescriptorPage(store,{topicId,sort='asc',curso
   return {rows:anchor?[{key:start,value:anchor},...page.rows]:page.rows,next:page.next};
  }));
  operations.descriptorRowsRead+=data.rows.length;
- const items=data.rows.map(x=>x.value),firstKey=data.rows[0]?.key||null,lastKey=data.rows.at(-1)?.key||null;
+ const items=data.rows.map(x=>({...x.value,_cursorKey:x.key})),firstKey=data.rows[0]?.key||null,lastKey=data.rows.at(-1)?.key||null;
  let nextCursor=null,previousCursor=null;
  if(direction==='next'){
   if(data.next&&lastKey)nextCursor={generation:meta.activeGeneration,viewKey:meta.activeKey,sort,key:lastKey};
