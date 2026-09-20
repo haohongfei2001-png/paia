@@ -7,11 +7,14 @@
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
 - current_round: `ANS-07`
-- current_round_status: `READY`
-- execution_id: `NONE (ANS-07 not claimed)`
+- current_round_status: `IN_PROGRESS`
+- execution_id: `ANS07-20260920-exec01`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
+- ans07_execution_start_sha: `833ad67a64002ac1ce80ba6584b3a6ef7cdfccf2`
+- ans07_candidate_branch: `ans/v1/ANS-07-20260920-exec01`
+- previous_receipt_read: `receipts/ANS-06.md`
 - ans06_execution_start_sha: `c8e3e9f05415667a3fd26428caf167c556be7380`
 - ans06_candidate_branch: `ans/v1/ANS-06-20260920-exec01`
 - ans06_claim_commit: `ae319c2b9886ce7636a014d6d2bcc649678a04ff`
@@ -51,7 +54,7 @@
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。ANS-06 execution `ANS06-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #389 attempt 1；completion receipt 已发布。ANS-07 现仅为 READY，尚未领取、尚未开始实现。
+本文件是本包唯一执行队列。ANS-06 execution `ANS06-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #389 attempt 1；completion receipt 已发布。ANS-07 execution `ANS07-20260920-exec01` 已从 `main@833ad67a64002ac1ce80ba6584b3a6ef7cdfccf2` 领取并进入 IN_PROGRESS。
 
 ## Round queue
 
@@ -63,7 +66,7 @@
 | ANS-04 | COMPLETE | ANS-03 COMPLETE | 有界Navigator读模型、索引/覆盖/游标/迁移 | implementation `54e6ddb3…` · certified/published `3ac136b6…` · main CI #381 success · `receipts/ANS-04.md` |
 | ANS-05 | COMPLETE | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | implementation `dce0d578…` · certified/published `f4fbd204…` · main CI #385 attempt 2 success · Current Browser 57/57 · Full Suite 1177/1177 · `receipts/ANS-05.md` |
 | ANS-06 | COMPLETE | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | implementation `682b2920…` · certified/published `8c133a39…` · main CI #389 success · Current Browser 58/58 · Full Suite 1184/1184 · `receipts/ANS-06.md` |
-| ANS-07 | READY | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | NOT_STARTED · not claimed |
+| ANS-07 | IN_PROGRESS | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | execution `ANS07-20260920-exec01` · claimed |
 | ANS-08 | PLANNED | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | NOT_STARTED |
 | ANS-09 | PLANNED | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | NOT_STARTED |
 
@@ -76,7 +79,7 @@ ANS-03 只认证了现有 current-conversation identity / presence 的可信生�
 
 ## Current execution record
 
-No execution is currently active. ANS-06 execution `ANS06-20260920-exec01` is closed.
+ANS-07 execution `ANS07-20260920-exec01` is active. Start main: `833ad67a64002ac1ce80ba6584b3a6ef7cdfccf2`; candidate branch: `ans/v1/ANS-07-20260920-exec01`; previous receipt read: `receipts/ANS-06.md`.
 
 ANS-06 was claimed from `main@c8e3e9f05415667a3fd26428caf167c556be7380` at claim commit `ae319c2b9886ce7636a014d6d2bcc649678a04ff`; candidate branch is `ans/v1/ANS-06-20260920-exec01`. Feature publication landed at `682b2920c0695c98000ff3da8548469aff8ed98e`; the final certified runtime/test head is `8c133a398fd025feef8d3142d46a6fff52e45ca2` with tree `8c3d40a367f4788bd22b7e121b2fb52951862680`, byte-identical to the locally validated runtime tree.
 
@@ -98,4 +101,4 @@ Completion evidence is in `receipts/ANS-06.md`, published at docs-only receipt c
 
 ## Next action
 
-**STOP after ANS-06 closure.** ANS-07 is READY only. A new execution must re-read remote `main`, this STATUS, the execution protocol, ANS-07 round contract and `receipts/ANS-06.md`, then explicitly claim ANS-07 in a separate one-round execution. This ANS-06 execution must not implement ANS-07.
+**Execute ANS-07 only.** Implement the Thought Library root continuous collection contract, certify the exact runtime head, publish the completion receipt, mark only ANS-08 READY, then STOP. Do not implement ANS-08 in this execution.
