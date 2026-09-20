@@ -45,17 +45,17 @@ export class ContinuousTopicReader{
  }
  async _load(kind){
   const direction=kind==='previous'?'prev':'next',serial=this.serial,flag=kind==='previous'?'loadingPrevious':'loadingNext',errorKey=kind==='previous'?'errorPrevious':'errorNext';
-  this[flag]=true;this[errorKey]=null;let empty=0,addedTotal=0;
+  this[flag]=true;this[errorKey]=null;let empty=0,addedTotal=0,initialPass=true;
   try{
    do{
-    const cursor=kind==='initial'?null:kind==='previous'?this.previousCursor:this.nextCursor;
-    const page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,cursor,direction,anchorId:kind==='initial'?this.anchorId:null,sectionId:kind==='initial'?this.sectionId:null,sectionCursor:this.sectionCursor});
+    const cursor=kind==='initial'?(initialPass?null:this.nextCursor):kind==='previous'?this.previousCursor:this.nextCursor;
+    const page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,cursor,direction,anchorId:kind==='initial'&&initialPass?this.anchorId:null,sectionId:kind==='initial'&&initialPass?this.sectionId:null,sectionCursor:this.sectionCursor});
     if(serial!==this.serial)return {...this.state(),stale:true};
     if(page?.cursorInvalid){this.stale=true;return this.state();}
     this.initialized=true;this.indexing=page?.indexing===true;this.coverage=page?.coverage||this.coverage;this.pageMeta=page||this.pageMeta;this.addSections(page?.sections);
     if(page?.sectionCursor!==undefined)this.sectionCursor=page.sectionCursor;
     const added=this.merge(page?.items||[],kind==='previous'?'previous':'next');addedTotal+=added;
-    if(kind==='initial'){this.nextCursor=page?.nextCursor??null;this.previousCursor=page?.previousCursor??null;}
+    if(kind==='initial'){this.nextCursor=page?.nextCursor??null;if(initialPass)this.previousCursor=page?.previousCursor??null;}
     else if(kind==='previous')this.previousCursor=page?.previousCursor??null;
     else this.nextCursor=page?.nextCursor??null;
     if(kind==='initial'){
@@ -68,6 +68,7 @@ export class ContinuousTopicReader{
       this.terminalNext=!page?.nextCursor&&!this.indexing;
       if(added&&this.items.length>this.windowSize)this.windowStart=Math.max(0,this.items.length-this.windowSize);
     }
+    initialPass=false;
     if(added||this.indexing||kind==='previous'&&!this.previousCursor||kind!=='previous'&&!this.nextCursor)break;
     empty++;if(empty>=this.maxEmptyLoads)break;
    }while(true);
