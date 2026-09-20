@@ -108,5 +108,9 @@ export class ContinuousTopicReader{
   const index=this.index.get(id);if(!Number.isInteger(index))return false;
   this.windowStart=clamp(Math.floor(index/this.chunk)*this.chunk-this.chunk,0,Math.max(0,this.items.length-this.windowSize));return true;
  }
+ shiftWindow(direction){
+  if(!['previous','next'].includes(direction))return false;const maxStart=Math.max(0,this.items.length-this.windowSize),delta=direction==='previous'?-this.chunk:this.chunk,next=clamp(this.windowStart+delta,0,maxStart);
+  if(next===this.windowStart)return false;this.windowStart=next;return true;
+ }
 };
 export const topicReaderItemKey=itemKey;
