@@ -84,7 +84,7 @@ export class IndexedArchiveStore {
     const prior=await t.get('times',key);const s={records,sourceTimes:prior?{[key]:prior.value}:{}};
     const changed=applySourceTime(s,key,m.sourceTime,m.pageOrder,this.clock(),records,m.domTime);timeChanged||=changed;
     if(s.sourceTimes[key])await t.put('times',{id:key,value:s.sourceTimes[key]});
-    let recordsChanged=false;for(const {r,index}of selected){const old=await t.get('records',r.id);if(!old||!same(old.value,r)){recordsChanged=true;await this.saveRecord(t,r,index);const doc=await this.defaultBlock(t,r,seq);if(doc)docs.add(doc);for(const b of await t.all('blockIndex','byRecord',r.id))docs.add(b.documentId);for(const d of await t.all('documents','byChat',chatOf(r)))docs.add(d.id);}}
+    let recordsChanged=false;for(const {r,index}of selected){const old=await t.get('records',r.id),sourceTimeChanged=!!old&&old.value.sourceSentAt!==r.sourceSentAt;if(!old||!same(old.value,r)){recordsChanged=true;await this.saveRecord(t,r,index);if(sourceTimeChanged&&this.afterSourceTimeChanged)await this.afterSourceTimeChanged(t,r.id);const doc=await this.defaultBlock(t,r,seq);if(doc)docs.add(doc);for(const b of await t.all('blockIndex','byRecord',r.id))docs.add(b.documentId);for(const d of await t.all('documents','byChat',chatOf(r)))docs.add(d.id);}}
     processedSources++;if(records.at(-1).sourceSentAt)knownTimes++;else unknownTimes++;
     if(enrich&&(changed||recordsChanged))enriched+=records.length;
    }
