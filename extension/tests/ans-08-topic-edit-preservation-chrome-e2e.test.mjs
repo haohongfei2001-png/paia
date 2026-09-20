@@ -34,10 +34,10 @@ test('ANS-08 Chrome windowing preserves dirty, IME, selection and bounded save/u
   const setup=await page.evaluate(()=>{
    const nodes=[...document.querySelectorAll('#topic-body [data-entry-id]')],dirty=[],ime=nodes[5],selection=nodes[45];window.ans08Nodes={dirty:nodes[0],ime,selection};
    for(let i=0;i<100;i++){if(i===5||i===45)continue;const field=nodes[i].querySelector('[data-entry-field="body"]');field.textContent=field.textContent+' DIRTY_'+String(i).padStart(3,'0');field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:'x'}));dirty.push(nodes[i].dataset.entryId);}
-   window.ans08Edit.failEdits=true;const imeField=ime.querySelector('[data-entry-field="body"]');imeField.focus();imeField.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));imeField.textContent='ANS08 IME 未提交草稿';const text=imeField.firstChild||imeField.appendChild(document.createTextNode(''));const range=document.createRange();range.setStart(text,Math.min(7,text.length));range.collapse(true);getSelection().removeAllRanges();getSelection().addRange(range);
-   return {dirtyIds:dirty,dirtyId:nodes[0].dataset.entryId,imeId:ime.dataset.entryId,selectionId:selection.dataset.entryId,imeText:imeField.textContent};
+   window.ans08Edit.failEdits=true;return {dirtyIds:dirty,dirtyId:nodes[0].dataset.entryId,imeId:ime.dataset.entryId,selectionId:selection.dataset.entryId,imeText:'ANS08 IME 未提交草稿'};
   });
   await pause(1000);await eventually(async()=>await page.evaluate(()=>window.ans08Edit.failedBatchSizes.length>0),'synthetic save failure',10000);
+  await page.evaluate(({imeId,imeText})=>{const ime=document.querySelector('[data-entry-id="'+imeId+'"]'),imeField=ime.querySelector('[data-entry-field="body"]');window.ans08Nodes.ime=ime;imeField.focus();imeField.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));imeField.textContent=imeText;const text=imeField.firstChild||imeField.appendChild(document.createTextNode(''));const range=document.createRange();range.setStart(text,Math.min(7,text.length));range.collapse(true);getSelection().removeAllRanges();getSelection().addRange(range);},setup);
 
   await page.evaluate(()=>document.getElementById('topic-continuous-after').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})));
   await eventually(async()=>await page.evaluate(()=>window.ans08Edit.tracked.length>=2),'tracked batches over 100',20000);
