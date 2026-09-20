@@ -6,19 +6,24 @@
 - package_status: `IN_PROGRESS`
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
-- current_round: `ANS-05`
-- current_round_status: `IN_PROGRESS`
-- execution_id: `ANS05-20260919-exec01`
+- current_round: `ANS-06`
+- current_round_status: `READY`
+- execution_id: `NONE (ANS-06 not claimed)`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
-- canonical_head_at_execution_start: `386fca6ede8079736d980ab7d69b9c4521b506a1`
-- candidate_branch: `ans/v1/ANS-05-20260919-exec01`
-- previous_receipt_read: `receipts/ANS-04.md`
+- ans05_canonical_head_at_execution_start: `386fca6ede8079736d980ab7d69b9c4521b506a1`
+- ans05_candidate_branch: `ans/v1/ANS-05-20260919-exec01`
+- previous_receipt_read: `receipts/ANS-05.md`
 - ans04_execution_start_sha: `b0b3038a79e479314dfa8505cb8dbfb62fcf67d3`
 - ans04_implementation_commit: `54e6ddb3568a2c1431b0c1235854d20febf91371`
 - ans04_certified_head: `3ac136b694055dc2fb17613f4757dddbe4a527c3`
 - ans04_main_certification: `PAIA Certification #381 / run 35429870723 / attempt 1 / success / head 3ac136b694055dc2fb17613f4757dddbe4a527c3`
+- ans05_claim_commit: `74c53f9c9abc114766e3781c6cc1cf351e7178d8`
+- ans05_implementation_commit: `dce0d5784b375e8e7020a40f8183d57b1b633256`
+- ans05_certified_head: `f4fbd204518e7de8aea9ffd98fa0895a0b2ac6d7`
+- ans05_main_certification: `PAIA Certification #385 / run 35451076737 / attempt 2 / success / head f4fbd204518e7de8aea9ffd98fa0895a0b2ac6d7`
+- ans05_receipt: `receipts/ANS-05.md`
 - completed_ans01_branch: `ans/v1/ANS-01-20260918-1845`
 - ans01_implementation_commit: `7947c869ccffcbda9d2a0a77fdafbb498b4eb0d5`
 - ans01_certified_head: `91941891ecb4002690312959677e9975f590c0c1`
@@ -38,7 +43,7 @@
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。ANS-04 已完成并认证；ANS-05 execution `ANS05-20260919-exec01` 已从远端 `main@386fca6ede8079736d980ab7d69b9c4521b506a1` 领取并进入 IN_PROGRESS。本 execution 只实现 ANS-05；ANS-06 保持 PLANNED。
+本文件是本包唯一执行队列。ANS-05 execution `ANS05-20260919-exec01` 已完成、发布并通过 exact-head PAIA Certification #385 attempt 2；completion receipt 已发布。ANS-06 现仅为 READY，尚未领取、尚未开始实现。
 
 ## Round queue
 
@@ -48,8 +53,8 @@
 | ANS-02 | COMPLETE | ANS-01 COMPLETE | 来源关系/历史/生命周期、purge与Backup兼容基础 | implementation `6de0f4a5…` · certified/published `a9fd811a…` · candidate CI #366 attempt 3 success · main CI #367 attempt 2 success · `receipts/ANS-02.md` |
 | ANS-03 | COMPLETE | ANS-02 COMPLETE | adapter逐能力证据审核、可信source observation管线 | implementation `82c49a55…` · certified/published `2a4851ff…` · candidate CI #372 attempt 3 success · main CI #373 attempt 3 success · `receipts/ANS-03.md` |
 | ANS-04 | COMPLETE | ANS-03 COMPLETE | 有界Navigator读模型、索引/覆盖/游标/迁移 | implementation `54e6ddb3…` · certified/published `3ac136b6…` · main CI #381 success · `receipts/ANS-04.md` |
-| ANS-05 | IN_PROGRESS | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | execution `ANS05-20260919-exec01` · candidate `ans/v1/ANS-05-20260919-exec01` · runtime NOT_STARTED |
-| ANS-06 | PLANNED | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | NOT_STARTED |
+| ANS-05 | COMPLETE | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | implementation `dce0d578…` · certified/published `f4fbd204…` · main CI #385 attempt 2 success · Current Browser 57/57 · Full Suite 1177/1177 · `receipts/ANS-05.md` |
+| ANS-06 | READY | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | NOT_STARTED · not claimed |
 | ANS-07 | PLANNED | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | NOT_STARTED |
 | ANS-08 | PLANNED | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | NOT_STARTED |
 | ANS-09 | PLANNED | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | NOT_STARTED |
@@ -63,19 +68,19 @@ ANS-03 只认证了现有 current-conversation identity / presence 的可信生�
 
 ## Current execution record
 
-ANS-05 execution `ANS05-20260919-exec01` 从重新核验的 `main@386fca6ede8079736d980ab7d69b9c4521b506a1` 领取。已重新读取 `extension/AGENTS.md`、本包 `STATUS.md`、`EXECUTION_PROTOCOL.md`、`DEVELOPMENT_PLAN.md`、`VERIFICATION.md` 与 `README.md`；前轮 `receipts/ANS-04.md` 已读。当前 scope 仅为三层 Archive Navigator / Reader responsive workspace、current/deleted/unknown/unassigned 投影、跨 Window 安全切换与 source detail/history 展示；不实现 source-order setting/provider、Thought continuous reader、AI authorization 或正文数据模型变化。
+No execution is currently active. ANS-05 execution `ANS05-20260919-exec01` is closed.
 
-领取提交仅修改 STATUS；runtime 尚未开始。必须先消费 ANS-04 的 bounded query，使用既有 `leave/navigate`/Reader anchor/Source detail/version/material 路径，保留 dirty/composition/selection/save-failure 安全；移动端 sheet 必须有 focus trap/Esc/trigger restore，Project 首次折叠且 deep-link 只展开目标父 Project。完成 requirements/tests、runtime main publication、exact-head Certification、receipt/STATUS 更新与远端回读后停止，不进入 ANS-06。
+ANS-05 was claimed from `main@386fca6ede8079736d980ab7d69b9c4521b506a1` at claim commit `74c53f9c9abc114766e3781c6cc1cf351e7178d8`. Core runtime implementation landed at `dce0d5784b375e8e7020a40f8183d57b1b633256`; certification-closure test routing changes produced exact certified head `f4fbd204518e7de8aea9ffd98fa0895a0b2ac6d7`.
 
-前轮记录（历史证据）：ANS-04 execution `ANS04-20260919-exec01` 已完成。领取起点为 `main@b0b3038a79e479314dfa8505cb8dbfb62fcf67d3`，claim commit 为 `40afc703cc7953ada4516ce26e705b36da2579dd`。实现以 `54e6ddb3568a2c1431b0c1235854d20febf91371` 建立 bounded Navigator read model，并以 `df86ecf8bd64ae0ccb0a09505eaf0f2db5d8ae73` 补齐并发 writer / release parity 证据；最终 certified runtime head 为 `3ac136b694055dc2fb17613f4757dddbe4a527c3`。
+Delivered scope is the three-level Source → Project → Window Archive Navigator / Reader responsive workspace, current/deleted/unknown/unassigned projections, safe cross-window switching, source detail/history, bounded paging and mobile sheet accessibility. It consumes the ANS-04 bounded read model and preserves the existing dirty/composition/selection/save-failure safety path.
 
-本轮新增可重建、无正文的 Navigator projection/index，documents cold build 与 dirty reconciliation 每批最多 100 源对象，scope query 每页最多 40 item；coverage 区分 building/complete，cursor 绑定 scope hash + generation + mode，shadow generation 完成后才原子切 active generation，旧 cursor 明确 invalid。capture/import/title/exclusion/remove/restore/source structure/purge/Backup 等 durable writer 通过 transaction-level invalidation 使索引失效；清索引/重建不修改 Source/Input/Thought truth。
+PAIA Certification #385 / run `35451076737` / attempt 2 completed success on exact head `f4fbd204518e7de8aea9ffd98fa0895a0b2ac6d7`: Current Browser 57/57, Full Suite 1177/1177, package guardrails 8919 across 211 runtime resources, privacy/network audit pass, release build/guards success, Unit 1/4–4/4 success, Adapter/privacy success, macOS Secure Store success, and final Certification gate success. Full-suite receipt recorded `historicalBrowserFiles=76` and digest `c43f5b812e5f6666bfe0452a2de18a9edff9e387693ee3636e45fc0bb495ddaf`.
 
-本地 targeted evidence：ANS-04 data/query/migration/concurrency/worker tests 17/17；Chrome query/release 2/2。1000-window evidence 为 body reads=0、full scans=0、max batch=100、30 次 warm p95≈9.20ms；10000-window 为 body reads=0、full scans=0、max batch=100、30 次 warm p95≈13.29ms；真实 Chrome 1001-window 为 body reads=0、full snapshots=0、max batch=100、30 次 warm p95≈58.19ms。并发 writer evidence 记录 402 windows、capture≈15.79ms、edit≈10.46ms，rebuild 可中断/恢复且 stale generation 不发布。
+Certification closure did not weaken assertions, timeouts, concurrency, privacy/security or certification rules. The fail-closed production `MEMORY_STALE` guard was not changed. No new durable body schema/object store/DB version, Source/Input/Thought ownership change, capture/provider permission, host permission, active provider request or AI authorization was added.
 
-Certification 收口期间发现旧 ANS-01 与 UX-R5 焦点断言会受四路浏览器进程 OS foreground 竞争影响。没有降低 assertion/timeout/concurrency；ANS-01 改为同页面原子 focus + keyboard press，UX-R5 在 change event 边界固定用户 focus-restore intent，并在切换完成瞬间验证 focus。两条临时本地 focus-contention fixture 仅用于压力验证（8/8），未提交。最终 exact head `3ac136b6…` 的 PAIA Certification #381 / run `35429870723` / attempt 1 全部 required jobs success：Current Browser 56/56，Full Suite 1174/1174，package guardrails、privacy/network audit、release build 与 secure-store 均通过。
+ChatGPT Project identity/name, membership, Project/window order, rename/move and conversation/project deletion remain unverified/unavailable where ANS-03 did not certify them. Source ordering provider/settings remain ANS-06 scope and were not implemented in ANS-05.
 
-详见 `receipts/ANS-04.md`。本轮没有新增 object store/DB version、Source/Input/Thought ownership、capture/provider permissions、host permissions、主动来源请求或 AI authorization。ChatGPT Project/order 等未认证 provider 能力仍保持 unavailable/fallback。
+Completion evidence is in `receipts/ANS-05.md`. The receipt commit and this STATUS update are docs-only closure after the certified runtime/test head; they do not alter certified runtime behavior.
 
 ## Completion protocol
 
@@ -85,4 +90,4 @@ Certification 收口期间发现旧 ANS-01 与 UX-R5 焦点断言会受四路浏
 
 ## Next action
 
-继续当前 `ANS05-20260919-exec01`，只完成 ANS-05 runtime、验证、main publication、exact-head Certification 与 completion receipt。成功后仅将 ANS-06 置 READY 并停止；失败/中断保留本轮 IN_PROGRESS，不越过 gate。
+**STOP after ANS-05 closure.** ANS-06 is READY only. A new execution must re-read remote `main`, this STATUS, the execution protocol, ANS-06 round contract and `receipts/ANS-05.md`, then explicitly claim ANS-06 in a separate one-round execution. This ANS-05 execution must not implement ANS-06.
