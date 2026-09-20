@@ -11,6 +11,7 @@ import {repairTopicCompatibility,validTopicGeneration} from './topic-compatibili
 import {journal,nextSequence} from './thought-journal.js';
 import {queueSearch,searchBatch,rebuildBatch,searchLibrary} from './library-search.js';
 import {startLayout,layoutBatch,reorderPlacement} from './library-layout.js';
+import {advanceThoughtRootIndex,syncThoughtRootTopic,thoughtRootIndexPage} from './thought-read-index.js';
 const limitOK=n=>Number.isInteger(n)&&n>0&&n<=100;
 const bytes=x=>new TextEncoder().encode(JSON.stringify(x)).length;
 export class LibraryDocumentsStore extends LibraryFoundationStore {
@@ -53,7 +54,7 @@ export class LibraryDocumentsStore extends LibraryFoundationStore {
   const sectionId=result.sectionId||request.sectionId;if(sectionId){const topic=await t.get('topics',request.topicId||result.id);if(topic){const row=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,sectionId]));if(row)await queueSearch(t,'section',row);}}
   return result;
  });}
- async touchTopic(t,row){row.updatedAt=this.clock();row.negativeUpdatedSequence=-(await nextSequence(t));row.countVersion=(row.countVersion||0)+1;await t.put('topics',row);}
+ async touchTopic(t,row){row.updatedAt=this.clock();row.negativeUpdatedSequence=-(await nextSequence(t));row.countVersion=(row.countVersion||0)+1;await t.put('topics',row);await syncThoughtRootTopic(this,t,row);}
  async createTopic(r){const result=await super.createTopic(r);await this.foundationWrite(async t=>{const topic=await t.get('topics',result.id);if(!topic.defaultSectionId){topic.defaultSectionId=result.sectionId;await t.put('topics',topic);const section=await t.get('sections',JSON.stringify([topic.id,1,result.sectionId]));section.isDefault=true;await t.put('sections',section);await queueSearch(t,'section',section);}});return result;}
  async topic(id){if(!idOK(id))fail();await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>{const row=await this.canonicalTopic(t,id);return {...row,requestedId:id};}));}
  async editTopic(r){keys(r,['id','expectedRevision','changes','operationId','restoreRevisionId'],['id','expectedRevision','changes','operationId']);keys(r.changes,['name','summary','pinned']);if(!idOK(r.id)||!revisionOK(r.expectedRevision)||!Object.keys(r.changes).length)fail();const c=r.changes;if(c.name!==undefined&&(typeof c.name!=='string'||!c.name.trim()||c.name.length>300)||c.summary!==undefined&&(typeof c.summary!=='string'||bytes(c.summary)>16384)||c.pinned!==undefined&&typeof c.pinned!=='boolean')fail();return this.operation(r,async t=>{if(r.restoreRevisionId){const rev=await t.get('revisions',r.restoreRevisionId);if(!rev||rev.entityId!==r.id||!await this.sourcePresent(t,rev.sourceRecordIds))fail();}const row=await t.get('topics',r.id);if(!row||row.redirectTo)fail();if(row.revision!==r.expectedRevision||row.layoutJobId)return {conflict:true};const before=structuredClone(row),fields=[];for(const [key,value]of Object.entries(c)){const k=key==='pinned'?'pinKey':key,v=key==='pinned'?(value?0:1):value;if(row[k]===v)continue;row[k]=v;markHuman(row,key,r.operationId,this.clock());fields.push(key);}if(!fields.length)return {id:row.id,revision:row.revision};row.nameKey=row.name.toLocaleLowerCase();row.revision++;await t.put('topics',row);await journal(this,t,{kind:'topic',entityId:row.id,before,after:row,fieldMask:fields,actor:'user',reason:r.restoreRevisionId?'restore':fields.includes('name')?'rename':'edit',important:true,operationId:r.operationId,baseRevision:before.revision,afterRevision:row.revision,sourceRecordIds:[]});return {id:row.id,revision:row.revision};});}
@@ -69,9 +70,11 @@ export class LibraryDocumentsStore extends LibraryFoundationStore {
   if(!limitOK(limit)||!['pinned','recent','all','reading','stable'].includes(mode))fail();await this.finishFoundation();
   if(cursor&&cursor.mode!==mode)fail();
   if(mode==='stable'){
-   const data=await this.run(()=>this.repository.transaction(false,async t=>({rows:await t.all('topics','byIndex',prefix([0])),inputCount:await t.count('blocks'),entryCountHint:await t.count('thoughts','byLifecycle',prefix([0]))})));
-   const sorted=data.rows.filter(x=>x.lifecycle==='active'&&!x.redirectTo).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt))||a.id.localeCompare(b.id)),offset=cursor?.offset||0;if(!Number.isSafeInteger(offset)||offset<0)fail();
-   return {items:sorted.slice(offset,offset+limit),recent:sorted.filter(x=>x.readingActivity?.at).sort((a,b)=>b.readingActivity.at-a.readingActivity.at).slice(0,2),inputCount:data.inputCount,entryCountHint:data.entryCountHint,nextCursor:offset+limit<sorted.length?{mode,offset:offset+limit}:null};
+   const root=await thoughtRootIndexPage(this,{cursor,limit}),hints=await this.run(()=>this.repository.transaction(false,async t=>({inputCount:await t.count('blocks'),entryCountHint:await t.count('thoughts','byLifecycle',prefix([0]))})));
+   if(root.cursorInvalid)return {...root,...hints,recent:[]};
+   const items=[];for(const row of root.items){const count=await this.topicCount(row.id);items.push({...row,...count});}
+   const recent=items.filter(x=>x.readingActivity?.at).sort((a,b)=>b.readingActivity.at-a.readingActivity.at).slice(0,2);
+   return {...root,...hints,items,recent};
   }if(mode==='reading')return this.readingIndexPage({cursor,limit});
   const index='byIndex',range=mode==='pinned'?prefix([0,0]):prefix([0]);
   const page=await this.run(()=>this.repository.transaction(false,t=>t.rangePage('topics',index,range,cursor?.key||null,limit)));
@@ -110,6 +113,6 @@ export class LibraryDocumentsStore extends LibraryFoundationStore {
  startLayout(r){return startLayout(this,r);}
  reorderPlacement(r){return reorderPlacement(this,r);}
  layoutStatus(id){return this.run(()=>this.repository.transaction(false,async t=>{const r=await t.get('organizerJobs',id);if(!r||r.kind!=='library_layout')fail();return {jobId:r.id,state:r.state==='complete'?'complete':this.libraryMaintenanceFailed?'paused':r.state,phase:r.phase};}));}
- async processLibraryMaintenance(){await this.ensureLibrarySearch();const l=await layoutBatch(this);if(l.pending)return l;const c=await countBatch(this);if(c.pending)return c;const r=await rebuildBatch(this);if(r.pending)return r;return searchBatch(this);}
+ async processLibraryMaintenance(){await this.ensureLibrarySearch();const root=await advanceThoughtRootIndex(this);if(root.pending)return root;const l=await layoutBatch(this);if(l.pending)return l;const c=await countBatch(this);if(c.pending)return c;const r=await rebuildBatch(this);if(r.pending)return r;return searchBatch(this);}
  async drainLibraryMaintenance(){for(;;){const r=await this.processLibraryMaintenance();if(!r.pending)return;await this.repository.checkpoint('library-maintenance-batch');}}
 }
