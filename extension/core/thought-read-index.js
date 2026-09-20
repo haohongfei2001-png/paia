@@ -2,6 +2,7 @@ import {prefix} from './thought-model.js';
 
 export const THOUGHT_ROOT_INDEX_VERSION=1;
 export const THOUGHT_ROOT_BUILD_BATCH=100;
+export const THOUGHT_ROOT_COLD_BATCHES=4;
 const META_ID='thought-read-index:v1:root';
 const STATUS_KEY=2;
 const KIND_PREFIX='thought_root_v1:';
@@ -77,11 +78,17 @@ export async function advanceThoughtRootIndex(store){
 }
 export async function thoughtRootIndexPage(store,{cursor=null,limit=40}={}){
  if(!Number.isInteger(limit)||limit<1||limit>100)throw new Error('INVALID_ROOT_LIMIT');
- const build=await advanceThoughtRootIndex(store);
+ let buildRowsScanned=0,buildBatches=0,maxBuildBatch=0,build=null;
+ for(let i=0;i<THOUGHT_ROOT_COLD_BATCHES;i++){
+  build=await advanceThoughtRootIndex(store);const processed=build.processed||0;
+  buildRowsScanned+=processed;buildBatches+=processed?1:0;maxBuildBatch=Math.max(maxBuildBatch,processed);
+  if(build.complete||!build.pending)break;
+  await store.repository.checkpoint('thought-root-index-batch');
+ }
  const meta=await store.run(()=>store.repository.transaction(false,t=>readMeta(t),['meta']));
- const coverage=snapshot(meta);
- if(!coverage.activeGeneration)return {items:[],nextCursor:null,coverage,complete:false,operations:{indexRowsRead:0,topicRowsRead:0,buildRowsScanned:build.processed||0}};
- if(cursor&&(cursor.mode!=='stable'||cursor.generation!==coverage.activeGeneration))return {items:[],nextCursor:null,cursorInvalid:true,coverage,complete:false,operations:{indexRowsRead:0,topicRowsRead:0,buildRowsScanned:build.processed||0}};
+ const coverage=snapshot(meta),buildOps={buildRowsScanned,buildBatches,maxBuildBatch};
+ if(!coverage.activeGeneration)return {items:[],nextCursor:null,coverage,complete:false,operations:{indexRowsRead:0,topicRowsRead:0,...buildOps}};
+ if(cursor&&(cursor.mode!=='stable'||cursor.generation!==coverage.activeGeneration))return {items:[],nextCursor:null,cursorInvalid:true,coverage,complete:false,operations:{indexRowsRead:0,topicRowsRead:0,...buildOps}};
  const generationId=coverage.activeGeneration;
  const data=await store.run(()=>store.repository.transaction(false,async t=>{
   const page=await t.rangePage('libraryMigrationItems','byStatus',prefix([STATUS_KEY,generationKind(generationId)]),cursor?.key||null,limit);
@@ -98,6 +105,6 @@ export async function thoughtRootIndexPage(store,{cursor=null,limit=40}={}){
   nextCursor,
   coverage,
   complete:!nextCursor&&coverage.complete,
-  operations:{indexRowsRead:data.page.rows.length,topicRowsRead:data.topics.length,buildRowsScanned:build.processed||0}
+  operations:{indexRowsRead:data.page.rows.length,topicRowsRead:data.topics.length,...buildOps}
  };
 }
