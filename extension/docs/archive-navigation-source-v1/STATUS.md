@@ -6,14 +6,21 @@
 - package_status: `IN_PROGRESS`
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
-- current_round: `ANS-07`
-- current_round_status: `IN_PROGRESS`
-- execution_id: `ANS07-20260920-exec01`
+- current_round: `ANS-08`
+- current_round_status: `READY`
+- execution_id: `NONE (ANS-08 not claimed)`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
 - ans07_execution_start_sha: `833ad67a64002ac1ce80ba6584b3a6ef7cdfccf2`
 - ans07_candidate_branch: `ans/v1/ANS-07-20260920-exec01`
+- ans07_claim_commit: `b09048336bcd3f64814f55cb434e9e30d2e0c1e9`
+- ans07_local_validation_head: `339d44768012af5c491821c3d2dc1f6934978e53`
+- ans07_certified_head: `14885f75c6b2fb34036e5c6ca63bb920724268cc`
+- ans07_certified_tree: `0d353afec7934dba5ccb769cd49eb82d7d0a521d`
+- ans07_main_certification: `PAIA Certification #404 / run 35507783077 / attempt 2 / success / head 14885f75c6b2fb34036e5c6ca63bb920724268cc`
+- ans07_receipt: `receipts/ANS-07.md`
+- ans07_receipt_commit: `9dff108302b3d081460c2587c59bbfda8ad0003b`
 - previous_receipt_read: `receipts/ANS-06.md`
 - ans06_execution_start_sha: `c8e3e9f05415667a3fd26428caf167c556be7380`
 - ans06_candidate_branch: `ans/v1/ANS-06-20260920-exec01`
@@ -54,7 +61,7 @@
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。ANS-06 execution `ANS06-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #389 attempt 1；completion receipt 已发布。ANS-07 execution `ANS07-20260920-exec01` 已从 `main@833ad67a64002ac1ce80ba6584b3a6ef7cdfccf2` 领取并进入 IN_PROGRESS。
+本文件是本包唯一执行队列。ANS-07 execution `ANS07-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #404 attempt 2；completion receipt 已发布。ANS-08 现仅为 READY，尚未领取、尚未开始实现。
 
 ## Round queue
 
@@ -66,32 +73,33 @@
 | ANS-04 | COMPLETE | ANS-03 COMPLETE | 有界Navigator读模型、索引/覆盖/游标/迁移 | implementation `54e6ddb3…` · certified/published `3ac136b6…` · main CI #381 success · `receipts/ANS-04.md` |
 | ANS-05 | COMPLETE | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | implementation `dce0d578…` · certified/published `f4fbd204…` · main CI #385 attempt 2 success · Current Browser 57/57 · Full Suite 1177/1177 · `receipts/ANS-05.md` |
 | ANS-06 | COMPLETE | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | implementation `682b2920…` · certified/published `8c133a39…` · main CI #389 success · Current Browser 58/58 · Full Suite 1184/1184 · `receipts/ANS-06.md` |
-| ANS-07 | IN_PROGRESS | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | execution `ANS07-20260920-exec01` · claimed |
-| ANS-08 | PLANNED | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | NOT_STARTED |
+| ANS-07 | COMPLETE | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | certified/published `14885f75…` · main CI #404 attempt 2 success · Current Browser 59/59 · Full Suite 1191/1191 · `receipts/ANS-07.md` |
+| ANS-08 | READY | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | NOT_STARTED · not claimed |
 | ANS-09 | PLANNED | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | NOT_STARTED |
 
 ## Requirements
 
 R1–R9 全部有正式实施路径；详见README映射与VERIFICATION V01–V23。
+R5的Thought Library根级部分已由ANS-07实现：总览/搜索/独立思想连续集合、body-free完整generation投影、root返回位置恢复与P05根级有界读取均已进入认证runtime；Topic Reader双向windowing、edit pins与P06仍属于ANS-08。
 R8已由ANS-06实现：provider-aware模块、Settings、生产消费者、设备本地持久偏好、可靠synthetic provider正例与unavailable fallback均已进入认证runtime；真实provider覆盖仍按逐能力证据声明。
 ANS-03 只认证了现有 current-conversation identity / presence 的可信生产路径；ChatGPT Project identity/name、membership、Project/window order、rename/move、conversation/project deletion 仍为 unverified → unavailable。Synthetic lifecycle/order 只证明通用 admission/reconciliation 安全性，不构成 ChatGPT 实站认证。
 本包无新provider捕获、无新AI联网授权、无Source identity变化、无旧worktree清理。
 
 ## Current execution record
 
-ANS-07 execution `ANS07-20260920-exec01` is active. Start main: `833ad67a64002ac1ce80ba6584b3a6ef7cdfccf2`; candidate branch: `ans/v1/ANS-07-20260920-exec01`; previous receipt read: `receipts/ANS-06.md`.
+No execution is currently active. ANS-07 execution `ANS07-20260920-exec01` is closed. ANS-08 is READY only and has not been claimed.
 
-ANS-06 was claimed from `main@c8e3e9f05415667a3fd26428caf167c556be7380` at claim commit `ae319c2b9886ce7636a014d6d2bcc649678a04ff`; candidate branch is `ans/v1/ANS-06-20260920-exec01`. Feature publication landed at `682b2920c0695c98000ff3da8548469aff8ed98e`; the final certified runtime/test head is `8c133a398fd025feef8d3142d46a6fff52e45ca2` with tree `8c3d40a367f4788bd22b7e121b2fb52951862680`, byte-identical to the locally validated runtime tree.
+ANS-07 was claimed from `main@833ad67a64002ac1ce80ba6584b3a6ef7cdfccf2` at claim commit `b09048336bcd3f64814f55cb434e9e30d2e0c1e9`; candidate branch is `ans/v1/ANS-07-20260920-exec01`. The locally validated closure head is `339d44768012af5c491821c3d2dc1f6934978e53`. The final certified runtime/test head on canonical `main` is `14885f75c6b2fb34036e5c6ca63bb920724268cc` with tree `0d353afec7934dba5ccb769cd49eb82d7d0a521d`, byte-identical to the locally validated tree.
 
-Delivered scope is the provider-aware SourceOrderProvider registry/validation, bounded complete-generation order cache, independent Project/Window ordering, stable PAIA tail/fallback, device-local `ans:ui:v1` preference, Reading & appearance setting, production Navigator mode wiring and interaction-safe atomic reorder. The round also repaired a current-release build-output concurrency race exposed by the browser gate without weakening assertions, timeouts or CI policy.
+Delivered scope is the Thought Library root continuous collection: body-free complete-generation root projection, bounded ≤100 Topic build batches, ≤40 warm root page rows, continuous overview/search/unplaced accumulation, stale/cursor fencing, explicit terminal/error states, keyboard-accessible passive sentinel, and root collection/scroll restoration across Topic open/back. Root indexing is page-scoped and does not run from unrelated Input Reader maintenance. Topic Reader body windowing/edit pins remain ANS-08 scope.
 
-PAIA Certification #389 / run `35491563370` / attempt 1 completed success on exact head `8c133a398fd025feef8d3142d46a6fff52e45ca2`: Current Browser 58/58, Full Suite 1184/1184, package guardrails 8979 across 213 runtime resources, privacy/network audit pass, release build/guards success, Unit 1/4–4/4 success, Adapter/privacy success, macOS Secure Store success, and final Certification gate success. Full-suite receipt recorded `historicalBrowserFiles=76` and digest `69df1224581b42fe22b4b29b5a7cfa24a4b43cb93f6c7d6061c78b3511e69d43`.
+PAIA Certification #404 / run `35507783077` / attempt 2 completed success on exact head `14885f75c6b2fb34036e5c6ca63bb920724268cc`: Current Browser 59/59, Full Suite 1191/1191, UI Refresh 10/10, Adapter 102/102, privacy/security 54/54, package guardrails 9081 across 215 runtime resources, current-release build guardrails 8646 across 208 runtime resources, privacy/network audit pass, Unit 1/4–4/4 success, macOS Secure Store success and final Certification gate success. Full-suite receipt recorded `historicalBrowserFiles=76` and digest `e1be8b581ac424ca50397510cff3dcfe8e967c8995e3f4c5ce1cf903b2aa8226`.
 
-No manifest/host/capture permission, active provider request, AI authorization, Source/Input/Thought ownership, Source/message identity, durable body schema, object store or DB version changed. `ans:order:v1:` and `ans:ui:v1` remain rebuildable/device-local ephemeral state excluded from Backup.
+Attempt 1 of #404 was cancelled after the pre-existing ANS-05 Navigator current-browser test hit its 300s timeout and left the runner alive. Attempt 2 reran the same required Current Browser job without code, assertion or timeout changes and completed successfully.
 
-ChatGPT Project identity/name, membership, Project/window order, rename/move and conversation/project deletion remain unverified/unavailable where ANS-03 did not certify them. In particular, ChatGPT source order remains explicit fallback; the ANS-06 synthetic provider proves the generic contract path only and is not live provider certification.
+No manifest/host/capture permission, active provider request, AI authorization, Source/Input/Thought ownership, Source/message identity, durable body schema, object store or DB version changed. The new root projection is rebuildable metadata-only acceleration and does not replace canonical Topic/Entry truth. No new live source-provider capability is claimed.
 
-Completion evidence is in `receipts/ANS-06.md`, published at docs-only receipt commit `96cd0055410fd735e2ab5ddcf9c9587d34fcd472`. The receipt and this STATUS closure do not alter the certified runtime tree.
+Completion evidence is in `receipts/ANS-07.md`, published at docs-only receipt commit `9dff108302b3d081460c2587c59bbfda8ad0003b`. The receipt and this STATUS closure do not alter certified runtime tree `0d353afec7934dba5ccb769cd49eb82d7d0a521d`.
 
 ## Completion protocol
 
@@ -101,4 +109,4 @@ Completion evidence is in `receipts/ANS-06.md`, published at docs-only receipt c
 
 ## Next action
 
-**Execute ANS-07 only.** Implement the Thought Library root continuous collection contract, certify the exact runtime head, publish the completion receipt, mark only ANS-08 READY, then STOP. Do not implement ANS-08 in this execution.
+**STOP after ANS-07 closure.** ANS-08 is READY only. A new one-round execution must re-read remote `main`, this STATUS, the execution protocol, ANS-08 round contract and `receipts/ANS-07.md`, then explicitly claim ANS-08. This ANS-07 execution must not implement ANS-08.
