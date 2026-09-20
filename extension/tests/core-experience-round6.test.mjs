@@ -15,7 +15,7 @@ const between=(start,end)=>{
 };
 
 test('Round 6: empty Thought Library closes the first-value path through Settings without putting Organizer controls on the reading home',()=>{
-  const empty=between('<div id="thought-empty">','</div><button id="thought-more"');
+  const empty=between('<div id="thought-empty">','</div><div id="thought-continuous-sentinel"');
   assert.match(empty,/Thought Library 会把 Input Archive 中值得长期保留的内容整理成可以持续回看的主题。/u);
   assert.match(empty,/整理不会自动开始，也不会因为打开思想库而调用 AI。/u);
   assert.match(empty,/id="thought-empty-settings" data-view="settings">前往 Settings 整理新内容/u);
