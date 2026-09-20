@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
-import {openArchiveWindow} from './harness/archive-navigator.mjs';
 
 const dir='work/ux-r5';
 const op=()=>crypto.randomUUID();
@@ -52,7 +51,7 @@ test('UX-R5 ON-01 Local-only blocks first generation before any provider request
 test('UX-R5 ON-01 Source purge invalidates source-bound organized output without regeneration',{timeout:90000},async()=>{
  let call=0;const h=await FakeChatGPT.start({onboarding:true,deepSeekFixture:async body=>{const request=requestOf(body);call++;return aiOutput(request,call);}});
  try{
-  const p=await ready(h),sourceText='R5_SOURCE_PURGE 删除来源后派生整理必须失效。';const chat=await h.open({id:'uxr5-on01-source',title:'R5 source',base:1609459200,messages:[{id:'uxr5-on01-source-msg',text:sourceText}]});await eventually(async()=>(await h.state()).records.length===1);await p.bringToFront();await nav(p,'library');await openArchiveWindow(p,{text:'R5 source',label:'UX-R5 source Archive window is reachable'});const field=p.locator('.library-prose').filter({hasText:'R5_SOURCE_PURGE'}).first();await field.waitFor();const inputId=await field.getAttribute('data-edit-id'),input=await rpc(p,'GET_INPUT',{id:inputId}),topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'R5 Source purge Topic',operationId:op()}});await rpc(p,'ADD_TO_TOPICS',{selection:{kind:'input',id:inputId,expectedRevision:input.revision,topicIds:[topic.id],operationId:op()}});
+  const p=await ready(h),sourceText='R5_SOURCE_PURGE 删除来源后派生整理必须失效。';const chat=await h.open({id:'uxr5-on01-source',title:'R5 source',base:1609459200,messages:[{id:'uxr5-on01-source-msg',text:sourceText}]});await eventually(async()=>(await h.state()).records.length===1);await p.bringToFront();await nav(p,'library');await p.locator('.conversation-document').first().click();const field=p.locator('.library-prose').filter({hasText:'R5_SOURCE_PURGE'}).first();await field.waitFor();const inputId=await field.getAttribute('data-edit-id'),input=await rpc(p,'GET_INPUT',{id:inputId}),topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'R5 Source purge Topic',operationId:op()}});await rpc(p,'ADD_TO_TOPICS',{selection:{kind:'input',id:inputId,expectedRevision:input.revision,topicIds:[topic.id],operationId:op()}});
   await openTopic(p,topic);await p.locator('#ai-presentation-toggle').check();await p.locator('[data-ai-first-generation]').waitFor();await confirmGeneration(p);await eventually(async()=>!!(await aiStatus(p,topic.id)).topic?.presentation,'source-bound presentation');assert.equal(h.deepSeekRequests.length,1);const source=(await rpc(p,'GET_INPUT',{id:inputId})).originalTextReference;await rpc(p,'PURGE_SOURCE',{id:source,confirm:true});await eventually(async()=>!(await aiStatus(p,topic.id)).topic?.presentation,'purge invalidates presentation');await pause(200);assert.equal(h.deepSeekRequests.length,1,'purge does not regenerate');assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);await chat.close();
  }finally{await h.close();}
 });
