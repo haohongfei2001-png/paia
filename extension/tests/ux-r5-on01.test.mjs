@@ -10,8 +10,8 @@ test('UX-R5 topic AI view state is tab-local, per-topic and separates view posit
  s.remember('topic-a','ai',{scroll:620,cursor:null,pages:[],query:'整理',anchor:null});
  assert.equal(s.view('topic-a'),'ai');
  assert.equal(s.view('topic-b'),'original');
- assert.deepEqual(s.position('topic-a','original'),{scroll:140,cursor:{page:1},pages:[null],query:'原话'});
- assert.deepEqual(s.position('topic-a','ai'),{scroll:620,cursor:null,pages:[],query:'整理'});
+ assert.deepEqual(s.position('topic-a','original'),{scroll:140,cursor:{page:1},pages:[null],query:'原话',anchor:null});
+ assert.deepEqual(s.position('topic-a','ai'),{scroll:620,cursor:null,pages:[],query:'整理',anchor:null});
  const copy=s.position('topic-a','original');copy.pages.push('mutated');assert.deepEqual(s.position('topic-a','original').pages,[null]);
 });
 
