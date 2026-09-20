@@ -84,5 +84,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-[executed on device: hhfdeAir (ea7c2cb7-378e-4226-a030-4f3e02a6ba2f)]
