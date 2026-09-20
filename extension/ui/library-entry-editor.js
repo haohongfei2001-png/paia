@@ -37,8 +37,8 @@ export class LibraryEntryEditor {
     if(r.items.some(x=>x.revisionId))for(const ref of r.items.filter(x=>x.revisionId).map(x=>({id:x.id,revisionId:x.revisionId}))){for(let i=this.journal.undo.length-1;i>=0;i--){const undoGroup=this.journal.undo[i];if(!undoGroup.some(p=>p.id===ref.id))continue;undoGroup.savedEdit=[...(undoGroup.savedEdit||[]).filter(x=>x.id!==ref.id),ref];break;}}
    }
    this.reason=null;this.onStatus(this.dirty()?tc('正在保存…'):detached?tc('已修改这条思想，档案未变。'):tc('已保存到本机'));return true;
-  }catch{this.failed=true;this.onStatus('尚未保存。已成功写入的批次保留，其余当前草稿仍在页面，可重试。','error');return false;}finally{this.saving=false;const incoming=this.revisions.take();if(incoming)this.receive(incoming);this.onSaved();}})();
-  const ok=await this.pending;if(ok&&this.dirty())return this.flush();return ok;
+  }catch{this.failed=true;this.onStatus('尚未保存。已成功写入的批次保留，其余当前草稿仍在页面，可重试。','error');return false;}finally{this.saving=false;const incoming=this.revisions.take();if(incoming)this.receive(incoming);}})();
+  const ok=await this.pending;if(ok&&this.dirty())return this.flush();if(ok)this.onSaved();return ok;
  }
  protectedIds(){
   this.collect();const ids=new Set();for(const [id,e]of this.entries)if(!equal(e.saved,e.local))ids.add(id);
