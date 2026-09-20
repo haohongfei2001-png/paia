@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {LibraryDocumentsStore} from '../core/library-documents-store.js';
-import {invalidateThoughtRootIndex,THOUGHT_ROOT_BUILD_BATCH} from '../core/thought-read-index.js';
+import {invalidateThoughtRootIndex,THOUGHT_ROOT_BUILD_BATCH,THOUGHT_ROOT_COLD_BATCHES} from '../core/thought-read-index.js';
 import {ContinuousCollection} from '../ui/continuous-collection.js';
 import {setup} from './harness/thought-m1.mjs';
 const op=()=>crypto.randomUUID();
@@ -38,8 +38,10 @@ test('ANS-07 root index covers 0/1/40/41/400 topics with stable createdAt/id ord
 test('ANS-07 root build is bounded, restartable and stable pages do not full-scan topics',async()=>{
  const {s,storage,indexedDB}=await fixture(250);
  const cold=await s.libraryIndexPage({mode:'stable',limit:40});
- assert.equal(cold.coverage.complete,false);
- assert.ok(cold.operations.buildRowsScanned<=THOUGHT_ROOT_BUILD_BATCH);
+ assert.equal(cold.coverage.complete,true);
+ assert.ok(cold.operations.maxBuildBatch<=THOUGHT_ROOT_BUILD_BATCH);
+ assert.ok(cold.operations.buildBatches<=THOUGHT_ROOT_COLD_BATCHES);
+ assert.ok(cold.operations.buildRowsScanned<=THOUGHT_ROOT_BUILD_BATCH*THOUGHT_ROOT_COLD_BATCHES);
  const restarted=new LibraryDocumentsStore(storage,{indexedDB});
  const page=await firstReady(restarted,40);
  assert.equal(page.items.length,40);
