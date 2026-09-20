@@ -42,6 +42,7 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
    await sentinel.focus();await sentinel.press('Enter');
    await eventually(async()=>await page.evaluate(n=>window.ans08Trace.topicPages.length>n,before)||/末尾/.test(await page.locator('#topic-continuous-after-status').textContent()),'next continuous chunk',20000);
   }
+  console.log('ANS08_TERMINAL_DIAG '+JSON.stringify(await page.evaluate(()=>({trace:window.ans08Trace?.topicPages,status:document.getElementById('topic-continuous-after-status')?.textContent,terminal:document.getElementById('topic-continuous-after')?.dataset.terminal,dom:document.querySelectorAll('#topic-body [data-entry-id]').length}))));
   await eventually(async()=>/末尾/.test(await page.locator('#topic-continuous-after-status').textContent()),'topic terminal',30000);
   const trace=await page.evaluate(()=>structuredClone(window.ans08Trace.topicPages)),forward=trace.filter(x=>x.options?.direction!=='prev'&&!x.indexing),flat=forward.flatMap(x=>x.ids),unique=[...new Set(flat)];
   assert.equal(unique.length,seed.count,'every Topic entry is reachable');assert.equal(flat.length,unique.length,'forward traversal has no duplicate entries');
