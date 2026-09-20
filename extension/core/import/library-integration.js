@@ -1,6 +1,7 @@
 import {prefix} from '../thought-model.js';
 import {blockIndex} from '../idb-repository.js';
 import {nextSequence} from '../thought-journal.js';
+import {invalidateThoughtTopicIndex} from '../thought-read-index.js';
 // New branch evidence can withdraw an untouched Input from the default view.
 // This is a source review state, never a user removal or authored revision.
 export async function importedBranchChanged(store,t,recordId,branch){
@@ -34,5 +35,6 @@ export async function importedTimeChanged(store,t,recordId){
   const key='aiPresentation:'+id,cache=await t.get('meta',key);
   if(cache&&!cache.needsUpdate)await t.put('meta',{...cache,needsUpdate:true});
   if(await t.get('meta','topicChronology:'+id))await t.delete('meta','topicChronology:'+id);
+  await invalidateThoughtTopicIndex(store,t,id,{sourceTime:true});
  }
 }
