@@ -26,8 +26,19 @@ export class LibraryEntryEditor {
  paste(e){if(this.surface.composing)return;const target=e.target.closest('[data-entry-field]');if(!target)return;const text=e.clipboardData?.getData('text/plain');if(text===undefined)return;if(this.crossSelection(e,text))return;e.preventDefault();if(target.matches('textarea,input'))target.setRangeText(text,target.selectionStart,target.selectionEnd,'end');else{const selection=getSelection();if(!selection?.rangeCount)return;const range=selection.getRangeAt(0);if(!target.contains(range.startContainer)||!target.contains(range.endContainer))return;range.deleteContents();const node=document.createTextNode(text);range.insertNode(node);range.setStartAfter(node);range.collapse(true);selection.removeAllRanges();selection.addRange(range);}this.collect();
  }
  async flush(){this.autosave.cancel();if(this.disposed||this.surface.composing||this.failed||this.conflicted)return false;if(this.saving){await this.pending;return this.dirty()?this.flush():!this.conflicted;}if(!this.dirty())return true;
-  const entries=[...this.entries].filter(([,e])=>!equal(e.saved,e.local)).map(([id,e])=>({id,expectedRevision:e.revision,expectedFieldRevisions:e.fieldRevisions,expectedInputRevision:e.currentInputRevision,changes:Object.fromEntries(fields.filter(f=>e.saved[f]!==e.local[f]).map(f=>[f,e.local[f]]))}));const edit=this.revisions.attempt({entries,...(this.reason?{reason:this.reason}:{})});this.saving=true;
-  this.pending=(async()=>{try{const r=await request('EDIT_LIBRARY_BATCH',{edit});if(r.conflict){this.conflicted=true;this.onStatus('其他页面已修改相同内容，当前草稿尚未保存。','conflict');return false;}for(const item of r.items){const e=this.entries.get(item.id),sent=entries.find(x=>x.id===item.id);Object.assign(e.saved,sent.changes);e.revision=item.revision;e.fieldRevisions=item.fieldRevisions;e.currentInputRevision=item.currentInputRevision;}const group=this.journal.undo.at(-1);if(group&&r.items.some(x=>x.revisionId))group.savedEdit=r.items.filter(x=>x.revisionId).map(x=>({id:x.id,revisionId:x.revisionId}));this.reason=null;this.onStatus(this.dirty()?tc('正在保存…'):r.items.some(x=>x.detached)?tc('已修改这条思想，档案未变。'):tc('已保存到本机'));return true;}catch{this.failed=true;this.onStatus('尚未保存。当前草稿保留在页面，可重试。','error');return false;}finally{this.saving=false;const incoming=this.revisions.take();if(incoming)this.receive(incoming);this.onSaved();}})();const ok=await this.pending;if(ok&&this.dirty())return this.flush();return ok;
+  const pendingEntries=[...this.entries].filter(([,e])=>!equal(e.saved,e.local)).map(([id,e])=>({id,expectedRevision:e.revision,expectedFieldRevisions:e.fieldRevisions,expectedInputRevision:e.currentInputRevision,changes:Object.fromEntries(fields.filter(f=>e.saved[f]!==e.local[f]).map(f=>[f,e.local[f]]))}));
+  this.saving=true;
+  this.pending=(async()=>{try{
+   const group=this.journal.undo.at(-1);let detached=false;
+   for(let offset=0;offset<pendingEntries.length;offset+=40){
+    const entries=pendingEntries.slice(offset,offset+40),edit=this.revisions.attempt({entries,...(this.reason?{reason:this.reason}:{})}),r=await request('EDIT_LIBRARY_BATCH',{edit});
+    if(r.conflict){this.conflicted=true;this.onStatus('其他页面已修改相同内容，当前草稿尚未保存。','conflict');return false;}
+    for(const item of r.items){const e=this.entries.get(item.id),sent=entries.find(x=>x.id===item.id);if(!e||!sent)continue;Object.assign(e.saved,sent.changes);e.revision=item.revision;e.fieldRevisions=item.fieldRevisions;e.currentInputRevision=item.currentInputRevision;detached||=!!item.detached;}
+    if(group&&r.items.some(x=>x.revisionId)){const refs=r.items.filter(x=>x.revisionId).map(x=>({id:x.id,revisionId:x.revisionId}));group.savedEdit=[...(group.savedEdit||[]),...refs];}
+   }
+   this.reason=null;this.onStatus(this.dirty()?tc('正在保存…'):detached?tc('已修改这条思想，档案未变。'):tc('已保存到本机'));return true;
+  }catch{this.failed=true;this.onStatus('尚未保存。已成功写入的批次保留，其余当前草稿仍在页面，可重试。','error');return false;}finally{this.saving=false;const incoming=this.revisions.take();if(incoming)this.receive(incoming);this.onSaved();}})();
+  const ok=await this.pending;if(ok&&this.dirty())return this.flush();return ok;
  }
  protectedIds(){
   this.collect();const ids=new Set();for(const [id,e]of this.entries)if(!equal(e.saved,e.local))ids.add(id);
