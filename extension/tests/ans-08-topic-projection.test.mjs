@@ -4,6 +4,8 @@ import {completeFixture,rows} from './harness/original-complete.mjs';
 import {refreshEntryIndex} from '../core/thought-model.js';
 import {invalidateThoughtTopicIndex,THOUGHT_TOPIC_BUILD_BATCH} from '../core/thought-read-index.js';
 import {importedTimeChanged} from '../core/import/library-integration.js';
+import {ContinuousTopicReader} from '../ui/continuous-topic-reader.js';
+import {TopicAIViewSession} from '../core/topic-ai-view-session.js';
 
 const op=()=>crypto.randomUUID();
 const pad=n=>String(n).padStart(4,'0');
@@ -70,4 +72,42 @@ test('ANS-08 sourceSentAt remains distinct from capture fallback and late enrich
  if(cursor){const stale=await f.s.topicDocumentPage({topicId:topic.id,sort:'asc',cursor,limit:40});assert.equal(stale.cursorInvalid,true);}
  page=await f.s.topicDocumentPage({topicId:topic.id,sort:'asc',anchorId:added.id,limit:40});entry=page.items[0].entry;
  assert.equal(entry.sourceSentAt,'2025-12-24T10:00:00.000Z');assert.equal(entry.timeBasis,'source');assert.notEqual(entry.sourceSentAt,entry.capturedAt);
+});
+
+
+test('ANS-08 ContinuousTopicReader keeps opposite cursors, windows 3x40 rows and preserves pins',async()=>{
+ const source=Array.from({length:200},(_,i)=>({entry:{id:'reader-'+pad(i)},placement:{sectionId:'s'}}));
+ const index=id=>source.findIndex(x=>x.entry.id===id);
+ const load=async({cursor,direction,anchorId})=>{
+  if(anchorId){const start=index(anchorId),end=Math.min(source.length,start+40);return {items:source.slice(start,end),previousCursor:start?{at:start}:null,nextCursor:end<source.length?{at:end}:null,topic:{id:'topic'},sections:[]};}
+  if(direction==='prev'){const end=cursor?.at??0,start=Math.max(0,end-40);return {items:source.slice(start,end),previousCursor:start?{at:start}:null,nextCursor:end<source.length?{at:end}:null,topic:{id:'topic'},sections:[]};}
+  const start=cursor?.at??0,end=Math.min(source.length,start+40);return {items:source.slice(start,end),previousCursor:start?{at:start}:null,nextCursor:end<source.length?{at:end}:null,topic:{id:'topic'},sections:[]};
+ };
+ const reader=new ContinuousTopicReader({load});reader.reset({topicId:'topic',sort:'asc',anchorId:'reader-0080'});
+ await reader.initial();assert.deepEqual(reader.previousCursor,{at:80});assert.deepEqual(reader.nextCursor,{at:120});
+ await reader.next();assert.deepEqual(reader.previousCursor,{at:80},'loading next must not lose earliest previous cursor');assert.deepEqual(reader.nextCursor,{at:160});
+ await reader.previous();assert.deepEqual(reader.previousCursor,{at:40});assert.deepEqual(reader.nextCursor,{at:160},'loading previous must not lose furthest next cursor');
+ await reader.next();assert.deepEqual(reader.nextCursor,null);assert.equal(new Set(reader.items.map(x=>x.entry.id)).size,160);
+ const pin=new Set(['reader-0045']),layout=reader.layout(pin),visible=layout.filter(x=>x.kind==='item').map(x=>x.item.entry.id);
+ assert.ok(visible.length<=121);assert.ok(visible.includes('reader-0045'));assert.ok(layout.some(x=>x.kind==='spacer'));
+});
+
+test('ANS-08 TopicAIViewSession keeps original and AI anchors independent',()=>{
+ const session=new TopicAIViewSession(),topic='topic-session';
+ session.remember(topic,'original',{scroll:900,query:'原话',anchor:{id:'entry-120',top:152}});
+ session.remember(topic,'ai',{scroll:240,query:'整理'});
+ session.setView(topic,'ai');
+ assert.deepEqual(session.position(topic,'original').anchor,{id:'entry-120',top:152});
+ assert.equal(session.position(topic,'ai').anchor,null);
+ const copy=session.position(topic,'original');copy.anchor.top=999;assert.equal(session.position(topic,'original').anchor.top,152);
+});
+
+test('ANS-08 reverse payload chunks stay contiguous with large canonical entries',async()=>{
+ const f=await largeTopicFixture(8,1);
+ await f.s.foundationWrite(async t=>{for(const row of await t.all('thoughts')){row.thoughtText='L'.repeat(80*1024)+' '+row.id;await t.put('thoughts',row);}});
+ const ordered=(await collect(f.s,f.topic.id,'asc')).ids,anchorId=ordered[6],anchor=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',anchorId,limit:40});
+ assert.equal(anchor.items[0].entry.id,anchorId);assert.ok(anchor.previousCursor);
+ const seen=[];let cursor=anchor.previousCursor,guard=0;
+ while(cursor){const page=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',cursor,limit:40,direction:'prev'});seen.unshift(...page.items.map(x=>x.entry.id));cursor=page.previousCursor;assert.ok(++guard<10);}
+ assert.deepEqual(seen,ordered.slice(0,6));assert.equal(new Set(seen).size,6);
 });
