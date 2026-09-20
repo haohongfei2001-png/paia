@@ -29,6 +29,20 @@ export class LibraryEntryEditor {
   const entries=[...this.entries].filter(([,e])=>!equal(e.saved,e.local)).map(([id,e])=>({id,expectedRevision:e.revision,expectedFieldRevisions:e.fieldRevisions,expectedInputRevision:e.currentInputRevision,changes:Object.fromEntries(fields.filter(f=>e.saved[f]!==e.local[f]).map(f=>[f,e.local[f]]))}));const edit=this.revisions.attempt({entries,...(this.reason?{reason:this.reason}:{})});this.saving=true;
   this.pending=(async()=>{try{const r=await request('EDIT_LIBRARY_BATCH',{edit});if(r.conflict){this.conflicted=true;this.onStatus('其他页面已修改相同内容，当前草稿尚未保存。','conflict');return false;}for(const item of r.items){const e=this.entries.get(item.id),sent=entries.find(x=>x.id===item.id);Object.assign(e.saved,sent.changes);e.revision=item.revision;e.fieldRevisions=item.fieldRevisions;e.currentInputRevision=item.currentInputRevision;}const group=this.journal.undo.at(-1);if(group&&r.items.some(x=>x.revisionId))group.savedEdit=r.items.filter(x=>x.revisionId).map(x=>({id:x.id,revisionId:x.revisionId}));this.reason=null;this.onStatus(this.dirty()?tc('正在保存…'):r.items.some(x=>x.detached)?tc('已修改这条思想，档案未变。'):tc('已保存到本机'));return true;}catch{this.failed=true;this.onStatus('尚未保存。当前草稿保留在页面，可重试。','error');return false;}finally{this.saving=false;const incoming=this.revisions.take();if(incoming)this.receive(incoming);this.onSaved();}})();const ok=await this.pending;if(ok&&this.dirty())return this.flush();return ok;
  }
+ protectedIds(){
+  this.collect();const ids=new Set();for(const [id,e]of this.entries)if(!equal(e.saved,e.local))ids.add(id);
+  if(this.composingId)ids.add(this.composingId);
+  const active=globalThis.document?.activeElement?.closest?.('[data-entry-id]');if(active?.dataset.entryId)ids.add(active.dataset.entryId);
+  const selection=globalThis.getSelection?.();if(selection?.rangeCount&&!selection.isCollapsed){const range=selection.getRangeAt(0);for(const node of this.root.querySelectorAll('[data-entry-id]')){try{if(range.intersectsNode(node))ids.add(node.dataset.entryId);}catch{}}}
+  for(const node of this.root.querySelectorAll('[data-entry-id]'))if(node.dataset.mobileEditing==='true'||node.querySelector('details[open],.library-actions[open]'))ids.add(node.dataset.entryId);
+  return ids;
+ }
+ releaseRows(keep){
+  const protectedIds=this.protectedIds(),kept=new Set([...(keep||[]),...protectedIds]),released=[];
+  this.historyVersions??={};
+  for(const [id,e]of [...this.entries]){if(kept.has(id))continue;this.historyVersions[id]=e.fieldRevisions;this.entries.delete(id);released.push(id);}
+  return {released,protectedIds};
+ }
  async checkTracked(rows){for(const r of rows){const e=this.entries.get(r.id);if(!e)continue;if(r.lifecycle!=='active'){if(this.composingId===r.id){this.surface.composing=false;this.composingId=null;this.compositionCanceled=false;}this.journal.clear();this.field(r.id,'body')?.closest('[data-entry-id]')?.remove();this.entries.delete(r.id);continue;}if(r.purged&&!e.purgeCleared){if(this.surface.composing&&this.composingId===r.id){this.compositionCanceled=true;this.autosave.cancel();}const safe=await request('GET_LIBRARY_ENTRY',{id:r.id});this.journal.clear();e.saved=snapshot(safe);e.local=snapshot(safe);e.revision=safe.revision;e.fieldRevisions=safe.fieldRevisions;e.purgeCleared=true;this.paint(r.id);const provenance=this.field(r.id,'body')?.closest('[data-entry-id]')?.querySelector('.entry-provenance');if(provenance){provenance.open=false;provenance.lastElementChild.replaceChildren();}}}}
  addRows(rows){for(const row of rows)if(!this.entries.has(row.id))this.entries.set(row.id,{saved:snapshot(row),local:snapshot(row),revision:row.revision,fieldRevisions:row.fieldRevisions,currentInputRevision:row.currentInputRevision});}
  receive(rows){if(this.saving||this.surface.composing){this.revisions.defer(rows);return;}for(const row of rows){const e=this.entries.get(row.id);if(!e)continue;if(row.lifecycle!=='active'||row.staleReasons?.includes('source_purged')){this.journal.clear();if(row.lifecycle!=='active'){this.entries.delete(row.id);this.field(row.id,'body')?.closest('[data-entry-id]').remove();continue;}}
