@@ -90,6 +90,7 @@ test('ANS-08 ContinuousTopicReader keeps opposite cursors, windows 3x40 rows and
  await reader.next();assert.deepEqual(reader.nextCursor,null);assert.equal(new Set(reader.items.map(x=>x.entry.id)).size,160);
  const pin=new Set(['reader-0045']),layout=reader.layout(pin),visible=layout.filter(x=>x.kind==='item').map(x=>x.item.entry.id);
  assert.ok(visible.length<=121);assert.ok(visible.includes('reader-0045'));assert.ok(layout.some(x=>x.kind==='spacer'));
+ const beforeStart=reader.windowStart;assert.equal(reader.shiftWindow('previous'),true);assert.equal(reader.windowStart,Math.max(0,beforeStart-40));assert.equal(reader.shiftWindow('next'),true);assert.equal(reader.windowStart,beforeStart);
 });
 
 test('ANS-08 TopicAIViewSession keeps original and AI anchors independent',()=>{
@@ -110,4 +111,12 @@ test('ANS-08 reverse payload chunks stay contiguous with large canonical entries
  const seen=[];let cursor=anchor.previousCursor,guard=0;
  while(cursor){const page=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',cursor,limit:40,direction:'prev'});seen.unshift(...page.items.map(x=>x.entry.id));cursor=page.previousCursor;assert.ok(++guard<10);}
  assert.deepEqual(seen,ordered.slice(0,6));assert.equal(new Set(seen).size,6);
+});
+
+
+test('ANS-08 ContinuousTopicReader crosses empty search chunks without repeating the first cursor',async()=>{
+ const calls=[],rows=Array.from({length:120},(_,i)=>({entry:{id:'deep-'+pad(i)}}));
+ const load=async({cursor})=>{const start=cursor?.at||0,end=Math.min(rows.length,start+40);calls.push(start);return {items:start<80?[]:rows.slice(start,end),nextCursor:end<rows.length?{at:end}:null,previousCursor:start?{at:start}:null,topic:{id:'deep-topic'},sections:[]};};
+ const reader=new ContinuousTopicReader({load,maxEmptyLoads:5});reader.reset({topicId:'deep-topic',sort:'asc',query:'needle'});const state=await reader.initial();
+ assert.deepEqual(calls,[0,40,80]);assert.equal(state.items.length,40);assert.equal(state.items[0].entry.id,'deep-0080');assert.equal(state.terminalNext,true);assert.equal(state.terminalPrevious,true);
 });
