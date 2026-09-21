@@ -6,12 +6,16 @@
 - package_status: `IN_PROGRESS`
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
-- current_round: `ANS-08`
-- current_round_status: `COMPLETE`
-- execution_id: `ANS08-20260920-exec01`
+- current_round: `ANS-09`
+- current_round_status: `IN_PROGRESS`
+- execution_id: `ANS09-20260921-aem01`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
+- ans09_execution_start_sha: `d0f767fb64deb3c951bbd916d232114de9a8dbfb`
+- ans09_candidate_branch: `manager/ans09-aem-20260921`
+- ans09_previous_receipts_read: `receipts/ANS-01.md` through `receipts/ANS-08.md`
+- ans09_authorization: `2026-09-21 new continuous AEM management instruction; independent READY-round execution`
 - ans08_execution_start_sha: `9e426b41fa61763e6507245b4a26a4600228c5b5`
 - ans08_candidate_branch: `ans/v1/ANS-08-20260920-exec01`
 - ans08_previous_receipt_read: `receipts/ANS-07.md`
@@ -69,7 +73,7 @@
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。ANS-07 execution `ANS07-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #404 attempt 2；completion receipt 已发布。ANS-08 execution `ANS08-20260920-exec01` 已完成并通过 exact-main Certification #428；receipt 已发布，ANS-09 READY但本execution停止。
+本文件是本包唯一执行队列。ANS-07 execution `ANS07-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #404 attempt 2；completion receipt 已发布。ANS-08 execution `ANS08-20260920-exec01` 已完成并通过 exact-main Certification #428；receipt 已发布。用户2026-09-21新的持续授权启动独立ANS09-20260921-aem01；ANS-09 IN_PROGRESS。
 
 ## Round queue
 
@@ -83,7 +87,7 @@
 | ANS-06 | COMPLETE | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | implementation `682b2920…` · certified/published `8c133a39…` · main CI #389 success · Current Browser 58/58 · Full Suite 1184/1184 · `receipts/ANS-06.md` |
 | ANS-07 | COMPLETE | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | certified/published `14885f75…` · main CI #404 attempt 2 success · Current Browser 59/59 · Full Suite 1191/1191 · `receipts/ANS-07.md` |
 | ANS-08 | COMPLETE | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | certified main `0b26472f` · #428 success · `receipts/ANS-08.md` |
-| ANS-09 | READY | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | NOT_STARTED |
+| ANS-09 | IN_PROGRESS | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | execution `ANS09-20260921-aem01` · claimed from `d0f767f` |
 
 ## Requirements
 
@@ -95,7 +99,11 @@ ANS-03 只认证了现有 current-conversation identity / presence 的可信生�
 
 ## Current execution record
 
-ANS-08 execution `ANS08-20260920-exec01` is COMPLETE. Original start main: `9e426b41fa61763e6507245b4a26a4600228c5b5`. Manager takeover retained the original candidate branch and published through PR36 / `manager/ans08-closure-20260921`. Certified runtime/test main: `0b26472f70525fde76c77f228c07dfdaf08821df`, tree `2e28bd00e95950264203064b88e05066a5553c5d`. PAIA Certification #428 / run 35554800048 / attempt 1 / success / head 0b26472f70525fde76c77f228c07dfdaf08821df. Current Browser, Full Suite, UI Refresh, four unit shards, Adapter/privacy, release guards and macOS Secure Store passed. Detailed evidence and retained failure history: `receipts/ANS-08.md`. ANS-09 is READY but NOT_STARTED.
+ANS-09 execution `ANS09-20260921-aem01` is IN_PROGRESS under the new 2026-09-21 continuous manager authorization. It starts from `main@d0f767fb64deb3c951bbd916d232114de9a8dbfb` in an independent clean snapshot and branch `manager/ans09-aem-20260921`. All eight preceding receipts and required authority documents were reread. This claim contains no runtime change. The ANS08 writer was released; only the new ANS09 executor may modify this round.
+
+### Prior ANS-08 execution evidence
+
+ANS-08 execution `ANS08-20260920-exec01` is COMPLETE. Original start main: `9e426b41fa61763e6507245b4a26a4600228c5b5`. Manager takeover retained the original candidate branch and published through PR36 / `manager/ans08-closure-20260921`. Certified runtime/test main: `0b26472f70525fde76c77f228c07dfdaf08821df`, tree `2e28bd00e95950264203064b88e05066a5553c5d`. PAIA Certification #428 / run 35554800048 / attempt 1 / success / head 0b26472f70525fde76c77f228c07dfdaf08821df. Current Browser, Full Suite, UI Refresh, four unit shards, Adapter/privacy, release guards and macOS Secure Store passed. Detailed evidence and retained failure history: `receipts/ANS-08.md`. ANS-09 remained READY / NOT_STARTED at ANS08 closure; its separate new execution is recorded above.
 
 ### Prior ANS-07 execution evidence
 
@@ -119,4 +127,4 @@ Completion evidence is in `receipts/ANS-07.md`, published at docs-only receipt c
 
 ## Next action
 
-**STOP this execution.** ANS-08 is COMPLETE and ANS-09 is READY / NOT_STARTED. A new user message is required to begin ANS-09; this closure does not start a new round.
+**Execute ANS-09 only** under `ANS09-20260921-aem01`: integration and lossless migration, truthful provider capability matrix, source/release parity, full required certification, final package documentation and closure. No new capture/provider permission, AI authorization, product feature or ANS-10. Keep IN_PROGRESS until exact-runtime main certification and completion evidence are verified.
