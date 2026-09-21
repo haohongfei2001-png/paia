@@ -12,11 +12,11 @@ planning_round: `PRD-00`
 
 planning_round_status: `COMPLETE`
 
-current_round: `PRD-01`
+current_round: `PRD-02`
 
-current_round_status: `IN_PROGRESS`
+current_round_status: `READY`
 
-writer_status: `CLAIMED — manager/prd01-baseline-20260921`
+writer_status: `RELEASED`
 
 acceptanceComplete: `false`
 
@@ -29,8 +29,8 @@ productionCertified: `false`
 | Round | State | Goal |
 |---|---|---|
 | PRD-00 | COMPLETE | Audit current product, freeze production definitions, scope and verification plan |
-| PRD-01 | IN_PROGRESS | Exact-main baseline and certification-debt reconciliation |
-| PRD-02 | PLANNED | Current logged-in ChatGPT capture canary |
+| PRD-01 | COMPLETE | Exact-main baseline and certification-debt reconciliation |
+| PRD-02 | READY | Current logged-in ChatGPT capture canary |
 | PRD-03 | PLANNED | Daily-profile update/restart/recovery canary |
 | PRD-04 | PLANNED | Backup/restore and scale durability |
 | PRD-05 | PLANNED | Daily core-loop product canary |
@@ -93,3 +93,53 @@ sanitized receipt publication only.
 
 No PRD-02 live-site work, daily-profile mutation or feature expansion is
 authorized by this execution.
+
+
+## PRD-01 closure
+
+execution_id: `PRD01-20260921-aem01`
+
+execution_start_main: `f821377daa3b84d55dfd6b0853431b6d68c6f6d5`
+
+failed_baseline_certification:
+`PAIA Certification #441 / run 35585419827` — attempt 1 Full Suite had two
+real browser failures; attempt 2 later hit the existing ANS-05 timeout and was
+cancelled at the existing Full Suite job boundary. Both failures remain evidence.
+
+repaired_candidate:
+`PR #40 / candidate a9f0ff42f6dc30190d2a2d5acecce51ba8151142 /
+PAIA Certification #442 / run 35588786337 / SUCCESS`
+
+certified_runtime_main:
+`c32acb0f1454268c6cf67bd5d203ba2e781bc7d9`
+
+certified_runtime_tree:
+`ee5eae893d2f6c98055d65d73084915b1f676300`
+
+exact_main_certification:
+`PAIA Certification #445 / run 35591542309 / attempt 1 / SUCCESS`
+
+exact_main_full_suite:
+`1207/1207 PASS; unit 988; browser 63; adapter 102; privacy 54;
+fullSuite=true; auditPassed=true; historicalBrowserFiles=76`
+
+exact_main_input_digest:
+`26b6c3acdaae1f36871c7d901664ac0b94aaae0bb113b387278cbb249c86987f`
+
+receipt:
+`docs/production-readiness-v1/receipts/PRD-01.md`
+
+verdict:
+`COMPLETE / ENGINEERING BASELINE PASS`
+
+The closing receipt records one bounded UI runtime fix and one browser-fixture
+quiescence correction. No timeout, schema, permission, provider, Source identity,
+Backup, Semantic Engine, sync or hidden-AI scope was expanded.
+
+PRD-02 is READY but **NOT_STARTED**. It is the first round that may gather current
+logged-in ChatGPT canary evidence. This PRD-01 closure does not authorize or
+perform that live-site work.
+
+`acceptanceComplete=false`,
+`releaseCandidateCertified=false`, and
+`productionCertified=false` remain mandatory until their later gates pass.
