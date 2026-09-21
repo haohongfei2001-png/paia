@@ -125,21 +125,11 @@ mkdir -p "$GATE_DIR"
 rsync -a --delete "$SOURCE_DIR/" "$GATE_DIR/"
 printf 'globalThis.PAIA_PRD02_RUNTIME_CHECK=%s;\\n' "$(cat "$CHECK_JSON")" > "$GATE_DIR/runtime-check.js"
 
-RUN_ID="$(python3 - <<'PY'
-import secrets
-print(secrets.token_hex(12))
-PY
-)"
-START_MS="$(python3 - <<'PY'
-import time
-print(int(time.time()*1000))
-PY
-)"
-URL="chrome-extension://$EXTENSION_ID/__paia_prd02_live_canary/index.html?run=$RUN_ID&start=$START_MS"
+URL="chrome-extension://$EXTENSION_ID/__paia_prd02_live_canary/index.html"
 open -a "Google Chrome" "$URL" >/dev/null 2>&1 || fail "Google Chrome could not open the PRD-02 verifier."
 
 echo
-echo "PRD-02 verifier opened in Chrome."
-echo "It does not update, reload, delete, restore, or call AI."
-echo "Follow the six on-page steps, then copy the PAIA_PRD02_LIVE_CANARY result line back to ChatGPT."
+echo "PRD-02 passive verifier opened in Chrome."
+echo "No test messages are required. It does not update, reload, delete, restore, or call AI."
+echo "Wait for the automatic result, then click Copy sanitized result and send the PAIA_PRD02_PASSIVE line back to ChatGPT."
 echo
