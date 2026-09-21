@@ -123,7 +123,7 @@ PY
 GATE_DIR="$RUNTIME/__paia_prd02_live_canary"
 mkdir -p "$GATE_DIR"
 rsync -a --delete "$SOURCE_DIR/" "$GATE_DIR/"
-cp "$CHECK_JSON" "$GATE_DIR/runtime-check.json"
+printf 'globalThis.PAIA_PRD02_RUNTIME_CHECK=%s;\\n' "$(cat "$CHECK_JSON")" > "$GATE_DIR/runtime-check.js"
 
 RUN_ID="$(python3 - <<'PY'
 import secrets
