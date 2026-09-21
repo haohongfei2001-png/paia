@@ -3,15 +3,23 @@
 ## Package
 
 - package_id: `PAIA-ARCHIVE-NAVIGATION-SOURCE-v1`
-- package_status: `IN_PROGRESS`
+- package_status: `COMPLETE`
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
-- current_round: `ANS-09`
-- current_round_status: `IN_PROGRESS`
-- execution_id: `ANS09-20260921-aem01`
+- current_round: `NONE`
+- current_round_status: `NONE`
+- execution_id: `NONE`
+- last_completed_round: `ANS-09`
+- last_completed_execution_id: `ANS09-20260921-aem01`
+- writer_status: `RELEASED`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
 - canonical_branch: `main`
+- ans09_certified_head: `4e7d991852c451027f11e6974a4413eb897277bb`
+- ans09_certified_tree: `a99634456e4e8a81f88633aaa3589db1d7ea4bc9`
+- ans09_main_certification: `PAIA Certification #434 / run 35564803189 / attempt 1 / success / push main / head 4e7d991852c451027f11e6974a4413eb897277bb`
+- ans09_receipt: `receipts/ANS-09.md`
+- ans09_certification_completed_at: `2026-09-21T05:59:41Z`
 - ans09_execution_start_sha: `d0f767fb64deb3c951bbd916d232114de9a8dbfb`
 - ans09_candidate_branch: `manager/ans09-aem-20260921`
 - ans09_previous_receipts_read: `receipts/ANS-01.md` through `receipts/ANS-08.md`
@@ -73,7 +81,7 @@
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。ANS-07 execution `ANS07-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #404 attempt 2；completion receipt 已发布。ANS-08 execution `ANS08-20260920-exec01` 已完成并通过 exact-main Certification #428；receipt 已发布。用户2026-09-21新的持续授权启动独立ANS09-20260921-aem01；ANS-09 IN_PROGRESS。
+本文件是本包唯一执行队列。ANS-07 execution `ANS07-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #404 attempt 2；completion receipt 已发布。ANS-08 execution `ANS08-20260920-exec01` 已完成并通过 exact-main Certification #428；receipt 已发布。用户2026-09-21新的持续授权启动独立ANS09-20260921-aem01；ANS-09现已完成并通过exact-main Certification #434。整包COMPLETE，current_round=NONE，writer已释放；没有ANS-10或下一READY round。
 
 ## Round queue
 
@@ -87,7 +95,7 @@
 | ANS-06 | COMPLETE | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | implementation `682b2920…` · certified/published `8c133a39…` · main CI #389 success · Current Browser 58/58 · Full Suite 1184/1184 · `receipts/ANS-06.md` |
 | ANS-07 | COMPLETE | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | certified/published `14885f75…` · main CI #404 attempt 2 success · Current Browser 59/59 · Full Suite 1191/1191 · `receipts/ANS-07.md` |
 | ANS-08 | COMPLETE | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | certified main `0b26472f` · #428 success · `receipts/ANS-08.md` |
-| ANS-09 | IN_PROGRESS | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | execution `ANS09-20260921-aem01` · claimed from `d0f767f` |
+| ANS-09 | COMPLETE | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | certified main `4e7d9918` · #434 success · Browser63/63 · Full1207/1207 · `receipts/ANS-09.md` |
 
 ## Requirements
 
@@ -99,7 +107,13 @@ ANS-03 只认证了现有 current-conversation identity / presence 的可信生�
 
 ## Current execution record
 
-ANS-09 execution `ANS09-20260921-aem01` is IN_PROGRESS under the new 2026-09-21 continuous manager authorization. It starts from `main@d0f767fb64deb3c951bbd916d232114de9a8dbfb` in an independent clean snapshot and branch `manager/ans09-aem-20260921`. All eight preceding receipts and required authority documents were reread. This claim contains no runtime change. The ANS08 writer was released; only the new ANS09 executor may modify this round.
+ANS-09 execution `ANS09-20260921-aem01` is COMPLETE. It started from `main@d0f767fb64deb3c951bbd916d232114de9a8dbfb`; the manager published docs-only claim `cbf78739f0d7bc0c7f42828d3fdd80045c319936` before implementation. All eight preceding receipts and required authority documents were reread. An independent snapshot and `manager/ans09-aem-20260921` held the sole writer. Reviewed PR37 candidate `512ba781d140680d61714eefa6ae527198ec1aba` was published to main at `4e7d991852c451027f11e6974a4413eb897277bb`; both share tree `a99634456e4e8a81f88633aaa3589db1d7ea4bc9`.
+
+PAIA Certification #434 / run35564803189 / attempt1 / push main / exact head `4e7d991852c451027f11e6974a4413eb897277bb` completed success at2026-09-21T05:59:41Z. Full Suite1207/1207 (unit988/browser63/adapter102/privacy54), Current Browser63/63 and explicit UI Refresh10/10 passed, zero fail/skip. Four unit shards, Adapter/privacy, macOS Secure Store, release build/guards and final Certification gate all passed. Full-suite audit: fullSuite=true, auditPassed=true, historicalBrowserFiles76, inputDigest `77b250b823d8f48b3fb735ad186eec411df65c5748b67a81f74611ac707e0b2c`. Historical Browser Audit was skipped by workflow policy, not recertified as fresh historical evidence.
+
+ANS09 added genuine pre-package DB/Backup lossless migration and source/release real-browser integration, a minimal Backup export graph repair, current P02 measurements, strengthened restart/persistence tests and full V/M/C/P/RSP evidence mapping. Product and architecture documentation are aligned. No new live capability/permission/credential, Source identity, durable schema or frozen product direction changed. Candidate26cd's full-suite failure, earlier test repairs and local cache anomaly remain in `receipts/ANS-09.md`; they are not erased or repackaged as successful runs.
+
+The package has no active round or writer. This docs-only receipt/status closure does not change the certified runtime/test tree. Release the completed execution; no ANS10 or automatic next round is defined.
 
 ### Prior ANS-08 execution evidence
 
@@ -127,4 +141,5 @@ Completion evidence is in `receipts/ANS-07.md`, published at docs-only receipt c
 
 ## Next action
 
-**Execute ANS-09 only** under `ANS09-20260921-aem01`: integration and lossless migration, truthful provider capability matrix, source/release parity, full required certification, final package documentation and closure. No new capture/provider permission, AI authorization, product feature or ANS-10. Keep IN_PROGRESS until exact-runtime main certification and completion evidence are verified.
+**NONE — package COMPLETE.** ANS09 execution has stopped and its writer is released. No READY round, active execution or ANS10 exists in this package. Any future work requires its own project-authorized scope and independent execution; current completion does not expand capture/provider permissions, AI authorization or frozen product direction.
+
