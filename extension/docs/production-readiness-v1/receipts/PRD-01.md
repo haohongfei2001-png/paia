@@ -173,11 +173,15 @@ Therefore:
 
 ## Scope audit
 
-PRD-01 makes no runtime, durable schema, manifest/permission, provider,
-authorization, Source identity, deletion, Backup or AI-behavior change.
+PRD-01 makes one bounded runtime UI behavior fix: while the first AI
+presentation is still being generated and no saved presentation exists,
+ThoughtWorkspace keeps Original readable during an asynchronous status refresh.
+This does not change provider calls, authorization, persistence, Source/Thought
+ownership, or AI-generated content semantics.
 
-No Semantic Engine, vector retrieval, sync, new provider or hidden AI work is
-introduced.
+PRD-01 makes no durable schema, manifest/permission, provider, authorization,
+Source identity, deletion or Backup change. No Semantic Engine, vector
+retrieval, sync, new provider or hidden AI work is introduced.
 
 ## Pending exact-main closure
 
