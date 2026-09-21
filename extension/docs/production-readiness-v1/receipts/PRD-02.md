@@ -67,7 +67,7 @@ A passive live PASS requires:
 - every visible user role has valid message identity, passes editor/busy gates
   and becomes a final capture candidate;
 - capture ingestion attempted count exactly equals the final candidate count;
-- structure and ingestion timestamps belong to the same capture cycle;
+- current persisted scan count equals ingestion attempted count, while both equal the accepted user-candidate count;
 - zero unresolved and zero ignored candidates;
 - `knownTimes + unknownTimes = attempted`;
 - a repeated observation produced at least one duplicate instead of a second
