@@ -89,7 +89,9 @@ test('ANS-06 cache fails closed on clock rollback and the 24-hour freshness ceil
  assert.equal((await store.active({providerKey:'synthetic',namespace:'account-main',scopeKind:'projects',scopeRef:null,now:NOW+24*60*60*1000+1})).reasonCode,'STALE');
 });
 
-test('ANS-06 source overlay ranks verified projects/windows and keeps unranked archive members in stable PAIA tail',async()=>{
+test('ANS-06 source overlay ranks verified projects/windows and keeps unranked archive members in stable PAIA tail',async t=>{
+ // Match implicit projection reads to the fixture clock; stale/rollback boundaries remain tested above.
+ t.mock.method(Date,'now',()=>NOW+60000);
  const {s}=await completeFixture({texts:[]}),[alpha,beta]=await seedProjects(s),store=new SourceOrderStore(s);
  await store.observe(order({orderedRefs:[beta,alpha],observationId:'projects-1'}),{now:NOW});
  await store.observe(order({scopeKind:'windows',scopeRef:alpha,orderedRefs:[windowRef('ans04-chat-1'),windowRef('ans04-chat-0')],observationId:'alpha-windows',generation:'wa'}),{now:NOW});
@@ -101,7 +103,9 @@ test('ANS-06 source overlay ranks verified projects/windows and keeps unranked a
  assert.equal(windows.items.at(-1).conversationRef.sourceConversationId,'ans04-chat-2');
 });
 
-test('ANS-06 namespace conflict falls back to PAIA and ephemeral reset restores default preference without touching archive facts',async()=>{
+test('ANS-06 namespace conflict falls back to PAIA and ephemeral reset restores default preference without touching archive facts',async t=>{
+ // Match implicit projection reads to the fixture clock; stale/rollback boundaries remain tested above.
+ t.mock.method(Date,'now',()=>NOW+60000);
  const {s}=await completeFixture({texts:[]}),store=new SourceOrderStore(s),preference=new ArchiveOrderPreferenceService(s);
  await seedProjects(s);
  await store.observe(order({observationId:'ns-a'}),{now:NOW});
