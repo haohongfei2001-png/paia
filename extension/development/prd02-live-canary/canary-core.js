@@ -18,7 +18,7 @@ export function summarizePassive({runtime,observation,diagnostics,archive,scanCo
     s?.editorPassedCount===s?.visibleUserRoleCount&&
     s?.busyPassedCount===s?.visibleUserRoleCount,
   ingestionMatchesVisibleCandidates:ing?.schemaVersion===1&&ing?.kind==='capture'&&
-    ing?.attempted===s?.finalCandidateCount&&diagnostics?.sameCycleEvidence===true,
+    ing?.attempted===s?.finalCandidateCount&&diagnostics?.scanned===ing?.attempted,
   ingestionSettled:nonnegative(ing?.attempted)&&ing?.attempted>0&&
     ing?.unresolved===0&&ing?.ignored===0&&
     ing?.knownTimes+ing?.unknownTimes===ing?.attempted,
