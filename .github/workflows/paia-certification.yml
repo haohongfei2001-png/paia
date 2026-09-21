@@ -129,6 +129,14 @@ jobs:
         env:
           PAIA_TEST_CONCURRENCY: '1'
         run: xvfb-run -a npm run test:browser
+      - name: Upload ANS05 lifecycle diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ans05-lifecycle-${{ github.sha }}
+          path: extension/work/ans-05-navigator/lifecycle.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload UX-R1 visual evidence
         if: always()
         uses: actions/upload-artifact@v4
