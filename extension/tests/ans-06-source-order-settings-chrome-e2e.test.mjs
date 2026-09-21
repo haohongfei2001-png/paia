@@ -30,8 +30,15 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
   await p.locator('[data-settings-group="reading"]').click();
   await p.locator('#archive-order-mode').waitFor();
   assert.equal(await p.locator('#archive-order-mode').inputValue(),'paia');
+  // Hold the first setting write to prove the selected DOM value is not a
+  // persistence acknowledgement. Restart only after the real worker reply.
+  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);let release,held=false;const gate=new Promise(resolve=>release=resolve);window.__ans09ReleasePreference=release;window.__ans09RestoreSend=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=async m=>{if(!held&&m.type==='PAIA_ARCHIVE_ORDER_PREFERENCE'&&m.mode!==undefined){held=true;await gate;}return send(m);};});
   await p.locator('#archive-order-mode').selectOption('source');
   await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='source','source preference selected');
+  assert.equal((await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode,'paia','pending select has not committed');
+  await p.evaluate(()=>window.__ans09ReleasePreference());
+  await eventually(async()=>!await p.locator('#archive-order-mode').isDisabled()&&(await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode==='source','source preference durably committed before restart');
+  await p.evaluate(()=>window.__ans09RestoreSend());
   assert.match(await p.locator('#archive-order-status').textContent(),/ChatGPT|PAIA/);
   const afterControls=await rpc(p,'GET_ORGANIZER_CONTROLS');assert.deepEqual(afterControls,beforeControls,'source-order setting is independent of Input reading sort');
   await h.restartWorker();
@@ -121,8 +128,8 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
    return {mode:control.mode,value:control.select.value,status:control.status.textContent};
   });
   assert.equal(rollback.mode,'source');assert.equal(rollback.value,'source');assert.ok(rollback.status.length>0);
-  await p.locator('#archive-order-mode').selectOption('paia');await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='paia');
-  await p.locator('#archive-order-mode').selectOption('source');await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='source');
+  await p.locator('#archive-order-mode').selectOption('paia');await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='paia'&&!await p.locator('#archive-order-mode').isDisabled()&&(await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode==='paia','PAIA preference commit acknowledged');
+  await p.locator('#archive-order-mode').selectOption('source');await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='source'&&!await p.locator('#archive-order-mode').isDisabled()&&(await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode==='source','source preference commit acknowledged');
   assert.equal((await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode,'source');
   console.log('ANS06_BROWSER_EVIDENCE '+JSON.stringify({chatgptFallback:chatgpt.unavailableReason,syntheticProvider:seeded.providerKey,sourceTitles:sourcePage.items.map(x=>x.title),restartPersistence:persisted.mode,rollback:rollback.mode}));
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);

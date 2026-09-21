@@ -84,6 +84,18 @@ Topic reading and permanent purge while retaining wholly independent new writing
 Snapshot export waits for actual durable generation stability after local
 maintenance; it never retries failed exports or accepts a partial hash chain.
 
+## Certification race regression
+
+The local full suite exposed an older ANS06 test race: selecting Source order
+changes the DOM before its asynchronous preference write completes. The test
+restarted the worker and sometimes observed the still-durable PAIA value. A
+scratch delayed-write probe deterministically reproduced that exact assertion.
+The current test now holds the first write, verifies that a selected DOM value
+has not yet committed, releases it, then waits for the real worker preference and
+non-busy control before restart. Later mode changes use the same acknowledgement.
+All prior UI/order/restart assertions remain. No production save behavior,
+timeout, retry policy or gate changed. The deterministic regression passes.
+
 ## Provider and publication boundaries
 
 ChatGPT current conversation identity/presence uses its existing verified contract.
