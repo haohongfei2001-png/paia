@@ -14,9 +14,9 @@ planning_round_status: `COMPLETE`
 
 current_round: `PRD-01`
 
-current_round_status: `READY`
+current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED`
+writer_status: `CLAIMED — manager/prd01-baseline-20260921`
 
 acceptanceComplete: `false`
 
@@ -29,7 +29,7 @@ productionCertified: `false`
 | Round | State | Goal |
 |---|---|---|
 | PRD-00 | COMPLETE | Audit current product, freeze production definitions, scope and verification plan |
-| PRD-01 | READY | Exact-main baseline and certification-debt reconciliation |
+| PRD-01 | IN_PROGRESS | Exact-main baseline and certification-debt reconciliation |
 | PRD-02 | PLANNED | Current logged-in ChatGPT capture canary |
 | PRD-03 | PLANNED | Daily-profile update/restart/recovery canary |
 | PRD-04 | PLANNED | Backup/restore and scale durability |
@@ -77,3 +77,19 @@ This publication changes documentation/routing only. It does not certify a new
 runtime, alter the Capture Foundation historical verdict, or start PRD-01.
 
 Do not begin PRD-01 in this planning execution.
+
+
+## PRD-01 execution claim
+
+execution_id: `PRD01-20260921-aem01`
+
+execution_start_main: `f821377daa3b84d55dfd6b0853431b6d68c6f6d5`
+
+writer_branch: `manager/prd01-baseline-20260921`
+
+scope: exact-main automated baseline, historical certification-debt reconciliation,
+capture-regression coverage accounting, release/compatibility semantics and
+sanitized receipt publication only.
+
+No PRD-02 live-site work, daily-profile mutation or feature expansion is
+authorized by this execution.
