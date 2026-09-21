@@ -30,8 +30,15 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
   await p.locator('[data-settings-group="reading"]').click();
   await p.locator('#archive-order-mode').waitFor();
   assert.equal(await p.locator('#archive-order-mode').inputValue(),'paia');
+  // Hold the first setting write to prove the selected DOM value is not a
+  // persistence acknowledgement. Restart only after the real worker reply.
+  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);let release,held=false;const gate=new Promise(resolve=>release=resolve);window.__ans09ReleasePreference=release;window.__ans09RestoreSend=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=async m=>{if(!held&&m.type==='PAIA_ARCHIVE_ORDER_PREFERENCE'&&m.mode!==undefined){held=true;await gate;}return send(m);};});
   await p.locator('#archive-order-mode').selectOption('source');
   await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='source','source preference selected');
+  assert.equal((await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode,'paia','pending select has not committed');
+  await p.evaluate(()=>window.__ans09ReleasePreference());
+  await eventually(async()=>!await p.locator('#archive-order-mode').isDisabled()&&(await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode==='source','source preference durably committed before restart');
+  await p.evaluate(()=>window.__ans09RestoreSend());
   assert.match(await p.locator('#archive-order-status').textContent(),/ChatGPT|PAIA/);
   const afterControls=await rpc(p,'GET_ORGANIZER_CONTROLS');assert.deepEqual(afterControls,beforeControls,'source-order setting is independent of Input reading sort');
   await h.restartWorker();
@@ -78,6 +85,17 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
   },'synthetic window source order with PAIA tail',30000);
   const sourcePage=await navResult(p,{providerKey:seeded.providerKey,groupKind:'project',projectRef:seeded.alpha,mode:'source'},x=>x.effectiveOrdering==='source');
   assert.deepEqual(sourcePage.items.map(x=>x.title),['ANS06 S2','ANS06 S1','ANS06 S3']);
+  // ANS-09 makes the formerly ad-hoc P02 measurement part of current certification.
+  const pageSamples=[],modeSamples=[];
+  for(let sample=0;sample<30;sample++){
+   const start=performance.now(),page=await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:{providerKey:seeded.providerKey,groupKind:'project',projectRef:seeded.alpha,mode:'source',limit:40}});
+   pageSamples.push(performance.now()-start);assert.equal(page.effectiveOrdering,'source');assert.deepEqual(page.items.map(x=>x.title),['ANS06 S2','ANS06 S1','ANS06 S3']);
+   const mode=sample%2?'source':'paia',at=performance.now();assert.equal((await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE',{mode})).mode,mode);modeSamples.push(performance.now()-at);
+  }
+  const p95=samples=>[...samples].sort((a,b)=>a-b)[Math.ceil(samples.length*.95)-1];
+  assert.ok(p95(pageSamples)<=500,`P02 warm source-order page p95 ${p95(pageSamples)}ms`);
+  assert.ok(p95(modeSamples)<=500,`P02 mode switch p95 ${p95(modeSamples)}ms`);
+  console.log('ANS09_P02_EVIDENCE '+JSON.stringify({samples:30,pageP95:p95(pageSamples),modeP95:p95(modeSamples),environment:'isolated headless Chrome, synthetic provider, warmed scope'}));
   const s2=windowButtons(alphaBox).filter({hasText:'ANS06 S2'}).first();await s2.click();
   await eventually(async()=>await s2.getAttribute('aria-current')==='page','S2 remains selected');
   await s2.focus();
@@ -110,8 +128,8 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
    return {mode:control.mode,value:control.select.value,status:control.status.textContent};
   });
   assert.equal(rollback.mode,'source');assert.equal(rollback.value,'source');assert.ok(rollback.status.length>0);
-  await p.locator('#archive-order-mode').selectOption('paia');await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='paia');
-  await p.locator('#archive-order-mode').selectOption('source');await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='source');
+  await p.locator('#archive-order-mode').selectOption('paia');await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='paia'&&!await p.locator('#archive-order-mode').isDisabled()&&(await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode==='paia','PAIA preference commit acknowledged');
+  await p.locator('#archive-order-mode').selectOption('source');await eventually(async()=>await p.locator('#archive-order-mode').inputValue()==='source'&&!await p.locator('#archive-order-mode').isDisabled()&&(await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode==='source','source preference commit acknowledged');
   assert.equal((await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode,'source');
   console.log('ANS06_BROWSER_EVIDENCE '+JSON.stringify({chatgptFallback:chatgpt.unavailableReason,syntheticProvider:seeded.providerKey,sourceTitles:sourcePage.items.map(x=>x.title),restartPersistence:persisted.mode,rollback:rollback.mode}));
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);

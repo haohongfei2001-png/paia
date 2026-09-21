@@ -26,6 +26,9 @@ if(!uir.length)throw Error('UIR_BROWSER_SET_EMPTY');
 for(const name of uir){
  if(group(name)!=='browser E2E')throw Error(`UIR_BROWSER_NOT_CURRENT:${name}`);
 }
+for(const [name,expected]of [['ans-09-integration-chrome-e2e.test.mjs','browser E2E'],['ans-09-migration.test.mjs','unit']]){
+ if(!names.has(name)||group(name)!==expected)throw Error(`ANS09_INTEGRATION_COVERAGE_MISSING:${name}`);
+}
 const ans=[...names].filter(name=>/^ans-\d+-.*-chrome-e2e\.test\.mjs$/.test(name)).sort();
 if(!ans.length)throw Error('ANS_BROWSER_SET_EMPTY');
 for(const name of ans){

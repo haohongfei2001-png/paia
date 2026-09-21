@@ -1,0 +1,27 @@
+import {writeFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+import {resolve} from 'node:path';
+const base=pathToFileURL(resolve(process.argv[2])+'/');
+const load=p=>import(new URL(p,base));
+const {completeFixture,rows,append}=await load('tests/harness/original-complete.mjs');
+const {BackupService}=await load('core/backup-service.js');
+const {exported}=await load('tests/harness/backup-v081.mjs');
+const {ReaderStateService}=await load('core/reader-state.js');
+const {STORAGE_KEY}=await load('core/constants.js');
+const f=await completeFixture({texts:['ANS09 legacy immutable source','ANS09 repeated exact expression','ANS09 repeated exact expression','ANS09 excluded expression']});
+await f.s.enrich({epoch:(await f.s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'complete-synthetic',url:'https://chatgpt.com/c/complete-synthetic'},messages:[{sourceMessageId:'complete-0',pageOrder:1,sourceTime:{state:'valid',createTime:1609459200,updateTime:null}}]});
+await f.runner.wake({userActionId:crypto.randomUUID()});
+let snap=await f.s.snapshot(),first=snap.library.blocks[0],entries=await rows(f.s,'thoughts');
+await f.s.editDocument({documentId:first.documentId,blocks:[{id:first.id,expectedRevision:first.revision,libraryText:'ANS09 human working text',note:'ANS09 note',excluded:false}],operationId:crypto.randomUUID()});
+const editTarget=await f.s.entry(entries[0].id);const edited=await f.s.editEntry({id:entries[0].id,expectedRevision:editTarget.revision,expectedInputRevision:editTarget.currentInputRevision,changes:{body:'ANS09 independent human thought'},operationId:crypto.randomUUID()});if(edited.conflict)throw Error('fixture edit conflict');
+await f.s.removeEntry({id:entries[1].id,expectedRevision:entries[1].revision,operationId:crypto.randomUUID()});
+
+await append(f.s,'ANS09 purge marker','ans09-purge-only','ans09-purge-only');const doomed=(await f.s.snapshot()).records.find(x=>x.sourceMessageId==='ans09-purge-only');await f.s.permanentDelete(doomed.id);await f.s.drainPurgeCleanup();
+const reader=new ReaderStateService(f.s);await reader.configure({oldContent:false});await reader.configure({kind:'input',id:first.id,excluded:true});await reader.captureScope({documentId:first.documentId,excluded:true});
+await f.s.setOrganizerControls({readingSort:'desc',inputReadingSort:'desc'});await f.s.drainLibraryMaintenance();
+const independent=await f.s.continueThinking({body:'ANS09 wholly new human thought',inputId:first.id,operationId:crypto.randomUUID()});
+const backup=await exported(new BackupService(f.s,{appVersion:'0.12.0'}));
+const verify=await completeFixture({texts:[]}),checker=new BackupService(verify.s);const session=await checker.beginRestore();for(let i=0;i<backup.length;i+=30)await checker.stageRestore({sessionId:session.sessionId,items:backup.slice(i,i+30)});await checker.previewRestore(session);
+const stores={};for(const name of f.s.repository.stores)stores[name]=await rows(f.s,name);
+const fixture={baseline:'38804b99153074f54148f875e2e09c76568bc1cd',syntheticOnly:true,createdBy:'actual baseline OrganizerStore and BackupService',firstInputId:first.id,firstEntryId:entries[0].id,independentEntryId:independent.id,storage:await f.storage.get(STORAGE_KEY),stores,backup};
+const text=JSON.stringify(fixture,null,2)+'\n';if(text.includes('synthetic-test-key'))throw Error('credential leaked');await writeFile(process.argv[3],text);console.log({bytes:text.length,backupItems:backup.length,stores:Object.keys(stores).length});

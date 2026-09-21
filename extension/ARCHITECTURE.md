@@ -6,6 +6,35 @@ Current runtime baseline: **v0.12.0 + post-release consolidation rounds**
 
 This document defines the architecture boundaries that new work must preserve unless an explicit migration is approved. Historical implementation documents remain evidence, but they do not define new architecture direction by default.
 
+## Archive source metadata and bounded navigation
+
+`source-structure-model/store/backup` owns bounded Conversation/Project/history
+facts in the existing `meta` store. `archive-navigation-index/query` and
+`thought-read-index` build resumable, body-free projections. `source-ordering`
+validates provider scope, complete generations and freshness; its snapshots and
+local ordering preference are excluded from Backup. `archive-navigator`,
+`continuous-collection` and `continuous-topic-reader` consume these services and
+retain the existing Reader route, body owners, revisions and edit sessions.
+
+Missing old metadata is unknown. Upgrade/index rebuild does not migrate canonical
+bodies or change IDs, source time, revisions, provenance, exclusions or permissions.
+Durable relationship/history rows round-trip through strict Backup validation;
+restored evidence keeps its original observation time and does not become fresh
+source order. External source deletion writes no PAIA tombstone. PAIA purge fences
+content plus source metadata/history/index/export references before reuse.
+
+Backup export applies the existing entry eligibility gate to dependent placements
+and provenance, so an excluded or purge-invalidated derived entry cannot leave a
+portable orphan reference. Restore keeps its strict graph/hash/version/size gates;
+unsupported or corrupt backups fail atomically rather than silently dropping fields.
+
+Pages remain at most40 items /256KiB, index build batches at most100, and clean
+Topic DOM targets120 entries plus required dirty/saving/composition/selection pins.
+No new object store, DB version, body truth, provider permission or implicit AI
+approval is introduced. The ANS package's [architecture](docs/archive-navigation-source-v1/ARCHITECTURE.md)
+and [integration matrix](docs/archive-navigation-source-v1/INTEGRATION_MATRIX.md) bind
+these boundaries to the current implementation and certification evidence.
+
 ## 1. Architectural goals
 
 PAIA should become easier, not more dangerous, to change as the archive grows. The architecture therefore optimizes for:
