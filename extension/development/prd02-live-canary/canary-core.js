@@ -1,58 +1,74 @@
-export const PRD02_FORMAT='paia-prd02-live-canary-v1';
-export const PRD02_EXPECTED_MESSAGES=4;
-export function canaryTexts(runId){
- if(typeof runId!=='string'||!/^[a-f0-9]{24}$/.test(runId))throw Error('INVALID_RUN');
- return {
-  alpha:`PAIA live canary ${runId} alpha`,
-  repeat:`PAIA live canary ${runId} repeat`,
-  postNav:`PAIA live canary ${runId} post-navigation`,
-  draft:`PAIA live canary ${runId} draft-only`
- };
-}
+export const PRD02_FORMAT='paia-prd02-passive-normal-use-v2';
 const iso=v=>typeof v==='string'&&Number.isFinite(Date.parse(v));
-const uniq=xs=>new Set(xs).size;
-const fixedTimeSource=v=>['unknown','chatgpt_dom','chatgpt_response_create_time','dom+response','official_export'].includes(v)?v:'other';
-export function summarizeCanary({runDigest,runtime,records,diagnostics,scanComplete=true}){
- const reasons=[];
- const alpha=records.filter(r=>r.label==='alpha'),repeat=records.filter(r=>r.label==='repeat'),postNav=records.filter(r=>r.label==='postNav'),draft=records.filter(r=>r.label==='draft');
- const canary=[...alpha,...repeat,...postNav],sameChat=canary.length&&canary.every(r=>r.chatToken===canary[0].chatToken);
- const sameChatWindow=records.filter(r=>r.inCanaryChatWindow);
- const identities=canary.map(r=>r.sourceKey).filter(Boolean),messageIds=canary.map(r=>r.sourceMessageId).filter(Boolean),dedupe=canary.map(r=>r.dedupeKey).filter(Boolean);
- const capturedAtValid=canary.every(r=>iso(r.capturedAt));
- const timeCounts={known:0,unknown:0,sources:{unknown:0,chatgpt_dom:0,chatgpt_response_create_time:0,'dom+response':0,official_export:0,other:0}};
- for(const r of canary){const src=fixedTimeSource(r.timeSource);timeCounts.sources[src]++;if(r.sourceSentAt&&iso(r.sourceSentAt))timeCounts.known++;else timeCounts.unknown++;}
- const repeatIdentityOK=repeat.length===2&&uniq(repeat.map(r=>r.sourceKey))===2&&uniq(repeat.map(r=>r.sourceMessageId))===2&&uniq(repeat.map(r=>r.dedupeKey))===2&&uniq(repeat.map(r=>r.contentHash))===1;
- const diagnosticsOK=diagnostics?.adapterVersion==='0.3.0'&&Array.isArray(diagnostics.observedStatuses)&&diagnostics.observedStatuses.length>0&&diagnostics.observedStatuses.every(x=>typeof x==='string');
- const nonCaptureVisible=diagnostics?.observedStatuses?.some(x=>['WAITING_CHAT','NO_MESSAGES','TEMPORARY_CHAT','UNSTABLE_PAGE','PAUSED','CONSENT_REQUIRED'].includes(x))===true;
+const nonnegative=v=>Number.isSafeInteger(v)&&v>=0;
+export function summarizePassive({runtime,observation,diagnostics,archive,scanComplete=true}){
+ const s=diagnostics?.structure||{},ing=diagnostics?.ingestion||{},reasons=[];
  const checks={
   runtimeParity:runtime?.runtimeParity===true,
   scanComplete:scanComplete===true,
-  alphaOnce:alpha.length===1,
-  repeatTwice:repeat.length===2,
-  postNavigationOnce:postNav.length===1,
-  draftAbsent:draft.length===0,
-  sameConversation:sameChat===true,
-  exactWindowCount:sameChatWindow.length===PRD02_EXPECTED_MESSAGES,
-  distinctSourceIdentity:identities.length===PRD02_EXPECTED_MESSAGES&&uniq(identities)===PRD02_EXPECTED_MESSAGES,
-  distinctMessageIdentity:messageIds.length===PRD02_EXPECTED_MESSAGES&&uniq(messageIds)===PRD02_EXPECTED_MESSAGES,
-  distinctDedupeIdentity:dedupe.length===PRD02_EXPECTED_MESSAGES&&uniq(dedupe)===PRD02_EXPECTED_MESSAGES,
-  repeatTextDistinctIdentity:repeatIdentityOK,
-  capturedAtValid,
-  sourceTimeHonest:canary.every(r=>r.sourceSentAt?iso(r.sourceSentAt)&&fixedTimeSource(r.timeSource)!=='other':fixedTimeSource(r.timeSource)==='unknown'),
-  diagnosticSurface:diagnosticsOK,
-  nonCaptureStatusVisible:nonCaptureVisible
+  recentCapture:diagnostics?.recentCapture===true,
+  recentConversationObservation:observation?.recent===true,
+  observationBoundedToCapture:observation?.boundedToCapture===true,
+  adapterVersion:diagnostics?.adapterVersion==='0.3.0',
+  captureStatus:diagnostics?.status==='CAPTURING',
+  structureAvailable:s?.schemaVersion===1,
+  visibleUserRolesPresent:nonnegative(s?.visibleUserRoleCount)&&s.visibleUserRoleCount>0,
+  allVisibleUserRolesAccepted:s?.finalCandidateCount===s?.visibleUserRoleCount&&
+    s?.roleIdValidCount===s?.visibleUserRoleCount&&
+    s?.editorPassedCount===s?.visibleUserRoleCount&&
+    s?.busyPassedCount===s?.visibleUserRoleCount,
+  ingestionMatchesVisibleCandidates:ing?.schemaVersion===1&&ing?.kind==='capture'&&
+    ing?.attempted===s?.finalCandidateCount&&diagnostics?.scanned===ing?.attempted,
+  ingestionSettled:nonnegative(ing?.attempted)&&ing?.attempted>0&&
+    ing?.unresolved===0&&ing?.ignored===0&&
+    ing?.knownTimes+ing?.unknownTimes===ing?.attempted,
+  duplicateObservationSeen:nonnegative(ing?.duplicates)&&ing.duplicates>0,
+  archiveIdentityCoverage:archive?.distinctSources>=ing?.attempted&&
+    archive?.distinctMessages>=ing?.attempted&&archive?.identityMappingConsistent===true,
+  sourceTimeHonest:archive?.invalidSourceTimes===0
  };
- for(const [k,v] of Object.entries(checks))if(!v)reasons.push(k);
+ for(const [key,value] of Object.entries(checks))if(!value)reasons.push(key);
+ const membership=['unknown','unassigned','project'].includes(observation?.membershipState)?observation.membershipState:'unknown';
  return {
-  format:PRD02_FORMAT,complete:scanComplete===true,pass:reasons.length===0,runDigest,
-  scope:'dedicated-real-chat-bounded',expectedUserMessages:PRD02_EXPECTED_MESSAGES,
-  observedCanaryRecords:canary.length,observedSameChatWindowRecords:sameChatWindow.length,
-  counts:{alpha:alpha.length,repeat:repeat.length,postNavigation:postNav.length,draft:draft.length},
-  identity:{sourceKeys:uniq(identities),messageIds:uniq(messageIds),dedupeKeys:uniq(dedupe),repeatContentHashes:uniq(repeat.map(r=>r.contentHash).filter(Boolean))},
-  time:timeCounts,
-  diagnostics:{adapterVersion:diagnostics?.adapterVersion||null,observedStatuses:[...new Set(diagnostics?.observedStatuses||[])].sort(),lastErrorCode:diagnostics?.lastErrorCode||null,captureHealthState:diagnostics?.captureHealthState||null},
-  runtime:{sourceHead:runtime?.sourceHead||null,runtimeParity:runtime?.runtimeParity===true,manifestVersion:runtime?.manifestVersion||null,releaseDigest:runtime?.releaseDigest||null},
+  format:PRD02_FORMAT,
+  scope:'latest-real-chatgpt-conversation-normal-use',
+  complete:scanComplete===true,
+  pass:reasons.length===0,
   checks,reasons,
-  privacy:{rawTextEmitted:false,titlesEmitted:false,urlsEmitted:false,idsEmitted:false,profilePathsEmitted:false}
+  evidence:{
+   visibleUserRoles:Number.isSafeInteger(s?.visibleUserRoleCount)?s.visibleUserRoleCount:0,
+   acceptedUserCandidates:Number.isSafeInteger(s?.finalCandidateCount)?s.finalCandidateCount:0,
+   attempted:Number.isSafeInteger(ing?.attempted)?ing.attempted:0,
+   added:Number.isSafeInteger(ing?.added)?ing.added:0,
+   duplicates:Number.isSafeInteger(ing?.duplicates)?ing.duplicates:0,
+   unresolved:Number.isSafeInteger(ing?.unresolved)?ing.unresolved:0,
+   knownTimes:Number.isSafeInteger(ing?.knownTimes)?ing.knownTimes:0,
+   unknownTimes:Number.isSafeInteger(ing?.unknownTimes)?ing.unknownTimes:0,
+   archiveActiveRows:archive?.activeRows||0,
+   distinctSources:archive?.distinctSources||0,
+   distinctMessages:archive?.distinctMessages||0,
+   archiveKnownTimes:archive?.knownSourceTimes||0,
+   archiveUnknownTimes:archive?.unknownSourceTimes||0
+  },
+  diagnostics:{
+   adapterVersion:diagnostics?.adapterVersion||null,
+   status:diagnostics?.status||null,
+   captureHealthState:diagnostics?.captureHealthState||null,
+   lastErrorCode:diagnostics?.lastErrorCode||null
+  },
+  projectRecognition:{
+   projectIdentity:'unverified',
+   projectName:'unverified',
+   membership:'unverified',
+   observedMembershipState:membership,
+   gapConfirmed:membership==='unknown'
+  },
+  runtime:{
+   sourceHead:runtime?.sourceHead||null,
+   runtimeParity:runtime?.runtimeParity===true,
+   manifestVersion:runtime?.manifestVersion||null,
+   releaseDigest:runtime?.releaseDigest||null
+  },
+  privacy:{rawTextRead:false,rawTextEmitted:false,titlesEmitted:false,urlsEmitted:false,idsEmitted:false,profilePathsEmitted:false}
  };
 }

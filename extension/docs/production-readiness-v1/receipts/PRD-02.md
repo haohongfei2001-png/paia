@@ -1,98 +1,113 @@
-# PRD-02 — Current Logged-in ChatGPT Capture Canary
+# PRD-02 — Current Logged-in ChatGPT Capture Verification
 
 Execution: `PRD02-20260921-live01`
 
+Passive amendment: `PRD02-20260921-passive01`
+
 Execution start main: `f42e1a7fa5c0944290bd47868da8d0b2512287ad`
 
-Writer: `manager/prd02-live-canary-20260921`
-
-Status: **IN_PROGRESS — LIVE EVIDENCE NOT YET COLLECTED**
+Current round: **IN_PROGRESS — LIVE PASSIVE EVIDENCE NOT YET COLLECTED**
 
 ## Scope
 
-This round may observe only a bounded, owner-authorized live ChatGPT canary.
-It does not crawl account history, update/reload the daily extension, restore a
-Backup, modify Source identity, broaden permissions or start PRD-03.
+PRD-02 proves current logged-in ChatGPT capture V05-V09. It does not certify
+daily-profile update/restart, Backup restore, semantic retrieval or final
+production readiness.
 
-## Canary design
+No retrospective account crawl is allowed. Real message bodies, titles, URLs,
+conversation/source/message IDs, credentials and Chrome profile paths remain
+local and never enter Git evidence.
 
-The live verifier uses one new ordinary ChatGPT conversation and a random
-per-run token. The owner performs four synthetic sends:
+## Harness history
 
-1. Alpha once.
-2. Repeat twice as two separate user messages.
-3. After one page reload and a sidebar navigation away/back, Post-navigation
-   once.
+The first PRD-02 harness used a dedicated synthetic Alpha/Repeat/Post-navigation
+conversation. Its engineering/privacy tests passed and PR #41 merged to
+`main@6f127dde924d4b8e541d831bb7ae1445fb8c38d4`.
 
-A fourth synthetic string is typed into the composer and cleared without being
-sent.
+Exact-main PAIA Certification #450 / run `35601275562` completed SUCCESS on
+that main.
 
-The verifier runs before the canary and after the lifecycle exercise. It reads
-the existing PAIA IndexedDB locally, compares only against the synthetic run
-strings and emits no body text, title, URL, chat ID, source ID, message ID,
-profile path or credential.
+Normal product use then showed that requiring synthetic test messages imposed
+unnecessary owner work and also exposed a distinct product limitation: ChatGPT
+Project recognition is not implemented. The provider contract still declares:
 
-## Required final invariants
+- `projectIdentity: unverified`
+- `projectName: unverified`
+- `membership: unverified`
 
-A PASS requires all of the following:
+That source-structure limitation is recorded here rather than being disguised as
+a capture failure or a successful Project feature.
 
-- the Chrome-loaded PAIA runtime byte-matches the current release build;
-- exactly 4 canary user records exist in the declared canary chat/window;
-- Alpha count = 1;
-- Repeat count = 2;
-- Post-navigation count = 1;
-- Draft-only count = 0;
-- all four records belong to one live ChatGPT conversation;
-- all four have distinct Source identity, message identity and dedupe identity;
-- the two identical Repeat bodies have the same content hash but distinct
-  Source/message/dedupe identity;
-- no fifth same-chat record exists in the canary window, so assistant output,
-  draft/editor content or unrelated material did not enter the archive;
-- source time is either a valid provider/DOM-derived time or explicitly unknown;
-  capturedAt is never accepted as a substitute;
-- the live diagnostic surface reports adapter version 0.3.0 and at least one
-  explicit non-capture lifecycle state such as WAITING_CHAT/NO_MESSAGES during
-  the blank/new-chat/navigation exercise;
-- the scan completes within its local bounded record limit.
+## Passive normal-use verifier
 
-## Runtime parity
+The amended verifier requires **no test messages**.
 
-The launcher does not deploy production runtime bytes. It builds the current
-release in a temporary directory and compares that release byte-for-byte with
-the already Chrome-loaded PAIA runtime, ignoring only `__paia_*` local
-verification helper directories.
+After the owner has used ChatGPT normally, one local read-only check combines:
 
-If parity is false, PRD-02 does not update/reload PAIA. It reports the mismatch
-and stops the canary. Runtime update/restart belongs to PRD-03.
+1. the most recent durable body-free
+   `ans:conversation:v1:*` observation;
+2. the latest sanitized capture `structure` and `ingestion` diagnostics;
+3. the body-free `recordIndex.byChat` rows for that observed conversation;
+4. a byte-for-byte comparison between the current release build and the
+   Chrome-loaded PAIA runtime.
 
-## Privacy
+The verifier does not open the `records` body store. It does not read
+`originalText`, `libraryText`, titles or URLs.
 
-The durable result format is `PAIA_PRD02_LIVE_CANARY` followed by sanitized
-JSON containing only:
+## PASS requirements
 
-- booleans and fixed reason codes;
-- counts;
-- fixed diagnostic enums;
-- public source HEAD / manifest version;
-- release digest;
-- a non-reversible digest of the random canary run token.
+A passive live PASS requires:
 
-Private live content remains local.
+- Chrome-loaded runtime byte parity with the current release;
+- recent ChatGPT capture and recent Conversation observation;
+- observation and capture evidence bounded to the same recent normal-use window;
+- adapter version 0.3.0 and `CAPTURING` state;
+- current structural diagnostics available;
+- at least one visible user role;
+- every visible user role has valid message identity, passes editor/busy gates
+  and becomes a final capture candidate;
+- capture ingestion attempted count exactly equals the final candidate count;
+- current persisted scan count equals ingestion attempted count, while both equal the accepted user-candidate count;
+- zero unresolved and zero ignored candidates;
+- `knownTimes + unknownTimes = attempted`;
+- a repeated observation produced at least one duplicate instead of a second
+  logical Source;
+- body-free archive indexes contain at least the attempted number of distinct
+  Source and message identities with one-to-one identity mapping;
+- no malformed source-time value is present in the bounded conversation index.
 
-## Automation boundary
+Together with the current Adapter/Privacy exact-main gates, this demonstrates
+that the live capture request is sourced from validated **user-role** candidates,
+not assistant bodies or the composer/draft surface.
 
-The verifier and launcher are development-only assets and are excluded from the
-release product. They do not call AI, write PAIA storage, delete data, restore
-data, reload the extension or change Chrome permissions.
+## Project recognition finding
+
+PRD-02 reports but does not solve ChatGPT Project recognition.
+
+Current `source-structure-contract.js` verifies only
+`conversationIdentity`. Project identity, name and membership remain
+`unverified`, so Archive's "项目未知/归属未知" state is a real capability gap.
+
+A capture PASS does not change those capability flags and does not authorize
+implementation of Project recognition inside PRD-02.
+
+## Privacy output
+
+The only shareable result line begins:
+
+`PAIA_PRD02_PASSIVE`
+
+It contains booleans, counts, fixed enum states, public source HEAD/version and
+release digest. It contains no body, title, URL, conversation ID, source ID,
+message ID, profile path or credential.
 
 ## Pending closure
 
-PRD-02 cannot close from CI alone. The following are still required:
+PRD-02 now requires only:
 
-1. publish the verified development-only canary harness;
-2. run it against the current logged-in ChatGPT site and the existing
-   Chrome-loaded PAIA runtime;
-3. preserve the sanitized result;
-4. classify any failure without guessing or repairing private data;
-5. if the live canary passes, publish the final receipt and exact-main
-   engineering certification without starting PRD-03.
+1. publish the passive verifier through required candidate/exact-main CI;
+2. run it once after ordinary ChatGPT use against the existing loaded PAIA;
+3. preserve the sanitized `PAIA_PRD02_PASSIVE` result;
+4. if PASS, close V05-V09 and mark PRD-02 COMPLETE;
+5. stop. Do not start PRD-03 or a Project-recognition package in the same
+   execution.
