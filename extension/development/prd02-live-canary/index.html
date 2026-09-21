@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PAIA PRD-02 Live Canary</title><link rel="stylesheet" href="gate.css"></head><body><main>
+<p class="eyebrow">PAIA · Production Readiness · PRD-02</p><h1>Live ChatGPT capture canary</h1>
+<p class="lead">This verifier uses one dedicated normal ChatGPT conversation and synthetic canary text. It reads PAIA locally and emits only counts, fixed states and non-private digests. It does not update or reload the extension.</p>
+<section class="card"><strong id="baseline">Checking baseline…</strong><p>Do not begin until this says Ready.</p></section>
+<ol>
+<li>Open a <strong>new normal ChatGPT chat</strong> (not Temporary Chat). Send Alpha once. <button id="copy-alpha">Copy Alpha</button></li>
+<li>Send Repeat <strong>twice</strong> as two separate messages. <button id="copy-repeat">Copy Repeat</button></li>
+<li>Type Draft-only into the composer, wait a few seconds, then clear it <strong>without sending</strong>. <button id="copy-draft">Copy Draft-only</button></li>
+<li>Reload that canary chat once. Then use the ChatGPT sidebar to open another chat and return to the canary chat. Briefly visit a blank/new-chat route as part of this step so PAIA's non-capture status is observable.</li>
+<li>After returning, send Post-navigation once. <button id="copy-post">Copy Post-navigation</button></li>
+<li>Return here and verify. <button id="verify">Verify canary</button></li>
+</ol>
+<section class="card"><strong id="verdict">No verdict yet.</strong><pre id="result"></pre></section>
+<div class="actions"><button id="copy-result" disabled>Copy result line</button></div>
+<p class="footnote">Only send the line beginning <code>PAIA_PRD02_LIVE_CANARY</code>. It never includes message bodies, chat titles, URLs, durable IDs, credentials, or Chrome profile paths.</p>
+</main><script type="module" src="gate.js"></script></body></html>
