@@ -27,6 +27,12 @@ test('PRD-02 canary accepts exactly four bounded user records and same-text dist
  assert.equal(r.identity.repeatContentHashes,1);
 });
 
+test('runtime mismatch fails the canary before any production claim',()=>{
+ const records=[row('alpha',1),row('repeat',2),row('repeat',3),row('postNav',4)];
+ const r=summarizeCanary({runDigest:'digest',runtime:{...runtime,runtimeParity:false},records,diagnostics});
+ assert.equal(r.pass,false);assert.equal(r.checks.runtimeParity,false);
+});
+
 test('unknown source time remains honest instead of borrowing capture time',()=>{
  const records=[
   row('alpha',1,{sourceSentAt:null,timeSource:'unknown'}),
@@ -36,6 +42,12 @@ test('unknown source time remains honest instead of borrowing capture time',()=>
  assert.equal(r.pass,true);
  assert.equal(r.time.unknown,1);
  assert.equal(r.checks.sourceTimeHonest,true);
+});
+
+test('invalid source-time provenance fails closed',()=>{
+ const records=[row('alpha',1,{sourceSentAt:null,timeSource:'mystery'}),row('repeat',2),row('repeat',3),row('postNav',4)];
+ const r=summarizeCanary({runDigest:'digest',runtime,records,diagnostics});
+ assert.equal(r.pass,false);assert.equal(r.checks.sourceTimeHonest,false);
 });
 
 test('extra same-chat record, draft capture, duplicate identity or missing non-capture diagnostic all fail closed',()=>{
