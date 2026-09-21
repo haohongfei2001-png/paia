@@ -7,7 +7,7 @@
 - planning_round: `COMPLETE`（完整规划已发布至main并回读；证据见PUBLICATION）
 - implementation_started: `true`
 - current_round: `ANS-08`
-- current_round_status: `IN_PROGRESS`
+- current_round_status: `COMPLETE`
 - execution_id: `ANS08-20260920-exec01`
 - baseline_main_sha: `38804b99153074f54148f875e2e09c76568bc1cd`
 - planning_commit_sha: `dc92647d9d937f86d8e57c0040edec330e9f7e7f`
@@ -15,6 +15,11 @@
 - ans08_execution_start_sha: `9e426b41fa61763e6507245b4a26a4600228c5b5`
 - ans08_candidate_branch: `ans/v1/ANS-08-20260920-exec01`
 - ans08_previous_receipt_read: `receipts/ANS-07.md`
+- ans08_manager_branch: `manager/ans08-closure-20260921`
+- ans08_certified_head: `0b26472f70525fde76c77f228c07dfdaf08821df`
+- ans08_certified_tree: `2e28bd00e95950264203064b88e05066a5553c5d`
+- ans08_main_certification: `PAIA Certification #428 / run 35554800048 / attempt 1 / success / head 0b26472f70525fde76c77f228c07dfdaf08821df`
+- ans08_receipt: `receipts/ANS-08.md`
 - ans07_execution_start_sha: `833ad67a64002ac1ce80ba6584b3a6ef7cdfccf2`
 - ans07_candidate_branch: `ans/v1/ANS-07-20260920-exec01`
 - ans07_claim_commit: `b09048336bcd3f64814f55cb434e9e30d2e0c1e9`
@@ -64,7 +69,7 @@
 - blocker_requiring_product_owner_decision: `NONE`
 - runtime_modified_in_planning: `false`
 
-本文件是本包唯一执行队列。ANS-07 execution `ANS07-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #404 attempt 2；completion receipt 已发布。ANS-08 execution `ANS08-20260920-exec01` 已从 `main@9e426b41fa61763e6507245b4a26a4600228c5b5` 领取并进入 IN_PROGRESS。
+本文件是本包唯一执行队列。ANS-07 execution `ANS07-20260920-exec01` 已完成、发布并通过 exact-head PAIA Certification #404 attempt 2；completion receipt 已发布。ANS-08 execution `ANS08-20260920-exec01` 已完成并通过 exact-main Certification #428；receipt 已发布，ANS-09 READY但本execution停止。
 
 ## Round queue
 
@@ -77,20 +82,22 @@
 | ANS-05 | COMPLETE | ANS-04 COMPLETE | 三级工作区、持续Navigator、响应式与安全切Window | implementation `dce0d578…` · certified/published `f4fbd204…` · main CI #385 attempt 2 success · Current Browser 57/57 · Full Suite 1177/1177 · `receipts/ANS-05.md` |
 | ANS-06 | COMPLETE | ANS-05 COMPLETE | source ordering provider、设置、fallback与生产UI接线 | implementation `682b2920…` · certified/published `8c133a39…` · main CI #389 success · Current Browser 58/58 · Full Suite 1184/1184 · `receipts/ANS-06.md` |
 | ANS-07 | COMPLETE | ANS-06 COMPLETE | Thought Library总览/搜索/独立思想连续列表 | certified/published `14885f75…` · main CI #404 attempt 2 success · Current Browser 59/59 · Full Suite 1191/1191 · `receipts/ANS-07.md` |
-| ANS-08 | IN_PROGRESS | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | execution `ANS08-20260920-exec01` · claimed |
-| ANS-09 | PLANNED | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | NOT_STARTED |
+| ANS-08 | COMPLETE | ANS-07 COMPLETE | Topic连续Reader、双向windowing与编辑安全 | certified main `0b26472f` · #428 success · `receipts/ANS-08.md` |
+| ANS-09 | READY | ANS-08 COMPLETE | 全包集成、lossless迁移、release认证与文档对齐 | NOT_STARTED |
 
 ## Requirements
 
 R1–R9 全部有正式实施路径；详见README映射与VERIFICATION V01–V23。
-R5的Thought Library根级部分已由ANS-07实现：总览/搜索/独立思想连续集合、body-free完整generation投影、root返回位置恢复与P05根级有界读取均已进入认证runtime；Topic Reader双向windowing、edit pins与P06仍属于ANS-08。
+R5的Thought Library根级部分已由ANS-07实现：总览/搜索/独立思想连续集合、body-free完整generation投影、root返回位置恢复与P05根级有界读取均已进入认证runtime；Topic Reader双向windowing、edit pins与P06已由ANS-08完成并通过main认证。
 R8已由ANS-06实现：provider-aware模块、Settings、生产消费者、设备本地持久偏好、可靠synthetic provider正例与unavailable fallback均已进入认证runtime；真实provider覆盖仍按逐能力证据声明。
 ANS-03 只认证了现有 current-conversation identity / presence 的可信生产路径；ChatGPT Project identity/name、membership、Project/window order、rename/move、conversation/project deletion 仍为 unverified → unavailable。Synthetic lifecycle/order 只证明通用 admission/reconciliation 安全性，不构成 ChatGPT 实站认证。
 本包无新provider捕获、无新AI联网授权、无Source identity变化、无旧worktree清理。
 
 ## Current execution record
 
-ANS-08 execution `ANS08-20260920-exec01` is active. Start main: `9e426b41fa61763e6507245b4a26a4600228c5b5`; candidate branch: `ans/v1/ANS-08-20260920-exec01`; previous receipt read: `receipts/ANS-07.md`.
+ANS-08 execution `ANS08-20260920-exec01` is COMPLETE. Original start main: `9e426b41fa61763e6507245b4a26a4600228c5b5`. Manager takeover retained the original candidate branch and published through PR36 / `manager/ans08-closure-20260921`. Certified runtime/test main: `0b26472f70525fde76c77f228c07dfdaf08821df`, tree `2e28bd00e95950264203064b88e05066a5553c5d`. PAIA Certification #428 / run 35554800048 / attempt 1 / success / head 0b26472f70525fde76c77f228c07dfdaf08821df. Current Browser, Full Suite, UI Refresh, four unit shards, Adapter/privacy, release guards and macOS Secure Store passed. Detailed evidence and retained failure history: `receipts/ANS-08.md`. ANS-09 is READY but NOT_STARTED.
+
+### Prior ANS-07 execution evidence
 
 ANS-07 was claimed from `main@833ad67a64002ac1ce80ba6584b3a6ef7cdfccf2` at claim commit `b09048336bcd3f64814f55cb434e9e30d2e0c1e9`; candidate branch is `ans/v1/ANS-07-20260920-exec01`. The locally validated closure head is `339d44768012af5c491821c3d2dc1f6934978e53`. The final certified runtime/test head on canonical `main` is `14885f75c6b2fb34036e5c6ca63bb920724268cc` with tree `0d353afec7934dba5ccb769cd49eb82d7d0a521d`, byte-identical to the locally validated tree.
 
@@ -112,4 +119,4 @@ Completion evidence is in `receipts/ANS-07.md`, published at docs-only receipt c
 
 ## Next action
 
-**Execute ANS-08 only.** Implement and certify the Continuous Topic Reader / edit-safe windowing contract, publish the completion receipt, mark only ANS-09 READY, then STOP. Do not implement ANS-09 in this execution.
+**STOP this execution.** ANS-08 is COMPLETE and ANS-09 is READY / NOT_STARTED. A new user message is required to begin ANS-09; this closure does not start a new round.
