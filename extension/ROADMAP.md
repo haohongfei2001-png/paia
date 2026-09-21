@@ -6,6 +6,25 @@ Baseline: **v0.12.0 — Thought Evolution & Shared Context + post-release consol
 
 PAIA is no longer in a phase where the main goal is to add more feature categories. Current priorities are product validation, Reader/Search/Revisit quality, trust-boundary hardening and keeping future expansion cheap.
 
+## Production Readiness v1 — active package
+
+The active package is `PAIA-PRODUCTION-READINESS-v1`, with its only execution
+queue in `docs/production-readiness-v1/STATUS.md`.
+
+Its sequence is PRD-00 audit/freeze → PRD-01 exact-main baseline/debt →
+PRD-02 live ChatGPT capture canary → PRD-03 daily-profile update/recovery →
+PRD-04 Backup/restore and scale → PRD-05 daily core-loop canary → PRD-06 final
+release/private-beta certification.
+
+The package deliberately treats green automated tests, current-site evidence,
+daily-profile durability and real product use as different evidence classes.
+It does not authorize semantic/vector retrieval, provider proliferation, cloud
+sync, broader capture, hidden AI or new durable content schemas.
+
+PRD-00 is docs-only. After its publication, PRD-01 is the sole next executable
+round; the planning execution must not automatically start it.
+
+
 ## Archive Navigation & Source Structure v1
 
 The explicitly authorized ANS package supersedes only the R1–R9 visible navigation,
