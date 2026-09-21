@@ -33,9 +33,10 @@ async function scan(){
  }finally{db.close();}
 }
 async function baseline(){
- const {records,complete}=await scan();const prior=records.filter(r=>['alpha','repeat','postNav','draft'].includes(r.label));
- $('baseline').textContent=complete&&prior.length===0?'Ready — this run has no pre-existing canary records.':'Not clean — start a new run before sending canary messages.';
- $('baseline').dataset.ok=String(complete&&prior.length===0);
+ const [{records,complete},runtime]=await Promise.all([scan(),Promise.resolve(runtimeCheck())]);const prior=records.filter(r=>['alpha','repeat','postNav','draft'].includes(r.label));
+ const clean=complete&&prior.length===0,runtimeReady=runtime?.runtimeParity===true,ok=clean&&runtimeReady;
+ $('baseline').textContent=!runtimeReady?'Blocked — the Chrome-loaded PAIA runtime does not byte-match the current release. Do not update or reload it in PRD-02; copy a verification result back to ChatGPT.':clean?'Ready — runtime parity is confirmed and this run has no pre-existing canary records.':'Not clean — start a new run before sending canary messages.';
+ $('baseline').dataset.ok=String(ok);
 }
 async function copy(text,button){await navigator.clipboard.writeText(text);const old=button.textContent;button.textContent='Copied';setTimeout(()=>button.textContent=old,1000);}
 for(const [id,key]of [['copy-alpha','alpha'],['copy-repeat','repeat'],['copy-draft','draft'],['copy-post','postNav']])$(id).onclick=()=>copy(texts[key],$(id));
