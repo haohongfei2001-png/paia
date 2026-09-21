@@ -6,6 +6,27 @@ Current runtime baseline: **v0.12.0 + post-release consolidation rounds**
 
 This document defines what PAIA is now, what it is trying to become, and which product bets are intentionally frozen while they are being validated. Historical version specifications remain evidence of past implementation decisions, but they do not override this document for new product work.
 
+## Production Readiness v1 validation focus
+
+The current active product-validation package is
+`PAIA-PRODUCTION-READINESS-v1`. Its purpose is not to add another capability;
+it must prove that the existing Catch → Read → Remember → Organize → Reuse system
+can be depended on in ordinary daily use.
+
+Production readiness separates three claims: engineering-green, release-candidate
+certified, and production-certified. Current synthetic/browser certification is
+strong engineering evidence, but it is not by itself proof of current logged-in
+ChatGPT compatibility, the user's daily-profile update/restart path, current
+Backup/restore boundaries, or longitudinal retrieval value.
+
+Until this package closes, production work prioritizes live capture compatibility,
+local durability/recovery, supported scale and actual retrieval/reread/reuse.
+Semantic Engine integration, new providers, sync and new durable content layers
+remain frozen unless separately authorized.
+
+Canonical package: [docs/production-readiness-v1/README.md](docs/production-readiness-v1/README.md).
+
+
 ## Archive navigation and continuous Thought reading
 
 The Archive Navigation & Source Structure v1 package implements the current
