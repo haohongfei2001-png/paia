@@ -16,7 +16,7 @@ current_round: `PRD-02`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `CLAIMED — manager/prd02-live-canary-20260921`
+writer_status: `CLAIMED — manager/prd02-passive-normal-use-20260921`
 
 acceptanceComplete: `false`
 
@@ -162,3 +162,22 @@ Semantic Engine, new provider, broader permission or PRD-03 work is authorized.
 
 Real message bodies, titles, source IDs, URLs, cookies, credentials, Chrome
 profile paths and Backup files must remain local and must not enter Git.
+
+
+## PRD-02 passive-verifier amendment
+
+amendment_execution: `PRD02-20260921-passive01`
+
+recovery_branch: `manager/prd02-passive-normal-use-20260921`
+
+Reason: normal product use already exposed a source-structure product gap
+(`projectIdentity/projectName/membership` remain unverified), while the original
+synthetic Alpha/Repeat canary imposed unnecessary owner actions.
+
+The PRD-02 acceptance target remains live ChatGPT capture V05-V09. The verifier
+may now use the latest normal-use Conversation observation plus capture/ingestion
+diagnostics and local body-free Source indexes. No synthetic message sending is
+required.
+
+Project recognition is recorded as a separate product gap and is not silently
+treated as a capture PASS or as an authorization to start a new package.
