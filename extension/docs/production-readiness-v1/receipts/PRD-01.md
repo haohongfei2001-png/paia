@@ -14,7 +14,13 @@ expansion was performed.
 
 PRD-00 publication left remote main at
 `f821377daa3b84d55dfd6b0853431b6d68c6f6d5`.
+Its exact tree is `e62fa0f2d67804d20ae23b70bbb7cb1923b92ea3`.
 Its exact push triggered PAIA Certification #441 / run `35585419827`.
+
+A repository compare from the already-certified PR #38 head
+`07690218e84293cf74acf202572b387701416dfd` to this PRD-00 main shows only the
+new Production Readiness documentation/routing files. Runtime, tests, manifest,
+workflow and package scripts are unchanged between those two points.
 
 At the time this receipt was drafted, that exact-main run was still executing.
 The final exact-main verdict must be filled from the completed run before PRD-01
@@ -77,7 +83,16 @@ The present test explicitly documents:
   reading <10s, search succeeds, duplicate replay is idempotent and final state
   is exact.
 
-The 2026-09-18 failure on a GitHub/fake-indexeddb timing threshold is not erased.
+The 2026-09-18 full attempt was run locally without `CI=1`, so it used the
+180-second outer timeout. A direct historical read of the same test at
+`d063707293d887352905143dc1af58c1cbb5e606` shows that the 240-second CI
+watchdog, 180-second local watchdog and controlled-machine <120-second commit
+target were already present then; PRD-01 did not relax them.
+
+On exact-main #441, the 1000 case PASSed at 09:50:14Z and the 10000 case PASSed
+at 09:53:16Z under the pre-existing CI contract.
+
+The 2026-09-18 failure is not erased.
 The current contract makes the portable CI semantics explicit instead of using
 GitHub-hosted fake-indexeddb wall time as a production latency claim.
 
