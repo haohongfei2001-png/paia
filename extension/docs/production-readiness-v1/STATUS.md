@@ -29,7 +29,7 @@ productionCertified: `false`
 | Round | State | Goal |
 |---|---|---|
 | PRD-00 | COMPLETE | Audit current product, freeze production definitions, scope and verification plan |
-| PRD-01 | READY | Exact-main baseline and certification-debt reconciliation |
+| PRD-01 | IN_PROGRESS | Exact-main baseline and certification-debt reconciliation |
 | PRD-02 | PLANNED | Current logged-in ChatGPT capture canary |
 | PRD-03 | PLANNED | Daily-profile update/restart/recovery canary |
 | PRD-04 | PLANNED | Backup/restore and scale durability |
