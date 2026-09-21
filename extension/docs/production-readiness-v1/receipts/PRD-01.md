@@ -22,9 +22,8 @@ A repository compare from the already-certified PR #38 head
 new Production Readiness documentation/routing files. Runtime, tests, manifest,
 workflow and package scripts are unchanged between those two points.
 
-At the time this receipt was drafted, that exact-main run was still executing.
-The final exact-main verdict must be filled from the completed run before PRD-01
-can close.
+Certification #441 became the failure baseline described below. It is preserved
+as failed evidence and is not used as the PRD-01 closing certification.
 
 ## Exact-main #441 first-attempt failure
 
@@ -69,6 +68,18 @@ relaxed.
 The failed jobs were also re-run unchanged as #441 attempt 2 only to measure
 reproducibility. That retry cannot erase attempt 1 and is not a substitute for
 the repaired candidate certification.
+
+### #441 attempt 2
+
+Attempt 2 did not establish a clean baseline either. The unmodified ANS-05
+Navigator browser case hit its existing 300000 ms test timeout. The unsharded
+suite later continued through unit and browser work, including the large UX-R2/R3
+fixtures and early UX-R4 cases, but GitHub cancelled the Full Suite job at the
+existing 30-minute job boundary before `work/test-summary.json` was written.
+The final Certification gate therefore failed.
+
+This second result is also retained as failure evidence. No timeout was increased
+and no missing receipt was synthesized.
 
 ## Historical Capture Foundation debt
 
@@ -171,6 +182,56 @@ Therefore:
 - current logged-in ChatGPT and daily-profile evidence remain PRD-02/03 and must
   not be relabeled as PRD-01 PASS.
 
+## Repaired candidate and exact-main certification
+
+PR #40 candidate head
+`a9f0ff42f6dc30190d2a2d5acecce51ba8151142` passed PAIA Certification #442 /
+run `35588786337` on the behavior-bearing candidate. Full Suite reported
+1207/1207 PASS, 0 fail, 0 skip with `fullSuite=true`,
+`auditPassed=true`, `historicalBrowserFiles=76` and input digest
+`26b6c3acdaae1f36871c7d901664ac0b94aaae0bb113b387278cbb249c86987f`.
+Current Browser also passed the repaired UX-R4 once-Grant path and the held-status
+UX-R5 first-generation path.
+
+Review then found two documentation inconsistencies only: the queue row still
+said READY while the canonical field said IN_PROGRESS, and the scope audit
+understated the bounded runtime UI fix. Those were corrected without changing
+runtime/tests. The final PR head was merged as:
+
+- merged main: `c32acb0f1454268c6cf67bd5d203ba2e781bc7d9`
+- certified tree: `ee5eae893d2f6c98055d65d73084915b1f676300`
+
+Exact-main PAIA Certification #445 / run `35591542309` completed SUCCESS on
+that merged main:
+
+- Unit: 988/988
+- Browser E2E: 63/63
+- Adapter contracts: 102/102
+- Privacy/security: 54/54
+- Full Suite: **1207/1207 PASS, 0 fail, 0 skip**
+- `fullSuite=true`
+- `auditPassed=true`
+- `historicalBrowserFiles=76`
+- input digest:
+  `26b6c3acdaae1f36871c7d901664ac0b94aaae0bb113b387278cbb249c86987f`
+- package guardrails: 9146 across 216 runtime resources
+- Current Browser: SUCCESS
+- release build/guards: SUCCESS
+- macOS Secure Store: SUCCESS
+- final Certification gate: SUCCESS
+
+The exact-main Current Browser log explicitly re-passed:
+
+- all three Capture Foundation browser journeys;
+- UX-R2 F-LARGE: 100k Inputs / 1000 documents / 300 Topics / 5000 Entries;
+- UX-R3 F-LARGE: 100k Inputs / 1000 documents / 300 Topics / 5000 Thoughts;
+- UX-R4 F-LARGE and the real-worker once-Grant case;
+- UX-R5 first-generation/Original-readability and the remaining ON-01 paths.
+
+Thus the historical automated debt is reconciled on the current certified
+runtime/test tree without deleting the old failed evidence or weakening its
+gates.
+
 ## Scope audit
 
 PRD-01 makes one bounded runtime UI behavior fix: while the first AI
@@ -183,15 +244,27 @@ PRD-01 makes no durable schema, manifest/permission, provider, authorization,
 Source identity, deletion or Backup change. No Semantic Engine, vector
 retrieval, sync, new provider or hidden AI work is introduced.
 
-## Pending exact-main closure
+## PRD-01 final verdict
 
-Before marking PRD-01 COMPLETE:
+**COMPLETE / ENGINEERING BASELINE PASS.**
 
-1. PAIA Certification #441 must finish on exact
-   `f821377daa3b84d55dfd6b0853431b6d68c6f6d5`;
-2. every required current-release job must be SUCCESS;
-3. the full-suite receipt must report fullSuite/auditPassed and zero fail/skip;
-4. capture/history/large-fixture evidence in the completed logs must be sampled
-   to confirm it is the expected current suite;
-5. final status must preserve V05+ live/daily gates as unresolved rather than
-   upgrading `productionCertified`.
+PRD-01 closes V01-V04 for the certified engineering baseline represented by
+`main@c32acb0f1454268c6cf67bd5d203ba2e781bc7d9` and Certification #445.
+
+This does **not** satisfy V05+ live-provider/daily-profile/product-use gates.
+In particular:
+
+- current logged-in ChatGPT compatibility remains PRD-02;
+- bounded live capture reconciliation remains PRD-02;
+- daily-profile update/restart/recovery remains PRD-03;
+- Backup current-version round-trip and supported production scale remain PRD-04;
+- real retrieval/reread/reuse value remains PRD-05.
+
+Therefore:
+
+- `acceptanceComplete=false`
+- `releaseCandidateCertified=false`
+- `productionCertified=false`
+
+PRD-02 may become READY after this receipt/status closure, but it is not started
+by PRD-01.
