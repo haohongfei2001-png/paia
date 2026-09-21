@@ -1,5 +1,25 @@
 # PAIA current engineering instructions
 
+## Production Readiness v1 — active execution routing
+
+`PAIA-PRODUCTION-READINESS-v1` is the active new product/engineering package for
+closing the gap between strong automated engineering evidence and a PAIA daily
+installation that can be relied on without silent data loss or recurring
+operator repair.
+
+Before continuing PAIA production-readiness work, read
+`docs/production-readiness-v1/README.md`, `AUDIT.md`,
+`DEVELOPMENT_PLAN.md`, `VERIFICATION.md`, `EXECUTION_PROTOCOL.md` and
+`STATUS.md` after PRODUCT/ARCHITECTURE/ROADMAP. `STATUS.md` is the only PRD
+queue. Execute only one READY round per owner continuation instruction and stop
+after its receipt/status closure.
+
+This package does not authorize ANS-10, semantic/vector integration, new live
+providers, cloud sync, broader collection, hidden paid AI or a new durable
+content layer. Real-site/daily-profile evidence must keep private content local;
+only sanitized counts/hashes/states may enter Git.
+
+
 ## Archive Navigation & Source Structure v1 execution routing
 
 The explicitly authorized ANS package takes precedence over the completed UIS
