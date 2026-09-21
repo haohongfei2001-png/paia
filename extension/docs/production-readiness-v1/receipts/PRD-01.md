@@ -26,6 +26,50 @@ At the time this receipt was drafted, that exact-main run was still executing.
 The final exact-main verdict must be filled from the completed run before PRD-01
 can close.
 
+## Exact-main #441 first-attempt failure
+
+PAIA Certification #441 attempt 1 on exact PRD-00 main did **not** pass.
+Current Browser, all four Unit shards, Adapter/privacy, release guards and macOS
+Secure Store passed. The unsharded Full Suite completed with two failures and
+zero skips, so the final Certification gate correctly failed.
+
+The two retained failures were:
+
+1. `ux-r4-search-reuse-chrome-e2e.test.mjs` — the real-worker once-Grant
+   concurrency case expected exactly one successful share and observed zero.
+   The same file/case passed in Current Browser on the same exact source.
+2. `ux-r5-ai-organize-chrome-e2e.test.mjs` — during first AI generation,
+   Original was not visible at one refresh point while the provider request was
+   still gated. The same case passed in Current Browser on the same exact source.
+
+This is a real PRD-01 blocker. It is not reclassified as runner noise.
+
+Investigation found two independent race boundaries:
+
+- the once-Grant test began Memory preview construction immediately after a real
+  capture fixture reached Source-count completion, without requiring the
+  asynchronous Smart Filter queue to be idle. If a late foundation write lands
+  after preview creation, the trusted Memory path correctly rejects the preview
+  as stale, so both concurrent share attempts may fail before Grant consumption;
+- Thought AI refresh hid Original immediately on entry to AI view, then awaited
+  status before learning that no saved presentation existed. A slow status read
+  could therefore expose a transient blank/AI-only interval during first
+  generation even though the intended product contract is "Original remains
+  readable until a saved presentation exists".
+
+The bounded repair keeps the Grant assertion unchanged, waits for capture/filter
+quiescence before that Grant-specific test constructs its preview, and changes
+AI reading refresh so Original is hidden immediately only when a saved
+presentation is already known. A new held-status regression forces the
+first-generation refresh window instead of relying on timing.
+
+No timeout, permission, schema, provider, authorization or paid-request rule is
+relaxed.
+
+The failed jobs were also re-run unchanged as #441 attempt 2 only to measure
+reproducibility. That retry cannot erase attempt 1 and is not a substitute for
+the repaired candidate certification.
+
 ## Historical Capture Foundation debt
 
 The 2026-09-18 Capture Foundation full attempt recorded 1119/1129 PASS and ten
