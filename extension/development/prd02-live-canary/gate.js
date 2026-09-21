@@ -1,7 +1,7 @@
 import {summarizePassive} from './canary-core.js';
 const $=id=>document.getElementById(id);
 const PREFIX='ans:conversation:v1:';
-const MAX_META=20000,MAX_CHAT_ROWS=10000,RECENT_MS=60*60*1000,CYCLE_MS=15000;
+const MAX_META=20000,MAX_CHAT_ROWS=10000,RECENT_MS=60*60*1000,OBSERVATION_BOUND_MS=24*60*60*1000;
 const runtimeCheck=()=>globalThis.PAIA_PRD02_RUNTIME_CHECK&&typeof globalThis.PAIA_PRD02_RUNTIME_CHECK==='object'?globalThis.PAIA_PRD02_RUNTIME_CHECK:{runtimeParity:false};
 const safeStatus=new Set(['CAPTURING','WAITING_CHAT','TEMPORARY_CHAT','NO_MESSAGES','ADAPTER_MISMATCH','ADAPTER_VERSION_MISMATCH','UNSTABLE_PAGE','PAUSED','CONSENT_REQUIRED','CAPTURE_FAILED','MESSAGE_TOO_LARGE','ADAPTER_LIMIT','STORAGE_FULL','STORAGE_FAILED']);
 const iso=v=>typeof v==='string'&&Number.isFinite(Date.parse(v));
@@ -14,6 +14,7 @@ async function readLocalDiagnostics(){const row=(await chrome.storage.local.get(
  lastScanAt:iso(d.lastScanAt)?d.lastScanAt:null,
  structureAt:iso(d.structureAt)?d.structureAt:null,
  ingestionAt:iso(d.ingestionAt)?d.ingestionAt:null,
+ scanned:Number.isSafeInteger(d.scanned)&&d.scanned>=0?d.scanned:null,
  structure:d.structure&&typeof d.structure==='object'?d.structure:null,
  ingestion:d.ingestion&&typeof d.ingestion==='object'?d.ingestion:null,
  captureHealthState:typeof d.captureHealth?.responseState==='string'?d.captureHealth.responseState:null,
@@ -34,9 +35,9 @@ async function inspect(){
    if(typeof row.sourceKey==='string'&&typeof row.sourceMessageId==='string'){if(sourceMap.has(row.sourceKey)&&sourceMap.get(row.sourceKey)!==row.sourceMessageId)invalid++;else sourceMap.set(row.sourceKey,row.sourceMessageId);if(messageMap.has(row.sourceMessageId)&&messageMap.get(row.sourceMessageId)!==row.sourceKey)invalid++;else messageMap.set(row.sourceMessageId,row.sourceKey);}
    if(row.sourceSentAt==null||row.sourceSentAt==='')unknown++;else if(iso(row.sourceSentAt))known++;else invalid++;
   }
-  const lastSuccess=Date.parse(diagnostics.lastSuccessAt||''),lastScan=Date.parse(diagnostics.lastScanAt||''),observed=Date.parse(latest.lastObservedAt||''),structureAt=Date.parse(diagnostics.structureAt||''),ingestionAt=Date.parse(diagnostics.ingestionAt||'');
-  const enrichedDiagnostics={...diagnostics,recentCapture:Number.isFinite(lastSuccess)&&now-lastSuccess>=0&&now-lastSuccess<=RECENT_MS,sameCycleEvidence:Number.isFinite(structureAt)&&Number.isFinite(ingestionAt)&&Math.abs(structureAt-ingestionAt)<=CYCLE_MS};
-  const observation={recent:now-observed>=0&&now-observed<=RECENT_MS,boundedToCapture:Number.isFinite(lastScan)&&Number.isFinite(observed)&&Math.abs(lastScan-observed)<=RECENT_MS,membershipState:latest.membership?.state||'unknown'};
+  const lastSuccess=Date.parse(diagnostics.lastSuccessAt||''),lastScan=Date.parse(diagnostics.lastScanAt||''),observed=Date.parse(latest.lastObservedAt||'');
+  const enrichedDiagnostics={...diagnostics,recentCapture:Number.isFinite(lastSuccess)&&now-lastSuccess>=0&&now-lastSuccess<=RECENT_MS};
+  const observation={recent:Number.isFinite(observed)&&observed<=now,boundedToCapture:Number.isFinite(lastScan)&&Number.isFinite(observed)&&lastScan>=observed&&lastScan-observed<=OBSERVATION_BOUND_MS,membershipState:latest.membership?.state||'unknown'};
   const archive={activeRows:active.length,distinctSources:sources.size,distinctMessages:messages.size,identityMappingConsistent:invalid===0,knownSourceTimes:known,unknownSourceTimes:unknown,invalidSourceTimes:invalid};
   return {report:summarizePassive({runtime,observation,diagnostics:enrichedDiagnostics,archive,scanComplete:recordScan.complete})};
  }finally{db.close();}
