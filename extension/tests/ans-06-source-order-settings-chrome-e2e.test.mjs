@@ -78,6 +78,17 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
   },'synthetic window source order with PAIA tail',30000);
   const sourcePage=await navResult(p,{providerKey:seeded.providerKey,groupKind:'project',projectRef:seeded.alpha,mode:'source'},x=>x.effectiveOrdering==='source');
   assert.deepEqual(sourcePage.items.map(x=>x.title),['ANS06 S2','ANS06 S1','ANS06 S3']);
+  // ANS-09 makes the formerly ad-hoc P02 measurement part of current certification.
+  const pageSamples=[],modeSamples=[];
+  for(let sample=0;sample<30;sample++){
+   const start=performance.now(),page=await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:{providerKey:seeded.providerKey,groupKind:'project',projectRef:seeded.alpha,mode:'source',limit:40}});
+   pageSamples.push(performance.now()-start);assert.equal(page.effectiveOrdering,'source');assert.deepEqual(page.items.map(x=>x.title),['ANS06 S2','ANS06 S1','ANS06 S3']);
+   const mode=sample%2?'source':'paia',at=performance.now();assert.equal((await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE',{mode})).mode,mode);modeSamples.push(performance.now()-at);
+  }
+  const p95=samples=>[...samples].sort((a,b)=>a-b)[Math.ceil(samples.length*.95)-1];
+  assert.ok(p95(pageSamples)<=500,`P02 warm source-order page p95 ${p95(pageSamples)}ms`);
+  assert.ok(p95(modeSamples)<=500,`P02 mode switch p95 ${p95(modeSamples)}ms`);
+  console.log('ANS09_P02_EVIDENCE '+JSON.stringify({samples:30,pageP95:p95(pageSamples),modeP95:p95(modeSamples),environment:'isolated headless Chrome, synthetic provider, warmed scope'}));
   const s2=windowButtons(alphaBox).filter({hasText:'ANS06 S2'}).first();await s2.click();
   await eventually(async()=>await s2.getAttribute('aria-current')==='page','S2 remains selected');
   await s2.focus();

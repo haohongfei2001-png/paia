@@ -6,6 +6,34 @@ Current runtime baseline: **v0.12.0 + post-release consolidation rounds**
 
 This document defines what PAIA is now, what it is trying to become, and which product bets are intentionally frozen while they are being validated. Historical version specifications remain evidence of past implementation decisions, but they do not override this document for new product work.
 
+## Archive navigation and continuous Thought reading
+
+The Archive Navigation & Source Structure v1 package implements the current
+`global navigation | Archive Navigator | Reader` presentation. Project groups
+start collapsed; the Navigator stays available while switching Windows, with a
+mobile sheet at narrow widths. Unknown Project membership is distinct from a
+confirmed lack of Project. Source Project moves/renames are metadata, and an
+external confirmed deletion leaves the PAIA archive intact. PAIA permanent purge
+retains its separate, stronger deletion semantics.
+
+Input order is one ascending/descending toggle using the existing preference;
+source send time is visible without hover and unknown time stays explicit.
+Archive Window ordering is a separate device-local PAIA/source setting. Reliable
+scoped source order is used only when available; ChatGPT Project/order/delete
+capabilities remain unverified and fall back honestly to PAIA ordering.
+
+Thought overview, search/unplaced results and Topic original text load
+continuously. Bounded pages and edit-safe windows preserve original/AI separation,
+manual revisions, IME, selection and save failure buffers. Whole Input reuse stays
+in its menu, native selected-text reuse stays available, and whole Topic selection
+is in its existing menu. Material Tray, versions and explicit Context authorization
+remain available; ordinary reading/order/scrolling makes no provider call.
+
+Implementation completion, integration certification and provider coverage are
+separate claims. Consult the package [canonical status](docs/archive-navigation-source-v1/STATUS.md),
+[coverage matrix](docs/archive-navigation-source-v1/INTEGRATION_MATRIX.md) and receipts;
+synthetic integration tests do not certify real ChatGPT Project APIs or Claude exports.
+
 ## 1. Product definition
 
 PAIA is a **local-first personal AI input and context system**.

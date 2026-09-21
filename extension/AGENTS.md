@@ -1,6 +1,19 @@
 # PAIA current engineering instructions
 
-## Active execution overlay — UI Simplification v1
+## Archive Navigation & Source Structure v1 execution routing
+
+The explicitly authorized ANS package takes precedence over the completed UIS
+queue for its R1–R9 scope. Read `PRODUCT.md`, `ARCHITECTURE.md`, `ROADMAP.md`, the
+Design Core, then `docs/archive-navigation-source-v1/README.md`, `STATUS.md`,
+`ARCHITECTURE.md`, `SOURCE_CAPABILITIES.md`, `DEVELOPMENT_PLAN.md`,
+`VERIFICATION.md`, `EXECUTION_PROTOCOL.md` and the previous receipts.
+`STATUS.md` is the only ANS queue. An IN_PROGRESS round must finish its actual
+runtime/main certification and receipt before completion. If all ANS rounds are
+COMPLETE and current_round is NONE, the package is closed: do not invent ANS-10,
+resume UIS/UIR/UX, or treat roadmap product-validation ideas as execution grants.
+A new explicitly authorized scope still follows its own authority and writer lease.
+
+## Completed overlay — UI Simplification v1
 
 The UI Simplification v1 execution contract is on GitHub `main`; its canonical status file determines whether a round is active or the package is complete. Once UIS-01 through UIS-04 are all COMPLETE, no current round remains. Do not invent UIS-05 or resume historical UIR/UX work.
 

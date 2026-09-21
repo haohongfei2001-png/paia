@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {legacy,upgraded,canonical,digest} from './harness/ans09-legacy.mjs';
 import {completeFixture,rows} from './harness/original-complete.mjs';
+import {BACKUP_LIMITS} from '../core/backup-format.js';
 import {BackupService} from '../core/backup-service.js';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {ReaderStateService} from '../core/reader-state.js';
@@ -43,9 +44,9 @@ test('ANS-09 M01/V21/V22 actual pre-ANS Backup restores losslessly including bod
 test('ANS-09 M05 corrupt/truncated/oversized/unknown-version legacy restore leaves an existing archive byte-for-byte usable',async()=>{
  const f=await upgraded(),before=await canonical(f.s),badHash=structuredClone(legacy.backup);badHash[1].value.id+='corrupt';
  const future=structuredClone(legacy.backup);future[0].schemaVersion=999;
- const oversized=structuredClone(legacy.backup);oversized.find(x=>x.section==='sources').value.originalText='x'.repeat(2*1024*1024);
- for(const items of [badHash,future,oversized,legacy.backup.slice(0,-1)]){
-  await assert.rejects(()=>prepared(new BackupService(f.s),items));assert.deepEqual(await canonical(f.s),before);
+ const oversized=structuredClone(legacy.backup);oversized.find(x=>x.section==='sources').value.originalText='x'.repeat(BACKUP_LIMITS.lineBytes+1);
+ for(const [items,code]of [[badHash,'BACKUP_INTEGRITY_FAILED'],[future,'BACKUP_VERSION_UNSUPPORTED'],[oversized,'BACKUP_TOO_LARGE'],[legacy.backup.slice(0,-1),'BACKUP_INCOMPLETE']]){
+  await assert.rejects(()=>prepared(new BackupService(f.s),items),error=>error.code===code);assert.deepEqual(await canonical(f.s),before);
  }
  const service=new BackupService(f.s),stage=await prepared(service,legacy.backup);assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY');await assert.rejects(()=>service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.deepEqual(await canonical(f.s),before);
 });

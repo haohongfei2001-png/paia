@@ -6,6 +6,20 @@ Baseline: **v0.12.0 — Thought Evolution & Shared Context + post-release consol
 
 PAIA is no longer in a phase where the main goal is to add more feature categories. Current priorities are product validation, Reader/Search/Revisit quality, trust-boundary hardening and keeping future expansion cheap.
 
+## Archive Navigation & Source Structure v1
+
+The explicitly authorized ANS package supersedes only the R1–R9 visible navigation,
+source metadata and continuous-reading decisions named in its README. Its current
+round is determined only by `docs/archive-navigation-source-v1/STATUS.md`, not this
+roadmap. ANS-09 integrates the earlier eight deliveries, old-archive/Backup upgrades,
+source/release parity and final certification. Completion requires its exact runtime
+on main plus the final receipt. There is no ANS-10.
+
+After package completion, Project/order/delete fallback remains a real capability
+boundary. Live provider proof, real-use product validation, expanded sources,
+semantic retrieval, sync and authorization expansion retain their existing gates;
+a successful synthetic integration suite does not open those directions.
+
 ## UI execution state
 
 UI Simplification v1 (`docs/ui-simplification/README.md`) supersedes the visible presentation choices it explicitly changes. Its only execution queue and completion state is `docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md`: UIS-01 → UIS-02 → UIS-03 → UIS-04. Once all four are COMPLETE there is no next round; a completed package does not authorize UIS-05 or a new roadmap task.

@@ -1,3 +1,14 @@
+> Current ANS presentation overlay: the explicitly authorized
+> [Archive Navigation & Source Structure v1](../archive-navigation-source-v1/README.md)
+> supersedes this historical implementation specification only for its R1–R9
+> scope: persistent responsive Navigator, separate Window/Input ordering, visible
+> known/unknown source time, low-noise reuse menus, continuous Thought root/Topic
+> reading, and source metadata lifecycle. The Design Core, Source/Input/Thought
+> ownership, explicit authorization, editing/IME/revisions and purge guarantees
+> remain unchanged. Current integration evidence is in the
+> [ANS matrix](../archive-navigation-source-v1/INTEGRATION_MATRIX.md); completed UX
+> rounds are not an execution queue.
+
 # PAIA UX/UI Development Specification v1.0
 
 **状态：实施基线 · 供开发 Agent 分轮执行**  
