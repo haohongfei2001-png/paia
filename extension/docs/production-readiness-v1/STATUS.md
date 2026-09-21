@@ -14,9 +14,9 @@ planning_round_status: `COMPLETE`
 
 current_round: `PRD-02`
 
-current_round_status: `READY`
+current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED`
+writer_status: `CLAIMED — manager/prd02-live-canary-20260921`
 
 acceptanceComplete: `false`
 
@@ -30,7 +30,7 @@ productionCertified: `false`
 |---|---|---|
 | PRD-00 | COMPLETE | Audit current product, freeze production definitions, scope and verification plan |
 | PRD-01 | COMPLETE | Exact-main baseline and certification-debt reconciliation |
-| PRD-02 | READY | Current logged-in ChatGPT capture canary |
+| PRD-02 | IN_PROGRESS | Current logged-in ChatGPT capture canary |
 | PRD-03 | PLANNED | Daily-profile update/restart/recovery canary |
 | PRD-04 | PLANNED | Backup/restore and scale durability |
 | PRD-05 | PLANNED | Daily core-loop product canary |
@@ -143,3 +143,22 @@ perform that live-site work.
 `acceptanceComplete=false`,
 `releaseCandidateCertified=false`, and
 `productionCertified=false` remain mandatory until their later gates pass.
+
+
+## PRD-02 execution claim
+
+execution_id: `PRD02-20260921-live01`
+
+execution_start_main: `f42e1a7fa5c0944290bd47868da8d0b2512287ad`
+
+writer_branch: `manager/prd02-live-canary-20260921`
+
+scope: current logged-in ChatGPT capture canary only. The live canary is bounded
+to explicitly declared observation windows and may commit only sanitized counts,
+states, version/SHA and non-reversible run-local digests.
+
+No retrospective account crawl, daily-profile update/reload, Backup restore,
+Semantic Engine, new provider, broader permission or PRD-03 work is authorized.
+
+Real message bodies, titles, source IDs, URLs, cookies, credentials, Chrome
+profile paths and Backup files must remain local and must not enter Git.
