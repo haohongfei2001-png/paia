@@ -96,6 +96,24 @@ non-busy control before restart. Later mode changes use the same acknowledgement
 All prior UI/order/restart assertions remain. No production save behavior,
 timeout, retry policy or gate changed. The deterministic regression passes.
 
+## Restart navigation race regression
+
+Candidate26cd full certification passed1206 of1207 tests and failed the new
+release integration journey while the source journey and separate63-test browser
+certification passed. After reload the test clicked Library root (clearing documentId), checked
+visibility only once, then raced asynchronous selected-Window restoration with
+another navigation attempt.
+The helper selected an aria-expanded=false toggle that disappeared from its own
+selector as the original restoration expanded the deleted group.
+
+The current journey requires the already selected Input identity to become visible
+through actual reload restoration, then verifies its exact saved body. It no longer
+clicks the Library root or uses fallback navigation to interfere with product
+restoration. Both source and freshly built release journeys pass this stronger
+assertion without any navigation after reload. Initial navigation,
+all source/release assertions and the shared navigation helper remain unchanged.
+The failed run35559573964 is retained; it is not completion evidence.
+
 ## Provider and publication boundaries
 
 ChatGPT current conversation identity/presence uses its existing verified contract.

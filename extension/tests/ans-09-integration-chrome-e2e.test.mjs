@@ -40,7 +40,9 @@ for(const artifact of ['source','release'])test(`ANS-09 ${artifact}: legacy Back
   await relation(second,2,{sourceStatus:'confirmed_deleted'});await p.evaluate(()=>document.dispatchEvent(new Event('paia:navigator-refresh')));
   assert.equal(await field.textContent(),'ANS09 unsaved surviving project move');assert.deepEqual(immutable(await backup(second)),immutable(initial));
   await p.evaluate(()=>window.__ans09Resume());await p.locator('#retry').click();await eventually(async()=>(await rpc(p,'GET_INPUT',{id:legacy.firstInputId})).libraryText==='ANS09 unsaved surviving project move','explicit retry commits exact buffer');
-  await h.restartWorker();await p.reload();await p.locator('#primary-nav [data-view="library"]').click();if(!await field.isVisible())await openArchiveWindow(p,{text:'虚构验收'});await field.waitFor({state:'visible'});assert.equal(await field.textContent(),'ANS09 unsaved surviving project move');
+  // Reload restores the selected Window asynchronously. Require that real
+  // restoration rather than racing it with a second navigation fallback.
+  await h.restartWorker();await p.reload();await field.waitFor({state:'visible'});assert.equal(await field.textContent(),'ANS09 unsaved surviving project move');
   assert.deepEqual(immutable(await backup(p)),immutable(initial));
   const denied=await p.evaluate(()=>chrome.runtime.sendMessage({type:'OBSERVE_SOURCE_STRUCTURE',observation:{}}));assert.equal(denied.ok,false,'UI cannot forge capture-authority observations');
   const detail=await rpc(p,'PAIA_ARCHIVE_SOURCE_DETAIL',{subject:{kind:'conversation',conversationRef:{platform:'chatgpt',sourceConversationId:'complete-synthetic'}}});assert.equal(detail.current.sourceStatus,'confirmed_deleted');assert.equal(detail.history.length,2);
