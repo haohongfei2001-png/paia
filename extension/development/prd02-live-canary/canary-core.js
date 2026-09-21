@@ -38,7 +38,7 @@ export function summarizeCanary({runDigest,runtime,records,diagnostics,scanCompl
   distinctDedupeIdentity:dedupe.length===PRD02_EXPECTED_MESSAGES&&uniq(dedupe)===PRD02_EXPECTED_MESSAGES,
   repeatTextDistinctIdentity:repeatIdentityOK,
   capturedAtValid,
-  sourceTimeHonest:canary.every(r=>r.sourceSentAt?iso(r.sourceSentAt):['unknown','other'].includes(fixedTimeSource(r.timeSource))),
+  sourceTimeHonest:canary.every(r=>r.sourceSentAt?iso(r.sourceSentAt)&&fixedTimeSource(r.timeSource)!=='other':fixedTimeSource(r.timeSource)==='unknown'),
   diagnosticSurface:diagnosticsOK,
   nonCaptureStatusVisible:nonCaptureVisible
  };
