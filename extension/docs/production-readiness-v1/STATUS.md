@@ -10,13 +10,13 @@ planning_baseline_main: `3565a00e213c6d5001a300965a00006628db3f51`
 
 planning_round: `PRD-00`
 
-planning_round_status: `COMPLETE_PENDING_PUBLICATION`
+planning_round_status: `COMPLETE`
 
 current_round: `PRD-01`
 
-current_round_status: `READY_AFTER_PUBLICATION`
+current_round_status: `READY`
 
-writer_status: `PLANNING_BRANCH_ONLY`
+writer_status: `RELEASED`
 
 acceptanceComplete: `false`
 
@@ -28,8 +28,8 @@ productionCertified: `false`
 
 | Round | State | Goal |
 |---|---|---|
-| PRD-00 | COMPLETE_PENDING_PUBLICATION | Audit current product, freeze production definitions, scope and verification plan |
-| PRD-01 | READY_AFTER_PUBLICATION | Exact-main baseline and certification-debt reconciliation |
+| PRD-00 | COMPLETE | Audit current product, freeze production definitions, scope and verification plan |
+| PRD-01 | READY | Exact-main baseline and certification-debt reconciliation |
 | PRD-02 | PLANNED | Current logged-in ChatGPT capture canary |
 | PRD-03 | PLANNED | Daily-profile update/restart/recovery canary |
 | PRD-04 | PLANNED | Backup/restore and scale durability |
@@ -64,19 +64,16 @@ The main unresolved evidence classes are:
 
 No production runtime code is modified in PRD-00.
 
-## Publication transition
+## PRD-00 publication
 
-Before PRD-00 may be called fully published:
+Planning PR: #39.
 
-- this package must exist on remote main;
-- AGENTS/PRODUCT/ROADMAP routing must point to it;
-- any planning PR must be merged;
-- remote readback must confirm the canonical files.
+Planning package merged to remote main at
+`7c5454c09e9dd617495613dbaa7c4d0aa389796d`.
 
-After publication, set:
+PRD-00 is COMPLETE. PRD-01 is READY. The planning writer is released.
 
-- PRD-00 = COMPLETE;
-- PRD-01 = READY;
-- writer_status = RELEASED.
+This publication changes documentation/routing only. It does not certify a new
+runtime, alter the Capture Foundation historical verdict, or start PRD-01.
 
-Do not begin PRD-01 in the same planning execution.
+Do not begin PRD-01 in this planning execution.
