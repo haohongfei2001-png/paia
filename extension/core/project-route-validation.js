@@ -12,3 +12,15 @@ export function canonicalProjectChat(rawUrl) {
     return {id:match[2],projectId,url:`${url.origin}${url.pathname.replace(/\/$/,'')}`};
   } catch { return null; }
 }
+
+
+export function canonicalPlainChat(rawUrl) {
+  try {
+    const url=new URL(rawUrl);
+    if(url.origin!=='https://chatgpt.com'||url.username||url.password)return null;
+    if(['temporary-chat','temporary','temporary_chat'].some(key=>url.searchParams.has(key)))return null;
+    const match=url.pathname.match(/^\/c\/([a-zA-Z0-9_-]{1,128})\/?$/);
+    if(!match)return null;
+    return {id:match[1],url:`${url.origin}${url.pathname.replace(/\/$/,'')}`};
+  } catch { return null; }
+}
