@@ -4,6 +4,10 @@ const $=id=>document.getElementById(id);
 const copy=(zh,en)=>document.documentElement.lang==='en'?en:zh;
 const keyPart=value=>value===null?'null':JSON.stringify(value);
 export const navigatorGroupKey=(providerKey,groupKind,projectRef=null)=>JSON.stringify([providerKey,groupKind,projectRef||null]);
+export const navigatorInvalidationMessage=message=>!!message&&(
+ message.type==='SOURCE_STRUCTURE_CHANGED'||
+ message.type==='ARCHIVE_CHANGED'&&!!message.cause
+);
 export const navigatorScopeKey=options=>JSON.stringify([
  options.groupKind??(options.providerKey==null?'providers':'groups'),
  options.providerKey??null,
