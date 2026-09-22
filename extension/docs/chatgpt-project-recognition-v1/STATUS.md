@@ -6,11 +6,11 @@ package_status: `ACTIVE`
 
 canonical_branch: `main`
 
-current_round: `CPR-02`
+current_round: `CPR-03`
 
-current_round_status: `IN_PROGRESS`
+current_round_status: `READY / NOT_STARTED`
 
-writer_status: `CLAIMED — manager/cpr02-lifecycle-navigator-20260922`
+writer_status: `RELEASED`
 
 blocking_dependency: `NONE — PRD-02 COMPLETE`
 
@@ -20,8 +20,8 @@ blocking_dependency: `NONE — PRD-02 COMPLETE`
 |---|---|---|
 | CPR-00 | COMPLETE | Live capability discovery and evidence-contract freeze |
 | CPR-01 | COMPLETE | Trusted automatic current-Project observer and admission |
-| CPR-02 | READY | Lifecycle + Navigator integration and fallback correctness |
-| CPR-03 | PLANNED | Real normal-use certification and package closure |
+| CPR-02 | COMPLETE | Lifecycle + Navigator integration and fallback correctness |
+| CPR-03 | READY | Real normal-use certification and package closure |
 
 ## Required package exit
 
@@ -153,7 +153,7 @@ fresh-document observation is demonstrated.
 
 No production capability flag is promoted yet. CPR-01 remains PLANNED.
 
- 
+
 ## CPR-00 second live discovery result
 
 result_time: `2026-09-22`
@@ -336,3 +336,47 @@ scope:
 
 CPR-02 must stop after candidate CI, merge, exact-main CI, receipt/status
 publication and remote readback.
+
+
+## CPR-02 closure
+
+verdict:
+`CPR-02 COMPLETE / PASS`
+
+pr:
+`#47`
+
+candidate_head:
+`648bed67000d91b8c59e789ef7a367c1b601a213`
+
+candidate_certification:
+`PAIA Certification #538 / run 35788531356 / attempt 1 / SUCCESS`
+
+merged_runtime_main:
+`cdae3e7b7bda0923f2474fc7f7ffe4101f4edd04`
+
+exact_main_certification:
+`PAIA Certification #539 / run 35792666267 / attempt 1 / SUCCESS`
+
+All required current-release jobs passed on exact main: Current Browser, Full
+Suite, Unit 1/4 through 4/4, Adapter/privacy, current release build and guards,
+macOS Secure Store, and the final Certification gate. Historical Browser Audit
+remained skipped by design.
+
+The merged lifecycle implementation preserves verified Project identity/name/
+membership admission while reconciling Project A→B, Project→ordinary,
+ordinary→Project, rename, reload and temporary strong-evidence loss without
+changing Conversation/Source identity or generating relationship spam.
+
+Unknown and explicit unassigned remain distinct. No Project ordering,
+account-wide enumeration, Project mutation, CPR-03 or PRD-03 implementation was
+added.
+
+writer_release:
+`manager/cpr02-lifecycle-navigator-20260922 — RELEASED`
+
+CPR-03 is READY but **NOT_STARTED**.
+
+Per the package one-round rule, this closure does not authorize CPR-03 or
+PRD-03. Draft Consumer Product v1 planning PR #48 remains separate and is not
+activated by this closure.
