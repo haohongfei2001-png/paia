@@ -98,6 +98,26 @@
     }
   }
 
+  const CPR00_PROBE_PATH='/__paia_cpr00_project_probe/index.html';
+  function cpr00ProbeSender(sender){
+    if(sender?.id!==chrome.runtime.id||typeof sender.url!=='string')return false;
+    try{
+      const url=new URL(sender.url),self=new URL(chrome.runtime.getURL(CPR00_PROBE_PATH));
+      return url.origin===self.origin&&url.pathname===CPR00_PROBE_PATH;
+    }catch{return false;}
+  }
+  chrome.runtime.onMessage.addListener((request,sender,sendResponse)=>{
+    if(request?.type!=='CPR00_PROJECT_PROBE')return;
+    if(!cpr00ProbeSender(sender)){
+      sendResponse({ok:false,error:'FORBIDDEN'});
+      return false;
+    }
+    void adapter.projectDiscovery({salt:request.salt})
+      .then(data=>sendResponse(data?{ok:true,data}:{ok:false,error:'UNAVAILABLE'}))
+      .catch(()=>sendResponse({ok:false,error:'PROBE_FAILED'}));
+    return true;
+  });
+
   globalThis.addEventListener?.('pagehide',()=>{
     stopped=true;
     clearTimeout(timer);
