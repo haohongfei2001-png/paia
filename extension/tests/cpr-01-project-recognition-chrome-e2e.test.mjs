@@ -46,11 +46,11 @@ async function observe(page){
       route:()=>({code:'READY',id:chat,url:'https://chatgpt.com/c/'+chat}),
       visible:node=>node.isConnected&&node.getClientRects().length>0
     };
-    const source=new window.ChatGPTSourceStructure({
+    window.__cpr01Source??=new window.ChatGPTSourceStructure({
       adapter,clock:()=> '2026-09-22T11:10:00.000Z',
       document:window.document,location:window.location
     });
-    return source.observe(status,{session});
+    return window.__cpr01Source.observe(status,{session});
   },{chat,session,status});
 }
 
