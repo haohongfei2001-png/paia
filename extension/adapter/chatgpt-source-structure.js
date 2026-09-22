@@ -68,6 +68,9 @@
       this.lastIssuedKey=key;
       return value;
     }
+    release(stateKey){
+      if(stateKey===this.lastIssuedKey)this.lastIssuedKey=null;
+    }
     observe(status,{session}={}){
       if(status?.enabled!==true||status?.consented!==true||
          status?.adapterVersion!==this.adapter.version)return null;
