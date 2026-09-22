@@ -65,6 +65,7 @@ export class SourceStructureStore{
   if(!Array.isArray(input)||!input.length||input.length>100||new TextEncoder().encode(JSON.stringify(input)).length>128*1024)invalid();
   await this.ready();const prepared=[];for(const item of input)prepared.push(await preparedObservation(item));
   const unique=new Set();for(const item of prepared){if(unique.has(item.id))invalid();unique.add(item.id);}
+  const explicitProjects=new Set(prepared.filter(item=>item.kind==='project').map(item=>item.id));
   return this.store.write(async t=>{
    const planned=new Map(),events=[],results=[];
    const get=async id=>planned.has(id)?planned.get(id):await t.get('meta',id);
@@ -77,7 +78,9 @@ export class SourceStructureStore{
      if(reduced.conflict)conflict();if(reduced.stale){results.push({stale:true,current:clone(reduced.current)});continue;}
      if(reduced.current){reduced.current.id=item.id;validateSourceStructureRow(reduced.current);planned.set(item.id,reduced.current);}
      if(reduced.event){reduced.event.id=eventId(item.eventPrefix,reduced.current.relationshipRevision);events.push(reduced.event);}
-     if(item.linkedProject&&!await get(item.linkedProject.id))planned.set(item.linkedProject.id,projectPlaceholder(item.linkedProject.id,item.linkedProject.ref,observation));
+     if(item.linkedProject&&!explicitProjects.has(item.linkedProject.id)&&!await get(item.linkedProject.id)){
+      planned.set(item.linkedProject.id,projectPlaceholder(item.linkedProject.id,item.linkedProject.ref,observation));
+     }
      results.push({changed:reduced.changed,current:reduced.current?clone(reduced.current):null,event:reduced.event?clone(reduced.event):null});
      continue;
     }
@@ -102,38 +105,58 @@ export class SourceStructureStore{
  }
  async observeConversation(input){return (await this.observeBatch([{...input,kind:'conversation'}]))[0];}
  async observeProject(input){return (await this.observeBatch([{...input,kind:'project'}]))[0];}
- async observeAdmitted(input){
-  if(!input||!['conversation','project'].includes(input.kind)||Object.hasOwn(input,'expectedRevision'))invalid();
+ async observeAdmittedBatch(input){
+  if(!Array.isArray(input)||!input.length||input.length>20||
+     input.some(item=>!item||!['conversation','project'].includes(item.kind)||Object.hasOwn(item,'expectedRevision')))invalid();
   await this.ready();
-  if(input.kind==='conversation'){
-   const ref=conversationRef(input.conversationRef);
+  const refs=new Map();
+  for(const item of input){
+   if(item.kind==='conversation'){
+    const ref=conversationRef(item.conversationRef);
+    refs.set(ref.platform+':'+ref.sourceConversationId,ref);
+   }else if(item.witnessConversationRef){
+    const ref=conversationRef(item.witnessConversationRef);
+    refs.set(ref.platform+':'+ref.sourceConversationId,ref);
+   }
+  }
+  for(const ref of refs.values()){
    const gate=await this.store.run(()=>this.store.repository.transaction(false,async t=>({
     excluded:ref.platform==='chatgpt'&&await captureIsExcluded(t,ref.sourceConversationId),
     archived:await t.count('documents','byChat',ref.platform+':'+ref.sourceConversationId)>0
    }),['meta','documents']));
-   if(gate.excluded)return {settled:true,excluded:true,changed:false};
-   if(!gate.archived)return {settled:false,excluded:false,changed:false};
-   for(let attempt=0;attempt<2;attempt++){
-    const current=await this.conversation(ref),expectedRevision=current?.relationshipRevision||0;
-    try{
-     const result=await this.observeConversation({...input,expectedRevision});
-     return {settled:true,excluded:false,changed:result?.changed===true,event:result?.event!==null&&result?.event!==undefined};
-    }catch(error){if(error?.code!=='SOURCE_STRUCTURE_CONFLICT'||attempt)throw error;}
-   }
-  }
-  const witness=input.witnessConversationRef?conversationRef(input.witnessConversationRef):null;
-  if(witness?.platform==='chatgpt'){
-   const excluded=await this.store.run(()=>this.store.repository.transaction(false,t=>captureIsExcluded(t,witness.sourceConversationId),['meta']));
-   if(excluded)return {settled:true,excluded:true,changed:false};
+   if(gate.excluded)return {settled:true,excluded:true,changed:false,event:false};
+   if(!gate.archived)return {settled:false,excluded:false,changed:false,event:false};
   }
   for(let attempt=0;attempt<2;attempt++){
-   const current=await this.project(input.projectRef),expectedRevision=current?.relationshipRevision||0;
+   const batch=[];
+   for(const item of input){
+    if(item.kind==='conversation'){
+     const ref=conversationRef(item.conversationRef),current=await this.conversation(ref);
+     batch.push({...item,expectedRevision:current?.relationshipRevision||0});
+    }else{
+     const current=await this.project(item.projectRef);
+     batch.push({...item,expectedRevision:current?.relationshipRevision||0});
+    }
+   }
    try{
-    const result=await this.observeProject({...input,expectedRevision});
-    return {settled:true,excluded:false,changed:result?.changed===true,event:result?.event!==null&&result?.event!==undefined};
+    const results=await this.observeBatch(batch);
+    return {
+     settled:true,excluded:false,
+     changed:results.some(result=>result?.changed===true),
+     event:results.some(result=>result?.event!==null&&result?.event!==undefined)
+    };
    }catch(error){if(error?.code!=='SOURCE_STRUCTURE_CONFLICT'||attempt)throw error;}
   }
  }
+ async observeAdmitted(input){
+  const result=await this.observeAdmittedBatch([input]);
+  if(!result.settled||result.excluded){
+   const {event,...legacy}=result;
+   return legacy;
+  }
+  return result;
+ }
+
  async conversation(ref){
   await this.ready();const normalized=conversationRef(ref),id=await conversationMetaId(normalized);
   return this.store.run(()=>this.store.repository.transaction(false,async t=>clone(await t.get('meta',id)||null),['meta']));

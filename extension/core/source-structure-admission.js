@@ -9,6 +9,8 @@ const SUBJECTS=new Set(['conversation','project','order']);
 const STATUS=new Set(['unknown','observed_active','confirmed_deleted']);
 const ID=/^[A-Za-z0-9_-]{1,200}$/;
 const ASCII=/^[A-Za-z0-9._:@-]{1,128}$/;
+const PROJECT_ID=/^g-p-[a-f0-9]{32}$/;
+const FROZEN_PROJECT_ID=/^g-p-[a-f0-9]{32}$/;
 const fail=(code='INVALID_REQUEST')=>{throw new ArchiveError(code);};
 const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,allowed,required=allowed)=>{
@@ -67,6 +69,29 @@ export const CHATGPT_SOURCE_STRUCTURE_POLICY=createSourceStructurePolicy({
  },
  rules:{conversationIdentity:{subject:'conversation',fields:[]}}
 });
+export const CHATGPT_PROJECT_STRUCTURE_POLICY=createSourceStructurePolicy({
+ providerKey:'chatgpt',
+ contractId:'chatgpt.current-project-membership',
+ contractVersion:1,
+ channel:'route_plus_matching_project_home_link',
+ scope:'current_conversation',
+ originClass:'current_route_project_home_link',
+ namespace:'chatgpt-project',
+ capabilities:{
+  conversationIdentity:'verified',projectIdentity:'verified',projectName:'verified',
+  membership:'verified',projectOrder:'unverified',windowOrder:'unverified',
+  rename:'unverified',move:'unverified',conversationDeletion:'unverified',projectDeletion:'unverified'
+ },
+ rules:{
+  membership:{subject:'conversation',fields:['membership','projectName']},
+  projectName:{subject:'project',fields:['currentName']}
+ }
+});
+export function chatGPTSourceStructurePolicy(value){
+ if(value?.contractId===CHATGPT_SOURCE_STRUCTURE_POLICY.contractId)return CHATGPT_SOURCE_STRUCTURE_POLICY;
+ if(value?.contractId===CHATGPT_PROJECT_STRUCTURE_POLICY.contractId)return CHATGPT_PROJECT_STRUCTURE_POLICY;
+ fail('UNAVAILABLE');
+}
 function validateEnvelope(value,policy){
  byteLength(value);
  exact(value,['schemaVersion','contractId','contractVersion','providerKey','capability',
@@ -90,7 +115,8 @@ function membership(value,providerKey,namespace){
   return {state:'unassigned',projectRef:null};
  }
  if(value.state!=='project'||!ASCII.test(value.namespace||'')||!ASCII.test(value.projectId||'')||
-    namespace!==undefined&&value.namespace!==namespace)fail();
+    namespace!==undefined&&value.namespace!==namespace||
+    namespace==='chatgpt-project'&&!PROJECT_ID.test(value.projectId||''))fail();
  return {state:'project',projectRef:{providerKey,namespace:value.namespace,projectId:value.projectId}};
 }
 function conversationObservation(value,rule,providerKey,namespace){
@@ -131,11 +157,16 @@ export async function admitSourceStructureDTO(value,policy=CHATGPT_SOURCE_STRUCT
  if(rule.subject==='conversation'){
   exact(value.subject,['kind','conversationId']);
   if(value.subject.kind!=='conversation'||!ID.test(value.subject.conversationId||''))fail();
+  const observation=conversationObservation(value.observation,rule,value.providerKey,policy.namespace);
+  if(policy.contractId===CHATGPT_PROJECT_STRUCTURE_POLICY.contractId&&value.capability==='membership'){
+   if(observation.membership?.state!=='project'||!observation.projectName||
+      !FROZEN_PROJECT_ID.test(observation.membership.projectRef?.projectId||''))fail();
+  }
   return {
    kind:'conversation',
    conversationRef:{platform:value.providerKey,sourceConversationId:value.subject.conversationId},
    observedAt:value.observedAt,evidence,
-   ...conversationObservation(value.observation,rule,value.providerKey,policy.namespace)
+   ...observation
   };
  }
  if(rule.subject==='project'){
@@ -143,7 +174,10 @@ export async function admitSourceStructureDTO(value,policy=CHATGPT_SOURCE_STRUCT
     ['kind','namespace','projectId']);
   if(value.subject.kind!=='project'||!ASCII.test(value.subject.namespace||'')||
      !ASCII.test(value.subject.projectId||'')||policy.namespace!==undefined&&value.subject.namespace!==policy.namespace||
+     policy.namespace==='chatgpt-project'&&!PROJECT_ID.test(value.subject.projectId||'')||
      value.subject.witnessConversationId!==undefined&&!ID.test(value.subject.witnessConversationId))fail();
+  if(policy.contractId===CHATGPT_PROJECT_STRUCTURE_POLICY.contractId&&
+     !FROZEN_PROJECT_ID.test(value.subject.projectId||''))fail();
   return {
    kind:'project',
    projectRef:{providerKey:value.providerKey,namespace:value.subject.namespace,projectId:value.subject.projectId},
@@ -155,6 +189,35 @@ export async function admitSourceStructureDTO(value,policy=CHATGPT_SOURCE_STRUCT
  }
  fail();
 }
+export async function admitChatGPTSourceStructureBatch(values){
+ if(!Array.isArray(values)||!values.length||values.length>2)fail();
+ if(values.length===1){
+  const value=values[0];
+  if(value?.contractId!==CHATGPT_SOURCE_STRUCTURE_POLICY.contractId||
+     value?.capability!=='conversationIdentity')fail('UNAVAILABLE');
+  return [await admitSourceStructureDTO(value,CHATGPT_SOURCE_STRUCTURE_POLICY)];
+ }
+ const [a,b]=values;
+ if(a?.contractId!==CHATGPT_PROJECT_STRUCTURE_POLICY.contractId||
+    b?.contractId!==CHATGPT_PROJECT_STRUCTURE_POLICY.contractId)fail('UNAVAILABLE');
+ const byCapability=new Map([[a?.capability,a],[b?.capability,b]]);
+ if(byCapability.size!==2||!byCapability.has('membership')||!byCapability.has('projectName'))fail();
+ const membershipValue=byCapability.get('membership'),nameValue=byCapability.get('projectName');
+ for(const key of ['epoch','session','generation','observedAt']){
+  if(membershipValue?.[key]!==nameValue?.[key])fail();
+ }
+ const membershipAdmitted=await admitSourceStructureDTO(membershipValue,CHATGPT_PROJECT_STRUCTURE_POLICY);
+ const nameAdmitted=await admitSourceStructureDTO(nameValue,CHATGPT_PROJECT_STRUCTURE_POLICY);
+ if(membershipAdmitted.kind!=='conversation'||nameAdmitted.kind!=='project'||
+    !membershipAdmitted.membership||membershipAdmitted.membership.state!=='project'||
+    membershipAdmitted.conversationRef.sourceConversationId!==nameAdmitted.witnessConversationRef?.sourceConversationId||
+    membershipAdmitted.membership.projectRef.providerKey!==nameAdmitted.projectRef.providerKey||
+    membershipAdmitted.membership.projectRef.namespace!==nameAdmitted.projectRef.namespace||
+    membershipAdmitted.membership.projectRef.projectId!==nameAdmitted.projectRef.projectId||
+    membershipAdmitted.projectName!==nameAdmitted.currentName)fail();
+ return [membershipAdmitted,nameAdmitted];
+}
+
 export function admitSourceOrderSnapshot(value,policy=CHATGPT_SOURCE_STRUCTURE_POLICY){
  if(!plain(value)||!ASCII.test(value.capability||'')||
     policy.capabilities[value.capability]!=='verified'){

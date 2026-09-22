@@ -2,14 +2,19 @@
 (() => {
   'use strict';
   const VERSION=1;
-  const CONTRACT_ID='chatgpt.current-conversation-presence';
-  const CONTRACT_VERSION=1;
+  const IDENTITY_CONTRACT_ID='chatgpt.current-conversation-presence';
+  const IDENTITY_CONTRACT_VERSION=1;
+  const PROJECT_CONTRACT_ID='chatgpt.current-project-membership';
+  const PROJECT_CONTRACT_VERSION=1;
+  const PROJECT_CHANNEL='route_plus_matching_project_home_link';
+  const PROJECT_NAMESPACE='chatgpt-project';
   const ID=/^[A-Za-z0-9_-]{8,128}$/;
+  const PROJECT_ID=/^g-p-[a-f0-9]{32}$/;
   const CAPABILITIES=Object.freeze({
     conversationIdentity:'verified',
-    projectIdentity:'unverified',
-    projectName:'unverified',
-    membership:'unverified',
+    projectIdentity:'verified',
+    projectName:'verified',
+    membership:'verified',
     projectOrder:'unverified',
     windowOrder:'unverified',
     rename:'unverified',
@@ -26,29 +31,61 @@
     if(chat.url!==`https://chatgpt.com/c/${chat.id}`)return null;
     return {id:chat.id,url:chat.url};
   };
+  const envelope=(contractId,contractVersion,channel,capability,chat,{epoch,session,generation,observedAt})=>({
+    schemaVersion:VERSION,contractId,contractVersion,providerKey:'chatgpt',
+    capability,channel,scope:'current_conversation',
+    epoch,session,generation,observedAt,
+    subject:{kind:'conversation',conversationId:chat.id}
+  });
+  const validContext=({epoch,session,generation,observedAt}={})=>
+    Number.isSafeInteger(epoch)&&epoch>=0&&
+    typeof session==='string'&&session.length>=8&&session.length<=80&&
+    Number.isSafeInteger(generation)&&generation>=0&&
+    typeof observedAt==='string'&&Number.isFinite(Date.parse(observedAt));
   function currentConversationPresence({chat,epoch,session,generation,observedAt}={}){
-    const safe=routeChat(chat);
-    if(!safe||!Number.isSafeInteger(epoch)||epoch<0||
-       typeof session!=='string'||session.length<8||session.length>80||
-       !Number.isSafeInteger(generation)||generation<0||
-       typeof observedAt!=='string'||!Number.isFinite(Date.parse(observedAt)))return null;
+    const safe=routeChat(chat),ctx={epoch,session,generation,observedAt};
+    if(!safe||!validContext(ctx))return null;
     return {
-      schemaVersion:VERSION,contractId:CONTRACT_ID,contractVersion:CONTRACT_VERSION,
-      providerKey:'chatgpt',capability:'conversationIdentity',
-      channel:'isolated_route',scope:'current_conversation',
-      epoch,session,generation,observedAt,
-      subject:{kind:'conversation',conversationId:safe.id},
-      // A current canonical route proves conversation identity only. It is not
-      // evidence that can create or reverse external source lifecycle state.
+      ...envelope(IDENTITY_CONTRACT_ID,IDENTITY_CONTRACT_VERSION,'isolated_route','conversationIdentity',safe,ctx),
       observation:{}
     };
+  }
+  function currentProjectMembership({chat,projectId,projectName,epoch,session,generation,observedAt}={}){
+    const safe=routeChat(chat),ctx={epoch,session,generation,observedAt};
+    const pid=typeof projectId==='string'?projectId.toLowerCase():'';
+    const name=typeof projectName==='string'?projectName.replace(/\s+/g,' ').trim():'';
+    if(!safe||!validContext(ctx)||!PROJECT_ID.test(pid)||![...name].length||[...name].length>300)return null;
+    const common={
+      schemaVersion:VERSION,contractId:PROJECT_CONTRACT_ID,contractVersion:PROJECT_CONTRACT_VERSION,
+      providerKey:'chatgpt',channel:PROJECT_CHANNEL,scope:'current_conversation',
+      epoch,session,generation,observedAt
+    };
+    return [
+      {
+        ...common,capability:'membership',
+        subject:{kind:'conversation',conversationId:safe.id},
+        observation:{
+          membership:{state:'project',namespace:PROJECT_NAMESPACE,projectId:pid},
+          projectName:name
+        }
+      },
+      {
+        ...common,capability:'projectName',
+        subject:{kind:'project',namespace:PROJECT_NAMESPACE,projectId:pid,witnessConversationId:safe.id},
+        observation:{currentName:name}
+      }
+    ];
   }
   function orderCandidate(capability){
     if(!['projectOrder','windowOrder'].includes(capability))return unavailable(capability);
     return unavailable(capability);
   }
   globalThis.SourceStructureContract=Object.freeze({
-    version:VERSION,contractId:CONTRACT_ID,contractVersion:CONTRACT_VERSION,
-    capabilities:CAPABILITIES,currentConversationPresence,orderCandidate,unavailable
+    version:VERSION,
+    contractId:IDENTITY_CONTRACT_ID,contractVersion:IDENTITY_CONTRACT_VERSION,
+    projectContractId:PROJECT_CONTRACT_ID,projectContractVersion:PROJECT_CONTRACT_VERSION,
+    projectChannel:PROJECT_CHANNEL,projectNamespace:PROJECT_NAMESPACE,
+    capabilities:CAPABILITIES,currentConversationPresence,currentProjectMembership,
+    orderCandidate,unavailable
   });
 })();
