@@ -42,15 +42,17 @@ test('ANS-03 production adapter declares capabilities individually and emits onl
  vm.runInContext(await readFile(new URL('../adapter/source-structure-contract.js',import.meta.url),'utf8'),context);
  vm.runInContext(await readFile(new URL('../adapter/chatgpt-source-structure.js',import.meta.url),'utf8'),context);
  const caps=JSON.parse(JSON.stringify(context.SourceStructureContract.capabilities));
- assert.equal(caps.conversationIdentity,'verified');
- for(const key of ['projectIdentity','projectName','membership','projectOrder','windowOrder','rename','move','conversationDeletion','projectDeletion'])
+ for(const key of ['conversationIdentity','projectIdentity','projectName','membership'])
+  assert.equal(caps[key],'verified',key);
+ for(const key of ['projectOrder','windowOrder','rename','move','conversationDeletion','projectDeletion'])
   assert.equal(caps[key],'unverified',key);
  const id='ans03-current-conversation';
  const adapter={version:'0.3.0',route:()=>({code:'READY',id,url:`https://chatgpt.com/c/${id}`})};
  const source=new context.ChatGPTSourceStructure({adapter,clock:()=>at(1)});
  const emitted=source.observe({enabled:true,consented:true,adapterVersion:'0.3.0',epoch:7},{session});
- assert.deepEqual(JSON.parse(JSON.stringify(emitted.dto.observation)),{});
- assert.deepEqual(Object.keys(emitted.dto.subject),['kind','conversationId']);
+ assert.equal(emitted.dtos.length,1);
+ assert.deepEqual(JSON.parse(JSON.stringify(emitted.dtos[0].observation)),{});
+ assert.deepEqual(Object.keys(emitted.dtos[0].subject),['kind','conversationId']);
  assert.equal(source.observe({enabled:true,consented:true,adapterVersion:'0.3.0',epoch:7},{session}),null);
  assert.equal(context.SourceStructureContract.currentConversationPresence({
   chat:{id,url:`https://chatgpt.com/g/project-looking/c/${id}`},epoch:7,session,generation:1,observedAt:at(1)
