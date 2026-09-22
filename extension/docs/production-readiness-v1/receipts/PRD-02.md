@@ -172,13 +172,57 @@ This FAIL is historical evidence. A later PASS does not erase it; it must show
 why the rejected live role was safe to ignore or how the adapter contract was
 corrected.
 
+## Diagnostic follow-up publication
+
+PR #43 published the first-live-failure diagnostic follow-up.
+
+Candidate head:
+`1d6f9c3729bb2f5e9e0568c5ddfe1c730b28a571`
+
+Candidate Certification:
+`PAIA Certification #458 / run 35674821804 / attempt 2 / SUCCESS`
+
+Attempt 1 is retained as a non-PASS CI event: Current Browser and all light
+gates passed, but Full Suite was cancelled at the existing 30-minute job
+boundary before `test-summary.json` was emitted. No failing assertion preceded
+the cancellation. The unchanged head was rerun through failed jobs only; attempt
+2 completed SUCCESS without timeout or assertion weakening.
+
+Merged diagnostic verifier main:
+`894ba0cd0c3a4c809a2ff5145d79e68621f03d10`
+
+Exact-main Certification:
+`PAIA Certification #459 / run 35684745685 / attempt 1 / SUCCESS`
+
+The exact-main run passed Current Browser, Full Suite, Unit 1-4,
+Adapter/privacy, release guards, macOS Secure Store and the final Certification
+gate.
+
+The diagnostic follow-up changes only development verifier/tests/docs. It fixes
+the runtime-parity helper writer and adds bounded body-free rejected-role
+structure to the sanitized report. It does not change the production ChatGPT
+adapter or collection rules.
+
+## Production-readiness route amendment
+
+The product owner has explicitly tightened the next-stage acceptance standard.
+
+After PRD-02 is COMPLETE, development must switch to
+`PAIA-CHATGPT-PROJECT-RECOGNITION-v1` before PRD-03.
+
+That package is currently `BLOCKED_BY_PRD02`. It may complete only when real
+current ChatGPT `projectIdentity`, `projectName` and Conversation→Project
+`membership` are all verified from privacy-safe live evidence. Historical ANS
+fallback behavior remains valid history but is not sufficient for this new
+product requirement.
+
 ## Pending closure
 
 PRD-02 now requires only:
 
 1. publish the passive verifier through required candidate/exact-main CI;
-2. run it once after ordinary ChatGPT use against the existing loaded PAIA;
-3. preserve the sanitized `PAIA_PRD02_PASSIVE` result;
+2. run the current diagnostic passive verifier after ordinary ChatGPT use against the existing loaded PAIA;
+3. preserve and classify the second sanitized `PAIA_PRD02_PASSIVE` result;
 4. if PASS, close V05-V09 and mark PRD-02 COMPLETE;
 5. stop. Do not start PRD-03 or a Project-recognition package in the same
    execution.
