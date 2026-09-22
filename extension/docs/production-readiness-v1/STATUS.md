@@ -16,7 +16,7 @@ current_round: `PRD-02`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED — exact-main diagnostic verifier certified; awaiting second local passive result`
+writer_status: `RELEASED — capture PASS; blocked on owner-approved daily-runtime alignment`
 
 acceptanceComplete: `false`
 
@@ -272,3 +272,70 @@ PRD-03 is BLOCKED until both conditions are true:
 
 This interlock does not authorize Project Recognition implementation inside
 PRD-02 and does not start PRD-03.
+
+
+## PRD-02 second passive live result
+
+result_time: `2026-09-22`
+
+result_format: `paia-prd02-passive-normal-use-v2`
+
+verdict: `FAIL / CURRENT-RUNTIME PARITY ONLY`
+
+Sanitized findings:
+
+- scanComplete = true;
+- recentCapture = true;
+- recentConversationObservation = true;
+- observationBoundedToCapture = true;
+- adapterVersion = true;
+- captureStatus = PASS;
+- visible user roles = 2;
+- accepted user candidates = 2;
+- ingestion attempted = 2;
+- duplicates = 2;
+- unresolved = 0;
+- all visible user roles accepted = PASS;
+- ingestion/candidate reconciliation = PASS;
+- archive identity coverage = PASS (19 Sources / 19 messages);
+- source-time honesty = PASS;
+- structuralRejections = none;
+- runtime source head = `9fdc406c553f0699374ca889df6b06425946e795`;
+- release manifest = `0.12.0`;
+- release digest =
+  `71270fdee2d940d7a5276311c3a699b3492f128fe8f0e0394b6fec6209f9763c`;
+- runtimeParity = FAIL;
+- Project recognition remains unverified/unknown.
+
+Interpretation:
+
+The live ChatGPT capture contract itself passes this observation. The only
+remaining PRD-02 blocker is that the existing Chrome-loaded runtime does not
+byte-match the current certified release.
+
+This is not waived. It creates a sequencing dependency because PRD-02 requires
+current-release parity while PRD-03 owns update/restart durability and is now
+blocked behind the Project Recognition package.
+
+## PRD-02 runtime-alignment bridge
+
+A narrowly scoped alignment step is defined but is not yet authorized to mutate
+the owner's daily runtime.
+
+The bridge may only:
+
+1. use the existing documented `development/Update PAIA.command`;
+2. deploy the already-certified current release into the exact existing
+   Chrome-loaded runtime path;
+3. preserve the same extension identity and Chrome-managed archive;
+4. create the updater's automatic code backup;
+5. reload the existing extension once;
+6. rerun the passive PRD-02 verifier.
+
+The bridge does **not** certify update/restart/recovery durability and does not
+replace PRD-03. It may not restart Chrome, restore Backup, change extension
+identity, clear data, or begin Project Recognition implementation.
+
+Because this mutates the owner's daily runtime, execution of the bridge requires
+explicit owner approval. Until then PRD-02 remains IN_PROGRESS and Project
+Recognition remains BLOCKED_BY_PRD02.
