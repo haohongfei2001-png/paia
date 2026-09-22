@@ -10,7 +10,7 @@ current_round: `CPR-00`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `CLAIMED — manager/cpr00-tab-lock-20260922`
+writer_status: `RELEASED — same-tab helper exact-main certified; awaiting final live discovery`
 
 blocking_dependency: `NONE — PRD-02 COMPLETE`
 
@@ -170,3 +170,35 @@ This narrows the issue to helper tab selection rather than the provider evidence
 or page-instance mechanism. A development-only helper correction now locks all
 four observations to the exact first Project tab. No production capability or
 provider contract changes are authorized by this correction.
+
+
+## CPR-00 helper correction certification
+
+pr: `#45`
+
+candidate_head:
+`4237ae62ce43d7885f98dcf4d2fab162333086c6`
+
+candidate_certification:
+`PAIA Certification #499 / run 35712059351 / attempt 1 / SUCCESS`
+
+merged_main:
+`ea752ea9e8ddfc76e820d66c9fe69a47ade007b9`
+
+exact_main_certification:
+`PAIA Certification #500 / run 35714708162 / attempt 1 / SUCCESS`
+
+All required current jobs passed, including Current Browser, Full Suite,
+Unit 1-4, Adapter/privacy, release guards, macOS Secure Store and the final
+Certification gate.
+
+The correction changes only the development helper, its instructions/tests and
+CPR-00 evidence docs. Production Project observation code, the frozen ChatGPT
+capture adapter, manifest permissions and capability flags are unchanged.
+
+remaining_dependency:
+`one final same-tab PAIA_CPR00_PROJECT_DISCOVERY run with reloadNewDocument=true`
+
+Because the helper correction is development-only, the already loaded certified
+PAIA runtime does not need another production Update/Reload solely for this
+correction. The owner only needs the latest repository helper files.
