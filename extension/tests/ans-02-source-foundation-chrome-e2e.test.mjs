@@ -44,7 +44,7 @@ test('ANS-02 trusted source metadata survives restart and Backup restore while e
    const after=await s.snapshot(),history=await structure.history({kind:'conversation',conversationRef:conv});
    return {conv,A,B,original:after.records.map(r=>[r.id,r.sourceKey,r.originalText,r.contentHash]),working:after.library.blocks.map(x=>[x.id,x.libraryText,x.revision]),relationship:await structure.conversation(conv),history:history.items.length};
   });
-  assert.equal(setup.relationship.sourceStatus,'confirmed_deleted');assert.deepEqual(setup.relationship.membership.projectRef,setup.B);assert.equal(setup.history,3);
+  assert.equal(setup.relationship.sourceStatus,'confirmed_deleted');assert.deepEqual(setup.relationship.membership.projectRef,setup.B);assert.equal(setup.history,4);
   assert.ok(setup.original.some(row=>row[2].includes('ANS02_BROWSER_ORIGINAL')));assert.ok(setup.working.some(row=>row[1]==='ANS02_BROWSER_WORKING_EDIT'));
   await p.bringToFront();await openReader(p);assert.equal(await p.locator('.library-prose').filter({hasText:'ANS02_BROWSER_WORKING_EDIT'}).count(),1);
   await h.restartWorker();
@@ -55,7 +55,7 @@ test('ANS-02 trusted source metadata survives restart and Backup restore while e
    for(;;){const page=await backup.exportPage({sessionId,sequence:sequence++});items.push(...page.items);if(page.done)break;}
    return {current,history:history.items,snapshot:{records:snapshot.records.map(r=>[r.id,r.sourceKey,r.originalText,r.contentHash]),working:snapshot.library.blocks.map(x=>[x.id,x.libraryText,x.revision])},items};
   },setup.conv);
-  assert.deepEqual(persisted.snapshot.records,setup.original);assert.deepEqual(persisted.snapshot.working,setup.working);assert.equal(persisted.current.relationshipRevision,3);
+  assert.deepEqual(persisted.snapshot.records,setup.original);assert.deepEqual(persisted.snapshot.working,setup.working);assert.equal(persisted.current.relationshipRevision,4);
   const restored=await p.evaluate(async items=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js'),{BackupService}=await import('../core/backup-service.js');
    const memory={},local={async get(k){return {[k]:structuredClone(memory[k])};},async set(v){Object.assign(memory,structuredClone(v));},async getBytesInUse(){return 0;}};
@@ -64,7 +64,7 @@ test('ANS-02 trusted source metadata survives restart and Backup restore while e
    await backup.restore({sessionId,confirmation:preview.integrity});const snapshot=await target.snapshot(),structure=new SourceStructureStore(target),conv={platform:'chatgpt',sourceConversationId:'ans02-browser-chat'},history=await structure.history({kind:'conversation',conversationRef:conv});
    return {current:await structure.conversation(conv),history:history.items,snapshot:{records:snapshot.records.map(r=>[r.id,r.sourceKey,r.originalText,r.contentHash]),working:snapshot.library.blocks.map(x=>[x.id,x.libraryText,x.revision])}};
   },persisted.items);
-  assert.deepEqual(restored.snapshot.records,setup.original);assert.deepEqual(restored.snapshot.working,setup.working);assert.equal(restored.current.sourceStatus,'confirmed_deleted');assert.equal(restored.history.length,3);assert.ok(restored.history.every(e=>e.evidence.channel==='restored'));
+  assert.deepEqual(restored.snapshot.records,setup.original);assert.deepEqual(restored.snapshot.working,setup.working);assert.equal(restored.current.sourceStatus,'confirmed_deleted');assert.equal(restored.history.length,4);assert.ok(restored.history.every(e=>e.evidence.channel==='restored'));
   await p.reload();await eventually(async()=>await p.locator('.library-block').count()>0||await p.locator('#archive-navigator').isVisible()||await p.locator('.conversation-document').first().isVisible().catch(()=>false),'ANS-02 UI recovers after worker restart');if(!await p.locator('.library-block').count())await openReader(p);
   assert.equal(await p.locator('.library-prose').filter({hasText:'ANS02_BROWSER_WORKING_EDIT'}).count(),1);
   await mkdir('work/ans-02',{recursive:true});await p.screenshot({path:'work/ans-02/source-foundation-reader.png',fullPage:false});
