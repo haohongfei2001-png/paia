@@ -37,9 +37,10 @@ export async function openArchiveWindow(page,options={}){
       return window;
     }catch(error){
       // A late membership observation can move an unselected Window into a
-      // collapsed group between discovery and click. Re-open that group using
-      // normal controls; visible but unclickable targets must still fail.
-      if(error.name!=='TimeoutError'||await visible(window)||Date.now()>=deadline)throw error;
+      // collapsed group between discovery and click. Re-discover through normal
+      // controls and retain the full action budget for layout stabilization.
+      // A persistently unclickable target still fails at the original deadline.
+      if(error.name!=='TimeoutError'||Date.now()>=deadline)throw error;
     }
   }
 }
