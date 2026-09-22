@@ -38,7 +38,7 @@ const stable=state=>state.records.map(r=>({
 }));
 
 test('ANS-03 production adapter declares capabilities individually and emits audited plain-route membership absence',async()=>{
- const context={};vm.createContext(context);
+ const context={URL};vm.createContext(context);
  vm.runInContext(await readFile(new URL('../adapter/source-structure-contract.js',import.meta.url),'utf8'),context);
  vm.runInContext(await readFile(new URL('../adapter/chatgpt-source-structure.js',import.meta.url),'utf8'),context);
  const caps=JSON.parse(JSON.stringify(context.SourceStructureContract.capabilities));
