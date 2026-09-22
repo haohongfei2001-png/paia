@@ -97,7 +97,7 @@ test('CPR-01 ordinary chat and custom GPT remain identity-only even with visible
   }
 });
 
-test('CPR-01 message-body-only Project links and conflicting provider names fail closed to identity-only',async()=>{
+test('CPR-01 message-body-only Project links and conflicting provider names fail closed to no Project observation',async()=>{
   const segment=projectId+'-ambiguous-project';
   const cases=[
     '<main><div data-message-author-role="user"><a id="poison" href="/g/'+segment+'/project">PRIVATE PROJECT</a></div></main>',
@@ -111,8 +111,7 @@ test('CPR-01 message-body-only Project links and conflicting provider names fail
         get(){throw Error('message body must not be read');}
       }));
       const emitted=await observe(page);
-      assert.equal(emitted.dtos.length,1);
-      assert.equal(emitted.dtos[0].capability,'conversationIdentity');
+      assert.equal(emitted,null);
     }finally{await page.close();}
   }
 });
