@@ -102,9 +102,13 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   assert.equal(synthetic.current.sourceStatus,'observed_active');assert.equal(synthetic.current.relationshipRevision,5);
   assert.equal(synthetic.project.currentName,'Browser B Renamed');assert.equal(synthetic.project.relationshipRevision,2);
   assert.equal(synthetic.history.length,5);
-  await h.restartWorker();await chat.reload();await pause(2600);
+  await h.restartWorker();
+  const afterWorkerRestart=await sourceRow(archive,b.id);
+  assert.equal(afterWorkerRestart.row.membership.state,'project','worker restart alone does not fabricate a new page observation');
+  assert.equal(afterWorkerRestart.row.relationshipRevision,5);
+  await chat.reload();await pause(2600);
   const afterRestart=await sourceRow(archive,b.id);
-  assert.equal(afterRestart.row.membership.state,'unassigned','plain route corrects synthetic Project membership after restart');
+  assert.equal(afterRestart.row.membership.state,'unassigned','fresh page remount re-observes verified plain-route absence');
   assert.equal(afterRestart.row.lastKnownSourceProject.projectRef.projectId,'browser-project-b');
   assert.equal(afterRestart.row.relationshipRevision,6,'one effective Project → unassigned correction is recorded');
   assert.equal(afterRestart.history.length,6);
