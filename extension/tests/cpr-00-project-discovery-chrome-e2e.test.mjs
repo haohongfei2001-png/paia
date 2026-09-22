@@ -11,6 +11,8 @@ else{try{playwright=require('playwright');}catch{playwright=require('/Users/hhf/
 const {chromium}=playwright;
 const adapterSource=await readFile(new URL('../adapter/chatgpt-adapter.js',import.meta.url),'utf8');
 const schemaSource=await readFile(new URL('../core/diagnostics-schema.js',import.meta.url),'utf8');
+const contractSource=await readFile(new URL('../adapter/source-structure-contract.js',import.meta.url),'utf8');
+const sourceStructureSource=await readFile(new URL('../adapter/chatgpt-source-structure.js',import.meta.url),'utf8');
 const bridgeSource=await readFile(new URL('../content/source-structure-bridge.js',import.meta.url),'utf8');
 const commandSource=await readFile(new URL('../development/CPR-00 Project Discovery.command',import.meta.url),'utf8');
 let browser;
@@ -22,7 +24,19 @@ async function fixture(html,url){
  const page=await browser.newPage();await page.route('**/*',route=>route.abort());
  await page.setContent('<!doctype html><html><head><style>header,nav,main,a{display:block;min-height:4px}</style></head><body>'+html+'</body></html>');
  await page.addScriptTag({content:schemaSource});await page.addScriptTag({content:adapterSource});
- await page.evaluate(href=>{window.syntheticLocation={href};window.adapter=new window.ChatGPTAdapter({location:window.syntheticLocation});},url);
+ await page.addScriptTag({content:contractSource});await page.addScriptTag({content:sourceStructureSource});
+ await page.evaluate(href=>{
+  window.syntheticLocation={href};
+  window.chrome={runtime:{
+   id:'synthetic-cpr00-extension',
+   getURL:path=>'chrome-extension://synthetic-cpr00-extension'+path,
+   onMessage:{addListener(){}},
+   sendMessage:async request=>request?.type==='GET_STATUS'
+    ?{ok:true,data:{consented:false,enabled:false,adapterVersion:'0.3.0',epoch:0}}
+    :{ok:false,error:'FORBIDDEN'}
+  }};
+ },url);
+ await page.addScriptTag({content:bridgeSource});
  return page;
 }
 const pid='g-p-'+'a'.repeat(32),chat='chat-fixture-001',salt='1'.repeat(32);
@@ -31,7 +45,7 @@ test('CPR-00 probe binds g-p project route to same-project visible name without 
  const segment=pid+'-private-project-name';
  const page=await fixture('<header><a href="/g/'+segment+'/project">Private Project Name</a></header><main></main>','https://chatgpt.com/g/'+segment+'/c/'+chat);
  try{
-  const result=await page.evaluate(s=>window.adapter.projectDiscovery({salt:s}),salt);
+  const result=await page.evaluate(s=>window.PAIAProjectDiscoveryProbe.scan({salt:s,href:window.syntheticLocation.href}),salt);
   assert.equal(result.route.kind,'project_chat');assert.match(result.route.projectDigest,/^[a-f0-9]{32}$/);
   assert.equal(result.counts.matchingRouteProjectAnchors,1);assert.equal(result.counts.namedMatchingRouteAnchors,1);
   assert.equal(result.anchors[0].matchesRouteProject,true);assert.match(result.anchors[0].labelDigest,/^[a-f0-9]{32}$/);
@@ -49,7 +63,7 @@ test('CPR-00 probe does not confuse custom GPT or ordinary chat with Project mem
  ]){
   const page=await fixture('<nav><a href="/g/'+projectSegment+'/project">Sidebar Project</a></nav><main></main>',url);
   try{
-   const result=await page.evaluate(s=>window.adapter.projectDiscovery({salt:s}),salt);
+   const result=await page.evaluate(s=>window.PAIAProjectDiscoveryProbe.scan({salt:s,href:window.syntheticLocation.href}),salt);
    assert.equal(result.route.kind,kind);assert.equal(result.route.projectDigest,null);
    assert.equal(result.anchors.some(item=>item.matchesRouteProject),false);
   }finally{await page.close();}
@@ -61,7 +75,7 @@ test('CPR-00 probe excludes fake Project links inside user messages before readi
  const page=await fixture('<header><a href="/g/'+segment+'/project">Real Project</a></header><main><div data-message-author-role="user"><a id="poison" href="/g/'+pid+'-fake/project">FAKE PRIVATE BODY PROJECT</a></div></main>','https://chatgpt.com/g/'+segment+'/c/'+chat);
  try{
   await page.evaluate(()=>Object.defineProperty(document.getElementById('poison'),'textContent',{get(){throw Error('forbidden body read');}}));
-  const result=await page.evaluate(s=>window.adapter.projectDiscovery({salt:s}),salt);
+  const result=await page.evaluate(s=>window.PAIAProjectDiscoveryProbe.scan({salt:s,href:window.syntheticLocation.href}),salt);
   assert.equal(result.counts.projectAnchors,1);
   assert.equal(JSON.stringify(result).includes('FAKE PRIVATE BODY PROJECT'),false);
  }finally{await page.close();}
@@ -71,7 +85,7 @@ test('CPR-00 never treats a current conversation title as the Project name',asyn
  const segment=pid+'-private-project';
  const page=await fixture('<nav><a href="/g/'+segment+'/c/'+chat+'">Private Conversation Title</a></nav><main></main>','https://chatgpt.com/g/'+segment+'/c/'+chat);
  try{
-  const result=await page.evaluate(s=>window.adapter.projectDiscovery({salt:s}),salt);
+  const result=await page.evaluate(s=>window.PAIAProjectDiscoveryProbe.scan({salt:s,href:window.syntheticLocation.href}),salt);
   assert.equal(result.counts.matchingRouteProjectAnchors,1);
   assert.equal(result.counts.namedMatchingRouteAnchors,0);
   const report=summarizeDiscovery({runtime,captures:{project:result,projectReload:result,ordinary:snap('plain_chat'),projectReturn:result}});
@@ -85,9 +99,9 @@ test('CPR-00 run-local digests are stable inside one run and unlinkable across s
  const page=await fixture('<header><a href="/g/'+segment+'/project">Stable Name</a></header><main></main>','https://chatgpt.com/g/'+segment+'/c/'+chat);
  try{
   const [a,b,c]=await page.evaluate(async()=>[
-   await window.adapter.projectDiscovery({salt:'2'.repeat(32)}),
-   await window.adapter.projectDiscovery({salt:'2'.repeat(32)}),
-   await window.adapter.projectDiscovery({salt:'3'.repeat(32)})
+   await window.PAIAProjectDiscoveryProbe.scan({salt:'2'.repeat(32),href:window.syntheticLocation.href}),
+   await window.PAIAProjectDiscoveryProbe.scan({salt:'2'.repeat(32),href:window.syntheticLocation.href}),
+   await window.PAIAProjectDiscoveryProbe.scan({salt:'3'.repeat(32),href:window.syntheticLocation.href})
   ]);
   assert.equal(a.route.projectDigest,b.route.projectDigest);assert.equal(a.anchors[0].labelDigest,b.anchors[0].labelDigest);
   assert.notEqual(a.route.projectDigest,c.route.projectDigest);assert.notEqual(a.anchors[0].labelDigest,c.anchors[0].labelDigest);
