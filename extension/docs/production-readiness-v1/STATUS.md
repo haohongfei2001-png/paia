@@ -16,7 +16,7 @@ current_round: `PRD-02`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED — runtime alignment OWNER_AUTHORIZED; local execution pending`
+writer_status: `RELEASED — runtime aligned; awaiting one post-page-reload passive result`
 
 acceptanceComplete: `false`
 
@@ -372,3 +372,36 @@ The connected owner Mac is online, but the currently connected remote-desktop
 control service reports zero remaining remote calls for the current usage
 period. Therefore local execution cannot be performed remotely in this session;
 owner authorization remains valid and does not need to be requested again.
+
+
+## PRD-02 post-alignment passive result
+
+result_time: `2026-09-22`
+
+verdict: `FAIL / POST-RELOAD PAGE REINJECTION REQUIRED`
+
+Sanitized findings:
+
+- runtimeParity = PASS;
+- sourceHead = `f1d32984c3d4d852d0df1d86b243170309dab4bd`;
+- manifestVersion = `0.12.0`;
+- releaseDigest =
+  `71270fdee2d940d7a5276311c3a699b3492f128fe8f0e0394b6fec6209f9763c`;
+- archive identity coverage = PASS (20 Sources / 20 messages);
+- ingestion settled = PASS;
+- duplicate safety = PASS;
+- source-time honesty = PASS;
+- current diagnostic status = `CAPTURE_FAILED`;
+- structure unavailable / visible user roles = 0.
+
+Interpretation:
+
+The owner-approved runtime alignment succeeded. The remaining result is
+consistent with an already-open ChatGPT tab retaining an invalidated pre-reload
+content-script context after extension Reload. The production content scripts are
+declared for `document_start/document_idle`, so the next bounded action is to
+reload one ordinary ChatGPT page, wait for a fresh capture cycle, and rerun the
+passive verifier.
+
+No further runtime update, Chrome restart, Backup restore, data clearing,
+PRD-03 work or Project Recognition implementation is authorized by this step.
