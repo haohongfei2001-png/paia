@@ -15,6 +15,7 @@ const contractSource=await readFile(new URL('../adapter/source-structure-contrac
 const sourceStructureSource=await readFile(new URL('../adapter/chatgpt-source-structure.js',import.meta.url),'utf8');
 const bridgeSource=await readFile(new URL('../content/source-structure-bridge.js',import.meta.url),'utf8');
 const commandSource=await readFile(new URL('../development/CPR-00 Project Discovery.command',import.meta.url),'utf8');
+const gateSource=await readFile(new URL('../development/cpr00-project-probe/gate.js',import.meta.url),'utf8');
 let browser;
 
 before(async()=>{browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':undefined),args:['--disable-background-networking','--disable-component-update','--disable-sync','--no-default-browser-check']});});
@@ -156,6 +157,16 @@ test('CPR-00 summary fails closed if ordinary chat carries a membership signal o
  const captures={project:snap(),projectReload:snap(),ordinary,projectReturn:snap()};
  assert.equal(summarizeDiscovery({runtime,captures}).contractCandidateReady,false);
  assert.equal(summarizeDiscovery({runtime:{...runtime,runtimeParity:false},captures:{...captures,ordinary:snap('plain_chat')}}).contractCandidateReady,false);
+});
+
+test('CPR-00 helper locks reload, ordinary and return observations to the first Project tab',()=>{
+ assert.match(gateSource,/let lockedProjectTabId=null/);
+ assert.match(gateSource,/lockedProjectTabId=eligible\[0\]\.tabId/);
+ assert.match(gateSource,/LOCKED_PROJECT_TAB_NOT_RESPONDING/);
+ assert.match(gateSource,/RELOAD_NOT_FRESH_DOCUMENT/);
+ assert.match(gateSource,/ORDINARY_MUST_USE_LOCKED_TAB/);
+ assert.match(gateSource,/RETURN_WRONG_CONVERSATION/);
+ assert.doesNotMatch(gateSource,/tabId\s*:/);
 });
 
 test('CPR-00 helper is development-only, read-only and the content bridge restricts the probe caller',()=>{
