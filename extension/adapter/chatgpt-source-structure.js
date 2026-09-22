@@ -23,7 +23,7 @@
       return contract.capabilities;
     }
     normalize(value){
-      return typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,300):'';
+      return typeof value==='string'?value.replace(/\s+/g,' ').trim():'';
     }
     excluded(node){
       return !!node?.closest?.('[data-message-author-role], textarea, input, [contenteditable]:not([contenteditable="false"]), [role="textbox"]');
@@ -50,7 +50,8 @@
         const match=link.pathname.match(/^\/g\/(g-p-[a-f0-9]{32})(?:-[^/]*)?\/project\/?$/i);
         if(!match||match[1].toLowerCase()!==projectId||!this.adapter.visible(node))continue;
         const label=this.normalize(node.textContent)||this.normalize(node.getAttribute('aria-label'));
-        if(label)names.add(label);
+        if(!label||[...label].length>300)return null;
+        names.add(label);
         if(names.size>1)return null;
       }
       return names.size===1?[...names][0]:null;
