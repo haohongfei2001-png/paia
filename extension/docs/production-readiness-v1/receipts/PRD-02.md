@@ -262,6 +262,37 @@ rollback/recovery or update durability and cannot be cited as those gates.
 The actual daily-runtime mutation is not performed without explicit owner
 approval.
 
+## Post-alignment passive result — parity PASS, page capture context stale
+
+The owner-authorized runtime alignment succeeded.
+
+The next passive result proved:
+
+- `runtimeParity=true`;
+- sourceHead `f1d32984c3d4d852d0df1d86b243170309dab4bd`;
+- manifest v0.12.0;
+- release digest
+  `71270fdee2d940d7a5276311c3a699b3492f128fe8f0e0394b6fec6209f9763c`;
+- archive identity coverage 20/20;
+- ingestion settled;
+- duplicate safety and source-time honesty remained green.
+
+It did not yet prove current-page capture because diagnostics were
+`CAPTURE_FAILED` with no current structure/visible-role snapshot.
+
+This is consistent with the normal lifecycle after reloading an unpacked Chrome
+extension while a ChatGPT tab is already open: PAIA content scripts are declared
+at `document_start` / `document_idle`, so an already-open document must be
+reloaded to receive the new extension context.
+
+The next and only bounded action is therefore:
+
+1. reload one ordinary ChatGPT conversation page;
+2. wait for a fresh capture cycle;
+3. rerun the passive verifier.
+
+No runtime update, Chrome restart, Backup restore or data mutation is required.
+
 ## Pending closure
 
 PRD-02 now requires only:
