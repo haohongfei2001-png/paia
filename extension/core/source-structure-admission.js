@@ -87,9 +87,24 @@ export const CHATGPT_PROJECT_STRUCTURE_POLICY=createSourceStructurePolicy({
   projectName:{subject:'project',fields:['currentName']}
  }
 });
+export const CHATGPT_PROJECT_ABSENCE_POLICY=createSourceStructurePolicy({
+ providerKey:'chatgpt',
+ contractId:'chatgpt.current-project-absence',
+ contractVersion:1,
+ channel:'plain_route_project_absence',
+ scope:'current_conversation',
+ originClass:'current_plain_route',
+ capabilities:{
+  conversationIdentity:'verified',projectIdentity:'verified',projectName:'verified',
+  membership:'verified',projectOrder:'unverified',windowOrder:'unverified',
+  rename:'unverified',move:'unverified',conversationDeletion:'unverified',projectDeletion:'unverified'
+ },
+ rules:{membership:{subject:'conversation',fields:['membership']}}
+});
 export function chatGPTSourceStructurePolicy(value){
  if(value?.contractId===CHATGPT_SOURCE_STRUCTURE_POLICY.contractId)return CHATGPT_SOURCE_STRUCTURE_POLICY;
  if(value?.contractId===CHATGPT_PROJECT_STRUCTURE_POLICY.contractId)return CHATGPT_PROJECT_STRUCTURE_POLICY;
+ if(value?.contractId===CHATGPT_PROJECT_ABSENCE_POLICY.contractId)return CHATGPT_PROJECT_ABSENCE_POLICY;
  fail('UNAVAILABLE');
 }
 function validateEnvelope(value,policy){
@@ -193,9 +208,18 @@ export async function admitChatGPTSourceStructureBatch(values){
  if(!Array.isArray(values)||!values.length||values.length>2)fail();
  if(values.length===1){
   const value=values[0];
-  if(value?.contractId!==CHATGPT_SOURCE_STRUCTURE_POLICY.contractId||
-     value?.capability!=='conversationIdentity')fail('UNAVAILABLE');
-  return [await admitSourceStructureDTO(value,CHATGPT_SOURCE_STRUCTURE_POLICY)];
+  if(value?.contractId===CHATGPT_SOURCE_STRUCTURE_POLICY.contractId&&
+     value?.capability==='conversationIdentity'){
+    return [await admitSourceStructureDTO(value,CHATGPT_SOURCE_STRUCTURE_POLICY)];
+  }
+  if(value?.contractId===CHATGPT_PROJECT_ABSENCE_POLICY.contractId&&
+     value?.capability==='membership'){
+    const admitted=await admitSourceStructureDTO(value,CHATGPT_PROJECT_ABSENCE_POLICY);
+    if(admitted.kind!=='conversation'||admitted.membership?.state!=='unassigned'||
+       admitted.projectName!==undefined)fail();
+    return [admitted];
+  }
+  fail('UNAVAILABLE');
  }
  const [a,b]=values;
  if(a?.contractId!==CHATGPT_PROJECT_STRUCTURE_POLICY.contractId||
