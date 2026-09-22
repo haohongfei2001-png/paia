@@ -100,8 +100,8 @@ test('CPR-01 old identity policy still rejects Project claims and unknown contra
     ()=>admitSourceStructureDTO(old,chatGPTSourceStructurePolicy(old)),
     error=>error?.code==='UNAVAILABLE'
   );
-  await assert.rejects(
-    ()=>Promise.resolve(chatGPTSourceStructurePolicy({...membership,contractId:'unknown.contract'})),
+  assert.throws(
+    ()=>chatGPTSourceStructurePolicy({...membership,contractId:'unknown.contract'}),
     error=>error?.code==='UNAVAILABLE'
   );
 });
