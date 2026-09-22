@@ -149,7 +149,12 @@ export class SourceStructureStore{
   }
  }
  async observeAdmitted(input){
-  return this.observeAdmittedBatch([input]);
+  const result=await this.observeAdmittedBatch([input]);
+  if(!result.settled||result.excluded){
+   const {event,...legacy}=result;
+   return legacy;
+  }
+  return result;
  }
 
  async conversation(ref){
