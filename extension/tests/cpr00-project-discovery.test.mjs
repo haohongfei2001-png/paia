@@ -67,6 +67,19 @@ test('CPR-00 probe excludes fake Project links inside user messages before readi
  }finally{await page.close();}
 });
 
+test('CPR-00 never treats a current conversation title as the Project name',async()=>{
+ const segment=pid+'-private-project';
+ const page=await fixture('<nav><a href="/g/'+segment+'/c/'+chat+'">Private Conversation Title</a></nav><main></main>','https://chatgpt.com/g/'+segment+'/c/'+chat);
+ try{
+  const result=await page.evaluate(s=>window.adapter.projectDiscovery({salt:s}),salt);
+  assert.equal(result.counts.matchingRouteProjectAnchors,1);
+  assert.equal(result.counts.namedMatchingRouteAnchors,0);
+  const report=summarizeDiscovery({runtime,captures:{project:result,projectReload:result,ordinary:snap('plain_chat'),projectReturn:result}});
+  assert.equal(report.contractCandidateReady,false);
+  assert.ok(report.reasons.includes('projectNameCandidate'));
+ }finally{await page.close();}
+});
+
 test('CPR-00 run-local digests are stable inside one run and unlinkable across salts',async()=>{
  const segment=pid+'-stable-name';
  const page=await fixture('<header><a href="/g/'+segment+'/project">Stable Name</a></header><main></main>','https://chatgpt.com/g/'+segment+'/c/'+chat);
@@ -93,7 +106,7 @@ test('CPR-00 summary requires project, reload, ordinary negative and away/back s
  const captures={project:snap(),projectReload:snap(),ordinary:snap('plain_chat'),projectReturn:snap()};
  const report=summarizeDiscovery({runtime,captures});
  assert.equal(report.contractCandidateReady,true);assert.deepEqual(report.reasons,[]);
- assert.equal(report.candidate.channel,'route_plus_matching_named_link');
+ assert.equal(report.candidate.channel,'route_plus_matching_project_home_link');
  assert.equal(report.checks.ordinaryNegative,true);
 });
 
