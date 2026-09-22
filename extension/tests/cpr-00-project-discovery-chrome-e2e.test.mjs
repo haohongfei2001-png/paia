@@ -21,12 +21,20 @@ before(async()=>{browser=await chromium.launch({headless:true,executablePath:pro
 after(async()=>{await browser?.close();});
 
 async function fixture(html,url){
- const page=await browser.newPage();await page.route('**/*',route=>route.abort());
- await page.setContent('<!doctype html><html><head><style>header,nav,main,a{display:block;min-height:4px}</style></head><body>'+html+'</body></html>');
+ const page=await browser.newPage();
+ const body='<!doctype html><html><head><style>header,nav,main,a{display:block;min-height:4px}</style></head><body>'+html+'</body></html>';
+ await page.route('**/*',route=>{
+  if(route.request().isNavigationRequest()&&route.request().url().startsWith('https://chatgpt.com/')){
+   void route.fulfill({status:200,contentType:'text/html',body});
+   return;
+  }
+  void route.abort();
+ });
+ await page.goto(url,{waitUntil:'domcontentloaded'});
  await page.addScriptTag({content:schemaSource});await page.addScriptTag({content:adapterSource});
  await page.addScriptTag({content:contractSource});await page.addScriptTag({content:sourceStructureSource});
- await page.evaluate(href=>{
-  window.syntheticLocation={href};
+ await page.evaluate(()=>{
+  window.syntheticLocation={href:location.href};
   window.chrome={runtime:{
    id:'synthetic-cpr00-extension',
    getURL:path=>'chrome-extension://synthetic-cpr00-extension'+path,
@@ -35,7 +43,7 @@ async function fixture(html,url){
     ?{ok:true,data:{consented:false,enabled:false,adapterVersion:'0.3.0',epoch:0}}
     :{ok:false,error:'FORBIDDEN'}
   }};
- },url);
+ });
  await page.addScriptTag({content:bridgeSource});
  return page;
 }
