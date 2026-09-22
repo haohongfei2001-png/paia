@@ -44,6 +44,9 @@ export function summarizePassive({runtime,observation,diagnostics,archive,scanCo
    unresolved:Number.isSafeInteger(ing?.unresolved)?ing.unresolved:0,
    knownTimes:Number.isSafeInteger(ing?.knownTimes)?ing.knownTimes:0,
    unknownTimes:Number.isSafeInteger(ing?.unknownTimes)?ing.unknownTimes:0,
+   roleIdValidCount:Number.isSafeInteger(s?.roleIdValidCount)?s.roleIdValidCount:0,
+   editorPassedCount:Number.isSafeInteger(s?.editorPassedCount)?s.editorPassedCount:0,
+   busyPassedCount:Number.isSafeInteger(s?.busyPassedCount)?s.busyPassedCount:0,
    archiveActiveRows:archive?.activeRows||0,
    distinctSources:archive?.distinctSources||0,
    distinctMessages:archive?.distinctMessages||0,
@@ -54,7 +57,8 @@ export function summarizePassive({runtime,observation,diagnostics,archive,scanCo
    adapterVersion:diagnostics?.adapterVersion||null,
    status:diagnostics?.status||null,
    captureHealthState:diagnostics?.captureHealthState||null,
-   lastErrorCode:diagnostics?.lastErrorCode||null
+   lastErrorCode:diagnostics?.lastErrorCode||null,
+   structuralRejections:Array.isArray(diagnostics?.structuralRejections)?diagnostics.structuralRejections.slice(0,5):[]
   },
   projectRecognition:{
    projectIdentity:'unverified',
