@@ -6,11 +6,11 @@ package_status: `ACTIVE`
 
 canonical_branch: `main`
 
-current_round: `CPR-01`
+current_round: `CPR-02`
 
-current_round_status: `IN_PROGRESS`
+current_round_status: `READY`
 
-writer_status: `CLAIMED — manager/cpr01-trusted-project-observer-20260922`
+writer_status: `RELEASED`
 
 blocking_dependency: `NONE — PRD-02 COMPLETE`
 
@@ -19,8 +19,8 @@ blocking_dependency: `NONE — PRD-02 COMPLETE`
 | Round | State | Goal |
 |---|---|---|
 | CPR-00 | COMPLETE | Live capability discovery and evidence-contract freeze |
-| CPR-01 | READY | Trusted automatic current-Project observer and admission |
-| CPR-02 | PLANNED | Lifecycle + Navigator integration and fallback correctness |
+| CPR-01 | COMPLETE | Trusted automatic current-Project observer and admission |
+| CPR-02 | READY | Lifecycle + Navigator integration and fallback correctness |
 | CPR-03 | PLANNED | Real normal-use certification and package closure |
 
 ## Required package exit
@@ -273,3 +273,40 @@ scope:
 
 CPR-01 must stop after candidate CI, merge, exact-main CI, receipt/status
 publication and remote readback.
+
+
+## CPR-01 closure
+
+verdict:
+`CPR-01 COMPLETE / PASS`
+
+pr:
+`#46`
+
+candidate_head:
+`9061001200ab36a0b71b03a1d48d5cba7ae3e27a`
+
+candidate_certification:
+`PAIA Certification #521 / run 35726508816 / attempt 2 / SUCCESS`
+
+merged_main:
+`c7b51f85512658a8e127d45a9389b62c38e3218a`
+
+exact_main_certification:
+`PAIA Certification #522 / run 35738998605 / attempt 1 / SUCCESS`
+
+Production capabilities now verified:
+
+- `projectIdentity`;
+- `projectName`;
+- `membership`.
+
+The implementation uses only the CPR-00 frozen
+`route_plus_matching_project_home_link` evidence chain and preserves trusted
+route binding, consent/epoch/exclusion gates, privacy boundaries and
+Source/message identity.
+
+CPR-02 is READY but **NOT_STARTED**.
+
+PRD-03 remains BLOCKED until this entire Project Recognition package is
+canonically COMPLETE.
