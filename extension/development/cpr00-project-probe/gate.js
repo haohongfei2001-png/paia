@@ -2,32 +2,53 @@ import {summarizeDiscovery} from './probe-core.js';
 const $=id=>document.getElementById(id);
 const labels=['project','projectReload','ordinary','projectReturn'];
 const captures={};
+let lockedProjectTabId=null;
 const salt=[...crypto.getRandomValues(new Uint8Array(16))].map(v=>v.toString(16).padStart(2,'0')).join('');
 const runtime=globalThis.PAIA_CPR00_RUNTIME_CHECK&&typeof globalThis.PAIA_CPR00_RUNTIME_CHECK==='object'
   ?globalThis.PAIA_CPR00_RUNTIME_CHECK:{runtimeParity:false};
 
+async function probeOne(tab){
+  try{
+    const reply=await Promise.race([
+      chrome.tabs.sendMessage(tab.id,{type:'CPR00_PROJECT_PROBE',salt}),
+      new Promise((_,reject)=>setTimeout(()=>reject(Error('timeout')),1800))
+    ]);
+    return reply?.ok===true&&reply.data?.schemaVersion===1
+      ?{tabId:tab.id,data:reply.data,lastAccessed:Number(tab.lastAccessed)||0}
+      :null;
+  }catch{return null;}
+}
+
 async function probeMostRecentChatGPT(label){
   const tabs=await chrome.tabs.query({});
-  const replies=[];
-  await Promise.all(tabs.filter(tab=>Number.isSafeInteger(tab.id)).map(async tab=>{
-    try{
-      const reply=await Promise.race([
-        chrome.tabs.sendMessage(tab.id,{type:'CPR00_PROJECT_PROBE',salt}),
-        new Promise((_,reject)=>setTimeout(()=>reject(Error('timeout')),1800))
-      ]);
-      if(reply?.ok===true&&reply.data?.schemaVersion===1)replies.push({data:reply.data,lastAccessed:Number(tab.lastAccessed)||0});
-    }catch{}
-  }));
-  if(!replies.length)throw Error('NO_CHATGPT_PROBE');
-  let eligible=replies;
-  if(label==='project')eligible=replies.filter(row=>row.data?.route?.kind==='project_chat');
-  if(['projectReload','projectReturn'].includes(label)&&captures.project?.route?.conversationDigest){
-    eligible=replies.filter(row=>row.data?.route?.conversationDigest===captures.project.route.conversationDigest);
+  const candidates=tabs.filter(tab=>Number.isSafeInteger(tab.id));
+  if(label!=='project'){
+    if(!Number.isSafeInteger(lockedProjectTabId))throw Error('PROJECT_TAB_NOT_LOCKED');
+    const tab=candidates.find(row=>row.id===lockedProjectTabId);
+    if(!tab)throw Error('LOCKED_PROJECT_TAB_CLOSED');
+    const row=await probeOne(tab);
+    if(!row)throw Error('LOCKED_PROJECT_TAB_NOT_RESPONDING');
+    const firstConversation=captures.project?.route?.conversationDigest;
+    if(label==='projectReload'){
+      if(!firstConversation||row.data?.route?.conversationDigest!==firstConversation)throw Error('RELOAD_WRONG_CONVERSATION');
+      if(row.data?.pageInstanceDigest===captures.project?.pageInstanceDigest)throw Error('RELOAD_NOT_FRESH_DOCUMENT');
+    }
+    if(label==='ordinary'){
+      if(row.data?.route?.kind!=='plain_chat'||row.data?.route?.projectDigest!=null)throw Error('ORDINARY_MUST_USE_LOCKED_TAB');
+    }
+    if(label==='projectReturn'){
+      if(!firstConversation||row.data?.route?.conversationDigest!==firstConversation)throw Error('RETURN_WRONG_CONVERSATION');
+    }
+    return {snapshot:row.data,responders:1,locked:true};
   }
-  if(label==='ordinary')eligible=replies.filter(row=>row.data?.route?.kind==='plain_chat'&&row.data?.route?.projectDigest==null);
-  if(!eligible.length)throw Error('TARGET_CHAT_NOT_FOUND');
+
+  const replies=(await Promise.all(candidates.map(probeOne))).filter(Boolean);
+  if(!replies.length)throw Error('NO_CHATGPT_PROBE');
+  const eligible=replies.filter(row=>row.data?.route?.kind==='project_chat');
+  if(!eligible.length)throw Error('TARGET_PROJECT_CHAT_NOT_FOUND');
   eligible.sort((a,b)=>b.lastAccessed-a.lastAccessed);
-  return {snapshot:eligible[0].data,responders:replies.length};
+  lockedProjectTabId=eligible[0].tabId;
+  return {snapshot:eligible[0].data,responders:replies.length,locked:true};
 }
 
 function renderState(){
