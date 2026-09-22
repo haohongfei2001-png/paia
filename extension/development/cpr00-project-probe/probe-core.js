@@ -1,7 +1,11 @@
 export const CPR00_FORMAT='paia-cpr00-project-discovery-v1';
 
 const visibleNamedRouteMatches=snapshot=>(snapshot?.anchors||[])
-  .filter(item=>item?.matchesRouteProject===true&&item?.visible===true&&typeof item?.labelDigest==='string');
+  .filter(item=>item?.matchesRouteProject===true&&item?.kind==='project_home'&&item?.visible===true&&typeof item?.labelDigest==='string');
+const matchingHeaderAttributes=snapshot=>{
+  const routeProject=typeof snapshot?.route?.projectDigest==='string'?snapshot.route.projectDigest:null;
+  return (snapshot?.attributes||[]).filter(item=>routeProject&&item?.zone==='header'&&item?.visible===true&&item?.projectIdDigest===routeProject&&typeof item?.projectNameDigest==='string');
+};
 const visibleNested=snapshot=>(snapshot?.nestedMemberships||[])
   .filter(item=>item?.visible===true&&typeof item?.projectDigest==='string'&&typeof item?.labelDigest==='string');
 
@@ -10,18 +14,23 @@ function evidence(snapshot){
   const routeNamed=visibleNamedRouteMatches(snapshot);
   if(routeProject&&routeNamed.length){
     const names=[...new Set(routeNamed.map(item=>item.labelDigest))];
-    return {channel:'route_plus_matching_named_link',projectDigest:routeProject,nameDigests:names};
+    return {channel:'route_plus_matching_project_home_link',strong:true,projectDigest:routeProject,nameDigests:names};
+  }
+  const attrs=matchingHeaderAttributes(snapshot);
+  if(routeProject&&attrs.length){
+    const names=[...new Set(attrs.map(item=>item.projectNameDigest))];
+    return {channel:'route_plus_matching_header_attribute',strong:true,projectDigest:routeProject,nameDigests:names};
   }
   const nested=visibleNested(snapshot);
   if(nested.length){
     const projects=[...new Set(nested.map(item=>item.projectDigest))];
     const names=[...new Set(nested.map(item=>item.labelDigest))];
-    if(projects.length===1&&names.length===1)return {channel:'current_chat_nested_project_link',projectDigest:projects[0],nameDigests:names};
+    if(projects.length===1&&names.length===1)return {channel:'sidebar_proximity_only',strong:false,projectDigest:projects[0],nameDigests:names};
   }
-  return {channel:'none',projectDigest:null,nameDigests:[]};
+  return {channel:'none',strong:false,projectDigest:null,nameDigests:[]};
 }
 
-const sameEvidence=(a,b)=>a.channel!=='none'&&a.channel===b.channel&&
+const sameEvidence=(a,b)=>a.strong===true&&b.strong===true&&a.channel===b.channel&&
   a.projectDigest===b.projectDigest&&a.nameDigests.length===1&&b.nameDigests.length===1&&
   a.nameDigests[0]===b.nameDigests[0];
 
@@ -59,9 +68,9 @@ export function summarizeDiscovery({runtime,captures}={}){
     reloadObserved:!!reload,
     ordinaryObserved:!!ordinary,
     returnObserved:!!returned,
-    projectIdentityCandidate:p.projectDigest!==null,
-    projectNameCandidate:p.nameDigests.length===1,
-    membershipCandidate:p.channel!=='none',
+    projectIdentityCandidate:p.strong===true&&p.projectDigest!==null,
+    projectNameCandidate:p.strong===true&&p.nameDigests.length===1,
+    membershipCandidate:p.strong===true,
     stableAcrossReload:sameEvidence(p,r),
     ordinaryNegative:ordinary?.route?.kind==='plain_chat'&&o.channel==='none'&&ordinary?.route?.projectDigest==null,
     stableAfterAwayBack:sameEvidence(p,back),
@@ -77,7 +86,7 @@ export function summarizeDiscovery({runtime,captures}={}){
       channel:p.channel,
       projectIdentity:p.projectDigest?'run-local-project-digest':null,
       projectName:p.nameDigests.length===1?'run-local-name-digest':null,
-      membership:p.channel!=='none'?'current-conversation-bound':null
+      membership:p.strong===true?'current-conversation-bound':null
     },
     snapshots:{
       project:snapshotSummary(project),
