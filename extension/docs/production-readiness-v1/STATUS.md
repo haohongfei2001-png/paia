@@ -16,7 +16,7 @@ current_round: `PRD-02`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `CLAIMED — manager/prd02-live-fail-diagnostics-20260922`
+writer_status: `RELEASED — exact-main diagnostic verifier certified; awaiting second local passive result`
 
 acceptanceComplete: `false`
 
@@ -31,7 +31,7 @@ productionCertified: `false`
 | PRD-00 | COMPLETE | Audit current product, freeze production definitions, scope and verification plan |
 | PRD-01 | COMPLETE | Exact-main baseline and certification-debt reconciliation |
 | PRD-02 | IN_PROGRESS | Current logged-in ChatGPT capture canary |
-| PRD-03 | PLANNED | Daily-profile update/restart/recovery canary |
+| PRD-03 | BLOCKED | Daily-profile update/restart/recovery canary — requires PRD-02 COMPLETE and PAIA-CHATGPT-PROJECT-RECOGNITION-v1 COMPLETE |
 | PRD-04 | PLANNED | Backup/restore and scale durability |
 | PRD-05 | PLANNED | Daily core-loop product canary |
 | PRD-06 | PLANNED | Release / Private Beta production certification |
@@ -229,3 +229,46 @@ The result is retained as a real PRD-02 FAIL. It is not reclassified as PASS.
 The next bounded action is diagnostic-only: repair the verifier runtime-parity
 script and expose only sanitized structural rejection flags for the unaccepted
 user role. No PRD-03 work is authorized.
+
+
+## PRD-02 diagnostic verifier publication
+
+diagnostic_verifier_main:
+`894ba0cd0c3a4c809a2ff5145d79e68621f03d10`
+
+candidate_certification:
+`PAIA Certification #458 / run 35674821804 / attempt 2 / SUCCESS`
+
+exact_main_certification:
+`PAIA Certification #459 / run 35684745685 / attempt 1 / SUCCESS`
+
+engineering_state:
+`PASS — runtime-parity writer fix and sanitized rejected-role diagnostics published`
+
+remaining_dependency:
+`one second local PAIA_PRD02_PASSIVE result after ordinary ChatGPT use`
+
+The first live FAIL remains evidence and is not overwritten. PRD-02 stays
+`IN_PROGRESS` until the second local result is classified.
+
+## Post-PRD-02 interlock
+
+The product owner explicitly requires real ChatGPT Project recognition before
+daily-profile production-readiness work continues.
+
+After PRD-02 completes, the next development package is:
+
+`PAIA-CHATGPT-PROJECT-RECOGNITION-v1`
+
+It must make current-conversation `projectIdentity`, `projectName` and
+Conversation→Project `membership` genuinely verified from privacy-safe live
+evidence. Fallback-only `unknown/unavailable` is not an acceptable package
+completion state for those three capabilities.
+
+PRD-03 is BLOCKED until both conditions are true:
+
+1. PRD-02 = COMPLETE;
+2. PAIA-CHATGPT-PROJECT-RECOGNITION-v1 = COMPLETE.
+
+This interlock does not authorize Project Recognition implementation inside
+PRD-02 and does not start PRD-03.
