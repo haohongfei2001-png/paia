@@ -6,7 +6,7 @@ Passive amendment: `PRD02-20260921-passive01`
 
 Execution start main: `f42e1a7fa5c0944290bd47868da8d0b2512287ad`
 
-Current round: **IN_PROGRESS — ENGINEERING PUBLISHED; LOCAL PASSIVE EVIDENCE PENDING**
+Current round: **COMPLETE — LIVE CURRENT-RELEASE CAPTURE PASS**
 
 ## Scope
 
@@ -293,13 +293,77 @@ The next and only bounded action is therefore:
 
 No runtime update, Chrome restart, Backup restore or data mutation is required.
 
-## Pending closure
+## Final passive live result — PASS
 
-PRD-02 now requires only:
+After the owner-approved runtime alignment and one ordinary ChatGPT page reload
+to reinject the current content scripts, the passive verifier returned
+`pass=true` with no reasons.
 
-1. publish the passive verifier through required candidate/exact-main CI;
-2. run the current diagnostic passive verifier after ordinary ChatGPT use against the existing loaded PAIA;
-3. preserve and classify the second sanitized `PAIA_PRD02_PASSIVE` result;
-4. if PASS, close V05-V09 and mark PRD-02 COMPLETE;
-5. stop. Do not start PRD-03 or a Project-recognition package in the same
-   execution.
+Sanitized final evidence:
+
+- runtimeParity = true;
+- scanComplete = true;
+- recentCapture = true;
+- recentConversationObservation = true;
+- observationBoundedToCapture = true;
+- adapterVersion = true;
+- captureStatus = true;
+- structureAvailable = true;
+- visibleUserRolesPresent = true;
+- allVisibleUserRolesAccepted = true;
+- ingestionMatchesVisibleCandidates = true;
+- ingestionSettled = true;
+- duplicateObservationSeen = true;
+- archiveIdentityCoverage = true;
+- sourceTimeHonest = true;
+- visible user roles = 2;
+- accepted user candidates = 2;
+- attempted = 2;
+- added = 0;
+- duplicates = 2;
+- unresolved = 0;
+- distinct Sources = 13;
+- distinct messages = 13;
+- structural rejections = none;
+- sourceHead =
+  `f1d32984c3d4d852d0df1d86b243170309dab4bd`;
+- manifestVersion = `0.12.0`;
+- releaseDigest =
+  `71270fdee2d940d7a5276311c3a699b3492f128fe8f0e0394b6fec6209f9763c`.
+
+The diagnostic object still contains a historical
+`lastErrorCode=CAPTURE_FAILED`, but the current status is `CAPTURING` and all
+current structural/ingestion checks pass. The historical error field is not
+treated as current failure.
+
+### PRD-02 verdict
+
+V05 current live ChatGPT: PASS.
+
+V06 bounded live reconciliation: PASS.
+
+V07 forbidden-content exclusion: PASS under the current user-role/editor safety
+contract and current Adapter/privacy certification.
+
+V08 Source identity / duplicate safety: PASS.
+
+V09 timestamp honesty: PASS; unknown source time remains unknown rather than
+borrowing capture time.
+
+The earlier FAILs remain in this receipt as historical evidence.
+
+Project Recognition remains a separate known gap:
+`projectIdentity/projectName/membership` are still unverified/unknown. PRD-02
+does not claim otherwise.
+
+PRD-02 is **COMPLETE / PASS**.
+
+## Closure
+
+PRD-02 is COMPLETE / PASS.
+
+The writer is released. This execution stops here.
+
+Do not start PRD-03. The next package is
+`PAIA-CHATGPT-PROJECT-RECOGNITION-v1`, whose CPR-00 round becomes READY only
+through its own canonical STATUS and requires a separate continuation execution.
