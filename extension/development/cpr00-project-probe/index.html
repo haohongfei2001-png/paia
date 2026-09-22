@@ -1,0 +1,15 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PAIA CPR-00 Project Discovery</title><link rel="stylesheet" href="probe.css"></head><body><main>
+<p class="eyebrow">PAIA · ChatGPT Project Recognition · CPR-00</p>
+<h1>Project 证据发现</h1>
+<p class="lead">只读取当前 ChatGPT 页面上的 Project 候选结构，并在页面内立即哈希。不会读取消息正文、assistant 回复、草稿、cookie、凭据，也不会修改 Project 或 PAIA 数据。</p>
+<section class="card"><strong id="runtime">检查 runtime…</strong><p id="status">按顺序完成下面四次采集。每次先在 ChatGPT 正常打开目标对话，再回来点击采集。</p></section>
+<ol>
+<li><strong>项目内对话</strong>：打开任意一个确实属于 ChatGPT Project 的聊天。<button id="capture-project">采集 Project 对话</button> <span id="state-project"></span></li>
+<li><strong>同一页面刷新</strong>：在刚才 Project 对话里 ⌘R，等几秒。<button id="capture-projectReload">采集刷新后</button> <span id="state-projectReload"></span></li>
+<li><strong>普通对话</strong>：打开一个不属于任何 Project 的普通 ChatGPT 对话。<button id="capture-ordinary">采集普通对话</button> <span id="state-ordinary"></span></li>
+<li><strong>返回 Project</strong>：回到第一步那个 Project 对话。<button id="capture-projectReturn">采集返回后</button> <span id="state-projectReturn"></span></li>
+</ol>
+<div class="actions"><button id="finish" disabled>生成脱敏结果</button><button id="copy-result" disabled>复制结果</button></div>
+<section class="card"><strong id="verdict">尚未生成结果。</strong><pre id="result"></pre></section>
+<p class="footnote">只把以 <code>PAIA_CPR00_PROJECT_DISCOVERY</code> 开头的一整行发回 ChatGPT。结果只包含固定枚举、计数和本次运行内的不可逆摘要。</p>
+</main><script src="runtime-check.js"></script><script type="module" src="gate.js"></script></body></html>

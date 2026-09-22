@@ -34,4 +34,8 @@ if(!ans.length)throw Error('ANS_BROWSER_SET_EMPTY');
 for(const name of ans){
  if(group(name)!=='browser E2E')throw Error(`ANS_BROWSER_NOT_CURRENT:${name}`);
 }
-console.log(`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=${formerCore.length} uir=${uir.length} ans=${ans.length}`);
+const cpr=[...names].filter(name=>/^cpr-\d+-.*-chrome-e2e\.test\.mjs$/.test(name)).sort();
+for(const name of cpr){
+ if(group(name)!=='browser E2E')throw Error(`CPR_BROWSER_NOT_CURRENT:${name}`);
+}
+console.log(`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=${formerCore.length} uir=${uir.length} ans=${ans.length} cpr=${cpr.length}`);
