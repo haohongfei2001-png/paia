@@ -6,7 +6,7 @@ Start main: `20708e87df9d0036990aeda8eb80807fb70fc5dd`
 
 Writer: `manager/cpr00-live-discovery-20260922`
 
-Status: **IN_PROGRESS — ENGINEERING PUBLISHED; LIVE EVIDENCE PENDING**
+Status: **COMPLETE / PASS — LIVE PROVIDER CONTRACT FROZEN**
 
 ## Purpose
 
@@ -226,15 +226,50 @@ The remaining live step is one fresh helper run from the latest repository. The
 existing loaded PAIA runtime may be reused because the correction is confined to
 the development helper copied by `CPR-00 Project Discovery.command`.
 
-## Pending closure
+## Final live discovery result — PASS
 
-CPR-00 still requires:
+The final same-tab live run returned:
 
-1. pull the latest repository helper files;
-2. run `CPR-00 Project Discovery.command` without another production Update/Reload;
-3. complete the four observations in the single locked ChatGPT tab;
-4. preserve one result with `reloadNewDocument=true`;
-5. freeze the provider contract if all checks pass;
-6. publish final receipt/status and stop.
+`contractCandidateReady=true`
 
-No CPR-01 implementation is authorized in this execution.
+with no reasons and every mandatory check true.
+
+The verified live channel is:
+
+`route_plus_matching_project_home_link`
+
+The run proved:
+
+- route-bound Project identity;
+- same-Project visible Project-home name evidence;
+- current Conversation→Project membership;
+- stability across a true fresh document reload;
+- ordinary-chat negative behavior;
+- stability after same-tab away/back navigation;
+- privacy-safe sanitized evidence only.
+
+This final PASS preserves both earlier FAIL observations as diagnostic history.
+They are not rewritten or deleted.
+
+The provider contract is frozen in:
+
+`docs/chatgpt-project-recognition-v1/CPR-00_FROZEN_PROVIDER_CONTRACT.md`
+
+CPR-00 does not modify production capability flags. Their promotion belongs to
+CPR-01 after implementation and trusted admission.
+
+### CPR-00 verdict
+
+`COMPLETE / PASS`
+
+CPR-01 becomes READY but is not started in this execution.
+
+## Closure
+
+CPR-00 is COMPLETE / PASS.
+
+The verified provider evidence contract and certification sanitizer are frozen.
+The writer is released.
+
+CPR-01 is READY but NOT_STARTED. Do not implement CPR-01 or start PRD-03 in this
+closure execution.
