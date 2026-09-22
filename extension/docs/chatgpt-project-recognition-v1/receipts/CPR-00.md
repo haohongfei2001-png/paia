@@ -139,6 +139,43 @@ The current production capability declarations remain unchanged:
 CI validates the probe/parser/privacy boundaries only. It does not substitute
 for the required real ChatGPT evidence.
 
+## First live discovery result — strong candidate, reload proof missing
+
+The first real normal-use Project discovery result was complete but returned
+`contractCandidateReady=false` for exactly one reason:
+`reloadNewDocument`.
+
+All substantive Project evidence checks passed:
+
+- current Project identity candidate: PASS;
+- Project display-name candidate: PASS;
+- current Conversation→Project membership candidate: PASS;
+- same strong evidence across the submitted second observation: PASS;
+- ordinary non-Project conversation negative: PASS;
+- same strong evidence after navigating away/back: PASS;
+- privacy boundary: PASS;
+- runtime parity: PASS.
+
+The observed strong channel was:
+
+`route_plus_matching_project_home_link`
+
+Within the run, the route-bound Project digest matched a visible Project-home
+link, and that same link supplied one stable Project-name digest. The ordinary
+chat emitted no Project channel.
+
+The result cannot yet certify reload stability because the Project, claimed
+reload, and return snapshots all reported the same run-local
+`pageInstanceDigest`. A true document reload must create a new content-script
+instance and therefore a new page-instance digest.
+
+This is retained as real live evidence, not relabeled PASS.
+
+No code or contract change is required from this result. The next bounded action
+is to keep the same helper run alive, perform an unmistakable browser reload on
+the Project conversation tab itself, and recapture only the "刷新后" observation.
+If that helper run is no longer open, redo the four-step sequence once.
+
 ## Pending closure
 
 CPR-00 still requires:
@@ -146,10 +183,9 @@ CPR-00 still requires:
 1. synchronize the existing daily PAIA installation to certified
    `main@8f72cc87c66ed382e6ab131834e1f2a152270672` and reload the same extension;
 2. run the development helper `CPR-00 Project Discovery.command`;
-3. preserve one sanitized `PAIA_CPR00_PROJECT_DISCOVERY` result;
-4. classify the observed evidence;
-5. freeze an exact provider contract if and only if all three required
-   capabilities are supported;
+3. obtain one proven fresh-document Project observation in the same run (or redo the four-step run once if the helper was closed);
+4. preserve the updated sanitized `PAIA_CPR00_PROJECT_DISCOVERY` result;
+5. freeze the provider contract if the fresh-reload check passes;
 6. publish final receipt/status and stop.
 
 No CPR-01 implementation is authorized in this execution.
