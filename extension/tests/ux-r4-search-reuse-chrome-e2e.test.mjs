@@ -30,7 +30,17 @@ test('UX-R4 F-LARGE search and direct long Input reuse stay bounded; Grant once/
  clean(h);
  }finally{await h.close();}});
 
-test('UX-R4 real worker Grant once, revocation and manual identity fences remain independent',{timeout:120000},async()=>{const {h,p}=await start(['UXR4_GRANT_MATCH 合成受控文字']);try{
+test('UX-R4 real worker Grant once, revocation and manual identity fences remain independent',{timeout:120000},async()=>{const {h,p,chat}=await start(['UXR4_GRANT_MATCH 合成受控文字']);try{
+ await until(async()=>p.evaluate(async()=>{
+  const {OrganizerStore}=await import('../core/organizer/store.js');
+  const {SourceStructureStore}=await import('../core/source-structure-store.js');
+  const row=await new SourceStructureStore(new OrganizerStore(chrome.storage.local)).conversation({platform:'chatgpt',sourceConversationId:'uxr4-synthetic'});
+  return row?.membership.state==='unassigned';
+ }),'grant fixture source observation settles');
+ // The grant concurrency test starts from a settled archive, without a live
+ // producer invalidating its preview between build and the two share calls.
+ await chat.close();
+
  // Bound legacy grants retain their full trusted path. Make its approved direct-Input
  // candidate range small by choosing a unique lexical query, without reading UI snippets.
  await until(async()=>{const filter=await rpc(p,'FILTER_STATUS');return filter.pending===0&&filter.taskState==='idle';},'grant fixture capture/filter quiescence');await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{includeUnorganizedInputs:true,externalAccess:true}});const built=await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'UXR4_GRANT_MATCH',budget:'short'}});assert.ok(built.items.length>0);const grant=await rpc(p,'PAIA_PASSPORT_CREATE',{grant:{consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'}});await rpc(p,'PAIA_CONTEXT_BIND',{previewId:built.previewId,grantId:grant.grantId});const results=await p.evaluate(async opts=>Promise.all([1,2].map(()=>chrome.runtime.sendMessage({type:'PAIA_MEMORY_SHARE',options:opts}))),{previewId:built.previewId,grantId:grant.grantId,format:'copy'});assert.equal(results.filter(r=>r.ok).length,1,JSON.stringify(results));assert.equal((await rpc(p,'PAIA_PASSPORT_STATUS')).grants.find(g=>g.grantId===grant.grantId).useCount,1);const denied=await p.evaluate(id=>chrome.runtime.sendMessage({type:'PAIA_CONTEXT_MANUAL',options:{action:'read',selectionId:id,generation:0}}),built.previewId);assert.equal(denied.error,'MEMORY_EXPIRED');clean(h);

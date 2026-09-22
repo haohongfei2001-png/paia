@@ -12,6 +12,7 @@ test('ANS-08 Chrome windowing preserves dirty, IME, selection and bounded save/u
  const h=await FakeChatGPT.start({headless:false}),page=h.archive;
  try{
   await page.setViewportSize({width:1280,height:720});await page.locator('#consent-check').check();await page.locator('#enable-consent').click();
+  await eventually(async()=>{const status=await rpc(page,'GET_STATUS');return status.consented===true&&status.enabled===true;},'ANS-08 consent is durable before synthetic capture');
   const seed=await page.evaluate(async()=>{
    const [{OrganizerStore},{refreshEntryIndex}]=await Promise.all([import('../core/organizer/store.js'),import('../core/thought-model.js')]),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),rank=n=>String(n*1024).padStart(12,'0'),pad=n=>String(n).padStart(4,'0');
    const epoch=(await s.status()).epoch;await s.capture({epoch,adapterVersion:'0.3.0',chat:{id:'ans08-edit-source',url:'https://chatgpt.com/c/ans08-edit-source',title:'ANS08 synthetic source'},messages:[{sourceMessageId:'ans08-source-message',pageOrder:1,originalText:'ANS08 immutable source text'}]});

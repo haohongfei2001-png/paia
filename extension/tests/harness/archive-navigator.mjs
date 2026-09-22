@@ -27,7 +27,19 @@ export async function waitArchiveWindow(page,{text=null,label='Archive window is
 }
 
 export async function openArchiveWindow(page,options={}){
-  const window=await waitArchiveWindow(page,options);
-  await window.click();
-  return window;
+  const deadline=Date.now()+(options.timeout??30000);
+  for(;;){
+    const remaining=deadline-Date.now();
+    if(remaining<=0)throw new Error(options.label||'Archive window is reachable');
+    const window=await waitArchiveWindow(page,{...options,timeout:remaining});
+    try{
+      await window.click({timeout:Math.min(1000,Math.max(1,deadline-Date.now()))});
+      return window;
+    }catch(error){
+      // A late membership observation can move an unselected Window into a
+      // collapsed group between discovery and click. Re-open that group using
+      // normal controls; visible but unclickable targets must still fail.
+      if(error.name!=='TimeoutError'||await visible(window)||Date.now()>=deadline)throw error;
+    }
+  }
 }
