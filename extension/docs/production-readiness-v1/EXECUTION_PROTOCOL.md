@@ -95,6 +95,17 @@ Stop and require a separate owner decision if closure would require:
 An ordinary bug fix, test repair or internal performance optimization inside the
 existing contract does not need product re-approval.
 
+## Post-PRD-02 interlock
+
+PRD-03 is not the automatic next round after PRD-02.
+
+After PRD-02 is canonically COMPLETE, execution must switch to
+`PAIA-CHATGPT-PROJECT-RECOGNITION-v1`. PRD-03 remains blocked until that
+package is COMPLETE.
+
+Do not implement CPR work inside a PRD round, and do not treat the existence of
+ANS fallback infrastructure as verified ChatGPT Project recognition.
+
 ## Package completion
 
 PRD-06 may mark the package COMPLETE only when VERIFICATION's production gates
