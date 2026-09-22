@@ -67,6 +67,29 @@ export const CHATGPT_SOURCE_STRUCTURE_POLICY=createSourceStructurePolicy({
  },
  rules:{conversationIdentity:{subject:'conversation',fields:[]}}
 });
+export const CHATGPT_PROJECT_STRUCTURE_POLICY=createSourceStructurePolicy({
+ providerKey:'chatgpt',
+ contractId:'chatgpt.current-project-membership',
+ contractVersion:1,
+ channel:'route_plus_matching_project_home_link',
+ scope:'current_conversation',
+ originClass:'current_route_project_home_link',
+ namespace:'chatgpt-project',
+ capabilities:{
+  conversationIdentity:'verified',projectIdentity:'verified',projectName:'verified',
+  membership:'verified',projectOrder:'unverified',windowOrder:'unverified',
+  rename:'unverified',move:'unverified',conversationDeletion:'unverified',projectDeletion:'unverified'
+ },
+ rules:{
+  membership:{subject:'conversation',fields:['membership','projectName']},
+  projectName:{subject:'project',fields:['currentName']}
+ }
+});
+export function chatGPTSourceStructurePolicy(value){
+ if(value?.contractId===CHATGPT_SOURCE_STRUCTURE_POLICY.contractId)return CHATGPT_SOURCE_STRUCTURE_POLICY;
+ if(value?.contractId===CHATGPT_PROJECT_STRUCTURE_POLICY.contractId)return CHATGPT_PROJECT_STRUCTURE_POLICY;
+ fail('UNAVAILABLE');
+}
 function validateEnvelope(value,policy){
  byteLength(value);
  exact(value,['schemaVersion','contractId','contractVersion','providerKey','capability',
