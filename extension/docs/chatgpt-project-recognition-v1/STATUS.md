@@ -8,9 +8,9 @@ canonical_branch: `main`
 
 current_round: `CPR-01`
 
-current_round_status: `READY`
+current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED`
+writer_status: `CLAIMED — manager/cpr01-trusted-project-observer-20260922`
 
 blocking_dependency: `NONE — PRD-02 COMPLETE`
 
@@ -247,3 +247,29 @@ CPR-01 is READY but **NOT_STARTED**.
 Production capability flags remain `unverified` until CPR-01 implements this
 frozen provider contract through the trusted source-structure admission path.
 PRD-03 remains blocked.
+
+
+## CPR-01 execution claim
+
+execution_id: `CPR01-20260922-impl01`
+
+execution_start_main: `e9f47e46807f5ea1ff668543895dc393acfbb27d`
+
+writer_branch: `manager/cpr01-trusted-project-observer-20260922`
+
+scope:
+
+- implement only the frozen CPR-00 `route_plus_matching_project_home_link`
+  provider contract;
+- emit body-free Project identity/name/current-membership DTOs from the
+  ChatGPT source-structure provider;
+- preserve consent/epoch/current-route/session/exclusion gates;
+- validate/admit through the existing source-structure trusted boundary/store;
+- promote only `projectIdentity`, `projectName`, and `membership` capability
+  flags if the exact frozen contract is implemented and tested;
+- no sidebar-proximity fallback, generic header fallback, route-slug name
+  inference, account-wide enumeration, CPR-02 lifecycle/Navigator work, or
+  PRD-03 work.
+
+CPR-01 must stop after candidate CI, merge, exact-main CI, receipt/status
+publication and remote readback.
