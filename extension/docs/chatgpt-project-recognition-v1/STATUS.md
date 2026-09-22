@@ -10,7 +10,7 @@ current_round: `CPR-00`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `CLAIMED — manager/cpr00-live-discovery-20260922`
+writer_status: `RELEASED — engineering published; awaiting one sanitized live Project discovery result`
 
 blocking_dependency: `NONE — PRD-02 COMPLETE`
 
@@ -76,3 +76,38 @@ scope:
 CPR-00 may finish PASS only if real current-site evidence can establish
 projectIdentity, projectName and current membership with explicit negative
 cases. Otherwise it must finish FAIL/BLOCKED honestly.
+
+
+## CPR-00 engineering publication
+
+pr: `#44`
+
+candidate_head:
+`eda0857d454c7f18fb129be839f483e2742ba09b`
+
+candidate_certification:
+`PAIA Certification #493 / run 35701966427 / attempt 1 / SUCCESS`
+
+merged_runtime_main:
+`8f72cc87c66ed382e6ab131834e1f2a152270672`
+
+exact_main_certification:
+`PAIA Certification #494 / run 35706677451 / attempt 1 / SUCCESS`
+
+engineering_state:
+`PASS — privacy-safe CPR-00 discovery probe published and exact-main certified`
+
+All required current jobs passed, including Current Browser, Full Suite,
+Unit 1-4, Adapter/privacy, current release guards, macOS Secure Store and the
+final Certification gate.
+
+The frozen ChatGPT capture adapter remains byte-identical to its authorized
+Capture Foundation baseline. CPR-00 discovery lives in the source-structure
+bridge and development-only helper path. No manifest permission, Source/message
+identity, production capability flag or durable Project fact was changed.
+
+remaining_dependency:
+`one sanitized real-site PAIA_CPR00_PROJECT_DISCOVERY result from normal use`
+
+CPR-00 remains `IN_PROGRESS`. CPR-01 remains `PLANNED` and must not start
+until the live evidence is classified and CPR-00 is canonically closed.
