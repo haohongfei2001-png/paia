@@ -16,7 +16,7 @@ current_round: `PRD-02`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED — capture PASS; blocked on owner-approved daily-runtime alignment`
+writer_status: `RELEASED — runtime alignment OWNER_AUTHORIZED; local execution pending`
 
 acceptanceComplete: `false`
 
@@ -339,3 +339,36 @@ identity, clear data, or begin Project Recognition implementation.
 Because this mutates the owner's daily runtime, execution of the bridge requires
 explicit owner approval. Until then PRD-02 remains IN_PROGRESS and Project
 Recognition remains BLOCKED_BY_PRD02.
+
+
+## PRD-02 runtime alignment authorization
+
+owner_authorized: `true`
+
+authorization_time: `2026-09-22`
+
+authorized_scope:
+
+- use the existing documented `development/Update PAIA.command`;
+- deploy the already-certified current release into the exact existing
+  Chrome-loaded runtime path;
+- preserve extension identity and Chrome-managed archive;
+- allow the updater's automatic code backup;
+- reload the existing PAIA extension once;
+- rerun the passive PRD-02 verifier.
+
+Still forbidden in this bridge:
+
+- Chrome restart;
+- Backup restore;
+- extension removal/reinstall or identity change;
+- clearing archive/IndexedDB;
+- PRD-03 work;
+- Project Recognition implementation.
+
+Execution environment note:
+
+The connected owner Mac is online, but the currently connected remote-desktop
+control service reports zero remaining remote calls for the current usage
+period. Therefore local execution cannot be performed remotely in this session;
+owner authorization remains valid and does not need to be requested again.
