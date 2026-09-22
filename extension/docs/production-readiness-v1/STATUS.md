@@ -16,7 +16,7 @@ current_round: `PRD-02`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED — awaiting local passive evidence`
+writer_status: `CLAIMED — manager/prd02-live-fail-diagnostics-20260922`
 
 acceptanceComplete: `false`
 
@@ -203,3 +203,29 @@ remaining_dependency:
 writer released while waiting for that local evidence. PRD-02 remains
 `IN_PROGRESS`; PRD-03 remains `PLANNED` and must not start.
 
+
+
+## PRD-02 first passive live result
+
+result_time: `2026-09-22`
+
+result_format: `paia-prd02-passive-normal-use-v2`
+
+verdict: `FAIL / DIAGNOSTIC FOLLOW-UP REQUIRED`
+
+sanitized findings:
+
+- runtime parity evidence unavailable: sourceHead/manifestVersion/releaseDigest were
+  null, so the verifier did not actually prove a runtime mismatch;
+- live adapter status: `ADAPTER_MISMATCH`;
+- visible user roles: 3;
+- accepted user candidates: 2;
+- ingestion attempted: 2, duplicates: 2, unresolved: 0;
+- archive identity coverage: PASS (18 distinct Sources / 18 distinct messages);
+- source-time honesty: PASS;
+- Project recognition remains unverified/unknown.
+
+The result is retained as a real PRD-02 FAIL. It is not reclassified as PASS.
+The next bounded action is diagnostic-only: repair the verifier runtime-parity
+script and expose only sanitized structural rejection flags for the unaccepted
+user role. No PRD-03 work is authorized.

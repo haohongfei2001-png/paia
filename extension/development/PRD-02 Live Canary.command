@@ -123,7 +123,15 @@ PY
 GATE_DIR="$RUNTIME/__paia_prd02_live_canary"
 mkdir -p "$GATE_DIR"
 rsync -a --delete "$SOURCE_DIR/" "$GATE_DIR/"
-printf 'globalThis.PAIA_PRD02_RUNTIME_CHECK=%s;\\n' "$(cat "$CHECK_JSON")" > "$GATE_DIR/runtime-check.js"
+python3 - "$CHECK_JSON" "$GATE_DIR/runtime-check.js" <<'PY'
+from pathlib import Path
+import json, sys
+data=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+Path(sys.argv[2]).write_text(
+    'globalThis.PAIA_PRD02_RUNTIME_CHECK=' + json.dumps(data,separators=(',',':')) + ';\n',
+    encoding='utf-8'
+)
+PY
 
 URL="chrome-extension://$EXTENSION_ID/__paia_prd02_live_canary/index.html"
 open -a "Google Chrome" "$URL" >/dev/null 2>&1 || fail "Google Chrome could not open the PRD-02 verifier."

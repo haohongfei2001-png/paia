@@ -120,6 +120,58 @@ Backup or AI behavior changed in the passive-verifier amendment.
 Therefore the remaining PRD-02 dependency is not CI or implementation. It is one
 local read-only `PAIA_PRD02_PASSIVE` result from ordinary ChatGPT use.
 
+## First passive live result — retained FAIL
+
+The first real passive result from ordinary ChatGPT use returned
+`paia-prd02-passive-normal-use-v2` with `pass=false`.
+
+Sanitized evidence:
+
+- scanComplete = true;
+- recentCapture = true;
+- recentConversationObservation = true;
+- observationBoundedToCapture = true;
+- adapterVersion = true;
+- visible user roles = 3;
+- accepted user candidates = 2;
+- ingestion attempted = 2;
+- added = 0;
+- duplicates = 2;
+- unresolved = 0;
+- knownTimes = 0;
+- unknownTimes = 2;
+- archive active rows = 18;
+- distinct Sources = 18;
+- distinct messages = 18;
+- source-time honesty = PASS;
+- adapter status = `ADAPTER_MISMATCH`;
+- captureHealth = `NO_ACCEPTED_METADATA`;
+- Project recognition remains unverified/unknown.
+
+The result also reported `runtimeParity=false`, but its runtime metadata
+(`sourceHead`, `manifestVersion`, `releaseDigest`) were all null. That means
+the helper runtime-parity script did not load, so this first result does **not**
+prove the loaded extension differs from the certified release.
+
+Investigation found the launcher wrote the helper script using a shell
+`printf` escape that can leave an invalid literal backslash-newline token in
+JavaScript. The diagnostic follow-up replaces that writer with Python JSON
+serialization.
+
+The `ADAPTER_MISMATCH` remains a real live finding. Current diagnostics prove
+that one of three visible user-role nodes was rejected, but the v2 shareable
+report did not expose enough body-free structure to distinguish a missing
+message identity from a zero/multiple-text-leaf or editor-scope case.
+
+The next verifier revision therefore adds only the existing sanitized structural
+booleans/counts for rejected roles. It still emits no body, title, URL or
+persistent identifier and does not weaken the adapter's fail-closed capture
+contract.
+
+This FAIL is historical evidence. A later PASS does not erase it; it must show
+why the rejected live role was safe to ignore or how the adapter contract was
+corrected.
+
 ## Pending closure
 
 PRD-02 now requires only:
