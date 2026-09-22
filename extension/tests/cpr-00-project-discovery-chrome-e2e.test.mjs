@@ -166,7 +166,8 @@ test('CPR-00 helper locks reload, ordinary and return observations to the first 
  assert.match(gateSource,/RELOAD_NOT_FRESH_DOCUMENT/);
  assert.match(gateSource,/ORDINARY_MUST_USE_LOCKED_TAB/);
  assert.match(gateSource,/RETURN_WRONG_CONVERSATION/);
- assert.doesNotMatch(gateSource,/tabId\s*:/);
+ assert.match(gateSource,/captures\[label\]=snapshot/);
+ assert.doesNotMatch(gateSource,/captures\[label\]\s*=\s*\{[^}]*tabId/);
 });
 
 test('CPR-00 helper is development-only, read-only and the content bridge restricts the probe caller',()=>{
