@@ -39,6 +39,8 @@ function snapshotSummary(snapshot){
   return {
     routeKind:snapshot?.route?.kind||null,
     routeProjectDigest:snapshot?.route?.projectDigest||null,
+    conversationDigest:snapshot?.route?.conversationDigest||null,
+    pageInstanceDigest:snapshot?.pageInstanceDigest||null,
     channel:ev.channel,
     projectDigest:ev.projectDigest,
     nameDigests:ev.nameDigests,
@@ -72,8 +74,11 @@ export function summarizeDiscovery({runtime,captures}={}){
     projectNameCandidate:p.strong===true&&p.nameDigests.length===1,
     membershipCandidate:p.strong===true,
     stableAcrossReload:sameEvidence(p,r),
+    reloadSameConversation:typeof project?.route?.conversationDigest==='string'&&project.route.conversationDigest===reload?.route?.conversationDigest,
+    reloadNewDocument:typeof project?.pageInstanceDigest==='string'&&typeof reload?.pageInstanceDigest==='string'&&project.pageInstanceDigest!==reload.pageInstanceDigest,
     ordinaryNegative:ordinary?.route?.kind==='plain_chat'&&o.channel==='none'&&ordinary?.route?.projectDigest==null,
     stableAfterAwayBack:sameEvidence(p,back),
+    returnSameConversation:typeof project?.route?.conversationDigest==='string'&&project.route.conversationDigest===returned?.route?.conversationDigest,
     noRawPrivateEmission:[project,reload,ordinary,returned].filter(Boolean).every(s=>s?.privacy?.rawProjectIdsEmitted===false&&s?.privacy?.rawProjectNamesEmitted===false&&s?.privacy?.messageBodiesRead===false&&s?.privacy?.assistantBodiesRead===false&&s?.privacy?.draftsRead===false)
   };
   const reasons=Object.entries(checks).filter(([,v])=>!v).map(([k])=>k);
