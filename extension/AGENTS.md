@@ -20,6 +20,24 @@ content layer. Real-site/daily-profile evidence must keep private content local;
 only sanitized counts/hashes/states may enter Git.
 
 
+## Planned interlock — ChatGPT Project Recognition v1
+
+`PAIA-CHATGPT-PROJECT-RECOGNITION-v1` is the mandatory next package after
+PRD-02 and before PRD-03. Its canonical docs are under
+`docs/chatgpt-project-recognition-v1/`.
+
+While PRD-02 is not COMPLETE, this package remains `BLOCKED_BY_PRD02` and no
+CPR implementation round may start.
+
+After PRD-02 closes, read that package's README, STATUS, DEVELOPMENT_PLAN,
+VERIFICATION and EXECUTION_PROTOCOL. Its completion standard is stricter than
+the historical ANS fallback contract: current ChatGPT `projectIdentity`,
+`projectName` and Conversation→Project `membership` must all be genuinely
+verified from privacy-safe live evidence. Unknown/unavailable fallback is not a
+package-complete outcome.
+
+PRD-03 must not start until the Project Recognition package is COMPLETE.
+
 ## Archive Navigation & Source Structure v1 execution routing
 
 The explicitly authorized ANS package takes precedence over the completed UIS
