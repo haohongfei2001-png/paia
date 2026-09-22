@@ -24,10 +24,10 @@ chrome.tabs?.onRemoved?.addListener(id => responseDiagnostics.removeTab(id));
 import { OrganizerStore as IndexedArchiveStore } from '../core/organizer/store.js';
 import {SafetyRunner} from '../core/thought-runner.js';
 import { ADAPTER_VERSION, ArchiveError, safeErrorCode } from '../core/constants.js';
-import { canonicalChat } from '../core/validation.js';
+import { canonicalChat, canonicalProjectChat } from '../core/validation.js';
 import {SourceStructureStore} from '../core/source-structure-store.js';
 import {subjectRef,sourceStructureSnapshot} from '../core/source-structure-model.js';
-import {admitSourceStructureDTO,CHATGPT_SOURCE_STRUCTURE_POLICY} from '../core/source-structure-admission.js';
+import {admitSourceStructureDTO,chatGPTSourceStructurePolicy,CHATGPT_PROJECT_STRUCTURE_POLICY} from '../core/source-structure-admission.js';
 import {ArchiveOrderPreferenceService,SourceOrderRegistry,unavailableSourceOrderProvider} from '../core/source-ordering.js';
 import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from '../core/organizer/deepseek.js';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
@@ -110,19 +110,39 @@ async function handle(request, sender) {
     return store.diagnose({ code: request.code, scanned: request.scanned, structure: request.structure, captureHealth: request.captureHealth });
   }
   if (content && request.type === 'OBSERVE_SOURCE_STRUCTURE') {
-    if(Object.keys(request).some(key=>!['type','epoch','adapterVersion','chat','observation'].includes(key))||
-       request.adapterVersion!==ADAPTER_VERSION)throw new ArchiveError('INVALID_REQUEST');
+    if(Object.keys(request).some(key=>!['type','epoch','adapterVersion','chat','observations'].includes(key))||
+       request.adapterVersion!==ADAPTER_VERSION||!Array.isArray(request.observations)||
+       !request.observations.length||request.observations.length>4)throw new ArchiveError('INVALID_REQUEST');
     const source=canonicalChat(sender.tab.url ?? sender.url);
     const target=canonicalChat(request.chat?.url);
     if(!source||!target||source.id!==target.id||source.id!==request.chat?.id)throw new ArchiveError('FORBIDDEN');
+    const trustedProject=canonicalProjectChat(sender.tab.url ?? sender.url);
     const status=await store.status();
     if(!status.consented)throw new ArchiveError('CONSENT_REQUIRED');
     if(!status.enabled)throw new ArchiveError('PAUSED');
-    if(status.epoch!==request.epoch||request.observation?.epoch!==request.epoch)throw new ArchiveError('STALE_CAPTURE');
-    const admitted=await admitSourceStructureDTO(request.observation,CHATGPT_SOURCE_STRUCTURE_POLICY);
-    if(admitted.kind!=='conversation'||admitted.conversationRef.platform!=='chatgpt'||
-       admitted.conversationRef.sourceConversationId!==source.id)throw new ArchiveError('FORBIDDEN');
-    return sourceStructure.observeAdmitted(admitted);
+    if(status.epoch!==request.epoch||
+       request.observations.some(observation=>observation?.epoch!==request.epoch))throw new ArchiveError('STALE_CAPTURE');
+    const admitted=[];
+    for(const observation of request.observations){
+      const policy=chatGPTSourceStructurePolicy(observation);
+      const item=await admitSourceStructureDTO(observation,policy);
+      if(item.kind==='conversation'){
+        if(item.conversationRef.platform!=='chatgpt'||item.conversationRef.sourceConversationId!==source.id)throw new ArchiveError('FORBIDDEN');
+        if(item.membership?.state==='project'){
+          if(!trustedProject||trustedProject.id!==source.id||
+             item.membership.projectRef.namespace!==CHATGPT_PROJECT_STRUCTURE_POLICY.namespace||
+             item.membership.projectRef.projectId!==trustedProject.projectId)throw new ArchiveError('FORBIDDEN');
+        }
+      }else if(item.kind==='project'){
+        if(!trustedProject||trustedProject.id!==source.id||
+           item.projectRef.namespace!==CHATGPT_PROJECT_STRUCTURE_POLICY.namespace||
+           item.projectRef.projectId!==trustedProject.projectId||
+           item.witnessConversationRef?.platform!=='chatgpt'||
+           item.witnessConversationRef?.sourceConversationId!==source.id)throw new ArchiveError('FORBIDDEN');
+      }else throw new ArchiveError('FORBIDDEN');
+      admitted.push(item);
+    }
+    return sourceStructure.observeAdmittedBatch(admitted);
   }
   if (content && ['CAPTURE', 'ENRICH_SOURCE_METADATA'].includes(request.type)) {
     // sender.url can stay at the document's initial address after pushState.
