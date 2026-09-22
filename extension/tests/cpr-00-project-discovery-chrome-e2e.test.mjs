@@ -94,8 +94,9 @@ test('CPR-00 run-local digests are stable inside one run and unlinkable across s
  }finally{await page.close();}
 });
 
-const snap=(kind='project_chat',projectDigest='p'.repeat(32),nameDigest='n'.repeat(32))=>({
- schemaVersion:1,code:'OK',route:{kind,projectDigest:kind==='plain_chat'?null:projectDigest},
+const snap=(kind='project_chat',projectDigest='p'.repeat(32),nameDigest='n'.repeat(32),conversationDigest='c'.repeat(32),pageInstanceDigest='i'.repeat(32))=>({
+ schemaVersion:1,code:'OK',route:{kind,projectDigest:kind==='plain_chat'?null:projectDigest,conversationDigest},
+ pageInstanceDigest,
  anchors:kind==='plain_chat'?[]:[{kind:'project_home',zone:'header',visible:true,projectDigest,labelDigest:nameDigest,labelLength:7,matchesRouteProject:true,currentConversation:false,selected:false}],
  nestedMemberships:[],attributes:[],counts:{projectAnchors:kind==='plain_chat'?0:1,matchingRouteProjectAnchors:kind==='plain_chat'?0:1,namedMatchingRouteAnchors:kind==='plain_chat'?0:1,currentConversationLinks:0,nestedMemberships:0,projectAttributes:0},
  privacy:{messageBodiesRead:false,assistantBodiesRead:false,draftsRead:false,rawProjectIdsEmitted:false,rawProjectNamesEmitted:false,urlsEmitted:false}
@@ -103,11 +104,27 @@ const snap=(kind='project_chat',projectDigest='p'.repeat(32),nameDigest='n'.repe
 const runtime={sourceHead:'a'.repeat(40),runtimeParity:true,manifestVersion:'0.12.0',releaseDigest:'b'.repeat(64)};
 
 test('CPR-00 summary requires project, reload, ordinary negative and away/back stability',()=>{
- const captures={project:snap(),projectReload:snap(),ordinary:snap('plain_chat'),projectReturn:snap()};
+ const captures={
+  project:snap('project_chat','p'.repeat(32),'n'.repeat(32),'c'.repeat(32),'1'.repeat(32)),
+  projectReload:snap('project_chat','p'.repeat(32),'n'.repeat(32),'c'.repeat(32),'2'.repeat(32)),
+  ordinary:snap('plain_chat','p'.repeat(32),'n'.repeat(32),'o'.repeat(32),'3'.repeat(32)),
+  projectReturn:snap('project_chat','p'.repeat(32),'n'.repeat(32),'c'.repeat(32),'4'.repeat(32))
+ };
  const report=summarizeDiscovery({runtime,captures});
  assert.equal(report.contractCandidateReady,true);assert.deepEqual(report.reasons,[]);
  assert.equal(report.candidate.channel,'route_plus_matching_project_home_link');
  assert.equal(report.checks.ordinaryNegative,true);
+ assert.equal(report.checks.reloadSameConversation,true);
+ assert.equal(report.checks.reloadNewDocument,true);
+ assert.equal(report.checks.returnSameConversation,true);
+});
+
+test('CPR-00 summary rejects a fake reload that reuses the same document instance',()=>{
+ const project=snap('project_chat','p'.repeat(32),'n'.repeat(32),'c'.repeat(32),'1'.repeat(32));
+ const captures={project,projectReload:structuredClone(project),ordinary:snap('plain_chat','p'.repeat(32),'n'.repeat(32),'o'.repeat(32),'3'.repeat(32)),projectReturn:snap('project_chat','p'.repeat(32),'n'.repeat(32),'c'.repeat(32),'4'.repeat(32))};
+ const report=summarizeDiscovery({runtime,captures});
+ assert.equal(report.contractCandidateReady,false);
+ assert.equal(report.checks.reloadNewDocument,false);
 });
 
 test('CPR-00 summary fails closed if ordinary chat carries a membership signal or runtime is stale',()=>{
