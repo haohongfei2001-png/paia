@@ -7,8 +7,10 @@ const legacyWindow=(page,text)=>text
 const navigatorWindow=(page,text)=>text
   ? page.locator('.archive-navigator-window').filter({hasText:text}).first()
   : page.locator('.archive-navigator-window').first();
+const NAVIGATOR_CONTROL_TIMEOUT=3000;
+const NAVIGATOR_WINDOW_ACTION_TIMEOUT=5000;
 const tryNavigatorControl=async locator=>{
-  try{await locator.click({timeout:1000});return true;}
+  try{await locator.click({timeout:NAVIGATOR_CONTROL_TIMEOUT});return true;}
   catch(error){if(error.name==='TimeoutError')return false;throw error;}
 };
 
@@ -37,14 +39,15 @@ export async function openArchiveWindow(page,options={}){
     if(remaining<=0)throw new Error(options.label||'Archive window is reachable');
     const window=await waitArchiveWindow(page,{...options,timeout:remaining});
     try{
-      await window.click({timeout:Math.min(1000,Math.max(1,deadline-Date.now()))});
+      // Discovery and actionability are separate phases: a Window that becomes
+      // visible near the discovery deadline still gets one bounded normal click
+      // budget to settle after asynchronous Navigator regrouping/repaint.
+      await window.click({timeout:NAVIGATOR_WINDOW_ACTION_TIMEOUT});
       return window;
     }catch(error){
       // A late membership observation can move an unselected Window into a
       // collapsed group between discovery and click. Re-discover through normal
-      // controls and retain the full action budget for layout stabilization.
-      // Discovery controls use bounded clicks so one stale toggle cannot consume
-      // the whole outer deadline while the Navigator is legitimately regrouping.
+      // controls while the original discovery deadline still has budget.
       if(error.name!=='TimeoutError'||Date.now()>=deadline)throw error;
     }
   }
