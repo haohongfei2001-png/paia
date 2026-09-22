@@ -1,3 +1,19 @@
+# Roadmap interlock update
+
+Before continuing Production Readiness from PRD-02 to PRD-03, PAIA must complete
+`PAIA-CHATGPT-PROJECT-RECOGNITION-v1`.
+
+The goal is automatic recognition of the current ChatGPT Project during normal
+use. Current ChatGPT `projectIdentity`, `projectName` and
+Conversation→Project `membership` must be verified from privacy-safe live
+evidence. Historical ANS fallback behavior remains valid history but is no
+longer sufficient for the production-readiness path.
+
+Canonical package docs:
+`docs/chatgpt-project-recognition-v1/`.
+
+---
+
 # PAIA Roadmap
 
 Status: **current roadmap source of truth**
