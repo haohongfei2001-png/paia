@@ -8,9 +8,9 @@ canonical_branch: `main`
 
 current_round: `CPR-02`
 
-current_round_status: `READY`
+current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED`
+writer_status: `CLAIMED — manager/cpr02-lifecycle-navigator-20260922`
 
 blocking_dependency: `NONE — PRD-02 COMPLETE`
 
@@ -310,3 +310,29 @@ CPR-02 is READY but **NOT_STARTED**.
 
 PRD-03 remains BLOCKED until this entire Project Recognition package is
 canonically COMPLETE.
+
+
+## CPR-02 execution claim
+
+execution_id: `CPR02-20260922-lifecycle01`
+
+execution_start_main: `ba4b2959ee05e7486fc826af38e87f351a5ff556`
+
+writer_branch: `manager/cpr02-lifecycle-navigator-20260922`
+
+scope:
+
+- reconcile verified Project membership/name changes across normal SPA navigation
+  and reload without changing Conversation/Source identity;
+- represent verified ordinary `/c/` current-conversation evidence as
+  unassigned membership when it follows a previously Project-bound Conversation;
+- update Project name only from the frozen matching Project-home evidence;
+- preserve last-known/history and unknown-vs-unassigned semantics;
+- ensure Navigator automatically projects the resulting source-structure state;
+- prove Project A→B, Project→ordinary, ordinary→Project, rename, reload and
+  temporary evidence loss without duplicate Source or relationship spam;
+- no Project ordering, account-wide enumeration, Project mutation, CPR-03
+  certification or PRD-03 work.
+
+CPR-02 must stop after candidate CI, merge, exact-main CI, receipt/status
+publication and remote readback.
