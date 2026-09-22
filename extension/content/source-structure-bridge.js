@@ -80,7 +80,7 @@
       pending.attempts++;
       const reply=await send({
         type:'OBSERVE_SOURCE_STRUCTURE',epoch:status.epoch,adapterVersion:adapter.version,
-        chat:pending.chat,observation:pending.dto
+        chat:pending.chat,observations:pending.dtos
       });
       if(reply?.ok===true&&reply.data?.settled===true){
         settledKey=key;
