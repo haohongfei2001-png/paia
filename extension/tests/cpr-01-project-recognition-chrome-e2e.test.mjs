@@ -116,3 +116,33 @@ test('CPR-01 message-body-only Project links and conflicting provider names fail
     }finally{await page.close();}
   }
 });
+
+
+test('CPR-01 Project route waits for late Project-home evidence before settling',async()=>{
+  const segment=projectId+'-late-project';
+  const page=await fixture('<header id="project-header"></header>','https://chatgpt.com/g/'+segment+'/c/'+chat);
+  try{
+    const first=await observe(page);
+    assert.equal(first,null,'Project route must not settle identity-only while strong evidence is incomplete');
+    await page.evaluate(({segment})=>{
+      const a=document.createElement('a');
+      a.href='/g/'+segment+'/project';
+      a.textContent='Late Project';
+      document.getElementById('project-header').append(a);
+    },{segment});
+    const second=await observe(page);
+    assert.equal(second.dtos.length,2);
+    assert.equal(second.dtos.find(dto=>dto.capability==='membership').observation.projectName,'Late Project');
+  }finally{await page.close();}
+});
+
+test('CPR-01 oversized Project names fail closed instead of truncating provider truth',async()=>{
+  const segment=projectId+'-oversized-project';
+  const longName='X'.repeat(301);
+  const page=await fixture('<header><a id="project-home" href="/g/'+segment+'/project"></a></header>','https://chatgpt.com/g/'+segment+'/c/'+chat);
+  try{
+    await page.evaluate(name=>{document.getElementById('project-home').textContent=name;},longName);
+    const emitted=await observe(page);
+    assert.equal(emitted,null);
+  }finally{await page.close();}
+});
