@@ -38,7 +38,7 @@ function sourceObservation(epoch,changes={}) {
     observation:{}
   };
   return {type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
-    chat:{id:CHAT_ID,url:CHAT_URL},observation,...changes};
+    chat:{id:CHAT_ID,url:CHAT_URL},observations:[observation],...changes};
 }
 
 async function fixture({ isolationFailure = false, delayedIsolation = false } = {}) {
@@ -348,11 +348,11 @@ test('ANS-03 source observations require trusted current-route sender, current e
    {...content,tab:{id:23,incognito:true}}])await expectError(app.send(req,sender),'FORBIDDEN');
  await expectError(app.send(sourceObservation(epoch-1),content),'STALE_CAPTURE');
  await expectError(app.send({...req,adapterVersion:'0.2.9'},content),'INVALID_REQUEST');
- await expectError(app.send({...req,observation:{...req.observation,epoch:epoch+1}},content),'STALE_CAPTURE');
- const unverified={...req,observation:{...req.observation,capability:'membership',
-   observation:{membership:{state:'project',namespace:'account-main',projectId:'synthetic'}}}};
+ await expectError(app.send({...req,observations:[{...req.observations[0],epoch:epoch+1}]},content),'STALE_CAPTURE');
+ const unverified={...req,observations:[{...req.observations[0],capability:'membership',
+   observation:{membership:{state:'project',namespace:'account-main',projectId:'synthetic'}}}]};
  await expectError(app.send(unverified,content),'UNAVAILABLE');
- const poisoned={...req,observation:{...req.observation,originalText:'SYNTHETIC_PRIVATE_BODY'}};
+ const poisoned={...req,observations:[{...req.observations[0],originalText:'SYNTHETIC_PRIVATE_BODY'}]};
  await expectError(app.send(poisoned,content),'INVALID_REQUEST');
  assert.equal((await app.send(capture(epoch),content)).ok,true);
  const notificationsBefore=app.notifications.length;
