@@ -12,6 +12,8 @@ const EXTENSION_ID = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 const EXTENSION_ORIGIN = `chrome-extension://${EXTENSION_ID}/`;
 const CHAT_ID = 'synthetic-chat-001';
 const CHAT_URL = `https://chatgpt.com/c/${CHAT_ID}`;
+const PROJECT_ID = 'g-p-'+'a'.repeat(32);
+const PROJECT_URL = `https://chatgpt.com/g/${PROJECT_ID}-synthetic-project/c/${CHAT_ID}`;
 const ui = { id: EXTENSION_ID, url: `${EXTENSION_ORIGIN}ui/archive.html` };
 const popup = { id: EXTENSION_ID, url: `${EXTENSION_ORIGIN}ui/popup.html` };
 const content = {
@@ -39,6 +41,26 @@ function sourceObservation(epoch,changes={}) {
   };
   return {type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
     chat:{id:CHAT_ID,url:CHAT_URL},observations:[observation],...changes};
+}
+
+function projectObservationBatch(epoch,projectId=PROJECT_ID,name='Synthetic Project') {
+  const common={
+    schemaVersion:1,contractId:'chatgpt.current-project-membership',contractVersion:1,
+    providerKey:'chatgpt',channel:'route_plus_matching_project_home_link',
+    scope:'current_conversation',epoch,session:'cpr01-worker-session',generation:2,
+    observedAt:'2026-09-22T11:20:00.000Z'
+  };
+  return {
+    type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
+    chat:{id:CHAT_ID,url:CHAT_URL},
+    observations:[
+      {...common,capability:'membership',subject:{kind:'conversation',conversationId:CHAT_ID},
+       observation:{membership:{state:'project',namespace:'chatgpt-project',projectId},projectName:name}},
+      {...common,capability:'projectName',
+       subject:{kind:'project',namespace:'chatgpt-project',projectId,witnessConversationId:CHAT_ID},
+       observation:{currentName:name}}
+    ]
+  };
 }
 
 async function fixture({ isolationFailure = false, delayedIsolation = false } = {}) {
@@ -362,6 +384,41 @@ test('ANS-03 source observations require trusted current-route sender, current e
  await app.send({type:'SET_ENABLED',enabled:false},popup);
  await expectError(app.send(sourceObservation(epoch),content),'PAUSED');
 });
+
+test('CPR-01 Project observations are bound to the trusted same-tab Project route and settle atomically',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});
+ const app=await fixture();await app.send({type:'CONSENT',accepted:true});
+ const epoch=(await app.send({type:'GET_STATUS'})).data.epoch;
+ const projectContent={
+   ...content,url:PROJECT_URL,
+   tab:{...content.tab,url:PROJECT_URL}
+ };
+ const req=projectObservationBatch(epoch);
+ const before=await app.send(req,projectContent);
+ assert.equal(before.ok,true);assert.equal(before.data.settled,false);
+
+ await expectError(app.send(req,content),'FORBIDDEN');
+ const otherProject='g-p-'+'b'.repeat(32);
+ await expectError(app.send(projectObservationBatch(epoch,otherProject),projectContent),'FORBIDDEN');
+ const wrongWitness=structuredClone(req);
+ wrongWitness.observations[1].subject.witnessConversationId='other-conversation-001';
+ await expectError(app.send(wrongWitness,projectContent),'FORBIDDEN');
+
+ assert.equal((await app.send(capture(epoch),projectContent)).ok,true);
+ const settled=await app.send(req,projectContent);
+ assert.equal(settled.ok,true);
+ assert.deepEqual(settled.data,{settled:true,excluded:false,changed:true,event:true});
+
+ const duplicate=await app.send(req,projectContent);
+ assert.equal(duplicate.ok,true);
+ assert.equal(duplicate.data.settled,true);
+ assert.equal(duplicate.data.event,false);
+
+ const badNamespace=structuredClone(req);
+ badNamespace.observations[0].observation.membership.namespace='other-account';
+ await expectError(app.send(badNamespace,projectContent),'INVALID_REQUEST');
+});
+
 
 test('metadata enrichment uses the same trusted top-level sender and epoch gates as capture',async()=>{
  const app=await fixture();await app.send({type:'CONSENT',accepted:true});const epoch=(await app.send({type:'GET_STATUS'})).data.epoch;
