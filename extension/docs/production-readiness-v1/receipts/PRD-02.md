@@ -216,6 +216,52 @@ current ChatGPT `projectIdentity`, `projectName` and Conversation→Project
 fallback behavior remains valid history but is not sufficient for this new
 product requirement.
 
+## Second passive live result — capture PASS, runtime parity FAIL
+
+The second passive result used the repaired verifier and returned
+`pass=false` only because `runtimeParity=false`.
+
+All live capture-specific checks passed:
+
+- current adapter version;
+- CAPTURING status;
+- 2 visible user roles / 2 accepted candidates;
+- exact ingestion/candidate count match;
+- zero unresolved / ignored candidates;
+- duplicate observation safety;
+- 19 distinct Source/message identities with consistent mapping;
+- honest source-time state;
+- no structural rejection rows.
+
+The current release evidence was valid this time:
+
+- sourceHead:
+  `9fdc406c553f0699374ca889df6b06425946e795`;
+- manifestVersion: `0.12.0`;
+- releaseDigest:
+  `71270fdee2d940d7a5276311c3a699b3492f128fe8f0e0394b6fec6209f9763c`.
+
+Therefore the first live `ADAPTER_MISMATCH` is not reproduced in the second
+normal-use window. The remaining gate is genuine current-runtime parity.
+
+### Sequencing correction
+
+The original PRD-02/03 split assumed the daily runtime would already match the
+certified release when PRD-02 ran. The actual daily installation is stale, so
+PRD-02 cannot satisfy its parity gate without a runtime alignment step, while
+PRD-03 is intentionally blocked behind Project Recognition.
+
+A minimal bridge is therefore defined: use the existing updater to deploy the
+already-certified release into the same existing runtime path, with its existing
+automatic code backup, reload the same extension once, and rerun the passive
+verifier.
+
+This bridge is **not** PRD-03 certification. It does not test Chrome restart,
+rollback/recovery or update durability and cannot be cited as those gates.
+
+The actual daily-runtime mutation is not performed without explicit owner
+approval.
+
 ## Pending closure
 
 PRD-02 now requires only:
