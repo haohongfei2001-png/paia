@@ -16,7 +16,7 @@ current_round: `PRD-02`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `CLAIMED — manager/prd02-passive-normal-use-20260921`
+writer_status: `RELEASED — awaiting local passive evidence`
 
 acceptanceComplete: `false`
 
@@ -181,3 +181,25 @@ required.
 
 Project recognition is recorded as a separate product gap and is not silently
 treated as a capture PASS or as an authorization to start a new package.
+
+
+## PRD-02 engineering publication state
+
+passive_verifier_main:
+`6f91eaaecdfd45fcef291bee8c967de6699bab9e`
+
+candidate_certification:
+`PAIA Certification #454 / run 35611861162 / SUCCESS`
+
+exact_main_certification:
+`PAIA Certification #455 / run 35615363535 / SUCCESS`
+
+engineering_state:
+`PASS — passive verifier published and exact-main certified`
+
+remaining_dependency:
+`one local read-only PAIA_PRD02_PASSIVE result after ordinary ChatGPT use`
+
+writer released while waiting for that local evidence. PRD-02 remains
+`IN_PROGRESS`; PRD-03 remains `PLANNED` and must not start.
+
