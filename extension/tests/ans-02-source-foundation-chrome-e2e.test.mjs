@@ -22,11 +22,19 @@ test('ANS-02 trusted source metadata survives restart and Backup restore while e
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive;await consent(p);
-  await h.open({id:'ans02-browser-chat',title:'ANS-02 Browser Source',base:1609459200,messages:[
+  const chat=await h.open({id:'ans02-browser-chat',title:'ANS-02 Browser Source',base:1609459200,messages:[
    {id:'ans02-browser-message-001',text:'ANS02_BROWSER_ORIGINAL immutable source'},
    {id:'ans02-browser-message-002',text:'ANS02_BROWSER_SECOND independent source'}
   ]});
   await eventually(async()=>(await h.state()).records.length===2,'ANS-02 browser capture complete');
+  await eventually(async()=>await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js');
+   const {SourceStructureStore}=await import('../core/source-structure-store.js');
+   const row=await new SourceStructureStore(new OrganizerStore(chrome.storage.local)).conversation({platform:'chatgpt',sourceConversationId:'ans02-browser-chat'});
+   return row?.membership.state==='unassigned'&&row.relationshipRevision===1;
+  }),'ANS-02 initial plain-route membership settles');
+  // Isolate synthetic lifecycle evidence from the live page observer.
+  await chat.close();
   const setup=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js');
    const {SourceStructureStore}=await import('../core/source-structure-store.js');
@@ -35,12 +43,12 @@ test('ANS-02 trusted source metadata survives restart and Backup restore while e
    const structure=new SourceStructureStore(s),conv={platform:'chatgpt',sourceConversationId:'ans02-browser-chat'};
    const A={providerKey:'chatgpt',namespace:'browser-account',projectId:'browser-project-a'},B={providerKey:'chatgpt',namespace:'browser-account',projectId:'browser-project-b'};
    const ev=(id,n)=>({id,contractId:'ans-browser-fixture',contractVersion:1,channel:'synthetic',scope:'conversation',originClass:'fixture',requestGeneration:n,evidenceKind:'relationship',digest:n.toString(16).padStart(64,'0')});
-   const at=n=>new Date(Date.UTC(2026,8,18,20,n,0)).toISOString();
-   await structure.observeConversation({conversationRef:conv,expectedRevision:0,observedAt:at(1),evidence:ev('browser-rel-a',1),membership:{state:'project',projectRef:A},projectName:'Browser Project A',sourceStatus:'observed_active'});
+   const start=Date.now(),at=n=>new Date(start+n).toISOString();
+   await structure.observeConversation({conversationRef:conv,expectedRevision:1,observedAt:at(1),evidence:ev('browser-rel-a',1),membership:{state:'project',projectRef:A},projectName:'Browser Project A',sourceStatus:'observed_active'});
    await structure.observeProject({projectRef:A,witnessConversationRef:conv,expectedRevision:0,observedAt:at(2),evidence:ev('browser-project-a',2),currentName:'Browser Project A'});
-   await structure.observeConversation({conversationRef:conv,expectedRevision:1,observedAt:at(3),evidence:ev('browser-rel-b',3),membership:{state:'project',projectRef:B},projectName:'Browser Project B'});
+   await structure.observeConversation({conversationRef:conv,expectedRevision:2,observedAt:at(3),evidence:ev('browser-rel-b',3),membership:{state:'project',projectRef:B},projectName:'Browser Project B'});
    await structure.observeProject({projectRef:B,witnessConversationRef:conv,expectedRevision:0,observedAt:at(4),evidence:ev('browser-project-b',4),currentName:'Browser Project B'});
-   await structure.observeConversation({conversationRef:conv,expectedRevision:2,observedAt:at(5),evidence:ev('browser-conversation-delete',5),sourceStatus:'confirmed_deleted'});
+   await structure.observeConversation({conversationRef:conv,expectedRevision:3,observedAt:at(5),evidence:ev('browser-conversation-delete',5),sourceStatus:'confirmed_deleted'});
    const after=await s.snapshot(),history=await structure.history({kind:'conversation',conversationRef:conv});
    return {conv,A,B,original:after.records.map(r=>[r.id,r.sourceKey,r.originalText,r.contentHash]),working:after.library.blocks.map(x=>[x.id,x.libraryText,x.revision]),relationship:await structure.conversation(conv),history:history.items.length};
   });

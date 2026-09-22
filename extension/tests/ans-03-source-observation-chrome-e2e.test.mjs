@@ -76,11 +76,11 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
      conversationDeletion:{subject:'conversation',fields:['sourceStatus'],sourceStatus:['confirmed_deleted']}
     }
    });
-   const start=Date.parse(initial.lastObservedAt)+1000;
+   const start=Math.max(Date.now(),Date.parse(initial.lastObservedAt)+1);
    const make=(capability,subject,observation,n)=>({
     schemaVersion:1,contractId:policy.contractId,contractVersion:1,providerKey:'chatgpt',
     capability,channel:policy.channel,scope:policy.scope,epoch:99,session:'ans03-browser-synthetic',
-    generation:n,observedAt:new Date(start+n*1000).toISOString(),subject,observation
+    generation:n,observedAt:new Date(start+n).toISOString(),subject,observation
    });
    const conversation={kind:'conversation',conversationId:id};
    const A={namespace:'account-main',projectId:'browser-project-a'};
@@ -106,7 +106,9 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   const afterWorkerRestart=await sourceRow(archive,b.id);
   assert.equal(afterWorkerRestart.row.membership.state,'project','worker restart alone does not fabricate a new page observation');
   assert.equal(afterWorkerRestart.row.relationshipRevision,5);
-  await chat.reload();await pause(2600);
+  await chat.reload();
+  await eventually(async()=>(await sourceRow(archive,b.id)).row?.membership.state==='unassigned',
+    'ANS-03 fresh plain-route evidence supersedes synthetic Project membership');
   const afterRestart=await sourceRow(archive,b.id);
   assert.equal(afterRestart.row.membership.state,'unassigned','fresh page remount re-observes verified plain-route absence');
   assert.equal(afterRestart.row.lastKnownSourceProject.projectRef.projectId,'browser-project-b');
