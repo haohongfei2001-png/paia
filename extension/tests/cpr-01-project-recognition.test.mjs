@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {completeFixture} from './harness/original-complete.mjs';
 import {SourceStructureStore} from '../core/source-structure-store.js';
 import {
-  admitSourceStructureDTO,CHATGPT_PROJECT_STRUCTURE_POLICY,chatGPTSourceStructurePolicy
+  admitSourceStructureDTO,admitChatGPTSourceStructureBatch,
+  CHATGPT_PROJECT_STRUCTURE_POLICY,chatGPTSourceStructurePolicy
 } from '../core/source-structure-admission.js';
 
 const at='2026-09-22T11:00:00.000Z';
@@ -104,4 +105,34 @@ test('CPR-01 old identity policy still rejects Project claims and unknown contra
     ()=>chatGPTSourceStructurePolicy({...membership,contractId:'unknown.contract'}),
     error=>error?.code==='UNAVAILABLE'
   );
+});
+
+
+test('CPR-01 trusted production batch rejects partial, mixed and inconsistent Project evidence',async()=>{
+  const conversationId='cpr01-conversation-batch';
+  const [membership,name]=dtos(conversationId);
+  await assert.rejects(
+    ()=>admitChatGPTSourceStructureBatch([membership]),
+    error=>error?.code==='UNAVAILABLE'
+  );
+  await assert.rejects(
+    ()=>admitChatGPTSourceStructureBatch([membership,{...name,observedAt:'2026-09-22T11:00:01.000Z'}]),
+    error=>error?.code==='INVALID_REQUEST'
+  );
+  await assert.rejects(
+    ()=>admitChatGPTSourceStructureBatch([membership,{
+      ...name,observation:{currentName:'Different Project Name'}
+    }]),
+    error=>error?.code==='INVALID_REQUEST'
+  );
+  await assert.rejects(
+    ()=>admitChatGPTSourceStructureBatch([membership,{
+      ...name,subject:{...name.subject,witnessConversationId:'different-conversation'}
+    }]),
+    error=>error?.code==='INVALID_REQUEST'
+  );
+  const admitted=await admitChatGPTSourceStructureBatch([name,membership]);
+  assert.equal(admitted.length,2);
+  assert.equal(admitted[0].kind,'conversation');
+  assert.equal(admitted[1].kind,'project');
 });
