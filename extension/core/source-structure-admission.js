@@ -189,6 +189,35 @@ export async function admitSourceStructureDTO(value,policy=CHATGPT_SOURCE_STRUCT
  }
  fail();
 }
+export async function admitChatGPTSourceStructureBatch(values){
+ if(!Array.isArray(values)||!values.length||values.length>2)fail();
+ if(values.length===1){
+  const value=values[0];
+  if(value?.contractId!==CHATGPT_SOURCE_STRUCTURE_POLICY.contractId||
+     value?.capability!=='conversationIdentity')fail('UNAVAILABLE');
+  return [await admitSourceStructureDTO(value,CHATGPT_SOURCE_STRUCTURE_POLICY)];
+ }
+ const [a,b]=values;
+ if(a?.contractId!==CHATGPT_PROJECT_STRUCTURE_POLICY.contractId||
+    b?.contractId!==CHATGPT_PROJECT_STRUCTURE_POLICY.contractId)fail('UNAVAILABLE');
+ const byCapability=new Map([[a?.capability,a],[b?.capability,b]]);
+ if(byCapability.size!==2||!byCapability.has('membership')||!byCapability.has('projectName'))fail();
+ const membershipValue=byCapability.get('membership'),nameValue=byCapability.get('projectName');
+ for(const key of ['epoch','session','generation','observedAt']){
+  if(membershipValue?.[key]!==nameValue?.[key])fail();
+ }
+ const membershipAdmitted=await admitSourceStructureDTO(membershipValue,CHATGPT_PROJECT_STRUCTURE_POLICY);
+ const nameAdmitted=await admitSourceStructureDTO(nameValue,CHATGPT_PROJECT_STRUCTURE_POLICY);
+ if(membershipAdmitted.kind!=='conversation'||nameAdmitted.kind!=='project'||
+    !membershipAdmitted.membership||membershipAdmitted.membership.state!=='project'||
+    membershipAdmitted.conversationRef.sourceConversationId!==nameAdmitted.witnessConversationRef?.sourceConversationId||
+    membershipAdmitted.membership.projectRef.providerKey!==nameAdmitted.projectRef.providerKey||
+    membershipAdmitted.membership.projectRef.namespace!==nameAdmitted.projectRef.namespace||
+    membershipAdmitted.membership.projectRef.projectId!==nameAdmitted.projectRef.projectId||
+    membershipAdmitted.projectName!==nameAdmitted.currentName)fail();
+ return [membershipAdmitted,nameAdmitted];
+}
+
 export function admitSourceOrderSnapshot(value,policy=CHATGPT_SOURCE_STRUCTURE_POLICY){
  if(!plain(value)||!ASCII.test(value.capability||'')||
     policy.capabilities[value.capability]!=='verified'){
