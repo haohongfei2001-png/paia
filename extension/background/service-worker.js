@@ -25,7 +25,7 @@ import { OrganizerStore as IndexedArchiveStore } from '../core/organizer/store.j
 import {SafetyRunner} from '../core/thought-runner.js';
 import { ADAPTER_VERSION, ArchiveError, safeErrorCode } from '../core/constants.js';
 import { canonicalChat } from '../core/validation.js';
-import {canonicalProjectChat} from '../core/project-route-validation.js';
+import {canonicalProjectChat,canonicalPlainChat} from '../core/project-route-validation.js';
 import {SourceStructureStore} from '../core/source-structure-store.js';
 import {subjectRef,sourceStructureSnapshot} from '../core/source-structure-model.js';
 import {admitChatGPTSourceStructureBatch,CHATGPT_PROJECT_STRUCTURE_POLICY} from '../core/source-structure-admission.js';
@@ -118,6 +118,7 @@ async function handle(request, sender) {
     const target=canonicalChat(request.chat?.url);
     if(!source||!target||source.id!==target.id||source.id!==request.chat?.id)throw new ArchiveError('FORBIDDEN');
     const trustedProject=canonicalProjectChat(sender.tab.url ?? sender.url);
+    const trustedPlain=canonicalPlainChat(sender.tab.url ?? sender.url);
     const status=await store.status();
     if(!status.consented)throw new ArchiveError('CONSENT_REQUIRED');
     if(!status.enabled)throw new ArchiveError('PAUSED');
@@ -131,6 +132,8 @@ async function handle(request, sender) {
           if(!trustedProject||trustedProject.id!==source.id||
              item.membership.projectRef.namespace!==CHATGPT_PROJECT_STRUCTURE_POLICY.namespace||
              item.membership.projectRef.projectId!==trustedProject.projectId)throw new ArchiveError('FORBIDDEN');
+        }else if(item.membership?.state==='unassigned'){
+          if(!trustedPlain||trustedPlain.id!==source.id)throw new ArchiveError('FORBIDDEN');
         }
       }else if(item.kind==='project'){
         if(!trustedProject||trustedProject.id!==source.id||
@@ -341,6 +344,9 @@ function notifyArchiveChanged(type){
  if(type==='IMPORT_COMMIT'){if(!importNotification)importNotification=setTimeout(()=>{void send();},500);return Promise.resolve();}
  if(importNotification)clearTimeout(importNotification);return send();
 }
+function notifySourceStructureChanged(){
+ return Promise.resolve(chrome.runtime.sendMessage?.({type:'SOURCE_STRUCTURE_CHANGED'})).catch(()=>{});
+}
 const runner=new FilterRunner(store,{changed:()=>{void runtime.sendMessage?.({type:'ARCHIVE_CHANGED'}).catch(()=>{});}});
 const safety=new SafetyRunner(store);
 const libraryRunner=new LibraryRunner(store);
@@ -362,6 +368,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:request.type==='OBSERVE_SOURCE_STRUCTURE'?false:true;
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
       sendResponse({ ok: true, data });
+      if(request.type==='OBSERVE_SOURCE_STRUCTURE'&&data?.changed===true)void notifySourceStructureChanged();
       if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);
       if(['PAIA_READER_CONFIGURE','PAIA_READER_CAPTURE_SCOPE'].includes(request.type))void chrome.runtime.sendMessage?.({type:'PAIA_READER_POLICY_CHANGED'}).catch(()=>{});
       if(request.type!=='OBSERVE_SOURCE_STRUCTURE'&&!localToolRequest(request.type)&&(!request.type.startsWith('IMPORT_')||['IMPORT_COMMIT','IMPORT_COMPLETE','IMPORT_RESOLVE_BRANCH'].includes(request.type))&&!['GET_ONBOARDING','SET_ONBOARDING'].includes(request.type)&&!request.type.startsWith('PAIA_MEMORY_')&&!request.type.startsWith('PAIA_INTEGRITY_')&&!request.type.startsWith('PAIA_BACKUP_')&&request.type!=='GET_BOUNDED_ORGANIZER'&&request.type!=='GET_AI_PRESENTATION_STATUS'&&request.type!=='GET_ORIGINAL_ORGANIZER_STATUS'&&request.type!=='GET_DEEPSEEK_STATUS'&&request.type!=='FILTER_DIAGNOSTICS'&&!['SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))void scheduleFilter({retry:['FILTER_RECOVER','FILTER_MODE'].includes(request.type)});
