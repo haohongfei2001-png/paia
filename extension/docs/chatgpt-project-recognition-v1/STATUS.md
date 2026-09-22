@@ -10,7 +10,7 @@ current_round: `CPR-00`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED — strong live Project candidate observed; awaiting one proven fresh-reload observation`
+writer_status: `CLAIMED — manager/cpr00-tab-lock-20260922`
 
 blocking_dependency: `NONE — PRD-02 COMPLETE`
 
@@ -152,3 +152,21 @@ The strong Project evidence is retained, but CPR-00 cannot close until one true
 fresh-document observation is demonstrated.
 
 No production capability flag is promoted yet. CPR-01 remains PLANNED.
+
+ 
+## CPR-00 second live discovery result
+
+result_time: `2026-09-22`
+
+verdict: `FAIL / FRESH-RELOAD PROOF ONLY`
+
+The second run again established the strong Project channel and ordinary-chat
+negative. In this run the later Project-return snapshot carried a different
+`pageInstanceDigest`, proving the nonce changes for a genuinely different
+content-script document instance. The claimed reload snapshot still reused the
+initial digest.
+
+This narrows the issue to helper tab selection rather than the provider evidence
+or page-instance mechanism. A development-only helper correction now locks all
+four observations to the exact first Project tab. No production capability or
+provider contract changes are authorized by this correction.

@@ -176,6 +176,32 @@ is to keep the same helper run alive, perform an unmistakable browser reload on
 the Project conversation tab itself, and recapture only the "刷新后" observation.
 If that helper run is no longer open, redo the four-step sequence once.
 
+## Second live discovery result — fresh-document mechanism proven, reload tab selection still ambiguous
+
+A second complete live run reproduced the same strong Project evidence:
+
+- Project identity candidate: PASS;
+- Project name candidate: PASS;
+- membership candidate: PASS;
+- ordinary chat negative: PASS;
+- away/back stability: PASS;
+- privacy and runtime parity: PASS.
+
+The claimed reload observation still had the same page-instance digest as the
+first Project observation. However, the later Project-return observation had a
+different page-instance digest while preserving the same conversation, Project
+and Project-name digests.
+
+Therefore the page-instance nonce is functioning. The remaining ambiguity is the
+helper's tab selection: it re-enumerated all responsive ChatGPT tabs and chose by
+recent access on every step, so duplicate/same-conversation tabs could satisfy
+the reload lookup.
+
+The correction is development-only: the first Project observation now locks one
+Chrome tab ID in helper memory. Reload, ordinary-chat and return observations
+must all come from that exact tab. The tab ID is never emitted in the sanitized
+result and is not persisted.
+
 ## Pending closure
 
 CPR-00 still requires:
