@@ -10,7 +10,7 @@ current_round: `CPR-00`
 
 current_round_status: `IN_PROGRESS`
 
-writer_status: `RELEASED — engineering published; awaiting one sanitized live Project discovery result`
+writer_status: `RELEASED — strong live Project candidate observed; awaiting one proven fresh-reload observation`
 
 blocking_dependency: `NONE — PRD-02 COMPLETE`
 
@@ -111,3 +111,44 @@ remaining_dependency:
 
 CPR-00 remains `IN_PROGRESS`. CPR-01 remains `PLANNED` and must not start
 until the live evidence is classified and CPR-00 is canonically closed.
+
+
+## CPR-00 first live discovery result
+
+result_time: `2026-09-22`
+
+format: `paia-cpr00-project-discovery-v1`
+
+verdict: `FAIL / FRESH-RELOAD PROOF ONLY`
+
+Strong live findings:
+
+- runtimeParity = PASS;
+- Project conversation observed = PASS;
+- Project identity candidate = PASS;
+- Project name candidate = PASS;
+- Conversation→Project membership candidate = PASS;
+- evidence stable across the submitted second observation = PASS;
+- ordinary non-Project conversation negative = PASS;
+- evidence stable after away/back = PASS;
+- same Project conversation identity after return = PASS;
+- no raw private emission = PASS.
+
+Observed strong channel:
+`route_plus_matching_project_home_link`
+
+The live page exposed a route-bound Project digest and a visible Project-home
+link with the same Project digest and one stable Project-name digest. The ordinary
+`/c/` conversation emitted no Project channel.
+
+The only failed check was:
+
+- `reloadNewDocument=false`.
+
+The first Project observation, claimed reload observation and later return
+observation all carried the same run-local `pageInstanceDigest`. Therefore this
+run does not prove that the second observation came from a newly loaded document.
+The strong Project evidence is retained, but CPR-00 cannot close until one true
+fresh-document observation is demonstrated.
+
+No production capability flag is promoted yet. CPR-01 remains PLANNED.
