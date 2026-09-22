@@ -9,6 +9,7 @@ const SUBJECTS=new Set(['conversation','project','order']);
 const STATUS=new Set(['unknown','observed_active','confirmed_deleted']);
 const ID=/^[A-Za-z0-9_-]{1,200}$/;
 const ASCII=/^[A-Za-z0-9._:@-]{1,128}$/;
+const FROZEN_PROJECT_ID=/^g-p-[a-f0-9]{32}$/;
 const fail=(code='INVALID_REQUEST')=>{throw new ArchiveError(code);};
 const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,allowed,required=allowed)=>{
@@ -154,11 +155,16 @@ export async function admitSourceStructureDTO(value,policy=CHATGPT_SOURCE_STRUCT
  if(rule.subject==='conversation'){
   exact(value.subject,['kind','conversationId']);
   if(value.subject.kind!=='conversation'||!ID.test(value.subject.conversationId||''))fail();
+  const observation=conversationObservation(value.observation,rule,value.providerKey,policy.namespace);
+  if(policy.contractId===CHATGPT_PROJECT_STRUCTURE_POLICY.contractId&&value.capability==='membership'){
+   if(observation.membership?.state!=='project'||!observation.projectName||
+      !FROZEN_PROJECT_ID.test(observation.membership.projectRef?.projectId||''))fail();
+  }
   return {
    kind:'conversation',
    conversationRef:{platform:value.providerKey,sourceConversationId:value.subject.conversationId},
    observedAt:value.observedAt,evidence,
-   ...conversationObservation(value.observation,rule,value.providerKey,policy.namespace)
+   ...observation
   };
  }
  if(rule.subject==='project'){
@@ -167,6 +173,8 @@ export async function admitSourceStructureDTO(value,policy=CHATGPT_SOURCE_STRUCT
   if(value.subject.kind!=='project'||!ASCII.test(value.subject.namespace||'')||
      !ASCII.test(value.subject.projectId||'')||policy.namespace!==undefined&&value.subject.namespace!==policy.namespace||
      value.subject.witnessConversationId!==undefined&&!ID.test(value.subject.witnessConversationId))fail();
+  if(policy.contractId===CHATGPT_PROJECT_STRUCTURE_POLICY.contractId&&
+     !FROZEN_PROJECT_ID.test(value.subject.projectId||''))fail();
   return {
    kind:'project',
    projectRef:{providerKey:value.providerKey,namespace:value.subject.namespace,projectId:value.subject.projectId},
