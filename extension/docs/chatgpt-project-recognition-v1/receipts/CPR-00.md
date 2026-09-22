@@ -6,7 +6,7 @@ Start main: `20708e87df9d0036990aeda8eb80807fb70fc5dd`
 
 Writer: `manager/cpr00-live-discovery-20260922`
 
-Status: **IN_PROGRESS — PROBE ENGINEERING PENDING CERTIFICATION; LIVE EVIDENCE NOT YET COLLECTED**
+Status: **IN_PROGRESS — ENGINEERING PUBLISHED; LIVE EVIDENCE PENDING**
 
 ## Purpose
 
@@ -98,17 +98,58 @@ Synthetic/browser tests cover:
 Synthetic evidence validates the parser/sanitizer only; it cannot certify the
 live provider capability.
 
+## Engineering publication
+
+PR #44 published the CPR-00 discovery probe.
+
+Candidate head:
+`eda0857d454c7f18fb129be839f483e2742ba09b`
+
+Candidate Certification:
+`PAIA Certification #493 / run 35701966427 / attempt 1 / SUCCESS`
+
+Merged runtime main:
+`8f72cc87c66ed382e6ab131834e1f2a152270672`
+
+Exact-main Certification:
+`PAIA Certification #494 / run 35706677451 / attempt 1 / SUCCESS`
+
+Every required current job passed:
+
+- Current Browser Certification;
+- Full Suite Certification;
+- Unit 1/4 through 4/4;
+- Adapter and privacy contracts;
+- Current release build and guards;
+- macOS Secure Store Certification;
+- final Certification gate.
+
+During candidate hardening, an attempted probe insertion into the frozen
+ChatGPT capture adapter was rejected by the existing frozen-capture guard. The
+implementation was corrected rather than weakening the freeze: the adapter was
+restored byte-for-byte and the discovery probe moved into the
+source-structure bridge. The frozen-capture test then passed.
+
+The current production capability declarations remain unchanged:
+
+- `projectIdentity: unverified`;
+- `projectName: unverified`;
+- `membership: unverified`.
+
+CI validates the probe/parser/privacy boundaries only. It does not substitute
+for the required real ChatGPT evidence.
+
 ## Pending closure
 
 CPR-00 still requires:
 
-1. targeted + required candidate CI;
-2. merge and exact-main CI;
-3. update/reload the existing daily PAIA runtime to that certified main;
-4. one sanitized real-site discovery run;
-5. classify the observed evidence;
-6. freeze an exact provider contract if and only if all three required
+1. synchronize the existing daily PAIA installation to certified
+   `main@8f72cc87c66ed382e6ab131834e1f2a152270672` and reload the same extension;
+2. run the development helper `CPR-00 Project Discovery.command`;
+3. preserve one sanitized `PAIA_CPR00_PROJECT_DISCOVERY` result;
+4. classify the observed evidence;
+5. freeze an exact provider contract if and only if all three required
    capabilities are supported;
-7. publish final receipt/status and stop.
+6. publish final receipt/status and stop.
 
 No CPR-01 implementation is authorized in this execution.
