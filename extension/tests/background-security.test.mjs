@@ -402,7 +402,7 @@ test('CPR-01 Project observations are bound to the trusted same-tab Project rout
  await expectError(app.send(projectObservationBatch(epoch,otherProject),projectContent),'FORBIDDEN');
  const wrongWitness=structuredClone(req);
  wrongWitness.observations[1].subject.witnessConversationId='other-conversation-001';
- await expectError(app.send(wrongWitness,projectContent),'FORBIDDEN');
+ await expectError(app.send(wrongWitness,projectContent),'INVALID_REQUEST');
 
  assert.equal((await app.send(capture(epoch),projectContent)).ok,true);
  const settled=await app.send(req,projectContent);
