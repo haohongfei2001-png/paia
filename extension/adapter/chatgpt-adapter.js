@@ -291,7 +291,7 @@
           tag:String(node.tagName||'').toLowerCase(),
           zone:zone(node),
           visible:this.visible(node),
-          projectIdDigest:rawId?await digest('project-id-attr',rawId):null,
+          projectIdDigest:rawId?await digest('project-id',projectId(rawId)||rawId):null,
           projectNameDigest:rawName?await digest('project-name',rawName):null,
           testIdDigest:testId?await digest('project-testid',testId):null
         });
@@ -306,7 +306,7 @@
         counts:{
           projectAnchors:anchors.length,
           matchingRouteProjectAnchors:anchors.filter(item=>item.matchesRouteProject).length,
-          namedMatchingRouteAnchors:anchors.filter(item=>item.matchesRouteProject&&item.labelDigest).length,
+          namedMatchingRouteAnchors:anchors.filter(item=>item.matchesRouteProject&&item.kind==='project_home'&&item.labelDigest).length,
           currentConversationLinks:anchors.filter(item=>item.currentConversation).length,
           nestedMemberships:nested.length,
           projectAttributes:attributes.length
