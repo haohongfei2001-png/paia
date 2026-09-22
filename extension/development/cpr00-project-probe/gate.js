@@ -6,7 +6,7 @@ const salt=[...crypto.getRandomValues(new Uint8Array(16))].map(v=>v.toString(16)
 const runtime=globalThis.PAIA_CPR00_RUNTIME_CHECK&&typeof globalThis.PAIA_CPR00_RUNTIME_CHECK==='object'
   ?globalThis.PAIA_CPR00_RUNTIME_CHECK:{runtimeParity:false};
 
-async function probeMostRecentChatGPT(){
+async function probeMostRecentChatGPT(label){
   const tabs=await chrome.tabs.query({});
   const replies=[];
   await Promise.all(tabs.filter(tab=>Number.isSafeInteger(tab.id)).map(async tab=>{
@@ -19,8 +19,15 @@ async function probeMostRecentChatGPT(){
     }catch{}
   }));
   if(!replies.length)throw Error('NO_CHATGPT_PROBE');
-  replies.sort((a,b)=>b.lastAccessed-a.lastAccessed);
-  return {snapshot:replies[0].data,responders:replies.length};
+  let eligible=replies;
+  if(label==='project')eligible=replies.filter(row=>row.data?.route?.kind==='project_chat');
+  if(['projectReload','projectReturn'].includes(label)&&captures.project?.route?.conversationDigest){
+    eligible=replies.filter(row=>row.data?.route?.conversationDigest===captures.project.route.conversationDigest);
+  }
+  if(label==='ordinary')eligible=replies.filter(row=>row.data?.route?.kind==='plain_chat'&&row.data?.route?.projectDigest==null);
+  if(!eligible.length)throw Error('TARGET_CHAT_NOT_FOUND');
+  eligible.sort((a,b)=>b.lastAccessed-a.lastAccessed);
+  return {snapshot:eligible[0].data,responders:replies.length};
 }
 
 function renderState(){
@@ -36,7 +43,7 @@ for(const label of labels){
     const button=$('capture-'+label),status=$('status');
     button.disabled=true;status.textContent='正在读取最近使用的 ChatGPT 标签页…';
     try{
-      const {snapshot,responders}=await probeMostRecentChatGPT();
+      const {snapshot,responders}=await probeMostRecentChatGPT(label);
       captures[label]=snapshot;
       status.textContent=responders>1
         ?`已采集。检测到 ${responders} 个可响应的 ChatGPT 标签页，使用最近访问的一个。`
