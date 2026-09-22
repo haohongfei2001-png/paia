@@ -6,7 +6,7 @@ Passive amendment: `PRD02-20260921-passive01`
 
 Execution start main: `f42e1a7fa5c0944290bd47868da8d0b2512287ad`
 
-Current round: **IN_PROGRESS — LIVE PASSIVE EVIDENCE NOT YET COLLECTED**
+Current round: **IN_PROGRESS — ENGINEERING PUBLISHED; LOCAL PASSIVE EVIDENCE PENDING**
 
 ## Scope
 
@@ -100,6 +100,25 @@ The only shareable result line begins:
 It contains booleans, counts, fixed enum states, public source HEAD/version and
 release digest. It contains no body, title, URL, conversation ID, source ID,
 message ID, profile path or credential.
+
+## Passive verifier publication
+
+PR #42 merged the passive normal-use verifier to:
+
+`main@6f91eaaecdfd45fcef291bee8c967de6699bab9e`
+
+The exact PR head passed PAIA Certification #454 / run `35611861162`.
+
+The merged main then passed exact-main PAIA Certification #455 / run
+`35615363535` with all required current jobs SUCCESS, including Current Browser,
+Full Suite, Unit 1-4, Adapter/privacy, current release guards, macOS Secure Store
+and the final Certification gate.
+
+No production runtime, manifest, permission, schema, provider, Source identity,
+Backup or AI behavior changed in the passive-verifier amendment.
+
+Therefore the remaining PRD-02 dependency is not CI or implementation. It is one
+local read-only `PAIA_PRD02_PASSIVE` result from ordinary ChatGPT use.
 
 ## Pending closure
 
