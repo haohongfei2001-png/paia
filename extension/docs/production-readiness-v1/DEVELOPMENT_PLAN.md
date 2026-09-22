@@ -84,6 +84,37 @@ Exit:
 - live contract version and limitations are documented;
 - no claim of account-wide completeness.
 
+## Interlock amendment — ChatGPT Project Recognition before PRD-03
+
+The product owner has tightened the product acceptance standard after ordinary
+daily use exposed that the completed ANS package still permits
+`projectIdentity/projectName/membership = unverified`.
+
+This is not retroactive relabeling of ANS-01..09. Their historical certifications
+remain valid under their original fallback-capable contract.
+
+However, Production Readiness may no longer progress directly from PRD-02 to
+PRD-03. Once PRD-02 is COMPLETE, the separate package
+`PAIA-CHATGPT-PROJECT-RECOGNITION-v1` must complete first.
+
+Its minimum exit requires real current ChatGPT evidence for all three:
+
+- project identity;
+- project display name;
+- current Conversation→Project membership.
+
+The normal product behavior must be passive: opening/navigating ChatGPT should
+reconcile the current Project without requiring the owner to manually classify
+the conversation or run a special import.
+
+The package may not claim completion by leaving those capabilities
+`unknown/unavailable`. If current ChatGPT does not expose a privacy-safe,
+stable enough observation channel, that package must finish BLOCKED/FAIL rather
+than inventing Project facts.
+
+No Project Recognition implementation is authorized inside PRD-02. PRD-03 stays
+blocked until both PRD-02 and the recognition package are complete.
+
 ## PRD-03 — Daily-profile update, restart and recovery canary
 
 Purpose: prove ordinary ownership/lifecycle behavior on the actual daily
