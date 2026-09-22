@@ -186,6 +186,135 @@
       return {root, turn, sourceMessageId, row, containers};
     }
 
+    async projectDiscovery({salt} = {}) {
+      const win=this.document.defaultView;
+      if(typeof salt!=='string'||!/^[a-f0-9]{32}$/.test(salt)||!win?.crypto?.subtle)return null;
+      let page;
+      try{page=new URL(this.location.href);}catch{return null;}
+      if(page.origin!=='https://chatgpt.com')return null;
+      const encoder=new TextEncoder();
+      const digest=async(kind,value)=>{
+        if(typeof value!=='string'||!value.length)return null;
+        const bytes=encoder.encode(salt+'\0'+kind+'\0'+value);
+        const hash=await win.crypto.subtle.digest('SHA-256',bytes);
+        return [...new Uint8Array(hash)].map(v=>v.toString(16).padStart(2,'0')).join('').slice(0,32);
+      };
+      const projectId=segment=>{
+        const match=typeof segment==='string'?segment.match(/^(g-p-[a-f0-9]{32})(?:-|$)/i):null;
+        return match?match[1].toLowerCase():null;
+      };
+      const routeInfo=pathname=>{
+        let match=pathname.match(/^\/g\/([^/]+)\/c\/([A-Za-z0-9_-]{8,128})\/?$/);
+        if(match){
+          const project=projectId(match[1]);
+          return {kind:project?'project_chat':'g_other_chat',project,chatId:match[2]};
+        }
+        match=pathname.match(/^\/c\/([A-Za-z0-9_-]{8,128})\/?$/);
+        if(match)return {kind:'plain_chat',project:null,chatId:match[1]};
+        match=pathname.match(/^\/g\/([^/]+)\/project\/?$/);
+        if(match){
+          const project=projectId(match[1]);
+          return {kind:project?'project_home':'g_other_home',project,chatId:null};
+        }
+        return {kind:'other',project:null,chatId:null};
+      };
+      const route=routeInfo(page.pathname);
+      const routeProjectDigest=route.project?await digest('project-id',route.project):null;
+      const zone=node=>node.closest('header')?'header':node.closest('nav')?'nav':node.closest('aside')?'aside':node.closest('main')?'main':'other';
+      const excluded=node=>!!node.closest('[data-message-author-role], textarea, input, [contenteditable]:not([contenteditable="false"]), [role="textbox"]');
+      const normalize=value=>typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,300):'';
+      const anchors=[];
+      const rawAnchors=[...this.document.querySelectorAll('a[href]')];
+      for(const node of rawAnchors){
+        if(anchors.length>=80||excluded(node))continue;
+        let href;try{href=new URL(node.getAttribute('href'),page.href);}catch{continue;}
+        if(href.origin!=='https://chatgpt.com')continue;
+        const info=routeInfo(href.pathname);
+        const segment=href.pathname.match(/^\/g\/([^/]+)/)?.[1]||null;
+        const pid=info.project||projectId(segment);
+        if(!pid&&!href.pathname.includes('/project'))continue;
+        const label=normalize(node.textContent)||normalize(node.getAttribute('aria-label'));
+        const pidDigest=pid?await digest('project-id',pid):null;
+        anchors.push({
+          kind:info.kind,
+          zone:zone(node),
+          visible:this.visible(node),
+          projectDigest:pidDigest,
+          labelDigest:label?await digest('project-name',label):null,
+          labelLength:[...label].length,
+          matchesRouteProject:!!routeProjectDigest&&pidDigest===routeProjectDigest,
+          currentConversation:!!route.chatId&&info.chatId===route.chatId,
+          selected:node.getAttribute('aria-current')==='page'||node.getAttribute('data-state')==='active'
+        });
+      }
+      const nested=[];
+      if(route.chatId){
+        const current=rawAnchors.filter(node=>{
+          if(excluded(node))return false;
+          try{
+            const href=new URL(node.getAttribute('href'),page.href),info=routeInfo(href.pathname);
+            return info.chatId===route.chatId;
+          }catch{return false;}
+        });
+        for(const link of current.slice(0,20)){
+          let ancestor=link.parentElement;
+          for(let depth=1;ancestor&&depth<=6;depth++,ancestor=ancestor.parentElement){
+            const candidates=[...ancestor.querySelectorAll('a[href]')].filter(node=>!excluded(node));
+            let found=false;
+            for(const node of candidates.slice(0,80)){
+              let href;try{href=new URL(node.getAttribute('href'),page.href);}catch{continue;}
+              if(href.origin!=='https://chatgpt.com')continue;
+              const segment=href.pathname.match(/^\/g\/([^/]+)\/project\/?$/)?.[1];
+              const pid=projectId(segment);
+              if(!pid)continue;
+              const label=normalize(node.textContent)||normalize(node.getAttribute('aria-label'));
+              nested.push({
+                distance:depth,
+                projectDigest:await digest('project-id',pid),
+                labelDigest:label?await digest('project-name',label):null,
+                labelLength:[...label].length,
+                visible:this.visible(node)
+              });
+              found=true;break;
+            }
+            if(found)break;
+          }
+        }
+      }
+      const attributes=[];
+      for(const node of [...this.document.querySelectorAll('[data-project-id],[data-project-name],[data-testid*="project"]')]){
+        if(attributes.length>=40||excluded(node))continue;
+        const rawId=normalize(node.getAttribute('data-project-id'));
+        const rawName=normalize(node.getAttribute('data-project-name'));
+        const testId=normalize(node.getAttribute('data-testid'));
+        attributes.push({
+          tag:String(node.tagName||'').toLowerCase(),
+          zone:zone(node),
+          visible:this.visible(node),
+          projectIdDigest:rawId?await digest('project-id-attr',rawId):null,
+          projectNameDigest:rawName?await digest('project-name',rawName):null,
+          testIdDigest:testId?await digest('project-testid',testId):null
+        });
+      }
+      return {
+        schemaVersion:1,
+        code:'OK',
+        route:{kind:route.kind,projectDigest:routeProjectDigest},
+        anchors,
+        nestedMemberships:nested.slice(0,20),
+        attributes,
+        counts:{
+          projectAnchors:anchors.length,
+          matchingRouteProjectAnchors:anchors.filter(item=>item.matchesRouteProject).length,
+          namedMatchingRouteAnchors:anchors.filter(item=>item.matchesRouteProject&&item.labelDigest).length,
+          currentConversationLinks:anchors.filter(item=>item.currentConversation).length,
+          nestedMemberships:nested.length,
+          projectAttributes:attributes.length
+        },
+        privacy:{messageBodiesRead:false,assistantBodiesRead:false,draftsRead:false,rawProjectIdsEmitted:false,rawProjectNamesEmitted:false,urlsEmitted:false}
+      };
+    }
+
     collect({now = Date.now()} = {}) {
       const route = this.route();
       if (route.code !== 'READY') {
