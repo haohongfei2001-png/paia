@@ -6,11 +6,11 @@ package_status: `ACTIVE`
 
 canonical_branch: `main`
 
-current_round: `CPR-00`
+current_round: `CPR-01`
 
-current_round_status: `IN_PROGRESS`
+current_round_status: `READY`
 
-writer_status: `RELEASED — same-tab helper exact-main certified; awaiting final live discovery`
+writer_status: `RELEASED`
 
 blocking_dependency: `NONE — PRD-02 COMPLETE`
 
@@ -18,8 +18,8 @@ blocking_dependency: `NONE — PRD-02 COMPLETE`
 
 | Round | State | Goal |
 |---|---|---|
-| CPR-00 | IN_PROGRESS | Live capability discovery and evidence-contract freeze |
-| CPR-01 | PLANNED | Trusted automatic current-Project observer and admission |
+| CPR-00 | COMPLETE | Live capability discovery and evidence-contract freeze |
+| CPR-01 | READY | Trusted automatic current-Project observer and admission |
 | CPR-02 | PLANNED | Lifecycle + Navigator integration and fallback correctness |
 | CPR-03 | PLANNED | Real normal-use certification and package closure |
 
@@ -202,3 +202,48 @@ remaining_dependency:
 Because the helper correction is development-only, the already loaded certified
 PAIA runtime does not need another production Update/Reload solely for this
 correction. The owner only needs the latest repository helper files.
+
+
+## CPR-00 closure
+
+final_live_result_time: `2026-09-22`
+
+final_live_result:
+`PASS / paia-cpr00-project-discovery-v1`
+
+final_live_channel:
+`route_plus_matching_project_home_link`
+
+final_live_checks:
+
+- runtimeParity = PASS;
+- projectObserved = PASS;
+- reloadObserved = PASS;
+- ordinaryObserved = PASS;
+- returnObserved = PASS;
+- projectIdentityCandidate = PASS;
+- projectNameCandidate = PASS;
+- membershipCandidate = PASS;
+- stableAcrossReload = PASS;
+- reloadSameConversation = PASS;
+- reloadNewDocument = PASS;
+- ordinaryNegative = PASS;
+- stableAfterAwayBack = PASS;
+- returnSameConversation = PASS;
+- noRawPrivateEmission = PASS.
+
+The final same-tab run proved the same Project identity/name/membership evidence
+before and after a true document reload, produced no Project fact on an ordinary
+chat, and restored the same Project evidence after navigating back.
+
+Frozen contract:
+`docs/chatgpt-project-recognition-v1/CPR-00_FROZEN_PROVIDER_CONTRACT.md`
+
+verdict:
+`CPR-00 COMPLETE / PASS`
+
+CPR-01 is READY but **NOT_STARTED**.
+
+Production capability flags remain `unverified` until CPR-01 implements this
+frozen provider contract through the trusted source-structure admission path.
+PRD-03 remains blocked.
