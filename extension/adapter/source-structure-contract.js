@@ -7,6 +7,9 @@
   const PROJECT_CONTRACT_ID='chatgpt.current-project-membership';
   const PROJECT_CONTRACT_VERSION=1;
   const PROJECT_CHANNEL='route_plus_matching_project_home_link';
+  const ABSENCE_CONTRACT_ID='chatgpt.current-project-absence';
+  const ABSENCE_CONTRACT_VERSION=1;
+  const ABSENCE_CHANNEL='plain_route_project_absence';
   const PROJECT_NAMESPACE='chatgpt-project';
   const ID=/^[A-Za-z0-9_-]{8,128}$/;
   const PROJECT_ID=/^g-p-[a-f0-9]{32}$/;
@@ -76,6 +79,15 @@
       }
     ];
   }
+  function currentProjectUnassigned({chat,epoch,session,generation,observedAt}={}){
+    const safe=routeChat(chat),ctx={epoch,session,generation,observedAt};
+    if(!safe||!validContext(ctx))return null;
+    return {
+      ...envelope(ABSENCE_CONTRACT_ID,ABSENCE_CONTRACT_VERSION,ABSENCE_CHANNEL,'membership',safe,ctx),
+      observation:{membership:{state:'unassigned'}}
+    };
+  }
+
   function orderCandidate(capability){
     if(!['projectOrder','windowOrder'].includes(capability))return unavailable(capability);
     return unavailable(capability);
@@ -85,7 +97,9 @@
     contractId:IDENTITY_CONTRACT_ID,contractVersion:IDENTITY_CONTRACT_VERSION,
     projectContractId:PROJECT_CONTRACT_ID,projectContractVersion:PROJECT_CONTRACT_VERSION,
     projectChannel:PROJECT_CHANNEL,projectNamespace:PROJECT_NAMESPACE,
-    capabilities:CAPABILITIES,currentConversationPresence,currentProjectMembership,
+    absenceContractId:ABSENCE_CONTRACT_ID,absenceContractVersion:ABSENCE_CONTRACT_VERSION,
+    absenceChannel:ABSENCE_CHANNEL,
+    capabilities:CAPABILITIES,currentConversationPresence,currentProjectMembership,currentProjectUnassigned,
     orderCandidate,unavailable
   });
 })();
