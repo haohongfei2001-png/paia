@@ -28,6 +28,7 @@
       this.nodeTokens = new WeakMap();
       this.nodeRevisions = new WeakMap();
       this.nextToken = 1;
+      this.discoveryPageNonce = this.document.defaultView?.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
     }
 
     // Called only after consent and enablement have been checked.
@@ -220,6 +221,8 @@
       };
       const route=routeInfo(page.pathname);
       const routeProjectDigest=route.project?await digest('project-id',route.project):null;
+      const conversationDigest=route.chatId?await digest('conversation-id',route.chatId):null;
+      const pageInstanceDigest=await digest('page-instance',this.discoveryPageNonce);
       const zone=node=>node.closest('header')?'header':node.closest('nav')?'nav':node.closest('aside')?'aside':node.closest('main')?'main':'other';
       const excluded=node=>!!node.closest('[data-message-author-role], textarea, input, [contenteditable]:not([contenteditable="false"]), [role="textbox"]');
       const normalize=value=>typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,300):'';
@@ -299,7 +302,8 @@
       return {
         schemaVersion:1,
         code:'OK',
-        route:{kind:route.kind,projectDigest:routeProjectDigest},
+        route:{kind:route.kind,projectDigest:routeProjectDigest,conversationDigest},
+        pageInstanceDigest,
         anchors,
         nestedMemberships:nested.slice(0,20),
         attributes,
