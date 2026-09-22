@@ -73,13 +73,11 @@
       const project=this.projectRoute(route);
       if(project){
         const projectName=this.projectName(project.projectId);
-        if(projectName){
-          const dtos=contract.currentProjectMembership({...context,projectId:project.projectId,projectName});
-          if(dtos?.length){
-            this.issued=true;
-            return {chat:route,dtos};
-          }
-        }
+        if(!projectName)return null;
+        const dtos=contract.currentProjectMembership({...context,projectId:project.projectId,projectName});
+        if(!dtos?.length)return null;
+        this.issued=true;
+        return {chat:route,dtos};
       }
       const dto=contract.currentConversationPresence(context);
       if(!dto)return null;
