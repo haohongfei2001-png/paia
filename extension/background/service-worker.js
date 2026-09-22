@@ -28,7 +28,7 @@ import { canonicalChat } from '../core/validation.js';
 import {canonicalProjectChat} from '../core/project-route-validation.js';
 import {SourceStructureStore} from '../core/source-structure-store.js';
 import {subjectRef,sourceStructureSnapshot} from '../core/source-structure-model.js';
-import {admitSourceStructureDTO,chatGPTSourceStructurePolicy,CHATGPT_PROJECT_STRUCTURE_POLICY} from '../core/source-structure-admission.js';
+import {admitChatGPTSourceStructureBatch,CHATGPT_PROJECT_STRUCTURE_POLICY} from '../core/source-structure-admission.js';
 import {ArchiveOrderPreferenceService,SourceOrderRegistry,unavailableSourceOrderProvider} from '../core/source-ordering.js';
 import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from '../core/organizer/deepseek.js';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
@@ -123,10 +123,8 @@ async function handle(request, sender) {
     if(!status.enabled)throw new ArchiveError('PAUSED');
     if(status.epoch!==request.epoch||
        request.observations.some(observation=>observation?.epoch!==request.epoch))throw new ArchiveError('STALE_CAPTURE');
-    const admitted=[];
-    for(const observation of request.observations){
-      const policy=chatGPTSourceStructurePolicy(observation);
-      const item=await admitSourceStructureDTO(observation,policy);
+    const admitted=await admitChatGPTSourceStructureBatch(request.observations);
+    for(const item of admitted){
       if(item.kind==='conversation'){
         if(item.conversationRef.platform!=='chatgpt'||item.conversationRef.sourceConversationId!==source.id)throw new ArchiveError('FORBIDDEN');
         if(item.membership?.state==='project'){
@@ -141,7 +139,6 @@ async function handle(request, sender) {
            item.witnessConversationRef?.platform!=='chatgpt'||
            item.witnessConversationRef?.sourceConversationId!==source.id)throw new ArchiveError('FORBIDDEN');
       }else throw new ArchiveError('FORBIDDEN');
-      admitted.push(item);
     }
     return sourceStructure.observeAdmittedBatch(admitted);
   }
