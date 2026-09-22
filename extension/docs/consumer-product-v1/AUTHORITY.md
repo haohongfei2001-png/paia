@@ -25,8 +25,8 @@ The executable public contract should contain only the minimum product decisions
 Planning source checkpoints:
 
 - Design-intent source referenced by the 2026-09-23 audit: PAIA设计想法.docx.
-- Audit artifact local SHA-256 used during planning: d956258bbbc3225c01a4836c2147db53549de45dbc2f06c1c6edcb6e979b3e9b.
-- Planning GitHub baseline: fa1a6c6452153bb99ec24cdd8662b5d8c6a9371a.
+- The audit records the design-source SHA-256 as `d61b141afdeb794b74ffe627e12b0a2530acca53aa94e9f28b6d8c2f13c08824`.
+- Planning GitHub baseline: `fa1a6c6452153bb99ec24cdd8662b5d8c6a9371a`.
 
 These checkpoints identify evidence; they do not make the audit artifact repository authority.
 
