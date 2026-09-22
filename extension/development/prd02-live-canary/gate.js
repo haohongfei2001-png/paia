@@ -36,7 +36,16 @@ async function inspect(){
    if(row.sourceSentAt==null||row.sourceSentAt==='')unknown++;else if(iso(row.sourceSentAt))known++;else invalid++;
   }
   const lastSuccess=Date.parse(diagnostics.lastSuccessAt||''),lastScan=Date.parse(diagnostics.lastScanAt||''),observed=Date.parse(latest.lastObservedAt||'');
-  const enrichedDiagnostics={...diagnostics,recentCapture:Number.isFinite(lastSuccess)&&now-lastSuccess>=0&&now-lastSuccess<=RECENT_MS};
+  const structuralRejections=Array.isArray(diagnostics.structure?.rows)?diagnostics.structure.rows.filter(row=>row?.candidateAccepted===false).slice(0,5).map(row=>({
+   idOnRole:row.idOnRole===true,idOnAncestor:row.idOnAncestor===true,idOnDescendant:row.idOnDescendant===true,
+   editorCheckAvailable:row.editorCheckAvailable===true,rootInsideEditor:row.rootInsideEditor===true,
+   visibleEditorsInTurn:Number.isSafeInteger(row.visibleEditorsInTurn)?row.visibleEditorsInTurn:0,
+   busy:row.busy===true,textMatches:Number.isSafeInteger(row.textMatches)?row.textMatches:0,
+   ownedTextMatches:Number.isSafeInteger(row.ownedTextMatches)?row.ownedTextMatches:0,
+   visibleTextMatches:Number.isSafeInteger(row.visibleTextMatches)?row.visibleTextMatches:0,
+   safeTextMatches:Number.isSafeInteger(row.safeTextMatches)?row.safeTextMatches:0
+  })):[]; 
+  const enrichedDiagnostics={...diagnostics,recentCapture:Number.isFinite(lastSuccess)&&now-lastSuccess>=0&&now-lastSuccess<=RECENT_MS,structuralRejections};
   const observation={recent:Number.isFinite(observed)&&observed<=now,boundedToCapture:Number.isFinite(lastScan)&&Number.isFinite(observed)&&lastScan>=observed&&lastScan-observed<=OBSERVATION_BOUND_MS,membershipState:latest.membership?.state||'unknown'};
   const archive={activeRows:active.length,distinctSources:sources.size,distinctMessages:messages.size,identityMappingConsistent:invalid===0,knownSourceTimes:known,unknownSourceTimes:unknown,invalidSourceTimes:invalid};
   return {report:summarizePassive({runtime,observation,diagnostics:enrichedDiagnostics,archive,scanComplete:recordScan.complete})};
