@@ -202,16 +202,39 @@ Chrome tab ID in helper memory. Reload, ordinary-chat and return observations
 must all come from that exact tab. The tab ID is never emitted in the sanitized
 result and is not persisted.
 
+## Same-tab helper correction certification
+
+PR #45 made the live helper deterministic by locking all four observations to
+the exact first Project tab.
+
+Candidate head:
+`4237ae62ce43d7885f98dcf4d2fab162333086c6`
+
+Candidate Certification:
+`PAIA Certification #499 / run 35712059351 / attempt 1 / SUCCESS`
+
+Merged main:
+`ea752ea9e8ddfc76e820d66c9fe69a47ade007b9`
+
+Exact-main Certification:
+`PAIA Certification #500 / run 35714708162 / attempt 1 / SUCCESS`
+
+Every required current job passed. No production runtime Project contract,
+capture adapter, manifest permission or capability flag changed.
+
+The remaining live step is one fresh helper run from the latest repository. The
+existing loaded PAIA runtime may be reused because the correction is confined to
+the development helper copied by `CPR-00 Project Discovery.command`.
+
 ## Pending closure
 
 CPR-00 still requires:
 
-1. synchronize the existing daily PAIA installation to certified
-   `main@8f72cc87c66ed382e6ab131834e1f2a152270672` and reload the same extension;
-2. run the development helper `CPR-00 Project Discovery.command`;
-3. obtain one proven fresh-document Project observation in the same run (or redo the four-step run once if the helper was closed);
-4. preserve the updated sanitized `PAIA_CPR00_PROJECT_DISCOVERY` result;
-5. freeze the provider contract if the fresh-reload check passes;
+1. pull the latest repository helper files;
+2. run `CPR-00 Project Discovery.command` without another production Update/Reload;
+3. complete the four observations in the single locked ChatGPT tab;
+4. preserve one result with `reloadNewDocument=true`;
+5. freeze the provider contract if all checks pass;
 6. publish final receipt/status and stop.
 
 No CPR-01 implementation is authorized in this execution.
