@@ -71,6 +71,7 @@
       if(pending.key!==key||!sameRoute(pending.chat)){reset();return;}
       if(Date.now()<pending.nextAt)return;
       if(pending.attempts>=MAX_ATTEMPTS||Date.now()-pending.startedAt>PENDING_TTL_MS){
+        sourceStructure.release?.(pending.stateKey);
         pending=null;
         return;
       }
