@@ -12,11 +12,11 @@ planning_round: `PRD-00`
 
 planning_round_status: `COMPLETE`
 
-current_round: `PRD-02`
+current_round: `NONE`
 
-current_round_status: `IN_PROGRESS`
+current_round_status: `NONE`
 
-writer_status: `RELEASED — runtime aligned; awaiting one post-page-reload passive result`
+writer_status: `RELEASED`
 
 acceptanceComplete: `false`
 
@@ -30,7 +30,7 @@ productionCertified: `false`
 |---|---|---|
 | PRD-00 | COMPLETE | Audit current product, freeze production definitions, scope and verification plan |
 | PRD-01 | COMPLETE | Exact-main baseline and certification-debt reconciliation |
-| PRD-02 | IN_PROGRESS | Current logged-in ChatGPT capture canary |
+| PRD-02 | COMPLETE | Current logged-in ChatGPT capture canary |
 | PRD-03 | BLOCKED | Daily-profile update/restart/recovery canary — requires PRD-02 COMPLETE and PAIA-CHATGPT-PROJECT-RECOGNITION-v1 COMPLETE |
 | PRD-04 | PLANNED | Backup/restore and scale durability |
 | PRD-05 | PLANNED | Daily core-loop product canary |
@@ -405,3 +405,67 @@ passive verifier.
 
 No further runtime update, Chrome restart, Backup restore, data clearing,
 PRD-03 work or Project Recognition implementation is authorized by this step.
+
+
+## PRD-02 closure
+
+execution_id: `PRD02-20260921-live01`
+
+final_live_result_time: `2026-09-22`
+
+final_live_result: `PASS / paia-prd02-passive-normal-use-v2`
+
+runtime_source_head:
+`f1d32984c3d4d852d0df1d86b243170309dab4bd`
+
+runtime_manifest_version: `0.12.0`
+
+runtime_release_digest:
+`71270fdee2d940d7a5276311c3a699b3492f128fe8f0e0394b6fec6209f9763c`
+
+final_live_checks:
+
+- runtime parity: PASS;
+- bounded scan complete: PASS;
+- recent live capture: PASS;
+- recent Conversation observation: PASS;
+- observation bounded to capture: PASS;
+- adapter version: PASS;
+- capture status: PASS;
+- structure available: PASS;
+- visible user roles present: PASS;
+- every visible user role accepted: PASS;
+- ingestion matches accepted candidates: PASS;
+- ingestion settled: PASS;
+- duplicate observation safety: PASS;
+- archive identity coverage: PASS;
+- source-time honesty: PASS.
+
+final_live_counts:
+
+- visible user roles: 2;
+- accepted candidates: 2;
+- attempted: 2;
+- added: 0;
+- duplicates: 2;
+- unresolved: 0;
+- active archive rows in bounded Conversation: 13;
+- distinct Sources: 13;
+- distinct messages: 13.
+
+The final live result preserves the prior failed observations as history; it does
+not rewrite them. It shows that after aligning the existing daily runtime to the
+certified release and reloading the current ChatGPT document so content scripts
+were reinjected, the declared PRD-02 live capture contract passed.
+
+V05-V09 are COMPLETE for the declared current normal-use scope.
+
+Project recognition remains explicitly outside PRD-02:
+`projectIdentity/projectName/membership = unverified`.
+That is the next package's problem and is not counted as a PRD-02 capture failure.
+
+PRD-02 is COMPLETE. No PRD round is READY because PRD-03 remains BLOCKED on
+`PAIA-CHATGPT-PROJECT-RECOGNITION-v1`.
+
+`acceptanceComplete=false`, `releaseCandidateCertified=false`, and
+`productionCertified=false` remain unchanged.
