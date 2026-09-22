@@ -39,12 +39,13 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   await seedExtraWindows(p,45);await refreshNavigator(p);
   await eventually(()=>p.locator('#archive-navigator').isVisible(),'Navigator visible',30000);
   assert.equal(await p.locator('#core-loop-home').isVisible(),true,'root keeps auxiliary continue/revisit');
-  const alpha=await waitGroup(p,'ANS05 Project Alpha'),unknown=await waitGroup(p,'归属未知');
+  const alpha=await waitGroup(p,'ANS05 Project Alpha'),unknown=await waitGroup(p,'归属未知'),unassigned=await waitGroup(p,'未归属 Project');
   assert.equal(await alpha.getAttribute('aria-expanded'),'false','Project starts collapsed');
-  await unknown.click();await eventually(async()=>await p.locator('.archive-navigator-window').count()>=40,'first bounded window batch');
-  assert.equal(await p.locator('.archive-navigator-window').filter({hasText:'ANS-05 B'}).count(),0,'non-first-page Window is not falsely loaded');
+  await unknown.click();await eventually(async()=>await p.locator('.archive-navigator-window').count()>=40,'first bounded unknown-window batch');
+  assert.equal(await p.locator('.archive-navigator-window').filter({hasText:'ANS-05 B'}).count(),0,'verified ordinary Window is not misclassified as unknown');
   const more=p.locator('.archive-navigator-more').filter({hasText:'继续载入窗口'}).first();assert.equal(await more.isVisible(),true);await more.click();
-  await eventually(()=>windowButton(p,'ANS-05 B').isVisible(),'B reachable after bounded continuation');
+  assert.equal(await p.locator('.archive-navigator-window').filter({hasText:'ANS-05 B'}).count(),0,'unknown continuation still excludes verified unassigned Window');
+  await unassigned.click();await eventually(()=>windowButton(p,'ANS-05 B').isVisible(),'B is reachable from explicit unassigned group');
   await alpha.click();await eventually(()=>windowButton(p,'ANS-05 A').isVisible(),'Project A Window visible');
   phase='Reader navigation and history';
   await windowButton(p,'ANS-05 A').click();await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_A_BODY'}).isVisible(),'A Reader opens');
