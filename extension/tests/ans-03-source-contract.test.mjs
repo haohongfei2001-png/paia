@@ -37,7 +37,7 @@ const stable=state=>state.records.map(r=>({
  contentHash:r.contentHash,originalText:r.originalText,capturedAt:r.capturedAt
 }));
 
-test('ANS-03 production adapter declares capabilities individually and emits only audited current-conversation presence',async()=>{
+test('ANS-03 production adapter declares capabilities individually and emits audited plain-route membership absence',async()=>{
  const context={};vm.createContext(context);
  vm.runInContext(await readFile(new URL('../adapter/source-structure-contract.js',import.meta.url),'utf8'),context);
  vm.runInContext(await readFile(new URL('../adapter/chatgpt-source-structure.js',import.meta.url),'utf8'),context);
@@ -48,10 +48,15 @@ test('ANS-03 production adapter declares capabilities individually and emits onl
   assert.equal(caps[key],'unverified',key);
  const id='ans03-current-conversation';
  const adapter={version:'0.3.0',route:()=>({code:'READY',id,url:`https://chatgpt.com/c/${id}`})};
- const source=new context.ChatGPTSourceStructure({adapter,clock:()=>at(1)});
+ const source=new context.ChatGPTSourceStructure({
+  adapter,clock:()=>at(1),
+  document:{querySelectorAll:()=>[]},location:{href:`https://chatgpt.com/c/${id}`}
+ });
  const emitted=source.observe({enabled:true,consented:true,adapterVersion:'0.3.0',epoch:7},{session});
  assert.equal(emitted.dtos.length,1);
- assert.deepEqual(JSON.parse(JSON.stringify(emitted.dtos[0].observation)),{});
+ assert.equal(emitted.dtos[0].capability,'membership');
+ assert.equal(emitted.dtos[0].contractId,'chatgpt.current-project-absence');
+ assert.deepEqual(JSON.parse(JSON.stringify(emitted.dtos[0].observation)),{membership:{state:'unassigned'}});
  assert.deepEqual(Object.keys(emitted.dtos[0].subject),['kind','conversationId']);
  assert.equal(source.observe({enabled:true,consented:true,adapterVersion:'0.3.0',epoch:7},{session}),null);
  assert.equal(context.SourceStructureContract.currentConversationPresence({
