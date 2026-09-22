@@ -9,6 +9,7 @@ const SUBJECTS=new Set(['conversation','project','order']);
 const STATUS=new Set(['unknown','observed_active','confirmed_deleted']);
 const ID=/^[A-Za-z0-9_-]{1,200}$/;
 const ASCII=/^[A-Za-z0-9._:@-]{1,128}$/;
+const PROJECT_ID=/^g-p-[a-f0-9]{32}$/;
 const FROZEN_PROJECT_ID=/^g-p-[a-f0-9]{32}$/;
 const fail=(code='INVALID_REQUEST')=>{throw new ArchiveError(code);};
 const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
@@ -114,7 +115,8 @@ function membership(value,providerKey,namespace){
   return {state:'unassigned',projectRef:null};
  }
  if(value.state!=='project'||!ASCII.test(value.namespace||'')||!ASCII.test(value.projectId||'')||
-    namespace!==undefined&&value.namespace!==namespace)fail();
+    namespace!==undefined&&value.namespace!==namespace||
+    namespace==='chatgpt-project'&&!PROJECT_ID.test(value.projectId||''))fail();
  return {state:'project',projectRef:{providerKey,namespace:value.namespace,projectId:value.projectId}};
 }
 function conversationObservation(value,rule,providerKey,namespace){
@@ -172,6 +174,7 @@ export async function admitSourceStructureDTO(value,policy=CHATGPT_SOURCE_STRUCT
     ['kind','namespace','projectId']);
   if(value.subject.kind!=='project'||!ASCII.test(value.subject.namespace||'')||
      !ASCII.test(value.subject.projectId||'')||policy.namespace!==undefined&&value.subject.namespace!==policy.namespace||
+     policy.namespace==='chatgpt-project'&&!PROJECT_ID.test(value.subject.projectId||'')||
      value.subject.witnessConversationId!==undefined&&!ID.test(value.subject.witnessConversationId))fail();
   if(policy.contractId===CHATGPT_PROJECT_STRUCTURE_POLICY.contractId&&
      !FROZEN_PROJECT_ID.test(value.subject.projectId||''))fail();
