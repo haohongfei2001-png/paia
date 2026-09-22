@@ -84,6 +84,24 @@ Exit:
 - live contract version and limitations are documented;
 - no claim of account-wide completeness.
 
+### PRD-02 runtime-alignment exception
+
+If live PRD-02 evidence proves capture behavior but fails only because the
+owner's existing daily runtime does not match the already-certified current
+release, PRD-02 may request one explicit owner-approved alignment operation.
+
+The operation is limited to the existing documented updater deploying the
+already-certified release into the same Chrome-loaded runtime path, preserving
+extension identity and Chrome-managed archive, followed by one extension reload
+and a repeat passive PRD-02 observation.
+
+This exception exists only to establish PRD-02's current-release precondition.
+It does not satisfy PRD-03's update/restart/recovery durability gates. It cannot
+restart Chrome, restore Backup, change extension identity or clear data.
+
+Because it mutates the owner's daily installation, the operation requires
+explicit owner approval at the time of execution.
+
 ## Interlock amendment — ChatGPT Project Recognition before PRD-03
 
 The product owner has tightened the product acceptance standard after ordinary
