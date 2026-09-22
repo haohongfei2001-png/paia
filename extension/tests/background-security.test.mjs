@@ -43,12 +43,12 @@ function sourceObservation(epoch,changes={}) {
     chat:{id:CHAT_ID,url:CHAT_URL},observations:[observation],...changes};
 }
 
-function projectObservationBatch(epoch,projectId=PROJECT_ID,name='Synthetic Project') {
+function projectObservationBatch(epoch,projectId=PROJECT_ID,name='Synthetic Project',generation=2,observedAt='2026-09-22T11:20:00.000Z') {
   const common={
     schemaVersion:1,contractId:'chatgpt.current-project-membership',contractVersion:1,
     providerKey:'chatgpt',channel:'route_plus_matching_project_home_link',
-    scope:'current_conversation',epoch,session:'cpr01-worker-session',generation:2,
-    observedAt:'2026-09-22T11:20:00.000Z'
+    scope:'current_conversation',epoch,session:'cpr01-worker-session',generation,
+    observedAt
   };
   return {
     type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
@@ -60,6 +60,21 @@ function projectObservationBatch(epoch,projectId=PROJECT_ID,name='Synthetic Proj
        subject:{kind:'project',namespace:'chatgpt-project',projectId,witnessConversationId:CHAT_ID},
        observation:{currentName:name}}
     ]
+  };
+}
+
+
+function unassignedObservation(epoch,generation=3,observedAt='2026-09-22T11:21:00.000Z') {
+  return {
+    type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
+    chat:{id:CHAT_ID,url:CHAT_URL},
+    observations:[{
+      schemaVersion:1,contractId:'chatgpt.current-project-absence',contractVersion:1,
+      providerKey:'chatgpt',capability:'membership',channel:'plain_route_project_absence',
+      scope:'current_conversation',epoch,session:'cpr02-worker-session',generation,observedAt,
+      subject:{kind:'conversation',conversationId:CHAT_ID},
+      observation:{membership:{state:'unassigned'}}
+    }]
   };
 }
 
@@ -418,6 +433,44 @@ test('CPR-01 Project observations are bound to the trusted same-tab Project rout
  badNamespace.observations[0].observation.membership.namespace='other-account';
  await expectError(app.send(badNamespace,projectContent),'INVALID_REQUEST');
 });
+
+
+test('CPR-02 plain-route absence is trusted, custom GPT is not, and only relationship changes notify Navigator',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});
+ const app=await fixture();await app.send({type:'CONSENT',accepted:true});
+ const epoch=(await app.send({type:'GET_STATUS'})).data.epoch;
+ const projectAContent={...content,url:PROJECT_URL,tab:{...content.tab,url:PROJECT_URL}};
+ assert.equal((await app.send(capture(epoch),projectAContent)).ok,true);
+
+ const beforeNotifications=app.notifications.length;
+ const projectA=projectObservationBatch(epoch,PROJECT_ID,'Synthetic Project A',2,'2026-09-22T11:20:00.000Z');
+ const first=await app.send(projectA,projectAContent);
+ assert.equal(first.ok,true);assert.equal(first.data.event,true);
+ assert.equal(app.notifications.slice(beforeNotifications).filter(x=>x.type==='SOURCE_STRUCTURE_CHANGED').length,1);
+
+ const duplicateStart=app.notifications.length;
+ const duplicate=await app.send(projectA,projectAContent);
+ assert.equal(duplicate.ok,true);assert.equal(duplicate.data.event,false);
+ assert.equal(app.notifications.slice(duplicateStart).some(x=>x.type==='SOURCE_STRUCTURE_CHANGED'),false);
+
+ const absence=unassignedObservation(epoch,3,'2026-09-22T11:21:00.000Z');
+ const absenceStart=app.notifications.length;
+ const unassigned=await app.send(absence,content);
+ assert.equal(unassigned.ok,true);assert.equal(unassigned.data.event,true);
+ assert.equal(app.notifications.slice(absenceStart).filter(x=>x.type==='SOURCE_STRUCTURE_CHANGED').length,1);
+
+ const customUrl=`https://chatgpt.com/g/g-custom-fixture/c/${CHAT_ID}`;
+ const customContent={...content,url:customUrl,tab:{...content.tab,url:customUrl}};
+ await expectError(app.send(unassignedObservation(epoch,4,'2026-09-22T11:22:00.000Z'),customContent),'FORBIDDEN');
+ await expectError(app.send(absence,projectAContent),'FORBIDDEN');
+
+ const projectB='g-p-'+'b'.repeat(32);
+ const projectBUrl=`https://chatgpt.com/g/${projectB}-synthetic-project-b/c/${CHAT_ID}`;
+ const projectBContent={...content,url:projectBUrl,tab:{...content.tab,url:projectBUrl}};
+ const moved=await app.send(projectObservationBatch(epoch,projectB,'Synthetic Project B',5,'2026-09-22T11:23:00.000Z'),projectBContent);
+ assert.equal(moved.ok,true);assert.equal(moved.data.event,true);
+});
+
 
 
 test('metadata enrichment uses the same trusted top-level sender and epoch gates as capture',async()=>{

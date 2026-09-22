@@ -33,11 +33,11 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   await eventually(async()=>(await h.state()).records.filter(r=>r.chatId===a.id).length===2,
     'ANS-03 production capture completes');
   await eventually(async()=>Boolean((await sourceRow(archive,a.id)).row?.lastObservedAt),
-    'ANS-03 production identity observation settles after source exists');
+    'ANS-03 production plain-route observation settles after source exists');
   let observed=await sourceRow(archive,a.id);
-  assert.equal(observed.row.membership.state,'unknown');assert.equal(observed.row.sourceStatus,'unknown');
-  assert.equal(observed.row.relationshipRevision,0);assert.match(observed.row.lastEvidenceId,/^obs:/);
-  assert.equal(observed.history.length,0,'identity-only observation creates no lifecycle history');
+  assert.equal(observed.row.membership.state,'unassigned');assert.equal(observed.row.sourceStatus,'unknown');
+  assert.equal(observed.row.relationshipRevision,1);assert.match(observed.row.lastEvidenceId,/^obs:/);
+  assert.equal(observed.history.length,1,'plain-route negative evidence records one unassigned relationship');
   const captured=(await h.state()).records.filter(r=>r.chatId===a.id);
   assert.equal(new Set(captured.map(r=>r.sourceKey)).size,2,'same text with different IDs remains separate');
   const documentId=(await h.state()).library.documents.find(d=>d.sourceConversationId===a.id)?.id;
@@ -47,7 +47,7 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   await chat.reload();await pause(2600);
   observed=await sourceRow(archive,a.id);
   assert.equal(observed.row.lastObservedAt,lastObservedAt,'capture exclusion blocks later structure writes');
-  assert.equal(observed.history.length,0);
+  assert.equal(observed.history.length,1);
 
   const b={id:'ans03-browser-lifecycle',title:'ANS-03 Lifecycle',base:1609469200,messages:[
    {id:'ans03-life-message-001',text:'ANS03 lifecycle source'}
@@ -55,7 +55,7 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   await h.spa(chat,b);
   await eventually(async()=>(await h.state()).records.some(r=>r.chatId===b.id),'ANS-03 second source captures');
   await eventually(async()=>Boolean((await sourceRow(archive,b.id)).row?.lastObservedAt),
-    'ANS-03 second production identity observation settles');
+    'ANS-03 second production plain-route observation settles');
   const synthetic=await archive.evaluate(async id=>{
    const {OrganizerStore}=await import('../core/organizer/store.js');
    const {SourceStructureStore}=await import('../core/source-structure-store.js');
@@ -76,11 +76,11 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
      conversationDeletion:{subject:'conversation',fields:['sourceStatus'],sourceStatus:['confirmed_deleted']}
     }
    });
-   const start=Date.parse(initial.lastObservedAt)+1000;
+   const start=Math.max(Date.now(),Date.parse(initial.lastObservedAt)+1);
    const make=(capability,subject,observation,n)=>({
     schemaVersion:1,contractId:policy.contractId,contractVersion:1,providerKey:'chatgpt',
     capability,channel:policy.channel,scope:policy.scope,epoch:99,session:'ans03-browser-synthetic',
-    generation:n,observedAt:new Date(start+n*1000).toISOString(),subject,observation
+    generation:n,observedAt:new Date(start+n).toISOString(),subject,observation
    });
    const conversation={kind:'conversation',conversationId:id};
    const A={namespace:'account-main',projectId:'browser-project-a'};
@@ -102,10 +102,18 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   assert.equal(synthetic.current.sourceStatus,'observed_active');assert.equal(synthetic.current.relationshipRevision,5);
   assert.equal(synthetic.project.currentName,'Browser B Renamed');assert.equal(synthetic.project.relationshipRevision,2);
   assert.equal(synthetic.history.length,5);
-  await h.restartWorker();await chat.reload();await pause(2600);
+  await h.restartWorker();
+  const afterWorkerRestart=await sourceRow(archive,b.id);
+  assert.equal(afterWorkerRestart.row.membership.state,'project','worker restart alone does not fabricate a new page observation');
+  assert.equal(afterWorkerRestart.row.relationshipRevision,5);
+  await chat.reload();
+  await eventually(async()=>(await sourceRow(archive,b.id)).row?.membership.state==='unassigned',
+    'ANS-03 fresh plain-route evidence supersedes synthetic Project membership');
   const afterRestart=await sourceRow(archive,b.id);
-  assert.equal(afterRestart.row.relationshipRevision,5,'identity-only observation after restart creates no history spam');
-  assert.equal(afterRestart.history.length,5);
+  assert.equal(afterRestart.row.membership.state,'unassigned','fresh page remount re-observes verified plain-route absence');
+  assert.equal(afterRestart.row.lastKnownSourceProject.projectRef.projectId,'browser-project-b');
+  assert.equal(afterRestart.row.relationshipRevision,6,'one effective Project → unassigned correction is recorded');
+  assert.equal(afterRestart.history.length,6);
 
   await rpc(archive,'SET_ENABLED',{enabled:false});
   const c={id:'ans03-browser-paused',title:'ANS-03 Paused',base:1609479200,messages:[

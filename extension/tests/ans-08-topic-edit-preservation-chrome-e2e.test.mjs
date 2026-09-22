@@ -12,9 +12,18 @@ test('ANS-08 Chrome windowing preserves dirty, IME, selection and bounded save/u
  const h=await FakeChatGPT.start({headless:false}),page=h.archive;
  try{
   await page.setViewportSize({width:1280,height:720});await page.locator('#consent-check').check();await page.locator('#enable-consent').click();
+  await eventually(async()=>{const status=await rpc(page,'GET_STATUS');return status.consented===true&&status.enabled===true;},'ANS-08 consent is durable before capture');
+  const capturePage=await h.open({id:'ans08-edit-source',title:'ANS08 synthetic source',base:1609459200,messages:[{id:'ans08-source-message',text:'ANS08 immutable source text'}]});
+  await eventually(async()=>{const state=await h.state();return state.records.some(r=>r.chatId==='ans08-edit-source'&&r.sourceMessageId==='ans08-source-message');},'ANS-08 source captured through the real content path',30000);
+  await eventually(async()=>page.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js');
+   const {SourceStructureStore}=await import('../core/source-structure-store.js');
+   const row=await new SourceStructureStore(new OrganizerStore(chrome.storage.local)).conversation({platform:'chatgpt',sourceConversationId:'ans08-edit-source'});
+   return row?.membership.state==='unassigned';
+  }),'ANS-08 plain-route source structure settles',30000);
+  await capturePage.close();
   const seed=await page.evaluate(async()=>{
    const [{OrganizerStore},{refreshEntryIndex}]=await Promise.all([import('../core/organizer/store.js'),import('../core/thought-model.js')]),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),rank=n=>String(n*1024).padStart(12,'0'),pad=n=>String(n).padStart(4,'0');
-   const epoch=(await s.status()).epoch;await s.capture({epoch,adapterVersion:'0.3.0',chat:{id:'ans08-edit-source',url:'https://chatgpt.com/c/ans08-edit-source',title:'ANS08 synthetic source'},messages:[{sourceMessageId:'ans08-source-message',pageOrder:1,originalText:'ANS08 immutable source text'}]});
    const block=(await s.run(()=>s.repository.transaction(false,t=>t.all('blocks'))))[0].value,topic=await s.createTopic({name:'ANS08_EDIT_SAFE_TOPIC',operationId:op()}),backed=await s.addToTopics({kind:'input',id:block.id,expectedRevision:block.revision,operationId:op(),topicIds:[topic.id]}),user=await s.continueThinking({operationId:op(),body:'ANS08 editable 0001',topicId:topic.id});
    await s.foundationWrite(async t=>{const live=await t.get('topics',topic.id),template=await t.get('thoughts',user.id),section=await t.get('sections',JSON.stringify([topic.id,live.activeLayoutGeneration,live.defaultSectionId])),base=await t.get('placements',JSON.stringify([topic.id,live.activeLayoutGeneration,user.id]));section.rank=rank(1);await t.put('sections',section);
     const backedPlacement=await t.get('placements',JSON.stringify([topic.id,live.activeLayoutGeneration,backed.id]));backedPlacement.sectionRank=section.rank;backedPlacement.rank=rank(1);backedPlacement.revision++;await t.put('placements',backedPlacement);

@@ -8,6 +8,18 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(fn,label='condition',attempts=120){for(let i=0;i<attempts;i++){if(await fn())return;await pause(100);}throw Error('Timed out: '+label);}
 const rpc=(p,type,fields={})=>p.evaluate(async x=>{const r=await chrome.runtime.sendMessage(x);if(!r?.ok)throw Error(JSON.stringify(r));return r.data;},{type,...fields});
 const tray=p=>p.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));return getMaterialTray().data;});
+async function waitForStableDataGeneration(p,label='portable data generation settles'){
+ let previous=null,stable=0;
+ await until(async()=>{
+  const current=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js');
+   const s=new OrganizerStore(chrome.storage.local);
+   return s.run(()=>s.repository.transaction(false,async t=>(await t.get('meta','backup-data-generation'))?.value||0,['meta']));
+  });
+  if(current===previous)stable++;else{previous=current;stable=0;}
+  return stable>=4;
+ },label,80);
+}
 async function start(messages){const h=await FakeChatGPT.start(),p=h.archive;try{await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await until(async()=>(await rpc(p,'GET_STATUS')).consented);const chat=await h.open({id:'uxr4-synthetic',title:'UX-R4 synthetic',base:1609459200,messages:messages.map((text,i)=>({id:'uxr4-input-'+i,text}))});await until(async()=>(await h.state()).records.length===messages.length,'fixture capture');return {h,p,chat};}catch(e){await h.close();throw e;}}
 async function search(p,q){await p.evaluate(()=>{if(globalThis.__uxr4Search)return;globalThis.__uxr4Search=[];const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async(...args)=>{const result=await send(...args);if(args[0]?.type==='SEARCH_INPUTS')globalThis.__uxr4Search.push({options:args[0].options,ok:result.ok,error:result.error,count:result.data?.items?.length,cursor:result.data?.nextCursor});return result;};});assert.equal(await p.locator('#universal-search-open').isVisible(),false);assert.equal(await p.locator('#archive-select-materials').count(),0);await p.locator('#primary-nav [data-view="memory"]').click();await until(()=>p.locator('#material-workbench').isVisible(),'For AI material tray');await p.getByRole('button',{name:'从档案选择',exact:true}).click();await p.getByRole('searchbox',{name:'全局搜索'}).fill(q);await until(async()=>(await p.locator('#universal-search-dialog').getAttribute('data-query'))===q&&await p.locator('.universal-hit').count()>0,'completed query');}
 const clean=h=>{assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);};
@@ -30,9 +42,23 @@ test('UX-R4 F-LARGE search and direct long Input reuse stay bounded; Grant once/
  clean(h);
  }finally{await h.close();}});
 
-test('UX-R4 real worker Grant once, revocation and manual identity fences remain independent',{timeout:120000},async()=>{const {h,p}=await start(['UXR4_GRANT_MATCH 合成受控文字']);try{
- // Bound legacy grants retain their full trusted path. Make its approved direct-Input
- // candidate range small by choosing a unique lexical query, without reading UI snippets.
- await until(async()=>{const filter=await rpc(p,'FILTER_STATUS');return filter.pending===0&&filter.taskState==='idle';},'grant fixture capture/filter quiescence');await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{includeUnorganizedInputs:true,externalAccess:true}});const built=await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'UXR4_GRANT_MATCH',budget:'short'}});assert.ok(built.items.length>0);const grant=await rpc(p,'PAIA_PASSPORT_CREATE',{grant:{consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'}});await rpc(p,'PAIA_CONTEXT_BIND',{previewId:built.previewId,grantId:grant.grantId});const results=await p.evaluate(async opts=>Promise.all([1,2].map(()=>chrome.runtime.sendMessage({type:'PAIA_MEMORY_SHARE',options:opts}))),{previewId:built.previewId,grantId:grant.grantId,format:'copy'});assert.equal(results.filter(r=>r.ok).length,1,JSON.stringify(results));assert.equal((await rpc(p,'PAIA_PASSPORT_STATUS')).grants.find(g=>g.grantId===grant.grantId).useCount,1);const denied=await p.evaluate(id=>chrome.runtime.sendMessage({type:'PAIA_CONTEXT_MANUAL',options:{action:'read',selectionId:id,generation:0}}),built.previewId);assert.equal(denied.error,'MEMORY_EXPIRED');clean(h);
+test('UX-R4 real worker Grant once, revocation and manual identity fences remain independent',{timeout:120000},async()=>{const {h,p,chat}=await start(['UXR4_GRANT_MATCH 合成受控文字']);try{
+ await until(async()=>p.evaluate(async()=>{
+  const {OrganizerStore}=await import('../core/organizer/store.js');
+  const {SourceStructureStore}=await import('../core/source-structure-store.js');
+  const row=await new SourceStructureStore(new OrganizerStore(chrome.storage.local)).conversation({platform:'chatgpt',sourceConversationId:'uxr4-synthetic'});
+  return row?.membership.state==='unassigned';
+ }),'grant fixture source observation settles');
+ // The grant concurrency test starts from a settled archive, without a live
+ // producer invalidating its preview between build and the two share calls.
+ await chat.close();
+
+ // This test exercises Grant once/revoke concurrency, not capture freshness.
+ // Wait until all real capture/enrichment/source-structure writes have stopped
+ // changing the same portable-data generation that MemoryService binds into a
+ // preview. A later real data change must still produce MEMORY_STALE.
+ await until(async()=>{const filter=await rpc(p,'FILTER_STATUS');return filter.pending===0&&filter.taskState==='idle';},'grant fixture capture/filter quiescence');
+ await waitForStableDataGeneration(p,'grant fixture portable data generation settles');
+await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{includeUnorganizedInputs:true,externalAccess:true}});const built=await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'UXR4_GRANT_MATCH',budget:'short'}});assert.ok(built.items.length>0);const grant=await rpc(p,'PAIA_PASSPORT_CREATE',{grant:{consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'}});await rpc(p,'PAIA_CONTEXT_BIND',{previewId:built.previewId,grantId:grant.grantId});const results=await p.evaluate(async opts=>Promise.all([1,2].map(()=>chrome.runtime.sendMessage({type:'PAIA_MEMORY_SHARE',options:opts}))),{previewId:built.previewId,grantId:grant.grantId,format:'copy'});assert.equal(results.filter(r=>r.ok).length,1,JSON.stringify(results));assert.equal((await rpc(p,'PAIA_PASSPORT_STATUS')).grants.find(g=>g.grantId===grant.grantId).useCount,1);const denied=await p.evaluate(id=>chrome.runtime.sendMessage({type:'PAIA_CONTEXT_MANUAL',options:{action:'read',selectionId:id,generation:0}}),built.previewId);assert.equal(denied.error,'MEMORY_EXPIRED');clean(h);
 const second=await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'UXR4_GRANT_MATCH'}}),revocable=await rpc(p,'PAIA_PASSPORT_CREATE',{grant:{consumer:'claude',purpose:'writing',profileId:'default',duration:'7d'}});await rpc(p,'PAIA_CONTEXT_BIND',{previewId:second.previewId,grantId:revocable.grantId});await rpc(p,'PAIA_PASSPORT_REVOKE',{grantId:revocable.grantId});const rejected=await p.evaluate(options=>chrome.runtime.sendMessage({type:'PAIA_MEMORY_SHARE',options}),{previewId:second.previewId,grantId:revocable.grantId,format:'markdown'});assert.equal(rejected.error,'MEMORY_DENIED');clean(h);
 }finally{await h.close();}});

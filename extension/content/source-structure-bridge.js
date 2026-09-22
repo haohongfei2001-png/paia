@@ -11,14 +11,12 @@
   let stopped=false;
   let inFlight=false;
   let activeKey=null;
-  let settledKey=null;
   let session=crypto.randomUUID();
   let pending=null;
 
   function reset(){
     sourceStructure.reset();
     activeKey=null;
-    settledKey=null;
     pending=null;
     session=crypto.randomUUID();
   }
@@ -65,7 +63,6 @@
         reset();
         activeKey=key;
       }
-      if(settledKey===key)return;
       if(!pending){
         const observation=sourceStructure.observe(status,{session});
         if(!observation)return;
@@ -74,6 +71,7 @@
       if(pending.key!==key||!sameRoute(pending.chat)){reset();return;}
       if(Date.now()<pending.nextAt)return;
       if(pending.attempts>=MAX_ATTEMPTS||Date.now()-pending.startedAt>PENDING_TTL_MS){
+        sourceStructure.release?.(pending.stateKey);
         pending=null;
         return;
       }
@@ -83,11 +81,10 @@
         chat:pending.chat,observations:pending.dtos
       });
       if(reply?.ok===true&&reply.data?.settled===true){
-        settledKey=key;
         pending=null;
         return;
       }
-      if(reply?.error==='PAUSED'||reply?.error==='CONSENT_REQUIRED'||reply?.error==='STALE_CAPTURE'){
+      if(reply?.error==='PAUSED'||reply?.error==='CONSENT_REQUIRED'||reply?.error==='STALE_CAPTURE'||reply?.error==='FORBIDDEN'){
         reset();
         return;
       }

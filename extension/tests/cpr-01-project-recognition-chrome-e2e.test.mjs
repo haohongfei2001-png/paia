@@ -81,20 +81,25 @@ test('CPR-01 production provider emits only the frozen route + matching Project-
   }finally{await page.close();}
 });
 
-test('CPR-01 ordinary chat and custom GPT remain identity-only even with visible Project links',async()=>{
+test('CPR-01/02 ordinary plain chat is verified unassigned while custom GPT remains identity-only',async()=>{
   const segment=projectId+'-sidebar-project';
-  for(const url of [
-    'https://chatgpt.com/c/'+chat,
-    'https://chatgpt.com/g/g-custom-fixture/c/'+chat
-  ]){
-    const page=await fixture('<nav><a href="/g/'+segment+'/project">Sidebar Project</a></nav>',url);
-    try{
-      const emitted=await observe(page);
-      assert.equal(emitted.dtos.length,1);
-      assert.equal(emitted.dtos[0].capability,'conversationIdentity');
-      assert.deepEqual(emitted.dtos[0].observation,{});
-    }finally{await page.close();}
-  }
+
+  const ordinary=await fixture('<nav><a href="/g/'+segment+'/project">Sidebar Project</a></nav>','https://chatgpt.com/c/'+chat);
+  try{
+    const emitted=await observe(ordinary);
+    assert.equal(emitted.dtos.length,1);
+    assert.equal(emitted.dtos[0].capability,'membership');
+    assert.equal(emitted.dtos[0].contractId,'chatgpt.current-project-absence');
+    assert.deepEqual(emitted.dtos[0].observation,{membership:{state:'unassigned'}});
+  }finally{await ordinary.close();}
+
+  const custom=await fixture('<nav><a href="/g/'+segment+'/project">Sidebar Project</a></nav>','https://chatgpt.com/g/g-custom-fixture/c/'+chat);
+  try{
+    const emitted=await observe(custom);
+    assert.equal(emitted.dtos.length,1);
+    assert.equal(emitted.dtos[0].capability,'conversationIdentity');
+    assert.deepEqual(emitted.dtos[0].observation,{});
+  }finally{await custom.close();}
 });
 
 test('CPR-01 message-body-only Project links and conflicting provider names fail closed to no Project observation',async()=>{

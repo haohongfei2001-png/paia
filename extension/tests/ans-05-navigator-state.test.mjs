@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ArchiveNavigatorState,navigatorGroupKey,navigatorScopeKey} from '../ui/archive-navigator.js';
+import {ArchiveNavigatorState,navigatorGroupKey,navigatorScopeKey,navigatorInvalidationMessage} from '../ui/archive-navigator.js';
 
 test('ANS-05 Navigator session state keeps unknown/unassigned distinct and deep-link expands only its parent',()=>{
  const state=new ArchiveNavigatorState(),project={providerKey:'chatgpt',namespace:'fixture',projectId:'p1'};
@@ -24,4 +24,13 @@ test('ANS-05 Navigator scopes and snapshot are session-only bounded UI state',()
  assert.equal(snapshot.scrollTop,312);assert.equal(snapshot.expanded.length,1);
  assert.equal(JSON.stringify(snapshot).includes('originalText'),false);
  state.resetScopes();assert.equal(state.scopes.size,0);assert.equal(state.expanded.size,1,'rebuildable query state resets without losing session expansion');
+});
+
+
+test('CPR-02 Navigator invalidation reacts to source-structure changes without treating unrelated messages as archive mutations',()=>{
+ assert.equal(navigatorInvalidationMessage({type:'SOURCE_STRUCTURE_CHANGED'}),true);
+ assert.equal(navigatorInvalidationMessage({type:'ARCHIVE_CHANGED',cause:'CAPTURE'}),true);
+ assert.equal(navigatorInvalidationMessage({type:'ARCHIVE_CHANGED'}),false);
+ assert.equal(navigatorInvalidationMessage({type:'PAIA_READER_POLICY_CHANGED'}),false);
+ assert.equal(navigatorInvalidationMessage(null),false);
 });
