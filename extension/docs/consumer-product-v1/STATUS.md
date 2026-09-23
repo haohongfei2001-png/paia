@@ -12,21 +12,21 @@ current_slice: VS-01
 
 current_slice_status: ACTIVE
 
-current_round: CPV1-01.1
+current_round: CPV1-01.2
 
-current_round_status: ACTIVE / CLAIMED_AFTER_CPV1-01.0_PASS
+current_round_status: READY / CPV1-01.1_PASS
 
-current_writer: manager/cpv1-01-1-durable-save-20260923
+current_writer: NONE
 
-writer_status: ACTIVE
+writer_status: RELEASED
 
 production_claim: NONE
 
 authorization_mode: TEMPORARY_NIGHT_WHOLE_EXECUTION / MAX_9_ROUNDS
 
-authorization_rounds_completed: 2
+authorization_rounds_completed: 3
 
-authorization_rounds_remaining: 7
+authorization_rounds_remaining: 6
 
 ## Activation evidence
 
@@ -60,18 +60,27 @@ The baseline/failure map is complete. Closure also corrects execution routing so
 legacy CPR/PRD/ANS/UI packages cannot be resumed as parallel queues, and aligns
 all VS-01 round references with canonical `MASTER_PLAN.md`.
 
-## Active round
+## CPV1-01.1 closure
 
-`CPV1-01.1 — Durable save acknowledgement and recovery boundary`
+verdict: COMPLETE / PASS
 
-Goal: make "saved" mean durably committed and provide a bounded recovery path
-for ordinary interrupted editing without turning recovery drafts into
-Source/history truth.
+candidate_pr: #50
 
-The manager owns implementation, targeted tests, full required CI, browser
-lifecycle verification, merge, exact-main evidence and receipt/status closure.
-After PASS, `CPV1-01.2 — Extension/page version handshake and reconnect`
-becomes the next round under the same night authorization.
+candidate_head: `6c8fd7db3b6fcfcaa65ec7b4362141eb5f600e26`
+
+candidate_certification: `PAIA Certification run 35830763983 / SUCCESS`
+
+merged_runtime_main: `3cf6ed71ff51d13d198fcff519701df350bfb156`
+
+exact_main_certification: `PAIA Certification run 35834999379 / SUCCESS`
+
+receipt: `receipts/CPV1-01.1.md`
+
+The durable save and bounded recovery boundary passed the current full suite and Chrome lifecycle tests on the exact integrated runtime. Recovery drafts remain expiring local protection and are not Source/history truth or Backup content. The next round owns extension/page version handshake and reconnect.
+
+## Next eligible round
+
+`CPV1-01.2 — Extension/page version handshake and reconnect` is READY under the existing temporary whole-execution authorization. It is not yet claimed; a writer must re-read remote main, this STATUS and the current contract, then confirm no overlapping writer before changing it to ACTIVE.
 
 ## Slice queue
 
