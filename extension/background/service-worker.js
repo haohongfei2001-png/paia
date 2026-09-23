@@ -168,6 +168,7 @@ async function handle(request, sender) {
     case 'PAIA_RECOVERY_DRAFT_SAVE': {const draft=request.draft||{};return recoveryDraftStore().save({...draft,sourceRecordIds:await store.recoveryDraftSourceIds(draft)});}
     case 'PAIA_RECOVERY_DRAFT_LOAD': {const d=request.draft||{};return recoveryDraftStore().load(d.kind,d.ownerId);}
     case 'PAIA_RECOVERY_DRAFT_CLEAR': {const d=request.draft||{};return recoveryDraftStore().clear(d.kind,d.ownerId,d.token??null);}
+    case 'PAIA_RECOVERY_DRAFT_CLEAR_MANY': return recoveryDraftStore().clearMany(request.drafts||[]);
     case 'PAIA_RECOVERY_DRAFT_PRUNE': return recoveryDraftStore().prune();
     case 'PAIA_ARCHIVE_NAV_PAGE': return archiveNavigation.page(request.page);
     case 'PAIA_ARCHIVE_NAV_STATUS': return archiveNavigation.status(request.page);
