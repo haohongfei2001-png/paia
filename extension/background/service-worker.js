@@ -164,7 +164,7 @@ async function handle(request, sender) {
   if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   if(request.type==='PAIA_BACKUP_BEGIN_EXPORT')await memory.ready();
   switch (request.type) {
-    case 'PAIA_RECOVERY_DRAFT_SAVE': return recoveryDrafts.save(request.draft||{});
+    case 'PAIA_RECOVERY_DRAFT_SAVE': {const draft=request.draft||{};return recoveryDrafts.save({...draft,sourceRecordIds:await store.recoveryDraftSourceIds(draft)});}
     case 'PAIA_RECOVERY_DRAFT_LOAD': {const d=request.draft||{};return recoveryDrafts.load(d.kind,d.ownerId);}
     case 'PAIA_RECOVERY_DRAFT_CLEAR': {const d=request.draft||{};return recoveryDrafts.clear(d.kind,d.ownerId,d.token??null);}
     case 'PAIA_RECOVERY_DRAFT_PRUNE': return recoveryDrafts.prune();
@@ -321,7 +321,7 @@ async function handle(request, sender) {
     case 'GET_THOUGHTS': return store.thoughtPage(request.options);
     case 'GET_THOUGHT': return store.thought(request.id);
     case 'EDIT_THOUGHT': return store.editThought(request.edit);
-    case 'PURGE_SOURCE': {if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');const sourceIds=await store.sourceRecordIdsForPurge(request.id);await recoveryDrafts.clearForSources(sourceIds,{clearAI:true});return store.permanentDelete(request.id);}
+    case 'PURGE_SOURCE': {if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');const sourceIds=await store.sourceRecordIdsForPurge(request.id);await recoveryDrafts.clearForSources(sourceIds);return store.permanentDelete(request.id);}
     case 'GET_PAGE': return store.page(request.page);
     case 'GET_MIGRATION_STATUS': {const m=await store.migrationStatus();return m?{phase:m.phase,verified:m.verified,recoveryVerified:m.recoveryVerified,recordCount:m.recordCount,blockCount:m.blockCount}:{phase:'not_started'};}
     case 'RECOVER_MIGRATION': return store.recoverMigration();
