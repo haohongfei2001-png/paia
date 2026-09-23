@@ -12,11 +12,11 @@ current_slice: VS-01
 
 current_slice_status: ACTIVE
 
-current_round: CPV1-01.3
+current_round: CPV1-01.4
 
-current_round_status: ACTIVE / CPV1-01.2_PASS
+current_round_status: ACTIVE / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_writer: manager/cpv1-01-3-consumer-update-20260923
+current_writer: manager/cpv1-01-4-degraded-ux-20260924
 
 writer_status: ACTIVE
 
@@ -98,7 +98,9 @@ The version handshake rejects stale-page capture before writing and gives the us
 
 The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence, subject to each round/slice contract and unchanged owner gates in `EXECUTION_PROTOCOL.md`. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions.
 
-`CPV1-01.3 — Consumer update flow` is ACTIVE in PR #53 on the sole writer branch `manager/cpv1-01-3-consumer-update-20260923`. The round remains open until its own engineering and exact-main closure. Continue the existing PR; do not start a second overlapping writer.
+`CPV1-01.3 — Consumer update flow` is `ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING`, **not COMPLETE**. PR #53 integrated the consumer-facing update state, package preflight and recovery preflight at runtime main `0ea9c1882c2c39b849799a98030a03c747d72ac4`. Exact-main certification passed after a CI-only throughput refactor at `decdfd01c9a92c90e74bd620c778b18bd72ab370` (run `35885057051`). Real signed distribution/update retaining the same extension identity and local archive, plus post-update/rollback evidence, remain unverified because a registered Chrome Web Store identity and publication credential are unavailable. See `receipts/CPV1-01.3-ENGINEERING.md`. No publication or production PASS is claimed.
+
+Under `EXECUTION_PROTOCOL.md` section 7.3's one-round bounded continuation, independent `CPV1-01.4 — Recovery/degraded UX` is ACTIVE on sole writer branch `manager/cpv1-01-4-degraded-ux-20260924`. CPV1-01.5 must not start while CPV1-01.3's explicitly owned external certification remains pending. CPV1-01.4 does not depend on an unverified signed update or change the distribution identity. The external certification remains an open obligation, not a deferred PASS.
 
 ## Slice queue
 
