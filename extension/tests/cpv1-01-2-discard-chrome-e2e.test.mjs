@@ -28,15 +28,15 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     // Create both tabs through Chrome's own tab API. Playwright's
     // bringToFront() transitions on this discarded target crash Linux Chrome
     // under CI before the lifecycle assertion can finish.
-    const keepAlive = await h.archive.evaluate(() => chrome.tabs.create({ url: 'about:blank', active: true }));
-    assert.ok(keepAlive.id, 'a normal browser tab stays active');
     h.pages.set(restoredConversation.id, { c: restoredConversation, arrival: 'metadata-first' });
-    const conversationTab = await h.archive.evaluate((url) => chrome.tabs.create({ url, active: false }),
+    const conversationTab = await h.archive.evaluate((url) => chrome.tabs.create({ url, active: true }),
       `https://chatgpt.com/c/${restoredConversation.id}`);
     const conversationId = conversationTab.id;
     assert.ok(conversationId, 'conversation has a browser tab ID');
     stage = 'capture initial conversation';
     await eventually(async () => (await h.state()).records.length === 3);
+    const keepAlive = await h.archive.evaluate(() => chrome.tabs.create({ url: 'about:blank', active: true }));
+    assert.ok(keepAlive.id, 'a normal browser tab stays active while the conversation is discarded');
     stage = 'background conversation';
     await eventually(async () => h.archive.evaluate(async (id) => !(await chrome.tabs.get(id)).active, conversationId), 'conversation tab is backgrounded before discard');
     const discarded = await h.archive.evaluate(async (id) => chrome.tabs.discard(id), conversationId);
