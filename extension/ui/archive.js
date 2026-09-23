@@ -13,6 +13,7 @@ import {beginLoading,setProductState,showLocalFailure,productAction} from './pro
 import {wireSearchKeyboard,highlightReading,revealSearchResult} from './search-experience.js';
 import {IntegrityPanel} from './integrity.js';
 import {installSaveLifecycle} from './session-lifecycle.js';
+import {pruneRecoveryDrafts} from './recovery-draft.js';
 import {InputReview} from './review.js';
 import {findInputPage} from './input-search.js';
 import {OnboardingUI} from './onboarding.js';
@@ -31,6 +32,7 @@ const $=id=>document.getElementById(id);
 const names={revisit:'回来看看',library:'Input Archive',thoughts:'Thought Library',archive:'Source Records',memory:'AI Context',settings:'Settings',excluded:'待确认与已移除输入',legacy:'Legacy Data Migration'};
 const review=new InputReview({navigate:(...args)=>navigate(...args),refresh:()=>refresh()});
 const backupPanel=new BackupPanel();
+void pruneRecoveryDrafts().catch(()=>{});
 const integrityPanel=new IntegrityPanel();
 const onboarding=new OnboardingUI({refresh:()=>refresh(),history:()=>historyPanel.open()});
 let returnTo=null,sourceFocusId=null,navigatorDetailFocus=null,saveFeedbackTimer=null,noticeTimer=null,noticeRemaining=0,noticeStarted=0;const routeStates=new Map();
@@ -124,7 +126,7 @@ function renderDocument(){$('document-page').inert=false;const doc=state.convers
  const prose=element('div',view==='archive'?'original-prose':editable?'library-prose':'excluded-prose',view==='archive'?b.originalText:b.text);prose.tabIndex=0;prose.dataset.itemId=b.id;prose.setAttribute('aria-label',view==='archive'?'原始输入（只读）':editable?'Input 正文':'已排除正文');if(editable){prose.setAttribute('contenteditable','plaintext-only');prose.dataset.editId=b.id;}
  section.append(prose);if(view==='excluded')section.append(review.actions(b,doc));if(editable){const remove=element('button','input-remove');remove.append($('reader-trash-icon').content.cloneNode(true));remove.setAttribute('aria-label','从档案移除这条输入');remove.title='从档案移除';remove.addEventListener('click',()=>{editor?.exclude(b.id,true);notify('已从档案移除，可撤销或从已移除内容恢复。');const undo=element('button','','撤销');undo.addEventListener('click',()=>{void editor?.history();notify('');});$('notice').append(undo);});section.append(readingCopyButton(async()=>{editor?.collect();return editor?.entries.has(b.id)?editor.text(editor.entries.get(b.id)):prose.innerText;},status),remove);}if(b.branchStatus&&view==='excluded')section.append(element('span','source-detached','导入分支待确认'));if(b.note)section.append(element('p','block-note',b.note));if(view!=='archive'&&!b.provenance.length)section.append(element('span','source-detached','来源已删除，整理文本保留'));prose.addEventListener('contextmenu',event=>{event.preventDefault();openMenu(b.id,event.clientX,event.clientY);});section.addEventListener('focusin',()=>{menuId=b.id;});body.append(section);}
  $('input-time-order').hidden=view!=='library';const inputOrder=state.readingSort==='desc'?'desc':'asc',inputToggle=$('input-time-toggle');inputToggle.dataset.currentSort=inputOrder;inputToggle.setAttribute('aria-pressed',String(inputOrder==='desc'));inputToggle.textContent=inputOrder==='desc'?readerCopy('倒序 · 最新在前','Descending · newest first'):readerCopy('正序 · 最早在前','Ascending · oldest first');inputToggle.setAttribute('aria-label',inputOrder==='desc'?readerCopy('输入时间顺序：倒序，最新在前。点击切换为正序。','Input time order: descending, newest first. Switch to ascending.'):readerCopy('输入时间顺序：正序，最早在前。点击切换为倒序。','Input time order: ascending, oldest first. Switch to descending.'));
- $('document-page').classList.toggle('standard',state.preferences.timeEmphasis==='standard');if(editable){editor=new DocumentEditor($('document-page'),state,doc,status,counts);if(partHistory){editor.importHistory(partHistory);partHistory=null;}reader.mount();}else status(view==='archive'?'原文只读':'已移除 · 可恢复显示');renderDocumentSearch();
+ $('document-page').classList.toggle('standard',state.preferences.timeEmphasis==='standard');if(editable){editor=new DocumentEditor($('document-page'),state,doc,status,counts,()=>{notify('已恢复上次未完成的修改。');void refresh();});if(partHistory){editor.importHistory(partHistory);partHistory=null;}reader.mount();}else status(view==='archive'?'原文只读':'已移除 · 可恢复显示');renderDocumentSearch();
 }
 function showOriginalClientError(){originalServerActive=false;$('original-organizer-status').textContent=statusLabel(originalClientError);originalBootstrapButton.textContent='重试';originalBootstrapButton.disabled=false;$('original-organizer-cost-note').hidden=false;}
 let settingsReadPending=false,settingsReadQueued=false;
