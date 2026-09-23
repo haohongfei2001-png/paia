@@ -84,10 +84,9 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
   execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
   let h;
   try {
-    // GitHub's browser shards already run under Xvfb. Chromium's headless
-    // process exits on real tabs.discard in this journey, so exercise the same
-    // browser API in an invisible headed display there. Local runs stay headless.
-    h = await FakeChatGPT.start({ extensionPath: release, headless: process.env.CI !== '1' });
+    // CI runs under Xvfb. Use Playwright's installed Chromium to isolate the
+    // Google Chrome process crash while keeping real tabs.discard coverage.
+    h = await FakeChatGPT.start({ extensionPath: release, headless: process.env.CI !== '1', useBundledChromium: process.env.CI === '1' });
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
     await h.archive.locator('#enable-consent').click();
     await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
@@ -95,6 +94,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     const tab = await h.open(restoredConversation);
     await h.ready(tab);
     await eventually(async () => (await h.state()).records.length === 3);
+    console.log('CPV1_DISCARD_STAGE captured');
 
     // A normal non-extension tab must remain live while Chrome discards the
     // conversation. Headless Chrome can exit when its last web tab is discarded
@@ -105,12 +105,16 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     const conversationId = await h.archive.evaluate(async () =>
       (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id);
     assert.ok(conversationId, 'conversation has a browser tab ID');
+    console.log('CPV1_DISCARD_STAGE tab-id');
     await h.archive.bringToFront();
     await eventually(async () => h.archive.evaluate(async (id) => !(await chrome.tabs.get(id)).active, conversationId), 'conversation tab is backgrounded before discard');
+    console.log('CPV1_DISCARD_STAGE backgrounded');
     const discarded = await h.archive.evaluate(async (id) => chrome.tabs.discard(id), conversationId);
+    console.log('CPV1_DISCARD_STAGE discarded');
     assert.equal(discarded?.discarded, true, 'the real conversation tab is discarded');
     await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).discarded === true, conversationId), 'discard state is visible before restore');
     const restored = await h.archive.evaluate(async (id) => chrome.tabs.update(id, { active: true }), conversationId);
+    console.log('CPV1_DISCARD_STAGE restored');
     assert.equal(restored?.active, true);
     await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).status === 'complete', restored.id), 'discarded tab finishes loading');
     assert.equal((await h.state()).records.length, 3, 'discard does not change stored records');
