@@ -7,6 +7,9 @@
   const BATCH_SIZE = 200;
   const BATCH_BYTES = 2097152-16384;
   const REQUEST_TIMEOUT_MS = 35000;
+  // Keep the version observed when this document first loaded. A later extension
+  // update must never silently turn an old page into an apparently healthy one.
+  const contentVersion = (() => { try { return chrome.runtime.getManifest().version; } catch { return null; } })();
   const KNOWN_FAILURES = new Set([
     'STORAGE_FULL', 'STORAGE_FAILED', 'ADAPTER_LIMIT', 'MESSAGE_TOO_LARGE', 'ADAPTER_MISMATCH', 'ADAPTER_VERSION_MISMATCH',
     'MESSAGE_RESPONSE_TIMEOUT', 'CONTEXT_INVALIDATED', 'PAUSED', 'CONSENT_REQUIRED', 'STALE_CAPTURE'
@@ -18,6 +21,30 @@
   let lastStatusAt = 0;
   let lastDiagnostic = '';
   let lastDiagnosticAt = 0;
+  let transportFailures = 0;
+
+  function showRefreshAction() {
+    if (!globalThis.document?.documentElement) return;
+    let banner = document.getElementById('paia-reconnect-notice');
+    if (banner) return;
+    banner = document.createElement('div');
+    banner.id = 'paia-reconnect-notice';
+    banner.setAttribute('role', 'alert');
+    banner.style.cssText = 'position:fixed;z-index:2147483647;right:16px;bottom:16px;max-width:320px;padding:14px 16px;border-radius:12px;background:#17202b;color:white;box-shadow:0 4px 20px #0005;font:14px/1.5 system-ui,sans-serif';
+    const text = document.createElement('span');
+    text.textContent = 'PAIA 与此页面的连接已中断，当前页面不会继续归档。';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = '刷新此 ChatGPT 页面';
+    button.style.cssText = 'display:block;margin-top:10px;padding:7px 10px;border:0;border-radius:6px;background:#fff;color:#17202b;cursor:pointer';
+    button.addEventListener('click', () => globalThis.location.reload());
+    banner.append(text, button);
+    document.documentElement.append(banner);
+  }
+
+  function clearRefreshAction() {
+    globalThis.document?.getElementById('paia-reconnect-notice')?.remove();
+  }
 
   function stop() {
     stopped = true;
@@ -28,13 +55,13 @@
   async function send(message) {
     let deadline;
     try {
-      if (!globalThis.chrome?.runtime?.id) { stop(); return null; }
+      if (!globalThis.chrome?.runtime?.id) { stop(); showRefreshAction(); return null; }
       return await Promise.race([chrome.runtime.sendMessage(message),new Promise(resolve=>{
         deadline=setTimeout(()=>resolve({ok:false,error:'MESSAGE_RESPONSE_TIMEOUT'}),REQUEST_TIMEOUT_MS);
       })]);
     } catch {
       // Never expose raw error strings, message bodies, URLs, or titles.
-      if (!globalThis.chrome?.runtime?.id) stop();
+      if (!globalThis.chrome?.runtime?.id) { stop(); showRefreshAction(); }
       return null;
     } finally { clearTimeout(deadline); }
   }
@@ -69,7 +96,7 @@
     if (code === 'PAUSED' || code === 'CONSENT_REQUIRED') adapter.stopWatching();
     if (code === 'STALE_CAPTURE') adapter.invalidate();
     await diagnostic(code, scanned);
-    if (code === 'CONTEXT_INVALIDATED') stop();
+    if (code === 'CONTEXT_INVALIDATED') { stop(); showRefreshAction(); }
   }
 
   function schedule() {
@@ -83,13 +110,21 @@
     inFlight = true;
     try {
       lastStatusAt = Date.now();
-      const response = await send({type: 'GET_STATUS'});
+      const response = await send({type: 'GET_STATUS', contentVersion});
       const status = response?.ok === true ? response.data : null;
       if (!status) {
         adapter.stopWatching();
+        transportFailures += 1;
+        if (response?.error === 'MESSAGE_RESPONSE_TIMEOUT' || transportFailures >= 2) showRefreshAction();
         await reportFailure(response);
         return;
       }
+      transportFailures = 0;
+      if (!contentVersion || status.runtimeVersion && status.runtimeVersion !== contentVersion) {
+        adapter.stopWatching(); stop(); showRefreshAction();
+        return;
+      }
+      clearRefreshAction();
       if (status.consented !== true || status.enabled !== true) {
         adapter.stopWatching();
         await diagnostic(status.consented === true ? 'PAUSED' : 'CONSENT_REQUIRED');
@@ -119,7 +154,7 @@
           return;
         }
         const result = await send({
-          type: 'CAPTURE', epoch: status.epoch, adapterVersion: adapter.version,
+          type: 'CAPTURE', epoch: status.epoch, adapterVersion: adapter.version, contentVersion,
           chat: snapshot.chat, messages
         });
         if (!result?.ok) {

@@ -31,7 +31,7 @@ for entry in m['content_scripts']:
     elif 'content/response-bridge.js' in entry['js']:entry['js'].insert(0,'development/compat/sanitizer.js')
 m['content_scripts'].append({'matches':['https://chatgpt.com/*'],'js':['development/compat/content.js'],'run_at':'document_idle','world':'ISOLATED','all_frames':False})
 (target/'manifest.json').write_text(json.dumps(m,indent=2)+'\n')
-p=target/'background/service-worker.js';s=p.read_text();needle="  if (request.type === 'GET_STATUS') return store.status();"
+p=target/'background/service-worker.js';s=p.read_text();needle="  if (request.type === 'GET_STATUS') {"
 branch='''
   if (content && request.type === 'DEV_COMPAT_CHECK') {
     const source=canonicalChat(sender.tab.url ?? sender.url);
@@ -40,7 +40,7 @@ branch='''
     return {recovered:request.ids.length>0&&request.ids.every(id=>state.records.some(r=>r.chatId===source.id&&r.sourceMessageId===id&&r.sourceSentAt!==null&&['high','very_high'].includes(r.timeConfidence)))};
   }
 '''
-assert needle in s;p.write_text(s.replace(needle,needle+branch))
+assert s.count(needle)==1;p.write_text(s.replace(needle,branch+needle))
 if len(sys.argv)==1:
     archive=root/'outputs/PAIA-Development-Structure-Sampler.zip'
     with ZipFile(archive,'w',ZIP_DEFLATED) as z:

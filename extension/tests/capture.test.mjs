@@ -11,6 +11,12 @@ async function schedulerFixture(status, options = {}) {
   const sent = [];
   const state = {reads: 0, watching: 0, stops: 0, captures: 0, invalidations: 0, diagnostics: 0};
   const timers = [],deadlines=new Map();let serial=0;const handlers=new Map();
+  const elements = new Map();
+  const document = {
+    documentElement: {append(element) {elements.set(element.id, element);}},
+    getElementById(id) {return elements.get(id) || null;},
+    createElement(tag) {return {tag, style: {}, children: [], setAttribute(name, value) {this[name] = value;}, addEventListener(name, listener) {this[name] = listener;}, append(...children) {this.children.push(...children);}, remove() {elements.delete(this.id);}};}
+  };
   class FakeAdapter {
     version = '0.3.0';
     watch() { state.watching += 1; }
@@ -24,10 +30,10 @@ async function schedulerFixture(status, options = {}) {
     }
   }
   const context = vm.createContext({
-    ChatGPTAdapter: FakeAdapter, TextEncoder,
+    ChatGPTAdapter: FakeAdapter, TextEncoder, document, location: {reload() {state.reloads = (state.reloads || 0) + 1;}},
     addEventListener:(key,fn)=>handlers.set(key,fn),
     ArchiveResponseTime: options.responseDiagnosticThrows ? {observe() {throw new Error('synthetic optional diagnostic failure');}} : undefined,
-    chrome: {runtime: {id: options.invalidated ? undefined : 'synthetic-extension', async sendMessage(message) {
+    chrome: {runtime: {id: options.invalidated ? undefined : 'synthetic-extension', getManifest: () => ({version: '0.8.1'}), async sendMessage(message) {
       sent.push(message);
       if (options.fail) throw new Error('synthetic error that must not be logged');
       if (message.type === 'CAPTURE') {
@@ -47,7 +53,7 @@ async function schedulerFixture(status, options = {}) {
   vm.runInContext(schemaSource, context);
   vm.runInContext(captureSource, context);
   await new Promise((resolve) => setImmediate(resolve));
-  return {sent, state, timers,deadlines,handlers};
+  return {sent, state, timers,deadlines,handlers,elements};
 }
 
 test('capture scheduler never reads content before consent, while paused, or after status failure', async () => {
@@ -74,8 +80,21 @@ test('enabled capture forwards the current consent epoch and keeps polling at mo
   const result = await schedulerFixture({enabled: true, consented: true, epoch: 42, adapterVersion: '0.3.0'});
   assert.equal(result.state.reads, 1);
   assert.equal(result.sent.find((message) => message.type === 'CAPTURE').epoch, 42);
+  assert.equal(result.sent.find((message) => message.type === 'CAPTURE').contentVersion, '0.8.1');
   assert.equal(result.timers.length, 1);
   assert.ok(result.timers[0].delay >= 1900 && result.timers[0].delay <= 2000);
+});
+
+test('stale content version stops capture and offers one visible refresh action', async () => {
+  const result = await schedulerFixture({enabled: true, consented: true, epoch: 42, adapterVersion: '0.3.0', runtimeVersion: '0.9.0'});
+  assert.equal(result.state.captures, 0);
+  assert.equal(result.timers.length, 0);
+  const banner = result.elements.get('paia-reconnect-notice');
+  assert.equal(banner.role, 'alert');
+  assert.match(banner.children[0].textContent, /不会继续归档/);
+  assert.equal(banner.children[1].textContent, '刷新此 ChatGPT 页面');
+  banner.children[1].click();
+  assert.equal(result.state.reloads, 1);
 });
 
 test('large scans use batches of at most 200 and retain the same checked consent epoch', async () => {
