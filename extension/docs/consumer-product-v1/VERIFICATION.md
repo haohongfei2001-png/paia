@@ -146,3 +146,20 @@ A receipt must label evidence type:
 Do not convert one class into another in prose.
 
 A historical CI run may support unchanged code, but the receipt must identify the exact runtime relation. A screenshot does not prove performance. A parser fixture does not prove official export support. A copy/export preview does not prove a real connector.
+
+## 6. Verification cadence and scheduling
+
+This contract defines the evidence a completed slice must ultimately possess. It does not require every inner-loop candidate or ordinary round to reacquire every evidence class.
+
+Use three levels:
+
+1. **Candidate / inner loop** — targeted tests, affected regressions and bounded browser smoke for the changed behavior.
+2. **Round closure** — full required CI plus the browser/reliability evidence directly owned by that round, followed by merge and exact-main verification.
+3. **Slice / certification closure** — the complete applicable evidence classes in this document, including current real-browser/device, user-level, performance and migration/release-path evidence.
+
+For VS-01 specifically, CPV1-01.6 is the owning full real-lifecycle certification round. Earlier VS-01 rounds still prove their own engineering exits, but should not repeatedly reacquire the entire VS-01 lifecycle matrix or perform publication merely to close an intermediate round.
+
+External provider/deployment unavailability is evidence of an unavailable environment, not product PASS or FAIL by itself. If current-live or deployment evidence is unavailable, preserve that fact and defer only when the owning contract permits it. Never substitute synthetic evidence for CURRENT_LIVE, and never mark a slice COMPLETE before its required final evidence exists.
+
+Production publication is not a default verification step. It is required only when a round/slice explicitly owns distribution/release behavior or when separately authorized.
+
