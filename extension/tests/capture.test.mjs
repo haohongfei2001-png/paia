@@ -92,6 +92,8 @@ test('stale content version stops capture and offers one visible refresh action'
   const banner = result.elements.get('paia-reconnect-notice');
   assert.equal(banner.role, 'alert');
   assert.match(banner.children[0].textContent, /不会继续归档/);
+  assert.match(banner.children[0].textContent, /PAIA 已更新/);
+  assert.match(banner.children[0].textContent, /先保存正在输入的文字/);
   assert.equal(banner.children[1].textContent, '刷新此 ChatGPT 页面');
   banner.children[1].click();
   assert.equal(result.state.reloads, 1);

@@ -4,6 +4,7 @@ const preflight=new Set(['BUDGET_EXCEEDED','BUDGET_LIMIT','BUDGET_RESERVATION_FA
 export function actionFailure(code,controls={}){
  if(['BUDGET_EXCEEDED','BUDGET_LIMIT','BUDGET_RESERVATION_FAILED'].includes(code))return {text:controls.usedRequests>=controls.dailyRequests?'今日 AI 整理额度已达到设置上限。'+(controls.resetAt?'重置时间：'+new Date(controls.resetAt).toLocaleString('zh-CN')+'。':'额度按 24 小时计。'):'本次内容或请求数超出处理预算。请减小本批范围，或到 Settings 检查上限。',settings:true,retry:false};
  if(code==='OUTCOME_UNKNOWN')return {text:statusLabel(code)+'。PAIA 无法确认刚才的请求是否已经产生结果；请先重新读取当前状态。本次不会自动重试，也不会自动再次调用 DeepSeek。',settings:false,retry:false};
+ if(['PROVIDER_UNAVAILABLE','MODEL_NOT_AVAILABLE','PROVIDER_TIMEOUT','NETWORK_ERROR'].includes(code))return {text:'AI 暂时无法继续处理。已保存的本机档案仍可阅读；先核对连接和当前内容，再决定是否手动重试。重试将再次调用 DeepSeek API。',settings:false,retry:true};
  return {text:statusLabel(code)+(preflight.has(code)?'。本次未调用 AI。':'。已保存的内容保留；本次若有已完成部分，也会保留。重试将再次调用 DeepSeek API。'),settings:['CREDENTIAL_FAILURE','NO_CREDENTIAL','CREDENTIAL_MISSING','NOT_CONFIGURED'].includes(code),retry:!preflight.has(code)};
 }
 export function showActionFailure(host,code,controls,onSettings){const result=actionFailure(code,controls);setProductState(host,code.startsWith('BUDGET_')?'budget_limited':code==='OUTCOME_UNKNOWN'?'paused':code==='NETWORK_ERROR'?'offline':result.settings?'credential_missing':'failed');host.replaceChildren(element('span','',result.text));host.hidden=false;if(result.settings){const link=element('button','','前往 Settings');link.addEventListener('click',onSettings);host.append(link);}return result;}

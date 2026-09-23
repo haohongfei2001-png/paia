@@ -48,7 +48,14 @@ test('ANS-04 real Chrome: cold bounded navigation, worker restart, lossless Read
   const reader=await rpc(p,'GET_PAGE',{page:{view:'library',documentId:doc.id,limit:40}});assert.equal(reader.library.blocks.length,1);assert.equal(reader.records[0].originalText,'ANS04_REAL_INPUT_BODY');
   const beforeRestart=await worker(h).evaluate(()=>globalThis.__ans04Nav);assert.equal(beforeRestart.bodyReads,0);assert.equal(beforeRestart.fullScans,0);assert.equal(beforeRestart.snapshots,0);assert.equal(beforeRestart.maxBatch,100);
   await restart(h,options);await guard(h);
-  const windows=await all(p,options);assert.deepEqual(windows.map(w=>w.documentId),expected);assert.equal(new Set(windows.map(w=>w.documentId)).size,1001);assert.doesNotMatch(JSON.stringify(windows),/ANS04_REAL_INPUT_BODY/);
+  const realGroup=cold.selectedPath.groupKind;
+  assert.ok(['unknown','unassigned'].includes(realGroup),'real capture remains in a navigable ChatGPT source group');
+  const windows=await all(p,options),unknownExpected=realGroup==='unknown'?expected:expected.filter(id=>id!==doc.id);
+  assert.deepEqual(windows.map(w=>w.documentId),unknownExpected);
+  assert.equal(new Set(windows.map(w=>w.documentId)).size,unknownExpected.length);
+  const realGroupItems=realGroup==='unknown'?windows:await all(p,{providerKey:'chatgpt',groupKind:realGroup,selectedDocumentId:doc.id});
+  assert.equal(realGroupItems.filter(item=>item.documentId===doc.id).length,1,'real captured Reader remains navigable in its actual source group');
+  assert.doesNotMatch(JSON.stringify(windows),/ANS04_REAL_INPUT_BODY/);
   const samples=[];for(let i=0;i<30;i++){const at=performance.now();await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:options});samples.push(performance.now()-at);}samples.sort((a,b)=>a-b);const p95=samples[28];assert.ok(p95<=500,`warm p95 ${p95}ms`);
   const first=await settled(p,options);assert.ok(first.nextCursor);
   const projectRef=await p.evaluate(async({documentId,chatId})=>{
