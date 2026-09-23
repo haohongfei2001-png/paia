@@ -25,18 +25,21 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
     const restoredConversation = conversation('cpv1-discarded-tab');
     stage = 'open a background conversation';
-    // Create both tabs through Chrome's own tab API. Playwright's
-    // bringToFront() transitions on this discarded target crash Linux Chrome
-    // under CI before the lifecycle assertion can finish.
-    h.pages.set(restoredConversation.id, { c: restoredConversation, arrival: 'metadata-first' });
-    const conversationTab = await h.archive.evaluate((url) => chrome.tabs.create({ url, active: true }),
-      `https://chatgpt.com/c/${restoredConversation.id}`);
+    // Create both tabs through Chrome's own tab API. CI Chromium crashes when
+    // an already-loaded injected tab is switched to the background. Navigate
+    // the conversation only after its blank tab is safely backgrounded.
+    const conversationTab = await h.archive.evaluate(() => chrome.tabs.create({ url: 'about:blank', active: true }));
     const conversationId = conversationTab.id;
     assert.ok(conversationId, 'conversation has a browser tab ID');
-    stage = 'capture initial conversation';
-    await eventually(async () => (await h.state()).records.length === 3);
     const keepAlive = await h.archive.evaluate(() => chrome.tabs.create({ url: 'about:blank', active: true }));
     assert.ok(keepAlive.id, 'a normal browser tab stays active while the conversation is discarded');
+    h.pages.set(restoredConversation.id, { c: restoredConversation, arrival: 'metadata-first' });
+    stage = 'navigate background conversation';
+    await h.archive.evaluate((input) => chrome.tabs.update(input.id, { url: input.url }), {
+      id: conversationId, url: `https://chatgpt.com/c/${restoredConversation.id}`,
+    });
+    stage = 'capture initial conversation';
+    await eventually(async () => (await h.state()).records.length === 3);
     stage = 'background conversation';
     await eventually(async () => h.archive.evaluate(async (id) => !(await chrome.tabs.get(id)).active, conversationId), 'conversation tab is backgrounded before discard');
     const discarded = await h.archive.evaluate(async (id) => chrome.tabs.discard(id), conversationId);
