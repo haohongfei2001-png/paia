@@ -159,7 +159,9 @@ Use three levels:
 
 For VS-01 specifically, CPV1-01.6 is the owning full real-lifecycle certification round. Earlier VS-01 rounds still prove their own engineering exits, but should not repeatedly reacquire the entire VS-01 lifecycle matrix or perform publication merely to close an intermediate round.
 
-External provider/deployment unavailability is evidence of an unavailable environment, not product PASS or FAIL by itself. If current-live or deployment evidence is unavailable, preserve that fact and defer only when the owning contract permits it. Never substitute synthetic evidence for CURRENT_LIVE, and never mark a slice COMPLETE before its required final evidence exists.
+External provider/deployment unavailability is evidence of an unavailable environment, not product PASS or FAIL by itself. The same applies to unavailable private export artifacts and real-device evidence. If CURRENT_LIVE, PRIVATE, DEVICE or deployment evidence is unavailable, preserve that fact in `DEFERRED_FINAL_GATES.md`, complete every valid lower evidence class, and advance the engineering frontier when later work is dependency-safe. Never substitute synthetic evidence for CURRENT_LIVE/DEVICE/private-real evidence, and never mark the affected slice COMPLETE before its required final evidence exists.
+
+An owner decision blocks only the evidence/behavior whose meaning depends on that decision. It must not prevent unrelated implementation, reliability, accessibility, performance or later-slice engineering. Any temporarily disabled dependent behavior must be explicit and fail closed rather than silently choosing a product meaning.
 
 Production publication is not a default verification step. It is required only when a round/slice explicitly owns distribution/release behavior or when separately authorized.
 

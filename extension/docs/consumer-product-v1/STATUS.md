@@ -114,7 +114,7 @@ The popup, capture page and archive now give bounded, truthful recovery actions 
 
 ## Current owner authorization and execution
 
-The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence, subject to each round/slice contract and unchanged owner gates in `EXECUTION_PROTOCOL.md`. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions.
+The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence. True owner/privacy/cost/irreversibility gates in `EXECUTION_PROTOCOL.md` block only the affected behavior; they are recorded in `DEFERRED_FINAL_GATES.md` and do not stop unrelated engineering. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions and must not be guessed.
 
 `CPV1-01.3 — Consumer update flow` is `ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING`, **not COMPLETE**. PR #53 integrated the consumer-facing update state, package preflight and recovery preflight at runtime main `0ea9c1882c2c39b849799a98030a03c747d72ac4`. Exact-main certification passed after a CI-only throughput refactor at `decdfd01c9a92c90e74bd620c778b18bd72ab370` (run `35885057051`). Real signed distribution/update retaining the same extension identity and local archive, plus post-update/rollback evidence, remain unverified because a registered Chrome Web Store identity and publication credential are unavailable. See `receipts/CPV1-01.3-ENGINEERING.md`. No publication or production PASS is claimed.
 
@@ -123,6 +123,8 @@ Independent `CPV1-01.4 — Recovery/degraded UX` is COMPLETE at runtime main `a3
 The owner has now authorized dependency-safe continuous engineering: external-only certification gates no longer impose the former one-round lead limit. `CPV1-01.5 — Backup protection for update/migration` is READY and may start immediately. After each engineering closure, the manager must continue into the next dependency-safe canonical round/slice while preserving all unresolved external gates. CPV1-01.6 may complete every automatable lifecycle/certification item, but any journey that genuinely requires the unavailable same-ID signed distribution remains pending. VS-02 and later engineering may proceed once their actual data/runtime prerequisites are satisfied even if VS-01 still carries that external certification debt.
 
 Do not create a store account, publish, substitute unsigned installation evidence for same-ID signed update proof, or mark the external gate PASS without real evidence.
+
+Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export evidence, current-live provider evidence, and real mobile/device evidence are now routed through `DEFERRED_FINAL_GATES.md`. They remain mandatory where applicable for final certification, but the manager must skip only the dependent behavior and continue the engineering frontier until no dependency-safe canonical work remains.
 
 ## Slice queue
 
