@@ -8,17 +8,17 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: VS-01
+current_slice: VS-02
 
-current_slice_status: ACTIVE
+current_slice_status: READY — VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-01.6
+current_round: CPV1-02.0
 
-current_round_status: IN_PROGRESS / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: READY / VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_writer: manager/cpv1-01-6-lifecycle-20260924
+current_writer: NONE
 
-writer_status: ACTIVE
+writer_status: RELEASED
 
 production_claim: NONE
 
@@ -132,6 +132,26 @@ receipt: `receipts/CPV1-01.5.md`
 
 The current Backup path verifies its generated format, integrity and supported restore size before presenting a recovery point. The existing empty-library restore and privacy protections hold in the current browser journey. This engineering round does not satisfy CPV1-01.3's signed same-ID external gate or close VS-01. CPV1-01.6 is the next dependency-safe round.
 
+## CPV1-01.6 engineering closure — external certification remains open
+
+verdict: ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING — **round and VS-01 not COMPLETE**
+
+candidate_pr: #64
+
+candidate_head: `154ed6b785c8437a8b3ecda2022487ff9d517b0f`
+
+candidate_gate: `PAIA Candidate Gate run 35912462397 / SUCCESS`
+
+candidate_certification: `PAIA Certification run 35913363637 / SUCCESS`
+
+merged_runtime_main: `3c92de43ec6a9d6b320c622b8dc121acf6fe666e`
+
+exact_main_certification: `PAIA Certification run 35914391621 / SUCCESS`
+
+receipt: `receipts/CPV1-01.6-ENGINEERING.md`
+
+A current isolated Chromium profile exercised archive preservation and new capture over browser restarts, an unpacked version bump, worker lifecycle, and rollback to the prior unpacked code. The same extension ID, consent and archive remained; no duplicate capture or external request was observed. This is synthetic/unpacked engineering evidence, not signed-channel or authenticated current-live certification. DFG-CPV1-001 and DFG-CPV1-004 remain OPEN. The owner confirmed no existing Chrome Web Store publisher identity/extension ID, so channel selection remains a separate decision. The engineering writer is released; VS-02 / CPV1-02.0 is the next dependency-safe canonical work.
+
 ## Current owner authorization and execution
 
 The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence. True owner/privacy/cost/irreversibility gates in `EXECUTION_PROTOCOL.md` block only the affected behavior; they are recorded in `DEFERRED_FINAL_GATES.md` and do not stop unrelated engineering. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions and must not be guessed.
@@ -140,7 +160,7 @@ The owner explicitly superseded the temporary nine-round limit with continuous w
 
 Independent `CPV1-01.4 — Recovery/degraded UX` is COMPLETE at runtime main `a38d80e3799e733913b0edf94e46f4c59ee20fc0`; its writer is released. CPV1-01.3's same-ID signed distribution/update certification remains `EXTERNAL_CERT_PENDING` because no Chrome Web Store publisher identity or existing extension ID is available. That obligation is recorded in `DEFERRED_FINAL_GATES.md` and remains mandatory for VS-01/full product certification; it is not a PASS.
 
-The owner has now authorized dependency-safe continuous engineering: external-only certification gates no longer impose the former one-round lead limit. `CPV1-01.5 — Backup protection for update/migration` completed on integrated runtime `15f47fe9ff304247b9ac10de27fb274a8be69950`; its writer is released. `CPV1-01.6 — Real lifecycle certification` is ACTIVE on the sole writer `manager/cpv1-01-6-lifecycle-20260924` from main `a4899be50ae52d78ed8065c198458d650e4e4441`. After each engineering closure, the manager must continue into the next dependency-safe canonical round/slice while preserving all unresolved external gates. CPV1-01.6 may complete every automatable lifecycle/certification item, but any journey that genuinely requires the unavailable same-ID signed distribution remains pending. VS-02 and later engineering may proceed once their actual data/runtime prerequisites are satisfied even if VS-01 still carries that external certification debt.
+The owner has now authorized dependency-safe continuous engineering: external-only certification gates no longer impose the former one-round lead limit. `CPV1-01.5 — Backup protection for update/migration` completed on integrated runtime `15f47fe9ff304247b9ac10de27fb274a8be69950`; its writer is released. `CPV1-01.6 — Real lifecycle certification` has completed its automatable engineering at runtime main `3c92de43ec6a9d6b320c622b8dc121acf6fe666e`; its sole writer is released. Signed-channel and current-live certification remain external pending, so VS-01 and CPV1-01.6 are not COMPLETE. After each engineering closure, the manager must continue into the next dependency-safe canonical round/slice while preserving all unresolved external gates. CPV1-01.6 may complete every automatable lifecycle/certification item, but any journey that genuinely requires the unavailable same-ID signed distribution remains pending. VS-02 and later engineering may proceed once their actual data/runtime prerequisites are satisfied even if VS-01 still carries that external certification debt.
 
 Do not create a store account, publish, substitute unsigned installation evidence for same-ID signed update proof, or mark the external gate PASS without real evidence.
 
@@ -150,8 +170,8 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 
 | Slice | State | User outcome |
 |---|---|---|
-| VS-01 Safe open, update and recovery | ACTIVE | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
-| VS-02 Source structure to world-class Reader | PLANNED | Captured conversations appear in the correct Project and open in a coherent fast Reader |
+| VS-01 Safe open, update and recovery | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
+| VS-02 Source structure to world-class Reader | READY — CPV1-02.0 | Captured conversations appear in the correct Project and open in a coherent fast Reader |
 | VS-03 History import, export and recoverable large library | PLANNED | Real official history imports safely and the supported archive can actually be restored |
 | VS-04 Natural editing and fast lexical retrieval | PLANNED | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | PLANNED | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |

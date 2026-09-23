@@ -10,7 +10,7 @@ A ledger entry is never PASS. It may be removed only after the required evidence
 
 - **Owner round:** CPV1-01.3 — Consumer update flow
 - **State:** EXTERNAL_CERT_PENDING
-- **Reason:** no registered Chrome Web Store publisher identity / existing extension ID is currently available for a real same-ID signed distribution/update proof.
+- **Reason:** the owner confirmed no existing Chrome Web Store publisher identity or extension ID. A future distribution channel still needs a separate decision; no real same-ID signed update can currently be certified.
 - **Still required:** real signed same-ID update preserving extension identity and local archive, post-update health, and rollback/update recovery evidence for the supported path.
 - **Forbidden substitutions:** unsigned local install, a new unrelated extension identity, simulated store evidence, or a documentation-only claim.
 - **Owner boundary:** do not create/purchase/register a distribution account, publish, or make a legal/public-release commitment without explicit owner authorization.
