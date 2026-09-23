@@ -97,16 +97,19 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
       if (other !== h.archive && other !== tab) await other.close();
     }
     await h.archive.bringToFront();
-    const restored = await h.archive.evaluate(async () => {
+    const tabsToCycle = await h.archive.evaluate(async () => {
       const current = await chrome.tabs.getCurrent();
       const tabs = await chrome.tabs.query({});
       const other = tabs.filter((item) => item.id !== current.id);
       if (other.length !== 1) throw new Error(`expected one other tab, got ${other.length}`);
-      await chrome.tabs.update(current.id, { active: true });
-      const discarded = await chrome.tabs.discard(other[0].id);
-      if (!discarded?.discarded) throw new Error('target tab was not discarded');
-      return chrome.tabs.update(discarded.id, { active: true });
+      return { archiveId: current.id, conversationId: other[0].id };
     });
+    await h.archive.evaluate(async (id) => chrome.tabs.update(id, { active: true }), tabsToCycle.archiveId);
+    await eventually(async () => h.archive.evaluate(async (id) => !(await chrome.tabs.get(id)).active, tabsToCycle.conversationId), 'conversation tab is backgrounded before discard');
+    const discarded = await h.archive.evaluate(async (id) => chrome.tabs.discard(id), tabsToCycle.conversationId);
+    assert.equal(discarded?.discarded, true, 'the real conversation tab is discarded');
+    await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).discarded === true, tabsToCycle.conversationId), 'discard state is visible before restore');
+    const restored = await h.archive.evaluate(async (id) => chrome.tabs.update(id, { active: true }), tabsToCycle.conversationId);
     assert.equal(restored?.active, true);
     await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).status === 'complete', restored.id), 'discarded tab finishes loading');
     assert.equal((await h.state()).records.length, 3, 'discard does not change stored records');
