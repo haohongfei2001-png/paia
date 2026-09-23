@@ -14,19 +14,19 @@ current_slice_status: ACTIVE
 
 current_round: CPV1-01.3
 
-current_round_status: READY / CPV1-01.2_PASS
+current_round_status: ACTIVE / CPV1-01.2_PASS
 
-current_writer: NONE
+current_writer: manager/cpv1-01-3-consumer-update-20260923
 
-writer_status: RELEASED
+writer_status: ACTIVE
 
 production_claim: NONE
 
-authorization_mode: TEMPORARY_NIGHT_WHOLE_EXECUTION / MAX_9_ROUNDS
+authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 
-authorization_rounds_completed: 4
+prior_temporary_authorization_rounds_completed: 4
 
-authorization_rounds_remaining: 5
+prior_temporary_authorization_rounds_remaining_at_supersession: 5
 
 ## Activation evidence
 
@@ -94,9 +94,11 @@ receipt: `receipts/CPV1-01.2.md`
 
 The version handshake rejects stale-page capture before writing and gives the user one clear refresh action. Headless lifecycle evidence covers old/new/restored tabs without archive loss or duplicate capture. CURRENT_LIVE provider-site lifecycle remains assigned to CPV1-01.6 and is not claimed here.
 
-## Next eligible round
+## Current owner authorization and execution
 
-`CPV1-01.3 — Consumer update flow` is READY within VS-01 under the existing temporary whole-execution authorization. Five authorized rounds remain. No new slice or publication is authorized by this status change.
+The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence, subject to each round/slice contract and unchanged owner gates in `EXECUTION_PROTOCOL.md`. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions.
+
+`CPV1-01.3 — Consumer update flow` is ACTIVE in PR #53 on the sole writer branch `manager/cpv1-01-3-consumer-update-20260923`. The round remains open until its own engineering and exact-main closure. Continue the existing PR; do not start a second overlapping writer.
 
 ## Slice queue
 
