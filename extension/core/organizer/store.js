@@ -65,7 +65,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async recoveryDraftSourceIds(draft={}){
   const kind=draft.kind,operation=draft.operation||{},ownerId=draft.ownerId;
   return this.run(()=>this.repository.transaction(false,async t=>{
-   const ids=new Set(),add=row=>{if(!row)return;for(const id of row.sourceRecordIds||[])ids.add(id);};
+   const ids=new Set(),add=row=>{if(!row)return;for(const id of row.sourceRecordIds||[])if(typeof id==='string')ids.add(id);if(typeof row.sourceRecordId==='string')ids.add(row.sourceRecordId);for(const p of row.provenance||[])if(typeof p?.sourceRecordId==='string')ids.add(p.sourceRecordId);};
    if(kind==='document'&&operation.type==='EDIT_DOCUMENT'){
     for(const change of operation.edit?.blocks||[])add((await t.get('blocks',change.id))?.value);
    }else if(kind==='library_entry'){
