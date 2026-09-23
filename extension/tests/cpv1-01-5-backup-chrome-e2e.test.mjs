@@ -11,6 +11,14 @@ const rpc=async(page,type,fields={})=>{
  return response.data;
 };
 
+async function openBackup(page){
+ await page.locator('.sidebar [data-view=settings]').click();
+ const select=page.locator('#ux-settings-group-switch');
+ if(await select.isVisible())await select.selectOption('data');
+ else await page.locator('[data-settings-group="data"]').click();
+ await page.locator('#backup-create').waitFor({state:'visible'});
+}
+
 async function libraryDigest(harness){
  const worker=harness.context.serviceWorkers().find(item=>item.url().includes('/background/service-worker.js'));
  return worker.evaluate(async()=>{
@@ -58,7 +66,7 @@ test('CPV1-01.5 current Backup is verified, keeps the current library safe, and 
   const before=await libraryDigest(harness);
   assert.equal(before.counts.records,119);
   assert.equal(before.counts.thoughts,90);
-  await page.locator('.sidebar [data-view=settings]').click();
+  await openBackup(page);
   await rpc(page,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-backup-key-must-not-export'}});
   let file;
   try{
@@ -84,7 +92,7 @@ test('CPV1-01.5 current Backup is verified, keeps the current library safe, and 
   page=harness.archive;
   await page.locator('#consent-check').check();
   await page.locator('#enable-consent').click();
-  await page.locator('.sidebar [data-view=settings]').click();
+  await openBackup(page);
   await page.locator('#backup-file').setInputFiles(output);
   await eventually(async()=>await page.locator('#backup-restore').isEnabled(),'empty-library restore preview',60000);
   await page.locator('#backup-restore').click();
