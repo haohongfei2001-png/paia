@@ -30,7 +30,7 @@ The owner can explicitly grant WHOLE_PACKAGE_PREAUTHORIZED later. Even then, own
 
 ## 3. True owner gates
 
-Stop and ask the owner only for:
+The following are true owner gates for the **affected action or product meaning**, not automatic package-level stop conditions:
 
 - a Product Intent conflict listed in AUTHORITY.md;
 - a new privacy/data-collection permission;
@@ -39,6 +39,16 @@ Stop and ask the owner only for:
 - an irreversible/destructive migration not already covered by an approved migration contract;
 - a legal/public-release commitment;
 - a genuinely personal semantic judgment that independent evaluation cannot establish.
+
+When one is reached:
+
+1. do not guess, cross, or weaken the gate;
+2. record the exact dependency in `DEFERRED_FINAL_GATES.md`;
+3. leave the dependent feature/action disabled, unshipped, synthetic-only, or explicitly uncertified as appropriate;
+4. continue every later canonical task that is independent of that unresolved decision;
+5. ask the owner immediately only when the answer is required to keep any useful engineering path moving; otherwise batch the decision for final convergence.
+
+The whole package stops for an owner gate only after all dependency-safe automatable work has been exhausted.
 
 Do not ask the owner to choose:
 
@@ -191,8 +201,10 @@ When a slice is engineering-complete but remains open only on deferred external 
 The package-level unattended execution stops only when:
 
 1. all currently automatable engineering in the authorized canonical plan is exhausted; and
-2. every remaining unresolved item is a true owner gate, external-only evidence gate, or safety/integrity dependency that makes further work genuinely unsafe or logically dependent.
+2. every remaining unresolved item is a true owner gate, external/private/device-only evidence gate, or safety/integrity dependency that makes further work genuinely unsafe or logically dependent.
 
-Do not stop merely because a round/slice is awaiting a provider, store, deployment quota, live account, signing identity, or publication decision when independent engineering remains.
+When a current round contains both blocked and independent work, close the independent engineering as `ENGINEERING_PARTIAL / DEFERRED_GATE_PENDING` or the most precise equivalent, release that writer when safe, and route to the next dependency-safe canonical work. A blocked final evidence class must not monopolize the engineering frontier.
+
+Do not stop merely because a round/slice is awaiting a provider, store, deployment quota, live account, private export, real device, signing identity, product-owner decision, or publication decision when independent engineering remains.
 
 The owner should see a user-visible capability summary plus a concise deferred-gate ledger, not raw engineering logs.

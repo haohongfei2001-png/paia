@@ -54,6 +54,20 @@ The manager must preserve two truthful states:
 
 No later work may erase, relabel or implicitly satisfy an earlier deferred gate. Final slice/package completion still requires all applicable evidence.
 
+### 0.5 Deferred-gate routing
+
+A round that exists primarily to resolve an owner, private-artifact, real-device, credential, paid-service or current-live gate must not become a queue-wide parking lot.
+
+When such a gate is unavailable:
+
+- register/update it in `DEFERRED_FINAL_GATES.md`;
+- complete every independent engineering subtask in the round;
+- record `ENGINEERING_PARTIAL / DEFERRED_GATE_PENDING` (or the narrower existing split state) rather than pretending COMPLETE;
+- leave dependent behavior disabled/fail-closed/synthetic-only as appropriate;
+- advance to the next canonical work whose correctness does not depend on the missing decision/evidence.
+
+At final convergence, revisit the deferred ledger and close only those gates with real evidence/owner decisions. If unresolved gates remain, report them together rather than repeatedly interrupting development one at a time.
+
 ---
 
 # VS-01 — Safe open, update and recovery
@@ -329,11 +343,11 @@ Define:
 Exit:
 - explicit scale/SLO table; old limits retained honestly until replaced.
 
-## CPV1-03.1 — Real official export verification
+## CPV1-03.1 — Official export contract and real-export verification
 
-Use current real official ChatGPT export structure under private/local handling.
+Engineer the strict import contract, fixtures and admission behavior immediately.
 
-Verify:
+When a current real official ChatGPT export is available under private/local handling, verify:
 - format recognition;
 - roles;
 - branches;
@@ -341,6 +355,8 @@ Verify:
 - attachments/unsupported cases;
 - duplicate import;
 - malformed/ambiguous negatives.
+
+If the private export artifact is unavailable, record DFG-CPV1-005 and continue CPV1-03.2–03.6 engineering with synthetic/redacted/publicly documented structures. Do not claim official-export support until the real evidence passes.
 
 Claude or another provider only earns "supported" after its own real export verification.
 
@@ -508,9 +524,13 @@ Exit:
 
 Cross-conversation expression becomes readable long-term Topics with user additions, historical evidence and faithful AI organization.
 
-## CPV1-05.0 — Resolve B-01 only if still needed
+## CPV1-05.0 — Route B-01 without stalling the slice
 
-If B-01 is not already decided, present the two product meanings to owner and record the decision.
+If B-01 is already decided, record and use it.
+
+If B-01 is still unresolved, register/retain DFG-CPV1-002 and continue every VS-05 capability that does not require choosing direct mutation semantics for existing/old Thought. Do not invent that meaning merely to keep moving.
+
+The blocked old-Thought mutation path remains disabled/fail-closed until B-01 is resolved. Independent new Thought creation, Reader, relations that do not assume direct old-Thought mutation, AI Organize, fidelity and UX work continue.
 
 Do not ask owner for layout, component or algorithm choices.
 
@@ -755,11 +775,13 @@ Blind/fixed retrieval evaluation + long-library latency + user-level "I remember
 
 A supported external AI can query/read only authorized PAIA material; revocation actually prevents later reads.
 
-## CPV1-08.0 — Resolve deployment gates
+## CPV1-08.0 — Separate connector engineering from deployment gates
 
-Resolve B-03 and B-05 only to the extent needed for the real connector deployment.
+Verify the current supported platform connector/API mechanism; do not assume a historical "GPT plugin" interface exists.
 
-Verify current supported platform connector/API mechanism; do not assume a historical "GPT plugin" interface exists.
+B-03/B-05 are required only for choices that commit PAIA to a production cloud/data-residency/service/commercial model. If unresolved, retain DFG-CPV1-006 and continue connector contract, trusted-boundary implementation, Passport enforcement and adversarial verification against a local/synthetic deployment harness.
+
+Real external deployment and CPV1-08.5 acceptance remain pending until the required owner/external gates are satisfied. Do not infer a cloud policy or paid service merely to close the slice.
 
 ## CPV1-08.1 — Read-only connector contract
 
@@ -877,7 +899,7 @@ Provide mobile-appropriate stacked access; do not shrink desktop three-column UI
 Implement M2:
 record → transcribe → review → save.
 
-Resolve transcription service/privacy/fee only when needed. No background listening.
+Prefer an on-device/local path when it meets the product requirement without a new processor or paid commitment. If a third-party transcription service would introduce a new privacy/cost/processor decision, record DFG-CPV1-007, keep that adapter disabled, and continue the explicit record → review → save workflow plus transcription interface/local/synthetic validation. No background listening.
 
 ## CPV1-10.4 — Interruption/recovery
 
@@ -894,6 +916,8 @@ Test:
 
 Real iPhone/iPad supported-device evidence including large text/accessibility and startup latency.
 
+If no authorized real-device runner is available, record DFG-CPV1-007 and continue later dependency-safe engineering. DEVICE evidence remains mandatory for final VS-10 certification and must never be replaced by desktop emulation.
+
 ---
 
 # VS-11 — Multi-source and device continuity
@@ -902,9 +926,13 @@ Real iPhone/iPad supported-device evidence including large text/accessibility an
 
 MyWrite and additional supported sources/devices converge without losing edits, confusing author roles or resurrecting deleted material.
 
-## CPV1-11.0 — B-03 final data residency/sync decision
+## CPV1-11.0 — Route B-03 while preserving sync engineering
 
-Only now require the owner to freeze the production local/cloud relationship needed for Sync.
+B-03 must be resolved before enabling a production cloud Sync authority.
+
+If unresolved, retain DFG-CPV1-006 and freeze a transport-agnostic local sync contract instead: stable identity, revisions, tombstones, conflict semantics, device trust/key interfaces and a deterministic simulated two-device transport. Continue the merge engine, conflict UX and failure matrix against that harness.
+
+Do not deploy production Sync, choose remote plaintext authority, create a paid backend commitment, or claim real continuity until B-03 is resolved and the real path is certified.
 
 ## CPV1-11.1 — Sync trust/key/account readiness
 
@@ -959,16 +987,18 @@ Phone MyWrite → desktop find/edit → source-filtered Topic → offline confli
 
 External AI can propose safe PAIA organization changes under separate permission, and an explicitly enabled prompt assistant can use allowed AI replies to suggest the next prompt without auto-sending.
 
-## CPV1-12.0 — Resolve B-01/B-02/B-04 as required
+## CPV1-12.0 — Route B-01/B-02/B-04 by affected capability
 
-B-04 must define:
+Use resolved B-01/B-02 decisions when available. If unresolved, keep only the affected direct-old-Thought/permanent-delete proposal types disabled and continue proposal types whose semantics are already unambiguous.
+
+B-04 must eventually define:
 - which AI reply can be read;
 - local versus remote processing;
 - retention;
 - whether reply text becomes durable context evidence;
 - disable/revoke behavior.
 
-B-01/B-02 are required for any write/delete semantics they affect.
+If B-04 is unresolved, retain DFG-CPV1-008 and defer only reply-aware assistant behavior (CPV1-12.3 and its corresponding real acceptance). Continue typed AI changeset, review/commit, permission and adversarial work that does not read AI replies.
 
 ## CPV1-12.1 — Typed AI changeset contract
 
@@ -1011,6 +1041,24 @@ Cover:
 ## CPV1-12.5 — Real end-to-end acceptance
 
 Real external AI proposal → review → safe commit/deny; real reply-aware prompt → insert → user manual send.
+
+---
+
+# Final convergence after engineering frontier exhaustion
+
+This is not a new product slice and adds no new feature scope.
+
+After all dependency-safe VS-01..VS-12 engineering has been exhausted:
+
+1. read `DEFERRED_FINAL_GATES.md`;
+2. collapse duplicate/obsolete entries;
+3. execute any external/current-live/private/device evidence that has become available;
+4. present unresolved owner decisions as one compact batch with the concrete feature consequence of each choice;
+5. apply decisions without reopening unrelated completed engineering;
+6. run only the downstream evidence invalidated by those decisions;
+7. stop with an honest partial-certification report if a real owner/external/device gate still cannot be closed.
+
+The manager must not create busywork merely to avoid this final convergence boundary.
 
 ---
 
