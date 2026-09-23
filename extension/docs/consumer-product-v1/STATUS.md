@@ -2,42 +2,51 @@
 
 package_id: PAIA-CONSUMER-PRODUCT-v1
 
-package_status: PLANNED
+package_status: ACTIVE
 
-activation_status: BLOCKED_BY_ACTIVE_CPR02_WRITER
+activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
-planning_branch: docs/paia-consumer-product-v1-plan-20260923
+activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-planning_baseline_main: fa1a6c6452153bb99ec24cdd8662b5d8c6a9371a
+current_slice: VS-01
 
-current_slice: NONE
+current_slice_status: ACTIVE
 
-current_round: NONE
+current_round: CPV1-01.0
 
-current_round_status: NONE
+current_round_status: ACTIVE
 
-writer_status: RELEASED
+current_writer: manager/cpv1-01-0-lifecycle-baseline-20260923
+
+writer_status: ACTIVE
 
 production_claim: NONE
 
-## Activation dependency
+## Activation evidence
 
-At planning time:
+The planning-time blocker is cleared on remote `main`:
 
-- PAIA-CHATGPT-PROJECT-RECOGNITION-v1: CPR-02 IN_PROGRESS;
-- writer: manager/cpr02-lifecycle-navigator-20260922;
-- PR #47 open;
-- Consumer Product v1 must not create a second runtime writer.
+- CPR-02 is PASS in `extension/docs/chatgpt-project-recognition-v1/STATUS.md`;
+- CPR-02 candidate PR #47 is merged;
+- CPR-02 exact-main certification is recorded as run `35792666267`;
+- the previous writer is RELEASED;
+- Consumer Product v1 planning PR #48 is merged at `c1d448fc51261369398f7e12aaacaafd233e23d2`.
 
-When CPR-02 reaches COMPLETE/PASS, COMPLETE/FAIL or BLOCKED with a released writer, reconcile this planning branch with current main. Preserve correct CPR-02 work. Then perform one docs/routing activation change that sets VS-01 READY.
+Per the owner-authorized night execution route, do not start CPR-03 or the old PRD-03 queue merely because they remain named in historical packages. Their useful requirements are absorbed into this Consumer Product execution queue unless a later round explicitly cites them as evidence.
 
-Do not start CPR-03 or PRD-03 merely to clear this dependency. Their useful requirements are absorbed by the Consumer Product plan after activation unless the owner explicitly keeps a separate queue.
+## Active round
+
+`CPV1-01.0 — Current lifecycle baseline and failure map`
+
+This round is read-only with respect to product runtime. Its purpose is to bind the current lifecycle reality to concrete code paths before repair begins. The candidate evidence lives in `receipts/CPV1-01.0.md`.
+
+The round must not be marked PASS before the required candidate checks and exact-main evidence are complete. After PASS, `CPV1-01.1 — Automatic update flow` becomes READY.
 
 ## Slice queue
 
 | Slice | State | User outcome |
 |---|---|---|
-| VS-01 Safe open, update and recovery | PLANNED | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
+| VS-01 Safe open, update and recovery | ACTIVE | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
 | VS-02 Source structure to world-class Reader | PLANNED | Captured conversations appear in the correct Project and open in a coherent fast Reader |
 | VS-03 History import, export and recoverable large library | PLANNED | Real official history imports safely and the supported archive can actually be restored |
 | VS-04 Natural editing and fast lexical retrieval | PLANNED | Direct editing, undo, search, filtering and reuse feel like one document product |
@@ -60,7 +69,7 @@ It is not the full long-term product. VS-07 through VS-12 remain committed produ
 
 STATUS.md is the only Consumer Product v1 execution queue after activation.
 
-A manager may change a round from READY to IN_PROGRESS only after:
+A manager may change a round from READY to ACTIVE only after:
 
 1. remote main is re-read;
 2. no conflicting writer exists;
