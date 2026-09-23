@@ -11,7 +11,44 @@ export class BackupPanel {
  status(text,state){$('backup-status').textContent=text;this.currentState=state||(text.startsWith('正在')?'loading':text.includes('已完成')||text.includes('已生成')?'saved':text?'ready':'idle');setProductState($('backup-settings'),this.currentState);}
  lock(value){this.busy=value;setProductState($('backup-settings'),value?'loading':this.currentState||'idle');for(const id of ['backup-create','backup-choose','backup-restore','r6-export-json','r6-export-markdown'])if($(id))$(id).disabled=value;}
  async cancel(){if(this.busy)return;if(this.sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId:this.sessionId}}).catch(()=>{});this.sessionId=null;this.preview=null;$('backup-preview').hidden=true;$('backup-file').value='';this.status('');}
- async create(){if(this.busy)return;await this.cancel();this.lock(true);let sessionId;try{this.status('正在分段创建本地备份…');const begin=await request('PAIA_BACKUP_BEGIN_EXPORT');sessionId=begin.sessionId;const parts=[JSON.stringify(begin.header)+'\n'];let sequence=0,count=0;for(;;){const page=await request('PAIA_BACKUP_EXPORT_PAGE',{options:{sessionId,sequence:sequence++}});parts.push(page.items.map(x=>JSON.stringify(x)+'\n').join(''));count+=page.items.filter(x=>x.type==='item').length;this.status(`正在创建备份 · 已处理 ${count} 项`);if(page.done)break;await new Promise(resolve=>setTimeout(resolve,0));}downloadParts(parts,'PAIA-Backup-'+new Date().toISOString().replace(/[:.]/g,'-')+'.paia-backup','application/x-ndjson');await recordR6BackupSuccess(begin.header.createdAt);const restoreLimit=count>BACKUP_LIMITS.restoreItems||new Blob(parts).size>BACKUP_LIMITS.restoreBytes;this.status(restoreLimit?'备份已生成并开始下载。此文件超出本版单次恢复范围（64 MB / 100000 项），请保留原库；本次没有删除或覆盖内容。':'备份已生成并开始下载。文件包含私人数据，请自行妥善保存。');}catch(e){this.status(backupMessage(e.code),'failed');}finally{if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore;}}
+ async create(){
+  if(this.busy)return;
+  await this.cancel();this.lock(true);
+  let sessionId;
+  try{
+   this.status('正在分段创建本地备份…');
+   const begin=await request('PAIA_BACKUP_BEGIN_EXPORT');sessionId=begin.sessionId;
+   const parts=[JSON.stringify(begin.header)+'\n'];
+   const validator=new BackupValidator();
+   await validator.add(begin.header);
+   let sequence=0,count=0,recoveryPoint=true;
+   for(;;){
+    const page=await request('PAIA_BACKUP_EXPORT_PAGE',{options:{sessionId,sequence:sequence++}});
+    for(const row of page.items){
+     if(recoveryPoint){
+      try{await validator.add(row);}catch(error){
+       if(error?.code!=='BACKUP_TOO_LARGE')throw error;
+       recoveryPoint=false;
+      }
+     }
+    }
+    parts.push(page.items.map(x=>JSON.stringify(x)+'\n').join(''));
+    count+=page.items.filter(x=>x.type==='item').length;
+    this.status(`正在创建备份 · 已处理 ${count} 项`);
+    if(page.done)break;
+    await new Promise(resolve=>setTimeout(resolve,0));
+   }
+   if(recoveryPoint)validator.preview(); // Footer, count and hash must all match before this is a recovery point.
+   downloadParts(parts,'PAIA-Backup-'+new Date().toISOString().replace(/[:.]/g,'-')+'.paia-backup','application/x-ndjson');
+   if(recoveryPoint){
+    await recordR6BackupSuccess(begin.header.createdAt);
+    this.status('备份已生成，在本机通过格式和完整性校验，并开始下载。请确认文件已保存后再更新；恢复仅支持空库，文件含私人数据。');
+   }else{
+    this.status('文件已生成并开始下载，但超出本版单次恢复范围（64 MB / 100000 项），不能作为更新或迁移恢复点。请保留原库；本次没有删除或覆盖内容。');
+   }
+  }catch(e){this.status(backupMessage(e.code),'failed');}
+  finally{if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore;}
+ }
  async inspect(file){if(!file||this.busy)return;await this.cancel();this.lock(true);try{this.status('正在本机校验备份…');const begin=await request('PAIA_BACKUP_BEGIN_RESTORE');this.sessionId=begin.sessionId;const validator=new BackupValidator();let batch=[];for await(const row of backupFileRows(file)){await validator.add(row);batch.push(row);if(batch.length===30){await request('PAIA_BACKUP_STAGE',{options:{sessionId:this.sessionId,items:batch}});batch=[];this.status(`正在校验 · ${validator.count} 项`);}}validator.preview();if(batch.length)await request('PAIA_BACKUP_STAGE',{options:{sessionId:this.sessionId,items:batch}});this.preview=await request('PAIA_BACKUP_PREVIEW',{options:{sessionId:this.sessionId}});const p=this.preview;$('backup-preview-content').replaceChildren(element('p','',`备份日期：${new Date(p.createdAt).toLocaleString()}`),element('p','',`PAIA ${p.appVersion} · 备份格式 ${p.formatVersion}`),element('p','',`${p.counts.inputs} 条 Input · ${p.counts.topics} 个 Topic · ${p.counts.entries} 条思想内容 · ${p.counts.revisions} 个版本`),element('p','muted',p.canRestore?'完整性校验通过。确认后将在本机恢复这些数据，API Key 与捕获授权保持当前设置。':backupMessage(p.reason)));$('backup-preview').hidden=false;this.status(p.canRestore?'请核对备份信息，然后点击“确认恢复到空库”。':'校验通过，当前库不满足安全恢复条件。');}catch(e){this.status(backupMessage(e.code),'failed');if(this.sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId:this.sessionId}}).catch(()=>{});this.sessionId=null;this.preview=null;}finally{this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore;}}
  async restore(){if(this.busy||!this.preview?.canRestore)return;this.lock(true);try{this.status('正在恢复，请保持本页打开…');await request('PAIA_BACKUP_RESTORE',{options:{sessionId:this.sessionId,confirmation:this.preview.integrity}});await refreshR6Settings();this.sessionId=null;this.preview=null;$('backup-preview').hidden=true;this.status('恢复已完成。内容与版本已保存到本机；本地搜索索引正在更新。');}catch(e){this.status(backupMessage(e.code),'failed');}finally{this.lock(false);$('backup-restore').disabled=true;}}
 }
