@@ -34,4 +34,5 @@ export class RecoveryDraftSession{
  clear(token=this.currentToken){return request('PAIA_RECOVERY_DRAFT_CLEAR',{draft:{kind:this.kind,ownerId:this.ownerId,token}});}
 }
 
+export const clearRecoveryDrafts=drafts=>request('PAIA_RECOVERY_DRAFT_CLEAR_MANY',{drafts});
 export const pruneRecoveryDrafts=()=>request('PAIA_RECOVERY_DRAFT_PRUNE');
