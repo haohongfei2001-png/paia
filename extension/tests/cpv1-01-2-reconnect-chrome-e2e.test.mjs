@@ -38,3 +38,38 @@ test('CPV1-01.2: unpacked extension update marks the old tab stale with one refr
     await rm(release, { recursive: true, force: true });
   }
 });
+
+test('CPV1-01.2: a newly opened tab after a version update retains the same archive', { timeout: 120000 }, async () => {
+  const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-updated-release-'));
+  const profile = await mkdtemp(join(tmpdir(), 'paia-cpv1-update-profile-'));
+  execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
+  let h;
+  try {
+    h = await FakeChatGPT.start({ extensionPath: release, headless: true, userDataDir: profile });
+    await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
+    await h.archive.locator('#enable-consent').click();
+    await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
+    const first = await h.open(conversation('cpv1-before-update'));
+    await h.ready(first);
+    await eventually(async () => (await h.state()).records.length === 3);
+    const extensionId = h.extensionId;
+    await h.close(); h = undefined;
+
+    const manifestPath = join(release, 'manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.version = '0.12.1';
+    await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+    h = await FakeChatGPT.start({ extensionPath: release, headless: true, userDataDir: profile, onboarding: true });
+    assert.equal(h.extensionId, extensionId, 'version update preserves extension identity');
+    assert.equal((await h.state()).records.length, 3, 'the existing archive remains after update');
+    const fresh = await h.open(conversation('cpv1-after-update'));
+    await h.ready(fresh);
+    await eventually(async () => (await h.state()).records.length === 6, 'new tab captures after update');
+    assert.equal(await fresh.locator('#paia-reconnect-notice').count(), 0);
+  } finally {
+    await h?.close();
+    await rm(release, { recursive: true, force: true });
+    await rm(profile, { recursive: true, force: true });
+  }
+});
+
