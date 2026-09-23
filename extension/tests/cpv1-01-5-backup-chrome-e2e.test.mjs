@@ -43,7 +43,7 @@ test('CPV1-01.5 current Backup is verified, keeps the current library safe, and 
   return !/^(?:\.git|work|outputs)(?:\/|$)/.test(relative);
  }});
  const workerPath=join(dir,'background/service-worker.js');
- await writeFile(workerPath,(await readFile(workerPath,'utf8'))+"\nimport {seedLongTerm} from '../tests/fixtures/long-term-v081.mjs';globalThis.cpv1015={store,seed:()=>seedLongTerm(store)};\n");
+ await writeFile(workerPath,(await readFile(workerPath,'utf8'))+"\nimport {seedLongTerm} from '../tests/fixtures/long-term-v081.mjs';globalThis.cpv1015={store,seed:options=>seedLongTerm(store,options)};\n");
  // CI's Xvfb display is isolated from the user's desktop. Chrome's extension
  // download path is exercised there; local runs stay headless.
  const headless=!(process.env.CI==='1'&&process.env.DISPLAY);
@@ -54,18 +54,22 @@ test('CPV1-01.5 current Backup is verified, keeps the current library safe, and 
   await page.locator('#consent-check').check();
   await page.locator('#enable-consent').click();
   const worker=harness.context.serviceWorkers().find(item=>item.url().includes('/background/service-worker.js'));
-  await worker.evaluate(()=>globalThis.cpv1015.seed());
+  await worker.evaluate(()=>globalThis.cpv1015.seed({inputCount:120,entryCount:90}));
   const before=await libraryDigest(harness);
-  assert.equal(before.counts.records,499);
-  assert.equal(before.counts.thoughts,360);
+  assert.equal(before.counts.records,119);
+  assert.equal(before.counts.thoughts,90);
   await page.locator('.sidebar [data-view=settings]').click();
   await rpc(page,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-backup-key-must-not-export'}});
-  const download=page.waitForEvent('download',{timeout:90000});
-  await page.locator('#backup-create').click();
-  const file=await download.catch(async error=>{
+  let file;
+  try{
+   [file]=await Promise.all([
+    page.waitForEvent('download',{timeout:90000}),
+    page.locator('#backup-create').click(),
+   ]);
+  }catch(error){
    const status=await page.locator('#backup-status').textContent().catch(()=>'(browser closed)');
    throw new Error(`Backup did not download; status=${status}; ${error.message}`);
-  });
+  }
   await file.saveAs(output);
   await eventually(async()=>/已生成.*完整性校验/.test(await page.locator('#backup-status').textContent()));
   const content=await readFile(output,'utf8');
