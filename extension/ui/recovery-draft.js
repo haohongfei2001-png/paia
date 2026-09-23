@@ -1,6 +1,4 @@
-import {RecoveryDraftStore} from '../core/recovery-draft.js';
-
-const store=new RecoveryDraftStore(chrome.storage.local);
+import {request} from './common.js';
 
 export class RecoveryDraftSession{
  constructor({kind,ownerId,sourceRecordIds=[]}){
@@ -8,15 +6,15 @@ export class RecoveryDraftSession{
  }
  protect(operation,token){
   const generation=++this.generation;this.currentToken=token;this.pending=true;
-  const run=this.tail.catch(()=>{}).then(()=>store.save({kind:this.kind,ownerId:this.ownerId,token,operation,sourceRecordIds:this.sourceRecordIds}));
+  const run=this.tail.catch(()=>{}).then(()=>request('PAIA_RECOVERY_DRAFT_SAVE',{draft:{kind:this.kind,ownerId:this.ownerId,token,operation,sourceRecordIds:this.sourceRecordIds}}));
   this.tail=run;run.finally(()=>{if(this.generation===generation)this.pending=false;}).catch(()=>{});return run;
  }
- load(){return this.tail.catch(()=>{}).then(()=>store.load(this.kind,this.ownerId));}
+ load(){return this.tail.catch(()=>{}).then(()=>request('PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:this.kind,ownerId:this.ownerId}}));}
  clear(token=this.currentToken){
   const generation=++this.generation;this.pending=true;
-  const run=this.tail.catch(()=>{}).then(()=>store.clear(this.kind,this.ownerId,token));
+  const run=this.tail.catch(()=>{}).then(()=>request('PAIA_RECOVERY_DRAFT_CLEAR',{draft:{kind:this.kind,ownerId:this.ownerId,token}}));
   this.tail=run;run.finally(()=>{if(this.generation===generation)this.pending=false;}).catch(()=>{});return run;
  }
 }
 
-export const pruneRecoveryDrafts=()=>store.prune();
+export const pruneRecoveryDrafts=()=>request('PAIA_RECOVERY_DRAFT_PRUNE');
