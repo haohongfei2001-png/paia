@@ -94,11 +94,11 @@ receipt: `receipts/CPV1-01.2.md`
 
 The version handshake rejects stale-page capture before writing and gives the user one clear refresh action. Headless lifecycle evidence covers old/new/restored tabs without archive loss or duplicate capture. CURRENT_LIVE provider-site lifecycle remains assigned to CPV1-01.6 and is not claimed here.
 
-## Next eligible round
+## Current owner authorization and execution
 
-The owner superseded the temporary nine-round limit with `WHOLE_PACKAGE_PREAUTHORIZED` on 2026-09-23, registered on main at `6bc20b1d53e155e4f545f3cea515476cbc5d2b45`. The prior counters are historical, not a current cap. Every round/slice still follows its canonical contract and owner gates; publication remains separately authorized.
+The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence, subject to each round/slice contract and unchanged owner gates in `EXECUTION_PROTOCOL.md`. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions.
 
-`CPV1-01.3 — Consumer update flow` is ACTIVE on the sole writer branch `manager/cpv1-01-3-consumer-update-20260923` from original runtime main `15ad108eb0a9f63f6c05c076f992f057bcc86d2c`. Its current path and constraints are recorded in `receipts/CPV1-01.3-START.md`. The round is not COMPLETE.
+`CPV1-01.3 — Consumer update flow` is ACTIVE in PR #53 on the sole writer branch `manager/cpv1-01-3-consumer-update-20260923`. The round remains open until its own engineering and exact-main closure. Continue the existing PR; do not start a second overlapping writer.
 
 ## Slice queue
 
