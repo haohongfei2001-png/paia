@@ -34,7 +34,15 @@ export class RecoveryDraftSession{
   })().finally(()=>{this.running=null;this.pending=!!this.latest||this.waiters.length>0;if(this.latest)void this.drain();});
   return this.running;
  }
- async load(){if(this.running)await this.running.catch(()=>{});return request('PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:this.kind,ownerId:this.ownerId}});}
+ async load(){
+  if(this.running)await this.running.catch(()=>{});
+  // Recovery is only for a prior interrupted session. Once this live editor has
+  // protected a newer local change, a delayed load must not replay either the
+  // just-written draft or an older draft over the active in-memory edit.
+  if(this.currentToken)return null;
+  const draft=await request('PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:this.kind,ownerId:this.ownerId}});
+  return this.currentToken?null:draft;
+ }
  async clear(token=this.currentToken){const result=await request('PAIA_RECOVERY_DRAFT_CLEAR',{draft:{kind:this.kind,ownerId:this.ownerId,token}});if(result&&this.persisted?.token===token)this.persisted=null;return result;}
 }
 
