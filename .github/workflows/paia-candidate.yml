@@ -1,0 +1,167 @@
+name: PAIA Candidate Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'extension/**'
+      - '!extension/docs/**'
+      - 'native-hosts/**'
+      - '.github/workflows/paia-candidate.yml'
+      - '.github/workflows/paia-certification.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paia-verification-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: '1'
+  PAIA_TEST_CONCURRENCY: '4'
+  PLAYWRIGHT_MODULE: 'playwright'
+
+jobs:
+  unit:
+    if: github.event.pull_request.draft == true
+    name: Candidate Unit ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4','2/4','3/4','4/4']
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - name: Run candidate unit shard
+        env:
+          PAIA_TEST_SHARD: ${{ matrix.shard }}
+          PAIA_TEST_CONCURRENCY: '1'
+        run: npm run test:unit
+
+  contracts:
+    if: github.event.pull_request.draft == true
+    name: Candidate contracts and privacy
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - name: Install Chromium for adapter contracts
+        run: npx playwright install --with-deps chromium
+      - name: Adapter contract
+        run: node scripts/test.mjs "adapter contract"
+      - name: Privacy and security
+        run: node scripts/test.mjs "privacy/security"
+
+  browser:
+    if: github.event.pull_request.draft == true
+    name: Candidate Browser ${{ matrix.index }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - index: 1
+            shard: '1/4'
+          - index: 2
+            shard: '2/4'
+          - index: 3
+            shard: '3/4'
+          - index: 4
+            shard: '4/4'
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Prepare portable Chrome test environment
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Verify current browser coverage contract
+        if: matrix.index == 1
+        run: node scripts/check-ui-refresh-ci.mjs
+      - name: Run candidate browser shard
+        env:
+          PAIA_TEST_SHARD: ${{ matrix.shard }}
+          PAIA_TEST_CONCURRENCY: '1'
+        run: xvfb-run -a npm run test:browser
+
+  release:
+    if: github.event.pull_request.draft == true
+    name: Candidate release guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build and audit release
+        run: npm run build:release
+
+  candidate:
+    name: Candidate gate
+    runs-on: ubuntu-latest
+    if: always() && github.event.pull_request.draft == true
+    needs: [unit, contracts, browser, release]
+    steps:
+      - name: Require bounded candidate gates
+        env:
+          UNIT: ${{ needs.unit.result }}
+          CONTRACTS: ${{ needs.contracts.result }}
+          BROWSER: ${{ needs.browser.result }}
+          RELEASE: ${{ needs.release.result }}
+        run: |
+          printf 'unit=%s\ncontracts=%s\nbrowser=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$BROWSER" "$RELEASE"
+          test "$UNIT" = success
+          test "$CONTRACTS" = success
+          test "$BROWSER" = success
+          test "$RELEASE" = success
