@@ -46,6 +46,7 @@ class DocumentSession {
  protectedSectionIds(){const ids=new Set(),active=document.activeElement;for(const m of this.metadata){if(m.kind!=='section')continue;if(m.dirty()||m.composing||m.saving||m.failed||m.conflicted||m.root.contains(active))ids.add(m.row.sectionId);}return ids;}
  releaseMetadata(keepSectionIds=new Set()){const protectedIds=this.protectedSectionIds(),keep=[];for(const m of this.metadata){if(m.kind==='topic'||keepSectionIds.has(m.row.sectionId)||protectedIds.has(m.row.sectionId)){keep.push(m);continue;}m.dispose();}this.metadata.splice(0,this.metadata.length,...keep);}
  get saving(){return this.entry.saving||this.metadata.some(m=>m.saving);}
+ get recoveryPending(){return this.entry.recoveryPending||this.metadata.some(m=>m.recoveryPending);}
  set failed(v){this.entry.failed=v;this.metadata.forEach(m=>m.failed=v);}
  async flush(){for(const m of this.metadata)if(!await m.flush())return false;return this.entry.flush();}
  dispose(){this.entry.dispose();this.metadata.forEach(m=>m.dispose());}
