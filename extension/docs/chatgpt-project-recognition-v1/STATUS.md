@@ -2,13 +2,13 @@
 
 package_id: `PAIA-CHATGPT-PROJECT-RECOGNITION-v1`
 
-package_status: `ACTIVE`
+package_status: `HISTORICAL_EVIDENCE_ONLY`
 
 canonical_branch: `main`
 
-current_round: `CPR-03`
+current_round: `NONE`
 
-current_round_status: `READY / NOT_STARTED`
+current_round_status: `NOT_EXECUTABLE — ABSORBED_BY_CONSUMER_PRODUCT_v1`
 
 writer_status: `RELEASED`
 
@@ -21,7 +21,15 @@ blocking_dependency: `NONE — PRD-02 COMPLETE`
 | CPR-00 | COMPLETE | Live capability discovery and evidence-contract freeze |
 | CPR-01 | COMPLETE | Trusted automatic current-Project observer and admission |
 | CPR-02 | COMPLETE | Lifecycle + Navigator integration and fallback correctness |
-| CPR-03 | READY | Real normal-use certification and package closure |
+| CPR-03 | ABSORBED | Real normal-use certification requirements carried into Consumer Product v1 |
+
+## Current routing after Consumer Product v1 activation
+
+This package is historical evidence only. CPR-00 through CPR-02 remain truthful
+completed evidence. CPR-03 is not a separate executable queue; its useful
+normal-use requirements are carried by Consumer Product v1, especially VS-02.
+Do not resume this package unless the active Consumer Product round explicitly
+requests a bounded historical artifact.
 
 ## Required package exit
 

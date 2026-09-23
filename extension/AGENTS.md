@@ -1,98 +1,48 @@
 # PAIA current engineering instructions
 
-## Production Readiness v1 — active execution routing
+## Consumer Product v1 — active execution routing
 
-`PAIA-PRODUCTION-READINESS-v1` is the active new product/engineering package for
-closing the gap between strong automated engineering evidence and a PAIA daily
-installation that can be relied on without silent data loss or recurring
-operator repair.
+`PAIA-CONSUMER-PRODUCT-v1` is the sole active PAIA product/engineering queue.
+Its canonical docs live under `docs/consumer-product-v1/`.
 
-Before continuing PAIA production-readiness work, read
-`docs/production-readiness-v1/README.md`, `AUDIT.md`,
-`DEVELOPMENT_PLAN.md`, `VERIFICATION.md`, `EXECUTION_PROTOCOL.md` and
-`STATUS.md` after PRODUCT/ARCHITECTURE/ROADMAP. `STATUS.md` is the only PRD
-queue. Execute only one READY round per owner continuation instruction and stop
-after its receipt/status closure.
+Before continuing PAIA development, read in this order:
 
-This package does not authorize ANS-10, semantic/vector integration, new live
-providers, cloud sync, broader collection, hidden paid AI or a new durable
-content layer. Real-site/daily-profile evidence must keep private content local;
-only sanitized counts/hashes/states may enter Git.
+1. `docs/consumer-product-v1/STATUS.md`
+2. `AUTHORITY.md`
+3. `PRODUCT_INTENT_CONTRACT.md`
+4. `UX_CONTRACT.md`
+5. `TECHNICAL_PLAN.md`
+6. `MASTER_PLAN.md`
+7. `VERIFICATION.md`
+8. `EXECUTION_PROTOCOL.md`
+9. the current round's relevant code/history only.
 
+Google Drive `PAIA设计想法.docx` remains the highest product-intent authority.
+Do not copy the private source, private archive material or private screenshots
+into this public repository.
 
-## Planned interlock — ChatGPT Project Recognition v1
+`STATUS.md` is the only active execution queue. Remote `main` is the engineering
+fact source. Preserve correct historical implementation and evidence, but do not
+resume old queues merely because their own historical STATUS still names a next
+round.
 
-`PAIA-CHATGPT-PROJECT-RECOGNITION-v1` is the mandatory next package after
-PRD-02 and before PRD-03. Its canonical docs are under
-`docs/chatgpt-project-recognition-v1/`.
+Current owner authorization is
+`TEMPORARY_NIGHT_WHOLE_EXECUTION / MAX_9_ROUNDS`. Continue consecutive rounds
+within that cap without stopping for ordinary engineering decisions. Stop only
+at the owner gates defined in `AUTHORITY.md` / `EXECUTION_PROTOCOL.md`, a
+truthful BLOCKED/FAIL, or the authorization cap.
 
-While PRD-02 is not COMPLETE, this package remains `BLOCKED_BY_PRD02` and no
-CPR implementation round may start.
+### Historical execution packages
 
-After PRD-02 closes, read that package's README, STATUS, DEVELOPMENT_PLAN,
-VERIFICATION and EXECUTION_PROTOCOL. Its completion standard is stricter than
-the historical ANS fallback contract: current ChatGPT `projectIdentity`,
-`projectName` and Conversation→Project `membership` must all be genuinely
-verified from privacy-safe live evidence. Unknown/unavailable fallback is not a
-package-complete outcome.
+`PAIA-PRODUCTION-READINESS-v1`,
+`PAIA-CHATGPT-PROJECT-RECOGNITION-v1`, ANS, UIS, UIR and UX-R are historical
+evidence after Consumer Product v1 activation. Their useful unresolved
+requirements are absorbed by the Consumer Product MASTER_PLAN.
 
-PRD-03 must not start until the Project Recognition package is COMPLETE.
-
-## Archive Navigation & Source Structure v1 execution routing
-
-The explicitly authorized ANS package takes precedence over the completed UIS
-queue for its R1–R9 scope. Read `PRODUCT.md`, `ARCHITECTURE.md`, `ROADMAP.md`, the
-Design Core, then `docs/archive-navigation-source-v1/README.md`, `STATUS.md`,
-`ARCHITECTURE.md`, `SOURCE_CAPABILITIES.md`, `DEVELOPMENT_PLAN.md`,
-`VERIFICATION.md`, `EXECUTION_PROTOCOL.md` and the previous receipts.
-`STATUS.md` is the only ANS queue. An IN_PROGRESS round must finish its actual
-runtime/main certification and receipt before completion. If all ANS rounds are
-COMPLETE and current_round is NONE, the package is closed: do not invent ANS-10,
-resume UIS/UIR/UX, or treat roadmap product-validation ideas as execution grants.
-A new explicitly authorized scope still follows its own authority and writer lease.
-
-## Completed overlay — UI Simplification v1
-
-The UI Simplification v1 execution contract is on GitHub `main`; its canonical status file determines whether a round is active or the package is complete. Once UIS-01 through UIS-04 are all COMPLETE, no current round remains. Do not invent UIS-05 or resume historical UIR/UX work.
-
-Before executing any request equivalent to **“继续开发”** in the PAIA context, read in this exact order:
-
-1. `docs/ui-simplification/README.md` — fixed decisions, scope, resume protocol and engineering guardrails.
-2. `docs/ui-simplification/UI_SIMPLIFICATION_STATUS.md` — the **only canonical current-round execution state** for this package.
-3. `PRODUCT.md` — current product definition and shipped capability facts.
-4. `ARCHITECTURE.md` — data ownership, trust and schema boundaries.
-5. Relevant current source/tests for the one round marked `READY`.
-
-Execution semantics:
-
-- One product-owner message **“继续开发”** authorizes exactly **one** current UI Simplification round.
-- Resolve the live remote `main` HEAD before work. GitHub `main` is the authoritative source; do not resume from an old branch, chat SHA, frozen worktree or unpacked Chrome folder.
-- Implement only the round marked `READY` / `CURRENT` in `UI_SIMPLIFICATION_STATUS.md`.
-- After implementation, run that round's required tests, commit to `main` unless the user explicitly asks for a branch/PR, update `UI_SIMPLIFICATION_STATUS.md`, and stop.
-- Do **not** automatically begin the next round. The next round requires another product-owner **“继续开发”** message.
-- Do not ask the product owner to restate decisions already fixed in the UI Simplification package. Ask only if a genuine destructive-data, ownership, privacy, authorization, or architecture conflict cannot be resolved safely from repository contracts.
-- The active overlay may change current visible UI/search/action-placement behavior only within its documented scope. It does not override Source/Input/Thought ownership, privacy, authorization, deletion, migration, Backup, or capture contracts.
-
-## Completed UI execution packages — historical evidence, not active work
-
-### Chrome UI Refresh v1
-
-Chrome UI Refresh UIR-01 through UIR-04 is complete and was merged to `main` on 2026-09-17 via PR #31. `chrome-ui-refresh-v1` is **not** the active development branch. `docs/ui-refresh/` remains certification/design history and should not be used to resume a new UIR round.
-
-Do not:
-
-- resume UIR-01 through UIR-04;
-- recreate PR #31's old branch-state workflow;
-- treat stale pre-merge wording in historical reports as current branch instructions;
-- create UIR-05 merely because UIR-04 was completed.
-
-The shipped UI Refresh implementation is the baseline from which UI Simplification v1 now proceeds.
-
-### UX-R1 through UX-R6 redesign
-
-The earlier UX-R1 → UX-R6 package is also shipped historical implementation evidence. Its Design Core and trust/product principles remain useful constraints, but its old round-status machinery is not the current execution queue.
-
-When a UI Simplification decision intentionally supersedes an earlier visible presentation decision, follow the active UI Simplification package while preserving the underlying domain/security contracts.
+Do not start CPR-03, PRD-03, a new ANS round, or another legacy UI/UX round
+unless the active Consumer Product round explicitly cites a bounded historical
+artifact as evidence. Legacy receipts and failures remain truthful history and
+must not be rewritten as if they were Consumer Product acceptance.
 
 ## Authoritative source
 

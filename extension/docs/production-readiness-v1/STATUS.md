@@ -2,7 +2,7 @@
 
 package_id: `PAIA-PRODUCTION-READINESS-v1`
 
-package_status: `ACTIVE`
+package_status: `HISTORICAL_EVIDENCE_ONLY`
 
 canonical_branch: `main`
 
@@ -14,7 +14,7 @@ planning_round_status: `COMPLETE`
 
 current_round: `NONE`
 
-current_round_status: `NONE`
+current_round_status: `NOT_EXECUTABLE — ABSORBED_BY_CONSUMER_PRODUCT_v1`
 
 writer_status: `RELEASED`
 
@@ -24,6 +24,13 @@ releaseCandidateCertified: `false`
 
 productionCertified: `false`
 
+## Current routing after Consumer Product v1 activation
+
+This package is historical evidence only. PRD-00 through PRD-02 remain truthful
+completed evidence. PRD-03 through PRD-06 are not parallel executable rounds;
+their useful lifecycle, backup and production-certification requirements are
+absorbed by PAIA Consumer Product v1. Do not resume this queue independently.
+
 ## Round queue
 
 | Round | State | Goal |
@@ -31,10 +38,10 @@ productionCertified: `false`
 | PRD-00 | COMPLETE | Audit current product, freeze production definitions, scope and verification plan |
 | PRD-01 | COMPLETE | Exact-main baseline and certification-debt reconciliation |
 | PRD-02 | COMPLETE | Current logged-in ChatGPT capture canary |
-| PRD-03 | BLOCKED | Daily-profile update/restart/recovery canary — requires PRD-02 COMPLETE and PAIA-CHATGPT-PROJECT-RECOGNITION-v1 COMPLETE |
-| PRD-04 | PLANNED | Backup/restore and scale durability |
-| PRD-05 | PLANNED | Daily core-loop product canary |
-| PRD-06 | PLANNED | Release / Private Beta production certification |
+| PRD-03 | ABSORBED | Daily-profile lifecycle requirements carried into Consumer Product v1 VS-01 |
+| PRD-04 | ABSORBED | Backup/restore and scale requirements carried into Consumer Product v1 VS-01/VS-03 |
+| PRD-05 | ABSORBED | Core-loop acceptance carried into Consumer Product v1 vertical slices |
+| PRD-06 | ABSORBED | Release certification carried into Consumer Product v1 release/migration gates |
 
 ## Historical package boundaries
 

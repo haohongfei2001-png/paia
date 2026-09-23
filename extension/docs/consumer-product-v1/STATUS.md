@@ -12,15 +12,21 @@ current_slice: VS-01
 
 current_slice_status: ACTIVE
 
-current_round: CPV1-01.0
+current_round: CPV1-01.1
 
-current_round_status: ACTIVE
+current_round_status: ACTIVE / CLAIMED_AFTER_CPV1-01.0_PASS
 
-current_writer: manager/cpv1-01-0-lifecycle-baseline-20260923
+current_writer: manager/cpv1-01-1-durable-save-20260923
 
 writer_status: ACTIVE
 
 production_claim: NONE
+
+authorization_mode: TEMPORARY_NIGHT_WHOLE_EXECUTION / MAX_9_ROUNDS
+
+authorization_rounds_completed: 2
+
+authorization_rounds_remaining: 7
 
 ## Activation evidence
 
@@ -34,13 +40,38 @@ The planning-time blocker is cleared on remote `main`:
 
 Per the owner-authorized night execution route, do not start CPR-03 or the old PRD-03 queue merely because they remain named in historical packages. Their useful requirements are absorbed into this Consumer Product execution queue unless a later round explicitly cites them as evidence.
 
+## CPV1-01.0 closure
+
+verdict: COMPLETE / PASS
+
+candidate_pr: #49
+
+candidate_head: `e61efc25764e3deb20883af2823c895f5b31f598`
+
+candidate_certification: `PAIA Certification #544 / run 35807440190 / SUCCESS`
+
+merged_main: `f2a8f3e7ba223b23428b6c5d902689158b92d4e1`
+
+exact_main_certification: `PAIA Certification #545 / run 35813114522 / attempt 1 / SUCCESS`
+
+runtime_change: NONE
+
+The baseline/failure map is complete. Closure also corrects execution routing so
+legacy CPR/PRD/ANS/UI packages cannot be resumed as parallel queues, and aligns
+all VS-01 round references with canonical `MASTER_PLAN.md`.
+
 ## Active round
 
-`CPV1-01.0 — Current lifecycle baseline and failure map`
+`CPV1-01.1 — Durable save acknowledgement and recovery boundary`
 
-This round is read-only with respect to product runtime. Its purpose is to bind the current lifecycle reality to concrete code paths before repair begins. The candidate evidence lives in `receipts/CPV1-01.0.md`.
+Goal: make "saved" mean durably committed and provide a bounded recovery path
+for ordinary interrupted editing without turning recovery drafts into
+Source/history truth.
 
-The round must not be marked PASS before the required candidate checks and exact-main evidence are complete. After PASS, `CPV1-01.1 — Automatic update flow` becomes READY.
+The manager owns implementation, targeted tests, full required CI, browser
+lifecycle verification, merge, exact-main evidence and receipt/status closure.
+After PASS, `CPV1-01.2 — Extension/page version handshake and reconnect`
+becomes the next round under the same night authorization.
 
 ## Slice queue
 
