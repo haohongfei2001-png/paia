@@ -44,16 +44,18 @@ test('CPV1-01.1 pruning retains only newest bounded drafts',async()=>{
  assert.equal(Object.keys(local.data).filter(k=>k.startsWith(recoveryDraftPrefix)).length,2);
 });
 
-test('CPV1-01.1 permanent Source deletion clears linked content drafts and AI recovery without touching unrelated metadata',async()=>{
+test('CPV1-01.1 permanent Source deletion clears only recovery drafts linked to that Source',async()=>{
  const local=new MemoryArea(),store=new RecoveryDraftStore(local);
  await store.save({kind:'document',ownerId:'document:1',token:'token-doc1',operation:op('source bound'),sourceRecordIds:['source:gone']});
  await store.save({kind:'library_entry',ownerId:'thought:1',token:'token-thought',operation:{type:'EDIT_LIBRARY_BATCH',edit:{operationId:'12345678-thought',entries:[]}},sourceRecordIds:['source:keep']});
- await store.save({kind:'ai_presentation',ownerId:'topic:1',token:'token-ai01',operation:{type:'AI_RECOVERY_SNAPSHOT',topicId:'topic:1',baseRevision:0,values:{currentView:'derived'}}});
+ await store.save({kind:'ai_presentation',ownerId:'topic:1',token:'token-ai01',operation:{type:'AI_RECOVERY_SNAPSHOT',topicId:'topic:1',baseRevision:0,values:{currentView:'derived'}} ,sourceRecordIds:['source:gone']});
+ await store.save({kind:'ai_presentation',ownerId:'topic:unrelated',token:'token-ai02',operation:{type:'AI_RECOVERY_SNAPSHOT',topicId:'topic:unrelated',baseRevision:0,values:{currentView:'unrelated'}} ,sourceRecordIds:['source:keep']});
  await store.save({kind:'topic_metadata',ownerId:'topic:2',token:'token-meta',operation:{type:'EDIT_LIBRARY_TOPIC',edit:{operationId:'12345678-meta'}}});
- const removed=await store.clearForSources(['source:gone'],{clearAI:true});
+ const removed=await store.clearForSources(['source:gone']);
  assert.equal(removed,2);
  assert.equal(await store.load('document','document:1'),null);
  assert.ok(await store.load('library_entry','thought:1'));
  assert.equal(await store.load('ai_presentation','topic:1'),null);
+ assert.ok(await store.load('ai_presentation','topic:unrelated'));
  assert.ok(await store.load('topic_metadata','topic:2'));
 });
