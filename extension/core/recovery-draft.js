@@ -22,7 +22,7 @@ export class RecoveryDraftStore{
   this.local=local;this.clock=clock;this.ttlMs=ttlMs;this.maxBytes=maxBytes;this.maxDrafts=maxDrafts;
  }
  async save({kind,ownerId,token,operation,sourceRecordIds=[]}){
-  if(!KINDS.has(kind)||!validId(ownerId)||!validId(token)||!plain(operation)||!Array.isArray(sourceRecordIds)||sourceRecordIds.length>200||sourceRecordIds.some(id=>!validId(id)))throw new TypeError('invalid recovery draft');
+  if(!KINDS.has(kind)||!validId(ownerId)||!validId(token)||!plain(operation)||!Array.isArray(sourceRecordIds)||sourceRecordIds.length>2000||sourceRecordIds.some(id=>!validId(id)))throw new TypeError('invalid recovery draft');
   const now=this.clock(),row={version:VERSION,kind,ownerId,token,operation:clone(operation),sourceRecordIds:[...new Set(sourceRecordIds)],updatedAt:now,expiresAt:now+this.ttlMs};
   if(bytes(row)>this.maxBytes)throw Object.assign(new Error('RECOVERY_DRAFT_TOO_LARGE'),{code:'RECOVERY_DRAFT_TOO_LARGE'});
   await this.local.set({[key(kind,ownerId)]:row});return clone(row);
@@ -46,11 +46,11 @@ export class RecoveryDraftStore{
   if(remove.length)await this.local.remove([...new Set(remove)]);
   return {kept:Math.min(rows.length,this.maxDrafts),removed:new Set(remove).size};
  }
- async clearForSources(sourceIds,{clearAI=true}={}){
-  const ids=new Set((sourceIds||[]).filter(validId));if(!ids.size&&!clearAI)return 0;
+ async clearForSources(sourceIds){
+  const ids=new Set((sourceIds||[]).filter(validId));if(!ids.size)return 0;
   const all=await this.local.get(null),remove=[];
   for(const [k,row]of Object.entries(all||{})){if(!k.startsWith(PREFIX)||!rowValid(row))continue;
-   if(clearAI&&row.kind==='ai_presentation'||row.sourceRecordIds.some(id=>ids.has(id)))remove.push(k);
+   if(row.sourceRecordIds.some(id=>ids.has(id)))remove.push(k);
   }
   if(remove.length)await this.local.remove(remove);return remove.length;
  }
