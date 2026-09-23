@@ -5,21 +5,25 @@ on:
     branches: [main]
     paths:
       - 'extension/**'
+      - '!extension/docs/**'
       - 'native-hosts/**'
       - '.github/workflows/paia-certification.yml'
+      - '.github/workflows/paia-candidate.yml'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'extension/**'
+      - '!extension/docs/**'
       - 'native-hosts/**'
       - '.github/workflows/paia-certification.yml'
+      - '.github/workflows/paia-candidate.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: paia-certification-${{ github.ref }}
+  group: paia-verification-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -29,10 +33,7 @@ env:
 
 jobs:
   unit:
-    if: >-
-      github.event_name != 'pull_request' ||
-      github.head_ref != 'chrome-ui-refresh-v1' ||
-      github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: Unit ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -61,10 +62,7 @@ jobs:
         run: npm run test:unit
 
   contracts:
-    if: >-
-      github.event_name != 'pull_request' ||
-      github.head_ref != 'chrome-ui-refresh-v1' ||
-      github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: Adapter and privacy contracts
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -90,13 +88,22 @@ jobs:
         run: node scripts/test.mjs "privacy/security"
 
   current_browser:
-    if: >-
-      github.event_name != 'pull_request' ||
-      github.head_ref != 'chrome-ui-refresh-v1' ||
-      github.event.pull_request.draft == false
-    name: Current Browser Certification
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    name: Current Browser ${{ matrix.index }}/4
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - index: 1
+            shard: '1/4'
+          - index: 2
+            shard: '2/4'
+          - index: 3
+            shard: '3/4'
+          - index: 4
+            shard: '4/4'
     defaults:
       run:
         working-directory: extension
@@ -120,80 +127,30 @@ jobs:
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
       - name: Verify current browser coverage contract
+        if: matrix.index == 1
         run: node scripts/check-ui-refresh-ci.mjs
-      - name: Run explicit UI Refresh closure gate
-        run: xvfb-run -a npm run test:ui-refresh
-      - name: Run explicit package closure gate
-        run: npm run check
-      - name: Run complete current browser suite and guards
+      - name: Run current browser shard
         env:
+          PAIA_TEST_SHARD: ${{ matrix.shard }}
           PAIA_TEST_CONCURRENCY: '1'
         run: xvfb-run -a npm run test:browser
-      - name: Upload ANS05 lifecycle diagnostics
+      - name: Upload current browser shard evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ans05-lifecycle-${{ github.sha }}
-          path: extension/work/ans-05-navigator/lifecycle.json
+          name: current-browser-evidence-${{ github.sha }}-${{ matrix.index }}
+          path: extension/work
           if-no-files-found: warn
-          retention-days: 14
-      - name: Upload UX-R1 visual evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ux-r1-visual-evidence-${{ github.sha }}
-          path: extension/work/ux-r1
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Upload UX-R2 visual and browser evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ux-r2-evidence-${{ github.sha }}
-          path: extension/work/ux-r2
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Upload UX-R3 visual and browser evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ux-r3-evidence-${{ github.sha }}
-          path: extension/work/ux-r3
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Upload UX-R4 visual and browser evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ux-r4-evidence-${{ github.sha }}
-          path: extension/work/ux-r4
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Upload UX-R5 visual and browser evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ux-r5-evidence-${{ github.sha }}
-          path: extension/work/ux-r5
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Upload UX-R6 visual and browser evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ux-r6-evidence-${{ github.sha }}
-          path: extension/work/ux-r6
-          if-no-files-found: error
           retention-days: 14
 
   full_suite:
-    if: >-
-      github.event_name != 'pull_request' ||
-      github.head_ref != 'chrome-ui-refresh-v1' ||
-      github.event.pull_request.draft == false
     name: Full Suite Certification
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 10
+    if: >-
+      always() &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
+    needs: [unit, contracts, current_browser]
     defaults:
       run:
         working-directory: extension
@@ -208,27 +165,16 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
-      - run: npx playwright install --with-deps chromium
-      - name: Prepare current full-suite Chrome environment
+      - name: Run package and development audits once
         run: |
-          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
-          test -n "$CHROME_BIN"
-          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
-          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
-          "$CHROME_BIN" --version
-      - name: Run unsharded current full suite
+          npm run check
+          node scripts/check_development.mjs
+      - name: Aggregate exact-SHA current-suite receipt
         env:
-          PAIA_TEST_CONCURRENCY: '1'
-        run: xvfb-run -a npm test
-      - name: Require current full-suite receipt
-        run: |
-          node - <<'NODE'
-          const fs=require('node:fs');
-          const row=JSON.parse(fs.readFileSync('work/test-summary.json','utf8'));
-          if(row.fullSuite!==true||row.auditPassed!==true||typeof row.inputDigest!=='string'||!row.inputDigest)process.exit(1);
-          if(row.historicalBrowserAudit!=='SEPARATE_PRE_MIGRATION_EVIDENCE'||!Number.isInteger(row.historicalBrowserFiles))process.exit(1);
-          console.log(`fullSuite=${row.fullSuite} auditPassed=${row.auditPassed} historicalBrowserFiles=${row.historicalBrowserFiles} digest=${row.inputDigest}`);
-          NODE
+          UNIT: ${{ needs.unit.result }}
+          CONTRACTS: ${{ needs.contracts.result }}
+          CURRENT_BROWSER: ${{ needs.current_browser.result }}
+        run: node scripts/write_ci_certification_receipt.mjs
       - name: Upload current full-suite receipt
         if: always()
         uses: actions/upload-artifact@v4
@@ -239,10 +185,7 @@ jobs:
           retention-days: 14
 
   macos_secure_store:
-    if: >-
-      github.event_name != 'pull_request' ||
-      github.head_ref != 'chrome-ui-refresh-v1' ||
-      github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: macOS Secure Store Certification
     runs-on: macos-latest
     timeout-minutes: 12
@@ -329,10 +272,7 @@ jobs:
         run: xvfb-run -a npm run test:historical-browser
 
   release:
-    if: >-
-      github.event_name != 'pull_request' ||
-      github.head_ref != 'chrome-ui-refresh-v1' ||
-      github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: Current release build and guards
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -364,9 +304,7 @@ jobs:
     runs-on: ubuntu-latest
     if: >-
       always() &&
-      (github.event_name != 'pull_request' ||
-       github.head_ref != 'chrome-ui-refresh-v1' ||
-       github.event.pull_request.draft == false)
+      (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
     needs: [unit, contracts, current_browser, full_suite, macos_secure_store, release]
     steps:
       - name: Require every current-release gate

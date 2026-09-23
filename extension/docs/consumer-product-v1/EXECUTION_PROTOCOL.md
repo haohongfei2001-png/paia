@@ -141,6 +141,20 @@ Publication remains separate unless the current round explicitly owns consumer d
 
 If any required engineering stage fails, fix within the round or close BLOCKED/FAIL with the evidence preserved. Security, privacy, data-integrity, deletion, identity and migration-safety gates are never deferred merely for throughput.
 
+### 7.5 GitHub CI scheduling
+
+The GitHub workflows implement the progression above:
+
+- while a normal implementation PR is **draft**, every runtime push uses `PAIA Candidate Gate`: unit shards, contract/privacy checks, sharded current-browser coverage and release/package guards. This is engineering feedback, not round certification;
+- when the manager judges the candidate stable, mark the PR **ready for review**. `PAIA Certification` then runs the complete current required categories once on that exact head;
+- subsequent fixes on a ready PR rerun full certification, so keep the PR draft during ordinary inner-loop iteration and batch related fixes before promotion;
+- current browser coverage is sharded for wall-clock speed but every current browser test remains required for full certification;
+- the `Full Suite Certification` job is an aggregate exact-SHA receipt over the already executed unit/browser/contract categories; it must not rerun the same tests serially;
+- documentation-only changes under `extension/docs/**` do not trigger runtime certification. Documentation closure must cite the already certified runtime SHA truthfully;
+- merge still requires the round's applicable full candidate evidence, and exact-main verification remains required after runtime integration. CI scheduling may reduce duplicate work, not evidence standards.
+
+If a PR is intentionally non-draft from creation, full certification applies immediately.
+
 ## 8. Branch and merge discipline
 
 - One integration writer per data/schema/runtime boundary.
