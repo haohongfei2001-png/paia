@@ -27,7 +27,13 @@ test('CPV1-01.2: unpacked extension update marks the old tab stale with one refr
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
     manifest.version = '0.12.1';
     await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
-    await h.archive.evaluate(() => chrome.runtime.reload());
+    // A successful extension reload may tear down its initiating page before
+    // Playwright receives the evaluate reply. The old ChatGPT tab below is the
+    // independent outcome check; a closed browser context still fails there.
+    try { await h.archive.evaluate(() => chrome.runtime.reload()); }
+    catch (error) {
+      if (!/Target page, context or browser has been closed|Execution context was destroyed/.test(String(error))) throw error;
+    }
 
     await eventually(async () => oldTab.locator('#paia-reconnect-notice').isVisible(), 'old tab shows a visible refresh action', 20000);
     assert.match(await oldTab.locator('#paia-reconnect-notice').textContent(), /当前页面不会继续归档/);

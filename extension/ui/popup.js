@@ -38,6 +38,7 @@ async function refresh() {
     const lastError = state.diagnostics.lastError;
     $('diagnostic-error').textContent = lastError ? `最近错误：${statusLabel(lastError.code)} · ${dateLabel(lastError.at)}` : '最近错误：无';
   } catch (error) {
+    state = undefined;
     $('error').textContent = error.message;
     $('error').hidden = false;
     $('toggle-capture').disabled = true;
@@ -51,7 +52,9 @@ async function refreshUpdate() {
     if (update?.state === 'available' && update.fromVersion === version && update.toVersion !== version) {
       $('update-message').textContent = `当前版本 ${version}；${update.toVersion} 已准备好。请先保存正在编辑的内容，再关闭并重新打开 PAIA 页面。现有资料仍保存在本机。`;
     } else if (update?.state === 'installed' && update.toVersion === version) {
-      $('update-message').textContent = `已安装 ${version}。打开 PAIA 检查资料和当前页面；如果 ChatGPT 页面显示连接过期，请刷新该页面。`;
+      $('update-message').textContent = state
+        ? `已安装 ${version}，本机档案已读取。打开 PAIA 核对资料；如果 ChatGPT 页面显示连接过期，请刷新该页面。`
+        : `已安装 ${version}，暂时无法确认本机档案状态。请重新打开 PAIA；如果仍无法读取，请保留现有安装和资料。`;
     } else {
       $('update-message').textContent = `当前版本 ${version}。安装来源决定后续更新方式；这里不会强制重启或删除资料。`;
     }
