@@ -9,6 +9,6 @@ const execFileAsync = promisify(execFile);
 test('CPV1-01.3 package preflight rejects changed identity, schema, permissions and nonincreasing version', async () => {
   const result = await execFileAsync('python3', ['-m', 'unittest', 'discover', '-s', 'tests',
     '-p', 'test_cpv1_01_3_update_preflight.py'], {cwd:fileURLToPath(new URL('../', import.meta.url))});
-  assert.match(result.stderr, /Ran 4 tests/);
+  assert.match(result.stderr, /Ran 7 tests/);
   assert.match(result.stderr, /OK/);
 });

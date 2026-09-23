@@ -22,11 +22,11 @@ writer_status: ACTIVE
 
 production_claim: NONE
 
-authorization_mode: TEMPORARY_NIGHT_WHOLE_EXECUTION / MAX_9_ROUNDS
+authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 
-authorization_rounds_completed: 4
+prior_temporary_authorization_rounds_completed: 4
 
-authorization_rounds_remaining: 5
+prior_temporary_authorization_rounds_remaining_at_supersession: 5
 
 ## Activation evidence
 
@@ -96,7 +96,9 @@ The version handshake rejects stale-page capture before writing and gives the us
 
 ## Next eligible round
 
-`CPV1-01.3 — Consumer update flow` is ACTIVE on `manager/cpv1-01-3-consumer-update-20260923` from exact main `15ad108eb0a9f63f6c05c076f992f057bcc86d2c`. Its current path and constraints are recorded in `receipts/CPV1-01.3-START.md`. Five authorized rounds remain until this round closes. No new slice or publication is authorized by this status change.
+The owner superseded the temporary nine-round limit with `WHOLE_PACKAGE_PREAUTHORIZED` on 2026-09-23, registered on main at `6bc20b1d53e155e4f545f3cea515476cbc5d2b45`. The prior counters are historical, not a current cap. Every round/slice still follows its canonical contract and owner gates; publication remains separately authorized.
+
+`CPV1-01.3 — Consumer update flow` is ACTIVE on the sole writer branch `manager/cpv1-01-3-consumer-update-20260923` from original runtime main `15ad108eb0a9f63f6c05c076f992f057bcc86d2c`. Its current path and constraints are recorded in `receipts/CPV1-01.3-START.md`. The round is not COMPLETE.
 
 ## Slice queue
 

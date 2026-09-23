@@ -36,6 +36,16 @@ def read_manifest(directory):
     return root, manifest
 
 
+def package_files(root):
+    files = {}
+    for path in root.rglob('*'):
+        if path.is_symlink():
+            raise ValueError('Audited packages cannot contain symlinks.')
+        if path.is_file():
+            files[str(path.relative_to(root))] = path
+    return files
+
+
 def preflight(previous, candidate, installed_id, candidate_id):
     old_root, old = read_manifest(previous)
     new_root, new = read_manifest(candidate)
@@ -67,15 +77,47 @@ def preflight(previous, candidate, installed_id, candidate_id):
             'browser_migration': 'NOT_CERTIFIED', 'publication': 'NOT_PERFORMED'}
 
 
+def preflight_recovery(current, known_good, reissued, installed_id, candidate_id):
+    """Validate a prior audited package reissued at a higher Chrome version.
+
+    This only proves package/data compatibility. The caller still needs an
+    authorized same-ID distribution channel and browser certification.
+    """
+    current_root, current_manifest = read_manifest(current)
+    good_root, good_manifest = read_manifest(known_good)
+    reissued_root, reissued_manifest = read_manifest(reissued)
+    if version(good_manifest.get('version')) >= version(current_manifest.get('version')):
+        raise ValueError('Known-good recovery package must precede the current version.')
+    good_without_version = {key: value for key, value in good_manifest.items() if key != 'version'}
+    reissued_without_version = {key: value for key, value in reissued_manifest.items() if key != 'version'}
+    if good_without_version != reissued_without_version:
+        raise ValueError('Reissued package manifest differs from known-good code beyond version.')
+    good_files = package_files(good_root)
+    reissued_files = package_files(reissued_root)
+    if good_files.keys() != reissued_files.keys():
+        raise ValueError('Reissued package file set differs from known-good code.')
+    for relative in sorted(good_files.keys() - {'manifest.json'}):
+        if good_files[relative].read_bytes() != reissued_files[relative].read_bytes():
+            raise ValueError(f'Reissued package changed known-good file: {relative}.')
+    result = preflight(current_root, reissued_root, installed_id, candidate_id)
+    return {**result, 'result': 'RECOVERY_PREFLIGHT_PASS',
+            'known_good_version': good_manifest['version'],
+            'reissued_code': 'byte_for_byte_known_good_except_manifest_version',
+            'rollback_installed': 'NOT_PERFORMED'}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--previous', required=True, help='previous audited release package directory')
     parser.add_argument('--candidate', required=True, help='candidate audited release package directory')
     parser.add_argument('--installed-id', required=True, help='ID read from the existing installed extension')
     parser.add_argument('--candidate-id', required=True, help='ID read from the candidate installed extension')
+    parser.add_argument('--known-good', help='prior audited package reissued as a compatible higher-version recovery candidate')
     args = parser.parse_args()
     try:
-        print(json.dumps(preflight(args.previous, args.candidate, args.installed_id, args.candidate_id), ensure_ascii=False))
+        result = (preflight_recovery(args.previous, args.known_good, args.candidate, args.installed_id, args.candidate_id)
+                  if args.known_good else preflight(args.previous, args.candidate, args.installed_id, args.candidate_id))
+        print(json.dumps(result, ensure_ascii=False))
     except (ValueError, OSError, json.JSONDecodeError) as error:
         print(f'PACKAGE_PREFLIGHT_BLOCKED: {error}', file=sys.stderr)
         return 1
