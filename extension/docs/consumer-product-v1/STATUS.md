@@ -14,11 +14,11 @@ current_slice_status: ACTIVE
 
 current_round: CPV1-01.4
 
-current_round_status: ACTIVE / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: COMPLETE / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_writer: manager/cpv1-01-4-degraded-ux-20260924
+current_writer: NONE
 
-writer_status: ACTIVE
+writer_status: RELEASED
 
 production_claim: NONE
 
@@ -94,13 +94,31 @@ receipt: `receipts/CPV1-01.2.md`
 
 The version handshake rejects stale-page capture before writing and gives the user one clear refresh action. Headless lifecycle evidence covers old/new/restored tabs without archive loss or duplicate capture. CURRENT_LIVE provider-site lifecycle remains assigned to CPV1-01.6 and is not claimed here.
 
+## CPV1-01.4 closure
+
+verdict: COMPLETE / PASS — ENGINEERING ROUND ONLY
+
+candidate_pr: #56
+
+candidate_head: `becf317c8710028ee2333fa107c88a9fb561ec54`
+
+candidate_certification: `PAIA Certification run 35893630733 / SUCCESS`
+
+merged_runtime_main: `a38d80e3799e733913b0edf94e46f4c59ee20fc0`
+
+exact_main_certification: `PAIA Certification run 35894734933 / SUCCESS`
+
+receipt: `receipts/CPV1-01.4.md`
+
+The popup, capture page and archive now give bounded, truthful recovery actions for capture disconnection, stale page, storage pressure/save failure, archive read failure, update-check failure, search index unavailability and AI outage. The prior archive remains usable. Candidate and exact-main current Chrome, privacy, package and full-suite checks passed. This controlled engineering round does not certify signed distribution or current-live provider behavior.
+
 ## Current owner authorization and execution
 
 The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence, subject to each round/slice contract and unchanged owner gates in `EXECUTION_PROTOCOL.md`. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions.
 
 `CPV1-01.3 — Consumer update flow` is `ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING`, **not COMPLETE**. PR #53 integrated the consumer-facing update state, package preflight and recovery preflight at runtime main `0ea9c1882c2c39b849799a98030a03c747d72ac4`. Exact-main certification passed after a CI-only throughput refactor at `decdfd01c9a92c90e74bd620c778b18bd72ab370` (run `35885057051`). Real signed distribution/update retaining the same extension identity and local archive, plus post-update/rollback evidence, remain unverified because a registered Chrome Web Store identity and publication credential are unavailable. See `receipts/CPV1-01.3-ENGINEERING.md`. No publication or production PASS is claimed.
 
-Under `EXECUTION_PROTOCOL.md` section 7.3's one-round bounded continuation, independent `CPV1-01.4 — Recovery/degraded UX` is ACTIVE on sole writer branch `manager/cpv1-01-4-degraded-ux-20260924`. CPV1-01.5 must not start while CPV1-01.3's explicitly owned external certification remains pending. CPV1-01.4 does not depend on an unverified signed update or change the distribution identity. The external certification remains an open obligation, not a deferred PASS.
+Under `EXECUTION_PROTOCOL.md` section 7.3's one-round bounded continuation, independent `CPV1-01.4 — Recovery/degraded UX` is COMPLETE at runtime main `a38d80e3799e733913b0edf94e46f4c59ee20fc0`; its writer is released. CPV1-01.5 must not start while CPV1-01.3's explicitly owned signed-update certification remains pending. The owner confirmed that no Chrome Web Store publisher identity or existing extension ID is available and the distribution channel needs a separate decision. Do not create an account, publish, substitute an unsigned installation, or mark the same-ID update gate PASS. The external certification remains an open obligation, not a deferred PASS.
 
 ## Slice queue
 
