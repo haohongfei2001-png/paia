@@ -23,7 +23,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: paia-verification-${{ github.ref }}
+  group: paia-certification-${{ github.ref }}
   cancel-in-progress: true
 
 env:
