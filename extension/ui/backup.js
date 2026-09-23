@@ -38,6 +38,9 @@ export class BackupPanel {
     if(page.done)break;
     await new Promise(resolve=>setTimeout(resolve,0));
    }
+   // The restore file limit includes newline separators; the validator counts
+   // JSON payload bytes, so check the actual downloaded file size as well.
+   if(count>BACKUP_LIMITS.restoreItems||new Blob(parts).size>BACKUP_LIMITS.restoreBytes)recoveryPoint=false;
    if(recoveryPoint)validator.preview(); // Footer, count and hash must all match before this is a recovery point.
    downloadParts(parts,'PAIA-Backup-'+new Date().toISOString().replace(/[:.]/g,'-')+'.paia-backup','application/x-ndjson');
    if(recoveryPoint){
