@@ -92,11 +92,54 @@ For a UI round:
 
 ## 7. Verification progression
 
-A round normally progresses:
+Verification is progressive. Do the cheapest truthful evidence first and reserve expensive environment-level certification for the boundary that actually owns it.
 
-DESIGN/RECONSTRUCT → IMPLEMENT → TARGETED TEST → FULL REQUIRED CI → REAL BROWSER/DEVICE WHEN APPLICABLE → UX/PERFORMANCE REVIEW → MERGE → EXACT-MAIN CHECK → RECEIPT → STATUS UPDATE.
+### 7.1 Inner-loop / candidate
 
-If any required stage fails, fix within the round or close BLOCKED/FAIL with the evidence preserved.
+During implementation:
+
+- run targeted tests and affected regressions;
+- use bounded browser smoke or lifecycle checks for the behavior being changed;
+- batch related fixes before starting another full candidate;
+- do not deploy every candidate or repeat unchanged production evidence;
+- do not widen the acceptance surface merely because more cases could be tested.
+
+A candidate is not a release and does not require publication unless the current round explicitly owns a release/distribution outcome.
+
+### 7.2 Round closure
+
+A normal round progresses:
+
+DESIGN/RECONSTRUCT → IMPLEMENT → TARGETED TEST → FULL REQUIRED CI → DIRECTLY APPLICABLE BROWSER/RELIABILITY EVIDENCE → MERGE → EXACT-MAIN CHECK → RECEIPT → STATUS UPDATE.
+
+Only evidence directly required by the round contract or needed to protect an affected invariant is a round-closing gate. Evidence already valid for unchanged runtime paths should be referenced rather than mechanically repeated.
+
+For provider-facing behavior, synthetic/headless evidence may close the engineering behavior of an ordinary round when the round contract does not itself require CURRENT_LIVE proof. Current provider compatibility is then certified at the owning slice/certification boundary. Evidence labels must remain truthful.
+
+### 7.3 Slice / certification boundary
+
+The full evidence classes in VERIFICATION.md are slice-level acceptance. At the slice's explicit certification round or final closure, collect the applicable:
+
+- current real-browser/device journeys;
+- complete reliability/degraded matrix;
+- user-level acceptance;
+- performance evidence;
+- migration/release-path evidence;
+- final exact-main receipt.
+
+No slice may be marked COMPLETE while an applicable final evidence class is missing.
+
+### 7.4 External-capacity deferral
+
+A release host, provider site, CI capacity limit, deployment quota, or similar external dependency must not be converted into a PASS.
+
+When all engineering work for an ordinary round is green and the only missing evidence belongs to a later slice-level certification boundary, record that evidence as deferred and continue the already-authorized slice. Do not keep a Work execution alive merely to poll an external service.
+
+If the current round explicitly owns the unavailable evidence, record `ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING`; the round remains not COMPLETE. The manager may prepare or implement the next already-authorized round only when doing so does not depend on the uncertified behavior or create overlapping writer risk. At most one PAIA round may be ahead of such a pending round.
+
+Publication remains separate unless the current round explicitly owns consumer distribution/release behavior.
+
+If any required engineering stage fails, fix within the round or close BLOCKED/FAIL with the evidence preserved. Security, privacy, data-integrity, deletion, identity and migration-safety gates are never deferred merely for throughput.
 
 ## 8. Branch and merge discipline
 
