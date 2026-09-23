@@ -28,7 +28,7 @@ The planning-time blocker is cleared on remote `main`:
 
 - CPR-02 is PASS in `extension/docs/chatgpt-project-recognition-v1/STATUS.md`;
 - CPR-02 candidate PR #47 is merged;
-- CPR-02 exact-main certification is recorded as run `17919752269`;
+- CPR-02 exact-main certification is recorded as run `35792666267`;
 - the previous writer is RELEASED;
 - Consumer Product v1 planning PR #48 is merged at `c1d448fc51261369398f7e12aaacaafd233e23d2`.
 
