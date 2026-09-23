@@ -44,6 +44,14 @@ export class RecoveryDraftStore{
   if(expectedToken!==null){const value=(await this.local.get(k))?.[k];if(!rowValid(value)||value.token!==expectedToken)return false;}
   await this.local.remove(k);return true;
  }
+ async clearMany(items=[]){
+  if(!Array.isArray(items)||items.length>100)return 0;
+  const normalized=items.filter(item=>plain(item)&&KINDS.has(item.kind)&&validId(item.ownerId)&&validId(item.token));
+  if(!normalized.length)return 0;
+  const keys=normalized.map(item=>key(item.kind,item.ownerId)),all=await this.local.get(keys),remove=[];
+  for(let i=0;i<normalized.length;i++){const row=all?.[keys[i]];if(rowValid(row)&&row.token===normalized[i].token)remove.push(keys[i]);}
+  if(remove.length)await this.local.remove(remove);return remove.length;
+ }
  async prune(){
   const all=await this.local.get(null),rows=[],remove=[];
   for(const [k,row]of Object.entries(all||{})){if(!k.startsWith(PREFIX))continue;if(!rowValid(row)||row.expiresAt<=this.clock())remove.push(k);else rows.push([k,row]);}
