@@ -10,9 +10,9 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-02
 
-current_slice_status: READY — VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_slice_status: ACTIVE — VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-02.0
+current_round: CPV1-02.1
 
 current_round_status: READY / VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
@@ -152,6 +152,24 @@ receipt: `receipts/CPV1-01.6-ENGINEERING.md`
 
 A current isolated Chromium profile exercised archive preservation and new capture over browser restarts, an unpacked version bump, worker lifecycle, and rollback to the prior unpacked code. The same extension ID, consent and archive remained; no duplicate capture or external request was observed. This is synthetic/unpacked engineering evidence, not signed-channel or authenticated current-live certification. DFG-CPV1-001 and DFG-CPV1-004 remain OPEN. The owner confirmed no existing Chrome Web Store publisher identity/extension ID, so channel selection remains a separate decision. The engineering writer is released; VS-02 / CPV1-02.0 is the next dependency-safe canonical work.
 
+## CPV1-02.0 closure — absorb Project lifecycle evidence
+
+verdict: COMPLETE / PASS — evidence absorption only
+
+historical_source: CPR-02 PR #47 / `receipts/CPR-02.md`
+
+historical_runtime_main: `cdae3e7b7bda0923f2474fc7f7ffe4101f4edd04`
+
+historical_exact_main_certification: `PAIA Certification run 35792666267 / SUCCESS`
+
+current_integrated_runtime_main: `3c92de43ec6a9d6b320c622b8dc121acf6fe666e`
+
+current_exact_main_certification: `PAIA Certification run 35914391621 / SUCCESS`
+
+receipt: `receipts/CPV1-02.0.md`
+
+CPR-02's route-plus-matching-Project-home admission, Project A/B and ordinary transitions, rename, reload, temporary evidence loss, last-known/unknown/unassigned distinction and no duplicate Source/relationship spam are retained as existing production behavior. CPV1-02.0 introduces no duplicate implementation or new runtime. Its current-live normal-use cases remain assigned to CPV1-02.7 / DFG-CPV1-004; the old CPR-03 READY label is historical evidence, not a parallel queue. CPV1-02.1 is the next canonical engineering round.
+
 ## Current owner authorization and execution
 
 The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence. True owner/privacy/cost/irreversibility gates in `EXECUTION_PROTOCOL.md` block only the affected behavior; they are recorded in `DEFERRED_FINAL_GATES.md` and do not stop unrelated engineering. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions and must not be guessed.
@@ -171,7 +189,7 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | Slice | State | User outcome |
 |---|---|---|
 | VS-01 Safe open, update and recovery | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
-| VS-02 Source structure to world-class Reader | READY — CPV1-02.0 | Captured conversations appear in the correct Project and open in a coherent fast Reader |
+| VS-02 Source structure to world-class Reader | ACTIVE — CPV1-02.1 READY | Captured conversations appear in the correct Project and open in a coherent fast Reader |
 | VS-03 History import, export and recoverable large library | PLANNED | Real official history imports safely and the supported archive can actually be restored |
 | VS-04 Natural editing and fast lexical retrieval | PLANNED | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | PLANNED | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
