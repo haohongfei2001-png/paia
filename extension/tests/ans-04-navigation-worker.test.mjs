@@ -6,7 +6,13 @@ const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin='chrome-extension://'+id+'/',
 const chatId='ans04-worker-chat',url='https://chatgpt.com/c/'+chatId,content={id,url,frameId:0,tab:{id:99,url,incognito:false}};
 async function fixture(){
  globalThis.IDBKeyRange=IDBKeyRange;globalThis.indexedDB=new IDBFactory();let listener;const values={},notifications=[];
- globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.12.0'}),getURL:path=>origin+path,sendMessage:async m=>notifications.push(m),onMessage:{addListener:fn=>{listener=fn;}}},storage:{local:{setAccessLevel:async()=>{},get:async key=>({[key]:structuredClone(values[key])}),set:async patch=>Object.assign(values,structuredClone(patch)),getBytesInUse:async()=>0}}};
+ globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.12.0'}),getURL:path=>origin+path,sendMessage:async m=>notifications.push(m),onMessage:{addListener:fn=>{listener=fn;}}},storage:{local:{
+  setAccessLevel:async()=>{},
+  get:async key=>{if(key===null)return structuredClone(values);const keys=Array.isArray(key)?key:[key],out={};for(const item of keys)if(Object.hasOwn(values,item))out[item]=structuredClone(values[item]);return out;},
+  set:async patch=>Object.assign(values,structuredClone(patch)),
+  remove:async keys=>{for(const key of Array.isArray(keys)?keys:[keys])delete values[key];},
+  getBytesInUse:async()=>0
+ }}};
  await import('../background/service-worker.js?ans04-worker='+crypto.randomUUID());
  return {notifications,send:(request,sender=ui)=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('worker request timeout')),5000);assert.equal(listener(request,sender,r=>{clearTimeout(timer);resolve(r);}),true);})};
 }

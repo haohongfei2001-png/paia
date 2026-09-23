@@ -101,8 +101,15 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
         if (isolationFailure) throw new Error('Synthetic storage isolation failure');
         await isolation;
       },
-      async get(key) { reads += 1; return { [key]: structuredClone(persisted[key]) }; },
+      async get(key) {
+        reads += 1;
+        if(key===null)return structuredClone(persisted);
+        const keys=Array.isArray(key)?key:[key],out={};
+        for(const item of keys)if(Object.hasOwn(persisted,item))out[item]=structuredClone(persisted[item]);
+        return out;
+      },
       async set(update) { writes += 1; persisted = { ...persisted, ...structuredClone(update) }; },
+      async remove(keys) { writes += 1; for(const key of Array.isArray(keys)?keys:[keys])delete persisted[key]; },
       async getBytesInUse() { return Buffer.byteLength(JSON.stringify(persisted)); }
     } }
   };
@@ -513,6 +520,20 @@ test('IA capabilities remain trusted-page-only; no Thought creation, AI refresh 
  assert.equal((await app.send({type:'GET_THOUGHTS'})).data.items.length,0);
 });
 
+
+test('CPV1-01.1 recovery drafts are exact trusted-UI, consent-gated local operations',async()=>{
+ const h=await fixture(),save={type:'PAIA_RECOVERY_DRAFT_SAVE',draft:{kind:'document',ownerId:'synthetic-document',token:'synthetic-recovery-token',sourceRecordIds:[],operation:{type:'EDIT_DOCUMENT',edit:{operationId:'synthetic-operation-0001',documentId:'synthetic-document',blocks:[]}}}};
+ for(const sender of [content,{...ui,id:'foreign-extension'},{...ui,url:ui.url+'?spoof=1'}])await expectError(h.send(save,sender),'FORBIDDEN');
+ await expectError(h.send(save),'CONSENT_REQUIRED');
+ await h.send({type:'CONSENT',accepted:true});
+ assert.equal((await h.send(save)).ok,true);
+ const loaded=await h.send({type:'PAIA_RECOVERY_DRAFT_LOAD',draft:{kind:'document',ownerId:'synthetic-document'}});
+ assert.equal(loaded.ok,true);assert.equal(loaded.data.token,'synthetic-recovery-token');
+ const foreignLoad={type:'PAIA_RECOVERY_DRAFT_LOAD',draft:{kind:'document',ownerId:'synthetic-document'}};
+ await expectError(h.send(foreignLoad,content),'FORBIDDEN');
+ assert.equal((await h.send({type:'PAIA_RECOVERY_DRAFT_CLEAR',draft:{kind:'document',ownerId:'synthetic-document',token:'synthetic-recovery-token'}})).data,true);
+ assert.equal((await h.send(foreignLoad)).data,null);
+});
 
 test('Smart Filter commands remain restricted to trusted UI callers',async()=>{
  const h=await fixture();for(const type of ['FILTER_DIAGNOSTICS','FILTER_RECOVER','FILTER_STATUS','FILTER_MODE','FILTER_NOTICE','FILTER_RECENT','FILTER_KEEP','FILTER_PROTECT','SEARCH_INPUTS']){const r=await h.send({type,mode:'off',id:'synthetic',options:{query:'secret'}},content);assert.equal(r.ok,false);assert.equal(r.error,'FORBIDDEN');}
