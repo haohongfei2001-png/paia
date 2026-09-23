@@ -14,11 +14,11 @@ current_slice_status: ACTIVE
 
 current_round: CPV1-01.5
 
-current_round_status: READY / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: IN_PROGRESS / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_writer: NONE
+current_writer: manager/cpv1-01-5-backup-protection-20260924
 
-writer_status: RELEASED
+writer_status: ACTIVE
 
 production_claim: NONE
 
@@ -115,6 +115,8 @@ The popup, capture page and archive now give bounded, truthful recovery actions 
 ## Current owner authorization and execution
 
 The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence. True owner/privacy/cost/irreversibility gates in `EXECUTION_PROTOCOL.md` block only the affected behavior; they are recorded in `DEFERRED_FINAL_GATES.md` and do not stop unrelated engineering. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions and must not be guessed.
+
+CPV1-01.5 execution was claimed from remote main `b76bde44c4486a7dff91529ffd41d8d8482182af` on the sole writer branch `manager/cpv1-01-5-backup-protection-20260924`. This claim starts the engineering round only; no backup/recovery capability or certification is implied until code/evidence is actually produced.
 
 `CPV1-01.3 — Consumer update flow` is `ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING`, **not COMPLETE**. PR #53 integrated the consumer-facing update state, package preflight and recovery preflight at runtime main `0ea9c1882c2c39b849799a98030a03c747d72ac4`. Exact-main certification passed after a CI-only throughput refactor at `decdfd01c9a92c90e74bd620c778b18bd72ab370` (run `35885057051`). Real signed distribution/update retaining the same extension identity and local archive, plus post-update/rollback evidence, remain unverified because a registered Chrome Web Store identity and publication credential are unavailable. See `receipts/CPV1-01.3-ENGINEERING.md`. No publication or production PASS is claimed.
 
