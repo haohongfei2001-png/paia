@@ -1,6 +1,6 @@
-// Page-lifetime protection only. No durable shadow drafts or paid requests.
+// Page-lifetime flush plus bounded local recovery-draft protection. Recovery drafts are not Source/history truth.
 export function isComposing(editor){return !!(editor?.composing||editor?.surface?.composing||editor?.entry?.surface?.composing||editor?.metadata?.some(isComposing));}
-export function pendingEditor(editor){return !!editor&&(isComposing(editor)||editor.dirty()||editor.saving);}
+export function pendingEditor(editor){return !!editor&&(isComposing(editor)||editor.dirty()||editor.saving||editor.recoveryPending);}
 export function installSaveLifecycle(getEditors,{target=window,documentTarget=document}={}){
  const controller=new AbortController(),options={signal:controller.signal};
  const flush=()=>{for(const editor of getEditors().filter(Boolean)){if(isComposing(editor))continue;editor.collect?.();if(editor.dirty()||editor.saving)void editor.flush().catch(()=>{});}};
