@@ -4,6 +4,7 @@ import { briefStructure } from './structure-diagnostics.js';
 import { normalizeUXPreferences, resolveAppearance } from './ux-r1-state.js';
 
 const $ = (id) => document.getElementById(id);
+const UPDATE_STATE_KEY = 'paia-consumer-update:v1';
 let state;
 let busy = false;
 let uxPreferences = normalizeUXPreferences();
@@ -43,6 +44,49 @@ async function refresh() {
   }
 }
 
+async function refreshUpdate() {
+  const version = chrome.runtime.getManifest().version;
+  try {
+    const update = (await chrome.storage.local.get(UPDATE_STATE_KEY))[UPDATE_STATE_KEY];
+    if (update?.state === 'available' && update.fromVersion === version && update.toVersion !== version) {
+      $('update-message').textContent = `当前版本 ${version}；${update.toVersion} 已准备好。请先保存正在编辑的内容，再关闭并重新打开 PAIA 页面。现有资料仍保存在本机。`;
+    } else if (update?.state === 'installed' && update.toVersion === version) {
+      $('update-message').textContent = `已安装 ${version}。打开 PAIA 检查资料和当前页面；如果 ChatGPT 页面显示连接过期，请刷新该页面。`;
+    } else {
+      $('update-message').textContent = `当前版本 ${version}。安装来源决定后续更新方式；这里不会强制重启或删除资料。`;
+    }
+  } catch {
+    $('update-message').textContent = `当前版本 ${version}；暂时无法读取更新状态。现有资料仍可在 PAIA 中查看。`;
+  }
+}
+
+$('check-update').addEventListener('click', async () => {
+  const button = $('check-update');
+  button.disabled = true;
+  $('update-message').textContent = '正在检查此安装的更新…';
+  try {
+    if (!chrome.runtime.requestUpdateCheck) throw new Error('unavailable');
+    const result = await new Promise((resolve, reject) => chrome.runtime.requestUpdateCheck((status, details) => {
+      if (chrome.runtime.lastError) reject(new Error('unavailable'));
+      else resolve({status, version: details?.version});
+    }));
+    if (result.status === 'update_available' && result.version) {
+      await chrome.storage.local.set({[UPDATE_STATE_KEY]:{
+        state:'available',fromVersion:chrome.runtime.getManifest().version,toVersion:result.version,at:Date.now(),
+      }});
+      await refreshUpdate();
+    } else if (result.status === 'no_update') {
+      $('update-message').textContent = `此安装目前没有待安装更新（当前 ${chrome.runtime.getManifest().version}）。这不验证其他安装来源是否有新版本。`;
+    } else {
+      $('update-message').textContent = '此安装暂时无法检查更新。资料仍保存在本机，请稍后重试。';
+    }
+  } catch {
+    $('update-message').textContent = '此安装暂时无法检查更新。资料仍保存在本机，请稍后重试。';
+  } finally {
+    button.disabled = false;
+  }
+});
+
 $('open-archive').addEventListener('click', async () => {
   try {
     await chrome.tabs.create({ url: chrome.runtime.getURL('ui/archive.html') });
@@ -69,6 +113,7 @@ $('toggle-capture').addEventListener('click', async () => {
   }
 });
 
-chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local') refresh(); });
+chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local') { refresh(); if (changes[UPDATE_STATE_KEY]) void refreshUpdate(); } });
 await refresh();
+await refreshUpdate();
 setInterval(refresh, 15_000);
