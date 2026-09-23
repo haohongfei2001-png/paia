@@ -35,6 +35,13 @@ const captureFoundationV1={
   "content/response-observer.js": "c5f139ca99bb9340c25bb774ebda53278b80c401616f8f7e299f245967270da9",
   "core/record-time.js": "b343e72c4be7a36e34bca5092e1dc7140c702b710d818293cb10459c520ae0db"
 };
-test('frozen capture/network/resolver bytes remain pinned with authorized official-time and presence-only additions',async()=>{
- for(const [path,hash] of Object.entries(frozen)){let bytes=await readFile(new URL('../'+path,import.meta.url));if(captureFoundationV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),captureFoundationV1[path],path+' authorized CFH-v1 bytes');continue;}if(path==='adapter/chatgpt-adapter.js'){const addition="        if(globalThis.PAIAInputPresence)messages.at(-1).presence=globalThis.PAIAInputPresence.collect(root,container);\n";const source=bytes.toString();assert.equal(source.split(addition).length,2);bytes=Buffer.from(source.replace(addition,''));}if(path==='core/record-time.js'){const source=bytes.toString();assert.equal(source.split(officialGuard).length,2);bytes=Buffer.from(source.replace(officialGuard,''));}assert.equal(createHash('sha256').update(bytes).digest('hex'),hash,path);}
+// CPV1-01.2 explicitly owns the extension/page version handshake and old-tab
+// reconnect. The older CFH-v1 digest remains above as historical evidence;
+// these reviewed bytes are pinned with capture, worker-security and Chrome
+// update regression tests rather than opening a wildcard exception.
+const consumerReconnectV1={
+  "content/capture.js": "3c8a423c64b839f912785dc517a73526ff61df5afb2ba1ee612d690cabf9706e"
+};
+test('frozen capture/network/resolver bytes remain pinned with reviewed official-time, CFH and CPV1-01.2 additions',async()=>{
+ for(const [path,hash] of Object.entries(frozen)){let bytes=await readFile(new URL('../'+path,import.meta.url));if(consumerReconnectV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),consumerReconnectV1[path],path+' authorized CPV1-01.2 bytes');continue;}if(captureFoundationV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),captureFoundationV1[path],path+' authorized CFH-v1 bytes');continue;}if(path==='adapter/chatgpt-adapter.js'){const addition="        if(globalThis.PAIAInputPresence)messages.at(-1).presence=globalThis.PAIAInputPresence.collect(root,container);\n";const source=bytes.toString();assert.equal(source.split(addition).length,2);bytes=Buffer.from(source.replace(addition,''));}if(path==='core/record-time.js'){const source=bytes.toString();assert.equal(source.split(officialGuard).length,2);bytes=Buffer.from(source.replace(officialGuard,''));}assert.equal(createHash('sha256').update(bytes).digest('hex'),hash,path);}
 });
