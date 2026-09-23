@@ -62,6 +62,25 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async keepTopicsSeparate(options){if(!options||!idOK(options.sourceId)||!idOK(options.targetId))reject('INVALID_OUTPUT');return keepTopicsSeparate(this,options);}
  async organizerControls(){return organizerControls(this);}
  async setOrganizerControls(changes){return setOrganizerControls(this,changes);}
+ async recoveryDraftSourceIds(draft={}){
+  const kind=draft.kind,operation=draft.operation||{},ownerId=draft.ownerId;
+  return this.run(()=>this.repository.transaction(false,async t=>{
+   const ids=new Set(),add=row=>{if(!row)return;for(const id of row.sourceRecordIds||[])ids.add(id);};
+   if(kind==='document'&&operation.type==='EDIT_DOCUMENT'){
+    for(const change of operation.edit?.blocks||[])add((await t.get('blocks',change.id))?.value);
+   }else if(kind==='library_entry'){
+    add(await t.get('thoughts',ownerId));
+   }else if(kind==='ai_presentation'){
+    const fence=await t.get('libraryMigrationItems','ai-presentation-fence:'+ownerId);
+    if(fence?.sourceRecordIds?.length)add(fence);
+    else{
+     const presentation=await t.get('meta','aiPresentation:'+ownerId);
+     for(const entryId of presentation?.evidenceEntryIds||[])add(await t.get('thoughts',entryId));
+    }
+   }
+   return [...ids];
+  },['blocks','thoughts','libraryMigrationItems','meta']));
+ }
  async aiPresentationRevisions(options){return aiPresentationRevisions(this,options);}
  async revisions(o={}){const page=await super.revisions(o);return {...page,items:page.items.filter(x=>x.kind!=='ai_presentation')};}
  recoverAIDraft(r){return recoverAIDraft(this,r);}
