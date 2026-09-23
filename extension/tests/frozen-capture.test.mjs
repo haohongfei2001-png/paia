@@ -42,6 +42,14 @@ const captureFoundationV1={
 const consumerReconnectV1={
   "content/capture.js": "3c8a423c64b839f912785dc517a73526ff61df5afb2ba1ee612d690cabf9706e"
 };
-test('frozen capture/network/resolver bytes remain pinned with reviewed official-time, CFH and CPV1-01.2 additions',async()=>{
- for(const [path,hash] of Object.entries(frozen)){let bytes=await readFile(new URL('../'+path,import.meta.url));if(consumerReconnectV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),consumerReconnectV1[path],path+' authorized CPV1-01.2 bytes');continue;}if(captureFoundationV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),captureFoundationV1[path],path+' authorized CFH-v1 bytes');continue;}if(path==='adapter/chatgpt-adapter.js'){const addition="        if(globalThis.PAIAInputPresence)messages.at(-1).presence=globalThis.PAIAInputPresence.collect(root,container);\n";const source=bytes.toString();assert.equal(source.split(addition).length,2);bytes=Buffer.from(source.replace(addition,''));}if(path==='core/record-time.js'){const source=bytes.toString();assert.equal(source.split(officialGuard).length,2);bytes=Buffer.from(source.replace(officialGuard,''));}assert.equal(createHash('sha256').update(bytes).digest('hex'),hash,path);}
+// CPV1-01.4 gives the already rejected stale page a truthful reason and tells
+// the user to preserve unsent text before refreshing. The version-handshake
+// behavior remains covered by capture.test.mjs and Chrome lifecycle tests.
+// Keep the CPV1-01.2 digest above for historical review and pin this exact
+// new capture byte sequence without broadening the freeze exception.
+const consumerRecoveryV1={
+  "content/capture.js": "24f7b38b01eaead1a5149fd37add1b7f893ec646e68bc54871da6d97b9e4499a"
+};
+test('frozen capture/network/resolver bytes remain pinned with reviewed official-time, CFH, CPV1-01.2 and CPV1-01.4 additions',async()=>{
+ for(const [path,hash] of Object.entries(frozen)){let bytes=await readFile(new URL('../'+path,import.meta.url));if(consumerRecoveryV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),consumerRecoveryV1[path],path+' authorized CPV1-01.4 bytes');continue;}if(consumerReconnectV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),consumerReconnectV1[path],path+' authorized CPV1-01.2 bytes');continue;}if(captureFoundationV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),captureFoundationV1[path],path+' authorized CFH-v1 bytes');continue;}if(path==='adapter/chatgpt-adapter.js'){const addition="        if(globalThis.PAIAInputPresence)messages.at(-1).presence=globalThis.PAIAInputPresence.collect(root,container);\n";const source=bytes.toString();assert.equal(source.split(addition).length,2);bytes=Buffer.from(source.replace(addition,''));}if(path==='core/record-time.js'){const source=bytes.toString();assert.equal(source.split(officialGuard).length,2);bytes=Buffer.from(source.replace(officialGuard,''));}assert.equal(createHash('sha256').update(bytes).digest('hex'),hash,path);}
 });
