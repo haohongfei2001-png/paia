@@ -2,18 +2,42 @@ import {captureHealthText} from './common.js';
 import { request, enabledLabel, diagnosticText, dateLabel, statusLabel } from './common.js';
 import { briefStructure } from './structure-diagnostics.js';
 import { normalizeUXPreferences, resolveAppearance } from './ux-r1-state.js';
+import { recoveryGuidance } from './recovery-guidance.js';
 
 const $ = (id) => document.getElementById(id);
 const UPDATE_STATE_KEY = 'paia-consumer-update:v1';
 let state;
 let busy = false;
 let uxPreferences = normalizeUXPreferences();
+let updateCheckFailed = false;
 const appearanceMedia = globalThis.matchMedia?.('(prefers-color-scheme: dark)');
 function applyAppearance(value) {
   uxPreferences = normalizeUXPreferences(value);
   document.documentElement.dataset.paiaTheme = resolveAppearance(uxPreferences.appearance, appearanceMedia?.matches);
 }
 appearanceMedia?.addEventListener?.('change', () => { if (uxPreferences.appearance === 'system') applyAppearance(uxPreferences); });
+
+function showRecovery() {
+  const diagnostic = state?.diagnostics;
+  const recentError = diagnostic?.lastError;
+  const errorAge = Date.now() - Date.parse(recentError?.at || '');
+  const code = recoveryGuidance(diagnostic?.status) ? diagnostic.status
+    : errorAge >= 0 && errorAge <= 120_000 ? recentError?.code : undefined;
+  const guidance = recoveryGuidance(code) || (updateCheckFailed ? recoveryGuidance('UPDATE_CHECK_FAILED') : null);
+  const card = $('recovery-card');
+  card.hidden = !guidance;
+  if (!guidance) return;
+  card.dataset.kind = guidance.kind;
+  $('recovery-title').textContent = guidance.title;
+  $('recovery-detail').textContent = guidance.detail;
+  $('recovery-action').textContent = guidance.label;
+  $('recovery-action').dataset.action = guidance.action;
+}
+
+async function openArchive() {
+  await chrome.tabs.create({ url: chrome.runtime.getURL('ui/archive.html') });
+  window.close();
+}
 
 async function refresh() {
   try {
@@ -37,11 +61,13 @@ async function refresh() {
     $('diagnostic-structure').textContent = briefStructure(state.diagnostics.structure, state.diagnostics.structureAt);
     const lastError = state.diagnostics.lastError;
     $('diagnostic-error').textContent = lastError ? `最近错误：${statusLabel(lastError.code)} · ${dateLabel(lastError.at)}` : '最近错误：无';
+    showRecovery();
   } catch (error) {
     state = undefined;
     $('error').textContent = error.message;
     $('error').hidden = false;
     $('toggle-capture').disabled = true;
+    showRecovery();
   }
 }
 
@@ -58,8 +84,11 @@ async function refreshUpdate() {
     } else {
       $('update-message').textContent = `当前版本 ${version}。安装来源决定后续更新方式；这里不会强制重启或删除资料。`;
     }
+    showRecovery();
   } catch {
     $('update-message').textContent = `当前版本 ${version}；暂时无法读取更新状态。现有资料仍可在 PAIA 中查看。`;
+    updateCheckFailed = true;
+    showRecovery();
   }
 }
 
@@ -74,29 +103,43 @@ $('check-update').addEventListener('click', async () => {
       else resolve({status, version: details?.version});
     }));
     if (result.status === 'update_available' && result.version) {
+      updateCheckFailed = false;
       await chrome.storage.local.set({[UPDATE_STATE_KEY]:{
         state:'available',fromVersion:chrome.runtime.getManifest().version,toVersion:result.version,at:Date.now(),
       }});
       await refreshUpdate();
     } else if (result.status === 'no_update') {
+      updateCheckFailed = false;
       $('update-message').textContent = `此安装目前没有待安装更新（当前 ${chrome.runtime.getManifest().version}）。这不验证其他安装来源是否有新版本。`;
     } else {
+      updateCheckFailed = true;
       $('update-message').textContent = '此安装暂时无法检查更新。资料仍保存在本机，请稍后重试。';
     }
   } catch {
+    updateCheckFailed = true;
     $('update-message').textContent = '此安装暂时无法检查更新。资料仍保存在本机，请稍后重试。';
   } finally {
     button.disabled = false;
+    showRecovery();
   }
 });
 
 $('open-archive').addEventListener('click', async () => {
   try {
-    await chrome.tabs.create({ url: chrome.runtime.getURL('ui/archive.html') });
-    window.close();
+    await openArchive();
   } catch {
     $('error').textContent = statusLabel('UNAVAILABLE');
     $('error').hidden = false;
+  }
+});
+
+$('recovery-action').addEventListener('click', async () => {
+  const action = $('recovery-action').dataset.action;
+  if (action === 'return_to_chat') { window.close(); return; }
+  if (action === 'retry_update') { $('check-update').click(); return; }
+  if (action === 'open_archive') {
+    try { await openArchive(); }
+    catch { $('error').textContent = statusLabel('UNAVAILABLE'); $('error').hidden = false; }
   }
 });
 

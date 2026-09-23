@@ -26,6 +26,7 @@ import {DocumentEditor} from './library.js';
 import {workspaceDocuments,archiveRows} from '../core/workspace.js';
 import {documentBlocks} from '../core/library.js';
 import {request,element,dateLabel,enabledLabel,diagnosticText,sizeLabel,statusLabel} from './common.js';
+import {recoveryGuidance} from './recovery-guidance.js';
 import {exportJSON,exportMarkdown} from '../core/export.js';
 document.getElementById('app-version').textContent='v'+chrome.runtime.getManifest().version;
 const $=id=>document.getElementById(id);
@@ -57,17 +58,18 @@ function documentSearchState(id=documentId){
  let current=documentSearchStates.get(id);if(!current){current={query:'',cursor:null,history:[],nextCursor:null,items:[],complete:true,loading:false,error:false};documentSearchStates.set(id,current);}return current;
 }
 function renderDocumentSearch(){
- const tools=$('document-search-tools'),input=$('document-search'),results=$('document-search-results'),statusNode=$('document-search-status'),paging=$('document-search-pagination'),previousSearch=$('document-search-previous'),nextSearch=$('document-search-next'),active=view==='library'&&!!documentId;
- tools.hidden=!active;if(!active){highlightReading($('document-body'),'');return;}
+ const tools=$('document-search-tools'),input=$('document-search'),results=$('document-search-results'),statusNode=$('document-search-status'),retrySearch=$('document-search-retry'),paging=$('document-search-pagination'),previousSearch=$('document-search-previous'),nextSearch=$('document-search-next'),active=view==='library'&&!!documentId;
+ tools.hidden=!active;if(!active){retrySearch.hidden=true;highlightReading($('document-body'),'');return;}
  const current=documentSearchState();input.placeholder=readerCopy('在当前聊天窗口中查找…','Find in this conversation…');input.setAttribute('aria-label',readerCopy('在当前聊天窗口中查找','Find in this conversation'));tools.setAttribute('aria-label',readerCopy('当前聊天窗口搜索','Current conversation search'));
  if(document.activeElement!==input&&input.value!==current.query)input.value=current.query;
  results.replaceChildren();const needle=current.query.trim();
- if(!needle){results.hidden=true;paging.hidden=true;statusNode.textContent='';highlightReading($('document-body'),'');return;}
+ if(!needle){results.hidden=true;paging.hidden=true;retrySearch.hidden=true;statusNode.textContent='';highlightReading($('document-body'),'');return;}
  results.hidden=false;
+ retrySearch.hidden=!current.error;
  for(const item of current.items){const hit=element('button','document-search-hit');hit.type='button';hit.dataset.inputId=item.id;hit.append(element('strong','',item.title||readerCopy('当前聊天窗口','Current conversation')),element('p','',item.snippet||''),element('small','',item.sourceSentAt?day(item.sourceSentAt):tc('发送时间未知')));hit.addEventListener('click',()=>void (async()=>{const id=documentId,searchQuery=current.query,inputId=item.id;if(!id)return;const opened=await navigate('library',id,inputId);if(opened&&documentId===id){const restored=documentSearchState(id);restored.query=searchQuery;$('document-search').value=searchQuery;renderDocumentSearch();revealSearchResult(inputId,searchQuery);}})().catch(()=>showLocalFailure()));results.append(hit);}
  previousSearch.hidden=!current.history.length;nextSearch.hidden=!current.nextCursor;paging.hidden=!current.history.length&&!current.nextCursor;
  if(current.loading)statusNode.textContent=readerCopy('正在当前聊天窗口中查找…','Searching this conversation…');
- else if(current.error)statusNode.textContent=readerCopy('当前聊天窗口暂时无法搜索，请重试。','This conversation could not be searched. Retry.');
+ else if(current.error)statusNode.textContent=readerCopy(recoveryGuidance('INDEX_UNAVAILABLE').detail,'Search is temporarily unavailable. Your saved conversation remains readable; retrying will not delete or rebuild your archive.');
  else if(!current.items.length)statusNode.textContent=readerCopy('当前聊天窗口没有匹配输入。','No matching input in this conversation.');
  else statusNode.textContent=readerCopy(`本页 ${current.items.length} 条匹配输入${current.nextCursor?' · 还有更多':''}`,`${current.items.length} matching inputs on this page${current.nextCursor?' · more available':''}`);
  highlightReading($('document-body'),current.query);
@@ -80,6 +82,7 @@ async function runDocumentSearch({reset=false}={}){
  if(view!=='library'||!documentId)return;const id=documentId,input=$('document-search'),current=documentSearchState(id),nextQuery=input.value.trim();if(current.query!==nextQuery){current.query=nextQuery;reset=true;}if(reset){current.cursor=null;current.history=[];current.nextCursor=null;current.items=[];}current.error=false;if(!nextQuery){++documentSearchIntent;current.loading=false;renderDocumentSearch();return;}
  const intent=++documentSearchIntent;current.loading=true;renderDocumentSearch();try{const page=await readDocumentSearchPage(id,nextQuery,current.cursor,intent);if(!page||intent!==documentSearchIntent)return;current.items=page.items||[];current.nextCursor=page.nextCursor??null;current.complete=page.complete===true;}catch{if(intent!==documentSearchIntent)return;current.items=[];current.nextCursor=null;current.error=true;}finally{if(intent===documentSearchIntent&&id===documentId&&view==='library'){current.loading=false;renderDocumentSearch();}}
 }
+$('document-search-retry').addEventListener('click',()=>{void runDocumentSearch();});
 let pageCursor=null,pageHistory=[];const pager=element('nav','pagination');const previous=element('button','','上一部分'),next=element('button','','下一部分');pager.append(previous,next);$('document-panel').after(pager);previous.addEventListener('click',async()=>{if(!await leave(true))return;pageCursor=pageHistory.pop()??null;await refresh();});next.addEventListener('click',async()=>{if(!state.nextCursor||!await leave(true))return;pageHistory.push(pageCursor);pageCursor=state.nextCursor;await refresh();});
 const recovery=element('button','','从迁移安全备份重试');recovery.id='recover-migration';recovery.hidden=true;$('error').after(recovery);recovery.addEventListener('click',async()=>{recovery.disabled=true;await command('RECOVER_MIGRATION');recovery.disabled=false;});
 const migrationSummary=element('p');migrationSummary.id='migration-summary';$('organizer-advanced').append(migrationSummary);
