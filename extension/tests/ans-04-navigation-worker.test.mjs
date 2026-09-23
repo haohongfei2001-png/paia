@@ -26,7 +26,7 @@ test('ANS-04 real worker gates Navigator to consented exact extension UI and nev
  }
  assert.equal((await app.send({type:'CONSENT',accepted:true})).ok,true);
  const status=(await app.send({type:'GET_STATUS'})).data;
- assert.equal((await app.send({type:'CAPTURE',epoch:status.epoch,adapterVersion:'0.3.0',chat:{id:chatId,url,title:'Synthetic worker title'},messages:[{sourceMessageId:'ans04-worker-msg',pageOrder:1,originalText:'WORKER_BODY_NOT_NAV_METADATA'}]},content)).ok,true);
+ assert.equal((await app.send({type:'CAPTURE',epoch:status.epoch,adapterVersion:'0.3.0',contentVersion:'0.12.0',chat:{id:chatId,url,title:'Synthetic worker title'},messages:[{sourceMessageId:'ans04-worker-msg',pageOrder:1,originalText:'WORKER_BODY_NOT_NAV_METADATA'}]},content)).ok,true);
  ArchiveRepository.prototype.materialize=async()=>{snapshots++;throw Error('Navigator used full snapshot');};
  const page={providerKey:'chatgpt',groupKind:'unknown',mode:'source'};let answer;
  for(let i=0;i<40;i++){

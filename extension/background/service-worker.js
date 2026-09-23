@@ -103,7 +103,10 @@ async function handle(request, sender) {
     return responseDiagnostics.view(status.enabled && status.consented, request.type === 'RESPONSE_ARM');
   }
   if (!ui && !content) throw new ArchiveError('FORBIDDEN');
-  if (request.type === 'GET_STATUS') return store.status();
+  if (request.type === 'GET_STATUS') {
+    const status = await store.status();
+    return content ? {...status, runtimeVersion: chrome.runtime.getManifest().version} : status;
+  }
   if (content && request.type === 'DIAGNOSTIC') {
     // A mismatched content version may report only this fixed reason, never its
     // own version string, structural payload, or any other page-derived fields.
@@ -149,6 +152,8 @@ async function handle(request, sender) {
     return sourceStructure.observeAdmittedBatch(admitted);
   }
   if (content && ['CAPTURE', 'ENRICH_SOURCE_METADATA'].includes(request.type)) {
+    if (request.type === 'CAPTURE' && request.contentVersion !== chrome.runtime.getManifest().version)
+      throw new ArchiveError('CONTEXT_INVALIDATED');
     // sender.url can stay at the document's initial address after pushState.
     // Chrome supplies the tab's current URL on MessageSender without a tabs
     // permission. Prefer it to verify SPA routing; never query browser history.

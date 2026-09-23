@@ -23,7 +23,7 @@ const content = {
 
 function capture(epoch, changes = {}) {
   return {
-    type: 'CAPTURE', epoch, adapterVersion: '0.3.0',
+    type: 'CAPTURE', epoch, adapterVersion: '0.3.0', contentVersion: '0.8.1',
     chat: { id: CHAT_ID, url: CHAT_URL, title: '合成测试聊天' },
     messages: [{ sourceMessageId: 'synthetic-message-001', pageOrder: 1, originalText: '虚构测试文字：不会来自真实用户。' }],
     ...changes
@@ -169,7 +169,8 @@ test('service worker enforces caller capabilities, consent and immutable capture
   await t.test('status exposes only the minimal content-script fields', async () => {
     const response = await app.send({ type: 'GET_STATUS' }, content);
     assert.equal(response.ok, true);
-    assert.deepEqual(Object.keys(response.data).sort(), ['adapterVersion', 'consented', 'enabled', 'epoch']);
+    assert.deepEqual(Object.keys(response.data).sort(), ['adapterVersion', 'consented', 'enabled', 'epoch', 'runtimeVersion']);
+    assert.equal(response.data.runtimeVersion, '0.8.1');
     assert.equal(response.data.consented, false);
     assert.equal(response.data.enabled, false);
     await expectError(app.send(capture(response.data.epoch), content), 'CONSENT_REQUIRED');
@@ -216,6 +217,7 @@ test('service worker enforces caller capabilities, consent and immutable capture
       chat: { id: 'another-synthetic-chat', url: CHAT_URL, title: '合成测试聊天' }
     }), content), 'FORBIDDEN');
     await expectError(app.send(capture(status.epoch, { adapterVersion: 'unsupported-test-version' }), content), 'INVALID_REQUEST');
+    await expectError(app.send(capture(status.epoch, { contentVersion: 'older-runtime' }), content), 'CONTEXT_INVALIDATED');
     assert.equal((await app.send(capture(status.epoch), content)).data.added, 1);
     assert.equal((await app.send(capture(status.epoch), content)).data.added, 0);
   });
