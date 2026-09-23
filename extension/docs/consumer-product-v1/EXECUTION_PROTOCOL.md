@@ -129,17 +129,31 @@ The full evidence classes in VERIFICATION.md are slice-level acceptance. At the 
 
 No slice may be marked COMPLETE while an applicable final evidence class is missing.
 
-### 7.4 External-capacity deferral
+### 7.4 Deferred external gates and continuous engineering
 
-A release host, provider site, CI capacity limit, deployment quota, or similar external dependency must not be converted into a PASS.
+A release host, provider site, CI capacity limit, deployment quota, distribution identity, signing credential, or similar external dependency must never be converted into a PASS.
 
-When all engineering work for an ordinary round is green and the only missing evidence belongs to a later slice-level certification boundary, record that evidence as deferred and continue the already-authorized slice. Do not keep a Work execution alive merely to poll an external service.
+PAIA tracks two independent frontiers:
 
-If the current round explicitly owns the unavailable evidence, record `ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING`; the round remains not COMPLETE. The manager may prepare or implement the next already-authorized round only when doing so does not depend on the uncertified behavior or create overlapping writer risk. At most one PAIA round may be ahead of such a pending round.
+- **engineering frontier** — the furthest canonical round/slice whose automatable implementation and non-external engineering evidence have been completed;
+- **certification frontier** — the furthest round/slice whose required external/current-live/distribution evidence has also passed.
 
-Publication remains separate unless the current round explicitly owns consumer distribution/release behavior.
+When an unavailable external dependency is the only missing evidence, record the exact obligation in `DEFERRED_FINAL_GATES.md` and mark the owning round `ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING`. It remains not COMPLETE.
 
-If any required engineering stage fails, fix within the round or close BLOCKED/FAIL with the evidence preserved. Security, privacy, data-integrity, deletion, identity and migration-safety gates are never deferred merely for throughput.
+Under `WHOLE_PACKAGE_PREAUTHORIZED`, an external-only pending gate does **not** impose an arbitrary one-round or one-slice lead limit. The manager continues through later rounds/slices already present in the canonical plan whenever dependency analysis shows that the next engineering work:
+
+- does not require the missing external result to be true;
+- does not weaken or bypass the pending gate;
+- does not cross a true owner gate from section 3;
+- does not create conflicting writers on the same runtime/data boundary.
+
+If only part of a later round depends on pending external evidence, defer that dependent evidence/action and continue the independent engineering portion or the next independent canonical work. Do not keep an execution alive merely to poll an external service.
+
+A later engineering round/slice may be integrated while earlier certification remains pending, but its receipt/status must name the unresolved predecessor and may not claim end-to-end production certification. Slice/package COMPLETE remains impossible until every applicable deferred final gate is actually satisfied or the product contract is explicitly changed by the owner.
+
+If delayed external evidence reveals an implementation/product defect, reopen and repair the earliest affected behavior, identify downstream evidence invalidated by that defect, and revalidate it. Unrelated independent engineering need not be discarded or globally stopped.
+
+Publication remains separate unless explicitly authorized. Security, privacy, data-integrity, deletion, identity, irreversible migration, and permission gates are never deferred merely for throughput.
 
 ### 7.5 GitHub CI scheduling
 
@@ -163,14 +177,22 @@ If a PR is intentionally non-draft from creation, full certification applies imm
 - After merge, perform the round's exact-main checks before marking COMPLETE.
 - Documentation-only status commits must describe the runtime SHA they certify and must not imply the docs SHA itself is the runtime.
 
-## 9. Slice boundary
+## 9. Slice boundary and unattended continuation
 
-When a slice completes:
+When a slice reaches full COMPLETE:
 
 - update STATUS.md;
 - publish a compact receipt containing exact SHAs and evidence;
 - state remaining known limitations honestly;
-- release writer ownership;
-- stop unless authorization covers the next slice.
+- release writer ownership.
 
-The owner should see a user-visible capability summary, not raw engineering logs.
+When a slice is engineering-complete but remains open only on deferred external certification, record that split state and release the completed engineering writer. Under `WHOLE_PACKAGE_PREAUTHORIZED`, immediately advance the engineering frontier to the next dependency-safe canonical work rather than waiting for the external gate.
+
+The package-level unattended execution stops only when:
+
+1. all currently automatable engineering in the authorized canonical plan is exhausted; and
+2. every remaining unresolved item is a true owner gate, external-only evidence gate, or safety/integrity dependency that makes further work genuinely unsafe or logically dependent.
+
+Do not stop merely because a round/slice is awaiting a provider, store, deployment quota, live account, signing identity, or publication decision when independent engineering remains.
+
+The owner should see a user-visible capability summary plus a concise deferred-gate ledger, not raw engineering logs.
