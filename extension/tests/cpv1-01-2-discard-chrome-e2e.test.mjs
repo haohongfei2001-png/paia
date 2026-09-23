@@ -16,30 +16,27 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
   let h;
   try {
     stage = 'launch isolated browser';
-    // CI runs under Xvfb. Keep the real discard/restore journey while avoiding
-    // the Linux GPU process fault observed during discarded-tab activation.
-    h = await FakeChatGPT.start({ extensionPath: release, headless: process.env.CI !== '1', useBundledChromium: process.env.CI === '1', disableGpu: process.env.CI === '1' });
+    // CI runs under Xvfb. Keep the real discard/restore journey isolated from
+    // other browser tests in the shard.
+    h = await FakeChatGPT.start({ extensionPath: release, headless: process.env.CI !== '1', useBundledChromium: process.env.CI === '1' });
     stage = 'consent';
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
     await h.archive.locator('#enable-consent').click();
     await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
     const restoredConversation = conversation('cpv1-discarded-tab');
-    stage = 'capture initial conversation';
-    const tab = await h.open(restoredConversation);
-    await h.ready(tab);
-    await eventually(async () => (await h.state()).records.length === 3);
-
-    // A normal non-extension tab must remain live while Chrome discards the
-    // conversation. Headless Chrome can exit when its last web tab is discarded
-    // even though an extension page is still open.
-    const keepAlive = await h.context.newPage();
-    stage = 'identify conversation tab';
-    await keepAlive.goto('about:blank');
-    await tab.bringToFront();
-    const conversationId = await h.archive.evaluate(async () =>
-      (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id);
+    stage = 'open a background conversation';
+    // Create both tabs through Chrome's own tab API. Playwright's
+    // bringToFront() transitions on this discarded target crash Linux Chrome
+    // under CI before the lifecycle assertion can finish.
+    const keepAlive = await h.archive.evaluate(() => chrome.tabs.create({ url: 'about:blank', active: true }));
+    assert.ok(keepAlive.id, 'a normal browser tab stays active');
+    h.pages.set(restoredConversation.id, { c: restoredConversation, arrival: 'metadata-first' });
+    const conversationTab = await h.archive.evaluate((url) => chrome.tabs.create({ url, active: false }),
+      `https://chatgpt.com/c/${restoredConversation.id}`);
+    const conversationId = conversationTab.id;
     assert.ok(conversationId, 'conversation has a browser tab ID');
-    await h.archive.bringToFront();
+    stage = 'capture initial conversation';
+    await eventually(async () => (await h.state()).records.length === 3);
     stage = 'background conversation';
     await eventually(async () => h.archive.evaluate(async (id) => !(await chrome.tabs.get(id)).active, conversationId), 'conversation tab is backgrounded before discard');
     const discarded = await h.archive.evaluate(async (id) => chrome.tabs.discard(id), conversationId);
