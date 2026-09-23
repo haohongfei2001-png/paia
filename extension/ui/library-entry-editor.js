@@ -1,7 +1,7 @@
 import {thoughtCopy as tc} from './thought-copy.js';
 import {request} from './common.js';
 import {PlainTextSurface,AutosaveSession,UndoJournal,RevisionSession,textOf} from './editor-primitives.js';
-import {RecoveryDraftSession} from './recovery-draft.js';
+import {RecoveryDraftSession,clearRecoveryDrafts} from './recovery-draft.js';
 const fields=['body','note','type'];
 const snapshot=e=>Object.fromEntries(fields.map(f=>[f,e[f]]));
 const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -40,7 +40,8 @@ export class LibraryEntryEditor {
    for(let offset=0;offset<pendingEntries.length;offset+=40){
     const entries=pendingEntries.slice(offset,offset+40),edit=this.revisions.attempt({entries,...(this.reason?{reason:this.reason}:{})}),r=await request('EDIT_LIBRARY_BATCH',{edit});
     if(r.conflict){this.conflicted=true;this.onStatus('其他页面已修改相同内容，当前草稿尚未保存。','conflict');return false;}
-    for(const item of r.items){const e=this.entries.get(item.id),sent=entries.find(x=>x.id===item.id);if(!e||!sent)continue;Object.assign(e.saved,sent.changes);e.revision=item.revision;e.fieldRevisions=item.fieldRevisions;e.currentInputRevision=item.currentInputRevision;detached||=!!item.detached;const token=recoveryTokens.get(item.id);if(token)void this.recoveries.get(item.id)?.clear(token);}
+    const recoveryClears=[];for(const item of r.items){const e=this.entries.get(item.id),sent=entries.find(x=>x.id===item.id);if(!e||!sent)continue;Object.assign(e.saved,sent.changes);e.revision=item.revision;e.fieldRevisions=item.fieldRevisions;e.currentInputRevision=item.currentInputRevision;detached||=!!item.detached;const token=recoveryTokens.get(item.id);if(token)recoveryClears.push({kind:'library_entry',ownerId:item.id,token});}
+    if(recoveryClears.length)await clearRecoveryDrafts(recoveryClears).catch(()=>{});
     if(r.items.some(x=>x.revisionId))for(const ref of r.items.filter(x=>x.revisionId).map(x=>({id:x.id,revisionId:x.revisionId}))){for(let i=this.journal.undo.length-1;i>=0;i--){const undoGroup=this.journal.undo[i];if(!undoGroup.some(p=>p.id===ref.id))continue;undoGroup.savedEdit=[...(undoGroup.savedEdit||[]).filter(x=>x.id!==ref.id),ref];break;}}
    }
    this.reason=null;this.onStatus(this.dirty()?tc('正在保存…'):detached?tc('已修改这条思想，档案未变。'):tc('已保存到本机'));return true;
