@@ -12,21 +12,21 @@ current_slice: VS-01
 
 current_slice_status: ACTIVE
 
-current_round: CPV1-01.2
+current_round: CPV1-01.3
 
-current_round_status: ACTIVE / CPV1-01.1_PASS
+current_round_status: READY / CPV1-01.2_PASS
 
-current_writer: manager/cpv1-01-2-version-reconnect-20260923
+current_writer: NONE
 
-writer_status: ACTIVE
+writer_status: RELEASED
 
 production_claim: NONE
 
 authorization_mode: TEMPORARY_NIGHT_WHOLE_EXECUTION / MAX_9_ROUNDS
 
-authorization_rounds_completed: 3
+authorization_rounds_completed: 4
 
-authorization_rounds_remaining: 6
+authorization_rounds_remaining: 5
 
 ## Activation evidence
 
@@ -78,9 +78,25 @@ receipt: `receipts/CPV1-01.1.md`
 
 The durable save and bounded recovery boundary passed the current full suite and Chrome lifecycle tests on the exact integrated runtime. Recovery drafts remain expiring local protection and are not Source/history truth or Backup content. The next round owns extension/page version handshake and reconnect.
 
+## CPV1-01.2 closure
+
+verdict: COMPLETE / PASS
+
+candidate_pr: #51
+
+candidate_head: `7e48eee12565c115875d4724fcabab098b4b134a`
+
+merged_runtime_main: `2fbcf5356d3b023cc476bd5640b260662de26fcd`
+
+exact_main_certification: `PAIA Certification run 35853925872 / SUCCESS`
+
+receipt: `receipts/CPV1-01.2.md`
+
+The version handshake rejects stale-page capture before writing and gives the user one clear refresh action. Headless lifecycle evidence covers old/new/restored tabs without archive loss or duplicate capture. CURRENT_LIVE provider-site lifecycle remains assigned to CPV1-01.6 and is not claimed here.
+
 ## Next eligible round
 
-`CPV1-01.2 — Extension/page version handshake and reconnect` is ACTIVE on `manager/cpv1-01-2-version-reconnect-20260923` from exact main `86c27f7985d33d7045ca7dc57ddac0c03049a8b9`. The existing temporary whole-execution authorization still has six rounds remaining; this round is not counted complete until its candidate, browser and exact-main gates pass.
+`CPV1-01.3 — Consumer update flow` is READY within VS-01 under the existing temporary whole-execution authorization. Five authorized rounds remain. No new slice or publication is authorized by this status change.
 
 ## Slice queue
 
