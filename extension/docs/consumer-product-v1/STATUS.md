@@ -14,11 +14,11 @@ current_slice_status: ACTIVE
 
 current_round: CPV1-01.3
 
-current_round_status: READY / CPV1-01.2_PASS
+current_round_status: ACTIVE / CPV1-01.2_PASS
 
-current_writer: NONE
+current_writer: manager/cpv1-01-3-consumer-update-20260923
 
-writer_status: RELEASED
+writer_status: ACTIVE
 
 production_claim: NONE
 
@@ -96,7 +96,7 @@ The version handshake rejects stale-page capture before writing and gives the us
 
 ## Next eligible round
 
-`CPV1-01.3 — Consumer update flow` is READY within VS-01 under the existing temporary whole-execution authorization. Five authorized rounds remain. No new slice or publication is authorized by this status change.
+`CPV1-01.3 — Consumer update flow` is ACTIVE on `manager/cpv1-01-3-consumer-update-20260923` from exact main `15ad108eb0a9f63f6c05c076f992f057bcc86d2c`. Its current path and constraints are recorded in `receipts/CPV1-01.3-START.md`. Five authorized rounds remain until this round closes. No new slice or publication is authorized by this status change.
 
 ## Slice queue
 
