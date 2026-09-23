@@ -8,6 +8,7 @@ test('CPV1-01.4 degraded states each offer one bounded action without claiming a
     ['MESSAGE_RESPONSE_TIMEOUT','return_to_chat'],
     ['STORAGE_FULL','open_archive'],
     ['STORAGE_FAILED','open_archive'],
+    ['ARCHIVE_READ_FAILED','retry_read'],
     ['UPDATE_CHECK_FAILED','retry_update'],
     ['INDEX_UNAVAILABLE','retry_search'],
     ['PROVIDER_UNAVAILABLE','review_ai'],

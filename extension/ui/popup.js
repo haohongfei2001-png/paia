@@ -10,6 +10,7 @@ let state;
 let busy = false;
 let uxPreferences = normalizeUXPreferences();
 let updateCheckFailed = false;
+let archiveReadFailed = false;
 const appearanceMedia = globalThis.matchMedia?.('(prefers-color-scheme: dark)');
 function applyAppearance(value) {
   uxPreferences = normalizeUXPreferences(value);
@@ -23,7 +24,7 @@ function showRecovery() {
   const errorAge = Date.now() - Date.parse(recentError?.at || '');
   const code = recoveryGuidance(diagnostic?.status) ? diagnostic.status
     : errorAge >= 0 && errorAge <= 120_000 ? recentError?.code : undefined;
-  const guidance = recoveryGuidance(code) || (updateCheckFailed ? recoveryGuidance('UPDATE_CHECK_FAILED') : null);
+  const guidance = recoveryGuidance(code) || (archiveReadFailed ? recoveryGuidance('ARCHIVE_READ_FAILED') : null) || (updateCheckFailed ? recoveryGuidance('UPDATE_CHECK_FAILED') : null);
   const card = $('recovery-card');
   card.hidden = !guidance;
   if (!guidance) return;
@@ -42,6 +43,7 @@ async function openArchive() {
 async function refresh() {
   try {
     state = await request('GET_PAGE',{page:{view:'settings'}});
+    archiveReadFailed = false;
     applyAppearance(state.preferences);
     $('error').hidden = true;
     const consented = state.settings.consentVersion === 1;
@@ -62,9 +64,10 @@ async function refresh() {
     const lastError = state.diagnostics.lastError;
     $('diagnostic-error').textContent = lastError ? `最近错误：${statusLabel(lastError.code)} · ${dateLabel(lastError.at)}` : '最近错误：无';
     showRecovery();
-  } catch (error) {
+  } catch {
     state = undefined;
-    $('error').textContent = error.message;
+    archiveReadFailed = true;
+    $('error').textContent = '暂时无法读取本机档案状态。请保留当前安装和资料。';
     $('error').hidden = false;
     $('toggle-capture').disabled = true;
     showRecovery();
@@ -136,6 +139,7 @@ $('open-archive').addEventListener('click', async () => {
 $('recovery-action').addEventListener('click', async () => {
   const action = $('recovery-action').dataset.action;
   if (action === 'return_to_chat') { window.close(); return; }
+  if (action === 'retry_read') { await refresh(); return; }
   if (action === 'retry_update') { $('check-update').click(); return; }
   if (action === 'open_archive') {
     try { await openArchive(); }

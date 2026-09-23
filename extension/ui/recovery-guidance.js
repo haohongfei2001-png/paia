@@ -27,6 +27,13 @@ export function recoveryGuidance(code) {
         detail: '已保存内容仍可阅读；返回 PAIA 核对当前文字，再手动重试保存。',
         action: 'open_archive', label: '打开 PAIA 核对',
       };
+    case 'ARCHIVE_READ_FAILED':
+      return {
+        kind: 'read',
+        title: '暂时无法读取本机档案状态',
+        detail: '保留当前安装和资料，稍后重试读取；不要卸载扩展或清理浏览器资料。',
+        action: 'retry_read', label: '重试读取',
+      };
     case 'UPDATE_CHECK_FAILED':
       return {
         kind: 'update',
