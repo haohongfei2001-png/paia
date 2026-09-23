@@ -44,6 +44,15 @@ test('CPV1-01.1 pruning retains only newest bounded drafts',async()=>{
  assert.equal(Object.keys(local.data).filter(k=>k.startsWith(recoveryDraftPrefix)).length,2);
 });
 
+test('CPV1-01.1 recovery area enforces a total byte budget and evicts oldest drafts first',async()=>{
+ let now=10;const local=new MemoryArea(),store=new RecoveryDraftStore(local,{clock:()=>now,ttlMs:10000,maxBytes:4096,maxDrafts:10,maxTotalBytes:1800});
+ for(const ownerId of ['old','middle','newest']){await store.save({kind:'document',ownerId,token:'token-'+ownerId,operation:op(ownerId+'-'+('x'.repeat(520)))});now++;}
+ assert.equal(await store.load('document','old'),null,'oldest recovery draft is evicted before newer work');
+ assert.ok(await store.load('document','middle'));
+ assert.ok(await store.load('document','newest'));
+ const state=await store.prune();assert.ok(state.bytes<=1800);
+});
+
 test('CPV1-01.1 permanent Source deletion clears only recovery drafts linked to that Source',async()=>{
  const local=new MemoryArea(),store=new RecoveryDraftStore(local);
  await store.save({kind:'document',ownerId:'document:1',token:'token-doc1',operation:op('source bound'),sourceRecordIds:['source:gone']});
