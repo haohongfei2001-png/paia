@@ -93,23 +93,21 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await h.ready(tab);
     await eventually(async () => (await h.state()).records.length === 3);
 
-    for (const other of h.context.pages()) {
-      if (other !== h.archive && other !== tab) await other.close();
-    }
+    // A normal non-extension tab must remain live while Chrome discards the
+    // conversation. Headless Chrome can exit when its last web tab is discarded
+    // even though an extension page is still open.
+    const keepAlive = await h.context.newPage();
+    await keepAlive.goto('about:blank');
+    await tab.bringToFront();
+    const conversationId = await h.archive.evaluate(async () =>
+      (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id);
+    assert.ok(conversationId, 'conversation has a browser tab ID');
     await h.archive.bringToFront();
-    const tabsToCycle = await h.archive.evaluate(async () => {
-      const current = await chrome.tabs.getCurrent();
-      const tabs = await chrome.tabs.query({});
-      const other = tabs.filter((item) => item.id !== current.id);
-      if (other.length !== 1) throw new Error(`expected one other tab, got ${other.length}`);
-      return { archiveId: current.id, conversationId: other[0].id };
-    });
-    await h.archive.evaluate(async (id) => chrome.tabs.update(id, { active: true }), tabsToCycle.archiveId);
-    await eventually(async () => h.archive.evaluate(async (id) => !(await chrome.tabs.get(id)).active, tabsToCycle.conversationId), 'conversation tab is backgrounded before discard');
-    const discarded = await h.archive.evaluate(async (id) => chrome.tabs.discard(id), tabsToCycle.conversationId);
+    await eventually(async () => h.archive.evaluate(async (id) => !(await chrome.tabs.get(id)).active, conversationId), 'conversation tab is backgrounded before discard');
+    const discarded = await h.archive.evaluate(async (id) => chrome.tabs.discard(id), conversationId);
     assert.equal(discarded?.discarded, true, 'the real conversation tab is discarded');
-    await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).discarded === true, tabsToCycle.conversationId), 'discard state is visible before restore');
-    const restored = await h.archive.evaluate(async (id) => chrome.tabs.update(id, { active: true }), tabsToCycle.conversationId);
+    await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).discarded === true, conversationId), 'discard state is visible before restore');
+    const restored = await h.archive.evaluate(async (id) => chrome.tabs.update(id, { active: true }), conversationId);
     assert.equal(restored?.active, true);
     await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).status === 'complete', restored.id), 'discarded tab finishes loading');
     assert.equal((await h.state()).records.length, 3, 'discard does not change stored records');
