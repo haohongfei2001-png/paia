@@ -38,13 +38,13 @@ function fakePage(c,arrival) {
  </script>`;
 }
 export class FakeChatGPT {
- static async start({extensionPath=root,headless=true,deepSeekFixture=null,onboarding=false,userDataDir='',useBundledChromium=false}={}) {
+ static async start({extensionPath=root,headless=true,deepSeekFixture=null,onboarding=false,userDataDir='',useBundledChromium=false,disableGpu=false}={}) {
   if(process.env.PAIA_HEADLESS==='1')headless=true;
   const h=new FakeChatGPT();h.pages=new Map();h.pending=new Map();h.historyRequests=0;h.externalRequests=0;h.extensionNetworkRequests=0;h.deepSeekRequests=[];h.errors=[];
   h.manifest=JSON.parse(await readFile(extensionPath+'/manifest.json','utf8'));
   h.context=await chromium.launchPersistentContext(userDataDir,{headless,acceptDownloads:true,locale:'zh-CN',
    executablePath:useBundledChromium?chromium.executablePath():(process.env.CHROME_PATH||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':undefined)),
-   ignoreDefaultArgs:['--disable-extensions'],args:['--enable-unsafe-extension-debugging','--disable-background-networking','--disable-component-update','--disable-sync','--host-resolver-rules=MAP * ~NOTFOUND']});
+   ignoreDefaultArgs:['--disable-extensions'],args:['--enable-unsafe-extension-debugging','--disable-background-networking','--disable-component-update','--disable-sync','--host-resolver-rules=MAP * ~NOTFOUND',...(disableGpu?['--disable-gpu']:[])]});
   try {
    await h.context.route(/^https?:\/\//,async route=>{
     const request=route.request(),url=new URL(request.url());

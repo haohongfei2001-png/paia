@@ -16,9 +16,9 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
   let h;
   try {
     stage = 'launch isolated browser';
-    // CI runs under Xvfb. Use Playwright's installed Chromium to isolate the
-    // Google Chrome process crash while keeping real tabs.discard coverage.
-    h = await FakeChatGPT.start({ extensionPath: release, headless: process.env.CI !== '1', useBundledChromium: process.env.CI === '1' });
+    // CI runs under Xvfb. Keep the real discard/restore journey while avoiding
+    // the Linux GPU process fault observed during discarded-tab activation.
+    h = await FakeChatGPT.start({ extensionPath: release, headless: process.env.CI !== '1', useBundledChromium: process.env.CI === '1', disableGpu: process.env.CI === '1' });
     stage = 'consent';
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
     await h.archive.locator('#enable-consent').click();
