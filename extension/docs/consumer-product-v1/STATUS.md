@@ -14,11 +14,11 @@ current_slice_status: ACTIVE
 
 current_round: CPV1-01.2
 
-current_round_status: READY / CPV1-01.1_PASS
+current_round_status: ACTIVE / CPV1-01.1_PASS
 
-current_writer: NONE
+current_writer: manager/cpv1-01-2-version-reconnect-20260923
 
-writer_status: RELEASED
+writer_status: ACTIVE
 
 production_claim: NONE
 
@@ -80,7 +80,7 @@ The durable save and bounded recovery boundary passed the current full suite and
 
 ## Next eligible round
 
-`CPV1-01.2 — Extension/page version handshake and reconnect` is READY under the existing temporary whole-execution authorization. It is not yet claimed; a writer must re-read remote main, this STATUS and the current contract, then confirm no overlapping writer before changing it to ACTIVE.
+`CPV1-01.2 — Extension/page version handshake and reconnect` is ACTIVE on `manager/cpv1-01-2-version-reconnect-20260923` from exact main `86c27f7985d33d7045ca7dc57ddac0c03049a8b9`. The existing temporary whole-execution authorization still has six rounds remaining; this round is not counted complete until its candidate, browser and exact-main gates pass.
 
 ## Slice queue
 
