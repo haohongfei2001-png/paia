@@ -104,6 +104,11 @@ export class IndexedArchiveStore {
  update(id,changes){return this.changeRecord(id,r=>{if(r.deletedAt)error('INVALID_REQUEST');Object.assign(r,validateChanges(changes));});}
  trash(id){return this.changeRecord(id,r=>{r.deletedAt=this.clock();});}
  restore(id){return this.changeRecord(id,r=>{r.deletedAt=null;});}
+ async sourceRecordIdsForPurge(id){
+  const pre=await this.repository.transaction(false,t=>t.get('records',id));if(!pre)error('INVALID_REQUEST');
+  const r=pre.value,key=/^[a-f0-9]{64}$/.test(r.sourceKey||'')?r.sourceKey:(r.chatId&&r.sourceMessageId?await identifySource(r.chatId,r.sourceMessageId):null);if(!key)error('INVALID_REQUEST');
+  return this.repository.transaction(false,async t=>{const ids=new Set((await t.all('recordIndex','bySource',key)).map(row=>row.id));if(r.chatId&&r.sourceMessageId)for(const row of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))if(!/^[a-f0-9]{64}$/.test(row.sourceKey||''))ids.add(row.id);ids.add(id);return [...ids];});
+ }
  purge(id,permanent=false){return this.run(async()=>{
   const pre=await this.repository.transaction(false,t=>t.get('records',id));if(!pre||!permanent&&!pre.value.deletedAt)error('INVALID_REQUEST');const r=pre.value,key=/^[a-f0-9]{64}$/.test(r.sourceKey||'')?r.sourceKey:(r.chatId&&r.sourceMessageId?await identifySource(r.chatId,r.sourceMessageId):null);if(!key)error('INVALID_REQUEST');
   const result=await this.repository.transaction(true,async t=>{
