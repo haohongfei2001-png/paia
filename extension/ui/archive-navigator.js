@@ -33,8 +33,8 @@ export class ArchiveNavigatorState{
 }
 
 export class ArchiveNavigator{
- constructor({onOpenWindow,onSourceDetail,onStatus=()=>{}}={}){
-  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;
+ constructor({onOpenWindow,onSourceDetail,onStatus=()=>{},onRouteChange=()=>{}}={}){
+  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;
   this.host=element('aside','archive-navigator');this.host.id='archive-navigator';this.host.setAttribute('aria-label',copy('档案窗口导航','Archive window navigator'));this.host.tabIndex=-1;
   const head=element('header','archive-navigator-header'),title=element('h2','',copy('档案窗口','Archive windows'));this.status=element('p','archive-navigator-status','');this.status.setAttribute('role','status');this.status.setAttribute('aria-live','polite');this.applyOrder=element('button','archive-navigator-apply-order',copy('应用','Apply'));this.applyOrder.type='button';this.applyOrder.hidden=true;this.close=element('button','archive-navigator-close',copy('关闭','Close'));this.close.type='button';head.append(title,this.status,this.applyOrder,this.close);
   this.tree=element('div','archive-navigator-tree');this.host.append(head,this.tree);
@@ -98,16 +98,17 @@ export class ArchiveNavigator{
  }
  applyInvalidation(){this.pendingInvalidate=false;this.applyOrder.hidden=true;this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;void this.refresh(false);}
  applyPending(force=false){if(!this.pendingInvalidate||!force&&this.interactionLocked())return;this.applyInvalidation();}
+ selectPath(path){const before=JSON.stringify(this.state.selectedPath);this.state.select(path);if(before!==JSON.stringify(this.state.selectedPath))this.onRouteChange();}
  schedule(){clearTimeout(this.refreshTimer);if(!this.active)return;this.refreshTimer=setTimeout(()=>void this.checkFreshness(),8000);}
- async refreshSelection(){try{const value=await request('PAIA_ARCHIVE_NAV_STATUS',{page:{groupKind:'providers',mode:this.mode,selectedDocumentId:this.selectedDocumentId}});if(value.selectedPath)this.state.select(value.selectedPath);}catch{}}
+ async refreshSelection(){try{const value=await request('PAIA_ARCHIVE_NAV_STATUS',{page:{groupKind:'providers',mode:this.mode,selectedDocumentId:this.selectedDocumentId}});if(value.selectedPath)this.selectPath(value.selectedPath);}catch{}}
  async checkFreshness(){
-  if(!this.active)return;try{const status=await request('PAIA_ARCHIVE_NAV_STATUS',{page:{groupKind:'providers',mode:this.mode,selectedDocumentId:this.selectedDocumentId}}),root=this.state.scope({groupKind:'providers'}),before=JSON.stringify(this.state.selectedPath);if(status.selectedPath)this.state.select(status.selectedPath);if(status.coverage.state!=='complete'||root.generation&&status.generation!==root.generation){this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;await this.refresh(false);}else if(before!==JSON.stringify(this.state.selectedPath))this.paint();}catch{}finally{this.schedule();}
+  if(!this.active)return;try{const status=await request('PAIA_ARCHIVE_NAV_STATUS',{page:{groupKind:'providers',mode:this.mode,selectedDocumentId:this.selectedDocumentId}}),root=this.state.scope({groupKind:'providers'}),before=JSON.stringify(this.state.selectedPath);if(status.selectedPath)this.selectPath(status.selectedPath);if(status.coverage.state!=='complete'||root.generation&&status.generation!==root.generation){this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;await this.refresh(false);}else if(before!==JSON.stringify(this.state.selectedPath))this.paint();}catch{}finally{this.schedule();}
  }
  async readScope(options,{append=false,force=false}={}){
   const scope=this.state.scope(options);if(scope.loading)return scope;if(!append&&!force&&scope.coverage.state==='complete'&&scope.unavailableReason!=='SOURCE_ORDER_PREPARING')return scope;scope.loading=true;scope.error=null;this.paint();
   try{
    const page=await request('PAIA_ARCHIVE_NAV_PAGE',{page:{...options,...(append&&scope.nextCursor?{cursor:scope.nextCursor}:{}),limit:40,mode:this.mode,selectedDocumentId:this.selectedDocumentId}});
-   if(page.selectedPath)this.state.select(page.selectedPath);
+   if(page.selectedPath)this.selectPath(page.selectedPath);
    if(page.cursorInvalid){this.state.scopes.delete(scope.key);return this.readScope(options);}
    scope.coverage=page.coverage;scope.generation=page.generation;scope.nextCursor=page.nextCursor;scope.effectiveOrdering=page.effectiveOrdering||'paia';scope.unavailableReason=page.unavailableReason||null;
    if(page.coverage.state==='complete')scope.items=append?[...scope.items,...page.items]:page.items;
