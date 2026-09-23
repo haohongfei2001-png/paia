@@ -14,11 +14,11 @@ current_slice_status: ACTIVE
 
 current_round: CPV1-01.6
 
-current_round_status: READY / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: IN_PROGRESS / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_writer: NONE
+current_writer: manager/cpv1-01-6-lifecycle-20260924
 
-writer_status: RELEASED
+writer_status: ACTIVE
 
 production_claim: NONE
 
@@ -140,7 +140,7 @@ The owner explicitly superseded the temporary nine-round limit with continuous w
 
 Independent `CPV1-01.4 — Recovery/degraded UX` is COMPLETE at runtime main `a38d80e3799e733913b0edf94e46f4c59ee20fc0`; its writer is released. CPV1-01.3's same-ID signed distribution/update certification remains `EXTERNAL_CERT_PENDING` because no Chrome Web Store publisher identity or existing extension ID is available. That obligation is recorded in `DEFERRED_FINAL_GATES.md` and remains mandatory for VS-01/full product certification; it is not a PASS.
 
-The owner has now authorized dependency-safe continuous engineering: external-only certification gates no longer impose the former one-round lead limit. `CPV1-01.5 — Backup protection for update/migration` completed on integrated runtime `15f47fe9ff304247b9ac10de27fb274a8be69950`; its writer is released. `CPV1-01.6 — Real lifecycle certification` is READY. After each engineering closure, the manager must continue into the next dependency-safe canonical round/slice while preserving all unresolved external gates. CPV1-01.6 may complete every automatable lifecycle/certification item, but any journey that genuinely requires the unavailable same-ID signed distribution remains pending. VS-02 and later engineering may proceed once their actual data/runtime prerequisites are satisfied even if VS-01 still carries that external certification debt.
+The owner has now authorized dependency-safe continuous engineering: external-only certification gates no longer impose the former one-round lead limit. `CPV1-01.5 — Backup protection for update/migration` completed on integrated runtime `15f47fe9ff304247b9ac10de27fb274a8be69950`; its writer is released. `CPV1-01.6 — Real lifecycle certification` is ACTIVE on the sole writer `manager/cpv1-01-6-lifecycle-20260924` from main `a4899be50ae52d78ed8065c198458d650e4e4441`. After each engineering closure, the manager must continue into the next dependency-safe canonical round/slice while preserving all unresolved external gates. CPV1-01.6 may complete every automatable lifecycle/certification item, but any journey that genuinely requires the unavailable same-ID signed distribution remains pending. VS-02 and later engineering may proceed once their actual data/runtime prerequisites are satisfied even if VS-01 still carries that external certification debt.
 
 Do not create a store account, publish, substitute unsigned installation evidence for same-ID signed update proof, or mark the external gate PASS without real evidence.
 
