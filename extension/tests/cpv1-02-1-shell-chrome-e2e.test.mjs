@@ -39,6 +39,6 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await page.evaluate(()=>history.forward());
   await eventually(()=>page.locator('#document-panel').isVisible(),'Forward restores the Reader container');
   assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),documentId);
-  assert.deepEqual(harness.externalRequests,[]);
+  assert.equal(harness.externalRequests,0);
  }finally{await harness?.close();}
 });
