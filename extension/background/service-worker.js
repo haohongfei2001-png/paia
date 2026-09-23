@@ -43,7 +43,8 @@ const sourceStructure = new SourceStructureStore(store);
 const archiveNavigation = new ArchiveNavigationQuery(store);
 const archiveOrderPreference = new ArchiveOrderPreferenceService(store);
 const sourceOrderRegistry = new SourceOrderRegistry([['chatgpt',unavailableSourceOrderProvider('UNVERIFIED')]]);
-const recoveryDrafts = new RecoveryDraftStore(chrome.storage.local);
+let recoveryDrafts=null;
+const recoveryDraftStore=()=>recoveryDrafts??=new RecoveryDraftStore(chrome.storage.local);
 // ChatGPT source ordering remains unavailable until a live provider contract is certified.
 const organizer = new OrganizerRunner(store);
 // DeepSeek stays outside the generic production registry. Only the explicit
@@ -164,10 +165,10 @@ async function handle(request, sender) {
   if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   if(request.type==='PAIA_BACKUP_BEGIN_EXPORT')await memory.ready();
   switch (request.type) {
-    case 'PAIA_RECOVERY_DRAFT_SAVE': {const draft=request.draft||{};return recoveryDrafts.save({...draft,sourceRecordIds:await store.recoveryDraftSourceIds(draft)});}
-    case 'PAIA_RECOVERY_DRAFT_LOAD': {const d=request.draft||{};return recoveryDrafts.load(d.kind,d.ownerId);}
-    case 'PAIA_RECOVERY_DRAFT_CLEAR': {const d=request.draft||{};return recoveryDrafts.clear(d.kind,d.ownerId,d.token??null);}
-    case 'PAIA_RECOVERY_DRAFT_PRUNE': return recoveryDrafts.prune();
+    case 'PAIA_RECOVERY_DRAFT_SAVE': {const draft=request.draft||{};return recoveryDraftStore().save({...draft,sourceRecordIds:await store.recoveryDraftSourceIds(draft)});}
+    case 'PAIA_RECOVERY_DRAFT_LOAD': {const d=request.draft||{};return recoveryDraftStore().load(d.kind,d.ownerId);}
+    case 'PAIA_RECOVERY_DRAFT_CLEAR': {const d=request.draft||{};return recoveryDraftStore().clear(d.kind,d.ownerId,d.token??null);}
+    case 'PAIA_RECOVERY_DRAFT_PRUNE': return recoveryDraftStore().prune();
     case 'PAIA_ARCHIVE_NAV_PAGE': return archiveNavigation.page(request.page);
     case 'PAIA_ARCHIVE_NAV_STATUS': return archiveNavigation.status(request.page);
     case 'PAIA_ARCHIVE_ORDER_PREFERENCE': {
@@ -321,7 +322,7 @@ async function handle(request, sender) {
     case 'GET_THOUGHTS': return store.thoughtPage(request.options);
     case 'GET_THOUGHT': return store.thought(request.id);
     case 'EDIT_THOUGHT': return store.editThought(request.edit);
-    case 'PURGE_SOURCE': {if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');const sourceIds=await store.sourceRecordIdsForPurge(request.id);await recoveryDrafts.clearForSources(sourceIds);return store.permanentDelete(request.id);}
+    case 'PURGE_SOURCE': {if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');const sourceIds=await store.sourceRecordIdsForPurge(request.id);await recoveryDraftStore().clearForSources(sourceIds);return store.permanentDelete(request.id);}
     case 'GET_PAGE': return store.page(request.page);
     case 'GET_MIGRATION_STATUS': {const m=await store.migrationStatus();return m?{phase:m.phase,verified:m.verified,recoveryVerified:m.recoveryVerified,recordCount:m.recordCount,blockCount:m.blockCount}:{phase:'not_started'};}
     case 'RECOVER_MIGRATION': return store.recoverMigration();
