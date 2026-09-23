@@ -45,6 +45,21 @@ const archiveOrderPreference = new ArchiveOrderPreferenceService(store);
 const sourceOrderRegistry = new SourceOrderRegistry([['chatgpt',unavailableSourceOrderProvider('UNVERIFIED')]]);
 let recoveryDrafts=null;
 const recoveryDraftStore=()=>recoveryDrafts??=new RecoveryDraftStore(chrome.storage.local);
+const UPDATE_STATE_KEY='paia-consumer-update:v1';
+// Chrome owns installation. Keep only the version transition as local status;
+// never force a worker reload while an archive page may have unsaved edits.
+chrome.runtime.onUpdateAvailable?.addListener(details=>{
+  if(typeof details?.version!=='string')return;
+  void ready.then(()=>chrome.storage.local.set({[UPDATE_STATE_KEY]:{
+    state:'available',fromVersion:chrome.runtime.getManifest().version,toVersion:details.version,at:Date.now(),
+  }})).catch(()=>{});
+});
+chrome.runtime.onInstalled?.addListener(details=>{
+  if(details?.reason!=='update')return;
+  void ready.then(()=>chrome.storage.local.set({[UPDATE_STATE_KEY]:{
+    state:'installed',fromVersion:details.previousVersion||null,toVersion:chrome.runtime.getManifest().version,at:Date.now(),
+  }})).catch(()=>{});
+});
 // ChatGPT source ordering remains unavailable until a live provider contract is certified.
 const organizer = new OrganizerRunner(store);
 // DeepSeek stays outside the generic production registry. Only the explicit
