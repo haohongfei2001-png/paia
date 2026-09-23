@@ -12,9 +12,9 @@ current_slice: VS-01
 
 current_slice_status: ACTIVE
 
-current_round: CPV1-01.4
+current_round: CPV1-01.5
 
-current_round_status: COMPLETE / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: READY / CPV1-01.3_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
 current_writer: NONE
 
@@ -118,7 +118,11 @@ The owner explicitly superseded the temporary nine-round limit with continuous w
 
 `CPV1-01.3 — Consumer update flow` is `ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING`, **not COMPLETE**. PR #53 integrated the consumer-facing update state, package preflight and recovery preflight at runtime main `0ea9c1882c2c39b849799a98030a03c747d72ac4`. Exact-main certification passed after a CI-only throughput refactor at `decdfd01c9a92c90e74bd620c778b18bd72ab370` (run `35885057051`). Real signed distribution/update retaining the same extension identity and local archive, plus post-update/rollback evidence, remain unverified because a registered Chrome Web Store identity and publication credential are unavailable. See `receipts/CPV1-01.3-ENGINEERING.md`. No publication or production PASS is claimed.
 
-Under `EXECUTION_PROTOCOL.md` section 7.3's one-round bounded continuation, independent `CPV1-01.4 — Recovery/degraded UX` is COMPLETE at runtime main `a38d80e3799e733913b0edf94e46f4c59ee20fc0`; its writer is released. CPV1-01.5 must not start while CPV1-01.3's explicitly owned signed-update certification remains pending. The owner confirmed that no Chrome Web Store publisher identity or existing extension ID is available and the distribution channel needs a separate decision. Do not create an account, publish, substitute an unsigned installation, or mark the same-ID update gate PASS. The external certification remains an open obligation, not a deferred PASS.
+Independent `CPV1-01.4 — Recovery/degraded UX` is COMPLETE at runtime main `a38d80e3799e733913b0edf94e46f4c59ee20fc0`; its writer is released. CPV1-01.3's same-ID signed distribution/update certification remains `EXTERNAL_CERT_PENDING` because no Chrome Web Store publisher identity or existing extension ID is available. That obligation is recorded in `DEFERRED_FINAL_GATES.md` and remains mandatory for VS-01/full product certification; it is not a PASS.
+
+The owner has now authorized dependency-safe continuous engineering: external-only certification gates no longer impose the former one-round lead limit. `CPV1-01.5 — Backup protection for update/migration` is READY and may start immediately. After each engineering closure, the manager must continue into the next dependency-safe canonical round/slice while preserving all unresolved external gates. CPV1-01.6 may complete every automatable lifecycle/certification item, but any journey that genuinely requires the unavailable same-ID signed distribution remains pending. VS-02 and later engineering may proceed once their actual data/runtime prerequisites are satisfied even if VS-01 still carries that external certification debt.
+
+Do not create a store account, publish, substitute unsigned installation evidence for same-ID signed update proof, or mark the external gate PASS without real evidence.
 
 ## Slice queue
 
