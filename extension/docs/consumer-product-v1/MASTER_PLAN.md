@@ -41,6 +41,19 @@ or BLOCKED / FAIL.
 
 A round only reaches COMPLETE when its own evidence is done. A slice only reaches COMPLETE when all required rounds and VERIFICATION.md evidence classes are complete.
 
+### 0.4 Engineering frontier versus certification frontier
+
+External/current-live/distribution evidence may lag behind engineering without freezing the package.
+
+When a canonical round or slice is blocked only by an external gate recorded in `DEFERRED_FINAL_GATES.md`, later dependency-safe engineering in this fixed plan may proceed under whole-package authorization. This does not change ordering where a later implementation actually depends on an earlier migration, schema, safety, identity or product result.
+
+The manager must preserve two truthful states:
+
+- engineering completion/progress;
+- final certification completion.
+
+No later work may erase, relabel or implicitly satisfy an earlier deferred gate. Final slice/package completion still requires all applicable evidence.
+
 ---
 
 # VS-01 — Safe open, update and recovery
