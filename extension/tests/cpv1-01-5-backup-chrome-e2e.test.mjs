@@ -2,7 +2,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,mkdtemp,cp,rm,readFile,writeFile} from 'node:fs/promises';
+import {mkdtemp,cp,rm,readFile,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 const rpc=async(page,type,fields={})=>{
@@ -44,9 +44,12 @@ test('CPV1-01.5 current Backup is verified, keeps the current library safe, and 
  }});
  const workerPath=join(dir,'background/service-worker.js');
  await writeFile(workerPath,(await readFile(workerPath,'utf8'))+"\nimport {seedLongTerm} from '../tests/fixtures/long-term-v081.mjs';globalThis.cpv1015={store,seed:()=>seedLongTerm(store)};\n");
+ // CI's Xvfb display is isolated from the user's desktop. Chrome's extension
+ // download path is exercised there; local runs stay headless.
+ const headless=!(process.env.CI==='1'&&process.env.DISPLAY);
  let harness;
  try{
-  harness=await FakeChatGPT.start({headless:true,extensionPath:dir});
+  harness=await FakeChatGPT.start({headless,extensionPath:dir});
   let page=harness.archive;
   await page.locator('#consent-check').check();
   await page.locator('#enable-consent').click();
@@ -59,7 +62,10 @@ test('CPV1-01.5 current Backup is verified, keeps the current library safe, and 
   await rpc(page,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-backup-key-must-not-export'}});
   const download=page.waitForEvent('download',{timeout:90000});
   await page.locator('#backup-create').click();
-  const file=await download;
+  const file=await download.catch(async error=>{
+   const status=await page.locator('#backup-status').textContent().catch(()=>'(browser closed)');
+   throw new Error(`Backup did not download; status=${status}; ${error.message}`);
+  });
   await file.saveAs(output);
   await eventually(async()=>/已生成.*完整性校验/.test(await page.locator('#backup-status').textContent()));
   const content=await readFile(output,'utf8');
@@ -70,7 +76,7 @@ test('CPV1-01.5 current Backup is verified, keeps the current library safe, and 
   assert.deepEqual(await libraryDigest(harness),before);
   await harness.close();harness=undefined;
 
-  harness=await FakeChatGPT.start({headless:true,extensionPath:dir});
+  harness=await FakeChatGPT.start({headless,extensionPath:dir});
   page=harness.archive;
   await page.locator('#consent-check').check();
   await page.locator('#enable-consent').click();
