@@ -23,16 +23,22 @@
   let lastDiagnosticAt = 0;
   let transportFailures = 0;
 
-  function showRefreshAction() {
+  function showRefreshAction(reason = 'disconnected') {
     if (!globalThis.document?.documentElement) return;
     let banner = document.getElementById('paia-reconnect-notice');
-    if (banner) return;
+    if (banner) {
+      const copy = banner.querySelector?.('span') || banner.children?.[0];
+      if (reason === 'updated' && copy) copy.textContent = 'PAIA 已更新，此页仍是旧连接，当前页面不会继续归档。先保存正在输入的文字，再刷新此页。';
+      return;
+    }
     banner = document.createElement('div');
     banner.id = 'paia-reconnect-notice';
     banner.setAttribute('role', 'alert');
     banner.style.cssText = 'position:fixed;z-index:2147483647;right:16px;bottom:16px;max-width:320px;padding:14px 16px;border-radius:12px;background:#17202b;color:white;box-shadow:0 4px 20px #0005;font:14px/1.5 system-ui,sans-serif';
     const text = document.createElement('span');
-    text.textContent = 'PAIA 与此页面的连接已中断，当前页面不会继续归档。';
+    text.textContent = reason === 'updated'
+      ? 'PAIA 已更新，此页仍是旧连接，当前页面不会继续归档。先保存正在输入的文字，再刷新此页。'
+      : 'PAIA 与此页面的连接已中断，当前页面不会继续归档。先保存正在输入的文字，再刷新此页。';
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = '刷新此 ChatGPT 页面';
@@ -96,7 +102,7 @@
     if (code === 'PAUSED' || code === 'CONSENT_REQUIRED') adapter.stopWatching();
     if (code === 'STALE_CAPTURE') adapter.invalidate();
     await diagnostic(code, scanned);
-    if (code === 'CONTEXT_INVALIDATED') { stop(); showRefreshAction(); }
+    if (code === 'CONTEXT_INVALIDATED') { stop(); showRefreshAction('updated'); }
   }
 
   function schedule() {
@@ -121,7 +127,7 @@
       }
       transportFailures = 0;
       if (!contentVersion || status.runtimeVersion && status.runtimeVersion !== contentVersion) {
-        adapter.stopWatching(); stop(); showRefreshAction();
+        adapter.stopWatching(); stop(); showRefreshAction('updated');
         return;
       }
       clearRefreshAction();
