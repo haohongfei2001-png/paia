@@ -1,5 +1,6 @@
 import {readRevisitPolicy,inputRevisitExcluded} from './reader-state.js';
 import {ArchiveError} from './constants.js';
+import {validProvider} from './read-projection-keys.js';
 const views=['library','archive','excluded','settings','legacy','memory'];
 function validCursor(c){return c===null||Array.isArray(c)&&c.length<=8&&c.every(x=>typeof x==='string'&&x.length<600||typeof x==='number'&&Number.isFinite(x));}
 const prefixRange=p=>IDBKeyRange.bound(p,[...p,[]],false,true);
@@ -24,7 +25,7 @@ async function recentCapturedDocument(t){
 }
 export async function queryPage(t,control,{view='library',query='',limit=50,cursor=null,documentId=null,trackedBlockIds=[],sort=null,providerKey=null}={}){
  if(sort!==null&&!['asc','desc'].includes(sort))throw new ArchiveError('INVALID_REQUEST');
- if(providerKey!==null&&(typeof providerKey!=='string'||providerKey.length>80||!/^[a-z0-9][a-z0-9_-]*$/i.test(providerKey)))throw new ArchiveError('INVALID_REQUEST');
+ if(providerKey!==null&&!validProvider(providerKey))throw new ArchiveError('INVALID_REQUEST');
  if(!views.includes(view)||typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||!validCursor(cursor)||documentId!==null&&(typeof documentId!=='string'||documentId.length>200))throw new ArchiveError('INVALID_REQUEST');
  if(!Array.isArray(trackedBlockIds)||trackedBlockIds.length>1000||trackedBlockIds.some(id=>typeof id!=='string'||id.length>200))throw new ArchiveError('INVALID_REQUEST');
  const trash=await t.count('recordIndex','byTrash',1),hidden=await t.count('recordIndex','byHidden',1);

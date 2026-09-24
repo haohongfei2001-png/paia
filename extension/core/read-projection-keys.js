@@ -37,7 +37,8 @@ export const pagePrefix=(hash,generation)=>NAV_INDEX+'page:'+hash+':'+generation
 export const documentKey=id=>NAV_INDEX+'document:'+stringKey(id);
 export const memberId=(hash,id)=>memberPrefix(hash)+stringKey(id);
 export function identifier(value){if(typeof value!=='string'||!value.length||value.length>512)invalid();return unicode(value);}
-export function provider(value){if(typeof value!=='string'||!/^[A-Za-z0-9._:@-]{1,128}$/.test(value))invalid();return value;}
+export const validProvider=value=>typeof value==='string'&&/^[A-Za-z0-9._:@-]{1,128}$/.test(value);
+export function provider(value){if(!validProvider(value))invalid();return value;}
 export const rootScope=()=>['providers'];
 export const groupScope=key=>['groups',key];
 export const windowScope=(key,kind,ref=null)=>['windows',key,kind,ref?[ref.providerKey,ref.namespace,ref.projectId]:null];

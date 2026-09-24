@@ -6,14 +6,19 @@ import {ImportLedger} from '../core/import/ledger.js';
 import {ImportCoordinator} from '../core/import/coordinator.js';
 import {getOfficialExportAdapter} from '../core/import/registry.js';
 import {findInputPage} from '../ui/input-search.js';
+import {validProvider} from '../core/read-projection-keys.js';
 
 test('Archive source scope excludes other providers from the searchable/exportable page',async()=>{
  const originalRange=globalThis.IDBKeyRange;
  globalThis.IDBKeyRange={bound:()=>({})};
  try{
+ const extendedProvider='vendor.example:local@'+'x'.repeat(128-'vendor.example:local@'.length);
+ assert.equal(validProvider(extendedProvider),true);
+ assert.equal(validProvider('../../other'),false);
  const documents=[
   {key:'a',value:{chatKey:'chat-key',value:{id:'chat',platform:'chatgpt',userTitle:'Shared word'}}},
-  {key:'b',value:{chatKey:'other-key',value:{id:'other',platform:'claude',userTitle:'Shared word'}}}
+  {key:'b',value:{chatKey:'other-key',value:{id:'other',platform:'claude',userTitle:'Shared word'}}},
+  {key:'c',value:{chatKey:'extended-key',value:{id:'extended',platform:extendedProvider,userTitle:'Shared word'}}}
  ];
  const t={
   count:async(store)=>store==='records'?2:store==='blockIndex'?1:0,
@@ -26,6 +31,8 @@ test('Archive source scope excludes other providers from the searchable/exportab
  const page=await queryPage(t,{}, {view:'library',query:'Shared',providerKey:'chatgpt'});
  assert.deepEqual(page.documents.map(row=>row.id),['chat']);
  assert.equal(page.nextCursor,null);
+ const extendedPage=await queryPage(t,{}, {view:'library',query:'Shared',providerKey:extendedProvider});
+ assert.deepEqual(extendedPage.documents.map(row=>row.id),['extended']);
  }finally{globalThis.IDBKeyRange=originalRange;}
 });
 
@@ -47,5 +54,7 @@ test('Archive text search keeps ranked results inside the selected source',async
  assert.equal(all.items.length,2);
  assert.match(chatgpt.items[0].text,/ChatGPT/);
  assert.match(other.items[0].text,/Claude/);
+ const extendedProvider='vendor.example:local@'+'x'.repeat(128-'vendor.example:local@'.length);
+ assert.deepEqual((await s.searchInputs({query:'Shared',providerKey:extendedProvider})).items,[]);
  await assert.rejects(s.searchInputs({query:'Shared',providerKey:'../../other'}),{code:'INVALID_REQUEST'});
 });
