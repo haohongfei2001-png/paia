@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.js';
+import {backupSegmentRows} from '../ui/backup.js';
 
 const named=(name,blob)=>Object.assign(new Blob([blob]),{name});
 
@@ -63,4 +64,23 @@ test('footer is required before publishing a segmented backup',async()=>{
  });
  await writer.add({type:'header'});
  await assert.rejects(()=>writer.finish());
+});
+
+
+test('selected segment files are authenticated before any restore row is staged',async()=>{
+ const files=[],rows=[{type:'header'},{type:'item',value:{id:'one'}},{type:'footer'}];
+ const writer=new BackupSegmentWriter({
+  name:'PAIA-Backup-fixture',maxBytes:128,
+  onSegment:async({name,blob})=>files.push(named(name,blob)),
+ });
+ for(const row of rows)await writer.add(row);
+ const manifest=await writer.finish();
+ const manifestFile=named('PAIA-Backup-fixture.manifest.json',
+  new Blob([JSON.stringify(manifest)]));
+ const actual=[];
+ for await(const row of backupSegmentRows([manifestFile,...files].reverse()))actual.push(row);
+ assert.deepEqual(actual,rows);
+ const damaged=named(files[0].name,new Blob(['X'+(await files[0].text()).slice(1)]));
+ const iterator=backupSegmentRows([manifestFile,damaged,...files.slice(1)]);
+ await assert.rejects(()=>iterator.next());
 });
