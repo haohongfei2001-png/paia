@@ -9,7 +9,7 @@ export default async function* report(events) {
   const outcome=data.skip?'skipped':type==='test:pass'?'pass':'fail';
   totals[outcome]++;groups[category]??={pass:0,fail:0,skipped:0};groups[category][outcome]++;
   files[file]??={pass:0,fail:0,skipped:0};files[file][outcome]++;
-  if(outcome!=='pass')yield `${outcome.toUpperCase()} ${file}: ${data.name}\n${data.details?.error?.message||''}\n`;
+  if(outcome!=='pass')yield `${outcome.toUpperCase()} ${file}: ${data.name}\n${data.details?.error?.stack||data.details?.error?.message||''}\n`;
   else if(data.nesting===0)yield `PASS ${file}: ${data.name}\n`;
  }
  const result={total:totals.pass+totals.fail+totals.skipped,...totals,groups,files};
