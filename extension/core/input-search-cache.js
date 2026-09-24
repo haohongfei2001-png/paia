@@ -30,7 +30,22 @@ export async function buildInputSearchCache(repository,expectedGeneration){
 }
 
 export function lookupInputSearchCache(cache,{needle,cursor,limit,providerKey}){
- const phase=cursor?.phase||0,offset=cursor?.offset??-1,items=[];
+ // The first ranked page can choose its highest available rank in one pass.
+ // Scanning a large cache separately for absent exact/partial titles delays
+ // body hits and adds two worker round trips to every late-result search.
+ if(cursor===null){
+  const buckets=[[],[],[]];
+  for(const row of cache.rows){
+   if(providerKey&&row.providerKey!==providerKey)continue;
+   const rank=row.titleSearch===needle?0:row.titleSearch.includes(needle)?1:row.bodySearch.includes(needle)?2:-1;
+   if(rank>=0&&buckets[rank].length<limit)buckets[rank].push({...row,rank});
+  }
+  const phase=buckets.findIndex(items=>items.length);
+  if(phase<0)return {items:[],nextCursor:null};
+  const items=buckets[phase];
+  return {items,nextCursor:items.length===limit?{phase,offset:items.at(-1).sequence}:phase<2?{phase:phase+1,offset:null}:null};
+ }
+ const phase=cursor.phase,offset=cursor.offset??-1,items=[];
  let index=0;while(index<cache.rows.length&&cache.rows[index].sequence<=offset)index++;
  for(;index<cache.rows.length;index++){
   const row=cache.rows[index];if(providerKey&&row.providerKey!==providerKey)continue;
