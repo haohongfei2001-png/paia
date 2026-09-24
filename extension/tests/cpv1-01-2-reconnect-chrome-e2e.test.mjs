@@ -78,3 +78,50 @@ test('CPV1-01.2: a newly opened tab after a version update retains the same arch
     await rm(profile, { recursive: true, force: true });
   }
 });
+
+test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without duplicate records', { timeout: 120000 }, async () => {
+  const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-discard-'));
+  execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
+  let h;
+  try {
+    h = await FakeChatGPT.start({ extensionPath: release, headless: true });
+    await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
+    await h.archive.locator('#enable-consent').click();
+    await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
+    const restoredConversation = conversation('cpv1-discarded-tab');
+    const tab = await h.open(restoredConversation);
+    await h.ready(tab);
+    await eventually(async () => (await h.state()).records.length === 3);
+
+    for (const other of h.context.pages()) {
+      if (other !== h.archive && other !== tab) await other.close();
+    }
+    await h.archive.bringToFront();
+    const restored = await h.archive.evaluate(async () => {
+      const current = await chrome.tabs.getCurrent();
+      const tabs = await chrome.tabs.query({});
+      const other = tabs.filter((item) => item.id !== current.id);
+      if (other.length !== 1) throw new Error(`expected one other tab, got ${other.length}`);
+      await chrome.tabs.update(current.id, { active: true });
+      const discarded = await chrome.tabs.discard(other[0].id);
+      if (!discarded?.discarded) throw new Error('target tab was not discarded');
+      return chrome.tabs.update(discarded.id, { active: true });
+    });
+    assert.equal(restored?.active, true);
+    await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).status === 'complete', restored.id), 'discarded tab finishes loading');
+    assert.equal((await h.state()).records.length, 3, 'discard does not change stored records');
+
+    await eventually(async () => h.context.pages().some((page) => page.url().includes('/c/cpv1-discarded-tab')));
+    const resumedTab = h.context.pages().find((page) => page.url().includes('/c/cpv1-discarded-tab'));
+    await resumedTab.waitForLoadState('load');
+    await h.ready(resumedTab);
+    await eventually(async () => (await h.state()).records.length === 3);
+    assert.equal(await resumedTab.locator('#paia-reconnect-notice').count(), 0);
+    await eventually(async () => (await resumedTab.locator('#messages [data-message-id]').count()) === 3, 'restored conversation renders before new input');
+    await h.send(resumedTab, { id: 'cpv1-discarded-message-004', text: '恢复后的新消息' });
+    await eventually(async () => (await h.state()).records.length === 4, 'restored tab captures new content once');
+  } finally {
+    await h?.close();
+    await rm(release, { recursive: true, force: true });
+  }
+});

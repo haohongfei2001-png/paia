@@ -176,7 +176,7 @@ execution_start_main: `257e8f7cae4ced703727bcbe625505c5a1d332ca`
 
 writer_branch: `manager/cpv1-02-1-appshell-20260924`
 
-scope: one AppShell/navigation state owner for source, Project, Conversation, search, sort and anchor; production or gated replacement shell primitives; preserve domain services and safe migration bridge. No CPV1-02.2 Archive rebuild or later-slice scope is claimed here. VS-01 signed/current-live certification debts remain open.
+scope: VS-02 Batch A under the current `EXECUTION_PROTOCOL.md`: CPV1-02.1 AppShell/navigation state owner, CPV1-02.2 Archive root and CPV1-02.3 Project/Conversation Navigator. Numbered round outcomes remain separate checklists; this branch is the sole integration writer for the strongly related A1/A2 work. No CPV1-02.4 Reader or later-slice scope is claimed. VS-01 signed/current-live certification debts remain open.
 
 ## Current owner authorization and execution
 
