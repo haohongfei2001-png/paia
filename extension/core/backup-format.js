@@ -7,7 +7,7 @@ import {sourceStructureMetaAllowed,validateSourceStructureBackupRow} from './sou
 // PAIA Backup v1 is a domain interchange stream, not an IndexedDB store dump.
 // Indexes, diagnostics, credentials, import staging and runnable jobs are absent.
 export const BACKUP_VERSION=1, BACKUP_SCHEMA=5;
-export const BACKUP_LIMITS=Object.freeze({lineBytes:8*1024*1024,restoreBytes:64*1024*1024,restoreItems:100000,chunkItems:40});
+export const BACKUP_LIMITS=Object.freeze({lineBytes:8*1024*1024,restoreBytes:64*1024*1024,restoreItems:100000,segmentedExportBytes:512*1024*1024,segmentedExportItems:500000,chunkItems:40});
 const fields=text=>text.split(' ');
 export const BACKUP_SECTIONS=Object.freeze({
  sources:fields('id platform chatId chatUrl chatTitle sourceMessageId pageOrder originalText contentHash sourceKey dedupeKey sourceSentAt timeSource timeConfidence conversationOrder capturedAt importedAt importProvider importProfile importEvidence previousVersionId note editedText hidden deletedAt updatedAt timeCandidates attachmentPresence referencePresence'),
@@ -61,8 +61,8 @@ export function validateBackupItem(row){safeJSON(row);if(!plain(row)||row.type!=
 }
 export async function backupHash(previous,value){const data=new TextEncoder().encode(previous+'\n'+JSON.stringify(value)),digest=new Uint8Array(await crypto.subtle.digest('SHA-256',data));return [...digest].map(x=>x.toString(16).padStart(2,'0')).join('');}
 export class BackupValidator {
- constructor(){this.header=null;this.hash='';this.count=0;this.counts=Object.fromEntries(Object.keys(BACKUP_SECTIONS).map(k=>[k,0]));this.seen=new Set();this.complete=false;this.bytes=0;}
- async add(row){const size=new TextEncoder().encode(JSON.stringify(row)).length;this.bytes+=size;if(size>BACKUP_LIMITS.lineBytes||this.bytes>BACKUP_LIMITS.restoreBytes||this.count>BACKUP_LIMITS.restoreItems)backupError('BACKUP_TOO_LARGE');if(this.complete)backupError('BACKUP_INVALID');
+ constructor({maxBytes=BACKUP_LIMITS.restoreBytes,maxItems=BACKUP_LIMITS.restoreItems}={}){if(!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>BACKUP_LIMITS.segmentedExportBytes||!Number.isSafeInteger(maxItems)||maxItems<1||maxItems>BACKUP_LIMITS.segmentedExportItems)backupError('BACKUP_INVALID');this.maxBytes=maxBytes;this.maxItems=maxItems;this.header=null;this.hash='';this.count=0;this.counts=Object.fromEntries(Object.keys(BACKUP_SECTIONS).map(k=>[k,0]));this.seen=new Set();this.complete=false;this.bytes=0;}
+ async add(row){const size=new TextEncoder().encode(JSON.stringify(row)).length;this.bytes+=size;if(size>BACKUP_LIMITS.lineBytes||this.bytes>this.maxBytes||this.count>this.maxItems)backupError('BACKUP_TOO_LARGE');if(this.complete)backupError('BACKUP_INVALID');
   if(!this.header){this.header=validateBackupHeader(row);this.hash=await backupHash('',row);return;}
   if(row.type==='footer'){safeJSON(row);if(row.itemCount!==this.count||JSON.stringify(row.sectionCounts)!==JSON.stringify(this.counts)||row.integrity?.algorithm!=='SHA-256-chain'||row.integrity.root!==this.hash)backupError('BACKUP_INTEGRITY_FAILED');this.complete=true;return;}
   validateBackupItem(row);const key=row.section+':'+row.value.id;if(this.seen.has(key))backupError('BACKUP_INVALID');this.seen.add(key);this.count++;this.counts[row.section]++;this.hash=await backupHash(this.hash,row);
