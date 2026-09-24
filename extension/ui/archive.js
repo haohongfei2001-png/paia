@@ -131,8 +131,8 @@ async function leave(preserve=false){if(!topicActions.leave())return false;if(vi
 let navigationIntent=0,inputSearchInProgress=false,releaseStartupNavigation;
 const startupNavigation=new Promise(resolve=>{releaseStartupNavigation=resolve;});
 async function navigate(next,id=null,contextId=null,options={}){ navigationInFlight++;try{if(!options.restore)await startupNavigation;
- const intent=++navigationIntent;clearTimeout(inputSearchTimer);const origin=view;
- if(!await leave()||intent!==navigationIntent)return false;
+ const navTrace={start:performance.now()};globalThis.__paiaNavTrace=navTrace;const intent=++navigationIntent;clearTimeout(inputSearchTimer);const origin=view;
+ if(!await leave()||intent!==navigationIntent)return false;navTrace.afterLeave=performance.now();
  if(origin==='revisit')await revisitPage.leave({toReader:!!id||next==='thoughts'});
  else if(returnTo==='revisit'&&next!=='revisit'&&!id)await revisitPage.leave();
  if(intent!==navigationIntent)return false;inputSortSnapshot=null;readingSnapshot=null;let pendingAnchor=options.anchor||null;
@@ -144,11 +144,11 @@ async function navigate(next,id=null,contextId=null,options={}){ navigationInFli
  returnTo=options.returnTo||(id&&origin==='revisit'?'revisit':id?origin:null);view=next;documentId=id;menuId=null;
  if(next==='library'&&id&&options.searchQuery!==undefined){routeStates.set('library:',{query:options.searchQuery,cursor:null,pages:[],scroll:0});queries.set('library',options.searchQuery);}
  const saved=routeStates.get(next+':'+(id||''));pageCursor=!id?saved?.cursor??null:null;pageHistory=!id?saved?.pages||[]:[];query=options.searchQuery??saved?.query??queries.get(view)??'';$('search').value=query;
- notify('');$('context-menu').hidden=true;const loaded=beginLoading(document.querySelector('.workspace'),'正在读取本机内容…');try{const openedThought=view==='thoughts'&&options.topicId!==undefined;if(openedThought)await thoughts.open(options.topicId);if(!openedThought)await refresh();if(view==='revisit')await revisitPage.show();}finally{loaded();}
+ notify('');$('context-menu').hidden=true;const loaded=beginLoading(document.querySelector('.workspace'),'正在读取本机内容…');try{const openedThought=view==='thoughts'&&options.topicId!==undefined;if(openedThought)await thoughts.open(options.topicId);if(!openedThought)await refresh();navTrace.afterRefresh=performance.now();if(view==='revisit')await revisitPage.show();}finally{loaded();}
  if(intent!==navigationIntent)return false;
  if(id&&contextInputId){const field=[...$('document-body').querySelectorAll('[data-edit-id]')].find(el=>el.dataset.editId===contextInputId);if(field){reader.expand(field);field.scrollIntoView({block:'center'});}}
  else window.scrollTo(0,saved?.scroll||0);
- if(pendingAnchor)await reader.restore(pendingAnchor);if(intent!==navigationIntent)return false;if(options.searchQuery!==undefined)highlightReading($('document-body'),options.searchQuery);reader.schedule();routes.commit();return true;
+ if(pendingAnchor)await reader.restore(pendingAnchor);if(intent!==navigationIntent)return false;if(options.searchQuery!==undefined)highlightReading($('document-body'),options.searchQuery);reader.schedule();routes.commit();navTrace.end=performance.now();return true;
  }finally{navigationInFlight--;}
 }
 function showCollection(){if(state.searchResults){smartFilter.renderResults(state.searchResults);return;}$('empty-list').textContent=view==='library'?'还没有捕获到输入。打开普通 ChatGPT 聊天，或补全历史输入。':view==='excluded'?'没有需要确认或恢复的输入。':'还没有保存原始来源。';const docs=state.documents||[],list=$('document-list'),signature=JSON.stringify([view,docs.map(d=>[d.id,d.userTitle,d.originalConversationTitle,d.sourceConversationId,d.firstSourceSentAt,d.lastSourceSentAt,d.messageCount,d.unknownCount])]),stable=list.dataset.collectionSignature===signature&&!list.querySelector('.search-input')&&list.querySelectorAll('.conversation-document').length===docs.length;$('result-count').textContent=`${docs.length} 个聊天窗口`;if(!stable){list.replaceChildren();list.dataset.collectionSignature=signature;for(const d of docs){const b=element('button','conversation-document');b.dataset.documentId=d.id;b.append(element('strong','',d.userTitle||d.originalConversationTitle||'独立整理文档'),element('span','summary',view==='archive'?'原始来源 · 只读':d.sourceConversationId?'连续输入文档':'独立整理文档'),element('small','',`${d.firstSourceSentAt?day(d.firstSourceSentAt)+(d.lastSourceSentAt!==d.firstSourceSentAt?' — '+day(d.lastSourceSentAt):''):tc('发送时间未知')} · ${d.messageCount} 条${view==='archive'?'原始':'收录'}输入${!d.messageCount?' · 独立整理内容':''}${d.unknownCount&&d.firstSourceSentAt?' · 部分时间待补全':''}`));b.addEventListener('click',()=>{positions.set(view,window.scrollY);void navigate(view,d.id);});list.append(b);}}$('empty-list').hidden=docs.length>0;$('empty-sync').hidden=docs.length>0||!['library','archive'].includes(view);}

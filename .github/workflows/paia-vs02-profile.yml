@@ -1,0 +1,30 @@
+name: PAIA VS-02 Profile
+on:
+  pull_request:
+    types: [synchronize]
+    paths:
+      - 'extension/ui/archive.js'
+      - 'extension/tests/cpv1-02-6-scale-benchmark.mjs'
+permissions:
+  contents: read
+jobs:
+  profile:
+    if: github.event.pull_request.number == 73
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Profile 100k Reader navigation
+        env:
+          CI: '1'
+          PLAYWRIGHT_MODULE: playwright
+          PAIA_SCALE_SIZES: '100000'
+        run: node tests/cpv1-02-6-scale-benchmark.mjs
