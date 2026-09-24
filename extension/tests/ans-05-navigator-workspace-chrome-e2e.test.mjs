@@ -38,7 +38,7 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   phase='bounded Navigator paging';
   await seedExtraWindows(p,45);await refreshNavigator(p);
   await eventually(()=>p.locator('#archive-navigator').isVisible(),'Navigator visible',30000);
-  assert.equal(await p.locator('#uir-archive-assist').isVisible(),false,'Archive root keeps Navigator without a permanent side dashboard');
+  assert.equal(await p.locator('#uir-archive-assist,#uir-archive-frame').count(),0,'Archive root keeps Navigator without a permanent side dashboard');
   assert.equal(await p.locator('#revisit-open').isVisible(),true,'Revisit remains available from the root header');
   const alpha=await waitGroup(p,'ANS05 Project Alpha'),unknown=await waitGroup(p,'归属未知'),unassigned=await waitGroup(p,'未归属 Project');
   assert.equal(await alpha.getAttribute('aria-expanded'),'false','Project starts collapsed');

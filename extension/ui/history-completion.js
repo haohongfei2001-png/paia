@@ -51,7 +51,7 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
   $('history-dialog').showModal();paint(controller.summary);await tasks();
  }
  async function close(){await controller.pause();port?.disconnect();port=null;$('history-file').value='';$('history-file-consent').checked=false;$('history-dialog').close();}
- for(const id of ['sync-history','empty-sync','settings-history'])$(id).addEventListener('click',()=>void open());
+ for(const id of ['empty-sync','settings-history'])$(id).addEventListener('click',()=>void open());
  $('history-close').addEventListener('click',()=>void close());$('history-dialog').addEventListener('cancel',e=>{e.preventDefault();void close();});
  $('history-file-consent').addEventListener('change',()=>paint(controller.summary));
  $('history-choose').addEventListener('click',e=>{if(e.isTrusted&&$('history-file-consent').checked&&!processing)$('history-file').click();});

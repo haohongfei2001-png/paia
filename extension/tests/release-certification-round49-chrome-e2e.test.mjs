@@ -13,11 +13,11 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   await h.open({id:'round49-loop',title:'Round 4.9 Core Loop',base:1609459200,messages:[{id:'round49-one',text}]});
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText===text),'core-loop Input is captured');
 
-  await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'Archive core-loop home is visible');
+  await eventually(async()=>await p.locator('#archive-root-main').isVisible(),'Archive core-loop home is visible');
   assert.equal(await p.locator('#primary-nav [data-view="memory"]').count(),1,'For AI remains a primary root under DELTA-01');
   assert.match((await p.locator('#primary-nav [data-view="memory"]').textContent()).trim(),/用于 AI|For AI/i);
   assert.equal(await p.locator('.sidebar-bottom [data-view="memory"]').count(),0,'For AI must not have a duplicate secondary navigation entry');
-  const recent=p.locator('#core-loop-continue');
+  const recent=p.locator('#archive-root-recent');
   await eventually(async()=>!(await recent.isDisabled())&&(await recent.textContent()).includes('Round 4.9 Core Loop'),'recently captured document becomes the Archive home target');
   assert.match(await recent.textContent(),/最近收录|Recently saved/i);
 
@@ -42,7 +42,7 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   // Return to the Archive home and prove that page-scoped retrieval and Revisit remain
   // first-class tasks; the retained cross-surface coordinator is only an internal material-selection task.
   await p.locator('#primary-nav [data-view="library"]').click();
-  await eventually(async()=>await p.locator('#core-loop-home').isVisible(),'return to Archive home');
+  await eventually(async()=>await p.locator('#archive-root-main').isVisible(),'return to Archive home');
   await p.locator('.conversation-document').first().evaluate(el=>{globalThis.__round49StableDocument=el;});const worker=h.context.serviceWorkers()[0];await worker.evaluate(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'CAPTURE'}).catch(()=>{});});await pause(250);assert.equal(await p.locator('.conversation-document').first().evaluate(el=>el===globalThis.__round49StableDocument),true,'same Archive data keeps the same document action node');
   assert.equal(await p.locator('#universal-search-open').isVisible(),false,'normal Archive home exposes no global Search launcher');
   assert.equal(await p.locator('#archive-select-materials').count(),0,'Archive root duplicate selection launcher stays removed');
@@ -55,9 +55,9 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   await eventually(async()=>await p.locator('#universal-search-dialog .universal-hit').count()>0,'Find returns the captured Input');
   assert.match((await p.locator('#universal-search-dialog .universal-context').first().textContent()).trim(),/已在本次材料中|Already selected/i);
   await p.locator('.universal-close').click();
-  await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#core-loop-home').isVisible(),'return from material selection to Archive');
+  await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#archive-root-main').isVisible(),'return from material selection to Archive');
 
-  await p.locator('#core-loop-return').click();
+  await p.locator('#revisit-open').click();
   await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'home Return opens existing Revisit service');
   assert.match(await p.locator('.revisit-intro').textContent(),/不表示|does not mark/i);
   await p.locator('.revisit-close').click();

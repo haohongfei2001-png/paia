@@ -70,7 +70,7 @@ export class ArchiveNavigator{
  place(){
   if(!this.active)return;
   if(this.reader){const panel=$('document-panel'),page=$('document-page');if(panel&&page&&this.host.parentElement!==panel)panel.insertBefore(this.host,page);}
-  else{const main=$('uir-archive-main')||$('collection-panel'),search=$('search');if(main&&this.host.parentElement!==main){if(search?.parentElement===main)search.after(this.host);else main.prepend(this.host);}}
+  else{const main=$('archive-root-main')||$('collection-panel'),search=$('search');if(main&&this.host.parentElement!==main){if(search?.parentElement===main)search.after(this.host);else main.prepend(this.host);}}
  }
  layout(){
   if(!this.active)return;

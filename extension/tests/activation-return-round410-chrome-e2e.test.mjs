@@ -6,7 +6,11 @@ const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.run
 async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
 
 async function homeState(page,state){
- await eventually(async()=>await page.locator('#core-loop-home').isVisible()&&(await page.locator('#core-loop-home').getAttribute('data-state'))===state,`Archive home reaches ${state}`);
+ await eventually(async()=>{
+  if(!await page.locator('#archive-root-main').isVisible())return false;
+  const recent=await page.locator('#archive-root-recent').isVisible(),returnState=await page.locator('#revisit-open').getAttribute('data-return-state');
+  return state==='activation-empty'?!recent&&returnState==='quiet':recent&&returnState===(state==='return-new'?'new':'quiet');
+ },`Archive current root reaches ${state}`);
 }
 
 test('Round 4.10 current release: activation explains the product and return state promotes real local changes',{timeout:120000},async()=>{
@@ -18,10 +22,10 @@ test('Round 4.10 current release: activation explains the product and return sta
   // Empty activation: explain the product before inventing any onboarding modal
   // or durable tutorial state. UX-R1 may render the shell in the system locale.
   await homeState(p,'activation-empty');
-  assert.match(await p.locator('#core-loop-title').textContent(),/第一条输入|first input/i);
-  assert.match(await p.locator('#core-loop-copy').textContent(),/本机|local/i);
-  assert.equal(await p.locator('#core-loop-continue').isDisabled(),true);
-  assert.equal(await p.locator('#core-loop-home .core-loop-card-primary').count(),0,'empty activation must not fabricate a primary action');
+  assert.match(await p.locator('#empty-list').textContent(),/还没有捕获到输入|no captured inputs/i);
+  assert.match(await p.locator('#consent-panel').textContent(),/本机|local/i);
+  assert.equal(await p.locator('#archive-root-recent').isVisible(),false);
+  assert.equal(await p.locator('#core-loop-home,#core-loop-return').count(),0,'old Archive home cannot fabricate a second action owner');
 
   // First captured Input is the activation event. PAIA must state clearly that
   // the archive contains the user's inputs, not AI answers.
@@ -30,13 +34,13 @@ test('Round 4.10 current release: activation explains the product and return sta
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText.includes('ROUND410_ACTIVATION')),'first activation Input is captured');
   await p.bringToFront();
   await homeState(p,'return-new');
-  assert.match(await p.locator('#core-loop-title').textContent(),/档案|Archive/i);
-  assert.match(await p.locator('#core-loop-copy').textContent(),/上次停下|where you stopped/i);
-  assert.equal(await p.locator('#core-loop-continue').isDisabled(),false);
-  assert.equal(await p.locator('#core-loop-continue').evaluate(el=>el.classList.contains('core-loop-card-primary')),true,'continue reading is primary after first capture');
+  assert.match(await p.locator('#archive-root-recent').textContent(),/最近收录|Recently saved/i);
+  assert.match(await p.locator('#archive-root-recent').textContent(),/Round 4.10 First Input/);
+  assert.equal(await p.locator('#archive-root-recent').isVisible(),true);
+  assert.equal(await p.locator('#archive-root-recent').count(),1,'recent capture has one current-root action');
 
   // UX-R2 fixes the visit window and advances it on exit. Visiting creates no read position.
-  await p.locator('#core-loop-return').click();
+  await p.locator('#revisit-open').click();
   await eventually(()=>p.locator('#revisit-panel').isVisible(),'Revisit opens as its own page');
   assert.match(await p.locator('.revisit-intro').textContent(),/不表示|does not mark/i);
   assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[]);
@@ -59,21 +63,21 @@ test('Round 4.10 current release: activation explains the product and return sta
   // async paint cannot be mistaken for the settled return presentation.
   await p.bringToFront();
   await homeState(p,'return-new');
-  assert.match(await p.locator('#core-loop-title').textContent(),/档案|Archive/i);
-  assert.doesNotMatch(await p.locator('#core-loop-return').textContent(),/\d+ 条|\d+ new input/i,'no unread debt count');
+  assert.match(await p.locator('#archive-root-recent').textContent(),/最近收录|Recently saved/i);
+  assert.doesNotMatch(await p.locator('#revisit-open').getAttribute('aria-label'),/\d+ 条|\d+ new input/i,'no unread debt count');
 
   // A focus refresh must not briefly regress an established return state back
   // through activation-ready while the async Revisit read catches up.
   const focusTransitions=await p.evaluate(()=>new Promise(resolve=>{
-   const home=document.getElementById('core-loop-home'),seen=[];
-   const observer=new MutationObserver(()=>seen.push(home?.dataset.state||''));
-   observer.observe(home,{attributes:true,attributeFilter:['data-state']});
+   const home=document.getElementById('revisit-open'),seen=[];
+   const observer=new MutationObserver(()=>seen.push(home?.dataset.returnState||''));
+   observer.observe(home,{attributes:true,attributeFilter:['data-return-state']});
    window.dispatchEvent(new Event('focus'));
    setTimeout(()=>{observer.disconnect();resolve(seen);},150);
   }));
-  assert.equal(focusTransitions.includes('activation-ready'),false,JSON.stringify(focusTransitions));
+  assert.equal(focusTransitions.includes('quiet'),false,JSON.stringify(focusTransitions));
 
-  await p.locator('#core-loop-return').click();
+  await p.locator('#revisit-open').click();
   await eventually(async()=>await p.locator('#revisit-panel').isVisible()&&(await p.locator('#revisit-panel').textContent()).includes('ROUND410_RETURN'),'promoted return action opens the existing local Revisit result');
   assert.equal((await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count,1,'opening fixes a window without claiming read completion');
   assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[],'visiting cannot fabricate a reading position');

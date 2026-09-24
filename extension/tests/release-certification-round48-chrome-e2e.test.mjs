@@ -33,7 +33,7 @@ test('Round 4.8 current release: internal material Search -> Reader / Context an
   assert.equal((await rpc(p,'PAIA_MEMORY_STATUS')).config.includeUnorganizedInputs,false);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);
 
-  p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#collection-panel').isVisible());await p.locator('#search').fill('');await eventually(()=>p.locator('#core-loop-home').isVisible());
+  p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#collection-panel').isVisible());await p.locator('#search').fill('');await eventually(()=>p.locator('#archive-root-main').isVisible());
   // UX-R2 creates a fixed visit window; a later captured Input becomes the
   // only new-item signal and can navigate back to the canonical reader.
   await p.locator('#revisit-open').click();await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'Revisit opens');

@@ -14,17 +14,17 @@ async function consent(page){
 }
 
 async function openArchiveMenu(page){
-  const trigger=page.locator('#document-menu');
+  const trigger=page.locator('#archive-root-overflow summary');
   await trigger.waitFor({state:'visible'});
   await trigger.click();
-  await eventually(()=>page.locator('#context-menu').isVisible(),'Archive action menu opens');
+  await eventually(()=>page.locator('#archive-root-overflow').evaluate(el=>el.open),'Archive action menu opens');
   return trigger;
 }
 
 async function download(page,format){
   await openArchiveMenu(page);
   const pending=page.waitForEvent('download');
-  await page.locator(`#archive-action-export-${format}`).click();
+  await page.locator(`#archive-root-export-${format}`).click();
   const item=await pending;
   return readFile(await item.path(),'utf8');
 }
@@ -47,24 +47,28 @@ test('UIS-01 quiets Archive root and consolidates history/export actions without
 
     assert.equal(await page.locator('.core-loop-intro').isVisible(),false,'redundant Archive intro is hidden');
     assert.equal(await page.locator('#core-loop-browse-title').count(),0,'Browse by source heading is removed');
-    assert.equal(await page.locator('#sync-history').isVisible(),false,'standalone history button is not visible');
-    assert.equal(await page.locator('#export-menu').isVisible(),false,'legacy export details are not visible');
-    assert.equal(await page.locator('#document-menu:visible').count(),1,'Archive root reuses one visible overflow action control');
-    assert.equal(await page.locator('#core-loop-continue').count(),1,'recent/continue capability remains mounted');
-    assert.equal(await page.locator('#core-loop-return').count(),1,'Revisit capability remains mounted');
+    assert.equal(await page.locator('#sync-history').count(),0,'standalone history button is retired');
+    assert.equal(await page.locator('#export-menu').count(),0,'legacy export details are retired');
+    assert.equal(await page.locator('#archive-root-overflow summary:visible').count(),1,'Archive root has one visible overflow action control');assert.equal(await page.locator('#document-menu').isVisible(),false,'Reader document menu is not a root action');
+    assert.equal(await page.locator('#archive-root-continue').count(),1,'saved reading capability remains mounted');
+    assert.equal(await page.locator('#revisit-open').isVisible(),true,'Revisit capability remains visible');
 
     const trigger=await openArchiveMenu(page);
     assert.equal(await trigger.getAttribute('aria-haspopup'),'menu');
-    assert.equal(await trigger.getAttribute('aria-expanded'),'true');
-    await page.locator('#archive-action-history').waitFor({state:'visible'});
-    await page.locator('#archive-action-export-json').waitFor({state:'visible'});
-    await page.locator('#archive-action-export-markdown').waitFor({state:'visible'});
+    await eventually(async()=>await trigger.getAttribute('aria-expanded')==='true','overflow announces expanded state');
+    await page.locator('#archive-root-history').waitFor({state:'visible'});
+    await page.locator('#archive-root-export-json').waitFor({state:'visible'});
+    await page.locator('#archive-root-export-markdown').waitFor({state:'visible'});
+    await trigger.focus();await page.keyboard.press('ArrowDown');
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-root-history','arrow navigation enters the first menu action');
+    await page.keyboard.press('End');
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-root-export-markdown','keyboard can reach the final export action');
     await page.keyboard.press('Escape');
-    await eventually(async()=>!(await page.locator('#context-menu').isVisible()),'Escape closes Archive action menu');
-    assert.equal(await page.evaluate(()=>document.activeElement?.id),'document-menu','Escape returns focus to Archive overflow control');
+    await eventually(async()=>!(await page.locator('#archive-root-overflow').evaluate(el=>el.open)),'Escape closes Archive action menu');
+    assert.equal(await page.evaluate(()=>document.activeElement?.closest('details')?.id),'archive-root-overflow','Escape returns focus to Archive overflow control');
 
     await openArchiveMenu(page);
-    await page.locator('#archive-action-history').click();
+    await page.locator('#archive-root-history').click();
     await eventually(()=>page.locator('#history-dialog').evaluate(el=>el.open),'history completion remains reachable from overflow menu');
     await page.locator('#history-close').click();
     await eventually(()=>page.locator('#history-dialog').isHidden(),'history completion closes normally');
@@ -73,7 +77,7 @@ test('UIS-01 quiets Archive root and consolidates history/export actions without
     await eventually(()=>page.locator('#settings-panel').isVisible(),'Settings opens');
     await page.locator('[data-settings-group="data"]').click();
     await eventually(()=>page.locator('#r6-source-records').isVisible(),'Data & devices shows Source Records entry');
-    assert.equal(await page.locator('#document-menu').isVisible(),false,'Archive overflow is not exposed in Settings');
+    assert.equal(await page.locator('#archive-root-overflow').isVisible(),false,'Archive overflow is not exposed in Settings');
     assert.equal(await page.locator('#r6-complete-export').isVisible(),true,'complete export remains a separate Settings surface');
     assert.match(await page.locator('#r6-complete-export').textContent(),/完整导出/,'complete export keeps its distinct identity');
     assert.match(await page.locator('#r6-source-records').textContent(),/不是完整导出/,'Source Records explains that current-scope export is not complete export');

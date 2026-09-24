@@ -40,16 +40,16 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.lang)==='zh-CN','explicit zh-CN shell preference applies');
   const chat={id:'ux-r1-capture',title:'UX-R1 最近收录',base:1609459200,messages:[{id:'ux-r1-message',text}]};
   await h.open(chat);await eventually(async()=>(await h.state()).records.some(row=>row.originalText===text),'real synthetic capture reaches Source');
-  await p.bringToFront();await eventually(()=>p.locator('#core-loop-home').isVisible(),'Archive home is visible');
+  await p.bringToFront();await eventually(()=>p.locator('#archive-root-main').isVisible(),'current Archive root is visible');
   assert.deepEqual(await p.locator('#primary-nav button').allTextContents(),['档案','思想库','用于 AI']);
   assert.equal((await p.locator('.sidebar-bottom [data-view="settings"]').textContent()).trim(),'设置');
   assert.equal((await p.locator('#ux-local-state').textContent()).trim(),'本机保存');
   assert.equal(await p.evaluate(()=>location.hash+location.search),'','UX-R1 history must not invent hash/query routes');
   const recent=await rpc(p,'GET_PAGE',{page:{view:'library',limit:1}});assert.equal(recent.recentCapturedDocument?.id!==undefined,true);assert.equal(recent.recentCapturedDocument?.originalConversationTitle,'UX-R1 最近收录');
-  const recentButton=p.locator('#core-loop-continue');await eventually(async()=>!(await recentButton.isDisabled())&&(await recentButton.textContent()).includes('UX-R1 最近收录'),'recent capture projection reaches home');
+  const recentButton=p.locator('#archive-root-recent');await eventually(async()=>!(await recentButton.isDisabled())&&(await recentButton.textContent()).includes('UX-R1 最近收录'),'recent capture projection reaches current Archive root');
   assert.match(await recentButton.textContent(),/最近收录/);await recentButton.click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('UXR1_CAPTURE'),'recently captured opens canonical Reader');
-  await p.locator('#back').click();await eventually(()=>p.locator('#core-loop-home').isVisible(),'Reader returns to Archive home');
+  await p.locator('#back').click();await eventually(()=>p.locator('#archive-root-main').isVisible(),'Reader returns to Archive home');
 
   await p.locator('#primary-nav [data-view="thoughts"]').click();await eventually(()=>p.locator('#thought-panel').isVisible(),'Thought Library remains reachable');
   await p.locator('.sidebar-bottom [data-view="settings"]').click();await eventually(()=>p.locator('#settings-panel').isVisible(),'Settings opens');
@@ -60,7 +60,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   await p.evaluate(()=>history.back());await eventually(()=>p.locator('#thought-panel').isVisible(),'browser Back restores the previous root');
   await p.evaluate(()=>history.forward());await eventually(()=>p.locator('#memory-panel').isVisible(),'browser Forward restores the later root');
   assert.equal(await p.evaluate(()=>location.hash+location.search),'','Back/Forward keeps the verified archive URL unchanged');
-  await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#core-loop-home').isVisible());
+  await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#archive-root-main').isVisible());
 
   assert.equal(await p.locator('#universal-search-open').isVisible(),false,'normal shell exposes no global Search launcher');await p.keyboard.press('Control+k');await eventually(async()=>await p.locator('#search').evaluate(el=>document.activeElement===el),'Ctrl/Cmd+K focuses the Archive surface search');assert.equal(await p.locator('#universal-search-dialog').isVisible(),false,'Archive shortcut does not open the internal material-search shell');
   const skip=p.locator('#ux-skip-main');await skip.focus();assert.equal(await skip.isVisible(),true,'skip link is keyboard reachable');
@@ -85,9 +85,9 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
    const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(overflow<=2,`root must reflow at ${width}px; overflow=${overflow}`);
   }
   const cdp=await p.context().newCDPSession(p);await p.setViewportSize({width:640,height:900});await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
-  await p.screenshot({path:'work/ux-r1/archive-200pct-light.png',fullPage:true});assert.equal(await p.locator('#core-loop-continue').isVisible(),true,'200% page scale keeps primary Archive action reachable');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
+  await p.screenshot({path:'work/ux-r1/archive-200pct-light.png',fullPage:true});assert.equal(await p.locator('#archive-root-recent').isVisible(),true,'200% page scale keeps primary Archive action reachable');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
   await p.setViewportSize({width:390,height:844});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(()=>p.locator('#primary-nav').isVisible(),'mobile root navigation visible');
-  await p.locator('#core-loop-continue').click();await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#primary-nav').isVisible(),false,'Reader removes bottom root navigation on mobile');
+  await p.locator('#archive-root-recent').click();await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#primary-nav').isVisible(),false,'Reader removes bottom root navigation on mobile');
   await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),true);
   await assertNoNetwork(h);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}

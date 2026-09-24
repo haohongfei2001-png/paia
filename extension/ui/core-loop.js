@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const FONT_PX={small:16,standard:17,large:19,xlarge:21};
 const WIDTH_PX={narrow:640,standard:680,wide:720};
-let uxPreferences=normalizeUXPreferences(),settingsReturn='library',recentTarget=null,revisitToken=0,lastRevisitKey='',preferenceBusy=false;
+let uxPreferences=normalizeUXPreferences(),settingsReturn='library',recentTarget=null,archiveActionToken=0,preferenceBusy=false;
 const archiveOrderSettings=new ArchiveOrderSettings();
 
 function node(tag,className='',text=''){const el=document.createElement(tag);if(className)el.className=className;if(text)el.textContent=text;return el;}
@@ -14,7 +14,6 @@ function button(text,className=''){const el=node('button',className,text);el.typ
 function noteCoreLoop(action){void request('PAIA_CORE_LOOP_ACTION',{action}).catch(()=>{});}
 async function waitFor(read,{attempts=100,delay=50}={}){for(let i=0;i<attempts;i++){const value=read();if(value)return value;await sleep(delay);}return null;}
 function isArchiveHome(){const nav=document.querySelector('#primary-nav [data-view="library"]');return nav?.getAttribute('aria-current')==='page'&&!$('collection-panel')?.hidden&&!String($('search')?.value||'').trim();}
-function hasArchiveDocuments(){return !!$('document-list')?.querySelector('.conversation-document');}
 function installStyles(){if(document.querySelector('link[data-core-loop]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=chrome.runtime.getURL('ui/core-loop.css');link.dataset.coreLoop='true';document.head.append(link);}
 function language(){return resolveLanguage(uxPreferences.language,navigator.language);}
 function copy(zh,en){return language()==='zh-CN'?zh:en;}
@@ -94,40 +93,38 @@ function setupSettingsShell(){
  syncPreferenceControls();
 }
 
-function setPrimaryAction(id){const home=$('core-loop-home');if(!home)return;for(const item of home.querySelectorAll('.core-loop-card'))item.classList.toggle('core-loop-card-primary',!!id&&item.id===id);}
-function setHomeState(state,{eyebrow,title,copy:body,primary=null}={}){const home=$('core-loop-home');if(!home)return;home.dataset.state=state;if(eyebrow)$('core-loop-eyebrow').textContent=eyebrow;if(title)$('core-loop-title').textContent=title;if(body)$('core-loop-copy').textContent=body;setPrimaryAction(primary);}
-function setActivationEmpty(){setHomeState('activation-empty',{eyebrow:copy('第一次使用','First use'),title:copy('你的表达会留在这里。第一条输入会从这里开始','Your expressions will stay here. Your first input starts here.'),copy:copy('同意本机保存后，PAIA 会收录已支持 AI 页面中你已经发送的文字；也可以导入以前的历史。','After local-save consent, PAIA collects text you already sent on supported AI pages; you can also import earlier history.')});}
-function setActivationReady(){setHomeState('activation-ready',{eyebrow:copy('最近收录','Recently saved'),title:copy('这里保存的是你给 AI 的输入','This keeps what you sent to AI'),copy:copy('不是 AI 的回答。最近收录只表示保存顺序；表达时间仍按来源事实显示。','Not AI replies. Recently saved reflects capture order; expression time still comes from source evidence.'),primary:'core-loop-continue'});}
-
-
-async function openDocumentById(id){if(!id)return false;document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'library',documentId:id}}));return true;}
-function createHome(){
- const panel=$('collection-panel'),search=$('search');if(!panel||!search||$('core-loop-home'))return null;
- const home=node('section','core-loop-home');home.id='core-loop-home';home.dataset.state='loading';const intro=node('div','core-loop-intro'),eyebrow=node('p','core-loop-eyebrow',copy('档案','Archive')),title=node('h2','',copy('正在读取本机档案…','Loading your local archive…')),body=node('p','core-loop-copy','');eyebrow.id='core-loop-eyebrow';title.id='core-loop-title';body.id='core-loop-copy';intro.append(eyebrow,title,body);
- const recent=button('','core-loop-card core-loop-recent');recent.id='core-loop-continue';recent.append(node('span','core-loop-card-label',copy('最近收录','Recently saved')),node('strong','',copy('还没有收录内容','Nothing saved yet')),node('small','',copy('同意本机保存或导入历史后，这里会指向最近收录的真实内容。','After local-save consent or history import, this points to real recently saved content.')));recent.disabled=true;
- const revisit=button('','core-loop-card core-loop-return');revisit.id='core-loop-return';revisit.append(node('span','core-loop-card-label',copy('回来看看','Revisit')),node('strong','',copy('查看本机变化','See local changes')),node('small','core-loop-return-state',copy('只读取本机变化，不调用 AI。','Reads local changes only; no AI call.')));
- intro.hidden=true;home.append(intro,recent,revisit);const anchor=search.parentElement===panel?search:search.closest('#archive-root-tools');panel.insertBefore(home,anchor?.parentElement===panel?anchor:panel.firstChild);
- recent.addEventListener('click',()=>{if(recentTarget?.id){noteCoreLoop('continue');void openDocumentById(recentTarget.id);}});revisit.addEventListener('click',()=>{noteCoreLoop('return');$('revisit-open')?.click();});return home;
+async function refreshArchiveActions(){
+ const recent=$('archive-root-recent'),revisit=$('revisit-open');if(!recent||!revisit)return;
+ const visible=isArchiveHome();recent.hidden=!visible;if(!visible)return;
+ const token=++archiveActionToken;
+ try{
+  const [page,status]=await Promise.all([request('GET_PAGE',{page:{view:'library',limit:1}}),request('PAIA_REVISIT_STATUS')]);
+  if(token!==archiveActionToken||!isArchiveHome())return;
+  recentTarget=page.recentCapturedDocument||null;recent.hidden=!recentTarget;
+  if(recentTarget)recent.textContent=copy('最近收录 · ','Recently saved · ')+(recentTarget.userTitle||recentTarget.originalConversationTitle||copy('最近的对话','Recent conversation'));
+  const newContent=!!(status.newInputs?.count||status.topicUpdates?.length);
+  revisit.dataset.returnState=newContent?'new':'quiet';
+  revisit.setAttribute('aria-label',copy('打开回来看看','Open Revisit')+(newContent?copy(' · 有新内容',' · New local changes'):''));
+ }catch{if(token===archiveActionToken){recent.hidden=true;revisit.dataset.returnState='unavailable';}}
 }
-let recentToken=0;
-async function refreshRecent(){const token=++recentToken,recent=$('core-loop-continue');if(!recent)return;try{const page=await request('GET_PAGE',{page:{view:'library',limit:1}});if(token!==recentToken)return;recentTarget=page.recentCapturedDocument||null;if(!recentTarget){recent.disabled=true;recent.querySelector('strong').textContent=copy('还没有收录内容','Nothing saved yet');recent.querySelector('small').textContent=copy('同意本机保存或导入历史后，这里会指向最近收录的真实内容。','After local-save consent or history import, this points to real recently saved content.');return;}recent.disabled=false;recent.querySelector('strong').textContent=recentTarget.userTitle||recentTarget.originalConversationTitle||copy('最近收录的对话','Recently saved conversation');const at=recentTarget.capturedAt?new Intl.DateTimeFormat(language(),{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(recentTarget.capturedAt)):copy('收录时间未知','Capture time unknown');recent.querySelector('small').textContent=copy(`最近保存到本机 · ${at}`,`Saved locally most recently · ${at}`);}catch{recentTarget=null;recent.disabled=true;recent.querySelector('strong').textContent=copy('最近收录暂时不可读','Recently saved item unavailable');recent.querySelector('small').textContent=copy('档案仍可按来源浏览。','You can still browse the archive by source.');}}
-async function refreshReturnCard(){const home=$('core-loop-home');if(!home||home.hidden)return;const token=++revisitToken,strong=$('core-loop-return')?.querySelector('strong'),status=home.querySelector('.core-loop-return-state');try{const data=await request('PAIA_REVISIT_STATUS');if(token!==revisitToken)return;const fresh=data.newInputs?.count||0,topics=data.topicUpdates?.length||0;home.dataset.state=fresh||topics?'return-new':hasArchiveDocuments()?'return-quiet':'activation-empty';strong.textContent=copy('回来看看','Revisit');status.textContent=fresh?copy('上次打开后留下的内容','Saved since your last visit'):topics?copy('主题有新材料','Topics have new material'):copy('在需要时找回以前的内容。','Find earlier material when you need it.');if(hasArchiveDocuments()){ $('core-loop-title').textContent=copy('档案','Archive');$('core-loop-copy').textContent=copy('从上次停下的地方继续，或打开最近留下的内容。','Continue where you stopped, or open recently saved material.');}}catch{status.textContent=copy('暂时无法读取回访状态，档案仍可使用。','Revisit is unavailable; Archive still works.');}}
-function refreshHome(){const home=$('core-loop-home');if(!home)return;const visible=isArchiveHome();home.hidden=!visible;if(!visible)return;const docs=hasArchiveDocuments();if(docs){if(!home.dataset.state||home.dataset.state==='activation-empty')setActivationReady();}else setActivationEmpty();void refreshRecent();void refreshReading();void refreshReturnCard();}
+function installArchiveActions(){
+ const recent=$('archive-root-recent'),revisit=$('revisit-open');if(!recent)return;
+ recent.addEventListener('click',()=>{if(recentTarget?.id){noteCoreLoop('continue');document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'library',documentId:recentTarget.id}}));}});
+ revisit?.addEventListener('click',()=>noteCoreLoop('return'));
+ const collection=$('collection-panel');if(collection)new MutationObserver(()=>void refreshArchiveActions()).observe(collection,{attributes:true,attributeFilter:['hidden']});
+ for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(()=>{applyLabels();void refreshArchiveActions();}).observe(nav,{attributes:true,attributeFilter:['aria-current']});
+ $('search')?.addEventListener('input',()=>void refreshArchiveActions());
+ $('revisit-dialog')?.addEventListener('close',()=>void refreshArchiveActions());
+ chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type)){recentTarget=null;void loadPreferences();void refreshArchiveActions();}});
+ document.addEventListener('paia:reader-policy',()=>void refreshArchiveActions());
+ const media=globalThis.matchMedia?.('(prefers-color-scheme: dark)');media?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});
+ void refreshArchiveActions();
+}
 
 function preserveInternalToolAccess(){const details=$('product-diagnostics');if(!details||$('core-loop-product-signals'))return;const link=node('a','core-loop-internal-link',copy('查看本机产品验证数据 / Passport','Local product validation / Passport'));link.id='core-loop-product-signals';link.href='product-signals.html';link.target='_blank';link.rel='noopener';details.append(link);}
 
+let installed=false;
 export function installCoreLoop(){
- if($('core-loop-home'))return;installStyles();setupShell();setupSettingsShell();tuneOnboarding();createHome();preserveInternalToolAccess();void loadPreferences();void archiveOrderSettings.load();
- const documentList=$('document-list'),collection=$('collection-panel'),revisitDialog=$('revisit-dialog');if(documentList)new MutationObserver(refreshHome).observe(documentList,{subtree:true,childList:true});if(collection)new MutationObserver(refreshHome).observe(collection,{attributes:true,attributeFilter:['hidden']});for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(()=>{applyLabels();refreshHome();}).observe(nav,{attributes:true,attributeFilter:['aria-current']});if(revisitDialog)revisitDialog.addEventListener('close',()=>{lastRevisitKey='';refreshHome();});$('search')?.addEventListener('input',refreshHome);chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type)){if(message.type==='ARCHIVE_CHANGED'&&!message.cause){lastRevisitKey='';refreshHome();return;}if(message.type==='PAIA_READER_POLICY_CHANGED'){recentTarget=null;$('core-loop-continue').disabled=true;$('core-loop-continue').querySelector('strong').textContent='';$('reader-resume')?.replaceChildren();if($('reader-resume'))delete $('reader-resume').dataset.signature;}lastRevisitKey='';void loadPreferences();refreshHome();}});const media=globalThis.matchMedia?.('(prefers-color-scheme: dark)');media?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});refreshHome();
+ if(installed)return;installed=true;installStyles();setupShell();setupSettingsShell();tuneOnboarding();preserveInternalToolAccess();void loadPreferences();void archiveOrderSettings.load();
+ installArchiveActions();
 }
-
-async function refreshReading(){
- const home=$('core-loop-home');if(!home||home.hidden)return;
- let group=$('reader-resume');if(!group){group=node('section','reader-resume');group.id='reader-resume';home.querySelector('.core-loop-intro').after(group);}
- try{const anchors=await request('PAIA_READER_RECENT');if(home.hidden)return;const signature=JSON.stringify(anchors);if(group.dataset.signature===signature)return;group.dataset.signature=signature;group.replaceChildren();
-  for(const [index,anchor]of anchors.entries()){const action=button('','core-loop-card reader-resume-action');action.dataset.documentId=anchor.documentId;action.append(node('span','core-loop-card-label',copy(index?'最近阅读':'继续阅读',index?'Recently read':'Continue reading')),node('strong','',anchor.title),node('small','',copy('上次看到这里','Where you left off')));action.onclick=()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'library',documentId:anchor.documentId,contextInputId:anchor.inputId,anchor}}));group.append(action);}
-  group.hidden=!anchors.length;
- }catch{group.replaceChildren(node('p','muted',copy('继续位置暂时无法读取，档案仍可打开。','Reading positions are unavailable; Archive still works.')));}
-}
-document.addEventListener('paia:reading-saved',()=>void refreshReading());
-document.addEventListener('paia:reader-policy',()=>{lastRevisitKey='';refreshHome();});

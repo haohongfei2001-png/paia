@@ -51,18 +51,22 @@ export class ReaderExperience {
   this.active=true;const {view,editor}=this.read();if(view!=='library'||!editor){this.active=false;return;}
   const mobile=matchMedia('(max-width: 799px)').matches,body=$('document-body');
   $('document-title').contentEditable=mobile?'false':'plaintext-only';$('reader-title-edit')?.remove();const titleEdit=element('button','reader-mobile-title-edit',readerCopy('编辑标题','Edit title'));titleEdit.id='reader-title-edit';titleEdit.onclick=async()=>{const title=$('document-title');if(title.contentEditable==='false'){title.contentEditable='plaintext-only';titleEdit.textContent=readerCopy('完成','Done');title.focus();}else{editor.collect();if(!await editor.flush())return;title.contentEditable='false';titleEdit.textContent=readerCopy('编辑标题','Edit title');title.blur();}};$('document-title').after(titleEdit);
+  this.mountRows(body);
+  if(!body.querySelector('.library-block')){const empty=element('p','reader-empty',readerCopy('这篇暂时没有显示内容，可在设置中查看最近收起或已移除的内容。','This document has no visible inputs. Hidden and removed items are available in Settings.'));body.append(empty);}
+  this.schedule();
+ }
+ mountRows(body){
+  const {editor}=this.read(),mobile=matchMedia('(max-width: 799px)').matches;
   for(const section of body.querySelectorAll('.library-block')){
    const prose=section.querySelector('.library-prose');if(!prose)continue;prose.contentEditable=mobile?'false':'plaintext-only';
    const actions=element('div','reader-margin-actions'),more=element('button','reader-more','···');more.setAttribute('aria-label',readerCopy('这条输入的更多操作','More actions for this input'));more.onclick=()=>{this.lastInput=section.dataset.blockId;const r=more.getBoundingClientRect();this.menu(section.dataset.blockId,r.left,r.bottom);};
-   for(const existing of section.querySelectorAll(':scope > .reading-copy,:scope > .input-remove'))actions.append(existing);actions.append(more);section.append(actions);
+   actions.append(more);section.append(actions);
    const edit=element('button','reader-mobile-edit',readerCopy('编辑','Edit'));edit.onclick=async()=>{
     if(prose.contentEditable!=='false'){editor.collect();if(!await editor.flush())return;prose.contentEditable='false';edit.textContent=readerCopy('编辑','Edit');prose.blur();}
     else{this.expand(prose);prose.contentEditable='plaintext-only';edit.textContent=readerCopy('完成','Done');prose.focus();}
    };actions.append(edit);
    if(!this.expanded.has(prose.dataset.editId)&&prose.getBoundingClientRect().height>innerHeight*1.5){const expand=element('button','reader-expand',readerCopy(`展开全文 · 约 ${[...prose.innerText].length} 字`,`Expand full text · ${[...prose.innerText].length} characters`));prose.classList.add('reader-collapsed');expand.onclick=()=>this.expand(prose);section.append(expand);}
   }
-  if(!body.querySelector('.library-block')){const empty=element('p','reader-empty',readerCopy('这篇暂时没有显示内容，可在设置中查看最近收起或已移除的内容。','This document has no visible inputs. Hidden and removed items are available in Settings.'));body.append(empty);}
-  this.schedule();
  }
  expand(prose){this.expanded.add(prose.dataset.editId);prose.classList.remove('reader-collapsed');prose.closest('.library-block')?.querySelector('.reader-expand')?.remove();}
  unmount(){this.cancel();this.active=false;this.toolbar.hidden=true;}
