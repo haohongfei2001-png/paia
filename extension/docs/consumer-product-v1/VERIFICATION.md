@@ -151,11 +151,14 @@ A historical CI run may support unchanged code, but the receipt must identify th
 
 This contract defines the evidence a completed slice must ultimately possess. It does not require every inner-loop candidate or ordinary round to reacquire every evidence class.
 
-Use three levels:
+Use four levels for unfinished work:
 
-1. **Candidate / inner loop** — targeted tests, affected regressions and bounded browser smoke for the changed behavior.
-2. **Round closure** — full required CI plus the browser/reliability evidence directly owned by that round, followed by merge and exact-main verification.
-3. **Slice / certification closure** — the complete applicable evidence classes in this document, including current real-browser/device, user-level, performance and migration/release-path evidence.
+1. **Inner loop** — targeted unit tests and the directly affected browser/reliability regression. No broad recertification.
+2. **Draft checkpoint** — lightweight automatic unit + adapter/privacy + release/package gate. This catches cheap global breakage while the writer continues.
+3. **Ordinary round integration** — affected regressions plus the light integration gate and exact-main readback. Full historical browser, macOS, performance, accessibility and live/device matrices are not repeated unless the round changes their underlying risk boundary.
+4. **Slice / high-risk / final certification** — the complete applicable evidence classes in this document, including full current-browser coverage, user-level acceptance, performance, migration/release-path evidence and any applicable device/live evidence.
+
+The manager may promote a round to level 4 when it changes storage/schema identity, capture admission, deletion/anti-resurrection, authorization/privacy, destructive migration, release identity, or another invariant where delayed detection would make later work unsafe.
 
 For VS-01 specifically, CPV1-01.6 is the owning full real-lifecycle certification round. Earlier VS-01 rounds still prove their own engineering exits, but should not repeatedly reacquire the entire VS-01 lifecycle matrix or perform publication merely to close an intermediate round.
 
@@ -165,3 +168,7 @@ An owner decision blocks only the evidence/behavior whose meaning depends on tha
 
 Production publication is not a default verification step. It is required only when a round/slice explicitly owns distribution/release behavior or when separately authorized.
 
+
+## 7. Cadence amendment scope
+
+This lighter cadence applies prospectively to unfinished Consumer Product v1 work. Existing completed-round receipts remain valid and are not rerun. The amendment changes scheduling, not acceptance truth: a slice still cannot become COMPLETE without its applicable final evidence, and P0 data/privacy/integrity failures still block the affected work immediately.
