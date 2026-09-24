@@ -35,11 +35,12 @@ export class ArchiveNavigatorState{
 export class ArchiveNavigator{
  constructor({onOpenWindow,onSourceDetail,onStatus=()=>{},onRouteChange=()=>{}}={}){
   this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;
+  this.previews=new Map();this.previewQueue=[];this.previewQueued=new Map();this.previewInFlight=0;this.previewGeneration=0;
   this.host=element('aside','archive-navigator');this.host.id='archive-navigator';this.host.setAttribute('aria-label',copy('档案窗口导航','Archive window navigator'));this.host.tabIndex=-1;
   const head=element('header','archive-navigator-header'),title=element('h2','',copy('档案窗口','Archive windows'));this.status=element('p','archive-navigator-status','');this.status.setAttribute('role','status');this.status.setAttribute('aria-live','polite');this.applyOrder=element('button','archive-navigator-apply-order',copy('应用','Apply'));this.applyOrder.type='button';this.applyOrder.hidden=true;this.close=element('button','archive-navigator-close',copy('关闭','Close'));this.close.type='button';head.append(title,this.status,this.applyOrder,this.close);
   this.tree=element('div','archive-navigator-tree');this.host.append(head,this.tree);
   this.toggle=$('archive-navigator-toggle');this.close.addEventListener('click',()=>this.closeOrCollapse(true));this.toggle?.addEventListener('click',()=>this.toggleSurface());this.applyOrder.addEventListener('click',()=>this.applyPending(true));
-  this.host.addEventListener('scroll',()=>{this.state.scrollTop=this.host.scrollTop;},{passive:true});this.host.addEventListener('pointerdown',()=>{this.pointerDown=true;},{passive:true});window.addEventListener('pointerup',()=>{this.pointerDown=false;this.applyPending(false);},{passive:true});this.host.addEventListener('focusout',()=>queueMicrotask(()=>this.applyPending(false)));document.addEventListener('paia:archive-order-mode',event=>this.setMode(event.detail?.mode));
+  this.host.addEventListener('scroll',()=>{this.state.scrollTop=this.host.scrollTop;clearTimeout(this.routeSaveTimer);this.routeSaveTimer=setTimeout(()=>this.onRouteChange(),120);},{passive:true});this.host.addEventListener('pointerdown',()=>{this.pointerDown=true;},{passive:true});window.addEventListener('pointerup',()=>{this.pointerDown=false;this.applyPending(false);},{passive:true});this.host.addEventListener('focusout',()=>queueMicrotask(()=>this.applyPending(false)));document.addEventListener('paia:archive-order-mode',event=>this.setMode(event.detail?.mode));
   void request('PAIA_ARCHIVE_ORDER_PREFERENCE').then(value=>this.setMode(value.mode)).catch(()=>{});
   this.media=matchMedia('(max-width:799px)');this.media.addEventListener?.('change',()=>this.layout());
   window.addEventListener('resize',()=>this.layout(),{passive:true});
@@ -58,7 +59,10 @@ export class ArchiveNavigator{
   if(!this.reader&&this.query.trim()){this.host.hidden=true;this.restoreLegacy();return;}
   this.host.hidden=this.reader&&this.isMobile()&&!this.sheetOpen||this.reader&&this.isNarrow()&&this.narrowCollapsed;
   if(this.toggle){this.toggle.hidden=!this.reader;this.toggle.setAttribute('aria-expanded',String(!this.host.hidden));}
-  if(previousSelected!==this.selectedDocumentId&&this.selectedDocumentId)await this.refreshSelection();
+  if(previousSelected!==this.selectedDocumentId&&(this.selectedDocumentId||previousSelected)||!this.reader&&this.lastOpenedDocumentId)await this.refreshSelection(this.selectedDocumentId||previousSelected||this.lastOpenedDocumentId);
+  // Reproject the cached tree immediately when Back returns to Archive. The
+  // bounded source refresh below may still be rebuilding its index.
+  this.paint();
   await this.refresh(false);
  }
  place(){
@@ -96,11 +100,11 @@ export class ArchiveNavigator{
   if(this.mode==='source'&&this.interactionLocked()){this.pendingInvalidate=true;this.applyOrder.hidden=false;this.setStatus(copy('位置有更新','Positions updated'));document.dispatchEvent(new CustomEvent('paia:archive-order-status',{detail:{pending:true}}));return;}
   this.applyInvalidation();
  }
- applyInvalidation(){this.pendingInvalidate=false;this.applyOrder.hidden=true;this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;void this.refresh(false);}
+ applyInvalidation(){this.pendingInvalidate=false;this.applyOrder.hidden=true;this.rememberLoadedDepth();this.state.resetScopes();this.previewGeneration++;this.previews.clear();this.previewQueue=[];this.previewQueued.clear();this.lastPaintSignature=null;void this.refresh(false);}
  applyPending(force=false){if(!this.pendingInvalidate||!force&&this.interactionLocked())return;this.applyInvalidation();}
  selectPath(path){const before=JSON.stringify(this.state.selectedPath);this.state.select(path);if(before!==JSON.stringify(this.state.selectedPath))this.onRouteChange();}
  schedule(){clearTimeout(this.refreshTimer);if(!this.active)return;this.refreshTimer=setTimeout(()=>void this.checkFreshness(),8000);}
- async refreshSelection(){try{const value=await request('PAIA_ARCHIVE_NAV_STATUS',{page:{groupKind:'providers',mode:this.mode,selectedDocumentId:this.selectedDocumentId}});if(value.selectedPath)this.selectPath(value.selectedPath);}catch{}}
+ async refreshSelection(documentId=this.selectedDocumentId){try{const value=await request('PAIA_ARCHIVE_NAV_STATUS',{page:{groupKind:'providers',mode:this.mode,selectedDocumentId:documentId}});if(value.selectedPath){const before=this.state.selectedPath,after=value.selectedPath;if(after.available&&after.groupKind){const oldKey=this.lastOpenedDocumentId===after.documentId?this.lastOpenedGroupKey:before?.available&&before.documentId===after.documentId?navigatorGroupKey(before.providerKey,before.groupKind,before.projectRef):null,newKey=navigatorGroupKey(after.providerKey,after.groupKind,after.projectRef);if(oldKey&&oldKey!==newKey&&this.state.expanded.has(oldKey)){this.state.expanded.delete(oldKey);this.state.expanded.add(newKey);}if(this.lastOpenedDocumentId===after.documentId)this.lastOpenedGroupKey=newKey;}this.selectPath(after);}}catch{}}
  async checkFreshness(){
   if(!this.active)return;try{const status=await request('PAIA_ARCHIVE_NAV_STATUS',{page:{groupKind:'providers',mode:this.mode,selectedDocumentId:this.selectedDocumentId}}),root=this.state.scope({groupKind:'providers'}),before=JSON.stringify(this.state.selectedPath);if(status.selectedPath)this.selectPath(status.selectedPath);if(status.coverage.state!=='complete'||root.generation&&status.generation!==root.generation){this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;await this.refresh(false);}else if(before!==JSON.stringify(this.state.selectedPath))this.paint();}catch{}finally{this.schedule();}
  }
@@ -138,15 +142,37 @@ export class ArchiveNavigator{
   if(list)list.hidden=ready;if(count)count.hidden=ready;
  }
  async toggleGroup(item){
-  const open=this.state.toggle(item);this.paint();if(open){const scope=await this.readScope(this.groupOptions(item));this.paint();if(scope.coverage.state!=='complete')setTimeout(()=>void this.refresh(false),40);}
+  const open=this.state.toggle(item);this.paint();this.onRouteChange();if(open){const scope=await this.readScope(this.groupOptions(item));this.paint();if(scope.coverage.state!=='complete')setTimeout(()=>void this.refresh(false),40);}
  }
  async more(item){
   const options=this.groupOptions(item),scope=this.state.scope(options);if(!scope.nextCursor||scope.loading)return;await this.readScope(options,{append:true});this.paint();
  }
  async openWindow(item){
-  if(this.busy)return;this.busy=true;const current=item.documentId;this.host.setAttribute('aria-busy','true');
-  try{const ok=await this.onOpenWindow?.(current);if(ok!==false&&this.isMobile())this.closeSheet(false);}
+  if(this.busy)return;this.busy=true;const current=item.documentId;this.lastOpenedDocumentId=current;this.lastOpenedGroupKey=navigatorGroupKey(item.providerKey,item.groupKind,item.projectRef);this.host.setAttribute('aria-busy','true');
+  try{this.onRouteChange();const ok=await this.onOpenWindow?.(current);if(ok!==false&&this.isMobile())this.closeSheet(false);}
   finally{this.busy=false;this.host.removeAttribute('aria-busy');}
+ }
+ queuePreview(documentId){
+  if(this.previews.has(documentId)||this.previewQueued.get(documentId)===this.previewGeneration)return;
+  this.previewQueued.set(documentId,this.previewGeneration);this.previewQueue.push({documentId,generation:this.previewGeneration});queueMicrotask(()=>this.loadPreviews());
+ }
+ loadPreviews(){
+  while(this.previewInFlight<4&&this.previewQueue.length){
+   const {documentId,generation}=this.previewQueue.shift();this.previewInFlight++;
+   void request('GET_PAGE',{page:{view:'library',documentId,limit:1,sort:'desc'}}).then(page=>{
+    const block=page.library?.blocks?.[0],record=page.records?.find(row=>row.id===block?.originalTextReference),raw=block?.libraryText??record?.originalText??'';
+    const cue=String(raw).replace(/\s+/g,' ').trim().slice(0,160);
+    const sourceTime=page.conversations?.[0]?.lastSourceSentAt||null;
+    if(generation===this.previewGeneration)this.previews.set(documentId,{cue,sourceTime,error:false});
+   }).catch(()=>{if(generation===this.previewGeneration)this.previews.set(documentId,{cue:'',sourceTime:null,error:true});}).finally(()=>{
+    if(this.previewQueued.get(documentId)===generation)this.previewQueued.delete(documentId);this.previewInFlight--;this.lastPaintSignature=null;if(this.active&&!this.reader)this.paint();this.loadPreviews();
+   });
+  }
+ }
+ previewTime(value){
+  if(!value)return copy('时间待确认','Time unconfirmed');
+  const at=new Date(value);if(!Number.isFinite(at.getTime()))return copy('时间待确认','Time unconfirmed');
+  return new Intl.DateTimeFormat(document.documentElement.lang==='en'?'en-US':'zh-CN',{year:'numeric',month:'short',day:'numeric'}).format(at);
  }
  detail(subject,trigger){this.onSourceDetail?.(subject,trigger);}
  paintSignature(){return JSON.stringify({mode:this.mode,selected:this.selectedDocumentId,expanded:[...this.state.expanded].sort(),scopes:[...this.state.scopes].sort(([a],[b])=>a.localeCompare(b)).map(([key,scope])=>[key,scope.coverage?.state||null,scope.generation,scope.effectiveOrdering,scope.unavailableReason,scope.nextCursor,scope.error,scope.loading,scope.items.map(item=>[item.kind,item.id,item.title,item.providerKey,item.groupKind,item.projectRef,item.sourceStatus,item.parentSourceStatus])])});}
@@ -173,7 +199,13 @@ export class ArchiveNavigator{
      else if(scope.coverage.state!=='complete')list.append(element('p','archive-navigator-loading',copy('正在读取窗口…','Loading windows…')));
      else{
       for(const item of scope.items){
-       const windowRow=element('div','archive-navigator-window-row'),button=element('button','archive-navigator-window',item.title||copy('未命名窗口','Untitled window'));button.type='button';button.dataset.ansNavKey='window:'+item.documentId;button.dataset.documentId=item.documentId;if(item.documentId===this.selectedDocumentId)button.setAttribute('aria-current','page');button.addEventListener('click',()=>void this.openWindow(item));windowRow.append(button);
+       const windowRow=element('div','archive-navigator-window-row'),button=element('button','archive-navigator-window');button.type='button';button.dataset.ansNavKey='window:'+item.documentId;button.dataset.documentId=item.documentId;if(item.documentId===this.selectedDocumentId)button.setAttribute('aria-current','page');button.addEventListener('click',()=>void this.openWindow(item));
+       button.append(element('strong','archive-navigator-window-title',item.title||copy('未命名窗口','Untitled window')));
+       if(!this.reader){
+        const preview=this.previews.get(item.documentId);if(!preview)this.queuePreview(item.documentId);
+        if(preview){button.append(element('span','archive-navigator-window-cue',preview.error?copy('摘要暂不可读','Preview temporarily unavailable'):preview.cue||copy('尚无可显示的输入','No input preview available')),element('time','archive-navigator-window-time',this.previewTime(preview.sourceTime)));}
+       }
+       windowRow.append(button);
        if(item.conversationRef){const details=element('button','archive-navigator-detail',copy('详情','Details'));details.type='button';details.setAttribute('aria-label',copy('查看窗口来源详情','View window source details'));details.addEventListener('click',event=>this.detail({kind:'conversation',conversationRef:item.conversationRef},event.currentTarget));windowRow.append(details);}
        list.append(windowRow);
       }

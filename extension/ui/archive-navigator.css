@@ -7,6 +7,11 @@
 .archive-navigator-group{margin:1px 0}.archive-navigator-group-row,.archive-navigator-window-row{display:flex;align-items:center;gap:3px;min-width:0}.archive-navigator-group-toggle,.archive-navigator-window{min-width:0;flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:6px}
 .archive-navigator-group-toggle{font-weight:600;color:var(--paia-secondary);padding:7px 8px}.archive-navigator-group-toggle::before{content:'›';display:inline-block;width:15px;transition:transform .12s}.archive-navigator-group-toggle[aria-expanded="true"]::before{transform:rotate(90deg)}
 .archive-navigator-window{padding:7px 8px 7px 24px;color:var(--paia-secondary)}.archive-navigator-window[aria-current="page"]{background:var(--paia-selected);color:var(--paia-text);font-weight:650}
+body.ans-nav-root .archive-navigator-window{display:flex;flex-direction:column;align-items:flex-start;gap:2px;white-space:normal;padding:8px 8px 8px 24px}
+body.ans-nav-root .archive-navigator-window-title,body.ans-nav-root .archive-navigator-window-cue{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.ans-nav-root .archive-navigator-window-title{font-size:13px;color:var(--paia-text)}
+body.ans-nav-root .archive-navigator-window-cue{font-size:11px;line-height:1.4;color:var(--paia-meta)}
+body.ans-nav-root .archive-navigator-window-time{font-size:10px;color:var(--paia-meta)}
 .archive-navigator-detail{flex:0 0 auto;min-width:32px;padding:6px 5px;font-size:10px;color:var(--paia-meta)}.archive-navigator-windows{padding:0 0 5px}.archive-navigator-more{margin:4px 8px 4px 24px;padding:6px 8px;font-size:11px;color:var(--paia-accent)}.archive-navigator-end,.archive-navigator-source-state{padding-left:24px}
 body.ans-nav-root #archive-navigator{margin:18px 0 24px;padding:0 4px 10px;border-bottom:1px solid var(--paia-subtle);max-width:100%}
 body.ans-nav-root #archive-navigator .archive-navigator-tree{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px 30px}

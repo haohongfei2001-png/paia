@@ -21,12 +21,22 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await harness.open({id:'cpv1-021-shell',title:'CPV1 shell conversation',base:1609459200,messages:[{id:'cpv1-021-input',text:'CPV1_SHELL_SEARCH unique saved idea'}]});
   await eventually(async()=>(await harness.state()).records.some(row=>row.originalText.includes('CPV1_SHELL_SEARCH')),'synthetic capture persists');
   await page.bringToFront();
-  await eventually(()=>page.locator('.conversation-document').first().isVisible(),'conversation row is visible');
+  await eventually(()=>page.locator('#archive-navigator:not([hidden]) .archive-navigator-group-toggle').first().isVisible(),'Archive groups are visible');
+  for(const group of await page.locator('.archive-navigator-group-toggle').all()){
+   await group.click();
+   if(await page.locator('.archive-navigator-window').count())break;
+  }
+  const rootWindow=page.locator('.archive-navigator-window').first();
+  await eventually(()=>rootWindow.isVisible(),'captured Conversation appears in the Archive tree');
+  await eventually(()=>page.locator('.archive-navigator-window-cue').first().isVisible(),'bounded local content cue is visible');
+  assert.match(await page.locator('.archive-navigator-window-cue').first().textContent(),/CPV1_SHELL_SEARCH unique saved idea/);
+  assert.match(await page.locator('.archive-navigator-window-time').first().textContent(),/2021/);
+  const expandedBefore=await page.locator('.archive-navigator-group-toggle[aria-expanded="true"]').count();
   await page.locator('#search').fill('CPV1_SHELL_SEARCH');
   await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.searchQuery)==='CPV1_SHELL_SEARCH','shell route owns scope search');
   await page.locator('#search').fill('');
   await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.searchQuery)==='','clearing search updates the same route');
-  await page.locator('.conversation-document').first().click();
+  await rootWindow.click();
   await eventually(()=>page.locator('#document-panel').isVisible(),'Reader is the visible container');
   assert.equal(await page.locator('#collection-panel').isVisible(),false);
   assert.equal(await page.locator('#primary-nav').count(),1);
@@ -36,9 +46,13 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await page.evaluate(()=>history.back());
   await eventually(()=>page.locator('#collection-panel').isVisible(),'Back restores the Archive container');
   assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),null);
+  await eventually(async()=>await page.locator('.archive-navigator-group-toggle[aria-expanded="true"]').count()===expandedBefore,'Back restores expanded Archive groups');
+  await eventually(()=>rootWindow.isVisible(),'Back restores the same Conversation in the Archive tree');
   await page.evaluate(()=>history.forward());
   await eventually(()=>page.locator('#document-panel').isVisible(),'Forward restores the Reader container');
   assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),documentId);
+  await page.evaluate(()=>history.back());
+  await eventually(()=>rootWindow.isVisible(),'a second Back keeps the Conversation reachable');
   assert.equal(harness.externalRequests,0);
  }finally{await harness?.close();}
 });
