@@ -12,13 +12,13 @@ current_slice: VS-02
 
 current_slice_status: ACTIVE — VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-02.1
+current_round: CPV1-02.4 + CPV1-02.5 / VS-02 Batch B
 
-current_round_status: IN_PROGRESS / VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: READY / VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_writer: manager/cpv1-02-1-appshell-20260924
+current_writer: NONE — Batch A writer released after merge
 
-writer_status: ACTIVE
+writer_status: RELEASED
 
 production_claim: NONE
 
@@ -168,15 +168,25 @@ current_exact_main_certification: `PAIA Certification run 35914391621 / SUCCESS`
 
 receipt: `receipts/CPV1-02.0.md`
 
-CPR-02's route-plus-matching-Project-home admission, Project A/B and ordinary transitions, rename, reload, temporary evidence loss, last-known/unknown/unassigned distinction and no duplicate Source/relationship spam are retained as existing production behavior. CPV1-02.0 introduces no duplicate implementation or new runtime. Its current-live normal-use cases remain assigned to CPV1-02.7 / DFG-CPV1-004; the old CPR-03 READY label is historical evidence, not a parallel queue. CPV1-02.1 is the next canonical engineering round.
+CPR-02's route-plus-matching-Project-home admission, Project A/B and ordinary transitions, rename, reload, temporary evidence loss, last-known/unknown/unassigned distinction and no duplicate Source/relationship spam are retained as existing production behavior. CPV1-02.0 introduces no duplicate implementation or new runtime. Its current-live normal-use cases remain assigned to CPV1-02.7 / DFG-CPV1-004; the old CPR-03 READY label is historical evidence, not a parallel queue. CPV1-02.1–02.3 are the integrated VS-02 Batch A engineering outcomes; CPV1-02.4 + 02.5 is the next dependency-safe Batch B.
 
-## CPV1-02.1 execution claim
+## VS-02 Batch A engineering closure
 
 execution_start_main: `257e8f7cae4ced703727bcbe625505c5a1d332ca`
 
-writer_branch: `manager/cpv1-02-1-appshell-20260924`
+batch_scope: CPV1-02.1 AppShell/navigation state owner + CPV1-02.2 Archive root + CPV1-02.3 Project/Conversation Navigator
 
-scope: VS-02 Batch A under the current `EXECUTION_PROTOCOL.md`: CPV1-02.1 AppShell/navigation state owner, CPV1-02.2 Archive root and CPV1-02.3 Project/Conversation Navigator. Numbered round outcomes remain separate checklists; this branch is the sole integration writer for the strongly related A1/A2 work. No CPV1-02.4 Reader or later-slice scope is claimed. VS-01 signed/current-live certification debts remain open.
+candidate_pr: #67 / final head `18c2cfa9ca81a78987c5f70f6c2194f6f1364ba0`
+
+light_integration: `PAIA Certification run 35949713904 / SUCCESS`
+
+merged_runtime_main: `bd3e01c63a9a858a7d0e9c4da7d8067619e71e05`
+
+exact_main_integration: `PAIA Certification run 35950085359 / SUCCESS`
+
+receipt: `receipts/CPV1-02.1-02.3-BATCH-A.md`
+
+Batch A's numbered engineering exits are separately checked in the receipt. VS-02 remains ACTIVE; CPV1-02.4 + CPV1-02.5 is the next dependency-safe Batch B. Its Reader work and removal of migrated legacy UI ownership are not claimed by Batch A. Current-live ChatGPT and real-device/performance/accessibility evidence remain at the owning CPV1-02.6/02.7 boundary; DFG-CPV1-004 is not PASS. VS-01 signed-channel debt also remains open.
 
 ## Current owner authorization and execution
 
@@ -197,7 +207,7 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | Slice | State | User outcome |
 |---|---|---|
 | VS-01 Safe open, update and recovery | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
-| VS-02 Source structure to world-class Reader | ACTIVE — CPV1-02.1 READY | Captured conversations appear in the correct Project and open in a coherent fast Reader |
+| VS-02 Source structure to world-class Reader | ACTIVE — Batch A engineering complete; Batch B READY | Captured conversations appear in the correct Project and open in a coherent fast Reader |
 | VS-03 History import, export and recoverable large library | PLANNED | Real official history imports safely and the supported archive can actually be restored |
 | VS-04 Natural editing and fast lexical retrieval | PLANNED | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | PLANNED | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
