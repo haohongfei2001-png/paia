@@ -15,14 +15,14 @@ async function digest(blob){
 export class BackupSegmentWriter{
  constructor({name,maxBytes=DEFAULT_SEGMENT_BYTES,onSegment}){
   if(!/^[A-Za-z0-9][A-Za-z0-9._-]{0,180}$/.test(name)||typeof onSegment!=='function'
-      ||!Number.isSafeInteger(maxBytes)||maxBytes<BACKUP_LIMITS.lineBytes+1
+      ||!Number.isSafeInteger(maxBytes)||maxBytes<128
       ||maxBytes>16*1024*1024)backupError('BACKUP_INVALID');
   this.name=name;this.maxBytes=maxBytes;this.onSegment=onSegment;
   this.parts=[];this.lines=[];this.bytes=0;this.totalBytes=0;
-  this.started=false;this.finished=false;this.footerSeen=false;this.busy=false;
+  this.started=false;this.finished=false;this.footerSeen=false;this.busy=false;this.failed=false;
  }
  async add(row){
-  if(this.busy||this.finished||this.footerSeen)backupError('BACKUP_INVALID');
+  if(this.busy||this.finished||this.footerSeen||this.failed)backupError('BACKUP_INVALID');
   if(!this.started&&row?.type!=='header'||this.started&&!['item','footer'].includes(row?.type))
    backupError('BACKUP_INVALID');
   this.busy=true;
@@ -32,7 +32,7 @@ export class BackupSegmentWriter{
    if(this.bytes&&this.bytes+size>this.maxBytes)await this.flush();
    this.lines.push(line);this.bytes+=size;this.totalBytes+=size;
    this.started=true;if(row.type==='footer')this.footerSeen=true;
-  }finally{this.busy=false;}
+  }catch(error){this.failed=true;throw error;}finally{this.busy=false;}
  }
  async flush(){
   if(!this.lines.length)return;
@@ -47,7 +47,7 @@ export class BackupSegmentWriter{
   this.lines=[];this.bytes=0;
  }
  async finish(){
-  if(this.busy||this.finished||!this.started||!this.footerSeen)backupError('BACKUP_INCOMPLETE');
+  if(this.busy||this.finished||this.failed||!this.started||!this.footerSeen)backupError('BACKUP_INCOMPLETE');
   this.busy=true;
   try{
    await this.flush();
@@ -57,7 +57,7 @@ export class BackupSegmentWriter{
     contentFormat:'PAIA Backup v1',complete:true,
     totalBytes:this.totalBytes,parts:this.parts.map(part=>({...part})),
    };
-  }finally{this.busy=false;}
+  }catch(error){this.failed=true;throw error;}finally{this.busy=false;}
  }
 }
 
