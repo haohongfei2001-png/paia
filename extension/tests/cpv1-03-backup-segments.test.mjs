@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {BackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.js';
 import {backupSegmentRows} from '../ui/backup.js';
 import {BackupService} from '../core/backup-service.js';
+import {BackupValidator,backupHash} from '../core/backup-format.js';
 import {completeFixture,rows,meta} from './harness/original-complete.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 
@@ -159,4 +160,36 @@ test('oversized declared restore is refused before reading any segment',async()=
  const iterator=backupSegmentRows([manifestFile,...files]);
  await assert.rejects(()=>iterator.next(),error=>error?.code==='BACKUP_TOO_LARGE');
  assert.equal(reads,0);
+});
+
+
+test('orphan thought relations are omitted from export and rejected in a signed restore stream',async()=>{
+ const source=await completeFixture();
+ const first=(await rows(source.s,'thoughts'))[0].id;
+ await source.s.repository.transaction(true,t=>t.put('entryRelations',{
+  id:'orphan-relation',fromEntryId:first,toEntryId:'missing-entry',
+  kind:'related',sourceRecordIds:[],
+ }));
+ const backup=await exported(new BackupService(source.s,{appVersion:'0.12.0'}));
+ assert.equal(backup.some(row=>row.section==='relations'&&row.value.id==='orphan-relation'),false);
+
+ const orphan={type:'item',section:'relations',value:{
+  id:'orphan-relation',fromEntryId:first,toEntryId:'missing-entry',kind:'related',
+ }};
+ const tampered=[...backup.slice(0,-1),orphan];
+ let hash='';
+ for(const row of tampered)hash=await backupHash(hash,row);
+ const footer=structuredClone(backup.at(-1));
+ footer.itemCount+=1;
+ footer.sectionCounts.relations+=1;
+ footer.integrity.root=hash;
+ tampered.push(footer);
+ const validator=new BackupValidator();
+ for(const row of tampered)await validator.add(row);
+ assert.equal(validator.preview().itemCount,backup.at(-1).itemCount+1);
+
+ const target=await completeFixture({texts:[]});
+ const service=new BackupService(target.s,{appVersion:'0.12.0'});
+ await assert.rejects(()=>prepared(service,tampered),error=>error?.code==='BACKUP_INVALID');
+ assert.equal((await rows(target.s,'thoughts')).length,0);
 });
