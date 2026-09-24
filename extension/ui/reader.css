@@ -51,3 +51,5 @@ body:has(#document-panel:not([hidden])) #notice button{min-height:44px;color:var
 #document-body .reader-margin-actions .reader-mobile-edit{display:none}@media(max-width:799px){#document-body .reader-margin-actions .reader-mobile-edit{display:inline-flex}}
 
 #document-body{overflow-anchor:none}
+
+#reader-window-guard{position:sticky;bottom:12px;z-index:25;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px auto 0;padding:10px 12px;border:1px solid var(--paia-subtle);border-radius:8px;background:var(--paia-surface);box-shadow:0 4px 18px #16221618;color:var(--paia-secondary);font-size:13px}#reader-window-guard button{min-height:44px;flex:none;color:var(--paia-accent);font-weight:600}@media(max-width:560px){#reader-window-guard{flex-direction:column;align-items:stretch}}

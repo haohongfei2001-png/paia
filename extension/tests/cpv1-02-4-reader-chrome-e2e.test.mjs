@@ -51,6 +51,18 @@ test('CPV1-02.4 Reader bounds long conversations and restores preceding range', 
   await p.evaluate(()=>window.scrollTo(0,document.querySelector('#document-body').offsetTop));
   await eventually(async()=>await p.locator('.library-prose').count()===200,'preceding range restored on reverse scroll');
   assert.match(await p.locator('.library-prose').first().textContent(),/Synthetic continuous reading 0/);
+  const original=(await h.state()).records[0].originalText,first=p.locator('.library-prose').first(),firstId=await first.getAttribute('data-edit-id');
+  await first.evaluate(el=>{el.focus();el.textContent='Edited continuous reading 0';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText'}));});
+  await p.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
+  await eventually(()=>p.locator('#reader-window-guard').isVisible(),'focused edit asks before evicting its range');
+  assert.equal(await p.locator('.library-prose').count(),200,'focused editing range is retained until explicit continuation');
+  await p.locator('#reader-window-guard-continue').click();
+  await eventually(async()=>await p.locator('.library-prose').count()===105,'explicit saved continuation reaches the third range');
+  await eventually(async()=>(await h.state()).library.blocks.find(block=>block.id===firstId)?.libraryText==='Edited continuous reading 0','edited Input is durably saved before eviction');
+  assert.equal((await h.state()).records[0].originalText,original,'Reader edit never rewrites immutable Source');
+  await p.evaluate(()=>window.scrollTo(0,document.querySelector('#document-body').offsetTop));
+  await eventually(async()=>await p.locator('.library-prose').count()===200,'edited preceding range restores');
+  assert.equal(await p.locator('.library-prose').first().textContent(),'Edited continuous reading 0');
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });

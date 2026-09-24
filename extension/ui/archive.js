@@ -160,13 +160,14 @@ function appendDocumentPage(page){const doc=page.conversations.find(d=>d.id===do
 }
 function readerVisibleIds(){return [...$('document-body').querySelectorAll('.library-block')].map(row=>row.dataset.blockId);}
 function readerCanEvict(page){const focus=document.activeElement,selection=getSelection();return !page.contains(focus)&&!(selection?.rangeCount&&page.contains(selection.anchorNode));}
+function readerWindowGuard(direction,composing=false){const guard=$('reader-window-guard');guard.hidden=false;guard.dataset.direction=direction;$('reader-window-guard-message').textContent=composing?readerCopy('先完成当前输入法输入，再保存并继续。','Finish composing text before saving and continuing.'):readerCopy('当前输入或选区仍在上一段。保存后可继续阅读。','An edit or selection remains in the previous range. Save before continuing.');}
 async function loadReaderPage(direction){
- const stream=readerStream,active=editor;if(!stream||stream.loading||!active||active.composing||view!=='library'||documentId!==stream.documentId)return;
+ const stream=readerStream,active=editor;if(!stream||stream.loading||!active||view!=='library'||documentId!==stream.documentId)return;if(active.composing){readerWindowGuard(direction,true);return;}
  const backward=direction==='back',index=backward?stream.first-1:stream.last+1;
  let cursor=backward?stream.cursors[index]:stream.cursors[index]??stream.endCursor;
  if(index<0||cursor===undefined||cursor===null&&!backward&&stream.last>=stream.highWater&&stream.endCursor===null)return;
  const pages=[...$('document-body').querySelectorAll(':scope > .reader-page')];
- if(pages.length>=2&&!readerCanEvict(backward?pages.at(-1):pages[0]))return;
+ if(pages.length>=2&&!readerCanEvict(backward?pages.at(-1):pages[0])){readerWindowGuard(direction);return;}$('reader-window-guard').hidden=true;
  stream.loading=true;let loaded=false;
  try{
   active.collect();if(active.dirty()&&!await active.flush())return;
@@ -193,8 +194,9 @@ async function loadReaderPage(direction){
  }catch{if(stream===readerStream)notify('下一段暂时无法读取，请稍后继续滚动重试。');}
  finally{stream.loading=false;if(loaded&&stream===readerStream)requestAnimationFrame(()=>{if(stream!==readerStream)return;const bounds=$('document-body').getBoundingClientRect();if(bounds.bottom<innerHeight+700)void loadReaderPage('forward');else if(bounds.top>-700&&stream.first>0)void loadReaderPage('back');});}
 }
+$('reader-window-guard-continue').addEventListener('click',async()=>{const guard=$('reader-window-guard'),direction=guard.dataset.direction,active=editor;if(guard.hidden||!active)return;if(active.composing){readerWindowGuard(direction,true);return;}active.collect();if(!await active.flush()){readerWindowGuard(direction);return;}document.activeElement?.blur();getSelection()?.removeAllRanges();guard.hidden=true;void loadReaderPage(direction);});
 window.addEventListener('scroll',()=>{const stream=readerStream;if(!stream||stream.loading||view!=='library')return;const body=$('document-body'),bounds=body.getBoundingClientRect();if(bounds.bottom<innerHeight+700)void loadReaderPage('forward');else if(bounds.top>-700&&stream.first>0)void loadReaderPage('back');},{passive:true});
-function renderDocument(){$('document-page').inert=false;const doc=state.conversations.find(d=>d.id===documentId);if(!doc){documentId=null;render();return;}
+function renderDocument(){$('reader-window-guard').hidden=true;$('document-page').inert=false;const doc=state.conversations.find(d=>d.id===documentId);if(!doc){documentId=null;render();return;}
  $('document-title').textContent=doc.userTitle||doc.originalConversationTitle||'独立整理文档';$('document-title').removeAttribute('contenteditable');$('document-title').setAttribute('aria-label','文档标题');const editable=view==='library';if(editable)$('document-title').setAttribute('contenteditable','plaintext-only');
  const body=$('document-body');body.replaceChildren();appendDocumentPage(state);
  $('input-time-order').hidden=view!=='library';const inputOrder=state.readingSort==='desc'?'desc':'asc',inputToggle=$('input-time-toggle');inputToggle.dataset.currentSort=inputOrder;inputToggle.setAttribute('aria-pressed',String(inputOrder==='desc'));inputToggle.textContent=inputOrder==='desc'?readerCopy('倒序 · 最新在前','Descending · newest first'):readerCopy('正序 · 最早在前','Ascending · oldest first');inputToggle.setAttribute('aria-label',inputOrder==='desc'?readerCopy('输入时间顺序：倒序，最新在前。点击切换为正序。','Input time order: descending, newest first. Switch to ascending.'):readerCopy('输入时间顺序：正序，最早在前。点击切换为倒序。','Input time order: ascending, oldest first. Switch to descending.'));
