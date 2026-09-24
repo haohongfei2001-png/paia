@@ -14,11 +14,11 @@ current_slice_status: ACTIVE — VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDIN
 
 current_round: CPV1-02.1
 
-current_round_status: READY / VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: IN_PROGRESS / VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_writer: NONE
+current_writer: manager/cpv1-02-1-appshell-20260924
 
-writer_status: RELEASED
+writer_status: ACTIVE
 
 production_claim: NONE
 
@@ -169,6 +169,14 @@ current_exact_main_certification: `PAIA Certification run 35914391621 / SUCCESS`
 receipt: `receipts/CPV1-02.0.md`
 
 CPR-02's route-plus-matching-Project-home admission, Project A/B and ordinary transitions, rename, reload, temporary evidence loss, last-known/unknown/unassigned distinction and no duplicate Source/relationship spam are retained as existing production behavior. CPV1-02.0 introduces no duplicate implementation or new runtime. Its current-live normal-use cases remain assigned to CPV1-02.7 / DFG-CPV1-004; the old CPR-03 READY label is historical evidence, not a parallel queue. CPV1-02.1 is the next canonical engineering round.
+
+## CPV1-02.1 execution claim
+
+execution_start_main: `257e8f7cae4ced703727bcbe625505c5a1d332ca`
+
+writer_branch: `manager/cpv1-02-1-appshell-20260924`
+
+scope: VS-02 Batch A under the current `EXECUTION_PROTOCOL.md`: CPV1-02.1 AppShell/navigation state owner, CPV1-02.2 Archive root and CPV1-02.3 Project/Conversation Navigator. Numbered round outcomes remain separate checklists; this branch is the sole integration writer for the strongly related A1/A2 work. No CPV1-02.4 Reader or later-slice scope is claimed. VS-01 signed/current-live certification debts remain open.
 
 ## Current owner authorization and execution
 

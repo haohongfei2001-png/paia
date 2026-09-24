@@ -106,7 +106,7 @@ function createHome(){
  const home=node('section','core-loop-home');home.id='core-loop-home';home.dataset.state='loading';const intro=node('div','core-loop-intro'),eyebrow=node('p','core-loop-eyebrow',copy('档案','Archive')),title=node('h2','',copy('正在读取本机档案…','Loading your local archive…')),body=node('p','core-loop-copy','');eyebrow.id='core-loop-eyebrow';title.id='core-loop-title';body.id='core-loop-copy';intro.append(eyebrow,title,body);
  const recent=button('','core-loop-card core-loop-recent');recent.id='core-loop-continue';recent.append(node('span','core-loop-card-label',copy('最近收录','Recently saved')),node('strong','',copy('还没有收录内容','Nothing saved yet')),node('small','',copy('同意本机保存或导入历史后，这里会指向最近收录的真实内容。','After local-save consent or history import, this points to real recently saved content.')));recent.disabled=true;
  const revisit=button('','core-loop-card core-loop-return');revisit.id='core-loop-return';revisit.append(node('span','core-loop-card-label',copy('回来看看','Revisit')),node('strong','',copy('查看本机变化','See local changes')),node('small','core-loop-return-state',copy('只读取本机变化，不调用 AI。','Reads local changes only; no AI call.')));
- intro.hidden=true;home.append(intro,recent,revisit);panel.insertBefore(home,search);
+ intro.hidden=true;home.append(intro,recent,revisit);const anchor=search.parentElement===panel?search:search.closest('#archive-root-tools');panel.insertBefore(home,anchor?.parentElement===panel?anchor:panel.firstChild);
  recent.addEventListener('click',()=>{if(recentTarget?.id){noteCoreLoop('continue');void openDocumentById(recentTarget.id);}});revisit.addEventListener('click',()=>{noteCoreLoop('return');$('revisit-open')?.click();});return home;
 }
 let recentToken=0;
