@@ -12,7 +12,7 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
  const controller=new OfficialExportProvider().createSession({transport:(method,q)=>send('IMPORT_'+method.toUpperCase(),q),onProgress:paint});
  function paint(s){setProductState($('history-dialog'),({selected:'ready',checking:'loading',importing:'updating',completed:'saved',unsupported:'failed',cancelled:'paused',awaiting_file:'paused'})[s.phase]||s.phase);
   const done=['completed','partial'].includes(s.phase),active=['checking','importing'].includes(s.phase);
-  $('history-status').textContent=phases[s.phase]||'正在处理…';$('history-error').textContent=s.reason?errorText(s.reason):'';
+  $('history-status').textContent=phases[s.phase]||'正在处理…';const storageShort=s.phase==='ready'&&s.storagePreflight?.state==='insufficient';$('history-error').textContent=s.reason?errorText(s.reason):storageShort?'本机可用空间低于预计新增正文大小；请释放空间后重新选择原文件。此检查只是写入下限，不保证剩余空间足够。':'';
   const c=s.phase==='ready'||s.phase==='checking'?s.preview:s.counts;
   $('history-counts').replaceChildren();
   if(c)for(const [value,label]of [[c.added,s.phase==='ready'?'预计新增原文':'新增原文'],[c.duplicates,'已存在'],[c.ignored,'永久忽略'],[c.removed,'保留人工移除'],[c.review,'待确认分支'],[c.timeEnriched??c.knownTime,s.phase==='ready'?'有可靠发送时间':'补全已有时间']]){
@@ -22,11 +22,11 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
   if(inspection?.skippedMessages||inspection?.skippedConversations)$('history-format').textContent+=' · 跳过不支持的 '+(inspection.skippedConversations||0)+' 个窗口 / '+(inspection.skippedMessages||0)+' 条内容';
   if(c?.metadataEnriched)$('history-format').textContent+=' · 补全 '+c.metadataEnriched+' 条已有来源信息';
   $('history-progress').hidden=!active;if(s.phase==='importing'&&d?.userMessages){const processed=(c?.added||0)+(c?.duplicates||0)+(c?.ignored||0);$('history-progress').max=d.userMessages;$('history-progress').value=processed;$('history-status').textContent+=' 已处理 '+processed+' / '+d.userMessages+' 条。';}else $('history-progress').removeAttribute('value');
-  $('history-commit').hidden=done;$('history-commit').disabled=!controller.hasFile||s.phase!=='ready'||processing;
+  $('history-commit').hidden=done;$('history-commit').disabled=!controller.hasFile||s.phase!=='ready'||processing||storageShort;
   $('history-pause').disabled=!controller.hasFile;$('history-cancel').disabled=done||s.phase==='cancelled'||!controller.hasFile&&!s.taskId;
   $('history-file-consent').disabled=processing;$('history-choose').disabled=processing||!$('history-file-consent').checked;
   $('history-success').hidden=!done;$('history-review').hidden=!(s.counts?.review>0);
-  $('history-diagnostic').textContent=JSON.stringify({state:s.phase,code:s.reason||null,profile:d?.profileId||s.adapterId||null,profileVersion:d?.profileVersion||s.profileVersion||null,realExportVerified:false,processedBytes:s.processedBytes||0,checkedBatches:s.checkedBatches||0,committedBatches:s.committedBatches||0,counts:c||null},null,2);
+  $('history-diagnostic').textContent=JSON.stringify({state:s.phase,code:s.reason||null,profile:d?.profileId||s.adapterId||null,profileVersion:d?.profileVersion||s.profileVersion||null,realExportVerified:false,processedBytes:s.processedBytes||0,checkedBatches:s.checkedBatches||0,committedBatches:s.committedBatches||0,counts:c||null,storagePreflight:s.storagePreflight?.state||null},null,2);
  }
  async function latest(){
   try{const {lastImport:r}=await send('IMPORT_LATEST');$('history-latest').textContent=r?'最近补全：'+new Date(r.completedAt).toLocaleDateString('zh-CN')+' · '+sourceName(r.adapterId)+' 官方导出 · 新增 '+r.counts.added+' · 已存在 '+r.counts.duplicates+' · 补全时间 '+(r.counts.timeEnriched||0)+' · 异常 '+r.counts.issues+(r.phase==='partial'?' · 部分输入待确认':''):'尚未补全历史输入。随时可以选择导出文件开始。';}catch{$('history-latest').textContent='上次补全记录未能载入。已保存的输入仍保留；重新打开此页可再试。';}
