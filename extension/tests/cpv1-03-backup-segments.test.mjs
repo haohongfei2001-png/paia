@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {BackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.js';
 import {backupSegmentRows} from '../ui/backup.js';
 import {BackupService} from '../core/backup-service.js';
-import {completeFixture,rows} from './harness/original-complete.mjs';
+import {completeFixture,rows,meta} from './harness/original-complete.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 
 const named=(name,blob)=>Object.assign(new Blob([blob]),{name});
@@ -111,4 +111,31 @@ test('segmented transport restores the complete existing domain fixture',async()
  await service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity});
  assert.deepEqual(await rows(target.s,'records'),await rows(source.s,'records'));
  assert.deepEqual(await rows(target.s,'provenance'),await rows(source.s,'provenance'));
+});
+
+
+test('derived search writes preserve backup generation while portable edits invalidate it',async()=>{
+ const {s}=await completeFixture({texts:[]});
+ await s.repository.transaction(true,t=>t.put('topics',{
+  id:'derived-probe',name:'original',searchVersion:'old',indexedSearchVersion:'old',
+ }));
+ const before=(await meta(s,'backup-data-generation')).value;
+ await s.repository.transaction(true,async t=>{
+  const row=await t.get('topics','derived-probe');
+  row.searchVersion='new';row.indexedSearchVersion='new';
+  await t.putDerivedSearchRow('topics',row);
+ });
+ assert.equal((await meta(s,'backup-data-generation')).value,before);
+ await assert.rejects(()=>s.repository.transaction(true,async t=>{
+  const row=await t.get('topics','derived-probe');
+  row.name='changed';
+  await t.putDerivedSearchRow('topics',row);
+ }));
+ assert.equal((await meta(s,'backup-data-generation')).value,before);
+ assert.equal((await s.repository.transaction(false,t=>t.get('topics','derived-probe'))).name,'original');
+ await s.repository.transaction(true,async t=>{
+  const row=await t.get('topics','derived-probe');
+  row.name='changed';await t.put('topics',row);
+ });
+ assert.equal((await meta(s,'backup-data-generation')).value,before+1);
 });
