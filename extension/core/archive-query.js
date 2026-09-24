@@ -39,9 +39,11 @@ export async function queryPage(t,control,{view='library',query='',limit=50,curs
   const row=await t.get('documents',documentId);if(!row)return state;state.conversations.push(row.value);state.library.documents.push((await t.get('libraryDocuments',documentId)).value);
   const prefix=view==='archive'?[row.chatKey,0]:[documentId,view==='excluded'?1:0];if(prefix[0]===undefined)return state;
   const page=await t.rangePage(view==='archive'?'recordIndex':'blockIndex','byList',prefixRange(prefix),cursor,limit,readingSort==='desc'?'prev':'next');
-  state.pageItemIds=page.rows.map(r=>r.value.id);const ids=new Set();for(const {value:ix}of page.rows){if(view==='archive')ids.add(ix.id);else{const b=(await t.get('blocks',ix.id)).value;state.library.blocks.push(b);b.provenance.forEach(p=>ids.add(p.sourceRecordId));}}
+  state.pageItemIds=page.rows.map(r=>r.value.id);const ids=new Set();
+  if(view==='archive')for(const {value:ix}of page.rows)ids.add(ix.id);
+  else{const blocks=await Promise.all(page.rows.map(({value:ix})=>t.get('blocks',ix.id)));for(const row of blocks){const b=row.value;state.library.blocks.push(b);b.provenance.forEach(p=>ids.add(p.sourceRecordId));}}
   if(view==='library')for(const id of trackedBlockIds){if(state.library.blocks.some(b=>b.id===id))continue;const row=await t.get('blocks',id);if(row?.value.documentId===documentId){state.library.blocks.push(row.value);row.value.provenance.forEach(p=>ids.add(p.sourceRecordId));}}
-  for(const id of ids){const r=await t.get('records',id);if(r)state.records.push(r.value);}
+  const records=await Promise.all([...ids].map(id=>t.get('records',id)));for(const row of records)if(row)state.records.push(row.value);
   state.nextCursor=page.next;return state;
  }
  const needle=query.trim().toLocaleLowerCase();

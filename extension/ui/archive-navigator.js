@@ -53,7 +53,8 @@ export class ArchiveNavigator{
  isNarrow(){return innerWidth>=800&&innerWidth<1200;}
  groupOptions(item){return {providerKey:item.providerKey,groupKind:item.groupKind,...(item.groupKind==='project'?{projectRef:item.projectRef}:{})};}
  async sync({view,documentId,query='',consented=false}={}){
-  const previousSelected=this.selectedDocumentId;this.view=view;this.reader=!!documentId;this.selectedDocumentId=documentId||null;this.query=query||'';this.active=!!consented&&['library','archive'].includes(view);
+  const previousSelected=this.selectedDocumentId,wasReader=this.reader;this.view=view;this.reader=!!documentId;this.selectedDocumentId=documentId||null;this.query=query||'';this.active=!!consented&&['library','archive'].includes(view);
+  if(this.reader&&!wasReader){this.previewGeneration++;this.previewQueue=[];this.previewQueued.clear();}
   document.body.classList.toggle('ans-nav-surface',this.active);document.body.classList.toggle('ans-nav-reader',this.active&&this.reader);document.body.classList.toggle('ans-nav-root',this.active&&!this.reader);
   if(this.sourceLabel)this.sourceLabel.hidden=!this.active||this.reader;
   if(!this.active){this.host.hidden=true;if(this.toggle)this.toggle.hidden=true;this.restoreLegacy();return;}
@@ -61,6 +62,7 @@ export class ArchiveNavigator{
   if(!this.reader&&this.query.trim()){this.host.hidden=true;this.restoreLegacy();return;}
   this.host.hidden=this.reader&&this.isMobile()&&!this.sheetOpen||this.reader&&this.isNarrow()&&this.narrowCollapsed;
   if(this.toggle){this.toggle.hidden=!this.reader;this.toggle.setAttribute('aria-expanded',String(!this.host.hidden));}
+  this.paint();
   if(previousSelected!==this.selectedDocumentId&&(this.selectedDocumentId||previousSelected)||!this.reader&&this.lastOpenedDocumentId)await this.refreshSelection(this.selectedDocumentId||previousSelected||this.lastOpenedDocumentId);
   // Reproject the cached tree immediately when Back returns to Archive. The
   // bounded source refresh below may still be rebuilding its index.

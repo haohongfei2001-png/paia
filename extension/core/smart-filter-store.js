@@ -1,4 +1,5 @@
 import {searchRank,rankSearchPage} from './search-ranking.js';
+import {buildInputSearchCache,lookupInputSearchCache} from './input-search-cache.js';
 import {IAStore} from './ia-store.js';
 import {ArchiveError} from './constants.js';
 import {validProvider} from './read-projection-keys.js';
@@ -13,7 +14,7 @@ const sourceKeys=async(t,b)=>{const keys=[];for(const p of b.provenance){const r
 const authored=(b,m)=>b.libraryText!==null||!!b.note||b.editedAt!==null||m?.contentRevision>0||b.provenance.length!==1||b.mergedSourceIds?.length>1;
 
 export class SmartFilterStore extends IAStore {
- constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;}
+ constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;}
  write(fn){this.filterMutation++;return super.write(fn).finally(()=>{this.filterMutation++;});}
  run(fn){return super.run(async()=>{if(!this.filterLoaded){await this.initializeFilter();this.filterLoaded=true;}return fn();});}
  async initializeFilter(){
@@ -144,13 +145,34 @@ export class SmartFilterStore extends IAStore {
   if((options.view??'library')==='library'&&options.documentId&&!options.contextInputId){const visible=[];for(const id of result.pageItemIds){const b=result.library.blocks.find(b=>b.id===id);if(b&&!await this.isFiltered(t,b,state,snapshot))visible.push(id);}result.pageItemIds=visible;}
   return result;
  }));}
- searchInputs({query='',cursor=null,limit=50,ranked=false,providerKey=null}={}){if(typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||providerKey!==null&&!validProvider(providerKey)||cursor!==null&&(ranked?(![0,1,2].includes(cursor.phase)||cursor.offset!==null&&(!Number.isSafeInteger(cursor.offset)||cursor.offset<0)):(!Number.isSafeInteger(cursor)||cursor<0)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,async t=>{
+ searchInputs({query='',cursor=null,limit=50,ranked=false,providerKey=null}={}){if(typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||providerKey!==null&&!validProvider(providerKey)||cursor!==null&&(ranked?(![0,1,2].includes(cursor.phase)||cursor.offset!==null&&(!Number.isSafeInteger(cursor.offset)||cursor.offset<0)):(!Number.isSafeInteger(cursor)||cursor<0)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(async()=>{
+  const needle=query.normalize('NFKC').trim().toLocaleLowerCase();
+  if(ranked&&needle){
+   const {generation,count}=await this.repository.transaction(false,async t=>({generation:(await t.get('meta','backup-data-generation'))?.value||0,count:await t.count('blockIndex')}));
+   if(count>=1000&&count<=100000){
+    if(this.inputSearchCache?.generation!==generation)this.inputSearchCache=await buildInputSearchCache(this.repository,generation);
+    if(this.inputSearchCache&&!this.inputSearchCache.unavailable){
+     const found=lookupInputSearchCache(this.inputSearchCache,{needle,cursor,limit,providerKey});
+     const result=await this.repository.transaction(false,async t=>{
+      if(((await t.get('meta','backup-data-generation'))?.value||0)!==generation)return null;
+      const state=await t.get('meta','smart-filter'),items=[];
+      for(const row of found.items){const b=(await t.get('blocks',row.id))?.value;if(!b||b.excluded||b.branchStatus)continue;items.push({id:row.id,documentId:row.documentId,text:row.text,title:row.title,rank:row.rank,sourceSentAt:row.sourceSentAt,filtered:await this.isFiltered(t,b,state)});}
+      return {items:rankSearchPage(items),nextCursor:found.nextCursor};
+     });
+     if(result)return result;
+     this.inputSearchCache=null;
+    }
+   }else this.inputSearchCache=null;
+  }
+  return this.searchInputsScan({query,cursor,limit,ranked,providerKey});
+ });}
+ searchInputsScan({query='',cursor=null,limit=50,ranked=false,providerKey=null}={}){return this.repository.transaction(false,async t=>{
   const state=await t.get('meta','smart-filter'),needle=query.normalize('NFKC').trim().toLocaleLowerCase(),items=[],documents=new Map(),phase=ranked?(cursor?.phase||0):null,offset=ranked?cursor?.offset:cursor;const next=offset=>ranked?(offset!==null?{phase,offset}:phase<2?{phase:phase+1,offset:null}:null):offset;if(!needle)return {items,nextCursor:null};const page=await t.page('blockIndex',{index:'bySequence',after:offset??undefined,limit:200});let last=offset;
   for(const {key,value:ix}of page.rows){last=key;if(ix.excluded)continue;if(!documents.has(ix.documentId))documents.set(ix.documentId,(await t.get('documents',ix.documentId))?.value);const doc=documents.get(ix.documentId);if(!doc||providerKey&&doc.platform!==providerKey)continue;const title=doc.userTitle||doc.originalConversationTitle,titleRank=searchRank(needle,title);if(ranked&&(phase<2?titleRank!==phase:titleRank>=0))continue;const b=(await t.get('blocks',ix.id))?.value;if(!b||b.branchStatus)continue;const r=b.originalTextReference?(await t.get('records',b.originalTextReference))?.value:null,text=b.libraryText??r?.originalText??'';
    const rank=searchRank(needle,title,text+' '+(b.note||''));if(rank<0||ranked&&rank!==phase)continue;
    items.push({id:b.id,documentId:b.documentId,text,title,rank,sourceSentAt:ix.sourceSentAt,filtered:await this.isFiltered(t,b,state)});if(items.length===limit)return {items:rankSearchPage(items),nextCursor:next(last)};
   }return {items:rankSearchPage(items),nextCursor:next(page.next)};
- }));}
+ });}
  recentFiltered({cursor=null,limit=50,query=''}={}){if(typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(!Array.isArray(cursor)||cursor.length!==3||cursor[0]!==0||!Number.isSafeInteger(cursor[1])||!idOK(cursor[2])))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,async t=>{
   const page=await t.rangePage('filterInputs','byFiltered',prefix([0]),cursor,limit),items=[];
   for(const {value:row}of page.rows){const b=(await t.get('blocks',row.id))?.value;if(!b||b.excluded||b.branchStatus||!await this.isFiltered(t,b,{mode:'light'}))continue;const doc=(await t.get('documents',b.documentId))?.value,r=b.originalTextReference?(await t.get('records',b.originalTextReference))?.value:null;const text=b.libraryText??r?.originalText??'',title=doc?.userTitle||doc?.originalConversationTitle||'';if(query.trim()&&![text,title].some(v=>v.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())))continue;items.push({id:b.id,documentId:b.documentId,text,title,sourceSentAt:r?.sourceSentAt??null,evaluatedAt:row.evaluatedAt,reason:FILTER_REASONS[row.reasonCode]||FILTER_REASONS.uncertain});}
