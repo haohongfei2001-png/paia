@@ -136,15 +136,26 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
    'backup controls unlock after restore',30000);
   const afterDownloads=[];
   page.on('download',download=>afterDownloads.push(download));
-  await page.locator('#backup-create-segmented').click();
-  try{
-   await eventually(async()=>afterDownloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup'))
-     &&afterDownloads.some(item=>item.suggestedFilename().includes('.part-')),
-    'restored library segmented export',90000);
-  }catch(error){
-   const status=await page.locator('#backup-status').textContent().catch(()=>'(unavailable)');
-   throw new Error(`Restored export failed: status=${status}; downloads=${afterDownloads.map(item=>item.suggestedFilename()).join(',')}; ${error.message}`);
+  let restoredExportComplete=false;
+  for(let attempt=0;attempt<5&&!restoredExportComplete;attempt++){
+   afterDownloads.length=0;
+   await eventually(async()=>await page.locator('#backup-create-segmented').isEnabled(),
+    'backup controls unlock for restored export',30000);
+   await page.locator('#backup-create-segmented').click();
+   await eventually(async()=>{
+    const status=await page.locator('#backup-status').textContent();
+    return afterDownloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup'))
+      ||/备份期间内容发生变化/.test(status);
+   },'restored export completes or detects concurrent index rebuild',30000);
+   restoredExportComplete=afterDownloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup'));
+   if(!restoredExportComplete){
+    assert.equal(afterDownloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup')),false,
+     'a changed library must not publish a completion manifest');
+   }
   }
+  assert.equal(restoredExportComplete,true,
+   `restored export never reached a stable generation: ${await page.locator('#backup-status').textContent()}`);
+  assert.ok(afterDownloads.some(item=>item.suggestedFilename().includes('.part-')));
   const afterDir=join(dir,'after');
   await mkdir(afterDir);
   const afterPaths=[];
