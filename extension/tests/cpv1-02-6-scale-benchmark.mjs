@@ -41,6 +41,9 @@ try{
     }),timeout=setTimeout(()=>{observer.disconnect();reject(Error('Reader did not render selected Window'));},30000);
     observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-current','hidden']});target.click();
    }),i));
+   await page.waitForFunction(()=>!!globalThis.__paiaNavTrace?.end,null,{timeout:30000});
+   const trace=await page.evaluate(()=>globalThis.__paiaNavTrace);
+   navPhases.push({leave:trace.afterLeave-trace.start,readRender:trace.afterRefresh-trace.afterLeave,finish:trace.end-trace.afterRefresh});
   }
   await page.locator('.sidebar [data-view=library]').click();
   await eventually(()=>page.locator('#search').isVisible(),'Archive root search',30000);
