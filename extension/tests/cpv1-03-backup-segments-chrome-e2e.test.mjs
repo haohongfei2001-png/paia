@@ -82,7 +82,7 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   const baselineFile=await baselineDownload;
   const baselinePath=join(dir,'baseline.paia-backup');
   await baselineFile.saveAs(baselinePath);
-  const baselineItems=(await readFile(baselinePath,'utf8')).trimEnd().split('\\n')
+  const baselineItems=(await readFile(baselinePath,'utf8')).trimEnd().split('\n')
    .map(JSON.parse).filter(row=>row.type==='item');
   assert.ok(baselineItems.length>200);
   const downloads=[];
@@ -145,7 +145,7 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   }
   const afterItems=[];
   for(const path of afterPaths.filter(path=>path.includes('.part-')).sort())
-   afterItems.push(...(await readFile(path,'utf8')).trimEnd().split('\\n').map(JSON.parse).filter(row=>row.type==='item'));
+   afterItems.push(...(await readFile(path,'utf8')).trimEnd().split('\n').map(JSON.parse).filter(row=>row.type==='item'));
   assert.deepEqual(afterItems,baselineItems);
   assert.equal(harness.externalRequests,0);
   assert.deepEqual(harness.errors,[]);
