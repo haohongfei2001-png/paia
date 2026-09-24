@@ -110,8 +110,17 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     // Re-activating inside the same extension call races the tab teardown on
     // Linux Chrome and can terminate the browser before it reports a result.
     await h.archive.bringToFront();
+    await h.archive.evaluate(async () => {
+      const current = await chrome.tabs.getCurrent();
+      await chrome.tabs.update(current.id, { active: true });
+    });
+    await eventually(async () => h.archive.evaluate(async id => {
+      const current = await chrome.tabs.getCurrent();
+      const target = await chrome.tabs.get(id);
+      return (await chrome.tabs.get(current.id)).active === true && target.active === false;
+    }, targetId), 'archive tab is active before conversation discard');
     const discarded = await h.archive.evaluate(id => chrome.tabs.discard(id), targetId);
-    assert.equal(discarded?.id, targetId);
+    assert.equal(discarded?.id, targetId, 'Chrome discarded the requested conversation tab');
     assert.equal(discarded?.discarded, true, 'Chrome discarded the conversation tab');
     await eventually(async () => h.archive.evaluate(async id => (await chrome.tabs.get(id)).discarded === true, targetId), 'conversation tab reaches discarded state');
     const restored = await h.archive.evaluate(id => chrome.tabs.update(id, { active: true }), targetId);
