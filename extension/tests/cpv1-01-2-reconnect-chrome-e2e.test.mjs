@@ -119,18 +119,22 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
       const target = await chrome.tabs.get(id);
       return (await chrome.tabs.get(current.id)).active === true && target.active === false;
     }, targetId), 'archive tab is active before conversation discard');
-    const targetUrl = await h.archive.evaluate(async id => (await chrome.tabs.get(id)).url, targetId);
-    assert.equal(new URL(targetUrl).pathname, '/c/cpv1-discarded-tab');
+    assert.equal(new URL(tab.url()).pathname, '/c/cpv1-discarded-tab');
+    const targetSlot = await h.archive.evaluate(async id => {
+      const target = await chrome.tabs.get(id);
+      return { windowId: target.windowId, index: target.index };
+    }, targetId);
     const discarded = await h.archive.evaluate(id => chrome.tabs.discard(id), targetId);
     assert.equal(discarded?.discarded, true, 'Chrome discarded the conversation tab');
-    assert.equal(discarded?.url, targetUrl, 'discard preserves the conversation identity');
-    // Chrome may replace the tab ID during discard. Require exactly one tab
-    // with this conversation URL, then use the ID returned by Chrome.
-    await eventually(async () => h.archive.evaluate(async ({ id, url }) => {
-      const tabs = await chrome.tabs.query({});
-      return tabs.filter(tab => tab.url === url).length === 1
-        && tabs.some(tab => tab.id === id && tab.url === url && tab.discarded === true);
-    }, { id: discarded.id, url: targetUrl }), 'one discarded conversation tab remains');
+    assert.equal(discarded?.windowId, targetSlot.windowId);
+    assert.equal(discarded?.index, targetSlot.index);
+    // Chrome may replace a tab ID during discard. Verify the same window slot
+    // contains exactly the returned discarded tab before re-activating it.
+    await eventually(async () => h.archive.evaluate(async ({ id, windowId, index }) => {
+      const tabs = await chrome.tabs.query({ windowId });
+      return tabs.filter(tab => tab.index === index).length === 1
+        && tabs.some(tab => tab.id === id && tab.index === index && tab.discarded === true);
+    }, { id: discarded.id, ...targetSlot }), 'one discarded conversation tab remains');
     const restored = await h.archive.evaluate(id => chrome.tabs.update(id, { active: true }), discarded.id);
     assert.equal(restored?.active, true);
     await eventually(async () => h.archive.evaluate(async id => (await chrome.tabs.get(id)).status === 'complete', restored.id), 'discarded tab finishes loading');
