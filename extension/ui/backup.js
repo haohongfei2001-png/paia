@@ -14,9 +14,9 @@ export async function* backupSegmentRows(files){
  if(manifestFile.size>2*1024*1024)backupError('BACKUP_TOO_LARGE');
  let manifest;
  try{manifest=JSON.parse(await manifestFile.text());}catch{backupError('BACKUP_INVALID');}
- const ordered=await verifyBackupSegments(manifest,list.filter(file=>file!==manifestFile));
+ const ordered=await verifyBackupSegments(manifest,list.filter(file=>file!==manifestFile),
+  {maxBytes:BACKUP_LIMITS.restoreBytes});
  if(ordered.some(file=>!file.name.startsWith(prefix+'.part-')))backupError('BACKUP_INVALID');
- if(manifest.totalBytes>BACKUP_LIMITS.restoreBytes)backupError('BACKUP_TOO_LARGE');
  for(const file of ordered)yield* backupFileRows(file);
 }
 export class BackupPanel {
