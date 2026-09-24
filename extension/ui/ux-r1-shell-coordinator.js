@@ -54,23 +54,28 @@ function syncArchiveActions(){
   trigger.addEventListener('click',event=>{if(!archiveRootScope())return;event.preventDefault();event.stopImmediatePropagation();openArchiveActions();},{capture:true});
   new MutationObserver(()=>{if(menu.hidden&&menu.dataset.owner==='archive-root'){delete menu.dataset.owner;trigger.setAttribute('aria-expanded','false');}}).observe(menu,{attributes:true,attributeFilter:['hidden']});
  }
- const scope=archiveRootScope();
- if(scope){trigger.hidden=false;trigger.dataset.archiveRoot='true';trigger.setAttribute('aria-haspopup','menu');trigger.setAttribute('aria-expanded',menu.dataset.owner==='archive-root'&&!menu.hidden?'true':'false');trigger.setAttribute('aria-label',copy(['档案更多操作','More Archive actions']));}
+ const scope=archiveRootScope(),newOverflow=$('archive-root-overflow');
+ if(scope&&newOverflow&&!newOverflow.hidden){trigger.hidden=true;delete trigger.dataset.archiveRoot;closeArchiveActions();}
+ else if(scope){trigger.hidden=false;trigger.dataset.archiveRoot='true';trigger.setAttribute('aria-haspopup','menu');trigger.setAttribute('aria-expanded',menu.dataset.owner==='archive-root'&&!menu.hidden?'true':'false');trigger.setAttribute('aria-label',copy(['档案更多操作','More Archive actions']));}
  else if(trigger.dataset.archiveRoot==='true'){delete trigger.dataset.archiveRoot;trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-label',copy(['更多操作','More actions']));closeArchiveActions();}
  const history=$('sync-history');if(history){history.style.display='none';history.setAttribute('aria-hidden','true');history.tabIndex=-1;}
  const legacyExport=$('export-menu');if(legacyExport){legacyExport.style.display='none';legacyExport.setAttribute('aria-hidden','true');}
 }
 function syncArchiveFrame(){
- const panel=$('collection-panel'),home=$('core-loop-home'),search=$('search'),revisit=$('revisit-open');if(!panel||!home||!search||!revisit)return;
+ const panel=$('collection-panel'),home=$('core-loop-home'),search=$('search'),revisit=$('revisit-open'),tools=$('archive-root-tools');if(!panel||!home||!search||!revisit)return;
  let frame=$('uir-archive-frame'),main=$('uir-archive-main'),assist=$('uir-archive-assist');
  if(!frame){frame=document.createElement('div');frame.id='uir-archive-frame';frame.className='uir-archive-frame';main=document.createElement('div');main.id='uir-archive-main';main.className='uir-archive-main';assist=document.createElement('aside');assist.id='uir-archive-assist';assist.className='uir-archive-assist';frame.append(main,assist);panel.prepend(frame);}
+ if(tools&&tools.parentElement!==main)main.prepend(tools);
  const intro=home.querySelector('.core-loop-intro');if(intro)intro.hidden=true;
  for(const item of [search,$('result-count'),$('document-list'),$('empty-list'),$('empty-sync'),$('export-menu')])if(item&&item.parentElement!==main)main.append(item);
  if(home.parentElement!==assist)assist.append(home);syncArchiveActions();
  const proxy=$('core-loop-return');
  if(proxy){
   let row=$('uir-revisit-row');if(!row){row=document.createElement('div');row.id='uir-revisit-row';row.className='uir-revisit-row';proxy.before(row);}if(row.parentElement!==home)home.append(row);
-  if(proxy.parentElement!==row)row.append(proxy);if(revisit.parentElement!==row)row.append(revisit);proxy.hidden=false;
+  if(proxy.parentElement!==row)row.append(proxy);
+  if(!tools&&revisit.parentElement!==row)row.append(revisit);
+  if(tools&&revisit.parentElement!==$('workspace-heading')?.parentElement)$('workspace-heading')?.after(revisit);
+  proxy.hidden=false;
   const stateLabel=proxy.querySelector('.core-loop-card-label');if(stateLabel)stateLabel.textContent=copy(['本机变化','Local changes']);proxy.setAttribute('aria-label',copy(['查看本机变化','View local changes']));
  }
  revisit.classList.remove('core-loop-card','uir-revisit-entry');revisit.classList.add('uir-revisit-shortcut');
@@ -100,7 +105,7 @@ function installLocaleSync(){
   const bootstrap=new MutationObserver(()=>{syncShellLocale();if(ready())bootstrap.disconnect();});bootstrap.observe(workspace,{subtree:true,childList:true});
  }
  const resyncArchiveActions=()=>syncArchiveActions();
- for(const target of [$('collection-panel'),$('document-panel'),...document.querySelectorAll('[data-view]')].filter(Boolean))new MutationObserver(resyncArchiveActions).observe(target,{attributes:true,attributeFilter:['hidden','aria-current']});
+ for(const target of [$('collection-panel'),$('document-panel'),$('archive-root-overflow'),...document.querySelectorAll('[data-view]')].filter(Boolean))new MutationObserver(resyncArchiveActions).observe(target,{attributes:true,attributeFilter:['hidden','aria-current']});
 }
 function installConsentPrimaryAction(){
  const button=$('enable-consent'),check=$('consent-check');if(!button)return;
