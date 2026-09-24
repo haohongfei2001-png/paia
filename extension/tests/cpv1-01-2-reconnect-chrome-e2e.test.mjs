@@ -120,7 +120,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
       return (await chrome.tabs.get(current.id)).active === true && target.active === false;
     }, targetId), 'archive tab is active before conversation discard');
     const targetUrl = await h.archive.evaluate(async id => (await chrome.tabs.get(id)).url, targetId);
-    assert.match(targetUrl, /\\/c\\/cpv1-discarded-tab$/);
+    assert.equal(new URL(targetUrl).pathname, '/c/cpv1-discarded-tab');
     const discarded = await h.archive.evaluate(id => chrome.tabs.discard(id), targetId);
     assert.equal(discarded?.discarded, true, 'Chrome discarded the conversation tab');
     assert.equal(discarded?.url, targetUrl, 'discard preserves the conversation identity');
