@@ -50,7 +50,7 @@ try{
    const field=document.querySelector('#search'),needle='body '+index;
    if(!field||!field.getClientRects().length)return reject(Error('Archive search is not visible'));
    const start=performance.now();
-   const finish=()=>{if(!document.querySelector('.search-excerpt')?.textContent?.includes(needle))return;
+   const finish=()=>{const result=document.querySelector('.search-excerpt');if(!result?.getClientRects().length||!result.textContent?.includes(needle))return;
     observer.disconnect();clearTimeout(timeout);resolve(performance.now()-start);};
    const observer=new MutationObserver(finish),timeout=setTimeout(()=>{observer.disconnect();reject(Error('First lexical result did not render'));},60000);
    observer.observe(document.body,{subtree:true,childList:true,characterData:true});
