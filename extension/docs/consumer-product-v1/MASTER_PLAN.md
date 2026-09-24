@@ -54,6 +54,20 @@ The manager must preserve two truthful states:
 
 No later work may erase, relabel or implicitly satisfy an earlier deferred gate. Final slice/package completion still requires all applicable evidence.
 
+### 0.5 Deferred-gate routing
+
+A round that exists primarily to resolve an owner, private-artifact, real-device, credential, paid-service or current-live gate must not become a queue-wide parking lot.
+
+When such a gate is unavailable:
+
+- register/update it in `DEFERRED_FINAL_GATES.md`;
+- complete every independent engineering subtask in the round;
+- record `ENGINEERING_PARTIAL / DEFERRED_GATE_PENDING` (or the narrower existing split state) rather than pretending COMPLETE;
+- leave dependent behavior disabled/fail-closed/synthetic-only as appropriate;
+- advance to the next canonical work whose correctness does not depend on the missing decision/evidence.
+
+At final convergence, revisit the deferred ledger and close only those gates with real evidence/owner decisions. If unresolved gates remain, report them together rather than repeatedly interrupting development one at a time.
+
 ### 0.6 Integration batching for faster continuous development
 
 The numbered CPV1 rounds below remain product/outcome contracts, but they are no longer presumed to require separate PR/merge/receipt cycles.
@@ -71,20 +85,6 @@ Default batches through the first desktop candidate:
 A manager may split a batch early only for a real high-risk integration boundary, conflicting dependency, unsafe review size, or an external/main dependency that cannot be validated on the existing writer branch. It should not split simply because a numbered subround ended.
 
 This batching changes execution overhead, not product scope or exit truth. Every numbered outcome must still be satisfied or explicitly deferred where the protocol permits.
-
-### 0.5 Deferred-gate routing
-
-A round that exists primarily to resolve an owner, private-artifact, real-device, credential, paid-service or current-live gate must not become a queue-wide parking lot.
-
-When such a gate is unavailable:
-
-- register/update it in `DEFERRED_FINAL_GATES.md`;
-- complete every independent engineering subtask in the round;
-- record `ENGINEERING_PARTIAL / DEFERRED_GATE_PENDING` (or the narrower existing split state) rather than pretending COMPLETE;
-- leave dependent behavior disabled/fail-closed/synthetic-only as appropriate;
-- advance to the next canonical work whose correctness does not depend on the missing decision/evidence.
-
-At final convergence, revisit the deferred ledger and close only those gates with real evidence/owner decisions. If unresolved gates remain, report them together rather than repeatedly interrupting development one at a time.
 
 ---
 
