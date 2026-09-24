@@ -165,7 +165,10 @@ test('oversized declared restore is refused before reading any segment',async()=
 
 test('orphan thought relations are omitted from export and rejected in a signed restore stream',async()=>{
  const source=await completeFixture();
- const first=(await rows(source.s,'thoughts'))[0].id;
+ await source.runner.wake({userActionId:crypto.randomUUID()});
+ const thoughts=await rows(source.s,'thoughts');
+ assert.ok(thoughts.length>0);
+ const first=thoughts[0].id;
  await source.s.repository.transaction(true,t=>t.put('entryRelations',{
   id:'orphan-relation',fromEntryId:first,toEntryId:'missing-entry',
   kind:'related',sourceRecordIds:[],
