@@ -108,6 +108,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
       return controls.inputReadingSort==='desc'&&await toggle.getAttribute('data-current-sort')==='desc';
     },'single toggle persists desc');
     assert.equal(await toggle.getAttribute('aria-pressed'),'true');
+    assert.deepEqual(await p.evaluate(()=>({sort:history.state?.paiaReader?.sort,anchorSort:history.state?.paiaReader?.anchor?.sort})),{sort:'desc',anchorSort:'desc'},'sort route keeps the captured reading anchor on the exact next order');
     const descBodies=await p.locator('.library-prose').allTextContents();
     assert.equal(descBodies[0].includes('ANS01_THIRD'),true,'descending Reader places latest Input first');
 
