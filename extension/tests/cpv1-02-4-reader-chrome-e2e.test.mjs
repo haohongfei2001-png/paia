@@ -7,13 +7,18 @@ async function consent(page){
  await page.locator('#enable-consent').click();
 }
 
+async function openCapturedReader(page){
+ await page.locator('.sidebar [data-view="library"]').click();
+ await page.locator('#collection-panel .conversation-document').first().click();
+}
+
 test('CPV1-02.4 Reader keeps actions contextual and removal reversible', {timeout:60000},async()=>{
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive;await consent(p);
   await h.open(conversation('cpv1-reader-actions'));
   await eventually(async()=>(await h.state()).records.length===3);
-  await p.locator('.conversation-document').click();
+  await openCapturedReader(p);
   const before=await h.state(),first=p.locator('.library-prose').first();
   await eventually(async()=>await p.locator('.library-block .reader-more').count()===3,'Reader actions mounted');
   assert.equal(await p.locator('.library-block .reading-copy,.library-block .input-remove').count(),0);
@@ -39,7 +44,7 @@ test('CPV1-02.4 Reader bounds long conversations and restores preceding range', 
   c.messages=Array.from({length:205},(_,i)=>({id:'cpv1-reader-'+String(i).padStart(3,'0'),text:'Synthetic continuous reading '+i}));
   await h.open(c);
   await eventually(async()=>(await h.state()).records.length===205,'205 synthetic inputs captured');
-  await p.locator('.conversation-document').click();
+  await openCapturedReader(p);
   const rows=p.locator('.library-prose'),index=async edge=>Number((await (edge==='first'?rows.first():rows.last()).textContent()).match(/reading (\d+)/)?.[1]??-1);
   const scrollUntil=async(edge,expected,label)=>eventually(async()=>{if(edge==='last'&&await index('last')>=expected||edge==='first'&&await index('first')<=expected)return true;await p.evaluate(edge==='last'?()=>window.scrollTo(0,document.body.scrollHeight):()=>window.scrollTo(0,document.querySelector('#document-body').offsetTop));return false;},label,30000);
   await eventually(async()=>await rows.count()===40);
@@ -73,7 +78,7 @@ test('CPV1-02.4 conversation search steps into unmounted text and close restores
   const c=conversation('cpv1-reader-search');
   c.messages=Array.from({length:101},(_,i)=>({id:'cpv1-search-'+String(i).padStart(3,'0'),text:`Synthetic text ${i}${i===0||i===100?' CPV1_MATCH':''}`}));
   await h.open(c);await eventually(async()=>(await h.state()).records.length===101);
-  await p.locator('.conversation-document').click();
+  await openCapturedReader(p);
   const first=p.locator('.library-prose').first();await first.focus();await first.scrollIntoViewIfNeeded();
   const firstId=await first.getAttribute('data-edit-id');
   await p.locator('#document-search').fill('CPV1_MATCH');
