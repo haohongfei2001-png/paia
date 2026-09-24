@@ -13,6 +13,18 @@ async function openBackup(page){
  await page.locator('#backup-create-segmented').waitFor({state:'visible'});
 }
 
+async function enableConsent(page){
+ await page.waitForFunction(()=>{
+  const visible=id=>{const node=document.getElementById(id);return !!node&&node.getClientRects().length>0;};
+  return visible('onboarding-start')||visible('consent-check');
+ });
+ if(await page.locator('#onboarding-start').isVisible())
+  await page.locator('#onboarding-start').click();
+ await page.locator('#consent-check').waitFor({state:'visible'});
+ await page.locator('#consent-check').check();
+ await page.locator('#enable-consent').click();
+}
+
 async function portableItems(harness){
  const worker=harness.context.serviceWorkers().find(item=>item.url().includes('/background/service-worker.js'));
  return worker.evaluate(async()=>{
@@ -44,10 +56,9 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
  const headless=!(process.env.CI==='1'&&process.env.DISPLAY);
  let harness;
  try{
-  harness=await FakeChatGPT.start({headless,extensionPath:dir});
+  harness=await FakeChatGPT.start({headless,extensionPath:dir,onboarding:true});
   let page=harness.archive;
-  await page.locator('#consent-check').check();
-  await page.locator('#enable-consent').click();
+  await enableConsent(page);
   const worker=harness.context.serviceWorkers().find(item=>item.url().includes('/background/service-worker.js'));
   await worker.evaluate(()=>globalThis.cpv1033.seed({inputCount:120,entryCount:90}));
   const before=await portableItems(harness);
@@ -77,10 +88,9 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   assert.deepEqual(await portableItems(harness),before);
   await harness.close();harness=undefined;
 
-  harness=await FakeChatGPT.start({headless,extensionPath:dir});
+  harness=await FakeChatGPT.start({headless,extensionPath:dir,onboarding:true});
   page=harness.archive;
-  await page.locator('#consent-check').check();
-  await page.locator('#enable-consent').click();
+  await enableConsent(page);
   await openBackup(page);
   const part=paths.find(path=>path.includes('.part-'));
   const damaged=join(dir,'damaged',part.split('/').at(-1));
