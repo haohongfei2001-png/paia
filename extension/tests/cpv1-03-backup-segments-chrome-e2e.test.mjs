@@ -14,15 +14,21 @@ async function openBackup(page){
 }
 
 async function enableConsent(page){
- await page.waitForFunction(()=>{
-  const visible=id=>{const node=document.getElementById(id);return !!node&&node.getClientRects().length>0;};
-  return visible('onboarding-start')||visible('consent-check');
- });
- if(await page.locator('#onboarding-start').isVisible())
-  await page.locator('#onboarding-start').click();
- await page.locator('#consent-check').waitFor({state:'visible'});
- await page.locator('#consent-check').check();
- await page.locator('#enable-consent').click();
+ const welcome=page.locator('#onboarding-start'),consent=page.locator('#consent-check');
+ const consented=async()=>{
+  const response=await page.evaluate(()=>chrome.runtime.sendMessage({type:'GET_STATE'}));
+  assert.equal(response.ok,true,JSON.stringify(response));
+  return response.data.settings.consentVersion===1;
+ };
+ await eventually(async()=>await welcome.isVisible()||await consent.isVisible()||await consented(),
+  'onboarding or existing consent',30000);
+ if(await welcome.isVisible())await welcome.click();
+ if(!await consented()){
+  await consent.waitFor({state:'visible'});
+  await consent.check();
+  await page.locator('#enable-consent').click();
+  await eventually(consented,'durable local consent',30000);
+ }
 }
 
 async function portableItems(harness){
