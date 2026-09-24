@@ -70,6 +70,11 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   for(const path of paths.filter(path=>path.includes('.part-')).sort())
    downloaded.push(...(await readFile(path,'utf8')).trimEnd().split('\n').map(JSON.parse).filter(row=>row.type==='item'));
   assert.deepEqual(downloaded,before);
+  await page.locator('#backup-file').setInputFiles(paths);
+  await eventually(async()=>await page.locator('#backup-preview').isVisible(),
+   'non-empty library restore preview',60000);
+  assert.equal(await page.locator('#backup-restore').isDisabled(),true);
+  assert.deepEqual(await portableItems(harness),before);
   await harness.close();harness=undefined;
 
   harness=await FakeChatGPT.start({headless,extensionPath:dir});
