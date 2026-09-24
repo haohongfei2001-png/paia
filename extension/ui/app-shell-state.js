@@ -11,7 +11,7 @@ export function appShellRoute(current,navigator=null){
   topicId:current.topicId||null,
   contextInputId:current.contextInputId||null,
   returnTo:current.returnTo||null,
-  sourceKey:selected?.providerKey||null,
+  sourceKey:current.sourceScope||selected?.providerKey||null,
   projectRef:selected?.groupKind==='project'?selected.projectRef||null:null,
   searchQuery:typeof current.searchQuery==='string'?current.searchQuery.slice(0,1000):'',
   sort:current.sort==='asc'||current.sort==='desc'?current.sort:null,

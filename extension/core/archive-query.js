@@ -22,8 +22,9 @@ async function recentCapturedDocument(t){
  }
  return null;
 }
-export async function queryPage(t,control,{view='library',query='',limit=50,cursor=null,documentId=null,trackedBlockIds=[],sort=null}={}){
+export async function queryPage(t,control,{view='library',query='',limit=50,cursor=null,documentId=null,trackedBlockIds=[],sort=null,providerKey=null}={}){
  if(sort!==null&&!['asc','desc'].includes(sort))throw new ArchiveError('INVALID_REQUEST');
+ if(providerKey!==null&&(typeof providerKey!=='string'||providerKey.length>80||!/^[a-z0-9][a-z0-9_-]*$/i.test(providerKey)))throw new ArchiveError('INVALID_REQUEST');
  if(!views.includes(view)||typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||!validCursor(cursor)||documentId!==null&&(typeof documentId!=='string'||documentId.length>200))throw new ArchiveError('INVALID_REQUEST');
  if(!Array.isArray(trackedBlockIds)||trackedBlockIds.length>1000||trackedBlockIds.some(id=>typeof id!=='string'||id.length>200))throw new ArchiveError('INVALID_REQUEST');
  const trash=await t.count('recordIndex','byTrash',1),hidden=await t.count('recordIndex','byHidden',1);
@@ -43,9 +44,10 @@ export async function queryPage(t,control,{view='library',query='',limit=50,curs
   state.nextCursor=page.next;return state;
  }
  const needle=query.trim().toLocaleLowerCase();
- if(view==='library'&&!needle)state.recentCapturedDocument=await recentCapturedDocument(t);
+ if(view==='library'&&!needle&&!providerKey)state.recentCapturedDocument=await recentCapturedDocument(t);
  const scan=await t.rangePage('documents',view+'Display',null,cursor,100);let last=null;
  for(const {key,value:row}of scan.rows){last=key;const d=row.value;
+  if(providerKey&&d.platform!==providerKey)continue;
   const rowCount=view==='archive'?(row.chatKey?await t.count('recordIndex','byList',prefixRange([row.chatKey,0])):0):await t.count('blockIndex','byExcluded',[d.id,view==='excluded'?1:0]);if(!rowCount)continue;
   let matches=!needle||[d.userTitle,d.originalConversationTitle].some(v=>(v||'').toLocaleLowerCase().includes(needle));
   if(!matches){

@@ -33,9 +33,10 @@ export class ArchiveNavigatorState{
 }
 
 export class ArchiveNavigator{
- constructor({onOpenWindow,onSourceDetail,onStatus=()=>{},onRouteChange=()=>{}}={}){
-  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;
+ constructor({onOpenWindow,onSourceDetail,onStatus=()=>{},onRouteChange=()=>{},onScopeChange=()=>{}}={}){
+  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.onScopeChange=onScopeChange;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;this.sourceScope=null;
   this.previews=new Map();this.previewQueue=[];this.previewQueued=new Map();this.previewInFlight=0;this.previewGeneration=0;
+  this.sourceSelect=$('archive-source-scope');this.sourceLabel=$('archive-source-scope-label');this.sourceSelect?.addEventListener('change',()=>{this.sourceScope=this.sourceSelect.value||null;this.lastPaintSignature=null;this.paint();this.onRouteChange();this.onScopeChange();});
   this.host=element('aside','archive-navigator');this.host.id='archive-navigator';this.host.setAttribute('aria-label',copy('档案窗口导航','Archive window navigator'));this.host.tabIndex=-1;
   const head=element('header','archive-navigator-header'),title=element('h2','',copy('档案窗口','Archive windows'));this.status=element('p','archive-navigator-status','');this.status.setAttribute('role','status');this.status.setAttribute('aria-live','polite');this.applyOrder=element('button','archive-navigator-apply-order',copy('应用','Apply'));this.applyOrder.type='button';this.applyOrder.hidden=true;this.close=element('button','archive-navigator-close',copy('关闭','Close'));this.close.type='button';head.append(title,this.status,this.applyOrder,this.close);
   this.tree=element('div','archive-navigator-tree');this.host.append(head,this.tree);
@@ -46,14 +47,15 @@ export class ArchiveNavigator{
   window.addEventListener('resize',()=>this.layout(),{passive:true});
   const collection=$('collection-panel');if(collection)new MutationObserver(()=>this.place()).observe(collection,{subtree:true,childList:true});
  }
- navigationSnapshot(){const loaded=[];for(const scope of this.state.scopes.values()){const kind=scope.options?.groupKind;if(!['project','unassigned','unknown','deleted','detached'].includes(kind))continue;const groupKey=navigatorGroupKey(scope.options.providerKey,kind,scope.options.projectRef);if(this.state.expanded.has(groupKey)&&scope.items.length)loaded.push([scope.key,Math.min(10000,scope.items.length)]);}return {expanded:[...this.state.expanded].slice(0,100),loaded:loaded.slice(0,100),scrollTop:Math.max(0,Math.round(this.state.scrollTop||0)),narrowCollapsed:!!this.narrowCollapsed};}
- restoreNavigation(snapshot){if(!snapshot)return;this.state.expanded=new Set(snapshot.expanded||[]);this.restoreDepth=new Map(snapshot.loaded||[]);this.state.scrollTop=Math.max(0,snapshot.scrollTop||0);this.narrowCollapsed=!!snapshot.narrowCollapsed;this.layout();this.paint();}
+ navigationSnapshot(){const loaded=[];for(const scope of this.state.scopes.values()){const kind=scope.options?.groupKind;if(!['project','unassigned','unknown','deleted','detached'].includes(kind))continue;const groupKey=navigatorGroupKey(scope.options.providerKey,kind,scope.options.projectRef);if(this.state.expanded.has(groupKey)&&scope.items.length)loaded.push([scope.key,Math.min(10000,scope.items.length)]);}return {expanded:[...this.state.expanded].slice(0,100),loaded:loaded.slice(0,100),scrollTop:Math.max(0,Math.round(this.state.scrollTop||0)),narrowCollapsed:!!this.narrowCollapsed,sourceScope:this.sourceScope};}
+ restoreNavigation(snapshot){if(!snapshot)return;this.state.expanded=new Set(snapshot.expanded||[]);this.restoreDepth=new Map(snapshot.loaded||[]);this.state.scrollTop=Math.max(0,snapshot.scrollTop||0);this.narrowCollapsed=!!snapshot.narrowCollapsed;this.sourceScope=snapshot.sourceScope||null;if(this.sourceSelect)this.sourceSelect.value=this.sourceScope||'';this.layout();this.paint();}
  isMobile(){return this.media.matches;}
  isNarrow(){return innerWidth>=800&&innerWidth<1200;}
  groupOptions(item){return {providerKey:item.providerKey,groupKind:item.groupKind,...(item.groupKind==='project'?{projectRef:item.projectRef}:{})};}
  async sync({view,documentId,query='',consented=false}={}){
   const previousSelected=this.selectedDocumentId;this.view=view;this.reader=!!documentId;this.selectedDocumentId=documentId||null;this.query=query||'';this.active=!!consented&&['library','archive'].includes(view);
   document.body.classList.toggle('ans-nav-surface',this.active);document.body.classList.toggle('ans-nav-reader',this.active&&this.reader);document.body.classList.toggle('ans-nav-root',this.active&&!this.reader);
+  if(this.sourceLabel)this.sourceLabel.hidden=!this.active||this.reader;
   if(!this.active){this.host.hidden=true;if(this.toggle)this.toggle.hidden=true;this.restoreLegacy();return;}
   this.place();this.layout();
   if(!this.reader&&this.query.trim()){this.host.hidden=true;this.restoreLegacy();return;}
@@ -126,6 +128,7 @@ export class ArchiveNavigator{
   const token=++this.serial;if(hard){this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;}
   let root=await this.readScope({groupKind:'providers'});if(token!==this.serial)return;
   if(root.coverage.state!=='complete'){this.setStatus(copy('正在整理窗口索引…','Building window index…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
+  this.updateSourceOptions(root.items);
   let building=false;
   for(const provider of root.items){const groups=await this.readScope({providerKey:provider.providerKey,groupKind:'groups'});if(token!==this.serial)return;if(groups.coverage.state!=='complete'||groups.unavailableReason==='SOURCE_ORDER_PREPARING')building=true;}
   // A newly captured window can move from unknown to verified unassigned as
@@ -184,8 +187,17 @@ export class ArchiveNavigator{
   const at=new Date(value);if(!Number.isFinite(at.getTime()))return copy('时间待确认','Time unconfirmed');
   return new Intl.DateTimeFormat(document.documentElement.lang==='en'?'en-US':'zh-CN',{year:'numeric',month:'short',day:'numeric'}).format(at);
  }
+ updateSourceOptions(providers){
+  if(!this.sourceSelect)return;
+  const keys=providers.map(item=>item.providerKey),current=this.sourceScope;
+  const desired=['',...keys,...(current&&!keys.includes(current)?[current]:[])];
+  if(JSON.stringify([...this.sourceSelect.options].map(option=>option.value))!==JSON.stringify(desired)){
+   this.sourceSelect.replaceChildren(...desired.map(key=>{const option=element('option','',key?key===current&&!keys.includes(key)?copy('来源暂不可用','Source unavailable'):providerName(key):copy('全部来源','All sources'));option.value=key;return option;}));
+  }
+  this.sourceSelect.value=current||'';
+ }
  detail(subject,trigger){this.onSourceDetail?.(subject,trigger);}
- paintSignature(){return JSON.stringify({mode:this.mode,selected:this.selectedDocumentId,expanded:[...this.state.expanded].sort(),scopes:[...this.state.scopes].sort(([a],[b])=>a.localeCompare(b)).map(([key,scope])=>[key,scope.coverage?.state||null,scope.generation,scope.effectiveOrdering,scope.unavailableReason,scope.nextCursor,scope.error,scope.loading,scope.items.map(item=>[item.kind,item.id,item.title,item.providerKey,item.groupKind,item.projectRef,item.sourceStatus,item.parentSourceStatus])])});}
+ paintSignature(){return JSON.stringify({mode:this.mode,sourceScope:this.sourceScope,selected:this.selectedDocumentId,expanded:[...this.state.expanded].sort(),scopes:[...this.state.scopes].sort(([a],[b])=>a.localeCompare(b)).map(([key,scope])=>[key,scope.coverage?.state||null,scope.generation,scope.effectiveOrdering,scope.unavailableReason,scope.nextCursor,scope.error,scope.loading,scope.items.map(item=>[item.kind,item.id,item.title,item.providerKey,item.groupKind,item.projectRef,item.sourceStatus,item.parentSourceStatus])])});}
  syncSelection(){for(const button of this.host.querySelectorAll('.archive-navigator-window')){if(button.dataset.documentId===this.selectedDocumentId)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}}
  paint(){
   if(!this.active)return;this.place();const signature=this.paintSignature();if(signature===this.lastPaintSignature){this.syncSelection();this.syncLegacy();return;}this.lastPaintSignature=signature;const activeInside=this.host.contains(document.activeElement),activeKey=activeInside?document.activeElement?.dataset?.ansNavKey:null,scroll=this.state.scrollTop;this.tree.replaceChildren();
@@ -194,6 +206,7 @@ export class ArchiveNavigator{
   if(root.coverage.state!=='complete'){this.tree.append(element('p','archive-navigator-loading',copy('正在整理窗口…','Preparing windows…')));this.syncLegacy();return;}
   if(!root.items.length)this.tree.append(element('p','archive-navigator-empty',copy('还没有可导航的窗口。','No archive windows yet.')));
   for(const provider of root.items){
+   if(this.sourceScope&&provider.providerKey!==this.sourceScope)continue;
    const section=element('section','archive-navigator-provider'),heading=element('h3','archive-navigator-provider-title',providerName(provider.providerKey));section.dataset.providerKey=provider.providerKey;section.append(heading);
    const groups=this.state.scope({providerKey:provider.providerKey,groupKind:'groups'});
    if(groups.coverage.state!=='complete'){section.append(element('p','archive-navigator-loading',copy('正在读取来源分组…','Loading source groups…')));this.tree.append(section);continue;}

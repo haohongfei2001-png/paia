@@ -31,21 +31,26 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await eventually(()=>page.locator('.archive-navigator-window-cue').first().isVisible(),'bounded local content cue is visible');
   assert.match(await page.locator('.archive-navigator-window-cue').first().textContent(),/CPV1_SHELL_SEARCH unique saved idea/);
   assert.match(await page.locator('.archive-navigator-window-time').first().textContent(),/2021/);
+  await eventually(async()=>await page.locator('#archive-source-scope option[value="chatgpt"]').count()===1,'source scope reflects captured provider');
+  await page.locator('#archive-source-scope').selectOption('chatgpt');
+  await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.sourceKey)==='chatgpt','source scope belongs to the shell route');
+  await eventually(()=>rootWindow.isVisible(),'scoping to ChatGPT keeps its Conversation visible');
   assert.equal(await page.locator('#sync-history').isVisible(),false);
   await page.locator('#archive-root-overflow summary').click();
-  assert.equal(await page.locator('#archive-root-import').isVisible(),true);
+  assert.equal(await page.locator('#archive-root-history').isVisible(),true);
   const [download]=await Promise.all([
    page.waitForEvent('download'),
    page.locator('#archive-root-export-json').click()
   ]);
   assert.match(download.suggestedFilename(),/^archive-export-.*\.json$/);
   await page.locator('#archive-root-overflow summary').click();
-  await page.locator('#archive-root-import').click();
+  await page.locator('#archive-root-history').click();
   await eventually(()=>page.locator('#history-dialog').isVisible(),'root import opens existing verified import flow');
   await page.locator('#history-close').click();
   await eventually(async()=>!(await page.locator('#history-dialog').isVisible()),'import closes without changing the archive');
   await page.locator('#search').fill('CPV1_SHELL_SEARCH');
   await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.searchQuery)==='CPV1_SHELL_SEARCH','shell route owns scope search');
+  await eventually(async()=>await page.locator('#document-list .conversation-document').count()===1,'source-scoped search returns the captured Conversation');
   await page.locator('#search').fill('');
   await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.searchQuery)==='','clearing search updates the same route');
   await eventually(()=>rootWindow.isVisible(),'source metadata transition keeps the open Conversation reachable');
@@ -59,6 +64,7 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await page.evaluate(()=>history.back());
   await eventually(()=>page.locator('#collection-panel').isVisible(),'Back restores the Archive container');
   assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),null);
+  assert.equal(await page.locator('#archive-source-scope').inputValue(),'chatgpt');
   await eventually(()=>rootWindow.isVisible(),'Back restores the same Conversation in the Archive tree');
   await page.evaluate(()=>history.forward());
   await eventually(()=>page.locator('#document-panel').isVisible(),'Forward restores the Reader container');
