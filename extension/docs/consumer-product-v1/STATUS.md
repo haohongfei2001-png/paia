@@ -14,11 +14,11 @@ current_slice_status: ACTIVE — VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDIN
 
 current_round: CPV1-02.4 + CPV1-02.5 / VS-02 Batch B
 
-current_round_status: READY / VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: ACTIVE / VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_writer: NONE — Batch A writer released after merge
+current_writer: manager/vs02-batch-b-reader-20260924
 
-writer_status: RELEASED
+writer_status: ACTIVE
 
 production_claim: NONE
 
@@ -188,6 +188,14 @@ receipt: `receipts/CPV1-02.1-02.3-BATCH-A.md`
 
 Batch A's numbered engineering exits are separately checked in the receipt. VS-02 remains ACTIVE; CPV1-02.4 + CPV1-02.5 is the next dependency-safe Batch B. Its Reader work and removal of migrated legacy UI ownership are not claimed by Batch A. Current-live ChatGPT and real-device/performance/accessibility evidence remain at the owning CPV1-02.6/02.7 boundary; DFG-CPV1-004 is not PASS. VS-01 signed-channel debt also remains open.
 
+## VS-02 Batch B execution claim
+
+execution_start_main: `5a4ecc7462500232fdb365dbd5571b38171e4afd`
+
+writer_branch: `manager/vs02-batch-b-reader-20260924`
+
+scope: CPV1-02.4 Conversation Reader rebuild + CPV1-02.5 retirement of migrated legacy A1/A2/A3 UI ownership. This is the sole VS-02 Batch B writer. CPV1-02.6/02.7 performance, accessibility and current-live slice certification remain later owning boundaries. Batch A receipt and its integrated runtime evidence remain unchanged; VS-01 signed-channel and VS-02 current-live debts are not PASS.
+
 ## Current owner authorization and execution
 
 The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence. True owner/privacy/cost/irreversibility gates in `EXECUTION_PROTOCOL.md` block only the affected behavior; they are recorded in `DEFERRED_FINAL_GATES.md` and do not stop unrelated engineering. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions and must not be guessed.
@@ -207,7 +215,7 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | Slice | State | User outcome |
 |---|---|---|
 | VS-01 Safe open, update and recovery | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
-| VS-02 Source structure to world-class Reader | ACTIVE — Batch A engineering complete; Batch B READY | Captured conversations appear in the correct Project and open in a coherent fast Reader |
+| VS-02 Source structure to world-class Reader | ACTIVE — Batch A engineering complete; Batch B ACTIVE | Captured conversations appear in the correct Project and open in a coherent fast Reader |
 | VS-03 History import, export and recoverable large library | PLANNED | Real official history imports safely and the supported archive can actually be restored |
 | VS-04 Natural editing and fast lexical retrieval | PLANNED | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | PLANNED | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
