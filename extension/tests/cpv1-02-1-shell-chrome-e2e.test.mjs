@@ -29,7 +29,7 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   }
   const rootWindow=page.locator('.archive-navigator-window').first();
   await eventually(()=>rootWindow.isVisible(),'captured Conversation appears in the Archive tree');
-  assert.equal(await page.locator('#uir-archive-assist').isVisible(),false,'Archive root does not render the legacy dashboard');
+  assert.equal(await page.locator('#uir-archive-assist,#uir-archive-frame').count(),0,'Archive root does not render the legacy dashboard');
   assert.equal(await page.locator('#revisit-open').isVisible(),true,'Revisit remains reachable from the Archive header');
   await page.locator('#revisit-open').click();
   await eventually(()=>page.locator('#revisit-panel').isVisible(),'header Revisit action opens its real destination');

@@ -3,6 +3,7 @@ import {installUniversalSearch} from './universal-search.js';
 import {installRevisit} from './revisit.js';
 import {installCoreLoop} from './core-loop.js';
 import {installUXR1ShellCoordinator} from './ux-r1-shell-coordinator.js';
+import {installArchiveShellChrome} from './archive-shell-chrome.js';
 
 // `data-view` is the primary-navigation contract. Auxiliary CTAs may navigate to
 // a view, but they must not masquerade as another nav item (it also makes test
@@ -51,5 +52,6 @@ queueMicrotask(installUniversalSearch);
 queueMicrotask(installRevisit);
 queueMicrotask(installCoreLoop);
 queueMicrotask(installUXR1ShellCoordinator);
+queueMicrotask(installArchiveShellChrome);
 
 export function wireContinuousKeyboard(results,run){results.addEventListener('keydown',event=>{if(!['Enter',' '].includes(event.key))return;event.preventDefault();void Promise.resolve().then(run);});}

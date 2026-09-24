@@ -15,23 +15,8 @@
   border: 0 !important;
 }
 
-.uir-revisit-row {
-  position: relative;
-}
-
-.uir-revisit-row #core-loop-return {
-  padding-right: 56px;
-}
-
-.uir-revisit-row #core-loop-return > strong {
-  display: none;
-}
-
 .uir-revisit-shortcut {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  position: relative;
   width: 44px;
   min-width: 44px;
   height: 44px;
@@ -55,7 +40,7 @@
 }
 
 /* UIR-02: Archive stays a bounded metadata list; no body previews are introduced. */
-#uir-archive-main > #search {
+#archive-root-main > #search {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -65,21 +50,21 @@
   color: var(--paia-text);
 }
 
-#uir-archive-main > #search::placeholder {
+#archive-root-main > #search::placeholder {
   color: var(--paia-meta);
 }
 
-#uir-archive-main > #result-count {
+#archive-root-main > #result-count {
   margin: 12px 0 4px;
   color: var(--paia-meta);
   font-size: 13px;
 }
 
-body:has(#primary-nav [data-view="library"][aria-current="page"]) #uir-archive-main > #result-count::before {
+body:has(#primary-nav [data-view="library"][aria-current="page"]) #archive-root-main > #result-count::before {
   content: "当前范围 · 已显示 ";
 }
 
-#uir-archive-main .conversation-document {
+#archive-root-main .conversation-document {
   width: 100%;
   min-height: 0;
   padding: 18px 8px;
@@ -91,7 +76,7 @@ body:has(#primary-nav [data-view="library"][aria-current="page"]) #uir-archive-m
   color: var(--paia-text);
 }
 
-#uir-archive-main .conversation-document strong {
+#archive-root-main .conversation-document strong {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
@@ -101,18 +86,18 @@ body:has(#primary-nav [data-view="library"][aria-current="page"]) #uir-archive-m
   line-height: 1.45;
 }
 
-body:has(#primary-nav [data-view="library"][aria-current="page"]) #uir-archive-main .conversation-document .summary {
+body:has(#primary-nav [data-view="library"][aria-current="page"]) #archive-root-main .conversation-document .summary {
   display: none;
 }
 
-#uir-archive-main .conversation-document small {
+#archive-root-main .conversation-document small {
   color: var(--paia-meta);
   font-size: 13px;
   line-height: 1.55;
 }
 
-#uir-archive-main .conversation-document:hover,
-#uir-archive-main .conversation-document:focus-visible {
+#archive-root-main .conversation-document:hover,
+#archive-root-main .conversation-document:focus-visible {
   background: var(--paia-hover);
 }
 
@@ -416,11 +401,11 @@ body #revisit-panel .revisit-more {
 }
 
 @media (max-width: 799px) {
-  #uir-archive-main > #search {
+  #archive-root-main > #search {
     min-height: 44px;
   }
 
-  #uir-archive-main .conversation-document {
+  #archive-root-main .conversation-document {
     padding: 16px 4px;
   }
 
@@ -481,3 +466,5 @@ body #revisit-panel .revisit-more {
     scroll-behavior: auto !important;
   }
 }
+
+.uir-revisit-shortcut[data-return-state="new"]::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--paia-accent);position:absolute;right:5px;top:5px}
