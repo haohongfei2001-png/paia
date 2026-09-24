@@ -29,7 +29,7 @@ try{
   await page.goto(`chrome-extension://${h.extensionId}/ui/archive.html`);await eventually(()=>page.locator('.archive-navigator-group-toggle').filter({hasText:'归属未知'}).isVisible(),'Navigator groups ready',60000);
   const group=page.locator('.archive-navigator-group-toggle').filter({hasText:'归属未知'}).first();
   await group.click();await eventually(()=>page.locator('.archive-navigator-window').first().isVisible(),'Navigator first bounded window',60000);
-  const nav=[],navPhases=[];for(let i=0;i<=SAMPLES;i++){
+  const nav=[];for(let i=0;i<=SAMPLES;i++){
    const target=page.locator('.archive-navigator-window').nth(i);await target.waitFor({state:'visible'});
    // Measure browser event to the selected, rendered Reader; Playwright driver latency is separate.
    nav.push(await page.evaluate(index=>new Promise((resolve,reject)=>{
@@ -41,9 +41,6 @@ try{
     }),timeout=setTimeout(()=>{observer.disconnect();reject(Error('Reader did not render selected Window'));},30000);
     observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-current','hidden']});target.click();
    }),i));
-   await page.waitForFunction(()=>!!globalThis.__paiaNavTrace?.end,null,{timeout:30000});
-   const trace=await page.evaluate(()=>globalThis.__paiaNavTrace);
-   navPhases.push({leave:trace.afterLeave-trace.start,resolve:trace.afterResolve-trace.afterLeave,getPage:trace.afterGetPage-trace.readStart,onboarding:trace.afterOnboarding-trace.afterGetPage,render:trace.afterRender-trace.afterOnboarding,readTail:trace.afterRefresh-trace.afterRender,finish:trace.end-trace.afterRefresh});
   }
   await page.locator('.sidebar [data-view=library]').click();
   await eventually(()=>page.locator('#search').isVisible(),'Archive root search',30000);
@@ -53,7 +50,7 @@ try{
   const search=[],searchCache=[];for(let i=1;i<=SAMPLES;i++){search.push(await timed(()=>query(size-1-i)));searchCache.push(await worker.evaluate(()=>cpv1Scale.cache()));}
   const idleStart=await page.evaluate(()=>({heap:performance.memory?.usedJSHeapSize??null,at:performance.now()}));
   await pause(2000);const idleEnd=await page.evaluate(()=>({heap:performance.memory?.usedJSHeapSize??null,at:performance.now()}));
-  report.sizes.push({size,seededMs,coldNavigationMs:nav[0],hotNavigationMs:summary(nav.slice(1)),hotNavigationPhases:navPhases.slice(1).length?Object.fromEntries(['leave','resolve','getPage','onboarding','render','readTail','finish'].map(key=>[key,summary(navPhases.slice(1).map(x=>x[key]))])):null,searchWarmupMs,lexicalFirstResultReadyMs:summary(search),searchSamplesMs:search,searchCache:{first:searchCache[0],last:searchCache.at(-1),stable:searchCache.every(x=>x.cacheGeneration===searchCache[0].cacheGeneration&&x.dbGeneration===searchCache[0].dbGeneration)},idleRendererHeapBytes:{start:idleStart.heap,end:idleEnd.heap},externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests});
+  report.sizes.push({size,seededMs,coldNavigationMs:nav[0],hotNavigationMs:summary(nav.slice(1)),searchWarmupMs,lexicalFirstResultReadyMs:summary(search),searchSamplesMs:search,searchCache:{first:searchCache[0],last:searchCache.at(-1),stable:searchCache.every(x=>x.cacheGeneration===searchCache[0].cacheGeneration&&x.dbGeneration===searchCache[0].dbGeneration)},idleRendererHeapBytes:{start:idleStart.heap,end:idleEnd.heap},externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests});
   await mkdir(join(out,'..'),{recursive:true});await writeFile(out,JSON.stringify(report,null,2)+'\n');
  }
  assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
