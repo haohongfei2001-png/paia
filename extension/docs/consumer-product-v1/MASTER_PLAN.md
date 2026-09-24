@@ -54,6 +54,24 @@ The manager must preserve two truthful states:
 
 No later work may erase, relabel or implicitly satisfy an earlier deferred gate. Final slice/package completion still requires all applicable evidence.
 
+### 0.6 Integration batching for faster continuous development
+
+The numbered CPV1 rounds below remain product/outcome contracts, but they are no longer presumed to require separate PR/merge/receipt cycles.
+
+For unfinished work, the manager groups strongly related rounds into a **coherent integration batch** and keeps one writer/PR across that batch. Subround completion is tracked inside the PR; the formal receipt, STATUS mutation and exact-main integration happen once at the batch boundary.
+
+Default batches through the first desktop candidate:
+
+- VS-02: [02.1–02.3] → [02.4–02.5] → [02.6 + automatable 02.7 closure]
+- VS-03: [03.0–03.2] → [03.3–03.5] → [03.6 closure]
+- VS-04: [04.0–04.3] → [04.4–04.6] → [04.7 closure]
+- VS-05: [05.0–05.4] → [05.5–05.6] → [05.7 closure]
+- VS-06: [06.0–06.4] → [06.5–06.6] → [06.7 closure]
+
+A manager may split a batch early only for a real high-risk integration boundary, conflicting dependency, unsafe review size, or an external/main dependency that cannot be validated on the existing writer branch. It should not split simply because a numbered subround ended.
+
+This batching changes execution overhead, not product scope or exit truth. Every numbered outcome must still be satisfied or explicitly deferred where the protocol permits.
+
 ### 0.5 Deferred-gate routing
 
 A round that exists primarily to resolve an owner, private-artifact, real-device, credential, paid-service or current-live gate must not become a queue-wide parking lot.
