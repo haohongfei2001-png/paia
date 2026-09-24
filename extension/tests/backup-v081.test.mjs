@@ -33,6 +33,34 @@ test('export detects data edits between chunks and refuses inconsistent snapshot
 test('restore failure rolls back all content and a worker loss leaves no persisted staging',async()=>{const f=await completeFixture();await f.runner.wake({userActionId:op()});const items=await exported(new BackupService(f.s,{appVersion:'0.8.1'})),target=await completeFixture({texts:[]}),service=new BackupService(target.s,{appVersion:'0.8.1'}),stage=await prepared(service,items),transaction=target.s.repository.transaction.bind(target.s.repository);target.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{if(write){const put=t.put.bind(t);t.put=(name,row)=>{if(name==='thoughts')throw {code:'STORAGE_FAILED'};return put(name,row);};}return fn(t);},stores);await assert.rejects(()=>service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.equal((await rows(target.s,'records')).length,0);assert.equal((await rows(target.s,'blocks')).length,0);assert.equal((await rows(target.s,'topics')).length,0);assert.equal((await rows(target.s,'importBatches')).length,0);await assert.rejects(()=>new BackupService(target.s).previewRestore({sessionId:stage.sessionId}));});
 
 
+test('quota exhaustion aborts restore atomically and reports storage pressure',async()=>{
+ const source=await completeFixture();
+ await source.runner.wake({userActionId:op()});
+ const items=await exported(new BackupService(source.s));
+ const target=await completeFixture({texts:[]});
+ const service=new BackupService(target.s);
+ const stage=await prepared(service,items);
+ assert.equal(stage.preview.canRestore,true);
+ const original=target.s.repository.transaction.bind(target.s.repository);
+ target.s.repository.transaction=(write,fn,stores)=>original(write,async t=>{
+  if(write){
+   const put=t.put.bind(t);
+   t.put=(name,row)=>{
+    if(name==='records')throw new DOMException('synthetic quota','QuotaExceededError');
+    return put(name,row);
+   };
+  }
+  return fn(t);
+ },stores);
+ await assert.rejects(
+  ()=>service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}),
+  error=>error?.code==='STORAGE_FULL'
+ );
+ for(const name of ['records','blocks','documents','thoughts','topics'])
+  assert.equal((await rows(target.s,name)).length,0);
+ assert.equal(await meta(target.s,'backup-last-restore'),undefined);
+});
+
 test('concurrent page delivery is idempotent and a cached page cannot bypass a later purge fence',async()=>{
  const f=await completeFixture(),service=new BackupService(f.s),session=await service.beginExport(),options={sessionId:session.sessionId,sequence:0};const [a,b]=await Promise.all([service.exportPage(options),service.exportPage(options)]);assert.deepEqual(a,b);const source=(await rows(f.s,'records'))[0];await f.s.permanentDelete(source.id);await assert.rejects(()=>service.exportPage(options),e=>e.code==='BACKUP_CHANGED');
 });
