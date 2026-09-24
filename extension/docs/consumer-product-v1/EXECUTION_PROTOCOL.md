@@ -118,9 +118,15 @@ A candidate is not a release and does not require publication unless the current
 
 ### 7.2 Round closure
 
-A normal round progresses:
+For unfinished rounds after this cadence amendment, a normal round progresses:
 
-DESIGN/RECONSTRUCT → IMPLEMENT → TARGETED TEST → FULL REQUIRED CI → DIRECTLY APPLICABLE BROWSER/RELIABILITY EVIDENCE → MERGE → EXACT-MAIN CHECK → RECEIPT → STATUS UPDATE.
+DESIGN/RECONSTRUCT → IMPLEMENT → TARGETED TEST → AFFECTED REGRESSIONS → LIGHT INTEGRATION GATE → MERGE → MAIN READBACK → RECEIPT/STATUS.
+
+Ordinary round closure does **not** require reacquiring the complete historical browser suite, macOS certification, performance matrix, accessibility matrix, CURRENT_LIVE evidence, or unrelated reliability scenarios. Those belong to the owning slice/certification boundary unless the round itself changes that risk boundary.
+
+The light integration gate keeps unit, adapter/privacy contracts and release/package build guards. The executor must still run the directly affected browser journey locally or in a bounded CI job before merge when UI/browser behavior changed.
+
+Escalate an ordinary round to full certification immediately when it changes schema/storage identity, deletion/anti-resurrection, capture admission, privacy/authorization, migration/rollback, release identity, or another invariant where delayed discovery would make later work unsafe.
 
 Only evidence directly required by the round contract or needed to protect an affected invariant is a round-closing gate. Evidence already valid for unchanged runtime paths should be referenced rather than mechanically repeated.
 
@@ -167,17 +173,18 @@ Publication remains separate unless explicitly authorized. Security, privacy, da
 
 ### 7.5 GitHub CI scheduling
 
-The GitHub workflows implement the progression above:
+For unfinished work after this amendment:
 
-- while a normal implementation PR is **draft**, every runtime push uses `PAIA Candidate Gate`: unit shards, contract/privacy checks, sharded current-browser coverage and release/package guards. This is engineering feedback, not round certification;
-- when the manager judges the candidate stable, mark the PR **ready for review**. `PAIA Certification` then runs the complete current required categories once on that exact head;
-- subsequent fixes on a ready PR rerun full certification, so keep the PR draft during ordinary inner-loop iteration and batch related fixes before promotion;
-- current browser coverage is sharded for wall-clock speed but every current browser test remains required for full certification;
-- the `Full Suite Certification` job is an aggregate exact-SHA receipt over the already executed unit/browser/contract categories; it must not rerun the same tests serially;
-- documentation-only changes under `extension/docs/**` do not trigger runtime certification. Documentation closure must cite the already certified runtime SHA truthfully;
-- merge still requires the round's applicable full candidate evidence, and exact-main verification remains required after runtime integration. CI scheduling may reduce duplicate work, not evidence standards.
+- draft runtime pushes use the lightweight `PAIA Candidate Gate`: unit suite, adapter/privacy contracts and release/package build guard. Full historical browser coverage is intentionally absent;
+- the executor runs targeted browser tests for the behavior actually changed before each meaningful checkpoint; do not use a green lightweight gate as proof of untouched browser behavior;
+- when an ordinary round is ready to integrate, mark the PR ready. `PAIA Certification` runs the light round-integration gate by default;
+- add the exact marker `PAIA_FULL_CERTIFICATION` to the PR body when the current round is a slice certification boundary or the manager classifies it as high-risk under section 7.2. Full Current Browser, Full Suite and macOS certification then run on that exact head;
+- when merging a full-certification boundary, include `PAIA_FULL_CERTIFICATION` in the merge commit message so the exact-main run also uses full depth;
+- ordinary round merges receive the light exact-main integration gate; they do not mechanically rerun all browser history;
+- workflow_dispatch remains an explicit way to run full certification when needed;
+- documentation-only changes under `extension/docs/**` do not trigger runtime certification.
 
-If a PR is intentionally non-draft from creation, full certification applies immediately.
+Already completed rounds keep their historical evidence unchanged. Do not reopen or recertify them merely because this cadence changed.
 
 ## 8. Branch and merge discipline
 
