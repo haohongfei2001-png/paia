@@ -24,9 +24,13 @@ async function domainDigest(harness){
     result[name]=await tx.all(name);
    return result;
   }));
-  const data=new TextEncoder().encode(JSON.stringify(rows));
-  const hash=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
-  return [...hash].map(x=>x.toString(16).padStart(2,'0')).join('');
+  const result={};
+  for(const [name,values] of Object.entries(rows)){
+   const data=new TextEncoder().encode(JSON.stringify(values));
+   const hash=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
+   result[name]={count:values.length,digest:[...hash].map(x=>x.toString(16).padStart(2,'0')).join('')};
+  }
+  return result;
  });
 }
 
@@ -89,7 +93,7 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   await page.locator('#backup-restore').click();
   await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),
    'segmented recovery',60000);
-  assert.equal(await domainDigest(harness),before);
+  assert.deepEqual(await domainDigest(harness),before);
   assert.equal(harness.externalRequests,0);
   assert.deepEqual(harness.errors,[]);
  }finally{await harness?.close();await rm(dir,{recursive:true,force:true});}
