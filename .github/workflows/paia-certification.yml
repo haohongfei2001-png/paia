@@ -251,6 +251,12 @@ jobs:
           test -f /tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.pkg
           test -f /tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.pkg.sha256
           test -f /tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.json
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const row=JSON.parse(fs.readFileSync('/tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.json','utf8'));
+          if(row.schemaVersion!==1||row.hostName!=='com.paia.secure_store'||row.extensionId!=='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'||row.signingMode!=='adhoc-ci'||row.notarized!==false)process.exit(1);
+          if(!Array.isArray(row.architectures)||!row.architectures.includes('arm64')||!row.architectures.includes('x86_64'))process.exit(1);
+          NODE
 
   historical_browser:
     name: Historical Browser Audit ${{ matrix.shard }}
@@ -277,6 +283,15 @@ jobs:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
+      - name: Prepare historical Chrome compatibility environment
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          sudo mkdir -p '/Applications/Google Chrome.app/Contents/MacOS'
+          sudo ln -sf "$CHROME_BIN" '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+          "$CHROME_BIN" --version
       - name: Run pre-migration browser evidence shard
         env:
           PAIA_TEST_SHARD: ${{ matrix.shard }}
@@ -304,6 +319,13 @@ jobs:
           python-version: '3.12'
       - name: Build and audit release
         run: npm run build:release
+      - name: Upload release tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: paia-current-release-${{ github.sha }}
+          path: extension/work/current-release
+          if-no-files-found: error
+          retention-days: 7
 
   certified:
     name: Integration / certification gate
