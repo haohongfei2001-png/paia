@@ -61,7 +61,9 @@ export class BackupSegmentWriter{
  }
 }
 
-export async function verifyBackupSegments(manifest,files){
+export async function verifyBackupSegments(manifest,files,{maxBytes=BACKUP_LIMITS.segmentedExportBytes}={}){
+ if(!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>BACKUP_LIMITS.segmentedExportBytes)
+  backupError('BACKUP_INVALID');
  if(manifest?.format!=='PAIA Backup Segments'||manifest.formatVersion!==1
      ||manifest.contentFormat!=='PAIA Backup v1'||manifest.complete!==true
      ||!Array.isArray(manifest.parts)||manifest.parts.length<1
@@ -77,10 +79,12 @@ export async function verifyBackupSegments(manifest,files){
       ||!Number.isSafeInteger(part.bytes)||part.bytes<1
       ||part.bytes>16*1024*1024||!SHA256.test(part.sha256)
       ||!file||file.size!==part.bytes)backupError('BACKUP_INCOMPLETE');
-  if(await digest(file)!==part.sha256)backupError('BACKUP_INTEGRITY_FAILED');
   total+=part.bytes;
-  if(!Number.isSafeInteger(total))backupError('BACKUP_TOO_LARGE');
+  if(!Number.isSafeInteger(total)||total>maxBytes)backupError('BACKUP_TOO_LARGE');
  }
  if(total!==manifest.totalBytes)backupError('BACKUP_INTEGRITY_FAILED');
+ // Bound the declared complete set before reading a single selected file.
+ for(const part of manifest.parts)if(await digest(byName.get(part.name))!==part.sha256)
+  backupError('BACKUP_INTEGRITY_FAILED');
  return manifest.parts.map(part=>byName.get(part.name));
 }
