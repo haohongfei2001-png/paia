@@ -13,24 +13,20 @@ async function openBackup(page){
  await page.locator('#backup-create-segmented').waitFor({state:'visible'});
 }
 
-async function domainDigest(harness){
+async function portableItems(harness){
  const worker=harness.context.serviceWorkers().find(item=>item.url().includes('/background/service-worker.js'));
  return worker.evaluate(async()=>{
-  const store=globalThis.cpv1033.store;
-  await store.finishFoundation();
-  const rows=await store.run(()=>store.repository.transaction(false,async tx=>{
-   const result={};
-   for(const name of ['records','blocks','thoughts','topics','provenance','revisions','tombstones'])
-    result[name]=await tx.all(name);
-   return result;
-  }));
-  const result={};
-  for(const [name,values] of Object.entries(rows)){
-   const data=new TextEncoder().encode(JSON.stringify(values));
-   const hash=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
-   result[name]={count:values.length,digest:[...hash].map(x=>x.toString(16).padStart(2,'0')).join('')};
-  }
-  return result;
+  const backup=globalThis.cpv1033.backup;
+  const {sessionId}=await backup.beginExport();
+  const items=[];
+  try{
+   for(let sequence=0;;sequence++){
+    const page=await backup.exportPage({sessionId,sequence});
+    items.push(...page.items.filter(row=>row.type==='item'));
+    if(page.done)break;
+   }
+  }finally{backup.cancel({sessionId});}
+  return items;
  });
 }
 
@@ -44,7 +40,7 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
  }});
  const workerPath=join(dir,'background/service-worker.js');
  await writeFile(workerPath,(await readFile(workerPath,'utf8'))+
-  "\nimport {seedLongTerm} from '../tests/fixtures/long-term-v081.mjs';globalThis.cpv1033={store,seed:options=>seedLongTerm(store,options)};\n");
+  "\nimport {seedLongTerm} from '../tests/fixtures/long-term-v081.mjs';import {BackupService} from '../core/backup-service.js';globalThis.cpv1033={store,backup:new BackupService(store,{appVersion:'0.12.0'}),seed:options=>seedLongTerm(store,options)};\n");
  const headless=!(process.env.CI==='1'&&process.env.DISPLAY);
  let harness;
  try{
@@ -54,7 +50,8 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   await page.locator('#enable-consent').click();
   const worker=harness.context.serviceWorkers().find(item=>item.url().includes('/background/service-worker.js'));
   await worker.evaluate(()=>globalThis.cpv1033.seed({inputCount:120,entryCount:90}));
-  const before=await domainDigest(harness);
+  const before=await portableItems(harness);
+  assert.ok(before.length>200);
   await openBackup(page);
   const downloads=[];
   page.on('download',download=>downloads.push(download));
@@ -69,6 +66,10 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
    await item.saveAs(path);paths.push(path);
   }
   assert.equal(paths.filter(path=>path.endsWith('.manifest.paia-backup')).length,1);
+  const downloaded=[];
+  for(const path of paths.filter(path=>path.includes('.part-')).sort())
+   downloaded.push(...(await readFile(path,'utf8')).trimEnd().split('\n').map(JSON.parse).filter(row=>row.type==='item'));
+  assert.deepEqual(downloaded,before);
   await harness.close();harness=undefined;
 
   harness=await FakeChatGPT.start({headless,extensionPath:dir});
@@ -93,7 +94,7 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   await page.locator('#backup-restore').click();
   await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),
    'segmented recovery',60000);
-  assert.deepEqual(await domainDigest(harness),before);
+  assert.deepEqual(await portableItems(harness),before);
   assert.equal(harness.externalRequests,0);
   assert.deepEqual(harness.errors,[]);
  }finally{await harness?.close();await rm(dir,{recursive:true,force:true});}
