@@ -139,3 +139,24 @@ test('derived search writes preserve backup generation while portable edits inva
  });
  assert.equal((await meta(s,'backup-data-generation')).value,before+1);
 });
+
+
+test('oversized declared restore is refused before reading any segment',async()=>{
+ const partBytes=16*1024*1024,base='PAIA-Backup-fixture';
+ let reads=0;
+ const parts=Array.from({length:5},(_,index)=>({
+  name:`${base}.part-${String(index+1).padStart(6,'0')}.paia-backup`,
+  bytes:partBytes,sha256:'0'.repeat(64),
+ }));
+ const files=parts.map(part=>({
+  name:part.name,size:part.bytes,
+  async arrayBuffer(){reads++;throw new Error('oversized segment was read');},
+ }));
+ const manifest={format:'PAIA Backup Segments',formatVersion:1,
+  contentFormat:'PAIA Backup v1',complete:true,totalBytes:partBytes*parts.length,parts};
+ const manifestFile=named(`${base}.manifest.paia-backup`,
+  new Blob([JSON.stringify(manifest)]));
+ const iterator=backupSegmentRows([manifestFile,...files]);
+ await assert.rejects(()=>iterator.next(),error=>error?.code==='BACKUP_TOO_LARGE');
+ assert.equal(reads,0);
+});
