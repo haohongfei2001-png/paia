@@ -128,6 +128,16 @@ export class ArchiveNavigator{
   if(root.coverage.state!=='complete'){this.setStatus(copy('正在整理窗口索引…','Building window index…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
   let building=false;
   for(const provider of root.items){const groups=await this.readScope({providerKey:provider.providerKey,groupKind:'groups'});if(token!==this.serial)return;if(groups.coverage.state!=='complete'||groups.unavailableReason==='SOURCE_ORDER_PREPARING')building=true;}
+  // A newly captured window can move from unknown to verified unassigned as
+  // source metadata arrives. Keep the user's open group when unknown vanishes.
+  for(const provider of root.items){
+   const groups=this.state.scope({providerKey:provider.providerKey,groupKind:'groups'});
+   if(groups.coverage.state!=='complete')continue;
+   const oldKey=navigatorGroupKey(provider.providerKey,'unknown');
+   if(this.state.expanded.has(oldKey)&&!groups.items.some(item=>item.groupKind==='unknown')&&groups.items.some(item=>item.groupKind==='unassigned')){
+    this.state.expanded.delete(oldKey);this.state.expanded.add(navigatorGroupKey(provider.providerKey,'unassigned'));this.onRouteChange();
+   }
+  }
   const groupsToLoad=[];for(const provider of root.items){const groups=this.state.scope({providerKey:provider.providerKey,groupKind:'groups'});if(groups.coverage.state!=='complete')continue;for(const group of groups.items)if(this.state.expandedFor(group))groupsToLoad.push(group);}
   for(const group of groupsToLoad){let scope=await this.readScope(this.groupOptions(group));if(token!==this.serial)return;if(scope.coverage.state!=='complete'||scope.unavailableReason==='SOURCE_ORDER_PREPARING'){building=true;continue;}const target=this.restoreDepth.get(scope.key)||0;while(scope.items.length<target&&scope.nextCursor){scope=await this.readScope(this.groupOptions(group),{append:true});if(token!==this.serial)return;}if(scope.items.length>=target||!scope.nextCursor)this.restoreDepth.delete(scope.key);}
   if(building){this.setStatus(copy('正在整理来源与窗口…','Preparing source groups and windows…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
