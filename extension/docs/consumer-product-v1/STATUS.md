@@ -12,11 +12,11 @@ current_slice: VS-03
 
 current_slice_status: ACTIVE — VS-02_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-03.0 + CPV1-03.1 + CPV1-03.2 / VS-03 Batch A
+current_round: CPV1-03.3 + CPV1-03.4 + CPV1-03.5 + CPV1-03.6 / VS-03 Batch B
 
-current_round_status: ACTIVE / VS-02_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: ACTIVE / VS-03_BATCH_A_ENGINEERING_INTEGRATED_EXTERNAL_EXPORT_PENDING
 
-current_writer: MANAGER — sole VS-03 Batch A writer
+current_writer: MANAGER — sole VS-03 Batch B writer
 
 writer_status: ACTIVE
 
@@ -224,6 +224,22 @@ receipt: `receipts/CPV1-02.6-02.7-ENGINEERING.md`
 
 The bounded Reader, ranked Input search, 320px/200% accessibility and synthetic 10k/100k scale checks are integrated and certified on current main. Authenticated CURRENT_LIVE ChatGPT evidence and physical 120 Hz device evidence remain deferred under DFG-CPV1-004; VS-01 signed-channel debt remains under DFG-CPV1-001. No publication or full VS-02 PASS is claimed. The sole writer advances to VS-03 Batch A (CPV1-03.0–03.2); DFG-CPV1-005 holds only private real-export verification, not independent import engineering.
 
+## VS-03 Batch A engineering integration — CPV1-03.0–03.2
+
+verdict: ENGINEERING_INTEGRATED / EXTERNAL_EXPORT_CERT_PENDING — **VS-03 is not COMPLETE**
+
+candidate_pr: #74 / exact head `c78a68c80d3cb96a1544fc24e8abd1c5f6127340`
+
+candidate_full_certification: `PAIA Certification run 36001127192 / SUCCESS`
+
+merged_runtime_main: `1a5db2bcabab7f779e9e164d9da53c2bcee9a8a2`
+
+exact_main_certification: `PAIA Certification run 36005905384 / attempt 1 / SUCCESS`
+
+receipt: `receipts/CPV1-03.0-03.2-BATCH-A.md`
+
+The bounded official-export admission, staged duplicate-safe history import, same-dialog resume, and conservative browser quota preflight are integrated. No real private official export was available for certification; DFG-CPV1-005 remains OPEN. This evidence does not certify full VS-03 backup recovery or 10k/100k restore. The sole manager writer advances to VS-03 Batch B (CPV1-03.3–03.6), preserving the one-PR boundary.
+
 ## Current owner authorization and execution
 
 The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence. True owner/privacy/cost/irreversibility gates in `EXECUTION_PROTOCOL.md` block only the affected behavior; they are recorded in `DEFERRED_FINAL_GATES.md` and do not stop unrelated engineering. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions and must not be guessed.
@@ -244,7 +260,7 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 |---|---|---|
 | VS-01 Safe open, update and recovery | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
 | VS-02 Source structure to world-class Reader | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Captured conversations appear in the correct Project and open in a coherent fast Reader |
-| VS-03 History import, export and recoverable large library | ACTIVE — Batch A CPV1-03.0–03.2 | Real official history imports safely and the supported archive can actually be restored |
+| VS-03 History import, export and recoverable large library | ACTIVE — Batch B CPV1-03.3–03.6; real export deferred | Real official history imports safely and the supported archive can actually be restored |
 | VS-04 Natural editing and fast lexical retrieval | PLANNED | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | PLANNED | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
 | VS-06 Complete AI Context reuse | PLANNED | Inputs/Topics/cross-Topic material become reviewable authorized Context without silent truncation |
