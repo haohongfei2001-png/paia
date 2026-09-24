@@ -8,17 +8,17 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: VS-02
+current_slice: VS-03
 
-current_slice_status: ACTIVE — VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_slice_status: ACTIVE — VS-02_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-02.6 + automatable CPV1-02.7 / VS-02 Closure
+current_round: CPV1-03.0 + CPV1-03.1 + CPV1-03.2 / VS-03 Batch A
 
-current_round_status: READY / VS-01_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_round_status: ACTIVE / VS-02_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_writer: NONE — Batch B writer released after merge
+current_writer: MANAGER — sole VS-03 Batch A writer
 
-writer_status: RELEASED
+writer_status: ACTIVE
 
 production_claim: NONE
 
@@ -206,6 +206,24 @@ receipt: `receipts/CPV1-02.4-02.5-BATCH-B.md`
 
 The sole Batch B writer is released. CPV1-02.4 and 02.5 engineering outcomes are integrated. VS-02 remains ACTIVE; CPV1-02.6 and automatable CPV1-02.7 are the next canonical closure work. Performance, accessibility and current-live certification remain owning boundaries, with any truly external portion tracked as pending rather than PASS. VS-01 signed-channel and VS-02 current-live debts are not PASS.
 
+## VS-02 closure — CPV1-02.6 and automatable CPV1-02.7
+
+verdict: ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING — **VS-02 is not COMPLETE**
+
+candidate_pr: #73 / exact head `855dfc01a593c7c6eb0651834b1671db159a8265`
+
+candidate_performance: `PAIA VS-02 Performance Certification run 35989268616 / SUCCESS`
+
+candidate_full_certification: `PAIA Certification run 35989268721 / SUCCESS`
+
+merged_runtime_main: `d5c81073c10ac6b25b80a922cd2447c7410ba36e`
+
+exact_main_certification: `PAIA Certification run 35999276936 / SUCCESS`
+
+receipt: `receipts/CPV1-02.6-02.7-ENGINEERING.md`
+
+The bounded Reader, ranked Input search, 320px/200% accessibility and synthetic 10k/100k scale checks are integrated and certified on current main. Authenticated CURRENT_LIVE ChatGPT evidence and physical 120 Hz device evidence remain deferred under DFG-CPV1-004; VS-01 signed-channel debt remains under DFG-CPV1-001. No publication or full VS-02 PASS is claimed. The sole writer advances to VS-03 Batch A (CPV1-03.0–03.2); DFG-CPV1-005 holds only private real-export verification, not independent import engineering.
+
 ## Current owner authorization and execution
 
 The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence. True owner/privacy/cost/irreversibility gates in `EXECUTION_PROTOCOL.md` block only the affected behavior; they are recorded in `DEFERRED_FINAL_GATES.md` and do not stop unrelated engineering. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions and must not be guessed.
@@ -225,8 +243,8 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | Slice | State | User outcome |
 |---|---|---|
 | VS-01 Safe open, update and recovery | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
-| VS-02 Source structure to world-class Reader | ACTIVE — Batch A/B engineering complete; closure READY | Captured conversations appear in the correct Project and open in a coherent fast Reader |
-| VS-03 History import, export and recoverable large library | PLANNED | Real official history imports safely and the supported archive can actually be restored |
+| VS-02 Source structure to world-class Reader | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Captured conversations appear in the correct Project and open in a coherent fast Reader |
+| VS-03 History import, export and recoverable large library | ACTIVE — Batch A CPV1-03.0–03.2 | Real official history imports safely and the supported archive can actually be restored |
 | VS-04 Natural editing and fast lexical retrieval | PLANNED | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | PLANNED | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
 | VS-06 Complete AI Context reuse | PLANNED | Inputs/Topics/cross-Topic material become reviewable authorized Context without silent truncation |
