@@ -1,0 +1,44 @@
+name: PAIA VS-02 Performance Certification
+on:
+  pull_request:
+    types: [synchronize]
+    paths:
+      - 'extension/ui/archive.js'
+      - 'extension/tests/cpv1-02-6-scale-benchmark.mjs'
+      - 'extension/core/archive-query.js'
+      - '.github/workflows/paia-vs02-profile.yml'
+permissions:
+  contents: read
+jobs:
+  profile:
+    if: contains(github.event.pull_request.body, 'PAIA_PERFORMANCE_CERTIFICATION')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Use Chrome extension CDP
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Measure 10k and 100k Reader and search
+        env:
+          CI: '1'
+          PLAYWRIGHT_MODULE: playwright
+        run: |
+          PAIA_SCALE_SIZES=10000 node tests/cpv1-02-6-scale-benchmark.mjs
+          PAIA_SCALE_SIZES=100000 node tests/cpv1-02-6-scale-benchmark.mjs
+      - name: Reader and accessibility regressions
+        env:
+          CI: '1'
+          PLAYWRIGHT_MODULE: playwright
+        run: node --test tests/cpv1-02-4-reader-chrome-e2e.test.mjs tests/cpv1-02-6-accessibility-chrome-e2e.test.mjs

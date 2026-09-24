@@ -7,13 +7,25 @@ async function consent(page){
  await page.locator('#enable-consent').click();
 }
 
+async function openCapturedReader(page){
+ await page.bringToFront();
+ await eventually(()=>page.locator('#archive-navigator').isVisible(),'Archive Navigator is visible');
+ const group=page.locator('.archive-navigator-group-toggle').filter({hasText:'未归属 Project'}).first();
+ await eventually(()=>group.isVisible(),'captured conversation group is visible');
+ if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+ const window=page.locator('.archive-navigator-window').first();
+ await eventually(()=>window.isVisible(),'captured conversation is visible');
+ await window.click();
+ await eventually(()=>page.locator('.library-prose').first().isVisible(),'Reader opens');
+}
+
 test('CPV1-02.4 Reader keeps actions contextual and removal reversible', {timeout:60000},async()=>{
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive;await consent(p);
   await h.open(conversation('cpv1-reader-actions'));
   await eventually(async()=>(await h.state()).records.length===3);
-  await p.locator('.conversation-document').click();
+  await openCapturedReader(p);
   const before=await h.state(),first=p.locator('.library-prose').first();
   await eventually(async()=>await p.locator('.library-block .reader-more').count()===3,'Reader actions mounted');
   assert.equal(await p.locator('.library-block .reading-copy,.library-block .input-remove').count(),0);
@@ -39,29 +51,28 @@ test('CPV1-02.4 Reader bounds long conversations and restores preceding range', 
   c.messages=Array.from({length:205},(_,i)=>({id:'cpv1-reader-'+String(i).padStart(3,'0'),text:'Synthetic continuous reading '+i}));
   await h.open(c);
   await eventually(async()=>(await h.state()).records.length===205,'205 synthetic inputs captured');
-  await p.locator('.conversation-document').click();
-  await eventually(async()=>await p.locator('.library-prose').count()===100);
+  await openCapturedReader(p);
+  const rows=p.locator('.library-prose'),index=async edge=>Number((await (edge==='first'?rows.first():rows.last()).textContent()).match(/reading (\d+)/)?.[1]??-1);
+  const scrollUntil=async(edge,expected,label)=>eventually(async()=>{if(edge==='last'&&await index('last')>=expected||edge==='first'&&await index('first')<=expected)return true;await p.evaluate(edge==='last'?()=>window.scrollTo(0,document.body.scrollHeight):()=>window.scrollTo(0,document.querySelector('#document-body').offsetTop));return false;},label,30000);
+  await eventually(async()=>await rows.count()===40);
   const firstHeight=await p.evaluate(()=>document.scrollingElement.scrollHeight);
-  await p.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
-  await eventually(async()=>await p.locator('.library-prose').count()===200,'second range appended');
+  await scrollUntil('last',79,'second 40-Input range appended');
+  assert.equal(await rows.count(),80,'Reader keeps two bounded ranges');
   await eventually(async()=>await p.evaluate(min=>document.scrollingElement.scrollHeight>min*1.5,firstHeight),'second range participates in scroll layout');
-  await p.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
-  await eventually(async()=>await p.locator('.library-prose').count()===105,'oldest range evicted after third range');
-  assert.match(await p.locator('.library-prose').last().textContent(),/204/);
-  await p.evaluate(()=>window.scrollTo(0,document.querySelector('#document-body').offsetTop));
-  await eventually(async()=>await p.locator('.library-prose').count()===200,'preceding range restored on reverse scroll');
-  assert.match(await p.locator('.library-prose').first().textContent(),/Synthetic continuous reading 0/);
+  await scrollUntil('last',204,'all 205 Inputs reachable through bounded pages');
+  assert.ok(await rows.count()<=80,'mounted Reader stays within two 40-Input ranges');
+  assert.ok(await index('first')>0,'oldest range is evicted after forward reading');
+  await scrollUntil('first',0,'preceding range restored on reverse scroll');
+  assert.ok(await rows.count()<=80,'reverse navigation remains bounded');
   const original=(await h.state()).records[0].originalText,first=p.locator('.library-prose').first(),firstId=await first.getAttribute('data-edit-id');
   await first.evaluate(el=>{el.focus();el.textContent='Edited continuous reading 0';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText'}));});
-  await p.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
-  await eventually(()=>p.locator('#reader-window-guard').isVisible(),'focused edit asks before evicting its range');
-  assert.equal(await p.locator('.library-prose').count(),200,'focused editing range is retained until explicit continuation');
+  await eventually(async()=>{if(await p.locator('#reader-window-guard').isVisible())return true;await p.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));return false;},'focused edit asks before evicting its range',30000);
+  assert.ok(await rows.count()<=80&&await p.locator(`[data-edit-id="${firstId}"]`).count()===1,'focused editing range is retained until explicit continuation');
   await p.locator('#reader-window-guard-continue').click();
-  await eventually(async()=>await p.locator('.library-prose').count()===105,'explicit saved continuation reaches the third range');
+  await scrollUntil('last',204,'explicit saved continuation reaches the final range');
   await eventually(async()=>(await h.state()).library.blocks.find(block=>block.id===firstId)?.libraryText==='Edited continuous reading 0','edited Input is durably saved before eviction');
   assert.equal((await h.state()).records[0].originalText,original,'Reader edit never rewrites immutable Source');
-  await p.evaluate(()=>window.scrollTo(0,document.querySelector('#document-body').offsetTop));
-  await eventually(async()=>await p.locator('.library-prose').count()===200,'edited preceding range restores');
+  await scrollUntil('first',0,'edited preceding range restores');
   assert.equal(await p.locator('.library-prose').first().textContent(),'Edited continuous reading 0');
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
@@ -74,7 +85,7 @@ test('CPV1-02.4 conversation search steps into unmounted text and close restores
   const c=conversation('cpv1-reader-search');
   c.messages=Array.from({length:101},(_,i)=>({id:'cpv1-search-'+String(i).padStart(3,'0'),text:`Synthetic text ${i}${i===0||i===100?' CPV1_MATCH':''}`}));
   await h.open(c);await eventually(async()=>(await h.state()).records.length===101);
-  await p.locator('.conversation-document').click();
+  await openCapturedReader(p);
   const first=p.locator('.library-prose').first();await first.focus();await first.scrollIntoViewIfNeeded();
   const firstId=await first.getAttribute('data-edit-id');
   await p.locator('#document-search').fill('CPV1_MATCH');

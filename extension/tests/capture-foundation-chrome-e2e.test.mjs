@@ -83,7 +83,7 @@ test('capture time repaint preserves dirty editable text, selection, node identi
  const h=await FakeChatGPT.start({headless:true});
  try{
   const page=await h.context.newPage();
-  await page.setContent('<div id="body"><h3 class="document-day">unknown</h3><section class="library-block" data-block-id="one"><p class="block-time">unknown</p><div contenteditable="plaintext-only">SYNTHETIC UNSAVED LOCAL EDIT</div></section><section class="library-block" data-block-id="two"><p class="block-time">unknown</p><div contenteditable="plaintext-only">SECOND LOCAL EDIT</div></section></div>');
+  await page.setContent('<div id="body"><div class="reader-page"><h3 class="document-day">unknown</h3><section class="library-block" data-block-id="one"><p class="block-time">unknown</p><div contenteditable="plaintext-only">SYNTHETIC UNSAVED LOCAL EDIT</div></section><section class="library-block" data-block-id="two"><p class="block-time">unknown</p><div contenteditable="plaintext-only">SECOND LOCAL EDIT</div></section></div></div>');
   await page.addScriptTag({content:(await readFile(root+'/ui/capture-time-view.js','utf8')).replace('export function','function')});
   const result=await page.evaluate(()=>{
    const body=document.getElementById('body'),node=body.querySelector('[contenteditable]'),range=document.createRange();
