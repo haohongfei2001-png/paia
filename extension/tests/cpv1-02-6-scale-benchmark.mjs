@@ -44,13 +44,23 @@ try{
   }
   await page.locator('.sidebar [data-view=library]').click();
   await eventually(()=>page.locator('#search').isVisible(),'Archive root search',30000);
-  const field=page.locator('#search');
-  const query=async i=>{await field.fill('Synthetic scale body '+i);await eventually(()=>page.locator('.search-excerpt').first().textContent().then(x=>x.includes('body '+i)).catch(()=>false),'late Input search '+i,60000);};
-  const searchWarmupMs=await timed(()=>query(size-1));
-  const search=[],searchCache=[];for(let i=1;i<=SAMPLES;i++){search.push(await timed(()=>query(size-1-i)));searchCache.push(await worker.evaluate(()=>cpv1Scale.cache()));}
+  // Measure the same browser event-to-render boundary as Reader navigation.
+  // Driver round trips and polling cadence must not inflate the product SLO.
+  const query=async i=>page.evaluate(index=>new Promise((resolve,reject)=>{
+   const field=document.querySelector('#search'),needle='body '+index;
+   if(!field||!field.getClientRects().length)return reject(Error('Archive search is not visible'));
+   const start=performance.now();
+   const finish=()=>{if(!document.querySelector('.search-excerpt')?.textContent?.includes(needle))return;
+    observer.disconnect();clearTimeout(timeout);resolve(performance.now()-start);};
+   const observer=new MutationObserver(finish),timeout=setTimeout(()=>{observer.disconnect();reject(Error('First lexical result did not render'));},60000);
+   observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+   field.value='Synthetic scale body '+index;field.dispatchEvent(new Event('input',{bubbles:true}));finish();
+  }),i);
+  const searchWarmupMs=await query(size-1);
+  const search=[],searchCache=[];for(let i=1;i<=SAMPLES;i++){search.push(await query(size-1-i));searchCache.push(await worker.evaluate(()=>cpv1Scale.cache()));}
   const idleStart=await page.evaluate(()=>({heap:performance.memory?.usedJSHeapSize??null,at:performance.now()}));
   await pause(2000);const idleEnd=await page.evaluate(()=>({heap:performance.memory?.usedJSHeapSize??null,at:performance.now()}));
-  report.sizes.push({size,seededMs,coldNavigationMs:nav[0],hotNavigationMs:summary(nav.slice(1)),searchWarmupMs,lexicalFirstResultReadyMs:summary(search),searchSamplesMs:search,searchCache:{first:searchCache[0],last:searchCache.at(-1),stable:searchCache.every(x=>x.cacheGeneration===searchCache[0].cacheGeneration&&x.dbGeneration===searchCache[0].dbGeneration)},idleRendererHeapBytes:{start:idleStart.heap,end:idleEnd.heap},externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests});
+  report.sizes.push({size,seededMs,coldNavigationMs:nav[0],hotNavigationMs:summary(nav.slice(1)),searchWarmupMs,searchMeasurement:'browser_input_event_to_first_render',lexicalFirstResultReadyMs:summary(search),searchSamplesMs:search,searchCache:{first:searchCache[0],last:searchCache.at(-1),stable:searchCache.every(x=>x.cacheGeneration===searchCache[0].cacheGeneration&&x.dbGeneration===searchCache[0].dbGeneration)},idleRendererHeapBytes:{start:idleStart.heap,end:idleEnd.heap},externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests});
   await mkdir(join(out,'..'),{recursive:true});await writeFile(out,JSON.stringify(report,null,2)+'\n');
  }
  assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
