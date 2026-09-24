@@ -8,8 +8,15 @@ async function consent(page){
 }
 
 async function openCapturedReader(page){
- await page.locator('.sidebar [data-view="library"]').click();
- await page.locator('#collection-panel .conversation-document').first().click();
+ await page.bringToFront();
+ await eventually(()=>page.locator('#archive-navigator').isVisible(),'Archive Navigator is visible');
+ const group=page.locator('.archive-navigator-group-toggle').filter({hasText:'未归属 Project'}).first();
+ await eventually(()=>group.isVisible(),'captured conversation group is visible');
+ if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+ const window=page.locator('.archive-navigator-window').first();
+ await eventually(()=>window.isVisible(),'captured conversation is visible');
+ await window.click();
+ await eventually(()=>page.locator('.library-prose').first().isVisible(),'Reader opens');
 }
 
 test('CPV1-02.4 Reader keeps actions contextual and removal reversible', {timeout:60000},async()=>{
