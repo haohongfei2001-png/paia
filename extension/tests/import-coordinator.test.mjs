@@ -11,3 +11,33 @@ test('lost acknowledgement resumes from atomic committed checkpoint after file r
 test('pause discards the selected file and requires new consent instead of silently resuming',async()=>{const {transport}=await setup(),c=new ImportCoordinator({adapter:syntheticAdapter,transport});await c.select(file(1),{consent:true});await c.preflight();await c.pause();assert.equal(c.hasFile,false);await assert.rejects(c.commit(),{code:'CONSENT_REQUIRED'});await assert.rejects(c.select(file(1),{consent:false}),{code:'CONSENT_REQUIRED'});});
 test('pause while begin awaits acknowledgement revokes the arriving grant before any preflight',async()=>{const {transport,store,ledger}=await setup();let entered,release;const waiting=new Promise(r=>entered=r),gate=new Promise(r=>release=r);let task;const c=new ImportCoordinator({adapter:syntheticAdapter,transport:async(m,q)=>{const r=await transport(m,q);if(m==='begin'){task=r.taskId;entered();await gate;}return r;}});await c.select(file(),{consent:true});const run=c.preflight();await waiting;await c.pause();release();await assert.rejects(run,{code:'CANCELLED'});assert.equal(c.hasFile,false);assert.equal((await ledger.status(task)).checkedBatches,0);assert.equal(ledger.grants.size,0);assert.equal((await store.snapshot()).records.length,0);});
 test('a corrupt later ZIP shard prevents every archive write, even after earlier preflight batches',async()=>{const {zip:syntheticZip}=await import('./fixtures/import-zip.mjs');const {transport,store}=await setup(),c=new ImportCoordinator({adapter:syntheticAdapter,transport});const zip=syntheticZip([{name:'conversations-1.json',text:JSON.stringify(Array.from({length:33},(_,i)=>syntheticRow(i+1)))},{name:'conversations-2.json',text:JSON.stringify([syntheticRow(99)]),badCrc:true}]);await c.select(zip,{consent:true});await assert.rejects(c.preflight(),{code:'ZIP_INTEGRITY'});assert.equal((await store.snapshot()).records.length,0);assert.equal(c.hasFile,false);});
+
+test('known storage shortage blocks import before any write and can resume after headroom returns',async()=>{
+ const {store,transport}=await setup();let freeBytes=1;
+ const c=new ImportCoordinator({adapter:syntheticAdapter,transport,estimateStorage:async()=>({quota:1024*1024,usage:1024*1024-freeBytes})});
+ await c.select(file(1),{consent:true});
+ const first=await c.preflight();
+ assert.equal(first.storagePreflight.state,'insufficient');
+ assert.ok(first.storagePreflight.minimumNewTextBytes>freeBytes);
+ await assert.rejects(c.commit(),{code:'STORAGE_FULL'});
+ assert.equal((await store.snapshot()).records.length,0);
+ assert.equal(c.hasFile,false);
+ freeBytes=1024*1024;
+ await c.select(file(1),{consent:true,taskId:first.taskId});
+ const resumed=await c.preflight();
+ assert.equal(resumed.taskId,first.taskId);
+ assert.equal(resumed.storagePreflight.state,'lower_bound_met');
+ const result=await c.commit();
+ assert.equal(result.counts.added,1);
+ assert.equal((await store.snapshot()).records.length,1);
+});
+
+test('storage is rechecked after a successful preflight before the first write',async()=>{
+ const {store,transport}=await setup();let freeBytes=1024*1024;
+ const c=new ImportCoordinator({adapter:syntheticAdapter,transport,estimateStorage:async()=>({quota:1024*1024,usage:1024*1024-freeBytes})});
+ await c.select(file(1),{consent:true});
+ assert.equal((await c.preflight()).storagePreflight.state,'lower_bound_met');
+ freeBytes=0;
+ await assert.rejects(c.commit(),{code:'STORAGE_FULL'});
+ assert.equal((await store.snapshot()).records.length,0);
+});

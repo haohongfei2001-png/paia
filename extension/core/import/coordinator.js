@@ -4,8 +4,17 @@ import {detectHistoryFile,detectHistoryFileForAdapter} from './detector.js';
 import {validateRows} from './contract.js';
 // File/decoded strings belong only to this page session, never to task storage.
 export class ImportCoordinator {
- constructor({transport,adapter=null,resolveAdapter=null,onProgress=()=>{}}={}){this.transport=transport;this.adapter=adapter;this.resolveAdapter=resolveAdapter;this.onProgress=onProgress;this.session=null;this.summary={phase:'idle'};this.busy=false;}
+ constructor({transport,adapter=null,resolveAdapter=null,onProgress=()=>{},estimateStorage=()=>globalThis.navigator?.storage?.estimate?.()??null}={}){this.transport=transport;this.adapter=adapter;this.resolveAdapter=resolveAdapter;this.onProgress=onProgress;this.estimateStorage=estimateStorage;this.session=null;this.summary={phase:'idle'};this.busy=false;}
  get hasFile(){return Boolean(this.session?.file);}
+ async storagePreflight(preview){
+  const minimumNewTextBytes=preview?.estimatedTextBytes;
+  if(!Number.isSafeInteger(minimumNewTextBytes)||minimumNewTextBytes<0)return {state:'unknown'};
+  let estimate;try{estimate=await this.estimateStorage();}catch{return {state:'unknown',minimumNewTextBytes};}
+  const quota=estimate?.quota,usage=estimate?.usage;
+  if(!Number.isFinite(quota)||!Number.isFinite(usage)||quota<0||usage<0)return {state:'unknown',minimumNewTextBytes};
+  const freeBytes=Math.max(0,Math.floor(quota-usage));
+  return {state:freeBytes<minimumNewTextBytes?'insufficient':'lower_bound_met',minimumNewTextBytes,freeBytes};
+ }
  publish(value,s=this.session){if(s===this.session){this.summary={...(s?.detection?{detection:s.detection}:{}),...value};this.onProgress(this.summary);}return this.summary;}
  async select(file,{consent=false,taskId}={}){await this.pause();allowed(file,{consent});this.session={file,consent,taskId,abort:new AbortController(),grant:null,fingerprint:null,adapter:null};return this.publish({phase:'selected'});}
  current(){const s=this.session;if(!s?.file||!s.consent)fail('CONSENT_REQUIRED');checkStop({signal:s.abort.signal});return s;}
@@ -45,13 +54,14 @@ export class ImportCoordinator {
    s.grant=begun.grant;s.taskId=begun.taskId;checkStop({signal:s.abort.signal});
    const result=await this.projectedPass(s,'preflight');checkStop({signal:s.abort.signal});
    const ready=await this.transport('ready',{taskId:s.taskId,grant:s.grant,batches:result.batches,issues:result.issues,...(s.detection?{inspection:Object.fromEntries(['skippedConversations','skippedMessages','invalidTimes','unknownEntries'].map(k=>[k,s.detection[k]||0]))}:{})});
-   s.preflightComplete=true;return this.publish({...ready,phase:'ready'},s);
+   s.preflightComplete=true;const storagePreflight=await this.storagePreflight(ready.preview);checkStop({signal:s.abort.signal});return this.publish({...ready,storagePreflight,phase:'ready'},s);
   }catch(e){await this.failed(e,s);throw new ImportError(safeImportError(e));}finally{this.busy=false;}
  }
  async commit(){
   const s=this.current();if(!(s.adapter||this.adapter))fail('SCHEMA_UNVERIFIED');if(this.busy||!s.preflightComplete)fail('IMPORT_STATE');this.busy=true;
   try{
    this.publish({...this.summary,phase:'importing'},s);
+   if((await this.storagePreflight(this.summary.preview)).state==='insufficient')fail('STORAGE_FULL');
    if(await fingerprintFile(s.file,{consent:true,signal:s.abort.signal})!==s.fingerprint)fail('IMPORT_FILE_MISMATCH');
    await this.projectedPass(s,'commit');checkStop({signal:s.abort.signal});
    const r=await this.transport('complete',{taskId:s.taskId,grant:s.grant});s.file=null;s.consent=false;s.grant=null;return this.publish(r,s);
