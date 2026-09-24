@@ -57,13 +57,13 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
  $('history-choose').addEventListener('click',e=>{if(e.isTrusted&&$('history-file-consent').checked&&!processing)$('history-file').click();});
  $('history-file').addEventListener('change',async e=>{
   const file=e.target.files?.[0],consent=$('history-file-consent').checked===true;e.target.value='';$('history-file-consent').checked=false;if(!file||!consent)return;
-  processing=true;try{await controller.select(file,{consent,taskId:resumeTaskId});await controller.preflight();}catch(error){$('history-error').textContent=errorText(safeImportError(error));}finally{processing=false;paint(controller.summary);}
+  processing=true;try{await controller.select(file,{consent,taskId:resumeTaskId});await controller.preflight();}catch(error){if(controller.summary.phase==='failed'&&controller.summary.taskId)resumeTaskId=controller.summary.taskId;$('history-error').textContent=errorText(safeImportError(error));}finally{processing=false;paint(controller.summary);}
  });
  $('history-commit').addEventListener('click',async e=>{
   if(!e.isTrusted||processing)return;processing=true;paint({...controller.summary,phase:'importing'});
   try{await controller.commit();resumeTaskId=undefined;onChange();void latest();void tasks();}catch(error){$('history-error').textContent=errorText(safeImportError(error));}finally{processing=false;paint(controller.summary);}
  });
- $('history-pause').addEventListener('click',()=>void controller.pause().then(()=>{$('history-file-consent').checked=false;paint(controller.summary);void tasks();}).catch(()=>{$('history-error').textContent='暂停尚未完成。请保持页面打开后再试；已经补全的输入保留。';}));
+ $('history-pause').addEventListener('click',()=>void controller.pause().then(()=>{resumeTaskId=controller.summary.taskId||resumeTaskId;$('history-file-consent').checked=false;paint(controller.summary);void tasks();}).catch(()=>{$('history-error').textContent='暂停尚未完成。请保持页面打开后再试；已经补全的输入保留。';}));
  $('history-cancel').addEventListener('click',async()=>{try{await controller.cancel();resumeTaskId=undefined;paint(controller.summary);void tasks();onChange();}catch{$('history-error').textContent='暂时无法取消，请再试一次。';}});
  $('history-read').addEventListener('click',async()=>{await close();await onNavigate('library');});
  $('history-thoughts').addEventListener('click',async()=>{await close();await onNavigate('thoughts');});
