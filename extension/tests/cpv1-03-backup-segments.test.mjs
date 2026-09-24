@@ -78,7 +78,7 @@ test('selected segment files are authenticated before any restore row is staged'
  });
  for(const row of rows)await writer.add(row);
  const manifest=await writer.finish();
- const manifestFile=named('PAIA-Backup-fixture.manifest.json',
+ const manifestFile=named('PAIA-Backup-fixture.manifest.paia-backup',
   new Blob([JSON.stringify(manifest)]));
  const actual=[];
  for await(const row of backupSegmentRows([manifestFile,...files].reverse()))actual.push(row);
@@ -98,7 +98,7 @@ test('segmented transport restores the complete existing domain fixture',async()
  });
  for(const row of backup)await writer.add(row);
  const manifest=await writer.finish();
- const manifestFile=named('PAIA-Backup-domain-fixture.manifest.json',
+ const manifestFile=named('PAIA-Backup-domain-fixture.manifest.paia-backup',
   new Blob([JSON.stringify(manifest)]));
  const restoredRows=[];
  for await(const row of backupSegmentRows([manifestFile,...files].reverse()))

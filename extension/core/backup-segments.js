@@ -40,7 +40,7 @@ export class BackupSegmentWriter{
   const blob=new Blob(this.lines,{type:'application/x-ndjson'});
   if(blob.size!==this.bytes)backupError('BACKUP_INVALID');
   const index=this.parts.length+1;
-  const name=`${this.name}.part-${String(index).padStart(6,'0')}`;
+  const name=`${this.name}.part-${String(index).padStart(6,'0')}.paia-backup`;
   const sha256=await digest(blob);
   await this.onSegment({name,blob,index});
   this.parts.push({name,bytes:blob.size,sha256});
@@ -73,7 +73,7 @@ export async function verifyBackupSegments(manifest,files){
  for(let index=0;index<manifest.parts.length;index++){
   const part=manifest.parts[index],file=byName.get(part?.name);
   if(!part||typeof part.name!=='string'
-      ||!part.name.endsWith(`.part-${String(index+1).padStart(6,'0')}`)
+      ||!part.name.endsWith(`.part-${String(index+1).padStart(6,'0')}.paia-backup`)
       ||!Number.isSafeInteger(part.bytes)||part.bytes<1
       ||part.bytes>16*1024*1024||!SHA256.test(part.sha256)
       ||!file||file.size!==part.bytes)backupError('BACKUP_INCOMPLETE');
