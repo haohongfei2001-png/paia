@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.js';
 import {backupSegmentRows} from '../ui/backup.js';
+import {BackupService} from '../core/backup-service.js';
+import {completeFixture,rows} from './harness/original-complete.mjs';
+import {exported,prepared} from './harness/backup-v081.mjs';
 
 const named=(name,blob)=>Object.assign(new Blob([blob]),{name});
 
@@ -83,4 +86,29 @@ test('selected segment files are authenticated before any restore row is staged'
  const damaged=named(files[0].name,new Blob(['X'+(await files[0].text()).slice(1)]));
  const iterator=backupSegmentRows([manifestFile,damaged,...files.slice(1)]);
  await assert.rejects(()=>iterator.next());
+});
+
+
+test('segmented transport restores the complete existing domain fixture',async()=>{
+ const source=await completeFixture();
+ const backup=await exported(new BackupService(source.s,{appVersion:'0.12.0'}));
+ const files=[],writer=new BackupSegmentWriter({
+  name:'PAIA-Backup-domain-fixture',maxBytes:4096,
+  onSegment:async({name,blob})=>files.push(named(name,blob)),
+ });
+ for(const row of backup)await writer.add(row);
+ const manifest=await writer.finish();
+ const manifestFile=named('PAIA-Backup-domain-fixture.manifest.json',
+  new Blob([JSON.stringify(manifest)]));
+ const restoredRows=[];
+ for await(const row of backupSegmentRows([manifestFile,...files].reverse()))
+  restoredRows.push(row);
+ assert.deepEqual(restoredRows,backup);
+ const target=await completeFixture({texts:[]});
+ const service=new BackupService(target.s,{appVersion:'0.12.0'});
+ const stage=await prepared(service,restoredRows);
+ assert.equal(stage.preview.canRestore,true);
+ await service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity});
+ assert.deepEqual(await rows(target.s,'records'),await rows(source.s,'records'));
+ assert.deepEqual(await rows(target.s,'provenance'),await rows(source.s,'provenance'));
 });
