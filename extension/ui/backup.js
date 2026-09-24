@@ -1,5 +1,5 @@
 import {setProductState} from './product-state.js';
-import {verifyBackupSegments} from '../core/backup-segments.js';
+import {BackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.js';
 import {request,element} from './common.js';
 import {BACKUP_LIMITS,BackupValidator,backupError} from '../core/backup-format.js';
 import {installR6Settings,recordR6BackupSuccess,refreshR6Settings} from './r6-settings.js';
@@ -20,9 +20,9 @@ export async function* backupSegmentRows(files){
  for(const file of ordered)yield* backupFileRows(file);
 }
 export class BackupPanel {
- constructor(){this.busy=false;this.sessionId=null;$('backup-create').addEventListener('click',()=>void this.create());$('backup-choose').addEventListener('click',()=>$('backup-file').click());$('backup-file').addEventListener('change',()=>void this.inspect(Array.from($('backup-file').files||[])));$('backup-restore').addEventListener('click',()=>void this.restore());$('backup-cancel').addEventListener('click',()=>void this.cancel());installR6Settings({isBusy:()=>this.busy,lock:value=>this.lock(value),status:(text,state)=>this.status(text,state)});}
+ constructor(){this.busy=false;this.sessionId=null;$('backup-create').addEventListener('click',()=>void this.create());$('backup-create-segmented').addEventListener('click',()=>void this.createSegmented());$('backup-choose').addEventListener('click',()=>$('backup-file').click());$('backup-file').addEventListener('change',()=>void this.inspect(Array.from($('backup-file').files||[])));$('backup-restore').addEventListener('click',()=>void this.restore());$('backup-cancel').addEventListener('click',()=>void this.cancel());installR6Settings({isBusy:()=>this.busy,lock:value=>this.lock(value),status:(text,state)=>this.status(text,state)});}
  status(text,state){$('backup-status').textContent=text;this.currentState=state||(text.startsWith('正在')?'loading':text.includes('已完成')||text.includes('已生成')?'saved':text?'ready':'idle');setProductState($('backup-settings'),this.currentState);}
- lock(value){this.busy=value;setProductState($('backup-settings'),value?'loading':this.currentState||'idle');for(const id of ['backup-create','backup-choose','backup-restore','r6-export-json','r6-export-markdown'])if($(id))$(id).disabled=value;}
+ lock(value){this.busy=value;setProductState($('backup-settings'),value?'loading':this.currentState||'idle');for(const id of ['backup-create','backup-create-segmented','backup-choose','backup-restore','r6-export-json','r6-export-markdown'])if($(id))$(id).disabled=value;}
  async cancel(){if(this.busy)return;if(this.sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId:this.sessionId}}).catch(()=>{});this.sessionId=null;this.preview=null;$('backup-preview').hidden=true;$('backup-file').value='';this.status('');}
  async create(){
   if(this.busy)return;
@@ -64,6 +64,50 @@ export class BackupPanel {
    }
   }catch(e){this.status(backupMessage(e.code),'failed');}
   finally{if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore;}
+ }
+ async createSegmented(){
+  if(this.busy)return;
+  await this.cancel();
+  this.lock(true);
+  let sessionId;
+  try{
+   this.status('正在分段创建本地备份…');
+   const begin=await request('PAIA_BACKUP_BEGIN_EXPORT');sessionId=begin.sessionId;
+   const name='PAIA-Backup-'+new Date().toISOString().replace(/[:.]/g,'-')+'.paia-backup';
+   const validator=new BackupValidator({
+    maxBytes:BACKUP_LIMITS.segmentedExportBytes,
+    maxItems:BACKUP_LIMITS.segmentedExportItems,
+   });
+   const writer=new BackupSegmentWriter({
+    name,maxBytes:16*1024*1024,
+    onSegment:async({name:partName,blob})=>{
+     downloadParts([blob],partName,'application/x-ndjson');
+    },
+   });
+   await validator.add(begin.header);await writer.add(begin.header);
+   let sequence=0,count=0;
+   for(;;){
+    const page=await request('PAIA_BACKUP_EXPORT_PAGE',{options:{sessionId,sequence:sequence++}});
+    for(const row of page.items){await validator.add(row);await writer.add(row);}
+    count+=page.items.filter(row=>row.type==='item').length;
+    this.status(`正在创建分段备份 · 已处理 ${count} 项`);
+    if(page.done)break;
+    await new Promise(resolve=>setTimeout(resolve,0));
+   }
+   const preview=validator.preview(),manifest=await writer.finish();
+   downloadParts([JSON.stringify(manifest)],name+'.manifest.json','application/json');
+   const recoverable=preview.itemCount<=BACKUP_LIMITS.restoreItems
+    &&manifest.totalBytes<=BACKUP_LIMITS.restoreBytes;
+   if(recoverable)await recordR6BackupSuccess(begin.header.createdAt);
+   this.status(recoverable
+    ?`已开始下载 ${manifest.parts.length} 个分段和完整清单。请确认全部文件已保存并一起选择恢复；文件含私人数据。`
+    :`已开始下载 ${manifest.parts.length} 个分段和完整清单。文件超出当前 64 MB / 100000 项的恢复范围，不能作为更新恢复点；请保留原库。`);
+  }catch(e){
+   this.status('分段备份未完成，不能用于恢复；请删除本次不完整分段后重试。'+backupMessage(e.code),'failed');
+  }finally{
+   if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});
+   this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore;
+  }
  }
  async inspect(input){const files=Array.isArray(input)?input:[input];if(!files.length||!files[0]||this.busy)return;await this.cancel();this.lock(true);try{this.status('正在本机校验备份…');const begin=await request('PAIA_BACKUP_BEGIN_RESTORE');this.sessionId=begin.sessionId;const validator=new BackupValidator();let batch=[];for await(const row of files.length===1&&!files[0].name.endsWith('.manifest.json')?backupFileRows(files[0]):backupSegmentRows(files)){await validator.add(row);batch.push(row);if(batch.length===30){await request('PAIA_BACKUP_STAGE',{options:{sessionId:this.sessionId,items:batch}});batch=[];this.status(`正在校验 · ${validator.count} 项`);}}validator.preview();if(batch.length)await request('PAIA_BACKUP_STAGE',{options:{sessionId:this.sessionId,items:batch}});this.preview=await request('PAIA_BACKUP_PREVIEW',{options:{sessionId:this.sessionId}});const p=this.preview;$('backup-preview-content').replaceChildren(element('p','',`备份日期：${new Date(p.createdAt).toLocaleString()}`),element('p','',`PAIA ${p.appVersion} · 备份格式 ${p.formatVersion}`),element('p','',`${p.counts.inputs} 条 Input · ${p.counts.topics} 个 Topic · ${p.counts.entries} 条思想内容 · ${p.counts.revisions} 个版本`),element('p','muted',p.canRestore?'完整性校验通过。确认后将在本机恢复这些数据，API Key 与捕获授权保持当前设置。':backupMessage(p.reason)));$('backup-preview').hidden=false;this.status(p.canRestore?'请核对备份信息，然后点击“确认恢复到空库”。':'校验通过，当前库不满足安全恢复条件。');}catch(e){this.status(backupMessage(e.code),'failed');if(this.sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId:this.sessionId}}).catch(()=>{});this.sessionId=null;this.preview=null;}finally{this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore;}}
  async restore(){if(this.busy||!this.preview?.canRestore)return;this.lock(true);try{this.status('正在恢复，请保持本页打开…');await request('PAIA_BACKUP_RESTORE',{options:{sessionId:this.sessionId,confirmation:this.preview.integrity}});await refreshR6Settings();this.sessionId=null;this.preview=null;$('backup-preview').hidden=true;this.status('恢复已完成。内容与版本已保存到本机；本地搜索索引正在更新。');}catch(e){this.status(backupMessage(e.code),'failed');}finally{this.lock(false);$('backup-restore').disabled=true;}}
