@@ -137,9 +137,14 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   const afterDownloads=[];
   page.on('download',download=>afterDownloads.push(download));
   await page.locator('#backup-create-segmented').click();
-  await eventually(async()=>afterDownloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup'))
-    &&afterDownloads.some(item=>item.suggestedFilename().includes('.part-')),
-   'restored library segmented export',90000);
+  try{
+   await eventually(async()=>afterDownloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup'))
+     &&afterDownloads.some(item=>item.suggestedFilename().includes('.part-')),
+    'restored library segmented export',90000);
+  }catch(error){
+   const status=await page.locator('#backup-status').textContent().catch(()=>'(unavailable)');
+   throw new Error(`Restored export failed: status=${status}; downloads=${afterDownloads.map(item=>item.suggestedFilename()).join(',')}; ${error.message}`);
+  }
   const afterDir=join(dir,'after');
   await mkdir(afterDir);
   const afterPaths=[];
