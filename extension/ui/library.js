@@ -6,7 +6,7 @@ const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export class DocumentEditor {
  constructor(root,state,doc,onStatus,onChange,onRecovered=()=>{}){
   this.root=root;root.tabIndex=-1;this.id=doc.id;this.onStatus=onStatus;this.onChange=onChange;this.onRecovered=onRecovered;this.savedTitle=doc.userTitle;this.title=doc.userTitle;this.titleRevision=doc.titleRevision;this.originalTitle=doc.originalConversationTitle;this.entries=new Map();this.journal=new UndoJournal();this.revisions=new RevisionSession();this.autosave=new AutosaveSession(()=>void this.flush(),{delay:500});this.undoStack=[];this.redoStack=[];this.composing=false;this.saving=false;this.failed=false;this.disposed=false;
-  const recoverySources=new Set();for(const b of state.library.blocks.filter(b=>b.documentId===doc.id)){this.entries.set(b.id,{saved:value(b),local:value(b),revision:b.revision,signature:b.provenanceSignature,original:state.records.find(r=>r.id===b.originalTextReference)?.originalText??'',lastNonempty:value(b)});if(b.sourceRecordId)recoverySources.add(b.sourceRecordId);for(const p of b.provenance||[])if(p.sourceRecordId)recoverySources.add(p.sourceRecordId);}this.recovery=new RecoveryDraftSession({kind:'document',ownerId:this.id,sourceRecordIds:[...recoverySources]});this.recoveryFailed=false;
+  const recoverySources=new Set();for(const b of state.library.blocks.filter(b=>b.documentId===doc.id)){this.entries.set(b.id,{saved:value(b),local:value(b),revision:b.revision,signature:b.provenanceSignature,original:state.records.find(r=>r.id===b.originalTextReference)?.originalText??'',lastNonempty:value(b),sources:[...new Set([b.sourceRecordId,...(b.provenance||[]).map(p=>p.sourceRecordId)].filter(Boolean))]});if(b.sourceRecordId)recoverySources.add(b.sourceRecordId);for(const p of b.provenance||[])if(p.sourceRecordId)recoverySources.add(p.sourceRecordId);}this.recovery=new RecoveryDraftSession({kind:'document',ownerId:this.id,sourceRecordIds:[...recoverySources]});this.recoveryFailed=false;
   this.controller=new AbortController();const options={signal:this.controller.signal};
   this.surface=new PlainTextSurface(root,{start:()=>{this.composing=true;this.autosave.cancel();},end:()=>{this.composing=false;this.collect();},input:()=>this.collect(),leave:()=>{this.collect();void this.flush();}});
   root.addEventListener('beforeinput',e=>this.beforeInput(e),options);
@@ -18,6 +18,25 @@ export class DocumentEditor {
  set undoStack(v){this.journal.undo=v;}
  get redoStack(){return this.journal.redo;}
  set redoStack(v){this.journal.redo=v;}
+ absorb(page){
+  const records=new Map(page.records.map(r=>[r.id,r]));
+  for(const b of page.library.blocks.filter(b=>b.documentId===this.id&&page.pageItemIds.includes(b.id))){
+   if(this.entries.has(b.id))continue;
+   const sources=[...new Set([b.sourceRecordId,...(b.provenance||[]).map(p=>p.sourceRecordId)].filter(Boolean))];
+   this.entries.set(b.id,{saved:value(b),local:value(b),revision:b.revision,signature:b.provenanceSignature,original:records.get(b.originalTextReference)?.originalText??'',lastNonempty:value(b),sources});
+   this.recovery.sourceRecordIds=[...new Set([...this.recovery.sourceRecordIds,...sources])];
+  }
+ }
+ compact(visibleIds,limit=600){
+  const visible=new Set(visibleIds),referenced=()=>new Set([...this.undoStack,...this.redoStack].flatMap(p=>p.map(x=>x.id)).filter(id=>id!=='title'));
+  let history=referenced();
+  while(new Set([...visible,...history]).size>limit&&(this.undoStack.length||this.redoStack.length)){
+   if(this.undoStack.length)this.undoStack.shift();else this.redoStack.shift();
+   history=referenced();
+  }
+  for(const [id,e] of this.entries)if(!visible.has(id)&&!history.has(id)&&equal(e.local,e.saved))this.entries.delete(id);
+  this.recovery.sourceRecordIds=[...new Set([...this.entries.values()].flatMap(e=>e.sources||[]))];
+ }
  field(id){return [...this.root.querySelectorAll('[data-edit-id]')].find(el=>el.dataset.editId===id);}
  text(e){return e.local.libraryText??e.original;}
  dirty(){return this.title!==this.savedTitle||[...this.entries.values()].some(e=>!equal(e.local,e.saved));}
