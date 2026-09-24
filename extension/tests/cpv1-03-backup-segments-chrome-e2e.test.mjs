@@ -16,9 +16,10 @@ async function openBackup(page){
 async function enableConsent(page){
  const welcome=page.locator('#onboarding-start'),consent=page.locator('#consent-check');
  const consented=async()=>{
-  const response=await page.evaluate(()=>chrome.runtime.sendMessage({type:'GET_STATE'}));
-  assert.equal(response.ok,true,JSON.stringify(response));
-  return response.data.settings.consentVersion===1;
+  try{
+   const response=await page.evaluate(()=>chrome.runtime.sendMessage({type:'GET_STATE'}));
+   return response?.ok===true&&response.data?.settings?.consentVersion===1;
+  }catch{return false;}
  };
  await eventually(async()=>await welcome.isVisible()||await consent.isVisible()||await consented(),
   'onboarding or existing consent',30000);
@@ -29,6 +30,7 @@ async function enableConsent(page){
   await page.locator('#enable-consent').click();
   await eventually(consented,'durable local consent',30000);
  }
+ assert.equal(await consented(),true);
 }
 
 async function portableItems(harness){
