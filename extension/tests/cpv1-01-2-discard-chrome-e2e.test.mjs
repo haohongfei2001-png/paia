@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -15,39 +15,45 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
   execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
   let h;
   try {
-    stage = 'launch isolated browser';
-    // CI runs under Xvfb. Keep the real discard/restore journey isolated from
-    // other browser tests in the shard.
-    h = await FakeChatGPT.start({ extensionPath: release, headless: process.env.CI !== '1', useBundledChromium: process.env.CI === '1' });
+    // Keep this lifecycle regression on the last exact-main-certified harness
+    // shape. A later test-only experiment switched this journey to a headed
+    // Xvfb/native-tabs setup and caused Chromium itself to SIGSEGV at
+    // chrome.tabs.discard(), including for a synthetic non-PAIA tab. That is
+    // evidence-infrastructure behavior, not a product assertion failure.
+    stage = 'launch isolated headless browser';
+    h = await FakeChatGPT.start({ extensionPath: release, headless: true });
     stage = 'consent';
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
     await h.archive.locator('#enable-consent').click();
     await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
+
     const restoredConversation = conversation('cpv1-discarded-tab');
-    stage = 'open a background conversation';
-    // Create both tabs through Chrome's own tab API. CI Chromium crashes when
-    // an already-loaded injected tab is switched to the background. Navigate
-    // the conversation only after its blank tab is safely backgrounded.
-    const conversationTab = await h.archive.evaluate(() => chrome.tabs.create({ url: 'about:blank', active: true }));
-    const conversationId = conversationTab.id;
-    assert.ok(conversationId, 'conversation has a browser tab ID');
-    const keepAlive = await h.archive.evaluate(() => chrome.tabs.create({ url: 'about:blank', active: true }));
-    assert.ok(keepAlive.id, 'a normal browser tab stays active while the conversation is discarded');
-    h.pages.set(restoredConversation.id, { c: restoredConversation, arrival: 'metadata-first' });
-    stage = 'navigate background conversation';
-    await h.archive.evaluate((input) => chrome.tabs.update(input.id, { url: input.url }), {
-      id: conversationId, url: `https://chatgpt.com/c/${restoredConversation.id}`,
-    });
-    stage = 'capture initial conversation';
+    stage = 'open and capture initial conversation';
+    const tab = await h.open(restoredConversation);
+    await h.ready(tab);
     await eventually(async () => (await h.state()).records.length === 3);
-    stage = 'background conversation';
-    await eventually(async () => h.archive.evaluate(async (id) => !(await chrome.tabs.get(id)).active, conversationId), 'conversation tab is backgrounded before discard');
-    const discarded = await h.archive.evaluate(async (id) => chrome.tabs.discard(id), conversationId);
-    stage = 'confirm discard';
-    assert.equal(discarded?.discarded, true, 'the real conversation tab is discarded');
-    await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).discarded === true, conversationId), 'discard state is visible before restore');
-    const restored = await h.archive.evaluate(async (id) => chrome.tabs.update(id, { active: true }), conversationId);
-    stage = 'confirm restored tab';
+
+    // Isolate the discard journey from unrelated pages while preserving the
+    // same real chrome.tabs.discard -> restore path that passed the VS-01
+    // exact-main certification.
+    for (const other of h.context.pages()) {
+      if (other !== h.archive && other !== tab) await other.close();
+    }
+    await h.archive.bringToFront();
+
+    stage = 'discard conversation tab';
+    const restored = await h.archive.evaluate(async () => {
+      const current = await chrome.tabs.getCurrent();
+      const tabs = await chrome.tabs.query({});
+      const other = tabs.filter((item) => item.id !== current.id);
+      if (other.length !== 1) throw new Error(`expected one other tab, got ${other.length}`);
+      await chrome.tabs.update(current.id, { active: true });
+      const discarded = await chrome.tabs.discard(other[0].id);
+      if (!discarded?.discarded) throw new Error('target tab was not discarded');
+      return chrome.tabs.update(discarded.id, { active: true });
+    });
+
+    stage = 'restore conversation tab';
     assert.equal(restored?.active, true);
     await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).status === 'complete', restored.id), 'discarded tab finishes loading');
     assert.equal((await h.state()).records.length, 3, 'discard does not change stored records');
@@ -59,6 +65,8 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await eventually(async () => (await h.state()).records.length === 3);
     assert.equal(await resumedTab.locator('#paia-reconnect-notice').count(), 0);
     await eventually(async () => (await resumedTab.locator('#messages [data-message-id]').count()) === 3, 'restored conversation renders before new input');
+
+    stage = 'capture once after restore';
     await h.send(resumedTab, { id: 'cpv1-discarded-message-004', text: '恢复后的新消息' });
     await eventually(async () => (await h.state()).records.length === 4, 'restored tab captures new content once');
   } catch (error) {
