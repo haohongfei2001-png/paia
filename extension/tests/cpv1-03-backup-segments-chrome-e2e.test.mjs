@@ -2,7 +2,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,cp,rm,readFile,writeFile} from 'node:fs/promises';
+import {mkdtemp,cp,rm,readFile,writeFile,mkdir} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 async function openBackup(page){
@@ -74,7 +74,7 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   await openBackup(page);
   const part=paths.find(path=>path.includes('.part-'));
   const damaged=join(dir,'damaged',part.split('/').at(-1));
-  await import('node:fs/promises').then(fs=>fs.mkdir(join(dir,'damaged')));
+  await mkdir(join(dir,'damaged'));
   const text=await readFile(part,'utf8');
   await writeFile(damaged,'X'+text.slice(1));
   await page.locator('#backup-file').setInputFiles([
