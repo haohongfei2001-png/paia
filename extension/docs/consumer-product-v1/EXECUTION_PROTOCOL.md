@@ -63,17 +63,23 @@ Do not ask the owner to choose:
 - code organization;
 - retry/backoff mechanics within an approved privacy/cost envelope.
 
-## 4. Start-of-round protocol
+## 4. Start-of-batch and subround protocol
 
-For every round:
+For unfinished Consumer Product v1 work, the default execution unit is a **coherent integration batch**, not one PR per numbered subround.
+
+At the start of a batch:
 
 1. Resolve current remote main HEAD.
-2. Read STATUS.md, AUTHORITY.md and the current slice/round contract.
+2. Read STATUS.md, AUTHORITY.md, the slice contract, and every numbered subround included in the batch.
 3. Read only relevant current PRODUCT/ARCHITECTURE/history needed for compatibility.
 4. Inspect current code and recent commits; do not assume the planning baseline is current.
 5. Confirm there is no other writer touching the same runtime/data boundary.
 6. Reuse correct work already on main or an active PR; do not redo it.
-7. Record the exact start SHA in the round receipt/status.
+7. Record the exact batch start SHA in the PR/body or batch checkpoint.
+
+Inside the same batch, advancing from one numbered subround to the next does **not** require a new branch, PR, formal receipt, STATUS rewrite, merge, exact-main certification, or full context reconstruction. Keep the same sole writer and record only a compact checkpoint in the active PR when useful.
+
+Re-read remote main before integrating the batch, and immediately if evidence shows another writer changed the same dependency boundary.
 
 ## 5. Implementation rules
 
@@ -118,9 +124,15 @@ A candidate is not a release and does not require publication unless the current
 
 ### 7.2 Round closure
 
-A normal round progresses:
+For unfinished rounds after this cadence amendment, a normal round progresses:
 
-DESIGN/RECONSTRUCT → IMPLEMENT → TARGETED TEST → FULL REQUIRED CI → DIRECTLY APPLICABLE BROWSER/RELIABILITY EVIDENCE → MERGE → EXACT-MAIN CHECK → RECEIPT → STATUS UPDATE.
+DESIGN/RECONSTRUCT → IMPLEMENT → TARGETED TEST → AFFECTED REGRESSIONS → LIGHT INTEGRATION GATE → MERGE → MAIN READBACK → RECEIPT/STATUS.
+
+Ordinary round closure does **not** require reacquiring the complete historical browser suite, macOS certification, performance matrix, accessibility matrix, CURRENT_LIVE evidence, or unrelated reliability scenarios. Those belong to the owning slice/certification boundary unless the round itself changes that risk boundary.
+
+The light integration gate keeps unit, adapter/privacy contracts and release/package build guards. The executor must still run the directly affected browser journey locally or in a bounded CI job before merge when UI/browser behavior changed.
+
+Escalate an ordinary round to full certification immediately when it changes schema/storage identity, deletion/anti-resurrection, capture admission, privacy/authorization, migration/rollback, release identity, or another invariant where delayed discovery would make later work unsafe.
 
 Only evidence directly required by the round contract or needed to protect an affected invariant is a round-closing gate. Evidence already valid for unchanged runtime paths should be referenced rather than mechanically repeated.
 
@@ -167,25 +179,58 @@ Publication remains separate unless explicitly authorized. Security, privacy, da
 
 ### 7.5 GitHub CI scheduling
 
-The GitHub workflows implement the progression above:
+For unfinished work after this amendment:
 
-- while a normal implementation PR is **draft**, every runtime push uses `PAIA Candidate Gate`: unit shards, contract/privacy checks, sharded current-browser coverage and release/package guards. This is engineering feedback, not round certification;
-- when the manager judges the candidate stable, mark the PR **ready for review**. `PAIA Certification` then runs the complete current required categories once on that exact head;
-- subsequent fixes on a ready PR rerun full certification, so keep the PR draft during ordinary inner-loop iteration and batch related fixes before promotion;
-- current browser coverage is sharded for wall-clock speed but every current browser test remains required for full certification;
-- the `Full Suite Certification` job is an aggregate exact-SHA receipt over the already executed unit/browser/contract categories; it must not rerun the same tests serially;
-- documentation-only changes under `extension/docs/**` do not trigger runtime certification. Documentation closure must cite the already certified runtime SHA truthfully;
-- merge still requires the round's applicable full candidate evidence, and exact-main verification remains required after runtime integration. CI scheduling may reduce duplicate work, not evidence standards.
+- draft runtime pushes use the lightweight `PAIA Candidate Gate`: unit suite, adapter/privacy contracts and release/package build guard. Full historical browser coverage is intentionally absent;
+- the executor runs targeted browser tests for the behavior actually changed before each meaningful checkpoint; do not use a green lightweight gate as proof of untouched browser behavior;
+- when an ordinary round is ready to integrate, mark the PR ready. `PAIA Certification` runs the light round-integration gate by default;
+- add the exact marker `PAIA_FULL_CERTIFICATION` to the PR body when the current round is a slice certification boundary or the manager classifies it as high-risk under section 7.2. Full Current Browser, Full Suite and macOS certification then run on that exact head;
+- when merging a full-certification boundary, include `PAIA_FULL_CERTIFICATION` in the merge commit message so the exact-main run also uses full depth;
+- ordinary round merges receive the light exact-main integration gate; they do not mechanically rerun all browser history;
+- workflow_dispatch remains an explicit way to run full certification when needed;
+- documentation-only changes under `extension/docs/**` do not trigger runtime certification.
 
-If a PR is intentionally non-draft from creation, full certification applies immediately.
+Already completed rounds keep their historical evidence unchanged. Do not reopen or recertify them merely because this cadence changed.
 
-## 8. Branch and merge discipline
+## 8. Branch, batch and merge discipline
 
 - One integration writer per data/schema/runtime boundary.
-- Small PRs are encouraged, but product acceptance remains the round/slice contract.
+- For unfinished slices, prefer one long-lived **slice-batch PR** covering 2–4 strongly related numbered subrounds instead of a PR per subround.
+- Numbered subrounds remain scope/checklist boundaries; they are not mandatory Git integration boundaries.
+- Within a batch, commit freely and run targeted checks without marking each subround COMPLETE on main.
+- Produce one formal batch receipt and one STATUS/main integration update at the batch boundary. The receipt must state which numbered subround outcomes are satisfied and which remain.
+- Merge early only when a high-risk boundary requires independent integration evidence, when the next work genuinely depends on main integration, or when the batch has grown too broad to review safely.
+- Do not keep a batch open merely to absorb unrelated future slices.
 - Candidate CI is not exact-main CI.
-- After merge, perform the round's exact-main checks before marking COMPLETE.
+- After a batch merge, perform the selected exact-main integration gate once; do not repeat it for every numbered subround already covered by the same batch.
 - Documentation-only status commits must describe the runtime SHA they certify and must not imply the docs SHA itself is the runtime.
+
+## 8.1 Default batch map for the current desktop build
+
+Unless a newly discovered dependency makes a boundary unsafe, use the following integration batches:
+
+- **VS-02**
+  - Batch A: CPV1-02.1 + 02.2 + 02.3 — AppShell, Archive root, Project/Conversation Navigator.
+  - Batch B: CPV1-02.4 + 02.5 — Conversation Reader plus retirement of migrated legacy UI ownership.
+  - Closure: CPV1-02.6 + automatable CPV1-02.7 — performance/accessibility and certification; CURRENT_LIVE may remain deferred.
+- **VS-03**
+  - Batch A: CPV1-03.0 + 03.1 + 03.2 — support scale, import contract, resumability/preflight.
+  - Batch B: CPV1-03.3 + 03.4 + 03.5 — streaming Backup, staged restore, failure injection.
+  - Closure: CPV1-03.6.
+- **VS-04**
+  - Batch A: CPV1-04.0 + 04.1 + 04.2 + 04.3 — editor/query foundation, direct editing, inspector, lexical search.
+  - Batch B: CPV1-04.4 + 04.5 + 04.6 — Smart Filter, removal semantics, reliability matrix.
+  - Closure: CPV1-04.7.
+- **VS-05**
+  - Batch A: CPV1-05.0 + 05.1 + 05.2 + 05.3 + 05.4, with unresolved B-01-dependent behavior fail-closed/deferred.
+  - Batch B: CPV1-05.5 + 05.6.
+  - Closure: CPV1-05.7.
+- **VS-06**
+  - Batch A: CPV1-06.0 + 06.1 + 06.2 + 06.3 + 06.4.
+  - Batch B: CPV1-06.5 + 06.6.
+  - Closure: CPV1-06.7.
+
+Later VS-07..VS-12 may use the same 2–4-outcome batching rule after their dependency boundary is re-read; do not invent a giant cross-slice PR in advance.
 
 ## 9. Slice boundary and unattended continuation
 
