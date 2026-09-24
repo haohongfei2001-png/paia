@@ -28,6 +28,19 @@ class Transaction {
  async has(store,key){this.metrics.reads++;return (await req(this.tx.objectStore(store).getKey(key)))!==undefined;}
  async get(store,key){this.metrics.reads++;return req(this.tx.objectStore(store).get(key));}
  async put(store,value,key){await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;this.metrics.writes++;return req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));}
+ async putDerivedSearchRow(store,value){
+  if(!['thoughts','topics','sections'].includes(store)||!value?.id)throw fail();
+  const previous=await this.get(store,value.id);
+  if(!previous)throw fail();
+  const portable=row=>{const copy=structuredClone(row);delete copy.searchVersion;delete copy.indexedSearchVersion;return copy;};
+  // Search rebuilds may update only derived version tags. Any domain change
+  // must still advance the backup generation and invalidate an active export.
+  if(!same(portable(previous),portable(value)))throw fail();
+  const changed=this.backupChanged;
+  const result=await this.put(store,value);
+  this.backupChanged=changed;
+  return result;
+ }
  async delete(store,key){await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
  async clear(store){if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;return req(this.tx.objectStore(store).clear());}
  async count(store,index,key){return req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count());}
