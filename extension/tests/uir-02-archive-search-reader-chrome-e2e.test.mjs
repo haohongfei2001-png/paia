@@ -162,7 +162,8 @@ async function sourceJourney(page,h){
   await eventually(()=>page.locator('#collection-panel').isVisible(),'Archive remains directly reachable after material selection');
   assert.equal(await page.locator('#search').inputValue(),'UIR02_TARGET','Reader result query remains the existing Archive filter after Search closes');
   await page.locator('#search').fill('');
-  await eventually(()=>page.locator('#core-loop-home').isVisible(),'clearing the Archive filter restores the Archive home before Revisit');
+  await eventually(()=>page.locator('#archive-navigator').isVisible(),'clearing the Archive filter restores the source tree before Revisit');
+  assert.equal(await page.locator('#uir-archive-assist').isVisible(),false,'Archive does not restore the legacy side dashboard');
 
   await page.locator('#revisit-open').click();
   await eventually(()=>page.locator('#revisit-panel').isVisible(),'Revisit task opens');
