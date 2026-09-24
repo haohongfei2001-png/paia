@@ -13,6 +13,12 @@ This contract separates current code limits from the recoverable-library claim. 
 | Memory and disk | Import streams decoded entries; export accumulates final parts in the page, and restore retains validated items in a session array. Current code has no proven peak-memory or temporary-disk budget for a 100k-Input recovery. | Cloud browser evidence records P50/P95/P99 duration, peak foreground and worker memory, and storage use for each scale. The product displays the measured supported limit and requires enough free quota for staging plus the existing library before mutation. A quota or interruption failure preserves the prior library. |
 | Historical compatibility | Backup v1/schema 5 accepts supported app headers from v0.7–v0.12 under the current strict validator; current restore rejects newer/unknown format or schema. Import profiles are structural candidates, with `realExportVerified: false`. | Every claimed historical Backup and official-export version has a fixed fixture plus current-version restore/import evidence. Unknown versions remain unsupported with a clear no-mutation result. |
 
+## Batch A implementation checkpoint
+
+The import preflight now reports a browser-quota lower bound using only the estimated bytes of new Source text. A known shortage disables the user commit action; the same estimate is checked again immediately before the first write. This is intentionally a lower-bound rejection, not a promise that IndexedDB indexes, metadata and concurrent writes will fit. A quota failure still leaves the durable import checkpoint unchanged and requires reselecting the original file under the same task ID.
+
+The active dialog also carries that task ID through pause or commit failure so reselecting the same file resumes the existing task. Restarted dialogs still require the user to choose the unfinished task explicitly. The complete 100k-Input restore, bounded-memory export and staging targets remain open.
+
 ## Interim truth and gates
 
 - Until the full-flow scale matrix passes, the only current recovery envelope is the file-based 64 MiB / 100,000-item limit above. No fixed Input count is implied by it. Export may produce a larger open file, but it must say it is not a recovery point.
