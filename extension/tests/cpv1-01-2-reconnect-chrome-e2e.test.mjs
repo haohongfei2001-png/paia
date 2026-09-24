@@ -99,18 +99,24 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
       if (other !== h.archive && other !== tab) await other.close();
     }
     await h.archive.bringToFront();
-    const restored = await h.archive.evaluate(async () => {
+    const targetId = await h.archive.evaluate(async () => {
       const current = await chrome.tabs.getCurrent();
       const tabs = await chrome.tabs.query({});
       const other = tabs.filter((item) => item.id !== current.id);
       if (other.length !== 1) throw new Error(`expected one other tab, got ${other.length}`);
-      await chrome.tabs.update(current.id, { active: true });
-      const discarded = await chrome.tabs.discard(other[0].id);
-      if (!discarded?.discarded) throw new Error('target tab was not discarded');
-      return chrome.tabs.update(discarded.id, { active: true });
+      return other[0].id;
     });
+    // Keep the archive tab active while Chrome completes the real discard.
+    // Re-activating inside the same extension call races the tab teardown on
+    // Linux Chrome and can terminate the browser before it reports a result.
+    await h.archive.bringToFront();
+    const discarded = await h.archive.evaluate(id => chrome.tabs.discard(id), targetId);
+    assert.equal(discarded?.id, targetId);
+    assert.equal(discarded?.discarded, true, 'Chrome discarded the conversation tab');
+    await eventually(async () => h.archive.evaluate(async id => (await chrome.tabs.get(id)).discarded === true, targetId), 'conversation tab reaches discarded state');
+    const restored = await h.archive.evaluate(id => chrome.tabs.update(id, { active: true }), targetId);
     assert.equal(restored?.active, true);
-    await eventually(async () => h.archive.evaluate(async (id) => (await chrome.tabs.get(id)).status === 'complete', restored.id), 'discarded tab finishes loading');
+    await eventually(async () => h.archive.evaluate(async id => (await chrome.tabs.get(id)).status === 'complete', targetId), 'discarded tab finishes loading');
     assert.equal((await h.state()).records.length, 3, 'discard does not change stored records');
 
     await eventually(async () => h.context.pages().some((page) => page.url().includes('/c/cpv1-discarded-tab')));
