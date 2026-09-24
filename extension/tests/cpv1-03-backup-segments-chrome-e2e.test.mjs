@@ -85,6 +85,8 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   const baselineItems=(await readFile(baselinePath,'utf8')).trimEnd().split('\n')
    .map(JSON.parse).filter(row=>row.type==='item');
   assert.ok(baselineItems.length>200);
+  await eventually(async()=>await page.locator('#backup-create-segmented').isEnabled(),
+   'backup controls unlock after baseline export',30000);
   const downloads=[];
   page.on('download',download=>downloads.push(download));
   await page.locator('#backup-create-segmented').click();
@@ -130,6 +132,8 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   await page.locator('#backup-restore').click();
   await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),
    'segmented recovery',60000);
+  await eventually(async()=>await page.locator('#backup-create-segmented').isEnabled(),
+   'backup controls unlock after restore',30000);
   const afterDownloads=[];
   page.on('download',download=>afterDownloads.push(download));
   await page.locator('#backup-create-segmented').click();
