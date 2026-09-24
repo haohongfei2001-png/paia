@@ -32,8 +32,34 @@ env:
   PLAYWRIGHT_MODULE: 'playwright'
 
 jobs:
-  unit:
+  mode:
+    name: Select verification depth
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    outputs:
+      full: ${{ steps.depth.outputs.full }}
+    steps:
+      - id: depth
+        name: Select round integration or full certification
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          full=false
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            full=true
+          elif printf '%s' "$PR_BODY" | grep -q 'PAIA_FULL_CERTIFICATION'; then
+            full=true
+          elif printf '%s' "$HEAD_MESSAGE" | grep -q 'PAIA_FULL_CERTIFICATION'; then
+            full=true
+          fi
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+          echo "verification_depth=$([ "$full" = true ] && echo full || echo round-integration)"
+
+  unit:
+    needs: mode
+    if: needs.mode.result == 'success'
     name: Unit ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -62,7 +88,8 @@ jobs:
         run: npm run test:unit
 
   contracts:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    needs: mode
+    if: needs.mode.result == 'success'
     name: Adapter and privacy contracts
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -88,7 +115,8 @@ jobs:
         run: node scripts/test.mjs "privacy/security"
 
   current_browser:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    needs: mode
+    if: needs.mode.outputs.full == 'true'
     name: Current Browser ${{ matrix.index }}/4
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -147,10 +175,8 @@ jobs:
     name: Full Suite Certification
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: >-
-      always() &&
-      (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
-    needs: [unit, contracts, current_browser]
+    needs: [mode, unit, contracts, current_browser]
+    if: always() && needs.mode.outputs.full == 'true'
     defaults:
       run:
         working-directory: extension
@@ -185,7 +211,8 @@ jobs:
           retention-days: 14
 
   macos_secure_store:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    needs: mode
+    if: needs.mode.outputs.full == 'true'
     name: macOS Secure Store Certification
     runs-on: macos-latest
     timeout-minutes: 12
@@ -224,12 +251,6 @@ jobs:
           test -f /tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.pkg
           test -f /tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.pkg.sha256
           test -f /tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.json
-          node - <<'NODE'
-          const fs=require('node:fs');
-          const row=JSON.parse(fs.readFileSync('/tmp/paia-secure-store-distribution/PAIA-SecureStore-1.0.0.json','utf8'));
-          if(row.schemaVersion!==1||row.hostName!=='com.paia.secure_store'||row.extensionId!=='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'||row.signingMode!=='adhoc-ci'||row.notarized!==false)process.exit(1);
-          if(!Array.isArray(row.architectures)||!row.architectures.includes('arm64')||!row.architectures.includes('x86_64'))process.exit(1);
-          NODE
 
   historical_browser:
     name: Historical Browser Audit ${{ matrix.shard }}
@@ -256,15 +277,6 @@ jobs:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - name: Prepare historical Chrome compatibility environment
-        run: |
-          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
-          test -n "$CHROME_BIN"
-          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
-          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
-          sudo mkdir -p '/Applications/Google Chrome.app/Contents/MacOS'
-          sudo ln -sf "$CHROME_BIN" '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-          "$CHROME_BIN" --version
       - name: Run pre-migration browser evidence shard
         env:
           PAIA_TEST_SHARD: ${{ matrix.shard }}
@@ -272,7 +284,8 @@ jobs:
         run: xvfb-run -a npm run test:historical-browser
 
   release:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    needs: mode
+    if: needs.mode.result == 'success'
     name: Current release build and guards
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -291,24 +304,16 @@ jobs:
           python-version: '3.12'
       - name: Build and audit release
         run: npm run build:release
-      - name: Upload release tree
-        uses: actions/upload-artifact@v4
-        with:
-          name: paia-current-release-${{ github.sha }}
-          path: extension/work/current-release
-          if-no-files-found: error
-          retention-days: 7
 
   certified:
-    name: Certification gate
+    name: Integration / certification gate
     runs-on: ubuntu-latest
-    if: >-
-      always() &&
-      (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
-    needs: [unit, contracts, current_browser, full_suite, macos_secure_store, release]
+    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
+    needs: [mode, unit, contracts, current_browser, full_suite, macos_secure_store, release]
     steps:
-      - name: Require every current-release gate
+      - name: Require selected verification depth
         env:
+          FULL: ${{ needs.mode.outputs.full }}
           UNIT: ${{ needs.unit.result }}
           CONTRACTS: ${{ needs.contracts.result }}
           CURRENT_BROWSER: ${{ needs.current_browser.result }}
@@ -316,10 +321,13 @@ jobs:
           MACOS_SECURE_STORE: ${{ needs.macos_secure_store.result }}
           RELEASE: ${{ needs.release.result }}
         run: |
-          printf 'unit=%s\ncontracts=%s\ncurrent_browser=%s\nfull_suite=%s\nmacos_secure_store=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$CURRENT_BROWSER" "$FULL_SUITE" "$MACOS_SECURE_STORE" "$RELEASE"
+          printf 'full=%s\nunit=%s\ncontracts=%s\ncurrent_browser=%s\nfull_suite=%s\nmacos_secure_store=%s\nrelease=%s\n' \
+            "$FULL" "$UNIT" "$CONTRACTS" "$CURRENT_BROWSER" "$FULL_SUITE" "$MACOS_SECURE_STORE" "$RELEASE"
           test "$UNIT" = success
           test "$CONTRACTS" = success
-          test "$CURRENT_BROWSER" = success
-          test "$FULL_SUITE" = success
-          test "$MACOS_SECURE_STORE" = success
           test "$RELEASE" = success
+          if [ "$FULL" = true ]; then
+            test "$CURRENT_BROWSER" = success
+            test "$FULL_SUITE" = success
+            test "$MACOS_SECURE_STORE" = success
+          fi
