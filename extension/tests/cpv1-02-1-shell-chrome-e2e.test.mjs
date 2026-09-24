@@ -18,7 +18,7 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await page.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent persists');
   await page.locator('#onboarding-skip').click();
-  await harness.open({id:'cpv1-021-shell',title:'CPV1 shell conversation',base:1609459200,messages:[{id:'cpv1-021-input',text:'CPV1_SHELL_SEARCH unique saved idea'}]});
+  await harness.open({id:'cpv1-021-shell',title:'CPV1 shell conversation · 很长的 Project 归属和窗口标题 with a deliberately long ending',base:1609459200,messages:[{id:'cpv1-021-input',text:'CPV1_SHELL_SEARCH unique saved idea'}]});
   await eventually(async()=>(await harness.state()).records.some(row=>row.originalText.includes('CPV1_SHELL_SEARCH')),'synthetic capture persists');
   await page.bringToFront();
   await eventually(()=>page.locator('#archive-navigator:not([hidden]) .archive-navigator-group-toggle').first().isVisible(),'Archive groups are visible');
@@ -71,6 +71,10 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),documentId);
   await page.evaluate(()=>history.back());
   await eventually(()=>rootWindow.isVisible(),'a second Back keeps the Conversation reachable');
+  await page.setViewportSize({width:320,height:700});
+  await eventually(()=>rootWindow.isVisible(),'the same Conversation remains available at phone width');
+  assert.equal(await page.locator('#archive-root-overflow summary').isVisible(),true);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'long source title does not create horizontal page overflow');
   assert.equal(harness.externalRequests,0);
  }finally{await harness?.close();}
 });
