@@ -14,7 +14,7 @@ body.ans-nav-root .archive-navigator-window-cue{font-size:11px;line-height:1.4;c
 body.ans-nav-root .archive-navigator-window-time{font-size:10px;color:var(--paia-meta)}
 .archive-navigator-detail{flex:0 0 auto;min-width:32px;padding:6px 5px;font-size:10px;color:var(--paia-meta)}.archive-navigator-windows{padding:0 0 5px}.archive-navigator-more{margin:4px 8px 4px 24px;padding:6px 8px;font-size:11px;color:var(--paia-accent)}.archive-navigator-end,.archive-navigator-source-state{padding-left:24px}
 body.ans-nav-root #archive-navigator{margin:18px 0 24px;padding:0 4px 10px;border-bottom:1px solid var(--paia-subtle);max-width:100%}
-body.ans-nav-root .workspace-header>.uir-revisit-shortcut{position:static;transform:none;margin-left:auto;flex:none}
+body.ans-nav-root .workspace-header>.uir-revisit-shortcut{position:relative;transform:none;margin-left:auto;flex:none}
 body.ans-nav-root .archive-navigator-header h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 body.ans-nav-root .archive-navigator-status{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 body.ans-nav-root .archive-navigator-end{display:none}
