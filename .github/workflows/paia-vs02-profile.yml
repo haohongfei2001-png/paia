@@ -22,6 +22,12 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
+      - name: Use Chrome extension CDP
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
       - name: Profile 100k Reader navigation
         env:
           CI: '1'
