@@ -63,17 +63,23 @@ Do not ask the owner to choose:
 - code organization;
 - retry/backoff mechanics within an approved privacy/cost envelope.
 
-## 4. Start-of-round protocol
+## 4. Start-of-batch and subround protocol
 
-For every round:
+For unfinished Consumer Product v1 work, the default execution unit is a **coherent integration batch**, not one PR per numbered subround.
+
+At the start of a batch:
 
 1. Resolve current remote main HEAD.
-2. Read STATUS.md, AUTHORITY.md and the current slice/round contract.
+2. Read STATUS.md, AUTHORITY.md, the slice contract, and every numbered subround included in the batch.
 3. Read only relevant current PRODUCT/ARCHITECTURE/history needed for compatibility.
 4. Inspect current code and recent commits; do not assume the planning baseline is current.
 5. Confirm there is no other writer touching the same runtime/data boundary.
 6. Reuse correct work already on main or an active PR; do not redo it.
-7. Record the exact start SHA in the round receipt/status.
+7. Record the exact batch start SHA in the PR/body or batch checkpoint.
+
+Inside the same batch, advancing from one numbered subround to the next does **not** require a new branch, PR, formal receipt, STATUS rewrite, merge, exact-main certification, or full context reconstruction. Keep the same sole writer and record only a compact checkpoint in the active PR when useful.
+
+Re-read remote main before integrating the batch, and immediately if evidence shows another writer changed the same dependency boundary.
 
 ## 5. Implementation rules
 
@@ -186,13 +192,45 @@ For unfinished work after this amendment:
 
 Already completed rounds keep their historical evidence unchanged. Do not reopen or recertify them merely because this cadence changed.
 
-## 8. Branch and merge discipline
+## 8. Branch, batch and merge discipline
 
 - One integration writer per data/schema/runtime boundary.
-- Small PRs are encouraged, but product acceptance remains the round/slice contract.
+- For unfinished slices, prefer one long-lived **slice-batch PR** covering 2–4 strongly related numbered subrounds instead of a PR per subround.
+- Numbered subrounds remain scope/checklist boundaries; they are not mandatory Git integration boundaries.
+- Within a batch, commit freely and run targeted checks without marking each subround COMPLETE on main.
+- Produce one formal batch receipt and one STATUS/main integration update at the batch boundary. The receipt must state which numbered subround outcomes are satisfied and which remain.
+- Merge early only when a high-risk boundary requires independent integration evidence, when the next work genuinely depends on main integration, or when the batch has grown too broad to review safely.
+- Do not keep a batch open merely to absorb unrelated future slices.
 - Candidate CI is not exact-main CI.
-- After merge, perform the round's exact-main checks before marking COMPLETE.
+- After a batch merge, perform the selected exact-main integration gate once; do not repeat it for every numbered subround already covered by the same batch.
 - Documentation-only status commits must describe the runtime SHA they certify and must not imply the docs SHA itself is the runtime.
+
+## 8.1 Default batch map for the current desktop build
+
+Unless a newly discovered dependency makes a boundary unsafe, use the following integration batches:
+
+- **VS-02**
+  - Batch A: CPV1-02.1 + 02.2 + 02.3 — AppShell, Archive root, Project/Conversation Navigator.
+  - Batch B: CPV1-02.4 + 02.5 — Conversation Reader plus retirement of migrated legacy UI ownership.
+  - Closure: CPV1-02.6 + automatable CPV1-02.7 — performance/accessibility and certification; CURRENT_LIVE may remain deferred.
+- **VS-03**
+  - Batch A: CPV1-03.0 + 03.1 + 03.2 — support scale, import contract, resumability/preflight.
+  - Batch B: CPV1-03.3 + 03.4 + 03.5 — streaming Backup, staged restore, failure injection.
+  - Closure: CPV1-03.6.
+- **VS-04**
+  - Batch A: CPV1-04.0 + 04.1 + 04.2 + 04.3 — editor/query foundation, direct editing, inspector, lexical search.
+  - Batch B: CPV1-04.4 + 04.5 + 04.6 — Smart Filter, removal semantics, reliability matrix.
+  - Closure: CPV1-04.7.
+- **VS-05**
+  - Batch A: CPV1-05.0 + 05.1 + 05.2 + 05.3 + 05.4, with unresolved B-01-dependent behavior fail-closed/deferred.
+  - Batch B: CPV1-05.5 + 05.6.
+  - Closure: CPV1-05.7.
+- **VS-06**
+  - Batch A: CPV1-06.0 + 06.1 + 06.2 + 06.3 + 06.4.
+  - Batch B: CPV1-06.5 + 06.6.
+  - Closure: CPV1-06.7.
+
+Later VS-07..VS-12 may use the same 2–4-outcome batching rule after their dependency boundary is re-read; do not invent a giant cross-slice PR in advance.
 
 ## 9. Slice boundary and unattended continuation
 
