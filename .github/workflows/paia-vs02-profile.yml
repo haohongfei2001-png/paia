@@ -34,8 +34,9 @@ jobs:
         env:
           CI: '1'
           PLAYWRIGHT_MODULE: playwright
-          PAIA_SCALE_SIZES: '10000,100000'
-        run: node tests/cpv1-02-6-scale-benchmark.mjs
+        run: |
+          PAIA_SCALE_SIZES=10000 node tests/cpv1-02-6-scale-benchmark.mjs
+          PAIA_SCALE_SIZES=100000 node tests/cpv1-02-6-scale-benchmark.mjs
       - name: Reader and accessibility regressions
         env:
           CI: '1'
