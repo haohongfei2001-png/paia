@@ -122,7 +122,15 @@ export class BackupService {
    if(section==='organizationState'){
     if(['sequence','input-delta-sequence','thought-sequence','revision-sequence',CAPTURE_POLICY_ROW,REVISIT_POLICY_ROW].includes(value.id))continue;
     const local=await t.get('meta',value.id);
-    if(local&&JSON.stringify(local)!==JSON.stringify(value.data))return 'BACKUP_MERGE_CONFLICT';
+    if(local&&JSON.stringify(local)!==JSON.stringify(value.data)){
+     const contentBound=sourceStructureMetaAllowed(value.id)
+      ||value.id.startsWith('aiPresentation:')
+      ||value.id.startsWith('topicKeepSeparate:')
+      ||['topic','entry','input','section','activity'].includes(value.data.kind);
+     const suppressionKey=value.id==='thought-suppression-key'
+      &&state.bySection.suppressions.size>0;
+     if(contentBound||suppressionKey)return 'BACKUP_MERGE_CONFLICT';
+    }
     continue;
    }
    if(await t.get(stores[section],value.id))return 'BACKUP_MERGE_CONFLICT';
@@ -179,7 +187,14 @@ export class BackupService {
     if(section==='entries'){row.thoughtText=row.body;delete row.body;refreshEntryIndex(row);}
     if(section==='topics'){row.nameKey=row.name.toLocaleLowerCase();row.activeKey=row.lifecycle==='active'?0:1;row.countVersion=1;}
     if(['sections','placements'].includes(section))row.activeKey=row.lifecycle==='active'?0:1;
-    if(section==='organizationState'){if(mode==='merge'&&await t.get('meta',row.id))continue;let data=row.data;if(sourceStructureMetaAllowed(row.id))data=restoreSourceStructureRow(data);if(row.id===REVISIT_POLICY_ROW)data.oldContent=false;if(row.id===CAPTURE_POLICY_ROW&&localCapture)data.excludedChats=[...new Set([...localCapture.excludedChats,...data.excludedChats])];if(row.id==='memory:config')data.externalAccess=false;if([REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(row.id)&&!validReaderPolicy(data))backupError('BACKUP_INVALID');if(row.id==='originalOrganizerBootstrap'&&data.state==='running')data.state='paused';await t.put('meta',data);continue;}
+    if(section==='organizationState'){
+      if(mode==='merge'&&['input-delta-sequence','thought-sequence','revision-sequence'].includes(row.id)){
+       const local=await t.get('meta',row.id);
+       await t.put('meta',{...row.data,value:Math.max(local?.value||0,row.data.value||0)});
+       continue;
+      }
+      if(mode==='merge'&&await t.get('meta',row.id))continue;
+      let data=row.data;if(sourceStructureMetaAllowed(row.id))data=restoreSourceStructureRow(data);if(row.id===REVISIT_POLICY_ROW)data.oldContent=false;if(row.id===CAPTURE_POLICY_ROW&&localCapture)data.excludedChats=[...new Set([...localCapture.excludedChats,...data.excludedChats])];if(row.id==='memory:config')data.externalAccess=false;if([REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(row.id)&&!validReaderPolicy(data))backupError('BACKUP_INVALID');if(row.id==='originalOrganizerBootstrap'&&data.state==='running')data.state='paused';await t.put('meta',data);continue;}
     if(section==='deletionFences'&&await t.get('tombstones',row.id))continue;
     await t.put(stores[section],row);
    }

@@ -30,11 +30,17 @@ jobs:
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
-      - name: Measure synthetic 100k Input export and restore
+      - name: Exercise nonempty merge and replace in hosted Chrome
+        env:
+          PAIA_HEADLESS: '1'
+          PAIA_TEST_CONCURRENCY: '1'
+        run: xvfb-run -a node --test --test-reporter=./scripts/test-report.mjs tests/cpv1-03-backup-segments-chrome-e2e.test.mjs
+      - name: Measure realistic mixed long-content export and restore
         env:
           CI: '1'
           PLAYWRIGHT_MODULE: playwright
-          PAIA_BACKUP_SCALE_SIZE: '100000'
+          PAIA_BACKUP_SCALE_SIZE: '5000'
+          PAIA_BACKUP_SCALE_LONG_CONTENT: '1'
           PAIA_BACKUP_SCALE_REPORT: ${{ github.workspace }}/backup-scale-report.json
         run: node tests/cpv1-03-6-backup-scale-benchmark.mjs
       - uses: actions/upload-artifact@v4

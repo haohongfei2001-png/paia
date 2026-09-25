@@ -62,7 +62,7 @@ test('explicit replace restores a validated backup atomically while retaining lo
  const service=new BackupService(target.s),stage=await prepared(service,items);
  assert.equal(stage.preview.canRestore,false);
  const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'replace'});
- assert.equal(preview.canRestore,true);
+ assert.equal(preview.canRestore,true,preview.reason);
  assert.equal(preview.restoreScope,'replace-current-library');
  await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
   confirmation:preview.integrity,mode:'replace',targetGeneration:preview.targetGeneration}),
@@ -119,7 +119,7 @@ test('explicit merge adds a disjoint chat atomically and keeps existing work',as
  const service=new BackupService(target.s),stage=await prepared(service,items);
  assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY');
  const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'merge'});
- assert.equal(preview.canRestore,true);
+ assert.equal(preview.canRestore,true,preview.reason);
  assert.equal(preview.restoreScope,'merge-disjoint-library');
  await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
   confirmation:preview.integrity,mode:'merge',targetGeneration:preview.targetGeneration}),
@@ -154,7 +154,7 @@ test('merge transaction failure rolls back imported content and keeps local work
  const service=new BackupService(target.s),stage=await prepared(service,
   await exported(new BackupService(source.s)));
  const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'merge'});
- assert.equal(preview.canRestore,true);
+ assert.equal(preview.canRestore,true,preview.reason);
  const before=await rows(target.s,'records'),original=target.s.repository.transaction.bind(target.s.repository);
  target.s.repository.transaction=(write,fn,stores)=>original(write,async t=>{
   if(write){const put=t.put.bind(t);t.put=(name,row)=>{

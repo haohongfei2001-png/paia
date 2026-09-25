@@ -7,13 +7,15 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createInterface} from 'node:readline';
 import {FakeChatGPT} from './harness/fake-chatgpt.mjs';
+import {scaleBody} from './fixtures/scale-v092.mjs';
 
 const size=Number(process.env.PAIA_BACKUP_SCALE_SIZE||10000);
+const longContent=process.env.PAIA_BACKUP_SCALE_LONG_CONTENT==='1';
 assert.ok(Number.isSafeInteger(size)&&size>=1000&&size<=100000);
 const root=new URL('../',import.meta.url).pathname;
 const dir=await mkdtemp(join(tmpdir(),'paia-backup-scale-'));
 const output=process.env.PAIA_BACKUP_SCALE_REPORT||join(process.cwd(),'backup-scale-report.json');
-const report={syntheticOnly:true,currentLive:false,platform:process.platform,size,phases:[],result:'INCOMPLETE'};
+const report={syntheticOnly:true,currentLive:false,platform:process.platform,size,longContent,phases:[],result:'INCOMPLETE'};
 let harness;
 const phase=(name)=>{report.phases.push({name,at:new Date().toISOString()});};
 const worker=()=>{const found=harness.context.serviceWorkers().find(w=>w.url().includes('/background/service-worker.js'));assert.ok(found);return found;};
@@ -32,7 +34,7 @@ try{
   "\nimport {seedScale} from '../tests/fixtures/scale-v092.mjs';globalThis.cpv1036={seed:n=>seedScale(store,n),backups,store};\n");
  await open();
  phase('seed');
- report.seed=await worker().evaluate(n=>globalThis.cpv1036.seed(n),size);
+ report.seed=await worker().evaluate(({size,longContent})=>globalThis.cpv1036.seed(size,{longContent}),{size,longContent});
  const count=await worker().evaluate(()=>globalThis.cpv1036.store.repository.transaction(false,async t=>({
   sources:await t.count('records'),inputs:await t.count('blocks')
  })));
@@ -79,6 +81,17 @@ try{
  })));
  assert.deepEqual(restored,count);
  report.restoredCounts=restored;
+ if(longContent){
+  const indices=[20,21,25,100,1000,size-1];
+  const observed=await worker().evaluate(async indices=>globalThis.cpv1036.store.repository.transaction(false,async t=>{
+   const values=[];
+   for(const i of indices)values.push((await t.get('records','scale-record-'+String(i).padStart(8,'0')))?.value?.originalText);
+   return values;
+  }),indices);
+  for(let n=0;n<indices.length;n++)assert.equal(observed[n],scaleBody(indices[n],true));
+  assert.ok(bytes>10*1024*1024,'long-content export must exceed 10 MiB');
+  report.longContentSamples=indices;
+ }
  assert.equal(harness.externalRequests,0);
  assert.deepEqual(harness.errors,[]);
  report.result='PASS';

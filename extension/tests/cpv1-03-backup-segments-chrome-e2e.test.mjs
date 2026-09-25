@@ -108,7 +108,22 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   await eventually(async()=>await page.locator('#backup-preview').isVisible(),
    'non-empty library restore preview',60000);
   assert.equal(await page.locator('#backup-restore').isDisabled(),true);
+  await page.locator('#backup-mode').selectOption('merge');
+  await eventually(async()=>/存在同一来源/.test(await page.locator('#backup-preview-content').innerText()),
+   'overlapping merge refuses to activate',30000);
+  assert.equal(await page.locator('#backup-restore').isDisabled(),true);
   assert.deepEqual(await domainDigest(harness),before);
+  await page.locator('#backup-mode').selectOption('replace');
+  await eventually(async()=>/替换会清除当前库内容/.test(await page.locator('#backup-preview-content').innerText()),
+   'explicit replace preview',30000);
+  assert.equal(await page.locator('#backup-restore').isDisabled(),true);
+  await page.locator('#backup-confirm-replace').check();
+  assert.equal(await page.locator('#backup-restore').isEnabled(),true);
+  await page.locator('#backup-restore').click();
+  await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),
+   'atomic nonempty replacement',60000);
+  assert.deepEqual(await domainDigest(harness),before);
+  assert.equal(harness.externalRequests,0);
   await harness.close();harness=undefined;
 
   harness=await FakeChatGPT.start({headless,extensionPath:dir,onboarding:true});
