@@ -188,7 +188,7 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
 test('VS-04 current-document search saves a live edit before indexing it',{timeout:75000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
-  const p=h.archive;await consent(p);await p.locator('#onboarding-skip').click();
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);await p.locator('#onboarding-skip').click();
   const c=conversation('vs04-search-during-edit');c.messages=[{id:'vs04-search-edit-input',text:'Original search body'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
@@ -233,7 +233,7 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await p.locator('#close-info').click();
   await prose.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true})));
   await p.locator('#document-search').evaluate(el=>{el.value='未完成的输入';el.dispatchEvent(new Event('input',{bubbles:true}));});
-  await eventually(async()=>/请先完成并保存当前输入修改/.test(await p.locator('#document-search-status').textContent()),'search waits for unfinished IME edit');
+  await eventually(async()=>/请先完成并保存当前输入修改|Finish and save the current Input edit/.test(await p.locator('#document-search-status').textContent()),'search waits for unfinished IME edit');
   assert.equal(await p.locator('.document-search-hit').count(),0,'unfinished text is not presented as indexed data');
   assert.equal(await prose.textContent(),'未完成的输入','search preserves composing text');
   await p.locator('#revision-history').click();
