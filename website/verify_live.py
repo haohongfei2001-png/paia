@@ -44,6 +44,6 @@ except Exception as error:
     checks.append({'failure':str(error)})
 finally:
     passed=not any('failure' in check for check in checks)
-    (OUT/'live-review.json').write_text(json.dumps({'evidence':'CURRENT_LIVE_WEBSITE','expected_commit':os.environ.get('GITHUB_SHA'),'pass':passed,'physical_device':False,'beta_form_submitted':False,'checks':checks},ensure_ascii=False,indent=2))
-    print(json.dumps({'live_pass':passed,'checks':len(checks)}))
+    (OUT/'live-review.json').write_text(json.dumps({'evidence':'CURRENT_LIVE_WEBSITE','expected_commit':os.environ.get('EXPECTED_WEBSITE_COMMIT',os.environ.get('GITHUB_SHA')),'pass':passed,'physical_device':False,'beta_form_submitted':False,'checks':checks},ensure_ascii=False,indent=2))
+    print(json.dumps({'live_pass':passed,'checks':len(checks),'failures':[c['failure'] for c in checks if 'failure' in c]}))
     if not passed: raise SystemExit(1)
