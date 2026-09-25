@@ -1,6 +1,10 @@
 // Shared offline browser harness. Never launches a user's profile or reads credentials.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
+import {spawn} from 'node:child_process';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {readFile} from 'node:fs/promises';
 const require=createRequire(import.meta.url);
@@ -37,14 +41,54 @@ function fakePage(c,arrival) {
  });
  </script>`;
 }
+async function connectChromeByPort({headless, userDataDir}) {
+ const profile=userDataDir||await mkdtemp(join(tmpdir(),'paia-cdp-profile-'));
+ const ownedProfile=!userDataDir;
+ const executable=process.env.CHROME_PATH||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':chromium.executablePath());
+ const args=[
+  '--remote-debugging-port=0','--user-data-dir='+profile,
+  '--no-first-run','--no-default-browser-check','--enable-unsafe-extension-debugging',
+  '--disable-background-networking','--disable-component-update','--disable-sync',
+  '--host-resolver-rules=MAP * ~NOTFOUND',
+  ...(headless?['--headless=new']:[]),
+  ...(process.env.CI&&process.platform==='linux'?['--disable-gpu','--no-sandbox']:[]),
+  'about:blank'
+ ];
+ const processHandle=spawn(executable,args,{stdio:'ignore'});
+ try {
+  let port;
+  for(let attempt=0;attempt<200;attempt++){
+   if(processHandle.exitCode!==null)throw new Error('Chrome exited before CDP became ready');
+   try{
+    const activePort=(await readFile(join(profile,'DevToolsActivePort'),'utf8')).split('\\n')[0];
+    if(/^\\d+$/.test(activePort)){port=Number(activePort);break;}
+   }catch(error){if(error.code!=='ENOENT')throw error;}
+   await pause(100);
+  }
+  if(!port)throw new Error('Chrome CDP port did not become ready');
+  const browser=await chromium.connectOverCDP('http://127.0.0.1:'+port);
+  const context=browser.contexts()[0];
+  if(!context)throw new Error('Chrome default context missing');
+  return {browser,context,processHandle,profile,ownedProfile};
+ }catch(error){
+  processHandle.kill();
+  if(ownedProfile)await rm(profile,{recursive:true,force:true});
+  throw error;
+ }
+}
 export class FakeChatGPT {
- static async start({extensionPath=root,headless=true,deepSeekFixture=null,onboarding=false,userDataDir=''}={}) {
+ static async start({extensionPath=root,headless=true,deepSeekFixture=null,onboarding=false,userDataDir='',launchThroughPort=false}={}) {
   if(process.env.PAIA_HEADLESS==='1')headless=true;
   const h=new FakeChatGPT();h.pages=new Map();h.pending=new Map();h.historyRequests=0;h.externalRequests=0;h.extensionNetworkRequests=0;h.deepSeekRequests=[];h.errors=[];
   h.manifest=JSON.parse(await readFile(extensionPath+'/manifest.json','utf8'));
-  h.context=await chromium.launchPersistentContext(userDataDir,{headless,acceptDownloads:true,locale:'zh-CN',
-   executablePath:process.env.CHROME_PATH||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':undefined),
-   ignoreDefaultArgs:['--disable-extensions'],args:['--enable-unsafe-extension-debugging','--disable-background-networking','--disable-component-update','--disable-sync','--host-resolver-rules=MAP * ~NOTFOUND',...(process.env.CI&&process.platform==='linux'?['--disable-gpu']:[])]});
+  if(launchThroughPort){
+   h.externalChrome=await connectChromeByPort({headless,userDataDir});
+   h.context=h.externalChrome.context;
+  }else{
+   h.context=await chromium.launchPersistentContext(userDataDir,{headless,acceptDownloads:true,locale:'zh-CN',
+    executablePath:process.env.CHROME_PATH||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':undefined),
+    ignoreDefaultArgs:['--disable-extensions'],args:['--enable-unsafe-extension-debugging','--disable-background-networking','--disable-component-update','--disable-sync','--host-resolver-rules=MAP * ~NOTFOUND',...(process.env.CI&&process.platform==='linux'?['--disable-gpu']:[])]});
+  }
   try {
    await h.context.route(/^https?:\/\//,async route=>{
     const request=route.request(),url=new URL(request.url());
@@ -69,7 +113,7 @@ export class FakeChatGPT {
     await h.archive.locator('#consent-check').waitFor({state:'visible'});
    }
    return h;
-  }catch(e){await h.context.close();throw e;}
+  }catch(e){await h.close();throw e;}
  }
  response(c) {
   const keys=['first','second','third'];
@@ -117,5 +161,12 @@ export class FakeChatGPT {
   const promise=this.archive.waitForEvent('download');await this.archive.locator('#export-'+format).click();
   const download=await promise;return readFile(await download.path(),'utf8');
  }
- async close(){await this.context.close();}
+ async close(){
+  if(!this.externalChrome){await this.context.close();return;}
+  const {browser,processHandle,profile,ownedProfile}=this.externalChrome;
+  try{await browser.close();}finally{
+   processHandle.kill();
+   if(ownedProfile)await rm(profile,{recursive:true,force:true});
+  }
+ }
 }
