@@ -207,6 +207,7 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await eventually(async()=>/请先完成并保存当前输入修改/.test(await p.locator('#notice').textContent()),'unfinished IME edit blocks purge');
   assert.equal(await p.locator('.reader-confirm').count(),0,'source purge never reaches confirmation while a Reader edit cannot save');
   assert.equal((await h.state()).records.length,1,'immutable Source remains present');
+  assert.equal(await prose.textContent(),'未完成的输入','the composing text remains visible after refused purge');
   await p.locator('#close-info').click();
   await p.locator('#revision-history').click();
   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
