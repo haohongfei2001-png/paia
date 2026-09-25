@@ -12,11 +12,11 @@ current_slice: VS-04
 
 current_slice_status: ACTIVE — VS-03_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-04.0 + CPV1-04.1 + CPV1-04.2 + CPV1-04.3 + CPV1-04.4 / VS-04 Batch A
+current_round: CPV1-04.5 + CPV1-04.6 + CPV1-04.7 / VS-04 Batch B
 
-current_round_status: ACTIVE / VS-03_ENGINEERING_INTEGRATED_EXTERNAL_EXPORT_PENDING
+current_round_status: ACTIVE / VS-04_BATCH_A_TARGETED_PASS_BATCH_B_IN_PROGRESS
 
-current_writer: MANAGER — sole VS-04 Batch A writer
+current_writer: MANAGER — sole VS-04 Batch B writer
 
 writer_status: ACTIVE
 
@@ -277,7 +277,7 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | VS-01 Safe open, update and recovery | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
 | VS-02 Source structure to world-class Reader | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Captured conversations appear in the correct Project and open in a coherent fast Reader |
 | VS-03 History import, export and recoverable large library | ENGINEERING_COMPLETE / EXTERNAL_EXPORT_CERT_PENDING | Real official history imports safely and the supported archive can actually be restored |
-| VS-04 Natural editing and fast lexical retrieval | ACTIVE — Batch A CPV1-04.0–04.4 | Direct editing, undo, search, filtering and reuse feel like one document product |
+| VS-04 Natural editing and fast lexical retrieval | ACTIVE — Batch B CPV1-04.5–04.7; Batch A targeted checks PASS | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | PLANNED | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
 | VS-06 Complete AI Context reuse | PLANNED | Inputs/Topics/cross-Topic material become reviewable authorized Context without silent truncation |
 | VS-07 Semantic retrieval and longitudinal revisit | PLANNED | Users can find forgotten differently-worded ideas and compare real historical expression |

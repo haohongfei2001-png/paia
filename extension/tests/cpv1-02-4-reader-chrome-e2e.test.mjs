@@ -206,6 +206,33 @@ test('VS-04 current-document search saves a live edit before indexing it',{timeo
  }finally{await h.close();}
 });
 
+test('VS-04 undo survives navigation back to the same Reader only while revisions match',{timeout:75000},async()=>{
+ const h=await FakeChatGPT.start({launchThroughPort:true});
+ try{
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);await p.locator('#onboarding-skip').click();
+  const c=conversation('vs04-undo-after-navigation');c.messages=[{id:'vs04-undo-input',text:'Source before edit'}];
+  await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
+  await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
+  await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  const window=p.locator('.archive-navigator-window').first();await window.click();
+  const prose=p.locator('.library-prose').first();await eventually(()=>prose.isVisible());
+  const id=await prose.getAttribute('data-edit-id'),edited='Edited 🧭 const next = 42;';
+  const originalLibrary=(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText;
+  await prose.fill(edited);
+  await eventually(async()=>(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText===edited,'edit saves before leaving');
+  await p.locator('#back').click();await eventually(()=>group.isVisible());
+  if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  await eventually(()=>window.isVisible());await window.click();
+  const returned=p.locator('[data-edit-id="'+id+'"]');await eventually(()=>returned.isVisible());
+  await p.locator('[data-block-id="'+id+'"] .reader-more').click();
+  await p.getByRole('menuitem',{name:/撤销|Undo/}).click();
+  await eventually(async()=>(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText===originalLibrary,'undo after navigation saves');
+  assert.equal(await returned.textContent(),'Source before edit');
+  assert.equal((await h.state()).records[0].originalText,'Source before edit');
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
 test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
@@ -236,6 +263,10 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await eventually(async()=>/请先完成并保存当前输入修改|Finish and save the current Input edit/.test(await p.locator('#document-search-status').textContent()),'search waits for unfinished IME edit');
   assert.equal(await p.locator('.document-search-hit').count(),0,'unfinished text is not presented as indexed data');
   assert.equal(await prose.textContent(),'未完成的输入','search preserves composing text');
+  await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
+  await p.getByRole('menuitem',{name:/从档案移除|Remove from archive/}).click();
+  assert.equal((await h.state()).library.blocks[0].excluded,false,'reversible removal cannot hide an unfinished edit');
+  assert.equal(await prose.textContent(),'未完成的输入','rejected removal preserves the composing text');
   await p.locator('#revision-history').click();
   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
   assert.equal(await p.locator('#revision-dialog').evaluate(el=>el.open),false,'version history does not open over unfinished IME text');
