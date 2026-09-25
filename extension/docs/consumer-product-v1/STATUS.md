@@ -287,6 +287,10 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | VS-11 Multi-source and device continuity | PLANNED | Multiple sources/devices converge without losing edits or resurrecting deleted material |
 | VS-12 Authorized AI write proposals and reply-aware prompting | PLANNED | External AI can propose safe PAIA organization changes and reply-aware prompts under distinct permission |
 
+## VS-04 Batch B storage-failure candidate
+
+The next coherent candidate keeps an Archive Input visible until reversible removal is durably saved. The same saved-state visibility rule applies to undo/redo; a hosted browser failure/retry journey verifies that storage failure leaves the Input and immutable Source intact and that a successful retry hides it. Exact-head targeted CI is pending. This is CPV1-04.5/04.6 engineering evidence, not VS-04 slice certification.
+
 ## Core desktop candidate gate
 
 VS-01 through VS-06 COMPLETE is the first Consumer Product v1 desktop candidate.

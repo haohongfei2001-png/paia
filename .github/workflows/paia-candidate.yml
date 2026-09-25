@@ -117,6 +117,7 @@ jobs:
           xvfb-run -a node --test --test-name-pattern="Smart Filter isolated Chrome|VS-04 universal search requires explicit inclusion|VS-04 Reader keeps a filtered Input" tests/smart-filter-ui-e2e.test.mjs
           xvfb-run -a node --test --test-name-pattern="VS-04 search positions a lexical hit|VS-04 direct Input edit stays traceable|VS-04 current-document search saves a live edit|VS-04 undo survives navigation|VS-04 source purge refuses an unfinished Reader IME edit" tests/cpv1-02-4-reader-chrome-e2e.test.mjs
           xvfb-run -a node --test tests/cpv1-02-3-navigator-chrome-e2e.test.mjs
+          xvfb-run -a node --test --test-name-pattern="VS-04 failed Archive removal" tests/cpv1-01-save-recovery-chrome-e2e.test.mjs
 
   scale_probe:
     if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_VS04_SCALE_DRAFT')
