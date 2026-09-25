@@ -31,13 +31,13 @@ try{
   await page.goto(`chrome-extension://${h.extensionId}/ui/archive.html`);await eventually(()=>page.locator('.archive-navigator-group-toggle').filter({hasText:'归属未知'}).isVisible(),'Navigator groups ready',60000);
   const group=page.locator('.archive-navigator-group-toggle').filter({hasText:'归属未知'}).first();
   await group.click();await eventually(()=>page.locator('.archive-navigator-window').first().isVisible(),'Navigator first bounded window',60000);
-  const navigationSamples=Math.min(SAMPLES,Math.floor(size/200));
+  const navigationSamples=Math.min(SAMPLES,Math.floor((size-1)/200));
   const nav=[];for(let i=0;i<=navigationSamples;i++){
-   const target=page.locator('.archive-navigator-window').nth(i);await target.waitFor({state:'visible'});
+   const target=page.locator('.archive-navigator-window[data-document-id^="document:scale-"]').nth(i);await target.waitFor({state:'visible'});
    // Measure browser event to the selected, rendered Reader; Playwright driver latency is separate.
    nav.push(await page.evaluate(index=>new Promise((resolve,reject)=>{
-    const target=document.querySelectorAll('.archive-navigator-window')[index],id=target?.dataset.documentId;
-    if(!target||!target.getClientRects().length)return reject(Error('Navigator target is not visible'));
+    const target=document.querySelectorAll('.archive-navigator-window[data-document-id^="document:scale-"]')[index],id=target?.dataset.documentId;
+    if(!target||!id?.startsWith('document:scale-')||!target.getClientRects().length)return reject(Error('Synthetic scale Navigator target is not visible'));
     const start=performance.now(),observer=new MutationObserver(()=>{
      const current=[...document.querySelectorAll('.archive-navigator-window')].find(button=>button.dataset.documentId===id);
      if(current?.getAttribute('aria-current')==='page'&&document.querySelector('.library-prose')?.getClientRects().length){observer.disconnect();clearTimeout(timeout);resolve(performance.now()-start);}
