@@ -83,22 +83,27 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
   const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-discard-'));
   execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
   let h;
+  let stage = 'start browser';
   try {
     // Chrome's Linux headless discard path can crash the browser process.
     // CI has an isolated Xvfb display; exercise the same real tabs API there.
     h = await FakeChatGPT.start({ extensionPath: release, headless: !process.env.CI });
+    stage = 'enable consent';
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
     await h.archive.locator('#enable-consent').click();
     await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
     const restoredConversation = conversation('cpv1-discarded-tab');
+    stage = 'open conversation';
     const tab = await h.open(restoredConversation);
     await h.ready(tab);
     await eventually(async () => (await h.state()).records.length === 3);
 
+    stage = 'close unrelated tabs';
     for (const other of h.context.pages()) {
       if (other !== h.archive && other !== tab) await other.close();
     }
     await h.archive.bringToFront();
+    stage = 'identify target tab';
     const targetId = await h.archive.evaluate(async () => {
       const current = await chrome.tabs.getCurrent();
       const tabs = await chrome.tabs.query({});
@@ -110,21 +115,25 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     // Re-activating inside the same extension call races the tab teardown on
     // Linux Chrome and can terminate the browser before it reports a result.
     await h.archive.bringToFront();
+    stage = 'activate archive tab';
     await h.archive.evaluate(async () => {
       const current = await chrome.tabs.getCurrent();
       await chrome.tabs.update(current.id, { active: true });
     });
+    stage = 'confirm archive tab active';
     await eventually(async () => h.archive.evaluate(async id => {
       const current = await chrome.tabs.getCurrent();
       const target = await chrome.tabs.get(id);
       return (await chrome.tabs.get(current.id)).active === true && target.active === false;
     }, targetId), 'archive tab is active before conversation discard');
     assert.equal(new URL(tab.url()).pathname, '/c/cpv1-discarded-tab');
+    stage = 'read target slot';
     const targetSlot = await h.archive.evaluate(async id => {
       const target = await chrome.tabs.get(id);
       return { windowId: target.windowId, index: target.index };
     }, targetId);
     console.log('CPV1-01.2 discard: invoking Chrome tabs.discard');
+    stage = 'discard target tab';
     const discarded = await h.archive.evaluate(id => chrome.tabs.discard(id), targetId);
     console.log('CPV1-01.2 discard: Chrome returned a discarded tab');
     assert.equal(discarded?.discarded, true, 'Chrome discarded the conversation tab');
@@ -132,17 +141,21 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     assert.equal(discarded?.index, targetSlot.index);
     // Chrome may replace a tab ID during discard. Verify the same window slot
     // contains exactly the returned discarded tab before re-activating it.
+    stage = 'confirm discarded tab';
     await eventually(async () => h.archive.evaluate(async ({ id, windowId, index }) => {
       const tabs = await chrome.tabs.query({ windowId });
       return tabs.filter(tab => tab.index === index).length === 1
         && tabs.some(tab => tab.id === id && tab.index === index && tab.discarded === true);
     }, { id: discarded.id, ...targetSlot }), 'one discarded conversation tab remains');
     console.log('CPV1-01.2 discard: replacement slot confirmed');
+    stage = 'reactivate discarded tab';
     const restored = await h.archive.evaluate(id => chrome.tabs.update(id, { active: true }), discarded.id);
     console.log('CPV1-01.2 discard: Chrome activated the restored tab');
     assert.equal(restored?.active, true);
+    stage = 'wait for restored tab';
     await eventually(async () => h.archive.evaluate(async id => (await chrome.tabs.get(id)).status === 'complete', restored.id), 'discarded tab finishes loading');
     console.log('CPV1-01.2 discard: restored tab completed loading');
+    stage = 'check stored records';
     assert.equal((await h.state()).records.length, 3, 'discard does not change stored records');
     console.log('CPV1-01.2 discard: archive readback preserved records');
 
@@ -155,6 +168,8 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await eventually(async () => (await resumedTab.locator('#messages [data-message-id]').count()) === 3, 'restored conversation renders before new input');
     await h.send(resumedTab, { id: 'cpv1-discarded-message-004', text: '恢复后的新消息' });
     await eventually(async () => (await h.state()).records.length === 4, 'restored tab captures new content once');
+  } catch (error) {
+    throw new Error(`discard lifecycle failed at ${stage}: ${error}`, { cause: error });
   } finally {
     await h?.close();
     await rm(release, { recursive: true, force: true });
