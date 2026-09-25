@@ -13,6 +13,7 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
  try{
   harness=await FakeChatGPT.start({onboarding:true,launchThroughPort:true});
   const page=harness.archive;
+  await page.setViewportSize({width:1280,height:800});
   await page.locator('#enable-consent').waitFor({state:'visible'});
   await eventually(async()=>!(await page.locator('#enable-consent').isDisabled()));
   await page.locator('#enable-consent').click();
