@@ -118,11 +118,34 @@ jobs:
           xvfb-run -a node --test --test-name-pattern="VS-04 search positions a lexical hit|VS-04 direct Input edit stays traceable|VS-04 current-document search saves a live edit|VS-04 undo survives navigation|VS-04 source purge refuses an unfinished Reader IME edit" tests/cpv1-02-4-reader-chrome-e2e.test.mjs
           xvfb-run -a node --test tests/cpv1-02-3-navigator-chrome-e2e.test.mjs
 
+  scale_probe:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_VS04_SCALE_DRAFT')
+    name: Candidate VS-04 bounded scale probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Probe 1k long-content Reader, search and scroll
+        env:
+          CI: '1'
+          PLAYWRIGHT_MODULE: playwright
+          PAIA_SCALE_SIZES: '1000'
+          PAIA_SCALE_LONG_CONTENT: '1'
+        run: node tests/cpv1-02-6-scale-benchmark.mjs
+
   candidate:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release, targeted_browser]
+    needs: [unit, contracts, release, targeted_browser, scale_probe]
     steps:
       - name: Require light candidate gates
         env:
@@ -130,9 +153,11 @@ jobs:
           CONTRACTS: ${{ needs.contracts.result }}
           RELEASE: ${{ needs.release.result }}
           TARGETED_BROWSER: ${{ needs.targeted_browser.result }}
+          SCALE_PROBE: ${{ needs.scale_probe.result }}
         run: |
           printf 'unit=%s\ncontracts=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$RELEASE"
           test "$UNIT" = success
           test "$CONTRACTS" = success
           test "$RELEASE" = success
           if [ "$TARGETED_BROWSER" != skipped ]; then test "$TARGETED_BROWSER" = success; fi
+          if [ "$SCALE_PROBE" != skipped ]; then test "$SCALE_PROBE" = success; fi
