@@ -32,6 +32,7 @@ jobs:
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
       - name: Exercise nonempty merge and replace in hosted Chrome
         env:
+          PLAYWRIGHT_MODULE: playwright
           PAIA_HEADLESS: '1'
           PAIA_TEST_CONCURRENCY: '1'
         run: xvfb-run -a node --test --test-reporter=./scripts/test-report.mjs tests/cpv1-03-backup-segments-chrome-e2e.test.mjs
