@@ -367,7 +367,7 @@ jobs:
     name: Integration / certification gate
     runs-on: ubuntu-latest
     if: always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
-    needs: [mode, unit, contracts, current_browser, full_suite, macos_secure_store, release]
+    needs: [mode, unit, contracts, current_browser, full_suite, macos_secure_store, macos_discard_lifecycle, release]
     steps:
       - name: Require selected verification depth
         env:
@@ -377,10 +377,11 @@ jobs:
           CURRENT_BROWSER: ${{ needs.current_browser.result }}
           FULL_SUITE: ${{ needs.full_suite.result }}
           MACOS_SECURE_STORE: ${{ needs.macos_secure_store.result }}
+          MACOS_DISCARD: ${{ needs.macos_discard_lifecycle.result }}
           RELEASE: ${{ needs.release.result }}
         run: |
-          printf 'full=%s\nunit=%s\ncontracts=%s\ncurrent_browser=%s\nfull_suite=%s\nmacos_secure_store=%s\nrelease=%s\n' \
-            "$FULL" "$UNIT" "$CONTRACTS" "$CURRENT_BROWSER" "$FULL_SUITE" "$MACOS_SECURE_STORE" "$RELEASE"
+          printf 'full=%s\nunit=%s\ncontracts=%s\ncurrent_browser=%s\nfull_suite=%s\nmacos_secure_store=%s\nmacos_discard=%s\nrelease=%s\n' \
+            "$FULL" "$UNIT" "$CONTRACTS" "$CURRENT_BROWSER" "$FULL_SUITE" "$MACOS_SECURE_STORE" "$MACOS_DISCARD" "$RELEASE"
           test "$UNIT" = success
           test "$CONTRACTS" = success
           test "$RELEASE" = success
@@ -388,4 +389,5 @@ jobs:
             test "$CURRENT_BROWSER" = success
             test "$FULL_SUITE" = success
             test "$MACOS_SECURE_STORE" = success
+            test "$MACOS_DISCARD" = success
           fi
