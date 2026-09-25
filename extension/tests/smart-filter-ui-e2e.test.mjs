@@ -101,3 +101,24 @@ test('VS-04 universal search requires explicit inclusion of Smart Filter content
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('VS-04 archive search narrows by observed Source date without changing saved Inputs',{timeout:75000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  await h.open({id:'vs04-date-early',title:'Earlier',base:1609459200,messages:[{id:'vs04-date-early-input',text:'DATE_SCOPE earlier synthetic content with full context'}]});
+  await h.open({id:'vs04-date-late',title:'Later',base:1609632000,messages:[{id:'vs04-date-late-input',text:'DATE_SCOPE later synthetic content with full context'}]});
+  await eventually(async()=>(await h.state()).records.length===2);
+  const before=(await h.state()).records;
+  const dates=before.map(row=>row.sourceSentAt?.slice(0,10)).sort();
+  assert.equal(new Set(dates).size,2);
+  await p.locator('[data-view="library"]').click();await p.locator('#search').fill('DATE_SCOPE');
+  await eventually(async()=>await p.locator('.search-input').count()===2,'both dates appear before scoping');
+  await p.locator('#archive-search-date-scope summary').click();
+  await p.locator('#search-date-from').fill(dates[1]);await p.locator('#search-date-to').fill(dates[1]);
+  await eventually(async()=>await p.locator('.search-input').count()===1,'date scope finds the later Source');
+  assert.match(await p.locator('.search-input').first().textContent(),/later synthetic/);
+  assert.deepEqual((await h.state()).records,before);
+  assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});

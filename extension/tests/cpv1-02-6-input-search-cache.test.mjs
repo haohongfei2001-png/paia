@@ -27,6 +27,19 @@ test('large ranked Input search keeps late hits, source scope and edit/removal i
  await reopened.repository.close();
 });
 
+test('ranked search date scope agrees across cache and scan and excludes unknown time',{timeout:120000},async()=>{
+ const storage=local(),indexedDB=new IDBFactory(),s=new OrganizerStore(storage,{indexedDB});
+ await s.consent(true);await seedScale(s,1001);
+ const query='Synthetic scale body 1000',id='block:scale-record-00001000';
+ for(const ranked of [false,true]){
+  assert.deepEqual((await findInputPage({query,ranked,read:options=>s.searchInputs({...options,dateFrom:'2021-01-01',dateTo:'2021-01-01'})})).items.map(row=>row.id),[id]);
+  assert.equal((await findInputPage({query,ranked,read:options=>s.searchInputs({...options,dateFrom:'2021-01-02'})})).items.length,0);
+ }
+ await assert.rejects(s.searchInputs({query,dateFrom:'2021-02-30'}),/INVALID_REQUEST/);
+ await assert.rejects(s.searchInputs({query,dateFrom:'2021-02-01',dateTo:'2021-01-01'}),/INVALID_REQUEST/);
+ await s.repository.close();
+});
+
 test('first cache lookup preserves exact-title, partial-title and body rank order with source scope',()=>{
  const rows=[
   {id:'body',sequence:1,titleSearch:'another title',bodySearch:'needle in body',providerKey:'chatgpt'},
