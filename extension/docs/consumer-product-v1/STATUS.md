@@ -8,15 +8,15 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: VS-03
+current_slice: VS-04
 
-current_slice_status: ACTIVE — VS-02_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
+current_slice_status: ACTIVE — VS-03_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-03.3 + CPV1-03.4 + CPV1-03.5 + CPV1-03.6 / VS-03 Batch B
+current_round: CPV1-04.0 + CPV1-04.1 + CPV1-04.2 + CPV1-04.3 + CPV1-04.4 / VS-04 Batch A
 
-current_round_status: ACTIVE / VS-03_BATCH_A_ENGINEERING_INTEGRATED_EXTERNAL_EXPORT_PENDING
+current_round_status: ACTIVE / VS-03_ENGINEERING_INTEGRATED_EXTERNAL_EXPORT_PENDING
 
-current_writer: MANAGER — sole VS-03 Batch B writer
+current_writer: MANAGER — sole VS-04 Batch A writer
 
 writer_status: ACTIVE
 
@@ -240,6 +240,22 @@ receipt: `receipts/CPV1-03.0-03.2-BATCH-A.md`
 
 The bounded official-export admission, staged duplicate-safe history import, same-dialog resume, and conservative browser quota preflight are integrated. No real private official export was available for certification; DFG-CPV1-005 remains OPEN. This evidence does not certify full VS-03 backup recovery or 10k/100k restore. The sole manager writer advances to VS-03 Batch B (CPV1-03.3–03.6), preserving the one-PR boundary.
 
+## VS-03 Batch B engineering integration — CPV1-03.3–03.6
+
+verdict: ENGINEERING_COMPLETE / EXTERNAL_EXPORT_CERT_PENDING — **VS-03 is not fully COMPLETE**
+
+candidate_pr: #75 / exact head `2b78f0a35cd350872935a04cb8e79b3f95f48568`
+
+candidate_full_certification: `PAIA Certification run 36101723277 / SUCCESS`
+
+merged_runtime_main: `dd9dbd903ca5bdfea77977f70f554bf259e31a55`
+
+exact_main_full_certification: `PAIA Certification run 36102536608 / SUCCESS`
+
+receipt: `receipts/CPV1-03.3-03.6-BATCH-B.md`
+
+Segmented Backup, staged nonempty merge/replace, atomic activation, fail-closed failure handling, and declared-range synthetic restore are integrated and certified on exact main. DFG-CPV1-005 real private official-export evidence remains OPEN. No current-live, external-device, or production PASS is claimed. The sole manager writer advances to VS-04 Batch A (CPV1-04.0–04.4), starting with the editor/query contract and user editing/search path.
+
 ## Current owner authorization and execution
 
 The owner explicitly superseded the temporary nine-round limit with continuous whole-package development authorization on 2026-09-23. `WHOLE_PACKAGE_PREAUTHORIZED` covers the canonical Consumer Product v1 slice sequence. True owner/privacy/cost/irreversibility gates in `EXECUTION_PROTOCOL.md` block only the affected behavior; they are recorded in `DEFERRED_FINAL_GATES.md` and do not stop unrelated engineering. The prior counters above are historical only and do not cap this authorization. Publication, new external accounts/credentials, paid services, permission/privacy expansion, destructive migration and legal commitments remain separate owner decisions and must not be guessed.
@@ -260,8 +276,8 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 |---|---|---|
 | VS-01 Safe open, update and recovery | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
 | VS-02 Source structure to world-class Reader | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Captured conversations appear in the correct Project and open in a coherent fast Reader |
-| VS-03 History import, export and recoverable large library | ACTIVE — Batch B CPV1-03.3–03.6; real export deferred | Real official history imports safely and the supported archive can actually be restored |
-| VS-04 Natural editing and fast lexical retrieval | PLANNED | Direct editing, undo, search, filtering and reuse feel like one document product |
+| VS-03 History import, export and recoverable large library | ENGINEERING_COMPLETE / EXTERNAL_EXPORT_CERT_PENDING | Real official history imports safely and the supported archive can actually be restored |
+| VS-04 Natural editing and fast lexical retrieval | ACTIVE — Batch A CPV1-04.0–04.4 | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | PLANNED | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
 | VS-06 Complete AI Context reuse | PLANNED | Inputs/Topics/cross-Topic material become reviewable authorized Context without silent truncation |
 | VS-07 Semantic retrieval and longitudinal revisit | PLANNED | Users can find forgotten differently-worded ideas and compare real historical expression |
