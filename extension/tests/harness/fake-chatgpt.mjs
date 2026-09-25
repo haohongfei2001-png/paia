@@ -60,8 +60,8 @@ async function connectChromeByPort({headless, userDataDir}) {
   for(let attempt=0;attempt<200;attempt++){
    if(processHandle.exitCode!==null)throw new Error('Chrome exited before CDP became ready');
    try{
-    const activePort=(await readFile(join(profile,'DevToolsActivePort'),'utf8')).split('\\n')[0];
-    if(/^\\d+$/.test(activePort)){port=Number(activePort);break;}
+    const activePort=(await readFile(join(profile,'DevToolsActivePort'),'utf8')).split('\n')[0];
+    if(/^\d+$/.test(activePort)){port=Number(activePort);break;}
    }catch(error){if(error.code!=='ENOENT')throw error;}
    await pause(100);
   }
