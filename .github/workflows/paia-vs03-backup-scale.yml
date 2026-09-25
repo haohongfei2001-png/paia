@@ -30,11 +30,11 @@ jobs:
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
-      - name: Measure synthetic 10k Input export and restore
+      - name: Measure synthetic 100k Input export and restore
         env:
           CI: '1'
           PLAYWRIGHT_MODULE: playwright
-          PAIA_BACKUP_SCALE_SIZE: '10000'
+          PAIA_BACKUP_SCALE_SIZE: '100000'
           PAIA_BACKUP_SCALE_REPORT: ${{ github.workspace }}/backup-scale-report.json
         run: node tests/cpv1-03-6-backup-scale-benchmark.mjs
       - uses: actions/upload-artifact@v4

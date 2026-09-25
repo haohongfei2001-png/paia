@@ -4,7 +4,7 @@ import {request,element} from './common.js';
 import {BACKUP_LIMITS,BackupValidator,backupError} from '../core/backup-format.js';
 import {installR6Settings,recordR6BackupSuccess,refreshR6Settings} from './r6-settings.js';
 const $=id=>document.getElementById(id);
-export const backupMessage=code=>({BACKUP_BUSY:'请等待当前整理或组织变更结束，再创建备份。',BACKUP_CHANGED:'备份期间内容发生变化，本次未生成文件。请重新创建备份。',BACKUP_INVALID:'这不是有效的 PAIA 备份，未修改任何内容。',BACKUP_VERSION_UNSUPPORTED:'此备份版本暂不支持，未修改任何内容。',BACKUP_INTEGRITY_FAILED:'完整性校验未通过，文件可能已损坏。',BACKUP_INCOMPLETE:'备份文件不完整，请重新选择完整文件。',BACKUP_TOO_LARGE:'本版单次恢复支持最多 64 MB / 100000 项；文件超出范围，原有内容保持不变。',BACKUP_SESSION_EXPIRED:'本次备份会话已中断，请重新开始。',BACKUP_TARGET_NOT_EMPTY:'当前已有用户数据。为保护更新的内容，本版仅支持恢复到空库，不会覆盖现有工作。',BACKUP_PURGE_CONFLICT:'此备份包含本机已永久删除的来源，不能恢复。永久删除标记优先。',BACKUP_CONFIRMATION_REQUIRED:'请先查看预览并明确确认恢复。',STORAGE_FULL:'本机存储空间不足，原有内容保持不变。',STORAGE_FAILED:'本机保存未完成，请重新打开 Settings 检查。'}[code]||'操作未完成，未自动重试。请重新选择备份文件。');
+export const backupMessage=code=>({BACKUP_BUSY:'请等待当前整理或组织变更结束，再创建备份。',BACKUP_CHANGED:'备份期间内容发生变化，本次未生成文件。请重新创建备份。',BACKUP_INVALID:'这不是有效的 PAIA 备份，未修改任何内容。',BACKUP_VERSION_UNSUPPORTED:'此备份版本暂不支持，未修改任何内容。',BACKUP_INTEGRITY_FAILED:'完整性校验未通过，文件可能已损坏。',BACKUP_INCOMPLETE:'备份文件不完整，请重新选择完整文件。',BACKUP_TOO_LARGE:'本版单次恢复支持最多 512 MB / 500000 项；文件超出范围，原有内容保持不变。',BACKUP_SESSION_EXPIRED:'本次备份会话已中断，请重新开始。',BACKUP_TARGET_NOT_EMPTY:'当前已有用户数据。为保护更新的内容，本版仅支持恢复到空库，不会覆盖现有工作。',BACKUP_PURGE_CONFLICT:'此备份包含本机已永久删除的来源，不能恢复。永久删除标记优先。',BACKUP_CONFIRMATION_REQUIRED:'请先查看预览并明确确认恢复。',STORAGE_FULL:'本机存储空间不足，原有内容保持不变。',STORAGE_FAILED:'本机保存未完成，请重新打开 Settings 检查。'}[code]||'操作未完成，未自动重试。请重新选择备份文件。');
 export function downloadParts(parts,name,type){const url=URL.createObjectURL(new Blob(parts,{type})),a=element('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
 export async function* backupFileRows(file){if(file.size>BACKUP_LIMITS.restoreBytes)backupError('BACKUP_TOO_LARGE');const reader=file.stream().getReader(),decoder=new TextDecoder('utf-8',{fatal:true});let buffer='';try{for(;;){const {done,value}=await reader.read();buffer+=decoder.decode(value,{stream:!done});let end;while((end=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,end);buffer=buffer.slice(end+1);if(line.length>BACKUP_LIMITS.lineBytes)backupError('BACKUP_TOO_LARGE');if(line.trim()){try{yield JSON.parse(line);}catch{backupError('BACKUP_INVALID');}}}if(buffer.length>BACKUP_LIMITS.lineBytes)backupError('BACKUP_TOO_LARGE');if(done)break;}if(buffer.trim()){try{yield JSON.parse(buffer);}catch{backupError('BACKUP_INVALID');}}}finally{await reader.cancel().catch(()=>{});reader.releaseLock();}}
 export async function* backupSegmentRows(files){
@@ -62,7 +62,7 @@ export class BackupPanel {
     await recordR6BackupSuccess(begin.header.createdAt);
     this.status('备份已生成，在本机通过格式和完整性校验，并开始下载。请确认文件已保存后再更新；恢复仅支持空库，文件含私人数据。');
    }else{
-    this.status('文件已生成并开始下载，但超出本版单次恢复范围（64 MB / 100000 项），不能作为更新或迁移恢复点。请保留原库；本次没有删除或覆盖内容。');
+    this.status('文件已生成并开始下载，但超出本版单次恢复范围（512 MB / 500000 项），不能作为更新或迁移恢复点。请保留原库；本次没有删除或覆盖内容。');
    }
   }catch(e){this.status(backupMessage(e.code),'failed');}
   finally{if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore;}
@@ -103,7 +103,7 @@ export class BackupPanel {
    if(recoverable)await recordR6BackupSuccess(begin.header.createdAt);
    this.status(recoverable
     ?`已开始下载 ${manifest.parts.length} 个分段和完整清单。请确认全部文件已保存并一起选择恢复；文件含私人数据。`
-    :`已开始下载 ${manifest.parts.length} 个分段和完整清单。文件超出当前 64 MB / 100000 项的恢复范围，不能作为更新恢复点；请保留原库。`);
+    :`已开始下载 ${manifest.parts.length} 个分段和完整清单。文件超出当前 512 MB / 500000 项的恢复范围，不能作为更新恢复点；请保留原库。`);
   }catch(e){
    this.status('分段备份未完成，不能用于恢复；请删除本次不完整分段后重试。'+backupMessage(e.code),'failed');
   }finally{
