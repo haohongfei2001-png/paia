@@ -65,7 +65,7 @@ export class BackupValidator {
  async add(row){const size=new TextEncoder().encode(JSON.stringify(row)).length;this.bytes+=size;if(size>BACKUP_LIMITS.lineBytes||this.bytes>this.maxBytes||this.count>this.maxItems)backupError('BACKUP_TOO_LARGE');if(this.complete)backupError('BACKUP_INVALID');
   if(!this.header){this.header=validateBackupHeader(row);this.hash=await backupHash('',row);return;}
   if(row.type==='footer'){safeJSON(row);if(row.itemCount!==this.count||JSON.stringify(row.sectionCounts)!==JSON.stringify(this.counts)||row.integrity?.algorithm!=='SHA-256-chain'||row.integrity.root!==this.hash)backupError('BACKUP_INTEGRITY_FAILED');this.complete=true;return;}
-  validateBackupItem(row);const key=row.section+':'+row.value.id;if(this.seen.has(key))backupError('BACKUP_INVALID');this.seen.add(key);this.count++;this.counts[row.section]++;this.hash=await backupHash(this.hash,row);
+  validateBackupItem(row);if(this.count>=this.maxItems)backupError('BACKUP_TOO_LARGE');const key=row.section+':'+row.value.id;if(this.seen.has(key))backupError('BACKUP_INVALID');this.seen.add(key);this.count++;this.counts[row.section]++;this.hash=await backupHash(this.hash,row);
  }
  preview(){if(!this.complete)backupError('BACKUP_INCOMPLETE');return {createdAt:this.header.createdAt,appVersion:this.header.appVersion,formatVersion:this.header.formatVersion,schemaVersion:this.header.schemaVersion,counts:{inputs:this.counts.inputs,topics:this.counts.topics,entries:this.counts.entries,revisions:this.counts.revisions,sources:this.counts.sources},itemCount:this.count,bytes:this.bytes,integrity:this.hash};}
 }
