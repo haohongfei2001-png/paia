@@ -119,6 +119,8 @@ test('VS-04 archive search narrows by observed Source date without changing save
   await eventually(async()=>await p.locator('.search-input').count()===1,'date scope finds the later Source');
   assert.match(await p.locator('.search-input').first().textContent(),/later synthetic/);
   assert.deepEqual((await h.state()).records,before);
+  await p.locator('[data-view="archive"]').click();
+  await eventually(()=>p.locator('#archive-search-date-scope').isHidden(),'date scope is only offered for Input search');
   assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
