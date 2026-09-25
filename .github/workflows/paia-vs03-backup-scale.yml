@@ -12,7 +12,7 @@ permissions:
   contents: read
 jobs:
   backup-scale:
-    if: contains(github.event.pull_request.body, 'PAIA_BACKUP_SCALE_DIAGNOSTIC')
+    if: contains(github.event.pull_request.body, 'PAIA_BACKUP_SCALE_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_BACKUP_BROWSER_DIAGNOSTIC')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     defaults:
@@ -31,6 +31,7 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
       - name: Measure realistic mixed long-content export and restore
+        if: contains(github.event.pull_request.body, 'PAIA_BACKUP_SCALE_DIAGNOSTIC')
         env:
           CI: '1'
           PLAYWRIGHT_MODULE: playwright
@@ -45,7 +46,7 @@ jobs:
           PAIA_TEST_CONCURRENCY: '1'
         run: xvfb-run -a node --test --test-reporter=./scripts/test-report.mjs tests/cpv1-03-backup-segments-chrome-e2e.test.mjs
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && contains(github.event.pull_request.body, 'PAIA_BACKUP_SCALE_DIAGNOSTIC')
         with:
           name: backup-scale-report
           path: backup-scale-report.json
