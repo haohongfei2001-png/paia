@@ -7,11 +7,11 @@ const hash=s=>{let h=2166136261;for(const c of s){h^=c.codePointAt(0);h=Math.imu
 export function tokens(text){const words=normalize(text).match(/[\p{Script=Han}]|[\p{L}\p{N}_]+/gu)||[];return [...new Set(words.map(hash))].sort();}
 export const ownerVersion=(kind,r)=>kind==='entry'?`${r.contentRevision}:${r.fieldRevisions?.type||0}:${r.lifecycle}:${r.searchSafetyVersion||0}`:`${r.revision}:${r.lifecycle}:${r.layoutGeneration||0}`;
 export const ownerStore=kind=>({entry:'thoughts',topic:'topics',section:'sections'})[kind];
-export async function queueSearch(t,kind,row){
+export async function queueSearch(t,kind,row,{derivedOnly=false}={}){
  // Durable cleanup locator for generated organization labels, including copied layouts.
  if(['topic','section'].includes(kind)&&row.sourceRecordIds?.length)await t.put('libraryMigrationItems',{id:JSON.stringify(['organizer-metadata',kind,row.id]),entityKind:'organizer_metadata',statusKey:1,ownerKind:kind,ownerId:row.id,sourceRecordIds:row.sourceRecordIds});
  const version=ownerVersion(kind,row);if(row.searchVersion===version)return;
- row.searchVersion=version;await t.put(ownerStore(kind),row);
+ row.searchVersion=version;await (derivedOnly?t.putDerivedSearchRow(ownerStore(kind),row):t.put(ownerStore(kind),row));
  await t.put('libraryMigrationItems',{id:JSON.stringify(['search',kind,row.id]),entityKind:'search',statusKey:0,ownerKind:kind,ownerId:row.id,version,phase:'delete',offset:0,sourceRecordIds:row.sourceRecordIds||[]});
 }
 export async function searchBatch(store){
@@ -25,12 +25,12 @@ export async function searchBatch(store){
    if(current.phase==='delete'){const page=await t.rangePage('librarySearchTerms','byOwner',prefix([task.ownerKind,task.ownerId]),null,budget);for(const {value:r}of page.rows)await t.delete('librarySearchTerms',r.id);budget-=page.rows.length;if(page.next){await t.put('libraryMigrationItems',current);break;}current.phase='write';}
    const allowed=task.ownerKind!=='entry'||await store.sourcePresent(t,live.sourceRecordIds),chunk=allowed?postings.slice(current.offset,current.offset+budget):[];
    for(const p of chunk)await t.put('librarySearchTerms',{id:JSON.stringify([task.ownerKind,task.ownerId,p.field,p.tokenHash]),ownerKind:task.ownerKind,ownerId:task.ownerId,...p,version:task.version,tokenizerVersion:SEARCH_VERSION,sourceRecordIds:live.sourceRecordIds||[]});budget-=chunk.length;current.offset+=chunk.length;
-   if(!allowed||current.offset>=postings.length){live.indexedSearchVersion=task.version;await t.put(ownerStore(task.ownerKind),live);await t.delete('libraryMigrationItems',task.id);}else await t.put('libraryMigrationItems',current);
+   if(!allowed||current.offset>=postings.length){live.indexedSearchVersion=task.version;await t.putDerivedSearchRow(ownerStore(task.ownerKind),live);await t.delete('libraryMigrationItems',task.id);}else await t.put('libraryMigrationItems',current);
   }return {pending:true};
  });
 }
 export async function rebuildBatch(store){
- return store.libraryMaintenanceWrite(async t=>{const m=await t.get('meta','library-search-rebuild');if(!m||m.complete)return {pending:false};const kind=['entry','topic','section'][m.phase],page=await t.page(ownerStore(kind),{after:m.cursor??undefined,limit:100});for(const {value:r}of page.rows){if(kind==='entry'&&r.storageSchema!==2)continue;delete r.searchVersion;await queueSearch(t,kind,r);}m.cursor=page.next;if(!page.next){m.phase++;m.cursor=null;}if(m.phase===3)m.complete=true;await t.put('meta',m);return {pending:true};});
+ return store.libraryMaintenanceWrite(async t=>{const m=await t.get('meta','library-search-rebuild');if(!m||m.complete)return {pending:false};const kind=['entry','topic','section'][m.phase],page=await t.page(ownerStore(kind),{after:m.cursor??undefined,limit:100});for(const {value:r}of page.rows){if(kind==='entry'&&r.storageSchema!==2)continue;delete r.searchVersion;await queueSearch(t,kind,r,{derivedOnly:true});}m.cursor=page.next;if(!page.next){m.phase++;m.cursor=null;}if(m.phase===3)m.complete=true;await t.put('meta',m);return {pending:true};});
 }
 export async function searchLibrary(store,{query='',cursor=null,limit=40,ranked=false}={}){
  if(typeof query!=='string'||query.length>300||!Number.isInteger(limit)||limit<1||limit>100)fail();

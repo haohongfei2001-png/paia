@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {completeFixture,rows,meta} from './harness/original-complete.mjs';
+import {completeFixture,append,rows,meta} from './harness/original-complete.mjs';
 import {BackupService} from '../core/backup-service.js';
 import {BackupValidator,backupHash} from '../core/backup-format.js';
 const op=()=>crypto.randomUUID();
@@ -11,11 +11,196 @@ test('formal backup round trip preserves working text, provenance, human edits a
  const target=await completeFixture({texts:[]}),service=new BackupService(target.s,{appVersion:'0.8.1'}),stage=await prepared(service,items);assert.equal(stage.preview.canRestore,true);const result=await service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity});assert.equal(result.restored,true);assert.equal((await rows(target.s,'records')).length,5);assert.equal((await target.s.entry(e.id)).body,e.thoughtText+' 人工维护的独立内容');assert.deepEqual(await rows(target.s,'provenance'),await rows(f.s,'provenance'));assert.deepEqual((await rows(target.s,'revisions')).map(r=>[r.id,r.before,r.after,r.important]),(await rows(f.s,'revisions')).map(r=>[r.id,r.before,r.after,r.important]));assert.equal((await target.s.organizerControls()).readingSort,'desc');assert.equal((await target.s.originalOrganizerStatus()).pendingInput,(await f.s.originalOrganizerStatus()).pendingInput);assert.equal(target.requests.length,0);assert.equal((await target.s.libraryIndexPage()).items.length,1);
 });
 test('backup validates corruption/truncation/unknown schema and never accepts credentials',async()=>{const f=await completeFixture(),items=await exported(new BackupService(f.s,{appVersion:'0.8.1'}));const changed=structuredClone(items);changed[1].value.id+='tampered';const service=new BackupService(f.s,{appVersion:'0.8.1'});await assert.rejects(()=>prepared(service,changed));await assert.rejects(()=>prepared(service,items.slice(0,-1)));const bad=structuredClone(items);bad[0].schemaVersion=999;await assert.rejects(()=>prepared(service,bad));const key=structuredClone(items);key[1].value.apiKey='forbidden';await assert.rejects(()=>prepared(service,key));});
+test('restore item limit rejects the first row beyond the declared ceiling',async()=>{
+ const fixture=await completeFixture();
+ const items=await exported(new BackupService(fixture.s));
+ const validator=new BackupValidator({maxItems:1});
+ await validator.add(items[0]);
+ await validator.add(items[1]);
+ await assert.rejects(()=>validator.add(items[2]),error=>error?.code==='BACKUP_TOO_LARGE');
+});
 test('existing user work is never silently overwritten, even after valid preview',async()=>{const f=await completeFixture(),items=await exported(new BackupService(f.s,{appVersion:'0.8.1'})),s=new BackupService(f.s,{appVersion:'0.8.1'}),stage=await prepared(s,items);assert.equal(stage.preview.canRestore,false);assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY');await assert.rejects(()=>s.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.equal((await rows(f.s,'records')).length,5);});
+test('empty-library restore refuses an existing document without source records',async()=>{
+ const source=await completeFixture(),items=await exported(new BackupService(source.s));
+ const target=await completeFixture({texts:[]});
+ await target.s.repository.transaction(true,t=>t.put('documents',{
+  id:'local-unsourced-document',value:{id:'local-unsourced-document',platform:'chatgpt',
+   sourceConversationId:'local-unsourced-chat',userTitle:'Local draft',status:'active'},
+ }));
+ const service=new BackupService(target.s),stage=await prepared(service,items);
+ assert.equal(stage.preview.canRestore,false);
+ assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY');
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:stage.preview.integrity}),error=>error?.code==='BACKUP_TARGET_NOT_EMPTY');
+ assert.equal((await rows(target.s,'documents')).length,1);
+ assert.equal((await rows(target.s,'records')).length,0);
+});
+
+test('empty-library restore protects retained import, migration and orphan index state',async()=>{
+ const source=await completeFixture(),items=await exported(new BackupService(source.s));
+ const guarded=['recordIndex','blockIndex','migrationBackup','sourceCounts',
+  'importTasks','importBatches','importEvidence','importSources'];
+ for(const name of guarded){
+  const target=await completeFixture({texts:[]});
+  const row={id:'retained-'+name};
+  await target.s.repository.transaction(true,t=>t.put(name,row));
+  const service=new BackupService(target.s),stage=await prepared(service,items);
+  assert.equal(stage.preview.canRestore,false,name);
+  assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY',name);
+  await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+   confirmation:stage.preview.integrity}),error=>error?.code==='BACKUP_TARGET_NOT_EMPTY');
+  assert.deepEqual(await rows(target.s,name),[row],name);
+  assert.equal((await rows(target.s,'records')).length,0,name);
+ }
+});
+test('explicit replace restores a validated backup atomically while retaining local purge fences',async()=>{
+ const source=await completeFixture(),items=await exported(new BackupService(source.s));
+ const target=await completeFixture({texts:['Existing local work must be replaced only by explicit choice']});
+ const old=await rows(target.s,'records');
+ await target.s.repository.transaction(true,t=>t.put('tombstones',
+  {id:'source:locally-purged-unrelated',sequence:1,value:{sourceIdentityHash:'locally-purged-unrelated'}}));
+ const service=new BackupService(target.s),stage=await prepared(service,items);
+ assert.equal(stage.preview.canRestore,false);
+ const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'replace'});
+ assert.equal(preview.canRestore,true,preview.reason);
+ assert.equal(preview.restoreScope,'replace-current-library');
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'replace',targetGeneration:preview.targetGeneration}),
+  error=>error?.code==='BACKUP_CONFIRMATION_REQUIRED');
+ assert.deepEqual(await rows(target.s,'records'),old);
+ const result=await service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'replace',
+  targetGeneration:preview.targetGeneration,confirmReplace:true});
+ assert.equal(result.restored,true);
+ assert.deepEqual((await rows(target.s,'records')).map(row=>row.id),
+  (await rows(source.s,'records')).map(row=>row.id));
+ assert.ok(await meta(target.s,'backup-last-restore'));
+ assert.equal((await rows(target.s,'tombstones')).length,1);
+});
+test('replace rejects a changed target after preview and preserves the later work',async()=>{
+ const source=await completeFixture(),items=await exported(new BackupService(source.s));
+ const target=await completeFixture({texts:['Existing local work']});
+ const service=new BackupService(target.s),stage=await prepared(service,items);
+ const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'replace'});
+ await target.s.capture({epoch:(await target.s.status()).epoch,adapterVersion:'0.3.0',
+  chat:{id:'later-chat',url:'https://chatgpt.com/c/later-chat',title:'Later'},
+  messages:[{sourceMessageId:'later-1',pageOrder:1,originalText:'Later user work'}]});
+ const before=await rows(target.s,'records');
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'replace',
+  targetGeneration:preview.targetGeneration,confirmReplace:true}),
+  error=>error?.code==='BACKUP_CONFIRMATION_REQUIRED');
+ assert.deepEqual(await rows(target.s,'records'),before);
+});
+test('replace storage failure rolls back the cleared old library',async()=>{
+ const source=await completeFixture(),items=await exported(new BackupService(source.s));
+ const target=await completeFixture({texts:['Existing local work']});
+ const service=new BackupService(target.s),stage=await prepared(service,items);
+ const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'replace'});
+ const before=await rows(target.s,'records'),original=target.s.repository.transaction.bind(target.s.repository);
+ target.s.repository.transaction=(write,fn,stores)=>original(write,async t=>{
+  if(write){const put=t.put.bind(t);t.put=(name,row)=>{
+   if(name==='records')throw {code:'STORAGE_FAILED'};
+   return put(name,row);
+  };}
+  return fn(t);
+ },stores);
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'replace',
+  targetGeneration:preview.targetGeneration,confirmReplace:true}));
+ assert.deepEqual(await rows(target.s,'records'),before);
+ assert.equal(await meta(target.s,'backup-last-restore'),undefined);
+});
+test('explicit merge adds a disjoint chat atomically and keeps existing work',async()=>{
+ const source=await completeFixture({texts:[]}),target=await completeFixture({texts:[]});
+ await append(source.s,'A restored long-term note','source-one','merge-source-chat');
+ await append(target.s,'Local work stays','target-one','merge-target-chat');
+ const old=await rows(target.s,'records'),items=await exported(new BackupService(source.s));
+ const service=new BackupService(target.s),stage=await prepared(service,items);
+ assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY');
+ const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'merge'});
+ assert.equal(preview.canRestore,true,preview.reason);
+ assert.equal(preview.restoreScope,'merge-disjoint-library');
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'merge',targetGeneration:preview.targetGeneration}),
+  error=>error?.code==='BACKUP_CONFIRMATION_REQUIRED');
+ assert.deepEqual(await rows(target.s,'records'),old);
+ await service.restore({sessionId:stage.sessionId,confirmation:preview.integrity,
+  mode:'merge',targetGeneration:preview.targetGeneration,confirmMerge:true});
+ const merged=await rows(target.s,'records');
+ assert.equal(merged.length,2);
+ assert.ok(merged.some(row=>row.value.originalText==='Local work stays'));
+ assert.ok(merged.some(row=>row.value.originalText==='A restored long-term note'));
+ assert.equal((await rows(target.s,'documents')).length,2);
+});
+test('merge refuses overlapping chat identity without changing the local library',async()=>{
+ const source=await completeFixture({texts:[]}),target=await completeFixture({texts:[]});
+ await append(source.s,'Older backup content','source-one','shared-merge-chat');
+ await append(target.s,'Newer local content','target-one','shared-merge-chat');
+ const service=new BackupService(target.s),stage=await prepared(service,
+  await exported(new BackupService(source.s)));
+ const before=await rows(target.s,'records');
+ const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'merge'});
+ assert.equal(preview.reason,'BACKUP_MERGE_CONFLICT');
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'merge',targetGeneration:preview.targetGeneration,
+  confirmMerge:true}),error=>error?.code==='BACKUP_MERGE_CONFLICT');
+ assert.deepEqual(await rows(target.s,'records'),before);
+});
+test('merge transaction failure rolls back imported content and keeps local work',async()=>{
+ const source=await completeFixture({texts:[]}),target=await completeFixture({texts:[]});
+ await append(source.s,'Incoming content','source-one','merge-source-chat');
+ await append(target.s,'Local content','target-one','merge-target-chat');
+ const service=new BackupService(target.s),stage=await prepared(service,
+  await exported(new BackupService(source.s)));
+ const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'merge'});
+ assert.equal(preview.canRestore,true,preview.reason);
+ const before=await rows(target.s,'records'),original=target.s.repository.transaction.bind(target.s.repository);
+ target.s.repository.transaction=(write,fn,stores)=>original(write,async t=>{
+  if(write){const put=t.put.bind(t);t.put=(name,row)=>{
+   if(name==='documents')throw {code:'STORAGE_FAILED'};
+   return put(name,row);
+  };}
+  return fn(t);
+ },stores);
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'merge',targetGeneration:preview.targetGeneration,
+  confirmMerge:true}));
+ assert.deepEqual(await rows(target.s,'records'),before);
+ assert.equal(await meta(target.s,'backup-last-restore'),undefined);
+});
 test('purge fences exclude deleted text and reject resurrection from an older external backup',async()=>{const f=await completeFixture();await f.runner.wake({userActionId:op()});const service=new BackupService(f.s,{appVersion:'0.8.1'}),old=await exported(service),source=(await rows(f.s,'records'))[0];await f.s.permanentDelete(source.id);await f.s.drainPurgeCleanup();const after=await exported(service);assert.ok(!JSON.stringify(after).includes(source.value.originalText));const target=await completeFixture({texts:[]});const fences=await rows(f.s,'tombstones');await target.s.foundationWrite(async t=>{for(const row of fences)await t.put('tombstones',row);});const recovery=new BackupService(target.s,{appVersion:'0.8.1'}),stage=await prepared(recovery,old);assert.equal(stage.preview.reason,'BACKUP_PURGE_CONFLICT');await assert.rejects(()=>recovery.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.equal((await rows(target.s,'records')).length,0);});
 test('export detects data edits between chunks and refuses inconsistent snapshot',async()=>{const f=await completeFixture(),service=new BackupService(f.s,{appVersion:'0.8.1'}),session=await service.beginExport();const source=(await rows(f.s,'records'))[0];await f.s.update(source.id,{note:'合成并发备注'});await assert.rejects(()=>service.exportPage({sessionId:session.sessionId,sequence:0}),e=>e.code==='BACKUP_CHANGED');});
 test('restore failure rolls back all content and a worker loss leaves no persisted staging',async()=>{const f=await completeFixture();await f.runner.wake({userActionId:op()});const items=await exported(new BackupService(f.s,{appVersion:'0.8.1'})),target=await completeFixture({texts:[]}),service=new BackupService(target.s,{appVersion:'0.8.1'}),stage=await prepared(service,items),transaction=target.s.repository.transaction.bind(target.s.repository);target.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{if(write){const put=t.put.bind(t);t.put=(name,row)=>{if(name==='thoughts')throw {code:'STORAGE_FAILED'};return put(name,row);};}return fn(t);},stores);await assert.rejects(()=>service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.equal((await rows(target.s,'records')).length,0);assert.equal((await rows(target.s,'blocks')).length,0);assert.equal((await rows(target.s,'topics')).length,0);assert.equal((await rows(target.s,'importBatches')).length,0);await assert.rejects(()=>new BackupService(target.s).previewRestore({sessionId:stage.sessionId}));});
 
+
+test('quota exhaustion aborts restore atomically and reports storage pressure',async()=>{
+ const source=await completeFixture();
+ await source.runner.wake({userActionId:op()});
+ const items=await exported(new BackupService(source.s));
+ const target=await completeFixture({texts:[]});
+ const service=new BackupService(target.s);
+ const stage=await prepared(service,items);
+ assert.equal(stage.preview.canRestore,true);
+ const original=target.s.repository.transaction.bind(target.s.repository);
+ target.s.repository.transaction=(write,fn,stores)=>original(write,async t=>{
+  if(write){
+   const put=t.put.bind(t);
+   t.put=(name,row)=>{
+    if(name==='records')throw new DOMException('synthetic quota','QuotaExceededError');
+    return put(name,row);
+   };
+  }
+  return fn(t);
+ },stores);
+ await assert.rejects(
+  ()=>service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}),
+  error=>error?.code==='STORAGE_FULL'
+ );
+ for(const name of ['records','blocks','documents','thoughts','topics'])
+  assert.equal((await rows(target.s,name)).length,0);
+ assert.equal(await meta(target.s,'backup-last-restore'),undefined);
+});
 
 test('concurrent page delivery is idempotent and a cached page cannot bypass a later purge fence',async()=>{
  const f=await completeFixture(),service=new BackupService(f.s),session=await service.beginExport(),options={sessionId:session.sessionId,sequence:0};const [a,b]=await Promise.all([service.exportPage(options),service.exportPage(options)]);assert.deepEqual(a,b);const source=(await rows(f.s,'records'))[0];await f.s.permanentDelete(source.id);await assert.rejects(()=>service.exportPage(options),e=>e.code==='BACKUP_CHANGED');
