@@ -102,3 +102,19 @@ for(const failure of [true,false])test('Round 3 native DOM: original action '+(f
  assert.equal(h.externalRequests,0);
  }finally{await h.close();}
 });
+
+test('VS-04 lazy long entry joins the same editor and recovery session',{timeout:15000},async()=>{
+ const h=await uiHarness();try{const p=await h.page(),id=h.topics[0].entryId;
+  await p.evaluate(id=>workspace.open(id),h.topics[0].id);
+  await p.evaluate(id=>{
+   const editor=workspace.editor.entry;
+   editor.entries.delete(id);editor.recoveries.delete(id);editor.recoveryChecked.delete(id);
+   const old=document.querySelector('[data-entry-id="'+id+'"]');
+   old.replaceWith(workspace.entryNode({entry:{id,large:true},placement:{sectionId:null}}));
+  },id);
+  await p.getByRole('button',{name:'读取完整内容'}).click();
+  assert.equal(await p.evaluate(id=>workspace.editor.entry.entries.has(id)&&workspace.editor.entry.recoveries.has(id),id),true);
+  assert.match(await p.locator('[data-entry-id="'+id+'"] [data-entry-field="body"]').innerText(),/Synthetic original paragraph/);
+  assert.equal(h.externalRequests,0);
+ }finally{await h.close();}
+});
