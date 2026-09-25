@@ -184,6 +184,28 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
  }finally{await h.close();}
 });
 
+
+test('VS-04 current-document search saves a live edit before indexing it',{timeout:75000},async()=>{
+ const h=await FakeChatGPT.start({launchThroughPort:true});
+ try{
+  const p=h.archive;await consent(p);await p.locator('#onboarding-skip').click();
+  const c=conversation('vs04-search-during-edit');c.messages=[{id:'vs04-search-edit-input',text:'Original search body'}];
+  await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
+  await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
+  await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  await p.locator('.archive-navigator-window').first().click();
+  const prose=p.locator('.library-prose').first();await eventually(()=>prose.isVisible());
+  const id=await prose.getAttribute('data-edit-id'),changed='中文 🧭 code const searchDuringEdit = 42; UNIQUE_VS04_LIVE_EDIT';
+  await prose.fill(changed);
+  await p.locator('#document-search').fill('UNIQUE_VS04_LIVE_EDIT');
+  await eventually(()=>p.locator('.document-search-hit').count().then(n=>n===1),'the live edit is searchable');
+  assert.equal(await p.locator('.document-search-hit').first().getAttribute('data-input-id'),id);
+  assert.equal((await h.state()).library.blocks.find(b=>b.id===id)?.libraryText,changed);
+  assert.equal((await h.state()).records[0].originalText,'Original search body','Source stays immutable');
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
 test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
@@ -209,6 +231,10 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   assert.equal((await h.state()).records.length,1,'immutable Source remains present');
   assert.equal(await prose.textContent(),'未完成的输入','the composing text remains visible after refused purge');
   await p.locator('#close-info').click();
+  await p.locator('#document-search').fill('未完成的输入');
+  await eventually(async()=>/请先完成并保存当前输入修改/.test(await p.locator('#document-search-status').textContent()),'search waits for unfinished IME edit');
+  assert.equal(await p.locator('.document-search-hit').count(),0,'unfinished text is not presented as indexed data');
+  assert.equal(await prose.textContent(),'未完成的输入','search preserves composing text');
   await p.locator('#revision-history').click();
   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
   assert.equal(await p.locator('#revision-dialog').evaluate(el=>el.open),false,'version history does not open over unfinished IME text');
