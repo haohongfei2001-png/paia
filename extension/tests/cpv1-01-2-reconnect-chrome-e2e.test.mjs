@@ -93,8 +93,20 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await h.archive.locator('#enable-consent').click();
     await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
     const restoredConversation = conversation('cpv1-discarded-tab');
-    stage = 'open conversation';
-    const tab = await h.open(restoredConversation);
+    stage = 'open conversation in archive window';
+    // A persistent Playwright context may open context.newPage() in another
+    // Chrome window. Discarding that window's only tab can terminate Chrome,
+    // so create the background conversation in the archive's own window.
+    h.pages.set(restoredConversation.id, { c: restoredConversation, arrival: 'metadata-first' });
+    const opened = h.context.waitForEvent('page');
+    const created = await h.archive.evaluate(async url => {
+      const current = await chrome.tabs.getCurrent();
+      const target = await chrome.tabs.create({ url, active: false, windowId: current.windowId });
+      return { targetId: target.id, archiveWindowId: current.windowId };
+    }, `https://chatgpt.com/c/${restoredConversation.id}`);
+    const tab = await opened;
+    tab.on('pageerror', error => h.errors.push(error.message));
+    await tab.waitForLoadState('load');
     await h.ready(tab);
     await eventually(async () => (await h.state()).records.length === 3);
 
@@ -104,13 +116,15 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     }
     await h.archive.bringToFront();
     stage = 'identify target tab';
-    const targetId = await h.archive.evaluate(async () => {
+    const targetId = created.targetId;
+    const tabIdentity = await h.archive.evaluate(async id => {
       const current = await chrome.tabs.getCurrent();
-      const tabs = await chrome.tabs.query({});
-      const other = tabs.filter((item) => item.id !== current.id);
-      if (other.length !== 1) throw new Error(`expected one other tab, got ${other.length}`);
-      return other[0].id;
-    });
+      const target = await chrome.tabs.get(id);
+      return { archiveWindowId: current.windowId, targetWindowId: target.windowId, targetId: target.id };
+    }, targetId);
+    assert.equal(tabIdentity.archiveWindowId, created.archiveWindowId);
+    assert.equal(tabIdentity.targetWindowId, created.archiveWindowId, 'discard target shares the archive window');
+    assert.equal(tabIdentity.targetId, targetId);
     // Keep the archive tab active while Chrome completes the real discard.
     // Re-activating inside the same extension call races the tab teardown on
     // Linux Chrome and can terminate the browser before it reports a result.
