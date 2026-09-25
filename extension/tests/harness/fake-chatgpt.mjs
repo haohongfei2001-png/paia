@@ -41,6 +41,16 @@ function fakePage(c,arrival) {
  });
  </script>`;
 }
+async function stopChrome(processHandle) {
+ if(processHandle.exitCode!==null||processHandle.signalCode!==null)return;
+ const exited=new Promise(resolve=>processHandle.once('exit',resolve));
+ processHandle.kill('SIGTERM');
+ await Promise.race([exited,pause(5000)]);
+ if(processHandle.exitCode===null&&processHandle.signalCode===null){
+  processHandle.kill('SIGKILL');
+  await Promise.race([exited,pause(5000)]);
+ }
+}
 async function connectChromeByPort({headless, userDataDir}) {
  const profile=userDataDir||await mkdtemp(join(tmpdir(),'paia-cdp-profile-'));
  const ownedProfile=!userDataDir;
@@ -71,8 +81,8 @@ async function connectChromeByPort({headless, userDataDir}) {
   if(!context)throw new Error('Chrome default context missing');
   return {browser,context,processHandle,profile,ownedProfile};
  }catch(error){
-  processHandle.kill();
-  if(ownedProfile)await rm(profile,{recursive:true,force:true});
+  await stopChrome(processHandle);
+  if(ownedProfile)await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});
   throw error;
  }
 }
@@ -165,8 +175,8 @@ export class FakeChatGPT {
   if(!this.externalChrome){await this.context.close();return;}
   const {browser,processHandle,profile,ownedProfile}=this.externalChrome;
   try{await browser.close();}finally{
-   processHandle.kill();
-   if(ownedProfile)await rm(profile,{recursive:true,force:true});
+   await stopChrome(processHandle);
+   if(ownedProfile)await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});
   }
  }
 }
