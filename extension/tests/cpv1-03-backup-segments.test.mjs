@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {BackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.js';
 import {backupSegmentRows} from '../ui/backup.js';
 import {BackupService} from '../core/backup-service.js';
-import {BackupValidator,backupHash} from '../core/backup-format.js';
+import {BACKUP_LIMITS,BackupValidator,backupHash} from '../core/backup-format.js';
 import {completeFixture,rows,meta} from './harness/original-complete.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 
@@ -145,7 +145,7 @@ test('derived search writes preserve backup generation while portable edits inva
 test('oversized declared restore is refused before reading any segment',async()=>{
  const partBytes=16*1024*1024,base='PAIA-Backup-fixture';
  let reads=0;
- const parts=Array.from({length:5},(_,index)=>({
+ const parts=Array.from({length:Math.floor(BACKUP_LIMITS.restoreBytes/partBytes)+1},(_,index)=>({
   name:`${base}.part-${String(index+1).padStart(6,'0')}.paia-backup`,
   bytes:partBytes,sha256:'0'.repeat(64),
  }));
