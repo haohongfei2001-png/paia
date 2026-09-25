@@ -115,7 +115,7 @@ test('VS-04 archive search narrows by observed Source date without changing save
   await p.locator('[data-view="library"]').click();await p.locator('#search').fill('DATE_SCOPE');
   await eventually(async()=>await p.locator('.search-input').count()===2,'both dates appear before scoping');
   await p.locator('#archive-search-date-scope summary').click();
-  await p.locator('#search-date-from').fill(dates[1]);await p.locator('#search-date-to').fill(dates[1]);
+  await p.locator('#search-date-start').fill(dates[1]);await p.locator('#search-date-end').fill(dates[1]);
   await eventually(async()=>await p.locator('.search-input').count()===1,'date scope finds the later Source');
   assert.match(await p.locator('.search-input').first().textContent(),/later synthetic/);
   assert.deepEqual((await h.state()).records,before);
