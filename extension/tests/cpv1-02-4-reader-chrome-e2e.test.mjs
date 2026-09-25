@@ -150,7 +150,10 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
   await p.locator('#info-dialog').waitFor({state:'visible'});
   assert.equal(await p.locator('#info-dialog .source-original').first().textContent(),source);
   assert.equal(await p.locator('#info-dialog .reader-working-comparison').textContent(),changed);
-  await p.locator('#close-info').click();
+  await p.locator('#info-dialog').getByRole('button',{name:'查看工作版本'}).click();
+  await p.locator('#revision-dialog').waitFor({state:'visible'});
+  assert.match(await p.locator('#revision-list .revision-row').first().textContent(),/编辑/);
+  await p.locator('#close-revisions').click();
 
   await p.locator('#back').click();
   await p.locator('#search').fill('VS04 unique retrieval');

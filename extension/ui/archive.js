@@ -282,6 +282,7 @@ function info(id){sourceFocusId=id;
   const purge=element('button','danger','永久删除来源…');purge.onclick=()=>void purgeSource(r.id);container.append(purge);
  }
  if(block&&editor?.entries.has(id)){const comparison=element('details'),label=element('summary','','对照当前工作文字');comparison.append(label,element('pre','reader-working-comparison',editor.text(editor.entries.get(id))));container.append(comparison);}
+ if(block&&view==='library'){const versions=element('button','','查看工作版本');versions.type='button';versions.addEventListener('click',()=>{$('info-dialog').close();void showRevisions(false,id).catch(()=>error('版本历史暂时不可用，请重试。'));});container.append(versions);}
  if(!records.length)container.append(element('p','','当时来源已不可用。'));
  if(block){const label=element('label','','用户备注'),note=element('textarea');note.value=editor?.entries.get(id)?.local.note??block.note;note.setAttribute('aria-label','用户备注');note.readOnly=view!=='library';if(editor)note.addEventListener('input',()=>{void smartFilter.protectUserEdit(id);editor.note(id,note.value);});label.append(note);container.append(label);}
  $('info-dialog').showModal();const heading=$('info-dialog').querySelector('h2');heading.tabIndex=-1;heading.focus({preventScroll:true});
