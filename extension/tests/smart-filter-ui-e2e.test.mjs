@@ -41,3 +41,25 @@ test('first input event protects even when immediate Undo leaves no changed text
   const before=await h.state();await p.locator('[data-view="settings"]').click();await p.locator('[value="off"]').check();await p.locator('[data-view="library"]').click();await p.locator('.conversation-document').click();const field=p.locator('.library-prose');await field.fill('Synthetic brief edit');await field.press(process.platform==='darwin'?'Meta+z':'Control+z');await eventually(async()=>await field.textContent()==='继续');await eventually(async()=>(await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length===0);await p.locator('[data-view="settings"]').click();await p.locator('[value="light"]').check();await p.locator('[data-view="library"]').click();await p.locator('.conversation-document').click();await field.waitFor();assert.equal(await field.textContent(),'继续');assert.deepEqual((await h.state()).records,before.records);assert.equal((await h.state()).library.blocks[0].libraryText,null);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('VS-04 universal search requires explicit inclusion of Smart Filter content',{timeout:60000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  const c=conversation('vs04-filter-search');c.messages=[{id:'vs04-filtered',text:'继续'},{id:'vs04-visible',text:'这个想法值得长期记录'}];
+  await h.open(c);await eventually(async()=>(await h.state()).records.length===2);
+  await eventually(async()=>(await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length===1);
+  const original=(await h.state()).records;
+  await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:search-open')));
+  const root=p.locator('#universal-search-dialog');
+  await root.locator('input[type="search"]').fill('继续');
+  await eventually(async()=>await root.locator('.universal-status').textContent().then(value=>value.includes('没有匹配内容')),'ordinary search excludes filtered Input');
+  assert.equal(await root.locator('.universal-hit').count(),0);
+  await root.getByLabel('包含智能过滤内容').check();
+  await eventually(async()=>await root.locator('.universal-hit').count()===1,'explicit filtered search returns saved Input');
+  assert.equal(await root.locator('.filter-search-label').textContent(),'智能过滤内容');
+  assert.deepEqual((await h.state()).records,original);
+  assert.equal(h.extensionNetworkRequests,0);
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
