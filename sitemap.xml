@@ -1,10 +1,2 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://inputarchive.com/</loc><lastmod>2026-09-14</lastmod><priority>1.0</priority></url>
-  <url><loc>https://inputarchive.com/demo.html</loc><lastmod>2026-09-14</lastmod><priority>0.9</priority></url>
-  <url><loc>https://inputarchive.com/principles.html</loc><lastmod>2026-09-14</lastmod><priority>0.8</priority></url>
-  <url><loc>https://inputarchive.com/about.html</loc><lastmod>2026-09-14</lastmod><priority>0.7</priority></url>
-  <url><loc>https://inputarchive.com/privacy-policy.html</loc><lastmod>2026-09-14</lastmod><priority>0.5</priority></url>
-  <url><loc>https://inputarchive.com/terms.html</loc><lastmod>2026-09-14</lastmod><priority>0.4</priority></url>
-  <url><loc>https://inputarchive.com/beta.html</loc><lastmod>2026-09-14</lastmod><priority>0.8</priority></url>
-</urlset>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://inputarchive.com/</loc></url><url><loc>https://inputarchive.com/beta.html</loc></url><url><loc>https://inputarchive.com/principles.html</loc></url><url><loc>https://inputarchive.com/status.html</loc></url><url><loc>https://inputarchive.com/about.html</loc></url><url><loc>https://inputarchive.com/privacy-policy.html</loc></url><url><loc>https://inputarchive.com/terms.html</loc></url><url><loc>https://inputarchive.com/en/</loc></url><url><loc>https://inputarchive.com/en/beta.html</loc></url><url><loc>https://inputarchive.com/en/principles.html</loc></url><url><loc>https://inputarchive.com/en/status.html</loc></url><url><loc>https://inputarchive.com/en/about.html</loc></url><url><loc>https://inputarchive.com/en/privacy-policy.html</loc></url><url><loc>https://inputarchive.com/en/terms.html</loc></url></urlset>
