@@ -102,3 +102,25 @@ test('CPV1-02.4 conversation search steps into unmounted text and close restores
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('VS-04 search positions a lexical hit inside a long Input without mutating the text',{timeout:75000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await consent(p);
+  const body='Long reading '.repeat(2500)+' UNIQUE_LEXICAL_TARGET '+'ending '.repeat(100);
+  const c=conversation('vs04-long-search');c.messages=[{id:'vs04-long-search-input',text:body}];
+  await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
+  await openCapturedReader(p);
+  await p.locator('#document-search').fill('UNIQUE_LEXICAL_TARGET');
+  await eventually(async()=>await p.locator('.document-search-hit').count()===1,'long Input is indexed');
+  await p.locator('.document-search-hit').click();
+  await eventually(async()=>p.evaluate(async()=>{
+   const target=document.querySelector('.library-prose');
+   const {firstLexicalRange}=await import('./search-experience.js');
+   const rect=firstLexicalRange(target,'UNIQUE_LEXICAL_TARGET')?.getBoundingClientRect();
+   return !!rect&&rect.top>=0&&rect.bottom<=innerHeight;
+  }),'exact lexical hit is in the viewport');
+  assert.equal(await p.locator('.library-prose').textContent(),body);
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});

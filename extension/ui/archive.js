@@ -65,7 +65,7 @@ void refreshSavedReading();
 const positions=new Map(),queries=new Map();
 const documentSearchStates=new Map();let documentSearchIntent=0,documentSearchTimer=null;
 function documentSearchState(id=documentId){
- let current=documentSearchStates.get(id);if(!current){current={query:'',cursor:null,history:[],nextCursor:null,items:[],activeInputId:null,savedAnchor:null,complete:true,loading:false,error:false};documentSearchStates.set(id,current);}return current;
+ let current=documentSearchStates.get(id);if(!current){current={query:'',cursor:null,history:[],nextCursor:null,items:[],activeInputId:null,savedAnchor:null,complete:true,indexing:false,loading:false,error:false};documentSearchStates.set(id,current);}return current;
 }
 async function openDocumentSearchItem(current,item){
  const id=documentId,searchQuery=current.query,inputId=item?.id;if(!id||!inputId)return;
@@ -86,6 +86,7 @@ function renderDocumentSearch(){
  const activeIndex=current.items.findIndex(item=>item.id===current.activeInputId);steps.hidden=!current.items.length;previousMatch.disabled=current.loading||!current.items.length||activeIndex<=0&&!current.history.length;nextMatch.disabled=current.loading||!current.items.length||activeIndex>=current.items.length-1&&!current.nextCursor;
  if(current.loading)statusNode.textContent=readerCopy('正在当前聊天窗口中查找…','Searching this conversation…');
  else if(current.error)statusNode.textContent=readerCopy(recoveryGuidance('INDEX_UNAVAILABLE').detail,'Search is temporarily unavailable. Your saved conversation remains readable; retrying will not delete or rebuild your archive.');
+ else if(current.indexing)statusNode.textContent=readerCopy('搜索索引尚未完整；当前结果可能不全，请稍后重试。','Search indexing is incomplete; results may be partial. Retry shortly.');
  else if(!current.items.length)statusNode.textContent=readerCopy('当前聊天窗口没有匹配输入。','No matching input in this conversation.');
  else statusNode.textContent=readerCopy(`本页 ${current.items.length} 条匹配输入${current.nextCursor?' · 还有更多':''}${activeIndex>=0?` · 已定位 ${activeIndex+1}/${current.items.length}`:''}`,`${current.items.length} matching inputs on this page${current.nextCursor?' · more available':''}${activeIndex>=0?` · at ${activeIndex+1}/${current.items.length}`:''}`);
  highlightReading($('document-body'),current.query);
@@ -96,7 +97,7 @@ async function readDocumentSearchPage(id,searchQuery,cursor,intent){
 }
 async function runDocumentSearch({reset=false}={}){
  if(view!=='library'||!documentId)return;const id=documentId,input=$('document-search'),current=documentSearchState(id),nextQuery=input.value.trim();if(current.query!==nextQuery){current.query=nextQuery;reset=true;}if(reset){current.cursor=null;current.history=[];current.nextCursor=null;current.items=[];current.activeInputId=null;}current.error=false;if(!nextQuery){++documentSearchIntent;current.loading=false;renderDocumentSearch();return;}
- const intent=++documentSearchIntent;current.loading=true;renderDocumentSearch();try{const page=await readDocumentSearchPage(id,nextQuery,current.cursor,intent);if(!page||intent!==documentSearchIntent)return;current.items=page.items||[];current.nextCursor=page.nextCursor??null;current.complete=page.complete===true;}catch{if(intent!==documentSearchIntent)return;current.items=[];current.nextCursor=null;current.error=true;}finally{if(intent===documentSearchIntent&&id===documentId&&view==='library'){current.loading=false;renderDocumentSearch();}}
+ const intent=++documentSearchIntent;current.loading=true;renderDocumentSearch();try{const page=await readDocumentSearchPage(id,nextQuery,current.cursor,intent);if(!page||intent!==documentSearchIntent)return;current.items=page.items||[];current.nextCursor=page.nextCursor??null;current.complete=page.complete===true;current.indexing=page.indexing===true;}catch{if(intent!==documentSearchIntent)return;current.items=[];current.nextCursor=null;current.error=true;}finally{if(intent===documentSearchIntent&&id===documentId&&view==='library'){current.loading=false;renderDocumentSearch();}}
 }
 $('document-search-retry').addEventListener('click',()=>{void runDocumentSearch();});
 async function stepDocumentSearch(direction){

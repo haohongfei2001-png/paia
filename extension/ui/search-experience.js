@@ -19,10 +19,25 @@ if(typeof document!=='undefined'){
 export function highlightText(node,text,query){node.replaceChildren();const value=String(text||''),needle=String(query||'').trim().toLocaleLowerCase();let from=0,found;if(!needle){node.textContent=value;return;}while((found=value.toLocaleLowerCase().indexOf(needle,from))>=0){node.append(document.createTextNode(value.slice(from,found)),element('mark','search-match',value.slice(found,found+needle.length)));from=found+needle.length;}node.append(document.createTextNode(value.slice(from)));}
 export function highlightReading(root,query){if(!globalThis.CSS?.highlights||!globalThis.Highlight)return;CSS.highlights.delete('paia-search');const q=String(query||'').trim().toLocaleLowerCase();if(!q||!root)return;const ranges=[],walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode())&&ranges.length<500){if(node.parentElement.closest('[hidden],button,select'))continue;const text=node.data.toLocaleLowerCase();let from=0,index;while((index=text.indexOf(q,from))>=0&&ranges.length<500){const range=new Range();range.setStart(node,index);range.setEnd(node,index+q.length);ranges.push(range);from=index+q.length;}}CSS.highlights.set('paia-search',new Highlight(...ranges));}
 
+// Locate a lexical match within one Input without changing editable content.
+export function firstLexicalRange(root,query){
+ const needle=String(query||'').trim().toLocaleLowerCase();
+ if(!root||!needle)return null;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+ let node;
+ while((node=walker.nextNode())){
+  if(node.parentElement?.closest('[hidden],button,select'))continue;
+  const offset=node.data.toLocaleLowerCase().indexOf(needle);
+  if(offset<0)continue;
+  const range=new Range();
+  range.setStart(node,offset);range.setEnd(node,offset+needle.length);
+  return range;
+ }
+ return null;
+}
 let revealToken=0;
-// Search opens a bounded page around the matched Input. Reveal that exact Input only
-// after the Reader has replaced the collection view, so the document's remembered
-// scroll position cannot hide the result. This is ephemeral UI state only.
+// Search opens a bounded page around the matched Input. Position the exact
+// lexical hit after the Reader swaps pages; title-only hits retain Input fallback.
 export function revealSearchResult(itemId,query,{attempts=40}={}){
  const token=++revealToken,id=String(itemId||''),needle=String(query||'');let remaining=attempts;
  const attempt=()=>{
@@ -35,7 +50,9 @@ export function revealSearchResult(itemId,query,{attempts=40}={}){
     highlightReading(root,needle);
     const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true,section=target.closest('section');
     if(section)section.dataset.searchOrigin='true';
-    target.scrollIntoView({block:'center',behavior:reduced?'auto':'smooth'});
+    const match=firstLexicalRange(target,needle),rect=match?.getBoundingClientRect();
+    if(rect?.height)window.scrollBy({top:rect.top-innerHeight*0.45,behavior:reduced?'instant':'smooth'});
+    else target.scrollIntoView({block:'center',behavior:reduced?'instant':'smooth'});
     if(!reduced)section?.animate?.([{backgroundColor:'#eef3e9'},{backgroundColor:'transparent'}],{duration:900,easing:'ease-out'});
    }));
    return;
