@@ -11,7 +11,7 @@ const rpc=async(page,type,fields={})=>{
 test('CPV1-02.3 Navigator projects a Project move, rename and source deletion without losing the selected Conversation',{timeout:150000},async()=>{
  let harness;
  try{
-  harness=await FakeChatGPT.start({onboarding:true});
+  harness=await FakeChatGPT.start({onboarding:true,launchThroughPort:true});
   const page=harness.archive;
   await page.locator('#enable-consent').waitFor({state:'visible'});
   await eventually(async()=>!(await page.locator('#enable-consent').isDisabled()));
