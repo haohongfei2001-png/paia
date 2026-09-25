@@ -5,14 +5,10 @@ on:
   push:
     branches: [main]
     paths: ['*.html', 'en/**', 'assets/website/**', 'website/**', 'sitemap.xml', 'robots.txt', 'CNAME', '.github/workflows/paia-website.yml']
-  workflow_run:
-    workflows: ['pages build and deployment']
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
     inputs:
       verify_live:
-        description: 'Read-only exact-byte and browser verification of inputarchive.com after deployment'
+        description: 'Read-only exact-byte and browser verification of inputarchive.com'
         type: boolean
         default: false
 permissions:
@@ -22,7 +18,6 @@ concurrency:
   cancel-in-progress: true
 jobs:
   website:
-    if: github.event_name != 'workflow_run'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -59,21 +54,22 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
   live:
+    needs: website
+    # The repository's dynamic Pages deployment did not emit an observed workflow_run.
+    # Main has an explicit, independent readback instead. Old CDN bytes fail closed;
+    # rerun this job after deployment rather than weakening the byte comparison.
     if: >-
-      github.repository == 'haohongfei2001-png/paia' &&
-      ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.head_branch == 'main' &&
-        github.event.workflow_run.head_repository.full_name == github.repository) ||
-       (github.event_name == 'workflow_dispatch' && inputs.verify_live && github.ref == 'refs/heads/main'))
+      github.repository == 'haohongfei2001-png/paia' && github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.verify_live))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       WEBSITE_TEST_OUTPUT: website-live-artifacts
-      EXPECTED_WEBSITE_COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
+      EXPECTED_WEBSITE_COMMIT: ${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
@@ -92,7 +88,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: website-live-${{ github.event.workflow_run.head_sha || github.sha }}-${{ github.run_id }}
+          name: website-live-${{ github.sha }}-${{ github.run_id }}
           path: website-live-artifacts/
           retention-days: 14
           if-no-files-found: warn
