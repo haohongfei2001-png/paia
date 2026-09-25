@@ -35,6 +35,31 @@ test('Smart Filter isolated Chrome: capture, Light reading, full search/context,
  }finally{await h.close();}
 });
 
+test('VS-04 Reader keeps a filtered Input without changing Source',{timeout:75000},async()=>{
+ const h=await FakeChatGPT.start({headless:false});
+ try{
+  const p=h.archive;await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  const c=conversation('vs04-filter-keep');c.messages=[{id:'vs04-keep-001',text:'继续'},{id:'vs04-keep-002',text:'继续，但不要修改原始数据'},{id:'vs04-keep-003',text:'好的，就选第二个'},{id:'vs04-keep-004',text:'请继续'},{id:'vs04-keep-005',text:'这个呢'}];
+  const chat=await h.open(c,{arrival:'empty'});await chat.evaluate(c=>{window.fake.render(c);for(const root of document.querySelectorAll('#messages > div')){const article=document.createElement('article');article.dataset.testid='conversation-turn-'+root.dataset.messageId;root.before(article);article.append(root);}},c);
+  await eventually(async()=>(await h.state()).records.length===5);
+  await eventually(async()=>(await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length===2);
+  const original=(await h.state()).records;
+  await p.locator('[data-view="library"]').click();await openCapturedReader(p);
+  await eventually(async()=>await p.locator('.library-prose:visible').count()===3);
+  await p.locator('#document-filter-toggle').click();
+  await eventually(async()=>await p.locator('.library-prose:visible').count()===5);
+  assert.equal(await p.locator('.filtered-input-note').count(),2);
+  await p.locator('.filtered-input-note button').first().click();
+  await eventually(async()=>(await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length===1);
+  await eventually(async()=>await p.locator('.filtered-input-note').count()===1);
+  await p.locator('#document-filter-toggle').click();
+  await eventually(async()=>await p.locator('.library-prose:visible').count()===4);
+  assert.deepEqual((await h.state()).records,original);
+  assert.equal(h.extensionNetworkRequests,0);
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
 test('presence evidence is bounded, body-free, attachment/reference-aware and unknown without complete scope',{timeout:60000},async()=>{
  const h=await FakeChatGPT.start();try{const p=await h.open(conversation('presence-synthetic'),{arrival:'empty'});
   const result=await p.evaluate(async source=>{

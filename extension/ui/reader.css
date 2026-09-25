@@ -4,6 +4,8 @@
 #document-filter-toggle{min-height:40px;margin:0 0 16px;padding:6px 10px;color:var(--paia-text);border:1px solid var(--paia-control);background:transparent}
 #document-filter-toggle:hover{background:var(--paia-hover)}
 #document-body .filtered-input-note{font-size:12px;color:var(--paia-meta);margin:0 0 8px}
+#document-body .filtered-input-note button{margin-left:10px;min-height:32px;padding:4px 8px;border:1px solid var(--paia-control);color:var(--paia-text);background:transparent}
+#document-body .filtered-input-note button:hover{background:var(--paia-hover)}
 #input-time-order{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--paia-meta);font-size:13px;margin:12px 0 32px}
 #input-time-order button{min-height:40px;color:var(--paia-text);border:1px solid var(--paia-control);padding:6px 10px;background:transparent}
 #input-time-order button:hover{background:var(--paia-hover)}
