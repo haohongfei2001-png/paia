@@ -124,3 +124,59 @@ test('VS-04 search positions a lexical hit inside a long Input without mutating 
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('VS-04 direct Input edit stays traceable through search, Source and restore-as-new-current',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start({headless:false});
+ try{
+  const p=h.archive;await consent(p);
+  await h.open(conversation('vs04-edit-source-history'));
+  await eventually(async()=>(await h.state()).records.length===3);
+  const baseline=await h.state();
+  await openCapturedReader(p);
+  const first=p.locator('.library-prose').first(),id=await first.getAttribute('data-edit-id');
+  const initial=baseline.library.blocks.find(b=>b.id===id),initialRevision=initial.revision;
+  const source=baseline.records.find(r=>r.id===initial.originalTextReference)?.originalText;
+  assert.ok(source,'first Input retains its Source text');
+  const changed='中文编辑 🧭 VS04 unique retrieval line · code: const answer = 42;';
+  await first.fill(changed);
+  await eventually(async()=>{
+   const current=await h.state();
+   return current.library.blocks.find(b=>b.id===id)?.libraryText===changed;
+  },'direct Input edit autosaves');
+  assert.deepEqual((await h.state()).records,baseline.records,'editing cannot rewrite Source');
+
+  await p.locator('.library-block .reader-more').first().click();
+  await p.getByRole('menuitem',{name:'查看当时记录'}).click();
+  await p.locator('#info-dialog').waitFor({state:'visible'});
+  assert.equal(await p.locator('#info-dialog .source-original').first().textContent(),source);
+  assert.equal(await p.locator('#info-dialog .reader-working-comparison').textContent(),changed);
+  await p.locator('#close-info').click();
+
+  await p.locator('#back').click();
+  await p.locator('#search').fill('VS04 unique retrieval');
+  await eventually(()=>p.locator('.search-input').first().isVisible(),'edited Input is searchable');
+  await p.locator('.search-input').first().click();
+  await eventually(()=>p.locator('[data-edit-id="'+id+'"]').isVisible(),'search reopens the edited Input');
+  assert.equal(await p.locator('[data-edit-id="'+id+'"]').textContent(),changed);
+
+  await p.locator('[data-block-id="'+id+'"] .reader-more').click();
+  await p.getByRole('menuitem',{name:'版本历史'}).click();
+  await p.locator('#revision-dialog').waitFor({state:'visible'});
+  const history=p.locator('#revision-list .revision-row').first();
+  await history.waitFor();
+  assert.match(await history.textContent(),/编辑/);
+  await history.getByRole('button',{name:'恢复操作前'}).click();
+  const confirmation=p.locator('dialog.reader-confirm');
+  await confirmation.waitFor({state:'visible'});
+  assert.match(await confirmation.textContent(),/恢复会建立今天的新版本/);
+  await confirmation.getByRole('button',{name:'恢复这个工作版本'}).click();
+  await eventually(async()=>{
+   const current=await h.state(),block=current.library.blocks.find(b=>b.id===id);
+   return block?.revision>initialRevision+1;
+  },'restore creates a new current revision');
+  await eventually(async()=>await p.locator('[data-edit-id="'+id+'"]').textContent()===source,'restored text appears in Reader');
+  assert.deepEqual((await h.state()).records,baseline.records,'Source remains immutable after restore');
+  assert.equal(h.extensionNetworkRequests,0);
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
