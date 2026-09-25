@@ -124,7 +124,9 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
       const target = await chrome.tabs.get(id);
       return { windowId: target.windowId, index: target.index };
     }, targetId);
+    console.log('CPV1-01.2 discard: invoking Chrome tabs.discard');
     const discarded = await h.archive.evaluate(id => chrome.tabs.discard(id), targetId);
+    console.log('CPV1-01.2 discard: Chrome returned a discarded tab');
     assert.equal(discarded?.discarded, true, 'Chrome discarded the conversation tab');
     assert.equal(discarded?.windowId, targetSlot.windowId);
     assert.equal(discarded?.index, targetSlot.index);
@@ -135,10 +137,14 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
       return tabs.filter(tab => tab.index === index).length === 1
         && tabs.some(tab => tab.id === id && tab.index === index && tab.discarded === true);
     }, { id: discarded.id, ...targetSlot }), 'one discarded conversation tab remains');
+    console.log('CPV1-01.2 discard: replacement slot confirmed');
     const restored = await h.archive.evaluate(id => chrome.tabs.update(id, { active: true }), discarded.id);
+    console.log('CPV1-01.2 discard: Chrome activated the restored tab');
     assert.equal(restored?.active, true);
     await eventually(async () => h.archive.evaluate(async id => (await chrome.tabs.get(id)).status === 'complete', restored.id), 'discarded tab finishes loading');
+    console.log('CPV1-01.2 discard: restored tab completed loading');
     assert.equal((await h.state()).records.length, 3, 'discard does not change stored records');
+    console.log('CPV1-01.2 discard: archive readback preserved records');
 
     await eventually(async () => h.context.pages().some((page) => page.url().includes('/c/cpv1-discarded-tab')));
     const resumedTab = h.context.pages().find((page) => page.url().includes('/c/cpv1-discarded-tab'));
