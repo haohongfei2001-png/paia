@@ -291,6 +291,14 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 
 The next coherent candidate keeps an Archive Input visible until reversible removal is durably saved. The same saved-state visibility rule applies to undo/redo; a hosted browser failure/retry journey verifies that storage failure leaves the Input and immutable Source intact and that a successful retry hides it. Exact-head targeted CI is pending. This is CPV1-04.5/04.6 engineering evidence, not VS-04 slice certification.
 
+## VS-04 Batch B closure review
+
+CPV1-04.5 policy distinctions are present in the production paths: Topic removal/restore changes Topic placements and retains Source/Input; Archive removal is reversible and now waits for a durable save; Source purge is separately confirmed and permanently tombstoned; Context direct-Input exclusion is reversible without changing Topic authorization or deleting Source (see `context-input-round8.test.mjs`). A new store-level Topic removal/restore regression checks Source and Archive identity independently. B-02 mixed human-derivative permanent purge remains owner gated and is not marked PASS.
+
+CPV1-04.6 matrix: Chinese IME (`cpv1-02-4-reader-chrome-e2e.test.mjs`, `ans-08-topic-edit-preservation-chrome-e2e.test.mjs`); long text and emoji/code (Reader browser path); concurrent tab edit (`cpv1-04-conflict-chrome-e2e.test.mjs`); worker termination (`cpv1-01-save-recovery-chrome-e2e.test.mjs`); storage failure (same file, Archive removal retry); filter rerun (`smart-filter-ui-e2e.test.mjs`); search during edit and undo after navigation (Reader browser path); deletion/reimport (`library.test.mjs` and `history-privacy-v090.test.mjs`). These are synthetic/unit evidence classes. Current live/private/device evidence remains deferred.
+
+CPV1-04.7 remains the active engineering boundary: stable-head 10k long-content and 10k/100k lexical/search/scroll profile, realistic visual artifacts, and full exact-head certification are pending. No VS-04 COMPLETE claim is made.
+
 ## Core desktop candidate gate
 
 VS-01 through VS-06 COMPLETE is the first Consumer Product v1 desktop candidate.

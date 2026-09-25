@@ -29,3 +29,24 @@ test('UX-R3 purged Topic anchor keeps only an ordering point and never resumes a
  const page=await f.s.topicDocumentPage({topicId:topic.id,sort:'asc'}),middle=page.items[1].entry,next=page.items[2].entry;await f.s.topicPosition({topicId:topic.id,entryId:middle.id,revision:middle.revision,offset:7,sort:'asc',expanded:[]});const source=(await f.s.entryProvenance(middle.id))[0].sourceRecordIds[0];await f.s.permanentDelete(source);
  const anchor=await f.s.topicPosition({topicId:topic.id});assert.equal(anchor.nearby,true);assert.equal(anchor.entryId,next.id);assert.equal(anchor.offset,0);assert.equal((await f.s.entry(middle.id)).body,'');await f.s.drainPurgeCleanup();assert.equal((await f.s.topicPosition({topicId:topic.id})).entryId,next.id);
 });
+
+
+test('VS-04 Topic removal and restore preserve Source and Archive Input independently',async()=>{
+ const f=await fixture();
+ const sourceBefore=await rows(f.s,'records'),inputBefore=await rows(f.s,'blocks');
+ const bodyBefore=(await f.s.entry(f.id)).body;
+ const topicBefore=await f.s.topic(f.t.id);
+ const removed=await f.s.removeTopic({id:f.t.id,expectedRevision:topicBefore.revision,operationId:op()});
+ assert.equal(removed.removed,true);
+ assert.equal((await f.s.repository.transaction(false,tx=>tx.get('topics',f.t.id),['topics'])).lifecycle,'removed');
+ assert.equal((await f.s.entry(f.id)).body,bodyBefore,'Topic removal leaves the Thought body available');
+ assert.deepEqual(await rows(f.s,'records'),sourceBefore,'Topic removal cannot purge Source');
+ assert.deepEqual(await rows(f.s,'blocks'),inputBefore,'Topic removal cannot hide Archive Inputs');
+
+ const restored=await f.s.restoreTopicContainer({id:f.t.id,expectedRevision:removed.revision,operationId:op()});
+ assert.equal(restored.restored,true);
+ assert.equal((await f.s.repository.transaction(false,tx=>tx.get('topics',f.t.id),['topics'])).lifecycle,'active');
+ assert.equal((await f.s.entry(f.id)).body,bodyBefore);
+ assert.deepEqual(await rows(f.s,'records'),sourceBefore);
+ assert.deepEqual(await rows(f.s,'blocks'),inputBefore);
+});
