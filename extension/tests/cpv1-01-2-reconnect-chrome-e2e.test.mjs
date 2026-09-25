@@ -87,7 +87,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
   try {
     // Chrome's Linux headless discard path can crash the browser process.
     // CI has an isolated Xvfb display; exercise the same real tabs API there.
-    h = await FakeChatGPT.start({ extensionPath: release, headless: !process.env.CI });
+    h = await FakeChatGPT.start({ extensionPath: release, headless: !process.env.CI, launchThroughPort: true });
     stage = 'enable consent';
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
     await h.archive.locator('#enable-consent').click();
