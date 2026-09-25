@@ -57,7 +57,10 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   await eventually(async()=>await page.locator('.archive-navigator-group-toggle').allTextContents().then(values=>values.some(value=>value.includes('Synthetic Alpha'))),'new Project appears');
   await eventually(async()=>await page.locator(`.archive-navigator-window[data-document-id="${documentId}"][aria-current="page"]`).count()===1,'selected Conversation moves without duplication');
   const projectGroup=page.locator('.archive-navigator-group').filter({has:page.locator('.archive-navigator-group-toggle').filter({hasText:'Synthetic Alpha'})}).first();
-  await projectGroup.getByRole('button',{name:'在此 Project 搜索'}).click();
+  const projectSearch=projectGroup.locator('.archive-navigator-group-row > .archive-navigator-detail').first();
+  assert.equal(await projectSearch.count(),1,await projectGroup.evaluate(node=>node.outerHTML));
+  assert.match(await projectSearch.getAttribute('aria-label'),/^(在此 Project 搜索|Search this Project)$/);
+  await projectSearch.click();
   await page.locator('#search').fill('CPV1_NAV_IDENTITY_BODY');
   await eventually(async()=>await page.locator('.search-input').count()===1,'Project search excludes the same text in an unassigned Conversation');
   assert.match(await page.locator('#search-project-scope').textContent(),/Synthetic Alpha/);
@@ -90,7 +93,7 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
    await structure.observeProject({projectRef,expectedRevision:current.relationshipRevision,observedAt:new Date(Math.max(Date.now(),Date.parse(current.lastObservedAt||'')+1000)).toISOString(),evidence,sourceStatus:'confirmed_deleted'});
   },projectRef);
   await page.evaluate(()=>document.dispatchEvent(new Event('paia:navigator-refresh')));
-  await eventually(async()=>await page.locator('.archive-navigator-source-state').allTextContents().then(values=>values.some(value=>value.includes('来源 Project 已删除'))),'deleted source Project is labeled without deleting PAIA content');
+  await eventually(async()=>await page.locator('.archive-navigator-source-state').allTextContents().then(values=>values.some(value=>value.includes('来源 Project 已删除')||value.includes('Source Project deleted'))),'deleted source Project is labeled without deleting PAIA content');
   assert.match(await page.locator('.library-prose').first().textContent(),/CPV1_NAV_IDENTITY_BODY/);
   await eventually(async()=>await page.locator(`.archive-navigator-window[data-document-id="${documentId}"][aria-current="page"]`).count()===1,'source deletion keeps the selected Conversation');
   assert.equal(harness.externalRequests,0);
