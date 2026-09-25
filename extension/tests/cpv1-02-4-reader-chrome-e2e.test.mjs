@@ -194,7 +194,7 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await p.bringToFront();
   const group=p.locator('.archive-navigator-group-toggle').first();
   await eventually(()=>group.isVisible(),'captured group is visible');
-  assert.match(await group.textContent(),/未归属 Project|Not assigned to a Project/);
+  assert.match(await group.textContent(),/归属未知|Project unknown/);
   if(await group.getAttribute('aria-expanded')!=='true')await group.click();
   const window=p.locator('.archive-navigator-window').first();
   await eventually(()=>window.isVisible(),'captured Conversation is visible');
