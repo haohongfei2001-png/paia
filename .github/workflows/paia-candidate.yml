@@ -95,19 +95,39 @@ jobs:
       - name: Build and audit release
         run: npm run build:release
 
+  targeted_browser:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER')
+    name: Candidate VS-04 affected browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Reader editing and lazy long-entry regression
+        run: node --test tests/reading-ui-round3-chrome-e2e.test.mjs
+
   candidate:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release]
+    needs: [unit, contracts, release, targeted_browser]
     steps:
       - name: Require light candidate gates
         env:
           UNIT: ${{ needs.unit.result }}
           CONTRACTS: ${{ needs.contracts.result }}
           RELEASE: ${{ needs.release.result }}
+          TARGETED_BROWSER: ${{ needs.targeted_browser.result }}
         run: |
           printf 'unit=%s\ncontracts=%s\nrelease=%s\n' "$UNIT" "$CONTRACTS" "$RELEASE"
           test "$UNIT" = success
           test "$CONTRACTS" = success
           test "$RELEASE" = success
+          if [ "$TARGETED_BROWSER" != skipped ]; then test "$TARGETED_BROWSER" = success; fi
