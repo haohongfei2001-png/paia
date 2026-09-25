@@ -49,3 +49,5 @@ body.ans-nav-reader #document-page{grid-column:2;width:100%;min-width:0;margin-i
 }
 @media(max-width:360px){body.ans-nav-reader #archive-navigator.is-sheet{padding-left:12px;padding-right:12px}}
 @media(prefers-reduced-motion:reduce){.archive-navigator-group-toggle::before{transition:none}}
+
+#search-project-scope{flex:none;max-width:min(250px,55vw);min-height:36px;padding:6px 10px;border:1px solid var(--paia-subtle);border-radius:999px;background:var(--paia-surface);color:var(--paia-accent);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#search-project-scope[hidden]{display:none}

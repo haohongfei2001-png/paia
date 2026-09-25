@@ -33,8 +33,8 @@ export class ArchiveNavigatorState{
 }
 
 export class ArchiveNavigator{
- constructor({onOpenWindow,onSourceDetail,onStatus=()=>{},onRouteChange=()=>{},onScopeChange=()=>{}}={}){
-  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.onScopeChange=onScopeChange;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;this.sourceScope=null;
+ constructor({onOpenWindow,onSourceDetail,onProjectSearch,onStatus=()=>{},onRouteChange=()=>{},onScopeChange=()=>{}}={}){
+  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onProjectSearch=onProjectSearch;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.onScopeChange=onScopeChange;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;this.sourceScope=null;
   this.previews=new Map();this.previewQueue=[];this.previewQueued=new Map();this.previewInFlight=0;this.previewGeneration=0;
   this.sourceSelect=$('archive-source-scope');this.sourceLabel=$('archive-source-scope-label');this.sourceSelect?.addEventListener('change',()=>{this.sourceScope=this.sourceSelect.value||null;this.lastPaintSignature=null;this.paint();this.onRouteChange();this.onScopeChange();});
   this.host=element('aside','archive-navigator');this.host.id='archive-navigator';this.host.setAttribute('aria-label',copy('档案窗口导航','Archive window navigator'));this.host.tabIndex=-1;
@@ -215,7 +215,7 @@ export class ArchiveNavigator{
    for(const group of groups.items){
     const groupBox=element('div','archive-navigator-group'),row=element('div','archive-navigator-group-row'),open=this.state.expandedFor(group),key=navigatorGroupKey(group.providerKey,group.groupKind,group.projectRef);
     const expand=element('button','archive-navigator-group-toggle',groupName(group));expand.type='button';expand.dataset.ansNavKey='group:'+key;expand.setAttribute('aria-expanded',String(open));expand.addEventListener('click',()=>void this.toggleGroup(group));row.append(expand);
-    if(group.groupKind==='project'){const details=element('button','archive-navigator-detail',copy('详情','Details'));details.type='button';details.setAttribute('aria-label',copy('查看 Project 来源详情','View Project source details'));details.addEventListener('click',event=>this.detail({kind:'project',projectRef:group.projectRef},event.currentTarget));row.append(details);}
+    if(group.groupKind==='project'){const search=element('button','archive-navigator-detail',copy('搜索','Search'));search.type='button';search.setAttribute('aria-label',copy('在此 Project 搜索','Search this Project'));search.addEventListener('click',()=>this.onProjectSearch?.(group.projectRef,groupName(group)));row.append(search);const details=element('button','archive-navigator-detail',copy('详情','Details'));details.type='button';details.setAttribute('aria-label',copy('查看 Project 来源详情','View Project source details'));details.addEventListener('click',event=>this.detail({kind:'project',projectRef:group.projectRef},event.currentTarget));row.append(details);}
     groupBox.append(row);
     if(group.parentSourceStatus==='confirmed_deleted')groupBox.append(element('p','archive-navigator-source-state',copy('来源 Project 已删除；PAIA 内容保留','Source Project deleted; PAIA content retained')));
     if(open){

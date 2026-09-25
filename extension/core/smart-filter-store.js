@@ -3,6 +3,7 @@ import {buildInputSearchCache,lookupInputSearchCache,matchesSourceDate,validSear
 import {IAStore} from './ia-store.js';
 import {ArchiveError} from './constants.js';
 import {validProvider} from './read-projection-keys.js';
+import {conversationMetaId,projectRef as canonicalProjectRef} from './source-structure-model.js';
 import {queryPage} from './archive-query.js';
 import {identifySource,hashText} from './dedupe.js';
 import {decideLight,normalizePresence,validFilterDecision,FILTER_VERSIONS,FILTER_REASONS,UNCERTAIN_REASONS} from './smart-filter.js';
@@ -145,7 +146,27 @@ export class SmartFilterStore extends IAStore {
   if((options.view??'library')==='library'&&options.documentId){const visible=[],filtered=[];for(const id of result.pageItemIds){const b=result.library.blocks.find(b=>b.id===id);if(!b)continue;if(await this.isFiltered(t,b,state,snapshot)){filtered.push(id);if(options.includeFiltered||options.contextInputId)visible.push(id);}else visible.push(id);}result.filteredPageItemIds=filtered;if(!options.contextInputId)result.pageItemIds=visible;}
   return result;
  }));}
- searchInputs({query='',cursor=null,limit=50,ranked=false,providerKey=null,includeFiltered=true,dateFrom='',dateTo=''}={}){if(!validSearchDate(dateFrom)||!validSearchDate(dateTo)||dateFrom&&dateTo&&dateFrom>dateTo||typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||providerKey!==null&&!validProvider(providerKey)||typeof includeFiltered!=='boolean'||cursor!==null&&(ranked?(![0,1,2].includes(cursor.phase)||cursor.offset!==null&&(!Number.isSafeInteger(cursor.offset)||cursor.offset<0)):(!Number.isSafeInteger(cursor)||cursor<0)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(async()=>{
+ async scopeSearchToProject(result,selectedProject){
+  if(!selectedProject||!result.items.length)return result;
+  const ids=[...new Set(result.items.map(item=>item.documentId))];
+  const documents=await this.repository.transaction(false,async t=>Promise.all(ids.map(id=>t.get('documents',id))),['documents']);
+  const structureIds=await Promise.all(documents.map(async row=>{
+   const doc=row?.value;
+   if(!doc?.sourceConversationId||doc.platform!==selectedProject.providerKey)return null;
+   try{return await conversationMetaId({platform:doc.platform,sourceConversationId:doc.sourceConversationId});}
+   catch{return null;}
+  }));
+  const conversations=await this.repository.transaction(false,async t=>Promise.all(structureIds.map(id=>id?t.get('meta',id):null)),['meta']);
+  const expected=JSON.stringify(selectedProject),allowed=new Set();
+  for(let i=0;i<ids.length;i++){
+   const membership=conversations[i]?.membership;
+   if(membership?.state!=='project')continue;
+   try{if(JSON.stringify(canonicalProjectRef(membership.projectRef))===expected)allowed.add(ids[i]);}
+   catch{/* Unknown or malformed source membership is never inferred. */}
+  }
+  return {...result,items:result.items.filter(item=>allowed.has(item.documentId))};
+ }
+ searchInputs({query='',cursor=null,limit=50,ranked=false,providerKey=null,projectRef:requestedProject=null,includeFiltered=true,dateFrom='',dateTo=''}={}){let selectedProject;try{selectedProject=requestedProject===null?null:canonicalProjectRef(requestedProject);}catch{return Promise.reject(new ArchiveError('INVALID_REQUEST'));}if(!validSearchDate(dateFrom)||!validSearchDate(dateTo)||dateFrom&&dateTo&&dateFrom>dateTo||typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||providerKey!==null&&!validProvider(providerKey)||typeof includeFiltered!=='boolean'||cursor!==null&&(ranked?(![0,1,2].includes(cursor.phase)||cursor.offset!==null&&(!Number.isSafeInteger(cursor.offset)||cursor.offset<0)):(!Number.isSafeInteger(cursor)||cursor<0)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(async()=>{
   const needle=query.normalize('NFKC').trim().toLocaleLowerCase();
   if(ranked&&needle){
    const {generation,count}=await this.repository.transaction(false,async t=>({generation:(await t.get('meta','backup-data-generation'))?.value||0,count:await t.count('blockIndex')}));
@@ -159,12 +180,12 @@ export class SmartFilterStore extends IAStore {
       for(const row of found.items){const b=(await t.get('blocks',row.id))?.value;if(!b||b.excluded||b.branchStatus)continue;const filtered=await this.isFiltered(t,b,state);if(filtered&&!includeFiltered)continue;items.push({id:row.id,documentId:row.documentId,text:row.text,title:row.title,rank:row.rank,sourceSentAt:row.sourceSentAt,filtered});}
       return {items:rankSearchPage(items),nextCursor:found.nextCursor};
      });
-     if(result)return result;
+     if(result)return this.scopeSearchToProject(result,selectedProject);
      this.inputSearchCache=null;
     }
    }else this.inputSearchCache=null;
   }
-  return this.searchInputsScan({query,cursor,limit,ranked,providerKey,includeFiltered,dateFrom,dateTo});
+  return this.scopeSearchToProject(await this.searchInputsScan({query,cursor,limit,ranked,providerKey,includeFiltered,dateFrom,dateTo}),selectedProject);
  });}
  searchInputsScan({query='',cursor=null,limit=50,ranked=false,providerKey=null,includeFiltered=true,dateFrom='',dateTo=''}={}){return this.repository.transaction(false,async t=>{
   const state=await t.get('meta','smart-filter'),needle=query.normalize('NFKC').trim().toLocaleLowerCase(),items=[],documents=new Map(),phase=ranked?(cursor?.phase||0):null,offset=ranked?cursor?.offset:cursor;const next=offset=>ranked?(offset!==null?{phase,offset}:phase<2?{phase:phase+1,offset:null}:null):offset;if(!needle)return {items,nextCursor:null};const page=await t.page('blockIndex',{index:'bySequence',after:offset??undefined,limit:200});let last=offset;
