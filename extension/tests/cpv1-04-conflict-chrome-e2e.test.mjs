@@ -11,7 +11,7 @@ const send=(page,type,data={})=>page.evaluate(async({type,data})=>{
 const operationId=()=>crypto.randomUUID();
 
 test('VS-04 Thought conflict compares both versions and saves only after explicit choice',{timeout:60000},async()=>{
- const h=await FakeChatGPT.start({headless:true});
+ const h=await FakeChatGPT.start({headless:false});
  try{
   const page=h.archive;
   await page.locator('#consent-check').check();

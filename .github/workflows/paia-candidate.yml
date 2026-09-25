@@ -113,7 +113,7 @@ jobs:
       - name: Reader editing and lazy long-entry regression
         run: |
           node --test --test-name-pattern="VS-04 lazy long entry" tests/reading-ui-round3-chrome-e2e.test.mjs
-          node --test tests/cpv1-04-conflict-chrome-e2e.test.mjs
+          xvfb-run -a node --test tests/cpv1-04-conflict-chrome-e2e.test.mjs
 
   candidate:
     name: Candidate gate
