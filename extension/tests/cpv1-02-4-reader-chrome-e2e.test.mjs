@@ -104,7 +104,7 @@ test('CPV1-02.4 conversation search steps into unmounted text and close restores
 });
 
 test('VS-04 search positions a lexical hit inside a long Input without mutating the text',{timeout:75000},async()=>{
- const h=await FakeChatGPT.start();
+ const h=await FakeChatGPT.start({headless:false});
  try{
   const p=h.archive;await consent(p);
   const body='Long reading '.repeat(2500)+' UNIQUE_LEXICAL_TARGET '+'ending '.repeat(100);

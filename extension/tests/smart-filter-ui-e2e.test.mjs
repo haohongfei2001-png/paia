@@ -4,7 +4,7 @@ import {inputDigest} from '../scripts/compatibility-gate.mjs';
 import {FakeChatGPT,eventually,pause,conversation} from './harness/fake-chatgpt.mjs';
 
 test('Smart Filter isolated Chrome: capture, Light reading, full search/context, keep, Off and no document controls',{timeout:90000},async()=>{
- const h=await FakeChatGPT.start();try{
+ const h=await FakeChatGPT.start({headless:false});try{
   const p=h.archive;await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
   const c=conversation('smart-filter-chrome');c.messages=[{id:'synthetic-smart-001',text:'继续'},{id:'synthetic-smart-002',text:'继续，但不要修改原始数据'},{id:'synthetic-smart-003',text:'好的，就选第二个'},{id:'synthetic-smart-004',text:'请继续'},{id:'synthetic-smart-005',text:'这个呢'}];
   const chat=await h.open(c,{arrival:'empty'});await chat.evaluate(c=>{window.fake.render(c);for(const root of document.querySelectorAll('#messages > div')){const article=document.createElement('article');article.dataset.testid='conversation-turn-'+root.dataset.messageId;root.before(article);article.append(root);if(root.dataset.messageId==='synthetic-smart-005'){const image=document.createElement('span');image.dataset.testid='attachment-image';image.textContent='SYNTHETIC_ATTACHMENT_CONTENT_NOT_CAPTURED';article.append(image);}}},c);
@@ -43,7 +43,7 @@ test('first input event protects even when immediate Undo leaves no changed text
 });
 
 test('VS-04 universal search requires explicit inclusion of Smart Filter content',{timeout:60000},async()=>{
- const h=await FakeChatGPT.start();
+ const h=await FakeChatGPT.start({headless:false});
  try{
   const p=h.archive;await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
   const c=conversation('vs04-filter-search');c.messages=[{id:'vs04-filtered',text:'继续'},{id:'vs04-visible',text:'这个想法值得长期记录'}];
