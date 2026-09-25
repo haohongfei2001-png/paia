@@ -31,41 +31,36 @@ export class BackupPanel {
   await this.cancel();this.lock(true);
   let sessionId;
   try{
-   this.status('正在分段创建本地备份…');
+   this.status('正在创建单文件备份…');
    const begin=await request('PAIA_BACKUP_BEGIN_EXPORT');sessionId=begin.sessionId;
-   const parts=[JSON.stringify(begin.header)+'\n'];
-   const validator=new BackupValidator();
+   const headerLine=JSON.stringify(begin.header)+'\n',parts=[headerLine];
+   const validator=new BackupValidator({
+    maxBytes:BACKUP_LIMITS.singleExportBytes,
+    maxItems:BACKUP_LIMITS.singleExportItems,
+   });
    await validator.add(begin.header);
-   let sequence=0,count=0,recoveryPoint=true;
+   let sequence=0,count=0,fileBytes=new Blob([headerLine]).size;
    for(;;){
     const page=await request('PAIA_BACKUP_EXPORT_PAGE',{options:{sessionId,sequence:sequence++}});
-    for(const row of page.items){
-     if(recoveryPoint){
-      try{await validator.add(row);}catch(error){
-       if(error?.code!=='BACKUP_TOO_LARGE')throw error;
-       recoveryPoint=false;
-      }
-     }
-    }
-    parts.push(page.items.map(x=>JSON.stringify(x)+'\n').join(''));
+    for(const row of page.items)await validator.add(row);
+    const chunk=page.items.map(x=>JSON.stringify(x)+'\n').join('');
+    fileBytes+=new Blob([chunk]).size;
+    if(fileBytes>BACKUP_LIMITS.singleExportBytes)backupError('BACKUP_TOO_LARGE');
+    parts.push(chunk);
     count+=page.items.filter(x=>x.type==='item').length;
     this.status(`正在创建备份 · 已处理 ${count} 项`);
     if(page.done)break;
     await new Promise(resolve=>setTimeout(resolve,0));
    }
-   // The restore file limit includes newline separators; the validator counts
-   // JSON payload bytes, so check the actual downloaded file size as well.
-   if(count>BACKUP_LIMITS.restoreItems||new Blob(parts).size>BACKUP_LIMITS.restoreBytes)recoveryPoint=false;
-   if(recoveryPoint)validator.preview(); // Footer, count and hash must all match before this is a recovery point.
+   validator.preview();
    downloadParts(parts,'PAIA-Backup-'+new Date().toISOString().replace(/[:.]/g,'-')+'.paia-backup','application/x-ndjson');
-   if(recoveryPoint){
-    await recordR6BackupSuccess(begin.header.createdAt);
-    this.status('备份已生成，在本机通过格式和完整性校验，并开始下载。请确认文件已保存后再更新；恢复仅支持空库，文件含私人数据。');
-   }else{
-    this.status('文件已生成并开始下载，但超出本版单次恢复范围（512 MB / 500000 项），不能作为更新或迁移恢复点。请保留原库；本次没有删除或覆盖内容。');
-   }
-  }catch(e){this.status(backupMessage(e.code),'failed');}
-  finally{if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore;}
+   await recordR6BackupSuccess(begin.header.createdAt);
+   this.status('备份已生成，在本机通过格式和完整性校验，并开始下载。请确认文件已保存后再更新；恢复仅支持空库，文件含私人数据。');
+  }catch(e){
+   this.status(e.code==='BACKUP_TOO_LARGE'
+    ?'单文件备份超过 64 MB / 100000 项，请改用分段备份。本次没有生成文件，原有内容保持不变。'
+    :backupMessage(e.code),'failed');
+  }finally{if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore;}
  }
  async createSegmented(){
   if(this.busy)return;

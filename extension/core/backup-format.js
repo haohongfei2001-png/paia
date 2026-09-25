@@ -7,7 +7,7 @@ import {sourceStructureMetaAllowed,validateSourceStructureBackupRow} from './sou
 // PAIA Backup v1 is a domain interchange stream, not an IndexedDB store dump.
 // Indexes, diagnostics, credentials, import staging and runnable jobs are absent.
 export const BACKUP_VERSION=1, BACKUP_SCHEMA=5;
-export const BACKUP_LIMITS=Object.freeze({lineBytes:8*1024*1024,restoreBytes:512*1024*1024,restoreItems:500000,segmentedExportBytes:512*1024*1024,segmentedExportItems:500000,chunkItems:40});
+export const BACKUP_LIMITS=Object.freeze({lineBytes:8*1024*1024,restoreBytes:512*1024*1024,restoreItems:500000,singleExportBytes:64*1024*1024,singleExportItems:100000,segmentedExportBytes:512*1024*1024,segmentedExportItems:500000,chunkItems:40});
 const fields=text=>text.split(' ');
 export const BACKUP_SECTIONS=Object.freeze({
  sources:fields('id platform chatId chatUrl chatTitle sourceMessageId pageOrder originalText contentHash sourceKey dedupeKey sourceSentAt timeSource timeConfidence conversationOrder capturedAt importedAt importProvider importProfile importEvidence previousVersionId note editedText hidden deletedAt updatedAt timeCandidates attachmentPresence referencePresence'),
