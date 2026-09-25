@@ -185,9 +185,9 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
 });
 
 test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000},async()=>{
- const h=await FakeChatGPT.start();
+ const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
-  const p=h.archive;await consent(p);
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);
   const c=conversation('cpv1-purge-ime');c.messages=[{id:'cpv1-purge-ime-input',text:'Synthetic source kept'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await openCapturedReader(p);
