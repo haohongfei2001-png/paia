@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {completeFixture,rows,meta} from './harness/original-complete.mjs';
+import {completeFixture,append,rows,meta} from './harness/original-complete.mjs';
 import {BackupService} from '../core/backup-service.js';
 import {BackupValidator,backupHash} from '../core/backup-format.js';
 const op=()=>crypto.randomUUID();
@@ -108,6 +108,64 @@ test('replace storage failure rolls back the cleared old library',async()=>{
  await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
   confirmation:preview.integrity,mode:'replace',
   targetGeneration:preview.targetGeneration,confirmReplace:true}));
+ assert.deepEqual(await rows(target.s,'records'),before);
+ assert.equal(await meta(target.s,'backup-last-restore'),undefined);
+});
+test('explicit merge adds a disjoint chat atomically and keeps existing work',async()=>{
+ const source=await completeFixture({texts:[]}),target=await completeFixture({texts:[]});
+ await append(source.s,'A restored long-term note','source-one','merge-source-chat');
+ await append(target.s,'Local work stays','target-one','merge-target-chat');
+ const old=await rows(target.s,'records'),items=await exported(new BackupService(source.s));
+ const service=new BackupService(target.s),stage=await prepared(service,items);
+ assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY');
+ const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'merge'});
+ assert.equal(preview.canRestore,true);
+ assert.equal(preview.restoreScope,'merge-disjoint-library');
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'merge',targetGeneration:preview.targetGeneration}),
+  error=>error?.code==='BACKUP_CONFIRMATION_REQUIRED');
+ assert.deepEqual(await rows(target.s,'records'),old);
+ await service.restore({sessionId:stage.sessionId,confirmation:preview.integrity,
+  mode:'merge',targetGeneration:preview.targetGeneration,confirmMerge:true});
+ const merged=await rows(target.s,'records');
+ assert.equal(merged.length,2);
+ assert.ok(merged.some(row=>row.value.originalText==='Local work stays'));
+ assert.ok(merged.some(row=>row.value.originalText==='A restored long-term note'));
+ assert.equal((await rows(target.s,'documents')).length,2);
+});
+test('merge refuses overlapping chat identity without changing the local library',async()=>{
+ const source=await completeFixture({texts:[]}),target=await completeFixture({texts:[]});
+ await append(source.s,'Older backup content','source-one','shared-merge-chat');
+ await append(target.s,'Newer local content','target-one','shared-merge-chat');
+ const service=new BackupService(target.s),stage=await prepared(service,
+  await exported(new BackupService(source.s)));
+ const before=await rows(target.s,'records');
+ const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'merge'});
+ assert.equal(preview.reason,'BACKUP_MERGE_CONFLICT');
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'merge',targetGeneration:preview.targetGeneration,
+  confirmMerge:true}),error=>error?.code==='BACKUP_MERGE_CONFLICT');
+ assert.deepEqual(await rows(target.s,'records'),before);
+});
+test('merge transaction failure rolls back imported content and keeps local work',async()=>{
+ const source=await completeFixture({texts:[]}),target=await completeFixture({texts:[]});
+ await append(source.s,'Incoming content','source-one','merge-source-chat');
+ await append(target.s,'Local content','target-one','merge-target-chat');
+ const service=new BackupService(target.s),stage=await prepared(service,
+  await exported(new BackupService(source.s)));
+ const preview=await service.previewRestore({sessionId:stage.sessionId,mode:'merge'});
+ assert.equal(preview.canRestore,true);
+ const before=await rows(target.s,'records'),original=target.s.repository.transaction.bind(target.s.repository);
+ target.s.repository.transaction=(write,fn,stores)=>original(write,async t=>{
+  if(write){const put=t.put.bind(t);t.put=(name,row)=>{
+   if(name==='documents')throw {code:'STORAGE_FAILED'};
+   return put(name,row);
+  };}
+  return fn(t);
+ },stores);
+ await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+  confirmation:preview.integrity,mode:'merge',targetGeneration:preview.targetGeneration,
+  confirmMerge:true}));
  assert.deepEqual(await rows(target.s,'records'),before);
  assert.equal(await meta(target.s,'backup-last-restore'),undefined);
 });

@@ -85,7 +85,7 @@ export class BackupService {
   const preferences=bySection.settings.get('preferences')?.value.preferences;if(preferences){validatePreferences({timeDisplay:preferences.timeDisplay,timeEmphasis:preferences.timeEmphasis});const editable=['timeDisplay','timeEmphasis','appearance','language','fontSize','readingWidth','sidebarCollapsed','hideContentPreviews'];validatePreferences(Object.fromEntries(Object.entries(preferences).filter(([key])=>editable.includes(key))));for(const [key,value]of Object.entries(defaults()))if(!editable.includes(key))required(preferences[key]===value);required(Object.keys(preferences).every(k=>Object.hasOwn(defaults(),k)));}state.validated=true;
  }
  async targetSafety(t,state,mode='empty'){
-  if(!['empty','replace'].includes(mode))return 'BACKUP_INVALID';
+  if(!['empty','replace','merge'].includes(mode))return 'BACKUP_INVALID';
   if(await busy(t))return 'BACKUP_BUSY';
   for(const item of state.bySection.sources.values()){
    const r=item.value;
@@ -94,9 +94,10 @@ export class BackupService {
     ||state.bySection.deletionFences.has('source:'+(item.derivedSourceKey||r.sourceKey))
     ||state.bySection.deletionFences.has('snapshot:'+r.dedupeKey))return 'BACKUP_PURGE_CONFLICT';
   }
-  if(mode==='replace'){
+  if(mode==='replace'||mode==='merge'){
    if(await t.count('migrationBackup'))return 'BACKUP_BUSY';
    if((await t.all('importTasks')).some(row=>!['completed','partial','cancelled'].includes(row.phase)))return 'BACKUP_BUSY';
+   if(mode==='merge')return this.mergeSafety(t,state);
    return null;
   }
   for(const prefix of Object.values(SOURCE_STRUCTURE_PREFIXES))
@@ -108,8 +109,42 @@ export class BackupService {
    if(await t.count(name))return 'BACKUP_TARGET_NOT_EMPTY';
   return null;
  }
+ async mergeSafety(t,state){
+  const seenChats=new Set();
+  for(const item of state.items){
+   const {section,value}=item;
+   if(section==='settings')continue;
+   if(section==='deletionFences'){
+    if(value.id.startsWith('source:')&&(await t.all('recordIndex','bySource',value.id.slice(7),1)).length)return 'BACKUP_PURGE_CONFLICT';
+    if(value.id.startsWith('snapshot:')&&(await t.all('recordIndex','byDedupe',value.id.slice(9),1)).length)return 'BACKUP_PURGE_CONFLICT';
+    continue;
+   }
+   if(section==='organizationState'){
+    if(['sequence','input-delta-sequence','thought-sequence','revision-sequence',CAPTURE_POLICY_ROW,REVISIT_POLICY_ROW].includes(value.id))continue;
+    const local=await t.get('meta',value.id);
+    if(local&&JSON.stringify(local)!==JSON.stringify(value.data))return 'BACKUP_MERGE_CONFLICT';
+    continue;
+   }
+   if(await t.get(stores[section],value.id))return 'BACKUP_MERGE_CONFLICT';
+   if(section==='sources'){
+    const r=value,chat=chatOf(r);
+    if(r.importEvidence&&await t.get('importSources',r.importEvidence.sourceKey))return 'BACKUP_MERGE_CONFLICT';
+    if((await t.all('recordIndex','byDedupe',r.dedupeKey,1)).length
+     ||r.sourceKey&&(await t.all('recordIndex','bySource',r.sourceKey,1)).length)return 'BACKUP_MERGE_CONFLICT';
+    if(chat&&!seenChats.has(chat)){
+     seenChats.add(chat);
+     if((await t.all('recordIndex','byChat',chat,1)).length)return 'BACKUP_MERGE_CONFLICT';
+    }
+   }
+   if(section==='inputDocuments'&&value.sourceConversationId){
+    const chat=(value.platform||'chatgpt')+':'+value.sourceConversationId;
+    if((await t.all('documents','byChat',chat,1)).length)return 'BACKUP_MERGE_CONFLICT';
+   }
+  }
+  return null;
+ }
  async previewRestore({sessionId,mode='empty'}){
-  if(!['empty','replace'].includes(mode))backupError('BACKUP_INVALID');
+  if(!['empty','replace','merge'].includes(mode))backupError('BACKUP_INVALID');
   const state=this.session(this.restores,sessionId);
   if(state.staging)backupError('BACKUP_BUSY');
   const preview=state.validator.preview();
@@ -120,29 +155,31 @@ export class BackupService {
    generation:(await t.get('meta','backup-data-generation'))?.value||0,
   })));
   return {...preview,canRestore:!target.reason,reason:target.reason,
-   restoreScope:mode==='replace'?'replace-current-library':'empty-library-only',
+   restoreScope:mode==='replace'?'replace-current-library':mode==='merge'?'merge-disjoint-library':'empty-library-only',
    targetGeneration:target.generation};
  }
- async restore({sessionId,confirmation,mode='empty',targetGeneration,confirmReplace=false}){const state=this.session(this.restores,sessionId),preview=await this.previewRestore({sessionId,mode});if(confirmation!==preview.integrity)backupError('BACKUP_CONFIRMATION_REQUIRED');if(!preview.canRestore)backupError(preview.reason);if(mode==='replace'&&(confirmReplace!==true||!Number.isSafeInteger(targetGeneration)||targetGeneration!==preview.targetGeneration))backupError('BACKUP_CONFIRMATION_REQUIRED');
+ async restore({sessionId,confirmation,mode='empty',targetGeneration,confirmReplace=false,confirmMerge=false}){const state=this.session(this.restores,sessionId),preview=await this.previewRestore({sessionId,mode});if(confirmation!==preview.integrity)backupError('BACKUP_CONFIRMATION_REQUIRED');if(!preview.canRestore)backupError(preview.reason);if(['replace','merge'].includes(mode)&&((mode==='replace'&&confirmReplace!==true)||(mode==='merge'&&confirmMerge!==true)||!Number.isSafeInteger(targetGeneration)||targetGeneration!==preview.targetGeneration))backupError('BACKUP_CONFIRMATION_REQUIRED');
   const result=await this.s.run(()=>this.s.repository.transaction(true,async t=>{const reason=await this.targetSafety(t,state,mode);if(reason)backupError(reason);
-   if(mode==='replace'){
+   if(['replace','merge'].includes(mode)){
     if(((await t.get('meta','backup-data-generation'))?.value||0)!==targetGeneration)backupError('BACKUP_CHANGED');
-    for(const name of REPLACE_CLEAR_STORES)await t.clear(name);
-    for(const row of await t.all('meta'))
+    if(mode==='replace')for(const name of REPLACE_CLEAR_STORES)await t.clear(name);
+    if(mode==='replace')for(const row of await t.all('meta'))
      if(backupMetaAllowed(row.id)&&![CAPTURE_POLICY_ROW,REVISIT_POLICY_ROW].includes(row.id))
       await t.delete('meta',row.id);
    }
-   const max={records:0,blocks:0,documents:0};await clearSourceStructureEphemeral(t);for(const row of await t.all('meta',null,memoryRange()))await t.delete('meta',row.id);
-   await t.delete('meta',BINDING_ROW);await t.put('meta',{id:REVERSE_ROW,version:1,enabled:false});this.s.bindingsLoaded=false;await t.delete('meta',READING_ROW);await t.delete('meta',VISIT_ROW);await t.delete('meta','revisit:v1');
-   const localCapture=await t.get('meta',CAPTURE_POLICY_ROW);if(localCapture&&!validReaderPolicy(localCapture))backupError('BACKUP_INVALID');const localRevisit=await t.get('meta',REVISIT_POLICY_ROW);if(localRevisit)await t.put('meta',{...localRevisit,oldContent:false});
-   for(const item of state.items){const {section,value,order}=item,row=structuredClone(value);if(section==='settings'){await t.put('meta',{id:'backup-recovery-settings',value:row});continue;}
-    if(section==='sources'){if(row.importEvidence){await t.put('importSources',row.importEvidence);delete row.importEvidence;}await t.put('records',{id:row.id,value:row});await t.put('recordIndex',recordIndex(row,order));max.records=Math.max(max.records,order+1);continue;}
-    if(section==='inputDocuments'){await t.put('documents',{id:row.id,value:row,sequence:order,chatKey:row.sourceConversationId?(row.platform||'chatgpt')+':'+row.sourceConversationId:undefined,displayKey:[-(Date.parse(row.lastSourceSentAt)||0),row.id]});await t.put('libraryDocuments',{id:row.id,value:item.working});max.documents=Math.max(max.documents,order+1);continue;}
-    if(section==='inputs'){await t.put('blocks',{id:row.id,value:row});const record=row.sourceRecordId?state.bySection.sources.get(row.sourceRecordId)?.value:null;await t.put('blockIndex',blockIndex(row,order,record?[record]:[]));max.blocks=Math.max(max.blocks,order+1);continue;}
+   const previous=await t.get('meta','sequence');
+   const max=mode==='merge'?{records:previous?.records||0,blocks:previous?.blocks||0,documents:previous?.documents||0}:{records:0,blocks:0,documents:0};
+   if(mode!=='merge'){await clearSourceStructureEphemeral(t);for(const row of await t.all('meta',null,memoryRange()))await t.delete('meta',row.id);}
+   if(mode!=='merge'){await t.delete('meta',BINDING_ROW);await t.put('meta',{id:REVERSE_ROW,version:1,enabled:false});this.s.bindingsLoaded=false;await t.delete('meta',READING_ROW);await t.delete('meta',VISIT_ROW);await t.delete('meta','revisit:v1');}
+   const localCapture=await t.get('meta',CAPTURE_POLICY_ROW);if(localCapture&&!validReaderPolicy(localCapture))backupError('BACKUP_INVALID');const localRevisit=await t.get('meta',REVISIT_POLICY_ROW);if(localRevisit&&mode!=='merge')await t.put('meta',{...localRevisit,oldContent:false});
+   for(const item of state.items){const {section,value,order}=item,row=structuredClone(value);if(section==='settings'){if(mode!=='merge')await t.put('meta',{id:'backup-recovery-settings',value:row});continue;}
+    if(section==='sources'){if(row.importEvidence){await t.put('importSources',row.importEvidence);delete row.importEvidence;}await t.put('records',{id:row.id,value:row});await t.put('recordIndex',recordIndex(row,(mode==='merge'?previous?.records||0:0)+order));max.records=Math.max(max.records,(mode==='merge'?previous?.records||0:0)+order+1);continue;}
+    if(section==='inputDocuments'){await t.put('documents',{id:row.id,value:row,sequence:(mode==='merge'?previous?.documents||0:0)+order,chatKey:row.sourceConversationId?(row.platform||'chatgpt')+':'+row.sourceConversationId:undefined,displayKey:[-(Date.parse(row.lastSourceSentAt)||0),row.id]});await t.put('libraryDocuments',{id:row.id,value:item.working});max.documents=Math.max(max.documents,(mode==='merge'?previous?.documents||0:0)+order+1);continue;}
+    if(section==='inputs'){await t.put('blocks',{id:row.id,value:row});const record=row.sourceRecordId?state.bySection.sources.get(row.sourceRecordId)?.value:null;await t.put('blockIndex',blockIndex(row,(mode==='merge'?previous?.blocks||0:0)+order,record?[record]:[]));max.blocks=Math.max(max.blocks,(mode==='merge'?previous?.blocks||0:0)+order+1);continue;}
     if(section==='entries'){row.thoughtText=row.body;delete row.body;refreshEntryIndex(row);}
     if(section==='topics'){row.nameKey=row.name.toLocaleLowerCase();row.activeKey=row.lifecycle==='active'?0:1;row.countVersion=1;}
     if(['sections','placements'].includes(section))row.activeKey=row.lifecycle==='active'?0:1;
-    if(section==='organizationState'){let data=row.data;if(sourceStructureMetaAllowed(row.id))data=restoreSourceStructureRow(data);if(row.id===REVISIT_POLICY_ROW)data.oldContent=false;if(row.id===CAPTURE_POLICY_ROW&&localCapture)data.excludedChats=[...new Set([...localCapture.excludedChats,...data.excludedChats])];if(row.id==='memory:config')data.externalAccess=false;if([REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(row.id)&&!validReaderPolicy(data))backupError('BACKUP_INVALID');if(row.id==='originalOrganizerBootstrap'&&data.state==='running')data.state='paused';await t.put('meta',data);continue;}
+    if(section==='organizationState'){if(mode==='merge'&&await t.get('meta',row.id))continue;let data=row.data;if(sourceStructureMetaAllowed(row.id))data=restoreSourceStructureRow(data);if(row.id===REVISIT_POLICY_ROW)data.oldContent=false;if(row.id===CAPTURE_POLICY_ROW&&localCapture)data.excludedChats=[...new Set([...localCapture.excludedChats,...data.excludedChats])];if(row.id==='memory:config')data.externalAccess=false;if([REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(row.id)&&!validReaderPolicy(data))backupError('BACKUP_INVALID');if(row.id==='originalOrganizerBootstrap'&&data.state==='running')data.state='paused';await t.put('meta',data);continue;}
     if(section==='deletionFences'&&await t.get('tombstones',row.id))continue;
     await t.put(stores[section],row);
    }
@@ -160,7 +197,7 @@ export class BackupService {
    // AI cache purge fences are reconstructed from evidence, not imported jobs.
    for(const {value:row}of state.bySection.organizationState.values())if(row.id.startsWith('aiPresentation:')){const p=row.data,sourceRecordIds=[...new Set((p.evidenceEntryIds||[]).flatMap(id=>state.bySection.entries.get(id)?.value.sourceRecordIds||[]))];await t.put('libraryMigrationItems',{id:'ai-presentation-fence:'+p.topicId,entityKind:'ai_presentation',ownerKind:'ai_presentation',ownerId:p.topicId,statusKey:1,sourceRecordIds});}
    return {restored:true,counts:preview.counts};
-  }));this.restores.delete(sessionId);await this.recoverSettings();return result;
+  }));this.restores.delete(sessionId);if(mode!=='merge')await this.recoverSettings();return result;
  }
  async recoverSettings(){const pending=await this.s.run(()=>this.s.repository.transaction(false,t=>t.get('meta','backup-recovery-settings'),['meta']));if(!pending)return;await this.s.finishFoundation();await this.s.write(async t=>{const c=await this.s.control(t);for(const key of ['preferences','memoryAccessPolicy','classificationRules','filterRules'])if(pending.value[key]!==undefined)c[key]=pending.value[key];await this.s.saveControl(t,c);});await this.s.run(()=>this.s.repository.transaction(true,t=>t.delete('meta','backup-recovery-settings'),['meta']));}
  cancel({sessionId}){this.exports.delete(sessionId);this.restores.delete(sessionId);return {cancelled:true};}
