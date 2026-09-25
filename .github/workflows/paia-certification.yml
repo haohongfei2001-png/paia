@@ -258,6 +258,42 @@ jobs:
           if(!Array.isArray(row.architectures)||!row.architectures.includes('arm64')||!row.architectures.includes('x86_64'))process.exit(1);
           NODE
 
+  macos_discard_lifecycle:
+    needs: mode
+    if: needs.mode.outputs.full == 'true'
+    name: macOS Chrome tab discard lifecycle
+    runs-on: macos-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - name: Install current Chromium for isolated extension test
+        run: npx playwright install chromium
+      - name: Select hosted Mac Chrome
+        run: |
+          CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+          if [ ! -x "$CHROME_BIN" ]; then
+            CHROME_BIN="$(node -e "process.stdout.write(require('playwright').chromium.executablePath())")"
+          fi
+          test -x "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Exercise real discard and restore lifecycle
+        env:
+          PAIA_HEADLESS: '1'
+        run: node --test --test-reporter=./scripts/test-report.mjs tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs
+
   historical_browser:
     name: Historical Browser Audit ${{ matrix.shard }}
     if: github.event_name == 'workflow_dispatch'
