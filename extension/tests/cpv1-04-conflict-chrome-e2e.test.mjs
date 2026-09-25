@@ -17,8 +17,17 @@ test('VS-04 Thought conflict compares both versions and saves only after explici
   await page.locator('#consent-check').check();
   await page.locator('#enable-consent').click();
   await page.locator('[data-view=thoughts]').click();
-  await createLegacyTopic(page,'Synthetic VS-04 conflict');
+  const topic=await createLegacyTopic(page,'Synthetic VS-04 conflict');
   await page.locator('#create-entry').click();
+  await page.locator('textarea.thought-draft').fill('Synthetic baseline');
+  await page.getByRole('button',{name:'保存想法',exact:true}).click();
+  await eventually(async()=>{
+   const result=await send(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id}});
+   return result.items.some(item=>item.entry?.body==='Synthetic baseline');
+  });
+  await page.reload();
+  await page.locator('[data-view=thoughts]').click();
+  await page.locator(`[data-topic-id="${topic.id}"]`).click();
   const body=page.locator('[data-entry-field=body]').first();
   await body.waitFor();
   const id=await body.evaluate(el=>el.closest('[data-entry-id]').dataset.entryId);
