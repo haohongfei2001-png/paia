@@ -113,6 +113,7 @@ test('VS-04 lazy long entry joins the same editor and recovery session',{timeout
    old.replaceWith(workspace.entryNode({entry:{id,large:true},placement:{sectionId:null}}));
   },id);
   await p.getByRole('button',{name:'读取完整内容'}).click();
+  await p.waitForFunction(id=>workspace.editor.entry.entries.has(id)&&workspace.editor.entry.recoveries.has(id),id);
   assert.equal(await p.evaluate(id=>workspace.editor.entry.entries.has(id)&&workspace.editor.entry.recoveries.has(id),id),true);
   assert.match(await p.locator('[data-entry-id="'+id+'"] [data-entry-field="body"]').innerText(),/Synthetic original paragraph/);
   assert.equal(h.externalRequests,0);
