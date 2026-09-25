@@ -183,3 +183,20 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await consent(p);
+  const c=conversation('cpv1-purge-ime');c.messages=[{id:'cpv1-purge-ime-input',text:'Synthetic source kept'}];
+  await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
+  await openCapturedReader(p);
+  const prose=p.locator('.library-prose').first();
+  await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='未完成的输入';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:'未完成的输入',isComposing:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
+  await p.getByRole('menuitem',{name:'查看当时记录'}).click();
+  await p.locator('#info-content button.danger').click();
+  assert.equal(await p.locator('.reader-confirm').count(),0,'source purge never reaches confirmation while a Reader edit cannot save');
+  assert.equal((await h.state()).records.length,1,'immutable Source remains present');
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});

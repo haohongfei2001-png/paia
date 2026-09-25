@@ -115,7 +115,7 @@ jobs:
           node --test --test-name-pattern="VS-04 lazy long entry" tests/reading-ui-round3-chrome-e2e.test.mjs
           xvfb-run -a node --test tests/cpv1-04-conflict-chrome-e2e.test.mjs
           xvfb-run -a node --test --test-name-pattern="Smart Filter isolated Chrome|VS-04 universal search requires explicit inclusion|VS-04 Reader keeps a filtered Input" tests/smart-filter-ui-e2e.test.mjs
-          xvfb-run -a node --test --test-name-pattern="VS-04 search positions a lexical hit|VS-04 direct Input edit stays traceable" tests/cpv1-02-4-reader-chrome-e2e.test.mjs
+          xvfb-run -a node --test --test-name-pattern="VS-04 search positions a lexical hit|VS-04 direct Input edit stays traceable|VS-04 source purge refuses an unfinished Reader IME edit" tests/cpv1-02-4-reader-chrome-e2e.test.mjs
           xvfb-run -a node --test tests/cpv1-02-3-navigator-chrome-e2e.test.mjs
 
   candidate:
