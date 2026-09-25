@@ -99,14 +99,14 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     // so create the background conversation in the archive's own window.
     h.pages.set(restoredConversation.id, { c: restoredConversation, arrival: 'metadata-first' });
     const opened = h.context.waitForEvent('page');
-    const created = await h.archive.evaluate(async url => {
+    const created = await h.archive.evaluate(async () => {
       const current = await chrome.tabs.getCurrent();
-      const target = await chrome.tabs.create({ url, active: false, windowId: current.windowId });
+      const target = await chrome.tabs.create({ url: 'about:blank', active: false, windowId: current.windowId });
       return { targetId: target.id, archiveWindowId: current.windowId };
-    }, `https://chatgpt.com/c/${restoredConversation.id}`);
+    });
     const tab = await opened;
     tab.on('pageerror', error => h.errors.push(error.message));
-    await tab.waitForLoadState('load');
+    await tab.goto(`https://chatgpt.com/c/${restoredConversation.id}`);
     await h.ready(tab);
     await eventually(async () => (await h.state()).records.length === 3);
 
