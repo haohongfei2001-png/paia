@@ -188,9 +188,18 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
   const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);
+  await p.locator('#onboarding-skip').click();
   const c=conversation('cpv1-purge-ime');c.messages=[{id:'cpv1-purge-ime-input',text:'Synthetic source kept'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
-  await openCapturedReader(p);
+  await p.bringToFront();
+  const group=p.locator('.archive-navigator-group-toggle').first();
+  await eventually(()=>group.isVisible(),'captured group is visible');
+  assert.match(await group.textContent(),/未归属 Project|Not assigned to a Project/);
+  if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  const window=p.locator('.archive-navigator-window').first();
+  await eventually(()=>window.isVisible(),'captured Conversation is visible');
+  await window.click();
+  await eventually(()=>p.locator('.library-prose').first().isVisible(),'Reader opens');
   const prose=p.locator('.library-prose').first();
   await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='未完成的输入';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:'未完成的输入',isComposing:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
   await p.getByRole('menuitem',{name:'查看当时记录'}).click();
