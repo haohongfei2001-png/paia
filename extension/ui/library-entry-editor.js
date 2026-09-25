@@ -67,6 +67,29 @@ export class LibraryEntryEditor {
  receive(rows){if(this.saving||this.surface.composing){this.revisions.defer(rows);return;}for(const row of rows){const e=this.entries.get(row.id);if(!e)continue;if(row.lifecycle!=='active'||row.staleReasons?.includes('source_purged')){this.journal.clear();if(row.lifecycle!=='active'){this.entries.delete(row.id);this.field(row.id,'body')?.closest('[data-entry-id]').remove();continue;}}
    if(row.revision<=e.revision){if(!this.dirty())e.currentInputRevision=row.currentInputRevision;continue;}const external=fields.some(f=>row.fieldRevisions[f]!==e.fieldRevisions[f]);if(external){this.journal.undo=this.journal.undo.filter(group=>!group.some(p=>p.id===row.id));this.journal.redo=this.journal.redo.filter(group=>!group.some(p=>p.id===row.id));}const conflict=RevisionSession.conflicts(e.saved,e.local,e.fieldRevisions,row,fields);if(conflict.length){this.conflicted=true;this.onStatus('其他页面已修改相同内容，当前草稿尚未保存。','conflict');continue;}for(const f of fields){if(e.local[f]===e.saved[f]){e.local[f]=row[f];const el=this.field(row.id,f);if(el&&textOf(el)!==row[f]){if(el.matches('input,textarea,select'))el.value=row[f];else el.textContent=row[f];}}e.saved[f]=row[f];}e.revision=row.revision;e.fieldRevisions=row.fieldRevisions;e.currentInputRevision=row.currentInputRevision;
   }}
+ rebaseConflict(rows){
+  if(!this.conflicted||this.surface.composing||!Array.isArray(rows)||!rows.length)return false;
+  const byId=new Map();
+  for(const row of rows){
+   const current=this.entries.get(row?.id);
+   const oldSources=[...(current?.sourceRecordIds||[])].sort(),newSources=[...(row?.sourceRecordIds||[])].sort();
+   if(!current||row.lifecycle!=='active'||row.staleReasons?.includes('source_purged')||!row.fieldRevisions||!Number.isInteger(row.revision)||!(row.currentInputRevision===null||Number.isInteger(row.currentInputRevision))||JSON.stringify(oldSources)!==JSON.stringify(newSources)||!fields.some(field=>current.local[field]!==current.saved[field]))return false;
+   byId.set(row.id,row);
+  }
+  if(byId.size!==rows.length)return false;
+  for(const [id,row] of byId){
+   const current=this.entries.get(id);
+   for(const field of fields){
+    if(current.local[field]===current.saved[field])current.local[field]=row[field];
+    current.saved[field]=row[field];
+   }
+   current.revision=row.revision;current.fieldRevisions=row.fieldRevisions;current.currentInputRevision=row.currentInputRevision;
+   this.paint(id);
+  }
+  this.journal.clear();this.revisions.last=null;this.recoveryOps.clear();
+  this.reason=null;this.failed=false;this.conflicted=false;
+  return true;
+ }
  exportHistory(){const undo=structuredClone(this.journal.undo),redo=structuredClone(this.journal.redo),versions={...this.historyVersions};for(const [id,e]of this.entries)versions[id]=e.fieldRevisions;const ids=new Set([...undo,...redo].flatMap(g=>g.map(p=>p.id)));return {undo,redo,versions:Object.fromEntries([...ids].map(id=>[id,versions[id]]))};}
  importHistory(h){if(!h)return;this.journal.undo=h.undo;this.journal.redo=h.redo;this.historyVersions=h.versions;for(const [id,e]of this.entries)if(h.versions[id]&&!equal(h.versions[id],e.fieldRevisions)){this.journal.undo=this.journal.undo.filter(g=>!g.some(p=>p.id===id));this.journal.redo=this.journal.redo.filter(g=>!g.some(p=>p.id===id));}}
  dispose(){this.disposed=true;this.autosave.dispose();this.surface.dispose();this.controller.abort();this.journal.clear();this.entries.clear();}
