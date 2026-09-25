@@ -11,6 +11,14 @@ test('formal backup round trip preserves working text, provenance, human edits a
  const target=await completeFixture({texts:[]}),service=new BackupService(target.s,{appVersion:'0.8.1'}),stage=await prepared(service,items);assert.equal(stage.preview.canRestore,true);const result=await service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity});assert.equal(result.restored,true);assert.equal((await rows(target.s,'records')).length,5);assert.equal((await target.s.entry(e.id)).body,e.thoughtText+' 人工维护的独立内容');assert.deepEqual(await rows(target.s,'provenance'),await rows(f.s,'provenance'));assert.deepEqual((await rows(target.s,'revisions')).map(r=>[r.id,r.before,r.after,r.important]),(await rows(f.s,'revisions')).map(r=>[r.id,r.before,r.after,r.important]));assert.equal((await target.s.organizerControls()).readingSort,'desc');assert.equal((await target.s.originalOrganizerStatus()).pendingInput,(await f.s.originalOrganizerStatus()).pendingInput);assert.equal(target.requests.length,0);assert.equal((await target.s.libraryIndexPage()).items.length,1);
 });
 test('backup validates corruption/truncation/unknown schema and never accepts credentials',async()=>{const f=await completeFixture(),items=await exported(new BackupService(f.s,{appVersion:'0.8.1'}));const changed=structuredClone(items);changed[1].value.id+='tampered';const service=new BackupService(f.s,{appVersion:'0.8.1'});await assert.rejects(()=>prepared(service,changed));await assert.rejects(()=>prepared(service,items.slice(0,-1)));const bad=structuredClone(items);bad[0].schemaVersion=999;await assert.rejects(()=>prepared(service,bad));const key=structuredClone(items);key[1].value.apiKey='forbidden';await assert.rejects(()=>prepared(service,key));});
+test('restore item limit rejects the first row beyond the declared ceiling',async()=>{
+ const fixture=await completeFixture();
+ const items=await exported(new BackupService(fixture.s));
+ const validator=new BackupValidator({maxItems:1});
+ await validator.add(items[0]);
+ await validator.add(items[1]);
+ await assert.rejects(()=>validator.add(items[2]),error=>error?.code==='BACKUP_TOO_LARGE');
+});
 test('existing user work is never silently overwritten, even after valid preview',async()=>{const f=await completeFixture(),items=await exported(new BackupService(f.s,{appVersion:'0.8.1'})),s=new BackupService(f.s,{appVersion:'0.8.1'}),stage=await prepared(s,items);assert.equal(stage.preview.canRestore,false);assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY');await assert.rejects(()=>s.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.equal((await rows(f.s,'records')).length,5);});
 test('empty-library restore refuses an existing document without source records',async()=>{
  const source=await completeFixture(),items=await exported(new BackupService(source.s));
