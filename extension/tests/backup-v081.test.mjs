@@ -36,6 +36,23 @@ test('empty-library restore refuses an existing document without source records'
  assert.equal((await rows(target.s,'records')).length,0);
 });
 
+test('empty-library restore protects retained import, migration and orphan index state',async()=>{
+ const source=await completeFixture(),items=await exported(new BackupService(source.s));
+ const guarded=['recordIndex','blockIndex','migrationBackup','sourceCounts',
+  'importTasks','importBatches','importEvidence','importSources'];
+ for(const name of guarded){
+  const target=await completeFixture({texts:[]});
+  const row={id:'retained-'+name};
+  await target.s.repository.transaction(true,t=>t.put(name,row));
+  const service=new BackupService(target.s),stage=await prepared(service,items);
+  assert.equal(stage.preview.canRestore,false,name);
+  assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY',name);
+  await assert.rejects(()=>service.restore({sessionId:stage.sessionId,
+   confirmation:stage.preview.integrity}),error=>error?.code==='BACKUP_TARGET_NOT_EMPTY');
+  assert.deepEqual(await rows(target.s,name),[row],name);
+  assert.equal((await rows(target.s,'records')).length,0,name);
+ }
+});
 test('purge fences exclude deleted text and reject resurrection from an older external backup',async()=>{const f=await completeFixture();await f.runner.wake({userActionId:op()});const service=new BackupService(f.s,{appVersion:'0.8.1'}),old=await exported(service),source=(await rows(f.s,'records'))[0];await f.s.permanentDelete(source.id);await f.s.drainPurgeCleanup();const after=await exported(service);assert.ok(!JSON.stringify(after).includes(source.value.originalText));const target=await completeFixture({texts:[]});const fences=await rows(f.s,'tombstones');await target.s.foundationWrite(async t=>{for(const row of fences)await t.put('tombstones',row);});const recovery=new BackupService(target.s,{appVersion:'0.8.1'}),stage=await prepared(recovery,old);assert.equal(stage.preview.reason,'BACKUP_PURGE_CONFLICT');await assert.rejects(()=>recovery.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.equal((await rows(target.s,'records')).length,0);});
 test('export detects data edits between chunks and refuses inconsistent snapshot',async()=>{const f=await completeFixture(),service=new BackupService(f.s,{appVersion:'0.8.1'}),session=await service.beginExport();const source=(await rows(f.s,'records'))[0];await f.s.update(source.id,{note:'合成并发备注'});await assert.rejects(()=>service.exportPage({sessionId:session.sessionId,sequence:0}),e=>e.code==='BACKUP_CHANGED');});
 test('restore failure rolls back all content and a worker loss leaves no persisted staging',async()=>{const f=await completeFixture();await f.runner.wake({userActionId:op()});const items=await exported(new BackupService(f.s,{appVersion:'0.8.1'})),target=await completeFixture({texts:[]}),service=new BackupService(target.s,{appVersion:'0.8.1'}),stage=await prepared(service,items),transaction=target.s.repository.transaction.bind(target.s.repository);target.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{if(write){const put=t.put.bind(t);t.put=(name,row)=>{if(name==='thoughts')throw {code:'STORAGE_FAILED'};return put(name,row);};}return fn(t);},stores);await assert.rejects(()=>service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.equal((await rows(target.s,'records')).length,0);assert.equal((await rows(target.s,'blocks')).length,0);assert.equal((await rows(target.s,'topics')).length,0);assert.equal((await rows(target.s,'importBatches')).length,0);await assert.rejects(()=>new BackupService(target.s).previewRestore({sessionId:stage.sessionId}));});
