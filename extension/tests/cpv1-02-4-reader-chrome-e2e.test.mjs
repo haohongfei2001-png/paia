@@ -231,7 +231,8 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   assert.equal((await h.state()).records.length,1,'immutable Source remains present');
   assert.equal(await prose.textContent(),'未完成的输入','the composing text remains visible after refused purge');
   await p.locator('#close-info').click();
-  await p.locator('#document-search').fill('未完成的输入');
+  await prose.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true})));
+  await p.locator('#document-search').evaluate(el=>{el.value='未完成的输入';el.dispatchEvent(new Event('input',{bubbles:true}));});
   await eventually(async()=>/请先完成并保存当前输入修改/.test(await p.locator('#document-search-status').textContent()),'search waits for unfinished IME edit');
   assert.equal(await p.locator('.document-search-hit').count(),0,'unfinished text is not presented as indexed data');
   assert.equal(await prose.textContent(),'未完成的输入','search preserves composing text');
