@@ -136,13 +136,13 @@ export class SmartFilterStore extends IAStore {
   for(const key of await sourceKeys(t,b))if(await t.get('filterIntents',key))return false;
   return true;
  }
- page(options={}){return this.run(()=>this.repository.transaction(false,async t=>{
+ page(options={}){if(options.includeFiltered!==undefined&&typeof options.includeFiltered!=='boolean')return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,async t=>{
   const state=await t.get('meta','smart-filter');const snapshot=options.readingSnapshot??{mode:state.mode,sequence:state.decisionSequence};
   if(!snapshot||!['light','off'].includes(snapshot.mode)||!Number.isSafeInteger(snapshot.sequence)||snapshot.sequence<0)invalid();
   let queryOptions=options,contextUnavailable=false;
   if(options.contextInputId){if(!idOK(options.contextInputId))invalid();const ix=await t.get('blockIndex',options.contextInputId);if(!ix||ix.excluded||ix.documentId!==options.documentId){contextUnavailable=true;options={...options,contextInputId:null};queryOptions=options;}else if(!options.cursor){const descending=(options.sort||(await t.get('meta','organizer-controls'))?.inputReadingSort)==='desc';let cursor=null;await new Promise((resolve,reject)=>{const req=t.tx.objectStore('blockIndex').index('byList').openCursor(descending?IDBKeyRange.bound(ix.listKey,[ix.documentId,0,[]],true,true):IDBKeyRange.bound([ix.documentId,0],ix.listKey,false,true),descending?'next':'prev');let n=0;req.onerror=()=>reject(new ArchiveError('STORAGE_FAILED'));req.onsuccess=()=>{const c=req.result;if(!c){resolve();return;}if(++n===3){cursor=c.key;resolve();return;}c.continue();};});queryOptions={...options,cursor};}}
   const result=await queryPage(t,await this.control(t),queryOptions);result.readingSnapshot=snapshot;result.contextUnavailable=contextUnavailable;
-  if((options.view??'library')==='library'&&options.documentId&&!options.contextInputId){const visible=[];for(const id of result.pageItemIds){const b=result.library.blocks.find(b=>b.id===id);if(b&&!await this.isFiltered(t,b,state,snapshot))visible.push(id);}result.pageItemIds=visible;}
+  if((options.view??'library')==='library'&&options.documentId){const visible=[],filtered=[];for(const id of result.pageItemIds){const b=result.library.blocks.find(b=>b.id===id);if(!b)continue;if(await this.isFiltered(t,b,state,snapshot)){filtered.push(id);if(options.includeFiltered||options.contextInputId)visible.push(id);}else visible.push(id);}result.filteredPageItemIds=filtered;if(!options.contextInputId)result.pageItemIds=visible;}
   return result;
  }));}
  searchInputs({query='',cursor=null,limit=50,ranked=false,providerKey=null,includeFiltered=true}={}){if(typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||providerKey!==null&&!validProvider(providerKey)||typeof includeFiltered!=='boolean'||cursor!==null&&(ranked?(![0,1,2].includes(cursor.phase)||cursor.offset!==null&&(!Number.isSafeInteger(cursor.offset)||cursor.offset<0)):(!Number.isSafeInteger(cursor)||cursor<0)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(async()=>{
