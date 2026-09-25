@@ -31,7 +31,7 @@ try{
  }});
  const path=join(dir,'background/service-worker.js');
  await writeFile(path,(await readFile(path,'utf8'))+
-  "\nimport {seedScale} from '../tests/fixtures/scale-v092.mjs';globalThis.cpv1036={seed:n=>seedScale(store,n),backups,store};\n");
+  "\nimport {seedScale} from '../tests/fixtures/scale-v092.mjs';globalThis.cpv1036={seed:(n,options)=>seedScale(store,n,options),backups,store};\n");
  await open();
  phase('seed');
  report.seed=await worker().evaluate(({size,longContent})=>globalThis.cpv1036.seed(size,{longContent}),{size,longContent});

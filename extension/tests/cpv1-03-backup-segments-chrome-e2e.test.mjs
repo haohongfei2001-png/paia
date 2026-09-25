@@ -33,6 +33,30 @@ async function enableConsent(page){
  assert.equal(await consented(),true);
 }
 
+async function portableItems(page){
+ for(let attempt=0;attempt<5;attempt++){
+  const result=await page.evaluate(async()=>{
+   const call=async(type,options)=>{
+    const response=await chrome.runtime.sendMessage({type,...(options?{options}:{})});
+    if(!response?.ok)throw new Error(response?.error||'BACKUP_EXPORT_FAILED');
+    return response.data;
+   };
+   const begin=await call('PAIA_BACKUP_BEGIN_EXPORT'),items=[];
+   try{
+    for(let sequence=0;;sequence++){
+     const page=await call('PAIA_BACKUP_EXPORT_PAGE',{sessionId:begin.sessionId,sequence});
+     items.push(...page.items.filter(row=>row.type==='item'));
+     if(page.done)return {items};
+    }
+   }catch(error){return {error:error.message};}
+   finally{await call('PAIA_BACKUP_CANCEL',{sessionId:begin.sessionId}).catch(()=>{});}
+  });
+  if(!result.error)return result.items;
+  if(result.error!=='BACKUP_CHANGED')throw new Error(result.error);
+ }
+ throw new Error('BACKUP_CHANGED after bounded export retries');
+}
+
 async function domainDigest(harness){
  const worker=harness.context.serviceWorkers().find(item=>item.url().includes('/background/service-worker.js'));
  return worker.evaluate(async()=>{
@@ -122,7 +146,9 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   await page.locator('#backup-restore').click();
   await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),
    'atomic nonempty replacement',60000);
-  assert.deepEqual(await domainDigest(harness),before);
+  assert.deepEqual(Object.fromEntries(Object.entries(await domainDigest(harness)).map(([key,value])=>[key,value.count])),
+   Object.fromEntries(Object.entries(before).map(([key,value])=>[key,value.count])));
+  assert.deepEqual(await portableItems(page),baselineItems);
   assert.equal(harness.externalRequests,0);
   await harness.close();harness=undefined;
 
