@@ -204,8 +204,17 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='未完成的输入';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:'未完成的输入',isComposing:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
   await p.getByRole('menuitem',{name:/^(查看当时记录|View source record)$/}).click();
   await p.locator('#info-content button.danger').click();
+  await eventually(async()=>/请先完成并保存当前输入修改/.test(await p.locator('#notice').textContent()),'unfinished IME edit blocks purge');
   assert.equal(await p.locator('.reader-confirm').count(),0,'source purge never reaches confirmation while a Reader edit cannot save');
   assert.equal((await h.state()).records.length,1,'immutable Source remains present');
+  await p.locator('#close-info').click();
+  await p.locator('#revision-history').click();
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+  assert.equal(await p.locator('#revision-dialog').evaluate(el=>el.open),false,'version history does not open over unfinished IME text');
+  await p.locator('#back').click();
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+  assert.equal(await prose.isVisible(),true,'navigation preserves the unfinished Reader edit');
+  assert.equal(await prose.textContent(),'未完成的输入');
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
