@@ -114,6 +114,7 @@ jobs:
         run: |
           node --test --test-name-pattern="VS-04 lazy long entry" tests/reading-ui-round3-chrome-e2e.test.mjs
           xvfb-run -a node --test tests/cpv1-04-conflict-chrome-e2e.test.mjs
+          xvfb-run -a node --test --test-name-pattern="Smart Filter isolated Chrome|VS-04 universal search requires explicit inclusion" tests/smart-filter-ui-e2e.test.mjs
 
   candidate:
     name: Candidate gate
