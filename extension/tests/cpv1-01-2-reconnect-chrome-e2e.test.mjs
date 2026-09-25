@@ -169,7 +169,19 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await h.send(resumedTab, { id: 'cpv1-discarded-message-004', text: '恢复后的新消息' });
     await eventually(async () => (await h.state()).records.length === 4, 'restored tab captures new content once');
   } catch (error) {
-    throw new Error(`discard lifecycle failed at ${stage}: ${error}`, { cause: error });
+    let browserState = 'unavailable';
+    try {
+      browserState = JSON.stringify({
+        connected: h?.context?.browser()?.isConnected() ?? false,
+        archiveClosed: h?.archive?.isClosed() ?? true,
+        pages: h?.context?.pages().map(page => ({
+          closed: page.isClosed(), pathname: (() => {
+            try { return new URL(page.url()).pathname; } catch { return ''; }
+          })(),
+        })) ?? [],
+      });
+    } catch { /* Preserve the original failure stage. */ }
+    throw new Error(`discard lifecycle failed at ${stage}: ${error}; browser=${browserState}`, { cause: error });
   } finally {
     await h?.close();
     await rm(release, { recursive: true, force: true });
