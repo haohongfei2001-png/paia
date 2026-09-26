@@ -26,23 +26,40 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.13'
-      - name: Verify and apply reviewed website source
+      - name: Verify and materialize reviewed website sources
         run: |
           set -euo pipefail
           git merge-base --is-ancestor 17ac1368df600fab32bb2e22573de9bc7becae26 HEAD
-          test -f website/.editorial-transfer/part-1.b64
-          test -f website/.editorial-transfer/part-2.b64
-          test -f website/.editorial-transfer/part-3.b64
-          test -f website/.editorial-transfer/part-4.b64
-          sha256sum website/.editorial-transfer/part-{1,2,3,4}.b64
-          cat website/.editorial-transfer/part-{1,2,3,4}.b64 > /tmp/changes.patch.xz.b64
-          echo '6896b4edaefa6773852953f255ba87029d6fd6af856578cd2cb24f228d84e3ad  /tmp/changes.patch.xz.b64' | sha256sum -c -
-          base64 -d /tmp/changes.patch.xz.b64 > /tmp/changes.patch.xz
-          echo 'ac725ec6db8e0a05191154d2a6e52d718fe166a0044cb30707f1a6bcf67d84ed  /tmp/changes.patch.xz' | sha256sum -c -
-          xz -dc /tmp/changes.patch.xz > /tmp/changes.patch
-          echo '1fff4e14d68c60fa4edfd78fa1225a519fb8ffee3b28286eac795421488bc6e5  /tmp/changes.patch' | sha256sum -c -
-          git apply --check /tmp/changes.patch
-          git apply /tmp/changes.patch
+          cat website/.editorial-transfer/part-{1,2,3,4}.b64 > /tmp/bundle.xz.b64
+          echo '54915d9aa2ad7230265a2525709648ae42ba473fda4762b170a1465d9f361191  /tmp/bundle.xz.b64' | sha256sum -c -
+          base64 -d /tmp/bundle.xz.b64 > /tmp/bundle.xz
+          echo 'c4dad70c297edf44e0b6f510b789ba6714dbf5ab0c044d99f7163705c04e2c7d  /tmp/bundle.xz' | sha256sum -c -
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, lzma
+          root=Path.cwd()
+          bundle=json.loads(lzma.decompress(Path('/tmp/bundle.xz').read_bytes()))
+          expected={
+            '.github/workflows/paia-website.yml':'8a5fc40649f9411dcc9345953d8ef80bf1cd29fe0ed0c8b1b84adaa12b825a5a',
+            'website/home.py':'16edc20f322632cd602864e34f54537599051abc5f4d9dde9adf8455e8908581',
+            'website/build.py':'015d2b233a2b4fa083923358d07a2474421495eadd546e0ac91b0fee2c94c1b5',
+            'website/test.py':'858681e83e215615a3cc2a2faa5d85820d2359955d529ae028a75cdeaf45ec2d',
+            'website/render_social.py':'fc56597bb8cf1eef89d2cddd9a52ad214bb8e2d53a66ed4d6cab8ddc675d968a',
+            'website/verify_live.py':'02b27130f5651bb022ab930611a357f74039ec6363f44b23fa02de2b19d85163',
+            'website/README.md':'060678568c1abd39770a3c7fa1b75a34f53419b726c2d727a3f3e4fc38aee190',
+            'assets/website/site.css':'9aae06a81f619eeedab5b87be729cd38d946b63e6abcd73191e54ff6acf23d09',
+            'assets/website/favicon.svg':'49cb604b5bbfd69e5dd24ebd0e1592d1beb773f419442358cf8ccbed162a2803',
+          }
+          assert set(bundle)=={'files'}
+          assert set(bundle['files'])==set(expected)
+          for name,text in bundle['files'].items():
+              assert isinstance(text,str)
+              assert hashlib.sha256(text.encode()).hexdigest()==expected[name], name
+              target=(root/name).resolve()
+              assert target.is_relative_to(root)
+              target.parent.mkdir(parents=True,exist_ok=True)
+              target.write_text(text,encoding='utf-8')
+          PY
           rm -rf website/.editorial-transfer
           rm .github/workflows/website-editorial-transfer.yml
           if git diff --name-only 17ac1368df600fab32bb2e22573de9bc7becae26 | grep '^extension/'; then
