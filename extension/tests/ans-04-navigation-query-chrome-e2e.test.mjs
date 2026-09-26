@@ -44,7 +44,7 @@ test('ANS-04 real Chrome: cold bounded navigation, worker restart, lossless Read
   const coldStart=performance.now(),cold=await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:options}),coldMs=performance.now()-coldStart;
   assert.equal(cold.coverage.state,'building');assert.deepEqual(cold.items,[]);assert.equal(cold.selectedPath.documentId,doc.id);assert.ok(coldMs<=1500);
   await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:options});
-  const partial=await rpc(p,'PAIA_ARCHIVE_NAV_STATUS',{page:options});assert.equal(partial.coverage.state,'building');assert.equal(partial.selectedPath.available,true);
+  const partial=await rpc(p,'PAIA_ARCHIVE_NAV_STATUS',{page:options});assert.equal(partial.coverage.state,'building');assert.equal(partial.selectedPath.available,true,'real selected Reader remains available during cold indexing');
   const reader=await rpc(p,'GET_PAGE',{page:{view:'library',documentId:doc.id,limit:40}});assert.equal(reader.library.blocks.length,1);assert.equal(reader.records[0].originalText,'ANS04_REAL_INPUT_BODY');
   const beforeRestart=await worker(h).evaluate(()=>globalThis.__ans04Nav);assert.equal(beforeRestart.bodyReads,0);assert.equal(beforeRestart.fullScans,0);assert.equal(beforeRestart.snapshots,0);assert.equal(beforeRestart.maxBatch,100);
   await restart(h,options);await guard(h);
@@ -71,10 +71,20 @@ test('ANS-04 real Chrome: cold bounded navigation, worker restart, lossless Read
   },{documentId:doc.id,chatId});
   const relocated=await settled(p,{providerKey:'chatgpt',groupKind:'project',projectRef,selectedDocumentId:doc.id});
   assert.equal(relocated.items.length,1);assert.equal(relocated.items[0].title,'Browser user title');assert.deepEqual(relocated.selectedPath.projectRef,projectRef);
-  const invalid=await settled(p,{...options,cursor:first.nextCursor});assert.equal(invalid.cursorInvalid,true);assert.deepEqual(invalid.items,[]);
+  // A real captured conversation may already be unassigned. Moving it to a
+  // Project then leaves the synthetic unknown window untouched: its cursor
+  // must remain valid. Exercise invalidation only after changing that scope.
+  if(realGroup==='unassigned'){
+   const unchanged=await settled(p,{...options,cursor:first.nextCursor});
+   assert.equal(unchanged.cursorInvalid,false,'unrelated source-group relocation preserves this scope cursor');
+   assert.deepEqual(unchanged.items.map(item=>item.documentId),unknownExpected.slice(first.items.length,first.items.length+40));
+   const syntheticId=first.items[0].documentId;assert.notEqual(syntheticId,doc.id);
+   await p.evaluate(async id=>{const {OrganizerStore}=await import('../core/organizer/store.js');const s=new OrganizerStore(chrome.storage.local);await s.updateDocument(id,{userTitle:'Changed unknown-scope title'});},syntheticId);
+  }
+  const invalid=await settled(p,{...options,cursor:first.nextCursor});assert.equal(invalid.cursorInvalid,true,'a mutation in the cursor scope invalidates the old generation');assert.deepEqual(invalid.items,[]);
   assert.equal((await all(p,options)).length,1000);
   assert.match(await p.locator('.library-prose').first().textContent(),/ANS04_REAL_INPUT_BODY/);
-  assert.equal(await p.locator('#input-time-toggle').isVisible(),true);
+  assert.equal(await p.locator('#input-time-toggle').isVisible(),true,'the original Reader stays visible after index rebuild and source relocation');
   const metrics=await worker(h).evaluate(()=>globalThis.__ans04Nav);
   assert.equal(metrics.bodyReads,0);assert.equal(metrics.fullScans,0);assert.equal(metrics.snapshots,0);assert.equal(metrics.maxBatch,100);
   console.log('ANS04_CHROME_RESOURCE_EVIDENCE '+JSON.stringify({windows:1001,coldMs,warmSamples:30,p95Ms:p95,...metrics}));

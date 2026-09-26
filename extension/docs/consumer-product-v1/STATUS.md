@@ -14,7 +14,7 @@ current_slice_status: IN_PROGRESS — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFE
 
 current_round: CPV1-06.0–06.4 / VS-06 Batch A
 
-current_round_status: READY_FOR_INTEGRATION / VS06_BATCH_A_FULL_CERT_PENDING
+current_round_status: IN_PROGRESS / VS06_BATCH_A_SCOPED_CURSOR_REPAIR_PENDING
 
 current_writer: MANAGER / sole VS-06 Batch A branch feat/vs06-context-completeness
 
@@ -746,3 +746,8 @@ Exactc584585bc50185411fe23ef405ffcea491c4904b Candidate36277682376 SUCCESS: unit
 Automatable Batch A 06.0–06.4 outcomes are implemented/proven: exact manifest/revision/policy/SHA fences, one-off primary workspace and permission round-trip, whole Conversation/Topic/multiple Topic full coverage with paged selection/atomic protective refusal, optional authorized scoped retrieval, and lossless reviewed output packages under explicit budgets. Prior exact heads/evidence above remain valid for unchanged code.
 
 Ready stable candidate is scoped to Batch A. EXECUTION_PROTOCOL7.2 classifies the changed authorization/release revalidation invariant as full integration depth at this boundary. Run full once on this stable boundary head via PAIA_FULL_CERTIFICATION; no superseded candidate certification/retry. Do not merge before exact-head full PASS. After merge perform exact-main full once and receipt; then acquire Batch B06.5–06.6 sole writer. VS06 slice06.7 remains open and all deferred external/private/device/current-live obligations remain honest. Full pending is asynchronous only; JAE independent JCR08 work continues.
+
+
+## VS06 Batch A certification — scoped cursor oracle repair
+
+Exactd01a8c3916620b4fc5d8256d357550db88915c07 full36278167151 FAILED, CurrentBrowser1/4 job10850482056627PASS/1FAIL in existing ANS04 navigation; other3browser shards/all4unit/contracts/privacy/release/Macsecure/Maclifecycle SUCCESS. No merge/full PASS/receipt. Bounded source diagnosis: captured Reader is validly unassigned, fixture unknown scope has1000 synthetic members; moving real unassigned Reader to Project leaves unknown scope generation unchanged by archive-navigation-query's per-scope cursor binding. Existing test's unconditional unknown-cursorInvalid=true inferred an affected scope that was not mutated. Test/harness classification, no product runtime change. Repair preserves original invalidation/whole1001/zero-body/bounded scan/latency/Reader/restart/network oracles, proves unrelated cursor remains valid with exact continuation rows, then mutates an actual unknown-scope member before requiring stale generation refusal. Unknown-real-group path retains original relocation invalidation. Adds assertion labels and bounded draft direct-TAP targeted ANS04 path alongside all6 VS06 affected browser cases; full disabled until repaired stable candidate. No timeouts/fixtures/assertions reduced, no historical test skipped, no superseded-head rerun. New targeted proof NOT_RUN.
