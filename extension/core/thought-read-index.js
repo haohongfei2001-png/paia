@@ -112,7 +112,7 @@ export async function thoughtRootIndexPage(store,{cursor=null,limit=40}={}){
 // ANS-08 Topic Reader projection. Projection rows intentionally contain only
 // ordering / placement / time descriptors. Thought body/title/note remain in
 // the canonical Thought store and are resolved only for the visible response.
-export const THOUGHT_TOPIC_INDEX_VERSION=1;
+export const THOUGHT_TOPIC_INDEX_VERSION=2;
 export const THOUGHT_TOPIC_BUILD_BATCH=100;
 export const THOUGHT_TOPIC_STATUS_KEY=3;
 export const THOUGHT_TOPIC_MAX_BUILD_BATCHES=100;
@@ -164,6 +164,7 @@ function startTopicBuild(store,meta,key){
  meta.sourceCursor=null;
  meta.scanned=0;
  meta.indexed=0;
+ meta.buildingEarliest=null;meta.buildingLatest=null;
 }
 async function topicMeta(store,t,topic){
  let meta=await t.get('meta',topicMetaId(topic.id));
@@ -215,13 +216,23 @@ export async function advanceThoughtTopicIndex(store,{topicId,describe}){
   for(const {value:placement} of page.rows){
    const descriptor=await describe(t,topic,placement);
    meta.scanned++;
-   if(descriptor){await writeTopicDescriptor(t,meta.buildingGeneration,descriptor);meta.indexed++;added++;}
+   if(descriptor){await writeTopicDescriptor(t,meta.buildingGeneration,descriptor);meta.indexed++;added++;
+    // Reuse the body-free build pass; time jumps do not scan the warm Topic.
+    const time=Date.parse(descriptor.effectiveTime||'');
+    if(Number.isFinite(time)){
+     const compare=(a,b)=>Date.parse(a.effectiveTime)-Date.parse(b.effectiveTime)||String(a.entryId).localeCompare(String(b.entryId));
+     if(!meta.buildingEarliest||compare(descriptor,meta.buildingEarliest)<0)meta.buildingEarliest=descriptor;
+     if(!meta.buildingLatest||compare(descriptor,meta.buildingLatest)>0)meta.buildingLatest=descriptor;
+    }
+   }
   }
   meta.sourceCursor=page.next;
   if(!page.next){
    meta.activeGeneration=meta.buildingGeneration;
    meta.activeKey=meta.buildingKey;
    meta.activeCount=meta.indexed;
+   meta.earliestDescriptor=meta.buildingEarliest;meta.latestDescriptor=meta.buildingLatest;
+   meta.buildingEarliest=null;meta.buildingLatest=null;
    meta.completedAt=store.clock();
    meta.buildingGeneration=null;meta.buildingKey=null;meta.sourceCursor=null;
   }
@@ -256,8 +267,9 @@ async function seekDescriptor(store,{generationId,sort,entryId=null,sectionId=nu
  }
  return {key:null,row:null,scanned,truncated:true};
 }
-export async function thoughtTopicDescriptorPage(store,{topicId,sort='asc',cursor=null,limit=40,direction='next',anchorId=null,sectionId=null,describe}={}){
+export async function thoughtTopicDescriptorPage(store,{topicId,sort='asc',cursor=null,limit=40,direction='next',anchorId=null,sectionId=null,timeEdge=null,describe}={}){
  if(!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||!Number.isInteger(limit)||limit<1||limit>100)throw new Error('INVALID_TOPIC_INDEX_REQUEST');
+ if(timeEdge!==null&&(!['earliest','latest'].includes(timeEdge)||cursor||anchorId||sectionId||direction!=='next'))throw new Error('INVALID_TOPIC_TIME_EDGE');
  const build=await ensureThoughtTopicIndex(store,{topicId,describe});
  const state=await currentTopicMeta(store,topicId),meta=state.meta,coverage={...topicSnapshot(meta),currentKey:state.key};
  const operations={...(build?.operations||{}),descriptorRowsRead:0,seekRowsScanned:0};
@@ -265,6 +277,10 @@ export async function thoughtTopicDescriptorPage(store,{topicId,sort='asc',curso
  if(cursor&&(cursor.generation!==meta.activeGeneration||cursor.viewKey!==meta.activeKey||cursor.sort!==sort))return {items:[],nextCursor:null,previousCursor:null,coverage,complete:false,cursorInvalid:true,operations};
  const kind=topicKind(meta.activeGeneration,sort),range=prefix([THOUGHT_TOPIC_STATUS_KEY,kind]);
  let start=cursor?.key||null,anchor=null;
+ if(timeEdge){
+  anchor=timeEdge==='earliest'?meta.earliestDescriptor:meta.latestDescriptor;
+  if(anchor)start=[THOUGHT_TOPIC_STATUS_KEY,kind,descriptorId(meta.activeGeneration,sort,anchor)];
+ }
  if(!start&&(anchorId||sectionId)){
   const seek=await seekDescriptor(store,{generationId:meta.activeGeneration,sort,entryId:anchorId,sectionId});
   operations.seekRowsScanned+=seek.scanned;
@@ -289,5 +305,5 @@ export async function thoughtTopicDescriptorPage(store,{topicId,sort='asc',curso
   if(data.next&&firstKey)previousCursor={generation:meta.activeGeneration,viewKey:meta.activeKey,sort,key:firstKey};
   if(lastKey)nextCursor={generation:meta.activeGeneration,viewKey:meta.activeKey,sort,key:lastKey};
  }
- return {items,nextCursor,previousCursor,coverage,complete:direction==='next'?!nextCursor:!previousCursor,indexing:false,operations};
+ return {items,nextCursor,previousCursor,coverage,complete:direction==='next'?!nextCursor:!previousCursor,indexing:false,operations,timeEdgeUnavailable:!!timeEdge&&!anchor};
 }

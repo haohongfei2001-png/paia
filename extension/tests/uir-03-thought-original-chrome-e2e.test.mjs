@@ -39,6 +39,11 @@ async function seed(page,prefix){
     await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${prefix}_THOUGHT_${i}_A 这是主题 ${i+1} 的第一段完整思想正文。\n它保留真实换行，不是卡片摘要。`}});
     await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${prefix}_THOUGHT_${i}_B 第二段正文用于连续阅读、日期和工具层级验证。`}});
   }
+  topics[0].readingIds=(await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topics[0].id,sort:'asc',limit:40}})).items.map(x=>x.entry.id);
+  for(let i=0;i<45;i++){
+    const thought=await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topics[0].id,body:`${prefix}_LATER_${String(i).padStart(2,'0')} 独立留下的后续记录，保留原话与创建时间。`}});
+    topics[0].readingIds.push(thought.id);
+  }
   topics[0].summary=`${prefix} 这是保留完整来源表达的真实内容线索。 `.repeat(40);
   const current=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id});
   await rpc(page,'EDIT_LIBRARY_TOPIC',{edit:{id:current.id,expectedRevision:current.revision,changes:{summary:topics[0].summary},operationId:op()}});
@@ -144,6 +149,25 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await topicMenu.getByRole('button',{name:'导出主题',exact:true}).isVisible(),true,'Topic-scoped export remains reachable in the Topic ··· menu');
   assert.equal(await page.getByRole('button',{name:'导出思想库',exact:true}).count(),0,'no whole-Library export scope is invented');
   await page.keyboard.press('Escape');
+
+  const firstId=topics[0].readingIds[0],latestId=topics[0].readingIds.at(-1);
+  const beforeFirst=await rpc(page,'GET_LIBRARY_ENTRY',{id:firstId}),beforeLatest=await rpc(page,'GET_LIBRARY_ENTRY',{id:latestId});
+  await page.locator('#topic-search').fill('_THOUGHT_0_A');
+  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').count()===1,'Topic search narrows original records');
+  await page.locator('[data-reading-start="desc"]').click();
+  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===latestId,'recent-time jump reaches a record beyond the initial 40-row page');
+  assert.equal(await page.locator('#topic-search').inputValue(),'','time navigation explicitly returns to all original records');
+  assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,'desc','time navigation durably records its direction');
+  assert.equal(await page.locator('#original-reading-body [data-entry-id]').first().evaluate(el=>document.activeElement===el),true,'keyboard focus follows the addressed original record');
+  await page.locator('[data-reading-start="asc"]').click();
+  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===firstId,'earlier-time jump starts with the original earliest record');
+  assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,'asc');
+  const afterFirst=await rpc(page,'GET_LIBRARY_ENTRY',{id:firstId}),afterLatest=await rpc(page,'GET_LIBRARY_ENTRY',{id:latestId});
+  assert.equal(afterFirst.body,beforeFirst.body);
+  assert.equal(afterFirst.revision,beforeFirst.revision);
+  assert.equal(afterLatest.body,beforeLatest.body);
+  assert.equal(afterLatest.revision,beforeLatest.revision,'time jumps change no human content or revision');
+  assert.ok(await page.locator('#original-reading-body [data-entry-id]').count()<=120,'Topic keeps its bounded continuous reading window');
   await shot(page,release?'uir-03-current-release-topic-original-1440x900-light':'uir-03-topic-original-1440x900-light');
 
   if(!release){

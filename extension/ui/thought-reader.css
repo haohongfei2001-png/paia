@@ -181,3 +181,6 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #thought-list.topic-grid.topic-list-layout .topic-index-row{width:100%;min-height:84px!important;padding:14px 48px 14px 16px!important;gap:6px!important;border:0!important;border-bottom:1px solid var(--paia-subtle)!important;border-radius:0!important;background:transparent!important;}
 #thought-list.topic-grid.topic-list-layout .topic-index-row strong{font-size:18px;line-height:1.5;}
 #thought-list.topic-grid .topic-index-row .summary{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+
+/* VS-05 time jumps stay reachable without widening a narrow Reader. */
+#thought-document #topic-time-order {flex-wrap:wrap;}

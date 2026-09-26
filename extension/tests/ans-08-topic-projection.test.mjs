@@ -120,3 +120,52 @@ test('ANS-08 ContinuousTopicReader crosses empty search chunks without repeating
  const reader=new ContinuousTopicReader({load,maxEmptyLoads:5});reader.reset({topicId:'deep-topic',sort:'asc',query:'needle'});const state=await reader.initial();
  assert.deepEqual(calls,[0,40,80]);assert.equal(state.items.length,40);assert.equal(state.items[0].entry.id,'deep-0080');assert.equal(state.terminalNext,true);assert.equal(state.terminalPrevious,true);
 });
+
+
+test('VS-05 time edges seek globally across sections using warm body-free descriptors',async()=>{
+ const f=await largeTopicFixture(520,120),first=await collect(f.s,f.topic.id,'asc');
+ const latest=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'desc',timeEdge:'latest',limit:40});
+ assert.equal(latest.items[0].entry.id,'ans08-entry-0519');
+ assert.equal(latest.items[0].entry.createdAt,'2026-01-01T00:08:39.000Z');
+ assert.equal(latest.items[0].entry.timeBasis,'created');
+ assert.equal(latest.operations.buildRowsScanned,0);
+ assert.equal(latest.operations.seekRowsScanned,0);
+ assert.ok(latest.operations.descriptorRowsRead<=40);
+ const earliest=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',timeEdge:'earliest',limit:40});
+ assert.equal(earliest.items[0].entry.id,f.seedId);
+ assert.equal(earliest.operations.buildRowsScanned,0);
+ assert.equal(earliest.operations.seekRowsScanned,0);
+ assert.ok(earliest.operations.descriptorRowsRead<=40);
+ const later=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'desc',cursor:latest.previousCursor,direction:'prev',limit:40});
+ assert.ok(later.items.length,'a global time jump preserves two-way section reading');
+ assert.equal((await f.s.entry('ans08-entry-0519')).body,'ANS08 entry 0519');
+ assert.equal(first.ids.length,520,'no chronological jump changes membership');
+ for(const options of [
+  {timeEdge:'belief'}, {timeEdge:'latest',query:'entry'},
+  {timeEdge:'latest',anchorId:f.seedId},
+  {timeEdge:'earliest',cursor:latest.previousCursor},
+  {timeEdge:'latest',direction:'prev'}
+ ])await assert.rejects(()=>f.s.topicDocumentPage({topicId:f.topic.id,sort:'desc',...options}));
+});
+
+test('VS-05 time edges rebuild on removal and exclude unknown timestamps',async()=>{
+ const f=await largeTopicFixture(90,8);
+ await f.s.topicDocumentPage({topicId:f.topic.id,sort:'desc',timeEdge:'latest'});
+ await f.s.foundationWrite(async t=>{
+  const latest=await t.get('thoughts','ans08-entry-0089');
+  latest.lifecycle='removed';refreshEntryIndex(latest);await t.put('thoughts',latest);
+  await invalidateThoughtTopicIndex(f.s,t,f.topic.id,{sourceTime:true});
+ });
+ const next=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'desc',timeEdge:'latest'});
+ assert.equal(next.items[0].entry.id,'ans08-entry-0088','removed evidence is not a navigation target');
+ const unknown=await largeTopicFixture(1,1);
+ await unknown.s.foundationWrite(async t=>{
+  const row=await t.get('thoughts',unknown.seedId);
+  row.createdAt=null;await t.put('thoughts',row);
+  await invalidateThoughtTopicIndex(unknown.s,t,unknown.topic.id,{sourceTime:true});
+ });
+ const page=await unknown.s.topicDocumentPage({topicId:unknown.topic.id,sort:'asc',timeEdge:'earliest'});
+ assert.equal(page.timeEdgeUnavailable,true);
+ assert.equal(page.items[0].entry.timeBasis,'unknown');
+ assert.equal(page.items[0].entry.effectiveTime,null,'unknown time does not become a date or a belief claim');
+});

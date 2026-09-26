@@ -91,13 +91,14 @@ async function invalidateForTimeMismatch(s,topicId){
 // Time-sorted Topic reading now pages a body-free generation projection.
 // Only the descriptor chunk selected for this response resolves canonical
 // Thought bodies, so a warm next chunk never rescans the entire Topic.
-export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next'}={}){
+export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next',timeEdge=null}={}){
  if(!idOK(topicId)||!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||anchorId!==null&&!idOK(anchorId)||sectionId!==null&&!idOK(sectionId))fail();
+ if(timeEdge!==null&&(!['earliest','latest'].includes(timeEdge)||cursor||anchorId||sectionId||direction!=='next'||query.trim()))fail();
  await s.finishFoundation();const needle=normalized(query.trim());
  if(cursor&&(cursor.topicId!==topicId||cursor.query!==needle||cursor.sort!==sort))return {cursorInvalid:true,items:[],tracked:[]};
  const descriptor=await thoughtTopicDescriptorPage(s,{
   topicId,sort,cursor:cursorView(cursor),limit,direction,
-  anchorId:anchorId||null,sectionId:sectionId||null,describe:descriptorReader(s)
+  anchorId:anchorId||null,sectionId:sectionId||null,timeEdge,describe:descriptorReader(s)
  });
  const tracked=trackedEntryIds.length?await s.trackedLibraryEntries({ids:trackedEntryIds}):[];
  const topic=await s.topic(topicId);
@@ -148,6 +149,7 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   nextCursor,previousCursor,
   complete:descriptor.complete,
   coverage:descriptor.coverage,
-  operations:descriptor.operations
+  operations:descriptor.operations,
+  timeEdgeUnavailable:descriptor.timeEdgeUnavailable
  };
 }
