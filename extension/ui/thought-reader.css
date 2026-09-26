@@ -184,3 +184,8 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 
 /* VS-05 time jumps stay reachable without widening a narrow Reader. */
 #thought-document #topic-time-order {flex-wrap:wrap;}
+
+/* Unknown dates are a reading group, retaining each original placement. */
+#original-reading-body .topic-unknown-time > .section-heading{display:block;}
+#original-reading-body .topic-unknown-time > .section-heading p{font-size:14px;line-height:1.6;}
+#original-reading-body .topic-origin-section{font-size:13px;line-height:1.6;margin:0 0 6px;}

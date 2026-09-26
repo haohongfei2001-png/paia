@@ -44,6 +44,22 @@ async function seed(page,prefix){
     const thought=await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topics[0].id,body:`${prefix}_LATER_${String(i).padStart(2,'0')} 独立留下的后续记录，保留原话与创建时间。`}});
     topics[0].readingIds.push(thought.id);
   }
+  topics[0].unknownIds=[];
+  for(let i=0;i<2;i++){
+    const thought=await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topics[0].id,body:`${prefix}_UNKNOWN_${i} 这条旧记录没有可靠时间，原话和章节成员仍完整保留。`}});
+    topics[0].unknownIds.push(thought.id);
+  }
+  // Synthesize legacy missing/invalid dates through the real repository only
+  // in this isolated fixture; normal creation must retain its actual date.
+  await page.evaluate(async ({topicId,ids})=>{
+    const {LibraryFoundationStore}=await import(chrome.runtime.getURL('core/thought-store.js'));
+    const {invalidateThoughtTopicIndex}=await import(chrome.runtime.getURL('core/thought-read-index.js'));
+    const store=new LibraryFoundationStore(chrome.storage.local);
+    try{await store.foundationWrite(async t=>{
+      for(let i=0;i<ids.length;i++){const row=await t.get('thoughts',ids[i]);row.createdAt=i===0?null:'invalid legacy time';await t.put('thoughts',row);}
+      await invalidateThoughtTopicIndex(store,t,topicId,{sourceTime:true});
+    });}finally{store.repository.db?.close();}
+  },{topicId:topics[0].id,ids:topics[0].unknownIds});
   topics[0].summary=`${prefix} 这是保留完整来源表达的真实内容线索。 `.repeat(40);
   const current=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id});
   await rpc(page,'EDIT_LIBRARY_TOPIC',{edit:{id:current.id,expectedRevision:current.revision,changes:{summary:topics[0].summary},operationId:op()}});
@@ -168,6 +184,21 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(afterLatest.body,beforeLatest.body);
   assert.equal(afterLatest.revision,beforeLatest.revision,'time jumps change no human content or revision');
   assert.ok(await page.locator('#original-reading-body [data-entry-id]').count()<=120,'Topic keeps its bounded continuous reading window');
+  const unknownBefore=await Promise.all(topics[0].unknownIds.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
+  await page.locator('#topic-outline>summary').click();
+  await page.locator('#topic-section-nav [data-time-group="unknown"]').click();
+  await eventually(async()=>await page.locator('.topic-unknown-time [data-entry-id]').count()===2,'missing and malformed legacy timestamps open a distinct unknown-time section');
+  assert.equal(await page.locator('.topic-unknown-time h2').textContent(),'时间未知');
+  assert.equal(await page.locator('.topic-unknown-time h2').evaluate(el=>document.activeElement===el),true,'unknown-time heading receives keyboard focus');
+  assert.deepEqual(new Set(await page.locator('.topic-unknown-time [data-entry-id]').evaluateAll(nodes=>nodes.map(n=>n.dataset.entryId))),new Set(topics[0].unknownIds));
+  assert.equal(await page.locator('.topic-unknown-time .entry-sent-time').first().textContent(),'时间未知','legacy gaps never become 1970 or Invalid Date');
+  assert.equal(await page.locator('.topic-unknown-time [data-meta-field]').count(),0,'the reading group is not an editable or persisted organization section');
+  assert.equal(await page.locator('.topic-unknown-time .topic-origin-section').count(),2,'original section membership remains visible');
+  await shot(page,release?'vs05-release-unknown-time':'vs05-source-unknown-time');
+  await page.locator('[data-reading-start="asc"]').click();
+  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===firstId,'dated original reading remains reachable after the unknown section');
+  const unknownAfter=await Promise.all(topics[0].unknownIds.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
+  for(let i=0;i<unknownBefore.length;i++){assert.equal(unknownAfter[i].body,unknownBefore[i].body);assert.equal(unknownAfter[i].revision,unknownBefore[i].revision);}
   await shot(page,release?'uir-03-current-release-topic-original-1440x900-light':'uir-03-topic-original-1440x900-light');
 
   if(!release){

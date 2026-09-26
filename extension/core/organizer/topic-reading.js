@@ -11,13 +11,14 @@ async function describePlacement(s,t,topic,p){
  if(!activePlacement(p))return null;
  const row=await t.get('thoughts',p.entryId);
  if(!row||row.storageSchema!==2||row.lifecycle!=='active')return null;
- const time=await entryTime(t,row.id),effectiveTime=time.sourceSentAt||time.capturedAt||row.createdAt||null;
+ const time=await entryTime(t,row.id),rawTime=time.sourceSentAt||time.capturedAt||row.createdAt||null;
+ const effectiveTime=Number.isFinite(Date.parse(rawTime||''))?rawTime:null;
  return {
   topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,
   entryId:p.entryId,sectionId:p.sectionId,sectionRank:p.sectionRank,rank:p.rank,
   placementRevision:p.revision,
   ...time,effectiveTime,
-  timeBasis:time.sourceSentAt?'source':time.capturedAt?'capture':row.createdAt?'created':'unknown'
+  timeBasis:!effectiveTime?'unknown':time.sourceSentAt?'source':time.capturedAt?'capture':'created'
  };
 }
 const descriptorReader=s=>(t,topic,p)=>describePlacement(s,t,topic,p);
@@ -93,7 +94,7 @@ async function invalidateForTimeMismatch(s,topicId){
 // Thought bodies, so a warm next chunk never rescans the entire Topic.
 export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next',timeEdge=null}={}){
  if(!idOK(topicId)||!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||anchorId!==null&&!idOK(anchorId)||sectionId!==null&&!idOK(sectionId))fail();
- if(timeEdge!==null&&(!['earliest','latest'].includes(timeEdge)||cursor||anchorId||sectionId||direction!=='next'||query.trim()))fail();
+ if(timeEdge!==null&&(!['earliest','latest','unknown'].includes(timeEdge)||cursor||anchorId||sectionId||direction!=='next'||query.trim()))fail();
  await s.finishFoundation();const needle=normalized(query.trim());
  if(cursor&&(cursor.topicId!==topicId||cursor.query!==needle||cursor.sort!==sort))return {cursorInvalid:true,items:[],tracked:[]};
  const descriptor=await thoughtTopicDescriptorPage(s,{

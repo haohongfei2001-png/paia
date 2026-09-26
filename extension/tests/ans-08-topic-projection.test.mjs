@@ -169,3 +169,46 @@ test('VS-05 time edges rebuild on removal and exclude unknown timestamps',async(
  assert.equal(page.items[0].entry.timeBasis,'unknown');
  assert.equal(page.items[0].entry.effectiveTime,null,'unknown time does not become a date or a belief claim');
 });
+
+
+test('VS-05 unknown time stays a separate trailing reading group in both directions',async()=>{
+ const f=await largeTopicFixture(520,120),unknownIds=[f.seedId,'ans08-entry-0017','ans08-entry-0481'],before=new Map();
+ await f.s.foundationWrite(async t=>{
+  for(let i=0;i<unknownIds.length;i++){
+   const row=await t.get('thoughts',unknownIds[i]);before.set(row.id,{body:row.thoughtText,revision:row.revision});
+   row.createdAt=i===1?'invalid legacy time':null;await t.put('thoughts',row);
+  }
+  await invalidateThoughtTopicIndex(f.s,t,f.topic.id,{sourceTime:true});
+ });
+ for(const sort of ['asc','desc']){
+  const ordered=await collect(f.s,f.topic.id,sort);
+  assert.equal(ordered.ids.length,520);assert.equal(new Set(ordered.ids).size,520);
+  assert.deepEqual(new Set(ordered.ids.slice(-3)),new Set(unknownIds),'undated rows follow every dated section in either direction');
+  const unknown=await f.s.topicDocumentPage({topicId:f.topic.id,sort,timeEdge:'unknown',limit:40});
+  assert.equal(unknown.coverage.unknownTimeCount,3);
+  assert.equal(unknown.operations.buildRowsScanned,0);assert.equal(unknown.operations.seekRowsScanned,0);assert.ok(unknown.operations.descriptorRowsRead<=40);
+  assert.deepEqual(unknown.items.map(item=>item.entry.id),ordered.ids.slice(-3));
+  assert.ok(unknown.items.every(item=>item.entry.timeBasis==='unknown'&&item.entry.effectiveTime===null));
+  assert.ok(unknown.previousCursor,'undated group retains the opposite cursor into dated original records');
+  const previous=await f.s.topicDocumentPage({topicId:f.topic.id,sort,cursor:unknown.previousCursor,direction:'prev',limit:40});
+  assert.ok(previous.items.length);assert.ok(previous.items.every(item=>item.entry.timeBasis!=='unknown'));
+  for(const item of unknown.items){
+   assert.equal(item.placement.sectionId,item.entry.id===f.seedId?f.topic.defaultSectionId:'ans08-section-'+pad(Number(item.entry.id.slice(-4))%120));
+   const actual=await f.s.entry(item.entry.id);assert.equal(actual.body,before.get(item.entry.id).body);assert.equal(actual.revision,before.get(item.entry.id).revision);
+  }
+ }
+ await f.s.foundationWrite(async t=>{
+  const row=await t.get('thoughts',unknownIds[1]);row.createdAt='2026-01-01T00:00:17.000Z';await t.put('thoughts',row);
+  await invalidateThoughtTopicIndex(f.s,t,f.topic.id,{sourceTime:true});
+ });
+ const enriched=await f.s.topicDocumentPage({topicId:f.topic.id,timeEdge:'unknown'});
+ assert.equal(enriched.coverage.unknownTimeCount,2);
+ assert.equal(enriched.items.some(item=>item.entry.id===unknownIds[1]),false,'real time enrichment returns the entry to its dated section without content edits');
+ for(const options of [{timeEdge:'unknown',query:'entry'},{timeEdge:'unknown',anchorId:f.seedId},{timeEdge:'unknown',direction:'prev'}])await assert.rejects(()=>f.s.topicDocumentPage({topicId:f.topic.id,...options}));
+});
+
+test('VS-05 unknown-group request remains honest when every record is dated',async()=>{
+ const f=await largeTopicFixture(8,2),page=await f.s.topicDocumentPage({topicId:f.topic.id,timeEdge:'unknown'});
+ assert.equal(page.timeEdgeUnavailable,true);assert.equal(page.coverage.unknownTimeCount,0);
+ assert.ok(page.items.every(item=>item.entry.timeBasis==='created'));
+});
