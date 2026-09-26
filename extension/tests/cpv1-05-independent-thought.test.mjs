@@ -15,10 +15,10 @@ test('VS-05 new Thought has real creation time, optional Topic/relation and one 
  const f=await setup(),before=structuredClone(f.entry),start=Date.now();
  const request={operationId:op(),body:'Independent new expression',relation:f.relation};
  const created=await f.s.continueThinking(request),same=await f.s.continueThinking(request),row=await f.s.entry(created.id);
- assert.equal(created.id,same.id);assert.equal(row.body,request.body);assert.equal(row.provenanceType,'user_created');assert.equal(row.bodyBinding,'thought');assert.deepEqual(row.sourceRecordIds,[]);
+ assert.equal(created.conflict,undefined,'reviewed current target must be accepted');assert.equal(created.id,same.id);assert.equal(row.body,request.body);assert.equal(row.provenanceType,'user_created');assert.equal(row.bodyBinding,'thought');assert.deepEqual(row.sourceRecordIds,[]);
  assert.ok(Date.parse(row.createdAt)>=start&&Date.parse(row.createdAt)<=Date.now());assert.deepEqual(await f.s.entryPaths(row.id),[]);
  const relations=await rows(f.s,'entryRelations');assert.equal(relations.length,1);assert.equal(relations[0].value.toEntryId,before.id);assert.equal(relations[0].value.toBodySha256,f.relation.expectedBodySha256);
- const compare=await f.s.compareThought(row.id);assert.equal(compare.relations[0].state,'current');assert.equal(compare.relations[0].body,before.body);
+ const compare=await f.s.compareThought(row.id);assert.equal(compare.relations[0].state,'current');assert.equal(typeof compare.relations[0].body,'string','relation DTO projects the guarded persisted thoughtText as body');assert.equal(compare.relations[0].body,before.body);
  assert.equal((await f.s.entry(before.id)).body,before.body);assert.equal((await f.s.entry(before.id)).revision,before.revision);
  const standalone=await f.s.continueThinking({operationId:op(),body:'No Topic and no relationship'});
  assert.deepEqual((await f.s.compareThought(standalone.id)).relations,[]);assert.deepEqual(await f.s.entryPaths(standalone.id),[]);
@@ -52,4 +52,27 @@ test('VS-05 relation cannot omit or coerce revision/content guards or create a d
  for(const relation of [{id:f.entry.id,expectedRevision:'0',expectedBodySha256:f.relation.expectedBodySha256},{id:f.entry.id,expectedRevision:0},{...f.relation,extra:true},{...f.relation,id:'missing-thought'}]){
   const before=(await rows(f.s,'thoughts')).length;await assert.rejects(()=>f.s.continueThinking({operationId:op(),body:'Uncommitted',relation}));assert.equal((await rows(f.s,'thoughts')).length,before);
  }
+});
+
+test('VS-05 target changes between digest preflight and creation commit preserve the unsaved draft and leave no receipt or relation',async()=>{
+ const f=await setup(),input=await f.s.input(f.input.id),request={operationId:op(),body:'Independent draft during concurrent edit',relation:f.relation};
+ const beforeThoughts=(await rows(f.s,'thoughts')).length,beforeRelations=(await rows(f.s,'entryRelations')).length;
+ const checkpoint=f.s.repository.checkpoint.bind(f.s.repository);let edited=false;
+ f.s.repository.checkpoint=async name=>{
+  if(name==='thought-evidence-validated'&&!edited){
+   edited=true;
+   await f.s.editDocument({operationId:op(),documentId:input.documentId,blocks:[{id:input.id,expectedRevision:input.revision,libraryText:'Concurrent current Input body',note:input.note,excluded:false}]});
+  }
+  return checkpoint(name);
+ };
+ const result=await f.s.continueThinking(request);
+ assert.equal(edited,true);assert.equal(result.conflict,true);assert.equal(result.relatedChanged,true);
+ assert.equal((await rows(f.s,'thoughts')).length,beforeThoughts);assert.equal((await rows(f.s,'entryRelations')).length,beforeRelations);
+ assert.equal(await f.s.priorOperation(request),null,'failed CAS must not consume this save identity');
+ f.s.repository.checkpoint=checkpoint;
+ const target=await f.s.entry(f.entry.id),reviewed={...request,relation:{id:target.id,expectedRevision:target.revision,expectedBodySha256:await hashText(target.body)}};
+ const created=await f.s.continueThinking(reviewed);
+ assert.equal(created.conflict,undefined);assert.equal((await f.s.entry(created.id)).body,request.body);
+ assert.equal((await f.s.compareThought(created.id)).relations[0].body,'Concurrent current Input body');
+ assert.equal((await f.s.continueThinking(reviewed)).id,created.id);
 });

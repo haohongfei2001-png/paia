@@ -54,7 +54,7 @@ export async function continueThinking(s,r){
   receiptRequest:r,independentContext:true,
   before:async t=>{
    if(r.topicId)await topicsFor(s,t,[r.topicId]);
-   if(r.relation){const related=await s.readableEntry(t,r.relation.id);if(related.lifecycle!=='active'||related.revision!==r.relation.expectedRevision||!await s.sourcePresent(t,related.sourceRecordIds||[])||(await bindingRead(s,t,related)).body!==relatedBody)return {conflict:true,relatedChanged:true};}
+   if(r.relation){const related=await s.readableEntry(t,r.relation.id);if(related.lifecycle!=='active'||related.revision!==r.relation.expectedRevision||!await s.sourcePresent(t,related.sourceRecordIds||[])||(await bindingRead(s,t,related)).thoughtText!==relatedBody)return {conflict:true,relatedChanged:true};}
   },
   after:async(t,row)=>{
    if(r.topicId)await place(s,t,row,await topicsFor(s,t,[r.topicId]),r.operationId);
@@ -70,7 +70,7 @@ export async function compareThought(s,id){
    if(relation.kind!=='user_response'||relation.actor!=='user')continue;
    const target=await t.get('thoughts',relation.toEntryId),available=target?.storageSchema===2&&target.lifecycle==='active'&&await s.sourcePresent(t,target.sourceRecordIds||[])&&await s.sourcePresent(t,relation.sourceRecordIds||[]);
    const state=!available?'unavailable':target.revision!==relation.toRevision?'changed':'current';
-   relations.push({kind:'response',state,createdAt:relation.createdAt,...(state==='current'?{id:target.id,body:(await bindingRead(s,t,target)).body,expectedSha256:relation.toBodySha256}:{})});
+   relations.push({kind:'response',state,createdAt:relation.createdAt,...(state==='current'?{id:target.id,body:(await bindingRead(s,t,target)).thoughtText,expectedSha256:relation.toBodySha256}:{})});
   }
   return {entry:await bindingRead(s,t,row),relations,sources:await Promise.all((row.sourceRecordIds||[]).map(async id=>{const src=await s.sourcePresent(t,[id])?(await t.get('records',id))?.value:null;return src?{body:src.originalText,sourceSentAt:src.sourceSentAt||null}:null})).then(rows=>rows.filter(Boolean)),input:p?{id:p.inputId,body:p.body,revision:p.contentRevision}:null};
  }));
