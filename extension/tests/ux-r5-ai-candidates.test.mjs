@@ -70,7 +70,10 @@ test('VS-05 saving choices fences the reviewed candidate even when current work 
 });
 
 async function chunkFixture(count){
- const f=await completeFixture({texts:Array.from({length:count},(_,i)=>'同一主题的独立表达 '+i),batchLimit:30});await f.runner.wake(action());const requests=[];
+ const f=await completeFixture({texts:Array.from({length:count},(_,i)=>'同一主题的独立表达 '+i),batchLimit:20});
+ // Original has its own bounded 20-input contract: finish every captured expression before AI synthesis.
+ for(let i=0;i<Math.ceil(count/20);i++){const result=await f.runner.wake(action());assert.equal(result.error,undefined,JSON.stringify(result));}
+ assert.equal((await rows(f.s,'thoughts')).length,count);const requests=[];
  const provider=new DeepSeekOrganizerProvider({limits:f.s.organizerBudget.limits,fetchImpl:async(_url,init)=>{
   const request=JSON.parse(JSON.parse(init.body).messages[1].content);requests.push(request);
   const existing=JSON.parse(request.context.find(row=>row.ref==='existing-presentation')?.text||'null'),ids=[...new Set([...(existing?.evidenceEntryIds||[]),...request.inputs.map(row=>row.ref)])];
