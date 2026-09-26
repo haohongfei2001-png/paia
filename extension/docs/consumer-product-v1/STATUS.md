@@ -10,15 +10,15 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-06
 
-current_slice_status: READY — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED_EXTERNAL_CERT_PENDING
+current_slice_status: IN_PROGRESS — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED_EXTERNAL_CERT_PENDING
 
 current_round: CPV1-06.0–06.4 / VS-06 Batch A
 
-current_round_status: READY / WRITER_OCCUPIED_BY_WEBSITE_PR85
+current_round_status: IN_PROGRESS / VS06_MANIFEST_FOUNDATION_CANDIDATE
 
-current_writer: VS-05 MANAGER RELEASED; remote website writer PR85
+current_writer: MANAGER / sole VS-06 Batch A branch feat/vs06-context-completeness
 
-writer_status: VS-05_RELEASED / VS-06_NOT_ACQUIRED
+writer_status: VS-06_ACQUIRED / SINGLE_WRITER
 
 production_claim: NONE
 
@@ -574,3 +574,47 @@ Head, PR synthetic merge and actual main share tree0e3d10b889a0476b3156d8d4b5da9
 DFG-CPV1-002 old-Thought semantics and DFG-CPV1-009 independent actual generated-output meaning remain deferred; dependent actions remain fail-closed. Signed distribution/current-live/private/device gates remain open. No production/slice/package COMPLETE claim.
 
 VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is READY, not implemented/certified. Fresh GitHub has website-only PR85 already open from actual runtime75; do not create a second writer/PR or mutate its in-progress website work. VS06 reviewed implementation strings may be prepared without push; JAEPR20 continues independently. This writer observation is a checkpoint to be reconstructed from GitHub next turn, not an inherited wait state.
+
+## VS-06 Batch A — fixed reviewed Context manifest foundation
+
+Fresh remote main9f07364dfa664843a9d0f2ff496346a24eae313c includes website-only
+PR85 merge. Its exact-main Website36269319174 and Pages36269319127 SUCCESS;
+no open PR remains. The prior website writer occupancy checkpoint is superseded
+by these GitHub facts. Extension baseline remains the already certified VS05
+runtime75dafc2a698560098c88ce06269230c475ff73b3 plus receipt docs. The manager
+acquires one writer branch feat/vs06-context-completeness for canonical VS06BatchA
+06.0–06.4; no website/runtime fork or extra parallel PR.
+
+First coherent implementation fixes explicit selection authority and completeness.
+A short-lived in-memory manifest binds selection/generation/policy revision,
+exact ref revisions/spans/order, roles, edits, exclusions, redaction count,
+untruncated effective material budget, completeness and empty separately marked
+retrieval supplements. It is neither another canonical store nor a Grant. Preview
+hashes the complete fixed manifest and exact reviewed output; copy/Markdown
+revalidates source/policy after asynchronous hashing and refuses any unreviewed
+payload. A product defect in the existing add budget used original bodies rather
+than current output overrides; effective edited bodies now count atomically before
+adding material, preserving every existing item/generation on an over-budget
+refusal. The preview states selected items retained in full.
+
+Six new actual repository/worker-service tests cover long bilingual/emoji text
+and same-input spans/exact preview-copy-export digest, policy change, removal/
+edit/upstream revision, altered transient output, exact4million-unit effective
+budget with all20*200k overrides retained and21st addition refused, and denial
+during release hashing clearing blocked bytes. Existing real source/built Chrome
+selection/edit/redaction/export and actual worker once/revoke tests are retained;
+the affected preview oracle additionally checks actual manifest/full retained
+selection/exact SHA256 and visible coverage. No synthetic100k/10k recovery repeat
+is requested. All original tests/fixtures/limits/assertions remain.
+
+Candidate targeted unit/contract/privacy/release and the two affected real Chrome
+journeys are NOT_RUN until cloud Actions. Marker PAIA_VS06_MANIFEST_BROWSER routes
+that proof; no full PAIA Certification is triggered while draft. Full certification
+will run once at stable slice candidate, then once after integration at exactmain.
+
+This foundation does not claim all06.0–06.4 exits: complete workspace rebuilding,
+whole Conversation/Topic/multiple-Topic expansion and all-selected semantics,
+authorized retrieval/Profile and explicit package splitting remain open in this
+same Batch A writer.06.5–06.7 remain subsequent scope. VS05 semantic/current-live/
+device/signing and prior deferred authority gates remain unchanged and unproved;
+no external connector/read/access/auto-send or production/slice COMPLETE claim.
