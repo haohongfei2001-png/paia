@@ -197,8 +197,33 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  assert.equal(await rootList.locator('.topic-index-row small').evaluateAll(nodes=>nodes.some(n=>/条内容/.test(n.textContent))),false,'whole-Topic counts are not labeled as selected-source counts');
  await rootSearch.fill('Scope shared claude');
  await eventually(async()=>await rootList.locator('.topic-index-row').count()===1&&/Scope shared claude/i.test(await rootList.textContent()),'root lexical search is limited to the selected direct source');
+ // Hold the real search continuation at the section boundary, then navigate
+ // Back. The obsolete continuation must finish without opening a content modal.
+ await page.evaluate(async()=>{
+  const {ThoughtWorkspace}=await import(chrome.runtime.getURL('ui/thoughts.js'));
+  const proto=ThoughtWorkspace.prototype,focus=proto.focusSection,open=proto.openSearchResult;
+  window.vs05SearchRace={started:false,done:false};
+  const gate=new Promise(resolve=>{window.vs05SearchRace.release=resolve;});
+  proto.focusSection=async function(...args){window.vs05SearchRace.started=true;await gate;return focus.apply(this,args);};
+  proto.openSearchResult=async function(...args){try{return await open.apply(this,args);}finally{window.vs05SearchRace.done=true;}};
+  window.vs05SearchRace.restore=()=>{proto.focusSection=focus;proto.openSearchResult=open;};
+ });
+ try{
+  await rootList.locator('.topic-index-row').click();
+  await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.started),'real search continuation reaches section focus');
+  await eventually(async()=>await page.locator('#thought-document').isVisible(),'scoped root search opens the canonical Topic');
+  await page.locator('#back').click();
+  await eventually(async()=>await rootScope.isVisible(),'Back completes before the delayed search continuation');
+  await page.evaluate(()=>window.vs05SearchRace.release());
+  await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.done),'obsolete search continuation settles');
+  assert.equal(await page.locator('#library-dialog').evaluate(el=>el.open),false,'obsolete entry focus cannot open a modal after Back');
+  assert.equal(await page.locator('#thought-document').isVisible(),false,'obsolete section focus cannot replace the root route');
+ }finally{
+  await page.evaluate(()=>{window.vs05SearchRace.release();window.vs05SearchRace.restore();});
+ }
+ // Also retain the ordinary successful navigation and target-entry readback.
  await rootList.locator('.topic-index-row').click();
- await eventually(async()=>await page.locator('#thought-document').isVisible(),'scoped root search opens the canonical Topic');
+ await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1&&await page.locator('#library-dialog').evaluate(el=>!el.open),'scoped search focuses the actual placed expression without a standalone fallback');
  await page.locator('#back').click();
  await eventually(async()=>await rootScope.inputValue()==='claude'&&await rootSearch.inputValue()==='Scope shared claude'&&await rootList.locator('.topic-index-row').count()===1,'Back preserves root source/query and collection identity');
  await rootSearch.fill('independent-only-never-in-source');
