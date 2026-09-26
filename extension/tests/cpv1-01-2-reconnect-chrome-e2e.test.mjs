@@ -35,7 +35,17 @@ test('CPV1-01.2: unpacked extension update marks the old tab stale with one refr
       if (!/Target page, context or browser has been closed|Execution context was destroyed/.test(String(error))) throw error;
     }
 
-    await eventually(async () => oldTab.locator('#paia-reconnect-notice').isVisible(), 'old tab shows a visible refresh action', 20000);
+    try {
+      await eventually(async () => oldTab.locator('#paia-reconnect-notice').isVisible(), 'old tab shows a visible refresh action', 20000);
+    } catch (error) {
+      const observation = await oldTab.evaluate(() => ({
+        readyState: document.readyState,
+        runtimeConnected: Boolean(globalThis.chrome?.runtime?.id),
+        noticeCount: document.querySelectorAll('#paia-reconnect-notice').length,
+      })).catch(() => ({ pageObservationUnavailable: true }));
+      assert.fail('old tab refresh action missing after extension reload: ' +
+        JSON.stringify({ observation, browserErrors: h.errors, cause: String(error) }));
+    }
     assert.match(await oldTab.locator('#paia-reconnect-notice').textContent(), /当前页面不会继续归档/);
     assert.equal(await oldTab.locator('#paia-reconnect-notice button').textContent(), '刷新此 ChatGPT 页面');
     assert.equal(await oldTab.locator('#paia-reconnect-notice').count(), 1);

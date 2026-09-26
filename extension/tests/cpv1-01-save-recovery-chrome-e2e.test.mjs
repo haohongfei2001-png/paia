@@ -10,8 +10,8 @@ const rpc=async(page,type,fields={})=>{
 };
 const op=()=>crypto.randomUUID();
 
-async function fixture(){
- const h=await FakeChatGPT.start(),page=h.archive;
+async function fixture({launchThroughPort=false}={}){
+ const h=await FakeChatGPT.start({launchThroughPort}),page=h.archive;
  await page.locator('#consent-check').check();
  await page.locator('#enable-consent').click();
  await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consumer recovery consent');
@@ -86,6 +86,33 @@ test('CPV1-01.1 stale recovery draft restores visibly but never overwrites a new
   assert.equal((await rpc(reopened,'GET_INPUT',{id:inputId})).libraryText,'CPV1 newer committed text','newer canonical text is never overwritten');
   assert.equal(await reopened.locator('#reload-document').isVisible(),true,'conflict recovery action is visible');
   assert.match(await reopened.locator('#save-status').textContent(),/草稿已恢复到页面|尚未保存/);
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+
+test('VS-04 failed Archive removal remains visible until retry durably saves it',{timeout:60000},async()=>{
+ const {h,page,field,inputId,before}=await fixture({launchThroughPort:true});
+ try{
+  const sources=(await h.state()).records;
+  await page.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);
+   globalThis.__restoreRemovalSend=()=>{chrome.runtime.sendMessage=send;};
+   chrome.runtime.sendMessage=message=>message?.type==='EDIT_DOCUMENT'
+    ?Promise.resolve({ok:false,error:'STORAGE_FAILURE'}):send(message);
+  });
+  await field.evaluate(el=>el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20})));
+  await page.getByRole('menuitem',{name:/从档案移除|Remove from archive/}).click();
+  await eventually(()=>page.locator('#retry').isVisible(),'failed removal offers a retry');
+  assert.equal((await rpc(page,'GET_INPUT',{id:inputId})).excluded,before.excluded);
+  assert.equal(await field.isVisible(),true,'a failed removal cannot visually hide the Input');
+  assert.deepEqual((await h.state()).records,sources,'failure cannot change immutable Source');
+
+  await page.evaluate(()=>globalThis.__restoreRemovalSend());
+  await page.locator('#retry').click();
+  await eventually(async()=>(await rpc(page,'GET_INPUT',{id:inputId})).excluded===true,'retry persists removal');
+  await eventually(async()=>!await field.isVisible(),'saved removal hides the Input');
+  assert.deepEqual((await h.state()).records,sources);
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });

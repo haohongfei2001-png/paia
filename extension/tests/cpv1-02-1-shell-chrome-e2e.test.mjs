@@ -45,7 +45,7 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await eventually(()=>rootWindow.isVisible(),'scoping to ChatGPT keeps its Conversation visible');
   assert.equal(await page.locator('#sync-history').isVisible(),false);
   await page.locator('#archive-root-overflow summary').click();
-  assert.equal(await page.locator('#archive-root-history').isVisible(),true);
+  assert.equal(await page.locator('#archive-root-history').isVisible(),true,'Archive overflow exposes the verified import action');
   const [download]=await Promise.all([
    page.waitForEvent('download'),
    page.locator('#archive-root-export-json').click()
@@ -81,7 +81,7 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await eventually(()=>rootWindow.isVisible(),'a second Back keeps the Conversation reachable');
   await page.setViewportSize({width:320,height:700});
   await eventually(()=>rootWindow.isVisible(),'the same Conversation remains available at phone width');
-  assert.equal(await page.locator('#archive-root-overflow summary').isVisible(),true);
+  assert.equal(await page.locator('#archive-root-overflow summary').isVisible(),true,'Archive overflow remains visible at phone width');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'long source title does not create horizontal page overflow');
   if(process.env.PAIA_BATCH_VISUAL_DIR)await page.screenshot({path:process.env.PAIA_BATCH_VISUAL_DIR+'/archive-320.png',fullPage:true});
   assert.equal(harness.externalRequests,0);

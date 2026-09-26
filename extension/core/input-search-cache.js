@@ -2,6 +2,12 @@
 import {normalizeSearch} from './search-service.js';
 
 const PAGE=500,MAX_CHARS=16_000_000;
+export const validSearchDate=value=>typeof value==='string'&&(!value||/^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value);
+export const matchesSourceDate=(sourceSentAt,dateFrom='',dateTo='')=>{
+ if(!dateFrom&&!dateTo)return true;
+ const day=typeof sourceSentAt==='string'?sourceSentAt.slice(0,10):'';
+ return /^\d{4}-\d{2}-\d{2}$/.test(day)&&(!dateFrom||day>=dateFrom)&&(!dateTo||day<=dateTo);
+};
 export async function buildInputSearchCache(repository,expectedGeneration){
  const rows=[],documents=new Map();let after,characters=0;
  for(;;){
@@ -29,14 +35,14 @@ export async function buildInputSearchCache(repository,expectedGeneration){
  return generation===expectedGeneration?{generation,rows}:null;
 }
 
-export function lookupInputSearchCache(cache,{needle,cursor,limit,providerKey}){
+export function lookupInputSearchCache(cache,{needle,cursor,limit,providerKey,dateFrom='',dateTo=''}){
  // The first ranked page can choose its highest available rank in one pass.
  // Scanning a large cache separately for absent exact/partial titles delays
  // body hits and adds two worker round trips to every late-result search.
  if(cursor===null){
   const buckets=[[],[],[]];
   for(const row of cache.rows){
-   if(providerKey&&row.providerKey!==providerKey)continue;
+   if(providerKey&&row.providerKey!==providerKey||!matchesSourceDate(row.sourceSentAt,dateFrom,dateTo))continue;
    const rank=row.titleSearch===needle?0:row.titleSearch.includes(needle)?1:row.bodySearch.includes(needle)?2:-1;
    if(rank>=0&&buckets[rank].length<limit)buckets[rank].push({...row,rank});
   }
@@ -48,7 +54,7 @@ export function lookupInputSearchCache(cache,{needle,cursor,limit,providerKey}){
  const phase=cursor.phase,offset=cursor.offset??-1,items=[];
  let index=0;while(index<cache.rows.length&&cache.rows[index].sequence<=offset)index++;
  for(;index<cache.rows.length;index++){
-  const row=cache.rows[index];if(providerKey&&row.providerKey!==providerKey)continue;
+  const row=cache.rows[index];if(providerKey&&row.providerKey!==providerKey||!matchesSourceDate(row.sourceSentAt,dateFrom,dateTo))continue;
   const titleRank=row.titleSearch===needle?0:row.titleSearch.includes(needle)?1:-1;
   if(phase<2?titleRank!==phase:titleRank>=0||!row.bodySearch.includes(needle))continue;
   items.push({...row,rank:phase});

@@ -5,6 +5,7 @@ import {OrganizerStore} from '../core/organizer/store.js';
 import {seedScale} from './fixtures/scale-v092.mjs';
 import {findInputPage} from '../ui/input-search.js';
 import {lookupInputSearchCache} from '../core/input-search-cache.js';
+import {conversationMetaId} from '../core/source-structure-model.js';
 
 globalThis.IDBKeyRange=IDBKeyRange;
 function local(){const values={};return {async get(key){return {[key]:structuredClone(values[key])};},async set(rows){Object.assign(values,structuredClone(rows));}};}
@@ -27,6 +28,19 @@ test('large ranked Input search keeps late hits, source scope and edit/removal i
  await reopened.repository.close();
 });
 
+test('ranked search date scope agrees across cache and scan and excludes unknown time',{timeout:120000},async()=>{
+ const storage=local(),indexedDB=new IDBFactory(),s=new OrganizerStore(storage,{indexedDB});
+ await s.consent(true);await seedScale(s,1001);
+ const query='Synthetic scale body 1000',id='block:scale-record-00001000';
+ for(const ranked of [false,true]){
+  assert.deepEqual((await findInputPage({query,ranked,read:options=>s.searchInputs({...options,dateFrom:'2021-01-01',dateTo:'2021-01-01'})})).items.map(row=>row.id),[id]);
+  assert.equal((await findInputPage({query,ranked,read:options=>s.searchInputs({...options,dateFrom:'2021-01-02'})})).items.length,0);
+ }
+ await assert.rejects(s.searchInputs({query,dateFrom:'2021-02-30'}),/INVALID_REQUEST/);
+ await assert.rejects(s.searchInputs({query,dateFrom:'2021-02-01',dateTo:'2021-01-01'}),/INVALID_REQUEST/);
+ await s.repository.close();
+});
+
 test('first cache lookup preserves exact-title, partial-title and body rank order with source scope',()=>{
  const rows=[
   {id:'body',sequence:1,titleSearch:'another title',bodySearch:'needle in body',providerKey:'chatgpt'},
@@ -44,4 +58,28 @@ test('first cache lookup preserves exact-title, partial-title and body rank orde
  const body=lookupInputSearchCache(cache,{...options,cursor:partial.nextCursor});
  assert.deepEqual(body.items.map(row=>[row.id,row.rank]),[['body',2]]);
  assert.equal(body.nextCursor,null);
+});
+
+test('Project search uses current observed membership in cache and scan paths',{timeout:120000},async()=>{
+ const storage=local(),indexedDB=new IDBFactory(),s=new OrganizerStore(storage,{indexedDB});
+ await s.consent(true);await seedScale(s,1001);
+ const projectA={providerKey:'chatgpt',namespace:'chatgpt',projectId:'search-A'};
+ const projectB={providerKey:'chatgpt',namespace:'chatgpt',projectId:'search-B'};
+ const id=await conversationMetaId({platform:'chatgpt',sourceConversationId:'scale-chat-5'});
+ const query='Synthetic scale body 1000',target='block:scale-record-00001000';
+ const setProject=async ref=>s.repository.transaction(true,t=>t.put('meta',{
+  id,kind:'conversation',membership:{state:'project',projectRef:ref}
+ }));
+ try{
+  await setProject(projectA);
+  for(const ranked of [false,true]){
+   const find=ref=>findInputPage({query,ranked,read:options=>s.searchInputs({...options,projectRef:ref})});
+   assert.deepEqual((await find(projectA)).items.map(row=>row.id),[target]);
+   assert.deepEqual((await find(projectB)).items,[]);
+  }
+  await setProject(projectB);
+  assert.deepEqual((await findInputPage({query,ranked:true,read:options=>s.searchInputs({...options,projectRef:projectA})})).items,[],'stale cached Project membership is not reused');
+  assert.deepEqual((await findInputPage({query,ranked:true,read:options=>s.searchInputs({...options,projectRef:projectB})})).items.map(row=>row.id),[target]);
+  await assert.rejects(s.searchInputs({query,projectRef:{...projectA,unexpected:true}}),/INVALID_REQUEST/);
+ }finally{await s.repository.close();}
 });

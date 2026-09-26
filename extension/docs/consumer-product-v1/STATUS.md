@@ -12,11 +12,11 @@ current_slice: VS-04
 
 current_slice_status: ACTIVE — VS-03_ENGINEERING_COMPLETE_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-04.0 + CPV1-04.1 + CPV1-04.2 + CPV1-04.3 + CPV1-04.4 / VS-04 Batch A
+current_round: CPV1-04.5 + CPV1-04.6 + CPV1-04.7 / VS-04 Batch B
 
-current_round_status: ACTIVE / VS-03_ENGINEERING_INTEGRATED_EXTERNAL_EXPORT_PENDING
+current_round_status: ACTIVE / VS-04_BATCH_A_TARGETED_PASS_BATCH_B_IN_PROGRESS
 
-current_writer: MANAGER — sole VS-04 Batch A writer
+current_writer: MANAGER — sole VS-04 Batch B writer
 
 writer_status: ACTIVE
 
@@ -277,7 +277,7 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | VS-01 Safe open, update and recovery | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Existing archive survives ordinary lifecycle/update and failures without engineering intervention |
 | VS-02 Source structure to world-class Reader | ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING | Captured conversations appear in the correct Project and open in a coherent fast Reader |
 | VS-03 History import, export and recoverable large library | ENGINEERING_COMPLETE / EXTERNAL_EXPORT_CERT_PENDING | Real official history imports safely and the supported archive can actually be restored |
-| VS-04 Natural editing and fast lexical retrieval | ACTIVE — Batch A CPV1-04.0–04.4 | Direct editing, undo, search, filtering and reuse feel like one document product |
+| VS-04 Natural editing and fast lexical retrieval | ACTIVE — Batch B CPV1-04.5–04.7; Batch A targeted checks PASS | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | PLANNED | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
 | VS-06 Complete AI Context reuse | PLANNED | Inputs/Topics/cross-Topic material become reviewable authorized Context without silent truncation |
 | VS-07 Semantic retrieval and longitudinal revisit | PLANNED | Users can find forgotten differently-worded ideas and compare real historical expression |
@@ -286,6 +286,24 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | VS-10 Mobile MyWrite and voice | PLANNED | Phone users can quickly write/speak into the same PAIA system and recover interruptions |
 | VS-11 Multi-source and device continuity | PLANNED | Multiple sources/devices converge without losing edits or resurrecting deleted material |
 | VS-12 Authorized AI write proposals and reply-aware prompting | PLANNED | External AI can propose safe PAIA organization changes and reply-aware prompts under distinct permission |
+
+## VS-04 Batch B storage-failure candidate
+
+The next coherent candidate keeps an Archive Input visible until reversible removal is durably saved. The same saved-state visibility rule applies to undo/redo; a hosted browser failure/retry journey verifies that storage failure leaves the Input and immutable Source intact and that a successful retry hides it. Exact-head targeted CI is pending. This is CPV1-04.5/04.6 engineering evidence, not VS-04 slice certification.
+
+## VS-04 Batch B closure review
+
+CPV1-04.5 policy distinctions are present in the production paths: Topic removal/restore changes Topic placements and retains Source/Input; Archive removal is reversible and now waits for a durable save; Source purge is separately confirmed and permanently tombstoned; Context direct-Input exclusion is reversible without changing Topic authorization or deleting Source (see `context-input-round8.test.mjs`). A new store-level Topic removal/restore regression checks Source and Archive identity independently. B-02 mixed human-derivative permanent purge remains owner gated and is not marked PASS.
+
+CPV1-04.6 matrix: Chinese IME (`cpv1-02-4-reader-chrome-e2e.test.mjs`, `ans-08-topic-edit-preservation-chrome-e2e.test.mjs`); long text and emoji/code (Reader browser path); concurrent tab edit (`cpv1-04-conflict-chrome-e2e.test.mjs`); worker termination (`cpv1-01-save-recovery-chrome-e2e.test.mjs`); storage failure (same file, Archive removal retry); filter rerun (`smart-filter-ui-e2e.test.mjs`); search during edit and undo after navigation (Reader browser path); deletion/reimport (`library.test.mjs` and `history-privacy-v090.test.mjs`). These are synthetic/unit evidence classes. Current live/private/device evidence remains deferred.
+
+CPV1-04.7 remains the active engineering boundary: stable-head 10k long-content and 10k/100k lexical/search/scroll profile, realistic visual artifacts, and full exact-head certification are pending. No VS-04 COMPLETE claim is made.
+
+## VS-04 certification failure triage
+
+Stable-head [full certification 36202424528](https://github.com/haohongfei2001-png/paia/actions/runs/36202424528) and [performance certification 36202424571](https://github.com/haohongfei2001-png/paia/actions/runs/36202424571) failed; VS-04 remains ACTIVE. The performance Reader regressions launched headed Chrome without a display; the performance workflow now uses Xvfb and retains the same tests. The full browser shard reached a shell navigation assertion; its exact failing step remains under targeted diagnosis. The hosted Mac old-tab reload notice failed once, while an exact-path targeted hosted Mac run on the next draft head succeeded. This is classified as a browser/environment race pending full certification, not a product-runtime fix or PASS. No test is skipped or weakened.
+
+The draft candidate gate now exercises the shell path under the same full hosted Chrome extension CDP configuration as certification. Only after the shell cause is resolved and the candidate is stable will exact-head full and performance certification run again. Physical-device and private/live evidence remains deferred.
 
 ## Core desktop candidate gate
 

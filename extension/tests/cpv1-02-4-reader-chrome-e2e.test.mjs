@@ -102,3 +102,178 @@ test('CPV1-02.4 conversation search steps into unmounted text and close restores
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('VS-04 search positions a lexical hit inside a long Input without mutating the text',{timeout:75000},async()=>{
+ const h=await FakeChatGPT.start({headless:false});
+ try{
+  const p=h.archive;await consent(p);
+  const body='Long reading '.repeat(2500)+' UNIQUE_LEXICAL_TARGET '+'ending '.repeat(100);
+  const c=conversation('vs04-long-search');c.messages=[{id:'vs04-long-search-input',text:body}];
+  await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
+  await openCapturedReader(p);
+  await p.locator('#document-search').fill('UNIQUE_LEXICAL_TARGET');
+  await eventually(async()=>await p.locator('.document-search-hit').count()===1,'long Input is indexed');
+  await p.locator('.document-search-hit').click();
+  await eventually(async()=>p.evaluate(async()=>{
+   const target=document.querySelector('.library-prose');
+   const {firstLexicalRange}=await import('./search-experience.js');
+   const rect=firstLexicalRange(target,'UNIQUE_LEXICAL_TARGET')?.getBoundingClientRect();
+   return !!rect&&rect.top>=0&&rect.bottom<=innerHeight;
+  }),'exact lexical hit is in the viewport');
+  assert.equal(await p.locator('.library-prose').textContent(),body);
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+test('VS-04 direct Input edit stays traceable through search, Source and restore-as-new-current',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start({headless:false});
+ try{
+  const p=h.archive;await consent(p);
+  await h.open(conversation('vs04-edit-source-history'));
+  await eventually(async()=>(await h.state()).records.length===3);
+  const baseline=await h.state();
+  await openCapturedReader(p);
+  const first=p.locator('.library-prose').first(),id=await first.getAttribute('data-edit-id');
+  const initial=baseline.library.blocks.find(b=>b.id===id),initialRevision=initial.revision;
+  const source=baseline.records.find(r=>r.id===initial.originalTextReference)?.originalText;
+  assert.ok(source,'first Input retains its Source text');
+  const changed='中文编辑 🧭 VS04 unique retrieval line · code: const answer = 42;';
+  await first.fill(changed);
+  await eventually(async()=>{
+   const current=await h.state();
+   return current.library.blocks.find(b=>b.id===id)?.libraryText===changed;
+  },'direct Input edit autosaves');
+  assert.deepEqual((await h.state()).records,baseline.records,'editing cannot rewrite Source');
+
+  await p.locator('.library-block .reader-more').first().click();
+  await p.getByRole('menuitem',{name:'查看当时记录'}).click();
+  await p.locator('#info-dialog').waitFor({state:'visible'});
+  assert.equal(await p.locator('#info-dialog .source-original').first().textContent(),source);
+  assert.equal(await p.locator('#info-dialog .reader-working-comparison').textContent(),changed);
+  await p.locator('#info-dialog').getByRole('button',{name:'查看工作版本'}).click();
+  await p.locator('#revision-dialog').waitFor({state:'visible'});
+  assert.match(await p.locator('#revision-list .revision-row').first().textContent(),/编辑/);
+  await p.locator('#close-revisions').click();
+
+  await p.locator('#back').click();
+  await p.locator('#search').fill('VS04 unique retrieval');
+  await eventually(()=>p.locator('.search-input').first().isVisible(),'edited Input is searchable');
+  await p.locator('.search-input').first().click();
+  await eventually(()=>p.locator('[data-edit-id="'+id+'"]').isVisible(),'search reopens the edited Input');
+  assert.equal(await p.locator('[data-edit-id="'+id+'"]').textContent(),changed);
+
+  await p.locator('[data-block-id="'+id+'"] .reader-more').click();
+  await p.getByRole('menuitem',{name:'版本历史'}).click();
+  await p.locator('#revision-dialog').waitFor({state:'visible'});
+  const history=p.locator('#revision-list .revision-row').first();
+  await history.waitFor();
+  assert.match(await history.textContent(),/编辑/);
+  await history.getByRole('button',{name:'恢复操作前'}).click();
+  const confirmation=p.locator('dialog.reader-confirm');
+  await confirmation.waitFor({state:'visible'});
+  assert.match(await confirmation.textContent(),/恢复会建立今天的新版本/);
+  await confirmation.getByRole('button',{name:'恢复这个工作版本'}).click();
+  await eventually(async()=>{
+   const current=await h.state(),block=current.library.blocks.find(b=>b.id===id);
+   return block?.revision>initialRevision+1;
+  },'restore creates a new current revision');
+  await eventually(async()=>await p.locator('[data-edit-id="'+id+'"]').textContent()===source,'restored text appears in Reader');
+  assert.deepEqual((await h.state()).records,baseline.records,'Source remains immutable after restore');
+  assert.equal(h.extensionNetworkRequests,0);
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+
+test('VS-04 current-document search saves a live edit before indexing it',{timeout:75000},async()=>{
+ const h=await FakeChatGPT.start({launchThroughPort:true});
+ try{
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);await p.locator('#onboarding-skip').click();
+  const c=conversation('vs04-search-during-edit');c.messages=[{id:'vs04-search-edit-input',text:'Original search body'}];
+  await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
+  await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
+  await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  await p.locator('.archive-navigator-window').first().click();
+  const prose=p.locator('.library-prose').first();await eventually(()=>prose.isVisible());
+  const id=await prose.getAttribute('data-edit-id'),changed='中文 🧭 code const searchDuringEdit = 42; UNIQUE_VS04_LIVE_EDIT';
+  await prose.fill(changed);
+  await p.locator('#document-search').fill('UNIQUE_VS04_LIVE_EDIT');
+  await eventually(()=>p.locator('.document-search-hit').count().then(n=>n===1),'the live edit is searchable');
+  assert.equal(await p.locator('.document-search-hit').first().getAttribute('data-input-id'),id);
+  assert.equal((await h.state()).library.blocks.find(b=>b.id===id)?.libraryText,changed);
+  assert.equal((await h.state()).records[0].originalText,'Original search body','Source stays immutable');
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+test('VS-04 undo survives navigation back to the same Reader only while revisions match',{timeout:75000},async()=>{
+ const h=await FakeChatGPT.start({launchThroughPort:true});
+ try{
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);await p.locator('#onboarding-skip').click();
+  const c=conversation('vs04-undo-after-navigation');c.messages=[{id:'vs04-undo-input',text:'Source before edit'}];
+  await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
+  await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
+  await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  const window=p.locator('.archive-navigator-window').first();await window.click();
+  const prose=p.locator('.library-prose').first();await eventually(()=>prose.isVisible());
+  const id=await prose.getAttribute('data-edit-id'),edited='Edited 🧭 const next = 42;';
+  const originalLibrary=(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText;
+  await prose.fill(edited);
+  await eventually(async()=>(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText===edited,'edit saves before leaving');
+  await p.locator('#back').click();await eventually(()=>group.isVisible());
+  if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  await eventually(()=>window.isVisible());await window.click();
+  const returned=p.locator('[data-edit-id="'+id+'"]');await eventually(()=>returned.isVisible());
+  await p.locator('[data-block-id="'+id+'"] .reader-more').click();
+  await p.getByRole('menuitem',{name:/撤销|Undo/}).click();
+  await eventually(async()=>(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText===originalLibrary,'undo after navigation saves');
+  assert.equal(await returned.textContent(),'Source before edit');
+  assert.equal((await h.state()).records[0].originalText,'Source before edit');
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000},async()=>{
+ const h=await FakeChatGPT.start({launchThroughPort:true});
+ try{
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);
+  await p.locator('#onboarding-skip').click();
+  const c=conversation('cpv1-purge-ime');c.messages=[{id:'cpv1-purge-ime-input',text:'Synthetic source kept'}];
+  await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
+  await p.bringToFront();
+  const group=p.locator('.archive-navigator-group-toggle').first();
+  await eventually(()=>group.isVisible(),'captured group is visible');
+  assert.match(await group.textContent(),/归属未知|Project unknown/);
+  if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  const window=p.locator('.archive-navigator-window').first();
+  await eventually(()=>window.isVisible(),'captured Conversation is visible');
+  await window.click();
+  await eventually(()=>p.locator('.library-prose').first().isVisible(),'Reader opens');
+  const prose=p.locator('.library-prose').first();
+  await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='未完成的输入';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:'未完成的输入',isComposing:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
+  await p.getByRole('menuitem',{name:/^(查看当时记录|View source record)$/}).click();
+  await p.locator('#info-content button.danger').click();
+  await eventually(async()=>/请先完成并保存当前输入修改/.test(await p.locator('#notice').textContent()),'unfinished IME edit blocks purge');
+  assert.equal(await p.locator('.reader-confirm').count(),0,'source purge never reaches confirmation while a Reader edit cannot save');
+  assert.equal((await h.state()).records.length,1,'immutable Source remains present');
+  assert.equal(await prose.textContent(),'未完成的输入','the composing text remains visible after refused purge');
+  await p.locator('#close-info').click();
+  await prose.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true})));
+  await p.locator('#document-search').evaluate(el=>{el.value='未完成的输入';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await eventually(async()=>/请先完成并保存当前输入修改|Finish and save the current Input edit/.test(await p.locator('#document-search-status').textContent()),'search waits for unfinished IME edit');
+  assert.equal(await p.locator('.document-search-hit').count(),0,'unfinished text is not presented as indexed data');
+  assert.equal(await prose.textContent(),'未完成的输入','search preserves composing text');
+  await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
+  await p.getByRole('menuitem',{name:/从档案移除|Remove from archive/}).click();
+  assert.equal((await h.state()).library.blocks[0].excluded,false,'reversible removal cannot hide an unfinished edit');
+  assert.equal(await prose.textContent(),'未完成的输入','rejected removal preserves the composing text');
+  await p.locator('#revision-history').click();
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+  assert.equal(await p.locator('#revision-dialog').evaluate(el=>el.open),false,'version history does not open over unfinished IME text');
+  await p.locator('#back').click();
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+  assert.equal(await prose.isVisible(),true,'navigation preserves the unfinished Reader edit');
+  assert.equal(await prose.textContent(),'未完成的输入');
+  assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
