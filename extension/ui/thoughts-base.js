@@ -116,6 +116,13 @@ export class ThoughtWorkspace {
  restoreHomeAnchor(anchor){if(!anchor)return;requestAnimationFrame(()=>{const node=[...$('thought-list').querySelectorAll('[data-topic-id]')].find(x=>x.dataset.topicId===anchor.id);if(node)scrollBy(0,node.getBoundingClientRect().top-anchor.top);});}
  async toggleLayout(){const next=this.layout==='list'?'grid':'list',anchor=this.captureHomeAnchor();try{await request('SET_THOUGHT_LAYOUT',{layout:next});this.layout=next;this.applyLayout();this.restoreHomeAnchor(anchor);}catch{this.onStatus(tc('布局尚未保存，已保留原值。'),'error');}}
  resetHomeCollection(){clearTimeout(this.continuousTimer);this.homeCollection=null;this.homeDesiredCount=40;this.homeRestoring=false;}
+ invalidateHomeSnapshot(){
+  // A saved list is only a reading-position optimization. Library mutations
+  // invalidate its rows even while another Topic is open; retain query/scroll
+  // and the loaded extent so returning reads current authority.
+  const saved=this.homePositions.get(null);
+  if(saved?.collection){this.homeDesiredCount=Math.max(this.homeDesiredCount||40,saved.collection.items?.length||0,40);delete saved.collection;}
+ }
  homeCollectionScope(query){return this.rootProviderKey?JSON.stringify(['source',this.rootProviderKey,query?'search':'root']):query?'search':'root';}
  createHomeCollection(query){const scope=this.homeCollectionScope(query),providerKey=this.rootProviderKey;return new ContinuousCollection({scope,query,keyOf:continuousItemKey,load:({cursor})=>providerKey?request('LIBRARY_INDEX_PAGE',{options:{mode:'stable',providerKey,query,cursor,limit:40}}):query?request('SEARCH_LIBRARY',{options:{query,cursor,limit:40}}):request('LIBRARY_INDEX_PAGE',{options:{mode:this.mode,cursor,limit:40}})});}
  homePageState(state){return {...(state.pageMeta||{}),items:[...state.items],nextCursor:state.cursor,complete:state.terminal,coverage:state.coverage};}

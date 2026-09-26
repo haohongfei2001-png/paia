@@ -78,7 +78,11 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  const other=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:label+' Other topic',operationId:op()}});
  await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:other.id,body:label+'_OTHER local reading remains available.'}});
  await checkpoint('other-topic-prepared');
- await page.locator('#back').click();await page.locator('[data-topic-id="'+other.id+'"]').click();
+ await page.locator('#back').click();
+ await eventually(()=>page.locator('[data-topic-id="'+other.id+'"]').isVisible(),'new Topic appears on restored root before provider completion');
+ await checkpoint('restored-root');
+ assert.equal((await rpc(page,'GET_AI_PRESENTATION_STATUS')).runtime?.state,'sent','root restoration must not wait for provider completion');
+ await page.locator('[data-topic-id="'+other.id+'"]').click();
  await page.locator('#topic-heading h1').filter({hasText:other.name}).waitFor();
  assert.equal(await page.locator('#ai-topic-status').isVisible(),false,'another Topic is not labeled as the pending request scope');
  await page.locator('#back').click();await page.locator('[data-topic-id="'+topic.id+'"]').click();await original.waitFor();
