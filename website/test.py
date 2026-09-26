@@ -142,6 +142,10 @@ try:
                     page.add_style_tag(content='html{font-size:200%!important}')
                     check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: 320px with 200% text')
                 if name in ('index.html','zh/index.html','beta.html','zh/beta.html','demo.html','zh/demo.html') and width in (1440,390):
+                    # Review captures should show the complete designed page rather than
+                    # preserve below-the-fold reveal opacity. Production motion is unchanged.
+                    if name in ('index.html','zh/index.html'):
+                        page.evaluate("document.querySelectorAll('[data-reveal]').forEach(el=>el.classList.add('is-visible'))")
                     page.screenshot(path=str(OUT / f'{name.replace("/","-")}-{width}.png'), full_page=True)
                 page.close()
         for locale in ['', 'zh/']:
