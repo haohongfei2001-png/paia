@@ -143,6 +143,7 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  const legacy=page.locator('#ai-reading-body .ai-legacy').filter({has:page.locator('summary',{hasText:'其他已保存的整理'})}).first();
  await legacy.locator('summary').click();
  const authored=label+' 人工保留第一行\n第二行条件 remains explicit.';
+ assert.equal(await legacy.locator('[data-ai-field="keyInformation"]').first().evaluate(el=>getComputedStyle(el).whiteSpace),'pre-wrap','saved field preserves authored line-break layout');
  await legacy.locator('[data-ai-field="keyInformation"]').first().fill(authored);
  await legacy.locator('summary').click();
  await eventually(async()=>{const current=(await rpc(page,'GET_AI_PRESENTATION_STATUS')).topics.find(row=>row.topicId===topic.id)?.presentation;return current?.keyInformation[0]?.text===authored;},'collapsed authored multiline draft is durably saved');

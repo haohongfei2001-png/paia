@@ -198,3 +198,7 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 .thought-source-scope-label{display:flex;align-items:center;gap:8px;min-width:0;margin-top:8px}
 #thought-source-scope{min-width:0;max-width:100%;min-height:40px}
 @media(max-width:720px){#thought-source-scope{min-height:44px}}
+
+/* Authored AI fields retain literal line breaks in both overview and collapsed
+   legacy sections. Rendered text must not turn multiline input into a new value. */
+#ai-reading-body [data-ai-field]{white-space:pre-wrap;overflow-wrap:anywhere;}
