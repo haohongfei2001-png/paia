@@ -69,3 +69,60 @@
   });
   renderSelection();
 })();
+
+
+/* PAIA Website v3: fragments become Context.
+ * Website-only, synthetic text, no fetch/storage/analytics/clipboard/model calls. */
+(() => {
+  'use strict';
+
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const reveals = [...document.querySelectorAll('[data-reveal]')];
+  if (!reduceMotion && reveals.length) {
+    document.documentElement.classList.add('v3-motion');
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      }, {threshold: 0.12, rootMargin: '0px 0px -4% 0px'});
+      reveals.forEach(node => observer.observe(node));
+    } else {
+      reveals.forEach(node => node.classList.add('is-visible'));
+    }
+  }
+
+  const field = document.querySelector('[data-v3-context]');
+  if (!field) return;
+  const fragments = [...field.querySelectorAll('[data-v3-fragment]')];
+  const list = field.querySelector('[data-v3-list]');
+  const count = field.querySelector('[data-v3-count]');
+  const en = field.dataset.language === 'en';
+
+  function render() {
+    const selected = fragments.filter(button => button.getAttribute('aria-pressed') === 'true');
+    count.textContent = `${selected.length} / ${fragments.length}`;
+    list.replaceChildren();
+    for (const button of selected) {
+      const item = document.createElement('span');
+      item.textContent = button.querySelector('.v3-fragment-copy')?.textContent?.trim() || '';
+      list.append(item);
+    }
+    if (!selected.length) {
+      const empty = document.createElement('span');
+      empty.textContent = en ? 'Nothing selected. Nothing moves forward.' : '没有选中内容，也不会自动补进来。';
+      list.append(empty);
+    }
+  }
+
+  fragments.forEach(button => {
+    button.addEventListener('click', () => {
+      const next = button.getAttribute('aria-pressed') !== 'true';
+      button.setAttribute('aria-pressed', String(next));
+      render();
+    });
+  });
+  render();
+})();
