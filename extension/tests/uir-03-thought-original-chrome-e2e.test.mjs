@@ -204,7 +204,27 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  await rootSearch.fill('independent-only-never-in-source');
  await eventually(async()=>await page.locator('#library-search-status').textContent()==='当前来源没有匹配内容，试试另一种表达或全部来源。','empty scope search is an honest selected-source result');
  await rootSearch.fill('');
- await eventually(async()=>await rootList.locator('[data-topic-id="'+topics[1].id+'"]').count()===1,'clearing root search keeps Claude scope');
+ try{
+  await eventually(async()=>await rootList.locator('[data-topic-id="'+topics[1].id+'"]').count()===1,'clearing root search keeps Claude scope');
+ }catch(error){
+  const pages=[];let cursor=null;
+  for(let i=0;i<12;i++){
+   const data=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable',providerKey:'claude',query:'',cursor,limit:40}});
+   pages.push({ids:data.items.map(x=>x.id),nextCursor:data.nextCursor,complete:data.complete,coverage:data.coverage,operations:data.operations});
+   cursor=data.nextCursor;if(!cursor)break;
+  }
+  console.error('VS05_ROOT_CLEAR_DIAG',JSON.stringify({release,pages,ui:await page.evaluate(()=>({
+   query:document.querySelector('#thought-search').value,provider:document.querySelector('#thought-source-scope').value,
+   status:document.querySelector('#library-search-status').textContent,error:document.querySelector('#error').textContent,
+   collection:document.querySelector('#thought-collection').dataset.state,
+   sentinel:document.querySelector('#thought-continuous-status').textContent,
+   rootIds:[...document.querySelectorAll('#thought-list [data-topic-id]')].map(x=>x.dataset.topicId),
+   rows:document.querySelectorAll('#thought-list .topic-index-row').length,
+   homeVisible:!document.querySelector('#thought-home-tools').hidden,
+   documentVisible:!document.querySelector('#thought-document').hidden
+  }))}));
+  throw error;
+ }
  await rootScope.selectOption('chatgpt');
  await eventually(async()=>await rootList.locator('[data-topic-id]').count()===1&&await rootList.locator('[data-topic-id="'+topics[1].id+'"]').count()===1,'ChatGPT uses the same mixed Topic identity');
  await rootScope.selectOption('');

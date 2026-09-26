@@ -358,3 +358,13 @@ test('VS-05 root lexical search and live source removal exclude independent/cont
  assert.deepEqual((await sourceRootItems(f,'chatgpt')).items,[]);
  assert.equal((await f.s.entry(f.entries.mixed)).body,'VS05 scope shared mixed');
 });
+
+test('VS-05 source root survives actual reading activity and scoped search round trip',async()=>{
+ const f=await mixedProviderTopic();
+ assert.deepEqual((await sourceRootItems(f,'claude')).items.map(x=>x.id),[f.topic.id]);
+ for(let i=0;i<1000;i++){const p=await f.s.processLibraryMaintenance();if(!p.pending)break;if(i===999)assert.fail('search maintenance did not settle');}
+ assert.ok((await sourceRootItems(f,'claude','scope shared claude')).items.some(x=>x.entryId===f.entries.claude));
+ await f.s.recordTopicRead(f.topic.id);
+ assert.deepEqual((await sourceRootItems(f,'claude','no-matching-independent-expression')).items,[]);
+ assert.deepEqual((await sourceRootItems(f,'claude')).items.map(x=>x.id),[f.topic.id]);
+});
