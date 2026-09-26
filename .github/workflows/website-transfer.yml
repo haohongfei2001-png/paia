@@ -1,23 +1,87 @@
-name: Website Baseline Transfer
+name: Website Reviewed Source Build
 on:
   push:
     branches: [website/ai-context-redesign-20260926]
-    paths: [.github/workflows/website-transfer.yml]
+    paths: ['website/.ai-redesign/**', '.github/workflows/website-transfer.yml']
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: website-reviewed-source-build
+  cancel-in-progress: false
 jobs:
-  export:
+  materialize:
+    if: github.repository == 'haohongfei2001-png/paia' && github.ref == 'refs/heads/website/ai-context-redesign-20260926'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: 00d880a40137e672e000f4e550fb3d482b9269dc
-          persist-credentials: false
-      - name: Archive public exact-main sources only
-        run: git archive --format=zip --output=/tmp/paia-baseline.zip HEAD
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          name: paia-baseline-00d880a
-          path: /tmp/paia-baseline.zip
-          retention-days: 1
+          python-version: '3.13'
+      - name: Verify exact reviewed sources and bounded patch bases
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib,json,lzma
+          root=Path.cwd()
+          parts=[root/f'website/.ai-redesign/source-{i}.bin' for i in (1,2,3)]
+          packed=b''.join(p.read_bytes() for p in parts)
+          assert len(packed)==21928
+          assert hashlib.sha256(packed).hexdigest()=='1c7b4d550fbde3d4ae7070f3e75143d3591f9e096757163c60e0a128bfa7e84f'
+          raw=lzma.decompress(packed,memlimit=256*1024*1024)
+          assert len(raw)==77684
+          bundle=json.loads(raw)
+          assert set(bundle)=={'files','patches'}
+          assert set(bundle['files'])=={'website/home.py','website/render_social.py','website/README.md','assets/website/site.css','assets/website/site.js','assets/website/favicon.svg'}
+          assert set(bundle['patches'])=={'website/build.py','website/test.py'}
+          for name,text in bundle['files'].items():
+              assert isinstance(text,str)
+              target=root/name
+              assert target.resolve().is_relative_to(root)
+              target.parent.mkdir(parents=True,exist_ok=True)
+              target.write_text(text,encoding='utf-8')
+          for name,patch in bundle['patches'].items():
+              target=root/name
+              text=target.read_text(encoding='utf-8')
+              assert hashlib.sha256(text.encode()).hexdigest()==patch['base_sha256'],name
+              for i,j,replacement in reversed(patch['ops']):
+                  assert 0<=i<=j<=len(text) and isinstance(replacement,str)
+                  text=text[:i]+replacement+text[j:]
+              assert hashlib.sha256(text.encode()).hexdigest()==patch['result_sha256'],name
+              target.write_text(text,encoding='utf-8')
+          print('Exact reviewed website source bundle verified; no extension paths admitted')
+          PY
+      - name: Install build browser and local fonts
+        run: |
+          python -m pip install -r website/requirements.txt
+          python -m playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk fonts-liberation
+      - name: Generate static public website and remove transfer machinery
+        run: |
+          python website/build.py
+          python website/render_social.py
+          python website/build.py --check
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          sources={'website/home.py','website/build.py','website/test.py','website/render_social.py','website/README.md','assets/website/site.css','assets/website/site.js','assets/website/favicon.svg'}
+          roots={'index.html','demo.html','beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html'}
+          generated=set(Path('website/generated-paths.txt').read_text().splitlines())
+          assert generated==roots|{'en/'+p for p in roots}|{'sitemap.xml','robots.txt'}
+          temporary={f'website/.ai-redesign/source-{i}.bin' for i in (1,2,3)}|{'.github/workflows/website-transfer.yml'}
+          for name in temporary: Path(name).unlink()
+          allowed=sources|generated|temporary|{'website/generated-paths.txt','assets/website/og-zh.png','assets/website/og-en.png'}
+          changed=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())|set(subprocess.check_output(['git','ls-files','--others','--exclude-standard'],text=True).splitlines())
+          assert changed<=allowed, sorted(changed-allowed)
+          assert not any(p.startswith('extension/') for p in changed)
+          Path('/tmp/website-stage').write_bytes(b'\0'.join(p.encode() for p in sorted(allowed))+b'\0')
+          print('Website-only changes:',sorted(changed))
+          PY
+          git add --pathspec-from-file=/tmp/website-stage --pathspec-file-nul
+          git config user.name 'PAIA Website Build'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Reposition and redesign PAIA as an AI-era personal information and context product'
+          git push origin HEAD:refs/heads/website/ai-context-redesign-20260926
+          git rev-parse HEAD
