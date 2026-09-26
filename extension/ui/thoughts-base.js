@@ -335,14 +335,23 @@ export class ThoughtWorkspace {
    }
   }finally{this.readingSortBusy=false;controls.removeAttribute('aria-busy');buttons.forEach(b=>b.disabled=!!this.topicProviderKey&&!!b.dataset.readingStart);}
  }
- async updateTopicSourceOptions(serial=this.serial){
-  let page;try{page=await request('PAIA_ARCHIVE_NAV_PAGE',{page:{groupKind:'providers',limit:40,mode:'paia'}});}catch{return;}
+ async updateTopicSourceOptions(serial=this.serial,{cursor=null,keys=[],generation=null}={}){
+  clearTimeout(this.topicSourceOptionsTimer);
   if(serial!==this.serial||!this.id||this.view!=='original')return;
-  const select=$('topic-source-scope'),keys=[...new Set((page.items||[]).map(x=>x.providerKey))],current=this.topicProviderKey;
-  if(current&&!keys.includes(current))keys.push(current);
-  const desired=['',...keys],existing=[...select.options].map(x=>x.value);
+  const topicId=this.id,select=$('topic-source-scope');
+  select.setAttribute('aria-busy','true');
+  const later=state=>{this.topicSourceOptionsTimer=setTimeout(()=>{if(serial===this.serial&&topicId===this.id&&this.view==='original')void this.updateTopicSourceOptions(serial,state);},40);};
+  let page;try{page=await request('PAIA_ARCHIVE_NAV_PAGE',{page:{groupKind:'providers',limit:40,mode:'paia',...(cursor?{cursor}:{})}});}catch{if(serial===this.serial&&topicId===this.id)select.setAttribute('aria-busy','false');return;}
+  if(serial!==this.serial||topicId!==this.id||this.view!=='original')return;
+  // The first bounded request advances the disposable index and can contain
+  // no options. Only a complete, same-generation page is source membership.
+  if(page.coverage?.state!=='complete'||page.cursorInvalid||(generation&&generation!==page.generation)){later({});return;}
+  const found=[...new Set([...keys,...(page.items||[]).map(x=>x.providerKey).filter(key=>typeof key==='string'&&key)])];
+  if(page.nextCursor){later({cursor:page.nextCursor,keys:found,generation:page.generation});return;}
+  const current=this.topicProviderKey;if(current&&!found.includes(current))found.push(current);
+  const desired=['',...found],existing=[...select.options].map(x=>x.value);
   if(JSON.stringify(existing)!==JSON.stringify(desired))select.replaceChildren(...desired.map(key=>{const option=element('option','',key?({chatgpt:'ChatGPT',claude:'Claude'})[key]||key:'全部来源（含独立写下的内容）');option.value=key;return option;}));
-  select.value=current||'';
+  select.value=current||'';select.setAttribute('aria-busy','false');
  }
  async changeTopicSourceScope(){
   const select=$('topic-source-scope'),next=select.value||null,previous=this.topicProviderKey;if(next===previous)return;

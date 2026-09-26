@@ -159,6 +159,11 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  await page.locator('[data-topic-id="'+topics[1].id+'"]').click();
  const scope=page.locator('#topic-source-scope'),body=page.locator('#original-reading-body');
  await eventually(async()=>await scope.locator('option[value="claude"]').count()===1,'real imported Claude source becomes selectable');
+ await eventually(async()=>await scope.getAttribute('aria-busy')==='false','source selector completes the bounded provider-index build');
+ const available=await rpc(page,'PAIA_ARCHIVE_NAV_PAGE',{page:{groupKind:'providers',limit:40,mode:'paia'}});
+ assert.equal(available.coverage.state,'complete','selector waits for real source-index readiness');
+ assert.ok(available.items.some(item=>item.providerKey==='claude'),'official imported source is present in the completed index');
+
  assert.equal(await page.locator('input[type="search"]:visible').count(),1,'source selection keeps one Topic search');
  await scope.selectOption('claude');
  await eventually(async()=>await body.locator('[data-entry-id]').count()===2&&await body.locator('[data-entry-id="'+seeded.mixed+'"]').count()===1,'Claude view contains direct and mixed evidence only');
