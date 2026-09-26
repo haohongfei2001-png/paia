@@ -1,217 +1,64 @@
-"""PAIA v3 public homepage: Fragments become Context.
-
-Website-only narrative using fictional/synthetic text. No archive access, remote
-images, analytics, AI calls, or claims that future connectors/mobile are live.
+"""Owner-selected website: native typography, scroll-collected inputs, scoped context.
+All examples are fictional. This module does not implement extension capabilities.
 """
 from html import escape
 
+def icon(name, cls='art-icon'):
+    paths = {
+        'collect': '<circle cx="23" cy="25" r="17"/><circle cx="39" cy="40" r="17" fill="#dce2d3" fill-opacity=".75"/><path d="M24 42a17 17 0 0 0 15-17" stroke="#71806a"/>',
+        'connect': '<circle cx="32" cy="32" r="27" stroke="#d4d7d0"/><circle cx="32" cy="32" r="19" stroke="#a1aa9b"/><circle cx="32" cy="32" r="6" fill="#374332" stroke="none"/>',
+        'reuse': '<circle cx="32" cy="32" r="27" stroke="#e0e3dc"/><path d="M9 55C29 46 42 34 49 12M31 17l18-5-3 18" stroke="#344130" stroke-width="1.8"/>',
+        'note': '<path d="M16 7h23l9 9v41H16zM39 7v12h9M23 28h18M23 36h18M23 44h12"/>',
+        'search': '<circle cx="27" cy="27" r="14"/><path d="m38 38 14 14"/>',
+        'arrow': '<path d="M12 32h38M36 18l14 14-14 14"/>',
+        'down': '<path d="m17 25 15 15 15-15"/>',
+        'topic': '<circle cx="18" cy="32" r="10"/><circle cx="45" cy="13" r="6"/><circle cx="45" cy="51" r="6"/><path d="m26 26 14-10M26 38l14 10"/>',
+        'shield': '<path d="m32 7 20 8v17c0 12-10 20-20 25-10-5-20-13-20-25V15zM23 32l6 6 13-15"/>',
+        'mark': '<path d="M12 54 29 10h8L20 54zM33 33h9l12 21H44z" fill="currentColor" stroke="none"/>',
+    }
+    return f'<svg class="{cls}" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{paths[name]}</svg>'
 
 def render(t, a, button, statusmini):
-    fragments = [
-        ("question", "FEB 11", t("问题", "QUESTION"),
-         t("我是不是又在新的窗口里，重复解释同一件事？",
-           "Why am I explaining the same thing again in a new chat?")),
-        ("decision", "MAR 04", t("决定", "DECISION"),
-         t("第一版先解决找回与复用，不做内容生成。",
-           "Start with retrieval and reuse. Generation can wait.")),
-        ("revision", "JUN 18", t("修正", "REVISION"),
-         t("用户发过的话，不一定等于用户长期相信的观点。",
-           "Something I sent is not automatically something I believe.")),
-        ("boundary", "SEP 12", t("边界", "BOUNDARY"),
-         t("来源、我的修改、AI 整理，要保持区分。",
-           "Keep source, my edits, and AI organization distinct.")),
-        ("context", "SEP 26", t("本次上下文", "THIS TIME"),
-         t("只带上这次任务真正需要的部分。",
-           "Bring forward only what this task actually needs.")),
-    ]
-    fragment_html = "".join(
-        f'''<button class="v3-fragment v3-fragment-{ident}" type="button"
-        data-v3-fragment data-fragment-key="{ident}" aria-pressed="{'true' if ident in {'decision','boundary','context'} else 'false'}">
-          <span class="v3-fragment-meta"><time>{date}</time><span>{kind}</span></span>
-          <span class="v3-fragment-copy">{escape(text)}</span>
-          <span class="v3-fragment-state" aria-hidden="true">+</span>
-        </button>'''
-        for ident, date, kind, text in fragments
-    )
-    timeline = [
-        ("01", t("一次表达", "AN EXPRESSION"), t("提出问题、给出背景、做出判断。", "A question, a background, a judgment.")),
-        ("02", t("后来修改", "A REVISION"), t("今天的工作版本，不冒充昨天的原话。", "Today's working version does not rewrite yesterday.")),
-        ("03", t("形成脉络", "A THREAD"), t("跨会话看见同一件事如何延续。", "See how one subject continues across conversations.")),
-        ("04", t("再次使用", "A NEW TASK"), t("按这次任务选择，而不是把全部历史交出去。", "Choose for this task, rather than release the whole history.")),
-    ]
-    timeline_html = "".join(
-        f'''<article class="v3-time-event" data-reveal>
-          <span class="v3-time-index">{num}</span><span class="v3-time-kicker">{label}</span>
-          <p>{copy}</p>
-        </article>''' for num, label, copy in timeline
-    )
-    scenarios = [
-        ("01", t("长期项目", "LONG PROJECTS"),
-         t("换了会话，仍然保留已经做过的决定和限制。", "A new chat can still begin after the decisions you already made."),
-         t("带上：背景 / 决定 / 边界", "BRING FORWARD: BACKGROUND / DECISIONS / CONSTRAINTS")),
-        ("02", t("研究与学习", "RESEARCH"),
-         t("找回以前的假设、问题和修正，沿着它继续，而不是重新检索自己。", "Recover earlier questions, hypotheses and revisions instead of researching your own past again."),
-         t("带上：问题 / 假设 / 修正", "BRING FORWARD: QUESTIONS / HYPOTHESES / REVISIONS")),
-        ("03", t("反复决策", "DECISIONS"),
-         t("以前的偏好可以被看见，但由现在的你决定哪些仍然有效。", "Past preferences remain visible, but the present you decides what still applies."),
-         t("带上：当前偏好 / 取舍 / 例外", "BRING FORWARD: CURRENT PREFERENCES / TRADE-OFFS / EXCEPTIONS")),
-    ]
-    scenario_html = "".join(
-        f'''<article class="v3-scenario" data-reveal>
-          <span class="v3-scenario-number">{num}</span>
-          <div><p class="v3-scenario-label">{label}</p><h3>{copy}</h3></div>
-          <p class="v3-scenario-carry">{carry}</p>
-        </article>''' for num, label, copy, carry in scenarios
-    )
-    return f'''
-<section class="v3-home">
-  <section class="v3-hero wrap" aria-labelledby="v3-title">
-    <div class="v3-hero-copy" data-reveal>
-      <p class="v3-kicker">{t("PERSONAL CONTEXT / PRIVATE BETA", "PERSONAL CONTEXT / PRIVATE BETA")}</p>
-      <h1 id="v3-title">{t("说过的话，<br>不该随对话过期。", "Your thinking shouldn’t<br>expire with the chat.")}</h1>
-      <p class="v3-deck">{t(
-        "PAIA 留下你在 AI 中已经自然产生的表达、判断与问题。以后可以找回、修改、重新理解，再由你决定哪些成为下一次 AI 的上下文。",
-        "PAIA keeps the expressions, decisions and questions you already produce with AI. Revisit them, revise them, understand them again—and decide what becomes context for what comes next."
-      )}</p>
-      <div class="v3-actions">
-        {button("beta.html", t("申请内测","Get early access"), "button v3-primary")}
-        {a("demo.html", t("体验真实能力边界 ↗","Explore the working demo ↗"), "v3-text-link")}
-      </div>
-      <p class="v3-availability">{t("桌面 Chrome · ChatGPT 网页版 · 邀请制测试", "Desktop Chrome · ChatGPT Web · Invite-only beta")}</p>
-    </div>
-
-    <div class="v3-field" data-v3-context data-language="{t("zh","en")}" data-reveal>
-      <div class="v3-field-axis" aria-hidden="true"><span>PAST</span><i></i><span>NOW</span><i></i><span>NEXT</span></div>
-      <p class="v3-field-note">{t("点按片段，决定这一次带上什么。", "Tap fragments. Decide what goes forward this time.")}</p>
-      <div class="v3-fragment-plane">
-        {fragment_html}
-        <svg class="v3-traces" viewBox="0 0 760 520" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M105 95 C230 70 250 220 390 210 S560 120 690 165"/>
-          <path d="M120 315 C250 345 330 280 420 300 S545 395 670 335"/>
-          <path d="M270 420 C330 350 430 390 505 320 S585 240 690 250"/>
-        </svg>
-      </div>
-      <div class="v3-context-frame" aria-live="polite">
-        <div class="v3-context-frame-head">
-          <span>{t("THIS TIME / CONTEXT", "THIS TIME / CONTEXT")}</span>
-          <strong data-v3-count>3 / 5</strong>
-        </div>
-        <div class="v3-context-list" data-v3-list></div>
-        <p>{t("没有发送给任何 AI。只是本页内的交互示意。", "Nothing has been sent to any AI. This is an in-page illustration only.")}</p>
-      </div>
-      <p class="v3-synthetic">{t("合成文本 · 非私人数据 · 无网络调用", "SYNTHETIC TEXT · NO PRIVATE DATA · NO NETWORK CALL")}</p>
-    </div>
-  </section>
-
-  <section class="v3-continuity wrap" id="how">
-    <div class="v3-section-lead" data-reveal>
-      <p class="v3-kicker">01 / CONTINUITY</p>
-      <h2>{t("一次对话是一个时刻。<br>思考不是。", "A conversation is a moment.<br>Your thinking isn’t.")}</h2>
-      <p>{t(
-        "PAIA 不把你的长期表达压成一个永远正确的个人档案。它保留时间、来源和修改之间的区别，让不同阶段的你可以同时存在。",
-        "PAIA does not compress your long-term expression into one permanently correct profile. It keeps time, source and revision distinct, so different moments of your thinking can coexist."
-      )}</p>
-    </div>
-    <div class="v3-time-rail" aria-label="{t("从表达至再次使用的时间脉络","A timeline from expression to reuse")}">
-      <div class="v3-time-line" aria-hidden="true"></div>
-      {timeline_html}
-    </div>
-  </section>
-
-  <section class="v3-selection">
-    <div class="wrap v3-selection-grid">
-      <div class="v3-selection-copy" data-reveal>
-        <p class="v3-kicker">02 / SELECTION</p>
-        <h2>{t("Context 是一次选择。<br>不是永久画像。", "Context is a choice.<br>Not a permanent profile.")}</h2>
-        <p>{t(
-          "算法可以帮助找相关材料，但不能替代你明确选中的内容。准备 Context 时，选择、审阅、修改，然后才复制或导出。",
-          "Retrieval can suggest relevant material, but it should not replace what you explicitly chose. Prepare context by selecting, reviewing and editing—then copy or export."
-        )}</p>
-        {a("demo.html", t("用虚构项目实际试一遍 ↗","Try the exact flow with fictional data ↗"), "v3-text-link")}
-      </div>
-      <div class="v3-selection-composition" data-reveal>
-        <div class="v3-selection-cloud" aria-hidden="true">
-          <span class="faint">{t("一个旧想法","an old idea")}</span>
-          <span>{t("已经做过的决定","a decision already made")}</span>
-          <span class="faint">{t("一次随手假设","a passing hypothesis")}</span>
-          <span>{t("仍然有效的限制","a constraint that still applies")}</span>
-          <span class="faint">{t("三个月前的偏好","a preference from three months ago")}</span>
-          <span>{t("这次任务的问题","the question for this task")}</span>
-        </div>
-        <div class="v3-choice-boundary">
-          <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-          <p class="v3-choice-label">{t("YOU CHOOSE THE BOUNDARY", "YOU CHOOSE THE BOUNDARY")}</p>
-          <strong>{t("这次，只需要三件事。", "This time, three things are enough.")}</strong>
-          <ul>
-            <li>{t("✓ 已确认的产品方向", "✓ confirmed product direction")}</li>
-            <li>{t("✓ 仍然有效的约束", "✓ constraint that still applies")}</li>
-            <li>{t("✓ 当前要回答的问题", "✓ question to answer now")}</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="v3-ownership wrap">
-    <div class="v3-section-lead" data-reveal>
-      <p class="v3-kicker">03 / OWNERSHIP</p>
-      <h2>{t("先属于你。<br>再用于 AI。", "Yours first.<br>Useful to AI second.")}</h2>
-    </div>
-    <div class="v3-boundary-map" data-reveal>
-      <div class="v3-boundary-cell"><span>01</span><strong>{t("LOCAL", "LOCAL")}</strong><p>{t("普通阅读、编辑、词面搜索与 Context 准备尽可能在设备本地完成。", "Ordinary reading, editing, lexical search and context preparation stay local where possible.")}</p></div>
-      <div class="v3-boundary-arrow" aria-hidden="true">→</div>
-      <div class="v3-boundary-cell"><span>02</span><strong>{t("SELECT", "SELECT")}</strong><p>{t("保存，不等于授权。过滤、删除、主题归属和给 AI 使用是不同的动作。", "Saved is not shared. Filtering, deletion, topic membership and AI permission are different actions.")}</p></div>
-      <div class="v3-boundary-arrow" aria-hidden="true">→</div>
-      <div class="v3-boundary-cell"><span>03</span><strong>{t("PREVIEW", "PREVIEW")}</strong><p>{t("看清这次准备的完整文字，修改后再决定下一步。", "See the exact material prepared for this task and revise it before release.")}</p></div>
-      <div class="v3-boundary-arrow" aria-hidden="true">→</div>
-      <div class="v3-boundary-cell"><span>04</span><strong>{t("COPY / EXPORT", "COPY / EXPORT")}</strong><p>{t("当前复用通过复制或导出。真实外部 AI 读取连接器仍是未来方向。", "Reuse today happens through copy or export. A real external-AI reader connector remains future direction.")}</p></div>
-    </div>
-    <div class="v3-ownership-note" data-reveal>
-      <p>{t(
-        "来源事实、你的工作版本、AI 整理结果保持区分。今天的修改，不会被冒充成你过去说过的话。",
-        "Source facts, your working version and AI organization stay distinct. An edit you make today does not become something you supposedly said in the past."
-      )}</p>
-      {a("principles.html", t("查看完整的数据与授权边界 ↗","Read the full data and permission boundaries ↗"), "v3-text-link")}
-    </div>
-  </section>
-
-  <section class="v3-scenarios wrap">
-    <div class="v3-section-lead" data-reveal>
-      <p class="v3-kicker">04 / REUSE</p>
-      <h2>{t("少重复一次。<br>多往前一步。", "Repeat less.<br>Begin further ahead.")}</h2>
-    </div>
-    <div class="v3-scenario-list">{scenario_html}</div>
-  </section>
-
-  <section class="v3-now">
-    <div class="wrap v3-now-grid">
-      <div data-reveal>
-        <p class="v3-kicker">CURRENT / PRIVATE BETA</p>
-        <h2>{t("现在能做的，<br>和还没做的，都说清楚。", "What exists now.<br>And what still doesn’t.")}</h2>
-      </div>
-      <div class="v3-now-copy" data-reveal>
-        <p>{t(
-          "当前是桌面 Chrome 扩展，围绕 ChatGPT 网页版。采集、找回、编辑、主题与手动 Context 复用已有实现；真实环境、签名分发、私人官方历史导出等仍有验证缺口。",
-          "Today PAIA is a desktop Chrome extension built around ChatGPT Web. Capture, retrieval, editing, topics and manual context reuse are implemented; live-environment, signed-distribution and private official-export evidence still have gaps."
-        )}</p>
-        <p class="v3-future">{t(
-          "iOS、更多来源、语义检索、直接外部 AI Connector：方向明确，但不是当前上线能力。",
-          "iOS, more sources, semantic retrieval and a direct external-AI connector are directions—not current release claims."
-        )}</p>
-        {a("status.html", t("查看当前能力状态 ↗","See the current capability status ↗"), "v3-text-link")}
-      </div>
-    </div>
-  </section>
-
-  <section class="v3-final wrap" data-reveal>
-    <p class="v3-kicker">PAIA / PERSONAL CONTEXT</p>
-    <div>
-      <h2>{t("下一次，<br>从你的积累开始。", "Next time,<br>start from what you already built.")}</h2>
-      <div class="v3-actions">
-        {button("beta.html", t("申请 Private Beta","Get early access"), "button v3-primary")}
-        {a("demo.html", t("先体验示例 ↗","Explore the demo first ↗"), "v3-text-link")}
-      </div>
-    </div>
-  </section>
-</section>
-'''
+    def brand(name):
+        return f'<img class="provider-mark" src="/assets/website/marks/{name}.svg" width="26" height="26" alt="" decoding="async">'
+    def card(name, position, body, mark, extra='', date=''):
+        return f'<article class="input-card art-node {position}" data-arrival="{position}"><div class="card-source">{mark}<span>{name}</span>{extra}</div>{f"<time>{date}</time>" if date else ""}<p>{body}</p></article>'
+    planned=f'<span class="planned">{t("规划中","Planned")}</span>'
+    hero=f'''<section class="hero-sequence" data-hero-sequence aria-labelledby="hero-title">
+<div class="hero-stage"><div class="hero-inner wrap">
+<div class="hero-copy"><h1 id="hero-title">{t('让每次 AI 对话，<br><em>接上你的积累。</em>','Turn what you’ve<br>said into <em>what’s next.</em>')}</h1><p class="hero-description">{t('保存你对 AI 说过的话，<br>整理成下一次任务可用的上下文。','Collect what you tell AI.<br>Build context you can use again.')}</p><div class="hero-actions">{button('beta.html',t('申请内测','Get early access'))}{a('demo.html',t('体验示例','Explore the example'),'text-link')}</div><p class="hero-scope">{t('桌面 Chrome · ChatGPT · 邀请制内测','Chrome desktop · ChatGPT · Private beta')}</p></div>
+<div class="collection" id="collection" aria-label="{t('输入汇集的概念示意','Illustration of collected inputs')}"><div class="collection-canvas">
+<div class="photo-coast art-node" data-arrival="photo"><img src="/assets/website/media/coast.webp" width="420" height="540" alt="" decoding="async"></div>
+<div class="photo-light art-node" data-arrival="photo"><img src="/assets/website/media/light.webp" width="280" height="360" alt="" decoding="async"></div>
+<svg class="collection-lines art-node" data-arrival="lines" viewBox="0 0 680 640" fill="none" aria-hidden="true"><g stroke="#a5ada1" stroke-width="1"><path d="M208 228C219 282 252 242 300 302"/><path d="M488 193C534 243 460 258 454 299"/><path d="M573 347C566 389 500 386 466 419"/><path d="M212 477C246 485 281 466 294 444"/></g><g fill="#7f8c78"><circle cx="208" cy="228" r="2"/><circle cx="488" cy="193" r="2"/><circle cx="573" cy="347" r="2"/><circle cx="212" cy="477" r="2"/></g></svg>
+{card('ChatGPT','card-gpt',t('“第一版只帮助创作者找回已有素材，不做内容生成。”','“The first version helps creators find their existing material—not generate more.”'),brand('openai'),date='12 Aug 2026')}
+{card(t('想法','Thought'),'card-note',t('先解决一个反复发生的问题，而不是再增加一个工具。','Solve a recurring problem. Don’t add another tool to maintain.'),icon('note','provider-mark'))}
+{card('Claude','card-claude',t('“把这个产品方向，与之前的用户研究放在一起看。”','“Connect this product direction with the earlier user research.”'),brand('claude'),planned)}
+{card('Gemini','card-gemini',t('“第一版应该保留什么，暂缓什么？”','“What belongs in the first release, and what should wait?”'),brand('gemini'),planned)}
+<article class="synthesis-card art-node" data-arrival="paia"><div class="card-source">{icon('mark','provider-mark')}<span class="small-wordmark">PAIA</span></div><h2>{t('第一版的上下文','Context for the first release')}</h2><p>{t('面向独立创作者。<br>先找回已有素材。<br>暂不做多人协作。','Independent creators.<br>Recover existing material.<br>Leave collaboration for later.')}</p><div class="synthesis-bottom"><span>{t('3 条已选输入','3 selected inputs')}</span>{a('demo.html',icon('arrow','mini-icon')+'<span class="visually-hidden">'+t('打开示例','Open example')+'</span>',cls='icon-link')}</div></article>
+</div><p class="collection-caption">{t('概念示意 · Claude 与 Gemini 接入尚在规划中','Illustration · Claude and Gemini capture is planned')}</p></div>
+<a class="scroll-cue" href="#collection" data-scroll-collection aria-label="{t('下滑查看输入如何汇集','Scroll to see your inputs come together')}">{icon('down','mini-icon')}</a>
+</div></div></section>'''
+    benefits=f'''<section class="benefits wrap" aria-label="{t('PAIA 的核心价值','What PAIA makes possible')}">
+<article>{icon('collect')}<h2>{t('汇集你的输入','Bring your inputs together.')}</h2><p>{t('不必在每个对话窗口重新找起。','Your words, beyond a single chat.')}</p></article>
+<article>{icon('connect')}<h2>{t('接上同一个问题','Connect related thinking.')}</h2><p>{t('把不同时间的表达放回同一主题。','One topic. Across conversations.')}</p></article>
+<article>{icon('reuse')}<h2>{t('用于下一次 AI','Use it in your next AI task.')}</h2><p>{t('你选择材料，决定带走什么。','Choose the context you take forward.')}</p></article></section>'''
+    names=[t('留下','Capture'),t('关联','Connect'),t('整理','Refine'),t('复用','Reuse')]
+    desc=[t('经你同意，保存支持的用户输入。','Save supported inputs with your consent.'),t('将相关输入放进同一个主题。','Bring related inputs into a topic.'),t('自行修改，或主动使用 AI 整理。','Edit yourself, or choose AI organization.'),t('预览、复制，用于下一次任务。','Review and copy into your next task.')]
+    process=f'''<section class="process wrap" id="how"><div class="section-top"><h2>{t('从输入，到下一次任务。','From an input to your next task.')}</h2>{a('how-it-works.html',t('了解具体过程','How it works'),'text-link')}</div><ol class="process-steps">{''.join(f'<li><span class="step-number">{i+1}</span><h3>{n}</h3><p>{d}</p></li>' for i,(n,d) in enumerate(zip(names,desc)))}</ol></section>'''
+    records=[
+       ('goal',t('产品方向','Direction'),t('第一版帮助创作者找回已有素材，不生成新内容。','Help creators recover existing material, not generate new content.'),True),
+       ('audience',t('目标用户','Audience'),t('面向已经有持续创作项目的独立创作者。','Independent creators with ongoing projects.'),True),
+       ('scope',t('实现边界','Scope'),t('先验证找回效率，暂不做多人协作。','Test retrieval first. Leave collaboration out for now.'),True),
+       ('research',t('研究问题','Research'),t('创作者在哪些环节重复寻找自己已经有的素材？','Where do creators look again for material they already have?'),False),
+       ('later',t('稍后考虑','Later'),t('在核心体验成立之后，再考虑移动端。','Consider mobile after the core experience is useful.'),False)]
+    fragmenthtml=''.join(f'<button class="v3-fragment" data-v3-fragment data-fragment-id="{id}" aria-pressed="{str(selected).lower()}"><span class="fragment-check" aria-hidden="true"></span><span><strong>{title}</strong><span class="v3-fragment-copy">{text}</span></span></button>' for id,title,text,selected in records)
+    views=[('inputs',t('输入','Inputs'),'note'),('topic',t('主题','Topic'),'topic'),('context',t('AI 上下文','AI context'),'reuse')]
+    product=f'''<section class="product-section" id="example"><div class="product-inner wrap"><div class="product-copy"><h2>{t('你的上下文。<br><em>交给下一次 AI。</em>','Your context.<br><em>Ready for AI.</em>')}</h2><p>{t('试着选择几条输入。<br>只带上这次任务需要的内容。','Try selecting a few inputs.<br>Take only what this task needs.')}</p>{a('demo.html',t('打开完整示例','Open the full example'),'button')}</div>
+<div class="product-display"><div class="app-shell" data-v3-context data-language="{t('zh','en')}"><aside class="app-sidebar"><span class="small-wordmark">PAIA</span><div role="tablist" aria-label="{t('示例视图','Example views')}" aria-orientation="vertical">{''.join(f'<button role="tab" id="mini-tab-{id}" aria-controls="mini-panel-{id}" data-mini-tab="{id}" aria-selected="{str(i==0).lower()}" tabindex="{0 if i==0 else -1}">{icon(ico,"mini-icon")}{label}</button>' for i,(id,label,ico) in enumerate(views))}</div>{a('principles.html',icon('shield','mini-icon')+t('数据与权限','Data & permissions'),'app-data-link')}</aside><div class="app-body"><div class="app-heading"><h3>{t('创作工具','Creator tool')}</h3><span class="selection-count" data-v3-count aria-live="polite">3 / 5</span></div>
+<section id="mini-panel-inputs" role="tabpanel" aria-labelledby="mini-tab-inputs" data-mini-panel="inputs"><label class="app-search">{icon('search','mini-icon')}<input data-mini-search type="search" aria-label="{t('搜索示例输入','Search sample inputs')}" placeholder="{t('搜索这些输入','Search these inputs')}"></label><div class="app-inputs">{fragmenthtml}</div><p class="mini-empty" data-mini-empty hidden>{t('没有匹配的输入。','No matching inputs.')}</p></section>
+<section id="mini-panel-topic" role="tabpanel" aria-labelledby="mini-tab-topic" data-mini-panel="topic" hidden><div class="topic-orbit">{icon('connect')}<h4>{t('第一版产品范围','First release scope')}</h4><p>{t('产品方向、目标用户与实现边界，<br>来自同一个持续项目。','Direction, audience and scope,<br>from one ongoing project.')}</p></div><p class="app-note">{t('固定示例主题，不在本页运行自动分类。','A fixed example topic, not automatic classification.')}</p></section>
+<section id="mini-panel-context" role="tabpanel" aria-labelledby="mini-tab-context" data-mini-panel="context" hidden><h4>{t('这次带上的材料','Context for this task')}</h4><div class="context-list" data-v3-list></div>{a('demo.html',t('编辑、预览与复制','Edit, review & copy'),'text-link')}</section>
+<p class="v3-choice-boundary">{t('只包含你选中的内容。','Only what you select.')}</p></div></div><p class="example-caption">{t('交互示例 · 虚构数据 · 不连接私人档案，不调用 AI','Interactive example · Fictional data · No archive connection or AI calls')}</p></div></div></section>'''
+    close=f'''<section class="closing"><div class="closing-inner wrap"><div class="closing-copy"><h2>{t('下一次，<br><em>不从零开始。</em>','Your next conversation.<br><em>Not from zero.</em>')}</h2><p>{t('从你已经在使用的 ChatGPT 开始。','Start with the ChatGPT conversations you already have.')}</p>{button('beta.html',t('申请内测','Get early access'))}</div><img class="closing-image" src="/assets/website/media/arch.webp" width="770" height="626" alt="" loading="lazy" decoding="async"></div></section>'''
+    return hero+benefits+process+product+close

@@ -53,7 +53,7 @@ for path in PAGES:
             with image.open('rb') as stream:
                 header = stream.read(24)
             check(struct.unpack('>II', header[16:24]) == (1200, 630), f'{name}: social dimensions')
-    for attrs in doc.all('a') + doc.all('link') + doc.all('script'):
+    for attrs in doc.all('a') + doc.all('link') + doc.all('script') + doc.all('img'):
         value = attrs.get('href', attrs.get('src', ''))
         parsed = urlparse(value)
         if parsed.scheme in ('mailto', 'tel') or (parsed.netloc and parsed.netloc != 'inputarchive.com'):
@@ -75,7 +75,7 @@ for path in PAGES:
     check('i18n.js' not in text and 'polish.css' not in text, f'{name}: no legacy UI owners')
 
 # English is the default; old /en links stay readable with a canonical root URL.
-for relative in ('index.html','beta.html','demo.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html'):
+for relative in ('index.html','beta.html','demo.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html','how-it-works.html','use-cases.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html'):
     root_doc = Document((ROOT/relative).read_text())
     zh_doc = Document((ROOT/'zh'/relative).read_text())
     check((ROOT/relative).read_bytes() == (ROOT/'en'/relative).read_bytes(), f'{relative}: legacy English alias matches canonical page')
@@ -84,8 +84,11 @@ for relative in ('index.html','beta.html','demo.html','principles.html','status.
     check(next(a['href'] for a in root_doc.all('link') if a.get('hreflang')=='x-default') == 'https://inputarchive.com/'+('' if relative=='index.html' else relative), f'{relative}: English default metadata')
 for relative in ('index.html','zh/index.html'):
     text=(ROOT/relative).read_text()
-    check(not Document(text).all('img'), f'{relative}: no generated people, landscapes, or photos in homepage')
-    check('Watch the film' not in text and 'A PAIA user' not in text and 'Gemini' not in text and 'Notion' not in text, f'{relative}: no invented film, testimonial or unshipped source')
+    check(len(Document(text).all('img')) == 6, f'{relative}: three source marks and three purposeful image layers retained')
+    check('Watch the film' not in text and 'A PAIA user' not in text, f'{relative}: no invented film or testimonial')
+    check(text.count('class="planned"') == 2, f'{relative}: future sources explicitly marked planned')
+    check('data-hero-sequence' in text and 'data-scroll-collection' in text, f'{relative}: typography-to-collection sequence exists')
+    check(text.count('class="art-icon"') >= 3, f'{relative}: custom benefit icons retained')
 
 # Stable color token checks, not a claim of a full accessibility audit.
 def luminance(color):
@@ -112,11 +115,18 @@ def load(page, relative, scripts=True):
     if not OFFLINE:
         page.goto(origin + '/' + relative, wait_until='load')
         return
+    import base64,mimetypes
+    def asset_uri(value):
+        f=ROOT/value.lstrip('/').split('?')[0]
+        if not f.is_file(): return ''
+        return 'data:'+(mimetypes.guess_type(f)[0] or 'application/octet-stream')+';base64,'+base64.b64encode(f.read_bytes()).decode()
     html = path.read_text()
-    sources = re.findall(r'<script src="([^"]+)"[^>]*></script>', html)
-    html = re.sub(r'<script src="[^"]+"[^>]*></script>', '', html)
+    sources = re.findall(r'<script[^>]*src="([^"]+)"[^>]*></script>', html)
+    html = re.sub(r'<script[^>]*src="[^"]+"[^>]*></script>', '', html)
     html = re.sub(r'<link rel="stylesheet"[^>]+>', '', html)
     css = (ROOT / 'assets/website/site.css').read_text()
+    css = re.sub(r"url\(['\"]?(/[^'\"\)]+)['\"]?\)",lambda m:'url("'+asset_uri(m[1])+'")',css)
+    html = re.sub(r'(<img[^>]*src=")([^"]+)(")',lambda m:m[1]+asset_uri(m[2])+m[3],html)
     page.set_content(html.replace('</head>', f'<style>{css}</style></head>'), wait_until='load')
     if scripts:
         for source in sources:
@@ -130,11 +140,14 @@ try:
         for width in [1440, 768, 390, 320]:
             for path in PAGES:
                 name = path.relative_to(ROOT).as_posix()
+                if os.environ.get('WEBSITE_TEST_PROGRESS'):print(width,name,flush=True)
                 page = browser.new_page(viewport={'width':width,'height':900})
                 errors, external = [], []
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 page.on('request', lambda request: external.append(request.url) if request.url.startswith('http') and not request.url.startswith(origin+'/') else None)
                 load(page, name)
+                page.evaluate('document.fonts.ready')
+                check(page.evaluate('Array.from(document.images).every(i=>i.complete && i.naturalWidth>0 || i.loading==="lazy")'), f'{name}: {width}px image assets available')
                 check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: {width}px reflow')
                 check(not errors, f'{name}: {width}px no JS errors')
                 check(not external, f'{name}: {width}px no unsolicited external requests')
@@ -145,9 +158,35 @@ try:
                     # Review captures should show the complete designed page rather than
                     # preserve below-the-fold reveal opacity. Production motion is unchanged.
                     if name in ('index.html','zh/index.html'):
-                        page.evaluate("document.querySelectorAll('[data-reveal]').forEach(el=>el.classList.add('is-visible'))")
+                        page.emulate_media(reduced_motion='reduce')
+                        page.evaluate('document.fonts.ready')
                     page.screenshot(path=str(OUT / f'{name.replace("/","-")}-{width}.png'), full_page=True)
                 page.close()
+        # Motion is a reversible scroll progression, never an autoplay gate.
+        page = browser.new_page(viewport={'width':1440,'height':900}, reduced_motion='no-preference')
+        load(page,'index.html')
+        page.evaluate('document.fonts.ready')
+        page.evaluate("scrollTo({top:0,behavior:'instant'})")
+        page.wait_for_timeout(80)
+        check(page.locator('.collection').get_attribute('aria-hidden') == 'true', 'initial artwork excluded from accessibility tree')
+        check(page.locator('.card-gpt').evaluate('e=>getComputedStyle(e).opacity') == '0', 'initial hero is typography only')
+        check(page.locator('.synthesis-card').evaluate('e=>getComputedStyle(e).opacity') == '0', 'synthesis is not shown before inputs')
+        page.evaluate("scrollTo({top:260,behavior:'instant'})")
+        page.wait_for_timeout(80)
+        check(float(page.locator('.card-gpt').evaluate('e=>getComputedStyle(e).opacity')) > .5, 'source cards emerge on scroll')
+        check(page.locator('.synthesis-card').evaluate('e=>getComputedStyle(e).opacity') == '0', 'synthesis emerges after source cards')
+        page.evaluate("scrollTo({top:660,behavior:'instant'})")
+        page.wait_for_timeout(80)
+        check(page.locator('.synthesis-card').evaluate('e=>getComputedStyle(e).opacity') == '1', 'completed collection includes PAIA')
+        check(page.locator('.collection').get_attribute('inert') is None, 'visible artwork link becomes operable')
+        # Brand marks must not be hidden under another card.
+        check(page.evaluate("""Array.from(document.querySelectorAll('.input-card .provider-mark')).every(e=>{const r=e.getBoundingClientRect(), hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit && (hit===e||e.contains(hit))})"""), 'all source marks remain unobscured')
+        page.evaluate("scrollTo({top:0,behavior:'instant'})")
+        page.wait_for_timeout(80)
+        check(page.locator('.card-gpt').evaluate('e=>getComputedStyle(e).opacity') == '0', 'upward scroll restores first frame')
+        page.emulate_media(reduced_motion='reduce')
+        check(page.locator('.card-gpt').evaluate('e=>getComputedStyle(e).opacity') == '1', 'reduced motion shows complete collection immediately')
+        page.close()
         for locale in ['', 'zh/']:
             en = locale != 'zh/'
             page = browser.new_page(viewport={'width':390,'height':844})
@@ -157,8 +196,8 @@ try:
             check(fragments.count() == 5, f'{locale}: v3 context field has five synthetic fragments')
             check(field.locator('[data-v3-list] span').count() == 3, f'{locale}: three explicit fragments selected initially')
             check(field.locator('[data-v3-count]').inner_text() == '3 / 5', f'{locale}: selected count reflects explicit state')
-            fragments.nth(0).click()
-            check(fragments.nth(0).get_attribute('aria-pressed') == 'true', f'{locale}: fragment can be explicitly added')
+            fragments.nth(3).click()
+            check(fragments.nth(3).get_attribute('aria-pressed') == 'true', f'{locale}: fragment can be explicitly added')
             check(field.locator('[data-v3-list] span').count() == 4, f'{locale}: added fragment enters this-time context')
             fragments.nth(1).click()
             check(fragments.nth(1).get_attribute('aria-pressed') == 'false', f'{locale}: selected fragment can be explicitly removed')
@@ -170,6 +209,14 @@ try:
             check(('Nothing selected' in empty_text) if en else ('没有选中' in empty_text), f'{locale}: no hidden fallback context')
             check(page.locator('[data-context-stage]').count() == 0, f'{locale}: legacy dashboard hero removed')
             check(page.locator('.v3-choice-boundary').count() == 1, f'{locale}: selection boundary is part of the page language')
+            mini_tabs = field.get_by_role('tab')
+            mini_tabs.nth(0).focus();page.keyboard.press('ArrowRight')
+            check(mini_tabs.nth(1).get_attribute('aria-selected') == 'true', f'{locale}: miniature keyboard tabs')
+            mini_tabs.nth(0).click()
+            field.locator('[data-mini-search]').fill('no-such-example-xyz')
+            check(field.locator('[data-mini-empty]').is_visible(), f'{locale}: miniature no-results state')
+            check(field.locator('[data-v3-count]').inner_text() == '0 / 5', f'{locale}: filtering does not change explicit selection')
+            field.locator('[data-mini-search]').fill('')
             menu = page.locator('.mobile-menu')
             menu.locator('summary').click()
             check(menu.evaluate('el => el.open'), f'{locale}: mobile menu opens')
