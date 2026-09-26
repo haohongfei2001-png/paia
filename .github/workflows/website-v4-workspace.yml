@@ -2,7 +2,7 @@ name: Website v4 workspace
 on:
   push:
     branches: ['website/scroll-context-v4']
-    paths: ['.github/workflows/website-v4-workspace.yml', 'website/v4-build.py', 'website/v4-check.py', 'website/v4-copy.json', 'website/v4.css', 'website/v4.js', 'website/v4-pdf.py', 'website/v4-assets.py']
+    paths: ['.github/workflows/website-v4-workspace.yml', '.v4-transfer/READY', '.v4-transfer/repair.py']
 permissions:
   contents: write
 concurrency:
@@ -10,51 +10,60 @@ concurrency:
   cancel-in-progress: false
 jobs:
   workspace:
+    if: github.repository == 'haohongfei2001-png/paia' && github.ref == 'refs/heads/website/scroll-context-v4'
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: Export exact website source without private data
-        run: |
-          mkdir -p /tmp/website-v4-proof
-          git rev-parse HEAD > /tmp/website-v4-proof/source-head.txt
-          git archive --format=zip -o /tmp/website-v4-proof/source.zip HEAD website assets en zh '*.html' .github/workflows WEBSITE_DESIGN.md extension/docs/consumer-product-v1/STATUS.md extension/docs/consumer-product-v1/DEFERRED_FINAL_GATES.md extension/docs/consumer-product-v1/MASTER_PLAN.md extension/docs/consumer-product-v1/AUTHORITY.md extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md extension/manifest.json
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.13'
-      - name: Browser tools
+      - name: Restore exact authored website sources
         run: |
-          python -m pip install playwright==1.55.0 Pillow==11.3.0 pymupdf==1.26.4
-          python -m playwright install --with-deps chromium
-          sudo apt-get install -y fonts-liberation fonts-noto-cjk fonts-ebgaramond
-      - name: Observe existing production (no data submission)
-        if: ${{ !hashFiles('website/v4-build.py') }}
-        run: |
+          mkdir -p /tmp/website-v4-proof
+          cat .v4-transfer/*.part > /tmp/v4.tar.xz
+          echo '1a521afe3bd074b0a18f34ec70ef65b595a7f2fe069275efa904723042f212f4  /tmp/v4.tar.xz' | sha256sum -c -
           python - <<'PY'
-          from playwright.sync_api import sync_playwright
-          from pathlib import Path
-          import json
-          with sync_playwright() as p:
-              b=p.chromium.launch()
-              page=b.new_page(viewport={'width':1440,'height':1000},device_scale_factor=1)
-              page.goto('https://inputarchive.com/',wait_until='networkidle')
-              page.screenshot(path='/tmp/website-v4-proof/production-before.png',full_page=True)
-              Path('/tmp/website-v4-proof/production-before.html').write_text(page.content())
-              b.close()
+          import tarfile
+          with tarfile.open('/tmp/v4.tar.xz') as t:
+              t.extractall('.',filter='data')
           PY
-      - name: Build and verify website revision
-        if: ${{ hashFiles('website/v4-build.py') != '' }}
+          if test -f .v4-transfer/repair.py; then python .v4-transfer/repair.py; fi
+      - name: Install authoring and browser tools
         run: |
-          python website/v4-assets.py
-          python website/v4-build.py
-          python website/v4-check.py
-          python website/v4-pdf.py
+          python -m pip install -r website/requirements.txt Pillow==11.3.0 pymupdf==1.26.4 'fonttools[woff]'
+          python -m playwright install --with-deps chromium
+          sudo apt-get install -y fonts-liberation fonts-noto-cjk
+      - name: Prepare local assets and generate all pages
+        id: build
+        run: |
+          python website/prepare_assets.py
+          python website/build.py
+          python website/render_social.py
+          python website/build.py --check
+          cp assets/website/asset-lock.json /tmp/website-v4-proof/asset-lock.json
+      - name: Real HTTP website regression
+        id: tests
+        env:
+          WEBSITE_TEST_OUTPUT: /tmp/website-v4-proof/tests
+          WEBSITE_TEST_PROGRESS: '1'
+        run: python website/test.py 2>&1 | tee /tmp/website-v4-proof/tests.log
+      - name: Actual website PDF and motion frames
+        id: pdf
+        if: always() && steps.build.outcome == 'success'
+        run: python website/export_pdf.py --output /tmp/website-v4-proof 2>&1 | tee /tmp/website-v4-proof/pdf.log
+      - name: Commit verified website sources and remove temporary transport
+        if: steps.tests.outcome == 'success' && steps.pdf.outcome == 'success'
+        run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- website assets en zh '*.html' sitemap.xml robots.txt
-          git diff --cached --quiet || git commit -m 'website: generate and verify scroll-context production pages'
+          git add -- website assets en zh '*.html' sitemap.xml robots.txt WEBSITE_DESIGN.md .github/workflows/paia-website.yml
+          git rm -r -- .v4-transfer .github/workflows/website-v4-workspace.yml
+          if git diff --cached --name-only | grep -q '^extension/'; then echo 'Extension scope violation'; exit 1; fi
+          git diff --cached --stat > /tmp/website-v4-proof/changes.txt
+          git diff --cached --quiet || git commit -m 'website: implement selected art direction, native scroll collection and complete bilingual pages'
           git push origin HEAD:website/scroll-context-v4
-          git archive --format=zip -o /tmp/website-v4-proof/implemented-source.zip HEAD website assets en zh '*.html' sitemap.xml robots.txt
+          git rev-parse HEAD > /tmp/website-v4-proof/implemented-head.txt
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
