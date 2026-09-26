@@ -106,7 +106,18 @@ export class AIReadingEditor {
  }
  collect(){if(this.composing||this.disposed)return;this.excerptEditors.forEach(e=>e.collect());const changes=[];for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)!==JSON.stringify(this.draft[field]))changes.push({field,before:this.draft[field],after:value});}if(changes.length){this.journal.record(changes);for(const c of changes)this.draft[c.field]=structuredClone(c.after);}}
  async history(redo=false){if(this.composing)return;this.collect();const from=redo?this.journal.redo:this.journal.undo,to=redo?this.journal.undo:this.journal.redo;if(!from.length)return;const changes=from.pop();to.push(changes);for(const c of changes){const value=structuredClone(redo?c.after:c.before);this.draft[c.field]=value;this.nodes.get(c.field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i].text:value);}this.failed=false;await this.flush();}
- values(field){const nodes=this.nodes.get(field);return Array.isArray(this.row[field])?nodes.map((n,i)=>({...this.row[field][i],text:textOf(n)})):textOf(nodes[0]);}
+ values(field){
+  const nodes=this.nodes.get(field),array=Array.isArray(this.row[field]),retained=this.draft[field]??this.row[field];
+  const value=(node,index)=>{
+   // Closed details are a reading choice, never an edit. Chromium's rendered
+   // innerText may omit their contents; retain the last collected draft instead.
+   // Input/composition/history/recovery update that draft while editing, so a
+   // subsequent collapse still flushes the actual authored multiline value.
+   if(node.closest('details:not([open])'))return array?retained[index]?.text||'':retained||'';
+   return textOf(node);
+  };
+  return array?nodes.map((node,index)=>({...this.row[field][index],text:value(node,index)})):value(nodes[0],0);
+ }
  dirty(){return this.composing||this.excerptEditors.some(e=>e.dirty())||[...this.nodes.keys()].some(k=>JSON.stringify(this.values(k))!==JSON.stringify(this.row[k]));}
  schedule(){if(this.disposed)return;this.collect();this.failed=false;this.onStatus('正在保存…');this.autosave.schedule();void this.protectRecovery();}
  recoverySnapshot(){const values={};for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)!==JSON.stringify(this.row[field]))values[field]=value;}if(!Object.keys(values).length)return null;return {type:'AI_RECOVERY_SNAPSHOT',topicId:this.row.topicId,baseRevision:this.row.revision,values};}

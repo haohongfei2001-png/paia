@@ -59,10 +59,10 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  await page.evaluate(async()=>{
   const {ThoughtWorkspace}=await import(chrome.runtime.getURL('ui/thoughts.js'));
   window.__vs05SwitchTrace=[];
-  const snapshot=owner=>({view:owner.view,pendingView:owner.pendingView||null,serial:owner.serial,refreshKey:owner.refreshRun?.key||null,editors:[owner.editor,owner.aiEditor].map(editor=>editor?{kind:editor.constructor.name,dirty:editor.dirty(),failed:!!editor.failed,conflicted:!!editor.conflicted,disposed:!!editor.disposed,saving:!!editor.saving,entryDeltas:[...(editor.entry?.entries||editor.entries||[])].map(([id,e])=>({id,fields:Object.keys(e.saved).filter(k=>JSON.stringify(e.saved[k])!==JSON.stringify(e.local[k]))}))}:null)});
+  const snapshot=owner=>({view:owner.view,pendingView:owner.pendingView||null,serial:owner.serial,refreshKey:owner.refreshRun?.key||null,editors:[owner.editor,owner.aiEditor].map(editor=>editor?{kind:editor.constructor.name,dirty:editor.dirty(),failed:!!editor.failed,conflicted:!!editor.conflicted,disposed:!!editor.disposed,saving:!!editor.saving,fieldDeltas:editor.nodes?[...editor.nodes.keys()].filter(k=>JSON.stringify(editor.values(k))!==JSON.stringify(editor.row[k])):[],entryDeltas:[...(editor.entry?.entries||editor.entries||[])].map(([id,e])=>({id,fields:Object.keys(e.saved).filter(k=>JSON.stringify(e.saved[k])!==JSON.stringify(e.local[k]))})).filter(e=>e.fields.length)}:null)});
   const flush=ThoughtWorkspace.prototype.flushEditors,switchView=ThoughtWorkspace.prototype.switchView;
   ThoughtWorkspace.prototype.flushEditors=async function(...args){const before=snapshot(this);const result=await flush.apply(this,args);window.__vs05SwitchTrace.push({action:'flush',before,result,after:snapshot(this)});return result;};
-  ThoughtWorkspace.prototype.switchView=async function(view,...args){window.__vs05SwitchTrace.push({action:'switch-start',requested:view,...snapshot(this)});try{return await switchView.call(this,view,...args);}finally{window.__vs05SwitchTrace.push({action:'switch-end',requested:view,...snapshot(this)});}};
+  ThoughtWorkspace.prototype.switchView=async function(view,...args){window.__vs05Workspace=this;window.__vs05SwitchTrace.push({action:'switch-start',requested:view,...snapshot(this)});try{return await switchView.call(this,view,...args);}finally{window.__vs05SwitchTrace.push({action:'switch-end',requested:view,...snapshot(this)});}};
   const saved={query:'local query',scroll:735,rootProviderKey:'synthetic-source',collection:{items:Array.from({length:80},(_,id)=>({id}))}};
   const context={homePositions:new Map([['home',saved]]),homeDesiredCount:40};
   ThoughtWorkspace.prototype.invalidateHomeSnapshot.call(context);
@@ -107,6 +107,14 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  releaseRequest();await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览'}).waitFor();
  const row=(await rpc(page,'GET_AI_PRESENTATION_STATUS')).topics.find(row=>row.topicId===topic.id);
  assert.ok(row.presentation);assert.equal(row.pending,true,'one bounded generation does not claim whole long Topic coverage');
+ const savedPresentation=structuredClone(row.presentation);
+ await page.evaluate(async()=>{
+  const editor=window.__vs05Workspace.aiEditor;await editor.ready;await editor.recoveryReady;
+  const legacy=editor.root.querySelector('.ai-legacy');
+  if(!legacy||legacy.open)throw new Error('saved legacy fields must stay collapsed for this regression');
+  for(const field of editor.nodes.keys())if(JSON.stringify(editor.values(field))!==JSON.stringify(editor.row[field]))throw new Error('reading a collapsed saved field must not manufacture an edit: '+field);
+  if(editor.dirty())throw new Error('unmodified saved presentation must be clean before view switching');
+ });
  assert.deepEqual(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}),authorityBefore,'AI presentation never rewrites Topic authority');
  await page.evaluate(()=>{
   window.__vs05Transitions=[];window.__vs05TransitionReads=[];
@@ -128,6 +136,17 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  assert.equal(await page.evaluate(()=>document.documentElement.classList.contains('paia-recomposing')),false,'completed motion releases class');
  assert.equal(await page.locator('#topic-body').evaluate(el=>el.style.viewTransitionName),'','completed motion releases host name');
  await page.emulateMedia({reducedMotion:'reduce'});await toggle.uncheck();await original.waitFor();assert.equal(await original.textContent(),originalText,'long Original text survives all switches');
+ assert.deepEqual((await rpc(page,'GET_AI_PRESENTATION_STATUS')).topics.find(row=>row.topicId===topic.id).presentation,savedPresentation,'read-only motion/switches do not silently rewrite saved AI fields or revision');
+ // Editing while expanded, then collapsing before blur/save, retains real
+ // authored lines. Exercise the same production editor and server readback.
+ await toggle.check();await page.locator('[data-ai-field="blockSummary"]').waitFor();
+ const legacy=page.locator('#ai-reading-body .ai-legacy').filter({has:page.locator('summary',{hasText:'其他已保存的整理'})}).first();
+ await legacy.locator('summary').click();
+ const authored=label+' 人工保留第一行\n第二行条件 remains explicit.';
+ await legacy.locator('[data-ai-field="keyInformation"]').first().fill(authored);
+ await legacy.locator('summary').click();
+ await eventually(async()=>{const current=(await rpc(page,'GET_AI_PRESENTATION_STATUS')).topics.find(row=>row.topicId===topic.id)?.presentation;return current?.keyInformation[0]?.text===authored;},'collapsed authored multiline draft is durably saved');
+ await toggle.uncheck();await original.waitFor();assert.equal(await original.textContent(),originalText,'saving Organized edit never changes the full Original');
  assert.equal(h.deepSeekRequests.length,1);assert.equal(h.extensionNetworkRequests,1);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  await shot(page,label.toLowerCase()+'-long-running-1024');
  }catch(error){await checkpoint('failed').catch(diagnostic=>console.log('VS05_LONG_DIAGNOSTIC_UNAVAILABLE '+String(diagnostic)));console.log('VS05_LONG_RUNNING_BOUNDARY '+JSON.stringify(stages));throw error;}
