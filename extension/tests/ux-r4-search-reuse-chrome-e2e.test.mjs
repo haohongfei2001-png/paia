@@ -105,3 +105,34 @@ test('VS06 whole-group chooser fixes Conversation and cross-page Topics; members
   await until(async()=>(await tray(p)).state==='blocked');assert.equal(await p.locator('#material-output-text').count(),0);assert.equal((await tray(p)).text,'');assert.equal((await tray(p)).manifest.complete,false);clean(h);
  }finally{await h.close();}
 });
+
+test('VS06 authorized supplements stay optional and removing them preserves exact fixed material',{timeout:180000},async()=>{
+ const texts=['FIXED_IRRELEVANT_CANARY','TASK_RETRIEVAL_NEEDLE '+ '补充文字 👩🏽‍💻 '.repeat(100)],{h,p}=await start(texts);
+ try{
+  await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{includeUnorganizedInputs:true}});
+  await waitForStableDataGeneration(p,'retrieval fixture source generation settles');
+  await p.locator('#primary-nav [data-view="memory"]').click();await until(()=>p.locator('#material-workbench').isVisible());
+  const fixedRef=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js');const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();
+   const {MemoryService}=await import('../core/memory/service.js'),{materialRead}=await import('../core/manual-materials.js');const memory=new MemoryService(s);await memory.ready();
+   return s.run(()=>s.repository.transaction(false,async t=>{
+    for(const state of await t.all('inputStates')){const ref={kind:'input',id:state.id,revision:state.contentRevision};if((await materialRead(memory,t,ref)).body==='FIXED_IRRELEVANT_CANARY')return ref;}
+    throw Error('fixed Input not found');
+   }));
+  });
+  await p.evaluate(async ref=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));await getMaterialTray().add([ref]);},fixedRef);await until(async()=>(await tray(p)).items.length===1);const fixedItem=(await tray(p)).items[0].itemId;
+  const more=p.locator('.material-suggestions');await more.locator('summary').click();await until(async()=>await more.locator('select').getAttribute('data-loaded')==='true','retrieval Profile metadata');
+  await more.getByRole('textbox',{name:'检索补充的任务',exact:true}).fill('TASK_RETRIEVAL_NEEDLE');await more.getByRole('button',{name:'查找补充',exact:true}).click();
+  await until(async()=>await more.locator('.material-suggestion-row').count()===1,'authorized optional suggestion');
+  assert.equal((await tray(p)).items.length,1);assert.equal((await tray(p)).manifest.retrievalSupplements.length,0);
+  await more.locator('.material-suggestion-row').getByRole('button',{name:'加入本次材料',exact:true}).click();await until(async()=>(await tray(p)).manifest.retrievalSupplements.length===1,'explicit supplement admission');
+  assert.equal((await tray(p)).manifest.explicit.length,1);assert.equal((await tray(p)).items[0].itemId,fixedItem);
+  await p.locator('#material-preview').click();await until(async()=>(await tray(p)).state==='ready');const reviewed=await tray(p);
+  for(const text of texts)assert.ok(reviewed.text.includes(text));assert.equal(await p.locator('#material-output-text').textContent(),reviewed.text);
+  assert.ok((await p.locator('.material-output-coverage').textContent()).includes('1 项检索补充'));
+  await p.getByRole('button',{name:'返回材料',exact:true}).click();await more.locator('summary').click();
+  await more.getByRole('button',{name:'移除所有检索补充',exact:true}).click();await until(async()=>(await tray(p)).items.length===1&&!(await tray(p)).manifest.retrievalSupplements.length,'remove optional material only');
+  assert.equal((await tray(p)).items[0].itemId,fixedItem);assert.equal((await tray(p)).items[0].body,texts[0]);assert.equal((await tray(p)).manifest.exclusions.length,1);
+  await p.locator('#material-preview').click();await until(async()=>(await tray(p)).state==='ready');const final=await tray(p);assert.ok(final.text.includes(texts[0]));assert.equal(final.text.includes('TASK_RETRIEVAL_NEEDLE'),false);clean(h);
+ }finally{await h.close();}
+});
