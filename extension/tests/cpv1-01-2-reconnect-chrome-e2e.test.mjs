@@ -23,6 +23,47 @@ test('CPV1-01.2: unpacked extension update marks the old tab stale with one refr
     await h.ready(oldTab);
     await eventually(async () => (await h.state()).records.length === 3);
 
+    // Observe the existing extension isolated world without creating one,
+    // invoking capture, reading bodies or changing its timers/runtime.
+    const oldCDP = await h.context.newCDPSession(oldTab);
+    const worlds = new Map(), lifecycle = [];
+    oldCDP.on('Runtime.executionContextCreated', ({ context }) => {
+      worlds.set(context.id, context);
+      lifecycle.push({ event: 'created', id: context.id, isolated: context.auxData?.isDefault === false });
+    });
+    oldCDP.on('Runtime.executionContextDestroyed', ({ executionContextId }) => {
+      worlds.delete(executionContextId);
+      lifecycle.push({ event: 'destroyed', id: executionContextId });
+    });
+    oldCDP.on('Runtime.executionContextsCleared', () => {
+      worlds.clear(); lifecycle.push({ event: 'cleared' });
+    });
+    await oldCDP.send('Runtime.enable');
+    async function observeWorlds() {
+      const result = [];
+      for (const world of worlds.values()) {
+        if (world.auxData?.isDefault !== false) continue;
+        try {
+          const { result: reply, exceptionDetails } = await oldCDP.send('Runtime.evaluate', {
+            contextId: world.id, returnByValue: true,
+            expression: `(() => ({
+              hasAdapter: typeof globalThis.ChatGPTAdapter === 'function',
+              runtimeConnected: Boolean(globalThis.chrome?.runtime?.id),
+              visible: document.visibilityState === 'visible',
+              readyState: document.readyState,
+              noticeCount: document.querySelectorAll('#paia-reconnect-notice').length
+            }))()`
+          });
+          result.push({ id: world.id, ...(exceptionDetails ? { evaluationFailed: true } : reply.value) });
+        } catch { result.push({ id: world.id, unavailable: true }); }
+      }
+      return result;
+    }
+    const beforeReload = await observeWorlds();
+    assert.ok(beforeReload.some(world => world.hasAdapter && world.runtimeConnected),
+      'reload starts with the actual connected capture isolated world');
+    console.log('CPV1-01.2 old-tab world before reload: ' + JSON.stringify(beforeReload));
+
     const manifestPath = join(release, 'manifest.json');
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
     manifest.version = '0.12.1';
@@ -44,11 +85,12 @@ test('CPV1-01.2: unpacked extension update marks the old tab stale with one refr
         noticeCount: document.querySelectorAll('#paia-reconnect-notice').length,
       })).catch(() => ({ pageObservationUnavailable: true }));
       assert.fail('old tab refresh action missing after extension reload: ' +
-        JSON.stringify({ observation, browserErrors: h.errors, cause: String(error) }));
+        JSON.stringify({ observation, beforeReload, afterReload: await observeWorlds(), lifecycle, browserErrors: h.errors, cause: String(error) }));
     }
     assert.match(await oldTab.locator('#paia-reconnect-notice').textContent(), /当前页面不会继续归档/);
     assert.equal(await oldTab.locator('#paia-reconnect-notice button').textContent(), '刷新此 ChatGPT 页面');
     assert.equal(await oldTab.locator('#paia-reconnect-notice').count(), 1);
+    await oldCDP.detach();
   } finally {
     await h?.close();
     await rm(release, { recursive: true, force: true });

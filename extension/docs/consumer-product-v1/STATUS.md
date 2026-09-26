@@ -14,7 +14,7 @@ current_slice_status: IN_PROGRESS — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFE
 
 current_round: CPV1-06.0–06.4 / VS-06 Batch A
 
-current_round_status: IN_PROGRESS / VS06_BATCH_A_SCOPED_CURSOR_REPAIR_PENDING
+current_round_status: IN_PROGRESS / VS06_BATCH_A_RELOAD_ROOT_CAUSE_PENDING
 
 current_writer: MANAGER / sole VS-06 Batch A branch feat/vs06-context-completeness
 
@@ -751,3 +751,10 @@ Ready stable candidate is scoped to Batch A. EXECUTION_PROTOCOL7.2 classifies th
 ## VS06 Batch A certification — scoped cursor oracle repair
 
 Exactd01a8c3916620b4fc5d8256d357550db88915c07 full36278167151 FAILED, CurrentBrowser1/4 job10850482056627PASS/1FAIL in existing ANS04 navigation; other3browser shards/all4unit/contracts/privacy/release/Macsecure/Maclifecycle SUCCESS. No merge/full PASS/receipt. Bounded source diagnosis: captured Reader is validly unassigned, fixture unknown scope has1000 synthetic members; moving real unassigned Reader to Project leaves unknown scope generation unchanged by archive-navigation-query's per-scope cursor binding. Existing test's unconditional unknown-cursorInvalid=true inferred an affected scope that was not mutated. Test/harness classification, no product runtime change. Repair preserves original invalidation/whole1001/zero-body/bounded scan/latency/Reader/restart/network oracles, proves unrelated cursor remains valid with exact continuation rows, then mutates an actual unknown-scope member before requiring stale generation refusal. Unknown-real-group path retains original relocation invalidation. Adds assertion labels and bounded draft direct-TAP targeted ANS04 path alongside all6 VS06 affected browser cases; full disabled until repaired stable candidate. No timeouts/fixtures/assertions reduced, no historical test skipped, no superseded-head rerun. New targeted proof NOT_RUN.
+
+
+## VS06 Batch A — bounded hosted-Mac reconnect diagnosis
+
+Exactbb450eb61ca731d4357410d4eb434b2a21f70cf7 full36279769564 FAILED: all4 CurrentBrowser shards/all4unit/contractsprivacy/release/Macsecure/FullSuite PASS; hostedMac108509266171 existing CPV1-01.2 reconnect2PASS/1FAIL (old tab refresh action absent), integration108511077180 FAIL. No merge/exact-main/receipt. Prior ANS04 scoped cursor repair is confirmed by actual CurrentBrowser1/4 PASS; it is not a reason for another product change.
+
+Bounded reload diagnosis remains unclassified product/test/harness/environment until actual isolated-world evidence. Failure's main-world chrome.runtime.id=false does not prove what the extension content world did. This diagnostic candidate adds read-only CDP observations to the existing failing real Chrome journey: confirms an actual connected ChatGPTAdapter isolated world before reload, records created/destroyed/cleared world events, and on failure reports only connected/adapter/visibility/ready-state/notice booleans. It never creates a world, invokes capture, changes source runtime/timers, reads archive bodies or changes original20s notice/120s case deadline. All3 original definitions/refresh-message/button/single-banner/archive/version/discard/no-duplicate assertions remain. New Draft candidate selects the existing hostedMac old-tab diagnostic once; all6affected VS06 plus ANS04 paths remain. Full remains disabled until diagnosis yields a reviewed stable repair; no unchanged-head retry/full rerun, no speculative runtime workaround, no fixture/assertion reduction. New evidence NOT_RUN; Batch B remains outside PR86.
