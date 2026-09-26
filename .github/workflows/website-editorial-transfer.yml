@@ -1,0 +1,79 @@
+name: Website Editorial Transfer
+on:
+  push:
+    branches: [website/editorial-context-20260926]
+    paths:
+      - 'website/.editorial-transfer/**'
+      - '.github/workflows/website-editorial-transfer.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: website-editorial-transfer
+  cancel-in-progress: true
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.13'
+      - name: Verify and apply reviewed website source
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 17ac1368df600fab32bb2e22573de9bc7becae26 HEAD
+          test -f website/.editorial-transfer/part-1.b64
+          test -f website/.editorial-transfer/part-2.b64
+          test -f website/.editorial-transfer/part-3.b64
+          test -f website/.editorial-transfer/part-4.b64
+          cat website/.editorial-transfer/part-{1,2,3,4}.b64 > /tmp/changes.patch.xz.b64
+          echo '6896b4edaefa6773852953f255ba87029d6fd6af856578cd2cb24f228d84e3ad  /tmp/changes.patch.xz.b64' | sha256sum -c -
+          base64 -d /tmp/changes.patch.xz.b64 > /tmp/changes.patch.xz
+          echo 'ac725ec6db8e0a05191154d2a6e52d718fe166a0044cb30707f1a6bcf67d84ed  /tmp/changes.patch.xz' | sha256sum -c -
+          xz -dc /tmp/changes.patch.xz > /tmp/changes.patch
+          echo '1fff4e14d68c60fa4edfd78fa1225a519fb8ffee3b28286eac795421488bc6e5  /tmp/changes.patch' | sha256sum -c -
+          git apply --check /tmp/changes.patch
+          git apply /tmp/changes.patch
+          rm -rf website/.editorial-transfer
+          rm .github/workflows/website-editorial-transfer.yml
+          if git diff --name-only 17ac1368df600fab32bb2e22573de9bc7becae26 | grep '^extension/'; then
+            echo 'Unexpected extension change' >&2
+            exit 1
+          fi
+      - name: Install browser and fonts
+        run: |
+          python -m pip install -r website/requirements.txt
+          python -m playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk fonts-liberation
+      - name: Generate and verify exact website
+        env:
+          WEBSITE_TEST_OUTPUT: website-transfer-test-artifacts
+        run: |
+          set -euo pipefail
+          python website/render_social.py
+          python website/build.py
+          python website/build.py --check
+          python website/test.py
+          test ! -d website/.editorial-transfer
+          test ! -f .github/workflows/website-editorial-transfer.yml
+          if git diff --name-only 17ac1368df600fab32bb2e22573de9bc7becae26 | grep '^extension/'; then
+            echo 'Unexpected extension change after generation' >&2
+            exit 1
+          fi
+      - name: Commit reviewed website
+        run: |
+          set -euo pipefail
+          git config user.name 'PAIA Website Build'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Refound PAIA website around editorial personal context'
+          git push origin HEAD:refs/heads/website/editorial-context-20260926
