@@ -299,6 +299,12 @@ CPV1-04.6 matrix: Chinese IME (`cpv1-02-4-reader-chrome-e2e.test.mjs`, `ans-08-t
 
 CPV1-04.7 remains the active engineering boundary: stable-head 10k long-content and 10k/100k lexical/search/scroll profile, realistic visual artifacts, and full exact-head certification are pending. No VS-04 COMPLETE claim is made.
 
+## VS-04 certification failure triage
+
+Stable-head [full certification 36202424528](https://github.com/haohongfei2001-png/paia/actions/runs/36202424528) and [performance certification 36202424571](https://github.com/haohongfei2001-png/paia/actions/runs/36202424571) failed; VS-04 remains ACTIVE. The performance Reader regressions launched headed Chrome without a display; the performance workflow now uses Xvfb and retains the same tests. The full browser shard reached a shell navigation assertion; its exact failing step remains under targeted diagnosis. The hosted Mac old-tab reload notice failed once, while an exact-path targeted hosted Mac run on the next draft head succeeded. This is classified as a browser/environment race pending full certification, not a product-runtime fix or PASS. No test is skipped or weakened.
+
+The draft candidate gate now exercises the shell path under the same full hosted Chrome extension CDP configuration as certification. Only after the shell cause is resolved and the candidate is stable will exact-head full and performance certification run again. Physical-device and private/live evidence remains deferred.
+
 ## Core desktop candidate gate
 
 VS-01 through VS-06 COMPLETE is the first Consumer Product v1 desktop candidate.
