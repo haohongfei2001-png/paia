@@ -66,6 +66,11 @@ async function addCapturedInput(page,input,topic){
  const found=doc.items.find(row=>row.entry.body===input.expectedText)?.entry;
  assert.ok(found,'joined whole Input is an actual Original entry');return found;
 }
+function topicAuthority(row){
+ const {readingActivity,...authority}=row;
+ if(readingActivity!==undefined){assert.deepEqual(Object.keys(readingActivity).sort(),['at','weight']);assert.ok(Number.isFinite(readingActivity.at)&&readingActivity.at>0);assert.ok(Number.isFinite(readingActivity.weight)&&readingActivity.weight>=1&&readingActivity.weight<=8);}
+ return authority;
+}
 async function livingTopicJourney(page,h,topic,label){
  const a={id:label.toLowerCase()+'-conversation-a',title:label+' Conversation A',base:1609459200,messages:[{id:label+'-message-a',text:label+' 会话一：只在证据足够时考虑这条路线。'}]};
  const b={id:label.toLowerCase()+'-conversation-b',title:label+' Conversation B',base:1609545600,messages:[{id:label+'-message-b',text:label+' 会话二：另一条路线仍开放，并未决定替代。'}]};
@@ -101,13 +106,13 @@ async function livingTopicJourney(page,h,topic,label){
  assert.deepEqual(comparison.sources,[]);assert.equal(comparison.input,null);assert.deepEqual(comparison.relations,[]);
  assert.equal((await rpc(page,'GET_LIBRARY_PATHS',{id:newId}))[0].topicId,topic.id);
  await page.locator('#library-dialog-close').click();await reopenTopic(page,topic);
- const authority=await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id});
+ const authority=topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}));
  const beforeEntries=await Promise.all([...sourceEntries.map(e=>e.id),newId].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
  await organized(page);await confirmGeneration(page);
  await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览 1'}).waitFor();
  let row=await state(page,topic.id);assert.equal(h.deepSeekRequests.length,1);
  assert.deepEqual(new Set(row.presentation.evidenceEntryIds),new Set(beforeEntries.map(e=>e.id)),'one bounded generation includes both Conversations and independent Thought');
- assert.deepEqual(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}),authority,'generation never alters Topic authority');
+ assert.deepEqual(topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})),authority,'generation preserves every Topic authority/cache field while actual reading telemetry may advance');
  const human=label+' 人工维护第一行\n第二行保留条件和未定选择。';
  await page.locator('[data-ai-field="currentView"]').fill(human);
  await page.locator('[data-ai-field="currentView"]').press('Tab');
@@ -129,7 +134,7 @@ async function livingTopicJourney(page,h,topic,label){
  assert.equal(priorStale,false);assert.equal(addedStale,true,'new evidence truthfully marks the saved overview stale');
  assert.deepEqual(afterAdditionSaved,protectedSaved,'source addition preserves every saved content/revision/protection/timestamp field');
  assert.equal(h.deepSeekRequests.length,1,'new capture/placement/read alone does not request AI');
- const updatedAuthority=await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id});
+ const updatedAuthority=topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}));
  await page.locator('#ai-library-update').click();await page.locator('[data-ai-candidate]').waitFor();
  await eventually(()=>Promise.resolve(h.deepSeekRequests.length===2),'exactly one explicit protected update');
  row=await state(page,topic.id);assert.equal(row.pending,false);assert.equal(row.presentation.stale,false,'one explicit update acknowledges the new evidence while its proposal remains staged');assert.equal(row.presentation.currentView,human);assert.equal(row.presentation.revision,protectedPresentation.revision);
@@ -144,7 +149,7 @@ async function livingTopicJourney(page,h,topic,label){
  row=await state(page,topic.id);assert.equal(row.presentation.revision,protectedPresentation.revision+1);
  assert.equal(row.presentation.blockSummary,label+' 主题速览 2');assert.equal(row.presentation.currentView,human);assert.equal(row.presentation.protections.currentView,true);
  const saved=structuredClone(row.presentation);
- assert.deepEqual(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}),updatedAuthority);
+ assert.deepEqual(topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})),updatedAuthority);
  assert.deepEqual(await Promise.all(beforeEntries.map(e=>rpc(page,'GET_LIBRARY_ENTRY',{id:e.id}))),beforeEntries);
  assert.equal((await rpc(page,'GET_LIBRARY_ENTRY',{id:added.id})).body,newMessage.text);
  assert.deepEqual((await h.state()).records,changed.records,'candidate update never alters captured Source');
