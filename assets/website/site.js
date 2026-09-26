@@ -126,3 +126,64 @@
   });
   render();
 })();
+
+
+/* PAIA v3 homepage: fragments become context.
+ * In-page only. No fetch, storage, clipboard, model, or analytics calls.
+ */
+(() => {
+  'use strict';
+  const root = document.querySelector('.v3-home');
+  if (!root) return;
+
+  document.documentElement.classList.add('v3-motion');
+
+  const reveal = [...root.querySelectorAll('[data-reveal]')];
+  if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    reveal.forEach(el => el.classList.add('is-visible'));
+  } else {
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    }, {threshold: .12, rootMargin: '0px 0px -6% 0px'});
+    reveal.forEach(el => observer.observe(el));
+  }
+
+  const field = root.querySelector('[data-v3-context]');
+  if (!field) return;
+  const buttons = [...field.querySelectorAll('[data-v3-fragment]')];
+  const count = field.querySelector('[data-v3-count]');
+  const list = field.querySelector('[data-v3-list]');
+  const en = field.dataset.language === 'en';
+
+  const render = () => {
+    const selected = buttons.filter(button => button.getAttribute('aria-pressed') === 'true');
+    count.textContent = `${selected.length} / ${buttons.length}`;
+    list.replaceChildren();
+    if (!selected.length) {
+      const empty = document.createElement('span');
+      empty.textContent = en ? 'Nothing selected. The rest stays out.' : '没有选中任何片段。其余内容不会自动加入。';
+      list.append(empty);
+      return;
+    }
+    for (const button of selected) {
+      const row = document.createElement('span');
+      const kind = button.querySelector('.v3-fragment-meta span')?.textContent?.trim() || '';
+      const copy = button.querySelector('.v3-fragment-copy')?.textContent?.trim() || '';
+      row.textContent = kind ? `${kind} — ${copy}` : copy;
+      list.append(row);
+    }
+  };
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const pressed = button.getAttribute('aria-pressed') === 'true';
+      button.setAttribute('aria-pressed', String(!pressed));
+      render();
+    });
+  });
+  render();
+})();
