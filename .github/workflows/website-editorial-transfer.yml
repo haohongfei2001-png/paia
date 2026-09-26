@@ -34,6 +34,7 @@ jobs:
           test -f website/.editorial-transfer/part-2.b64
           test -f website/.editorial-transfer/part-3.b64
           test -f website/.editorial-transfer/part-4.b64
+          sha256sum website/.editorial-transfer/part-{1,2,3,4}.b64
           cat website/.editorial-transfer/part-{1,2,3,4}.b64 > /tmp/changes.patch.xz.b64
           echo '6896b4edaefa6773852953f255ba87029d6fd6af856578cd2cb24f228d84e3ad  /tmp/changes.patch.xz.b64' | sha256sum -c -
           base64 -d /tmp/changes.patch.xz.b64 > /tmp/changes.patch.xz
