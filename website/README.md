@@ -1,49 +1,49 @@
-# PAIA Website — Personal AI Context
+# PAIA public website
 
-The public website is a separate runtime from `extension/`. It does not access an
-archive, call an AI, or authorize a product operation. Remote main remains the
-engineering source of truth.
+The public site is a separate runtime from `extension/`. Website tests and the
+fictional examples do not certify the extension, its live provider compatibility,
+private data recovery, or signed distribution.
 
-## Current design decision — 2026-09-26
+## Current owner-selected direction
 
-The owner rejected #77's reading/library-led expression. PAIA is an AI-era
-personal information and context product. Good reading is a supporting quality,
-not the product category or the leading website promise.
+Baseline main: `17ac1368df600fab32bb2e22573de9bc7becae26`.
 
-This revision replaces the editorial homepage, not just its colors:
+The owner explicitly selected the first English-led editorial concept and asked
+for implementation, not further image generation. This revision supersedes the
+previous graphite workbench identity. It retains the selected concept's white
+background, restrained serif headline, quiet navigation, asymmetric expression
+collage, fine connections and first-scroll value hierarchy.
 
-- Hero: **你的 AI，不必每次从零开始。** / **Your AI. Not starting from zero.**
-- An interactive context workbench leads with selected personal material and its
-  use in the next AI task. Capture/retrieval and topic organization are explorable
-  supporting capabilities, not a compulsory organization funnel.
-- The main narrative covers lasting accumulation, a user-controlled information
-  layer, ongoing projects/research/decisions, complementary history/Memory roles,
-  explicit data boundaries, and the current beta versus the roadmap.
-- Graphite and cool neutral surfaces, restrained mint, strong sans-serif hierarchy,
-  and product controls replace paper/serif/quotation styling. No decorative glass,
-  glow, background video, external font or always-running animation.
-- Demo and beta are distinct entry points. The demo uses a fictional creator-tool
-  project, not the earlier newsletter-reading example. Privacy and legal substance,
-  forwarding recipient, explicit form consent and honest delivery wording remain.
+The illustration is authored HTML/CSS with fictional expressions from one ongoing
+creator-tool project. It has no generated person, landscape, tree shadow, stock
+photo, model-generated scene or external image dependency. The muted back sheets
+are original flat typographic compositions, not simulated photography. No
+reference screenshot, private design document or real user text is published.
 
-Start baseline: `00d880a40137e672e000f4e550fb3d482b9269dc`.
-Consumer Product STATUS is VS-05; #79 owns the extension writer. The website task
-must not modify extension code, its STATUS/receipts or its CI. Website-only
-coordination was recorded on #79. The owner's private design sources are not
-mirrored in this public repository.
+The approved visual reference was not an approved claims sheet. Its invented
+user endorsement, film, unrestricted multi-provider integration, automatic
+personality conclusions, login and blog links are deliberately not reproduced.
+The hero promises recoverable, editable, reusable expression, not an autonomous
+agent or universal personal-data collector. The consented ChatGPT capture scope
+and invite-only beta status remain explicit.
 
-## Editable sources
+## Routes and localization
 
-- `website/home.py`: the complete bilingual homepage and illustrative workbench.
-- `website/build.py`: shared shell, secondary-page copy, metadata and static output.
-- `assets/website/site.css`: sole active website stylesheet, including all layouts.
-- `assets/website/site.js`: native menu enhancement and in-memory homepage selection.
-- `assets/website/demo.js`: existing functional sample with explicit stale-output guards.
-- `website/render_social.py`: locally rendered 1200×630 ZH/EN metadata images.
+- `/` and root `.html` pages are **English by default**, rendered without JS.
+- `/zh/` contains the paired Chinese pages, including legal, demo and beta pages.
+- Existing `/en/` deep links still work. Their HTML matches the English root
+  counterpart and uses that root URL as canonical; internal links lead to root.
+- The locale switch preserves the current page. There is no geolocation,
+  language fingerprinting, persistence, or forced client-side locale redirect.
+- Metadata has per-page descriptions, canonical, reciprocal language alternatives,
+  an English `x-default`, paired social cards and a canonical-only sitemap.
+- Root `404.html` is the English Pages fallback; Chinese navigation also has an
+  explicit `zh/404.html` page. No hosting or CNAME change is required.
 
-Root pages are Chinese; `/en/` is English. HTML is generated and committed for the
-existing `inputarchive.com` root hosting. No new hosting account, backend or runtime
-build service is needed. Do not edit generated HTML instead of its source.
+## Build and edit
+
+Production is checked-in static HTML/CSS/JS. It needs no build service, Node
+runtime, remote fonts, backend, API key, tracker or paid dependency.
 
 ```sh
 python website/build.py
@@ -51,54 +51,86 @@ python website/build.py --check
 python -m http.server 8000
 ```
 
-## Truth boundaries
+Serve the repository root, not the `website/` directory.
 
-Current product paths include capture on supported ChatGPT pages after consent,
-local search and working edits, source inspection, topics, optional separately
-authorized AI organization, and explicit Context selection/preview/copy/export.
-Integrated code does not imply complete live-provider, device or signed-release
-certification. Re-read canonical status before strengthening a product claim.
+- `website/home.py`: bilingual homepage narrative, authored expression collage,
+  illustrative three-step journey, use cases, privacy, FAQ and invitation.
+- `website/build.py`: shared shell, secondary pages, forms, legal policy text,
+  locale routing, metadata, static HTML and generated-path manifest.
+- `assets/website/site.css`: sole active website stylesheet. Native system fonts;
+  serif branding is distinct from functional body/input typography.
+- `assets/website/site.js`: native menu enhancement and in-memory below-fold
+  context-selection illustration; no storage, archive or network calls.
+- `assets/website/demo.js`: existing fictional full demo, with original/working
+  distinction, stale-preview invalidation, safe text rendering, copy and export.
+- `website/render_social.py`: regenerate the two 1200×630 cards from authored
+  HTML. The generated PNGs are checked in; tests do not re-render them.
 
-The homepage workbench is labeled **synthetic capability illustration, not an
-extension screenshot**. Its topic is prepared; it performs no real capture,
-automatic classification or external AI processing. Selection changes only this
-page's temporary illustration; unchecked text is not automatically substituted.
-The full demo provides real local sample editing, preview, copy and Markdown
-export. It does not claim to be the running extension or prove extension behavior.
-No private information should be entered into either sample.
+The public pages do not load legacy `styles.css`, `polish.css`, `i18n.js`,
+`experience.js`, old screenshot assets or extension code.
 
-Direct external AI connectors, semantic retrieval, mobile and generalized sync
-are clearly roadmap capabilities, not downloads. The current reuse path is manual
-copy/export. Local-first is not encryption or loss-proof storage. Source, working
-text and AI outputs stay distinct. Saving never grants external AI access; copied
-or exported third-party copies cannot be recalled.
+## Product and privacy boundaries
+
+The information hierarchy is: next use for past expression → why it matters →
+one complete example → ongoing project/research/decision use → user control →
+questions → clearly scoped private-beta invitation. Input Archive, Thought
+Library and AI Context serve the story; they are not a mandatory onboarding chain.
+
+The compact hero is not an app screenshot. Below the first scroll the example
+lets people change steps and include/exclude fictional material; unselected text
+stays out. The full demo separately supports working-text edits, original-text
+comparison, preview, copy and Markdown export. Material/task changes invalidate
+old previews. Empty selections do not silently acquire replacement material.
+There is no live AI, capture, classification, persistence or archive connection.
+
+Current capability claims remain scoped to integrated beta behavior. iOS/mobile,
+voice, general sync, semantic retrieval and a real external-AI reader connector
+are future directions, not available installations. User-authored inputs are not
+automatically evidence of permanent beliefs. Source, working edits and AI output
+remain distinct. Local-first is not an encryption or absolute no-network claim.
+User-initiated external copies cannot be recalled.
+
+The beta retains the existing FormSubmit action and recipient, with explicit
+forwarding consent. Questions other than email/consent remain optional. No tests
+submit the form. The thanks page does not invent a successful delivery receipt.
+Original legal policy substance/dates are retained; locale paths and presentation
+are updated. The website introduces no accounts or collection permissions.
 
 ## Verification
 
 ```sh
 python -m pip install -r website/requirements.txt
 python -m playwright install --with-deps chromium
-python website/render_social.py
 python website/test.py
 ```
 
-`CHROMIUM_EXECUTABLE` may select an installed browser. `WEBSITE_TEST_OUTPUT` selects
-the artifact directory. In a managed environment that blocks local HTTP,
-`--offline-render` renders the exact generated HTML/CSS/JS, but is explicitly weaker
-evidence; it must not be labeled HTTP, deployment or real-device certification.
+`CHROMIUM_EXECUTABLE` optionally selects an installed browser.
+`WEBSITE_TEST_OUTPUT` selects the artifact directory. `--offline-render` is only
+for managed environments blocking browser navigation: it records weaker
+exact-source DOM evidence and does **not** certify HTTP or deployment.
 
-Tests retain source immutability, edit/XSS safety, no unsolicited requests, stale
-preview blocking, exact clipboard/export text, reset, keyboard, no-JS, all 20
-ZH/EN pages, 1440/768/390/320 reflow, 320px+200% text, and beta consent checks with
-no form submission. New workbench tests verify keyboard navigation, scope selection,
-empty scope and exclusion retention. Changing a fictional fixture does not permit
-weakening these invariants. Test selected actual color tokens, not the old palette.
+The read-only PAIA Website workflow checks the exact PR head, exact main,
+deterministic generation, all 30 static HTML routes, 1440/768/390/320 reflow,
+narrow 200% text, selected contrast tokens, keyboard/native-menu/reduced-motion,
+JS-off content, locale aliases/canonical/internal links, demo immutability,
+editing/search, selected text, stale output, exact clipboard/download, XSS and
+form validation/consent without transmission. It observes the actual old public
+site on the PR and preserves screenshots/reports.
 
-The existing read-only `PAIA Website` CI verifies exact PR head/main. The existing
-main-only live job compares public deployed bytes and captures public desktop and
-mobile-sized pages. If CDN bytes lag, retry only that failed job after Pages has
-completed; never weaken the comparison or call an unexecuted live job PASS.
+After merge the live job compares deployed public files byte-for-byte, verifies
+English/Chinese/legacy English pages at desktop/mobile widths and checks actual
+homepage inclusion/exclusion before capturing screenshots. A stale deployment
+fails the strict readback; rerun only that failed job after Pages finishes rather
+than weakening the assertion. Website-only CI includes `zh/**` in its path filter.
 
-Screenshots and these tests do not establish physical-device behavior, complete
-WCAG certification, actual invitation-email delivery, measured user comprehension
-or improved conversion. Those claims require separate evidence.
+Visual review is separate from automated assertions. These checks are not full
+WCAG certification, physical-iOS/120Hz certification, measured user comprehension,
+a beta-email delivery test, or aesthetic approval by the owner.
+
+## Writer and maintenance
+
+The VS-05 writer retains extension/canonical-doc ownership. This change does not
+modify `extension/**`, Consumer Product STATUS/receipts, existing extension CI,
+CNAME, user archives or private design sources. Re-read canonical product status
+before raising any website capability claim. Any temporary source-transfer
+workflow is branch-only and absent from the integrated production tree.

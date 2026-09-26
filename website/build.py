@@ -2,13 +2,14 @@ from pathlib import Path
 from html import escape
 import json
 import sys
+sys.dont_write_bytecode = True
 from home import render as render_home
 ROOT=Path(__file__).resolve().parents[1]
 CHECK='--check' in sys.argv
 GENERATED={}
 def write(path, content):
     relative=path.relative_to(ROOT).as_posix()
-    assert relative in {'index.html','demo.html','beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html','sitemap.xml','robots.txt'} or (relative.startswith('en/') and relative.count('/')==1 and relative.endswith('.html'))
+    assert relative in {'index.html','demo.html','beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html','sitemap.xml','robots.txt'} or (relative.split('/')[0] in {'en','zh'} and relative.count('/')==1 and relative.endswith('.html'))
     GENERATED[relative]=content
     if not CHECK:
         path.parent.mkdir(parents=True,exist_ok=True)
@@ -18,7 +19,7 @@ EMAIL='haohongfei2001@gmail.com'
 
 def build(lang):
     en=lang=='en'
-    prefix='/en/' if en else '/'
+    prefix='/' if en else '/zh/'
     def t(zh,eng): return eng if en else zh
     def link(page='index.html',anchor=''):
         return prefix + ('' if page=='index.html' else page) + anchor
@@ -28,8 +29,8 @@ def build(lang):
         return a(page,label+' <span aria-hidden="true">→</span>',cls,anchor)
     def head(page,title,desc,noindex=False):
         url=BASE+link(page)
-        zhurl=BASE+'/'+('' if page=='index.html' else page)
-        enurl=BASE+'/en/'+('' if page=='index.html' else page)
+        zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
+        enurl=BASE+'/'+('' if page=='index.html' else page)
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
@@ -37,13 +38,13 @@ def build(lang):
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)}</title>
 <meta name="description" content="{escape(desc,quote=True)}">
-<meta name="theme-color" content="#0b0f13">
+<meta name="theme-color" content="#fdfdfc">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 {'<meta name="robots" content="noindex,follow">' if noindex else ''}
 <link rel="canonical" href="{url}">
 <link rel="alternate" hreflang="zh-Hans" href="{zhurl}">
 <link rel="alternate" hreflang="en" href="{enurl}">
-<link rel="alternate" hreflang="x-default" href="{zhurl}">
+<link rel="alternate" hreflang="x-default" href="{enurl}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PAIA">
 <meta property="og:locale" content="{'en_US' if en else 'zh_CN'}">
@@ -53,40 +54,42 @@ def build(lang):
 <meta property="og:image" content="{BASE}/assets/website/og-{lang}.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="{t('PAIA：你的 AI，不必每次从零开始。','PAIA: Your AI. Not starting from zero.')}">
+<meta property="og:image:alt" content="{t('PAIA：说过的，成为下一步的起点。','PAIA: Turn what you’ve said into what’s next.')}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{escape(title,quote=True)}">
 <meta name="twitter:description" content="{escape(desc,quote=True)}">
 <meta name="twitter:image" content="{BASE}/assets/website/og-{lang}.png">
 <link rel="icon" href="/assets/website/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/website/site.css?v=2">
-<script src="/assets/website/site.js?v=2" defer></script>
+<link rel="stylesheet" href="/assets/website/site.css?v=3">
+<script src="/assets/website/site.js?v=3" defer></script>
 </head>
 <body data-page="{page}" data-language="{lang}">
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''
     def header(page):
-        other=('/'+('' if page=='index.html' else page)) if en else ('/en/'+('' if page=='index.html' else page))
-        nav=a('demo.html',t('Context Demo','Context Demo'))+a('index.html',t('产品','Product'),anchor='#how')+a('principles.html',t('隐私与控制','Privacy & control'))+a('status.html',t('进展','Status'))
+        other=('/zh/'+('' if page=='index.html' else page)) if en else ('/'+('' if page=='index.html' else page))
+        nav=a('index.html',t('首页','Home'))+a('index.html',t('如何使用','How it works'),anchor='#how')+a('principles.html',t('你的数据','Your data'))+a('about.html',t('为什么做 PAIA','Our story'))
         nav=nav.replace(f'href="{link(page)}"', f'href="{link(page)}" aria-current="page"')
         return f'''<header class="site-header"><div class="header-inner">
-<a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}">PAIA<span class="brand-rule" aria-hidden="true"></span></a>
+<div class="brand-lockup"><a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}">PAIA</a><span class="brand-tagline">{t('你的表达，<br>下一步的起点。','Your AI context,<br>for what’s next.')}</span></div>
 <nav class="desktop-nav" aria-label="{t('主导航','Main navigation')}">{nav}</nav>
-<div class="header-actions"><a class="language" href="{other}" lang="{'zh-CN' if en else 'en'}" hreflang="{'zh-Hans' if en else 'en'}">{t('EN','中文')}</a>{button('beta.html',t('申请内测','Request beta'),'button button-small')}</div>
-<details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><span aria-hidden="true">☰</span></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('示例体验','Try a sample'))}</nav></details>
+<div class="header-actions"><a class="language" href="{other}" lang="{'zh-CN' if en else 'en'}" hreflang="{'zh-Hans' if en else 'en'}">{t('EN','中文')}</a>{button('beta.html',t('申请内测','Get early access'),'button button-small')}</div>
+<details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><span aria-hidden="true">☰</span></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}{a('status.html',t('当前状态','Current status'))}</nav></details>
 </div></header>'''
     def footer():
         return f'''<footer class="site-footer wrap"><div class="footer-top"><a class="wordmark" href="{prefix}">PAIA</a><p>{t('个人 AI 信息与上下文系统。','Your personal AI information & context system.')}</p></div><div class="footer-bottom"><nav aria-label="{t('页脚导航','Footer navigation')}">{a('about.html',t('为什么做 PAIA','Why PAIA'))}{a('status.html',t('当前状态','Status'))}{a('privacy-policy.html',t('隐私政策','Privacy'))}{a('terms.html',t('使用条款','Terms'))}<a href="mailto:{EMAIL}">{t('联系','Contact')}</a></nav><span>© 2026 PAIA · Private Beta</span></div></footer>'''
     def shell(page,title,desc,body,noindex=False,extra=''):
         out=head(page,title,desc,noindex)+header(page)+f'<main id="main" tabindex="-1">{body}</main>'+footer()+extra+'\n</body>\n</html>\n'
-        dest=ROOT/('en' if en else '')/page
+        dest=ROOT/('' if en else 'zh')/page
         dest.parent.mkdir(parents=True,exist_ok=True)
         write(dest,out)
+        # Existing English deep links remain usable; canonical points to the root.
+        if en: write(ROOT/'en'/page,out)
     def invitation():
-        return f'''<section class="invitation wrap"><p class="eyebrow">PAIA · PRIVATE BETA</p><h2>{t('下一次对话，<br>带上你的积累。','Your next conversation.<br>Bring your context.')}</h2><p>{t('从你已经在说的话开始，不必再养成一种记录习惯。','Start with the words you already write. Not another habit to maintain.')}</p><div class="actions">{button('beta.html',t('申请 Private Beta','Request beta access'))}{a('demo.html',t('先用示例试一遍','Try a sample first'),'text-link')}</div></section>'''
+        return f'''<section class="invitation wrap"><div><p class="eyebrow">PAIA / PRIVATE BETA</p><h2>{t('下一次对话，<br>带上你的积累。','For whatever<br><em>you think of next.</em>')}</h2><p>{t('从你已经在说的话开始，不必再经营一个知识库。','Start with the words you already write.<br>Not another knowledge base to maintain.')}</p></div><div class="invitation-action">{button('beta.html',t('申请内测','Get early access'))}<p class="small">{t('桌面 Chrome · ChatGPT 网页版 · 邀请制测试','Desktop Chrome · ChatGPT Web · Invite-only beta')}</p>{a('demo.html',t('先用示例试一遍','Explore an example'),'text-link')}</div></section>'''
     def statusmini():
         return f'''<div class="availability"><span class="status-dot" aria-hidden="true"></span><span>{t('桌面 Chrome 扩展 · ChatGPT 网页版 · 邀请制测试','Desktop Chrome extension · ChatGPT Web · Invite-only beta')}</span></div>'''
     home=render_home(t,a,button,statusmini)
-    shell('index.html',t('PAIA — 你的个人 AI 信息与上下文系统','PAIA — Your personal AI context'),t('保存你对 AI 的表达，连接跨会话的想法，把你选择的积累变成下一次对话的上下文。PAIA 是本地优先的个人 AI 信息与上下文系统。桌面 Chrome 扩展，Private Beta。','Keep what you tell AI. Connect ideas across conversations. Turn the context you choose into a head start for your next task. A local-first Chrome extension, in private beta.'),home)
+    shell('index.html',t('PAIA — 说过的，成为下一步的起点','PAIA — Turn what you’ve said into what’s next'),t('保存你对 AI 的表达，连接跨会话的想法，把你选择的积累变成下一次对话的上下文。PAIA 是本地优先的个人 AI 信息与上下文系统。桌面 Chrome 扩展，Private Beta。','Keep what you tell AI. Connect ideas across conversations. Turn the context you choose into a head start for your next task. A local-first Chrome extension, in private beta.'),home)
 
     # Every record is fictional; no private-source prose or user archive material.
     records=[('a','2026-08-12',t('产品方向','Product direction'),t('我在做一款给独立创作者的工具。第一版只解决素材找回，不做内容生成。','I’m building a tool for independent creators. The first version should help recover existing material, not generate content.')),
@@ -96,8 +99,8 @@ def build(lang):
     choices=''.join(f'''<label class="material-choice"><input type="checkbox" data-select="{id}" {'checked' if id!='c' else ''}><span><strong>{escape(title)}</strong><small>{date}</small></span></label>''' for id,date,title,text in records)
     demo=f'''<section class="page-intro wrap"><p class="eyebrow">{t('CONTEXT DEMO / 从材料到下一次任务','CONTEXT DEMO / FROM MATERIAL TO THE NEXT TASK')}</p><h1>{t('为你的下一次 AI，<br>准备好上下文。','Your next AI task.<br>Your context, ready.')}</h1><p class="lead">{t('你正在评估一款创作工具的第一版。找回先前确定的方向，更新材料，再为 AI 准备一份范围明确的上下文。','You’re reviewing the first version of a creator tool. Recover its direction, revise the material, and prepare a clear context for AI.')}</p><div class="demo-disclosure"><strong>{t('交互示意，不是正在运行的扩展','An interactive illustration, not the running extension')}</strong><p>{t('全部为虚构数据。不连接你的 ChatGPT 或 PAIA，不调用 AI，不上传或持久保存本页输入。刷新会清除修改；请不要输入私人资料。','All data is fictional. This page does not connect to ChatGPT or PAIA, call AI, upload your input, or persist it. Reloading clears edits. Please do not enter private information.')}</p></div></section>
 <section class="demo wrap" data-demo data-language="{lang}"><noscript><p class="notice">{t('开启 JavaScript 后可体验编辑、选择和复制。下面的示例说明可直接阅读，申请表也不依赖 JavaScript。','Enable JavaScript to try editing, selection and copying. You can still read this explanation and use the beta form without JavaScript.')}</p></noscript><div class="demo-tabs" role="tablist" aria-label="{t('体验步骤','Demo steps')}">{''.join(f'<button role="tab" id="tab-{i}" aria-controls="panel-{i}" aria-selected="{str(i==0).lower()}" tabindex="{0 if i==0 else -1}" data-step="{i}"><span>0{i+1}</span>{name}</button>' for i,name in enumerate([t('留下','Capture'),t('找回与修改','Revisit'),t('理解','Understand'),t('复用','Reuse')]))}</div>
-<section id="panel-0" class="demo-panel" role="tabpanel" aria-labelledby="tab-0"><div class="demo-panel-heading"><p class="eyebrow">01 / CAPTURE</p><h2>{t('先有自己的记录。','First, a record of your own.')}</h2><p>{t('正式扩展在你明确同意后保存支持页面上的用户文字。这个例子已经准备好三条输入，来自同一个项目里的不同会话。','The extension saves eligible user text on supported pages after your consent. This sample already contains three inputs from separate conversations in one project.')}</p></div><div class="capture-sample"><span class="label">{t('示例项目','SAMPLE PROJECT')}</span><h3>{t('创作工具','Creator tool')}</h3>{''.join(f'<p><time datetime="{d}">{d}</time><span>{escape(title)}</span></p>' for _,d,title,_ in records)}</div><p class="small">{t('这个页面没有执行采集。打开旧对话的补录，也不等于导入整个账户的历史。','No capture happens on this page. Supplementing an opened conversation is not the same as importing your entire account history.')}</p><button class="button" data-next disabled>{t('找回产品方向','Find the writing direction')} <span aria-hidden="true">→</span></button></section>
-<section id="panel-1" class="demo-panel" role="tabpanel" aria-labelledby="tab-1" hidden><div class="demo-panel-heading"><p class="eyebrow">02 / REVISIT</p><h2>{t('找回来，也可以继续修改。','Find it. Then work with it.')}</h2><p>{t('搜“用户”试试，再直接改一句工作文字。展开原始记录，看看有什么没有改变。','Try searching for “users”, then edit a working sentence. Open the original record to see what stays unchanged.')}</p></div><label class="search-label" for="sample-search">{t('在这三条示例输入中查找','Search these three sample inputs')}</label><input type="search" id="sample-search" placeholder="{t('试试：读者','Try: readers')}" autocomplete="off"><p id="search-status" class="small" role="status"></p><div class="sample-records">{recordhtml}</div><p class="empty-search" hidden>{t('没有匹配。试试另一个关键词，或清空搜索。','No match. Try another keyword or clear the search.')}</p><button class="button" data-next>{t('放在一个主题里看','See the topic')} <span aria-hidden="true">→</span></button></section>
+<section id="panel-0" class="demo-panel" role="tabpanel" aria-labelledby="tab-0"><div class="demo-panel-heading"><p class="eyebrow">01 / CAPTURE</p><h2>{t('先有自己的记录。','First, a record of your own.')}</h2><p>{t('正式扩展在你明确同意后保存支持页面上的用户文字。这个例子已经准备好三条输入，来自同一个项目里的不同会话。','The extension saves eligible user text on supported pages after your consent. This sample already contains three inputs from separate conversations in one project.')}</p></div><div class="capture-sample"><span class="label">{t('示例项目','SAMPLE PROJECT')}</span><h3>{t('创作工具','Creator tool')}</h3>{''.join(f'<p><time datetime="{d}">{d}</time><span>{escape(title)}</span></p>' for _,d,title,_ in records)}</div><p class="small">{t('这个页面没有执行采集。打开旧对话的补录，也不等于导入整个账户的历史。','No capture happens on this page. Supplementing an opened conversation is not the same as importing your entire account history.')}</p><button class="button" data-next disabled>{t('找回产品方向','Find the product direction')} <span aria-hidden="true">→</span></button></section>
+<section id="panel-1" class="demo-panel" role="tabpanel" aria-labelledby="tab-1" hidden><div class="demo-panel-heading"><p class="eyebrow">02 / REVISIT</p><h2>{t('找回来，也可以继续修改。','Find it. Then work with it.')}</h2><p>{t('搜“用户”试试，再直接改一句工作文字。展开原始记录，看看有什么没有改变。','Try searching for “users”, then edit a working sentence. Open the original record to see what stays unchanged.')}</p></div><label class="search-label" for="sample-search">{t('在这三条示例输入中查找','Search these three sample inputs')}</label><input type="search" id="sample-search" placeholder="{t('试试：用户','Try: users')}" autocomplete="off"><p id="search-status" class="small" role="status"></p><div class="sample-records">{recordhtml}</div><p class="empty-search" hidden>{t('没有匹配。试试另一个关键词，或清空搜索。','No match. Try another keyword or clear the search.')}</p><button class="button" data-next>{t('放在一个主题里看','See the topic')} <span aria-hidden="true">→</span></button></section>
 <section id="panel-2" class="demo-panel" role="tabpanel" aria-labelledby="tab-2" hidden><div class="demo-panel-heading"><p class="eyebrow">03 / UNDERSTAND</p><h2>{t('同一个主题，不同时间的表达。','One topic. Expressions over time.')}</h2><p>{t('会话告诉你在哪里说过；主题帮助你把相关内容放在一起看。下方会跟随此示例中的工作文字，不额外推断你的立场。','Conversations tell you where you said something. A topic brings related expressions together. This sample uses the working text you just edited, without inferring new beliefs.')}</p></div><div class="topic-sample"><div class="topic-heading"><h3>{t('创作工具：第一版的产品范围','Creator tool: the first release scope.')}</h3><span class="small">{t('固定示例主题','Fixed sample topic')}</span></div><div data-topic-records></div></div><p class="small">{t('这里不运行自动分类或 AI 整理。正式产品中的可选 AI 整理属于另外授权的处理，不能把输出当成未经核对的个人事实。','This page does not run automatic classification or AI organization. Optional AI organization in the product is separately authorized processing, not an unchecked source of personal facts.')}</p><button class="button" data-next>{t('为这次任务选材料','Choose material for this task')} <span aria-hidden="true">→</span></button></section>
 <section id="panel-3" class="demo-panel" role="tabpanel" aria-labelledby="tab-3" hidden><div class="demo-panel-heading"><p class="eyebrow">04 / REUSE</p><h2>{t('只带上这次需要的。','Take only what this task needs.')}</h2><p>{t('选择、预览，再复制或导出。更改任务、选择或工作文字后，需要重新准备预览，不会默默输出旧版本。','Select, review, then copy or export. Changing the task, selection or working text requires a fresh preview, rather than silently releasing an older version.')}</p></div><div class="context-layout"><div><label for="sample-task">{t('这次要做什么？','What are you doing this time?')}</label><textarea id="sample-task" rows="3">{t('评估第一版的产品范围，指出应该保留和暂缓的部分。','Review the scope of the first version. What should stay, and what should wait?')}</textarea><fieldset><legend>{t('你明确选择的材料','Material you explicitly choose')}</legend>{choices}</fieldset><button class="button" data-build>{t('准备本地预览','Prepare local preview')}</button></div><div class="context-output"><label for="context-preview">{t('将要复制或导出的完整文字','The exact text to copy or export')}</label><textarea id="context-preview" rows="12" readonly placeholder="{t('还没有准备上下文，也没有发送任何内容。','No context prepared. Nothing has been sent.')}"></textarea><p class="context-status small" role="status">{t('未发送给任何 AI','Not sent to any AI')}</p><div class="actions"><button class="button" data-copy disabled>{t('复制文字','Copy text')}</button><button class="button button-outline" data-export disabled>{t('导出 Markdown','Export Markdown')}</button></div><p class="small">{t('复制和导出只在你点击后发生。PAIA 无法收回你之后交给外部系统的副本。','Copy and export happen only when you click. PAIA cannot recall a copy you later give to another system.')}</p></div></div></section><div class="demo-bottom"><button class="text-button" data-reset disabled>{t('重置示例，清除本页修改','Reset sample and clear edits')}</button><span class="small" data-demo-status role="status"></span>{a('beta.html',t('这对我有用，申请内测','This is useful — request beta access'),'text-link')}</div></section>'''
     shell('demo.html',t('用一个示例体验 PAIA — 找回、修改、复用','Try PAIA with a sample — Find, edit, reuse'),t('用虚构项目走完 PAIA 的找回与复用。无需安装，不连接私人档案，不调用 AI。','Explore PAIA with a fictional project. No installation, private archive access or AI calls.'),demo,True,'<script src="/assets/website/demo.js?v=1" defer></script>')
@@ -139,7 +142,7 @@ def build(lang):
 for lang in ['zh','en']: build(lang)
 # Absolute root paths target the existing custom-domain root deployment.
 urls=[]
-for locale in ['', 'en/']:
+for locale in ['', 'zh/']:
     for name in ['', 'beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html']:
         urls.append(f'<url><loc>{BASE}/{locale}{name}</loc></url>')
 write(ROOT/'sitemap.xml','<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+''.join(urls)+'</urlset>\n')
