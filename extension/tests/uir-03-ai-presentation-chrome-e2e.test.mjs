@@ -65,7 +65,7 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  await toggle.uncheck();await original.waitFor();
  assert.equal(await page.locator('#ai-topic-status').getAttribute('data-state'),'sent','Original mode retains truthful scoped running status');
  const search=page.locator('#topic-search');await search.fill(label+'_LONG_00');
- await eventually(async()=>await page.locator('#topic-search-count').textContent()==='1 条匹配','local Topic search works during provider request');
+ await eventually(async()=>await page.locator('#topic-search-count').textContent()==='1 条匹配内容','local Topic search works during provider request');
  assert.equal(await original.textContent(),originalText,'search retains full long expression');
  await search.fill('');await eventually(async()=>!(await page.locator('#topic-search-count').textContent()),'local search clears during request');
  const counts=await page.locator('#original-reading-body [data-entry-id]').count();assert.ok(counts>0&&counts<=60,'Reader DOM stays bounded for long expressions');
