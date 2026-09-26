@@ -10,6 +10,8 @@ OUT.mkdir(parents=True, exist_ok=True)
 BASE = 'https://inputarchive.com'
 paths = [p for p in (ROOT/'website/generated-paths.txt').read_text().splitlines() if Path(p).name != '404.html']
 paths += ['assets/website/site.css', 'assets/website/site.js', 'assets/website/demo.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
+paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/website/asset-lock.json').read_text()))
+paths = list(dict.fromkeys(paths))
 checks = []
 try:
     for relative in paths:
@@ -40,14 +42,16 @@ try:
                     fragments=field.locator('[data-v3-fragment]')
                     assert fragments.count() == 5
                     assert field.locator('[data-v3-count]').inner_text() == '3 / 5'
-                    fragments.nth(0).click()
-                    assert fragments.nth(0).get_attribute('aria-pressed') == 'true'
+                    fragments.nth(3).click()
+                    assert fragments.nth(3).get_attribute('aria-pressed') == 'true'
                     assert field.locator('[data-v3-count]').inner_text() == '4 / 5'
                     fragments.nth(1).click()
                     assert fragments.nth(1).get_attribute('aria-pressed') == 'false'
                     assert field.locator('[data-v3-count]').inner_text() == '3 / 5'
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
                 assert not errors, errors
+                page.emulate_media(reduced_motion='reduce')
+                page.evaluate('document.fonts.ready')
                 page.screenshot(path=str(OUT/f'live-{relative.replace("/","-")}-{width}.png'),full_page=True)
                 checks.append({'path':relative,'viewport':width,'browser_pass':True})
                 page.close()

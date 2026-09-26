@@ -4,12 +4,13 @@ import json
 import sys
 sys.dont_write_bytecode = True
 from home import render as render_home
+from pages import render_pages
 ROOT=Path(__file__).resolve().parents[1]
 CHECK='--check' in sys.argv
 GENERATED={}
 def write(path, content):
     relative=path.relative_to(ROOT).as_posix()
-    assert relative in {'index.html','demo.html','beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html','sitemap.xml','robots.txt'} or (relative.split('/')[0] in {'en','zh'} and relative.count('/')==1 and relative.endswith('.html'))
+    assert relative in {'index.html','demo.html','beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html','how-it-works.html','use-cases.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html','sitemap.xml','robots.txt'} or (relative.split('/')[0] in {'en','zh'} and relative.count('/')==1 and relative.endswith('.html'))
     GENERATED[relative]=content
     if not CHECK:
         path.parent.mkdir(parents=True,exist_ok=True)
@@ -60,23 +61,23 @@ def build(lang):
 <meta name="twitter:description" content="{escape(desc,quote=True)}">
 <meta name="twitter:image" content="{BASE}/assets/website/og-{lang}.png">
 <link rel="icon" href="/assets/website/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/website/site.css?v=3">
-<script src="/assets/website/site.js?v=3" defer></script>
+<link rel="stylesheet" href="/assets/website/site.css?v=4">
+<script src="/assets/website/site.js?v=4" defer></script>
 </head>
 <body data-page="{page}" data-language="{lang}">
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''
     def header(page):
         other=('/zh/'+('' if page=='index.html' else page)) if en else ('/'+('' if page=='index.html' else page))
-        nav=a('index.html',t('首页','Home'))+a('index.html',t('如何使用','How it works'),anchor='#how')+a('principles.html',t('你的数据','Your data'))+a('about.html',t('为什么做 PAIA','Our story'))
+        nav=a('index.html',t('首页','Home'))+a('how-it-works.html',t('如何使用','How it works'))+a('use-cases.html',t('使用场景','Use cases'))+a('about.html',t('关于','Our story'))+a('blog.html',t('文章','Blog'))
         nav=nav.replace(f'href="{link(page)}"', f'href="{link(page)}" aria-current="page"')
         return f'''<header class="site-header"><div class="header-inner">
-<div class="brand-lockup"><a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}">PAIA</a><span class="brand-tagline">{t('你的表达，<br>下一步的起点。','Your AI context,<br>for what’s next.')}</span></div>
+<div class="brand-lockup"><a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}">PAIA</a></div>
 <nav class="desktop-nav" aria-label="{t('主导航','Main navigation')}">{nav}</nav>
 <div class="header-actions"><a class="language" href="{other}" lang="{'zh-CN' if en else 'en'}" hreflang="{'zh-Hans' if en else 'en'}">{t('EN','中文')}</a>{button('beta.html',t('申请内测','Get early access'),'button button-small')}</div>
-<details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><span aria-hidden="true">☰</span></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}{a('status.html',t('当前状态','Current status'))}</nav></details>
+<details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}{a('status.html',t('当前状态','Current status'))}</nav></details>
 </div></header>'''
     def footer():
-        return f'''<footer class="site-footer wrap"><div class="footer-top"><a class="wordmark" href="{prefix}">PAIA</a><p>{t('个人 AI 信息与上下文系统。','Your personal AI information & context system.')}</p></div><div class="footer-bottom"><nav aria-label="{t('页脚导航','Footer navigation')}">{a('about.html',t('为什么做 PAIA','Why PAIA'))}{a('status.html',t('当前状态','Status'))}{a('privacy-policy.html',t('隐私政策','Privacy'))}{a('terms.html',t('使用条款','Terms'))}<a href="mailto:{EMAIL}">{t('联系','Contact')}</a></nav><span>© 2026 PAIA · Private Beta</span></div></footer>'''
+        return f'''<footer class="site-footer wrap"><a class="wordmark" href="{prefix}">PAIA</a><nav aria-label="{t('页脚导航','Footer navigation')}">{a('principles.html',t('数据与权限','Your data'))}{a('status.html',t('当前状态','Status'))}{a('privacy-policy.html',t('隐私政策','Privacy'))}{a('terms.html',t('使用条款','Terms'))}<a href="mailto:{EMAIL}">{t('联系','Contact')}</a></nav><span class="copyright">© 2026 PAIA · Private beta</span></footer>'''
     def shell(page,title,desc,body,noindex=False,extra=''):
         out=head(page,title,desc,noindex)+header(page)+f'<main id="main" tabindex="-1">{body}</main>'+footer()+extra+'\n</body>\n</html>\n'
         dest=ROOT/('' if en else 'zh')/page
@@ -85,11 +86,14 @@ def build(lang):
         # Existing English deep links remain usable; canonical points to the root.
         if en: write(ROOT/'en'/page,out)
     def invitation():
-        return f'''<section class="invitation wrap"><div><p class="eyebrow">PAIA / PRIVATE BETA</p><h2>{t('下一次对话，<br>带上你的积累。','For whatever<br><em>you think of next.</em>')}</h2><p>{t('从你已经在说的话开始，不必再经营一个知识库。','Start with the words you already write.<br>Not another knowledge base to maintain.')}</p></div><div class="invitation-action">{button('beta.html',t('申请内测','Get early access'))}<p class="small">{t('桌面 Chrome · ChatGPT 网页版 · 邀请制测试','Desktop Chrome · ChatGPT Web · Invite-only beta')}</p>{a('demo.html',t('先用示例试一遍','Explore an example'),'text-link')}</div></section>'''
+        return f'''<section class="invitation wrap"><div><h2>{t('下一次，不从零开始。','Your next task. Not from zero.')}</h2><p>{t('从你已经在使用的 ChatGPT 开始。','Start with the ChatGPT conversations you already have.')}</p></div><div class="invitation-action">{button('beta.html',t('申请内测','Get early access'))}<p class="small">{t('桌面 Chrome · ChatGPT · 邀请制内测','Chrome desktop · ChatGPT · Private beta')}</p></div></section>'''
     def statusmini():
         return f'''<div class="availability"><span class="status-dot" aria-hidden="true"></span><span>{t('桌面 Chrome 扩展 · ChatGPT 网页版 · 邀请制测试','Desktop Chrome extension · ChatGPT Web · Invite-only beta')}</span></div>'''
     home=render_home(t,a,button,statusmini)
-    shell('index.html',t('PAIA — 对话结束，思考继续','PAIA — Personal context for what’s next'),t('让你在 AI 对话中已经产生的表达、判断和问题继续属于你：可以找回、修改、理解，并由你决定哪些成为下一次 AI 的上下文。','Keep the expressions, decisions and questions you already create with AI. Revisit, revise and understand them—then decide what becomes context for what comes next.'),home)
+    shell('index.html',t('PAIA — 个人 AI 上下文','PAIA — Personal AI context'),t('让你在 AI 对话中已经产生的表达、判断和问题继续属于你：可以找回、修改、理解，并由你决定哪些成为下一次 AI 的上下文。','Keep the expressions, decisions and questions you already create with AI. Revisit, revise and understand them—then decide what becomes context for what comes next.'),home)
+
+    for route,title,description,body in render_pages(t,a,button,invitation):
+        shell(route,title,description,body)
 
     # Every record is fictional; no private-source prose or user archive material.
     records=[('a','2026-08-12',t('产品方向','Product direction'),t('我在做一款给独立创作者的工具。第一版只解决素材找回，不做内容生成。','I’m building a tool for independent creators. The first version should help recover existing material, not generate content.')),
@@ -143,7 +147,7 @@ for lang in ['zh','en']: build(lang)
 # Absolute root paths target the existing custom-domain root deployment.
 urls=[]
 for locale in ['', 'zh/']:
-    for name in ['', 'beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html']:
+    for name in ['', 'how-it-works.html','use-cases.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html', 'beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html']:
         urls.append(f'<url><loc>{BASE}/{locale}{name}</loc></url>')
 write(ROOT/'sitemap.xml','<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+''.join(urls)+'</urlset>\n')
 write(ROOT/'robots.txt','User-agent: *\nAllow: /\nSitemap: https://inputarchive.com/sitemap.xml\n')

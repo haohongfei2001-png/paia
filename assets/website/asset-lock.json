@@ -1,0 +1,54 @@
+{
+  "assets/website/marks/openai.svg": {
+    "source": "https://raw.githubusercontent.com/lobehub/lobe-icons/master/packages/static-svg/icons/openai.svg",
+    "sha256": "a595df6b423920c67a7f8f73c063e4bfb72d415948097b6cac063a2366bb5186",
+    "role": "Source identification only. No endorsement or partnership; planned sources are labelled."
+  },
+  "assets/website/marks/claude.svg": {
+    "source": "https://raw.githubusercontent.com/lobehub/lobe-icons/master/packages/static-svg/icons/claude-color.svg",
+    "sha256": "a3101f3047a119aa11825ad9369510f0c472428c8c52d420e31bc62db44a8364",
+    "role": "Source identification only. No endorsement or partnership; planned sources are labelled."
+  },
+  "assets/website/marks/gemini.svg": {
+    "source": "https://raw.githubusercontent.com/lobehub/lobe-icons/master/packages/static-svg/icons/gemini-color.svg",
+    "sha256": "8ab0a9bafec11f7e69bcb9fc4ffd8f1bc927d1ddcbbb6ff36dee5ae8b5a9d602",
+    "role": "Source identification only. No endorsement or partnership; planned sources are labelled."
+  },
+  "assets/website/type/display.woff2": {
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/ebgaramond/EBGaramond%5Bwght%5D.ttf",
+    "sha256": "ffe8104fe3081537a3cbc0e9f2f804d16cee3304aa7eca37c43dadf5052691cd",
+    "license": "SIL OFL 1.1",
+    "role": "Self-hosted display type; no runtime third-party font request."
+  },
+  "assets/website/type/display-italic.woff2": {
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/ebgaramond/EBGaramond-Italic%5Bwght%5D.ttf",
+    "sha256": "9f19a53e12a62838f0146b5d877b1568f70ab7956dfa70b478340ae90e73d548",
+    "license": "SIL OFL 1.1",
+    "role": "Self-hosted display type; no runtime third-party font request."
+  },
+  "assets/website/media/coast.webp": {
+    "source": "design/website-editorial-v1/assets/coast.jpg",
+    "sha256": "8f31680fb23efe544cf382e3e71508200f9f93a3390d5b456d17774ef75f45f7",
+    "role": "Fixed photographic role retained from earlier licensed asset; see original manifest. Coast grade: brightness 1.48, contrast .76, saturation .65."
+  },
+  "assets/website/media/light.webp": {
+    "source": "design/website-editorial-v1/assets/light.jpg",
+    "sha256": "347b665455dd7ef322b34c16d0e5e1da6351c0093e851fa5287bc480a69b3675",
+    "role": "Fixed photographic role retained from earlier licensed asset; see original manifest. Coast grade: brightness 1.48, contrast .76, saturation .65."
+  },
+  "assets/website/media/arch.webp": {
+    "source": "Owner-supplied selected AI-generated website reference (2026-09-27 request)",
+    "crop": [
+      455,
+      1370,
+      840,
+      1683
+    ],
+    "source_dimensions": [
+      935,
+      1683
+    ],
+    "sha256": "697a683fe643369ac70756a65e6c5d02188b8db2b74c1193b11cca0606e2ac9d",
+    "role": "Exact architecture crop, no text; not claimed as a high-resolution original photograph."
+  }
+}

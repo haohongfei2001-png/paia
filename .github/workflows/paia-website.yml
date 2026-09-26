@@ -1,10 +1,10 @@
 name: PAIA Website
 on:
   pull_request:
-    paths: ['*.html', 'en/**', 'assets/website/**', 'website/**', 'sitemap.xml', 'robots.txt', 'CNAME', '.github/workflows/paia-website.yml']
+    paths: ['*.html', 'en/**', 'zh/**', 'assets/website/**', 'website/**', 'sitemap.xml', 'robots.txt', 'CNAME', '.github/workflows/paia-website.yml']
   push:
     branches: [main]
-    paths: ['*.html', 'en/**', 'assets/website/**', 'website/**', 'sitemap.xml', 'robots.txt', 'CNAME', '.github/workflows/paia-website.yml']
+    paths: ['*.html', 'en/**', 'zh/**', 'assets/website/**', 'website/**', 'sitemap.xml', 'robots.txt', 'CNAME', '.github/workflows/paia-website.yml']
   workflow_dispatch:
     inputs:
       verify_live:
@@ -55,9 +55,8 @@ jobs:
           if-no-files-found: warn
   live:
     needs: website
-    # The repository's dynamic Pages deployment did not emit an observed workflow_run.
-    # Main has an explicit, independent readback instead. Old CDN bytes fail closed;
-    # rerun this job after deployment rather than weakening the byte comparison.
+    # An old CDN copy fails the strict readback. After Pages has completed,
+    # rerun only this failed job, never weaken exact-byte comparison.
     if: >-
       github.repository == 'haohongfei2001-png/paia' && github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.verify_live))
