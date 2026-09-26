@@ -8,6 +8,9 @@ permissions:
 concurrency:
   group: website-v4-workspace
   cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
 jobs:
   workspace:
     if: github.repository == 'haohongfei2001-png/paia' && github.ref == 'refs/heads/website/scroll-context-v4'
@@ -28,7 +31,8 @@ jobs:
           with tarfile.open('/tmp/v4.tar.xz') as t:
               t.extractall('.',filter='data')
           PY
-          if test -f .v4-transfer/repair.py; then python .v4-transfer/repair.py; fi
+          python .v4-transfer/repair.py
+          git restore -- .github/workflows/paia-website.yml
       - name: Install authoring and browser tools
         run: |
           python -m pip install -r website/requirements.txt Pillow==11.3.0 pymupdf==1.26.4 'fonttools[woff]'
@@ -52,14 +56,13 @@ jobs:
         id: pdf
         if: always() && steps.build.outcome == 'success'
         run: python website/export_pdf.py --output /tmp/website-v4-proof 2>&1 | tee /tmp/website-v4-proof/pdf.log
-      - name: Commit verified website sources and remove temporary transport
+      - name: Commit verified website sources on the same branch
         if: steps.tests.outcome == 'success' && steps.pdf.outcome == 'success'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- website assets en zh '*.html' sitemap.xml robots.txt WEBSITE_DESIGN.md .github/workflows/paia-website.yml
-          git rm -r -- .v4-transfer .github/workflows/website-v4-workspace.yml
-          if git diff --cached --name-only | grep -q '^extension/'; then echo 'Extension scope violation'; exit 1; fi
+          git add -- website assets en zh '*.html' sitemap.xml robots.txt WEBSITE_DESIGN.md
+          if git diff --cached --name-only | grep -E -q '^(extension/|.github/)'; then echo 'Writer scope violation'; exit 1; fi
           git diff --cached --stat > /tmp/website-v4-proof/changes.txt
           git diff --cached --quiet || git commit -m 'website: implement selected art direction, native scroll collection and complete bilingual pages'
           git push origin HEAD:website/scroll-context-v4
