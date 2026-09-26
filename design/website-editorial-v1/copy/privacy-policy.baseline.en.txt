@@ -1,0 +1,19 @@
+PAIA · PRIVATE BETA
+Privacy policy
+Policy content last updated: 2026-09-11 · Presentation updated: 2026-09-26
+1. Core principles
+PAIA currently operates local-first. Core archive data is stored on the user’s device by default. The product prioritizes local capture, retrieval, backup and most organization logic.
+2. AI-related data use
+PAIA does not give external AI the complete archive by default. Features that call external AI should be explicitly triggered by the user and process only what is needed for the task. AI Context permissions, exclusions and previews should be confirmed by the user first.
+3. This website
+This public website does not connect to a user’s PAIA archive or install analytics scripts or behavioral trackers. It explains the product, interactions and current development status.
+4. Private beta applications
+The private beta form uses the third-party forwarding service FormSubmit to send the information you enter to haohongfei2001@gmail.com. Application information is used only for current beta recruitment, selection and contact, and is deleted when no longer needed for recruitment. You can request earlier deletion through the project email at any time. Do not submit sensitive information.
+5. Private beta
+PAIA remains in private beta. Data structures, synchronization approaches and optional AI features may change. If cloud sync, accounts or new external services are introduced, this policy will be updated and their data boundaries explained before activation.
+6. User control and deletion
+The product aims to keep users in control of their archives, including viewing, editing, exporting and deleting. Specific capabilities depend on what the current beta build actually provides.
+7. Contact
+For policy, beta or application-deletion questions, contact haohongfei2001@gmail.com.
+Website sample clarification: inputs are used only in current-page memory, not uploaded or persisted, and clear on reload. Website hosting and FormSubmit have their own data-processing boundaries.
+Read the practical data boundaries

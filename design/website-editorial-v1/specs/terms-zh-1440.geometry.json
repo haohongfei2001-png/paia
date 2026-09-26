@@ -1,0 +1,1041 @@
+{
+  "frame": "terms-zh-1440",
+  "width": 1440,
+  "height": 1978,
+  "units": "CSS px",
+  "locale": "zh",
+  "nodes": [
+    {
+      "id": "terms-zh-1440.001",
+      "kind": "rect",
+      "paint_order": 1,
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 1978,
+      "fill": "#fdfdfb",
+      "stroke": null,
+      "radius": 0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "background"
+    },
+    {
+      "id": "terms-zh-1440.002",
+      "kind": "text",
+      "paint_order": 2,
+      "x": 76,
+      "y": 20,
+      "width": null,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.003",
+      "kind": "line",
+      "paint_order": 3,
+      "x1": 181,
+      "y1": 25,
+      "x2": 181,
+      "y2": 57,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "terms-zh-1440.004",
+      "kind": "text",
+      "paint_order": 4,
+      "x": 197,
+      "y": 29,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 17,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "你的 AI 上下文，",
+        "也是下一步的起点。"
+      ],
+      "copy_id": "copy-01ecc9c5d5f7",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.005",
+      "kind": "text",
+      "paint_order": 5,
+      "x": 475,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "首页"
+      ],
+      "copy_id": "copy-3a78695388b3",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.006",
+      "kind": "line",
+      "paint_order": 6,
+      "x1": 475,
+      "y1": 54,
+      "x2": 511.58125,
+      "y2": 54,
+      "stroke": "#808981",
+      "stroke_width": 1.4
+    },
+    {
+      "id": "terms-zh-1440.007",
+      "kind": "text",
+      "paint_order": 7,
+      "x": 553,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "使用方式"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.008",
+      "kind": "text",
+      "paint_order": 8,
+      "x": 687,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "使用场景"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.009",
+      "kind": "text",
+      "paint_order": 9,
+      "x": 799,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "我们的故事"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.010",
+      "kind": "text",
+      "paint_order": 10,
+      "x": 909,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "手记"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.011",
+      "kind": "rect",
+      "paint_order": 11,
+      "x": 1192,
+      "y": 18,
+      "width": 176,
+      "height": 42,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 21.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "terms-zh-1440.012",
+      "kind": "text",
+      "paint_order": 12,
+      "x": 1216,
+      "y": 32.5,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.013",
+      "kind": "connector",
+      "paint_order": 13,
+      "path": "M1329 39.0h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "terms-zh-1440.014",
+      "kind": "text",
+      "paint_order": 14,
+      "x": 76,
+      "y": 151,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "PAIA / 法律说明"
+      ],
+      "copy_id": "copy-23413d649e29",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.015",
+      "kind": "text",
+      "paint_order": 15,
+      "x": 504,
+      "y": 216,
+      "width": 784,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 66,
+      "font_style": "normal",
+      "line_height": 71.28,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "使用条款"
+      ],
+      "copy_id": "copy-8c45a486e4b1",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.016",
+      "kind": "text",
+      "paint_order": 16,
+      "x": 504,
+      "y": 384,
+      "width": 691,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12,
+      "font_style": "normal",
+      "line_height": 19.799999999999997,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "保留现有公开页面的政策内容与日期。"
+      ],
+      "copy_id": "copy-f74b29f3a20e",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.017",
+      "kind": "text",
+      "paint_order": 17,
+      "x": 76,
+      "y": 478,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "本页内容"
+      ],
+      "copy_id": "copy-073c74212516",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.018",
+      "kind": "text",
+      "paint_order": 18,
+      "x": 76,
+      "y": 528,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 15,
+      "font_style": "normal",
+      "line_height": 39,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "原则",
+        "数据使用",
+        "你的控制",
+        "联系"
+      ],
+      "copy_id": "copy-5eca55165d15",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.019",
+      "kind": "text",
+      "paint_order": 19,
+      "x": 504,
+      "y": 478,
+      "width": 702,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 27,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "PAIA · PRIVATE BETA"
+      ],
+      "copy_id": "copy-30f28c02af53",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.020",
+      "kind": "text",
+      "paint_order": 20,
+      "x": 504,
+      "y": 533,
+      "width": 702,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 27,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "政策内容最后更新: 2026-09-10 · 页面呈现更新: 2026-09-26"
+      ],
+      "copy_id": "copy-a4d8ccfe65b5",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.021",
+      "kind": "text",
+      "paint_order": 21,
+      "x": 504,
+      "y": 588,
+      "width": 702,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 27,
+      "font_style": "normal",
+      "line_height": 36,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "1. Beta 状态"
+      ],
+      "copy_id": "copy-02a9df071fd6",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.022",
+      "kind": "text",
+      "paint_order": 22,
+      "x": 504,
+      "y": 651,
+      "width": 702,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 27,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "PAIA 当前处于 Private Beta。功能、数据结构、界面和支持范围可能持续变化，部分能力可能不稳",
+        "定或暂时不可用。"
+      ],
+      "copy_id": "copy-8b34a350fb12",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.023",
+      "kind": "text",
+      "paint_order": 23,
+      "x": 504,
+      "y": 733,
+      "width": 702,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 27,
+      "font_style": "normal",
+      "line_height": 36,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "2. 用户数据"
+      ],
+      "copy_id": "copy-2142c58a0083",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.024",
+      "kind": "text",
+      "paint_order": 24,
+      "x": 504,
+      "y": 796,
+      "width": 702,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 27,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "用户对自己输入、编辑和导入的内容保留相应权利。PAIA 的产品目标是让这些内容保持可查看、可",
+        "管理和可导出，而不是通过锁定用户数据建立使用门槛。"
+      ],
+      "copy_id": "copy-545183381e6b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.025",
+      "kind": "text",
+      "paint_order": 25,
+      "x": 504,
+      "y": 878,
+      "width": 702,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 27,
+      "font_style": "normal",
+      "line_height": 36,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "3. 备份责任"
+      ],
+      "copy_id": "copy-93497d3fbdd1",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.026",
+      "kind": "text",
+      "paint_order": 26,
+      "x": 504,
+      "y": 941,
+      "width": 702,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 27,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "在 Beta 阶段，用户不应把 PAIA 作为自己重要数据的唯一副本。对于需要长期保存的内容，请同时",
+        "保留独立备份。"
+      ],
+      "copy_id": "copy-4ec2d96ea607",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.027",
+      "kind": "text",
+      "paint_order": 27,
+      "x": 504,
+      "y": 1023,
+      "width": 702,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 27,
+      "font_style": "normal",
+      "line_height": 36,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "4. 合理使用"
+      ],
+      "copy_id": "copy-766bfbf143b0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.028",
+      "kind": "text",
+      "paint_order": 28,
+      "x": 504,
+      "y": 1086,
+      "width": 702,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 27,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "请勿利用 PAIA 进行违法活动、未经授权的数据收集、侵犯他人隐私或知识产权，或规避第三方平台",
+        "的访问和使用限制。"
+      ],
+      "copy_id": "copy-e1ed409c1cf3",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.029",
+      "kind": "text",
+      "paint_order": 29,
+      "x": 504,
+      "y": 1168,
+      "width": 702,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 27,
+      "font_style": "normal",
+      "line_height": 36,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "5. 第三方服务"
+      ],
+      "copy_id": "copy-abf5daffeea7",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.030",
+      "kind": "text",
+      "paint_order": 30,
+      "x": 504,
+      "y": 1231,
+      "width": 702,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 27,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "PAIA 可能与浏览器、AI 服务或其他第三方平台配合使用。第三方服务的可用性、条款和技术变化不",
+        "由 PAIA 控制，相关功能可能因此调整。"
+      ],
+      "copy_id": "copy-0dd451e52e3f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.031",
+      "kind": "text",
+      "paint_order": 31,
+      "x": 504,
+      "y": 1313,
+      "width": 702,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 27,
+      "font_style": "normal",
+      "line_height": 36,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "6. 可用性与责任边界"
+      ],
+      "copy_id": "copy-0fd69819906b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.032",
+      "kind": "text",
+      "paint_order": 32,
+      "x": 504,
+      "y": 1376,
+      "width": 702,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 27,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Beta 版本按当前状态提供，不承诺持续、无错误或永久可用。产品会尽力降低数据风险，但用户仍",
+        "应为重要资料保留独立备份。"
+      ],
+      "copy_id": "copy-fdf713635ab1",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.033",
+      "kind": "text",
+      "paint_order": 33,
+      "x": 504,
+      "y": 1458,
+      "width": 702,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 27,
+      "font_style": "normal",
+      "line_height": 36,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "7. 联系"
+      ],
+      "copy_id": "copy-a46a77fca9ec",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.034",
+      "kind": "text",
+      "paint_order": 34,
+      "x": 504,
+      "y": 1521,
+      "width": 702,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 27,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "有关本政策、Beta 或申请信息删除的问题，请联系 haohongfei2001@gmail.com。"
+      ],
+      "copy_id": "copy-dc3f9ddc52f5",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.035",
+      "kind": "line",
+      "paint_order": 35,
+      "x1": 76,
+      "y1": 1646,
+      "x2": 1364,
+      "y2": 1646,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "terms-zh-1440.036",
+      "kind": "text",
+      "paint_order": 36,
+      "x": 76,
+      "y": 1684,
+      "width": null,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.037",
+      "kind": "text",
+      "paint_order": 37,
+      "x": 76,
+      "y": 1745,
+      "width": 340,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 15,
+      "font_style": "normal",
+      "line_height": 24.75,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "让你的思考，拥有更长的明天。"
+      ],
+      "copy_id": "copy-3593bf12b43f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.038",
+      "kind": "text",
+      "paint_order": 38,
+      "x": 710,
+      "y": 1691,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "探索"
+      ],
+      "copy_id": "copy-c8fbce667415",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.039",
+      "kind": "text",
+      "paint_order": 39,
+      "x": 710,
+      "y": 1729,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "使用方式"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.040",
+      "kind": "text",
+      "paint_order": 40,
+      "x": 710,
+      "y": 1758,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "使用场景"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.041",
+      "kind": "text",
+      "paint_order": 41,
+      "x": 710,
+      "y": 1787,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "体验示例"
+      ],
+      "copy_id": "copy-2cabe393e29c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.042",
+      "kind": "text",
+      "paint_order": 42,
+      "x": 940,
+      "y": 1691,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "观点"
+      ],
+      "copy_id": "copy-430e9beac545",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.043",
+      "kind": "text",
+      "paint_order": 43,
+      "x": 940,
+      "y": 1729,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "我们的故事"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.044",
+      "kind": "text",
+      "paint_order": 44,
+      "x": 940,
+      "y": 1758,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "手记"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.045",
+      "kind": "text",
+      "paint_order": 45,
+      "x": 940,
+      "y": 1787,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.046",
+      "kind": "text",
+      "paint_order": 46,
+      "x": 1170,
+      "y": 1691,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "信任"
+      ],
+      "copy_id": "copy-c7651f456022",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.047",
+      "kind": "text",
+      "paint_order": 47,
+      "x": 1170,
+      "y": 1729,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "你的数据"
+      ],
+      "copy_id": "copy-ee5ef73aae18",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.048",
+      "kind": "text",
+      "paint_order": 48,
+      "x": 1170,
+      "y": 1758,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "当前状态"
+      ],
+      "copy_id": "copy-2f5d50add626",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.049",
+      "kind": "text",
+      "paint_order": 49,
+      "x": 1170,
+      "y": 1787,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "隐私 · 条款"
+      ],
+      "copy_id": "copy-3eb89cb7107b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.050",
+      "kind": "text",
+      "paint_order": 50,
+      "x": 1170,
+      "y": 1816,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "联系"
+      ],
+      "copy_id": "copy-2b5c3d26721a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.051",
+      "kind": "line",
+      "paint_order": 51,
+      "x1": 76,
+      "y1": 1890,
+      "x2": 1364,
+      "y2": 1890,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "terms-zh-1440.052",
+      "kind": "text",
+      "paint_order": 52,
+      "x": 76,
+      "y": 1915,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 10.5,
+      "font_style": "normal",
+      "line_height": 17.325,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "© 2026 PAIA · 内测阶段"
+      ],
+      "copy_id": "copy-13f95a79acb6",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "terms-zh-1440.053",
+      "kind": "text",
+      "paint_order": 53,
+      "x": 1364,
+      "y": 1915,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 11,
+      "font_style": "normal",
+      "line_height": 18.15,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "EN   /   中文"
+      ],
+      "copy_id": "copy-555a532adbb7",
+      "role": "text",
+      "anchor": "end"
+    },
+    {
+      "id": "terms-zh-1440.054",
+      "kind": "text",
+      "paint_order": 54,
+      "x": 76,
+      "y": 1942,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 15.674999999999999,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "摄影署名 · 所有材料均为示例，并非真实档案"
+      ],
+      "copy_id": "copy-92249ca2217f",
+      "role": "text",
+      "anchor": "start"
+    }
+  ]
+}

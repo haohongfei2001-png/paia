@@ -1,0 +1,32 @@
+{
+  "EB Garamond 12:style=Regular": {
+    "family": "EB Garamond 12",
+    "file_basename": "EBGaramond12-Regular.otf",
+    "sha256": "222794214c518fc0c3913585eb1e662a69153ad460a9eb75dde87718fe992a42",
+    "font_files_not_distributed": true
+  },
+  "Inter:style=Regular": {
+    "family": "Inter",
+    "file_basename": "Inter-Regular.otf",
+    "sha256": "be6d709dcb730ddaf050cbdae6fe89bd56d5d14dc66885639bbf6f06bd03521b",
+    "font_files_not_distributed": true
+  },
+  "EB Garamond 12:style=Italic": {
+    "family": "EB Garamond 12",
+    "file_basename": "EBGaramond12-Italic.otf",
+    "sha256": "86368d83c243438e640106bc33fd27942a5f70962a334546d1e3b4bb4a42de05",
+    "font_files_not_distributed": true
+  },
+  "Noto Serif CJK SC:style=Regular": {
+    "family": "Noto Serif CJK SC",
+    "file_basename": "NotoSerifCJK-Regular.ttc",
+    "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77",
+    "font_files_not_distributed": true
+  },
+  "Noto Sans CJK SC:style=Regular": {
+    "family": "Noto Sans CJK SC",
+    "file_basename": "NotoSansCJK-Regular.ttc",
+    "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+    "font_files_not_distributed": true
+  }
+}

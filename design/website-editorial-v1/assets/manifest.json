@@ -1,0 +1,95 @@
+{
+  "coast": {
+    "author": "Gunel",
+    "source": "https://unsplash.com/photos/a-view-of-the-ocean-from-the-top-of-a-cliff-zg3WkjhieRA",
+    "url": "https://images.unsplash.com/photo-1634681974664-d46e36f5c578?fm=jpg&q=90&w=1800",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "verified_on": "2026-09-26",
+    "original_download_sha256": "436132a799c0125f755dd1c019b089b38ec7b942e5400a8d1544ce21cec9d1a1",
+    "file": "assets/coast.jpg",
+    "sha256": "7fb626615cf54f7cd207ee92e1f8851a3b596008e0b8abe04119b07e38333e10",
+    "size": [
+      1600,
+      1200
+    ],
+    "grade": {
+      "saturation": 0.28,
+      "contrast": 0.88,
+      "brightness": 1.06,
+      "paper_overlay": "#e7e9dd",
+      "overlay_alpha": 0.065
+    },
+    "note": "Fixed replacement for the owner reference photographic category; not claimed to be the exact original photograph. Self-host in future implementation; do not hotlink."
+  },
+  "architecture": {
+    "author": "Grant Lemons",
+    "source": "https://unsplash.com/photos/white-concrete-building-jTCLppdwSEc",
+    "url": "https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?fm=jpg&q=90&w=1800",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "verified_on": "2026-09-26",
+    "original_download_sha256": "18e66638016eda18fb4fb04325a69df94b96c27f6efc7e15d4568850dda6bfbe",
+    "file": "assets/architecture.jpg",
+    "sha256": "fc02e870e9693e4362bf37a5b01922ed63bc56e0700a51e09bf62e87dc543b4d",
+    "size": [
+      1600,
+      1067
+    ],
+    "grade": {
+      "saturation": 0.28,
+      "contrast": 0.88,
+      "brightness": 1.06,
+      "paper_overlay": "#e7e9dd",
+      "overlay_alpha": 0.065
+    },
+    "note": "Fixed replacement for the owner reference photographic category; not claimed to be the exact original photograph. Self-host in future implementation; do not hotlink."
+  },
+  "light": {
+    "author": "Milad Fakurian",
+    "source": "https://unsplash.com/photos/plant-shadow-on-white-wall-Tc_4PdN-Fq0",
+    "url": "https://images.unsplash.com/photo-1600172454284-934feca24ccd?fm=jpg&q=90&w=1800",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "verified_on": "2026-09-26",
+    "original_download_sha256": "f2cbe2fb8875963fe05eb1c010d7a3390ac25dd58e5add9bcea29da585392753",
+    "file": "assets/light.jpg",
+    "sha256": "136de878e989eaaa92fee8d72b30e4e90ec1d71b7c334600340cf85a7bd6d567",
+    "size": [
+      1500,
+      2000
+    ],
+    "grade": {
+      "saturation": 0.28,
+      "contrast": 0.88,
+      "brightness": 1.06,
+      "paper_overlay": "#e7e9dd",
+      "overlay_alpha": 0.065
+    },
+    "note": "Fixed replacement for the owner reference photographic category; not claimed to be the exact original photograph. Self-host in future implementation; do not hotlink."
+  },
+  "privacy-policy.en": {
+    "source": "https://raw.githubusercontent.com/haohongfei2001-png/paia/29222dcab9328eb567db813d77e9cddd486fecb4/privacy-policy.html",
+    "source_sha256": "c5024c4e1da867f52bdfd8d6a87d9c092256adee4bc4ee85f76983e1a4abcbb9",
+    "text_sha256": "4c5c6e917ae07512c61855881abc36ca865c13604b643c18e78e9cc16e7f2de7",
+    "role": "existing policy text, unchanged substance; no new legal promises"
+  },
+  "privacy-policy.zh": {
+    "source": "https://raw.githubusercontent.com/haohongfei2001-png/paia/29222dcab9328eb567db813d77e9cddd486fecb4/zh/privacy-policy.html",
+    "source_sha256": "8bc01a046913bba00b0890cdab862fe07fcb2d09cc37c9259e6bf94c122fd8e9",
+    "text_sha256": "f9228206da052eff5674696247041fb82aacfedbe68228174e88b689baae7de5",
+    "role": "existing policy text, unchanged substance; no new legal promises"
+  },
+  "terms.en": {
+    "source": "https://raw.githubusercontent.com/haohongfei2001-png/paia/29222dcab9328eb567db813d77e9cddd486fecb4/terms.html",
+    "source_sha256": "68dfa50501aa9526f9db747fe9205b3d40ed88fd506270dc102ca58291694d66",
+    "text_sha256": "fdb76387d4e3244472935126be0042744b2b611ed656984872d5c9afb3a81ab4",
+    "role": "existing policy text, unchanged substance; no new legal promises"
+  },
+  "terms.zh": {
+    "source": "https://raw.githubusercontent.com/haohongfei2001-png/paia/29222dcab9328eb567db813d77e9cddd486fecb4/zh/terms.html",
+    "source_sha256": "6cf47a5ad41a418f0ffd19e91cb478dbd492c46c96e8dfa4181705b3fa028ebf",
+    "text_sha256": "ba4ffc00a1c65f81b68f67de885e0a901e58dbdcbc111e44644e1a61ac5d63e7",
+    "role": "existing policy text, unchanged substance; no new legal promises"
+  }
+}

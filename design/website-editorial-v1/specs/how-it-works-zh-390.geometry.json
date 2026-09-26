@@ -1,0 +1,965 @@
+{
+  "frame": "how-it-works-zh-390",
+  "width": 390,
+  "height": 3680.6,
+  "units": "CSS px",
+  "locale": "zh",
+  "nodes": [
+    {
+      "id": "how-it-works-zh-390.001",
+      "kind": "rect",
+      "paint_order": 1,
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 3680.6,
+      "fill": "#fdfdfb",
+      "stroke": null,
+      "radius": 0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "background"
+    },
+    {
+      "id": "how-it-works-zh-390.002",
+      "kind": "text",
+      "paint_order": 2,
+      "x": 24,
+      "y": 22,
+      "width": null,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 34,
+      "font_style": "normal",
+      "line_height": 36.72,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.003",
+      "kind": "rect",
+      "paint_order": 3,
+      "x": 203,
+      "y": 22,
+      "width": 127,
+      "height": 39,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 19.5,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "how-it-works-zh-390.004",
+      "kind": "text",
+      "paint_order": 4,
+      "x": 227,
+      "y": 35.0,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-83eff0e03ab6",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.005",
+      "kind": "connector",
+      "paint_order": 5,
+      "path": "M291 41.5h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "how-it-works-zh-390.006",
+      "kind": "line",
+      "paint_order": 6,
+      "x1": 350,
+      "y1": 34,
+      "x2": 369,
+      "y2": 34,
+      "stroke": "#171c19",
+      "stroke_width": 1
+    },
+    {
+      "id": "how-it-works-zh-390.007",
+      "kind": "line",
+      "paint_order": 7,
+      "x1": 350,
+      "y1": 43,
+      "x2": 369,
+      "y2": 43,
+      "stroke": "#171c19",
+      "stroke_width": 1
+    },
+    {
+      "id": "how-it-works-zh-390.008",
+      "kind": "text",
+      "paint_order": 8,
+      "x": 24,
+      "y": 112,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "使用方式"
+      ],
+      "copy_id": "copy-6a4cc4c27d2f",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.009",
+      "kind": "text",
+      "paint_order": 9,
+      "x": 24,
+      "y": 159,
+      "width": 342,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 44,
+      "font_style": "normal",
+      "line_height": 49,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "你的原话，",
+        "从当时到下一步",
+        "。"
+      ],
+      "copy_id": "copy-beb1ca57f671",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.010",
+      "kind": "text",
+      "paint_order": 10,
+      "x": 24,
+      "y": 336,
+      "width": 335,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 26.4,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "四种继续向前的方式，不需要每天维护一套整",
+        "理习惯。"
+      ],
+      "copy_id": "copy-35361e61247b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.011",
+      "kind": "text",
+      "paint_order": 11,
+      "x": 24,
+      "y": 458.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "01 / CAPTURE"
+      ],
+      "copy_id": "copy-ceb26e2752dc",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.012",
+      "kind": "text",
+      "paint_order": 12,
+      "x": 24,
+      "y": 500.8,
+      "width": 337,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 42,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "留下"
+      ],
+      "copy_id": "copy-1900b478a586",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.013",
+      "kind": "text",
+      "paint_order": 13,
+      "x": 24,
+      "y": 568.8,
+      "width": 331,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 26.4,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "在你同意后，受支持的 ChatGPT 输入可以进入",
+        "本地档案。允许捕获，不等于授权外部 AI 处理",
+        "，也不代表复制整个账号。"
+      ],
+      "copy_id": "copy-c677b7bac6d2",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.014",
+      "kind": "photograph",
+      "paint_order": 14,
+      "asset": "architecture",
+      "x": 24,
+      "y": 683.0,
+      "width": 287,
+      "height": 250,
+      "rotation": -2,
+      "crop_xywh": [
+        187.54,
+        0.0,
+        1224.92,
+        1067.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "how-it-works-zh-390.015",
+      "kind": "text",
+      "paint_order": 15,
+      "x": 24,
+      "y": 1010.0,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "02 / REVISIT"
+      ],
+      "copy_id": "copy-484d8f06ca28",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.016",
+      "kind": "text",
+      "paint_order": 16,
+      "x": 24,
+      "y": 1052.0,
+      "width": 337,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 42,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "回看"
+      ],
+      "copy_id": "copy-81033ad744f4",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.017",
+      "kind": "text",
+      "paint_order": 17,
+      "x": 24,
+      "y": 1120.0,
+      "width": 331,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 26.4,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "通过阅读或搜索回到一段表达。保留足够的来",
+        "源语境，理解这些话为什么出现在那里。你可",
+        "以编辑文字，同时保持它与原话的区别。"
+      ],
+      "copy_id": "copy-5cab4678edff",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.018",
+      "kind": "photograph",
+      "paint_order": 18,
+      "asset": "light",
+      "x": 79,
+      "y": 1234.2,
+      "width": 287,
+      "height": 250,
+      "rotation": 2,
+      "crop_xywh": [
+        0.0,
+        346.69,
+        1500.0,
+        1306.62
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "how-it-works-zh-390.019",
+      "kind": "text",
+      "paint_order": 19,
+      "x": 24,
+      "y": 1561.2,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "03 / UNDERSTAND"
+      ],
+      "copy_id": "copy-0b81a90cdd74",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.020",
+      "kind": "text",
+      "paint_order": 20,
+      "x": 24,
+      "y": 1603.2,
+      "width": 337,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 42,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "理解"
+      ],
+      "copy_id": "copy-bc1004406cf9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.021",
+      "kind": "text",
+      "paint_order": 21,
+      "x": 24,
+      "y": 1671.2,
+      "width": 331,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 26.4,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "把有用的表达放进主题。直接阅读原文，或明",
+        "确请求可选的 AI 整理。新的呈现不等于新的个",
+        "人真值，你的修改仍由你掌握。"
+      ],
+      "copy_id": "copy-165cfcec5a2f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.022",
+      "kind": "photograph",
+      "paint_order": 22,
+      "asset": "coast",
+      "x": 24,
+      "y": 1785.4,
+      "width": 287,
+      "height": 250,
+      "rotation": -2,
+      "crop_xywh": [
+        111.2,
+        0.0,
+        1377.6,
+        1200.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "how-it-works-zh-390.023",
+      "kind": "text",
+      "paint_order": 23,
+      "x": 24,
+      "y": 2112.4,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "04 / REUSE"
+      ],
+      "copy_id": "copy-748812e679b5",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.024",
+      "kind": "text",
+      "paint_order": 24,
+      "x": 24,
+      "y": 2154.4,
+      "width": 337,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 42,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "复用"
+      ],
+      "copy_id": "copy-7c975f737516",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.025",
+      "kind": "text",
+      "paint_order": 25,
+      "x": 24,
+      "y": 2222.4,
+      "width": 331,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 26.4,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "为眼前的问题选择材料。审阅包含的内容，再",
+        "复制或导出。改变选择后，旧预览应当失效，",
+        "而不是悄悄复用过时的上下文。"
+      ],
+      "copy_id": "copy-975d6bcbe6e0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.026",
+      "kind": "photograph",
+      "paint_order": 26,
+      "asset": "light",
+      "x": 79,
+      "y": 2336.6,
+      "width": 287,
+      "height": 250,
+      "rotation": 2,
+      "crop_xywh": [
+        0.0,
+        346.69,
+        1500.0,
+        1306.62
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "how-it-works-zh-390.027",
+      "kind": "line",
+      "paint_order": 27,
+      "x1": 24,
+      "y1": 2688.6,
+      "x2": 366,
+      "y2": 2688.6,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "how-it-works-zh-390.028",
+      "kind": "text",
+      "paint_order": 28,
+      "x": 24,
+      "y": 2736.6,
+      "width": 330,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 38,
+      "font_style": "normal",
+      "line_height": 43,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "带上更多语境，",
+        "迈出下一步。"
+      ],
+      "copy_id": "copy-96ead3b34b0b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.029",
+      "kind": "rect",
+      "paint_order": 29,
+      "x": 24,
+      "y": 2860.6,
+      "width": 208,
+      "height": 56,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 28.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "how-it-works-zh-390.030",
+      "kind": "text",
+      "paint_order": 30,
+      "x": 48,
+      "y": 2880.85,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 15.5,
+      "font_style": "normal",
+      "line_height": 25.575,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.031",
+      "kind": "connector",
+      "paint_order": 31,
+      "path": "M193 2888.6h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "how-it-works-zh-390.032",
+      "kind": "line",
+      "paint_order": 32,
+      "x1": 24,
+      "y1": 2990.6,
+      "x2": 366,
+      "y2": 2990.6,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "how-it-works-zh-390.033",
+      "kind": "text",
+      "paint_order": 33,
+      "x": 24,
+      "y": 3028.6,
+      "width": null,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 38.88,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.034",
+      "kind": "text",
+      "paint_order": 34,
+      "x": 24,
+      "y": 3089.6,
+      "width": 340,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 15,
+      "font_style": "normal",
+      "line_height": 24.75,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "让你的思考，拥有更长的明天。"
+      ],
+      "copy_id": "copy-3593bf12b43f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.035",
+      "kind": "text",
+      "paint_order": 35,
+      "x": 24,
+      "y": 3166.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "探索"
+      ],
+      "copy_id": "copy-c8fbce667415",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.036",
+      "kind": "text",
+      "paint_order": 36,
+      "x": 24,
+      "y": 3204.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "使用方式"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.037",
+      "kind": "text",
+      "paint_order": 37,
+      "x": 24,
+      "y": 3233.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "使用场景"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.038",
+      "kind": "text",
+      "paint_order": 38,
+      "x": 24,
+      "y": 3262.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "体验示例"
+      ],
+      "copy_id": "copy-2cabe393e29c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.039",
+      "kind": "text",
+      "paint_order": 39,
+      "x": 204,
+      "y": 3166.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "观点"
+      ],
+      "copy_id": "copy-430e9beac545",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.040",
+      "kind": "text",
+      "paint_order": 40,
+      "x": 204,
+      "y": 3204.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "我们的故事"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.041",
+      "kind": "text",
+      "paint_order": 41,
+      "x": 204,
+      "y": 3233.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "手记"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.042",
+      "kind": "text",
+      "paint_order": 42,
+      "x": 204,
+      "y": 3262.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.043",
+      "kind": "text",
+      "paint_order": 43,
+      "x": 24,
+      "y": 3342.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "信任"
+      ],
+      "copy_id": "copy-c7651f456022",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.044",
+      "kind": "text",
+      "paint_order": 44,
+      "x": 24,
+      "y": 3380.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "你的数据"
+      ],
+      "copy_id": "copy-ee5ef73aae18",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.045",
+      "kind": "text",
+      "paint_order": 45,
+      "x": 24,
+      "y": 3409.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "当前状态"
+      ],
+      "copy_id": "copy-2f5d50add626",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.046",
+      "kind": "text",
+      "paint_order": 46,
+      "x": 24,
+      "y": 3438.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "隐私 · 条款"
+      ],
+      "copy_id": "copy-3eb89cb7107b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.047",
+      "kind": "text",
+      "paint_order": 47,
+      "x": 24,
+      "y": 3467.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "联系"
+      ],
+      "copy_id": "copy-2b5c3d26721a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.048",
+      "kind": "line",
+      "paint_order": 48,
+      "x1": 24,
+      "y1": 3560.6,
+      "x2": 366,
+      "y2": 3560.6,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "how-it-works-zh-390.049",
+      "kind": "text",
+      "paint_order": 49,
+      "x": 24,
+      "y": 3585.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 10.5,
+      "font_style": "normal",
+      "line_height": 17.325,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "© 2026 PAIA · 内测阶段"
+      ],
+      "copy_id": "copy-13f95a79acb6",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-zh-390.050",
+      "kind": "text",
+      "paint_order": 50,
+      "x": 366,
+      "y": 3585.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 11,
+      "font_style": "normal",
+      "line_height": 18.15,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "EN   /   中文"
+      ],
+      "copy_id": "copy-555a532adbb7",
+      "role": "text",
+      "anchor": "end"
+    },
+    {
+      "id": "how-it-works-zh-390.051",
+      "kind": "text",
+      "paint_order": 51,
+      "x": 24,
+      "y": 3612.6,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 15.674999999999999,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "摄影署名 · 所有材料均为示例，并非真实档案"
+      ],
+      "copy_id": "copy-92249ca2217f",
+      "role": "text",
+      "anchor": "start"
+    }
+  ]
+}

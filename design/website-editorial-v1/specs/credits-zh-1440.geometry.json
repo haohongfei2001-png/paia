@@ -1,0 +1,970 @@
+{
+  "frame": "credits-zh-1440",
+  "width": 1440,
+  "height": 2242,
+  "units": "CSS px",
+  "locale": "zh",
+  "nodes": [
+    {
+      "id": "credits-zh-1440.001",
+      "kind": "rect",
+      "paint_order": 1,
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 2242,
+      "fill": "#fdfdfb",
+      "stroke": null,
+      "radius": 0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "background"
+    },
+    {
+      "id": "credits-zh-1440.002",
+      "kind": "text",
+      "paint_order": 2,
+      "x": 76,
+      "y": 20,
+      "width": null,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.003",
+      "kind": "line",
+      "paint_order": 3,
+      "x1": 181,
+      "y1": 25,
+      "x2": 181,
+      "y2": 57,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "credits-zh-1440.004",
+      "kind": "text",
+      "paint_order": 4,
+      "x": 197,
+      "y": 29,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 17,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "你的 AI 上下文，",
+        "也是下一步的起点。"
+      ],
+      "copy_id": "copy-01ecc9c5d5f7",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.005",
+      "kind": "text",
+      "paint_order": 5,
+      "x": 475,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "首页"
+      ],
+      "copy_id": "copy-3a78695388b3",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.006",
+      "kind": "text",
+      "paint_order": 6,
+      "x": 553,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "使用方式"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.007",
+      "kind": "text",
+      "paint_order": 7,
+      "x": 687,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "使用场景"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.008",
+      "kind": "text",
+      "paint_order": 8,
+      "x": 799,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "我们的故事"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.009",
+      "kind": "text",
+      "paint_order": 9,
+      "x": 909,
+      "y": 34,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "手记"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.010",
+      "kind": "rect",
+      "paint_order": 10,
+      "x": 1192,
+      "y": 18,
+      "width": 176,
+      "height": 42,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 21.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "credits-zh-1440.011",
+      "kind": "text",
+      "paint_order": 11,
+      "x": 1216,
+      "y": 32.5,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.012",
+      "kind": "connector",
+      "paint_order": 12,
+      "path": "M1329 39.0h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "credits-zh-1440.013",
+      "kind": "text",
+      "paint_order": 13,
+      "x": 76,
+      "y": 148,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "摄影 / 鸣谢"
+      ],
+      "copy_id": "copy-2dda59b8cb52",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.014",
+      "kind": "text",
+      "paint_order": 14,
+      "x": 76,
+      "y": 214,
+      "width": 714,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 67,
+      "font_style": "normal",
+      "line_height": 70,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "一些真实的景物。"
+      ],
+      "copy_id": "copy-7a043753d855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.015",
+      "kind": "text",
+      "paint_order": 15,
+      "x": 76,
+      "y": 314,
+      "width": 532,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 19,
+      "font_style": "normal",
+      "line_height": 31.349999999999998,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "摄影是构图的一部分，不是可以任意替换的装饰。"
+      ],
+      "copy_id": "copy-1aa3eba1ee53",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.016",
+      "kind": "photograph",
+      "paint_order": 16,
+      "asset": "light",
+      "x": 1032,
+      "y": 150,
+      "width": 258,
+      "height": 355,
+      "rotation": -3,
+      "crop_xywh": [
+        23.24,
+        0.0,
+        1453.52,
+        2000.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": true
+    },
+    {
+      "id": "credits-zh-1440.017",
+      "kind": "text",
+      "paint_order": 17,
+      "x": 946,
+      "y": 536,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "更长的",
+        "明天。"
+      ],
+      "copy_id": "copy-4a65917b1b8c",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.018",
+      "kind": "photograph",
+      "paint_order": 18,
+      "asset": "coast",
+      "x": 76,
+      "y": 723,
+      "width": 253,
+      "height": 237,
+      "rotation": -1,
+      "crop_xywh": [
+        159.49,
+        0.0,
+        1281.01,
+        1200.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "credits-zh-1440.019",
+      "kind": "text",
+      "paint_order": 19,
+      "x": 496,
+      "y": 748,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "摄影 / 1"
+      ],
+      "copy_id": "copy-d279133f16f6",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.020",
+      "kind": "text",
+      "paint_order": 20,
+      "x": 496,
+      "y": 789,
+      "width": 630,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 38.88,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Gunel"
+      ],
+      "copy_id": "copy-336b8a0e099a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.021",
+      "kind": "text",
+      "paint_order": 21,
+      "x": 496,
+      "y": 845,
+      "width": 600,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 14,
+      "font_style": "normal",
+      "line_height": 23.099999999999998,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "来自 Unsplash · 查看原图  →"
+      ],
+      "copy_id": "copy-9ad6ed682a57",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.022",
+      "kind": "photograph",
+      "paint_order": 22,
+      "asset": "architecture",
+      "x": 76,
+      "y": 1054,
+      "width": 253,
+      "height": 237,
+      "rotation": 1,
+      "crop_xywh": [
+        230.48,
+        0.0,
+        1139.03,
+        1067.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "credits-zh-1440.023",
+      "kind": "text",
+      "paint_order": 23,
+      "x": 496,
+      "y": 1079,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "摄影 / 2"
+      ],
+      "copy_id": "copy-12131e2d034d",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.024",
+      "kind": "text",
+      "paint_order": 24,
+      "x": 496,
+      "y": 1120,
+      "width": 630,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 38.88,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Grant Lemons"
+      ],
+      "copy_id": "copy-8e1fbfe7c404",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.025",
+      "kind": "text",
+      "paint_order": 25,
+      "x": 496,
+      "y": 1176,
+      "width": 600,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 14,
+      "font_style": "normal",
+      "line_height": 23.099999999999998,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "来自 Unsplash · 查看原图  →"
+      ],
+      "copy_id": "copy-9ad6ed682a57",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.026",
+      "kind": "photograph",
+      "paint_order": 26,
+      "asset": "light",
+      "x": 76,
+      "y": 1385,
+      "width": 253,
+      "height": 237,
+      "rotation": -1,
+      "crop_xywh": [
+        0.0,
+        297.43,
+        1500.0,
+        1405.14
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "credits-zh-1440.027",
+      "kind": "text",
+      "paint_order": 27,
+      "x": 496,
+      "y": 1410,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "摄影 / 3"
+      ],
+      "copy_id": "copy-b4a1da3b6012",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.028",
+      "kind": "text",
+      "paint_order": 28,
+      "x": 496,
+      "y": 1451,
+      "width": 630,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 38.88,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Milad Fakurian"
+      ],
+      "copy_id": "copy-9ef800d3593d",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.029",
+      "kind": "text",
+      "paint_order": 29,
+      "x": 496,
+      "y": 1507,
+      "width": 600,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 14,
+      "font_style": "normal",
+      "line_height": 23.099999999999998,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "来自 Unsplash · 查看原图  →"
+      ],
+      "copy_id": "copy-9ad6ed682a57",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.030",
+      "kind": "text",
+      "paint_order": 30,
+      "x": 76,
+      "y": 1728,
+      "width": 1080,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 14,
+      "font_style": "normal",
+      "line_height": 23.099999999999998,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "图片按 Unsplash 许可使用，并采用固定裁切与低饱和度调色。原始设计参考另行标注为用户提供的参考，不冒称其摄影来源已核实。"
+      ],
+      "copy_id": "copy-c95a74a187d9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.031",
+      "kind": "line",
+      "paint_order": 31,
+      "x1": 76,
+      "y1": 1910,
+      "x2": 1364,
+      "y2": 1910,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "credits-zh-1440.032",
+      "kind": "text",
+      "paint_order": 32,
+      "x": 76,
+      "y": 1948,
+      "width": null,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.033",
+      "kind": "text",
+      "paint_order": 33,
+      "x": 76,
+      "y": 2009,
+      "width": 340,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 15,
+      "font_style": "normal",
+      "line_height": 24.75,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "让你的思考，拥有更长的明天。"
+      ],
+      "copy_id": "copy-3593bf12b43f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.034",
+      "kind": "text",
+      "paint_order": 34,
+      "x": 710,
+      "y": 1955,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "探索"
+      ],
+      "copy_id": "copy-c8fbce667415",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.035",
+      "kind": "text",
+      "paint_order": 35,
+      "x": 710,
+      "y": 1993,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "使用方式"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.036",
+      "kind": "text",
+      "paint_order": 36,
+      "x": 710,
+      "y": 2022,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "使用场景"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.037",
+      "kind": "text",
+      "paint_order": 37,
+      "x": 710,
+      "y": 2051,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "体验示例"
+      ],
+      "copy_id": "copy-2cabe393e29c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.038",
+      "kind": "text",
+      "paint_order": 38,
+      "x": 940,
+      "y": 1955,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "观点"
+      ],
+      "copy_id": "copy-430e9beac545",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.039",
+      "kind": "text",
+      "paint_order": 39,
+      "x": 940,
+      "y": 1993,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "我们的故事"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.040",
+      "kind": "text",
+      "paint_order": 40,
+      "x": 940,
+      "y": 2022,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "手记"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.041",
+      "kind": "text",
+      "paint_order": 41,
+      "x": 940,
+      "y": 2051,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.042",
+      "kind": "text",
+      "paint_order": 42,
+      "x": 1170,
+      "y": 1955,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "信任"
+      ],
+      "copy_id": "copy-c7651f456022",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.043",
+      "kind": "text",
+      "paint_order": 43,
+      "x": 1170,
+      "y": 1993,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "你的数据"
+      ],
+      "copy_id": "copy-ee5ef73aae18",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.044",
+      "kind": "text",
+      "paint_order": 44,
+      "x": 1170,
+      "y": 2022,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "当前状态"
+      ],
+      "copy_id": "copy-2f5d50add626",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.045",
+      "kind": "text",
+      "paint_order": 45,
+      "x": 1170,
+      "y": 2051,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "隐私 · 条款"
+      ],
+      "copy_id": "copy-3eb89cb7107b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.046",
+      "kind": "text",
+      "paint_order": 46,
+      "x": 1170,
+      "y": 2080,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "联系"
+      ],
+      "copy_id": "copy-2b5c3d26721a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.047",
+      "kind": "line",
+      "paint_order": 47,
+      "x1": 76,
+      "y1": 2154,
+      "x2": 1364,
+      "y2": 2154,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "credits-zh-1440.048",
+      "kind": "text",
+      "paint_order": 48,
+      "x": 76,
+      "y": 2179,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 10.5,
+      "font_style": "normal",
+      "line_height": 17.325,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "© 2026 PAIA · 内测阶段"
+      ],
+      "copy_id": "copy-13f95a79acb6",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "credits-zh-1440.049",
+      "kind": "text",
+      "paint_order": 49,
+      "x": 1364,
+      "y": 2179,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 11,
+      "font_style": "normal",
+      "line_height": 18.15,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "EN   /   中文"
+      ],
+      "copy_id": "copy-555a532adbb7",
+      "role": "text",
+      "anchor": "end"
+    },
+    {
+      "id": "credits-zh-1440.050",
+      "kind": "text",
+      "paint_order": 50,
+      "x": 76,
+      "y": 2206,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 15.674999999999999,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "摄影署名 · 所有材料均为示例，并非真实档案"
+      ],
+      "copy_id": "copy-92249ca2217f",
+      "role": "text",
+      "anchor": "start"
+    }
+  ]
+}

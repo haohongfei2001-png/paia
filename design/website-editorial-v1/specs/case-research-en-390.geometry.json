@@ -1,0 +1,846 @@
+{
+  "frame": "case-research-en-390",
+  "width": 390,
+  "height": 2958.2,
+  "units": "CSS px",
+  "locale": "en",
+  "nodes": [
+    {
+      "id": "case-research-en-390.001",
+      "kind": "rect",
+      "paint_order": 1,
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 2958.2,
+      "fill": "#fdfdfb",
+      "stroke": null,
+      "radius": 0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "background"
+    },
+    {
+      "id": "case-research-en-390.002",
+      "kind": "text",
+      "paint_order": 2,
+      "x": 24,
+      "y": 22,
+      "width": null,
+      "font_family": "EB Garamond 12",
+      "font_size": 34,
+      "font_style": "normal",
+      "line_height": 36.72,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.003",
+      "kind": "rect",
+      "paint_order": 3,
+      "x": 203,
+      "y": 22,
+      "width": 127,
+      "height": 39,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 19.5,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "case-research-en-390.004",
+      "kind": "text",
+      "paint_order": 4,
+      "x": 227,
+      "y": 35.0,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "Join beta"
+      ],
+      "copy_id": "copy-83eff0e03ab6",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.005",
+      "kind": "connector",
+      "paint_order": 5,
+      "path": "M291 41.5h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "case-research-en-390.006",
+      "kind": "line",
+      "paint_order": 6,
+      "x1": 350,
+      "y1": 34,
+      "x2": 369,
+      "y2": 34,
+      "stroke": "#171c19",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-research-en-390.007",
+      "kind": "line",
+      "paint_order": 7,
+      "x1": 350,
+      "y1": 43,
+      "x2": 369,
+      "y2": 43,
+      "stroke": "#171c19",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-research-en-390.008",
+      "kind": "text",
+      "paint_order": 8,
+      "x": 24,
+      "y": 112,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "RESEARCH & LEARNING"
+      ],
+      "copy_id": "copy-0225cc7b0644",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.009",
+      "kind": "text",
+      "paint_order": 9,
+      "x": 24,
+      "y": 159,
+      "width": 342,
+      "font_family": "EB Garamond 12",
+      "font_size": 44,
+      "font_style": "normal",
+      "line_height": 49,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "The answer moves",
+        "on.",
+        "Your questions can,",
+        "too."
+      ],
+      "copy_id": "copy-9525f97e1001",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.010",
+      "kind": "text",
+      "paint_order": 10,
+      "x": 24,
+      "y": 385,
+      "width": 335,
+      "font_family": "Inter",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 23.2,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Recover the question behind a useful",
+        "explanation, then continue from a clearer",
+        "starting point."
+      ],
+      "copy_id": "copy-1a295a149f8a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.011",
+      "kind": "text",
+      "paint_order": 11,
+      "x": 24,
+      "y": 524.6,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "01 / THE QUESTION"
+      ],
+      "copy_id": "copy-339dd8d138c9",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.012",
+      "kind": "text",
+      "paint_order": 12,
+      "x": 24,
+      "y": 566.6,
+      "width": 337,
+      "font_family": "EB Garamond 12",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 42,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "What was I trying to",
+        "understand?"
+      ],
+      "copy_id": "copy-fff22e31cd5b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.013",
+      "kind": "text",
+      "paint_order": 13,
+      "x": 24,
+      "y": 676.6,
+      "width": 331,
+      "font_family": "Inter",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 23.2,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "A promising hypothesis gets refined over",
+        "several sessions. A copied quotation is",
+        "useful, but it is not automatically your own",
+        "position."
+      ],
+      "copy_id": "copy-dd503d27b165",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.014",
+      "kind": "photograph",
+      "paint_order": 14,
+      "asset": "light",
+      "x": 24,
+      "y": 804.4,
+      "width": 287,
+      "height": 250,
+      "rotation": -2,
+      "crop_xywh": [
+        0.0,
+        346.69,
+        1500.0,
+        1306.62
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "case-research-en-390.015",
+      "kind": "text",
+      "paint_order": 15,
+      "x": 24,
+      "y": 1131.4,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "02 / A MORE USEFUL START"
+      ],
+      "copy_id": "copy-1edd19a6f553",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.016",
+      "kind": "text",
+      "paint_order": 16,
+      "x": 24,
+      "y": 1173.4,
+      "width": 337,
+      "font_family": "EB Garamond 12",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 42,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Bring what still matters."
+      ],
+      "copy_id": "copy-63255b8e8712",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.017",
+      "kind": "text",
+      "paint_order": 17,
+      "x": 24,
+      "y": 1241.4,
+      "width": 331,
+      "font_family": "Inter",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 23.2,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Revisit the actual question, edit your",
+        "working notes and select the relevant",
+        "material for the next explanation or",
+        "investigation."
+      ],
+      "copy_id": "copy-1ec54fb46647",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.018",
+      "kind": "photograph",
+      "paint_order": 18,
+      "asset": "coast",
+      "x": 79,
+      "y": 1369.2,
+      "width": 287,
+      "height": 250,
+      "rotation": 2,
+      "crop_xywh": [
+        111.2,
+        0.0,
+        1377.6,
+        1200.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "case-research-en-390.019",
+      "kind": "text",
+      "paint_order": 19,
+      "x": 24,
+      "y": 1696.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "ILLUSTRATIVE SCENARIO"
+      ],
+      "copy_id": "copy-508593022447",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.020",
+      "kind": "text",
+      "paint_order": 20,
+      "x": 24,
+      "y": 1741.2,
+      "width": 331,
+      "font_family": "EB Garamond 12",
+      "font_size": 34,
+      "font_style": "normal",
+      "line_height": 41,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "No automatic profile. No",
+        "made-up certainty.",
+        "The next context remains",
+        "your choice."
+      ],
+      "copy_id": "copy-94fe6b294aa1",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.021",
+      "kind": "line",
+      "paint_order": 21,
+      "x1": 24,
+      "y1": 1966.2,
+      "x2": 366,
+      "y2": 1966.2,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-research-en-390.022",
+      "kind": "text",
+      "paint_order": 22,
+      "x": 24,
+      "y": 2014.2,
+      "width": 330,
+      "font_family": "EB Garamond 12",
+      "font_size": 38,
+      "font_style": "normal",
+      "line_height": 43,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Take the next step",
+        "with a little more",
+        "context."
+      ],
+      "copy_id": "copy-96ead3b34b0b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.023",
+      "kind": "rect",
+      "paint_order": 23,
+      "x": 24,
+      "y": 2138.2,
+      "width": 208,
+      "height": 56,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 28.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "case-research-en-390.024",
+      "kind": "text",
+      "paint_order": 24,
+      "x": 48,
+      "y": 2158.45,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 15.5,
+      "font_style": "normal",
+      "line_height": 22.474999999999998,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.025",
+      "kind": "connector",
+      "paint_order": 25,
+      "path": "M193 2166.2h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "case-research-en-390.026",
+      "kind": "line",
+      "paint_order": 26,
+      "x1": 24,
+      "y1": 2268.2,
+      "x2": 366,
+      "y2": 2268.2,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-research-en-390.027",
+      "kind": "text",
+      "paint_order": 27,
+      "x": 24,
+      "y": 2306.2,
+      "width": null,
+      "font_family": "EB Garamond 12",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 38.88,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.028",
+      "kind": "text",
+      "paint_order": 28,
+      "x": 24,
+      "y": 2367.2,
+      "width": 340,
+      "font_family": "Inter",
+      "font_size": 15,
+      "font_style": "normal",
+      "line_height": 21.75,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Your thinking has a longer tomorrow."
+      ],
+      "copy_id": "copy-3593bf12b43f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.029",
+      "kind": "text",
+      "paint_order": 29,
+      "x": 24,
+      "y": 2444.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "EXPLORE"
+      ],
+      "copy_id": "copy-c8fbce667415",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.030",
+      "kind": "text",
+      "paint_order": 30,
+      "x": 24,
+      "y": 2482.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "How it works"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.031",
+      "kind": "text",
+      "paint_order": 31,
+      "x": 24,
+      "y": 2511.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Use cases"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.032",
+      "kind": "text",
+      "paint_order": 32,
+      "x": 24,
+      "y": 2540.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Explore an example"
+      ],
+      "copy_id": "copy-2cabe393e29c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.033",
+      "kind": "text",
+      "paint_order": 33,
+      "x": 204,
+      "y": 2444.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "PERSPECTIVES"
+      ],
+      "copy_id": "copy-430e9beac545",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.034",
+      "kind": "text",
+      "paint_order": 34,
+      "x": 204,
+      "y": 2482.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Our story"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.035",
+      "kind": "text",
+      "paint_order": 35,
+      "x": 204,
+      "y": 2511.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Journal"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.036",
+      "kind": "text",
+      "paint_order": 36,
+      "x": 204,
+      "y": 2540.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.037",
+      "kind": "text",
+      "paint_order": 37,
+      "x": 24,
+      "y": 2620.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "TRUST"
+      ],
+      "copy_id": "copy-c7651f456022",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.038",
+      "kind": "text",
+      "paint_order": 38,
+      "x": 24,
+      "y": 2658.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Your data"
+      ],
+      "copy_id": "copy-ee5ef73aae18",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.039",
+      "kind": "text",
+      "paint_order": 39,
+      "x": 24,
+      "y": 2687.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Current status"
+      ],
+      "copy_id": "copy-2f5d50add626",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.040",
+      "kind": "text",
+      "paint_order": 40,
+      "x": 24,
+      "y": 2716.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Privacy · Terms"
+      ],
+      "copy_id": "copy-3eb89cb7107b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.041",
+      "kind": "text",
+      "paint_order": 41,
+      "x": 24,
+      "y": 2745.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Contact"
+      ],
+      "copy_id": "copy-2b5c3d26721a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.042",
+      "kind": "line",
+      "paint_order": 42,
+      "x1": 24,
+      "y1": 2838.2,
+      "x2": 366,
+      "y2": 2838.2,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-research-en-390.043",
+      "kind": "text",
+      "paint_order": 43,
+      "x": 24,
+      "y": 2863.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 10.5,
+      "font_style": "normal",
+      "line_height": 15.225,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "© 2026 PAIA · Private beta"
+      ],
+      "copy_id": "copy-13f95a79acb6",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-research-en-390.044",
+      "kind": "text",
+      "paint_order": 44,
+      "x": 366,
+      "y": 2863.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 11,
+      "font_style": "normal",
+      "line_height": 15.95,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "EN   /   中文"
+      ],
+      "copy_id": "copy-555a532adbb7",
+      "role": "text",
+      "anchor": "end"
+    },
+    {
+      "id": "case-research-en-390.045",
+      "kind": "text",
+      "paint_order": 45,
+      "x": 24,
+      "y": 2890.2,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 13.775,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "Photography credits · Illustrative material, not a live archive"
+      ],
+      "copy_id": "copy-92249ca2217f",
+      "role": "text",
+      "anchor": "start"
+    }
+  ]
+}
