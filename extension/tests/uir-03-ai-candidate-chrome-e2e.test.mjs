@@ -11,8 +11,8 @@ const rpc=async(page,type,fields={})=>{const response=await page.evaluate(messag
 const requestOf=body=>JSON.parse(body.messages[1].content);
 const aiOutput=(request,label,index)=>({choices:[{finish_reason:'stop',message:{content:JSON.stringify({topicId:request.topicCandidates[0].id,blockSummary:`${label} 主题速览 ${index}`,currentView:`${label} 当前理解 ${index}`,keyInformation:[],preferences:[],decisions:[],judgments:[],openQuestions:[],possibleEvolution:[],evidenceEntryIds:request.inputs.map(row=>row.ref)})}}]});
 async function ready(h){const page=h.archive,action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()),'UIR-03 consent action is available');await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-03 consent is durable');if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await rpc(page,'PAIA_MEMORY_SETTINGS',{options:{externalAccess:true,localOnly:false}});await rpc(page,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-uir03-candidate-key'}});await mkdir('work/ux-r3',{recursive:true});return page;}
-async function createTopic(page,label){const topic=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:`${label} 候选比较`,operationId:op()}});await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL 当前稿与更新候选必须保持清楚分离。`}});return topic;}
-async function settleThoughtHome(page){const back=page.locator('#back'),list=page.locator('#thought-list'),documentView=page.locator('#thought-document');await eventually(async()=>await back.isVisible()||await list.isVisible()||!(await documentView.isVisible()),'Thought route settles before Topic reopen');if(await back.isVisible()){await back.click();await list.waitFor({state:'visible'});}else if(!await list.isVisible())await list.waitFor({state:'visible'});}
+async function createTopic(page,label){const topic=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:`${label} 候选比较`,operationId:op()}});await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL 当前稿与更新候选必须保持清楚分离。`}});const readback=await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id});assert.equal(readback.id,topic.id);assert.equal(readback.name,`${label} 候选比较`);return readback;}
+async function settleThoughtHome(page){const nav=page.locator('[data-view="thoughts"]').first(),back=page.locator('#back'),list=page.locator('#thought-list'),documentView=page.locator('#thought-document');if(await nav.getAttribute('aria-current')!=='page')await nav.click();await page.locator('#thought-panel').waitFor({state:'visible'});await eventually(async()=>await list.isVisible()||await documentView.isVisible(),'Thought route settles before returning to its home');if(await documentView.isVisible()){await back.waitFor({state:'visible'});assert.match(await back.textContent(),/返回思想库/,'back belongs to the active Thought route');await back.click();}await list.waitFor({state:'visible'});}
 async function openTopic(page,topic){const nav=page.locator('[data-view="thoughts"]').first(),documentView=page.locator('#thought-document'),list=page.locator('#thought-list'),heading=page.locator('#topic-heading h1').filter({hasText:topic.name});if(await nav.getAttribute('aria-current')!=='page')await nav.click();await page.locator('#thought-panel').waitFor({state:'visible'});await eventually(async()=>await heading.isVisible()||await documentView.isVisible()||await list.isVisible(),'Thought route settles before Topic selection');if(await heading.isVisible())return;if(await documentView.isVisible())await settleThoughtHome(page);const tile=page.locator(`[data-topic-id="${topic.id}"]`);await tile.waitFor({state:'visible'});await tile.click();await heading.waitFor();}
 async function reopenTopic(page,topic){await settleThoughtHome(page);await openTopic(page,topic);}
 async function organized(page){const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch enabled');if(!await toggle.isChecked())await toggle.check();}
@@ -46,4 +46,239 @@ test('UIR-03 candidate comparison keeps current work distinct, stages choices lo
  let calls=0,source;try{source=await FakeChatGPT.start({onboarding:true,deepSeekFixture:async body=>aiOutput(requestOf(body),'UIR03_CANDIDATE',++calls)});const page=await ready(source),topic=await createTopic(page,'UIR03_CANDIDATE');await sourceJourney(page,source,topic);}finally{await source?.close();}
  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  let releaseCalls=0,release;try{release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true,deepSeekFixture:async body=>aiOutput(requestOf(body),'UIR03_RELEASE_CANDIDATE',++releaseCalls)});const page=await ready(release),topic=await createTopic(page,'UIR03_RELEASE_CANDIDATE');await releaseJourney(page,release,topic);}finally{await release?.close();}
+});
+
+async function addCapturedInput(page,input,topic){
+ await page.locator('[data-view="library"]').first().click();
+ await page.locator('#archive-navigator').waitFor({state:'visible'});
+ const group=page.locator('.archive-navigator-group-toggle').filter({hasText:'未归属 Project'}).first();
+ await group.waitFor();if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+ await page.locator('.archive-navigator-window[data-document-id="'+input.documentId+'"]').click();
+ const field=page.locator('.library-prose[data-edit-id="'+input.id+'"]');await field.waitFor();
+ await page.locator('[data-block-id="'+input.id+'"] .reader-more').click();
+ await page.getByRole('menuitem',{name:'加入主题',exact:true}).click();
+ const chooser=page.locator('#topic-action-dialog');await chooser.waitFor();
+ assert.equal(await chooser.locator('.topic-selection-preview').textContent(),input.expectedText,'whole captured Input is explicitly selected');
+ await chooser.getByLabel(topic.name,{exact:true}).check();
+ await chooser.getByRole('button',{name:'加入',exact:true}).click();
+ await eventually(async()=>!await chooser.isVisible(),'actual Reader joins the selected Input to the selected Topic');
+ const doc=await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}});
+ const found=doc.items.find(row=>row.entry.body===input.expectedText)?.entry;
+ assert.ok(found,'joined whole Input is an actual Original entry');return found;
+}
+function topicAuthority(row){
+ const {readingActivity,...authority}=row;
+ if(readingActivity!==undefined){assert.deepEqual(Object.keys(readingActivity).sort(),['at','weight']);assert.ok(Number.isFinite(readingActivity.at)&&readingActivity.at>0);assert.ok(Number.isFinite(readingActivity.weight)&&readingActivity.weight>=1&&readingActivity.weight<=8);}
+ return authority;
+}
+async function livingTopicJourney(page,h,topic,label){
+ const a={id:label.toLowerCase()+'-conversation-a',title:label+' Conversation A',base:1609459200,messages:[{id:label+'-message-a',text:label+' 会话一：只在证据足够时考虑这条路线。'}]};
+ const b={id:label.toLowerCase()+'-conversation-b',title:label+' Conversation B',base:1609545600,messages:[{id:label+'-message-b',text:label+' 会话二：另一条路线仍开放，并未决定替代。'}]};
+ const sourceA=await h.open(a);await h.ready(sourceA);const sourceB=await h.open(b);await h.ready(sourceB);
+ await eventually(async()=>(await h.state()).records.length===2,'two separate real content-script captures finish');
+ const captured=await h.state(),inputs=captured.library.blocks.map(input=>({...input,expectedText:input.libraryText??captured.records.find(record=>record.id===input.originalTextReference)?.originalText}));
+ for(const input of inputs)assert.equal(typeof input.expectedText,'string','captured Input has an effective working-or-Source body');
+ assert.equal(inputs.length,2);assert.notEqual(inputs[0].documentId,inputs[1].documentId,'Inputs retain different Conversation identity');
+ const sourceEntries=[];for(const input of inputs)sourceEntries.push(await addCapturedInput(page,input,topic));
+ assert.equal(h.deepSeekRequests.length,0,'capture and explicit Topic placement never invoke AI');
+ await openTopic(page,topic);if(await page.locator('#ai-presentation-toggle').isChecked())await page.locator('#ai-presentation-toggle').uncheck();
+ for(const entry of sourceEntries){
+  const node=page.locator('#original-reading-body [data-entry-id="'+entry.id+'"]');await node.waitFor();
+  assert.equal(await node.locator('[data-entry-field="body"]').textContent(),entry.body);
+  const provenance=node.locator('.entry-provenance');await provenance.locator('summary').first().click();
+  await eventually(async()=>await provenance.getByRole('button',{name:'查看输入',exact:true}).count()===1,'one direct captured source remains inspectable for each Conversation expression');
+  assert.ok((await rpc(page,'GET_LIBRARY_PATHS',{id:entry.id})).length,'joined expression retains a real Topic path');
+ }
+ const composer=page.locator('#topic-action-dialog'),newBody=label+' 今天的新想法\n这不是过去原话的改写。';
+ await page.locator('#create-entry').click();await composer.getByLabel('今天的新想法',{exact:true}).fill(newBody);
+ await composer.getByRole('button',{name:'保存想法',exact:true}).click();
+ await eventually(async()=>!await composer.isVisible(),'new Thought saves through the real composer');
+ await page.locator('#notice').getByRole('button',{name:'查看',exact:true}).click();
+ const standalone=page.locator('#library-dialog-content [data-entry-field="body"]');await standalone.waitFor();
+ assert.equal(await standalone.textContent(),newBody);
+ const newId=await page.locator('#library-dialog-content [data-entry-id]').getAttribute('data-entry-id');
+ const newEntry=await rpc(page,'GET_LIBRARY_ENTRY',{id:newId});
+ assert.equal(newEntry.provenanceType,'user_created');
+ const provenance=await rpc(page,'GET_LIBRARY_PROVENANCE',{id:newId});
+ assert.deepEqual(provenance,{userCreated:true,count:0,primary:0,supporting:0,contextOnly:0,items:[]},'independent Thought has no inherited evidence');
+ const comparison=await rpc(page,'COMPARE_THOUGHT_INPUT',{id:newId});
+ assert.equal(comparison.entry.thoughtText,newBody);assert.deepEqual(comparison.entry.sourceRecordIds,[]);
+ assert.deepEqual(comparison.sources,[]);assert.equal(comparison.input,null);assert.deepEqual(comparison.relations,[]);
+ assert.equal((await rpc(page,'GET_LIBRARY_PATHS',{id:newId}))[0].topicId,topic.id);
+ await page.locator('#library-dialog-close').click();await reopenTopic(page,topic);
+ const authority=topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}));
+ const beforeEntries=await Promise.all([...sourceEntries.map(e=>e.id),newId].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
+ await organized(page);await confirmGeneration(page);
+ await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览 1'}).waitFor();
+ let row=await state(page,topic.id);assert.equal(h.deepSeekRequests.length,1);
+ assert.deepEqual(new Set(row.presentation.evidenceEntryIds),new Set(beforeEntries.map(e=>e.id)),'one bounded generation includes both Conversations and independent Thought');
+ assert.deepEqual(topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})),authority,'generation preserves every Topic authority/cache field while actual reading telemetry may advance');
+ const human=label+' 人工维护第一行\n第二行保留条件和未定选择。';
+ await page.locator('[data-ai-field="currentView"]').fill(human);
+ await page.locator('[data-ai-field="currentView"]').press('Tab');
+ await eventually(async()=>(await state(page,topic.id)).presentation.currentView===human,'actual manual multiline overview is durable');
+ row=await state(page,topic.id);assert.equal(row.presentation.protections.currentView,true);
+ const protectedPresentation=structuredClone(row.presentation);
+ await page.locator('#ai-presentation-toggle').uncheck();
+ await page.locator('#original-reading-body').waitFor({state:'visible'});
+ await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'Original switch finishes before leaving the AI pane');
+ assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'switching to Original preserves exact multiline human work, protection and revision');
+ await page.locator('[data-view="library"]').first().click();
+ await page.locator('#archive-navigator').waitFor({state:'visible'});
+ assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'leaving the hidden AI pane is read-only and cannot create a flattened phantom revision');
+ await reopenTopic(page,topic);await organized(page);
+ await page.locator('[data-ai-field="currentView"]').filter({hasText:human}).waitFor();
+ assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'actual Topic reopen retains the exact saved multiline overview');
+ await page.locator('#ai-presentation-toggle').uncheck();
+ await page.locator('#original-reading-body').waitFor({state:'visible'});
+ await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'second Original switch finishes without a write');
+ assert.deepEqual(await Promise.all(beforeEntries.map(e=>rpc(page,'GET_LIBRARY_ENTRY',{id:e.id}))),beforeEntries,'AI/human overview edits never rewrite any Original entry');
+ const newMessage={id:label+'-message-new',text:label+' 会话一新增来源：出现反例，仍需保留先前条件。'};
+ await h.send(sourceA,newMessage);
+ await eventually(async()=>(await h.state()).records.length===3,'new external source message is captured without AI');
+ const changed=await h.state();
+ const latestInput=changed.library.blocks.map(input=>({...input,expectedText:input.libraryText??changed.records.find(record=>record.id===input.originalTextReference)?.originalText})).find(input=>input.expectedText===newMessage.text);
+ assert.ok(latestInput);assert.deepEqual(changed.records.filter(record=>captured.records.some(old=>old.id===record.id)),captured.records,'new capture keeps earlier immutable Source records');
+ const added=await addCapturedInput(page,latestInput,topic);
+ await reopenTopic(page,topic);await organized(page);
+ row=await state(page,topic.id);assert.equal(row.pending,true);
+ const {stale:priorStale,...protectedSaved}=protectedPresentation,{stale:addedStale,...afterAdditionSaved}=row.presentation;
+ assert.equal(priorStale,false);assert.equal(addedStale,true,'new evidence truthfully marks the saved overview stale');
+ assert.deepEqual(afterAdditionSaved,protectedSaved,'source addition preserves every saved content/revision/protection/timestamp field');
+ assert.equal(h.deepSeekRequests.length,1,'new capture/placement/read alone does not request AI');
+ const updatedAuthority=topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}));
+ await page.locator('#ai-library-update').click();await page.locator('[data-ai-candidate]').waitFor();
+ await eventually(()=>Promise.resolve(h.deepSeekRequests.length===2),'exactly one explicit protected update');
+ row=await state(page,topic.id);assert.equal(row.pending,false);assert.equal(row.presentation.stale,false,'one explicit update acknowledges the new evidence while its proposal remains staged');assert.equal(row.presentation.currentView,human);assert.equal(row.presentation.revision,protectedPresentation.revision);
+ assert.equal(row.candidate.proposal.currentView,label+' 当前理解 2');
+ assert.deepEqual(new Set(row.candidate.proposal.evidenceEntryIds),new Set([...beforeEntries.map(e=>e.id),added.id]),'delta proposal retains prior cross-Conversation evidence and new source');
+ const panel=page.locator('[data-ai-candidate]'),summary=panel.locator('[data-ai-candidate-field="blockSummary"]'),view=panel.locator('[data-ai-candidate-field="currentView"]');
+ assert.match(await view.locator('[data-candidate-version="current"]').textContent(),/人工维护第一行/);
+ await summary.getByRole('button',{name:'采用这段',exact:true}).click();await view.getByRole('button',{name:'保留当前',exact:true}).click();
+ assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'reviewed choices remain staged until explicit save');
+ await panel.getByRole('button',{name:'保存这些选择',exact:true}).click();
+ await eventually(async()=>!(await state(page,topic.id)).candidate,'protected candidate is atomically adopted once');
+ row=await state(page,topic.id);assert.equal(row.presentation.revision,protectedPresentation.revision+1);
+ assert.equal(row.presentation.blockSummary,label+' 主题速览 2');assert.equal(row.presentation.currentView,human);assert.equal(row.presentation.protections.currentView,true);
+ const saved=structuredClone(row.presentation);
+ assert.deepEqual(topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})),updatedAuthority);
+ assert.deepEqual(await Promise.all(beforeEntries.map(e=>rpc(page,'GET_LIBRARY_ENTRY',{id:e.id}))),beforeEntries);
+ assert.equal((await rpc(page,'GET_LIBRARY_ENTRY',{id:added.id})).body,newMessage.text);
+ assert.deepEqual((await h.state()).records,changed.records,'candidate update never alters captured Source');
+ await h.restartWorker();await page.reload();await openTopic(page,topic);await organized(page);
+ await page.locator('[data-ai-field="currentView"]').filter({hasText:human}).waitFor();
+ assert.deepEqual((await state(page,topic.id)).presentation,saved,'worker restart and route reload preserve exact reviewed human work');
+ assert.equal(h.deepSeekRequests.length,2);assert.equal(h.extensionNetworkRequests,2);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ await shot(page,label.toLowerCase()+'-complete-cross-conversation-living-topic');
+}
+test('VS-05 complete living Topic path captures two Conversations, composes a new Thought and protects human work through new-source candidate update in source and built release',{timeout:300000},async()=>{
+ for(const [extensionPath,label]of [[undefined,'VS05_LOOP_SOURCE'],['work/current-release','VS05_LOOP_RELEASE']]){
+  if(extensionPath)await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+  let calls=0,h;
+  try{
+   h=await FakeChatGPT.start({...(extensionPath?{extensionPath}:{}),onboarding:true,deepSeekFixture:async body=>{
+    const request=requestOf(body),output=aiOutput(request,label,++calls),row=JSON.parse(output.choices[0].message.content);
+    const previous=JSON.parse(request.context.find(item=>item.ref==='existing-presentation')?.text||'null');
+    row.evidenceEntryIds=[...new Set([...row.evidenceEntryIds,...(previous?.evidenceEntryIds||[])])];
+    output.choices[0].message.content=JSON.stringify(row);return output;
+   }});
+   const page=await ready(h),created=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:label+' 跨会话持续主题',operationId:op()}});
+   const topic=await rpc(page,'GET_LIBRARY_TOPIC',{id:created.id});
+   assert.equal(topic.id,created.id);assert.equal(topic.name,label+' 跨会话持续主题','chooser identity comes from canonical Topic readback');
+   await livingTopicJourney(page,h,topic,label);
+  }finally{await h?.close();}
+ }
+});
+
+
+async function hiddenDraftJourney(page,h,topic,label){
+ await page.setViewportSize({width:1440,height:900});
+ await openTopic(page,topic);await organized(page);await confirmGeneration(page);
+ await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览 1'}).waitFor();
+ const documentAuthority=doc=>({...doc,topic:topicAuthority(doc.topic)});
+ const original=documentAuthority(await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}}));
+ const originalProvenance=await Promise.all(original.items.map(item=>rpc(page,'GET_LIBRARY_PROVENANCE',{id:item.entry.id})));
+ const topicBefore=topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}));
+ const initial=structuredClone((await state(page,topic.id)).presentation);
+ const legacy=page.locator('#ai-reading-body .ai-legacy').filter({has:page.locator('summary',{hasText:'其他已保存的整理'})}).first();
+ const fields=['keyInformation','preferences','decisions','judgments','openQuestions','possibleEvolution'];
+ for(const field of fields){
+  if(field!=='possibleEvolution'&&!await legacy.evaluate(node=>node.open))await legacy.locator('summary').click();
+  const node=page.locator('#ai-reading-body [data-ai-field="'+field+'"]').first();
+  await node.waitFor({state:'visible'});
+  const authored=label+' '+field+' 人工第一行\n第二行保留条件，并不等于已决定。';
+  await node.fill(authored);
+  // Collapse via the actual reading control immediately after input. This
+  // exercises the collected draft, not just a previously committed value.
+  if(field!=='possibleEvolution')await legacy.locator('summary').click();
+  else await node.press('Tab');
+  await eventually(async()=>(await state(page,topic.id)).presentation[field][0].text===authored,'authored '+field+' multiline draft is durable after collapse/blur');
+  const saved=(await state(page,topic.id)).presentation;
+  assert.equal(saved.protections[field],true,'human list edit remains protected');
+  assert.equal(saved[field].length,initial[field].length);
+  assert.deepEqual(saved[field][0].evidenceEntryIds,initial[field][0].evidenceEntryIds,'human wording retains exact evidence');
+ }
+ const summary=label+' 速览人工第一行\n第二行保持未定。';
+ const summaryNode=page.locator('[data-ai-field="blockSummary"]');
+ await summaryNode.fill(summary);
+ assert.equal(await summaryNode.innerText(),summary,'replacing summary keeps literal human text in its actual editing host');
+ // Empty is an editable value, not a reason to remove the focused host.
+ // Clearing/retyping must keep a visible caret target before any save/hide.
+ await summaryNode.fill('');
+ assert.equal(await summaryNode.isVisible(),true,'cleared editable summary remains visible');
+ assert.equal(await summaryNode.evaluate(node=>document.activeElement===node&&node.getBoundingClientRect().height>0),true,'clearing retains the actual focused summary editing surface');
+ await summaryNode.fill(summary);
+ // A deliberate clear is also a real draft. Hiding cannot restore old AI text.
+ await page.locator('[data-ai-field="currentView"]').fill('');
+ await page.locator('#ai-presentation-toggle').uncheck();
+ await page.locator('#original-reading-body').waitFor({state:'visible'});
+ await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'hide saves actual collected overview drafts');
+ let overviewReadback=null;
+ try{
+  await eventually(async()=>{const saved=(await state(page,topic.id)).presentation;overviewReadback={blockSummary:saved.blockSummary,currentView:saved.currentView,revision:saved.revision,protections:saved.protections};return saved.blockSummary===summary&&saved.currentView==='';},'multiline summary and deliberate empty overview are durable');
+ }catch(error){
+  // Read-only evidence after failure: preserve the real input/blur/switch order
+  // and the existing deadline, rather than adding synchronization to the journey.
+  const dom=await page.evaluate(()=>({
+   fields:['blockSummary','currentView'].map(field=>{const node=document.querySelector('#ai-reading-body [data-ai-field="'+field+'"]'),style=node&&getComputedStyle(node);return{field,exists:!!node,textContent:node?.textContent,innerText:node?.innerText,innerHTML:node?.innerHTML,hiddenAncestor:!!node?.closest('[hidden],details:not([open])'),whiteSpace:style?.whiteSpace,display:style?.display,visibility:style?.visibility};}),
+   aiHidden:document.querySelector('#ai-reading-body')?.hidden,
+   originalHidden:document.querySelector('#original-reading-body')?.hidden,
+   toggleChecked:document.querySelector('#ai-presentation-toggle')?.checked,
+   status:[...document.querySelectorAll('[role="status"]')].map(node=>node.textContent).slice(0,12)
+  }));
+  error.message+='\nOVERVIEW_DRAFT_EVIDENCE '+JSON.stringify({label,expected:{blockSummary:summary,currentView:''},readback:overviewReadback,dom,browserErrors:h.errors});
+  throw error;
+ }
+ const saved=structuredClone((await state(page,topic.id)).presentation);
+ assert.equal(saved.protections.blockSummary,true);assert.equal(saved.protections.currentView,true);
+ for(const field of fields)assert.equal(saved[field][0].text,label+' '+field+' 人工第一行\n第二行保留条件，并不等于已决定。');
+ await page.locator('[data-view="library"]').first().click();await page.locator('#archive-navigator').waitFor({state:'visible'});
+ assert.deepEqual((await state(page,topic.id)).presentation,saved,'hidden route collects no phantom list/overview write or revision');
+ await reopenTopic(page,topic);await organized(page);
+ await page.locator('[data-ai-field="blockSummary"]').filter({hasText:summary}).waitFor();
+ assert.deepEqual((await state(page,topic.id)).presentation,saved,'all authored fields and intentional clear survive real Topic reopen');
+ await page.locator('#ai-presentation-toggle').uncheck();await page.locator('#original-reading-body').waitFor({state:'visible'});
+ await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'final read-only switch settles');
+ assert.deepEqual((await state(page,topic.id)).presentation,saved,'repeat hiding is idempotent for content/protection/revision');
+ assert.deepEqual(documentAuthority(await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}})),original,'all Original entries/placements/document fields and Topic authority stay exact except validated reading telemetry');
+ assert.deepEqual(await Promise.all(original.items.map(item=>rpc(page,'GET_LIBRARY_PROVENANCE',{id:item.entry.id}))),originalProvenance,'every direct provenance edge/count/availability stays exact');
+ assert.deepEqual(topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})),topicBefore);
+ assert.equal(h.deepSeekRequests.length,1);assert.equal(h.extensionNetworkRequests,1);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ await shot(page,label.toLowerCase()+'-hidden-authored-drafts');
+}
+
+test('VS-05 all six authored AI lists and deliberate empty overview survive collapsed/hidden panes and route reopen in source and built release',{timeout:300000},async()=>{
+ for(const [extensionPath,label]of [[undefined,'VS05_DRAFT_SOURCE'],['work/current-release','VS05_DRAFT_RELEASE']]){
+  if(extensionPath)await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+  let h;try{
+   h=await FakeChatGPT.start({...(extensionPath?{extensionPath}:{}),onboarding:true,deepSeekFixture:async body=>{
+    const request=requestOf(body),output=aiOutput(request,label,1),row=JSON.parse(output.choices[0].message.content);
+    for(const field of ['keyInformation','preferences','decisions','judgments','openQuestions','possibleEvolution'])
+     row[field]=[{text:label+' '+field+' 已保存条件\n尚未决定。',evidenceEntryIds:request.inputs.map(input=>input.ref)}];
+    output.choices[0].message.content=JSON.stringify(row);return output;
+   }});
+   const page=await ready(h),topic=await createTopic(page,label);
+   await hiddenDraftJourney(page,h,topic,label);
+  }finally{await h?.close();}
+ }
 });

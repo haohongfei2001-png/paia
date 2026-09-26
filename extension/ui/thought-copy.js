@@ -1,5 +1,15 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '记录与这条内容的回应关系':'Record a response relationship to this content',
+ '记录与这条内容的回应关系（可不选）':'Record a response relationship (optional)',
+ '只记录你选择的关系；新想法独立保存，不改写这条内容。':'Only the relationship you choose is recorded. The new thought is saved independently and leaves this content unchanged.',
+ '回应的内容刚有变化；新想法尚未保存，文字仍在这里。取消关联可独立保存，或重新打开原内容核对。':'The response target changed. Your new thought is not saved; the draft remains here. Clear the relationship to save independently, or reopen the target to review it.',
+ '查看关联':'View relationships','想法关联':'Thought relationships',
+ '这里只显示你明确选择的关系，不自动判断观点变化。':'Only relationships you explicitly choose appear here. PAIA does not infer changes in beliefs.',
+ '这条想法没有记录回应关系。':'This thought has no recorded response relationship.',
+ '回应的内容':'Response target','查看关联内容':'Open related content',
+ '关联内容已变化，请重新核对；不把当前文字当作当时版本。':'The related content changed. Review it again; its current text is not the previously reviewed version.',
+ '关联内容已不可用；这条独立想法仍保留。':'The related content is unavailable. This independent thought is retained.',
  '已修改这条思想，档案未变。':'Thought updated. The archive is unchanged.',
  '这次撤销也会修改档案。仅确认本次操作，不会开启全局开关。':'This undo also changes the archive. Confirm this operation only; the global setting stays off.',
  '内容已变化，请核对版本历史。':'Content changed. Check version history.',

@@ -68,6 +68,17 @@ A ledger entry is never PASS. It may be removed only after the required evidence
 - **Non-blocked work:** typed AI write proposals, review/commit path, permission enforcement, adversarial tests unrelated to reply retention, and all earlier product work.
 - **Safe interim:** reply-aware reading remains disabled; prompt reuse phases 1–2 remain independent.
 
+### DFG-CPV1-009 — Independent live generated-output meaning review
+
+- **Owner round:** CPV1-05.5 — AI output fidelity.
+- **State:** LIVE_GENERATED_SEMANTIC_EVIDENCE_DEFERRED.
+- **Reason:** current GitHub Actions fixtures supply frozen reference responses; they do not execute a real authorized model and independently grade its generated meaning. Cloud engineering has no admitted real provider credential/paid live run evidence.
+- **Still required:** collect actual generated outputs for the fixed quotation/attribution, negation/conditions, uncertainty, explicit correction, unresolved conflict, causality, emotion/intensity and unknown-time cases; independent review must preserve each distinction and flag material distortion as blocking, without averaging it away.
+- **Forbidden substitutions:** reference-response transport PASS, a plausible synthetic reply, limits/schema checks, or privacy tests cannot be presented as generated-model semantic PASS.
+- **Owner/external boundary:** do not obtain credentials, expand paid usage/privacy permissions or send private conversation content without applicable authorization. A synthetic corpus can be used for the eventual authorized live evidence; no private data is required.
+- **Non-blocked engineering:** complete CPV1-05.6/05.7, product protections and local/candidate boundaries; certify the independent stable engineering slice with this evidence explicitly deferred and advance to dependency-safe later work.
+- **Final effect:** CPV1-05.5 semantic and package-level fidelity claims remain NOT_RUN/NOT_CERTIFIED until actual evidence closes this gate.
+
 ## Continuous-execution rule
 
 While any gate above is open, the manager must continue the engineering frontier through dependency-safe canonical work under `WHOLE_PACKAGE_PREAUTHORIZED`. Stop only after automatable engineering is exhausted or a true owner/safety/dependency gate makes further work impossible.
