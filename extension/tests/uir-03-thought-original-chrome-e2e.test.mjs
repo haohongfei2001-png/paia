@@ -79,6 +79,50 @@ async function assertOffline(h){
   assert.deepEqual(h.errors,[]);
 }
 
+
+async function provenanceRoleJourney(page,topics,{release=false}={}){
+  const id=await page.evaluate(async({topicId,prefix})=>{
+    const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
+    const store=new OrganizerStore(chrome.storage.local);
+    try{
+      const status=await store.status(),chatId='vs05-role-'+crypto.randomUUID();
+      await store.capture({epoch:status.epoch,adapterVersion:'0.3.0',chat:{id:chatId,url:'https://chatgpt.com/c/'+chatId,title:'VS05 synthetic provenance'},
+        messages:[['primary','主要表达'],['supporting','补充表达'],['context_only','辅助上下文表达']].map(([role,text],index)=>({sourceMessageId:role,pageOrder:index+1,originalText:prefix+' '+text}))});
+      await store.finishFoundation();
+      const inputs=await store.run(()=>store.repository.transaction(false,async t=>{
+        const result={};for(const block of await t.all('blocks')){const record=await t.get('records',block.value.originalTextReference);if(record?.value?.originalText?.startsWith(prefix+' '))result[record.value.originalText]=block.value.id;}return result;
+      }));
+      const specs=[['primary','主要表达'],['supporting','补充表达'],['context_only','辅助上下文表达']].map(([role,text])=>({inputId:inputs[prefix+' '+text],role,selectedFields:['body']}));
+      const evidence=await store.evidenceFor(specs),entry=await store.createEntry({operationId:crypto.randomUUID(),actor:'user',body:prefix+' 保留人工表达，同时区分直接来源和辅助上下文。',type:'idea',formation:'synthesized',evidence});
+      const topic=await store.topic(topicId);
+      const placed=await store.placeEntry({entryId:entry.id,topicId,expectedEntryRevision:entry.revision,expectedTopicRevision:topic.organizationRevision,operationId:crypto.randomUUID()});
+      if(placed.conflict)throw Error('synthetic provenance placement conflict');
+      return entry.id;
+    }finally{store.repository.db?.close();}
+  },{topicId:topics[1].id,prefix:release?'VS05_ROLE_RELEASE':'VS05_ROLE_SOURCE'});
+  const before=await rpc(page,'GET_LIBRARY_ENTRY',{id});
+  await page.setViewportSize({width:1440,height:900});
+  await page.locator('#back').click();
+  await eventually(()=>page.locator('#thought-list').isVisible(),'return to Topic scanning after original reading');
+  await page.locator('[data-topic-id="'+topics[1].id+'"]').click();
+  const entry=page.locator('#original-reading-body [data-entry-id="'+id+'"]');
+  await entry.waitFor({state:'visible'});
+  const provenance=entry.locator('.entry-provenance');
+  assert.equal(await provenance.getAttribute('open'),null,'source roles stay on demand');
+  await provenance.locator('summary').first().click();
+  await eventually(async()=>await provenance.locator('[data-evidence-role]').count()===3,'each real evidence role receives its user-language label');
+  assert.match(await provenance.innerText(),/主要来源 1 · 补充来源 1 · 辅助上下文 1/);
+  for(const [role,label]of [['primary','主要来源'],['supporting','补充来源'],['context_only','辅助上下文']]){
+    const row=provenance.locator('[data-evidence-role="'+role+'"]');
+    assert.match(await row.innerText(),new RegExp(label+' · 来源可查看'));
+    assert.equal(await row.getByRole('button',{name:'查看输入',exact:true}).count(),1);
+  }
+  assert.match(await provenance.innerText(),/不作为这条内容的直接依据/);
+  const after=await rpc(page,'GET_LIBRARY_ENTRY',{id});
+  assert.equal(after.body,before.body);assert.equal(after.revision,before.revision,'opening evidence details never edits human content');
+  await shot(page,release?'vs05-release-provenance-roles':'vs05-source-provenance-roles');
+}
+
 async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await page.bringToFront();
   await nav(page,'thoughts');
@@ -224,6 +268,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
     }
   }
 
+  await provenanceRoleJourney(page,topics,{release});
   await assertOffline(h);
 }
 

@@ -212,3 +212,25 @@ test('VS-05 unknown-group request remains honest when every record is dated',asy
  assert.equal(page.timeEdgeUnavailable,true);assert.equal(page.coverage.unknownTimeCount,0);
  assert.ok(page.items.every(item=>item.entry.timeBasis==='created'));
 });
+
+test('VS-05 on-demand provenance distinguishes direct sources from context and fences purged links',async()=>{
+ const f=await completeFixture({texts:['VS05 primary expression','VS05 supporting expression','VS05 contextual expression']});
+ const blocks=(await rows(f.s,'blocks')).map(x=>x.value);
+ const byText=await f.s.run(()=>f.s.repository.transaction(false,async t=>{
+  const out={};for(const block of blocks){const record=await t.get('records',block.originalTextReference);out[record.value.originalText]=block.id;}return out;
+ }));
+ const specs=[['VS05 primary expression','primary'],['VS05 supporting expression','supporting'],['VS05 contextual expression','context_only']].map(([text,role])=>({inputId:byText[text],role,selectedFields:['body']}));
+ const evidence=await f.s.evidenceFor(specs),entry=await f.s.createEntry({operationId:op(),actor:'user',body:'VS05 independent synthesis',type:'idea',formation:'synthesized',evidence});
+ const before=await f.s.entry(entry.id),provenance=await f.s.libraryProvenance(entry.id);
+ assert.equal(provenance.count,3);assert.equal(provenance.primary,1);assert.equal(provenance.supporting,1);assert.equal(provenance.contextOnly,1);
+ assert.deepEqual(new Set(provenance.items.map(x=>x.role)),new Set(['primary','supporting','context_only']));
+ assert.ok(provenance.items.every(x=>x.availability==='resolvable'&&x.inputId));
+ assert.equal((await f.s.entry(entry.id)).body,before.body);assert.equal((await f.s.entry(entry.id)).revision,before.revision);
+ await f.s.foundationWrite(async t=>{const state=await t.get('inputStates',byText['VS05 contextual expression']);state.sourcePurged=true;await t.put('inputStates',state);});
+ const after=await f.s.libraryProvenance(entry.id),context=after.items.find(x=>x.role==='context_only');
+ assert.equal(after.contextOnly,1,'historical role remains distinct from current availability');
+ assert.equal(context.availability,'unavailable');assert.equal(context.inputId,null,'a purged context can never offer a source-opening action');
+ assert.ok(after.items.filter(x=>x.role!=='context_only').every(x=>x.inputId&&x.availability==='resolvable'));
+ const standalone=await f.s.continueThinking({operationId:op(),body:'VS05 independent new expression'});
+ const own=await f.s.libraryProvenance(standalone.id);assert.equal(own.userCreated,true);assert.equal(own.count,0);assert.equal(own.contextOnly,0);
+});
