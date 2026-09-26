@@ -1,0 +1,16 @@
+{
+  "role": "owner-supplied visual direction, not product-claims evidence",
+  "original_dimensions": [
+    1448,
+    1086
+  ],
+  "original_sha256": "a1b97066fafe18d48b3806c12ad1799225058e00ce8b8855c9612935e6688045",
+  "derivative": "owner-reference.webp",
+  "derivative_sha256": "7e720aa972454c93b7266a99acb5bce54f5a40f6f8e929d3e5ed52cc3ef75ec6",
+  "derivative_dimensions": [
+    960,
+    720
+  ],
+  "exact_original_photography_and_font_identity": "not established",
+  "publication_role": "design reference only; use the separately licensed pinned asset set for future website implementation"
+}

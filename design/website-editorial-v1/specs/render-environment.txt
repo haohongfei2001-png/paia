@@ -1,0 +1,5 @@
+Authoring commit: 24066ca67b5dd85f4e2b93ef0ce7d6153265fb67
+Browser: 140.0.7339.16
+fonts-ebgaramond	0.016+git20210310.42d4f9f2-1
+fonts-inter	4.0+ds-1
+fonts-noto-cjk	1:20230817+repack1-3

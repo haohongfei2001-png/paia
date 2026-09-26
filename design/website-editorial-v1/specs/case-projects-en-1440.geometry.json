@@ -1,0 +1,1016 @@
+{
+  "frame": "case-projects-en-1440",
+  "width": 1440,
+  "height": 2674,
+  "units": "CSS px",
+  "locale": "en",
+  "nodes": [
+    {
+      "id": "case-projects-en-1440.001",
+      "kind": "rect",
+      "paint_order": 1,
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 2674,
+      "fill": "#fdfdfb",
+      "stroke": null,
+      "radius": 0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "background"
+    },
+    {
+      "id": "case-projects-en-1440.002",
+      "kind": "text",
+      "paint_order": 2,
+      "x": 76,
+      "y": 20,
+      "width": null,
+      "font_family": "EB Garamond 12",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.003",
+      "kind": "line",
+      "paint_order": 3,
+      "x1": 181,
+      "y1": 25,
+      "x2": 181,
+      "y2": 57,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-projects-en-1440.004",
+      "kind": "text",
+      "paint_order": 4,
+      "x": 197,
+      "y": 29,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 17,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "Your AI context,",
+        "for what’s next."
+      ],
+      "copy_id": "copy-01ecc9c5d5f7",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.005",
+      "kind": "text",
+      "paint_order": 5,
+      "x": 475,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Home"
+      ],
+      "copy_id": "copy-3a78695388b3",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.006",
+      "kind": "text",
+      "paint_order": 6,
+      "x": 553,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "How it works"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.007",
+      "kind": "text",
+      "paint_order": 7,
+      "x": 687,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Use cases"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.008",
+      "kind": "line",
+      "paint_order": 8,
+      "x1": 687,
+      "y1": 54,
+      "x2": 750.9296875,
+      "y2": 54,
+      "stroke": "#808981",
+      "stroke_width": 1.4
+    },
+    {
+      "id": "case-projects-en-1440.009",
+      "kind": "text",
+      "paint_order": 9,
+      "x": 799,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Our story"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.010",
+      "kind": "text",
+      "paint_order": 10,
+      "x": 909,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Journal"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.011",
+      "kind": "rect",
+      "paint_order": 11,
+      "x": 1192,
+      "y": 18,
+      "width": 176,
+      "height": 42,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 21.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "case-projects-en-1440.012",
+      "kind": "text",
+      "paint_order": 12,
+      "x": 1216,
+      "y": 32.5,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.013",
+      "kind": "connector",
+      "paint_order": 13,
+      "path": "M1329 39.0h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "case-projects-en-1440.014",
+      "kind": "text",
+      "paint_order": 14,
+      "x": 76,
+      "y": 148,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "ONGOING PROJECTS"
+      ],
+      "copy_id": "copy-daa7f9911f02",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.015",
+      "kind": "text",
+      "paint_order": 15,
+      "x": 76,
+      "y": 214,
+      "width": 714,
+      "font_family": "EB Garamond 12",
+      "font_size": 67,
+      "font_style": "normal",
+      "line_height": 70,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Pick up the thread.",
+        "Not all the pieces."
+      ],
+      "copy_id": "copy-28bf91da45b0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.016",
+      "kind": "text",
+      "paint_order": 16,
+      "x": 76,
+      "y": 384,
+      "width": 532,
+      "font_family": "Inter",
+      "font_size": 19,
+      "font_style": "normal",
+      "line_height": 27.55,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Return to a project with the decisions, constraints and",
+        "open questions you already worked through."
+      ],
+      "copy_id": "copy-0b51f5be0f59",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.017",
+      "kind": "photograph",
+      "paint_order": 17,
+      "asset": "architecture",
+      "x": 1032,
+      "y": 150,
+      "width": 258,
+      "height": 355,
+      "rotation": -3,
+      "crop_xywh": [
+        412.27,
+        0.0,
+        775.45,
+        1067.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "case-projects-en-1440.018",
+      "kind": "text",
+      "paint_order": 18,
+      "x": 946,
+      "y": 536,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "A LONGER",
+        "TOMORROW."
+      ],
+      "copy_id": "copy-4a65917b1b8c",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.019",
+      "kind": "text",
+      "paint_order": 19,
+      "x": 76,
+      "y": 748,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "01 / THE QUESTION"
+      ],
+      "copy_id": "copy-339dd8d138c9",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.020",
+      "kind": "text",
+      "paint_order": 20,
+      "x": 76,
+      "y": 793,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "What did we decide — and",
+        "why?"
+      ],
+      "copy_id": "copy-31c2d74478ab",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.021",
+      "kind": "text",
+      "paint_order": 21,
+      "x": 76,
+      "y": 927,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Three conversations, one product idea. The early problem",
+        "statement is in one window; the scope decision is in another."
+      ],
+      "copy_id": "copy-b09984f23585",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.022",
+      "kind": "photograph",
+      "paint_order": 22,
+      "asset": "light",
+      "x": 860,
+      "y": 730,
+      "width": 353,
+      "height": 401,
+      "rotation": -2,
+      "crop_xywh": [
+        0.0,
+        148.02,
+        1500.0,
+        1703.97
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "case-projects-en-1440.023",
+      "kind": "connector",
+      "paint_order": 23,
+      "path": "M892 1160C1050 1204 1139 1127 1194 1195",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "case-projects-en-1440.024",
+      "kind": "text",
+      "paint_order": 24,
+      "x": 788,
+      "y": 1280,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "02 / A MORE USEFUL START"
+      ],
+      "copy_id": "copy-1edd19a6f553",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.025",
+      "kind": "text",
+      "paint_order": 25,
+      "x": 788,
+      "y": 1325,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Bring what still matters."
+      ],
+      "copy_id": "copy-63255b8e8712",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.026",
+      "kind": "text",
+      "paint_order": 26,
+      "x": 788,
+      "y": 1407,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Revisit the relevant words, update the working brief and",
+        "carry only the current constraints into your next session."
+      ],
+      "copy_id": "copy-ba4a8d5809c0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.027",
+      "kind": "photograph",
+      "paint_order": 27,
+      "asset": "coast",
+      "x": 120,
+      "y": 1262,
+      "width": 353,
+      "height": 401,
+      "rotation": 2,
+      "crop_xywh": [
+        271.82,
+        0.0,
+        1056.36,
+        1200.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "case-projects-en-1440.028",
+      "kind": "connector",
+      "paint_order": 28,
+      "path": "M152 1692C310 1736 399 1659 454 1727",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "case-projects-en-1440.029",
+      "kind": "text",
+      "paint_order": 29,
+      "x": 76,
+      "y": 1794,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "ILLUSTRATIVE SCENARIO"
+      ],
+      "copy_id": "copy-508593022447",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.030",
+      "kind": "text",
+      "paint_order": 30,
+      "x": 76,
+      "y": 1839,
+      "width": 1090,
+      "font_family": "EB Garamond 12",
+      "font_size": 45,
+      "font_style": "normal",
+      "line_height": 53,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "No automatic profile. No made-up certainty.",
+        "The next context remains your choice."
+      ],
+      "copy_id": "copy-94fe6b294aa1",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.031",
+      "kind": "line",
+      "paint_order": 31,
+      "x1": 76,
+      "y1": 2064,
+      "x2": 1364,
+      "y2": 2064,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-projects-en-1440.032",
+      "kind": "text",
+      "paint_order": 32,
+      "x": 76,
+      "y": 2112,
+      "width": 800,
+      "font_family": "EB Garamond 12",
+      "font_size": 48,
+      "font_style": "normal",
+      "line_height": 53,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Take the next step",
+        "with a little more context."
+      ],
+      "copy_id": "copy-96ead3b34b0b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.033",
+      "kind": "rect",
+      "paint_order": 33,
+      "x": 76,
+      "y": 2247,
+      "width": 208,
+      "height": 56,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 28.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "case-projects-en-1440.034",
+      "kind": "text",
+      "paint_order": 34,
+      "x": 100,
+      "y": 2267.25,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 15.5,
+      "font_style": "normal",
+      "line_height": 22.474999999999998,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.035",
+      "kind": "connector",
+      "paint_order": 35,
+      "path": "M245 2275.0h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "case-projects-en-1440.036",
+      "kind": "line",
+      "paint_order": 36,
+      "x1": 76,
+      "y1": 2364,
+      "x2": 1364,
+      "y2": 2364,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-projects-en-1440.037",
+      "kind": "text",
+      "paint_order": 37,
+      "x": 76,
+      "y": 2402,
+      "width": null,
+      "font_family": "EB Garamond 12",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.038",
+      "kind": "text",
+      "paint_order": 38,
+      "x": 76,
+      "y": 2463,
+      "width": 340,
+      "font_family": "Inter",
+      "font_size": 15,
+      "font_style": "normal",
+      "line_height": 21.75,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Your thinking has a longer tomorrow."
+      ],
+      "copy_id": "copy-3593bf12b43f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.039",
+      "kind": "text",
+      "paint_order": 39,
+      "x": 710,
+      "y": 2409,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "EXPLORE"
+      ],
+      "copy_id": "copy-c8fbce667415",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.040",
+      "kind": "text",
+      "paint_order": 40,
+      "x": 710,
+      "y": 2447,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "How it works"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.041",
+      "kind": "text",
+      "paint_order": 41,
+      "x": 710,
+      "y": 2476,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Use cases"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.042",
+      "kind": "text",
+      "paint_order": 42,
+      "x": 710,
+      "y": 2505,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Explore an example"
+      ],
+      "copy_id": "copy-2cabe393e29c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.043",
+      "kind": "text",
+      "paint_order": 43,
+      "x": 940,
+      "y": 2409,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "PERSPECTIVES"
+      ],
+      "copy_id": "copy-430e9beac545",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.044",
+      "kind": "text",
+      "paint_order": 44,
+      "x": 940,
+      "y": 2447,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Our story"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.045",
+      "kind": "text",
+      "paint_order": 45,
+      "x": 940,
+      "y": 2476,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Journal"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.046",
+      "kind": "text",
+      "paint_order": 46,
+      "x": 940,
+      "y": 2505,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.047",
+      "kind": "text",
+      "paint_order": 47,
+      "x": 1170,
+      "y": 2409,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "TRUST"
+      ],
+      "copy_id": "copy-c7651f456022",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.048",
+      "kind": "text",
+      "paint_order": 48,
+      "x": 1170,
+      "y": 2447,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Your data"
+      ],
+      "copy_id": "copy-ee5ef73aae18",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.049",
+      "kind": "text",
+      "paint_order": 49,
+      "x": 1170,
+      "y": 2476,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Current status"
+      ],
+      "copy_id": "copy-2f5d50add626",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.050",
+      "kind": "text",
+      "paint_order": 50,
+      "x": 1170,
+      "y": 2505,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Privacy · Terms"
+      ],
+      "copy_id": "copy-3eb89cb7107b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.051",
+      "kind": "text",
+      "paint_order": 51,
+      "x": 1170,
+      "y": 2534,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Contact"
+      ],
+      "copy_id": "copy-2b5c3d26721a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.052",
+      "kind": "line",
+      "paint_order": 52,
+      "x1": 76,
+      "y1": 2608,
+      "x2": 1364,
+      "y2": 2608,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-projects-en-1440.053",
+      "kind": "text",
+      "paint_order": 53,
+      "x": 76,
+      "y": 2633,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 10.5,
+      "font_style": "normal",
+      "line_height": 15.225,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "© 2026 PAIA · Private beta"
+      ],
+      "copy_id": "copy-13f95a79acb6",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-projects-en-1440.054",
+      "kind": "text",
+      "paint_order": 54,
+      "x": 1364,
+      "y": 2633,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 11,
+      "font_style": "normal",
+      "line_height": 15.95,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "EN   /   中文"
+      ],
+      "copy_id": "copy-555a532adbb7",
+      "role": "text",
+      "anchor": "end"
+    },
+    {
+      "id": "case-projects-en-1440.055",
+      "kind": "text",
+      "paint_order": 55,
+      "x": 76,
+      "y": 2660,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 13.775,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "Photography credits · Illustrative material, not a live archive"
+      ],
+      "copy_id": "copy-92249ca2217f",
+      "role": "text",
+      "anchor": "start"
+    }
+  ]
+}

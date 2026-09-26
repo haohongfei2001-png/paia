@@ -1,0 +1,17 @@
+PAIA · PRIVATE BETA
+Terms
+Policy content last updated: 2026-09-10 · Presentation updated: 2026-09-26
+1. Beta status
+PAIA is currently in private beta. Features, data structures, interfaces and support scope may change. Some capabilities may be unstable or temporarily unavailable.
+2. User data
+Users retain the relevant rights in content they enter, edit and import. PAIA aims to make this material viewable, manageable and exportable, rather than create barriers by locking in user data.
+3. Backups
+During beta, do not use PAIA as the only copy of important data. Keep independent backups of material that needs long-term preservation.
+4. Acceptable use
+Do not use PAIA for unlawful activity, unauthorized data collection, violations of others’ privacy or intellectual property, or circumvention of third-party access and usage restrictions.
+5. Third-party services
+PAIA may work with browsers, AI services and other third-party platforms. PAIA does not control their availability, terms or technical changes, which may require changes to related features.
+6. Availability and limitations
+The beta is provided in its current state, without a promise of continuous, error-free or permanent availability. The product seeks to reduce data risks, but users should keep independent backups of important material.
+7. Contact
+For policy, beta or application-deletion questions, contact haohongfei2001@gmail.com.

@@ -1,0 +1,817 @@
+{
+  "evidence": "static SVG design proof; NOT website implementation",
+  "frames": [
+    {
+      "frame": "home-en-1440",
+      "png_sha256": "01b9a1e37337e350446f6feb92b60f17f96ed4fc203f0db87c2634c1743244eb",
+      "size": [
+        1440,
+        6500
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "how-it-works-en-1440",
+      "png_sha256": "f7687d84378ddf6acbd9f3e0be686ef9394646f9766c3c781c16f363bb588a19",
+      "size": [
+        1440,
+        3462
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "use-cases-en-1440",
+      "png_sha256": "2d051c78ca7b0d0901a07d506a6b789a5b67d2f15225f3704377f83510bd1922",
+      "size": [
+        1440,
+        2900
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-projects-en-1440",
+      "png_sha256": "cc7a742f8f08e7ce0b80966cacde03283fa510fe365511fc0f744fd4f382c7df",
+      "size": [
+        1440,
+        2674
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-career-en-1440",
+      "png_sha256": "638da9c8d0b056d36ce44ae07a25533c6b4e55961d6aa62f94d5f35aec54a5a3",
+      "size": [
+        1440,
+        2674
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-research-en-1440",
+      "png_sha256": "8736cb9dcc4171a13f9ec37dd8f5bd79fe895c2bced0aa86de2e3a4e18fa4bbe",
+      "size": [
+        1440,
+        2674
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "our-story-en-1440",
+      "png_sha256": "670ce98ff7513a64d61d57ea7c665632c20fc646b040335b2872ecef94d1fa4d",
+      "size": [
+        1440,
+        2959
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "journal-en-1440",
+      "png_sha256": "ec61880516568bd2271682f5619035c1f5e641541fade50362b836bf6878da7d",
+      "size": [
+        1440,
+        2485
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-context-en-1440",
+      "png_sha256": "a4684a603b0940b31a9bdf22446a0fff71273f08a2208fc763cbd1f526ca06bb",
+      "size": [
+        1440,
+        2945
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-beliefs-en-1440",
+      "png_sha256": "cf0b9a14bcf6ff4d3f19b90597087920a7fdc99be1db8fbfe2f45b6c94d0a6b8",
+      "size": [
+        1440,
+        2945
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-edits-en-1440",
+      "png_sha256": "96542e118d09896bfc1cc9fc6cbc6034c47e177c0aeea0be6bd3c49929fec18b",
+      "size": [
+        1440,
+        2881
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "your-data-en-1440",
+      "png_sha256": "c208afea7619896d0d3bdef3bad21f07c74a40ea540e607eee7d4b88a62fabfb",
+      "size": [
+        1440,
+        3459
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "faq-en-1440",
+      "png_sha256": "171c82093bf18016c9549ea436da4765dbb6323432915c9619c970f327a59d86",
+      "size": [
+        1440,
+        3342.9000000000005
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "beta-en-1440",
+      "png_sha256": "aebaf4052c67e9d74f4a072265492b6751995d364735e0b4c269bf8206ef437c",
+      "size": [
+        1440,
+        1530
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "status-en-1440",
+      "png_sha256": "1336b3aa23482e7c669c053514048697ba394db6036269d8f03ba6e176b63f64",
+      "size": [
+        1440,
+        2292
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "example-en-1440",
+      "png_sha256": "e80d1fd3564cbff3ec9f992c0613c5723bd71b67b2f1999d478b239e36883aab",
+      "size": [
+        1440,
+        2316
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "credits-en-1440",
+      "png_sha256": "a9024a958ef36660d1543aaa79df83a3b728a326d3168e98dac5231673641146",
+      "size": [
+        1440,
+        2242
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "privacy-policy-en-1440",
+      "png_sha256": "4eecc42c01937f83bce4eb096e7d13c2643730b1e6c482db2d0e228c8a68039c",
+      "size": [
+        1440,
+        2304
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "terms-en-1440",
+      "png_sha256": "4e537184831b094cfd0fb67af3e9ca2f9b5cb1ce8c168eeba5436932d5acd754",
+      "size": [
+        1440,
+        2141
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "thanks-en-1440",
+      "png_sha256": "7343b26226c9c9095b6b9c89438ca98caea9d63ecea598a94fbe525afd4c6d79",
+      "size": [
+        1440,
+        1170
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "404-en-1440",
+      "png_sha256": "84c4582add15b4346703ac486bea82f320d5cfa0fc203b8626b859a362cd0e2e",
+      "size": [
+        1440,
+        1170
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "interaction-states-en-1440",
+      "png_sha256": "6b4d83d3061512f40923836e409b843db50032342ee2e3e7b500b4b1d946848b",
+      "size": [
+        1440,
+        3030
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "home-en-390",
+      "png_sha256": "3f49f1774cbefc7507a2621c59a73caf8547ba788595f7cfe4dc93669b2b4b97",
+      "size": [
+        390,
+        8280
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "how-it-works-en-390",
+      "png_sha256": "fd9f53a30b3df2e6db905039d69398b39999edac9f5024e1f0737b7a19c5ef05",
+      "size": [
+        390,
+        3772.4
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "use-cases-en-390",
+      "png_sha256": "00b3a160e7b40a2a37f761c04b5c47bb46544106af00710341366a80daac4853",
+      "size": [
+        390,
+        3146.2
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-projects-en-390",
+      "png_sha256": "9b4d82ecb06e66b9e47a28dfb8453d270cb24578a0bea631c17bde36436f8847",
+      "size": [
+        390,
+        2813.8
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-career-en-390",
+      "png_sha256": "411b8ba6afaf6b25eaff7413e65152dfe444bc24d65185a30cbe1d3d3d868c42",
+      "size": [
+        390,
+        2837.0
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-research-en-390",
+      "png_sha256": "ea18bafccfdbf971889c13c3248a6f23e46ed31a9526e6f53445bf4f8d6e03eb",
+      "size": [
+        390,
+        2958.2
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "our-story-en-390",
+      "png_sha256": "c41116bae115723ab2cead0cc000dc1cfafaa491f3480a51f5b989f4356db38d",
+      "size": [
+        390,
+        3331.8
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "journal-en-390",
+      "png_sha256": "5975baf9734d1192401c30bc0ca22d49ddcb957c2481fcffdc57da1bb94d96c4",
+      "size": [
+        390,
+        3106
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-context-en-390",
+      "png_sha256": "a930eb6bf8101e9a5feed1abf346ee7154b4174f0624a8ab1c3c6371e06b0a85",
+      "size": [
+        390,
+        3798
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-beliefs-en-390",
+      "png_sha256": "75e7e95866ca96015bef8ac5fb8ab854cd4df75486aee77a8c09473ae91036be",
+      "size": [
+        390,
+        3721
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-edits-en-390",
+      "png_sha256": "010bc6742e1f9bf968359126ec9b7467ba9e44b22f9d29170792e5583cf40d9d",
+      "size": [
+        390,
+        3499
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "your-data-en-390",
+      "png_sha256": "8ff60056e301e46e7611a927cf54eab953f3592a6cda12753f3b33d621d924f2",
+      "size": [
+        390,
+        3803.7999999999997
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "faq-en-390",
+      "png_sha256": "39e8a660bc613db01a45a9ff8f6abe005f578c69297265372d0c68ee43da2698",
+      "size": [
+        390,
+        4005.15
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "beta-en-390",
+      "png_sha256": "3a6853a5b4e905a84a5ab55295f519f83ba47b5c2806d92473400cd5c274272e",
+      "size": [
+        390,
+        2125
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "status-en-390",
+      "png_sha256": "dbe6838d43c2c0c52b1f597fa11a8cba1e5ae0c5c109e329fc7bba1c74fe84e3",
+      "size": [
+        390,
+        2691.5199999999995
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "example-en-390",
+      "png_sha256": "3f87c8535de31e7a59f73f66995ca34fd372654b4a9f704ffc7b99a89bedfcee",
+      "size": [
+        390,
+        2652.4
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "credits-en-390",
+      "png_sha256": "e60227dfc5c1872310488ab2ea396ee8f107282e6ebdbcfe37eda7102f7f75a4",
+      "size": [
+        390,
+        2587.4
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "privacy-policy-en-390",
+      "png_sha256": "740bf4da75c2b5d513cde6c01bee570882bdc7285b92c419df720bffaa0c8759",
+      "size": [
+        390,
+        3303
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "terms-en-390",
+      "png_sha256": "5ca7d3c5de72d9d2f542d451fdee6687298f6eaa65554f5dd74ddaf3de561d57",
+      "size": [
+        390,
+        2870
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "thanks-en-390",
+      "png_sha256": "2994d6e7ddf098f34662facbb1877274996fad1723332839712f27153058fe5a",
+      "size": [
+        390,
+        1560
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "404-en-390",
+      "png_sha256": "ae32b2ab8b5913c407a57b6645a3894e4e844344612f5969436223869b598579",
+      "size": [
+        390,
+        1560
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "interaction-states-en-390",
+      "png_sha256": "2bddae97f437fd99dcfb844abcd2b5878204cd83810062f10ab900956ba7b0c2",
+      "size": [
+        390,
+        3430
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "social-en-1200x630",
+      "png_sha256": "cb902fd7e70270a93d154ce1e742a3effa991729fa6824902367c90b6bc9eddc",
+      "size": [
+        1200,
+        630
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "home-zh-1440",
+      "png_sha256": "01af49031e8d1355543b24193116b991207e4e066260edad89465bbf4a74773a",
+      "size": [
+        1440,
+        6500
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "how-it-works-zh-1440",
+      "png_sha256": "2f371c5067a75c44aecb411a813331b757b217682c51c157d088152ad788faa4",
+      "size": [
+        1440,
+        3462
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "use-cases-zh-1440",
+      "png_sha256": "3d9615e98f4c378553a92976f13ec13cb6aa286e528005f19ebe72ec52cf77f6",
+      "size": [
+        1440,
+        2900
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-projects-zh-1440",
+      "png_sha256": "81a1fda87f0140143f16653bc594ccf9036c5831a9d55f0eb8e033495b25d7d8",
+      "size": [
+        1440,
+        2674
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-career-zh-1440",
+      "png_sha256": "af2467bbf0addcc213f835ebe4b009d40c7d008cb35880411ecbd9ec92e93d30",
+      "size": [
+        1440,
+        2674
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-research-zh-1440",
+      "png_sha256": "8a3cbd307222b8c95350d9a6b273044b33ad69412f0c6c5f8c1cadd0bbd79f73",
+      "size": [
+        1440,
+        2674
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "our-story-zh-1440",
+      "png_sha256": "cb3604bbdc1d16ecfad45c814e7875bbabf97c95d627484797e15be543d2d05a",
+      "size": [
+        1440,
+        2959
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "journal-zh-1440",
+      "png_sha256": "974338aa5a50b9b06fab95a188f8784b9f53e8afae9148d6f8309a12ff14ea1f",
+      "size": [
+        1440,
+        2485
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-context-zh-1440",
+      "png_sha256": "195a96986b313153c3fc18e3b6656a7cab28af746e4ae23c291a660aac7c5eba",
+      "size": [
+        1440,
+        2721
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-beliefs-zh-1440",
+      "png_sha256": "b08621c7388e56cea515f0d1ceaeb817060ecf2a35d969dd74118737b6a16c33",
+      "size": [
+        1440,
+        2689
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-edits-zh-1440",
+      "png_sha256": "36981c8db2f50222d719e0635c587a1dc5717d72d7d781a29f8df3d5fc97f061",
+      "size": [
+        1440,
+        2625
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "your-data-zh-1440",
+      "png_sha256": "49045a0b4e9eca40fe5de11424a22c0e3f6f4e40ce6bc1e85a578e7019271493",
+      "size": [
+        1440,
+        3459
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "faq-zh-1440",
+      "png_sha256": "310845311afb568568a2099cac7f8f25db52448a0223d255adb5de2a4ce57e77",
+      "size": [
+        1440,
+        3234.9500000000003
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "beta-zh-1440",
+      "png_sha256": "a61566886407a1ef989bfd24e0c2a7de240a550bd03f019710335220717c6eab",
+      "size": [
+        1440,
+        1530
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "status-zh-1440",
+      "png_sha256": "77af191cec42bb5e39dcd0e307166163251bbb08e44894a30760548c69a9d931",
+      "size": [
+        1440,
+        2292
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "example-zh-1440",
+      "png_sha256": "b0c561662048d464919b286446c74059106e4e6d99cbc9e73f3ad3eb488a7cdc",
+      "size": [
+        1440,
+        2316
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "credits-zh-1440",
+      "png_sha256": "55a939f5005cef5d1a3ac58fb214bd2d282351ee98800cdeb773e6f685045cf7",
+      "size": [
+        1440,
+        2242
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "privacy-policy-zh-1440",
+      "png_sha256": "4f2c6747d8b9abc7e4c06134a51bf2313c18d3e25e4048179736b20217fd7559",
+      "size": [
+        1440,
+        2169
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "terms-zh-1440",
+      "png_sha256": "607a8d921850e55bba299dbd99cd067ca04003d53737063fc6a599bf6f8c70d1",
+      "size": [
+        1440,
+        1978
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "thanks-zh-1440",
+      "png_sha256": "f2297de3a989b5b87245783cc4e0f6973aaf3c0f8d369c2446f2a86b79d740d4",
+      "size": [
+        1440,
+        1170
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "404-zh-1440",
+      "png_sha256": "b8f2d6b1b670857dcf63f8d3df6a07d0e4af37ac1137f46e6cb9df80e4dbeeeb",
+      "size": [
+        1440,
+        1170
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "interaction-states-zh-1440",
+      "png_sha256": "6594bbfc29528d8a5ab20b5ebe791ad0e73bb0cea04b1c73ba87bf556f76ff0d",
+      "size": [
+        1440,
+        3030
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "home-zh-390",
+      "png_sha256": "350f6a2be8e966708e7a78c3b524dd69b0cbad8782a3813733ba3474aaeba717",
+      "size": [
+        390,
+        8280
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "how-it-works-zh-390",
+      "png_sha256": "10f1000f731fbe64fa71c63ae8a72418a1a766706dac86b8ca05c02f4e8d1c4a",
+      "size": [
+        390,
+        3680.6
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "use-cases-zh-390",
+      "png_sha256": "f17169f100004e84c64b726110f6334822f1a00fd866b7e1b4c09a503785130b",
+      "size": [
+        390,
+        3075.7999999999997
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-projects-zh-390",
+      "png_sha256": "fd07bbebbf3e1321d7ece23cf2f09d387f2463afaf8e72945aef3822206722d4",
+      "size": [
+        390,
+        2854.3999999999996
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-career-zh-390",
+      "png_sha256": "759ea3775259401d2549c320093aef6f8835cfcf055cd3caa892aa10a6b7aeda",
+      "size": [
+        390,
+        2880.8
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "case-research-zh-390",
+      "png_sha256": "951f37890a0bc651fa5726bf022d9cbaf7cab3324e3c23c6e086198954bc1843",
+      "size": [
+        390,
+        2880.8
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "our-story-zh-390",
+      "png_sha256": "edd967f386e5a3107e641b003ec42400c828c101561dcac51601460584fc159b",
+      "size": [
+        390,
+        3256.8
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "journal-zh-390",
+      "png_sha256": "1f4250072ff44b1fa294e82ef565e995f6d9446058d7f3f10ac993928f07a718",
+      "size": [
+        390,
+        3106
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-context-zh-390",
+      "png_sha256": "93c769aec2a314d2a42f9b16371660c62de5d001bc987daabb09bb15d1a0f13a",
+      "size": [
+        390,
+        3233
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-beliefs-zh-390",
+      "png_sha256": "d9b0a5bd3f77dd5716da81e9f764d34404869eeb919b1e6bc8be9f9fc5e5396f",
+      "size": [
+        390,
+        3127
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "article-edits-zh-390",
+      "png_sha256": "a673153836877a37dfb92fcb54c5702e6d0610e619a2f3bf97ccc82d0ae95467",
+      "size": [
+        390,
+        2992
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "your-data-zh-390",
+      "png_sha256": "9d60b799d3c2ab6a5ea51ab2945777c5c70f29960ec37315ca416a174ce4d1f7",
+      "size": [
+        390,
+        3732.6
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "faq-zh-390",
+      "png_sha256": "fa10b58b7d10bd2b49e7bc4bb3b302363291b10279de077ac1e189dab2c828c4",
+      "size": [
+        390,
+        3746.05
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "beta-zh-390",
+      "png_sha256": "ba5911cf74cfd1ee380caf32685ec983afe548514215f68d5ddb38212128b7be",
+      "size": [
+        390,
+        2125
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "status-zh-390",
+      "png_sha256": "f1d6bd76161b983a52f040215fbd2244a4400cc271a3a9b8d66fc4c04ea9ecd8",
+      "size": [
+        390,
+        2695.08
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "example-zh-390",
+      "png_sha256": "b7665e893b137fb4ac114c1ca56144d2034b4eea642c09732f710b838910aa29",
+      "size": [
+        390,
+        2658.8
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "credits-zh-390",
+      "png_sha256": "f598f36a418efcdd375c1f2d1cce5ba368437a7c2e6089226a5060ffa4122acb",
+      "size": [
+        390,
+        2642.8
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "privacy-policy-zh-390",
+      "png_sha256": "57034f9e3ff762788824f1fc8ee171ab44d48596666188ede7f77fc25b20a937",
+      "size": [
+        390,
+        2844
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "terms-zh-390",
+      "png_sha256": "75aba7d52243cf84ee205ec7dc90663f734238fe49c054907118ccf39087f4ad",
+      "size": [
+        390,
+        2518
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "thanks-zh-390",
+      "png_sha256": "6ecc521dfc38a85e8dc40787140882c3b101e4011733494c6836e0c4263aeadf",
+      "size": [
+        390,
+        1560
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "404-zh-390",
+      "png_sha256": "85b779b18ebc33c09ea134acc7990a42a0390212a793ef55b09d21dc2e5e4b3e",
+      "size": [
+        390,
+        1560
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "interaction-states-zh-390",
+      "png_sha256": "41173292c76e1e7fc7b3fdfac0f406b0ee402a13eddc63463b16213fed9f0467",
+      "size": [
+        390,
+        3430
+      ],
+      "out_of_frame_count": 0
+    },
+    {
+      "frame": "social-zh-1200x630",
+      "png_sha256": "8b1d2aad92634fe3c3449e11b4e2eae0f69febcaaffdca1c6f2a26f9e9387497",
+      "size": [
+        1200,
+        630
+      ],
+      "out_of_frame_count": 0
+    }
+  ],
+  "text_out_of_frame": [],
+  "browser": "140.0.7339.16"
+}

@@ -1,0 +1,841 @@
+{
+  "frame": "case-career-zh-390",
+  "width": 390,
+  "height": 2880.8,
+  "units": "CSS px",
+  "locale": "zh",
+  "nodes": [
+    {
+      "id": "case-career-zh-390.001",
+      "kind": "rect",
+      "paint_order": 1,
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 2880.8,
+      "fill": "#fdfdfb",
+      "stroke": null,
+      "radius": 0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "background"
+    },
+    {
+      "id": "case-career-zh-390.002",
+      "kind": "text",
+      "paint_order": 2,
+      "x": 24,
+      "y": 22,
+      "width": null,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 34,
+      "font_style": "normal",
+      "line_height": 36.72,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.003",
+      "kind": "rect",
+      "paint_order": 3,
+      "x": 203,
+      "y": 22,
+      "width": 127,
+      "height": 39,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 19.5,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "case-career-zh-390.004",
+      "kind": "text",
+      "paint_order": 4,
+      "x": 227,
+      "y": 35.0,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 21.45,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-83eff0e03ab6",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.005",
+      "kind": "connector",
+      "paint_order": 5,
+      "path": "M291 41.5h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "case-career-zh-390.006",
+      "kind": "line",
+      "paint_order": 6,
+      "x1": 350,
+      "y1": 34,
+      "x2": 369,
+      "y2": 34,
+      "stroke": "#171c19",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-career-zh-390.007",
+      "kind": "line",
+      "paint_order": 7,
+      "x1": 350,
+      "y1": 43,
+      "x2": 369,
+      "y2": 43,
+      "stroke": "#171c19",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-career-zh-390.008",
+      "kind": "text",
+      "paint_order": 8,
+      "x": 24,
+      "y": 112,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "职业与选择"
+      ],
+      "copy_id": "copy-c7f361fa2382",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.009",
+      "kind": "text",
+      "paint_order": 9,
+      "x": 24,
+      "y": 159,
+      "width": 342,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 44,
+      "font_style": "normal",
+      "line_height": 49,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "看见变化，",
+        "留下真正重要的",
+        "事。"
+      ],
+      "copy_id": "copy-281b832efa85",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.010",
+      "kind": "text",
+      "paint_order": 10,
+      "x": 24,
+      "y": 336,
+      "width": 335,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 26.4,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "回看你曾描述的取舍，不把每一个问题都当成",
+        "不变的信念。"
+      ],
+      "copy_id": "copy-46c404a9a2e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.011",
+      "kind": "text",
+      "paint_order": 11,
+      "x": 24,
+      "y": 458.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "01 / THE QUESTION"
+      ],
+      "copy_id": "copy-339dd8d138c9",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.012",
+      "kind": "text",
+      "paint_order": 12,
+      "x": 24,
+      "y": 500.8,
+      "width": 337,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 42,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "下一步，我真正想要",
+        "什么？"
+      ],
+      "copy_id": "copy-5722ea5f19ee",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.013",
+      "kind": "text",
+      "paint_order": 13,
+      "x": 24,
+      "y": 610.8,
+      "width": 331,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 26.4,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "岗位描述、尚未确定的问题和个人偏好，在聊",
+        "天历史里可能看起来相似，但它们并不是同一",
+        "种证据。"
+      ],
+      "copy_id": "copy-b26f2d176e5b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.014",
+      "kind": "photograph",
+      "paint_order": 14,
+      "asset": "light",
+      "x": 24,
+      "y": 725.0,
+      "width": 287,
+      "height": 250,
+      "rotation": -2,
+      "crop_xywh": [
+        0.0,
+        346.69,
+        1500.0,
+        1306.62
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "case-career-zh-390.015",
+      "kind": "text",
+      "paint_order": 15,
+      "x": 24,
+      "y": 1052.0,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "02 / A MORE USEFUL START"
+      ],
+      "copy_id": "copy-1edd19a6f553",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.016",
+      "kind": "text",
+      "paint_order": 16,
+      "x": 24,
+      "y": 1094.0,
+      "width": 337,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 42,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "带上仍然重要的部分",
+        "。"
+      ],
+      "copy_id": "copy-63255b8e8712",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.017",
+      "kind": "text",
+      "paint_order": 17,
+      "x": 24,
+      "y": 1204.0,
+      "width": 331,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 16,
+      "font_style": "normal",
+      "line_height": 26.4,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "保留它们的来源。比较不同时候的表达，选出",
+        "仍然符合当前处境的内容。"
+      ],
+      "copy_id": "copy-d095d3a6c73e",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.018",
+      "kind": "photograph",
+      "paint_order": 18,
+      "asset": "coast",
+      "x": 79,
+      "y": 1291.8,
+      "width": 287,
+      "height": 250,
+      "rotation": 2,
+      "crop_xywh": [
+        111.2,
+        0.0,
+        1377.6,
+        1200.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "case-career-zh-390.019",
+      "kind": "text",
+      "paint_order": 19,
+      "x": 24,
+      "y": 1618.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "虚构场景示例"
+      ],
+      "copy_id": "copy-508593022447",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.020",
+      "kind": "text",
+      "paint_order": 20,
+      "x": 24,
+      "y": 1663.8,
+      "width": 331,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 34,
+      "font_style": "normal",
+      "line_height": 41,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "不自动生成个人画像",
+        "，也不编造确定性。",
+        "下一次的上下文，仍",
+        "由你选择。"
+      ],
+      "copy_id": "copy-94fe6b294aa1",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.021",
+      "kind": "line",
+      "paint_order": 21,
+      "x1": 24,
+      "y1": 1888.8,
+      "x2": 366,
+      "y2": 1888.8,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-career-zh-390.022",
+      "kind": "text",
+      "paint_order": 22,
+      "x": 24,
+      "y": 1936.8,
+      "width": 330,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 38,
+      "font_style": "normal",
+      "line_height": 43,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "带上更多语境，",
+        "迈出下一步。"
+      ],
+      "copy_id": "copy-96ead3b34b0b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.023",
+      "kind": "rect",
+      "paint_order": 23,
+      "x": 24,
+      "y": 2060.8,
+      "width": 208,
+      "height": 56,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 28.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "case-career-zh-390.024",
+      "kind": "text",
+      "paint_order": 24,
+      "x": 48,
+      "y": 2081.05,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 15.5,
+      "font_style": "normal",
+      "line_height": 25.575,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.025",
+      "kind": "connector",
+      "paint_order": 25,
+      "path": "M193 2088.8h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "case-career-zh-390.026",
+      "kind": "line",
+      "paint_order": 26,
+      "x1": 24,
+      "y1": 2190.8,
+      "x2": 366,
+      "y2": 2190.8,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-career-zh-390.027",
+      "kind": "text",
+      "paint_order": 27,
+      "x": 24,
+      "y": 2228.8,
+      "width": null,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 36,
+      "font_style": "normal",
+      "line_height": 38.88,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.028",
+      "kind": "text",
+      "paint_order": 28,
+      "x": 24,
+      "y": 2289.8,
+      "width": 340,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 15,
+      "font_style": "normal",
+      "line_height": 24.75,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "让你的思考，拥有更长的明天。"
+      ],
+      "copy_id": "copy-3593bf12b43f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.029",
+      "kind": "text",
+      "paint_order": 29,
+      "x": 24,
+      "y": 2366.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "探索"
+      ],
+      "copy_id": "copy-c8fbce667415",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.030",
+      "kind": "text",
+      "paint_order": 30,
+      "x": 24,
+      "y": 2404.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "使用方式"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.031",
+      "kind": "text",
+      "paint_order": 31,
+      "x": 24,
+      "y": 2433.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "使用场景"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.032",
+      "kind": "text",
+      "paint_order": 32,
+      "x": 24,
+      "y": 2462.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "体验示例"
+      ],
+      "copy_id": "copy-2cabe393e29c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.033",
+      "kind": "text",
+      "paint_order": 33,
+      "x": 204,
+      "y": 2366.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "观点"
+      ],
+      "copy_id": "copy-430e9beac545",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.034",
+      "kind": "text",
+      "paint_order": 34,
+      "x": 204,
+      "y": 2404.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "我们的故事"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.035",
+      "kind": "text",
+      "paint_order": 35,
+      "x": 204,
+      "y": 2433.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "手记"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.036",
+      "kind": "text",
+      "paint_order": 36,
+      "x": 204,
+      "y": 2462.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "申请内测"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.037",
+      "kind": "text",
+      "paint_order": 37,
+      "x": 24,
+      "y": 2542.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "信任"
+      ],
+      "copy_id": "copy-c7651f456022",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.038",
+      "kind": "text",
+      "paint_order": 38,
+      "x": 24,
+      "y": 2580.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "你的数据"
+      ],
+      "copy_id": "copy-ee5ef73aae18",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.039",
+      "kind": "text",
+      "paint_order": 39,
+      "x": 24,
+      "y": 2609.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "当前状态"
+      ],
+      "copy_id": "copy-2f5d50add626",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.040",
+      "kind": "text",
+      "paint_order": 40,
+      "x": 24,
+      "y": 2638.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "隐私 · 条款"
+      ],
+      "copy_id": "copy-3eb89cb7107b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.041",
+      "kind": "text",
+      "paint_order": 41,
+      "x": 24,
+      "y": 2667.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 20.625,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "联系"
+      ],
+      "copy_id": "copy-2b5c3d26721a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.042",
+      "kind": "line",
+      "paint_order": 42,
+      "x1": 24,
+      "y1": 2760.8,
+      "x2": 366,
+      "y2": 2760.8,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "case-career-zh-390.043",
+      "kind": "text",
+      "paint_order": 43,
+      "x": 24,
+      "y": 2785.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 10.5,
+      "font_style": "normal",
+      "line_height": 17.325,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "© 2026 PAIA · 内测阶段"
+      ],
+      "copy_id": "copy-13f95a79acb6",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "case-career-zh-390.044",
+      "kind": "text",
+      "paint_order": 44,
+      "x": 366,
+      "y": 2785.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 11,
+      "font_style": "normal",
+      "line_height": 18.15,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "EN   /   中文"
+      ],
+      "copy_id": "copy-555a532adbb7",
+      "role": "text",
+      "anchor": "end"
+    },
+    {
+      "id": "case-career-zh-390.045",
+      "kind": "text",
+      "paint_order": 45,
+      "x": 24,
+      "y": 2812.8,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 15.674999999999999,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "摄影署名 · 所有材料均为示例，并非真实档案"
+      ],
+      "copy_id": "copy-92249ca2217f",
+      "role": "text",
+      "anchor": "start"
+    }
+  ]
+}

@@ -1,0 +1,1163 @@
+{
+  "frame": "how-it-works-en-1440",
+  "width": 1440,
+  "height": 3462,
+  "units": "CSS px",
+  "locale": "en",
+  "nodes": [
+    {
+      "id": "how-it-works-en-1440.001",
+      "kind": "rect",
+      "paint_order": 1,
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 3462,
+      "fill": "#fdfdfb",
+      "stroke": null,
+      "radius": 0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "background"
+    },
+    {
+      "id": "how-it-works-en-1440.002",
+      "kind": "text",
+      "paint_order": 2,
+      "x": 76,
+      "y": 20,
+      "width": null,
+      "font_family": "EB Garamond 12",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.003",
+      "kind": "line",
+      "paint_order": 3,
+      "x1": 181,
+      "y1": 25,
+      "x2": 181,
+      "y2": 57,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "how-it-works-en-1440.004",
+      "kind": "text",
+      "paint_order": 4,
+      "x": 197,
+      "y": 29,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 17,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "Your AI context,",
+        "for what’s next."
+      ],
+      "copy_id": "copy-01ecc9c5d5f7",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.005",
+      "kind": "text",
+      "paint_order": 5,
+      "x": 475,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Home"
+      ],
+      "copy_id": "copy-3a78695388b3",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.006",
+      "kind": "text",
+      "paint_order": 6,
+      "x": 553,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "How it works"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.007",
+      "kind": "line",
+      "paint_order": 7,
+      "x1": 553,
+      "y1": 54,
+      "x2": 632.86875,
+      "y2": 54,
+      "stroke": "#808981",
+      "stroke_width": 1.4
+    },
+    {
+      "id": "how-it-works-en-1440.008",
+      "kind": "text",
+      "paint_order": 8,
+      "x": 687,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Use cases"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.009",
+      "kind": "text",
+      "paint_order": 9,
+      "x": 799,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Our story"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.010",
+      "kind": "text",
+      "paint_order": 10,
+      "x": 909,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Journal"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.011",
+      "kind": "rect",
+      "paint_order": 11,
+      "x": 1192,
+      "y": 18,
+      "width": 176,
+      "height": 42,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 21.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "how-it-works-en-1440.012",
+      "kind": "text",
+      "paint_order": 12,
+      "x": 1216,
+      "y": 32.5,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.013",
+      "kind": "connector",
+      "paint_order": 13,
+      "path": "M1329 39.0h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "how-it-works-en-1440.014",
+      "kind": "text",
+      "paint_order": 14,
+      "x": 76,
+      "y": 148,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "HOW IT WORKS"
+      ],
+      "copy_id": "copy-6a4cc4c27d2f",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.015",
+      "kind": "text",
+      "paint_order": 15,
+      "x": 76,
+      "y": 214,
+      "width": 714,
+      "font_family": "EB Garamond 12",
+      "font_size": 67,
+      "font_style": "normal",
+      "line_height": 70,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Your words,",
+        "from then to next."
+      ],
+      "copy_id": "copy-beb1ca57f671",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.016",
+      "kind": "text",
+      "paint_order": 16,
+      "x": 76,
+      "y": 384,
+      "width": 532,
+      "font_family": "Inter",
+      "font_size": 19,
+      "font_style": "normal",
+      "line_height": 27.55,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Four ways to continue. No daily organizing ritual required."
+      ],
+      "copy_id": "copy-35361e61247b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.017",
+      "kind": "photograph",
+      "paint_order": 17,
+      "asset": "coast",
+      "x": 1032,
+      "y": 150,
+      "width": 258,
+      "height": 355,
+      "rotation": -3,
+      "crop_xywh": [
+        363.94,
+        0.0,
+        872.11,
+        1200.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "how-it-works-en-1440.018",
+      "kind": "text",
+      "paint_order": 18,
+      "x": 946,
+      "y": 536,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "A LONGER",
+        "TOMORROW."
+      ],
+      "copy_id": "copy-4a65917b1b8c",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.019",
+      "kind": "text",
+      "paint_order": 19,
+      "x": 76,
+      "y": 717,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "01 / CAPTURE"
+      ],
+      "copy_id": "copy-ceb26e2752dc",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.020",
+      "kind": "text",
+      "paint_order": 20,
+      "x": 76,
+      "y": 762,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Capture"
+      ],
+      "copy_id": "copy-1900b478a586",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.021",
+      "kind": "text",
+      "paint_order": 21,
+      "x": 76,
+      "y": 844,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "After you consent, supported ChatGPT inputs can enter your",
+        "local archive. Capture is not permission for external AI",
+        "processing, and it is not a promise to copy your entire",
+        "account."
+      ],
+      "copy_id": "copy-c677b7bac6d2",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.022",
+      "kind": "photograph",
+      "paint_order": 22,
+      "asset": "architecture",
+      "x": 860,
+      "y": 699,
+      "width": 353,
+      "height": 401,
+      "rotation": -2,
+      "crop_xywh": [
+        330.36,
+        0.0,
+        939.28,
+        1067.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "how-it-works-en-1440.023",
+      "kind": "connector",
+      "paint_order": 23,
+      "path": "M892 1129C1050 1173 1139 1096 1194 1164",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "how-it-works-en-1440.024",
+      "kind": "text",
+      "paint_order": 24,
+      "x": 788,
+      "y": 1249,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "02 / REVISIT"
+      ],
+      "copy_id": "copy-484d8f06ca28",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.025",
+      "kind": "text",
+      "paint_order": 25,
+      "x": 788,
+      "y": 1294,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Revisit"
+      ],
+      "copy_id": "copy-81033ad744f4",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.026",
+      "kind": "text",
+      "paint_order": 26,
+      "x": 788,
+      "y": 1376,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Return to an expression through reading or search. Keep",
+        "enough source context to understand why the words were",
+        "there. You can work with the text without losing the",
+        "distinction from its original."
+      ],
+      "copy_id": "copy-5cab4678edff",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.027",
+      "kind": "photograph",
+      "paint_order": 27,
+      "asset": "light",
+      "x": 120,
+      "y": 1231,
+      "width": 353,
+      "height": 401,
+      "rotation": 2,
+      "crop_xywh": [
+        0.0,
+        148.02,
+        1500.0,
+        1703.97
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "how-it-works-en-1440.028",
+      "kind": "connector",
+      "paint_order": 28,
+      "path": "M152 1661C310 1705 399 1628 454 1696",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "how-it-works-en-1440.029",
+      "kind": "text",
+      "paint_order": 29,
+      "x": 76,
+      "y": 1781,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "03 / UNDERSTAND"
+      ],
+      "copy_id": "copy-0b81a90cdd74",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.030",
+      "kind": "text",
+      "paint_order": 30,
+      "x": 76,
+      "y": 1826,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Understand"
+      ],
+      "copy_id": "copy-bc1004406cf9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.031",
+      "kind": "text",
+      "paint_order": 31,
+      "x": 76,
+      "y": 1908,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Bring useful expressions together in a topic. Read them as",
+        "they are, or explicitly request optional AI organization. A new",
+        "presentation is not a new personal truth, and your edits",
+        "remain yours."
+      ],
+      "copy_id": "copy-165cfcec5a2f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.032",
+      "kind": "photograph",
+      "paint_order": 32,
+      "asset": "coast",
+      "x": 860,
+      "y": 1763,
+      "width": 353,
+      "height": 401,
+      "rotation": -2,
+      "crop_xywh": [
+        271.82,
+        0.0,
+        1056.36,
+        1200.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "how-it-works-en-1440.033",
+      "kind": "connector",
+      "paint_order": 33,
+      "path": "M892 2193C1050 2237 1139 2160 1194 2228",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "how-it-works-en-1440.034",
+      "kind": "text",
+      "paint_order": 34,
+      "x": 788,
+      "y": 2313,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "04 / REUSE"
+      ],
+      "copy_id": "copy-748812e679b5",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.035",
+      "kind": "text",
+      "paint_order": 35,
+      "x": 788,
+      "y": 2358,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Reuse"
+      ],
+      "copy_id": "copy-7c975f737516",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.036",
+      "kind": "text",
+      "paint_order": 36,
+      "x": 788,
+      "y": 2440,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Select material for the question in front of you. Review what",
+        "is included, then copy or export it. Changing the selection",
+        "should invalidate an old preview rather than quietly reuse",
+        "stale context."
+      ],
+      "copy_id": "copy-975d6bcbe6e0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.037",
+      "kind": "photograph",
+      "paint_order": 37,
+      "asset": "light",
+      "x": 120,
+      "y": 2295,
+      "width": 353,
+      "height": 401,
+      "rotation": 2,
+      "crop_xywh": [
+        0.0,
+        148.02,
+        1500.0,
+        1703.97
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "how-it-works-en-1440.038",
+      "kind": "connector",
+      "paint_order": 38,
+      "path": "M152 2725C310 2769 399 2692 454 2760",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "how-it-works-en-1440.039",
+      "kind": "line",
+      "paint_order": 39,
+      "x1": 76,
+      "y1": 2852,
+      "x2": 1364,
+      "y2": 2852,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "how-it-works-en-1440.040",
+      "kind": "text",
+      "paint_order": 40,
+      "x": 76,
+      "y": 2900,
+      "width": 800,
+      "font_family": "EB Garamond 12",
+      "font_size": 48,
+      "font_style": "normal",
+      "line_height": 53,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Take the next step",
+        "with a little more context."
+      ],
+      "copy_id": "copy-96ead3b34b0b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.041",
+      "kind": "rect",
+      "paint_order": 41,
+      "x": 76,
+      "y": 3035,
+      "width": 208,
+      "height": 56,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 28.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "how-it-works-en-1440.042",
+      "kind": "text",
+      "paint_order": 42,
+      "x": 100,
+      "y": 3055.25,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 15.5,
+      "font_style": "normal",
+      "line_height": 22.474999999999998,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.043",
+      "kind": "connector",
+      "paint_order": 43,
+      "path": "M245 3063.0h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "how-it-works-en-1440.044",
+      "kind": "line",
+      "paint_order": 44,
+      "x1": 76,
+      "y1": 3152,
+      "x2": 1364,
+      "y2": 3152,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "how-it-works-en-1440.045",
+      "kind": "text",
+      "paint_order": 45,
+      "x": 76,
+      "y": 3190,
+      "width": null,
+      "font_family": "EB Garamond 12",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.046",
+      "kind": "text",
+      "paint_order": 46,
+      "x": 76,
+      "y": 3251,
+      "width": 340,
+      "font_family": "Inter",
+      "font_size": 15,
+      "font_style": "normal",
+      "line_height": 21.75,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Your thinking has a longer tomorrow."
+      ],
+      "copy_id": "copy-3593bf12b43f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.047",
+      "kind": "text",
+      "paint_order": 47,
+      "x": 710,
+      "y": 3197,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "EXPLORE"
+      ],
+      "copy_id": "copy-c8fbce667415",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.048",
+      "kind": "text",
+      "paint_order": 48,
+      "x": 710,
+      "y": 3235,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "How it works"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.049",
+      "kind": "text",
+      "paint_order": 49,
+      "x": 710,
+      "y": 3264,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Use cases"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.050",
+      "kind": "text",
+      "paint_order": 50,
+      "x": 710,
+      "y": 3293,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Explore an example"
+      ],
+      "copy_id": "copy-2cabe393e29c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.051",
+      "kind": "text",
+      "paint_order": 51,
+      "x": 940,
+      "y": 3197,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "PERSPECTIVES"
+      ],
+      "copy_id": "copy-430e9beac545",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.052",
+      "kind": "text",
+      "paint_order": 52,
+      "x": 940,
+      "y": 3235,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Our story"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.053",
+      "kind": "text",
+      "paint_order": 53,
+      "x": 940,
+      "y": 3264,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Journal"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.054",
+      "kind": "text",
+      "paint_order": 54,
+      "x": 940,
+      "y": 3293,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.055",
+      "kind": "text",
+      "paint_order": 55,
+      "x": 1170,
+      "y": 3197,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "TRUST"
+      ],
+      "copy_id": "copy-c7651f456022",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.056",
+      "kind": "text",
+      "paint_order": 56,
+      "x": 1170,
+      "y": 3235,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Your data"
+      ],
+      "copy_id": "copy-ee5ef73aae18",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.057",
+      "kind": "text",
+      "paint_order": 57,
+      "x": 1170,
+      "y": 3264,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Current status"
+      ],
+      "copy_id": "copy-2f5d50add626",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.058",
+      "kind": "text",
+      "paint_order": 58,
+      "x": 1170,
+      "y": 3293,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Privacy · Terms"
+      ],
+      "copy_id": "copy-3eb89cb7107b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.059",
+      "kind": "text",
+      "paint_order": 59,
+      "x": 1170,
+      "y": 3322,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Contact"
+      ],
+      "copy_id": "copy-2b5c3d26721a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.060",
+      "kind": "line",
+      "paint_order": 60,
+      "x1": 76,
+      "y1": 3396,
+      "x2": 1364,
+      "y2": 3396,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "how-it-works-en-1440.061",
+      "kind": "text",
+      "paint_order": 61,
+      "x": 76,
+      "y": 3421,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 10.5,
+      "font_style": "normal",
+      "line_height": 15.225,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "© 2026 PAIA · Private beta"
+      ],
+      "copy_id": "copy-13f95a79acb6",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "how-it-works-en-1440.062",
+      "kind": "text",
+      "paint_order": 62,
+      "x": 1364,
+      "y": 3421,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 11,
+      "font_style": "normal",
+      "line_height": 15.95,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "EN   /   中文"
+      ],
+      "copy_id": "copy-555a532adbb7",
+      "role": "text",
+      "anchor": "end"
+    },
+    {
+      "id": "how-it-works-en-1440.063",
+      "kind": "text",
+      "paint_order": 63,
+      "x": 76,
+      "y": 3448,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 13.775,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "Photography credits · Illustrative material, not a live archive"
+      ],
+      "copy_id": "copy-92249ca2217f",
+      "role": "text",
+      "anchor": "start"
+    }
+  ]
+}
