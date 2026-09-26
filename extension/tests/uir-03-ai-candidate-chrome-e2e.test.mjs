@@ -219,7 +219,15 @@ async function hiddenDraftJourney(page,h,topic,label){
   assert.deepEqual(saved[field][0].evidenceEntryIds,initial[field][0].evidenceEntryIds,'human wording retains exact evidence');
  }
  const summary=label+' 速览人工第一行\n第二行保持未定。';
- await page.locator('[data-ai-field="blockSummary"]').fill(summary);
+ const summaryNode=page.locator('[data-ai-field="blockSummary"]');
+ await summaryNode.fill(summary);
+ assert.equal(await summaryNode.innerText(),summary,'replacing summary keeps literal human text in its actual editing host');
+ // Empty is an editable value, not a reason to remove the focused host.
+ // Clearing/retyping must keep a visible caret target before any save/hide.
+ await summaryNode.fill('');
+ assert.equal(await summaryNode.isVisible(),true,'cleared editable summary remains visible');
+ assert.equal(await summaryNode.evaluate(node=>document.activeElement===node&&node.getBoundingClientRect().height>0),true,'clearing retains the actual focused summary editing surface');
+ await summaryNode.fill(summary);
  // A deliberate clear is also a real draft. Hiding cannot restore old AI text.
  await page.locator('[data-ai-field="currentView"]').fill('');
  await page.locator('#ai-presentation-toggle').uncheck();
