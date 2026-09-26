@@ -14,7 +14,7 @@ current_slice_status: IN_PROGRESS — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFE
 
 current_round: CPV1-06.0–06.4 / VS-06 Batch A
 
-current_round_status: IN_PROGRESS / VS06_MANIFEST_FOUNDATION_CANDIDATE
+current_round_status: IN_PROGRESS / VS06_WORKSPACE_CONVERGENCE_CANDIDATE
 
 current_writer: MANAGER / sole VS-06 Batch A branch feat/vs06-context-completeness
 
@@ -724,3 +724,16 @@ The session stores part offsets/metadata/SHA only, not additional old source bod
 Ten new unit cases cover all three budgets with multilingual grapheme boundaries; realistic100k unbroken payload full reconstruction; oversize/invalid refusal; real whole-Conversation service copy/export hashes for every part and metadata-only retention; budget invalidation/default full recovery; output edit/source revision refusal; explicit AI byte purge; and denial during package hashing. One real-worker Chrome journey reviews and copies EVERY package, verifies exact digests, exports numbered Markdown, changes budgets with full content retained, and revokes the Input with all packages hidden. All original unit and7 browser definitions/assertions/fixture sizes remain; affected targeted Chrome adds this fifth path only.
 
 This new coherent budget candidate is NOT_RUN until its one Draft unit/contract/privacy/release/affected-browser Actions gate. Full Certification is still reserved for the stable slice and merged exact-main. VS-06 BatchA/06.0–06.4 remain IN_PROGRESS until workspace convergence and canonical exits are met; subsequent06.5–06.7/Passport/review-release/full slice/merge/receipt remain open. External semantic/current-live/private/device/signing evidence remains scoped deferred and unproved.
+
+
+## VS-06 Batch A — workspace permission round-trip coherent candidate
+
+Exact09db64a9f943f9fc124f15afc6d00a9caa737196 Candidate36276070610 SUCCESS: unit1084989572641120PASS/0FAIL (all10new exact package cases); affected Chrome1084989572835PASS/0FAIL including budget per-part UI/copy/export/current-scope refusal; contracts/privacy108498957166,release108498957205,aggregate108499572377 PASS. Full36276070648 and UIrefresh36276070636 SKIPPED intentionally, not slice certification.
+
+CPV1-06.1 implementation: task tray and exact review now expose a primary Connections/permissions entry using existing local Memory/Passport STATUS metadata. Opening/closing neither flushes current note/editor drafts nor creates/changes grants, builds/shares Context or sends anything. It distinguishes local-only/external access, saved retrieval eligibility, active export permission records and actual connection/send state. Metadata STATUS may prune retained audit rows under the existing retention policy; no new authority or processor was introduced.
+
+Existing allowed-scope management remains authoritative. A dedicated Return to this task preserves the same session, fixed ref/item/container identities, unsent drafts and mode, then revalidates current sources/policy before restoring output. Changed denials purge blocked bodies/preview and cannot revive old reviewed text. Legacy Profile unsaved-edit confirmation remains; legacy home/back behavior unchanged. Drawer transition releases existing inert/focus ownership.
+
+One new actual Chrome journey exercises readonly metadata/keyboard Escape/focus, unchanged config/Profile/grants, unsent draft and fixed-generation round-trip, exact copy and an actual never restriction followed by refusal on return. All prior browser/test assertions remain. Draft targeted selector adds this sixth affected path under existing VS06 marker; no full run, timeout inflation or synthetic recovery repeat. Candidate verification NOT_RUN until GitHub Actions.
+
+VS06 remains IN_PROGRESS; workspace/budget candidates do not close review06.5/Passport controls06.6/security-reliability06.7. No real connector/direct-send claim, slice closure, merge, exact-main receipt or full certification. Existing semantic/private/current-live/device/owner evidence gates remain scoped deferred/unproved.

@@ -180,3 +180,45 @@ test('VS06 budget packages expose exact copy/export and never describe one fragm
   await p.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));await getMaterialTray().refresh();});await until(async()=>(await tray(p)).state==='blocked');assert.deepEqual((await tray(p)).outputPackages,[]);assert.equal((await tray(p)).text,'');assert.equal(await p.locator('#material-output-text').count(),0);assert.equal(await p.locator('[data-output]').count(),0);clean(h);
  }finally{await h.close();}
 });
+
+
+test('VS06 workspace permission round-trip preserves fixed task drafts and revalidates changed source restrictions',{timeout:180000},async()=>{
+ const {h,p,chat}=await start(['WORKSPACE_ARCHIVE_CANARY']);
+ try{
+  await chat.close();await until(async()=>{const s=await rpc(p,'FILTER_STATUS');return s.pending===0&&s.taskState==='idle';},'workspace capture settles');
+  await waitForStableDataGeneration(p,'workspace source snapshot settles');
+  const topicId=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js');const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();
+   const topic=await s.createTopic({name:'WORKSPACE_SCOPE_TOPIC',operationId:crypto.randomUUID()});
+   const entry=await s.createEntry({actor:'user',body:'WORKSPACE_FIXED_CANARY',type:'idea',formation:'explicit',evidence:[],operationId:crypto.randomUUID()});
+   await s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:entry.revision,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,operationId:crypto.randomUUID()});return topic.id;
+  });
+  await p.locator('#primary-nav [data-view="memory"]').click();await until(()=>p.locator('#material-workbench').isVisible());
+  await p.getByRole('button',{name:'整组选择',exact:true}).click();const chooser=p.locator('.material-container-dialog');await chooser.getByRole('button',{name:'Topic',exact:true}).click();
+  await until(async()=>await chooser.locator('input[type=checkbox]').count()===1,'whole Topic choice');await chooser.locator('input[type=checkbox]').check();await chooser.getByRole('button',{name:'加入整组材料',exact:true}).click();
+  await until(async()=>(await tray(p)).containers?.length===1&&!(await chooser.count()),'workspace fixed Topic');
+  const selected=await tray(p),note=p.getByRole('textbox',{name:'你准备问什么？（可不填）',exact:true});assert.equal(selected.containers[0].id,topicId);assert.equal(selected.items.length,1);
+  await note.fill('WORKSPACE_UNSENT_NOTE');
+  const permissions=p.locator('.material-permissions-open'),dialog=p.locator('.material-connections-dialog');
+  const before=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}}),passport=await rpc(p,'PAIA_PASSPORT_STATUS');assert.equal(passport.grants.length,0);
+  await permissions.click();await until(async()=>(await dialog.locator('.material-connections-status').textContent()).includes('当前本机记录'),'readonly current permission records');
+  assert.ok((await dialog.textContent()).includes('不代表已连接或已发送'));
+  assert.equal(await dialog.locator('button').count(),2,'no implicit grant/create/send action');
+  await p.keyboard.press('Escape');await until(async()=>await dialog.count()===0,'keyboard close');assert.equal(await permissions.evaluate(el=>el===document.activeElement),true);
+  assert.equal(await note.inputValue(),'WORKSPACE_UNSENT_NOTE');assert.equal((await tray(p)).generation,selected.generation);assert.equal((await tray(p)).note,selected.note);
+  const after=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.deepEqual(after.config,before.config);assert.deepEqual(after.profiles,before.profiles);assert.deepEqual((await rpc(p,'PAIA_PASSPORT_STATUS')).grants,passport.grants);
+  await permissions.click();await dialog.getByRole('button',{name:'管理允许范围',exact:true}).click();await until(()=>p.locator('#memory-authorizations').isVisible(),'existing scope management');
+  assert.equal(await p.locator('#material-return-to-task').isVisible(),true);assert.equal(await p.locator('#material-workbench').isVisible(),false);
+  await p.locator('#material-return-to-task').click();await until(async()=>await p.locator('#material-workbench').isVisible()&&await p.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));const t=getMaterialTray();return !t.rechecking&&!t.busy;}),'same fixed task revalidated');
+  assert.equal(await note.inputValue(),'WORKSPACE_UNSENT_NOTE');assert.equal((await tray(p)).selectionId,selected.selectionId);assert.equal((await tray(p)).generation,selected.generation);assert.deepEqual((await tray(p)).items.map(i=>i.itemId),selected.items.map(i=>i.itemId));
+  assert.equal(await permissions.evaluate(el=>el===document.activeElement),true);
+  await p.locator('#material-preview').click();await until(async()=>(await tray(p)).state==='ready');const reviewed=await tray(p);assert.ok(reviewed.text.includes('WORKSPACE_UNSENT_NOTE'));assert.ok(reviewed.text.includes('WORKSPACE_FIXED_CANARY'));assert.equal(await p.locator('#material-output-text').textContent(),reviewed.text);
+  await p.evaluate(()=>{globalThis.__workspaceCopied=null;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{globalThis.__workspaceCopied=text;}}});});
+  await p.locator('[data-output=copy]').click();await until(()=>p.evaluate(()=>globalThis.__workspaceCopied!==null));assert.equal(await p.evaluate(()=>globalThis.__workspaceCopied),reviewed.text);
+  await permissions.click();await dialog.getByRole('button',{name:'管理允许范围',exact:true}).click();await until(()=>p.locator('#memory-authorizations').isVisible());
+  await p.getByRole('combobox',{name:'WORKSPACE_SCOPE_TOPIC · 长期授权',exact:true}).selectOption('never');await until(async()=>(await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}})).items.find(i=>i.id===topicId)?.permanentDecision==='never','actual permanent restriction saved');
+  await p.locator('#material-return-to-task').click();await until(async()=>await p.locator('#material-workbench').isVisible()&&(await tray(p)).state==='blocked'&&await p.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));const t=getMaterialTray();return !t.rechecking&&!t.busy;}),'return revalidates current restriction');
+  const blocked=await tray(p);assert.equal(blocked.selectionId,selected.selectionId);assert.deepEqual(blocked.items.map(i=>i.itemId),selected.items.map(i=>i.itemId));assert.equal(blocked.items[0].body,'');assert.equal(blocked.text,'');assert.equal(blocked.manifest.complete,false);assert.equal(await p.locator('#material-output-text').count(),0);assert.equal(await p.locator('[data-output]').count(),0);
+  assert.equal((await rpc(p,'PAIA_PASSPORT_STATUS')).grants.length,0);clean(h);
+ }finally{await h.close();}
+});
