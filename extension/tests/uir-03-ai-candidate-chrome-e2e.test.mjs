@@ -195,7 +195,9 @@ async function hiddenDraftJourney(page,h,topic,label){
  await page.setViewportSize({width:1440,height:900});
  await openTopic(page,topic);await organized(page);await confirmGeneration(page);
  await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览 1'}).waitFor();
- const original=await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}});
+ const documentAuthority=doc=>({...doc,topic:topicAuthority(doc.topic)});
+ const original=documentAuthority(await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}}));
+ const originalProvenance=await Promise.all(original.items.map(item=>rpc(page,'GET_LIBRARY_PROVENANCE',{id:item.entry.id})));
  const topicBefore=topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}));
  const initial=structuredClone((await state(page,topic.id)).presentation);
  const legacy=page.locator('#ai-reading-body .ai-legacy').filter({has:page.locator('summary',{hasText:'其他已保存的整理'})}).first();
@@ -235,7 +237,8 @@ async function hiddenDraftJourney(page,h,topic,label){
  await page.locator('#ai-presentation-toggle').uncheck();await page.locator('#original-reading-body').waitFor({state:'visible'});
  await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'final read-only switch settles');
  assert.deepEqual((await state(page,topic.id)).presentation,saved,'repeat hiding is idempotent for content/protection/revision');
- assert.deepEqual(await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}}),original,'all Original entries and provenance stay exact');
+ assert.deepEqual(documentAuthority(await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}})),original,'all Original entries/placements/document fields and Topic authority stay exact except validated reading telemetry');
+ assert.deepEqual(await Promise.all(original.items.map(item=>rpc(page,'GET_LIBRARY_PROVENANCE',{id:item.entry.id}))),originalProvenance,'every direct provenance edge/count/availability stays exact');
  assert.deepEqual(topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})),topicBefore);
  assert.equal(h.deepSeekRequests.length,1);assert.equal(h.extensionNetworkRequests,1);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  await shot(page,label.toLowerCase()+'-hidden-authored-drafts');
