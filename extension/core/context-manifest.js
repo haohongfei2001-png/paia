@@ -1,3 +1,4 @@
+import {isBudget} from './memory/model.js';
 import {ArchiveError} from './constants.js';
 import {validMaterialRef,materialKey} from './manual-materials.js';
 
@@ -9,6 +10,7 @@ const integer=n=>Number.isSafeInteger(n)&&n>=0;
 // Ephemeral reviewed selection metadata, never another archive, grant, or
 // relevance-ranked replacement for what the user explicitly selected.
 export function manualContextManifest(session){
+ if(session?.outputBudget!==undefined&&session.outputBudget!==null&&!isBudget(session.outputBudget))invalid();
  if(!session||typeof session.id!=='string'||!integer(session.generation)||!integer(session.policyRevision??0)||!integer(session.temporaryPolicyRevision??0)||!Array.isArray(session.items)||!(session.excluded instanceof Set))invalid();
  const selected=session.items.map(item=>{
   if(typeof item.itemId!=='string'||!validMaterialRef(item.ref)||!['ready','stale','blocked'].includes(item.state))invalid();
@@ -24,6 +26,6 @@ export function manualContextManifest(session){
   containers:Object.freeze((session.containers||[]).map(group=>Object.freeze({kind:group.kind,id:group.id,state:group.state,selectedMemberCount:group.refs.filter(ref=>session.items.some(item=>materialKey(item.ref)===materialKey(ref))).length,members:Object.freeze(group.refs.map(ref=>Object.freeze(structuredClone(ref))))}))),
   explicit:Object.freeze(explicit),retrievalSupplements:Object.freeze(retrievalSupplements),
   exclusions:Object.freeze([...session.excluded]),redactionCount:session.redactions.length,
-  budget:Object.freeze({...MANUAL_CONTEXT_LIMITS,selectedItems:selected.length,materialUTF16Units}),
+  budget:Object.freeze({...MANUAL_CONTEXT_LIMITS,selectedItems:selected.length,materialUTF16Units,outputBudget:session.outputBudget??null,outputMode:session.outputBudget?'split':'full'}),
   complete:selected.every(item=>item.state==='ready')&&(session.containers||[]).every(group=>group.state==='ready'),partial:false,automaticRelease:false,localOnly:true,persisted:false});
 }

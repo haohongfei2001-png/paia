@@ -155,3 +155,28 @@ test('VS06 authorized supplements stay optional and removing them preserves exac
   await p.locator('#material-preview').click();await until(async()=>(await tray(p)).state==='ready');const final=await tray(p);assert.ok(final.text.includes(texts[0]));assert.equal(final.text.includes('TASK_RETRIEVAL_NEEDLE'),false);clean(h);
  }finally{await h.close();}
 });
+
+
+test('VS06 budget packages expose exact copy/export and never describe one fragment as a whole group',{timeout:180000},async()=>{
+ const texts=['BUDGET_FULL_CANARY '+'完整文字 👩🏽‍💻 e\u0301 '.repeat(600),'BUDGET_SECOND_CANARY'],{h,p}=await start(texts);
+ try{
+  await mkdir(dir,{recursive:true});await p.locator('#primary-nav [data-view="memory"]').click();await until(()=>p.locator('#material-workbench').isVisible());
+  await p.getByRole('button',{name:'整组选择',exact:true}).click();const dialog=p.locator('.material-container-dialog');await until(async()=>await dialog.locator('input[type=checkbox]').count()===1,'budget whole Conversation');
+  await dialog.locator('input[type=checkbox]').check();await dialog.getByRole('button',{name:'加入整组材料',exact:true}).click();await until(async()=>(await tray(p)).items.length===2&&!(await dialog.count()),'fixed complete selection');
+  const ids=(await tray(p)).items.map(i=>i.itemId);await p.getByRole('combobox',{name:'每包输出预算',exact:true}).selectOption('short');await until(async()=>(await tray(p)).outputBudget==='short','chosen budget acknowledged');
+  await p.locator('#material-preview').click();await until(async()=>(await tray(p)).state==='ready');const reviewed=await tray(p);
+  assert.ok(reviewed.outputPackages.length>1);assert.equal(reviewed.outputPackages.map(p=>p.body).join(''),reviewed.text);assert.deepEqual(reviewed.items.map(i=>i.itemId),ids);for(const text of texts)assert.ok(reviewed.text.includes(text));assert.equal(reviewed.manifest.complete,true);
+  await p.evaluate(()=>{globalThis.__vs06PackageCopied=null;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{globalThis.__vs06PackageCopied=text;}}});});
+  for(const part of reviewed.outputPackages){
+   await p.getByRole('combobox',{name:'查看分包',exact:true}).selectOption(String(part.index));await until(async()=>(await p.locator('#material-output-text').textContent())===part.text,'exact selected package');
+   assert.ok((await p.locator('.material-output-coverage').textContent()).includes('不代表整组材料'));assert.ok(part.characters<=2400);assert.ok(part.tokens<=1800);
+   await p.evaluate(()=>{globalThis.__vs06PackageCopied=null;});await p.locator('[data-output=copy]').click();await until(()=>p.evaluate(()=>globalThis.__vs06PackageCopied!==null),'exact package copied');assert.equal(await p.evaluate(()=>globalThis.__vs06PackageCopied),part.text);
+   const actualDigest=await p.evaluate(async text=>{const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return [...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,'0')).join('');},part.text);assert.equal(actualDigest,part.sha256);
+  }
+  const last=reviewed.outputPackages.at(-1),download=p.waitForEvent('download');await p.locator('[data-output=markdown]').click();const file=await download;assert.equal(file.suggestedFilename(),'PAIA-Context-'+last.index+'-of-'+last.count+'.md');const target=new URL('budget-package-export.md',dir);await file.saveAs(target.pathname);const {readFile}=await import('node:fs/promises');assert.equal(await readFile(target,'utf8'),last.text);
+  await p.getByRole('button',{name:'返回材料',exact:true}).click();await p.getByRole('combobox',{name:'每包输出预算',exact:true}).selectOption('detailed');await until(async()=>(await tray(p)).outputBudget==='detailed'&&(await tray(p)).state==='dirty');assert.deepEqual((await tray(p)).outputPackages,[]);
+  await p.locator('#material-preview').click();await until(async()=>(await tray(p)).state==='ready');assert.equal((await tray(p)).text,reviewed.text);assert.ok((await tray(p)).outputPackages.length<reviewed.outputPackages.length);
+  await rpc(p,'PAIA_MEMORY_EXCLUDE',{options:{inputId:reviewed.items[0].ref.id,excluded:true}});
+  await p.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));await getMaterialTray().refresh();});await until(async()=>(await tray(p)).state==='blocked');assert.deepEqual((await tray(p)).outputPackages,[]);assert.equal((await tray(p)).text,'');assert.equal(await p.locator('#material-output-text').count(),0);assert.equal(await p.locator('[data-output]').count(),0);clean(h);
+ }finally{await h.close();}
+});
