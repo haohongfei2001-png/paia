@@ -38,7 +38,7 @@ for path in PAGES:
     text = path.read_text()
     doc = Document(text)
     name = path.relative_to(ROOT).as_posix()
-    expected_lang = 'en' if name.startswith('en/') else 'zh-CN'
+    expected_lang = 'zh-CN' if name.startswith('zh/') else 'en'
     check(doc.all('html')[0].get('lang') == expected_lang, f'{name}: static language')
     check(len(doc.all('h1')) == 1, f'{name}: one primary heading')
     links = doc.all('link')
@@ -74,12 +74,25 @@ for path in PAGES:
     check(all(s.startswith('/assets/website/') for s in scripts), f'{name}: only website-owned scripts')
     check('i18n.js' not in text and 'polish.css' not in text, f'{name}: no legacy UI owners')
 
+# English is the default; old /en links stay readable with a canonical root URL.
+for relative in ('index.html','beta.html','demo.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html'):
+    root_doc = Document((ROOT/relative).read_text())
+    zh_doc = Document((ROOT/'zh'/relative).read_text())
+    check((ROOT/relative).read_bytes() == (ROOT/'en'/relative).read_bytes(), f'{relative}: legacy English alias matches canonical page')
+    check(next(a['href'] for a in root_doc.all('link') if a.get('rel')=='canonical') == 'https://inputarchive.com/'+('' if relative=='index.html' else relative), f'{relative}: English root canonical')
+    check(next(a['href'] for a in zh_doc.all('link') if a.get('rel')=='canonical') == 'https://inputarchive.com/zh/'+('' if relative=='index.html' else relative), f'{relative}: Chinese canonical')
+    check(next(a['href'] for a in root_doc.all('link') if a.get('hreflang')=='x-default') == 'https://inputarchive.com/'+('' if relative=='index.html' else relative), f'{relative}: English default metadata')
+for relative in ('index.html','zh/index.html'):
+    text=(ROOT/relative).read_text()
+    check(not Document(text).all('img'), f'{relative}: no generated people, landscapes, or photos in homepage')
+    check('Watch the film' not in text and 'A PAIA user' not in text and 'Gemini' not in text and 'Notion' not in text, f'{relative}: no invented film, testimonial or unshipped source')
+
 # Stable color token checks, not a claim of a full accessibility audit.
 def luminance(color):
     v = [int(color[i:i+2], 16) / 255 for i in (0, 2, 4)]
     v = [x / 12.92 if x <= .04045 else ((x + .055) / 1.055) ** 2.4 for x in v]
     return .2126*v[0] + .7152*v[1] + .0722*v[2]
-for fg, bg, minimum in [('606b63','f5f4ef',4.5),('385b45','f5f4ef',4.5),('fffefa','385b45',4.5),('d2d8cf','252d28',4.5),('768778','fffefa',3)]:
+for fg, bg, minimum in [('626960','fdfdfc',4.5),('ffffff','2d3730',4.5),('343e34','ffffff',4.5),('596452','eff2eb',4.5),('30493b','ffffff',4.5)]:
     low, high = sorted([luminance(fg), luminance(bg)])
     check((high+.05)/(low+.05) >= minimum, f'contrast: {fg}/{bg} >= {minimum}')
 
@@ -128,12 +141,35 @@ try:
                 if width == 320:
                     page.add_style_tag(content='html{font-size:200%!important}')
                     check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: 320px with 200% text')
-                if name in ('index.html','en/index.html') and width in (1440,390):
+                if name in ('index.html','zh/index.html','beta.html','zh/beta.html','demo.html','zh/demo.html') and width in (1440,390):
+                    # Review captures should show the complete designed page rather than
+                    # preserve below-the-fold reveal opacity. Production motion is unchanged.
+                    if name in ('index.html','zh/index.html'):
+                        page.evaluate("document.querySelectorAll('[data-reveal]').forEach(el=>el.classList.add('is-visible'))")
                     page.screenshot(path=str(OUT / f'{name.replace("/","-")}-{width}.png'), full_page=True)
                 page.close()
-        for locale in ['', 'en/']:
+        for locale in ['', 'zh/']:
+            en = locale != 'zh/'
             page = browser.new_page(viewport={'width':390,'height':844})
             load(page, locale+'index.html')
+            field = page.locator('[data-v3-context]')
+            fragments = field.locator('[data-v3-fragment]')
+            check(fragments.count() == 5, f'{locale}: v3 context field has five synthetic fragments')
+            check(field.locator('[data-v3-list] span').count() == 3, f'{locale}: three explicit fragments selected initially')
+            check(field.locator('[data-v3-count]').inner_text() == '3 / 5', f'{locale}: selected count reflects explicit state')
+            fragments.nth(0).click()
+            check(fragments.nth(0).get_attribute('aria-pressed') == 'true', f'{locale}: fragment can be explicitly added')
+            check(field.locator('[data-v3-list] span').count() == 4, f'{locale}: added fragment enters this-time context')
+            fragments.nth(1).click()
+            check(fragments.nth(1).get_attribute('aria-pressed') == 'false', f'{locale}: selected fragment can be explicitly removed')
+            for i in range(fragments.count()):
+                if fragments.nth(i).get_attribute('aria-pressed') == 'true':
+                    fragments.nth(i).click()
+            check(field.locator('[data-v3-count]').inner_text() == '0 / 5', f'{locale}: empty selection is represented exactly')
+            empty_text = field.locator('[data-v3-list]').inner_text()
+            check(('Nothing selected' in empty_text) if en else ('没有选中' in empty_text), f'{locale}: no hidden fallback context')
+            check(page.locator('[data-context-stage]').count() == 0, f'{locale}: legacy dashboard hero removed')
+            check(page.locator('.v3-choice-boundary').count() == 1, f'{locale}: selection boundary is part of the page language')
             menu = page.locator('.mobile-menu')
             menu.locator('summary').click()
             check(menu.evaluate('el => el.open'), f'{locale}: mobile menu opens')
@@ -152,7 +188,7 @@ try:
             page.keyboard.press('ArrowRight')
             check(tabs.nth(1).get_attribute('aria-selected') == 'true', f'{locale}: keyboard tabs')
             original = page.locator('[data-record="b"] .source-text').text_content()
-            page.locator('#sample-search').fill('readers' if locale else '读者')
+            page.locator('#sample-search').fill('users' if en else '用户')
             check(page.locator('.sample-record:visible').count() == 2, f'{locale}: real keyword search')
             page.locator('#sample-search').fill('no-matching-sample-xyz')
             check(page.locator('.empty-search').is_visible(), f'{locale}: empty search state')
@@ -167,7 +203,7 @@ try:
             page.locator('[data-build]').click()
             prepared = page.locator('#context-preview').input_value()
             check(changed in prepared and original not in prepared, f'{locale}: complete selected working text')
-            check('Content boundaries' not in prepared if locale else '内容边界' not in prepared, f'{locale}: unselected material excluded')
+            check('Scope boundary' not in prepared if en else '实现边界' not in prepared, f'{locale}: unselected material excluded')
             page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.__testCopied=text}}})")
             page.locator('[data-copy]').click()
             page.wait_for_function('window.__testCopied !== undefined')
@@ -187,7 +223,7 @@ try:
             page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw new Error('test denial')}}})")
             page.locator('[data-copy]').click()
             page.wait_for_function("document.activeElement.id==='context-preview'")
-            check('unavailable' in page.locator('.context-status').inner_text() if locale else '不可用' in page.locator('.context-status').inner_text(), f'{locale}: clipboard failure is not success')
+            check('unavailable' in page.locator('.context-status').inner_text() if en else '不可用' in page.locator('.context-status').inner_text(), f'{locale}: clipboard failure is not success')
             for choice in page.locator('[data-select]').all(): choice.uncheck()
             page.locator('[data-build]').click()
             check(page.locator('[data-copy]').is_disabled(), f'{locale}: no selection cannot release')

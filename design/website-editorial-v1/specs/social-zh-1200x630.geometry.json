@@ -1,0 +1,147 @@
+{
+  "frame": "social-zh-1200x630",
+  "width": 1200,
+  "height": 630,
+  "units": "CSS px",
+  "locale": "zh",
+  "nodes": [
+    {
+      "id": "social-zh-1200x630.001",
+      "kind": "rect",
+      "paint_order": 1,
+      "x": 0,
+      "y": 0,
+      "width": 1200,
+      "height": 630,
+      "fill": "#fdfdfb",
+      "stroke": null,
+      "radius": 0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "background"
+    },
+    {
+      "id": "social-zh-1200x630.002",
+      "kind": "text",
+      "paint_order": 2,
+      "x": 60,
+      "y": 44,
+      "width": null,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 48,
+      "font_style": "normal",
+      "line_height": 51.84,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "social-zh-1200x630.003",
+      "kind": "text",
+      "paint_order": 3,
+      "x": 60,
+      "y": 130,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "你的思考，继续向前。"
+      ],
+      "copy_id": "copy-85dd0b805730",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "social-zh-1200x630.004",
+      "kind": "text",
+      "paint_order": 4,
+      "x": 60,
+      "y": 213,
+      "width": 792,
+      "font_family": "Noto Serif CJK SC",
+      "font_size": 66,
+      "font_style": "normal",
+      "line_height": 72,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "让你说过的话，",
+        "成为下一步的起点。"
+      ],
+      "copy_id": "copy-43c1eb285ba5",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "social-zh-1200x630.005",
+      "kind": "text",
+      "paint_order": 5,
+      "x": 60,
+      "y": 423,
+      "width": 625,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 18,
+      "font_style": "normal",
+      "line_height": 29.7,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "你的个人 AI 输入、思想与上下文系统。"
+      ],
+      "copy_id": "copy-f8eefaff1d92",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "social-zh-1200x630.006",
+      "kind": "photograph",
+      "paint_order": 6,
+      "asset": "light",
+      "x": 926,
+      "y": 106,
+      "width": 214,
+      "height": 384,
+      "rotation": 0,
+      "crop_xywh": [
+        192.71,
+        0.0,
+        1114.58,
+        2000.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": true
+    },
+    {
+      "id": "social-zh-1200x630.007",
+      "kind": "text",
+      "paint_order": 7,
+      "x": 60,
+      "y": 558,
+      "width": null,
+      "font_family": "Noto Sans CJK SC",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "INPUTARCHIVE.COM / 内测"
+      ],
+      "copy_id": "copy-c4e9df55514a",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    }
+  ]
+}

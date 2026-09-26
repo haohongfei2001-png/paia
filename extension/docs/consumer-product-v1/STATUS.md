@@ -12,9 +12,9 @@ current_slice: VS-05
 
 current_slice_status: ACTIVE — VS-04_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED
 
-current_round: CPV1-05.5–05.6 / VS-05 Batch B
+current_round: CPV1-05.7 / VS-05 Batch C
 
-current_round_status: ACTIVE / VS-05_BATCH_B
+current_round_status: ACTIVE / VS-05_BATCH_C
 
 current_writer: MANAGER — sole VS-05 writer
 
@@ -497,3 +497,11 @@ The previous DTO review was incomplete; before another candidate this bounded fo
 Exact `3ce85e8960ed64e2a41b29c384ecf19cc00c1757`, [Candidate36229094372](https://github.com/haohongfei2001-png/paia/actions/runs/36229094372): unit/contracts/privacy/release and historical source+built comparison PASS. New full path passes both captured Conversation placements/provenance, actual independent Thought creation and dedicated exact zero lineage checks, explicit AI generation and exact all-three evidence. Its Topic-equality assertion fails only because real page reading asynchronously adds readingActivity {at,weight}; every other complete returned field is identical, including all user protections, name/summary, revisions, organization/layout generation and cache. This is TEST authority-versus-usage telemetry, not AI mutation.
 
 Bounded source review verifies production topic-reading-order recordRead: its sole readingActivity update is a finite timestamp and decayed bounded weight1–8, rate limited per minute; it never edits Topic authority. The complete main-path test now validates that exact telemetry shape/range and excludes only that known usage field from full before/after equality at both generation and reviewed candidate save. All other Topic fields (including caches), Source/Original payloads, saved presentation/revisions/protections, actual two-provider path and restart requirements remain exact. No runtime change, broad ignored-field list, timeout, fixture shrink, retry or full certification. This continues05.7 affected proof; full/live semantic closure remains unproved.
+
+## VS-05 complete path route-scoped test repair
+
+Fresh remote main 589c51c1ff577867f1632c39ebfe8a7787384fc4 contains owner design-only #84 (WEBSITE_DESIGN/design assets only; no extension/runtime change), unique manager writer PR79 head7c420532d688dd6b49ba08c306bcb043af47bff4. Exact Candidate36229471567: contracts/privacy108369758077, unit108369757912 and release108369758013 PASS; affected browser108369757972 FAIL. Existing candidate-comparison journey still PASS. Complete05.7 now passes generation/human multiline authority preservation and the next actual external capture/Reader placement, then times out in settleThoughtHome waiting for hidden thought-list.
+
+Bounded source/log review classifies TEST route misuse. After addCapturedInput the active page is Library, whose shared #back goes to its Conversation collection. The helper clicked that Library back before selecting Thought, then waited for a Thought list while its whole panel was hidden. Production archive.js explicitly dispatches #back by active view. The repaired helper first selects the actual Thought nav and waits for that panel and its document/root; only then may it click the route-specific 返回思想库 back and wait for the visible Thought root. No internal route manipulation, extra delay, timeout increase, runtime change or removed assertion. The full cross-Conversation/new-Thought/protected-candidate/restart path stays intact in source and built release; next stable affected-head proof pending. Full certification remains reserved for the stable slice boundary.
+
+The same coherent candidate integrates all current remote main589c51c1ff577867f1632c39ebfe8a7787384fc4, including the earlier owner website implementation and newer design-only #84. Three-way root-tree verification uses actual common ancestor00d880a40137e672e000f4e550fb3d482b9269dc: writer changes only extension and .github; remote main changes only owner website/design paths, with zero overlap. Remote blobs/trees are retained exactly; no website implementation/review/publication is performed. Candidate is a two-parent merge preserving both histories plus the scoped route test repair, so later slice certification will cover the integrated remote tree.

@@ -1,51 +1,223 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PAIA — 聊过的想法，不止留在聊天里</title>
-<meta name="description" content="PAIA 是本地优先的私人 AI 输入档案与上下文空间。找回、理解、编辑你向 ChatGPT 表达过的内容，再用于下一次 AI 对话。桌面 Chrome 扩展，Private Beta。">
-<meta name="theme-color" content="#f5f4ef">
+<title>PAIA — Personal context for what’s next</title>
+<meta name="description" content="Keep the expressions, decisions and questions you already create with AI. Revisit, revise and understand them—then decide what becomes context for what comes next.">
+<meta name="theme-color" content="#fdfdfc">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 
 <link rel="canonical" href="https://inputarchive.com/">
-<link rel="alternate" hreflang="zh-Hans" href="https://inputarchive.com/">
-<link rel="alternate" hreflang="en" href="https://inputarchive.com/en/">
+<link rel="alternate" hreflang="zh-Hans" href="https://inputarchive.com/zh/">
+<link rel="alternate" hreflang="en" href="https://inputarchive.com/">
 <link rel="alternate" hreflang="x-default" href="https://inputarchive.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PAIA">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:title" content="PAIA — 聊过的想法，不止留在聊天里">
-<meta property="og:description" content="PAIA 是本地优先的私人 AI 输入档案与上下文空间。找回、理解、编辑你向 ChatGPT 表达过的内容，再用于下一次 AI 对话。桌面 Chrome 扩展，Private Beta。">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="PAIA — Personal context for what’s next">
+<meta property="og:description" content="Keep the expressions, decisions and questions you already create with AI. Revisit, revise and understand them—then decide what becomes context for what comes next.">
 <meta property="og:url" content="https://inputarchive.com/">
-<meta property="og:image" content="https://inputarchive.com/assets/website/og-zh.png">
+<meta property="og:image" content="https://inputarchive.com/assets/website/og-en.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="PAIA：聊过的想法，不止留在聊天里。">
+<meta property="og:image:alt" content="PAIA: Turn what you’ve said into what’s next.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PAIA — 聊过的想法，不止留在聊天里">
-<meta name="twitter:description" content="PAIA 是本地优先的私人 AI 输入档案与上下文空间。找回、理解、编辑你向 ChatGPT 表达过的内容，再用于下一次 AI 对话。桌面 Chrome 扩展，Private Beta。">
-<meta name="twitter:image" content="https://inputarchive.com/assets/website/og-zh.png">
+<meta name="twitter:title" content="PAIA — Personal context for what’s next">
+<meta name="twitter:description" content="Keep the expressions, decisions and questions you already create with AI. Revisit, revise and understand them—then decide what becomes context for what comes next.">
+<meta name="twitter:image" content="https://inputarchive.com/assets/website/og-en.png">
 <link rel="icon" href="/assets/website/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/website/site.css?v=1">
-<script src="/assets/website/site.js?v=1" defer></script>
+<link rel="stylesheet" href="/assets/website/site.css?v=3">
+<script src="/assets/website/site.js?v=3" defer></script>
 </head>
-<body>
-<a class="skip-link" href="#main">跳到正文</a><header class="site-header"><div class="header-inner">
-<a class="wordmark" href="/" aria-label="PAIA 首页">PAIA<span class="brand-rule" aria-hidden="true"></span></a>
-<nav class="desktop-nav" aria-label="主导航"><a class="" href="/#how">如何使用</a><a class="" href="/principles.html">数据与信任</a><a class="" href="/status.html">当前状态</a></nav>
-<div class="header-actions"><a class="language" href="/en/" lang="en" hreflang="en">EN</a><a class="button button-small" href="/beta.html">申请内测 <span aria-hidden="true">→</span></a></div>
-<details class="mobile-menu"><summary aria-label="打开导航菜单"><span aria-hidden="true">☰</span></summary><nav aria-label="移动端导航"><a class="" href="/#how">如何使用</a><a class="" href="/principles.html">数据与信任</a><a class="" href="/status.html">当前状态</a><a class="" href="/demo.html">示例体验</a></nav></details>
-</div></header><main id="main" tabindex="-1"><section class="hero wrap"><div class="hero-copy"><p class="eyebrow">你的私人 AI 输入与上下文空间</p><h1>聊过的想法，<br>不止留在聊天里。</h1><p class="hero-description">PAIA 把你向 ChatGPT 表达过的信息和想法，留在你自己的档案里。找回来、看清楚、修改，再带进下一次 AI 对话。</p><div class="actions"><a class="button" href="/demo.html">试一次找回与复用 <span aria-hidden="true">→</span></a><a class="text-link" href="/beta.html">申请 Private Beta</a></div><div class="availability"><span class="status-dot" aria-hidden="true"></span><span>桌面 Chrome 扩展 · ChatGPT 网页版 · 邀请制测试</span></div><p class="hero-note">本机保存 · 原话与修改分开 · 对外使用由你决定</p></div><figure class="hero-folio" aria-label="把过去表达用于新任务的示例"><div class="folio-top"><span>一个持续中的项目</span><span>周末小刊</span></div>
-<div class="folio-record"><span class="sample-date">08.12 <span>／ 写作方向</span></span><blockquote>“我不想追热点。每期只写一个真正想弄清楚的问题。”</blockquote></div>
-<div class="folio-record"><span class="sample-date">09.03 <span>／ 读者与节奏</span></span><blockquote>“写给刚开始工作的人。短一点，但要留下一个具体的观察。”</blockquote></div>
-<div class="folio-reuse"><span class="eyebrow">今天 · 再次用于 AI</span><p>为下一期小刊准备开头，<br>延续我之前确定的方向。</p><div class="folio-bottom"><span>已选择 2 条表达</span><span>先预览，再复制 ↗</span></div></div>
-<figcaption>能力示意 · 虚构内容，非产品截图</figcaption></figure></section>
-<section class="question-section wrap" id="why"><p class="eyebrow">窗口换了，正在想的事还没有结束</p><h2>“这件事，我以前认真想过。”</h2><p class="section-intro">一段决定的来由，一个反复推敲的想法，一次修正过的判断。值得留下的，不只是 AI 给出的答案，也包括你一路表达过的东西。</p><div class="situations"><article><span>01</span><h3>继续一个项目</h3><p>找回之前确定的方向和限制，不必在新窗口重新交代。</p></article><article><span>02</span><h3>重新考虑一个决定</h3><p>看看当时为什么这样选，而不只剩下今天的结论。</p></article><article><span>03</span><h3>接着研究、学习或创作</h3><p>把不同会话中的问题和观察放在一起，接着往下想。</p></article></div></section>
-<section class="journey-section" id="how"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">CAPTURE → REVISIT → UNDERSTAND → REUSE</p><h2>从“我记得说过”，<br>到“这次接着用”。</h2></div><p>不必先整理成一套知识库。先留下，下一次需要时，就有地方可找。</p></div><div class="journey"><article><span class="step-number">01 / CAPTURE</span><h3>照常说，留下来。</h3><p>明确同意后，扩展在支持的 ChatGPT 页面保存符合条件、已显示的用户文字。不是键盘记录，也不是整个账户的自动备份。</p><small>Input Archive</small></article><article><span class="step-number">02 / REVISIT</span><h3>用熟悉的线索找回。</h3><p>按会话和项目浏览，用关键词定位，再回到连续的阅读正文。你看到的，是自己说过的具体内容。</p><small>Input Archive</small></article><article><span class="step-number">03 / UNDERSTAND</span><h3>看见同一件事的脉络。</h3><p>在长期主题里放在一起看，继续补充和思考。可选 AI 整理帮助梳理结构，不应该替你发明观点。</p><small>Thought Library</small></article><article><span class="step-number">04 / REUSE</span><h3>选一点，接着用。</h3><p>从档案或主题选材料，准备并检查上下文，再明确复制或导出。没有整理进思想库的输入，也能直接使用。</p><small>AI Context</small></article></div><div class="section-end"><a class="text-link" href="/demo.html">用同一个例子，完整试一遍</a><span>无需安装 · 不读取你的档案 · 不调用 AI</span></div></div></section>
-<section class="memory-section wrap" id="memory"><div><p class="eyebrow">已经有聊天历史和 MEMORY？</p><h2>不是替 AI 再记一遍。<br>是让你自己也能掌握。</h2><p>聊天历史适合找回和继续对话。Memory 让后续回答更贴近你。PAIA 关注另一件事：让你表达过的内容，成为可阅读、可修改、可带走、可主动复用的私人材料。</p><p class="small">它们可以一起使用，不需要停用 Memory。 <a href="https://help.openai.com/en/articles/8590148-memory-in-chatgpt" rel="noreferrer">了解 ChatGPT Memory ↗</a></p></div><div class="distinctions"><div><span>当你想找回</span><p>不只问“AI 记住了什么”，<br>也能看“我当时到底说过什么”。</p></div><div><span>当你想修正</span><p>修改现在要用的文字，<br>不把修改冒充成过去的原话。</p></div><div><span>当你想再用</span><p>自己挑选这次需要的部分，<br>而不是把整个档案交出去。</p></div></div></section>
-<section class="trust-preview" id="trust"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">长期私人数据，需要具体的边界</p><h2>先属于你，<br>再由你决定如何使用。</h2></div><p>信任不靠一句“安全”。它体现在什么被保存、什么可以修改、什么会离开设备，以及你怎样离开这个产品。</p></div><div class="trust-grid"><article><h3>日常使用，在本机</h3><p>核心档案保存在扩展本地。阅读、编辑、关键词搜索和上下文准备不需要外部 AI。请为重要资料保留独立备份。</p></article><article><h3>原话、修改、AI 整理分开</h3><p>普通编辑不覆盖原始来源记录。AI 整理是另一层呈现，不应该静默改写你的人工工作，也不能把引用当成你的立场。</p></article><article><h3>保存，不等于授权 AI 使用</h3><p>可选外部 AI 处理需要明确操作。复制、导出或授权发送后，外部副本无法被 PAIA 收回；关闭访问只影响之后受控的访问。</p></article></div><a class="text-link" href="/principles.html">看看完整的数据与授权边界</a></div></section>
-<section class="now-section wrap" id="now"><div><p class="eyebrow">现在的 PAIA</p><h2>从一个诚实的 Beta 开始。</h2><div class="availability"><span class="status-dot" aria-hidden="true"></span><span>桌面 Chrome 扩展 · ChatGPT 网页版 · 邀请制测试</span></div><p>当前产品是围绕 ChatGPT 网页版开发的桌面 Chrome 扩展，正在邀请制测试。官网可以在手机上浏览，示例也可以体验；这不代表已有手机 App。</p><a class="text-link" href="/status.html">查看已实现、待验证与后续方向</a></div><div class="status-list"><div><span class="label">当前代码已有</span><p>输入档案 · 会话阅读与编辑 · 关键词搜索 · 主题阅读 · 选材料、预览、复制与导出</p></div><div><span class="label">仍在完善和验证</span><p>真实环境兼容性 · 历史导入 · 大库备份恢复 · 消费级分发与更新</p></div><div><span class="label">不是当前上线承诺</span><p>手机 App · 通用云同步 · 更多来源 · 让外部 AI 直接读取档案的连接器</p></div></div></section>
-<section class="faq-section wrap"><h2>开始之前，你可能想知道。</h2><div class="faq"><details><summary>会收集我的草稿、AI 回复或临时聊天吗？</summary><p>当前采集边界围绕符合条件、已显示的用户文字，不默认保存草稿、按键或 AI 回复。Temporary Chat 不自动采集。你发送的引用或第三方文本，也不应被自动当成你的个人观点。</p></details><details><summary>需要手动整理每条输入吗？</summary><p>不需要。档案浏览、阅读和搜索本身就有价值。主题组织和可选 AI 整理是帮助理解的能力，不是开始使用或复用材料的前提。</p></details><details><summary>停止使用 PAIA 后，内容还能带走吗？</summary><p>当前代码提供开放导出和备份路径。导出用于带走可读材料，备份用于恢复库，两者不相同。Beta 阶段不要把 PAIA 当成重要资料的唯一副本；支持范围和恢复验证仍在完善。</p></details><details><summary>我的 AI 会自动读到这些内容吗？</summary><p>不会。当前官网展示的复用路径是：明确选材料、检查上下文，再由你复制或导出使用。真正的外部 AI 连接器属于后续方向，不能把预览当成已经发送。</p></details></div></section><section class="invitation wrap"><p class="eyebrow">PAIA · PRIVATE BETA</p><h2>给下一次思考，<br>留一点来处。</h2><p>从你已经在说的话开始，不必再养成一种记录习惯。</p><div class="actions"><a class="button" href="/beta.html">申请 Private Beta <span aria-hidden="true">→</span></a><a class="text-link" href="/demo.html">先用示例试一遍</a></div></section></main><footer class="site-footer wrap"><div class="footer-top"><a class="wordmark" href="/">PAIA</a><p>先属于你，再由你决定如何使用。</p></div><div class="footer-bottom"><nav aria-label="页脚导航"><a class="" href="/about.html">为什么做 PAIA</a><a class="" href="/status.html">当前状态</a><a class="" href="/privacy-policy.html">隐私政策</a><a class="" href="/terms.html">使用条款</a><a href="mailto:haohongfei2001@gmail.com">联系</a></nav><span>© 2026 PAIA · Private Beta</span></div></footer>
+<body data-page="index.html" data-language="en">
+<a class="skip-link" href="#main">Skip to content</a><header class="site-header"><div class="header-inner">
+<div class="brand-lockup"><a class="wordmark" href="/" aria-label="PAIA home">PAIA</a><span class="brand-tagline">Your AI context,<br>for what’s next.</span></div>
+<nav class="desktop-nav" aria-label="Main navigation"><a class="" href="/" aria-current="page">Home</a><a class="" href="/#how">How it works</a><a class="" href="/principles.html">Your data</a><a class="" href="/about.html">Our story</a></nav>
+<div class="header-actions"><a class="language" href="/zh/" lang="zh-CN" hreflang="zh-Hans">中文</a><a class="button button-small" href="/beta.html">Get early access <span aria-hidden="true">→</span></a></div>
+<details class="mobile-menu"><summary aria-label="Open navigation menu"><span aria-hidden="true">☰</span></summary><nav aria-label="Mobile navigation"><a class="" href="/" aria-current="page">Home</a><a class="" href="/#how">How it works</a><a class="" href="/principles.html">Your data</a><a class="" href="/about.html">Our story</a><a class="" href="/demo.html">Explore an example</a><a class="" href="/status.html">Current status</a></nav></details>
+</div></header><main id="main" tabindex="-1">
+<section class="v3-home">
+  <section class="v3-hero wrap" aria-labelledby="v3-title">
+    <div class="v3-hero-copy" data-reveal>
+      <p class="v3-kicker">PERSONAL CONTEXT / PRIVATE BETA</p>
+      <h1 id="v3-title">Your thinking shouldn’t<br>expire with the chat.</h1>
+      <p class="v3-deck">PAIA keeps the expressions, decisions and questions you already produce with AI. Revisit them, revise them, understand them again—and decide what becomes context for what comes next.</p>
+      <div class="v3-actions">
+        <a class="button v3-primary" href="/beta.html">Get early access <span aria-hidden="true">→</span></a>
+        <a class="v3-text-link" href="/demo.html">Explore the working demo ↗</a>
+      </div>
+      <p class="v3-availability">Desktop Chrome · ChatGPT Web · Invite-only beta</p>
+    </div>
+
+    <div class="v3-field" data-v3-context data-language="en" data-reveal>
+      <div class="v3-field-axis" aria-hidden="true"><span>PAST</span><i></i><span>NOW</span><i></i><span>NEXT</span></div>
+      <p class="v3-field-note">Tap fragments. Decide what goes forward this time.</p>
+      <div class="v3-fragment-plane">
+        <button class="v3-fragment v3-fragment-question" type="button"
+        data-v3-fragment data-fragment-key="question" aria-pressed="false">
+          <span class="v3-fragment-meta"><time>FEB 11</time><span>QUESTION</span></span>
+          <span class="v3-fragment-copy">Why am I explaining the same thing again in a new chat?</span>
+          <span class="v3-fragment-state" aria-hidden="true">+</span>
+        </button><button class="v3-fragment v3-fragment-decision" type="button"
+        data-v3-fragment data-fragment-key="decision" aria-pressed="true">
+          <span class="v3-fragment-meta"><time>MAR 04</time><span>DECISION</span></span>
+          <span class="v3-fragment-copy">Start with retrieval and reuse. Generation can wait.</span>
+          <span class="v3-fragment-state" aria-hidden="true">+</span>
+        </button><button class="v3-fragment v3-fragment-revision" type="button"
+        data-v3-fragment data-fragment-key="revision" aria-pressed="false">
+          <span class="v3-fragment-meta"><time>JUN 18</time><span>REVISION</span></span>
+          <span class="v3-fragment-copy">Something I sent is not automatically something I believe.</span>
+          <span class="v3-fragment-state" aria-hidden="true">+</span>
+        </button><button class="v3-fragment v3-fragment-boundary" type="button"
+        data-v3-fragment data-fragment-key="boundary" aria-pressed="true">
+          <span class="v3-fragment-meta"><time>SEP 12</time><span>BOUNDARY</span></span>
+          <span class="v3-fragment-copy">Keep source, my edits, and AI organization distinct.</span>
+          <span class="v3-fragment-state" aria-hidden="true">+</span>
+        </button><button class="v3-fragment v3-fragment-context" type="button"
+        data-v3-fragment data-fragment-key="context" aria-pressed="true">
+          <span class="v3-fragment-meta"><time>SEP 26</time><span>THIS TIME</span></span>
+          <span class="v3-fragment-copy">Bring forward only what this task actually needs.</span>
+          <span class="v3-fragment-state" aria-hidden="true">+</span>
+        </button>
+        <svg class="v3-traces" viewBox="0 0 760 520" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M105 95 C230 70 250 220 390 210 S560 120 690 165"/>
+          <path d="M120 315 C250 345 330 280 420 300 S545 395 670 335"/>
+          <path d="M270 420 C330 350 430 390 505 320 S585 240 690 250"/>
+        </svg>
+      </div>
+      <div class="v3-context-frame" aria-live="polite">
+        <div class="v3-context-frame-head">
+          <span>THIS TIME / CONTEXT</span>
+          <strong data-v3-count>3 / 5</strong>
+        </div>
+        <div class="v3-context-list" data-v3-list></div>
+        <p>Nothing has been sent to any AI. This is an in-page illustration only.</p>
+      </div>
+      <p class="v3-synthetic">SYNTHETIC TEXT · NO PRIVATE DATA · NO NETWORK CALL</p>
+    </div>
+  </section>
+
+  <section class="v3-continuity wrap" id="how">
+    <div class="v3-section-lead" data-reveal>
+      <p class="v3-kicker">01 / CONTINUITY</p>
+      <h2>A conversation is a moment.<br>Your thinking isn’t.</h2>
+      <p>PAIA does not compress your long-term expression into one permanently correct profile. It keeps time, source and revision distinct, so different moments of your thinking can coexist.</p>
+    </div>
+    <div class="v3-time-rail" aria-label="A timeline from expression to reuse">
+      <div class="v3-time-line" aria-hidden="true"></div>
+      <article class="v3-time-event" data-reveal>
+          <span class="v3-time-index">01</span><span class="v3-time-kicker">AN EXPRESSION</span>
+          <p>A question, a background, a judgment.</p>
+        </article><article class="v3-time-event" data-reveal>
+          <span class="v3-time-index">02</span><span class="v3-time-kicker">A REVISION</span>
+          <p>Today's working version does not rewrite yesterday.</p>
+        </article><article class="v3-time-event" data-reveal>
+          <span class="v3-time-index">03</span><span class="v3-time-kicker">A THREAD</span>
+          <p>See how one subject continues across conversations.</p>
+        </article><article class="v3-time-event" data-reveal>
+          <span class="v3-time-index">04</span><span class="v3-time-kicker">A NEW TASK</span>
+          <p>Choose for this task, rather than release the whole history.</p>
+        </article>
+    </div>
+  </section>
+
+  <section class="v3-selection">
+    <div class="wrap v3-selection-grid">
+      <div class="v3-selection-copy" data-reveal>
+        <p class="v3-kicker">02 / SELECTION</p>
+        <h2>Context is a choice.<br>Not a permanent profile.</h2>
+        <p>Retrieval can suggest relevant material, but it should not replace what you explicitly chose. Prepare context by selecting, reviewing and editing—then copy or export.</p>
+        <a class="v3-text-link" href="/demo.html">Try the exact flow with fictional data ↗</a>
+      </div>
+      <div class="v3-selection-composition" data-reveal>
+        <div class="v3-selection-cloud" aria-hidden="true">
+          <span class="faint">an old idea</span>
+          <span>a decision already made</span>
+          <span class="faint">a passing hypothesis</span>
+          <span>a constraint that still applies</span>
+          <span class="faint">a preference from three months ago</span>
+          <span>the question for this task</span>
+        </div>
+        <div class="v3-choice-boundary">
+          <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+          <p class="v3-choice-label">YOU CHOOSE THE BOUNDARY</p>
+          <strong>This time, three things are enough.</strong>
+          <ul>
+            <li>✓ confirmed product direction</li>
+            <li>✓ constraint that still applies</li>
+            <li>✓ question to answer now</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="v3-ownership wrap">
+    <div class="v3-section-lead" data-reveal>
+      <p class="v3-kicker">03 / OWNERSHIP</p>
+      <h2>Yours first.<br>Useful to AI second.</h2>
+    </div>
+    <div class="v3-boundary-map" data-reveal>
+      <div class="v3-boundary-cell"><span>01</span><strong>LOCAL</strong><p>Ordinary reading, editing, lexical search and context preparation stay local where possible.</p></div>
+      <div class="v3-boundary-arrow" aria-hidden="true">→</div>
+      <div class="v3-boundary-cell"><span>02</span><strong>SELECT</strong><p>Saved is not shared. Filtering, deletion, topic membership and AI permission are different actions.</p></div>
+      <div class="v3-boundary-arrow" aria-hidden="true">→</div>
+      <div class="v3-boundary-cell"><span>03</span><strong>PREVIEW</strong><p>See the exact material prepared for this task and revise it before release.</p></div>
+      <div class="v3-boundary-arrow" aria-hidden="true">→</div>
+      <div class="v3-boundary-cell"><span>04</span><strong>COPY / EXPORT</strong><p>Reuse today happens through copy or export. A real external-AI reader connector remains future direction.</p></div>
+    </div>
+    <div class="v3-ownership-note" data-reveal>
+      <p>Source facts, your working version and AI organization stay distinct. An edit you make today does not become something you supposedly said in the past.</p>
+      <a class="v3-text-link" href="/principles.html">Read the full data and permission boundaries ↗</a>
+    </div>
+  </section>
+
+  <section class="v3-scenarios wrap">
+    <div class="v3-section-lead" data-reveal>
+      <p class="v3-kicker">04 / REUSE</p>
+      <h2>Repeat less.<br>Begin further ahead.</h2>
+    </div>
+    <div class="v3-scenario-list"><article class="v3-scenario" data-reveal>
+          <span class="v3-scenario-number">01</span>
+          <div><p class="v3-scenario-label">LONG PROJECTS</p><h3>A new chat can still begin after the decisions you already made.</h3></div>
+          <p class="v3-scenario-carry">BRING FORWARD: BACKGROUND / DECISIONS / CONSTRAINTS</p>
+        </article><article class="v3-scenario" data-reveal>
+          <span class="v3-scenario-number">02</span>
+          <div><p class="v3-scenario-label">RESEARCH</p><h3>Recover earlier questions, hypotheses and revisions instead of researching your own past again.</h3></div>
+          <p class="v3-scenario-carry">BRING FORWARD: QUESTIONS / HYPOTHESES / REVISIONS</p>
+        </article><article class="v3-scenario" data-reveal>
+          <span class="v3-scenario-number">03</span>
+          <div><p class="v3-scenario-label">DECISIONS</p><h3>Past preferences remain visible, but the present you decides what still applies.</h3></div>
+          <p class="v3-scenario-carry">BRING FORWARD: CURRENT PREFERENCES / TRADE-OFFS / EXCEPTIONS</p>
+        </article></div>
+  </section>
+
+  <section class="v3-now">
+    <div class="wrap v3-now-grid">
+      <div data-reveal>
+        <p class="v3-kicker">CURRENT / PRIVATE BETA</p>
+        <h2>What exists now.<br>And what still doesn’t.</h2>
+      </div>
+      <div class="v3-now-copy" data-reveal>
+        <p>Today PAIA is a desktop Chrome extension built around ChatGPT Web. Capture, retrieval, editing, topics and manual context reuse are implemented; live-environment, signed-distribution and private official-export evidence still have gaps.</p>
+        <p class="v3-future">iOS, more sources, semantic retrieval and a direct external-AI connector are directions—not current release claims.</p>
+        <a class="v3-text-link" href="/status.html">See the current capability status ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="v3-final wrap" data-reveal>
+    <p class="v3-kicker">PAIA / PERSONAL CONTEXT</p>
+    <div>
+      <h2>Next time,<br>start from what you already built.</h2>
+      <div class="v3-actions">
+        <a class="button v3-primary" href="/beta.html">Get early access <span aria-hidden="true">→</span></a>
+        <a class="v3-text-link" href="/demo.html">Explore the demo first ↗</a>
+      </div>
+    </div>
+  </section>
+</section>
+</main><footer class="site-footer wrap"><div class="footer-top"><a class="wordmark" href="/">PAIA</a><p>Your personal AI information & context system.</p></div><div class="footer-bottom"><nav aria-label="Footer navigation"><a class="" href="/about.html">Why PAIA</a><a class="" href="/status.html">Status</a><a class="" href="/privacy-policy.html">Privacy</a><a class="" href="/terms.html">Terms</a><a href="mailto:haohongfei2001@gmail.com">Contact</a></nav><span>© 2026 PAIA · Private Beta</span></div></footer>
 </body>
 </html>

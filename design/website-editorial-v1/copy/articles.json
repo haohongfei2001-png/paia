@@ -1,0 +1,113 @@
+[
+  {
+    "id": "context",
+    "title": [
+      "A conversation is a moment.\nContext is a practice.",
+      "对话是一个时刻，\n语境是一种持续的工作。"
+    ],
+    "dek": [
+      "Why keeping your words is only the beginning.",
+      "为什么留下原话，只是开始。"
+    ],
+    "paras": [
+      [
+        "A useful conversation can still be difficult to return to. You remember that something became clearer, but not the exact wording, the constraint you added halfway through, or which of several windows held the decision. The conversation happened. The continuity did not arrive automatically.",
+        "一次有用的对话，仍然可能很难重新接上。你记得某件事变清楚了，却不记得准确的说法、中途补充的约束，或到底在哪个窗口做了决定。对话确实发生过，连贯却没有自动到来。"
+      ],
+      [
+        "That gap is where we place PAIA. Not in front of every conversation, asking you to prepare a perfect brief. Not above your words, deciding who you are. Beside them: a working place to find an earlier expression, see where it came from and decide whether it still belongs in the next step.",
+        "PAIA 想填补的，是这段空隙。它不在每次对话前要求你准备完美的简报，也不凌驾于你的表达之上，替你决定你是谁。它在原话旁边，提供一个工作空间：找回曾经的表达，看清来源，再决定它是否适合下一步。"
+      ],
+      [
+        "Keeping everything is not the same as using something well. A long archive may contain questions you no longer have, quotations you never agreed with, and plans that were deliberately abandoned. Bringing all of it into a new task can obscure the very context you were trying to recover.",
+        "保存一切，不等于善用某一部分。长期档案里可能有已经不再困扰你的问题、你从未认同的引文，以及被主动放弃的计划。把它们全部带进新任务，反而可能淹没你真正想找回的语境。"
+      ],
+      [
+        "Selection matters. So does the ability to revise. You may want the original record to remain intact while making today’s working explanation shorter and clearer. These are compatible needs when the source and the working version do not pretend to be the same thing.",
+        "选择很重要，修改的能力也同样重要。你可能希望原始记录保持完整，同时让今天的工作说明更短、更清楚。只要来源和工作版本不冒充彼此，这两种需要就并不矛盾。"
+      ],
+      [
+        "In this model, context is not a secret profile that a system accumulates about you. It is material you can inspect and deliberately bring to a particular question. The useful amount may be three sentences rather than three years. The relevant version may be the one you edited this morning.",
+        "在这样的理解里，上下文不是系统暗中积累的个人画像，而是你可以查看，并有意带到某个具体问题里的材料。真正有用的可能是三句话，而不是三年的记录；真正相关的可能是你今天早上修改过的版本。"
+      ],
+      [
+        "PAIA starts with expressions you already produce in AI conversations. Its ambition is continuity without a maintenance habit: less reconstruction, more room to continue. Capture, revisit, understand, reuse. Not a compulsory sequence, but a set of ways to make past thinking available when it becomes useful again.",
+        "PAIA 从你已经在 AI 对话中产生的表达开始。它希望带来不依赖维护习惯的连贯：少一点重建，多一点继续。留下、回看、理解、复用，不是一条必须走完的流程，而是在过去的思考再次有用时，让它可以被找到。"
+      ]
+    ]
+  },
+  {
+    "id": "beliefs",
+    "title": [
+      "Your words aren’t always\nyour beliefs.",
+      "你发送的文字，\n不总是你的信念。"
+    ],
+    "dek": [
+      "A careful archive needs more than a user label.",
+      "一份谨慎的档案，不能只看发送者标签。"
+    ],
+    "paras": [
+      [
+        "Imagine sending an AI a job description and asking whether the role is a good fit. The words are in your message. The employer’s requirements are not suddenly your ambitions. A system that preserves the message has recorded a fact. A system that turns every line into your preference has made a different, unsupported move.",
+        "设想你把岗位描述发给 AI，请它判断是否适合自己。那些文字出现在你的消息里，但雇主的要求不会因此变成你的志向。保存消息，记录的是一个事实；把每句话都转成你的偏好，则是另一个缺乏依据的动作。"
+      ],
+      [
+        "The same problem appears with quotations, counterarguments, role-play, translation and drafts written for someone else. Even a sentence you wrote entirely yourself may be a hypothesis, not a conclusion. Its meaning depends on the question you were exploring.",
+        "引文、反方论证、角色扮演、翻译和为别人写的草稿，都存在同样的问题。即使一句话完全由你自己写成，它也可能是假设，而不是结论。它的意义取决于当时正在探索的问题。"
+      ],
+      [
+        "This is why PAIA treats an original expression and an interpretation of that expression as different things. The source can tell you what was sent. A topic can help bring related material together. An AI-organized presentation may make it easier to read. None of these should silently become a new personal truth.",
+        "因此，PAIA 区分原始表达与对表达的解释。来源可以告诉你当时发了什么，主题可以帮助聚合相关材料，AI 整理后的呈现也许更方便阅读。但它们都不应悄悄成为新的个人真值。"
+      ],
+      [
+        "Good organization leaves room for uncertainty. It should allow you to inspect evidence, correct wording and exclude something without having to fight a confident story about yourself. A note that says “I am considering this” should not become “I have decided this.”",
+        "好的整理应该给不确定性留下位置。你应当能查看证据、修改文字、排除某条内容，而不必对抗一个信心十足的个人叙事。“我正在考虑”不应该被改写成“我已经决定”。"
+      ],
+      [
+        "This distinction becomes especially important when material is reused. Context for a new task needs relevance, but it also needs the right role for each passage. A quotation remains a quotation. An earlier plan can be identified as an earlier plan. A current preference can be selected because you have deliberately confirmed it.",
+        "当材料被再次使用时，这个区别尤其重要。新任务的上下文既需要相关性，也需要每段文字保持正确的角色。引用仍然是引用，旧计划可以被标明是旧计划，当前偏好则可以因为你明确确认而被选中。"
+      ],
+      [
+        "The aim is not to make your archive timid. It is to make it trustworthy enough to work with: useful structure, visible origins and the last word left with you.",
+        "目的不是让档案畏首畏尾，而是让它值得信任、可以继续使用：结构有用，来源可见，而最后的判断仍然属于你。"
+      ]
+    ]
+  },
+  {
+    "id": "edits",
+    "title": [
+      "Keep the original.\nKeep thinking.",
+      "保留原话，\n也继续思考。"
+    ],
+    "dek": [
+      "A record of the past does not have to freeze the present.",
+      "记录过去，并不意味着把现在凝固。"
+    ],
+    "paras": [
+      [
+        "You may recognize an old idea and immediately want to improve the wording. A sentence was too long. A constraint is no longer relevant. A rough question deserves a clearer shape. Making the archive useful means allowing this kind of work, not treating every saved word as untouchable.",
+        "你可能刚认出一个旧想法，就想改进它的表达：句子太长，某个约束已经不再适用，粗略的问题值得写得更清楚。让档案有用，就要允许这样的工作，而不是把每个保存下来的字都视为不可触碰。"
+      ],
+      [
+        "At the same time, the past should not be silently rewritten. If you compare how your thinking changed, today’s polished version cannot stand in for what you actually wrote last month. A working archive has to meet both needs.",
+        "与此同时，过去不应该被悄悄改写。在比较思考如何变化时，今天润色过的版本不能冒充上个月真正写下的内容。一份工作档案，必须同时满足这两种需要。"
+      ],
+      [
+        "PAIA distinguishes the original source from the editable working version. The source provides a way back to what happened. The working version gives you a place to make the material readable and useful now. Neither needs to pretend to be the other.",
+        "PAIA 区分原始来源和可编辑的工作版本。来源提供回到当时事实的路径，工作版本则让你把材料整理成现在可读、可用的样子。它们无需冒充彼此。"
+      ],
+      [
+        "Optional AI assistance adds another layer, not another owner. A clearer presentation can be helpful, but it must remain distinguishable from source material and human edits. An automatic update should not quietly discard the work you have already done.",
+        "可选的 AI 辅助增加的是一个层次，而不是另一个主人。更清晰的呈现可能有帮助，但它必须区别于来源材料和人工修改。自动更新不应该悄悄丢掉你已经完成的工作。"
+      ],
+      [
+        "When it is time to reuse something, the useful version depends on the task. You may need the original quotation, a current working summary or a few selected passages. Previewing the material is part of the choice, not an obstacle to getting it out of the archive.",
+        "到了复用的时候，哪个版本有用，取决于具体任务。你可能需要原始引文、当前的工作总结，或几段选中的材料。预览内容是选择的一部分，而不是把它从档案取出的障碍。"
+      ],
+      [
+        "Continuity does not mean never changing your mind. It means having a readable relationship between what you said then, what you think now and what you choose to do next.",
+        "连贯，不意味着永远不改变主意。它意味着：当时说过的话、此刻的想法、以及下一步的选择之间，存在一条可以看懂的联系。"
+      ]
+    ]
+  }
+]

@@ -20,3 +20,13 @@ sitemap.xml
 status.html
 terms.html
 thanks.html
+zh/404.html
+zh/about.html
+zh/beta.html
+zh/demo.html
+zh/index.html
+zh/principles.html
+zh/privacy-policy.html
+zh/status.html
+zh/terms.html
+zh/thanks.html

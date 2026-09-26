@@ -1,0 +1,812 @@
+[
+  {
+    "frame": "home-en-1440",
+    "width": 1440,
+    "height": 6500,
+    "locale": "en",
+    "svg": "artboards/home-en-1440.svg",
+    "preview": "previews/home-en-1440.png",
+    "node_count": 233
+  },
+  {
+    "frame": "how-it-works-en-1440",
+    "width": 1440,
+    "height": 3462,
+    "locale": "en",
+    "svg": "artboards/how-it-works-en-1440.svg",
+    "preview": "previews/how-it-works-en-1440.png",
+    "node_count": 63
+  },
+  {
+    "frame": "use-cases-en-1440",
+    "width": 1440,
+    "height": 2900,
+    "locale": "en",
+    "svg": "artboards/use-cases-en-1440.svg",
+    "preview": "previews/use-cases-en-1440.png",
+    "node_count": 58
+  },
+  {
+    "frame": "case-projects-en-1440",
+    "width": 1440,
+    "height": 2674,
+    "locale": "en",
+    "svg": "artboards/case-projects-en-1440.svg",
+    "preview": "previews/case-projects-en-1440.png",
+    "node_count": 55
+  },
+  {
+    "frame": "case-career-en-1440",
+    "width": 1440,
+    "height": 2674,
+    "locale": "en",
+    "svg": "artboards/case-career-en-1440.svg",
+    "preview": "previews/case-career-en-1440.png",
+    "node_count": 55
+  },
+  {
+    "frame": "case-research-en-1440",
+    "width": 1440,
+    "height": 2674,
+    "locale": "en",
+    "svg": "artboards/case-research-en-1440.svg",
+    "preview": "previews/case-research-en-1440.png",
+    "node_count": 55
+  },
+  {
+    "frame": "our-story-en-1440",
+    "width": 1440,
+    "height": 2959,
+    "locale": "en",
+    "svg": "artboards/our-story-en-1440.svg",
+    "preview": "previews/our-story-en-1440.png",
+    "node_count": 58
+  },
+  {
+    "frame": "journal-en-1440",
+    "width": 1440,
+    "height": 2485,
+    "locale": "en",
+    "svg": "artboards/journal-en-1440.svg",
+    "preview": "previews/journal-en-1440.png",
+    "node_count": 54
+  },
+  {
+    "frame": "article-context-en-1440",
+    "width": 1440,
+    "height": 2945,
+    "locale": "en",
+    "svg": "artboards/article-context-en-1440.svg",
+    "preview": "previews/article-context-en-1440.png",
+    "node_count": 53
+  },
+  {
+    "frame": "article-beliefs-en-1440",
+    "width": 1440,
+    "height": 2945,
+    "locale": "en",
+    "svg": "artboards/article-beliefs-en-1440.svg",
+    "preview": "previews/article-beliefs-en-1440.png",
+    "node_count": 53
+  },
+  {
+    "frame": "article-edits-en-1440",
+    "width": 1440,
+    "height": 2881,
+    "locale": "en",
+    "svg": "artboards/article-edits-en-1440.svg",
+    "preview": "previews/article-edits-en-1440.png",
+    "node_count": 53
+  },
+  {
+    "frame": "your-data-en-1440",
+    "width": 1440,
+    "height": 3459,
+    "locale": "en",
+    "svg": "artboards/your-data-en-1440.svg",
+    "preview": "previews/your-data-en-1440.png",
+    "node_count": 62
+  },
+  {
+    "frame": "faq-en-1440",
+    "width": 1440,
+    "height": 3342.9000000000005,
+    "locale": "en",
+    "svg": "artboards/faq-en-1440.svg",
+    "preview": "previews/faq-en-1440.png",
+    "node_count": 78
+  },
+  {
+    "frame": "beta-en-1440",
+    "width": 1440,
+    "height": 1530,
+    "locale": "en",
+    "svg": "artboards/beta-en-1440.svg",
+    "preview": "previews/beta-en-1440.png",
+    "node_count": 58
+  },
+  {
+    "frame": "status-en-1440",
+    "width": 1440,
+    "height": 2292,
+    "locale": "en",
+    "svg": "artboards/status-en-1440.svg",
+    "preview": "previews/status-en-1440.png",
+    "node_count": 64
+  },
+  {
+    "frame": "example-en-1440",
+    "width": 1440,
+    "height": 2316,
+    "locale": "en",
+    "svg": "artboards/example-en-1440.svg",
+    "preview": "previews/example-en-1440.png",
+    "node_count": 71
+  },
+  {
+    "frame": "credits-en-1440",
+    "width": 1440,
+    "height": 2242,
+    "locale": "en",
+    "svg": "artboards/credits-en-1440.svg",
+    "preview": "previews/credits-en-1440.png",
+    "node_count": 50
+  },
+  {
+    "frame": "privacy-policy-en-1440",
+    "width": 1440,
+    "height": 2304,
+    "locale": "en",
+    "svg": "artboards/privacy-policy-en-1440.svg",
+    "preview": "previews/privacy-policy-en-1440.png",
+    "node_count": 56
+  },
+  {
+    "frame": "terms-en-1440",
+    "width": 1440,
+    "height": 2141,
+    "locale": "en",
+    "svg": "artboards/terms-en-1440.svg",
+    "preview": "previews/terms-en-1440.png",
+    "node_count": 55
+  },
+  {
+    "frame": "thanks-en-1440",
+    "width": 1440,
+    "height": 1170,
+    "locale": "en",
+    "svg": "artboards/thanks-en-1440.svg",
+    "preview": "previews/thanks-en-1440.png",
+    "node_count": 40
+  },
+  {
+    "frame": "404-en-1440",
+    "width": 1440,
+    "height": 1170,
+    "locale": "en",
+    "svg": "artboards/404-en-1440.svg",
+    "preview": "previews/404-en-1440.png",
+    "node_count": 40
+  },
+  {
+    "frame": "interaction-states-en-1440",
+    "width": 1440,
+    "height": 3030,
+    "locale": "en",
+    "svg": "artboards/interaction-states-en-1440.svg",
+    "preview": "previews/interaction-states-en-1440.png",
+    "node_count": 39
+  },
+  {
+    "frame": "home-en-390",
+    "width": 390,
+    "height": 8280,
+    "locale": "en",
+    "svg": "artboards/home-en-390.svg",
+    "preview": "previews/home-en-390.png",
+    "node_count": 150
+  },
+  {
+    "frame": "how-it-works-en-390",
+    "width": 390,
+    "height": 3772.4,
+    "locale": "en",
+    "svg": "artboards/how-it-works-en-390.svg",
+    "preview": "previews/how-it-works-en-390.png",
+    "node_count": 51
+  },
+  {
+    "frame": "use-cases-en-390",
+    "width": 390,
+    "height": 3146.2,
+    "locale": "en",
+    "svg": "artboards/use-cases-en-390.svg",
+    "preview": "previews/use-cases-en-390.png",
+    "node_count": 47
+  },
+  {
+    "frame": "case-projects-en-390",
+    "width": 390,
+    "height": 2813.8,
+    "locale": "en",
+    "svg": "artboards/case-projects-en-390.svg",
+    "preview": "previews/case-projects-en-390.png",
+    "node_count": 45
+  },
+  {
+    "frame": "case-career-en-390",
+    "width": 390,
+    "height": 2837.0,
+    "locale": "en",
+    "svg": "artboards/case-career-en-390.svg",
+    "preview": "previews/case-career-en-390.png",
+    "node_count": 45
+  },
+  {
+    "frame": "case-research-en-390",
+    "width": 390,
+    "height": 2958.2,
+    "locale": "en",
+    "svg": "artboards/case-research-en-390.svg",
+    "preview": "previews/case-research-en-390.png",
+    "node_count": 45
+  },
+  {
+    "frame": "our-story-en-390",
+    "width": 390,
+    "height": 3331.8,
+    "locale": "en",
+    "svg": "artboards/our-story-en-390.svg",
+    "preview": "previews/our-story-en-390.png",
+    "node_count": 47
+  },
+  {
+    "frame": "journal-en-390",
+    "width": 390,
+    "height": 3106,
+    "locale": "en",
+    "svg": "artboards/journal-en-390.svg",
+    "preview": "previews/journal-en-390.png",
+    "node_count": 47
+  },
+  {
+    "frame": "article-context-en-390",
+    "width": 390,
+    "height": 3798,
+    "locale": "en",
+    "svg": "artboards/article-context-en-390.svg",
+    "preview": "previews/article-context-en-390.png",
+    "node_count": 46
+  },
+  {
+    "frame": "article-beliefs-en-390",
+    "width": 390,
+    "height": 3721,
+    "locale": "en",
+    "svg": "artboards/article-beliefs-en-390.svg",
+    "preview": "previews/article-beliefs-en-390.png",
+    "node_count": 46
+  },
+  {
+    "frame": "article-edits-en-390",
+    "width": 390,
+    "height": 3499,
+    "locale": "en",
+    "svg": "artboards/article-edits-en-390.svg",
+    "preview": "previews/article-edits-en-390.png",
+    "node_count": 46
+  },
+  {
+    "frame": "your-data-en-390",
+    "width": 390,
+    "height": 3803.7999999999997,
+    "locale": "en",
+    "svg": "artboards/your-data-en-390.svg",
+    "preview": "previews/your-data-en-390.png",
+    "node_count": 51
+  },
+  {
+    "frame": "faq-en-390",
+    "width": 390,
+    "height": 4005.15,
+    "locale": "en",
+    "svg": "artboards/faq-en-390.svg",
+    "preview": "previews/faq-en-390.png",
+    "node_count": 66
+  },
+  {
+    "frame": "beta-en-390",
+    "width": 390,
+    "height": 2125,
+    "locale": "en",
+    "svg": "artboards/beta-en-390.svg",
+    "preview": "previews/beta-en-390.png",
+    "node_count": 46
+  },
+  {
+    "frame": "status-en-390",
+    "width": 390,
+    "height": 2691.5199999999995,
+    "locale": "en",
+    "svg": "artboards/status-en-390.svg",
+    "preview": "previews/status-en-390.png",
+    "node_count": 57
+  },
+  {
+    "frame": "example-en-390",
+    "width": 390,
+    "height": 2652.4,
+    "locale": "en",
+    "svg": "artboards/example-en-390.svg",
+    "preview": "previews/example-en-390.png",
+    "node_count": 63
+  },
+  {
+    "frame": "credits-en-390",
+    "width": 390,
+    "height": 2587.4,
+    "locale": "en",
+    "svg": "artboards/credits-en-390.svg",
+    "preview": "previews/credits-en-390.png",
+    "node_count": 43
+  },
+  {
+    "frame": "privacy-policy-en-390",
+    "width": 390,
+    "height": 3303,
+    "locale": "en",
+    "svg": "artboards/privacy-policy-en-390.svg",
+    "preview": "previews/privacy-policy-en-390.png",
+    "node_count": 48
+  },
+  {
+    "frame": "terms-en-390",
+    "width": 390,
+    "height": 2870,
+    "locale": "en",
+    "svg": "artboards/terms-en-390.svg",
+    "preview": "previews/terms-en-390.png",
+    "node_count": 47
+  },
+  {
+    "frame": "thanks-en-390",
+    "width": 390,
+    "height": 1560,
+    "locale": "en",
+    "svg": "artboards/thanks-en-390.svg",
+    "preview": "previews/thanks-en-390.png",
+    "node_count": 33
+  },
+  {
+    "frame": "404-en-390",
+    "width": 390,
+    "height": 1560,
+    "locale": "en",
+    "svg": "artboards/404-en-390.svg",
+    "preview": "previews/404-en-390.png",
+    "node_count": 33
+  },
+  {
+    "frame": "interaction-states-en-390",
+    "width": 390,
+    "height": 3430,
+    "locale": "en",
+    "svg": "artboards/interaction-states-en-390.svg",
+    "preview": "previews/interaction-states-en-390.png",
+    "node_count": 39
+  },
+  {
+    "frame": "social-en-1200x630",
+    "width": 1200,
+    "height": 630,
+    "locale": "en",
+    "svg": "artboards/social-en-1200x630.svg",
+    "preview": "previews/social-en-1200x630.png",
+    "node_count": 7
+  },
+  {
+    "frame": "home-zh-1440",
+    "width": 1440,
+    "height": 6500,
+    "locale": "zh",
+    "svg": "artboards/home-zh-1440.svg",
+    "preview": "previews/home-zh-1440.png",
+    "node_count": 233
+  },
+  {
+    "frame": "how-it-works-zh-1440",
+    "width": 1440,
+    "height": 3462,
+    "locale": "zh",
+    "svg": "artboards/how-it-works-zh-1440.svg",
+    "preview": "previews/how-it-works-zh-1440.png",
+    "node_count": 63
+  },
+  {
+    "frame": "use-cases-zh-1440",
+    "width": 1440,
+    "height": 2900,
+    "locale": "zh",
+    "svg": "artboards/use-cases-zh-1440.svg",
+    "preview": "previews/use-cases-zh-1440.png",
+    "node_count": 58
+  },
+  {
+    "frame": "case-projects-zh-1440",
+    "width": 1440,
+    "height": 2674,
+    "locale": "zh",
+    "svg": "artboards/case-projects-zh-1440.svg",
+    "preview": "previews/case-projects-zh-1440.png",
+    "node_count": 55
+  },
+  {
+    "frame": "case-career-zh-1440",
+    "width": 1440,
+    "height": 2674,
+    "locale": "zh",
+    "svg": "artboards/case-career-zh-1440.svg",
+    "preview": "previews/case-career-zh-1440.png",
+    "node_count": 55
+  },
+  {
+    "frame": "case-research-zh-1440",
+    "width": 1440,
+    "height": 2674,
+    "locale": "zh",
+    "svg": "artboards/case-research-zh-1440.svg",
+    "preview": "previews/case-research-zh-1440.png",
+    "node_count": 55
+  },
+  {
+    "frame": "our-story-zh-1440",
+    "width": 1440,
+    "height": 2959,
+    "locale": "zh",
+    "svg": "artboards/our-story-zh-1440.svg",
+    "preview": "previews/our-story-zh-1440.png",
+    "node_count": 58
+  },
+  {
+    "frame": "journal-zh-1440",
+    "width": 1440,
+    "height": 2485,
+    "locale": "zh",
+    "svg": "artboards/journal-zh-1440.svg",
+    "preview": "previews/journal-zh-1440.png",
+    "node_count": 54
+  },
+  {
+    "frame": "article-context-zh-1440",
+    "width": 1440,
+    "height": 2721,
+    "locale": "zh",
+    "svg": "artboards/article-context-zh-1440.svg",
+    "preview": "previews/article-context-zh-1440.png",
+    "node_count": 53
+  },
+  {
+    "frame": "article-beliefs-zh-1440",
+    "width": 1440,
+    "height": 2689,
+    "locale": "zh",
+    "svg": "artboards/article-beliefs-zh-1440.svg",
+    "preview": "previews/article-beliefs-zh-1440.png",
+    "node_count": 53
+  },
+  {
+    "frame": "article-edits-zh-1440",
+    "width": 1440,
+    "height": 2625,
+    "locale": "zh",
+    "svg": "artboards/article-edits-zh-1440.svg",
+    "preview": "previews/article-edits-zh-1440.png",
+    "node_count": 53
+  },
+  {
+    "frame": "your-data-zh-1440",
+    "width": 1440,
+    "height": 3459,
+    "locale": "zh",
+    "svg": "artboards/your-data-zh-1440.svg",
+    "preview": "previews/your-data-zh-1440.png",
+    "node_count": 62
+  },
+  {
+    "frame": "faq-zh-1440",
+    "width": 1440,
+    "height": 3234.9500000000003,
+    "locale": "zh",
+    "svg": "artboards/faq-zh-1440.svg",
+    "preview": "previews/faq-zh-1440.png",
+    "node_count": 78
+  },
+  {
+    "frame": "beta-zh-1440",
+    "width": 1440,
+    "height": 1530,
+    "locale": "zh",
+    "svg": "artboards/beta-zh-1440.svg",
+    "preview": "previews/beta-zh-1440.png",
+    "node_count": 58
+  },
+  {
+    "frame": "status-zh-1440",
+    "width": 1440,
+    "height": 2292,
+    "locale": "zh",
+    "svg": "artboards/status-zh-1440.svg",
+    "preview": "previews/status-zh-1440.png",
+    "node_count": 64
+  },
+  {
+    "frame": "example-zh-1440",
+    "width": 1440,
+    "height": 2316,
+    "locale": "zh",
+    "svg": "artboards/example-zh-1440.svg",
+    "preview": "previews/example-zh-1440.png",
+    "node_count": 71
+  },
+  {
+    "frame": "credits-zh-1440",
+    "width": 1440,
+    "height": 2242,
+    "locale": "zh",
+    "svg": "artboards/credits-zh-1440.svg",
+    "preview": "previews/credits-zh-1440.png",
+    "node_count": 50
+  },
+  {
+    "frame": "privacy-policy-zh-1440",
+    "width": 1440,
+    "height": 2169,
+    "locale": "zh",
+    "svg": "artboards/privacy-policy-zh-1440.svg",
+    "preview": "previews/privacy-policy-zh-1440.png",
+    "node_count": 56
+  },
+  {
+    "frame": "terms-zh-1440",
+    "width": 1440,
+    "height": 1978,
+    "locale": "zh",
+    "svg": "artboards/terms-zh-1440.svg",
+    "preview": "previews/terms-zh-1440.png",
+    "node_count": 54
+  },
+  {
+    "frame": "thanks-zh-1440",
+    "width": 1440,
+    "height": 1170,
+    "locale": "zh",
+    "svg": "artboards/thanks-zh-1440.svg",
+    "preview": "previews/thanks-zh-1440.png",
+    "node_count": 40
+  },
+  {
+    "frame": "404-zh-1440",
+    "width": 1440,
+    "height": 1170,
+    "locale": "zh",
+    "svg": "artboards/404-zh-1440.svg",
+    "preview": "previews/404-zh-1440.png",
+    "node_count": 40
+  },
+  {
+    "frame": "interaction-states-zh-1440",
+    "width": 1440,
+    "height": 3030,
+    "locale": "zh",
+    "svg": "artboards/interaction-states-zh-1440.svg",
+    "preview": "previews/interaction-states-zh-1440.png",
+    "node_count": 39
+  },
+  {
+    "frame": "home-zh-390",
+    "width": 390,
+    "height": 8280,
+    "locale": "zh",
+    "svg": "artboards/home-zh-390.svg",
+    "preview": "previews/home-zh-390.png",
+    "node_count": 150
+  },
+  {
+    "frame": "how-it-works-zh-390",
+    "width": 390,
+    "height": 3680.6,
+    "locale": "zh",
+    "svg": "artboards/how-it-works-zh-390.svg",
+    "preview": "previews/how-it-works-zh-390.png",
+    "node_count": 51
+  },
+  {
+    "frame": "use-cases-zh-390",
+    "width": 390,
+    "height": 3075.7999999999997,
+    "locale": "zh",
+    "svg": "artboards/use-cases-zh-390.svg",
+    "preview": "previews/use-cases-zh-390.png",
+    "node_count": 47
+  },
+  {
+    "frame": "case-projects-zh-390",
+    "width": 390,
+    "height": 2854.3999999999996,
+    "locale": "zh",
+    "svg": "artboards/case-projects-zh-390.svg",
+    "preview": "previews/case-projects-zh-390.png",
+    "node_count": 45
+  },
+  {
+    "frame": "case-career-zh-390",
+    "width": 390,
+    "height": 2880.8,
+    "locale": "zh",
+    "svg": "artboards/case-career-zh-390.svg",
+    "preview": "previews/case-career-zh-390.png",
+    "node_count": 45
+  },
+  {
+    "frame": "case-research-zh-390",
+    "width": 390,
+    "height": 2880.8,
+    "locale": "zh",
+    "svg": "artboards/case-research-zh-390.svg",
+    "preview": "previews/case-research-zh-390.png",
+    "node_count": 45
+  },
+  {
+    "frame": "our-story-zh-390",
+    "width": 390,
+    "height": 3256.8,
+    "locale": "zh",
+    "svg": "artboards/our-story-zh-390.svg",
+    "preview": "previews/our-story-zh-390.png",
+    "node_count": 47
+  },
+  {
+    "frame": "journal-zh-390",
+    "width": 390,
+    "height": 3106,
+    "locale": "zh",
+    "svg": "artboards/journal-zh-390.svg",
+    "preview": "previews/journal-zh-390.png",
+    "node_count": 47
+  },
+  {
+    "frame": "article-context-zh-390",
+    "width": 390,
+    "height": 3233,
+    "locale": "zh",
+    "svg": "artboards/article-context-zh-390.svg",
+    "preview": "previews/article-context-zh-390.png",
+    "node_count": 46
+  },
+  {
+    "frame": "article-beliefs-zh-390",
+    "width": 390,
+    "height": 3127,
+    "locale": "zh",
+    "svg": "artboards/article-beliefs-zh-390.svg",
+    "preview": "previews/article-beliefs-zh-390.png",
+    "node_count": 46
+  },
+  {
+    "frame": "article-edits-zh-390",
+    "width": 390,
+    "height": 2992,
+    "locale": "zh",
+    "svg": "artboards/article-edits-zh-390.svg",
+    "preview": "previews/article-edits-zh-390.png",
+    "node_count": 46
+  },
+  {
+    "frame": "your-data-zh-390",
+    "width": 390,
+    "height": 3732.6,
+    "locale": "zh",
+    "svg": "artboards/your-data-zh-390.svg",
+    "preview": "previews/your-data-zh-390.png",
+    "node_count": 51
+  },
+  {
+    "frame": "faq-zh-390",
+    "width": 390,
+    "height": 3746.05,
+    "locale": "zh",
+    "svg": "artboards/faq-zh-390.svg",
+    "preview": "previews/faq-zh-390.png",
+    "node_count": 66
+  },
+  {
+    "frame": "beta-zh-390",
+    "width": 390,
+    "height": 2125,
+    "locale": "zh",
+    "svg": "artboards/beta-zh-390.svg",
+    "preview": "previews/beta-zh-390.png",
+    "node_count": 46
+  },
+  {
+    "frame": "status-zh-390",
+    "width": 390,
+    "height": 2695.08,
+    "locale": "zh",
+    "svg": "artboards/status-zh-390.svg",
+    "preview": "previews/status-zh-390.png",
+    "node_count": 57
+  },
+  {
+    "frame": "example-zh-390",
+    "width": 390,
+    "height": 2658.8,
+    "locale": "zh",
+    "svg": "artboards/example-zh-390.svg",
+    "preview": "previews/example-zh-390.png",
+    "node_count": 63
+  },
+  {
+    "frame": "credits-zh-390",
+    "width": 390,
+    "height": 2642.8,
+    "locale": "zh",
+    "svg": "artboards/credits-zh-390.svg",
+    "preview": "previews/credits-zh-390.png",
+    "node_count": 43
+  },
+  {
+    "frame": "privacy-policy-zh-390",
+    "width": 390,
+    "height": 2844,
+    "locale": "zh",
+    "svg": "artboards/privacy-policy-zh-390.svg",
+    "preview": "previews/privacy-policy-zh-390.png",
+    "node_count": 48
+  },
+  {
+    "frame": "terms-zh-390",
+    "width": 390,
+    "height": 2518,
+    "locale": "zh",
+    "svg": "artboards/terms-zh-390.svg",
+    "preview": "previews/terms-zh-390.png",
+    "node_count": 46
+  },
+  {
+    "frame": "thanks-zh-390",
+    "width": 390,
+    "height": 1560,
+    "locale": "zh",
+    "svg": "artboards/thanks-zh-390.svg",
+    "preview": "previews/thanks-zh-390.png",
+    "node_count": 33
+  },
+  {
+    "frame": "404-zh-390",
+    "width": 390,
+    "height": 1560,
+    "locale": "zh",
+    "svg": "artboards/404-zh-390.svg",
+    "preview": "previews/404-zh-390.png",
+    "node_count": 33
+  },
+  {
+    "frame": "interaction-states-zh-390",
+    "width": 390,
+    "height": 3430,
+    "locale": "zh",
+    "svg": "artboards/interaction-states-zh-390.svg",
+    "preview": "previews/interaction-states-zh-390.png",
+    "node_count": 39
+  },
+  {
+    "frame": "social-zh-1200x630",
+    "width": 1200,
+    "height": 630,
+    "locale": "zh",
+    "svg": "artboards/social-zh-1200x630.svg",
+    "preview": "previews/social-zh-1200x630.png",
+    "node_count": 7
+  }
+]

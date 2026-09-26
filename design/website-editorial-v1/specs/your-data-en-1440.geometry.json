@@ -1,0 +1,1153 @@
+{
+  "frame": "your-data-en-1440",
+  "width": 1440,
+  "height": 3459,
+  "units": "CSS px",
+  "locale": "en",
+  "nodes": [
+    {
+      "id": "your-data-en-1440.001",
+      "kind": "rect",
+      "paint_order": 1,
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 3459,
+      "fill": "#fdfdfb",
+      "stroke": null,
+      "radius": 0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "background"
+    },
+    {
+      "id": "your-data-en-1440.002",
+      "kind": "text",
+      "paint_order": 2,
+      "x": 76,
+      "y": 20,
+      "width": null,
+      "font_family": "EB Garamond 12",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.003",
+      "kind": "line",
+      "paint_order": 3,
+      "x1": 181,
+      "y1": 25,
+      "x2": 181,
+      "y2": 57,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "your-data-en-1440.004",
+      "kind": "text",
+      "paint_order": 4,
+      "x": 197,
+      "y": 29,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 17,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "Your AI context,",
+        "for what’s next."
+      ],
+      "copy_id": "copy-01ecc9c5d5f7",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.005",
+      "kind": "text",
+      "paint_order": 5,
+      "x": 475,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Home"
+      ],
+      "copy_id": "copy-3a78695388b3",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.006",
+      "kind": "text",
+      "paint_order": 6,
+      "x": 553,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "How it works"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.007",
+      "kind": "text",
+      "paint_order": 7,
+      "x": 687,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Use cases"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.008",
+      "kind": "text",
+      "paint_order": 8,
+      "x": 799,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Our story"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.009",
+      "kind": "text",
+      "paint_order": 9,
+      "x": 909,
+      "y": 34,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Journal"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.010",
+      "kind": "rect",
+      "paint_order": 10,
+      "x": 1192,
+      "y": 18,
+      "width": 176,
+      "height": 42,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 21.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "your-data-en-1440.011",
+      "kind": "text",
+      "paint_order": 11,
+      "x": 1216,
+      "y": 32.5,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 13,
+      "font_style": "normal",
+      "line_height": 18.849999999999998,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.012",
+      "kind": "connector",
+      "paint_order": 12,
+      "path": "M1329 39.0h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "your-data-en-1440.013",
+      "kind": "text",
+      "paint_order": 13,
+      "x": 76,
+      "y": 148,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "YOUR WORDS / YOUR CONTROL"
+      ],
+      "copy_id": "copy-26039a13dab8",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.014",
+      "kind": "text",
+      "paint_order": 14,
+      "x": 76,
+      "y": 214,
+      "width": 714,
+      "font_family": "EB Garamond 12",
+      "font_size": 67,
+      "font_style": "normal",
+      "line_height": 70,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Yours, before",
+        "anything else."
+      ],
+      "copy_id": "copy-a123a6ed1565",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.015",
+      "kind": "text",
+      "paint_order": 15,
+      "x": 76,
+      "y": 384,
+      "width": 532,
+      "font_family": "Inter",
+      "font_size": 19,
+      "font_style": "normal",
+      "line_height": 27.55,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Useful context starts with a source you can inspect and a",
+        "choice you can understand."
+      ],
+      "copy_id": "copy-dcd2222eb001",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.016",
+      "kind": "photograph",
+      "paint_order": 16,
+      "asset": "light",
+      "x": 1032,
+      "y": 150,
+      "width": 258,
+      "height": 355,
+      "rotation": -3,
+      "crop_xywh": [
+        23.24,
+        0.0,
+        1453.52,
+        2000.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": true
+    },
+    {
+      "id": "your-data-en-1440.017",
+      "kind": "text",
+      "paint_order": 17,
+      "x": 946,
+      "y": 536,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "A LONGER",
+        "TOMORROW."
+      ],
+      "copy_id": "copy-4a65917b1b8c",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.018",
+      "kind": "text",
+      "paint_order": 18,
+      "x": 76,
+      "y": 739,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "01 / A PRACTICAL BOUNDARY"
+      ],
+      "copy_id": "copy-0c77ba66bce1",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.019",
+      "kind": "text",
+      "paint_order": 19,
+      "x": 76,
+      "y": 784,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "The original is not",
+        "a working draft."
+      ],
+      "copy_id": "copy-3aaf79bcc766",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.020",
+      "kind": "text",
+      "paint_order": 20,
+      "x": 76,
+      "y": 918,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Original records, working edits and AI-produced",
+        "presentations have distinct roles. Editing the working text",
+        "does not make the new wording a historical original."
+      ],
+      "copy_id": "copy-9b8da5cef9f5",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.021",
+      "kind": "photograph",
+      "paint_order": 21,
+      "asset": "architecture",
+      "x": 860,
+      "y": 721,
+      "width": 353,
+      "height": 401,
+      "rotation": -2,
+      "crop_xywh": [
+        330.36,
+        0.0,
+        939.28,
+        1067.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "your-data-en-1440.022",
+      "kind": "connector",
+      "paint_order": 22,
+      "path": "M892 1151C1050 1195 1139 1118 1194 1186",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "your-data-en-1440.023",
+      "kind": "text",
+      "paint_order": 23,
+      "x": 788,
+      "y": 1271,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "02 / A PRACTICAL BOUNDARY"
+      ],
+      "copy_id": "copy-c81bf58047c4",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.024",
+      "kind": "text",
+      "paint_order": 24,
+      "x": 788,
+      "y": 1316,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Saving is not",
+        "sending."
+      ],
+      "copy_id": "copy-a3b0566c4f04",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.025",
+      "kind": "text",
+      "paint_order": 25,
+      "x": 788,
+      "y": 1450,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Capture, optional AI processing and reuse are separate",
+        "choices. The whole archive is not sent to a model simply",
+        "because it exists."
+      ],
+      "copy_id": "copy-42e9138bc1a7",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.026",
+      "kind": "photograph",
+      "paint_order": 26,
+      "asset": "coast",
+      "x": 120,
+      "y": 1253,
+      "width": 353,
+      "height": 401,
+      "rotation": 2,
+      "crop_xywh": [
+        271.82,
+        0.0,
+        1056.36,
+        1200.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "your-data-en-1440.027",
+      "kind": "connector",
+      "paint_order": 27,
+      "path": "M152 1683C310 1727 399 1650 454 1718",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "your-data-en-1440.028",
+      "kind": "text",
+      "paint_order": 28,
+      "x": 76,
+      "y": 1803,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "03 / A PRACTICAL BOUNDARY"
+      ],
+      "copy_id": "copy-5b97281b0a66",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.029",
+      "kind": "text",
+      "paint_order": 29,
+      "x": 76,
+      "y": 1848,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Local-first.",
+        "Not a magic shield."
+      ],
+      "copy_id": "copy-af2a0681c843",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.030",
+      "kind": "text",
+      "paint_order": 30,
+      "x": 76,
+      "y": 1982,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Local storage does not replace your device security or your",
+        "own backup decisions. The website, the beta form and",
+        "optional AI calls each have stated network boundaries."
+      ],
+      "copy_id": "copy-116b69dd60b5",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.031",
+      "kind": "photograph",
+      "paint_order": 31,
+      "asset": "light",
+      "x": 860,
+      "y": 1785,
+      "width": 353,
+      "height": 401,
+      "rotation": -2,
+      "crop_xywh": [
+        0.0,
+        148.02,
+        1500.0,
+        1703.97
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "your-data-en-1440.032",
+      "kind": "connector",
+      "paint_order": 32,
+      "path": "M892 2215C1050 2259 1139 2182 1194 2250",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "your-data-en-1440.033",
+      "kind": "text",
+      "paint_order": 33,
+      "x": 788,
+      "y": 2335,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "04 / A PRACTICAL BOUNDARY"
+      ],
+      "copy_id": "copy-6dab6858ee22",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.034",
+      "kind": "text",
+      "paint_order": 34,
+      "x": 788,
+      "y": 2380,
+      "width": 556,
+      "font_family": "EB Garamond 12",
+      "font_size": 47,
+      "font_style": "normal",
+      "line_height": 52,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "A clear way out."
+      ],
+      "copy_id": "copy-f805394fd397",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.035",
+      "kind": "text",
+      "paint_order": 35,
+      "x": 788,
+      "y": 2462,
+      "width": 492,
+      "font_family": "Inter",
+      "font_size": 17,
+      "font_style": "normal",
+      "line_height": 24.65,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Review the material before you copy or export it. PAIA",
+        "cannot recall external copies. Data deletion, reading visibility",
+        "and AI authorization are different actions, not",
+        "interchangeable toggles."
+      ],
+      "copy_id": "copy-96669253a9bd",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.036",
+      "kind": "photograph",
+      "paint_order": 36,
+      "asset": "architecture",
+      "x": 120,
+      "y": 2317,
+      "width": 353,
+      "height": 401,
+      "rotation": 2,
+      "crop_xywh": [
+        330.36,
+        0.0,
+        939.28,
+        1067.0
+      ],
+      "position": [
+        0.5,
+        0.5
+      ],
+      "arch": false
+    },
+    {
+      "id": "your-data-en-1440.037",
+      "kind": "connector",
+      "paint_order": 37,
+      "path": "M152 2747C310 2791 399 2714 454 2782",
+      "stroke": "#969e98",
+      "stroke_width": 0.8
+    },
+    {
+      "id": "your-data-en-1440.038",
+      "kind": "line",
+      "paint_order": 38,
+      "x1": 76,
+      "y1": 2849,
+      "x2": 1364,
+      "y2": 2849,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "your-data-en-1440.039",
+      "kind": "text",
+      "paint_order": 39,
+      "x": 76,
+      "y": 2897,
+      "width": 800,
+      "font_family": "EB Garamond 12",
+      "font_size": 48,
+      "font_style": "normal",
+      "line_height": 53,
+      "letter_spacing": 0,
+      "color": "#171c19",
+      "lines": [
+        "Take the next step",
+        "with a little more context."
+      ],
+      "copy_id": "copy-96ead3b34b0b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.040",
+      "kind": "rect",
+      "paint_order": 40,
+      "x": 76,
+      "y": 3032,
+      "width": 208,
+      "height": 56,
+      "fill": "#343e35",
+      "stroke": "#343e35",
+      "radius": 28.0,
+      "shadow": null,
+      "rotation": 0,
+      "role": "button"
+    },
+    {
+      "id": "your-data-en-1440.041",
+      "kind": "text",
+      "paint_order": 41,
+      "x": 100,
+      "y": 3052.25,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 15.5,
+      "font_style": "normal",
+      "line_height": 22.474999999999998,
+      "letter_spacing": 0,
+      "color": "#fdfdfb",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "button-label",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.042",
+      "kind": "connector",
+      "paint_order": 42,
+      "path": "M245 3060.0h14m-5 -5 5 5-5 5",
+      "stroke": "#fdfdfb",
+      "stroke_width": 1.2
+    },
+    {
+      "id": "your-data-en-1440.043",
+      "kind": "line",
+      "paint_order": 43,
+      "x1": 76,
+      "y1": 3149,
+      "x2": 1364,
+      "y2": 3149,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "your-data-en-1440.044",
+      "kind": "text",
+      "paint_order": 44,
+      "x": 76,
+      "y": 3187,
+      "width": null,
+      "font_family": "EB Garamond 12",
+      "font_size": 43,
+      "font_style": "normal",
+      "line_height": 46.440000000000005,
+      "letter_spacing": 1.2,
+      "color": "#171c19",
+      "lines": [
+        "PAIA"
+      ],
+      "copy_id": "copy-2b2048c6132f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.045",
+      "kind": "text",
+      "paint_order": 45,
+      "x": 76,
+      "y": 3248,
+      "width": 340,
+      "font_family": "Inter",
+      "font_size": 15,
+      "font_style": "normal",
+      "line_height": 21.75,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Your thinking has a longer tomorrow."
+      ],
+      "copy_id": "copy-3593bf12b43f",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.046",
+      "kind": "text",
+      "paint_order": 46,
+      "x": 710,
+      "y": 3194,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "EXPLORE"
+      ],
+      "copy_id": "copy-c8fbce667415",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.047",
+      "kind": "text",
+      "paint_order": 47,
+      "x": 710,
+      "y": 3232,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "How it works"
+      ],
+      "copy_id": "copy-9c870aa6e5e9",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.048",
+      "kind": "text",
+      "paint_order": 48,
+      "x": 710,
+      "y": 3261,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Use cases"
+      ],
+      "copy_id": "copy-ff27a991e855",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.049",
+      "kind": "text",
+      "paint_order": 49,
+      "x": 710,
+      "y": 3290,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Explore an example"
+      ],
+      "copy_id": "copy-2cabe393e29c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.050",
+      "kind": "text",
+      "paint_order": 50,
+      "x": 940,
+      "y": 3194,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "PERSPECTIVES"
+      ],
+      "copy_id": "copy-430e9beac545",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.051",
+      "kind": "text",
+      "paint_order": 51,
+      "x": 940,
+      "y": 3232,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Our story"
+      ],
+      "copy_id": "copy-9247cb620a1c",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.052",
+      "kind": "text",
+      "paint_order": 52,
+      "x": 940,
+      "y": 3261,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Journal"
+      ],
+      "copy_id": "copy-43b7c75d56f0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.053",
+      "kind": "text",
+      "paint_order": 53,
+      "x": 940,
+      "y": 3290,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Get early access"
+      ],
+      "copy_id": "copy-f8d0e46c95c0",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.054",
+      "kind": "text",
+      "paint_order": 54,
+      "x": 1170,
+      "y": 3194,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 16,
+      "letter_spacing": 2.4,
+      "color": "#707975",
+      "lines": [
+        "TRUST"
+      ],
+      "copy_id": "copy-c7651f456022",
+      "role": "decorative-annotation",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.055",
+      "kind": "text",
+      "paint_order": 55,
+      "x": 1170,
+      "y": 3232,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Your data"
+      ],
+      "copy_id": "copy-ee5ef73aae18",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.056",
+      "kind": "text",
+      "paint_order": 56,
+      "x": 1170,
+      "y": 3261,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Current status"
+      ],
+      "copy_id": "copy-2f5d50add626",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.057",
+      "kind": "text",
+      "paint_order": 57,
+      "x": 1170,
+      "y": 3290,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Privacy · Terms"
+      ],
+      "copy_id": "copy-3eb89cb7107b",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.058",
+      "kind": "text",
+      "paint_order": 58,
+      "x": 1170,
+      "y": 3319,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 12.5,
+      "font_style": "normal",
+      "line_height": 18.125,
+      "letter_spacing": 0,
+      "color": "#616969",
+      "lines": [
+        "Contact"
+      ],
+      "copy_id": "copy-2b5c3d26721a",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.059",
+      "kind": "line",
+      "paint_order": 59,
+      "x1": 76,
+      "y1": 3393,
+      "x2": 1364,
+      "y2": 3393,
+      "stroke": "#dfe2dc",
+      "stroke_width": 1
+    },
+    {
+      "id": "your-data-en-1440.060",
+      "kind": "text",
+      "paint_order": 60,
+      "x": 76,
+      "y": 3418,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 10.5,
+      "font_style": "normal",
+      "line_height": 15.225,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "© 2026 PAIA · Private beta"
+      ],
+      "copy_id": "copy-13f95a79acb6",
+      "role": "text",
+      "anchor": "start"
+    },
+    {
+      "id": "your-data-en-1440.061",
+      "kind": "text",
+      "paint_order": 61,
+      "x": 1364,
+      "y": 3418,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 11,
+      "font_style": "normal",
+      "line_height": 15.95,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "EN   /   中文"
+      ],
+      "copy_id": "copy-555a532adbb7",
+      "role": "text",
+      "anchor": "end"
+    },
+    {
+      "id": "your-data-en-1440.062",
+      "kind": "text",
+      "paint_order": 62,
+      "x": 76,
+      "y": 3445,
+      "width": null,
+      "font_family": "Inter",
+      "font_size": 9.5,
+      "font_style": "normal",
+      "line_height": 13.775,
+      "letter_spacing": 0,
+      "color": "#707975",
+      "lines": [
+        "Photography credits · Illustrative material, not a live archive"
+      ],
+      "copy_id": "copy-92249ca2217f",
+      "role": "text",
+      "anchor": "start"
+    }
+  ]
+}
