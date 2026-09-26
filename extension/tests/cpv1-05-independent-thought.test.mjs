@@ -17,14 +17,14 @@ test('VS-05 new Thought has real creation time, optional Topic/relation and one 
  const created=await f.s.continueThinking(request),same=await f.s.continueThinking(request),row=await f.s.entry(created.id);
  assert.equal(created.conflict,undefined,'reviewed current target must be accepted');assert.equal(created.id,same.id);assert.equal(row.body,request.body);assert.equal(row.provenanceType,'user_created');assert.equal(row.bodyBinding,'thought');assert.deepEqual(row.sourceRecordIds,[]);
  assert.ok(Date.parse(row.createdAt)>=start&&Date.parse(row.createdAt)<=Date.now());assert.deepEqual(await f.s.entryPaths(row.id),[]);
- const relations=await rows(f.s,'entryRelations');assert.equal(relations.length,1);assert.equal(relations[0].value.toEntryId,before.id);assert.equal(relations[0].value.toBodySha256,f.relation.expectedBodySha256);
+ const relations=await rows(f.s,'entryRelations');assert.equal(relations.length,1);assert.equal(relations[0].toEntryId,before.id);assert.equal(relations[0].toBodySha256,f.relation.expectedBodySha256);
  const compare=await f.s.compareThought(row.id);assert.equal(compare.relations[0].state,'current');assert.equal(typeof compare.relations[0].body,'string','relation DTO projects the guarded persisted thoughtText as body');assert.equal(compare.relations[0].body,before.body);
  assert.equal((await f.s.entry(before.id)).body,before.body);assert.equal((await f.s.entry(before.id)).revision,before.revision);
  const standalone=await f.s.continueThinking({operationId:op(),body:'No Topic and no relationship'});
  assert.deepEqual((await f.s.compareThought(standalone.id)).relations,[]);assert.deepEqual(await f.s.entryPaths(standalone.id),[]);
  const placed=await f.s.continueThinking({operationId:op(),body:'Optional existing Topic',topicId:f.topic.id});
  assert.equal((await f.s.entryPaths(placed.id))[0].topicId,f.topic.id);assert.deepEqual((await f.s.compareThought(placed.id)).relations,[]);
- const portable=projectBackupEntity('relations',relations[0].value);
+ const portable=projectBackupEntity('relations',relations[0]);
  validateBackupItem({type:'item',section:'relations',value:portable});assert.equal(portable.toBodySha256,f.relation.expectedBodySha256);
  for(const defect of [{toRevision:-1},{toBodySha256:'invalid'},{actor:'ai'}])assert.throws(()=>validateBackupItem({type:'item',section:'relations',value:{...portable,...defect}}));
 });
