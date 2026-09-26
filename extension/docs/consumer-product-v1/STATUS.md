@@ -12,11 +12,11 @@ current_slice: VS-05
 
 current_slice_status: ACTIVE — VS-04_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED
 
-current_round: CPV1-05.4 / VS-05 Batch A
+current_round: CPV1-05.5 / VS-05 Batch B
 
-current_round_status: ACTIVE / VS-05_BATCH_A
+current_round_status: ACTIVE / VS-05_BATCH_B
 
-current_writer: MANAGER — sole VS-05 Batch A writer
+current_writer: MANAGER — sole VS-05 writer
 
 writer_status: ACTIVE
 
@@ -387,3 +387,14 @@ A subsequent delta audit found that chunk2's unaccepted candidate was ignored wh
 
 
 CPV1-05.4 candidate accumulation fixture diagnosis: exact `76e0324961ce9554992d72cff64819b6cc10dee0` / Candidate Gate `36221482739` passed contracts/privacy, release and source+built-release candidate browser. Unit suite retained all existing cases and passed the 16+1 stale-material recheck; the new 24-expression case observed AI inputs [8,8,4] because its fixture invoked Original only once. The production Original planner preserves a separate 20-input bound. Classification: incomplete fixture preparation, not an AI runtime failure. The coherent fixture now completes all captured expressions through real Original bounded calls and asserts the exact count before synthesis. It retains all 24 expressions, three [8,8,8] AI chunks, context [0,8,16], full evidence/unchanged-record/adoption assertions and all existing tests; no runtime/budget/timeout change, assertion removal or fixture shrink. New affected candidate pending; full certification remains slice-boundary only.
+
+
+## CPV1-05.4 affected receipt and CPV1-05.5 fidelity limits/corpus batch
+
+Exact `d7f3dccd9e3307fc0a45307c210b456fc7658ed8` / [Candidate Gate36222019775](https://github.com/haohongfei2001-png/paia/actions/runs/36222019775) PASS: unit, contracts/privacy, release and existing source+built-release candidate browser. All24 expressions now traverse real Original20+4 preparation and AI8+8+8 accumulation, retain middle evidence, and preserve Original/source/placement authority. Source changes recheck unaccepted coverage, save binds exact reviewed candidate, and protection/adopt/keep/stale/purge/Backup checks pass. This is affected Batch A engineering evidence; B-01 remains deferred, full VS-05 certification remains open. The same sole PR#79 advances dependency-safe Batch B; no new PR, unchanged-head rerun or full dispatch.
+
+Independent pre-generation review freezes eight explicit synthetic source distinctions (quotation/belief, negation, uncertainty, correction, unresolved conflict, causality, emotional intensity, missing time), faithful reference explanations and material-distortion counterexamples/reasons in `tests/fixtures/vs05-fidelity-v1.json`. Any material distortion blocks aggregate acceptance; no average can compensate. Live-model evidence remains NOT_RUN: fixed supplied outputs demonstrate transport/persistence only, not generated semantic fidelity or personal meaning.
+
+The real validator previously clipped strings and stopped lists at the configured limit, potentially dropping a final negation, condition, correction or statement. It now rejects the complete over-limit text/item/list response before normalization and commit. Limits stay300/4000/2000/20; permitted optional fields, empty lists and locally degraded foreign evidence remain unchanged. The former500-character clipping regression becomes a stronger300-boundary acceptance plus500-character rejection, explicitly superseding unsafe silent clipping; no bound/test standard is reduced. Provider prompt spells out the eight source distinctions and requests complete clauses within limits.
+
+New direct production-provider/runner cases preserve all eight frozen reference outputs/evidence/Original identity, reject all14 over-limit field/item/list surfaces with one request and no presentation/checkpoint/receipt/revision/automatic retry, and preserve protected human AI text on rejected incremental update. A correctly sized but materially distorted response still requires independent semantic review; this mechanical boundary never claims to detect arbitrary meaning. New coherent affected checks pending. 05.5 actual generated-output fidelity review, 05.6 running/motion/long-Topic UX and05.7 end-to-end/full slice acceptance remain open.
