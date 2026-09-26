@@ -58,4 +58,4 @@ jobs:
         env:
           CI: '1'
           PLAYWRIGHT_MODULE: playwright
-        run: node --test tests/cpv1-02-4-reader-chrome-e2e.test.mjs tests/cpv1-02-6-accessibility-chrome-e2e.test.mjs
+        run: xvfb-run -a node --test tests/cpv1-02-4-reader-chrome-e2e.test.mjs tests/cpv1-02-6-accessibility-chrome-e2e.test.mjs
