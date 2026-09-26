@@ -435,3 +435,10 @@ The complete26-expression source+built journey now explicitly requires the newly
 
 
 Root-cache implementation review before closure found the existing navigation map stores the root under `home`, not null. The invalidation method now uses that exact key. A direct call to the actual production method in each source/built browser context verifies an80-row saved root loses only cached rows, preserves query/source/scroll/loaded extent, and tolerates repeated invalidation; the complete26-expression live UI journey still proves authoritative new-Topic visibility while the request is sent. Intermediate `75b85c2ab107fa78bbe7e321814644e98d4dcd23` is superseded by this coherent root-cache correction and receives no repeated/full certification. Latest affected gate remains pending; no PASS claim.
+
+
+### 2026-09-26 VS-05 Batch B — distinct saved-view failure investigation
+
+Exact head `c0da5e6`, Candidate [36225633426](https://github.com/haohongfei2001-png/paia/actions/runs/36225633426): unit, contracts/privacy and release guard PASS; affected browser FAIL in the new long journey at reduced-motion switch back to Original after a successful provider commit. Root invalidation is now proved: new Topic visible at 3.102s and return at 4.144s while the actual runtime remains sent; exactly one request subsequently commits. This is distinct from the fixed root restoration failure and is not a provider timeout. The existing Organized/source-release and candidate decision journeys PASS. Full certification remains unrun.
+
+The current bounded diagnostic adds content-free actual workspace switch/flush/dirty-field state to the same 26-expression source/release regression. No product change, timeout increase, assertion removal, fixture reduction, retry, or full certification is introduced. Classification of the saved-view failure remains pending runtime evidence.

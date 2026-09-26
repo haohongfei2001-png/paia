@@ -54,10 +54,15 @@ test('UIR-03 Organized presentation uses saved clues and true runtime states wit
 
 async function longRunningJourney(page,h,topic,label,releaseRequest){
  const began=Date.now(),stages=[];
- const checkpoint=async stage=>{const state=await rpc(page,'GET_AI_PRESENTATION_STATUS');const sample={stage,elapsedMs:Date.now()-began,providerRequests:h.deepSeekRequests.length,runtime:state.runtime,ui:await page.locator('#ai-topic-status').getAttribute('data-state')};stages.push(sample);console.log('VS05_LONG_RUNNING_STAGE '+JSON.stringify(sample));};
+ const checkpoint=async stage=>{const state=await rpc(page,'GET_AI_PRESENTATION_STATUS');const sample={stage,elapsedMs:Date.now()-began,providerRequests:h.deepSeekRequests.length,runtime:state.runtime,ui:await page.locator('#ai-topic-status').getAttribute('data-state'),view:await page.evaluate(()=>({toggleChecked:document.getElementById('ai-presentation-toggle').checked,toggleDisabled:document.getElementById('ai-presentation-toggle').disabled,originalHidden:document.getElementById('original-reading-body')?.hidden,aiHidden:document.getElementById('ai-reading-body')?.hidden,trace:window.__vs05SwitchTrace||[]}))};stages.push(sample);console.log('VS05_LONG_RUNNING_STAGE '+JSON.stringify(sample));};
  try{
  await page.evaluate(async()=>{
   const {ThoughtWorkspace}=await import(chrome.runtime.getURL('ui/thoughts.js'));
+  window.__vs05SwitchTrace=[];
+  const snapshot=owner=>({view:owner.view,pendingView:owner.pendingView||null,serial:owner.serial,refreshKey:owner.refreshRun?.key||null,editors:[owner.editor,owner.aiEditor].map(editor=>editor?{kind:editor.constructor.name,dirty:editor.dirty(),failed:!!editor.failed,conflicted:!!editor.conflicted,disposed:!!editor.disposed,saving:!!editor.saving,entryDeltas:[...(editor.entry?.entries||editor.entries||[])].map(([id,e])=>({id,fields:Object.keys(e.saved).filter(k=>JSON.stringify(e.saved[k])!==JSON.stringify(e.local[k]))}))}:null)});
+  const flush=ThoughtWorkspace.prototype.flushEditors,switchView=ThoughtWorkspace.prototype.switchView;
+  ThoughtWorkspace.prototype.flushEditors=async function(...args){const before=snapshot(this);const result=await flush.apply(this,args);window.__vs05SwitchTrace.push({action:'flush',before,result,after:snapshot(this)});return result;};
+  ThoughtWorkspace.prototype.switchView=async function(view,...args){window.__vs05SwitchTrace.push({action:'switch-start',requested:view,...snapshot(this)});try{return await switchView.call(this,view,...args);}finally{window.__vs05SwitchTrace.push({action:'switch-end',requested:view,...snapshot(this)});}};
   const saved={query:'local query',scroll:735,rootProviderKey:'synthetic-source',collection:{items:Array.from({length:80},(_,id)=>({id}))}};
   const context={homePositions:new Map([['home',saved]]),homeDesiredCount:40};
   ThoughtWorkspace.prototype.invalidateHomeSnapshot.call(context);
