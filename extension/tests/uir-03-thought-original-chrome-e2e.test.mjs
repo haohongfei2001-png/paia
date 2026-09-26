@@ -261,6 +261,61 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  await assertOffline(h);
 }
 
+
+async function independentThoughtRelationJourney(page,h,topics,{release=false}={}){
+ await page.setViewportSize({width:1440,height:900});
+ const dialog=page.locator('#topic-action-dialog'),content=page.locator('#library-dialog-content');
+ const prefix=release?'VS05_RELEASE_NEW':'VS05_SOURCE_NEW',standaloneBody=prefix+' 独立想法，不需要主题或关联。';
+ const started=Date.now();
+ await page.locator('#create-entry').click();
+ await dialog.getByLabel('今天的新想法',{exact:true}).fill(standaloneBody);
+ await dialog.locator('summary').filter({hasText:'选择主题（可不选）'}).click();
+ const topicChoice=dialog.getByLabel(topics[1].name,{exact:true});
+ await topicChoice.waitFor();assert.equal(await topicChoice.isChecked(),true,'current Topic is only an optional initial choice');
+ await topicChoice.uncheck();
+ await dialog.getByRole('button',{name:'保存想法',exact:true}).click();
+ await eventually(async()=>!await dialog.isVisible(),'independent Thought saves through the real composer');
+ await page.locator('#notice').getByRole('button',{name:'查看',exact:true}).click();
+ await eventually(async()=>await content.locator('[data-entry-field="body"]').textContent()===standaloneBody,'saved independent Thought opens from actual success feedback');
+ const standaloneId=await content.locator('[data-entry-id]').getAttribute('data-entry-id');
+ const standalone=await rpc(page,'GET_LIBRARY_ENTRY',{id:standaloneId});
+ assert.ok(Date.parse(standalone.createdAt)>=started&&Date.parse(standalone.createdAt)<=Date.now(),'creation time comes from this real save, not quoted history');
+ assert.deepEqual(await rpc(page,'GET_LIBRARY_PATHS',{id:standaloneId}),[],'optional Topic can be omitted');
+ assert.deepEqual((await rpc(page,'COMPARE_THOUGHT_INPUT',{id:standaloneId})).relations,[],'independent save does not infer a relation');
+ assert.equal(standalone.provenanceType,'user_created');
+ await page.locator('#library-dialog-close').click();
+
+ const row=page.locator('#original-reading-body [data-entry-id]').first(),targetId=await row.getAttribute('data-entry-id');
+ const before=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId});
+ await row.locator('.library-actions summary').click();
+ await row.getByRole('button',{name:'接着写',exact:true}).click();
+ const relationChoice=dialog.getByLabel('记录与这条内容的回应关系',{exact:true});
+ assert.equal(await relationChoice.isChecked(),false,'a quoted response has no relation without explicit selection');
+ await relationChoice.check();
+ const responseBody=prefix+' 回应后独立保存，不重写原内容。';
+ await dialog.getByLabel('今天的新想法',{exact:true}).fill(responseBody);
+ await dialog.getByRole('button',{name:'保存想法',exact:true}).click();
+ await eventually(async()=>!await dialog.isVisible(),'explicit optional response relation saves');
+ await page.locator('#notice').getByRole('button',{name:'查看',exact:true}).click();
+ await eventually(async()=>await content.locator('[data-entry-field="body"]').textContent()===responseBody);
+ const responseId=await content.locator('[data-entry-id]').getAttribute('data-entry-id');
+ assert.notEqual(responseId,targetId);
+ assert.equal((await rpc(page,'GET_LIBRARY_PATHS',{id:responseId}))[0].topicId,topics[1].id,'optional current Topic remains selected for this save');
+ const comparison=await rpc(page,'COMPARE_THOUGHT_INPUT',{id:responseId});
+ assert.equal(comparison.relations.length,1);assert.equal(comparison.relations[0].state,'current');assert.equal(comparison.relations[0].id,targetId);assert.equal(comparison.relations[0].body,before.body);
+ const after=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId});assert.equal(after.body,before.body);assert.equal(after.revision,before.revision);
+ await content.locator('.library-actions summary').click();
+ await content.getByRole('button',{name:'查看关联',exact:true}).click();
+ await eventually(async()=>await dialog.getByRole('heading',{name:'想法关联',exact:true}).isVisible());
+ assert.equal(await dialog.locator('.topic-selection-preview').textContent(),before.body);
+ assert.equal(await dialog.getByRole('button',{name:'查看关联内容',exact:true}).isVisible(),true);
+ assert.doesNotMatch(await dialog.textContent(),/Placement|Binding|relationKey|expectedRevision/,'relation inspector uses user language');
+ await shot(page,release?'vs05-release-independent-response-relation':'vs05-source-independent-response-relation');
+ await dialog.getByRole('button',{name:'关闭',exact:true}).click();
+ await page.locator('#library-dialog-close').click();
+ await assertOffline(h);
+}
+
 async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await page.bringToFront();
   await nav(page,'thoughts');
@@ -408,6 +463,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
 
   await provenanceRoleJourney(page,topics,{release});
   await topicSourceScopeJourney(page,h,topics,{release});
+  await independentThoughtRelationJourney(page,h,topics,{release});
   await assertOffline(h);
 }
 
