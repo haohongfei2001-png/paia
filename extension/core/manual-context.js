@@ -82,17 +82,21 @@ export class ManualContext {
     }
    });
    if((await this.memory.temporary()).revision!==found.sessionRevision)fail('MEMORY_STALE');
-   s.suggestions={options:{profileId:found.profile.profileId,query},generation:found.generation,sessionRevision:found.sessionRevision,profileRevision:found.profile.revision,querySha256,refs:items.map(i=>structuredClone(i.ref)),partial:found.partial,inspected:found.inspected};
+   s.suggestions={options:{profileId:found.profile.profileId,query},generation:found.generation,policyRevision:s.policyRevision,sessionRevision:found.sessionRevision,profileRevision:found.profile.revision,querySha256,refs:items.map(i=>structuredClone(i.ref)),partial:found.partial,inspected:found.inspected};
    return {...this.dto(s),suggestions:items,partial:found.partial,retrieval:{profileId:found.profile.profileId,profileRevision:found.profile.revision,querySha256,inspected:found.inspected,partial:found.partial}};
   }
   if(o.action==='addSupplement'){
    if(!Array.isArray(o.refs)||!o.refs.length||o.refs.length>20||!o.refs.every(validMaterialRef))fail();
    const offer=s.suggestions;if(!offer||o.refs.some(ref=>!offer.refs.some(allowed=>materialKey(allowed)===materialKey(ref))||s.excluded.has(materialIdentity(ref))))fail('MEMORY_STALE');
-   const found=await this.memory.candidates(offer.options,offer),eligible=new Set(found.candidates.map(c=>materialKey(candidateRef(c)))),added=[];
+   // An offer fixes these refs and scope, not unrelated archive activity.
+   // Rebuild current eligibility, then fence this read's full data snapshot.
+   if(s.policyRevision!==offer.policyRevision||s.temporaryPolicyRevision!==offer.sessionRevision)fail('MEMORY_STALE');
+   const found=await this.memory.candidates(offer.options),eligible=new Set(found.candidates.map(c=>materialKey(candidateRef(c)))),added=[];
+   if(found.profile.revision!==offer.profileRevision||found.sessionRevision!==offer.sessionRevision)fail('MEMORY_STALE');
    await this.transaction(async t=>{
-    if(((await t.get('meta','backup-data-generation'))?.value||0)!==found.generation)fail('MEMORY_STALE');
+    if(((await t.get('meta','backup-data-generation'))?.value||0)!==found.generation||(await this.memory.state(t)).config.revision!==offer.policyRevision)fail('MEMORY_STALE');
     for(const ref of o.refs){
-     if(!eligible.has(materialKey(ref)))fail('MEMORY_DENIED');if(s.items.some(i=>materialKey(i.ref)===materialKey(ref))||added.some(i=>materialKey(i.ref)===materialKey(ref)))continue;
+     if(!eligible.has(materialKey(ref)))fail(found.candidates.some(c=>materialIdentity(candidateRef(c))===materialIdentity(ref))?'MEMORY_STALE':'MEMORY_DENIED');if(s.items.some(i=>materialKey(i.ref)===materialKey(ref))||added.some(i=>materialKey(i.ref)===materialKey(ref)))continue;
      const data=await materialRead(this.memory,t,ref);added.push({itemId:this.uuid(),ref:structuredClone(ref),...data,state:'ready',origin:'retrieval',retrieval:{profileId:found.profile.profileId,profileRevision:found.profile.revision,querySha256:offer.querySha256,partial:offer.partial,inspected:offer.inspected}});
     }
    });

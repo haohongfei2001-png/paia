@@ -73,3 +73,35 @@ test('VS06 explicit whole-group selection promotes a former supplement without d
  assert.equal(f.state.items.length,2);assert.equal(f.state.items.find(i=>i.itemId===original).origin,undefined);assert.equal(f.state.manifest.retrievalSupplements.length,0);assert.equal(f.state.manifest.explicit.length,2);
  await f.call('removeSupplements');assert.equal(f.state.items.length,2);await f.call('preview');assert.equal(f.state.manifest.complete,true);assert.ok(f.state.text.includes('EXPLICIT_FIXED_CANARY'));assert.ok(f.state.text.includes('SUPPLEMENT_QUERY_NEEDLE'));assert.equal(f.requests.length,0);
 });
+
+test('VS06 unrelated portable writes cannot stale a fixed authorized suggestion',async()=>{
+ const f=await setup();await f.memory.settings({includeUnorganizedInputs:true});await f.call('add',{refs:[f.refs[0]]});
+ const offer=await f.call('suggest',{query:'SUPPLEMENT_QUERY_NEEDLE'}),ref=offer.suggestions[0].ref,policyRevision=offer.manifest.policyRevision,selectionGeneration=offer.generation;
+ const snapshot=()=>f.s.run(()=>f.s.repository.transaction(false,async t=>(await t.get('meta','backup-data-generation'))?.value||0,['meta']));
+ const fixedOffer=structuredClone(f.service.manualSelections.sessions.get(f.state.selectionId).suggestions),before=await snapshot();
+ // Real independent archive/Topic write, not a mocked candidate or marker.
+ await f.s.createTopic({name:'Unrelated portable activity',operationId:op()});
+ assert.ok(await snapshot()>before);
+ // Reproduce the exact old candidate boundary: unrelated portable writes alone
+ // refuse the historical expected-generation argument despite fixed refs/scope.
+ await assert.rejects(f.memory.candidates(fixedOffer.options,fixedOffer),{code:'MEMORY_STALE'});
+ assert.equal((await f.call('read')).generation,selectionGeneration);assert.equal(f.state.manifest.policyRevision,policyRevision);
+ await f.call('addSupplement',{refs:[ref]});
+ assert.equal(f.state.manifest.explicit.length,1);assert.deepEqual(f.state.manifest.explicit[0].ref,f.refs[0]);
+ assert.equal(f.state.manifest.retrievalSupplements.length,1);assert.deepEqual(f.state.manifest.retrievalSupplements[0].ref,ref);
+ await f.call('preview');assert.ok(f.state.text.includes('EXPLICIT_FIXED_CANARY'));assert.ok(f.state.text.includes('SUPPLEMENT_QUERY_NEEDLE'));assert.equal((await f.call('share',{format:'copy'})).text,f.state.text);assert.equal(f.requests.length,0);
+});
+test('VS06 current policy revocation still invalidates the old offer without admitting a prefix',async()=>{
+ const f=await setup();await f.memory.settings({includeUnorganizedInputs:true});await f.call('add',{refs:[f.refs[0]]});const ids=f.state.items.map(i=>i.itemId),generation=f.state.generation;
+ const offer=await f.call('suggest',{query:'SUPPLEMENT_QUERY_NEEDLE'});assert.equal(offer.suggestions.length,1);
+ await f.memory.settings({includeUnorganizedInputs:false});
+ await assert.rejects(f.call('addSupplement',{refs:[offer.suggestions[0].ref]}),{code:'MEMORY_STALE'});
+ const current=await f.call('read');assert.equal(current.generation,generation);assert.deepEqual(current.items.map(i=>i.itemId),ids);assert.equal(current.manifest.retrievalSupplements.length,0);assert.equal(f.requests.length,0);
+});
+test('VS06 editing selection after search invalidates that offer even with unchanged archive bytes',async()=>{
+ const f=await setup();await f.memory.settings({includeUnorganizedInputs:true});await f.call('add',{refs:[f.refs[0]]});
+ const offer=await f.call('suggest',{query:'SUPPLEMENT_QUERY_NEEDLE'});await f.call('note',{text:'Changed task after the suggestion'});
+ const generation=f.state.generation;
+ await assert.rejects(f.call('addSupplement',{refs:[offer.suggestions[0].ref]}),{code:'MEMORY_STALE'});
+ const current=await f.call('read');assert.equal(current.generation,generation);assert.equal(current.note,'Changed task after the suggestion');assert.equal(current.items.length,1);assert.equal(current.manifest.retrievalSupplements.length,0);
+});
