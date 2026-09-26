@@ -225,7 +225,22 @@ async function hiddenDraftJourney(page,h,topic,label){
  await page.locator('#ai-presentation-toggle').uncheck();
  await page.locator('#original-reading-body').waitFor({state:'visible'});
  await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'hide saves actual collected overview drafts');
- await eventually(async()=>{const saved=(await state(page,topic.id)).presentation;return saved.blockSummary===summary&&saved.currentView==='';},'multiline summary and deliberate empty overview are durable');
+ let overviewReadback=null;
+ try{
+  await eventually(async()=>{const saved=(await state(page,topic.id)).presentation;overviewReadback={blockSummary:saved.blockSummary,currentView:saved.currentView,revision:saved.revision,protections:saved.protections};return saved.blockSummary===summary&&saved.currentView==='';},'multiline summary and deliberate empty overview are durable');
+ }catch(error){
+  // Read-only evidence after failure: preserve the real input/blur/switch order
+  // and the existing deadline, rather than adding synchronization to the journey.
+  const dom=await page.evaluate(()=>({
+   fields:['blockSummary','currentView'].map(field=>{const node=document.querySelector('#ai-reading-body [data-ai-field="'+field+'"]'),style=node&&getComputedStyle(node);return{field,exists:!!node,textContent:node?.textContent,innerText:node?.innerText,innerHTML:node?.innerHTML,hiddenAncestor:!!node?.closest('[hidden],details:not([open])'),whiteSpace:style?.whiteSpace,display:style?.display,visibility:style?.visibility};}),
+   aiHidden:document.querySelector('#ai-reading-body')?.hidden,
+   originalHidden:document.querySelector('#original-reading-body')?.hidden,
+   toggleChecked:document.querySelector('#ai-presentation-toggle')?.checked,
+   status:[...document.querySelectorAll('[role="status"]')].map(node=>node.textContent).slice(0,12)
+  }));
+  error.message+='\nOVERVIEW_DRAFT_EVIDENCE '+JSON.stringify({label,expected:{blockSummary:summary,currentView:''},readback:overviewReadback,dom,browserErrors:h.errors});
+  throw error;
+ }
  const saved=structuredClone((await state(page,topic.id)).presentation);
  assert.equal(saved.protections.blockSummary,true);assert.equal(saved.protections.currentView,true);
  for(const field of fields)assert.equal(saved[field][0].text,label+' '+field+' 人工第一行\n第二行保留条件，并不等于已决定。');
