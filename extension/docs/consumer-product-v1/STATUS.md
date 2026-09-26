@@ -331,3 +331,6 @@ A manager may change a round from READY to ACTIVE only after:
 4. owner authorization mode permits execution.
 
 A slice becomes COMPLETE only after every applicable evidence class in VERIFICATION.md is satisfied.
+
+
+VS-05 unknown-time bounded CI diagnosis (2026-09-26): candidate 7c6cae7f176f1d294a0564f2eb38e02f2824d9ae passed affected source/release browser, contracts/privacy and release guard in Candidate Gate 36212089715. Unit runner reported two new assertions using topicDocumentPage without an explicit sort, which selects the existing manual chronology API rather than the indexed reading API. Regression requests now explicitly select asc, including enriched/no-unknown cases and invalid-option checks. Fixture size, unknown membership, scan bounds, body/revision and two-direction assertions are retained; no runtime or historical harness changes. New exact-head targeted result pending; VS-05 remains ACTIVE, no full certification claim.

@@ -201,14 +201,14 @@ test('VS-05 unknown time stays a separate trailing reading group in both directi
   const row=await t.get('thoughts',unknownIds[1]);row.createdAt='2026-01-01T00:00:17.000Z';await t.put('thoughts',row);
   await invalidateThoughtTopicIndex(f.s,t,f.topic.id,{sourceTime:true});
  });
- const enriched=await f.s.topicDocumentPage({topicId:f.topic.id,timeEdge:'unknown'});
+ const enriched=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',timeEdge:'unknown'});
  assert.equal(enriched.coverage.unknownTimeCount,2);
  assert.equal(enriched.items.some(item=>item.entry.id===unknownIds[1]),false,'real time enrichment returns the entry to its dated section without content edits');
- for(const options of [{timeEdge:'unknown',query:'entry'},{timeEdge:'unknown',anchorId:f.seedId},{timeEdge:'unknown',direction:'prev'}])await assert.rejects(()=>f.s.topicDocumentPage({topicId:f.topic.id,...options}));
+ for(const options of [{timeEdge:'unknown',query:'entry'},{timeEdge:'unknown',anchorId:f.seedId},{timeEdge:'unknown',direction:'prev'}])await assert.rejects(()=>f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',...options}));
 });
 
 test('VS-05 unknown-group request remains honest when every record is dated',async()=>{
- const f=await largeTopicFixture(8,2),page=await f.s.topicDocumentPage({topicId:f.topic.id,timeEdge:'unknown'});
+ const f=await largeTopicFixture(8,2),page=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',timeEdge:'unknown'});
  assert.equal(page.timeEdgeUnavailable,true);assert.equal(page.coverage.unknownTimeCount,0);
  assert.ok(page.items.every(item=>item.entry.timeBasis==='created'));
 });
