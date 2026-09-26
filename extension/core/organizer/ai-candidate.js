@@ -10,6 +10,13 @@ function validMaterialVersions(value){
  return record(value)&&Object.keys(value).length<=10000&&Object.entries(value).every(([id,version])=>typeof id==='string'&&id.length>0&&id.length<=200&&typeof version==='string'&&version.length<=4000);
 }
 
+// The reviewed candidate identity is shared by UI staging and the transaction
+// fence. Current-work revision alone cannot identify a replaced proposal.
+export function aiCandidateKey(candidate){
+ if(!candidate)return '';
+ return JSON.stringify([candidate.expectedRevision,candidate.createdAt||null,candidate.changedFields,candidate.proposal]);
+}
+
 export function createAIPresentationCandidate(current,proposal,{createdAt=null,materialVersions={}}={}){
  if(!current||!proposal||current.topicId!==proposal.topicId||!Number.isSafeInteger(current.revision)||!validMaterialVersions(materialVersions))reject('INVALID_OUTPUT');
  const changedFields=AI_FIELDS.filter(field=>!equal(current[field],proposal[field]));
@@ -29,9 +36,9 @@ export function publicAIPresentationCandidate(row,allowed,currentVersions={}){
  return {schemaVersion:candidate.schemaVersion,expectedRevision:candidate.expectedRevision,changedFields:[...candidate.changedFields],proposal:clone(candidate.proposal),createdAt:candidate.createdAt||null,stale:row.revision!==candidate.expectedRevision||!equal(candidate.materialVersions,currentVersions)};
 }
 
-export function applyAIPresentationCandidate(row,{decisions,expectedRevision},allowed,currentVersions,clock){
+export function applyAIPresentationCandidate(row,{decisions,expectedRevision,expectedCandidateKey},allowed,currentVersions,clock){
  const visible=publicAIPresentationCandidate(row,allowed,currentVersions);
- if(!visible||visible.stale||!Number.isSafeInteger(expectedRevision)||row.revision!==expectedRevision||visible.expectedRevision!==expectedRevision)reject('STALE_BASE');
+ if(!visible||typeof expectedCandidateKey!=='string'||expectedCandidateKey!==aiCandidateKey(visible)||visible.stale||!Number.isSafeInteger(expectedRevision)||row.revision!==expectedRevision||visible.expectedRevision!==expectedRevision)reject('STALE_BASE');
  if(!record(decisions)||Object.keys(decisions).length!==visible.changedFields.length||visible.changedFields.some(field=>!Object.hasOwn(decisions,field)||!['adopt','keep'].includes(decisions[field]))||Object.keys(decisions).some(field=>!visible.changedFields.includes(field)))reject('INVALID_OUTPUT');
  const next=clone(row),adopted=visible.changedFields.filter(field=>decisions[field]==='adopt'),kept=visible.changedFields.filter(field=>decisions[field]==='keep');
  for(const field of adopted)next[field]=clone(visible.proposal[field]);

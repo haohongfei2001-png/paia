@@ -96,7 +96,7 @@ jobs:
         run: npm run build:release
 
   targeted_browser:
-    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER'))
+    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER'))
     name: Candidate affected browser
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -131,8 +131,12 @@ jobs:
         if: contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER')
         run: xvfb-run -a node --test tests/uir-03-thought-original-chrome-e2e.test.mjs
 
+      - name: AI candidate comparison, explicit decisions and stale protection
+        if: contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER')
+        run: xvfb-run -a node --test tests/uir-03-ai-candidate-chrome-e2e.test.mjs
+
       - name: Retain Thought root and Reader visual evidence
-        if: always() && contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER')
+        if: always() && (contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER'))
         uses: actions/upload-artifact@v4
         with:
           name: vs05-topic-root-candidate

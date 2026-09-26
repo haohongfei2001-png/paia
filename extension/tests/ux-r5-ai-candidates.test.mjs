@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {append,completeFixture,meta,rows,response} from './harness/original-complete.mjs';
 import {DeepSeekOrganizerProvider} from '../core/organizer/deepseek.js';
 import {AIPresentationRunner,aiPresentationStatus,editAIPresentation,aiPresentationRevisions} from '../core/organizer/ai-presentation.js';
+import {aiCandidateKey} from '../core/organizer/ai-candidate.js';
 import {AI_LIST_FIELDS} from '../core/organizer/ai-contract.js';
 import {BackupService} from '../core/backup-service.js';
 
@@ -28,15 +29,15 @@ test('UX-R5 update always prepares a candidate and never replaces the currently 
 
 test('UX-R5 candidate choices are staged and one atomic save adopts selected sections while protecting kept sections',async()=>{
  const f=await fixture();let topic=await candidateAfterUpdate(f,{protect:true}),revision=topic.presentation.revision,candidate=topic.candidate;assert.ok(candidate);
- const partial={blockSummary:'adopt'};await assert.rejects(()=>editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:revision,candidateDecisions:partial,operationId:crypto.randomUUID()}),error=>error?.code==='INVALID_OUTPUT');
+ const partial={blockSummary:'adopt'};await assert.rejects(()=>editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:revision,expectedCandidateKey:aiCandidateKey(candidate),candidateDecisions:partial,operationId:crypto.randomUUID()}),error=>error?.code==='INVALID_OUTPUT');
  topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.presentation.revision,revision);assert.ok(topic.candidate);assert.equal(topic.presentation.blockSummary,'AI 摘要 1');assert.equal(topic.presentation.currentView,'人工维护的当前理解');
- const full=decisions(candidate,{blockSummary:'adopt',currentView:'keep'}),saved=await editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:revision,candidateDecisions:full,operationId:crypto.randomUUID()});assert.equal(saved.revision,revision+1);
+ const full=decisions(candidate,{blockSummary:'adopt',currentView:'keep'}),saved=await editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:revision,expectedCandidateKey:aiCandidateKey(candidate),candidateDecisions:full,operationId:crypto.randomUUID()});assert.equal(saved.revision,revision+1);
  topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.candidate,null);assert.equal(topic.presentation.blockSummary,'AI 摘要 2');assert.equal(topic.presentation.currentView,'人工维护的当前理解');assert.equal(topic.presentation.protections.blockSummary,true);assert.equal(topic.presentation.protections.currentView,true);assert.equal(f.calls(),2);assert.deepEqual((await aiPresentationRevisions(f.s,{topicId:topic.topicId})).items.map(row=>row.actor),['ai','user','user']);
 });
 
 test('UX-R5 candidate save fails closed when the current draft or Topic material changes during comparison',async()=>{
  const f=await fixture();let topic=await candidateAfterUpdate(f,{protect:true}),candidate=topic.candidate,revision=topic.presentation.revision,full=decisions(candidate,{blockSummary:'adopt',currentView:'keep'});
- await editAIPresentation(f.s,{topicId:topic.topicId,field:'blockSummary',value:'比较期间人工修改',expectedRevision:revision,operationId:crypto.randomUUID()});topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.candidate.stale,true);await assert.rejects(()=>editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:topic.presentation.revision,candidateDecisions:full,operationId:crypto.randomUUID()}),error=>error?.code==='STALE_BASE');
+ await editAIPresentation(f.s,{topicId:topic.topicId,field:'blockSummary',value:'比较期间人工修改',expectedRevision:revision,operationId:crypto.randomUUID()});topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.candidate.stale,true);await assert.rejects(()=>editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:topic.presentation.revision,expectedCandidateKey:aiCandidateKey(candidate),candidateDecisions:full,operationId:crypto.randomUUID()}),error=>error?.code==='STALE_BASE');
  assert.equal(topic.presentation.blockSummary,'比较期间人工修改');await addDelta(f,'第三阶段：比较期间材料又变化。','ux-r5-third');topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.candidate.stale,true);assert.equal(f.calls(),2);
 });
 
@@ -50,4 +51,20 @@ test('UX-R5 Backup round-trip preserves a valid candidate without changing the c
 
 test('UX-R5 no-delta update and status reads spend zero additional provider requests',async()=>{
  const f=await fixture();assert.equal((await f.ai.wake(action())).completed,true);const before=f.calls();await aiPresentationStatus(f.s);await aiPresentationStatus(f.s);const result=await f.ai.wake(action());assert.equal(result.noDelta,true);assert.equal(result.requestCount,0);assert.equal(f.calls(),before);
+});
+
+test('VS-05 saving choices fences the reviewed candidate even when current work revision is unchanged',async()=>{
+ const f=await fixture(),before=await candidateAfterUpdate(f,{protect:true}),candidate=before.candidate,key=aiCandidateKey(candidate),full=decisions(candidate,{blockSummary:'adopt',currentView:'keep'}),operationId=crypto.randomUUID();
+ const currentId='aiPresentation:'+before.topicId,stored=await meta(f.s,currentId);
+ // Model another window finishing a new proposal after the first comparison.
+ // Material and current-work revision remain identical: neither older fence detects it.
+ const replacement=structuredClone(stored.candidate);replacement.proposal.blockSummary='另一窗口的未核对候选';
+ await f.s.foundationWrite(t=>t.put('meta',{...stored,candidate:replacement}));
+ const reviewed=(await aiPresentationStatus(f.s)).topics[0];assert.equal(reviewed.candidate.stale,false);assert.equal(reviewed.presentation.revision,before.presentation.revision);assert.notEqual(aiCandidateKey(reviewed.candidate),key);
+ const revisions=await aiPresentationRevisions(f.s,{topicId:before.topicId}),receipts=await rows(f.s,'operationReceipts');
+ for(const expectedCandidateKey of [undefined,'',key])await assert.rejects(()=>editAIPresentation(f.s,{topicId:before.topicId,expectedRevision:before.presentation.revision,expectedCandidateKey,candidateDecisions:full,operationId}),error=>error?.code==='STALE_BASE');
+ assert.deepEqual(await meta(f.s,currentId),{...stored,candidate:replacement});assert.deepEqual(await aiPresentationRevisions(f.s,{topicId:before.topicId}),revisions);assert.deepEqual(await rows(f.s,'operationReceipts'),receipts);
+ const request={topicId:before.topicId,expectedRevision:before.presentation.revision,expectedCandidateKey:aiCandidateKey(reviewed.candidate),candidateDecisions:full,operationId};
+ const saved=await editAIPresentation(f.s,request);assert.equal(saved.revision,before.presentation.revision+1);assert.deepEqual(await editAIPresentation(f.s,request),saved);
+ const after=(await aiPresentationStatus(f.s)).topics[0];assert.equal(after.presentation.blockSummary,'另一窗口的未核对候选');assert.equal(after.presentation.currentView,before.presentation.currentView);assert.equal(after.candidate,null);assert.equal(f.calls(),2);
 });

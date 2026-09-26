@@ -12,7 +12,7 @@ current_slice: VS-05
 
 current_slice_status: ACTIVE — VS-04_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED
 
-current_round: CPV1-05.0–05.3 / VS-05 Batch A
+current_round: CPV1-05.4 / VS-05 Batch A
 
 current_round_status: ACTIVE / VS-05_BATCH_A
 
@@ -370,3 +370,10 @@ Exact candidate `bb69993c43fb5ad19f5732a29d7d581028354672` ran targeted Candidat
 ### CPV1-05.3 follow-through review
 
 Exact `8a2be8f28c328acef6cc26f1fc5b3a790f58cc7e` / targeted run `36218963745` passed contracts/privacy/release and all new stale-body, purge, malformed-reference and concurrent-preflight/CAS unit cases. The normal save test then failed reading `entryRelations[0].value`: relation rows are stored directly, unlike Input block wrappers. Its oracle now reads the actual direct row, retaining all identity/digest/portable-Backup assertions. Real browser progressed through independent no-Topic save and failed explicit relation save. Bounded producer-to-composer review found the menu passed id/revision but omitted reviewed body; digest construction used undefined text and occurred before the save try/finally. Menu now passes its reviewed body snapshot; digest and request preparation share the existing recoverable save boundary so failure preserves draft and releases disabled button. Original content, exact reviewed revision/digest/CAS checks and privacy/source fences remain. No timeouts/fixtures/assertions relaxed, no unchanged-head rerun/full dispatch; new coherent cloud candidate pending.
+
+
+## CPV1-05.3 affected gate receipt and CPV1-05.4 candidate-save fence
+
+Exact `f8f8268a4351387b9dffc402874ed1df61c8aace` / [Candidate Gate 36219446072](https://github.com/haohongfei2001-png/paia/actions/runs/36219446072) passed unit, contracts/privacy, release and real source+built-release Thought browser. Independent no-Topic creation, explicitly selected relation, creation time, inspection, unchanged original and concurrent-save/source fences now have affected engineering evidence; B-01 remains deferred and no full certification is claimed.
+
+CPV1-05.4 review found a distinct candidate-version race: current-work revision and material fences do not distinguish a newer proposal finishing after the UI's final status read. UI already keys staged choices by reviewed candidate content, but save RPC omitted that identity. The coherent batch shares the existing candidate key with core and requires its exact match in the atomic save transaction; request digest/idempotency also binds it. Missing/empty/superseded keys fail closed with no revision, receipt, protected-field or candidate change. Deterministic replacement-at-identical-current-revision/material regression proves rejection and explicit new review/retry exactly once. Existing stale-material/draft, purge, Backup, all-field decisions, protection and provider-cost assertions remain. No persisted schema migration, new data access, automatic adoption or owner-meaning choice. Draft validation switches to the affected existing source+built-release AI candidate browser journey; the passed root/Thought journey remains in full certification. New affected checks pending; current Topic/delta/affected-old-relation pipeline audit, semantic fidelity/motion and end-to-end exits remain open.
