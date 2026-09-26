@@ -1,7 +1,7 @@
 import {request,element} from './common.js';
 const c=(zh,en)=>document.documentElement.lang.startsWith('en')?en:zh;
 const button=(zh,en,fn)=>{const b=element('button','',c(zh,en));b.type='button';b.addEventListener('click',()=>void Promise.resolve().then(fn).catch(e=>current?.feedback(message(e))));return b;};
-const message=e=>({MEMORY_EXPIRED:c('本次预览已失效，请重新选择材料。','This preview expired. Select the materials again.'),MEMORY_DENIED:c('此项已设为不用于 AI，请核对来源限制。','A source restriction blocks this material.'),MEMORY_STALE:c('材料已变化，请核对后重新准备。','Materials changed. Review and prepare again.'),MEMORY_LIMIT:c('本次材料达到保护上限。请手动分批，内容没有被截断。','This selection reached the safety limit. Split it manually; nothing was truncated.')}[e.code]||c('本机操作未完成，选择与草稿仍保留。请重试。','The local action failed. Your selection and draft are retained. Retry.'));
+const message=e=>({MEMORY_EMPTY:c('这组材料中没有可选的当前文字。','This group has no current text to select.'),MEMORY_UNAVAILABLE:c('这组材料有无法完整核验的内容。请从来源逐项选择；本次材料没有被改动。','This group cannot be fully verified. Select individual materials from the source; your selection is unchanged.'),MEMORY_EXPIRED:c('本次预览已失效，请重新选择材料。','This preview expired. Select the materials again.'),MEMORY_DENIED:c('此项已设为不用于 AI，请核对来源限制。','A source restriction blocks this material.'),MEMORY_STALE:c('材料已变化，请核对后重新准备。','Materials changed. Review and prepare again.'),MEMORY_LIMIT:c('本次材料达到保护上限。请手动分批，内容没有被截断。','This selection reached the safety limit. Split it manually; nothing was truncated.')}[e.code]||c('本机操作未完成，选择与草稿仍保留。请重试。','The local action failed. Your selection and draft are retained. Retry.'));
 let current=null;
 export const getMaterialTray=()=>current;
 export class MaterialTray {
@@ -20,7 +20,7 @@ export class MaterialTray {
  feedback(text){if(this.status)this.status.textContent=text;}
  invalidateOutput(){this.root.querySelector('#material-output-text')?.replaceChildren();for(const b of this.root.querySelectorAll('[data-output]'))b.disabled=true;this.root.querySelector('.material-copy-fallback')?.remove();}
  async refresh(epoch=this.sourceEpoch){if(!this.data||this.expired)return;await this.perform(async()=>{const previous=this.data,wasRechecking=this.rechecking,next=await this.rpc('read');if(epoch!==this.sourceEpoch)return null;this.data=next;this.rechecking=false;for(const i of this.data.items)if(i.state==='blocked')this.drafts.delete(i.itemId);const editing=this.root.querySelector('textarea:focus');if(editing){for(const i of this.data.items)if(i.state==='blocked'){const field=[...this.root.querySelectorAll('[data-material-edit]')].find(n=>n.dataset.materialEdit===i.itemId);if(field){field.value='';field.readOnly=true;}}this.feedback(this.data.state==='blocked'||this.data.state==='stale'?message({code:'MEMORY_STALE'}):c('本次改写仍保留。','Your output edits are retained.'));}else if(wasRechecking||this.visibleChanged(previous,next))this.render();return true;});}
- visibleChanged(a,b){if(!a||!b||a.state!==b.state||a.note!==b.note||a.text!==b.text||a.characters!==b.characters||a.items.length!==b.items.length)return true;return b.items.some((item,index)=>{const old=a.items[index];return !old||old.itemId!==item.itemId||old.state!==item.state||old.body!==item.body||old.title!==item.title||old.edited!==item.edited||JSON.stringify(old.ref)!==JSON.stringify(item.ref)||JSON.stringify(old.restriction)!==JSON.stringify(item.restriction);});}
+ visibleChanged(a,b){if(!a||!b||a.state!==b.state||a.note!==b.note||a.text!==b.text||a.characters!==b.characters||a.items.length!==b.items.length||JSON.stringify(a.containers||[])!==JSON.stringify(b.containers||[]))return true;return b.items.some((item,index)=>{const old=a.items[index];return !old||old.itemId!==item.itemId||old.state!==item.state||old.body!==item.body||old.title!==item.title||old.edited!==item.edited||JSON.stringify(old.ref)!==JSON.stringify(item.ref)||JSON.stringify(old.restriction)!==JSON.stringify(item.restriction);});}
  activate(active){this.active=active;if(active){this.advanced=false;this.drawer.hidden=true;document.querySelector('.app-shell').inert=false;this.panel.prepend(this.root);this.root.hidden=false;this.legacyRoot.hidden=true;void this.perform(async()=>{const previous=this.data,next=await this.rpc('read');this.data=next;this.rechecking=false;if(!this.root.firstChild||this.visibleChanged(previous,next))this.render();});}else if(!this.drawer.hidden){this.root.hidden=false;}else this.root.hidden=true;}
  legacy(){this.advanced=true;this.root.hidden=true;this.legacyRoot.hidden=false;this.drawer.hidden=true;}
  openDrawer(){if(this.drawer.hidden)this.originFocus=document.activeElement;this.root.hidden=false;this.drawer.append(this.root);this.drawer.hidden=false;this.root.dataset.location='drawer';this.render();if(innerWidth<=600){document.querySelector('.app-shell').inert=true;this.root.querySelector('#material-title').tabIndex=-1;this.root.querySelector('#material-title').focus();}}
@@ -40,10 +40,39 @@ export class MaterialTray {
   if(this.mode==='tray')this.renderTray();else this.renderPreview();
   if(focus){const area=[...this.root.querySelectorAll('textarea')].find(n=>n.dataset.materialEdit===focus);if(area){area.focus({preventScroll:true});area.setSelectionRange(start,end);}}if(!this.drawer.hidden)this.drawer.scrollTop=scroll;
  }
+ async chooseContainers(){
+  const prepared=await this.perform(async()=>{await this.flush();return true;});if(!prepared)return;
+  const dialog=element('dialog','topic-action-dialog material-container-dialog'),chosen=new Map(),body=element('div','material-container-list'),status=element('p','material-container-status'),pages=element('div','material-actions'),kinds=element('div','material-actions');
+  let kind='conversation',cursor=null,history=[],page=null,loading=false;
+  dialog.append(element('h2','',c('整组选择材料','Choose whole groups')),element('p','',c('选择 Conversation 或一个/多个 Topic 的当前材料。加入后固定本次版本；上游新增、移除或修改会使旧预览失效。任何超限都会明确拒绝，文字不会截断。','Choose the current materials in a Conversation or one or more Topics. Adding fixes the selected versions; upstream additions, removals or edits invalidate the preview. Limits are refused explicitly; text is never truncated.')),kinds,status,body,pages);
+  status.setAttribute('role','status');
+  const cancel=button('取消','Cancel',()=>dialog.close()),confirm=button('加入整组材料','Add selected groups',async()=>{
+   if(loading||!chosen.size)return;
+   const added=await this.perform(async()=>{await this.flush();this.data=await this.rpc('addContainers',{containers:[...chosen.values()].map(({kind,id})=>({kind,id}))});this.mode='tray';this.render();document.dispatchEvent(new CustomEvent('paia:materials-changed',{detail:{refs:this.data.items.map(i=>i.ref)}}));return true;});
+   if(added)dialog.close();else status.textContent=this.status?.textContent||message({});
+  });
+  const update=()=>{confirm.disabled=loading||!chosen.size;status.textContent=c('已选择 '+chosen.size+' 组；尚未加入。',chosen.size+' groups selected; not added yet.');};
+  const loadPage=async next=>{
+   if(loading)return;loading=true;confirm.disabled=true;status.textContent=c('正在读取材料组……','Reading groups…');for(const b of [...kinds.querySelectorAll('button'),...pages.querySelectorAll('button')])b.disabled=true;
+   const loaded=await this.perform(async()=>{const result=await this.rpc('containers',{kind,cursor:next,limit:40});this.data=result;return result.containerPage;});
+   loading=false;if(!dialog.open)return;
+   for(const b of kinds.querySelectorAll('button'))b.disabled=false;
+   if(!loaded){for(const b of pages.querySelectorAll('button'))b.disabled=false;status.textContent=this.status?.textContent||message({});confirm.disabled=!chosen.size;return;}
+   page=loaded;cursor=next;body.replaceChildren();pages.replaceChildren();
+   for(const item of page.items){const key=JSON.stringify([item.kind,item.id]),label=element('label','material-container-choice'),box=element('input');box.type='checkbox';box.checked=chosen.has(key);box.dataset.containerId=item.id;box.setAttribute('aria-label',item.title);label.append(box,element('span','',item.title));body.append(label);
+    box.addEventListener('change',()=>{if(box.checked){if(chosen.size>=20){box.checked=false;status.textContent=c('最多同时选择 20 组；没有自动删掉其他选择。','Select up to 20 groups; other selections were retained.');return;}chosen.set(key,item);}else chosen.delete(key);update();});
+   }
+   if(!page.items.length)body.append(element('p','',c('没有材料组。','No groups found.')));
+   const prev=button('上一页','Previous page',()=>{const target=history.pop();return loadPage(target);}),nextButton=button('下一页','Next page',()=>{history.push(cursor);return loadPage(page.nextCursor);});prev.disabled=!history.length;nextButton.disabled=!page.nextCursor;pages.append(prev,nextButton);update();
+  };
+  for(const [value,zh,en]of [['conversation','Conversation','Conversations'],['topic','Topic','Topics']])kinds.append(button(zh,en,()=>{if(loading)return;kind=value;history=[];return loadPage(null);}));
+  dialog.append(cancel,confirm);dialog.addEventListener('close',()=>dialog.remove(),{once:true});document.body.append(dialog);dialog.showModal();cancel.focus();await loadPage(null);
+ }
  renderTray(){
   const layout=element('div','material-tray-layout'),main=element('section','material-tray-main'),secondary=element('div','material-tray-secondary');
   const count=element('h3','material-count',c('已选 '+this.data.items.length+' 项',this.data.items.length+' selected materials'));count.id='material-count';main.append(count);
-  const choose=element('div','material-actions material-source-actions');choose.append(button('从档案选择','Choose from Archive',()=>{this.closeDrawer();document.dispatchEvent(new CustomEvent('paia:search-open',{detail:{types:['input']}}));}),button('从主题选择','Choose from Topics',async()=>{this.closeDrawer();await this.onHome();}),button('清空本次材料','Clear selection',()=>this.change('clear')));main.append(choose);
+  const choose=element('div','material-actions material-source-actions');choose.append(button('整组选择','Choose whole groups',()=>this.chooseContainers()),button('从档案选择','Choose from Archive',()=>{this.closeDrawer();document.dispatchEvent(new CustomEvent('paia:search-open',{detail:{types:['input']}}));}),button('从主题选择','Choose from Topics',async()=>{this.closeDrawer();await this.onHome();}),button('清空本次材料','Clear selection',()=>this.change('clear')));main.append(choose);
+  for(const group of this.data.containers||[]){const omitted=group.memberCount-group.selectedMemberCount;main.append(element('p','material-container-summary',group.title+' · '+c('固定 '+group.memberCount+' 项'+(omitted?'；你移除了 '+omitted+' 项':'')+(group.state==='ready'?'':'；请清空后重新选择整组'),group.memberCount+' fixed members'+(omitted?'; '+omitted+' removed by you':'')+(group.state==='ready'?'':'; clear and reselect the group'))));}
   if(!this.data.items.length)main.append(element('p','material-empty',c('先选择具体文字；不需要创建主题或配置 Profile。','Choose specific text. A Topic or Profile is not required.')));
   const list=element('div','material-list');for(const [index,item]of this.data.items.entries()){
    const row=element('article','material-row');row.dataset.materialId=item.itemId;const role=element('small','material-source-role',item.ref.kind==='ai'?c('AI 整理','AI-generated'):item.ref.kind==='source'?c('当时记录','Source snapshot'):c('当前工作文字','Current working text'));row.append(element('strong','material-row-title',item.title),role,element('p','material-snippet',item.body));

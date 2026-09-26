@@ -118,7 +118,7 @@ jobs:
           "$CHROME_BIN" --version
       - name: Fixed Context manifest and exact preview release
         if: contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER')
-        run: xvfb-run -a node --test --test-name-pattern="UX-R4 unorganized Input -> exact editable preview|UX-R4 real worker Grant once" tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+        run: xvfb-run -a node --test --test-name-pattern="UX-R4 unorganized Input -> exact editable preview|UX-R4 real worker Grant once|VS06 whole-group chooser" tests/ux-r4-search-reuse-chrome-e2e.test.mjs
       - name: Reader editing and lazy long-entry regression
         if: contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER')
         run: |

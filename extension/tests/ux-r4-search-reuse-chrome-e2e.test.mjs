@@ -62,3 +62,46 @@ test('UX-R4 real worker Grant once, revocation and manual identity fences remain
 await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{includeUnorganizedInputs:true,externalAccess:true}});const built=await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'UXR4_GRANT_MATCH',budget:'short'}});assert.ok(built.items.length>0);const grant=await rpc(p,'PAIA_PASSPORT_CREATE',{grant:{consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'}});await rpc(p,'PAIA_CONTEXT_BIND',{previewId:built.previewId,grantId:grant.grantId});const results=await p.evaluate(async opts=>Promise.all([1,2].map(()=>chrome.runtime.sendMessage({type:'PAIA_MEMORY_SHARE',options:opts}))),{previewId:built.previewId,grantId:grant.grantId,format:'copy'});assert.equal(results.filter(r=>r.ok).length,1,JSON.stringify(results));assert.equal((await rpc(p,'PAIA_PASSPORT_STATUS')).grants.find(g=>g.grantId===grant.grantId).useCount,1);const denied=await p.evaluate(id=>chrome.runtime.sendMessage({type:'PAIA_CONTEXT_MANUAL',options:{action:'read',selectionId:id,generation:0}}),built.previewId);assert.equal(denied.error,'MEMORY_EXPIRED');clean(h);
 const second=await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'UXR4_GRANT_MATCH'}}),revocable=await rpc(p,'PAIA_PASSPORT_CREATE',{grant:{consumer:'claude',purpose:'writing',profileId:'default',duration:'7d'}});await rpc(p,'PAIA_CONTEXT_BIND',{previewId:second.previewId,grantId:revocable.grantId});await rpc(p,'PAIA_PASSPORT_REVOKE',{grantId:revocable.grantId});const rejected=await p.evaluate(options=>chrome.runtime.sendMessage({type:'PAIA_MEMORY_SHARE',options}),{previewId:second.previewId,grantId:revocable.grantId,format:'markdown'});assert.equal(rejected.error,'MEMORY_DENIED');clean(h);
 }finally{await h.close();}});
+
+test('VS06 whole-group chooser fixes Conversation and cross-page Topics; membership changes refuse old output',{timeout:180000},async()=>{
+ const texts=['CONVERSATION_LONG_CANARY '+ '完整长句 👩🏽‍💻\n'.repeat(500),'CONVERSATION_SECOND_CANARY'],{h,p,chat}=await start(texts);
+ try{
+  await p.locator('#primary-nav [data-view="memory"]').click();await until(()=>p.locator('#material-workbench').isVisible());
+  await p.getByRole('button',{name:'整组选择',exact:true}).click();const dialog=p.locator('.material-container-dialog');
+  await until(async()=>await dialog.locator('input[type=checkbox]').count()===1,'Conversation metadata chooser');
+  await dialog.locator('input[type=checkbox]').check();await dialog.getByRole('button',{name:'加入整组材料',exact:true}).click();
+  await until(async()=>(await tray(p)).containers?.length===1&&!(await dialog.count()),'whole Conversation admitted');
+  const selected=await tray(p);assert.equal(selected.items.length,2);assert.deepEqual(new Set(selected.items.map(i=>i.body)),new Set(texts));assert.equal(selected.manifest.containers[0].members.length,2);
+  await p.locator('#material-preview').click();await until(async()=>(await tray(p)).state==='ready');const fixed=await tray(p);assert.equal(await p.locator('#material-output-text').textContent(),fixed.text);
+  for(const text of texts)assert.ok(fixed.text.includes(text));assert.equal(fixed.manifest.complete,true);assert.equal(fixed.manifest.partial,false);
+  await h.send(chat,{id:'vs06-group-new-input',text:'NEW_CONVERSATION_MEMBER'});
+  await until(async()=>(await h.state()).records.length===3,'upstream added Input');
+  await p.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));await getMaterialTray().refresh();});
+  await until(async()=>(await tray(p)).state==='stale','new member invalidates fixed group');assert.equal((await tray(p)).items.length,2);assert.equal(await p.locator('#material-output-text').count(),0);assert.equal(await p.locator('[data-output]').count(),0);
+  await p.getByRole('button',{name:'返回材料',exact:true}).click();await p.getByRole('button',{name:'清空本次材料',exact:true}).click();await until(async()=>(await tray(p)).items.length===0);
+  const seeded=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js');const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();const topics=[];
+   for(let i=0;i<42;i++){
+    const topic=await s.createTopic({name:'GROUP_TOPIC_'+String(i).padStart(2,'0'),operationId:crypto.randomUUID()});
+    const entry=await s.createEntry({actor:'user',body:'TOPIC_BODY_'+i,type:'idea',formation:'explicit',evidence:[],operationId:crypto.randomUUID()});
+    await s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:entry.revision,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,operationId:crypto.randomUUID()});topics.push(topic.id);
+   }
+   return topics;
+  });
+  await p.getByRole('button',{name:'整组选择',exact:true}).click();await p.locator('.material-container-dialog').getByRole('button',{name:'Topic',exact:true}).click();
+  await until(async()=>await dialog.locator('input[type=checkbox]').count()===40,'first metadata page');
+  const firstId=await dialog.locator('input[type=checkbox]').first().getAttribute('data-container-id');await dialog.locator('input[type=checkbox]').first().check();
+  await dialog.getByRole('button',{name:'下一页',exact:true}).click();await until(async()=>await dialog.locator('input[type=checkbox]').count()===2,'second metadata page');
+  const secondId=await dialog.locator('input[type=checkbox]').first().getAttribute('data-container-id');await dialog.locator('input[type=checkbox]').first().check();
+  await dialog.getByRole('button',{name:'上一页',exact:true}).click();await until(async()=>await dialog.locator('input[type=checkbox]').count()===40,'return to first metadata page');assert.equal(await dialog.locator('input[type=checkbox]').first().isChecked(),true);
+  await dialog.getByRole('button',{name:'加入整组材料',exact:true}).click();await until(async()=>(await tray(p)).containers?.length===2&&!(await dialog.count()),'two Topics admitted');
+  assert.deepEqual((await tray(p)).containers.map(g=>g.id),[firstId,secondId]);assert.equal((await tray(p)).items.length,2);
+  await p.locator('#material-preview').click();await until(async()=>(await tray(p)).state==='ready');const output=await tray(p);
+  for(const id of [firstId,secondId])assert.ok(output.text.includes('TOPIC_BODY_'+seeded.indexOf(id)));assert.equal(output.manifest.complete,true);assert.equal(output.manifest.containers.length,2);
+  await p.evaluate(()=>{globalThis.__vs06GroupCopied=null;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{globalThis.__vs06GroupCopied=text;}}});});
+  await p.locator('[data-output=copy]').click();await until(()=>p.evaluate(()=>globalThis.__vs06GroupCopied!==null));assert.equal(await p.evaluate(()=>globalThis.__vs06GroupCopied),output.text);
+  const denied=await rpc(p,'PAIA_MEMORY_AUTHORIZE',{options:{topicIds:[firstId],decision:'never'}});assert.equal(denied.saved,true);
+  await p.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));await getMaterialTray().refresh();});
+  await until(async()=>(await tray(p)).state==='blocked');assert.equal(await p.locator('#material-output-text').count(),0);assert.equal((await tray(p)).text,'');assert.equal((await tray(p)).manifest.complete,false);clean(h);
+ }finally{await h.close();}
+});

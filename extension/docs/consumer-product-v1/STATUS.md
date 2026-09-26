@@ -618,3 +618,57 @@ authorized retrieval/Profile and explicit package splitting remain open in this
 same Batch A writer.06.5–06.7 remain subsequent scope. VS05 semantic/current-live/
 device/signing and prior deferred authority gates remain unchanged and unproved;
 no external connector/read/access/auto-send or production/slice COMPLETE claim.
+
+
+## VS-06 Batch A — whole-group fixed selection and exact membership
+
+Parent exact8e53dc1d8a7a6d0378541987aacfbba1a560f9c5 / Candidate36269945522 SUCCESS:
+unit108481858647 reports1094PASS/0FAIL (including all6 new manifest cases);
+affected real Chrome108481858568 reports2PASS/0FAIL; contracts/privacy108481858600,
+release108481858611 and aggregate108482509316 PASS. Full certification36269945498
+is deliberately SKIPPED for draft, not claimed PASS. The first manifest checkpoint's
+NOT_RUN is superseded only by this exact-head targeted evidence.
+
+The next coherent implementation extends the same ephemeral manifest with whole
+Conversation/Topic/multiple-Topic membership snapshots. Indexed cursor pages read
+all eligible current Input/Thought members, not just the visible page. Topic
+authored summary is a typed revision-bound material; human authorship requires the
+canonical summary edit provenance and protection, while unknown historical note
+authorship becomes blocked rather than an invented user expression. All nonempty
+valid cached AI presentation fields remain separately labeled generated material.
+Shared members are deduplicated by the existing exact material key; each chosen
+container keeps its own full fixed membership. Upstream member addition/removal,
+content revision or presentation field changes invalidate the old complete preview
+without silently rebinding it. Explicit user removal remains visible as an exclusion
+and a selected/total group-member count.
+
+Whole-group admission reads membership and exact material versions in one readonly
+repository transaction; the unchanged200material/4million UTF16-unit protection
+limits are checked before adding any group/member. Over-limit refusal retains the
+prior selection/generation/exact preview and never accepts a prefix. Missing
+indexed payloads fail closed; unavailable/denied member bytes cannot be released.
+No grant, new permanent store, provider request or external release is added.
+
+The production material workspace offers a temporary metadata-only paginated
+Conversation/Topic chooser, keeps explicit selections across pages/kinds, adds
+multiple chosen groups only on confirmation, and shows fixed/explicitly removed
+coverage. Existing specific-text selection, drafts, preview, edits/redaction,
+copy/Markdown and restriction workflows remain.
+
+Seven actual repository/service regressions cover105Input members crossing pages;
+105Thought+35new/shared multi-Topic members with authored note and cached AI;
+201member atomic limit refusal; explicit exclusion plus membership removal;
+denial/purge;42Topic metadata pagination and malformed cursors; and Topic note
+revision/unknown authorship. One additional actual extension Chrome journey covers
+whole Conversation preview, new-member invalidation,42Topic chooser pagination/
+cross-page multi-selection, exact released copy and never-use blocking. It runs
+alongside the retained2 affected Chrome paths; no original test/fixture/assertion,
+deadline or protection limit is removed or lowered.
+
+This new coherent candidate's targeted cloud evidence is NOT_RUN until Actions.
+06.0–06.4 remain IN_PROGRESS in sole writer PR86: authorized task retrieval/Profile,
+workspace convergence and explicit multi-package splitting still require engineering.
+Later06.5–06.7/full-slice/exact-main/receipt remain pending. Full Certification stays
+reserved for stable slice and exact-main boundaries;100k/10k recovery is not repeated.
+All prior semantic/current-live/private/device/signing deferred gates stay scoped
+and unproved. No slice/production COMPLETE or automatic send claim.
