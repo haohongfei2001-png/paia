@@ -14,7 +14,7 @@ current_slice_status: IN_PROGRESS — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFE
 
 current_round: CPV1-06.0–06.4 / VS-06 Batch A
 
-current_round_status: IN_PROGRESS / VS06_WORKSPACE_CONVERGENCE_CANDIDATE
+current_round_status: READY_FOR_INTEGRATION / VS06_BATCH_A_FULL_CERT_PENDING
 
 current_writer: MANAGER / sole VS-06 Batch A branch feat/vs06-context-completeness
 
@@ -737,3 +737,12 @@ Existing allowed-scope management remains authoritative. A dedicated Return to t
 One new actual Chrome journey exercises readonly metadata/keyboard Escape/focus, unchanged config/Profile/grants, unsent draft and fixed-generation round-trip, exact copy and an actual never restriction followed by refusal on return. All prior browser/test assertions remain. Draft targeted selector adds this sixth affected path under existing VS06 marker; no full run, timeout inflation or synthetic recovery repeat. Candidate verification NOT_RUN until GitHub Actions.
 
 VS06 remains IN_PROGRESS; workspace/budget candidates do not close review06.5/Passport controls06.6/security-reliability06.7. No real connector/direct-send claim, slice closure, merge, exact-main receipt or full certification. Existing semantic/private/current-live/device/owner evidence gates remain scoped deferred/unproved.
+
+
+## VS-06 Batch A stable boundary — targeted exits verified; full integration pending
+
+Exactc584585bc50185411fe23ef405ffcea491c4904b Candidate36277682376 SUCCESS: unit1085034585051120PASS/0FAIL; affected Chrome1085034585686PASS/0FAIL including actual workspace permission round-trip; release108503458361/contractsprivacy108503458494/aggregate108504076239 PASS. All fixed task/draft/source-restriction and legacy affected cases passed; full36277682366/UIrefresh36277682350 deliberately skipped on draft.
+
+Automatable Batch A 06.0–06.4 outcomes are implemented/proven: exact manifest/revision/policy/SHA fences, one-off primary workspace and permission round-trip, whole Conversation/Topic/multiple Topic full coverage with paged selection/atomic protective refusal, optional authorized scoped retrieval, and lossless reviewed output packages under explicit budgets. Prior exact heads/evidence above remain valid for unchanged code.
+
+Ready stable candidate is scoped to Batch A. EXECUTION_PROTOCOL7.2 classifies the changed authorization/release revalidation invariant as full integration depth at this boundary. Run full once on this stable boundary head via PAIA_FULL_CERTIFICATION; no superseded candidate certification/retry. Do not merge before exact-head full PASS. After merge perform exact-main full once and receipt; then acquire Batch B06.5–06.6 sole writer. VS06 slice06.7 remains open and all deferred external/private/device/current-live obligations remain honest. Full pending is asynchronous only; JAE independent JCR08 work continues.
