@@ -8,6 +8,8 @@ permissions:
 concurrency:
   group: website-reviewed-source-build
   cancel-in-progress: false
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
 jobs:
   materialize:
     if: github.repository == 'haohongfei2001-png/paia' && github.ref == 'refs/heads/website/ai-context-redesign-20260926'
