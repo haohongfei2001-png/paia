@@ -1,3 +1,4 @@
+import {sourceRootPage} from '../thought-root-source-scope.js';
 import {recoverAIDraft} from './ai-draft.js';
 import {changeTopicContainer,removedTopics} from '../topic-governance.js';
 import {topicReadingPage,topicSectionsPage,topicAdjacency} from './topic-reading.js';
@@ -25,7 +26,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
  safeOrganization(t,kind,row){return safeOrganization(this,t,kind,row);}
  clearDerivedMetadata(t,marker){return clearDerivedMetadata(this,t,marker);}
  async canonicalTopic(t,id){return safeOrganization(this,t,'topic',await super.canonicalTopic(t,id));}
- async libraryIndexPage(o){const page=await super.libraryIndexPage(o);return this.run(()=>this.repository.transaction(false,async t=>{for(let i=0;i<page.items.length;i++)page.items[i]=await safeOrganization(this,t,'topic',page.items[i]);return page;}));}
+ async libraryIndexPage(o={}){const page=o.providerKey!==undefined&&o.providerKey!==null?await sourceRootPage(this,o,({query,cursor,limit})=>query?this.searchLibrary({query,cursor,limit}):super.libraryIndexPage({mode:'stable',cursor,limit})):await super.libraryIndexPage(o);return this.run(()=>this.repository.transaction(false,async t=>{for(let i=0;i<page.items.length;i++)page.items[i]=await safeOrganization(this,t,'topic',page.items[i]);return page;}));}
  // Read-only expression chronology; never use capture/model time as expression time.
  async readingEntry(id){
   // Evidence validation and chronology use separate bounded reads. An edit may
@@ -49,7 +50,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async topicAdjacency(o={}){return topicAdjacency(this,o);}
  async topicDocumentPage(o={}){
   const view=o.view??'original';if(!['original','ai'].includes(view))reject('INVALID_OUTPUT');
-  if(view==='original'&&!o.sort)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort?await topicReadingPage(this,o):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;
+  const scoped=o.providerKey!==undefined&&o.providerKey!==null;if(view==='original'&&!o.sort&&!scoped)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort||scoped?await topicReadingPage(this,{...o,sort:o.sort||'asc'}):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;
   if(view==='ai')return {...page,items:[],view,viewState:'not_updated'};
   const items=await this.run(()=>this.repository.transaction(false,async t=>{const out=[];for(const item of page.items)out.push({...item,entry:{...item.entry,...await entryTime(t,item.entry.id),originalSource:false,originalInputId:null}});return out;}));
   return {...page,items,view,viewState:'automatic'};

@@ -62,3 +62,16 @@ for(const rebindFirst of [false,true])test('UX-R3 shared Undo rejects an incompa
  const refs=[shared.items[0],detached.items[0]],items=[];for(const ref of rebindFirst?refs.reverse():refs){const row=await f.s.entry(ref.id);items.push({id:ref.id,revisionId:ref.revisionId,side:'before',expectedRevision:row.revision,expectedInputRevision:row.currentInputRevision});}
  const state=async()=>Object.fromEntries(await Promise.all(['blocks','thoughts','provenance','dependencies','revisions','operationReceipts'].map(async store=>[store,await rows(f.s,store)]))),before=await state(),result=await f.s.thoughtEditHistory({operationId:op(),items,confirmArchive:true});assert.equal(result.conflict,true);assert.equal(result.sourceChanged,true);assert.deepEqual(await state(),before,'incompatible planned Input bodies must not commit any edit, evidence, history or receipt');assert.equal((await f.s.input(f.b.id)).libraryText,'Synthetic final shared body');assert.equal((await f.s.entry(other.id)).body,'Synthetic detached rebind target');
 });
+
+test('VS-05 compact root default preserves a saved grid choice and never rewrites Topic content',async()=>{
+ const f=await completeFixture({texts:['Synthetic untouched source']});
+ const topic=await f.s.createTopic({name:'Synthetic full Topic name',operationId:op()});
+ assert.deepEqual(await f.s.thoughtLayout(),{layout:'list'});
+ assert.deepEqual(await f.s.thoughtLayout('grid'),{layout:'grid'});
+ assert.deepEqual(await f.s.thoughtLayout(),{layout:'grid'});
+ assert.deepEqual(await f.s.thoughtLayout('list'),{layout:'list'});
+ await assert.rejects(f.s.thoughtLayout('unknown'));
+ assert.deepEqual(await f.s.thoughtLayout(),{layout:'list'});
+ assert.equal((await f.s.topic(topic.id)).name,'Synthetic full Topic name');
+ assert.equal((await rows(f.s,'records'))[0].value.originalText,'Synthetic untouched source');
+});

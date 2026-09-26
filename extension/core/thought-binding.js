@@ -66,4 +66,4 @@ export async function prepareBodyEdit(store,t,row,request,reason){
 }
 export const THOUGHT_LAYOUT_ROW='thought-layout:v1';
 export const validThoughtLayout=r=>r?.version===1&&['grid','list'].includes(r.layout)&&Object.keys(r).every(k=>['id','version','layout'].includes(k));
-export async function thoughtLayout(store,layout){if(layout!==undefined&&!['grid','list'].includes(layout))fail();await store.finishFoundation();return store.run(()=>store.repository.transaction(layout!==undefined,async t=>{if(layout)await t.put('meta',{id:THOUGHT_LAYOUT_ROW,version:1,layout});const row=await t.get('meta',THOUGHT_LAYOUT_ROW);return {layout:validThoughtLayout(row)?row.layout:'grid'};},['meta']));}
+export async function thoughtLayout(store,layout){if(layout!==undefined&&!['grid','list'].includes(layout))fail();await store.finishFoundation();return store.run(()=>store.repository.transaction(layout!==undefined,async t=>{if(layout)await t.put('meta',{id:THOUGHT_LAYOUT_ROW,version:1,layout});const row=await t.get('meta',THOUGHT_LAYOUT_ROW);return {layout:validThoughtLayout(row)?row.layout:'list'};},['meta']));}

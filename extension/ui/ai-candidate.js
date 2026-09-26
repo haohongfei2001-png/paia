@@ -5,10 +5,7 @@ const text=value=>Array.isArray(value)?value.map(item=>item?.text||'').filter(Bo
 const button=(label,run)=>{const node=element('button','',label);node.type='button';node.addEventListener('click',()=>void Promise.resolve().then(()=>run(node)));return node;};
 const supporting=(tag,value,className='ai-candidate-note')=>{const node=element(tag,className,value);node.style.color='var(--paia-secondary)';return node;};
 
-export function aiCandidateKey(candidate){
- if(!candidate)return '';
- return JSON.stringify([candidate.expectedRevision,candidate.createdAt||null,candidate.changedFields,candidate.proposal]);
-}
+export {aiCandidateKey} from '../core/organizer/ai-candidate.js';
 
 export function renderAICandidateComparison(root,{candidate,current,choices,onChoice,onSave,onRefresh}){
  const previous=root.querySelector('[data-ai-candidate]'),active=root.ownerDocument.activeElement;

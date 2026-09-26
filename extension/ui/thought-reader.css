@@ -171,3 +171,34 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #library-unplaced-list[hidden]{display:none}
 #library-unplaced-list{display:grid;gap:8px;margin-top:10px}
 #library-unplaced-list>[data-unplaced-id]{min-height:44px;text-align:left}
+
+
+/* CPV1-05.1: compact scanning is the default; saved grid choice is retained.
+   Topic names stay complete. Only the root content cue is visually bounded;
+   opening the Topic shows the unchanged full summary. */
+#thought-list.topic-grid.topic-list-layout{display:block;}
+#thought-list.topic-grid.topic-list-layout .topic-tile{margin-block:0;}
+#thought-list.topic-grid.topic-list-layout .topic-index-row{width:100%;min-height:84px!important;padding:14px 48px 14px 16px!important;gap:6px!important;border:0!important;border-bottom:1px solid var(--paia-subtle)!important;border-radius:0!important;background:transparent!important;}
+#thought-list.topic-grid.topic-list-layout .topic-index-row strong{font-size:18px;line-height:1.5;}
+#thought-list.topic-grid .topic-index-row .summary{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+
+/* VS-05 time jumps stay reachable without widening a narrow Reader. */
+#thought-document #topic-time-order {flex-wrap:wrap;}
+
+/* Unknown dates are a reading group, retaining each original placement. */
+#original-reading-body .topic-unknown-time > .section-heading{display:block;}
+#original-reading-body .topic-unknown-time > .section-heading p{font-size:14px;line-height:1.6;}
+#original-reading-body .topic-origin-section{font-size:13px;line-height:1.6;margin:0 0 6px;}
+
+/* Topic source scope remains a local reading control on narrow screens. */
+#thought-document #topic-source-scope-label:not([hidden]){display:flex;align-items:center;gap:6px;min-width:0;max-width:100%;}
+#thought-document #topic-source-scope{min-width:0;max-width:240px;min-height:40px;padding:6px 8px;border:1px solid var(--paia-subtle);border-radius:8px;background:var(--paia-surface);color:var(--paia-text);font:inherit;}
+@media(max-width:799px){#thought-document #topic-source-scope{min-height:44px;max-width:calc(100vw - 100px);}}
+
+.thought-source-scope-label{display:flex;align-items:center;gap:8px;min-width:0;margin-top:8px}
+#thought-source-scope{min-width:0;max-width:100%;min-height:40px}
+@media(max-width:720px){#thought-source-scope{min-height:44px}}
+
+/* Authored AI fields retain literal line breaks in both overview and collapsed
+   legacy sections. Rendered text must not turn multiline input into a new value. */
+#ai-reading-body [data-ai-field]{white-space:pre-wrap;overflow-wrap:anywhere;}

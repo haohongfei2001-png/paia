@@ -1,6 +1,6 @@
 // A bounded visual transition, never a model request or a progress simulation.
 let running=null;
-export const MEMORY_RECOMPOSITION_MS=720;
+export const MEMORY_RECOMPOSITION_MS=220;
 export async function recomposeMemory(host,update){
  if(running){running.skipTransition();await running.finished.catch(()=>{});}
  if(!host||typeof document.startViewTransition!=='function'||matchMedia('(prefers-reduced-motion: reduce)').matches)return update();

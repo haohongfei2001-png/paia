@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {completeFixture,meta,rows,response} from './harness/original-complete.mjs';
 import {DeepSeekOrganizerProvider} from '../core/organizer/deepseek.js';
 import {AIPresentationRunner,editAIPresentation,aiPresentationStatus,aiPresentationRevisions} from '../core/organizer/ai-presentation.js';
+import {aiCandidateKey} from '../core/organizer/ai-candidate.js';
 import {AI_LIST_FIELDS} from '../core/organizer/ai-contract.js';
 const action=()=>({userActionId:crypto.randomUUID()});
 async function fixture(){const f=await completeFixture({texts:['PAIA 产品设计要保留我的原话以及独立证据。']});await f.runner.wake(action());let count=0;const provider=new DeepSeekOrganizerProvider({limits:f.s.organizerBudget.limits,fetchImpl:async(_url,init)=>{count++;const r=JSON.parse(JSON.parse(init.body).messages[1].content);return response({choices:[{message:{content:JSON.stringify({topicId:r.topicCandidates[0].id,blockSummary:'保留原话，逐步形成思想主题',currentView:'先保持证据独立，再加入综合理解。',...Object.fromEntries(AI_LIST_FIELDS.map(f=>[f,[]])),decisions:[{text:'保留原话',evidenceEntryIds:[r.inputs[0].ref,'invalid'],confidence:1}],harmless:'discard'})}}]});}});return {...f,ai:new AIPresentationRunner(f.s,{provider,credentials:f.credentials}),count:()=>count};}
@@ -17,7 +18,7 @@ test('provider JSON → normalized durable presentation → protected candidate 
  // candidate; only explicit acceptance creates the next current-work revision.
  assert.ok(candidateState.candidate);assert.equal(candidateState.candidate.stale,false);assert.equal(candidateState.candidate.proposal.currentView,'先保持证据独立，再加入综合理解。');assert.equal(candidateState.candidate.proposal.blockSummary,'保留原话，逐步形成思想主题');
  assert.deepEqual((await aiPresentationRevisions(f.s,{topicId:id})).items.map(x=>x.actor),['ai','user','user']);
- const candidateDecisions=Object.fromEntries(candidateState.candidate.changedFields.map(field=>[field,field==='blockSummary'?'adopt':'keep']));await editAIPresentation(f.s,{topicId:id,expectedRevision:p.revision,candidateDecisions,operationId:crypto.randomUUID()});
+ const candidateDecisions=Object.fromEntries(candidateState.candidate.changedFields.map(field=>[field,field==='blockSummary'?'adopt':'keep']));await editAIPresentation(f.s,{topicId:id,expectedRevision:p.revision,expectedCandidateKey:aiCandidateKey(candidateState.candidate),candidateDecisions,operationId:crypto.randomUUID()});
  const accepted=(await aiPresentationStatus(f.s)).topics[0];assert.equal(accepted.candidate,null);assert.equal(accepted.presentation.revision,before.revision+1);assert.equal(accepted.presentation.currentView,'人工维护的理解');assert.equal(accepted.presentation.blockSummary,'保留原话，逐步形成思想主题');assert.equal(accepted.presentation.protections.currentView,true);assert.equal(accepted.presentation.protections.blockSummary,true);
  const revisions=(await aiPresentationRevisions(f.s,{topicId:id})).items;assert.deepEqual(revisions.map(x=>x.actor),['ai','user','user','user']);assert.equal(revisions.at(-1).before.currentView,'人工维护的理解');assert.equal(revisions.at(-1).after.currentView,'人工维护的理解');assert.equal(f.count(),2);
 });

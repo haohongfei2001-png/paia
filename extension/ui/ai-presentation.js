@@ -8,8 +8,8 @@ import {RecoveryDraftSession} from './recovery-draft.js';
 const labels={keyInformation:'已有信息',decisions:'已有决定',preferences:'已有偏好',judgments:'已有判断',openQuestions:'已有问题'};
 const runningStatus={prepared:'正在准备当前主题的材料。',sent:'本次材料已发送给 DeepSeek，正在整理。',response_received:'已收到整理结果，正在核对。',validated:'整理结果已校验，正在保存到本机。'};
 export function aiTopicStatusModel({view='original',hasTopic=false,aiPending=false,statusUnavailable=false,runtime=null,selected=null}={}){
- if(view!=='ai'||!hasTopic)return null;
- const readable=selected?.presentation?'当前已保存的整理保持可读。':'原话保持可读。';
+ if(!hasTopic||(view!=='ai'&&!aiPending))return null;
+ const readable=view==='original'||!selected?.presentation?'原话保持可读；可以继续阅读或离开。':'当前已保存的整理保持可读；可以切回原话或离开。';
  if(statusUnavailable)return {state:'unavailable',text:'AI 整理状态暂时无法确认。'+readable};
  if(aiPending){const state=Object.hasOwn(runningStatus,runtime?.state)?runtime.state:'prepared';return {state,text:runningStatus[state]+' '+readable};}
  if(selected?.candidate)return selected.candidate.stale?{state:'stale',text:'更新候选已过期，当前稿保持不变。请重新更新后再核对。'}:{state:'candidate',text:'新整理已准备好。当前稿尚未被替换；请核对更新候选后再保存。'};
@@ -106,7 +106,18 @@ export class AIReadingEditor {
  }
  collect(){if(this.composing||this.disposed)return;this.excerptEditors.forEach(e=>e.collect());const changes=[];for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)!==JSON.stringify(this.draft[field]))changes.push({field,before:this.draft[field],after:value});}if(changes.length){this.journal.record(changes);for(const c of changes)this.draft[c.field]=structuredClone(c.after);}}
  async history(redo=false){if(this.composing)return;this.collect();const from=redo?this.journal.redo:this.journal.undo,to=redo?this.journal.undo:this.journal.redo;if(!from.length)return;const changes=from.pop();to.push(changes);for(const c of changes){const value=structuredClone(redo?c.after:c.before);this.draft[c.field]=value;this.nodes.get(c.field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i].text:value);}this.failed=false;await this.flush();}
- values(field){const nodes=this.nodes.get(field);return Array.isArray(this.row[field])?nodes.map((n,i)=>({...this.row[field][i],text:textOf(n)})):textOf(nodes[0]);}
+ values(field){
+  const nodes=this.nodes.get(field),array=Array.isArray(this.row[field]),retained=this.draft[field]??this.row[field];
+  const value=(node,index)=>{
+   // A hidden pane/route or closed details is a reading choice, never an edit.
+   // Chromium innerText on unrendered content can flatten authored newlines.
+   // Retain the last collected draft, which input/composition/history/recovery
+   // update while editing; hiding it must not create a phantom saved revision.
+   if(node.closest('[hidden],details:not([open])'))return array?retained[index]?.text||'':retained||'';
+   return textOf(node);
+  };
+  return array?nodes.map((node,index)=>({...this.row[field][index],text:value(node,index)})):value(nodes[0],0);
+ }
  dirty(){return this.composing||this.excerptEditors.some(e=>e.dirty())||[...this.nodes.keys()].some(k=>JSON.stringify(this.values(k))!==JSON.stringify(this.row[k]));}
  schedule(){if(this.disposed)return;this.collect();this.failed=false;this.onStatus('正在保存…');this.autosave.schedule();void this.protectRecovery();}
  recoverySnapshot(){const values={};for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)!==JSON.stringify(this.row[field]))values[field]=value;}if(!Object.keys(values).length)return null;return {type:'AI_RECOVERY_SNAPSHOT',topicId:this.row.topicId,baseRevision:this.row.revision,values};}

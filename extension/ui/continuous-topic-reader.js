@@ -6,8 +6,8 @@ export class ContinuousTopicReader{
   if(typeof load!=='function'||!Number.isInteger(chunk)||chunk<1||chunk>40||!Number.isInteger(windowChunks)||windowChunks<1||windowChunks>5)throw new TypeError('INVALID_TOPIC_READER');
   this.load=load;this.chunk=chunk;this.windowSize=chunk*windowChunks;this.maxEmptyLoads=maxEmptyLoads;this.defaultHeight=estimatedHeight;this.measurements=new Map();this.averageHeight=estimatedHeight;this.serial=0;this.reset({});
  }
- reset({topicId=null,sort='asc',query='',anchorId=null,sectionId=null}={}){
-  this.serial++;this.topicId=topicId;this.sort=sort;this.query=query;this.anchorId=anchorId;this.sectionId=sectionId;
+ reset({topicId=null,sort='asc',query='',anchorId=null,sectionId=null,timeEdge=null}={}){
+  this.serial++;this.topicId=topicId;this.sort=sort;this.query=query;this.anchorId=anchorId;this.sectionId=sectionId;this.timeEdge=timeEdge;
   this.items=[];this.index=new Map();this.nextCursor=null;this.previousCursor=null;this.coverage=null;this.pageMeta=null;this.sections=new Map();this.sectionCursor=null;
   this.windowStart=0;this.initialized=false;this.indexing=false;this.loadingNext=false;this.loadingPrevious=false;this.errorNext=null;this.errorPrevious=null;this.terminalNext=false;this.terminalPrevious=anchorId===null&&sectionId===null;this.stale=false;return this.state();
  }
@@ -49,7 +49,7 @@ export class ContinuousTopicReader{
   try{
    do{
     const cursor=kind==='initial'?(initialPass?null:this.nextCursor):kind==='previous'?this.previousCursor:this.nextCursor;
-    const page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,cursor,direction,anchorId:kind==='initial'&&initialPass?this.anchorId:null,sectionId:kind==='initial'&&initialPass?this.sectionId:null,sectionCursor:this.sectionCursor});
+    const page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,cursor,direction,anchorId:kind==='initial'&&initialPass?this.anchorId:null,sectionId:kind==='initial'&&initialPass?this.sectionId:null,timeEdge:kind==='initial'&&initialPass?this.timeEdge:null,sectionCursor:this.sectionCursor});
     if(serial!==this.serial)return {...this.state(),stale:true};
     if(page?.cursorInvalid){this.stale=true;return this.state();}
     this.initialized=true;this.indexing=page?.indexing===true;this.coverage=page?.coverage||this.coverage;this.pageMeta=page||this.pageMeta;this.addSections(page?.sections);

@@ -1,0 +1,91 @@
+{
+  "format": "paia-vs05-fidelity-corpus-v1",
+  "evidence_class": "SYNTHETIC_FIXED_CASES",
+  "review_basis": "Requirements and blocking counterexamples are frozen from explicit source clauses before changing the provider prompt. They are independent of provider-generated output.",
+  "decision_rule": "Any material distortion blocks this case and aggregate PASS; no average score can compensate. A supplied faithful fixture proves transport/persistence only, not model semantic accuracy.",
+  "live_model_evidence": "NOT_RUN",
+  "cases": [
+    {
+      "id": "quotation",
+      "dimension": "quotation-versus-belief",
+      "inputs": [
+        "我引用别人说的“加班才代表认真”，只是为了批评这句话；这不是我的立场。"
+      ],
+      "faithful": "引用“加班才代表认真”是为了批评这句话，并未认同该观点。",
+      "distortion": "认为加班才代表认真。",
+      "blockingReason": "把被批评的他人引语归为本人信念。"
+    },
+    {
+      "id": "negation",
+      "dimension": "negation",
+      "inputs": [
+        "我不准备搬去上海；只有获得完全远程工作的书面确认，才考虑这份工作。"
+      ],
+      "faithful": "不准备搬去上海；只在完全远程工作获得书面确认后考虑该工作。",
+      "distortion": "决定搬去上海接受这份工作。",
+      "blockingReason": "反转否定，并删除必要条件。"
+    },
+    {
+      "id": "uncertainty",
+      "dimension": "uncertainty",
+      "inputs": [
+        "我也许会报名，但费用和时间还没有核实，目前没有做决定。"
+      ],
+      "faithful": "可能报名，但费用与时间未核实，目前尚未决定。",
+      "distortion": "已经决定报名。",
+      "blockingReason": "把未决定的可能性升级为确定决定。"
+    },
+    {
+      "id": "correction",
+      "dimension": "correction",
+      "inputs": [
+        "之前我说每周都要去现场。",
+        "我明确收回“每周都去现场”；现在只同意每月一次，额外到场需要另行商量。"
+      ],
+      "faithful": "明确收回每周到场的说法；目前只同意每月一次，额外到场另行商量。",
+      "distortion": "坚持每周到场，同时希望每月到场。",
+      "blockingReason": "忽略明确撤回，将已被修正的表达继续作为当前立场。"
+    },
+    {
+      "id": "conflict",
+      "dimension": "conflicting-expressions",
+      "inputs": [
+        "我希望留在现在的团队。",
+        "换到另一个团队也很吸引我；两个想法都还在，我尚未取舍。"
+      ],
+      "faithful": "留在当前团队和换团队两个想法并存，尚未取舍。",
+      "distortion": "已放弃留队，决定换团队。",
+      "blockingReason": "仅凭表达顺序制造替代与已决选择。"
+    },
+    {
+      "id": "causality",
+      "dimension": "causal-wording",
+      "inputs": [
+        "我今天心情低落，也收到了项目延期通知；我不知道两者是否有关。"
+      ],
+      "faithful": "心情低落与项目延期通知同时出现，两者因果关系未知。",
+      "distortion": "项目延期导致心情低落。",
+      "blockingReason": "把同时出现但因果未知的事实改成确定因果。"
+    },
+    {
+      "id": "emotion",
+      "dimension": "emotional-intensity",
+      "inputs": [
+        "我对这次变动有一点不安，但谈不上恐惧，也并非无法接受。"
+      ],
+      "faithful": "对变动有一点不安；并非恐惧，也并非无法接受。",
+      "distortion": "对变动极度恐惧，完全无法接受。",
+      "blockingReason": "夸大情绪强度，同时反转限定。"
+    },
+    {
+      "id": "missing-time",
+      "dimension": "missing-time",
+      "inputs": [
+        "我记得曾经考虑读研究生，但记不清是在什么时候，也没有说明现在是否仍然想读。"
+      ],
+      "faithful": "曾考虑读研究生，时间不详，当前意向也未知。",
+      "distortion": "上周决定今年读研究生。",
+      "blockingReason": "捏造时间、当前意向和决定。"
+    }
+  ]
+}
