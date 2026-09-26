@@ -8,8 +8,8 @@ import {RecoveryDraftSession} from './recovery-draft.js';
 const labels={keyInformation:'已有信息',decisions:'已有决定',preferences:'已有偏好',judgments:'已有判断',openQuestions:'已有问题'};
 const runningStatus={prepared:'正在准备当前主题的材料。',sent:'本次材料已发送给 DeepSeek，正在整理。',response_received:'已收到整理结果，正在核对。',validated:'整理结果已校验，正在保存到本机。'};
 export function aiTopicStatusModel({view='original',hasTopic=false,aiPending=false,statusUnavailable=false,runtime=null,selected=null}={}){
- if(view!=='ai'||!hasTopic)return null;
- const readable=selected?.presentation?'当前已保存的整理保持可读。':'原话保持可读。';
+ if(!hasTopic||(view!=='ai'&&!aiPending))return null;
+ const readable=view==='original'||!selected?.presentation?'原话保持可读；可以继续阅读或离开。':'当前已保存的整理保持可读；可以切回原话或离开。';
  if(statusUnavailable)return {state:'unavailable',text:'AI 整理状态暂时无法确认。'+readable};
  if(aiPending){const state=Object.hasOwn(runningStatus,runtime?.state)?runtime.state:'prepared';return {state,text:runningStatus[state]+' '+readable};}
  if(selected?.candidate)return selected.candidate.stale?{state:'stale',text:'更新候选已过期，当前稿保持不变。请重新更新后再核对。'}:{state:'candidate',text:'新整理已准备好。当前稿尚未被替换；请核对更新候选后再保存。'};

@@ -12,7 +12,7 @@ current_slice: VS-05
 
 current_slice_status: ACTIVE — VS-04_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED
 
-current_round: CPV1-05.5 / VS-05 Batch B
+current_round: CPV1-05.5–05.6 / VS-05 Batch B
 
 current_round_status: ACTIVE / VS-05_BATCH_B
 
@@ -398,3 +398,14 @@ Independent pre-generation review freezes eight explicit synthetic source distin
 The real validator previously clipped strings and stopped lists at the configured limit, potentially dropping a final negation, condition, correction or statement. It now rejects the complete over-limit text/item/list response before normalization and commit. Limits stay300/4000/2000/20; permitted optional fields, empty lists and locally degraded foreign evidence remain unchanged. The former500-character clipping regression becomes a stronger300-boundary acceptance plus500-character rejection, explicitly superseding unsafe silent clipping; no bound/test standard is reduced. Provider prompt spells out the eight source distinctions and requests complete clauses within limits.
 
 New direct production-provider/runner cases preserve all eight frozen reference outputs/evidence/Original identity, reject all14 over-limit field/item/list surfaces with one request and no presentation/checkpoint/receipt/revision/automatic retry, and preserve protected human AI text on rejected incremental update. A correctly sized but materially distorted response still requires independent semantic review; this mechanical boundary never claims to detect arbitrary meaning. New coherent affected checks pending. 05.5 actual generated-output fidelity review, 05.6 running/motion/long-Topic UX and05.7 end-to-end/full slice acceptance remain open.
+
+
+## CPV1-05.5 affected receipt and CPV1-05.6 interactive running/motion batch
+
+Exact `4f41b9bd778e320af71e6a87fe57bb7b7673f269` / [Candidate Gate36222917214](https://github.com/haohongfei2001-png/paia/actions/runs/36222917214) PASS: unit, contracts/privacy, release and source+built-release candidate browser. Frozen fidelity reference transport and complete over-limit rejection are affected engineering evidence; live generated-output semantic fidelity remains NOT_RUN and cannot be inferred from supplied fixtures.
+
+Production root cause: AI request preparation called navigation teardown, leaving the still-visible Original subtree inert throughout provider latency. It now flushes protected work without disposing Reader/editor/selection, pins the requested Topic before asynchronous flush, cancels preparation if navigation changed that scope, and keeps request outcome feedback scoped to that Topic. Local navigation/search remains available; running status in Original mode is truthful and belongs only to the requested Topic. No provider timeout/retry/budget or old-Thought mutation semantics change.
+
+The previous720ms blur/front-mask transition obscured long prose and exceeded the UX contract. Cached Original/AI switches now use220ms opacity-only motion scoped to Topic body; navigation/status stay outside the snapshot, reduced-motion bypasses snapshots, existing interruption cleanup remains.
+
+Affected existing source+built-release Organized browser gains a non-inert Original assertion. A new production journey holds one real fixture provider response while reading/selecting/searching26 long Chinese/English/code/emoji expressions, navigating another Topic and returning, then verifies bounded pending coverage, unchanged Topic authority, full long text, actual220ms native motion and complete reduced-motion bypass. No source fixture shrink, synthetic model-fidelity claim, previous test removal, full certification or unchanged-head rerun. New coherent candidate pending. Remaining exits: actual generated semantic review05.5 and complete protected-update journey05.7/full stable slice boundary;05.6 is not marked PASS before cloud evidence.

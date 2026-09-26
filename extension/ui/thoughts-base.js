@@ -146,8 +146,23 @@ export class ThoughtWorkspace {
  async updateOriginal(){if(this.originalPending||this.aiPending||this.boundedPending)return;this.clearActionFeedback();this.actionKind='original';$('organizer-reading-actions').append($('ai-update-feedback'));this.originalPending=true;if(!await this.leave()){this.originalPending=false;return;}$('ai-update-feedback').textContent='正在更新思想库…';$('library-update-details').hidden=true;try{await this.updateViewStatus();}catch{this.originalPending=false;$('ai-update-feedback').textContent='整理状态暂时无法确认，本次未调用 AI。已保存内容仍可阅读。';await this.refresh();return;}if(this.originalState.pendingInput===0){$('ai-update-feedback').textContent='先在 ChatGPT 普通聊天中表达一些想法，Input Archive 收录后即可开始整理。';this.originalPending=false;await this.refresh();return;}let timer;
   try{const result=await Promise.race([request('UPDATE_ORIGINAL_LIBRARY_VIEW',{userActionId:op()}),new Promise((_,reject)=>{timer=setTimeout(()=>reject({code:'MESSAGE_RESPONSE_TIMEOUT'}),35000);})]);if(result.error)throw {code:result.error,phase:result.phase};$('ai-update-feedback').textContent=result.result?.manualInputCount?`本批部分成功：${result.result.validInputCount} 条已整理，${result.result.manualInputCount} 条需人工处理。`:'';}catch(e){await this.showUpdateFailure(e);}finally{clearTimeout(timer);this.originalPending=false;await this.refresh();}
  }
- async previewAIUpdate(){if(this.aiPending||this.originalPending||this.boundedPending)return;this.clearActionFeedback();this.actionKind='ai';$('thought-panel').prepend($('ai-update-feedback'));this.aiPending=true;if(!await this.leave()){this.aiPending=false;return;}$('ai-library-update').disabled=true;const feedback=$('ai-update-feedback');feedback.textContent='正在更新 AI整理…';$('library-update-details').hidden=true;let timer;
-  try{const result=await Promise.race([request('UPDATE_AI_PRESENTATION',{userActionId:op(),...(this.id?{topicId:this.id}:{})}),new Promise((_,reject)=>{timer=setTimeout(()=>reject({code:'MESSAGE_RESPONSE_TIMEOUT'}),35000);})]);if(result.error)throw {code:result.error,phase:result.phase};feedback.textContent='';}catch(e){await this.showUpdateFailure(e);}finally{clearTimeout(timer);this.aiPending=false;await this.refresh();}
+ async previewAIUpdate(){
+  if(this.aiPending||this.originalPending||this.boundedPending||!this.id)return;
+  const topicId=this.id;this.clearActionFeedback();this.actionKind='ai';this.aiPending=true;this.aiPendingTopicId=topicId;
+  let timer;
+  try{
+   // Flush protected work without executing the navigation teardown: Original,
+   // selection, search and the saved AI editor remain usable during the request.
+   if(!await this.flushEditors()||this.id!==topicId)return;
+   $('thought-panel').prepend($('ai-update-feedback'));$('ai-library-update').disabled=true;
+   const feedback=$('ai-update-feedback');feedback.textContent='正在更新 AI整理…';$('library-update-details').hidden=true;
+   this.aiPane?.querySelector('[data-ai-first-generation]')?.remove();
+   this.renderAITopicStatus?.(this.aiState,this.aiTopics.get(topicId));this.queueOptionalStatus();
+   const result=await Promise.race([request('UPDATE_AI_PRESENTATION',{userActionId:op(),topicId}),new Promise((_,reject)=>{timer=setTimeout(()=>reject({code:'MESSAGE_RESPONSE_TIMEOUT'}),35000);})]);
+   if(result.error)throw {code:result.error,phase:result.phase};
+   if(this.id===topicId)feedback.textContent='';
+  }catch(e){if(this.id===topicId)await this.showUpdateFailure(e);}
+  finally{clearTimeout(timer);this.aiPending=false;this.aiPendingTopicId=null;if(!$('thought-panel').hidden)await this.refresh();}
  }
  async updateViewStatus({strict=true,isCurrent=()=>true,reportFailure=false}={}){
   const attempt=++this.statusReadSerial,epoch=this.statusEpoch;
