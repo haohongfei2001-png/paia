@@ -58,12 +58,12 @@ async function addCapturedInput(page,input,topic){
  await page.locator('[data-block-id="'+input.id+'"] .reader-more').click();
  await page.getByRole('menuitem',{name:'加入主题',exact:true}).click();
  const chooser=page.locator('#topic-action-dialog');await chooser.waitFor();
- assert.equal(await chooser.locator('.topic-selection-preview').textContent(),input.libraryText,'whole captured Input is explicitly selected');
+ assert.equal(await chooser.locator('.topic-selection-preview').textContent(),input.expectedText,'whole captured Input is explicitly selected');
  await chooser.getByLabel(topic.name,{exact:true}).check();
  await chooser.getByRole('button',{name:'加入',exact:true}).click();
  await eventually(async()=>!await chooser.isVisible(),'actual Reader joins the selected Input to the selected Topic');
  const doc=await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}});
- const found=doc.items.find(row=>row.entry.body===input.libraryText)?.entry;
+ const found=doc.items.find(row=>row.entry.body===input.expectedText)?.entry;
  assert.ok(found,'joined whole Input is an actual Original entry');return found;
 }
 async function livingTopicJourney(page,h,topic,label){
@@ -71,7 +71,8 @@ async function livingTopicJourney(page,h,topic,label){
  const b={id:label.toLowerCase()+'-conversation-b',title:label+' Conversation B',base:1609545600,messages:[{id:label+'-message-b',text:label+' 会话二：另一条路线仍开放，并未决定替代。'}]};
  const sourceA=await h.open(a);await h.ready(sourceA);const sourceB=await h.open(b);await h.ready(sourceB);
  await eventually(async()=>(await h.state()).records.length===2,'two separate real content-script captures finish');
- const captured=await h.state(),inputs=captured.library.blocks;
+ const captured=await h.state(),inputs=captured.library.blocks.map(input=>({...input,expectedText:input.libraryText??captured.records.find(record=>record.id===input.originalTextReference)?.originalText}));
+ for(const input of inputs)assert.equal(typeof input.expectedText,'string','captured Input has an effective working-or-Source body');
  assert.equal(inputs.length,2);assert.notEqual(inputs[0].documentId,inputs[1].documentId,'Inputs retain different Conversation identity');
  const sourceEntries=[];for(const input of inputs)sourceEntries.push(await addCapturedInput(page,input,topic));
  assert.equal(h.deepSeekRequests.length,0,'capture and explicit Topic placement never invoke AI');
@@ -114,7 +115,7 @@ async function livingTopicJourney(page,h,topic,label){
  await h.send(sourceA,newMessage);
  await eventually(async()=>(await h.state()).records.length===3,'new external source message is captured without AI');
  const changed=await h.state();
- const latestInput=changed.library.blocks.find(input=>input.libraryText===newMessage.text);
+ const latestInput=changed.library.blocks.map(input=>({...input,expectedText:input.libraryText??changed.records.find(record=>record.id===input.originalTextReference)?.originalText})).find(input=>input.expectedText===newMessage.text);
  assert.ok(latestInput);assert.deepEqual(changed.records.filter(record=>captured.records.some(old=>old.id===record.id)),captured.records,'new capture keeps earlier immutable Source records');
  const added=await addCapturedInput(page,latestInput,topic);
  await reopenTopic(page,topic);await organized(page);
