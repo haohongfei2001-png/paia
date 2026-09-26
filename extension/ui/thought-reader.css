@@ -171,3 +171,13 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #library-unplaced-list[hidden]{display:none}
 #library-unplaced-list{display:grid;gap:8px;margin-top:10px}
 #library-unplaced-list>[data-unplaced-id]{min-height:44px;text-align:left}
+
+
+/* CPV1-05.1: compact scanning is the default; saved grid choice is retained.
+   Topic names stay complete. Only the root content cue is visually bounded;
+   opening the Topic shows the unchanged full summary. */
+#thought-list.topic-grid.topic-list-layout{display:block;}
+#thought-list.topic-grid.topic-list-layout .topic-tile{margin-block:0;}
+#thought-list.topic-grid.topic-list-layout .topic-index-row{width:100%;min-height:84px!important;padding:14px 48px 14px 16px!important;gap:6px!important;border:0!important;border-bottom:1px solid var(--paia-subtle)!important;border-radius:0!important;background:transparent!important;}
+#thought-list.topic-grid.topic-list-layout .topic-index-row strong{font-size:18px;line-height:1.5;}
+#thought-list.topic-grid .topic-index-row .summary{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}

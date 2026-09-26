@@ -39,6 +39,9 @@ async function seed(page,prefix){
     await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${prefix}_THOUGHT_${i}_A 这是主题 ${i+1} 的第一段完整思想正文。\n它保留真实换行，不是卡片摘要。`}});
     await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${prefix}_THOUGHT_${i}_B 第二段正文用于连续阅读、日期和工具层级验证。`}});
   }
+  topics[0].summary=`${prefix} 这是保留完整来源表达的真实内容线索。 `.repeat(40);
+  const current=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id});
+  await rpc(page,'EDIT_LIBRARY_TOPIC',{edit:{id:current.id,expectedRevision:current.revision,changes:{summary:topics[0].summary},operationId:op()}});
   await rpc(page,'RECORD_TOPIC_READ',{id:topics[1].id});
   return topics;
 }
@@ -79,6 +82,19 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','light theme applies');
   assert.equal(await page.locator('h1:visible').count(),1,'Thought home has one visible page heading');
   assert.equal(await page.locator('#thought-document').isVisible(),false,'Topic document stays out of the home view');
+  assert.equal((await rpc(page,'GET_THOUGHT_LAYOUT')).layout,'list','new users default to compact Topic scanning');
+  await eventually(async()=>await page.locator('#thought-list').evaluate(el=>el.classList.contains('topic-list-layout')),'compact layout applies');
+  assert.equal(await page.locator('#thought-list').evaluate(el=>getComputedStyle(el).display),'block','List mode actually uses one stacked column, including wide desktops');
+  const listRows=await page.locator('#thought-list [data-topic-id]').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {left:r.left,width:r.width};}));
+  assert.ok(listRows.every(row=>Math.abs(row.left-listRows[0].left)<=2&&Math.abs(row.width-listRows[0].width)<=2),'all compact Topic rows share one reading column');
+  assert.equal(await page.locator('#thought-list .topic-index-row strong').first().textContent(),(await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id})).name,'root keeps the complete Topic title');
+  assert.equal(await page.locator('#thought-list .topic-index-row .summary').first().textContent(),topics[0].summary,'the root cue retains the original summary text');
+  assert.equal(await page.locator('#thought-list .topic-index-row .summary').first().evaluate(el=>getComputedStyle(el).webkitLineClamp),'2','root content cue is visually bounded');
+  await shot(page,release?'vs05-release-thought-list-1440x900-light':'vs05-thought-list-1440x900-light');
+  await homeMenu.locator('summary').click();
+  await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).click();
+  await eventually(async()=>!(await page.locator('#thought-list').evaluate(el=>el.classList.contains('topic-list-layout'))),'explicit grid choice applies');
+  assert.equal((await rpc(page,'GET_THOUGHT_LAYOUT')).layout,'grid','an explicit user grid choice is durable');
   await shot(page,release?'uir-03-current-release-thought-home-1440x900-light':'uir-03-thought-home-1440x900-light');
 
   if(!release){
@@ -110,6 +126,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await eventually(()=>page.locator('#original-reading-body .topic-section').count().then(count=>count>0),'Original content renders in the existing Topic document');
   assert.equal(await page.locator('h1:visible').count(),1,'Topic has one visible h1');
   assert.equal(await page.locator('#view-title').isVisible(),false,'global Thought Library title no longer competes with the Topic h1');
+  assert.equal(await page.locator('#topic-heading>p').textContent(),topics[0].summary,'opening the Topic reveals the unchanged complete summary');
   assert.equal(await page.locator('#back').isVisible(),true,'Topic keeps the existing return path');
 
   const shell=await page.locator('#thought-document').boundingBox();

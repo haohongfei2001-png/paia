@@ -305,6 +305,12 @@ receipt: `receipts/CPV1-04.0-04.7-ENGINEERING.md`
 
 Direct editing, saved revision inspection, scoped lexical search, filter visibility, reversible removal and failure recovery are integrated. The stable candidate passed all current full-suite jobs and the hosted performance profile; exact merged main passed full certification. B-02 mixed human-derivative permanent purge remains owner gated under DFG-CPV1-003. Current-live/private/device evidence remains deferred as assigned. The sole manager writer advances to VS-05 Batch A (CPV1-05.0–05.3); B-01 direct old-Thought mutation semantics remain disabled pending DFG-CPV1-002.
 
+## VS-05 Batch A — compact Topic scanning candidate
+
+The sole manager writer begins CPV1-05.1 on branch `manager/vs05-batch-a-20260926`. New installations use compact list scanning; saved grid preferences remain intact. Review found that the later grid selector overrode List mode's display rule, so the production CSS now makes List a real stacked column. Topic titles remain complete, the root summary cue is visually bounded, and the Topic Reader retains the full unchanged summary. Existing source and built-release browser coverage now checks the default list and explicit durable grid choice while retaining the historical grid, full-title, no-AI/no-network and Reader assertions. Targeted CI is pending.
+
+CPV1-05.0 retains DFG-CPV1-002: no new direct-old-Thought mutation semantics are introduced. Source scope, Reader time/evidence navigation and independent Thought/relation exit review remain open within Batch A. This is engineering in progress, not VS-05 certification.
+
 ## Core desktop candidate gate
 
 VS-01 through VS-06 COMPLETE is the first Consumer Product v1 desktop candidate.
