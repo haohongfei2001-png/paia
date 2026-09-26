@@ -1,0 +1,23 @@
+name: Website Baseline Transfer
+on:
+  push:
+    branches: [website/ai-context-redesign-20260926]
+    paths: [.github/workflows/website-transfer.yml]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 00d880a40137e672e000f4e550fb3d482b9269dc
+          persist-credentials: false
+      - name: Archive public exact-main sources only
+        run: git archive --format=zip --output=/tmp/paia-baseline.zip HEAD
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: paia-baseline-00d880a
+          path: /tmp/paia-baseline.zip
+          retention-days: 1
