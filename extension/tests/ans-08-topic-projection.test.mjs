@@ -300,3 +300,61 @@ test('VS-05 current source scope rejects removed epochs and purged Input states 
  assert.deepEqual(await scopedTopicIds(f,'chatgpt'),[]);
  assert.equal((await f.s.entry(f.entries.mixed)).body,'VS05 scope shared mixed','source filtering does not rewrite the protected human synthesis');
 });
+
+async function sourceRootItems(f,providerKey,query=''){
+ let cursor=null,items=[],pages=[],complete=false;
+ for(let i=0;i<200&&!complete;i++){
+  const page=await f.s.libraryIndexPage({mode:'stable',providerKey,query,cursor,limit:40});
+  assert.equal(page.cursorInvalid,undefined);assert.ok(page.operations.placementRowsRead<=40);
+  assert.ok(page.operations.entryRowsRead<=40);
+  items.push(...page.items);pages.push(page);cursor=page.nextCursor;complete=page.complete;
+  if(!cursor&&!complete)await f.s.processLibraryMaintenance();
+ }
+ assert.ok(complete,'source root reaches a real terminal page');
+ const ids=items.map(x=>x.entryId||x.topicId||x.id);assert.equal(new Set(ids).size,ids.length);
+ return {items,pages};
+}
+async function placeExisting(s,topicId,entryId){
+ const entry=await s.entry(entryId),topic=await s.topic(topicId);
+ const result=await s.placeEntry({topicId,entryId,expectedEntryRevision:entry.revision,expectedTopicRevision:topic.organizationRevision,operationId:op()});
+ assert.equal(result.conflict,undefined);
+}
+test('VS-05 root source scope traverses distant placements, keeps one Topic identity and fences query/provider cursors',async()=>{
+ const f=await mixedProviderTopic(),before=await f.s.entry(f.entries.mixed);
+ const independent=await f.s.createTopic({name:'VS05 independent-only topic',operationId:op()});
+ await placeExisting(f.s,independent.id,f.entries.independent0);
+ const context=await f.s.createTopic({name:'VS05 context-only topic',operationId:op()});
+ await placeExisting(f.s,context.id,f.entries.context);
+ const far=await f.s.createTopic({name:'VS05 distant direct evidence',operationId:op()});
+ for(let i=0;i<90;i++)await placeExisting(f.s,far.id,f.entries['independent'+i]);
+ await placeExisting(f.s,far.id,f.entries.claude);
+ // A misleading historical Topic source list is never sufficient membership.
+ await f.s.foundationWrite(async t=>{const row=await t.get('topics',context.id),source=await t.get('thoughts',f.entries.claude);row.sourceRecordIds=source.sourceRecordIds;await t.put('topics',row);});
+ const result=await sourceRootItems(f,'claude');
+ assert.deepEqual(new Set(result.items.map(x=>x.id)),new Set([f.topic.id,far.id]));
+ assert.ok(result.pages.some(x=>!x.items.length&&x.nextCursor?.pending?.topicId===far.id),'large nonmatching prefix continues without reading all Thought bodies');
+ for(const item of result.items){assert.equal(item.countComplete,false);assert.equal(item.visibleEntryCount,null);}
+ const first=result.pages.find(x=>x.nextCursor);
+ assert.equal((await f.s.libraryIndexPage({mode:'stable',providerKey:'chatgpt',cursor:first.nextCursor})).cursorInvalid,true);
+ assert.equal((await f.s.libraryIndexPage({mode:'stable',providerKey:'claude',query:'another',cursor:first.nextCursor})).cursorInvalid,true);
+ assert.deepEqual((await sourceRootItems(f,'unavailable.provider')).items,[]);
+ await assert.rejects(()=>f.s.libraryIndexPage({mode:'stable',providerKey:'../wrong'}),{code:'INVALID_REQUEST'});
+ const pending=result.pages.find(x=>x.nextCursor?.pending?.topicId===far.id)?.nextCursor;assert.ok(pending);
+ await f.s.foundationWrite(async t=>{const row=await t.get('topics',far.id);row.organizationRevision++;await t.put('topics',row);});
+ assert.equal((await f.s.libraryIndexPage({mode:'stable',providerKey:'claude',cursor:pending})).cursorInvalid,true);
+ const after=await f.s.entry(f.entries.mixed);assert.equal(after.body,before.body);assert.equal(after.revision,before.revision);
+});
+test('VS-05 root lexical search and live source removal exclude independent/context-only content without a scope cache',async()=>{
+ const f=await mixedProviderTopic();for(let i=0;i<1000;i++){const p=await f.s.processLibraryMaintenance();if(!p.pending)break;if(i===999)assert.fail('search maintenance failed to settle');}
+ const result=await sourceRootItems(f,'claude','scope shared');
+ assert.deepEqual(new Set(result.items.filter(x=>x.kind==='entry').map(x=>x.entryId)),new Set([f.entries.claude,f.entries.mixed]));
+ const topicResult=await sourceRootItems(f,'claude','mixed provider');
+ assert.deepEqual(topicResult.items.filter(x=>x.kind==='topic').map(x=>x.topicId),[f.topic.id]);
+ await f.s.foundationWrite(async t=>{const input=await t.get('inputStates',f.inputIds.claude);input.sourcePurged=true;await t.put('inputStates',input);});
+ assert.deepEqual((await sourceRootItems(f,'claude')).items,[]);
+ assert.deepEqual((await sourceRootItems(f,'claude','scope shared')).items,[]);
+ assert.deepEqual((await sourceRootItems(f,'chatgpt')).items.map(x=>x.id),[f.topic.id]);
+ await f.s.foundationWrite(async t=>{const input=await t.get('inputStates',f.inputIds.chatgpt);input.lastRemovalSequence=(input.lastRemovalSequence||0)+100000;await t.put('inputStates',input);});
+ assert.deepEqual((await sourceRootItems(f,'chatgpt')).items,[]);
+ assert.equal((await f.s.entry(f.entries.mixed)).body,'VS05 scope shared mixed');
+});

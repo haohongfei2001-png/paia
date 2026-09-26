@@ -1,3 +1,4 @@
+import {sourceRootPage} from '../thought-root-source-scope.js';
 import {recoverAIDraft} from './ai-draft.js';
 import {changeTopicContainer,removedTopics} from '../topic-governance.js';
 import {topicReadingPage,topicSectionsPage,topicAdjacency} from './topic-reading.js';
@@ -25,7 +26,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
  safeOrganization(t,kind,row){return safeOrganization(this,t,kind,row);}
  clearDerivedMetadata(t,marker){return clearDerivedMetadata(this,t,marker);}
  async canonicalTopic(t,id){return safeOrganization(this,t,'topic',await super.canonicalTopic(t,id));}
- async libraryIndexPage(o){const page=await super.libraryIndexPage(o);return this.run(()=>this.repository.transaction(false,async t=>{for(let i=0;i<page.items.length;i++)page.items[i]=await safeOrganization(this,t,'topic',page.items[i]);return page;}));}
+ async libraryIndexPage(o={}){const page=o.providerKey!==undefined&&o.providerKey!==null?await sourceRootPage(this,o,({query,cursor,limit})=>query?this.searchLibrary({query,cursor,limit}):super.libraryIndexPage({mode:'stable',cursor,limit})):await super.libraryIndexPage(o);return this.run(()=>this.repository.transaction(false,async t=>{for(let i=0;i<page.items.length;i++)page.items[i]=await safeOrganization(this,t,'topic',page.items[i]);return page;}));}
  // Read-only expression chronology; never use capture/model time as expression time.
  async readingEntry(id){
   // Evidence validation and chronology use separate bounded reads. An edit may

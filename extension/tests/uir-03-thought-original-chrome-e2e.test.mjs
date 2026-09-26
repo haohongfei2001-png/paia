@@ -186,6 +186,32 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  assert.equal(await page.locator('[data-reading-start="asc"]').isDisabled(),false);
  const after=await Promise.all([seeded.claude,seeded.mixed].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
  for(let i=0;i<before.length;i++){assert.equal(after[i].body,before[i].body);assert.equal(after[i].revision,before[i].revision);}
+
+ await page.locator('#back').click();
+ const rootScope=page.locator('#thought-source-scope'),rootList=page.locator('#thought-list'),rootSearch=page.locator('#thought-search');
+ await eventually(async()=>await rootScope.locator('option[value="claude"]').count()===1&&await rootScope.getAttribute('aria-busy')==='false','root source options honor completed provider index');
+ assert.equal(await page.locator('input[type="search"]:visible').count(),1,'root has one Thought search beside source scope');
+ await rootScope.selectOption('claude');
+ await eventually(async()=>await rootList.locator('[data-topic-id]').count()===1&&await rootList.locator('[data-topic-id="'+topics[1].id+'"]').count()===1,'Claude root keeps one mixed Topic and excludes independent-only Topics');
+ assert.equal(await page.locator('#library-unplaced').isVisible(),false,'independent unplaced expressions belong to All sources');
+ assert.equal(await rootList.locator('.topic-index-row small').evaluateAll(nodes=>nodes.some(n=>/条内容/.test(n.textContent))),false,'whole-Topic counts are not labeled as selected-source counts');
+ await rootSearch.fill('Scope shared claude');
+ await eventually(async()=>await rootList.locator('.topic-index-row').count()===1&&/Scope shared claude/i.test(await rootList.textContent()),'root lexical search is limited to the selected direct source');
+ await rootList.locator('.topic-index-row').click();
+ await eventually(async()=>await page.locator('#thought-document').isVisible(),'scoped root search opens the canonical Topic');
+ await page.locator('#back').click();
+ await eventually(async()=>await rootScope.inputValue()==='claude'&&await rootSearch.inputValue()==='Scope shared claude'&&await rootList.locator('.topic-index-row').count()===1,'Back preserves root source/query and collection identity');
+ await rootSearch.fill('independent-only-never-in-source');
+ await eventually(async()=>await page.locator('#library-search-status').textContent()==='当前来源没有匹配内容，试试另一种表达或全部来源。','empty scope search is an honest selected-source result');
+ await rootSearch.fill('');
+ await eventually(async()=>await rootList.locator('[data-topic-id="'+topics[1].id+'"]').count()===1,'clearing root search keeps Claude scope');
+ await rootScope.selectOption('chatgpt');
+ await eventually(async()=>await rootList.locator('[data-topic-id]').count()===1&&await rootList.locator('[data-topic-id="'+topics[1].id+'"]').count()===1,'ChatGPT uses the same mixed Topic identity');
+ await rootScope.selectOption('');
+ await eventually(async()=>await rootList.locator('[data-topic-id]').count()===3,'All restores independent Topics without duplicated mixed identity');
+ assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),false,'source root adds no AI control');
+ await rootList.locator('[data-topic-id="'+topics[1].id+'"]').click();
+ await eventually(async()=>await page.locator('#thought-document').isVisible());
  await shot(page,release?'vs05-release-topic-source-scope':'vs05-source-topic-source-scope');
  await assertOffline(h);
 }
