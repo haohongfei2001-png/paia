@@ -120,6 +120,18 @@ async function livingTopicJourney(page,h,topic,label){
  row=await state(page,topic.id);assert.equal(row.presentation.protections.currentView,true);
  const protectedPresentation=structuredClone(row.presentation);
  await page.locator('#ai-presentation-toggle').uncheck();
+ await page.locator('#original-reading-body').waitFor({state:'visible'});
+ await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'Original switch finishes before leaving the AI pane');
+ assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'switching to Original preserves exact multiline human work, protection and revision');
+ await page.locator('[data-view="library"]').first().click();
+ await page.locator('#archive-navigator').waitFor({state:'visible'});
+ assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'leaving the hidden AI pane is read-only and cannot create a flattened phantom revision');
+ await reopenTopic(page,topic);await organized(page);
+ await page.locator('[data-ai-field="currentView"]').filter({hasText:human}).waitFor();
+ assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'actual Topic reopen retains the exact saved multiline overview');
+ await page.locator('#ai-presentation-toggle').uncheck();
+ await page.locator('#original-reading-body').waitFor({state:'visible'});
+ await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'second Original switch finishes without a write');
  assert.deepEqual(await Promise.all(beforeEntries.map(e=>rpc(page,'GET_LIBRARY_ENTRY',{id:e.id}))),beforeEntries,'AI/human overview edits never rewrite any Original entry');
  const newMessage={id:label+'-message-new',text:label+' 会话一新增来源：出现反例，仍需保留先前条件。'};
  await h.send(sourceA,newMessage);

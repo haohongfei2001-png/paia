@@ -109,11 +109,11 @@ export class AIReadingEditor {
  values(field){
   const nodes=this.nodes.get(field),array=Array.isArray(this.row[field]),retained=this.draft[field]??this.row[field];
   const value=(node,index)=>{
-   // Closed details are a reading choice, never an edit. Chromium's rendered
-   // innerText may omit their contents; retain the last collected draft instead.
-   // Input/composition/history/recovery update that draft while editing, so a
-   // subsequent collapse still flushes the actual authored multiline value.
-   if(node.closest('details:not([open])'))return array?retained[index]?.text||'':retained||'';
+   // A hidden pane/route or closed details is a reading choice, never an edit.
+   // Chromium innerText on unrendered content can flatten authored newlines.
+   // Retain the last collected draft, which input/composition/history/recovery
+   // update while editing; hiding it must not create a phantom saved revision.
+   if(node.closest('[hidden],details:not([open])'))return array?retained[index]?.text||'':retained||'';
    return textOf(node);
   };
   return array?nodes.map((node,index)=>({...this.row[field][index],text:value(node,index)})):value(nodes[0],0);
