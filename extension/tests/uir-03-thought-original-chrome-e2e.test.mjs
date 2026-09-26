@@ -151,8 +151,11 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
   }finally{store.repository.db?.close();}
  },{topicId:topics[1].id,prefix:release?'VS05_ROLE_RELEASE':'VS05_ROLE_SOURCE'});
  const before=await Promise.all([seeded.claude,seeded.mixed].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
- await page.reload();await nav(page,'thoughts');
- await eventually(async()=>await page.locator('[data-topic-id="'+topics[1].id+'"]').isVisible(),'scoped journey keeps the same Topic');
+ const topicBefore=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[1].id});
+ await page.reload();
+ await eventually(async()=>await page.locator('#thought-document').isVisible()&&await page.locator('#topic-heading h1').textContent()===topicBefore.name,'reload restores the same Topic reading route');
+ await page.locator('#back').click();
+ await eventually(async()=>await page.locator('[data-topic-id="'+topics[1].id+'"]').isVisible(),'explicit back returns to the same Topic in root scanning');
  await page.locator('[data-topic-id="'+topics[1].id+'"]').click();
  const scope=page.locator('#topic-source-scope'),body=page.locator('#original-reading-body');
  await eventually(async()=>await scope.locator('option[value="claude"]').count()===1,'real imported Claude source becomes selectable');
