@@ -1,0 +1,27 @@
+name: Website source transfer
+on:
+  push:
+    branches: [website/selected-editorial-20260926]
+    paths: [.github/workflows/website-source-transfer.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 17ac1368df600fab32bb2e22573de9bc7becae26
+          persist-credentials: false
+      - name: Export exact-main source (no private data)
+        run: |
+          git rev-parse HEAD > /tmp/baseline-sha.txt
+          git archive HEAD website assets/website en '*.html' sitemap.xml robots.txt .github/workflows/paia-website.yml extension/docs/consumer-product-v1 > /tmp/paia-website-baseline.tar
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: selected-website-baseline-17ac136
+          path: |
+            /tmp/paia-website-baseline.tar
+            /tmp/baseline-sha.txt
+          retention-days: 1
