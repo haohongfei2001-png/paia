@@ -56,6 +56,15 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  const began=Date.now(),stages=[];
  const checkpoint=async stage=>{const state=await rpc(page,'GET_AI_PRESENTATION_STATUS');const sample={stage,elapsedMs:Date.now()-began,providerRequests:h.deepSeekRequests.length,runtime:state.runtime,ui:await page.locator('#ai-topic-status').getAttribute('data-state')};stages.push(sample);console.log('VS05_LONG_RUNNING_STAGE '+JSON.stringify(sample));};
  try{
+ await page.evaluate(async()=>{
+  const {ThoughtWorkspace}=await import(chrome.runtime.getURL('ui/thoughts.js'));
+  const saved={query:'local query',scroll:735,rootProviderKey:'synthetic-source',collection:{items:Array.from({length:80},(_,id)=>({id}))}};
+  const context={homePositions:new Map([['home',saved]]),homeDesiredCount:40};
+  ThoughtWorkspace.prototype.invalidateHomeSnapshot.call(context);
+  if(saved.collection!==undefined||context.homeDesiredCount!==80||saved.query!=='local query'||saved.scroll!==735||saved.rootProviderKey!=='synthetic-source')throw new Error('saved root invalidation must use production home key and preserve reading position/extent');
+  ThoughtWorkspace.prototype.invalidateHomeSnapshot.call(context);
+  if(context.homeDesiredCount!==80)throw new Error('duplicate invalidation must preserve loaded extent');
+ });
  await page.setViewportSize({width:1024,height:900});await openTopic(page,topic);
  const toggle=page.locator('#ai-presentation-toggle'),original=page.locator('#original-reading-body [data-entry-field="body"]').filter({hasText:label+'_LONG_00'}).first();
  await original.waitFor();const originalText=await original.textContent();

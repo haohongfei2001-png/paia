@@ -120,7 +120,7 @@ export class ThoughtWorkspace {
   // A saved list is only a reading-position optimization. Library mutations
   // invalidate its rows even while another Topic is open; retain query/scroll
   // and the loaded extent so returning reads current authority.
-  const saved=this.homePositions.get(null);
+  const saved=this.homePositions.get('home');
   if(saved?.collection){this.homeDesiredCount=Math.max(this.homeDesiredCount||40,saved.collection.items?.length||0,40);delete saved.collection;}
  }
  homeCollectionScope(query){return this.rootProviderKey?JSON.stringify(['source',this.rootProviderKey,query?'search':'root']):query?'search':'root';}
