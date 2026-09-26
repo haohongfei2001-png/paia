@@ -89,7 +89,7 @@ def build(lang):
     def statusmini():
         return f'''<div class="availability"><span class="status-dot" aria-hidden="true"></span><span>{t('桌面 Chrome 扩展 · ChatGPT 网页版 · 邀请制测试','Desktop Chrome extension · ChatGPT Web · Invite-only beta')}</span></div>'''
     home=render_home(t,a,button,statusmini)
-    shell('index.html',t('PAIA — 说过的，成为下一步的起点','PAIA — Turn what you’ve said into what’s next'),t('保存你对 AI 的表达，连接跨会话的想法，把你选择的积累变成下一次对话的上下文。PAIA 是本地优先的个人 AI 信息与上下文系统。桌面 Chrome 扩展，Private Beta。','Keep what you tell AI. Connect ideas across conversations. Turn the context you choose into a head start for your next task. A local-first Chrome extension, in private beta.'),home)
+    shell('index.html',t('PAIA — 对话结束，思考继续','PAIA — Personal context for what’s next'),t('让你在 AI 对话中已经产生的表达、判断和问题继续属于你：可以找回、修改、理解，并由你决定哪些成为下一次 AI 的上下文。','Keep the expressions, decisions and questions you already create with AI. Revisit, revise and understand them—then decide what becomes context for what comes next.'),home)
 
     # Every record is fictional; no private-source prose or user archive material.
     records=[('a','2026-08-12',t('产品方向','Product direction'),t('我在做一款给独立创作者的工具。第一版只解决素材找回，不做内容生成。','I’m building a tool for independent creators. The first version should help recover existing material, not generate content.')),
