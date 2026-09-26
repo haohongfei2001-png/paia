@@ -123,6 +123,65 @@ async function provenanceRoleJourney(page,topics,{release=false}={}){
   await shot(page,release?'vs05-release-provenance-roles':'vs05-source-provenance-roles');
 }
 
+
+async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
+ const seeded=await page.evaluate(async ({topicId,prefix})=>{
+  const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
+  const {ImportLedger}=await import(chrome.runtime.getURL('core/import/ledger.js'));
+  const {ImportCoordinator}=await import(chrome.runtime.getURL('core/import/coordinator.js'));
+  const {getOfficialExportAdapter}=await import(chrome.runtime.getURL('core/import/registry.js'));
+  const store=new OrganizerStore(chrome.storage.local);
+  try{
+   const ledger=new ImportLedger(store),coordinator=new ImportCoordinator({transport:(method,query)=>ledger[method](query,'vs05-browser-scope'),resolveAdapter:getOfficialExportAdapter});
+   const id='vs05-browser-claude-'+crypto.randomUUID(),data=[{uuid:id,name:prefix+' Scope shared Claude',current_leaf_message_uuid:id+'-answer',chat_messages:[
+    {uuid:id+'-human',sender:'human',created_at:'2026-01-02T03:04:05.000Z',parent_message_uuid:null,content:[{type:'text',text:prefix+' Scope shared Claude'}]},
+    {uuid:id+'-answer',sender:'assistant',created_at:'2026-01-02T03:04:06.000Z',parent_message_uuid:id+'-human',content:[{type:'text',text:'Synthetic assistant excluded'}]}
+   ]}];
+   await coordinator.select(new Blob([JSON.stringify(data)]),{consent:true});await coordinator.preflight();await coordinator.commit();await store.finishFoundation();
+   const inputs=await store.run(()=>store.repository.transaction(false,async t=>{
+    const out={};for(const row of await t.all('blocks')){const record=await t.get('records',row.value.originalTextReference);if(record?.value?.originalText===prefix+' Scope shared Claude')out.claude=row.value.id;if(record?.value?.originalText===prefix+' 主要表达')out.chatgpt=row.value.id;}return out;
+   }));
+   const created={};
+   for(const [name,specs]of [['claude',[['claude','primary']]],['mixed',[['chatgpt','primary'],['claude','supporting']]]]){
+    const evidence=await store.evidenceFor(specs.map(([provider,role])=>({inputId:inputs[provider],role,selectedFields:['body']})));
+    const entry=await store.createEntry({operationId:crypto.randomUUID(),actor:'user',body:prefix+' Scope shared '+name,type:'idea',formation:name==='mixed'?'synthesized':'explicit',evidence}),topic=await store.topic(topicId);
+    const placed=await store.placeEntry({entryId:entry.id,topicId,expectedEntryRevision:entry.revision,expectedTopicRevision:topic.organizationRevision,operationId:crypto.randomUUID()});if(placed.conflict)throw Error('scope fixture conflict');created[name]=entry.id;
+   }
+   return created;
+  }finally{store.repository.db?.close();}
+ },{topicId:topics[1].id,prefix:release?'VS05_ROLE_RELEASE':'VS05_ROLE_SOURCE'});
+ const before=await Promise.all([seeded.claude,seeded.mixed].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
+ await page.reload();await nav(page,'thoughts');
+ await eventually(async()=>await page.locator('[data-topic-id="'+topics[1].id+'"]').isVisible(),'scoped journey keeps the same Topic');
+ await page.locator('[data-topic-id="'+topics[1].id+'"]').click();
+ const scope=page.locator('#topic-source-scope'),body=page.locator('#original-reading-body');
+ await eventually(async()=>await scope.locator('option[value="claude"]').count()===1,'real imported Claude source becomes selectable');
+ assert.equal(await page.locator('input[type="search"]:visible').count(),1,'source selection keeps one Topic search');
+ await scope.selectOption('claude');
+ await eventually(async()=>await body.locator('[data-entry-id]').count()===2&&await body.locator('[data-entry-id="'+seeded.mixed+'"]').count()===1,'Claude view contains direct and mixed evidence only');
+ assert.equal(await body.locator('[data-entry-id="'+seeded.claude+'"]').count(),1);
+ assert.equal(await page.locator('[data-reading-start="asc"]').isDisabled(),true,'a source-scoped view cannot falsely use whole-Topic time endpoints');
+ assert.match(await page.locator('#topic-search-count').textContent(),/当前来源内容/);
+ await page.locator('#topic-search').fill('Scope shared claude');
+ await eventually(async()=>await body.locator('[data-entry-id]').count()===1&&await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1,'Topic lexical search remains inside Claude scope');
+ await page.locator('#topic-search').fill('');
+ await eventually(async()=>await body.locator('[data-entry-id]').count()===2,'clearing query keeps source scope');
+ await scope.selectOption('chatgpt');
+ await eventually(async()=>await body.locator('[data-entry-id]').count()===2&&await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===0,'ChatGPT view includes the mixed identity and existing role-bound expression');
+ assert.equal(await body.locator('[data-entry-id="'+seeded.mixed+'"]').count(),1);
+ await scope.selectOption('claude');
+ await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1);
+ await page.locator('#back').click();await page.locator('[data-topic-id="'+topics[1].id+'"]').click();
+ await eventually(async()=>await scope.inputValue()==='claude'&&await body.locator('[data-entry-id]').count()===2,'return preserves Topic source scope without duplicating the Topic');
+ await scope.selectOption('');
+ await eventually(async()=>await body.locator('[data-entry-id]').count()===5,'All sources restores the original independent expressions');
+ assert.equal(await page.locator('[data-reading-start="asc"]').isDisabled(),false);
+ const after=await Promise.all([seeded.claude,seeded.mixed].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
+ for(let i=0;i<before.length;i++){assert.equal(after[i].body,before[i].body);assert.equal(after[i].revision,before[i].revision);}
+ await shot(page,release?'vs05-release-topic-source-scope':'vs05-source-topic-source-scope');
+ await assertOffline(h);
+}
+
 async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await page.bringToFront();
   await nav(page,'thoughts');
@@ -269,6 +328,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   }
 
   await provenanceRoleJourney(page,topics,{release});
+  await topicSourceScopeJourney(page,h,topics,{release});
   await assertOffline(h);
 }
 

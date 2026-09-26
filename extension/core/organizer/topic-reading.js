@@ -1,4 +1,6 @@
 import {prefix,fail,idOK} from '../thought-model.js';
+import {entryMatchesProvider} from '../thought-source-scope.js';
+import {validProvider} from '../read-projection-keys.js';
 import {entryTime} from './topic-chronology.js';
 import {thoughtTopicDescriptorPage,invalidateThoughtTopicIndex} from '../thought-read-index.js';
 
@@ -23,7 +25,7 @@ async function describePlacement(s,t,topic,p){
 }
 const descriptorReader=s=>(t,topic,p)=>describePlacement(s,t,topic,p);
 const cursorView=cursor=>cursor?{generation:cursor.generation,viewKey:cursor.viewKey,sort:cursor.sort,key:cursor.key}:null;
-const wrapCursor=(topicId,query,cursor)=>cursor?{topicId,query,...cursor}:null;
+const wrapCursor=(topicId,query,providerKey,cursor)=>cursor?{topicId,query,providerKey,...cursor}:null;
 
 export async function topicSectionsPage(s,{topicId,cursor=null,limit=100}={}){
  if(!idOK(topicId)||!Number.isInteger(limit)||limit<1||limit>100)fail();
@@ -92,11 +94,12 @@ async function invalidateForTimeMismatch(s,topicId){
 // Time-sorted Topic reading now pages a body-free generation projection.
 // Only the descriptor chunk selected for this response resolves canonical
 // Thought bodies, so a warm next chunk never rescans the entire Topic.
-export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next',timeEdge=null}={}){
+export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next',timeEdge=null,providerKey=null}={}){
  if(!idOK(topicId)||!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||anchorId!==null&&!idOK(anchorId)||sectionId!==null&&!idOK(sectionId))fail();
- if(timeEdge!==null&&(!['earliest','latest','unknown'].includes(timeEdge)||cursor||anchorId||sectionId||direction!=='next'||query.trim()))fail();
+ if(providerKey!==null&&!validProvider(providerKey))fail();
+ if(timeEdge!==null&&(!['earliest','latest','unknown'].includes(timeEdge)||cursor||anchorId||sectionId||direction!=='next'||query.trim()||providerKey!==null))fail();
  await s.finishFoundation();const needle=normalized(query.trim());
- if(cursor&&(cursor.topicId!==topicId||cursor.query!==needle||cursor.sort!==sort))return {cursorInvalid:true,items:[],tracked:[]};
+ if(cursor&&(cursor.topicId!==topicId||cursor.query!==needle||cursor.sort!==sort||(cursor.providerKey??null)!==providerKey))return {cursorInvalid:true,items:[],tracked:[]};
  const descriptor=await thoughtTopicDescriptorPage(s,{
   topicId,sort,cursor:cursorView(cursor),limit,direction,
   anchorId:anchorId||null,sectionId:sectionId||null,timeEdge,describe:descriptorReader(s)
@@ -116,12 +119,16 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  }));
  if(placements.size!==descriptor.items.length)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
 
+ const providerMatches=providerKey===null?null:await s.run(()=>s.repository.transaction(false,async t=>{
+  const matches=new Set();for(const d of descriptor.items)if(await entryMatchesProvider(s,t,d.entryId,providerKey))matches.add(d.entryId);return matches;
+ }));
  const sectionIds=descriptor.items.map(d=>d.sectionId),candidateSections=await sectionRowsFor(s,topic,sectionIds),sectionById=new Map(candidateSections.map(row=>[row.sectionId,row]));
  const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false,lastConsumedKey=null,payloadStopped=false;
  const descriptorRows=direction==='prev'?[...descriptor.items].reverse():descriptor.items;
  for(const d of descriptorRows){
   const p=placements.get(d.entryId),section=sectionById.get(d.sectionId);
   if(!p||!section){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(providerMatches&&!providerMatches.has(d.entryId)){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   let e;try{e=await s.readingEntry(d.entryId);}catch{lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   if(e.lifecycle!=='active'){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   if((e.sourceSentAt||null)!==(d.sourceSentAt||null)||(e.capturedAt||null)!==(d.capturedAt||null)){timeMismatch=true;break;}
@@ -140,13 +147,13 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  const sectionMap=new Map(sectionPage.items.map(row=>[row.sectionId,row]));for(const row of candidateSections)sectionMap.set(row.sectionId,row);
  const boundary=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey}:null;
  const limitedNext=direction==='next'&&boundary?boundary:descriptor.nextCursor,limitedPrevious=direction==='prev'&&boundary?boundary:descriptor.previousCursor;
- const nextCursor=wrapCursor(topic.id,needle,limitedNext),previousCursor=wrapCursor(topic.id,needle,limitedPrevious);
+ const nextCursor=wrapCursor(topic.id,needle,providerKey,limitedNext),previousCursor=wrapCursor(topic.id,needle,providerKey,limitedPrevious);
  return {
   currentCursor:cursor||null,
   sectionStarts:{},
   topic,sections:[...sectionMap.values()],sectionCursor:sectionPage.nextCursor,
-  items,tracked,sort,query:needle,
-  matchCount:needle?null:(descriptor.coverage?.activeCount??null),
+  items,tracked,sort,query:needle,providerKey,
+  matchCount:needle||providerKey!==null?null:(descriptor.coverage?.activeCount??null),
   nextCursor,previousCursor,
   complete:descriptor.complete,
   coverage:descriptor.coverage,

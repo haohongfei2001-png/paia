@@ -5,6 +5,9 @@ import {refreshEntryIndex} from '../core/thought-model.js';
 import {invalidateThoughtTopicIndex,THOUGHT_TOPIC_BUILD_BATCH} from '../core/thought-read-index.js';
 import {importedTimeChanged} from '../core/import/library-integration.js';
 import {ContinuousTopicReader} from '../ui/continuous-topic-reader.js';
+import {ImportLedger} from '../core/import/ledger.js';
+import {ImportCoordinator} from '../core/import/coordinator.js';
+import {getOfficialExportAdapter} from '../core/import/registry.js';
 import {TopicAIViewSession} from '../core/topic-ai-view-session.js';
 
 const op=()=>crypto.randomUUID();
@@ -233,4 +236,67 @@ test('VS-05 on-demand provenance distinguishes direct sources from context and f
  assert.ok(after.items.filter(x=>x.role!=='context_only').every(x=>x.inputId&&x.availability==='resolvable'));
  const standalone=await f.s.continueThinking({operationId:op(),body:'VS05 independent new expression'});
  const own=await f.s.libraryProvenance(standalone.id);assert.equal(own.userCreated,true);assert.equal(own.count,0);assert.equal(own.contextOnly,0);
+});
+
+async function mixedProviderTopic(){
+ const f=await completeFixture({texts:['VS05 scope shared ChatGPT']});
+ const ledger=new ImportLedger(f.s),coordinator=new ImportCoordinator({transport:(method,query)=>ledger[method](query,'vs05-topic-scope'),resolveAdapter:getOfficialExportAdapter});
+ const data=[{uuid:'vs05-scope-claude',name:'VS05 scope shared Claude',current_leaf_message_uuid:'vs05-scope-answer',chat_messages:[
+  {uuid:'vs05-scope-human',sender:'human',created_at:'2026-01-02T03:04:05.000Z',parent_message_uuid:null,content:[{type:'text',text:'VS05 scope shared Claude'}]},
+  {uuid:'vs05-scope-answer',sender:'assistant',created_at:'2026-01-02T03:04:06.000Z',parent_message_uuid:'vs05-scope-human',content:[{type:'text',text:'Synthetic assistant excluded'}]}
+ ]}];
+ await coordinator.select(new Blob([JSON.stringify(data)]),{consent:true});await coordinator.preflight();await coordinator.commit();await f.s.finishFoundation();
+ const inputIds=await f.s.run(()=>f.s.repository.transaction(false,async t=>{
+  const ids={};for(const row of await t.all('blocks')){const r=await t.get('records',row.value.originalTextReference);if(r)ids[r.value.platform]=row.value.id;}return ids;
+ }));
+ const topic=await f.s.createTopic({name:'VS05 mixed provider topic',operationId:op()}),entries={};
+ async function add(name,specs,hooks={}){
+  const evidence=await f.s.evidenceFor(specs,hooks),entry=await f.s.createEntry({operationId:op(),actor:'user',body:'VS05 scope shared '+name,type:'idea',formation:specs.length>1?'synthesized':'explicit',evidence},hooks),live=await f.s.topic(topic.id);
+  const placed=await f.s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:entry.revision,expectedTopicRevision:live.organizationRevision,operationId:op()});assert.equal(placed.conflict,undefined);entries[name]=entry.id;
+ }
+ const spec=(provider,role='primary')=>({inputId:inputIds[provider],role,selectedFields:['body']});
+ await add('chatgpt',[spec('chatgpt')]);await add('claude',[spec('claude')]);await add('mixed',[spec('chatgpt'),spec('claude','supporting')]);
+ await add('context',[spec('chatgpt','context_only')],{independentContext:true});
+ for(let i=0;i<90;i++){const entry=await f.s.continueThinking({operationId:op(),topicId:topic.id,body:'VS05 scope shared independent '+i});entries['independent'+i]=entry.id;}
+ return {...f,topic,entries,inputIds};
+}
+async function scopedTopicIds(f,providerKey,query='',sort='asc'){
+ let cursor=null,ids=[],pages=0;
+ do{
+  const page=await f.s.topicDocumentPage({topicId:f.topic.id,sort,providerKey,query,cursor,limit:40});
+  assert.equal(page.cursorInvalid,undefined);assert.ok(page.operations.descriptorRowsRead<=40);
+  if(providerKey!==null)assert.equal(page.matchCount,null,'global Topic count is never presented as a selected-source count');
+  ids.push(...page.items.map(x=>x.entry.id));cursor=page.nextCursor;assert.ok(++pages<30);
+ }while(cursor);
+ assert.equal(new Set(ids).size,ids.length);return ids;
+}
+test('VS-05 source-filtered Topic keeps mixed identity, independent originals and bounded empty-page continuation',async()=>{
+ const f=await mixedProviderTopic(),before=new Map();
+ for(const id of Object.values(f.entries))before.set(id,await f.s.entry(id));
+ const chatgpt=new Set([f.entries.chatgpt,f.entries.mixed]),claude=new Set([f.entries.claude,f.entries.mixed]);
+ for(const sort of ['asc','desc']){
+  assert.deepEqual(new Set(await scopedTopicIds(f,'chatgpt','',sort)),chatgpt);
+  assert.deepEqual(new Set(await scopedTopicIds(f,'claude','scope shared',sort)),claude);
+ }
+ assert.equal((await scopedTopicIds(f,null)).length,94);
+ const first=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',providerKey:'chatgpt',limit:40});
+ assert.ok(first.nextCursor);assert.equal(first.nextCursor.providerKey,'chatgpt');
+ assert.equal((await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',providerKey:'claude',cursor:first.nextCursor})).cursorInvalid,true);
+ assert.equal((await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',cursor:first.nextCursor})).cursorInvalid,true);
+ const warm=await f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',providerKey:'chatgpt',cursor:first.nextCursor});
+ assert.equal(warm.operations.buildRowsScanned,0);assert.ok(warm.operations.descriptorRowsRead<=40);
+ assert.deepEqual(await scopedTopicIds(f,'unavailable.provider'),[]);
+ await assert.rejects(()=>f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',providerKey:'../../other'}),{code:'INVALID_REQUEST'});
+ await assert.rejects(()=>f.s.topicDocumentPage({topicId:f.topic.id,sort:'asc',providerKey:'chatgpt',timeEdge:'latest'}));
+ for(const [id,entry]of before){const after=await f.s.entry(id);assert.equal(after.body,entry.body);assert.equal(after.revision,entry.revision);}
+});
+test('VS-05 current source scope rejects removed epochs and purged Input states without resurrecting evidence',async()=>{
+ const f=await mixedProviderTopic();
+ await scopedTopicIds(f,'claude');
+ await f.s.foundationWrite(async t=>{const input=await t.get('inputStates',f.inputIds.claude);input.sourcePurged=true;await t.put('inputStates',input);});
+ assert.deepEqual(await scopedTopicIds(f,'claude'),[]);
+ assert.deepEqual(new Set(await scopedTopicIds(f,'chatgpt')),new Set([f.entries.chatgpt,f.entries.mixed]));
+ await f.s.foundationWrite(async t=>{const input=await t.get('inputStates',f.inputIds.chatgpt);input.lastRemovalSequence=(input.lastRemovalSequence||0)+100000;await t.put('inputStates',input);});
+ assert.deepEqual(await scopedTopicIds(f,'chatgpt'),[]);
+ assert.equal((await f.s.entry(f.entries.mixed)).body,'VS05 scope shared mixed','source filtering does not rewrite the protected human synthesis');
 });

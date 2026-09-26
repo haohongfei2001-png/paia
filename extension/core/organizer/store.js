@@ -49,7 +49,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async topicAdjacency(o={}){return topicAdjacency(this,o);}
  async topicDocumentPage(o={}){
   const view=o.view??'original';if(!['original','ai'].includes(view))reject('INVALID_OUTPUT');
-  if(view==='original'&&!o.sort)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort?await topicReadingPage(this,o):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;
+  const scoped=o.providerKey!==undefined&&o.providerKey!==null;if(view==='original'&&!o.sort&&!scoped)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort||scoped?await topicReadingPage(this,{...o,sort:o.sort||'asc'}):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;
   if(view==='ai')return {...page,items:[],view,viewState:'not_updated'};
   const items=await this.run(()=>this.repository.transaction(false,async t=>{const out=[];for(const item of page.items)out.push({...item,entry:{...item.entry,...await entryTime(t,item.entry.id),originalSource:false,originalInputId:null}});return out;}));
   return {...page,items,view,viewState:'automatic'};
