@@ -8,17 +8,17 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: VS-05
+current_slice: VS-06
 
-current_slice_status: ACTIVE — VS-04_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED
+current_slice_status: READY — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-05.7 / VS-05 Batch C
+current_round: CPV1-06.0–06.4 / VS-06 Batch A
 
-current_round_status: ACTIVE / VS-05_BATCH_C
+current_round_status: READY / WRITER_OCCUPIED_BY_WEBSITE_PR85
 
-current_writer: MANAGER — sole VS-05 writer
+current_writer: VS-05 MANAGER RELEASED; remote website writer PR85
 
-writer_status: ACTIVE
+writer_status: VS-05_RELEASED / VS-06_NOT_ACQUIRED
 
 production_claim: NONE
 
@@ -556,3 +556,21 @@ The completed full slice attempt also reports Browser1/4 job108461468110:23PASS/
 These are reviewed against the already approved CPV1-05.1 implementation/status: new installations start in compact list, durable explicit grid remains supported, and list CSS is now a real stacked column (prior bbdf0bf affected source/built PASS). The old today-draft test assumed grid as default; it now proves list default, real list->grid persistence/rendering and grid->list persistence/rendering before its unchanged complete light/dark/size/reduced-motion/200%/English/IME/failure/privacy matrix. The old ANS07 assertion used the first visible DOM key before/after layout, which has different meaning when moving a single-column list into multi-column rows. It now locates the exact previously captured key and requires its same identity, actual visibility and same <90px position bound, plus real durable/rendered grid. Remaining245Topic/130entry/85independent/empty-first-page/six40-row-batches/search/revisit/performance/zero-network/error assertions are unchanged. No runtime fix is inferred from these historical expectations; targeted cloud results still determine whether any genuine anchor defect remains.
 
 The coherent draft batch covers only these three affected files (4 selected cases) and retains the already-passed100k/1000doc/300Topic/5000Thought fixture without rerunning it. Full certification next occurs only after this repaired candidate is stable. No deadlines increased, historical test deleted or assertions replaced with unconditional success.
+
+
+## VS-05 exact-main engineering receipt — 2026-09-26
+
+verdict: ENGINEERING_COMPLETE / OWNER_GATE_DEFERRED / EXTERNAL_CERT_PENDING
+slice_complete: NO
+candidate_pr: #79
+candidate_head: 790a4a830a229c23f8952e0f433f02f5c0f16aab
+candidate_full: run36264069911 / SUCCESS / PR checkout d7ae4bc0e0a26ec602fd1ff5f35368aba1feb598
+merged_runtime_main: 75dafc2a698560098c88ce06269230c475ff73b3
+exact_main_full: run36265011793 / SUCCESS / FullSuite108470048391 / aggregate108470082058
+receipt: receipts/CPV1-05.0-05.7-ENGINEERING.md
+
+Head, PR synthetic merge and actual main share tree0e3d10b889a0476b3156d8d4b5da963cd179ddf6. The actual exact-main audit reports145unit/53browser/3contract/6privacy files, current207, inputDigeste25c6b6b6fcf6990f7655cf03c7afb7c61f3132158cadac50b3e53371bd37dc8. All applicable current browser/unit/macOS/package/contracts jobs PASS. Previous failed attempts in this append-only record are historical and superseded by this evidence, not rerun on unchanged heads.
+
+DFG-CPV1-002 old-Thought semantics and DFG-CPV1-009 independent actual generated-output meaning remain deferred; dependent actions remain fail-closed. Signed distribution/current-live/private/device gates remain open. No production/slice/package COMPLETE claim.
+
+VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is READY, not implemented/certified. Fresh GitHub has website-only PR85 already open from actual runtime75; do not create a second writer/PR or mutate its in-progress website work. VS06 reviewed implementation strings may be prepared without push; JAEPR20 continues independently. This writer observation is a checkpoint to be reconstructed from GitHub next turn, not an inherited wait state.
