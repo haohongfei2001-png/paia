@@ -189,3 +189,70 @@ test('VS-05 complete living Topic path captures two Conversations, composes a ne
   }finally{await h?.close();}
  }
 });
+
+
+async function hiddenDraftJourney(page,h,topic,label){
+ await page.setViewportSize({width:1440,height:900});
+ await openTopic(page,topic);await organized(page);await confirmGeneration(page);
+ await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览 1'}).waitFor();
+ const original=await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}});
+ const topicBefore=topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}));
+ const initial=structuredClone((await state(page,topic.id)).presentation);
+ const legacy=page.locator('#ai-reading-body .ai-legacy').filter({has:page.locator('summary',{hasText:'其他已保存的整理'})}).first();
+ const fields=['keyInformation','preferences','decisions','judgments','openQuestions','possibleEvolution'];
+ for(const field of fields){
+  if(field!=='possibleEvolution'&&!await legacy.evaluate(node=>node.open))await legacy.locator('summary').click();
+  const node=page.locator('#ai-reading-body [data-ai-field="'+field+'"]').first();
+  await node.waitFor({state:'visible'});
+  const authored=label+' '+field+' 人工第一行\n第二行保留条件，并不等于已决定。';
+  await node.fill(authored);
+  // Collapse via the actual reading control immediately after input. This
+  // exercises the collected draft, not just a previously committed value.
+  if(field!=='possibleEvolution')await legacy.locator('summary').click();
+  else await node.press('Tab');
+  await eventually(async()=>(await state(page,topic.id)).presentation[field][0].text===authored,'authored '+field+' multiline draft is durable after collapse/blur');
+  const saved=(await state(page,topic.id)).presentation;
+  assert.equal(saved.protections[field],true,'human list edit remains protected');
+  assert.equal(saved[field].length,initial[field].length);
+  assert.deepEqual(saved[field][0].evidenceEntryIds,initial[field][0].evidenceEntryIds,'human wording retains exact evidence');
+ }
+ const summary=label+' 速览人工第一行\n第二行保持未定。';
+ await page.locator('[data-ai-field="blockSummary"]').fill(summary);
+ // A deliberate clear is also a real draft. Hiding cannot restore old AI text.
+ await page.locator('[data-ai-field="currentView"]').fill('');
+ await page.locator('#ai-presentation-toggle').uncheck();
+ await page.locator('#original-reading-body').waitFor({state:'visible'});
+ await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'hide saves actual collected overview drafts');
+ await eventually(async()=>{const saved=(await state(page,topic.id)).presentation;return saved.blockSummary===summary&&saved.currentView==='';},'multiline summary and deliberate empty overview are durable');
+ const saved=structuredClone((await state(page,topic.id)).presentation);
+ assert.equal(saved.protections.blockSummary,true);assert.equal(saved.protections.currentView,true);
+ for(const field of fields)assert.equal(saved[field][0].text,label+' '+field+' 人工第一行\n第二行保留条件，并不等于已决定。');
+ await page.locator('[data-view="library"]').first().click();await page.locator('#archive-navigator').waitFor({state:'visible'});
+ assert.deepEqual((await state(page,topic.id)).presentation,saved,'hidden route collects no phantom list/overview write or revision');
+ await reopenTopic(page,topic);await organized(page);
+ await page.locator('[data-ai-field="blockSummary"]').filter({hasText:summary}).waitFor();
+ assert.deepEqual((await state(page,topic.id)).presentation,saved,'all authored fields and intentional clear survive real Topic reopen');
+ await page.locator('#ai-presentation-toggle').uncheck();await page.locator('#original-reading-body').waitFor({state:'visible'});
+ await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'final read-only switch settles');
+ assert.deepEqual((await state(page,topic.id)).presentation,saved,'repeat hiding is idempotent for content/protection/revision');
+ assert.deepEqual(await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}}),original,'all Original entries and provenance stay exact');
+ assert.deepEqual(topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})),topicBefore);
+ assert.equal(h.deepSeekRequests.length,1);assert.equal(h.extensionNetworkRequests,1);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ await shot(page,label.toLowerCase()+'-hidden-authored-drafts');
+}
+
+test('VS-05 all six authored AI lists and deliberate empty overview survive collapsed/hidden panes and route reopen in source and built release',{timeout:300000},async()=>{
+ for(const [extensionPath,label]of [[undefined,'VS05_DRAFT_SOURCE'],['work/current-release','VS05_DRAFT_RELEASE']]){
+  if(extensionPath)await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+  let h;try{
+   h=await FakeChatGPT.start({...(extensionPath?{extensionPath}:{}),onboarding:true,deepSeekFixture:async body=>{
+    const request=requestOf(body),output=aiOutput(request,label,1),row=JSON.parse(output.choices[0].message.content);
+    for(const field of ['keyInformation','preferences','decisions','judgments','openQuestions','possibleEvolution'])
+     row[field]=[{text:label+' '+field+' 已保存条件\n尚未决定。',evidenceEntryIds:request.inputs.map(input=>input.ref)}];
+    output.choices[0].message.content=JSON.stringify(row);return output;
+   }});
+   const page=await ready(h),topic=await createTopic(page,label);
+   await hiddenDraftJourney(page,h,topic,label);
+  }finally{await h?.close();}
+ }
+});
