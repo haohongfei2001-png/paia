@@ -36,11 +36,16 @@ try:
                 assert page.locator('h1').is_visible()
                 assert page.locator('html').get_attribute('lang') == ('zh-CN' if relative.startswith('zh/') else 'en')
                 if relative in ('index.html','zh/index.html'):
-                    stage=page.locator('[data-context-stage]')
-                    stage.locator('[data-context-item="c"]').check()
-                    assert stage.locator('[data-fragment="c"]').is_visible()
-                    stage.locator('[data-context-item="c"]').uncheck()
-                    assert stage.locator('[data-fragment="c"]').is_hidden()
+                    field=page.locator('[data-v3-context]')
+                    fragments=field.locator('[data-v3-fragment]')
+                    assert fragments.count() == 5
+                    assert field.locator('[data-v3-count]').inner_text() == '3 / 5'
+                    fragments.nth(0).click()
+                    assert fragments.nth(0).get_attribute('aria-pressed') == 'true'
+                    assert field.locator('[data-v3-count]').inner_text() == '4 / 5'
+                    fragments.nth(1).click()
+                    assert fragments.nth(1).get_attribute('aria-pressed') == 'false'
+                    assert field.locator('[data-v3-count]').inner_text() == '3 / 5'
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
                 assert not errors, errors
                 page.screenshot(path=str(OUT/f'live-{relative.replace("/","-")}-{width}.png'),full_page=True)
