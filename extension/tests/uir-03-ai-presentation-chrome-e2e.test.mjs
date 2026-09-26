@@ -53,6 +53,9 @@ test('UIR-03 Organized presentation uses saved clues and true runtime states wit
 
 
 async function longRunningJourney(page,h,topic,label,releaseRequest){
+ const began=Date.now(),stages=[];
+ const checkpoint=async stage=>{const state=await rpc(page,'GET_AI_PRESENTATION_STATUS');const sample={stage,elapsedMs:Date.now()-began,providerRequests:h.deepSeekRequests.length,runtime:state.runtime,ui:await page.locator('#ai-topic-status').getAttribute('data-state')};stages.push(sample);console.log('VS05_LONG_RUNNING_STAGE '+JSON.stringify(sample));};
+ try{
  await page.setViewportSize({width:1024,height:900});await openTopic(page,topic);
  const toggle=page.locator('#ai-presentation-toggle'),original=page.locator('#original-reading-body [data-entry-field="body"]').filter({hasText:label+'_LONG_00'}).first();
  await original.waitFor();const originalText=await original.textContent();
@@ -60,6 +63,7 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  await eventually(()=>toggle.isEnabled(),'long Topic view switch is ready');await toggle.check();await confirmGeneration(page);
  await eventually(()=>Promise.resolve(h.deepSeekRequests.length===1),'one explicitly scoped long Topic request');
  await eventually(async()=>await page.locator('#ai-topic-status').getAttribute('data-state')==='sent','real provider sent state for held request');
+ await checkpoint('sent');
  assert.equal(await original.evaluate(el=>!!el.closest('[inert]')),false,'AI request cannot make retained Original inert');
  await original.selectText();assert.match(await page.evaluate(()=>getSelection().toString()),new RegExp(label+'_LONG_00'),'Original selection works before provider completion');
  await toggle.uncheck();await original.waitFor();
@@ -70,14 +74,17 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  await search.fill('');await eventually(async()=>!(await page.locator('#topic-search-count').textContent()),'local search clears during request');
  const counts=await page.locator('#original-reading-body [data-entry-id]').count();assert.ok(counts>0&&counts<=60,'Reader DOM stays bounded for long expressions');
  assert.equal(h.deepSeekRequests.length,1,'selection/search/switch do not send or retry');
+ await checkpoint('searched-and-cleared');
  const other=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:label+' Other topic',operationId:op()}});
  await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:other.id,body:label+'_OTHER local reading remains available.'}});
+ await checkpoint('other-topic-prepared');
  await page.locator('#back').click();await page.locator('[data-topic-id="'+other.id+'"]').click();
  await page.locator('#topic-heading h1').filter({hasText:other.name}).waitFor();
  assert.equal(await page.locator('#ai-topic-status').isVisible(),false,'another Topic is not labeled as the pending request scope');
  await page.locator('#back').click();await page.locator('[data-topic-id="'+topic.id+'"]').click();await original.waitFor();
  assert.equal(await original.evaluate(el=>!!el.closest('[inert]')),false,'leave and return restores usable Original before provider completion');
  assert.equal(h.deepSeekRequests.length,1,'leave and return never retries provider');
+ await checkpoint('returned-original');
  await toggle.check();await eventually(async()=>await page.locator('#ai-topic-status').getAttribute('data-state')==='sent','return resumes actual running state');
  releaseRequest();await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览'}).waitFor();
  const row=(await rpc(page,'GET_AI_PRESENTATION_STATUS')).topics.find(row=>row.topicId===topic.id);
@@ -105,6 +112,7 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  await page.emulateMedia({reducedMotion:'reduce'});await toggle.uncheck();await original.waitFor();assert.equal(await original.textContent(),originalText,'long Original text survives all switches');
  assert.equal(h.deepSeekRequests.length,1);assert.equal(h.extensionNetworkRequests,1);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  await shot(page,label.toLowerCase()+'-long-running-1024');
+ }catch(error){await checkpoint('failed').catch(diagnostic=>console.log('VS05_LONG_DIAGNOSTIC_UNAVAILABLE '+String(diagnostic)));console.log('VS05_LONG_RUNNING_BOUNDARY '+JSON.stringify(stages));throw error;}
 }
 
 test('VS-05 long Topic remains interactive across a held AI request, navigation and restrained/reduced motion in source and built release',{timeout:300000},async()=>{
