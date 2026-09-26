@@ -47,3 +47,117 @@ test('UIR-03 candidate comparison keeps current work distinct, stages choices lo
  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  let releaseCalls=0,release;try{release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true,deepSeekFixture:async body=>aiOutput(requestOf(body),'UIR03_RELEASE_CANDIDATE',++releaseCalls)});const page=await ready(release),topic=await createTopic(page,'UIR03_RELEASE_CANDIDATE');await releaseJourney(page,release,topic);}finally{await release?.close();}
 });
+
+async function addCapturedInput(page,input,topic){
+ await page.locator('[data-view="library"]').first().click();
+ await page.locator('#archive-navigator').waitFor({state:'visible'});
+ const group=page.locator('.archive-navigator-group-toggle').filter({hasText:'未归属 Project'}).first();
+ await group.waitFor();if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+ await page.locator('.archive-navigator-window[data-document-id="'+input.documentId+'"]').click();
+ const field=page.locator('.library-prose[data-edit-id="'+input.id+'"]');await field.waitFor();
+ await page.locator('[data-block-id="'+input.id+'"] .reader-more').click();
+ await page.getByRole('menuitem',{name:'加入主题',exact:true}).click();
+ const chooser=page.locator('#topic-action-dialog');await chooser.waitFor();
+ assert.equal(await chooser.locator('.topic-selection-preview').textContent(),input.libraryText,'whole captured Input is explicitly selected');
+ await chooser.getByLabel(topic.name,{exact:true}).check();
+ await chooser.getByRole('button',{name:'加入',exact:true}).click();
+ await eventually(async()=>!await chooser.isVisible(),'actual Reader joins the selected Input to the selected Topic');
+ const doc=await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}});
+ const found=doc.items.find(row=>row.entry.body===input.libraryText)?.entry;
+ assert.ok(found,'joined whole Input is an actual Original entry');return found;
+}
+async function livingTopicJourney(page,h,topic,label){
+ const a={id:label.toLowerCase()+'-conversation-a',title:label+' Conversation A',base:1609459200,messages:[{id:label+'-message-a',text:label+' 会话一：只在证据足够时考虑这条路线。'}]};
+ const b={id:label.toLowerCase()+'-conversation-b',title:label+' Conversation B',base:1609545600,messages:[{id:label+'-message-b',text:label+' 会话二：另一条路线仍开放，并未决定替代。'}]};
+ const sourceA=await h.open(a);await h.ready(sourceA);const sourceB=await h.open(b);await h.ready(sourceB);
+ await eventually(async()=>(await h.state()).records.length===2,'two separate real content-script captures finish');
+ const captured=await h.state(),inputs=captured.library.blocks;
+ assert.equal(inputs.length,2);assert.notEqual(inputs[0].documentId,inputs[1].documentId,'Inputs retain different Conversation identity');
+ const sourceEntries=[];for(const input of inputs)sourceEntries.push(await addCapturedInput(page,input,topic));
+ assert.equal(h.deepSeekRequests.length,0,'capture and explicit Topic placement never invoke AI');
+ await openTopic(page,topic);if(await page.locator('#ai-presentation-toggle').isChecked())await page.locator('#ai-presentation-toggle').uncheck();
+ for(const entry of sourceEntries){
+  const node=page.locator('#original-reading-body [data-entry-id="'+entry.id+'"]');await node.waitFor();
+  assert.equal(await node.locator('[data-entry-field="body"]').textContent(),entry.body);
+  const provenance=node.locator('.entry-provenance');await provenance.locator('summary').first().click();
+  await eventually(async()=>await provenance.getByRole('button',{name:'查看输入',exact:true}).count()===1,'one direct captured source remains inspectable for each Conversation expression');
+  assert.ok((await rpc(page,'GET_LIBRARY_PATHS',{id:entry.id})).length,'joined expression retains a real Topic path');
+ }
+ const composer=page.locator('#topic-action-dialog'),newBody=label+' 今天的新想法\n这不是过去原话的改写。';
+ await page.locator('#create-entry').click();await composer.getByLabel('今天的新想法',{exact:true}).fill(newBody);
+ await composer.getByRole('button',{name:'保存想法',exact:true}).click();
+ await eventually(async()=>!await composer.isVisible(),'new Thought saves through the real composer');
+ await page.locator('#notice').getByRole('button',{name:'查看',exact:true}).click();
+ const standalone=page.locator('#library-dialog-content [data-entry-field="body"]');await standalone.waitFor();
+ assert.equal(await standalone.textContent(),newBody);
+ const newId=await page.locator('#library-dialog-content [data-entry-id]').getAttribute('data-entry-id');
+ const newEntry=await rpc(page,'GET_LIBRARY_ENTRY',{id:newId});
+ assert.equal(newEntry.provenanceType,'user_created');assert.deepEqual(newEntry.sourceRecordIds,[]);
+ assert.equal((await rpc(page,'GET_LIBRARY_PATHS',{id:newId}))[0].topicId,topic.id);
+ await page.locator('#library-dialog-close').click();await reopenTopic(page,topic);
+ const authority=await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id});
+ const beforeEntries=await Promise.all([...sourceEntries.map(e=>e.id),newId].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
+ await organized(page);await confirmGeneration(page);
+ await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览 1'}).waitFor();
+ let row=await state(page,topic.id);assert.equal(h.deepSeekRequests.length,1);
+ assert.deepEqual(new Set(row.presentation.evidenceEntryIds),new Set(beforeEntries.map(e=>e.id)),'one bounded generation includes both Conversations and independent Thought');
+ assert.deepEqual(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}),authority,'generation never alters Topic authority');
+ const human=label+' 人工维护第一行\n第二行保留条件和未定选择。';
+ await page.locator('[data-ai-field="currentView"]').fill(human);
+ await page.locator('[data-ai-field="currentView"]').press('Tab');
+ await eventually(async()=>(await state(page,topic.id)).presentation.currentView===human,'actual manual multiline overview is durable');
+ row=await state(page,topic.id);assert.equal(row.presentation.protections.currentView,true);
+ const protectedPresentation=structuredClone(row.presentation);
+ await page.locator('#ai-presentation-toggle').uncheck();
+ assert.deepEqual(await Promise.all(beforeEntries.map(e=>rpc(page,'GET_LIBRARY_ENTRY',{id:e.id}))),beforeEntries,'AI/human overview edits never rewrite any Original entry');
+ const newMessage={id:label+'-message-new',text:label+' 会话一新增来源：出现反例，仍需保留先前条件。'};
+ await h.send(sourceA,newMessage);
+ await eventually(async()=>(await h.state()).records.length===3,'new external source message is captured without AI');
+ const changed=await h.state();
+ const latestInput=changed.library.blocks.find(input=>input.libraryText===newMessage.text);
+ assert.ok(latestInput);assert.deepEqual(changed.records.filter(record=>captured.records.some(old=>old.id===record.id)),captured.records,'new capture keeps earlier immutable Source records');
+ const added=await addCapturedInput(page,latestInput,topic);
+ await reopenTopic(page,topic);await organized(page);
+ row=await state(page,topic.id);assert.equal(row.pending,true);assert.deepEqual(row.presentation,protectedPresentation,'source addition does not overwrite the saved human draft');
+ assert.equal(h.deepSeekRequests.length,1,'new capture/placement/read alone does not request AI');
+ const updatedAuthority=await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id});
+ await page.locator('#ai-library-update').click();await page.locator('[data-ai-candidate]').waitFor();
+ await eventually(()=>Promise.resolve(h.deepSeekRequests.length===2),'exactly one explicit protected update');
+ row=await state(page,topic.id);assert.equal(row.presentation.currentView,human);assert.equal(row.presentation.revision,protectedPresentation.revision);
+ assert.equal(row.candidate.proposal.currentView,label+' 当前理解 2');
+ assert.deepEqual(new Set(row.candidate.proposal.evidenceEntryIds),new Set([...beforeEntries.map(e=>e.id),added.id]),'delta proposal retains prior cross-Conversation evidence and new source');
+ const panel=page.locator('[data-ai-candidate]'),summary=panel.locator('[data-ai-candidate-field="blockSummary"]'),view=panel.locator('[data-ai-candidate-field="currentView"]');
+ assert.match(await view.locator('[data-candidate-version="current"]').textContent(),/人工维护第一行/);
+ await summary.getByRole('button',{name:'采用这段',exact:true}).click();await view.getByRole('button',{name:'保留当前',exact:true}).click();
+ assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'reviewed choices remain staged until explicit save');
+ await panel.getByRole('button',{name:'保存这些选择',exact:true}).click();
+ await eventually(async()=>!(await state(page,topic.id)).candidate,'protected candidate is atomically adopted once');
+ row=await state(page,topic.id);assert.equal(row.presentation.revision,protectedPresentation.revision+1);
+ assert.equal(row.presentation.blockSummary,label+' 主题速览 2');assert.equal(row.presentation.currentView,human);assert.equal(row.presentation.protections.currentView,true);
+ const saved=structuredClone(row.presentation);
+ assert.deepEqual(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}),updatedAuthority);
+ assert.deepEqual(await Promise.all(beforeEntries.map(e=>rpc(page,'GET_LIBRARY_ENTRY',{id:e.id}))),beforeEntries);
+ assert.equal((await rpc(page,'GET_LIBRARY_ENTRY',{id:added.id})).body,newMessage.text);
+ assert.deepEqual((await h.state()).records,changed.records,'candidate update never alters captured Source');
+ await h.restartWorker();await page.reload();await openTopic(page,topic);await organized(page);
+ await page.locator('[data-ai-field="currentView"]').filter({hasText:human}).waitFor();
+ assert.deepEqual((await state(page,topic.id)).presentation,saved,'worker restart and route reload preserve exact reviewed human work');
+ assert.equal(h.deepSeekRequests.length,2);assert.equal(h.extensionNetworkRequests,2);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ await shot(page,label.toLowerCase()+'-complete-cross-conversation-living-topic');
+}
+test('VS-05 complete living Topic path captures two Conversations, composes a new Thought and protects human work through new-source candidate update in source and built release',{timeout:300000},async()=>{
+ for(const [extensionPath,label]of [[undefined,'VS05_LOOP_SOURCE'],['work/current-release','VS05_LOOP_RELEASE']]){
+  if(extensionPath)await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+  let calls=0,h;
+  try{
+   h=await FakeChatGPT.start({...(extensionPath?{extensionPath}:{}),onboarding:true,deepSeekFixture:async body=>{
+    const request=requestOf(body),output=aiOutput(request,label,++calls),row=JSON.parse(output.choices[0].message.content);
+    const previous=JSON.parse(request.context.find(item=>item.ref==='existing-presentation')?.text||'null');
+    row.evidenceEntryIds=[...new Set([...row.evidenceEntryIds,...(previous?.evidenceEntryIds||[])])];
+    output.choices[0].message.content=JSON.stringify(row);return output;
+   }});
+   const page=await ready(h),topic=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:label+' 跨会话持续主题',operationId:op()}});
+   await livingTopicJourney(page,h,topic,label);
+  }finally{await h?.close();}
+ }
+});
