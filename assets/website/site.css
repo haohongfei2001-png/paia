@@ -366,8 +366,8 @@ html.v3-motion .v3-field.is-visible .v3-traces path{stroke-dashoffset:0}
   .v3-hero .v3-deck{font-size:1rem}
   .v3-field{height:auto;min-height:720px;margin-left:0;padding-top:52px;border-left:0;border-right:0}
   .v3-field-axis{display:none}
-  .v3-field-note{left:0;top:16px}
-  .v3-synthetic{right:0;top:18px;font-size:.46rem}
+  .v3-field-note{left:0;top:16px;max-width:185px}
+  .v3-synthetic{right:0;top:72px;max-width:150px;text-align:right;font-size:.46rem;line-height:1.35}
   .v3-fragment-plane{position:relative;inset:auto;display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:10px 0 220px;overflow:visible}
   .v3-traces{display:none}
   .v3-fragment{
