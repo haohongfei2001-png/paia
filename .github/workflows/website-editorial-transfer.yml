@@ -3,7 +3,6 @@ on:
   push:
     branches: [website/editorial-context-20260926]
     paths:
-      - 'website/.editorial-transfer/**'
       - '.github/workflows/website-editorial-transfer.yml'
 
 permissions:
@@ -55,13 +54,14 @@ jobs:
           for name,text in bundle['files'].items():
               assert isinstance(text,str)
               assert hashlib.sha256(text.encode()).hexdigest()==expected[name], name
+              if name.startswith('.github/workflows/'):
+                  continue
               target=(root/name).resolve()
               assert target.is_relative_to(root)
               target.parent.mkdir(parents=True,exist_ok=True)
               target.write_text(text,encoding='utf-8')
           PY
-          rm -rf website/.editorial-transfer
-          rm .github/workflows/website-editorial-transfer.yml
+          rm -rf website/.editorial-transfer website/.selected
           if git diff --name-only 17ac1368df600fab32bb2e22573de9bc7becae26 | grep '^extension/'; then
             echo 'Unexpected extension change' >&2
             exit 1
@@ -74,7 +74,7 @@ jobs:
           sudo apt-get install -y fonts-noto-cjk fonts-liberation
       - name: Generate and verify exact website
         env:
-          WEBSITE_TEST_OUTPUT: website-transfer-test-artifacts
+          WEBSITE_TEST_OUTPUT: /tmp/website-transfer-test-artifacts
         run: |
           set -euo pipefail
           python website/render_social.py
@@ -82,16 +82,21 @@ jobs:
           python website/build.py --check
           python website/test.py
           test ! -d website/.editorial-transfer
-          test ! -f .github/workflows/website-editorial-transfer.yml
+          test ! -d website/.selected
           if git diff --name-only 17ac1368df600fab32bb2e22573de9bc7becae26 | grep '^extension/'; then
             echo 'Unexpected extension change after generation' >&2
             exit 1
           fi
-      - name: Commit reviewed website
+      - name: Commit reviewed website only
         run: |
           set -euo pipefail
           git config user.name 'PAIA Website Build'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
+          git add -A -- website assets/website '*.html' en zh sitemap.xml robots.txt
+          git diff --cached --name-only
+          if git diff --cached --name-only | grep '^\.github/workflows/'; then
+            echo 'Workflow file unexpectedly staged' >&2
+            exit 1
+          fi
           git commit -m 'Refound PAIA website around editorial personal context'
           git push origin HEAD:refs/heads/website/editorial-context-20260926
