@@ -96,7 +96,7 @@ jobs:
         run: npm run build:release
 
   targeted_browser:
-    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER'))
+    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER'))
     name: Candidate affected browser
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -134,6 +134,12 @@ jobs:
       - name: AI candidate comparison, explicit decisions and stale protection
         if: contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER')
         run: xvfb-run -a node --test tests/uir-03-ai-candidate-chrome-e2e.test.mjs
+
+      - name: Thought root layout and invalidated history regressions
+        if: contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER')
+        run: |
+          xvfb-run -a node --test --test-concurrency=1 tests/ans-07-library-root-chrome-e2e.test.mjs tests/ux-r3-history-preemption-chrome-e2e.test.mjs
+          xvfb-run -a node --test --test-name-pattern="UX-R3 independent today draft" tests/ux-r3-thought-chrome-e2e.test.mjs
 
       - name: AI running state, interactive long Topic and motion
         if: contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER')

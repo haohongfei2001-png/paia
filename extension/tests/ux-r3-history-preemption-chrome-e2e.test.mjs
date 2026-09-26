@@ -27,29 +27,47 @@ test('UX-R3 browser history restore preempts an invalidated Thought home read',{
   await p.locator(`[data-topic-id="${topic.id}"]`).click();
   await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor();
 
+  // A same-session home list is now intentionally restored from its saved
+  // reading snapshot. This oracle requires an invalidated read, so cause a
+  // real library mutation and observe its actual broadcast before delaying it.
   await p.evaluate(()=>{
+   window.r3HistoryMutationObserved=false;
+   window.r3HistoryMutationListener=message=>{
+    if(message?.type==='ARCHIVE_CHANGED'&&message.cause==='CREATE_LIBRARY_TOPIC')
+     window.r3HistoryMutationObserved=true;
+   };
+   chrome.runtime.onMessage.addListener(window.r3HistoryMutationListener);
+  });
+  const changed=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'R3 real home invalidation',operationId:op()}});
+  assert.notEqual(changed.id,topic.id);
+  await p.waitForFunction(()=>window.r3HistoryMutationObserved===true,null,{timeout:5000});
+  await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor();
+
+  await p.evaluate(topicId=>{
    const send=chrome.runtime.sendMessage.bind(chrome.runtime);
    let releaseHome;
    const homeGate=new Promise(resolve=>{releaseHome=resolve;});
    window.r3HistoryPreemption={homeDelayed:false,homeReleased:false,topicReadStarted:false};
    window.r3ReleaseHomeRead=()=>{if(window.r3HistoryPreemption.homeReleased)return;window.r3HistoryPreemption.homeReleased=true;releaseHome();};
-   window.r3RestoreSendMessage=()=>{chrome.runtime.sendMessage=send;};
+   window.r3RestoreSendMessage=()=>{chrome.runtime.sendMessage=send;chrome.runtime.onMessage.removeListener(window.r3HistoryMutationListener);};
    chrome.runtime.sendMessage=(message,...args)=>{
     if(message?.type==='LIBRARY_INDEX_PAGE'&&!window.r3HistoryPreemption.homeDelayed){
      window.r3HistoryPreemption.homeDelayed=true;
      return homeGate.then(()=>send(message,...args));
     }
-    if(message?.type==='TOPIC_DOCUMENT_PAGE')window.r3HistoryPreemption.topicReadStarted=true;
+    if(message?.type==='TOPIC_DOCUMENT_PAGE'&&message?.options?.topicId===topicId&&window.r3HistoryPreemption.homeDelayed)window.r3HistoryPreemption.topicReadStarted=true;
     return send(message,...args);
    };
-  });
+  },topic.id);
 
   await p.locator('#back').click();
-  await p.waitForFunction(()=>window.r3HistoryPreemption?.homeDelayed===true);
+  await p.waitForFunction(()=>window.r3HistoryPreemption?.homeDelayed===true,null,{timeout:5000});
+  assert.equal(await p.evaluate(()=>window.r3HistoryMutationObserved),true,'the delayed home read must follow an actual invalidating mutation');
   assert.equal(await p.locator('#thought-collection').isVisible(),true);
 
   await p.goBack();
   await p.waitForFunction(()=>window.r3HistoryPreemption?.topicReadStarted===true,null,{timeout:5000});
+  await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor({timeout:30000});
   assert.equal(await p.evaluate(()=>window.r3HistoryPreemption.homeReleased),false,'Topic restore must not wait for the stale home request');
   await p.evaluate(()=>window.r3ReleaseHomeRead());
   await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor({timeout:30000});
