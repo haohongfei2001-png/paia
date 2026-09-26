@@ -79,7 +79,7 @@ def luminance(color):
     v = [int(color[i:i+2], 16) / 255 for i in (0, 2, 4)]
     v = [x / 12.92 if x <= .04045 else ((x + .055) / 1.055) ** 2.4 for x in v]
     return .2126*v[0] + .7152*v[1] + .0722*v[2]
-for fg, bg, minimum in [('606b63','f5f4ef',4.5),('385b45','f5f4ef',4.5),('fffefa','385b45',4.5),('d2d8cf','252d28',4.5),('768778','fffefa',3)]:
+for fg, bg, minimum in [('56616b','fbfcfd',4.5),('aebbc4','0b0f13',4.5),('10251a','b5f3cc',4.5),('acbbc5','10161b',4.5),('63717a','ffffff',4.5)]:
     low, high = sorted([luminance(fg), luminance(bg)])
     check((high+.05)/(low+.05) >= minimum, f'contrast: {fg}/{bg} >= {minimum}')
 
@@ -134,6 +134,22 @@ try:
         for locale in ['', 'en/']:
             page = browser.new_page(viewport={'width':390,'height':844})
             load(page, locale+'index.html')
+            stage = page.locator('[data-context-stage]')
+            flow_tabs = stage.get_by_role('tab')
+            flow_tabs.nth(2).focus()
+            page.keyboard.press('ArrowRight')
+            check(flow_tabs.nth(0).get_attribute('aria-selected') == 'true', f'{locale}: homepage keyboard tabs wrap')
+            page.keyboard.press('End')
+            check(flow_tabs.nth(2).get_attribute('aria-selected') == 'true', f'{locale}: homepage keyboard End selects reuse')
+            check(stage.locator('[data-fragment="c"]').is_hidden(), f'{locale}: unselected homepage source excluded')
+            stage.locator('[data-context-item="c"]').check()
+            check(stage.locator('[data-fragment="c"]').is_visible(), f'{locale}: selected source enters illustration')
+            for box in stage.locator('[data-context-item]').all(): box.uncheck()
+            check(stage.locator('[data-context-empty]').is_visible(), f'{locale}: empty selection has no fallback data')
+            check(stage.locator('.context-fragment:visible').count() == 0, f'{locale}: excluded sources stay out')
+            flow_tabs.nth(0).click()
+            flow_tabs.nth(2).click()
+            check(stage.locator('.context-fragment:visible').count() == 0, f'{locale}: tab switch preserves exclusions')
             menu = page.locator('.mobile-menu')
             menu.locator('summary').click()
             check(menu.evaluate('el => el.open'), f'{locale}: mobile menu opens')
@@ -152,7 +168,7 @@ try:
             page.keyboard.press('ArrowRight')
             check(tabs.nth(1).get_attribute('aria-selected') == 'true', f'{locale}: keyboard tabs')
             original = page.locator('[data-record="b"] .source-text').text_content()
-            page.locator('#sample-search').fill('readers' if locale else '读者')
+            page.locator('#sample-search').fill('users' if locale else '用户')
             check(page.locator('.sample-record:visible').count() == 2, f'{locale}: real keyword search')
             page.locator('#sample-search').fill('no-matching-sample-xyz')
             check(page.locator('.empty-search').is_visible(), f'{locale}: empty search state')
@@ -167,7 +183,7 @@ try:
             page.locator('[data-build]').click()
             prepared = page.locator('#context-preview').input_value()
             check(changed in prepared and original not in prepared, f'{locale}: complete selected working text')
-            check('Content boundaries' not in prepared if locale else '内容边界' not in prepared, f'{locale}: unselected material excluded')
+            check('Scope boundary' not in prepared if locale else '实现边界' not in prepared, f'{locale}: unselected material excluded')
             page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.__testCopied=text}}})")
             page.locator('[data-copy]').click()
             page.wait_for_function('window.__testCopied !== undefined')
