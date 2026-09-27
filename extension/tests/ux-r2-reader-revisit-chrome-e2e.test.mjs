@@ -288,7 +288,11 @@ test('VS07 Revisit revokes delayed real reads on leave and cannot revive purged 
   const doc=(await rpc(p,'GET_PAGE',{page:{view:'library',limit:1}})).recentCapturedDocument,
    page=await rpc(p,'GET_PAGE',{page:{view:'library',documentId:doc.id,limit:20}});
   assert.equal(page.library.blocks.length,1);
-  assert.equal((await rpc(p,'GET_INPUT',{id:page.library.blocks[0].id})).libraryText,text);
+  const captured=await rpc(p,'GET_INPUT',{id:page.library.blocks[0].id});
+  assert.equal(captured.libraryText,null,'an unedited Input has no separate working override');
+  const immutable=(await h.state()).records.find(record=>record.id===captured.originalTextReference);
+  assert.ok(immutable,'the actual Input remains bound to its immutable capture');
+  assert.equal(immutable.originalText,text,'all1000paragraphs survive actual capture unchanged');
   await rpc(p,'PAIA_READER_CONFIGURE',{change:{oldContent:true}});
   await navigate(p,{view:'revisit'});
   await eventually(()=>p.locator('.revisit-card').filter({hasText:canary}).isVisible());
@@ -300,7 +304,8 @@ test('VS07 Revisit revokes delayed real reads on leave and cannot revive purged 
    globalThis.__vs07RevisitPending=[];globalThis.__vs07RevisitHold=false;
    chrome.runtime.sendMessage=async message=>{
     const response=await send(message);
-    if(globalThis.__vs07RevisitHold&&['PAIA_REVISIT_STATUS','PAIA_READER_RECENT'].includes(message.type)){
+    if(globalThis.__vs07RevisitHold&&['PAIA_REVISIT_STATUS','PAIA_READER_RECENT'].includes(message.type)
+      &&!globalThis.__vs07RevisitPending.some(pending=>pending.type===message.type)){
      const pending={type:message.type,response};
      globalThis.__vs07RevisitPending.push(pending);
      await new Promise(resolve=>{pending.release=resolve;});
