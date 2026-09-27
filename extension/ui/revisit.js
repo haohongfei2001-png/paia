@@ -5,6 +5,14 @@ const $=id=>document.getElementById(id);
 const button=text=>{const b=element('button','',text);b.type='button';return b;};
 let windowId=null,serial=0,active=false,snapshot=null,opener=null,renderSignature=null;
 const date=value=>value&&Number.isFinite(Date.parse(value))?new Date(value).toLocaleDateString(document.documentElement.lang||'zh-CN'):copy('发送时间未知','Send time unknown');
+const explanation=item=>{
+ const reason=item.revisitReason;
+ if(reason==='saved_since_visit')return copy('上次打开后保存','Saved since your last visit');
+ if(reason==='previously_worked')return copy('曾编辑或整理','Previously edited or organized');
+ if(reason==='earlier_material')return copy('已开启旧内容回顾','Earlier material is enabled');
+ // An older background may lack the enum; avoid inventing an explanation.
+ return '';
+};
 export const revisitPage={
  async show(){active=true;$('revisit-panel').hidden=false;try{const window=await request('PAIA_REVISIT_OPEN',{options:{windowId}});windowId=window.id;history.replaceState({...history.state,paiaRevisitWindow:windowId},'',location.href);await refresh();}catch{$('revisit-status').textContent=copy('暂时无法读取回访内容 · 重试','Revisit is unavailable. Retry.');}},
  async leave({toReader=false}={}){active=false;$('revisit-panel').hidden=true;if(!toReader&&windowId){await request('PAIA_REVISIT_CLOSE',{options:{windowId}});windowId=null;const state={...history.state};delete state.paiaRevisitWindow;history.replaceState(state,'',location.href);}},
@@ -16,7 +24,7 @@ async function exclude(kind,id){
 function section(title){const s=element('section','revisit-section');s.append(element('h2','',title));$('revisit-body').append(s);return s;}
 function card(item,kind){
  const row=element('article','revisit-card'),open=button('');open.className='revisit-card-open';row.dataset.inputId=item.id||'';row.dataset.topicId=item.topicId||'';
- open.append(element('strong','',item.title||item.name),element('p','',item.snippet||''),element('small','',kind==='topic'?copy(`多了 ${item.pendingEntryCount}${item.truncated?'+':''} 段相关内容`,`${item.pendingEntryCount}${item.truncated?'+':''} new or changed entries`):`${date(item.sourceSentAt)}${item.meaningful?copy(' · 曾编辑或加入主题',' · Edited or added to a topic'):''}`));
+ open.append(element('strong','',item.title||item.name),element('p','',item.snippet||''),element('small','',kind==='topic'?copy(`多了 ${item.pendingEntryCount}${item.truncated?'+':''} 段相关内容`,`${item.pendingEntryCount}${item.truncated?'+':''} new or changed entries`):`${date(item.sourceSentAt)}${explanation(item)?' · '+explanation(item):''}`));
  open.onclick=()=>{
   if(kind==='topic'){requestNavigation({view:'thoughts',returnTo:'revisit'});document.dispatchEvent(new CustomEvent('paia:open-topic',{detail:{topicId:item.topicId}}));}
   else requestNavigation({view:'library',documentId:item.documentId,contextInputId:item.id,returnTo:'revisit'});
@@ -31,7 +39,7 @@ async function refresh(){
   if(reading.length){const s=section(copy('继续阅读','Continue reading'));for(const anchor of reading){const open=button(anchor.title);open.className='revisit-resume';open.onclick=()=>requestNavigation({view:'library',documentId:anchor.documentId,contextInputId:anchor.inputId,anchor,returnTo:'revisit'});s.append(open);}}
   if(data.newInputs.items.length){const s=section(copy('上次打开后留下的内容','Saved since your last visit'));for(const item of data.newInputs.items)s.append(card(item,'input'));if(data.newInputs.truncated)s.append(element('p','muted',copy('仅显示当前有界范围，可从档案继续浏览。','Showing a bounded range. Continue browsing in Archive.')));}
   if(data.topicUpdates.length){const s=section(copy('主题有新材料','Topics with new material'));for(const item of data.topicUpdates)s.append(card(item,'topic'));}
-  if(data.oldContent&&data.resurface.length){const s=section(copy('以前留下的内容','Earlier material'));for(const item of data.resurface)s.append(card(item,'input'));}
+  if(data.oldContent&&data.resurface.length){const s=section(copy('以前留下的内容','Earlier material'));s.append(element('p','muted',copy('每次最多四条，优先呈现曾编辑或整理的内容；更多内容可从档案找回。','Up to four items, favoring material previously edited or organized. Find more in Archive.')));for(const item of data.resurface)s.append(card(item,'input'));}
   if(data.topicsTruncated)body.append(element('p','muted',copy('仅查看部分主题，完整材料可从思想库打开。','A bounded set of topics is shown. Open Thought Library for all material.')));
   if(!data.newInputs.items.length&&!data.topicUpdates.length&&!data.resurface.length)body.append(element('p','revisit-quiet',copy('可以继续阅读，或在需要时找回以前的内容。','Continue reading, or find earlier material when you need it.')));}
   if(visit.status==='rejected')$('revisit-status').textContent=copy('旧内容暂时无法读取，请重试。继续阅读仍可使用。','Earlier material is unavailable. Retry; reading positions remain available.');else if(positions.status==='rejected')$('revisit-status').textContent=copy('继续位置暂时无法读取，仍可打开档案。','Reading positions are unavailable; Archive still works.');else if(data.topicsUnavailable)$('revisit-status').textContent=copy('主题新材料暂时无法读取，档案仍可打开。','Topic updates are unavailable; Archive still works.');

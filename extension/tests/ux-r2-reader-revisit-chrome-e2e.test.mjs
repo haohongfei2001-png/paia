@@ -127,3 +127,68 @@ test('UX-R2 F-LARGE real IndexedDB: 100k Inputs, 1000 documents, 300 topics and 
   await mkdir('work/ux-r2',{recursive:true});await writeFile('work/ux-r2/large-fixture.json',JSON.stringify(report,null,2));assert.deepEqual(report.counts,{inputs:100000,documents:1000,topics:300,entries:5000});assert.ok(report.page.blocks<=100);assert.ok(report.page.bodies<=100);assert.ok(report.page.reads<600);assert.ok(report.resume.reads<10);assert.equal(report.resume.offset,41000);assert.ok(report.revisit.reads<6000);assert.ok(report.revisit.cards<=5);assert.ok(report.page.ms<3000);assert.ok(report.resume.ms<1000);assert.ok(report.pulses>0);assert.equal(report.localHasBody,false);await mkdir('work/ux-r2',{recursive:true});await writeFile('work/ux-r2/large-fixture.json',JSON.stringify(report,null,2));offline(h);
  }finally{await h.close();}
 });
+
+test('VS07 Revisit explains a finite priority set and keeps saved position and exclusions', {timeout:120000}, async()=>{
+ const h=await FakeChatGPT.start({onboarding:true});try{
+  const p=await ready(h),chat={id:'vs07-revisit-priority',title:'回访选择证据',
+   base:1609459200,messages:Array.from({length:8},(_,i)=>({
+    id:'vs07-revisit-'+i,text:'VS07_REVISIT_ORIGINAL_'+i+' 原话、反例与后续修正独立保留。'}))};
+  await h.open(chat);
+  await eventually(async()=>{
+   const records=(await h.state()).records;
+   return records.length===8&&records.every(x=>x.sourceSentAt);
+  },'all eight real historical-time captures are ready');
+  await p.bringToFront();
+  const doc=(await rpc(p,'GET_PAGE',{page:{view:'library',limit:1}})).recentCapturedDocument;
+  const page=await rpc(p,'GET_PAGE',{page:{view:'library',documentId:doc.id,limit:20}});
+  assert.equal(page.library.blocks.length,8);
+  const worked=page.library.blocks.slice(0,2),sourceBefore=(await h.state()).records;
+  await rpc(p,'EDIT_DOCUMENT',{edit:{documentId:doc.id,operationId:crypto.randomUUID(),
+   blocks:worked.map((item,i)=>({id:item.id,expectedRevision:item.revision,
+    libraryText:'VS07_REVISIT_WORKED_'+i+' 独立工作版本。',note:item.note,excluded:item.excluded}))}});
+  const anchorInput=await rpc(p,'GET_INPUT',{id:worked[0].id});
+  const anchor={documentId:doc.id,inputId:anchorInput.id,revision:anchorInput.revision,
+   offset:3,sort:'asc',expanded:[anchorInput.id]};
+  assert.equal((await rpc(p,'PAIA_READER_SAVE',{anchor})).saved,true);
+  const positions=await rpc(p,'PAIA_READER_RECENT');assert.equal(positions.length,1);
+  await navigate(p,{view:'revisit'});
+  assert.equal(await p.locator('#revisit-old-toggle').isChecked(),false);
+  assert.equal(await p.locator('.revisit-card[data-input-id]').count(),0);
+  await eventually(()=>p.locator('.revisit-resume').isVisible(),'continue reading stays available');
+  assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),positions);
+  await p.locator('#revisit-old-toggle').check();
+  await eventually(async()=>await p.locator('.revisit-card[data-input-id]').count()===4,
+   'old material is opt-in and finite');
+  for(const item of worked){
+   const card=p.locator('.revisit-card[data-input-id="'+item.id+'"]');
+   await card.waitFor();assert.match(await card.locator('small').textContent(),/曾编辑或整理/);
+  }
+  const plain=p.locator('.revisit-card[data-input-id]').filter({hasText:'VS07_REVISIT_ORIGINAL_'});
+  assert.equal(await plain.count(),2);
+  for(const small of await plain.locator('small').all())
+   assert.match(await small.textContent(),/已开启旧内容回顾/);
+  assert.match(await p.locator('#revisit-body').textContent(),/每次最多四条/);
+  const visit=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
+  assert.equal(visit.resurface.length,4);
+  assert.ok(visit.resurface.every(item=>!Object.hasOwn(item,'currentBelief')&&
+   !Object.hasOwn(item,'supersedes')));
+  const before=(await p.locator('.revisit-card[data-input-id]').all()).map(async card=>card.getAttribute('data-input-id'));
+  const ids=await Promise.all(before);await p.locator('#revisit-refresh').click();
+  await eventually(async()=>JSON.stringify(await p.locator('.revisit-card[data-input-id]').evaluateAll(
+   cards=>cards.map(card=>card.dataset.inputId)))===JSON.stringify(ids),'same-day refresh is stable');
+  const excluded=p.locator('.revisit-card[data-input-id="'+worked[0].id+'"]');
+  await excluded.locator('summary').click();
+  await excluded.getByRole('button',{name:'不主动回顾这条',exact:true}).click();
+  await eventually(async()=>await excluded.count()===0,'excluded priority item disappears');
+  assert.ok(await p.locator('.revisit-card[data-input-id]').count()<=4);
+  assert.equal((await rpc(p,'SEARCH_INPUTS',{options:{query:'VS07_REVISIT_WORKED_0'}})).items.length,1,
+   'Revisit exclusion preserves explicit retrieval');
+  assert.deepEqual((await h.state()).records,sourceBefore);
+  assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),positions.slice(1),
+   'the explicitly excluded item stops offering a Revisit reading card');
+  await p.locator('#revisit-old-toggle').uncheck();
+  await eventually(async()=>await p.locator('.revisit-card[data-input-id]').count()===0);
+  assert.deepEqual((await h.state()).records,sourceBefore);offline(h);
+ }finally{await h.close();}
+});

@@ -12,8 +12,17 @@ const invalid=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const integer=n=>Number.isSafeInteger(n)&&n>=0;
 const seed=text=>{let h=2166136261;for(const c of text){h^=c.codePointAt(0);h=Math.imul(h,16777619);}return h>>>0;};
 export function selectResurface(items,day,limit=RESURFACE_LIMIT){
- const preferred=items.filter(x=>x.meaningful),fallback=items.filter(x=>!x.meaningful),pool=(preferred.length>=limit?preferred:[...preferred,...fallback]).sort((a,b)=>String(a.sourceSentAt||'').localeCompare(String(b.sourceSentAt||''))||String(a.id).localeCompare(String(b.id)));
- if(!pool.length)return [];const count=Math.min(limit,pool.length),offset=seed(day)%pool.length;return Array.from({length:count},(_,i)=>pool[(offset+i)%pool.length]);
+ const count=Number.isSafeInteger(limit)&&limit>=0?Math.min(limit,RESURFACE_LIMIT):0;
+ if(!count)return [];
+ const pick=(pool,wanted)=>{
+  const sorted=[...pool].sort((a,b)=>(historicalInstant(a.sourceSentAt)??Infinity)-(historicalInstant(b.sourceSentAt)??Infinity)||String(a.id).localeCompare(String(b.id)));
+  if(!sorted.length)return [];const offset=seed(day)%sorted.length;
+  return Array.from({length:Math.min(wanted,sorted.length)},(_,i)=>sorted[(offset+i)%sorted.length]);
+ };
+ // Fill from genuinely worked-on eligible material first. Rotation in the
+ // fallback pool cannot displace a scarce edited/associated Input.
+ const preferred=pick(items.filter(x=>x.meaningful===true),count);
+ return [...preferred,...pick(items.filter(x=>x.meaningful!==true),count-preferred.length)];
 }
 async function inputDTO(store,t,ix,filterState,policy,{oldCutoff=null,fresh=false}={}){
  if(!ix||ix.excluded)return null;const b=(await t.get('blocks',ix.id))?.value;if(!b||b.excluded||b.branchStatus)return null;
@@ -23,7 +32,7 @@ async function inputDTO(store,t,ix,filterState,policy,{oldCutoff=null,fresh=fals
  const sourceSentAt=historicalSourceTime(ix.sourceSentAt||source?.sourceSentAt||null),at=historicalInstant(sourceSentAt);
  if(oldCutoff!==null&&(at===null||at>oldCutoff))return null;
  const text=b.libraryText??source?.originalText??'',doc=(await t.get('documents',b.documentId))?.value,meta=await t.get('inputStates',b.id),meaningful=(meta?.contentRevision||0)>0||(await t.count('dependencies','byInput',b.id))>0;
- return {kind:'input',id:b.id,documentId:b.documentId,title:doc?.userTitle||doc?.originalConversationTitle||'独立整理文档',snippet:searchExcerpt(text,'',240),sourceSentAt,meaningful};
+ return {kind:'input',id:b.id,documentId:b.documentId,title:doc?.userTitle||doc?.originalConversationTitle||'独立整理文档',snippet:searchExcerpt(text,'',240),sourceSentAt,meaningful,revisitReason:fresh?'saved_since_visit':meaningful?'previously_worked':'earlier_material'};
 }
 async function newInputs(store,t,start,end,filterState,policy){
  const items=[];if(start>=end)return {count:0,truncated:false,items};
