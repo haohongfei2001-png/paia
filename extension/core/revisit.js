@@ -1,3 +1,4 @@
+import {historicalInstant,historicalSourceTime} from './historical-time.js';
 import {revisitTopicDeltas} from './organizer/ai-presentation.js';
 import {ArchiveError} from './constants.js';
 import {searchExcerpt} from './search-service.js';
@@ -19,8 +20,8 @@ async function inputDTO(store,t,ix,filterState,policy,{oldCutoff=null,fresh=fals
  if(await store.isFiltered(t,b,filterState)||await inputRevisitExcluded(t,b,policy))return null;
  const source=b.originalTextReference?(await t.get('records',b.originalTextReference))?.value:null;
  if(fresh&&source?.importedAt)return null; // Explicit history import is never unread debt.
- const sourceSentAt=ix.sourceSentAt||source?.sourceSentAt||null,at=Date.parse(sourceSentAt||'');
- if(oldCutoff!==null&&(!Number.isFinite(at)||at>oldCutoff))return null;
+ const sourceSentAt=historicalSourceTime(ix.sourceSentAt||source?.sourceSentAt||null),at=historicalInstant(sourceSentAt);
+ if(oldCutoff!==null&&(at===null||at>oldCutoff))return null;
  const text=b.libraryText??source?.originalText??'',doc=(await t.get('documents',b.documentId))?.value,meta=await t.get('inputStates',b.id),meaningful=(meta?.contentRevision||0)>0||(await t.count('dependencies','byInput',b.id))>0;
  return {kind:'input',id:b.id,documentId:b.documentId,title:doc?.userTitle||doc?.originalConversationTitle||'独立整理文档',snippet:searchExcerpt(text,'',240),sourceSentAt,meaningful};
 }

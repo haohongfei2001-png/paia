@@ -12,9 +12,9 @@ current_slice: VS-07
 
 current_slice_status: IN_PROGRESS — VS-06_ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING
 
-current_round: CPV1-07.0–07.1 / VS-07 Batch A
+current_round: CPV1-07.0–07.1 evaluation + independent CPV1-07.4 historical evidence / VS-07 Batch A
 
-current_round_status: IN_PROGRESS / VS07_REAL_SEMANTIC_COMPARISON_CANDIDATE
+current_round_status: IN_PROGRESS / SEMANTIC_LAB_MEASURED_NOT_ADMITTED / HISTORICAL_TIME_BOUNDARY_CANDIDATE
 
 current_writer: MANAGER / sole VS-07 Batch A branch feat/vs07-retrieval-evaluation
 
@@ -977,3 +977,20 @@ Two projection failures are now bounded by the second actual ABI receipt and pri
 One coherent implementation+5direct admission regression batch. Require actual returned tensors for every known unique mandatory graph input, int64 BigInt64Array/exact1xsequence/data length, common1..512sequence length, nonnegative IDs, binary/nonempty mask and all-zero single-sequence segments. Missing or malformed segment still refuses. Preserve tensor identity/value without mutation and report no fabricated token inputs. Cases cover genuine returned tensors, required missing tensor versus graph not requiring it, shape/storage/mask/id faults, paired/nonzero segments and unknown/duplicate graph/private getter non-echo. Existing11official and13source regressions, mean-pooling, fixed28records29tasks13categories/frozen0.7 and all scope/source/license/cache/offline caps remain unchanged.
 
 New5case cloud proof and actual full fixed-corpus semantic comparison PENDING; candidate is not production model selection or certification. Chrome/conversion/long-library/index/UI remain OPEN. No unchanged-head rerun/full certification, workflow/timeout/new permissions/paid/provider or private corpus changes. SoleJAE20 /8ddbb780 candidate36294776224 still asynchronous; continue independent engineering rather than waiting.
+
+
+## VS-07 reliable historical evidence / independent CPV1-07.4 batch
+
+Fresh main e43b8748701cd7c71eba4da1576478bdcfce2d47, extension writerPR88 /43c70244be04e9a695d93362d0c3b67299fa275e. Actual Candidate36295339158 SUCCESS; model36295339038/job108553031917 completes all fixed28records/29tasks/13categories with zero contract failures. Actual typed token/graph fix and all16official+13source+17evaluation cases PASS. Full safe measured JSON and independently identical candidate/checkout tree77ecc3351e31a61620086a8cf64ae552e097e678 are permanently recorded in PR88 checkpoint. Model at frozen uncalibrated0.7 has MRR/recall/nDCG0.2692 versus lexical0.6346/0.6923/0.6326; no-shared-keyword/Chinese-paraphrase/negation all zero. No production admission, gold/threshold change or identical-input tuning. Chrome/conversion/calibration/long-library/index remain OPEN.
+
+Continue canonical independent historical evidence work without changing model admission. Bounded production review found searchMaterialPage uses Date.parse(sourceTime)<bound: NaN comparisons are false, so a malformed nonempty source time passes both date conditions. Date.parse also silently rolls an impossible February/April date into another month, and broad year/locale strings can become false known chronology. Source text remains correct; the time/scope boundary needs repair.
+
+One pure read-only historical-time validator requires actual calendar day and explicit timezone for known source instants, rejects rollover/ambiguous/missing-zone values to UNKNOWN, and validates calendar request bounds/reversed ranges. Historical search projects unverified source time as null and excludes it from known-date scope. Old-material Revisit cannot infer an old date from malformed evidence; chronological search grouping uses actual timezone instants, unknown last. No capture/import/update timestamp substitution, original-record rewrite, hidden belief/supersession claim, durable new state, provider/model call, permission or schema change. All previous history/search/Revisit assertions remain unchanged.
+
+Add23direct regressions with the actual production service/fakeIndexedDB:16unknown timestamp variants, real leap/offset evidence, invalid/reversed date requests,8complete negation/correction/quotation/unknown expressions, immutable Source versus current rewrite, known-date scope excluding unknown/impossible times, actual permanent deletion staying absent, timezone chronology, finite opt-in Revisit and full source/block/index/input-state preservation/no provider calls. Independently map all8captured bodies to exact Source IDs before fixture evidence injection, not incidental key iteration order. New23case cloud proof PENDING; current/deferred historical UX and full VS07 remain OPEN.
+
+Also implement the requested coherent-batch cadence for this model lab: primary Octokit pull_request/synchronize schema confirms before/after fields. Compare actual previous/head Git ancestry and changed paths in Actions; run the original model gate for any model/inference/provenance/evaluator/fixed-gold/lexical-baseline/workflow change or any uncertainty/missing/rewritten history. Only proven unchanged semantic inputs reuse the retained measurement, explicitly without new quality certification. Model bounds/quality tests are unchanged. Exact-head checkout replaces an implicit merge checkout. Three direct classification regressions cover all dependent paths, independent historical files and every uncertainty; workflow changes run one original probe on this stable candidate. No unrelated-head model re-download thereafter; no full or unchanged-head rerun.
+
+JAE exact56b9df6f1c584d5021618f6aa8d263397ba5ce1e /CI36296209706 actualUbuntu108555418498 PASS:25privacy+175review+121operations/nativeownership+13browser+342packaged,10Mac-only skips; hostedMac108555418726417packaged/native PASS+7updater PASS. All22new long-path cases now have actual cloud proof, including real Cocoa unsent value/selection/one-window retained. JCR08 remains IN_PROGRESS/NOT_CERTIFIED with Finder/default native/GUI credentials/genuine legacy transfer/DFG002/008 OPEN, owner/live/device/signing deferred and final-submit user-only.
+
+Website-only PR89 touches a disjoint website workflow and remains outside this extension writer scope; no website mutation or inherited owner authorization is used. Revalidate main and shared boundaries before integration.

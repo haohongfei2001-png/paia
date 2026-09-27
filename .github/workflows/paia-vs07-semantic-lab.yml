@@ -12,6 +12,7 @@ on:
       - 'extension/scripts/run-official-semantic-retrieval-lab.mjs'
       - 'extension/experiments/official-minilm-pooling.mjs'
       - 'extension/experiments/public-model-provenance.mjs'
+      - 'extension/scripts/semantic-lab-change.mjs'
       - '.github/workflows/paia-vs07-semantic-lab.yml'
 permissions:
   contents: read
@@ -27,16 +28,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Classify changes to actual semantic inputs
+        id: semantic_change
+        env:
+          PAIA_EVENT_ACTION: ${{ github.event.action }}
+          PAIA_BEFORE: ${{ github.event.before }}
+          PAIA_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: node extension/scripts/semantic-lab-change.mjs
       # Actual36293632404 verified this official repository's exact Apache declaration.
       - name: Install only pinned isolated public lab dependencies
+        if: steps.semantic_change.outputs.run_probe == 'true'
         run: |
           mkdir -p "$RUNNER_TEMP/paia-semantic-lab"
           cp extension/experiments/semantic-lab/package.json "$RUNNER_TEMP/paia-semantic-lab/package.json"
           npm install --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/paia-semantic-lab"
       - name: One verified official quantized CPU comparison with offline reload
+        if: steps.semantic_change.outputs.run_probe == 'true'
         env:
           PAIA_SEMANTIC_LAB_ROOT: ${{ runner.temp }}/paia-semantic-lab
           PAIA_PUBLIC_MODEL_CACHE: ${{ runner.temp }}/paia-public-model-cache
@@ -50,7 +62,7 @@ jobs:
             exit 1
           fi
       - name: Retain aggregate-only fixed-corpus model report and isolated dependency lock
-        if: always()
+        if: always() && steps.semantic_change.outputs.run_probe == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: vs07-semantic-public-lab-${{ github.run_id }}-${{ github.run_attempt }}
