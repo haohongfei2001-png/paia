@@ -126,34 +126,37 @@ export class DerivedSemanticIndex{
   const epoch=this.epoch;
   try{
    const initial=await this.snapshot();
-   if(epoch!==this.epoch)return fallback('authority_changed');
-   this.reconcile(initial);
-   if(this.state==='building')return fallback('index_building');
-   if(this.rows.size!==this.expected){this.state='partial';return fallback('index_incomplete');}
-   this.state='ready';
-   if(!initial.bindings.length)return {items:[],usedSemantic:true,coverage:this.status()};
-   const q=vector(await this.encode('query',query,this.model),this.model.dimension);
-   const current=await this.snapshot();
-   if(epoch!==this.epoch)return fallback('authority_changed');
-   this.reconcile(current);
-   if(current.signature!==initial.signature){this.state='partial';return fallback('authority_changed');}
-   const queryNorm=q.reduce((sum,x)=>sum+x*x,0);
-   const ranked=current.bindings.map(binding=>{
-    const v=this.rows.get(binding.key)?.vector;if(!v)fail();
-    let score=0,documentNorm=0;
-    for(let i=0;i<v.length;i++){score+=v[i]*q[i];documentNorm+=v[i]*v[i];}
-    score/=Math.sqrt(documentNorm*queryNorm);
-    score=Math.max(-1,Math.min(1,score)); // Float32 dot round-off only.
-    return {key:binding.key,score,row:binding.row};
-   }).filter(x=>x.score>=minimumScore).sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key));
-   return {items:ranked.slice(0,limit).map(x=>({...structuredClone(x.row),score:x.score})),
-    usedSemantic:true,coverage:this.status()};
+   return await this._lookupFromSnapshot(query,{limit,minimumScore},initial,epoch);
   }catch{
    if(epoch===this.epoch){this.rows.clear();this.state='unavailable';this.checkedGeneration=null;}
    return fallback('index_unavailable');
   }
  }
-
+ async _lookupFromSnapshot(query,{limit,minimumScore},initial,epoch){
+  const fallback=reason=>({items:[],usedSemantic:false,reason,coverage:this.status()});
+  if(epoch!==this.epoch)return fallback('authority_changed');
+  this.reconcile(initial);
+  if(this.state==='building')return fallback('index_building');
+  if(this.rows.size!==this.expected){this.state='partial';return fallback('index_incomplete');}
+  this.state='ready';
+  if(!initial.bindings.length)return {items:[],usedSemantic:true,coverage:this.status()};
+  const q=vector(await this.encode('query',query,this.model),this.model.dimension);
+  const current=await this.snapshot();
+  if(epoch!==this.epoch)return fallback('authority_changed');
+  this.reconcile(current);
+  if(current.signature!==initial.signature){this.state='partial';return fallback('authority_changed');}
+  const queryNorm=q.reduce((sum,x)=>sum+x*x,0);
+  const ranked=current.bindings.map(binding=>{
+   const v=this.rows.get(binding.key)?.vector;if(!v)fail();
+   let score=0,documentNorm=0;
+   for(let i=0;i<v.length;i++){score+=v[i]*q[i];documentNorm+=v[i]*v[i];}
+   score/=Math.sqrt(documentNorm*queryNorm);
+   score=Math.max(-1,Math.min(1,score)); // Float32 dot round-off only.
+   return {key:binding.key,score,row:binding.row};
+  }).filter(x=>x.score>=minimumScore).sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key));
+  return {items:ranked.slice(0,limit).map(x=>({...structuredClone(x.row),score:x.score})),
+   usedSemantic:true,coverage:this.status()};
+ }
  // One current, scope-bound evidence set for lexical fallback or hybrid ranking.
  // This does not admit a model or activate a production search surface.
  async lookupHybrid(query,{limit=5,minimumScore=.7}={}){
@@ -169,7 +172,15 @@ export class DerivedSemanticIndex{
    const lexical=initial.bindings.map(binding=>({
     key:binding.key,score:rankLexicalCandidate(binding.row,query,prepared).score
    })).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key)).slice(0,limit);
-   const semantic=await this.lookup(query,{limit,minimumScore});
+   // Reuse the already verified full snapshot. The separate final snapshot
+   // below still fences changes after semantic readback and before return.
+   let semantic;
+   try{
+    semantic=await this._lookupFromSnapshot(query,{limit,minimumScore},initial,epoch);
+   }catch{
+    if(epoch===this.epoch){this.rows.clear();this.state='unavailable';this.checkedGeneration=null;}
+    semantic={items:[],usedSemantic:false,reason:'index_unavailable'};
+   }
    const current=await this.snapshot();
    if(epoch!==this.epoch)return unavailable('authority_changed');
    if(current.signature!==initial.signature){

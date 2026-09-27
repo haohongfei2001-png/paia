@@ -395,14 +395,14 @@ test('CPV1-07 hybrid final snapshot fences a change after semantic readback and 
  const f=fixture([item('a','anchor'),item('b','anchor other')]);await f.index.synchronize();
  let reads=0;
  f.index.readEligible=async()=>{
-  if(++reads===4){
+  if(++reads===3){
    const next=f.get();next.generation++;next.items[0].ref.revision++;
    next.items[0].body='anchor CURRENT_FINAL_READ';f.set(next);
   }
   return f.get();
  };
  const result=await f.index.lookupHybrid('anchor');
- assert.equal(reads,4);assert.equal(result.reason,'authority_changed');
+ assert.equal(reads,3);assert.equal(result.reason,'authority_changed');
  assert.deepEqual(result.items,[]);assert.equal(result.coverage.checkedGeneration,2);
  assert.equal(result.coverage.indexed,1);assert.equal(result.coverage.missing,1);
  assert.equal(result.coverage.state,'partial');
@@ -475,4 +475,23 @@ test('CPV1-07 complete multi-batch snapshot preserves all identities, long conte
  assert.equal(third.bindings.length,513);
  assert.deepEqual(before.items[512].body,full);
  assert.equal(f.calls.length,0);
+});
+
+test('CPV1-07 hybrid reuses first full snapshot across a 513-material long-content query',async()=>{
+ const full='RARE_LONG_FINAL 保留否定、修正和原话。\n'.repeat(1000)+'LONG_EVIDENCE_END';
+ const materials=Array.from({length:513},(_,i)=>item(
+  'query-'+String(i).padStart(4,'0'),i===512?full:'ordinary complete material '+i));
+ const f=fixture(materials,{maxItems:513}),before=f.get();
+ assert.equal((await f.index.synchronize()).ok,true);
+ assert.equal(f.calls.filter(x=>x.kind==='document').length,513);
+ const read=f.index.readEligible;let reads=0;
+ f.index.readEligible=async()=>{reads++;return read();};
+ const result=await f.index.lookupHybrid('RARE_LONG_FINAL');
+ assert.equal(reads,3,'first authority snapshot, semantic readback, final hybrid fence');
+ assert.equal(result.mode,'hybrid');assert.equal(result.usedSemantic,true);
+ assert.equal(result.coverage.expected,513);assert.equal(result.coverage.indexed,513);
+ assert.equal(f.calls.filter(x=>x.kind==='document').length,513);
+ assert.equal(f.calls.filter(x=>x.kind==='query').length,1);
+ assert.equal(result.items.find(x=>x.ref.id==='query-0512')?.body,full);
+ assert.deepEqual(f.get(),before);
 });
