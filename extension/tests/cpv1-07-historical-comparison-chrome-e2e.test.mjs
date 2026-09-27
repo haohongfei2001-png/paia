@@ -547,7 +547,8 @@ test('VS07 current edit cancels whole-result enumeration '+outcome+' without con
    chrome.runtime.sendMessage=async(...args)=>{
     const result=await send(...args),o=args[0]?.options;
     if(args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current'&&o.query==='SEARCH_LIFETIME'){
-     if(o.limit===100&&!globalThis.__currentEnumStarted){
+     if(o.limit===40&&!globalThis.__currentEnumStarted
+       &&document.querySelector('.universal-status').textContent==='正在枚举全部结果…'){
       globalThis.__currentEnumStarted=true;await globalThis.__currentEnumGate;globalThis.__currentEnumDone=true;
       return mode==='failure'?{ok:false,error:'STORAGE_FAILED'}:result;
      }
@@ -578,11 +579,13 @@ test('VS07 current real capture replaces loaded generation without mixing old pa
  const {h,p,sources,generation}=await currentLifetimeFixture();
  try{
   await p.evaluate(()=>{
-   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__captureSearchGenerations=[];
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__captureSearchGenerations=[];globalThis.__captureUIReads=[];
    chrome.runtime.sendMessage=async(...args)=>{
     const result=await send(...args),o=args[0]?.options;
-    if(args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current')
+    if(args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current'){
      globalThis.__captureSearchGenerations.push(result.data?.generation);
+     if(o.limit===40)globalThis.__captureUIReads.push({options:o,data:result.data,ok:result.ok});
+    }
     return result;
    };
   });
@@ -595,11 +598,38 @@ test('VS07 current real capture replaces loaded generation without mixing old pa
   // Capture completion precedes real filter/library maintenance. Pagination is
   // checked only after those actual jobs and the complete generation settle.
   await currentMaintenanceReady(p,43);
-  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');await currentReady(p);
+  const beforeExplicit=await p.evaluate(()=>globalThis.__captureUIReads.length);
+  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');
+  await eventually(()=>p.evaluate(n=>globalThis.__captureUIReads.length>n,beforeExplicit),
+   'explicit fresh production UI response completed');
+  await currentReady(p);
+  const first=await p.evaluate(()=>globalThis.__captureUIReads.at(-1));
+  assert.equal(first.ok,true);assert.equal(first.options.cursor,null);
+  assert.equal(first.data.items.length,40);assert.equal(first.data.changed,false);
+  const whole=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,limit:100}});
+  assert.equal(whole.complete,true);assert.equal(whole.items.length,43);
+  assert.equal(whole.generation,first.data.generation,'the actual UI page and whole authority share one generation');
+  const nextExpected=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,cursor:first.data.nextCursor}});
+  assert.equal(nextExpected.changed,false);assert.equal(nextExpected.generation,whole.generation);
+  assert.equal(nextExpected.items.length,3,'actual bounded production next page retains all three remaining inputs');
   assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  const beforeNext=await p.evaluate(()=>globalThis.__captureUIReads.length);
   await p.getByRole('button',{name:'下一页',exact:true}).click();
-  await eventually(async()=>await p.locator('.universal-hit').count()===3
-   &&!await p.locator('.universal-results').getAttribute('aria-busy'),'remaining exact current page');
+  await eventually(()=>p.evaluate(n=>globalThis.__captureUIReads.length>n,beforeNext),
+   'actual current UI paging response completed');
+  const next=await p.evaluate(()=>globalThis.__captureUIReads.at(-1));
+  assert.equal(next.ok,true);assert.deepEqual(next.options.cursor,first.data.nextCursor);
+  assert.equal(next.data.changed,false);assert.equal(next.data.generation,whole.generation);
+  assert.deepEqual(next.data.items.map(x=>x.ref),nextExpected.items.map(x=>x.ref));
+  await eventually(async()=>!await p.locator('.universal-results').getAttribute('aria-busy'),'current paging released');
+  assert.equal(await p.locator('.universal-hit').count(),3,JSON.stringify(await p.evaluate(()=>({
+   status:document.querySelector('.universal-status').textContent,
+   query:document.querySelector('#universal-search-dialog').dataset.query,
+   reads:globalThis.__captureUIReads.map(x=>({cursor:x.options.cursor,items:x.data?.items?.map(y=>y.id),
+    generation:x.data?.generation,changed:x.data?.changed}))
+  }))));
+  assert.deepEqual(new Set([...first.data.items,...next.data.items].map(x=>x.id)),
+   new Set(whole.items.map(x=>x.id)),'all43 inputs exactly once across the two real UI pages');
   assert.equal((await p.locator('.universal-status').textContent()).includes('范围刚有变化'),false);
   const all=(await h.state()).records;
   assert.deepEqual(all.filter(row=>sources.some(x=>x.id===row.id)),sources);
