@@ -54,9 +54,15 @@ export class DerivedSemanticIndex{
   const scope=raw.scope,generation=raw.generation,items=raw.items.map(material);
   const seen=new Set();
   for(const row of items){const key=materialIdentity(row.ref);if(seen.has(key))fail();seen.add(key);}
-  const bindings=await Promise.all(items.map(async row=>({
-   key:materialIdentity(row.ref),digest:await hashText(JSON.stringify([this.model,scope,row])),row
-  })));
+  // Bound pending Web Crypto requests for large eligible libraries. Preserve
+  // the complete snapshot and its exact per-material digest and ordering.
+  const bindings=[];
+  for(let start=0;start<items.length;start+=128){
+   const batch=await Promise.all(items.slice(start,start+128).map(async row=>({
+    key:materialIdentity(row.ref),digest:await hashText(JSON.stringify([this.model,scope,row])),row
+   })));
+   bindings.push(...batch);
+  }
   bindings.sort((a,b)=>a.key.localeCompare(b.key));
   return {scope,generation,bindings,signature:await hashText(JSON.stringify([
    scope,generation,bindings.map(x=>[x.key,x.digest])

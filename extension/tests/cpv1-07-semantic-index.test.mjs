@@ -453,3 +453,26 @@ test('CPV1-07 Float32 identical high-dimension cosine cannot exceed one or exclu
  assert.equal(index.status().vectorBytes,768*4);
  assert.deepEqual(Array.from(shared),before);
 });
+
+test('CPV1-07 complete multi-batch snapshot preserves all identities, long content and deterministic authority',async()=>{
+ const full='LONG_COMPLETE_'.repeat(1000)+'LAST_MATERIAL_END';
+ const materials=Array.from({length:513},(_,i)=>item(
+  'batch-'+String(i).padStart(4,'0'),i===512?full:'complete material '+i));
+ const f=fixture(materials,{maxItems:513}),before=f.get();
+ const first=await f.index.snapshot();
+ assert.equal(first.bindings.length,513);
+ assert.equal(new Set(first.bindings.map(x=>x.key)).size,513);
+ assert.equal(first.bindings.find(x=>x.row.ref.id==='batch-0512').row.body,full);
+ assert.equal(first.bindings.find(x=>x.row.ref.id==='batch-0512').row.body.endsWith('LAST_MATERIAL_END'),true);
+ const reordered=f.get();reordered.items.reverse();f.set(reordered);
+ const second=await f.index.snapshot();
+ assert.deepEqual(second.bindings.map(x=>[x.key,x.digest]),
+  first.bindings.map(x=>[x.key,x.digest]));
+ assert.equal(second.signature,first.signature);
+ const changed=f.get();changed.items[0].body+=' changed without a revision bump';f.set(changed);
+ const third=await f.index.snapshot();
+ assert.notEqual(third.signature,first.signature);
+ assert.equal(third.bindings.length,513);
+ assert.deepEqual(before.items[512].body,full);
+ assert.equal(f.calls.length,0);
+});
