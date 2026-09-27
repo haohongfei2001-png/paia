@@ -1,1 +1,1 @@
-Website-only v5 candidate. Patch digest 49058316074fa45fcbcc435ef7b2bdb4851455d7962799b447391b8959857e2b. Apply against exact source hashes; no extension edits.
+Final bounded visual repair: Chinese heading contrast and computed-style regression. Runtime source already committed at3ecb95a1a9fbb68f15e30ada3d1508776de34fb3; do not restore earlier payload. Original full HTTP and motion run36297862028 passed. Only affected smoke is repeated here; final normal exact-head CI is still required.

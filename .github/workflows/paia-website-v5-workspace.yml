@@ -21,51 +21,29 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.13'
-      - name: Apply exact website-only source changes
+      - name: Repair only the verified website visual defect
         run: |
           mkdir -p /tmp/website-v5-proof
-          cat .v5-transfer/*.part > /tmp/website-v5.patch.xz
-          echo '49058316074fa45fcbcc435ef7b2bdb4851455d7962799b447391b8959857e2b  /tmp/website-v5.patch.xz' | sha256sum -c -
-          python - <<'PY'
-          import pathlib,json,lzma,hashlib
-          allowed={'WEBSITE_DESIGN.md','website/home.py','website/pages.py','website/build.py','website/test.py','website/review_motion.py','website/render_social.py','website/README.md','website/receipts/WEBSITE_V5.md','assets/website/site.css','assets/website/site.js'}
-          edits=json.loads(lzma.decompress(pathlib.Path('/tmp/website-v5.patch.xz').read_bytes()))
-          assert {e['path'] for e in edits}==allowed
-          for edit in edits:
-              p=pathlib.Path(edit['path']);old=p.read_bytes() if p.exists() else None
-              assert (hashlib.sha256(old).hexdigest() if old is not None else None)==edit['old_sha256'],str(p)+' baseline mismatch'
-              lines=old.decode().splitlines(keepends=True) if old is not None else []
-              for start,end,text in reversed(edit['edits']):lines[start:end]=text
-              new=''.join(lines).encode()
-              assert hashlib.sha256(new).hexdigest()==edit['new_sha256'],str(p)+' output mismatch'
-              p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(new)
-          PY
-          if test -f .v5-transfer/repair.py; then python .v5-transfer/repair.py; fi
+          python .v5-transfer/repair.py
+          python website/build.py --check
       - name: Prepare website browser
         run: |
           python -m pip install -r website/requirements.txt Pillow==11.3.0
           python -m playwright install --with-deps chromium
           sudo apt-get install -y fonts-noto-cjk fonts-liberation
-      - name: Generate actual website and sharing cards
-        run: |
-          python website/build.py
-          python website/render_social.py
-          python website/build.py --check
-      - name: Complete actual HTTP website regression
+      - name: Affected actual HTTP regression
         env:
           WEBSITE_TEST_OUTPUT: /tmp/website-v5-proof/tests
-        run: python website/test.py 2>&1 | tee /tmp/website-v5-proof/tests.log
-      - name: Actual HTTP visual and motion evidence
+        run: python website/test.py --smoke 2>&1 | tee /tmp/website-v5-proof/tests.log
+      - name: Actual HTTP final visual and motion evidence
         run: python website/review_motion.py --output /tmp/website-v5-proof/visual 2>&1 | tee /tmp/website-v5-proof/visual.log
-      - name: Commit only verified website source and generated pages
+      - name: Commit only repaired website source
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- website assets/website en zh '*.html' sitemap.xml robots.txt WEBSITE_DESIGN.md
-          if git diff --cached --name-only | grep -E '^(extension/|native-host/|.github/|design/)'; then echo 'Scope violation'; exit 1; fi
-          if git diff --cached --name-only | grep -E '\.(woff2?|ttf|otf)$'; then echo 'Unexpected font change'; exit 1; fi
+          git add -- assets/website/site.css website/test.py
           git diff --cached --stat > /tmp/website-v5-proof/changes.txt
-          git diff --cached --quiet || git commit -m 'website: implement spatial input collection and explicit reusable context'
+          git diff --cached --quiet || git commit -m 'fix(website): preserve Chinese title contrast on the context stage'
           git push origin HEAD:website/context-motion-v5
           git rev-parse HEAD > /tmp/website-v5-proof/implemented-head.txt
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
