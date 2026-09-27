@@ -9,18 +9,62 @@ const rpc=(p,type,fields={})=>p.evaluate(async message=>{
 const tables=['records','recordIndex','blocks','inputStates','dependencies','tombstones','thoughts','topics','placements','meta'];
 async function attach(p){
  await p.evaluate(async tables=>{
-  const [{OrganizerStore},{MemoryService},snapshot]=await Promise.all([
+  const [{OrganizerStore},{MemoryService},snapshot,{ArchiveNavigationQuery}]=await Promise.all([
    import(chrome.runtime.getURL('core/organizer/store.js')),
    import(chrome.runtime.getURL('core/memory/service.js')),
-   import(chrome.runtime.getURL('core/semantic-material-snapshot.js'))
+   import(chrome.runtime.getURL('core/semantic-material-snapshot.js')),
+   import(chrome.runtime.getURL('core/archive-navigation-query.js'))
   ]);
   const store=new OrganizerStore(chrome.storage.local,{indexedDB:globalThis.indexedDB});
   const memory=new MemoryService(store);await memory.ready();
-  globalThis.__semantic={store,memory,...snapshot,
+  globalThis.__semantic={store,memory,...snapshot,navigation:new ArchiveNavigationQuery(store),
    model:{id:'synthetic-local-encoder',revision:'a'.repeat(40),dimension:2},calls:[],
    authority:()=>store.run(()=>store.repository.transaction(false,async t=>
     Object.fromEntries(await Promise.all(tables.map(async name=>[name,await t.all(name)]))),tables))};
  },tables);
+
+ // Keep the complete authority oracle: finish real filter/library/navigation
+ // maintenance before freezing it. Capture completion alone is not quiescence.
+ await settleMaintenance(p);
+}
+async function settleMaintenance(p){
+ await p.evaluate(()=>{__semantic.settledAuthority=null;});
+ await eventually(()=>p.evaluate(async()=>{
+  const s=__semantic,f=await s.store.filterStatus();
+  if(f.taskState==='failed')throw Error('Actual Smart Filter maintenance failed');
+  if(f.pending||f.taskState==='running')return false;
+  const cleanup=await s.store.processPurgeCleanup({limit:100});
+  const invalidations=await s.store.processInvalidations({limit:100});
+  const library=await s.store.processLibraryMaintenance();
+  if(cleanup.pending||invalidations.pending||library.pending)return false;
+  const foundation=await s.store.libraryStatus();
+  if(foundation.pendingCleanupJobs||foundation.pendingInvalidations
+    ||!foundation.compatibility.complete) return false;
+  // Exercise the same production query steps as Archive Navigation. Complete
+  // existing scopes, including any scope the real UI opened concurrently.
+  const meta=(await s.authority()).meta;
+  const scopes=[['providers'],['groups','chatgpt'],['windows','chatgpt','unknown',null],
+   ...meta.filter(x=>x.id.startsWith('ans:index-state:v1:scope:')).map(x=>x.scope)];
+  let ready=true;
+  for(const scope of new Map(scopes.map(x=>[JSON.stringify(x),x])).values()){
+   const options=scope[0]==='providers'?{}:scope[0]==='groups'?
+    {providerKey:scope[1],groupKind:'groups'}:
+    {providerKey:scope[1],groupKind:scope[2],...(scope[3]?{
+     projectRef:{providerKey:scope[3][0],namespace:scope[3][1],projectId:scope[3][2]}}:{})};
+   const page=await s.navigation.page(options);
+   ready&&=page.coverage.state==='complete'&&page.coverage.archiveComplete;
+  }
+  const authority=await s.authority(),catalog=authority.meta.find(x=>x.id==='ans:index-state:v1:catalog');
+  ready&&=catalog?.phase==='complete'&&!catalog.pending
+   &&!authority.meta.some(x=>x.id.startsWith('ans:index-state:v1:dirty:')
+    ||x.id.startsWith('ans:index-state:v1:gc:')
+    ||(x.id.startsWith('ans:index-state:v1:scope:')&&(x.shadow||x.activeRevision!==x.revision)));
+  const finalFilter=await s.store.filterStatus();
+  ready&&=!finalFilter.pending&&finalFilter.taskState==='idle';
+  if(!ready){s.settledAuthority=null;return false;}
+  const current=JSON.stringify(authority),stable=s.settledAuthority===current;
+  s.settledAuthority=current;return stable;
+ }),'real filter/library/navigation maintenance complete and all authority tables stable',45000);
 }
 const noNetwork=h=>{
  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
@@ -65,6 +109,7 @@ test('VS07 native Chrome snapshot and index preserve every full page and current
   await rpc(p,'EDIT_DOCUMENT',{edit:{operationId:crypto.randomUUID(),documentId:block.documentId,blocks:[{
    id:block.id,expectedRevision:block.revision,libraryText:'NATIVE_WORKED_ONLY 完整修正不改当年原话。',
    note:block.note,excluded:block.excluded}]}});
+  await settleMaintenance(p);
   const afterEdit=await p.evaluate(()=>__semantic.authority());
   const stale=await p.evaluate(()=>__semantic.index.lookup('synthetic test query'));
   assert.equal(stale.usedSemantic,false);assert.equal(stale.reason,'index_incomplete');
@@ -128,6 +173,7 @@ test('VS07 native Chrome invalidates asynchronous encoding after real exclusion 
   await p.evaluate(id=>__semantic.memory.exclude({inputId:id,excluded:true}),denied.ref.id);
   const purgeBlock=await rpc(p,'GET_INPUT',{id:purged.ref.id});
   await rpc(p,'PURGE_SOURCE',{id:purgeBlock.originalTextReference,confirm:true});
+  await settleMaintenance(p);
   const after=await p.evaluate(()=>__semantic.authority());
   const build=await p.evaluate(async()=>{__semantic.release();return __semantic.build;});
   assert.equal(build.ok,false);assert.equal(build.reason,'authority_changed');
