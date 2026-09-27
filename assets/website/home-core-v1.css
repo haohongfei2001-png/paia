@@ -151,3 +151,27 @@
   .core-close-mark{justify-content:center}
   .core-close-mark img{width:min(300px,78vw)}
 }
+
+
+/* Enlarged-text safety for the 320px accessibility matrix. */
+@media(max-width:680px){
+  .core-model,.core-model-heading,.core-model-grid,.core-model-grid article,
+  .core-feature,.core-feature-inner,.core-feature-copy,.core-feature-visual,
+  .library-shell,.library-main,.library-main article,.prompt-stage,.prompt-panel,
+  .topic-demo,.topic-timeline,.topic-timeline article,.context-center,
+  .context-center-main,.context-center-main article,.context-access,
+  .core-close,.core-close-inner,.core-close-inner>div{min-width:0}
+  .core-model-grid article{grid-template-columns:46px minmax(0,1fr)}
+  .core-model-grid h3,.core-model-grid p,
+  .core-feature-copy h2,.core-feature-copy p,.core-feature-points li,
+  .library-main article p,.library-main article small,
+  .prompt-panel-head,.prompt-row p,.next-prompt-hint p,
+  .topic-demo h3,.topic-timeline p,
+  .context-center-main article span,.context-center-main article em,
+  .context-center-main article p,.context-center-main article small,
+  .context-access h4,.context-access p,.context-access dd,.context-access small,
+  .core-close h2,.core-close p{overflow-wrap:anywhere;word-break:break-word}
+  .library-main article>div,.prompt-panel-head,.context-center-main article>div{flex-wrap:wrap}
+  .prompt-row{grid-template-columns:20px minmax(0,1fr)}
+  .topic-timeline article{grid-template-columns:52px minmax(0,1fr)}
+}
