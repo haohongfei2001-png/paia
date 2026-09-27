@@ -282,7 +282,7 @@ try:
             context = browser.new_context(java_script_enabled=False, viewport={'width':390,'height':844})
             page = context.new_page()
             load(page, locale+'index.html', scripts=False)
-            check(page.locator('h1').is_visible() and page.locator('#how').is_visible(), f'{locale}: static core content without JS')
+            check(page.locator('h1').is_visible() and page.locator('.core-model').is_visible() and page.locator('.core-feature-context').is_visible(), f'{locale}: static core content without JS')
             page.close(); context.close()
         browser.close()
 except Exception as error:
