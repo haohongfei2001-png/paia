@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -258,6 +258,12 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
 test('CPV1-01.2: pending capture status still exposes one refresh action after real extension reload', { timeout: 120000 }, async () => {
   const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-pending-reconnect-'));
   const profile = await mkdtemp(join(tmpdir(), 'paia-cpv1-pending-profile-'));
+  // A real unpacked runtime.reload uses Chrome's ordinary developer-mode
+  // admission. CDP initial installation alone does not establish that mode.
+  // This fresh cloud-only profile belongs to this fixture, never the user.
+  await mkdir(join(profile, 'Default'));
+  await writeFile(join(profile, 'Default', 'Preferences'),
+    JSON.stringify({ extensions: { ui: { developer_mode: true } } }));
   execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
   let h;
   try {
@@ -311,6 +317,16 @@ test('CPV1-01.2: pending capture status still exposes one refresh action after r
       contextId: captureWorld, returnByValue: true, expression: 'globalThis.__pendingStatus'
     });
     assert.equal(pendingReadback.value, 1, 'invalidation does not issue another status attempt');
+    // Real reload completion is a separate browser admission obligation.
+    // Old-document invalidation is NOT proof that the updated extension can
+    // serve its archive. Do not close a still-disabled/reloading extension.
+    let installedReadback;
+    await eventually(async () => {
+      const { extensions } = await h.cdp.send('Extensions.getExtensions');
+      installedReadback = extensions.find(extension => extension.id === h.extensionId);
+      return installedReadback?.enabled === true && installedReadback.version === '0.12.1';
+    }, 'updated unpacked candidate is enabled before profile restart');
+    assert.equal(installedReadback.path, await realpath(release), 'enabled candidate belongs to the same release');
     const extensionId = h.extensionId;
     await cdp.detach();
     // All actual old-document refresh and unsent-input obligations above are
