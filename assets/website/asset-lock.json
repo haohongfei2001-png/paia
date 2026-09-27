@@ -50,5 +50,15 @@
     ],
     "sha256": "697a683fe643369ac70756a65e6c5d02188b8db2b74c1193b11cca0606e2ac9d",
     "role": "Exact architecture crop, no text; not claimed as a high-resolution original photograph."
+  },
+  "assets/website/brand/paia-icon-v1.png": {
+    "source": "Owner-supplied PAIA icon artwork (2026-09-27)",
+    "sha256": "68a90243c0e629f0307f91093828de964dfce458d60553b70cca2cd0287ed8f9",
+    "role": "Canonical website favicon and compact PAIA brand mark. Optimized derivative of the owner-supplied square icon."
+  },
+  "assets/website/brand/paia-logo-v1.webp": {
+    "source": "Owner-supplied PAIA primary logo artwork (2026-09-27)",
+    "sha256": "e94ce73c20a46d40aa60d33eb87065906f256527da4948062c9ff30f6923a137",
+    "role": "Canonical website brand signature. Optimized derivative of the owner-supplied primary PAIA logo."
   }
 }
