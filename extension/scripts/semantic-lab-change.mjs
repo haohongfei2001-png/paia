@@ -21,6 +21,32 @@ export function semanticProbeRequired({action,before,head,ancestor,paths}={}){
  return paths.some(path=>exact.has(path)||path.startsWith('extension/experiments/')
    ||path.startsWith('extension/tests/fixtures/cpv1-07-'));
 }
+
+const sourceOnlyPaths=new Set([
+ 'extension/experiments/public-reranker-provenance.mjs',
+ 'extension/scripts/screen-public-rerankers.mjs',
+ 'extension/tests/cpv1-07-public-model-provenance.test.mjs',
+ 'extension/scripts/semantic-lab-change.mjs',
+ '.github/workflows/paia-vs07-semantic-lab.yml',
+ '.github/workflows/paia-candidate.yml',
+ 'extension/docs/consumer-product-v1/STATUS.md',
+ 'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'
+]);
+const sourceModule='extension/experiments/public-reranker-provenance.mjs';
+const sourceScript='extension/scripts/screen-public-rerankers.mjs';
+export function semanticLabRouting(evidence={}){
+ const {action,before,head,ancestor,paths}=evidence;
+ const verified=action==='synchronize'&&sha(before)&&sha(head)&&before!==head
+  &&ancestor===true&&Array.isArray(paths)&&paths.length>0
+  &&paths.every(x=>typeof x==='string'&&x.length>0&&x.length<=500)
+  &&new Set(paths).size===paths.length;
+ const sourceOnly=verified&&paths.includes(sourceModule)&&paths.includes(sourceScript)
+  &&paths.every(path=>sourceOnlyPaths.has(path));
+ return {runProbe:!verified?true:sourceOnly?false:semanticProbeRequired(evidence),
+  runSourceScreen:!verified||paths.some(path=>path===sourceModule||path===sourceScript),
+  sourceOnly};
+}
+
 function classify(){
  const {PAIA_EVENT_ACTION:action,PAIA_BEFORE:before,PAIA_HEAD:head}=process.env;
  let ancestor=false,paths=null;
@@ -32,8 +58,9 @@ function classify(){
     .split('\0').filter(Boolean);
   }catch{/* Missing/force-rewritten history cannot justify reusing model evidence. */}
  }
- const required=semanticProbeRequired({action,before,head,ancestor,paths});
- appendFileSync(process.env.GITHUB_OUTPUT,'run_probe='+required+'\n');
+ const routing=semanticLabRouting({action,before,head,ancestor,paths});
+ const required=routing.runProbe;
+ appendFileSync(process.env.GITHUB_OUTPUT,'run_probe='+required+'\nrun_source_screen='+routing.runSourceScreen+'\n');
  console.log(required?'Semantic inputs changed or unverified: run the original bounded model probe.':
   'Semantic inputs unchanged: retained prior measurement only; no new quality or production certification.');
 }

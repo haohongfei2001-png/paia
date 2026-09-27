@@ -4,6 +4,8 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
+      - 'extension/experiments/public-reranker-provenance.mjs'
+      - 'extension/scripts/screen-public-rerankers.mjs'
       - 'extension/experiments/semantic-lab-index.mjs'
       - 'extension/experiments/semantic-calibration.mjs'
       - 'extension/tests/fixtures/cpv1-07-calibration-corpus.mjs'
@@ -42,6 +44,22 @@ jobs:
           PAIA_BEFORE: ${{ github.event.before }}
           PAIA_HEAD: ${{ github.event.pull_request.head.sha }}
         run: node extension/scripts/semantic-lab-change.mjs
+      - name: Read only pinned public paired-text source metadata
+        if: steps.semantic_change.outputs.run_source_screen == 'true'
+        env:
+          HF_TOKEN: ''
+          HF_ACCESS_TOKEN: ''
+        run: |
+          node extension/scripts/screen-public-rerankers.mjs > "$RUNNER_TEMP/paia-reranker-source-report.json"
+          cat "$RUNNER_TEMP/paia-reranker-source-report.json"
+      - name: Retain aggregate-only source screening without weights or inference
+        if: always() && steps.semantic_change.outputs.run_source_screen == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs07-reranker-public-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/paia-reranker-source-report.json
+          if-no-files-found: error
+          retention-days: 7
       # Actual36293632404 verified this official repository's exact Apache declaration.
       - name: Install only pinned isolated public lab dependencies
         if: steps.semantic_change.outputs.run_probe == 'true'
