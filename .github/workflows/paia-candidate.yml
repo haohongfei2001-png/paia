@@ -118,7 +118,7 @@ jobs:
           "$CHROME_BIN" --version
       - name: Fixed Context manifest and exact preview release
         if: contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER')
-        run: xvfb-run -a node --test --test-name-pattern="UX-R4 unorganized Input -> exact editable preview|UX-R4 real worker Grant once|VS06 whole-group chooser|VS06 authorized supplements|VS06 budget packages|VS06 workspace permission round-trip" tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+        run: xvfb-run -a node --test --test-name-pattern="UX-R4 unorganized Input -> exact editable preview|UX-R4 real worker Grant once|VS06 whole-group chooser|VS06 authorized supplements|VS06 budget packages|VS06 workspace permission round-trip|VS06 readable edited preview|VS06 Passport workspace" tests/ux-r4-search-reuse-chrome-e2e.test.mjs
       - name: ANS-04 scoped cursor certification regression
         if: contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER')
         run: xvfb-run -a node --test tests/ans-04-navigation-query-chrome-e2e.test.mjs

@@ -203,7 +203,10 @@ test('VS06 workspace permission round-trip preserves fixed task drafts and reval
   const before=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}}),passport=await rpc(p,'PAIA_PASSPORT_STATUS');assert.equal(passport.grants.length,0);
   await permissions.click();await until(async()=>(await dialog.locator('.material-connections-status').textContent()).includes('当前本机记录'),'readonly current permission records');
   assert.ok((await dialog.textContent()).includes('不代表已连接或已发送'));
-  assert.equal(await dialog.locator('button').count(),2,'no implicit grant/create/send action');
+  assert.equal(await dialog.locator('button').count(),4,'explicit scope, close, create and refresh controls');
+  assert.equal(await dialog.locator('.passport-create').isDisabled(),true,'creation requires complete explicit choices');
+  for(const field of await dialog.locator('.passport-grant-form select').all())assert.equal(await field.inputValue(),'');
+  assert.equal(await dialog.locator('[name=confirm_read]').isChecked(),false,'no read/export permission implied by opening');
   await p.keyboard.press('Escape');await until(async()=>await dialog.count()===0,'keyboard close');assert.equal(await permissions.evaluate(el=>el===document.activeElement),true);
   assert.equal(await note.inputValue(),'WORKSPACE_UNSENT_NOTE');assert.equal((await tray(p)).generation,selected.generation);assert.equal((await tray(p)).note,selected.note);
   const after=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.deepEqual(after.config,before.config);assert.deepEqual(after.profiles,before.profiles);assert.deepEqual((await rpc(p,'PAIA_PASSPORT_STATUS')).grants,passport.grants);
@@ -220,5 +223,106 @@ test('VS06 workspace permission round-trip preserves fixed task drafts and reval
   await p.locator('#material-return-to-task').click();await until(async()=>await p.locator('#material-workbench').isVisible()&&(await tray(p)).state==='blocked'&&await p.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));const t=getMaterialTray();return !t.rechecking&&!t.busy;}),'return revalidates current restriction');
   const blocked=await tray(p);assert.equal(blocked.selectionId,selected.selectionId);assert.deepEqual(blocked.items.map(i=>i.itemId),selected.items.map(i=>i.itemId));assert.equal(blocked.items[0].body,'');assert.equal(blocked.text,'');assert.equal(blocked.manifest.complete,false);assert.equal(await p.locator('#material-output-text').count(),0);assert.equal(await p.locator('[data-output]').count(),0);
   assert.equal((await rpc(p,'PAIA_PASSPORT_STATUS')).grants.length,0);clean(h);
+ }finally{await h.close();}
+});
+
+
+test('VS06 readable edited preview remains literal and clipboard uncertainty never reports success or retries',{timeout:180000},async()=>{
+ const texts=['READABLE_ORIGINAL_CANARY','SECOND_ORIGINAL_CANARY'],{h,p}=await start(texts);
+ try{
+  await mkdir(dir,{recursive:true});await p.locator('#primary-nav [data-view="memory"]').click();await until(()=>p.locator('#material-workbench').isVisible());
+  await p.getByRole('button',{name:'整组选择',exact:true}).click();const chooser=p.locator('.material-container-dialog');await until(async()=>await chooser.locator('input[type=checkbox]').count()===1);await chooser.locator('input[type=checkbox]').check();await chooser.getByRole('button',{name:'加入整组材料',exact:true}).click();await until(async()=>(await tray(p)).items.length===2&&!(await chooser.count()));
+  await p.locator('#material-preview').click();await until(async()=>(await tray(p)).state==='ready');
+  const initial=await tray(p);assert.ok(initial.text.startsWith('这次准备给 AI 的内容'));assert.equal(/^# 这次|^## 本次|^## \d/m.test(initial.text),false);
+  for(const item of initial.items){assert.equal(initial.text.includes(item.ref.id),false);if(item.time)assert.equal(initial.text.includes(item.time),false);}
+  await p.getByRole('button',{name:'修改本次输出',exact:true}).click();
+  const literal='# USER_MARKDOWN_CANARY\n<script>globalThis.__untrustedArchiveAction=true</script>\n<img src="https://example.invalid/no-request" onerror="globalThis.__untrustedArchiveAction=true">\nLiteral source time 2021-01-01T00:00:00Z';
+  await p.getByRole('textbox',{name:'本次材料文字',exact:true}).first().fill(literal);await p.getByRole('textbox',{name:'本次说明（不是历史表达）',exact:true}).fill('READABLE_TASK_NOTE');
+  assert.equal(await p.locator('[data-output=copy]').isDisabled(),true);assert.equal(await p.locator('[data-output=markdown]').isDisabled(),true);
+  await p.getByRole('button',{name:'确认本次修改',exact:true}).click();await until(async()=>(await tray(p)).state==='ready');const reviewed=await tray(p),shown=await p.locator('#material-output-text').textContent();
+  assert.equal(shown,reviewed.text);assert.ok(shown.includes(literal));assert.ok(shown.includes('READABLE_TASK_NOTE'));assert.equal(shown.includes('READABLE_ORIGINAL_CANARY'),false);
+  assert.notEqual(reviewed.manifest.previewSha256,initial.manifest.previewSha256);assert.equal(await p.locator('#material-output-text script,#material-output-text img').count(),0);assert.equal(await p.evaluate(()=>globalThis.__untrustedArchiveAction),undefined);
+  const canonical=await p.evaluate(async refs=>{const {OrganizerStore}=await import('../core/organizer/store.js'),{MemoryService}=await import('../core/memory/service.js'),{materialRead}=await import('../core/manual-materials.js');const s=new OrganizerStore(chrome.storage.local),m=new MemoryService(s);await m.ready();return s.run(()=>s.repository.transaction(false,async t=>{const bodies=[];for(const ref of refs)bodies.push((await materialRead(m,t,ref)).body);return bodies;}));},initial.items.map(i=>i.ref));
+  assert.deepEqual(canonical,initial.items.map(i=>i.body));
+  await p.evaluate(()=>{globalThis.__readableCopyAttempts=[];Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{globalThis.__readableCopyAttempts.push(text);throw new DOMException('Unknown acknowledgement','NotAllowedError');}}});});
+  await p.locator('[data-output=copy]').click();await until(()=>p.locator('.material-copy-fallback').isVisible(),'verified copy fallback');
+  assert.deepEqual(await p.evaluate(()=>globalThis.__readableCopyAttempts),[shown]);assert.equal(await p.locator('.material-copy-fallback').inputValue(),shown);assert.equal(await p.locator('.material-copy-fallback').getAttribute('readonly'),'');assert.ok((await p.locator('.material-status').textContent()).includes('剪贴板写入失败'));assert.equal((await p.locator('.material-status').textContent()).includes('已复制'),false);
+  const download=p.waitForEvent('download');await p.locator('[data-output=markdown]').click();const file=await download;const target=new URL('readable-exact-export.md',dir);await file.saveAs(target.pathname);const {readFile}=await import('node:fs/promises');assert.equal(await readFile(target,'utf8'),shown);assert.ok((await p.locator('.material-status').textContent()).includes('下载已开始'));assert.equal((await p.locator('.material-status').textContent()).startsWith('已保存'),false);
+  await rpc(p,'PAIA_MEMORY_EXCLUDE',{options:{inputId:initial.items[0].ref.id,excluded:true}});await p.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));await getMaterialTray().refresh();});await until(async()=>(await tray(p)).state==='blocked');
+  assert.equal(await p.locator('.material-copy-fallback').count(),0);assert.equal(await p.locator('#material-output-text').count(),0);assert.equal((await tray(p)).text,'');assert.deepEqual(await p.evaluate(()=>globalThis.__readableCopyAttempts),[shown]);clean(h);
+ }finally{await h.close();}
+});
+
+
+test('VS06 Passport workspace creates and revokes only explicit read-export metadata without changing this task',{timeout:180000},async()=>{
+ const {h,p}=await start(['PASSPORT_WORKSPACE_SOURCE_CANARY']);
+ try{
+  await p.locator('#primary-nav [data-view="memory"]').click();await until(()=>p.locator('#material-workbench').isVisible());
+  const note=p.getByRole('textbox',{name:'你准备问什么？（可不填）',exact:true});await note.fill('PASSPORT_UNSENT_NOTE');
+  const before=await tray(p),memory=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});
+  const opener=p.locator('.material-permissions-open');await opener.click();
+  const dialog=p.locator('.material-connections-dialog'),form=dialog.locator('.passport-grant-form');
+  await until(()=>form.isVisible(),'controlled permission choices');
+  assert.equal((await rpc(p,'PAIA_PASSPORT_STATUS')).grants.length,0);
+  assert.equal(await form.locator('button').isDisabled(),true);
+  await form.locator('[name=consumer]').selectOption('chatgpt');
+  await form.locator('[name=purpose]').selectOption('career');
+  await form.locator('[name=profileId]').selectOption('default');
+  await form.locator('[name=duration]').selectOption('7d');
+  assert.equal(await form.locator('button').isDisabled(),true,'choices alone do not authorize');
+  await form.locator('[name=confirm_read]').check();await form.locator('button').click();
+  await until(async()=>(await dialog.locator('.material-connections-status').textContent()).includes('本机权限记录已创建'),'matching mutation readback');
+  const grants=(await rpc(p,'PAIA_PASSPORT_STATUS')).grants;assert.equal(grants.length,1);
+  const grant=grants[0];assert.equal(grant.consumer,'chatgpt');assert.equal(grant.purpose,'career');assert.equal(grant.profileId,'default');assert.equal(grant.duration,'7d');assert.equal(grant.permission,'context_export');assert.equal(grant.resourceScope,'profile');assert.equal(grant.state,'active');
+  assert.equal(grant.useCount,0);assert.equal(grant.lastUsedAt,null);
+  assert.ok((await dialog.locator('.material-permission-facts').textContent()).includes('1 项有效记录'));
+  const row=dialog.locator('.passport-grant');assert.ok((await row.textContent()).includes('ChatGPT'));assert.ok((await row.textContent()).includes('职业任务'));assert.ok((await row.textContent()).includes(memory.profiles.find(p=>p.profileId==='default').name));assert.ok((await row.textContent()).includes('7 天'));assert.ok((await row.textContent()).includes('尚无受控使用'));
+  assert.equal(await form.locator('[name=confirm_read]').isChecked(),false);
+  await row.getByRole('button',{name:'撤销这项权限',exact:true}).click();
+  await until(async()=>(await dialog.locator('.material-connections-status').textContent()).includes('已撤销；后续受控使用将被拒绝'),'exact revoked readback');
+  const after=(await rpc(p,'PAIA_PASSPORT_STATUS')).grants;assert.equal(after.length,1);assert.equal(after[0].grantId,grant.grantId);assert.equal(after[0].state,'revoked');assert.ok(after[0].revokedAt);assert.equal(after[0].useCount,0);
+  assert.ok((await dialog.locator('.material-permission-facts').textContent()).includes('0 项有效记录'));
+  assert.equal(await row.locator('button').count(),0);
+  const denied=await p.evaluate(async grantId=>{const {OrganizerStore}=await import('../core/organizer/store.js'),{PassportService}=await import('../core/passport.js');try{await new PassportService(new OrganizerStore(chrome.storage.local)).resolve(grantId);return false;}catch(e){return e.code==='MEMORY_DENIED';}},grant.grantId);assert.equal(denied,true,'actual authority denies revoked record');
+  await p.keyboard.press('Escape');await until(async()=>await dialog.count()===0);
+  assert.equal(await opener.evaluate(el=>el===document.activeElement),true);assert.equal(await note.inputValue(),'PASSPORT_UNSENT_NOTE');
+  const same=await tray(p);assert.equal(same.selectionId,before.selectionId);assert.equal(same.note,before.note);assert.deepEqual(same.items,before.items);
+  const nextMemory=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.deepEqual(nextMemory.config,memory.config);assert.deepEqual(nextMemory.profiles,memory.profiles);clean(h);
+ }finally{await h.close();}
+});
+
+test('VS06 Passport workspace refuses unknown mutation acknowledgements and requires fresh explicit confirmation',{timeout:180000},async()=>{
+ const {h,p}=await start(['PASSPORT_UNCERTAIN_SOURCE_CANARY']);
+ try{
+  await p.locator('#primary-nav [data-view="memory"]').click();await until(()=>p.locator('#material-workbench').isVisible());
+  const note=p.getByRole('textbox',{name:'你准备问什么？（可不填）',exact:true});await note.fill('PASSPORT_UNCERTAIN_UNSENT_NOTE');
+  const before=await tray(p);
+  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__passportCreateAttempts=0;chrome.runtime.sendMessage=async q=>{const response=await send(q);if(q.type==='PAIA_PASSPORT_CREATE'){globalThis.__passportCreateAttempts++;return {...response,data:{...response.data,profileId:'unconfirmed_wrong_scope'}};}return response;};});
+  await p.locator('.material-permissions-open').click();const dialog=p.locator('.material-connections-dialog'),form=dialog.locator('.passport-grant-form');await until(()=>form.isVisible());
+  await form.locator('[name=consumer]').selectOption('claude');await form.locator('[name=purpose]').selectOption('research');await form.locator('[name=profileId]').selectOption('default');await form.locator('[name=duration]').selectOption('once');await form.locator('[name=confirm_read]').check();await form.locator('button').click();
+  await until(async()=>(await dialog.locator('.material-connections-status').textContent()).includes('操作结果尚未确认'),'unknown result is explicit');
+  assert.equal(await p.evaluate(()=>globalThis.__passportCreateAttempts),1);assert.equal(await form.locator('button').isDisabled(),true);
+  assert.equal((await rpc(p,'PAIA_PASSPORT_STATUS')).grants.length,1,'the authority wrote once despite mismatched acknowledgement');
+  await form.dispatchEvent('submit');assert.equal(await p.evaluate(()=>globalThis.__passportCreateAttempts),1,'no blind replay');
+  await dialog.getByRole('button',{name:'重新读取权限记录',exact:true}).click();await until(async()=>(await dialog.locator('.material-connections-status').textContent()).includes('已重新读取本机权限记录'));
+  assert.equal(await dialog.locator('.passport-grant').count(),1);assert.equal(await form.locator('[name=confirm_read]').isChecked(),false);assert.equal(await form.locator('button').isDisabled(),true,'fresh confirmation required even after explicit refresh');
+  assert.equal(await p.evaluate(()=>globalThis.__passportCreateAttempts),1);assert.ok((await dialog.locator('.passport-grant').textContent()).includes('有效'));
+  await p.keyboard.press('Escape');await until(async()=>await dialog.count()===0);assert.equal(await note.inputValue(),'PASSPORT_UNCERTAIN_UNSENT_NOTE');const same=await tray(p);assert.equal(same.selectionId,before.selectionId);assert.deepEqual(same.items,before.items);assert.equal(same.note,before.note);clean(h);
+ }finally{await h.close();}
+});
+
+test('VS06 Passport workspace refresh removes a deleted scope and does not silently choose another',{timeout:180000},async()=>{
+ const {h,p}=await start(['PASSPORT_DELETED_SCOPE_CANARY']);
+ try{
+  const added=await rpc(p,'PAIA_MEMORY_PROFILE',{options:{action:'create',name:'SAVED_SCOPE_CHOICE'}});
+  await p.locator('#primary-nav [data-view="memory"]').click();await until(()=>p.locator('#material-workbench').isVisible());await p.locator('.material-permissions-open').click();
+  const dialog=p.locator('.material-connections-dialog'),form=dialog.locator('.passport-grant-form');await until(()=>form.isVisible());
+  await form.locator('[name=consumer]').selectOption('gemini');await form.locator('[name=purpose]').selectOption('writing');await form.locator('[name=profileId]').selectOption(added.profileId);await form.locator('[name=duration]').selectOption('30d');await form.locator('[name=confirm_read]').check();
+  assert.equal(await form.locator('button').isDisabled(),false);
+  const memory=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}}),profile=memory.profiles.find(row=>row.profileId===added.profileId);
+  await rpc(p,'PAIA_MEMORY_PROFILE',{options:{action:'delete',profileId:added.profileId,expectedRevision:profile.revision}});
+  await dialog.getByRole('button',{name:'重新读取权限记录',exact:true}).click();await until(async()=>(await dialog.locator('.material-connections-status').textContent()).includes('已重新读取本机权限记录'));
+  assert.equal(await form.locator('[name=profileId]').inputValue(),'');assert.equal(await form.locator('[name=profileId] option').count(),2,'only blank and default remain');assert.equal(await form.locator('[name=confirm_read]').isChecked(),false);assert.equal(await form.locator('button').isDisabled(),true);assert.equal((await rpc(p,'PAIA_PASSPORT_STATUS')).grants.length,0);
+  await p.keyboard.press('Escape');clean(h);
  }finally{await h.close();}
 });
