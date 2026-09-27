@@ -10,15 +10,15 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-06
 
-current_slice_status: READY — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED_EXTERNAL_CERT_PENDING
+current_slice_status: IN_PROGRESS — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED_EXTERNAL_CERT_PENDING
 
 current_round: CPV1-06.0–06.4 / VS-06 Batch A
 
-current_round_status: READY / WRITER_OCCUPIED_BY_WEBSITE_PR85
+current_round_status: IN_PROGRESS / VS06_BATCH_A_PROFILE_READBACK_REPAIR_PENDING
 
-current_writer: VS-05 MANAGER RELEASED; remote website writer PR85
+current_writer: MANAGER / sole VS-06 Batch A branch feat/vs06-context-completeness
 
-writer_status: VS-05_RELEASED / VS-06_NOT_ACQUIRED
+writer_status: VS-06_ACQUIRED / SINGLE_WRITER
 
 production_claim: NONE
 
@@ -574,3 +574,236 @@ Head, PR synthetic merge and actual main share tree0e3d10b889a0476b3156d8d4b5da9
 DFG-CPV1-002 old-Thought semantics and DFG-CPV1-009 independent actual generated-output meaning remain deferred; dependent actions remain fail-closed. Signed distribution/current-live/private/device gates remain open. No production/slice/package COMPLETE claim.
 
 VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is READY, not implemented/certified. Fresh GitHub has website-only PR85 already open from actual runtime75; do not create a second writer/PR or mutate its in-progress website work. VS06 reviewed implementation strings may be prepared without push; JAEPR20 continues independently. This writer observation is a checkpoint to be reconstructed from GitHub next turn, not an inherited wait state.
+
+## VS-06 Batch A — fixed reviewed Context manifest foundation
+
+Fresh remote main9f07364dfa664843a9d0f2ff496346a24eae313c includes website-only
+PR85 merge. Its exact-main Website36269319174 and Pages36269319127 SUCCESS;
+no open PR remains. The prior website writer occupancy checkpoint is superseded
+by these GitHub facts. Extension baseline remains the already certified VS05
+runtime75dafc2a698560098c88ce06269230c475ff73b3 plus receipt docs. The manager
+acquires one writer branch feat/vs06-context-completeness for canonical VS06BatchA
+06.0–06.4; no website/runtime fork or extra parallel PR.
+
+First coherent implementation fixes explicit selection authority and completeness.
+A short-lived in-memory manifest binds selection/generation/policy revision,
+exact ref revisions/spans/order, roles, edits, exclusions, redaction count,
+untruncated effective material budget, completeness and empty separately marked
+retrieval supplements. It is neither another canonical store nor a Grant. Preview
+hashes the complete fixed manifest and exact reviewed output; copy/Markdown
+revalidates source/policy after asynchronous hashing and refuses any unreviewed
+payload. A product defect in the existing add budget used original bodies rather
+than current output overrides; effective edited bodies now count atomically before
+adding material, preserving every existing item/generation on an over-budget
+refusal. The preview states selected items retained in full.
+
+Six new actual repository/worker-service tests cover long bilingual/emoji text
+and same-input spans/exact preview-copy-export digest, policy change, removal/
+edit/upstream revision, altered transient output, exact4million-unit effective
+budget with all20*200k overrides retained and21st addition refused, and denial
+during release hashing clearing blocked bytes. Existing real source/built Chrome
+selection/edit/redaction/export and actual worker once/revoke tests are retained;
+the affected preview oracle additionally checks actual manifest/full retained
+selection/exact SHA256 and visible coverage. No synthetic100k/10k recovery repeat
+is requested. All original tests/fixtures/limits/assertions remain.
+
+Candidate targeted unit/contract/privacy/release and the two affected real Chrome
+journeys are NOT_RUN until cloud Actions. Marker PAIA_VS06_MANIFEST_BROWSER routes
+that proof; no full PAIA Certification is triggered while draft. Full certification
+will run once at stable slice candidate, then once after integration at exactmain.
+
+This foundation does not claim all06.0–06.4 exits: complete workspace rebuilding,
+whole Conversation/Topic/multiple-Topic expansion and all-selected semantics,
+authorized retrieval/Profile and explicit package splitting remain open in this
+same Batch A writer.06.5–06.7 remain subsequent scope. VS05 semantic/current-live/
+device/signing and prior deferred authority gates remain unchanged and unproved;
+no external connector/read/access/auto-send or production/slice COMPLETE claim.
+
+
+## VS-06 Batch A — whole-group fixed selection and exact membership
+
+Parent exact8e53dc1d8a7a6d0378541987aacfbba1a560f9c5 / Candidate36269945522 SUCCESS:
+unit108481858647 reports1094PASS/0FAIL (including all6 new manifest cases);
+affected real Chrome108481858568 reports2PASS/0FAIL; contracts/privacy108481858600,
+release108481858611 and aggregate108482509316 PASS. Full certification36269945498
+is deliberately SKIPPED for draft, not claimed PASS. The first manifest checkpoint's
+NOT_RUN is superseded only by this exact-head targeted evidence.
+
+The next coherent implementation extends the same ephemeral manifest with whole
+Conversation/Topic/multiple-Topic membership snapshots. Indexed cursor pages read
+all eligible current Input/Thought members, not just the visible page. Topic
+authored summary is a typed revision-bound material; human authorship requires the
+canonical summary edit provenance and protection, while unknown historical note
+authorship becomes blocked rather than an invented user expression. All nonempty
+valid cached AI presentation fields remain separately labeled generated material.
+Shared members are deduplicated by the existing exact material key; each chosen
+container keeps its own full fixed membership. Upstream member addition/removal,
+content revision or presentation field changes invalidate the old complete preview
+without silently rebinding it. Explicit user removal remains visible as an exclusion
+and a selected/total group-member count.
+
+Whole-group admission reads membership and exact material versions in one readonly
+repository transaction; the unchanged200material/4million UTF16-unit protection
+limits are checked before adding any group/member. Over-limit refusal retains the
+prior selection/generation/exact preview and never accepts a prefix. Missing
+indexed payloads fail closed; unavailable/denied member bytes cannot be released.
+No grant, new permanent store, provider request or external release is added.
+
+The production material workspace offers a temporary metadata-only paginated
+Conversation/Topic chooser, keeps explicit selections across pages/kinds, adds
+multiple chosen groups only on confirmation, and shows fixed/explicitly removed
+coverage. Existing specific-text selection, drafts, preview, edits/redaction,
+copy/Markdown and restriction workflows remain.
+
+Seven actual repository/service regressions cover105Input members crossing pages;
+105Thought+35new/shared multi-Topic members with authored note and cached AI;
+201member atomic limit refusal; explicit exclusion plus membership removal;
+denial/purge;42Topic metadata pagination and malformed cursors; and Topic note
+revision/unknown authorship. One additional actual extension Chrome journey covers
+whole Conversation preview, new-member invalidation,42Topic chooser pagination/
+cross-page multi-selection, exact released copy and never-use blocking. It runs
+alongside the retained2 affected Chrome paths; no original test/fixture/assertion,
+deadline or protection limit is removed or lowered.
+
+This new coherent candidate's targeted cloud evidence is NOT_RUN until Actions.
+06.0–06.4 remain IN_PROGRESS in sole writer PR86: authorized task retrieval/Profile,
+workspace convergence and explicit multi-package splitting still require engineering.
+Later06.5–06.7/full-slice/exact-main/receipt remain pending. Full Certification stays
+reserved for stable slice and exact-main boundaries;100k/10k recovery is not repeated.
+All prior semantic/current-live/private/device/signing deferred gates stay scoped
+and unproved. No slice/production COMPLETE or automatic send claim.
+
+
+## VS-06 Batch A — authorized optional retrieval and scope-bound provenance
+
+Parent exact5c4ec32f65ea62727732e8dbb0056a0fd77ad279 Candidate36271293922 SUCCESS: unit108485636028 reports1101PASS/0FAIL, including all7 full-group cases; affected real Chrome108485634671 reports3PASS/0FAIL, including actual whole Conversation/new-member invalidation/42Topic chooser/never-use journey. Contracts/privacy108485634664, release108485634729 and aggregate108486321652 PASS. Draft full36271293904 is deliberately SKIPPED; no repeat10k/100k or full-slice claim.
+
+The next coherent batch fixes a scope/provenance gap in optional additions: previous UI admitted lexical suggestions through the explicit-add path, leaving retrievalSupplements empty and losing their Profile origin. Suggestions now remain unselected offers, tied to actual candidate generation/session policy/Profile revision and a local query digest. Only refs in the current server-held offer can be admitted as supplements; forged/spanned/superseded suggestions refuse atomically. Complete explicit material is never ranked away or replaced. Profile selection is reusable eligibility for the next search and performs no send/build/admission by itself.
+
+Every read/preview/release rechecks admitted supplement eligibility through the existing authorized lexical candidate boundary plus exact material versions. Profile changes do not silently rebind provenance. Session-grant revocation is part of the reviewed manifest and invalidates release; lost eligibility clears transient supplement bodies/edits and blocks the old output. Global never-use, per-material exclusions and explicit user removals remain authoritative. Whole-group/individual explicit selection can deliberately promote an already-selected supplement without duplicate bodies; removing all optional supplements then preserves fixed material. No new permission, Grant, canonical store, provider, semantic model or external action.
+
+The workspace offers task query and metadata-only Profile choice, keeps suggestions visibly unselected, labels admitted supplements and exposes one explicit remove-supplements action. Incomplete retrieval is stated as partial inspected scope and up to20 suggestions, never a complete whole group. The reviewed coverage separates fixed material and chosen supplements; full exact copy/Markdown fingerprints remain.
+
+Six new actual repository/service cases cover irrelevant explicit retention/provenance/exact share/optional removal/exclusion; forged or stale offer refusal; custom Profile scope/global never-use; session revocation/byte purge; fixed Profile revision; whole-group explicit promotion. One actual extension Chrome journey covers query/Profile metadata, unselected offers, explicit admission, exact full preview and removal preserving fixed text. All prior unit/contract/privacy/browser paths and full-size limits remain; the existing VS06 targeted marker adds this one affected journey alongside its3 proven paths.
+
+New stable candidate targeted cloud evidence is NOT_RUN until Actions.06.0–06.4 remain IN_PROGRESS in sole PR86. Explicit package splitting/build budget options and workspace convergence remain open; subsequent06.5–06.7/full-slice/exact-main/receipt are pending. Full Certification remains once at stable slice head and once at merged exact-main. Prior semantic/current-live/private/device/signing deferred gates stay scoped and unproved; final package/slice COMPLETE is not claimed.
+
+
+## VS-06 bounded browser admission diagnosis — exact23ac candidate
+
+Exact23ac36f0f7b32597473b4c9cf2ee7a69806e6bc9 Candidate36273340915 reports unit108491303812:1107PASS/0FAIL (including all6 authorized-supplement service cases), contracts/privacy108491303807 PASS and release108491303792 PASS. Affected Chrome108491303639 reports2PASS/2FAIL: retained real Grant and full-group journeys PASS; retained editable-preview journey and new optional-retrieval journey time out immediately after the supplement-admission click. This is not certification PASS and timeout is not the root cause.
+
+Bounded source review confirmed the real worker routes every manual action to the same ManualContext, manual requests do not schedule archive filtering, and ProductSignals has no manual-action persistent side effect. Unit success does not prove browser RPC admission. No speculative product/timeout/workflow changes are made. The next targeted diagnostic preserves every original journey assertion and full-size fixture, while recording only action, selection/policy/session revisions, result counts and sanitized error code at the actual MaterialTray RPC boundary. Both affected tests now first require the real admission request to complete successfully and report that metadata if refused, then retain their original exact-material/preview/redaction/export/removal assertions. No query, material body, ref ID, credential or permission contents are logged. The original browser wait bounds and all other paths remain.
+
+Root classification remains unresolved pending this actual RPC evidence. This diagnostic candidate is NOT_RUN until Actions; full certification remains reserved for the stable slice.06.0–06.4 are still IN_PROGRESS, with package splitting/workspace and later review/release work open.
+
+
+## VS-06 supplement admission — scoped offer binding repair
+
+Exact04fb279e9333b86105c28799e3614f92cd37baff Candidate36274205809 FAIL: unit108493685674, contracts/privacy108493685823 and release108493685692 PASS; affected Chrome1084936855792PASS/2FAIL. Both value-free actual RPC traces prove suggest succeeds and addSupplement is rejected as MEMORY_STALE with unchanged selection generation and last-known policy/session revisions. There is no transport timeout or unknown UI click failure. Retained Grant/full-group paths continue to PASS.
+
+Bounded source review locates the overbroad cross-request dependency: addSupplement passed the prior suggestion's complete portable archive generation as expected to MemoryService.candidates. The real capture path writes portable source times during recurring captures even when selected material/version and AI eligibility have not changed. A distinct legitimate Topic write likewise advances portable generation. Such writes should preserve an offered fixed ref when current eligibility and exact version still pass; the complete repository generation is needed to fence each admission snapshot, not to deny every intervening unrelated archive write.
+
+Repair keeps the server-held offered-ref whitelist/exact material keys, selection generation, explicit exclusions, fixed Profile revision, permanent policy revision and temporary-session revision. It re-reads current authorized candidates, checks the unchanged offered scope, and fences the NEW complete repository snapshot through the material-read transaction; config and final temporary revision are checked again before the atomic append. Changed refs remain STALE, lost eligibility remains denied, policy/session/selection changes invalidate the offer, and no new/unoffered candidate is admitted. No policy or permission standard, selected-text limit, exact preview/release hash, byte-purge or full-group invariant is relaxed. No capture/runtime/history cleanup or timeout change is used as a workaround.
+
+Three new real service regressions preserve the six prior cases: independent canonical Topic write changes global generation and reproduces the old candidates(expected-offer) refusal, while the repaired fixed-ref admission/review/exact share succeeds; current policy revocation refuses admission atomically; editing the task after search invalidates the old offer. All7 Chrome test definitions and strengthened actual RPC outcome assertions remain. The same4 affected browser journeys run; no added head/CI is pushed for speculative micro-adjustments.
+
+This coherent repaired candidate is NOT_RUN until its one targeted CI. Full certification/merge/exact-main/receipt remain pending at the stable slice boundary.06.0–06.4 remain IN_PROGRESS; package splitting/build budget choices/workspace and later review/release/Passport engineering remain open.
+
+
+## VS-06 output budget packages — fixed selection, exact per-part release
+
+Exact4a78b0cf896011c560f6c0e8b6c9217e5500bcef Candidate36274965166 PASS: unit1084958117841110PASS/0FAIL; contracts/privacy108495811776 PASS; release108495811787 PASS; affected Chrome1084958116674PASS/0FAIL; aggregate108496334065 PASS. Actual scoped-offer repair is proven in retained editable preview, Grant/revocation, whole-group and optional-supplement journeys. This is a targeted batch proof, not full slice certification. Historical diagnostic heads are not re-certified.
+
+06.4 now implements explicit short/standard/detailed output budget choice in the same default AI workspace. The default unchanged full mode preserves fixed material without relevance ranking or automatic omission. Choosing a budget partitions the complete reviewed payload into exact contiguous grapheme-safe fragments, including all explicit materials, chosen supplements, note, role/time markers, output-only edits and redactions. Both character and ESTIMATED token budgets include each part's data-not-instructions envelope. Tokens remain an estimate, never a promise about an external provider/model. An oversized indivisible grapheme refuses the plan without prefix output or selection mutation; 200-item/4millionUTF16 protections remain unchanged.
+
+Every package displays its own exact payload, index/count and measured character/estimated-token counters. Copy and Markdown release only the currently displayed reviewed package, with numbered export filenames and explicit remaining-package messaging. Coverage states that all packages IN ORDER are needed to cover the complete selection; a single part is a fragment, not a whole Conversation/Topic. No auto-send or real connector is introduced.
+
+The session stores part offsets/metadata/SHA only, not additional old source bodies. The full selection manifest now binds budget/mode; the reviewed global payload and every part have exact hashes. Release requires a strict integer part index, reconstructs/re-hashes that exact part, and retains existing complete selection/policy/source/final-temporary revalidation after asynchronous hashing. Budget/selection/source/authorization changes hide old packages and refuse release. Blocked bodies/overrides remain purged. No canonical store, extra persistence, paid service, permission, Grant or source edit is added.
+
+Ten new unit cases cover all three budgets with multilingual grapheme boundaries; realistic100k unbroken payload full reconstruction; oversize/invalid refusal; real whole-Conversation service copy/export hashes for every part and metadata-only retention; budget invalidation/default full recovery; output edit/source revision refusal; explicit AI byte purge; and denial during package hashing. One real-worker Chrome journey reviews and copies EVERY package, verifies exact digests, exports numbered Markdown, changes budgets with full content retained, and revokes the Input with all packages hidden. All original unit and7 browser definitions/assertions/fixture sizes remain; affected targeted Chrome adds this fifth path only.
+
+This new coherent budget candidate is NOT_RUN until its one Draft unit/contract/privacy/release/affected-browser Actions gate. Full Certification is still reserved for the stable slice and merged exact-main. VS-06 BatchA/06.0–06.4 remain IN_PROGRESS until workspace convergence and canonical exits are met; subsequent06.5–06.7/Passport/review-release/full slice/merge/receipt remain open. External semantic/current-live/private/device/signing evidence remains scoped deferred and unproved.
+
+
+## VS-06 Batch A — workspace permission round-trip coherent candidate
+
+Exact09db64a9f943f9fc124f15afc6d00a9caa737196 Candidate36276070610 SUCCESS: unit1084989572641120PASS/0FAIL (all10new exact package cases); affected Chrome1084989572835PASS/0FAIL including budget per-part UI/copy/export/current-scope refusal; contracts/privacy108498957166,release108498957205,aggregate108499572377 PASS. Full36276070648 and UIrefresh36276070636 SKIPPED intentionally, not slice certification.
+
+CPV1-06.1 implementation: task tray and exact review now expose a primary Connections/permissions entry using existing local Memory/Passport STATUS metadata. Opening/closing neither flushes current note/editor drafts nor creates/changes grants, builds/shares Context or sends anything. It distinguishes local-only/external access, saved retrieval eligibility, active export permission records and actual connection/send state. Metadata STATUS may prune retained audit rows under the existing retention policy; no new authority or processor was introduced.
+
+Existing allowed-scope management remains authoritative. A dedicated Return to this task preserves the same session, fixed ref/item/container identities, unsent drafts and mode, then revalidates current sources/policy before restoring output. Changed denials purge blocked bodies/preview and cannot revive old reviewed text. Legacy Profile unsaved-edit confirmation remains; legacy home/back behavior unchanged. Drawer transition releases existing inert/focus ownership.
+
+One new actual Chrome journey exercises readonly metadata/keyboard Escape/focus, unchanged config/Profile/grants, unsent draft and fixed-generation round-trip, exact copy and an actual never restriction followed by refusal on return. All prior browser/test assertions remain. Draft targeted selector adds this sixth affected path under existing VS06 marker; no full run, timeout inflation or synthetic recovery repeat. Candidate verification NOT_RUN until GitHub Actions.
+
+VS06 remains IN_PROGRESS; workspace/budget candidates do not close review06.5/Passport controls06.6/security-reliability06.7. No real connector/direct-send claim, slice closure, merge, exact-main receipt or full certification. Existing semantic/private/current-live/device/owner evidence gates remain scoped deferred/unproved.
+
+
+## VS-06 Batch A stable boundary — targeted exits verified; full integration pending
+
+Exactc584585bc50185411fe23ef405ffcea491c4904b Candidate36277682376 SUCCESS: unit1085034585051120PASS/0FAIL; affected Chrome1085034585686PASS/0FAIL including actual workspace permission round-trip; release108503458361/contractsprivacy108503458494/aggregate108504076239 PASS. All fixed task/draft/source-restriction and legacy affected cases passed; full36277682366/UIrefresh36277682350 deliberately skipped on draft.
+
+Automatable Batch A 06.0–06.4 outcomes are implemented/proven: exact manifest/revision/policy/SHA fences, one-off primary workspace and permission round-trip, whole Conversation/Topic/multiple Topic full coverage with paged selection/atomic protective refusal, optional authorized scoped retrieval, and lossless reviewed output packages under explicit budgets. Prior exact heads/evidence above remain valid for unchanged code.
+
+Ready stable candidate is scoped to Batch A. EXECUTION_PROTOCOL7.2 classifies the changed authorization/release revalidation invariant as full integration depth at this boundary. Run full once on this stable boundary head via PAIA_FULL_CERTIFICATION; no superseded candidate certification/retry. Do not merge before exact-head full PASS. After merge perform exact-main full once and receipt; then acquire Batch B06.5–06.6 sole writer. VS06 slice06.7 remains open and all deferred external/private/device/current-live obligations remain honest. Full pending is asynchronous only; JAE independent JCR08 work continues.
+
+
+## VS06 Batch A certification — scoped cursor oracle repair
+
+Exactd01a8c3916620b4fc5d8256d357550db88915c07 full36278167151 FAILED, CurrentBrowser1/4 job10850482056627PASS/1FAIL in existing ANS04 navigation; other3browser shards/all4unit/contracts/privacy/release/Macsecure/Maclifecycle SUCCESS. No merge/full PASS/receipt. Bounded source diagnosis: captured Reader is validly unassigned, fixture unknown scope has1000 synthetic members; moving real unassigned Reader to Project leaves unknown scope generation unchanged by archive-navigation-query's per-scope cursor binding. Existing test's unconditional unknown-cursorInvalid=true inferred an affected scope that was not mutated. Test/harness classification, no product runtime change. Repair preserves original invalidation/whole1001/zero-body/bounded scan/latency/Reader/restart/network oracles, proves unrelated cursor remains valid with exact continuation rows, then mutates an actual unknown-scope member before requiring stale generation refusal. Unknown-real-group path retains original relocation invalidation. Adds assertion labels and bounded draft direct-TAP targeted ANS04 path alongside all6 VS06 affected browser cases; full disabled until repaired stable candidate. No timeouts/fixtures/assertions reduced, no historical test skipped, no superseded-head rerun. New targeted proof NOT_RUN.
+
+
+## VS06 Batch A — bounded hosted-Mac reconnect diagnosis
+
+Exactbb450eb61ca731d4357410d4eb434b2a21f70cf7 full36279769564 FAILED: all4 CurrentBrowser shards/all4unit/contractsprivacy/release/Macsecure/FullSuite PASS; hostedMac108509266171 existing CPV1-01.2 reconnect2PASS/1FAIL (old tab refresh action absent), integration108511077180 FAIL. No merge/exact-main/receipt. Prior ANS04 scoped cursor repair is confirmed by actual CurrentBrowser1/4 PASS; it is not a reason for another product change.
+
+Bounded reload diagnosis remains unclassified product/test/harness/environment until actual isolated-world evidence. Failure's main-world chrome.runtime.id=false does not prove what the extension content world did. This diagnostic candidate adds read-only CDP observations to the existing failing real Chrome journey: confirms an actual connected ChatGPTAdapter isolated world before reload, records created/destroyed/cleared world events, and on failure reports only connected/adapter/visibility/ready-state/notice booleans. It never creates a world, invokes capture, changes source runtime/timers, reads archive bodies or changes original20s notice/120s case deadline. All3 original definitions/refresh-message/button/single-banner/archive/version/discard/no-duplicate assertions remain. New Draft candidate selects the existing hostedMac old-tab diagnostic once; all6affected VS06 plus ANS04 paths remain. Full remains disabled until diagnosis yields a reviewed stable repair; no unchanged-head retry/full rerun, no speculative runtime workaround, no fixture/assertion reduction. New evidence NOT_RUN; Batch B remains outside PR86.
+
+
+## VS06 Batch A — bounded pending-transport reconnect repair
+
+Exact80f458f59330d98b124d6cc5caf61474643c1951 Candidate36280815503 SUCCESS: all Draft unit/contractsprivacy/release/affected-browser/hosted-Mac diagnostic gates PASS. ActualMac108512146347 confirms a connected visible ChatGPTAdapter isolated world before reload and the original strict old-tab refresh path PASS in1.96s. This observation-only result does not prove the prior intermittent full failure's cause and is not authorization to cherry-pick another full run.
+
+Bounded source review finds a specific product liveness gap: cycle sets inFlight and awaits GET_STATUS/CAPTURE/DIAGNOSTIC replies; schedule refuses to run while inFlight, so extension identity cannot be checked until an unresolved reply reaches the existing35s deadline. A late status could also reach collect after an independently stopped/suspended page. This path is relevant to the failed20s old-tab refresh obligation; the precise timing of the prior hosted failure remains unproven. The coherent repair adds an independent existing2s connection-identity-only check (no RPC/source read/capture/retry), stops adapter watching when invalidated, suspends on pagehide and rechecks on pageshow, and fences late status before source scanning. It does not change content/version/consent/epoch admission, batching/limits, source resolver, network, paid resources, timers' existing deadlines or record truth.
+
+Three direct production-scheduler unit regressions cover held status plus late reply, held capture plus original deadline/no duplicate, and pagehide/pageshow invalidation. One new actual hosted-Mac Chrome journey holds a GET_STATUS reply in the real content world, performs the real extension version reload, requires the same single visible refresh action within the original20s, preserves an unsent draft and all3stored source records. All3original lifecycle cases remain and DraftMac now runs all4 affected lifecycle cases, not only the diagnostic. Exact frozen source review removes ONLY7literal reviewed edits and must reproduce the preceding pinned CPV1-01.4 bytes; no wildcard/disabled freeze. Full remains disabled until new exact-head targeted PASS/review; no unchanged-head retry, assertion/fixture shrink, deadline increase or speculative unrelated capture rewrite. New proof NOT_RUN; no merge/main/receipt/Batch B expansion.
+
+
+## Hosted-Mac unpacked reload readback repair
+
+Exact641b208ec8bf026f5b5788d617470ab5b27fef88 Candidate36281499471 FAILED only in hostedMac108514062515 new pending-status fixture AFTER all old-tab refresh text/button/single-banner/unsent-draft checks passed. All3original reload/version/archive/discard cases PASS. Actual failed operation is fresh.goto chrome-extension archive ERR_BLOCKED_BY_CLIENT, not pending-refresh deadline. Unit1085140625541123PASS/0FAIL includes all3new held-status/held-capture/pagehide production regressions and frozen source/package/privacy guards; affectedChrome1085140625936VS06PASS+1ANS04PASS. Contractsprivacy/release also PASS. The source repair is targeted proven for the direct pending paths, but whole candidate remains FAILED and no full/merge/receipt claimed.
+
+Bounded test/harness classification: the offline harness installs unpacked candidates using Extensions.loadUnpacked. The new fixture attempted a trusted archive navigation immediately after runtime.reload invalidated that CDP-installed extension. Restore the SAME unpacked updated candidate with exactly one existing CDP load call after all strict old-page obligations have passed; assert unchanged extension ID and actual fresh manifest0.12.1 before original GET_STATE/assert3saved records. No navigation retry, fallback, timer/deadline inflation, product modification or test removal. This separates already observed stale-page behavior from fresh installed-candidate readback while keeping both mandatory. All4actual hostedMac cases remain. New targeted proof NOT_RUN. BatchA still IN_PROGRESS and full disabled until new stable targeted PASS/review; BatchB remains outside PR86.
+
+
+## Bounded Chrome reload readback root-cause and same-profile continuity
+
+Exactc3c4ceac0f30812f08c9dd3bcc3e286bfea67acc Candidate36282014336 FAILED: hostedMac108515528617 all3original lifecycle cases PASS; new pending-status case again passed required old-document refresh text/button/single-banner/unsent-input obligations, then fresh extension archive navigation failed ERR_BLOCKED_BY_CLIENT. Single Extensions.loadUnpacked did NOT fix fresh navigation; prior641 and c3 attempts are not full PASS. Unit/affectedChrome/contractsprivacy/release PASS; runtime source unchanged from targeted1123unit/6VS06+1ANS04 proof.
+
+After two same-phase failures, bounded root-cause separates product scheduler from CDP extension startup: exact failure remains the freshly created extension document after actual runtime.reload, not status timeout/reconnect notice/data-count assertion. Chromium's extension protocol rejects resource loads through AllowExtensionResourceLoad (ERR_BLOCKED_BY_CLIENT); CDP OnLoaded returns unpacked ID, which alone is not proof that the subsequent extension-document startup is usable. Sources: https://github.com/chromium/chromium/blob/main/extensions/browser/extension_protocols.cc and https://github.com/chromium/chromium/blob/main/chrome/browser/devtools/protocol/extensions_handler.cc . The exact failing Chrome policy subcondition is not claimed proven; no product permission/CSP/web-accessible resource change is justified.
+
+Fixture recovery uses the already passing original version-update workflow: own a persistent isolated profile from initial real capture; FIRST require the original20s single visible refresh/message/button/unsent draft on the unchanged old document while its status reply is held, plus exact pending counter1/no new status attempt; THEN detach/close that owned synthetic browser once and reopen the SAME updated unpacked candidate with the SAME profile. Require unchanged extension ID, actual version0.12.1 and all3saved source records via production trusted archive RPC. No CDP reinstall/uninstall, navigation retry, recreated database, fixture shrink, removed case, fallback permission or timeout change. All4lifecycle cases and all original oracles remain, fresh archive continuity still mandatory. This is a test/harness startup repair, not proof of all real-device update scenarios. New targeted evidence NOT_RUN; full/merge/main/receipt/BatchB remain gated by exact-head targeted PASS and stable review.
+
+
+## Capture-only pending transport injection
+
+Exact6658deb4e3717333cc86876ccdf90ebfb4c1c1da hosted-Mac108517591380 FAILED before manifest mutation/runtime.reload: all3original cases PASS; the new case never satisfied its exact pending counter1 precondition. This is not proof of a reconnect or archive-readback regression. Bounded source review finds three independent GET_STATUS callers in the same content isolated world: capture.js sends its pinned contentVersion; response-bridge.js and source-structure-bridge.js omit that field. The fixture intercepted all three, counted unrelated metadata polling as capture attempts and could also suspend those metadata bridges. Therefore the old exact1 predicate was timing-dependent and did not isolate the promised lost capture reply.
+
+Narrow fault injection to GET_STATUS carrying the actual current manifest version, matching the production capture caller. Side-channel GET_STATUS calls pass through unchanged. Keep exact pending counter1 before/after reload, real runtime.reload/version0.12.1,20s single visible banner/message/button, unsent canary and same-profile3record readback mandatory. All3original cases byte-identical. No runtime/timeout/harness-general change, removed assertion, navigation retry or unchanged-head rerun. New targeted proof NOT_RUN; BatchA NOT_CERTIFIED/full disabled until exact-head affected checks PASS. JAE e9fe0e9771bbea8139f83cbb32559407e1840340 Mac108517100755 independently302PASS plus7retired-updaterPASS; this does not certify PAIA.
+
+
+## Bounded unpacked developer-mode admission root-cause
+
+Exact44985c06bcacc1bc952976fe87032d3d3013a834 Candidate36283253827 FAILED: unit108519049813,affected browser108519049696,contracts/privacy108519049841 and release108519049948 PASS. HostedMac108519049831 all3original cases PASS; the narrowed capture-only fault reached exact pending counter1, actual runtime.reload,20s visible refresh/message/button/single banner, unsent canary and no-extra-status readback, then SAMEprofile archive startup failed ERR_BLOCKED_BY_CLIENT inside FakeChatGPT.start. No product reconnect deadline or stored-record comparison failed. Prior same-profile restart did not solve Chrome admission and is not PASS.
+
+Bounded primary source establishes the missing fixture prerequisite: Chrome ExtensionManagement::IsAllowedByUnpackedDeveloperModePolicy admits kUnpacked either with INSTALLED_VIA_CDP or actual extensions.ui.developer_mode. CDP Extensions.loadUnpacked explicitly sets installed_via_cdp=true; ordinary runtime.reload calls ChromeExtensionRegistrarDelegate::DoLoadExtensionForReload, constructing a new UnpackedInstaller without that flag (defaultfalse). ReplaceReloadedExtension first checks CanEnableExtension and returns before clearing DISABLE_RELOAD when management forbids enabling. Therefore CDP initial load is not proof of an ordinary unpacked reload profile's admission. This explains the deterministic initial-load/old-page-success/disabled-fresh-start split; exact hosted policy/readback remains unproven until the new handshake executes. Sources: https://github.com/chromium/chromium/blob/main/chrome/browser/extensions/extension_management.cc , https://github.com/chromium/chromium/blob/main/chrome/browser/extensions/chrome_extension_registrar_delegate.cc , https://github.com/chromium/chromium/blob/main/extensions/browser/extension_registrar.cc , https://github.com/chromium/chromium/blob/main/extensions/browser/unpacked_installer.h , https://github.com/chromium/chromium/blob/main/chrome/common/pref_names.h .
+
+Coherent test fixture admission+readiness repair: enable the ordinary unpacked developer-mode preference in this freshly created cloud-only profile BEFORE first browser launch (no existing/user profile, disable-reason edit, policy bypass, uninstall or database change). AFTER every strict unchanged old-page assertion, require actual CDP registry enabled=true AND manifestversion0.12.1 AND exact canonical same-release path before closing/reopening the SAMEprofile. This is a bounded read-only browser readiness handshake using the existing14s default, not a navigation retry/timeout increase or weakened gate. Keep4cases,20s notice,exact1pending,all3storedrecords,sameID/actualversion and the3original case bodies unchanged. Product runtime/permissions/frozen source unchanged. New targeted proof NOT_RUN; full/ready/merge/main/receipt/BatchB remain gated, not promoted from passing light jobs. No unchanged-head rerun.
+
+## Protected Chrome developer-mode preference root cause and actual settings handshake
+
+Exact5de3259edfa07da5efe8c756f0618e9fbc33ecfc Candidate36283956500 FAILED only hostedMac108521029735 new case at the enabled-updated-extension readiness handshake. All3original cases PASS; light contracts/privacy,release,affected browser,unit gates PASS. The fault reached the original strict old-document obligations before failing effective enablement. This remains fixture/browser admission failure, not a product runtime or archive-data failure. No unchanged-head rerun.
+
+Primary Chrome source adds the missing fact: chrome_pref_service_factory.cc tracks kExtensionsUIDeveloperMode as ENFORCE_ON_LOAD/ATOMIC protected preference. Writing unsigned Default/Preferences is not proof of the effective setting. Remove that seed entirely. In this fresh cloud-only owned profile use the actual chrome://extensions extensions-toolbar #devMode control. Refuse a disabled/policy-controlled control; click only when unchecked. Independently require chrome.developerPrivate.getProfileConfiguration().inDeveloperMode===true and actual control checked before old-document setup. Chrome toolbar/service source confirms this normal UI dispatches updateProfileConfiguration, which persists the protected preference. No protected-pref/hash/disable-reason edit, policy bypass, developerPrivate update injected by the fixture, new product permission, private/user profile or runtime change. Sources: https://github.com/chromium/chromium/blob/main/chrome/browser/prefs/chrome_pref_service_factory.cc , https://github.com/chromium/chromium/blob/main/chrome/browser/resources/extensions/toolbar.html.ts , https://github.com/chromium/chromium/blob/main/chrome/browser/resources/extensions/toolbar.ts , https://github.com/chromium/chromium/blob/main/chrome/browser/resources/extensions/service.ts .
+
+Preserve all4cases, exact1pending capture-only fault, actual runtime.reload,20s notice,one banner/button/message,unsent canary,enabled/version/path readback and same-profile/sameID/3records reopen. Existing14s readiness and120s case deadlines unchanged. Implementation/source review before one coherent push; new effective-profile and exact-head hostedMac evidence NOT_RUN. Full/ready/merge/exact-main/receipt/BatchB remain gated.

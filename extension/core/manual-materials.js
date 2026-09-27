@@ -6,7 +6,7 @@ import {AI_FIELDS,isStoredAIPresentation} from './organizer/ai-contract.js';
 const fail=(code,restriction)=>{const error=new ArchiveError(code||'MEMORY_INVALID');if(restriction)error.restriction=restriction;throw error;};
 export const own=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
 const idOK=v=>typeof v==='string'&&v.length>0&&v.length<=200;
-export function validMaterialRef(ref){return own(ref,['kind','id','revision','span','sourceId','field'])&&['input','thought','source','ai'].includes(ref.kind)&&idOK(ref.id)&&Number.isSafeInteger(ref.revision)&&ref.revision>=0&&(ref.kind==='source'?idOK(ref.sourceId):ref.sourceId===undefined)&&(ref.kind==='ai'?AI_FIELDS.includes(ref.field):ref.field===undefined)&&(ref.span===undefined||own(ref.span,['start','end'])&&Number.isSafeInteger(ref.span.start)&&Number.isSafeInteger(ref.span.end)&&ref.span.start>=0&&ref.span.end>ref.span.start);}
+export function validMaterialRef(ref){return own(ref,['kind','id','revision','span','sourceId','field'])&&['input','thought','source','ai','topic_note'].includes(ref.kind)&&idOK(ref.id)&&Number.isSafeInteger(ref.revision)&&ref.revision>=0&&(ref.kind==='source'?idOK(ref.sourceId):ref.sourceId===undefined)&&(ref.kind==='ai'?AI_FIELDS.includes(ref.field):ref.field===undefined)&&(ref.span===undefined||own(ref.span,['start','end'])&&Number.isSafeInteger(ref.span.start)&&Number.isSafeInteger(ref.span.end)&&ref.span.start>=0&&ref.span.end>ref.span.start);}
 export const materialIdentity=r=>JSON.stringify([r.kind,r.id,r.sourceId||'',r.field||'']);
 export const materialKey=r=>JSON.stringify([materialIdentity(r),r.revision,r.span||null]);
 export async function materialRead(memory,t,ref,{checkRevision=true}={}){
@@ -24,6 +24,14 @@ export async function materialRead(memory,t,ref,{checkRevision=true}={}){
   if(ref.kind==='source'){if(ref.sourceId!==sourceId||!source||!ix)fail('MEMORY_UNAVAILABLE');body=source.value.originalText;revision=0;proof=[sourceId,ix.dedupeKey];role='source';}else{body=p.body;revision=p.contentRevision;proof=[p.sourceRecordIds,p.lastRemovalSequence];}
  }else if(ref.kind==='thought'){
   const {e,tokens}=await thought(ref.id);body=e.thoughtText;revision=e.revision;title=e.title||'Thought';time=e.createdAt||null;proof=tokens;role=e.origin==='ai'&&!e.protections?.body?.locked?'ai':'human';
+ }else if(ref.kind==='topic_note'){
+  if(deniedTopics.has(ref.id)){const rule=rows.find(r=>r.kind==='topic'&&r.topicId===ref.id&&['denied','never'].includes(r.decision));fail('MEMORY_DENIED',{kind:'topic',topicId:ref.id,profileId:rule.profileId});}
+  const topic=await t.get('topics',ref.id);if(topic?.lifecycle!=='active'||topic.redirectTo||typeof topic.summary!=='string'||!topic.summary.trim())fail('MEMORY_UNAVAILABLE');
+  // This field is human-authored only with canonical edit provenance. Unknown
+  // historical authorship is refused rather than relabeled as the user's voice.
+  if(topic.authorship?.summary?.actor!=='user'||!topic.protections?.summary?.locked)fail('MEMORY_UNAVAILABLE');
+  body=topic.summary;revision=topic.revision;title=await memory.safeLabel(t,topic,'name')||'Topic';role='human';
+  proof=[topic.authorship.summary.operationId,topic.protections.summary.operationId];
  }else{
   if(deniedTopics.has(ref.id)){const rule=rows.find(r=>r.kind==='topic'&&r.topicId===ref.id&&['denied','never'].includes(r.decision));fail('MEMORY_DENIED',{kind:'topic',topicId:ref.id,profileId:rule.profileId});}const topic=await t.get('topics',ref.id),row=await t.get('meta','aiPresentation:'+ref.id);
   if(topic?.lifecycle!=='active'||!row||!isStoredAIPresentation(row,new Set(row.evidenceEntryIds||[])))fail('MEMORY_UNAVAILABLE');
