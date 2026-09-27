@@ -3,12 +3,12 @@
 The public website is a separate runtime from `extension/`. The owner authorized
 this refinement only if it did not interfere with active product development.
 PR89 owns the website; PR88 owns extension retrieval development. See
-`receipts/WEBSITE_V5.md` for boundaries and verification status.
+`receipts/WEBSITE_V5.md` and the final PR closure for verification status.
 
 ## Current design
 
 Text-only opening → separate AI inputs → related material → explicit context for
-another task. The900px desktop scroll runway uses native scrolling and exact
+another task. The 900px desktop scroll runway uses native scrolling and exact
 per-source progress; source marks never morph or blur. A context object resolves
 last. There is no timer before entry/CTA and no forced scrolling or infinite loop.
 
@@ -19,10 +19,11 @@ second visual stage is a dark, interactive source-to-context workspace, not a
 lifestyle photograph or fake app screenshot. It provides real selection/search,
 keyboard tabs, exact context copy, an empty state and truthful error feedback.
 
-Every full page uses the same optical language.16canonical page types in English
-root and `/zh/`, with identical legacy `/en/` aliases, remain available. Navigation
-and locale switching preserve destinations. Legal substance, beta recipient and
-unchecked forwarding consent stay unchanged.
+All 16 canonical page types in the English root and `/zh/`, with identical legacy
+`/en/` aliases, remain available. Navigation and locale switching preserve
+routes. Legal substance, beta recipient and unchecked forwarding consent stay
+unchanged. Small-desktop marks are checked over their visible areas, not merely
+at their centers. Chinese dark-stage emphasis has its own verified color.
 
 ## Product truth
 
@@ -31,14 +32,14 @@ browser capture. Examples are synthetic and ephemeral. The Topic view is a fixed
 example, not automatic semantic inference. Claude/Gemini capture is explicitly
 planned. Integrated canonical product docs, not this website or an open semantic
 lab PR, govern actual capability and certification claims. No trackers, new
-permissions, remote dependencies, paid services, or unsolicited visitor requests.
+permissions, remote dependencies, paid services or unsolicited visitor requests.
 
 The separate `assets/website/demo.js` retains the existing source/edit distinction,
 stale-context invalidation, safe text rendering, exact copy and Markdown export.
 The new homepage copy likewise copies only selected text and reports clipboard
 failure honestly. No-JS renders the initial selected context and disables controls
-that require JavaScript. Reduced motion disables every finite animation; desktop
-also has an explicit pause. A static website view retains all meaningful content.
+that require JavaScript. Reduced motion disables finite animation; desktop also
+has an explicit pause. A static website view retains all meaningful content.
 
 ## Edit and verify
 
@@ -58,7 +59,7 @@ the public motion and homepage example. Existing font/brand assets are reused;
 this refinement does not acquire or distribute new font binaries.
 
 Use `website/test.py --smoke` for the affected six-route inner-loop matrix; the
-normal CI command retains all48routes and the existing demo/consent regressions.
+normal CI retains all 48 routes and existing demo/consent regressions.
 `--offline-render` records weaker exact-source DOM evidence in restricted local
 browsers. It is not a substitute for the runner's real HTTP verification.
 
@@ -68,13 +69,14 @@ python website/review_motion.py --output /tmp/website-v5-visual
 ```
 
 The visual capture script performs actual HTTP navigation, captures normal
-1440×960 motion stages, small desktop/large desktop/mobile layouts, example
-selection/empty states, and a native-scroll GIF. It makes no form or AI call.
-Inspect screenshots separately; a green test does not prove aesthetic excellence,
+1440x960 motion stages, small/large desktop and mobile layouts, example selection
+and empty states, and a native-scroll GIF. It makes no form or AI call. Inspect
+screenshots separately; a green test does not prove aesthetic excellence,
 physical-device performance, full WCAG compliance or owner approval.
 
-The existing `website/export_pdf.py` can still export the implemented pages when
-needed. PDFs are static delivery artifacts, not the experience or runtime owner.
+The prior v4 PDFs are historical. `website/export_pdf.py` remains the export
+utility, but any v5 PDF must be freshly generated and visually checked; this
+round does not claim that the old PDFs represent the new site.
 
 ## Integration
 
