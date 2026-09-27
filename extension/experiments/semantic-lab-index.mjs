@@ -21,22 +21,28 @@ export async function buildSemanticLabIndex(records,encode,{dimension,minimumSco
     const vector=validateUnitVector(await encode('passage: '+record.title+'\n'+record.body),dimension);
     vectors.set(record.id,vector);snapshots.set(record.id,Object.freeze({...record}));
   }
+  const score=async(eligible,query)=>{
+    if(!Array.isArray(eligible)||typeof query!=='string')fail();
+    const seen=new Set();
+    for(const record of eligible) {
+      if(!record||!snapshots.has(record.id)||seen.has(record.id)||record.excluded!==false
+          ||!same(record,snapshots.get(record.id)))fail();
+      seen.add(record.id);
+    }
+    if(!query.trim()||!eligible.length)return [];
+    const q=validateUnitVector(await encode('query: '+query),dimension);
+    return eligible.map(record=>({id:record.id,
+      score:vectors.get(record.id).reduce((sum,x,i)=>sum+x*q[i],0)}));
+  };
   return Object.freeze({
     projectedRecords:vectors.size,dimension,
     float32ProjectionBytes:vectors.size*dimension*4,
     serializedProjectionBytes:new TextEncoder().encode(JSON.stringify([...vectors])).length,
+    // Invocation-owned unthresholded scores for independent lab calibration.
+    // Not persisted or exposed by the extension runtime.
+    score,
     async retrieve(eligible,query) {
-      if(!Array.isArray(eligible)||typeof query!=='string')fail();
-      const seen=new Set();
-      for(const record of eligible) {
-        if(!snapshots.has(record.id)||seen.has(record.id)||record.excluded!==false
-            ||!same(record,snapshots.get(record.id)))fail();
-        seen.add(record.id);
-      }
-      if(!query.trim()||!eligible.length)return [];
-      const q=validateUnitVector(await encode('query: '+query),dimension);
-      return eligible.map(record=>({id:record.id,
-        score:vectors.get(record.id).reduce((sum,x,i)=>sum+x*q[i],0)}))
+      return (await score(eligible,query))
         .filter(row=>row.score>=minimumScore)
         .sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id))
         .slice(0,5).map(row=>row.id);

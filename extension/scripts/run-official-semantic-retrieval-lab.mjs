@@ -8,6 +8,8 @@ import {retrievalCorpus} from '../tests/fixtures/cpv1-07-retrieval-corpus.mjs';
 import {validateRetrievalCorpus,productionLexicalCandidate,buildCharacterIndex,evaluateRetrieval}
   from '../experiments/retrieval-evaluation.mjs';
 import {buildSemanticLabIndex,fuseScopedLabRanks,HYBRID_RANK_RULE} from '../experiments/semantic-lab-index.mjs';
+import {calibrationCorpus} from '../tests/fixtures/cpv1-07-calibration-corpus.mjs';
+import {validateCalibrationCorpus,calibrateDevelopmentThreshold,rankCalibrationScores} from '../experiments/semantic-calibration.mjs';
 import {inspectBoundedPublicModel,METADATA_FIELDS} from '../experiments/public-model-provenance.mjs';
 import {meanPoolOfficialDense,officialProjectionObservation,admitOfficialTokenInputs} from '../experiments/official-minilm-pooling.mjs';
 
@@ -56,6 +58,7 @@ async function publicAssets(root,directory=root) {
 
 try {
   validateRetrievalCorpus(retrievalCorpus);
+  validateCalibrationCorpus(calibrationCorpus,retrievalCorpus);
   const labValue=process.env.PAIA_SEMANTIC_LAB_ROOT;
   const cacheValue=process.env.PAIA_PUBLIC_MODEL_CACHE;
   if(!labValue||!cacheValue||!isAbsolute(labValue)||!isAbsolute(cacheValue))refuse('invalid_lab_environment');
@@ -207,8 +210,11 @@ try {
     await evaluateRetrieval(retrievalCorpus,(scope,query)=>character.retrieve(scope,query),
       {method:'character-tfidf-lab-v1'}),
     await evaluateRetrieval(retrievalCorpus,async(scope,query)=>{
-      const result=await semantic.retrieve(scope,query);
-      semanticRanks.set(rankKey(scope,query),Object.freeze([...result]));
+      const scores=await semantic.score(scope,query);
+      const result=rankCalibrationScores(scores,MINIMUM_SCORE);
+      semanticRanks.set(rankKey(scope,query),Object.freeze({
+        ranks:Object.freeze([...result]),scores:Object.freeze(scores.map(row=>Object.freeze({...row})))
+      }));
       return result;
     },
       {method:METHOD}),
@@ -216,7 +222,7 @@ try {
   const hybridReport=await evaluateRetrieval(retrievalCorpus,(scope,query)=>{
     const key=rankKey(scope,query);
     if(!semanticRanks.has(key))refuse();
-    return fuseScopedLabRanks(scope,productionLexicalCandidate(scope,query),semanticRanks.get(key));
+    return fuseScopedLabRanks(scope,productionLexicalCandidate(scope,query),semanticRanks.get(key).ranks);
   },{method:'official-hybrid-rrf-lab-v1'});
   // Cached fusion timing is deliberately NOT advertised as end-to-end model
   // query latency. The original semantic report includes the real inference.
@@ -225,6 +231,32 @@ try {
   hybridReport.hybridRankRule=HYBRID_RANK_RULE;
   hybridReport.additionalModelQueries=0;
   reports.push(hybridReport);
+  // Development-only threshold selection never sees original fixed labels.
+  // All original 28 records / 29 tasks and four frozen comparisons stay intact.
+  stage='development_calibration_projection';
+  const developmentProjection=await buildSemanticLabIndex(
+    calibrationCorpus.records.filter(record=>!record.excluded),encode,
+    {dimension:DIMENSION,minimumScore:MINIMUM_SCORE});
+  stage='development_threshold_calibration';
+  const calibration=await calibrateDevelopmentThreshold(
+    calibrationCorpus,retrievalCorpus,developmentProjection.score);
+  let calibratedFixedReport=null;
+  if(calibration.selectedThreshold!==null){
+    // Apply the already selected development threshold to original cached
+    // inference. This diagnostic is NOT blind acceptance or production admission.
+    stage='fixed_development_threshold_diagnostic';
+    calibratedFixedReport=await evaluateRetrieval(retrievalCorpus,(scope,query)=>{
+      const cached=semanticRanks.get(rankKey(scope,query));
+      if(!cached)refuse();
+      return rankCalibrationScores(cached.scores,calibration.selectedThreshold);
+    },{method:METHOD});
+    calibratedFixedReport.retrievalTiming.scope='ranking_only_shared_inference_not_end_to_end';
+    calibratedFixedReport.sharedInferenceMethod=METHOD;
+    calibratedFixedReport.additionalModelQueries=0;
+    calibratedFixedReport.blindAcceptance=false;
+    calibratedFixedReport.thresholdSelectionCorpus=calibration.developmentCorpusDigest;
+    if(calibratedFixedReport.contractFailures)refuse();
+  }
   semanticRanks.clear();
   stage='public_artifact_readback';failureReason='semantic_probe_unavailable';
   const assets=await publicAssets(cache);
@@ -257,7 +289,7 @@ try {
       characterBuildMs,characterProjectionBytes:character.serializedProjectionBytes},
     memory:{nodeRssBytes:memory.rss,nodeHeapUsedBytes:memory.heapUsed,
       scope:'node_process_after_fixed_probe_not_chrome_peak'},
-    reports}));
+    calibration,calibratedFixedReport,reports}));
 } catch(error) {
   const errorClass=['AbortError','TimeoutError','SyntaxError','TypeError','Error'].includes(error?.name)
     ?error.name:'Other';

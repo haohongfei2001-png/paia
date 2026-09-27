@@ -63,10 +63,29 @@ jobs:
             changed=execFileSync('git',['diff','--name-only',previous,head],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
           }
           const owner='extension/tests/cpv1-07-historical-comparison-chrome-e2e.test.mjs';
-          const eligible=changed.includes(owner)&&changed.every(path=>
+          const historyEligible=changed.includes(owner)&&changed.every(path=>
             path===owner||path==='.github/workflows/paia-candidate.yml'||
             /^extension\/docs\/consumer-product-v1\/(STATUS|EXECUTION_PROTOCOL)\.md$/.test(path));
-          const files=[
+          const calibrationPaths=new Set([
+            'extension/experiments/semantic-calibration.mjs',
+            'extension/experiments/semantic-lab-index.mjs',
+            'extension/tests/fixtures/cpv1-07-calibration-corpus.mjs',
+            'extension/tests/cpv1-07-semantic-lab.test.mjs',
+            'extension/scripts/run-official-semantic-retrieval-lab.mjs',
+            '.github/workflows/paia-vs07-semantic-lab.yml',
+            '.github/workflows/paia-candidate.yml',
+            'extension/docs/consumer-product-v1/STATUS.md',
+            'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'
+          ]);
+          const calibrationEligible=changed.includes('extension/experiments/semantic-calibration.mjs')
+            &&changed.includes('extension/scripts/run-official-semantic-retrieval-lab.mjs')
+            &&changed.every(path=>calibrationPaths.has(path));
+          const eligible=historyEligible||calibrationEligible;
+          const files=calibrationEligible?[
+            'cpv1-07-semantic-lab.test.mjs','cpv1-07-retrieval-evaluation.test.mjs',
+            'cpv1-07-public-model-provenance.test.mjs','cpv1-07-semantic-index.test.mjs',
+            'cpv1-07-semantic-material-snapshot.test.mjs'
+          ]:[
             'cpv1-07-historical-comparison.test.mjs','cpv1-07-history-time.test.mjs',
             'universal-search-round46.test.mjs','ux-r4-search-history.test.mjs',
             'input-search-v090.test.mjs','search-hardening-v092.test.mjs',
@@ -74,7 +93,7 @@ jobs:
             'history-staleness-v090.test.mjs','history-store.test.mjs'
           ];
           if(eligible&&files.some(file=>group(file)!=='unit'))throw Error('owning unit category drift');
-          console.log(JSON.stringify({validationScope:eligible?'affected search/history unit contracts':'complete unit suite',changed,completeCertification:false}));
+          console.log(JSON.stringify({validationScope:calibrationEligible?'affected complete semantic lab/index/evaluation/provenance unit contracts':historyEligible?'affected search/history unit contracts':'complete unit suite',changed,completeCertification:false}));
           const run=(command,args)=>{const result=spawnSync(command,args,{stdio:'inherit'});if(result.status!==0)process.exit(result.status||1);};
           if(!eligible)run('npm',['run','test:unit']);
           else{

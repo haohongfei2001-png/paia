@@ -5,6 +5,8 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'extension/experiments/semantic-lab-index.mjs'
+      - 'extension/experiments/semantic-calibration.mjs'
+      - 'extension/tests/fixtures/cpv1-07-calibration-corpus.mjs'
       - 'extension/experiments/semantic-lab/package.json'
       - 'extension/scripts/run-semantic-retrieval-lab.mjs'
       - 'extension/scripts/inspect-public-model-provenance.mjs'

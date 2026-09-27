@@ -177,3 +177,101 @@ test('CPV1-07 hybrid complete fixed date/source/unknown/exclusion scopes admit o
   assert.equal(measured.personalBeliefJudgment,false);
   assert.equal(JSON.stringify(retrievalCorpus),original);
 });
+
+import {calibrationCorpus} from './fixtures/cpv1-07-calibration-corpus.mjs';
+import {CALIBRATION_RULE,validateCalibrationCorpus,calibrateDevelopmentThreshold,rankCalibrationScores}
+  from '../experiments/semantic-calibration.mjs';
+
+test('CPV1-07 development calibration freezes disjoint complete content and refuses gold/label substitutions',()=>{
+  assert.equal(validateCalibrationCorpus(calibrationCorpus,retrievalCorpus),true);
+  assert.equal(calibrationCorpus.records.length,9);assert.equal(calibrationCorpus.tasks.length,16);
+  assert.equal(Object.isFrozen(CALIBRATION_RULE),true);
+  assert.equal(Object.isFrozen(CALIBRATION_RULE.thresholds),true);
+  const copy=()=>JSON.parse(JSON.stringify(calibrationCorpus));
+  for(const alter of [
+    c=>c.records[0].id='r01',
+    c=>c.records[0].body=retrievalCorpus.records[0].body,
+    c=>c.tasks[0].query=retrievalCorpus.tasks[0].query,
+    c=>c.tasks[0].relevant=['d09'],
+    c=>c.tasks[0].relevant=['d01','d01'],
+    c=>c.tasks[0].id=c.tasks[1].id,
+    c=>c.tasks[0].query=c.tasks[1].query,
+    c=>c.records.pop(),c=>c.tasks.pop(),
+    c=>c.tasks[8].relevant=['d01'],
+    c=>c.records[0].privatePath='PRIVATE_CALIBRATION_CANARY',
+  ]){
+    const c=copy();alter(c);
+    assert.throws(()=>validateCalibrationCorpus(c,retrievalCorpus),
+      e=>e.message==='invalid semantic development calibration'&&!e.message.includes('PRIVATE'));
+  }
+});
+test('CPV1-07 raw lab scores retain below-cutoff cosines without changing original frozen retrieval',async()=>{
+  const calls=[];
+  const index=await buildSemanticLabIndex(records,async value=>{
+    calls.push(value);return value.startsWith('passage: beta')?[.6,.8]:
+      value.startsWith('passage: gamma')?[.8,.6]:[1,0];
+  },{dimension:2});
+  const scope=[records[1],records[0],records[2]];
+  const scored=await index.score(scope,'complete query');
+  assert.deepEqual(scored,[{id:'b',score:.6},{id:'a',score:1},{id:'c',score:.8}]);
+  assert.deepEqual(rankCalibrationScores(scored,.7),['a','c']);
+  assert.deepEqual(await index.retrieve(scope,'complete query'),['a','c']);
+  scored[0].score=1;scored.reverse();
+  assert.deepEqual(await index.retrieve(scope,'complete query'),['a','c']);
+  const count=calls.length;
+  await assert.rejects(index.score([{...records[0],body:'substituted'}],'PRIVATE_QUERY'));
+  assert.equal(calls.length,count);
+});
+const calibrationScoreFixture=(positiveScore,negativeScore)=>async(scope,query)=>{
+  // Test oracle alone knows development relevance; the passed candidate API
+  // has no label/category/excluded record/fixed-gold fields.
+  assert.equal(scope.length,8);assert.equal(Object.isFrozen(scope),true);
+  assert.equal(scope.some(row=>row.id==='d09'),false);
+  assert.equal(scope.every(row=>Object.isFrozen(row)
+    &&Object.keys(row).sort().join(',')==='body,excluded,id,title'),true);
+  const task=calibrationCorpus.tasks.find(t=>t.query===query);
+  return scope.map(row=>({id:row.id,score:task.relevant.includes(row.id)
+    ?positiveScore:task.relevant.length ? .1 : negativeScore}));
+};
+test('CPV1-07 development selection applies strict no-answer constraint and finite deterministic tie rule',async()=>{
+  const original=JSON.stringify([calibrationCorpus,retrievalCorpus]);
+  const report=await calibrateDevelopmentThreshold(calibrationCorpus,retrievalCorpus,
+    calibrationScoreFixture(.82,.51));
+  assert.equal(report.status,'DEVELOPMENT_THRESHOLD_SELECTED');
+  assert.equal(report.selectedThreshold,.8);
+  assert.equal(report.comparisons.length,12);
+  const row=report.comparisons.find(r=>r.threshold===.5);
+  assert.equal(row.positiveHits,8);assert.equal(row.falsePositives,8);assert.equal(row.admissible,false);
+  assert.equal(report.comparisons.find(r=>r.threshold===.8).positiveHits,8);
+  assert.equal(report.comparisons.find(r=>r.threshold===.85).positiveHits,0);
+  assert.equal(report.additionalModelQueries,16);
+  assert.equal(report.selectionExcludedFixedEvaluation,true);
+  assert.equal(report.blindAcceptance,false);assert.equal(report.modelAdmitted,false);
+  assert.equal(report.productionThresholdChanged,false);
+  assert.equal(JSON.stringify([calibrationCorpus,retrievalCorpus]),original);
+  for(const privateValue of ['发面记录',calibrationCorpus.tasks[0].query,'"scores"','"relevant"'])
+    assert.equal(JSON.stringify(report).includes(privateValue),false);
+});
+test('CPV1-07 development calibration refuses lowering standards when no cutoff meets both frozen constraints',async()=>{
+  const report=await calibrateDevelopmentThreshold(calibrationCorpus,retrievalCorpus,
+    calibrationScoreFixture(.52,.75));
+  assert.equal(report.status,'NO_ADMISSIBLE_DEVELOPMENT_THRESHOLD');
+  assert.equal(report.selectedThreshold,null);assert.equal(report.comparisons.some(r=>r.admissible),false);
+  assert.equal(report.productionClaim,false);assert.equal(report.modelAdmitted,false);
+});
+test('CPV1-07 development scoring rejects duplicate/outside/partial/nonfinite rows and in-flight corpus mutation',async()=>{
+  for(const alter of [
+    rows=>rows.pop(),rows=>rows[0].id='PRIVATE_UNKNOWN_CANARY',
+    rows=>rows[0].id=rows[1].id,rows=>rows[0].score=NaN,
+    rows=>rows[0].score=Infinity,rows=>rows[0].score=1.1,
+    rows=>rows[0].query='PRIVATE_QUERY_CANARY',
+  ]){
+    await assert.rejects(calibrateDevelopmentThreshold(calibrationCorpus,retrievalCorpus,async(scope,query)=>{
+      const rows=await calibrationScoreFixture(.82,.51)(scope,query);alter(rows);return rows;
+    }),e=>e.message==='invalid semantic development calibration'&&!e.message.includes('PRIVATE'));
+  }
+  const c=JSON.parse(JSON.stringify(calibrationCorpus));
+  await assert.rejects(calibrateDevelopmentThreshold(c,retrievalCorpus,async(scope)=>{
+    c.tasks[0].relevant=[];return scope.map(row=>({id:row.id,score:.8}));
+  }),/invalid semantic development calibration/);
+});
