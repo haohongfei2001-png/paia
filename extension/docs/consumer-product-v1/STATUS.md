@@ -14,7 +14,7 @@ current_slice_status: IN_PROGRESS — VS-06_ENGINEERING_COMPLETE / EXTERNAL_CERT
 
 current_round: CPV1-07.0–07.1 / VS-07 Batch A
 
-current_round_status: IN_PROGRESS / VS07_FIXED_EVALUATION_CANDIDATE
+current_round_status: IN_PROGRESS / VS07_REAL_SEMANTIC_COMPARISON_CANDIDATE
 
 current_writer: MANAGER / sole VS-07 Batch A branch feat/vs07-retrieval-evaluation
 
@@ -893,3 +893,14 @@ Executable evaluation passes candidates only eligible immutable records and quer
 Run existing production lexical-v1 and a reusable invocation-owned character TF-IDF projection as two truthful lexical baselines. The projection is LAB_ONLY/statistical lexical, not semantic. Measure MRR@5/recall@5/nDCG@5/no-answer abstention and per-category gaps; record fixed-corpus p50/p95/index build/serialized projection size. No semantic weights/model download/provider/network/cost, production index/manifest/permissions/UI/schema or runtime behavior change. This lab is outside the actual release allowlist. Full/long-library/private/user-level/Chrome-semantic compatibility cannot be inferred from29tasks.
 
 17new affected unit tests cover frozen coverage/no-shared keywords, independent ranking oracle,5unsafe candidate contracts, non-echo exception,6invalid corpus/scope/time labels, actual current lexical scorer/scoped immutable corpus, reusable lab projection and actual Node bake-off script privacy/resource report. No existing test/fixture/quality standard removed; actual cloud proof pending. Draft affected unit/contracts/privacy/release only; full certification reserved for later stable owning slice boundary. Full VS07/07.1semantic selection/index/invalidation/UI/R2/R1/long-library remain OPEN, existing deferred external/private/device/owner gates retained. Whole-package authorization; continue current PR as the slice batch without micro-PRs.
+
+
+## VS-07 Batch A — real CPU semantic comparison candidate
+
+Remote main e43b8748701cd7c71eba4da1576478bdcfce2d47 / sole DraftPR88 /ecdbeecc71879ba4d1cd21e8570480c1e1020bc7. Exact-head Candidate36290179731 SUCCESS: actual unit108538627348 passes all17fixed corpus/evaluation cases, release108538627416 and contracts/privacy108538627503 PASS, aggregate108539075383 PASS. Full certification intentionally skipped Draft. Freeze unchanged28records/29tasks/13categories and fixture blob254cdb1d60b6c96f3d49a18c7ccf34ccb0d85351; no repeated 10k/100k or VS06 browser proof.
+
+Next independent07.1 coherent batch adds a real pretrained CPU candidate probe, not a semantic label for character TF-IDF. Primary GitHub sources confirm transformers.js3.8.1 / ONNXNode1.21.0 and feature-extraction mean+normalize API; E5 official repo documents multilingual small384dimensions. Select public Xenova/multilingual-e5-small only as a screening candidate. The Actions-only job must discover/verify actual40char immutable converted/upstream revision + permissible license +q8 asset before load; no mutable main inference, private/ambient cache or account token. Download to an empty per-head public cache, dispose then offline reload with remote disabled/local_files_only. No paid inference/service or corpus egress.
+
+Reusable27record vector projection, fixed query:/passage: prefixes, finite384unit vectors and fixed uncalibratedcosine0.7. Apply existing date/source/exclusion scope; reject changed title/body/source/time, unknown/duplicate/excluded substitution before query embedding. Gold inaccessible; retain every29task/class/negative. Compare actual fixed MR R/recall/nDCG/abstention/category error and query latency including encoding against original production lexical and character lab. Measure load/offline reload/build time, serialized/float32 projection bytes, actual public asset sizes/SHA256 and resolved dependency lockSHA256, Node memory snapshot. No perfect metrics on errors; stage-only unavailable report and failed gate, no retries.
+
+Add9targeted numerical/scope regressions and one bounded relevant-path-only cloud job as one stable candidate. Direct package3.8.1 pinned; actual resolved first-probe lock archived but NOT production admission. Model conversion equivalence, Chrome/WASM/MV3 compatibility, long-library performance, calibrated abstention and incremental index remain engineeringOPEN. No runtime/search/UI/manifest/permissions/storage change; lab files excluded by existingruntimeallowlist; no model weights/private bodies/vectors in GitHub artifacts. New cloud proof NOT_RUN. Productionsemantic false and no belief-change claim;07.0–07.1 stays sole88 writer until actual comparison/compatibility closes.

@@ -1,0 +1,51 @@
+name: PAIA VS-07 semantic lab
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'extension/experiments/semantic-lab-index.mjs'
+      - 'extension/experiments/semantic-lab/package.json'
+      - 'extension/scripts/run-semantic-retrieval-lab.mjs'
+      - '.github/workflows/paia-vs07-semantic-lab.yml'
+permissions:
+  contents: read
+concurrency:
+  group: paia-vs07-semantic-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  fixed-public-synthetic-model-probe:
+    if: github.head_ref == 'feat/vs07-retrieval-evaluation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install only the pinned isolated lab dependency
+        run: |
+          mkdir -p "$RUNNER_TEMP/paia-semantic-lab"
+          cp extension/experiments/semantic-lab/package.json "$RUNNER_TEMP/paia-semantic-lab/package.json"
+          npm install --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/paia-semantic-lab"
+      - name: Frozen corpus, real CPU model, immutable revision and measured comparison
+        env:
+          PAIA_SEMANTIC_LAB_ROOT: ${{ runner.temp }}/paia-semantic-lab
+          PAIA_PUBLIC_MODEL_CACHE: ${{ runner.temp }}/paia-public-model-cache
+          HF_TOKEN: ''
+          HF_ACCESS_TOKEN: ''
+        run: |
+          node extension/scripts/run-semantic-retrieval-lab.mjs > "$RUNNER_TEMP/paia-semantic-lab-report.json"
+          cat "$RUNNER_TEMP/paia-semantic-lab-report.json"
+      - name: Retain aggregate-only synthetic probe and resolved dependency lock
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs07-semantic-public-lab-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/paia-semantic-lab-report.json
+            ${{ runner.temp }}/paia-semantic-lab/package-lock.json
+          if-no-files-found: error
+          retention-days: 7

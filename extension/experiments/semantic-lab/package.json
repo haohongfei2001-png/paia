@@ -1,0 +1,9 @@
+{
+  "name": "paia-vs07-public-semantic-lab",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "dependencies": {
+    "@huggingface/transformers": "3.8.1"
+  }
+}

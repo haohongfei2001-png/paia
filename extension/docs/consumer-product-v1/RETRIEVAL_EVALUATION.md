@@ -29,3 +29,58 @@ The Node-only lab and tests do not enter the package allowlist. No production in
 ## Cloud verification
 
 Existing affected unit gate executes17new evaluation tests plus the actual bake-off script; privacy/contracts/release guards retained. New evidence NOT_RUN until Actions. Stable owning candidate/slice boundary alone gets full certification. All owner/external/private/device/current-live/distribution gates remain in the existing ledger.
+
+
+## Real pretrained local model probe (candidate; no production promotion)
+
+The next coherent candidate compares the exact frozen corpus and original two
+lexical methods against a real q8 CPU feature-extraction pipeline using
+@huggingface/transformers **3.8.1** and the public converted
+Xenova/multilingual-e5-small candidate (384 dimensions). This is a lab screening
+choice, not the production architecture or a claim about current personal beliefs.
+
+Primary implementation references, read through GitHub:
+- https://github.com/huggingface/transformers.js/blob/3.8.1/package.json
+- https://github.com/huggingface/transformers.js/blob/3.8.1/src/pipelines.js
+- https://github.com/huggingface/transformers.js/blob/3.8.1/src/utils/hub.js
+- https://github.com/microsoft/unilm/tree/master/e5
+
+The isolated Actions job downloads public model metadata, resolves an actual
+immutable 40-character revision **before** model loading and records the original
+upstream model revision/license. Missing/ambiguous provenance, license or q8 asset
+fails the probe. No account token is supplied. Only these fixed PUBLIC synthetic
+records/queries enter local inference; no archive/profile/secret/private model
+cache is loaded. Public model requests download weights, not corpus material.
+The mutable metadata discovery is not production admission.
+
+The pipeline uses mean pooling and normalization, with fixed passage/query
+prefixes. It projects the 27 nonexcluded records once and reuses that derived
+projection for all 29 tasks. It checks vector dimension/finite values/unit norm,
+retains date/source eligibility and rejects changed title/body/source/time,
+excluded/unknown/duplicate substitutions before query inference. No gold labels
+reach the candidate. The cosine threshold **0.7** is frozen before the first
+result and explicitly **uncalibrated**; unsuccessful abstention/retrieval remains
+visible and is not repaired by changing tasks, gold or the threshold.
+
+After the first load it disposes and reloads from the pinned per-head cache with
+remote models disabled and local_files_only=true. Reports include the same
+MRR/recall/nDCG/no-answer/category failures as both lexical baselines, query timing
+including model inference, actual build/load/offline reload time, projected bytes,
+actual model asset bytes/SHA256s, original/converted model revisions/licenses,
+resolved dependency lock SHA256 and Node RSS/heap observations. The lock is a
+first-probe resolved lock, not an admitted production lock. The artifact contains
+aggregate/fixed-task results and PUBLIC model/dependency provenance only, never
+vectors, corpus bodies, queries, applicant data or account tokens.
+
+Only one bounded Ubuntu job runs on relevant lab changes to the existing writer.
+No automatic retry, full certification or unchanged-head rerun is introduced.
+The existing frozen evaluation tests remain, plus nine numerical/scope regressions.
+There is no production runtime/UI/manifest/permission/data-store change and these
+experiment/scripts are excluded by the existing runtime packaging allowlist.
+
+Current evidence: **NOT_RUN for this new candidate**. A successful Node lab probe
+still does not establish Chrome/WASM/worker/MV3 compatibility, conversion
+equivalence, long-library latency, incremental invalidation, calibrated abstention,
+private corpus quality or production semantic capability. Those remain CPV1-07.1/
+07.2/07.6 work before enabling semantic retrieval. Preserve original fixed tasks
+including all no-shared-keyword/no-answer cases regardless of measured quality.
