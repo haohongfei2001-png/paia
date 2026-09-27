@@ -1,0 +1,88 @@
+name: Assemble approved website core
+on:
+  push:
+    branches: ['website/core-experiences-20260928']
+    paths: ['website/.core-transfer/**', '.github/workflows/website-core-assembly.yml']
+permissions: {}
+concurrency:
+  group: approved-website-core-assembly
+  cancel-in-progress: false
+jobs:
+  assemble:
+    if: github.repository == 'haohongfei2001-png/paia' && github.ref == 'refs/heads/website/core-experiences-20260928'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: true
+      - name: Verify the approved source delta and generate only the homepages
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, lzma, subprocess, sys
+          baseline='d8eb7b1292a3b5d03f8018761c6ab624d05d05c7'
+          assert subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip()==baseline
+          parts=[Path(f'website/.core-transfer/part{i}') for i in range(1,5)]
+          packet=b''.join(p.read_bytes() for p in parts)
+          assert len(packet)==23572
+          assert hashlib.sha256(packet).hexdigest()=='9c47d6efd67910db0e9db9494a265fea812995918e7f716758a04de32947f5c2'
+          data=lzma.decompress(packet)
+          assert len(data)==82649
+          assert hashlib.sha256(data).hexdigest()=='57d5fb94212edeb1c82c1e7fa4380dcd3b77d5d2d349fef97217c1a4c5b05101'
+          changes=json.loads(data)
+          allowed={'website/home.py','website/core.py','website/build.py','assets/website/home-core-v1.css','assets/website/home-core-v2.js','website/core_checks.py','website/test.py','website/verify_live.py','website/README.md','WEBSITE_DESIGN.md','website/receipts/CORE_EXPERIENCES_20260928.md'}
+          assert len(changes)==len(allowed) and {c['path'] for c in changes}==allowed
+          pending={}
+          for change in changes:
+              path=Path(change['path'])
+              if change['before'] is None:
+                  assert not path.exists(),str(path)
+                  before=''
+              else:
+                  before=path.read_text()
+                  assert hashlib.sha256(before.encode()).hexdigest()==change['before'],str(path)
+              lines=before.splitlines(True)
+              edits=change['edits']
+              assert all(0<=start<=end<=len(lines) for start,end,value in edits)
+              assert all(edits[i][1]<=edits[i+1][0] for i in range(len(edits)-1))
+              for start,end,value in reversed(edits):
+                  lines[start:end]=[value]
+              after=''.join(lines)
+              assert hashlib.sha256(after.encode()).hexdigest()==change['after'],str(path)
+              pending[path]=after
+          for path,after in pending.items():
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_text(after)
+          subprocess.check_call([sys.executable,'website/build.py'])
+          subprocess.check_call([sys.executable,'website/build.py','--check'])
+          subprocess.check_call(['node','--check','assets/website/home-core-v2.js'])
+          transient={str(p) for p in parts}|{'.github/workflows/website-core-assembly.yml'}
+          for name in transient:
+              Path(name).unlink()
+          allowed|={'index.html','zh/index.html','en/index.html'}|transient
+          subprocess.check_call(['git','add','-A','--',*sorted(allowed)])
+          changed=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines())
+          assert changed==allowed,(changed,allowed)
+          subprocess.check_call(['git','diff','--exit-code'])
+          print('Verified source hashes, restricted file set and generated homepage bytes.')
+          print('\n'.join(sorted(changed)))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(website): implement four post-capture core experiences; preserve approved hero'
+      - name: Publish only to the dedicated implementation branch
+        shell: bash
+        env:
+          EXPECTED_SEED: ${{ github.sha }}
+        run: |
+          branch='website/core-experiences-20260928'
+          actual="$(git ls-remote origin "refs/heads/$branch" | cut -f1)"
+          test "$actual" = "$EXPECTED_SEED"
+          git push origin "HEAD:refs/heads/$branch"
+          echo 'Approved source assembled. Temporary transport and workflow removed. PR HTTP tests and production readback are still required.' >> "$GITHUB_STEP_SUMMARY"
