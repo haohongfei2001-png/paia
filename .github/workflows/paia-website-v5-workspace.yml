@@ -1,0 +1,56 @@
+name: Website v5 isolated workspace
+on:
+  push:
+    branches: ['website/context-motion-v5']
+    paths: ['.github/workflows/paia-website-v5-workspace.yml', '.v5-transfer/READY']
+permissions:
+  contents: write
+concurrency:
+  group: website-v5-isolated
+  cancel-in-progress: false
+jobs:
+  workspace:
+    if: github.ref == 'refs/heads/website/context-motion-v5'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.13'
+      - name: Prepare browser
+        run: |
+          mkdir -p /tmp/website-v5-proof
+          python -m pip install -r website/requirements.txt
+          python -m playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk fonts-liberation
+      - name: Export exact website source and actual public baseline
+        run: |
+          python - <<'PY'
+          import pathlib, zipfile, subprocess, json
+          from playwright.sync_api import sync_playwright
+          out=pathlib.Path('/tmp/website-v5-proof')
+          paths=[p for p in pathlib.Path('.').rglob('*') if p.is_file() and (p.parts[0] in ('website','en','zh') or p.parts[:2]==('assets','website') or (len(p.parts)==1 and p.suffix=='.html'))]
+          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for p in paths:z.write(p,p.as_posix())
+          (out/'source-head.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD'],text=True))
+          with sync_playwright() as p:
+              b=p.chromium.launch()
+              page=b.new_page(viewport={'width':1440,'height':960},reduced_motion='reduce')
+              r=page.goto('https://inputarchive.com/',wait_until='networkidle',timeout=30000)
+              page.evaluate('document.fonts.ready')
+              page.screenshot(path=str(out/'live-before.png'),full_page=True)
+              (out/'live-before.html').write_text(page.content())
+              (out/'live-before.json').write_text(json.dumps({'status':r.status,'url':page.url,'title':page.title()}))
+              b.close()
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: website-v5-proof
+          path: /tmp/website-v5-proof/
+          retention-days: 7
+          if-no-files-found: error
