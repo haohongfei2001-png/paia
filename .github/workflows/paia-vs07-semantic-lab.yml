@@ -8,6 +8,7 @@ on:
       - 'extension/experiments/semantic-lab/package.json'
       - 'extension/scripts/run-semantic-retrieval-lab.mjs'
       - 'extension/scripts/inspect-public-model-provenance.mjs'
+      - 'extension/scripts/screen-public-semantic-candidates.mjs'
       - 'extension/experiments/public-model-provenance.mjs'
       - '.github/workflows/paia-vs07-semantic-lab.yml'
 permissions:
@@ -28,14 +29,14 @@ jobs:
         with:
           node-version: '22'
       # Two prior provenance failures: source diagnosis only, no model trial.
-      - name: Bound the public license source root cause without downloading weights
+      - name: Screen fixed alternative source declarations and exact revisions without weights
         env:
           PAIA_SEMANTIC_LAB_ROOT: ${{ runner.temp }}/paia-semantic-lab
           PAIA_PUBLIC_MODEL_CACHE: ${{ runner.temp }}/paia-public-model-cache
           HF_TOKEN: ''
           HF_ACCESS_TOKEN: ''
         run: |
-          if node extension/scripts/inspect-public-model-provenance.mjs > "$RUNNER_TEMP/paia-semantic-lab-report.json"; then
+          if node extension/scripts/screen-public-semantic-candidates.mjs > "$RUNNER_TEMP/paia-semantic-lab-report.json"; then
             cat "$RUNNER_TEMP/paia-semantic-lab-report.json"
           else
             cat "$RUNNER_TEMP/paia-semantic-lab-report.json"

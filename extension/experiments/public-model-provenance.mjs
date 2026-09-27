@@ -1,6 +1,8 @@
 // Bounded PUBLIC model-source diagnosis. Never downloads weights or admits a model.
 import {createHash} from 'node:crypto';
-export const PUBLIC_MODELS=Object.freeze(['Xenova/multilingual-e5-small','intfloat/multilingual-e5-small']);
+export const PUBLIC_MODELS=Object.freeze(['Xenova/multilingual-e5-small','intfloat/multilingual-e5-small',
+  'onnx-community/multilingual-e5-small','Xenova/paraphrase-multilingual-MiniLM-L12-v2',
+  'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2']);
 const sha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
 const hash=text=>createHash('sha256').update(text).digest('hex');
 const code=value=>value==='mit'?'mit':value==='apache-2.0'?'apache-2.0':
@@ -71,6 +73,7 @@ export async function inspectPublicModel(id,{fetcher=fetch}={}) {
     if(!identity(data,id,current.sha)){result.diagnosis='PINNED_IDENTITY_UNVERIFIED';return result;}
     // No ambient URL, redirection, arbitrary file or advertised external link.
     const files=Array.isArray(data.siblings)?data.siblings.map(item=>item.rfilename):[];
+    result.quantizedAssetPresent=files.includes('onnx/model_quantized.onnx');
     if(files.includes('README.md')) {
       const readme=await readPublic('https://huggingface.co/'+id+'/raw/'+current.sha+
         '/README.md',fetcher,256*1024);
@@ -103,4 +106,31 @@ export async function inspectPublicModel(id,{fetcher=fetch}={}) {
       .includes(error?.name)?error.name:'Other';
     return result;
   }
+}
+
+// Primary hub v0.36.0 hf_api.model_info documents repeated `expand` fields.
+// Keep the exact identity/license/inventory fields and the original size bound;
+// omit irrelevant public widget/evaluation payload, never relax admission.
+export const METADATA_FIELDS=Object.freeze(['sha','private','gated','cardData','siblings','tags']);
+export const SCREENING_MODELS=Object.freeze([
+  'onnx-community/multilingual-e5-small',
+  'Xenova/paraphrase-multilingual-MiniLM-L12-v2',
+  'intfloat/multilingual-e5-small',
+  'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2',
+]);
+export async function inspectBoundedPublicModel(id,{fetcher=fetch}={}) {
+  if(!SCREENING_MODELS.includes(id))throw new Error('public_screening_model_not_allowlisted');
+  const bounded=async(url,options)=>{
+    const parsed=new URL(url);
+    if(parsed.origin==='https://huggingface.co'&&parsed.pathname.startsWith('/api/models/')) {
+      for(const field of METADATA_FIELDS)parsed.searchParams.append('expand',field);
+    }
+    return fetcher(parsed.href,options);
+  };
+  const report=await inspectPublicModel(id,{fetcher:bounded});
+  return {...report,metadataFields:METADATA_FIELDS,
+    screeningDisposition:report.diagnosis==='CONSISTENT_LITERAL_DECLARATIONS'
+      ?(report.quantizedAssetPresent?'DECLARED_QUANTIZED_CANDIDATE_PENDING_REVIEW':
+        'DECLARED_UPSTREAM_ONLY_PENDING_REVIEW')
+      :'NOT_ADMITTED'};
 }
