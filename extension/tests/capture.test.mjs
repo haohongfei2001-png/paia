@@ -10,7 +10,7 @@ const schemaSource = await readFile(new URL('../core/diagnostics-schema.js', imp
 async function schedulerFixture(status, options = {}) {
   const sent = [];
   const state = {reads: 0, watching: 0, stops: 0, captures: 0, invalidations: 0, diagnostics: 0};
-  const timers = [],deadlines=new Map();let serial=0;const handlers=new Map();
+  const timers = [],intervals=new Map(),deadlines=new Map();let serial=0;const handlers=new Map();
   const elements = new Map();
   const document = {
     documentElement: {append(element) {elements.set(element.id, element);}},
@@ -35,6 +35,7 @@ async function schedulerFixture(status, options = {}) {
     ArchiveResponseTime: options.responseDiagnosticThrows ? {observe() {throw new Error('synthetic optional diagnostic failure');}} : undefined,
     chrome: {runtime: {id: options.invalidated ? undefined : 'synthetic-extension', getManifest: () => ({version: '0.8.1'}), async sendMessage(message) {
       sent.push(message);
+      if(options.hangFirstStatus&&message.type==='GET_STATUS'&&!state.resolveStatus)return new Promise(resolve=>{state.resolveStatus=resolve;});
       if (options.fail) throw new Error('synthetic error that must not be logged');
       if (message.type === 'CAPTURE') {
         state.captures += 1;
@@ -48,12 +49,14 @@ async function schedulerFixture(status, options = {}) {
       return message.type === 'GET_STATUS' ? {ok: true, data: status} : {ok: true, data: {added: 1}};
     }}},
     setTimeout(callback, delay) { const id=++serial;if(delay===35000)deadlines.set(id,callback);else timers.push({callback,delay});return id; },
-    clearTimeout(id) {deadlines.delete(id);}, Date
+    clearTimeout(id) {deadlines.delete(id);},
+    setInterval(callback, delay) {const id=++serial;intervals.set(id,{callback,delay});return id;},
+    clearInterval(id) {intervals.delete(id);}, Date
   });
   vm.runInContext(schemaSource, context);
   vm.runInContext(captureSource, context);
   await new Promise((resolve) => setImmediate(resolve));
-  return {sent, state, timers,deadlines,handlers,elements};
+  return {sent, state, timers,intervals,deadlines,handlers,elements,runtime:context.chrome.runtime};
 }
 
 test('capture scheduler never reads content before consent, while paused, or after status failure', async () => {
@@ -216,4 +219,48 @@ test('foundation scheduler: batches are bounded by serialized UTF-8 bytes as wel
  const batches=f.sent.filter(m=>m.type==='CAPTURE');assert.ok(batches.length>1);
  assert.equal(batches.flatMap(m=>m.messages).length,12);
  for(const batch of batches){assert.ok(new TextEncoder().encode(JSON.stringify(batch)).byteLength<=2097152);assert.ok(batch.messages.every(m=>m.originalText===text));}
+});
+
+
+test('capture reconnect: pending status cannot hide invalidation or accept a late reply',async()=>{
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'},{hangFirstStatus:true});
+ assert.equal(f.state.reads,0);assert.equal(f.state.captures,0);
+ assert.equal(f.deadlines.size,1);assert.equal(f.intervals.size,1);
+ const watcher=[...f.intervals.values()][0];assert.equal(watcher.delay,2000);
+ f.runtime.id=undefined;watcher.callback();
+ const banner=f.elements.get('paia-reconnect-notice');
+ assert.ok(banner);assert.equal(banner.role,'alert');
+ assert.match(banner.children[0].textContent,/当前页面不会继续归档/);
+ assert.equal(banner.children[1].textContent,'刷新此 ChatGPT 页面');
+ assert.equal(f.intervals.size,0);
+ f.state.resolveStatus({ok:true,data:{enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'}});
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.state.reads,0,'late status cannot scan source after stop');
+ assert.equal(f.state.captures,0);assert.equal(f.state.watching,0);
+ assert.equal(f.deadlines.size,0);assert.equal(f.timers.length,0);
+ assert.deepEqual(f.sent.map(message=>message.type),['GET_STATUS']);
+ watcher.callback();assert.equal(f.elements.size,1,'one refresh action only');
+});
+
+test('capture reconnect: pending capture detects invalidation before its reply deadline',async()=>{
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'},{hangFirstCapture:true});
+ assert.equal(f.state.captures,1);assert.equal(f.deadlines.size,1);
+ const watcher=[...f.intervals.values()][0];f.runtime.id=undefined;watcher.callback();
+ assert.ok(f.elements.has('paia-reconnect-notice'));
+ assert.equal(f.intervals.size,0);assert.equal(f.state.captures,1);
+ // The already attempted request remains unknown until the existing deadline;
+ // connection failure does not imply it was undone or permit another capture.
+ [...f.deadlines.values()][0]();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.state.captures,1);assert.equal(f.deadlines.size,0);
+ assert.equal(f.timers.length,0);assert.equal(f.intervals.size,0);
+ assert.equal(f.elements.size,1);
+});
+
+test('capture reconnect: pagehide suspends identity checks and pageshow rechecks before capture',async()=>{
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'});
+ assert.equal(f.intervals.size,1);f.handlers.get('pagehide')();assert.equal(f.intervals.size,0);
+ f.runtime.id=undefined;f.handlers.get('pageshow')();
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(f.elements.has('paia-reconnect-notice'));
+ assert.equal(f.state.captures,1);assert.equal(f.intervals.size,0);
 });

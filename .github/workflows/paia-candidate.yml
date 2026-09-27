@@ -219,7 +219,7 @@ jobs:
       - name: Diagnose old-tab refresh after extension reload
         env:
           PAIA_HEADLESS: '1'
-        run: node --test --test-name-pattern="unpacked extension update marks" tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs
+        run: node --test tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs
 
   candidate:
     name: Candidate gate

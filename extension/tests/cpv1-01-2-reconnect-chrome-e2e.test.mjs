@@ -253,3 +253,67 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await rm(release, { recursive: true, force: true });
   }
 });
+
+
+test('CPV1-01.2: pending capture status still exposes one refresh action after real extension reload', { timeout: 120000 }, async () => {
+  const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-pending-reconnect-'));
+  execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
+  let h;
+  try {
+    h = await FakeChatGPT.start({ extensionPath: release, headless: true });
+    await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
+    await h.archive.locator('#enable-consent').click();
+    await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
+    const oldTab = await h.open(conversation('cpv1-pending-old-tab'));
+    await h.ready(oldTab);
+    await eventually(async () => (await h.state()).records.length === 3);
+    await h.draft(oldTab, 'UNSENT_RELOAD_CANARY');
+    const cdp = await h.context.newCDPSession(oldTab), worlds = [];
+    cdp.on('Runtime.executionContextCreated', ({ context }) => worlds.push(context));
+    await cdp.send('Runtime.enable');
+    let captureWorld;
+    for (const world of worlds.filter(world => world.auxData?.isDefault === false)) {
+      const { result } = await cdp.send('Runtime.evaluate', {
+        contextId: world.id, returnByValue: true,
+        expression: "typeof globalThis.ChatGPTAdapter === 'function' && Boolean(globalThis.chrome?.runtime?.id)"
+      });
+      if (result.value === true) captureWorld = world.id;
+    }
+    assert.ok(captureWorld, 'fault belongs to the actual connected capture world');
+    // A controlled lost transport reply, without changing the real extension,
+    // stored source, scheduler timers or Chrome's actual reload behavior.
+    await cdp.send('Runtime.evaluate', {
+      contextId: captureWorld, returnByValue: true,
+      expression: "(() => { const send=chrome.runtime.sendMessage.bind(chrome.runtime); globalThis.__pendingStatus=0; chrome.runtime.sendMessage=message=>{if(message?.type==='GET_STATUS'){globalThis.__pendingStatus++;return new Promise(()=>{});}return send(message);};return true;})()"
+    });
+    await eventually(async () => {
+      const { result } = await cdp.send('Runtime.evaluate', {
+        contextId: captureWorld, returnByValue: true, expression: 'globalThis.__pendingStatus'
+      });
+      return result.value === 1;
+    }, 'capture awaits a lost status reply');
+    const manifestPath = join(release, 'manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.version = '0.12.1';
+    await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+    try { await h.archive.evaluate(() => chrome.runtime.reload()); }
+    catch (error) {
+      if (!/Target page, context or browser has been closed|Execution context was destroyed/.test(String(error))) throw error;
+    }
+    await eventually(async () => oldTab.locator('#paia-reconnect-notice').isVisible(),
+      'pending transport cannot hide the refresh action', 20000);
+    assert.match(await oldTab.locator('#paia-reconnect-notice').textContent(), /当前页面不会继续归档/);
+    assert.equal(await oldTab.locator('#paia-reconnect-notice button').textContent(), '刷新此 ChatGPT 页面');
+    assert.equal(await oldTab.locator('#paia-reconnect-notice').count(), 1);
+    assert.equal(await oldTab.locator('textarea').inputValue(), 'UNSENT_RELOAD_CANARY');
+    const fresh = await h.context.newPage();
+    await fresh.goto('chrome-extension://' + h.extensionId + '/ui/archive.html');
+    const state = await fresh.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATE' }));
+    assert.equal(state.ok, true);
+    assert.equal(state.data.records.length, 3, 'already stored source remains intact');
+    await cdp.detach();
+  } finally {
+    await h?.close();
+    await rm(release, { recursive: true, force: true });
+  }
+});

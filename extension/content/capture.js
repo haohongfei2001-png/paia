@@ -18,6 +18,7 @@
   let suspended = false;
   let inFlight = false;
   let timer = null;
+  let connectionTimer = null;
   let lastStatusAt = 0;
   let lastDiagnostic = '';
   let lastDiagnosticAt = 0;
@@ -55,7 +56,21 @@
   function stop() {
     stopped = true;
     clearTimeout(timer);
+    clearInterval(connectionTimer); connectionTimer = null;
     adapter.stopWatching();
+  }
+
+  // A pending transport reply must not prevent the old document from
+  // discovering extension invalidation. This checks connection identity only:
+  // no status request, source scan, capture or restart is issued here.
+  function watchConnection() {
+    if (stopped || suspended || connectionTimer !== null) return;
+    const check = () => {
+      if (stopped || suspended) return;
+      if (!globalThis.chrome?.runtime?.id) { stop(); showRefreshAction(); }
+    };
+    check();
+    if (!stopped) connectionTimer = setInterval(check, POLL_MS);
   }
 
   async function send(message) {
@@ -117,6 +132,7 @@
     try {
       lastStatusAt = Date.now();
       const response = await send({type: 'GET_STATUS', contentVersion});
+      if (stopped || suspended) return;
       const status = response?.ok === true ? response.data : null;
       if (!status) {
         adapter.stopWatching();
@@ -186,11 +202,12 @@
   }
 
   globalThis.addEventListener?.('pagehide', () => {
-    suspended=true; clearTimeout(timer); timer=null; adapter.stopWatching();
+    suspended=true; clearTimeout(timer); timer=null;
+    clearInterval(connectionTimer); connectionTimer=null; adapter.stopWatching();
   });
   globalThis.addEventListener?.('pageshow', () => {
     if(!suspended||stopped)return;
-    suspended=false; lastStatusAt=0; lastDiagnostic=''; void cycle();
+    suspended=false; lastStatusAt=0; lastDiagnostic=''; watchConnection(); void cycle();
   });
-  void cycle();
+  watchConnection(); void cycle();
 })();

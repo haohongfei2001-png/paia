@@ -50,6 +50,39 @@ const consumerReconnectV1={
 const consumerRecoveryV1={
   "content/capture.js": "24f7b38b01eaead1a5149fd37add1b7f893ec646e68bc54871da6d97b9e4499a"
 };
+// CPV1-01.2 bounded pending-transport reconnect repair. Every reviewed addition
+// must appear exactly once; removing only these literal edits reconstructs the
+// preceding pinned CPV1-01.4 bytes. No wildcard/new unfrozen capture surface.
+const pendingReconnectEdits=[
+  [
+    "  let timer = null;",
+    "  let timer = null;\n  let connectionTimer = null;"
+  ],
+  [
+    "    clearTimeout(timer);\n    adapter.stopWatching();",
+    "    clearTimeout(timer);\n    clearInterval(connectionTimer); connectionTimer = null;\n    adapter.stopWatching();"
+  ],
+  [
+    "  async function send(message) {",
+    "  // A pending transport reply must not prevent the old document from\n  // discovering extension invalidation. This checks connection identity only:\n  // no status request, source scan, capture or restart is issued here.\n  function watchConnection() {\n    if (stopped || suspended || connectionTimer !== null) return;\n    const check = () => {\n      if (stopped || suspended) return;\n      if (!globalThis.chrome?.runtime?.id) { stop(); showRefreshAction(); }\n    };\n    check();\n    if (!stopped) connectionTimer = setInterval(check, POLL_MS);\n  }\n\n  async function send(message) {"
+  ],
+  [
+    "      const response = await send({type: 'GET_STATUS', contentVersion});",
+    "      const response = await send({type: 'GET_STATUS', contentVersion});\n      if (stopped || suspended) return;"
+  ],
+  [
+    "    suspended=true; clearTimeout(timer); timer=null; adapter.stopWatching();",
+    "    suspended=true; clearTimeout(timer); timer=null;\n    clearInterval(connectionTimer); connectionTimer=null; adapter.stopWatching();"
+  ],
+  [
+    "    suspended=false; lastStatusAt=0; lastDiagnostic=''; void cycle();",
+    "    suspended=false; lastStatusAt=0; lastDiagnostic=''; watchConnection(); void cycle();"
+  ],
+  [
+    "  void cycle();\n})();",
+    "  watchConnection(); void cycle();\n})();"
+  ]
+];
 test('frozen capture/network/resolver bytes remain pinned with reviewed official-time, CFH, CPV1-01.2 and CPV1-01.4 additions',async()=>{
- for(const [path,hash] of Object.entries(frozen)){let bytes=await readFile(new URL('../'+path,import.meta.url));if(consumerRecoveryV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),consumerRecoveryV1[path],path+' authorized CPV1-01.4 bytes');continue;}if(consumerReconnectV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),consumerReconnectV1[path],path+' authorized CPV1-01.2 bytes');continue;}if(captureFoundationV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),captureFoundationV1[path],path+' authorized CFH-v1 bytes');continue;}if(path==='adapter/chatgpt-adapter.js'){const addition="        if(globalThis.PAIAInputPresence)messages.at(-1).presence=globalThis.PAIAInputPresence.collect(root,container);\n";const source=bytes.toString();assert.equal(source.split(addition).length,2);bytes=Buffer.from(source.replace(addition,''));}if(path==='core/record-time.js'){const source=bytes.toString();assert.equal(source.split(officialGuard).length,2);bytes=Buffer.from(source.replace(officialGuard,''));}assert.equal(createHash('sha256').update(bytes).digest('hex'),hash,path);}
+ for(const [path,hash] of Object.entries(frozen)){let bytes=await readFile(new URL('../'+path,import.meta.url));if(path==='content/capture.js'){let source=bytes.toString();for(const [before,after]of [...pendingReconnectEdits].reverse()){assert.equal(source.split(after).length,2,'exact pending reconnect edit');source=source.replace(after,before);}bytes=Buffer.from(source);}if(consumerRecoveryV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),consumerRecoveryV1[path],path+' authorized CPV1-01.4 bytes');continue;}if(consumerReconnectV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),consumerReconnectV1[path],path+' authorized CPV1-01.2 bytes');continue;}if(captureFoundationV1[path]){assert.equal(createHash('sha256').update(bytes).digest('hex'),captureFoundationV1[path],path+' authorized CFH-v1 bytes');continue;}if(path==='adapter/chatgpt-adapter.js'){const addition="        if(globalThis.PAIAInputPresence)messages.at(-1).presence=globalThis.PAIAInputPresence.collect(root,container);\n";const source=bytes.toString();assert.equal(source.split(addition).length,2);bytes=Buffer.from(source.replace(addition,''));}if(path==='core/record-time.js'){const source=bytes.toString();assert.equal(source.split(officialGuard).length,2);bytes=Buffer.from(source.replace(officialGuard,''));}assert.equal(createHash('sha256').update(bytes).digest('hex'),hash,path);}
 });
