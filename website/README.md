@@ -1,109 +1,87 @@
-# PAIA website — Context in motion (v4)
+# PAIA website — Context in motion (v5)
 
-The owner selected the latest supplied PAIA composition and explicitly authorized
-implementation plus a complete website PDF. This supersedes both the v3 flat
-workbench and the rejected `design/website-editorial-v1` delivery. Historical
-artboards remain archived, not a reason to reintroduce rejected copy or layouts.
+The public website is a separate runtime from `extension/`. The owner authorized
+this refinement only if it did not interfere with active product development.
+PR89 owns the website; PR88 owns extension retrieval development. See
+`receipts/WEBSITE_V5.md` and the final PR closure for verification status.
 
-## Current presentation
+## Current design
 
-A text-only first viewport opens the site. Native downward scrolling moves the
-headline into its editorial position while individually timed inputs emerge;
-PAIA appears after the source cards. The sequence reverses on upward scroll. No
-scroll interception, timed gate, endless autoplay or WebGL runtime is required.
-Small screens use ordinary document flow: first typography, then a staggered
-collection. Reduced-motion and no-JS show all content without a motion gate.
+Text-only opening → separate AI inputs → related material → explicit context for
+another task. The 900px desktop scroll runway uses native scrolling and exact
+per-source progress; source marks never morph or blur. A context object resolves
+last. There is no timer before entry/CTA and no forced scrolling or infinite loop.
 
-The owner-selected serif/sans contrast, custom vector benefit marks, recognizable
-source SVG marks, unequal card positions, fine connectors, photographic planes,
-glass-framed interactive example and architectural closing are retained. Cards
-are HTML, not a screenshot of a UI. Source marks must remain unobscured. Photos
-are fixed local assets, not remote requests. The architectural crop is from the
-owner-selected image; its source resolution is explicitly recorded, not called
-an original high-resolution photograph.
+The reference's typography, asymmetric spatial composition, unequal surfaces and
+custom icon craft remain. Decorative coastal/architectural photography, filler
+micro-slogans and the redundant four-step homepage strip no longer appear. The
+second visual stage is a dark, interactive source-to-context workspace, not a
+lifestyle photograph or fake app screenshot. It provides real selection/search,
+keyboard tabs, exact context copy, an empty state and truthful error feedback.
 
-Copy is concrete and deliberately short. Source capture that is not available
-is marked **Planned**, even inside the hero composition. “Watch the film”, fake
-endorsements, personality profiling and decorative micro-slogans are absent.
-This website is not a reading application or a claim of universal AI access.
+All 16 canonical page types in the English root and `/zh/`, with identical legacy
+`/en/` aliases, remain available. Navigation and locale switching preserve
+routes. Legal substance, beta recipient and unchecked forwarding consent stay
+unchanged. Small-desktop marks are checked over their visible areas, not merely
+at their centers. Chinese dark-stage emphasis has its own verified color.
 
-## Routes
+## Product truth
 
-16 canonical page types have English root and `/zh/` counterparts. `/en/` keeps
-identical legacy English aliases. Locale switching retains the route.
+The website does not connect to a user's archive, account, model, filesystem or
+browser capture. Examples are synthetic and ephemeral. The Topic view is a fixed
+example, not automatic semantic inference. Claude/Gemini capture is explicitly
+planned. Integrated canonical product docs, not this website or an open semantic
+lab PR, govern actual capability and certification claims. No trackers, new
+permissions, remote dependencies, paid services or unsolicited visitor requests.
 
-Home; how it works; use cases; interactive example; our story; blog; three
-original product essays; data and permissions; beta application; current status;
-privacy; terms; application return page; 404. Canonical/noindex/hreflang rules,
-real link targets and paired sharing images are generated centrally.
+The separate `assets/website/demo.js` retains the existing source/edit distinction,
+stale-context invalidation, safe text rendering, exact copy and Markdown export.
+The new homepage copy likewise copies only selected text and reports clipboard
+failure honestly. No-JS renders the initial selected context and disables controls
+that require JavaScript. Reduced motion disables finite animation; desktop also
+has an explicit pause. A static website view retains all meaningful content.
 
-## Real interactions / explicit boundaries
-
-The homepage example has five fictional inputs, selection that changes the
-actual Context view, keyword filtering, keyboard-operable Inputs/Topic/Context
-tabs and an empty state. Filtering never silently changes the selected set.
-The Topic is a fixed example, not a fake automatic AI result.
-
-The separate full demo preserves working-text editing, immutable originals,
-keyword search, Topic readback, explicit Context selection, stale-preview
-invalidation, exact copy and Markdown export. No archive connection, live AI,
-background capture, remote storage or telemetry is introduced by the website.
-
-The existing beta FormSubmit endpoint and recipient are retained. A valid email
-and separate, unchecked forwarding consent are required. All verification is
-read-only: the form is never submitted. The return page does not fabricate an
-email delivery receipt. Existing legal substance/dates are retained.
-
-The extension's canonical product documentation remains the authority for real
-capabilities. Marketing examples do not certify current-live provider support,
-private archive recovery, signed distribution or production AI semantic quality.
-No `extension/**` state, schema, implementation or CI is changed by this work.
-
-## Edit / verify
-
-`website/build.py`, `home.py` and `pages.py` are the only HTML generators.
-`assets/website/site.css` and `site.js` own the public site's presentation and
-homepage behavior. The independent `assets/website/demo.js` is preserved.
+## Edit and verify
 
 ```sh
 python website/build.py
 python website/build.py --check
 pip install -r website/requirements.txt
-playwright install chromium
+python -m playwright install chromium
 python website/test.py
 python -m http.server 8000
 ```
 
-Serve the repository root. Committed pages require no build server. Font and
-image assets are self-hosted and recorded in `assets/website/asset-lock.json`.
-`prepare_assets.py` is an explicit one-time acquisition utility; ordinary builds
-and visitor requests never fetch external dependencies. Upstream license text is
-retained separately. Never substitute a system font without screenshot review.
+Serve the repository root. The live site is checked-in HTML/CSS/JS; no Node server,
+framework or paid build service. `home.py`, `pages.py`, and `build.py` own generated
+HTML. `assets/website/site.css` is the sole active stylesheet and `site.js` owns
+the public motion and homepage example. Existing font/brand assets are reused;
+this refinement does not acquire or distribute new font binaries.
 
-Website checks cover all generated routes, 1440/768/390/320 reflow, enlarged
-320px text, no unsolicited external requests, image availability, source-mark
-visibility, native/reduced/no-JS motion, keyboard navigation and the complete
-existing demo safety and form-validation paths. Aesthetic review remains
-separate; the number of assertions is not a quality score.
-
-## Website PDF and motion proof
+Use `website/test.py --smoke` for the affected six-route inner-loop matrix; the
+normal CI retains all 48 routes and existing demo/consent regressions.
+`--offline-render` records weaker exact-source DOM evidence in restricted local
+browsers. It is not a substitute for the runner's real HTTP verification.
 
 ```sh
-pip install pymupdf Pillow
-python website/export_pdf.py --output /tmp/paia-website-pdf
+pip install Pillow
+python website/review_motion.py --output /tmp/website-v5-visual
 ```
 
-The exporter serves the actual website locally and uses browser PDF rendering
-with screen media. Each route is a complete, normal-width page with its natural
-height; it is not squeezed into a fixed tall poster. English and Chinese books
-include bookmark navigation, public website links and the hidden interactive
-states. A separate PDF/GIF records the native scroll sequence. All examples are
-fictional and no form is submitted. PDFs are verification/delivery artifacts,
-not dependencies required by the live website.
+The visual capture script performs actual HTTP navigation, captures normal
+1440x960 motion stages, small/large desktop and mobile layouts, example selection
+and empty states, and a native-scroll GIF. It makes no form or AI call. Inspect
+screenshots separately; a green test does not prove aesthetic excellence,
+physical-device performance, full WCAG compliance or owner approval.
 
-## Review / integration
+The prior v4 PDFs are historical. `website/export_pdf.py` remains the export
+utility, but any v5 PDF must be freshly generated and visually checked; this
+round does not claim that the old PDFs represent the new site.
 
-See `receipts/WEBSITE_V4.md` for exact source, browser and deployment evidence.
-The temporary source-transfer workflow exists only during this branch's work
-and is removed before integration. Production byte readback is distinct from
-local browser and PDF rendering. Never label a pending deployment as verified.
+## Integration
+
+Only website-owned files may change. Temporary authoring/transport files must be
+absent from the final PR diff. Re-read main before merging; retain independent
+extension changes. Existing website exact-head CI and exact-main actual-domain
+byte/browser readback are release gates. An old CDN version fails; never relax
+readback. Product-development CI and its current writer are not modified.

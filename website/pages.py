@@ -7,9 +7,9 @@ def render_pages(t,a,button,invitation):
     def paper(label,body):
         return f'<div class="mini-paper"><span>{label}</span>{body}</div>'
     def spread(title,body,visual,link=''):
-        return f'<section class="feature-spread"><div class="feature-copy"><h2>{title}</h2><p>{body}</p>{link}</div><div class="feature-visual">{visual}</div></section>'
+        return f'<section class="feature-spread"><div class="feature-copy"><h2>{title}</h2><p>{body}</p>{link}</div><div class="feature-visual" data-reveal>{visual}</div></section>'
     pages=[]
-    how=intro(t('如何使用','How it works'),t('从一次表达，<br>到可复用的上下文。','From what you say<br>to context you can use.'),t('不用重新经营一个知识库。从你已经在进行的 AI 对话开始。','Start with the AI conversations you already have, not another knowledge base to maintain.'))
+    how=intro(t('如何使用','How it works'),t('从一次表达，<br>到可复用的上下文。','From what you say<br>to context you can use.'),t('从已有对话里取回材料，为新任务准备上下文。','Use the conversations you already have to prepare your next AI task.'))
     steps=[
       (t('留下你对 AI 说的话。','Keep what you tell AI.'),t('在桌面 Chrome 中，经你同意后保存支持的 ChatGPT 用户输入。历史导入是另外的主动操作；不是静默扫描你的整个账户。','With your consent, PAIA saves supported ChatGPT user inputs in desktop Chrome. History import is a separate action—not a silent scan of your account.'),paper('ChatGPT',t('“第一版应该帮助创作者找回素材，而不是生成更多内容。”','“The first release should help creators find material, not generate more.”'))),
       (t('让相关表达相遇。','Connect the relevant pieces.'),t('用搜索找回材料，将相关表达放在同一个主题里。不同会话不再意味着从头解释同一个问题。','Find material through search and bring related expressions into a topic. Separate conversations no longer have to mean separate starting points.'),paper(t('产品方向','Product direction'),t('先解决已有素材的找回。','Start with existing material.'))+paper(t('目标用户','Audience'),t('已经在持续创作的人。','People with an ongoing creative practice.'))),
@@ -40,7 +40,7 @@ def render_pages(t,a,button,invitation):
         (t('更新已经变化的部分。','Update what has changed.'),t('旧约束不应因为被保存就一直有效。修改当前工作版本，保留原始来源以便核对，再检查这次上下文中是否还混入过时的判断。','A saved constraint does not stay valid forever. Update the working version while retaining the source for comparison, then check whether the new context still contains an outdated assumption.')),
         (t('发送之前，看见完整内容。','See the complete material before sharing.'),t('选择之后仍然需要预览。确认包含了什么、排除了什么，以及有没有不应发给外部系统的内容。复制和导出由你触发；之后的外部副本无法由 PAIA 收回。','Selection should be followed by a preview. Check what is included, what is excluded and whether any material should stay out of an external system. You initiate copying or exporting; PAIA cannot recall a copy you later share elsewhere.'))])
     ]
-    blog=intro(t('产品文章','Product notes'),t('关于个人 AI 上下文，<br>几个必须讲清的问题。','A few things worth<br>getting right about AI context.'))
+    blog=intro(t('产品文章','Product notes'),t('输入、上下文，<br>与你的控制权。','Inputs. Context.<br>Your control.'))
     blog+='<div class="journal-list wrap">'+''.join(a('article-'+slug+'.html',icon(ico)+f'<div><h2>{title}</h2><p>{summary}</p></div>'+icon('arrow','mini-icon'),'journal-item') for slug,ico,title,summary,_ in articles)+'</div>'
     pages.append(('blog.html',t('PAIA — 产品文章','PAIA — Product notes'),t('关于上下文、个人表达与复用的产品思考。','Product notes on personal expression, context and reuse.'),blog))
     for slug,ico,title,summary,sections in articles:
