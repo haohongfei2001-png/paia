@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -258,16 +258,30 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
 test('CPV1-01.2: pending capture status still exposes one refresh action after real extension reload', { timeout: 120000 }, async () => {
   const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-pending-reconnect-'));
   const profile = await mkdtemp(join(tmpdir(), 'paia-cpv1-pending-profile-'));
-  // A real unpacked runtime.reload uses Chrome's ordinary developer-mode
-  // admission. CDP initial installation alone does not establish that mode.
-  // This fresh cloud-only profile belongs to this fixture, never the user.
-  await mkdir(join(profile, 'Default'));
-  await writeFile(join(profile, 'Default', 'Preferences'),
-    JSON.stringify({ extensions: { ui: { developer_mode: true } } }));
   execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
   let h;
   try {
     h = await FakeChatGPT.start({ extensionPath: release, headless: true, userDataDir: profile });
+    // Developer mode is a protected Chrome preference: an unsigned Preferences
+    // seed can be reset on startup. Use the real Chrome settings control in this
+    // freshly owned cloud profile, then independently read its effective state.
+    const settings = await h.context.newPage();
+    try {
+      await settings.goto('chrome://extensions/');
+      const developerMode = settings.locator('extensions-manager extensions-toolbar #devMode');
+      await eventually(async () => await developerMode.count() === 1 &&
+        await developerMode.isVisible(), 'ordinary developer-mode control is present');
+      assert.equal(await developerMode.evaluate(element => element.disabled), false,
+        'owned fixture must allow ordinary developer mode without policy bypass');
+      if (!await developerMode.evaluate(element => element.checked)) await developerMode.click();
+      await eventually(async () => {
+        const configuration = await settings.evaluate(() => chrome.developerPrivate.getProfileConfiguration());
+        return configuration.inDeveloperMode === true;
+      }, 'Chrome effective profile developer mode is enabled');
+      assert.equal(await developerMode.evaluate(element => element.checked), true);
+    } finally {
+      await settings.close();
+    }
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
     await h.archive.locator('#enable-consent').click();
     await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
