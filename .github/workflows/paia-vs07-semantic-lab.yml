@@ -9,6 +9,8 @@ on:
       - 'extension/scripts/run-semantic-retrieval-lab.mjs'
       - 'extension/scripts/inspect-public-model-provenance.mjs'
       - 'extension/scripts/screen-public-semantic-candidates.mjs'
+      - 'extension/scripts/run-official-semantic-retrieval-lab.mjs'
+      - 'extension/experiments/official-minilm-pooling.mjs'
       - 'extension/experiments/public-model-provenance.mjs'
       - '.github/workflows/paia-vs07-semantic-lab.yml'
 permissions:
@@ -28,26 +30,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      # Two prior provenance failures: source diagnosis only, no model trial.
-      - name: Screen fixed alternative source declarations and exact revisions without weights
+      # Actual36293632404 verified this official repository's exact Apache declaration.
+      - name: Install only pinned isolated public lab dependencies
+        run: |
+          mkdir -p "$RUNNER_TEMP/paia-semantic-lab"
+          cp extension/experiments/semantic-lab/package.json "$RUNNER_TEMP/paia-semantic-lab/package.json"
+          npm install --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/paia-semantic-lab"
+      - name: One verified official quantized CPU comparison with offline reload
         env:
           PAIA_SEMANTIC_LAB_ROOT: ${{ runner.temp }}/paia-semantic-lab
           PAIA_PUBLIC_MODEL_CACHE: ${{ runner.temp }}/paia-public-model-cache
           HF_TOKEN: ''
           HF_ACCESS_TOKEN: ''
         run: |
-          if node extension/scripts/screen-public-semantic-candidates.mjs > "$RUNNER_TEMP/paia-semantic-lab-report.json"; then
+          if node extension/scripts/run-official-semantic-retrieval-lab.mjs > "$RUNNER_TEMP/paia-semantic-lab-report.json"; then
             cat "$RUNNER_TEMP/paia-semantic-lab-report.json"
           else
             cat "$RUNNER_TEMP/paia-semantic-lab-report.json"
             exit 1
           fi
-      - name: Retain fixed-source hashes and non-admission diagnostic receipt
+      - name: Retain aggregate-only fixed-corpus model report and isolated dependency lock
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vs07-semantic-public-lab-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/paia-semantic-lab-report.json
+            ${{ runner.temp }}/paia-semantic-lab/package-lock.json
           if-no-files-found: error
           retention-days: 7
