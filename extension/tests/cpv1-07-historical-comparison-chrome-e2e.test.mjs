@@ -190,3 +190,134 @@ test('VS07 historical paging refuses changed generations without mixing old comp
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+
+async function searchLifetimeFixture(){
+ const h=await FakeChatGPT.start(),p=h.archive;
+ try{
+  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  const texts=Array.from({length:42},(_,i)=>'SEARCH_LIFETIME 合成独立原文 '+i+
+   (i===41?'\n'+'完整长研究 👩🏽‍💻 <script>原文非指令</script>\n'.repeat(1000)+'LIFETIME_LONG_END':''));
+  await h.open({id:'vs07-search-lifetime',title:'Synthetic search lifetime',base:1577836800,
+   messages:texts.map((text,i)=>({id:'vs07-search-lifetime-'+i,text}))});
+  await eventually(async()=>{const rows=(await h.state()).records;return rows.length===42&&rows.every(row=>row.sourceSentAt);},
+   'all42 complete known-time Sources captured');
+  const sources=(await h.state()).records;
+  assert.deepEqual(new Set(sources.map(row=>row.originalText)),new Set(texts),
+   'every complete body, including1000paragraphs, must be present');
+  await p.locator('#primary-nav [data-view="memory"]').click();
+  await eventually(()=>p.locator('#material-workbench').isVisible());
+  await p.getByRole('button',{name:'从档案选择',exact:true}).click();
+  await p.getByRole('button',{name:'按时间看 · 以前的我',exact:true}).click();
+  await p.getByRole('searchbox',{name:'全局搜索'}).fill('SEARCH_LIFETIME');
+  await eventually(async()=>await p.locator('.universal-hit').count()===40
+   &&!await p.locator('.universal-results').getAttribute('aria-busy'),'first exact page');
+  await p.locator('.universal-hit input[type=checkbox]').first().check();
+  return {h,p,sources,texts};
+ }catch(error){await h.close();throw error;}
+}
+
+for(const boundary of ['query','filter','page'])
+test('VS07 search read failure clears unchecked '+boundary+' results and preserves explicit selection',
+ {timeout:180000},async()=>{
+ const {h,p,sources}=await searchLifetimeFixture();
+ try{
+  await selectTwo(p);
+  await p.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);
+   globalThis.__failNextLifetimeRead=true;globalThis.__lifetimeReadFailure=false;
+   chrome.runtime.sendMessage=async(...args)=>{
+    const result=await send(...args);
+    if(args[0]?.type==='SEARCH_INPUTS'&&globalThis.__failNextLifetimeRead){
+     globalThis.__failNextLifetimeRead=false;globalThis.__lifetimeReadFailure=true;
+     return {ok:false,error:'STORAGE_FAILED'};
+    }return result;
+   };
+  });
+  if(boundary==='query')await p.getByRole('searchbox',{name:'全局搜索'}).fill('SEARCH_LIFETIME missing');
+  else if(boundary==='filter'){
+   await p.locator('.universal-filters > summary').click();
+   await p.getByLabel('到日期',{exact:true}).fill('2020-12-31');
+   await p.getByLabel('到日期',{exact:true}).press('Tab');
+  }else await p.getByRole('button',{name:'继续按时间读取',exact:true}).click();
+  await eventually(async()=>await p.evaluate(()=>globalThis.__lifetimeReadFailure)
+   &&(await p.locator('.universal-status').textContent()).includes('当前范围未能查完')
+   &&!await p.locator('.universal-results').getAttribute('aria-busy'),'actual failed read handled');
+  assert.equal(await p.locator('.universal-hit').count(),0);
+  assert.equal(await p.locator('.historical-comparison').count(),0);
+  assert.equal(await p.locator('#universal-search-dialog').getAttribute('data-query'),null);
+  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  assert.equal(await p.getByRole('button',{name:'下一页',exact:true}).count(),0);
+  assert.equal(await p.getByRole('button',{name:'继续按时间读取',exact:true}).count(),0);
+  // A localization render cannot turn the failed scope back into old healthy hits.
+  await p.evaluate(()=>{document.documentElement.lang='en';});
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.equal(await p.locator('.universal-hit').count(),0);
+  assert.ok((await p.locator('.universal-status').textContent()).includes('当前范围未能查完'));
+  await p.evaluate(()=>{document.documentElement.lang='zh-CN';});
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await p.getByRole('searchbox',{name:'全局搜索'}).fill('SEARCH_LIFETIME');
+  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');
+  await eventually(async()=>await p.locator('.universal-hit').count()===40
+   &&!await p.locator('.universal-results').getAttribute('aria-busy'),'explicit fresh search');
+  assert.deepEqual((await h.state()).records,sources);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+for(const outcome of ['success','failure'])
+test('VS07 superseded whole-result enumeration '+outcome+' cannot release a newer search fence',
+ {timeout:180000},async()=>{
+ const {h,p,sources}=await searchLifetimeFixture();
+ try{
+  await p.evaluate(mode=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);let oldRelease,newRelease;
+   globalThis.__oldLifetimeGate=new Promise(r=>{oldRelease=r;});
+   globalThis.__newLifetimeGate=new Promise(r=>{newRelease=r;});
+   globalThis.__releaseOldLifetime=oldRelease;globalThis.__releaseNewLifetime=newRelease;
+   globalThis.__oldLifetimeStarted=false;globalThis.__newLifetimeStarted=false;
+   globalThis.__oldLifetimeDone=false;globalThis.__lifetimeConfirmations=0;
+   window.confirm=()=>{globalThis.__lifetimeConfirmations++;return true;};
+   chrome.runtime.sendMessage=async(...args)=>{
+    const result=await send(...args),message=args[0];
+    if(message?.type==='SEARCH_INPUTS'&&message.options?.query==='SEARCH_LIFETIME'
+       &&!globalThis.__oldLifetimeStarted){
+     globalThis.__oldLifetimeStarted=true;await globalThis.__oldLifetimeGate;
+     globalThis.__oldLifetimeDone=true;
+     return mode==='failure'?{ok:false,error:'STORAGE_FAILED'}:result;
+    }
+    if(message?.type==='SEARCH_INPUTS'&&message.options?.query==='SEARCH_LIFETIME 合成独立原文 1'
+       &&!globalThis.__newLifetimeStarted){
+     globalThis.__newLifetimeStarted=true;await globalThis.__newLifetimeGate;
+    }return result;
+   };
+  },outcome);
+  await p.getByRole('button',{name:'全选全部结果',exact:true}).click();
+  await eventually(()=>p.evaluate(()=>globalThis.__oldLifetimeStarted),'old actual enumeration held');
+  await p.getByRole('searchbox',{name:'全局搜索'}).fill('SEARCH_LIFETIME 合成独立原文 1');
+  await eventually(()=>p.evaluate(()=>globalThis.__newLifetimeStarted),'new actual query held');
+  assert.equal(await p.locator('.universal-hit').count(),0,'new scope immediately retires old hits');
+  await p.evaluate(()=>globalThis.__releaseOldLifetime());
+  await eventually(()=>p.evaluate(()=>globalThis.__oldLifetimeDone),'old actual response released');
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.deepEqual(await p.evaluate(()=>({
+   busy:document.querySelector('.universal-results').getAttribute('aria-busy'),
+   selection:document.querySelector('.universal-selection').inert,
+   paging:document.querySelector('.universal-pagination').inert,
+   results:document.querySelector('.universal-results').inert,
+   confirms:globalThis.__lifetimeConfirmations,
+  })),{busy:'true',selection:true,paging:true,results:true,confirms:0});
+  assert.ok((await p.locator('.universal-status').textContent()).includes('正在查找本机文字'));
+  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await p.evaluate(()=>globalThis.__releaseNewLifetime());
+  await eventually(async()=>await p.locator('.universal-hit').count()===11
+   &&!await p.locator('.universal-results').getAttribute('aria-busy'),'new actual scope completes');
+  assert.equal(await p.locator('#universal-search-dialog').getAttribute('data-query'),'SEARCH_LIFETIME 合成独立原文 1');
+  assert.equal(await p.locator('.universal-selection').evaluate(el=>el.inert),false);
+  assert.equal(await p.evaluate(()=>globalThis.__lifetimeConfirmations),0);
+  assert.deepEqual((await h.state()).records,sources);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
