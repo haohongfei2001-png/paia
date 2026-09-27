@@ -1,4 +1,43 @@
-# PAIA website — Context in motion (v4)
+# PAIA website — post-capture core experiences (2026-09-28)
+
+The owner’s latest instruction preserves the deployed opening and strengthens
+only the four downstream functions. `website/home.py` keeps the exact approved
+hero literal. Shared `site.css`, `site.js`, `demo.js` and all brand images are
+byte-identical to main `d8eb7b1292a3b5d03f8018761c6ab624d05d05c7`.
+
+`website/core.py`, `assets/website/home-core-v1.css` (revision 2) and
+`assets/website/home-core-v2.js` own only the post-capture homepage experiences.
+No owner illustration appears in those feature sections. The existing compact
+brand marks and the original closing artwork remain. The functional visual
+language is a spacious, precise workbench, floating prompt palette, reversible
+topic organization and explicit context-permission boundary, not an illustrated
+story or a dense feature catalogue.
+
+The four browser-local fictional previews provide working-text editing and
+search, immutable source readback, prompt editing/reordering/insertion without
+sending, reversible preset topic grouping and Markdown export, plus explicit
+candidate confirmation, context selection, example authorization, invalidation,
+revocation and local activity. Edits propagate to the topic and its export.
+Candidate confirmation is never implicit selection or consent. There are no
+network calls, storage, analytics, real model processing or archive access.
+AI-response-aware suggestions and connected context are explicitly previews of
+planned capabilities. This website work does not implement those extension
+capabilities or change their current certification.
+
+`website/core_checks.py` is shared by candidate and production browser journeys.
+`verify_live.py` checks the actual current homepage, not the retired v3 picker,
+and includes both post-capture assets in exact-byte production readback. The
+original independent demo, beta form, legal text and non-home routes stay intact.
+Local managed-browser checks can use the documented offline-render mode;
+actual HTTP/download and current-live verification remain separate runner gates.
+
+See `receipts/CORE_EXPERIENCES_20260928.md` for scope and evidence. The earlier
+v4 documentation below describes the frozen opening and the independent demo;
+its old homepage-picker section is historical, not the current home contract.
+
+---
+
+## Original v4 foundation (retained opening)
 
 The owner selected the latest supplied PAIA composition and explicitly authorized
 implementation plus a complete website PDF. This supersedes both the v3 flat

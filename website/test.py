@@ -9,7 +9,8 @@ from urllib.parse import urlparse, unquote
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from functools import partial
 from threading import Thread
-import json, os, re, sys, struct
+import json, os, re, sys, struct, hashlib
+from core_checks import verify_core
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -88,7 +89,16 @@ for relative in ('index.html','zh/index.html'):
     check('Watch the film' not in text and 'A PAIA user' not in text, f'{relative}: no invented film or testimonial')
     check(text.count('class="planned"') == 2, f'{relative}: future sources explicitly marked planned')
     check('data-hero-sequence' in text and 'data-scroll-collection' in text, f'{relative}: typography-to-collection sequence exists')
-    check(text.count('class="art-icon"') >= 3, f'{relative}: custom benefit icons retained')
+    check(text.count('class="art-icon"') == 2, f'{relative}: two purposeful interface icons, not repeated brand artwork')
+
+
+# Owner-frozen capture sequence dependencies. Change only with a new explicit approval.
+check(hashlib.sha256((ROOT/'assets/website/site.css').read_bytes()).hexdigest()=='1da775ca6b8f914e0d4e8e66b1fb43e4f4c4189d2ead954afa1e7522a73e26dc', 'frozen byte identity: assets/website/site.css')
+check(hashlib.sha256((ROOT/'assets/website/site.js').read_bytes()).hexdigest()=='8f85a04becb98881a8db309e7dbfb53de65b393d56871e072cf0474619481ff2', 'frozen byte identity: assets/website/site.js')
+check(hashlib.sha256((ROOT/'assets/website/demo.js').read_bytes()).hexdigest()=='447610004d6f476e4a15edc298526817a8fef6537fea9b6447fd9dab8a6b5c65', 'frozen byte identity: assets/website/demo.js')
+home_source=(ROOT/'website/home.py').read_text()
+hero_literal=home_source[home_source.index("    hero=f'''"):home_source.index('    from core import render')]
+check(hashlib.sha256(hero_literal.encode()).hexdigest()=='01f386d2e0b4795c609aba5d0622aefdcb2274c4d8f7b97aa0b90956db100e61', 'frozen hero HTML literal including all source cards')
 
 # Stable color token checks, not a claim of a full accessibility audit.
 def luminance(color):
@@ -124,7 +134,8 @@ def load(page, relative, scripts=True):
     sources = re.findall(r'<script[^>]*src="([^"]+)"[^>]*></script>', html)
     html = re.sub(r'<script[^>]*src="[^"]+"[^>]*></script>', '', html)
     html = re.sub(r'<link rel="stylesheet"[^>]+>', '', html)
-    css = (ROOT / 'assets/website/site.css').read_text()
+    style_sources = re.findall(r'<link rel="stylesheet"[^>]*href="([^"]+)"[^>]*>', path.read_text())
+    css = '\n'.join((ROOT / source.split('?')[0].lstrip('/')).read_text() for source in style_sources)
     css = re.sub(r"url\(['\"]?(/[^'\"\)]+)['\"]?\)",lambda m:'url("'+asset_uri(m[1])+'")',css)
     html = re.sub(r'(<img[^>]*src=")([^"]+)(")',lambda m:m[1]+asset_uri(m[2])+m[3],html)
     page.set_content(html.replace('</head>', f'<style>{css}</style></head>'), wait_until='load')
@@ -191,20 +202,7 @@ try:
             en = locale != 'zh/'
             page = browser.new_page(viewport={'width':390,'height':844})
             load(page, locale+'index.html')
-            # The owner replaced the old homepage context-picker demo with the
-            # explicit five-function product model. The hero above remains the
-            # capture story; these assertions cover the four downstream jobs.
-            check(page.locator('[data-v3-context]').count() == 0, f'{locale}: retired context-picker demo is absent')
-            check(page.locator('.core-model-grid article').count() == 4, f'{locale}: four post-capture core jobs are presented')
-            check(page.locator('.library-shell article').count() == 3, f'{locale}: review/edit library example is present')
-            check(page.locator('.prompt-panel .prompt-row').count() == 3, f'{locale}: frequent prompt panel has reusable prompts')
-            check(page.locator('.next-prompt-hint').count() == 1, f'{locale}: next-prompt suggestion is shown')
-            check(page.locator('.topic-timeline article').count() == 4, f'{locale}: topic trail shows thinking over time')
-            check(page.locator('.context-center-main article').count() == 3, f'{locale}: personal context items are explicit')
-            check(page.locator('.context-access dl>div').count() == 3, f'{locale}: authorization and usage scope is visible')
-            check(page.locator('.context-pending').count() == 1, f'{locale}: AI-suggested personal fact remains pending confirmation')
-            check(page.locator('[data-context-stage]').count() == 0, f'{locale}: legacy dashboard hero removed')
-            check(page.locator('.core-close .text-link').count() == 1, f'{locale}: product vision links to current availability')
+            verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
             menu = page.locator('.mobile-menu')
             menu.locator('summary').click()
             check(menu.evaluate('el => el.open'), f'{locale}: mobile menu opens')
@@ -282,7 +280,7 @@ try:
             context = browser.new_context(java_script_enabled=False, viewport={'width':390,'height':844})
             page = context.new_page()
             load(page, locale+'index.html', scripts=False)
-            check(page.locator('h1').is_visible() and page.locator('.core-model').is_visible() and page.locator('.core-feature-context').is_visible(), f'{locale}: static core content without JS')
+            check(page.locator('h1').is_visible() and page.locator('#input-library').is_visible() and page.locator('#personal-context').is_visible(), f'{locale}: static core content without JS')
             page.close(); context.close()
         browser.close()
 except Exception as error:
