@@ -61,8 +61,8 @@ def build(lang):
 <meta name="twitter:description" content="{escape(desc,quote=True)}">
 <meta name="twitter:image" content="{BASE}/assets/website/og-{lang}.png">
 <link rel="icon" href="/assets/website/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/website/site.css?v=5">
-<script src="/assets/website/site.js?v=5" defer></script>
+<link rel="stylesheet" href="/assets/website/site.css?v=4">
+<script src="/assets/website/site.js?v=4" defer></script>
 </head>
 <body data-page="{page}" data-language="{lang}">
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''
@@ -86,7 +86,7 @@ def build(lang):
         # Existing English deep links remain usable; canonical points to the root.
         if en: write(ROOT/'en'/page,out)
     def invitation():
-        return f'''<section class="invitation wrap"><div><h2>{t('下一次，不从零开始。','Bring your context to your next AI task.')}</h2><p>{t('从你已经在使用的 ChatGPT 开始。','Start with the ChatGPT conversations you already have.')}</p></div><div class="invitation-action">{button('beta.html',t('申请内测','Get early access'))}<p class="small">{t('桌面 Chrome · ChatGPT · 邀请制内测','Chrome desktop · ChatGPT · Private beta')}</p></div></section>'''
+        return f'''<section class="invitation wrap"><div><h2>{t('下一次，不从零开始。','Your next task. Not from zero.')}</h2><p>{t('从你已经在使用的 ChatGPT 开始。','Start with the ChatGPT conversations you already have.')}</p></div><div class="invitation-action">{button('beta.html',t('申请内测','Get early access'))}<p class="small">{t('桌面 Chrome · ChatGPT · 邀请制内测','Chrome desktop · ChatGPT · Private beta')}</p></div></section>'''
     def statusmini():
         return f'''<div class="availability"><span class="status-dot" aria-hidden="true"></span><span>{t('桌面 Chrome 扩展 · ChatGPT 网页版 · 邀请制测试','Desktop Chrome extension · ChatGPT Web · Invite-only beta')}</span></div>'''
     home=render_home(t,a,button,statusmini)
