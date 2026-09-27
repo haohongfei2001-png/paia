@@ -321,3 +321,290 @@ test('VS07 superseded whole-result enumeration '+outcome+' cannot release a newe
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+const currentRefreshBody='SEARCH_LIFETIME CURRENT_REFRESH_ONLY 当前完整修正。\n'
+ +'完整当前表达 👩🏽‍💻 <script>仍为原文字面</script>\n'.repeat(1000)+'CURRENT_REFRESH_LONG_END';
+const currentReady=async p=>eventually(async()=>await p.locator('.universal-hit').count()===40
+ &&await p.locator('#universal-search-dialog').getAttribute('data-query')==='SEARCH_LIFETIME'
+ &&!await p.locator('.universal-results').getAttribute('aria-busy'),'complete current query');
+const frames=p=>p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+async function currentMaintenanceReady(p,count){
+ let priorGeneration=null;
+ await eventually(async()=>{
+  const filter=await rpc(p,'FILTER_STATUS');
+  if(filter.taskState==='failed')throw Error('Actual Smart Filter maintenance failed');
+  if(filter.taskState==='running'||(filter.mode!=='off'&&filter.pending))return false;
+  const foundation=await rpc(p,'GET_LIBRARY_FOUNDATION_STATUS');
+  if(foundation.pendingCleanupJobs||foundation.pendingInvalidations||!foundation.compatibility.complete)return false;
+  const page=await rpc(p,'SEARCH_INPUTS',{options:{universal:true,paged:true,mode:'current',query:'SEARCH_LIFETIME',limit:100}});
+  if(!page.complete||page.items.length!==count){priorGeneration=null;return false;}
+  const stable=priorGeneration===page.generation;priorGeneration=page.generation;
+  return stable;
+ },'actual filter/library completion and stable complete current generation');
+}
+async function currentLifetimeFixture(){
+ const fixture=await searchLifetimeFixture(),{p}=fixture;
+ try{
+  await p.getByRole('button',{name:'全部结果',exact:true}).click();await currentReady(p);
+  await currentMaintenanceReady(p,42);
+  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');await currentReady(p);
+  const page=await rpc(p,'SEARCH_INPUTS',{options:{universal:true,paged:true,mode:'current',query:'SEARCH_LIFETIME',limit:100}});
+  assert.equal(page.items.length,42);assert.equal(page.complete,true);
+  const block=await rpc(p,'GET_INPUT',{id:page.items[0].id});
+  return {...fixture,block,generation:page.generation};
+ }catch(error){await fixture.h.close();throw error;}
+}
+const editCurrent=async(p,block)=>rpc(p,'EDIT_DOCUMENT',{edit:{documentId:block.documentId,
+ operationId:crypto.randomUUID(),blocks:[{id:block.id,expectedRevision:block.revision,
+ libraryText:currentRefreshBody,note:block.note,excluded:false}]}});
+async function assertCurrentFullAuthority({h,p,sources,block}){
+ const page=await rpc(p,'SEARCH_INPUTS',{options:{universal:true,paged:true,mode:'history',query:'SEARCH_LIFETIME',limit:100}});
+ const row=page.items.find(x=>x.id===block.id);assert.ok(row);
+ assert.equal(row.working.body,currentRefreshBody);assert.equal(row.working.revision,block.revision+1);
+ assert.equal(row.body,sources.find(x=>x.id===row.ref.sourceId).originalText);
+ assert.deepEqual((await h.state()).records,sources,'all42 complete originals stay unchanged');
+ assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+ assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+}
+async function notifyCurrent(h,cause){
+ const worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));
+ assert.ok(worker);
+ await worker.evaluate(message=>chrome.runtime.sendMessage(message).catch(()=>{}),
+  cause===undefined?{type:'ARCHIVE_CHANGED'}:{type:'ARCHIVE_CHANGED',cause});
+}
+
+for(const visibility of ['visible','hidden'])
+test('VS07 current search real edit retires '+visibility+' results and refreshes full working evidence',
+ {timeout:180000},async()=>{
+ const fixture=await currentLifetimeFixture(),{h,p,block}=fixture;
+ try{
+  if(visibility==='hidden'){
+   await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:search-close')));
+   assert.equal(await p.locator('#universal-search-dialog').isVisible(),false);
+  }
+  await editCurrent(p,block);
+  if(visibility==='hidden'){
+   await eventually(async()=>await p.locator('.universal-hit').count()===0
+    &&await p.locator('#universal-search-dialog').getAttribute('data-query')===null,'hidden scope retired');
+   assert.equal(await p.locator('.universal-results').getAttribute('aria-busy'),null);
+   assert.equal(await p.locator('.universal-pagination button:not([hidden])').count(),0);
+   await p.evaluate(()=>{document.documentElement.lang='en';});await frames(p);
+   assert.equal(await p.locator('.universal-hit').count(),0);
+   assert.ok((await p.locator('.universal-status').textContent()).includes('材料已变化'));
+   await p.evaluate(()=>{document.documentElement.lang='zh-CN';
+    document.dispatchEvent(new CustomEvent('paia:search-open'));});
+  }
+  await eventually(async()=>(await p.locator('.universal-results').textContent()).includes('CURRENT_REFRESH_ONLY'),
+   'actual edited current body published');
+  await currentReady(p);
+  assert.ok((await p.locator('.universal-results').textContent()).includes('CURRENT_REFRESH_ONLY'));
+  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await assertCurrentFullAuthority(fixture);
+ }finally{await h.close();}
+});
+
+for(const outcome of ['success','failure'])
+test('VS07 current edit fences an older actual query '+outcome+' without releasing the newer scope',
+ {timeout:180000},async()=>{
+ const fixture=await currentLifetimeFixture(),{h,p,block}=fixture;
+ try{
+  await p.evaluate(mode=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);let oldRelease,newRelease;
+   globalThis.__currentOldGate=new Promise(r=>{oldRelease=r;});
+   globalThis.__currentNewGate=new Promise(r=>{newRelease=r;});
+   globalThis.__releaseCurrentOld=oldRelease;globalThis.__releaseCurrentNew=newRelease;
+   globalThis.__currentOldStarted=false;globalThis.__currentNewStarted=false;globalThis.__currentOldDone=false;
+   chrome.runtime.sendMessage=async(...args)=>{
+    const result=await send(...args),o=args[0]?.options;
+    if(args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current'&&o.query==='SEARCH_LIFETIME'){
+     if(!globalThis.__currentOldStarted){globalThis.__currentOldStarted=true;await globalThis.__currentOldGate;
+      globalThis.__currentOldDone=true;return mode==='failure'?{ok:false,error:'STORAGE_FAILED'}:result;}
+     globalThis.__currentNewStarted=true;await globalThis.__currentNewGate;
+    }return result;
+   };
+  },outcome);
+  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');
+  await eventually(()=>p.evaluate(()=>globalThis.__currentOldStarted),'old actual current read held');
+  await editCurrent(p,block);
+  await eventually(()=>p.evaluate(()=>globalThis.__currentNewStarted),'real edit starts a fresh current read');
+  assert.equal(await p.locator('.universal-hit').count(),0);
+  assert.equal(await p.locator('#universal-search-dialog').getAttribute('data-query'),null);
+  await p.evaluate(()=>globalThis.__releaseCurrentOld());
+  await eventually(()=>p.evaluate(()=>globalThis.__currentOldDone));await frames(p);
+  assert.deepEqual(await p.evaluate(()=>({
+   busy:document.querySelector('.universal-results').getAttribute('aria-busy'),
+   inert:document.querySelector('.universal-results').inert,
+   selection:document.querySelector('.universal-selection').inert,
+   paging:document.querySelector('.universal-pagination').inert
+  })),{busy:'true',inert:true,selection:true,paging:true});
+  assert.ok((await p.locator('.universal-status').textContent()).includes('正在查找本机文字'));
+  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await p.evaluate(()=>globalThis.__releaseCurrentNew());await currentReady(p);
+  assert.ok((await p.locator('.universal-results').textContent()).includes('CURRENT_REFRESH_ONLY'));
+  await assertCurrentFullAuthority(fixture);
+ }finally{await h.close();}
+});
+
+test('VS07 current mutation refresh failure stays unavailable through localization and explicit retry',
+ {timeout:180000},async()=>{
+ const fixture=await currentLifetimeFixture(),{h,p,block}=fixture;
+ try{
+  await p.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__currentFail=true;
+   chrome.runtime.sendMessage=async(...args)=>{
+    const result=await send(...args),o=args[0]?.options;
+    return args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current'&&globalThis.__currentFail
+     ?{ok:false,error:'STORAGE_FAILED'}:result;
+   };
+  });
+  await editCurrent(p,block);
+  await eventually(async()=>!(await p.locator('.universal-results').getAttribute('aria-busy'))
+   &&(await p.locator('.universal-status').textContent()).includes('当前范围未能查完'));
+  assert.equal(await p.locator('.universal-hit').count(),0);
+  assert.equal(await p.locator('#universal-search-dialog').getAttribute('data-query'),null);
+  assert.equal(await p.locator('.universal-pagination button:not([hidden])').count(),0);
+  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await p.evaluate(()=>{document.documentElement.lang='en';});await frames(p);
+  assert.equal(await p.locator('.universal-hit').count(),0);
+  assert.ok((await p.locator('.universal-status').textContent()).includes('当前范围未能查完'));
+  await p.evaluate(()=>{globalThis.__currentFail=false;document.documentElement.lang='zh-CN';});
+  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');await currentReady(p);
+  assert.ok((await p.locator('.universal-results').textContent()).includes('CURRENT_REFRESH_ONLY'));
+  await assertCurrentFullAuthority(fixture);
+ }finally{await h.close();}
+});
+
+test('VS07 current unlabelled eligibility completion rereads while benign notifications preserve the query',
+ {timeout:180000},async()=>{
+ const {h,p,sources}=await currentLifetimeFixture();
+ try{
+  await p.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__currentReadCount=0;
+   chrome.runtime.sendMessage=async(...args)=>{
+    const o=args[0]?.options;
+    if(args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current')globalThis.__currentReadCount++;
+    return send(...args);
+   };
+  });
+  for(const cause of ['UPDATE_PREFERENCES','RECORD_TOPIC_READ','SET_ONBOARDING'])await notifyCurrent(h,cause);
+  await frames(p);assert.equal(await p.evaluate(()=>globalThis.__currentReadCount),0);
+  assert.equal(await p.locator('.universal-hit').count(),40);
+  await notifyCurrent(h,undefined);
+  await eventually(()=>p.evaluate(()=>globalThis.__currentReadCount===1),'actual unlabelled notification reread');
+  await currentReady(p);
+  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  assert.deepEqual((await h.state()).records,sources);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+test('VS07 current mutation during composition retires results without searching unfinished input',
+ {timeout:180000},async()=>{
+ const fixture=await currentLifetimeFixture(),{h,p,block}=fixture;
+ try{
+  await p.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__compositionSearches=[];
+   chrome.runtime.sendMessage=async(...args)=>{
+    const o=args[0]?.options;
+    if(args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current')globalThis.__compositionSearches.push(o.query);
+    return send(...args);
+   };
+   const input=document.querySelector('.universal-search-box input');
+   input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'未完成'}));
+  });
+  await editCurrent(p,block);
+  await eventually(async()=>(await p.locator('.universal-status').textContent()).includes('材料已变化'),
+   'real mutation notification received while composing');
+  await frames(p);
+  assert.deepEqual(await p.evaluate(()=>globalThis.__compositionSearches),[]);
+  assert.equal(await p.locator('.universal-hit').count(),0);
+  assert.equal(await p.locator('#universal-search-dialog').getAttribute('data-query'),null);
+  assert.equal(await p.locator('.universal-results').getAttribute('aria-busy'),'true');
+  assert.equal(await p.locator('.universal-selection').evaluate(el=>el.inert),true);
+  await p.evaluate(()=>document.querySelector('.universal-search-box input')
+   .dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'已完成'})));
+  await currentReady(p);
+  assert.deepEqual(await p.evaluate(()=>globalThis.__compositionSearches),['SEARCH_LIFETIME']);
+  assert.ok((await p.locator('.universal-results').textContent()).includes('CURRENT_REFRESH_ONLY'));
+  await assertCurrentFullAuthority(fixture);
+ }finally{await h.close();}
+});
+
+for(const outcome of ['success','failure'])
+test('VS07 current edit cancels whole-result enumeration '+outcome+' without confirmation or old selection expansion',
+ {timeout:180000},async()=>{
+ const fixture=await currentLifetimeFixture(),{h,p,block}=fixture;
+ try{
+  await p.evaluate(mode=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);let oldRelease,newRelease;
+   globalThis.__currentEnumGate=new Promise(r=>{oldRelease=r;});
+   globalThis.__currentRefreshGate=new Promise(r=>{newRelease=r;});
+   globalThis.__releaseCurrentEnum=oldRelease;globalThis.__releaseCurrentRefresh=newRelease;
+   globalThis.__currentEnumStarted=false;globalThis.__currentRefreshStarted=false;
+   globalThis.__currentEnumDone=false;globalThis.__currentConfirmations=0;
+   window.confirm=()=>{globalThis.__currentConfirmations++;return true;};
+   chrome.runtime.sendMessage=async(...args)=>{
+    const result=await send(...args),o=args[0]?.options;
+    if(args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current'&&o.query==='SEARCH_LIFETIME'){
+     if(o.limit===100&&!globalThis.__currentEnumStarted){
+      globalThis.__currentEnumStarted=true;await globalThis.__currentEnumGate;globalThis.__currentEnumDone=true;
+      return mode==='failure'?{ok:false,error:'STORAGE_FAILED'}:result;
+     }
+     if(o.limit===40){globalThis.__currentRefreshStarted=true;await globalThis.__currentRefreshGate;}
+    }return result;
+   };
+  },outcome);
+  await p.getByRole('button',{name:'全选全部结果',exact:true}).click();
+  await eventually(()=>p.evaluate(()=>globalThis.__currentEnumStarted));
+  await editCurrent(p,block);
+  await eventually(()=>p.evaluate(()=>globalThis.__currentRefreshStarted));
+  await p.evaluate(()=>globalThis.__releaseCurrentEnum());
+  await eventually(()=>p.evaluate(()=>globalThis.__currentEnumDone));await frames(p);
+  assert.equal(await p.evaluate(()=>globalThis.__currentConfirmations),0);
+  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  assert.equal(await p.locator('.universal-results').getAttribute('aria-busy'),'true');
+  assert.equal(await p.locator('.universal-selection').evaluate(el=>el.inert),true);
+  assert.equal(await p.locator('.universal-pagination').evaluate(el=>el.inert),true);
+  await p.evaluate(()=>globalThis.__releaseCurrentRefresh());await currentReady(p);
+  assert.equal(await p.evaluate(()=>globalThis.__currentConfirmations),0);
+  assert.ok((await p.locator('.universal-results').textContent()).includes('CURRENT_REFRESH_ONLY'));
+  await assertCurrentFullAuthority(fixture);
+ }finally{await h.close();}
+});
+
+test('VS07 current real capture replaces loaded generation without mixing old paging',
+ {timeout:180000},async()=>{
+ const {h,p,sources,generation}=await currentLifetimeFixture();
+ try{
+  await p.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__captureSearchGenerations=[];
+   chrome.runtime.sendMessage=async(...args)=>{
+    const result=await send(...args),o=args[0]?.options;
+    if(args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current')
+     globalThis.__captureSearchGenerations.push(result.data?.generation);
+    return result;
+   };
+  });
+  const complete='SEARCH_LIFETIME CAPTURE_CURRENT_NEW '+('新增完整表达 中文 <literal>\n'.repeat(1000))+'CAPTURE_NEW_END';
+  await h.open({id:'vs07-current-capture-new',title:'New current source',base:1640995200,
+   messages:[{id:'vs07-current-capture-new-message',text:complete}]});
+  await eventually(async()=>(await h.state()).records.length===43);
+  await eventually(()=>p.evaluate(old=>globalThis.__captureSearchGenerations.some(x=>x>old),generation),
+   'actual new capture refreshes visible current generation');
+  // Capture completion precedes real filter/library maintenance. Pagination is
+  // checked only after those actual jobs and the complete generation settle.
+  await currentMaintenanceReady(p,43);
+  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');await currentReady(p);
+  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await p.getByRole('button',{name:'下一页',exact:true}).click();
+  await eventually(async()=>await p.locator('.universal-hit').count()===3
+   &&!await p.locator('.universal-results').getAttribute('aria-busy'),'remaining exact current page');
+  assert.equal((await p.locator('.universal-status').textContent()).includes('范围刚有变化'),false);
+  const all=(await h.state()).records;
+  assert.deepEqual(all.filter(row=>sources.some(x=>x.id===row.id)),sources);
+  assert.equal(all.find(row=>row.originalText===complete)?.originalText,complete);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
