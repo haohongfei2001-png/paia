@@ -34,3 +34,10 @@ html[lang="zh-CN"]{--serif:'Noto Serif CJK SC','Songti SC','STSong',serif}html[l
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
 @media(max-width:680px){.hero-copy{min-height:calc(100svh - 206px);display:flex;flex-direction:column;justify-content:center}}
+
+/* Owner-supplied PAIA brand assets, integrated 2026-09-27. */
+.wordmark:before{content:'';display:block;width:30px;height:30px;flex:0 0 30px;background:url('/assets/website/brand/paia-icon-v1.png') center/cover no-repeat;border-radius:7px}
+.site-footer .wordmark:before{width:24px;height:24px;flex-basis:24px;border-radius:6px}
+.paia-brand-mark{display:block;background:url('/assets/website/brand/paia-icon-v1.png') center/cover no-repeat;border-radius:7px}
+.brand-signature{display:flex;justify-content:center;align-items:center;padding:8px 0 86px}
+.brand-signature img{display:block;width:min(480px,86vw);height:auto}
