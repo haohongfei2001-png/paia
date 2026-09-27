@@ -65,8 +65,8 @@ try {
   if(packageInfo.name!=='@huggingface/transformers'||packageInfo.version!==PACKAGE_VERSION)refuse('lab_package_unverified');
   const lock=await readFile(join(lab,'package-lock.json'));
   const locked=JSON.parse(lock);
-  const ort=locked.packages?.['node_modules/onnxruntime-node'];
-  if(ort?.version!=='1.21.0'||typeof ort.integrity!=='string')refuse('onnx_dependency_unverified');
+  const ortLock=locked.packages?.['node_modules/onnxruntime-node'];
+  if(ortLock?.version!=='1.21.0'||typeof ortLock.integrity!=='string')refuse('onnx_dependency_unverified');
   await mkdir(cache,{recursive:true});
   // Start with an empty per-head public cache; no ambient/private model state.
   if((await readdir(cache)).length)refuse('nonempty_public_cache');
@@ -204,7 +204,7 @@ try {
       modelArtifactBytes,modelLoadMs,offlineReloadMs,assets,
       onnxConversionEquivalence:'NOT_VERIFIED'},
     dependency:{package:'@huggingface/transformers',version:PACKAGE_VERSION,
-      onnxruntimeNodeVersion:ort.version,lockSha256:hash(lock),
+      onnxruntimeNodeVersion:ortLock.version,lockSha256:hash(lock),
       lockStatus:'RESOLVED_FIRST_LAB_PROBE_NOT_PRODUCTION_LOCK'},
     projection:{projectedRecords:semantic.projectedRecords,
       semanticBuildMs,float32ProjectionBytes:semantic.float32ProjectionBytes,
