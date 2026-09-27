@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {meanPoolOfficialDense,officialProjectionObservation} from '../experiments/official-minilm-pooling.mjs';
+import {meanPoolOfficialDense,officialProjectionObservation,admitOfficialTokenInputs} from '../experiments/official-minilm-pooling.mjs';
 const output=()=>({type:'float32',data:new Float32Array([3,0,0,4,500,500]),dims:[1,3,2]});
 const mask=()=>({type:'int64',data:new BigInt64Array([1n,1n,0n]),dims:[1,3]});
 test('CPV1-07 official dense pooling follows independent mean and normalization oracle without padded contamination',()=>{
@@ -74,4 +74,55 @@ test('CPV1-07 projection diagnostics distinguish malformed masks and dense preci
   assert.equal(o.denseFloat32Shape,true);assert.equal(o.denseFinite,false);
   assert.equal(officialProjectionObservation(['input_ids','attention_mask'],tokens,
     {...dense,data:new Float64Array(3*384)}).denseFloat32Shape,false);
+});
+
+
+const officialTokens=()=>({
+  input_ids:{type:'int64',data:new BigInt64Array([11n,22n,0n]),dims:[1,3]},
+  attention_mask:{type:'int64',data:new BigInt64Array([1n,1n,0n]),dims:[1,3]},
+  token_type_ids:{type:'int64',data:new BigInt64Array([0n,0n,0n]),dims:[1,3]},
+});
+test('CPV1-07 actual returned single-sequence tokenizer tensors are admitted without value creation or mutation',()=>{
+  const tokens=officialTokens(),before=Object.fromEntries(Object.entries(tokens).map(([k,v])=>[k,[...v.data]]));
+  const admitted=admitOfficialTokenInputs(['input_ids','attention_mask','token_type_ids'],tokens);
+  for(const key of Object.keys(tokens)){assert.equal(admitted[key],tokens[key]);assert.deepEqual([...tokens[key].data],before[key]);}
+  assert.equal(Object.isFrozen(admitted),true);
+});
+test('CPV1-07 required absent tokenizer segment tensor remains refusal instead of zero-fill fallback',()=>{
+  const tokens=officialTokens();delete tokens.token_type_ids;
+  assert.throws(()=>admitOfficialTokenInputs(['input_ids','attention_mask','token_type_ids'],tokens),
+    /invalid official token inputs/);
+  assert.equal(tokens.token_type_ids,undefined);
+  assert.deepEqual(Object.keys(admitOfficialTokenInputs(['input_ids','attention_mask'],tokens)),
+    ['input_ids','attention_mask']);
+});
+test('CPV1-07 token admission rejects shape disagreement, malformed storage and invalid mask/id values',()=>{
+  for(const change of [
+    t=>{t.attention_mask.dims=[1,2];t.attention_mask.data=new BigInt64Array([1n,1n]);},
+    t=>{t.input_ids.dims=[1,3.5];},
+    t=>{t.input_ids.data=new Int32Array([11,22,0]);},
+    t=>{t.input_ids.data[0]=-1n;},
+    t=>{t.attention_mask.data[0]=2n;},
+    t=>{t.attention_mask.data.fill(0n);},
+    t=>{t.token_type_ids.data=new BigInt64Array([0n,0n]);},
+  ]){
+    const tokens=officialTokens();change(tokens);
+    assert.throws(()=>admitOfficialTokenInputs(['input_ids','attention_mask','token_type_ids'],tokens),
+      /invalid official token inputs/);
+  }
+});
+test('CPV1-07 one-sequence token admission refuses paired/nonzero segment indices',()=>{
+  const tokens=officialTokens();tokens.token_type_ids.data[1]=1n;
+  assert.throws(()=>admitOfficialTokenInputs(['input_ids','attention_mask','token_type_ids'],tokens),
+    /invalid official token inputs/);
+  assert.equal(tokens.token_type_ids.data[1],1n);
+});
+test('CPV1-07 unknown or duplicate graph inputs refuse before private values can be read or echoed',()=>{
+  const tokens={get PRIVATE_FIELD(){throw new Error('PRIVATE_BODY');}};
+  for(const names of [['input_ids','attention_mask','PRIVATE_FIELD'],
+    ['input_ids','input_ids'],['input_ids']]){
+    let error;try{admitOfficialTokenInputs(names,tokens);}catch(e){error=e;}
+    assert.equal(error?.message,'invalid official token inputs');
+    assert.equal(String(error).includes('PRIVATE'),false);
+  }
 });

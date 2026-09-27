@@ -56,3 +56,30 @@ export function officialProjectionObservation(inputNames,tokens,dense=null) {
     denseFinite:denseShape&&dense.data.every(Number.isFinite),
   });
 }
+
+
+// Admit only actual tokenizer-returned tensors for ONE sequence. No defaults.
+export function admitOfficialTokenInputs(inputNames,tokens) {
+  const fail=()=>{throw new Error('invalid official token inputs');};
+  const known=['input_ids','attention_mask','token_type_ids'];
+  if(!Array.isArray(inputNames)||inputNames.length<2||inputNames.length>3
+      ||new Set(inputNames).size!==inputNames.length
+      ||inputNames.some(name=>!known.includes(name))
+      ||!inputNames.includes('input_ids')||!inputNames.includes('attention_mask'))fail();
+  const feeds={};let length=null;
+  for(const name of inputNames){
+    const tensor=tokens?.[name];
+    if(tensor?.type!=='int64'||!(tensor.data instanceof BigInt64Array)
+        ||!Array.isArray(tensor.dims)||tensor.dims.length!==2||tensor.dims[0]!==1
+        ||!Number.isInteger(tensor.dims[1])||tensor.dims[1]<1||tensor.dims[1]>512
+        ||tensor.data.length!==tensor.dims[1]
+        ||(length!==null&&tensor.dims[1]!==length))fail();
+    length=tensor.dims[1];
+    if(name==='input_ids'&&tensor.data.some(value=>value<0n))fail();
+    if(name==='attention_mask'&&(tensor.data.some(value=>value!==0n&&value!==1n)
+        ||!tensor.data.some(value=>value===1n)))fail();
+    if(name==='token_type_ids'&&tensor.data.some(value=>value!==0n))fail();
+    feeds[name]=tensor;
+  }
+  return Object.freeze(feeds);
+}

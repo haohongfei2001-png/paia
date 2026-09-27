@@ -9,7 +9,7 @@ import {validateRetrievalCorpus,productionLexicalCandidate,buildCharacterIndex,e
   from '../experiments/retrieval-evaluation.mjs';
 import {buildSemanticLabIndex} from '../experiments/semantic-lab-index.mjs';
 import {inspectBoundedPublicModel,METADATA_FIELDS} from '../experiments/public-model-provenance.mjs';
-import {meanPoolOfficialDense,officialProjectionObservation} from '../experiments/official-minilm-pooling.mjs';
+import {meanPoolOfficialDense,officialProjectionObservation,admitOfficialTokenInputs} from '../experiments/official-minilm-pooling.mjs';
 
 const MODEL='sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2';
 const UPSTREAM=MODEL; // Assets are owned by the same declared official repository.
@@ -159,7 +159,10 @@ try {
     const plain=text.slice(boundary==='query'?7:9);
     stage='fixed_'+boundary+'_tokenization';
     failureReason='official_tokenization_unavailable';
-    const tokens=await tokenizer(plain,{padding:true,truncation:false});
+    // transformers.js3.8.1 explicitly supports this option; request the
+    // tokenizer's real single-sequence segment tensor when the graph needs it.
+    const tokens=await tokenizer(plain,{padding:true,truncation:false,
+      return_token_type_ids:extractor.inputNames.includes('token_type_ids')});
     stage='fixed_'+boundary+'_input_contract';
     failureReason='official_input_contract_unverified';
     if(!observedBoundaries.has(boundary+'_inputs')){
@@ -167,12 +170,9 @@ try {
         contract:officialProjectionObservation(extractor.inputNames,tokens)});
       observedBoundaries.add(boundary+'_inputs');
     }
+    const admitted=admitOfficialTokenInputs(extractor.inputNames,tokens);
     const feeds={};
-    for(const name of extractor.inputNames){
-      const tensor=tokens[name];
-      if(tensor?.type!=='int64'||!(tensor.data instanceof BigInt64Array)
-          ||!Array.isArray(tensor.dims)||tensor.dims.length!==2
-          ||tensor.dims[0]!==1||tensor.dims[1]<1||tensor.dims[1]>512)refuse('official_input_contract_unverified');
+    for(const [name,tensor] of Object.entries(admitted)){
       feeds[name]=new ort.Tensor('int64',tensor.data,tensor.dims);
     }
     stage='fixed_'+boundary+'_onnx_inference';
@@ -221,6 +221,8 @@ try {
       upstream:{id:UPSTREAM,revision:upstream.revision,license:upstream.license},
       task:'feature-extraction',dtype:'q8',device:'cpu',pooling:'mean',normalize:true,
       queryPrefix:'',passagePrefix:'',dimension:DIMENSION,
+      singleSequenceTokenTypes:'RETURNED_BY_PINNED_TOKENIZER_WHEN_REQUIRED',
+      fabricatedTokenInputs:false,
       declaredSourceProvenance:provenance,quantizedFile,poolingConfigSha256:hash(poolingText),
       minimumCosineScore:MINIMUM_SCORE,thresholdCalibrated:false,
       modelArtifactBytes,modelLoadMs,offlineReloadMs,assets,
