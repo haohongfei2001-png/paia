@@ -76,6 +76,8 @@ const embeddingProbePaths=new Set([
 ]);
 const diagnosticPaths=new Set([
  'extension/scripts/diagnose-retrieval-calibration.mjs',
+ 'extension/scripts/diagnose-retrieval-failures.mjs',
+ 'extension/tests/evidence/vs07-distiluse-fixed-36340314593.json',
  'extension/tests/evidence/vs07-distiluse-development-36340314593.json',
  'extension/tests/cpv1-07-retrieval-evaluation.test.mjs',
  'extension/tests/cpv1-07-semantic-lab.test.mjs',
@@ -91,9 +93,13 @@ export function semanticLabRouting(evidence={}){
   &&paths.every(x=>typeof x==='string'&&x.length>0&&x.length<=500)
   &&new Set(paths).size===paths.length;
  const diagnosticOnly=verified
-  &&['extension/scripts/diagnose-retrieval-calibration.mjs',
-    'extension/tests/evidence/vs07-distiluse-development-36340314593.json',
-    'extension/tests/cpv1-07-retrieval-evaluation.test.mjs'].every(path=>paths.includes(path))
+  &&paths.includes('extension/tests/cpv1-07-retrieval-evaluation.test.mjs')
+  &&[
+    ['extension/scripts/diagnose-retrieval-calibration.mjs',
+      'extension/tests/evidence/vs07-distiluse-development-36340314593.json'],
+    ['extension/scripts/diagnose-retrieval-failures.mjs',
+      'extension/tests/evidence/vs07-distiluse-fixed-36340314593.json'],
+  ].some(batch=>batch.every(path=>paths.includes(path)))
   &&paths.every(path=>diagnosticPaths.has(path));
  if(diagnosticOnly)return {runProbe:false,runSourceScreen:false,sourceOnly:false,
   runPairedProbe:false,runEmbeddingScreen:false,runEmbeddingProbe:false,diagnosticOnly:true};

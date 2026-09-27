@@ -320,3 +320,111 @@ test('VS07 fixed score top-five hits and no-answer nonempty results satisfy the 
     }
   }
 });
+
+test('VS07 retained fixed DistilUSE failure accounting separates abstention, missed gold and paired lift',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const {diagnoseRetainedRetrievalFailures}=await import('../scripts/diagnose-retrieval-failures.mjs');
+  const evidence=JSON.parse(await readFile(new URL(
+    './evidence/vs07-distiluse-fixed-36340314593.json',import.meta.url),'utf8'));
+  assert.equal(evidence.head,'f3a19ec9bae953daa8c126f26d047ba64eba6af9');
+  assert.equal(evidence.runId,36340314593);assert.equal(evidence.jobId,108678989659);
+  assert.equal(evidence.artifactId,10937824226);
+  assert.equal(evidence.artifactSha256,'4a775c03dd2d4a0e2b5b35757c90daaf74592ffdfb174a93bd1ec0b57345ccb0');
+  assert.equal(evidence.model.revision,'826fee3d516ebb14987355af373f5b69101c7006');
+  assert.equal(evidence.model.minimumCosineScore,.7);
+  assert.equal(evidence.model.onnxConversionEquivalence,'NOT_VERIFIED');
+  assert.equal(evidence.reports.length,4);
+  assert.deepEqual(evidence.reports.map(report=>report.rows.length),[29,29,29,29]);
+  const before=JSON.stringify(evidence);
+  const result=diagnoseRetainedRetrievalFailures(retrievalCorpus,evidence.reports);
+  assert.deepEqual(result.summaries.map(row=>[row.positiveTasks,row.noAnswerTasks,
+    row.positiveHits,row.positiveAbstentions,row.nonemptyWithoutGold,row.partialRecall,row.noAnswerFalsePositives]),[
+    [26,3,18,4,4,0,1],[26,3,18,4,4,1,1],[26,3,2,24,0,1,0],[26,3,18,4,4,0,1]]);
+  const semantic=result.paired.find(row=>row.method==='official-distiluse-dense-tanh-onnx-lab-v1');
+  assert.equal(semantic.comparisons[0].gained.length,0);
+  assert.equal(semantic.comparisons[0].regressed.length,16);
+  assert.equal(semantic.comparisons[1].regressed.length,17);
+  assert.deepEqual(semantic.noAnswerRemovedFalsePositives,['t21']);
+  const hybrid=result.paired.find(row=>row.method==='official-distiluse-hybrid-rrf-lab-v1');
+  assert.equal(hybrid.identicalMeasuredRows,true);
+  assert.deepEqual(hybrid.comparisons.map(row=>[row.gained.length,row.regressed.length,row.unchanged.length]),
+    [[0,0,26],[0,0,26],[0,0,26]]);
+  // Identical measured metrics cannot prove identical returned IDs/scores.
+  assert.equal(result.rankingIdentity,'NOT_OBSERVABLE_FROM_METRICS');
+  assert.equal(result.upstreamConversionEquivalence,'NOT_VERIFIED');
+  assert.equal(result.additionalModelQueries,0);assert.equal(result.newMeasurement,false);
+  assert.equal(result.modelAdmitted,false);assert.equal(result.productionClaim,false);
+  assert.equal(result.productionThresholdChanged,false);assert.equal(result.blindAcceptance,false);
+  assert.equal(result.taskCount,29);assert.equal(result.recordCount,28);
+  assert.equal(JSON.stringify(evidence),before);
+  assert.equal(Object.isFrozen(result),true);assert.equal(Object.isFrozen(hybrid.comparisons[0].regressed),true);
+  assert.throws(()=>hybrid.comparisons[0].regressed.push('t01'),TypeError);
+});
+
+test('VS07 paired failure accounting is ID-scoped and detects balancing regressions hidden by aggregates',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const {diagnoseRetainedRetrievalFailures}=await import('../scripts/diagnose-retrieval-failures.mjs');
+  const evidence=JSON.parse(await readFile(new URL(
+    './evidence/vs07-distiluse-fixed-36340314593.json',import.meta.url),'utf8'));
+  const expected=diagnoseRetainedRetrievalFailures(retrievalCorpus,evidence.reports);
+  const shuffled=structuredClone(evidence.reports).reverse();
+  for(const report of shuffled)report.rows.reverse();
+  assert.deepEqual(diagnoseRetainedRetrievalFailures(retrievalCorpus,shuffled),expected);
+  const reports=structuredClone(evidence.reports),hybrid=reports[3];
+  // Analytic report oracle only; never a replacement measured model receipt.
+  const first=hybrid.rows.find(row=>row.id==='t01'),last=hybrid.rows.find(row=>row.id==='t29');
+  assert.equal(first.reciprocalRankAt5,1);assert.equal(last.reciprocalRankAt5,.5);
+  first.reciprocalRankAt5=.5;last.reciprocalRankAt5=1;
+  first.ndcgAt5=1/Math.log2(3);last.ndcgAt5=1;
+  const positive=hybrid.rows.filter(row=>!row.noAnswer);
+  hybrid.aggregate.mrrAt5=positive.reduce((sum,row)=>sum+row.reciprocalRankAt5,0)/26;
+  hybrid.aggregate.ndcgAt5=positive.reduce((sum,row)=>sum+row.ndcgAt5,0)/26;
+  assert.ok(Math.abs(hybrid.aggregate.mrrAt5-reports[0].aggregate.mrrAt5)<1e-12);
+  assert.ok(Math.abs(hybrid.aggregate.ndcgAt5-reports[0].aggregate.ndcgAt5)<1e-12);
+  const paired=diagnoseRetainedRetrievalFailures(retrievalCorpus,reports).paired[2];
+  assert.equal(paired.identicalMeasuredRows,false);
+  assert.deepEqual(paired.comparisons[0].gained,['t29']);
+  assert.deepEqual(paired.comparisons[0].regressed,['t01']);
+});
+
+test('VS07 retained report accounting refuses partial, forged, inconsistent or privacy-bearing rows',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const {diagnoseRetainedRetrievalFailures}=await import('../scripts/diagnose-retrieval-failures.mjs');
+  const original=JSON.parse(await readFile(new URL(
+    './evidence/vs07-distiluse-fixed-36340314593.json',import.meta.url),'utf8')).reports;
+  const mutations=[
+    reports=>reports.pop(),
+    reports=>reports[1]=structuredClone(reports[0]),
+    reports=>reports[0].corpusDigest='a'.repeat(64),
+    reports=>reports[0].scope='private',
+    reports=>reports[0].productionClaim=true,
+    reports=>reports[0].semanticCapabilityEstablished=true,
+    reports=>reports[0].personalBeliefJudgment=true,
+    reports=>reports[0].measuredTasks=28,
+    reports=>reports[0].recordCount=27,
+    reports=>reports[0].contractFailures=1,
+    reports=>reports[0].rows.pop(),
+    reports=>reports[0].rows[1]=structuredClone(reports[0].rows[0]),
+    reports=>reports[0].rows[0].id='PRIVATE_ID',
+    reports=>reports[0].rows[0].category='no_answer',
+    reports=>reports[0].rows[0].status='ERROR',
+    reports=>reports[0].rows[0].abstained='false',
+    reports=>reports[0].rows[0].noAnswer=true,
+    reports=>reports[0].rows[0].reciprocalRankAt5=NaN,
+    reports=>reports[0].rows[0].reciprocalRankAt5=.7,
+    reports=>reports[0].rows[0].recallAt5=.5,
+    reports=>reports[0].rows[0].ndcgAt5=.9,
+    reports=>reports[0].rows[0].abstained=true,
+    reports=>reports[0].rows[20].recallAt5=0,
+    reports=>reports[0].rows[0].private='PRIVATE_BODY',
+    reports=>reports[0].aggregate.mrrAt5=.8,
+    reports=>reports[0].aggregate.recallAt5=1,
+    reports=>reports[0].aggregate.noAnswerAbstention=1,
+    reports=>reports[0].aggregate.private='PRIVATE_BODY',
+  ];
+  for(const mutate of mutations){
+    const bad=structuredClone(original);mutate(bad);
+    assert.throws(()=>diagnoseRetainedRetrievalFailures(retrievalCorpus,bad),
+      error=>error.message==='invalid retained retrieval failure evidence');
+  }
+});

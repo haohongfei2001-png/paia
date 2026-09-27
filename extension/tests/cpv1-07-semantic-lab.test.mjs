@@ -646,3 +646,24 @@ test('VS07 exact offline diagnostic batch retains measured model evidence; uncer
   assert.equal(semanticLabRouting({...evidence,paths:paths.filter(x=>x!==path)}).diagnosticOnly,undefined);
  }
 });
+
+test('VS07 fixed-report failure accounting is a complete offline batch without repeated inference',()=>{
+ const paths=['extension/scripts/diagnose-retrieval-failures.mjs',
+  'extension/tests/evidence/vs07-distiluse-fixed-36340314593.json',
+  'extension/tests/cpv1-07-retrieval-evaluation.test.mjs',
+  'extension/tests/cpv1-07-semantic-lab.test.mjs','extension/scripts/semantic-lab-change.mjs',
+  'extension/docs/consumer-product-v1/STATUS.md','extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'];
+ const evidence={action:'synchronize',before:'a'.repeat(40),head:'b'.repeat(40),ancestor:true,paths};
+ assert.deepEqual(semanticLabRouting(evidence),{runProbe:false,runSourceScreen:false,sourceOnly:false,
+  runPairedProbe:false,runEmbeddingScreen:false,runEmbeddingProbe:false,diagnosticOnly:true});
+ for(const change of [{action:'opened'},{ancestor:false},{before:null},
+  {paths:[...paths,paths[0]]},{paths:[...paths,'extension/experiments/retrieval-evaluation.mjs']},
+  {paths:[...paths,'extension/scripts/run-public-embedding-lab.mjs']},
+  {paths:[...paths,'extension/tests/fixtures/cpv1-07-retrieval-corpus.mjs']},
+  {paths:[...paths,'extension/core/search-service.js']}]){
+  const result=semanticLabRouting({...evidence,...change});
+  assert.equal(result.diagnosticOnly,undefined);assert.equal(result.runProbe,true);
+ }
+ for(const path of paths.slice(0,3))
+  assert.equal(semanticLabRouting({...evidence,paths:paths.filter(item=>item!==path)}).diagnosticOnly,undefined);
+});
