@@ -1,10 +1,11 @@
-// One NEW pinned official DistilUSE mean + Dense/Tanh candidate; fixed public synthetic lab only.
+// Pinned official DistilUSE mean + Dense/Tanh; bounded fixed public root-cause lab only.
 // Model downloads are public artifacts; applicant/archive data are never loaded.
 import {createHash} from 'node:crypto';
 import {readFile,readdir,stat,mkdir} from 'node:fs/promises';
 import {resolve,join,relative,isAbsolute} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {retrievalCorpus} from '../tests/fixtures/cpv1-07-retrieval-corpus.mjs';
+import {diagnoseCachedFixedRanks} from '../experiments/retrieval-rank-diagnostics.mjs';
 import {validateRetrievalCorpus,productionLexicalCandidate,buildCharacterIndex,evaluateRetrieval,validateRetrievalMethod}
   from '../experiments/retrieval-evaluation.mjs';
 import {buildSemanticLabIndex,fuseScopedLabRanks,HYBRID_RANK_RULE} from '../experiments/semantic-lab-index.mjs';
@@ -258,6 +259,11 @@ try {
     calibratedFixedReport.thresholdSelectionCorpus=calibration.developmentCorpusDigest;
     if(calibratedFixedReport.contractFailures)refuse();
   }
+  // Explain ranking versus cutoff using the SAME complete cached fixed scores.
+  // No additional encoder call, threshold selection or changed gold label.
+  stage='fixed_cached_rank_root_cause';
+  const fixedRankDiagnostic=diagnoseCachedFixedRanks(retrievalCorpus,
+    (scope,query)=>semanticRanks.get(rankKey(scope,query)));
   semanticRanks.clear();
   stage='public_artifact_readback';failureReason='semantic_probe_unavailable';
   const assets=await publicAssets(cache);
@@ -304,7 +310,7 @@ try {
       characterBuildMs,characterProjectionBytes:character.serializedProjectionBytes},
     memory:{nodeRssBytes:memory.rss,nodeHeapUsedBytes:memory.heapUsed,
       scope:'node_process_after_fixed_probe_not_chrome_peak'},
-    calibration,calibratedFixedReport,reports}));
+    calibration,calibratedFixedReport,fixedRankDiagnostic,reports}));
 } catch(error) {
   const errorClass=['AbortError','TimeoutError','SyntaxError','TypeError','Error'].includes(error?.name)
     ?error.name:'Other';

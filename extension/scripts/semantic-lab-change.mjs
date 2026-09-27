@@ -61,6 +61,7 @@ const embeddingPaths=new Set([
  'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'
 ]);
 const embeddingProbePaths=new Set([
+ 'extension/experiments/retrieval-rank-diagnostics.mjs',
  'extension/experiments/retrieval-evaluation.mjs',
  'extension/tests/cpv1-07-retrieval-evaluation.test.mjs',
  "extension/experiments/public-embedding-inputs.mjs",
@@ -106,6 +107,8 @@ export function semanticLabRouting(evidence={}){
  const embeddingProbeOnly=verified&&paths.includes('extension/scripts/run-public-embedding-lab.mjs')
   &&(paths.includes('extension/experiments/public-embedding-inputs.mjs')
     ||paths.includes('extension/experiments/retrieval-evaluation.mjs')
+      &&paths.includes('extension/tests/cpv1-07-retrieval-evaluation.test.mjs')
+    ||paths.includes('extension/experiments/retrieval-rank-diagnostics.mjs')
       &&paths.includes('extension/tests/cpv1-07-retrieval-evaluation.test.mjs'))
   &&paths.every(path=>embeddingProbePaths.has(path));
  if(embeddingProbeOnly)return {runProbe:false,runSourceScreen:false,sourceOnly:false,

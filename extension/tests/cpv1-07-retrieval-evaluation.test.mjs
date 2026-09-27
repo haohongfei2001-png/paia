@@ -428,3 +428,136 @@ test('VS07 retained report accounting refuses partial, forged, inconsistent or p
       error=>error.message==='invalid retained retrieval failure evidence');
   }
 });
+
+
+function fixedRankDiagnosticFixture(eligibleRecords,rankCalibrationScores){
+  const cache=new Map();
+  for(const task of retrievalCorpus.tasks){
+    const scope=eligibleRecords(retrievalCorpus,task);
+    const relevant=new Set(Object.keys(task.relevance));
+    const scores=scope.map((record,index)=>({id:record.id,score:
+      task.id==='t01'?(relevant.has(record.id)?.65:.1):
+      task.id==='t02'?(relevant.has(record.id)?.2:.9-index*.001):
+      task.id==='t21'?.9:relevant.has(record.id)?.8:.1}));
+    cache.set(JSON.stringify([scope,task.query]),{scores,ranks:rankCalibrationScores(scores,.7)});
+  }
+  return cache;
+}
+
+test('VS07 complete cached score diagnosis separates cutoff loss, raw ranking failure and no-answer admission without inference',async()=>{
+  const {diagnoseCachedFixedRanks}=await import('../experiments/retrieval-rank-diagnostics.mjs');
+  const {eligibleRecords}=await import('../experiments/retrieval-evaluation.mjs');
+  const {rankCalibrationScores}=await import('../experiments/semantic-calibration.mjs');
+  const cache=fixedRankDiagnosticFixture(eligibleRecords,rankCalibrationScores);
+  const before=JSON.stringify([...cache]),corpusBefore=JSON.stringify(retrievalCorpus);
+  let reads=0;
+  const report=diagnoseCachedFixedRanks(retrievalCorpus,(scope,query)=>{
+    reads++;return cache.get(JSON.stringify([scope,query]));
+  });
+  assert.equal(reads,29);
+  assert.equal(report.taskCount,29);
+  assert.equal(report.corpusDigest,'49c998ee447eb5bec4c61636322b95900b556d69c0affabefcf7f1b574aa5217');
+  assert.equal(report.originalCutoff,.7);
+  assert.deepEqual(report.aggregate,{admittedPositiveTop5:24,
+    thresholdSuppressedPositiveTop5:1,goldOutsideUnthresholdedTop5:1,
+    noAnswerAdmitted:1,noAnswerAbstained:2});
+  const row=id=>report.rows.find(item=>item.id===id);
+  assert.equal(row('t01').firstRelevantRank,1);
+  assert.equal(row('t01').strongestRelevantCosine,.65);
+  assert.equal(row('t01').unthresholdedTop5Hit,true);
+  assert.equal(row('t01').admittedTop5Hit,false);
+  assert.equal(row('t01').classification,'THRESHOLD_SUPPRESSED_TOP5_RELEVANCE');
+  assert.ok(row('t02').firstRelevantRank>5);
+  assert.equal(row('t02').classification,'GOLD_OUTSIDE_UNTHRESHOLDED_TOP5');
+  assert.equal(row('t21').strongestRelevantCosine,null);
+  assert.equal(row('t21').firstRelevantRank,null);
+  assert.equal(row('t21').classification,'NO_ANSWER_ADMITTED');
+  assert.equal(report.additionalModelQueries,0);
+  for(const flag of ['newThresholdSelected','blindAcceptance','modelAdmitted','productionClaim'])
+    assert.equal(report[flag],false);
+  assert.equal(report.upstreamEquivalence,'NOT_VERIFIED');
+  assert.equal(report.rankingWithoutCutoff,'RETROSPECTIVE_DIAGNOSTIC_NOT_ACCEPTANCE');
+  assert.equal(JSON.stringify([...cache]),before);
+  assert.equal(JSON.stringify(retrievalCorpus),corpusBefore);
+  assert.ok(Object.isFrozen(report)&&Object.isFrozen(report.rows)&&Object.isFrozen(report.rows[0]));
+  assert.throws(()=>{report.rows[0].maximumCosine=99;},TypeError);
+  assert.doesNotMatch(JSON.stringify(report),/"query"|"title"|"body"|"scores"|"ranks"|"relevance"|PRIVATE/);
+});
+
+test('VS07 cached rank diagnosis retains complete eligible scope and frozen tie-breaking independent of score input order',async()=>{
+  const {diagnoseCachedFixedRanks}=await import('../experiments/retrieval-rank-diagnostics.mjs');
+  const {eligibleRecords}=await import('../experiments/retrieval-evaluation.mjs');
+  const {rankCalibrationScores}=await import('../experiments/semantic-calibration.mjs');
+  const cache=fixedRankDiagnosticFixture(eligibleRecords,rankCalibrationScores);
+  const expected=diagnoseCachedFixedRanks(retrievalCorpus,(scope,query)=>cache.get(JSON.stringify([scope,query])));
+  const reversed=structuredClone(cache);
+  for(const entry of reversed.values())entry.scores.reverse();
+  const actual=diagnoseCachedFixedRanks(retrievalCorpus,(scope,query)=>{
+    assert.ok(Object.isFrozen(scope)&&scope.every(Object.isFrozen));
+    return reversed.get(JSON.stringify([scope,query]));
+  });
+  assert.deepEqual(actual,expected);
+  for(const task of retrievalCorpus.tasks)
+    assert.equal(actual.rows.find(row=>row.id===task.id).eligibleCount,
+      eligibleRecords(retrievalCorpus,task).length);
+});
+
+test('VS07 cached rank diagnosis refuses partial, changed-scope, fabricated, private and inconsistent original rankings',async()=>{
+  const {diagnoseCachedFixedRanks}=await import('../experiments/retrieval-rank-diagnostics.mjs');
+  const {eligibleRecords}=await import('../experiments/retrieval-evaluation.mjs');
+  const {rankCalibrationScores}=await import('../experiments/semantic-calibration.mjs');
+  const original=fixedRankDiagnosticFixture(eligibleRecords,rankCalibrationScores);
+  const mutations=[
+    entry=>entry.scores.pop(),
+    entry=>entry.scores.push({...entry.scores[0]}),
+    entry=>entry.scores[1]={...entry.scores[0]},
+    entry=>entry.scores[0].id='PRIVATE_ID',
+    entry=>entry.scores[0].score=NaN,
+    entry=>entry.scores[0].score=Infinity,
+    entry=>entry.scores[0].score=-1.022,
+    entry=>entry.scores[0].score=1.022,
+    entry=>entry.scores[0].score='0.7',
+    entry=>entry.scores[0].body='PRIVATE_BODY_CANARY',
+    entry=>entry.private='PRIVATE_CACHE_CANARY',
+    entry=>delete entry.ranks,
+    entry=>entry.ranks=['r01'],
+    entry=>entry.ranks.push('PRIVATE_RANK_CANARY'),
+  ];
+  for(const mutate of mutations){
+    const cache=structuredClone(original),entry=cache.values().next().value;mutate(entry);
+    assert.throws(()=>diagnoseCachedFixedRanks(retrievalCorpus,(scope,query)=>
+      cache.get(JSON.stringify([scope,query]))),
+      error=>error.message==='invalid cached fixed rank diagnostic');
+  }
+  for(const read of [()=>undefined,()=>Promise.resolve({scores:[],ranks:[]}),
+    ()=>{throw Error('PRIVATE_READER_EXCEPTION');},null])
+    assert.throws(()=>diagnoseCachedFixedRanks(retrievalCorpus,read),
+      error=>error.message==='invalid cached fixed rank diagnostic');
+  for(const mutate of [
+    corpus=>corpus.tasks.pop(),
+    corpus=>corpus.records.pop(),
+    corpus=>corpus.tasks[0].query='PRIVATE_QUERY_CANARY',
+    corpus=>{const id=Object.keys(corpus.tasks[0].relevance)[0];
+      corpus.tasks[0].relevance[id]=corpus.tasks[0].relevance[id]===3?2:3;},
+    corpus=>corpus.records[0].body='PRIVATE_CORPUS_CANARY',
+    corpus=>corpus.productionClaim=true,
+  ]){
+    const corpus=structuredClone(retrievalCorpus);mutate(corpus);let read=false;
+    assert.throws(()=>diagnoseCachedFixedRanks(corpus,()=>{read=true;}),
+      error=>error.message==='invalid cached fixed rank diagnostic');
+    assert.equal(read,false);
+  }
+});
+
+test('VS07 actual pinned probe consumes cached full scores before disposal and retains unchanged four reports and development gates',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const source=await readFile(new URL('../scripts/run-public-embedding-lab.mjs',import.meta.url),'utf8');
+  const diagnostic=source.indexOf('const fixedRankDiagnostic=diagnoseCachedFixedRanks');
+  assert.ok(diagnostic>0&&diagnostic<source.indexOf('semanticRanks.clear();'));
+  assert.match(source,/\(scope,query\)=>semanticRanks\.get\(rankKey\(scope,query\)\)/);
+  assert.match(source,/calibration,calibratedFixedReport,fixedRankDiagnostic,reports/);
+  assert.match(source,/const MINIMUM_SCORE=\.7;/);
+  assert.equal(source.match(/const scores=await semantic\.score\(scope,query\);/g).length,1);
+  assert.match(source,/calibrateDevelopmentThreshold\([\s\S]*calibrationCorpus,retrievalCorpus,developmentProjection\.score\)/);
+  assert.match(source,/maximumTokens:inputContract\.maximumTokens,truncation:false/);
+});

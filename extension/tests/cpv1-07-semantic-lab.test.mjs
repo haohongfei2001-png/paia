@@ -667,3 +667,27 @@ test('VS07 fixed-report failure accounting is a complete offline batch without r
  for(const path of paths.slice(0,3))
   assert.equal(semanticLabRouting({...evidence,paths:paths.filter(item=>item!==path)}).diagnosticOnly,undefined);
 });
+
+
+test('VS07 complete cached-score root-cause batch runs only its pinned embedding probe and preserves uncertainty fallback',()=>{
+ const paths=['extension/experiments/retrieval-rank-diagnostics.mjs',
+  'extension/scripts/run-public-embedding-lab.mjs',
+  'extension/tests/cpv1-07-retrieval-evaluation.test.mjs',
+  'extension/tests/cpv1-07-semantic-lab.test.mjs','extension/scripts/semantic-lab-change.mjs',
+  'extension/docs/consumer-product-v1/STATUS.md','extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'];
+ const evidence={action:'synchronize',before:'a'.repeat(40),head:'b'.repeat(40),ancestor:true,paths};
+ assert.deepEqual(semanticLabRouting(evidence),{runProbe:false,runSourceScreen:false,sourceOnly:false,
+  runPairedProbe:false,runEmbeddingScreen:false,runEmbeddingProbe:true,embeddingProbeOnly:true});
+ for(const change of [{action:'opened'},{ancestor:false},{before:null},
+  {paths:[...paths,paths[0]]},
+  {paths:[...paths,'extension/tests/fixtures/cpv1-07-retrieval-corpus.mjs']},
+  {paths:[...paths,'extension/tests/fixtures/cpv1-07-calibration-corpus.mjs']},
+  {paths:[...paths,'extension/experiments/semantic-lab-index.mjs']},
+  {paths:[...paths,'extension/core/search-service.js']},
+  ...paths.slice(0,3).map(path=>({paths:paths.filter(item=>item!==path)}))]){
+  const result=semanticLabRouting({...evidence,...change});
+  assert.equal(result.embeddingProbeOnly,undefined);
+  assert.equal(result.diagnosticOnly,undefined);
+  assert.equal(result.runProbe,true);
+ }
+});
