@@ -3,16 +3,18 @@ import {observeReadmeLicense} from './public-model-provenance.mjs';
 import {boundedRead,metadataURL,licenseSummary} from './public-reranker-provenance.mjs';
 export const EMBEDDING_SOURCES=Object.freeze([
  'sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
- 'sentence-transformers/LaBSE'
+ 'sentence-transformers/LaBSE',
+ 'sentence-transformers/distiluse-base-multilingual-cased-v1'
 ]);
 const object=v=>v&&typeof v==='object'&&!Array.isArray(v);
 const sha=v=>typeof v==='string'&&/^[a-f0-9]{40}$/.test(v);
 const identity=(v,id,revision)=>object(v)&&v.id===id&&sha(v.sha)
  &&(!revision||v.sha===revision)&&v.private===false&&v.gated===false;
 const integer=(v,min,max)=>Number.isSafeInteger(v)&&v>=min&&v<=max?v:null;
-const architectures=new Set(['BertModel','RobertaModel','XLMRobertaModel','MPNetModel']);
+const architectures=new Set(['BertModel','RobertaModel','XLMRobertaModel','MPNetModel','DistilBertModel']);
 const tokenizers=new Set(['BertTokenizer','BertTokenizerFast','RobertaTokenizer','RobertaTokenizerFast',
- 'XLMRobertaTokenizer','XLMRobertaTokenizerFast','MPNetTokenizer','MPNetTokenizerFast']);
+ 'XLMRobertaTokenizer','XLMRobertaTokenizerFast','MPNetTokenizer','MPNetTokenizerFast',
+ 'DistilBertTokenizer','DistilBertTokenizerFast']);
 const moduleClasses=new Set(['Transformer','Pooling','Dense','Normalize']);
 const modulePaths=new Set(['0_Transformer','1_Pooling','2_Dense','2_Normalize','3_Normalize']);
 const moduleOrders=new Set(['Transformer,Pooling','Transformer,Pooling,Normalize',
@@ -51,7 +53,8 @@ export async function inspectPublicEmbeddingSource(id,{fetcher=fetch}={}){
    'https://huggingface.co/'+id+'/raw/'+current.sha+'/'+file;
   result.inventory={fileCount:files.length,onnxFiles:files.filter(v=>v.endsWith('.onnx')).sort(),
    quantizedOnnxListed:files.some(v=>v.endsWith('.onnx')&&/quant|qint|quint|int8|q8/.test(v)),
-   tensorBytesFromMetadata:'NOT_VERIFIED'};
+   tensorBytesFromMetadata:'NOT_VERIFIED',
+   safeProjectionFiles:files.filter(v=>v==='2_Dense/model.safetensors')};
   if(!files.includes('README.md')){result.diagnosis='README_UNAVAILABLE';return result;}
   const readme=await boundedRead(raw('README.md'),fetcher,256*1024);
   result.readme={...readme.receipt,license:observeReadmeLicense(readme.text??'')};
@@ -96,7 +99,8 @@ export async function inspectPublicEmbeddingSource(id,{fetcher=fetch}={}){
    &&architectures.has(config.architectures[0]);
   const remote=Object.hasOwn(config,'auto_map')||Object.hasOwn(tokenizer,'auto_map');
   result.inputContract={architecture:known?config.architectures[0]:'OTHER_OR_UNVERIFIED',
-   hiddenDimension:integer(config.hidden_size,1,8192),layers:integer(config.num_hidden_layers,1,96),
+   hiddenDimension:integer(config.architectures?.[0]==='DistilBertModel'?config.dim:config.hidden_size,1,8192),
+   layers:integer(config.architectures?.[0]==='DistilBertModel'?config.n_layers:config.num_hidden_layers,1,96),
    positionLimit:integer(config.max_position_embeddings,1,32768),
    tokenizerClass:tokenizers.has(tokenizer.tokenizer_class)?tokenizer.tokenizer_class:'OTHER_OR_UNVERIFIED',
    tokenizerDeclaredLimit:integer(tokenizer.model_max_length,1,32768),
@@ -155,6 +159,91 @@ export async function inspectPublicEmbeddingSource(id,{fetcher=fetch}={}){
  }catch(error){
   result.diagnosis='SOURCE_INSPECTION_UNAVAILABLE';
   result.errorClass=['Error','TypeError','SyntaxError','AbortError','TimeoutError'].includes(error?.name)?error.name:'Other';
+  return result;
+ }
+}
+
+
+// One new source candidate only. Existing measured candidates retain their
+// receipts; this report authorizes neither weights nor inference or production.
+export const DISTILUSE_SOURCE='sentence-transformers/distiluse-base-multilingual-cased-v1';
+const distiluseAssets=Object.freeze([
+ 'onnx/model_quint8_avx2.onnx','onnx/model_qint8_avx512_vnni.onnx','onnx/model_quantized.onnx'
+]);
+const projectionAsset='2_Dense/model.safetensors';
+const artifactBudget=384*1024*1024;
+async function observeDeclaredAsset(id,revision,asset,fetcher){
+ const response=await fetcher('https://huggingface.co/'+id+'/resolve/'+revision+'/'+asset,
+  {method:'HEAD',redirect:'manual',signal:AbortSignal.timeout(20000),
+   headers:{Accept:'application/octet-stream'}});
+ const receipt={asset,httpStatus:Number.isInteger(response.status)?response.status:0,
+  bodyRequested:false,headerVerified:false};
+ if(![200,302,303,307,308].includes(response.status))return receipt;
+ const raw=response.headers?.get('x-linked-size')??
+  (response.status===200?response.headers?.get('content-length'):null);
+ const digest=response.headers?.get('x-linked-etag')?.replace(/^"|"$/g,'');
+ if(typeof raw!=='string'||!/^[1-9][0-9]{0,9}$/.test(raw)
+  ||typeof digest!=='string'||!/^[a-f0-9]{64}$/.test(digest))return receipt;
+ const bytes=Number(raw);
+ if(!Number.isSafeInteger(bytes)||bytes>artifactBudget)return receipt;
+ return {...receipt,bytes,sha256:digest,headerVerified:true};
+}
+export async function inspectPublicDistiluseCandidate({fetcher=fetch}={}){
+ const source=await inspectPublicEmbeddingSource(DISTILUSE_SOURCE,{fetcher});
+ const result={...source,assetScreen:{disposition:'NOT_ADMITTED',weightsDownloaded:false,
+  inferenceExecuted:false,bodyRequested:false,productionAdmission:false,
+  artifactByteCeiling:artifactBudget,aggregateCacheBudget:'NOT_VERIFIED',
+  projectionExecution:'NOT_VERIFIED',conversionEquivalence:'NOT_VERIFIED',receipts:[]}};
+ const screen=result.assetScreen,input=source.inputContract,modes=source.pooling?.modes;
+ if(source.diagnosis!=='CONSISTENT_DECLARED_SOURCE_PENDING_INPUT_AND_QUALITY'){
+  screen.reason='SOURCE_CONTRACT_UNVERIFIED';return result;
+ }
+ // Observe a specific declared family. A model name never supplies omitted
+ // configuration defaults, pooling, projection weights or a tokenizer limit.
+ if(input?.architecture!=='DistilBertModel'||input.hiddenDimension!==768
+  ||input.layers!==6||input.positionLimit!==512
+  ||!['DistilBertTokenizer','DistilBertTokenizerFast'].includes(input.tokenizerClass)
+  ||!Number.isSafeInteger(input.sentenceTransformerLimit)||input.sentenceTransformerLimit<1
+  ||input.sentenceTransformerLimit>512||!Number.isSafeInteger(input.tokenizerDeclaredLimit)
+  ||input.sentenceTransformerLimit>input.tokenizerDeclaredLimit
+  ||source.pooling?.dimension!==768||modes?.pooling_mode_mean_tokens!==true
+  ||['pooling_mode_cls_token','pooling_mode_max_tokens','pooling_mode_mean_sqrt_len_tokens']
+    .some(key=>modes?.[key]!==false)
+  ||['pooling_mode_weightedmean_tokens','pooling_mode_lasttoken']
+    .some(key=>modes?.[key]!==false&&modes?.[key]!==null)
+  ||!['Transformer,Pooling,Dense','Transformer,Pooling,Dense,Normalize']
+    .includes(source.moduleOrder?.join(','))
+  ||source.projection?.inputDimension!==768||source.projection.outputDimension!==512
+  ||source.projection.bias!==true
+  ||!['torch.nn.modules.activation.Tanh','torch.nn.Tanh'].includes(source.projection.activation)){
+  screen.reason='DISTILUSE_INPUT_OR_PROJECTION_UNVERIFIED';return result;
+ }
+ const files=source.inventory?.onnxFiles??[];
+ const encoder=distiluseAssets.find(file=>files.includes(file));
+ // A safe projection payload must be advertised by the SAME pinned inventory.
+ // Never load pickle, convert a checkpoint, follow an arbitrary model path, or
+ // infer that an encoder-only ONNX graph includes the Dense projection.
+ if(!encoder){screen.reason='DECLARED_ENCODER_ASSET_UNAVAILABLE';return result;}
+ if(!source.inventory?.safeProjectionFiles?.includes(projectionAsset)){
+  screen.reason='DECLARED_SAFE_PROJECTION_UNAVAILABLE';return result;
+ }
+ try{
+  const encoded=await observeDeclaredAsset(DISTILUSE_SOURCE,source.revision,encoder,fetcher);
+  screen.receipts.push(encoded);
+  if(!encoded.headerVerified){screen.reason='ENCODER_HEADER_UNVERIFIED';return result;}
+  const projected=await observeDeclaredAsset(DISTILUSE_SOURCE,source.revision,projectionAsset,fetcher);
+  screen.receipts.push(projected);
+  if(!projected.headerVerified){screen.reason='PROJECTION_HEADER_UNVERIFIED';return result;}
+  if(encoded.bytes+projected.bytes>artifactBudget){
+   screen.reason='DECLARED_COMBINED_ASSET_BUDGET_EXCEEDED';return result;
+  }
+  screen.declaredCombinedBytes=encoded.bytes+projected.bytes;
+  screen.disposition='DECLARED_HEADERS_PENDING_WEIGHT_INPUT_AND_QUALITY_REVIEW';
+  screen.reason='NO_EXECUTION_OR_MODEL_ADMISSION';
+  return result;
+ }catch(error){
+  screen.reason='ASSET_HEADERS_UNAVAILABLE';
+  screen.errorClass=['Error','TypeError','SyntaxError','AbortError','TimeoutError'].includes(error?.name)?error.name:'Other';
   return result;
  }
 }

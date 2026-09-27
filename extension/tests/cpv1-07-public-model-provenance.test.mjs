@@ -665,3 +665,177 @@ test('CPV1-07 sentence-transformer source input overflow cancels before pooling 
  assert.equal(calls.some(x=>x.endsWith('/1_Pooling/config.json')||x.endsWith('.onnx')),false);
  assert.equal(report.inputContract.sentenceTransformerLimit,null);
 });
+
+
+function distiluseSourceFixture({mutate=()=>{},head=()=>({status:302,
+ headers:{get:name=>name==='x-linked-size'?'1024':name==='x-linked-etag'?'"'+'8'.repeat(64)+'"':null}})}={}){
+ const candidate='sentence-transformers/distiluse-base-multilingual-cased-v1',rev='e'.repeat(40);
+ const bodies={
+  'README.md':'---\nlicense: apache-2.0\n---\nPRIVATE_SOURCE_CANARY',
+  'config.json':{architectures:['DistilBertModel'],dim:768,n_layers:6,max_position_embeddings:512},
+  'tokenizer_config.json':{tokenizer_class:'DistilBertTokenizerFast',model_max_length:512},
+  'sentence_bert_config.json':{max_seq_length:128},
+  'modules.json':[
+   {idx:0,type:'sentence_transformers.models.Transformer',path:''},
+   {idx:1,type:'sentence_transformers.models.Pooling',path:'1_Pooling'},
+   {idx:2,type:'sentence_transformers.models.Dense',path:'2_Dense'}],
+  '1_Pooling/config.json':{word_embedding_dimension:768,pooling_mode_cls_token:false,
+   pooling_mode_mean_tokens:true,pooling_mode_max_tokens:false,pooling_mode_mean_sqrt_len_tokens:false},
+  '2_Dense/config.json':{in_features:768,out_features:512,bias:true,activation_function:'torch.nn.Tanh'}
+ };
+ const files=[...Object.keys(bodies),'onnx/model_quint8_avx2.onnx','2_Dense/model.safetensors'];
+ const metadata={id:candidate,sha:rev,private:false,gated:false,cardData:{license:'apache-2.0'},
+  tags:['license:apache-2.0'],siblings:files.map(rfilename=>({rfilename}))};
+ mutate(bodies,metadata);
+ const calls=[],fetcher=async(url,options)=>{
+  const parsed=new URL(url);calls.push({url,method:options.method??'GET'});
+  assert.equal(parsed.origin,'https://huggingface.co');
+  assert.equal(options.redirect,'manual');
+  assert.equal(Object.hasOwn(options.headers,'Authorization'),false);
+  if(parsed.pathname.startsWith('/api/models/')){
+   assert.ok(['/api/models/'+candidate,'/api/models/'+candidate+'/revision/'+rev].includes(parsed.pathname));
+   return response(JSON.stringify(metadata));
+  }
+  if(options.method==='HEAD'){
+   const prefix='/'+candidate+'/resolve/'+rev+'/';
+   assert.ok(parsed.pathname.startsWith(prefix),'every tensor header uses the observed immutable revision');
+   assert.equal(parsed.search,'');
+   const asset=parsed.pathname.slice(prefix.length);
+   assert.ok(['onnx/model_quint8_avx2.onnx','2_Dense/model.safetensors'].includes(asset));
+   return head(asset,calls);
+  }
+  const prefix='/'+candidate+'/raw/'+rev+'/';assert.ok(parsed.pathname.startsWith(prefix));
+  const file=parsed.pathname.slice(prefix.length);assert.ok(Object.hasOwn(bodies,file));
+  assert.ok(!file.endsWith('.onnx')&&!file.endsWith('.safetensors')&&!file.endsWith('.bin'));
+  return response(typeof bodies[file]==='string'?bodies[file]:JSON.stringify(bodies[file]));
+ };
+ return {candidate,rev,bodies,metadata,calls,fetcher};
+}
+test('CPV1-07 new DistilUSE candidate observes native dimension/layer aliases and exact pinned encoder/projection headers only',async()=>{
+ const {inspectPublicDistiluseCandidate,DISTILUSE_SOURCE,EMBEDDING_SOURCES}=await import('../experiments/public-embedding-provenance.mjs');
+ const f=distiluseSourceFixture(),report=await inspectPublicDistiluseCandidate({fetcher:f.fetcher});
+ assert.equal(DISTILUSE_SOURCE,f.candidate);assert.equal(EMBEDDING_SOURCES.at(-1),f.candidate);
+ assert.equal(report.inputContract.architecture,'DistilBertModel');
+ assert.equal(report.inputContract.hiddenDimension,768);assert.equal(report.inputContract.layers,6);
+ assert.equal(report.inputContract.sentenceTransformerLimit,128);
+ assert.equal(report.projection.outputDimension,512);assert.equal(report.projection.executionVerified,false);
+ assert.equal(report.assetScreen.disposition,'DECLARED_HEADERS_PENDING_WEIGHT_INPUT_AND_QUALITY_REVIEW');
+ assert.equal(report.assetScreen.declaredCombinedBytes,2048);
+ assert.deepEqual(report.assetScreen.receipts.map(x=>x.asset),['onnx/model_quint8_avx2.onnx','2_Dense/model.safetensors']);
+ assert.ok(report.assetScreen.receipts.every(x=>x.headerVerified&&x.bodyRequested===false
+  &&x.sha256==='8'.repeat(64)));
+ assert.equal(f.calls.filter(x=>x.method==='HEAD').length,2);
+ assert.ok(f.calls.every(x=>x.url.includes(f.candidate)),'no earlier candidates are requested');
+ assert.equal(report.modelAdmission,'NOT_AUTHORIZED');assert.equal(report.qualityGate,'NOT_EVALUATED');
+ for(const field of ['weightsDownloaded','inferenceExecuted','productionClaim'])assert.equal(report[field],false);
+ for(const field of ['weightsDownloaded','inferenceExecuted','bodyRequested','productionAdmission'])assert.equal(report.assetScreen[field],false);
+ for(const field of ['projectionExecution','conversionEquivalence','aggregateCacheBudget'])assert.equal(report.assetScreen[field],'NOT_VERIFIED');
+ assert.equal(JSON.stringify(report).includes('CANARY'),false);
+});
+test('CPV1-07 new DistilUSE source must declare compatible native input, mean pooling and Dense projection before any asset request',async()=>{
+ const {inspectPublicDistiluseCandidate}=await import('../experiments/public-embedding-provenance.mjs');
+ const mutations=[
+  b=>delete b['config.json'].dim,b=>b['config.json'].dim=true,
+  b=>b['config.json'].dim=512,b=>b['config.json'].n_layers=12,
+  b=>delete b['config.json'].max_position_embeddings,
+  b=>b['tokenizer_config.json'].tokenizer_class='PRIVATE_TOKENIZER_CANARY',
+  b=>delete b['tokenizer_config.json'].model_max_length,
+  b=>b['tokenizer_config.json'].model_max_length=64,
+  b=>b['sentence_bert_config.json'].max_seq_length=513,
+  b=>b['1_Pooling/config.json'].pooling_mode_cls_token=true,
+  b=>b['1_Pooling/config.json'].pooling_mode_mean_tokens=false,
+  b=>b['1_Pooling/config.json'].pooling_mode_lasttoken=true,
+  b=>b['2_Dense/config.json'].in_features=512,
+  b=>b['2_Dense/config.json'].out_features=768,
+  b=>b['2_Dense/config.json'].bias=false,
+  b=>b['2_Dense/config.json'].activation_function='torch.nn.Identity',
+  b=>b['2_Dense/config.json'].auto_map={PRIVATE:'PRIVATE'},
+  b=>b['config.json'].auto_map={PRIVATE:'PRIVATE'}
+ ];
+ for(const mutate of mutations){
+  const f=distiluseSourceFixture({mutate}),report=await inspectPublicDistiluseCandidate({fetcher:f.fetcher});
+  assert.equal(report.assetScreen.disposition,'NOT_ADMITTED');
+  assert.equal(f.calls.some(x=>x.method==='HEAD'),false);
+  assert.equal(report.assetScreen.receipts.length,0);
+  assert.equal(JSON.stringify(report).includes('PRIVATE'),false);
+ }
+});
+test('CPV1-07 new DistilUSE source refuses absent fixed encoder or safe Dense payload instead of converting or loading pickle',async()=>{
+ const {inspectPublicDistiluseCandidate}=await import('../experiments/public-embedding-provenance.mjs');
+ for(const omitted of ['onnx/model_quint8_avx2.onnx','2_Dense/model.safetensors']){
+  const f=distiluseSourceFixture({mutate:(b,m)=>{
+   m.siblings=m.siblings.filter(x=>x.rfilename!==omitted);
+   m.siblings.push({rfilename:'2_Dense/pytorch_model.bin'});
+  }});
+  const report=await inspectPublicDistiluseCandidate({fetcher:f.fetcher});
+  assert.equal(report.assetScreen.disposition,'NOT_ADMITTED');
+  assert.equal(report.assetScreen.reason,omitted.endsWith('.onnx')?
+   'DECLARED_ENCODER_ASSET_UNAVAILABLE':'DECLARED_SAFE_PROJECTION_UNAVAILABLE');
+  assert.equal(f.calls.some(x=>x.method==='HEAD'),false);
+  assert.equal(f.calls.some(x=>x.url.includes('pytorch_model.bin')),false);
+ }
+});
+test('CPV1-07 new DistilUSE artifact headers refuse missing ambiguous oversized or secret bearing provenance without following redirects or bodies',async()=>{
+ const {inspectPublicDistiluseCandidate}=await import('../experiments/public-embedding-provenance.mjs');
+ const headers=[
+  {status:404,size:'1024',digest:'8'.repeat(64)},
+  {status:200,size:null,digest:null},
+  {status:302,size:'0',digest:'8'.repeat(64)},
+  {status:302,size:'001024',digest:'8'.repeat(64)},
+  {status:302,size:'1024 ',digest:'8'.repeat(64)},
+  {status:302,size:'402653185',digest:'8'.repeat(64)},
+  {status:302,size:'1024',digest:'8'.repeat(63)},
+  {status:302,size:'1024',digest:'F'.repeat(64)},
+  {status:302,size:'1024',digest:'PRIVATE_ASSET_CANARY'},
+  {status:302,size:null,digest:'8'.repeat(64)},
+ ];
+ for(const item of headers){
+  const f=distiluseSourceFixture({head:()=>({status:item.status,
+   headers:{get:key=>key==='x-linked-size'?item.size:key==='x-linked-etag'?item.digest:null},
+   text:async()=>{assert.fail('HEAD body forbidden');}})});
+  const report=await inspectPublicDistiluseCandidate({fetcher:f.fetcher});
+  assert.equal(report.assetScreen.reason,'ENCODER_HEADER_UNVERIFIED');
+  assert.equal(report.assetScreen.disposition,'NOT_ADMITTED');
+  assert.equal(f.calls.filter(x=>x.method==='HEAD').length,1);
+  assert.equal(report.assetScreen.receipts[0].headerVerified,false);
+  assert.equal(JSON.stringify(report).includes('PRIVATE'),false);
+ }
+});
+test('CPV1-07 new DistilUSE header budget includes encoder AND independent Dense projection',async()=>{
+ const {inspectPublicDistiluseCandidate}=await import('../experiments/public-embedding-provenance.mjs');
+ const f=distiluseSourceFixture({head:asset=>({status:302,headers:{get:key=>
+  key==='x-linked-size'?String(asset.endsWith('.onnx')?384*1024*1024:1):
+   key==='x-linked-etag'?'8'.repeat(64):null}})});
+ const report=await inspectPublicDistiluseCandidate({fetcher:f.fetcher});
+ assert.equal(report.assetScreen.reason,'DECLARED_COMBINED_ASSET_BUDGET_EXCEEDED');
+ assert.equal(report.assetScreen.disposition,'NOT_ADMITTED');
+ assert.equal(report.assetScreen.receipts.length,2);
+ assert.equal(report.assetScreen.declaredCombinedBytes,undefined);
+});
+test('CPV1-07 new DistilUSE projection failure and header exceptions never promote partial encoder evidence',async()=>{
+ const {inspectPublicDistiluseCandidate}=await import('../experiments/public-embedding-provenance.mjs');
+ for(const fault of ['projection_missing','exception']){
+  const f=distiluseSourceFixture({head:asset=>{
+   if(asset.endsWith('.safetensors')){
+    if(fault==='exception')throw Error('PRIVATE_NETWORK_CANARY');
+    return {status:503,headers:{get:()=>null}};
+   }
+   return {status:302,headers:{get:key=>key==='x-linked-size'?'1024':key==='x-linked-etag'?'8'.repeat(64):null}};
+  }});
+  const report=await inspectPublicDistiluseCandidate({fetcher:f.fetcher});
+  assert.equal(report.assetScreen.disposition,'NOT_ADMITTED');
+  assert.equal(report.assetScreen.reason,fault==='exception'?'ASSET_HEADERS_UNAVAILABLE':'PROJECTION_HEADER_UNVERIFIED');
+  assert.equal(f.calls.filter(x=>x.method==='HEAD').length,2);
+  assert.equal(report.assetScreen.productionAdmission,false);
+  assert.equal(JSON.stringify(report).includes('PRIVATE'),false);
+ }
+});
+test('CPV1-07 new DistilUSE 200 direct header uses content length without reading tensor bytes',async()=>{
+ const {inspectPublicDistiluseCandidate}=await import('../experiments/public-embedding-provenance.mjs');
+ const f=distiluseSourceFixture({head:()=>({status:200,headers:{get:key=>
+  key==='content-length'?'1024':key==='x-linked-etag'?'"'+'9'.repeat(64)+'"':null},
+  text:async()=>assert.fail('no tensor body'),arrayBuffer:async()=>assert.fail('no tensor body')})});
+ const report=await inspectPublicDistiluseCandidate({fetcher:f.fetcher});
+ assert.equal(report.assetScreen.disposition,'DECLARED_HEADERS_PENDING_WEIGHT_INPUT_AND_QUALITY_REVIEW');
+ assert.ok(report.assetScreen.receipts.every(x=>x.sha256==='9'.repeat(64)));
+});
