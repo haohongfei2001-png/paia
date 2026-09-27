@@ -4,6 +4,7 @@ import {semanticMaterialSnapshot,createMaterialSemanticIndex} from '../core/sema
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {MemoryService} from '../core/memory/service.js';
 import {inputEdit,derived} from './harness/thought-m1.mjs';
+import {BackupService} from '../core/backup-service.js';
 import {AI_FIELDS} from '../core/organizer/ai-contract.js';
 const model={id:'synthetic-local-encoder',revision:'a'.repeat(40),dimension:2};
 const op=()=>crypto.randomUUID();
@@ -15,7 +16,7 @@ async function setup(texts=['SNAPSHOT 原话否定：没有批准。','SNAPSHOT 
  return {...f,memory,blocks,texts};
 }
 const authority=async s=>Object.fromEntries(await Promise.all([
- 'records','recordIndex','blocks','inputStates','dependencies','tombstones','thoughts','topics','placements','meta'
+ 'times','records','recordIndex','blocks','inputStates','dependencies','tombstones','thoughts','topics','placements','meta'
 ].map(async name=>[name,await rows(s,name)])));
 async function topicEntry(f,name,body){
  const topic=await f.s.createTopic({name,operationId:op()}),entry=await f.s.createEntry({
@@ -147,5 +148,73 @@ test('CPV1-07 actual exclusion during asynchronous encoding refuses the staged s
  const result=await build;assert.equal(result.ok,false);assert.equal(result.reason,'authority_changed');
  assert.equal(index.status().indexed,0);
  assert.equal((await index.lookup('diagnostic')).usedSemantic,false);
+ assert.deepEqual(await authority(f.s),after);assert.equal(f.requests.length,0);
+});
+
+const timeEvidence=createTime=>({state:'valid',createTime,updateTime:null});
+async function repeatSource(f,kind,evidence){
+ const record=(await rows(f.s,'records'))[0].value;
+ const request={epoch:(await f.s.status()).epoch,adapterVersion:'0.3.0',
+  chat:{id:record.chatId,url:record.chatUrl,...(kind==='capture'?{title:record.chatTitle}:{})},
+  messages:[{sourceMessageId:record.sourceMessageId,pageOrder:record.pageOrder,
+   ...(kind==='capture'?{originalText:record.originalText}:{}),sourceTime:evidence}]};
+ return f.s[kind](request);
+}
+for(const kind of ['capture','enrich'])test('CPV1-07 repeated '+kind+' preserves complete time evidence, staged index and active backup',async()=>{
+ const f=await setup(['IDEMPOTENT_TIME '+('完整多段 👩🏽‍💻\n'.repeat(1000))+'FULL_END']);
+ await repeatSource(f,'enrich',timeEvidence(1577836800));
+ const backup=new BackupService(f.s),session=await backup.beginExport();
+ const before=await authority(f.s),calls=[];
+ const index=createMaterialSemanticIndex(f.memory,{model,scope:{types:['input']},
+  encode:async(encodeKind,value)=>{calls.push({kind:encodeKind,value:structuredClone(value)});
+   if(encodeKind==='document')for(let i=0;i<3;i++){
+    const repeat=await repeatSource(f,kind,timeEvidence(1577836800));
+    if(kind==='capture'){assert.equal(repeat.added,0);assert.equal(repeat.duplicates,1);}
+    else assert.equal(repeat.enriched,0);
+   }
+   return [1,0];}});
+ const built=await index.synchronize();assert.equal(built.ok,true,JSON.stringify(built));
+ assert.equal(built.coverage.indexed,1);assert.equal(calls.filter(x=>x.kind==='document').length,1);
+ assert.equal(calls[0].value.body,f.texts[0]);assert.deepEqual(await authority(f.s),before);
+ const found=await index.lookup('synthetic query');assert.equal(found.usedSemantic,true);
+ assert.equal(found.items[0].body,f.texts[0]);assert.equal(found.items[0].time,'2020-01-01T00:00:00.000Z');
+ const exported=[session.header];let sequence=0;
+ for(;;){const page=await backup.exportPage({sessionId:session.sessionId,sequence:sequence++});
+  exported.push(...page.items);if(page.done)break;}
+ assert.equal(exported.at(-1).type,'footer');
+ assert.equal(exported.find(x=>x.section==='sources').value.originalText,f.texts[0]);
+ assert.equal(exported.find(x=>x.section==='timeEvidence').value.value.createTime,1577836800);
+ assert.deepEqual(await authority(f.s),before);assert.equal(f.requests.length,0);
+});
+for(const conflict of [false,true])test('CPV1-07 '+(conflict?'conflicting':'new')+' time evidence persists and fences an in-flight index and export',async()=>{
+ const f=await setup(['REAL_TIME_CHANGE complete 原话不是指令。']);
+ if(conflict)await repeatSource(f,'enrich',timeEvidence(1577836800));
+ const backup=new BackupService(f.s),session=await backup.beginExport(),before=await authority(f.s);
+ const original=before.records[0].value;
+ let enter,release;const entered=new Promise(resolve=>{enter=resolve;}),gate=new Promise(resolve=>{release=resolve;});
+ const index=createMaterialSemanticIndex(f.memory,{model,scope:{types:['input']},
+  encode:async()=>{enter();await gate;return [1,0];}});
+ const pending=index.synchronize();await entered;
+ await repeatSource(f,'enrich',timeEvidence(conflict?1577836860:1577836800));
+ const after=await authority(f.s);
+ assert.equal(after.meta.find(x=>x.id==='backup-data-generation').value,
+  before.meta.find(x=>x.id==='backup-data-generation').value+1);
+ assert.notDeepEqual(after.times,before.times);
+ assert.equal(after.records[0].value.originalText,original.originalText);
+ assert.equal(after.records[0].value.capturedAt,original.capturedAt);
+ assert.equal(after.records.length,1);assert.equal(after.blocks.length,1);
+ if(conflict){
+  assert.equal(after.times[0].value.blocked,true);assert.equal(after.times[0].value.createTime,null);
+  assert.deepEqual(after.records,before.records,'conflict evidence must not rewrite existing high-confidence Source');
+ }else{
+  assert.equal(after.times[0].value.createTime,1577836800);
+  assert.equal(after.records[0].value.sourceSentAt,'2020-01-01T00:00:00.000Z');
+ }
+ release();const result=await pending;
+ assert.equal(result.ok,false);assert.equal(result.reason,'authority_changed');assert.equal(index.status().indexed,0);
+ await assert.rejects(backup.exportPage({sessionId:session.sessionId,sequence:0}),error=>error?.code==='BACKUP_CHANGED');
+ // Re-observing this complete ledger (including a blocked conflict) is idempotent.
+ await repeatSource(f,'capture',timeEvidence(conflict?1577836860:1577836800));
+ await repeatSource(f,'enrich',timeEvidence(conflict?1577836860:1577836800));
  assert.deepEqual(await authority(f.s),after);assert.equal(f.requests.length,0);
 });

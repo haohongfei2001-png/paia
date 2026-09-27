@@ -6,7 +6,7 @@ const rpc=(p,type,fields={})=>p.evaluate(async message=>{
  const result=await chrome.runtime.sendMessage(message);
  if(!result?.ok)throw Error(JSON.stringify(result));return result.data;
 },{type,...fields});
-const tables=['records','recordIndex','blocks','inputStates','dependencies','tombstones','thoughts','topics','placements','meta'];
+const tables=['times','records','recordIndex','blocks','inputStates','dependencies','tombstones','thoughts','topics','placements','meta'];
 async function attach(p){
  await p.evaluate(async tables=>{
   const [{OrganizerStore},{MemoryService},snapshot,{ArchiveNavigationQuery}]=await Promise.all([
