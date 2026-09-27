@@ -15,7 +15,10 @@ const vector=(value,dimension)=>{
  if(!(Array.isArray(value)||value instanceof Float32Array)||value.length!==dimension)fail();
  let norm=0;for(const x of value){if(typeof x!=='number'||!Number.isFinite(x))fail();norm+=x*x;}
  if(norm<.9801||norm>1.0201)fail();
- return new Float32Array(value);
+ // Admission tolerance accommodates float rounding, not a score multiplier.
+ // Normalize the owned copy so cosine thresholds do not depend on scale.
+ const scale=Math.sqrt(norm);
+ return Float32Array.from(value,x=>x/scale);
 };
 function material(raw){
  if(!exact(raw,['ref','title','body','source','time','locations'])||!validMaterialRef(raw.ref)
@@ -128,9 +131,13 @@ export class DerivedSemanticIndex{
    if(epoch!==this.epoch)return fallback('authority_changed');
    this.reconcile(current);
    if(current.signature!==initial.signature){this.state='partial';return fallback('authority_changed');}
+   const queryNorm=q.reduce((sum,x)=>sum+x*x,0);
    const ranked=current.bindings.map(binding=>{
     const v=this.rows.get(binding.key)?.vector;if(!v)fail();
-    let score=0;for(let i=0;i<v.length;i++)score+=v[i]*q[i];
+    let score=0,documentNorm=0;
+    for(let i=0;i<v.length;i++){score+=v[i]*q[i];documentNorm+=v[i]*v[i];}
+    score/=Math.sqrt(documentNorm*queryNorm);
+    score=Math.max(-1,Math.min(1,score)); // Float32 dot round-off only.
     return {key:binding.key,score,row:binding.row};
    }).filter(x=>x.score>=minimumScore).sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key));
    return {items:ranked.slice(0,limit).map(x=>({...structuredClone(x.row),score:x.score})),

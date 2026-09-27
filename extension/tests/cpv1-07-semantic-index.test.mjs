@@ -415,3 +415,41 @@ test('CPV1-07 hybrid final snapshot fences a change after semantic readback and 
  assert.equal(f.calls.filter(x=>x.kind==='document').length,2);
  assert.equal(f.calls.filter(x=>x.kind==='query').length,1);
 });
+
+for(const [documentScale,queryScale]of [[.995,.995],[1.005,1.005],[.995,1.005],[1.005,.995]])
+test('CPV1-07 cosine admission is scale independent within existing tolerance '+documentScale+'/'+queryScale,async()=>{
+ const angle=Math.acos(.7),long='完整原始材料。👩🏽‍💻\n'.repeat(1000)+'FULL_COSINE_END';
+ const snapshot={scope:'owned-cosine-scope',generation:1,items:[item('a',long),item('b')]};
+ const document=new Float32Array([documentScale*Math.cos(angle),documentScale*Math.sin(angle)]);
+ const original=Array.from(document);let documents=0,queries=0;
+ const index=new DerivedSemanticIndex({model,readEligible:async()=>structuredClone(snapshot),
+  encode:async(kind,value)=>{
+   if(kind==='query'){queries++;return new Float32Array([queryScale,0]);}
+   documents++;return value.ref.id==='a'?document:new Float32Array([-documentScale,0]);
+  }});
+ assert.equal((await index.synchronize()).ok,true);
+ const admitted=await index.lookup('query',{minimumScore:.6999999});
+ assert.deepEqual(admitted.items.map(x=>x.ref.id),['a']);
+ assert.ok(Math.abs(admitted.items[0].score-.7)<1e-7);
+ assert.equal(admitted.items[0].body,long);assert.equal(admitted.items[0].body.split('完整原始材料。').length-1,1000);
+ const refused=await index.lookup('query',{minimumScore:.7000001});
+ assert.deepEqual(refused.items,[]);assert.equal(refused.usedSemantic,true);
+ assert.equal(documents,2);assert.equal(queries,2);
+ assert.deepEqual(Array.from(document),original);
+ assert.equal(index.status().vectorBytes,16);
+ assert.deepEqual(snapshot.items[0].body,long);
+});
+
+test('CPV1-07 Float32 identical high-dimension cosine cannot exceed one or exclude an exact match',async()=>{
+ const highModel={...model,dimension:768},shared=Float32Array.from({length:768},(_,i)=>
+  (i%2?-1:1)*1.005/Math.sqrt(768)),before=Array.from(shared);
+ const index=new DerivedSemanticIndex({model:highModel,
+  readEligible:async()=>({scope:'owned-high-dimension',generation:1,items:[item('a')]}),
+  encode:async()=>shared});
+ assert.equal((await index.synchronize()).ok,true);
+ const result=await index.lookup('exact query',{minimumScore:1});
+ assert.equal(result.usedSemantic,true);assert.equal(result.items.length,1);
+ assert.equal(result.items[0].score,1);
+ assert.equal(index.status().vectorBytes,768*4);
+ assert.deepEqual(Array.from(shared),before);
+});
