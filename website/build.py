@@ -32,6 +32,7 @@ def build(lang):
         url=BASE+link(page)
         zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
         enurl=BASE+'/'+('' if page=='index.html' else page)
+        home_css='<link rel="stylesheet" href="/assets/website/home-core-v1.css?v=1">\n' if page=='index.html' else ''
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
@@ -63,8 +64,7 @@ def build(lang):
 <link rel="icon" href="/assets/website/brand/paia-icon-v1.png" type="image/png">
 <link rel="apple-touch-icon" href="/assets/website/brand/paia-icon-v1.png">
 <link rel="stylesheet" href="/assets/website/site.css?v=5">
-{'<link rel="stylesheet" href="/assets/website/home-core-v1.css?v=1">' if page=='index.html' else ''}
-<script src="/assets/website/site.js?v=4" defer></script>
+{home_css}<script src="/assets/website/site.js?v=4" defer></script>
 </head>
 <body data-page="{page}" data-language="{lang}">
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''
