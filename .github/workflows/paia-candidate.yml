@@ -92,6 +92,7 @@ jobs:
             embeddingEligible=labRouting.embeddingOnly===true||labRouting.embeddingProbeOnly===true;
           const revisitPaths=new Set([
             'extension/core/revisit.js',
+            'extension/ui/revisit.js',
             'extension/tests/cpv1-07-revisit-selection.test.mjs',
             'extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs',
             '.github/workflows/paia-candidate.yml',
@@ -105,9 +106,15 @@ jobs:
             &&changed.every(path=>path==='extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'
               ||path==='.github/workflows/paia-candidate.yml'
               ||/^extension\/docs\/consumer-product-v1\/(STATUS|EXECUTION_PROTOCOL)\.md$/.test(path));
+          const revisitUI=changed.includes('extension/ui/revisit.js')
+            &&changed.includes('extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs')
+            &&changed.every(path=>path==='extension/ui/revisit.js'
+              ||path==='extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'
+              ||path==='.github/workflows/paia-candidate.yml'
+              ||/^extension\/docs\/consumer-product-v1\/(STATUS|EXECUTION_PROTOCOL)\.md$/.test(path));
           const revisitEligible=sourceAncestor&&changed.length>0
             &&new Set(changed).size===changed.length
-            &&(revisitImplementation||revisitBrowserOnly)
+            &&(revisitImplementation||revisitBrowserOnly||revisitUI)
             &&changed.every(path=>revisitPaths.has(path));
           const indexPaths=new Set([
             'extension/core/semantic-index.js','extension/tests/cpv1-07-semantic-index.test.mjs',
@@ -223,7 +230,7 @@ jobs:
 
       - name: VS07 finite Revisit priority and exclusion journeys
         if: contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER')
-        run: xvfb-run -a node --test --test-name-pattern="VS07 Revisit explains a finite priority set|VS07 Revisit finds worked material beyond|UX-R2 topic exclusion removes related Input previews|UX-R2 live capture scope" tests/ux-r2-reader-revisit-chrome-e2e.test.mjs
+        run: xvfb-run -a node --test --test-name-pattern="VS07 Revisit explains a finite priority set|VS07 Revisit finds worked material beyond|VS07 Revisit revokes delayed real reads|UX-R2 topic exclusion removes related Input previews|UX-R2 live capture scope" tests/ux-r2-reader-revisit-chrome-e2e.test.mjs
 
 
       - name: VS07 native IndexedDB complete snapshot and index lifecycle
