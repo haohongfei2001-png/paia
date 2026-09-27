@@ -81,6 +81,7 @@ export async function inspectPublicRerankerSource(id,{fetcher=fetch}={}){
     }
     const files=pinned.siblings.map(v=>v.rfilename);
     result.inventory={fileCount:files.length,
+      onnxFiles:files.filter(v=>v.endsWith('.onnx')).sort(),
       onnxListed:files.some(v=>v.endsWith('.onnx')),
       quantizedOnnxListed:files.some(v=>v.endsWith('.onnx')&&/quant|qint|quint|int8|q8/.test(v)),
       tensorBytesFromMetadata:'NOT_VERIFIED'};

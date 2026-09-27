@@ -6,7 +6,7 @@ import {rankAll} from '../core/memory/retrieval.js';
 const CATEGORIES = new Set(['lexical','paraphrase_zh','fuzzy_recollection','no_shared_keywords',
   'negation','correction','quotation_vs_belief','no_answer','date_constraint',
   'source_constraint','date_source_constraint','exclusion','unknown_time']);
-const METHODS = new Set(['lexical-production-v1','character-tfidf-lab-v1','unselected-semantic-lab-v1','multilingual-e5-small-onnx-lab-v1','official-multilingual-minilm-onnx-lab-v1','official-hybrid-rrf-lab-v1']);
+const METHODS = new Set(['lexical-production-v1','character-tfidf-lab-v1','unselected-semantic-lab-v1','multilingual-e5-small-onnx-lab-v1','official-multilingual-minilm-onnx-lab-v1','official-hybrid-rrf-lab-v1','official-mmarco-paired-logit-lab-v1']);
 const SOURCES = new Set(['chatgpt','claude']);
 const ROLES = new Set(['statement','quotation','historical','correction','proposal','question','hypothesis','recollection']);
 const iso = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)

@@ -34,12 +34,31 @@ const sourceOnlyPaths=new Set([
 ]);
 const sourceModule='extension/experiments/public-reranker-provenance.mjs';
 const sourceScript='extension/scripts/screen-public-rerankers.mjs';
+const pairedPaths=new Set([
+ 'extension/experiments/public-paired-text-lab.mjs',
+ 'extension/scripts/run-public-paired-text-lab.mjs',
+ 'extension/experiments/public-reranker-provenance.mjs',
+ 'extension/experiments/retrieval-evaluation.mjs',
+ 'extension/tests/cpv1-07-semantic-lab.test.mjs',
+ 'extension/tests/cpv1-07-public-model-provenance.test.mjs',
+ 'extension/scripts/semantic-lab-change.mjs',
+ '.github/workflows/paia-vs07-semantic-lab.yml',
+ '.github/workflows/paia-candidate.yml',
+ 'extension/docs/consumer-product-v1/STATUS.md',
+ 'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'
+]);
+const pairedModule='extension/experiments/public-paired-text-lab.mjs';
+const pairedScript='extension/scripts/run-public-paired-text-lab.mjs';
 export function semanticLabRouting(evidence={}){
  const {action,before,head,ancestor,paths}=evidence;
  const verified=action==='synchronize'&&sha(before)&&sha(head)&&before!==head
   &&ancestor===true&&Array.isArray(paths)&&paths.length>0
   &&paths.every(x=>typeof x==='string'&&x.length>0&&x.length<=500)
   &&new Set(paths).size===paths.length;
+ const pairedOnly=verified&&paths.includes(pairedModule)&&paths.includes(pairedScript)
+  &&paths.every(path=>pairedPaths.has(path));
+ if(pairedOnly)return {runProbe:false,runSourceScreen:true,sourceOnly:false,
+  runPairedProbe:true,pairedOnly:true};
  const sourceOnly=verified&&paths.includes(sourceModule)&&paths.includes(sourceScript)
   &&paths.every(path=>sourceOnlyPaths.has(path));
  return {runProbe:!verified?true:sourceOnly?false:semanticProbeRequired(evidence),
@@ -60,8 +79,8 @@ function classify(){
  }
  const routing=semanticLabRouting({action,before,head,ancestor,paths});
  const required=routing.runProbe;
- appendFileSync(process.env.GITHUB_OUTPUT,'run_probe='+required+'\nrun_source_screen='+routing.runSourceScreen+'\n');
- console.log(required?'Semantic inputs changed or unverified: run the original bounded model probe.':
+ appendFileSync(process.env.GITHUB_OUTPUT,'run_probe='+required+'\nrun_source_screen='+routing.runSourceScreen+'\nrun_paired_probe='+!!routing.runPairedProbe+'\n');
+ console.log(routing.pairedOnly?'Verified new paired-text batch: one changed-input paired probe; retain old MiniLM measurement.':required?'Semantic inputs changed or unverified: run the original bounded model probe.':
   'Semantic inputs unchanged: retained prior measurement only; no new quality or production certification.');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))classify();

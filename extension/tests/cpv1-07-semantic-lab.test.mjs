@@ -275,3 +275,161 @@ test('CPV1-07 development scoring rejects duplicate/outside/partial/nonfinite ro
     c.tasks[0].relevant=[];return scope.map(row=>({id:row.id,score:.8}));
   }),/invalid semantic development calibration/);
 });
+
+import {PAIRED_LAB_POLICY,admitPairedSource,admitPairedTokenInputs,
+ pairedLogitScore,createPairedTextScorer} from '../experiments/public-paired-text-lab.mjs';
+import {semanticLabRouting} from '../scripts/semantic-lab-change.mjs';
+const pairTensor=(data,type='int64',dims=[1,data.length])=>({type,dims,
+ data:type==='int64'?BigInt64Array.from(data):Float32Array.from(data)});
+const pairTokens=()=>({input_ids:pairTensor([0n,17n,2n,2n,23n,2n]),
+ attention_mask:pairTensor([1n,1n,1n,1n,1n,1n]),
+ token_type_ids:pairTensor([0n,0n,0n,1n,1n,1n])});
+const rawPairOutput=x=>({logits:pairTensor([x],'float32',[1,1])});
+const pairedSource=()=>({
+ repository:PAIRED_LAB_POLICY.model,revision:PAIRED_LAB_POLICY.revision,
+ diagnosis:'CONSISTENT_DECLARED_SOURCE_PENDING_INPUT_AND_QUALITY',
+ currentLicense:{card:{declaration:'apache-2.0'}},pinnedLicense:{card:{declaration:'apache-2.0'}},
+ readme:{sha256:PAIRED_LAB_POLICY.readmeSha256,license:{declaration:'apache-2.0'}},
+ config:{sha256:PAIRED_LAB_POLICY.configSha256},
+ tokenizerConfig:{sha256:PAIRED_LAB_POLICY.tokenizerConfigSha256},
+ inputContract:{architecture:'XLMRobertaForSequenceClassification',hiddenDimension:384,
+ layers:12,positionLimit:514,outputLabels:1,tokenizerClass:'XLMRobertaTokenizer',
+ tokenizerDeclaredLimit:512,remoteCodeDeclarationPresent:false}
+});
+test('CPV1-07 paired source requires exact observed revision, source digests and finite one-label contract',()=>{
+ assert.equal(admitPairedSource(pairedSource()),true);
+ for(const alter of [
+  s=>s.repository='PRIVATE_SOURCE_CANARY',s=>s.revision='a'.repeat(40),
+  s=>s.readme.sha256='b'.repeat(64),s=>s.config.sha256='b'.repeat(64),
+  s=>s.tokenizerConfig.sha256='b'.repeat(64),s=>s.currentLicense.card.declaration='unknown',
+  s=>s.inputContract.outputLabels=2,s=>s.inputContract.remoteCodeDeclarationPresent=true,
+  s=>s.inputContract.tokenizerDeclaredLimit=8192,s=>s.inputContract.layers=24,
+  s=>s.inputContract.positionLimit=513,s=>s.inputContract.architecture='OTHER_OR_UNVERIFIED'
+ ]){
+  const s=pairedSource();alter(s);
+  assert.throws(()=>admitPairedSource(s),
+   e=>e.message==='invalid public paired-text lab contract'&&!e.message.includes('PRIVATE'));
+ }
+ assert.equal(PAIRED_LAB_POLICY.productionClaim,false);
+});
+test('CPV1-07 paired inputs retain actual segments and copy tokenizer-owned int64 tensors',()=>{
+ const tokens=pairTokens(),names=['input_ids','attention_mask','token_type_ids'];
+ const feeds=admitPairedTokenInputs(names,tokens);
+ assert.deepEqual(feeds.token_type_ids.data,BigInt64Array.from([0n,0n,0n,1n,1n,1n]));
+ tokens.input_ids.data[1]=999n;tokens.token_type_ids.data.fill(0n);
+ assert.equal(feeds.input_ids.data[1],17n);assert.equal(feeds.token_type_ids.data[3],1n);
+ assert.equal(admitPairedTokenInputs(['input_ids','attention_mask'],pairTokens()).token_type_ids,undefined);
+});
+test('CPV1-07 paired inputs reject missing, fabricated, mismatched or invalid graph tensors',()=>{
+ for(const alter of [
+  t=>delete t.attention_mask,t=>t.input_ids.type='float32',
+  t=>t.input_ids.data=new Int32Array(6),t=>t.input_ids.data[0]=-1n,
+  t=>t.input_ids.dims=[2,3],t=>t.attention_mask.dims=[1,5],
+  t=>t.attention_mask.data.fill(0n),t=>t.attention_mask.data[0]=2n,
+  t=>t.token_type_ids.data[3]=2n,t=>t.token_type_ids.data=new BigInt64Array(5)
+ ]){
+  const t=pairTokens();alter(t);
+  assert.throws(()=>admitPairedTokenInputs(['input_ids','attention_mask','token_type_ids'],t),
+   /invalid public paired-text lab contract/);
+ }
+ for(const names of [[],['input_ids'],['input_ids','attention_mask','input_ids'],
+  ['input_ids','attention_mask','PRIVATE_GRAPH_CANARY']])
+  assert.throws(()=>admitPairedTokenInputs(names,pairTokens()),
+   e=>e.message==='invalid public paired-text lab contract');
+});
+test('CPV1-07 complete pair at 512 tokens is admitted and 513 tokens is refused without truncation',async()=>{
+ const make=n=>({input_ids:pairTensor(Array(n).fill(7n)),
+  attention_mask:pairTensor(Array(n).fill(1n))});
+ assert.equal(admitPairedTokenInputs(['input_ids','attention_mask'],make(512)).input_ids.dims[1],512);
+ let runs=0;
+ const scorer=createPairedTextScorer({inputNames:['input_ids','attention_mask'],
+  tokenize:async()=>make(513),run:async()=>{runs++;return rawPairOutput(1);}});
+ await assert.rejects(scorer.score([records[0]],'PRIVATE_LONG_QUERY'),
+  e=>e.message==='invalid public paired-text lab contract');
+ assert.equal(runs,0);assert.equal(scorer.observation().pairs,0);
+});
+test('CPV1-07 raw one-logit lab transform discriminates negative and positive pairs without softmax',()=>{
+ const negative=pairedLogitScore(rawPairOutput(-2)),positive=pairedLogitScore(rawPairOutput(2));
+ assert.ok(Math.abs(negative-0.11920292202211755)<1e-12);
+ assert.ok(Math.abs(positive-0.8807970779778823)<1e-12);
+ assert.equal(pairedLogitScore(rawPairOutput(0)),.5);
+ assert.equal(pairedLogitScore(rawPairOutput(1000)),1);
+ assert.equal(pairedLogitScore(rawPairOutput(-1000)),0);
+ assert.ok(positive>negative);assert.ok(PAIRED_LAB_POLICY.transform.includes('not_probability'));
+});
+test('CPV1-07 malformed, nonfinite, extra or multi-output classifier results fail closed',()=>{
+ for(const output of [
+  null,{},rawPairOutput(NaN),rawPairOutput(Infinity),
+  {logits:pairTensor([1,2],'float32',[1,2])},
+  {logits:pairTensor([1],'float32',[1])},
+  {logits:{type:'float64',dims:[1,1],data:new Float64Array([1])}},
+  {logits:pairTensor([1],'float32',[1,1]),hidden_state:pairTensor([1],'float32',[1,1])}
+ ])assert.throws(()=>pairedLogitScore(output),/invalid public paired-text lab contract/);
+});
+test('CPV1-07 paired scorer passes complete query and each scoped document through explicit text_pair',async()=>{
+ const calls=[];
+ const scorer=createPairedTextScorer({inputNames:['input_ids','attention_mask','token_type_ids'],
+  tokenize:async(query,options)=>{calls.push({query,...options});return pairTokens();},
+  run:async feeds=>{assert.equal(feeds.token_type_ids.data[3],1n);
+   return rawPairOutput(calls.length===1?-2:2);}});
+ const rows=await scorer.score([records[1],records[0]],'complete query 中文');
+ assert.deepEqual(calls,[
+  {query:'complete query 中文',text_pair:'beta\nsecond',padding:false,truncation:false,return_token_type_ids:true},
+  {query:'complete query 中文',text_pair:'alpha\nfirst',padding:false,truncation:false,return_token_type_ids:true}
+ ]);
+ assert.deepEqual(rankCalibrationScores(rows,.7),['a']);
+ assert.equal(scorer.observation().pairs,2);
+ assert.equal(scorer.observation().maximumObservedTokens,6);
+ assert.equal(scorer.observation().fabricatedTokenInputs,false);
+ const count=calls.length;
+ assert.deepEqual(await scorer.score([],'nonempty'),[]);assert.equal(calls.length,count);
+});
+test('CPV1-07 invalid scope or query is rejected before any pair tokenizer or model call',async()=>{
+ let calls=0;
+ const scorer=createPairedTextScorer({inputNames:['input_ids','attention_mask'],
+  tokenize:async()=>{calls++;return pairTokens();},run:async()=>{calls++;return rawPairOutput(0);}});
+ for(const scope of [
+  [records[0],records[0]],[records[0],{...records[1],excluded:true}],
+  [records[0],{...records[1],body:''}],[{...records[0],id:''}],null
+ ])await assert.rejects(scorer.score(scope,'PRIVATE_QUERY_CANARY'),
+  e=>e.message==='invalid public paired-text lab contract');
+ await assert.rejects(scorer.score(records,' '),/invalid public paired-text lab contract/);
+ assert.equal(calls,0);
+});
+test('CPV1-07 paired scores use unchanged strict development selection before fixed diagnostic ranks',async()=>{
+ const calls=[];
+ const scorer=createPairedTextScorer({inputNames:['input_ids','attention_mask'],
+  tokenize:async(query,options)=>{
+   const task=calibrationCorpus.tasks.find(t=>t.query===query);
+   // Independent synthetic test oracle supplies raw logits; scorer receives no labels.
+   assert.ok(task);assert.equal(options.truncation,false);
+   const record=calibrationCorpus.records.find(r=>r.title+'\n'+r.body===options.text_pair);
+   assert.ok(record&&!record.excluded);
+   calls.push([query,record.id]);
+   const relevant=task.relevant.includes(record.id);
+   return {input_ids:pairTensor([relevant?2n:0n]),
+    attention_mask:pairTensor([1n])};
+  },run:async feeds=>rawPairOutput(feeds.input_ids.data[0]===2n?2:-2)});
+ const report=await calibrateDevelopmentThreshold(calibrationCorpus,retrievalCorpus,scorer.score);
+ assert.equal(calls.length,16*8);assert.equal(report.selectedThreshold,.85);
+ assert.equal(report.comparisons.find(r=>r.threshold===.9).positiveHits,0);
+ assert.equal(report.comparisons.find(r=>r.threshold===.85).falsePositives,0);
+ assert.equal(report.selectionExcludedFixedEvaluation,true);assert.equal(report.modelAdmitted,false);
+ assert.equal(report.rule.minimumPositiveHitRate,.75);assert.equal(report.rule.maximumNoAnswerFalsePositiveRate,0);
+});
+test('CPV1-07 paired exact batch routing triggers one new model probe and keeps old MiniLM evidence',()=>{
+ const paths=['extension/experiments/public-paired-text-lab.mjs',
+  'extension/scripts/run-public-paired-text-lab.mjs','extension/experiments/retrieval-evaluation.mjs',
+  'extension/experiments/public-reranker-provenance.mjs','extension/tests/cpv1-07-semantic-lab.test.mjs',
+  'extension/scripts/semantic-lab-change.mjs','.github/workflows/paia-vs07-semantic-lab.yml',
+  '.github/workflows/paia-candidate.yml','extension/docs/consumer-product-v1/STATUS.md'];
+ const evidence={action:'synchronize',before:'a'.repeat(40),head:'b'.repeat(40),ancestor:true,paths};
+ assert.deepEqual(semanticLabRouting(evidence),{runProbe:false,runSourceScreen:true,sourceOnly:false,
+  runPairedProbe:true,pairedOnly:true});
+ for(const change of [{action:'opened'},{ancestor:false},{before:null},{head:'a'.repeat(40)},
+  {paths:[...paths,paths[0]]},{paths:paths.slice(1)},{paths:[...paths,'extension/core/search-service.js']},
+  {paths:[...paths,'extension/tests/fixtures/cpv1-07-calibration-corpus.mjs']}]){
+  const result=semanticLabRouting({...evidence,...change});
+  assert.equal(result.runProbe,true);assert.equal(result.pairedOnly,undefined);
+ }
+});

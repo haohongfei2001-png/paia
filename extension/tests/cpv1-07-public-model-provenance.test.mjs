@@ -383,3 +383,13 @@ test('CPV1-07 paired-text unavailable source observations stay bounded and non-e
     assert.equal(report.config,undefined);
   }
 });
+
+test('CPV1-07 exact public ONNX inventory is emitted without fetching tensor payloads',async()=>{
+ const f=rerankerFixture(),report=await inspectPublicRerankerSource(RERANKER_SOURCES[0],f);
+ assert.deepEqual(report.inventory.onnxFiles,['onnx/model_quantized.onnx']);
+ assert.equal(f.calls.some(url=>url.endsWith('.onnx')||url.endsWith('.safetensors')),false);
+ assert.equal(report.weightsDownloaded,false);assert.equal(report.inferenceExecuted,false);
+ const empty=rerankerFixture(RERANKER_SOURCES[0],{pinned:{
+  ...f.metadata,siblings:f.metadata.siblings.filter(v=>!v.rfilename.endsWith('.onnx'))}});
+ assert.deepEqual((await inspectPublicRerankerSource(RERANKER_SOURCES[0],empty)).inventory.onnxFiles,[]);
+});
