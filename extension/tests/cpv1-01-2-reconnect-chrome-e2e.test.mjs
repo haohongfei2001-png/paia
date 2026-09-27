@@ -257,10 +257,11 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
 
 test('CPV1-01.2: pending capture status still exposes one refresh action after real extension reload', { timeout: 120000 }, async () => {
   const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-pending-reconnect-'));
+  const profile = await mkdtemp(join(tmpdir(), 'paia-cpv1-pending-profile-'));
   execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
   let h;
   try {
-    h = await FakeChatGPT.start({ extensionPath: release, headless: true });
+    h = await FakeChatGPT.start({ extensionPath: release, headless: true, userDataDir: profile });
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
     await h.archive.locator('#enable-consent').click();
     await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
@@ -306,22 +307,29 @@ test('CPV1-01.2: pending capture status still exposes one refresh action after r
     assert.equal(await oldTab.locator('#paia-reconnect-notice button').textContent(), '刷新此 ChatGPT 页面');
     assert.equal(await oldTab.locator('#paia-reconnect-notice').count(), 1);
     assert.equal(await oldTab.locator('textarea').inputValue(), 'UNSENT_RELOAD_CANARY');
-    // runtime.reload invalidates the actual old document above. The harness
-    // installs an unpacked extension through CDP; explicitly load that same
-    // candidate once before opening a fresh trusted extension page. Do not
-    // retry a blocked navigation or alter the old-page outcome/deadline.
-    const { id: reloadedId } = await h.cdp.send('Extensions.loadUnpacked', { path: release });
-    assert.equal(reloadedId, h.extensionId, 'same unpacked candidate retains extension identity');
-    const fresh = await h.context.newPage();
-    await fresh.goto('chrome-extension://' + reloadedId + '/ui/archive.html');
-    assert.equal(await fresh.evaluate(() => chrome.runtime.getManifest().version), '0.12.1',
-      'archive readback belongs to the updated real candidate');
-    const state = await fresh.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATE' }));
-    assert.equal(state.ok, true);
-    assert.equal(state.data.records.length, 3, 'already stored source remains intact');
+    const { result: pendingReadback } = await cdp.send('Runtime.evaluate', {
+      contextId: captureWorld, returnByValue: true, expression: 'globalThis.__pendingStatus'
+    });
+    assert.equal(pendingReadback.value, 1, 'invalidation does not issue another status attempt');
+    const extensionId = h.extensionId;
     await cdp.detach();
+    // All actual old-document refresh and unsent-input obligations above are
+    // mandatory before closing anything. CDP-installed extension navigation
+    // after runtime.reload is not a reliable fresh archive startup on hosted
+    // Chrome. Use the same established version-update journey as the original
+    // case: one real browser restart with this unchanged isolated profile.
+    // Never retry navigation, reinstall/uninstall or recreate the database.
+    await h.close(); h = undefined;
+    h = await FakeChatGPT.start({
+      extensionPath: release, headless: true, userDataDir: profile, onboarding: true
+    });
+    assert.equal(h.extensionId, extensionId, 'reopened candidate retains extension identity');
+    assert.equal(await h.archive.evaluate(() => chrome.runtime.getManifest().version), '0.12.1',
+      'archive readback belongs to the updated real candidate');
+    assert.equal((await h.state()).records.length, 3, 'already stored source remains intact');
   } finally {
     await h?.close();
     await rm(release, { recursive: true, force: true });
+    await rm(profile, { recursive: true, force: true });
   }
 });
