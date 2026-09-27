@@ -153,6 +153,8 @@ test('VS07 Revisit explains a finite priority set and keeps saved position and e
   const positions=await rpc(p,'PAIA_READER_RECENT');assert.equal(positions.length,1);
   await navigate(p,{view:'revisit'});
   assert.equal(await p.locator('#revisit-old-toggle').isChecked(),false);
+  await eventually(()=>p.evaluate(()=>!!history.state?.paiaRevisitWindow),
+   'priority visit observes actual OPEN identity before querying its boundary');
   const firstVisit=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
    windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
   assert.deepEqual(firstVisit.resurface,[]);
@@ -162,8 +164,12 @@ test('VS07 Revisit explains a finite priority set and keeps saved position and e
   // Captures after the startup visit boundary are genuinely new this visit.
   // Advance only by the real close/open UI, without a fake mark/read-all write.
   await p.locator('.revisit-close').click();
-  await eventually(()=>p.locator('#revisit-panel').isHidden(),'visit closes normally');
+  await eventually(async()=>await p.locator('#revisit-panel').isHidden()&&
+   await p.evaluate(()=>!history.state?.paiaRevisitWindow),
+   'priority visit observes actual CLOSE acknowledgement');
   await navigate(p,{view:'revisit'});
+  await eventually(()=>p.evaluate(()=>!!history.state?.paiaRevisitWindow),
+   'priority next visit observes actual OPEN identity');
   const nextVisit=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
    windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
   assert.equal(nextVisit.window.start,8);assert.equal(nextVisit.window.end,8);
