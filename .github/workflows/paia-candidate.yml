@@ -89,7 +89,7 @@ jobs:
           const labRouting=semanticLabRouting({action:process.env.EVENT_ACTION,
             before:previous,head,ancestor:sourceAncestor,paths:changed});
           const sourceEligible=labRouting.sourceOnly,pairedEligible=labRouting.pairedOnly===true,
-            embeddingEligible=labRouting.embeddingOnly===true;
+            embeddingEligible=labRouting.embeddingOnly===true||labRouting.embeddingProbeOnly===true;
           const revisitPaths=new Set([
             'extension/core/revisit.js',
             'extension/tests/cpv1-07-revisit-selection.test.mjs',

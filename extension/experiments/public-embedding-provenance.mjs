@@ -102,6 +102,20 @@ export async function inspectPublicEmbeddingSource(id,{fetcher=fetch}={}){
    tokenizerDeclaredLimit:integer(tokenizer.model_max_length,1,32768),
    remoteCodeDeclarationPresent:remote,inputExecutionVerified:false};
   if(!known||remote){result.diagnosis='CONFIGURATION_UNVERIFIED';return result;}
+  result.sentenceTransformerConfiguration=null;
+  result.inputContract.sentenceTransformerLimit=null;
+  if(files.includes('sentence_bert_config.json')){
+   const read=await boundedRead(raw('sentence_bert_config.json'),fetcher,64*1024);
+   result.sentenceTransformerConfiguration={file:'sentence_bert_config.json',...read.receipt};
+   result.configurationFiles.push(result.sentenceTransformerConfiguration);
+   if(read.text===undefined){result.diagnosis='INPUT_CONFIGURATION_UNAVAILABLE';return result;}
+   const value=JSON.parse(read.text);
+   if(!object(value)||Object.hasOwn(value,'auto_map')
+    ||integer(value.max_seq_length,1,512)===null){
+    result.diagnosis='INPUT_CONFIGURATION_UNVERIFIED';return result;
+   }
+   result.inputContract.sentenceTransformerLimit=value.max_seq_length;
+  }
   result.moduleOrder=modules.map(v=>v.type.slice('sentence_transformers.models.'.length));
   result.pooling=null;result.projection=null;result.normalizationDeclared=modules.some(v=>
    v.type==='sentence_transformers.models.Normalize');

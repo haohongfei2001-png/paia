@@ -600,3 +600,68 @@ test('CPV1-07 embedding source module order and fixed module paths cannot invent
   assert.equal(calls.some(x=>x.includes('1_Pooling/config.json')),false);
  }
 });
+
+
+test('CPV1-07 official embedding source reads bounded sentence-transformer input length without inferring missing defaults',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ const id=EMBEDDING_SOURCES[0],rev='b'.repeat(40);
+ for(const setting of [{max_seq_length:128},{max_seq_length:true},{max_seq_length:513},
+  {max_seq_length:0},{max_seq_length:1.5},{max_seq_length:128,auto_map:{PRIVATE:'PRIVATE'}},null]){
+  const files=['README.md','config.json','tokenizer_config.json','modules.json',
+   'sentence_bert_config.json','1_Pooling/config.json'];
+  const metadata={id,sha:rev,private:false,gated:false,cardData:{license:'apache-2.0'},
+   siblings:files.map(rfilename=>({rfilename}))};
+  const calls=[];
+  const report=await inspectPublicEmbeddingSource(id,{fetcher:async url=>{
+   const path=new URL(url).pathname;calls.push(path);
+   if(path.startsWith('/api/models/'))return response(JSON.stringify(metadata));
+   if(path.endsWith('/README.md'))return response('---\nlicense: apache-2.0\n---\n');
+   if(path.endsWith('/sentence_bert_config.json'))return response(JSON.stringify(setting));
+   if(path.endsWith('/tokenizer_config.json'))return response('{"model_max_length":512}');
+   if(path.endsWith('/modules.json'))return response(JSON.stringify([
+    {idx:0,type:'sentence_transformers.models.Transformer',path:''},
+    {idx:1,type:'sentence_transformers.models.Pooling',path:'1_Pooling'}]));
+   if(path.endsWith('/1_Pooling/config.json'))return response(JSON.stringify({
+    word_embedding_dimension:768,pooling_mode_cls_token:false,pooling_mode_mean_tokens:true,
+    pooling_mode_max_tokens:false,pooling_mode_mean_sqrt_len_tokens:false}));
+   return response('{"architectures":["XLMRobertaModel"],"hidden_size":768}');
+  }});
+  if(setting?.max_seq_length===128&&!setting.auto_map){
+   assert.equal(report.diagnosis,'CONSISTENT_DECLARED_SOURCE_PENDING_INPUT_AND_QUALITY');
+   assert.equal(report.inputContract.sentenceTransformerLimit,128);
+   assert.equal(report.inputContract.tokenizerDeclaredLimit,512);
+   assert.equal(report.inputContract.tokenizerClass,'OTHER_OR_UNVERIFIED');
+   assert.equal(report.configurationFiles.length,5);
+  }else{
+   assert.equal(report.diagnosis,'INPUT_CONFIGURATION_UNVERIFIED');
+   assert.equal(calls.some(x=>x.endsWith('/1_Pooling/config.json')),false);
+  }
+  assert.equal(report.weightsDownloaded,false);assert.equal(report.inferenceExecuted,false);
+  assert.equal(report.truncationPolicy,'NOT_VERIFIED');assert.equal(JSON.stringify(report).includes('PRIVATE'),false);
+ }
+});
+test('CPV1-07 sentence-transformer source input overflow cancels before pooling or tensor download',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ const id=EMBEDDING_SOURCES[0],rev='c'.repeat(40),calls=[];
+ const files=['README.md','config.json','tokenizer_config.json','modules.json',
+  'sentence_bert_config.json','1_Pooling/config.json'];
+ const metadata={id,sha:rev,private:false,gated:false,cardData:{license:'apache-2.0'},
+  siblings:files.map(rfilename=>({rfilename}))};
+ let cancelled=0,released=0;
+ const report=await inspectPublicEmbeddingSource(id,{fetcher:async url=>{
+  const path=new URL(url).pathname;calls.push(path);
+  if(path.startsWith('/api/models/'))return response(JSON.stringify(metadata));
+  if(path.endsWith('/README.md'))return response('---\nlicense: apache-2.0\n---\n');
+  if(path.endsWith('/sentence_bert_config.json'))return {status:200,body:{getReader:()=>({
+   read:async()=>({done:false,value:new Uint8Array(64*1024+1)}),
+   cancel:async()=>{cancelled++;},releaseLock:()=>{released++;}})}};
+  if(path.endsWith('/tokenizer_config.json'))return response('{"model_max_length":512}');
+  if(path.endsWith('/modules.json'))return response(JSON.stringify([
+   {idx:0,type:'sentence_transformers.models.Transformer',path:''},
+   {idx:1,type:'sentence_transformers.models.Pooling',path:'1_Pooling'}]));
+  return response('{"architectures":["XLMRobertaModel"],"hidden_size":768}');
+ }});
+ assert.equal(report.diagnosis,'INPUT_CONFIGURATION_UNAVAILABLE');assert.equal(cancelled,1);assert.equal(released,1);
+ assert.equal(calls.some(x=>x.endsWith('/1_Pooling/config.json')||x.endsWith('.onnx')),false);
+ assert.equal(report.inputContract.sentenceTransformerLimit,null);
+});

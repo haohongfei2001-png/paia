@@ -60,12 +60,29 @@ const embeddingPaths=new Set([
  'extension/docs/consumer-product-v1/STATUS.md',
  'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'
 ]);
+const embeddingProbePaths=new Set([
+ "extension/experiments/public-embedding-inputs.mjs",
+ "extension/scripts/run-public-embedding-lab.mjs",
+ "extension/experiments/public-embedding-provenance.mjs",
+ "extension/tests/cpv1-07-public-model-provenance.test.mjs",
+ "extension/tests/cpv1-07-semantic-lab.test.mjs",
+ "extension/scripts/semantic-lab-change.mjs",
+ ".github/workflows/paia-vs07-semantic-lab.yml",
+ ".github/workflows/paia-candidate.yml",
+ "extension/docs/consumer-product-v1/STATUS.md",
+ "extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md"
+]);
 export function semanticLabRouting(evidence={}){
  const {action,before,head,ancestor,paths}=evidence;
  const verified=action==='synchronize'&&sha(before)&&sha(head)&&before!==head
   &&ancestor===true&&Array.isArray(paths)&&paths.length>0
   &&paths.every(x=>typeof x==='string'&&x.length>0&&x.length<=500)
   &&new Set(paths).size===paths.length;
+ const embeddingProbeOnly=verified&&paths.includes('extension/experiments/public-embedding-inputs.mjs')
+  &&paths.includes('extension/scripts/run-public-embedding-lab.mjs')
+  &&paths.every(path=>embeddingProbePaths.has(path));
+ if(embeddingProbeOnly)return {runProbe:false,runSourceScreen:false,sourceOnly:false,
+  runPairedProbe:false,runEmbeddingScreen:false,runEmbeddingProbe:true,embeddingProbeOnly:true};
  const embeddingOnly=verified&&paths.includes('extension/experiments/public-embedding-provenance.mjs')
   &&paths.includes('extension/scripts/screen-public-embeddings.mjs')
   &&paths.every(path=>embeddingPaths.has(path));
@@ -95,8 +112,8 @@ function classify(){
  }
  const routing=semanticLabRouting({action,before,head,ancestor,paths});
  const required=routing.runProbe;
- appendFileSync(process.env.GITHUB_OUTPUT,'run_probe='+required+'\nrun_source_screen='+routing.runSourceScreen+'\nrun_paired_probe='+!!routing.runPairedProbe+'\nrun_embedding_screen='+!!routing.runEmbeddingScreen+'\n');
- console.log(routing.embeddingOnly?'Verified new official embedding source batch: source contracts only; retain both negative model measurements.':routing.pairedOnly?'Verified new paired-text batch: one changed-input paired probe; retain old MiniLM measurement.':required?'Semantic inputs changed or unverified: run the original bounded model probe.':
+ appendFileSync(process.env.GITHUB_OUTPUT,'run_probe='+required+'\nrun_source_screen='+routing.runSourceScreen+'\nrun_paired_probe='+!!routing.runPairedProbe+ '\nrun_embedding_screen='+!!routing.runEmbeddingScreen+'\nrun_embedding_probe='+!!routing.runEmbeddingProbe+'\n');
+ console.log(routing.embeddingProbeOnly?'Verified one new official XLM embedding candidate: one actual CPU measurement; retain old model receipts.':routing.embeddingOnly?'Verified new official embedding source batch: source contracts only; retain both negative model measurements.':routing.pairedOnly?'Verified new paired-text batch: one changed-input paired probe; retain old MiniLM measurement.':required?'Semantic inputs changed or unverified: run the original bounded model probe.':
   'Semantic inputs unchanged: retained prior measurement only; no new quality or production certification.');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))classify();

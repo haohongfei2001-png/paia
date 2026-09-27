@@ -4,6 +4,8 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
+      - 'extension/experiments/public-embedding-inputs.mjs'
+      - 'extension/scripts/run-public-embedding-lab.mjs'
       - 'extension/experiments/public-embedding-provenance.mjs'
       - 'extension/scripts/screen-public-embeddings.mjs'
       - 'extension/experiments/public-paired-text-lab.mjs'
@@ -82,7 +84,7 @@ jobs:
           retention-days: 7
       # Actual36293632404 verified this official repository's exact Apache declaration.
       - name: Install only pinned isolated public lab dependencies
-        if: steps.semantic_change.outputs.run_probe == 'true' || steps.semantic_change.outputs.run_paired_probe == 'true'
+        if: steps.semantic_change.outputs.run_probe == 'true' || steps.semantic_change.outputs.run_paired_probe == 'true' || steps.semantic_change.outputs.run_embedding_probe == 'true'
         run: |
           mkdir -p "$RUNNER_TEMP/paia-semantic-lab"
           cp extension/experiments/semantic-lab/package.json "$RUNNER_TEMP/paia-semantic-lab/package.json"
@@ -133,6 +135,32 @@ jobs:
           name: vs07-paired-public-lab-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/paia-paired-lab-report.json
+            ${{ runner.temp }}/paia-semantic-lab/package-lock.json
+          if-no-files-found: error
+          retention-days: 7
+
+
+      - name: One new pinned official XLM mean CPU measurement with fixed development gates
+        if: steps.semantic_change.outputs.run_embedding_probe == 'true'
+        env:
+          PAIA_SEMANTIC_LAB_ROOT: ${{ runner.temp }}/paia-semantic-lab
+          PAIA_PUBLIC_MODEL_CACHE: ${{ runner.temp }}/paia-public-xlm-cache
+          HF_TOKEN: ''
+          HF_ACCESS_TOKEN: ''
+        run: |
+          if node extension/scripts/run-public-embedding-lab.mjs > "$RUNNER_TEMP/paia-xlm-lab-report.json"; then
+            cat "$RUNNER_TEMP/paia-xlm-lab-report.json"
+          else
+            cat "$RUNNER_TEMP/paia-xlm-lab-report.json"
+            exit 1
+          fi
+      - name: Retain aggregate-only new XLM measurement and isolated dependency lock
+        if: always() && steps.semantic_change.outputs.run_embedding_probe == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs07-xlm-public-lab-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/paia-xlm-lab-report.json
             ${{ runner.temp }}/paia-semantic-lab/package-lock.json
           if-no-files-found: error
           retention-days: 7

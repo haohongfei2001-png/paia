@@ -433,3 +433,168 @@ test('CPV1-07 paired exact batch routing triggers one new model probe and keeps 
   assert.equal(result.runProbe,true);assert.equal(result.pairedOnly,undefined);
  }
 });
+
+
+import {PUBLIC_XLM_EMBEDDING,admitPublicXlmEmbedding,observePublicXlmAsset,
+ admitPublicXlmTokenInputs,poolPublicXlmDense} from '../experiments/public-embedding-inputs.mjs';
+function observedXlmContract(){
+ const c=PUBLIC_XLM_EMBEDDING,receipt=(file,sha256)=>({file,sha256,httpStatus:200,bounded:true});
+ return {
+  repository:c.id,revision:c.revision,diagnosis:'CONSISTENT_DECLARED_SOURCE_PENDING_INPUT_AND_QUALITY',
+  weightsDownloaded:false,inferenceExecuted:false,productionClaim:false,modelAdmission:'NOT_AUTHORIZED',
+  currentLicense:{card:{declaration:'apache-2.0',permitted:true}},
+  pinnedLicense:{card:{declaration:'apache-2.0',permitted:true}},
+  readme:{sha256:c.readme,license:{declaration:'apache-2.0',permitted:true}},
+  configurationFiles:[receipt('config.json',c.config),receipt('tokenizer_config.json',c.tokenizer),
+   receipt('modules.json',c.modules),receipt('1_Pooling/config.json',c.pooling),
+   receipt('sentence_bert_config.json','a'.repeat(64))],
+  moduleOrder:['Transformer','Pooling'],projection:null,normalizationDeclared:false,
+  inputContract:{architecture:'XLMRobertaModel',hiddenDimension:768,remoteCodeDeclarationPresent:false,
+   sentenceTransformerLimit:128,tokenizerDeclaredLimit:512},
+  pooling:{dimension:768,modes:{pooling_mode_mean_tokens:true,pooling_mode_cls_token:false,
+   pooling_mode_max_tokens:false,pooling_mode_mean_sqrt_len_tokens:false,
+   pooling_mode_weightedmean_tokens:null,pooling_mode_lasttoken:null}},
+  sentenceTransformerConfiguration:{sha256:'a'.repeat(64)},
+  inventory:{onnxFiles:[c.asset]}
+ };
+}
+test('CPV1-07 new XLM lab binds actual pinned source and declared sentence limit without production admission',()=>{
+ const source=observedXlmContract(),before=JSON.stringify(source);
+ const contract=admitPublicXlmEmbedding(source);
+ assert.deepEqual(contract,{dimension:768,maximumTokens:128,artifact:'onnx/model_quint8_avx2.onnx',
+  labInputPrefix:'',pooling:'masked_mean_then_cosine_normalization',
+  productionAdmission:false,conversionEquivalence:'NOT_VERIFIED'});
+ assert.equal(Object.isFrozen(contract),true);assert.equal(JSON.stringify(source),before);
+});
+test('CPV1-07 new XLM lab refuses source/license/projection/default/limit substitution',()=>{
+ const mutations=[
+  x=>x.repository='PRIVATE_REPOSITORY',x=>x.revision='main',
+  x=>x.revision='0'.repeat(40),x=>x.readme.sha256='0'.repeat(64),
+  x=>x.currentLicense.card.permitted=false,x=>x.pinnedLicense.card.declaration='mit',
+  x=>x.weightsDownloaded=true,x=>x.modelAdmission='ADMITTED',
+  x=>x.configurationFiles[0].sha256='0'.repeat(64),
+  x=>x.configurationFiles.push({...x.configurationFiles[0]}),
+  x=>x.configurationFiles[1].bounded=false,x=>x.configurationFiles[2].httpStatus=302,
+  x=>x.projection={inputDimension:768},x=>x.normalizationDeclared=true,
+  x=>x.moduleOrder=['Transformer','Pooling','Dense'],
+  x=>x.inputContract.architecture='MPNetModel',x=>x.inputContract.hiddenDimension=384,
+  x=>x.inputContract.remoteCodeDeclarationPresent=true,
+  x=>x.inputContract.sentenceTransformerLimit=true,x=>x.inputContract.sentenceTransformerLimit=0,
+  x=>x.inputContract.sentenceTransformerLimit=129.5,x=>x.inputContract.sentenceTransformerLimit=513,
+  x=>x.inputContract.tokenizerDeclaredLimit=64,x=>x.pooling.dimension=384,
+  x=>x.pooling.modes.pooling_mode_cls_token=true,
+  x=>x.pooling.modes.pooling_mode_weightedmean_tokens=true,
+  x=>x.pooling.modes.pooling_mode_lasttoken=undefined,
+  x=>x.sentenceTransformerConfiguration.sha256='PRIVATE_HASH',
+  x=>x.inventory.onnxFiles=[]
+ ];
+ for(const mutate of mutations){const source=observedXlmContract();mutate(source);
+  assert.throws(()=>admitPublicXlmEmbedding(source),/^Error: official_embedding_contract_unverified$/);}
+});
+test('CPV1-07 XLM public asset admission requests only pinned bounded HEAD and retains cryptographic readback',async()=>{
+ const calls=[],c=PUBLIC_XLM_EMBEDDING;
+ const result=await observePublicXlmAsset({fetcher:async(url,options)=>{
+  calls.push({url,options});
+  return {status:302,headers:new Headers({'x-linked-size':'278000000','x-linked-etag':'"'+ 'b'.repeat(64)+'"'}),
+   text:()=>assert.fail('HEAD has no tensor read'),arrayBuffer:()=>assert.fail('HEAD has no tensor read')};
+ }});
+ assert.equal(calls.length,1);
+ assert.equal(calls[0].url,'https://huggingface.co/'+c.id+'/resolve/'+c.revision+'/'+c.asset);
+ assert.equal(calls[0].options.method,'HEAD');assert.equal(calls[0].options.redirect,'manual');
+ assert.equal(Object.hasOwn(calls[0].options.headers,'Authorization'),false);
+ assert.deepEqual(result,{asset:c.asset,bytes:278000000,sha256:'b'.repeat(64),pinnedRevision:c.revision,
+  bodyRequested:false,productionAdmission:false});
+ assert.equal(c.maximumArtifactBytes,384*1024*1024,'original resource ceiling retained');
+});
+test('CPV1-07 XLM asset unavailable/missing/overflow/ambiguous header refuses before any body download',async()=>{
+ for(const [status,size,digest] of [[403,'1','b'.repeat(64)],[302,null,'b'.repeat(64)],
+  [302,'0','b'.repeat(64)],[302,'01','b'.repeat(64)],[302,'true','b'.repeat(64)],
+  [302,String(384*1024*1024+1),'b'.repeat(64)],[302,'1','PRIVATE_HASH'],
+  [302,'1',null],[302,'1','W/"'+'b'.repeat(64)+'"']]){
+  let calls=0;
+  await assert.rejects(observePublicXlmAsset({fetcher:async()=>{
+   calls++;const headers=new Headers();if(size!==null)headers.set('x-linked-size',size);
+   if(digest!==null)headers.set('x-linked-etag',digest);
+   return {status,headers,arrayBuffer:()=>assert.fail('no body read'),text:()=>assert.fail('no body read')};
+  }}),/^Error: official_embedding_contract_unverified$/);
+  assert.equal(calls,1);
+ }
+});
+const xlmTensor=values=>({type:'int64',dims:[1,values.length],data:BigInt64Array.from(values)});
+test('CPV1-07 XLM full declared token boundary is copied unchanged and 129 tokens refuse without truncation',()=>{
+ const contract=admitPublicXlmEmbedding(observedXlmContract());
+ const names=['input_ids','attention_mask','token_type_ids'];
+ const tokens={input_ids:xlmTensor(Array.from({length:128},(_,i)=>BigInt(i+1))),
+  attention_mask:xlmTensor(Array(128).fill(1n)),token_type_ids:xlmTensor(Array(128).fill(0n))};
+ const before=Object.fromEntries(Object.entries(tokens).map(([name,t])=>[name,[...t.data]]));
+ const feeds=admitPublicXlmTokenInputs(names,tokens,contract);
+ for(const name of names){
+  assert.notEqual(feeds[name].data,tokens[name].data);assert.deepEqual([...feeds[name].data],before[name]);
+  assert.deepEqual(feeds[name].dims,[1,128]);assert.equal(Object.isFrozen(feeds[name].dims),true);
+ }
+ tokens.input_ids.data[0]=999n;assert.equal(feeds.input_ids.data[0],1n);
+ const long={input_ids:xlmTensor(Array(129).fill(1n)),
+  attention_mask:xlmTensor(Array(129).fill(1n)),token_type_ids:xlmTensor(Array(129).fill(0n))};
+ assert.throws(()=>admitPublicXlmTokenInputs(names,long,contract),/official_embedding_contract_unverified/);
+ assert.equal(long.input_ids.data.length,129);assert.equal(long.attention_mask.data.length,129);
+});
+test('CPV1-07 XLM graph and tokenizer tensors are actual int64 single sequences without defaults',()=>{
+ const contract=admitPublicXlmEmbedding(observedXlmContract()),names=['input_ids','attention_mask','token_type_ids'];
+ const valid=()=>({input_ids:xlmTensor([2n,3n]),attention_mask:xlmTensor([1n,1n]),
+  token_type_ids:xlmTensor([0n,0n])});
+ for(const mutate of [
+  x=>delete x.input_ids,x=>delete x.attention_mask,x=>delete x.token_type_ids,
+  x=>x.input_ids.type='float32',x=>x.input_ids.data=new Float32Array([2,3]),
+  x=>x.input_ids.data[0]=-1n,x=>x.attention_mask.data[0]=2n,
+  x=>x.attention_mask.data.fill(0n),x=>x.token_type_ids.data[0]=1n,
+  x=>x.input_ids.dims=[2,1],x=>x.attention_mask=xlmTensor([1n])
+ ]){const input=valid();mutate(input);assert.throws(()=>admitPublicXlmTokenInputs(names,input,contract));}
+ for(const bad of [['input_ids'],['input_ids','attention_mask','PRIVATE_INPUT'],
+  ['input_ids','attention_mask','attention_mask']]){
+  assert.throws(()=>admitPublicXlmTokenInputs(bad,valid(),contract));
+ }
+});
+test('CPV1-07 XLM independent masked mean cosine retains all 768 coordinates and excludes padding',()=>{
+ const contract=admitPublicXlmEmbedding(observedXlmContract()),data=new Float32Array(128*768);
+ for(let i=0;i<768;i++){data[i]=i%2===0?2:4;data[768+i]=i%2===0?4:8;}
+ // Every padded coordinate is populated; it must contribute exactly zero.
+ data.fill(100000,2*768);
+ const output={type:'float32',dims:[1,128,768],data};
+ const mask=xlmTensor([1n,1n,...Array(126).fill(0n)]),before=new Float32Array(data);
+ const vector=poolPublicXlmDense(output,mask,contract);
+ const norm=Math.sqrt(384*3*3+384*6*6);
+ assert.equal(vector.length,768);assert.equal(Object.isFrozen(vector),true);
+ for(let i=0;i<768;i++)assert.ok(Math.abs(vector[i]-(i%2===0?3:6)/norm)<1e-12);
+ assert.ok(Math.abs(Math.hypot(...vector)-1)<1e-12);assert.deepEqual(data,before);
+});
+test('CPV1-07 XLM dense output wrong dimensions/nonfinite/padding/mask/limit refuses before vector publication',()=>{
+ const contract=admitPublicXlmEmbedding(observedXlmContract());
+ const valid=()=>({type:'float32',dims:[1,2,768],data:new Float32Array(1536).fill(1)});
+ for(const mutate of [x=>x.type='float64',x=>x.dims=[1,2,384],x=>x.dims=[2,1,768],
+  x=>x.data[0]=NaN,x=>x.data[900]=Infinity,x=>x.data=new Float32Array(768),x=>x.data.fill(0)]){
+  const output=valid();mutate(output);assert.throws(()=>poolPublicXlmDense(output,xlmTensor([1n,0n]),contract));
+ }
+ assert.throws(()=>poolPublicXlmDense({type:'float32',dims:[1,129,768],
+  data:new Float32Array(129*768).fill(1)},xlmTensor(Array(129).fill(1n)),contract),
+  /official_embedding_contract_unverified/);
+ assert.throws(()=>poolPublicXlmDense(valid(),xlmTensor([1n,2n]),contract));
+ assert.throws(()=>poolPublicXlmDense(valid(),xlmTensor([0n,0n]),contract));
+ assert.throws(()=>poolPublicXlmDense(valid(),xlmTensor([1n]),contract));
+});
+test('CPV1-07 XLM exact changed candidate runs one new measurement without repeating old models',()=>{
+ const paths=['extension/experiments/public-embedding-inputs.mjs',
+  'extension/scripts/run-public-embedding-lab.mjs','extension/experiments/public-embedding-provenance.mjs',
+  'extension/tests/cpv1-07-public-model-provenance.test.mjs','extension/tests/cpv1-07-semantic-lab.test.mjs',
+  'extension/scripts/semantic-lab-change.mjs','.github/workflows/paia-vs07-semantic-lab.yml',
+  '.github/workflows/paia-candidate.yml','extension/docs/consumer-product-v1/STATUS.md',
+  'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'];
+ const evidence={action:'synchronize',before:'a'.repeat(40),head:'b'.repeat(40),ancestor:true,paths};
+ assert.deepEqual(semanticLabRouting(evidence),{runProbe:false,runSourceScreen:false,sourceOnly:false,
+  runPairedProbe:false,runEmbeddingScreen:false,runEmbeddingProbe:true,embeddingProbeOnly:true});
+ for(const change of [{action:'opened'},{ancestor:false},{before:null},{head:'a'.repeat(40)},
+  {paths:[...paths,paths[0]]},{paths:paths.slice(1)},{paths:[...paths,'extension/core/search-service.js']},
+  {paths:[...paths,'extension/tests/fixtures/cpv1-07-calibration-corpus.mjs']}]){
+  const routing=semanticLabRouting({...evidence,...change});
+  assert.equal(routing.runProbe,true);assert.equal(routing.embeddingProbeOnly,undefined);
+ }
+});
