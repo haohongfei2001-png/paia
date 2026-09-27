@@ -63,7 +63,7 @@ for(const [label,mutate]of [
 
 test('CPV1-07 deleted/excluded records leave coverage immediately and do not trigger automatic encoding',async()=>{
  const f=fixture();await f.index.synchronize();const next=f.get();
- next.items=next.items.filter(x=>x.ref.id==='a');next.generation++;f.set(next);
+ next.items=next.items.filter(x=>x.ref.id!=='a');next.generation++;f.set(next);
  const result=await f.index.lookup('query');
  assert.deepEqual(result.items.map(x=>x.ref.id),['c']);
  assert.equal(result.coverage.expected,2);assert.equal(result.coverage.indexed,2);
@@ -190,15 +190,21 @@ test('CPV1-07 fixed 28-record corpus remains unchanged and eligibility precedes 
 });
 
 async function actualFixture(){
- const f=await completeFixture({texts:[
+ const texts=[
   'INDEX_ACTUAL 原话否定：没有批准合并。',
   'INDEX_ACTUAL 更正：原话与当前改写分开。',
   'INDEX_ACTUAL 引用：别人说“全部合并”，不是我的意见。',
   'INDEX_ACTUAL long '+('完整多段 👩🏽‍💻\n'.repeat(1000))+'FULL_END'
- ]});
+ ];
+ const f=await completeFixture({texts});
  await f.s.finishFoundation();
  const memory=new MemoryService(f.s);await memory.ready();
- const blocks=(await rows(f.s,'blocks')).map(r=>r.value),calls=[];
+ const records=await rows(f.s,'records'),all=(await rows(f.s,'blocks')).map(r=>r.value),calls=[];
+ // IndexedDB key order is not capture order. Bind each action to its full original Source.
+ const blocks=texts.map(text=>all.find(b=>records.find(r=>r.id===b.originalTextReference)?.value.originalText===text));
+ assert.ok(blocks.every(Boolean),'each complete original Source must have its own block');
+ assert.equal(new Set(blocks.map(b=>b.id)).size,4);
+ assert.deepEqual(blocks.map(b=>records.find(r=>r.id===b.originalTextReference).value.originalText),texts);
  const readEligible=()=>f.s.run(()=>f.s.repository.transaction(false,async t=>{
   const items=[];
   for(const state of await t.all('inputStates')){
