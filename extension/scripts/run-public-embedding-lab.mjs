@@ -1,4 +1,4 @@
-// One NEW pinned official XLM-R mean-pooling candidate; fixed public synthetic lab only.
+// One NEW pinned official DistilUSE mean + Dense/Tanh candidate; fixed public synthetic lab only.
 // Model downloads are public artifacts; applicant/archive data are never loaded.
 import {createHash} from 'node:crypto';
 import {readFile,readdir,stat,mkdir} from 'node:fs/promises';
@@ -11,19 +11,20 @@ import {buildSemanticLabIndex,fuseScopedLabRanks,HYBRID_RANK_RULE} from '../expe
 import {calibrationCorpus} from '../tests/fixtures/cpv1-07-calibration-corpus.mjs';
 import {validateCalibrationCorpus,calibrateDevelopmentThreshold,rankCalibrationScores} from '../experiments/semantic-calibration.mjs';
 import {inspectPublicEmbeddingSource} from '../experiments/public-embedding-provenance.mjs';
-import {PUBLIC_XLM_EMBEDDING,admitPublicXlmEmbedding,observePublicXlmAsset,
-  admitPublicXlmTokenInputs,poolPublicXlmDense} from '../experiments/public-embedding-inputs.mjs';
+import {PUBLIC_DISTILUSE_EMBEDDING,preparePublicDistiluseContract,observePublicDistiluseAssets,
+  admitPublicDistiluseTokenInputs,decodePublicDistiluseProjection,poolPublicDistiluseDense}
+  from '../experiments/public-embedding-inputs.mjs';
 
-const MODEL=PUBLIC_XLM_EMBEDDING.id;
+const MODEL=PUBLIC_DISTILUSE_EMBEDDING.id;
 const UPSTREAM=MODEL; // Assets are owned by the same declared official repository.
-const MODEL_REVISION=PUBLIC_XLM_EMBEDDING.revision;
-const README_SHA256=PUBLIC_XLM_EMBEDDING.readme;
-const METHOD='official-multilingual-xlm-mean-onnx-lab-v1';
-const HYBRID_METHOD='official-xlm-hybrid-rrf-lab-v1';
+const MODEL_REVISION=PUBLIC_DISTILUSE_EMBEDDING.revision;
+const README_SHA256=PUBLIC_DISTILUSE_EMBEDDING.readme;
+const METHOD='official-distiluse-dense-tanh-onnx-lab-v1';
+const HYBRID_METHOD='official-distiluse-hybrid-rrf-lab-v1';
 const PACKAGE_VERSION='3.8.1';
-const DIMENSION=PUBLIC_XLM_EMBEDDING.dimension;
+const DIMENSION=PUBLIC_DISTILUSE_EMBEDDING.dimension;
 const MINIMUM_SCORE=.7; // Freeze before the first model result; never tune gold.
-const MAX_MODEL_BYTES=PUBLIC_XLM_EMBEDDING.maximumArtifactBytes;
+const MAX_MODEL_BYTES=PUBLIC_DISTILUSE_EMBEDDING.maximumArtifactBytes;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const validSha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
 let stage='lab_environment';
@@ -83,18 +84,19 @@ try {
   stage='public_model_provenance';
   const provenance=await inspectPublicEmbeddingSource(MODEL);
   stage='official_sentence_input_contract';failureReason='official_input_contract_unverified';
-  const inputContract=admitPublicXlmEmbedding(provenance);
+  const inputContract=preparePublicDistiluseContract(provenance);
   publicObservations.push({repository:MODEL,exactRevision:provenance.revision===MODEL_REVISION,
     consistentDeclaredLicense:true,readmeReferenceMatches:provenance.readme?.sha256===README_SHA256,
     sentenceTransformerLimit:inputContract.maximumTokens,dimension:DIMENSION,
     rawLabSingleSequence:true,sourceDefaultsAndConversion:'NOT_INDEPENDENTLY_VERIFIED'});
   stage='official_asset_budget';failureReason='official_asset_budget_unverified';
-  const assetAdmission=await observePublicXlmAsset();
+  const assetAdmissions=await observePublicDistiluseAssets();
+  const projectionAdmission=assetAdmissions[1];
   const quantizedFile=inputContract.artifact;
-  publicObservations.push(assetAdmission);
+  publicObservations.push(...assetAdmissions);
   const model={revision:MODEL_REVISION,license:'apache-2.0'},upstream=model;
   stage='model_load';failureReason='official_onnx_inference_unavailable';
-  const {AutoTokenizer,env}=await import(pathToFileURL(join(lab,'node_modules/@huggingface/transformers/dist/transformers.node.mjs')).href);
+  const {DistilBertTokenizer,env}=await import(pathToFileURL(join(lab,'node_modules/@huggingface/transformers/dist/transformers.node.mjs')).href);
   const {env:hubEnv}=await import(pathToFileURL(join(lab,'node_modules/@huggingface/transformers/src/env.js')).href);
   const {getModelFile}=await import(pathToFileURL(join(lab,'node_modules/@huggingface/transformers/src/utils/hub.js')).href);
   const ortNamespace=await import(pathToFileURL(join(lab,'node_modules/onnxruntime-node/dist/index.js')).href);
@@ -107,15 +109,26 @@ try {
     settings.useCustomCache=false;settings.localModelPath=cache+'/';
   }
   const loadStarted=performance.now();
-  let tokenizer=await AutoTokenizer.from_pretrained(MODEL,{revision:MODEL_REVISION,cache_dir:cache});
+  let tokenizer=await DistilBertTokenizer.from_pretrained(MODEL,{revision:MODEL_REVISION,cache_dir:cache});
   let modelPath=await getModelFile(MODEL,quantizedFile,true,
     {revision:MODEL_REVISION,cache_dir:cache},true);
   if(typeof modelPath!=='string'||!resolve(modelPath).startsWith(cache+'/'))refuse();
+  const projectionPath=await getModelFile(MODEL,inputContract.projectionArtifact,true,
+    {revision:MODEL_REVISION,cache_dir:cache},true);
+  if(typeof projectionPath!=='string'||!resolve(projectionPath).startsWith(cache+'/'))refuse();
   const beforeLoadAssets=await publicAssets(cache);
   if(beforeLoadAssets.reduce((sum,item)=>sum+item.bytes,0)>MAX_MODEL_BYTES)refuse();
-  const downloaded=beforeLoadAssets.filter(item=>item.asset.endsWith('/'+quantizedFile));
-  if(downloaded.length!==1||downloaded[0].bytes!==assetAdmission.bytes
-      ||downloaded[0].sha256!==assetAdmission.sha256)refuse('official_asset_digest_unverified');
+  const tokenizerConfig=beforeLoadAssets.filter(item=>item.asset.endsWith('/tokenizer_config.json'));
+  if(tokenizerConfig.length!==1||tokenizerConfig[0].sha256!==PUBLIC_DISTILUSE_EMBEDDING.tokenizer)
+    refuse('official_asset_digest_unverified');
+  for(const receipt of assetAdmissions){
+    const downloaded=beforeLoadAssets.filter(item=>item.asset.endsWith('/'+receipt.asset));
+    if(downloaded.length!==1||downloaded[0].bytes!==receipt.bytes||downloaded[0].sha256!==receipt.sha256)
+      refuse('official_asset_digest_unverified');
+  }
+  // No pickle, checkpoint conversion or remote Python. The exact observed
+  // safetensors body is digest-bound, duplicate-free, finite F32 and shape-bound.
+  let projection=decodePublicDistiluseProjection(await readFile(projectionPath),projectionAdmission,inputContract);
   extractor=await ort.InferenceSession.create(modelPath,{executionProviders:['cpu'],logSeverityLevel:4,logVerbosityLevel:0});
   const modelLoadMs=performance.now()-loadStarted;
   for(const settings of [env,hubEnv]){
@@ -124,15 +137,18 @@ try {
   await extractor.release();
   extractor=null;
   const reloadStarted=performance.now();
-  tokenizer=await AutoTokenizer.from_pretrained(MODEL,
+  tokenizer=await DistilBertTokenizer.from_pretrained(MODEL,
     {revision:MODEL_REVISION,cache_dir:cache,local_files_only:true});
   modelPath=await getModelFile(MODEL,quantizedFile,true,
     {revision:MODEL_REVISION,cache_dir:cache,local_files_only:true},true);
   if(typeof modelPath!=='string'||!resolve(modelPath).startsWith(cache+'/'))refuse();
   extractor=await ort.InferenceSession.create(modelPath,{executionProviders:['cpu'],logSeverityLevel:4,logVerbosityLevel:0});
+  const offlineProjectionPath=await getModelFile(MODEL,inputContract.projectionArtifact,true,
+    {revision:MODEL_REVISION,cache_dir:cache,local_files_only:true},true);
+  if(typeof offlineProjectionPath!=='string'||!resolve(offlineProjectionPath).startsWith(cache+'/'))refuse();
+  projection=decodePublicDistiluseProjection(await readFile(offlineProjectionPath),projectionAdmission,inputContract);
   const offlineReloadMs=performance.now()-reloadStarted;
-  if(!extractor.inputNames.length
-      ||extractor.inputNames.some(name=>!['input_ids','attention_mask','token_type_ids'].includes(name))
+  if(extractor.inputNames.length!==2||new Set(extractor.inputNames).size!==2
       ||!extractor.inputNames.includes('input_ids')||!extractor.inputNames.includes('attention_mask'))
     refuse();
   const observedBoundaries=new Set();
@@ -157,7 +173,7 @@ try {
           Number.isSafeInteger(tokens.input_ids?.dims?.[1])&&tokens.input_ids.dims[1]<=inputContract.maximumTokens});
       observedBoundaries.add(boundary+'_inputs');
     }
-    const admitted=admitPublicXlmTokenInputs(extractor.inputNames,tokens,inputContract);
+    const admitted=admitPublicDistiluseTokenInputs(extractor.inputNames,tokens,inputContract,tokenizer);
     const feeds={};
     for(const [name,tensor] of Object.entries(admitted)){
       feeds[name]=new ort.Tensor('int64',tensor.data,tensor.dims);
@@ -170,11 +186,11 @@ try {
     failureReason='official_dense_pooling_unverified';
     if(!observedBoundaries.has(boundary+'_dense')){
       publicObservations.push({boundary:boundary+'_dense',
-        denseReturned:!!dense,dimensionMatches:dense?.dims?.[2]===DIMENSION,
+        denseReturned:!!dense,dimensionMatches:dense?.dims?.[2]===inputContract.encoderDimension,
         declaredLimitRetained:dense?.dims?.[1]<=inputContract.maximumTokens});
       observedBoundaries.add(boundary+'_dense');
     }
-    return poolPublicXlmDense(dense,admitted.attention_mask,inputContract);
+    return poolPublicDistiluseDense(dense,admitted.attention_mask,inputContract,projection);
   };
   stage='fixed_document_projection';
   const eligible=retrievalCorpus.records.filter(record=>!record.excluded);
@@ -248,6 +264,14 @@ try {
   const modelArtifactBytes=assets.reduce((sum,item)=>sum+item.bytes,0);
   if(!assets.some(item=>item.asset.endsWith('/'+quantizedFile))
       ||modelArtifactBytes>MAX_MODEL_BYTES||reports.some(report=>report.contractFailures))refuse();
+  const finalTokenizerConfig=assets.filter(item=>item.asset.endsWith('/tokenizer_config.json'));
+  if(finalTokenizerConfig.length!==1||finalTokenizerConfig[0].sha256!==PUBLIC_DISTILUSE_EMBEDDING.tokenizer)
+    refuse('official_asset_digest_unverified');
+  for(const receipt of assetAdmissions){
+    const actual=assets.filter(item=>item.asset.endsWith('/'+receipt.asset));
+    if(actual.length!==1||actual[0].bytes!==receipt.bytes||actual[0].sha256!==receipt.sha256)
+      refuse('official_asset_digest_unverified');
+  }
   const memory=process.memoryUsage();
   console.log(JSON.stringify({schemaVersion:1,status:'MEASURED_LAB_ONLY',scope:'public_synthetic_only',
     productionClaim:false,semanticProductionCapabilityEstablished:false,productionIndexEnabled:false,
@@ -257,13 +281,17 @@ try {
     corpusDigest:reports[0].corpusDigest,
     model:{id:MODEL,revision:model.revision,license:model.license,
       upstream:{id:UPSTREAM,revision:upstream.revision,license:upstream.license},
-      task:'feature-extraction',dtype:'q8',device:'cpu',pooling:'mean',normalize:true,
+      task:'feature-extraction',dtype:'q8',device:'cpu',pooling:'masked_mean_then_dense_tanh_then_cosine_normalization',normalize:true,
       queryPrefix:'',passagePrefix:'',dimension:DIMENSION,
       prefixScope:'RAW_SINGLE_SEQUENCE_LAB_ADAPTER_NOT_PRODUCTION_INPUT_CERTIFICATION',
-      maximumTokens:inputContract.maximumTokens,truncation:false,assetAdmission,
-      singleSequenceTokenTypes:'RETURNED_BY_PINNED_TOKENIZER_WHEN_REQUIRED',
+      maximumTokens:inputContract.maximumTokens,truncation:false,assetAdmissions,
+      encoderDimension:inputContract.encoderDimension,
+      projection:{asset:projectionAdmission.asset,sha256:projection.sha256,bytes:projection.bytes,
+        inputDimension:projection.inputDimension,outputDimension:projection.outputDimension,activation:projection.activation},
+      explicitTokenizerClass:'DistilBertTokenizer',missingOptionalTokenizerMetadata:'NO_GENERIC_FALLBACK',
+      singleSequenceTokenTypes:'DISTILBERT_GRAPH_TWO_REAL_INPUTS_ONLY',
       fabricatedTokenInputs:false,
-      declaredSourceProvenance:provenance,quantizedFile,poolingConfigSha256:PUBLIC_XLM_EMBEDDING.pooling,
+      declaredSourceProvenance:provenance,quantizedFile,poolingConfigSha256:PUBLIC_DISTILUSE_EMBEDDING.pooling,
       minimumCosineScore:MINIMUM_SCORE,thresholdCalibrated:false,
       modelArtifactBytes,modelLoadMs,offlineReloadMs,assets,
       onnxConversionEquivalence:'NOT_VERIFIED'},

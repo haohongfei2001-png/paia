@@ -187,3 +187,15 @@ test('CPV1-07 unregistered method refuses before any candidate/tensor invocation
   assert.equal(calls,0);
  }
 });
+
+
+test('CPV1-07 new DistilUSE methods are separately registered and preserve the complete fixed oracle',async()=>{
+ const {validateRetrievalMethod}=await import('../experiments/retrieval-evaluation.mjs');
+ for(const method of ['official-distiluse-dense-tanh-onnx-lab-v1','official-distiluse-hybrid-rrf-lab-v1']){
+  const report=await evaluateRetrieval(retrievalCorpus,productionLexicalCandidate,{method});
+  assert.equal(report.method,method);assert.equal(report.measuredTasks,29);assert.equal(report.contractFailures,0);
+  assert.doesNotThrow(()=>validateRetrievalMethod(method));
+ }
+ assert.throws(()=>validateRetrievalMethod('official-distiluse-PRODUCTION'),/invalid synthetic retrieval benchmark/);
+ assert.equal(retrievalCorpus.records.length,28);assert.equal(retrievalCorpus.tasks.length,29);
+});

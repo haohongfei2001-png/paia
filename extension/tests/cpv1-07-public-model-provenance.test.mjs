@@ -839,3 +839,231 @@ test('CPV1-07 new DistilUSE 200 direct header uses content length without readin
  assert.equal(report.assetScreen.disposition,'DECLARED_HEADERS_PENDING_WEIGHT_INPUT_AND_QUALITY_REVIEW');
  assert.ok(report.assetScreen.receipts.every(x=>x.sha256==='9'.repeat(64)));
 });
+
+
+// Full 768x512 fixtures: no reduced projection or relaxed shape/budget oracle.
+function distilPinnedSource(){
+ const c=PUBLIC_DISTILUSE_EMBEDDING;
+ return {repository:c.id,revision:c.revision,diagnosis:'CONSISTENT_DECLARED_SOURCE_PENDING_INPUT_AND_QUALITY',
+  weightsDownloaded:false,inferenceExecuted:false,productionClaim:false,modelAdmission:'NOT_AUTHORIZED',
+  currentLicense:{card:{permitted:true,declaration:'apache-2.0'}},
+  pinnedLicense:{card:{permitted:true,declaration:'apache-2.0'}},
+  readme:{sha256:c.readme,license:{permitted:true,declaration:'apache-2.0'}},
+  configurationFiles:[['config.json',c.config],['tokenizer_config.json',c.tokenizer],
+   ['modules.json',c.modules],['sentence_bert_config.json',c.sentence],
+   ['1_Pooling/config.json',c.pooling],['2_Dense/config.json',c.projectionConfig]]
+    .map(([file,sha256])=>({file,sha256,httpStatus:200,bounded:true})),
+  moduleOrder:['Transformer','Pooling','Dense'],normalizationDeclared:false,
+  inputContract:{architecture:'DistilBertModel',hiddenDimension:768,layers:6,positionLimit:512,
+   sentenceTransformerLimit:128,tokenizerClass:'OTHER_OR_UNVERIFIED',tokenizerDeclaredLimit:null,
+   remoteCodeDeclarationPresent:false},
+  pooling:{dimension:768,modes:{pooling_mode_mean_tokens:true,pooling_mode_cls_token:false,
+   pooling_mode_max_tokens:false,pooling_mode_mean_sqrt_len_tokens:false,
+   pooling_mode_weightedmean_tokens:null,pooling_mode_lasttoken:null}},
+  projection:{inputDimension:768,outputDimension:512,bias:true,activation:'torch.nn.modules.activation.Tanh'},
+  inventory:{onnxFiles:[c.asset],safeProjectionFiles:[c.projectionAsset]}};
+}
+import {createHash as projectionTestHash} from 'node:crypto';
+import {PUBLIC_DISTILUSE_EMBEDDING,preparePublicDistiluseContract,admitPublicDistiluseTokenInputs,
+ observePublicDistiluseAssets,decodePublicDistiluseProjection,poolPublicDistiluseDense}
+ from '../experiments/public-embedding-inputs.mjs';
+const projectionDigest=bytes=>projectionTestHash('sha256').update(bytes).digest('hex');
+function projectionFixture({headerChange,headerText,payloadChange}={}){
+ const biasBytes=512*4,weightBytes=512*768*4;
+ const header={'linear.bias':{dtype:'F32',shape:[512],data_offsets:[0,biasBytes]},
+  'linear.weight':{dtype:'F32',shape:[512,768],data_offsets:[biasBytes,biasBytes+weightBytes]},
+  __metadata__:{format:'pt'}};
+ if(headerChange)headerChange(header);
+ const text=headerText??JSON.stringify(header),size=Math.ceil(new TextEncoder().encode(text).length/8)*8;
+ const bytes=new Uint8Array(8+size+biasBytes+weightBytes),view=new DataView(bytes.buffer);
+ view.setBigUint64(0,BigInt(size),true);
+ bytes.set(new TextEncoder().encode(text.padEnd(size,' ')),8);
+ // Independent sparse affine oracle spanning both first and last input/output:
+ // z0 = 2*x0 + 3*x1 + .25; z1 = -x0 - .5;
+ // z511 = 4*x767; all other outputs zero.
+ const start=8+size;
+ view.setFloat32(start,.25,true);view.setFloat32(start+4,-.5,true);
+ view.setFloat32(start+biasBytes,2,true);view.setFloat32(start+biasBytes+4,3,true);
+ view.setFloat32(start+biasBytes+768*4,-1,true);
+ view.setFloat32(start+biasBytes+(511*768+767)*4,4,true);
+ if(payloadChange)payloadChange(bytes,view,start);
+ const receipt={asset:PUBLIC_DISTILUSE_EMBEDDING.projectionAsset,
+  pinnedRevision:PUBLIC_DISTILUSE_EMBEDDING.revision,bytes:bytes.length,sha256:projectionDigest(bytes),
+  productionAdmission:false};
+ return {bytes,receipt,header,start};
+}
+function distilTokens(count=3){
+ return {input_ids:{type:'int64',dims:[1,count],data:new BigInt64Array(count).fill(7n)},
+  attention_mask:{type:'int64',dims:[1,count],data:new BigInt64Array(count).fill(1n)}};
+}
+class DistilBertTokenizer {}
+test('CPV1-07 DistilUSE preparation binds every actual pinned config but does not claim missing tokenizer execution',()=>{
+ const contract=preparePublicDistiluseContract(distilPinnedSource());
+ assert.equal(contract.inputExecutionRequired,true);assert.equal(contract.productionAdmission,false);
+ assert.equal(contract.tokenizerClass,'DistilBertTokenizer');assert.equal(contract.maximumTokens,128);
+ assert.equal(contract.encoderDimension,768);assert.equal(contract.dimension,512);
+ assert.equal(Object.isFrozen(contract),true);
+ for(const change of [
+  x=>x.revision='f'.repeat(40),x=>x.readme.sha256='f'.repeat(64),
+  x=>x.currentLicense.card.declaration='mit',x=>x.pinnedLicense.card.permitted=false,
+  x=>x.weightsDownloaded=true,x=>x.inferenceExecuted=true,x=>x.productionClaim=true,
+  x=>x.modelAdmission='AUTHORIZED',x=>x.configurationFiles.pop(),
+  x=>x.configurationFiles.push({...x.configurationFiles[0]}),
+  ...Array.from({length:6},(_,i)=>x=>x.configurationFiles[i].sha256='f'.repeat(64)),
+  x=>x.moduleOrder.reverse(),x=>x.normalizationDeclared=true,
+  x=>x.inputContract.remoteCodeDeclarationPresent=true,x=>x.inputContract.tokenizerClass='BertTokenizer',
+  x=>x.inputContract.tokenizerDeclaredLimit=64,x=>x.inputContract.sentenceTransformerLimit=129,
+  x=>x.inputContract.hiddenDimension=512,x=>x.inputContract.positionLimit=1024,
+  x=>x.inputContract.layers=12,x=>x.pooling.modes.pooling_mode_cls_token=true,
+  x=>x.projection.activation='torch.nn.Identity',x=>x.projection.bias=false,
+  x=>x.projection.outputDimension=768,x=>x.inventory.safeProjectionFiles=[],
+  x=>x.inventory.onnxFiles=[]
+ ]){
+  const source=distilPinnedSource();change(source);
+  assert.throws(()=>preparePublicDistiluseContract(source),/official_embedding_contract_unverified/);
+ }
+});
+test('CPV1-07 DistilUSE actual tensors require explicit tokenizer and exact graph with full bounded single sequence',()=>{
+ const contract=preparePublicDistiluseContract(distilPinnedSource()),tokens=distilTokens();
+ const input=admitPublicDistiluseTokenInputs(['input_ids','attention_mask'],tokens,contract,new DistilBertTokenizer());
+ assert.deepEqual(input.input_ids.dims,[1,3]);tokens.input_ids.data[0]=99n;
+ assert.equal(input.input_ids.data[0],7n,'detached full actual tensor');
+ for(const change of [
+  {names:['input_ids','attention_mask','token_type_ids']},{names:['input_ids','input_ids']},
+  {names:['input_ids']},{tokenizer:{constructor:{name:'PreTrainedTokenizer'}}},
+  {contract:{...contract}},{tokens:distilTokens(129)},
+  {tokens:{...distilTokens(),attention_mask:{type:'int64',dims:[1,3],data:new BigInt64Array([1n,2n,1n])}}},
+  {tokens:{...distilTokens(),input_ids:{type:'int64',dims:[1,3],data:new BigInt64Array([1n,-1n,1n])}}}
+ ]){
+  assert.throws(()=>admitPublicDistiluseTokenInputs(change.names??['input_ids','attention_mask'],
+   change.tokens??distilTokens(),change.contract??contract,change.tokenizer??new DistilBertTokenizer()));
+ }
+ assert.equal(admitPublicDistiluseTokenInputs(['attention_mask','input_ids'],distilTokens(128),contract,
+  new DistilBertTokenizer()).input_ids.data.length,128);
+});
+test('CPV1-07 DistilUSE two HEAD receipts remain exact revision, no body and unchanged combined budget',async()=>{
+ const calls=[];
+ const result=await observePublicDistiluseAssets({fetcher:async(url,options)=>{
+  calls.push(url);assert.equal(options.method,'HEAD');assert.equal(options.redirect,'manual');
+  assert.equal(Object.hasOwn(options.headers,'Authorization'),false);
+  const dense=url.endsWith('/2_Dense/model.safetensors');
+  return {status:302,headers:{get:name=>name==='x-linked-size'?(dense?'1575104':'135000000'):
+   name==='x-linked-etag'?'"'+'a'.repeat(64)+'"':null},text:async()=>assert.fail('no response body')};
+ }});
+ assert.equal(calls.length,2);assert.equal(result.length,2);
+ for(const [i,r] of result.entries()){
+  assert.equal(calls[i],'https://huggingface.co/'+PUBLIC_DISTILUSE_EMBEDDING.id+'/resolve/'+
+   PUBLIC_DISTILUSE_EMBEDDING.revision+'/'+r.asset);
+  assert.equal(r.productionAdmission,false);assert.equal(r.bodyRequested,false);
+ }
+ for(const fault of ['redirect','missing_digest','zero','decimal','projection_overflow','combined','private_error']){
+  let n=0;
+  await assert.rejects(observePublicDistiluseAssets({fetcher:async()=>{
+   n++;if(fault==='private_error')throw Error('PRIVATE_FETCH');
+   return {status:fault==='redirect'?301:302,headers:{get:name=>
+    name==='x-linked-etag'?(fault==='missing_digest'?null:'a'.repeat(64)):
+    name==='x-linked-size'?(fault==='zero'?'0':fault==='decimal'?'1.5':
+     fault==='projection_overflow'&&n===2?'2097153':fault==='combined'&&n===1?'402653184':'1575104'):null}};
+  }}));
+  assert.ok(n<=2);
+ }
+});
+test('CPV1-07 complete safe Dense payload implements affine then Tanh with no input normalization or transpose',()=>{
+ const contract=preparePublicDistiluseContract(distilPinnedSource()),f=projectionFixture();
+ const projection=decodePublicDistiluseProjection(f.bytes,f.receipt,contract),mean=new Float64Array(768);
+ mean[0]=1;mean[1]=2;mean[767]=-.5;
+ const actual=projection.project(mean);
+ assert.ok(Math.abs(actual[0]-Math.tanh(8.25))<1e-7);
+ assert.ok(Math.abs(actual[1]-Math.tanh(-1.5))<1e-7);
+ assert.ok(Math.abs(actual[511]-Math.tanh(-2))<1e-7);
+ assert.equal(actual.slice(2,511).every(x=>x===0),true);
+ f.bytes.fill(0);assert.deepEqual(projection.project(mean),actual,'admitted private copy');
+ assert.equal(projection.productionAdmission,false);assert.equal(projection.weightsPrivateToProjection,true);
+});
+test('CPV1-07 safe Dense refuses wrong digest, revision, payload size, caller alias and arbitrary contracts',()=>{
+ const contract=preparePublicDistiluseContract(distilPinnedSource()),f=projectionFixture();
+ for(const [bytes,receipt,c] of [
+  [f.bytes,{...f.receipt,sha256:'f'.repeat(64)},contract],
+  [f.bytes,{...f.receipt,pinnedRevision:'f'.repeat(40)},contract],
+  [f.bytes,{...f.receipt,asset:'2_Dense/pytorch_model.bin'},contract],
+  [f.bytes,{...f.receipt,bytes:f.bytes.length+1},contract],
+  [f.bytes,{...f.receipt,productionAdmission:true},contract],
+  [f.bytes,f.receipt,{...contract}],
+  [new Uint8Array(2097153),{...f.receipt,bytes:2097153},contract],
+  [f.bytes.subarray(0,f.bytes.length-1),f.receipt,contract]
+ ])assert.throws(()=>decodePublicDistiluseProjection(bytes,receipt,c));
+});
+test('CPV1-07 safe Dense refuses malformed duplicate or unsupported tensor declarations and all gap/overlap/trailing payloads',()=>{
+ const contract=preparePublicDistiluseContract(distilPinnedSource());
+ const faults=[
+  {headerChange:h=>h['linear.weight'].dtype='BF16'},
+  {headerChange:h=>h['linear.weight'].shape=[768,512]},
+  {headerChange:h=>h['linear.weight'].shape=[512,767]},
+  {headerChange:h=>delete h['linear.bias']},
+  {headerChange:h=>h['linear.weight'].code='PRIVATE_REMOTE_CODE'},
+  {headerChange:h=>h['other.weight']={dtype:'F32',shape:[1],data_offsets:[0,4]}},
+  {headerChange:h=>h.__metadata__.private={x:'PRIVATE_META'}},
+  {headerChange:h=>h['linear.bias'].data_offsets=[4,2052]},
+  {headerChange:h=>h['linear.bias'].data_offsets=[2048,4096]},
+  {headerChange:h=>h['linear.weight'].data_offsets=[2052,2052+512*768*4]},
+  {headerChange:h=>h['linear.weight'].data_offsets=[2048,2048+512*768*4-4]},
+  {headerChange:h=>h['linear.weight'].data_offsets=[2049,2049+512*768*4]},
+  {headerChange:h=>h['linear.bias'].data_offsets=[0,Infinity]},
+  {headerText:'{"linear.bias":{},"linear.bias":{},"linear.weight":{}}'},
+  {headerText:'{"linear.bias":{"dtype":"F32","dtype":"F32"},"linear.weight":{}}'},
+  {headerText:'{"__metadata__":{"format":"pt","format":"pt"},"linear.bias":{},"linear.weight":{}}'},
+  {headerText:'{"PRIVATE_INVALID":}'},
+  {payloadChange:(_b,v)=>v.setBigUint64(0,16385n,true)},
+  {payloadChange:(_b,v)=>v.setBigUint64(0,2n**63n,true)},
+  {payloadChange:(b)=>b[8]=0xff},
+  {payloadChange:(_b,v,start)=>v.setFloat32(start,NaN,true)},
+  {payloadChange:(_b,v,start)=>v.setFloat32(start+2048,Infinity,true)}
+ ];
+ for(const change of faults){
+  const f=projectionFixture(change);
+  assert.throws(()=>decodePublicDistiluseProjection(f.bytes,f.receipt,contract));
+ }
+ const f=projectionFixture(),extra=new Uint8Array(f.bytes.length+4);extra.set(f.bytes);
+ assert.throws(()=>decodePublicDistiluseProjection(extra,{...f.receipt,bytes:extra.length,sha256:projectionDigest(extra)},contract));
+});
+test('CPV1-07 complete mean Dense chain masks padding, retains mean magnitude before bias and normalizes only final512',()=>{
+ const contract=preparePublicDistiluseContract(distilPinnedSource()),f=projectionFixture();
+ const projection=decodePublicDistiluseProjection(f.bytes,f.receipt,contract);
+ const data=new Float32Array(3*768);data[0]=2;data[1]=4;data[767]=-1;
+ data[768]=0;data[769]=0;data[1535]=0;data.fill(9000,1536);
+ const output={type:'float32',dims:[1,3,768],data},mask={type:'int64',dims:[1,3],data:new BigInt64Array([1n,1n,0n])};
+ const result=poolPublicDistiluseDense(output,mask,contract,projection);
+ const raw=[Math.fround(Math.tanh(8.25)),Math.fround(Math.tanh(-1.5)),Math.fround(Math.tanh(-2))];
+ const norm=Math.hypot(...raw);
+ for(const [i,value] of [[0,raw[0]],[1,raw[1]],[511,raw[2]]])assert.ok(Math.abs(result[i]-value/norm)<1e-7);
+ assert.equal(result.length,512);assert.ok(Math.abs(Math.hypot(...result)-1)<1e-7);
+ assert.equal(result.slice(2,511).every(x=>x===0),true);
+ for(const [o,m,c,p] of [
+  [{...output,dims:[1,3,512]},mask,contract,projection],
+  [{...output,type:'float64'},mask,contract,projection],
+  [output,{...mask,data:new BigInt64Array([0n,0n,0n])},contract,projection],
+  [output,{...mask,data:new BigInt64Array([1n,1n,2n])},contract,projection],
+  [output,{...mask,dims:[3,1]},contract,projection],
+  [output,mask,{...contract},projection],
+  [output,mask,contract,{...projection}],
+  [{type:'float32',dims:[1,129,768],data:new Float32Array(129*768)},
+   {type:'int64',dims:[1,129],data:new BigInt64Array(129).fill(1n)},contract,projection]
+ ])assert.throws(()=>poolPublicDistiluseDense(o,m,c,p));
+ data[1536]=NaN;assert.throws(()=>poolPublicDistiluseDense(output,mask,contract,projection),'nonfinite masked data refused too');
+});
+
+
+test('CPV1-07 DistilUSE projected vectors satisfy existing lab index without changing its unit-vector boundary',async()=>{
+ const {buildSemanticLabIndex}=await import('../experiments/semantic-lab-index.mjs');
+ const c=preparePublicDistiluseContract(distilPinnedSource()),f=projectionFixture();
+ const p=decodePublicDistiluseProjection(f.bytes,f.receipt,c);
+ const output={type:'float32',dims:[1,1,768],data:new Float32Array(768)};
+ output.data[0]=1;output.data[1]=2;output.data[767]=-.5;
+ const mask={type:'int64',dims:[1,1],data:new BigInt64Array([1n])};
+ const vector=poolPublicDistiluseDense(output,mask,c,p);
+ assert.equal(Array.isArray(vector),true);assert.equal(Object.isFrozen(vector),true);
+ const record={id:'projection',title:'public',body:'synthetic',source:'chatgpt',time:null,excluded:false};
+ const index=await buildSemanticLabIndex([record],async()=>vector,{dimension:512,minimumScore:.7});
+ const result=await index.retrieve([record],'public synthetic');
+ assert.deepEqual(result,['projection']);assert.equal(index.float32ProjectionBytes,2048);
+});

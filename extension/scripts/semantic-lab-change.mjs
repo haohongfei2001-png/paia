@@ -117,7 +117,7 @@ function classify(){
  const routing=semanticLabRouting({action,before,head,ancestor,paths});
  const required=routing.runProbe;
  appendFileSync(process.env.GITHUB_OUTPUT,'run_probe='+required+'\nrun_source_screen='+routing.runSourceScreen+'\nrun_paired_probe='+!!routing.runPairedProbe+ '\nrun_embedding_screen='+!!routing.runEmbeddingScreen+'\nrun_embedding_probe='+!!routing.runEmbeddingProbe+'\n');
- console.log(routing.embeddingProbeOnly?'Verified one new official XLM embedding candidate: one actual CPU measurement; retain old model receipts.':routing.embeddingOnly?'Verified new official embedding source batch: source contracts only; retain both negative model measurements.':routing.pairedOnly?'Verified new paired-text batch: one changed-input paired probe; retain old MiniLM measurement.':required?'Semantic inputs changed or unverified: run the original bounded model probe.':
+ console.log(routing.embeddingProbeOnly?'Verified one new pinned official embedding candidate: one actual CPU measurement; retain old model receipts.':routing.embeddingOnly?'Verified new official embedding source batch: source contracts only; retain both negative model measurements.':routing.pairedOnly?'Verified new paired-text batch: one changed-input paired probe; retain old MiniLM measurement.':required?'Semantic inputs changed or unverified: run the original bounded model probe.':
   'Semantic inputs unchanged: retained prior measurement only; no new quality or production certification.');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))classify();
