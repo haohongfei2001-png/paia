@@ -10,15 +10,15 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-07
 
-current_slice_status: READY — VS-06_ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING
+current_slice_status: IN_PROGRESS — VS-06_ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING
 
 current_round: CPV1-07.0–07.1 / VS-07 Batch A
 
-current_round_status: READY / FIXED_RETRIEVAL_EVALUATION
+current_round_status: IN_PROGRESS / VS07_FIXED_EVALUATION_CANDIDATE
 
-current_writer: NONE — PR87 RELEASED
+current_writer: MANAGER / sole VS-07 Batch A branch feat/vs07-retrieval-evaluation
 
-writer_status: RELEASED / NEXT_SINGLE_WRITER_VS07
+writer_status: VS-07_BATCH_A_ACQUIRED / SINGLE_WRITER
 
 production_claim: NONE
 
@@ -874,3 +874,22 @@ Stable head20d816, actual synthetic checkoutbfad466 and merged main4e173b2 have 
 06.5readable exact current-output review/clipboard/download semantics,06.6blank-default explicit create/revoke matched readback and unknown-ack fences,06.7expiry/restore plus retained complete authorization/stale/deletion/once/budget/injection/edit/privacy/current-browser matrix are integrated. Sources/history untouched; no new permission/provider/live side effect. Stable fullonce and exact-mainonce; no lowered fixtures/assertions.
 
 VS06 ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING; final slice/package/production is not COMPLETE. Existing ledger owner/private/current-live/device/signing/distribution gates unchanged. PR87writer RELEASED. Next VS07BatchA07.0fixed evaluation +07.1honest lexical/semantic resource bake-off; production semantic/index/UI/Revisit/long-library remain explicit later canonical work. Existing pure-control embedding lab is not retrieval proof. This docs-only checkpoint refers to runtime4e173b2.
+
+
+## VS-07 Batch A — fixed retrieval evaluation before technology selection
+
+execution_start_main: e43b8748701cd7c71eba4da1576478bdcfce2d47
+certified_predecessor_runtime: 4e173b2f07c03c98f984d6c786be94fcf84fe1a8 / exact-main full36288993572 PASS
+batch_scope: CPV1-07.0 +07.1 evaluation/measurement foundation;07.1 semantic candidate selection still OPEN
+writer: MANAGER / sole feat/vs07-retrieval-evaluation
+new_cloud_evidence: NOT_RUN
+
+Read current remote main, sole PRs, canonical STATUS/AUTHORITY/UX_CONTRACT/MASTER_PLAN/EXECUTION_PROTOCOL and existing search before starting. Reuse the existing shared production lexical scorer. The historical v0.6.2 NLEmbedding spike concerns pure-control filtering and explicitly lacks Chrome compatibility; none of its classifier metrics are semantic retrieval evidence.
+
+Freeze28independently authored public synthetic records +29fixed tasks before selecting or tuning a semantic method. Include exact lexical anchors, Chinese paraphrase, fuzzy recollection,3verified no-shared-keyword tasks, negation, correction versus old proposal, quotation versus belief,3no-answer tasks, known-date boundaries, source filters, combined source/date, excluded material and unknown-time records. Roles/old statements/corrections remain exact evidence; ranking does not assert current belief. No real/private archive text enters Git or CI. Do not remove difficult tasks or revise gold to accommodate baseline quality.
+
+Executable evaluation passes candidates only eligible immutable records and query, never relevance labels. Fixed date/source/exclusion admission, unknown-time exclusion under known-date filters, calendar/duplicate/malformed/invalid-gold rejection. Out-of-scope/unknown/duplicate/oversized/malformed results and candidate exceptions are contract ERROR, not silently filtered or omitted from metrics. Reports contain fixed task IDs/categories/quality/error counts/corpus SHA256/timing, no query/body/path/provider exception text.
+
+Run existing production lexical-v1 and a reusable invocation-owned character TF-IDF projection as two truthful lexical baselines. The projection is LAB_ONLY/statistical lexical, not semantic. Measure MRR@5/recall@5/nDCG@5/no-answer abstention and per-category gaps; record fixed-corpus p50/p95/index build/serialized projection size. No semantic weights/model download/provider/network/cost, production index/manifest/permissions/UI/schema or runtime behavior change. This lab is outside the actual release allowlist. Full/long-library/private/user-level/Chrome-semantic compatibility cannot be inferred from29tasks.
+
+17new affected unit tests cover frozen coverage/no-shared keywords, independent ranking oracle,5unsafe candidate contracts, non-echo exception,6invalid corpus/scope/time labels, actual current lexical scorer/scoped immutable corpus, reusable lab projection and actual Node bake-off script privacy/resource report. No existing test/fixture/quality standard removed; actual cloud proof pending. Draft affected unit/contracts/privacy/release only; full certification reserved for later stable owning slice boundary. Full VS07/07.1semantic selection/index/invalidation/UI/R2/R1/long-library remain OPEN, existing deferred external/private/device/owner gates retained. Whole-package authorization; continue current PR as the slice batch without micro-PRs.
