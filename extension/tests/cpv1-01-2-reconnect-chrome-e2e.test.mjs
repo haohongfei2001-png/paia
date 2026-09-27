@@ -306,8 +306,16 @@ test('CPV1-01.2: pending capture status still exposes one refresh action after r
     assert.equal(await oldTab.locator('#paia-reconnect-notice button').textContent(), '刷新此 ChatGPT 页面');
     assert.equal(await oldTab.locator('#paia-reconnect-notice').count(), 1);
     assert.equal(await oldTab.locator('textarea').inputValue(), 'UNSENT_RELOAD_CANARY');
+    // runtime.reload invalidates the actual old document above. The harness
+    // installs an unpacked extension through CDP; explicitly load that same
+    // candidate once before opening a fresh trusted extension page. Do not
+    // retry a blocked navigation or alter the old-page outcome/deadline.
+    const { id: reloadedId } = await h.cdp.send('Extensions.loadUnpacked', { path: release });
+    assert.equal(reloadedId, h.extensionId, 'same unpacked candidate retains extension identity');
     const fresh = await h.context.newPage();
-    await fresh.goto('chrome-extension://' + h.extensionId + '/ui/archive.html');
+    await fresh.goto('chrome-extension://' + reloadedId + '/ui/archive.html');
+    assert.equal(await fresh.evaluate(() => chrome.runtime.getManifest().version), '0.12.1',
+      'archive readback belongs to the updated real candidate');
     const state = await fresh.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATE' }));
     assert.equal(state.ok, true);
     assert.equal(state.data.records.length, 3, 'already stored source remains intact');
