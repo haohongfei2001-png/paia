@@ -43,7 +43,7 @@ async function newInputs(store,t,start,end,filterState,policy){
 async function oldInputs(store,t,filterState,policy,now,start){
  if(!policy.oldContent)return {items:[],truncated:false};
  const candidates=[];let cursor=null,scanned=0,truncated=false;
- do{const page=await t.rangePage('blockIndex','bySequence',null,cursor,Math.min(100,MAX_OLD_SCAN-scanned),'prev');for(const {value:ix}of page.rows){scanned++;if(ix.sequence>=start)continue;const item=await inputDTO(store,t,ix,filterState,policy,{oldCutoff:now-REVISIT_OLD_DAYS*86400000});if(item)candidates.push(item);}cursor=page.next;if(candidates.length>=28)break;truncated=cursor!==null&&scanned>=MAX_OLD_SCAN;}while(cursor!==null&&scanned<MAX_OLD_SCAN);
+ do{const page=await t.rangePage('blockIndex','bySequence',null,cursor,Math.min(100,MAX_OLD_SCAN-scanned),'prev');for(const {value:ix}of page.rows){scanned++;if(ix.sequence>=start)continue;const item=await inputDTO(store,t,ix,filterState,policy,{oldCutoff:now-REVISIT_OLD_DAYS*86400000});if(item)candidates.push(item);}cursor=page.next;truncated=cursor!==null&&scanned>=MAX_OLD_SCAN;}while(cursor!==null&&scanned<MAX_OLD_SCAN);
  return {items:selectResurface(candidates,new Date(now).toISOString().slice(0,10)),truncated};
 }
 export class RevisitService {

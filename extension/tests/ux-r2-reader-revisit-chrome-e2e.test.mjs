@@ -207,3 +207,59 @@ test('VS07 Revisit explains a finite priority set and keeps saved position and e
   assert.deepEqual((await h.state()).records,sourceBefore);offline(h);
  }finally{await h.close();}
 });
+
+
+test('VS07 Revisit finds worked material beyond the first ordinary cursor page', {timeout:120000}, async()=>{
+ const h=await FakeChatGPT.start({onboarding:true});try{
+  const p=await ready(h),chat={id:'vs07-revisit-paged',title:'跨页回访证据',
+   base:1609459200,messages:Array.from({length:130},(_,i)=>({
+    id:'vs07-paged-'+String(i).padStart(3,'0'),
+    text:'VS07_PAGED_ORIGINAL_'+String(i).padStart(3,'0')+' 完整原话与工作版本保持独立。'}))};
+  await h.open(chat);
+  await eventually(async()=>{
+   const records=(await h.state()).records;
+   return records.length===130&&records.every(x=>x.sourceSentAt);
+  },'all full cross-page historical captures are ready');
+  await p.bringToFront();
+  const sourceBefore=(await h.state()).records;
+  const doc=(await rpc(p,'GET_PAGE',{page:{view:'library',limit:1}})).recentCapturedDocument;
+  const page=await rpc(p,'GET_PAGE',{page:{view:'library',documentId:doc.id,sort:'asc',limit:100}});
+  const originals=sourceBefore.filter(r=>['vs07-paged-000','vs07-paged-001',
+   'vs07-paged-002','vs07-paged-003'].includes(r.sourceMessageId));
+  assert.equal(originals.length,4);
+  const worked=originals.map(r=>page.library.blocks.find(b=>b.originalTextReference===r.id));
+  assert.ok(worked.every(Boolean),'the four oldest captured Inputs are available through actual paging');
+  await rpc(p,'EDIT_DOCUMENT',{edit:{documentId:doc.id,operationId:crypto.randomUUID(),
+   blocks:worked.map((item,i)=>({id:item.id,expectedRevision:item.revision,
+    libraryText:'VS07_PAGED_WORKED_'+i+' 曾编辑的完整独立版本。',note:item.note,excluded:item.excluded}))}});
+  await navigate(p,{view:'revisit'});
+  await p.locator('.revisit-close').click();
+  await eventually(()=>p.locator('#revisit-panel').isHidden(),'real visit boundary closes');
+  await navigate(p,{view:'revisit'});
+  await p.locator('#revisit-old-toggle').check();
+  await eventually(async()=>await p.locator('.revisit-card[data-input-id]').count()===4);
+  const ids=await p.locator('.revisit-card[data-input-id]').evaluateAll(cards=>cards.map(c=>c.dataset.inputId));
+  assert.deepEqual(new Set(ids),new Set(worked.map(b=>b.id)));
+  for(const item of worked){
+   const card=p.locator('.revisit-card[data-input-id="'+item.id+'"]');
+   assert.match(await card.locator('small').textContent(),/曾编辑或整理/);
+  }
+  const result=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
+  assert.equal(result.resurfaceTruncated,false);assert.equal(result.newInputs.count,0);
+  assert.equal(Object.hasOwn(result,'unread'),false);
+  await p.locator('#revisit-refresh').click();
+  await eventually(async()=>JSON.stringify(await p.locator('.revisit-card[data-input-id]').evaluateAll(
+   cards=>cards.map(c=>c.dataset.inputId)))===JSON.stringify(ids),'cross-page same-day selection remains stable');
+  const removed=p.locator('.revisit-card[data-input-id="'+worked[0].id+'"]');
+  await removed.locator('summary').click();
+  await removed.getByRole('button',{name:'不主动回顾这条',exact:true}).click();
+  await eventually(async()=>await removed.count()===0);
+  const after=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
+  assert.equal(after.resurface.length,4);assert.equal(after.resurface.filter(x=>x.meaningful).length,3);
+  assert.deepEqual((await h.state()).records,sourceBefore);
+  assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[]);
+  offline(h);
+ }finally{await h.close();}
+});
