@@ -5,7 +5,7 @@ import {readFile,readdir,stat,mkdir} from 'node:fs/promises';
 import {resolve,join,relative,isAbsolute} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {retrievalCorpus} from '../tests/fixtures/cpv1-07-retrieval-corpus.mjs';
-import {validateRetrievalCorpus,productionLexicalCandidate,buildCharacterIndex,evaluateRetrieval}
+import {validateRetrievalCorpus,productionLexicalCandidate,buildCharacterIndex,evaluateRetrieval,validateRetrievalMethod}
   from '../experiments/retrieval-evaluation.mjs';
 import {buildSemanticLabIndex,fuseScopedLabRanks,HYBRID_RANK_RULE} from '../experiments/semantic-lab-index.mjs';
 import {calibrationCorpus} from '../tests/fixtures/cpv1-07-calibration-corpus.mjs';
@@ -19,6 +19,7 @@ const UPSTREAM=MODEL; // Assets are owned by the same declared official reposito
 const MODEL_REVISION=PUBLIC_XLM_EMBEDDING.revision;
 const README_SHA256=PUBLIC_XLM_EMBEDDING.readme;
 const METHOD='official-multilingual-xlm-mean-onnx-lab-v1';
+const HYBRID_METHOD='official-xlm-hybrid-rrf-lab-v1';
 const PACKAGE_VERSION='3.8.1';
 const DIMENSION=PUBLIC_XLM_EMBEDDING.dimension;
 const MINIMUM_SCORE=.7; // Freeze before the first model result; never tune gold.
@@ -35,7 +36,7 @@ const REASONS=new Set(['semantic_probe_unavailable','invalid_lab_environment',
   'public_model_identity_unverified','public_model_license_unverified',
   'quantized_asset_unavailable','official_tokenization_unavailable',
   'official_input_contract_unverified','official_onnx_inference_unavailable',
-  'official_dense_pooling_unverified','official_asset_budget_unverified','official_asset_digest_unverified']);
+  'lab_method_unregistered','official_dense_pooling_unverified','official_asset_budget_unverified','official_asset_digest_unverified']);
 function refuse(reason='semantic_probe_unavailable'){
   failureReason=REASONS.has(reason)?reason:'semantic_probe_unavailable';
   throw new Error('semantic_probe_unavailable');
@@ -58,6 +59,9 @@ async function publicAssets(root,directory=root) {
 }
 
 try {
+  stage='fixed_method_contract';failureReason='lab_method_unregistered';
+  validateRetrievalMethod(METHOD);validateRetrievalMethod(HYBRID_METHOD);
+  stage='lab_environment';failureReason='semantic_probe_unavailable';
   validateRetrievalCorpus(retrievalCorpus);
   validateCalibrationCorpus(calibrationCorpus,retrievalCorpus);
   const labValue=process.env.PAIA_SEMANTIC_LAB_ROOT;
@@ -204,7 +208,7 @@ try {
     const key=rankKey(scope,query);
     if(!semanticRanks.has(key))refuse();
     return fuseScopedLabRanks(scope,productionLexicalCandidate(scope,query),semanticRanks.get(key).ranks);
-  },{method:'official-xlm-hybrid-rrf-lab-v1'});
+  },{method:HYBRID_METHOD});
   // Cached fusion timing is deliberately NOT advertised as end-to-end model
   // query latency. The original semantic report includes the real inference.
   hybridReport.retrievalTiming.scope='ranking_only_shared_inference_not_end_to_end';

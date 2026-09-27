@@ -155,3 +155,35 @@ test('CPV1-07 actual cloud bake-off script reports honest fixed-corpus quality/r
   for(const record of retrievalCorpus.records) assert.equal(JSON.stringify(output).includes(record.body),false);
   for(const task of retrievalCorpus.tasks) assert.equal(JSON.stringify(output).includes(task.query),false);
 });
+
+
+import {validateRetrievalMethod} from '../experiments/retrieval-evaluation.mjs';
+for(const registered of ['official-multilingual-xlm-mean-onnx-lab-v1','official-xlm-hybrid-rrf-lab-v1']){
+ test('CPV1-07 '+registered+' is admitted before encoding and evaluates the complete frozen corpus',async()=>{
+  assert.equal(validateRetrievalMethod(registered),true);
+  const original=JSON.stringify(retrievalCorpus),queries=[];
+  const report=await evaluateRetrieval(retrievalCorpus,async(scope,query)=>{
+   assert.equal(Object.isFrozen(scope),true);
+   assert.equal(scope.every(row=>Object.isFrozen(row)&&row.excluded===false),true);
+   queries.push(query);return [];
+  },{method:registered});
+  assert.equal(queries.length,29);assert.equal(report.taskCount,29);assert.equal(report.recordCount,28);
+  assert.deepEqual(queries,retrievalCorpus.tasks.map(task=>task.query));
+  assert.equal(report.method,registered);assert.equal(report.contractFailures,0);assert.equal(report.measuredTasks,29);
+  assert.equal(report.aggregate.noAnswerAbstention,1);assert.equal(report.aggregate.mrrAt5,0);
+  assert.equal(report.aggregate.recallAt5,0);assert.equal(report.aggregate.ndcgAt5,0);
+  assert.equal(report.productionClaim,false);assert.equal(report.semanticCapabilityEstablished,false);
+  assert.equal(report.personalBeliefJudgment,false);
+  assert.deepEqual(report.rows.map(row=>row.id),retrievalCorpus.tasks.map(task=>task.id));
+  assert.equal(JSON.stringify(retrievalCorpus),original);
+ });
+}
+test('CPV1-07 unregistered method refuses before any candidate/tensor invocation without admitting arbitrary labels',async()=>{
+ for(const rejected of [null,undefined,true,{},'PRIVATE_UNREGISTERED_METHOD','official-multilingual-xlm-mean-onnx-lab-v1 ']){
+  assert.throws(()=>validateRetrievalMethod(rejected),/^Error: invalid synthetic retrieval benchmark$/);
+  let calls=0;
+  await assert.rejects(evaluateRetrieval(retrievalCorpus,async()=>{calls++;return [];},{method:rejected}),
+   /^Error: invalid synthetic retrieval benchmark$/);
+  assert.equal(calls,0);
+ }
+});

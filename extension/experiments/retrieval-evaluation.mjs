@@ -6,7 +6,7 @@ import {rankAll} from '../core/memory/retrieval.js';
 const CATEGORIES = new Set(['lexical','paraphrase_zh','fuzzy_recollection','no_shared_keywords',
   'negation','correction','quotation_vs_belief','no_answer','date_constraint',
   'source_constraint','date_source_constraint','exclusion','unknown_time']);
-const METHODS = new Set(['lexical-production-v1','character-tfidf-lab-v1','unselected-semantic-lab-v1','multilingual-e5-small-onnx-lab-v1','official-multilingual-minilm-onnx-lab-v1','official-hybrid-rrf-lab-v1','official-mmarco-paired-logit-lab-v1']);
+const METHODS = new Set(['lexical-production-v1','character-tfidf-lab-v1','unselected-semantic-lab-v1','multilingual-e5-small-onnx-lab-v1','official-multilingual-minilm-onnx-lab-v1','official-hybrid-rrf-lab-v1','official-mmarco-paired-logit-lab-v1','official-multilingual-xlm-mean-onnx-lab-v1','official-xlm-hybrid-rrf-lab-v1']);
 const SOURCES = new Set(['chatgpt','claude']);
 const ROLES = new Set(['statement','quotation','historical','correction','proposal','question','hypothesis','recollection']);
 const iso = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)
@@ -119,9 +119,16 @@ const percentile = (values,fraction)=>{
 };
 const dcg = grades=>grades.reduce((sum,grade,index)=>sum+(2**grade-1)/Math.log2(index+2),0);
 
+// Admission can be checked before an isolated lab downloads or executes tensors.
+// This finite registry is a report contract, never quality or model admission.
+export function validateRetrievalMethod(method) {
+  if(!METHODS.has(method)) fail();
+  return true;
+}
 export async function evaluateRetrieval(corpus,candidate,{method}={}) {
   validateRetrievalCorpus(corpus);
-  if(!METHODS.has(method) || typeof candidate !== 'function') fail();
+  validateRetrievalMethod(method);
+  if(typeof candidate !== 'function') fail();
   const rows=[],durations=[];
   for(const task of corpus.tasks) {
     const eligible=Object.freeze(eligibleRecords(corpus,task).map(record=>Object.freeze({...record})));

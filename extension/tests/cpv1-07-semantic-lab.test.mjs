@@ -598,3 +598,22 @@ test('CPV1-07 XLM exact changed candidate runs one new measurement without repea
   assert.equal(routing.runProbe,true);assert.equal(routing.embeddingProbeOnly,undefined);
  }
 });
+
+
+test('CPV1-07 verified XLM method-contract repair runs only its actual remaining measurement',()=>{
+ const paths=['extension/scripts/run-public-embedding-lab.mjs','extension/experiments/retrieval-evaluation.mjs',
+  'extension/tests/cpv1-07-retrieval-evaluation.test.mjs','extension/scripts/semantic-lab-change.mjs',
+  'extension/tests/cpv1-07-semantic-lab.test.mjs','extension/docs/consumer-product-v1/STATUS.md',
+  'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'];
+ const evidence={action:'synchronize',before:'a'.repeat(40),head:'b'.repeat(40),ancestor:true,paths};
+ assert.deepEqual(semanticLabRouting(evidence),{runProbe:false,runSourceScreen:false,sourceOnly:false,
+  runPairedProbe:false,runEmbeddingScreen:false,runEmbeddingProbe:true,embeddingProbeOnly:true});
+ for(const other of [{paths:paths.filter(p=>!p.endsWith('cpv1-07-retrieval-evaluation.test.mjs'))},
+  {paths:paths.filter(p=>!p.endsWith('run-public-embedding-lab.mjs'))},
+  {paths:[...paths,'extension/experiments/semantic-calibration.mjs']},
+  {paths:[...paths,'extension/tests/fixtures/cpv1-07-retrieval-corpus.mjs']},
+  {paths:[...paths,'extension/core/search-service.js']},{ancestor:false},{action:'opened'},{before:null}]){
+  const route=semanticLabRouting({...evidence,...other});
+  assert.equal(route.embeddingProbeOnly,undefined);assert.equal(route.runProbe,true);
+ }
+});
