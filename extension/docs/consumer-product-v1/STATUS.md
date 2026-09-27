@@ -8,17 +8,17 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: VS-06
+current_slice: VS-07
 
-current_slice_status: IN_PROGRESS — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFERRED_EXTERNAL_CERT_PENDING
+current_slice_status: READY — VS-06_ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING
 
-current_round: CPV1-06.5–06.6 / VS-06 Batch B
+current_round: CPV1-07.0–07.1 / VS-07 Batch A
 
-current_round_status: IN_PROGRESS / VS06_BATCH_B_TARGETED_PENDING
+current_round_status: READY / FIXED_RETRIEVAL_EVALUATION
 
-current_writer: MANAGER / sole VS-06 Batch B branch feat/vs06-review-passport
+current_writer: NONE — PR87 RELEASED
 
-writer_status: VS-06_BATCH_B_ACQUIRED / SINGLE_WRITER
+writer_status: RELEASED / NEXT_SINGLE_WRITER_VS07
 
 production_claim: NONE
 
@@ -858,3 +858,19 @@ CPV1-06.7 retained acceptance coverage:
 The new3production integration cases close only concrete expiry/final-boundary and actual restore evidence gaps. No runtime/workflow/permission/provider/fixture/deadline change, repeated scale proof, deleted test or reduced security oracle. Retained existing source/version/policy checks, actual10browser proof and synthetic-source scope unchanged. One coherent acceptance batch after source review; new3case evidence NOT_RUN until the next affected unit gate. Draft targeted candidate proof precedes exactly one stable owning full-certification head, then one exact-main full run after authorized merge. No intermediate/full/unchanged-head rerun.
 
 Scope06.5–06.7 remains IN_PROGRESS until stable full and exact-main receipts. Earlier semantic/current-live/private/device/signing/distribution/user-evidence gates remain explicitly deferred, not PASS; no VS06/package/production COMPLETE from this checkpoint.
+
+
+## VS-06 Batch B exact-main integration and engineering frontier
+
+verdict: ENGINEERING_BATCH_COMPLETE / PASS — CPV1-06.5–06.7
+candidate_pr: #87 / stable20d816c12c1d988890aaef0fbde0a47a0219359a
+stable_full: 36287954456 / SUCCESS
+merged_runtime_main: 4e173b2f07c03c98f984d6c786be94fcf84fe1a8
+exact_main_full: 36288993572 / SUCCESS
+receipt: receipts/CPV1-06.5-06.7-MAIN-INTEGRATION.md
+
+Stable head20d816, actual synthetic checkoutbfad466 and merged main4e173b2 have identical tree6a0dea49e17fda4977e20312caaf88d77406ba33. Exact-main FullSuite108537221515 reports exactSha4e173b2, fullSuite/audittrue, unit151/browser53/adapter3/privacy6/currentFiles213; inputDigest79ae3cd08d0597c546a192f3b1d7aa2f3fe21946791c1b3076a98655641279b6 matches stable full. All mandatory jobs and aggregate108537259248 PASS; actualMacdiscard4PASS/0FAIL. Historical76 and realGoldenUNAVAILABLE remain separate.
+
+06.5readable exact current-output review/clipboard/download semantics,06.6blank-default explicit create/revoke matched readback and unknown-ack fences,06.7expiry/restore plus retained complete authorization/stale/deletion/once/budget/injection/edit/privacy/current-browser matrix are integrated. Sources/history untouched; no new permission/provider/live side effect. Stable fullonce and exact-mainonce; no lowered fixtures/assertions.
+
+VS06 ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING; final slice/package/production is not COMPLETE. Existing ledger owner/private/current-live/device/signing/distribution gates unchanged. PR87writer RELEASED. Next VS07BatchA07.0fixed evaluation +07.1honest lexical/semantic resource bake-off; production semantic/index/UI/Revisit/long-library remain explicit later canonical work. Existing pure-control embedding lab is not retrieval proof. This docs-only checkpoint refers to runtime4e173b2.
