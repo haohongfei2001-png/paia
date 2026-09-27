@@ -102,3 +102,30 @@ test('CPV1-07 fresh old-dated capture explains visit provenance and never become
  assert.equal(Object.hasOwn(result,'unread'),false);
  assert.deepEqual(await authority(f.s),before);assert.equal(f.requests.length,0);
 });
+
+test('CPV1-07 real close/open visit boundary keeps old-dated new captures distinct without read debt',async()=>{
+ const f=await completeFixture({texts:[]}),service=new RevisitService(f.s,{clock:()=>now}),
+  reader=new ReaderStateService(f.s);
+ await service.status();
+ for(let i=0;i<8;i++){
+  const request=capture((await f.s.status()).epoch,'cpv1-visit-cycle-'+i,
+   'CPV1_VISIT_CYCLE_'+i+' 原话日期早于这次保存，不能冒充已读。');
+  request.messages[0].sourceTime={state:'valid',createTime:1609459200+i,updateTime:1609459201+i};
+  await f.s.capture(request);
+ }
+ await f.s.finishFoundation();await reader.configure({oldContent:true});
+ const before=await authority(f.s),first=await service.open(),fresh=await service.status({
+  windowId:first.id,includeOld:true});
+ assert.equal(first.start,0);assert.equal(first.end,8);
+ assert.equal(fresh.newInputs.count,8);assert.equal(fresh.newInputs.items.length,5);
+ assert.ok(fresh.newInputs.items.every(item=>item.revisitReason==='saved_since_visit'));
+ assert.deepEqual(fresh.resurface,[]);assert.deepEqual(await reader.recent(),[]);
+ assert.deepEqual(await authority(f.s),before);
+ await service.close({windowId:first.id});
+ const next=await service.open(),older=await service.status({windowId:next.id,includeOld:true});
+ assert.equal(next.start,8);assert.equal(next.end,8);
+ assert.equal(older.newInputs.count,0);assert.equal(older.resurface.length,4);
+ assert.ok(older.resurface.every(item=>item.revisitReason==='earlier_material'));
+ assert.deepEqual(await reader.recent(),[]);assert.equal(Object.hasOwn(older,'unread'),false);
+ assert.deepEqual(await authority(f.s),before);assert.equal(f.requests.length,0);
+});
