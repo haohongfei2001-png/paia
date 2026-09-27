@@ -393,3 +393,210 @@ test('CPV1-07 exact public ONNX inventory is emitted without fetching tensor pay
   ...f.metadata,siblings:f.metadata.siblings.filter(v=>!v.rfilename.endsWith('.onnx'))}});
  assert.deepEqual((await inspectPublicRerankerSource(RERANKER_SOURCES[0],empty)).inventory.onnxFiles,[]);
 });
+
+
+test('CPV1-07 official embedding sources preserve pinned declarative pooling/projection and never load tensors',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ const candidate=EMBEDDING_SOURCES[1],calls=[],rev='5'.repeat(40);
+ const files=['README.md','LICENSE','config.json','tokenizer_config.json','modules.json',
+  '1_Pooling/config.json','2_Dense/config.json','onnx/model_quantized.onnx'];
+ const metadata={id:candidate,sha:rev,private:false,gated:false,cardData:{license:'apache-2.0'},
+  siblings:files.map(rfilename=>({rfilename})),tags:['license:apache-2.0']};
+ const bodies={
+  'README.md':'---\nlicense: apache-2.0\n---\nPUBLIC_EMBEDDING_SOURCE_CANARY',
+  LICENSE:'Apache License\nPUBLIC_LICENSE_CANARY',
+  'config.json':JSON.stringify({architectures:['BertModel'],hidden_size:768,num_hidden_layers:12,max_position_embeddings:512}),
+  'tokenizer_config.json':JSON.stringify({tokenizer_class:'BertTokenizer',model_max_length:512}),
+  'modules.json':JSON.stringify([
+   {idx:0,type:'sentence_transformers.models.Transformer',path:''},
+   {idx:1,type:'sentence_transformers.models.Pooling',path:'1_Pooling'},
+   {idx:2,type:'sentence_transformers.models.Dense',path:'2_Dense'},
+   {idx:3,type:'sentence_transformers.models.Normalize',path:'3_Normalize'}]),
+  '1_Pooling/config.json':JSON.stringify({word_embedding_dimension:768,pooling_mode_cls_token:true,
+   pooling_mode_mean_tokens:false,pooling_mode_max_tokens:false,pooling_mode_mean_sqrt_len_tokens:false}),
+  '2_Dense/config.json':JSON.stringify({in_features:768,out_features:768,bias:true,
+   activation_function:'torch.nn.modules.activation.Tanh'})};
+ const report=await inspectPublicEmbeddingSource(candidate,{fetcher:async(url,options)=>{
+  calls.push(url);assert.equal(options.redirect,'manual');assert.equal(Object.hasOwn(options.headers,'Authorization'),false);
+  const u=new URL(url);assert.equal(u.origin,'https://huggingface.co');
+  if(u.pathname.startsWith('/api/models/')){
+   assert.deepEqual(u.searchParams.getAll('expand'),['sha','private','gated','cardData','siblings','tags']);
+   assert.ok(['/api/models/'+candidate,'/api/models/'+candidate+'/revision/'+rev].includes(u.pathname));
+   return response(JSON.stringify(metadata));
+  }
+  const prefix='/'+candidate+'/raw/'+rev+'/';assert.ok(u.pathname.startsWith(prefix));
+  const file=u.pathname.slice(prefix.length);assert.ok(Object.hasOwn(bodies,file));assert.equal(u.search,'');
+  return response(bodies[file]);
+ }});
+ assert.equal(report.diagnosis,'CONSISTENT_DECLARED_SOURCE_PENDING_INPUT_AND_QUALITY');
+ assert.deepEqual(report.moduleOrder,['Transformer','Pooling','Dense','Normalize']);
+ assert.equal(report.pooling.modes.pooling_mode_cls_token,true);
+ assert.equal(report.pooling.modes.pooling_mode_mean_tokens,false);
+ assert.equal(report.pooling.modes.pooling_mode_weightedmean_tokens,null,'absence stays unknown, never invented false');
+ assert.equal(report.projection.activation,'torch.nn.modules.activation.Tanh');
+ assert.equal(report.projection.weightsVerified,false);assert.equal(report.normalizationDeclared,true);
+ assert.equal(report.configurationFiles.length,5);assert.equal(calls.length,9);
+ assert.ok(report.configurationFiles.every(x=>/^[a-f0-9]{64}$/.test(x.sha256)));
+ assert.equal(report.inventory.quantizedOnnxListed,true);
+ for(const key of ['weightsDownloaded','inferenceExecuted','productionClaim'])assert.equal(report[key],false);
+ for(const key of ['queryPrefix','scoringActivation','conversionEquivalence','chromeCompatibility'])assert.equal(report[key],'NOT_VERIFIED');
+ assert.equal(report.modelAdmission,'NOT_AUTHORIZED');assert.equal(report.qualityGate,'NOT_EVALUATED');
+ assert.equal(JSON.stringify(report).includes('CANARY'),false);
+ assert.ok(calls.every(url=>!url.includes('.onnx')&&!url.includes('.bin')&&!url.includes('.safetensors')));
+});
+test('CPV1-07 embedding source wrong/private/gated/pinned identity refuses before configuration reads',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ const candidate=EMBEDDING_SOURCES[0],rev='6'.repeat(40);
+ const current={id:candidate,sha:rev,private:false,gated:false};
+ for(const change of [{id:'PRIVATE_BAD_ID'},{sha:'main'},{sha:'7'.repeat(40)},{private:true},{gated:'auto'}]){
+  let calls=0;const report=await inspectPublicEmbeddingSource(candidate,{fetcher:async()=>response(
+   JSON.stringify(++calls===1?current:{...current,...change}))});
+  assert.equal(report.diagnosis,'PINNED_IDENTITY_UNVERIFIED');assert.equal(calls,2);
+  assert.equal(report.pooling,undefined);assert.equal(report.modelAdmission,'NOT_AUTHORIZED');
+  assert.equal(JSON.stringify(report).includes('PRIVATE_BAD_ID'),false);
+ }
+});
+test('CPV1-07 embedding source rejects ambiguous inventories without reading advertised paths',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ const candidate=EMBEDDING_SOURCES[0];
+ for(const siblings of [[{rfilename:'../PRIVATE_ESCAPE'}],[{rfilename:'/LICENSE'}],
+  [{rfilename:'README.md'},{rfilename:'README.md'}],Array.from({length:513},(_,i)=>({rfilename:'file'+i})),
+  [{rfilename:'https://private.example/weights'}]]){
+  let calls=0;const report=await inspectPublicEmbeddingSource(candidate,{fetcher:async()=>{
+   calls++;return response(JSON.stringify({id:candidate,sha:'8'.repeat(40),private:false,gated:false,siblings}));}});
+  assert.equal(calls,2);assert.equal(report.diagnosis,'INVENTORY_UNVERIFIED');
+  assert.equal(JSON.stringify(report).includes('PRIVATE_ESCAPE'),false);
+ }
+});
+test('CPV1-07 embedding source missing or conflicting license never inherits base model or permissive tags',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ const candidate=EMBEDDING_SOURCES[0];
+ for(const cardData of [{},{license:'mit'}, {license:['apache-2.0']}]){
+  const metadata={id:candidate,sha:'9'.repeat(40),private:false,gated:false,cardData,
+   tags:['license:apache-2.0'],siblings:[{rfilename:'README.md'}]};
+  let calls=0;const report=await inspectPublicEmbeddingSource(candidate,{fetcher:async url=>{
+   calls++;return response(new URL(url).pathname.startsWith('/api/models/')?JSON.stringify(metadata):
+    '---\nlicense: apache-2.0\nbase_model: PRIVATE_BASE_MODEL\n---\n');}});
+  assert.equal(report.diagnosis,'LICENSE_DECLARATIONS_UNVERIFIED');assert.equal(calls,3);
+  assert.equal(report.modelAdmission,'NOT_AUTHORIZED');assert.equal(JSON.stringify(report).includes('PRIVATE_BASE_MODEL'),false);
+ }
+});
+test('CPV1-07 embedding source bounds streams and releases ownership without decoding overflowing source',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ let cancelled=0,released=0;
+ const report=await inspectPublicEmbeddingSource(EMBEDDING_SOURCES[0],{fetcher:async()=>({
+  status:200,body:{getReader:()=>({read:async()=>({done:false,value:new Uint8Array(1024*1024+1)}),
+   cancel:async()=>{cancelled++;},releaseLock:()=>{released++;}})},
+  text:async()=>{assert.fail('stream must not fall back to unbounded response.text');}
+ })});
+ assert.equal(report.diagnosis,'METADATA_UNAVAILABLE');assert.equal(report.currentMetadata.bounded,false);
+ assert.equal(cancelled,1);assert.equal(released,1);assert.equal(report.weightsDownloaded,false);
+});
+test('CPV1-07 embedding source refuses arbitrary IDs before any request',async()=>{
+ const {inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ let calls=0;await assert.rejects(inspectPublicEmbeddingSource('PRIVATE_ARBITRARY_REPO',{fetcher:async()=>{calls++;}}),
+  /public_embedding_source_not_allowlisted/);assert.equal(calls,0);
+});
+test('CPV1-07 embedding source module configuration is declarative only and refuses remote or ambiguous execution',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ const candidate=EMBEDDING_SOURCES[0],rev='a'.repeat(40);
+ const standard=[{idx:0,type:'sentence_transformers.models.Transformer',path:''},
+  {idx:1,type:'sentence_transformers.models.Pooling',path:'1_Pooling'}];
+ const files=['README.md','config.json','tokenizer_config.json','modules.json','1_Pooling/config.json'];
+ const metadata={id:candidate,sha:rev,private:false,gated:false,cardData:{license:'apache-2.0'},
+  siblings:files.map(rfilename=>({rfilename}))};
+ for(const fault of ['remote','module_code','module_path','duplicate_module','missing_pool','pool_not_object']){
+  const reads=[];
+  const report=await inspectPublicEmbeddingSource(candidate,{fetcher:async url=>{
+   const u=new URL(url);reads.push(u.pathname);
+   if(u.pathname.startsWith('/api/models/'))return response(JSON.stringify(metadata));
+   if(u.pathname.endsWith('/README.md'))return response('---\nlicense: apache-2.0\n---\n');
+   if(u.pathname.endsWith('/tokenizer_config.json'))return response(JSON.stringify({tokenizer_class:'XLMRobertaTokenizer'}));
+   if(u.pathname.endsWith('/config.json')&&!u.pathname.includes('1_Pooling'))return response(JSON.stringify({
+    architectures:['XLMRobertaModel'],hidden_size:768,...(fault==='remote'?{auto_map:{PRIVATE:'PRIVATE_REMOTE_CODE'}}:{})}));
+   if(u.pathname.endsWith('/modules.json')){
+    const modules=structuredClone(standard);
+    if(fault==='module_code')modules[1].type='PRIVATE_REMOTE_MODULE';
+    if(fault==='module_path')modules[1].path='../PRIVATE_PATH';
+    if(fault==='duplicate_module')modules[1].idx=0;
+    if(fault==='missing_pool')modules[1].type='sentence_transformers.models.Normalize';
+    return response(JSON.stringify(modules));
+   }
+   assert.ok(u.pathname.endsWith('/1_Pooling/config.json'));
+   return response('[]');
+  }});
+  assert.equal(report.diagnosis,fault==='remote'?'CONFIGURATION_UNVERIFIED':
+   fault==='pool_not_object'?'MODULE_CONFIGURATION_UNVERIFIED':'MODULE_CONTRACT_UNVERIFIED');
+  assert.equal(report.modelAdmission,'NOT_AUTHORIZED');assert.equal(report.inferenceExecuted,false);
+  assert.equal(JSON.stringify(report).includes('PRIVATE'),false);
+  if(fault!=='pool_not_object')assert.equal(reads.some(x=>x.endsWith('/1_Pooling/config.json')),false);
+ }
+});
+test('CPV1-07 embedding source unavailable, redirected, malformed and non-UTF8 input remain finite refusal',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ for(const fetcher of [async()=>response('PRIVATE_REDIRECT',302),async()=>response('{PRIVATE_JSON'),
+  async()=>{throw Error('PRIVATE_FETCH');},async()=>{
+   let read=false;return {status:200,body:{getReader:()=>({
+    read:async()=>read?{done:true}:(read=true,{done:false,value:new Uint8Array([0xff])}),
+    cancel:async()=>{},releaseLock:()=>{}
+   })}};
+  }]){
+  const report=await inspectPublicEmbeddingSource(EMBEDDING_SOURCES[0],{fetcher});
+  assert.equal(report.modelAdmission,'NOT_AUTHORIZED');assert.equal(report.weightsDownloaded,false);
+  assert.equal(JSON.stringify(report).includes('PRIVATE'),false);
+  assert.ok(['METADATA_UNAVAILABLE','SOURCE_INSPECTION_UNAVAILABLE'].includes(report.diagnosis));
+ }
+});
+
+test('CPV1-07 embedding source-only routing requires complete exact new-input ancestry and never reruns old inference',async()=>{
+ const {semanticLabRouting}=await import('../scripts/semantic-lab-change.mjs');
+ const evidence={action:'synchronize',before:'b'.repeat(40),head:'c'.repeat(40),ancestor:true,
+  paths:['extension/experiments/public-embedding-provenance.mjs',
+   'extension/scripts/screen-public-embeddings.mjs',
+   'extension/experiments/public-reranker-provenance.mjs',
+   'extension/tests/cpv1-07-public-model-provenance.test.mjs',
+   'extension/scripts/semantic-lab-change.mjs','.github/workflows/paia-vs07-semantic-lab.yml',
+   '.github/workflows/paia-candidate.yml','extension/docs/consumer-product-v1/STATUS.md',
+   'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md']};
+ const result=semanticLabRouting(evidence);
+ assert.equal(result.embeddingOnly,true);assert.equal(result.runEmbeddingScreen,true);
+ assert.equal(result.runProbe,false);assert.equal(result.runPairedProbe,false);assert.equal(result.runSourceScreen,false);
+ for(const changed of [{action:'opened'},{before:'main'},{head:evidence.before},{ancestor:false},
+  {paths:null},{paths:[...evidence.paths,evidence.paths[0]]},
+  {paths:[...evidence.paths,'extension/tests/fixtures/cpv1-07-retrieval-corpus.mjs']},
+  {paths:evidence.paths.filter(x=>!x.endsWith('screen-public-embeddings.mjs'))}]){
+  const fallback=semanticLabRouting({...evidence,...changed});
+  assert.notEqual(fallback.embeddingOnly,true);assert.equal(fallback.runProbe,true);
+ }
+});
+
+test('CPV1-07 embedding source module order and fixed module paths cannot invent an execution contract',async()=>{
+ const {EMBEDDING_SOURCES,inspectPublicEmbeddingSource}=await import('../experiments/public-embedding-provenance.mjs');
+ const candidate=EMBEDDING_SOURCES[1],rev='d'.repeat(40);
+ const files=['README.md','config.json','tokenizer_config.json','modules.json','1_Pooling/config.json'];
+ const metadata={id:candidate,sha:rev,private:false,gated:false,cardData:{license:'apache-2.0'},
+  siblings:files.map(rfilename=>({rfilename}))};
+ for(const modules of [
+  [{idx:0,type:'sentence_transformers.models.Transformer',path:''},
+   {idx:1,type:'sentence_transformers.models.Transformer',path:'0_Transformer'},
+   {idx:2,type:'sentence_transformers.models.Pooling',path:'1_Pooling'}],
+  [{idx:0,type:'sentence_transformers.models.Transformer',path:''},
+   {idx:1,type:'sentence_transformers.models.Normalize',path:'2_Normalize'},
+   {idx:2,type:'sentence_transformers.models.Pooling',path:'1_Pooling'}],
+  [{idx:0,type:'sentence_transformers.models.Transformer',path:''},
+   {idx:1,type:'sentence_transformers.models.Pooling',path:'1_PRIVATE_CANARY'}]]){
+  const calls=[];
+  const report=await inspectPublicEmbeddingSource(candidate,{fetcher:async url=>{
+   calls.push(url);const u=new URL(url);
+   if(u.pathname.startsWith('/api/models/'))return response(JSON.stringify(metadata));
+   if(u.pathname.endsWith('/README.md'))return response('---\nlicense: apache-2.0\n---\n');
+   if(u.pathname.endsWith('/tokenizer_config.json'))return response('{}');
+   if(u.pathname.endsWith('/modules.json'))return response(JSON.stringify(modules));
+   assert.ok(u.pathname.endsWith('/config.json')&&!u.pathname.includes('Pooling'));
+   return response('{"architectures":["BertModel"]}');
+  }});
+  assert.equal(report.diagnosis,'MODULE_CONTRACT_UNVERIFIED');
+  assert.equal(report.inferenceExecuted,false);assert.equal(JSON.stringify(report).includes('PRIVATE'),false);
+  assert.equal(calls.some(x=>x.includes('1_Pooling/config.json')),false);
+ }
+});

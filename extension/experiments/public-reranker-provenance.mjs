@@ -16,7 +16,7 @@ const classes=new Set(['BertForSequenceClassification','RobertaForSequenceClassi
 const tokenizers=new Set(['BertTokenizer','BertTokenizerFast','RobertaTokenizer',
   'RobertaTokenizerFast','XLMRobertaTokenizer','XLMRobertaTokenizerFast',
   'DebertaV2Tokenizer','DebertaV2TokenizerFast']);
-async function boundedRead(url,fetcher,maxBytes){
+export async function boundedRead(url,fetcher,maxBytes){
   const response=await fetcher(url,{redirect:'manual',signal:AbortSignal.timeout(20000),
     headers:{Accept:'application/json, text/plain'}});
   const receipt={httpStatus:Number.isInteger(response.status)?response.status:0};
@@ -41,12 +41,12 @@ async function boundedRead(url,fetcher,maxBytes){
   receipt.bounded=true;receipt.bytes=bytes.byteLength;receipt.sha256=hash(bytes);
   return {receipt,text:new TextDecoder('utf-8',{fatal:true}).decode(bytes)};
 }
-function metadataURL(id,revision){
+export function metadataURL(id,revision){
   const url=new URL('https://huggingface.co/api/models/'+id+(revision?'/revision/'+revision:''));
   for(const field of METADATA_FIELDS)url.searchParams.append('expand',field);
   return url.href;
 }
-function licenseSummary(data){
+export function licenseSummary(data){
   return {card:observeLicense(data?.cardData?.license),
     tagCodes:Array.isArray(data?.tags)?[...new Set(data.tags
       .filter(v=>typeof v==='string'&&v.startsWith('license:'))
