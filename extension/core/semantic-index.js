@@ -4,6 +4,7 @@
 import {hashText} from './dedupe.js';
 import {validMaterialRef,materialIdentity} from './manual-materials.js';
 import {historicalInstant} from './historical-time.js';
+import {prepareSearchQuery,rankLexicalCandidate} from './search-service.js';
 
 const fail=()=>{throw Error('semantic_index_invalid');};
 const exact=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)
@@ -137,6 +138,58 @@ export class DerivedSemanticIndex{
   }catch{
    if(epoch===this.epoch){this.rows.clear();this.state='unavailable';this.checkedGeneration=null;}
    return fallback('index_unavailable');
+  }
+ }
+
+ // One current, scope-bound evidence set for lexical fallback or hybrid ranking.
+ // This does not admit a model or activate a production search surface.
+ async lookupHybrid(query,{limit=5,minimumScore=.7}={}){
+  if(typeof query!=='string'||query.length>300||!Number.isSafeInteger(limit)||limit<1||limit>50
+   ||typeof minimumScore!=='number'||!Number.isFinite(minimumScore)||minimumScore<0||minimumScore>1)fail();
+  const unavailable=reason=>({items:[],usedSemantic:false,mode:'unavailable',reason,coverage:this.status()});
+  if(!query.trim())return unavailable('empty_query');
+  const epoch=this.epoch;
+  try{
+   const initial=await this.snapshot();
+   if(epoch!==this.epoch)return unavailable('authority_changed');
+   const prepared=prepareSearchQuery(query);
+   const lexical=initial.bindings.map(binding=>({
+    key:binding.key,score:rankLexicalCandidate(binding.row,query,prepared).score
+   })).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key)).slice(0,limit);
+   const semantic=await this.lookup(query,{limit,minimumScore});
+   const current=await this.snapshot();
+   if(epoch!==this.epoch)return unavailable('authority_changed');
+   if(current.signature!==initial.signature){
+    this.reconcile(current);
+    if(this.state!=='building')this.state=this.rows.size===this.expected?'ready':'partial';
+    return unavailable('authority_changed');
+   }
+   const eligible=new Map(current.bindings.map(x=>[x.key,x.row]));
+   if(semantic.usedSemantic!==true){
+    return {items:lexical.map(x=>({...structuredClone(eligible.get(x.key)),score:x.score})),
+     usedSemantic:false,mode:'lexical_fallback',reason:semantic.reason,
+     scope:current.scope,generation:current.generation,coverage:this.status()};
+   }
+   if(!Array.isArray(semantic.items)||semantic.items.length>limit)fail();
+   const seen=new Set(),semanticRanks=[];
+   for(const result of semantic.items){
+    const {score,...raw}=result,row=material(raw),key=materialIdentity(row.ref);
+    if(!eligible.has(key)||seen.has(key)||!Number.isFinite(score)||score<minimumScore
+     ||JSON.stringify(row)!==JSON.stringify(eligible.get(key)))fail();
+    seen.add(key);semanticRanks.push(key);
+   }
+   const scores=new Map(),lexicalOrder=new Map(lexical.map((x,i)=>[x.key,i]));
+   for(const ranks of [lexical.map(x=>x.key),semanticRanks])
+    ranks.forEach((key,i)=>scores.set(key,(scores.get(key)||0)+1/(60+i+1)));
+   const ranked=[...scores].sort((a,b)=>b[1]-a[1]
+    ||(lexicalOrder.get(a[0])??Infinity)-(lexicalOrder.get(b[0])??Infinity)
+    ||a[0].localeCompare(b[0])).slice(0,limit);
+   return {items:ranked.map(([key,score])=>({...structuredClone(eligible.get(key)),score})),
+    usedSemantic:true,mode:'hybrid',scope:current.scope,generation:current.generation,
+    coverage:this.status()};
+  }catch{
+   if(epoch===this.epoch){this.rows.clear();this.state='unavailable';this.checkedGeneration=null;}
+   return unavailable('index_unavailable');
   }
  }
 }

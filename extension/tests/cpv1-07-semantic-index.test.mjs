@@ -239,3 +239,179 @@ test('CPV1-07 actual IndexedDB edits/exclusion/purge invalidate vectors without 
  const long=result.items.find(x=>x.ref.id===f.blocks[3].id);
  assert.ok(long.body.endsWith('FULL_END'));assert.equal(long.body.split('完整多段').length-1,1000);
 });
+
+test('CPV1-07 hybrid cold fallback uses current full eligible evidence without encoding',async()=>{
+ const long='anchor 完整原话 👩🏽‍💻\n'.repeat(1000)+'FULL_HYBRID_END';
+ const f=fixture([item('a',long),item('b','unrelated evidence')]),before=f.get();
+ const result=await f.index.lookupHybrid('anchor');
+ assert.equal(result.mode,'lexical_fallback');assert.equal(result.reason,'index_incomplete');
+ assert.equal(result.usedSemantic,false);assert.equal(f.calls.length,0);
+ assert.equal(result.scope,before.scope);assert.equal(result.generation,before.generation);
+ assert.equal(result.items.length,1);assert.equal(result.items[0].body,long);
+ assert.deepEqual(result.items[0].ref,before.items[0].ref);
+ result.items[0].body='consumer mutation';result.items[0].ref.revision=999;
+ assert.deepEqual(f.get(),before);assert.equal(f.index.status().storesBody,false);
+});
+
+test('CPV1-07 hybrid independently verifies agreement, lexical ties and one query inference',async()=>{
+ const originals=[item('a','anchor'),item('b','other evidence'),item('c','anchor extended')];
+ const f=fixture(originals,{encode:async(kind,value)=>{
+  return kind==='document'&&value.ref.id==='a'?[0,1]:[1,0];
+ }});
+ const before=f.get();await f.index.synchronize();
+ let queries=0;const encode=f.index.encode;
+ f.index.encode=async(...args)=>{if(args[0]==='query')queries++;return encode(...args);};
+ const result=await f.index.lookupHybrid('anchor',{limit:3});
+ assert.equal(result.mode,'hybrid');assert.equal(result.usedSemantic,true);
+ assert.equal(queries,1);assert.deepEqual(result.items.map(x=>x.ref.id),['c','a','b']);
+ assert.deepEqual(result.items.map(x=>x.score),[2/62,1/61,1/61]);
+ for(const row of result.items){
+  const original=before.items.find(x=>x.ref.id===row.ref.id);
+  const {score,...evidence}=row;assert.deepEqual(evidence,original);
+ }
+ assert.deepEqual(f.get(),before);assert.equal(result.coverage.indexed,3);
+});
+
+test('CPV1-07 successful semantic abstention keeps lexical evidence and stays distinct from failure',async()=>{
+ const f=fixture([item('a','anchor'),item('b','anchor extra')],{
+  encode:async(kind)=>kind==='query'?[0,1]:[1,0]
+ });
+ await f.index.synchronize();const result=await f.index.lookupHybrid('anchor');
+ assert.equal(result.mode,'hybrid');assert.equal(result.usedSemantic,true);
+ assert.equal(result.reason,undefined);
+ assert.deepEqual(result.items.map(x=>x.ref.id),['a','b']);
+ assert.deepEqual(result.items.map(x=>x.score),[1/61,1/62]);
+ assert.equal(result.coverage.state,'ready');
+});
+
+test('CPV1-07 hybrid encoder failure preserves verified current lexical fallback and fixed reason',async()=>{
+ const f=fixture([item('a','anchor '+('整段证据\n'.repeat(1000)))],{
+  encode:async(kind)=>{if(kind==='query')throw Error('PRIVATE_HYBRID_ENCODER_CANARY');return [1,0];}
+ });
+ await f.index.synchronize();const before=f.get(),result=await f.index.lookupHybrid('anchor');
+ assert.equal(result.mode,'lexical_fallback');assert.equal(result.usedSemantic,false);
+ assert.equal(result.reason,'index_unavailable');assert.equal(result.coverage.indexed,0);
+ assert.equal(result.items[0].body,before.items[0].body);
+ assert.deepEqual(f.get(),before);assert.doesNotMatch(JSON.stringify(result),/PRIVATE_HYBRID_/);
+});
+
+test('CPV1-07 hybrid source failure cannot expose an older lexical or semantic result',async()=>{
+ const f=fixture([item('a','anchor')]);await f.index.synchronize();
+ assert.equal((await f.index.lookupHybrid('anchor')).items.length,1);
+ f.index.readEligible=async()=>{throw Error('PRIVATE_HYBRID_SOURCE_CANARY');};
+ const result=await f.index.lookupHybrid('anchor');
+ assert.equal(result.mode,'unavailable');assert.equal(result.reason,'index_unavailable');
+ assert.deepEqual(result.items,[]);assert.equal(result.coverage.indexed,0);
+ assert.doesNotMatch(JSON.stringify(result),/PRIVATE_HYBRID_/);
+});
+
+for(const [name,mutate]of [
+ ['working revision',s=>{s.items[0].ref.revision++;s.items[0].body='new full expression';}],
+ ['unversioned body',s=>{s.items[0].body='new actual body';}],
+ ['source',s=>{s.items[0].source='claude';}],
+ ['original time',s=>{s.items[0].time='2020-01-01T00:00:00Z';}],
+ ['Topic placement',s=>{s.items[0].locations=[{topicId:'t',sectionId:null,topicName:'Actual'}];}],
+ ['deletion or exclusion',s=>{s.items=s.items.slice(1);}],
+ ['scope retraction',s=>{s.scope='different-owner-scope';}]
+])test('CPV1-07 hybrid '+name+' during query refuses both old rankings',async()=>{
+ const gate=barrier(),entered=barrier();
+ const f=fixture([item('a','anchor'),item('b','anchor other')],{
+  encode:async(kind)=>{if(kind==='query'){entered.release();await gate.promise;}return [1,0];}
+ });
+ await f.index.synchronize();const pending=f.index.lookupHybrid('anchor');await entered.promise;
+ const next=f.get();mutate(next);next.generation++;f.set(next);gate.release();
+ const result=await pending;
+ assert.equal(result.mode,'unavailable');assert.equal(result.reason,'authority_changed');
+ assert.equal(result.usedSemantic,false);assert.deepEqual(result.items,[]);
+ assert.deepEqual(f.get(),next);
+});
+
+test('CPV1-07 hybrid invalidation during a query never resurrects old lexical evidence',async()=>{
+ const gate=barrier(),entered=barrier();
+ const f=fixture([item('a','anchor')],{encode:async(kind)=>{
+  if(kind==='query'){entered.release();await gate.promise;}return [1,0];
+ }});
+ await f.index.synchronize();const pending=f.index.lookupHybrid('anchor');await entered.promise;
+ f.index.invalidate();gate.release();
+ const result=await pending;
+ assert.equal(result.reason,'authority_changed');assert.deepEqual(result.items,[]);
+ assert.equal(f.index.status().indexed,0);assert.equal(f.index.status().state,'empty');
+});
+
+test('CPV1-07 hybrid older query cannot retire a newer complete index generation',async()=>{
+ const gate=barrier(),entered=barrier();
+ const f=fixture([item('a','anchor')],{encode:async(kind)=>{
+  if(kind==='query'){entered.release();await gate.promise;}return [1,0];
+ }});
+ await f.index.synchronize();const pending=f.index.lookupHybrid('anchor');await entered.promise;
+ const next=f.get();next.generation++;next.items[0].body='anchor current complete body';
+ next.items[0].ref.revision++;f.set(next);
+ assert.equal((await f.index.synchronize()).ok,true);gate.release();
+ assert.equal((await pending).reason,'authority_changed');
+ assert.equal(f.index.status().state,'ready');assert.equal(f.index.status().checkedGeneration,2);
+ assert.equal(f.index.status().indexed,1);
+});
+
+test('CPV1-07 hybrid empty query and invalid limits refuse before source or encoder acquisition',async()=>{
+ const f=fixture();let reads=0;f.index.readEligible=async()=>{reads++;throw Error('must not read');};
+ assert.equal((await f.index.lookupHybrid('  ')).reason,'empty_query');
+ for(const [query,options]of [
+  [null,{}],['q'.repeat(301),{}],['q',{limit:0}],['q',{limit:51}],
+  ['q',{limit:1.5}],['q',{minimumScore:NaN}],['q',{minimumScore:true}],['q',{minimumScore:-1}]
+ ])await assert.rejects(f.index.lookupHybrid(query,options),/^Error: semantic_index_invalid$/);
+ assert.equal(reads,0);assert.equal(f.calls.length,0);
+});
+
+test('CPV1-07 actual scoped hybrid fallback honors edit/exclusion/purge and complete authority',async()=>{
+ const f=await actualFixture(),originals=await rows(f.s,'records');
+ const before=await authority(f.s);
+ let result=await f.index.lookupHybrid('INDEX_ACTUAL');
+ assert.equal(result.mode,'lexical_fallback');assert.equal(result.items.length,4);
+ assert.equal(f.calls.length,0);assert.deepEqual(await authority(f.s),before);
+ await f.index.synchronize();
+ const block=f.blocks[0],body='HYBRID_CURRENT '+('新完整表达 👩🏽‍💻\n'.repeat(1000))+'CURRENT_END';
+ await inputEdit(f.s,block.id,{libraryText:body});
+ const edited=await authority(f.s);
+ result=await f.index.lookupHybrid('HYBRID_CURRENT');
+ assert.equal(result.mode,'lexical_fallback');assert.equal(result.reason,'index_incomplete');
+ assert.equal(result.items.length,1);assert.equal(result.items[0].ref.id,block.id);
+ assert.equal(result.items[0].ref.revision,1);assert.equal(result.items[0].body,body);
+ assert.deepEqual(await authority(f.s),edited);assert.deepEqual(await rows(f.s,'records'),originals);
+ await f.index.synchronize();
+ await f.memory.exclude({inputId:f.blocks[1].id,excluded:true});
+ await f.s.permanentDelete(f.blocks[2].originalTextReference);
+ const current=await authority(f.s);
+ result=await f.index.lookupHybrid('INDEX_ACTUAL');
+ assert.equal(result.mode,'hybrid');assert.equal(result.usedSemantic,true);
+ assert.equal(result.coverage.expected,2);assert.equal(result.items.length,2);
+ assert.ok(result.items.every(x=>![f.blocks[1].id,f.blocks[2].id].includes(x.ref.id)));
+ assert.equal(result.items.find(x=>x.ref.id===block.id).body,body);
+ const long=result.items.find(x=>x.ref.id===f.blocks[3].id);
+ assert.ok(long.body.endsWith('FULL_END'));assert.equal(long.body.split('完整多段').length-1,1000);
+ assert.deepEqual(await authority(f.s),current);assert.equal(f.requests.length,0);
+});
+
+test('CPV1-07 hybrid final snapshot fences a change after semantic readback and refreshes coverage',async()=>{
+ const f=fixture([item('a','anchor'),item('b','anchor other')]);await f.index.synchronize();
+ let reads=0;
+ f.index.readEligible=async()=>{
+  if(++reads===4){
+   const next=f.get();next.generation++;next.items[0].ref.revision++;
+   next.items[0].body='anchor CURRENT_FINAL_READ';f.set(next);
+  }
+  return f.get();
+ };
+ const result=await f.index.lookupHybrid('anchor');
+ assert.equal(reads,4);assert.equal(result.reason,'authority_changed');
+ assert.deepEqual(result.items,[]);assert.equal(result.coverage.checkedGeneration,2);
+ assert.equal(result.coverage.indexed,1);assert.equal(result.coverage.missing,1);
+ assert.equal(result.coverage.state,'partial');
+ assert.equal(f.calls.filter(x=>x.kind==='document').length,2);
+ assert.equal(f.calls.filter(x=>x.kind==='query').length,1);
+ const fresh=await f.index.lookupHybrid('anchor');
+ assert.equal(fresh.mode,'lexical_fallback');assert.equal(fresh.reason,'index_incomplete');
+ assert.equal(fresh.items.find(x=>x.ref.id==='a').body,'anchor CURRENT_FINAL_READ');
+ assert.equal(fresh.items.find(x=>x.ref.id==='a').ref.revision,1);
+ assert.equal(f.calls.filter(x=>x.kind==='document').length,2);
+ assert.equal(f.calls.filter(x=>x.kind==='query').length,1);
+});

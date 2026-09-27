@@ -120,6 +120,15 @@ test('VS07 native Chrome snapshot and index preserve every full page and current
   assert.equal(built.coverage.storesBody,false);
   assert.deepEqual(await p.evaluate(()=>__semantic.authority()),before);
   assert.equal(await p.evaluate(()=>__semantic.calls.filter(x=>x.kind==='document').length),213);
+  const hybrid=await p.evaluate(()=>__semantic.index.lookupHybrid('NATIVE_INDEX_212',{limit:50}));
+  assert.equal(hybrid.mode,'hybrid');assert.equal(hybrid.usedSemantic,true);
+  assert.equal(hybrid.items[0].body,texts[212]);
+  assert.ok(hybrid.items.every(row=>snapshot.items.some(current=>
+   JSON.stringify(current.ref)===JSON.stringify(row.ref)&&current.body===row.body
+   &&current.source===row.source&&current.time===row.time)));
+  assert.equal(hybrid.scope,snapshot.scope);assert.equal(hybrid.generation,snapshot.generation);
+  assert.equal(await p.evaluate(()=>__semantic.calls.filter(x=>x.kind==='document').length),213);
+  assert.deepEqual(await p.evaluate(()=>__semantic.authority()),before);
   const result=await p.evaluate(()=>__semantic.index.lookup('synthetic test query',{limit:50}));
   assert.equal(result.usedSemantic,true);assert.equal(result.items.length,50);
   assert.ok(result.items.every(x=>texts.includes(x.body)));
@@ -129,6 +138,12 @@ test('VS07 native Chrome snapshot and index preserve every full page and current
    note:block.note,excluded:block.excluded}]}});
   await settleMaintenance(p);
   const afterEdit=await p.evaluate(()=>__semantic.authority());
+  const fallback=await p.evaluate(()=>__semantic.index.lookupHybrid('NATIVE_WORKED_ONLY'));
+  assert.equal(fallback.mode,'lexical_fallback');assert.equal(fallback.reason,'index_incomplete');
+  assert.equal(fallback.usedSemantic,false);assert.equal(fallback.items.length,1);
+  assert.equal(fallback.items[0].ref.id,long.ref.id);assert.equal(fallback.items[0].ref.revision,1);
+  assert.equal(fallback.items[0].body,'NATIVE_WORKED_ONLY 完整修正不改当年原话。');
+  assert.deepEqual(await p.evaluate(()=>__semantic.authority()),afterEdit);
   const stale=await p.evaluate(()=>__semantic.index.lookup('synthetic test query'));
   assert.equal(stale.usedSemantic,false);assert.equal(stale.reason,'index_incomplete');
   assert.equal(stale.coverage.indexed,212);
@@ -151,6 +166,11 @@ test('VS07 native Chrome snapshot and index preserve every full page and current
   });
   assert.equal(cold.usedSemantic,false);assert.equal(cold.reason,'index_incomplete');
   assert.equal(cold.coverage.expected,213);assert.equal(cold.coverage.indexed,0);
+  assert.equal(await p.evaluate(()=>__semantic.calls.length),0);
+  const coldHybrid=await p.evaluate(()=>__semantic.index.lookupHybrid('NATIVE_WORKED_ONLY'));
+  assert.equal(coldHybrid.mode,'lexical_fallback');assert.equal(coldHybrid.reason,'index_incomplete');
+  assert.equal(coldHybrid.items.length,1);assert.equal(coldHybrid.items[0].ref.id,long.ref.id);
+  assert.equal(coldHybrid.items[0].body,'NATIVE_WORKED_ONLY 完整修正不改当年原话。');
   assert.equal(await p.evaluate(()=>__semantic.calls.length),0);
   const rebuilt=await p.evaluate(()=>__semantic.index.synchronize());
   assert.equal(rebuilt.ok,true);assert.equal(rebuilt.coverage.indexed,213);
@@ -207,6 +227,31 @@ test('VS07 native Chrome invalidates asynchronous encoding after real exclusion 
   const result=await p.evaluate(()=>__semantic.index.lookup('synthetic test query'));
   assert.equal(result.usedSemantic,true);assert.deepEqual(result.items.map(x=>x.body),[texts[2]]);
   assert.deepEqual(await p.evaluate(()=>__semantic.authority()),after);
+  const hybrid=await p.evaluate(()=>__semantic.index.lookupHybrid('NATIVE_RACE'));
+  assert.equal(hybrid.mode,'hybrid');assert.equal(hybrid.usedSemantic,true);
+  assert.deepEqual(hybrid.items.map(row=>row.body),[texts[2]]);
+  assert.deepEqual(hybrid.items[0].ref,fresh.items[0].ref);
+  assert.deepEqual(await p.evaluate(()=>__semantic.authority()),after);
+  // A real policy mutation during query encoding must retire BOTH rankings.
+  await p.evaluate(()=>{
+   const s=__semantic,encode=s.index.encode;let release;
+   s.queryEntered=false;s.queryGate=new Promise(resolve=>{release=resolve;});s.queryRelease=release;
+   s.index.encode=async(...args)=>{
+    if(args[0]==='query'){s.queryEntered=true;await s.queryGate;}
+    return encode(...args);
+   };
+   s.hybridPending=s.index.lookupHybrid('NATIVE_RACE');
+  });
+  await eventually(()=>p.evaluate(()=>__semantic.queryEntered),'actual native hybrid query entered');
+  await p.evaluate(id=>__semantic.memory.exclude({inputId:id,excluded:true}),fresh.items[0].ref.id);
+  await settleMaintenance(p);
+  const afterQueryExclusion=await p.evaluate(()=>__semantic.authority());
+  const refused=await p.evaluate(async()=>{__semantic.queryRelease();return __semantic.hybridPending;});
+  assert.equal(refused.mode,'unavailable');assert.equal(refused.reason,'authority_changed');
+  assert.equal(refused.usedSemantic,false);assert.deepEqual(refused.items,[]);
+  assert.equal(refused.coverage.indexed,0);assert.equal(refused.coverage.expected,0);
+  assert.deepEqual(await p.evaluate(()=>__semantic.authority()),afterQueryExclusion);
+  assert.equal(await p.evaluate(()=>__semantic.calls.filter(x=>x.kind==='document').length),1);
   assert.deepEqual((await h.state()).records,sources.filter(x=>x.originalText!==texts[1]));
   noNetwork(h);
  }finally{await h.close();}
