@@ -285,7 +285,7 @@ test('CPV1-01.2: pending capture status still exposes one refresh action after r
     // stored source, scheduler timers or Chrome's actual reload behavior.
     await cdp.send('Runtime.evaluate', {
       contextId: captureWorld, returnByValue: true,
-      expression: "(() => { const send=chrome.runtime.sendMessage.bind(chrome.runtime); globalThis.__pendingStatus=0; chrome.runtime.sendMessage=message=>{if(message?.type==='GET_STATUS'){globalThis.__pendingStatus++;return new Promise(()=>{});}return send(message);};return true;})()"
+      expression: "(() => { const send=chrome.runtime.sendMessage.bind(chrome.runtime), version=chrome.runtime.getManifest().version; globalThis.__pendingStatus=0; chrome.runtime.sendMessage=message=>{if(message?.type==='GET_STATUS' && message.contentVersion===version){globalThis.__pendingStatus++;return new Promise(()=>{});}return send(message);};return true;})()"
     });
     await eventually(async () => {
       const { result } = await cdp.send('Runtime.evaluate', {
