@@ -51,7 +51,7 @@ try:
                 page.evaluate("y=>scrollTo({top:y,behavior:'instant'})",end)
                 page.wait_for_timeout(80)
                 assert float(page.locator('[data-hero-sequence]').get_attribute('data-progress'))>=.99
-                marks=page.evaluate("[...document.querySelectorAll('.input-card .provider-mark')].every(e=>{const r=e.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit&&(hit===e||e.contains(hit))})")
+                marks=page.evaluate("[...document.querySelectorAll('.input-card .provider-mark')].every(e=>{const r=e.getBoundingClientRect();return [.15,.5,.85].every(x=>[.15,.5,.85].every(y=>{const hit=document.elementFromPoint(r.x+x*r.width,r.y+y*r.height);return hit&&(hit===e||e.contains(hit))}))})")
                 assert marks,(width,height,'obscured brand mark')
                 page.screenshot(path=str(OUT/f'collection-{width}x{height}.png'))
             assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')

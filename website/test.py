@@ -190,7 +190,11 @@ try:
         check(page.locator('.synthesis-card').evaluate('e=>getComputedStyle(e).opacity') == '1', 'completed collection includes PAIA')
         check(page.locator('.collection').get_attribute('inert') is None, 'visible artwork link becomes operable')
         # Brand marks must not be hidden under another card.
-        check(page.evaluate("""Array.from(document.querySelectorAll('.input-card .provider-mark')).every(e=>{const r=e.getBoundingClientRect(), hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit && (hit===e||e.contains(hit))})"""), 'all source marks remain unobscured')
+        for art_width in (1200,1280,1920,1440):
+            page.set_viewport_size({'width':art_width,'height':900})
+            page.evaluate("const s=document.querySelector('[data-hero-sequence]');scrollTo({top:s.offsetTop+s.offsetHeight-(innerHeight-88)-88,behavior:'instant'})")
+            page.wait_for_timeout(80)
+            check(page.evaluate("[...document.querySelectorAll('.input-card .provider-mark')].every(e=>{const r=e.getBoundingClientRect();return [.15,.5,.85].every(x=>[.15,.5,.85].every(y=>{const hit=document.elementFromPoint(r.x+x*r.width,r.y+y*r.height);return hit&&(hit===e||e.contains(hit))}))})"), f'{art_width}px: all source mark areas remain unobscured')
         page.evaluate("scrollTo({top:0,behavior:'instant'})")
         page.wait_for_timeout(80)
         check(page.locator('.card-gpt').evaluate('e=>getComputedStyle(e).opacity') == '0', 'upward scroll restores first frame')
