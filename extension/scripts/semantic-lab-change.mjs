@@ -74,12 +74,29 @@ const embeddingProbePaths=new Set([
  "extension/docs/consumer-product-v1/STATUS.md",
  "extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md"
 ]);
+const diagnosticPaths=new Set([
+ 'extension/scripts/diagnose-retrieval-calibration.mjs',
+ 'extension/tests/evidence/vs07-distiluse-development-36340314593.json',
+ 'extension/tests/cpv1-07-retrieval-evaluation.test.mjs',
+ 'extension/tests/cpv1-07-semantic-lab.test.mjs',
+ 'extension/scripts/semantic-lab-change.mjs',
+ '.github/workflows/paia-candidate.yml',
+ 'extension/docs/consumer-product-v1/STATUS.md',
+ 'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md',
+]);
 export function semanticLabRouting(evidence={}){
  const {action,before,head,ancestor,paths}=evidence;
  const verified=action==='synchronize'&&sha(before)&&sha(head)&&before!==head
   &&ancestor===true&&Array.isArray(paths)&&paths.length>0
   &&paths.every(x=>typeof x==='string'&&x.length>0&&x.length<=500)
   &&new Set(paths).size===paths.length;
+ const diagnosticOnly=verified
+  &&['extension/scripts/diagnose-retrieval-calibration.mjs',
+    'extension/tests/evidence/vs07-distiluse-development-36340314593.json',
+    'extension/tests/cpv1-07-retrieval-evaluation.test.mjs'].every(path=>paths.includes(path))
+  &&paths.every(path=>diagnosticPaths.has(path));
+ if(diagnosticOnly)return {runProbe:false,runSourceScreen:false,sourceOnly:false,
+  runPairedProbe:false,runEmbeddingScreen:false,runEmbeddingProbe:false,diagnosticOnly:true};
  const embeddingProbeOnly=verified&&paths.includes('extension/scripts/run-public-embedding-lab.mjs')
   &&(paths.includes('extension/experiments/public-embedding-inputs.mjs')
     ||paths.includes('extension/experiments/retrieval-evaluation.mjs')

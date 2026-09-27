@@ -199,3 +199,124 @@ test('CPV1-07 new DistilUSE methods are separately registered and preserve the c
  assert.throws(()=>validateRetrievalMethod('official-distiluse-PRODUCTION'),/invalid synthetic retrieval benchmark/);
  assert.equal(retrievalCorpus.records.length,28);assert.equal(retrievalCorpus.tasks.length,29);
 });
+
+test('VS07 retained complete DistilUSE measurement proves scalar-cutoff failure without inference',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const {diagnoseMeasuredCalibration}=await import('../scripts/diagnose-retrieval-calibration.mjs');
+  const evidence=JSON.parse(await readFile(new URL(
+    './evidence/vs07-distiluse-development-36340314593.json',import.meta.url),'utf8'));
+  assert.equal(evidence.head,'f3a19ec9bae953daa8c126f26d047ba64eba6af9');
+  assert.equal(evidence.runId,36340314593);
+  assert.equal(evidence.jobId,108678989659);
+  assert.equal(evidence.artifactId,10937824226);
+  assert.equal(evidence.artifactSha256,'4a775c03dd2d4a0e2b5b35757c90daaf74592ffdfb174a93bd1ec0b57345ccb0');
+  assert.equal(evidence.calibration.comparisons.length,12);
+  const before=JSON.stringify(evidence);
+  const result=diagnoseMeasuredCalibration(evidence.calibration);
+  assert.equal(result.status,'NO_SCALAR_THRESHOLD_CAN_MEET_RULE');
+  assert.deepEqual(result.witness,{pivot:.5,
+    cutoffsAtOrBelow:{minimumFalsePositives:2},cutoffsAbove:{maximumPositiveHits:3}});
+  assert.equal(result.requiredPositiveHits,6);
+  assert.equal(result.additionalModelQueries,0);
+  assert.equal(result.productionClaim,false);
+  assert.equal(result.modelAdmitted,false);
+  assert.equal(result.productionThresholdChanged,false);
+  assert.equal(result.blindAcceptance,false);
+  assert.equal(result.upstreamConversionEquivalence,'NOT_VERIFIED');
+  assert.equal(JSON.stringify(evidence),before);
+  assert.equal(Object.isFrozen(result.witness.cutoffsAtOrBelow),true);
+  assert.equal(Object.isFrozen(result),true);
+});
+
+test('VS07 cutoff diagnosis distinguishes a proven obstruction from unresolved grid gaps or a sampled pass',async()=>{
+  const {CALIBRATION_RULE}=await import('../experiments/semantic-calibration.mjs');
+  const {diagnoseMeasuredCalibration}=await import('../scripts/diagnose-retrieval-calibration.mjs');
+  const make=(hits,falsePositives)=>({
+    schemaVersion:1,scope:'public_synthetic_development_only',
+    authoredAfterInitialModelMeasurement:true,blindAcceptance:false,
+    selectionExcludedFixedEvaluation:true,productionClaim:false,
+    productionThresholdChanged:false,modelAdmitted:false,additionalModelQueries:16,
+    developmentCorpusDigest:'a'.repeat(64),originalFixedCorpusDigest:'b'.repeat(64),
+    rule:CALIBRATION_RULE,status:'NO_ADMISSIBLE_DEVELOPMENT_THRESHOLD',selectedThreshold:null,
+    comparisons:CALIBRATION_RULE.thresholds.map((threshold,index)=>({
+      threshold,positiveTasks:8,noAnswerTasks:8,
+      positiveHits:hits[index],falsePositives:falsePositives[index],
+      positiveHitRate:hits[index]/8,noAnswerFalsePositiveRate:falsePositives[index]/8,
+      admissible:hits[index]>=6&&falsePositives[index]===0,
+    })),
+  });
+  const gap=make([8,8,8,8,8,5,5,5,5,5,5,5],[3,3,3,3,3,0,0,0,0,0,0,0]);
+  assert.equal(diagnoseMeasuredCalibration(gap).status,'GRID_FAILED_CONTINUOUS_FEASIBILITY_UNDETERMINED');
+  assert.equal(diagnoseMeasuredCalibration(gap).witness,null);
+  const pass=make(Array(12).fill(6),Array(12).fill(0));
+  pass.status='DEVELOPMENT_THRESHOLD_SELECTED';pass.selectedThreshold=.9;
+  assert.equal(diagnoseMeasuredCalibration(pass).status,'SAMPLED_RULE_MET');
+  assert.equal(diagnoseMeasuredCalibration(pass).modelAdmitted,false);
+  const impossible=make([8,8,8,5,5,5,5,5,5,5,5,5],Array(12).fill(1));
+  assert.equal(diagnoseMeasuredCalibration(impossible).witness.pivot,.5);
+});
+
+test('VS07 measured cutoff diagnosis refuses malformed, partial, nonmonotone or weakened evidence',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const {diagnoseMeasuredCalibration}=await import('../scripts/diagnose-retrieval-calibration.mjs');
+  const calibration=JSON.parse(await readFile(new URL(
+    './evidence/vs07-distiluse-development-36340314593.json',import.meta.url),'utf8')).calibration;
+  const cases=[
+    c=>c.comparisons.pop(),
+    c=>c.comparisons.reverse(),
+    c=>c.comparisons[3].threshold=.51,
+    c=>c.comparisons[3].positiveHits=NaN,
+    c=>c.comparisons[3].positiveHits=true,
+    c=>c.comparisons[3].positiveTasks=7,
+    c=>c.comparisons[3].noAnswerTasks=7,
+    c=>c.comparisons[3].positiveHitRate=.75,
+    c=>c.comparisons[3].noAnswerFalsePositiveRate=0,
+    c=>c.comparisons[3].admissible=true,
+    c=>c.comparisons[3].unexpected='PRIVATE_CANARY',
+    c=>{c.comparisons[4].positiveHits=4;c.comparisons[4].positiveHitRate=.5;},
+    c=>{c.comparisons[4].falsePositives=3;c.comparisons[4].noAnswerFalsePositiveRate=.375;},
+    c=>c.selectedThreshold=.6,
+    c=>c.status='DEVELOPMENT_THRESHOLD_SELECTED',
+    c=>c.rule.minimumPositiveHitRate=.125,
+    c=>c.rule.maximumNoAnswerFalsePositiveRate=.375,
+    c=>c.rule.limit=1,
+    c=>c.productionClaim=true,
+    c=>c.productionThresholdChanged=true,
+    c=>c.modelAdmitted=true,
+    c=>c.blindAcceptance=true,
+    c=>c.selectionExcludedFixedEvaluation=false,
+    c=>c.additionalModelQueries=1,
+    c=>c.developmentCorpusDigest=c.originalFixedCorpusDigest,
+    c=>c.originalFixedCorpusDigest='PRIVATE_CANARY',
+  ];
+  for(const mutate of cases){
+    const bad=structuredClone(calibration);mutate(bad);
+    assert.throws(()=>diagnoseMeasuredCalibration(bad),
+      error=>error.message==='invalid measured calibration diagnostic');
+  }
+});
+
+test('VS07 fixed score top-five hits and no-answer nonempty results satisfy the monotonic proof premise',async()=>{
+  const {rankCalibrationScores}=await import('../experiments/semantic-calibration.mjs');
+  const {diagnoseMeasuredCalibration}=await import('../scripts/diagnose-retrieval-calibration.mjs');
+  const {calibrateDevelopmentThreshold}=await import('../experiments/semantic-calibration.mjs');
+  const {calibrationCorpus}=await import('./fixtures/cpv1-07-calibration-corpus.mjs');
+  // Preserve all original 9 records/16 tasks and labels. A score callback is an
+  // analytic numerical oracle, not a model or a substitute for the retained run.
+  const relevant=new Map(calibrationCorpus.tasks.map(task=>[task.query,new Set(task.relevant)]));
+  const score=(scope,query)=>scope.map((record,index)=>({id:record.id,
+    score:relevant.get(query).size?(relevant.get(query).has(record.id)? .48:.47-index*.01):.6-index*.01}));
+  const calibration=await calibrateDevelopmentThreshold(calibrationCorpus,retrievalCorpus,score);
+  assert.equal(diagnoseMeasuredCalibration(calibration).status,'NO_SCALAR_THRESHOLD_CAN_MEET_RULE');
+  for(const task of calibrationCorpus.tasks){
+    const rows=score(calibrationCorpus.records.filter(record=>!record.excluded),task.query);
+    let previous=rankCalibrationScores(rows,0);
+    for(let step=1;step<=1000;step++){
+      const current=rankCalibrationScores(rows,step/1000);
+      assert.deepEqual(current,previous.slice(0,current.length));
+      assert.equal(current.some(id=>task.relevant.includes(id))&&
+        !previous.some(id=>task.relevant.includes(id)),false);
+      previous=current;
+    }
+  }
+});

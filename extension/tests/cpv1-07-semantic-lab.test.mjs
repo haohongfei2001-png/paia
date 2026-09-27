@@ -617,3 +617,32 @@ test('CPV1-07 verified XLM method-contract repair runs only its actual remaining
   assert.equal(route.embeddingProbeOnly,undefined);assert.equal(route.runProbe,true);
  }
 });
+
+test('VS07 exact offline diagnostic batch retains measured model evidence; uncertain or inference changes still run',()=>{
+ const paths=['extension/scripts/diagnose-retrieval-calibration.mjs',
+  'extension/tests/evidence/vs07-distiluse-development-36340314593.json',
+  'extension/tests/cpv1-07-retrieval-evaluation.test.mjs',
+  'extension/tests/cpv1-07-semantic-lab.test.mjs','extension/scripts/semantic-lab-change.mjs',
+  '.github/workflows/paia-candidate.yml',
+  'extension/docs/consumer-product-v1/STATUS.md',
+  'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'];
+ const evidence={action:'synchronize',before:'a'.repeat(40),head:'b'.repeat(40),ancestor:true,paths};
+ assert.deepEqual(semanticLabRouting(evidence),{runProbe:false,runSourceScreen:false,sourceOnly:false,
+  runPairedProbe:false,runEmbeddingScreen:false,runEmbeddingProbe:false,diagnosticOnly:true});
+ for(const change of [{action:'opened'},{ancestor:false},{before:null},{head:'a'.repeat(40)},
+  {paths:[...paths,paths[0]]},
+  {paths:[...paths,'extension/experiments/semantic-calibration.mjs']},
+  {paths:[...paths,'extension/experiments/semantic-lab-index.mjs']},
+  {paths:[...paths,'extension/scripts/run-public-embedding-lab.mjs']},
+  {paths:[...paths,'extension/tests/fixtures/cpv1-07-calibration-corpus.mjs']},
+  {paths:[...paths,'extension/core/search-service.js']}]) {
+  const result=semanticLabRouting({...evidence,...change});
+  assert.equal(result.diagnosticOnly,undefined);
+  assert.equal(result.runProbe,true);
+ }
+ // A missing diagnostic file does not prove any inference input change. The
+ // normal path classifier still decides; it cannot gain diagnostic admission.
+ for(const path of paths.slice(0,3)){
+  assert.equal(semanticLabRouting({...evidence,paths:paths.filter(x=>x!==path)}).diagnosticOnly,undefined);
+ }
+});
