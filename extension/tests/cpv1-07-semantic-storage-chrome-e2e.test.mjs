@@ -90,14 +90,32 @@ test('VS07 native Chrome snapshot and index preserve every full page and current
   assert.ok(snapshot.items.every(x=>x.ref.kind==='input'&&x.ref.revision===0&&x.time!==null));
   const long=snapshot.items.find(x=>x.body===texts[212]);assert.ok(long);
   assert.equal(long.body,texts[212]);
-  const built=await p.evaluate(async()=>{
+  const built=await p.evaluate(async before=>{
    const s=__semantic;s.index=s.createMaterialSemanticIndex(s.memory,{
     model:s.model,scope:{types:['input']},encode:async(kind,value)=>{
      s.calls.push({kind,body:kind==='document'?value.body:null});return [1,0];
     }});
-   return s.index.synchronize();
-  });
-  assert.equal(built.ok,true);assert.equal(built.coverage.expected,213);
+   const result=await s.index.synchronize();
+   if(result.ok)return result;
+   // Bounded failure-only evidence. Never retry, filter or reinterpret refusal.
+   const after=await s.authority(),changedTables=Object.keys(before).filter(
+    name=>JSON.stringify(before[name])!==JSON.stringify(after[name]));
+   const initialMeta=new Map(before.meta.map(row=>[row.id,row]));
+   const finalMeta=new Map(after.meta.map(row=>[row.id,row]));
+   const changedMeta=[...new Set([...initialMeta.keys(),...finalMeta.keys()])]
+    .filter(id=>JSON.stringify(initialMeta.get(id))!==JSON.stringify(finalMeta.get(id)))
+    .map(id=>({id,before:initialMeta.get(id)||null,after:finalMeta.get(id)||null}));
+   let snapshot;
+   try{const current=await s.semanticMaterialSnapshot(s.memory,{types:['input']});
+    snapshot={scope:current.scope,generation:current.generation,count:current.items.length,
+     exactCompleteBodies:current.items.every(row=>before.records.some(record=>
+      record.value.originalText===row.body)),
+     validRefs:current.items.every(row=>row.ref.kind==='input'&&row.ref.revision===0),
+     knownTimes:current.items.every(row=>row.time!==null)};
+   }catch(error){snapshot={error:error.message,code:error.code||null};}
+   return {...result,diagnostic:{changedTables,changedMeta,snapshot}};
+  },before);
+  assert.equal(built.ok,true,JSON.stringify(built));assert.equal(built.coverage.expected,213);
   assert.equal(built.coverage.indexed,213);assert.equal(built.coverage.vectorBytes,213*8);
   assert.equal(built.coverage.storesBody,false);
   assert.deepEqual(await p.evaluate(()=>__semantic.authority()),before);
