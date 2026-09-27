@@ -9,7 +9,7 @@ import {validateRetrievalCorpus,productionLexicalCandidate,buildCharacterIndex,e
   from '../experiments/retrieval-evaluation.mjs';
 import {buildSemanticLabIndex} from '../experiments/semantic-lab-index.mjs';
 import {inspectBoundedPublicModel,METADATA_FIELDS} from '../experiments/public-model-provenance.mjs';
-import {meanPoolOfficialDense} from '../experiments/official-minilm-pooling.mjs';
+import {meanPoolOfficialDense,officialProjectionObservation} from '../experiments/official-minilm-pooling.mjs';
 
 const MODEL='sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2';
 const UPSTREAM=MODEL; // Assets are owned by the same declared official repository.
@@ -30,7 +30,9 @@ const REASONS=new Set(['semantic_probe_unavailable','invalid_lab_environment',
   'lab_package_unverified','onnx_dependency_unverified','nonempty_public_cache',
   'public_model_http_unavailable','public_model_metadata_invalid',
   'public_model_identity_unverified','public_model_license_unverified',
-  'quantized_asset_unavailable']);
+  'quantized_asset_unavailable','official_tokenization_unavailable',
+  'official_input_contract_unverified','official_onnx_inference_unavailable',
+  'official_dense_pooling_unverified']);
 function refuse(reason='semantic_probe_unavailable'){
   failureReason=REASONS.has(reason)?reason:'semantic_probe_unavailable';
   throw new Error('semantic_probe_unavailable');
@@ -149,21 +151,41 @@ try {
       ||extractor.inputNames.some(name=>!['input_ids','attention_mask','token_type_ids'].includes(name))
       ||!extractor.inputNames.includes('input_ids')||!extractor.inputNames.includes('attention_mask'))
     refuse();
+  const observedBoundaries=new Set();
   const encode=async text=>{
     // Shared lab framing is not part of this official model's input contract.
     if(!text.startsWith('query: ')&&!text.startsWith('passage: '))refuse();
-    const plain=text.slice(text.startsWith('query: ')?7:9);
+    const boundary=text.startsWith('query: ')?'query':'document';
+    const plain=text.slice(boundary==='query'?7:9);
+    stage='fixed_'+boundary+'_tokenization';
+    failureReason='official_tokenization_unavailable';
     const tokens=await tokenizer(plain,{padding:true,truncation:false});
+    stage='fixed_'+boundary+'_input_contract';
+    failureReason='official_input_contract_unverified';
+    if(!observedBoundaries.has(boundary+'_inputs')){
+      publicObservations.push({boundary:boundary+'_inputs',
+        contract:officialProjectionObservation(extractor.inputNames,tokens)});
+      observedBoundaries.add(boundary+'_inputs');
+    }
     const feeds={};
     for(const name of extractor.inputNames){
       const tensor=tokens[name];
       if(tensor?.type!=='int64'||!(tensor.data instanceof BigInt64Array)
           ||!Array.isArray(tensor.dims)||tensor.dims.length!==2
-          ||tensor.dims[0]!==1||tensor.dims[1]<1||tensor.dims[1]>512)refuse();
+          ||tensor.dims[0]!==1||tensor.dims[1]<1||tensor.dims[1]>512)refuse('official_input_contract_unverified');
       feeds[name]=new ort.Tensor('int64',tensor.data,tensor.dims);
     }
+    stage='fixed_'+boundary+'_onnx_inference';
+    failureReason='official_onnx_inference_unavailable';
     const outputs=await extractor.run(feeds);
     const dense=outputs.last_hidden_state??outputs.token_embeddings;
+    stage='fixed_'+boundary+'_dense_pooling';
+    failureReason='official_dense_pooling_unverified';
+    if(!observedBoundaries.has(boundary+'_dense')){
+      publicObservations.push({boundary:boundary+'_dense',
+        contract:officialProjectionObservation(extractor.inputNames,tokens,dense)});
+      observedBoundaries.add(boundary+'_dense');
+    }
     return meanPoolOfficialDense(dense,tokens.attention_mask,DIMENSION);
   };
   stage='fixed_document_projection';
@@ -175,7 +197,7 @@ try {
   const lexicalStarted=performance.now();
   const character=buildCharacterIndex(eligible);
   const characterBuildMs=performance.now()-lexicalStarted;
-  stage='fixed_quality_comparison';
+  stage='fixed_quality_comparison';failureReason='semantic_probe_unavailable';
   const reports=[
     await evaluateRetrieval(retrievalCorpus,productionLexicalCandidate,{method:'lexical-production-v1'}),
     await evaluateRetrieval(retrievalCorpus,(scope,query)=>character.retrieve(scope,query),
@@ -183,7 +205,7 @@ try {
     await evaluateRetrieval(retrievalCorpus,(scope,query)=>semantic.retrieve(scope,query),
       {method:METHOD}),
   ];
-  stage='public_artifact_readback';
+  stage='public_artifact_readback';failureReason='semantic_probe_unavailable';
   const assets=await publicAssets(cache);
   const modelArtifactBytes=assets.reduce((sum,item)=>sum+item.bytes,0);
   if(!assets.some(item=>item.asset.endsWith('/'+quantizedFile))

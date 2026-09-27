@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {meanPoolOfficialDense} from '../experiments/official-minilm-pooling.mjs';
+import {meanPoolOfficialDense,officialProjectionObservation} from '../experiments/official-minilm-pooling.mjs';
 const output=()=>({type:'float32',data:new Float32Array([3,0,0,4,500,500]),dims:[1,3,2]});
 const mask=()=>({type:'int64',data:new BigInt64Array([1n,1n,0n]),dims:[1,3]});
 test('CPV1-07 official dense pooling follows independent mean and normalization oracle without padded contamination',()=>{
@@ -43,4 +43,35 @@ test('CPV1-07 actual official probe refuses invalid environment before source/mo
   assert.equal(report.qualityGate,'NOT_EVALUATED');assert.equal(report.productionClaim,false);
   assert.deepEqual(report.publicObservations,[]);
   assert.equal(result.stdout.includes('PRIVATE'),false);
+});
+
+
+test('CPV1-07 projection diagnostics distinguish a required missing segment tensor without fabricating IDs',()=>{
+  const tokens={input_ids:mask(),attention_mask:mask()};
+  const o=officialProjectionObservation(['input_ids','attention_mask','token_type_ids'],tokens);
+  assert.equal(o.knownUniqueGraphInputs,true);
+  assert.equal(o.graphRequiresTokenTypeIds,true);assert.equal(o.tokenTypeIdsPresent,false);
+  assert.equal(o.inputIdsInt64Shape,true);assert.equal(o.attentionMaskBinary,true);
+  assert.equal(o.inputMaskLengthsMatch,true);assert.equal(Object.isFrozen(o),true);
+  assert.equal(tokens.token_type_ids,undefined);
+});
+test('CPV1-07 projection diagnostics serialize only fixed boolean observations under private canary inputs',()=>{
+  const o=officialProjectionObservation(['PRIVATE_GRAPH_NAME'],
+    {input_ids:{type:'PRIVATE_TYPE',dims:['PRIVATE_SHAPE'],data:['PRIVATE_BODY']},
+      PRIVATE_FIELD:'PRIVATE_QUERY'},
+    {type:'PRIVATE_OUTPUT',dims:['PRIVATE_DIMS'],data:['PRIVATE_VECTOR']});
+  assert.equal(o.knownUniqueGraphInputs,false);assert.equal(o.inputIdsInt64Shape,false);
+  assert.equal(o.denseFloat32Shape,false);
+  assert.ok(Object.values(o).every(value=>typeof value==='boolean'));
+  assert.equal(JSON.stringify(o).includes('PRIVATE'),false);
+});
+test('CPV1-07 projection diagnostics distinguish malformed masks and dense precision/finite data',()=>{
+  const tokens={input_ids:mask(),attention_mask:{...mask(),data:new BigInt64Array([1n,2n,0n])}};
+  const dense={type:'float32',dims:[1,3,384],data:new Float32Array(3*384)};
+  dense.data[12]=NaN;
+  const o=officialProjectionObservation(['input_ids','attention_mask'],tokens,dense);
+  assert.equal(o.attentionMaskInt64Shape,true);assert.equal(o.attentionMaskBinary,false);
+  assert.equal(o.denseFloat32Shape,true);assert.equal(o.denseFinite,false);
+  assert.equal(officialProjectionObservation(['input_ids','attention_mask'],tokens,
+    {...dense,data:new Float64Array(3*384)}).denseFloat32Shape,false);
 });
