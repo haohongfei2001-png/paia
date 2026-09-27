@@ -97,10 +97,16 @@ jobs:
             'extension/docs/consumer-product-v1/STATUS.md',
             'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'
           ]);
+          const revisitImplementation=['extension/core/revisit.js',
+            'extension/tests/cpv1-07-revisit-selection.test.mjs',
+            'extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'].every(path=>changed.includes(path));
+          const revisitBrowserOnly=changed.includes('extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs')
+            &&changed.every(path=>path==='extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'
+              ||path==='.github/workflows/paia-candidate.yml'
+              ||/^extension\/docs\/consumer-product-v1\/(STATUS|EXECUTION_PROTOCOL)\.md$/.test(path));
           const revisitEligible=sourceAncestor&&changed.length>0
             &&new Set(changed).size===changed.length
-            &&['extension/core/revisit.js','extension/tests/cpv1-07-revisit-selection.test.mjs',
-              'extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'].every(path=>changed.includes(path))
+            &&(revisitImplementation||revisitBrowserOnly)
             &&changed.every(path=>revisitPaths.has(path));
           const eligible=historyEligible||calibrationEligible||sourceEligible||pairedEligible||revisitEligible;
           const files=revisitEligible?[

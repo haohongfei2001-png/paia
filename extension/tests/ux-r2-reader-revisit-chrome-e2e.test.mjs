@@ -233,9 +233,23 @@ test('VS07 Revisit finds worked material beyond the first ordinary cursor page',
    blocks:worked.map((item,i)=>({id:item.id,expectedRevision:item.revision,
     libraryText:'VS07_PAGED_WORKED_'+i+' 曾编辑的完整独立版本。',note:item.note,excluded:item.excluded}))}});
   await navigate(p,{view:'revisit'});
+  // Visibility precedes the async OPEN response. Observe the actual window
+  // identity before closing; hiding the panel alone does not prove CLOSE.
+  await eventually(()=>p.evaluate(()=>!!history.state?.paiaRevisitWindow),
+   'first actual visit window is established');
+  const first=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state.paiaRevisitWindow),includeOld:true}});
+  assert.equal(first.window.end,130);assert.ok(first.newInputs.items.length<=5);
   await p.locator('.revisit-close').click();
-  await eventually(()=>p.locator('#revisit-panel').isHidden(),'real visit boundary closes');
+  await eventually(async()=>await p.locator('#revisit-panel').isHidden()&&
+   await p.evaluate(()=>!history.state?.paiaRevisitWindow),'real visit CLOSE acknowledgement clears identity');
   await navigate(p,{view:'revisit'});
+  await eventually(()=>p.evaluate(()=>!!history.state?.paiaRevisitWindow),
+   'next actual visit window is established');
+  const opened=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state.paiaRevisitWindow),includeOld:true}});
+  assert.equal(opened.window.start,130);assert.equal(opened.window.end,130);
+  assert.equal(opened.newInputs.count,0);
   await p.locator('#revisit-old-toggle').check();
   await eventually(async()=>await p.locator('.revisit-card[data-input-id]').count()===4);
   const ids=await p.locator('.revisit-card[data-input-id]').evaluateAll(cards=>cards.map(c=>c.dataset.inputId));
