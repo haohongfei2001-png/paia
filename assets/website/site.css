@@ -562,6 +562,7 @@ html[lang="zh-CN"] .hero-copy h1 em{font-style:normal;font-weight:300}
 html[lang="zh-CN"].hero-motion .hero-copy h1{font-size:calc(52px + 16px * var(--intro,0))}
 html[lang="zh-CN"] .product-copy h2,html[lang="zh-CN"] .closing-copy h2{font:400 52px/1.5 var(--sans);letter-spacing:-.05em}
 html[lang="zh-CN"] .product-copy h2 em,html[lang="zh-CN"] .closing-copy h2 em{font-style:normal;font-weight:300}
+html[lang="zh-CN"] .product-copy h2 em{color:#bfdbc5}
 html[lang="zh-CN"] .page-intro h1{font:400 54px/1.45 var(--sans);letter-spacing:-.04em}
 html[lang="zh-CN"] .feature-copy h2{font:400 35px/1.45 var(--sans);letter-spacing:-.03em}
 html[lang="zh-CN"] .journal-item h2{font-size:26px}

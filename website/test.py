@@ -155,6 +155,12 @@ try:
                 check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: {width}px reflow')
                 check(not errors, f'{name}: {width}px no JS errors')
                 check(not external, f'{name}: {width}px no unsolicited external requests')
+                if name in ('index.html','zh/index.html'):
+                    # Check computed locale styles, not only nominal color tokens.
+                    colors = page.evaluate("[getComputedStyle(document.querySelector('.product-copy h2 em')).color,getComputedStyle(document.querySelector('.product-section')).backgroundColor]")
+                    shades = [''.join(f'{int(v):02x}' for v in re.findall(r'\d+', color)[:3]) for color in colors]
+                    low, high = sorted(luminance(color) for color in shades)
+                    check((high+.05)/(low+.05) >= 4.5, f'{name}: {width}px actual product heading contrast')
                 if width == 320:
                     page.add_style_tag(content='html{font-size:200%!important}')
                     check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: 320px with 200% text')
