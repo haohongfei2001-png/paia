@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 import {retrievalCorpus} from '../tests/fixtures/cpv1-07-retrieval-corpus.mjs';
 import {validateRetrievalCorpus,productionLexicalCandidate,buildCharacterIndex,evaluateRetrieval}
   from '../experiments/retrieval-evaluation.mjs';
-import {buildSemanticLabIndex} from '../experiments/semantic-lab-index.mjs';
+import {buildSemanticLabIndex,fuseScopedLabRanks,HYBRID_RANK_RULE} from '../experiments/semantic-lab-index.mjs';
 import {inspectBoundedPublicModel,METADATA_FIELDS} from '../experiments/public-model-provenance.mjs';
 import {meanPoolOfficialDense,officialProjectionObservation,admitOfficialTokenInputs} from '../experiments/official-minilm-pooling.mjs';
 
@@ -198,13 +198,34 @@ try {
   const character=buildCharacterIndex(eligible);
   const characterBuildMs=performance.now()-lexicalStarted;
   stage='fixed_quality_comparison';failureReason='semantic_probe_unavailable';
+  // One original semantic inference per fixed task. The additional hybrid
+  // comparison consumes only those exact eligible-scope results; no second
+  // tokenizer/ONNX call or post-result threshold/gold adjustment.
+  const semanticRanks=new Map(),rankKey=(scope,query)=>JSON.stringify([scope,query]);
   const reports=[
     await evaluateRetrieval(retrievalCorpus,productionLexicalCandidate,{method:'lexical-production-v1'}),
     await evaluateRetrieval(retrievalCorpus,(scope,query)=>character.retrieve(scope,query),
       {method:'character-tfidf-lab-v1'}),
-    await evaluateRetrieval(retrievalCorpus,(scope,query)=>semantic.retrieve(scope,query),
+    await evaluateRetrieval(retrievalCorpus,async(scope,query)=>{
+      const result=await semantic.retrieve(scope,query);
+      semanticRanks.set(rankKey(scope,query),Object.freeze([...result]));
+      return result;
+    },
       {method:METHOD}),
   ];
+  const hybridReport=await evaluateRetrieval(retrievalCorpus,(scope,query)=>{
+    const key=rankKey(scope,query);
+    if(!semanticRanks.has(key))refuse();
+    return fuseScopedLabRanks(scope,productionLexicalCandidate(scope,query),semanticRanks.get(key));
+  },{method:'official-hybrid-rrf-lab-v1'});
+  // Cached fusion timing is deliberately NOT advertised as end-to-end model
+  // query latency. The original semantic report includes the real inference.
+  hybridReport.retrievalTiming.scope='ranking_only_shared_inference_not_end_to_end';
+  hybridReport.sharedInferenceMethod=METHOD;
+  hybridReport.hybridRankRule=HYBRID_RANK_RULE;
+  hybridReport.additionalModelQueries=0;
+  reports.push(hybridReport);
+  semanticRanks.clear();
   stage='public_artifact_readback';failureReason='semantic_probe_unavailable';
   const assets=await publicAssets(cache);
   const modelArtifactBytes=assets.reduce((sum,item)=>sum+item.bytes,0);

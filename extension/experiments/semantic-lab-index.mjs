@@ -43,3 +43,30 @@ export async function buildSemanticLabIndex(records,encode,{dimension,minimumSco
     }
   });
 }
+
+// Fixed lab-only hybrid rule, declared before its first measured result.
+// Equal reciprocal-rank contributions; never inspect labels, beliefs or scores
+// from unrelated scope. Semantic admission/0.7 cutoff remains upstream unchanged.
+export const HYBRID_RANK_RULE=Object.freeze({algorithm:'reciprocal_rank_fusion',constant:60,
+  lexicalWeight:1,semanticWeight:1,limit:5,productionClaim:false});
+export function fuseScopedLabRanks(eligible,lexical,semantic) {
+  if(!Array.isArray(eligible)||!Array.isArray(lexical)||!Array.isArray(semantic))fail();
+  const allowed=new Set();
+  for(const row of eligible){
+    if(!row||typeof row.id!=='string'||!row.id||row.excluded!==false||allowed.has(row.id))fail();
+    allowed.add(row.id);
+  }
+  for(const ranking of [lexical,semantic]){
+    if(ranking.length>5||new Set(ranking).size!==ranking.length
+      ||ranking.some(id=>typeof id!=='string'||!allowed.has(id)))fail();
+  }
+  const rows=new Map();
+  for(const [kind,ranking]of [['lexical',lexical],['semantic',semantic]])
+    for(const [position,id]of ranking.entries()){
+      const row=rows.get(id)||{id,score:0,lexical:Infinity,semantic:Infinity};
+      row.score+=1/(HYBRID_RANK_RULE.constant+position+1);
+      row[kind]=position;rows.set(id,row);
+    }
+  return [...rows.values()].sort((a,b)=>b.score-a.score||a.lexical-b.lexical
+    ||a.semantic-b.semantic||a.id.localeCompare(b.id)).slice(0,5).map(row=>row.id);
+}

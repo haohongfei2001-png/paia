@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {buildSemanticLabIndex,validateUnitVector} from '../experiments/semantic-lab-index.mjs';
+import {buildSemanticLabIndex,validateUnitVector,fuseScopedLabRanks,HYBRID_RANK_RULE} from '../experiments/semantic-lab-index.mjs';
 import {retrievalCorpus} from './fixtures/cpv1-07-retrieval-corpus.mjs';
 import {eligibleRecords,evaluateRetrieval} from '../experiments/retrieval-evaluation.mjs';
 
@@ -93,4 +93,87 @@ test('CPV1-07 actual probe failure exposes a fixed receipt without dependency/pa
   assert.deepEqual(report.publicObservations,[]);
   assert.equal(result.stdout.includes('PRIVATE'),false);
   assert.equal(result.stdout.includes('query:'),false);
+});
+
+test('CPV1-07 hybrid frozen equal RRF rule preserves each single-source order and real abstention',()=>{
+  assert.deepEqual(HYBRID_RANK_RULE,{algorithm:'reciprocal_rank_fusion',constant:60,
+    lexicalWeight:1,semanticWeight:1,limit:5,productionClaim:false});
+  assert.equal(Object.isFrozen(HYBRID_RANK_RULE),true);
+  assert.deepEqual(fuseScopedLabRanks(records,['c','a','b'],[]),['c','a','b']);
+  assert.deepEqual(fuseScopedLabRanks(records,[],['b','c','a']),['b','c','a']);
+  assert.deepEqual(fuseScopedLabRanks(records,[],[]),[]);
+  assert.deepEqual(fuseScopedLabRanks([],[],[]),[]);
+});
+
+test('CPV1-07 hybrid independently verifies reciprocal-rank sum, agreement and lexical tie order',()=>{
+  assert.deepEqual(fuseScopedLabRanks(records,['a','b'],['c','b']),['b','a','c']);
+  assert.deepEqual(fuseScopedLabRanks(records,['a','b'],['b','a']),['a','b']);
+  assert.deepEqual(fuseScopedLabRanks(records,['b','a'],['a','b']),['b','a']);
+  assert.deepEqual(fuseScopedLabRanks(records,['a'],['a']),['a']);
+});
+
+test('CPV1-07 hybrid is finite across ten distinct candidates and never mutates complete evidence',()=>{
+  const eligible=Object.freeze(Array.from({length:10},(_,i)=>Object.freeze({
+    id:'h'+i,excluded:false,title:'完整标题'+i,
+    body:('原始长正文 👩🏽‍💻 <literal> 否定和引用不等于信念\n').repeat(1000),
+    source:i%2?'claude':'chatgpt',time:i%2?null:'2026-09-01T00:00:00.000Z'})));
+  const lexical=Object.freeze(['h0','h1','h2','h3','h4']);
+  const semantic=Object.freeze(['h5','h6','h7','h8','h9']);
+  const before=JSON.stringify([eligible,lexical,semantic]);
+  const ids=fuseScopedLabRanks(eligible,lexical,semantic);
+  assert.deepEqual(ids,['h0','h5','h1','h6','h2']);
+  assert.equal(ids.length,5);assert.equal(new Set(ids).size,5);
+  ids.reverse();
+  assert.equal(JSON.stringify([eligible,lexical,semantic]),before);
+  assert.deepEqual(fuseScopedLabRanks(eligible,lexical,semantic),['h0','h5','h1','h6','h2']);
+});
+
+for(const [name,lexical,semantic]of [
+  ['duplicate lexical',['a','a'],['b']],
+  ['duplicate semantic',['a'],['b','b']],
+  ['unknown lexical',['PRIVATE_RECORD'],['b']],
+  ['unknown semantic',['a'],['PRIVATE_RECORD']],
+  ['too many lexical',['a','b','c','a','b','c'],[]],
+  ['too many semantic',[],['a','b','c','a','b','c']],
+  ['invalid lexical',[null],['b']],
+  ['invalid semantic',['a'],[{}]],
+]){
+  test('CPV1-07 hybrid refuses '+name+' before producing a ranked result',()=>{
+    assert.throws(()=>fuseScopedLabRanks(records,lexical,semantic),
+      error=>error.message==='invalid semantic lab projection'
+        &&!error.message.includes('PRIVATE'));
+  });
+}
+
+test('CPV1-07 hybrid scope refuses excluded, duplicate and malformed eligible identity',()=>{
+  for(const scope of [[{...records[0],excluded:true}], [records[0],records[0]],
+    [{...records[0],excluded:0}], [{...records[0],id:''}], [null], 'PRIVATE_SCOPE']){
+    assert.throws(()=>fuseScopedLabRanks(scope,[],[]),
+      error=>error.message==='invalid semantic lab projection');
+  }
+  assert.throws(()=>fuseScopedLabRanks(records,null,[]));
+  assert.throws(()=>fuseScopedLabRanks(records,[],{}));
+});
+
+test('CPV1-07 hybrid complete fixed date/source/unknown/exclusion scopes admit only eligible ranks',async()=>{
+  const original=JSON.stringify(retrievalCorpus);
+  assert.equal(retrievalCorpus.records.length,28);assert.equal(retrievalCorpus.tasks.length,29);
+  for(const task of retrievalCorpus.tasks){
+    const eligible=eligibleRecords(retrievalCorpus,task);
+    const sample=eligible.slice(0,5).map(row=>row.id);
+    assert.deepEqual(fuseScopedLabRanks(eligible,sample,[]),sample);
+    const outside=retrievalCorpus.records.find(row=>!eligible.some(allowed=>allowed.id===row.id));
+    if(outside)assert.throws(()=>fuseScopedLabRanks(eligible,[],[outside.id]));
+    const detached=eligible.map(row=>({...row,evidenceRole:'quotation',
+      relevance:'PRIVATE_LABEL_MUST_NOT_INFLUENCE_RANKING'}));
+    assert.deepEqual(fuseScopedLabRanks(detached,sample,[]),sample);
+  }
+  const measured=await evaluateRetrieval(retrievalCorpus,(scope)=>{
+    const lexical=scope.slice(0,5).map(row=>row.id);
+    return fuseScopedLabRanks(scope,lexical,[]);
+  },{method:'official-hybrid-rrf-lab-v1'});
+  assert.equal(measured.contractFailures,0);assert.equal(measured.measuredTasks,29);
+  assert.equal(measured.productionClaim,false);assert.equal(measured.semanticCapabilityEstablished,false);
+  assert.equal(measured.personalBeliefJudgment,false);
+  assert.equal(JSON.stringify(retrievalCorpus),original);
 });
