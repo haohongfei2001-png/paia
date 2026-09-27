@@ -3,13 +3,14 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from playwright.sync_api import sync_playwright
 import hashlib, json, os
+from core_checks import verify_core
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = Path(os.environ.get('WEBSITE_TEST_OUTPUT', ROOT/'website-test-artifacts'))
 OUT.mkdir(parents=True, exist_ok=True)
 BASE = 'https://inputarchive.com'
 paths = [p for p in (ROOT/'website/generated-paths.txt').read_text().splitlines() if Path(p).name != '404.html']
-paths += ['assets/website/site.css', 'assets/website/site.js', 'assets/website/demo.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
+paths += ['assets/website/home-core-v1.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/demo.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
 paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/website/asset-lock.json').read_text()))
 paths = list(dict.fromkeys(paths))
 checks = []
@@ -38,20 +39,16 @@ try:
                 assert page.locator('h1').is_visible()
                 assert page.locator('html').get_attribute('lang') == ('zh-CN' if relative.startswith('zh/') else 'en')
                 if relative in ('index.html','zh/index.html'):
-                    field=page.locator('[data-v3-context]')
-                    fragments=field.locator('[data-v3-fragment]')
-                    assert fragments.count() == 5
-                    assert field.locator('[data-v3-count]').inner_text() == '3 / 5'
-                    fragments.nth(3).click()
-                    assert fragments.nth(3).get_attribute('aria-pressed') == 'true'
-                    assert field.locator('[data-v3-count]').inner_text() == '4 / 5'
-                    fragments.nth(1).click()
-                    assert fragments.nth(1).get_attribute('aria-pressed') == 'false'
-                    assert field.locator('[data-v3-count]').inner_text() == '3 / 5'
+                    def live_check(value, label):
+                        checks.append({'path':relative,'viewport':width,'interaction':label,'pass':bool(value)})
+                        if not value: raise AssertionError(label)
+                    verify_core(page, live_check, en=not relative.startswith('zh/'), download_dir=OUT)
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
                 assert not errors, errors
                 page.emulate_media(reduced_motion='reduce')
                 page.evaluate('document.fonts.ready')
+                page.evaluate('scrollTo(0,document.body.scrollHeight)')
+                page.wait_for_timeout(150)
                 page.screenshot(path=str(OUT/f'live-{relative.replace("/","-")}-{width}.png'),full_page=True)
                 checks.append({'path':relative,'viewport':width,'browser_pass':True})
                 page.close()
