@@ -14,11 +14,11 @@ current_slice_status: IN_PROGRESS — VS-05_ENGINEERING_COMPLETE_OWNER_GATE_DEFE
 
 current_round: CPV1-06.5–06.6 / VS-06 Batch B
 
-current_round_status: READY / VS06_BATCH_A_MAIN_FULL_PASS
+current_round_status: IN_PROGRESS / VS06_BATCH_B_TARGETED_PENDING
 
-current_writer: NONE / prior Batch A PR86 RELEASED
+current_writer: MANAGER / sole VS-06 Batch B branch feat/vs06-review-passport
 
-writer_status: RELEASED / VS06_BATCH_B_READY
+writer_status: VS-06_BATCH_B_ACQUIRED / SINGLE_WRITER
 
 production_claim: NONE
 
@@ -821,3 +821,40 @@ receipt: receipts/CPV1-06.0-06.4-MAIN-INTEGRATION.md
 Actual stable head/synthetic checkout/main Git tree is identicallyd82b0fe685c5ff9dcfe2be333382e464316924f1. Full receipt108527770466 exactShac22417/auditPassedtrue/currentFiles211/unit149/browserE2E53/adapterContract3/privacySecurity6 and all mandatory unit/browser/contracts/release/Mac/aggregate jobs PASS. Macdiscard1085259659984PASS includes the actual held-status/version reload/20s unsent draft/sameID/same-profile/all3records path. Historical browser76 stays separate; realGoldenUNAVAILABLE and prior semantic/live/private/device/signing gates are not PASS. Prior failed historical attempts are retained.
 
 06.0 exact fixed manifest/release fences,06.1 one-off primary workspace and permission round-trip,06.2 complete whole-group paged selection/atomic protective refusal,06.3 optional authorized lexical Profile retrieval,06.4 explicit lossless budget packages are integrated. BatchA writer RELEASED;06.5–06.6 BatchB READY,06.7 slice acceptance still open. No VS06/package/production COMPLETE. This docs-only checkpoint refers to runtimec22417 and does not trigger a repeated runtime certification.
+
+
+## VS-06 Batch B — readable exact release and explicit Passport controls
+
+execution_start_main: 5128250a863cceebfbaa3e546a4f53d75116b48f
+certified_predecessor_runtime: c22417fe4700af283657169a70a11e604365bfb7 / exact-main full36285700373 PASS
+batch_scope: CPV1-06.5 + CPV1-06.6;06.7 owning slice acceptance remains OPEN
+writer: MANAGER / sole branch feat/vs06-review-passport
+new_candidate_evidence: NOT_RUN
+
+C6/C7 coherent implementation: replace only machine wrapper headings/internal ISO noise with readable plain labels and deterministic human UTC timestamps. Preserve user-authored literal Markdown/HTML/time text exactly, current-output edits/redactions and Source/Thought history. Exact reviewed text still hashes and releases through the existing manifest/policy/source-revalidation and lossless packages; no parsed historical instructions, provider or automatic send. Invalid time evidence is explicit unknown. Clipboard success still requires fulfilled actual write; unknown/failed write reports failure and exposes exact readonly verified fallback without replay. Download wording says started and asks the user to confirm saving instead of claiming a completed save.
+
+C8 uses the EXISTING Memory/Passport metadata and create/revoke authority in the default task workspace. Consumer/purpose/saved eligibility/duration all start blank; read/export-only confirmation starts unchecked. Opening/closing/refresh never builds/releases Context, changes task notes/selection or sends material. Display operation/consumer/purpose/scope/duration/state/last controlled use, explicitly distinguish write access and copied-content limits, restore-not-reactivation. One explicit mutation is followed by current Memory and Passport readback; all immutable grant fields and intended scope must match before success. Revocation requires the exact requested ID/state/revokedAt. Unknown acknowledgement disables writes until explicit metadata refresh and fresh confirmation; no automatic write retry. A deleted saved scope clears selection without default substitution; close fences late UI.
+
+3new actual helper/service unit tests cover literal readable roles/time/invalid dates/current-output exact hashes/edit invalidation/source immutability.4new actual extension-worker browser journeys cover untrusted markup/no network/exact edited preview/export/clipboard uncertainty/stale fallback purge; explicit exact grant create/revoke/no task or memory mutation; forged acknowledgement/no blind replay/fresh unchecked confirmation; deleted scope/blank selection/no implicit permission. Existing browser bytes retained except the superseded readonly-only2button count now expects4explicit controls plus blank choices and unchecked confirmation; all original no-grant/task/draft/memory/privacy assertions remain. Existing helper service/group/authorization/once/revoke/restore/budget/source/capture proofs and full fixtures stay intact.
+
+Reviewed8runtime/test/workflow files against actual merged main and canonical MASTER_PLAN/AUTHORITY/UX_CONTRACT. One coherent implementation+regression push. Draft Candidate Gate runs affected unit/contracts/privacy/release and existing VS06 browser marker expanded with these4cases. No unrelated ANS04 or Mac diagnostic marker, repeat10k/100k proof, workflow timeout change or full on intermediate head. Full certification remains for reviewed stable high-risk/slice boundary and actual merged main; new evidence is NOT_RUN until Actions. No connector, new permission/privacy collection, old-Thought mutation or live account side effect; existing deferred semantic/current-live/private/device/signing/owner gates remain OPEN. No batch/slice COMPLETE from source review.
+
+
+## VS-06 Batch B targeted proof and owning acceptance matrix
+
+Candidate20e6419585c611110c1d719465d4c804242f9393 / PAIA Candidate Gate36286916264 SUCCESS. Actual unit1085292962231126/1126PASS includes all3new readable/exact-service cases. Browser10852929634510/10PASS,0FAIL,0SKIP includes all4new readable/clipboard and explicit Passport create/revoke/unknown-ack/deleted-scope journeys plus all6selected predecessor journeys. Contracts/privacy108529296283 and release108529296320PASS; aggregate108529954327PASS. Full certification remained intentionally skipped on this Draft; targeted evidence is not slice/exact-main certification.
+
+CPV1-06.7 retained acceptance coverage:
+- stale preview/source/member/version or restriction changed: cpv1-06-context-manifest, ux-r4-selection-preview, ux-r4-context-authorization and actual10case Context browser selection;
+- deleted material/group: manifest/manual source revalidation and selection/authorization/browser refusal;
+- revoked and once-consumed grant: context-passport-round45, passport-round4, ux-r4-context-authorization and actual worker/browser once/revoke paths;
+- expired grant: new cpv1-06-security-closure exercises actual MemoryService + PassportService + ContextPackageService, both before reconstruction and after rebuilding but before final release. Preview is still fresh; both copy/Markdown refuse, no grant consumption or Passport release audit and source unchanged;
+- explicit selection larger than budget: cpv1-06-container-selection, cpv1-06-output-packages and context-manifest; exact full-material packages, refusal without partial selection, no silent Topic truncation;
+- unauthorized retrieval: cpv1-06-authorized-supplements, profile never/exclusion rules and actual optional supplement browser path;
+- historical prompt injection/readability: cpv1-06-readable-review and actual worker browser literal untrusted markup/no network;
+- edited output/exact copy/export: current-output readable-review, manifest/output-package and actual browser exact-preview/export/clipboard uncertainty checks;
+- restore does not reactivate grants: new actual streamed BackupService export/stage/preview/restore with active/revoked source grants, exact material preservation, empty restored Passport and old grant reads denied. Imported restrictions remain local-only/external-access off; no source grant/history mutation or request.
+
+The new3production integration cases close only concrete expiry/final-boundary and actual restore evidence gaps. No runtime/workflow/permission/provider/fixture/deadline change, repeated scale proof, deleted test or reduced security oracle. Retained existing source/version/policy checks, actual10browser proof and synthetic-source scope unchanged. One coherent acceptance batch after source review; new3case evidence NOT_RUN until the next affected unit gate. Draft targeted candidate proof precedes exactly one stable owning full-certification head, then one exact-main full run after authorized merge. No intermediate/full/unchanged-head rerun.
+
+Scope06.5–06.7 remains IN_PROGRESS until stable full and exact-main receipts. Earlier semantic/current-live/private/device/signing/distribution/user-evidence gates remain explicitly deferred, not PASS; no VS06/package/production COMPLETE from this checkpoint.
