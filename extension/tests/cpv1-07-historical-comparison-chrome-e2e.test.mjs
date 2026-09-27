@@ -590,25 +590,41 @@ test('VS07 current real capture replaces loaded generation without mixing old pa
    };
   });
   const complete='SEARCH_LIFETIME CAPTURE_CURRENT_NEW '+('新增完整表达 中文 <literal>\n'.repeat(1000))+'CAPTURE_NEW_END';
-  await h.open({id:'vs07-current-capture-new',title:'New current source',base:1640995200,
+  const capture=await h.open({id:'vs07-current-capture-new',title:'New current source',base:1640995200,
    messages:[{id:'vs07-current-capture-new-message',text:complete}]});
-  await eventually(async()=>(await h.state()).records.length===43);
+  await h.ready(capture);
+  await eventually(async()=>{
+   const rows=(await h.state()).records,newSource=rows.find(row=>row.originalText===complete);
+   return rows.length===43&&newSource?.sourceSentAt==='2022-01-01T00:00:00.000Z';
+  },'complete new Source plus actual formal sent-time evidence');
   await eventually(()=>p.evaluate(old=>globalThis.__captureSearchGenerations.some(x=>x>old),generation),
    'actual new capture refreshes visible current generation');
   // Capture completion precedes real filter/library maintenance. Pagination is
   // checked only after those actual jobs and the complete generation settle.
   await currentMaintenanceReady(p,43);
-  const beforeExplicit=await p.evaluate(()=>globalThis.__captureUIReads.length);
-  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');
-  await eventually(()=>p.evaluate(n=>globalThis.__captureUIReads.length>n,beforeExplicit),
-   'explicit fresh production UI response completed');
-  await currentReady(p);
-  const first=await p.evaluate(()=>globalThis.__captureUIReads.at(-1));
-  assert.equal(first.ok,true);assert.equal(first.options.cursor,null);
-  assert.equal(first.data.items.length,40);assert.equal(first.data.changed,false);
-  const whole=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,limit:100}});
-  assert.equal(whole.complete,true);assert.equal(whole.items.length,43);
-  assert.equal(whole.generation,first.data.generation,'the actual UI page and whole authority share one generation');
+  let first,whole,admitted=false;
+  // Maintenance/status completion is not a promise that no later archive
+  // transaction can commit. A real changed-generation read must be refused;
+  // only an explicit user requery may establish the complete current scope.
+  for(let attempt=0;attempt<3;attempt++){
+   const beforeExplicit=await p.evaluate(()=>globalThis.__captureUIReads.length);
+   await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');
+   await eventually(()=>p.evaluate(n=>globalThis.__captureUIReads.length>n,beforeExplicit),
+    'explicit fresh production UI response completed');
+   await currentReady(p);
+   first=await p.evaluate(()=>globalThis.__captureUIReads.at(-1));
+   assert.equal(first.ok,true);assert.equal(first.options.cursor,null);
+   assert.equal(first.data.items.length,40);assert.equal(first.data.changed,false);
+   whole=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,limit:100}});
+   assert.equal(whole.complete,true);assert.equal(whole.items.length,43);
+   if(whole.generation===first.data.generation){admitted=true;break;}
+   assert.ok(whole.generation>first.data.generation,'a later actual archive transaction changed the observed generation');
+   const refused=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,cursor:first.data.nextCursor}});
+   assert.equal(refused.changed,true,'the actual old generation cursor must be refused, never used as healthy paging');
+   assert.ok(refused.generation>first.data.generation);
+  }
+  assert.equal(admitted,true,'three explicit requeries must establish one unchanged complete actual generation');
+  assert.equal(whole.generation,first.data.generation,'the final actual UI page and whole authority share one generation');
   const nextExpected=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,cursor:first.data.nextCursor}});
   assert.equal(nextExpected.changed,false);assert.equal(nextExpected.generation,whole.generation);
   assert.equal(nextExpected.items.length,3,'actual bounded production next page retains all three remaining inputs');
