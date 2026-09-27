@@ -5,7 +5,7 @@ import {materialIdentity} from '../core/manual-materials.js';
 import {retrievalCorpus} from './fixtures/cpv1-07-retrieval-corpus.mjs';
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {MemoryService} from '../core/memory/service.js';
-import {materialRead} from '../core/manual-materials.js';
+import {createMaterialSemanticIndex} from '../core/semantic-material-snapshot.js';
 import {inputEdit} from './harness/thought-m1.mjs';
 
 const model={id:'synthetic-local-encoder',revision:'a'.repeat(40),dimension:2};
@@ -205,20 +205,7 @@ async function actualFixture(){
  assert.ok(blocks.every(Boolean),'each complete original Source must have its own block');
  assert.equal(new Set(blocks.map(b=>b.id)).size,4);
  assert.deepEqual(blocks.map(b=>records.find(r=>r.id===b.originalTextReference).value.originalText),texts);
- const readEligible=()=>f.s.run(()=>f.s.repository.transaction(false,async t=>{
-  const items=[];
-  for(const state of await t.all('inputStates')){
-   const ref={kind:'input',id:state.id,revision:state.contentRevision};
-   try{
-    const value=await materialRead(memory,t,ref);
-    items.push({ref,title:value.title,body:value.body,source:'chatgpt',time:value.time,locations:[]});
-   }catch(error){
-    if(!['MEMORY_DENIED','MEMORY_UNAVAILABLE'].includes(error.code))throw error;
-   }
-  }
-  return {scope:'actual-memory-material-read',generation:(await t.get('meta','backup-data-generation'))?.value||0,items};
- }));
- const index=new DerivedSemanticIndex({model,readEligible,encode:async(kind,value)=>{
+ const index=createMaterialSemanticIndex(memory,{model,scope:{types:['input']},encode:async(kind,value)=>{
   calls.push({kind,value:structuredClone(value)});return [1,0];
  }});
  return {...f,blocks,memory,index,calls};
