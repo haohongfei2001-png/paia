@@ -22,11 +22,12 @@ export async function searchMaterialPage(s,o={}){
   function matches(item,body){const at=historicalInstant(item.sourceSentAt);if(dateFrom&&(at===null||at<historicalDateBound(dateFrom))||to&&(at===null||at>historicalDateBound(to)+86400000-1))return false;if(source&&item.source!==source)return false;return !q||normalizeSearch(body).includes(q)||mode!=='history'&&normalizeSearch(item.title).includes(q);}
   while(stage<3&&scanned<200&&items.length<limit){
    if(mode==='history'&&stage>0){stage=3;break;}if(!types.includes(['input','thought','ai'][stage])){stage++;after=undefined;continue;}const table=['inputStates','thoughts','meta'][stage],page=stage===0&&documentId?await t.rangePage('blockIndex','byList',prefix([documentId]),after,Math.min(200-scanned,100)):await t.page(table,{after,limit:Math.min(200-scanned,100)});let consumed=0;
-   for(const {key,value}of page.rows){after=key;scanned++;consumed++;const row=stage===0&&documentId?await t.get('inputStates',value.id):value;if(!row)continue;let item=null,body='';
+   for(const {key,value}of page.rows){after=key;scanned++;consumed++;const row=stage===0&&documentId?await t.get('inputStates',value.id):value;if(!row)continue;let item=null,body='',working=null;
     if(stage===0&&types.includes('input')){
      if(row.sourcePurged||row.removalState!=='active'&&!includeRemoved)continue;const p=await inputProjection(s,t,row.id),b=p?.block||(await t.get('blocks',row.id))?.value;if(!b||documentId&&documentId!==b.documentId||!await topicInput(row.id))continue;const filtered=await s.isFiltered(t,b,filterState);if(filtered&&!includeFiltered)continue;
      const sourceId=b.originalTextReference,ix=sourceId&&await t.get('recordIndex',sourceId),record=sourceId&&await t.get('records',sourceId);if(sourceId&&(!record||!ix||await t.get('tombstones','source:'+ix.sourceKey)||await t.get('tombstones','snapshot:'+ix.dedupeKey)))continue;if(mode==='history'&&!record)continue;
      body=mode==='history'?record.value.originalText:p?.body??b.libraryText??record?.value.originalText??'';
+     if(mode==='history'&&p)working={body:p.body,revision:p.contentRevision,editedAt:p.contentRevision>0?historicalSourceTime(b.editedAt):null};
      const doc=(await t.get('libraryDocuments',b.documentId))?.value||(await t.get('documents',b.documentId))?.value||{};
      item={kind:'input',id:row.id,documentId:b.documentId,title:doc.userTitle||doc.originalConversationTitle||doc.originalTitle||doc.title||'Input',source:record?.value?.platform||ix?.platform||doc.platform||'chatgpt',sourceSentAt:historicalSourceTime(ix?.sourceSentAt),removed:row.removalState!=='active',historical:mode==='history',filtered,ref:mode==='history'?{kind:'source',id:row.id,sourceId,revision:0}:{kind:'input',id:row.id,revision:row.contentRevision}};
     }else if(stage===1&&mode==='current'&&types.includes('thought')){
@@ -38,7 +39,7 @@ export async function searchMaterialPage(s,o={}){
      // selection explicitly identifies that field and its saved revision.
      for(const field of AI_FIELDS){const raw=row[field],text=typeof raw==='string'?raw:raw.map(x=>x.text).join('\n\n');if(!text.trim()||q&&!normalizeSearch(text).includes(q))continue;body=text;item={kind:'ai',id:row.topicId,topicId:row.topicId,title:topic.name,source:'ai',sourceSentAt:null,aiField:field,ref:{kind:'ai',id:row.topicId,field,revision:row.revision}};break;}
     }
-    if(item&&body&&matches(item,body)){items.push({...item,snippet:searchExcerpt(body,query,240),...(mode==='history'?{body}:{})});if(items.length===limit)break;}
+    if(item&&body&&matches(item,body)){items.push({...item,snippet:searchExcerpt(body,query,240),...(mode==='history'?{body,working}:{})});if(items.length===limit)break;}
    }
    if(consumed===page.rows.length&&!page.next){stage++;after=undefined;}if(!page.rows.length&&stage>=3)break;
   }
