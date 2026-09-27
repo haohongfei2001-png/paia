@@ -84,3 +84,6 @@ equivalence, long-library latency, incremental invalidation, calibrated abstenti
 private corpus quality or production semantic capability. Those remain CPV1-07.1/
 07.2/07.6 work before enabling semantic retrieval. Preserve original fixed tasks
 including all no-shared-keyword/no-answer cases regardless of measured quality.
+
+
+First model probe failed; candidate mathematics/scope gate passed. The actual safe failure receipt is now printed even on nonzero exit, with fixed reason codes, bounded public metadata booleans/HTTP status and an allowlisted error class. All admission/quality predicates are retained. No current model quality, artifact availability or unit result implies semantic production acceptance.

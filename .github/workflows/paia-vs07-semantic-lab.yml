@@ -37,8 +37,12 @@ jobs:
           HF_TOKEN: ''
           HF_ACCESS_TOKEN: ''
         run: |
-          node extension/scripts/run-semantic-retrieval-lab.mjs > "$RUNNER_TEMP/paia-semantic-lab-report.json"
-          cat "$RUNNER_TEMP/paia-semantic-lab-report.json"
+          if node extension/scripts/run-semantic-retrieval-lab.mjs > "$RUNNER_TEMP/paia-semantic-lab-report.json"; then
+            cat "$RUNNER_TEMP/paia-semantic-lab-report.json"
+          else
+            cat "$RUNNER_TEMP/paia-semantic-lab-report.json"
+            exit 1
+          fi
       - name: Retain aggregate-only synthetic probe and resolved dependency lock
         if: always()
         uses: actions/upload-artifact@v4

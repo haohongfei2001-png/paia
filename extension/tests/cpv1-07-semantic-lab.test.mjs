@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {buildSemanticLabIndex,validateUnitVector} from '../experiments/semantic-lab-index.mjs';
 import {retrievalCorpus} from './fixtures/cpv1-07-retrieval-corpus.mjs';
 import {eligibleRecords,evaluateRetrieval} from '../experiments/retrieval-evaluation.mjs';
@@ -73,4 +75,22 @@ test('CPV1-07 semantic candidate receives only fixed date/source eligible scope 
   const dated=retrievalCorpus.tasks.find(t=>t.category==='date_constraint');
   const ids=await index.retrieve(eligibleRecords(retrievalCorpus,dated),dated.query);
   assert.equal(ids.every(id=>eligibleRecords(retrievalCorpus,dated).some(r=>r.id===id)),true);
+});
+
+test('CPV1-07 actual probe failure exposes a fixed receipt without dependency/path/key/error echo',()=>{
+  const path=fileURLToPath(new URL('../scripts/run-semantic-retrieval-lab.mjs',import.meta.url));
+  const result=spawnSync(process.execPath,[path],{encoding:'utf8',timeout:10000,
+    env:{...process.env,PAIA_SEMANTIC_LAB_ROOT:'PRIVATE_LAB_PATH_CANARY',
+      PAIA_PUBLIC_MODEL_CACHE:'PRIVATE_CACHE_PATH_CANARY',HF_TOKEN:'PRIVATE_TOKEN_CANARY'}});
+  assert.equal(result.status,1);
+  assert.equal(result.stderr,'');
+  const report=JSON.parse(result.stdout);
+  assert.equal(report.status,'UNAVAILABLE');
+  assert.equal(report.stage,'lab_environment');
+  assert.equal(report.reason,'invalid_lab_environment');
+  assert.equal(report.qualityGate,'NOT_EVALUATED');
+  assert.equal(report.productionClaim,false);
+  assert.deepEqual(report.publicObservations,[]);
+  assert.equal(result.stdout.includes('PRIVATE'),false);
+  assert.equal(result.stdout.includes('query:'),false);
 });

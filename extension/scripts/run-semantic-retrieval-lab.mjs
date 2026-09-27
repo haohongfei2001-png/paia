@@ -20,17 +20,37 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const validSha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
 let stage='lab_environment';
 let extractor;
-function refuse(){throw new Error('semantic_probe_unavailable');}
+let failureReason='semantic_probe_unavailable';
+const publicObservations=[];
+const REASONS=new Set(['semantic_probe_unavailable','invalid_lab_environment',
+  'lab_package_unverified','onnx_dependency_unverified','nonempty_public_cache',
+  'public_model_http_unavailable','public_model_metadata_invalid',
+  'public_model_identity_unverified','public_model_license_unverified',
+  'quantized_asset_unavailable']);
+function refuse(reason='semantic_probe_unavailable'){
+  failureReason=REASONS.has(reason)?reason:'semantic_probe_unavailable';
+  throw new Error('semantic_probe_unavailable');
+}
 async function metadata(id) {
   const response=await fetch('https://huggingface.co/api/models/'+id,
-    {signal:AbortSignal.timeout(20000),redirect:'error'});
-  if(!response.ok)refuse();
+    {signal:AbortSignal.timeout(20000),redirect:'manual'});
+  const observation={repository:id,httpStatus:response.status};
+  publicObservations.push(observation);
+  if(!response.ok)refuse('public_model_http_unavailable');
   const text=await response.text();
-  if(Buffer.byteLength(text)>1024*1024)refuse();
+  if(Buffer.byteLength(text)>1024*1024)refuse('public_model_metadata_invalid');
   const data=JSON.parse(text);
-  if(data.id!==id||!validSha(data.sha)||data.private!==false||data.gated)refuse();
+  observation.identifierMatches=data.id===id;
+  observation.revisionFormatValid=validSha(data.sha);
+  observation.publicModel=data.private===false;
+  observation.ungated=data.gated===false;
   const license=data.cardData?.license;
-  if(!['mit','apache-2.0'].includes(license))refuse();
+  observation.permittedLicense=['mit','apache-2.0'].includes(license);
+  observation.q8AssetPresent=Array.isArray(data.siblings)
+    &&data.siblings.some(item=>item.rfilename==='onnx/model_quantized.onnx');
+  if(data.id!==id||!validSha(data.sha)||data.private!==false||data.gated)
+    refuse('public_model_identity_unverified');
+  if(!['mit','apache-2.0'].includes(license))refuse('public_model_license_unverified');
   return {revision:data.sha,license,
     files:Array.isArray(data.siblings)?data.siblings.map(item=>item.rfilename):[]};
 }
@@ -55,23 +75,23 @@ try {
   validateRetrievalCorpus(retrievalCorpus);
   const labValue=process.env.PAIA_SEMANTIC_LAB_ROOT;
   const cacheValue=process.env.PAIA_PUBLIC_MODEL_CACHE;
-  if(!labValue||!cacheValue||!isAbsolute(labValue)||!isAbsolute(cacheValue))refuse();
+  if(!labValue||!cacheValue||!isAbsolute(labValue)||!isAbsolute(cacheValue))refuse('invalid_lab_environment');
   const lab=resolve(labValue),cache=resolve(cacheValue);
-  if(lab===cache)refuse();
+  if(lab===cache)refuse('invalid_lab_environment');
   // Never supply an account token to public model downloads.
   process.env.HF_TOKEN='';process.env.HF_ACCESS_TOKEN='';
   const packageInfo=JSON.parse(await readFile(join(lab,'node_modules/@huggingface/transformers/package.json'),'utf8'));
-  if(packageInfo.name!=='@huggingface/transformers'||packageInfo.version!==PACKAGE_VERSION)refuse();
+  if(packageInfo.name!=='@huggingface/transformers'||packageInfo.version!==PACKAGE_VERSION)refuse('lab_package_unverified');
   const lock=await readFile(join(lab,'package-lock.json'));
   const locked=JSON.parse(lock);
   const ort=locked.packages?.['node_modules/onnxruntime-node'];
-  if(ort?.version!=='1.21.0'||typeof ort.integrity!=='string')refuse();
+  if(ort?.version!=='1.21.0'||typeof ort.integrity!=='string')refuse('onnx_dependency_unverified');
   await mkdir(cache,{recursive:true});
   // Start with an empty per-head public cache; no ambient/private model state.
-  if((await readdir(cache)).length)refuse();
+  if((await readdir(cache)).length)refuse('nonempty_public_cache');
   stage='public_model_provenance';
   const model=await metadata(MODEL),upstream=await metadata(UPSTREAM);
-  if(!model.files.includes('onnx/model_quantized.onnx'))refuse();
+  if(!model.files.includes('onnx/model_quantized.onnx'))refuse('quantized_asset_unavailable');
   stage='model_load';
   const {pipeline,env}=await import(pathToFileURL(join(lab,'node_modules/@huggingface/transformers/dist/transformers.node.mjs')).href);
   env.allowLocalModels=false;env.allowRemoteModels=true;
@@ -140,9 +160,11 @@ try {
     memory:{nodeRssBytes:memory.rss,nodeHeapUsedBytes:memory.heapUsed,
       scope:'node_process_after_fixed_probe_not_chrome_peak'},
     reports}));
-} catch {
+} catch(error) {
+  const errorClass=['AbortError','TimeoutError','SyntaxError','TypeError','Error'].includes(error?.name)
+    ?error.name:'Other';
   console.log(JSON.stringify({schemaVersion:1,status:'UNAVAILABLE',stage,
-    reason:'semantic_probe_unavailable',scope:'public_synthetic_only',productionClaim:false,
+    reason:failureReason,errorClass,publicObservations,scope:'public_synthetic_only',productionClaim:false,
     qualityGate:'NOT_EVALUATED',chromeCompatibility:'NOT_VERIFIED',privateCorpusUsed:false}));
   process.exitCode=1;
 } finally {
