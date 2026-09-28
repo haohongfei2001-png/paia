@@ -10,6 +10,7 @@
     "test:browser": "node scripts/test.mjs \"browser E2E\"",
     "test:ui-refresh": "node scripts/test-ui-refresh.mjs",
     "test:historical-browser": "node scripts/test.mjs \"historical browser E2E\"",
+    "test:experimental": "node scripts/test.mjs experimental",
     "build:release": "python3 scripts/build_current_release.py"
   },
   "devDependencies": {

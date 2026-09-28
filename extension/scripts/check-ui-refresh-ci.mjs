@@ -38,4 +38,17 @@ const cpr=[...names].filter(name=>/^cpr-\d+-.*-chrome-e2e\.test\.mjs$/.test(name
 for(const name of cpr){
  if(group(name)!=='browser E2E')throw Error(`CPR_BROWSER_NOT_CURRENT:${name}`);
 }
+const archived=[
+ 'cpv1-07-lab-cadence.test.mjs',
+ 'cpv1-07-official-minilm.test.mjs',
+ 'cpv1-07-public-model-provenance.test.mjs',
+ 'cpv1-07-retrieval-evaluation.test.mjs',
+ 'cpv1-07-semantic-index.test.mjs',
+ 'cpv1-07-semantic-lab.test.mjs',
+ 'cpv1-07-semantic-material-snapshot.test.mjs',
+ 'cpv1-07-semantic-storage-chrome-e2e.test.mjs'
+];
+for(const name of archived){
+ if(!names.has(name)||group(name)!=='experimental')throw Error(`SEMANTIC_ARCHIVE_COVERAGE_MISSING:${name}`);
+}
 console.log(`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=${formerCore.length} uir=${uir.length} ans=${ans.length} cpr=${cpr.length}`);

@@ -14,7 +14,7 @@ current_slice_status: SCOPE_CORRECTION_CANDIDATE — VS-06_ENGINEERING_COMPLETE 
 
 current_round: VS-07 scope correction / VS-04 algorithmic search + historical comparison + finite Revisit
 
-current_round_status: SCOPE_CORRECTION_CANDIDATE / EXPERIMENTAL_DEFAULT_OFF_NON_BLOCKING / LEXICAL_FUZZY_FILTER_DEFAULT / REVISIT_AND_HISTORICAL_TARGETED_PASS / FULL_CERT_PENDING
+current_round_status: SCOPE_CORRECTION_REPAIR_CANDIDATE / EXPERIMENTAL_DEFAULT_OFF_NON_BLOCKING / LEXICAL_FUZZY_FILTER_DEFAULT / REVISIT_AND_HISTORICAL_TARGETED_PASS / FIRST_FULL_CERT_FAILED_CLASSIFIED
 
 current_writer: MANAGER / sole VS-07 Batch A branch feat/vs07-retrieval-evaluation
 
@@ -27,6 +27,10 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## VS-07 scope-correction certification repair, 2026-09-28
+
+The first exact PR #88 candidate full certification on head `810e9520218f2d8cf1b868cd1153e3b76fa56f74` was run `36381605454` / FAILURE. Unit shards, contracts/privacy, release guards, Mac Secure Store and discard lifecycle, and browser shards 1/2/4 passed. Browser 3/4 had two distinct failures: the archived model's 10k synthetic query probe returned `authority_changed` for three samples, retained as negative experimental evidence; and an old UX-R4 test used an unlabelled archive-change event while asserting that true maintenance must not remount results. The unlabelled event is a data-change signal for current FilterRunner behavior. The repair keeps the complete experimental tests and fixture under explicit opt-in `test:experimental` outside v1 certification, and corrects the UX-R4 stimulus to the existing `RECORD_TOPIC_READ` maintenance cause while preserving its identity assertion. No semantic runtime is merged, model research resumed, or product search runtime changed. This is a new candidate needing targeted verification and one full certification before merge.
 
 ## Activation evidence
 

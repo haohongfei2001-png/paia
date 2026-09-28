@@ -29,3 +29,7 @@ does not duplicate its research or imply classifier admission.
 
 Future optional semantic retrieval needs a separate product decision and
 quality, resource, privacy, compatibility and exact-runtime certification.
+
+## Certification classification, 2026-09-28
+
+The first scope-correction full certification on PR #88 head `810e9520218f2d8cf1b868cd1153e3b76fa56f74` failed in current-browser shard 3/4 (run `36381605454`). The archived 10k Source model probe returned `authority_changed` at three sampled queries; this is retained negative experimental evidence, not a v1 product search failure or a reason to tune the model. All eight archived model/lab tests remain intact, including the complete large fixture, and are explicitly runnable with `npm run test:experimental`; they are outside the default Consumer Product certification boundary because no semantic runtime ships. The unrelated UX-R4 maintenance test sent an unlabelled `ARCHIVE_CHANGED`, which production correctly treats as a possible FilterRunner data change and refreshes. Its test input now uses the existing `RECORD_TOPIC_READ` maintenance cause while retaining the node-identity assertion. No product search runtime changed for that test.
