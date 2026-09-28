@@ -1257,3 +1257,162 @@ test('CPV1-10 explicit metadata discovery protects unsaved work and recovers ful
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('CPV1-10 local workspace keeps complete unsaved work across new draft and reviewed recovery races',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);const fixture=conversation('mywrite-workspace-source',1400);
+  const captured=await h.open(fixture);await h.ready(captured);
+  await eventually(async()=>(await h.state()).library.blocks.length===fixture.messages.length);
+  const original=await h.state();
+  const q=await h.context.newPage();await q.goto(p.url());await q.waitForSelector('#prompt-open');
+  const full=Array.from({length:1000},(_,i)=>'写作工作区第'+i+'段🧭：完整正文，不要删除否定词、空白或尾部。\n').join('')+'尾部：不要自动发送或生成 Source。';
+  const retained=full+'\nPRIVATE_RETAINED_SAVED',unsaved=full+'\nPRIVATE_UNSAVED_ACTIVE';
+  const changed=full+'\nPRIVATE_CHANGED_OTHER_WINDOW';
+  for(const page of [p,q])await page.evaluate(async()=>{
+   const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   globalThis.workspaceStore=new MyWriteDraftStore({name:'paia-mywrite-workspace-chrome-v1',clock:()=>1720000000000});
+   globalThis.actualWorkspaceRead=workspaceStore.read.bind(workspaceStore);
+  });
+  const saved=await p.evaluate(text=>workspaceStore.save({id:'draft:000',expectedRevision:0,text,
+   topicId:'topic:optional',operationId:'save:retained'}),retained);
+  const collision=await p.evaluate(async()=>{
+   const {createMyWriteComposer}=await import(chrome.runtime.getURL('ui/mywrite-composer.js'));
+   const probe=createMyWriteComposer({document,store:workspaceStore,draftId:'draft:000',expectedRevision:0});
+   const result=await probe.ready;
+   const state={result,body:probe.element.querySelector('textarea').value,reference:probe.getDraftReference()};
+   probe.dispose();return state;
+  });
+  assert.deepEqual(collision,{result:{ok:false,code:'MYWRITE_CONFLICT'},body:'',reference:null});
+  assert.deepEqual(await p.evaluate(()=>actualWorkspaceRead('draft:000')),saved);
+  await p.setViewportSize({width:390,height:844});
+  async function mount(){
+   await p.evaluate(async()=>{
+    const {createMyWriteWorkspace}=await import(chrome.runtime.getURL('ui/mywrite-workspace.js'));
+    globalThis.makeWorkspace=createMyWriteWorkspace;
+    globalThis.workspace=createMyWriteWorkspace({document,store:workspaceStore,draftId:'draft:active',
+     topics:[{id:'topic:optional',label:'保留完整表达'},{id:'topic:changed',label:'另一窗口更正'}]});
+    workspace.element.id='mywrite-workspace-fixture';
+    workspace.element.style.cssText+=';position:fixed;inset:12px;width:auto;overflow:auto;z-index:2147483647;font-size:24px';
+    document.body.append(workspace.element);await workspace.ready;
+   });
+  }
+  await mount();
+  const owner=()=>p.locator('#mywrite-workspace-fixture');
+  const composer=()=>owner().locator('.mywrite-composer');
+  const editor=()=>composer().getByRole('textbox',{name:'草稿正文',exact:true});
+  const save=()=>composer().getByRole('button',{name:'保存本地草稿',exact:true});
+  const create=()=>owner().getByRole('button',{name:'新建本地草稿',exact:true});
+  const picker=()=>owner().locator('.mywrite-recovery');
+  const find=()=>picker().getByRole('button',{name:'查找本地草稿',exact:true});
+  const rows=()=>picker().getByRole('list',{name:'已保存草稿'}).getByRole('button');
+  const ref=()=>p.evaluate(()=>workspace.getDraftReference());
+  const currentSave=async()=>{await save().click();await eventually(async()=>await p.evaluate(()=>workspace.canReplace()));return ref();};
+  await editor().fill(unsaved);
+  await create().click();assert.equal(await editor().inputValue(),unsaved);assert.equal(await ref(),null);
+  await find().click();await eventually(async()=>await rows().count()===1&&!await rows().first().isDisabled());
+  await rows().first().click();
+  await eventually(async()=>/请先保存/.test(await picker().getByRole('status').textContent()));
+  assert.equal(await editor().inputValue(),unsaved);assert.equal(await ref(),null);
+  const activeRef=await currentSave();assert.equal(activeRef.id,'draft:active');assert.equal(activeRef.revision,1);
+  const active=await p.evaluate(()=>actualWorkspaceRead('draft:active'));assert.equal(active.text,unsaved);
+  await rows().first().focus();await p.keyboard.press('Enter');
+  await eventually(async()=>await editor().inputValue()===retained);
+  assert.deepEqual(await ref(),{id:saved.id,revision:1});
+  assert.equal(await composer().getByRole('combobox',{name:'草稿 Topic'}).inputValue(),'topic:optional');
+  await p.evaluate(()=>document.querySelector('#mywrite-workspace-fixture > button').click());
+  assert.deepEqual(await ref(),{id:saved.id,revision:1});assert.equal(await editor().inputValue(),retained);
+  await create().click();await eventually(async()=>await editor().inputValue()===''&&await p.evaluate(()=>workspace.canReplace()));
+  assert.equal(await ref(),null);
+  const fresh=full+'\nPRIVATE_NEW_COMPLETE';
+  await editor().fill(fresh);const freshRef=await currentSave();
+  assert.notEqual(freshRef.id,saved.id);assert.notEqual(freshRef.id,activeRef.id);
+  assert.equal((await p.evaluate(id=>actualWorkspaceRead(id),freshRef.id)).text,fresh);
+  await find().click();await eventually(async()=>await rows().count()===3&&!await rows().first().isDisabled());
+  // Let the picker review its actual saved revision, then hold only the
+  // subsequent composer read. Another actual client changes it in that gap.
+  await p.evaluate(()=>{
+   let matchingReads=0;
+   workspaceStore.read=async id=>{
+    if(id==='draft:000'&&++matchingReads===2){
+     await new Promise(resolve=>globalThis.resumeWorkspaceRead=resolve);
+     workspaceStore.read=actualWorkspaceRead;
+    }
+    return actualWorkspaceRead(id);
+   };
+  });
+  await rows().first().click();await eventually(async()=>await p.evaluate(()=>typeof resumeWorkspaceRead==='function'));
+  const current=await q.evaluate(text=>workspaceStore.save({id:'draft:000',expectedRevision:1,text,
+   topicId:'topic:changed',operationId:'save:other-current'}),changed);
+  await p.evaluate(()=>resumeWorkspaceRead());
+  await eventually(async()=>/更改或删除/.test(await picker().getByRole('status').textContent()));
+  assert.equal(await editor().inputValue(),fresh);assert.deepEqual(await ref(),freshRef);
+  assert.deepEqual(await p.evaluate(()=>actualWorkspaceRead('draft:000')),current);
+  await find().click();await eventually(async()=>await rows().count()===3&&!await rows().first().isDisabled());
+  // Even a matching read cannot erase typing in the still-live old editor.
+  await p.evaluate(()=>{
+   let matchingReads=0;
+   workspaceStore.read=async id=>{
+    const row=await actualWorkspaceRead(id);
+    if(id==='draft:000'&&++matchingReads===2){
+     await new Promise(resolve=>globalThis.resumeWorkspaceTyping=resolve);
+     workspaceStore.read=actualWorkspaceRead;
+    }
+    return row;
+   };
+  });
+  await rows().first().click();await eventually(async()=>await p.evaluate(()=>typeof resumeWorkspaceTyping==='function'));
+  const newer=fresh+'\nPRIVATE_TYPED_DURING_RECOVERY';await editor().fill(newer);
+  await p.evaluate(()=>resumeWorkspaceTyping());
+  await eventually(async()=>/请先保存/.test(await picker().getByRole('status').textContent()));
+  assert.equal(await editor().inputValue(),newer);assert.deepEqual(await ref(),freshRef);
+  assert.equal((await p.evaluate(id=>actualWorkspaceRead(id),freshRef.id)).text,fresh);
+  const updatedFresh=await currentSave();assert.deepEqual(updatedFresh,{id:freshRef.id,revision:2});
+  assert.equal((await p.evaluate(id=>actualWorkspaceRead(id),freshRef.id)).text,newer);
+  await rows().first().click();await eventually(async()=>await editor().inputValue()===changed);
+  assert.deepEqual(await ref(),{id:saved.id,revision:2});
+  assert.equal(await composer().getByRole('combobox',{name:'草稿 Topic'}).inputValue(),'topic:changed');
+  assert.equal(await p.evaluate(()=>{
+   const root=workspace.element;
+   return root.scrollWidth<=root.clientWidth+1&&getComputedStyle(root.querySelector('textarea')).fontSize==='24px';
+  }),true,'the complete stacked workspace fits a narrow large-text viewport without horizontal clipping');
+  // A held selected body cannot recreate private DOM after owner disposal.
+  await find().click();await eventually(async()=>await rows().count()===3&&!await rows().first().isDisabled());
+  await p.evaluate(()=>{
+   let matchingReads=0;
+   workspaceStore.read=async id=>{
+    const row=await actualWorkspaceRead(id);
+    if(id==='draft:000'&&++matchingReads===2){
+     await new Promise(resolve=>globalThis.resumeWorkspaceDispose=resolve);
+     workspaceStore.read=actualWorkspaceRead;
+    }
+    return row;
+   };
+  });
+  await rows().first().click();await eventually(async()=>await p.evaluate(()=>typeof resumeWorkspaceDispose==='function'));
+  await p.evaluate(()=>{workspace.dispose();resumeWorkspaceDispose();});
+  assert.equal(await owner().count(),0);assert.equal(await ref(),null);
+  await p.evaluate(()=>workspaceStore.close());await q.evaluate(()=>workspaceStore.close());await q.close();
+  await h.restartWorker();await p.reload();await p.waitForSelector('#prompt-open');
+  await p.evaluate(async()=>{
+   const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   globalThis.workspaceStore=new MyWriteDraftStore({name:'paia-mywrite-workspace-chrome-v1'});
+   globalThis.actualWorkspaceRead=workspaceStore.read.bind(workspaceStore);
+  });
+  await mount();assert.equal(await editor().inputValue(),unsaved);assert.deepEqual(await ref(),activeRef);
+  await find().click();await eventually(async()=>await rows().count()===3&&!await rows().first().isDisabled());
+  await rows().first().click();await eventually(async()=>await editor().inputValue()===changed);
+  assert.deepEqual(await ref(),{id:saved.id,revision:2});
+  assert.deepEqual(await p.evaluate(()=>actualWorkspaceRead('draft:000')),current);
+  assert.deepEqual(await p.evaluate(()=>actualWorkspaceRead('draft:active')),active);
+  await composer().getByRole('button',{name:'查看完整草稿',exact:true}).click();
+  await eventually(async()=>composer().getByRole('textbox',{name:'完整草稿正文',exact:true}).isVisible());
+  assert.equal(await composer().getByRole('textbox',{name:'完整草稿正文',exact:true}).inputValue(),changed);
+  assert.match(await composer().getByRole('status').textContent(),/2024-07-03T09:46:40.000Z/);
+  await p.evaluate(()=>{workspace.dispose();workspaceStore.close();});
+  assert.deepEqual((await h.state()).records,original.records);
+  assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
