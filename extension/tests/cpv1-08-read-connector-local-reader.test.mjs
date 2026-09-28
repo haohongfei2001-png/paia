@@ -10,9 +10,9 @@ const grant=()=>({grantId:'synthetic-read-grant',consumer:'supported-ai',
  profileId:'default',permission:'read_connector',purpose:'read_only_query',
  resourceScope:'profile',scopeRevision:1,allowedTools:['get_by_ref'],
  allowedKinds:['input'],expiresAt:100000,revokedAt:null});
-async function fixture(){
+async function fixture(texts=null){
  const text='EXACT_ORIGINAL 👩🏽‍💻\n'+'long source '.repeat(300);
- const f=await completeFixture({texts:[text]});
+ const f=await completeFixture({texts:texts??[text]});
  const memory=new MemoryService(f.s);await memory.ready();
  await memory.settings({includeUnorganizedInputs:true});
  const block=(await rows(f.s,'blocks'))[0].value;
@@ -59,6 +59,58 @@ test('VS-08 get-by-ref requires current profile eligibility before any body rele
  const direct=createLocalReadConnectorReader(f.memory);
  await assert.rejects(direct(request({kind:'topic_note',id:'private-topic',revision:0}),
   {grantId:'g',profileId:'default',allowedKinds:['topic']}),
+  {code:'MEMORY_DENIED'});
+ assert.equal(f.requests.length,0);
+});
+
+
+test('VS-08 local profile list/query use bounded opaque pages and lexical results',async()=>{
+ const f=await fixture(['alpha private example','beta private example',
+  'gamma private example']);
+ const boundary=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>({...grant(),allowedTools:['list_material','query'],
+   allowedKinds:['input']}),read:createLocalReadConnectorReader(f.memory)});
+ const req=cursor=>({tool:'list_material',args:{kinds:['input'],limit:1,
+  ...(cursor?{cursor}:{})}});
+ const first=await boundary.handle('connection-list',req());
+ assert.equal(first.data.items.length,1);
+ assert.equal(first.data.complete,false);
+ assert.match(first.data.nextCursor,/^[A-Za-z0-9_-]+$/);
+ const second=await boundary.handle('connection-list',req(first.data.nextCursor));
+ assert.equal(second.data.items.length,1);
+ assert.equal(second.data.complete,false);
+ await assert.rejects(boundary.handle('connection-list',req(first.data.nextCursor)),
+  {code:'MEMORY_UNAVAILABLE'});
+ const third=await boundary.handle('connection-list',req(second.data.nextCursor));
+ assert.equal(third.data.items.length,1);
+ assert.equal(third.data.complete,true);
+ assert.equal(third.data.nextCursor,null);
+ const ids=[...first.data.items,...second.data.items,...third.data.items]
+  .map(x=>x.id);
+ assert.equal(new Set(ids).size,3);
+ const found=await boundary.handle('connection-query',
+  {tool:'query',args:{text:'beta',kinds:['input'],limit:20}});
+ assert.equal(found.data.items.length,1);
+ assert.equal(found.data.items[0].ref.kind,'input');
+ assert.match(found.data.items[0].snippet,/beta/);
+ assert.equal(found.data.complete,true);
+ assert.equal(f.requests.length,0);
+});
+
+test('VS-08 local page cursor loses authority after profile policy change',async()=>{
+ const f=await fixture(['alpha private example','beta private example']);
+ const boundary=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>({...grant(),allowedTools:['list_material'],
+   allowedKinds:['input']}),read:createLocalReadConnectorReader(f.memory)});
+ const first=await boundary.handle('connection-list',
+  {tool:'list_material',args:{kinds:['input'],limit:1}});
+ assert.ok(first.data.nextCursor);
+ await f.memory.settings({includeUnorganizedInputs:false});
+ await assert.rejects(boundary.handle('connection-list',
+  {tool:'list_material',args:{kinds:['input'],limit:1,
+   cursor:first.data.nextCursor}}),{code:'MEMORY_UNAVAILABLE'});
+ await assert.rejects(boundary.handle('connection-list',
+  {tool:'list_material',args:{kinds:['topic'],limit:1}}),
   {code:'MEMORY_DENIED'});
  assert.equal(f.requests.length,0);
 });
