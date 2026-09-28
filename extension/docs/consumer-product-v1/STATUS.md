@@ -14,7 +14,7 @@ current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09
 
 current_round: CPV1-09.1 — trusted Prompt commands and recovery-preserving Source purge
 
-current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_CI_PENDING / P1_UI_NOT_IMPLEMENTED
+current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_DIAGNOSING_FAILED_ADMISSION / P1_UI_NOT_IMPLEMENTED
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,14 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## CPV1-09.1 integration diagnostic and full Source-identity regression — 2026-09-28
+
+Exact parentad47552229fc29a3ce77a20f8c43d11daba8a049, treef43d97a9079d19c777b1a05c6c0e322afdbf0dc4. Candidate36448902534 contracts/privacy109018246506 FAILURE:102 adapter contracts PASS;58privacy/security PASS and2 new owning recovery-purge cases FAIL at a required success assertion. Existing privacy/security assertions, the new caller/consent test and release109018246914 passed; full unit109018246942 was still running at evidence read. Failed cases are not recast as PASS. The runner's outer error omits the exact admission stage; do not invent a cause or relax the failure.
+
+Give the unchanged capture/candidate/draft success assertions explicit finite stage/error-code messages, with no Source/draft body or token logging. Retain every original test/fixture and all recovery-preservation, purge, storage-failure, no-Source-change and caller privacy assertions. Add a complete actual two-version Source identity regression: both versions of one current Source must reach the admitted recovery callback and the final tombstone/delete scope. The single-worker queued preflight and all production Source/Prompt guards stay unchanged pending exact new-head diagnosis. No isolated rerun, workflow/test-selection/timeout/fixture reduction or certification shortcut.
+
+New-head affected CI PENDING. Current P1 command/purge integration remains NOT_CERTIFIED; P1 panel/copy/Source navigation and P2 protected insertion remain executable next work after this ordinary integration failure is resolved. B02 human-derivative policy is still deferred only on its dependent purge path. VS07 remains EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING, VS04 lexical/fuzzy/filter default, Semantic Lab solely Input → Topic. Context external/Passport/live gates stay default-off/deferred.
 
 ## CPV1-09.1 trusted local Prompt commands and recovery-preserving Source purge — 2026-09-28
 

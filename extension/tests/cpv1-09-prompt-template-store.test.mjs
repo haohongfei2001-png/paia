@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {completeFixture,rows,meta} from './harness/original-complete.mjs';
+import {completeFixture,append,rows,meta} from './harness/original-complete.mjs';
 import {inputEdit} from './harness/thought-m1.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
@@ -359,5 +359,18 @@ test('P1 failed recovery cleanup retains canonical Source and refuses before pur
  assert.equal(await generation(f.s),gen);
  const ids=[];await f.s.permanentDelete(c.sourceRefs[0].sourceId,async all=>{ids.push(...all);});
  assert.deepEqual(ids,[c.sourceRefs[0].sourceId]);assert.equal((await rows(f.s,'records')).length,0);
+ assert.equal(f.requests.length,0);
+});
+
+test('P1 admitted cleanup covers all current versions of one canonical Source identity',async()=>{
+ const f=await fixture(['Original complete human Source']);
+ await append(f.s,'Changed complete human Source','complete-0');
+ const records=(await rows(f.s,'records')).map(r=>r.value);
+ assert.equal(records.length,2);assert.equal(records[0].sourceKey,records[1].sourceKey);
+ let cleaned;
+ await f.s.permanentDelete(records[0].id,async ids=>{cleaned=[...ids].sort();});
+ assert.deepEqual(cleaned,records.map(r=>r.id).sort());
+ assert.equal((await rows(f.s,'records')).length,0);
+ assert.equal((await rows(f.s,'tombstones')).filter(r=>r.id==='source:'+records[0].sourceKey).length,1);
  assert.equal(f.requests.length,0);
 });

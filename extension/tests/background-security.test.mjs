@@ -613,12 +613,13 @@ test('CPV1-09 Prompt commands are exact trusted-page-only, consent gated and pri
 });
 async function promptWorkerCapture(h,text='Protected reusable human prompt'){
  await h.send({type:'CONSENT',accepted:true});const epoch=(await h.send({type:'GET_STATUS'})).data.epoch;
- assert.equal((await h.send(capture(epoch,{messages:[{
+ const captured=await h.send(capture(epoch,{messages:[{
   sourceMessageId:'synthetic-message-001',pageOrder:1,originalText:text,
- }]}),content)).ok,true);
+ }]}),content);
+ assert.equal(captured.ok,true,'Prompt capture admission: '+(captured.error??'NONE'));
  const state=(await h.send({type:'GET_STATE'})).data;
  const result=await h.send({type:'PAIA_PROMPT_CANDIDATES'});
- assert.equal(result.ok,true);assert.equal(result.data.total,1);
+ assert.equal(result.ok,true,'Prompt candidate projection: '+(result.error??'NONE'));assert.equal(result.data.total,1);
  assert.equal(result.data.complete,true);assert.equal(result.data.items[0].text,text);
  return {state,candidate:result.data.items[0]};
 }
@@ -628,7 +629,7 @@ async function promptWorkerDraft(h,state){
   operation:{type:'EDIT_DOCUMENT',edit:{operationId:'protected-recovery-operation',
    documentId:owner.id,blocks:[{id:block.id,libraryText:'PRIVATE_UNSAVED_HUMAN_DRAFT'}]}}};
  const result=await h.send({type:'PAIA_RECOVERY_DRAFT_SAVE',draft});
- assert.equal(result.ok,true);assert.deepEqual(result.data.sourceRecordIds,[state.records[0].id]);
+ assert.equal(result.ok,true,'Recovery draft save: '+(result.error??'NONE'));assert.deepEqual(result.data.sourceRecordIds,[state.records[0].id]);
  return draft;
 }
 test('CPV1-09 blocked Source purge retains actual Chrome recovery draft and canonical Input',async t=>{
