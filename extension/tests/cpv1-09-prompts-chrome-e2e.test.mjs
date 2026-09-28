@@ -247,3 +247,69 @@ test('CPV1-09 a queued native close cannot erase a reopened Prompt invocation',{
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('CPV1-09 P2 native input session protects full drafts, IME and target drift without send or clipboard',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);await clipboardOracle(p);const original=await h.state();
+  const body='完整人工表达 🧑🏽‍💻 é\n'+ '保留代码、空白与换行 '.repeat(1000)+'\n最后否定：不要发送。';
+  const results=await p.evaluate(async body=>{
+   const {createPromptInputSession}=await import('./prompt-input-session.js');
+   const form=document.createElement('form'),field=document.createElement('textarea'),send=document.createElement('button');
+   send.type='submit';send.textContent='发送';form.append(field,send);document.body.append(form);
+   let inputs=0,sends=0,reads=0;
+   form.addEventListener('submit',e=>{e.preventDefault();sends++;});send.addEventListener('click',()=>sends++);
+   field.addEventListener('input',()=>inputs++);
+   // An own accessor cannot replace the native full-draft value getter/setter.
+   Object.defineProperty(field,'value',{configurable:true,get(){reads++;return 'forged private draft';},set(){throw Error('non-native setter');}});
+   const native=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value');
+   const get=()=>native.get.call(field),set=text=>native.set.call(field,text);
+   const session=createPromptInputSession(field),observations=[];
+   const refuses=(token,choice,expected)=>{
+    let code=null;try{token.commit(choice);}catch(error){code=error.code;}
+    if(code!==expected)throw Error('expected '+expected+' received '+code);
+   };
+   const empty=session.prepare(body);const written=empty.commit({mode:'append'});
+   observations.push({kind:'empty',body:get(),written,inputs,sends,reads});
+   refuses(empty,{mode:'append'},'PROMPT_INSERT_STALE');
+   set('  现有人工草稿 🧑🏽‍💻 é\n不要改写。 ');
+   const draft=get(),append=session.prepare('后续完整模板');
+   append.commit({mode:'append'});
+   observations.push({kind:'append',body:get(),draft,inputs,sends,reads});
+   const before=get(),reject=session.prepare(body);refuses(reject,{mode:'replace'},'PROMPT_REPLACE_CONFIRMATION_REQUIRED');
+   observations.push({kind:'replace-refusal',body:get(),before,inputs,sends});
+   const replacement=session.prepare(body);replacement.commit({mode:'replace',replaceConfirmed:true});
+   observations.push({kind:'replace',body:get(),inputs,sends});
+   const changed=session.prepare('新模板');set('在确认窗口期间写入的新草稿');refuses(changed,{mode:'replace',replaceConfirmed:true},'PROMPT_INSERT_STALE');
+   observations.push({kind:'value-drift',body:get(),inputs,sends});
+   const eventDrift=session.prepare('新模板');field.dispatchEvent(new InputEvent('input',{bubbles:true}));
+   refuses(eventDrift,{mode:'replace',replaceConfirmed:true},'PROMPT_INSERT_STALE');
+   field.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'输入法内容'}));
+   let composing=null;try{session.prepare(body);}catch(e){composing=e.code;}
+   field.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'输入法内容'}));
+   observations.push({kind:'ime',code:composing,body:get(),inputs,sends});
+   const normalization=session.prepare('模板\r\n必须保留原样');
+   refuses(normalization,{mode:'append'},'PROMPT_INPUT_NORMALIZATION');
+   field.maxLength=3;const maximum=session.prepare('完整正文');refuses(maximum,{mode:'replace',replaceConfirmed:true},'PROMPT_INSERT_LIMIT');field.removeAttribute('maxlength');
+   const readonly=session.prepare('新模板');field.readOnly=true;refuses(readonly,{mode:'append'},'PROMPT_TARGET_UNAVAILABLE');field.readOnly=false;
+   const cancel=session.prepare('新模板');const cancelled=cancel.cancel();refuses(cancel,{mode:'append'},'PROMPT_INSERT_STALE');
+   const surplus=session.prepare('新模板');refuses(surplus,{mode:'append',send:true},'PROMPT_INSERT_INVALID');
+   field.focus();const late=createPromptInputSession(field);let unknown=null;
+   try{late.prepare(body);}catch(e){unknown=e.code;}late.dispose();field.blur();
+   const replaced=session.prepare('新模板'),other=document.createElement('textarea');other.value='新窗口输入，不得覆盖';field.replaceWith(other);
+   refuses(replaced,{mode:'replace',replaceConfirmed:true},'PROMPT_TARGET_UNAVAILABLE');
+   observations.push({kind:'target-drift',other:other.value,cancelled,unknown,inputs,sends,reads});
+   session.dispose();form.remove();return observations;
+  },body);
+  assert.deepEqual(results[0],{kind:'empty',body,written:{mode:'append',characters:body.length},inputs:1,sends:0,reads:0});
+  assert.equal(results[1].body,results[1].draft+'\n后续完整模板');assert.equal(results[1].inputs,2);assert.equal(results[1].sends,0);assert.equal(results[1].reads,0);
+  assert.equal(results[2].body,results[2].before);assert.equal(results[2].inputs,2);assert.equal(results[2].sends,0);
+  assert.equal(results[3].body,body);assert.equal(results[3].inputs,3);assert.equal(results[3].sends,0);
+  assert.equal(results[4].body,'在确认窗口期间写入的新草稿');assert.equal(results[4].inputs,3);assert.equal(results[4].sends,0);
+  assert.equal(results[5].code,'PROMPT_COMPOSING');assert.equal(results[5].body,results[4].body);assert.equal(results[5].sends,0);
+  assert.deepEqual(results[6],{kind:'target-drift',other:'新窗口输入，不得覆盖',cancelled:true,unknown:'PROMPT_COMPOSITION_UNKNOWN',inputs:4,sends:0,reads:0});
+  assert.deepEqual((await h.state()).records,original.records);assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.deepEqual(await copied(p),[]);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
