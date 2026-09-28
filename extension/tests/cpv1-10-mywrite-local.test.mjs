@@ -197,3 +197,110 @@ test('CPV1-10 closed client fails promptly and never opens a new storage connect
  await assert.rejects(()=>f.first.read('draft:one'),code('MYWRITE_CLOSED'));
  assert.equal(await f.second.read('draft:one'),null);f.second.close();
 });
+
+test('CPV1-10 recovery discovers every complete saved draft in native key pages without body serialization',async()=>{
+ const f=fixture(),saved=[];
+ for(let i=0;i<51;i++)saved.push(await f.first.save({...command(complete+'\nPRIVATE_BODY_'+i,0,'save:page:'+i),
+  id:'draft:'+String(i).padStart(3,'0'),topicId:i%2?'topic:optional':null}));
+ const removed=await f.second.remove({id:'draft:019',expectedRevision:1,operationId:'delete:page'});
+ const expected=saved.filter(row=>row.id!==removed.id).map(({id,revision,createdAt,updatedAt,topicId})=>({id,revision,createdAt,updatedAt,topicId}));
+ const observed=[];let after=null;
+ do{
+  const page=await f.second.list({limit:20,after});
+  assert.ok(page.items.length<=20);assert.doesNotMatch(JSON.stringify(page),/PRIVATE_BODY_|不要删除|text|lastWriteId|baseRevision|lifecycle|format/);
+  for(const item of page.items)assert.deepEqual(Object.keys(item).sort(),['createdAt','id','revision','topicId','updatedAt']);
+  observed.push(...page.items);after=page.after;
+ }while(after!==null);
+ assert.deepEqual(observed,expected);assert.equal(new Set(observed.map(x=>x.id)).size,50);
+ for(const row of saved)assert.deepEqual(await f.second.read(row.id),row.id===removed.id?removed:row);
+ const db=await f.second.open();assert.equal(db.version,1);assert.deepEqual(Array.from(db.objectStoreNames),['drafts']);
+ f.first.close();f.second.close();
+});
+
+test('CPV1-10 recovery uses stable ID order with ties and fresh pages across edits deletes and restart',async()=>{
+ const f=fixture(),keys=['draft:z','draft:A','draft:0','draft:_','draft:-','draft:a'];
+ for(const key of keys)await f.first.save({...command(complete+'\n'+key,0,'save:'+key),id:key});
+ const first=await f.second.list({limit:2,after:null});
+ assert.deepEqual(first.items.map(x=>x.id),keys.toSorted().slice(0,2));
+ const stale=first.items[0];
+ const current=await f.first.save({...command(complete+'\n跨窗口完整更正。',1,'save:edit'),id:stale.id,topicId:'topic:new'});
+ await assert.rejects(()=>f.second.review(stale.id,stale.revision),code('MYWRITE_CONFLICT'));
+ const tombstone=await f.first.remove({id:'draft:A',expectedRevision:1,operationId:'delete:middle'});
+ await f.first.save({...command(complete+'\n后来创建的完整正文。',0,'save:earlier'),id:'draft:.earlier'});
+ f.first.close();f.second.close();
+ const resumed=new MyWriteDraftStore({indexedDB:f.indexedDB});
+ const rest=await resumed.list({limit:40,after:first.after});
+ assert.deepEqual(rest.items.map(x=>x.id),['draft:_','draft:a','draft:z']);
+ const refreshed=await resumed.list({limit:40,after:null});
+ assert.deepEqual(refreshed.items.map(x=>x.id),[...keys.filter(x=>x!=='draft:A'),'draft:.earlier'].toSorted());
+ assert.equal(refreshed.items.find(x=>x.id===current.id).revision,2);
+ assert.equal(refreshed.items.find(x=>x.id===current.id).topicId,'topic:new');
+ assert.deepEqual(await resumed.read(current.id),current);assert.deepEqual(await resumed.read(tombstone.id),tombstone);
+ assert.equal((await resumed.review(current.id,2)).text,current.text);
+ resumed.close();
+});
+
+test('CPV1-10 recovery rejects unbounded and descriptor-bearing options before opening storage',async()=>{
+ const f=fixture();let reads=0,opens=0;const realOpen=f.indexedDB.open.bind(f.indexedDB);
+ f.indexedDB.open=(...args)=>{opens++;return realOpen(...args);};
+ const getter={after:null};Object.defineProperty(getter,'limit',{enumerable:true,get(){reads++;throw Error('PRIVATE_LIST_GETTER');}});
+ for(const options of [getter,null,[],{limit:0,after:null},{limit:41,after:null},{limit:1.5,after:null},
+  {limit:Infinity,after:null},{limit:1,after:''},{limit:1,after:'x'.repeat(129)},{limit:1,after:null,text:'PRIVATE_EXTRA'}]){
+  await assert.rejects(()=>f.first.list(options),code('MYWRITE_INVALID'));
+ }
+ assert.equal(reads,0);assert.equal(opens,0);
+ assert.deepEqual(await f.first.list(),{items:[],after:null});
+ const options={limit:1,after:null},pending=f.first.list(options);
+ options.limit=40;options.after='draft:z';
+ assert.deepEqual(await pending,{items:[],after:null});
+ f.first.close();f.second.close();
+});
+
+test('CPV1-10 corrupt discovery aborts without returning partial metadata or changing any full row',async()=>{
+ const f=fixture(),first=await f.first.save({...command(),id:'draft:000'});
+ const second=await f.first.save({...command(complete+'\nPRIVATE_CORRUPT_BODY',0,'save:two'),id:'draft:001'});
+ const corrupt={...second,createdAt:second.updatedAt+1};
+ await raw(f.first,store=>store.put(corrupt));
+ await assert.rejects(()=>f.second.list({limit:20,after:null}),code('MYWRITE_CORRUPT'));
+ const db=await f.first.open(),observed=await new Promise((resolve,reject)=>{
+  const tx=db.transaction('drafts','readonly'),request=tx.objectStore('drafts').get('draft:001');
+  request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
+ });
+ assert.deepEqual(observed,corrupt);assert.deepEqual(await f.first.read(first.id),first);
+ f.first.close();f.second.close();
+});
+
+test('CPV1-10 native cursor abort and close reject whole recovery pages and preserve complete drafts',async()=>{
+ for(const action of ['abort','close']){
+  const f=fixture(),saved=await f.first.save(command()),db=await f.first.open();
+  const realTransaction=db.transaction.bind(db);
+  db.transaction=(...args)=>{
+   assert.equal(args[1],'readonly');
+   const tx=realTransaction(...args),realStore=tx.objectStore.bind(tx);
+   tx.objectStore=(...storeArgs)=>{
+    const store=realStore(...storeArgs),realCursor=store.openCursor.bind(store);
+    store.openCursor=(...cursorArgs)=>{
+     const request=realCursor(...cursorArgs);
+     request.addEventListener('success',()=>{if(action==='abort')tx.abort();else f.first.close();},{once:true});
+     return request;
+    };
+    store.getAll=()=>{throw Error('PRIVATE_UNBOUNDED_READ');};
+    return store;
+   };return tx;
+  };
+  await assert.rejects(()=>f.first.list(),code(action==='abort'?'MYWRITE_UNAVAILABLE':'MYWRITE_CLOSED'));
+  db.transaction=realTransaction;
+  assert.deepEqual(await f.second.read(saved.id),saved);
+  f.first.close();f.second.close();
+ }
+});
+
+test('CPV1-10 recovery after all explicit deletions is empty and cannot resurrect a closed or removed draft',async()=>{
+ const f=fixture();const saved=await f.first.save(command());
+ await f.second.remove({id:saved.id,expectedRevision:1,operationId:'delete:last'});
+ assert.deepEqual(await f.first.list({limit:40,after:null}),{items:[],after:null});
+ await assert.rejects(()=>f.first.review(saved.id,1),code('MYWRITE_CONFLICT'));
+ await assert.rejects(()=>f.first.review(saved.id,2),code('MYWRITE_DELETED'));
+ f.first.close();await assert.rejects(()=>f.first.list(),code('MYWRITE_CLOSED'));
+ assert.equal((await f.second.read(saved.id)).text,null);f.second.close();
+});
