@@ -28,6 +28,15 @@ prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
 
+## VS-08 task Context approval gate — 2026-09-28
+
+State: PROPOSED / NOT_PUBLISHED / OWNER_APPROVAL_PENDING.
+GitHub writer remains PR #99 at `5b5d94e5a5daf2c8014d814e2aea110bd1025888`, whose Candidate Gate `36424719386` passed; full Draft Certification stayed skipped.
+
+Automatic approval review rejected the attempted GitHub blob write of a detached task-context reader because binding a task to reviewed material and adding its scoped read path was classified as a new privacy/permission capability reserved for explicit owner approval. No proposed reader, ManualContext composition or new test batch was committed or activated. Existing get_task_context material access remains closed. The prepared proposal uses only the existing per-tab reviewed selection, exact owner/generation/fingerprints, current read grant/profile/material-kind admissions, expiry/revoke and complete-size checks; no product entrypoint, issuer, network or context_export grant reuse is proposed.
+
+Owner approval was requested for committing that DEFAULT_OFF detached engineering batch. Only task Context material release waits for this decision; current existing material readers, ordinary defects/CI repairs and other dependency-safe product engineering continue. Missing platform identity, Passport consent/issuer, distributed quota and B-03/B-05 external deployment remain OPEN; no external acceptance or VS-08 certification is claimed.
+
 ## VS-08 Batch I — saved-AI exact read with profile evidence admission, 2026-09-28
 
 Exact prior head `3a6745338b83d344932802413698b7e911b7e0ce` Candidate Gate `36422632100` passed affected unit, contracts/privacy, release and aggregate gate; full Certification stayed skipped on Draft. Detached saved-AI get-by-ref now requires an active allowed Topic, the canonical stored schema, no stale/update/unaccepted-candidate flag, and every cited Thought's current profile eligibility, freshness and exact checkpoint version. Capped scans refuse admission. Canonical `materialRead` still owns full/exact-span body, role and revision; a source-safe Topic label and pre/post snapshot fences prevent stale release. Owning actual IndexedDB regression covers full and span AI role, stale ref/checkpoint/flags, unaccepted candidate, missing/unapproved field evidence, wrong grant kind, excluded/edited evidence and refreshed checkpoint, Topic revoke and zero external requests. Task Context, Passport permission/UX, supported external identity, distributed quota and deployment remain OPEN. Module remains detached/default-off; new-head Candidate Gate PENDING.

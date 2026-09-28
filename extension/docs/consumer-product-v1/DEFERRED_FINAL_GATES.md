@@ -127,3 +127,20 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
 - **Safe interim:** reject weights/inference/candidate admission for this revision; never inherit rights from a library/upstream name or title. Do not repeat unchanged model trial or mark diagnostic reads as quality certification.
 - **Non-blocked engineering:** independently declared licensed candidate screening, fixed synthetic evaluation, rebuildable index/invalidations/interfaces, production-environment compatibility, longitudinal retrieval/Revisit and later dependency-safe work.
 - **Final closure:** actual converted-source permissible license/conversion provenance at an exact independently verified revision, or select a separately evidenced compatible candidate through the unchanged fixed quality/resource/Chrome gates. A candidate rejection does not require owner input or a paid commitment.
+
+
+### DFG-CPV1-011 — Task Context read-path owner approval
+
+- **Owner round:** CPV1-08.2.
+- **State:** OWNER_APPROVAL_PENDING / NOT_PUBLISHED; not PASS.
+- **Exact dependency:** commit or activation of the proposed task-to-reviewed-selection scoped Context reader.
+- **Reason:** automatic approval review rejected the GitHub blob write as a new privacy/permission capability without explicit owner approval. The user reserves privacy/permission decisions.
+- **Prepared scope:** detached/default-off composition with the EXISTING temporary ManualContext; exact task/budget, consumer/grant/profile/revision, owner/selection/generation, reviewed fingerprints, current individual material admission and before/after expiry/revoke/snapshot fences. No durable task store, new grant issuer, context_export reuse, product dispatcher or network.
+- **Safe interim:** existing get_task_context material reads stay closed. No proposed runtime or test batch has been committed. No retry via indirect tools, local host, alternate writer or workflow bypass.
+- **Non-blocked engineering:** existing authorized reader defects/adversarial contracts, other dependency-safe PAIA product work and JAE engineering.
+- **Closure:** explicit owner approval of this bounded engineering capability, then one coherent code/test/canonical batch and required new-head cloud evidence. Production/transport/privacy activation and real external acceptance retain their own gates.
+- **Evidence:** sole PAIA PR #99 head5b5d94e5; automatic approval rejection 2026-09-28; approval question recorded in the current Chat.
+
+### Owner amendment to DFG-CPV1-010 — experimental archive only
+
+The owner's 2026-09-28 scope correction supersedes DFG-CPV1-010's historical model-screening and quality-admission next actions for PAIA v1. Preserve its source/license evidence, experimental scripts, corpus and tests. Semantic retrieval is EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING and is no longer a Consumer Product v1 prerequisite. Do not continue embedding/model/cutoff/retrieval studies to close this historical entry. Any future optional semantic capability needs a separate approved scope. Default PAIA v1 search is VS-04 lexical/fuzzy/filter; Input → Topic classification belongs exclusively to Semantic Lab / Topic Router.

@@ -737,3 +737,12 @@ Sole branch `feat/vs08-readonly-connector` starts from certified VS-07 receipt m
 ## VS-08 bounded egress candidate — 2026-09-28
 
 The default-off read connector contract now validates exact response shapes and caps page count, text fields and total envelope size without silent truncation. It refuses unrequested kinds, stale material refs, wrong task Context, false pagination completeness and hidden grant/body fields. This does not implement source-side scope filtering, a trusted identity transport, Passport read authorization, revocation, a cloud endpoint or a production permission; all remain open. Targeted new-head CI is pending.
+
+## VS-08 task Context approval gate — 2026-09-28
+
+State: PROPOSED / NOT_PUBLISHED / OWNER_APPROVAL_PENDING.
+GitHub writer remains PR #99 at `5b5d94e5a5daf2c8014d814e2aea110bd1025888`, whose Candidate Gate `36424719386` passed; full Draft Certification stayed skipped.
+
+Automatic approval review rejected the attempted GitHub blob write of a detached task-context reader because binding a task to reviewed material and adding its scoped read path was classified as a new privacy/permission capability reserved for explicit owner approval. No proposed reader, ManualContext composition or new test batch was committed or activated. Existing get_task_context material access remains closed. The prepared proposal uses only the existing per-tab reviewed selection, exact owner/generation/fingerprints, current read grant/profile/material-kind admissions, expiry/revoke and complete-size checks; no product entrypoint, issuer, network or context_export grant reuse is proposed.
+
+Owner approval was requested for committing that DEFAULT_OFF detached engineering batch. Only task Context material release waits for this decision; current existing material readers, ordinary defects/CI repairs and other dependency-safe product engineering continue. Missing platform identity, Passport consent/issuer, distributed quota and B-03/B-05 external deployment remain OPEN; no external acceptance or VS-08 certification is claimed.
