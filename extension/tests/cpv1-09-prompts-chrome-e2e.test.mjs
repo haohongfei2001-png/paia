@@ -443,7 +443,13 @@ test('CPV1-09 P2 trusted human full-template review protects draft and manual-co
    const target=document.createElement('textarea'),form=document.createElement('form'),send=document.createElement('button'),trigger=document.createElement('button');
    target.id='review-target';target.value=draft;send.type='submit';send.id='review-send';send.textContent='Send';
    trigger.type='button';trigger.id='review-trigger';trigger.textContent='Review Prompt';
-   form.append(target,send);document.body.append(form,trigger);
+   // A visible synthetic target surface coexists with the complete archive
+   // shell. Its invokers must receive a real pointer gesture without bypassing
+   // hit testing or removing/weakening the original product fixture.
+   const surface=document.createElement('section');surface.id='prompt-review-fixture';
+   surface.setAttribute('aria-label','Synthetic native input and trusted Prompt invokers');
+   surface.style.cssText='position:fixed;top:12px;right:12px;width:480px;max-width:calc(100vw - 24px);padding:12px;z-index:2147483647;background:white;';
+   form.append(target,send);surface.append(form,trigger);document.body.append(surface);
    globalThis.promptReviewCounts={inputs:0,sends:0,reads:0};globalThis.promptReviewHold=false;globalThis.promptReviewRelease=null;
    target.addEventListener('input',()=>globalThis.promptReviewCounts.inputs++);
    form.addEventListener('submit',e=>{e.preventDefault();globalThis.promptReviewCounts.sends++;});
@@ -469,6 +475,10 @@ test('CPV1-09 P2 trusted human full-template review protects draft and manual-co
    replace=review.getByRole('button',{name:'替换整个草稿',exact:true}),
    copy=review.getByRole('button',{name:'复制完整正文',exact:true}),
    close=review.getByRole('button',{name:'取消',exact:true});
+  assert.equal(await p.locator('#review-trigger').evaluate(node=>{
+   const box=node.getBoundingClientRect();
+   return document.elementFromPoint(box.x+box.width/2,box.y+box.height/2)===node;
+  }),true,'actual trusted invoker must pass native pointer hit testing');
   await p.locator('#review-trigger').click();
   await eventually(async()=>!await copy.isDisabled(),'complete current review finishes');
   assert.equal(await preview.inputValue(),body);assert.equal(await before.inputValue(),draft);
@@ -514,10 +524,14 @@ test('CPV1-09 P2 trusted human full-template review protects draft and manual-co
    const rich=document.createElement('div'),trigger=document.createElement('button');
    rich.contentEditable='true';rich.id='review-rich';rich.textContent='现有富文本草稿，不得改写';
    trigger.id='review-rich-trigger';trigger.type='button';trigger.textContent='Review unsupported';
-   document.body.append(rich,trigger);
+   document.querySelector('#prompt-review-fixture').append(rich,trigger);
    const review=createPromptInsertionReview({target:rich,trigger,selection:{id:other.id,expectedRevision:other.revision},readTemplate});
    trigger.addEventListener('click',event=>void review.open(event));globalThis.promptRichReview=review;
   });
+  assert.equal(await p.locator('#review-rich-trigger').evaluate(node=>{
+   const box=node.getBoundingClientRect();
+   return document.elementFromPoint(box.x+box.width/2,box.y+box.height/2)===node;
+  }),true,'unsupported target still requires an actual hittable invoker');
   await p.locator('#review-rich-trigger').click();
   const richReview=p.locator('.prompt-insertion-review[open]');
   await eventually(async()=>!await richReview.getByRole('button',{name:'复制完整正文',exact:true}).isDisabled());
@@ -555,7 +569,7 @@ test('CPV1-09 P2 trusted human full-template review protects draft and manual-co
   assert.equal(await p.evaluate(()=>globalThis.promptReviewCounts.inputs),2);
   assert.equal(await p.evaluate(()=>globalThis.promptReviewCounts.sends),0);assert.deepEqual(await copied(p),[other.text]);
   assert.equal(await p.locator('#review-send').isEnabled(),true);
-  await p.evaluate(()=>{globalThis.promptNextReview.dispose();const refs=globalThis.promptReviewRefs;refs.form.remove();refs.trigger.remove();document.querySelector('#review-rich').remove();document.querySelector('#review-rich-trigger').remove();});
+  await p.evaluate(()=>{globalThis.promptNextReview.dispose();const refs=globalThis.promptReviewRefs;refs.form.remove();refs.trigger.remove();document.querySelector('#review-rich').remove();document.querySelector('#review-rich-trigger').remove();document.querySelector('#prompt-review-fixture').remove();});
   const templates=await rpc(p,'PAIA_PROMPT_PAGE');assert.equal(templates.total,2);
   assert.equal(templates.items.find(row=>row.id===saved.id).text,body+'\n外部新修订');
   assert.equal(templates.items.find(row=>row.id===other.id).text,other.text);
