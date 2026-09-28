@@ -24,7 +24,10 @@ export function createPromptInputSession(target){
  const start=()=>{composing=true;compositionKnown=true;changed();};
  const end=()=>{composing=false;compositionKnown=true;changed();};
  const focus=()=>{compositionKnown=true;changed();};
- const blur=()=>{composing=false;compositionKnown=true;changed();};
+ // Blur invalidates any draft token but does not prove composition ended.
+ // Preserve tracked/unknown IME state until an observed composition end or a
+ // new observed focus establishes the next session's event boundary.
+ const blur=()=>{changed();};
  const events=[['input',input],['beforeinput',input],['compositionstart',start],['compositionend',end],['focus',focus],['blur',blur]];
  for(const [type,listener]of events)target.addEventListener(type,listener);
  function ready(){
