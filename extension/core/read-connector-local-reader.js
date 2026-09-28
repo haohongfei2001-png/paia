@@ -37,14 +37,12 @@ export function createLocalReadConnectorReader(memory){
      ||!Array.isArray(scope.allowedKinds))denied();
   await memory.ready();
   if(parsed.tool==='list_material'||parsed.tool==='query'){
-   // Topic query requires an independently admitted human note/AI result.
-   if(parsed.args.kinds.some(kind=>!scope.allowedKinds.includes(kind))
-      ||parsed.tool==='query'&&parsed.args.kinds.includes('topic'))denied();
+   if(parsed.args.kinds.some(kind=>!scope.allowedKinds.includes(kind)))denied();
    const query=parsed.tool==='query'?parsed.args.text:'';
    const before=await candidates(scope.profileId,query);
    if(before.partial)limited(); // never claim complete over a capped scan
    let topicItems=[];
-   if(parsed.tool==='list_material'&&parsed.args.kinds.includes('topic')){
+   if(parsed.args.kinds.includes('topic')){
     const temporary=await memory.temporary();
     if(temporary.revision!==before.sessionRevision)denied();
     topicItems=await memory.s.run(()=>memory.s.repository.transaction(false,async t=>{
@@ -64,7 +62,16 @@ export function createLocalReadConnectorReader(memory){
       if(!title?.trim())continue;
       if(typeof topic.id!=='string'||topic.id.length>200
          ||[...title].length>READ_CONNECTOR_RESULT_LIMITS.titleCharacters)unavailable();
-      items.push({kind:'topic',id:topic.id,title});
+      if(parsed.tool==='list_material')items.push({kind:'topic',id:topic.id,title});
+      else if(typeof topic.summary==='string'&&topic.summary.trim()
+       &&topic.authorship?.summary?.actor==='user'
+       &&topic.protections?.summary?.locked===true){
+       const ref={kind:'topic_note',id:topic.id,revision:topic.revision};
+       // The canonical material reader owns exact authorship and revision.
+       const note=await materialRead(memory,t,ref);
+       items.push({kind:'topic_query',id:topic.id,ref,title:note.title,
+        body:note.body});
+      }
      }
      return items;
     }));
@@ -72,7 +79,9 @@ export function createLocalReadConnectorReader(memory){
    const values=before.candidates.filter(c=>parsed.args.kinds.includes(kindOf(c)))
     .map(c=>parsed.tool==='query'?rankLexicalCandidate({...c,relatedScore:0},query):c)
     .filter(c=>parsed.tool!=='query'||c.score>0)
-    .concat(topicItems)
+    .concat(topicItems.map(c=>parsed.tool==='query'
+     ?rankLexicalCandidate(c,query):c))
+    .filter(c=>parsed.tool!=='query'||c.score>0)
     .sort((a,b)=>parsed.tool==='query'?(b.score-a.score
       ||String(a.id).localeCompare(String(b.id)))
       :String(a.id).localeCompare(String(b.id)));
@@ -90,6 +99,14 @@ export function createLocalReadConnectorReader(memory){
    const selected=values.slice(offset,offset+parsed.args.limit);
    const items=selected.map(c=>{
     if(c.kind==='topic')return {kind:'topic',id:c.id,title:c.title};
+    if(c.kind==='topic_query'){
+     const snippet=searchExcerpt(c.body,query,
+      READ_CONNECTOR_RESULT_LIMITS.snippetCharacters);
+     if(!snippet.trim()||!c.title?.trim()
+        ||[...c.title].length>READ_CONNECTOR_RESULT_LIMITS.titleCharacters)
+      unavailable();
+     return {ref:c.ref,title:c.title,snippet};
+    }
     const title=titleOf(c),ref=refOf(c);
     if(!ref.kind||typeof ref.id!=='string'||!ref.id
        ||ref.id.length>200||!Number.isSafeInteger(ref.revision)

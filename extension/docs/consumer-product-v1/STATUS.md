@@ -28,6 +28,10 @@ prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
 
+## VS-08 Batch G — profile-authorized human Topic lexical query, 2026-09-28
+
+Exact prior head `4fdbff8b8b4764fd17f004f1e5c43d534fee78e0` Candidate Gate `36416329449` passed affected unit, contracts/privacy, release and aggregate gate; full Certification remained skipped on Draft. The detached reader now permits lexical Topic query only for active profile-authorized Topics with human-authored, locked notes. It reuses canonical exact-revision material admission inside the read transaction, returns bounded snippets and one-use grant/profile/revision-bound pages, and rechecks the current snapshot before release. The new actual IndexedDB regression covers two result pages, exact note retrieval, denied Topic and private Input canaries, a Topic without a human note, revocation between pages and zero external requests. Saved AI and task Context remain closed; Passport permission/UX, supported external identity, quota and deployment remain OPEN. The reader remains unimported/default-off; new-head Candidate Gate PENDING.
+
 ## VS-08 Batch F — human Topic note read admission, 2026-09-28
 
 Exact prior head `64cb24029683ed408ae883ecbd12092f476f43df` Candidate Gate `36412148601` passed affected unit, contracts/privacy, release and aggregate gate; full Certification remained skipped for Draft. The detached get-by-ref reader now admits an explicitly allowed active Topic's human-authored, locked summary as a `topic_note` only after current profile policy, temporary revision and archive/profile generation checks inside the read transaction. It reuses canonical `materialRead` for authorship, exact revision, cross-profile denial and source-safe title checks, then verifies the snapshot again before release. The new IndexedDB case covers exact human text, unapproved Topic, stale revision, revoke and zero external requests. Saved AI, Topic query and task Context still lack their own admission; Passport permission/UX, external platform identity and deployment remain OPEN. The reader is unimported/default-off; new-head Candidate Gate PENDING.

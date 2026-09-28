@@ -187,3 +187,51 @@ test('VS-08 Topic note retrieval requires profile admission and human authorship
   {code:'MEMORY_UNAVAILABLE'});
  assert.equal(f.requests.length,0);
 });
+
+
+test('VS-08 Topic lexical query releases only profile-authorized human notes',async()=>{
+ const f=await fixture(['PRIVATE Input canary']);
+ const make=async(name,summary)=>{
+  const topic=await f.s.createTopic({operationId:crypto.randomUUID(),name});
+  const edit=await f.s.editTopic({id:topic.id,expectedRevision:topic.revision,
+   operationId:crypto.randomUUID(),changes:{summary}});
+  return {topic,edit};
+ };
+ const a=await make('Alpha','research canary alpha exact human note');
+ const b=await make('Beta','research canary beta exact human note');
+ const hidden=await make('PRIVATE hidden','research canary PRIVATE hidden note');
+ const empty=await f.s.createTopic({operationId:crypto.randomUUID(),
+  name:'research canary no human note'});
+ await f.memory.authorize({topicIds:[a.topic.id,b.topic.id,empty.id],
+  decision:'allowed'});
+ await f.memory.authorize({topicIds:[hidden.topic.id],decision:'denied'});
+ const boundary=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>({...grant(),allowedTools:['query','get_by_ref'],
+   allowedKinds:['topic']}),read:createLocalReadConnectorReader(f.memory)});
+ const query=cursor=>({tool:'query',args:{text:'research canary',
+  kinds:['topic'],limit:1,...(cursor?{cursor}:{})}});
+ const first=await boundary.handle('topic-query',query());
+ assert.equal(first.data.items.length,1);
+ assert.equal(first.data.complete,false);
+ const second=await boundary.handle('topic-query',query(first.data.nextCursor));
+ assert.equal(second.data.items.length,1);
+ assert.equal(second.data.complete,true);
+ const found=[...first.data.items,...second.data.items];
+ assert.deepEqual(new Set(found.map(x=>x.ref.id)),
+  new Set([a.topic.id,b.topic.id]));
+ assert.ok(found.every(x=>x.ref.kind==='topic_note'
+  &&x.snippet.includes('research canary')));
+ assert.doesNotMatch(JSON.stringify(found),/PRIVATE hidden|PRIVATE Input|no human note/);
+ const exact=await boundary.handle('topic-query',request(found[0].ref));
+ assert.equal(exact.data.role,'human');
+ assert.equal(exact.data.body,found[0].ref.id===a.topic.id
+  ?'research canary alpha exact human note'
+  :'research canary beta exact human note');
+ const pending=await boundary.handle('topic-query',query());
+ await f.memory.authorize({topicIds:[b.topic.id],decision:'denied'});
+ await assert.rejects(boundary.handle('topic-query',
+  query(pending.data.nextCursor)),{code:'MEMORY_UNAVAILABLE'});
+ const remaining=await boundary.handle('topic-query',query());
+ assert.deepEqual(remaining.data.items.map(x=>x.ref.id),[a.topic.id]);
+ assert.equal(f.requests.length,0);
+});
