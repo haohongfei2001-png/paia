@@ -1,3 +1,22 @@
+# V7 origin fidelity — Draft review only (2026-09-28)
+
+The V7 owner request supersedes the earlier pale/green palette and frozen hero
+copy, while retaining the complete hero structure and native scroll timing.
+`home-origin-v7.css` is a homepage-only refinement: neutral surfaces, self-hosted
+Instrument Serif (SIL OFL 1.1), and a separate unchanged PAIA brand font.
+`site.css`, `site.js`, `demo.js` and all brand graphic assets remain byte-identical.
+The existing licensed photo planes are muted, not replaced without a stronger
+source. Product previews retain all prior behavior and add prompt pinning,
+explicit cross-window topic provenance and honest context usage states.
+
+All examples remain fictional and page-local. Prompt reuse, reply-aware
+suggestions and connected context are labelled planned. The new checks in
+`origin_checks.py` run alongside all existing website journeys. V7 does not
+change extension code or product STATUS, and does not authorize production.
+Review evidence and claim boundaries: [V7 receipt](receipts/WEBSITE_V7_ORIGIN.md).
+
+---
+
 # PAIA website — post-capture core experiences (2026-09-28)
 
 The owner’s latest instruction preserves the deployed opening and strengthens

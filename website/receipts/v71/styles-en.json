@@ -1,0 +1,146 @@
+{
+  "V7": {
+    "body": {
+      "background": "rgb(251, 251, 250)",
+      "color": "rgb(24, 25, 27)",
+      "size": "16px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    "h1": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(24, 25, 27)",
+      "size": "74.4px",
+      "font": "\"PAIA Editorial\", \"Songti SC\", \"Noto Serif CJK SC\", Georgia, serif",
+      "weight": "400"
+    },
+    ".wordmark": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(24, 25, 27)",
+      "size": "40px",
+      "font": "\"PAIA Display\", \"Iowan Old Style\", Georgia, \"Times New Roman\", serif",
+      "weight": "400"
+    },
+    ".hero-description": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(107, 110, 115)",
+      "size": "16.8px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".input-card time": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(107, 110, 115)",
+      "size": "11px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-intro>p": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(107, 110, 115)",
+      "size": "15px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-record textarea": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(24, 25, 27)",
+      "size": "14px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-prompt-wording textarea": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(24, 25, 27)",
+      "size": "12px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-thought p": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(71, 71, 71)",
+      "size": "12px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-fact p": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(79, 79, 79)",
+      "size": "13px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    }
+  },
+  "V7.1": {
+    "body": {
+      "background": "rgb(251, 251, 250)",
+      "color": "rgb(24, 25, 27)",
+      "size": "16px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    "h1": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(24, 25, 27)",
+      "size": "74.4px",
+      "font": "\"PAIA Editorial\", \"Songti SC\", \"Noto Serif CJK SC\", Georgia, serif",
+      "weight": "400"
+    },
+    ".wordmark": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(24, 25, 27)",
+      "size": "40px",
+      "font": "\"PAIA Display\", \"Iowan Old Style\", Georgia, \"Times New Roman\", serif",
+      "weight": "400"
+    },
+    ".hero-description": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(85, 90, 97)",
+      "size": "16.8px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".input-card time": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(85, 90, 97)",
+      "size": "12px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-intro>p": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(85, 90, 97)",
+      "size": "16px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-record textarea": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(53, 58, 65)",
+      "size": "16px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-prompt-wording textarea": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(53, 58, 65)",
+      "size": "15px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-thought p": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(63, 72, 85)",
+      "size": "15px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    },
+    ".pc-fact p": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(66, 76, 90)",
+      "size": "15px",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Arial, \"PingFang SC\", \"Noto Sans CJK SC\", sans-serif",
+      "weight": "400"
+    }
+  }
+}

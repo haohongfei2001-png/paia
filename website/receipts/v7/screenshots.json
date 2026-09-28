@@ -1,0 +1,206 @@
+{
+  "after-en-1440-full.webp": {
+    "source_capture": "after-en-1440-full.png",
+    "width": 1440,
+    "height": 6405,
+    "sha256": "f404634bc5b42f51d83b15665832b3fe4045126d756cf6bd2972de3f6c5fafef"
+  },
+  "after-en-1440-mid.webp": {
+    "source_capture": "after-en-1440-mid.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "dd9a6e3e384f5beb8d8b364f47d2d1aa59c3077557733aaeeb21400297247cc8"
+  },
+  "after-en-1440-scroll.webp": {
+    "source_capture": "after-en-1440-scroll.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "cd3cacd660ebfa8b0bd671cd323d45ddb4a2c42924ca71439ec31252a0a6c55a"
+  },
+  "after-en-1440-start.webp": {
+    "source_capture": "after-en-1440-start.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "8f4abf34540ecea637159c3bb9a02ede18ea78f22ba7d11cc6d99ab97d5bfc9a"
+  },
+  "after-en-320-full.webp": {
+    "source_capture": "after-en-320-full.png",
+    "width": 320,
+    "height": 9942,
+    "sha256": "498e6a156a7d38d440996066a85ffb160ebac9155aac6348e905d7d61bb3f770"
+  },
+  "after-en-390-full.webp": {
+    "source_capture": "after-en-390-full.png",
+    "width": 390,
+    "height": 9068,
+    "sha256": "a9fdf6971b8aba8909f4012c79c8dc91c095bde2b21d29a1812308b3ddf01fd5"
+  },
+  "after-en-768-full.webp": {
+    "source_capture": "after-en-768-full.png",
+    "width": 768,
+    "height": 7054,
+    "sha256": "9aaf744ef3790a8cd438b4292277b425ac06a8ae16859e02c2e3676d9ee25a3e"
+  },
+  "after-en-archive.webp": {
+    "source_capture": "after-en-archive.png",
+    "width": 1288,
+    "height": 1253,
+    "sha256": "54c8de324f7f0e92ff94f70273b05005a6e24579062af7931eaa7df1dd8a7b3c"
+  },
+  "after-en-context.webp": {
+    "source_capture": "after-en-context.png",
+    "width": 1440,
+    "height": 1246,
+    "sha256": "5ac2363c8618e80063bd1ad9fb74c60d5dcd6a2bc4b79ef27277ac06cc2a22d9"
+  },
+  "after-en-nojs.webp": {
+    "source_capture": "after-en-nojs.png",
+    "width": 1440,
+    "height": 6433,
+    "sha256": "a000d9a9db8c4f9277c8da7d4871b313dc6356195bca0ea08aae47500382389b"
+  },
+  "after-en-prompts.webp": {
+    "source_capture": "after-en-prompts.png",
+    "width": 1440,
+    "height": 1104,
+    "sha256": "d49a5ccf799112748e0520fb93b9bbf2e69da0972b809acda9bc583ecd630f90"
+  },
+  "after-en-topics.webp": {
+    "source_capture": "after-en-topics.png",
+    "width": 1288,
+    "height": 1259,
+    "sha256": "8a9b4520778b085f03378e63c7373bf3d3826752a60fef593bf30b9746bab25e"
+  },
+  "after-zh-1440-full.webp": {
+    "source_capture": "after-zh-1440-full.png",
+    "width": 1440,
+    "height": 6346,
+    "sha256": "c3b6a0a27240d417343c8a95aa149285cecdef66cc913b26a0751a8973f01cda"
+  },
+  "after-zh-1440-mid.webp": {
+    "source_capture": "after-zh-1440-mid.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "7476da3ee3c7810f0b3f166ed87a51df9b66a18eb7a1dcad0bd1af258916f4df"
+  },
+  "after-zh-1440-scroll.webp": {
+    "source_capture": "after-zh-1440-scroll.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "7ea5621b84d5da847a6dcf6af8b56a909abd29fd0f6bace235bb10e19358225b"
+  },
+  "after-zh-1440-start.webp": {
+    "source_capture": "after-zh-1440-start.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "6d36672e9766ffb5bd256353043fa582db06872fa2f385115423106f76227530"
+  },
+  "after-zh-320-full.webp": {
+    "source_capture": "after-zh-320-full.png",
+    "width": 320,
+    "height": 8955,
+    "sha256": "11eae27b8fc800148a937c661049b1c59811a5625f40efd8675a12227d95bd50"
+  },
+  "after-zh-390-full.webp": {
+    "source_capture": "after-zh-390-full.png",
+    "width": 390,
+    "height": 8566,
+    "sha256": "71817910451cf26a7fb7ce573dac2fb8cb7de777ea0ccff2c73cc633dc9a038d"
+  },
+  "after-zh-768-full.webp": {
+    "source_capture": "after-zh-768-full.png",
+    "width": 768,
+    "height": 6809,
+    "sha256": "242879f51d4aba95b9ee246d0a1f75c0eaad674fe0d1bcf29f7b17e06ad5dcd9"
+  },
+  "after-zh-archive.webp": {
+    "source_capture": "after-zh-archive.png",
+    "width": 1288,
+    "height": 1247,
+    "sha256": "e6033e24140077eb4d7eea0cd34c22b99a3cc1bb2892cfc21192f01ccc1d3a97"
+  },
+  "after-zh-context.webp": {
+    "source_capture": "after-zh-context.png",
+    "width": 1440,
+    "height": 1219,
+    "sha256": "4859afe3f3ef28f88a55e81ee81a347a905a52efc395fe80a7736b136d3726d6"
+  },
+  "after-zh-nojs.webp": {
+    "source_capture": "after-zh-nojs.png",
+    "width": 1440,
+    "height": 6375,
+    "sha256": "99ecc25e0035a92554f97ee9bad58860e5d9a6e4e85381725c39a981a83f4d60"
+  },
+  "after-zh-prompts.webp": {
+    "source_capture": "after-zh-prompts.png",
+    "width": 1440,
+    "height": 1085,
+    "sha256": "a7e9cda24637fb277d32669cf69756d9ccdc10f944f0194f15266a7854457568"
+  },
+  "after-zh-topics.webp": {
+    "source_capture": "after-zh-topics.png",
+    "width": 1288,
+    "height": 1250,
+    "sha256": "092c17430ff5e7e94c276116f0eabbd58efd93b287a1feb9e54a82ae905615e7"
+  },
+  "before-en-1440-full.webp": {
+    "source_capture": "before-en-1440-full.png",
+    "width": 1440,
+    "height": 6057,
+    "sha256": "4a0cba326ba2cac84b2d28422b5ce9459e4494016854429b0f72b63763c0ae95"
+  },
+  "before-en-1440-scroll.webp": {
+    "source_capture": "before-en-1440-scroll.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "54f8f6599cd2542afdefeba9eae0720ccb4cfb11e2e687a0e45d30a1ab4544cc"
+  },
+  "before-en-1440-start.webp": {
+    "source_capture": "before-en-1440-start.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "f008ec2ec9de74769a3a18ac82dc9600eeb2f6535daf86e20df545c3febbfff0"
+  },
+  "before-zh-1440-full.webp": {
+    "source_capture": "before-zh-1440-full.png",
+    "width": 1440,
+    "height": 6024,
+    "sha256": "c35154b7600fe88189ee9db4c755507c2ac658196ad7f35130977b0e1bd54f78"
+  },
+  "before-zh-1440-scroll.webp": {
+    "source_capture": "before-zh-1440-scroll.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "d82351ded5523817fa77b97950c0c331779e18bf2f43f79310b586a141b01546"
+  },
+  "before-zh-1440-start.webp": {
+    "source_capture": "before-zh-1440-start.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "36487ad7afee02020dcd8cbccec5f9bdcfec34269186a5f6bb0604aacf1a15da"
+  },
+  "design-origin.webp": {
+    "source_capture": "design-origin.png",
+    "width": 1448,
+    "height": 1086,
+    "sha256": "6c45672cde11e7a37e821585f7fbe5ed5de1be10607a9aa1cb0e4ffa7524a9d7"
+  },
+  "mobile-en-top.webp": {
+    "source_capture": "mobile-en-top.png",
+    "width": 320,
+    "height": 1800,
+    "sha256": "c259b15e60e8b9029b58fa2ead864e66a1fdef8ca780f497737a7342220fb9c3"
+  },
+  "mobile-zh-top.webp": {
+    "source_capture": "mobile-zh-top.png",
+    "width": 320,
+    "height": 1800,
+    "sha256": "35a5bd8dc93c7ee9d3a47f66f125a930fde29b9c19a303e926c1148cc737b439"
+  },
+  "origin-comparison.webp": {
+    "source_capture": "origin-comparison.png",
+    "width": 2280,
+    "height": 610,
+    "sha256": "447eddefa0098ee3840910b4f176308ed5e9141020b68b85f44097d9e216cc2f"
+  }
+}
