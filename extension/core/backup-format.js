@@ -1,3 +1,4 @@
+import {promptTemplateMetaAllowed,validatePromptTemplateRow} from './prompt-template-data.js';
 import {THOUGHT_LAYOUT_ROW,validThoughtLayout} from './thought-binding.js';
 import {REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW,validReaderPolicy} from './reader-state.js';
 import {memoryMetaAllowed,validateMemoryRow} from './memory/model.js';
@@ -34,7 +35,7 @@ export const BACKUP_SECTIONS=Object.freeze({
  settings:fields('id preferences memoryAccessPolicy classificationRules filterRules')
 });
 export const BACKUP_META_KEYS=new Set(['thought-suppression-key','thought-sequence','revision-sequence','input-delta-sequence','thought-epoch','organizer-controls','originalOrganizerCheckpoint','aiOrganizerCheckpoint','originalOrganizerBootstrap','organizer-budget','smart-filter']);
-export const backupMetaAllowed=id=>[THOUGHT_LAYOUT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(id)||memoryMetaAllowed(id)||BACKUP_META_KEYS.has(id)||id.startsWith('aiPresentation:')||id.startsWith('topicKeepSeparate:')||sourceStructureMetaAllowed(id);
+export const backupMetaAllowed=id=>[THOUGHT_LAYOUT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(id)||memoryMetaAllowed(id)||BACKUP_META_KEYS.has(id)||id.startsWith('aiPresentation:')||id.startsWith('topicKeepSeparate:')||sourceStructureMetaAllowed(id)||promptTemplateMetaAllowed(id);
 export const backupError=code=>{throw new ArchiveError(code);};
 export const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 export function safeJSON(value,depth=0){if(depth>32)backupError('BACKUP_INVALID');if(typeof value==='number'&&!Number.isFinite(value))backupError('BACKUP_INVALID');if(value===null||['string','number','boolean'].includes(typeof value))return;if(Array.isArray(value)){if(value.length>100000)backupError('BACKUP_INVALID');for(const v of value)safeJSON(v,depth+1);return;}if(!plain(value))backupError('BACKUP_INVALID');for(const [key,v]of Object.entries(value)){if(['__proto__','constructor','prototype'].includes(key)||/^(api.?key|credentials?|authorization|password|access.?token)$/i.test(key))backupError('BACKUP_INVALID');safeJSON(v,depth+1);}}
@@ -52,6 +53,8 @@ export function validateBackupItem(row){safeJSON(row);if(!plain(row)||row.type!=
  if(row.section==='entries'&&row.value.bodyBinding!==undefined&&(!['input','thought'].includes(row.value.bodyBinding)||row.value.bodyBinding==='thought'&&['workingInputId','bindingRevision','bindingLength'].some(key=>row.value[key]!==undefined)||row.value.bodyBinding==='input'&&(!Number.isSafeInteger(row.value.bindingRevision)||!Number.isSafeInteger(row.value.bindingLength)||row.value.bindingRevision<0||row.value.bindingLength<0||typeof row.value.workingInputId!=='string'||!row.value.workingInputId.length)))backupError('BACKUP_INVALID');
  if(row.section==='relations'&&row.value.kind==='user_response'&&(!Number.isSafeInteger(row.value.toRevision)||row.value.toRevision<0||typeof row.value.toBodySha256!=='string'||!/^[a-f0-9]{64}$/.test(row.value.toBodySha256)||row.value.actor!=='user'||typeof row.value.fromEntryId!=='string'||typeof row.value.toEntryId!=='string'||!Array.isArray(row.value.sourceRecordIds)))backupError('BACKUP_INVALID');
  if(row.section==='organizationState'&&/^ans:(conversation|project|event):v(?!1:)/.test(row.value.id))backupError('BACKUP_VERSION_UNSUPPORTED');
+ if(row.section==='organizationState'&&/^prompt-template:v(?!1:)/.test(row.value.id))backupError('BACKUP_VERSION_UNSUPPORTED');
+ if(row.section==='organizationState'&&promptTemplateMetaAllowed(row.value.id)){try{validatePromptTemplateRow(row.value.data);}catch(error){backupError(error?.code==='PROMPT_VERSION_UNSUPPORTED'?'BACKUP_VERSION_UNSUPPORTED':error?.code==='PROMPT_LIMIT'?'BACKUP_TOO_LARGE':'BACKUP_INVALID');}}
  if(row.section==='organizationState'&&(!backupMetaAllowed(row.value.id)||!plain(row.value.data)||row.value.data.id!==row.value.id))backupError('BACKUP_INVALID');
  if(row.section==='organizationState'&&sourceStructureMetaAllowed(row.value.id)){try{validateSourceStructureBackupRow(row.value.data);}catch(error){backupError(error?.code==='SOURCE_STRUCTURE_VERSION_UNSUPPORTED'?'BACKUP_VERSION_UNSUPPORTED':'BACKUP_INVALID');}}
  if(row.section==='organizationState'&&row.value.id.startsWith('memory:')&&!validateMemoryRow(row.value.data))backupError('BACKUP_INVALID');

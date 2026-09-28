@@ -10,11 +10,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_CANDIDATE
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_CANDIDATE
 
-current_round: CPV1-09.1 — complete local Prompt archive backend; minimal Context receipt preserved
+current_round: CPV1-09.1 — local Prompt templates, restart and portable Backup
 
-current_round_status: VERIFYING / P1_ARCHIVE_BACKEND_CI_PENDING / P1_UI_PERSISTENCE_NOT_IMPLEMENTED
+current_round_status: VERIFYING / P1_TEMPLATE_PERSISTENCE_CI_PENDING / P1_UI_NOT_IMPLEMENTED
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,20 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## CPV1-09.1 local Prompt persistence, restart and portable Backup candidate — 2026-09-28
+
+Exact parent f9058114dfa6d6075c2f843c775e20165812f012, treeacc03ca46c0c95cd3f55df5234150c77fdb3e48d. Candidate36442680663 SUCCESS; actual complete unit1089969267321244PASS/0FAIL/0SKIPPED, including all9 archive backend and14 model cases. Contracts/privacy and release passed. Affected browser/scale/hosted Mac diagnostics and full Draft Certification skipped. Immutable receipts/CPV1-09.1-PROMPT-ARCHIVE-ENGINEERING-PASS.md closes only the detached archive-reader engineering candidate.
+
+Continue the same P1 product backend with real IndexedDB template create/edit/pin/remove/CAS/page and historical Source availability metadata. Initial candidate-derived creation atomically checks the current eligible complete Input body/revision and every merged Source address; forged, stale, excluded or partial refs refuse. Explicit fixed templates can contain short controls. Human edits retain historical refs and never modify Input/Source. IDs cannot overwrite or revive tombstones; removal retains only ID/revision/lifecycle, with no body or ref tail. No-op edits do not advance Backup generation. No new database schema, permission, provider call, reply reader, clipboard or dispatcher is introduced.
+
+Templates are explicit portable organizationState entities with versioned strict row validation. Writes share the existing durable transaction and Backup generation; actual post-put faults must roll back body/tombstone/generation together. Backup export/staged restore preserve complete human bodies, pin/revision and historical refs, reject unknown versions/secret or surplus fields, protect source-less templates from empty restore, reject conflicting same-ID merge and require existing replace/merge confirmations. Historical imported refs are unavailable trace addresses, never live Source evidence or an access grant. The combined merge target is checked atomically before commit.
+
+Bounds reuse existing100000-item/64MiB single Backup and8MiB portable-line ceilings; templates scan canonical meta in100-row pages, with no trusted derived index. Oversized collections or full ref sets refuse before writing; no body/ref clipping. Existing full100000-Input/ref fixtures remain unchanged. B02/DFG-CPV1-003 remains owner-deferred: permanent Source purge that reaches an active explicitly saved human template fails closed before commit. Unrelated unambiguous purge and template-only removal remain executable. No human derivative purge policy is invented.
+
+Owning regression file adds12 cases: actual restart/Unicode fidelity, simultaneous CAS/no-op generation, merged provenance and stale/forged/excluded creation, changed/unavailable trace, getter/version/foreign-role admission, actual create/edit/remove post-put rollback, B02 purge isolation, complete portable Backup round trip, empty/merge/replace protections, export-generation/corrupt-version/ref refusal, actual1025-template100-row paging and portable full-ref ceiling refusal. All old tests/fixtures/selectors remain. Static parsing PASS; new-head Actions PENDING.
+
+P1 panel/commands/copy and actual Source navigation remain unfinished; P2 protected append/replace/manual-send and current-live evidence remain separate. Minimal owner-approved detached Context stays DEFAULT_OFF/NOT_CERTIFIED with all external/Passport gates deferred. VS04 lexical/fuzzy/filter remains default; semantic assets EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING; Semantic Lab exclusively owns Input → Topic.
 
 ## CPV1-09.1 complete local Prompt archive backend — 2026-09-28
 
