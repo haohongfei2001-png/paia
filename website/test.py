@@ -11,6 +11,7 @@ from functools import partial
 from threading import Thread
 import json, os, re, sys, struct, hashlib
 from core_checks import verify_core
+from origin_checks import verify_origin, verify_assets
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -92,20 +93,30 @@ for relative in ('index.html','zh/index.html'):
     check(text.count('class="art-icon"') == 2, f'{relative}: two purposeful interface icons, not repeated brand artwork')
 
 
-# Owner-frozen capture sequence dependencies. Change only with a new explicit approval.
+# Shared capture dependencies remain byte-frozen. V7 owner authorization changes
+# hero wording and neutral line colors only; retain the exact-literal check below.
 check(hashlib.sha256((ROOT/'assets/website/site.css').read_bytes()).hexdigest()=='1da775ca6b8f914e0d4e8e66b1fb43e4f4c4189d2ead954afa1e7522a73e26dc', 'frozen byte identity: assets/website/site.css')
 check(hashlib.sha256((ROOT/'assets/website/site.js').read_bytes()).hexdigest()=='8f85a04becb98881a8db309e7dbfb53de65b393d56871e072cf0474619481ff2', 'frozen byte identity: assets/website/site.js')
 check(hashlib.sha256((ROOT/'assets/website/demo.js').read_bytes()).hexdigest()=='447610004d6f476e4a15edc298526817a8fef6537fea9b6447fd9dab8a6b5c65', 'frozen byte identity: assets/website/demo.js')
 home_source=(ROOT/'website/home.py').read_text()
 hero_literal=home_source[home_source.index("    hero=f'''"):home_source.index('    from core import render')]
-check(hashlib.sha256(hero_literal.encode()).hexdigest()=='01f386d2e0b4795c609aba5d0622aefdcb2274c4d8f7b97aa0b90956db100e61', 'frozen hero HTML literal including all source cards')
+check(hashlib.sha256(hero_literal.encode()).hexdigest()=='8bd537111c32fe13b3f4c87fb71d27971edd2c30f2117a488380578193531901', 'frozen hero HTML literal including all source cards')
+
+verify_assets(ROOT, check)
+
+# V7 permits copy/color refinement, but the approved hero DOM and geometry stay.
+hero_html=(ROOT/'index.html').read_text()
+hero_html=hero_html[hero_html.index('<section class="hero-sequence"'):hero_html.index('<div class="paia-core"')]
+hero_structure=[(tag,[(k,v) for k,v in attrs.items() if k not in ('stroke','fill','aria-label')]) for tag,attrs in Document(hero_html).tags if tag != 'br']
+check(hashlib.sha256(json.dumps(hero_structure).encode()).hexdigest()=='f8998c1cc8043033db19f0ce8afc7fc489868cb10aca95861c5ce40717276a51', 'approved hero structure, card hierarchy and media geometry retained')
+
 
 # Stable color token checks, not a claim of a full accessibility audit.
 def luminance(color):
     v = [int(color[i:i+2], 16) / 255 for i in (0, 2, 4)]
     v = [x / 12.92 if x <= .04045 else ((x + .055) / 1.055) ** 2.4 for x in v]
     return .2126*v[0] + .7152*v[1] + .0722*v[2]
-for fg, bg, minimum in [('626960','fdfdfc',4.5),('ffffff','2d3730',4.5),('343e34','ffffff',4.5),('596452','eff2eb',4.5),('30493b','ffffff',4.5)]:
+for fg, bg, minimum in [('626960','fdfdfc',4.5),('ffffff','2d3730',4.5),('343e34','ffffff',4.5),('596452','eff2eb',4.5),('30493b','ffffff',4.5),('6b6e73','fbfbfa',4.5),('ffffff','343638',4.5),('66696f','f6f6f5',4.5)]:
     low, high = sorted([luminance(fg), luminance(bg)])
     check((high+.05)/(low+.05) >= minimum, f'contrast: {fg}/{bg} >= {minimum}')
 
@@ -162,6 +173,8 @@ try:
                 check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: {width}px reflow')
                 check(not errors, f'{name}: {width}px no JS errors')
                 check(not external, f'{name}: {width}px no unsolicited external requests')
+                if width == 320 and name in ('index.html','zh/index.html'):
+                    check(page.locator('.mobile-menu summary').bounding_box()['y'] < 60, f'{name}: 320px menu stays in the header row')
                 if width == 320:
                     page.add_style_tag(content='html{font-size:200%!important}')
                     check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: 320px with 200% text')
@@ -203,6 +216,7 @@ try:
             page = browser.new_page(viewport={'width':390,'height':844})
             load(page, locale+'index.html')
             verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
+            verify_origin(page, check, en=en)
             menu = page.locator('.mobile-menu')
             menu.locator('summary').click()
             check(menu.evaluate('el => el.open'), f'{locale}: mobile menu opens')

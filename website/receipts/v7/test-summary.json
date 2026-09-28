@@ -1,0 +1,16 @@
+{
+  "evidence": "SYNTHETIC_BROWSER",
+  "transport": "local HTTP",
+  "browser": "153.0.8010.12",
+  "private_data": false,
+  "beta_form_submitted": false,
+  "checks": 3158,
+  "failed": [],
+  "build": "PASS",
+  "build_check": "PASS",
+  "production_modified": false,
+  "additional_targeted_checks": {
+    "320px_EN_header_single_row": "PASS",
+    "320px_ZH_header_single_row": "PASS"
+  }
+}

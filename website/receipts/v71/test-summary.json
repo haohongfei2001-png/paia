@@ -1,0 +1,139 @@
+{
+  "evidence": "SYNTHETIC_BROWSER",
+  "transport": "local HTTP",
+  "browser": "153.0.8010.12",
+  "private_data": false,
+  "beta_form_submitted": false,
+  "checks": 3160,
+  "failed": [],
+  "visual_constraints": [
+    {
+      "check": "en exact body background",
+      "pass": true
+    },
+    {
+      "check": "en frozen h1 font",
+      "pass": true
+    },
+    {
+      "check": "en frozen h1 weight",
+      "pass": true
+    },
+    {
+      "check": "en frozen h1 size",
+      "pass": true
+    },
+    {
+      "check": "en frozen .wordmark font",
+      "pass": true
+    },
+    {
+      "check": "en frozen .wordmark weight",
+      "pass": true
+    },
+    {
+      "check": "en frozen .wordmark size",
+      "pass": true
+    },
+    {
+      "check": "en readable 1440 metadata/body: .hero-description",
+      "pass": true
+    },
+    {
+      "check": "en readable 1440 metadata/body: .input-card time",
+      "pass": true
+    },
+    {
+      "check": "en readable 1440 metadata/body: .pc-intro>p",
+      "pass": true
+    },
+    {
+      "check": "en readable 1440 metadata/body: .pc-record textarea",
+      "pass": true
+    },
+    {
+      "check": "en readable 1440 metadata/body: .pc-prompt-wording textarea",
+      "pass": true
+    },
+    {
+      "check": "en readable 1440 metadata/body: .pc-thought p",
+      "pass": true
+    },
+    {
+      "check": "en readable 1440 metadata/body: .pc-fact p",
+      "pass": true
+    },
+    {
+      "check": "en authorization screenshot never fabricates use",
+      "pass": true
+    },
+    {
+      "check": "zh exact body background",
+      "pass": true
+    },
+    {
+      "check": "zh frozen h1 font",
+      "pass": true
+    },
+    {
+      "check": "zh frozen h1 weight",
+      "pass": true
+    },
+    {
+      "check": "zh frozen h1 size",
+      "pass": true
+    },
+    {
+      "check": "zh frozen .wordmark font",
+      "pass": true
+    },
+    {
+      "check": "zh frozen .wordmark weight",
+      "pass": true
+    },
+    {
+      "check": "zh frozen .wordmark size",
+      "pass": true
+    },
+    {
+      "check": "zh readable 1440 metadata/body: .hero-description",
+      "pass": true
+    },
+    {
+      "check": "zh readable 1440 metadata/body: .input-card time",
+      "pass": true
+    },
+    {
+      "check": "zh readable 1440 metadata/body: .pc-intro>p",
+      "pass": true
+    },
+    {
+      "check": "zh readable 1440 metadata/body: .pc-record textarea",
+      "pass": true
+    },
+    {
+      "check": "zh readable 1440 metadata/body: .pc-prompt-wording textarea",
+      "pass": true
+    },
+    {
+      "check": "zh readable 1440 metadata/body: .pc-thought p",
+      "pass": true
+    },
+    {
+      "check": "zh readable 1440 metadata/body: .pc-fact p",
+      "pass": true
+    },
+    {
+      "check": "zh authorization screenshot never fabricates use",
+      "pass": true
+    }
+  ],
+  "refinement_parent": "112e6e87c232c53c674819d923fd242a8d0b760b",
+  "source_sha256": {
+    "assets/website/home-origin-v7.css": "c9076b268f930be475e83e18d50f8cbd71b47ae762afcf4420b448c72184eef7",
+    "website/build.py": "90ec3150d589465c056dfc868a29ce1f6785bf7c83c23a4fd0ebe094e7640bf9",
+    "index.html": "50846df6f4fa78359ea6e3af844d93387b94876db6db3f09fb9818f8409b73c1",
+    "en/index.html": "50846df6f4fa78359ea6e3af844d93387b94876db6db3f09fb9818f8409b73c1",
+    "zh/index.html": "5107fd27dce30502899b2bb33967130757a27e1c3c2c499423b323976f1c2537"
+  }
+}

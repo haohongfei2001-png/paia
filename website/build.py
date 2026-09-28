@@ -32,7 +32,7 @@ def build(lang):
         url=BASE+link(page)
         zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
         enurl=BASE+'/'+('' if page=='index.html' else page)
-        home_css='<link rel="stylesheet" href="/assets/website/home-core-v1.css?v=2">\n<script src="/assets/website/home-core-v2.js?v=2" defer></script>\n' if page=='index.html' else ''
+        home_css='<link rel="stylesheet" href="/assets/website/home-core-v1.css?v=7">\n<link rel="stylesheet" href="/assets/website/home-origin-v7.css?v=71">\n<script src="/assets/website/home-core-v2.js?v=7" defer></script>\n' if page=='index.html' else ''
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
@@ -92,7 +92,7 @@ def build(lang):
     def statusmini():
         return f'''<div class="availability"><span class="status-dot" aria-hidden="true"></span><span>{t('桌面 Chrome 扩展 · ChatGPT 网页版 · 邀请制测试','Desktop Chrome extension · ChatGPT Web · Invite-only beta')}</span></div>'''
     home=render_home(t,a,button,statusmini)
-    shell('index.html',t('PAIA — 个人 AI 上下文','PAIA — Personal AI context'),t('让你在 AI 对话中已经产生的表达、判断和问题继续属于你：可以找回、修改、理解，并由你决定哪些成为下一次 AI 的上下文。','Keep the expressions, decisions and questions you already create with AI. Revisit, revise and understand them—then decide what becomes context for what comes next.'),home)
+    shell('index.html',t('PAIA — 个人 AI 上下文','PAIA — Personal AI context'),t('保存你自己的 AI 输入，方便查看、编辑、整理和复用。跨 AI 收集、提示词库及授权连接仍在规划中。','Keep your own AI inputs. Review, edit, organize and reuse them. Cross-AI capture, prompt libraries and authorized connections are planned.'),home)
 
     for route,title,description,body in render_pages(t,a,button,invitation):
         shell(route,title,description,body)

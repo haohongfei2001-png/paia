@@ -75,17 +75,28 @@
     const rows = [...promptList.children];
     rows.forEach((row, i) => {
       row.querySelector('[data-rank]').textContent = String(i + 1).padStart(2, '0');
-      row.querySelector('[data-move="-1"]').disabled = i === 0;
-      row.querySelector('[data-move="1"]').disabled = i === rows.length - 1;
+      row.querySelector('[data-move="-1"]').disabled = i === 0 || rows[i - 1].classList.contains('is-pinned') !== row.classList.contains('is-pinned');
+      row.querySelector('[data-move="1"]').disabled = i === rows.length - 1 || rows[i + 1].classList.contains('is-pinned') !== row.classList.contains('is-pinned');
     });
   }
   let dragging = null;
   all('[data-prompt-row]').forEach(row => {
+    row.querySelector('[data-pin]').addEventListener('click', () => {
+      const pinned = row.classList.toggle('is-pinned');
+      const control = row.querySelector('[data-pin]');
+      control.setAttribute('aria-pressed', String(pinned));
+      control.textContent = pinned ? t('已固定', 'Pinned') : t('固定', 'Pin');
+      control.setAttribute('aria-label', pinned ? t('取消固定提示词', 'Unpin prompt') : t('固定提示词', 'Pin prompt'));
+      [...promptList.children].sort((a, b) => Number(b.classList.contains('is-pinned')) - Number(a.classList.contains('is-pinned'))).forEach(item => promptList.append(item));
+      rankPrompts();
+      control.focus({preventScroll: true});
+      text('[data-prompt-status]', pinned ? t('已固定在前方 · 只保留在本页', 'Pinned above unpinned prompts · This page only') : t('已取消固定 · 可继续排序', 'Unpinned · Ready to reorder'));
+    });
     row.querySelector('[data-insert]').addEventListener('click', () => insertPrompt(row.querySelector('textarea').value));
     row.querySelectorAll('[data-move]').forEach(control => control.addEventListener('click', () => {
       const delta = Number(control.dataset.move);
       const other = delta < 0 ? row.previousElementSibling : row.nextElementSibling;
-      if (!other) return;
+      if (!other || other.classList.contains('is-pinned') !== row.classList.contains('is-pinned')) return;
       if (delta < 0) promptList.insertBefore(row, other); else promptList.insertBefore(other, row);
       rankPrompts();
       const available = control.disabled ? row.querySelector('[data-insert]') : control;
@@ -101,12 +112,12 @@
       row.classList.add('is-dragging');
     });
     row.addEventListener('dragover', event => {
-      if (!dragging || dragging === row) return;
+      if (!dragging || dragging === row || dragging.classList.contains('is-pinned') !== row.classList.contains('is-pinned')) return;
       event.preventDefault(); event.dataTransfer.dropEffect = 'move'; row.classList.add('is-drop-target');
     });
     row.addEventListener('dragleave', () => row.classList.remove('is-drop-target'));
     row.addEventListener('drop', event => {
-      if (!dragging || dragging === row) return;
+      if (!dragging || dragging === row || dragging.classList.contains('is-pinned') !== row.classList.contains('is-pinned')) return;
       event.preventDefault();
       const after = event.clientY > row.getBoundingClientRect().top + row.offsetHeight / 2;
       promptList.insertBefore(dragging, after ? row.nextElementSibling : row);
@@ -141,7 +152,7 @@
     const title = t('产品的第一步', 'A product’s first step');
     const lines = ['# ' + title, '', t('PAIA 官网互动示例 · 虚构数据 · 含本页工作版本', 'PAIA website interactive example · Fictional data · Includes page working text'), ''];
     all('[data-thought]').forEach(card => {
-      lines.push('## ' + card.querySelector('time').textContent.trim(), '', card.querySelector('[data-thought-text]').textContent, '');
+      lines.push('## ' + card.querySelector('time').textContent.trim(), '', card.querySelector('.pc-topic-source').textContent.trim(), '', card.querySelector('[data-thought-text]').textContent, '');
     });
     const url = URL.createObjectURL(new Blob([lines.join('\n')], {type: 'text/markdown;charset=utf-8'}));
     const link = document.createElement('a');
