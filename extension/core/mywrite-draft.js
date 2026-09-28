@@ -85,6 +85,42 @@ export class MyWriteDraftStore{
   if(!id(recordId))fail('MYWRITE_INVALID');
   return this.transaction(recordId,'readonly',row=>row);
  }
+ async list(options={limit:20,after:null}){
+  if(!exact(options,['limit','after'])||!Number.isInteger(options.limit)||
+     options.limit<1||options.limit>40||(options.after!==null&&!id(options.after)))fail('MYWRITE_INVALID');
+  const {limit,after}=options,db=await this.open();
+  if(this.closed)fail('MYWRITE_CLOSED');
+  return new Promise((resolve,reject)=>{
+   let tx,error;const items=[];let hasMore=false;
+   try{
+    tx=db.transaction(STORE,'readonly');
+    const request=tx.objectStore(STORE).openCursor();
+    request.onsuccess=()=>{
+     try{
+      if(this.closed)fail('MYWRITE_CLOSED');
+      const cursor=request.result;if(!cursor)return;
+      // Seek on the native primary key. Pages are fresh readonly views, not
+      // a global cross-page snapshot or a claim about recency.
+      if(after!==null&&cursor.key<after){cursor.continue(after);return;}
+      if(after!==null&&cursor.key===after){cursor.continue();return;}
+      const row=cursor.value;
+      if(!rowValid(row)||cursor.key!==row.id)fail('MYWRITE_CORRUPT');
+      if(row.lifecycle==='draft'){
+       if(items.length===limit){hasMore=true;return;}
+       items.push({id:row.id,revision:row.revision,createdAt:row.createdAt,
+        updatedAt:row.updatedAt,topicId:row.topicId});
+      }
+      cursor.continue();
+     }catch(cause){error=cause instanceof MyWriteDraftError?cause:new MyWriteDraftError(storageCode(cause));try{tx.abort();}catch{}}
+    };
+    tx.oncomplete=()=>{
+     if(this.closed){reject(new MyWriteDraftError('MYWRITE_CLOSED'));return;}
+     resolve({items,after:hasMore?items[items.length-1].id:null});
+    };
+    tx.onabort=()=>reject(error||new MyWriteDraftError(storageCode(tx.error)));
+   }catch(cause){if(tx)try{tx.abort();}catch{}reject(new MyWriteDraftError(storageCode(cause)));}
+  });
+ }
  async save(command){
   if(!exact(command,['id','expectedRevision','text','topicId','operationId'])||
      !id(command.id)||!revision(command.expectedRevision)||!content(command.text)||
