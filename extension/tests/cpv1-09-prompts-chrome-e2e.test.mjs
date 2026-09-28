@@ -1418,7 +1418,7 @@ test('CPV1-10 local workspace keeps complete unsaved work across new draft and r
 });
 
 test('CPV1-10 offline cold writing and abrupt page closure recover complete acknowledged drafts',{timeout:90000},async()=>{
- const h=await FakeChatGPT.start();
+ const h=await FakeChatGPT.start();let offlineSession=null;
  try{
   let p=h.archive;await enable(p);const fixture=conversation('mywrite-offline-source',1500);
   const captured=await h.open(fixture);await h.ready(captured);
@@ -1429,7 +1429,19 @@ test('CPV1-10 offline cold writing and abrupt page closure recover complete ackn
    '完整尾部：不要生成 Source，不要丢失最后一段。';
   const first=full+'\nPRIVATE_OFFLINE_FIRST',corrected=full+'\nPRIVATE_OFFLINE_CORRECTED';
   const resumed=full+'\nPRIVATE_OFFLINE_RESUMED';
+  async function enforceOfflineTarget(){
+   // The restart harness attaches/detaches a CDP session on this page.
+   // Reapply genuine Chromium network emulation on the owned current target
+   // after that lifecycle boundary; never replace navigator or the oracle.
+   offlineSession=await h.context.newCDPSession(p);
+   await offlineSession.send('Network.enable');
+   await offlineSession.send('Network.emulateNetworkConditions',{
+    offline:true,latency:0,downloadThroughput:0,uploadThroughput:0
+   });
+   assert.equal(await p.evaluate(()=>navigator.onLine),false);
+  }
   await h.context.setOffline(true);
+  await enforceOfflineTarget();
   assert.equal(await p.evaluate(()=>navigator.onLine),false);
   async function mount({hold=false,clock=1720000000000}={}){
    await p.evaluate(async({hold,clock})=>{
@@ -1456,6 +1468,7 @@ test('CPV1-10 offline cold writing and abrupt page closure recover complete ackn
   const save=()=>composer().getByRole('button',{name:'保存本地草稿',exact:true});
   const reference=()=>p.evaluate(()=>offlineWorkspace.getDraftReference());
   const saveComplete=async()=>{
+   assert.equal(await p.evaluate(()=>navigator.onLine),false);
    await save().click();await eventually(async()=>await p.evaluate(()=>offlineWorkspace.canReplace()));
    return p.evaluate(()=>offlineRead('draft:offline'));
   };
@@ -1478,12 +1491,13 @@ test('CPV1-10 offline cold writing and abrupt page closure recover complete ackn
   assert.equal(savedCorrected.topicId,'topic:corrected');
   // Abruptly close the whole client without calling owner.dispose/store.close.
   // Chrome destroys that heap and connection; recovery must use committed IDB.
-  await p.close();
+  await p.close();offlineSession=null;
   p=await h.context.newPage();h.archive=p;
   p.on('pageerror',error=>h.errors.push(error.message));
   await p.goto(localURL);await p.waitForSelector('#prompt-open');
   assert.equal(await p.evaluate(()=>navigator.onLine),false);
   await h.restartWorker();
+  await enforceOfflineTarget();
   await mount({clock:1720000060000});
   assert.equal(await editor().inputValue(),corrected);
   assert.equal(await topic().inputValue(),'topic:corrected');
@@ -1510,5 +1524,5 @@ test('CPV1-10 offline cold writing and abrupt page closure recover complete ackn
   assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
- }finally{await h.close();}
+ }finally{try{await offlineSession?.detach();}finally{await h.close();}}
 });
