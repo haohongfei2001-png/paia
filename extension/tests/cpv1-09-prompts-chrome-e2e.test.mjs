@@ -793,3 +793,72 @@ test('CPV1-09 P2 two archive tabs preserve current templates and drafts across n
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('CPV1-10 inactive local MyWrite uses actual Chrome IndexedDB across two clients and a complete restart',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);await h.open(conversation('mywrite-local-preserve',1000));
+  const original=await h.state();
+  const q=await h.context.newPage();await q.goto(p.url());await q.waitForSelector('#prompt-open');
+  const full=Array.from({length:1000},(_,i)=>'移动想法第'+i+'段🧭：保留全文和否定词，不要概括。\n').join('')+'尾部：绝对不要自动发送。';
+  for(const page of [p,q])await page.evaluate(async ()=>{
+   const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   globalThis.myWriteClock=1720000000000;
+   globalThis.myWriteLocal=new MyWriteDraftStore({
+    name:'paia-mywrite-chrome-v1',clock:()=>globalThis.myWriteClock
+   });
+  });
+  const first=await p.evaluate(async text=>myWriteLocal.save({
+   id:'draft:mobile',expectedRevision:0,text,topicId:null,operationId:'save:first'
+  }),full);
+  assert.equal(first.text,full);assert.equal(first.revision,1);assert.equal(first.createdAt,1720000000000);
+  assert.deepEqual(await q.evaluate(()=>myWriteLocal.read('draft:mobile')),first);
+  const changed=full+'\n另一会话完整更正，绝对不要截掉尾部。';
+  const second=await q.evaluate(async text=>{
+   myWriteClock=1720000000100;
+   return myWriteLocal.save({id:'draft:mobile',expectedRevision:1,text,
+    topicId:'topic:optional',operationId:'save:second'});
+  },changed);
+  assert.equal(second.text,changed);assert.equal(second.createdAt,first.createdAt);
+  assert.equal(second.updatedAt,1720000000100);assert.equal(second.revision,2);
+  const stale=await p.evaluate(async text=>{
+   try{await myWriteLocal.save({id:'draft:mobile',expectedRevision:1,text,
+    topicId:null,operationId:'save:stale'});return 'UNEXPECTED_SUCCESS';}
+   catch(error){return {code:error.code,message:error.message};}
+  },full+'\n第一个会话未提交的正文。');
+  assert.deepEqual(stale,{code:'MYWRITE_CONFLICT',message:'MYWRITE_CONFLICT'});
+  assert.deepEqual(await p.evaluate(()=>myWriteLocal.read('draft:mobile')),second);
+  assert.deepEqual(await q.evaluate(async text=>myWriteLocal.save({
+   id:'draft:mobile',expectedRevision:1,text,topicId:'topic:optional',operationId:'save:second'
+  }),changed),second,'exact committed retry never adds a third revision');
+  await p.evaluate(()=>myWriteLocal.close());await q.evaluate(()=>myWriteLocal.close());
+  await h.restartWorker();await p.reload();await p.waitForSelector('#prompt-open');
+  const recovered=await p.evaluate(async ()=>{
+   const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   globalThis.myWriteLocal=new MyWriteDraftStore({name:'paia-mywrite-chrome-v1'});
+   return myWriteLocal.read('draft:mobile');
+  });
+  assert.deepEqual(recovered,second,'real IndexedDB retains complete local work after both clients close, worker restart and page reload');
+  const review=await p.evaluate(()=>myWriteLocal.review('draft:mobile',2));
+  assert.equal(review.text,changed);assert.equal(review.authorRole,'human');assert.equal(review.origin,'mywrite');
+  assert.equal(review.createdAt,first.createdAt);assert.equal(review.topicId,'topic:optional');
+  assert.deepEqual(await p.evaluate(()=>myWriteLocal.read('draft:mobile')),second);
+  const tombstone=await p.evaluate(()=>myWriteLocal.remove({
+   id:'draft:mobile',expectedRevision:2,operationId:'delete:explicit'
+  }));
+  assert.equal(tombstone.revision,3);assert.equal(tombstone.lifecycle,'deleted');
+  assert.equal(tombstone.text,null);assert.equal(tombstone.topicId,null);
+  const denied=await p.evaluate(async text=>{
+   try{await myWriteLocal.save({id:'draft:mobile',expectedRevision:2,text,
+    topicId:null,operationId:'save:old-device'});return 'UNEXPECTED_SUCCESS';}
+   catch(error){return {code:error.code,message:error.message};}
+  },full);
+  assert.deepEqual(denied,{code:'MYWRITE_DELETED',message:'MYWRITE_DELETED'});
+  assert.deepEqual(await p.evaluate(()=>myWriteLocal.read('draft:mobile')),tombstone);
+  await p.evaluate(()=>myWriteLocal.close());
+  assert.deepEqual((await h.state()).records,original.records);
+  assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
