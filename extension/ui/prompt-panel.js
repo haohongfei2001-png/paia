@@ -6,12 +6,14 @@ const labels={
  PROMPT_UNAVAILABLE:'这项内容已不可用。当前编辑保留。',
  PROMPT_LIMIT:'完整内容超出当前处理范围，未显示部分结果。',
  PROMPT_INVALID:'内容无效，未保存。请检查正文后再试。',
+ MESSAGE_CHANNEL_INTERRUPTED:'保存结果尚未确认。当前内容保留，请刷新已保存模板后核对。',
+ UNAVAILABLE:'结果尚未确认。当前内容保留，请刷新已保存模板后核对。',
  CONSENT_REQUIRED:'请先同意本机归档，再使用 Prompts。',
 };
 const button=(id,text,act)=>{const b=element('button','',text);b.type='button';b.id=id;b.addEventListener('click',()=>void act());return b;};
 export class PromptPanel {
  constructor({onInput=async()=>false}={}){
-  this.onInput=onInput;this.selected=null;this.busy=false;this.mode='saved';this.offset=0;this.serial=0;
+  this.onInput=onInput;this.selected=null;this.createId=null;this.busy=false;this.mode='saved';this.offset=0;this.serial=0;
   this.dialog=element('dialog','prompt-dialog');this.dialog.id='prompt-dialog';
   this.dialog.setAttribute('aria-labelledby','prompt-title');
   const head=element('header'),title=element('h2','','Prompts');title.id='prompt-title';
@@ -56,7 +58,7 @@ export class PromptPanel {
   this.copy.hidden=!this.selected||this.selected.kind!=='template';this.remove.hidden=this.copy.hidden;
   this.previous.hidden=this.offset===0;this.next.hidden=this.nextOffset===null||this.nextOffset===undefined;
  }
- clearEditor(){this.selected=null;this.body.value='';this.pin.checked=true;this.trace.replaceChildren();this.edit.hidden=true;}
+ clearEditor(){this.selected=null;this.createId=null;this.body.value='';this.pin.checked=true;this.trace.replaceChildren();this.edit.hidden=true;}
  async open(trigger){
   if(this.busy||this.dialog.open)return;this.trigger=trigger;this.mode='saved';this.offset=0;this.query.value='';
   this.clearEditor();this.dialog.showModal();await this.load();
@@ -82,7 +84,7 @@ export class PromptPanel {
   finally{if(serial===this.serial){this.busy=false;this.controls();}}
  }
  async choose(item){
-  if(this.busy||!this.discard())return;this.busy=true;this.controls();
+  if(this.busy||!this.discard())return;this.busy=true;this.controls();this.say('正在读取完整 Prompt…');
   try{
    const current=item.kind==='template'?await request('PAIA_PROMPT_READ',{id:item.id,expectedRevision:item.revision}):item;
    this.show(current);await this.showTrace();this.say(current.kind==='candidate'?'候选正文完整保留。先保存模板，再编辑或复制。':'可编辑、置顶或手动复制此模板。');
@@ -90,6 +92,9 @@ export class PromptPanel {
   finally{this.busy=false;this.controls();}
  }
  show(current){
+  // One explicit create identity survives a lost response and a manual retry.
+  // The existing store refuses duplicate IDs; no automatic command replay.
+  this.createId=current.kind==='candidate'?crypto.randomUUID():current.kind==='new'?current.id:null;
   this.selected=current;this.body.value=current.text;this.body.readOnly=current.kind==='candidate';
   this.pin.checked=current.pinned??true;this.edit.hidden=false;this.trace.replaceChildren();
  }
@@ -102,7 +107,7 @@ export class PromptPanel {
   if(this.busy||!this.selected)return;this.busy=true;this.controls();const current=this.selected;
   try{
    const saved=current.kind==='template'?await request('PAIA_PROMPT_EDIT',{id:current.id,change:{expectedRevision:current.revision,text:this.body.value,pinned:this.pin.checked}}):
-    await request('PAIA_PROMPT_CREATE',{template:{id:current.kind==='candidate'?crypto.randomUUID():current.id,text:this.body.value,pinned:this.pin.checked,sourceRefs:current.sourceRefs}});
+    await request('PAIA_PROMPT_CREATE',{template:{id:this.createId,text:this.body.value,pinned:this.pin.checked,sourceRefs:current.sourceRefs}});
    this.show(saved);await this.showTrace();this.say('模板已保存。Input 原文保留。');
   }catch(error){this.fail(error);}
   finally{this.busy=false;this.controls();}
