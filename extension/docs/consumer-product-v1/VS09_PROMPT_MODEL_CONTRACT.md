@@ -2,6 +2,14 @@
 
 Status: CPV1-09.0 model and CPV1-09.1 actual archive reader candidate PASS; local template persistence/restart/portable Backup candidate CI PENDING; product UI/provider insertion remain IN_PROGRESS.
 
+## CPV1-09.1 worker snapshot admission repair — 2026-09-28
+
+Exact diagnostic parent 5a410c698561723169e723e89a5d7ce572725cf0, tree 71ef8d34f72ae0e946f2241ea0e44399861173d0. Candidate 36450080857 contracts/privacy job 109022287584 FAILED: both owning recovery-purge cases reported exactly "Prompt candidate projection: PROMPT_STALE". Capture admission succeeded. All 102 adapter contracts and the other 58 privacy cases passed; release guard 109022286919 passed. This establishes a snapshot-admission failure before either case exercised recovery save or purge, not evidence of a recovery/Source transaction failure. Preserve both failed receipts as failures.
+
+CAPTURE schedules existing Safety/Library/Filter maintenance; canonical writes can change the archive reader authority during its page/final check. The strict PROMPT_STALE refusal remains correct and unchanged. The synthetic worker fixture now acquires a fresh complete readonly candidate snapshot, at most 16 requests and only after exactly PROMPT_STALE. It does not repeat capture, Source/template mutations, cleanup, provider calls, timers or waits. Any other error or exhaustion remains a hard test failure. All full-text/complete/provenance, trusted caller, recovery-draft preservation, storage-failure, blocked-purge and final native-deletion assertions remain required; no tests, fixture rows, limits, selectors or gates are removed.
+
+Production reader/version/authority fences and single-worker purge queue are unchanged. New-head candidate CI PENDING; this ordinary integration repair is not a certificate. Prior ad475 complete unit job 109018246942 passed 1261 tests with zero failures/skips. P1 panel/manual copy/Source navigation and P2 protected insertion remain executable engineering. B02 derivative purge policy remains deferred only on its dependent path. Context external/Passport/live gates remain DEFAULT_OFF/deferred. VS07 stays EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING; VS04 lexical/fuzzy/filter is PAIA v1 default; Semantic Lab alone owns Input → Topic.
+
 ## Authority and scope
 
 PRODUCT_INTENT_CONTRACT section 11 and UX_CONTRACT P1/P2 own this slice. Continue in the existing sole product writer PR #99 / feat/vs08-readonly-connector; do not create a second writer while VS-08's privacy/platform gates remain deferred. The minimal task Context reader separately has an owner-approved, default-off engineering candidate receipt. Prompt reuse issues no connector permission.

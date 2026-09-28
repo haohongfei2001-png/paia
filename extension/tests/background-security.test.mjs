@@ -611,6 +611,18 @@ test('CPV1-09 Prompt commands are exact trusted-page-only, consent gated and pri
  assert.doesNotMatch(JSON.stringify(h.notifications),/PRIVATE_|Explicit fixed/);
  assert.deepEqual((await h.send({type:'GET_STATE'})).data.records,before);
 });
+// CAPTURE starts finite background maintenance. A concurrent canonical write must
+// invalidate an archive snapshot; acquire a fresh read without replaying CAPTURE,
+// mutation, cleanup, or a provider request. Unexpected errors and a non-quiescent
+// fixture remain failures. Every complete-body/provenance assertion follows.
+async function promptWorkerCurrentCandidates(h){
+ for(let attempt=0;attempt<16;attempt++){
+  const result=await h.send({type:'PAIA_PROMPT_CANDIDATES'});
+  if(result.ok)return result;
+  assert.equal(result.error,'PROMPT_STALE','Prompt candidate projection: '+(result.error??'NONE'));
+ }
+ assert.fail('Prompt candidate projection: PROMPT_STALE after 16 read-only snapshots');
+}
 async function promptWorkerCapture(h,text='Protected reusable human prompt'){
  await h.send({type:'CONSENT',accepted:true});const epoch=(await h.send({type:'GET_STATUS'})).data.epoch;
  const captured=await h.send(capture(epoch,{messages:[{
@@ -618,7 +630,7 @@ async function promptWorkerCapture(h,text='Protected reusable human prompt'){
  }]}),content);
  assert.equal(captured.ok,true,'Prompt capture admission: '+(captured.error??'NONE'));
  const state=(await h.send({type:'GET_STATE'})).data;
- const result=await h.send({type:'PAIA_PROMPT_CANDIDATES'});
+ const result=await promptWorkerCurrentCandidates(h);
  assert.equal(result.ok,true,'Prompt candidate projection: '+(result.error??'NONE'));assert.equal(result.data.total,1);
  assert.equal(result.data.complete,true);assert.equal(result.data.items[0].text,text);
  return {state,candidate:result.data.items[0]};
