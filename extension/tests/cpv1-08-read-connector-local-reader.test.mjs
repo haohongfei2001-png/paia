@@ -14,6 +14,7 @@ async function fixture(){
  const text='EXACT_ORIGINAL 👩🏽‍💻\n'+'long source '.repeat(300);
  const f=await completeFixture({texts:[text]});
  const memory=new MemoryService(f.s);await memory.ready();
+ await memory.settings({includeUnorganizedInputs:true});
  const block=(await rows(f.s,'blocks'))[0].value;
  const boundary=createReadConnectorBoundary({clock:()=>1000,
   authorize:async()=>grant(),read:createLocalReadConnectorReader(memory)});
@@ -44,5 +45,20 @@ test('VS-08 detached reader refuses excluded, stale and unknown-profile material
  const reader=createLocalReadConnectorReader(f.memory);
  await assert.rejects(reader(request(ref),{grantId:'g',profileId:'absent',
   allowedKinds:['input']}),{code:'MEMORY_DENIED'});
+ assert.equal(f.requests.length,0);
+});
+
+
+test('VS-08 get-by-ref requires current profile eligibility before any body release',async()=>{
+ const f=await fixture(),ref={kind:'input',id:f.block.id,revision:f.block.revision};
+ const allowed=await f.boundary.handle('connection-1',request(ref));
+ assert.equal(allowed.data.body,f.text);
+ await f.memory.settings({includeUnorganizedInputs:false});
+ await assert.rejects(f.boundary.handle('connection-1',request(ref)),
+  {code:'MEMORY_UNAVAILABLE'});
+ const direct=createLocalReadConnectorReader(f.memory);
+ await assert.rejects(direct(request({kind:'topic_note',id:'private-topic',revision:0}),
+  {grantId:'g',profileId:'default',allowedKinds:['topic']}),
+  {code:'MEMORY_DENIED'});
  assert.equal(f.requests.length,0);
 });

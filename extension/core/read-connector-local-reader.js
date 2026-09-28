@@ -18,15 +18,39 @@ export function createLocalReadConnectorReader(memory){
      ||typeof scope.grantId!=='string'||!scope.grantId
      ||!Array.isArray(scope.allowedKinds))denied();
   await memory.ready();
-  return memory.s.run(()=>memory.s.repository.transaction(false,async t=>{
+  const ref=parsed.args.ref;
+  // A material ref is an address, not authority. Reuse the current Memory
+  // profile's candidate policy before reading any body, including Source.
+  // Topic/AI reads stay closed until they have an equivalent profile proof.
+  if(!['input','source','thought'].includes(ref.kind))denied();
+  const eligible=found=>found.candidates.some(c=>ref.kind==='thought'
+   ?c.kind==='entry'&&c.entryId===ref.id&&c.revision===ref.revision
+   :c.kind==='input'&&c.inputId===ref.id
+      &&(ref.kind==='source'||c.revision===ref.revision));
+  let before;
+  try{before=await memory.candidates({profileId:scope.profileId,query:''});}
+  catch{denied();}
+  if(!eligible(before))denied();
+  const value=await memory.s.run(()=>memory.s.repository.transaction(false,async t=>{
    const state=await memory.state(t);
-   if(!state.profiles?.some(p=>p.profileId===scope.profileId))denied();
-   const ref=parsed.args.ref;
+   if(state.profiles?.find(p=>p.profileId===scope.profileId)?.revision
+      !==before.profile.revision)denied();
+   if(((await t.get('meta','backup-data-generation'))?.value||0)
+      !==before.generation)denied();
    const kind={input:'input',source:'input',thought:'thought',
     ai:'topic',topic_note:'topic'}[ref.kind];
    if(!scope.allowedKinds.includes(kind))denied();
    const value=await materialRead(memory,t,ref);
    return {ref,title:value.title,body:value.body,role:value.role};
   }));
+  // Candidate eligibility includes both durable generation and temporary
+  // profile grants. Recheck after the transaction before returning content.
+  let after;
+  try{after=await memory.candidates({profileId:scope.profileId,query:''});}
+  catch{denied();}
+  if(!eligible(after)||after.generation!==before.generation
+     ||after.sessionRevision!==before.sessionRevision
+     ||after.profile.revision!==before.profile.revision)denied();
+  return value;
  };
 }
