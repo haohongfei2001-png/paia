@@ -1,6 +1,19 @@
 # VS-09 Prompt candidate and local template contract
 
-Status: P1 local workspace and P2 native mechanics/template coordination ENGINEERING_PASS; P2 human review/manual-copy CANDIDATE / NOT_ACTIVATED; provider/live/product certification IN_PROGRESS.
+Status: P1 local workspace and P2 native mechanics/template coordination/human review ENGINEERING_PASS at exact receipts; keyboard/composition lifetime CANDIDATE / NOT_ACTIVATED; provider/live/product certification IN_PROGRESS.
+
+
+## CPV1-09.3 keyboard and composition lifetime candidate — 2026-09-29
+
+Fresh remote main4c43e7ea04a84bc491bf4f5d84080c0b22fbc5c8; sole product Draft99 exact parent43248a243d54933c08c2c32850725ffa43f3aef1, treef41a9a4948d448a6511297e3b3a3b734c1079a7f. Candidate36468114986 COMPLETED SUCCESS: actual unit1090832126451276PASS/0FAIL/0SKIP; contracts109083212939102adapter+60privacy/security PASS; release109083212172PASS; full hosted browser1090832126247PASS/0FAIL/0SKIP; aggregate109084937553PASS. All seven original full Prompt/restart/Source/native/controller/human-review journeys executed. Immutable receipts/CPV1-09.2-HUMAN-REVIEW-ENGINEERING-PASS.md binds only this exact parent; full Draft Certification/scale/Mac diagnostics skipped. P2 human review has synthetic hosted ENGINEERING_PASS at that head, remains NOT_ACTIVATED; provider/live/product certification open.
+
+Advance the canonical reliability slice without provider activation. Native blur invalidates a prepared draft token but does not prove a tracked or unknown composition ended. Keep one target composition tracker for the entire review lifetime. Each new controller owns only a scoped pending-token adapter; cancellation, prepare refusal, modal close/reopen and successful insertion release full private token/DOM bodies without discarding unfinished IME state. Dispose removes the persistent target tracker. An observed compositionend can admit a new explicit gesture. No timer/poll, draft transport/storage, provider runtime, manifest, permission or entrypoint activation.
+
+Append an eighth complete hosted Chrome/actual worker/IndexedDB case. Full long Unicode/negation template and existing long Chinese draft; actual Enter/Space invoker clicks, native focus/blur, synthetic unresolved compositionstart, Escape close and same target reopen. Both uncertain attempts show the complete template but refuse draft reads and insertion, retain empty readonly draft DOM and exact original native draft. Instrument actual native getter only for this target: zero draft reads before observed compositionend; later explicit keyboard append performs exactly3 native getter reads,1 input event,4 total current worker reads, zero send/clipboard/provider/network effects, enabled user-send control, exact whole appended content and synchronous private DOM clearing/focus return. Original Source/Input/template unchanged. All seven earlier cases are a byte-exact prefix; all full fixtures/assertions/limits/timeouts/gates retained.
+
+This is a synthetic lifecycle uncertainty proof in real hosted Chrome, not a physical Chinese/OS IME, real provider, multiple-tab/provider-drift or security certification. Those dependent evidence paths remain open/deferred while independent product engineering continues. VS07 EXPERIMENTAL/DEFAULT_OFF/NON-BLOCKING; VS04 lexical/fuzzy/filter v1 default; Semantic Lab exclusively Input→Topic; Context minimum approved external/Passport/live/security and B02 policy remain dependent-deferred.
+
+One coherent two-native-module/owning-browser/STATUS/MASTER_PLAN/protocol/model-contract/immutable-receipt batch via high-level Contents on the existing no-PR assembly ref, then one non-force publication of sole writer99. New-head full eight-case affected Chrome/unit/contracts/privacy/release CI PENDING; no unchanged-head rerun, production deployment or model research. Owner website91 untouched.
 
 
 ## CPV1-09.2 actual trusted-pointer review fixture correction — 2026-09-29
