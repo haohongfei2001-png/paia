@@ -263,3 +263,76 @@ test('VS-08 detached permission self-check reports only active local profile aut
   {code:'MEMORY_DENIED'});
  assert.equal(f.requests.length,0);
 });
+
+
+test('VS-08 saved AI read requires every current profile evidence version',async()=>{
+ const f=await fixture(['PRIVATE Input must not leak']);
+ const topic=await f.s.createTopic({operationId:crypto.randomUUID(),name:'Saved AI'});
+ const entry=await f.s.createEntry({operationId:crypto.randomUUID(),actor:'user',
+  body:'A complete human evidence statement.',type:'idea',formation:'explicit',evidence:[]});
+ await f.s.placeEntry({operationId:crypto.randomUUID(),topicId:topic.id,
+  entryId:entry.id,expectedEntryRevision:entry.revision,
+  expectedTopicRevision:(await f.s.topic(topic.id)).organizationRevision});
+ await f.memory.authorize({topicIds:[topic.id],decision:'allowed'});
+ const candidates=await f.memory.candidates({profileId:'default',query:''});
+ const evidence=candidates.candidates.find(c=>c.entryId===entry.id);
+ assert.ok(evidence?.fresh);
+ const saved={id:'aiPresentation:'+topic.id,topicId:topic.id,schemaVersion:1,
+  revision:1,blockSummary:'A saved synthetic overview.',
+  currentView:'Saved AI preserves this full synthetic statement.',
+  keyInformation:[],preferences:[],decisions:[],judgments:[],openQuestions:[],
+  possibleEvolution:[],evidenceEntryIds:[entry.id],protections:{},
+  basedOnCheckpoint:{entryVersions:{[entry.id]:evidence.version}},
+  needsUpdate:false,stale:false};
+ const put=row=>f.s.foundationWrite(t=>t.put('meta',row));
+ await put(saved);
+ const boundary=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>({...grant(),allowedKinds:['topic']}),
+  read:createLocalReadConnectorReader(f.memory)});
+ const ref={kind:'ai',id:topic.id,revision:1,field:'currentView'};
+ const wrongScope=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>grant(),read:createLocalReadConnectorReader(f.memory)});
+ await assert.rejects(wrongScope.handle('saved-ai-no-topic',request(ref)),
+  {code:'MEMORY_DENIED'});
+ const current=await boundary.handle('saved-ai',request(ref));
+ assert.equal(current.data.body,saved.currentView);
+ assert.equal(current.data.role,'ai');
+ assert.deepEqual(current.data.ref,ref);
+ const span=await boundary.handle('saved-ai',request({...ref,span:{start:0,end:8}}));
+ assert.equal(span.data.body,saved.currentView.slice(0,8));
+ assert.equal(span.data.role,'ai');
+ await assert.rejects(boundary.handle('saved-ai',request({...ref,revision:2})),
+  {code:'MEMORY_UNAVAILABLE'});
+ for(const change of [{stale:true},{needsUpdate:true},{candidate:{unaccepted:true}},
+  {basedOnCheckpoint:{entryVersions:{[entry.id]:'stale-version'}}},
+  {evidenceEntryIds:[entry.id,'private-unapproved-entry']},
+  {keyInformation:[{text:'PRIVATE foreign evidence',
+   evidenceEntryIds:['private-unapproved-entry']}]}]){
+  await put({...saved,...change});
+  await assert.rejects(boundary.handle('saved-ai',request(ref)),
+   {code:'MEMORY_UNAVAILABLE'});
+ }
+ await put(saved);
+ await f.memory.exclude({entryId:entry.id,excluded:true});
+ await assert.rejects(boundary.handle('saved-ai',request(ref)),
+  {code:'MEMORY_UNAVAILABLE'});
+ await f.memory.exclude({entryId:entry.id,excluded:false});
+ await put(saved);
+ const edited=await f.s.editEntry({id:entry.id,operationId:crypto.randomUUID(),
+  expectedRevision:evidence.revision,
+  changes:{body:'The human changed the current evidence statement.'}});
+ assert.notEqual(edited.conflict,true);
+ await assert.rejects(boundary.handle('saved-ai',request(ref)),
+  {code:'MEMORY_UNAVAILABLE'});
+ const updated=(await f.memory.candidates({profileId:'default',query:''}))
+  .candidates.find(c=>c.entryId===entry.id);
+ assert.ok(updated?.fresh);
+ assert.notEqual(updated.version,evidence.version);
+ await put({...saved,basedOnCheckpoint:{entryVersions:{[entry.id]:updated.version}}});
+ assert.equal((await boundary.handle('saved-ai',request(ref))).data.body,
+  saved.currentView);
+ await f.memory.authorize({topicIds:[topic.id],decision:'denied'});
+ await assert.rejects(boundary.handle('saved-ai',request(ref)),
+  {code:'MEMORY_UNAVAILABLE'});
+ assert.equal(f.requests.length,0);
+});

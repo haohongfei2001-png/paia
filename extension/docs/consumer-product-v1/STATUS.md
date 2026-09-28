@@ -28,6 +28,10 @@ prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
 
+## VS-08 Batch I — saved-AI exact read with profile evidence admission, 2026-09-28
+
+Exact prior head `3a6745338b83d344932802413698b7e911b7e0ce` Candidate Gate `36422632100` passed affected unit, contracts/privacy, release and aggregate gate; full Certification stayed skipped on Draft. Detached saved-AI get-by-ref now requires an active allowed Topic, the canonical stored schema, no stale/update/unaccepted-candidate flag, and every cited Thought's current profile eligibility, freshness and exact checkpoint version. Capped scans refuse admission. Canonical `materialRead` still owns full/exact-span body, role and revision; a source-safe Topic label and pre/post snapshot fences prevent stale release. Owning actual IndexedDB regression covers full and span AI role, stale ref/checkpoint/flags, unaccepted candidate, missing/unapproved field evidence, wrong grant kind, excluded/edited evidence and refreshed checkpoint, Topic revoke and zero external requests. Task Context, Passport permission/UX, supported external identity, distributed quota and deployment remain OPEN. Module remains detached/default-off; new-head Candidate Gate PENDING.
+
 ## VS-08 Batch H — detached permission self-check, 2026-09-28
 
 Exact prior corrected head `5617eea813a82d68c37816fc0a50bfedd734f92b` Candidate Gate `36420221730` passed affected unit, contracts/privacy, release and aggregate gate; full Certification remained skipped on Draft. The fifth detached tool now returns only a boolean for an active local Memory profile under the existing trusted boundary; an unknown profile reports false. The boundary still requires a current read-connector grant before and after the read, so mid-read revocation refuses release. The owning IndexedDB regression covers active/missing profile, grant revocation, no grant/profile/body disclosure and zero external requests. This is no Passport permission issuer/UX, platform identity, distributed quota or deployed connector. Task Context and saved-AI reads remain closed; new-head Candidate Gate PENDING.

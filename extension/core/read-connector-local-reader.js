@@ -1,6 +1,7 @@
 import {ArchiveError} from './constants.js';
 import {materialRead} from './manual-materials.js';
 import {policy,topicActive} from './memory/model.js';
+import {AI_SCHEMA_VERSION,isStoredAIPresentation} from './organizer/ai-contract.js';
 import {parseReadConnectorRequest,READ_CONNECTOR_RESULT_LIMITS} from './read-connector-contract.js';
 import {rankLexicalCandidate,searchExcerpt} from './search-service.js';
 
@@ -146,14 +147,16 @@ export function createLocalReadConnectorReader(memory){
   const ref=parsed.args.ref;
   // A material ref is an address, not authority. Source-original refs inherit
   // only their currently eligible Input identity.
-  if(!['input','source','thought','topic_note'].includes(ref.kind))denied();
+  if(!['input','source','thought','topic_note','ai'].includes(ref.kind))denied();
   const eligible=found=>found.candidates.some(c=>ref.kind==='thought'
    ?c.kind==='entry'&&c.entryId===ref.id&&c.revision===ref.revision
    :c.kind==='input'&&c.inputId===ref.id
       &&(ref.kind==='source'||c.revision===ref.revision));
   const before=await candidates(scope.profileId,'');
-  if(ref.kind!=='topic_note'&&!eligible(before))denied();
-  const temporary=ref.kind==='topic_note'?await memory.temporary():null;
+  const topicMaterial=['topic_note','ai'].includes(ref.kind);
+  if(topicMaterial&&before.partial)limited();
+  if(!topicMaterial&&!eligible(before))denied();
+  const temporary=topicMaterial?await memory.temporary():null;
   if(temporary&&temporary.revision!==before.sessionRevision)denied();
   const value=await memory.s.run(()=>memory.s.repository.transaction(false,async t=>{
    const state=await memory.state(t);
@@ -162,20 +165,35 @@ export function createLocalReadConnectorReader(memory){
    if(((await t.get('meta','backup-data-generation'))?.value||0)
       !==before.generation)denied();
    const kind=ref.kind==='thought'?'thought'
-    :ref.kind==='topic_note'?'topic':'input';
+    :topicMaterial?'topic':'input';
    if(!scope.allowedKinds.includes(kind))denied();
-   if(ref.kind==='topic_note'){
+   if(topicMaterial){
     const topics=(await t.all('topics')).filter(topicActive);
     if(topics.length>20000)limited();
     const rule=policy(state.rows,scope.profileId,temporary.grants,
      new Map(topics.map(topic=>[topic.id,topic])));
     if(rule.decision(ref.id)!=='allowed')denied();
    }
+   if(ref.kind==='ai'){
+    const row=await t.get('meta','aiPresentation:'+ref.id);
+    const evidence=new Map(before.candidates.filter(c=>c.kind==='entry')
+     .map(c=>[c.entryId,c]));
+    if(!row||row.topicId!==ref.id||row.schemaVersion!==AI_SCHEMA_VERSION
+       ||row.needsUpdate||row.stale||row.candidate
+       ||!row.evidenceEntryIds?.length
+       ||!isStoredAIPresentation(row,new Set(row.evidenceEntryIds))
+       ||row.evidenceEntryIds.some(id=>!evidence.get(id)?.fresh
+        ||evidence.get(id).version!==row.basedOnCheckpoint?.entryVersions?.[id]))
+     denied();
+   }
    const data=await materialRead(memory,t,ref);
-   return {ref,title:data.title,body:data.body,role:data.role};
+   const title=ref.kind==='ai'
+    ?await memory.safeLabel(t,await t.get('topics',ref.id),'name')||'AI'
+    :data.title;
+   return {ref,title,body:data.body,role:data.role};
   }));
   const after=await candidates(scope.profileId,'');
-  if(ref.kind!=='topic_note'&&!eligible(after)
+  if(!topicMaterial&&!eligible(after)
      ||!sameSnapshot(before,after))denied();
   return value;
  };
