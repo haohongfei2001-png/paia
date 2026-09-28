@@ -1112,3 +1112,142 @@ test('CPV1-10 MyWrite changed typing resolves committed lost acknowledgements wi
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('CPV1-10 explicit metadata discovery protects unsaved work and recovers full drafts after a real restart',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);const fixture=conversation('mywrite-discovery-source',1300);
+  const captured=await h.open(fixture);await h.ready(captured);
+  await eventually(async()=>(await h.state()).library.blocks.length===fixture.messages.length);
+  const original=await h.state();
+  const q=await h.context.newPage();await q.goto(p.url());await q.waitForSelector('#prompt-open');
+  const full=Array.from({length:1000},(_,i)=>'找回草稿第'+i+'段🧭：保留完整原文、空白和否定词，不要概括。\n').join('')+'尾部：绝对不要自动发送。';
+  const saved=await p.evaluate(async text=>{
+   const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   globalThis.recoveryStore=new MyWriteDraftStore({name:'paia-mywrite-recovery-chrome-v1',clock:()=>1720000000000});
+   const rows=[];
+   for(let i=0;i<43;i++)rows.push(await recoveryStore.save({
+    id:'draft:'+String(i).padStart(3,'0'),expectedRevision:0,text:text+'\nPRIVATE_RECOVERY_BODY_'+i,
+    topicId:i%2?'topic:optional':null,operationId:'save:seed:'+i
+   }));
+   await recoveryStore.remove({id:'draft:011',expectedRevision:1,operationId:'delete:seed'});
+   return rows;
+  },full);
+  await q.evaluate(async()=>{
+   const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   globalThis.recoveryStore=new MyWriteDraftStore({name:'paia-mywrite-recovery-chrome-v1',clock:()=>1720000009000});
+  });
+  async function mount(){
+   await p.evaluate(async()=>{
+    const {createMyWriteComposer}=await import(chrome.runtime.getURL('ui/mywrite-composer.js'));
+    const {createMyWriteRecovery}=await import(chrome.runtime.getURL('ui/mywrite-recovery.js'));
+    globalThis.makeRecoveryComposer=createMyWriteComposer;globalThis.makeRecovery=createMyWriteRecovery;
+    const container=document.createElement('div');container.id='draft-recovery-fixture';document.body.prepend(container);
+    const topics=[{id:'topic:optional',label:'保留全文'},{id:'topic:new',label:'当前更正'}];
+    globalThis.recoveryComposer=createMyWriteComposer({document,store:recoveryStore,draftId:'draft:active',topics});
+    container.append(recoveryComposer.element);await recoveryComposer.ready;
+    globalThis.recoverySelections=[];globalThis.recoveryListCalls=0;
+    globalThis.actualRecoveryList=recoveryStore.list.bind(recoveryStore);
+    recoveryStore.list=options=>{recoveryListCalls++;return actualRecoveryList(options);};
+    globalThis.recoveryPicker=createMyWriteRecovery({document,store:recoveryStore,topics,onChoose:async reference=>{
+     recoverySelections.push(reference);
+     if(!recoveryComposer.canReplace())return false;
+     recoveryComposer.dispose();
+     recoveryComposer=createMyWriteComposer({document,store:recoveryStore,draftId:reference.id,topics});
+     container.prepend(recoveryComposer.element);await recoveryComposer.ready;return true;
+    }});
+    container.append(recoveryPicker.element);
+   });
+  }
+  await mount();
+  const picker=()=>p.locator('#draft-recovery-fixture .mywrite-recovery');
+  const status=()=>picker().getByRole('status');
+  const rows=()=>picker().getByRole('list',{name:'已保存草稿'}).getByRole('button');
+  const find=()=>picker().getByRole('button',{name:'查找本地草稿',exact:true});
+  const more=()=>picker().getByRole('button',{name:'更多本地草稿',exact:true});
+  const editor=()=>p.locator('#draft-recovery-fixture .mywrite-composer').getByRole('textbox',{name:'草稿正文',exact:true});
+  const selections=()=>p.evaluate(()=>recoverySelections);
+  await p.evaluate(()=>document.querySelector('.mywrite-recovery button').click());
+  assert.equal(await p.evaluate(()=>recoveryListCalls),0);assert.equal(await rows().count(),0);
+  const unsaved=full+'\nPRIVATE_UNSAVED_CURRENT';
+  await editor().fill(unsaved);
+  await find().focus();await p.keyboard.press('Enter');
+  await eventually(async()=>await rows().count()===20&&!await rows().first().isDisabled());
+  assert.equal(await p.evaluate(()=>recoveryListCalls),1);
+  assert.doesNotMatch(await picker().textContent(),/PRIVATE_|不要概括|draft:|save:/);
+  assert.match(await rows().first().textContent(),/2024-07-03T09:46:40.000Z/);
+  await p.evaluate(()=>document.querySelector('.mywrite-recovery li button').click());
+  assert.deepEqual(await selections(),[]);
+  await rows().first().click();await eventually(async()=>/请先保存/.test(await status().textContent()));
+  assert.equal(await editor().inputValue(),unsaved);
+  assert.equal((await selections()).length,1);
+  assert.deepEqual(Object.keys((await selections())[0]).sort(),['createdAt','id','revision','topicId','updatedAt']);
+  assert.equal(await p.evaluate(()=>recoveryStore.read('draft:active')),null);
+  await more().click();await eventually(async()=>await rows().count()===40&&!await rows().first().isDisabled());
+  await more().click();await eventually(async()=>await rows().count()===42&&!await rows().first().isDisabled());
+  assert.equal(await more().isVisible(),false);
+  const metadata=await p.evaluate(()=>actualRecoveryList({limit:40,after:null}));
+  assert.equal(metadata.items.length,40);assert.doesNotMatch(JSON.stringify(metadata),/PRIVATE_|text|lastWriteId/);
+  const tail=await p.evaluate(after=>actualRecoveryList({limit:40,after}),metadata.after);
+  assert.deepEqual([...metadata.items,...tail.items].map(x=>x.id),saved.filter(x=>x.id!=='draft:011').map(x=>x.id));
+  const changed=full+'\nPRIVATE_OTHER_WINDOW_COMPLETE';
+  const current=await q.evaluate(text=>recoveryStore.save({
+   id:'draft:000',expectedRevision:1,text,topicId:'topic:new',operationId:'save:other-current'
+  }),changed);
+  await rows().first().click();await eventually(async()=>/更改或删除/.test(await status().textContent()));
+  assert.equal((await selections()).length,1);assert.equal(await editor().inputValue(),unsaved);
+  assert.deepEqual(await p.evaluate(()=>recoveryStore.read('draft:000')),current);
+  await p.locator('#draft-recovery-fixture .mywrite-composer').getByRole('button',{name:'保存本地草稿',exact:true}).click();
+  await eventually(async()=>await p.evaluate(()=>recoveryComposer.canReplace()));
+  const active=await p.evaluate(()=>recoveryStore.read('draft:active'));assert.equal(active.text,unsaved);assert.equal(active.revision,1);
+  // Refresh is explicit and observes the second client's actual current version.
+  await find().click();await eventually(async()=>await rows().count()===20&&!await rows().first().isDisabled());
+  await rows().first().focus();await p.keyboard.press('Enter');
+  await eventually(async()=>/已恢复/.test(await status().textContent()));
+  assert.equal(await editor().inputValue(),changed);
+  assert.equal(await p.locator('#draft-recovery-fixture .mywrite-composer').getByRole('combobox',{name:'草稿 Topic'}).inputValue(),'topic:new');
+  assert.deepEqual(await p.evaluate(()=>recoveryComposer.getDraftReference()),{id:'draft:000',revision:2});
+  assert.equal((await selections()).length,2);
+  assert.deepEqual(await p.evaluate(()=>recoveryStore.read('draft:active')),active);
+  // A late readonly page cannot restore a disposed picker's DOM or hand off work.
+  await p.evaluate(()=>{
+   globalThis.lateSelectionCount=0;globalThis.lateListFinished=false;
+   const heldStore={list:options=>new Promise(resolve=>{
+    globalThis.finishLateList=async()=>{resolve(await actualRecoveryList(options));lateListFinished=true;};
+   }),review:recoveryStore.review.bind(recoveryStore)};
+   const wrapper=document.createElement('div');wrapper.id='late-recovery-fixture';document.body.prepend(wrapper);
+   globalThis.latePicker=makeRecovery({document,store:heldStore,onChoose:()=>{lateSelectionCount++;return true;}});
+   wrapper.append(latePicker.element);
+  });
+  await p.locator('#late-recovery-fixture').getByRole('button',{name:'查找本地草稿'}).click();
+  await p.evaluate(async()=>{latePicker.dispose();await finishLateList();});
+  await eventually(async()=>await p.evaluate(()=>lateListFinished));
+  assert.equal(await p.locator('#late-recovery-fixture .mywrite-recovery').count(),0);
+  assert.equal(await p.evaluate(()=>lateSelectionCount),0);
+  await p.evaluate(()=>{recoveryPicker.dispose();recoveryComposer.dispose();recoveryStore.close();});
+  await q.evaluate(()=>recoveryStore.close());await q.close();
+  await h.restartWorker();await p.reload();await p.waitForSelector('#prompt-open');
+  await p.evaluate(async()=>{
+   const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   globalThis.recoveryStore=new MyWriteDraftStore({name:'paia-mywrite-recovery-chrome-v1'});
+  });
+  await mount();
+  assert.equal(await p.evaluate(()=>recoveryListCalls),0);
+  assert.equal(await editor().inputValue(),unsaved,'saved current work also survives complete client closure');
+  await find().click();await eventually(async()=>await rows().count()===20&&!await rows().first().isDisabled());
+  await rows().first().click();await eventually(async()=>/已恢复/.test(await status().textContent()));
+  assert.equal(await editor().inputValue(),changed);
+  assert.deepEqual(await p.evaluate(()=>recoveryStore.read('draft:000')),current);
+  assert.deepEqual(await p.evaluate(()=>recoveryStore.read('draft:active')),active);
+  assert.equal((await p.evaluate(()=>recoveryStore.read('draft:011'))).text,null);
+  await p.locator('#draft-recovery-fixture .mywrite-composer').getByRole('button',{name:'查看完整草稿',exact:true}).click();
+  await eventually(async()=>await p.locator('#draft-recovery-fixture').getByRole('textbox',{name:'完整草稿正文',exact:true}).isVisible());
+  assert.equal(await p.locator('#draft-recovery-fixture').getByRole('textbox',{name:'完整草稿正文',exact:true}).inputValue(),changed);
+  assert.match(await p.locator('#draft-recovery-fixture .mywrite-composer').getByRole('status').textContent(),/2024-07-03T09:46:40.000Z/);
+  await p.evaluate(()=>{recoveryPicker.dispose();recoveryComposer.dispose();recoveryStore.close();});
+  assert.deepEqual((await h.state()).records,original.records);
+  assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
