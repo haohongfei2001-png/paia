@@ -45,7 +45,7 @@ export class PromptPanel {
   this.dialog.append(head,help,tabs,search,this.refresh,this.feedback,this.list,pager,this.edit);
   document.body.append(this.dialog);
   this.dialog.addEventListener('cancel',e=>{e.preventDefault();void this.close();});
-  this.dialog.addEventListener('close',()=>{this.clearClosedContent();if(this.trigger?.isConnected)this.trigger.focus({preventScroll:true});});
+  this.dialog.addEventListener('close',()=>{if(this.dialog.open)return;this.clearClosedContent();if(this.trigger?.isConnected)this.trigger.focus({preventScroll:true});});
   window.addEventListener('beforeunload',e=>{if(this.dirty()){e.preventDefault();e.returnValue='';}});
  }
  dirty(){return !!this.selected&&!this.body.readOnly&&(this.body.value!==this.selected.text||this.pin.checked!==this.selected.pinned);}
