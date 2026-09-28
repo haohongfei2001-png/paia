@@ -10,11 +10,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_OWNER_APPROVED / VS09_MODEL_CANDIDATE_PASS
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_CANDIDATE
 
-current_round: CPV1-08.2 — minimal task Context composition; CPV1-09.0–09.1 model preserved
+current_round: CPV1-09.1 — complete local Prompt archive backend; minimal Context receipt preserved
 
-current_round_status: VERIFYING / CONTEXT_DEFAULT_OFF_NOT_CERTIFIED / P1_UI_PERSISTENCE_NOT_IMPLEMENTED
+current_round_status: VERIFYING / P1_ARCHIVE_BACKEND_CI_PENDING / P1_UI_PERSISTENCE_NOT_IMPLEMENTED
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,18 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## CPV1-09.1 complete local Prompt archive backend — 2026-09-28
+
+Exact parent d159f0d57247bff521a4ee911d5bbd5193c3eaa7, tree6cfb12debeef6279c849469773fcb5c2173cbac2. Candidate36438935780 SUCCESS: complete owning unit job108984047497 1234PASS/0FAIL/0SKIPPED, all15 task-Context and13 Prompt cases. Contracts/privacy and release passed; full Draft Certification and affected browser skipped. See receipts/CPV1-08.2-TASK-CONTEXT-ENGINEERING-PASS.md. Minimal detached Context engineering now has a candidate receipt; DEFAULT_OFF/NOT_CERTIFIED and all external/Passport/transport gates remain.
+
+Advance dependency-safe P1 engineering to the actual current local archive reader. Read canonical Input states in100-row transactions, using complete current working text, all Source provenance, Archive/Revisit exclusion and canonical Smart Filter eligibility. Source capture/import contracts admit sent human text; no AI presentation/reply body or external Memory grant is read. Known Source time is retained; unknown stays null. Final generation/database/capture-epoch/Thought-epoch authority fences invalidate any edit, purge, exclusion or policy change across pages, including an empty observation. No derived durable body/cache or profile/permission issuer is introduced.
+
+Correct the model's one-based Input revision assumption: canonical unchanged Input revision0 is valid; negative/fractional revisions still refuse. Template revisions remain one-based. Merged Input sourceIds now preserve all Source refs while frequency counts each Input exactly once. Existing full100000-Input/ref and long Unicode fixtures remain; only the incorrect invalid-zero expectation moves to negative, with an additional positive canonical-zero/merged-provenance regression.
+
+New owning backend file has9 tests: actual IndexedDB projection/edit/exclusion/provenance/foreign-role/zero-AI-read,5 final-page races, full1025-row actual IndexedDB paging with unchanged long Unicode/final negation, full100000-Input synthetic canonical paging retaining every ref, oversized body/count refusal, corrupt/repeated pages and empty-authority/getter refusal. Bounds use existing Backup single100000-item/64MiB and segmented500000-ref ceilings: a larger observation refuses PROMPT_LIMIT before claiming frequency, never clips a fixture/body/ref tail. These are bounded candidate engineering, not whole-library performance or browser certification.
+
+One coherent source/owning-regression/canonical/receipt batch on sole product PR99. Static JS parsing only; new-head Actions PENDING. Product dispatcher/panel, durable template commands/Backup/restart, Source trace navigation/copy, protected append/replace and manual-send browser journeys remain unfinished. VS04 lexical/fuzzy/filter is default; semantic assets remain EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING; Semantic Lab alone owns Input → Topic. No model experiment, new permission, external I/O, workflow/CI cap/test-selection change, production deployment or unchanged-head rerun.
 
 ## CPV1-08.2 exact Source Unicode range oracle repair — 2026-09-28
 

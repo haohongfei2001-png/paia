@@ -79,7 +79,7 @@ test('an incomplete projection or conflicting repeated source cannot claim frequ
 
 test('source projections reject malformed or executable metadata with finite content-free errors',()=>{
  const value=row('source','PRIVATE_SOURCE_CANARY');
- for(const change of [{kind:'ai'},{role:'unknown'},{revision:0},{revision:1.5},{sourceId:''},
+ for(const change of [{kind:'ai'},{role:'unknown'},{revision:-1},{revision:1.5},{sourceId:''},
   {id:''},{text:null},{sourceSentAt:'PRIVATE_TIME_CANARY'},{sourceSentAt:'2026-99-99T00:00:00Z'},
   {eligible:1},{unexpected:'PRIVATE_EXTRA_CANARY'},{text:'x'.repeat(MAX_MESSAGE_LENGTH+1)}]){
   invalid(()=>buildPromptCandidates([{...value,...change}],complete));
@@ -194,4 +194,25 @@ test('archived markup/instructions remain inert strings and model operations per
   removePromptTemplate(next,{expectedRevision:2});
   assert.equal(requests,0);assert.equal(candidate.text,full);
  }finally{globalThis.fetch=previous;}
+});
+
+test('canonical zero Input revision and complete merged Source refs retain unique Input frequency',()=>{
+ const sources=['source-z','source-a'];
+ const zero=row('baseline','Preserve all original sources',{revision:0,sourceId:'source-a',sourceIds:sources});
+ const next=row('next',zero.text,{revision:2});
+ const result=buildPromptCandidates([zero,next,zero],complete).items[0];
+ assert.equal(result.frequency,2);assert.equal(result.sourceRefs.length,3);
+ assert.deepEqual(result.sourceRefs,[{kind:'input',id:'baseline',revision:0,sourceId:'source-a'},
+  {kind:'input',id:'baseline',revision:0,sourceId:'source-z'},
+  {kind:'input',id:'next',revision:2,sourceId:'source-next'}]);
+ const template=createPromptTemplate({id:'merged',text:result.text,sourceRefs:result.sourceRefs});
+ assert.deepEqual(template.sourceRefs,result.sourceRefs);assert.deepEqual(sources,['source-z','source-a']);
+ for(const sourceIds of [[],['source-z'],['source-a','source-a'],[null]]){
+  invalid(()=>buildPromptCandidates([{...zero,sourceIds}],complete));
+ }
+ invalid(()=>buildPromptCandidates([zero,{...zero,sourceIds:['source-a']}],complete));
+ const duplicate=[...result.sourceRefs,result.sourceRefs[0]];
+ invalid(()=>createPromptTemplate({id:'bad',text:zero.text,sourceRefs:duplicate}));
+ invalid(()=>createPromptTemplate({id:'bad-revision',text:zero.text,
+  sourceRefs:[{kind:'input',id:'baseline',revision:-1,sourceId:'source-a'}]}));
 });

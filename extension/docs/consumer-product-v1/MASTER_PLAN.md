@@ -8,9 +8,11 @@ The execution unit is a complete vertical slice. Each round below is a bounded c
 
 ### Current dependency-safe engineering frontier — 2026-09-28
 
-The owner approved DFG-CPV1-011's minimal detached temporary task Context read-path engineering for the current canonical task only. Publish the prepared code/owning IndexedDB tests/canonical batch on sole product PR #99, retain DEFAULT_OFF and await exact-head CI. No product transport, issuer, durable task store or broader access is authorized by that approval. Platform identity, Passport issuer/consent, distributed quota and B-03/B-05 deployment remain deferred. If automatic review still rejects this bounded batch, pause only its dependent path and continue VS-09.
+DFG-CPV1-011's approved minimal detached task Context candidate now has exactd159f0d Candidate36438935780 SUCCESS, complete1234PASS and all15 owning Context tests. DEFAULT_OFF/NOT_CERTIFIED remains; external platform/Passport/consent/quota and B03/B05 gates stay deferred.
 
-VS-09 Batch A's exact head6ae1484 Candidate36434854575 passed the complete unit suite including all 13 Prompt model cases and full 100000-Input/ref fixture. Continue actual bounded authorized archive projection, persistence/UI and protected provider-input/draft journeys under CPV1-09.1 onward while Context CI is asynchronous. P1/P2 are not complete. See VS09_PROMPT_MODEL_CONTRACT.md and VS08_TASK_CONTEXT_CONTRACT.md. Keep VS-04 lexical/fuzzy/filter default and preserved EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING semantics; Semantic Lab exclusively owns Input → Topic.
+VS09 complete local archive backend is the current CPV1-09.1 candidate: bounded canonical100-row transactions, complete eligible human Input frequency and all Source refs, current exclusion/Smart Filter admission and final authority fence. Its model supports actual canonical Input revision0 and multi-Source provenance. New-head affected CI PENDING. P1 persistence/portable Backup/restart, panel/copy/source navigation and P2 protected insertion remain next dependency-safe engineering. Do not claim P1/P2 or whole-library/browser certification from this backend.
+
+Keep VS04 lexical/fuzzy/filter default and semantic assets EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING; Semantic Lab exclusively owns Input → Topic.
 
 ## 0.1 Activation
 

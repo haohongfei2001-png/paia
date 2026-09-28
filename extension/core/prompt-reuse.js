@@ -20,6 +20,7 @@ function object(value,required,optional=[]){
 }
 const id=value=>typeof value==='string'&&value.length>0&&value.length<=200;
 const revision=value=>Number.isSafeInteger(value)&&value>=1;
+const inputRevision=value=>Number.isSafeInteger(value)&&value>=0;
 const text=value=>typeof value==='string'&&value.length<=MAX_MESSAGE_LENGTH;
 const order=(a,b)=>a<b?-1:a>b?1:0;
 const frozen=items=>Object.freeze(items.map(item=>Object.freeze(item)));
@@ -42,16 +43,18 @@ function sourceTime(value){
 }
 function ref(value){
  object(value,['kind','id','revision','sourceId']);
- if(value.kind!=='input'||!id(value.id)||!revision(value.revision)||!id(value.sourceId))fail();
+ if(value.kind!=='input'||!id(value.id)||!inputRevision(value.revision)||!id(value.sourceId))fail();
  return {kind:'input',id:value.id,revision:value.revision,sourceId:value.sourceId};
 }
 function refs(values){
  if(!Array.isArray(values))fail();
- const seen=new Set(),out=[];
+ const seen=new Set(),versions=new Map(),out=[];
  for(const value of values){
-  const item=ref(value);if(seen.has(item.id))fail();seen.add(item.id);out.push(item);
+  const item=ref(value),identity=JSON.stringify([item.id,item.sourceId]);
+  if(seen.has(identity)||versions.has(item.id)&&versions.get(item.id)!==item.revision)fail();
+  seen.add(identity);versions.set(item.id,item.revision);out.push(item);
  }
- return frozen(out.sort((a,b)=>order(a.id,b.id)));
+ return frozen(out.sort((a,b)=>order(a.id,b.id)||order(a.sourceId,b.sourceId)));
 }
 function options(value,complete=false){
  object(value,complete?['complete']:[],['query','limit','offset']);
@@ -72,33 +75,39 @@ export function buildPromptCandidates(rows,settings){
  const settingsCopy=options(settings,true);if(!Array.isArray(rows))fail();
  const unique=new Map(),groups=new Map();
  for(const row of rows){
-  object(row,['kind','role','id','revision','sourceId','text','sourceSentAt','eligible']);
+  object(row,['kind','role','id','revision','sourceId','text','sourceSentAt','eligible'],['sourceIds']);
   if(row.kind!=='input'||!['user','assistant','system','tool'].includes(row.role)
-   ||!id(row.id)||!revision(row.revision)||!id(row.sourceId)||!text(row.text)
+   ||!id(row.id)||!inputRevision(row.revision)||!id(row.sourceId)||!text(row.text)
    ||typeof row.eligible!=='boolean')fail();
-  const time=sourceTime(row.sourceSentAt);
+  const time=sourceTime(row.sourceSentAt),sourceIds=row.sourceIds??[row.sourceId];
+  if(!Array.isArray(sourceIds)||!sourceIds.length||sourceIds.some(value=>!id(value))
+   ||new Set(sourceIds).size!==sourceIds.length||!sourceIds.includes(row.sourceId))fail();
+  const canonicalSources=[...sourceIds].sort(order);
   const previous=unique.get(row.id);
   // Repeated pages cannot inflate frequency or disguise conflicting revisions.
   if(previous){
    if(previous.revision!==row.revision||previous.sourceId!==row.sourceId
     ||previous.text!==row.text||previous.role!==row.role||previous.eligible!==row.eligible
-    ||previous.sourceSentAt!==time)fail();
+    ||previous.sourceSentAt!==time
+    ||JSON.stringify(previous.sourceIds)!==JSON.stringify(canonicalSources))fail();
    continue;
   }
-  unique.set(row.id,{...row,sourceSentAt:time});
+  unique.set(row.id,{...row,sourceIds:canonicalSources,sourceSentAt:time});
   if(!row.eligible||row.role!=='user'||!isReusablePromptCandidate(row.text))continue;
   // Exact original text only: whitespace/code/negations are not merged by search
   // normalization. No body clipping, auto-rewrite or generated template.
   let group=groups.get(row.text);
-  if(!group){group={text:row.text,sourceRefs:[],lastSourceSentAt:null};groups.set(row.text,group);}
-  group.sourceRefs.push({kind:'input',id:row.id,revision:row.revision,sourceId:row.sourceId});
+  if(!group){group={text:row.text,sourceRefs:[],frequency:0,lastSourceSentAt:null};groups.set(row.text,group);}
+  group.frequency++;
+  for(const sourceId of canonicalSources)
+   group.sourceRefs.push({kind:'input',id:row.id,revision:row.revision,sourceId});
   if(time&&(group.lastSourceSentAt===null
     ||Date.parse(time)>Date.parse(group.lastSourceSentAt)))group.lastSourceSentAt=time;
  }
  const items=[...groups.values()].map(group=>{
   const sourceRefs=refs(group.sourceRefs);
   return Object.freeze({kind:'candidate',id:'prompt-candidate:'+sourceRefs[0].id,
-   text:group.text,frequency:sourceRefs.length,lastSourceSentAt:group.lastSourceSentAt,sourceRefs});
+   text:group.text,frequency:group.frequency,lastSourceSentAt:group.lastSourceSentAt,sourceRefs});
  });
  return page(items,settingsCopy,(a,b)=>b.frequency-a.frequency
   ||(Date.parse(b.lastSourceSentAt)||0)-(Date.parse(a.lastSourceSentAt)||0)||order(a.id,b.id));
