@@ -760,6 +760,8 @@ Implement R1 as a finite, explainable set with continue position, new meaningful
 
 ## CPV1-07.6 — V1 closure
 
+Integration receipt: `receipts/CPV1-07-V1-SCOPE-CLOSURE.md` records the certified algorithmic v1 boundary and the non-blocking experimental archive. VS-08 follows on the dependency-safe engineering frontier; real external connector deployment remains under B-03/B-05.
+
 Certify the actual local lexical search, supported fuzzy behavior and filters, historical comparison, finite Revisit, privacy/source authority and declared scale on a stable candidate and exact merged main. The archived semantic retrieval experiment is not a blocking evidence class. Any future semantic search must pass a separate quality, compatibility, resource and authorization boundary before runtime inclusion.
 
 ---
