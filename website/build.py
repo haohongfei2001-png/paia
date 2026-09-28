@@ -32,7 +32,7 @@ def build(lang):
         url=BASE+link(page)
         zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
         enurl=BASE+'/'+('' if page=='index.html' else page)
-        home_css='<link rel="stylesheet" href="/assets/website/home-core-v1.css?v=7">\n<link rel="stylesheet" href="/assets/website/home-origin-v7.css?v=7">\n<script src="/assets/website/home-core-v2.js?v=7" defer></script>\n' if page=='index.html' else ''
+        home_css='<link rel="stylesheet" href="/assets/website/home-core-v1.css?v=7">\n<link rel="stylesheet" href="/assets/website/home-origin-v7.css?v=71">\n<script src="/assets/website/home-core-v2.js?v=7" defer></script>\n' if page=='index.html' else ''
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
