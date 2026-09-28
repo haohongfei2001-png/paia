@@ -72,3 +72,26 @@ test('VS-08 per-binding local rate bound serializes concurrent calls',async()=>{
  assert.equal(settled.find(x=>x.status==='rejected').reason.code,'MEMORY_LIMIT');
  assert.equal(reads,60);
 });
+
+
+test('VS-08 all remaining read tools cross the normalized boundary',async()=>{
+ const ref={kind:'input',id:'i1',revision:0};
+ const replies={
+  query:{items:[{ref,title:'Input',snippet:'needle'}],nextCursor:null,complete:true},
+  get_by_ref:{ref,title:'Input',body:'original body',role:'human'},
+  get_task_context:{taskId:'task-1',text:'bounded Context',complete:true},
+  permission_self_check:{allowed:true}
+ };
+ const boundary=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>grant(),read:async request=>replies[request.tool]});
+ for(const request of [
+  {tool:'query',args:{text:'needle',kinds:['input']}},
+  {tool:'get_by_ref',args:{ref}},
+  {tool:'get_task_context',args:{taskId:'task-1'}},
+  {tool:'permission_self_check',args:{}}
+ ]){
+  const response=await boundary.handle('connection-1',request);
+  assert.equal(response.tool,request.tool);
+  assert.deepEqual(response.data,replies[request.tool]);
+ }
+});

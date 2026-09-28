@@ -77,7 +77,7 @@ export function createReadConnectorBoundary({authorize,read,clock=()=>Date.now()
    try{after=authority(await authorize(binding,parsed),parsed,clock());}
    catch{denied();}
    if(!same(before,after))denied();
-   return sealReadConnectorResult(parsed,result);
+   return sealReadConnectorResult({tool:parsed.tool,args:parsed.args},result);
   });
   tails.set(binding,job);
   try{return await job;}finally{if(tails.get(binding)===job)tails.delete(binding);}
