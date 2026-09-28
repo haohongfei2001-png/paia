@@ -1,0 +1,20 @@
+# CPV1-10.2 stacked product access engineering contract
+
+Canonical CPV1-10.2 requires mobile-appropriate stacked Archive / Thought / Context access. Existing production core-loop navigation already switches one product panel at a time; existing Context MaterialTray stacks at narrow widths. Retain these supported surfaces rather than choosing or activating a new mobile client architecture.
+
+## Exact completed predecessor
+
+Head561e184b6cded872badcaf176c081cd3974d3bbe; [Candidate36494511197](https://github.com/haohongfei2001-png/paia/actions/runs/36494511197) affected release/contracts/browser/unit/aggregate all SUCCESS. Actual owning Chrome15PASS/0FAIL/0SKIP/248647.543137ms, fifteenth genuine offline/cold/abrupt client closure/restart journey12138.6936ms. Actual1296unit PASS/0FAIL/0SKIP;102adapter+60privacy/security PASS; release guard269files PASS. Prior132746 offline failure remains preserved, not relabeled. Full Draft/UI/Backup/performance/scale/Mac diagnostic certification remains skipped; physical-device/mobile architecture/Source/manual-intake/voice/Sync/Backup proofs remain open or dependent-deferred.
+
+## Next bounded access journey
+
+Append one actual hosted extension Chrome journey to the existing owning file; preserve all15 preceding cases byte-exact, complete bodies/assertions/fixtures/workflows/budgets unchanged. Capture one new complete1000-paragraph Unicode/negation user Input through the actual synthetic supported-page adapter, not a manufactured storage record. At390px and320px widths:
+- open the canonical Archive reader and compare the entire rendered original body including its final tail;
+- stress the actual supported reader prose variable at24px, verify computed24px and no root horizontal overflow;
+- return through existing navigation and activate Thought and Context via trusted keyboard;
+- verify reachable44px primary controls, mutually presented existing panels, one Context workbench in the real Context panel, genuine block/stack layout, inactive drawer/non-inert app shell and no unsolicited output;
+- preserve complete canonical Source records/Input blocks and Context authorization policy exactly after each loop.
+
+Restart the actual worker and reload the existing product client; reopen the Archive reader and compare the entire committed captured input again. Assert zero provider/extension/external requests and page errors. No model, renderer mock, source rewrite, automatic Context grant, generated preview, voice permission or new mobile architecture.
+
+Exact new-head whole16browser/1296unit/contracts/privacy/release/aggregate PENDING. This tests actual hosted product access and complete large-text Source reading; the Thought/Context states are the existing unpopulated access surfaces, not certification of populated Topic reading, Context output, real-device usability, startup latency or complete VS10. Physical device and other dependent gates retain their requirements. Shared MyWrite stays DEFAULT_OFF / NOT_ACTIVATED / NOT_CERTIFIED. VS07 EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING; VS04 lexical/fuzzy/filter v1 default; Semantic Lab exclusively Input→Topic. Canonical STATUS/plan/protocol unchanged pending the earlier actual fact-append decision; rejected writes are not retried.
