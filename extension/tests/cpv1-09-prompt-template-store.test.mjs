@@ -11,6 +11,7 @@ import {ReaderStateService} from '../core/reader-state.js';
 import {readPromptCandidates} from '../core/prompt-archive-reader.js';
 import {createPromptTemplate} from '../core/prompt-reuse.js';
 import {PromptTemplateStore} from '../core/prompt-template-store.js';
+import {PromptService} from '../core/prompt-service.js';
 import {PROMPT_TEMPLATE_PREFIX,PROMPT_TEMPLATE_LIMITS,promptTemplateKey,
  validatePromptTemplateRow,validatePromptTemplateCollection} from '../core/prompt-template-data.js';
 const refused=(promise,code)=>assert.rejects(promise,error=>error.code===code
@@ -293,4 +294,70 @@ test('P1 refuses a non-portable complete ref set instead of clipping refs or cre
   {id:promptTemplateKey('duplicate'),version:1,template:createPromptTemplate({id:'duplicate',text:'First'})},
   {id:promptTemplateKey('duplicate'),version:1,template:createPromptTemplate({id:'duplicate',text:'Second'})},
  ]),error=>error.code==='PROMPT_INVALID');
+});
+
+test('P1 trusted command service rejects surplus/accessors and exposes finite model errors',async()=>{
+ const f=await fixture(),service=new PromptService(f.s);let getters=0;
+ for(const request of [null,{}, {type:'PAIA_PROMPT_UNKNOWN'},{type:123},
+  {type:'PAIA_PROMPT_PAGE',grantId:'PRIVATE_FORGED_GRANT'},
+  {type:'PAIA_PROMPT_EDIT',id:'none'},
+  {type:'PAIA_PROMPT_CANDIDATES',options:{limit:101}},
+  {type:'PAIA_PROMPT_CREATE',template:{id:'none',text:'Explicit',actor:'ai'}}])
+  await refused(service.handle(request),'PROMPT_INVALID');
+ const root={type:'PAIA_PROMPT_PAGE'};
+ Object.defineProperty(root,'options',{enumerable:true,get(){getters++;return {};}});
+ await refused(service.handle(root),'PROMPT_INVALID');
+ const options={};Object.defineProperty(options,'query',{enumerable:true,
+  get(){getters++;return 'PRIVATE_BODY';}});
+ await refused(service.handle({type:'PAIA_PROMPT_CANDIDATES',options}),'PROMPT_INVALID');
+ assert.equal(getters,0);assert.equal((await f.templates.page()).total,0);
+ assert.equal(f.requests.length,0);
+});
+test('P1 current template read fences full body against actual edits/removal before manual copy',async()=>{
+ const f=await fixture(),service=new PromptService(f.s),body='Manual full '+ '🧠'.repeat(90000)+' do not truncate.';
+ const saved=await service.handle({type:'PAIA_PROMPT_CREATE',template:{id:'read-current',text:body}});
+ assert.equal((await service.handle({type:'PAIA_PROMPT_READ',id:saved.id,expectedRevision:1})).text,body);
+ await service.handle({type:'PAIA_PROMPT_EDIT',id:saved.id,change:{expectedRevision:1,text:body+' Human edit.'}});
+ await refused(service.handle({type:'PAIA_PROMPT_READ',id:saved.id,expectedRevision:1}),'PROMPT_STALE');
+ assert.equal((await service.handle({type:'PAIA_PROMPT_READ',id:saved.id,expectedRevision:2})).text,body+' Human edit.');
+ await service.handle({type:'PAIA_PROMPT_REMOVE',id:saved.id,change:{expectedRevision:2}});
+ await refused(service.handle({type:'PAIA_PROMPT_READ',id:saved.id,expectedRevision:3}),'PROMPT_UNAVAILABLE');
+ await refused(service.handle({type:'PAIA_PROMPT_READ',id:saved.id,expectedRevision:0}),'PROMPT_INVALID');
+ assert.equal(f.requests.length,0);
+});
+test('P1 Source purge refuses a protected template before recovery cleanup callback',async()=>{
+ const f=await fixture(['Protected human prompt']),saved=await saveCandidate(f),
+  before=await canonical(f.s),gen=await generation(f.s);let effects=0;
+ await refused(f.s.permanentDelete(saved.sourceRefs[0].sourceId,async()=>{effects++;}),
+  'PROMPT_SOURCE_PURGE_REVIEW_REQUIRED');
+ assert.equal(effects,0);assert.deepEqual(await canonical(f.s),before);
+ assert.equal(await generation(f.s),gen);assert.equal((await f.templates.page()).items[0].text,saved.text);
+});
+test('P1 Source purge holds existing writer queue across admitted recovery cleanup',async()=>{
+ const f=await fixture(['Human prompt at cleanup boundary']),c=await candidate(f);
+ let admit,release,effects=0;
+ const entered=new Promise(resolve=>{admit=resolve;}),blocked=new Promise(resolve=>{release=resolve;});
+ const purging=f.s.permanentDelete(c.sourceRefs[0].sourceId,async ids=>{
+  effects++;assert.deepEqual(ids,[c.sourceRefs[0].sourceId]);assert.equal(Object.isFrozen(ids),true);
+  admit();await blocked;
+ });
+ await entered;
+ const creating=f.templates.create({id:'cannot-race-purge',text:c.text,sourceRefs:c.sourceRefs});
+ // Observe the refusal from the start, avoiding an unhandled rejected promise.
+ const result=creating.then(value=>({value}),error=>({code:error.code}));
+ release();await purging;
+ assert.equal(effects,1);assert.equal((await result).code,'PROMPT_UNAVAILABLE');
+ assert.equal((await rows(f.s,'records')).length,0);assert.equal((await f.templates.page()).total,0);
+});
+test('P1 failed recovery cleanup retains canonical Source and refuses before purge commit',async()=>{
+ const f=await fixture(['Original Source for failed cleanup']),c=await candidate(f),
+  before=await canonical(f.s),gen=await generation(f.s);let effects=0;
+ await assert.rejects(f.s.permanentDelete(c.sourceRefs[0].sourceId,async()=>{
+  effects++;throw new Error('Synthetic recovery cleanup failure');
+ }),/Synthetic recovery cleanup failure/);
+ assert.equal(effects,1);assert.deepEqual(await canonical(f.s),before);
+ assert.equal(await generation(f.s),gen);
+ const ids=[];await f.s.permanentDelete(c.sourceRefs[0].sourceId,async all=>{ids.push(...all);});
+ assert.deepEqual(ids,[c.sourceRefs[0].sourceId]);assert.equal((await rows(f.s,'records')).length,0);
+ assert.equal(f.requests.length,0);
 });

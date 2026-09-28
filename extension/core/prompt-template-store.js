@@ -1,4 +1,4 @@
-// Detached P1 persistence service. No dispatcher, provider-input, clipboard,
+// P1 persistence service. No provider-input, clipboard,
 // network, Semantic Lab runtime or external Memory permission is added here.
 import {ArchiveError} from './constants.js';
 import {createPromptTemplate,editPromptTemplate,removePromptTemplate,promptTemplatePage} from './prompt-reuse.js';
@@ -82,6 +82,17 @@ export class PromptTemplateStore {
   await this.ready();return this.s.run(()=>this.s.repository.transaction(false,async t=>{
    const templates=await promptTemplatesInTransaction(t);
    return promptModelCall(()=>promptTemplatePage(templates,settings));
+  }));
+ }
+ async read(id,expectedRevision){
+  const key=promptTemplateKey(id);
+  if(!Number.isSafeInteger(expectedRevision)||expectedRevision<1)fail('PROMPT_INVALID');
+  await this.ready();return this.s.run(()=>this.s.repository.transaction(false,async t=>{
+   const saved=await t.get('meta',key);if(!saved)fail('PROMPT_UNAVAILABLE');
+   const template=validatePromptTemplateRow(saved).template;
+   if(template.lifecycle!=='active')fail('PROMPT_UNAVAILABLE');
+   if(template.revision!==expectedRevision)fail('PROMPT_STALE');
+   return template;
   }));
  }
  async trace(id){

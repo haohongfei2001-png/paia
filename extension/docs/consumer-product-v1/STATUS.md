@@ -10,11 +10,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_CANDIDATE
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_CANDIDATE
 
-current_round: CPV1-09.1 — local Prompt templates, restart and portable Backup
+current_round: CPV1-09.1 — trusted Prompt commands and recovery-preserving Source purge
 
-current_round_status: VERIFYING / P1_TEMPLATE_PERSISTENCE_CI_PENDING / P1_UI_NOT_IMPLEMENTED
+current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_CI_PENDING / P1_UI_NOT_IMPLEMENTED
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,18 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## CPV1-09.1 trusted local Prompt commands and recovery-preserving Source purge — 2026-09-28
+
+Exact parent45b0e0e8bf8af0a0ac9f4e5078c3ee395dd11bc1, tree5f33e454baa0a9f6099dda85e005481f323729e1. Candidate36445776220 completed SUCCESS. Actual unit1090075847171256PASS/0FAIL/0SKIPPED including all12 persistence cases; contracts/privacy and release passed. Browser/scale/hosted Mac diagnostics and full Draft Certification skipped. Immutable receipts/CPV1-09.1-PROMPT-PERSISTENCE-ENGINEERING-PASS.md records that exact detached persistence pass, without claiming P1 UI certification.
+
+Continue the same P1 integration: PAIA_PROMPT_CANDIDATES/PAGE/CREATE/EDIT/REMOVE/READ/TRACE are exact trusted-extension-page and consent-gated local messages. Root/nested descriptors and finite command fields refuse accessor/surplus/AI/Grant input; errors contain finite codes only. Manual-copy preparation reads complete current saved text with an expected-revision check; stale/removed templates refuse. Successful human mutations emit a body-free PAIA_PROMPTS_CHANGED invalidation. Prompt commands cannot wake a provider, enter content-script transport, capture a reply, grant external Memory access or write clipboard/provider input. The panel/manual gesture still remains subsequent work.
+
+Source inspection found the worker cleared Chrome recovery drafts before the existing canonical Source purge transaction could reject B02's active human Prompt derivative. Pass recovery cleanup into the existing queued purge primitive. Resolve the complete current Source identity set and check active canonical templates in a readonly preflight BEFORE cleanup; hold the existing store writer queue across preflight, asynchronous Chrome storage cleanup and final purge transaction. Prompt/Backup/Source writes on the canonical worker use that same queue. No IDB transaction spans Chrome storage, no duplicate durable lock/store/index/DDL is added, and the final canonical beforeSourcePurge guard remains authoritative. Cleanup failure refuses before Source commit; blocked B02 leaves recovery drafts and Source/Input untouched. This is the current single-worker engineering boundary, not a multi-process crash-atomic certificate or an invented B02 human-derivative purge policy.
+
+Eight owning cases retain every previous test: five actual IDB/domain cases for finite envelopes/getters, full180k Unicode current-read/edit/remove admission, blocked pre-effect, queued simultaneous template creation and cleanup-failure/retry; three real service-worker/fake-Chrome+IDB cases for trusted caller/consent/no-body/no-filter notifications, actual protected recovery preservation and storage failure before deletion. No fixture, assertion, selector, timeout or gate is removed. Source/template-only removal still does not edit original Input; clean Source purge still clears affected recovery material before deleting Source.
+
+Static grammar PASS only. New-head candidate CI PENDING. P1 panel/manual copy/Source navigation, P2 append/replace/draft protection/manual-send and current browser/live evidence remain engineering-open; no P1/VS09/product completion claim. External Context/Passport, real owner/device/security gates remain dependent-deferred. Semantic assets EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING; VS04 lexical/fuzzy/filter remains default and Semantic Lab owns Input → Topic exclusively.
 
 ## CPV1-09.1 local Prompt persistence, restart and portable Backup candidate — 2026-09-28
 

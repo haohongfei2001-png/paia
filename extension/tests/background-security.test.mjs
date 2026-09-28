@@ -571,3 +571,105 @@ test('foundation worker: time-only CAPTURE notifies readers but unchanged replay
  app.notifications.length=0;assert.equal((await app.send(q,content)).data.timeChanged,false);
  await new Promise(resolve=>setImmediate(resolve));assert.equal(app.notifications.filter(n=>n.cause==='CAPTURE').length,0);
 });
+
+test('CPV1-09 Prompt commands are exact trusted-page-only, consent gated and private-safe',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});
+ const h=await fixture(),commands=[
+  {type:'PAIA_PROMPT_CANDIDATES'},{type:'PAIA_PROMPT_PAGE'},
+  {type:'PAIA_PROMPT_CREATE',template:{id:'manual',text:'Explicit fixed human prompt'}},
+  {type:'PAIA_PROMPT_EDIT',id:'manual',change:{expectedRevision:1,pinned:false}},
+  {type:'PAIA_PROMPT_REMOVE',id:'manual',change:{expectedRevision:1}},
+  {type:'PAIA_PROMPT_READ',id:'manual',expectedRevision:1},
+  {type:'PAIA_PROMPT_TRACE',id:'manual'},
+ ];
+ for(const request of commands){
+  for(const sender of [content,{...ui,id:'foreign-extension'},{...ui,url:ui.url+'?spoof=1'},
+   {...ui,url:ui.url+'#spoof'}, {...ui,url:EXTENSION_ORIGIN+'ui/response-time.html'}])
+   await expectError(h.send(request,sender),'FORBIDDEN');
+  await expectError(h.send(request),'CONSENT_REQUIRED');
+ }
+ await h.send({type:'CONSENT',accepted:true});
+ const before=(await h.send({type:'GET_STATE'})).data.records;h.notifications.length=0;
+ assert.equal((await h.send(commands[0],popup)).data.total,0);
+ assert.equal((await h.send(commands[1])).data.total,0);
+ assert.equal((await h.send(commands[2])).data.revision,1);
+ assert.equal((await h.send({type:'PAIA_PROMPT_EDIT',id:'manual',
+  change:{expectedRevision:1,pinned:false}})).data.revision,2);
+ await expectError(h.send({type:'PAIA_PROMPT_READ',id:'manual',expectedRevision:1}),'PROMPT_STALE');
+ const read=await h.send({type:'PAIA_PROMPT_READ',id:'manual',expectedRevision:2});
+ assert.equal(read.data.text,'Explicit fixed human prompt');
+ assert.deepEqual((await h.send(commands[6])).data.sourceRefs,[]);
+ await expectError(h.send({type:'PAIA_PROMPT_CREATE',template:{id:'secret',text:'PRIVATE_CANARY',reply:'PRIVATE_AI'}}),'PROMPT_INVALID');
+ await expectError(h.send({type:'PAIA_PROMPT_PAGE',grantId:'PRIVATE_TOKEN'}),'PROMPT_INVALID');
+ await expectError(h.send({type:'PAIA_PROMPT_CANDIDATES',options:{limit:101}}),'PROMPT_INVALID');
+ assert.equal((await h.send({type:'PAIA_PROMPT_REMOVE',id:'manual',
+  change:{expectedRevision:2}})).data.lifecycle,'removed');
+ await expectError(h.send({type:'PAIA_PROMPT_READ',id:'manual',expectedRevision:3}),'PROMPT_UNAVAILABLE');
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(h.notifications.filter(n=>n.type==='PAIA_PROMPTS_CHANGED').length,3);
+ assert.equal(h.notifications.filter(n=>n.type==='ARCHIVE_CHANGED'&&n.cause?.startsWith('PAIA_PROMPT_')).length,0);
+ assert.doesNotMatch(JSON.stringify(h.notifications),/PRIVATE_|Explicit fixed/);
+ assert.deepEqual((await h.send({type:'GET_STATE'})).data.records,before);
+});
+async function promptWorkerCapture(h,text='Protected reusable human prompt'){
+ await h.send({type:'CONSENT',accepted:true});const epoch=(await h.send({type:'GET_STATUS'})).data.epoch;
+ assert.equal((await h.send(capture(epoch,{messages:[{
+  sourceMessageId:'synthetic-message-001',pageOrder:1,originalText:text,
+ }]}),content)).ok,true);
+ const state=(await h.send({type:'GET_STATE'})).data;
+ const result=await h.send({type:'PAIA_PROMPT_CANDIDATES'});
+ assert.equal(result.ok,true);assert.equal(result.data.total,1);
+ assert.equal(result.data.complete,true);assert.equal(result.data.items[0].text,text);
+ return {state,candidate:result.data.items[0]};
+}
+async function promptWorkerDraft(h,state){
+ const owner=state.library.documents[0],block=state.library.blocks[0];
+ const draft={kind:'document',ownerId:owner.id,token:'protected-recovery-token',
+  operation:{type:'EDIT_DOCUMENT',edit:{operationId:'protected-recovery-operation',
+   documentId:owner.id,blocks:[{id:block.id,libraryText:'PRIVATE_UNSAVED_HUMAN_DRAFT'}]}}};
+ const result=await h.send({type:'PAIA_RECOVERY_DRAFT_SAVE',draft});
+ assert.equal(result.ok,true);assert.deepEqual(result.data.sourceRecordIds,[state.records[0].id]);
+ return draft;
+}
+test('CPV1-09 blocked Source purge retains actual Chrome recovery draft and canonical Input',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});
+ const h=await fixture(),{state,candidate}=await promptWorkerCapture(h),draft=await promptWorkerDraft(h,state);
+ assert.equal((await h.send({type:'PAIA_PROMPT_CREATE',template:{
+  id:'protected',text:candidate.text,sourceRefs:candidate.sourceRefs,
+ }})).ok,true);
+ const before=h.persisted(),sources=(await h.send({type:'GET_STATE'})).data.records;
+ h.notifications.length=0;
+ const result=await h.send({type:'PURGE_SOURCE',id:state.records[0].id,confirm:true});
+ assert.deepEqual(result,{ok:false,error:'PROMPT_SOURCE_PURGE_REVIEW_REQUIRED'});
+ assert.deepEqual(h.persisted(),before);
+ assert.deepEqual((await h.send({type:'GET_STATE'})).data.records,sources);
+ const loaded=await h.send({type:'PAIA_RECOVERY_DRAFT_LOAD',
+  draft:{kind:draft.kind,ownerId:draft.ownerId}});
+ assert.equal(loaded.data.token,draft.token);
+ assert.equal(loaded.data.operation.edit.blocks[0].libraryText,'PRIVATE_UNSAVED_HUMAN_DRAFT');
+ assert.equal((await h.send({type:'PAIA_PROMPT_PAGE'})).data.items[0].text,candidate.text);
+ assert.equal(h.notifications.filter(n=>n.cause==='PURGE_SOURCE').length,0);assert.doesNotMatch(JSON.stringify(result),/PRIVATE_|human prompt/);
+ assert.equal((await h.send({type:'PAIA_PROMPT_REMOVE',id:'protected',change:{expectedRevision:1}})).ok,true);
+ assert.equal((await h.send({type:'PURGE_SOURCE',id:state.records[0].id,confirm:true})).ok,true);
+ assert.equal((await h.send({type:'PAIA_RECOVERY_DRAFT_LOAD',
+  draft:{kind:draft.kind,ownerId:draft.ownerId}})).data,null);
+ assert.equal((await h.send({type:'GET_STATE'})).data.records.length,0);
+ assert.equal((await h.send({type:'PAIA_PROMPT_PAGE'})).data.total,0);
+});
+test('CPV1-09 cleanup storage failure leaves Source and draft intact before native purge',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});
+ const h=await fixture(),{state}=await promptWorkerCapture(h),draft=await promptWorkerDraft(h,state);
+ const local=globalThis.chrome.storage.local,remove=local.remove;
+ local.remove=async keys=>{if((Array.isArray(keys)?keys:[keys]).some(k=>k.startsWith('paia-recovery-draft:v1:')))
+  throw new Error('PRIVATE_STORAGE_FAILURE_CANARY');return remove.call(local,keys);};
+ const before=h.persisted();
+ const result=await h.send({type:'PURGE_SOURCE',id:state.records[0].id,confirm:true});
+ assert.deepEqual(result,{ok:false,error:'STORAGE_FAILED'});assert.deepEqual(h.persisted(),before);
+ assert.deepEqual((await h.send({type:'GET_STATE'})).data.records,state.records);
+ local.remove=remove;
+ assert.equal((await h.send({type:'PAIA_RECOVERY_DRAFT_LOAD',
+  draft:{kind:draft.kind,ownerId:draft.ownerId}})).data.token,draft.token);
+ assert.equal((await h.send({type:'PURGE_SOURCE',id:state.records[0].id,confirm:true})).ok,true);
+ assert.equal((await h.send({type:'GET_STATE'})).data.records.length,0);
+ assert.doesNotMatch(JSON.stringify(result),/PRIVATE_/);
+});

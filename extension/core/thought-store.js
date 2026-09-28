@@ -1,3 +1,4 @@
+import {beforePromptSourcePurge} from './prompt-template-data.js';
 import {BINDING_ROW,applyBinding,classifyBinding,thoughtLayout,bindingRead,migrateBindings,reverseSetting,prepareBodyEdit} from './thought-binding.js';
 import {IndexedArchiveStore} from './indexed-store.js';
 import {editSection,checkRestore,restoreOrganization} from './thought-organization.js';
@@ -25,8 +26,9 @@ export class LibraryFoundationStore extends SmartFilterStore {
  async snapshot(){await this.finishFoundation();return super.snapshot();}
  evidenceFor(specs,options) {return evidenceFor(this,specs,options);}
  invalidate(t,inputId,reason,revision) {return enqueueInvalidation(this,t,inputId,reason,revision);}
- async purge(id,permanent=false){const result=await super.purge(id,permanent);return {...result,libraryCleanup:'pending'};}
- permanentDelete(id){return this.purge(id,true);}
+ async purge(id,permanent=false,beforeEffects=null){await this.finishFoundation();const result=await super.purge(id,permanent,beforeEffects);return {...result,libraryCleanup:'pending'};}
+ permanentDelete(id,beforeEffects=null){return this.purge(id,true,beforeEffects);}
+ beforeSourcePurgeEffects(t,records){return beforePromptSourcePurge(t,records.map(record=>record.id));}
  beforeSourcePurge(t,records,blocks) {return beforeSourcePurge(this,t,records,blocks);}
  async processInvalidations(options={}) {await this.finishFoundation();return invalidationBatch(this,options.limit??100);}
  async processPurgeCleanup(options={}) {await this.finishFoundation();return purgeBatch(this,options.limit??100);}
