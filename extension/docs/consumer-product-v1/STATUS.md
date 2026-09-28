@@ -10,11 +10,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_CANDIDATE
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_RECOVERY_CANDIDATE
 
 current_round: CPV1-09.1 — human Prompt workspace and protected manual copy
 
-current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_ENGINEERING_PASS / P1_UI_CANDIDATE
+current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_ENGINEERING_PASS / P1_UI_RECOVERY_CANDIDATE
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,16 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## CPV1-09.1 full Prompt UI recovery candidate — 2026-09-29
+
+Exact parent 8e6da5e34f3730cace21e53139ba56da10bf785d, tree1317eb55c3722e43ea726dde6e9b510b3cda2c5d. Candidate36455142289 is FAILED, not certified: unit1090394616321262PASS/0FAIL/0SKIPPED; contracts109039461479102adapter and60privacy/security PASS; release109039461171 PASS; owning browser1090394613411PASS/1FAIL/0SKIPPED; aggregate109041130740 FAIL. The first full journey reached worker restart/reload, then line70 read an empty editor immediately after an asynchronous saved-template selection. The second full26-template pagination/stale-copy/dirty-close/removal journey PASS. Preserve this failed receipt in receipts/CPV1-09.1-PROMPT-UI-8e6da5e-FAILED.md. No unchanged-head rerun.
+
+Repair the actual selection completion oracle before retaining every exact full-body, Source preservation, Unicode/XSS, restart,26-row pagination and zero-network/clipboard-read assertion. UI announces the pending complete read and keeps actions/Escape blocked until READ/TRACE settles. A candidate create ID now belongs to the selected explicit save attempt and survives an unknown/lost response; manual retry sends the same ID to the existing duplicate-refusing store. No automatic replay or durable schema change. Unknown transport status honestly asks the user to verify saved templates, without claiming that the commit failed.
+
+Add a third actual hosted Chrome/IndexedDB journey: a full human candidate commits through the real worker before the response alone is lost; the first command is not automatically repeated; an explicit second click receives the existing duplicate-ID refusal, retaining exactly one full template/revision/all Source refs. A held real complete READ keeps save/copy/close disabled and Escape refuses; releasing it restores the exact full body and associations, followed by one explicit full copy. Source/Input snapshots remain exact and network/provider/clipboard-read effects remain zero. All prior fixtures, assertions, test timeouts, complete unit/adapter/privacy/release and owning browser selections remain. No semantic/runtime research, permissions, external writes or deployment.
+
+Static grammar only PASS; this repair candidate's GitHub Actions evidence PENDING. P1/VS09/product certification remains NOT_CERTIFIED. Direct Source-record detail navigation, remaining adversarial/accessibility evidence and P2 protected insertion remain engineering-open. B02 policy stays dependent-deferred. Approved minimal detached Context external/Passport/live/security paths DEFAULT_OFF/deferred. VS07 EXPERIMENTAL/DEFAULT_OFF/NON-BLOCKING; VS04 lexical/fuzzy/filter is PAIA v1 default; Semantic Lab alone owns Input→Topic.
 
 ## CPV1-09.1 P1 human Prompt workspace candidate — 2026-09-28
 
