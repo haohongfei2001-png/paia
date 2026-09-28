@@ -140,7 +140,9 @@ export function createMyWriteComposer({document,store,draftId,topics=[]}){
    render(row?'本地草稿已恢复。':'开始写作，完成后保存本地草稿。');
   }catch(error){if(!closed){loaded=true;blocked=true;refused(error);}}
  })();
- return Object.freeze({element,ready,getDraftReference(){
+ return Object.freeze({element,ready,canReplace(){
+  return !closed&&loaded&&!pending&&!composition&&!dirty&&!retry&&!blocked;
+ },getDraftReference(){
   return closed||!ack?null:Object.freeze({id:ack.id,revision:ack.revision});
  },dispose(){
   if(closed)return;closed=true;generation++;
