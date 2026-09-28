@@ -3,7 +3,7 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 import {inputDigest,goldenBundle} from './compatibility-gate.mjs';
-import {group} from './test-groups.mjs';
+import {group,testShard} from './test-groups.mjs';
 const require=createRequire(import.meta.url);
 if(!process.env.PLAYWRIGHT_MODULE){try{process.env.PLAYWRIGHT_MODULE=require.resolve('playwright');}catch{}}
 process.chdir(fileURLToPath(new URL('../',import.meta.url)));
@@ -20,7 +20,7 @@ const shardSpec=process.env.PAIA_TEST_SHARD||'';
 if(shardSpec){
  const match=/^(\d+)\/(\d+)$/.exec(shardSpec),index=Number(match?.[1]),total=Number(match?.[2]);
  if(!match||!Number.isSafeInteger(index)||!Number.isSafeInteger(total)||index<1||total<1||index>total||total>16)throw Error('PAIA_TEST_SHARD must be N/M with 1 <= N <= M <= 16');
- files=files.filter((_,i)=>i%total===index-1);
+ files=files.filter((file,i)=>testShard(file,i,total,requested)===index);
  if(!files.length)throw Error('PAIA_TEST_SHARD selected no test files');
  console.log(`PAIA test shard ${index}/${total}: ${files.length} files`);
 }

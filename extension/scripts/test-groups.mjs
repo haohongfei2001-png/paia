@@ -39,3 +39,15 @@ export function group(file) {
  if(['history-privacy-v090.test.mjs','import-security.test.mjs','background-security.test.mjs','privacy-product.test.mjs','diagnostics.test.mjs','compat-sanitizer.test.mjs'].includes(name))return 'privacy/security';
  return 'unit';
 }
+
+/**
+ * Keep the complete current browser corpus within the existing hosted-job
+ * budget. The historical comparison file took about six minutes and made
+ * browser shard 2 exceed its 18-minute limit beside the large UX-R4 file.
+ * Route that whole file to the previously light shard 4; never split cases.
+ */
+export function testShard(file, position, total, category) {
+ if(category==='browser E2E'&&total===4
+    &&file.split('/').at(-1)==='cpv1-07-historical-comparison-chrome-e2e.test.mjs')return 4;
+ return position%total+1;
+}

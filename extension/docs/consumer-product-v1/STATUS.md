@@ -14,7 +14,7 @@ current_slice_status: SCOPE_CORRECTION_CANDIDATE — VS-06_ENGINEERING_COMPLETE 
 
 current_round: VS-07 scope correction / VS-04 algorithmic search + historical comparison + finite Revisit
 
-current_round_status: SCOPE_CORRECTION_REPAIR_CANDIDATE / EXPERIMENTAL_DEFAULT_OFF_NON_BLOCKING / LEXICAL_FUZZY_FILTER_DEFAULT / REVISIT_AND_HISTORICAL_TARGETED_PASS / FIRST_FULL_CERT_FAILED_CLASSIFIED
+current_round_status: SCOPE_CORRECTION_SHARD_REPAIR_CANDIDATE / EXPERIMENTAL_DEFAULT_OFF_NON_BLOCKING / LEXICAL_FUZZY_FILTER_DEFAULT / TWO_FULL_CERT_FAILURES_CLASSIFIED
 
 current_writer: MANAGER / sole VS-07 Batch A branch feat/vs07-retrieval-evaluation
 
@@ -27,6 +27,10 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## VS-07 balanced-certification repair, 2026-09-28
+
+Corrected head `d21d1666c5dfc28b255c46f2ef5d5f9e23d39634` passed affected Candidate Gate `36384120185`. Its first full certification `36385027029` did not pass: unit, contracts/privacy, release, hosted Mac and current-browser shards 1/3/4 passed, but browser shard 2 was canceled at its existing 18-minute limit after 56 passing cases. It contained both the complete long historical comparison suite and the large UX-R4 suite because simple modulo sharding became uneven when experimental tests left the v1 default group. The repair moves the whole historical comparison test file to the previously light browser shard 4. No case, assertion, fixture, job time limit or product runtime is reduced. The coverage contract verifies every current browser file remains in exactly one shard, with the comparison suite in shard 4. A new affected candidate and then full certification on the corrected stable head are required before merge.
 
 ## VS-07 scope-correction certification repair, 2026-09-28
 
