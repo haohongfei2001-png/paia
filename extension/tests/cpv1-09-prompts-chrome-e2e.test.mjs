@@ -914,7 +914,8 @@ test('CPV1-10 inactive MyWrite composer preserves complete typing, explicit pers
   assert.equal(await preview(p).inputValue(),full);assert.equal(await preview(p).getAttribute('readonly'),'');
   assert.match(await status(p).textContent(),/2024-07-03T09:46:40.000Z/);
   await p.getByRole('button',{name:'关闭预览',exact:true}).click();
-  assert.equal(await preview(p).inputValue(),'');
+  assert.equal(await preview(p).isVisible(),false);
+  assert.equal(await p.locator('#mywrite-fixture [aria-label="完整草稿正文"]').inputValue(),'');
   const amended=full+'\n更正全文；保留尾部，不要截断。';
   await editor(p).fill(amended);
   // Inject quota at the actual native object-store put. Production transaction
@@ -990,5 +991,124 @@ test('CPV1-10 inactive MyWrite composer preserves complete typing, explicit pers
   assert.equal(await q.locator('#mywrite-fixture').count(),0);
   assert.deepEqual((await h.state()).records,original.records);assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+
+test('CPV1-10 MyWrite changed typing resolves committed lost acknowledgements without replay or overwriting another client',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);const fixture=conversation('mywrite-ack-continuity',1200);
+  const captured=await h.open(fixture);await h.ready(captured);
+  await eventually(async()=>(await h.state()).library.blocks.length===fixture.messages.length);
+  const original=await h.state();
+  const q=await h.context.newPage();await q.goto(p.url());await q.waitForSelector('#prompt-open');
+  const full=Array.from({length:1000},(_,i)=>'回执第'+i+'段🧭：保留全文，不要替换新的输入。\n').join('')+'完整尾部，绝对不要自动发送。';
+  for(const page of [p,q])await page.evaluate(async()=>{
+   const {MyWriteDraftStore,MyWriteDraftError}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   globalThis.ackError=MyWriteDraftError;
+   globalThis.ackStore=new MyWriteDraftStore({name:'paia-mywrite-ack-continuity-v1',clock:()=>1720000000000});
+   globalThis.actualAckSave=ackStore.save.bind(ackStore);
+   globalThis.actualAckRead=ackStore.read.bind(ackStore);
+  });
+  await p.evaluate(async()=>{
+   const {createMyWriteComposer}=await import(chrome.runtime.getURL('ui/mywrite-composer.js'));
+   globalThis.ackComposer=createMyWriteComposer({document,store:ackStore,draftId:'draft:continuity',
+    topics:[{id:'topic:optional',label:'我的 Topic'}]});
+   ackComposer.element.id='mywrite-ack-fixture';
+   ackComposer.element.style.cssText+=';position:fixed;inset:16px;overflow:auto;z-index:2147483647';
+   document.body.append(ackComposer.element);await ackComposer.ready;
+  });
+  const editor=p.getByRole('textbox',{name:'草稿正文',exact:true});
+  const save=p.getByRole('button',{name:'保存本地草稿',exact:true});
+  const status=p.locator('#mywrite-ack-fixture [role=status]');
+  const read=()=>p.evaluate(()=>actualAckRead('draft:continuity'));
+  const saved=()=>eventually(async()=>await status.textContent()==='本地草稿已保存。');
+  await editor.fill(full);
+  // Commit real IndexedDB first and hold only its acknowledgement. More
+  // trusted typing must survive the late result while the baseline advances.
+  await p.evaluate(()=>{
+   ackStore.save=async command=>{
+    const row=await actualAckSave(command);
+    await new Promise(resolve=>globalThis.releaseAckSave=resolve);
+    ackStore.save=actualAckSave;return row;
+   };
+  });
+  await save.click();await eventually(async()=>await p.evaluate(()=>typeof releaseAckSave==='function'));
+  const changed=full+'\n首次回执未到时的新正文。';
+  await editor.fill(changed);await p.evaluate(()=>releaseAckSave());
+  await eventually(async()=>/当前更改尚未保存/.test(await status.textContent()));
+  assert.equal(await editor.inputValue(),changed);assert.equal((await read()).text,full);
+  assert.equal((await read()).revision,1);assert.equal(await save.isDisabled(),false);
+  await p.evaluate(()=>{
+   ackStore.save=async command=>{await actualAckSave(command);
+    ackStore.save=actualAckSave;throw new ackError('MYWRITE_UNAVAILABLE');};
+  });
+  await save.click();await eventually(async()=>/暂不可用/.test(await status.textContent()));
+  const committed=await read();assert.equal(committed.text,changed);assert.equal(committed.revision,2);
+  const clickBody=full+'\n回执丢失后继续编辑的完整正文。';
+  const laterBody=clickBody+'\n核对回执期间又键入的尾部。';
+  await editor.fill(clickBody);
+  await p.getByRole('combobox',{name:'草稿 Topic'}).selectOption('topic:optional');
+  await p.evaluate(()=>{
+   ackStore.read=async id=>{const row=await actualAckRead(id);
+    await new Promise(resolve=>globalThis.releaseAckRead=resolve);
+    ackStore.read=actualAckRead;return row;
+   };
+  });
+  await save.click();await eventually(async()=>await p.evaluate(()=>typeof releaseAckRead==='function'));
+  assert.equal(await save.isDisabled(),true);
+  await editor.fill(laterBody);await p.evaluate(()=>releaseAckRead());
+  await eventually(async()=>/当前更改尚未保存/.test(await status.textContent()));
+  const reconciled=await read();
+  assert.equal(reconciled.revision,3,'one new revision after actual readback; old body is never replayed');
+  assert.equal(reconciled.text,clickBody);assert.equal(reconciled.topicId,'topic:optional');
+  assert.equal(reconciled.createdAt,committed.createdAt);
+  assert.equal(await editor.inputValue(),laterBody);
+  assert.deepEqual(await p.evaluate(()=>ackComposer.getDraftReference()),{id:committed.id,revision:3});
+  await save.click();await saved();const current=await read();
+  assert.equal(current.text,laterBody);assert.equal(current.revision,4);
+  // An actual put abort is not a committed lost ACK. Changed typing saves
+  // directly from the unchanged baseline without writing the aborted body.
+  const aborted=full+'\n这一次完整正文遇到空间不足。';
+  await editor.fill(aborted);await p.evaluate(()=>{
+   const real=IDBObjectStore.prototype.put;
+   IDBObjectStore.prototype.put=function(...args){
+    IDBObjectStore.prototype.put=real;
+    throw new DOMException('PRIVATE_ABORTED_ACK','QuotaExceededError');
+   };
+  });
+  await save.click();await eventually(async()=>/本地空间不足/.test(await status.textContent()));
+  assert.deepEqual(await read(),current);
+  const afterAbort=full+'\n空间恢复后重新更正的完整正文。';
+  await editor.fill(afterAbort);await save.click();await saved();
+  const fifth=await read();assert.equal(fifth.revision,5);assert.equal(fifth.text,afterAbort);
+  assert.equal(fifth.createdAt,current.createdAt);assert.equal(fifth.topicId,'topic:optional');
+  // A second actual connection changes the authority after a committed lost
+  // ACK. Readback must block the old client rather than adopt that other work.
+  const uncertainBody=full+'\n再次丢失回执时保存的全文。';
+  await editor.fill(uncertainBody);await p.evaluate(()=>{
+   ackStore.save=async command=>{await actualAckSave(command);
+    ackStore.save=actualAckSave;throw new ackError('MYWRITE_UNAVAILABLE');};
+  });
+  await save.click();await eventually(async()=>/暂不可用/.test(await status.textContent()));
+  assert.equal((await read()).revision,6);assert.equal((await read()).text,uncertainBody);
+  const otherBody=full+'\n另一窗口当前已经完成的全文。';
+  const other=await q.evaluate(async text=>actualAckSave({
+   id:'draft:continuity',expectedRevision:6,text,topicId:null,operationId:'save:other-window'
+  }),otherBody);
+  const unsaved=full+'\n本窗口回执未确认后的完整未保存工作。';
+  await editor.fill(unsaved);await save.click();
+  await eventually(async()=>/另一窗口/.test(await status.textContent()));
+  assert.equal(await editor.inputValue(),unsaved);assert.equal(await save.isDisabled(),true);
+  assert.equal(await p.getByRole('button',{name:'查看完整草稿',exact:true}).isDisabled(),true);
+  assert.deepEqual(await read(),other);assert.equal(other.revision,7);assert.equal(other.text,otherBody);
+  assert.doesNotMatch(await status.textContent(),/PRIVATE_/);
+  await p.evaluate(()=>{ackComposer.dispose();ackStore.close();});await q.evaluate(()=>ackStore.close());
+  assert.equal(await p.locator('#mywrite-ack-fixture').count(),0);
+  assert.deepEqual((await h.state()).records,original.records);
+  assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
