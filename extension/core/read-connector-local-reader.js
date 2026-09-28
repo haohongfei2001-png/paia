@@ -1,5 +1,6 @@
 import {ArchiveError} from './constants.js';
 import {materialRead} from './manual-materials.js';
+import {policy,topicActive} from './memory/model.js';
 import {parseReadConnectorRequest,READ_CONNECTOR_RESULT_LIMITS} from './read-connector-contract.js';
 import {rankLexicalCandidate,searchExcerpt} from './search-service.js';
 
@@ -36,15 +37,42 @@ export function createLocalReadConnectorReader(memory){
      ||!Array.isArray(scope.allowedKinds))denied();
   await memory.ready();
   if(parsed.tool==='list_material'||parsed.tool==='query'){
-   // Topic/AI presentation profile admission is not implemented yet.
-   if(parsed.args.kinds.some(kind=>kind==='topic'
-      ||!scope.allowedKinds.includes(kind)))denied();
+   // Topic query requires an independently admitted human note/AI result.
+   if(parsed.args.kinds.some(kind=>!scope.allowedKinds.includes(kind))
+      ||parsed.tool==='query'&&parsed.args.kinds.includes('topic'))denied();
    const query=parsed.tool==='query'?parsed.args.text:'';
    const before=await candidates(scope.profileId,query);
    if(before.partial)limited(); // never claim complete over a capped scan
+   let topicItems=[];
+   if(parsed.tool==='list_material'&&parsed.args.kinds.includes('topic')){
+    const temporary=await memory.temporary();
+    if(temporary.revision!==before.sessionRevision)denied();
+    topicItems=await memory.s.run(()=>memory.s.repository.transaction(false,async t=>{
+     const state=await memory.state(t);
+     if(state.profiles.find(p=>p.profileId===scope.profileId)?.revision
+        !==before.profile.revision
+        ||((await t.get('meta','backup-data-generation'))?.value||0)
+          !==before.generation)denied();
+     const topics=(await t.all('topics')).filter(topicActive);
+     if(topics.length>20000)limited();
+     const rule=policy(state.rows,scope.profileId,temporary.grants,
+      new Map(topics.map(topic=>[topic.id,topic])));
+     const items=[];
+     for(const topic of topics){
+      if(rule.decision(topic.id)!=='allowed')continue;
+      const title=await memory.safeLabel(t,topic,'name');
+      if(!title?.trim())continue;
+      if(typeof topic.id!=='string'||topic.id.length>200
+         ||[...title].length>READ_CONNECTOR_RESULT_LIMITS.titleCharacters)unavailable();
+      items.push({kind:'topic',id:topic.id,title});
+     }
+     return items;
+    }));
+   }
    const values=before.candidates.filter(c=>parsed.args.kinds.includes(kindOf(c)))
     .map(c=>parsed.tool==='query'?rankLexicalCandidate({...c,relatedScore:0},query):c)
     .filter(c=>parsed.tool!=='query'||c.score>0)
+    .concat(topicItems)
     .sort((a,b)=>parsed.tool==='query'?(b.score-a.score
       ||String(a.id).localeCompare(String(b.id)))
       :String(a.id).localeCompare(String(b.id)));
@@ -61,6 +89,7 @@ export function createLocalReadConnectorReader(memory){
    }
    const selected=values.slice(offset,offset+parsed.args.limit);
    const items=selected.map(c=>{
+    if(c.kind==='topic')return {kind:'topic',id:c.id,title:c.title};
     const title=titleOf(c),ref=refOf(c);
     if(!ref.kind||typeof ref.id!=='string'||!ref.id
        ||ref.id.length>200||!Number.isSafeInteger(ref.revision)

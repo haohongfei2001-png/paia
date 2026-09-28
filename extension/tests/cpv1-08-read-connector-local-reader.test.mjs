@@ -114,3 +114,37 @@ test('VS-08 local page cursor loses authority after profile policy change',async
   {code:'MEMORY_DENIED'});
  assert.equal(f.requests.length,0);
 });
+
+
+test('VS-08 Topic list uses current profile policy and invalidates revoked pages',async()=>{
+ const f=await fixture(['private unorganized input']);
+ const firstTopic=await f.s.createTopic({operationId:crypto.randomUUID(),name:'Allowed Alpha'});
+ const secondTopic=await f.s.createTopic({operationId:crypto.randomUUID(),name:'Allowed Beta'});
+ const deniedTopic=await f.s.createTopic({operationId:crypto.randomUUID(),name:'PRIVATE DENIED'});
+ await f.memory.authorize({topicIds:[firstTopic.id,secondTopic.id],
+  decision:'allowed',confirmed:true});
+ await f.memory.authorize({topicIds:[deniedTopic.id],decision:'denied'});
+ const boundary=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>({...grant(),allowedTools:['list_material','query'],
+   allowedKinds:['topic']}),read:createLocalReadConnectorReader(f.memory)});
+ const req=cursor=>({tool:'list_material',args:{kinds:['topic'],limit:1,
+  ...(cursor?{cursor}:{})}});
+ const one=await boundary.handle('topic-list',req());
+ assert.equal(one.data.items.length,1);
+ assert.equal(one.data.complete,false);
+ const two=await boundary.handle('topic-list',req(one.data.nextCursor));
+ assert.equal(two.data.complete,true);
+ assert.deepEqual(new Set([...one.data.items,...two.data.items].map(item=>item.id)),
+  new Set([firstTopic.id,secondTopic.id]));
+ assert.doesNotMatch(JSON.stringify([one.data,two.data]),/PRIVATE DENIED|private unorganized input/);
+ const fresh=await boundary.handle('topic-list',req());
+ await f.memory.authorize({topicIds:[secondTopic.id],decision:'denied'});
+ await assert.rejects(boundary.handle('topic-list',req(fresh.data.nextCursor)),
+  {code:'MEMORY_UNAVAILABLE'});
+ const remaining=await boundary.handle('topic-list',req());
+ assert.deepEqual(remaining.data.items.map(item=>item.id),[firstTopic.id]);
+ await assert.rejects(boundary.handle('topic-query',
+  {tool:'query',args:{text:'Alpha',kinds:['topic'],limit:1}}),
+  {code:'MEMORY_DENIED'});
+ assert.equal(f.requests.length,0);
+});
