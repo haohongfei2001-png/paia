@@ -222,3 +222,28 @@ test('CPV1-09 committed candidate with lost response cannot duplicate on explici
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('CPV1-09 a queued native close cannot erase a reopened Prompt invocation',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);await clipboardOracle(p);
+  const text='重新打开后的完整人工模板 🧑🏽‍💻 é\n'+'保留人工正文 '.repeat(1000)+'\n最后否定：不要发送。';
+  const saved=await rpc(p,'PAIA_PROMPT_CREATE',{template:{id:'native-close-reopen',text}});
+  const result=await p.evaluate(async saved=>{
+   const {PromptPanel}=await import('./prompt-panel.js');
+   const panel=new PromptPanel();await panel.open(document.querySelector('#prompt-open'));await panel.choose(saved);
+   const closedEvent=new Promise(resolve=>panel.dialog.addEventListener('close',resolve,{once:true}));
+   panel.closeDialog();
+   const cleared={body:panel.body.value,list:panel.list.textContent,selected:panel.selected};
+   // Reopen within the same task, before Chrome emits the old queued close.
+   panel.dialog.showModal();panel.show(saved);
+   await closedEvent;
+   const current={open:panel.dialog.open,body:panel.body.value,selectedId:panel.selected?.id,cleared};
+   panel.closeDialog();panel.dialog.remove();return current;
+  },saved);
+  assert.deepEqual(result,{open:true,body:text,selectedId:saved.id,cleared:{body:'',list:'',selected:null}});
+  assert.deepEqual((await rpc(p,'PAIA_PROMPT_READ',{id:saved.id,expectedRevision:1})),saved);
+  assert.deepEqual(await copied(p),[]);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
