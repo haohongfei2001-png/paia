@@ -10,11 +10,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_ENGINEERING_PASS / VS09_SYNCHRONOUS_CLOSE_CANDIDATE / VS09_P2_DRAFT_KERNEL_CANDIDATE
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_ENGINEERING_PASS / VS09_P2_DRAFT_KERNEL_PASS / VS09_P2_NATIVE_SESSION_CANDIDATE
 
-current_round: CPV1-09.1 — human Prompt workspace and protected manual copy
+current_round: CPV1-09.2 — protected input session and manual send boundary
 
-current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_ENGINEERING_PASS / P1_UI_ENGINEERING_PASS / SYNCHRONOUS_CLOSE_CANDIDATE / P2_DRAFT_KERNEL_CANDIDATE
+current_round_status: BUILDING / P1_UI_ENGINEERING_PASS / P2_DRAFT_KERNEL_ENGINEERING_PASS / P2_NATIVE_SESSION_CANDIDATE
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,16 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## CPV1-09.2 protected native-input session candidate — 2026-09-29
+
+Exact parent 923a85723fb4d85a7b15036811a536255f0083a6, treeebbc150297c32d996b1de656d5b2c6afb54fff80. Candidate36458896054 COMPLETED SUCCESS: full unit1090521677971276PASS/0FAIL/0SKIPPED, including all14 exact draft-planner regressions; contracts109052167962102adapter and60privacy/security PASS; release109052168154 PASS; owning browser1090521680874PASS/0FAIL/0SKIPPED; aggregate109054094074 PASS. Actual full human Prompt/restart/Source/keyboard journey,26-template/stale-copy/removal, committed-save/lost-response/same-ID retry/held-read and same-task native-close/reopen all PASS. Immutable receipts/CPV1-09.1-PROMPT-UI-AND-DRAFT-KERNEL-ENGINEERING-PASS.md records exact evidence. Prior8e6da5e and6f030cc FAILED receipts remain failed. Full Draft Certification/scale/Mac diagnostics SKIPPED; P1 UI and P2 pure kernel ENGINEERING_PASS, not product/live/whole-VS09 certification.
+
+Advance CPV1-09.2 to an inactive invocation-local native textarea session using the shared complete draft planner. Install event tracking before review; an already-focused composition state is unknown and refuses. Only top-level native textarea targets are supported; other/hidden/disconnected/disabled/readonly fields refuse for full manual-copy fallback. Preparing validates the complete template before reading a draft; pending text stays in one ephemeral target-bound snapshot, never a worker/Archive request or durable store. Native prototype value access bypasses shadowed page accessors. Target/document identity, actual current draft equality, input/IME generation,30-second expiry, maximum length, explicit replacement confirmation and single-use snapshot all fence the write. Native CR/CRLF normalization refuses before mutation rather than rewriting the original full text. Cancellation/disposal/input/IME changes clear pending fields. Successful commit calls only the native value setter and one input event with no body in event.data; no click, Enter, submit, clipboard, network or Source mutation.
+
+Add a fifth real hosted Chrome case without altering all4 existing full cases: complete Unicode/negation body, exact existing-draft append, confirmed replace and unconfirmed no-effect refusal, value/input/target drift, active/unknown IME, CRLF/max-length/readonly/cancel/surplus-field refusal, native accessor bypass, single-use retry and replacement target preservation. Synthetic form counts exactly3 owned input events and one external edit event, zero send/submit/clipboard/provider/network effects, unchanged Source/Input snapshots. Actual provider bridge and supported modern rich-text composer remain unconnected; no manifest/host permission/entrypoint change.
+
+Static grammar only PASS. New-head full unit/adapter/privacy/release/all5 browser proof PENDING. P2 native session is CANDIDATE / NOT_ACTIVATED; current saved-template/target identity/explicit gesture and document-scoped prepare/commit transport, supported rich-text composer detection, complete manual-copy fallback and provider integration remain engineering-open. Live IME/device/provider DOM evidence and other external-only gates stay dependent-deferred. Context external/Passport/live/security remains DEFAULT_OFF/deferred, B02 human-derivative purge policy deferred. VS07 EXPERIMENTAL/DEFAULT_OFF/NON-BLOCKING; PAIA v1 VS04 lexical/fuzzy/filter default; Semantic Lab exclusively Input→Topic.
 
 ## CPV1-09.1 synchronous close / CPV1-09.2 protected draft kernel candidate — 2026-09-29
 
