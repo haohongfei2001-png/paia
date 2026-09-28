@@ -143,8 +143,16 @@ test('VS-08 Topic list uses current profile policy and invalidates revoked pages
   {code:'MEMORY_UNAVAILABLE'});
  const remaining=await boundary.handle('topic-list',req());
  assert.deepEqual(remaining.data.items.map(item=>item.id),[firstTopic.id]);
- await assert.rejects(boundary.handle('topic-query',
-  {tool:'query',args:{text:'Alpha',kinds:['topic'],limit:1}}),
-  {code:'MEMORY_DENIED'});
+ const topicQuery={tool:'query',args:{text:'Alpha',kinds:['topic'],limit:1}};
+ const direct=createLocalReadConnectorReader(f.memory);
+ await assert.rejects(direct(topicQuery,{grantId:'synthetic-read-grant',
+  profileId:'default',allowedKinds:['topic']}),{code:'MEMORY_DENIED'});
+ // The outer boundary intentionally conceals reader admission details.
+ await assert.rejects(boundary.handle('topic-query',topicQuery),
+  {code:'MEMORY_UNAVAILABLE'});
+ await f.memory.authorize({topicIds:[firstTopic.id],decision:'never'});
+ const none=await boundary.handle('topic-list',req());
+ assert.deepEqual(none.data.items,[]);
+ assert.equal(none.data.complete,true);
  assert.equal(f.requests.length,0);
 });
