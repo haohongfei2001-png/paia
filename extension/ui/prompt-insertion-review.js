@@ -65,15 +65,22 @@ export function createPromptInsertionReview({target,trigger,selection,readTempla
  for(const button of [append,replace,copy,close])button.type='button';
  dialog.append(title,help,make('h3','完整模板正文'),preview,make('h3','当前草稿全文'),draft,status,label,append,replace,copy,close);
  document.body.append(dialog);
- let disposed=false,serial=0,busy=false,controller=null,token=null,complete='',waitingSession=null;
- const arm=()=>{
-  waitingSession?.dispose();waitingSession=null;
-  try{waitingSession=createPromptInputSession(target);}
-  catch(error){if(errorCode(error)!=='PROMPT_TARGET_UNSUPPORTED')throw error;}
- };
- // Install composition tracking before the invoker changes focus. This reads
- // no draft and grants no saved-template read or mutation.
- arm();
+ let disposed=false,serial=0,busy=false,controller=null,token=null,complete='',inputSession=null;
+ // Keep one target tracker for the review lifetime, including close/reopen.
+ // A modal or an unavailable preparation cannot erase an unfinished IME.
+ // Creating this tracker reads no draft and grants no template read or write.
+ try{inputSession=createPromptInputSession(target);}
+ catch(error){if(errorCode(error)!=='PROMPT_TARGET_UNSUPPORTED')throw error;}
+ function scopedSession(){
+  let closed=false,pending=null;
+  return Object.freeze({
+   prepare(text){
+    if(closed)fail('PROMPT_INSERT_STALE');
+    pending?.cancel();pending=inputSession.prepare(text);return pending;
+   },
+   dispose(){if(closed)return;closed=true;pending?.cancel();pending=null;}
+  });
+ }
  const say=text=>{status.textContent=text;};
  const controls=()=>{
   append.disabled=busy||!token;replace.disabled=busy||!token||!confirmation.checked;
@@ -85,7 +92,6 @@ export function createPromptInsertionReview({target,trigger,selection,readTempla
  };
  function shut(){
   if(!dialog.open)return;clear();dialog.close();if(trigger.isConnected)trigger.focus({preventScroll:true});
-  if(!disposed)arm();
  }
  const trusted=event=>event instanceof window.Event&&event.isTrusted;
  function report(error){const code=errorCode(error);say(messages[code]||'结果尚未确认。请重新读取模板；未自动重试。');}
@@ -96,8 +102,8 @@ export function createPromptInsertionReview({target,trigger,selection,readTempla
   try{
    // The already-installed tracker observes the invoker's focus change.
    // Unsupported targets keep the full-copy path without any draft read.
-   if(waitingSession){
-    const session=waitingSession;waitingSession=null;
+   if(inputSession){
+    const session=scopedSession();
     controller=createPromptInsertionController({session,readTemplate:async selection=>{
      const row=await readTemplate(selection),text=fullSaved(row,selection);
      if(generation===serial&&dialog.open)candidate=text;
@@ -157,10 +163,10 @@ export function createPromptInsertionReview({target,trigger,selection,readTempla
  confirmation.addEventListener('change',controls);
  close.addEventListener('click',shut);
  dialog.addEventListener('cancel',event=>{event.preventDefault();shut();});
- dialog.addEventListener('close',()=>{if(!dialog.open){clear();if(!waitingSession&&!disposed)arm();}});
+ dialog.addEventListener('close',()=>{if(!dialog.open)clear();});
  controls();
  return Object.freeze({
   open,close:shut,
-  dispose(){if(disposed)return;disposed=true;clear();waitingSession?.dispose();waitingSession=null;if(dialog.open)dialog.close();dialog.remove();}
+  dispose(){if(disposed)return;disposed=true;clear();inputSession?.dispose();inputSession=null;if(dialog.open)dialog.close();dialog.remove();}
  });
 }
