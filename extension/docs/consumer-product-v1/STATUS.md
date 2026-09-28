@@ -10,15 +10,15 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08
 
-current_slice_status: READY — VS-07_V1_SCOPE_COMPLETE / VS-06_EXTERNAL_CERT_PENDING
+current_slice_status: IN_PROGRESS — VS-07_V1_SCOPE_COMPLETE / VS-06_EXTERNAL_CERT_PENDING
 
 current_round: CPV1-08.0 — read-only connector boundary and deployment-gate separation
 
-current_round_status: READY / VS07_EXACT_MAIN_CERTIFIED / LEXICAL_FUZZY_FILTER_DEFAULT / SEMANTIC_EXPERIMENTAL_DEFAULT_OFF_NON_BLOCKING
+current_round_status: IN_PROGRESS / CONTRACT_ONLY_DEFAULT_OFF / PLATFORM_MECHANISM_NOT_VERIFIED / B03_B05_DEPLOYMENT_DEFERRED
 
-current_writer: NONE — VS-07 writer released after PR #88 merge
+current_writer: MANAGER / sole VS-08 branch feat/vs08-readonly-connector
 
-writer_status: RELEASED / VS-08 sole writer may be acquired
+writer_status: VS-08_ACQUIRED / SINGLE_WRITER
 
 production_claim: NONE
 
@@ -27,6 +27,16 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## VS-08 Batch A — default-off read connector contract, 2026-09-28
+
+execution_start_main: `0c7f02271ca747038a9819469c9057be877d198c`
+
+writer: sole branch `feat/vs08-readonly-connector`
+
+The first coherent contract batch defines only five finite read request shapes: list, lexical query, get by material ref, get task Context and permission self-check. It rejects caller-supplied consumer, purpose, profile, grant, token, URL, body and write controls; bounds query, page, cursor, ID and ref shapes; emits no listener, network request, storage read, authorization grant or product permission. The parser is default-off and detached from packaged product entrypoints. Owning unit tests cover allowed requests, immutable output and adversarial/oversized inputs. Targeted CI is PENDING until the new head runs.
+
+CPV1-08.0 supported external platform mechanism is NOT_VERIFIED under the current GitHub-only execution environment. B-03/B-05-dependent deployment, any new external read permission, real external AI acceptance and cloud/data policy remain deferred. Subsequent batches must implement trusted identity/Passport enforcement and revocation before any material release; no `context_export` grant is silently repurposed. The v1 lexical/fuzzy/filter search remains default, and no semantic retrieval is promoted.
 
 ## VS-07 v1 scope closure and VS-08 handoff — 2026-09-28
 
@@ -309,7 +319,7 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | VS-05 Living Topics and AI Organize | ACTIVE — Batch A CPV1-05.0–05.3 | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
 | VS-06 Complete AI Context reuse | PLANNED | Inputs/Topics/cross-Topic material become reviewable authorized Context without silent truncation |
 | VS-07 Algorithmic retrieval and longitudinal Revisit | COMPLETE / V1_SCOPE | VS-04 local search, historical comparison and finite Revisit; semantic retrieval archived as optional |
-| VS-08 Real read-only AI connector | READY — CPV1-08.0 | A supported AI can actually query authorized PAIA material and revocation works |
+| VS-08 Real read-only AI connector | IN_PROGRESS — CPV1-08.0/08.1 | A supported AI can actually query authorized PAIA material and revocation works |
 | VS-09 Prompt reuse phases 1–2 | PLANNED | Frequent prompts can be reused in PAIA and inserted into supported AI input without auto-send |
 | VS-10 Mobile MyWrite and voice | PLANNED | Phone users can quickly write/speak into the same PAIA system and recover interruptions |
 | VS-11 Multi-source and device continuity | PLANNED | Multiple sources/devices converge without losing edits or resurrecting deleted material |
