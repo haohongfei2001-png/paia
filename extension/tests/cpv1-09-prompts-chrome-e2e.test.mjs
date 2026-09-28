@@ -797,8 +797,11 @@ test('CPV1-09 P2 two archive tabs preserve current templates and drafts across n
 test('CPV1-10 inactive local MyWrite uses actual Chrome IndexedDB across two clients and a complete restart',{timeout:90000},async()=>{
  const h=await FakeChatGPT.start();
  try{
-  const p=h.archive;await enable(p);await h.open(conversation('mywrite-local-preserve',1000));
-  await eventually(async()=>(await h.state()).library.blocks.length===2,'complete original canonical Input projection finishes before the draft proof');
+  const p=h.archive;await enable(p);const fixture=conversation('mywrite-local-preserve',1000);
+  const captured=await h.open(fixture);await h.ready(captured);
+  await eventually(async()=>(await h.state()).library.blocks.length===fixture.messages.length,'all three source identities finish projecting before the draft proof');
+  assert.deepEqual((await h.state()).records.map(r=>r.originalText),fixture.messages.map(m=>m.text));
+  assert.deepEqual((await h.state()).records.map(r=>r.sourceMessageId),fixture.messages.map(m=>m.id));
   const original=await h.state();
   const q=await h.context.newPage();await q.goto(p.url());await q.waitForSelector('#prompt-open');
   const full=Array.from({length:1000},(_,i)=>'移动想法第'+i+'段🧭：保留全文和否定词，不要概括。\n').join('')+'尾部：绝对不要自动发送。';
@@ -861,5 +864,131 @@ test('CPV1-10 inactive local MyWrite uses actual Chrome IndexedDB across two cli
   assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+test('CPV1-10 inactive MyWrite composer preserves complete typing, explicit persistence, conflict and delayed recovery',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);const fixture=conversation('mywrite-composer-source',1100);
+  const captured=await h.open(fixture);await h.ready(captured);
+  await eventually(async()=>(await h.state()).library.blocks.length===fixture.messages.length);
+  const original=await h.state();
+  const q=await h.context.newPage();await q.goto(p.url());await q.waitForSelector('#prompt-open');
+  const full=Array.from({length:1000},(_,i)=>'写作第'+i+'段🧭：保留原文、空白和否定词，不要概括。\n').join('')+'尾部：绝对不要自动发送。';
+  async function mount(page,{hold=false}={}){
+   await page.evaluate(async hold=>{
+    const {MyWriteDraftStore,MyWriteDraftError}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+    const {createMyWriteComposer}=await import(chrome.runtime.getURL('ui/mywrite-composer.js'));
+    globalThis.composerError=MyWriteDraftError;
+    globalThis.composerStore=new MyWriteDraftStore({name:'paia-mywrite-composer-v1',clock:()=>1720000000000});
+    globalThis.originalComposerRead=composerStore.read.bind(composerStore);
+    if(hold)composerStore.read=async id=>{const row=await originalComposerRead(id);await new Promise(resolve=>globalThis.releaseComposerRead=resolve);return row;};
+    globalThis.composer=createMyWriteComposer({document,store:composerStore,draftId:'draft:composer',
+     topics:[{id:'topic:optional',label:'我的 Topic'}]});
+    composer.element.id='mywrite-fixture';
+    composer.element.style.cssText+=';position:fixed;inset:16px;overflow:auto;z-index:2147483647';
+    document.body.append(composer.element);
+    if(!hold)await composer.ready;
+   },hold);
+  }
+  await mount(p);
+  const editor=page=>page.getByRole('textbox',{name:'草稿正文',exact:true});
+  const save=page=>page.getByRole('button',{name:'保存本地草稿',exact:true});
+  const preview=page=>page.getByRole('textbox',{name:'完整草稿正文',exact:true});
+  const status=page=>page.locator('#mywrite-fixture [role=status]');
+  const review=page=>page.getByRole('button',{name:'查看完整草稿',exact:true});
+  assert.equal(await editor(p).inputValue(),'');assert.equal(await save(p).isDisabled(),true);
+  assert.equal(await p.evaluate(()=>composer.getDraftReference()),null);
+  await editor(p).fill(full);await p.getByRole('combobox',{name:'草稿 Topic'}).selectOption('topic:optional');
+  assert.equal(await editor(p).inputValue(),full);assert.equal(await review(p).isDisabled(),true);
+  assert.equal(await p.evaluate(()=>composerStore.read('draft:composer')),null,'typing alone has no Source or persistence effect');
+  await p.evaluate(()=>document.querySelector('#mywrite-fixture button').click());
+  assert.equal(await p.evaluate(()=>composerStore.read('draft:composer')),null,'scripted activation cannot save');
+  await save(p).focus();await p.keyboard.press('Enter');await eventually(async()=>await status(p).textContent()==='本地草稿已保存。');
+  const first=await p.evaluate(()=>composerStore.read('draft:composer'));
+  assert.equal(first.text,full);assert.equal(first.revision,1);assert.equal(first.createdAt,1720000000000);
+  assert.equal(first.topicId,'topic:optional');
+  assert.deepEqual(await p.evaluate(()=>composer.getDraftReference()),{id:first.id,revision:first.revision});await review(p).click();
+  await eventually(async()=>await preview(p).isVisible());
+  assert.equal(await preview(p).inputValue(),full);assert.equal(await preview(p).getAttribute('readonly'),'');
+  assert.match(await status(p).textContent(),/2024-07-03T09:46:40.000Z/);
+  await p.getByRole('button',{name:'关闭预览',exact:true}).click();
+  assert.equal(await preview(p).inputValue(),'');
+  const amended=full+'\n更正全文；保留尾部，不要截断。';
+  await editor(p).fill(amended);
+  // Inject quota at the actual native object-store put. Production transaction
+  // abort and classification remain in use, with complete baseline retained.
+  await p.evaluate(()=>{
+   globalThis.originalComposerPut=IDBObjectStore.prototype.put;
+   IDBObjectStore.prototype.put=function(...args){
+    IDBObjectStore.prototype.put=originalComposerPut;
+    throw new DOMException('PRIVATE_QUOTA_CANARY','QuotaExceededError');
+   };
+  });
+  await save(p).click();await eventually(async()=>/本地空间不足/.test(await status(p).textContent()));
+  assert.equal(await editor(p).inputValue(),amended);assert.deepEqual(await p.evaluate(()=>composerStore.read('draft:composer')),first);
+  assert.equal(await save(p).isDisabled(),false);assert.doesNotMatch(await status(p).textContent(),/PRIVATE_/);
+  // Commit the actual full transaction, then lose its acknowledgement once.
+  await p.evaluate(()=>{
+   globalThis.originalComposerSave=composerStore.save.bind(composerStore);
+   composerStore.save=async command=>{const row=await originalComposerSave(command);
+    composerStore.save=originalComposerSave;throw new composerError('MYWRITE_UNAVAILABLE');};
+  });
+  await save(p).click();await eventually(async()=>/暂不可用/.test(await status(p).textContent()));
+  const committed=await p.evaluate(()=>composerStore.read('draft:composer'));
+  assert.equal(committed.text,amended);assert.equal(committed.revision,2);
+  assert.equal(await editor(p).inputValue(),amended);
+  await save(p).click();await eventually(async()=>await status(p).textContent()==='本地草稿已保存。');
+  assert.deepEqual(await p.evaluate(()=>composerStore.read('draft:composer')),committed,'exact lost acknowledgement retry adds no version');
+
+  await mount(q);assert.equal(await editor(q).inputValue(),amended);
+  const other=amended+'\n另一窗口完成的更正。';
+  await editor(q).fill(other);await save(q).click();
+  await eventually(async()=>await status(q).textContent()==='本地草稿已保存。');
+  const second=await q.evaluate(()=>composerStore.read('draft:composer'));
+  assert.equal(second.text,other);assert.equal(second.revision,3);assert.equal(second.createdAt,first.createdAt);
+  const unsaved=amended+'\n第一个窗口未提交的完整正文。';
+  await editor(p).fill(unsaved);await save(p).click();
+  await eventually(async()=>/另一窗口/.test(await status(p).textContent()));
+  assert.equal(await editor(p).inputValue(),unsaved);assert.equal(await save(p).isDisabled(),true);
+  assert.equal(await review(p).isDisabled(),true);assert.deepEqual(await p.evaluate(()=>composerStore.read('draft:composer')),second);
+  await p.getByRole('button',{name:'保留正文并另存新草稿',exact:true}).click();
+  await eventually(async()=>await status(p).textContent()==='本地草稿已保存。');
+  const all=await p.evaluate(async ()=>{
+   const db=await composerStore.open();return new Promise((resolve,reject)=>{
+    const tx=db.transaction('drafts','readonly'),request=tx.objectStore('drafts').getAll();let rows;
+    request.onsuccess=()=>{rows=request.result;};tx.oncomplete=()=>resolve(rows);tx.onabort=()=>reject(Error('read refused'));
+   });
+  });
+  assert.equal(all.length,2);const forked=all.find(row=>row.id!=='draft:composer');
+  assert.equal(forked.text,unsaved);assert.equal(forked.revision,1);assert.equal(forked.topicId,'topic:optional');
+  assert.deepEqual(all.find(row=>row.id==='draft:composer'),second);
+  await review(p).click();await eventually(async()=>await preview(p).isVisible());
+  assert.equal(await preview(p).inputValue(),unsaved);
+  assert.deepEqual(await p.evaluate(()=>composer.getDraftReference()),{id:forked.id,revision:forked.revision});
+  await p.getByRole('button',{name:'关闭预览',exact:true}).click();
+  await p.evaluate(()=>{const real=composerStore.review.bind(composerStore);composerStore.review=async(...args)=>{
+   const row=await real(...args);await new Promise(resolve=>globalThis.releaseComposerReview=resolve);return row;
+  };});
+  await review(p).click();await eventually(async()=>await p.evaluate(()=>typeof releaseComposerReview==='function'));
+  await p.evaluate(()=>{composer.dispose();releaseComposerReview();composerStore.close();});
+  assert.equal(await p.evaluate(()=>composer.getDraftReference()),null);
+  assert.equal(await p.locator('#mywrite-fixture').count(),0);
+
+  await q.evaluate(()=>{composer.dispose();composerStore.close();});
+  await h.restartWorker();await q.reload();await q.waitForSelector('#prompt-open');
+  await mount(q,{hold:true});
+  await eventually(async()=>await q.evaluate(()=>typeof releaseComposerRead==='function'));
+  const duringRead=full+'\n恢复尚未完成时，新键入的全文。';
+  await editor(q).fill(duringRead);
+  await q.evaluate(async()=>{releaseComposerRead();await composer.ready;});
+  assert.equal(await editor(q).inputValue(),duringRead,'a delayed recovery cannot replace new typing');
+  assert.equal(await save(q).isDisabled(),true);assert.match(await status(q).textContent(),/未被替换/);
+  assert.deepEqual(await q.evaluate(()=>originalComposerRead('draft:composer')),second);
+  await q.evaluate(()=>{composer.dispose();composerStore.close();});
+  assert.equal(await q.locator('#mywrite-fixture').count(),0);
+  assert.deepEqual((await h.state()).records,original.records);assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
