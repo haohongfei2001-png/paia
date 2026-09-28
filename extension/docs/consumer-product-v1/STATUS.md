@@ -10,11 +10,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_ENGINEERING_PASS / VS09_SOURCE_TRACE_CANDIDATE
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_ENGINEERING_PASS / VS09_SYNCHRONOUS_CLOSE_CANDIDATE / VS09_P2_DRAFT_KERNEL_CANDIDATE
 
 current_round: CPV1-09.1 — human Prompt workspace and protected manual copy
 
-current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_ENGINEERING_PASS / P1_UI_ENGINEERING_PASS / SOURCE_TRACE_CANDIDATE
+current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_ENGINEERING_PASS / P1_UI_ENGINEERING_PASS / SYNCHRONOUS_CLOSE_CANDIDATE / P2_DRAFT_KERNEL_CANDIDATE
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,16 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## CPV1-09.1 synchronous close / CPV1-09.2 protected draft kernel candidate — 2026-09-29
+
+Exact parent 6f030cc0a81ed356dd4ace17f3d3189dc8c42d31, tree6551c0815762e2039ab6d65572ebed9fce620d4b. Candidate36457512563 FAILED: unit1090475019021262PASS/0FAIL/0SKIPPED; contracts109047501311102adapter and60privacy/security PASS; release109047501654 PASS; owning browser1090475020742PASS/1FAIL/0SKIPPED; aggregate109048928396 FAIL. First journey actually passed stale Source refusal, exact original Source body/XSS/time label, Source heading focus, private Source DOM clear and native Enter reopening. Line105 then found the full template still in the hidden Prompt textarea immediately after close/focus restoration. The native queued close event had not yet performed cleanup. Other2 complete original cases PASS. Retain this precise failed receipt; do not claim Source/P1/product certification or rerun unchanged head.
+
+Fix every owned Prompt close path to synchronously clear selected template/create identity, full private textarea, Source associations, list and query before native dialog.close() restores focus. The queued close event remains an idempotent fallback for externally closed dialogs. Existing busy/dirty refusal and explicit discard remain. User close, successful Input navigation and original Source navigation use this same close primitive. The unchanged full-body/list-clear assertions remain; additionally click the actual close control and inspect open/body/list in that same JS task, before a queued native close event can hide the failure. All3 complete browser cases, full Unicode/XSS/Source/restart/26-template/lost-response fixtures and original gate/timeout selections remain.
+
+Advance independent CPV1-09.2 engineering to an inactive pure draft planner. Exact descriptor/finite-field admission, full canonical200000-character body limit, exact current-vs-reviewed draft equality, whitespace-preserving append with one explicit newline, and confirmation-required non-empty replacement. Combined oversize content refuses instead of clipping and leaves the complete manual-copy fallback to the owning UI.14 new complete regressions include actual maximum full template/joined boundary, final negation, Unicode/CRLF/code/whitespace drift, hidden/accessor/symbol/foreign/surplus authority refusal before getter read, immutable body-only result and unchanged arguments. No DOM/event/browser tab access, clipboard, storage, provider transport/send, new permission or product activation is added. A pure replacement flag is not a human gesture, read grant or provider-input authority.
+
+Static grammar PASS only; new-head full unit/adapter/privacy/release/all3 owning browser proof PENDING. P1 remains VERIFYING until synchronous cleanup's new browser gate passes. P2 kernel CANDIDATE does not complete protected page insertion: current saved-template read/selected target/explicit gesture, real DOM draft CAS/IME/append/replace, drift/unsupported-target/manual-copy fallback and no-send transport remain the next engineering work. External/live/device/security evidence stays dependent-deferred. Minimal approved detached Context external/Passport/live gates DEFAULT_OFF/deferred; B02 derivative policy stays deferred. VS07 EXPERIMENTAL/DEFAULT_OFF/NON-BLOCKING; PAIA v1 VS04 lexical/fuzzy/filter default; Semantic Lab alone Input→Topic.
 
 ## CPV1-09.1 original Source trace and keyboard return candidate — 2026-09-29
 
