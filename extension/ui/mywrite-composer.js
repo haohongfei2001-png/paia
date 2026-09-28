@@ -62,7 +62,7 @@ export function createMyWriteComposer({document,store,draftId,topics=[]}){
  };
  const changed=event=>{
   if(closed||!event.isTrusted)return;
-  generation++;dirty=true;retry=null;closePreview();
+  generation++;dirty=true;closePreview();
   render('正文尚未保存。');
  };
  on(body,'input',changed);on(topic,'change',changed);
@@ -74,11 +74,28 @@ export function createMyWriteComposer({document,store,draftId,topics=[]}){
   closePreview();pending=true;
   const token=++generation,text=body.value,topicId=topic.value||null;
   if(fresh){currentId='draft:'+uuid();ack=null;retry=null;blocked=false;}
-  const command=retry&&retry.text===text&&retry.topicId===topicId?retry:{
-   id:currentId,expectedRevision:ack?.revision||0,text,topicId,operationId:'save:'+uuid()
-  };
-  retry=command;render('正在保存完整草稿…');
+  render('正在保存完整草稿…');
   try{
+   // Changed typing cannot discard an unacknowledged operation. Resolve its
+   // complete committed identity before choosing the next CAS baseline. This
+   // read occurs only on the next explicit save; it never replays old text.
+   if(retry&&(retry.text!==text||retry.topicId!==topicId)){
+    const uncertain=retry,row=await store.read(currentId);
+    if(closed)return;
+    if(row?.lifecycle==='deleted')throw new MyWriteDraftError('MYWRITE_DELETED');
+    const committed=row?.lastWriteId===uncertain.operationId&&
+     row.baseRevision===uncertain.expectedRevision&&row.text===uncertain.text&&
+     row.topicId===uncertain.topicId;
+    const unchanged=(row?.revision||0)===uncertain.expectedRevision&&
+     (!ack||JSON.stringify(row)===JSON.stringify(ack));
+    if(!committed&&!unchanged)throw new MyWriteDraftError('MYWRITE_CONFLICT');
+    ack=row;retry=null;
+   }
+   if(closed)return;
+   const command=retry&&retry.text===text&&retry.topicId===topicId?retry:{
+    id:currentId,expectedRevision:ack?.revision||0,text,topicId,operationId:'save:'+uuid()
+   };
+   retry=command;
    const row=await store.save(command);
    if(closed)return;
    ack=row;retry=null;dirty=body.value!==row.text||(topic.value||null)!==row.topicId||generation!==token;
