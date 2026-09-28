@@ -31,6 +31,8 @@ export function createPromptInputSession(target){
   if(disposed||target.ownerDocument!==document||!target.isConnected||target.hidden
    ||target.matches(':disabled')||target.hasAttribute('readonly')||target.getAttribute('aria-disabled')==='true'
    ||target.getClientRects().length===0)fail('PROMPT_TARGET_UNAVAILABLE');
+  const style=window.getComputedStyle(target);
+  if(style.visibility!=='visible'||style.contentVisibility==='hidden')fail('PROMPT_TARGET_UNAVAILABLE');
   if(!compositionKnown)fail('PROMPT_COMPOSITION_UNKNOWN');
   if(composing)fail('PROMPT_COMPOSING');
  }
@@ -38,8 +40,8 @@ export function createPromptInputSession(target){
   prepare(text){
    // Validate full template before reading any target draft. Trackers must be
    // installed before composition; an already-focused unknown field refuses.
-   planPromptDraftInsertion({mode:'append',text,draft:'',expectedDraft:''});
-   ready();clear();
+   clear();planPromptDraftInsertion({mode:'append',text,draft:'',expectedDraft:''});
+   ready();
    const snapshot={text,draft:value.get.call(target),revision,time:clock(),valid:true};
    pending=snapshot;
    return Object.freeze({
