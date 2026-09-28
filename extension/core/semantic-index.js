@@ -132,7 +132,7 @@ export class DerivedSemanticIndex{
    return fallback('index_unavailable');
   }
  }
- async _lookupFromSnapshot(query,{limit,minimumScore},initial,epoch){
+ async _lookupFromSnapshot(query,{limit,minimumScore},initial,epoch,{deferReadback=false}={}){
   const fallback=reason=>({items:[],usedSemantic:false,reason,coverage:this.status()});
   if(epoch!==this.epoch)return fallback('authority_changed');
   this.reconcile(initial);
@@ -140,20 +140,23 @@ export class DerivedSemanticIndex{
   if(this.rows.size!==this.expected){this.state='partial';return fallback('index_incomplete');}
   this.state='ready';
   if(!initial.bindings.length){
-   // Even an empty read may have become stale while its signature was hashed.
-   // Recheck complete authority before calling an empty result verified.
-   const current=await this.snapshot();
-   if(epoch!==this.epoch)return fallback('authority_changed');
-   this.reconcile(current);
-   if(current.signature!==initial.signature){
-    this.state='partial';return fallback('authority_changed');
+   // Standalone lookup verifies even an empty read. Hybrid's final complete
+   // snapshot provides the same fence before any candidate can be returned.
+   if(!deferReadback){
+    const current=await this.snapshot();
+    if(epoch!==this.epoch)return fallback('authority_changed');
+    this.reconcile(current);
+    if(current.signature!==initial.signature){
+     this.state='partial';return fallback('authority_changed');
+    }
    }
    return {items:[],usedSemantic:true,coverage:this.status()};
   }
   const q=vector(await this.encode('query',query,this.model),this.model.dimension);
-  const current=await this.snapshot();
   if(epoch!==this.epoch)return fallback('authority_changed');
-  this.reconcile(current);
+  const current=deferReadback?initial:await this.snapshot();
+  if(epoch!==this.epoch)return fallback('authority_changed');
+  if(!deferReadback)this.reconcile(current);
   if(current.signature!==initial.signature){this.state='partial';return fallback('authority_changed');}
   const queryNorm=q.reduce((sum,x)=>sum+x*x,0);
   const ranked=current.bindings.map(binding=>{
@@ -182,11 +185,12 @@ export class DerivedSemanticIndex{
    const lexical=initial.bindings.map(binding=>({
     key:binding.key,score:rankLexicalCandidate(binding.row,query,prepared).score
    })).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key)).slice(0,limit);
-   // Reuse the already verified full snapshot. The separate final snapshot
-   // below still fences changes after semantic readback and before return.
+   // Score against the first complete snapshot. The final complete snapshot
+   // below fences changes after asynchronous encoding, before any result returns.
    let semantic;
    try{
-    semantic=await this._lookupFromSnapshot(query,{limit,minimumScore},initial,epoch);
+    semantic=await this._lookupFromSnapshot(query,{limit,minimumScore},initial,epoch,
+     {deferReadback:true});
    }catch{
     if(epoch===this.epoch){this.rows.clear();this.state='unavailable';this.checkedGeneration=null;}
     semantic={items:[],usedSemantic:false,reason:'index_unavailable'};

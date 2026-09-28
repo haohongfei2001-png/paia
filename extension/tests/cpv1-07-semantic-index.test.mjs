@@ -391,18 +391,18 @@ test('CPV1-07 actual scoped hybrid fallback honors edit/exclusion/purge and comp
  assert.deepEqual(await authority(f.s),current);assert.equal(f.requests.length,0);
 });
 
-test('CPV1-07 hybrid final snapshot fences a change after semantic readback and refreshes coverage',async()=>{
+test('CPV1-07 hybrid final snapshot fences a change after query encoding and refreshes coverage',async()=>{
  const f=fixture([item('a','anchor'),item('b','anchor other')]);await f.index.synchronize();
  let reads=0;
  f.index.readEligible=async()=>{
-  if(++reads===3){
+  if(++reads===2){
    const next=f.get();next.generation++;next.items[0].ref.revision++;
    next.items[0].body='anchor CURRENT_FINAL_READ';f.set(next);
   }
   return f.get();
  };
  const result=await f.index.lookupHybrid('anchor');
- assert.equal(reads,3);assert.equal(result.reason,'authority_changed');
+ assert.equal(reads,2);assert.equal(result.reason,'authority_changed');
  assert.deepEqual(result.items,[]);assert.equal(result.coverage.checkedGeneration,2);
  assert.equal(result.coverage.indexed,1);assert.equal(result.coverage.missing,1);
  assert.equal(result.coverage.state,'partial');
@@ -487,12 +487,29 @@ test('CPV1-07 hybrid reuses first full snapshot across a 513-material long-conte
  const read=f.index.readEligible;let reads=0;
  f.index.readEligible=async()=>{reads++;return read();};
  const result=await f.index.lookupHybrid('RARE_LONG_FINAL');
- assert.equal(reads,3,'first authority snapshot, semantic readback, final hybrid fence');
+ assert.equal(reads,2,'first complete authority snapshot and final hybrid fence');
  assert.equal(result.mode,'hybrid');assert.equal(result.usedSemantic,true);
  assert.equal(result.coverage.expected,513);assert.equal(result.coverage.indexed,513);
  assert.equal(f.calls.filter(x=>x.kind==='document').length,513);
  assert.equal(f.calls.filter(x=>x.kind==='query').length,1);
  assert.equal(result.items.find(x=>x.ref.id==='query-0512')?.body,full);
+ assert.deepEqual(f.get(),before);
+});
+
+test('CPV1-07 hybrid final fence rejects generation-only churn without stale ranking',async()=>{
+ const f=fixture([item('a','anchor'),item('b','anchor other')]);
+ assert.equal((await f.index.synchronize()).ok,true);
+ const before=f.get(),read=f.index.readEligible;let reads=0;
+ f.index.readEligible=async()=>{
+  const snapshot=await read();reads++;
+  if(reads===2)snapshot.generation++;
+  return snapshot;
+ };
+ const result=await f.index.lookupHybrid('anchor');
+ assert.equal(reads,2);
+ assert.equal(result.mode,'unavailable');assert.equal(result.reason,'authority_changed');
+ assert.equal(result.usedSemantic,false);assert.deepEqual(result.items,[]);
+ assert.equal(f.calls.filter(x=>x.kind==='query').length,1);
  assert.deepEqual(f.get(),before);
 });
 

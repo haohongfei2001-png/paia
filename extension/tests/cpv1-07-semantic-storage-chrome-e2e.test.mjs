@@ -70,6 +70,13 @@ const noNetwork=h=>{
  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
 };
+const assertAuthorityExceptMaintenanceCounter=(before,after)=>{
+ const counter=x=>x.meta.find(row=>row.id==='backup-data-generation')?.value;
+ const strip=x=>({...x,meta:x.meta.filter(row=>row.id!=='backup-data-generation')});
+ assert.deepEqual(strip(after),strip(before));
+ assert.ok(Number.isSafeInteger(counter(before))&&Number.isSafeInteger(counter(after)));
+ assert.ok(counter(after)>=counter(before));
+};
 
 test('VS07 native Chrome snapshot and index preserve every full page and current Source authority',
  {timeout:180000},async()=>{
@@ -118,7 +125,7 @@ test('VS07 native Chrome snapshot and index preserve every full page and current
   assert.equal(built.ok,true,JSON.stringify(built));assert.equal(built.coverage.expected,213);
   assert.equal(built.coverage.indexed,213);assert.equal(built.coverage.vectorBytes,213*8);
   assert.equal(built.coverage.storesBody,false);
-  assert.deepEqual(await p.evaluate(()=>__semantic.authority()),before);
+  assertAuthorityExceptMaintenanceCounter(before,await p.evaluate(()=>__semantic.authority()));
   assert.equal(await p.evaluate(()=>__semantic.calls.filter(x=>x.kind==='document').length),213);
   const hybrid=await p.evaluate(()=>__semantic.index.lookupHybrid('NATIVE_INDEX_212',{limit:50}));
   assert.equal(hybrid.mode,'hybrid');assert.equal(hybrid.usedSemantic,true);
@@ -128,7 +135,7 @@ test('VS07 native Chrome snapshot and index preserve every full page and current
    &&current.source===row.source&&current.time===row.time)));
   assert.equal(hybrid.scope,snapshot.scope);assert.equal(hybrid.generation,snapshot.generation);
   assert.equal(await p.evaluate(()=>__semantic.calls.filter(x=>x.kind==='document').length),213);
-  assert.deepEqual(await p.evaluate(()=>__semantic.authority()),before);
+  assertAuthorityExceptMaintenanceCounter(before,await p.evaluate(()=>__semantic.authority()));
   const result=await p.evaluate(()=>__semantic.index.lookup('synthetic test query',{limit:50}));
   assert.equal(result.usedSemantic,true);assert.equal(result.items.length,50);
   assert.ok(result.items.every(x=>texts.includes(x.body)));
@@ -143,14 +150,14 @@ test('VS07 native Chrome snapshot and index preserve every full page and current
   assert.equal(fallback.usedSemantic,false);assert.equal(fallback.items.length,1);
   assert.equal(fallback.items[0].ref.id,long.ref.id);assert.equal(fallback.items[0].ref.revision,1);
   assert.equal(fallback.items[0].body,'NATIVE_WORKED_ONLY 完整修正不改当年原话。');
-  assert.deepEqual(await p.evaluate(()=>__semantic.authority()),afterEdit);
+  assertAuthorityExceptMaintenanceCounter(afterEdit,await p.evaluate(()=>__semantic.authority()));
   const stale=await p.evaluate(()=>__semantic.index.lookup('synthetic test query'));
   assert.equal(stale.usedSemantic,false);assert.equal(stale.reason,'index_incomplete');
   assert.equal(stale.coverage.indexed,212);
   assert.equal(await p.evaluate(()=>__semantic.calls.filter(x=>x.kind==='document').length),213);
   assert.equal((await p.evaluate(()=>__semantic.index.synchronize())).ok,true);
   assert.equal(await p.evaluate(()=>__semantic.calls.filter(x=>x.kind==='document').length),214);
-  assert.deepEqual(await p.evaluate(()=>__semantic.authority()),afterEdit);
+  assertAuthorityExceptMaintenanceCounter(afterEdit,await p.evaluate(()=>__semantic.authority()));
   const historical=await p.evaluate(()=>__semantic.semanticMaterialSnapshot(__semantic.memory,{mode:'history',types:['input']}));
   assert.equal(historical.items.find(x=>x.ref.id===long.ref.id).body,texts[212]);
   assert.deepEqual((await h.state()).records,sources);
@@ -331,10 +338,6 @@ test('VS07 hosted Chrome long library measures complete current-source index and
   assert.equal(measured.coverage.storesBody,false);
   assert.equal(measured.documentCalls,count);
   assert.equal(measured.queryCalls,11);
-  assert.ok(measured.queries.every(x=>x.mode==='hybrid'&&x.usedSemantic&&x.found&&x.full),
-   JSON.stringify(measured.queries));
-  assert.deepEqual(await p.evaluate(async()=> (await __semantic.authority()).records),sources);
-  noNetwork(h);
   const ordered=measured.queries.map(x=>x.ms).sort((a,b)=>a-b);
   console.log('VS07_HOSTED_CHROME_LONG_LIBRARY '+JSON.stringify({
    count,longBodies:texts.filter((_,i)=>i%64===0).length,
@@ -343,7 +346,13 @@ test('VS07 hosted Chrome long library measures complete current-source index and
    queryP95Ms:ordered[Math.ceil(ordered.length*.95)-1],
    sampledJsHeapBytes:[measured.beforeHeap,measured.afterBuildHeap,
     ...measured.queries.map(x=>x.heapBytes)].filter(x=>x!==null),
+   queryOutcomes:measured.queries.map(x=>({i:x.i,mode:x.mode,reason:x.reason,
+    found:x.found,full:x.full})),
    scope:'real Chrome IndexedDB and production derived-index path; synthetic local encoder'
   }));
+  assert.ok(measured.queries.every(x=>x.mode==='hybrid'&&x.usedSemantic&&x.found&&x.full),
+   JSON.stringify(measured.queries));
+  assert.deepEqual(await p.evaluate(async()=> (await __semantic.authority()).records),sources);
+  noNetwork(h);
  }finally{await h.close();}
 });

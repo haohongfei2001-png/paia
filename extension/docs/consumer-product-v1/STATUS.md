@@ -1464,3 +1464,38 @@ Exact-head scale receipt PENDING. Sampled JS heap is not a process peak-memory c
 ## Cloud writer r91 — bounded long-library test contract repair (2026-09-28)
 
 Exact `f8803ae3eb18c1decde58a5382fc09994804e50e` Candidate `36374619825` has unit/contracts/privacy/release SUCCESS and both retained native Chrome tests PASS. The new 1025-record scale case failed before snapshot/index measurement because its harness called `GET_STATE`: the production `IndexedArchiveStore.snapshot()` intentionally refuses whole-state materialization above 1000 records. This is a test read-contract error, not evidence of a failed capture, index or semantic result. Replace only the scale case's forbidden whole-state read with a bounded canonical IndexedDB count and complete repository-row oracle after capture; retain 1025 Sources, 17 long bodies, all eleven queries, real Chrome measurement and every old assertion. No runtime or harness behavior change, threshold reduction or model retry. The repaired head requires one affected targeted run; the scale and model performance gates remain NOT_VERIFIED until that receipt exists.
+
+
+## Cloud writer checkpoint r92 — bounded long-library hybrid read path (2026-09-28)
+
+Exact `a762adcef99a0066feb790537e435193bd6ae636` Candidate
+`36375359530` FAILED only in the affected hosted Chrome job. Unit, contract/privacy
+and release jobs passed; the retained exclusion/purge Chrome case passed.
+The original 213-Source case observed a one-step change in
+`backup-data-generation` after editing while the other authority tables
+were unchanged. That full-meta equality is a background-maintenance oracle
+issue, not evidence of Source corruption. Keep exact equality for every other
+authority table and meta row; permit only a valid nondecreasing backup counter.
+
+The new 1025-Source/17-long-body case reached full indexing and all eleven
+queries. Each query took about 11–12 seconds; six conservatively returned
+`authority_changed`, and five returned complete hybrid evidence. This is
+real Chrome scale evidence of an unresolved performance/availability gap,
+not a PASS. The current hybrid path acquired three full hashed/source
+snapshots per query. Reuse the first complete snapshot for private semantic
+ranking and retain the final complete snapshot as the only public-result
+fence, reducing those reads to two without removing any body/ref/scope,
+generation, edit, exclusion or epoch comparison. Standalone lookup retains
+its own readback. A new generation-only churn regression proves fail-closed
+behavior; the 513-material test now requires exactly two full reads and the
+existing final-mutation case moves to that final read. No fixture, assertion,
+semantic threshold, model or production activation is relaxed.
+
+The real 1025/17/11 Chrome test remains unchanged in scale and requires all
+queries to return complete hybrid evidence. Its bounded latency/heap and
+per-query outcomes now log before that strict assertion so a failed candidate
+still supplies a useful root-cause receipt. Exact new-head targeted CI
+PENDING. Full Certification is skipped on Draft. VS-07 remains
+IN_PROGRESS/NOT_CERTIFIED; actual model quality, independent upstream
+conversion parity, model resource proof and long-library acceptance are open.
+Semantic production stays disabled; no VS-08 promotion.
