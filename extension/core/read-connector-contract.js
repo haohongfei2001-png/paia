@@ -1,5 +1,5 @@
 import {ArchiveError} from './constants.js';
-import {validMaterialRef} from './manual-materials.js';
+import {validMaterialRef,materialKey} from './manual-materials.js';
 
 // CPV1-08.1 wire-shape contract only. No listener, token, grant, network call,
 // storage read or product permission is created by importing this module.
@@ -73,4 +73,76 @@ export function parseReadConnectorRequest(request){
   default:invalid();
  }
  return Object.freeze({version:READ_CONNECTOR_VERSION,tool:request.tool,args:normalized});
+}
+
+export const READ_CONNECTOR_RESULT_LIMITS=Object.freeze({
+ titleCharacters:240,snippetCharacters:500,bodyCharacters:16384,totalCharacters:32768
+});
+const unavailable=()=>{throw new ArchiveError('MEMORY_UNAVAILABLE');};
+const tooLarge=()=>{throw new ArchiveError('MEMORY_LIMIT');};
+const bounded=(value,max,{nonempty=true}={})=>typeof value==='string'
+ &&[...value].length<=max&&(!nonempty||value.trim().length>0);
+const outputObject=(value,allowed,required=[])=>fields(value,allowed,required);
+const resultPage=(value,request,project)=>{
+ if(!outputObject(value,['items','nextCursor','complete'],['items','nextCursor','complete'])
+    ||!Array.isArray(value.items)||value.items.length>request.args.limit
+    ||!cursor(value.nextCursor)||typeof value.complete!=='boolean'
+    ||value.complete!==(value.nextCursor===null))unavailable();
+ return Object.freeze({
+  items:Object.freeze(value.items.map(project)),
+  nextCursor:value.nextCursor,complete:value.complete
+ });
+};
+
+// The trusted reader must apply scope in its storage transaction. This egress
+// check then refuses surplus fields, wrong refs, unbounded bodies and false
+// completeness before any transport can see a result. It never truncates.
+export function sealReadConnectorResult(request,result){
+ const parsed=parseReadConnectorRequest(request);let data;
+ switch(parsed.tool){
+  case 'list_material':
+   data=resultPage(result,parsed,item=>{
+    if(!outputObject(item,['kind','id','title'],['kind','id','title'])
+       ||!parsed.args.kinds.includes(item.kind)||!id(item.id)
+       ||!bounded(item.title,READ_CONNECTOR_RESULT_LIMITS.titleCharacters))unavailable();
+    return Object.freeze({kind:item.kind,id:item.id,title:item.title});
+   });break;
+  case 'query':
+   data=resultPage(result,parsed,item=>{
+    if(!outputObject(item,['ref','title','snippet'],['ref','title','snippet'])
+       ||!bounded(item.title,READ_CONNECTOR_RESULT_LIMITS.titleCharacters)
+       ||!bounded(item.snippet,READ_CONNECTOR_RESULT_LIMITS.snippetCharacters))unavailable();
+    const ref=materialRef(item.ref),kind={
+     input:'input',source:'input',thought:'thought',ai:'topic',topic_note:'topic'
+    }[ref.kind];
+    if(!parsed.args.kinds.includes(kind))unavailable();
+    return Object.freeze({ref,title:item.title,snippet:item.snippet});
+   });break;
+  case 'get_by_ref':{
+   if(!outputObject(result,['ref','title','body','role'],
+                    ['ref','title','body','role'])
+      ||!bounded(result.title,READ_CONNECTOR_RESULT_LIMITS.titleCharacters)
+      ||!bounded(result.body,READ_CONNECTOR_RESULT_LIMITS.bodyCharacters)
+      ||!['human','source','ai'].includes(result.role))unavailable();
+   const ref=materialRef(result.ref);
+   if(materialKey(ref)!==materialKey(parsed.args.ref))unavailable();
+   data=Object.freeze({ref,title:result.title,body:result.body,role:result.role});
+   break;
+  }
+  case 'get_task_context':
+   if(!outputObject(result,['taskId','text','complete'],
+                    ['taskId','text','complete'])
+      ||result.taskId!==parsed.args.taskId||result.complete!==true
+      ||!bounded(result.text,READ_CONNECTOR_RESULT_LIMITS.bodyCharacters))unavailable();
+   data=Object.freeze({taskId:result.taskId,text:result.text,complete:true});
+   break;
+  case 'permission_self_check':
+   if(!outputObject(result,['allowed'],['allowed'])
+      ||typeof result.allowed!=='boolean')unavailable();
+   data=Object.freeze({allowed:result.allowed});break;
+  default:unavailable();
+ }
+ const sealed=Object.freeze({version:READ_CONNECTOR_VERSION,tool:parsed.tool,data});
+ if([...JSON.stringify(sealed)].length>READ_CONNECTOR_RESULT_LIMITS.totalCharacters)tooLarge();
+ return sealed;
 }

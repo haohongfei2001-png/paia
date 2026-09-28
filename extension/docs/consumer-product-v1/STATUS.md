@@ -28,13 +28,17 @@ prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
 
+## VS-08 Batch A — bounded read egress candidate, 2026-09-28
+
+The same default-off contract now seals responses for all five read tools. List/query pages cannot exceed the requested limit, cannot misstate completion and cannot return unrequested kinds or surplus fields. Get-by-ref must match the requested revision/identity; task Context must match the requested task and be complete. Title, snippet, body and total envelope size are bounded; oversize content is refused without truncation. The only permission self-check output is a boolean. Original archived prompt text is kept as inert data. Tests cover valid shapes, wrong scope/stale ref, leaked grant fields, false completion and long content. No trusted reader, network transport, new permission or product data release has been wired; source-side scope admission and revocation remain the next engineering boundary. The successor head's targeted CI is PENDING.
+
 ## VS-08 Batch A — default-off read connector contract, 2026-09-28
 
 execution_start_main: `0c7f02271ca747038a9819469c9057be877d198c`
 
 writer: sole branch `feat/vs08-readonly-connector`
 
-The first coherent contract batch defines only five finite read request shapes: list, lexical query, get by material ref, get task Context and permission self-check. It rejects caller-supplied consumer, purpose, profile, grant, token, URL, body and write controls; bounds query, page, cursor, ID and ref shapes; emits no listener, network request, storage read, authorization grant or product permission. The parser is default-off and detached from packaged product entrypoints. Owning unit tests cover allowed requests, immutable output and adversarial/oversized inputs. Targeted CI is PENDING until the new head runs.
+The first coherent contract batch defines only five finite read request shapes: list, lexical query, get by material ref, get task Context and permission self-check. It rejects caller-supplied consumer, purpose, profile, grant, token, URL, body and write controls; bounds query, page, cursor, ID and ref shapes; emits no listener, network request, storage read, authorization grant or product permission. The parser is default-off and detached from packaged product entrypoints. Owning unit tests cover allowed requests, immutable output and adversarial/oversized inputs. First exact-head Candidate Gate `36392829538` passed unit, contracts/privacy, release and gate on `feae4f40e6252a871ff46e9b544ca18827d80a8f`; affected browser was correctly skipped because this is a pure module.
 
 CPV1-08.0 supported external platform mechanism is NOT_VERIFIED under the current GitHub-only execution environment. B-03/B-05-dependent deployment, any new external read permission, real external AI acceptance and cloud/data policy remain deferred. Subsequent batches must implement trusted identity/Passport enforcement and revocation before any material release; no `context_export` grant is silently repurposed. The v1 lexical/fuzzy/filter search remains default, and no semantic retrieval is promoted.
 
