@@ -12,9 +12,9 @@ current_slice: VS-08
 
 current_slice_status: IN_PROGRESS — VS-07_V1_SCOPE_COMPLETE / VS-06_EXTERNAL_CERT_PENDING
 
-current_round: CPV1-08.0 — read-only connector boundary and deployment-gate separation
+current_round: CPV1-08.2 — detached trusted local material read
 
-current_round_status: IN_PROGRESS / CONTRACT_ONLY_DEFAULT_OFF / PLATFORM_MECHANISM_NOT_VERIFIED / B03_B05_DEPLOYMENT_DEFERRED
+current_round_status: IN_PROGRESS / DEFAULT_OFF_LOCAL_READ_ONLY / PLATFORM_MECHANISM_NOT_VERIFIED / B03_B05_DEPLOYMENT_DEFERRED
 
 current_writer: MANAGER / sole VS-08 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,10 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## VS-08 Batch C — exact local material read, 2026-09-28
+
+Exact prior head `d96e11dd680843f572e1feac77f66c8db1da972a` Candidate Gate `36399875063` passed affected unit, contracts/privacy, release and aggregate gate. CPV1-08.1's five request/egress shapes and the detached pre/post authorization kernel have targeted cloud proof, but no connector production claim. This batch adds a detached source-side `get_by_ref` reader using the existing MemoryService transaction and `materialRead` authority. It checks the resolved profile and granted kind inside the read transaction, returns the exact current/source body and role, and refuses stale revision, exclusion and unknown profile. Owning actual IndexedDB fixture tests assert full original text, bounded source span, denied/stale refusal and zero external requests. The existing boundary still rechecks revocation before any result release. List/query/task Context storage readers, new Passport read permission/UX, platform identity, distributed quota and external deployment remain OPEN; this module is not imported by a product entrypoint. New-head Candidate Gate is PENDING.
 
 ## VS-08 Batch B — detached trusted-boundary kernel, 2026-09-28
 
