@@ -60,5 +60,21 @@
     "source": "Owner-supplied PAIA primary logo artwork (2026-09-27)",
     "sha256": "e94ce73c20a46d40aa60d33eb87065906f256527da4948062c9ff30f6923a137",
     "role": "Canonical website brand signature. Optimized derivative of the owner-supplied primary PAIA logo."
+  },
+  "assets/website/type/instrument-serif.woff2": {
+    "source": "https://github.com/google/fonts/blob/0b58fb370093f9a9f4ff785d94405710b79de67c/ofl/instrumentserif/InstrumentSerif-Regular.ttf",
+    "license": "SIL OFL 1.1",
+    "license_file": "assets/website/licenses/Instrument-Serif-OFL.txt",
+    "sha256": "f1e49f5bc64ddb06c3086283b436f68142a9b0c83c841475a42799b63ad181b9",
+    "role": "Self-hosted homepage editorial headings; existing PAIA wordmark font and all graphic brand assets unchanged.",
+    "conversion": "TTF to WOFF2, full glyph set, fontTools 4.66.0; no outline or name edits."
+  },
+  "assets/website/type/instrument-serif-italic.woff2": {
+    "source": "https://github.com/google/fonts/blob/0b58fb370093f9a9f4ff785d94405710b79de67c/ofl/instrumentserif/InstrumentSerif-Italic.ttf",
+    "license": "SIL OFL 1.1",
+    "license_file": "assets/website/licenses/Instrument-Serif-OFL.txt",
+    "sha256": "0b9c942e33fdfd946b91feaff873d47461a091e3a629daa8a7d94cb736b7264b",
+    "role": "Self-hosted homepage editorial headings; existing PAIA wordmark font and all graphic brand assets unchanged.",
+    "conversion": "TTF to WOFF2, full glyph set, fontTools 4.66.0; no outline or name edits."
   }
 }

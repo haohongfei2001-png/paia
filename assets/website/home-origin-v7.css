@@ -1,0 +1,80 @@
+/* Homepage-only origin fidelity. Brand typography is deliberately independent. */
+@font-face{font-family:'PAIA Editorial';src:url('/assets/website/type/instrument-serif.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'PAIA Editorial';src:url('/assets/website/type/instrument-serif-italic.woff2') format('woff2');font-weight:400;font-style:italic;font-display:swap}
+body[data-page="index.html"]{--bg:#fbfbfa;--surface:#fff;--ink:#18191b;--muted:#6b6e73;--line:#e6e7e8;--accent-ink:#34363a;--brand-serif:'PAIA Display','Iowan Old Style',Georgia,'Times New Roman',serif;--serif:'PAIA Editorial','Songti SC','Noto Serif CJK SC',Georgia,serif}
+body[data-page="index.html"] :is(.wordmark,.small-wordmark){font-family:var(--brand-serif)}
+body[data-page="index.html"] .button{background:#343638;border-color:#343638;box-shadow:0 2px 5px #18191b08}
+body[data-page="index.html"] .button:hover{background:#242628;box-shadow:0 3px 9px #18191b0d}
+body[data-page="index.html"] :is(a,button,input,textarea,summary):focus-visible{outline-color:#565a60}
+body[data-page="index.html"] ::selection{background:#e5e6e8;color:#18191b}
+body[data-page="index.html"] .desktop-nav [aria-current=page]{text-decoration-color:#a7a9ac}
+.hero-copy h1{font-weight:400;letter-spacing:-.025em;line-height:1.04}
+.hero-description{font-size:1.05rem;line-height:1.8;max-width:460px}
+.collection-canvas:before{background:radial-gradient(ellipse at 60% 60%,#e9e9e970,transparent 67%)}
+.photo-coast,.photo-light{background:#f3f3f2}
+/* Retained licensed planes, deliberately recessive until a stronger source exists. */
+.photo-coast img,.photo-light img{filter:grayscale(1);opacity:.32}
+.collection-lines{filter:grayscale(1)}
+.input-card,.synthesis-card{background:#fff;border-color:#e6e7e8;box-shadow:0 8px 24px #18191b0b,0 1px 3px #18191b03}
+.synthesis-card{box-shadow:0 16px 32px #18191b12}
+.input-card time,.planned{color:#6b6e73}.planned{border-color:#e6e7e8}
+.paia-core{--pc-ink:#18191b;--pc-muted:#6b6e73;--pc-hair:#e6e7e8;--pc-accent:#34363a;--pc-wash:#f7f7f6}
+.pc-nav{display:flex;flex-wrap:wrap;gap:14px 26px;padding-block:24px;border-bottom:0}
+.pc-nav-label{flex:1;min-width:230px;font-size:13px;letter-spacing:0;line-height:1.7;color:var(--ink)}
+.pc-nav a{font-size:11px;gap:7px}.pc-nav a>span{color:#73767b}
+.paia-core h2{font-weight:400;letter-spacing:-.02em;line-height:1.12;font-size:clamp(2.5rem,4.2vw,4rem)}
+.paia-core .eyebrow,.pc-instruction{color:#6b6e73}
+.pc-editor-stage,.pc-prompts,.pc-context{background:#f8f8f7}
+.pc-editor,.pc-palette,.pc-context-stage{border-color:#e1e2e4;box-shadow:0 12px 36px #18191b0a;border-radius:7px}
+.pc-version-chip{box-shadow:0 6px 18px #18191b09;border-radius:5px;background:#fff}
+.pc-topic-stage{background:#fafaf9;border-radius:7px}
+.pc-topic-symbol{box-shadow:none;border-radius:7px}
+.pc-thought{box-shadow:0 6px 16px #18191b06;border-radius:5px}
+.pc-access{background:#f6f6f5;color:#18191b;border-left:1px solid #e6e7e8}
+.pc-route-node{color:#34363a;background:#fff;border-color:#d5d7da}
+.pc-route-line{background:#d5d7da}.pc-route-line i{background:#fff;border-color:#8b8e92}
+.pc-access.is-authorized .pc-route-line i{background:#34363a;box-shadow:none}
+.pc-access .pc-local-tag,.pc-access-heading p,.pc-scope>span,.pc-context-preview strong,.pc-access-bottom [role=status],.pc-usage,.pc-usage ol,.pc-access-boundary{color:#66696f}
+.pc-scope,.pc-context-preview p+p{border-color:#dedfe1}
+.pc-scope>strong,.pc-context-preview p{color:#34363a}
+.pc-authorize{background:#34363a;border-color:#34363a;color:white}
+.pc-authorize:hover:not(:disabled){background:#202225;color:white}
+.pc-revoke{color:#34363a;border-color:#b9bbbf;background:white}
+.pc-revoke:hover{background:#eeeef0}
+.pc-fact-origin,.pc-fact details,.pc-fact details p,.pc-fact small,.pc-prompt-wording>span,.pc-plan-note,.pc-local-tag{color:#686b70}
+.pc-pending{opacity:1}
+.pc-pin{grid-column:1/-1;background:transparent;border:0;font-size:10px!important;min-height:26px;color:#686b70;padding:2px}
+.pc-pin[aria-pressed=true]{color:#18191b;background:#eeeef0;border-radius:3px}
+.pc-prompt-row.is-pinned{border-left:2px solid #34363a;padding-left:18px}
+.pc-topic-list{display:flex;flex-direction:column;gap:9px;padding-bottom:22px;margin-bottom:22px;border-bottom:1px solid #e1e2e4;font-size:10px;color:#6b6e73}
+.pc-topic-list summary{padding-block:6px;cursor:pointer}
+.pc-topic-list p{margin:7px 0;font-size:11px;color:#565a60;line-height:1.8}
+.pc-topic-list [aria-current]{color:#18191b;border-left:2px solid #34363a;padding-left:10px}
+.pc-topic-source{font-size:9px;color:#6b6e73;margin-top:9px;line-height:1.6}
+.pc-current-use{margin-top:18px;border-top:1px solid #dedfe1;padding-top:12px;font-size:10px;line-height:1.9;color:#66696f}
+.pc-current-use dt{color:#34363a}.pc-current-use dd{margin:0 0 8px}
+.core-close-inner{grid-template-columns:minmax(0,1fr) 220px}.core-close-mark img{width:180px}
+html[lang=zh-CN] body[data-page="index.html"] h1{font-family:'Songti SC','Noto Serif CJK SC',serif;font-size:3.55rem;line-height:1.45;letter-spacing:0}
+html[lang=zh-CN].hero-motion .hero-copy h1{font-size:calc(3.55rem + var(--intro,0)*.7rem)}
+html[lang=zh-CN] .paia-core h2{font-family:'Songti SC','Noto Serif CJK SC',serif;font-size:clamp(2rem,3vw,2.8rem);line-height:1.5;letter-spacing:0}
+@media(max-width:900px){.pc-topic-list{grid-column:1/-1;display:block;margin-bottom:5px}.pc-topic-list>*{display:inline-block;margin-right:20px}.core-close-inner{grid-template-columns:1fr 160px}.hero-description{font-size:1rem}}
+@media(max-width:600px){.pc-nav{gap:14px 20px}.pc-nav-label{flex-basis:100%}.paia-core h2{font-size:2.65rem}.hero-copy h1{letter-spacing:-.02em}.hero-description{font-size:.95rem}.pc-access{border-left:0;border-top:1px solid #e6e7e8}.core-close-inner{grid-template-columns:1fr}.core-close-mark{justify-content:flex-start}.core-close-mark img{width:125px}.core-close h2{font-size:2.6rem}html[lang=zh-CN] body[data-page="index.html"] h1{font-size:2.15rem;line-height:1.5}.pc-prompt-row.is-pinned{padding-left:11px}.pc-topic-list>*{display:block}.pc-topic-source{font-size:8px}}
+/* Functional metadata remains readable; Chinese emphasis has no legacy green. */
+html[lang=zh-CN] body[data-page="index.html"] .hero-copy h1 em{color:var(--ink);font-style:normal}
+html[lang=zh-CN] body[data-page="index.html"] h1{font-size:3rem}
+html[lang=zh-CN].hero-motion body[data-page="index.html"] .hero-copy h1{font-size:calc(3rem + var(--intro,0)*.7rem)}
+.pc-revoke:hover:not(:disabled){background:#eeeef0;color:#18191b}
+.paia-core :is(.pc-local-tag,.pc-fact-origin,.pc-fact small,.pc-fact details,.pc-fact details p,.pc-prompt-wording>span,.pc-suggestion-label,.pc-palette>footer,.pc-plan-note,.pc-access-boundary,.pc-thought-stamp,.pc-thought-stamp>span,.pc-thought-stamp time>span,.pc-record-meta,.pc-date,.pc-reader-head,.pc-editor-foot,.pc-window-bar,.pc-answer-end,.pc-topic-kicker){font-size:10px}
+.pc-palette>header>.pc-local-tag{font-size:9px}.pc-palette .pc-app-name>span{font-size:9px}
+.pc-fact-origin{max-width:155px}.pc-app-name>span{font-size:9px}
+.pc-search input{font-size:12px!important}.pc-composer [role=status]{font-size:10px}
+.pc-thought-stamp{flex-wrap:wrap}.pc-topic-list{font-size:11px}
+.pc-record-meta time{line-height:1.8}.pc-record-meta time>span{display:block;font-size:8px}
+.pc-record{grid-template-columns:60px minmax(0,1fr)}
+@media(max-width:600px){html[lang=zh-CN] body[data-page="index.html"] h1{font-size:clamp(1.65rem,7.2vw,2.15rem)}.pc-palette>header{flex-wrap:wrap}.pc-prompt-wording textarea{font-size:12px!important}.pc-thought p{font-size:12px}.pc-fact-origin{font-size:9px;max-width:112px}.pc-fact-title{flex-wrap:wrap}.pc-record{grid-template-columns:48px minmax(0,1fr)}.pc-record-meta{font-size:9px}.pc-suggestion-button{font-size:12px!important}}
+.pc-topic-stage.is-connected .pc-thought-stamp{grid-row:1/3}
+.pc-topic-stage.is-connected .pc-thought>p{grid-column:2}
+.pc-topic-stage.is-connected .pc-topic-source{grid-column:2;margin:0;font-size:10px}
+@media(max-width:600px){.pc-topic-stage.is-connected .pc-thought-stamp{grid-row:auto}.pc-topic-stage.is-connected .pc-thought>p,.pc-topic-stage.is-connected .pc-topic-source{grid-column:1}}
+@media(max-width:360px){body[data-page="index.html"] .header-inner{gap:6px}body[data-page="index.html"] .header-actions .button-small{font-size:10px;padding-inline:10px}}
+@media(max-width:360px){body[data-page="index.html"] .mobile-menu summary{width:32px;min-width:32px;padding-inline:4px}}
