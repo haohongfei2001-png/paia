@@ -1,0 +1,11 @@
+.prompt-dialog{width:min(54rem,calc(100vw - 2rem));max-height:90vh;padding:1.25rem}
+.prompt-dialog header,.prompt-dialog nav,.prompt-pagination,.prompt-source{display:flex;gap:.75rem;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.prompt-dialog label{display:block;margin:.75rem 0}
+.prompt-dialog input[type=search],.prompt-dialog textarea{width:100%;box-sizing:border-box}
+.prompt-dialog textarea{min-height:14rem;white-space:pre-wrap}
+.prompt-list{display:grid;gap:.75rem}
+.prompt-row{padding:.75rem;border:1px solid var(--border,#ddd);border-radius:.5rem;min-width:0}
+.prompt-preview{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;max-height:8rem;overflow:auto;margin:.5rem 0}
+.prompt-editor{margin-top:1rem;border-top:1px solid var(--border,#ddd);padding-top:1rem}
+.prompt-source{justify-content:flex-start}
+.prompt-dialog button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
