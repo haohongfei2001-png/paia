@@ -129,7 +129,8 @@ export function sealReadConnectorResult(request,result){
    // An external reader must not relabel AI/source text as human work or
    // answer a bounded span request with the full private material body.
    const expectedRole={input:'human',source:'source',ai:'ai',topic_note:'human'}[ref.kind];
-   if(expectedRole&&result.role!==expectedRole)unavailable();
+   if(expectedRole&&result.role!==expectedRole
+      ||ref.kind==='thought'&&!['human','ai'].includes(result.role))unavailable();
    if(ref.span&&result.body.length!==ref.span.end-ref.span.start)unavailable();
    data=Object.freeze({ref,title:result.title,body:result.body,role:result.role});
    break;
