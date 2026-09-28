@@ -657,3 +657,139 @@ test('CPV1-09 P2 keyboard review preserves unresolved composition across blur an
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+
+test('CPV1-09 P2 two archive tabs preserve current templates and drafts across native target replacement',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);await clipboardOracle(p);
+  const c=conversation('prompt-multitab-original');
+  c.messages=c.messages.slice(0,1);
+  c.messages[0].text='完整历史人工 Source 中文 🧑🏽‍💻 é\n'+'原文、代码、空白与否定均不得改写 '.repeat(1000)+'\n最后否定：不得自动发送。';
+  await h.open(c);await eventually(async()=>(await h.state()).library.blocks.length===1);
+  const original=await h.state(),body='完整共享模板 中文 🧑🏽‍💻 é\n'+'必须保留整段内容与换行 '.repeat(1000)+'\n不得发送。',
+   currentBody=body+'\n第二个标签中明确保存的完整版本。',
+   firstDraft='第一个标签的完整现有草稿\n'+'不得跨标签改写 '.repeat(1000),
+   secondDraft='第二个标签的完整现有草稿\n'+'不得覆盖新输入框 '.repeat(1000),
+   replacementDraft='页面替换后的完整新草稿\n'+'不能隐式重新绑定或发送 '.repeat(1000);
+  const saved=await rpc(p,'PAIA_PROMPT_CREATE',{template:{id:'multitab-current-template',text:body,pinned:true,sourceRefs:[]}});
+  const q=await h.context.newPage();q.on('pageerror',error=>h.errors.push(error.message));
+  await q.goto(p.url());await q.locator('#prompt-open').waitFor({state:'visible'});await clipboardOracle(q);
+  const install=async(page,draft)=>page.evaluate(async({saved,draft})=>{
+   const {createPromptInsertionReview}=await import('./prompt-insertion-review.js');
+   const surface=document.createElement('section'),form=document.createElement('form'),
+    target=document.createElement('textarea'),trigger=document.createElement('button'),send=document.createElement('button');
+   surface.id='multitab-review-fixture';
+   surface.style.cssText='position:fixed;bottom:12px;left:12px;width:480px;max-width:calc(100vw - 24px);padding:12px;z-index:2147483647;background:white;';
+   target.id='multitab-review-target';target.value=draft;
+   trigger.id='multitab-review-trigger';trigger.type='button';trigger.textContent='Review current template';
+   send.id='multitab-review-send';send.type='submit';send.textContent='Send';
+   form.append(target,send);surface.append(form,trigger);document.body.append(surface);
+   const counts={reads:0,inputs:0,sends:0},tracked=[];
+   const observe=field=>{
+    field.addEventListener('input',()=>counts.inputs++);
+    const nativeAdd=field.addEventListener.bind(field),nativeRemove=field.removeEventListener.bind(field),listeners=new Map();
+    const owned=new Set(['input','beforeinput','compositionstart','compositionend','focus','blur']);
+    field.addEventListener=(type,listener,options)=>{
+     if(owned.has(type)){if(!listeners.has(type))listeners.set(type,new Set());listeners.get(type).add(listener);}
+     return nativeAdd(type,listener,options);
+    };
+    field.removeEventListener=(type,listener,options)=>{listeners.get(type)?.delete(listener);return nativeRemove(type,listener,options);};
+    tracked.push({field,listeners});return field;
+   };
+   observe(target);form.addEventListener('submit',event=>{event.preventDefault();counts.sends++;});
+   send.addEventListener('click',()=>counts.sends++);
+   const readTemplate=async selection=>{
+    counts.reads++;const row=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_READ',...selection});
+    if(!row.ok)throw {code:row.error};return row.data;
+   };
+   const state={target,trigger,send,surface,counts,tracked,observe,readTemplate,createPromptInsertionReview,review:null};
+   state.review=createPromptInsertionReview({target,trigger,selection:{id:saved.id,expectedRevision:saved.revision},readTemplate});
+   trigger.addEventListener('click',event=>void state.review.open(event));
+   globalThis.multitabPromptReview=state;
+  },{saved,draft});
+  await install(p,firstDraft);await install(q,secondDraft);
+  const dialog=page=>page.locator('.prompt-insertion-review[open]');
+  const append=page=>dialog(page).getByRole('button',{name:'追加到当前草稿',exact:true});
+  const active=page=>page.evaluate(()=>globalThis.multitabPromptReview.tracked.reduce(
+   (sum,row)=>sum+[...row.listeners.values()].reduce((n,set)=>n+set.size,0),0));
+  const counts=page=>page.evaluate(()=>({...globalThis.multitabPromptReview.counts}));
+  for(const page of [p,q]){
+   assert.equal(await active(page),6,'one constant target tracker; no tracker per preview');
+   await page.locator('#multitab-review-trigger').click();await eventually(async()=>!await append(page).isDisabled());
+   assert.equal(await dialog(page).locator('textarea[aria-label="完整模板正文"]').inputValue(),body);
+  }
+  assert.equal(await dialog(p).locator('textarea[aria-label="当前草稿全文"]').inputValue(),firstDraft);
+  assert.equal(await dialog(q).locator('textarea[aria-label="当前草稿全文"]').inputValue(),secondDraft);
+  // The second actual extension tab edits shared canonical IndexedDB through the
+  // trusted worker. A held preview in the first tab cannot apply that old row.
+  await q.keyboard.press('Escape');
+  assert.equal(await dialog(q).count(),0);assert.equal(await active(q),6);
+  const edited=await rpc(q,'PAIA_PROMPT_EDIT',{id:saved.id,change:{expectedRevision:saved.revision,text:currentBody}});
+  assert.equal(edited.revision,saved.revision+1);
+  assert.equal((await rpc(p,'PAIA_PROMPT_READ',{id:saved.id,expectedRevision:edited.revision})).text,currentBody);
+  assert.equal(await dialog(p).locator('textarea[aria-label="完整模板正文"]').inputValue(),body);
+  await append(p).click();await eventually(async()=>/模板已更新/.test(await dialog(p).getByRole('status').textContent()));
+  assert.equal(await p.locator('#multitab-review-target').inputValue(),firstDraft);
+  assert.deepEqual(await counts(p),{reads:2,inputs:0,sends:0});
+  assert.deepEqual(await counts(q),{reads:1,inputs:0,sends:0});
+  await p.keyboard.press('Escape');
+  for(const page of [p,q])for(const value of await page.locator('.prompt-insertion-review textarea').evaluateAll(nodes=>nodes.map(n=>n.value)))assert.equal(value,'');
+  // Only an explicit fresh review may select the edited template. It still owns
+  // the originally reviewed native field, even after the page replaces that field.
+  await q.evaluate(edited=>{
+   const s=globalThis.multitabPromptReview;s.review.dispose();
+   s.review=s.createPromptInsertionReview({target:s.target,trigger:s.trigger,
+    selection:{id:edited.id,expectedRevision:edited.revision},readTemplate:s.readTemplate});
+  },edited);
+  assert.equal(await active(q),6);
+  await q.locator('#multitab-review-trigger').click();await eventually(async()=>!await append(q).isDisabled());
+  assert.equal(await dialog(q).locator('textarea[aria-label="完整模板正文"]').inputValue(),currentBody);
+  await q.evaluate(replacementDraft=>{
+   const s=globalThis.multitabPromptReview,replacement=document.createElement('textarea');
+   replacement.id=s.target.id;replacement.value=replacementDraft;s.observe(replacement);
+   s.target.replaceWith(replacement);s.replacement=replacement;
+  },replacementDraft);
+  await append(q).click();await eventually(async()=>/输入框当前不可用/.test(await dialog(q).getByRole('status').textContent()));
+  assert.equal(await q.locator('#multitab-review-target').inputValue(),replacementDraft);
+  assert.equal(await q.evaluate(()=>globalThis.multitabPromptReview.target.value),secondDraft);
+  assert.equal(await p.locator('#multitab-review-target').inputValue(),firstDraft);
+  assert.deepEqual(await counts(q),{reads:3,inputs:0,sends:0});
+  // Drift refuses insertion; explicit full manual copy remains independently
+  // authorized against the current saved revision, with no provider action.
+  await dialog(q).getByRole('button',{name:'复制完整正文',exact:true}).click();
+  await eventually(async()=>(await copied(q)).length===1);
+  assert.deepEqual(await copied(q),[currentBody]);assert.deepEqual(await copied(p),[]);
+  assert.deepEqual(await counts(q),{reads:4,inputs:0,sends:0});
+  await q.keyboard.press('Escape');
+  await q.evaluate(edited=>{
+   const s=globalThis.multitabPromptReview;s.review.dispose();s.target=s.replacement;
+   s.review=s.createPromptInsertionReview({target:s.target,trigger:s.trigger,
+    selection:{id:edited.id,expectedRevision:edited.revision},readTemplate:s.readTemplate});
+  },edited);
+  assert.equal(await active(q),6,'old detached target tracker removed before explicit rebind');
+  await q.locator('#multitab-review-trigger').click();await eventually(async()=>!await append(q).isDisabled());
+  assert.equal(await dialog(q).locator('textarea[aria-label="当前草稿全文"]').inputValue(),replacementDraft);
+  await append(q).click();await eventually(async()=>/完整正文已写入/.test(await dialog(q).getByRole('status').textContent()));
+  assert.equal(await q.locator('#multitab-review-target').inputValue(),replacementDraft+'\n'+currentBody);
+  assert.equal(await p.locator('#multitab-review-target').inputValue(),firstDraft);
+  assert.deepEqual(await counts(q),{reads:6,inputs:1,sends:0});
+  assert.deepEqual(await counts(p),{reads:2,inputs:0,sends:0});
+  assert.deepEqual(await copied(q),[currentBody]);assert.deepEqual(await copied(p),[]);
+  for(const page of [p,q]){
+   assert.equal(await page.locator('#multitab-review-send').isEnabled(),true);
+   if(await dialog(page).count())await page.keyboard.press('Escape');
+   for(const value of await page.locator('.prompt-insertion-review textarea').evaluateAll(nodes=>nodes.map(n=>n.value)))assert.equal(value,'');
+   const before=await counts(page);
+   await page.evaluate(()=>globalThis.multitabPromptReview.review.dispose());
+   assert.equal(await active(page),0,'dispose removes every owned tracker on all historical targets');
+   await page.locator('#multitab-review-trigger').click();
+   assert.equal(await dialog(page).count(),0);assert.deepEqual(await counts(page),before);
+   await page.evaluate(()=>globalThis.multitabPromptReview.surface.remove());
+  }
+  const templates=await rpc(p,'PAIA_PROMPT_PAGE');assert.equal(templates.total,1);
+  assert.equal(templates.items[0].text,currentBody);assert.equal(templates.items[0].revision,edited.revision);
+  assert.deepEqual((await h.state()).records,original.records);assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
