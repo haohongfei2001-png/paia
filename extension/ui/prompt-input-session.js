@@ -31,8 +31,12 @@ export function createPromptInputSession(target){
   if(disposed||target.ownerDocument!==document||!target.isConnected||target.hidden
    ||target.matches(':disabled')||target.hasAttribute('readonly')||target.getAttribute('aria-disabled')==='true'
    ||target.getClientRects().length===0)fail('PROMPT_TARGET_UNAVAILABLE');
-  const style=window.getComputedStyle(target);
-  if(style.visibility!=='visible'||style.contentVisibility==='hidden')fail('PROMPT_TARGET_UNAVAILABLE');
+  for(let node=target;node;node=node.parentElement){
+   const style=window.getComputedStyle(node);
+   if(node.hidden||node.hasAttribute('inert')||node.getAttribute('aria-hidden')==='true'
+    ||style.display==='none'||style.visibility!=='visible'||style.opacity==='0'
+    ||style.contentVisibility==='hidden')fail('PROMPT_TARGET_UNAVAILABLE');
+  }
   if(!compositionKnown)fail('PROMPT_COMPOSITION_UNKNOWN');
   if(composing)fail('PROMPT_COMPOSING');
  }
