@@ -1,5 +1,16 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## CPV1-09.2 saved-template read coordination candidate — 2026-09-29
+
+Exact parent234fb93644dd9a5a3e8ed76a666335357f1377c2, tree33ca04468a8d3f51cecd8ff1e6df2f812300ac08. Candidate36460725818 COMPLETED SUCCESS: unit1090582808851276PASS/0FAIL/0SKIPPED; contracts109058280504102adapter and60privacy/security PASS; release109058280838 PASS; owning browser1090582806585PASS/0FAIL/0SKIPPED; aggregate109060263738 PASS. The full original4 Prompt/restart/Source/close journeys and native full-draft/IME/value/target/hidden/invalid-preview/single-use case all PASS. Immutable receipts/CPV1-09.2-NATIVE-SESSION-ENGINEERING-PASS.md records that exact detached mechanics boundary. Full Draft Certification/scale/Mac diagnostics SKIPPED; no provider/live/product certificate.
+
+Continue P2 with invocation-local saved-template coordination over the existing trusted PAIA_PROMPT_READ and target-local session. Exact descriptor/finite selection and append/replace fields; one current complete expected-revision read before prepare and one before commit. Both reads must agree on saved identity/revision/lifecycle/full text; changed/removed/corrupt content refuses before DOM effects. New selection, invalid preview, cancel, dispose, delayed old read and concurrent duplicate commits invalidate old attempts. Unknown read results produce a finite body-free refusal, without automatic retry. Template text stays ephemeral; target draft remains entirely within the native session and is never sent to the worker. Returned tokens expose only cancel/commit, not private bodies. Current template read is a worker-linearized authorization check immediately before native DOM commit, not a cross-process storage/DOM atomic transaction or provider grant.
+
+Use the existing capture adapter's ancestry rules for native visibility admission: hidden/inert/aria-hidden/display/visibility/zero-opacity/content-visibility ancestors refuse before draft read/write. Extend the full fifth native case with zero-effect ancestor refusals; every previous full body/assertion remains. Add a sixth actual hosted Chrome/worker/IndexedDB journey: complete saved-template append, real worker edit/remove between prepare and commit, actual target draft drift, real read responses held across cancellation/new selection/disposal, duplicate commit refusal, unknown read response, accessor/surplus admission and exact full selected-body preservation. Zero send/submit/clipboard/provider/network effects and unchanged original Input/Source required. All6 full cases run under the existing selected browser lane; no fixture/limit/timeout/selector reduction.
+
+Static grammar PASS only; new-head all6 browser/full unit/contracts/privacy/release/aggregate PENDING. Native mechanics ENGINEERING_PASS at the exact parent only; read controller CANDIDATE / NOT_ACTIVATED. Explicit gesture/selected document and target transport, supported modern rich-text composer, complete manual-copy fallback and actual provider integration remain engineering-open. External device/live IME/provider DOM/security evidence remains dependent-deferred. VS07 EXPERIMENTAL/DEFAULT_OFF/NON-BLOCKING; VS04 lexical/fuzzy/filter default; Semantic Lab exclusively Input→Topic. Minimal Context external/Passport/live gates DEFAULT_OFF/deferred; B02 derivative purge policy deferred.
+
+
 package_id: PAIA-CONSUMER-PRODUCT-v1
 
 package_status: ACTIVE
@@ -10,11 +21,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_ENGINEERING_PASS / VS09_P2_DRAFT_KERNEL_PASS / VS09_P2_NATIVE_SESSION_CANDIDATE
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_ENGINEERING_PASS / VS09_P2_DRAFT_KERNEL_PASS / VS09_P2_NATIVE_SESSION_ENGINEERING_PASS / VS09_P2_TEMPLATE_READ_CANDIDATE
 
 current_round: CPV1-09.2 — protected input session and manual send boundary
 
-current_round_status: BUILDING / P1_UI_ENGINEERING_PASS / P2_DRAFT_KERNEL_ENGINEERING_PASS / P2_NATIVE_SESSION_CANDIDATE
+current_round_status: BUILDING / P1_UI_ENGINEERING_PASS / P2_DRAFT_KERNEL_ENGINEERING_PASS / P2_NATIVE_SESSION_ENGINEERING_PASS / P2_TEMPLATE_READ_CANDIDATE
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
