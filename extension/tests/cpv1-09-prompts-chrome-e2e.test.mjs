@@ -293,6 +293,17 @@ test('CPV1-09 P2 native input session protects full drafts, IME and target drift
    field.maxLength=3;const maximum=session.prepare('完整正文');refuses(maximum,{mode:'replace',replaceConfirmed:true},'PROMPT_INSERT_LIMIT');field.removeAttribute('maxlength');
    const readonly=session.prepare('新模板');field.readOnly=true;refuses(readonly,{mode:'append'},'PROMPT_TARGET_UNAVAILABLE');field.readOnly=false;
    const cancel=session.prepare('新模板');const cancelled=cancel.cancel();refuses(cancel,{mode:'append'},'PROMPT_INSERT_STALE');
+   const prior=session.prepare('新模板');let invalidPreview=null;
+   try{session.prepare('   ');}catch(e){invalidPreview=e.code;}
+   if(invalidPreview!=='PROMPT_INSERT_INVALID')throw Error('invalid preview was admitted');
+   refuses(prior,{mode:'append'},'PROMPT_INSERT_STALE');
+   const hidden=session.prepare('新模板');form.style.visibility='hidden';
+   refuses(hidden,{mode:'append'},'PROMPT_TARGET_UNAVAILABLE');form.style.visibility='';
+   refuses(hidden,{mode:'append'},'PROMPT_INSERT_STALE');
+   const beforeUnavailable=session.prepare('新模板');form.style.visibility='hidden';let unavailable=null;
+   try{session.prepare(body);}catch(e){unavailable=e.code;}
+   if(unavailable!=='PROMPT_TARGET_UNAVAILABLE')throw Error('hidden preview was admitted');
+   form.style.visibility='';refuses(beforeUnavailable,{mode:'append'},'PROMPT_INSERT_STALE');
    const surplus=session.prepare('新模板');refuses(surplus,{mode:'append',send:true},'PROMPT_INSERT_INVALID');
    field.focus();const late=createPromptInputSession(field);let unknown=null;
    try{late.prepare(body);}catch(e){unknown=e.code;}late.dispose();field.blur();
