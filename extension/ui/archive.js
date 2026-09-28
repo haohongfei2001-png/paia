@@ -1,3 +1,4 @@
+import {PromptPanel} from './prompt-panel.js';
 import {refreshCaptureTimes} from './capture-time-view.js';
 import {captureHealthText} from './common.js';
 import {getMaterialTray} from './material-tray.js';
@@ -33,6 +34,15 @@ const $=id=>document.getElementById(id);
 const names={revisit:'回来看看',library:'Input Archive',thoughts:'Thought Library',archive:'Source Records',memory:'AI Context',settings:'Settings',excluded:'待确认与已移除输入',legacy:'Legacy Data Migration'};
 const review=new InputReview({navigate:(...args)=>navigate(...args),refresh:()=>refresh()});
 const backupPanel=new BackupPanel();
+const promptPanel=new PromptPanel({onInput:async id=>{
+ const input=await request('GET_INPUT',{id});return navigate('library',input.documentId,id);
+}});
+$('prompt-open').addEventListener('click',async()=>{
+ if(view==='thoughts'&&!await thoughts.flushEditors())return;
+ editor?.collect();if(editor&&!await editor.flush())return;
+ await promptPanel.open($('prompt-open'));
+});
+
 void pruneRecoveryDrafts().catch(()=>{});
 const integrityPanel=new IntegrityPanel();
 const onboarding=new OnboardingUI({refresh:()=>refresh(),history:()=>historyPanel.open()});
