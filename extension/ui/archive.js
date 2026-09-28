@@ -36,6 +36,13 @@ const review=new InputReview({navigate:(...args)=>navigate(...args),refresh:()=>
 const backupPanel=new BackupPanel();
 const promptPanel=new PromptPanel({onInput:async id=>{
  const input=await request('GET_INPUT',{id});return navigate('library',input.documentId,id);
+},onSource:async ref=>{
+ const input=await request('GET_INPUT',{id:ref.id});
+ if(!await navigate('library',input.documentId,ref.id))return null;
+ const current=state.library.blocks.find(b=>b.id===ref.id);
+ if(!current||current.excluded||!current.provenance.some(p=>p.sourceRecordId===ref.sourceId)
+  ||!state.records.some(r=>r.id===ref.sourceId))return null;
+ return ()=>{navigatorDetailFocus=$('prompt-open');info(ref.sourceId);};
 }});
 $('prompt-open').addEventListener('click',async()=>{
  if(view==='thoughts'&&!await thoughts.flushEditors())return;
