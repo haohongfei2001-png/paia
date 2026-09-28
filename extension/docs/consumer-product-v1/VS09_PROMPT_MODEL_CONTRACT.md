@@ -97,3 +97,11 @@ This kernel is not an authority, saved-template read fence, user gesture, DOM sn
 ## CPV1-09.1 synchronous close invocation contract — 2026-09-29
 
 Owned user/Input/Source close paths clear every private editor/list/query/association synchronously before native focus restoration. A queued native close event is only a fallback for a currently closed dialog; if it already reopened, that old event must not clear or refocus the new invocation. Queued close fallback ignores an event when that dialog has already reopened. A fourth real Chrome case closes and reopens within one task, then awaits the actual native queued close event; the new full template and selected identity must survive. Original3 complete browser cases and the immediate private-DOM cleanup oracle remain.
+
+## CPV1-09.2 inactive native-input session contract — 2026-09-29
+
+`createPromptInputSession(target)` creates event tracking, not target/grant/provider authority. Only a top-level native textarea is supported. If already focused at tracking installation, composition is UNKNOWN and prepare refuses until a known focus/blur cycle; active composition also refuses. The owning page integration must track before reviewed insertion or offer manual copy.
+
+`session.prepare(fullTemplate)` first validates the full template, then holds one ephemeral exact target draft and event generation. Its frozen single-use token exposes only commit({mode,replaceConfirmed?}) and cancel(); it exports no draft/body/target metadata. Commit rechecks target/document/visibility/readonly/IME/generation/expiry and exact actual draft, then shared planning/confirmation/full-length constraints. CR normalization and native maxLength refuse before effects. It uses native prototype value access and one body-free input event; never Enter/click/submit. All refusals, cancellation, a newer preparation and disposal invalidate/clear the pending snapshot. Single-use attempts cannot be automatically replayed.
+
+No worker/page bridge, manifest permission or product entrypoint is enabled. Rich-text/contenteditable inputs are currently unsupported, not silently coerced into plain text. Their exact DOM/draft safety and complete manual-copy fallback remain owning integration work. Actual fifth Chrome fixture proves native textarea mechanics only; it is not live provider or device IME certification.
