@@ -124,26 +124,37 @@ export function createLocalReadConnectorReader(memory){
   const ref=parsed.args.ref;
   // A material ref is an address, not authority. Source-original refs inherit
   // only their currently eligible Input identity.
-  if(!['input','source','thought'].includes(ref.kind))denied();
+  if(!['input','source','thought','topic_note'].includes(ref.kind))denied();
   const eligible=found=>found.candidates.some(c=>ref.kind==='thought'
    ?c.kind==='entry'&&c.entryId===ref.id&&c.revision===ref.revision
    :c.kind==='input'&&c.inputId===ref.id
       &&(ref.kind==='source'||c.revision===ref.revision));
   const before=await candidates(scope.profileId,'');
-  if(!eligible(before))denied();
+  if(ref.kind!=='topic_note'&&!eligible(before))denied();
+  const temporary=ref.kind==='topic_note'?await memory.temporary():null;
+  if(temporary&&temporary.revision!==before.sessionRevision)denied();
   const value=await memory.s.run(()=>memory.s.repository.transaction(false,async t=>{
    const state=await memory.state(t);
    if(state.profiles?.find(p=>p.profileId===scope.profileId)?.revision
       !==before.profile.revision)denied();
    if(((await t.get('meta','backup-data-generation'))?.value||0)
       !==before.generation)denied();
-   const kind=ref.kind==='thought'?'thought':'input';
+   const kind=ref.kind==='thought'?'thought'
+    :ref.kind==='topic_note'?'topic':'input';
    if(!scope.allowedKinds.includes(kind))denied();
+   if(ref.kind==='topic_note'){
+    const topics=(await t.all('topics')).filter(topicActive);
+    if(topics.length>20000)limited();
+    const rule=policy(state.rows,scope.profileId,temporary.grants,
+     new Map(topics.map(topic=>[topic.id,topic])));
+    if(rule.decision(ref.id)!=='allowed')denied();
+   }
    const data=await materialRead(memory,t,ref);
    return {ref,title:data.title,body:data.body,role:data.role};
   }));
   const after=await candidates(scope.profileId,'');
-  if(!eligible(after)||!sameSnapshot(before,after))denied();
+  if(ref.kind!=='topic_note'&&!eligible(after)
+     ||!sameSnapshot(before,after))denied();
   return value;
  };
 }

@@ -156,3 +156,34 @@ test('VS-08 Topic list uses current profile policy and invalidates revoked pages
  assert.equal(none.data.complete,true);
  assert.equal(f.requests.length,0);
 });
+
+
+test('VS-08 Topic note retrieval requires profile admission and human authorship',async()=>{
+ const f=await fixture(['private Input canary']);
+ const topic=await f.s.createTopic({operationId:crypto.randomUUID(),name:'Research note'});
+ const note='A human wrote this durable Topic note.';
+ const edited=await f.s.editTopic({id:topic.id,expectedRevision:topic.revision,
+  operationId:crypto.randomUUID(),changes:{summary:note}});
+ const hidden=await f.s.createTopic({operationId:crypto.randomUUID(),name:'PRIVATE topic'});
+ const hiddenEdit=await f.s.editTopic({id:hidden.id,
+  expectedRevision:hidden.revision,operationId:crypto.randomUUID(),
+  changes:{summary:'PRIVATE topic note canary'}});
+ await f.memory.authorize({topicIds:[topic.id],decision:'allowed'});
+ const boundary=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>({...grant(),allowedKinds:['topic']}),
+  read:createLocalReadConnectorReader(f.memory)});
+ const ref={kind:'topic_note',id:topic.id,revision:edited.revision};
+ const actual=await boundary.handle('topic-note',request(ref));
+ assert.deepEqual(actual.data.ref,ref);
+ assert.equal(actual.data.body,note);
+ assert.equal(actual.data.role,'human');
+ await assert.rejects(boundary.handle('topic-note',
+  request({kind:'topic_note',id:hidden.id,revision:hiddenEdit.revision})),
+  {code:'MEMORY_UNAVAILABLE'});
+ await assert.rejects(boundary.handle('topic-note',
+  request({...ref,revision:ref.revision+1})),{code:'MEMORY_UNAVAILABLE'});
+ await f.memory.authorize({topicIds:[topic.id],decision:'denied'});
+ await assert.rejects(boundary.handle('topic-note',request(ref)),
+  {code:'MEMORY_UNAVAILABLE'});
+ assert.equal(f.requests.length,0);
+});
