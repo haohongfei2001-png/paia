@@ -3,23 +3,24 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 import {inputDigest,goldenBundle} from './compatibility-gate.mjs';
-import {group} from './test-groups.mjs';
+import {group,testShard} from './test-groups.mjs';
 const require=createRequire(import.meta.url);
 if(!process.env.PLAYWRIGHT_MODULE){try{process.env.PLAYWRIGHT_MODULE=require.resolve('playwright');}catch{}}
 process.chdir(fileURLToPath(new URL('../',import.meta.url)));
 const startingDigest=await inputDigest();
 const requested=process.argv[2];
-const allowed=['unit','adapter contract','browser E2E','historical browser E2E','privacy/security'];
+const allowed=['unit','adapter contract','browser E2E','historical browser E2E','privacy/security','experimental'];
 if(requested&&!allowed.includes(requested))throw Error('Allowed categories: '+allowed.join(', '));
 const names=(await readdir('tests')).filter(n=>n.endsWith('.test.mjs')).sort();
 const historical=names.filter(n=>group(n)==='historical browser E2E');
-let files=names.filter(n=>requested?group(n)===requested:group(n)!=='historical browser E2E').map(n=>'tests/'+n);
-if(!requested)console.log(`PAIA current full suite: ${files.length} files; ${historical.length} pre-migration browser files remain available through test:historical-browser.`);
+const experimental=names.filter(n=>group(n)==='experimental');
+let files=names.filter(n=>requested?group(n)===requested:!['historical browser E2E','experimental'].includes(group(n))).map(n=>'tests/'+n);
+if(!requested)console.log(`PAIA current full suite: ${files.length} files; ${historical.length} pre-migration browser files and ${experimental.length} archived experimental files remain available through their explicit test commands.`);
 const shardSpec=process.env.PAIA_TEST_SHARD||'';
 if(shardSpec){
  const match=/^(\d+)\/(\d+)$/.exec(shardSpec),index=Number(match?.[1]),total=Number(match?.[2]);
  if(!match||!Number.isSafeInteger(index)||!Number.isSafeInteger(total)||index<1||total<1||index>total||total>16)throw Error('PAIA_TEST_SHARD must be N/M with 1 <= N <= M <= 16');
- files=files.filter((_,i)=>i%total===index-1);
+ files=files.filter((file,i)=>testShard(file,i,total,requested)===index);
  if(!files.length)throw Error('PAIA_TEST_SHARD selected no test files');
  console.log(`PAIA test shard ${index}/${total}: ${files.length} files`);
 }
@@ -29,5 +30,5 @@ const tests=spawnSync(process.execPath,['--test','--test-concurrency='+concurren
 if(tests.status!==0)process.exit(tests.status||1);
 const audit=spawnSync(process.env.PYTHON||'python3',['scripts/check_package.py'],{stdio:'inherit'});
 const developmentAudit=spawnSync(process.execPath,['scripts/check_development.mjs'],{stdio:'inherit'});
-if(audit.status===0&&developmentAudit.status===0&&!requested&&!shardSpec){const p='work/test-summary.json',r=JSON.parse(await readFile(p,'utf8'));r.fullSuite=true;r.auditPassed=true;r.testConcurrency=Number(concurrency);r.inputDigest=await inputDigest();r.historicalBrowserFiles=historical.length;r.historicalBrowserAudit='SEPARATE_PRE_MIGRATION_EVIDENCE';if(r.inputDigest!==startingDigest)throw Error('SOURCE_CHANGED_DURING_TESTS');r.realGolden=await goldenBundle()?'AVAILABLE':'UNAVAILABLE';await writeFile(p,JSON.stringify(r,null,2)+'\n');}
+if(audit.status===0&&developmentAudit.status===0&&!requested&&!shardSpec){const p='work/test-summary.json',r=JSON.parse(await readFile(p,'utf8'));r.fullSuite=true;r.auditPassed=true;r.testConcurrency=Number(concurrency);r.inputDigest=await inputDigest();r.historicalBrowserFiles=historical.length;r.historicalBrowserAudit='SEPARATE_PRE_MIGRATION_EVIDENCE';r.experimentalFiles=experimental.length;r.experimentalAudit='EXPLICIT_NON_BLOCKING_ARCHIVE';if(r.inputDigest!==startingDigest)throw Error('SOURCE_CHANGED_DURING_TESTS');r.realGolden=await goldenBundle()?'AVAILABLE':'UNAVAILABLE';await writeFile(p,JSON.stringify(r,null,2)+'\n');}
 process.exit(audit.status===0&&developmentAudit.status===0?0:1);

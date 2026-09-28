@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 1,
+  "evidenceClass": "retained_public_actions_measurement_not_new_inference",
+  "repository": "haohongfei2001-png/paia",
+  "head": "f3a19ec9bae953daa8c126f26d047ba64eba6af9",
+  "runId": 36340314593,
+  "jobId": 108678989659,
+  "artifactId": 10937824226,
+  "artifactSha256": "4a775c03dd2d4a0e2b5b35757c90daaf74592ffdfb174a93bd1ec0b57345ccb0",
+  "model": {
+    "id": "sentence-transformers/distiluse-base-multilingual-cased-v1",
+    "revision": "826fee3d516ebb14987355af373f5b69101c7006",
+    "license": "apache-2.0",
+    "upstream": {
+      "id": "sentence-transformers/distiluse-base-multilingual-cased-v1",
+      "revision": "826fee3d516ebb14987355af373f5b69101c7006",
+      "license": "apache-2.0"
+    },
+    "task": "feature-extraction",
+    "dtype": "q8",
+    "device": "cpu",
+    "pooling": "masked_mean_then_dense_tanh_then_cosine_normalization",
+    "normalize": true,
+    "queryPrefix": "",
+    "passagePrefix": "",
+    "dimension": 512,
+    "prefixScope": "RAW_SINGLE_SEQUENCE_LAB_ADAPTER_NOT_PRODUCTION_INPUT_CERTIFICATION",
+    "maximumTokens": 128,
+    "truncation": false,
+    "assetAdmissions": [
+      {
+        "asset": "onnx/model_quint8_avx2.onnx",
+        "bytes": 135377779,
+        "sha256": "8bd3991c7c3741f2783f5e839d84f800fb202993768112786fd075e2b91a019b",
+        "pinnedRevision": "826fee3d516ebb14987355af373f5b69101c7006",
+        "bodyRequested": false,
+        "productionAdmission": false
+      },
+      {
+        "asset": "2_Dense/model.safetensors",
+        "bytes": 1575104,
+        "sha256": "f8893703d8a6b640a8e4f90bbe2017fc0e7a792ad62daf6f723adf618f5d444f",
+        "pinnedRevision": "826fee3d516ebb14987355af373f5b69101c7006",
+        "bodyRequested": false,
+        "productionAdmission": false
+      }
+    ],
+    "encoderDimension": 768,
+    "projection": {
+      "asset": "2_Dense/model.safetensors",
+      "sha256": "f8893703d8a6b640a8e4f90bbe2017fc0e7a792ad62daf6f723adf618f5d444f",
+      "bytes": 1575104,
+      "inputDimension": 768,
+      "outputDimension": 512,
+      "activation": "Tanh"
+    },
+    "explicitTokenizerClass": "DistilBertTokenizer",
+    "missingOptionalTokenizerMetadata": "NO_GENERIC_FALLBACK",
+    "singleSequenceTokenTypes": "DISTILBERT_GRAPH_TWO_REAL_INPUTS_ONLY",
+    "fabricatedTokenInputs": false,
+    "declaredSourceProvenance": {
+      "repository": "sentence-transformers/distiluse-base-multilingual-cased-v1",
+      "scope": "fixed_public_source_only",
+      "productionClaim": false,
+      "modelAdmission": "NOT_AUTHORIZED",
+      "weightsDownloaded": false,
+      "inferenceExecuted": false,
+      "scoringActivation": "NOT_VERIFIED",
+      "queryPrefix": "NOT_VERIFIED",
+      "truncationPolicy": "NOT_VERIFIED",
+      "conversionEquivalence": "NOT_VERIFIED",
+      "chromeCompatibility": "NOT_VERIFIED",
+      "qualityGate": "NOT_EVALUATED",
+      "currentMetadata": {
+        "httpStatus": 200,
+        "bounded": true,
+        "bytes": 1950,
+        "sha256": "07f6b8c36f3cf0e2b56bda6bb0c61021784e9e931764ea4d307f541438508529"
+      },
+      "revision": "826fee3d516ebb14987355af373f5b69101c7006",
+      "currentLicense": {
+        "card": {
+          "type": "string",
+          "declaration": "apache-2.0",
+          "permitted": true
+        },
+        "tagCodes": [
+          "apache-2.0"
+        ]
+      },
+      "pinnedMetadata": {
+        "httpStatus": 200,
+        "bounded": true,
+        "bytes": 1950,
+        "sha256": "07f6b8c36f3cf0e2b56bda6bb0c61021784e9e931764ea4d307f541438508529"
+      },
+      "pinnedLicense": {
+        "card": {
+          "type": "string",
+          "declaration": "apache-2.0",
+          "permitted": true
+        },
+        "tagCodes": [
+          "apache-2.0"
+        ]
+      },
+      "inventory": {
+        "fileCount": 30,
+        "onnxFiles": [
+          "onnx/model.onnx",
+          "onnx/model_O1.onnx",
+          "onnx/model_O2.onnx",
+          "onnx/model_O3.onnx",
+          "onnx/model_O4.onnx",
+          "onnx/model_qint8_arm64.onnx",
+          "onnx/model_qint8_avx512.onnx",
+          "onnx/model_qint8_avx512_vnni.onnx",
+          "onnx/model_quint8_avx2.onnx"
+        ],
+        "quantizedOnnxListed": true,
+        "tensorBytesFromMetadata": "NOT_VERIFIED",
+        "safeProjectionFiles": [
+          "2_Dense/model.safetensors"
+        ]
+      },
+      "readme": {
+        "httpStatus": 200,
+        "bounded": true,
+        "bytes": 2237,
+        "sha256": "8422376ace4232543fd22f72c98db8b66b97e98b5c8436102f464e4c7efd6c6a",
+        "license": {
+          "state": "literal",
+          "type": "string",
+          "declaration": "apache-2.0",
+          "permitted": true
+        }
+      },
+      "licenseFiles": [],
+      "configurationFiles": [
+        {
+          "file": "config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 556,
+          "sha256": "3160640e4ce35901d951dc929e803c828d4b086fb309dd12369f4106d66ade4f"
+        },
+        {
+          "file": "tokenizer_config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 452,
+          "sha256": "80d83a2078632f19353e410c7d7d2582d6f44a9818effa5114cc1146dd71ac8b"
+        },
+        {
+          "file": "modules.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 341,
+          "sha256": "f83ea5d68ac85ec15f650b350f0dc37b03d63abd60442f518e14c06f479beee6"
+        },
+        {
+          "file": "sentence_bert_config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 53,
+          "sha256": "70f4448f31320443fe3557cacea5abf2dcc4915dda8c80646bec9f3bb0aa5a1f"
+        },
+        {
+          "file": "1_Pooling/config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 190,
+          "sha256": "a37f83ada23e7887be6b88f4998927dbeac0038af301553c7cd5461413bf1a56"
+        },
+        {
+          "file": "2_Dense/config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 114,
+          "sha256": "3f8cb931199629aac321339504a3258b5de76b568bf718d724cd921bcd22bd14"
+        }
+      ],
+      "inputContract": {
+        "architecture": "DistilBertModel",
+        "hiddenDimension": 768,
+        "layers": 6,
+        "positionLimit": 512,
+        "tokenizerClass": "OTHER_OR_UNVERIFIED",
+        "tokenizerDeclaredLimit": null,
+        "remoteCodeDeclarationPresent": false,
+        "inputExecutionVerified": false,
+        "sentenceTransformerLimit": 128
+      },
+      "sentenceTransformerConfiguration": {
+        "file": "sentence_bert_config.json",
+        "httpStatus": 200,
+        "bounded": true,
+        "bytes": 53,
+        "sha256": "70f4448f31320443fe3557cacea5abf2dcc4915dda8c80646bec9f3bb0aa5a1f"
+      },
+      "moduleOrder": [
+        "Transformer",
+        "Pooling",
+        "Dense"
+      ],
+      "pooling": {
+        "dimension": 768,
+        "modes": {
+          "pooling_mode_cls_token": false,
+          "pooling_mode_mean_tokens": true,
+          "pooling_mode_max_tokens": false,
+          "pooling_mode_mean_sqrt_len_tokens": false,
+          "pooling_mode_weightedmean_tokens": null,
+          "pooling_mode_lasttoken": null
+        },
+        "executionVerified": false
+      },
+      "projection": {
+        "inputDimension": 768,
+        "outputDimension": 512,
+        "bias": true,
+        "activation": "torch.nn.modules.activation.Tanh",
+        "weightsVerified": false,
+        "executionVerified": false
+      },
+      "normalizationDeclared": false,
+      "diagnosis": "CONSISTENT_DECLARED_SOURCE_PENDING_INPUT_AND_QUALITY"
+    },
+    "quantizedFile": "onnx/model_quint8_avx2.onnx",
+    "poolingConfigSha256": "a37f83ada23e7887be6b88f4998927dbeac0038af301553c7cd5461413bf1a56",
+    "minimumCosineScore": 0.7,
+    "thresholdCalibrated": false,
+    "modelArtifactBytes": 138915182,
+    "modelLoadMs": 3725.839994,
+    "offlineReloadMs": 300.58135800000036,
+    "assets": [
+      {
+        "asset": "sentence-transformers/distiluse-base-multilingual-cased-v1/826fee3d516ebb14987355af373f5b69101c7006/2_Dense/model.safetensors",
+        "bytes": 1575104,
+        "sha256": "f8893703d8a6b640a8e4f90bbe2017fc0e7a792ad62daf6f723adf618f5d444f"
+      },
+      {
+        "asset": "sentence-transformers/distiluse-base-multilingual-cased-v1/826fee3d516ebb14987355af373f5b69101c7006/onnx/model_quint8_avx2.onnx",
+        "bytes": 135377779,
+        "sha256": "8bd3991c7c3741f2783f5e839d84f800fb202993768112786fd075e2b91a019b"
+      },
+      {
+        "asset": "sentence-transformers/distiluse-base-multilingual-cased-v1/826fee3d516ebb14987355af373f5b69101c7006/tokenizer_config.json",
+        "bytes": 452,
+        "sha256": "80d83a2078632f19353e410c7d7d2582d6f44a9818effa5114cc1146dd71ac8b"
+      },
+      {
+        "asset": "sentence-transformers/distiluse-base-multilingual-cased-v1/826fee3d516ebb14987355af373f5b69101c7006/tokenizer.json",
+        "bytes": 1961847,
+        "sha256": "5b4e1a8171c81dfd666ae40265b9530c6e0b3d53923fe8ac493dcc84229adf81"
+      }
+    ],
+    "onnxConversionEquivalence": "NOT_VERIFIED"
+  },
+  "calibration": {
+    "schemaVersion": 1,
+    "scope": "public_synthetic_development_only",
+    "developmentCorpusDigest": "f897f67563d7f05ed24d09c3b07c05c38c3af654eb2eecf6f9fbfbbfbe048a8e",
+    "originalFixedCorpusDigest": "49c998ee447eb5bec4c61636322b95900b556d69c0affabefcf7f1b574aa5217",
+    "authoredAfterInitialModelMeasurement": true,
+    "blindAcceptance": false,
+    "selectionExcludedFixedEvaluation": true,
+    "rule": {
+      "thresholds": [
+        0.35,
+        0.4,
+        0.45,
+        0.5,
+        0.55,
+        0.6,
+        0.65,
+        0.7,
+        0.75,
+        0.8,
+        0.85,
+        0.9
+      ],
+      "minimumPositiveHitRate": 0.75,
+      "maximumNoAnswerFalsePositiveRate": 0,
+      "limit": 5,
+      "tieBreak": "positive_hits_then_fewer_false_positives_then_higher_threshold",
+      "productionClaim": false
+    },
+    "status": "NO_ADMISSIBLE_DEVELOPMENT_THRESHOLD",
+    "selectedThreshold": null,
+    "comparisons": [
+      {
+        "threshold": 0.35,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 6,
+        "falsePositives": 5,
+        "positiveHitRate": 0.75,
+        "noAnswerFalsePositiveRate": 0.625,
+        "admissible": false
+      },
+      {
+        "threshold": 0.4,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 6,
+        "falsePositives": 4,
+        "positiveHitRate": 0.75,
+        "noAnswerFalsePositiveRate": 0.5,
+        "admissible": false
+      },
+      {
+        "threshold": 0.45,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 6,
+        "falsePositives": 3,
+        "positiveHitRate": 0.75,
+        "noAnswerFalsePositiveRate": 0.375,
+        "admissible": false
+      },
+      {
+        "threshold": 0.5,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 3,
+        "falsePositives": 2,
+        "positiveHitRate": 0.375,
+        "noAnswerFalsePositiveRate": 0.25,
+        "admissible": false
+      },
+      {
+        "threshold": 0.55,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 2,
+        "falsePositives": 1,
+        "positiveHitRate": 0.25,
+        "noAnswerFalsePositiveRate": 0.125,
+        "admissible": false
+      },
+      {
+        "threshold": 0.6,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 1,
+        "falsePositives": 0,
+        "positiveHitRate": 0.125,
+        "noAnswerFalsePositiveRate": 0,
+        "admissible": false
+      },
+      {
+        "threshold": 0.65,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 1,
+        "falsePositives": 0,
+        "positiveHitRate": 0.125,
+        "noAnswerFalsePositiveRate": 0,
+        "admissible": false
+      },
+      {
+        "threshold": 0.7,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 0,
+        "falsePositives": 0,
+        "positiveHitRate": 0,
+        "noAnswerFalsePositiveRate": 0,
+        "admissible": false
+      },
+      {
+        "threshold": 0.75,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 0,
+        "falsePositives": 0,
+        "positiveHitRate": 0,
+        "noAnswerFalsePositiveRate": 0,
+        "admissible": false
+      },
+      {
+        "threshold": 0.8,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 0,
+        "falsePositives": 0,
+        "positiveHitRate": 0,
+        "noAnswerFalsePositiveRate": 0,
+        "admissible": false
+      },
+      {
+        "threshold": 0.85,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 0,
+        "falsePositives": 0,
+        "positiveHitRate": 0,
+        "noAnswerFalsePositiveRate": 0,
+        "admissible": false
+      },
+      {
+        "threshold": 0.9,
+        "positiveTasks": 8,
+        "noAnswerTasks": 8,
+        "positiveHits": 0,
+        "falsePositives": 0,
+        "positiveHitRate": 0,
+        "noAnswerFalsePositiveRate": 0,
+        "admissible": false
+      }
+    ],
+    "additionalModelQueries": 16,
+    "productionClaim": false,
+    "productionThresholdChanged": false,
+    "modelAdmitted": false
+  }
+}

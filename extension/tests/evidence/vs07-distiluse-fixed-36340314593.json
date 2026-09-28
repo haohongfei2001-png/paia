@@ -1,0 +1,1863 @@
+{
+  "schemaVersion": 1,
+  "scope": "retained_public_synthetic_fixed_measurement",
+  "head": "f3a19ec9bae953daa8c126f26d047ba64eba6af9",
+  "runId": 36340314593,
+  "jobId": 108678989659,
+  "artifactId": 10937824226,
+  "artifactSha256": "4a775c03dd2d4a0e2b5b35757c90daaf74592ffdfb174a93bd1ec0b57345ccb0",
+  "model": {
+    "id": "sentence-transformers/distiluse-base-multilingual-cased-v1",
+    "revision": "826fee3d516ebb14987355af373f5b69101c7006",
+    "license": "apache-2.0",
+    "upstream": {
+      "id": "sentence-transformers/distiluse-base-multilingual-cased-v1",
+      "revision": "826fee3d516ebb14987355af373f5b69101c7006",
+      "license": "apache-2.0"
+    },
+    "task": "feature-extraction",
+    "dtype": "q8",
+    "device": "cpu",
+    "pooling": "masked_mean_then_dense_tanh_then_cosine_normalization",
+    "normalize": true,
+    "queryPrefix": "",
+    "passagePrefix": "",
+    "dimension": 512,
+    "prefixScope": "RAW_SINGLE_SEQUENCE_LAB_ADAPTER_NOT_PRODUCTION_INPUT_CERTIFICATION",
+    "maximumTokens": 128,
+    "truncation": false,
+    "assetAdmissions": [
+      {
+        "asset": "onnx/model_quint8_avx2.onnx",
+        "bytes": 135377779,
+        "sha256": "8bd3991c7c3741f2783f5e839d84f800fb202993768112786fd075e2b91a019b",
+        "pinnedRevision": "826fee3d516ebb14987355af373f5b69101c7006",
+        "bodyRequested": false,
+        "productionAdmission": false
+      },
+      {
+        "asset": "2_Dense/model.safetensors",
+        "bytes": 1575104,
+        "sha256": "f8893703d8a6b640a8e4f90bbe2017fc0e7a792ad62daf6f723adf618f5d444f",
+        "pinnedRevision": "826fee3d516ebb14987355af373f5b69101c7006",
+        "bodyRequested": false,
+        "productionAdmission": false
+      }
+    ],
+    "encoderDimension": 768,
+    "projection": {
+      "asset": "2_Dense/model.safetensors",
+      "sha256": "f8893703d8a6b640a8e4f90bbe2017fc0e7a792ad62daf6f723adf618f5d444f",
+      "bytes": 1575104,
+      "inputDimension": 768,
+      "outputDimension": 512,
+      "activation": "Tanh"
+    },
+    "explicitTokenizerClass": "DistilBertTokenizer",
+    "missingOptionalTokenizerMetadata": "NO_GENERIC_FALLBACK",
+    "singleSequenceTokenTypes": "DISTILBERT_GRAPH_TWO_REAL_INPUTS_ONLY",
+    "fabricatedTokenInputs": false,
+    "declaredSourceProvenance": {
+      "repository": "sentence-transformers/distiluse-base-multilingual-cased-v1",
+      "scope": "fixed_public_source_only",
+      "productionClaim": false,
+      "modelAdmission": "NOT_AUTHORIZED",
+      "weightsDownloaded": false,
+      "inferenceExecuted": false,
+      "scoringActivation": "NOT_VERIFIED",
+      "queryPrefix": "NOT_VERIFIED",
+      "truncationPolicy": "NOT_VERIFIED",
+      "conversionEquivalence": "NOT_VERIFIED",
+      "chromeCompatibility": "NOT_VERIFIED",
+      "qualityGate": "NOT_EVALUATED",
+      "currentMetadata": {
+        "httpStatus": 200,
+        "bounded": true,
+        "bytes": 1950,
+        "sha256": "07f6b8c36f3cf0e2b56bda6bb0c61021784e9e931764ea4d307f541438508529"
+      },
+      "revision": "826fee3d516ebb14987355af373f5b69101c7006",
+      "currentLicense": {
+        "card": {
+          "type": "string",
+          "declaration": "apache-2.0",
+          "permitted": true
+        },
+        "tagCodes": [
+          "apache-2.0"
+        ]
+      },
+      "pinnedMetadata": {
+        "httpStatus": 200,
+        "bounded": true,
+        "bytes": 1950,
+        "sha256": "07f6b8c36f3cf0e2b56bda6bb0c61021784e9e931764ea4d307f541438508529"
+      },
+      "pinnedLicense": {
+        "card": {
+          "type": "string",
+          "declaration": "apache-2.0",
+          "permitted": true
+        },
+        "tagCodes": [
+          "apache-2.0"
+        ]
+      },
+      "inventory": {
+        "fileCount": 30,
+        "onnxFiles": [
+          "onnx/model.onnx",
+          "onnx/model_O1.onnx",
+          "onnx/model_O2.onnx",
+          "onnx/model_O3.onnx",
+          "onnx/model_O4.onnx",
+          "onnx/model_qint8_arm64.onnx",
+          "onnx/model_qint8_avx512.onnx",
+          "onnx/model_qint8_avx512_vnni.onnx",
+          "onnx/model_quint8_avx2.onnx"
+        ],
+        "quantizedOnnxListed": true,
+        "tensorBytesFromMetadata": "NOT_VERIFIED",
+        "safeProjectionFiles": [
+          "2_Dense/model.safetensors"
+        ]
+      },
+      "readme": {
+        "httpStatus": 200,
+        "bounded": true,
+        "bytes": 2237,
+        "sha256": "8422376ace4232543fd22f72c98db8b66b97e98b5c8436102f464e4c7efd6c6a",
+        "license": {
+          "state": "literal",
+          "type": "string",
+          "declaration": "apache-2.0",
+          "permitted": true
+        }
+      },
+      "licenseFiles": [],
+      "configurationFiles": [
+        {
+          "file": "config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 556,
+          "sha256": "3160640e4ce35901d951dc929e803c828d4b086fb309dd12369f4106d66ade4f"
+        },
+        {
+          "file": "tokenizer_config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 452,
+          "sha256": "80d83a2078632f19353e410c7d7d2582d6f44a9818effa5114cc1146dd71ac8b"
+        },
+        {
+          "file": "modules.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 341,
+          "sha256": "f83ea5d68ac85ec15f650b350f0dc37b03d63abd60442f518e14c06f479beee6"
+        },
+        {
+          "file": "sentence_bert_config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 53,
+          "sha256": "70f4448f31320443fe3557cacea5abf2dcc4915dda8c80646bec9f3bb0aa5a1f"
+        },
+        {
+          "file": "1_Pooling/config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 190,
+          "sha256": "a37f83ada23e7887be6b88f4998927dbeac0038af301553c7cd5461413bf1a56"
+        },
+        {
+          "file": "2_Dense/config.json",
+          "httpStatus": 200,
+          "bounded": true,
+          "bytes": 114,
+          "sha256": "3f8cb931199629aac321339504a3258b5de76b568bf718d724cd921bcd22bd14"
+        }
+      ],
+      "inputContract": {
+        "architecture": "DistilBertModel",
+        "hiddenDimension": 768,
+        "layers": 6,
+        "positionLimit": 512,
+        "tokenizerClass": "OTHER_OR_UNVERIFIED",
+        "tokenizerDeclaredLimit": null,
+        "remoteCodeDeclarationPresent": false,
+        "inputExecutionVerified": false,
+        "sentenceTransformerLimit": 128
+      },
+      "sentenceTransformerConfiguration": {
+        "file": "sentence_bert_config.json",
+        "httpStatus": 200,
+        "bounded": true,
+        "bytes": 53,
+        "sha256": "70f4448f31320443fe3557cacea5abf2dcc4915dda8c80646bec9f3bb0aa5a1f"
+      },
+      "moduleOrder": [
+        "Transformer",
+        "Pooling",
+        "Dense"
+      ],
+      "pooling": {
+        "dimension": 768,
+        "modes": {
+          "pooling_mode_cls_token": false,
+          "pooling_mode_mean_tokens": true,
+          "pooling_mode_max_tokens": false,
+          "pooling_mode_mean_sqrt_len_tokens": false,
+          "pooling_mode_weightedmean_tokens": null,
+          "pooling_mode_lasttoken": null
+        },
+        "executionVerified": false
+      },
+      "projection": {
+        "inputDimension": 768,
+        "outputDimension": 512,
+        "bias": true,
+        "activation": "torch.nn.modules.activation.Tanh",
+        "weightsVerified": false,
+        "executionVerified": false
+      },
+      "normalizationDeclared": false,
+      "diagnosis": "CONSISTENT_DECLARED_SOURCE_PENDING_INPUT_AND_QUALITY"
+    },
+    "quantizedFile": "onnx/model_quint8_avx2.onnx",
+    "poolingConfigSha256": "a37f83ada23e7887be6b88f4998927dbeac0038af301553c7cd5461413bf1a56",
+    "minimumCosineScore": 0.7,
+    "thresholdCalibrated": false,
+    "modelArtifactBytes": 138915182,
+    "modelLoadMs": 3725.839994,
+    "offlineReloadMs": 300.58135800000036,
+    "assets": [
+      {
+        "asset": "sentence-transformers/distiluse-base-multilingual-cased-v1/826fee3d516ebb14987355af373f5b69101c7006/2_Dense/model.safetensors",
+        "bytes": 1575104,
+        "sha256": "f8893703d8a6b640a8e4f90bbe2017fc0e7a792ad62daf6f723adf618f5d444f"
+      },
+      {
+        "asset": "sentence-transformers/distiluse-base-multilingual-cased-v1/826fee3d516ebb14987355af373f5b69101c7006/onnx/model_quint8_avx2.onnx",
+        "bytes": 135377779,
+        "sha256": "8bd3991c7c3741f2783f5e839d84f800fb202993768112786fd075e2b91a019b"
+      },
+      {
+        "asset": "sentence-transformers/distiluse-base-multilingual-cased-v1/826fee3d516ebb14987355af373f5b69101c7006/tokenizer_config.json",
+        "bytes": 452,
+        "sha256": "80d83a2078632f19353e410c7d7d2582d6f44a9818effa5114cc1146dd71ac8b"
+      },
+      {
+        "asset": "sentence-transformers/distiluse-base-multilingual-cased-v1/826fee3d516ebb14987355af373f5b69101c7006/tokenizer.json",
+        "bytes": 1961847,
+        "sha256": "5b4e1a8171c81dfd666ae40265b9530c6e0b3d53923fe8ac493dcc84229adf81"
+      }
+    ],
+    "onnxConversionEquivalence": "NOT_VERIFIED"
+  },
+  "reports": [
+    {
+      "schemaVersion": 1,
+      "corpusId": "cpv1-vs07-synthetic-fixed-v1",
+      "corpusDigest": "49c998ee447eb5bec4c61636322b95900b556d69c0affabefcf7f1b574aa5217",
+      "scope": "synthetic_only",
+      "method": "lexical-production-v1",
+      "productionClaim": false,
+      "semanticCapabilityEstablished": false,
+      "personalBeliefJudgment": false,
+      "taskCount": 29,
+      "recordCount": 28,
+      "measuredTasks": 29,
+      "contractFailures": 0,
+      "aggregate": {
+        "mrrAt5": 0.6346153846153846,
+        "recallAt5": 0.6923076923076923,
+        "ndcgAt5": 0.6325610659785071,
+        "noAnswerAbstention": 0.6666666666666666
+      },
+      "retrievalTiming": {
+        "sampleCount": 29,
+        "p50Ms": 0.28350399999999354,
+        "p95Ms": 0.9985829999995985,
+        "scope": "this_fixed_synthetic_corpus_not_long_library"
+      },
+      "categories": {
+        "lexical": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "paraphrase_zh": {
+          "tasks": 4,
+          "errors": 0,
+          "mrrAt5": 0.625,
+          "recallAt5": 0.75
+        },
+        "fuzzy_recollection": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0.3333333333333333,
+          "recallAt5": 0.3333333333333333
+        },
+        "no_shared_keywords": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "negation": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0.3333333333333333,
+          "recallAt5": 0.3333333333333333
+        },
+        "correction": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "quotation_vs_belief": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 0.75,
+          "recallAt5": 1
+        },
+        "no_answer": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": null,
+          "recallAt5": null
+        },
+        "date_constraint": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "source_constraint": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "date_source_constraint": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "exclusion": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "unknown_time": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 0.5,
+          "recallAt5": 1
+        }
+      },
+      "rows": [
+        {
+          "id": "t01",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t02",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t03",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t04",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0.5,
+          "recallAt5": 1,
+          "ndcgAt5": 0.5413402936435214,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t05",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t06",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t07",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t08",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 0.8772153153380492,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t09",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t10",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t11",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t12",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t13",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t14",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t15",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t16",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t17",
+          "category": "correction",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t18",
+          "category": "correction",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t19",
+          "category": "quotation_vs_belief",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0.5,
+          "recallAt5": 1,
+          "ndcgAt5": 0.6309297535714575,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t20",
+          "category": "quotation_vs_belief",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t21",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": false,
+          "noAnswer": true
+        },
+        {
+          "id": "t22",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": true,
+          "noAnswer": true
+        },
+        {
+          "id": "t23",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": true,
+          "noAnswer": true
+        },
+        {
+          "id": "t24",
+          "category": "date_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t25",
+          "category": "date_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t26",
+          "category": "source_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t27",
+          "category": "date_source_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t28",
+          "category": "exclusion",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 0.7661725993167003,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t29",
+          "category": "unknown_time",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0.5,
+          "recallAt5": 1,
+          "ndcgAt5": 0.6309297535714575,
+          "abstained": false,
+          "noAnswer": false
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "corpusId": "cpv1-vs07-synthetic-fixed-v1",
+      "corpusDigest": "49c998ee447eb5bec4c61636322b95900b556d69c0affabefcf7f1b574aa5217",
+      "scope": "synthetic_only",
+      "method": "character-tfidf-lab-v1",
+      "productionClaim": false,
+      "semanticCapabilityEstablished": false,
+      "personalBeliefJudgment": false,
+      "taskCount": 29,
+      "recordCount": 28,
+      "measuredTasks": 29,
+      "contractFailures": 0,
+      "aggregate": {
+        "mrrAt5": 0.625,
+        "recallAt5": 0.6730769230769231,
+        "ndcgAt5": 0.6412954946536118,
+        "noAnswerAbstention": 0.6666666666666666
+      },
+      "retrievalTiming": {
+        "sampleCount": 29,
+        "p50Ms": 0.09871800000018993,
+        "p95Ms": 0.2247559999996156,
+        "scope": "this_fixed_synthetic_corpus_not_long_library"
+      },
+      "categories": {
+        "lexical": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "paraphrase_zh": {
+          "tasks": 4,
+          "errors": 0,
+          "mrrAt5": 0.5625,
+          "recallAt5": 0.625
+        },
+        "fuzzy_recollection": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0.3333333333333333,
+          "recallAt5": 0.3333333333333333
+        },
+        "no_shared_keywords": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "negation": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0.3333333333333333,
+          "recallAt5": 0.3333333333333333
+        },
+        "correction": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "quotation_vs_belief": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 0.75,
+          "recallAt5": 1
+        },
+        "no_answer": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": null,
+          "recallAt5": null
+        },
+        "date_constraint": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "source_constraint": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "date_source_constraint": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "exclusion": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 0.5,
+          "recallAt5": 1
+        },
+        "unknown_time": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        }
+      },
+      "rows": [
+        {
+          "id": "t01",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t02",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t03",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t04",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0.25,
+          "recallAt5": 0.5,
+          "ndcgAt5": 0.3950679673211227,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t05",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t06",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t07",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t08",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t09",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t10",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t11",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t12",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t13",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t14",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t15",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t16",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t17",
+          "category": "correction",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t18",
+          "category": "correction",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t19",
+          "category": "quotation_vs_belief",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0.5,
+          "recallAt5": 1,
+          "ndcgAt5": 0.6309297535714575,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t20",
+          "category": "quotation_vs_belief",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t21",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": false,
+          "noAnswer": true
+        },
+        {
+          "id": "t22",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": true,
+          "noAnswer": true
+        },
+        {
+          "id": "t23",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": true,
+          "noAnswer": true
+        },
+        {
+          "id": "t24",
+          "category": "date_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t25",
+          "category": "date_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t26",
+          "category": "source_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t27",
+          "category": "date_source_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t28",
+          "category": "exclusion",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0.5,
+          "recallAt5": 1,
+          "ndcgAt5": 0.6476851401013292,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t29",
+          "category": "unknown_time",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "corpusId": "cpv1-vs07-synthetic-fixed-v1",
+      "corpusDigest": "49c998ee447eb5bec4c61636322b95900b556d69c0affabefcf7f1b574aa5217",
+      "scope": "synthetic_only",
+      "method": "official-distiluse-dense-tanh-onnx-lab-v1",
+      "productionClaim": false,
+      "semanticCapabilityEstablished": false,
+      "personalBeliefJudgment": false,
+      "taskCount": 29,
+      "recordCount": 28,
+      "measuredTasks": 29,
+      "contractFailures": 0,
+      "aggregate": {
+        "mrrAt5": 0.07692307692307693,
+        "recallAt5": 0.057692307692307696,
+        "ndcgAt5": 0.07374305433511373,
+        "noAnswerAbstention": 1
+      },
+      "retrievalTiming": {
+        "sampleCount": 29,
+        "p50Ms": 14.562964000000648,
+        "p95Ms": 25.529379999999946,
+        "scope": "this_fixed_synthetic_corpus_not_long_library"
+      },
+      "categories": {
+        "lexical": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "paraphrase_zh": {
+          "tasks": 4,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "fuzzy_recollection": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "no_shared_keywords": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "negation": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "correction": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 0.5,
+          "recallAt5": 0.25
+        },
+        "quotation_vs_belief": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 0.5,
+          "recallAt5": 0.5
+        },
+        "no_answer": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": null,
+          "recallAt5": null
+        },
+        "date_constraint": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "source_constraint": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "date_source_constraint": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "exclusion": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "unknown_time": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        }
+      },
+      "rows": [
+        {
+          "id": "t01",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t02",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t03",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t04",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t05",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t06",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t07",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t08",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t09",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t10",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t11",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t12",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t13",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t14",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t15",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t16",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t17",
+          "category": "correction",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t18",
+          "category": "correction",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 0.5,
+          "ndcgAt5": 0.9173194127129571,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t19",
+          "category": "quotation_vs_belief",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t20",
+          "category": "quotation_vs_belief",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t21",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": true,
+          "noAnswer": true
+        },
+        {
+          "id": "t22",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": true,
+          "noAnswer": true
+        },
+        {
+          "id": "t23",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": true,
+          "noAnswer": true
+        },
+        {
+          "id": "t24",
+          "category": "date_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t25",
+          "category": "date_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t26",
+          "category": "source_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t27",
+          "category": "date_source_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t28",
+          "category": "exclusion",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t29",
+          "category": "unknown_time",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "corpusId": "cpv1-vs07-synthetic-fixed-v1",
+      "corpusDigest": "49c998ee447eb5bec4c61636322b95900b556d69c0affabefcf7f1b574aa5217",
+      "scope": "synthetic_only",
+      "method": "official-distiluse-hybrid-rrf-lab-v1",
+      "productionClaim": false,
+      "semanticCapabilityEstablished": false,
+      "personalBeliefJudgment": false,
+      "taskCount": 29,
+      "recordCount": 28,
+      "measuredTasks": 29,
+      "contractFailures": 0,
+      "aggregate": {
+        "mrrAt5": 0.6346153846153846,
+        "recallAt5": 0.6923076923076923,
+        "ndcgAt5": 0.6325610659785071,
+        "noAnswerAbstention": 0.6666666666666666
+      },
+      "retrievalTiming": {
+        "sampleCount": 29,
+        "p50Ms": 0.26066999999966356,
+        "p95Ms": 0.443623000000116,
+        "scope": "ranking_only_shared_inference_not_end_to_end"
+      },
+      "categories": {
+        "lexical": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "paraphrase_zh": {
+          "tasks": 4,
+          "errors": 0,
+          "mrrAt5": 0.625,
+          "recallAt5": 0.75
+        },
+        "fuzzy_recollection": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0.3333333333333333,
+          "recallAt5": 0.3333333333333333
+        },
+        "no_shared_keywords": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0,
+          "recallAt5": 0
+        },
+        "negation": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": 0.3333333333333333,
+          "recallAt5": 0.3333333333333333
+        },
+        "correction": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "quotation_vs_belief": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 0.75,
+          "recallAt5": 1
+        },
+        "no_answer": {
+          "tasks": 3,
+          "errors": 0,
+          "mrrAt5": null,
+          "recallAt5": null
+        },
+        "date_constraint": {
+          "tasks": 2,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "source_constraint": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "date_source_constraint": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "exclusion": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 1,
+          "recallAt5": 1
+        },
+        "unknown_time": {
+          "tasks": 1,
+          "errors": 0,
+          "mrrAt5": 0.5,
+          "recallAt5": 1
+        }
+      },
+      "rows": [
+        {
+          "id": "t01",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t02",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t03",
+          "category": "lexical",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t04",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0.5,
+          "recallAt5": 1,
+          "ndcgAt5": 0.5413402936435214,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t05",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t06",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t07",
+          "category": "paraphrase_zh",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t08",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 0.8772153153380492,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t09",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t10",
+          "category": "fuzzy_recollection",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t11",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t12",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t13",
+          "category": "no_shared_keywords",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": true,
+          "noAnswer": false
+        },
+        {
+          "id": "t14",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t15",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0,
+          "recallAt5": 0,
+          "ndcgAt5": 0,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t16",
+          "category": "negation",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t17",
+          "category": "correction",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t18",
+          "category": "correction",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t19",
+          "category": "quotation_vs_belief",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0.5,
+          "recallAt5": 1,
+          "ndcgAt5": 0.6309297535714575,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t20",
+          "category": "quotation_vs_belief",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t21",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": false,
+          "noAnswer": true
+        },
+        {
+          "id": "t22",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": true,
+          "noAnswer": true
+        },
+        {
+          "id": "t23",
+          "category": "no_answer",
+          "status": "MEASURED",
+          "reciprocalRankAt5": null,
+          "recallAt5": null,
+          "ndcgAt5": null,
+          "abstained": true,
+          "noAnswer": true
+        },
+        {
+          "id": "t24",
+          "category": "date_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t25",
+          "category": "date_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t26",
+          "category": "source_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t27",
+          "category": "date_source_constraint",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 1,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t28",
+          "category": "exclusion",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 1,
+          "recallAt5": 1,
+          "ndcgAt5": 0.7661725993167003,
+          "abstained": false,
+          "noAnswer": false
+        },
+        {
+          "id": "t29",
+          "category": "unknown_time",
+          "status": "MEASURED",
+          "reciprocalRankAt5": 0.5,
+          "recallAt5": 1,
+          "ndcgAt5": 0.6309297535714575,
+          "abstained": false,
+          "noAnswer": false
+        }
+      ],
+      "sharedInferenceMethod": "official-distiluse-dense-tanh-onnx-lab-v1",
+      "hybridRankRule": {
+        "algorithm": "reciprocal_rank_fusion",
+        "constant": 60,
+        "lexicalWeight": 1,
+        "semanticWeight": 1,
+        "limit": 5,
+        "productionClaim": false
+      },
+      "additionalModelQueries": 0
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import {historicalInstant} from './historical-time.js';
 import {searchMaterialPage} from './search-material-page.js';
 import {ArchiveError} from './constants.js';
 import {normalizeSearch,searchExcerpt} from './search-service.js';
@@ -32,12 +33,12 @@ export function aiProjectionMatches(topics,query,limit=8){
 
 export function inputTimeline(items){
  const dated=[...(items||[])].sort((a,b)=>{
-  const x=Date.parse(a.sourceSentAt||''),y=Date.parse(b.sourceSentAt||'');
-  if(Number.isFinite(x)!==Number.isFinite(y))return Number.isFinite(x)?-1:1;
-  return (Number.isFinite(x)&&Number.isFinite(y)?x-y:0)||String(a.id).localeCompare(String(b.id));
+  const x=historicalInstant(a.sourceSentAt),y=historicalInstant(b.sourceSentAt);
+  if((x!==null)!==(y!==null))return x!==null?-1:1;
+  return (x!==null&&y!==null?x-y:0)||String(a.id).localeCompare(String(b.id));
  });
  const groups=[];let last=null,current=null;
- for(const item of dated){const at=Date.parse(item.sourceSentAt||''),key=Number.isFinite(at)?new Date(at).toISOString().slice(0,7):'unknown';if(key!==last){current={key,items:[]};groups.push(current);last=key;}current.items.push(item);}
+ for(const item of dated){const at=historicalInstant(item.sourceSentAt),key=at!==null?new Date(at).toISOString().slice(0,7):'unknown';if(key!==last){current={key,items:[]};groups.push(current);last=key;}current.items.push(item);}
  return groups;
 }
 

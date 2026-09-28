@@ -127,3 +127,228 @@ test('UX-R2 F-LARGE real IndexedDB: 100k Inputs, 1000 documents, 300 topics and 
   await mkdir('work/ux-r2',{recursive:true});await writeFile('work/ux-r2/large-fixture.json',JSON.stringify(report,null,2));assert.deepEqual(report.counts,{inputs:100000,documents:1000,topics:300,entries:5000});assert.ok(report.page.blocks<=100);assert.ok(report.page.bodies<=100);assert.ok(report.page.reads<600);assert.ok(report.resume.reads<10);assert.equal(report.resume.offset,41000);assert.ok(report.revisit.reads<6000);assert.ok(report.revisit.cards<=5);assert.ok(report.page.ms<3000);assert.ok(report.resume.ms<1000);assert.ok(report.pulses>0);assert.equal(report.localHasBody,false);await mkdir('work/ux-r2',{recursive:true});await writeFile('work/ux-r2/large-fixture.json',JSON.stringify(report,null,2));offline(h);
  }finally{await h.close();}
 });
+
+test('VS07 Revisit explains a finite priority set and keeps saved position and exclusions', {timeout:120000}, async()=>{
+ const h=await FakeChatGPT.start({onboarding:true});try{
+  const p=await ready(h),chat={id:'vs07-revisit-priority',title:'回访选择证据',
+   base:1609459200,messages:Array.from({length:8},(_,i)=>({
+    id:'vs07-revisit-'+i,text:'VS07_REVISIT_ORIGINAL_'+i+' 原话、反例与后续修正独立保留。'}))};
+  await h.open(chat);
+  await eventually(async()=>{
+   const records=(await h.state()).records;
+   return records.length===8&&records.every(x=>x.sourceSentAt);
+  },'all eight real historical-time captures are ready');
+  await p.bringToFront();
+  const doc=(await rpc(p,'GET_PAGE',{page:{view:'library',limit:1}})).recentCapturedDocument;
+  const page=await rpc(p,'GET_PAGE',{page:{view:'library',documentId:doc.id,limit:20}});
+  assert.equal(page.library.blocks.length,8);
+  const worked=page.library.blocks.slice(0,2),sourceBefore=(await h.state()).records;
+  await rpc(p,'EDIT_DOCUMENT',{edit:{documentId:doc.id,operationId:crypto.randomUUID(),
+   blocks:worked.map((item,i)=>({id:item.id,expectedRevision:item.revision,
+    libraryText:'VS07_REVISIT_WORKED_'+i+' 独立工作版本。',note:item.note,excluded:item.excluded}))}});
+  const anchorInput=await rpc(p,'GET_INPUT',{id:worked[0].id});
+  const anchor={documentId:doc.id,inputId:anchorInput.id,revision:anchorInput.revision,
+   offset:3,sort:'asc',expanded:[anchorInput.id]};
+  assert.equal((await rpc(p,'PAIA_READER_SAVE',{anchor})).saved,true);
+  const positions=await rpc(p,'PAIA_READER_RECENT');assert.equal(positions.length,1);
+  await navigate(p,{view:'revisit'});
+  assert.equal(await p.locator('#revisit-old-toggle').isChecked(),false);
+  await eventually(()=>p.evaluate(()=>!!history.state?.paiaRevisitWindow),
+   'priority visit observes actual OPEN identity before querying its boundary');
+  const firstVisit=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
+  assert.deepEqual(firstVisit.resurface,[]);
+  assert.equal(firstVisit.window.end,8);
+  assert.ok(firstVisit.newInputs.items.length<=5);
+  assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),positions);
+  // Captures after the startup visit boundary are genuinely new this visit.
+  // Advance only by the real close/open UI, without a fake mark/read-all write.
+  await p.locator('.revisit-close').click();
+  await eventually(async()=>await p.locator('#revisit-panel').isHidden()&&
+   await p.evaluate(()=>!history.state?.paiaRevisitWindow),
+   'priority visit observes actual CLOSE acknowledgement');
+  await navigate(p,{view:'revisit'});
+  await eventually(()=>p.evaluate(()=>!!history.state?.paiaRevisitWindow),
+   'priority next visit observes actual OPEN identity');
+  const nextVisit=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
+  assert.equal(nextVisit.window.start,8);assert.equal(nextVisit.window.end,8);
+  assert.equal(nextVisit.newInputs.count,0);
+  assert.equal(await p.locator('.revisit-card[data-input-id]').count(),0);
+  await eventually(()=>p.locator('.revisit-resume').isVisible(),'continue reading stays available');
+  assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),positions);
+  await p.locator('#revisit-old-toggle').check();
+  await eventually(async()=>await p.locator('.revisit-card[data-input-id]').count()===4,
+   'old material is opt-in and finite');
+  for(const item of worked){
+   const card=p.locator('.revisit-card[data-input-id="'+item.id+'"]');
+   await card.waitFor();assert.match(await card.locator('small').textContent(),/曾编辑或整理/);
+  }
+  const plain=p.locator('.revisit-card[data-input-id]').filter({hasText:'VS07_REVISIT_ORIGINAL_'});
+  assert.equal(await plain.count(),2);
+  for(const small of await plain.locator('small').all())
+   assert.match(await small.textContent(),/已开启旧内容回顾/);
+  assert.match(await p.locator('#revisit-body').textContent(),/每次最多四条/);
+  const visit=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
+  assert.equal(visit.resurface.length,4);
+  assert.ok(visit.resurface.every(item=>!Object.hasOwn(item,'currentBelief')&&
+   !Object.hasOwn(item,'supersedes')));
+  const before=(await p.locator('.revisit-card[data-input-id]').all()).map(async card=>card.getAttribute('data-input-id'));
+  const ids=await Promise.all(before);await p.locator('#revisit-refresh').click();
+  await eventually(async()=>JSON.stringify(await p.locator('.revisit-card[data-input-id]').evaluateAll(
+   cards=>cards.map(card=>card.dataset.inputId)))===JSON.stringify(ids),'same-day refresh is stable');
+  const excluded=p.locator('.revisit-card[data-input-id="'+worked[0].id+'"]');
+  await excluded.locator('summary').click();
+  await excluded.getByRole('button',{name:'不主动回顾这条',exact:true}).click();
+  await eventually(async()=>await excluded.count()===0,'excluded priority item disappears');
+  assert.ok(await p.locator('.revisit-card[data-input-id]').count()<=4);
+  assert.equal((await rpc(p,'SEARCH_INPUTS',{options:{query:'VS07_REVISIT_WORKED_0'}})).items.length,1,
+   'Revisit exclusion preserves explicit retrieval');
+  assert.deepEqual((await h.state()).records,sourceBefore);
+  assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),positions.slice(1),
+   'the explicitly excluded item stops offering a Revisit reading card');
+  await p.locator('#revisit-old-toggle').uncheck();
+  await eventually(async()=>await p.locator('.revisit-card[data-input-id]').count()===0);
+  assert.deepEqual((await h.state()).records,sourceBefore);offline(h);
+ }finally{await h.close();}
+});
+
+
+test('VS07 Revisit finds worked material beyond the first ordinary cursor page', {timeout:120000}, async()=>{
+ const h=await FakeChatGPT.start({onboarding:true});try{
+  const p=await ready(h),chat={id:'vs07-revisit-paged',title:'跨页回访证据',
+   base:1609459200,messages:Array.from({length:130},(_,i)=>({
+    id:'vs07-paged-'+String(i).padStart(3,'0'),
+    text:'VS07_PAGED_ORIGINAL_'+String(i).padStart(3,'0')+' 完整原话与工作版本保持独立。'}))};
+  await h.open(chat);
+  await eventually(async()=>{
+   const records=(await h.state()).records;
+   return records.length===130&&records.every(x=>x.sourceSentAt);
+  },'all full cross-page historical captures are ready');
+  await p.bringToFront();
+  const sourceBefore=(await h.state()).records;
+  const doc=(await rpc(p,'GET_PAGE',{page:{view:'library',limit:1}})).recentCapturedDocument;
+  const page=await rpc(p,'GET_PAGE',{page:{view:'library',documentId:doc.id,sort:'asc',limit:100}});
+  const originals=sourceBefore.filter(r=>['vs07-paged-000','vs07-paged-001',
+   'vs07-paged-002','vs07-paged-003'].includes(r.sourceMessageId));
+  assert.equal(originals.length,4);
+  const worked=originals.map(r=>page.library.blocks.find(b=>b.originalTextReference===r.id));
+  assert.ok(worked.every(Boolean),'the four oldest captured Inputs are available through actual paging');
+  await rpc(p,'EDIT_DOCUMENT',{edit:{documentId:doc.id,operationId:crypto.randomUUID(),
+   blocks:worked.map((item,i)=>({id:item.id,expectedRevision:item.revision,
+    libraryText:'VS07_PAGED_WORKED_'+i+' 曾编辑的完整独立版本。',note:item.note,excluded:item.excluded}))}});
+  await navigate(p,{view:'revisit'});
+  // Visibility precedes the async OPEN response. Observe the actual window
+  // identity before closing; hiding the panel alone does not prove CLOSE.
+  await eventually(()=>p.evaluate(()=>!!history.state?.paiaRevisitWindow),
+   'first actual visit window is established');
+  const first=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state.paiaRevisitWindow),includeOld:true}});
+  assert.equal(first.window.end,130);assert.ok(first.newInputs.items.length<=5);
+  await p.locator('.revisit-close').click();
+  await eventually(async()=>await p.locator('#revisit-panel').isHidden()&&
+   await p.evaluate(()=>!history.state?.paiaRevisitWindow),'real visit CLOSE acknowledgement clears identity');
+  await navigate(p,{view:'revisit'});
+  await eventually(()=>p.evaluate(()=>!!history.state?.paiaRevisitWindow),
+   'next actual visit window is established');
+  const opened=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state.paiaRevisitWindow),includeOld:true}});
+  assert.equal(opened.window.start,130);assert.equal(opened.window.end,130);
+  assert.equal(opened.newInputs.count,0);
+  await p.locator('#revisit-old-toggle').check();
+  await eventually(async()=>await p.locator('.revisit-card[data-input-id]').count()===4);
+  const ids=await p.locator('.revisit-card[data-input-id]').evaluateAll(cards=>cards.map(c=>c.dataset.inputId));
+  assert.deepEqual(new Set(ids),new Set(worked.map(b=>b.id)));
+  for(const item of worked){
+   const card=p.locator('.revisit-card[data-input-id="'+item.id+'"]');
+   assert.match(await card.locator('small').textContent(),/曾编辑或整理/);
+  }
+  const result=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
+  assert.equal(result.resurfaceTruncated,false);assert.equal(result.newInputs.count,0);
+  assert.equal(Object.hasOwn(result,'unread'),false);
+  await p.locator('#revisit-refresh').click();
+  await eventually(async()=>JSON.stringify(await p.locator('.revisit-card[data-input-id]').evaluateAll(
+   cards=>cards.map(c=>c.dataset.inputId)))===JSON.stringify(ids),'cross-page same-day selection remains stable');
+  const removed=p.locator('.revisit-card[data-input-id="'+worked[0].id+'"]');
+  await removed.locator('summary').click();
+  await removed.getByRole('button',{name:'不主动回顾这条',exact:true}).click();
+  await eventually(async()=>await removed.count()===0);
+  const after=await rpc(p,'PAIA_REVISIT_STATUS',{options:{
+   windowId:await p.evaluate(()=>history.state?.paiaRevisitWindow||null),includeOld:true}});
+  assert.equal(after.resurface.length,4);assert.equal(after.resurface.filter(x=>x.meaningful).length,3);
+  assert.deepEqual((await h.state()).records,sourceBefore);
+  assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[]);
+  offline(h);
+ }finally{await h.close();}
+});
+
+test('VS07 Revisit revokes delayed real reads on leave and cannot revive purged previews', {timeout:150000}, async()=>{
+ const h=await FakeChatGPT.start({onboarding:true});try{
+  const p=await ready(h),canary='VS07_REVISIT_LIFECYCLE_PRIVATE',
+   text=canary+'\n'+Array.from({length:1000},(_,i)=>'段落 '+i+' 原话与反例完整保留，延迟读取不能恢复已删除预览。').join('\n'),
+   chat={id:'vs07-revisit-lifecycle',title:'回访生命周期证据',base:1609459200,
+    messages:[{id:'vs07-revisit-lifecycle-one',text}]};
+  await h.open(chat);await eventually(async()=>(await h.state()).records.length===1);
+  const doc=(await rpc(p,'GET_PAGE',{page:{view:'library',limit:1}})).recentCapturedDocument,
+   page=await rpc(p,'GET_PAGE',{page:{view:'library',documentId:doc.id,limit:20}});
+  assert.equal(page.library.blocks.length,1);
+  const captured=await rpc(p,'GET_INPUT',{id:page.library.blocks[0].id});
+  assert.equal(captured.libraryText,null,'an unedited Input has no separate working override');
+  const immutable=(await h.state()).records.find(record=>record.id===captured.originalTextReference);
+  assert.ok(immutable,'the actual Input remains bound to its immutable capture');
+  assert.equal(immutable.originalText,text,'all1000paragraphs survive actual capture unchanged');
+  await rpc(p,'PAIA_READER_CONFIGURE',{change:{oldContent:true}});
+  await navigate(p,{view:'revisit'});
+  await eventually(()=>p.locator('.revisit-card').filter({hasText:canary}).isVisible());
+  await eventually(()=>p.evaluate(()=>!!history.state?.paiaRevisitWindow));
+  // Read through the real extension worker first. Delay only delivery, never
+  // substitute a product response or suppress its mutation notifications.
+  await p.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);
+   globalThis.__vs07RevisitPending=[];globalThis.__vs07RevisitHold=false;
+   chrome.runtime.sendMessage=async message=>{
+    const response=await send(message);
+    if(globalThis.__vs07RevisitHold&&['PAIA_REVISIT_STATUS','PAIA_READER_RECENT'].includes(message.type)
+      &&!globalThis.__vs07RevisitPending.some(pending=>pending.type===message.type)){
+     const pending={type:message.type,response};
+     globalThis.__vs07RevisitPending.push(pending);
+     await new Promise(resolve=>{pending.release=resolve;});
+     pending.delivered=true;
+     if(pending.fail)throw Error('SYNTHETIC_DELAYED_READING_POSITION_FAILURE');
+    }
+    return response;
+   };
+  });
+  const hold=async()=>{await p.evaluate(()=>{globalThis.__vs07RevisitPending=[];globalThis.__vs07RevisitHold=true;});await p.locator('#revisit-refresh').click();await eventually(()=>p.evaluate(()=>globalThis.__vs07RevisitPending.length===2));assert.equal(await p.evaluate(()=>globalThis.__vs07RevisitPending.some(x=>x.type==='PAIA_REVISIT_STATUS'&&JSON.stringify(x.response).includes('VS07_REVISIT_LIFECYCLE_PRIVATE'))),true,'the delayed preview came from a genuine successful worker read');};
+  const release=async(failReading=false)=>{await p.evaluate(failReading=>{globalThis.__vs07RevisitHold=false;for(const pending of globalThis.__vs07RevisitPending){pending.fail=failReading&&pending.type==='PAIA_READER_RECENT';pending.release();}},failReading);await eventually(()=>p.evaluate(()=>globalThis.__vs07RevisitPending.every(x=>x.delivered)));await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));};
+  const empty=async()=>{assert.equal(await p.locator('#revisit-panel').isHidden(),true);assert.equal(await p.locator('#revisit-body').textContent(),'');assert.equal(await p.locator('#revisit-body').locator('button,article').count(),0);assert.equal(await p.locator('#revisit-status').textContent(),'');};
+  await hold();await p.locator('.revisit-close').click();
+  await eventually(()=>p.locator('#collection-panel').isVisible());await empty();
+  await release(true);await empty();
+  await navigate(p,{view:'revisit'});
+  await eventually(()=>p.locator('.revisit-card').filter({hasText:canary}).isVisible());
+  await hold();
+  // The real Revisit -> Reader journey preserves its visit window, but no
+  // private hidden DOM. Purge through the existing user confirmation path.
+  await p.locator('.revisit-card').filter({hasText:canary}).locator('.revisit-card-open').click();
+  await eventually(()=>p.locator('#document-panel').isVisible());await input(p).waitFor();
+  await empty();assert.equal(await input(p).textContent(),text);
+  await menu(p,'查看当时记录');await eventually(()=>p.locator('#info-dialog').evaluate(el=>el.open));
+  await p.locator('#info-content button').filter({hasText:'永久删除来源'}).click();
+  await eventually(()=>p.locator('.reader-confirm').isVisible());
+  assert.match(await p.evaluate(()=>document.activeElement.textContent),/取消/);
+  await p.locator('.reader-confirm .danger').click();
+  await eventually(async()=>(await h.state()).records.length===0);
+  await eventually(async()=>!(await p.locator('#info-dialog').evaluate(el=>el.open)));
+  assert.equal(await p.locator('#info-content').textContent(),'');await empty();
+  await release();await empty();
+  await navigate(p,{view:'revisit'});
+  await eventually(()=>p.locator('.revisit-quiet').isVisible());
+  assert.equal(await p.locator('.revisit-card').count(),0);
+  assert.doesNotMatch(await p.locator('#revisit-body').textContent(),/VS07_REVISIT_LIFECYCLE_PRIVATE/);
+  assert.equal((await rpc(p,'SEARCH_INPUTS',{options:{query:canary}})).items.length,0);
+  assert.equal((await h.state()).records.length,0);offline(h);
+ }finally{await h.close();}
+});

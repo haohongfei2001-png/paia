@@ -83,7 +83,10 @@ export class IndexedArchiveStore {
     if(!records.length){settled[settled.length-1]=false;continue;}
     const prior=await t.get('times',key);const s={records,sourceTimes:prior?{[key]:prior.value}:{}};
     const changed=applySourceTime(s,key,m.sourceTime,m.pageOrder,this.clock(),records,m.domTime);timeChanged||=changed;
-    if(s.sourceTimes[key])await t.put('times',{id:key,value:s.sourceTimes[key]});
+    // Repeated page scans must not invalidate active exports or derived builds.
+    // Compare the complete evidence ledger: new/conflicting evidence still writes.
+    const nextTime=s.sourceTimes[key];
+    if(nextTime&&!same(prior?.value,nextTime))await t.put('times',{id:key,value:nextTime});
     let recordsChanged=false;for(const {r,index}of selected){const old=await t.get('records',r.id),sourceTimeChanged=!!old&&old.value.sourceSentAt!==r.sourceSentAt;if(!old||!same(old.value,r)){recordsChanged=true;await this.saveRecord(t,r,index);if(sourceTimeChanged&&this.afterSourceTimeChanged)await this.afterSourceTimeChanged(t,r.id);const doc=await this.defaultBlock(t,r,seq);if(doc)docs.add(doc);for(const b of await t.all('blockIndex','byRecord',r.id))docs.add(b.documentId);for(const d of await t.all('documents','byChat',chatOf(r)))docs.add(d.id);}}
     processedSources++;if(records.at(-1).sourceSentAt)knownTimes++;else unknownTimes++;
     if(enrich&&(changed||recordsChanged))enriched+=records.length;

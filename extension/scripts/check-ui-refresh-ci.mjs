@@ -1,6 +1,6 @@
 import {readdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
-import {group} from './test-groups.mjs';
+import {group,testShard} from './test-groups.mjs';
 
 process.chdir(fileURLToPath(new URL('../',import.meta.url)));
 const names=new Set((await readdir('tests')).filter(name=>name.endsWith('.test.mjs')));
@@ -37,5 +37,27 @@ for(const name of ans){
 const cpr=[...names].filter(name=>/^cpr-\d+-.*-chrome-e2e\.test\.mjs$/.test(name)).sort();
 for(const name of cpr){
  if(group(name)!=='browser E2E')throw Error(`CPR_BROWSER_NOT_CURRENT:${name}`);
+}
+const archived=[
+ 'cpv1-07-lab-cadence.test.mjs',
+ 'cpv1-07-official-minilm.test.mjs',
+ 'cpv1-07-public-model-provenance.test.mjs',
+ 'cpv1-07-retrieval-evaluation.test.mjs',
+ 'cpv1-07-semantic-index.test.mjs',
+ 'cpv1-07-semantic-lab.test.mjs',
+ 'cpv1-07-semantic-material-snapshot.test.mjs',
+ 'cpv1-07-semantic-storage-chrome-e2e.test.mjs'
+];
+for(const name of archived){
+ if(!names.has(name)||group(name)!=='experimental')throw Error(`SEMANTIC_ARCHIVE_COVERAGE_MISSING:${name}`);
+}
+const current=[...names].filter(name=>group(name)==='browser E2E').sort();
+const partition=Array.from({length:4},(_,slot)=>current.filter((name,position)=>
+ testShard('tests/'+name,position,4,'browser E2E')===slot+1));
+if(partition.some(part=>!part.length)
+    || partition.flat().sort().join('|')!==current.join('|')
+    || !partition[3].includes('cpv1-07-historical-comparison-chrome-e2e.test.mjs')
+    || partition[1].includes('cpv1-07-historical-comparison-chrome-e2e.test.mjs')){
+ throw Error('CURRENT_BROWSER_SHARD_PARTITION_INVALID');
 }
 console.log(`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=${formerCore.length} uir=${uir.length} ans=${ans.length} cpr=${cpr.length}`);

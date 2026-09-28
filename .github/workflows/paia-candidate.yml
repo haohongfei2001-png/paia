@@ -45,8 +45,113 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
-      - name: Run unit suite
-        run: npm run test:unit
+      - name: Run owning unit contracts or complete unit suite
+        env:
+          EVENT_ACTION: ${{ github.event.action }}
+          PREVIOUS_HEAD: ${{ github.event.before }}
+          CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'JS'
+          import {execFileSync,spawnSync} from 'node:child_process';
+          import {group} from './scripts/test-groups.mjs';
+          import {semanticLabRouting} from './scripts/semantic-lab-change.mjs';
+          const previous=process.env.PREVIOUS_HEAD||'',head=process.env.CANDIDATE_HEAD||'';
+          const sha=/^[0-9a-f]{40}$/;
+          let changed=[];
+          if(process.env.EVENT_ACTION==='synchronize'&&sha.test(previous)&&sha.test(head)){
+            // Compare the full synchronized coherent batch, never HEAD^ alone
+            // (which could omit earlier commits delivered by the same push).
+            changed=execFileSync('git',['diff','--name-only',previous,head],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
+          }
+          const owner='extension/tests/cpv1-07-historical-comparison-chrome-e2e.test.mjs';
+          const historyEligible=changed.includes(owner)&&changed.every(path=>
+            path===owner||path==='.github/workflows/paia-candidate.yml'||
+            /^extension\/docs\/consumer-product-v1\/(STATUS|EXECUTION_PROTOCOL)\.md$/.test(path));
+          const calibrationPaths=new Set([
+            'extension/experiments/semantic-calibration.mjs',
+            'extension/experiments/semantic-lab-index.mjs',
+            'extension/tests/fixtures/cpv1-07-calibration-corpus.mjs',
+            'extension/tests/cpv1-07-semantic-lab.test.mjs',
+            'extension/scripts/run-official-semantic-retrieval-lab.mjs',
+            '.github/workflows/paia-vs07-semantic-lab.yml',
+            '.github/workflows/paia-candidate.yml',
+            'extension/docs/consumer-product-v1/STATUS.md',
+            'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'
+          ]);
+          const calibrationEligible=changed.includes('extension/experiments/semantic-calibration.mjs')
+            &&changed.includes('extension/scripts/run-official-semantic-retrieval-lab.mjs')
+            &&changed.every(path=>calibrationPaths.has(path));
+          let sourceAncestor=false;
+          if(process.env.EVENT_ACTION==='synchronize'&&sha.test(previous)&&sha.test(head)&&previous!==head){
+            try{execFileSync('git',['merge-base','--is-ancestor',previous,head],{stdio:'pipe'});sourceAncestor=true;}
+            catch{/* Unknown/replaced history retains complete original unit suite. */}
+          }
+          const labRouting=semanticLabRouting({action:process.env.EVENT_ACTION,
+            before:previous,head,ancestor:sourceAncestor,paths:changed});
+          const sourceEligible=labRouting.sourceOnly,pairedEligible=labRouting.pairedOnly===true,
+            embeddingEligible=labRouting.embeddingOnly===true||labRouting.embeddingProbeOnly===true||labRouting.diagnosticOnly===true;
+          const revisitPaths=new Set([
+            'extension/core/revisit.js',
+            'extension/ui/revisit.js',
+            'extension/tests/cpv1-07-revisit-selection.test.mjs',
+            'extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs',
+            '.github/workflows/paia-candidate.yml',
+            'extension/docs/consumer-product-v1/STATUS.md',
+            'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'
+          ]);
+          const revisitImplementation=['extension/core/revisit.js',
+            'extension/tests/cpv1-07-revisit-selection.test.mjs',
+            'extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'].every(path=>changed.includes(path));
+          const revisitBrowserOnly=changed.includes('extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs')
+            &&changed.every(path=>path==='extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'
+              ||path==='.github/workflows/paia-candidate.yml'
+              ||/^extension\/docs\/consumer-product-v1\/(STATUS|EXECUTION_PROTOCOL)\.md$/.test(path));
+          const revisitUI=changed.includes('extension/ui/revisit.js')
+            &&changed.includes('extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs')
+            &&changed.every(path=>path==='extension/ui/revisit.js'
+              ||path==='extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'
+              ||path==='.github/workflows/paia-candidate.yml'
+              ||/^extension\/docs\/consumer-product-v1\/(STATUS|EXECUTION_PROTOCOL)\.md$/.test(path));
+          const revisitEligible=sourceAncestor&&changed.length>0
+            &&new Set(changed).size===changed.length
+            &&(revisitImplementation||revisitBrowserOnly||revisitUI)
+            &&changed.every(path=>revisitPaths.has(path));
+          const indexPaths=new Set([
+            'extension/core/semantic-index.js','extension/tests/cpv1-07-semantic-index.test.mjs',
+            '.github/workflows/paia-candidate.yml',
+            'extension/docs/consumer-product-v1/STATUS.md',
+            'extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md'
+          ]);
+          const indexEligible=sourceAncestor&&changed.length>0
+            &&new Set(changed).size===changed.length
+            &&['extension/core/semantic-index.js','extension/tests/cpv1-07-semantic-index.test.mjs']
+              .every(path=>changed.includes(path))
+            &&changed.every(path=>indexPaths.has(path));
+          const eligible=indexEligible||historyEligible||calibrationEligible||sourceEligible||pairedEligible||embeddingEligible||revisitEligible;
+          const files=revisitEligible?[
+            'cpv1-07-revisit-selection.test.mjs','revisit-round47.test.mjs',
+            'ux-r2-reader-revisit.test.mjs','cpv1-07-history-time.test.mjs'
+          ]:(indexEligible||calibrationEligible||sourceEligible||pairedEligible||embeddingEligible)?[
+            'cpv1-07-semantic-lab.test.mjs','cpv1-07-retrieval-evaluation.test.mjs',
+            'cpv1-07-public-model-provenance.test.mjs','cpv1-07-semantic-index.test.mjs',
+            'cpv1-07-semantic-material-snapshot.test.mjs'
+          ]:[
+            'cpv1-07-historical-comparison.test.mjs','cpv1-07-history-time.test.mjs',
+            'universal-search-round46.test.mjs','ux-r4-search-history.test.mjs',
+            'input-search-v090.test.mjs','search-hardening-v092.test.mjs',
+            'search-service-round2.test.mjs','cpv1-02-6-input-search-cache.test.mjs',
+            'history-staleness-v090.test.mjs','history-store.test.mjs'
+          ];
+          if(eligible&&files.some(file=>group(file)!=='unit'))throw Error('owning unit category drift');
+          console.log(JSON.stringify({validationScope:indexEligible?'affected complete derived-index/snapshot/lab/evaluation/provenance unit contracts':embeddingEligible?'affected complete official-source/lab/index/evaluation/provenance unit contracts':revisitEligible?'affected complete Revisit/reading/time unit contracts':pairedEligible?'affected complete paired/lab/index/evaluation/provenance unit contracts':sourceEligible?'affected complete public-source/lab/index/evaluation/provenance unit contracts':calibrationEligible?'affected complete semantic lab/index/evaluation/provenance unit contracts':historyEligible?'affected search/history unit contracts':'complete unit suite',changed,completeCertification:false}));
+          const run=(command,args)=>{const result=spawnSync(command,args,{stdio:'inherit'});if(result.status!==0)process.exit(result.status||1);};
+          if(!eligible)run('npm',['run','test:unit']);
+          else{
+            run(process.execPath,['--test','--test-concurrency=4','--test-reporter=./scripts/test-report.mjs',...files.map(file=>'tests/'+file)]);
+            run('python3',['scripts/check_package.py']);
+            run(process.execPath,['scripts/check_development.mjs']);
+          }
+          JS
 
   contracts:
     if: github.event.pull_request.draft == true
@@ -96,7 +201,7 @@ jobs:
         run: npm run build:release
 
   targeted_browser:
-    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER'))
+    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION'))
     name: Candidate affected browser
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -122,6 +227,33 @@ jobs:
       - name: ANS-04 scoped cursor certification regression
         if: contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER')
         run: xvfb-run -a node --test tests/ans-04-navigation-query-chrome-e2e.test.mjs
+
+      - name: VS07 existing search maintenance regression
+        if: contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION')
+        run: xvfb-run -a node --test --test-name-pattern="UX-R4 real Search pages retain 3 fixed refs" tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+
+      - name: VS07 finite Revisit priority and exclusion journeys
+        if: contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER')
+        run: xvfb-run -a node --test --test-name-pattern="VS07 Revisit explains a finite priority set|VS07 Revisit finds worked material beyond|VS07 Revisit revokes delayed real reads|UX-R2 topic exclusion removes related Input previews|UX-R2 live capture scope" tests/ux-r2-reader-revisit-chrome-e2e.test.mjs
+
+
+      - name: VS07 native IndexedDB complete snapshot and index lifecycle
+        if: contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER')
+        run: xvfb-run -a node --test tests/cpv1-07-semantic-storage-chrome-e2e.test.mjs
+
+      - name: VS07 historical expression comparison and stale-scope journeys
+        if: contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER')
+        run: |
+          xvfb-run -a node --test tests/cpv1-07-historical-comparison-chrome-e2e.test.mjs
+          xvfb-run -a node --test --test-name-pattern="UX-R4 historical Source, comparison, scope, tray and preview responsive matrix" tests/ux-r4-search-reuse-chrome-e2e.test.mjs
+
+      - name: Retain synthetic historical comparison evidence
+        if: always() && contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER')
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs07-history-comparison-candidate
+          path: extension/work/vs07-history-comparison/*.png
+          if-no-files-found: error
 
       - name: Reader editing and lazy long-entry regression
         if: contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER')

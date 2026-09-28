@@ -117,3 +117,13 @@ Head, PR synthetic merge and actual main share tree0e3d10b889a0476b3156d8d4b5da9
 DFG-CPV1-002 old-Thought semantics and DFG-CPV1-009 independent actual generated-output meaning remain deferred; dependent actions remain fail-closed. Signed distribution/current-live/private/device gates remain open. No production/slice/package COMPLETE claim.
 
 VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is READY, not implemented/certified. Fresh GitHub has website-only PR85 already open from actual runtime75; do not create a second writer/PR or mutate its in-progress website work. VS06 reviewed implementation strings may be prepared without push; JAEPR20 continues independently. This writer observation is a checkpoint to be reconstructed from GitHub next turn, not an inherited wait state.
+
+### DFG-CPV1-010 — Rejected converted E5 source license
+
+- **Owner round:** CPV1-07.1 semantic/hybrid bake-off.
+- **State:** EXTERNAL_SOURCE_PROVENANCE_UNVERIFIED / DEFERRED; not PASS.
+- **Exact scope:** only Xenova/multilingual-e5-small revision761b726dd34fb83930e26aab4e9ac3899aa1fa78. No general semantic engineering/production-model decision is blocked.
+- **Actual evidence:** source-onlyActions36292888233/job108546216429 on835df1ab45af291a3f850d0e28e6ee872a969efe: current/pinned public+ungated exact identity verified, license fields missing and no license tags; independently pinned README1077bytes/SHA256561a19594636657fe033f8b4427a7743b5f6f3a12f16cecc5f286feca0453245 has no literal license declaration, finite LICENSE/LICENSE.txt/LICENSE.md list empty. No weights/inference/private text used. All8source regressions passed actualunit108546216724.
+- **Safe interim:** reject weights/inference/candidate admission for this revision; never inherit rights from a library/upstream name or title. Do not repeat unchanged model trial or mark diagnostic reads as quality certification.
+- **Non-blocked engineering:** independently declared licensed candidate screening, fixed synthetic evaluation, rebuildable index/invalidations/interfaces, production-environment compatibility, longitudinal retrieval/Revisit and later dependency-safe work.
+- **Final closure:** actual converted-source permissible license/conversion provenance at an exact independently verified revision, or select a separately evidenced compatible candidate through the unchanged fixed quality/resource/Chrome gates. A candidate rejection does not require owner input or a paid commitment.

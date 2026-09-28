@@ -1,3 +1,4 @@
+import {historicalInstant,historicalSourceTime} from './historical-time.js';
 import {revisitTopicDeltas} from './organizer/ai-presentation.js';
 import {ArchiveError} from './constants.js';
 import {searchExcerpt} from './search-service.js';
@@ -11,18 +12,27 @@ const invalid=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const integer=n=>Number.isSafeInteger(n)&&n>=0;
 const seed=text=>{let h=2166136261;for(const c of text){h^=c.codePointAt(0);h=Math.imul(h,16777619);}return h>>>0;};
 export function selectResurface(items,day,limit=RESURFACE_LIMIT){
- const preferred=items.filter(x=>x.meaningful),fallback=items.filter(x=>!x.meaningful),pool=(preferred.length>=limit?preferred:[...preferred,...fallback]).sort((a,b)=>String(a.sourceSentAt||'').localeCompare(String(b.sourceSentAt||''))||String(a.id).localeCompare(String(b.id)));
- if(!pool.length)return [];const count=Math.min(limit,pool.length),offset=seed(day)%pool.length;return Array.from({length:count},(_,i)=>pool[(offset+i)%pool.length]);
+ const count=Number.isSafeInteger(limit)&&limit>=0?Math.min(limit,RESURFACE_LIMIT):0;
+ if(!count)return [];
+ const pick=(pool,wanted)=>{
+  const sorted=[...pool].sort((a,b)=>(historicalInstant(a.sourceSentAt)??Infinity)-(historicalInstant(b.sourceSentAt)??Infinity)||String(a.id).localeCompare(String(b.id)));
+  if(!sorted.length)return [];const offset=seed(day)%sorted.length;
+  return Array.from({length:Math.min(wanted,sorted.length)},(_,i)=>sorted[(offset+i)%sorted.length]);
+ };
+ // Fill from genuinely worked-on eligible material first. Rotation in the
+ // fallback pool cannot displace a scarce edited/associated Input.
+ const preferred=pick(items.filter(x=>x.meaningful===true),count);
+ return [...preferred,...pick(items.filter(x=>x.meaningful!==true),count-preferred.length)];
 }
 async function inputDTO(store,t,ix,filterState,policy,{oldCutoff=null,fresh=false}={}){
  if(!ix||ix.excluded)return null;const b=(await t.get('blocks',ix.id))?.value;if(!b||b.excluded||b.branchStatus)return null;
  if(await store.isFiltered(t,b,filterState)||await inputRevisitExcluded(t,b,policy))return null;
  const source=b.originalTextReference?(await t.get('records',b.originalTextReference))?.value:null;
  if(fresh&&source?.importedAt)return null; // Explicit history import is never unread debt.
- const sourceSentAt=ix.sourceSentAt||source?.sourceSentAt||null,at=Date.parse(sourceSentAt||'');
- if(oldCutoff!==null&&(!Number.isFinite(at)||at>oldCutoff))return null;
+ const sourceSentAt=historicalSourceTime(ix.sourceSentAt||source?.sourceSentAt||null),at=historicalInstant(sourceSentAt);
+ if(oldCutoff!==null&&(at===null||at>oldCutoff))return null;
  const text=b.libraryText??source?.originalText??'',doc=(await t.get('documents',b.documentId))?.value,meta=await t.get('inputStates',b.id),meaningful=(meta?.contentRevision||0)>0||(await t.count('dependencies','byInput',b.id))>0;
- return {kind:'input',id:b.id,documentId:b.documentId,title:doc?.userTitle||doc?.originalConversationTitle||'独立整理文档',snippet:searchExcerpt(text,'',240),sourceSentAt,meaningful};
+ return {kind:'input',id:b.id,documentId:b.documentId,title:doc?.userTitle||doc?.originalConversationTitle||'独立整理文档',snippet:searchExcerpt(text,'',240),sourceSentAt,meaningful,revisitReason:fresh?'saved_since_visit':meaningful?'previously_worked':'earlier_material'};
 }
 async function newInputs(store,t,start,end,filterState,policy){
  const items=[];if(start>=end)return {count:0,truncated:false,items};
@@ -33,7 +43,7 @@ async function newInputs(store,t,start,end,filterState,policy){
 async function oldInputs(store,t,filterState,policy,now,start){
  if(!policy.oldContent)return {items:[],truncated:false};
  const candidates=[];let cursor=null,scanned=0,truncated=false;
- do{const page=await t.rangePage('blockIndex','bySequence',null,cursor,Math.min(100,MAX_OLD_SCAN-scanned),'prev');for(const {value:ix}of page.rows){scanned++;if(ix.sequence>=start)continue;const item=await inputDTO(store,t,ix,filterState,policy,{oldCutoff:now-REVISIT_OLD_DAYS*86400000});if(item)candidates.push(item);}cursor=page.next;if(candidates.length>=28)break;truncated=cursor!==null&&scanned>=MAX_OLD_SCAN;}while(cursor!==null&&scanned<MAX_OLD_SCAN);
+ do{const page=await t.rangePage('blockIndex','bySequence',null,cursor,Math.min(100,MAX_OLD_SCAN-scanned),'prev');for(const {value:ix}of page.rows){scanned++;if(ix.sequence>=start)continue;const item=await inputDTO(store,t,ix,filterState,policy,{oldCutoff:now-REVISIT_OLD_DAYS*86400000});if(item)candidates.push(item);}cursor=page.next;truncated=cursor!==null&&scanned>=MAX_OLD_SCAN;}while(cursor!==null&&scanned<MAX_OLD_SCAN);
  return {items:selectResurface(candidates,new Date(now).toISOString().slice(0,10)),truncated};
 }
 export class RevisitService {
