@@ -798,6 +798,7 @@ test('CPV1-10 inactive local MyWrite uses actual Chrome IndexedDB across two cli
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive;await enable(p);await h.open(conversation('mywrite-local-preserve',1000));
+  await eventually(async()=>(await h.state()).library.blocks.length===2,'complete original canonical Input projection finishes before the draft proof');
   const original=await h.state();
   const q=await h.context.newPage();await q.goto(p.url());await q.waitForSelector('#prompt-open');
   const full=Array.from({length:1000},(_,i)=>'移动想法第'+i+'段🧭：保留全文和否定词，不要概括。\n').join('')+'尾部：绝对不要自动发送。';
