@@ -1,6 +1,6 @@
 # VS-09 Prompt candidate and local template contract
 
-Status: CPV1-09.0 model and CPV1-09.1 actual archive reader candidate PASS; local template persistence/restart/portable Backup candidate CI PENDING; product UI/provider insertion remain IN_PROGRESS.
+Status: P1 local commands/workspace and P2 exact-draft/native-session mechanics ENGINEERING_PASS; P2 saved-template read controller CANDIDATE; provider bridge/live/product certification IN_PROGRESS.
 
 ## CPV1-09.1 P1 human Prompt workspace candidate — 2026-09-28
 
@@ -105,3 +105,11 @@ Owned user/Input/Source close paths clear every private editor/list/query/associ
 `session.prepare(fullTemplate)` first validates the full template, then holds one ephemeral exact target draft and event generation. Its frozen single-use token exposes only commit({mode,replaceConfirmed?}) and cancel(); it exports no draft/body/target metadata. Commit rechecks target/document/visibility/readonly/IME/generation/expiry and exact actual draft, then shared planning/confirmation/full-length constraints. CR normalization and native maxLength refuse before effects. It uses native prototype value access and one body-free input event; never Enter/click/submit. All refusals, cancellation, a newer preparation and disposal invalidate/clear the pending snapshot. Single-use attempts cannot be automatically replayed.
 
 No worker/page bridge, manifest permission or product entrypoint is enabled. Rich-text/contenteditable inputs are currently unsupported, not silently coerced into plain text. Their exact DOM/draft safety and complete manual-copy fallback remain owning integration work. Actual fifth Chrome fixture proves native textarea mechanics only; it is not live provider or device IME certification.
+
+## CPV1-09.2 inactive saved-template coordination contract — 2026-09-29
+
+createPromptInsertionController({readTemplate,session}) composes the existing trusted expected-revision reader with an owned target-bound session. It neither obtains permissions nor supplies a target discovery/page bridge. prepare({id,expectedRevision}) invalidates older attempts before exact plain-descriptor selection admission and one current saved-template read. commit({mode,replaceConfirmed?}) admits only these explicit fields, performs exactly one fresh expected-revision read, verifies same ID/revision/active lifecycle/full text, then invokes native commit in that task. Template and target draft fences remain distinct; target drafts never leave the native session. This is a worker-linearized current-template check before DOM mutation, not a cross-process atomic lock.
+
+Only frozen cancel/commit tokens and finite body-free failures leave the invocation. New selection, failed prepare, cancel, disposal, obsolete async read and concurrent duplicate commit invalidate prior attempts without automatic retry or duplicate input. Unsupported targets, target drift, unknown read results and the full insertion limit refuse for the future complete manual-copy fallback. Native readiness additionally checks the entire hidden/inert/aria-hidden/display/visibility/opacity/content-visibility ancestry.
+
+The sixth full Chrome case executes real canonical worker template create/read/edit/remove and actual native DOM insertion, including held real responses across selection/cancel/disposal. It remains an extension-page fixture; no provider authority/gesture/transport or live provider/device/IME certificate is implied.
