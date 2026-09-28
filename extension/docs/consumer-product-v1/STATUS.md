@@ -28,6 +28,10 @@ prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
 
+## VS-08 Batch H — detached permission self-check, 2026-09-28
+
+Exact prior corrected head `5617eea813a82d68c37816fc0a50bfedd734f92b` Candidate Gate `36420221730` passed affected unit, contracts/privacy, release and aggregate gate; full Certification remained skipped on Draft. The fifth detached tool now returns only a boolean for an active local Memory profile under the existing trusted boundary; an unknown profile reports false. The boundary still requires a current read-connector grant before and after the read, so mid-read revocation refuses release. The owning IndexedDB regression covers active/missing profile, grant revocation, no grant/profile/body disclosure and zero external requests. This is no Passport permission issuer/UX, platform identity, distributed quota or deployed connector. Task Context and saved-AI reads remain closed; new-head Candidate Gate PENDING.
+
 ## VS-08 Batch G — profile-authorized human Topic lexical query, 2026-09-28
 
 Exact prior head `4fdbff8b8b4764fd17f004f1e5c43d534fee78e0` Candidate Gate `36416329449` passed affected unit, contracts/privacy, release and aggregate gate; full Certification remained skipped on Draft. The detached reader now permits lexical Topic query only for active profile-authorized Topics with human-authored, locked notes. It reuses canonical exact-revision material admission inside the read transaction, returns bounded snippets and one-use grant/profile/revision-bound pages, and rechecks the current snapshot before release. The new actual IndexedDB regression covers two result pages, exact note retrieval, denied Topic and private Input canaries, a Topic without a human note, revocation between pages and zero external requests. Saved AI and task Context remain closed; Passport permission/UX, supported external identity, quota and deployment remain OPEN. The reader remains unimported/default-off; new-head Candidate Gate PENDING.

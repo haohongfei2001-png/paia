@@ -236,3 +236,30 @@ test('VS-08 Topic lexical query releases only profile-authorized human notes',as
  assert.deepEqual(remaining.data.items.map(x=>x.ref.id),[a.topic.id]);
  assert.equal(f.requests.length,0);
 });
+
+
+test('VS-08 detached permission self-check reports only active local profile authority',async()=>{
+ const f=await fixture(['PRIVATE applicant body canary']);
+ const active=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>({...grant(),allowedTools:['permission_self_check']}),
+  read:createLocalReadConnectorReader(f.memory)});
+ const request={tool:'permission_self_check',args:{}};
+ const check=await active.handle('self-check',request);
+ assert.deepEqual(check.data,{allowed:true});
+ assert.doesNotMatch(JSON.stringify(check),/PRIVATE applicant|synthetic-read-grant|default/);
+ const direct=createLocalReadConnectorReader(f.memory);
+ assert.deepEqual(await direct(request,{grantId:'g',profileId:'missing',
+  allowedKinds:['input']}),{allowed:false});
+ let live=true;
+ const revoked=createReadConnectorBoundary({clock:()=>1000,
+  authorize:async()=>({...grant(),allowedTools:['permission_self_check'],
+   revokedAt:live?null:1000}),
+  read:async(request,scope)=>{
+   const value=await direct(request,scope);
+   live=false;
+   return value;
+  }});
+ await assert.rejects(revoked.handle('self-check-revoke',request),
+  {code:'MEMORY_DENIED'});
+ assert.equal(f.requests.length,0);
+});

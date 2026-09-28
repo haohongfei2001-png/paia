@@ -36,6 +36,11 @@ export function createLocalReadConnectorReader(memory){
      ||typeof scope.grantId!=='string'||!scope.grantId
      ||!Array.isArray(scope.allowedKinds))denied();
   await memory.ready();
+  if(parsed.tool==='permission_self_check'){
+   const state=await memory.s.run(()=>memory.s.repository.transaction(false,t=>
+    memory.state(t)));
+   return {allowed:state.profiles.some(p=>p.profileId===scope.profileId)};
+  }
   if(parsed.tool==='list_material'||parsed.tool==='query'){
    if(parsed.args.kinds.some(kind=>!scope.allowedKinds.includes(kind)))denied();
    const query=parsed.tool==='query'?parsed.args.text:'';
