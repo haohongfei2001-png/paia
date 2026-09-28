@@ -1142,7 +1142,11 @@ test('CPV1-10 explicit metadata discovery protects unsaved work and recovers ful
     const {createMyWriteComposer}=await import(chrome.runtime.getURL('ui/mywrite-composer.js'));
     const {createMyWriteRecovery}=await import(chrome.runtime.getURL('ui/mywrite-recovery.js'));
     globalThis.makeRecoveryComposer=createMyWriteComposer;globalThis.makeRecovery=createMyWriteRecovery;
-    const container=document.createElement('div');container.id='draft-recovery-fixture';document.body.prepend(container);
+    const container=document.createElement('div');container.id='draft-recovery-fixture';
+    // The detached owner has its own bounded scroll surface. Archive's fixed
+    // sidebar must not intercept natural pointer pagination or composer input.
+    container.style.cssText='position:fixed;inset:16px;overflow:auto;z-index:2147483646;background:#fff';
+    document.body.append(container);
     const topics=[{id:'topic:optional',label:'保留全文'},{id:'topic:new',label:'当前更正'}];
     globalThis.recoveryComposer=createMyWriteComposer({document,store:recoveryStore,draftId:'draft:active',topics});
     container.append(recoveryComposer.element);await recoveryComposer.ready;
@@ -1215,7 +1219,9 @@ test('CPV1-10 explicit metadata discovery protects unsaved work and recovers ful
    const heldStore={list:options=>new Promise(resolve=>{
     globalThis.finishLateList=async()=>{resolve(await actualRecoveryList(options));lateListFinished=true;};
    }),review:recoveryStore.review.bind(recoveryStore)};
-   const wrapper=document.createElement('div');wrapper.id='late-recovery-fixture';document.body.prepend(wrapper);
+   const wrapper=document.createElement('div');wrapper.id='late-recovery-fixture';
+   wrapper.style.cssText='position:fixed;inset:16px;overflow:auto;z-index:2147483647;background:#fff';
+   document.body.append(wrapper);
    globalThis.latePicker=makeRecovery({document,store:heldStore,onChoose:()=>{lateSelectionCount++;return true;}});
    wrapper.append(latePicker.element);
   });
