@@ -8,17 +8,17 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: VS-09
+current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS-09_LOCAL_MODEL / VS-08_OWNER_EXTERNAL_GATES_DEFERRED
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_OWNER_APPROVED / VS09_MODEL_CANDIDATE_PASS
 
-current_round: CPV1-09.0–09.1 — local Prompt candidates and template model
+current_round: CPV1-08.2 — minimal task Context composition; CPV1-09.0–09.1 model preserved
 
-current_round_status: IN_PROGRESS / MODEL_ONLY / P1_UI_PERSISTENCE_NOT_IMPLEMENTED / VS08_DEFAULT_OFF_NOT_CERTIFIED
+current_round_status: VERIFYING / CONTEXT_DEFAULT_OFF_NOT_CERTIFIED / P1_UI_PERSISTENCE_NOT_IMPLEMENTED
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
-writer_status: VS-09_CONTINUOUS_WITH_VS08_DEFERRED / SINGLE_WRITER
+writer_status: VS08_APPROVED_MINIMAL_CONTEXT_AND_VS09 / SINGLE_WRITER
 
 production_claim: NONE
 
@@ -27,6 +27,18 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## Owner-approved minimal task Context composition — 2026-09-28
+
+The owner explicitly approved only the minimal Context read path needed by this current canonical task in Chat, with fallback to independent engineering if automatic approval still rejects it. DFG-CPV1-011's prior OWNER_APPROVAL_PENDING/NOT_PUBLISHED checkpoint is historical and superseded for this bounded engineering capability; no broader permission, transport or production activation is approved.
+
+Exact main `4c43e7ea04a84bc491bf4f5d84080c0b22fbc5c8`, sole product Draft #99 parent `6ae148431b0bd4766d708bdce896d116871a207e`, tree `273a88b60356a978d876358b2ebfe21cb5d60b58`. Parent [Candidate Gate 36434854575](https://github.com/haohongfei2001-png/paia/actions/runs/36434854575) SUCCESS: release, contracts/privacy and actual complete unit suite passed, including all 13 VS-09 Prompt model tests and complete 100000-Input/ref coverage. Full Draft Certification and unaffected browser jobs skipped. Preserve VS-09's certified candidate model evidence; persistence/UI/provider-input journeys remain unimplemented and uncertified. Owner design Draft #91 unchanged.
+
+Publish only the prepared detached CPV1-08.2 composition with existing temporary per-tab ManualContext. A trusted injected resolver must bind the exact task/budget, consumer, read grant/profile/scope revision, owner/selection/generation, both reviewed fingerprints, expiry and revoke. Caller task IDs never supply authority or select tabs. Hold the existing selection queue across two exact canonical share checks, current scoped admission for every selected ref and final binding/expiry/archive snapshot fences. Human-reviewed edits/notes/role labels/Source spans stay exact. Missing/unreviewed/stale/expired/revoked/partitioned/oversized/incomplete Context refuses without truncation. No durable task store, new permission issuer, context_export reuse, product dispatcher, network or external release.
+
+Four appended actual IndexedDB owning tests preserve all old cases and cover full reviewed Unicode/edit/note/Source selection, 16 invalid bindings, kind denial and detached refusal, current policy/exclusion/source/selection edits, split budget/size/expiry refusal and five asynchronous revoke/expiry/archive mutation races. Static source/test syntax parsed in orchestration; runtime tests run only in GitHub Actions. This new batch requires exact-head Candidate CI; PENDING is not PASS.
+
+VS-08 remains DEFAULT_OFF / NOT_CERTIFIED. Platform identity, Passport issuer/consent, distributed quota, B-03/B-05 deployment and real external acceptance retain their separate deferred gates. Resume dependency-safe VS-09 bounded archive projection/persistence/UI while verification is asynchronous. PAIA v1 search remains VS-04 lexical/fuzzy/filter; semantics remain EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING and Semantic Lab alone owns Input → Topic.
 
 ## VS-09 Batch A — exact human Prompt candidates and immutable template model, 2026-09-28
 

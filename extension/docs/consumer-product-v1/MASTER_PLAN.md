@@ -8,7 +8,9 @@ The execution unit is a complete vertical slice. Each round below is a bounded c
 
 ### Current dependency-safe engineering frontier — 2026-09-28
 
-VS-08 task Context release is OWNER_APPROVAL_PENDING; platform identity, Passport issuer/consent, distributed quota and B-03/B-05 deployment remain deferred. Under section 0.4–0.5, continue VS-09 P1/P2 in the same sole product PR #99 without publishing the rejected Context reader or certifying VS-08. Batch A implements the CPV1-09.0 usefulness exclusion and CPV1-09.1 immutable local template model; actual bounded archive projection, persistence/UI and provider-input/draft browser journeys remain IN_PROGRESS. See VS09_PROMPT_MODEL_CONTRACT.md. Keep VS-04 lexical/fuzzy/filter default and the existing archived semantic/nonblocking boundary.
+The owner approved DFG-CPV1-011's minimal detached temporary task Context read-path engineering for the current canonical task only. Publish the prepared code/owning IndexedDB tests/canonical batch on sole product PR #99, retain DEFAULT_OFF and await exact-head CI. No product transport, issuer, durable task store or broader access is authorized by that approval. Platform identity, Passport issuer/consent, distributed quota and B-03/B-05 deployment remain deferred. If automatic review still rejects this bounded batch, pause only its dependent path and continue VS-09.
+
+VS-09 Batch A's exact head6ae1484 Candidate36434854575 passed the complete unit suite including all 13 Prompt model cases and full 100000-Input/ref fixture. Continue actual bounded authorized archive projection, persistence/UI and protected provider-input/draft journeys under CPV1-09.1 onward while Context CI is asynchronous. P1/P2 are not complete. See VS09_PROMPT_MODEL_CONTRACT.md and VS08_TASK_CONTEXT_CONTRACT.md. Keep VS-04 lexical/fuzzy/filter default and preserved EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING semantics; Semantic Lab exclusively owns Input → Topic.
 
 ## 0.1 Activation
 

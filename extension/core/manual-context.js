@@ -17,6 +17,27 @@ const redact=(text,rules)=>rules.reduce((s,word)=>s.split(word).join('█'),text
 export class ManualContext {
  constructor(memory,{clock=()=>Date.now(),uuid=()=>crypto.randomUUID()}={}){this.memory=memory;this.clock=clock;this.uuid=uuid;this.sessions=new Map();this.tail=Promise.resolve();}
  run(options,owner){const task=this.tail.then(()=>this.dispatch(options,owner));this.tail=task.catch(()=>{});return task;}
+ // Trusted local composition only; not a dispatch action or a transferable grant.
+ // Keep the tab selection lease across scoped reads and both exact share checks.
+ withReviewedSelection(options,owner,read,verify){
+  if(typeof read!=='function'||typeof verify!=='function')fail();
+  const task=this.tail.then(async()=>{
+   const args={selectionId:options?.selectionId,generation:options?.generation};
+   const state=await this.dispatch({action:'read',...args},owner);
+   if(state.outputBudget!==null)fail('MEMORY_LIMIT'); // no incomplete package
+   const before=await this.dispatch({action:'share',...args,format:'copy'},owner);
+   const text=before.text,payload=before.manifest.previewSha256,
+    manifest=before.manifest.reviewedManifestSha256;
+   const result=await read(before);
+   const after=await this.dispatch({action:'share',...args,format:'copy'},owner);
+   if(after.text!==text||after.manifest.previewSha256!==payload
+      ||after.manifest.reviewedManifestSha256!==manifest)fail('MEMORY_STALE');
+   await verify(result,after);
+   return result;
+  });
+  this.tail=task.catch(()=>{});
+  return task;
+ }
  async transaction(fn){return this.memory.s.run(()=>this.memory.s.repository.transaction(false,fn));}
  async validate(session){
   const temporary=(await this.memory.temporary()).revision;

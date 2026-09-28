@@ -1,4 +1,5 @@
 import {ArchiveError} from './constants.js';
+import {createTaskContextReader} from './read-connector-task-context.js';
 import {materialRead} from './manual-materials.js';
 import {policy,topicActive} from './memory/model.js';
 import {AI_SCHEMA_VERSION,isStoredAIPresentation} from './organizer/ai-contract.js';
@@ -22,7 +23,8 @@ const cursorKey=(request,scope)=>JSON.stringify([request.tool,
 // CPV1-08.2 detached local reader. It uses the current Memory profile policy,
 // never caller-selected profile authority. No listener, grant issuer, external
 // call or packaged product entrypoint imports this module.
-export function createLocalReadConnectorReader(memory){
+export function createLocalReadConnectorReader(memory,{manualSelections,
+ resolveTaskContext,clock=()=>Date.now()}={}){
  if(!memory?.s?.repository||typeof memory.ready!=='function'
     ||typeof memory.state!=='function'
     ||typeof memory.candidates!=='function')throw new ArchiveError('INVALID_REQUEST');
@@ -31,7 +33,10 @@ export function createLocalReadConnectorReader(memory){
   try{return await memory.candidates({profileId,query});}
   catch{denied();}
  };
- return async function read(request,scope){
+ const taskContext=manualSelections||resolveTaskContext
+  ?createTaskContextReader(memory,{manualSelections,resolve:resolveTaskContext,
+    scopedRead:(request,scope)=>read(request,scope),clock}):null;
+ async function read(request,scope){
   const parsed=parseReadConnectorRequest({tool:request?.tool,args:request?.args});
   if(!scope||typeof scope.profileId!=='string'||!scope.profileId
      ||typeof scope.grantId!=='string'||!scope.grantId
@@ -143,6 +148,10 @@ export function createLocalReadConnectorReader(memory){
    }
    return {items,nextCursor,complete:nextCursor===null};
   }
+  if(parsed.tool==='get_task_context'){
+   if(!taskContext)unavailable();
+   return taskContext(parsed,scope);
+  }
   if(parsed.tool!=='get_by_ref')unavailable();
   const ref=parsed.args.ref;
   // A material ref is an address, not authority. Source-original refs inherit
@@ -196,5 +205,6 @@ export function createLocalReadConnectorReader(memory){
   if(!topicMaterial&&!eligible(after)
      ||!sameSnapshot(before,after))denied();
   return value;
- };
+ }
+ return read;
 }

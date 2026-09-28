@@ -129,17 +129,15 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
 - **Final closure:** actual converted-source permissible license/conversion provenance at an exact independently verified revision, or select a separately evidenced compatible candidate through the unchanged fixed quality/resource/Chrome gates. A candidate rejection does not require owner input or a paid commitment.
 
 
-### DFG-CPV1-011 — Task Context read-path owner approval
+### DFG-CPV1-011 — Minimal task Context engineering approval
 
 - **Owner round:** CPV1-08.2.
-- **State:** OWNER_APPROVAL_PENDING / NOT_PUBLISHED; not PASS.
-- **Exact dependency:** commit or activation of the proposed task-to-reviewed-selection scoped Context reader.
-- **Reason:** automatic approval review rejected the GitHub blob write as a new privacy/permission capability without explicit owner approval. The user reserves privacy/permission decisions.
-- **Prepared scope:** detached/default-off composition with the EXISTING temporary ManualContext; exact task/budget, consumer/grant/profile/revision, owner/selection/generation, reviewed fingerprints, current individual material admission and before/after expiry/revoke/snapshot fences. No durable task store, new grant issuer, context_export reuse, product dispatcher or network.
-- **Safe interim:** existing get_task_context material reads stay closed. No proposed runtime or test batch has been committed. No retry via indirect tools, local host, alternate writer or workflow bypass.
-- **Non-blocked engineering:** existing authorized reader defects/adversarial contracts, other dependency-safe PAIA product work and JAE engineering.
-- **Closure:** explicit owner approval of this bounded engineering capability, then one coherent code/test/canonical batch and required new-head cloud evidence. Production/transport/privacy activation and real external acceptance retain their own gates.
-- **Evidence:** sole PAIA PR #99 head5b5d94e5; automatic approval rejection 2026-09-28; approval question recorded in the current Chat.
+- **State:** OWNER_APPROVED_LIMITED / IMPLEMENTATION_CI_PENDING / DEFAULT_OFF; not a production certification PASS.
+- **Approval:** owner explicitly approved the minimal Context read path required by the current canonical task in this Chat on2026-09-28. This supersedes the prior automatic-review rejection for absent explicit permission.
+- **Exact boundary:** detached composition with EXISTING temporary per-tab ManualContext; exact task/budget, consumer/grant/profile/revision, owner/selection/generation, reviewed fingerprints, current individual material admission and before/after expiry/revoke/snapshot fences. No durable task store, issuer, context_export reuse, product dispatcher, transport or network.
+- **Engineering next step:** one coherent source/test/canonical batch from sole PR99 head6ae1484; exact-head owning Actions evidence required. If automatic review still rejects it, record that result and pause only this path; continue all independent PAIA/JAE engineering without waiting.
+- **Remaining external gates:** supported platform identity, Passport issuer/consent, distributed quota, production transport/privacy activation, B-03/B-05 deployment and real external acceptance stay separately OPEN/deferred.
+- **Historical evidence:** original head5b5d94e5 blob-write refusal2026-09-28; docs-only head14c9c765; subsequent Prompt candidate6ae1484 Candidate36434854575 SUCCESS. Proposed Context code was not published before this limited approval.
 
 ### Owner amendment to DFG-CPV1-010 — experimental archive only
 
@@ -159,3 +157,15 @@ Append a complete 13-case owning unit file: human/AI/excluded boundaries, contro
 Source and owning test syntax were statically parsed in orchestration; no local/runtime test PASS is claimed. New-head Candidate Gate PENDING. This is CPV1-09.0/09.1 MODEL_ONLY / IN_PROGRESS, not P1 UI/persistence or P2 provider-input certification. Next implement the bounded owning archive projection, durable template commands/UI and direct browser journeys, then protected append/replace/manual send. No storage read/write, clipboard/provider input access, AI reply read, external request, read grant or product-entrypoint import is introduced by this batch.
 
 PAIA v1 remains VS-04 lexical/fuzzy/filter; semantic assets are archived EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING, and Semantic Lab exclusively owns Input → Topic. VS-07 scope closure and receipts remain intact.
+
+## Owner-approved minimal task Context composition — 2026-09-28
+
+The owner explicitly approved only the minimal Context read path needed by this current canonical task in Chat, with fallback to independent engineering if automatic approval still rejects it. DFG-CPV1-011's prior OWNER_APPROVAL_PENDING/NOT_PUBLISHED checkpoint is historical and superseded for this bounded engineering capability; no broader permission, transport or production activation is approved.
+
+Exact main `4c43e7ea04a84bc491bf4f5d84080c0b22fbc5c8`, sole product Draft #99 parent `6ae148431b0bd4766d708bdce896d116871a207e`, tree `273a88b60356a978d876358b2ebfe21cb5d60b58`. Parent [Candidate Gate 36434854575](https://github.com/haohongfei2001-png/paia/actions/runs/36434854575) SUCCESS: release, contracts/privacy and actual complete unit suite passed, including all 13 VS-09 Prompt model tests and complete 100000-Input/ref coverage. Full Draft Certification and unaffected browser jobs skipped. Preserve VS-09's certified candidate model evidence; persistence/UI/provider-input journeys remain unimplemented and uncertified. Owner design Draft #91 unchanged.
+
+Publish only the prepared detached CPV1-08.2 composition with existing temporary per-tab ManualContext. A trusted injected resolver must bind the exact task/budget, consumer, read grant/profile/scope revision, owner/selection/generation, both reviewed fingerprints, expiry and revoke. Caller task IDs never supply authority or select tabs. Hold the existing selection queue across two exact canonical share checks, current scoped admission for every selected ref and final binding/expiry/archive snapshot fences. Human-reviewed edits/notes/role labels/Source spans stay exact. Missing/unreviewed/stale/expired/revoked/partitioned/oversized/incomplete Context refuses without truncation. No durable task store, new permission issuer, context_export reuse, product dispatcher, network or external release.
+
+Four appended actual IndexedDB owning tests preserve all old cases and cover full reviewed Unicode/edit/note/Source selection, 16 invalid bindings, kind denial and detached refusal, current policy/exclusion/source/selection edits, split budget/size/expiry refusal and five asynchronous revoke/expiry/archive mutation races. Static source/test syntax parsed in orchestration; runtime tests run only in GitHub Actions. This new batch requires exact-head Candidate CI; PENDING is not PASS.
+
+VS-08 remains DEFAULT_OFF / NOT_CERTIFIED. Platform identity, Passport issuer/consent, distributed quota, B-03/B-05 deployment and real external acceptance retain their separate deferred gates. Resume dependency-safe VS-09 bounded archive projection/persistence/UI while verification is asynchronous. PAIA v1 search remains VS-04 lexical/fuzzy/filter; semantics remain EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING and Semantic Lab alone owns Input → Topic.
