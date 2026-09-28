@@ -45,7 +45,7 @@ export class PromptPanel {
   this.dialog.append(head,help,tabs,search,this.refresh,this.feedback,this.list,pager,this.edit);
   document.body.append(this.dialog);
   this.dialog.addEventListener('cancel',e=>{e.preventDefault();void this.close();});
-  this.dialog.addEventListener('close',()=>{this.serial++;this.clearEditor();this.list.replaceChildren();this.query.value='';if(this.trigger?.isConnected)this.trigger.focus({preventScroll:true});});
+  this.dialog.addEventListener('close',()=>{this.clearClosedContent();if(this.trigger?.isConnected)this.trigger.focus({preventScroll:true});});
   window.addEventListener('beforeunload',e=>{if(this.dirty()){e.preventDefault();e.returnValue='';}});
  }
  dirty(){return !!this.selected&&!this.body.readOnly&&(this.body.value!==this.selected.text||this.pin.checked!==this.selected.pinned);}
@@ -65,7 +65,13 @@ export class PromptPanel {
   if(this.busy||this.dialog.open)return;this.trigger=trigger;this.mode='saved';this.offset=0;this.query.value='';
   this.clearEditor();this.dialog.showModal();await this.load();
  }
- async close(){if(this.busy||!this.discard())return false;this.dialog.close();return true;}
+ clearClosedContent(){this.serial++;this.clearEditor();this.list.replaceChildren();this.query.value='';}
+ closeDialog(){
+  // Native focus restoration can precede the queued close event. Clear private
+  // DOM synchronously on every owned close path, with the event as a fallback.
+  this.clearClosedContent();this.dialog.close();
+ }
+ async close(){if(this.busy||!this.discard())return false;this.closeDialog();return true;}
  async switch(mode){if(this.busy||!this.discard())return;this.clearEditor();this.mode=mode;this.offset=0;await this.load();}
  async load(){
   if(this.busy||!this.dialog.open)return;const serial=++this.serial;this.busy=true;this.controls();this.say('正在读取本机内容…');
@@ -159,7 +165,7 @@ export class PromptPanel {
    if(trace.revision!==current.revision||!trace.sourceRefs.some(r=>r.id===ref.id&&r.sourceId===ref.sourceId&&r.revision===ref.revision&&r.status!=='UNAVAILABLE'))throw {code:'PROMPT_STALE'};
    const show=await this.onSource(ref);
    if(typeof show!=='function')throw {code:'PROMPT_UNAVAILABLE'};
-   this.selected=null;this.dialog.close();show();
+   this.closeDialog();show();
   }catch(error){this.fail(error);}
   finally{this.busy=false;this.controls();}
  }
@@ -168,7 +174,7 @@ export class PromptPanel {
   try{
    const trace=await request('PAIA_PROMPT_TRACE',{id:current.id});
    if(trace.revision!==current.revision||!trace.sourceRefs.some(r=>r.id===ref.id&&r.sourceId===ref.sourceId&&r.revision===ref.revision&&r.status==='CURRENT'))throw {code:'PROMPT_STALE'};
-   if(await this.onInput(ref.id)){this.selected=null;this.dialog.close();}
+   if(await this.onInput(ref.id)){this.closeDialog();}
   }catch(error){this.fail(error);}
   finally{this.busy=false;this.controls();}
  }
