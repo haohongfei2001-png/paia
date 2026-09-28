@@ -1526,3 +1526,78 @@ test('CPV1-10 offline cold writing and abrupt page closure recover complete ackn
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{try{await offlineSession?.detach();}finally{await h.close();}}
 });
+
+
+test('CPV1-10 stacked product surfaces retain complete Archive input at narrow widths and large text',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',fontSize:'xlarge'}});
+  const full=Array.from({length:1000},(_,i)=>'窄屏阅读第'+i+'段🧭：保留空白、换行、Unicode 和否定，不要自动发送。\n').join('')+
+   '完整尾部：不要截断，不要生成另一份 Source。';
+  const fixture=conversation('mywrite-mobile-access-source',1700);
+  fixture.messages=[{...fixture.messages[0],text:full}];
+  const captured=await h.open(fixture);await h.ready(captured);
+  await eventually(async()=>(await h.state()).library.blocks.length===1);
+  const original=await h.state();await captured.close();
+  const nav=view=>p.locator('#primary-nav [data-view="'+view+'"]');
+  const reflow=async()=>assert.ok(await p.evaluate(()=>
+   document.documentElement.scrollWidth<=document.documentElement.clientWidth+2),
+   'actual product surface must reflow without root horizontal scrolling');
+  const root=async()=>{
+   await eventually(()=>p.locator('#archive-root-main').isVisible());
+   await eventually(async()=>await p.locator('#archive-root-recent').isVisible()&&
+    !await p.locator('#archive-root-recent').isDisabled());
+  };
+  await root();
+  for(const width of [390,320]){
+   await p.setViewportSize({width,height:844});
+   await reflow();
+   assert.equal(await nav('library').getAttribute('aria-current'),'page');
+   for(const view of ['library','thoughts','memory']){
+    const control=nav(view);assert.equal(await control.isVisible(),true);
+    const box=await control.boundingBox();
+    assert.ok(box&&box.width>=44&&box.height>=44,'narrow primary routes keep usable targets');
+   }
+   await p.locator('#archive-root-recent').click();
+   await eventually(()=>p.locator('#document-panel').isVisible());
+   const prose=p.locator('.library-prose').first();await eventually(()=>prose.isVisible());
+   // Stress the actual reader's supported prose variable at 24px. This is
+   // hosted reflow evidence, not OS Dynamic Type or physical-device proof.
+   await p.evaluate(()=>document.documentElement.style.setProperty('--paia-prose-size','24px'));
+   assert.equal(await prose.evaluate(el=>getComputedStyle(el).fontSize),'24px');
+   assert.equal(await prose.textContent(),full);
+   await reflow();
+   await p.locator('#back').click();await root();
+   await nav('thoughts').focus();await p.keyboard.press('Enter');
+   await eventually(()=>p.locator('#thought-panel').isVisible());
+   assert.equal(await nav('thoughts').getAttribute('aria-current'),'page');await reflow();
+   assert.equal(await p.locator('#memory-panel').isVisible(),false);
+   await nav('memory').focus();await p.keyboard.press('Enter');
+   await eventually(()=>p.locator('#memory-panel').isVisible());
+   await eventually(()=>p.locator('#material-workbench').isVisible());
+   assert.equal(await nav('memory').getAttribute('aria-current'),'page');
+   assert.equal(await p.locator('#material-workbench').count(),1);
+   assert.equal(await p.locator('.material-tray-layout').evaluate(el=>getComputedStyle(el).display),'block');
+   assert.equal(await p.locator('.material-drawer').isVisible(),false);
+   assert.equal(await p.locator('.app-shell').evaluate(el=>el.inert),false);
+   assert.equal(await p.locator('#material-workbench').evaluate(el=>!!el.closest('#memory-panel')),true);
+   assert.equal(await p.locator('#material-output-text').count(),0);
+   await reflow();
+   await nav('library').focus();await p.keyboard.press('Enter');await root();
+   assert.equal(await p.evaluate(()=>location.hash+location.search),'');
+   const current=await h.state();
+   assert.deepEqual(current.records,original.records);
+   assert.deepEqual(current.library.blocks,original.library.blocks);
+   assert.deepEqual(current.memoryAccessPolicy,original.memoryAccessPolicy);
+  }
+  await h.restartWorker();await p.reload();await p.waitForSelector('#prompt-open');await root();
+  await p.locator('#archive-root-recent').click();
+  await eventually(()=>p.locator('.library-prose').first().isVisible());
+  assert.equal(await p.locator('.library-prose').first().textContent(),full);
+  assert.deepEqual((await h.state()).records,original.records);
+  assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
