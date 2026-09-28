@@ -12,8 +12,8 @@ const labels={
 };
 const button=(id,text,act)=>{const b=element('button','',text);b.type='button';b.id=id;b.addEventListener('click',()=>void act());return b;};
 export class PromptPanel {
- constructor({onInput=async()=>false}={}){
-  this.onInput=onInput;this.selected=null;this.createId=null;this.busy=false;this.mode='saved';this.offset=0;this.serial=0;
+ constructor({onInput=async()=>false,onSource=async()=>null}={}){
+  this.onInput=onInput;this.onSource=onSource;this.selected=null;this.createId=null;this.busy=false;this.mode='saved';this.offset=0;this.serial=0;
   this.dialog=element('dialog','prompt-dialog');this.dialog.id='prompt-dialog';
   this.dialog.setAttribute('aria-labelledby','prompt-title');
   const head=element('header'),title=element('h2','','Prompts');title.id='prompt-title';
@@ -54,6 +54,8 @@ export class PromptPanel {
  fail(error){this.say(labels[error?.code]||'操作未完成，当前内容保留。请重试。');}
  controls(){
   for(const b of [this.saved,this.archive,this.fixed,this.refresh,this.previous,this.next,this.save,this.copy,this.remove,this.closeButton])b.disabled=this.busy;
+  for(const b of this.list.querySelectorAll('.prompt-choose'))b.disabled=this.busy;
+  for(const b of this.trace.querySelectorAll('.prompt-source-open,.prompt-record-open,#prompt-trace-more'))b.disabled=this.busy||b.dataset.unavailable==='true';
   this.body.disabled=this.busy;this.pin.disabled=this.busy||this.body.readOnly;
   this.copy.hidden=!this.selected||this.selected.kind!=='template';this.remove.hidden=this.copy.hidden;
   this.previous.hidden=this.offset===0;this.next.hidden=this.nextOffset===null||this.nextOffset===undefined;
@@ -138,11 +140,28 @@ export class PromptPanel {
    for(const ref of refs.slice(offset,offset+25)){
     const row=element('div','prompt-source'),available=current.kind==='template'&&ref.status==='CURRENT';
     row.append(element('span','muted',ref.status==='VERSION_CHANGED'?'Input 已更新':ref.status==='UNAVAILABLE'?'Input 已不可用':'关联 Input'));
-    const open=button('','查看 Input',()=>this.openInput(current,ref));open.className='prompt-source-open';open.disabled=!available;row.append(open);rows.append(row);
+    const open=button('','查看 Input',()=>this.openInput(current,ref));open.className='prompt-source-open';open.dataset.unavailable=String(!available);open.disabled=this.busy||!available;
+    const original=button('','查看当时原文',()=>this.openSource(current,ref));original.className='prompt-record-open';
+    const sourceAvailable=current.kind==='template'&&ref.status!=='UNAVAILABLE';original.dataset.unavailable=String(!sourceAvailable);original.disabled=this.busy||!sourceAvailable;
+    row.append(open,original);rows.append(row);
    }
    offset+=25;more.hidden=offset>=refs.length;
   };
   this.trace.append(rows,more);paint();
+ }
+ async openSource(current,ref){
+  if(this.busy||current.kind!=='template'||!this.discard())return;this.busy=true;this.controls();
+  try{
+   // Saved template revision and exact historical Source association both stay
+   // authoritative. Source body/navigation belong to the existing Archive UI.
+   await request('PAIA_PROMPT_READ',{id:current.id,expectedRevision:current.revision});
+   const trace=await request('PAIA_PROMPT_TRACE',{id:current.id});
+   if(trace.revision!==current.revision||!trace.sourceRefs.some(r=>r.id===ref.id&&r.sourceId===ref.sourceId&&r.revision===ref.revision&&r.status!=='UNAVAILABLE'))throw {code:'PROMPT_STALE'};
+   const show=await this.onSource(ref);
+   if(typeof show!=='function')throw {code:'PROMPT_UNAVAILABLE'};
+   this.selected=null;this.dialog.close();show();
+  }catch(error){this.fail(error);}
+  finally{this.busy=false;this.controls();}
  }
  async openInput(current,ref){
   if(this.busy||current.kind!=='template'||!this.discard())return;this.busy=true;this.controls();
