@@ -101,7 +101,9 @@ test('CPV1-09 Prompts full human candidate, fixed template, edit, trace and manu
   await p.keyboard.press('Enter');await eventually(async()=>!await p.locator('#prompt-refresh').isDisabled());
   await selectPrompt(p,'.prompt-choose[data-prompt-id="'+candidateId+'"]');
   assert.equal(await p.locator('#prompt-body').inputValue(),otherEdit);
-  await p.locator('#prompt-close').click();await eventually(()=>p.evaluate(()=>document.activeElement?.id==='prompt-open'));
+  const closed=await p.evaluate(()=>{document.querySelector('#prompt-close').click();return {open:document.querySelector('#prompt-dialog').open,body:document.querySelector('#prompt-body').value,list:document.querySelector('#prompt-list').textContent};});
+  assert.deepEqual(closed,{open:false,body:'',list:''},'owned close clears private DOM synchronously, before queued native close event');
+  await eventually(()=>p.evaluate(()=>document.activeElement?.id==='prompt-open'));
   assert.equal(await p.locator('#prompt-body').inputValue(),'');
   assert.equal(await p.locator('#prompt-list').textContent(),'');
   assert.deepEqual(await copied(p),[edited]);assert.deepEqual((await h.state()).records,sources);
