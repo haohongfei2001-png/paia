@@ -2,9 +2,10 @@ import {MyWriteDraftError} from '../core/mywrite-draft.js';
 
 // Detached UI over the shared local journal. A future entrypoint must admit
 // its own platform/lifecycle and canonical manual-intake gates before use.
-export function createMyWriteComposer({document,store,draftId,topics=[]}){
+export function createMyWriteComposer({document,store,draftId,topics=[],expectedRevision=null}){
  if(!document?.createElement||!store?.read||!store?.save||!store?.review||
     !/^[A-Za-z0-9._:-]{1,128}$/.test(draftId)||
+    (expectedRevision!==null&&(!Number.isSafeInteger(expectedRevision)||expectedRevision<0))||
     !Array.isArray(topics)||topics.some(t=>!t||typeof t.label!=='string'||
      !/^[A-Za-z0-9._:-]{1,128}$/.test(t.id))||new Set(topics.map(t=>t.id)).size!==topics.length)
   throw new MyWriteDraftError('MYWRITE_INVALID');
@@ -126,7 +127,14 @@ export function createMyWriteComposer({document,store,draftId,topics=[]}){
    const row=await store.read(currentId);
    if(closed)return;
    loaded=true;
-   if(row?.lifecycle==='deleted'){blocked=true;render(messages.MYWRITE_DELETED);return;}
+   if(row?.lifecycle==='deleted'){
+    blocked=true;render(messages.MYWRITE_DELETED);
+    return Object.freeze({ok:false,code:'MYWRITE_DELETED'});
+   }
+   // A selected saved revision cannot silently load a newer body. Zero is
+   // reserved for an explicitly requested fresh identity, which must be absent.
+   if(expectedRevision!==null&&(row?.revision||0)!==expectedRevision)
+    throw new MyWriteDraftError('MYWRITE_CONFLICT');
    ack=row;
    if(generation!==token){blocked=Boolean(row);render(blocked?
     '已有草稿已保留；当前输入未被替换。可另存为新草稿。':'正文尚未保存。');return;}
@@ -138,7 +146,11 @@ export function createMyWriteComposer({document,store,draftId,topics=[]}){
     topic.value=row.topicId||'';
    }
    render(row?'本地草稿已恢复。':'开始写作，完成后保存本地草稿。');
-  }catch(error){if(!closed){loaded=true;blocked=true;refused(error);}}
+   return Object.freeze({ok:true});
+  }catch(error){
+   if(!closed){loaded=true;blocked=true;refused(error);}
+   return Object.freeze({ok:false,code:error instanceof MyWriteDraftError?error.code:'MYWRITE_UNAVAILABLE'});
+  }
  })();
  return Object.freeze({element,ready,canReplace(){
   return !closed&&loaded&&!pending&&!composition&&!dirty&&!retry&&!blocked;
