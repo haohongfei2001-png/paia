@@ -427,3 +427,139 @@ test('CPV1-09 P2 current template identity and cancellation fence native inserti
   assert.deepEqual(await copied(p),[]);assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+
+test('CPV1-09 P2 trusted human full-template review protects draft and manual-copy fallback',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);await clipboardOracle(p);const original=await h.state();
+  const body='完整人工模板 🧑🏽‍💻 é\n<svg onload="globalThis.promptReviewInjected=true">\n'+
+   '全部正文、空白与代码必须保留 '.repeat(1000)+'\n最后否定：不得自动发送或截断。';
+  const saved=await rpc(p,'PAIA_PROMPT_CREATE',{template:{id:'human-insertion-review',text:body,pinned:true,sourceRefs:[]}});
+  const other=await rpc(p,'PAIA_PROMPT_CREATE',{template:{id:'human-insertion-cancel',text:body+'\n第二模板',pinned:true,sourceRefs:[]}});
+  const draft='现有人工草稿 🧑🏽‍💻 é\n不得覆盖。';
+  await p.evaluate(async ({saved,other,draft})=>{
+   const {createPromptInsertionReview}=await import('./prompt-insertion-review.js');
+   const target=document.createElement('textarea'),form=document.createElement('form'),send=document.createElement('button'),trigger=document.createElement('button');
+   target.id='review-target';target.value=draft;send.type='submit';send.id='review-send';send.textContent='Send';
+   trigger.type='button';trigger.id='review-trigger';trigger.textContent='Review Prompt';
+   form.append(target,send);document.body.append(form,trigger);
+   globalThis.promptReviewCounts={inputs:0,sends:0,reads:0};globalThis.promptReviewHold=false;globalThis.promptReviewRelease=null;
+   target.addEventListener('input',()=>globalThis.promptReviewCounts.inputs++);
+   form.addEventListener('submit',e=>{e.preventDefault();globalThis.promptReviewCounts.sends++;});
+   send.addEventListener('click',()=>globalThis.promptReviewCounts.sends++);
+   const readTemplate=async fields=>{
+    globalThis.promptReviewCounts.reads++;
+    const result=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_READ',...fields});
+    if(!result.ok)throw {code:result.error};
+    if(globalThis.promptReviewHold){globalThis.promptReviewHold=false;await new Promise(resolve=>{globalThis.promptReviewRelease=resolve;});}
+    return result.data;
+   };
+   const review=createPromptInsertionReview({target,trigger,selection:{id:saved.id,expectedRevision:saved.revision},readTemplate});
+   trigger.addEventListener('click',event=>void review.open(event));
+   // Scripted page clicks cannot grant an insertion/read gesture.
+   trigger.click();
+   globalThis.promptReviewRefs={review,target,trigger,form,readTemplate,createPromptInsertionReview,other};
+  },{saved,other,draft});
+  assert.equal(await p.locator('.prompt-insertion-review[open]').count(),0);
+  assert.deepEqual(await p.evaluate(()=>globalThis.promptReviewCounts),{inputs:0,sends:0,reads:0});
+  const review=p.locator('.prompt-insertion-review'),preview=review.locator('textarea[aria-label="完整模板正文"]'),
+   before=review.locator('textarea[aria-label="当前草稿全文"]');
+  const append=review.getByRole('button',{name:'追加到当前草稿',exact:true}),
+   replace=review.getByRole('button',{name:'替换整个草稿',exact:true}),
+   copy=review.getByRole('button',{name:'复制完整正文',exact:true}),
+   close=review.getByRole('button',{name:'取消',exact:true});
+  await p.locator('#review-trigger').click();
+  await eventually(async()=>!await copy.isDisabled(),'complete current review finishes');
+  assert.equal(await preview.inputValue(),body);assert.equal(await before.inputValue(),draft);
+  assert.equal(await review.locator('svg').count(),0);assert.equal(await p.evaluate(()=>globalThis.promptReviewInjected),undefined);
+  assert.equal(await replace.isDisabled(),true);assert.equal(await append.isDisabled(),false);
+  await append.click();
+  await eventually(async()=>/完整正文已写入/.test(await review.getByRole('status').textContent()));
+  assert.equal(await p.locator('#review-target').inputValue(),draft+'\n'+body);
+  assert.equal(await preview.inputValue(),'');assert.equal(await before.inputValue(),'');
+  assert.deepEqual(await p.evaluate(()=>globalThis.promptReviewCounts),{inputs:1,sends:0,reads:2});
+  assert.deepEqual(await copied(p),[]);await p.keyboard.press('Escape');
+  assert.equal(await review.isVisible(),false);assert.equal(await preview.inputValue(),'');assert.equal(await before.inputValue(),'');
+  await p.evaluate(()=>{globalThis.promptReviewRefs.target.value='另一个完整草稿';});
+  await p.locator('#review-trigger').click();await eventually(async()=>!await copy.isDisabled());
+  assert.equal(await before.inputValue(),'另一个完整草稿');assert.equal(await replace.isDisabled(),true);
+  await review.getByLabel('我确认替换此输入框中的整个现有草稿',{exact:true}).check();
+  assert.equal(await replace.isDisabled(),false);await replace.click();
+  await eventually(async()=>/完整正文已写入/.test(await review.getByRole('status').textContent()));
+  assert.equal(await p.locator('#review-target').inputValue(),body);
+  assert.deepEqual(await p.evaluate(()=>globalThis.promptReviewCounts),{inputs:2,sends:0,reads:4});
+  await close.click();
+  await p.evaluate(()=>{const target=globalThis.promptReviewRefs.target;target.value='保留只读草稿';target.readOnly=true;});
+  await p.locator('#review-trigger').click();await eventually(async()=>!await copy.isDisabled());
+  assert.equal(await preview.inputValue(),body);assert.equal(await before.inputValue(),'');
+  assert.equal(await append.isDisabled(),true);assert.equal(await replace.isDisabled(),true);
+  await copy.click();await eventually(async()=>/完整正文已复制/.test(await review.getByRole('status').textContent()));
+  assert.deepEqual(await copied(p),[body]);assert.equal(await p.locator('#review-target').inputValue(),'保留只读草稿');
+  assert.equal(await p.evaluate(()=>globalThis.promptReviewCounts.inputs),2);await close.click();
+  // Clipboard refusal preserves the entire existing system-copy fallback.
+  await p.evaluate(()=>{Object.defineProperty(navigator,'clipboard',{configurable:true,value:{
+   writeText:async()=>{throw Error('synthetic clipboard denied');},readText:()=>{throw Error('clipboard read forbidden');}
+  }});});
+  await p.locator('#review-trigger').click();await eventually(async()=>!await copy.isDisabled());await copy.click();
+  await eventually(async()=>await p.locator('.reading-copy-dialog[open]').count()===1);
+  assert.equal(await p.locator('.reading-copy-dialog textarea').inputValue(),body);
+  assert.equal(await p.locator('#review-target').inputValue(),'保留只读草稿');
+  await p.locator('.reading-copy-dialog').getByRole('button',{name:'完成',exact:true}).click();
+  await close.click();assert.equal(await preview.inputValue(),'');assert.equal(await before.inputValue(),'');
+  await clipboardOracle(p);
+  // Modern rich-text is explicitly unsupported and exposes only full manual copy.
+  await p.evaluate(()=>{
+   const {createPromptInsertionReview,readTemplate,other}=globalThis.promptReviewRefs;
+   const rich=document.createElement('div'),trigger=document.createElement('button');
+   rich.contentEditable='true';rich.id='review-rich';rich.textContent='现有富文本草稿，不得改写';
+   trigger.id='review-rich-trigger';trigger.type='button';trigger.textContent='Review unsupported';
+   document.body.append(rich,trigger);
+   const review=createPromptInsertionReview({target:rich,trigger,selection:{id:other.id,expectedRevision:other.revision},readTemplate});
+   trigger.addEventListener('click',event=>void review.open(event));globalThis.promptRichReview=review;
+  });
+  await p.locator('#review-rich-trigger').click();
+  const richReview=p.locator('.prompt-insertion-review[open]');
+  await eventually(async()=>!await richReview.getByRole('button',{name:'复制完整正文',exact:true}).isDisabled());
+  assert.equal(await richReview.locator('textarea[aria-label="完整模板正文"]').inputValue(),other.text);
+  assert.equal(await richReview.locator('textarea[aria-label="当前草稿全文"]').inputValue(),'');
+  assert.equal(await richReview.getByRole('button',{name:'追加到当前草稿',exact:true}).isDisabled(),true);
+  await richReview.getByRole('button',{name:'复制完整正文',exact:true}).click();
+  await eventually(async()=>(await copied(p)).length===1);assert.deepEqual(await copied(p),[other.text]);
+  assert.equal(await p.locator('#review-rich').textContent(),'现有富文本草稿，不得改写');
+  await richReview.getByRole('button',{name:'取消',exact:true}).click();
+  await p.evaluate(()=>globalThis.promptRichReview.dispose());
+  await p.evaluate(()=>{globalThis.promptReviewRefs.target.readOnly=false;globalThis.promptReviewRefs.target.value='新的人工草稿';});
+  await p.locator('#review-trigger').click();await eventually(async()=>!await copy.isDisabled());
+  await rpc(p,'PAIA_PROMPT_EDIT',{id:saved.id,change:{expectedRevision:saved.revision,text:body+'\n外部新修订'}});
+  await append.click();await eventually(async()=>/模板已更新/.test(await review.getByRole('status').textContent()));
+  assert.equal(await p.locator('#review-target').inputValue(),'新的人工草稿');
+  assert.equal(await p.evaluate(()=>globalThis.promptReviewCounts.inputs),2);assert.equal(await append.isDisabled(),true);
+  await copy.click();await eventually(async()=>/模板已更新/.test(await review.getByRole('status').textContent()));
+  assert.deepEqual(await copied(p),[other.text]);assert.equal(await preview.inputValue(),'');await close.click();
+  // A completed real worker response held across cancel cannot repopulate
+  // either visible or hidden private DOM, or grant insertion/copy on arrival.
+  await p.evaluate(()=>{
+   const {createPromptInsertionReview,readTemplate,other,target,trigger,review}=globalThis.promptReviewRefs;
+   review.dispose();
+   const next=createPromptInsertionReview({target,trigger,selection:{id:other.id,expectedRevision:other.revision},readTemplate});
+   trigger.addEventListener('click',event=>void next.open(event));globalThis.promptNextReview=next;globalThis.promptReviewHold=true;
+  });
+  await p.locator('#review-trigger').click();await eventually(async()=>await p.evaluate(()=>!!globalThis.promptReviewRelease));
+  const pending=p.locator('.prompt-insertion-review[open]');
+  await pending.getByRole('button',{name:'取消',exact:true}).click();
+  await p.evaluate(async()=>{globalThis.promptReviewRelease();await new Promise(resolve=>setTimeout(resolve,0));});
+  assert.equal(await p.locator('.prompt-insertion-review[open]').count(),0);
+  for(const value of await p.locator('.prompt-insertion-review textarea').evaluateAll(nodes=>nodes.map(e=>e.value)))assert.equal(value,'');
+  assert.equal(await p.locator('#review-target').inputValue(),'新的人工草稿');
+  assert.equal(await p.evaluate(()=>globalThis.promptReviewCounts.inputs),2);
+  assert.equal(await p.evaluate(()=>globalThis.promptReviewCounts.sends),0);assert.deepEqual(await copied(p),[other.text]);
+  assert.equal(await p.locator('#review-send').isEnabled(),true);
+  await p.evaluate(()=>{globalThis.promptNextReview.dispose();const refs=globalThis.promptReviewRefs;refs.form.remove();refs.trigger.remove();document.querySelector('#review-rich').remove();document.querySelector('#review-rich-trigger').remove();});
+  const templates=await rpc(p,'PAIA_PROMPT_PAGE');assert.equal(templates.total,2);
+  assert.equal(templates.items.find(row=>row.id===saved.id).text,body+'\n外部新修订');
+  assert.equal(templates.items.find(row=>row.id===other.id).text,other.text);
+  assert.deepEqual((await h.state()).records,original.records);assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
