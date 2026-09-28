@@ -139,7 +139,17 @@ export class DerivedSemanticIndex{
   if(this.state==='building')return fallback('index_building');
   if(this.rows.size!==this.expected){this.state='partial';return fallback('index_incomplete');}
   this.state='ready';
-  if(!initial.bindings.length)return {items:[],usedSemantic:true,coverage:this.status()};
+  if(!initial.bindings.length){
+   // Even an empty read may have become stale while its signature was hashed.
+   // Recheck complete authority before calling an empty result verified.
+   const current=await this.snapshot();
+   if(epoch!==this.epoch)return fallback('authority_changed');
+   this.reconcile(current);
+   if(current.signature!==initial.signature){
+    this.state='partial';return fallback('authority_changed');
+   }
+   return {items:[],usedSemantic:true,coverage:this.status()};
+  }
   const q=vector(await this.encode('query',query,this.model),this.model.dimension);
   const current=await this.snapshot();
   if(epoch!==this.epoch)return fallback('authority_changed');

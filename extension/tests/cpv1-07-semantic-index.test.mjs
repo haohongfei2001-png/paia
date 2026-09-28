@@ -495,3 +495,35 @@ test('CPV1-07 hybrid reuses first full snapshot across a 513-material long-conte
  assert.equal(result.items.find(x=>x.ref.id==='query-0512')?.body,full);
  assert.deepEqual(f.get(),before);
 });
+
+test('CPV1-07 empty lookup rechecks complete authority before claiming verified abstention',async()=>{
+ let reads=0,encodes=0;
+ const index=new DerivedSemanticIndex({model,
+  readEligible:async()=>{reads++;return {scope:'scope',generation:1,items:[]};},
+  encode:async()=>{encodes++;return [1,0];}
+ });
+ const result=await index.lookup('query');
+ assert.equal(reads,2);assert.equal(encodes,0);
+ assert.equal(result.usedSemantic,true);assert.deepEqual(result.items,[]);
+ assert.equal(result.coverage.state,'ready');assert.equal(result.coverage.expected,0);
+});
+
+test('CPV1-07 empty lookup refuses a newly eligible item or changed scope',async()=>{
+ for(const changed of [
+  {scope:'scope',generation:2,items:[item('arrived','Complete late evidence')]},
+  {scope:'revoked-scope',generation:2,items:[]}
+ ]){
+  let reads=0,encodes=0;
+  const index=new DerivedSemanticIndex({model,
+   readEligible:async()=>structuredClone(++reads===1
+    ?{scope:'scope',generation:1,items:[]}:changed),
+   encode:async()=>{encodes++;return [1,0];}
+  });
+  const result=await index.lookup('query');
+  assert.equal(reads,2);assert.equal(encodes,0);
+  assert.equal(result.usedSemantic,false);assert.equal(result.reason,'authority_changed');
+  assert.deepEqual(result.items,[]);assert.equal(result.coverage.state,'partial');
+  assert.equal(result.coverage.expected,changed.items.length);
+  assert.equal(result.coverage.indexed,0);
+ }
+});
