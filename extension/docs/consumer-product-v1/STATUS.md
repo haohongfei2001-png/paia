@@ -28,9 +28,13 @@ prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
 
+## VS-08 Batch A — role and exact-span egress authority, 2026-09-28
+
+The same detached read contract now refuses get-by-ref results that relabel Input/Topic note as AI or source, source as human, or saved AI as human; Thought preserves its actual human/AI role. An exact span request cannot return a full body or any body with a different UTF-16 range length. Owning tests cover all material kinds, accepted Thought roles, role swaps and shorter/longer/full-body span leaks. This is a product-authority/privacy correction to the existing egress boundary, with no new runtime entrypoint, Passport grant, external read permission, transport or released content. The new head's affected Candidate Gate is PENDING; trusted source-side scope and revoke enforcement remain OPEN.
+
 ## VS-08 Batch A — bounded read egress candidate, 2026-09-28
 
-The same default-off contract now seals responses for all five read tools. List/query pages cannot exceed the requested limit, cannot misstate completion and cannot return unrequested kinds or surplus fields. Get-by-ref must match the requested revision/identity; task Context must match the requested task and be complete. Title, snippet, body and total envelope size are bounded; oversize content is refused without truncation. The only permission self-check output is a boolean. Original archived prompt text is kept as inert data. Tests cover valid shapes, wrong scope/stale ref, leaked grant fields, false completion and long content. No trusted reader, network transport, new permission or product data release has been wired; source-side scope admission and revocation remain the next engineering boundary. The successor head's targeted CI is PENDING.
+The same default-off contract now seals responses for all five read tools. List/query pages cannot exceed the requested limit, cannot misstate completion and cannot return unrequested kinds or surplus fields. Get-by-ref must match the requested revision/identity; task Context must match the requested task and be complete. Title, snippet, body and total envelope size are bounded; oversize content is refused without truncation. The only permission self-check output is a boolean. Original archived prompt text is kept as inert data. Tests cover valid shapes, wrong scope/stale ref, leaked grant fields, false completion and long content. No trusted reader, network transport, new permission or product data release has been wired; source-side scope admission and revocation remain the next engineering boundary. Exact successor head `4e9fc71bba066a917528ad06ae98c99c2e922c51` Candidate Gate `36394204619` passed owning unit, contracts/privacy, release and aggregate gate; browser correctly skipped for a pure module.
 
 ## VS-08 Batch A — default-off read connector contract, 2026-09-28
 

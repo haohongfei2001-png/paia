@@ -130,3 +130,25 @@ test('VS-08 egress refuses oversized content without silent truncation',()=>{
   nextCursor:null,complete:true
  });
 });
+
+
+test('VS-08 exact-ref egress preserves role authority and span bounds',()=>{
+ const input={kind:'input',id:'i1',revision:2};
+ const source={kind:'source',id:'i1',sourceId:'record-1',revision:0};
+ const thought={kind:'thought',id:'e1',revision:1};
+ const ai={kind:'ai',id:'t1',field:'blockSummary',revision:1};
+ const note={kind:'topic_note',id:'t1',revision:1};
+ const result=(ref,role,body='body')=>({ref,title:'Title',body,role});
+ for(const [ref,role] of [[input,'human'],[source,'source'],[ai,'ai'],[note,'human']]){
+  assert.equal(seal('get_by_ref',{ref},result(ref,role)).data.role,role);
+  for(const wrong of ['human','source','ai'].filter(x=>x!==role))
+   refused('get_by_ref',{ref},result(ref,wrong));
+ }
+ for(const role of ['human','ai'])
+  assert.equal(seal('get_by_ref',{ref:thought},result(thought,role)).data.role,role);
+ refused('get_by_ref',{ref:thought},result(thought,'source'));
+ const span={...source,span:{start:2,end:5}};
+ assert.equal(seal('get_by_ref',{ref:span},result(span,'source','abc')).data.body,'abc');
+ for(const body of ['ab','abcd','full source body'])
+  refused('get_by_ref',{ref:span},result(span,'source',body));
+});
