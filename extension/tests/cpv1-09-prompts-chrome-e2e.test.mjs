@@ -1416,3 +1416,99 @@ test('CPV1-10 local workspace keeps complete unsaved work across new draft and r
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('CPV1-10 offline cold writing and abrupt page closure recover complete acknowledged drafts',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  let p=h.archive;await enable(p);const fixture=conversation('mywrite-offline-source',1500);
+  const captured=await h.open(fixture);await h.ready(captured);
+  await eventually(async()=>(await h.state()).library.blocks.length===fixture.messages.length);
+  const original=await h.state();await captured.close();
+  const localURL=p.url();
+  const full=Array.from({length:1000},(_,i)=>'离线写作第'+i+'段🧭：保留换行、空白、Unicode 和否定，不要自动发送。\n').join('')+
+   '完整尾部：不要生成 Source，不要丢失最后一段。';
+  const first=full+'\nPRIVATE_OFFLINE_FIRST',corrected=full+'\nPRIVATE_OFFLINE_CORRECTED';
+  const resumed=full+'\nPRIVATE_OFFLINE_RESUMED';
+  await h.context.setOffline(true);
+  assert.equal(await p.evaluate(()=>navigator.onLine),false);
+  async function mount({hold=false,clock=1720000000000}={}){
+   await p.evaluate(async({hold,clock})=>{
+    const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+    const {createMyWriteWorkspace}=await import(chrome.runtime.getURL('ui/mywrite-workspace.js'));
+    globalThis.offlineStore=new MyWriteDraftStore({name:'paia-mywrite-offline-chrome-v1',clock:()=>clock});
+    globalThis.offlineRead=offlineStore.read.bind(offlineStore);
+    if(hold)offlineStore.read=async id=>{
+     await new Promise(resolve=>globalThis.releaseOfflineRead=resolve);
+     offlineStore.read=offlineRead;return offlineRead(id);
+    };
+    globalThis.offlineWorkspace=createMyWriteWorkspace({document,store:offlineStore,draftId:'draft:offline',
+     topics:[{id:'topic:offline',label:'离线完整想法'},{id:'topic:corrected',label:'已更正'}]});
+    offlineWorkspace.element.id='mywrite-offline-fixture';
+    offlineWorkspace.element.style.cssText+=';position:fixed;inset:12px;width:auto;overflow:auto;z-index:2147483647';
+    document.body.append(offlineWorkspace.element);
+    if(!hold)await offlineWorkspace.ready;
+   },{hold,clock});
+  }
+  const owner=()=>p.locator('#mywrite-offline-fixture');
+  const composer=()=>owner().locator('.mywrite-composer');
+  const editor=()=>composer().getByRole('textbox',{name:'草稿正文',exact:true});
+  const topic=()=>composer().getByRole('combobox',{name:'草稿 Topic'});
+  const save=()=>composer().getByRole('button',{name:'保存本地草稿',exact:true});
+  const reference=()=>p.evaluate(()=>offlineWorkspace.getDraftReference());
+  const saveComplete=async()=>{
+   await save().click();await eventually(async()=>await p.evaluate(()=>offlineWorkspace.canReplace()));
+   return p.evaluate(()=>offlineRead('draft:offline'));
+  };
+  await mount({hold:true});
+  await eventually(async()=>await p.evaluate(()=>typeof releaseOfflineRead==='function'));
+  // Cold start remains writable while local persistence opens; its reply
+  // cannot replace trusted complete typing or invent an acknowledgement.
+  await editor().fill(first);await topic().selectOption('topic:offline');
+  assert.equal(await reference(),null);assert.equal(await save().isDisabled(),true);
+  await p.evaluate(async()=>{releaseOfflineRead();await offlineWorkspace.ready;});
+  assert.equal(await editor().inputValue(),first);
+  assert.equal(await topic().inputValue(),'topic:offline');
+  const savedFirst=await saveComplete();
+  assert.equal(savedFirst.text,first);assert.equal(savedFirst.revision,1);
+  assert.equal(savedFirst.createdAt,1720000000000);assert.equal(savedFirst.topicId,'topic:offline');
+  await editor().fill(corrected);await topic().selectOption('topic:corrected');
+  const savedCorrected=await saveComplete();
+  assert.equal(savedCorrected.text,corrected);assert.equal(savedCorrected.revision,2);
+  assert.equal(savedCorrected.createdAt,savedFirst.createdAt);
+  assert.equal(savedCorrected.topicId,'topic:corrected');
+  // Abruptly close the whole client without calling owner.dispose/store.close.
+  // Chrome destroys that heap and connection; recovery must use committed IDB.
+  await p.close();
+  p=await h.context.newPage();h.archive=p;
+  p.on('pageerror',error=>h.errors.push(error.message));
+  await p.goto(localURL);await p.waitForSelector('#prompt-open');
+  assert.equal(await p.evaluate(()=>navigator.onLine),false);
+  await h.restartWorker();
+  await mount({clock:1720000060000});
+  assert.equal(await editor().inputValue(),corrected);
+  assert.equal(await topic().inputValue(),'topic:corrected');
+  assert.deepEqual(await reference(),{id:'draft:offline',revision:2});
+  assert.deepEqual(await p.evaluate(()=>offlineRead('draft:offline')),savedCorrected);
+  const picker=owner().locator('.mywrite-recovery');
+  await picker.getByRole('button',{name:'查找本地草稿',exact:true}).click();
+  const rows=picker.getByRole('list',{name:'已保存草稿'}).getByRole('button');
+  await eventually(async()=>await rows.count()===1&&!await rows.first().isDisabled());
+  assert.equal(await rows.first().textContent().then(text=>text.includes('PRIVATE_')),false);
+  await editor().fill(resumed);
+  const savedResumed=await saveComplete();
+  assert.equal(savedResumed.text,resumed);assert.equal(savedResumed.revision,3);
+  assert.equal(savedResumed.createdAt,savedFirst.createdAt);assert.equal(savedResumed.updatedAt,1720000060000);
+  assert.equal(savedResumed.topicId,'topic:corrected');
+  await composer().getByRole('button',{name:'查看完整草稿',exact:true}).click();
+  const preview=composer().getByRole('textbox',{name:'完整草稿正文',exact:true});
+  await eventually(async()=>preview.isVisible());
+  assert.equal(await preview.inputValue(),resumed);
+  assert.match(await composer().getByRole('status').textContent(),/2024-07-03T09:46:40.000Z/);
+  assert.equal(await p.evaluate(()=>navigator.onLine),false);
+  await p.evaluate(()=>{offlineWorkspace.dispose();offlineStore.close();});
+  assert.deepEqual((await h.state()).records,original.records);
+  assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
