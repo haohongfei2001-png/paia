@@ -272,13 +272,21 @@ test('VS07 hosted Chrome long library measures complete current-source index and
   await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
   await h.open({id:'vs07-hosted-long-library',title:'Synthetic long library',base:1577836800,
    messages:texts.map((text,i)=>({id:'vs07-scale-'+i,text}))});
-  await eventually(async()=>{
-   const rows=(await h.state()).records;
-   return rows.length===count&&rows.every(x=>x.sourceSentAt);
-  },'all 1025 known-time full Sources captured',120000);
-  const sources=(await h.state()).records;
-  assert.deepEqual(new Set(sources.map(x=>x.originalText)),new Set(texts));
+  // GET_STATE deliberately refuses materialization above 1000 records.
+  // Read the canonical IndexedDB count and rows directly for this scale case.
+  await p.evaluate(async()=>{
+   const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
+   globalThis.__scaleProbe=new OrganizerStore(chrome.storage.local,{
+    indexedDB:globalThis.indexedDB});
+  });
+  await eventually(()=>p.evaluate(()=>__scaleProbe.run(()=>
+   __scaleProbe.repository.transaction(false,t=>t.count('records')))).then(n=>n===count),
+   'all 1025 Sources committed',120000);
   await attach(p,120000);
+  const sources=await p.evaluate(async()=> (await __semantic.authority()).records);
+  assert.equal(sources.length,count);
+  assert.deepEqual(new Set(sources.map(x=>x.value.originalText)),new Set(texts));
+  assert.ok(sources.every(x=>x.value.sourceSentAt));
   const full=await p.evaluate(async()=>{
    const s=__semantic;
    const snapshot=await s.semanticMaterialSnapshot(s.memory,{types:['input']});
@@ -325,7 +333,7 @@ test('VS07 hosted Chrome long library measures complete current-source index and
   assert.equal(measured.queryCalls,11);
   assert.ok(measured.queries.every(x=>x.mode==='hybrid'&&x.usedSemantic&&x.found&&x.full),
    JSON.stringify(measured.queries));
-  assert.deepEqual((await h.state()).records,sources);
+  assert.deepEqual(await p.evaluate(async()=> (await __semantic.authority()).records),sources);
   noNetwork(h);
   const ordered=measured.queries.map(x=>x.ms).sort((a,b)=>a-b);
   console.log('VS07_HOSTED_CHROME_LONG_LIBRARY '+JSON.stringify({
