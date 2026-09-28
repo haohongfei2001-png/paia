@@ -93,14 +93,14 @@ for relative in ('index.html','zh/index.html'):
     check(text.count('class="art-icon"') == 2, f'{relative}: two purposeful interface icons, not repeated brand artwork')
 
 
-# Shared capture dependencies remain byte-frozen. V7 owner authorization changes
-# hero wording and neutral line colors only; retain the exact-literal check below.
+# Shared capture dependencies remain byte-frozen. Owner-authorized homepage copy
+# refinements may change hero wording only; retain the exact-literal check below.
 check(hashlib.sha256((ROOT/'assets/website/site.css').read_bytes()).hexdigest()=='1da775ca6b8f914e0d4e8e66b1fb43e4f4c4189d2ead954afa1e7522a73e26dc', 'frozen byte identity: assets/website/site.css')
 check(hashlib.sha256((ROOT/'assets/website/site.js').read_bytes()).hexdigest()=='8f85a04becb98881a8db309e7dbfb53de65b393d56871e072cf0474619481ff2', 'frozen byte identity: assets/website/site.js')
 check(hashlib.sha256((ROOT/'assets/website/demo.js').read_bytes()).hexdigest()=='447610004d6f476e4a15edc298526817a8fef6537fea9b6447fd9dab8a6b5c65', 'frozen byte identity: assets/website/demo.js')
 home_source=(ROOT/'website/home.py').read_text()
 hero_literal=home_source[home_source.index("    hero=f'''"):home_source.index('    from core import render')]
-check(hashlib.sha256(hero_literal.encode()).hexdigest()=='8bd537111c32fe13b3f4c87fb71d27971edd2c30f2117a488380578193531901', 'frozen hero HTML literal including all source cards')
+check(hashlib.sha256(hero_literal.encode()).hexdigest()=='87498bfa184f0cc78c88e17a29bed4ae662c12d8ecae97fb687890722b919262', 'frozen hero HTML literal including all source cards')
 
 verify_assets(ROOT, check)
 

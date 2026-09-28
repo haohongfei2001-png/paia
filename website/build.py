@@ -92,7 +92,7 @@ def build(lang):
     def statusmini():
         return f'''<div class="availability"><span class="status-dot" aria-hidden="true"></span><span>{t('桌面 Chrome 扩展 · ChatGPT 网页版 · 邀请制测试','Desktop Chrome extension · ChatGPT Web · Invite-only beta')}</span></div>'''
     home=render_home(t,a,button,statusmini)
-    shell('index.html',t('PAIA — 个人 AI 上下文','PAIA — Personal AI context'),t('保存你自己的 AI 输入，方便查看、编辑、整理和复用。跨 AI 收集、提示词库及授权连接仍在规划中。','Keep your own AI inputs. Review, edit, organize and reuse them. Cross-AI capture, prompt libraries and authorized connections are planned.'),home)
+    shell('index.html',t('PAIA — 个人 AI 上下文','PAIA — Personal AI context'),t('保存你自己的 AI 输入，让它们以后仍然可以查找、编辑、整理和复用。当前内测支持 ChatGPT；更多 AI 来源和授权连接正在规划中。','Keep your own AI inputs so you can find, edit, organize and reuse them later. The current beta supports ChatGPT; more AI sources and authorized connections are planned.'),home)
 
     for route,title,description,body in render_pages(t,a,button,invitation):
         shell(route,title,description,body)
