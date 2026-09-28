@@ -1,7 +1,19 @@
 # VS-09 Prompt candidate and local template contract
 
-Status: P1 local workspace and P2 native mechanics/template coordination/human review ENGINEERING_PASS at exact receipts; keyboard/composition lifetime CANDIDATE / NOT_ACTIVATED; provider/live/product certification IN_PROGRESS.
+Status: P1/P2 mechanics/current-template/human-review/keyboard-composition ENGINEERING_PASS at exact receipts; multi-tab/target-drift CANDIDATE / NOT_ACTIVATED; provider/live/product certification IN_PROGRESS.
 
+
+## CPV1-09.3 multi-tab current-template and target drift candidate — 2026-09-29
+
+Remote main4c43e7ea04a84bc491bf4f5d84080c0b22fbc5c8; sole product Draft99 exact parente34c3e449f9e32655cc5c6d1afb6f9044e9a2bb3, tree3ef69bf0f3a4a0108b40096b1c337dee9011dad4. Candidate36471324003 COMPLETED SUCCESS: unit109094020491 actual1276PASS/0FAIL/0SKIP; contracts109094020812 actual102adapter+60privacy/security PASS; release109094020827PASS; affected hosted browser109094020933 actual8PASS/0FAIL/0SKIP; aggregate109095467779PASS. Full Draft Certification, UI/performance/backup certification, bounded-scale and Mac diagnostics skipped. Immutable receipts/CPV1-09.3-KEYBOARD-COMPOSITION-ENGINEERING-PASS.md binds only this exact parent. Keyboard/composition lifetime ENGINEERING_PASS for the synthetic hosted scenario; P2 NOT_ACTIVATED and provider/live/product certification open.
+
+Continue the owning reliability matrix without enabling any provider transport. Add one complete hosted Chrome journey with two actual extension Archive tabs sharing the current worker and canonical IndexedDB. Full long Unicode/negation Source and template, two separate long drafts, both native trusted review gestures. A real second-tab template edit invalidates the first-tab prepared revision at its fresh commit read; no insertion, clipboard or send effect can occur. Closing one review leaves the other tab's draft and listener lifetime unchanged. A page replaces the second tab's selected native input: the old review refuses before touching the replacement or detached draft. Explicit full manual copy reads only the current saved revision. Only an explicitly disposed/recreated review may bind the new target and append the complete current body once.
+
+All eight preceding full cases remain a byte-exact prefix. The ninth adds44 assertions, actual current revision shared readback, exact complete draft equality, Source/Input preservation,0external/provider/network/send effects and enabled user-send controls. Count actual owned native event listeners: exactly6 per review lifetime, constant across preview close/reopen; explicit dispose removes every owned listener on all historical targets. A real invoker click after disposal performs no read or effect. No sleeps, timer/timeout change, hidden/forced click, fixture shrink, test removal, manifest/permission/provider/model/runtime activation.
+
+This is hosted synthetic multi-tab/native-target replacement engineering, not current live-provider DOM/physical Chinese-IME, security or full idle-resource certification. Those dependent evidence paths remain open/deferred. VS07 EXPERIMENTAL/DEFAULT_OFF/NON-BLOCKING; VS04 lexical/fuzzy/filter is v1 default; Semantic Lab exclusively Input→Topic. Context minimum approved external/Passport/live/security and B02 policy remain dependent-deferred.
+
+One coherent owning-browser/STATUS/MASTER_PLAN/protocol/model-contract/immutable-receipt batch through high-level Contents on the existing no-PR assembly ref, then one non-force publication of sole writer99. Exact new-head full9Chrome/unit/contracts/privacy/release CI PENDING; no unchanged-head rerun or production deployment; owner website91 untouched.
 
 ## CPV1-09.3 keyboard and composition lifetime candidate — 2026-09-29
 
