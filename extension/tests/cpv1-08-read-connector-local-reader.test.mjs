@@ -145,11 +145,12 @@ test('VS-08 Topic list uses current profile policy and invalidates revoked pages
  assert.deepEqual(remaining.data.items.map(item=>item.id),[firstTopic.id]);
  const topicQuery={tool:'query',args:{text:'Alpha',kinds:['topic'],limit:1}};
  const direct=createLocalReadConnectorReader(f.memory);
- await assert.rejects(direct(topicQuery,{grantId:'synthetic-read-grant',
-  profileId:'default',allowedKinds:['topic']}),{code:'MEMORY_DENIED'});
- // The outer boundary intentionally conceals reader admission details.
- await assert.rejects(boundary.handle('topic-query',topicQuery),
-  {code:'MEMORY_UNAVAILABLE'});
+ const noHumanNote=await direct(topicQuery,{grantId:'synthetic-read-grant',
+  profileId:'default',allowedKinds:['topic']});
+ assert.deepEqual(noHumanNote,{items:[],nextCursor:null,complete:true});
+ const sealed=await boundary.handle('topic-query',topicQuery);
+ assert.deepEqual(sealed.data.items,[]);
+ assert.equal(sealed.data.complete,true);
  await f.memory.authorize({topicIds:[firstTopic.id],decision:'never'});
  const none=await boundary.handle('topic-list',req());
  assert.deepEqual(none.data.items,[]);
@@ -203,7 +204,7 @@ test('VS-08 Topic lexical query releases only profile-authorized human notes',as
  const empty=await f.s.createTopic({operationId:crypto.randomUUID(),
   name:'research canary no human note'});
  await f.memory.authorize({topicIds:[a.topic.id,b.topic.id,empty.id],
-  decision:'allowed'});
+  decision:'allowed',confirmed:true});
  await f.memory.authorize({topicIds:[hidden.topic.id],decision:'denied'});
  const boundary=createReadConnectorBoundary({clock:()=>1000,
   authorize:async()=>({...grant(),allowedTools:['query','get_by_ref'],
