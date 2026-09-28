@@ -76,6 +76,35 @@ test('CPV1-09 Prompts full human candidate, fixed template, edit, trace and manu
   assert.equal(await p.locator('#prompt-body').inputValue(),edited);
   await p.locator('#prompt-copy').click();await eventually(async()=>(await copied(p)).length===1);
   assert.deepEqual(await copied(p),[edited]);assert.deepEqual((await h.state()).records,sources);
+  // A changed saved template cannot silently open a stale Source action.
+  const otherEdit=edited+'\n另一窗口保存的模板版本。';
+  await rpc(p,'PAIA_PROMPT_EDIT',{id:candidateId,change:{expectedRevision:2,text:otherEdit}});
+  await p.locator('.prompt-record-open').click();
+  await eventually(()=>p.locator('#prompt-status').textContent().then(t=>t.includes('内容已更新')));
+  assert.equal(await p.locator('#info-dialog').isVisible(),false);
+  assert.equal(await p.locator('#prompt-dialog').isVisible(),true);
+  assert.equal(await p.locator('#prompt-body').inputValue(),edited);
+  assert.deepEqual(await copied(p),[edited]);assert.deepEqual((await h.state()).records,sources);
+  await p.locator('#prompt-refresh').click();await eventually(async()=>!await p.locator('#prompt-refresh').isDisabled());
+  await selectPrompt(p,'.prompt-choose[data-prompt-id="'+candidateId+'"]');
+  assert.equal(await p.locator('#prompt-body').inputValue(),otherEdit);
+  await p.locator('.prompt-record-open').click();await eventually(()=>p.locator('#info-dialog').isVisible());
+  assert.equal(await p.locator('#prompt-dialog').isVisible(),false);
+  assert.equal(await p.locator('#info-dialog .source-original').textContent(),body);
+  assert.equal(await p.locator('#info-dialog .source-original svg').count(),0);
+  assert.equal(await p.evaluate(()=>globalThis.promptInjected),undefined);
+  assert.equal(await p.locator('#info-dialog h2').textContent(),'查看当时记录');
+  assert.equal(await p.evaluate(()=>document.activeElement===document.querySelector('#info-dialog h2')),true);
+  await p.locator('#close-info').click();await eventually(()=>p.evaluate(()=>document.activeElement?.id==='prompt-open'));
+  assert.equal(await p.locator('#info-content').textContent(),'');
+  // Native keyboard reopening returns to the same current full saved template.
+  await p.keyboard.press('Enter');await eventually(async()=>!await p.locator('#prompt-refresh').isDisabled());
+  await selectPrompt(p,'.prompt-choose[data-prompt-id="'+candidateId+'"]');
+  assert.equal(await p.locator('#prompt-body').inputValue(),otherEdit);
+  await p.locator('#prompt-close').click();await eventually(()=>p.evaluate(()=>document.activeElement?.id==='prompt-open'));
+  assert.equal(await p.locator('#prompt-body').inputValue(),'');
+  assert.equal(await p.locator('#prompt-list').textContent(),'');
+  assert.deepEqual(await copied(p),[edited]);assert.deepEqual((await h.state()).records,sources);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
