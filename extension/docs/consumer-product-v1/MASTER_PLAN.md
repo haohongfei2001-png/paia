@@ -6,7 +6,11 @@ The execution unit is a complete vertical slice. Each round below is a bounded c
 
 ## 0. Global sequencing rules
 
-### 0.1 Activation
+### Current dependency-safe engineering frontier — 2026-09-28
+
+VS-08 task Context release is OWNER_APPROVAL_PENDING; platform identity, Passport issuer/consent, distributed quota and B-03/B-05 deployment remain deferred. Under section 0.4–0.5, continue VS-09 P1/P2 in the same sole product PR #99 without publishing the rejected Context reader or certifying VS-08. Batch A implements the CPV1-09.0 usefulness exclusion and CPV1-09.1 immutable local template model; actual bounded archive projection, persistence/UI and provider-input/draft browser journeys remain IN_PROGRESS. See VS09_PROMPT_MODEL_CONTRACT.md. Keep VS-04 lexical/fuzzy/filter default and the existing archived semantic/nonblocking boundary.
+
+## 0.1 Activation
 
 This plan is not active while CPR-02 owns a runtime writer.
 

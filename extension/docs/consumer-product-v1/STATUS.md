@@ -8,17 +8,17 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: VS-08
+current_slice: VS-09
 
-current_slice_status: IN_PROGRESS — VS-07_V1_SCOPE_COMPLETE / VS-06_EXTERNAL_CERT_PENDING
+current_slice_status: IN_PROGRESS — VS-09_LOCAL_MODEL / VS-08_OWNER_EXTERNAL_GATES_DEFERRED
 
-current_round: CPV1-08.2 — detached trusted local material read
+current_round: CPV1-09.0–09.1 — local Prompt candidates and template model
 
-current_round_status: IN_PROGRESS / DEFAULT_OFF_LOCAL_READ_ONLY / PLATFORM_MECHANISM_NOT_VERIFIED / B03_B05_DEPLOYMENT_DEFERRED
+current_round_status: IN_PROGRESS / MODEL_ONLY / P1_UI_PERSISTENCE_NOT_IMPLEMENTED / VS08_DEFAULT_OFF_NOT_CERTIFIED
 
-current_writer: MANAGER / sole VS-08 branch feat/vs08-readonly-connector
+current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
-writer_status: VS-08_ACQUIRED / SINGLE_WRITER
+writer_status: VS-09_CONTINUOUS_WITH_VS08_DEFERRED / SINGLE_WRITER
 
 production_claim: NONE
 
@@ -27,6 +27,21 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## VS-09 Batch A — exact human Prompt candidates and immutable template model, 2026-09-28
+
+Engineering frontier advances to CPV1-09.0 / CPV1-09.1 within sole product Draft #99 / `feat/vs08-readonly-connector`; no second writer or PR. VS-08 remains IN_PROGRESS / DEFAULT_OFF / NOT_CERTIFIED, with task Context material release awaiting the already requested owner approval (DFG-CPV1-011). Its proposed reader remains unpublished; existing connector/platform/Passport/quota/deployment gates are not satisfied by Prompt work.
+
+Remote main `4c43e7ea04a84bc491bf4f5d84080c0b22fbc5c8`, parent doc head `14c9c7657f8999bb61da4ce3d8c7ef92346d17bd`, tree `c031298480f75c0231cdaa871f854b71dfcce6ad`. Unchanged prior read runtime `5b5d94e5a5daf2c8014d814e2aea110bd1025888` Candidate Gate `36424719386` SUCCESS; full Draft Certification skipped. Owner design PR #91 unchanged. JAE current sole Draft20 head `16f0a4ec10cf925666afe9def5618dd20d4b23e2` is running Actions `36432737883` for the coherent question/row continuity batch; its prior head `0b17156681e2277cc6b92044f72c1f402d7165b5` Actions `36429044215` SUCCESS with actual 257 form/review/browser PASS.
+
+The new pure local Prompt model consumes a complete already-authorized Input projection, admits eligible human prompts only, removes a finite exact set of control/acknowledgement utterances from automatic suggestions, and groups completely identical original text without case/whitespace/code/negation normalization. Repeated same identities do not inflate frequency; conflicting rows/incomplete projections refuse. Known source time and complete immutable revisioned Source refs remain trace, not invented facts. Search reuses existing VS-04 lexical normalization while preserving full text. Template create/edit/pin/remove are immutable version-checked local model transformations; edits never change Source, no-ops retain revision, stale edits refuse and removal yields a template-only tombstone.
+
+Append a complete 13-case owning unit file: human/AI/excluded boundaries, control dominance, exact/deduplicated frequency, pagination/order/source-time, conflicting/incomplete/malformed/getter refusals, source-preserving edit/pin/remove/CAS/no-op, explicit short fixed prompt, canonical lexical search, full long Unicode/final negation, complete 100000 Inputs and all 100000 refs, and inert archived instructions/zero external requests. The unchanged full unit fallback automatically selects it; no workflow, test group, model, threshold, fixture/cap, existing test or deployment change.
+
+Source and owning test syntax were statically parsed in orchestration; no local/runtime test PASS is claimed. New-head Candidate Gate PENDING. This is CPV1-09.0/09.1 MODEL_ONLY / IN_PROGRESS, not P1 UI/persistence or P2 provider-input certification. Next implement the bounded owning archive projection, durable template commands/UI and direct browser journeys, then protected append/replace/manual send. No storage read/write, clipboard/provider input access, AI reply read, external request, read grant or product-entrypoint import is introduced by this batch.
+
+PAIA v1 remains VS-04 lexical/fuzzy/filter; semantic assets are archived EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING, and Semantic Lab exclusively owns Input → Topic. VS-07 scope closure and receipts remain intact.
+
 
 ## VS-08 task Context approval gate — 2026-09-28
 
@@ -375,7 +390,7 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | VS-06 Complete AI Context reuse | PLANNED | Inputs/Topics/cross-Topic material become reviewable authorized Context without silent truncation |
 | VS-07 Algorithmic retrieval and longitudinal Revisit | COMPLETE / V1_SCOPE | VS-04 local search, historical comparison and finite Revisit; semantic retrieval archived as optional |
 | VS-08 Real read-only AI connector | IN_PROGRESS — CPV1-08.0/08.1 | A supported AI can actually query authorized PAIA material and revocation works |
-| VS-09 Prompt reuse phases 1–2 | PLANNED | Frequent prompts can be reused in PAIA and inserted into supported AI input without auto-send |
+| VS-09 Prompt reuse phases 1–2 | IN_PROGRESS — CPV1-09.0/09.1 local model | Frequent prompts can be reused in PAIA and inserted into supported AI input without auto-send |
 | VS-10 Mobile MyWrite and voice | PLANNED | Phone users can quickly write/speak into the same PAIA system and recover interruptions |
 | VS-11 Multi-source and device continuity | PLANNED | Multiple sources/devices converge without losing edits or resurrecting deleted material |
 | VS-12 Authorized AI write proposals and reply-aware prompting | PLANNED | External AI can propose safe PAIA organization changes and reply-aware prompts under distinct permission |
