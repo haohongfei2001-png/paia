@@ -10,11 +10,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_RECOVERY_CANDIDATE
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_ENGINEERING_PASS / VS09_SOURCE_TRACE_CANDIDATE
 
 current_round: CPV1-09.1 — human Prompt workspace and protected manual copy
 
-current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_ENGINEERING_PASS / P1_UI_RECOVERY_CANDIDATE
+current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_ENGINEERING_PASS / P1_UI_ENGINEERING_PASS / SOURCE_TRACE_CANDIDATE
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,16 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## CPV1-09.1 original Source trace and keyboard return candidate — 2026-09-29
+
+Exact parent fece9c48454308e794af5bc655edb9a543af7c07, treee438801491f283eabbd85ff11088f5d9e6a006e2. Candidate36456504186 COMPLETED SUCCESS: unit1090440835381262PASS/0FAIL/0SKIPPED, contracts109044083100102adapter and60privacy/security PASS, release109044083415 PASS, owning browser1090440833613PASS/0FAIL/0SKIPPED, aggregate109045886971 PASS. The complete original worker-restart/full-copy journey now passes together with26-template pagination/stale-copy/removal and the actual committed-create/lost-response/same-ID retry/held-read regression. Immutable receipts/CPV1-09.1-PROMPT-UI-RECOVERY-ENGINEERING-PASS.md records the exact repair evidence; prior8e6da5e FAILED receipt is retained. Full Draft Certification, scale and Mac diagnostics SKIPPED; no whole-product/current-live certificate.
+
+Continue P1 Source trace through the existing Archive Source Records owner. Each full historical association offers current Input and original Source separately. Source opening re-reads the saved template at its expected revision, verifies the exact Source/Input association against fresh TRACE, navigates the existing Input Reader and requires the loaded current provenance/record to contain that Source. The existing info() renders the exact immutable original text/time/metadata with textContent; template edits never masquerade as original Source. Unavailable refs remain disabled; changed Input status retains the historical Source label. No new worker command/body store, permission, external request or source rewrite. Busy list/trace controls are disabled until command completion.
+
+Extend the same full real Chrome first journey after its unchanged restart/edit/copy assertions: another window explicitly edits the template; stale original-Source action refuses before opening the Source dialog or changing clipboard. Explicit refresh and current selection then open the exact pre-edit original body, with unchanged literal-XSS/Unicode/final negation and no HTML activation. The existing Source heading receives focus; closing clears its private DOM and returns focus to the Archive Prompts trigger. Native Enter reopens Prompts with the current full template; explicit close clears Prompt body/list and restores focus. All3 original test cases,26-template/full-body fixtures, limits/timeouts and complete unit/contract/privacy/release selections remain.
+
+Static grammar only PASS; this new Source/keyboard candidate CI PENDING. P1/VS09/product certification remains NOT_CERTIFIED; finish its new owning browser gate before recording an engineering boundary. P2 protected AI-page append/replace/manual-send is the next dependency-safe canonical engineering queue. B02 derivative purge policy remains dependent-deferred. Minimal approved detached Context external/Passport/live/security gates DEFAULT_OFF/deferred. VS07 EXPERIMENTAL/DEFAULT_OFF/NON-BLOCKING; PAIA v1 VS04 lexical/fuzzy/filter default; Semantic Lab exclusively owns Input→Topic.
 
 ## CPV1-09.1 full Prompt UI recovery candidate — 2026-09-29
 
