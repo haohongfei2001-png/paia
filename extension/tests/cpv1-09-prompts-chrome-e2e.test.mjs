@@ -577,3 +577,83 @@ test('CPV1-09 P2 trusted human full-template review protects draft and manual-co
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+
+test('CPV1-09 P2 keyboard review preserves unresolved composition across blur and reopen',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);await clipboardOracle(p);const original=await h.state();
+  const body='完整键盘模板 🧑🏽‍💻 é\n'+'保留全部空白、代码和否定 '.repeat(1000)+'\n最后否定：不得自动发送。';
+  const draft='完整未完成输入草稿 中文 🧑🏽‍💻 é\n'+'不得覆盖现有内容 '.repeat(1000);
+  const saved=await rpc(p,'PAIA_PROMPT_CREATE',{template:{id:'keyboard-composition-review',text:body,pinned:true,sourceRefs:[]}});
+  await p.evaluate(async ({saved,draft})=>{
+   const {createPromptInsertionReview}=await import('./prompt-insertion-review.js');
+   const surface=document.createElement('section'),form=document.createElement('form'),target=document.createElement('textarea'),
+    trigger=document.createElement('button'),send=document.createElement('button');
+   surface.id='keyboard-review-fixture';
+   surface.style.cssText='position:fixed;top:12px;right:12px;width:480px;max-width:calc(100vw - 24px);padding:12px;z-index:2147483647;background:white;';
+   target.id='keyboard-review-target';target.value=draft;
+   trigger.id='keyboard-review-trigger';trigger.type='button';trigger.textContent='Keyboard Prompt review';
+   send.id='keyboard-review-send';send.type='submit';send.textContent='Send';
+   form.append(target,send);surface.append(form,trigger);document.body.append(surface);
+   const counts={reads:0,draftReads:0,inputs:0,sends:0},prototype=HTMLTextAreaElement.prototype,
+    value=Object.getOwnPropertyDescriptor(prototype,'value');
+   Object.defineProperty(prototype,'value',{...value,get(){
+    if(this===target)counts.draftReads++;return value.get.call(this);
+   }});
+   target.addEventListener('input',()=>counts.inputs++);
+   form.addEventListener('submit',event=>{event.preventDefault();counts.sends++;});
+   send.addEventListener('click',()=>counts.sends++);
+   const readTemplate=async selection=>{
+    counts.reads++;const row=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_READ',...selection});
+    if(!row.ok)throw {code:row.error};return row.data;
+   };
+   const review=createPromptInsertionReview({target,trigger,selection:{id:saved.id,expectedRevision:saved.revision},readTemplate});
+   trigger.addEventListener('click',event=>void review.open(event));
+   globalThis.keyboardPromptReview={target,trigger,review,counts,prototype,value,surface};
+  },{saved,draft});
+  await p.locator('#keyboard-review-target').focus();
+  // Synthetic lifecycle uncertainty on an actual hosted Chrome native input:
+  // this does not certify physical OS/Chinese IME behavior or a provider page.
+  await p.evaluate(()=>globalThis.keyboardPromptReview.target.dispatchEvent(
+   new CompositionEvent('compositionstart',{bubbles:true,data:'尚未结束的中文输入'})));
+  await p.locator('#keyboard-review-trigger').focus();await p.keyboard.press('Enter');
+  const review=p.locator('.prompt-insertion-review[open]'),preview=review.locator('textarea[aria-label="完整模板正文"]'),
+   before=review.locator('textarea[aria-label="当前草稿全文"]'),
+   copy=review.getByRole('button',{name:'复制完整正文',exact:true}),
+   append=review.getByRole('button',{name:'追加到当前草稿',exact:true});
+  await eventually(async()=>!await copy.isDisabled());
+  assert.match(await review.getByRole('status').textContent(),/输入法尚未结束/);
+  assert.equal(await preview.inputValue(),body);assert.equal(await before.inputValue(),'');
+  assert.equal(await append.isDisabled(),true);
+  assert.equal(await review.getByRole('button',{name:'替换整个草稿',exact:true}).isDisabled(),true);
+  assert.deepEqual(await p.evaluate(()=>globalThis.keyboardPromptReview.counts),{reads:1,draftReads:0,inputs:0,sends:0});
+  await p.keyboard.press('Escape');
+  assert.equal(await p.locator('.prompt-insertion-review[open]').count(),0);
+  assert.equal(await p.evaluate(()=>document.activeElement===globalThis.keyboardPromptReview.trigger),true);
+  for(const value of await p.locator('.prompt-insertion-review textarea').evaluateAll(nodes=>nodes.map(n=>n.value)))assert.equal(value,'');
+  // Closing and opening a fresh controller cannot manufacture compositionend.
+  await p.keyboard.press('Space');await eventually(async()=>!await copy.isDisabled());
+  assert.match(await review.getByRole('status').textContent(),/输入法尚未结束/);
+  assert.equal(await before.inputValue(),'');assert.equal(await append.isDisabled(),true);
+  assert.deepEqual(await p.evaluate(()=>globalThis.keyboardPromptReview.counts),{reads:2,draftReads:0,inputs:0,sends:0});
+  assert.equal(await p.evaluate(()=>{const r=globalThis.keyboardPromptReview;return r.value.get.call(r.target);}),draft);
+  await p.keyboard.press('Escape');
+  await p.evaluate(()=>globalThis.keyboardPromptReview.target.dispatchEvent(
+   new CompositionEvent('compositionend',{bubbles:true,data:'已明确结束的中文输入'})));
+  await p.keyboard.press('Enter');await eventually(async()=>!await append.isDisabled());
+  assert.equal(await preview.inputValue(),body);assert.equal(await before.inputValue(),draft);
+  await append.focus();await p.keyboard.press('Enter');
+  await eventually(async()=>/完整正文已写入/.test(await review.getByRole('status').textContent()));
+  assert.equal(await p.evaluate(()=>{const r=globalThis.keyboardPromptReview;return r.value.get.call(r.target);}),draft+'\n'+body);
+  assert.deepEqual(await p.evaluate(()=>globalThis.keyboardPromptReview.counts),{reads:4,draftReads:3,inputs:1,sends:0});
+  assert.equal(await preview.inputValue(),'');assert.equal(await before.inputValue(),'');
+  await p.keyboard.press('Escape');
+  assert.equal(await p.evaluate(()=>document.activeElement===globalThis.keyboardPromptReview.trigger),true);
+  assert.equal(await p.locator('#keyboard-review-send').isEnabled(),true);assert.deepEqual(await copied(p),[]);
+  await p.evaluate(()=>{const r=globalThis.keyboardPromptReview;r.review.dispose();Object.defineProperty(r.prototype,'value',r.value);r.surface.remove();});
+  const templates=await rpc(p,'PAIA_PROMPT_PAGE');assert.equal(templates.total,1);assert.equal(templates.items[0].text,body);
+  assert.deepEqual((await h.state()).records,original.records);assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
