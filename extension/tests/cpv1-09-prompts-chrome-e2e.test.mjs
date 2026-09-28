@@ -304,6 +304,13 @@ test('CPV1-09 P2 native input session protects full drafts, IME and target drift
    try{session.prepare(body);}catch(e){unavailable=e.code;}
    if(unavailable!=='PROMPT_TARGET_UNAVAILABLE')throw Error('hidden preview was admitted');
    form.style.visibility='';refuses(beforeUnavailable,{mode:'append'},'PROMPT_INSERT_STALE');
+   for(const kind of ['opacity','inert','aria-hidden']){
+    const invisible=session.prepare('新模板');
+    if(kind==='opacity')form.style.opacity='0';else form.setAttribute(kind,kind==='inert'?'':'true');
+    refuses(invisible,{mode:'append'},'PROMPT_TARGET_UNAVAILABLE');
+    if(kind==='opacity')form.style.opacity='';else form.removeAttribute(kind);
+    refuses(invisible,{mode:'append'},'PROMPT_INSERT_STALE');
+   }
    const surplus=session.prepare('新模板');refuses(surplus,{mode:'append',send:true},'PROMPT_INSERT_INVALID');
    field.focus();const late=createPromptInputSession(field);let unknown=null;
    try{late.prepare(body);}catch(e){unknown=e.code;}late.dispose();field.blur();
@@ -322,5 +329,101 @@ test('CPV1-09 P2 native input session protects full drafts, IME and target drift
   assert.deepEqual((await h.state()).records,original.records);assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
   assert.deepEqual(await copied(p),[]);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
+
+test('CPV1-09 P2 current template identity and cancellation fence native insertion across actual worker reads',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);await clipboardOracle(p);const original=await h.state();
+  const body='完整已保存模板 🧑🏽‍💻 é\n'+'保留长正文与代码 '.repeat(1000)+'\n最后否定：不得自动发送。';
+  const one=await rpc(p,'PAIA_PROMPT_CREATE',{template:{id:'insertion-saved-one',text:body,pinned:true,sourceRefs:[]}});
+  const two=await rpc(p,'PAIA_PROMPT_CREATE',{template:{id:'insertion-saved-two',text:body+'\n第二项完整正文',pinned:true,sourceRefs:[]}});
+  const results=await p.evaluate(async ({one,two,body})=>{
+   const {createPromptInputSession}=await import('./prompt-input-session.js');
+   const {createPromptInsertionController}=await import('./prompt-insertion-controller.js');
+   const field=document.createElement('textarea'),form=document.createElement('form'),send=document.createElement('button');
+   send.type='submit';form.append(field,send);document.body.append(form);
+   let inputs=0,sends=0,reads=0,holdNext=false,release=null,unknownNext=false,hostileNext=false,errorCodeReads=0;
+   field.addEventListener('input',()=>inputs++);form.addEventListener('submit',e=>{e.preventDefault();sends++;});send.addEventListener('click',()=>sends++);
+   const runtime=async (type,fields)=>{
+    const r=await chrome.runtime.sendMessage({type,...fields});if(!r.ok)throw {code:r.error};return r.data;
+   };
+   const readTemplate=async selected=>{
+    reads++;const row=await runtime('PAIA_PROMPT_READ',selected);
+    if(unknownNext){unknownNext=false;throw Error('private body must not enter failure messages');}
+    if(hostileNext){hostileNext=false;const error={};Object.defineProperty(error,'code',{get(){errorCodeReads++;throw Error('private error getter');}});throw error;}
+    if(holdNext){holdNext=false;await new Promise(resolve=>{release=resolve;});}
+    return row;
+   };
+   const controller=createPromptInsertionController({readTemplate,session:createPromptInputSession(field)});
+   const select=row=>({id:row.id,expectedRevision:row.revision});
+   const refuses=async (operation,expected)=>{
+    let code=null,message=null;try{await operation();}catch(e){code=e.code;message=e.message;}
+    if(code!==expected||message!==expected)throw Error('finite refusal mismatch: '+code);return code;
+   };
+   const observations=[];
+   const first=await controller.prepare(select(one));const applied=await first.commit({mode:'append'});
+   observations.push({kind:'success',body:field.value,applied,inputs,sends,reads});
+   await refuses(()=>first.commit({mode:'append'}),'PROMPT_INSERT_STALE');
+   const stale=await controller.prepare(select(one));
+   const edited=await runtime('PAIA_PROMPT_EDIT',{id:one.id,change:{expectedRevision:one.revision,text:body+'\n另一个窗口的修改'}});
+   await refuses(()=>stale.commit({mode:'replace',replaceConfirmed:true}),'PROMPT_STALE');
+   observations.push({kind:'template-drift',body:field.value,inputs,sends});
+   const draft=await controller.prepare(select(edited));field.value='新的人工草稿，不得覆盖';
+   await refuses(()=>draft.commit({mode:'replace',replaceConfirmed:true}),'PROMPT_INSERT_STALE');
+   const missing=await controller.prepare(select(edited));
+   await runtime('PAIA_PROMPT_REMOVE',{id:edited.id,change:{expectedRevision:edited.revision}});
+   await refuses(()=>missing.commit({mode:'replace',replaceConfirmed:true}),'PROMPT_UNAVAILABLE');
+   observations.push({kind:'removed',body:field.value,inputs,sends});
+   const pending=await controller.prepare(select(two));holdNext=true;
+   const cancelling=pending.commit({mode:'replace',replaceConfirmed:true});
+   while(!release)await new Promise(resolve=>setTimeout(resolve,0));
+   const cancelled=pending.cancel();release();release=null;
+   await refuses(()=>cancelling,'PROMPT_INSERT_STALE');
+   observations.push({kind:'cancelled-read',body:field.value,cancelled,inputs,sends});
+   holdNext=true;const oldPrepare=controller.prepare(select(two));
+   while(!release)await new Promise(resolve=>setTimeout(resolve,0));
+   const current=await controller.prepare(select(two));release();release=null;
+   await refuses(()=>oldPrepare,'PROMPT_INSERT_STALE');
+   await current.commit({mode:'append'});
+   observations.push({kind:'superseded-read',body:field.value,inputs,sends});
+   const duplicate=await controller.prepare(select(two));holdNext=true;
+   const firstCommit=duplicate.commit({mode:'replace',replaceConfirmed:true});
+   while(!release)await new Promise(resolve=>setTimeout(resolve,0));
+   await refuses(()=>duplicate.commit({mode:'replace',replaceConfirmed:true}),'PROMPT_INSERT_STALE');
+   release();release=null;await refuses(()=>firstCommit,'PROMPT_INSERT_STALE');
+   if(field.value!=='新的人工草稿，不得覆盖'+'\n'+two.text||inputs!==2||sends!==0)throw Error('concurrent commit had an effect');
+   const unknown=await controller.prepare(select(two));unknownNext=true;
+   await refuses(()=>unknown.commit({mode:'replace',replaceConfirmed:true}),'PROMPT_INSERT_UNAVAILABLE');
+   const hostile=await controller.prepare(select(two));hostileNext=true;
+   await refuses(()=>hostile.commit({mode:'replace',replaceConfirmed:true}),'PROMPT_INSERT_UNAVAILABLE');
+   if(errorCodeReads!==0)throw Error('foreign error accessor was invoked');
+   const foreign=await controller.prepare(select(two));const beforeInvalid=reads;
+   await refuses(()=>foreign.commit({mode:'append',send:true}),'PROMPT_INSERT_INVALID');
+   if(reads!==beforeInvalid)throw Error('surplus command reached reader');
+   let getterReads=0;const accessor={id:two.id};Object.defineProperty(accessor,'expectedRevision',{enumerable:true,get(){getterReads++;return two.revision;}});
+   await refuses(()=>controller.prepare(accessor),'PROMPT_INSERT_INVALID');
+   observations.push({kind:'unknown-and-invalid',body:field.value,getterReads,inputs,sends});
+   const leaving=await controller.prepare(select(two));holdNext=true;
+   const disposal=leaving.commit({mode:'replace',replaceConfirmed:true});
+   while(!release)await new Promise(resolve=>setTimeout(resolve,0));
+   controller.dispose();release();
+   await refuses(()=>disposal,'PROMPT_INSERT_STALE');
+   observations.push({kind:'disposed',body:field.value,inputs,sends});
+   form.remove();return observations;
+  },{one,two,body});
+  assert.deepEqual(results[0],{kind:'success',body,applied:{mode:'append',characters:body.length},inputs:1,sends:0,reads:2});
+  assert.deepEqual(results[1],{kind:'template-drift',body,inputs:1,sends:0});
+  const draft='新的人工草稿，不得覆盖';
+  assert.deepEqual(results[2],{kind:'removed',body:draft,inputs:1,sends:0});
+  assert.deepEqual(results[3],{kind:'cancelled-read',body:draft,cancelled:true,inputs:1,sends:0});
+  const final=draft+'\n'+two.text;
+  assert.deepEqual(results[4],{kind:'superseded-read',body:final,inputs:2,sends:0});
+  assert.deepEqual(results[5],{kind:'unknown-and-invalid',body:final,getterReads:0,inputs:2,sends:0});
+  assert.deepEqual(results[6],{kind:'disposed',body:final,inputs:2,sends:0});
+  const templates=await rpc(p,'PAIA_PROMPT_PAGE');assert.equal(templates.total,1);assert.equal(templates.items[0].text,two.text);
+  assert.deepEqual((await h.state()).records,original.records);assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.deepEqual(await copied(p),[]);assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
