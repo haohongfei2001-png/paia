@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {DerivedSemanticIndex} from '../core/semantic-index.js';
+import {DerivedSemanticIndex} from '../experiments/semantic-index.mjs';
 import {materialIdentity} from '../core/manual-materials.js';
 import {retrievalCorpus} from './fixtures/cpv1-07-retrieval-corpus.mjs';
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {MemoryService} from '../core/memory/service.js';
-import {createMaterialSemanticIndex} from '../core/semantic-material-snapshot.js';
+import {createMaterialSemanticIndex} from '../experiments/semantic-material-snapshot.mjs';
 import {inputEdit} from './harness/thought-m1.mjs';
 
 const model={id:'synthetic-local-encoder',revision:'a'.repeat(40),dimension:2};

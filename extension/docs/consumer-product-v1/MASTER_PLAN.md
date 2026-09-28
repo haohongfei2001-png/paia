@@ -726,64 +726,41 @@ Exit:
 
 ---
 
-# VS-07 — Semantic retrieval and longitudinal Revisit
+# VS-07 — Algorithmic retrieval and longitudinal Revisit
 
 ## Outcome
 
-The user can find old ideas without remembering exact wording, inspect real evidence over time, and re-enter useful old material without feed mechanics.
+The user finds and filters earlier expressions through the VS-04 local algorithmic search path (lexical matching, bounded fuzzy query primitives and explicit filters), inspects original evidence over time, and re-enters a finite set of useful old material. PAIA Consumer Product v1 does not depend on a local embedding model.
 
 ## CPV1-07.0 — Retrieval task/evaluation freeze
 
-Define fixed lexical and semantic tasks before choosing production technology.
+Retain the fixed public synthetic corpus and measured reports as historical experimental evidence. They document lexical strengths and semantic-model limitations; they do not become a new model-selection queue or a v1 admission gate.
 
-Include:
-- Chinese paraphrase;
-- fuzzy recollection;
-- no shared keywords;
-- negation;
-- correction;
-- quotation versus belief;
-- no-answer;
-- date/source constraints.
+## CPV1-07.1 — Experimental model study archive
 
-## CPV1-07.1 — Semantic/hybrid bake-off
+The completed semantic retrieval studies and derived-index prototypes are `EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING`. Preserve their code, tests, fixed data and receipts outside the packaged runtime. Do not add embedding models, tune thresholds, rerun a model bake-off or treat these reports as production quality proof during v1 closure. Semantic retrieval is a future optional capability with its own later authorization and certification.
 
-Use reusable derived indexes. Compare candidate methods for quality/resource/cost. Do not promote independent lab results without production-environment compatibility.
+Semantic Lab exclusively owns `Input → Topic` classification research and its evaluation. PAIA consumes an explicitly approved Topic Router contract when one exists; this package does not duplicate that research or infer an `Input → Topic` classifier from the retrieval archive.
 
-## CPV1-07.2 — Production index/invalidation
+## CPV1-07.2 — Default algorithmic search authority
 
-Implement:
-- rebuildable semantic index;
-- incremental update;
-- deletion/exclusion/revision invalidation;
-- coverage/status;
-- lexical fallback.
+Continue the integrated VS-04 lexical search and filters as the v1 default; use only bounded, testable algorithmic fuzzy matching where the product path actually supports it. Keep current Source, Input, Thought, saved-AI, scope, exclusion, deletion and known/unknown-time authority. A model, vector index or external provider is not required for search, Context reuse or VS-08 read-only query.
 
-## CPV1-07.3 — Unified semantic search UX
+## CPV1-07.3 — Unified search UX
 
-Integrate into A6/C3/R3 without a new top-level "AI search" product.
+Keep the existing scoped, paged local search and filter UX. Do not surface an unadmitted semantic result or add a new top-level AI-search product.
 
 ## CPV1-07.4 — Longitudinal retrieval
 
-Implement R2:
-- real historical expressions;
-- reliable/unknown time;
-- compare evidence;
-- no automatic belief-change claim.
+Implement R2 with real historical expressions, reliable/unknown time, explicit evidence comparison and no automatic belief-change claim.
 
 ## CPV1-07.5 — Revisit refinement
 
-Implement R1:
-- finite, explainable set;
-- continue position;
-- new meaningful material;
-- optional older material;
-- exclusions;
-- no unread debt/infinite feed.
+Implement R1 as a finite, explainable set with continue position, new meaningful material, optional older material, exclusions and no unread debt/infinite feed.
 
-## CPV1-07.6 — Quality/performance acceptance
+## CPV1-07.6 — V1 closure
 
-Blind/fixed retrieval evaluation + long-library latency + user-level "I remember the idea, not the wording" tasks.
+Certify the actual local lexical search, supported fuzzy behavior and filters, historical comparison, finite Revisit, privacy/source authority and declared scale on a stable candidate and exact merged main. The archived semantic retrieval experiment is not a blocking evidence class. Any future semantic search must pass a separate quality, compatibility, resource and authorization boundary before runtime inclusion.
 
 ---
 

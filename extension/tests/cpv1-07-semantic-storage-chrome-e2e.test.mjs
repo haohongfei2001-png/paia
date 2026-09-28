@@ -12,7 +12,7 @@ async function attach(p,maintenanceTimeout=45000){
   const [{OrganizerStore},{MemoryService},snapshot,{ArchiveNavigationQuery}]=await Promise.all([
    import(chrome.runtime.getURL('core/organizer/store.js')),
    import(chrome.runtime.getURL('core/memory/service.js')),
-   import(chrome.runtime.getURL('core/semantic-material-snapshot.js')),
+   import(chrome.runtime.getURL('experiments/semantic-material-snapshot.mjs')),
    import(chrome.runtime.getURL('core/archive-navigation-query.js'))
   ]);
   const store=new OrganizerStore(chrome.storage.local,{indexedDB:globalThis.indexedDB});
@@ -78,7 +78,7 @@ const assertAuthorityExceptMaintenanceCounter=(before,after)=>{
  assert.ok(counter(after)>=counter(before));
 };
 
-test('VS07 native Chrome snapshot and index preserve every full page and current Source authority',
+test('VS07 experimental native Chrome snapshot and index preserve every full page and current Source authority',
  {timeout:180000},async()=>{
  const h=await FakeChatGPT.start(),p=h.archive;
  const texts=Array.from({length:213},(_,i)=>'NATIVE_INDEX_'+i+' 原话保留否定和引用：没有批准。\n'
@@ -187,7 +187,7 @@ test('VS07 native Chrome snapshot and index preserve every full page and current
  }finally{await h.close();}
 });
 
-test('VS07 native Chrome invalidates asynchronous encoding after real exclusion and permanent purge',
+test('VS07 experimental native Chrome invalidates asynchronous encoding after real exclusion and permanent purge',
  {timeout:120000},async()=>{
  const h=await FakeChatGPT.start(),p=h.archive;
  const texts=['NATIVE_RACE denied evidence','NATIVE_RACE purged evidence',
@@ -264,7 +264,7 @@ test('VS07 native Chrome invalidates asynchronous encoding after real exclusion 
  }finally{await h.close();}
 });
 
-test('VS07 hosted Chrome long library measures complete current-source index and hybrid lookup',
+test('VS07 experimental hosted Chrome long library measures complete current-source index and hybrid lookup',
  {timeout:480000},async()=>{
  const h=await FakeChatGPT.start(),p=h.archive;
  const count=1025;
@@ -348,7 +348,7 @@ test('VS07 hosted Chrome long library measures complete current-source index and
     ...measured.queries.map(x=>x.heapBytes)].filter(x=>x!==null),
    queryOutcomes:measured.queries.map(x=>({i:x.i,mode:x.mode,reason:x.reason,
     found:x.found,full:x.full})),
-   scope:'real Chrome IndexedDB and production derived-index path; synthetic local encoder'
+   scope:'real Chrome IndexedDB and experimental derived-index path; synthetic local encoder'
   }));
   assert.ok(measured.queries.every(x=>x.mode==='hybrid'&&x.usedSemantic&&x.found&&x.full),
    JSON.stringify(measured.queries));

@@ -10,11 +10,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-07
 
-current_slice_status: IN_PROGRESS — VS-06_ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING
+current_slice_status: SCOPE_CORRECTION_CANDIDATE — VS-06_ENGINEERING_COMPLETE / EXTERNAL_CERT_PENDING
 
-current_round: CPV1-07.0–07.1 evaluation + CPV1-07.2 derived index lifecycle + CPV1-07.4 historical comparison and CPV1-07.5 finite Revisit / VS-07 Batch A
+current_round: VS-07 scope correction / VS-04 algorithmic search + historical comparison + finite Revisit
 
-current_round_status: IN_PROGRESS / SEMANTIC_LAB_MEASURED_NOT_ADMITTED / INDEX_LIFECYCLE_TARGETED_PASS / STORE_SNAPSHOT_CANDIDATE / REVISIT_TARGETED_PASS / HISTORICAL_COMPARISON_TARGETED_PASS / CURRENT_SCOPE_REFRESH_CANDIDATE
+current_round_status: SCOPE_CORRECTION_CANDIDATE / EXPERIMENTAL_DEFAULT_OFF_NON_BLOCKING / LEXICAL_FUZZY_FILTER_DEFAULT / REVISIT_AND_HISTORICAL_TARGETED_PASS / FULL_CERT_PENDING
 
 current_writer: MANAGER / sole VS-07 Batch A branch feat/vs07-retrieval-evaluation
 
@@ -280,7 +280,7 @@ Owner/private/device gates B-01/B-02/B-03/B-04/B-05, real official export eviden
 | VS-04 Natural editing and fast lexical retrieval | ENGINEERING_COMPLETE / OWNER_GATE_DEFERRED | Direct editing, undo, search, filtering and reuse feel like one document product |
 | VS-05 Living Topics and AI Organize | ACTIVE — Batch A CPV1-05.0–05.3 | Cross-conversation Thought becomes a readable long-term topic with faithful AI organization |
 | VS-06 Complete AI Context reuse | PLANNED | Inputs/Topics/cross-Topic material become reviewable authorized Context without silent truncation |
-| VS-07 Semantic retrieval and longitudinal revisit | PLANNED | Users can find forgotten differently-worded ideas and compare real historical expression |
+| VS-07 Algorithmic retrieval and longitudinal Revisit | SCOPE_CORRECTION_CANDIDATE | VS-04 local search, historical comparison and finite Revisit; semantic retrieval archived as optional |
 | VS-08 Real read-only AI connector | PLANNED | A supported AI can actually query authorized PAIA material and revocation works |
 | VS-09 Prompt reuse phases 1–2 | PLANNED | Frequent prompts can be reused in PAIA and inserted into supported AI input without auto-send |
 | VS-10 Mobile MyWrite and voice | PLANNED | Phone users can quickly write/speak into the same PAIA system and recover interruptions |
@@ -1499,3 +1499,11 @@ PENDING. Full Certification is skipped on Draft. VS-07 remains
 IN_PROGRESS/NOT_CERTIFIED; actual model quality, independent upstream
 conversion parity, model resource proof and long-library acceptance are open.
 Semantic production stays disabled; no VS-08 promotion.
+
+## Owner scope correction — VS-07 v1 closure candidate (2026-09-28)
+
+The owner directed PAIA v1 search back to the VS-04 local lexical/fuzzy/filter direction; current lexical/filter behavior and the bounded fuzzy primitives must be certified only to their actual supported scope. Semantic retrieval is now `EXPERIMENTAL / DEFAULT_OFF / NON-BLOCKING`; existing fixed-corpus, model, resource, native-Chrome and derived-index evidence remains an archive, not a production search gate. The measured DistilUSE result did not justify admission. No further embedding model, cutoff or retrieval research is authorized for this slice. `Input → Topic` classification research belongs exclusively to Semantic Lab / Topic Router, not this PAIA retrieval branch.
+
+The sole product PR #88 retains its historical comparison and finite Revisit work and moves the unadmitted semantic index/store bridge out of packaged `core/` into `experiments/`. The public retrieval lab workflow is retired from automatic PR execution; all underlying experimental scripts, fixed data and owning tests remain. The production Universal Search and VS-04 search/filter routes stay model-free; this checkpoint does not invent fuzzy matches that the current product has not proved. This correction introduces no permission, schema, provider, local model load, Context release or user data action.
+
+Exact prior head `17f109cddb0c944fcf17bdcf62f92dad4e92e308` Candidate `36378886166` SUCCESS, including 3/3 hosted Chrome index journeys on 1025 Sources, 17 long bodies and 11 complete hybrid queries; sampled median 8195 ms/p95 8477 ms and bounded sampled JS heap 28–38 MB are *experimental* host observations, not production admission or a process peak-memory certificate. Semantic Lab `36378886112` SUCCESS only on its classified existing path. Full Certification has not run on this scope-correction head. Existing Source/history/Revisit targeted evidence remains; candidate full certification, merge and exact-main receipt remain PENDING. VS-07 is not yet COMPLETE. Independent owner/device/live gates remain deferred on their existing paths.

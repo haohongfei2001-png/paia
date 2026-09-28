@@ -1,12 +1,12 @@
 // Complete local storage snapshot for a rebuildable derived index.
-// No model admission, loader, network, authority write or A6/C3/R3 activation.
-import {materialRead,own} from './manual-materials.js';
-import {inputProjection} from './thought-evidence.js';
-import {prefix} from './thought-model.js';
-import {AI_FIELDS,isStoredAIPresentation} from './organizer/ai-contract.js';
-import {historicalSourceTime,historicalDateBound} from './historical-time.js';
-import {hashText} from './dedupe.js';
-import {DerivedSemanticIndex} from './semantic-index.js';
+// Archived experiment, excluded from release. No model admission, loader, network, authority write or A6/C3/R3 activation.
+import {materialRead,own} from '../core/manual-materials.js';
+import {inputProjection} from '../core/thought-evidence.js';
+import {prefix} from '../core/thought-model.js';
+import {AI_FIELDS,isStoredAIPresentation} from '../core/organizer/ai-contract.js';
+import {historicalSourceTime,historicalDateBound} from '../core/historical-time.js';
+import {hashText} from '../core/dedupe.js';
+import {DerivedSemanticIndex} from './semantic-index.mjs';
 
 const fail=()=>{throw Error('semantic_snapshot_unavailable');};
 const id=v=>typeof v==='string'&&v.length>0&&v.length<=200;

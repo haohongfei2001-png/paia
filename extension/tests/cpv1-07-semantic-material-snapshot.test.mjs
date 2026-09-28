@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {semanticMaterialSnapshot,createMaterialSemanticIndex} from '../core/semantic-material-snapshot.js';
+import {semanticMaterialSnapshot,createMaterialSemanticIndex} from '../experiments/semantic-material-snapshot.mjs';
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {MemoryService} from '../core/memory/service.js';
 import {inputEdit,derived} from './harness/thought-m1.mjs';

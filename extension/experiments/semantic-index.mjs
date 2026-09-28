@@ -1,10 +1,10 @@
 // Rebuildable, in-memory derived vectors. No body store, model loader or authority.
 // The owner supplies a complete CURRENT eligible snapshot and a local encoder.
-// Production callers remain disabled until model/Chrome/quality admission passes.
-import {hashText} from './dedupe.js';
-import {validMaterialRef,materialIdentity} from './manual-materials.js';
-import {historicalInstant} from './historical-time.js';
-import {prepareSearchQuery,rankLexicalCandidate} from './search-service.js';
+// Archived experiment only; excluded from the packaged extension runtime.
+import {hashText} from '../core/dedupe.js';
+import {validMaterialRef,materialIdentity} from '../core/manual-materials.js';
+import {historicalInstant} from '../core/historical-time.js';
+import {prepareSearchQuery,rankLexicalCandidate} from '../core/search-service.js';
 
 const fail=()=>{throw Error('semantic_index_invalid');};
 const exact=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)
