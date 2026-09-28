@@ -10,11 +10,11 @@ activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
 current_slice: VS-08 / VS-09
 
-current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_CANDIDATE
+current_slice_status: IN_PROGRESS — VS08_MINIMAL_CONTEXT_CANDIDATE_PASS / VS09_ARCHIVE_BACKEND_PASS / VS09_TEMPLATE_PERSISTENCE_PASS / VS09_TRUSTED_PROMPT_COMMANDS_ENGINEERING_PASS / VS09_P1_UI_CANDIDATE
 
-current_round: CPV1-09.1 — trusted Prompt commands and recovery-preserving Source purge
+current_round: CPV1-09.1 — human Prompt workspace and protected manual copy
 
-current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_STALE_SNAPSHOT_FIX_CANDIDATE / P1_UI_NOT_IMPLEMENTED
+current_round_status: VERIFYING / P1_TRUSTED_COMMANDS_ENGINEERING_PASS / P1_UI_CANDIDATE
 
 current_writer: MANAGER / sole VS-08+VS-09 branch feat/vs08-readonly-connector
 
@@ -27,6 +27,16 @@ authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
 prior_temporary_authorization_rounds_completed: 4
 
 prior_temporary_authorization_rounds_remaining_at_supersession: 5
+
+## CPV1-09.1 P1 human Prompt workspace candidate — 2026-09-28
+
+Exact parent 0d97f032e19e01502bd86504ab0e4563ee8fb0b5, tree82a614e5f37e6e2ba7ee64250c50dfb03a9b4d6d. Candidate36451221758 selected gate SUCCESS: actual unit1090261851261262PASS/0FAIL/0SKIPPED, including all18 persistence/domain cases; contracts109026185720102adapter PASS and60privacy/security PASS, including both actual Chrome recovery preservation/storage-failure regressions; release109026185589 and aggregate109027799872 PASS. Browser/scale/Mac diagnostics and full Draft Certification skipped. Immutable receipts/CPV1-09.1-PROMPT-COMMANDS-ENGINEERING-PASS.md preserves exact backend evidence and earlier failed snapshot admissions.
+
+Advance the same P1 product slice: an Archive-header Prompts dialog, existing lexical lookup and25-row pages, full eligible human candidate bodies/frequency, explicit saved/fixed templates, edit/pin/remove, exhaustive paged Source associations and current Input navigation. Candidate text stays exact until saved as a template. Opening flushes existing Reader/Thought editors. Unsaved close requires explicit discard and dirty unload warns. Current template revision CAS/read refuses stale/removed copy; dirty text must be saved first. Manual copy uses the existing write-only clipboard helper and full-text manual-selection fallback. No clipboard read, AI reply, generated template, provider input insertion/send, permission/transport or Source rewrite.
+
+Two complete real hosted Chrome/IndexedDB/worker journeys use the unchanged offline harness: long Unicode/final-negation/XSS-safe candidate/full copy, fixed short template, edit/pin/trace, worker restart/reload;26 complete templates and25/1 paging, lexical search, dirty-close refusal/discard, external-revision stale-copy refusal with zero clipboard effect, template-only removal and Source preservation. All prior tests/fixtures remain. Add only the owning VS09 marker/full test file to the existing targeted browser lane, which the existing candidate aggregate requires to pass. Complete unit/privacy/adapter/release selections and timeouts remain unchanged; no same-head rerun or deployment.
+
+Static grammar PASS only; new-head unit/contracts/privacy/release/full owning browser CI PENDING. P1 UI CANDIDATE is not P1/VS09/product certification. Direct Source-record detail navigation, remaining adversarial/accessibility evidence and P2 protected insertion remain engineering-open. B02 derivative policy is dependent-deferred. Context external/Passport/live/security gates DEFAULT_OFF/deferred. VS07 EXPERIMENTAL/DEFAULT_OFF/NON-BLOCKING; VS04 lexical/fuzzy/filter default; Semantic Lab alone Input→Topic.
 
 ## CPV1-09.1 worker snapshot admission repair — 2026-09-28
 
