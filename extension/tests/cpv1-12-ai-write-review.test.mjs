@@ -156,3 +156,29 @@ test('CPV1-12 archive prompt injection remains review text and never expands act
   assert.equal((await f.s.topic(f.topic.id)).name, '原主题');
   assert.equal(f.requests.length, 0);
 });
+
+test('CPV1-12 filter change revokes Input evidence before reviewed commit', async () => {
+  const f = await completeFixture({texts: ['继续']});
+  const block = (await f.s.snapshot()).library.blocks[0];
+  const state = await f.s.repository.transaction(false,
+    t => t.get('inputStates', block.id), ['inputStates']);
+  const topic = await f.s.createTopic({name: '过滤测试主题', operationId: op()});
+  const bridge = new AIWriteReviewService({store: f.s,
+    authorizeReview: async () => true});
+  const proposal = {
+    version: 1, proposalId: op(), action: 'topic.rename',
+    target: {kind: 'topic', id: topic.id, baseRevision: topic.revision},
+    scope: 'topic.name', value: {name: '不得提交'},
+    rationale: '此证据之后被用户过滤。', evidence: [{
+      kind: 'input', id: block.id, revision: state.contentRevision,
+    }],
+  };
+  const review = await bridge.stage(proposal);
+  await f.s.evaluateFilters();
+  assert.deepEqual((await f.s.page({documentId: block.documentId})).pageItemIds, []);
+  await assert.rejects(bridge.commit(approval(review)), code('AI_WRITE_STALE'));
+  await assert.rejects(bridge.stage({...proposal, proposalId: op()}),
+    code('AI_WRITE_STALE'));
+  assert.equal((await f.s.topic(topic.id)).name, '过滤测试主题');
+  assert.equal(f.requests.length, 0);
+});
