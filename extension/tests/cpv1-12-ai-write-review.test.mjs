@@ -104,6 +104,31 @@ test('CPV1-12 topic placement binds entry, destination and exact revisions', asy
   assert.equal(f.requests.length, 0);
 });
 
+test('CPV1-12 native placement CAS refuses topic rename racing final commit', async () => {
+  const f = await fixture(), bridge = new AIWriteReviewService({store: f.s,
+    authorizeReview: async () => true});
+  const proposal = {
+    version: 1, proposalId: op(), action: 'entry.place', scope: 'entry.topic',
+    target: {kind: 'entry', id: f.entry.id, baseRevision: f.entry.revision},
+    destination: {topicId: f.other.id, baseRevision: f.other.revision,
+      organizationRevision: f.other.organizationRevision,
+      placementRevision: null},
+    value: {place: true}, rationale: '先展示归置，再检查并发修改。',
+    evidence: f.evidence,
+  };
+  const review = await bridge.stage(proposal);
+  const nativePlace = f.s.placeEntry.bind(f.s);
+  f.s.placeEntry = async request => {
+    await f.s.editTopic({id: f.other.id, expectedRevision: f.other.revision,
+      changes: {name: '人工同时改名'}, operationId: op()});
+    return nativePlace(request);
+  };
+  await assert.rejects(bridge.commit(approval(review)), code('AI_WRITE_STALE'));
+  assert.equal((await f.s.topic(f.other.id)).name, '人工同时改名');
+  assert.equal((await f.s.entry(f.entry.id)).topics.includes(f.other.id), false);
+  assert.equal(f.requests.length, 0);
+});
+
 test('CPV1-12 stale evidence and destination reject placement without partial write', async () => {
   const f = await fixture(), bridge = new AIWriteReviewService({store: f.s,
     authorizeReview: async () => true});
