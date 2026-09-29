@@ -52,9 +52,9 @@
     "role": "Exact architecture crop, no text; not claimed as a high-resolution original photograph."
   },
   "assets/website/brand/paia-icon-v1.png": {
-    "source": "Owner-supplied PAIA icon artwork (2026-09-27)",
-    "sha256": "fd957bd64146a2364026ce9dee266d5577bb7ae30c006cc7e0b5ddf09479f24c",
-    "role": "Canonical website favicon and compact PAIA brand mark. Optimized derivative of the owner-supplied square icon."
+    "source": "Owner-selected PAIA small-icon variant: black sketch with low-saturation faded-red mailbox (2026-09-29)",
+    "sha256": "3c1ba79d902d14ce5216850583c233f09e632a3f0524d93335cc0e85be6dc3e4",
+    "role": "Canonical small website icon only (favicon, header/footer mark and compact PAIA mark). Large PAIA logo artwork remains unchanged."
   },
   "assets/website/brand/paia-logo-v1.webp": {
     "source": "Owner-supplied PAIA primary logo artwork (2026-09-27)",
