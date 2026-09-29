@@ -44,7 +44,11 @@ export function createMyWriteVoiceReview({capture,transcribe}={}){
    return Object.freeze({generation:token,text:result});
   }catch(error){
    if(!current(token))throw failure('MYWRITE_VOICE_CANCELLED');
+   // A rejected stop or transcription may leave the capture adapter live.
+   // Own and cancel that session before exposing a finite failure state.
    recording=null;transcript=null;phase='failed';
+   await cancelRecording(session);
+   if(!current(token))throw failure('MYWRITE_VOICE_CANCELLED');
    if(error instanceof MyWriteVoiceError)throw error;
    throw failure('MYWRITE_VOICE_TRANSCRIPTION_FAILED');
   }
