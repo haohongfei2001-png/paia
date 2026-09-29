@@ -65,6 +65,7 @@ export class AIWriteReviewService {
     if (entry.lifecycle !== 'active' || entry.staleReasons?.length
         || entry.revision !== proposal.target.baseRevision
         || !live(topic) || topic.id !== proposal.destination.topicId
+        || topic.revision !== proposal.destination.baseRevision
         || topic.organizationRevision !== proposal.destination.organizationRevision) fail('AI_WRITE_STALE');
     const placement = await store.run(() => store.repository.transaction(false,
       t => t.get('placements', JSON.stringify([
