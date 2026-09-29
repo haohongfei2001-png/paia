@@ -3,6 +3,7 @@
 export const AI_WRITE_PROPOSAL_VERSION = 1;
 export const AI_WRITE_SCOPES = Object.freeze({
   'topic.rename': 'topic.name',
+  'section.create': 'topic.sections',
   'entry.place': 'entry.topic',
 });
 
@@ -29,6 +30,14 @@ function target(value, kind) {
   record(value, ['kind', 'id', 'baseRevision']);
   if (value.kind !== kind || !text(value.id, 200) || !revision(value.baseRevision)) invalid();
   return {kind, id: value.id, baseRevision: value.baseRevision};
+}
+function sectionTarget(value) {
+  record(value, ['kind', 'id', 'baseRevision', 'organizationRevision']);
+  if (value.kind !== 'topic' || !text(value.id, 200)
+      || !revision(value.baseRevision)
+      || !revision(value.organizationRevision)) invalid();
+  return {kind: 'topic', id: value.id, baseRevision: value.baseRevision,
+    organizationRevision: value.organizationRevision};
 }
 function evidence(value) {
   if (!Array.isArray(value) || value.length < 1 || value.length > 12) invalid();
@@ -62,6 +71,13 @@ export function validateAIWriteProposal(input) {
     if (!text(input.value.name, 300)) invalid();
     return {...common, target: target(input.target, 'topic'),
       value: {name: input.value.name}};
+  }
+  if (input.action === 'section.create') {
+    if (Object.hasOwn(input, 'destination')) invalid();
+    record(input.value, ['title']);
+    if (!text(input.value.title, 300)) invalid();
+    return {...common, target: sectionTarget(input.target),
+      value: {title: input.value.title}};
   }
   record(input.value, ['place']);
   if (input.value.place !== true) invalid();
