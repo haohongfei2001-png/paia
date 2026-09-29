@@ -1,5 +1,13 @@
 # Execution Protocol — PAIA Consumer Product v1
 
+## Controlling owner stop — 2026-09-30
+
+State: `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW`. Consumer Product v1 whole-package continuous authorization has ended. No new runtime/product features, VS-08–VS-12 work, CPV1 round, product writer, or automatic advancement is authorized. Generic "continue", heartbeat automation, a historical `READY` label, a passing candidate gate, or an open deferred gate does not restart this package. This section overrides all historical continuation, slice sequencing, `WHOLE_PACKAGE_PREAUTHORIZED`, and dependency-safe-engineering instructions below and in the Master Plan, Product Intent Contract, Status and Deferred Final Gates.
+
+[Draft PR #99](https://github.com/haohongfei2001-png/paia/pull/99) at audited head `991f78f4c54b79d67428bf3209fb4eaa18f1cc9b` remains open, unmerged and preserved as an inactive R&D/engineering snapshot. Its product writer is released. Do not alter its branch/history/tests/receipts for cleanup, claim it as certified production, or merge it to main. This docs-only closure changes governance, not runtime or already-shipped main behavior.
+
+Future product ideas must move through `IDEA / FUTURE_DIRECTION` → `DESIGN_PENDING` → explicit owner confirmation of product behavior and user flow → `OWNER_APPROVED` → `READY` → engineering. Design language such as "new idea", "could consider", "future", or "still thinking" never grants engineering authority. Any future whole-package preauthorization can cover only an explicitly owner-approved production scope; it cannot absorb future design. A new owner-approved Product Foundation / Architecture Review and roadmap are required before any PAIA product development resumes. Maintain privacy, data safety, one active writer, unchanged tests and exact evidence gates during this pause.
+
 ## 1. Manager model
 
 This package is designed for a high-reasoning ChatGPT manager operating against GitHub remote main.
@@ -19,14 +27,9 @@ The product owner is not the manual project manager.
 
 ## 2. Authorization modes
 
-Default after package activation:
+The historical automatic authorization rules below are suspended by the controlling owner stop. Current authorization mode is `NONE / PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW`; no slice or round is `READY` for automatic execution. After a newly approved foundation and roadmap, the owner must explicitly define the scope and authorization mode before engineering resumes.
 
-- "继续 PAIA" when no slice is active authorizes the one slice marked READY as WHOLE_SLICE_PREAUTHORIZED.
-- The manager may execute all ordinary rounds in that slice without asking the owner after each round.
-- "继续" during an active slice resumes that same slice.
-- A new slice is not automatically started after the current slice closes unless the owner has explicitly granted whole-package continuous authorization.
-
-The owner can explicitly grant WHOLE_PACKAGE_PREAUTHORIZED later. Even then, owner gates below still stop execution.
+Historical rules (inactive): the former "继续 PAIA" whole-slice and `WHOLE_PACKAGE_PREAUTHORIZED` modes applied only before the 2026-09-30 stop and must not be inferred from archived status/plan text.
 
 ## 3. True owner gates
 
