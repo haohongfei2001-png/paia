@@ -111,7 +111,7 @@ test('CPV1-12 native placement CAS refuses topic rename racing final commit', as
     version: 1, proposalId: op(), action: 'entry.place', scope: 'entry.topic',
     target: {kind: 'entry', id: f.entry.id, baseRevision: f.entry.revision},
     destination: {topicId: f.other.id, baseRevision: f.other.revision,
-      organizationRevision: f.other.organizationRevision,
+      organizationRevision: f.other.revision,
       placementRevision: null},
     value: {place: true}, rationale: '先展示归置，再检查并发修改。',
     evidence: f.evidence,
