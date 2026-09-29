@@ -17,3 +17,7 @@ This is a pure review kernel, not a phone client, voice UI, microphone permissio
 ## Detached review surface (subsequent synthetic slice)
 
 A DOM review surface may be instantiated only by an explicit owner that injects the capture/transcription flow. Its default workspace configuration has no voice control or capture authority. Start and stop are trusted user actions. The full transcript is shown for correction. Explicit acceptance appends the exact reviewed text into the unsaved local MyWrite composer; a separate explicit save remains required. If the owner cannot accept the complete text, the review remains visible for retry. Switching drafts is blocked while recording or unapplied review exists. This surface is local/synthetic engineering only; it does not resolve mobile architecture, real-device microphone, local transcription quality, or DFG-CPV1-007.
+
+## External lifecycle interruption hook
+
+An owning client may forward a finite `background`, `lock`, `call`, `offline`, or `microphone_denied` signal to the detached workspace. Active capture/transcription is cancelled with a generation fence; no background listening or automatic transcription resumes. A complete transcript already in review remains visible for explicit correction and acceptance. The default workspace has no voice authority. This synthetic hook does not certify actual iPhone/iPad lock, call, app kill, audio session, or microphone-permission behavior; DFG-CPV1-007 remains open.
