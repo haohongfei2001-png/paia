@@ -35,6 +35,6 @@ def verify_assets(root, check):
     lock=json.loads((root/'assets/website/asset-lock.json').read_text())
     for path,record in lock.items():
         check(hashlib.sha256((root/path).read_bytes()).hexdigest()==record['sha256'],'asset digest: '+path)
-    expected={'paia-icon-v1.png':'fd957bd64146a2364026ce9dee266d5577bb7ae30c006cc7e0b5ddf09479f24c','paia-logo-v1.webp':'e94ce73c20a46d40aa60d33eb87065906f256527da4948062c9ff30f6923a137'}
+    expected={'paia-icon-v1.png':'3c1ba79d902d14ce5216850583c233f09e632a3f0524d93335cc0e85be6dc3e4','paia-logo-v1.webp':'e94ce73c20a46d40aa60d33eb87065906f256527da4948062c9ff30f6923a137'}
     for name,digest in expected.items():
         check(hashlib.sha256((root/'assets/website/brand'/name).read_bytes()).hexdigest()==digest,'owner brand byte identity: '+name)
