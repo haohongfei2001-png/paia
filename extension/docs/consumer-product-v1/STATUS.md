@@ -1,5 +1,9 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## CPV1-12 stale evidence and destination race gate — 2026-09-29
+
+Sole product Draft #99 exact code head `91021e5c84ead37358d29a53dfd7c2fec925626d` passed [Candidate Gate 36596198532](https://github.com/haohongfei2001-png/paia/actions/runs/36596198532): 1330 unit pass including nine owning CPV1-12 cases, 17 affected hosted Chrome pass, contracts/privacy/release and aggregate success. Immutable [follow-up receipt](receipts/CPV1-12-STALE-FILTER-RACE-91021e5c-CI-PASS.md) binds the exact tested SHA and skipped lanes. This rejects newly filtered Input evidence and closes the destination Topic rename race inside native placement CAS. Later documentation commits are not retroactively certified. CPV1-12 remains `ENGINEERING_CANDIDATE / DEFAULT_OFF / NOT_ACTIVATED / NOT_CERTIFIED`; trusted UI, external provider/security/live/device acceptance and B-04/CPV1-12.3 remain open or deferred on their dependency paths. Continue dependency-safe engineering within sole writer; no AI direct storage, unreviewed commit, auto-send, permanent delete or new permission is authorized.
+
 ## CPV1-12 detached typed proposal and review candidate — 2026-09-29
 
 Owner authorization permits CPV1-12.1 typed changesets, CPV1-12.2 reviewed commit and dependency-safe CPV1-12.4 adversarial tests within the Master Plan. Sole product Draft #99 exact code head `aa00fcc8d2239807262ff81111bb37deaadff516` passed [Candidate Gate 36594021139](https://github.com/haohongfei2001-png/paia/actions/runs/36594021139): 1328 unit pass including seven new review cases, 17 affected hosted Chrome pass, privacy/contracts and release guard pass, aggregate success. Immutable [candidate receipt](receipts/CPV1-12-TYPED-REVIEW-CANDIDATE-aa00fcc8.md) binds the SHA, jobs and limits. The later documentation commit does not retroactively change that tested head.
