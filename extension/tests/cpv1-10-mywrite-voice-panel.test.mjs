@@ -115,3 +115,27 @@ test('CPV1-10.3 complete draft body is never clipped when reviewed voice exceeds
  assert.equal(review.value,whole);assert.equal(named(root,'开始录音').disabled,true);
  assert.equal(workspace.canReplace(),false);workspace.dispose();
 });
+
+
+test('CPV1-10.4 voice started during a pending draft switch keeps the original editor and complete review owner',async()=>{
+ let resolveNext;
+ const waitNext=new Promise(resolve=>{resolveNext=resolve;});
+ const doc={...document,defaultView:{crypto:{randomUUID:()=> 'next'}}};
+ const store={read:async id=>id==='draft:next'?waitNext:null,
+  save:async()=>{throw new Error('unexpected save');},review:async()=>{throw new Error('unexpected review');},
+  list:async()=>({items:[],after:null})};
+ const session={async stop(){return null;},async cancel(){}};
+ const flow=createMyWriteVoiceReview({capture:{async start(){return session;}},transcribe:async()=>whole});
+ const workspace=createMyWriteWorkspace({document:doc,store,draftId:'draft:first',voiceFlow:flow});
+ await workspace.ready;
+ const original=workspace.element.children.find(x=>x.className==='mywrite-workspace-editor').children[0];
+ named(workspace.element,'新建本地草稿').click();await settle();
+ named(workspace.element,'开始录音').click();await settle();
+ assert.equal(flow.state().phase,'recording');
+ resolveNext(null);await settle();
+ const host=workspace.element.children.find(x=>x.className==='mywrite-workspace-editor');
+ assert.equal(host.children[0],original);
+ assert.equal(workspace.canReplace(),false);
+ named(workspace.element,'取消录音或审阅').click();await settle();
+ assert.equal(workspace.canReplace(),true);workspace.dispose();
+});
