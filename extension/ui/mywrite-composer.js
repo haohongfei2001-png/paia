@@ -1,3 +1,4 @@
+import {MAX_MESSAGE_LENGTH} from '../core/constants.js';
 import {MyWriteDraftError} from '../core/mywrite-draft.js';
 
 // Detached UI over the shared local journal. A future entrypoint must admit
@@ -154,6 +155,12 @@ export function createMyWriteComposer({document,store,draftId,topics=[],expected
  })();
  return Object.freeze({element,ready,canReplace(){
   return !closed&&loaded&&!pending&&!composition&&!dirty&&!retry&&!blocked;
+ },appendReviewedVoice(text){
+  if(closed||!loaded||pending||composition||blocked||typeof text!=='string'||!text)return false;
+  const joined=body.value?body.value+'\n'+text:text;
+  if(joined.length>MAX_MESSAGE_LENGTH)return false;
+  generation++;body.value=joined;dirty=true;closePreview();
+  render('语音全文已加入草稿；请显式保存。');body.focus();return true;
  },getDraftReference(){
   return closed||!ack?null:Object.freeze({id:ack.id,revision:ack.revision});
  },dispose(){
