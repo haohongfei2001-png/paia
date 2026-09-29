@@ -87,7 +87,8 @@ test('CPV1-12 topic placement binds entry, destination and exact revisions', asy
   const proposal = {
     version: 1, proposalId: op(), action: 'entry.place', scope: 'entry.topic',
     target: {kind: 'entry', id: f.entry.id, baseRevision: f.entry.revision},
-    destination: {topicId: f.other.id, organizationRevision: f.other.revision,
+    destination: {topicId: f.other.id, baseRevision: f.other.revision,
+      organizationRevision: f.other.revision,
       placementRevision: null},
     value: {place: true}, rationale: '用户原话支持此归置；需要人工确认。',
     evidence: f.evidence,
@@ -109,7 +110,8 @@ test('CPV1-12 stale evidence and destination reject placement without partial wr
   const proposal = {
     version: 1, proposalId: op(), action: 'entry.place', scope: 'entry.topic',
     target: {kind: 'entry', id: f.entry.id, baseRevision: f.entry.revision},
-    destination: {topicId: f.other.id, organizationRevision: f.other.revision,
+    destination: {topicId: f.other.id, baseRevision: f.other.revision,
+      organizationRevision: f.other.revision,
       placementRevision: null},
     value: {place: true}, rationale: '待审归置', evidence: f.evidence,
   };
@@ -120,6 +122,7 @@ test('CPV1-12 stale evidence and destination reject placement without partial wr
   assert.equal((await f.s.entry(f.entry.id)).topics.includes(f.other.id), false);
   const newProposal = {...proposal, proposalId: op(),
     destination: {...proposal.destination,
+      baseRevision: (await f.s.topic(f.other.id)).revision,
       organizationRevision: (await f.s.topic(f.other.id)).organizationRevision}};
   const second = await bridge.stage(newProposal);
   await f.s.editEntry({id: f.entry.id, expectedRevision: f.entry.revision,
