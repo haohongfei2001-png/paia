@@ -62,3 +62,27 @@ export function planMyWriteContinuity({local,remote}={}){
   requiresHumanReview:true,localHash:local.payloadHash,remoteHash:remote.payloadHash
  });
 }
+
+
+// Deterministic bounded in-memory relay for synthetic two-device matrices.
+// This is not a network transport or persistent Sync authority.
+export class LocalMyWriteRelay{
+ #log=[];
+ publish(operation){
+  const value=validateMyWriteContinuityOperation(operation);
+  const prior=this.#log.find(item=>item.writeId===value.writeId);
+  if(prior){
+   if(!same(prior,value))fail('MYWRITE_CONTINUITY_WRITE_COLLISION');
+   return Object.freeze({status:'duplicate',size:this.#log.length});
+  }
+  if(this.#log.length>=128)fail('MYWRITE_CONTINUITY_RELAY_FULL');
+  this.#log.push(value);
+  return Object.freeze({status:'stored',size:this.#log.length});
+ }
+ inbox(deviceId){
+  if(!OPAQUE.test(deviceId))fail('MYWRITE_CONTINUITY_INVALID');
+  return Object.freeze(this.#log.filter(item=>item.deviceId!==deviceId)
+   .map(item=>Object.freeze({...item})));
+ }
+ get size(){return this.#log.length;}
+}
