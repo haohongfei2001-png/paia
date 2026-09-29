@@ -126,6 +126,7 @@ export class AIWriteReviewService {
             entryId: p.target.id, topicId: p.destination.topicId,
             expectedEntryRevision: p.target.baseRevision,
             expectedTopicRevision: p.destination.organizationRevision,
+            expectedTopicMetadataRevision: p.destination.baseRevision,
             ...(p.destination.placementRevision === null ? {}
               : {expectedPlacementRevision: p.destination.placementRevision}),
             operationId,
