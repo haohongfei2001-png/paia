@@ -95,17 +95,18 @@ function setupSettingsShell(){
 
 async function refreshArchiveActions(){
  const recent=$('archive-root-recent'),revisit=$('revisit-open');if(!recent||!revisit)return;
- const visible=isArchiveHome();recent.hidden=!visible;if(!visible)return;
- const token=++archiveActionToken;
+ // The control is actionable only after a current target has been read.
+ const token=++archiveActionToken,visible=isArchiveHome();
+ recentTarget=null;recent.hidden=true;recent.disabled=true;if(!visible)return;
  try{
   const [page,status]=await Promise.all([request('GET_PAGE',{page:{view:'library',limit:1}}),request('PAIA_REVISIT_STATUS')]);
   if(token!==archiveActionToken||!isArchiveHome())return;
-  recentTarget=page.recentCapturedDocument||null;recent.hidden=!recentTarget;
+  recentTarget=page.recentCapturedDocument||null;recent.hidden=!recentTarget;recent.disabled=!recentTarget;
   if(recentTarget)recent.textContent=copy('最近收录 · ','Recently saved · ')+(recentTarget.userTitle||recentTarget.originalConversationTitle||copy('最近的对话','Recent conversation'));
   const newContent=!!(status.newInputs?.count||status.topicUpdates?.length);
   revisit.dataset.returnState=newContent?'new':'quiet';
   revisit.setAttribute('aria-label',copy('打开回来看看','Open Revisit')+(newContent?copy(' · 有新内容',' · New local changes'):''));
- }catch{if(token===archiveActionToken){recent.hidden=true;revisit.dataset.returnState='unavailable';}}
+ }catch{if(token===archiveActionToken){recentTarget=null;recent.hidden=true;recent.disabled=true;revisit.dataset.returnState='unavailable';}}
 }
 function installArchiveActions(){
  const recent=$('archive-root-recent'),revisit=$('revisit-open');if(!recent)return;
@@ -115,7 +116,7 @@ function installArchiveActions(){
  for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(()=>{applyLabels();void refreshArchiveActions();}).observe(nav,{attributes:true,attributeFilter:['aria-current']});
  $('search')?.addEventListener('input',()=>void refreshArchiveActions());
  $('revisit-dialog')?.addEventListener('close',()=>void refreshArchiveActions());
- chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type)){recentTarget=null;void loadPreferences();void refreshArchiveActions();}});
+ chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type)){recentTarget=null;recent.hidden=true;recent.disabled=true;void loadPreferences();void refreshArchiveActions();}});
  document.addEventListener('paia:reader-policy',()=>void refreshArchiveActions());
  const media=globalThis.matchMedia?.('(prefers-color-scheme: dark)');media?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});
  void refreshArchiveActions();

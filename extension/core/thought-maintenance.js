@@ -1,3 +1,4 @@
+import {beforePromptSourcePurge} from './prompt-template-data.js';
 import {hashText} from './dedupe.js';
 import {fail,prefix,refreshEntryIndex,keyedHash,markHuman} from './thought-model.js';
 import {nextSequence} from './thought-journal.js';
@@ -9,6 +10,7 @@ export async function enqueueInvalidation(store,t,inputId,reason,contentRevision
  await t.put('invalidations',{id,eventSchema:2,inputId,reason,contentRevision,sequence,at:store.clock(),stateKey:0,state:'pending',cursor:null,dependencyAck:false,organizerAck:false,...(context.operationId?{operationId:context.operationId}:{}),...(context.revisionReason?{revisionReason:context.revisionReason}:{})});
 }
 export async function beforeSourcePurge(store,t,records,blocks) {
+ await beforePromptSourcePurge(t,records.map(record=>record.id));
  const sequence=await nextSequence(t,'thought-epoch'),sourceRecordIds=records.map(r=>r.id),id=store.uuid();
  // The tombstone is committed by the frozen source transaction. This metadata-only
  // job/fence shares that transaction; no Thought fan-out or raw payload is copied.

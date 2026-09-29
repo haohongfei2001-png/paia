@@ -112,8 +112,29 @@ export class IndexedArchiveStore {
   const r=pre.value,key=/^[a-f0-9]{64}$/.test(r.sourceKey||'')?r.sourceKey:(r.chatId&&r.sourceMessageId?await identifySource(r.chatId,r.sourceMessageId):null);if(!key)error('INVALID_REQUEST');
   return this.repository.transaction(false,async t=>{const ids=new Set((await t.all('recordIndex','bySource',key)).map(row=>row.id));if(r.chatId&&r.sourceMessageId)for(const row of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))if(!/^[a-f0-9]{64}$/.test(row.sourceKey||''))ids.add(row.id);ids.add(id);return [...ids];});
  }
- purge(id,permanent=false){return this.run(async()=>{
+ purge(id,permanent=false,beforeEffects=null){return this.run(async()=>{
+  if(beforeEffects!==null&&typeof beforeEffects!=='function')error('INVALID_REQUEST');
   const pre=await this.repository.transaction(false,t=>t.get('records',id));if(!pre||!permanent&&!pre.value.deletedAt)error('INVALID_REQUEST');const r=pre.value,key=/^[a-f0-9]{64}$/.test(r.sourceKey||'')?r.sourceKey:(r.chatId&&r.sourceMessageId?await identifySource(r.chatId,r.sourceMessageId):null);if(!key)error('INVALID_REQUEST');
+  // Keep the existing store writer queue across readonly admission, local
+  // recovery cleanup and the canonical purge. No IDB transaction crosses the
+  // asynchronous Chrome storage effect; the final transaction rechecks guards.
+  if(beforeEffects!==null){
+   const sourceIds=await this.repository.transaction(false,async t=>{
+    const current=await t.get('records',id);
+    if(!current||!permanent&&!current.value.deletedAt)error('INVALID_REQUEST');
+    const indexes=await t.all('recordIndex','bySource',key);
+    if(r.chatId&&r.sourceMessageId)for(const ix of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))
+     if(!/^[a-f0-9]{64}$/.test(ix.sourceKey||'')&&!indexes.some(x=>x.id===ix.id))indexes.push(ix);
+    if(!indexes.some(x=>x.id===id))indexes.push(await t.get('recordIndex',id));
+    const removed=[];for(const ix of indexes){
+     const record=ix&&(await t.get('records',ix.id))?.value;
+     if(!record)error('INVALID_REQUEST');removed.push(record);
+    }
+    if(this.beforeSourcePurgeEffects)await this.beforeSourcePurgeEffects(t,removed);
+    return removed.map(record=>record.id);
+   });
+   await beforeEffects(Object.freeze(sourceIds));
+  }
   const result=await this.repository.transaction(true,async t=>{
    this.changedSources.add(key);const current=await t.get('records',id);if(!current||!permanent&&!current.value.deletedAt)error('INVALID_REQUEST');
    const indexes=await t.all('recordIndex','bySource',key);if(r.chatId&&r.sourceMessageId)for(const ix of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))if(!/^[a-f0-9]{64}$/.test(ix.sourceKey||'')&&!indexes.some(x=>x.id===ix.id))indexes.push(ix);if(!indexes.some(x=>x.id===id))indexes.push(await t.get('recordIndex',id));const removed=[];for(const ix of indexes)removed.push((await t.get('records',ix.id)).value);

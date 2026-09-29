@@ -1,3 +1,4 @@
+import {PROMPT_TEMPLATE_PREFIX,promptTemplateMetaAllowed,validatePromptTemplateCollection,promptTemplatesInTransaction} from './prompt-template-data.js';
 import {BINDING_ROW,REVERSE_ROW} from './thought-binding.js';
 import {READING_ROW,VISIT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW,validReaderPolicy} from './reader-state.js';
 import {validateMemoryRow,memoryRange,key,DEFAULT_PROFILE} from './memory/model.js';
@@ -26,11 +27,16 @@ const REPLACE_CLEAR_STORES=[...new Set([
 const normalize=value=>JSON.parse(JSON.stringify(value));
 async function busy(t){for(const key of ['originalProviderRequest','aiPresentationRequest']){const p=await t.get('meta',key+'Current');if(p&&activeRequest(await t.get('meta',key+':'+p.requestId)))return true;}const p=await t.get('meta','boundedOrganizerCurrent');if(p&&(await t.get('meta','boundedOrganizerAction:'+p.actionId))?.state==='running')return true;return (await t.all('topics')).some(x=>x.layoutJobId);}
 function sourceIds(value,out=new Set()){if(!value||typeof value!=='object')return out;if(Array.isArray(value)){for(const v of value)sourceIds(v,out);return out;}for(const [key,v]of Object.entries(value)){if(key==='sourceRecordIds'&&Array.isArray(v))for(const id of v)out.add(id);else if(['sourceRecordId','originalTextReference'].includes(key)&&typeof v==='string')out.add(v);else if(typeof v==='object')sourceIds(v,out);}return out;}
+async function portablePromptTemplates(t){
+ try{return await promptTemplatesInTransaction(t);}
+ catch(error){backupError(error?.code==='PROMPT_VERSION_UNSUPPORTED'?'BACKUP_VERSION_UNSUPPORTED':
+  error?.code==='PROMPT_LIMIT'?'BACKUP_TOO_LARGE':'BACKUP_INVALID');}
+}
 export class BackupService {
  constructor(store,{appVersion='0.8.1'}={}){this.s=store;this.appVersion=appVersion;this.exports=new Map();this.restores=new Map();}
  expire(){for(const map of [this.exports,this.restores])for(const [id,row]of map)if(Date.now()-row.lastAt>15*60*1000)map.delete(id);}
  session(map,id){this.expire();const row=map.get(id);if(!row)backupError('BACKUP_SESSION_EXPIRED');row.lastAt=Date.now();return row;}
- async beginExport(){this.expire();await this.s.finishFoundation();await this.s.drainPurgeCleanup();await this.s.drainInvalidations();const state=await this.s.run(()=>this.s.repository.transaction(false,async t=>{if(await busy(t))backupError('BACKUP_BUSY');const c=await this.s.control(t);return {generation:(await t.get('meta','backup-data-generation'))?.value||0,settings:projectBackupEntity('settings',{id:'preferences',preferences:c.preferences,memoryAccessPolicy:c.memoryAccessPolicy,classificationRules:c.classificationRules,filterRules:c.filterRules})};}));
+ async beginExport(){this.expire();await this.s.finishFoundation();await this.s.drainPurgeCleanup();await this.s.drainInvalidations();const state=await this.s.run(()=>this.s.repository.transaction(false,async t=>{if(await busy(t))backupError('BACKUP_BUSY');await portablePromptTemplates(t);const c=await this.s.control(t);return {generation:(await t.get('meta','backup-data-generation'))?.value||0,settings:projectBackupEntity('settings',{id:'preferences',preferences:c.preferences,memoryAccessPolicy:c.memoryAccessPolicy,classificationRules:c.classificationRules,filterRules:c.filterRules})};}));
   const sessionId=crypto.randomUUID(),header={type:'header',format:'PAIA Backup',formatVersion:BACKUP_VERSION,appVersion:this.appVersion,createdAt:this.s.clock(),schemaVersion:BACKUP_SCHEMA,contentSections:sections,privacy:{localOnly:true,credentialsIncluded:false,sourceDeletionFences:true}},hash=await backupHash('',header);this.exports.clear();this.exports.set(sessionId,{...state,header,hash,section:0,after:null,sequence:0,count:0,counts:Object.fromEntries(sections.map(k=>[k,0])),lastAt:Date.now()});return {sessionId,header};
  }
  async project(t,section,row){let value=row,extra={};
@@ -46,7 +52,7 @@ export class BackupService {
   }
   if(['topics','sections'].includes(section))value=await this.s.safeOrganization(t,section==='topics'?'topic':'section',row);
   if(section==='completedLayouts'&&(row.kind!=='library_layout'||row.state!=='complete'))return null;
-  if(section==='organizationState'){if(!backupMetaAllowed(row.id))return null;if(row.id.startsWith('memory:')){if(!validateMemoryRow(row))backupError('BACKUP_INVALID');if(row.kind==='topic'&&!await t.get('topics',row.topicId)||row.kind==='entry'&&(!await t.get('thoughts',row.entryId)||!await this.project(t,'entries',await t.get('thoughts',row.entryId)))||row.kind==='input'&&(!await t.get('inputStates',row.inputId)||!await t.get('blocks',row.inputId))||row.kind==='section'&&!await t.get('topics',row.topicId))return null;}if(row.id.startsWith('aiPresentation:')){const evidence=new Set(row.evidenceEntryIds||[]);if(!evidence.size||!isStoredAIPresentation(row,evidence)||!await t.get('topics',row.topicId))return null;for(const id of evidence){const entry=await t.get('thoughts',id);if(!entry||!await this.project(t,'entries',entry))return null;}if(row.candidate){const candidateEvidence=new Set(row.candidate.proposal?.evidenceEntryIds||[]),allowed=new Set([...evidence,...candidateEvidence]);let candidateSafe=validAIPresentationCandidate(row.candidate,allowed);if(candidateSafe)for(const id of candidateEvidence){const entry=await t.get('thoughts',id);if(!entry||!await this.project(t,'entries',entry)){candidateSafe=false;break;}}if(!candidateSafe){row={...row};delete row.candidate;}}}value={id:row.id,data:row};}
+  if(section==='organizationState'){if(/^prompt-template:v(?!1:)/.test(row.id))backupError('BACKUP_VERSION_UNSUPPORTED');if(!backupMetaAllowed(row.id))return null;if(row.id.startsWith('memory:')){if(!validateMemoryRow(row))backupError('BACKUP_INVALID');if(row.kind==='topic'&&!await t.get('topics',row.topicId)||row.kind==='entry'&&(!await t.get('thoughts',row.entryId)||!await this.project(t,'entries',await t.get('thoughts',row.entryId)))||row.kind==='input'&&(!await t.get('inputStates',row.inputId)||!await t.get('blocks',row.inputId))||row.kind==='section'&&!await t.get('topics',row.topicId))return null;}if(row.id.startsWith('aiPresentation:')){const evidence=new Set(row.evidenceEntryIds||[]);if(!evidence.size||!isStoredAIPresentation(row,evidence)||!await t.get('topics',row.topicId))return null;for(const id of evidence){const entry=await t.get('thoughts',id);if(!entry||!await this.project(t,'entries',entry))return null;}if(row.candidate){const candidateEvidence=new Set(row.candidate.proposal?.evidenceEntryIds||[]),allowed=new Set([...evidence,...candidateEvidence]);let candidateSafe=validAIPresentationCandidate(row.candidate,allowed);if(candidateSafe)for(const id of candidateEvidence){const entry=await t.get('thoughts',id);if(!entry||!await this.project(t,'entries',entry)){candidateSafe=false;break;}}if(!candidateSafe){row={...row};delete row.candidate;}}}value={id:row.id,data:row};}
   if(section==='relations'){
    const from=await t.get('thoughts',row.fromEntryId),to=await t.get('thoughts',row.toEntryId);
    if(!from||!to||!await this.project(t,'entries',from)||!await this.project(t,'entries',to))return null;
@@ -81,6 +87,10 @@ export class BackupService {
   for(const {value:r}of bySection.revisions.values()){required(typeof r.entityKey==='string'&&Number.isSafeInteger(r.sequence)&&Number.isFinite(Date.parse(r.at)));for(const id of sourceIds(r))required(records.has(id));}
   for(const {value:row}of bySection.organizationState.values()){if(row.id==='organizer-controls'){const c=row.data;required(Number.isInteger(c.dailyRequests)&&c.dailyRequests>=1&&c.dailyRequests<=200&&['compact','recommended'].includes(c.batchMode));}if(row.id==='thought-suppression-key')required(Array.isArray(row.data.value)&&row.data.value.length===32&&row.data.value.every(x=>Number.isInteger(x)&&x>=0&&x<=255));if(row.id.startsWith('aiPresentation:')){const p=row.data,allowed=new Set(entries.keys());required(topics.has(p.topicId)&&Array.isArray(p.evidenceEntryIds)&&p.evidenceEntryIds.length>0&&isStoredAIPresentation(p,allowed));if(p.candidate)required(validAIPresentationCandidate(p.candidate,allowed));}}
   const memoryRows=[...bySection.organizationState.values()].map(x=>x.value.data).filter(x=>x.id.startsWith('memory:'));for(const row of memoryRows){required(validateMemoryRow(row));if(row.kind==='profile')required(bySection.organizationState.has('memory:config'));if(row.profileId&&row.kind!=='activity')required(bySection.organizationState.has(key('profile',row.profileId)));if(row.kind==='topic')required(topics.has(row.topicId));if(row.kind==='entry')required(entries.has(row.entryId));if(row.kind==='input')required(inputs.has(row.inputId)&&bySection.inputStates.has(row.inputId));if(row.kind==='section')required(topics.has(row.topicId)&&[...bySection.sections.values()].some(x=>x.value.topicId===row.topicId&&x.value.sectionId===row.sectionId));}if(memoryRows.length)required(bySection.organizationState.has(key('profile',DEFAULT_PROFILE)));
+  const promptRows=[...bySection.organizationState.values()].map(x=>x.value.data).filter(x=>promptTemplateMetaAllowed(x.id));
+  try{validatePromptTemplateCollection(promptRows);}catch(error){backupError(error?.code==='PROMPT_LIMIT'?'BACKUP_TOO_LARGE':'BACKUP_INVALID');}
+  // Prompt refs are historical trace addresses, not live evidence or authority.
+  // They may be unavailable after an exclusion; restoring them grants no access.
   const ansRows=[...bySection.organizationState.values()].map(x=>x.value.data).filter(x=>sourceStructureMetaAllowed(x.id));try{await validateSourceStructureBackupGraph(ansRows,{documents:[...bySection.inputDocuments.values()].map(x=>x.value)});}catch{backupError('BACKUP_INVALID');}
   const preferences=bySection.settings.get('preferences')?.value.preferences;if(preferences){validatePreferences({timeDisplay:preferences.timeDisplay,timeEmphasis:preferences.timeEmphasis});const editable=['timeDisplay','timeEmphasis','appearance','language','fontSize','readingWidth','sidebarCollapsed','hideContentPreviews'];validatePreferences(Object.fromEntries(Object.entries(preferences).filter(([key])=>editable.includes(key))));for(const [key,value]of Object.entries(defaults()))if(!editable.includes(key))required(preferences[key]===value);required(Object.keys(preferences).every(k=>Object.hasOwn(defaults(),k)));}state.validated=true;
  }
@@ -100,6 +110,7 @@ export class BackupService {
    if(mode==='merge')return this.mergeSafety(t,state);
    return null;
   }
+  if((await t.primaryRangePage('meta',{prefix:PROMPT_TEMPLATE_PREFIX,limit:1})).rows.length)return 'BACKUP_TARGET_NOT_EMPTY';
   for(const prefix of Object.values(SOURCE_STRUCTURE_PREFIXES))
    if((await t.all('meta',null,sourceStructurePrefixRange(prefix),1)).length)return 'BACKUP_TARGET_NOT_EMPTY';
   if((await t.get('meta','memory:config'))?.userTouched)return 'BACKUP_TARGET_NOT_EMPTY';
@@ -123,7 +134,7 @@ export class BackupService {
     if(['sequence','input-delta-sequence','thought-sequence','revision-sequence',CAPTURE_POLICY_ROW,REVISIT_POLICY_ROW].includes(value.id))continue;
     const local=await t.get('meta',value.id);
     if(local&&JSON.stringify(local)!==JSON.stringify(value.data)){
-     const contentBound=sourceStructureMetaAllowed(value.id)
+     const contentBound=sourceStructureMetaAllowed(value.id)||promptTemplateMetaAllowed(value.id)
       ||value.id.startsWith('aiPresentation:')
       ||value.id.startsWith('topicKeepSeparate:')
       ||['topic','entry','input','section','activity'].includes(value.data.kind);
@@ -198,6 +209,9 @@ export class BackupService {
     if(section==='deletionFences'&&await t.get('tombstones',row.id))continue;
     await t.put(stores[section],row);
    }
+   // Validate the combined merge target atomically; imported template bodies and
+   // refs cannot exceed the same limits enforced by local commands.
+   await portablePromptTemplates(t);
    await t.put('meta',{id:'sequence',...max});
    // Rebuild derived indexes from the explicit entities. No imported index or
    // runnable worker job is trusted, and no Provider is invoked on restore.
