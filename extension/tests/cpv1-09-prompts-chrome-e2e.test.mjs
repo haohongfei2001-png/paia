@@ -1605,3 +1605,73 @@ test('CPV1-10 stacked product surfaces retain complete Archive input at narrow w
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+
+test('CPV1-10 detached voice review in actual Chrome keeps full corrected MyWrite text through explicit save and restart',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start();
+ try{
+  const p=h.archive;await enable(p);
+  const fixture=conversation('mywrite-voice-review-synthetic',1000);
+  const captured=await h.open(fixture);await h.ready(captured);
+  await eventually(async()=>(await h.state()).library.blocks.length===fixture.messages.length);
+  const original=await h.state();
+  const full=Array.from({length:1000},(_,i)=>'语音全文第'+i+'段🧭：保留否定、换行和完整原话。\n').join('')+
+   '尾部：绝对不要自动保存或发送。';
+  await p.evaluate(async transcript=>{
+   const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   const {createMyWriteVoiceReview}=await import(chrome.runtime.getURL('core/mywrite-voice-review.js'));
+   const {createMyWriteWorkspace}=await import(chrome.runtime.getURL('ui/mywrite-workspace.js'));
+   globalThis.voiceStore=new MyWriteDraftStore({name:'paia-mywrite-voice-chrome-v1',clock:()=>1720000000000});
+   globalThis.voiceCaptures={start:0,stop:0,cancel:0,transcribe:0};
+   const capture={async start(){voiceCaptures.start++;return{
+    async stop(){voiceCaptures.stop++;return {synthetic:true};},
+    async cancel(){voiceCaptures.cancel++;}
+   };}};
+   const flow=createMyWriteVoiceReview({capture,transcribe:async audio=>{
+    voiceCaptures.transcribe++;if(audio.synthetic!==true)throw new Error('synthetic adapter mismatch');return transcript;
+   }});
+   globalThis.voiceWorkspace=createMyWriteWorkspace({document,store:voiceStore,draftId:'draft:voice-chrome',voiceFlow:flow});
+   voiceWorkspace.element.id='mywrite-voice-fixture';
+   voiceWorkspace.element.style.cssText+=';position:fixed;inset:16px;overflow:auto;z-index:2147483647';
+   document.body.append(voiceWorkspace.element);await voiceWorkspace.ready;
+  },full);
+  const editor=p.getByRole('textbox',{name:'草稿正文',exact:true});
+  const transcript=p.getByRole('textbox',{name:'完整语音转写',exact:true});
+  const start=p.getByRole('button',{name:'开始录音',exact:true});
+  const stop=p.getByRole('button',{name:'停止并转写',exact:true});
+  const accept=p.getByRole('button',{name:'将核对后的全文加入草稿',exact:true});
+  assert.equal(await editor.inputValue(),'');
+  assert.deepEqual(await p.evaluate(()=>voiceStore.read('draft:voice-chrome')),null);
+  await start.click();await eventually(async()=>!await stop.isDisabled());
+  assert.deepEqual(await p.evaluate(()=>voiceWorkspace.interruptVoice('lock')),{action:'capture_cancelled'});
+  assert.equal(await editor.inputValue(),'');
+  assert.deepEqual(await p.evaluate(()=>voiceStore.read('draft:voice-chrome')),null);
+  await start.click();await eventually(async()=>!await stop.isDisabled());
+  await stop.click();await eventually(async()=>await transcript.isVisible());
+  assert.equal(await transcript.inputValue(),full);
+  assert.deepEqual(await p.evaluate(()=>voiceWorkspace.interruptVoice('background')),{action:'review_retained'});
+  assert.equal(await transcript.inputValue(),full);
+  const corrected=full+'\n我核对并更正了完整转写，不要删除尾部。';
+  await transcript.fill(corrected);await accept.click();
+  assert.equal(await editor.inputValue(),corrected);
+  assert.deepEqual(await p.evaluate(()=>voiceStore.read('draft:voice-chrome')),null,'review acceptance does not auto-save');
+  assert.equal(await p.evaluate(()=>voiceWorkspace.canReplace()),false);
+  await p.getByRole('button',{name:'保存本地草稿',exact:true}).click();
+  await eventually(async()=>(await p.evaluate(()=>voiceStore.read('draft:voice-chrome')))?.text===corrected);
+  const saved=await p.evaluate(()=>voiceStore.read('draft:voice-chrome'));
+  assert.equal(saved.text,corrected);assert.equal(saved.createdAt,1720000000000);
+  assert.deepEqual(await p.evaluate(()=>voiceCaptures),{start:2,stop:1,cancel:1,transcribe:1});
+  await p.evaluate(()=>{voiceWorkspace.dispose();voiceStore.close();});
+  await h.restartWorker();await p.reload();
+  const recovered=await p.evaluate(async()=>{
+   const {MyWriteDraftStore}=await import(chrome.runtime.getURL('core/mywrite-draft.js'));
+   const store=new MyWriteDraftStore({name:'paia-mywrite-voice-chrome-v1'});
+   const row=await store.read('draft:voice-chrome');store.close();return row;
+  });
+  assert.deepEqual(recovered,saved);
+  assert.deepEqual((await h.state()).records,original.records);
+  assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
+  assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});
