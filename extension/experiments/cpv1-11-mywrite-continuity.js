@@ -68,6 +68,7 @@ export function planMyWriteContinuity({local,remote}={}){
 // This is not a network transport or persistent Sync authority.
 export class LocalMyWriteRelay{
  #log=[];
+ #sequenceByDevice=new Map();
  publish(operation){
   const value=validateMyWriteContinuityOperation(operation);
   const prior=this.#log.find(item=>item.writeId===value.writeId);
@@ -75,8 +76,10 @@ export class LocalMyWriteRelay{
    if(!same(prior,value))fail('MYWRITE_CONTINUITY_WRITE_COLLISION');
    return Object.freeze({status:'duplicate',size:this.#log.length});
   }
+  if(value.deviceSequence<=(this.#sequenceByDevice.get(value.deviceId)||0))
+   fail('MYWRITE_CONTINUITY_SEQUENCE_REPLAY');
   if(this.#log.length>=128)fail('MYWRITE_CONTINUITY_RELAY_FULL');
-  this.#log.push(value);
+  this.#log.push(value);this.#sequenceByDevice.set(value.deviceId,value.deviceSequence);
   return Object.freeze({status:'stored',size:this.#log.length});
  }
  inbox(deviceId){
