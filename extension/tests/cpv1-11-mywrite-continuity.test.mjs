@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {MyWriteContinuityError,planMyWriteContinuity,validateMyWriteContinuityOperation}
+import {LocalMyWriteRelay,MyWriteContinuityError,planMyWriteContinuity,validateMyWriteContinuityOperation}
  from '../experiments/cpv1-11-mywrite-continuity.js';
 
 const hash=ch=>ch.repeat(64);
@@ -61,4 +61,27 @@ test('CPV1-11.0 metadata-only admission rejects plaintext, getters, malformed li
   code('MYWRITE_CONTINUITY_IDENTITY_MISMATCH'));
  const source=await readFile(new URL('../experiments/cpv1-11-mywrite-continuity.js',import.meta.url),'utf8');
  assert.equal(/fetch\s*\(|WebSocket|XMLHttpRequest|indexedDB|chrome\.storage|Date\.now|navigator|MediaRecorder/.test(source),false);
+});
+
+
+test('CPV1-11.0 bounded local two-device relay replays offline forks and deletion without a network or plaintext channel',()=>{
+ const relay=new LocalMyWriteRelay();
+ assert.deepEqual(relay.publish(base),{status:'stored',size:1});
+ assert.deepEqual(relay.publish(base),{status:'duplicate',size:1});
+ assert.deepEqual(relay.inbox('device:B'),[base]);
+ const b=next(base,{}),a=next(base,{writeId:'save:offline',deviceId:'device:A',deviceSequence:2,payloadHash:hash('c')});
+ relay.publish(b);relay.publish(a);
+ assert.equal(relay.inbox('device:A').length,1);
+ assert.equal(relay.inbox('device:B').length,2);
+ const fork=planMyWriteContinuity({local:a,remote:relay.inbox('device:A')[0]});
+ assert.equal(fork.action,'concurrent_or_unproven_conflict');
+ const tombstone=next(b,{writeId:'delete:explicit',deviceId:'device:B',deviceSequence:2,
+  deleted:true,payloadHash:null});
+ relay.publish(tombstone);
+ const late=planMyWriteContinuity({local:a,remote:relay.inbox('device:A').at(-1)});
+ assert.equal(late.action,'delete_edit_conflict');assert.equal(late.holdDeletion,true);
+ assert.throws(()=>relay.publish({...b,text:'private'}),code('MYWRITE_CONTINUITY_INVALID'));
+ assert.throws(()=>relay.publish({...base,payloadHash:hash('d')}),code('MYWRITE_CONTINUITY_WRITE_COLLISION'));
+ assert.equal(relay.size,4);
+ assert.ok(Object.isFrozen(relay.inbox('device:A')));
 });
