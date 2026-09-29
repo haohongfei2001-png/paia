@@ -195,13 +195,14 @@ export class LibraryFoundationStore extends SmartFilterStore {
  }
  async canonicalTopic(t,id) {const seen=new Set();for(let i=0;i<32;i++){if(seen.has(id))fail();seen.add(id);const row=await t.get('topics',id);if(!row)fail();if(!row.redirectTo)return row;id=row.redirectTo;}fail();}
  async placeEntry(request) {
-  keys(request,['entryId','topicId','sectionId','rank','operationId','expectedEntryRevision','expectedTopicRevision','expectedPlacementRevision','remove','restoreRevisionId'],['entryId','topicId','operationId','expectedEntryRevision','expectedTopicRevision']);
+  keys(request,['entryId','topicId','sectionId','rank','operationId','expectedEntryRevision','expectedTopicRevision','expectedTopicMetadataRevision','expectedPlacementRevision','remove','restoreRevisionId'],['entryId','topicId','operationId','expectedEntryRevision','expectedTopicRevision']);
   if(!idOK(request.entryId)||!idOK(request.topicId)||!revisionOK(request.expectedEntryRevision)||!revisionOK(request.expectedTopicRevision))fail();
+  if(request.expectedTopicMetadataRevision!==undefined&&!revisionOK(request.expectedTopicMetadataRevision))fail();
   if(request.remove!==undefined&&typeof request.remove!=='boolean')fail();
   return this.operation(request,t=>this.placeEntryInTransaction(t,request));
  }
  async placeEntryInTransaction(t,request){
-   const e=await this.readableEntry(t,request.entryId),topic=await this.canonicalTopic(t,request.topicId);if(e.lifecycle!=='active'||topic.id!==request.topicId)fail();if(e.revision!==request.expectedEntryRevision||topic.organizationRevision!==request.expectedTopicRevision)return {conflict:true};
+   const e=await this.readableEntry(t,request.entryId),topic=await this.canonicalTopic(t,request.topicId);if(e.lifecycle!=='active'||topic.id!==request.topicId)fail();if(e.revision!==request.expectedEntryRevision||topic.organizationRevision!==request.expectedTopicRevision||request.expectedTopicMetadataRevision!==undefined&&topic.revision!==request.expectedTopicMetadataRevision)return {conflict:true};
    const id=JSON.stringify([topic.id,topic.activeLayoutGeneration,e.id]);await checkRestore(this,t,request.restoreRevisionId,'placement',id);const old=await t.get('placements',id);if(old&&old.revision!==request.expectedPlacementRevision&&!(this.libraryDocumentMode&&old.lifecycle==='removed'&&request.expectedPlacementRevision===undefined))return {conflict:true};
    const section=request.sectionId?await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,request.sectionId])):topic.defaultSectionId?await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,topic.defaultSectionId])):await t.edge('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));if(!section||section.lifecycle!=='active'||section.redirectTo)fail();
    const last=this.libraryDocumentMode&&request.rank===undefined&&(!old||old.sectionId!==section.sectionId)?await t.edge('placements','bySectionOrder',prefix([topic.id,topic.activeLayoutGeneration,section.sectionId,0]),'prev'):null;
