@@ -1593,7 +1593,11 @@ test('CPV1-10 stacked product surfaces retain complete Archive input at narrow w
   }
   await h.restartWorker();await p.reload();await p.waitForSelector('#prompt-open');await root();
   await p.locator('#archive-root-recent').click();
-  await eventually(()=>p.locator('.library-prose').first().isVisible());
+  try{await eventually(()=>p.locator('.library-prose').first().isVisible());}
+  catch{
+   const signal=await p.evaluate(()=>({recentHidden:document.getElementById('archive-root-recent')?.hidden,recentDisabled:document.getElementById('archive-root-recent')?.disabled,readerHidden:document.getElementById('document-panel')?.hidden,view:history.state?.paiaReader?.view,hasDocument:!!history.state?.paiaReader?.documentId,errorVisible:!document.getElementById('error')?.hidden}));
+   assert.fail('post-restart Archive reader did not open: '+JSON.stringify(signal));
+  }
   assert.equal(await p.locator('.library-prose').first().textContent(),full);
   assert.deepEqual((await h.state()).records,original.records);
   assert.deepEqual((await h.state()).library.blocks,original.library.blocks);
