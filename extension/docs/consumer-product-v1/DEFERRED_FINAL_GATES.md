@@ -1,5 +1,9 @@
 # Deferred Final Gates — PAIA Consumer Product v1
 
+## CPV1-12 external and activation evidence — 2026-09-29
+
+The owner authorized dependency-safe CPV1-12.1 typed proposals, CPV1-12.2 human/policy review-to-native-CAS commit and CPV1-12.4 adversarial tests. Exact detached candidate `aa00fcc8d2239807262ff81111bb37deaadff516` passed [Candidate Gate 36594021139](https://github.com/haohongfei2001-png/paia/actions/runs/36594021139); [receipt](receipts/CPV1-12-TYPED-REVIEW-CANDIDATE-aa00fcc8.md). This is not a production activation certificate. A real trusted review UI/browser journey, external provider containment, security review, live/device acceptance, and exact merge/main gates remain OPEN. B-04 blocks CPV1-12.3 AI reply reading. No AI direct storage, unreviewed write, automatic send, permanent delete, new Context/Passport grant, new credential or paid API is authorized. These dependencies do not block independent, default-off engineering.
+
 This ledger records evidence or owner/external actions that remain mandatory for final certification but must not stall independent authorized engineering.
 
 A ledger entry is never PASS. It may be removed only after the required evidence is completed or the product contract is explicitly changed by the owner.
