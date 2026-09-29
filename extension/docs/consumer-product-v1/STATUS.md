@@ -1,28 +1,55 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## Owner stop and read-only handoff — 2026-09-30
+
+**Current controlling state: `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW`.** The owner ended Consumer Product v1 whole-package continuous authorization and stopped all new PAIA runtime/product feature development pending a separate Product Foundation / Architecture Review. This order supersedes every historical `ACTIVE`, `READY`, `WHOLE_PACKAGE_PREAUTHORIZED`, or "continue dependency-safe engineering" instruction in this file, the Master Plan, Product Intent Contract, Execution Protocol, and Deferred Final Gates. A heartbeat or generic "continue" does not resume product engineering. Restart requires a newly owner-approved product architecture and roadmap. Existing main behavior is unchanged by this docs-only closure.
+
+At this read-only handoff, remote main was `9cd74665a46fcf0bb77865afaf2aaf3b2cad2c40`. [Draft PR #99](https://github.com/haohongfei2001-png/paia/pull/99) was open at exact head `991f78f4c54b79d67428bf3209fb4eaa18f1cc9b` (95 changed files, 227 commits). It is an **unmerged, inactive preserved R&D / engineering snapshot**, not an approved production candidate; do not merge it into main, force-push, rewrite history, delete tests/code, or recast its receipts. Its sole product writer is RELEASED. The separate website design Draft #91 is not this product writer.
+
+[Candidate Gate 36604740882](https://github.com/haohongfei2001-png/paia/actions/runs/36604740882) completed SUCCESS on the exact #99 head: unit smoke, contracts/privacy, affected hosted browser, release guard, and aggregate passed. Full PAIA Certification, UI Refresh, VS-02 performance, VS-03 backup-scale, hosted Mac diagnostic, and VS-04 scale probe were skipped on that head. Candidate success is **not** full certification or permission to merge/activate. Earlier exact-head receipts in #99 remain valid only for their recorded SHAs and scopes, including [VS-08.2 task Context](https://github.com/haohongfei2001-png/paia/blob/991f78f4c54b79d67428bf3209fb4eaa18f1cc9b/extension/docs/consumer-product-v1/receipts/CPV1-08.2-TASK-CONTEXT-ENGINEERING-PASS.md), [VS-09.2 human review](https://github.com/haohongfei2001-png/paia/blob/991f78f4c54b79d67428bf3209fb4eaa18f1cc9b/extension/docs/consumer-product-v1/receipts/CPV1-09.2-HUMAN-REVIEW-ENGINEERING-PASS.md), [VS-10.4 offline recovery](https://github.com/haohongfei2001-png/paia/blob/991f78f4c54b79d67428bf3209fb4eaa18f1cc9b/extension/docs/consumer-product-v1/receipts/CPV1-10.4-OFFLINE-RECOVERY-ENGINEERING-PASS.md), [VS-11.0 continuity metadata](https://github.com/haohongfei2001-png/paia/blob/991f78f4c54b79d67428bf3209fb4eaa18f1cc9b/extension/docs/consumer-product-v1/receipts/CPV1-11.0-MYWRITE-CONTINUITY-METADATA-PASS.md), and [VS-12 reviewed section proposal](https://github.com/haohongfei2001-png/paia/blob/991f78f4c54b79d67428bf3209fb4eaa18f1cc9b/extension/docs/consumer-product-v1/receipts/CPV1-12-SECTION-PROPOSAL-5961-CI-PASS.md). Historical failed receipts remain negative evidence.
+
+### #99 scope and dependency audit
+
+The following primary classification accounts for all 95 [changed files](https://github.com/haohongfei2001-png/paia/pull/99/files); a file's classification does not certify or activate its behavior.
+
+| Class | Files | Preserved assets and decision |
+| --- | ---: | --- |
+| `PRODUCTION_CORE` | 53 | VS-08 read-only Context/Passport boundary and task-scoped reader contracts/tests; VS-09 human Prompt model, local persistence, Archive panel, protected insertion/review/browser tests; shared backup, store, worker, Thought, UI and candidate-workflow fixes. These directly serve the five established core capabilities, but #99's connector and other new capabilities remain uncertified and unmerged. |
+| `REUSABLE_FOUNDATION` | 34 | Detached VS-10 local MyWrite draft/voice-review kernels, tests, contracts and receipts; VS-11 synthetic continuity/conflict planner and receipts; VS-12 typed AI proposal/review/CAS kernels, adversarial tests and receipts. Preserve as `DEFAULT_OFF / NOT_ACTIVATED / NOT_CERTIFIED`; prior VS-12 approval was a consumed bounded exploration. |
+| `FUTURE_PRODUCT_BEHAVIOR` | 4 | Detached `extension/ui/mywrite-{composer,recovery,voice-review,workspace}.js` prototypes. Mobile entry, voice UX/processor, device sync/cloud policy, AI-write activation/reply-aware flows and their product claims require a new design decision; no certification or activation is authorized. |
+| `GOVERNANCE_DRIFT` | 4 | #99 changes to `STATUS.md`, `MASTER_PLAN.md`, `EXECUTION_PROTOCOL.md`, `DEFERRED_FINAL_GATES.md` contain historical continuous-development/VS10–12 instructions. Preserve the snapshot for evidence; this main stop record and Execution Protocol override them. |
+
+The five established core goals remain capture of the user's own AI inputs; Input Archive viewing/editing/search/import/export/backup reliability; human Prompt save/organize/reuse and safe insertion without automatic send; Thought Library/Topic organization of original expression; and minimally authorized, revocable AI Context/Passport reading. Main's completed VS-01–VS-07 receipts remain historical evidence; VS-04 lexical/fuzzy/filter is the v1 search default, semantic retrieval remains experimental/default-off/non-blocking, and Semantic Lab owns Input → Topic. No work resumes on VS-08–VS-12 under this stop order.
+
+### Open owner, external, private and device gates at handoff
+
+`DFG-CPV1-001` signed same-ID update/distribution identity; `002` B-01 existing Thought edit meaning; `003` B-02 permanent Source deletion with human derivatives; `004` current-live ChatGPT/browser lifecycle; `005` private official history export; `006` B-03/B-05 connector/sync deployment policy; `007` real mobile device/voice processor; `008` B-04 AI reply access/retention; `009` independently reviewed live generated-output meaning; `010` rejected converted E5 provenance, retained only as experimental evidence after VS-07 scope closure; `011` minimal task Context approval remains limited and is not production activation. Exact requirements and historical evidence remain in [DEFERRED_FINAL_GATES.md](DEFERRED_FINAL_GATES.md). No open gate is silently marked PASS by this pause.
+
+For a future owner-approved restart, reuse verified core mechanisms and exact-head receipts after revalidation. Re-design mobile/MyWrite/voice user flows, multi-device continuity/sync architecture, AI-write/reply-aware behavior and external deployment/permissions before considering activation. Preserve #99 intact; decide inclusion or separation only under the new architecture and roadmap. No next slice or new roadmap is authorized here.
+
 package_id: PAIA-CONSUMER-PRODUCT-v1
 
-package_status: ACTIVE
+package_status: PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW
 
 activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: VS-08
+current_slice: NONE — product development paused
 
-current_slice_status: READY — VS-07_V1_SCOPE_COMPLETE / VS-06_EXTERNAL_CERT_PENDING
+current_slice_status: PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW
 
-current_round: CPV1-08.0 — read-only connector boundary and deployment-gate separation
+current_round: NONE — no CPV1 round authorized
 
-current_round_status: READY / VS07_EXACT_MAIN_CERTIFIED / LEXICAL_FUZZY_FILTER_DEFAULT / SEMANTIC_EXPERIMENTAL_DEFAULT_OFF_NON_BLOCKING
+current_round_status: PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW
 
-current_writer: NONE — VS-07 writer released after PR #88 merge
+current_writer: NONE — Draft PR #99 preserved and inactive
 
-writer_status: RELEASED / VS-08 sole writer may be acquired
+writer_status: RELEASED — no new product writer authorized
 
 production_claim: NONE
 
-authorization_mode: WHOLE_PACKAGE_PREAUTHORIZED
+authorization_mode: NONE — whole-package continuous authorization ended by owner stop order
 
 prior_temporary_authorization_rounds_completed: 4
 
