@@ -74,6 +74,7 @@ export function createMyWriteWorkspace({document,store,draftId,topics=[],voiceFl
  element.append(style,create,host,...(voice?[voice.element]:[]),recover.element,status);
  const ready=composer.ready;
  return Object.freeze({element,ready,canReplace:()=>!closed&&!pending&&composer.canReplace()&&(!voice||voice.canLeave()),
+  interruptVoice:reason=>voice?voice.interrupt(reason):Promise.resolve(Object.freeze({action:'disabled'})),
   getDraftReference:()=>closed?null:composer.getDraftReference(),dispose(){
    if(closed)return;closed=true;generation++;
    create.removeEventListener('click',newDraft);
