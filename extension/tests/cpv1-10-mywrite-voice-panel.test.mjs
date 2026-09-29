@@ -139,3 +139,52 @@ test('CPV1-10.4 voice started during a pending draft switch keeps the original e
  named(workspace.element,'取消录音或审阅').click();await settle();
  assert.equal(workspace.canReplace(),true);workspace.dispose();
 });
+
+
+test('CPV1-10.4 external lifecycle interruptions cancel capture without background transcription or saving',async()=>{
+ for(const reason of ['background','lock','call','offline','microphone_denied']){
+  let cancelled=0,transcribed=0,inserted=0;
+  const session={async stop(){throw new Error('must not stop');},async cancel(){cancelled++;}};
+  const flow=createMyWriteVoiceReview({capture:{async start(){return session;}},
+   transcribe:async()=>{transcribed++;return whole;}});
+  const panel=createMyWriteVoicePanel({document,flow,onReviewedText:()=>{inserted++;return true;}});
+  named(panel.element,'开始录音').click();await settle();
+  assert.deepEqual(await panel.interrupt(reason),{action:'capture_cancelled'});
+  assert.equal(flow.state().phase,'idle');assert.equal(cancelled,1);
+  assert.equal(transcribed,0);assert.equal(inserted,0);assert.equal(panel.canLeave(),true);
+  panel.dispose();
+ }
+});
+
+test('CPV1-10.4 background transition retains a full corrected review for later explicit acceptance',async()=>{
+ const session={async stop(){return null;},async cancel(){}};
+ const flow=createMyWriteVoiceReview({capture:{async start(){return session;}},transcribe:async()=>whole});
+ let inserted=null;
+ const panel=createMyWriteVoicePanel({document,flow,onReviewedText:text=>{inserted=text;return true;}});
+ named(panel.element,'开始录音').click();await settle();
+ named(panel.element,'停止并转写').click();await settle();
+ const body=find(panel.element,x=>x.tag==='textarea');
+ const corrected=whole+'\n补充：这句也要保留。';body.value=corrected;
+ assert.deepEqual(await panel.interrupt('background'),{action:'review_retained'});
+ assert.equal(body.value,corrected);assert.equal(inserted,null);
+ assert.equal(panel.canLeave(),false);
+ named(panel.element,'将核对后的全文加入草稿').click();
+ assert.equal(inserted,corrected);assert.equal(panel.canLeave(),true);panel.dispose();
+});
+
+
+test('CPV1-10.4 default workspace has no voice authority and optional owner can forward lock interruption',async()=>{
+ const store={read:async()=>null,save:async()=>{throw new Error('unexpected save');},
+  review:async()=>{throw new Error('unexpected review');},list:async()=>({items:[],after:null})};
+ const off=createMyWriteWorkspace({document,store,draftId:'draft:off'});
+ await off.ready;
+ assert.equal(find(off.element,x=>x.className==='mywrite-voice-review'),undefined);
+ assert.deepEqual(await off.interruptVoice('background'),{action:'disabled'});off.dispose();
+ let cancelled=0;
+ const session={async stop(){throw new Error('must not stop');},async cancel(){cancelled++;}};
+ const flow=createMyWriteVoiceReview({capture:{async start(){return session;}},transcribe:async()=>whole});
+ const on=createMyWriteWorkspace({document,store,draftId:'draft:on',voiceFlow:flow});
+ await on.ready;named(on.element,'开始录音').click();await settle();
+ assert.deepEqual(await on.interruptVoice('lock'),{action:'capture_cancelled'});
+ assert.equal(cancelled,1);assert.equal(on.canReplace(),true);on.dispose();
+});
