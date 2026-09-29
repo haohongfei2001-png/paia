@@ -35,7 +35,7 @@ function evidence(value) {
   const seen = new Set();
   return value.map(item => {
     record(item, ['kind', 'id', 'revision']);
-    if (!['input', 'source', 'thought'].includes(item.kind)
+    if (!['input', 'thought'].includes(item.kind)
         || !text(item.id, 200) || !revision(item.revision)) invalid();
     const key = item.kind + ':' + item.id + ':' + item.revision;
     if (seen.has(key)) invalid();
@@ -65,13 +65,15 @@ export function validateAIWriteProposal(input) {
   }
   record(input.value, ['place']);
   if (input.value.place !== true) invalid();
-  record(input.destination, ['topicId', 'organizationRevision', 'placementRevision']);
+  record(input.destination, ['topicId', 'baseRevision', 'organizationRevision', 'placementRevision']);
   if (!text(input.destination.topicId, 200)
+      || !revision(input.destination.baseRevision)
       || !revision(input.destination.organizationRevision)
       || input.destination.placementRevision !== null
         && !revision(input.destination.placementRevision)) invalid();
   return {...common, target: target(input.target, 'entry'), value: {place: true},
     destination: {topicId: input.destination.topicId,
+      baseRevision: input.destination.baseRevision,
       organizationRevision: input.destination.organizationRevision,
       placementRevision: input.destination.placementRevision}};
 }
