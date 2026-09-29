@@ -42,9 +42,16 @@ export class AIWriteReviewService {
         if (row.lifecycle !== 'active' || row.revision !== ref.revision
             || row.staleReasons?.length) fail('AI_WRITE_STALE');
       } else if (ref.kind === 'input') {
-        const row = await store.run(() => store.repository.transaction(false,
-          t => inputProjection(store, t, ref.id)));
-        if (!row || row.contentRevision !== ref.revision) fail('AI_WRITE_STALE');
+        const current = await store.run(() => store.repository.transaction(false,
+          async t => {
+            const row = await inputProjection(store, t, ref.id);
+            if (!row) return null;
+            const filtered = await store.isFiltered(t, row.block,
+              await t.get('meta', 'smart-filter'));
+            return {revision: row.contentRevision, filtered};
+          }));
+        if (!current || current.filtered || current.revision !== ref.revision)
+          fail('AI_WRITE_STALE');
       } else fail('AI_WRITE_PROPOSAL_INVALID');
     }
   }
