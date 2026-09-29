@@ -1,10 +1,11 @@
+import {createMyWriteVoicePanel} from './mywrite-voice-review.js';
 import {MyWriteDraftError} from '../core/mywrite-draft.js';
 import {createMyWriteComposer} from './mywrite-composer.js';
 import {createMyWriteRecovery} from './mywrite-recovery.js';
 
 // Shared local write/recovery owner, independent of platform/account/Source
 // activation. The caller owns the store lifetime and the initial draft identity.
-export function createMyWriteWorkspace({document,store,draftId,topics=[]}){
+export function createMyWriteWorkspace({document,store,draftId,topics=[],voiceFlow=null}){
  if(!document?.createElement||!store?.read||!store?.save||!store?.review||!store?.list||
     !Array.isArray(topics))throw new MyWriteDraftError('MYWRITE_INVALID');
  const labels=topics.map(item=>Object.freeze({id:item?.id,label:item?.label}));
@@ -17,13 +18,15 @@ export function createMyWriteWorkspace({document,store,draftId,topics=[]}){
  const create=document.createElement('button');create.type='button';create.textContent='新建本地草稿';
  const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const host=document.createElement('div');host.className='mywrite-workspace-editor';host.append(composer.element);
+ const voice=voiceFlow===null?null:createMyWriteVoicePanel({document,flow:voiceFlow,
+  onReviewedText:text=>composer.appendReviewedVoice(text)});
  let closed=false,pending=false,generation=0,candidate=null;
  const render=message=>{if(closed)return;if(message)status.textContent=message;create.disabled=pending;};
  const protectedWork=()=>render('当前正文会保留。请先保存，再新建或恢复草稿。');
  const switchTo=async(id,revision)=>{
   if(closed||pending)return false;
   const prior=composer;
-  if(!prior.canReplace()){protectedWork();return false;}
+  if(!prior.canReplace()||(voice&&!voice.canLeave())){protectedWork();return false;}
   const token=++generation;pending=true;render('正在核对本地草稿…');
   let next=null;
   try{
@@ -59,7 +62,7 @@ export function createMyWriteWorkspace({document,store,draftId,topics=[]}){
  const recover=createMyWriteRecovery({document,store,topics:labels,onChoose:reference=>switchTo(reference.id,reference.revision)});
  const newDraft=async event=>{
   if(!event.isTrusted||closed||pending)return;
-  if(!composer.canReplace()){protectedWork();return;}
+  if(!composer.canReplace()||(voice&&!voice.canLeave())){protectedWork();return;}
   try{await switchTo('draft:'+document.defaultView.crypto.randomUUID(),0);}
   catch(error){
    if(!closed)render(error instanceof MyWriteDraftError&&error.code==='MYWRITE_CONFLICT'?
@@ -68,13 +71,13 @@ export function createMyWriteWorkspace({document,store,draftId,topics=[]}){
   }
  };
  create.addEventListener('click',newDraft);
- element.append(style,create,host,recover.element,status);
+ element.append(style,create,host,...(voice?[voice.element]:[]),recover.element,status);
  const ready=composer.ready;
- return Object.freeze({element,ready,canReplace:()=>!closed&&!pending&&composer.canReplace(),
+ return Object.freeze({element,ready,canReplace:()=>!closed&&!pending&&composer.canReplace()&&(!voice||voice.canLeave()),
   getDraftReference:()=>closed?null:composer.getDraftReference(),dispose(){
    if(closed)return;closed=true;generation++;
    create.removeEventListener('click',newDraft);
-   candidate?.dispose();candidate=null;recover.dispose();composer.dispose();labels.length=0;
+   candidate?.dispose();candidate=null;voice?.dispose();recover.dispose();composer.dispose();labels.length=0;
    status.textContent='';element.replaceChildren();element.remove();
   }});
 }
