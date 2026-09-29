@@ -104,6 +104,61 @@ test('CPV1-12 topic placement binds entry, destination and exact revisions', asy
   assert.equal(f.requests.length, 0);
 });
 
+test('CPV1-12 reviewed section creation uses exact Topic metadata and organization CAS', async () => {
+  const f = await fixture(), bridge = new AIWriteReviewService({store: f.s,
+    authorizeReview: async () => true});
+  const topic = await f.s.topic(f.topic.id);
+  const proposal = {
+    version: 1, proposalId: op(), action: 'section.create',
+    target: {kind: 'topic', id: topic.id, baseRevision: topic.revision,
+      organizationRevision: topic.organizationRevision},
+    scope: 'topic.sections', value: {title: '人工审核的新小节'},
+    rationale: '新增结构仍需人工确认。', evidence: f.evidence,
+  };
+  assert.throws(() => validateAIWriteProposal({...proposal,
+    value: {title: '非法排行', rank: '000000000001'}}),
+    code('AI_WRITE_PROPOSAL_INVALID'));
+  const review = await bridge.stage(proposal);
+  assert.deepEqual(review.before, {topicName: '原主题', organizationRevision: 0});
+  assert.deepEqual(review.after, {sectionTitle: proposal.value.title});
+  const before = await rows(f.s, 'sections');
+  const receipt = await bridge.commit(approval(review));
+  assert.equal(receipt.action, 'section.create');
+  assert.equal(receipt.reviewed, true);
+  assert.equal(typeof receipt.createdSectionId, 'string');
+  const after = await rows(f.s, 'sections');
+  assert.equal(after.length, before.length + 1);
+  assert.equal(after.find(row => row.sectionId === receipt.createdSectionId)?.title,
+    proposal.value.title);
+  assert.deepEqual(await bridge.commit(approval(review)), receipt);
+  assert.equal(f.requests.length, 0);
+});
+
+test('CPV1-12 reviewed section creation refuses a Topic rename at native write', async () => {
+  const f = await fixture(), bridge = new AIWriteReviewService({store: f.s,
+    authorizeReview: async () => true});
+  const topic = await f.s.topic(f.topic.id);
+  const proposal = {
+    version: 1, proposalId: op(), action: 'section.create',
+    target: {kind: 'topic', id: topic.id, baseRevision: topic.revision,
+      organizationRevision: topic.organizationRevision},
+    scope: 'topic.sections', value: {title: '不得创建'},
+    rationale: '并发拒绝。', evidence: f.evidence,
+  };
+  const review = await bridge.stage(proposal);
+  const before = await rows(f.s, 'sections');
+  const nativeCreate = f.s.createSection.bind(f.s);
+  f.s.createSection = async request => {
+    await f.s.editTopic({id: topic.id, expectedRevision: topic.revision,
+      changes: {name: '人工已改名'}, operationId: op()});
+    return nativeCreate(request);
+  };
+  await assert.rejects(bridge.commit(approval(review)), code('AI_WRITE_STALE'));
+  assert.equal((await f.s.topic(topic.id)).name, '人工已改名');
+  assert.deepEqual(await rows(f.s, 'sections'), before);
+  assert.equal(f.requests.length, 0);
+});
+
 test('CPV1-12 native placement CAS refuses topic rename racing final commit', async () => {
   const f = await fixture(), bridge = new AIWriteReviewService({store: f.s,
     authorizeReview: async () => true});
