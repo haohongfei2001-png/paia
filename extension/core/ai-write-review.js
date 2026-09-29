@@ -25,6 +25,7 @@ export class AIWriteReviewService {
     if (!store || typeof store.topic !== 'function'
         || typeof store.entry !== 'function'
         || typeof store.placeEntry !== 'function'
+        || typeof store.createSection !== 'function'
         || typeof store.editTopic !== 'function'
         || typeof authorizeReview !== 'function') fail('AI_WRITE_UNAVAILABLE');
     this.#store = store;
@@ -63,6 +64,17 @@ export class AIWriteReviewService {
       if (!live(row) || row.id !== proposal.target.id
           || row.revision !== proposal.target.baseRevision) fail('AI_WRITE_STALE');
       return {before: {name: row.name}, after: {name: proposal.value.name}};
+    }
+    if (proposal.action === 'section.create') {
+      let row;
+      try { row = await store.topic(proposal.target.id); } catch { fail('AI_WRITE_STALE'); }
+      if (!live(row) || row.id !== proposal.target.id
+          || row.revision !== proposal.target.baseRevision
+          || row.organizationRevision !== proposal.target.organizationRevision)
+        fail('AI_WRITE_STALE');
+      return {before: {topicName: row.name,
+        organizationRevision: row.organizationRevision},
+        after: {sectionTitle: proposal.value.title}};
     }
     let entry, topic;
     try {
@@ -117,25 +129,36 @@ export class AIWriteReviewService {
       await this.#base(staged.proposal);
       if (staged.epoch !== this.#epoch) fail('AI_WRITE_REVOKED');
       const p = staged.proposal, operationId = crypto.randomUUID();
-      const result = p.action === 'topic.rename'
-        ? await this.#store.editTopic({
-            id: p.target.id, expectedRevision: p.target.baseRevision,
-            changes: {name: p.value.name}, operationId,
-          })
-        : await this.#store.placeEntry({
-            entryId: p.target.id, topicId: p.destination.topicId,
-            expectedEntryRevision: p.target.baseRevision,
-            expectedTopicRevision: p.destination.organizationRevision,
-            expectedTopicMetadataRevision: p.destination.baseRevision,
-            ...(p.destination.placementRevision === null ? {}
-              : {expectedPlacementRevision: p.destination.placementRevision}),
-            operationId,
-          });
+      let result;
+      if (p.action === 'topic.rename') {
+        result = await this.#store.editTopic({
+          id: p.target.id, expectedRevision: p.target.baseRevision,
+          changes: {name: p.value.name}, operationId,
+        });
+      } else if (p.action === 'section.create') {
+        result = await this.#store.createSection({
+          topicId: p.target.id,
+          expectedTopicRevision: p.target.organizationRevision,
+          expectedTopicMetadataRevision: p.target.baseRevision,
+          title: p.value.title, operationId,
+        });
+      } else {
+        result = await this.#store.placeEntry({
+          entryId: p.target.id, topicId: p.destination.topicId,
+          expectedEntryRevision: p.target.baseRevision,
+          expectedTopicRevision: p.destination.organizationRevision,
+          expectedTopicMetadataRevision: p.destination.baseRevision,
+          ...(p.destination.placementRevision === null ? {}
+            : {expectedPlacementRevision: p.destination.placementRevision}),
+          operationId,
+        });
+      }
       if (result?.conflict) fail('AI_WRITE_STALE');
       const receipt = {proposalId: p.proposalId, proposalDigest: staged.digest,
         action: p.action, scope: p.scope, objectId: p.target.id,
         baseRevision: p.target.baseRevision, operationId,
-        committedRevision: result.revision, reviewed: true};
+        committedRevision: result.revision, reviewed: true,
+        ...(p.action === 'section.create' ? {createdSectionId: result.sectionId} : {})};
       staged.receipt = receipt;
       return structuredClone(receipt);
     } finally {
