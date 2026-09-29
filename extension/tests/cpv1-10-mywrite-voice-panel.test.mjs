@@ -188,3 +188,23 @@ test('CPV1-10.4 default workspace has no voice authority and optional owner can 
  assert.deepEqual(await on.interruptVoice('lock'),{action:'capture_cancelled'});
  assert.equal(cancelled,1);assert.equal(on.canReplace(),true);on.dispose();
 });
+
+
+test('CPV1-10.3 destination failure retains complete corrected voice text without exposing private exception details',async()=>{
+ const session={async stop(){return null;},async cancel(){}};
+ const flow=createMyWriteVoiceReview({capture:{async start(){return session;}},transcribe:async()=>whole});
+ let fail=true,inserted=null;
+ const panel=createMyWriteVoicePanel({document,flow,onReviewedText:text=>{
+  if(fail)throw new Error('PRIVATE_DESTINATION_DETAIL '+text);inserted=text;return true;
+ }});
+ named(panel.element,'开始录音').click();await settle();
+ named(panel.element,'停止并转写').click();await settle();
+ const body=find(panel.element,x=>x.tag==='textarea'),corrected=whole+'\n完整更正';
+ body.value=corrected;named(panel.element,'将核对后的全文加入草稿').click();
+ const status=find(panel.element,x=>x.role==='status');
+ assert.equal(body.value,corrected);assert.equal(inserted,null);
+ assert.doesNotMatch(status.textContent,/PRIVATE_DESTINATION_DETAIL/);
+ assert.equal(panel.canLeave(),false);
+ fail=false;named(panel.element,'将核对后的全文加入草稿').click();
+ assert.equal(inserted,corrected);assert.equal(panel.canLeave(),true);panel.dispose();
+});
