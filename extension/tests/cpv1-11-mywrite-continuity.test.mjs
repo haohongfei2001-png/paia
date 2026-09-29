@@ -85,3 +85,19 @@ test('CPV1-11.0 bounded local two-device relay replays offline forks and deletio
  assert.equal(relay.size,4);
  assert.ok(Object.isFrozen(relay.inbox('device:A')));
 });
+
+
+test('CPV1-11.0 synthetic relay bounds metadata and returns immutable copies even at capacity',()=>{
+ const relay=new LocalMyWriteRelay();
+ for(let i=0;i<128;i++){
+  const row={...base,id:'draft:item'+i,writeId:'save:item'+i};
+  assert.equal(relay.publish(row).status,'stored');
+ }
+ assert.equal(relay.size,128);
+ const inbox=relay.inbox('device:B');assert.equal(inbox.length,128);
+ assert.ok(Object.isFrozen(inbox));assert.ok(Object.isFrozen(inbox[0]));
+ assert.throws(()=>relay.publish({...base,id:'draft:overflow',writeId:'save:overflow'}),
+  code('MYWRITE_CONTINUITY_RELAY_FULL'));
+ assert.equal(relay.publish({...base,id:'draft:item0',writeId:'save:item0'}).status,'duplicate');
+ assert.equal(relay.size,128);
+});
