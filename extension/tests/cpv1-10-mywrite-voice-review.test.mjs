@@ -108,3 +108,32 @@ test('CPV1-10.3 missing adapters and disposed review cannot create implicit capt
  assert.throws(()=>flow.accept({generation:review.generation,text:whole}),code('MYWRITE_VOICE_DISPOSED'));
  assert.deepEqual(f.counts,{start:1,stop:1,cancel:0,transcribe:1});
 });
+
+
+test('CPV1-10.4 denied microphone and rejected stop close capture without leaking private failure text',async()=>{
+ const denied=createMyWriteVoiceReview({
+  capture:{async start(){throw new Error('private device detail');}},
+  transcribe:async()=>{throw new Error('must not transcribe');}
+ });
+ await assert.rejects(()=>denied.start(),code('MYWRITE_VOICE_UNAVAILABLE'));
+ assert.equal(denied.state().phase,'failed');await denied.cancel();await denied.dispose();
+ const f=fixture({stop:()=>{throw new Error('private audio detail');}});
+ const flow=createMyWriteVoiceReview({capture:f.capture,transcribe:f.local});
+ await flow.start();await assert.rejects(()=>flow.stop(),code('MYWRITE_VOICE_TRANSCRIPTION_FAILED'));
+ assert.equal(f.counts.cancel,1);assert.equal(f.counts.transcribe,0);
+ assert.equal(flow.state().phase,'failed');await flow.cancel();
+ assert.equal(f.counts.cancel,1);await flow.dispose();
+});
+
+test('CPV1-10.4 interruption during failed-session cleanup fences the old result and does not revive review',async()=>{
+ const pending=deferred();let cancels=0;
+ const session={async stop(){throw new Error('private stop failure');},async cancel(){cancels++;await pending.promise;}};
+ const flow=createMyWriteVoiceReview({capture:{async start(){return session;}},transcribe:async()=>{throw new Error('must not transcribe');}});
+ await flow.start();const stopped=flow.stop();
+ while(cancels===0)await Promise.resolve();
+ await flow.cancel();pending.resolve();
+ await assert.rejects(stopped,code('MYWRITE_VOICE_CANCELLED'));
+ assert.equal(cancels,1);assert.equal(flow.state().phase,'idle');
+ assert.throws(()=>flow.preview(),code('MYWRITE_VOICE_NOT_READY'));
+ await flow.dispose();
+});
