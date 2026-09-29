@@ -77,7 +77,22 @@ export function createMyWriteVoicePanel({document,flow,onReviewedText}={}){
   }catch(error){refuse(error);}
  });
  redraw('显式开始录音。不会后台监听或自动保存。');
- return Object.freeze({element,canLeave:()=>!closed&&!pending&&retained===null&&flow.state().phase==='idle',dispose(){
+ async function interrupt(reason){
+  if(closed)throw new MyWriteVoiceError('MYWRITE_VOICE_DISPOSED');
+  if(!['background','lock','call','offline','microphone_denied'].includes(reason))
+   throw new MyWriteVoiceError('MYWRITE_VOICE_INVALID');
+  if(retained!==null||flow.state().phase==='review'){
+   redraw('录音已中断；完整转写仍在这里，请核对后显式加入草稿。');
+   return Object.freeze({action:'review_retained'});
+  }
+  if(flow.state().phase==='idle')return Object.freeze({action:'idle'});
+  const mine=++token;pending=false;reviewGeneration=null;body.value='';
+  try{await flow.cancel();
+   if(!closed&&mine===token)redraw('录音已中断；不会转写或自动保存。');
+   return Object.freeze({action:'capture_cancelled'});
+  }catch(error){if(!closed&&mine===token)refuse(error);throw new MyWriteVoiceError('MYWRITE_VOICE_UNAVAILABLE');}
+ }
+ return Object.freeze({element,interrupt,canLeave:()=>!closed&&!pending&&retained===null&&flow.state().phase==='idle',dispose(){
   if(closed)return;closed=true;token++;
   for(const [node,type,handler]of listeners)node.removeEventListener(type,handler);
   listeners.length=0;reviewGeneration=null;retained=null;body.value='';
