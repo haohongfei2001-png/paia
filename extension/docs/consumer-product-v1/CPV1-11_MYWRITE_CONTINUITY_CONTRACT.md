@@ -13,3 +13,5 @@ The synthetic two-device matrix covers concurrent offline edits, an explicit del
 ## Bounded synthetic relay
 
 A 128-operation, memory-only relay admits the exact metadata schema and exposes deterministic per-device inboxes. Repeated delivery is idempotent; a reused write identity with changed metadata is rejected. The tests replay two offline forks and a later deletion through that relay. It has no persistence, remote endpoint, account, real device trust, key recovery, plaintext payload channel or production Sync authority.
+
+The local relay rejects a reused or lower per-device sequence for a different operation. Duplicate exact writes remain idempotent. Sequence gates replay admission only; lineage, deletion and conflict decisions never use it as a merge clock.
