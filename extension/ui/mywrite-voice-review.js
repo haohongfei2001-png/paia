@@ -65,16 +65,17 @@ export function createMyWriteVoicePanel({document,flow,onReviewedText}={}){
    .catch(error=>{if(!closed&&mine===token)refuse(error);});
  });
  on(apply,'click',event=>{if(!event.isTrusted||closed||apply.disabled)return;
+  try{if(retained===null)retained=flow.accept({generation:reviewGeneration,text:body.value});}
+  catch(error){refuse(error);return;}
+  // A destination failure leaves the exact reviewed text visible for retry.
+  // Its private exception is never reflected into status or receipts.
   try{
-   if(retained===null)retained=flow.accept({generation:reviewGeneration,text:body.value});
-   // The callback is synchronous and returns true only after the owning editor
-   // has retained the exact full text. Refusal leaves it visible for retry.
    if(onReviewedText(retained)!==true){
     redraw('当前草稿暂不能接收全文；转写仍在这里，请保留后重试。');return;
    }
-   retained=null;reviewGeneration=null;body.value='';
-   redraw('核对后的全文已加入草稿。请显式保存本地草稿。');
-  }catch(error){refuse(error);}
+  }catch{redraw('当前草稿暂不能接收全文；转写仍在这里，请保留后重试。');return;}
+  retained=null;reviewGeneration=null;body.value='';
+  redraw('核对后的全文已加入草稿。请显式保存本地草稿。');
  });
  redraw('显式开始录音。不会后台监听或自动保存。');
  async function interrupt(reason){
