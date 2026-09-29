@@ -90,14 +90,28 @@ test('CPV1-11.0 bounded local two-device relay replays offline forks and deletio
 test('CPV1-11.0 synthetic relay bounds metadata and returns immutable copies even at capacity',()=>{
  const relay=new LocalMyWriteRelay();
  for(let i=0;i<128;i++){
-  const row={...base,id:'draft:item'+i,writeId:'save:item'+i};
+  const row={...base,id:'draft:item'+i,writeId:'save:item'+i,deviceSequence:i+1};
   assert.equal(relay.publish(row).status,'stored');
  }
  assert.equal(relay.size,128);
  const inbox=relay.inbox('device:B');assert.equal(inbox.length,128);
  assert.ok(Object.isFrozen(inbox));assert.ok(Object.isFrozen(inbox[0]));
- assert.throws(()=>relay.publish({...base,id:'draft:overflow',writeId:'save:overflow'}),
+ assert.throws(()=>relay.publish({...base,id:'draft:overflow',writeId:'save:overflow',deviceSequence:129}),
   code('MYWRITE_CONTINUITY_RELAY_FULL'));
- assert.equal(relay.publish({...base,id:'draft:item0',writeId:'save:item0'}).status,'duplicate');
+ assert.equal(relay.publish({...base,id:'draft:item0',writeId:'save:item0',deviceSequence:1}).status,'duplicate');
  assert.equal(relay.size,128);
+});
+
+
+test('CPV1-11.0 synthetic relay rejects per-device sequence reuse and stale replay without using sequence as a merge clock',()=>{
+ const relay=new LocalMyWriteRelay();relay.publish(base);
+ assert.throws(()=>relay.publish({...base,id:'draft:other',writeId:'save:other'}),
+  code('MYWRITE_CONTINUITY_SEQUENCE_REPLAY'));
+ assert.equal(relay.size,1);
+ const newer=next(base,{deviceId:'device:A',deviceSequence:3,writeId:'save:newer'});
+ relay.publish(newer);
+ assert.throws(()=>relay.publish(next(base,{deviceId:'device:A',deviceSequence:2,writeId:'save:stale'})),
+  code('MYWRITE_CONTINUITY_SEQUENCE_REPLAY'));
+ assert.equal(relay.size,2);
+ assert.equal(planMyWriteContinuity({local:base,remote:newer}).action,'accept_remote_fast_forward');
 });
