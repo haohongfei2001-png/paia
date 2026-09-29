@@ -37,7 +37,7 @@ export function createMyWriteWorkspace({document,store,draftId,topics=[],voiceFl
    if(!result?.ok)throw new MyWriteDraftError(result?.code||'MYWRITE_UNAVAILABLE');
    // Keep the old editor alive while the complete selected body is read.
    // New typing, save/IME activity or disposal cannot be erased by its reply.
-   if(composer!==prior||!prior.canReplace()){protectedWork();return false;}
+   if(composer!==prior||!prior.canReplace()||(voice&&!voice.canLeave())){protectedWork();return false;}
    const reference=next.getDraftReference();
    if(!next.canReplace()||(revision===0?reference!==null:
       reference?.id!==id||reference.revision!==revision))
