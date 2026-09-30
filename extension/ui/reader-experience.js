@@ -69,6 +69,7 @@ export class ReaderExperience {
   }
  }
  expand(prose){this.expanded.add(prose.dataset.editId);prose.classList.remove('reader-collapsed');prose.closest('.library-block')?.querySelector('.reader-expand')?.remove();}
+ invalidateInputs(ids){this.toolbar.hidden=true;this.selectedText='';for(const id of ids)this.expanded.delete(id);if(ids.includes(this.lastInput))this.lastInput=null;}
  unmount(){this.cancel();this.active=false;this.toolbar.hidden=true;}
  selection(){
   const selection=document.getSelection();const range=selection?.rangeCount?selection.getRangeAt(0):null;
