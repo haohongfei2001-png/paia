@@ -1,3 +1,4 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {ImportLedger} from '../core/import/ledger.js';import {ImportCoordinator} from '../core/import/coordinator.js';import {officialExportAdapter} from '../core/import/chatgpt-export.js';
@@ -23,7 +24,7 @@ for(const action of ['existing','standalone','ignore'])test('branch review '+act
  await f.load();const replay=await f.s.input(b.id);assert.equal(replay.documentId,after.documentId);assert.equal(replay.excluded,after.excluded);assert.equal(replay.branchStatus,undefined);assert.equal(f.requests.length,0);
  await assert.rejects(()=>f.ledger.resolveBranch({...q,operationId:crypto.randomUUID()}));
 });
-test('last branch moved out leaves original Source archive readable and failed target changes nothing',async()=>{
+test('CURRENT B-02 refusal + historical fixture: last branch moved out leaves original Source archive readable and failed target changes nothing',async()=>{
  const c=conversation(3,1);delete c.current_node;const f=await fixture([c]),b=(await rows(f.s,'blocks'))[0].value;
  const before=await rows(f.s,'blocks');await assert.rejects(()=>f.ledger.resolveBranch({id:b.id,expectedRevision:b.revision,operationId:crypto.randomUUID(),action:'existing',documentId:'missing'}));assert.deepEqual(await rows(f.s,'blocks'),before);
  await f.ledger.resolveBranch({id:b.id,expectedRevision:b.revision,operationId:crypto.randomUUID(),action:'standalone'});
@@ -31,5 +32,5 @@ test('last branch moved out leaves original Source archive readable and failed t
  await f.s.setOrganizerControls({inputReadingSort:'desc',readingSort:'asc'});
  const backup=await exported(new BackupService(f.s,{appVersion:'0.9.1'})),target=await completeFixture({texts:[]}),service=new BackupService(target.s,{appVersion:'0.9.1'}),stage=await prepared(service,backup);await service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity});
  assert.deepEqual(await rows(target.s,'records'),await rows(f.s,'records'));assert.deepEqual(await rows(target.s,'blocks'),await rows(f.s,'blocks'));assert.deepEqual(await rows(target.s,'revisions'),await rows(f.s,'revisions'));assert.equal((await target.s.organizerControls()).inputReadingSort,'desc');assert.equal((await target.s.page({view:'archive',documentId:b.documentId})).records.length,1);
- await f.s.trash(b.sourceRecordId);assert.equal((await f.s.page({view:'archive'})).documents.length,0);assert.ok((await rows(f.s,'documents')).some(d=>d.id===b.documentId));await f.s.restore(b.sourceRecordId);assert.equal((await f.s.page({view:'archive'})).documents.length,1);await f.s.purge(b.sourceRecordId,true);assert.equal((await rows(f.s,'documents')).some(d=>d.id===b.documentId),false);assert.equal((await rows(f.s,'records')).length,0);
+ await f.s.trash(b.sourceRecordId);assert.equal((await f.s.page({view:'archive'})).documents.length,0);assert.ok((await rows(f.s,'documents')).some(d=>d.id===b.documentId));await f.s.restore(b.sourceRecordId);assert.equal((await f.s.page({view:'archive'})).documents.length,1);await admitPreGatePurgeFixture(f.s,b.sourceRecordId,true);assert.equal((await rows(f.s,'documents')).some(d=>d.id===b.documentId),false);assert.equal((await rows(f.s,'records')).length,0);
 });

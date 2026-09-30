@@ -1,3 +1,4 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {RevisitService,selectResurface} from '../core/revisit.js';
@@ -71,14 +72,14 @@ test('CPV1-07 actual Revisit gives fixed explanations and preserves all source/w
  assert.deepEqual((await f.service.status({includeOld:true})).resurface,[]);
 });
 
-test('CPV1-07 exclusions and purge remove priority candidates without replay or cached previews',async()=>{
+test('CURRENT B-02 refusal + historical fixture: CPV1-07 exclusions and purge remove priority candidates without replay or cached previews',async()=>{
  const f=await fixture();await f.reader.configure({oldContent:true});
  await f.reader.configure({kind:'input',id:f.blocks[0].id,excluded:true});
  let result=await f.service.status({includeOld:true});
  assert.equal(result.resurface.length,4);
  assert.equal(result.resurface.some(x=>x.id===f.blocks[0].id),false);
  assert.equal(result.resurface[0].id,f.blocks[1].id);
- await f.s.permanentDelete(f.blocks[1].originalTextReference);
+ await admitPreGatePurgeFixture(f.s,f.blocks[1].originalTextReference);
  result=await f.service.status({includeOld:true});
  assert.equal(result.resurface.length,4);
  assert.ok(result.resurface.every(x=>!f.blocks.slice(0,2).some(b=>b.id===x.id)));
@@ -155,7 +156,7 @@ async function pagedPriorityFixture(size,workedPositions){
  return {...f,worked,indexes,service,reader};
 }
 
-test('CPV1-07 Revisit priority spans real cursor pages before selecting its finite set',async()=>{
+test('CURRENT B-02 refusal + historical fixture: CPV1-07 Revisit priority spans real cursor pages before selecting its finite set',async()=>{
  const f=await pagedPriorityFixture(205,[0,1,2,3]),before=await authority(f.s);
  const result=await f.service.status({includeOld:true});
  assert.equal(result.resurface.length,4);assert.equal(result.resurfaceTruncated,false);
@@ -168,7 +169,7 @@ test('CPV1-07 Revisit priority spans real cursor pages before selecting its fini
  assert.equal(excluded.resurface.length,4);
  assert.equal(excluded.resurface.some(x=>x.id===f.worked[0].id),false);
  assert.equal(excluded.resurface.filter(x=>x.meaningful).length,3);
- await f.s.permanentDelete(f.worked[1].originalTextReference);
+ await admitPreGatePurgeFixture(f.s,f.worked[1].originalTextReference);
  const purged=await f.service.status({includeOld:true});
  assert.equal(purged.resurface.filter(x=>x.meaningful).length,2);
  assert.ok(purged.resurface.every(x=>!f.worked.slice(0,2).some(b=>b.id===x.id)));

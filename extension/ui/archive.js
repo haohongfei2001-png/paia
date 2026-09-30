@@ -359,7 +359,16 @@ installSaveLifecycle(()=>[editor,thoughts.editor,thoughts.dialogEditor,thoughts.
 $('settings-branch-review').addEventListener('click',()=>void navigate('excluded'));
 function revisionText(value,kind){if(kind==='title')return value.title||'使用来源标题';const text=kind==='thought'?value.thoughtText:value.libraryText??'未编辑的来源内容（通过查看来源阅读）';return text+(value.note?'\n备注：'+value.note:'')+(kind==='input'?'\n'+(value.excluded?'已从 Input Archive 移除':'保留在 Input Archive'):'');}
 let revisionCursor=null,revisionContext=null;
-async function purgeSource(id){const active=editor;if(active){active.collect();if(!await active.flush()){notify('请先完成并保存当前输入修改，再删除来源。');return;}}if(!await confirmReaderAction({title:'永久删除来源',text:'永久删除此来源的原文、全部快照与相关可恢复历史，并阻止再次收录。依赖呈现会失效；可证明独立的人工内容保留。无法撤销，也不能删除外部平台或已导出的副本。',confirm:'永久删除，无法撤销',danger:true}))return;const result=await command('PURGE_SOURCE',{id,confirm:true});if(result){$('info-dialog').close();$('info-content').replaceChildren();$('revision-dialog').close();$('revision-list').replaceChildren();infoIds=[];notify('来源已永久删除，相关历史不能恢复原始数据。');}}
+async function purgeSource(id){
+ const refused=async()=>{readingModals.close();await confirmReaderAction({title:tc('暂不能永久删除'),text:tc('这条来源包含经过人工改写的派生内容，或无法确定其删除边界。删除边界尚未确定。没有删除任何材料，也没有清除恢复草稿。'),confirm:readerCopy('关闭','Close')});};
+ let preview;try{preview=await request('PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',{id});}catch{error(tc('暂时无法核对删除范围。没有删除任何材料。'));return;}
+ if(preview.state==='owner_gate_required'){await refused();return;}
+ if(preview.state!=='unambiguous'){error(tc('暂时无法完整核对删除范围。没有删除任何材料。'));return;}
+ const active=editor;if(active){active.collect();if(!await active.flush()){notify(tc('请先完成并保存当前输入修改，再删除来源。'));return;}}
+ if(!await confirmReaderAction({title:tc('永久删除来源'),text:tc('永久删除此来源的原文、全部快照与相关可恢复历史，并阻止再次收录。提交前会再次核对人工内容和恢复草稿；边界不明确时不会删除。无法撤销，也不能删除外部平台或已导出的副本。'),confirm:tc('永久删除，无法撤销'),danger:true}))return;
+ try{await request('PURGE_SOURCE',{id,confirm:true});readingModals.close();infoIds=[];await refresh();notify(tc('来源已永久删除，相关历史不能恢复原始数据。'));}
+ catch(e){if(e.code==='SOURCE_PURGE_OWNER_GATE'){await refused();return;}error(tc('暂时无法完成永久删除。请重新核对删除范围。'));}
+}
 async function showRevisionOwners(){
  const id=documentId,dialog=$('revision-dialog'),list=$('revision-list');dialog.querySelector('h2').textContent=tc('当前 Conversation · 修改历史');list.replaceChildren();$('revision-more').hidden=true;
  const current=readingModals.open(dialog,{trigger:readingInvoker,target:{kind:'conversation',ref:id}}),label=element('label','',tc('选择要查看修改历史的 Input')),select=element('select'),more=element('button','',tc('加载更多 Input')),feedback=element('p','muted');select.setAttribute('aria-label',tc('修改历史的 Input'));select.append(new Option(tc('选择 Input…'),''),new Option(tc('Conversation 标题修改'),'__title__'));label.append(select);list.append(element('p','muted',tc('每条 Input 有各自的工作版本；不是 Conversation 的原子历史。')),label,more,feedback);

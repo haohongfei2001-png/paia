@@ -1,3 +1,4 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -15,14 +16,14 @@ test('schema5 migration is lossless, removes local private state, verifies recov
  assert.equal((await next.migrationStatus()).verified,true);assert.equal((await next.migrationStatus()).recoveryVerified,true);
  const again=new IndexedArchiveStore(local,{indexedDB:idb});assert.deepEqual((await again.snapshot()).records,before.records);
 });
-test('IndexedDB preserves immutable sources, concurrent dedupe, editor conflicts and permanent ignores',async()=>{
+test('CURRENT B-02 refusal + historical fixture: IndexedDB preserves immutable sources, concurrent dedupe, editor conflicts and permanent ignores',async()=>{
  const local=storage(),s=new IndexedArchiveStore(local,{indexedDB:new IDBFactory()});await s.consent(true);const epoch=(await s.status()).epoch;
  await Promise.all(Array.from({length:8},()=>s.capture(request(epoch))));let state=await s.snapshot();assert.equal(state.records.length,1);
  const r=state.records[0],b=state.library.blocks[0],doc=state.conversations[0];
  const edit={documentId:doc.id,blocks:[{id:b.id,expectedRevision:b.revision,libraryText:'Authored',note:'Note',excluded:true}]};
  assert.equal((await s.editDocument(edit)).ok,true);assert.equal((await s.editDocument(edit)).conflict,true);
  await s.capture(request(epoch));state=await s.snapshot();assert.equal(state.library.blocks[0].libraryText,'Authored');assert.equal(state.library.blocks[0].excluded,true);assert.equal(state.records[0].originalText,r.originalText);
- await s.trash(r.id);await s.purge(r.id);await s.capture(request(epoch,'Changed source'));state=await s.snapshot();assert.equal(state.records.length,0);assert.equal(state.library.blocks[0].libraryText,'Authored');assert.deepEqual(state.library.blocks[0].provenance,[]);
+ await s.trash(r.id);await admitPreGatePurgeFixture(s,r.id,false);await s.capture(request(epoch,'Changed source'));state=await s.snapshot();assert.equal(state.records.length,0);assert.equal(state.library.blocks[0].libraryText,'Authored');assert.deepEqual(state.library.blocks[0].provenance,[]);
  assert.equal((await s.repository.tombstones()).length,1);
 });
 test('pagination and search include every matching conversation without resetting authored fields',async()=>{
@@ -89,7 +90,7 @@ test('frozen store and IndexedDB agree field by field through business operation
  // compare all historical content fields unchanged, and verify the new metadata.
  for(const block of b.library.blocks)if(block.recoveryPurgeRevision!==undefined){assert.equal(block.recoveryPurgeRevision,block.revision);assert.equal(block.sourceRecordId,null);delete block.recoveryPurgeRevision;}
  for(const field of ['records','library','conversations','preferences','settings'])assert.deepEqual(b[field],a[field],label+':'+field);for(const view of ['library','archive','excluded'])for(const query of ['','synthetic','work','note','absent']){const expected=workspaceDocuments(a,view,query),actual=(await stores[1].page({view,query})).documents;for(const field of ['id','messageCount','firstSourceSentAt','lastSourceSentAt','unknownCount'])assert.deepEqual(actual.map(x=>x[field]),expected.map(x=>x[field]),label+':'+view+':'+field);}};
- const both=async(method,...args)=>{for(const s of stores)await s[method](...structuredClone(args));await compare(method);};await both('consent',true);
+ const both=async(method,...args)=>{for(const s of stores){if(method==='purge'&&s instanceof IndexedArchiveStore)await admitPreGatePurgeFixture(s,args[0],false);else await s[method](...structuredClone(args));}await compare(method);};await both('consent',true);
  for(let i=0;i<3;i++){const q=request(1,'Synthetic original '+i,'synthetic-message-'+i);q.messages[0].sourceTime={state:'valid',createTime:1609459200+i*86400,updateTime:null};if(i===1){q.chat.id+='-other';q.chat.url+='-other';}await both('capture',q);}
  let state=await stores[0].snapshot(),r=state.records[0],b=state.library.blocks[0],d=state.conversations[0];await both('updateLibrary',b.id,{libraryText:'Synthetic user work',note:'Synthetic note'});await both('updateDocument',d.id,{userTitle:'Synthetic authored title'});await both('excludeLibrary',state.library.blocks[2].id,true);await both('update',r.id,{note:'raw note',hidden:true});await both('resolveLegacy',r.id,true);await both('trash',r.id);await both('restore',r.id);await both('trash',r.id);await both('purge',r.id);await both('setEnabled',false);await both('updatePreferences',{timeDisplay:'date_only'});
 });

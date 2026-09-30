@@ -1,3 +1,4 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {completeFixture,seedMetadata,settled,allPages,factDigest,windowOptions,ArchiveNavigationQuery,rows,NAV_CATALOG,evidence} from './harness/ans-navigation.mjs';
@@ -75,14 +76,14 @@ test('ANS-04 move/rename/deletion paths are exclusive; parent deletion does not 
  const windows=[];for(const g of groups)windows.push(...await allPages(q,{providerKey:'chatgpt',groupKind:g.groupKind,...(g.projectRef?{projectRef:g.projectRef}:{})}));
  assert.equal(windows.length,50);assert.equal(new Set(windows.map(w=>w.documentId)).size,50);
 });
-test('ANS-04 hot-index purge fences old generations, removes source refs/titles, and keeps genuinely detached user work',async()=>{
+test('CURRENT B-02 refusal + historical fixture: ANS-04 hot-index purge fences old generations, removes source refs/titles, and keeps genuinely detached user work',async()=>{
  const {s}=await completeFixture({texts:['PURGE_SOURCE_WORDING']});await s.finishFoundation();const snapshot=await s.snapshot(),b=snapshot.library.blocks[0],doc=snapshot.conversations[0];
  await edit(s,b,'Independent retained user edit');await s.updateDocument(doc.id,{userTitle:'User retained title'});
  const structure=new SourceStructureStore(s),conv={platform:doc.platform,sourceConversationId:doc.sourceConversationId},P=project('PURGE_PROJECT_ID');
  await observe(structure,conv,1,0,{membership:{state:'project',projectRef:P},projectName:'PURGE_PROJECT_TITLE',sourceStatus:'observed_active'});
  await structure.observeProject({projectRef:P,expectedRevision:0,observedAt:at(2),evidence:evidence(2),currentName:'PURGE_PROJECT_TITLE'});
  const q=new ArchiveNavigationQuery(s);await settled(q,{providerKey:'chatgpt'});const hot=await settled(q,{providerKey:'chatgpt',groupKind:'project',projectRef:P});assert.equal(hot.items.length,1);
- await s.permanentDelete(snapshot.records[0].id);
+ await admitPreGatePurgeFixture(s,snapshot.records[0].id);
  assert.equal(await structure.conversation(conv),null);assert.equal(await structure.project(P),null);
  assert.equal((await rows(s,'meta')).some(r=>r.id.startsWith('ans:')),false,'all old generations are removed in purge transaction');
  const cold=await q.page({selectedDocumentId:doc.id});assert.equal(cold.coverage.state,'building');assert.deepEqual(cold.items,[]);

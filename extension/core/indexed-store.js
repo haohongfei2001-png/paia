@@ -10,6 +10,7 @@ import {syncLibrary,emptyLibrary,detachSources,validateLibraryChanges,memoryCont
 import {applyDocumentEdit,validatePreferences} from './workspace.js';
 import {sanitizeDiagnostics,sanitizeStructure,sanitizeCaptureHealth} from './diagnostics.js';
 import {purgeSourceStructureForRecords} from './source-structure-store.js';
+import {assessSourcePurge,sourcePurgePreview} from './source-purge-admission.js';
 
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const error=code=>{throw new ArchiveError(code);};
@@ -108,15 +109,25 @@ export class IndexedArchiveStore {
  update(id,changes){return this.changeRecord(id,r=>{if(r.deletedAt)error('INVALID_REQUEST');Object.assign(r,validateChanges(changes));});}
  trash(id){return this.changeRecord(id,r=>{r.deletedAt=this.clock();});}
  restore(id){return this.changeRecord(id,r=>{r.deletedAt=null;});}
- async sourceRecordIdsForPurge(id){
+ sourcePurgePreflight(id){return this.run(async()=>{
+  if(typeof id!=='string'||!id.length||id.length>512)error('INVALID_REQUEST');
   const pre=await this.repository.transaction(false,t=>t.get('records',id));if(!pre)error('INVALID_REQUEST');
-  const r=pre.value,key=/^[a-f0-9]{64}$/.test(r.sourceKey||'')?r.sourceKey:(r.chatId&&r.sourceMessageId?await identifySource(r.chatId,r.sourceMessageId):null);if(!key)error('INVALID_REQUEST');
-  return this.repository.transaction(false,async t=>{const ids=new Set((await t.all('recordIndex','bySource',key)).map(row=>row.id));if(r.chatId&&r.sourceMessageId)for(const row of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))if(!/^[a-f0-9]{64}$/.test(row.sourceKey||''))ids.add(row.id);ids.add(id);return [...ids];});
- }
+  const record=pre.value,key=/^[a-f0-9]{64}$/.test(record.sourceKey||'')?record.sourceKey:(record.chatId&&record.sourceMessageId?await identifySource(record.chatId,record.sourceMessageId):null);if(!key)error('SOURCE_PURGE_UNAVAILABLE');
+  const recovery=await this.local.get(null);
+  try{return sourcePurgePreview(id,await this.repository.transaction(false,t=>assessSourcePurge(t,{id,key,record},recovery)));}
+  catch(e){if(e.code==='SOURCE_PURGE_OWNER_GATE')return {state:'owner_gate_required',gate:'B-02',targetRef:id};if(e.code==='SOURCE_PURGE_UNAVAILABLE')return {state:'unavailable',targetRef:id};throw e;}
+ });}
  purge(id,permanent=false){return this.run(async()=>{
   const pre=await this.repository.transaction(false,t=>t.get('records',id));if(!pre||!permanent&&!pre.value.deletedAt)error('INVALID_REQUEST');const r=pre.value,key=/^[a-f0-9]{64}$/.test(r.sourceKey||'')?r.sourceKey:(r.chatId&&r.sourceMessageId?await identifySource(r.chatId,r.sourceMessageId):null);if(!key)error('INVALID_REQUEST');
+  // Read Chrome recovery outside IDB transaction lifetime. The production
+  // caller holds withRecoveryFence; store.run serializes all canonical writers.
+  const rawRecovery=await this.local.get(null);
+  await this.repository.transaction(false,t=>assessSourcePurge(t,{id,key,record:r},rawRecovery));
+  const finalRecovery=await this.local.get(null);
   const result=await this.repository.transaction(true,async t=>{
-   this.changedSources.add(key);const current=await t.get('records',id);if(!current||!permanent&&!current.value.deletedAt)error('INVALID_REQUEST');
+   const current=await t.get('records',id);if(!current||!permanent&&!current.value.deletedAt)error('INVALID_REQUEST');
+   await assessSourcePurge(t,{id,key,record:current.value},finalRecovery);
+   this.changedSources.add(key);
    const indexes=await t.all('recordIndex','bySource',key);if(r.chatId&&r.sourceMessageId)for(const ix of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))if(!/^[a-f0-9]{64}$/.test(ix.sourceKey||'')&&!indexes.some(x=>x.id===ix.id))indexes.push(ix);if(!indexes.some(x=>x.id===id))indexes.push(await t.get('recordIndex',id));const removed=[];for(const ix of indexes)removed.push((await t.get('records',ix.id)).value);
    const docs=new Set((await t.all('documents','byChat',chatOf(r))).map(d=>d.id)),blocks=new Map();for(const r of removed)for(const b of await t.all('blockIndex','byRecord',r.id))blocks.set(b.id,{index:b,value:(await t.get('blocks',b.id)).value});
    await purgeSourceStructureForRecords(this,t,removed);

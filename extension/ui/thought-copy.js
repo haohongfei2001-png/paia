@@ -1,5 +1,16 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '暂不能永久删除':'Permanent deletion is unavailable',
+ '这条来源包含经过人工改写的派生内容，或无法确定其删除边界。删除边界尚未确定。没有删除任何材料，也没有清除恢复草稿。':'This Source has human-edited derivatives or unknown deletion boundaries. The deletion policy remains unresolved. No material or recovery draft was deleted.',
+ '暂时无法核对删除范围。没有删除任何材料。':'Deletion scope could not be checked. No material was deleted.',
+ '暂时无法完整核对删除范围。没有删除任何材料。':'The complete deletion scope could not be checked. No material was deleted.',
+ '永久删除来源':'Permanently delete Source',
+ '永久删除此来源的原文、全部快照与相关可恢复历史，并阻止再次收录。提交前会再次核对人工内容和恢复草稿；边界不明确时不会删除。无法撤销，也不能删除外部平台或已导出的副本。':'Permanently delete this Source, all its snapshots and related recoverable history, and prevent recapture. Human work and recovery drafts are checked again at commit; unclear boundaries refuse deletion. This cannot be undone and does not delete external or exported copies.',
+ '永久删除，无法撤销':'Permanently delete; cannot undo',
+ '暂时无法完成永久删除。请重新核对删除范围。':'Permanent deletion did not complete. Check the deletion scope again.',
+ '请先完成并保存当前输入修改，再删除来源。':'Finish and save the current Input edit before deleting Source.',
+ '来源已永久删除，相关历史不能恢复原始数据。':'Source was permanently deleted. Related history cannot restore its original data.',
+
  '请关闭修改历史后核对保存结果。':'Close edit history to check the save result.','关闭修改历史':'Close edit history',
  '迁移初始版本':'Migration baseline','初始版本':'Initial version','标题编辑':'Title edit','重大编辑':'Major edit','整条删除':'Removed Input','恢复':'Restored','重要版本':'Important version',
  '恢复操作前':'Restore before this change','恢复此版本':'Restore this version','当前工作版本':'Current working version','所选工作版本':'Selected working version','备注':'Note','使用来源标题':'Use Source title',

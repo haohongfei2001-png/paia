@@ -1,3 +1,4 @@
+import {admitPreGatePurgeBrowserFixture} from './harness/pre-gate-purge-browser-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -52,10 +53,10 @@ for(const artifact of ['source','release'])test(`ANS-09 ${artifact}: legacy Back
   await p.locator('#primary-nav [data-view="thoughts"]').click();const topic=legacy.backup.find(x=>x.section==='topics').value;
   await eventually(()=>p.locator('[data-topic-id="'+topic.id+'"]').isVisible(),'legacy Topic visible');await p.locator('[data-topic-id="'+topic.id+'"]').click();await eventually(async()=>await p.locator('#topic-body [data-entry-id]').count()>0,'continuous Topic opens');
   const ids=await p.locator('#topic-body [data-entry-id]').evaluateAll(nodes=>nodes.map(x=>x.dataset.entryId));assert.equal(new Set(ids).size,ids.length);assert.ok(ids.length<=120);await p.screenshot({path:`work/ans-09/${artifact}-legacy-topic.png`,fullPage:false});
-  for(const source of initial.filter(x=>x.section==='sources'))await rpc(second,'PURGE_SOURCE',{id:source.value.id,confirm:true});
+  const purgeEvidence=[];for(const source of initial.filter(x=>x.section==='sources'))purgeEvidence.push(await admitPreGatePurgeBrowserFixture(second,source.value.id,{allowCurrentPure:true}));
   const purged=await backup(second);assert.doesNotMatch(JSON.stringify(purged),/ANS09 Project|ans09-project|ANS09 legacy immutable source|ANS09 repeated exact expression/);
   const retained=await rpc(second,'GET_LIBRARY_ENTRY',{id:legacy.independentEntryId});assert.equal(retained.body,'ANS09 wholly new human thought');
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
-  Object.assign(report,{legacyRestore:true,multiTabSaveFailure:true,metadataMoveDelete:true,restart:true,purge:true,retainedHumanBody:true,externalRequests:0,extensionRequests:0,aiRequests:0});await writeFile(`work/ans-09/${artifact}-integration.json`,JSON.stringify(report,null,2));
+  Object.assign(report,{legacyRestore:true,multiTabSaveFailure:true,metadataMoveDelete:true,restart:true,purgeEvidence,retainedHumanBody:true,externalRequests:0,extensionRequests:0,aiRequests:0});await writeFile(`work/ans-09/${artifact}-integration.json`,JSON.stringify(report,null,2));
  }finally{await h.close();}
 });

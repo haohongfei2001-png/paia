@@ -1,3 +1,4 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {legacy,upgraded,canonical,digest} from './harness/ans09-legacy.mjs';
@@ -51,7 +52,7 @@ test('ANS-09 M05 corrupt/truncated/oversized/unknown-version legacy restore leav
  const service=new BackupService(f.s),stage=await prepared(service,legacy.backup);assert.equal(stage.preview.reason,'BACKUP_TARGET_NOT_EMPTY');await assert.rejects(()=>service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.deepEqual(await canonical(f.s),before);
 });
 
-test('ANS-09 M04/M06 legacy upgrade then external-delete history, Backup and purge preserve human work without source leakage',async()=>{
+test('CURRENT B-02 refusal + historical fixture: ANS-09 M04/M06 legacy upgrade then external-delete history, Backup and purge preserve human work without source leakage',async()=>{
  const f=await upgraded(),before=await canonical(f.s),doc=before.documents[0].value,conv={platform:doc.platform,sourceConversationId:doc.sourceConversationId},projectRef={providerKey:'chatgpt',namespace:'ans09',projectId:'ANS09_PURGE_PROJECT'},structure=new SourceStructureStore(f.s);
  const ev=n=>({id:'ans09-'+n,contractId:'ans09.synthetic',contractVersion:1,channel:'synthetic',scope:'conversation',originClass:'fixture',requestGeneration:n,evidenceKind:'relationship',digest:n.toString(16).padStart(64,'0')});
  for(const [n,fields]of [[1,{membership:{state:'project',projectRef},projectName:'ANS09_PURGE_TITLE'}],[2,{sourceStatus:'confirmed_deleted'}]])await structure.observeConversation({conversationRef:conv,expectedRevision:n-1,observedAt:new Date(Date.UTC(2026,8,20,0,n)).toISOString(),evidence:ev(n),...fields});
@@ -59,7 +60,7 @@ test('ANS-09 M04/M06 legacy upgrade then external-delete history, Backup and pur
  const items=await exported(new BackupService(f.s)),target=await completeFixture({texts:[]}),service=new BackupService(target.s),stage=await prepared(service,items);await service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity});
  const restored=new SourceStructureStore(target.s);assert.equal((await restored.conversation(conv)).sourceStatus,'confirmed_deleted');
  const events=(await restored.history({kind:'conversation',conversationRef:conv})).items;assert.equal(events.length,2);assert.equal(events[0].observedAt,'2026-09-20T00:01:00.000Z');assert.ok(events.every(x=>x.evidence.channel==='restored'));
- for(const row of await rows(target.s,'records'))await target.s.permanentDelete(row.id);await target.s.drainPurgeCleanup();
+ for(const row of await rows(target.s,'records'))await admitPreGatePurgeFixture(target.s,row.id);await target.s.drainPurgeCleanup();
  assert.equal(await restored.conversation(conv),null);assert.equal(await restored.project(projectRef),null);
  assert.doesNotMatch(JSON.stringify(await exported(service)),/ANS09_PURGE_PROJECT|ANS09_PURGE_TITLE|ANS09 legacy immutable source|ANS09 repeated exact expression/);
  assert.equal((await target.s.entry(legacy.independentEntryId)).body,'ANS09 wholly new human thought');

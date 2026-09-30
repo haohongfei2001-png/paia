@@ -58,7 +58,13 @@ if(partition.some(part=>!part.length)
     || partition.flat().sort().join('|')!==current.join('|')
     || !partition[0].includes('cpv1-07-historical-comparison-chrome-e2e.test.mjs')
     || partition[1].includes('cpv1-07-historical-comparison-chrome-e2e.test.mjs')
-    || !partition[0].includes('cpv1-02-dvn-working-revision-chrome-e2e.test.mjs')){
+    || !partition[0].includes('cpv1-02-dvn-working-revision-chrome-e2e.test.mjs')
+    || !partition[1].includes('cpv1-02-dvn-purge-chrome-e2e.test.mjs')){
  throw Error('CURRENT_BROWSER_SHARD_PARTITION_INVALID');
+}
+const beforeQ4=current.filter(name=>name!=='cpv1-02-dvn-purge-chrome-e2e.test.mjs');
+for(const [position,name]of beforeQ4.entries()){
+ const expected=['cpv1-02-dvn-working-revision-chrome-e2e.test.mjs','cpv1-07-historical-comparison-chrome-e2e.test.mjs'].includes(name)?1:position%4+1;
+ if(testShard(name,current.indexOf(name),4,'browser E2E')!==expected)throw Error('Q4_SHIFTED_PREVIOUS_BROWSER_ROUTING:'+name);
 }
 console.log(`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=${formerCore.length} uir=${uir.length} ans=${ans.length} cpr=${cpr.length}`);
