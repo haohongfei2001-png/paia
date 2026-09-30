@@ -79,10 +79,10 @@ const schema = await readFile(new URL('../adapter/response-parser.js', import.me
 const observer = await readFile(new URL('../content/response-observer.js', import.meta.url), 'utf8');
 function observerFixture() {
   const listeners = new Map(); const sent = []; const calls = []; let result;
-  const window = {addEventListener(k, f) {listeners.set(k, f);}, postMessage(v) {sent.push(v);}, fetch(...args) {calls.push({self: this, args}); return result;}};
-  const context = vm.createContext({window, location: {pathname: `/c/${chat}`}, Response, URL, TextDecoder, setTimeout, clearTimeout});
+  const window = {addEventListener(k, f) {listeners.set(k, f);}, postMessage(v) {if(v.channel==='archive-response-metadata-v2')sent.push(v);}, fetch(...args) {calls.push({self: this, args}); return result;}};
+  const context = vm.createContext({window, location: {origin: 'https://chatgpt.com', pathname: `/c/${chat}`}, Response, URL, TextDecoder, setTimeout, clearTimeout});
   vm.runInContext(schema, context); vm.runInContext(observer, context);
-  const control = (active = true, arm = 0) => listeners.get('message')({source: window, origin: 'https://chatgpt.com', data: {channel: 'archive-response-control-v1', active, chat, epoch: 1, session: 'test-session', arm}});
+  const control = (active = true, arm = 0) => listeners.get('message')({source: window, origin: 'https://chatgpt.com', data: {channel: 'archive-response-control-v2', active, chat, epoch: 1, session: 'test-session', arm}});
   return {window, get sent() {return sent.filter(value => !value.observedFetchResponse);}, observations: sent, calls, context, control, setResult(p) {result = p;}};
 }
 function response(body, path = `/backend-api/conversation/${chat}`, type = 'application/json') {

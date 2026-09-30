@@ -1,3 +1,7 @@
+## Bounded capture recovery — 2026-09-30
+
+The owner approved `scripting` plus exact `https://chatgpt.com/*` host access solely to replace stale capture scripts in already-open ChatGPT documents. No broad tab/history, other host, new provider, external network call, telemetry or content category is added. Recovery is metadata-only until a fresh trusted consent/epoch check; Source identity, tombstones, exclusions, unsent-draft and assistant-content boundaries are unchanged. It never reloads a ChatGPT page or handles the user's input field. See [scope and verification](docs/capture-recovery-20260930.md). Earlier permission statements below describe their historical releases.
+
 ## Capture Foundation Hardening v1 — 2026-09-18
 
 Capture remains limited to confirmed user text and its existing provenance boundary. Bounded passive copies of already-started allowed responses can transiently contain mixed response bytes; only explicitly validated user identity/time metadata is projected for canonical matching. No assistant body, draft, keystroke, request body, cookie or credential is added to the archive or diagnostics by this change. No extra request, host permission, telemetry or provider service is introduced.

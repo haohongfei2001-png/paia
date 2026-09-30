@@ -1,6 +1,21 @@
 /* ISOLATED world: bounded reconciliation for body-free source observations. */
 (() => {
   'use strict';
+  globalThis.PAIASourceStructureBridge?.dispose();
+  const lifecycle=globalThis.PAIACaptureLifecycle;
+  const contentVersion=lifecycle?.version||(()=>{try{return chrome.runtime.getManifest().version;}catch{return null;}})();
+  let disposed=false;
+  let generation=0;
+  const requests=new Set();
+  function available(){
+    try{return !disposed&&lifecycle?.active!==false&&(!lifecycle||globalThis.PAIACaptureLifecycle===lifecycle)&&!!chrome.runtime.id;}
+    catch{return false;}
+  }
+  function current(token=generation){
+    if(!available()){if(!disposed)invalidate();return false;}
+    return !stopped&&generation===token;
+  }
+  function invalidate(){if(lifecycle?.active)lifecycle.dispose();else dispose();}
   const adapter=new globalThis.ChatGPTAdapter();
   const sourceStructure=new globalThis.ChatGPTSourceStructure({adapter});
   const POLL_MS=750;
@@ -15,27 +30,32 @@
   let pending=null;
 
   function reset(){
+    generation++;
     sourceStructure.reset();
     activeKey=null;
     pending=null;
     session=crypto.randomUUID();
   }
   function schedule(){
-    if(stopped||inFlight||timer!==null)return;
+    if(!current()||inFlight||timer!==null)return;
     timer=setTimeout(()=>{timer=null;void cycle();},POLL_MS);
   }
   async function send(message){
-    let deadline;
+    if(!current()){if(!available())invalidate();return null;}
+    const token=generation;
+    let deadline,cancel;
     try{
-      if(!globalThis.chrome?.runtime?.id){stopped=true;return null;}
-      return await Promise.race([
-        chrome.runtime.sendMessage(message),
+      const cancelled=new Promise(resolve=>{cancel=()=>resolve(null);requests.add(cancel);});
+      const reply=await Promise.race([
+        chrome.runtime.sendMessage({...message,contentVersion}),cancelled,
         new Promise(resolve=>{deadline=setTimeout(()=>resolve(null),REQUEST_TIMEOUT_MS);})
       ]);
-    }catch{
-      if(!globalThis.chrome?.runtime?.id)stopped=true;
+      if(!available()||reply?.error==='CONTEXT_INVALIDATED')invalidate();
+      return current(token)?reply:null;
+    }catch(error){
+      if(!available()||/extension context invalidated/i.test(String(error?.message||'')))invalidate();
       return null;
-    }finally{clearTimeout(deadline);}
+    }finally{clearTimeout(deadline);requests.delete(cancel);}
   }
   function currentRoute(){
     const route=adapter.route();
@@ -46,11 +66,14 @@
     return !!route&&route.id===chat.id&&route.url===chat.url;
   }
   async function cycle(){
-    if(stopped||inFlight)return;
+    if(!current()||inFlight)return;
     inFlight=true;
+    const token=generation;
     try{
       const statusReply=await send({type:'GET_STATUS'});
+      if(!current(token))return;
       const status=statusReply?.ok===true?statusReply.data:null;
+      if(status&&(!contentVersion||status.runtimeVersion&&status.runtimeVersion!==contentVersion)){invalidate();return;}
       const route=currentRoute();
       const allowed=status?.consented===true&&status?.enabled===true&&
         status?.adapterVersion===adapter.version&&route;
@@ -76,10 +99,13 @@
         return;
       }
       pending.attempts++;
+      const observation=pending,batchGeneration=generation;
       const reply=await send({
         type:'OBSERVE_SOURCE_STRUCTURE',epoch:status.epoch,adapterVersion:adapter.version,
         chat:pending.chat,observations:pending.dtos
       });
+      if(!current(batchGeneration)||pending!==observation)return;
+      if(reply?.error==='CONTEXT_INVALIDATED'){invalidate();return;}
       if(reply?.ok===true&&reply.data?.settled===true){
         pending=null;
         return;
@@ -98,13 +124,18 @@
   const CPR00_PROBE_PATH='/__paia_cpr00_project_probe/index.html';
   const cpr00PageNonce=crypto.randomUUID();
   async function cpr00ProjectDiscovery({salt,href=globalThis.location?.href}={}){
+    const token=generation;
+    const requireCurrent=()=>{if(!current(token))throw new Error('PROBE_UNAVAILABLE');};
+    if(!current(token))return null;
     if(typeof salt!=='string'||!/^[a-f0-9]{32}$/.test(salt)||typeof href!=='string')return null;
     let page;try{page=new URL(href);}catch{return null;}
     if(page.origin!=='https://chatgpt.com')return null;
     const encoder=new TextEncoder();
     const digest=async(kind,value)=>{
+      requireCurrent();
       if(typeof value!=='string'||!value.length)return null;
       const hash=await crypto.subtle.digest('SHA-256',encoder.encode(salt+'\0'+kind+'\0'+value));
+      requireCurrent();
       return [...new Uint8Array(hash)].map(v=>v.toString(16).padStart(2,'0')).join('').slice(0,32);
     };
     const projectId=segment=>{
@@ -127,8 +158,10 @@
     const zone=node=>node.closest('header')?'header':node.closest('nav')?'nav':node.closest('aside')?'aside':node.closest('main')?'main':'other';
     const excluded=node=>!!node.closest('[data-message-author-role], textarea, input, [contenteditable]:not([contenteditable="false"]), [role="textbox"]');
     const normalize=value=>typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,300):'';
+    requireCurrent();
     const anchors=[],rawAnchors=[...document.querySelectorAll('a[href]')];
     for(const node of rawAnchors){
+      requireCurrent();
       if(anchors.length>=80||excluded(node))continue;
       let link;try{link=new URL(node.getAttribute('href'),page.href);}catch{continue;}
       if(link.origin!=='https://chatgpt.com')continue;
@@ -145,6 +178,7 @@
         selected:node.getAttribute('aria-current')==='page'||node.getAttribute('data-state')==='active'
       });
     }
+    requireCurrent();
     const nested=[];
     if(route.chatId){
       const current=rawAnchors.filter(node=>{
@@ -152,8 +186,10 @@
         try{return routeInfo(new URL(node.getAttribute('href'),page.href).pathname).chatId===route.chatId;}catch{return false;}
       });
       for(const link of current.slice(0,20)){
+        requireCurrent();
         let ancestor=link.parentElement;
         for(let depth=1;ancestor&&depth<=6;depth++,ancestor=ancestor.parentElement){
+          requireCurrent();
           let found=false;
           for(const node of [...ancestor.querySelectorAll('a[href]')].filter(x=>!excluded(x)).slice(0,80)){
             let target;try{target=new URL(node.getAttribute('href'),page.href);}catch{continue;}
@@ -168,8 +204,10 @@
         }
       }
     }
+    requireCurrent();
     const attributes=[];
     for(const node of [...document.querySelectorAll('[data-project-id],[data-project-name],[data-testid*="project"]')]){
+      requireCurrent();
       if(attributes.length>=40||excluded(node))continue;
       const rawId=normalize(node.getAttribute('data-project-id')),rawName=normalize(node.getAttribute('data-project-name')),testId=normalize(node.getAttribute('data-testid'));
       attributes.push({
@@ -179,6 +217,7 @@
         testIdDigest:testId?await digest('project-testid',testId):null
       });
     }
+    requireCurrent();
     return {
       schemaVersion:1,code:'OK',
       route:{kind:route.kind,projectDigest:routeProjectDigest,conversationDigest},pageInstanceDigest,
@@ -193,33 +232,50 @@
       privacy:{messageBodiesRead:false,assistantBodiesRead:false,draftsRead:false,rawProjectIdsEmitted:false,rawProjectNamesEmitted:false,urlsEmitted:false}
     };
   }
-  globalThis.PAIAProjectDiscoveryProbe=Object.freeze({scan:cpr00ProjectDiscovery});
+  const probe=Object.freeze({scan:cpr00ProjectDiscovery});
+  globalThis.PAIAProjectDiscoveryProbe=probe;
   function cpr00ProbeSender(sender){
-    if(sender?.id!==chrome.runtime.id||typeof sender.url!=='string')return false;
+    if(!current()||sender?.id!==chrome.runtime.id||typeof sender.url!=='string')return false;
     try{
       const url=new URL(sender.url),self=new URL(chrome.runtime.getURL(CPR00_PROBE_PATH));
       return url.origin===self.origin&&url.pathname===CPR00_PROBE_PATH;
     }catch{return false;}
   }
-  chrome.runtime.onMessage.addListener((request,sender,sendResponse)=>{
+  function onProbe(request,sender,sendResponse){
     if(request?.type!=='CPR00_PROJECT_PROBE')return;
     if(!cpr00ProbeSender(sender)){sendResponse({ok:false,error:'FORBIDDEN'});return false;}
     void cpr00ProjectDiscovery({salt:request.salt})
       .then(data=>sendResponse(data?{ok:true,data}:{ok:false,error:'UNAVAILABLE'}))
       .catch(()=>sendResponse({ok:false,error:'PROBE_FAILED'}));
     return true;
-  });
+  }
+  chrome.runtime.onMessage.addListener(onProbe);
 
-  globalThis.addEventListener?.('pagehide',()=>{
+  function onPageHide(){
     stopped=true;
     clearTimeout(timer);
     timer=null;
     reset();
-  });
-  globalThis.addEventListener?.('pageshow',event=>{
-    if(!event.persisted||!stopped)return;
+    for(const cancel of requests)cancel();
+    requests.clear();
+  }
+  function onPageShow(event){
+    if(!available()||!event.persisted||!stopped)return;
     stopped=false;
     void cycle();
-  });
+  }
+  function dispose(){
+    if(disposed)return;
+    disposed=true;
+    onPageHide();
+    globalThis.removeEventListener?.('pagehide',onPageHide);
+    globalThis.removeEventListener?.('pageshow',onPageShow);
+    try{chrome.runtime.onMessage.removeListener?.(onProbe);}catch{}
+    if(globalThis.PAIAProjectDiscoveryProbe===probe)delete globalThis.PAIAProjectDiscoveryProbe;
+  }
+  globalThis.PAIASourceStructureBridge=Object.freeze({dispose});
+  globalThis.addEventListener?.('pagehide',onPageHide);
+  globalThis.addEventListener?.('pageshow',onPageShow);
+  lifecycle?.add(dispose);
   void cycle();
 })();

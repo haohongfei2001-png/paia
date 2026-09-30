@@ -1,8 +1,33 @@
 /* MAIN world: passive side branch only. All page-origin data remains untrusted. */
 (() => {
   'use strict';
+  if (globalThis.location?.origin !== 'https://chatgpt.com') return;
+  const previous = globalThis.PAIAResponseObserver;
+  previous?.dispose();
+  // Pre-recovery bridges can finish a pending poll after their extension was
+  // invalidated. Deny late v1 activation before its legacy bubble listener;
+  // inactive controls still pass through and shut that old observer down.
+  const blockLegacyControl = previous?.blockLegacyControl || (event => {
+    if (event.source === window && event.origin === 'https://chatgpt.com' &&
+        event.data?.channel === 'archive-response-control-v1' && event.data.active === true) event.stopImmediatePropagation();
+  });
+  if (!previous?.blockLegacyControl) window.addEventListener('message', blockLegacyControl, true);
+  // Close the injection gap too: a legacy gate may already have been active
+  // before this blocker was installed. Only send a revoke on its old channel.
+  window.postMessage({channel: 'archive-response-control-v1', active: false}, 'https://chatgpt.com');
+  // Reuse a single passthrough even if page code has since wrapped it. Replacing
+  // just its observer callback avoids an ever-growing fetch-wrapper chain.
+  const dispatcher = previous?.dispatcher || {original: window.fetch, begin: null};
+  if (!dispatcher.wrapper) dispatcher.wrapper = function (...args) {
+    let complete;
+    try { complete = dispatcher.begin?.(); } catch {}
+    const result = Reflect.apply(dispatcher.original, this, args);
+    try { complete?.(result); } catch {}
+    return result;
+  };
   const protocol = globalThis.ChatGPTResponseParser;
-  const original = window.fetch;
+  let disposed = false;
+  let generation = 0;
   const clone = Response.prototype.clone;
   let gate = null;
   let armed = 0;
@@ -12,37 +37,49 @@
   let revoked = 0;
   const readers = new Set();
   const diagnosticReaders = new Set();
-  const stopDiagnostics = () => { for (const reader of diagnosticReaders) void reader.cancel().catch(() => {}); };
-  const stop = () => { for (const reader of readers) void reader.cancel().catch(() => {}); readers.clear(); };
-  window.addEventListener('message', event => {
+  const readerTimers = new Map();
+  function cancelReader(reader) {
+    clearTimeout(readerTimers.get(reader)); readerTimers.delete(reader);
+    void reader.cancel().catch(() => {});
+  }
+  function readDeadline(reader, delay, expire) {
+    const timer = setTimeout(() => { expire(); cancelReader(reader); }, delay);
+    readerTimers.set(reader, timer);
+    return timer;
+  }
+  const stopDiagnostics = () => { for (const reader of diagnosticReaders) cancelReader(reader); };
+  const stop = () => { for (const reader of readers) cancelReader(reader); readers.clear(); };
+  function onControl(event) {
+    if (disposed) return;
     if (event.source !== window || event.origin !== 'https://chatgpt.com') return;
     const data = event.data;
-    if (data?.channel !== 'archive-response-control-v1') return;
+    if (data?.channel !== 'archive-response-control-v2') return;
     if (data.active === true && protocol.ID.test(data.chat || '') && Number.isSafeInteger(data.epoch) && typeof data.session === 'string' && data.session.length <= 80) {
       const historySession = typeof data.historySession === 'string' && data.historySession.length <= 80 ? data.historySession : data.session;
-      if (gate?.historySession !== historySession || gate?.chat !== data.chat || gate?.epoch !== data.epoch) { stop(); armed = 0; }
+      if (gate?.historySession !== historySession || gate?.chat !== data.chat || gate?.epoch !== data.epoch) { generation++; stop(); armed = 0; }
       else if (gate?.session !== data.session) { stopDiagnostics(); armed = 0; }
-      gate = {chat: data.chat, epoch: data.epoch, session: data.session, historySession, fingerprint: data.fingerprint === true, history: data.history === true};
+      gate = {generation, chat: data.chat, epoch: data.epoch, session: data.session, historySession, fingerprint: data.fingerprint === true, history: data.history === true};
       everActive = true;
       armed = Number.isSafeInteger(data.arm) ? data.arm : 0;
-    } else { if (everActive) revoked++; gate = null; armed = 0; stop(); }
-  });
+    } else { revoke(); }
+  }
+  window.addEventListener('message', onControl);
   function current(g) {
     const route = location.pathname.match(/^\/(?:g\/[A-Za-z0-9_-]+\/)?c\/([A-Za-z0-9_-]{8,128})\/?$/);
-    return gate && route?.[1] === g.chat && gate.session === g.session && gate.chat === g.chat && gate.epoch === g.epoch;
+    return !disposed && gate && generation === g.generation && route?.[1] === g.chat && gate.session === g.session && gate.chat === g.chat && gate.epoch === g.epoch;
   }
   function emit(g, fields) {
-    if (current(g)) window.postMessage({channel: 'archive-response-metadata-v1', chat: g.chat, epoch: g.epoch, session: g.session, ...fields}, 'https://chatgpt.com');
+    if (current(g)) window.postMessage({channel: 'archive-response-metadata-v2', chat: g.chat, epoch: g.epoch, session: g.session, ...fields}, 'https://chatgpt.com');
   }
   function currentHistory(g) {
     return g.history && gate?.history && gate.historySession === g.historySession &&
       current({...g, session: gate.session});
   }
   function emitHistory(g, history) {
-    if (currentHistory(g)) window.postMessage({channel:'archive-response-metadata-v1',chat:g.chat,epoch:g.epoch,historySession:g.historySession,history}, 'https://chatgpt.com');
+    if (currentHistory(g)) window.postMessage({channel:'archive-response-metadata-v2',chat:g.chat,epoch:g.epoch,historySession:g.historySession,history}, 'https://chatgpt.com');
   }
   function emitHistoryState(g,state,acceptedRows=0,rejectedFrames=0) {
-    if(currentHistory(g))window.postMessage({channel:'archive-response-metadata-v1',chat:g.chat,epoch:g.epoch,historySession:g.historySession,historyState:{state,acceptedRows,rejectedFrames}},'https://chatgpt.com');
+    if(currentHistory(g))window.postMessage({channel:'archive-response-metadata-v2',chat:g.chat,epoch:g.epoch,historySession:g.historySession,historyState:{state,acceptedRows,rejectedFrames}},'https://chatgpt.com');
   }
   let liveJobs=0;
   // Formal sent-message evidence has its own bounded reader, independent of a
@@ -56,7 +93,7 @@
       const copy=Reflect.apply(clone,response,[]);
       if(!copy.body){report('READ_FAILED');return;}
       reader=copy.body.getReader();liveJobs++;readers.add(reader);report('READING');
-      timer=setTimeout(()=>{expired=true;void reader.cancel().catch(()=>{});},15000);
+      timer=readDeadline(reader,15000,()=>{expired=true;});
       let bytes=0,buffer='',data=[];
       const decoder=new TextDecoder('utf-8',{fatal:true});
       const project=text=>{
@@ -78,6 +115,7 @@
         }
       };
       while(true){
+        if(!currentHistory(g))return;
         const chunk=await reader.read();
         if(!currentHistory(g))return;
         if(expired){report('LIMIT');return;}
@@ -90,7 +128,7 @@
       if(type==='text/event-stream')lines(true);else project(buffer);
       report(accepted?'ACCEPTED':'NO_ACCEPTED_METADATA');
     }catch(error){report(error instanceof RangeError?'LIMIT':'READ_FAILED');}
-    finally{clearTimeout(timer);if(reader){readers.delete(reader);liveJobs--;void reader.cancel().catch(()=>{});}}
+    finally{clearTimeout(timer);if(reader){readers.delete(reader);liveJobs--;cancelReader(reader);}}
   }
   async function fingerprint(response, g) {
     let reader; let timer;
@@ -110,9 +148,10 @@
       if (!copy.body) { failed(); return; }
       reader = copy.body.getReader(); fingerprintJobs++; readers.add(reader); emitHistoryState(g,'READING');
       let expired = false;
-      timer = setTimeout(() => { expired = true; void reader.cancel().catch(() => {}); }, 5000);
+      timer = readDeadline(reader, 5000, () => { expired = true; });
       let text = ''; let bytes = 0; const decoder = new TextDecoder();
       while (true) {
+        if (!allowed()) return;
         const chunk = await reader.read();
         if (!allowed()) return;
         if (expired) { failed('LIMIT'); return; }
@@ -134,7 +173,7 @@
         emit(g, {fingerprint: result});
       }
     } catch { failed(); }
-    finally { clearTimeout(timer); if (reader) { readers.delete(reader); fingerprintJobs--; void reader.cancel().catch(() => {}); } }
+    finally { clearTimeout(timer); if (reader) { readers.delete(reader); fingerprintJobs--; cancelReader(reader); } }
   }
   function blankTrace() {
     return {endpointClass: 'other', contentTypeClass: 'other', stage: 'observed', reason: 'UNEXPECTED_FAILURE', outcome: 'rejected',
@@ -149,6 +188,7 @@
   }
   async function inspect(response, g, armAtStart) {
     let reader; let timer;
+    if (!current(g) && !currentHistory(g)) return;
     const trace = blankTrace();
     const finish = (stage, reason, outcome = 'rejected', fields = {}) => {
       trace.stage = stage; trace.reason = reason; trace.outcome = outcome;
@@ -191,11 +231,12 @@
       reader = copy.body.getReader(); readers.add(reader); diagnosticReaders.add(reader); jobs++;
       trace.stage = 'read';
       let expired = false;
-      timer = setTimeout(() => { expired = true; void reader.cancel().catch(() => {}); }, 15000);
+      timer = readDeadline(reader, 15000, () => { expired = true; });
       const decoder = new TextDecoder(); let text = ''; let bytes = 0;
       while (true) {
         if (!current(g)) return;
         const chunk = await reader.read();
+        if (!current(g)) return;
         if (expired) { finish('limit', 'READ_TIMEOUT', 'rejected', {error: 'LIMIT'}); return; }
         if (chunk.done) break;
         bytes += chunk.value.byteLength;
@@ -236,21 +277,42 @@
       finish(trace.stage, reason, 'rejected', {error: 'SCHEMA'});
     } finally {
       clearTimeout(timer);
-      if (reader) { readers.delete(reader); diagnosticReaders.delete(reader); jobs--; void reader.cancel().catch(() => {}); }
+      if (reader) { readers.delete(reader); diagnosticReaders.delete(reader); jobs--; cancelReader(reader); }
     }
   }
-  window.fetch = function (...args) {
+  dispatcher.begin = () => {
     const g = gate && {...gate}; const a = armed;
     const bootstrap = !everActive, issuedRevocation = revoked;
-    const result = Reflect.apply(original, this, args);
-    // Returning this exact Promise preserves the page's fulfillment/rejection.
-    try { void result.then(response => {
-      // No response is retained before consent. A startup request may finish only
-      // after the first status reply; validate authorization at response arrival.
-      const eligible = g || (bootstrap && revoked === issuedRevocation && gate ? {...gate} : null);
-      if (eligible && (current(eligible) || currentHistory(eligible))) void inspect(response, eligible, g ? a : 0);
-    }, () => {}).catch(() => {}); } catch {}
-    return result;
+    return result => {
+      // Return the page's exact Promise; observe only its response side branch.
+      try { void result.then(response => {
+        // No response is retained before consent. Initial startup requests can
+        // finish after first authorization, but never across a later revocation.
+        if (disposed || revoked !== issuedRevocation) return;
+        const eligible = g || (bootstrap && gate ? {...gate} : null);
+        if (eligible && (current(eligible) || currentHistory(eligible))) void inspect(response, eligible, g ? a : 0);
+      }, () => {}).catch(() => {}); } catch {}
+    };
   };
-  window.addEventListener('pagehide', () => { gate = null; armed = 0; stop(); });
+  function revoke() {
+    if (everActive) revoked++;
+    generation++; gate = null; armed = 0; stop();
+  }
+  function retire() { revoked++; revoke(); }
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    retire();
+    dispatcher.begin = null;
+    window.removeEventListener?.('message', onControl);
+    window.removeEventListener?.('pagehide', retire);
+    globalThis.document?.removeEventListener('paia-capture-retire-v1', retire);
+    // Never overwrite a fetch function installed later by the page.
+    if (window.fetch === dispatcher.wrapper) window.fetch = dispatcher.original;
+  }
+  globalThis.PAIAResponseObserver = Object.freeze({dispose, dispatcher, blockLegacyControl});
+  if (window.fetch === dispatcher.original) window.fetch = dispatcher.wrapper;
+  window.addEventListener('pagehide', retire);
+  // This cross-world signal has no authority: it only revokes pending readers.
+  globalThis.document?.addEventListener('paia-capture-retire-v1', retire);
 })();

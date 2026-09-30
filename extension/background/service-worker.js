@@ -1,3 +1,4 @@
+import {installCaptureRecovery} from './capture-recovery.js';
 import {ArchiveNavigationQuery} from '../core/archive-navigation-query.js';
 import {assertLocalNetworkAllowed} from '../core/local-network-policy.js';
 import {MemoryService} from '../core/memory/service.js';
@@ -86,6 +87,7 @@ const ready = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEX
 const providerReady=Promise.resolve(deepSeekSession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'})).then(()=>prepareBudgetSession());
 providerReady.catch(()=>{});
 ready.catch(() => {});
+installCaptureRecovery(chrome, ready);
 const backupReady=ready.then(()=>backups.recoverSettings());backupReady.catch(()=>{});
 const originalReady=Promise.all([ready,providerReady,backupReady]).then(()=>Promise.all([originalOrganizer.reconcileInterrupted(),aiOrganizer.reconcileInterrupted(),boundedOrganizer.reconcileInterrupted()]));
 originalReady.catch(()=>{});
@@ -131,8 +133,10 @@ async function handle(request, sender) {
     if (request.adapterVersion !== ADAPTER_VERSION) throw new ArchiveError('INVALID_REQUEST');
     return store.diagnose({ code: request.code, scanned: request.scanned, structure: request.structure, captureHealth: request.captureHealth });
   }
+  if (content && ['CAPTURE', 'ENRICH_SOURCE_METADATA', 'OBSERVE_SOURCE_STRUCTURE'].includes(request.type) &&
+      request.contentVersion !== chrome.runtime.getManifest().version) throw new ArchiveError('CONTEXT_INVALIDATED');
   if (content && request.type === 'OBSERVE_SOURCE_STRUCTURE') {
-    if(Object.keys(request).some(key=>!['type','epoch','adapterVersion','chat','observations'].includes(key))||
+    if(Object.keys(request).some(key=>!['type','epoch','adapterVersion','contentVersion','chat','observations'].includes(key))||
        request.adapterVersion!==ADAPTER_VERSION||!Array.isArray(request.observations)||
        !request.observations.length||request.observations.length>4)throw new ArchiveError('INVALID_REQUEST');
     const source=canonicalChat(sender.tab.url ?? sender.url);
@@ -167,8 +171,6 @@ async function handle(request, sender) {
     return sourceStructure.observeAdmittedBatch(admitted);
   }
   if (content && ['CAPTURE', 'ENRICH_SOURCE_METADATA'].includes(request.type)) {
-    if (request.type === 'CAPTURE' && request.contentVersion !== chrome.runtime.getManifest().version)
-      throw new ArchiveError('CONTEXT_INVALIDATED');
     // sender.url can stay at the document's initial address after pushState.
     // Chrome supplies the tab's current URL on MessageSender without a tabs
     // permission. Prefer it to verify SPA routing; never query browser history.

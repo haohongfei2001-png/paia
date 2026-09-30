@@ -26,9 +26,9 @@ def check_release(target):
             assert 'id="'+id+'"' in html,id
         assert 'navigator.clipboard.read' not in (target/'ui/memory.js').read_text()
     manifest=json.loads((target/'manifest.json').read_text())
-    assert manifest['permissions']==['storage']
+    assert manifest['permissions']==['storage','scripting']
     assert manifest['optional_permissions']==['nativeMessaging']
-    assert manifest['host_permissions']==['https://api.deepseek.com/*']
+    assert manifest['host_permissions']==['https://api.deepseek.com/*','https://chatgpt.com/*']
     assert "connect-src https://api.deepseek.com;" in manifest['content_security_policy']['extension_pages']
     adapter=(target/'core/macos-native-secure-store.js').read_text()
     assert "const HOST_NAME='com.paia.secure_store';" in adapter

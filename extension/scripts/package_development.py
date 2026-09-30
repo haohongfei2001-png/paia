@@ -21,8 +21,8 @@ for p in (root/'development/compat').glob('*'):
         out=target/p.relative_to(root);out.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,out)
 shutil.copyfile(root/'development/compat/sanitizer.js',target/'development/compat/sanitizer-main.js')
 p=target/'content/response-observer.js';s=p.read_text()
-control="    if (data?.channel !== 'archive-response-control-v1') return;"
-observe='    try { void result.then(response => {'
+control="    if (data?.channel !== 'archive-response-control-v2') return;"
+observe='      try { void result.then(response => {'
 assert s.count(control)==1 and s.count(observe)==1
 p.write_text(s.replace(control,control+'\n    globalThis.PAIADevelopment.control(data);').replace(observe,observe+'\n      globalThis.PAIADevelopment.observe(response);'))
 m=json.loads((root/'manifest.json').read_text());m['version_name']='0.3.0 development structure sampler'

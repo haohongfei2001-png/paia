@@ -2,11 +2,16 @@
 (() => {
   'use strict';
 
+  const lifecycle = globalThis.PAIACaptureLifecycle;
+  if (lifecycle && !lifecycle.active) return;
+  globalThis.PAIACaptureController?.dispose();
   const adapter = new globalThis.ChatGPTAdapter();
   const POLL_MS = 2000;
   const BATCH_SIZE = 200;
   const BATCH_BYTES = 2097152-16384;
   const REQUEST_TIMEOUT_MS = 35000;
+  const STATUS_TIMEOUT_MS = 5000;
+  const RECOVERY_NOTICE_MS = 15000;
   // Keep the version observed when this document first loaded. A later extension
   // update must never silently turn an old page into an apparently healthy one.
   const contentVersion = (() => { try { return chrome.runtime.getManifest().version; } catch { return null; } })();
@@ -22,31 +27,38 @@
   let lastStatusAt = 0;
   let lastDiagnostic = '';
   let lastDiagnosticAt = 0;
-  let transportFailures = 0;
+  let generation = 0;
+  const pendingReplies = new Set();
 
-  function showRefreshAction(reason = 'disconnected') {
-    if (!globalThis.document?.documentElement) return;
-    let banner = document.getElementById('paia-reconnect-notice');
-    if (banner) {
-      const copy = banner.querySelector?.('span') || banner.children?.[0];
-      if (reason === 'updated' && copy) copy.textContent = 'PAIA 已更新，此页仍是旧连接，当前页面不会继续归档。先保存正在输入的文字，再刷新此页。';
-      return;
-    }
-    banner = document.createElement('div');
-    banner.id = 'paia-reconnect-notice';
-    banner.setAttribute('role', 'alert');
-    banner.style.cssText = 'position:fixed;z-index:2147483647;right:16px;bottom:16px;max-width:320px;padding:14px 16px;border-radius:12px;background:#17202b;color:white;box-shadow:0 4px 20px #0005;font:14px/1.5 system-ui,sans-serif';
-    const text = document.createElement('span');
-    text.textContent = reason === 'updated'
-      ? 'PAIA 已更新，此页仍是旧连接，当前页面不会继续归档。先保存正在输入的文字，再刷新此页。'
-      : 'PAIA 与此页面的连接已中断，当前页面不会继续归档。先保存正在输入的文字，再刷新此页。';
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.textContent = '刷新此 ChatGPT 页面';
-    button.style.cssText = 'display:block;margin-top:10px;padding:7px 10px;border:0;border-radius:6px;background:#fff;color:#17202b;cursor:pointer';
-    button.addEventListener('click', () => globalThis.location.reload());
-    banner.append(text, button);
-    document.documentElement.append(banner);
+  let noticeTimer = null;
+  let retireNotice = null;
+  function showRefreshAction() {
+    if (noticeTimer !== null || !globalThis.document?.documentElement) return;
+    // Give the worker's replacement time to arrive. This is a quiet fallback
+    // only for a document that still has no working capture runtime.
+    retireNotice = () => {
+      clearTimeout(noticeTimer); noticeTimer = null;
+      clearRefreshAction();
+      document.removeEventListener?.('paia-capture-retire-v1', retireNotice);
+    };
+    document.addEventListener?.('paia-capture-retire-v1', retireNotice, {once: true});
+    noticeTimer = setTimeout(() => {
+      noticeTimer = null;
+      if (document.getElementById('paia-reconnect-notice')) return;
+      const banner = document.createElement('div');
+      banner.id = 'paia-reconnect-notice';
+      banner.setAttribute('role', 'status');
+      banner.style.cssText = 'position:fixed;z-index:2147483647;right:12px;bottom:12px;max-width:240px;padding:6px 10px;border-radius:6px;background:#f4f3ee;color:#484840;border:1px solid #d6d4cc;font:12px/1.4 system-ui,sans-serif';
+      const text = document.createElement('span');
+      text.textContent = 'PAIA 此页归档连接已断开';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = '保存输入后刷新';
+      button.style.cssText = 'margin-left:8px;border:0;background:none;color:inherit;text-decoration:underline;cursor:pointer;font:inherit';
+      button.addEventListener('click', () => globalThis.location.reload());
+      banner.append(text, button);
+      document.documentElement.append(banner);
+    }, RECOVERY_NOTICE_MS);
   }
 
   function clearRefreshAction() {
@@ -54,11 +66,27 @@
   }
 
   function stop() {
-    stopped = true;
+    stopped = true; generation++;
+    for (const cancel of pendingReplies) cancel();
+    pendingReplies.clear();
+    clearTimeout(noticeTimer); noticeTimer = null;
+    document.removeEventListener?.('paia-capture-retire-v1', retireNotice);
     clearTimeout(timer);
     clearInterval(connectionTimer); connectionTimer = null;
     adapter.stopWatching();
+    globalThis.removeEventListener?.('pagehide', onPageHide);
+    globalThis.removeEventListener?.('pageshow', onPageShow);
   }
+
+  function disconnected() {
+    stop();
+    lifecycle?.dispose();
+    showRefreshAction();
+  }
+
+  const controller = {dispose: stop};
+  globalThis.PAIACaptureController = controller;
+  lifecycle?.add(stop);
 
   // A pending transport reply must not prevent the old document from
   // discovering extension invalidation. This checks connection identity only:
@@ -67,24 +95,27 @@
     if (stopped || suspended || connectionTimer !== null) return;
     const check = () => {
       if (stopped || suspended) return;
-      if (!globalThis.chrome?.runtime?.id) { stop(); showRefreshAction(); }
+      if (!globalThis.chrome?.runtime?.id) { disconnected(); }
     };
     check();
     if (!stopped) connectionTimer = setInterval(check, POLL_MS);
   }
 
   async function send(message) {
-    let deadline;
+    if (stopped || suspended) return null;
+    let deadline, cancel;
+    const sendGeneration = generation;
     try {
-      if (!globalThis.chrome?.runtime?.id) { stop(); showRefreshAction(); return null; }
-      return await Promise.race([chrome.runtime.sendMessage(message),new Promise(resolve=>{
-        deadline=setTimeout(()=>resolve({ok:false,error:'MESSAGE_RESPONSE_TIMEOUT'}),REQUEST_TIMEOUT_MS);
+      if (!globalThis.chrome?.runtime?.id) { disconnected(); return null; }
+      return await Promise.race([chrome.runtime.sendMessage(message),new Promise(resolve=>{cancel=()=>resolve(null);pendingReplies.add(cancel);}),new Promise(resolve=>{
+        deadline=setTimeout(()=>resolve({ok:false,error:'MESSAGE_RESPONSE_TIMEOUT'}),message.type === 'GET_STATUS' ? STATUS_TIMEOUT_MS : REQUEST_TIMEOUT_MS);
       })]);
     } catch {
+      if (stopped || suspended || generation !== sendGeneration) return null;
       // Never expose raw error strings, message bodies, URLs, or titles.
-      if (!globalThis.chrome?.runtime?.id) { stop(); showRefreshAction(); }
+      if (!globalThis.chrome?.runtime?.id) { disconnected(); }
       return null;
-    } finally { clearTimeout(deadline); }
+    } finally { clearTimeout(deadline); pendingReplies.delete(cancel); }
   }
 
   function* captureBatches(messages,sourceTimes) {
@@ -112,12 +143,14 @@
   }
 
   async function reportFailure(response, scanned = 0) {
+    const failureGeneration = generation;
     const code = typeof response?.error === 'string' && KNOWN_FAILURES.has(response.error)
       ? response.error : 'CAPTURE_FAILED';
     if (code === 'PAUSED' || code === 'CONSENT_REQUIRED') adapter.stopWatching();
     if (code === 'STALE_CAPTURE') adapter.invalidate();
     await diagnostic(code, scanned);
-    if (code === 'CONTEXT_INVALIDATED') { stop(); showRefreshAction('updated'); }
+    if (stopped || suspended || generation !== failureGeneration) return;
+    if (code === 'CONTEXT_INVALIDATED') disconnected();
   }
 
   function schedule() {
@@ -129,30 +162,34 @@
   async function cycle() {
     if (stopped || suspended || inFlight) return;
     inFlight = true;
+    const cycleGeneration = generation;
     try {
       lastStatusAt = Date.now();
       const response = await send({type: 'GET_STATUS', contentVersion});
-      if (stopped || suspended) return;
+      if (stopped || suspended || generation !== cycleGeneration) return;
       const status = response?.ok === true ? response.data : null;
       if (!status) {
+        if (lifecycle) lifecycle.ready = false;
         adapter.stopWatching();
-        transportFailures += 1;
-        if (response?.error === 'MESSAGE_RESPONSE_TIMEOUT' || transportFailures >= 2) showRefreshAction();
-        await reportFailure(response);
+        // Worker suspension and a lost reply are recoverable transport states.
+        // Do not mislabel them as a dead document or block the next status probe
+        // behind a second transport request. No source scan happens here.
+        adapter.invalidate();
         return;
       }
-      transportFailures = 0;
       if (!contentVersion || status.runtimeVersion && status.runtimeVersion !== contentVersion) {
-        adapter.stopWatching(); stop(); showRefreshAction('updated');
+        disconnected();
         return;
       }
       clearRefreshAction();
+      if (lifecycle) lifecycle.ready = true;
       if (status.consented !== true || status.enabled !== true) {
         adapter.stopWatching();
         await diagnostic(status.consented === true ? 'PAUSED' : 'CONSENT_REQUIRED');
         return;
       }
       if (status.adapterVersion !== adapter.version) {
+        if (lifecycle) lifecycle.ready = false;
         adapter.stopWatching();
         await diagnostic('ADAPTER_VERSION_MISMATCH');
         return;
@@ -166,11 +203,12 @@
       let health=null;
       try { health=globalThis.ArchiveResponseTime?.health?.(snapshot,status)||null; } catch {}
       await diagnostic(snapshot.code, snapshot.scanned, snapshot.structure,health);
+      if (stopped || suspended || generation !== cycleGeneration) return;
       if (!snapshot.messages?.length) {
         return;
       }
       for (const messages of captureBatches(snapshot.messages,sourceTimes)) {
-        if (stopped || suspended || !adapter.isSameChat(snapshot.chat.id)) {
+        if (stopped || suspended || generation !== cycleGeneration || !adapter.isSameChat(snapshot.chat.id)) {
           adapter.invalidate();
           await diagnostic('UNSTABLE_PAGE', snapshot.scanned);
           return;
@@ -179,6 +217,7 @@
           type: 'CAPTURE', epoch: status.epoch, adapterVersion: adapter.version, contentVersion,
           chat: snapshot.chat, messages
         });
+        if (stopped || suspended || generation !== cycleGeneration) return;
         if (!result?.ok) {
           await reportFailure(result, snapshot.scanned);
           return;
@@ -193,6 +232,7 @@
         await diagnostic(snapshot.code, snapshot.scanned, snapshot.structure,health);
       }
     } catch {
+      if (stopped || suspended || generation !== cycleGeneration) return;
       adapter.invalidate();
       await diagnostic('CAPTURE_FAILED');
     } finally {
@@ -201,13 +241,15 @@
     }
   }
 
-  globalThis.addEventListener?.('pagehide', () => {
-    suspended=true; clearTimeout(timer); timer=null;
+  function onPageHide() {
+    suspended=true; generation++; clearTimeout(timer); timer=null;
     clearInterval(connectionTimer); connectionTimer=null; adapter.stopWatching();
-  });
-  globalThis.addEventListener?.('pageshow', () => {
+  }
+  function onPageShow() {
     if(!suspended||stopped)return;
     suspended=false; lastStatusAt=0; lastDiagnostic=''; watchConnection(); void cycle();
-  });
+  }
+  globalThis.addEventListener?.('pagehide', onPageHide);
+  globalThis.addEventListener?.('pageshow', onPageShow);
   watchConnection(); void cycle();
 })();

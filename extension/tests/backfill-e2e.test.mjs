@@ -7,7 +7,7 @@ async function watchBatches(page) {
  await page.evaluate(()=>{
   window.fakeAcceptedHistory=[];
   window.addEventListener('message',e=>{
-   if(e.source===window&&e.data?.channel==='archive-response-metadata-v1'&&e.data.history)
+   if(e.source===window&&e.data?.channel==='archive-response-metadata-v2'&&e.data.history)
     window.fakeAcceptedHistory.push(e.data.history.rows.length);
   });
  });

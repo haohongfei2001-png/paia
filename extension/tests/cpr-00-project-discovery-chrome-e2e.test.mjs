@@ -37,7 +37,7 @@ async function fixture(html,url){
  await page.evaluate(()=>{
   window.syntheticLocation={href:location.href};
   window.chrome={runtime:{
-   id:'synthetic-cpr00-extension',
+   id:'synthetic-cpr00-extension',getManifest:()=>({version:'0.12.0'}),
    getURL:path=>'chrome-extension://synthetic-cpr00-extension'+path,
    onMessage:{addListener(){}},
    sendMessage:async request=>request?.type==='GET_STATUS'

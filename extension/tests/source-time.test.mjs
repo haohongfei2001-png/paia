@@ -149,9 +149,9 @@ test('revoked fingerprint lease changes session and rejects a late old payload a
   const handlers=new Map(), controls=[], requests=[], timers=new Map();
   let allow=true, serial=0, timerSerial=0;
   const window={addEventListener(k,fn){handlers.set(k,fn);},postMessage(data){controls.push(data);}};
-  class Adapter {route(){return {code:'READY',id:chat};}}
+  class Adapter {static version='0.3.0';route(){return {code:'READY',id:chat};}}
   const context=vm.createContext({window,ChatGPTAdapter:Adapter,crypto:{randomUUID:()=>`test-session-${++serial}`},Date,
-    setTimeout:(fn,delay)=>{const id=++timerSerial;timers.set(id,{fn,delay});return id;},clearTimeout:id=>timers.delete(id),chrome:{runtime:{async sendMessage(req){requests.push(req);return {ok:true,data:req.type==='GET_STATUS'?{enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'}:{fingerprintAllowed:allow}};}}}});
+    setTimeout:(fn,delay)=>{const id=++timerSerial;timers.set(id,{fn,delay});return id;},clearTimeout:id=>timers.delete(id),chrome:{runtime:{id:'synthetic-extension',getManifest:()=>({version:'0.12.0'}),async sendMessage(req){requests.push(req);return {ok:true,data:req.type==='GET_STATUS'?{enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'}:{fingerprintAllowed:allow}};}}}});
   for(const file of ['core/json-fingerprint.js','core/history-time.js','core/source-time.js','core/response-time.js','content/response-bridge.js']) vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context);
   const tick=async()=>{await new Promise(r=>setImmediate(r));};
   const poll=async()=>{const entry=[...timers].sort((a,b)=>a[1].delay-b[1].delay)[0];assert.ok(entry);const [id,timer]=entry;assert.equal(timer.delay,500,'settled request watchdogs must be cancelled');timers.delete(id);timer.fn();await tick();};
@@ -159,7 +159,7 @@ test('revoked fingerprint lease changes session and rejects a late old payload a
   const observe=()=>context.ArchiveResponseTime.observe({chat:{id:chat},messages:visible.map(sourceMessageId=>({sourceMessageId}))},{epoch:1});
   observe();const old=controls.at(-1);
   const fingerprint=inspect(historicalFixture(Math.floor(Date.now()/1000)-40*86400));
-  const emit=gate=>handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-metadata-v1',session:gate.session,epoch:1,chat,fingerprint}});
+  const emit=gate=>handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-metadata-v2',session:gate.session,epoch:1,chat,fingerprint}});
   emit(old);await poll();assert.equal(requests.at(-1).summary.semantics.matched,3);
   allow=false;await poll();assert.notEqual(controls.at(-1).session,old.session);
   allow=true;await poll();observe();emit(old);await poll();assert.equal(requests.at(-1).summary.semantics.matched,0);
