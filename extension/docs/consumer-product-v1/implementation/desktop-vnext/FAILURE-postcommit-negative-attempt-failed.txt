@@ -23,12 +23,12 @@ test at extension/tests/dvn-operation-outcome.test.mjs:16:1
 ✖ Q1 reads a durable, owner/digest-bound receipt after lost acknowledgement without duplicating revisions (26.422583ms)
   AssertionError [ERR_ASSERTION]: a publish failure after durable commit cannot leave false negative knowledge when the receipt is unavailable
   + actual - expected
-  
+
     {
   +   state: 'not_committed'
   -   state: 'unknown'
     }
-  
+
       at TestContext.<anonymous> (file://<workspace>/extension/tests/dvn-operation-outcome.test.mjs:30:9)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
