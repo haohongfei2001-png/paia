@@ -16,3 +16,25 @@ export async function readDocumentSearchPage({read,cursor=null,generation=null,i
  }
  throw Error('INVALID_SEARCH_CURSOR');
 }
+
+// Rebase a page-navigation intent when a shared archive generation advances.
+// Publish only the requested page reached entirely through fresh cursors; do
+// not silently turn a Next click into page one or keep retrying indefinitely.
+export async function readDocumentSearchWindow({read,cursor=null,generation=null,history=[],isCurrent=()=>true,onRestart=()=>{},maxReads=100,maxRebuildPages=20}){
+ let reads=0;const boundedRead=at=>{if(++reads>maxReads)throw Error('SEARCH_CHANGED');return read(at);};
+ const first=await readDocumentSearchPage({read:boundedRead,cursor,generation,isCurrent});
+ if(!first)return null;
+ if(!first.restart)return {page:first,cursor,history};
+ onRestart();const targetPage=history.length;if(targetPage>=maxRebuildPages)throw Error('SEARCH_CHANGED');
+ for(let attempt=0;attempt<2;attempt++){
+  let at=null,expected=null;const freshHistory=[];
+  for(let index=0;index<=targetPage;index++){
+   const page=await readDocumentSearchPage({read:boundedRead,cursor:at,generation:expected,isCurrent});
+   if(!page)return null;if(page.restart)break;
+   expected=page.generation;
+   if(index===targetPage||!page.nextCursor)return {page,cursor:at,history:freshHistory,restarted:true};
+   freshHistory.push(at);at=page.nextCursor;
+  }
+ }
+ throw Error('SEARCH_CHANGED');
+}

@@ -1,4 +1,4 @@
-import {readDocumentSearchPage as readConsistentDocumentSearchPage,resetDocumentSearchPage} from './document-search-page.js';
+import {readDocumentSearchWindow,resetDocumentSearchPage} from './document-search-page.js';
 import {readSourceExport} from './source-export.js';
 import {refreshCaptureTimes} from './capture-time-view.js';
 import {captureHealthText} from './common.js';
@@ -111,15 +111,11 @@ async function runDocumentSearch({reset=false}={}){
  try{
   const active=editor;if(active){active.collect();if(!await active.flush()){if(isCurrent()){current.items=[];current.nextCursor=null;current.unsaved=true;}return;}}
   if(!isCurrent())return;
-  for(let attempt=0;attempt<2;attempt++){
-   const page=await readConsistentDocumentSearchPage({cursor:current.cursor,generation:current.generation,isCurrent,read:cursor=>request('SEARCH_INPUTS',{options:{universal:true,paged:true,query:nextQuery,mode:'current',documentId:id,topicId:null,source:'',dateFrom:'',to:'',types:['input'],includeRemoved:false,includeFiltered:showFilteredCurrent,cursor,limit:40}})});
-   if(!page||!isCurrent())return;
-   if(page.restart){resetDocumentSearchPage(current,{keepActive:true});current.loading=true;renderDocumentSearch();continue;}
-   current.items=page.items||[];current.nextCursor=page.nextCursor??null;current.generation=page.generation;
-   current.complete=page.complete===true;current.indexing=page.indexing===true;return;
-  }
-  throw Error('SEARCH_CHANGED');
- }catch{if(!isCurrent())return;current.items=[];current.nextCursor=null;current.error=true;}
+  const result=await readDocumentSearchWindow({cursor:current.cursor,generation:current.generation,history:[...current.history],isCurrent,onRestart:()=>{resetDocumentSearchPage(current,{keepActive:true});current.loading=true;renderDocumentSearch();},read:cursor=>request('SEARCH_INPUTS',{options:{universal:true,paged:true,query:nextQuery,mode:'current',documentId:id,topicId:null,source:'',dateFrom:'',to:'',types:['input'],includeRemoved:false,includeFiltered:showFilteredCurrent,cursor,limit:40}})});
+  if(!result||!isCurrent())return;const {page}=result;
+  current.cursor=result.cursor;current.history=result.history;current.items=page.items||[];current.nextCursor=page.nextCursor??null;current.generation=page.generation;
+  current.complete=page.complete===true;current.indexing=page.indexing===true;
+ }catch{if(!isCurrent())return;resetDocumentSearchPage(current,{keepActive:true});current.error=true;}
  finally{if(isCurrent()){current.loading=false;renderDocumentSearch();}}
 }
 $('document-search-retry').addEventListener('click',()=>{void runDocumentSearch();});

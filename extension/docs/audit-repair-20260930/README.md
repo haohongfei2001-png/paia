@@ -15,7 +15,10 @@ production certification, merge, deployment or extension installation.
    that never responds cannot delay canonical capture or the next status check.
    Capture still checks consent/epoch and requires its durable response.
 3. Reader search invalidates results/cursors on content change, keeps the query
-   and reading anchor, and rejects late responses and mixed-generation pages.
+   and reading anchor, and rejects late responses and mixed-generation pages. A generation mismatch
+   during pagination rebuilds fresh cursors through the requested page instead
+   of losing the Next intent. Rebuilds are capped at two attempts, 20 pages and
+   100 reads; continuing change offers a retry without publishing mixed results.
 4. Thought continuation flushes and reads the latest entry once; its quote and
    optional relationship use that same body/revision. Navigation cancels stale
    opening, while ordinary refresh does not cancel the user's own edit.
