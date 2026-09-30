@@ -228,6 +228,10 @@ async function handle(request, sender) {
     case 'PAIA_RECOVERY_DRAFT_CLEAR': {const d=request.draft||{};return withRecoveryFence(()=>recoveryDraftStore().clear(d.kind,d.ownerId,d.token??null));}
     case 'PAIA_RECOVERY_DRAFT_CLEAR_MANY': return withRecoveryFence(()=>recoveryDraftStore().clearMany(request.drafts||[]));
     case 'PAIA_RECOVERY_DRAFT_PRUNE': return withRecoveryFence(()=>recoveryDraftStore().prune());
+    case 'PAIA_ARCHIVE_OPERATION_OUTCOME': {
+      if(Object.keys(request).some(key=>!['type','query'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return store.operationOutcome(request.query);
+    }
     case 'PAIA_ARCHIVE_NAV_PAGE': return archiveNavigation.page(request.page);
     case 'PAIA_ARCHIVE_NAV_STATUS': return archiveNavigation.status(request.page);
     case 'PAIA_ARCHIVE_ORDER_PREFERENCE': {

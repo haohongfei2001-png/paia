@@ -8,7 +8,7 @@ async function ready(h){const p=h.archive;await p.locator('#enable-consent').cli
 async function navigate(p,detail){await p.evaluate(detail=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail})),detail);await eventually(()=>p.locator(detail.view==='revisit'?'#revisit-panel':detail.documentId?'#document-panel':'#collection-panel').isVisible());}
 const input=p=>p.locator('.library-prose').first();
 async function openSavedReading(p){const [anchor]=await rpc(p,'PAIA_READER_RECENT');assert.ok(anchor,'saved position remains available independently of root chrome');await p.evaluate(anchor=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'library',documentId:anchor.documentId,contextInputId:anchor.inputId,anchor}})),anchor);}
-async function menu(p,label,field=input(p)){await field.click({button:'right'});await p.locator('#context-menu button').filter({hasText:label}).click();}
+async function menu(p,label,field=input(p)){if(label==='会话收录设置')await p.locator('#document-menu').click();else await field.click({button:'right'});await p.locator('#context-menu button').filter({hasText:label}).click();}
 function offline(h){assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);}
 async function shot(p,name){await mkdir('work/ux-r2',{recursive:true});await p.screenshot({path:`work/ux-r2/${name}.png`,fullPage:false});}
 

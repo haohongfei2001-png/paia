@@ -1,0 +1,40 @@
+✔ Q1 reads a durable, owner/digest-bound receipt after lost acknowledgement without duplicating revisions (19.759583ms)
+✔ Q1 never infers non-commit from absence; an actual aborted transaction provides only bounded worker-lifetime negative knowledge (9.831625ms)
+✔ Q1 serialized fresh read waits for the actual in-flight transaction (8.511708ms)
+✔ Q1 rejects enumeration/extra data, isolates legacy receipts, and invalidates acknowledgement after restore (7.479125ms)
+✔ Q1 negative knowledge is body-free, bounded and conservatively evicted (0.103833ms)
+✔ Reader reconciles a lost acknowledgement through the production receipt, keeping a newer local edit separate (8.636334ms)
+✔ Reader keeps unknown operations stable and blocks autosave/new UUID retry until trusted reconciliation (6.26275ms)
+✔ Reader retries only a known aborted attempt and retains its exact operation ID and payload (8.038792ms)
+✔ Reader protects an undo back to the old baseline while the earlier save outcome is unknown (7.119166ms)
+✔ Reader defers external refresh while an unacknowledged save could overwrite a later undo in an unfocused field (6.402542ms)
+✖ Reader unknown acknowledgement cannot postpone the existing Source removal/invalidation fence (6.09725ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 164.249292
+
+✖ failing tests:
+
+test at extension/tests/dvn-operation-outcome.test.mjs:133:1
+✖ Reader unknown acknowledgement cannot postpone the existing Source removal/invalidation fence (6.09725ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + undefined
+  - true
+
+      at TestContext.<anonymous> (file://<workspace>/extension/tests/dvn-operation-outcome.test.mjs:138:47)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

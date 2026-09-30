@@ -140,7 +140,7 @@ const originalBootstrapButton=element('button','','开始首次整理');original
 const day=t=>t?new Date(t).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'}):tc('发送时间未知');
 const time=t=>t?new Date(t).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',...(state.preferences.timeDisplay==='date_and_seconds'?{second:'2-digit'}:{}),hour12:false}):'时间未知';
 function error(message){setProductState($('error'),'failed');$('error').textContent=message;$('error').hidden=false;}
-function status(text,kind){clearTimeout(saveFeedbackTimer);if(kind==='boundary'){notify(text);return;}if(view==='thoughts'&&!kind)text='';setProductState($('save-status'),kind?'failed':text.includes('正在保存')?'saving':text.includes('已保存')?'saved':'ready');if(editor?.saving&&!kind)queueMicrotask(()=>void refresh());$('save-status').textContent=text;$('retry').hidden=kind!=='error';$('reload-document').hidden=!['conflict','removed'].includes(kind);if(kind==='conflict'&&['library','thoughts'].includes(view))$('reload-document').textContent=readerCopy('查看两份文字','Compare both versions');if(kind)error(text);else $('error').hidden=true;if(!kind&&text.includes('已保存'))saveFeedbackTimer=setTimeout(()=>{if($('save-status').textContent===text)$('save-status').textContent='';},1500);}
+function status(text,kind){clearTimeout(saveFeedbackTimer);if(kind==='boundary'){notify(text);return;}if(view==='thoughts'&&!kind)text='';setProductState($('save-status'),kind?'failed':text.includes('正在保存')?'saving':text.includes('已保存')?'saved':'ready');if(editor?.saving&&!kind)queueMicrotask(()=>void refresh());$('save-status').textContent=text;$('retry').hidden=!['error','unknown'].includes(kind);$('retry').textContent=kind==='unknown'?readerCopy('核对保存结果','Check save result'):readerCopy('重试保存','Retry save');$('reload-document').hidden=!['conflict','removed'].includes(kind);if(kind==='conflict'&&['library','thoughts'].includes(view))$('reload-document').textContent=readerCopy('查看两份文字','Compare both versions');if(kind)error(text);else $('error').hidden=true;if(!kind&&text.includes('已保存'))saveFeedbackTimer=setTimeout(()=>{if($('save-status').textContent===text)$('save-status').textContent='';},1500);}
 function pauseNotice(){if(noticeTimer!==null){clearTimeout(noticeTimer);noticeTimer=null;noticeRemaining=Math.max(0,noticeRemaining-(performance.now()-noticeStarted));}}
 function resumeNotice(){const notice=$('notice');if(notice.hidden||notice.matches(':hover')||notice.contains(document.activeElement)||noticeTimer!==null)return;noticeStarted=performance.now();noticeTimer=setTimeout(()=>{noticeTimer=null;notice.hidden=true;},noticeRemaining);}
 function notify(text){pauseNotice();$('notice').textContent=text;$('notice').hidden=!text;noticeRemaining=6000;if(text)resumeNotice();}
@@ -273,6 +273,8 @@ function openDocumentMenu(){
   add('文档版本历史',()=>showRevisions());
   add('不主动回顾这个对话',async()=>{await request('PAIA_READER_CONFIGURE',{change:{kind:'document',id,excluded:true}});document.dispatchEvent(new Event('paia:reader-policy'));notify('这个对话将不再主动回顾。');});
   add('会话收录设置',()=>captureScope());
+  const doc=state.conversations?.find(d=>d.id===id);
+  if(doc?.sourceConversationId)add('来源变化',()=>showNavigatorSourceDetail({kind:'conversation',conversationRef:{platform:doc.platform,sourceConversationId:doc.sourceConversationId}},$('document-menu')));
   add('撤销',()=>editor?.history());add('重做',()=>editor?.history(true));
  }else if(view==='archive')add('定位到 Input Archive',()=>navigate('library',id));
  else add('文档版本历史',()=>showRevisions());

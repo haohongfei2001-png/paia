@@ -1,0 +1,41 @@
+✔ audit hosted gate selects exact head and complete owning test files without weakening other gates (1.505542ms)
+✖ Q1 reads a durable, owner/digest-bound receipt after lost acknowledgement without duplicating revisions (26.422583ms)
+✔ Q1 never infers non-commit from absence; an actual aborted transaction provides only bounded worker-lifetime negative knowledge (13.687792ms)
+✔ Q1 serialized fresh read waits for the actual in-flight transaction (10.088292ms)
+✔ Q1 rejects enumeration/extra data, isolates legacy receipts, and invalidates acknowledgement after restore (9.968375ms)
+✔ Q1 negative knowledge is body-free, bounded and conservatively evicted (0.109459ms)
+✔ Reader reconciles a lost acknowledgement through the production receipt, keeping a newer local edit separate (8.936209ms)
+✔ Reader keeps unknown operations stable and blocks autosave/new UUID retry until trusted reconciliation (7.579917ms)
+✔ Reader retries only a known aborted attempt and retains its exact operation ID and payload (9.099542ms)
+✔ Q1 production worker enforces extension-page/consent/strict request boundaries and returns no bodies (68.413ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 180.081959
+
+✖ failing tests:
+
+test at extension/tests/dvn-operation-outcome.test.mjs:16:1
+✖ Q1 reads a durable, owner/digest-bound receipt after lost acknowledgement without duplicating revisions (26.422583ms)
+  AssertionError [ERR_ASSERTION]: a publish failure after durable commit cannot leave false negative knowledge when the receipt is unavailable
+  + actual - expected
+
+    {
+  +   state: 'not_committed'
+  -   state: 'unknown'
+    }
+
+      at TestContext.<anonymous> (file://<workspace>/extension/tests/dvn-operation-outcome.test.mjs:30:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { state: 'not_committed' },
+    expected: { state: 'unknown' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

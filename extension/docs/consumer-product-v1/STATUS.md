@@ -1,8 +1,18 @@
 # Canonical Status — PAIA Consumer Product v1
 
-## Owner stop and read-only handoff — 2026-09-30
+## Desktop vNext owner-approved restart — 2026-09-30
 
-**Current controlling state: `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW`.** The owner ended Consumer Product v1 whole-package continuous authorization and stopped all new PAIA runtime/product feature development pending a separate Product Foundation / Architecture Review. This order supersedes every historical `ACTIVE`, `READY`, `WHOLE_PACKAGE_PREAUTHORIZED`, or "continue dependency-safe engineering" instruction in this file, the Master Plan, Product Intent Contract, Execution Protocol, and Deferred Final Gates. A heartbeat or generic "continue" does not resume product engineering. Restart requires a newly owner-approved product architecture and roadmap. Existing main behavior is unchanged by this docs-only closure.
+**Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D1`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
+
+Fresh engineering base: `4c6af485e3d73f520574aca35473854ea60a98ca` (merge #107). Sole active product writer: `feat/desktop-vnext-d1-archive`, first coherent batch D1/Q1 durable edit acknowledgement. The design and architecture contracts remain frozen; #99 stays preserved, unmerged and inactive at `991f78f4c54b79d67428bf3209fb4eaa18f1cc9b`.
+
+Each batch records exact base/head, Surface/Acceptance/P-I-D, actual tests, failures and NOT_RUN; integration and exact-main verification precede the next batch. No permanent dual coordinator or second body truth. B-01–B-05 and other owner gates remain open, with dependent behavior fail closed; independent approved work continues. Search remains lexical/fuzzy/filter. Context Release is Copy/Export. No new provider permission, upload, reply-reading, paid service, cloud authority, destructive policy or distribution/legal commitment is approved.
+
+Implementation status is engineering progress, not certification of current-live/provider/device/performance/100k/120Hz/physical-IME/screen-reader/owner acceptance. Synthetic browser evidence must be labeled as such.
+
+## Historical owner stop and read-only handoff — 2026-09-30
+
+**Historical state, superseded only for the explicitly approved D1–D4 scope above: `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW`.** The owner ended Consumer Product v1 whole-package continuous authorization and stopped all new PAIA runtime/product feature development pending a separate Product Foundation / Architecture Review. This order supersedes every historical `ACTIVE`, `READY`, `WHOLE_PACKAGE_PREAUTHORIZED`, or "continue dependency-safe engineering" instruction in this file, the Master Plan, Product Intent Contract, Execution Protocol, and Deferred Final Gates. A heartbeat or generic "continue" does not resume product engineering. Restart requires a newly owner-approved product architecture and roadmap. Existing main behavior is unchanged by this docs-only closure.
 
 At this read-only handoff, remote main was `9cd74665a46fcf0bb77865afaf2aaf3b2cad2c40`. [Draft PR #99](https://github.com/haohongfei2001-png/paia/pull/99) was open at exact head `991f78f4c54b79d67428bf3209fb4eaa18f1cc9b` (95 changed files, 227 commits). It is an **unmerged, inactive preserved R&D / engineering snapshot**, not an approved production candidate; do not merge it into main, force-push, rewrite history, delete tests/code, or recast its receipts. Its sole product writer is RELEASED. The separate website design Draft #91 is not this product writer.
 
@@ -29,27 +39,27 @@ For a future owner-approved restart, reuse verified core mechanisms and exact-he
 
 package_id: PAIA-CONSUMER-PRODUCT-v1
 
-package_status: PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW
+package_status: DESKTOP_VNEXT_D1_D4_OWNER_APPROVED
 
 activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: NONE — product development paused
+current_slice: D1 — Archive / Q1 durable edit acknowledgement
 
-current_slice_status: PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW
+current_slice_status: IMPLEMENTING
 
-current_round: NONE — no CPV1 round authorized
+current_round: D1-Q1
 
-current_round_status: PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW
+current_round_status: IMPLEMENTING
 
-current_writer: NONE — Draft PR #99 preserved and inactive
+current_writer: feat/desktop-vnext-d1-archive — sole active product writer
 
-writer_status: RELEASED — no new product writer authorized
+writer_status: ACTIVE — owner-approved Desktop vNext D1–D4 only
 
 production_claim: NONE
 
-authorization_mode: NONE — whole-package continuous authorization ended by owner stop order
+authorization_mode: DESKTOP_VNEXT_D1_D4_OWNER_APPROVED — explicit owner scope; no future-product expansion
 
 prior_temporary_authorization_rounds_completed: 4
 

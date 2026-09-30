@@ -1,0 +1,33 @@
+Sanitized local synthetic headless failure extract; full logs retained in task workspace. No product assertion executed.
+✖ CPV1-01.1 interrupted Input save survives page close and worker restart, then replays exactly once (3740.057417ms)
+✖ CPV1-01.1 stale recovery draft restores visibly but never overwrites a newer committed Input (27.734875ms)
+✖ VS-04 failed Archive removal remains visible until retry durably saves it (20279.907458ms)
+✖ D1 durable acknowledgement loss reads actual worker receipt, preserves concurrent typing, and writes each revision once (37.12325ms)
+✖ D1 unknown outcome is visible, keeps the full draft, blocks new writes and survives worker/page restart recovery (22.793166ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26724.489958
+✖ failing tests:
+✖ CPV1-01.1 interrupted Input save survives page close and worker restart, then replays exactly once (3740.057417ms)
+  browserType.launchPersistentContext: Target page, context or browser has been closed
+  [2m  - [pid=38187] exception while trying to kill process: Error: kill EPERM[22m
+  [2m  - [pid=38187] <process did exit: exitCode=null, signal=SIGABRT>[22m
+✖ CPV1-01.1 stale recovery draft restores visibly but never overwrites a newer committed Input (27.734875ms)
+  browserType.launchPersistentContext: Target page, context or browser has been closed
+  [2m  - [pid=38200] exception while trying to kill process: Error: kill EPERM[22m
+  [2m  - [pid=38200] <process did exit: exitCode=null, signal=SIGABRT>[22m
+✖ VS-04 failed Archive removal remains visible until retry durably saves it (20279.907458ms)
+  Error: Chrome CDP port did not become ready
+✖ D1 durable acknowledgement loss reads actual worker receipt, preserves concurrent typing, and writes each revision once (37.12325ms)
+  browserType.launchPersistentContext: Target page, context or browser has been closed
+  [2m  - [pid=38256] exception while trying to kill process: Error: kill EPERM[22m
+  [2m  - [pid=38256] <process did exit: exitCode=null, signal=SIGABRT>[22m
+✖ D1 unknown outcome is visible, keeps the full draft, blocks new writes and survives worker/page restart recovery (22.793166ms)
+  browserType.launchPersistentContext: Target page, context or browser has been closed
+  [2m  - [pid=38258] exception while trying to kill process: Error: kill EPERM[22m
+  [2m  - [pid=38258] <process did exit: exitCode=null, signal=SIGABRT>[22m
