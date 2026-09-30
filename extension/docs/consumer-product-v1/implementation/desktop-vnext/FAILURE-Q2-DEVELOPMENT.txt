@@ -188,3 +188,9 @@ RAW_TASK_LOG isolated-source-built-owning-browser.txt
     actual: '2026/10/01 01:26:56 · 编辑查看变化操作前\n未编辑的来源内容（通过查看来源阅读）\n保留在 Input Archive\n\n操作后\nSYNTHETIC Current rewrite\n保留在 Input Archive恢复操作前恢复此版本2026/10/01 01:26:54 · 初始版本 · 重要版本查看变化操作前\n未编辑的来源内容（通过查看来源阅读）\n保留在 Input Archive\n\n操作后\n未编辑的来源内容（通过查看来源阅读）\n保留在 Input Archive恢复操作前恢复此版本',
     expected: '',
 The shared ignored release tree contained unexpected duplicate filename suffixes. Source core/ui did not contain them. Origin is undetermined; no source/privacy/package allowlist was relaxed. New Original test builds into its own temporary output directory and removes only that directory after testing. Isolated first run: 3/4 passed; Source History Escape exposed delayed content clearing, now clears synchronously on native cancel, retaining the strict empty-DOM assertion. All four source/release scenarios remain.
+
+HOSTED_FULL_FAILURE run36752203076 head3144676828389a2dcdbe33b3da061192050b81db tested merge-candidate44825c18602c509b98d840e306c71b7d68cd53ff tree59293c39890ada9858da2a8a71c74d0f52129e8c
+Current Browser4/4 job110013411527 failed one case:
+FAIL cpv1-02-4-reader-chrome-e2e.test.mjs: VS-04 source purge refuses an unfinished Reader IME edit
+locator.click: Timeout30000ms exceeded; waiting getByRole menuitem Chinese-only 查看修改历史.
+CDP-port launch uses host Chrome language; cloud host English, local host Chinese. The owning persistent-context harness explicitly uses zh-CN. Newly localized header requires a bilingual exact alternative. Retain all full Source/draft/search/remove/navigation/History refusal oracles; the full same case now explicitly sets existing English preference to reproduce language behavior on every host. Local original replay1/1 passed before repair under Chinese host; not misreported as reproduction of cloud English failure. Full CI failure remains FAIL, not relabeled.

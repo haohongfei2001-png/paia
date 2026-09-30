@@ -241,6 +241,10 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
   const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);
+  // CDP-port Chrome uses the host locale, unlike the persistent-context harness.
+  // Exercise the complete IME safety journey in explicit English on every host.
+  const locale=await p.evaluate(()=>chrome.runtime.sendMessage({type:'UPDATE_PREFERENCES',changes:{language:'en'}}));assert.equal(locale.ok,true);
+  await eventually(()=>p.evaluate(()=>document.documentElement.lang==='en'),'existing English preference applies');
   await p.locator('#onboarding-skip').click();
   const c=conversation('cpv1-purge-ime');c.messages=[{id:'cpv1-purge-ime-input',text:'Synthetic source kept'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
@@ -285,7 +289,7 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await p.getByRole('menuitem',{name:/从档案移除|Remove from archive/}).click();
   assert.equal((await h.state()).library.blocks[0].excluded,false,'reversible removal cannot hide an unfinished edit');
   assert.equal(await prose.textContent(),'未完成的输入','rejected removal preserves the composing text');
-  await p.locator('#document-menu').click();await p.getByRole('menuitem',{name:'查看修改历史',exact:true}).click();
+  await p.locator('#document-menu').click();await p.getByRole('menuitem',{name:/^(查看修改历史|View edit history)$/}).click();
   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
   assert.equal(await p.locator('#revision-dialog').evaluate(el=>el.open),false,'version history does not open over unfinished IME text');
   await p.locator('#back').click();
