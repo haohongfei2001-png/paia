@@ -6,14 +6,13 @@ const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.run
 async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
 
 async function homeState(page,state){
- await eventually(async()=>{
-  if(!await page.locator('#archive-root-main').isVisible())return false;
-  const recent=await page.locator('#archive-root-recent').isVisible(),returnState=await page.locator('#revisit-open').getAttribute('data-return-state');
-  return state==='activation-empty'?!recent&&returnState==='quiet':recent&&returnState===(state==='return-new'?'new':'quiet');
- },`Archive current root reaches ${state}`);
+ await eventually(()=>page.locator('#archive-root-main').isVisible(),'Archive root is visible');
+ assert.equal(await page.locator('#archive-root-recent,#archive-root-continue').count(),0);
+ assert.equal(await page.locator('#revisit-open').isVisible(),false);
+ await eventually(async()=>{const status=await rpc(page,'PAIA_REVISIT_STATUS');return state==='return-new'?status.newInputs.count>0:status.newInputs.count===0;},`retained Revisit service reaches ${state}`);
 }
 
-test('Round 4.10 current release: activation explains the product and return state promotes real local changes',{timeout:120000},async()=>{
+test('Round 4.10 current release: activation keeps a quiet root and preserves local visit-window semantics',{timeout:120000},async()=>{
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive;
@@ -34,21 +33,18 @@ test('Round 4.10 current release: activation explains the product and return sta
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText.includes('ROUND410_ACTIVATION')),'first activation Input is captured');
   await p.bringToFront();
   await homeState(p,'return-new');
-  assert.match(await p.locator('#archive-root-recent').textContent(),/最近收录|Recently saved/i);
-  assert.match(await p.locator('#archive-root-recent').textContent(),/Round 4.10 First Input/);
-  assert.equal(await p.locator('#archive-root-recent').isVisible(),true);
-  assert.equal(await p.locator('#archive-root-recent').count(),1,'recent capture has one current-root action');
+  const recent=(await rpc(p,'GET_PAGE',{page:{view:'library',limit:1}})).recentCapturedDocument;
+  assert.equal(recent.originalConversationTitle,'Round 4.10 First Input','recent-capture metadata survives chrome cleanup');
 
   // UX-R2 fixes the visit window and advances it on exit. Visiting creates no read position.
-  await p.locator('#revisit-open').click();
+  await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'revisit'}})));
   await eventually(()=>p.locator('#revisit-panel').isVisible(),'Revisit opens as its own page');
   assert.match(await p.locator('.revisit-intro').textContent(),/不表示|does not mark/i);
   assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[]);
   await p.locator('.revisit-close').click();
 
   // A later Input after that baseline is the return trigger. Verify the Revisit
-  // semantic contract directly before asserting its home presentation, so a
-  // future failure tells us whether data semantics or UI refresh regressed.
+  // semantic contract directly, independently of the removed root shortcut.
   const second={id:'round410-second',title:'Round 4.10 Return Input',base:1609462800,messages:[{id:'round410-second-message',text:'ROUND410_RETURN 我决定把 PAIA 的下一步重点放在第一次理解产品价值和第二次主动回来，而不是继续增加功能页。'}]};
   await h.open(second);
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText.includes('ROUND410_RETURN')),'post-baseline Input is captured');
@@ -58,27 +54,16 @@ test('Round 4.10 current release: activation explains the product and return sta
   assert.match(revisitAfterCapture.newInputs.items[0]?.snippet||'',/ROUND410_RETURN/,JSON.stringify(revisitAfterCapture));
 
   // Switching back to an already-open PAIA tab must refresh the local return
-  // state; ARCHIVE_CHANGED is the primary trigger and focus is only a fallback.
-  // Observe the semantic state and its primary action together so an intermediate
-  // async paint cannot be mistaken for the settled return presentation.
+  // state without restoring the removed shortcut. Focus must not advance the
+  // service's fixed visit boundary.
   await p.bringToFront();
   await homeState(p,'return-new');
-  assert.match(await p.locator('#archive-root-recent').textContent(),/最近收录|Recently saved/i);
-  assert.doesNotMatch(await p.locator('#revisit-open').getAttribute('aria-label'),/\d+ 条|\d+ new input/i,'no unread debt count');
+  const beforeFocus=await rpc(p,'PAIA_REVISIT_STATUS');
+  await p.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  assert.equal((await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count,beforeFocus.newInputs.count,'focus preserves the established visit boundary');
 
-  // A focus refresh must not briefly regress an established return state back
-  // through activation-ready while the async Revisit read catches up.
-  const focusTransitions=await p.evaluate(()=>new Promise(resolve=>{
-   const home=document.getElementById('revisit-open'),seen=[];
-   const observer=new MutationObserver(()=>seen.push(home?.dataset.returnState||''));
-   observer.observe(home,{attributes:true,attributeFilter:['data-return-state']});
-   window.dispatchEvent(new Event('focus'));
-   setTimeout(()=>{observer.disconnect();resolve(seen);},150);
-  }));
-  assert.equal(focusTransitions.includes('quiet'),false,JSON.stringify(focusTransitions));
-
-  await p.locator('#revisit-open').click();
-  await eventually(async()=>await p.locator('#revisit-panel').isVisible()&&(await p.locator('#revisit-panel').textContent()).includes('ROUND410_RETURN'),'promoted return action opens the existing local Revisit result');
+  await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'revisit'}})));
+  await eventually(async()=>await p.locator('#revisit-panel').isVisible()&&(await p.locator('#revisit-panel').textContent()).includes('ROUND410_RETURN'),'internal navigation preserves the existing local Revisit result');
   assert.equal((await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count,1,'opening fixes a window without claiming read completion');
   assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[],'visiting cannot fabricate a reading position');
   await p.locator('.revisit-close').click();

@@ -30,14 +30,11 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   const rootWindow=page.locator('.archive-navigator-window').first();
   await eventually(()=>rootWindow.isVisible(),'captured Conversation appears in the Archive tree');
   assert.equal(await page.locator('#uir-archive-assist,#uir-archive-frame').count(),0,'Archive root does not render the legacy dashboard');
-  assert.equal(await page.locator('#revisit-open').isVisible(),true,'Revisit remains reachable from the Archive header');
-  await page.locator('#revisit-open').click();
-  await eventually(()=>page.locator('#revisit-panel').isVisible(),'header Revisit action opens its real destination');
-  await page.locator('#primary-nav [data-view="library"]').click();
-  await eventually(()=>rootWindow.isVisible(),'return from Revisit restores the Archive tree');
-  await eventually(()=>page.locator('.archive-navigator-window-cue').first().isVisible(),'bounded local content cue is visible');
-  assert.match(await page.locator('.archive-navigator-window-cue').first().textContent(),/CPV1_SHELL_SEARCH unique saved idea/);
-  assert.match(await page.locator('.archive-navigator-window-time').first().textContent(),/2021/);
+  assert.equal(await page.locator('#revisit-open').isVisible(),false,'Revisit stays out of the Archive header');
+  assert.equal(await page.locator('#archive-root-recent,#archive-root-continue,.archive-navigator-window-cue,.archive-navigator-window-time,.archive-navigator-detail').count(),0,'Archive rows expose titles without retired shortcuts, previews, timestamps or detail controls');
+  assert.equal(await page.locator('input[type="search"]:visible').count(),1,'Archive has one primary search');
+  const searchBox=await page.locator('#search').boundingBox(),treeBox=await page.locator('#archive-navigator').boundingBox();
+  assert.ok(searchBox&&treeBox&&searchBox.y+searchBox.height<=treeBox.y,'primary search is above the Project tree');
   if(process.env.PAIA_BATCH_VISUAL_DIR){await mkdir(process.env.PAIA_BATCH_VISUAL_DIR,{recursive:true});await page.screenshot({path:process.env.PAIA_BATCH_VISUAL_DIR+'/archive-desktop.png',fullPage:true});}
   await eventually(async()=>await page.locator('#archive-source-scope option[value="chatgpt"]').count()===1,'source scope reflects captured provider');
   await page.locator('#archive-source-scope').selectOption('chatgpt');
@@ -78,10 +75,15 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await eventually(()=>page.locator('#document-panel').isVisible(),'Forward restores the Reader container');
   assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),documentId);
   await page.evaluate(()=>history.back());
+  // The same row also exists in Reader's Navigator, so row visibility alone
+  // cannot establish that the asynchronous Back navigation has completed.
+  await eventually(()=>page.locator('#collection-panel').isVisible(),'second Back restores the Archive container before responsive checks');
+  assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),null);
   await eventually(()=>rootWindow.isVisible(),'a second Back keeps the Conversation reachable');
   await page.setViewportSize({width:320,height:700});
   await eventually(()=>rootWindow.isVisible(),'the same Conversation remains available at phone width');
-  assert.equal(await page.locator('#archive-root-overflow summary').isVisible(),true,'Archive overflow remains visible at phone width');
+  const phoneRoute=await page.evaluate(()=>({route:history.state?.paiaReader,collectionHidden:document.querySelector('#collection-panel').hidden,readerHidden:document.querySelector('#document-panel').hidden,overflowHidden:document.querySelector('#archive-root-overflow').hidden,navigatorParent:document.querySelector('#archive-navigator').parentElement.id,width:innerWidth}));
+  assert.equal(await page.locator('#archive-root-overflow summary').isVisible(),true,'Archive overflow remains visible at phone width; settled state '+JSON.stringify(phoneRoute));
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'long source title does not create horizontal page overflow');
   if(process.env.PAIA_BATCH_VISUAL_DIR)await page.screenshot({path:process.env.PAIA_BATCH_VISUAL_DIR+'/archive-320.png',fullPage:true});
   assert.equal(harness.externalRequests,0);

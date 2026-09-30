@@ -50,8 +50,8 @@ test('UIS-01 quiets Archive root and consolidates history/export actions without
     assert.equal(await page.locator('#sync-history').count(),0,'standalone history button is retired');
     assert.equal(await page.locator('#export-menu').count(),0,'legacy export details are retired');
     assert.equal(await page.locator('#archive-root-overflow summary:visible').count(),1,'Archive root has one visible overflow action control');assert.equal(await page.locator('#document-menu').isVisible(),false,'Reader document menu is not a root action');
-    assert.equal(await page.locator('#archive-root-continue').count(),1,'saved reading capability remains mounted');
-    assert.equal(await page.locator('#revisit-open').isVisible(),true,'Revisit capability remains visible');
+    assert.equal(await page.locator('#archive-root-recent,#archive-root-continue').count(),0,'retired root shortcuts are removed from the DOM');
+    assert.equal(await page.locator('#revisit-open').isVisible(),false,'Revisit does not add root chrome');
 
     const trigger=await openArchiveMenu(page);
     assert.equal(await trigger.getAttribute('aria-haspopup'),'menu');

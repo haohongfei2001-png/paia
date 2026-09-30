@@ -3,17 +3,13 @@ import {normalizeUXPreferences,resolveAppearance,resolveLanguage,validReturnTarg
 import {ArchiveOrderSettings} from './archive-order-settings.js';
 
 const $=id=>document.getElementById(id);
-const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const FONT_PX={small:16,standard:17,large:19,xlarge:21};
 const WIDTH_PX={narrow:640,standard:680,wide:720};
-let uxPreferences=normalizeUXPreferences(),settingsReturn='library',recentTarget=null,archiveActionToken=0,preferenceBusy=false;
+let uxPreferences=normalizeUXPreferences(),settingsReturn='library',preferenceBusy=false;
 const archiveOrderSettings=new ArchiveOrderSettings();
 
 function node(tag,className='',text=''){const el=document.createElement(tag);if(className)el.className=className;if(text)el.textContent=text;return el;}
 function button(text,className=''){const el=node('button',className,text);el.type='button';return el;}
-function noteCoreLoop(action){void request('PAIA_CORE_LOOP_ACTION',{action}).catch(()=>{});}
-async function waitFor(read,{attempts=100,delay=50}={}){for(let i=0;i<attempts;i++){const value=read();if(value)return value;await sleep(delay);}return null;}
-function isArchiveHome(){const nav=document.querySelector('#primary-nav [data-view="library"]');return nav?.getAttribute('aria-current')==='page'&&!$('collection-panel')?.hidden&&!String($('search')?.value||'').trim();}
 function installStyles(){if(document.querySelector('link[data-core-loop]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=chrome.runtime.getURL('ui/core-loop.css');link.dataset.coreLoop='true';document.head.append(link);}
 function language(){return resolveLanguage(uxPreferences.language,navigator.language);}
 function copy(zh,en){return language()==='zh-CN'?zh:en;}
@@ -93,32 +89,11 @@ function setupSettingsShell(){
  syncPreferenceControls();
 }
 
-async function refreshArchiveActions(){
- const recent=$('archive-root-recent'),revisit=$('revisit-open');if(!recent||!revisit)return;
- const visible=isArchiveHome();recent.hidden=!visible;if(!visible)return;
- const token=++archiveActionToken;
- try{
-  const [page,status]=await Promise.all([request('GET_PAGE',{page:{view:'library',limit:1}}),request('PAIA_REVISIT_STATUS')]);
-  if(token!==archiveActionToken||!isArchiveHome())return;
-  recentTarget=page.recentCapturedDocument||null;recent.hidden=!recentTarget;
-  if(recentTarget)recent.textContent=copy('最近收录 · ','Recently saved · ')+(recentTarget.userTitle||recentTarget.originalConversationTitle||copy('最近的对话','Recent conversation'));
-  const newContent=!!(status.newInputs?.count||status.topicUpdates?.length);
-  revisit.dataset.returnState=newContent?'new':'quiet';
-  revisit.setAttribute('aria-label',copy('打开回来看看','Open Revisit')+(newContent?copy(' · 有新内容',' · New local changes'):''));
- }catch{if(token===archiveActionToken){recent.hidden=true;revisit.dataset.returnState='unavailable';}}
-}
-function installArchiveActions(){
- const recent=$('archive-root-recent'),revisit=$('revisit-open');if(!recent)return;
- recent.addEventListener('click',()=>{if(recentTarget?.id){noteCoreLoop('continue');document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'library',documentId:recentTarget.id}}));}});
- revisit?.addEventListener('click',()=>noteCoreLoop('return'));
- const collection=$('collection-panel');if(collection)new MutationObserver(()=>void refreshArchiveActions()).observe(collection,{attributes:true,attributeFilter:['hidden']});
- for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(()=>{applyLabels();void refreshArchiveActions();}).observe(nav,{attributes:true,attributeFilter:['aria-current']});
- $('search')?.addEventListener('input',()=>void refreshArchiveActions());
- $('revisit-dialog')?.addEventListener('close',()=>void refreshArchiveActions());
- chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type)){recentTarget=null;void loadPreferences();void refreshArchiveActions();}});
- document.addEventListener('paia:reader-policy',()=>void refreshArchiveActions());
+// Preference refresh stays independent of the retired Archive shortcut cards.
+function installPreferenceUpdates(){
+ for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(applyLabels).observe(nav,{attributes:true,attributeFilter:['aria-current']});
+ chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type))void loadPreferences();});
  const media=globalThis.matchMedia?.('(prefers-color-scheme: dark)');media?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});
- void refreshArchiveActions();
 }
 
 function preserveInternalToolAccess(){const details=$('product-diagnostics');if(!details||$('core-loop-product-signals'))return;const link=node('a','core-loop-internal-link',copy('查看本机产品验证数据 / Passport','Local product validation / Passport'));link.id='core-loop-product-signals';link.href='product-signals.html';link.target='_blank';link.rel='noopener';details.append(link);}
@@ -126,5 +101,5 @@ function preserveInternalToolAccess(){const details=$('product-diagnostics');if(
 let installed=false;
 export function installCoreLoop(){
  if(installed)return;installed=true;installStyles();setupShell();setupSettingsShell();tuneOnboarding();preserveInternalToolAccess();void loadPreferences();void archiveOrderSettings.load();
- installArchiveActions();
+ installPreferenceUpdates();
 }

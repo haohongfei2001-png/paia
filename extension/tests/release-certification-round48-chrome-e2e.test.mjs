@@ -36,7 +36,7 @@ test('Round 4.8 current release: internal material Search -> Reader / Context an
   p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#collection-panel').isVisible());await p.locator('#search').fill('');await eventually(()=>p.locator('#archive-root-main').isVisible());
   // UX-R2 creates a fixed visit window; a later captured Input becomes the
   // only new-item signal and can navigate back to the canonical reader.
-  await p.locator('#revisit-open').click();await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'Revisit opens');
+  await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'revisit'}})));await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'Revisit opens');
   assert.match(await p.locator('.revisit-intro').textContent(),/不表示|does not mark/i);
   assert.equal(await p.locator('#revisit-panel footer .primary').count(),0,'no mark-all or baseline action');
   await p.locator('.revisit-close').click();
@@ -44,7 +44,7 @@ test('Round 4.8 current release: internal material Search -> Reader / Context an
   await h.open({id:'round48-current',title:'Round 4.8 Current Release',base:1609459200,messages:[{id:'round48-one',text:first},{id:'round48-two',text:second}]});
   await eventually(async()=>{const s=await h.state(),source=s.records.find(r=>r.originalText===second);return s.records.length===2&&!!source&&s.library?.blocks?.some(b=>!b.excluded&&b.originalTextReference===source.id);},'later Input is linked into Input Archive after baseline');
   let revisitStatus=null;await eventually(async()=>{revisitStatus=await rpc(p,'PAIA_REVISIT_STATUS');return revisitStatus.newInputs.items.some(item=>String(item.snippet||'').includes('ROUND48_REVISIT_NEW'));},'Revisit service sees the newly captured Input');assert.ok(revisitStatus.newInputs.count>=1);
-  await p.locator('#revisit-open').click();await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'Revisit reopens after later Input');
+  await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'revisit'}})));await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'Revisit reopens after later Input');
   const newCard=p.locator('.revisit-card').filter({hasText:'ROUND48_REVISIT_NEW'});await eventually(async()=>await newCard.count()===1,'Revisit UI renders the service-visible new Input');await newCard.locator('.revisit-card-open').evaluate(el=>{globalThis.__round48StableRevisit=el;});const worker=h.context.serviceWorkers()[0];await worker.evaluate(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'CAPTURE'}).catch(()=>{});});await pause(250);assert.equal(await newCard.locator('.revisit-card-open').evaluate(el=>el===globalThis.__round48StableRevisit),true,'duplicate capture refresh keeps the same Revisit action node');await newCard.locator('.revisit-card-open').click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND48_REVISIT_NEW'),'Revisit item opens canonical Input reader');
   await pause(100);assert.deepEqual(h.errors,[]);

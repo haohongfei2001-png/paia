@@ -23,7 +23,7 @@ test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit an
     await rpc(page,'CONTINUE_THINKING',{thought:{topicId:topic.id,body:'UIS04 独立思想保持原样。',operationId:crypto.randomUUID()}});
     await rpc(page,'RECORD_TOPIC_READ',{id:topic.id});
     await page.bringToFront();await nav(page,'library');
-    await eventually(()=>page.locator('#revisit-open').isVisible(),'Revisit mounts without a dummy search button');
+    assert.equal(await page.locator('#revisit-open').isVisible(),false,'Revisit compatibility owner is hidden');
     await page.evaluate(async()=>{
       const search=await import(chrome.runtime.getURL('ui/universal-search.js'));
       const revisit=await import(chrome.runtime.getURL('ui/revisit.js'));
@@ -69,8 +69,8 @@ assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,
       assert.equal(await page.locator('input[type="search"]:visible').count(),1);
       await noRemovedControls(page);
     }
-    await page.locator('#revisit-open').focus();await page.keyboard.press('Enter');
-    await eventually(()=>page.locator('#revisit-panel').isVisible(),'keyboard opens the retained Revisit owner');
+    await page.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'revisit'}})));
+    await eventually(()=>page.locator('#revisit-panel').isVisible(),'internal navigation retains the Revisit service owner');
     await page.locator('.revisit-close').click();
     await eventually(()=>page.locator('#search').isVisible(),'Revisit returns to Archive');
     assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root duplicate material launcher stays removed');

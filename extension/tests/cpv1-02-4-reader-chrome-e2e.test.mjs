@@ -26,6 +26,7 @@ test('CPV1-02.4 Reader keeps actions contextual and removal reversible', {timeou
   await h.open(conversation('cpv1-reader-actions'));
   await eventually(async()=>(await h.state()).records.length===3);
   await openCapturedReader(p);
+  assert.equal(await p.locator('#document-filter-toggle,#document-search-include-filtered,.filtered-input-note').count(),0,'Reader has no show-all or Smart Filter chrome');
   const before=await h.state(),first=p.locator('.library-prose').first();
   await eventually(async()=>await p.locator('.library-block .reader-more').count()===3,'Reader actions mounted');
   assert.equal(await p.locator('.library-block .reading-copy,.library-block .input-remove').count(),0);
@@ -241,11 +242,23 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   const c=conversation('cpv1-purge-ime');c.messages=[{id:'cpv1-purge-ime-input',text:'Synthetic source kept'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await p.bringToFront();
-  const group=p.locator('.archive-navigator-group-toggle').first();
-  await eventually(()=>group.isVisible(),'captured group is visible');
-  assert.match(await group.textContent(),/归属未知|Project unknown/);
+  // Capture can precede the separate verified non-Project membership signal.
+  // This ordinary /c/ fixture settles as unassigned; unknown is only transient.
+  let documentId;
+  await eventually(async()=>{
+   const result=await p.evaluate(()=>chrome.runtime.sendMessage({type:'GET_PAGE',page:{view:'library'}}));
+   assert.equal(result.ok,true);documentId=result.data.documents.find(doc=>doc.sourceConversationId===c.id)?.id;
+   return !!documentId;
+  },'the exact captured Conversation has an Archive identity');
+  await eventually(()=>p.evaluate(async id=>{
+   const result=await chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_NAV_STATUS',page:{selectedDocumentId:id}});
+   return result.ok&&result.data.selectedPath?.available&&result.data.selectedPath.groupKind==='unassigned';
+  },documentId),'ordinary fixture membership settles as verified unassigned');
+  const group=p.locator('.archive-navigator-group-toggle').filter({hasText:/未归属 Project|Not assigned to a Project/}).first();
+  await eventually(()=>group.isVisible(),'verified unassigned group is visible');
+  assert.match(await group.textContent(),/未归属 Project|Not assigned to a Project/);
   if(await group.getAttribute('aria-expanded')!=='true')await group.click();
-  const window=p.locator('.archive-navigator-window').first();
+  const window=p.locator(`.archive-navigator-window[data-document-id="${documentId}"]`);
   await eventually(()=>window.isVisible(),'captured Conversation is visible');
   await window.click();
   await eventually(()=>p.locator('.library-prose').first().isVisible(),'Reader opens');

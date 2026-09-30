@@ -40,8 +40,10 @@
 }
 
 /* UIR-02: Archive stays a bounded metadata list; no body previews are introduced. */
-#archive-root-main > #search {
-  width: 100%;
+#archive-root-tools > #search {
+  flex: 1 1 280px;
+  min-width: 0;
+  width: auto;
   min-height: 44px;
   padding: 10px 12px;
   border: 1px solid var(--paia-subtle);
@@ -50,7 +52,7 @@
   color: var(--paia-text);
 }
 
-#archive-root-main > #search::placeholder {
+#archive-root-tools > #search::placeholder {
   color: var(--paia-meta);
 }
 
@@ -401,7 +403,7 @@ body #revisit-panel .revisit-more {
 }
 
 @media (max-width: 799px) {
-  #archive-root-main > #search {
+  #archive-root-tools > #search {
     min-height: 44px;
   }
 
