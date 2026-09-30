@@ -1,3 +1,4 @@
+import {admitPreGatePurgeBrowserFixture} from './harness/pre-gate-purge-browser-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
@@ -54,14 +55,14 @@ test('CPV1-01.1 interrupted Thought edit is recoverable without turning the draf
  }finally{await h.close();}
 });
 
-test('CPV1-01.1 permanent Source purge removes its recovery copy before canonical deletion',{timeout:45000},async()=>{
+test('CPV1-01.1 current B-02 refusal preserves recovery; historical Source purge cannot replay its recovery copy',{timeout:45000},async()=>{
  const h=await FakeChatGPT.start({onboarding:true});try{
   const p=await ready(h);await h.open({id:'cpv1-recovery-purge',title:'Recovery Purge',base:1609459200,messages:[{id:'purge-one',text:'即将永久删除的来源'}]});
   await eventually(async()=>(await h.state()).records.length===1,'purge source captured');
   const state=await h.state(),source=state.records[0],input=state.library.blocks[0];
   await rpc(p,'PAIA_RECOVERY_DRAFT_SAVE',{draft:{epoch:state.recoveryEpoch,kind:'document',ownerId:input.documentId,token:'purge-token-0001',sourceRecordIds:['forged-ui-source-id'],operation:{type:'EDIT_DOCUMENT',edit:{operationId:'purge-operation-0001',documentId:input.documentId,blocks:[{id:input.id,expectedRevision:input.revision,libraryText:'不应在永久删除后残留',note:input.note,excluded:input.excluded}]}}}});
   assert.ok(await rpc(p,'PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:'document',ownerId:input.documentId}}));
-  await rpc(p,'PURGE_SOURCE',{id:source.id,confirm:true});
+  await admitPreGatePurgeBrowserFixture(p,source.id);
   assert.equal(await rpc(p,'PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:'document',ownerId:input.documentId}}),null);
   assert.equal((await h.state()).records.length,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}

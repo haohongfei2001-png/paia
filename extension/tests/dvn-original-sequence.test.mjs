@@ -1,3 +1,4 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setup,capture,inputEdit} from './harness/thought-m1.mjs';
@@ -12,9 +13,9 @@ test('Q2 Conversation reads every immutable Source through bounded pages even af
  assert.equal(new Set(ids).size,123);assert.deepEqual(new Set(ids),new Set(original.map(r=>r.id)));assert.equal(ids[51],original[51].id);assert.equal(ids[96],original[96].id);
  const copied=await readOriginalText({read:page=>q.page(page),target,generation});assert.equal(copied,original.map(r=>r.originalText).join('\n\n'));assert.equal(copied.includes('human working version'),false);
 });
-test('Q2 selected Input scope never substitutes another Input or Working text; unavailable Source is explicit',async()=>{
+test('CURRENT B-02 refusal + historical fixture: Q2 selected Input scope never substitutes another Input or Working text; unavailable Source is explicit',async()=>{
  const {s,b,q}=await fixture(4);await inputEdit(s,b.id,{libraryText:'SYNTHETIC changed working prose'});const target={kind:'input',ref:b.id};const p=await q.page({target});assert.equal(p.intended,1);assert.equal(p.records.length,1);assert.equal(p.records[0].originalText,'Synthetic explicit working input');assert.deepEqual(Object.keys(p.records[0]).sort(),['id','originalText','sourceSentAt']);assert.equal(p.records[0].sourceSentAt,null);
- await s.permanentDelete(b.sourceRecordId);const missing=await q.page({target});assert.equal(missing.availability,'unavailable');assert.deepEqual(missing.records,[]);
+ await admitPreGatePurgeFixture(s,b.sourceRecordId);const missing=await q.page({target});assert.equal(missing.availability,'unavailable');assert.deepEqual(missing.records,[]);
  await assert.rejects(readOriginalText({read:page=>q.page(page),target,generation:missing.generation}),/SOURCE_UNAVAILABLE/);
 });
 test('Q2 rejects stale/cross-target/forged bounds and discloses no technical or capture metadata',async()=>{

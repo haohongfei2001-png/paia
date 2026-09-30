@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
 import {hashText} from '../core/dedupe.js';
 
-test('Q1/Q2 production worker enforces extension-page/consent/strict request boundaries and returns no bodies',async()=>{
+test('Q1/Q2/Q4 production worker enforces extension-page/consent/strict request boundaries and returns no bodies',async()=>{
  globalThis.indexedDB=new IDBFactory();globalThis.IDBKeyRange=IDBKeyRange;
  const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`,ui={id,url:origin+'ui/archive.html'};
  let listener,data={},networkCalls=0;
@@ -17,6 +17,7 @@ test('Q1/Q2 production worker enforces extension-page/consent/strict request bou
  assert.equal((await send({type:'PAIA_ARCHIVE_ORIGINAL_PAGE',page:{target:{kind:'conversation',ref:'unknown'}}})).error,'CONSENT_REQUIRED');
  assert.equal((await send({type:'PAIA_ARCHIVE_PREPARE_REVISION',revision:{id:'unknown',documentId:'unknown',side:'before'}})).error,'CONSENT_REQUIRED');
  assert.equal((await send({type:'PAIA_ARCHIVE_OPERATION_OUTCOME',query})).error,'CONSENT_REQUIRED');
+ for(const type of ['PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT','PURGE_SOURCE','PURGE_RECORD'])assert.equal((await send({type,id:'unknown',...(type==='PURGE_SOURCE'?{confirm:true}:{})})).error,'CONSENT_REQUIRED');
  await rpc('CONSENT',{accepted:true});
  const url='https://chatgpt.com/c/dvn-receipt',content={id,url,frameId:0,tab:{id:23,url,incognito:false}};
  assert.equal((await send({type:'PAIA_ARCHIVE_OPERATION_OUTCOME',query},content)).error,'FORBIDDEN');
@@ -25,6 +26,11 @@ test('Q1/Q2 production worker enforces extension-page/consent/strict request bou
  const epoch=(await rpc('GET_STATUS')).epoch;
  assert.equal((await send({type:'CAPTURE',epoch,adapterVersion:'0.3.0',contentVersion:'0.12.0',chat:{id:'dvn-receipt',url,title:'SYNTHETIC receipt'},messages:[{sourceMessageId:'dvn-message',pageOrder:1,originalText:'SYNTHETIC immutable source'}]},content)).ok,true);
  const before=await rpc('GET_STATE'),b=before.library.blocks[0];
+ for(const type of ['PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT','PURGE_SOURCE']){
+  assert.equal((await send({type,id:b.sourceRecordId,confirm:true},content)).error,'FORBIDDEN');
+  assert.equal((await send({type,id:b.sourceRecordId,confirm:true,extra:true})).error,'INVALID_REQUEST');
+ }
+ const purePreview=await rpc('PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',{id:b.sourceRecordId});assert.equal(purePreview.state,'unambiguous');assert.deepEqual(Object.keys(purePreview).sort(),['coverage','inputCount','sourceCount','state','targetRef']);
  const originalPage={target:{kind:'input',ref:b.id}};
  assert.equal((await send({type:'PAIA_ARCHIVE_ORIGINAL_PAGE',page:originalPage},content)).error,'FORBIDDEN');
  assert.equal((await send({type:'PAIA_ARCHIVE_ORIGINAL_PAGE',page:originalPage,extra:true})).error,'INVALID_REQUEST');
@@ -37,6 +43,8 @@ test('Q1/Q2 production worker enforces extension-page/consent/strict request bou
  const prepared=await rpc('PAIA_ARCHIVE_PREPARE_REVISION',{revision});assert.equal(prepared.edit.revisionReason,'restore');assert.equal(prepared.current.libraryText,edit.blocks[0].libraryText);assert.equal((await rpc('GET_INPUT',{id:b.id})).revision,b.revision+1,'prepare never writes');
  const result=await rpc('PAIA_ARCHIVE_OPERATION_OUTCOME',{query:{...query,ownerRef:b.documentId,operationId:edit.operationId,requestDigest:await hashText(JSON.stringify(edit)),epoch:before.recoveryEpoch}});
  assert.deepEqual(result,{state:'committed',result:{ok:true}});
+ assert.deepEqual(await rpc('PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',{id:b.sourceRecordId}),{state:'owner_gate_required',gate:'B-02',targetRef:b.sourceRecordId});
+ assert.equal((await send({type:'PURGE_SOURCE',id:b.sourceRecordId,confirm:true})).error,'SOURCE_PURGE_OWNER_GATE');
  assert.deepEqual((await rpc('GET_STATE')).records,before.records);
  assert.equal(networkCalls,0);
 });

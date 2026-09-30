@@ -78,10 +78,8 @@ function recoveryDocumentPage(page,epoch){
 }
 
 async function purgeWithRecovery(id,permanent){
- const sourceIds=await store.sourceRecordIdsForPurge(id);
- // Clear first: failure leaves canonical Source untouched. A stopped worker
- // cannot commit a queued save; later workers revalidate against tombstones.
- await recoveryDraftStore().clearForSources(sourceIds);
+ // A resident linked human/unknown draft is a B-02 dependency, not permission
+ // to clear it. Admission and final revalidation happen before any cleanup.
  return permanent?store.permanentDelete(id):store.purge(id);
 }
 const UPDATE_STATE_KEY='paia-consumer-update:v1';
@@ -218,13 +216,18 @@ async function handle(request, sender) {
     return request.type === 'CAPTURE' ? store.capture(request) : store.enrich(request);
   }
   if (!ui || ['ENRICH_SOURCE_METADATA','OBSERVE_SOURCE_STRUCTURE'].includes(request.type)) throw new ArchiveError('FORBIDDEN');
+  if(request.type==='PURGE_SOURCE'&&(request.confirm!==true||Object.keys(request).some(key=>!['type','id','confirm'].includes(key))))throw new ArchiveError('INVALID_REQUEST');
   if(['GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))await providerReady;
   if(['START_BOUNDED_ORGANIZER','STOP_BOUNDED_ORGANIZER','GET_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_STATUS','EDIT_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW','STOP_ORIGINAL_LIBRARY_VIEW','GET_ORIGINAL_ORGANIZER_STATUS'].includes(request.type))await originalReady;
   if(request.type.startsWith('PAIA_BACKUP_'))await backupReady;
-  const needsConsent=request.type.startsWith('PAIA_ARCHIVE_')||request.type.startsWith('PAIA_RECOVERY_')||['ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_CONTEXT_')||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
+  const needsConsent=request.type.startsWith('PAIA_ARCHIVE_')||request.type.startsWith('PAIA_RECOVERY_')||['PURGE_SOURCE','PURGE_RECORD','ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_CONTEXT_')||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
   if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   if(request.type==='PAIA_BACKUP_BEGIN_EXPORT')await memory.ready();
   switch (request.type) {
+    case 'PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT': {
+      if(Object.keys(request).some(key=>!['type','id'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return withRecoveryFence(()=>store.sourcePurgePreflight(request.id));
+    }
     case 'PAIA_RECOVERY_DRAFT_SAVE': return withRecoveryFence(()=>saveRecoveryDraft(request.draft||{}));
     case 'PAIA_RECOVERY_DRAFT_LOAD': return withRecoveryFence(()=>loadRecoveryDraft(request.draft));
     case 'PAIA_RECOVERY_DRAFT_CLEAR': {const d=request.draft||{};return withRecoveryFence(()=>recoveryDraftStore().clear(d.kind,d.ownerId,d.token??null));}
@@ -395,7 +398,7 @@ async function handle(request, sender) {
     case 'GET_THOUGHTS': return store.thoughtPage(request.options);
     case 'GET_THOUGHT': return store.thought(request.id);
     case 'EDIT_THOUGHT': return store.editThought(request.edit);
-    case 'PURGE_SOURCE': {if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return withRecoveryFence(()=>purgeWithRecovery(request.id,true));}
+    case 'PURGE_SOURCE': return withRecoveryFence(()=>purgeWithRecovery(request.id,true));
     case 'GET_PAGE': return recoverySnapshot(()=>store.page(request.page));
     case 'GET_MIGRATION_STATUS': {const m=await store.migrationStatus();return m?{phase:m.phase,verified:m.verified,recoveryVerified:m.recoveryVerified,recordCount:m.recordCount,blockCount:m.blockCount}:{phase:'not_started'};}
     case 'RECOVER_MIGRATION': return store.recoverMigration();

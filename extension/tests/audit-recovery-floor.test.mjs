@@ -1,3 +1,4 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {OrganizerStore} from '../core/organizer/store.js';
@@ -10,9 +11,9 @@ import {RecoveryDraftSession} from '../ui/recovery-draft.js';
 const op=()=>crypto.randomUUID();
 const draftFor=b=>({kind:'document',ownerId:b.documentId,token:op(),operation:{type:'EDIT_DOCUMENT',edit:{operationId:op(),documentId:b.documentId,blocks:[{id:b.id,expectedRevision:b.revision,libraryText:b.libraryText??'Synthetic draft',note:b.note,excluded:b.excluded}]}}});
 
-test('purge floor rejects pre-purge text but permits subsequent legitimate and conflicted survivor drafts',async()=>{
+test('CURRENT B-02 refusal + historical fixture: purge floor rejects pre-purge text but permits subsequent legitimate and conflicted survivor drafts',async()=>{
  const {s}=await setup(OrganizerStore),b=(await s.snapshot()).library.blocks[0];await inputEdit(s,b.id,{libraryText:'Independent human text'});
- const stale=draftFor(await s.input(b.id));await s.permanentDelete(b.sourceRecordId);
+ const stale=draftFor(await s.input(b.id));await admitPreGatePurgeFixture(s,b.sourceRecordId);
  const survivor=await s.input(b.id);assert.equal(survivor.libraryText,'Independent human text');assert.equal(survivor.recoveryPurgeRevision,survivor.revision);
  await assert.rejects(()=>s.recoveryDraftSourceIds(stale),e=>e.code==='INVALID_REQUEST');
  const fresh=draftFor(survivor);assert.deepEqual(await s.recoveryDraftSourceIds(fresh),[]);
@@ -22,19 +23,19 @@ test('purge floor rejects pre-purge text but permits subsequent legitimate and c
  const replay=await s.capture(capture((await s.status()).epoch));assert.equal(replay.added,0,'capture cannot restore the deleted Source');
 });
 
-test('older purged survivors establish one conservative floor then permit later conflicts',async()=>{
- const {s}=await setup(OrganizerStore),b=(await s.snapshot()).library.blocks[0];await inputEdit(s,b.id,{libraryText:'Old-version human survivor'});const old=draftFor(await s.input(b.id));await s.permanentDelete(b.sourceRecordId);
+test('CURRENT B-02 refusal + historical fixture: older purged survivors establish one conservative floor then permit later conflicts',async()=>{
+ const {s}=await setup(OrganizerStore),b=(await s.snapshot()).library.blocks[0];await inputEdit(s,b.id,{libraryText:'Old-version human survivor'});const old=draftFor(await s.input(b.id));await admitPreGatePurgeFixture(s,b.sourceRecordId);
  await s.run(()=>s.repository.transaction(true,async t=>{const row=await t.get('blocks',b.id);delete row.value.recoveryPurgeRevision;await t.put('blocks',row);}));
  await assert.rejects(()=>s.recoveryDraftSourceIds(old),e=>e.code==='INVALID_REQUEST');
  const fresh=draftFor(await s.input(b.id));await s.recoveryDraftSourceIds(fresh);const floor=(await s.input(b.id)).recoveryPurgeRevision;
  await inputEdit(s,b.id,{note:'Later ordinary note'});await s.recoveryDraftSourceIds(fresh);assert.equal((await s.input(b.id)).recoveryPurgeRevision,floor);
 });
 
-test('Thought recovery ownership and independent post-purge conflicts retain human work',async()=>{
+test('CURRENT B-02 refusal + historical fixture: Thought recovery ownership and independent post-purge conflicts retain human work',async()=>{
  const {s}=await setup(OrganizerStore),b=(await s.snapshot()).library.blocks[0],created=await s.continueThinking({operationId:op(),body:'Independently authored thought',inputId:b.id});
  const before=await s.entry(created.id);assert.equal(before.provenanceType,'user_created');
  const draft=e=>({kind:'library_entry',ownerId:e.id,token:op(),operation:{type:'EDIT_LIBRARY_BATCH',edit:{operationId:op(),entries:[{id:e.id,expectedRevision:e.revision,expectedFieldRevisions:e.fieldRevisions,changes:{body:'Human recovery work'}}]}}});
- const stale=draft(before);await s.permanentDelete(b.sourceRecordId);await s.drainPurgeCleanup();await s.drainInvalidations();
+ const stale=draft(before);await admitPreGatePurgeFixture(s,b.sourceRecordId);await s.drainPurgeCleanup();await s.drainInvalidations();
  await assert.rejects(()=>s.recoveryDraftSourceIds(stale),e=>e.code==='INVALID_REQUEST');
  const current=await s.entry(before.id);assert.equal(current.body,'Independently authored thought');const fresh=draft(current);await s.recoveryDraftSourceIds(fresh);
  await s.editLibraryBatch({operationId:op(),entries:[{id:current.id,expectedRevision:current.revision,expectedFieldRevisions:current.fieldRevisions,changes:{note:'Concurrent new note'}}]});
@@ -70,14 +71,14 @@ test('an editor built from an old snapshot after restore never refreshes its rec
  const legacy=new RecoveryDraftSession({kind:'document',ownerId:'fixture'});await assert.rejects(()=>legacy.protect({},'legacy-token'));assert.equal(requests.length,1,'missing snapshot identity fails without fetching a new token');
 });
 
-test('repeated Source purge advances the surviving Thought floor while retaining its protected note',async()=>{
+test('CURRENT B-02 refusal + historical fixture: repeated Source purge advances the surviving Thought floor while retaining its protected note',async()=>{
  const f=await completeFixture({texts:['Synthetic context one','Synthetic context two']}),blocks=(await rows(f.s,'blocks')).map(r=>r.value);
  const evidence=await f.s.evidenceFor(blocks.map(b=>({inputId:b.id,role:'primary',selectedFields:['body']})));
  const created=await f.s.createEntry({operationId:op(),actor:'user',body:'Source-derived body',note:'Independent authored note',type:'idea',formation:'synthesized',evidence});
  const floors=[];
  for(const block of blocks){
   const before=await f.s.entry(created.id),draft={kind:'library_entry',ownerId:created.id,operation:{type:'EDIT_LIBRARY_BATCH',edit:{entries:[{id:created.id,expectedRevision:before.revision}]}}};
-  await f.s.permanentDelete(block.sourceRecordId);await f.s.drainPurgeCleanup();await f.s.drainInvalidations();
+  await admitPreGatePurgeFixture(f.s,block.sourceRecordId);await f.s.drainPurgeCleanup();await f.s.drainInvalidations();
   await assert.rejects(()=>f.s.recoveryDraftSourceIds(draft),e=>e.code==='INVALID_REQUEST');
   const after=await f.s.entry(created.id);assert.equal(after.note,'Independent authored note');floors.push(after.recoveryPurgeRevision);
  }

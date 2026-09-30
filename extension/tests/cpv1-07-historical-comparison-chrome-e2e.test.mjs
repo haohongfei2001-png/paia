@@ -1,3 +1,4 @@
+import {admitPreGatePurgeBrowserFixture} from './harness/pre-gate-purge-browser-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -125,7 +126,7 @@ test('VS07 historical comparison keeps complete originals and current edits dist
   await p.getByRole('searchbox',{name:'全局搜索'}).fill('HISTORY_COMPARE 原话');
   assert.equal(await p.locator('.historical-comparison').count(),0,'query input immediately revokes comparison');
   await eventually(()=>p.evaluate(()=>globalThis.__historyReadStarted),'actual old search response held');
-  await rpc(p,'PURGE_SOURCE',{id:original.ref.sourceId,confirm:true});
+  await admitPreGatePurgeBrowserFixture(p,original.ref.sourceId);
   await p.getByRole('searchbox',{name:'全局搜索'}).fill('HISTORY_COMPARE');
   await eventually(async()=>await p.locator('.universal-hit').count()===3
    &&await p.locator('#universal-search-dialog').getAttribute('data-query')==='HISTORY_COMPARE'

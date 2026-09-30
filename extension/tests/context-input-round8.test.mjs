@@ -1,3 +1,4 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setup,local,capture,derived,inputEdit} from './harness/thought-m1.mjs';
@@ -166,12 +167,12 @@ test('Round 8 Context: direct-Input exclusion and opt-in survive Backup restore 
   assert.equal((await restored.build({query:'ROUND8_BACKUP_DIRECT_INPUT'})).items.length,0);
 });
 
-test('Round 8 Context: purging a Source also removes its now-meaningless direct-Input exclusion',async()=>{
+test('CURRENT B-02 refusal + historical fixture: Round 8 Context: purging a Source also removes its now-meaningless direct-Input exclusion',async()=>{
   const {s,m,input}=await fixture({text:'ROUND8_PURGE_INPUT exclusion must not dangle'});
   await m.settings({includeUnorganizedInputs:true});
   await m.exclude({inputId:input.id,excluded:true});
   assert.equal((await m.status()).excludedInputs,1);
-  await s.permanentDelete(input.sourceRecordId);
+  await admitPreGatePurgeFixture(s,input.sourceRecordId);
   await s.drainPurgeCleanup();
   await s.drainInvalidations();
   assert.equal((await m.status()).excludedInputs,0);

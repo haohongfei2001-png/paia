@@ -1,3 +1,4 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {completeFixture,rows} from './harness/original-complete.mjs';
@@ -37,9 +38,9 @@ test('VS-05 changed live Input body refuses a stale response even before the inv
  const refused=await f.s.continueThinking({operationId:op(),body:'Must remain an unsaved draft',relation:f.relation});
  assert.equal(refused.conflict,true);assert.equal(refused.relatedChanged,true);assert.equal((await rows(f.s,'thoughts')).length,before);assert.equal((await f.s.entry(response.id)).body,'Independent response remains intact');
 });
-test('VS-05 purge fences a response link before cleanup and never deletes its independently authored body',async()=>{
+test('CURRENT B-02 refusal + historical fixture: VS-05 purge fences a response link before cleanup and never deletes its independently authored body',async()=>{
  const f=await setup(),response=await f.s.continueThinking({operationId:op(),body:'Independent response, no copied Source text',relation:f.relation});
- await f.s.permanentDelete(f.input.originalTextReference);
+ await admitPreGatePurgeFixture(f.s,f.input.originalTextReference);
  const compare=await f.s.compareThought(response.id);
  assert.ok(compare.relations.length===0||compare.relations.every(r=>r.state==='unavailable'&&r.id===undefined&&r.body===undefined));
  assert.equal((await f.s.entry(response.id)).body,'Independent response, no copied Source text');

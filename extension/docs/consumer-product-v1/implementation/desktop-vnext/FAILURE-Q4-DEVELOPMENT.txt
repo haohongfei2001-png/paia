@@ -1,0 +1,13 @@
+D1/Q4 retained development negative evidence; synthetic data only.
+Base3b8944d7b991b8dc58535048ecec8bb15f064b56. These runs remain FAIL; later PASS does not erase or reinterpret them.
+
+initial-unit-regression: actual1230PASS/51FAIL,1281cases. Historical mixed-human purge assumptions now require B-02 refusal. All fixture data and post-historical-purge security/data assertions remain; current no-effect refusal is asserted first.
+initial-owning-regression:9PASS/3FAIL. Same historical-policy dependency in Original/History purge tests; no assertions removed.
+complete-affected-unit: five automatic-purge expectations exposed search queue marker classification as too restrictive. Canonical owner verification repaired; all five remain actual current purge tests.
+worker-recovery-refusal: unrelated queued local capture/search maintenance changed meta during a whole-state measurement. Existing maintenance is drained before comparison; full equality remains, no masked fields.
+initial-source-release-purge-browser: four failures, nonexistent Settings Data/menu/page locators. Actual low-frequency Source navigation/contextmenu corrected; no forced hidden click.
+affected-recovery-context-backup-browser:14PASS/4FAIL,18cases. Two whole-state equality failures raced existing Topic-read maintenance; complete generation settles before measurement. One Context output-only edit wrongly classified as canonical human work; restored actual pure purge. One edited-preview test sampled previous Ready before completion; now awaits the new exact body/note/digest. All exact text/privacy/clipboard/Backup assertions retained.
+full-current-unit-final:1288PASS/4FAIL,1292cases. New fixture used create result instead of actual field revisions (fixed owner read); current10k historical fixture timed out after unchanged180s during parallel development; two old physical IA/Smart Filter databases lacked the newer byInputTarget index (use existing byInput index without schema change). Targeted34/34 PASS after repair; complete serial1292/1292 PASS.
+adapter-contracts:27 before-hook failures launching local headless browser without sandbox approval. Actual isolated approved headless rerun102/102 PASS; no adapter fixture or permission changes.
+final-consent-worker-recovery:39PASS/1FAIL. Added consent validation initially masked the existing explicit-confirmation error priority; moved strict trusted confirmation validation before consent, without changing the existing security assertion.
+Final negative raw logs stay under task work/evidence/d1-q4. Full published certification is separate and required. None of this is current-live, physical-IME, device/performance or owner acceptance evidence.

@@ -2,13 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
 import {recoveryDraftPrefix} from '../core/recovery-draft.js';
+import {OrganizerStore} from '../core/organizer/store.js';
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 
 test('audit recovery uses the production worker: purge, stale replay, both race orders and ownership',{timeout:20000},async t=>{
  globalThis.indexedDB=new IDBFactory();globalThis.IDBKeyRange=IDBKeyRange;
  const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`,ui={id,url:origin+'ui/archive.html'};
- let listener,data={},pauseSet=null,pauseRemove=null,failRemove=false,networkCalls=0;
+ let listener,data={},pauseSet=null,pauseRemove=null,pauseRead=null,failRemove=false,networkCalls=0;
  globalThis.fetch=async()=>{networkCalls++;throw Error('Unexpected network')};
- const area={setAccessLevel:async()=>{},get:async keys=>keys===null?structuredClone(data):Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(k=>k in data).map(k=>[k,structuredClone(data[k])])),
+ const area={setAccessLevel:async()=>{},get:async keys=>{if(keys===null&&pauseRead)await pauseRead();return keys===null?structuredClone(data):Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(k=>k in data).map(k=>[k,structuredClone(data[k])]));},
   set:async values=>{if(pauseSet&&Object.keys(values).some(k=>k.startsWith(recoveryDraftPrefix)))await pauseSet();Object.assign(data,structuredClone(values));},
   remove:async keys=>{const list=Array.isArray(keys)?keys:[keys];if(list.some(k=>k.startsWith(recoveryDraftPrefix))){if(failRemove)throw Error('Synthetic storage failure');if(pauseRemove)await pauseRemove();}for(const k of list)delete data[k];},getBytesInUse:async()=>0};
  globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.12.0'}),getURL:path=>origin+path,sendMessage:async()=>{},onMessage:{addListener:fn=>listener=fn}},storage:{local:area}};
@@ -24,6 +26,13 @@ test('audit recovery uses the production worker: purge, stale replay, both race 
  };
  const load=draft=>rpc('PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:draft.kind,ownerId:draft.ownerId,epoch:draft.epoch}});
  const save=draft=>rpc('PAIA_RECOVERY_DRAFT_SAVE',{draft});
+ const historicalStore=new OrganizerStore(area,{indexedDB:globalThis.indexedDB});
+ const historical=async source=>{
+  // Finish real previously queued capture/search/purge work before measuring
+  // zero effects; unrelated maintenance must not contaminate this boundary.
+  await historicalStore.drainPurgeCleanup();await historicalStore.drainInvalidations();await historicalStore.drainLibraryMaintenance();
+  assert.equal((await send({type:'PURGE_SOURCE',id:source.id,confirm:true})).error,'SOURCE_PURGE_OWNER_GATE');await admitPreGatePurgeFixture(historicalStore,source.id);
+ };
  const latch=()=>{let entered,release;const started=new Promise(r=>entered=r),pending=new Promise(r=>release=r);return {started,release,wait:()=>{entered();return pending;}};};
  assert.equal((await send({type:'PAIA_RECOVERY_DRAFT_SAVE',draft:{}})).error,'CONSENT_REQUIRED');
  await rpc('CONSENT',{accepted:true});
@@ -31,28 +40,33 @@ test('audit recovery uses the production worker: purge, stale replay, both race 
   const {source,draft,content}=await make('stale'),saved=await save(draft);
   assert.equal((await send({type:'PAIA_RECOVERY_DRAFT_SAVE',draft},content)).error,'FORBIDDEN');
   assert.deepEqual(saved.sourceRecordIds,[source.id]);
-  await rpc('PURGE_SOURCE',{id:source.id,confirm:true});assert.equal(await load(draft),null);
+  await historical(source);assert.equal(await load(draft),null);
   assert.equal((await send({type:'PAIA_RECOVERY_DRAFT_SAVE',draft})).error,'INVALID_REQUEST');assert.equal(await load(draft),null);
   data[recoveryDraftPrefix+'document:'+draft.ownerId]=saved;
   assert.equal(await load(draft),null);assert.equal(Object.hasOwn(data,recoveryDraftPrefix+'document:'+draft.ownerId),false);
   assert.equal((await send(draft.operation)).ok,false);assert.equal((await rpc('GET_STATE')).records.some(r=>r.id===source.id),false);
  });
- await t.test('save in progress completes before purge clears it',async()=>{
+ await t.test('save in progress completes before mixed purge refuses; draft is never cleared',async()=>{
   const {source,draft}=await make('save-first'),gate=latch();pauseSet=gate.wait;
-  const saving=save(draft);await gate.started;let done=false;const purging=rpc('PURGE_SOURCE',{id:source.id,confirm:true}).then(()=>done=true);
-  await new Promise(r=>setTimeout(r,10));assert.equal(done,false);pauseSet=null;gate.release();await saving;await purging;assert.equal(await load(draft),null);
+  const saving=save(draft);await gate.started;let done=false;const purging=send({type:'PURGE_SOURCE',id:source.id,confirm:true}).then(reply=>{done=true;return reply;});
+  await new Promise(r=>setTimeout(r,10));assert.equal(done,false);pauseSet=null;gate.release();const saved=await saving;assert.equal((await purging).error,'SOURCE_PURGE_OWNER_GATE');assert.deepEqual(await load(draft),saved);assert.ok((await rpc('GET_STATE')).records.some(r=>r.id===source.id));
  });
  await t.test('save arriving during purge clear cannot refill the cleared cache',async()=>{
-  const {source,draft}=await make('purge-first');await save(draft);const gate=latch();pauseRemove=gate.wait;
-  const purging=rpc('PURGE_SOURCE',{id:source.id,confirm:true});await gate.started;
+  const {source,draft}=await make('purge-first');const saved=await save(draft);
+  assert.equal((await send({type:'PURGE_SOURCE',id:source.id,confirm:true})).error,'SOURCE_PURGE_OWNER_GATE');assert.deepEqual(await load(draft),saved);
+  // Explicit user discard is separate from purge; retain the original fixture.
+  await rpc('PAIA_RECOVERY_DRAFT_CLEAR',{draft:{kind:draft.kind,ownerId:draft.ownerId,token:draft.token}});
+  const gate=latch();pauseRead=gate.wait;const purging=rpc('PURGE_SOURCE',{id:source.id,confirm:true});await gate.started;
   let done=false;const saving=send({type:'PAIA_RECOVERY_DRAFT_SAVE',draft}).then(reply=>{done=true;return reply;});
-  await new Promise(r=>setTimeout(r,10));assert.equal(done,false);pauseRemove=null;gate.release();await purging;
+  await new Promise(r=>setTimeout(r,10));assert.equal(done,false);pauseRead=null;gate.release();await purging;
   assert.equal((await saving).error,'INVALID_REQUEST');assert.equal(await load(draft),null);
  });
  await t.test('failed recovery clear prevents purge and remains retryable',async()=>{
   const {source,draft}=await make('clear-failure');await save(draft);failRemove=true;
-  assert.equal((await send({type:'PURGE_SOURCE',id:source.id,confirm:true})).ok,false);failRemove=false;
+  assert.equal((await send({type:'PURGE_SOURCE',id:source.id,confirm:true})).error,'SOURCE_PURGE_OWNER_GATE');
   assert.ok((await rpc('GET_STATE')).records.some(r=>r.id===source.id));assert.ok(await load(draft));
+  assert.equal((await send({type:'PAIA_RECOVERY_DRAFT_CLEAR',draft:{kind:draft.kind,ownerId:draft.ownerId,token:draft.token}})).ok,false);failRemove=false;
+  assert.ok(await load(draft));await rpc('PAIA_RECOVERY_DRAFT_CLEAR',{draft:{kind:draft.kind,ownerId:draft.ownerId,token:draft.token}});
   await rpc('PURGE_SOURCE',{id:source.id,confirm:true});assert.equal(await load(draft),null);
  });
  await t.test('legitimate and conflicted drafts survive; owner spoofing and missing targets fail closed',async()=>{
@@ -62,7 +76,7 @@ test('audit recovery uses the production worker: purge, stale replay, both race 
   const wrong=structuredClone(a.draft);wrong.ownerId=b.block.documentId;assert.equal((await send({type:'PAIA_RECOVERY_DRAFT_SAVE',draft:wrong})).error,'INVALID_REQUEST');
   wrong.operation.edit.documentId=wrong.ownerId;assert.equal((await send({type:'PAIA_RECOVERY_DRAFT_SAVE',draft:wrong})).error,'INVALID_REQUEST');
   const missing=structuredClone(a.draft);missing.operation.edit.blocks[0].id='missing-input';assert.equal((await send({type:'PAIA_RECOVERY_DRAFT_SAVE',draft:missing})).error,'INVALID_REQUEST');
-  await save(b.draft);await rpc('PURGE_SOURCE',{id:a.source.id,confirm:true});assert.ok(await load(b.draft),'unrelated draft retained');
+  await save(b.draft);await historical(a.source);assert.ok(await load(b.draft),'unrelated draft retained');
  });
  await t.test('replace invalidates persisted and late old-snapshot drafts even when restored identities/revisions match',async()=>{
   const live=await make('restore-boundary'),old=structuredClone(live.draft);await save(old);
