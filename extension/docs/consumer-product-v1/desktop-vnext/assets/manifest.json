@@ -1,0 +1,38 @@
+{
+  "package": "DVN-1.0",
+  "baseline_main": "368a8ca5065ef8c0ef526be85c667a8389375e95",
+  "source_brief_sha256": "1fd4f95f279d9447591fd067c5e07fb55d39d850fe847eb85902b24f1d306bcc",
+  "original_icon_sha256": "91d8c1ed98e42e193d67d3ad029dac1b2e427d6efcab12aed54863b4ce7af647",
+  "included_icon": {
+    "path": "assets/paia-icon-32.png",
+    "sha256": "6e487abdab45de5f5dbec02f2a05098797616e949c409c93082a4e0488194065",
+    "transformation": "complete original image resized to32x32 with Lanczos, RGB PNG; no redraw/crop; use32CSSpx"
+  },
+  "inspected_source_images": [
+    {
+      "name": "evidence/preview-reader.png",
+      "sha256": "11acdfdd41249f20173920e08246171cb3192b606f268aa432bac50c5a7a449d",
+      "status": "VISUAL_REFERENCE_ONLY"
+    },
+    {
+      "name": "evidence/preview-compare.png",
+      "sha256": "669eabcd1fb9409d436144736bf613e22f30efa65cf4215e9fd35699e257c175",
+      "status": "VISUAL_REFERENCE_ONLY"
+    },
+    {
+      "name": "screens/32-dense-topic.png",
+      "sha256": "14685a8805c00b29e3dce59befc3e489484076370d581dfc2eb7268ded18443a",
+      "status": "VISUAL_REFERENCE_ONLY"
+    },
+    {
+      "name": "screens/36-context-stale.png",
+      "sha256": "7170011f2e54ca5719b782c4b31aaa3638d120c88319bb5d693403a216701e6c",
+      "status": "VISUAL_REFERENCE_ONLY"
+    },
+    {
+      "name": "screens/46-topics-dense.png",
+      "sha256": "b2c67d4745d1e02309a52e80e930e5b5da6a926805fcb9bd554a3f318ece97b2",
+      "status": "REJECTED_BLANK"
+    }
+  ]
+}

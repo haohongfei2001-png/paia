@@ -1,0 +1,21 @@
+{
+  "version": "DVN-F1",
+  "synthetic": true,
+  "known_time_counts": {
+    "2021": 2,
+    "2022": 0,
+    "2023": 11,
+    "2024": 7,
+    "2025": 43,
+    "2026": 96
+  },
+  "unknown_time": 1,
+  "topic_count": 300,
+  "context_candidate_count": 120,
+  "archive_scale_hypothesis": {
+    "conversations": 10000,
+    "inputs": 100000,
+    "long_input_characters": 20000
+  },
+  "note": "Counts are synthetic design fixtures/hypotheses, not supported-scale certification. The specimen generates Topic/evidence/material lists; actual Archive scale must be exercised in production acceptance."
+}
