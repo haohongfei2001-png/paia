@@ -102,3 +102,18 @@ test('Reader retries only a known aborted attempt and retains its exact operatio
  const acknowledged=await session.save(newer,query.epoch);assert.equal(acknowledged.edit,edit);assert.equal(writes,2);
  assert.equal((await s.input(b.id)).revision,b.revision+1);
 });
+
+test('Reader protects an undo back to the old baseline while the earlier save outcome is unknown',async()=>{
+ const {DocumentEditor}=await import('../ui/library.js');const {RevisionSession}=await import('../ui/editor-primitives.js');
+ const {b,edit}=await fixture();
+ const editor=Object.create(DocumentEditor.prototype);
+ Object.assign(editor,{id:edit.documentId,title:'',savedTitle:'',titleRevision:0,revisions:new RevisionSession(),entries:new Map([[b.id,{revision:b.revision,saved:{libraryText:b.libraryText,note:b.note,excluded:b.excluded},local:{libraryText:b.libraryText,note:b.note,excluded:b.excluded}}]]),saveSession:{pending:{edit,state:'unknown'}}});
+ assert.equal(editor.dirty(),false,'undo matches the old baseline but cannot discard unknown-save recovery intent');
+ const recoveryEdit=editor.buildEdit();assert.ok(recoveryEdit);
+ assert.equal(recoveryEdit.blocks[0].libraryText,b.libraryText);
+ assert.equal(recoveryEdit.blocks[0].expectedRevision,b.revision);
+ assert.notEqual(recoveryEdit.operationId,edit.operationId,'changed recovery body never reuses the unresolved operation ID');
+ assert.equal(editor.saveSession.pending.edit,edit,'the acknowledgement query still refers to the earlier exact operation');
+ editor.saveSession.pending.edit={...edit,title:'SYNTHETIC pending title',expectedTitleRevision:0,blocks:[]};
+ const titleUndo=editor.buildEdit();assert.equal(titleUndo.title,'');assert.equal(titleUndo.expectedTitleRevision,0);
+});

@@ -1,0 +1,36 @@
+✔ Q1 reads a durable, owner/digest-bound receipt after lost acknowledgement without duplicating revisions (19.55075ms)
+✔ Q1 never infers non-commit from absence; an actual aborted transaction provides only bounded worker-lifetime negative knowledge (9.151792ms)
+✔ Q1 serialized fresh read waits for the actual in-flight transaction (7.271667ms)
+✔ Q1 rejects enumeration/extra data, isolates legacy receipts, and invalidates acknowledgement after restore (7.791083ms)
+✔ Q1 negative knowledge is body-free, bounded and conservatively evicted (0.087083ms)
+✔ Reader reconciles a lost acknowledgement through the production receipt, keeping a newer local edit separate (7.780666ms)
+✔ Reader keeps unknown operations stable and blocks autosave/new UUID retry until trusted reconciliation (5.9875ms)
+✔ Reader retries only a known aborted attempt and retains its exact operation ID and payload (7.845458ms)
+✖ Reader protects an undo back to the old baseline while the earlier save outcome is unknown (14.373167ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 151.089959
+
+✖ failing tests:
+
+test at extension/tests/dvn-operation-outcome.test.mjs:106:1
+✖ Reader protects an undo back to the old baseline while the earlier save outcome is unknown (14.373167ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(recoveryEdit)
+
+      at TestContext.<anonymous> (file://<workspace>/extension/tests/dvn-operation-outcome.test.mjs:112:47)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
