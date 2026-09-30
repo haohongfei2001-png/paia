@@ -1,0 +1,23 @@
+/* DVN-1.0 completion tokens. Documentation-only; not imported by runtime. */
+:root {
+ --bg:#ffffff; --rail:#f7f8f6; --text:#263031; --muted:#606b70;
+ --quiet:#647076; --line:#dde1de; --control:#69777b;
+ --brand:#8d4937; --brand-soft:#f1e8e3; --selected:#edf0ee;
+ --focus:#215fbc; --selection:#dceaff; --danger:#a6263b;
+ --warning:#79500f; --warning-bg:#fcf5e9; --success:#29633f;
+ --font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+ --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+ --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s6:24px; --s8:32px; --s12:48px; --s16:64px;
+ --rail-width:184px; --nav-width:280px; --prose:760px; --context:880px; --compare:960px;
+ --radius:6px; --modal-radius:8px; --shadow:0 10px 32px #18232b20;
+ --menu-ms:120ms; --tree-ms:160ms; --route-ms:180ms; --candidate-ms:220ms; --ease:cubic-bezier(.2,0,0,1);
+ color-scheme:light;
+}
+[data-theme="dark"] {
+ --bg:#191e1e; --rail:#202626; --text:#edf1ef; --muted:#b4bdbb; --quiet:#a4afad;
+ --line:#3e4947; --control:#98a8a2; --brand:#e6a491; --brand-soft:#342923;
+ --selected:#303b37; --focus:#91bafa; --selection:#284f7a;
+ --danger:#ffabb6; --warning:#edc789; --warning-bg:#342b1d; --success:#a1d8b0;
+ color-scheme:dark;
+}
+@media (prefers-reduced-motion:reduce) { :root { --menu-ms:0ms; --tree-ms:0ms; --route-ms:0ms; --candidate-ms:0ms; } }
