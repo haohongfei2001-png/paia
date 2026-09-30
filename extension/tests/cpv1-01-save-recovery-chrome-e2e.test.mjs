@@ -4,6 +4,7 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow} from './harness/archive-navigator.mjs';
 
 const rpc=async(page,type,fields={})=>{
+ if(type==='PAIA_RECOVERY_DRAFT_LOAD'&&fields.draft.epoch===undefined)fields={...fields,draft:{...fields.draft,epoch:(await rpc(page,'GET_PAGE',{page:{view:'settings'}})).recoveryEpoch}};
  const reply=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});
  assert.equal(reply?.ok,true,JSON.stringify(reply));
  return reply.data;
@@ -77,7 +78,7 @@ test('CPV1-01.1 stale recovery draft restores visibly but never overwrites a new
  const {h,page,field,inputId,before}=await fixture();
  try{
   const draftEdit={operationId:op(),documentId:before.documentId,blocks:[{id:inputId,expectedRevision:before.revision,libraryText:'CPV1 stale local recovery',note:before.note,excluded:before.excluded}]};
-  await rpc(page,'PAIA_RECOVERY_DRAFT_SAVE',{draft:{kind:'document',ownerId:before.documentId,token:draftEdit.operationId,operation:{type:'EDIT_DOCUMENT',edit:draftEdit},sourceRecordIds:before.sourceRecordId?[before.sourceRecordId]:[]}});
+  await rpc(page,'PAIA_RECOVERY_DRAFT_SAVE',{draft:{epoch:before.recoveryEpoch,kind:'document',ownerId:before.documentId,token:draftEdit.operationId,operation:{type:'EDIT_DOCUMENT',edit:draftEdit},sourceRecordIds:before.sourceRecordId?[before.sourceRecordId]:[]}});
   await rpc(page,'EDIT_DOCUMENT',{edit:{operationId:op(),documentId:before.documentId,blocks:[{id:inputId,expectedRevision:before.revision,libraryText:'CPV1 newer committed text',note:before.note,excluded:before.excluded}]}});
   await page.close({runBeforeUnload:false});
 

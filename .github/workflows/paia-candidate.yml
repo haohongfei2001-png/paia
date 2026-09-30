@@ -354,6 +354,63 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  audit_boundaries:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_AUDIT_BOUNDARIES_BROWSER')
+    name: Candidate audit boundary acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Select hosted Chrome for isolated synthetic extension tests
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Verify audit boundaries and retained reader/save recovery
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          PLAYWRIGHT_MODULE: playwright
+        run: |
+          set -o pipefail
+          mkdir -p work/audit-boundaries
+          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-01-audit-boundaries-chrome-e2e.test.mjs tests/cpv1-01-recovery-chrome-e2e.test.mjs tests/cpv1-01-save-recovery-chrome-e2e.test.mjs tests/cpv1-02-4-reader-chrome-e2e.test.mjs 2>&1 | tee work/audit-boundaries/test.log
+      - name: Require exact-head audit evidence
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          for(const name of ['reader-search-menu','thought-continuation','source-export']){
+            const report=JSON.parse(await readFile(`work/audit-boundaries/${name}.json`,'utf8'));
+            assert.equal(report.status,'PASS');assert.equal(report.headSha,process.env.PAIA_TESTED_HEAD);
+            assert.equal(report.noExternalRequests,true);
+            const png=await readFile(`work/audit-boundaries/${name}.png`);
+            assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));
+          }
+          JS
+      - name: Retain synthetic audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-boundaries-${{ github.event.pull_request.head.sha }}
+          path: extension/work/audit-boundaries/
+          if-no-files-found: error
+          retention-days: 7
+
   native_popup:
     if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER')
     name: Candidate native popup acceptance
@@ -494,7 +551,7 @@ jobs:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release, targeted_browser, native_popup, capture_recovery, scale_probe, macos_reload_diagnostic]
+    needs: [unit, contracts, release, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic]
     steps:
       - name: Require light candidate gates
         env:
@@ -506,6 +563,8 @@ jobs:
           NATIVE_POPUP_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER') }}
           CAPTURE_RECOVERY: ${{ needs.capture_recovery.result }}
           CAPTURE_RECOVERY_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_CAPTURE_RECOVERY_BROWSER') }}
+          AUDIT_BOUNDARIES: ${{ needs.audit_boundaries.result }}
+          AUDIT_BOUNDARIES_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_AUDIT_BOUNDARIES_BROWSER') }}
           SCALE_PROBE: ${{ needs.scale_probe.result }}
           MACOS_RELOAD_DIAGNOSTIC: ${{ needs.macos_reload_diagnostic.result }}
         run: |
@@ -516,5 +575,6 @@ jobs:
           if [ "$TARGETED_BROWSER" != skipped ]; then test "$TARGETED_BROWSER" = success; fi
           if [ "$NATIVE_POPUP_SELECTED" = true ]; then test "$NATIVE_POPUP" = success; elif [ "$NATIVE_POPUP" != skipped ]; then test "$NATIVE_POPUP" = success; fi
           if [ "$CAPTURE_RECOVERY_SELECTED" = true ]; then test "$CAPTURE_RECOVERY" = success; elif [ "$CAPTURE_RECOVERY" != skipped ]; then test "$CAPTURE_RECOVERY" = success; fi
+          if [ "$AUDIT_BOUNDARIES_SELECTED" = true ]; then test "$AUDIT_BOUNDARIES" = success; elif [ "$AUDIT_BOUNDARIES" != skipped ]; then test "$AUDIT_BOUNDARIES" = success; fi
           if [ "$SCALE_PROBE" != skipped ]; then test "$SCALE_PROBE" = success; fi
           if [ "$MACOS_RELOAD_DIAGNOSTIC" != skipped ]; then test "$MACOS_RELOAD_DIAGNOSTIC" = success; fi

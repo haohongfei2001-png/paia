@@ -528,12 +528,17 @@ test('CPV1-01.1 recovery drafts are exact trusted-UI, consent-gated local operat
  for(const sender of [content,{...ui,id:'foreign-extension'},{...ui,url:ui.url+'?spoof=1'}])await expectError(h.send(save,sender),'FORBIDDEN');
  await expectError(h.send(save),'CONSENT_REQUIRED');
  await h.send({type:'CONSENT',accepted:true});
+ save.draft.epoch=(await h.send({type:'GET_PAGE',page:{view:'settings'}})).data.recoveryEpoch;
+ await expectError(h.send(save),'INVALID_REQUEST','missing owner cannot create a recovery cache');
+ const epoch=(await h.send({type:'GET_STATUS'},content)).data.epoch;await h.send(capture(epoch),content);
+ const block=(await h.send({type:'GET_STATE'})).data.library.blocks[0];
+ save.draft.ownerId=block.documentId;save.draft.operation.edit.documentId=block.documentId;
  assert.equal((await h.send(save)).ok,true);
- const loaded=await h.send({type:'PAIA_RECOVERY_DRAFT_LOAD',draft:{kind:'document',ownerId:'synthetic-document'}});
+ const loaded=await h.send({type:'PAIA_RECOVERY_DRAFT_LOAD',draft:{kind:'document',ownerId:save.draft.ownerId,epoch:save.draft.epoch}});
  assert.equal(loaded.ok,true);assert.equal(loaded.data.token,'synthetic-recovery-token');
- const foreignLoad={type:'PAIA_RECOVERY_DRAFT_LOAD',draft:{kind:'document',ownerId:'synthetic-document'}};
+ const foreignLoad={type:'PAIA_RECOVERY_DRAFT_LOAD',draft:{kind:'document',ownerId:save.draft.ownerId,epoch:save.draft.epoch}};
  await expectError(h.send(foreignLoad,content),'FORBIDDEN');
- assert.equal((await h.send({type:'PAIA_RECOVERY_DRAFT_CLEAR',draft:{kind:'document',ownerId:'synthetic-document',token:'synthetic-recovery-token'}})).data,true);
+ assert.equal((await h.send({type:'PAIA_RECOVERY_DRAFT_CLEAR',draft:{kind:'document',ownerId:save.draft.ownerId,token:'synthetic-recovery-token'}})).data,true);
  assert.equal((await h.send(foreignLoad)).data,null);
 });
 

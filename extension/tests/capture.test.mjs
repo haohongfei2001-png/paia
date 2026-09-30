@@ -47,6 +47,7 @@ async function schedulerFixture(status, options = {}) {
       }
       if (message.type === 'DIAGNOSTIC') {
         state.diagnostics += 1;
+        if(options.hangDiagnostic)return new Promise(()=>{});
         if (options.failedDiagnosticAt === state.diagnostics) return {ok: false, error: 'STORAGE_FAILED'};
       }
       return message.type === 'GET_STATUS' ? {ok: true, data: status} : {ok: true, data: {added: 1}};
@@ -319,4 +320,14 @@ test('a queued legacy-notice callback cannot remove anything after its capture i
  const observer=f.mutationObservers[0];f.context.PAIACaptureController.dispose();
  const next=f.context.document.createElement('div');next.id='paia-reconnect-notice';f.context.document.documentElement.append(next);
  observer.callback();assert.equal(f.elements.size,1);assert.equal(observer.disconnected,true);
+});
+
+
+test('audit: indefinitely pending diagnostics cannot delay capture, batching, or later status and remain single-flight',async()=>{
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:42,adapterVersion:'0.3.0'},{hangDiagnostic:true,count:450});
+ assert.equal(f.state.captures,3);assert.equal(f.state.diagnostics,1);assert.equal(f.timers.length,1);
+ for(let n=0;n<3;n++){await f.timers.shift().callback();await new Promise(resolve=>setImmediate(resolve));}
+ assert.equal(f.state.captures,12);assert.equal(f.state.diagnostics,1);assert.ok(f.sent.filter(m=>m.type==='CAPTURE').every(m=>m.epoch===42));
+ f.runtime.id=undefined;[...f.intervals.values()][0].callback();const before=f.state.captures;
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(f.state.captures,before);assert.equal(f.state.diagnostics,1);
 });

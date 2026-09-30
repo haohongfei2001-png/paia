@@ -1,8 +1,9 @@
 import {request} from './common.js';
 
 export class RecoveryDraftSession{
- constructor({kind,ownerId,sourceRecordIds=[]}){
+ constructor({kind,ownerId,sourceRecordIds=[],epoch}){
   this.kind=kind;this.ownerId=ownerId;this.sourceRecordIds=sourceRecordIds;this.pending=false;this.sequence=0;this.currentToken=null;this.latest=null;this.running=null;this.runningItem=null;this.persisted=null;this.waiters=[];
+  this.epoch=epoch??null;
  }
  protect(operation,token){
   const signature=JSON.stringify(operation);this.currentToken=token;
@@ -22,7 +23,8 @@ export class RecoveryDraftSession{
    while(this.latest){
     const item=this.latest;this.latest=null;this.runningItem=item;
     try{
-     const result=await request('PAIA_RECOVERY_DRAFT_SAVE',{draft:{kind:this.kind,ownerId:this.ownerId,token:item.token,operation:item.operation,sourceRecordIds:this.sourceRecordIds}});
+     const epoch=this.epoch;if(!epoch)throw Error('RECOVERY_CONTEXT_UNAVAILABLE');
+     const result=await request('PAIA_RECOVERY_DRAFT_SAVE',{draft:{epoch,kind:this.kind,ownerId:this.ownerId,token:item.token,operation:item.operation,sourceRecordIds:this.sourceRecordIds}});
      this.persisted={token:item.token,signature:item.signature,result};this.settle(item.sequence,null,result);
     }catch(error){
      // A newer snapshot supersedes this failed write. Let that write satisfy
@@ -40,7 +42,7 @@ export class RecoveryDraftSession{
   // protected a newer local change, a delayed load must not replay either the
   // just-written draft or an older draft over the active in-memory edit.
   if(this.currentToken)return null;
-  const draft=await request('PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:this.kind,ownerId:this.ownerId}});
+  const draft=await request('PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:this.kind,ownerId:this.ownerId,epoch:this.epoch}});
   return this.currentToken?null:draft;
  }
  async clear(token=this.currentToken){const result=await request('PAIA_RECOVERY_DRAFT_CLEAR',{draft:{kind:this.kind,ownerId:this.ownerId,token}});if(result&&this.persisted?.token===token)this.persisted=null;return result;}

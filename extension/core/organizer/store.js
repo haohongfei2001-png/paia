@@ -63,24 +63,48 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async keepTopicsSeparate(options){if(!options||!idOK(options.sourceId)||!idOK(options.targetId))reject('INVALID_OUTPUT');return keepTopicsSeparate(this,options);}
  async organizerControls(){return organizerControls(this);}
  async setOrganizerControls(changes){return setOrganizerControls(this,changes);}
+ async recoveryDraftEpoch(){return this.run(()=>this.repository.transaction(false,async t=>(await t.get('meta','recovery-restore-epoch'))?.value||'initial',['meta']));}
  async recoveryDraftSourceIds(draft={}){
-  const kind=draft.kind,operation=draft.operation||{},ownerId=draft.ownerId;
-  return this.run(()=>this.repository.transaction(false,async t=>{
-   const ids=new Set(),add=row=>{if(!row)return;for(const id of row.sourceRecordIds||[])if(typeof id==='string')ids.add(id);if(typeof row.sourceRecordId==='string')ids.add(row.sourceRecordId);for(const p of row.provenance||[])if(typeof p?.sourceRecordId==='string')ids.add(p.sourceRecordId);};
-   if(kind==='document'&&operation.type==='EDIT_DOCUMENT'){
-    for(const change of operation.edit?.blocks||[])add((await t.get('blocks',change.id))?.value);
+  const {kind,operation={},ownerId,sourceRecordIds=[]}=draft,edit=operation.edit;
+  if(!idOK(ownerId)||!Array.isArray(sourceRecordIds)||sourceRecordIds.length>2000||sourceRecordIds.some(id=>!idOK(id)))reject('INVALID_REQUEST');
+  return this.run(()=>this.repository.transaction(true,async t=>{
+   const ids=new Set(),add=row=>{for(const id of row.sourceRecordIds||[])ids.add(id);if(row.sourceRecordId)ids.add(row.sourceRecordId);if(row.originalTextReference)ids.add(row.originalTextReference);for(const p of row.provenance||[])if(p?.sourceRecordId)ids.add(p.sourceRecordId);};
+   const active=row=>{if(!row||row.lifecycle&&row.lifecycle!=='active'||row.quarantineSealed)reject('INVALID_REQUEST');return row;};
+   // Ordinary revision conflicts remain recoverable. A Source-purge revision
+   // boundary is different: an old editor must not cache deleted Source text.
+   const purgeRevision=async(row,expected,purged,save)=>{
+    if(!Number.isSafeInteger(expected)||expected<0)reject('INVALID_REQUEST');
+    if(purged&&row.recoveryPurgeRevision===undefined){
+     // Older local survivors have no recorded floor. Establish it at the
+     // current revision; subsequent ordinary conflicts remain recoverable.
+     row.recoveryPurgeRevision=row.revision;await save(row);
+    }
+    if(row.recoveryPurgeRevision!==undefined&&expected<row.recoveryPurgeRevision)reject('INVALID_REQUEST');
+   };
+   if(kind==='document'){
+    if(operation.type!=='EDIT_DOCUMENT'||edit?.documentId!==ownerId||!Array.isArray(edit.blocks)||edit.blocks.length>1000||!await t.get('documents',ownerId))reject('INVALID_REQUEST');
+    for(const change of edit.blocks){const row=(await t.get('blocks',change.id))?.value;if(!row||row.documentId!==ownerId)reject('INVALID_REQUEST');const state=await t.get('inputStates',row.id);await purgeRevision(row,change.expectedRevision,state?.sourcePurged,value=>t.put('blocks',{id:value.id,value}));add(row);}
    }else if(kind==='library_entry'){
-    add(await t.get('thoughts',ownerId));
+    if(operation.type!=='EDIT_LIBRARY_BATCH'||edit?.entries?.length!==1||edit.entries[0].id!==ownerId)reject('INVALID_REQUEST');
+    const row=active(await t.get('thoughts',ownerId));await purgeRevision(row,edit.entries[0].expectedRevision,row.staleReasons?.includes('source_purged'),value=>t.put('thoughts',value));add(row);
    }else if(kind==='ai_presentation'){
+    if(operation.type!=='AI_RECOVERY_SNAPSHOT'||operation.topicId!==ownerId)reject('INVALID_REQUEST');
+    active(await t.get('topics',ownerId));const presentation=await t.get('meta','aiPresentation:'+ownerId);if(!presentation||(operation.generation??'legacy')!==(presentation.recoveryGeneration||'legacy'))reject('INVALID_REQUEST');
+    await purgeRevision(presentation,operation.baseRevision,presentation.detachedUserFields,value=>t.put('meta',value));
     const fence=await t.get('libraryMigrationItems','ai-presentation-fence:'+ownerId);
     if(fence?.sourceRecordIds?.length)add(fence);
-    else{
-     const presentation=await t.get('meta','aiPresentation:'+ownerId);
-     for(const entryId of presentation?.evidenceEntryIds||[])add(await t.get('thoughts',entryId));
-    }
-   }
+    for(const entryId of presentation.evidenceEntryIds||[])add(active(await t.get('thoughts',entryId)));
+   }else if(kind==='topic_metadata'){
+    if(operation.type!=='EDIT_LIBRARY_TOPIC'||edit?.id!==ownerId)reject('INVALID_REQUEST');
+    const row=active(await t.get('topics',ownerId));if(row.redirectTo)reject('INVALID_REQUEST');await purgeRevision(row,edit.expectedRevision,row.sourceUnavailable,value=>t.put('topics',value));add(row);
+   }else if(kind==='section_metadata'){
+    if(operation.type!=='EDIT_LIBRARY_SECTION'||ownerId!==edit?.topicId+':'+edit?.sectionId)reject('INVALID_REQUEST');
+    const topic=active(await t.get('topics',edit.topicId));if(topic.redirectTo)reject('INVALID_REQUEST');
+    const row=active(await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,edit.sectionId])));await purgeRevision(row,edit.expectedRevision,row.sourceUnavailable,value=>t.put('sections',value));add(row);
+   }else reject('INVALID_REQUEST');
+   if(!await this.sourcePresent(t,[...ids]))reject('INVALID_REQUEST');
    return [...ids];
-  },['blocks','thoughts','libraryMigrationItems','meta']));
+  }));
  }
  async aiPresentationRevisions(options){return aiPresentationRevisions(this,options);}
  async revisions(o={}){const page=await super.revisions(o);return {...page,items:page.items.filter(x=>x.kind!=='ai_presentation')};}

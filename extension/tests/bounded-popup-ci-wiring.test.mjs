@@ -23,7 +23,7 @@ test('native-popup CI keeps exact-head visual evidence and fails the aggregate w
  assert.match(job,/name: bounded-native-popup-\$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
  assert.match(job,/path: extension\/work\/bounded-popup\//);
  assert.match(job,/if-no-files-found: error\n          retention-days: 7/);
- assert.match(workflow,/needs: \[unit, contracts, release, targeted_browser, native_popup, capture_recovery, scale_probe, macos_reload_diagnostic\]/);
+ assert.match(workflow,/needs: \[unit, contracts, release, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic\]/);
  assert.match(workflow,/NATIVE_POPUP: \$\{\{ needs\.native_popup\.result \}\}/);
  assert.match(workflow,/NATIVE_POPUP_SELECTED: \$\{\{ contains\(github\.event\.pull_request\.body, 'PAIA_BOUNDED_POPUP_BROWSER'\) \}\}/);
  assert.match(workflow,/if \[ "\$NATIVE_POPUP_SELECTED" = true \]; then test "\$NATIVE_POPUP" = success;/);

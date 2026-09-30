@@ -83,7 +83,7 @@ export async function purgeBatch(store,limit=100) {
      row.inputRefs=(row.inputRefs||[]).filter(ref=>ref.sourceRecordId&&ref.sourceRecordId!==sourceId);
      if(row.workingInputId)delete row.workingInputId;
      row.sourceRecordIds=(row.sourceRecordIds||[]).filter(x=>x!==sourceId);row.bodyBinding='thought';delete row.bindingRevision;delete row.bindingLength;row.thoughtText=row.provenanceType==='user_created'&&row.protections?.body?.locked?row.thoughtText:'';row.title=row.protections?.title?.locked?row.title:'';row.note=row.protections?.note?.locked?row.note:'';
-     row.freshness='stale';row.staleReasons=[...new Set([...(row.staleReasons||[]),'source_purged'])];row.integrity=row.sourceRecordIds.length?'partial':'detached';row.revision=(row.revision||0)+1;row.dependencyRevision=(row.dependencyRevision||0)+1;delete row.exactKey;refreshEntryIndex(row);await t.put('thoughts',row);if(store.librarySafetyChange)await store.librarySafetyChange(t,row,priorFields);
+     row.freshness='stale';row.staleReasons=[...new Set([...(row.staleReasons||[]),'source_purged'])];row.integrity=row.sourceRecordIds.length?'partial':'detached';row.revision=(row.revision||0)+1;row.recoveryPurgeRevision=row.revision;row.dependencyRevision=(row.dependencyRevision||0)+1;delete row.exactKey;refreshEntryIndex(row);await t.put('thoughts',row);if(store.librarySafetyChange)await store.librarySafetyChange(t,row,priorFields);
     }else{await t.delete('thoughts',row.id);for(const p of await t.all('placements','byEntry',prefix([row.id])))await t.delete('placements',p.id);}
    }else{if(name==='libraryMigrationItems'&&row.entityKind==='organizer_metadata'&&store.clearDerivedMetadata)await store.clearDerivedMetadata(t,row);await t.delete(name,row.id);}
    processed++;
