@@ -292,6 +292,82 @@ jobs:
           path: extension/work/ux-r3/*.png
           if-no-files-found: error
 
+
+  native_popup:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER')
+    name: Candidate native popup acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Select full hosted Chrome for the native action popup
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Verify only the real native popup without viewport emulation
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          mkdir -p work/bounded-popup
+          xvfb-run -a node --test --test-name-pattern="^Bounded native action popup" tests/uir-04-popup-local-tools-chrome-e2e.test.mjs 2>&1 | tee work/bounded-popup/native-popup-test.log
+      - name: Require completed native-popup evidence for this exact head
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const root='work/bounded-popup/';
+          const evidence=JSON.parse(await readFile(root+'acceptance.json','utf8'));
+          assert.equal(evidence.status,'PASS','the selected native popup test must finish');
+          assert.equal(evidence.kind,'native-action-popup');
+          assert.equal(evidence.viewportEmulation,null);
+          assert.equal(evidence.headSha,process.env.PAIA_TESTED_HEAD,'evidence must bind the tested head');
+          const expected=['unconsented','active','paused','count-2545','count-large','diagnostics-expanded','diagnostics-scrolled'];
+          assert.deepEqual(evidence.states.map(state=>state.name),expected,'every native state must be captured');
+          for(const state of evidence.states){
+            assert.equal(state.screenshot,state.name+'.png');
+            assert.ok(state.geometry&&Number.isFinite(state.geometry.clientWidth));
+            const report=JSON.parse(await readFile(root+state.name+'.json','utf8'));
+            assert.equal(report.headSha,evidence.headSha);
+            assert.equal(report.kind,'native-action-popup');
+            assert.equal(report.viewportEmulation,null);
+            assert.equal(report.screenshot.status,'captured');
+            assert.equal(report.screenshot.file,state.screenshot);
+            assert.equal(report.target.targetId,state.target.targetId);
+            assert.equal(report.target.url,state.geometry.url);
+            assert.match(report.target.url,/^chrome-extension:\/\/[^/]+\/ui\/popup\.html$/);
+            const png=await readFile(root+state.screenshot);
+            assert.ok(png.length>24&&png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'actual PNG required');
+            assert.ok(png.readUInt32BE(16)>0&&png.readUInt32BE(20)>0,'PNG dimensions must be positive');
+            assert.equal(png.readUInt32BE(16),report.screenshot.width);
+            assert.equal(png.readUInt32BE(20),report.screenshot.height);
+          }
+          console.log('NATIVE_POPUP_EVIDENCE_PASS '+evidence.headSha+' states='+expected.length);
+          JS
+      - name: Retain exact-head native popup screenshots and geometry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bounded-native-popup-${{ github.event.pull_request.head.sha }}
+          path: extension/work/bounded-popup/
+          if-no-files-found: error
+          retention-days: 7
+
   scale_probe:
     if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_VS04_SCALE_DRAFT')
     name: Candidate VS-04 bounded scale probe
@@ -357,7 +433,7 @@ jobs:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release, targeted_browser, scale_probe, macos_reload_diagnostic]
+    needs: [unit, contracts, release, targeted_browser, native_popup, scale_probe, macos_reload_diagnostic]
     steps:
       - name: Require light candidate gates
         env:
@@ -365,6 +441,8 @@ jobs:
           CONTRACTS: ${{ needs.contracts.result }}
           RELEASE: ${{ needs.release.result }}
           TARGETED_BROWSER: ${{ needs.targeted_browser.result }}
+          NATIVE_POPUP: ${{ needs.native_popup.result }}
+          NATIVE_POPUP_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER') }}
           SCALE_PROBE: ${{ needs.scale_probe.result }}
           MACOS_RELOAD_DIAGNOSTIC: ${{ needs.macos_reload_diagnostic.result }}
         run: |
@@ -373,5 +451,6 @@ jobs:
           test "$CONTRACTS" = success
           test "$RELEASE" = success
           if [ "$TARGETED_BROWSER" != skipped ]; then test "$TARGETED_BROWSER" = success; fi
+          if [ "$NATIVE_POPUP_SELECTED" = true ]; then test "$NATIVE_POPUP" = success; elif [ "$NATIVE_POPUP" != skipped ]; then test "$NATIVE_POPUP" = success; fi
           if [ "$SCALE_PROBE" != skipped ]; then test "$SCALE_PROBE" = success; fi
           if [ "$MACOS_RELOAD_DIAGNOSTIC" != skipped ]; then test "$MACOS_RELOAD_DIAGNOSTIC" = success; fi
