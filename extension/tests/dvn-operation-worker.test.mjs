@@ -15,6 +15,7 @@ test('Q1/Q2 production worker enforces extension-page/consent/strict request bou
  const rpc=async(type,fields={})=>{const reply=await send({type,...fields});assert.equal(reply.ok,true,JSON.stringify(reply));return reply.data;};
  const query={version:1,namespace:'working-input',ownerRef:'unavailable',operationId:'synthetic-operation',requestDigest:'0'.repeat(64),epoch:'initial'};
  assert.equal((await send({type:'PAIA_ARCHIVE_ORIGINAL_PAGE',page:{target:{kind:'conversation',ref:'unknown'}}})).error,'CONSENT_REQUIRED');
+ assert.equal((await send({type:'PAIA_ARCHIVE_PREPARE_REVISION',revision:{id:'unknown',documentId:'unknown',side:'before'}})).error,'CONSENT_REQUIRED');
  assert.equal((await send({type:'PAIA_ARCHIVE_OPERATION_OUTCOME',query})).error,'CONSENT_REQUIRED');
  await rpc('CONSENT',{accepted:true});
  const url='https://chatgpt.com/c/dvn-receipt',content={id,url,frameId:0,tab:{id:23,url,incognito:false}};
@@ -30,6 +31,10 @@ test('Q1/Q2 production worker enforces extension-page/consent/strict request bou
  const original=await rpc('PAIA_ARCHIVE_ORIGINAL_PAGE',{page:originalPage});assert.equal(original.records[0].originalText,'SYNTHETIC immutable source');assert.equal(original.records.length,1);assert.equal(original.records[0].capturedAt,undefined);
  const edit={operationId:crypto.randomUUID(),documentId:b.documentId,blocks:[{id:b.id,expectedRevision:b.revision,libraryText:'SYNTHETIC working body',note:b.note,excluded:b.excluded}]};
  await rpc('EDIT_DOCUMENT',{edit});
+ const revisions=await rpc('GET_REVISIONS',{options:{documentId:b.documentId,kind:'input',entityId:b.id}}),revision={id:revisions.items[0].id,documentId:b.documentId,side:'before'};
+ assert.equal((await send({type:'PAIA_ARCHIVE_PREPARE_REVISION',revision},content)).error,'FORBIDDEN');
+ assert.equal((await send({type:'PAIA_ARCHIVE_PREPARE_REVISION',revision,extra:true})).error,'INVALID_REQUEST');
+ const prepared=await rpc('PAIA_ARCHIVE_PREPARE_REVISION',{revision});assert.equal(prepared.edit.revisionReason,'restore');assert.equal(prepared.current.libraryText,edit.blocks[0].libraryText);assert.equal((await rpc('GET_INPUT',{id:b.id})).revision,b.revision+1,'prepare never writes');
  const result=await rpc('PAIA_ARCHIVE_OPERATION_OUTCOME',{query:{...query,ownerRef:b.documentId,operationId:edit.operationId,requestDigest:await hashText(JSON.stringify(edit)),epoch:before.recoveryEpoch}});
  assert.deepEqual(result,{state:'committed',result:{ok:true}});
  assert.deepEqual((await rpc('GET_STATE')).records,before.records);

@@ -1,5 +1,16 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '请关闭修改历史后核对保存结果。':'Close edit history to check the save result.','关闭修改历史':'Close edit history',
+ '迁移初始版本':'Migration baseline','初始版本':'Initial version','标题编辑':'Title edit','重大编辑':'Major edit','整条删除':'Removed Input','恢复':'Restored','重要版本':'Important version',
+ '恢复操作前':'Restore before this change','恢复此版本':'Restore this version','当前工作版本':'Current working version','所选工作版本':'Selected working version','备注':'Note','使用来源标题':'Use Source title',
+ '已从 Input Archive 移除':'Removed from Input Archive','保留在 Input Archive':'Kept in Input Archive',
+ '恢复会建立今天的新版本，并保留后来的历史。请核对所选文字。':'Restoring creates a new version today and preserves later history. Review the selected text.',
+ '确认恢复这个工作版本':'Confirm restoring this working version',
+ '版本已变化或保存尚未确认。当前草稿保留，请核对保存结果。':'The version changed or saving is not yet confirmed. Your draft is retained; check the save result.',
+ '恢复尚未完成，当前草稿保留，请核对保存结果。':'Restoring is not complete. Your draft is retained; check the save result.',
+ '这个版本或来源已变化，请重新打开修改历史。':'This version or its Source changed. Reopen edit history.',
+ '已恢复，并建立新的版本。':'Restored as a new version.',
+
  '所选 Input · 修改历史':'Selected Input · Edit history','Conversation 标题 · 修改历史':'Conversation title · Edit history','当前 Conversation · 修改历史':'This Conversation · Edit history',
  '查看原始内容':'View original content',
  '查看修改历史':'View edit history',

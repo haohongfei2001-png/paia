@@ -42,12 +42,19 @@ export function group(file) {
 
 /**
  * Keep the complete current browser corpus within the existing hosted-job
- * budget. The historical comparison file took about six minutes and made
- * browser shard 2 exceed its 18-minute limit beside the large UX-R4 file.
- * Route that whole file to the previously light shard 4; never split cases.
+ * budget, routing only whole files. Historical comparison originally moved
+ * from2 to4 after observed2 overload. Full36770990568 shows4 now overloaded
+ * and1 finishes8m45s; its complete historical17 took6m11s. Route it to1,
+ * preserving every case/fixture and the unchanged18-minute job limit.
  */
 export function testShard(file, position, total, category) {
+ // The eight complete Source/release History journeys took 3m33s on full
+ // 36767002782 and pushed shard4 past its unchanged18-minute job budget.
+ // Shard1 completed in6m40s; move this WHOLE file there, without changing
+ // its cases/fixtures or the current corpus and existing historical routing.
  if(category==='browser E2E'&&total===4
-    &&file.split('/').at(-1)==='cpv1-07-historical-comparison-chrome-e2e.test.mjs')return 4;
+    &&file.split('/').at(-1)==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs')return 1;
+ if(category==='browser E2E'&&total===4
+    &&file.split('/').at(-1)==='cpv1-07-historical-comparison-chrome-e2e.test.mjs')return 1;
  return position%total+1;
 }

@@ -82,8 +82,14 @@ export class OrganizerStore extends LibraryDocumentsStore {
     if(row.recoveryPurgeRevision!==undefined&&expected<row.recoveryPurgeRevision)reject('INVALID_REQUEST');
    };
    if(kind==='document'){
-    if(operation.type!=='EDIT_DOCUMENT'||edit?.documentId!==ownerId||!Array.isArray(edit.blocks)||edit.blocks.length>1000||!await t.get('documents',ownerId))reject('INVALID_REQUEST');
-    for(const change of edit.blocks){const row=(await t.get('blocks',change.id))?.value;if(!row||row.documentId!==ownerId)reject('INVALID_REQUEST');const state=await t.get('inputStates',row.id);await purgeRevision(row,change.expectedRevision,state?.sourcePurged,value=>t.put('blocks',{id:value.id,value}));add(row);}
+    if(operation.type!=='EDIT_DOCUMENT')reject('INVALID_REQUEST');
+    let pending;
+    if(operation.pendingRequest!==undefined){if(typeof operation.pendingRequest!=='string'||operation.pendingRequest.length>800000)reject('INVALID_REQUEST');try{pending=JSON.parse(operation.pendingRequest);}catch{reject('INVALID_REQUEST');}if(!pending?.restoreRevisionId)reject('INVALID_REQUEST');}
+    const edits=[edit,...(pending?[pending]:[])];
+    for(const candidate of edits){
+     if(candidate?.documentId!==ownerId||!Array.isArray(candidate.blocks)||candidate.blocks.length>1000||!await t.get('documents',ownerId))reject('INVALID_REQUEST');
+     for(const change of candidate.blocks){const row=(await t.get('blocks',change.id))?.value;if(!row||row.documentId!==ownerId)reject('INVALID_REQUEST');const state=await t.get('inputStates',row.id);await purgeRevision(row,change.expectedRevision,state?.sourcePurged,value=>t.put('blocks',{id:value.id,value}));add(row);}
+    }
    }else if(kind==='library_entry'){
     if(operation.type!=='EDIT_LIBRARY_BATCH'||edit?.entries?.length!==1||edit.entries[0].id!==ownerId)reject('INVALID_REQUEST');
     const row=active(await t.get('thoughts',ownerId));await purgeRevision(row,edit.entries[0].expectedRevision,row.staleReasons?.includes('source_purged'),value=>t.put('thoughts',value));add(row);
