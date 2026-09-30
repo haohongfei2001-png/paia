@@ -136,9 +136,9 @@ async function sourceJourney(page,h){
   const detailId=await detailField.getAttribute('data-edit-id');
   assert.ok(detailId,'Reader exposes the existing Input identity for review restoration');
 
-  await readerMenu(page,'查看当时记录',detailField);
+  await readerMenu(page,'查看原始内容',detailField);
   await eventually(()=>page.locator('#info-dialog').evaluate(el=>el.open),'Source panel opens');
-  assert.equal(await page.locator('#info-dialog h2').textContent(),'查看当时记录','Source mode is named as the immutable record');
+  assert.equal(await page.locator('#info-dialog h2').textContent(),'所选 Input · 原始内容','Source mode is named as the immutable record');
   assert.equal(await page.locator('#info-content [contenteditable]').count(),0,'Source record stays read-only');
   assert.match(await page.locator('#info-content .source-original').textContent(),/UIR02_TARGET/,'explicit Source full text remains readable while preview mask is enabled');
   await shot(page,'uir-02-source-1440x900-light');
@@ -146,7 +146,7 @@ async function sourceJourney(page,h){
 
   await readerMenu(page,'版本历史',detailField);
   await eventually(()=>page.locator('#revision-dialog').evaluate(el=>el.open),'Revision panel opens');
-  assert.equal(await page.locator('#revision-dialog h2').textContent(),'版本历史','revision mode remains distinct from Source');
+  assert.equal(await page.locator('#revision-dialog h2').textContent(),'所选 Input · 修改历史','revision mode remains distinct from Source');
   assert.match(await page.locator('#revision-dialog > p').textContent(),/恢复会建立新版本/,'revision copy keeps restore-as-new-version semantics');
   await shot(page,'uir-02-revision-1440x900-light');
   await page.locator('#close-revisions').click();

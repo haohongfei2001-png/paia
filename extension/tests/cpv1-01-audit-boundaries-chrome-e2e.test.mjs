@@ -33,7 +33,7 @@ test('audit Reader search refreshes edited/removed content, drops stale replies,
   const nextInput=(await h.state()).library.blocks.find(b=>b.sourceRecordId!==source),nextSource=nextInput.sourceRecordId;await rpc(p,'PURGE_SOURCE',{id:nextSource,confirm:true});
   await eventually(async()=>await p.locator('.document-search-hit').count()===40,'content change restarts first page');assert.equal(await p.locator(`.document-search-hit[data-input-id="${nextInput.id}"]`).count(),0);assert.equal(await p.locator('#document-search-previous').isVisible(),false);
   const fields=p.locator('.library-prose');await fields.nth(1).click({button:'right'});assert.equal(await p.getByRole('menuitem',{name:'从档案移除',exact:true}).count(),1);
-  await p.locator('#document-menu').click();const labels=await p.locator('#context-menu [role=menuitem]').allTextContents();assert.ok(labels.includes('文档版本历史'));assert.ok(labels.includes('会话收录设置'));assert.ok(!labels.some(label=>/复制这条|从档案移除|永久删除|加入主题/.test(label)));
+  await p.locator('#document-menu').click();const labels=await p.locator('#context-menu [role=menuitem]').allTextContents();assert.ok(labels.includes('查看修改历史'));assert.ok(labels.includes('会话收录设置'));assert.ok(!labels.some(label=>/复制这条|从档案移除|永久删除|加入主题/.test(label)));
   await p.keyboard.press('Escape');await record(h,'reader-search-menu',['fresh-after-edit','fresh-after-purge','old-response-discarded','generation-pagination','document-only-header']);
  }finally{await h.close();}
 });
