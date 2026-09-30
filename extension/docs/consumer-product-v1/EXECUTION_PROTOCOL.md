@@ -1,6 +1,14 @@
 # Execution Protocol — PAIA Consumer Product v1
 
-## Controlling owner stop — 2026-09-30
+## Controlling Desktop vNext restart — 2026-09-30
+
+The owner explicitly approved the frozen design and foundation PR #107 (head `17f646bac2aa5f818000efdd8a2ec5d55623db14`) and separately authorized continuous production D1 → D2 → D3 → D4. `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` is lifted only for that approved scope. The [approved architecture](design/foundation/desktop-vnext/ARCHITECTURE_REVIEW.md) and [roadmap](design/foundation/desktop-vnext/IMPLEMENTATION_ROADMAP.md) govern implementation. Current writer/base/batch and evidence are recorded in [STATUS](STATUS.md).
+
+Start each slice/batch from verified remote main; maintain one product writer; preserve #99; implement behaviors and their failure/recovery paths before claiming completion. Run targeted unit, affected browser, contracts/privacy, release/package and relevant failure/recovery checks per slice, plus applicable full certification at slice/high-risk boundaries. Record negative evidence and NOT_RUN without converting synthetic/model/CI evidence into current-live, device or performance PASS. Integrate a coherent batch only after required gates pass and verify exact main before advancing. Do not ask for routine engineering choices. True owner gates block only their dependent behavior unless no meaningful approved work remains.
+
+The historical stop, whole-package, temporary-round and prior VS-08–VS-12 instructions below are evidence history, not authority to enlarge this authorization. B-01–B-05, new privacy/paid/destructive/distribution/legal actions still require their own owner decision. No new product design is authorized.
+
+## Historical controlling owner stop — 2026-09-30
 
 State: `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW`. Consumer Product v1 whole-package continuous authorization has ended. No new runtime/product features, VS-08–VS-12 work, CPV1 round, product writer, or automatic advancement is authorized. Generic "continue", heartbeat automation, a historical `READY` label, a passing candidate gate, or an open deferred gate does not restart this package. This section overrides all historical continuation, slice sequencing, `WHOLE_PACKAGE_PREAUTHORIZED`, and dependency-safe-engineering instructions below and in the Master Plan, Product Intent Contract, Status and Deferred Final Gates.
 
@@ -27,7 +35,7 @@ The product owner is not the manual project manager.
 
 ## 2. Authorization modes
 
-The historical automatic authorization rules below are suspended by the controlling owner stop. Current authorization mode is `NONE / PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW`; no slice or round is `READY` for automatic execution. After a newly approved foundation and roadmap, the owner must explicitly define the scope and authorization mode before engineering resumes.
+The historical automatic authorization rules below remain inactive; the explicit Desktop vNext D1–D4 scope above is the current authority. At that historical stop, authorization mode was `NONE / PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW`; the explicit Desktop vNext restart above now controls only D1–D4. After a newly approved foundation and roadmap, the owner must explicitly define the scope and authorization mode before engineering resumes.
 
 Historical rules (inactive): the former "继续 PAIA" whole-slice and `WHOLE_PACKAGE_PREAUTHORIZED` modes applied only before the 2026-09-30 stop and must not be inferred from archived status/plan text.
 

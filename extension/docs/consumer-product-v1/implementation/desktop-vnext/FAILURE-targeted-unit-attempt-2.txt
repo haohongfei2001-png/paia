@@ -1,0 +1,28 @@
+✔ Q1 reads a durable, owner/digest-bound receipt after lost acknowledgement without duplicating revisions (19.872667ms)
+✔ Q1 never infers non-commit from absence; an actual aborted transaction provides only bounded worker-lifetime negative knowledge (9.726042ms)
+✖ Q1 serialized fresh read waits for the actual in-flight transaction (9.06375ms)
+✔ Q1 rejects enumeration/extra data, isolates legacy receipts, and invalidates acknowledgement after restore (7.96175ms)
+✔ Q1 negative knowledge is body-free, bounded and conservatively evicted (0.093834ms)
+✔ Reader reconciles a lost acknowledgement through the production receipt, keeping a newer local edit separate (8.137625ms)
+✔ Reader keeps unknown operations stable and blocks autosave/new UUID retry until trusted reconciliation (6.628333ms)
+✔ Reader retries only a known aborted attempt and retains its exact operation ID and payload (7.496583ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.635666
+
+✖ failing tests:
+
+test at extension/tests/dvn-operation-outcome.test.mjs:46:1
+✖ Q1 serialized fresh read waits for the actual in-flight transaction (9.06375ms)
+  Error: STORAGE_FAILED
+      at fail (file://<workspace>/extension/core/idb-repository.js:15:40)
+      at ArchiveRepository.transaction (file://<workspace>/extension/core/idb-repository.js:112:535)
+      at async file://<workspace>/extension/core/indexed-store.js:23:55 {
+    code: 'STORAGE_FAILED',
+    dbCategory: 'database_error'
+  }

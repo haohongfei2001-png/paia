@@ -386,7 +386,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p work/audit-boundaries
-          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-01-audit-boundaries-chrome-e2e.test.mjs tests/cpv1-01-recovery-chrome-e2e.test.mjs tests/cpv1-01-save-recovery-chrome-e2e.test.mjs tests/cpv1-02-4-reader-chrome-e2e.test.mjs 2>&1 | tee work/audit-boundaries/test.log
+          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-01-audit-boundaries-chrome-e2e.test.mjs tests/cpv1-01-recovery-chrome-e2e.test.mjs tests/cpv1-01-save-recovery-chrome-e2e.test.mjs tests/cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs tests/cpv1-02-4-reader-chrome-e2e.test.mjs 2>&1 | tee work/audit-boundaries/test.log
       - name: Require exact-head audit evidence
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}

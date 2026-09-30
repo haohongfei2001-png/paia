@@ -16,7 +16,7 @@ const authored=(b,m)=>b.libraryText!==null||!!b.note||b.editedAt!==null||m?.cont
 
 export class SmartFilterStore extends IAStore {
  constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;}
- write(fn){this.filterMutation++;return super.write(fn).finally(()=>{this.filterMutation++;});}
+ write(fn,onCommitted=null){this.filterMutation++;return super.write(fn,onCommitted).finally(()=>{this.filterMutation++;});}
  run(fn){return super.run(async()=>{if(!this.filterLoaded){await this.initializeFilter();this.filterLoaded=true;}return fn();});}
  async initializeFilter(){
   let state=await this.repository.transaction(false,t=>t.get('meta','smart-filter'));

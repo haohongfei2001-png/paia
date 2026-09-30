@@ -96,11 +96,17 @@ test('VS-04 failed Archive removal remains visible until retry durably saves it'
  const {h,page,field,inputId,before}=await fixture({launchThroughPort:true});
  try{
   const sources=(await h.state()).records;
-  await page.evaluate(()=>{
-   const send=chrome.runtime.sendMessage.bind(chrome.runtime);
-   globalThis.__restoreRemovalSend=()=>{chrome.runtime.sendMessage=send;};
-   chrome.runtime.sendMessage=message=>message?.type==='EDIT_DOCUMENT'
-    ?Promise.resolve({ok:false,error:'STORAGE_FAILURE'}):send(message);
+  // Fail the actual canonical transaction, rather than fabricate a terminal
+  // worker response for a message the worker never received (that is unknown).
+  const worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));
+  assert.ok(worker);
+  await worker.evaluate(()=>{
+   const put=IDBObjectStore.prototype.put;
+   globalThis.__restoreRemovalPut=()=>{IDBObjectStore.prototype.put=put;};
+   IDBObjectStore.prototype.put=function(value,...args){
+    if(this.name==='operationReceipts'&&value.namespace==='working-input')throw new DOMException('Synthetic canonical transaction failure','UnknownError');
+    return put.call(this,value,...args);
+   };
   });
   await field.evaluate(el=>el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20})));
   await page.getByRole('menuitem',{name:/从档案移除|Remove from archive/}).click();
@@ -109,7 +115,7 @@ test('VS-04 failed Archive removal remains visible until retry durably saves it'
   assert.equal(await field.isVisible(),true,'a failed removal cannot visually hide the Input');
   assert.deepEqual((await h.state()).records,sources,'failure cannot change immutable Source');
 
-  await page.evaluate(()=>globalThis.__restoreRemovalSend());
+  await worker.evaluate(()=>globalThis.__restoreRemovalPut());
   await page.locator('#retry').click();
   await eventually(async()=>(await rpc(page,'GET_INPUT',{id:inputId})).excluded===true,'retry persists removal');
   await eventually(async()=>!await field.isVisible(),'saved removal hides the Input');

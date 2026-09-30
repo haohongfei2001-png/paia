@@ -1,4 +1,5 @@
 import {queryPage} from './archive-query.js';
+import {OperationAttemptLedger,validateOperationQuery} from './operation-outcome.js';
 import {captureIsExcluded,clearReadingTargets,clearPurgedReaderPolicy} from './reader-state.js';
 import {ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
 import {ADAPTER_VERSION,CONSENT_VERSION,STORAGE_KEY,ArchiveError,STATUS_CODES,ERROR_CODES} from './constants.js';
@@ -14,12 +15,12 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
 export class IndexedArchiveStore {
- constructor(local,options={}){this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;}
+ constructor(local,options={}){this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();}
  run(fn){const task=this.tail.then(async()=>{if(!this.loaded){await this.repository.initialize();this.loaded=true;}const local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;this.changedSources=new Set();return fn();});this.tail=task.catch(()=>{});return task;}
  async control(t){const c=structuredClone(this.pendingControl||this.controlCache),gate=await t.get('meta','gate');if(gate&&(gate.epoch!==c.settings.epoch||gate.enabled!==c.settings.enabled))c.settings.enabled=false;return c;}
  async saveControl(t,c){this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});}
  async publish(){if(this.pendingControl){await this.local.set({[STORAGE_KEY]:{schemaVersion:6,databaseId:this.databaseId,...this.pendingControl}});this.controlCache=this.pendingControl;this.pendingControl=null;}}
- write(fn){return this.run(async()=>{try{const result=await this.repository.transaction(true,fn);this.volatileError=null;await this.publish();return result;}catch(e){this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
+ write(fn,onCommitted=null){return this.run(async()=>{try{const result=await this.repository.transaction(true,fn);onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
  status(){return this.run(()=>this.repository.transaction(false,async t=>{const {settings:s}=await this.control(t);return {enabled:s.enabled===true&&s.consentVersion===CONSENT_VERSION,consented:s.consentVersion===CONSENT_VERSION,epoch:s.epoch,adapterVersion:ADAPTER_VERSION};}));}
  consent(accepted){if(accepted!==true)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const c=await this.control(t);c.settings={consentVersion:CONSENT_VERSION,consentAt:this.clock(),enabled:true,epoch:c.settings.epoch+1};c.diagnostics.status='WAITING_CHAT';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled:true};});}
  setEnabled(enabled){return this.write(async t=>{const c=await this.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(typeof enabled!=='boolean')error('INVALID_REQUEST');c.settings.enabled=enabled;c.settings.epoch++;c.diagnostics.status=enabled?'WAITING_CHAT':'PAUSED';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled};});}
@@ -129,7 +130,8 @@ export class IndexedArchiveStore {
    for(const id of docs)await this.refreshDoc(t,id);await clearPurgedReaderPolicy(t,new Set(blocks.keys()),key);return {id};
   });await this.publish();return result;
  });}
- async editDocument(request){const operationId=request?.operationId;if(operationId!==undefined&&(typeof operationId!=='string'||operationId.length>128||operationId.length<8))error('INVALID_REQUEST');const digest=operationId?await hashText(JSON.stringify(request)):null;return this.write(async t=>{
+ async editDocument(request){const operationId=request?.operationId;if(operationId!==undefined&&(typeof operationId!=='string'||operationId.length>128||operationId.length<8))error('INVALID_REQUEST');const digest=operationId?await hashText(JSON.stringify(request)):null;const query=operationId&&typeof request.documentId==='string'&&request.documentId.length<=512?{ownerRef:request.documentId,operationId,requestDigest:digest}:null;const attempt=query?this.operationAttempts.begin(query):null;let durable=false;try{const outcome=await this.write(async t=>{
+  if(attempt)attempt.epoch=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';
   if(operationId){const receipt=await t.get('operationReceipts',operationId);if(receipt){if(receipt.digest!==digest)error('INVALID_REQUEST');return receipt.result;}}
   if(!request||!Array.isArray(request.blocks)||request.blocks.length>1000)error('INVALID_REQUEST');const row=await t.get('documents',request.documentId);if(!row)error('INVALID_REQUEST');const ld=await t.get('libraryDocuments',row.id),blocks=[];
   for(const change of request.blocks){const b=await t.get('blocks',change.id);if(b)blocks.push(b.value);}
@@ -138,8 +140,16 @@ export class IndexedArchiveStore {
   if(this.afterInputEdit)await this.afterInputEdit(t,priorBlocks,blocks,priorTitle,row.value,request);
   for(const b of blocks){await t.put('blocks',{id:b.id,value:b});const ix=await t.get('blockIndex',b.id);ix.excluded=b.excluded;ix.excludedKey=b.excluded?1:0;ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);}
   if(request.title!==undefined){await t.put('documents',row);await t.put('libraryDocuments',ld);}
-  if(blocks.some((b,i)=>b.excluded!==before[i])){for(const b of blocks)await this.trackBlock(t,b);await this.refreshDoc(t,row.id);}if(operationId)await t.put('operationReceipts',{id:operationId,digest,result});return result;
- });}
+  if(blocks.some((b,i)=>b.excluded!==before[i])){for(const b of blocks)await this.trackBlock(t,b);await this.refreshDoc(t,row.id);}if(operationId)await t.put('operationReceipts',{id:operationId,namespace:'working-input',schemaVersion:1,ownerId:row.id,createdAt:this.clock(),digest,result});return result;
+ },result=>{durable=result?.ok===true;});if(attempt)this.operationAttempts.settle(query,attempt,durable);return outcome;}catch(error){if(attempt)this.operationAttempts.settle(query,attempt,durable);throw error;}}
+ operationOutcome(query){query={...validateOperationQuery(query)};return this.run(()=>this.repository.transaction(false,async t=>{
+  if((await this.control(t)).settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');
+  const epoch=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';
+  if(epoch!==query.epoch||!await t.get('documents',query.ownerRef))return {state:'unknown'};
+  const receipt=await t.get('operationReceipts',query.operationId);
+  if(receipt){if(receipt.namespace==='working-input'&&receipt.schemaVersion===1&&receipt.ownerId===query.ownerRef&&receipt.digest===query.requestDigest&&receipt.result?.ok===true)return {state:'committed',result:{ok:true}};return {state:'unknown'};}
+  return {state:this.operationAttempts.read(query)};
+ }));}
  updateLibrary(id,changes){return this.write(async t=>{const row=await t.get('blocks',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,validateLibraryChanges(changes));row.value.editedAt=this.clock();row.value.revision++;await t.put('blocks',row);return {id};});}
  excludeLibrary(id,excluded){return this.write(async t=>{if(typeof excluded!=='boolean')error('INVALID_REQUEST');const row=await t.get('blocks',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,{excluded,status:excluded?'excluded_by_user':'active',revision:row.value.revision+1});await t.put('blocks',row);const ix=await t.get('blockIndex',id);Object.assign(ix,{excluded,excludedKey:excluded?1:0});ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);await this.trackBlock(t,row.value);await this.refreshDoc(t,row.value.documentId);return {id};});}
  updateDocument(id,changes){return this.write(async t=>{const row=await t.get('documents',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,validateLibraryChanges(changes,true));row.value.titleRevision++;const ld=await t.get('libraryDocuments',id);ld.value.userTitle=row.value.userTitle;await t.put('documents',row);await t.put('libraryDocuments',ld);return {id};});}

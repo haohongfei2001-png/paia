@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
+import {hashText} from '../core/dedupe.js';
+
+test('Q1 production worker enforces extension-page/consent/strict request boundaries and returns no bodies',async()=>{
+ globalThis.indexedDB=new IDBFactory();globalThis.IDBKeyRange=IDBKeyRange;
+ const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`,ui={id,url:origin+'ui/archive.html'};
+ let listener,data={},networkCalls=0;
+ globalThis.fetch=async()=>{networkCalls++;throw Error('Unexpected network');};
+ const local={setAccessLevel:async()=>{},get:async keys=>keys===null?structuredClone(data):Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(k=>k in data).map(k=>[k,structuredClone(data[k])])),set:async values=>Object.assign(data,structuredClone(values)),remove:async keys=>{for(const key of Array.isArray(keys)?keys:[keys])delete data[key];},getBytesInUse:async()=>0};
+ globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.12.0'}),getURL:path=>origin+path,sendMessage:async()=>{},onMessage:{addListener:fn=>listener=fn}},storage:{local}};
+ await import('../background/service-worker.js');
+ const send=(message,sender=ui)=>new Promise(resolve=>listener(message,sender,resolve));
+ const rpc=async(type,fields={})=>{const reply=await send({type,...fields});assert.equal(reply.ok,true,JSON.stringify(reply));return reply.data;};
+ const query={version:1,namespace:'working-input',ownerRef:'unavailable',operationId:'synthetic-operation',requestDigest:'0'.repeat(64),epoch:'initial'};
+ assert.equal((await send({type:'PAIA_ARCHIVE_OPERATION_OUTCOME',query})).error,'CONSENT_REQUIRED');
+ await rpc('CONSENT',{accepted:true});
+ const url='https://chatgpt.com/c/dvn-receipt',content={id,url,frameId:0,tab:{id:23,url,incognito:false}};
+ assert.equal((await send({type:'PAIA_ARCHIVE_OPERATION_OUTCOME',query},content)).error,'FORBIDDEN');
+ assert.equal((await send({type:'PAIA_ARCHIVE_OPERATION_OUTCOME',query},{...ui,url:origin+'not-ui.html'})).error,'FORBIDDEN');
+ assert.equal((await send({type:'PAIA_ARCHIVE_OPERATION_OUTCOME',query,enumerate:true})).error,'INVALID_REQUEST');
+ const epoch=(await rpc('GET_STATUS')).epoch;
+ assert.equal((await send({type:'CAPTURE',epoch,adapterVersion:'0.3.0',contentVersion:'0.12.0',chat:{id:'dvn-receipt',url,title:'SYNTHETIC receipt'},messages:[{sourceMessageId:'dvn-message',pageOrder:1,originalText:'SYNTHETIC immutable source'}]},content)).ok,true);
+ const before=await rpc('GET_STATE'),b=before.library.blocks[0];
+ const edit={operationId:crypto.randomUUID(),documentId:b.documentId,blocks:[{id:b.id,expectedRevision:b.revision,libraryText:'SYNTHETIC working body',note:b.note,excluded:b.excluded}]};
+ await rpc('EDIT_DOCUMENT',{edit});
+ const result=await rpc('PAIA_ARCHIVE_OPERATION_OUTCOME',{query:{...query,ownerRef:b.documentId,operationId:edit.operationId,requestDigest:await hashText(JSON.stringify(edit)),epoch:before.recoveryEpoch}});
+ assert.deepEqual(result,{state:'committed',result:{ok:true}});
+ assert.deepEqual((await rpc('GET_STATE')).records,before.records);
+ assert.equal(networkCalls,0);
+});

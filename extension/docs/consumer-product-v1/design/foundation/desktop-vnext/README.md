@@ -1,6 +1,8 @@
 # Desktop vNext Product Foundation / Architecture Review
 
-状态：**PROPOSED / OWNER_APPROVAL_PENDING / IMPLEMENTATION_NOT_AUTHORIZED**。审查日期：2026-09-30（Asia/Shanghai）。
+当前状态：**OWNER_APPROVED / D1_D4_IMPLEMENTATION_AUTHORIZED**。Owner 于 2026-09-30 在本 task 明确批准 frozen design、architecture + roadmap（[PR #107](https://github.com/haohongfei2001-png/paia/pull/107)，head `17f646bac2aa5f818000efdd8a2ec5d55623db14`），并单独授权 production D1 → D2 → D3 → D4。Merge main 为 `4c6af485e3d73f520574aca35473854ea60a98ca`；后续实施受 STATUS / EXECUTION_PROTOCOL 当前 restart 记录控制。B-01～B-05、private/live/device/provider/distribution 等独立 gates 未获批准。
+
+以下为原审查记录（审查时 **PROPOSED / OWNER_APPROVAL_PENDING / IMPLEMENTATION_NOT_AUTHORIZED**，2026-09-30 Asia/Shanghai）；其 baseline/evidence/未运行说明作为历史保留。Architecture 与 roadmap 内容未重新设计。
 
 本包从当前 remote main `8a2921bf8cc668c4909d4c1e3742985be93027af` 重新读取，tree `11cebf82b118a973a4aa42a9961d44b61f250602`。Desktop vNext DVN-1.0 已由 owner 确认并经 [PR #105](https://github.com/haohongfei2001-png/paia/pull/105) 合并，是冻结 UX/UI 基线；其中旧 audited SHA `368a8ca` 是设计来源检查点，不是本审查的 production baseline。当前 main 还包含 [PR #106](https://github.com/haohongfei2001-png/paia/pull/106) 的六项边界修复。
 
@@ -17,4 +19,4 @@ P = presentation/CSS/component composition；I = interaction/routing/state coord
 
 实施入口：owner 明确批准本 architecture + roadmap，并另行明确授权实施 scope 后，Work 重新读取 remote main、STATUS/EXECUTION_PROTOCOL、冻结 [design package](../../../desktop-vnext/README.md) 与本包，核对唯一 writer，再执行被授权 slice。普通组件、样式、断点、视觉与交互细节遵循冻结包，不重新设计。批准 foundation PR 的 merge 本身不得被推断成整包连续开发授权。
 
-审批记录保持待定；后续 owner decision 记录应引用确切 foundation PR head 和授权 slice 范围。B-01～B-05 的批准、live/model/device/private/distribution 的认证不能由此审批替代。
+原审查提交时审批记录待定；现已由上方 owner decision 记录确切 foundation PR head 和授权 slice 范围。B-01～B-05 的批准、live/model/device/private/distribution 的认证不能由此审批替代。
