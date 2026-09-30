@@ -38,7 +38,13 @@ export const backupMetaAllowed=id=>[THOUGHT_LAYOUT_ROW,REVISIT_POLICY_ROW,CAPTUR
 export const backupError=code=>{throw new ArchiveError(code);};
 export const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 export function safeJSON(value,depth=0){if(depth>32)backupError('BACKUP_INVALID');if(typeof value==='number'&&!Number.isFinite(value))backupError('BACKUP_INVALID');if(value===null||['string','number','boolean'].includes(typeof value))return;if(Array.isArray(value)){if(value.length>100000)backupError('BACKUP_INVALID');for(const v of value)safeJSON(v,depth+1);return;}if(!plain(value))backupError('BACKUP_INVALID');for(const [key,v]of Object.entries(value)){if(['__proto__','constructor','prototype'].includes(key)||/^(api.?key|credentials?|authorization|password|access.?token)$/i.test(key))backupError('BACKUP_INVALID');safeJSON(v,depth+1);}}
-export function projectBackupEntity(section,value){const result={};for(const key of BACKUP_SECTIONS[section])if(value[key]!==undefined)result[key]=structuredClone(value[key]);if(section==='entries'&&typeof result.title==='string'&&!result.title.trim())delete result.title;return result;}
+// Local recovery admission metadata is neither user content nor portable history.
+export function stripRecoveryMetadata(value){
+ if(Array.isArray(value))return value.map(stripRecoveryMetadata);
+ if(!plain(value))return value;
+ return Object.fromEntries(Object.entries(value).filter(([key])=>!['recoveryPurgeRevision','recoveryGeneration'].includes(key)).map(([key,item])=>[key,stripRecoveryMetadata(item)]));
+}
+export function projectBackupEntity(section,value){const result={};for(const key of BACKUP_SECTIONS[section])if(value[key]!==undefined)result[key]=structuredClone(value[key]);if(section==='entries'&&typeof result.title==='string'&&!result.title.trim())delete result.title;return stripRecoveryMetadata(result);}
 export function validateBackupHeader(row){safeJSON(row);if(!plain(row)||row.type!=='header'||row.format!=='PAIA Backup'||row.formatVersion!==BACKUP_VERSION||row.schemaVersion!==BACKUP_SCHEMA||typeof row.appVersion!=='string'||!/^0\.(7|8|9|10|11|12)\.\d+(\.\d+)?$/.test(row.appVersion)||!Number.isFinite(Date.parse(row.createdAt))||JSON.stringify(row.contentSections)!==JSON.stringify(Object.keys(BACKUP_SECTIONS)))backupError('BACKUP_VERSION_UNSUPPORTED');return row;}
 export const IMPORT_EVIDENCE_FIELDS=['id','sourceKey','provider','profileId','profileVersion','branch','parentSourceKey','conflict'];
 export const projectImportEvidence=row=>Object.fromEntries(IMPORT_EVIDENCE_FIELDS.filter(k=>row[k]!==undefined).map(k=>[k,row[k]]));

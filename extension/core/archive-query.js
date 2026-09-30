@@ -23,14 +23,17 @@ async function recentCapturedDocument(t){
  }
  return null;
 }
-export async function queryPage(t,control,{view='library',query='',limit=50,cursor=null,documentId=null,trackedBlockIds=[],sort=null,providerKey=null}={}){
+export async function queryPage(t,control,{view='library',query='',limit=50,cursor=null,documentId=null,trackedBlockIds=[],sort=null,providerKey=null,expectedGeneration=null}={}){
+ const dataGeneration=(await t.get('meta','backup-data-generation'))?.value||0;
+ if(expectedGeneration!==null&&(!Number.isSafeInteger(expectedGeneration)||expectedGeneration<0))throw new ArchiveError('INVALID_REQUEST');
+ if(expectedGeneration!==null&&expectedGeneration!==dataGeneration)throw new ArchiveError('BACKUP_CHANGED');
  if(sort!==null&&!['asc','desc'].includes(sort))throw new ArchiveError('INVALID_REQUEST');
  if(providerKey!==null&&!validProvider(providerKey))throw new ArchiveError('INVALID_REQUEST');
  if(!views.includes(view)||typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||!validCursor(cursor)||documentId!==null&&(typeof documentId!=='string'||documentId.length>200))throw new ArchiveError('INVALID_REQUEST');
  if(!Array.isArray(trackedBlockIds)||trackedBlockIds.length>1000||trackedBlockIds.some(id=>typeof id!=='string'||id.length>200))throw new ArchiveError('INVALID_REQUEST');
  // Exact archive-wide counts are used by root/Settings. Reader pages never display them.
  const [trash,hidden,total]=documentId?[null,null,null]:await Promise.all([t.count('recordIndex','byTrash',1),t.count('recordIndex','byHidden',1),t.count('records')]);
- const state={schemaVersion:6,...control,records:[],conversations:[],library:{documents:[],blocks:[],classificationRules:control.classificationRules,filterRules:control.filterRules},adapterVersion:'0.3.0',stats:{total:total===null?null:total-trash,trash,hidden,bytes:0,quotaBytes:0},documents:[],pageItemIds:[],nextCursor:null,recentCapturedDocument:null};
+ const state={schemaVersion:6,dataGeneration,...control,records:[],conversations:[],library:{documents:[],blocks:[],classificationRules:control.classificationRules,filterRules:control.filterRules},adapterVersion:'0.3.0',stats:{total:total===null?null:total-trash,trash,hidden,bytes:0,quotaBytes:0},documents:[],pageItemIds:[],nextCursor:null,recentCapturedDocument:null};
  if(['settings','memory'].includes(view))return state;
  if(view==='legacy'){
   const candidates=await t.page('recordIndex',{index:'bySequence',after:cursor?.[0],limit:100});for(const {value:r}of candidates.rows)if(r.hidden||r.deletedAt)state.records.push((await t.get('records',r.id)).value);state.nextCursor=candidates.next===null?null:[candidates.next];return state;

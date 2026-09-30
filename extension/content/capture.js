@@ -147,15 +147,23 @@
     if(batch.length)yield batch;
   }
 
-  async function diagnostic(code, scanned = 0, value = null, health = null) {
-    const structure = globalThis.ArchiveDiagnostics.sanitizeStructure(value);
-    const captureHealth=globalThis.ArchiveDiagnostics.sanitizeCaptureHealth(health);
-    const key = JSON.stringify([code, scanned, structure, captureHealth]);
-    if (key === lastDiagnostic && Date.now() - lastDiagnosticAt < 30000) return;
-    lastDiagnostic = key;
-    lastDiagnosticAt = Date.now();
-    const result = await send({type: 'DIAGNOSTIC', code, scanned, structure, ...(captureHealth?{captureHealth}:{}), adapterVersion: adapter.version});
-    if (!result?.ok) lastDiagnostic = '';
+  let diagnosticPending = false;
+  function diagnostic(code, scanned = 0, value = null, health = null) {
+    // Diagnostics are observers. One outstanding transport is enough even if
+    // Chrome never answers; neither capture nor the next status probe waits.
+    if (diagnosticPending || stopped || suspended) return;
+    try {
+      const structure = globalThis.ArchiveDiagnostics.sanitizeStructure(value);
+      const captureHealth = globalThis.ArchiveDiagnostics.sanitizeCaptureHealth(health);
+      const key = JSON.stringify([code, scanned, structure, captureHealth]);
+      if (key === lastDiagnostic && Date.now() - lastDiagnosticAt < 30000) return;
+      lastDiagnostic = key;
+      lastDiagnosticAt = Date.now();
+      diagnosticPending = true;
+      Promise.resolve(chrome.runtime.sendMessage({type: 'DIAGNOSTIC', code, scanned, structure, ...(captureHealth?{captureHealth}:{}), adapterVersion: adapter.version}))
+        .then(result => { if (!result?.ok) lastDiagnostic = ''; }, () => { lastDiagnostic = ''; })
+        .finally(() => { diagnosticPending = false; });
+    } catch { diagnosticPending = false; lastDiagnostic = ''; }
   }
 
   async function reportFailure(response, scanned = 0) {
@@ -164,7 +172,7 @@
       ? response.error : 'CAPTURE_FAILED';
     if (code === 'PAUSED' || code === 'CONSENT_REQUIRED') adapter.stopWatching();
     if (code === 'STALE_CAPTURE') adapter.invalidate();
-    await diagnostic(code, scanned);
+    void diagnostic(code, scanned);
     if (stopped || suspended || generation !== failureGeneration) return;
     if (code === 'CONTEXT_INVALIDATED') disconnected();
   }
@@ -203,14 +211,14 @@
       watchObsoleteNotice();
       if (status.consented !== true || status.enabled !== true) {
         adapter.stopWatching();
-        await diagnostic(status.consented === true ? 'PAUSED' : 'CONSENT_REQUIRED');
+        void diagnostic(status.consented === true ? 'PAUSED' : 'CONSENT_REQUIRED');
         return;
       }
       if (status.adapterVersion !== adapter.version) {
         if (lifecycle) lifecycle.ready = false;
         stopNoticeWatching();
         adapter.stopWatching();
-        await diagnostic('ADAPTER_VERSION_MISMATCH');
+        void diagnostic('ADAPTER_VERSION_MISMATCH');
         return;
       }
       adapter.watch(schedule);
@@ -221,7 +229,7 @@
       try { sourceTimes = globalThis.ArchiveResponseTime?.evidence(snapshot,status) || sourceTimes; } catch {}
       let health=null;
       try { health=globalThis.ArchiveResponseTime?.health?.(snapshot,status)||null; } catch {}
-      await diagnostic(snapshot.code, snapshot.scanned, snapshot.structure,health);
+      void diagnostic(snapshot.code, snapshot.scanned, snapshot.structure,health);
       if (stopped || suspended || generation !== cycleGeneration) return;
       if (!snapshot.messages?.length) {
         return;
@@ -229,7 +237,7 @@
       for (const messages of captureBatches(snapshot.messages,sourceTimes)) {
         if (stopped || suspended || generation !== cycleGeneration || !adapter.isSameChat(snapshot.chat.id)) {
           adapter.invalidate();
-          await diagnostic('UNSTABLE_PAGE', snapshot.scanned);
+          void diagnostic('UNSTABLE_PAGE', snapshot.scanned);
           return;
         }
         const result = await send({
@@ -248,12 +256,12 @@
         // CAPTURE sets the backend status to CAPTURING. Restore the skipped-message
         // warning even when this same scan already sent it before saving.
         lastDiagnostic = '';
-        await diagnostic(snapshot.code, snapshot.scanned, snapshot.structure,health);
+        void diagnostic(snapshot.code, snapshot.scanned, snapshot.structure,health);
       }
     } catch {
       if (stopped || suspended || generation !== cycleGeneration) return;
       adapter.invalidate();
-      await diagnostic('CAPTURE_FAILED');
+      void diagnostic('CAPTURE_FAILED');
     } finally {
       inFlight = false;
       schedule();

@@ -21,6 +21,7 @@ test('Archive source scope excludes other providers from the searchable/exportab
   {key:'c',value:{chatKey:'extended-key',value:{id:'extended',platform:extendedProvider,userTitle:'Shared word'}}}
  ];
  const t={
+  get:async(store,id)=>{assert.equal(store,'meta');assert.equal(id,'backup-data-generation');return {id,value:3};},
   count:async(store)=>store==='records'?2:store==='blockIndex'?1:0,
   rangePage:async(store)=>{
    assert.equal(store,'documents');
@@ -30,7 +31,7 @@ test('Archive source scope excludes other providers from the searchable/exportab
  };
  const page=await queryPage(t,{}, {view:'library',query:'Shared',providerKey:'chatgpt'});
  assert.deepEqual(page.documents.map(row=>row.id),['chat']);
- assert.equal(page.nextCursor,null);
+ assert.equal(page.nextCursor,null);assert.equal(page.dataGeneration,3);
  const extendedPage=await queryPage(t,{}, {view:'library',query:'Shared',providerKey:extendedProvider});
  assert.deepEqual(extendedPage.documents.map(row=>row.id),['extended']);
  }finally{globalThis.IDBKeyRange=originalRange;}

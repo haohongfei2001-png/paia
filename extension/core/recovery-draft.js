@@ -22,9 +22,10 @@ export class RecoveryDraftStore{
   if(!local?.get||!local?.set||!local?.remove)throw new TypeError('recovery storage unavailable');
   this.local=local;this.clock=clock;this.ttlMs=ttlMs;this.maxBytes=maxBytes;this.maxDrafts=maxDrafts;this.maxTotalBytes=maxTotalBytes;
  }
- async save({kind,ownerId,token,operation,sourceRecordIds=[]}){
+ async save({kind,ownerId,token,operation,sourceRecordIds=[],epoch}){
   if(!KINDS.has(kind)||!validId(ownerId)||!validId(token)||!plain(operation)||!Array.isArray(sourceRecordIds)||sourceRecordIds.length>2000||sourceRecordIds.some(id=>!validId(id)))throw new TypeError('invalid recovery draft');
-  const now=this.clock(),row={version:VERSION,kind,ownerId,token,operation:clone(operation),sourceRecordIds:[...new Set(sourceRecordIds)],updatedAt:now,expiresAt:now+this.ttlMs};
+  if(epoch!==undefined&&!validId(epoch))throw new TypeError('invalid recovery epoch');
+  const now=this.clock(),row={version:VERSION,kind,ownerId,token,...(epoch===undefined?{}:{epoch}),operation:clone(operation),sourceRecordIds:[...new Set(sourceRecordIds)],updatedAt:now,expiresAt:now+this.ttlMs};
   const rowBytes=bytes(row);if(rowBytes>this.maxBytes||rowBytes>this.maxTotalBytes)throw Object.assign(new Error('RECOVERY_DRAFT_TOO_LARGE'),{code:'RECOVERY_DRAFT_TOO_LARGE'});
   const ownKey=key(kind,ownerId),all=await this.local.get(null),existing=[],remove=[];
   for(const [k,value]of Object.entries(all||{})){if(!k.startsWith(PREFIX)||k===ownKey)continue;if(!rowValid(value)||value.expiresAt<=now){remove.push(k);continue;}existing.push([k,value,bytes(value)]);}

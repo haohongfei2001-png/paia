@@ -46,6 +46,42 @@ const archiveOrderPreference = new ArchiveOrderPreferenceService(store);
 const sourceOrderRegistry = new SourceOrderRegistry([['chatgpt',unavailableSourceOrderProvider('UNVERIFIED')]]);
 let recoveryDrafts=null;
 const recoveryDraftStore=()=>recoveryDrafts??=new RecoveryDraftStore(chrome.storage.local);
+// Recovery storage and canonical IndexedDB are separate stores. Keep admission,
+// storage completion and Source purge in one worker-owned serialized boundary.
+let recoveryTail=Promise.resolve();
+function withRecoveryFence(work){const result=recoveryTail.then(work);recoveryTail=result.catch(()=>{});return result;}
+async function saveRecoveryDraft(draft){
+ if(!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
+ if(draft.epoch!==await store.recoveryDraftEpoch())throw new ArchiveError('INVALID_REQUEST');
+ const sourceRecordIds=await store.recoveryDraftSourceIds(draft);
+ return recoveryDraftStore().save({...draft,sourceRecordIds});
+}
+async function loadRecoveryDraft({kind,ownerId,epoch}={}){
+ const current=await store.recoveryDraftEpoch();if(epoch!==current)throw new ArchiveError('INVALID_REQUEST');
+ const draft=await recoveryDraftStore().load(kind,ownerId);if(!draft)return null;
+ try{if((draft.epoch||'initial')!==current)throw new ArchiveError('INVALID_REQUEST');await store.recoveryDraftSourceIds(draft);return draft;}
+ catch(error){if(error?.code!=='INVALID_REQUEST')throw error;await recoveryDraftStore().clear(kind,ownerId,draft.token);return null;}
+}
+// Bind recovery identity to the same read that supplied editor bodies. A
+// replacement during a multi-transaction read discards that read; a later
+// replacement leaves an old, correctly fenced token on the returned snapshot.
+async function recoverySnapshot(read,decorate=(value,epoch)=>({...value,recoveryEpoch:epoch})){
+ const epoch=await store.recoveryDraftEpoch(),value=await read();
+ if(epoch!==await store.recoveryDraftEpoch())throw new ArchiveError('BACKUP_CHANGED');
+ return decorate(value,epoch);
+}
+function recoveryDocumentPage(page,epoch){
+ const tagged=value=>value?{...value,recoveryEpoch:epoch}:value;
+ return {...page,recoveryEpoch:epoch,topic:tagged(page.topic),sections:page.sections?.map(tagged),items:page.items?.map(item=>item.entry?{...item,entry:tagged(item.entry)}:tagged(item))};
+}
+
+async function purgeWithRecovery(id,permanent){
+ const sourceIds=await store.sourceRecordIdsForPurge(id);
+ // Clear first: failure leaves canonical Source untouched. A stopped worker
+ // cannot commit a queued save; later workers revalidate against tombstones.
+ await recoveryDraftStore().clearForSources(sourceIds);
+ return permanent?store.permanentDelete(id):store.purge(id);
+}
 const UPDATE_STATE_KEY='paia-consumer-update:v1';
 // Chrome owns installation. Keep only the version transition as local status;
 // never force a worker reload while an archive page may have unsaved edits.
@@ -187,11 +223,11 @@ async function handle(request, sender) {
   if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   if(request.type==='PAIA_BACKUP_BEGIN_EXPORT')await memory.ready();
   switch (request.type) {
-    case 'PAIA_RECOVERY_DRAFT_SAVE': {const draft=request.draft||{};return recoveryDraftStore().save({...draft,sourceRecordIds:await store.recoveryDraftSourceIds(draft)});}
-    case 'PAIA_RECOVERY_DRAFT_LOAD': {const d=request.draft||{};return recoveryDraftStore().load(d.kind,d.ownerId);}
-    case 'PAIA_RECOVERY_DRAFT_CLEAR': {const d=request.draft||{};return recoveryDraftStore().clear(d.kind,d.ownerId,d.token??null);}
-    case 'PAIA_RECOVERY_DRAFT_CLEAR_MANY': return recoveryDraftStore().clearMany(request.drafts||[]);
-    case 'PAIA_RECOVERY_DRAFT_PRUNE': return recoveryDraftStore().prune();
+    case 'PAIA_RECOVERY_DRAFT_SAVE': return withRecoveryFence(()=>saveRecoveryDraft(request.draft||{}));
+    case 'PAIA_RECOVERY_DRAFT_LOAD': return withRecoveryFence(()=>loadRecoveryDraft(request.draft));
+    case 'PAIA_RECOVERY_DRAFT_CLEAR': {const d=request.draft||{};return withRecoveryFence(()=>recoveryDraftStore().clear(d.kind,d.ownerId,d.token??null));}
+    case 'PAIA_RECOVERY_DRAFT_CLEAR_MANY': return withRecoveryFence(()=>recoveryDraftStore().clearMany(request.drafts||[]));
+    case 'PAIA_RECOVERY_DRAFT_PRUNE': return withRecoveryFence(()=>recoveryDraftStore().prune());
     case 'PAIA_ARCHIVE_NAV_PAGE': return archiveNavigation.page(request.page);
     case 'PAIA_ARCHIVE_NAV_STATUS': return archiveNavigation.status(request.page);
     case 'PAIA_ARCHIVE_ORDER_PREFERENCE': {
@@ -250,7 +286,7 @@ async function handle(request, sender) {
     case 'PAIA_BACKUP_BEGIN_RESTORE': return backups.beginRestore();
     case 'PAIA_BACKUP_STAGE': return backups.stageRestore(request.options);
     case 'PAIA_BACKUP_PREVIEW': return backups.previewRestore(request.options);
-    case 'PAIA_BACKUP_RESTORE': return backups.restore(request.options);
+    case 'PAIA_BACKUP_RESTORE': return withRecoveryFence(async()=>{const result=await backups.restore(request.options);if(request.options?.mode!=='merge')await recoveryDraftStore().clearAll().catch(()=>{});return result;});
     case 'PAIA_BACKUP_CANCEL': return backups.cancel(request.options);
     case 'GET_BOUNDED_ORGANIZER': return boundedOrganizer.status();
     case 'START_BOUNDED_ORGANIZER': if(!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');return boundedOrganizer.start(request.options);
@@ -272,7 +308,7 @@ async function handle(request, sender) {
     case 'GET_LIBRARY_DUAL_VIEW_STATUS': return store.dualViewStatus();
     case 'GET_ORIGINAL_ORGANIZER_STATUS': return store.originalOrganizerStatus();
     case 'PREVIEW_AI_LIBRARY_UPDATE': return store.previewAIDelta();
-    case 'GET_AI_PRESENTATION_STATUS': return store.aiPresentationStatus();
+    case 'GET_AI_PRESENTATION_STATUS': return recoverySnapshot(()=>store.aiPresentationStatus(),(value,epoch)=>({...value,topics:value.topics.map(topic=>({...topic,presentation:topic.presentation?{...topic.presentation,recoveryEpoch:epoch}:null}))}));
     case 'RECOVER_AI_PRESENTATION_DRAFT': return store.recoverAIDraft(request.options);
     case 'EDIT_AI_PRESENTATION': return store.editAIPresentation(request.edit);
     case 'UPDATE_AI_PRESENTATION': if(boundedOrganizer.running||originalOrganizer.running)return {error:'REQUEST_ALREADY_IN_FLIGHT'};return aiOrganizer.wake({userActionId:request.userActionId,topicId:request.topicId||null});
@@ -289,18 +325,18 @@ async function handle(request, sender) {
     case 'FILTER_PROTECT': return store.protectUserInput(request.id);
     case 'FILTER_KEEP': return store.keepInput(request.id);
     case 'SEARCH_INPUTS': return store.searchInputs(request.options);
-    case 'GET_INPUT': return store.input(request.id);
+    case 'GET_INPUT': return recoverySnapshot(()=>store.input(request.id));
     case 'RECORD_TOPIC_READ': {
       const topic=await store.topic(request.id),before=Number(topic.readingActivity?.at)||0,shouldRecord=!before||Date.now()-before>=60000,repeat=before>0,result=await store.recordTopicRead(request.id);
       if(shouldRecord)void productSignals.noteTopicRead(repeat,sender).catch(()=>{});
       return result;
     }
     case 'LIBRARY_INDEX_PAGE': return store.libraryIndexPage(request.options);
-    case 'TOPIC_DOCUMENT_PAGE': return store.topicDocumentPage(request.options);
+    case 'TOPIC_DOCUMENT_PAGE': return recoverySnapshot(()=>store.topicDocumentPage(request.options),recoveryDocumentPage);
     case 'GET_LIBRARY_TRACKED_ENTRIES': return store.trackedLibraryEntries(request.options);
-    case 'GET_LIBRARY_TOPIC_SECTIONS': return store.topicSectionsPage(request.options);
+    case 'GET_LIBRARY_TOPIC_SECTIONS': return recoverySnapshot(()=>store.topicSectionsPage(request.options),recoveryDocumentPage);
     case 'GET_LIBRARY_TOPIC_ADJACENCY': return store.topicAdjacency(request.options);
-    case 'GET_LIBRARY_TOPIC': return store.topic(request.id);
+    case 'GET_LIBRARY_TOPIC': return recoverySnapshot(()=>store.topic(request.id));
     case 'THOUGHT_POSITION': return store.topicPosition(request.position);
     case 'THOUGHT_EDIT_HISTORY': return store.thoughtEditHistory(request.edit);
     case 'ADD_TO_TOPICS': return store.addToTopics(request.selection);
@@ -311,7 +347,7 @@ async function handle(request, sender) {
     case 'SET_THOUGHT_LAYOUT': return store.thoughtLayout(request.layout);
     case 'GET_THOUGHT_REVERSE_EDIT': return store.reverseEditSetting();
     case 'SET_THOUGHT_REVERSE_EDIT': return store.reverseEditSetting(request.enabled);
-    case 'GET_LIBRARY_ENTRY': return store.readingEntry(request.id);
+    case 'GET_LIBRARY_ENTRY': return recoverySnapshot(()=>store.readingEntry(request.id));
     case 'GET_LIBRARY_PLACEMENT': return store.libraryPlacement(request.topicId,request.entryId);
     case 'GET_LIBRARY_PATHS': return store.entryPaths(request.id);
     case 'GET_LIBRARY_PROVENANCE': return store.libraryProvenance(request.id);
@@ -345,8 +381,8 @@ async function handle(request, sender) {
     case 'GET_THOUGHTS': return store.thoughtPage(request.options);
     case 'GET_THOUGHT': return store.thought(request.id);
     case 'EDIT_THOUGHT': return store.editThought(request.edit);
-    case 'PURGE_SOURCE': {if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');const sourceIds=await store.sourceRecordIdsForPurge(request.id);await recoveryDraftStore().clearForSources(sourceIds);return store.permanentDelete(request.id);}
-    case 'GET_PAGE': return store.page(request.page);
+    case 'PURGE_SOURCE': {if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return withRecoveryFence(()=>purgeWithRecovery(request.id,true));}
+    case 'GET_PAGE': return recoverySnapshot(()=>store.page(request.page));
     case 'GET_MIGRATION_STATUS': {const m=await store.migrationStatus();return m?{phase:m.phase,verified:m.verified,recoveryVerified:m.recoveryVerified,recordCount:m.recordCount,blockCount:m.blockCount}:{phase:'not_started'};}
     case 'RECOVER_MIGRATION': return store.recoverMigration();
     case 'EDIT_DOCUMENT': return store.editDocument(request.edit);
@@ -356,13 +392,13 @@ async function handle(request, sender) {
     case 'EXCLUDE_LIBRARY': return store.excludeLibrary(request.id, request.excluded);
     case 'UPDATE_DOCUMENT': return store.updateDocument(request.id, request.changes);
     case 'GET_MEMORY_CONTEXT': return store.memoryContext();
-    case 'GET_STATE': return store.snapshot();
+    case 'GET_STATE': return recoverySnapshot(()=>store.snapshot());
     case 'CONSENT': return store.consent(request.accepted);
     case 'SET_ENABLED': return store.setEnabled(request.enabled);
     case 'UPDATE_RECORD': return store.update(request.id, request.changes);
     case 'TRASH_RECORD': return store.trash(request.id);
     case 'RESTORE_RECORD': return store.restore(request.id);
-    case 'PURGE_RECORD': return store.purge(request.id);
+    case 'PURGE_RECORD': return withRecoveryFence(()=>purgeWithRecovery(request.id,false));
     default: throw new ArchiveError('INVALID_REQUEST');
   }
 }
