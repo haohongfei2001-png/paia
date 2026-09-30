@@ -57,7 +57,8 @@ const partition=Array.from({length:4},(_,slot)=>current.filter((name,position)=>
 if(partition.some(part=>!part.length)
     || partition.flat().sort().join('|')!==current.join('|')
     || !partition[3].includes('cpv1-07-historical-comparison-chrome-e2e.test.mjs')
-    || partition[1].includes('cpv1-07-historical-comparison-chrome-e2e.test.mjs')){
+    || partition[1].includes('cpv1-07-historical-comparison-chrome-e2e.test.mjs')
+    || !partition[0].includes('cpv1-02-dvn-working-revision-chrome-e2e.test.mjs')){
  throw Error('CURRENT_BROWSER_SHARD_PARTITION_INVALID');
 }
 console.log(`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=${formerCore.length} uir=${uir.length} ans=${ans.length} cpr=${cpr.length}`);
