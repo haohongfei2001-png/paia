@@ -165,7 +165,7 @@ async function sourceJourney(page,h){
   await eventually(()=>page.locator('#archive-navigator').isVisible(),'clearing the Archive filter restores the source tree before Revisit');
   assert.equal(await page.locator('#uir-archive-assist,#uir-archive-frame').count(),0,'Archive does not restore the legacy side dashboard');
 
-  await page.locator('#revisit-open').click();
+  await navigate(page,{view:'revisit'});
   await eventually(()=>page.locator('#revisit-panel').isVisible(),'Revisit task opens');
   assert.equal(await page.locator('h1:visible').count(),1,'Revisit has one visible page heading');
   assert.notEqual(await page.locator('#revisit-panel').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)','Revisit does not force a white dialog surface');

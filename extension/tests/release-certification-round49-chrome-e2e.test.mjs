@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 
+import {openArchiveWindow} from './harness/archive-navigator.mjs';
+
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
 
@@ -17,15 +19,13 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   assert.equal(await p.locator('#primary-nav [data-view="memory"]').count(),1,'For AI remains a primary root under DELTA-01');
   assert.match((await p.locator('#primary-nav [data-view="memory"]').textContent()).trim(),/用于 AI|For AI/i);
   assert.equal(await p.locator('.sidebar-bottom [data-view="memory"]').count(),0,'For AI must not have a duplicate secondary navigation entry');
-  const recent=p.locator('#archive-root-recent');
-  await eventually(async()=>!(await recent.isDisabled())&&(await recent.textContent()).includes('Round 4.9 Core Loop'),'recently captured document becomes the Archive home target');
-  assert.match(await recent.textContent(),/最近收录|Recently saved/i);
+  assert.equal(await p.locator('#archive-root-recent,#archive-root-continue').count(),0,'root shortcuts remain retired');
 
   // Capture -> read: the Archive home should return to the canonical Reader,
   // not a duplicate dashboard document view.
   // Retain real worker results but delay onboarding UI reads to exercise the stale-root refresh race.
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async message=>{const result=await send(message);if(message.type==='GET_ONBOARDING')await new Promise(resolve=>setTimeout(resolve,120));return result;};});
-  await recent.click();
+  await openArchiveWindow(p,{text:'Round 4.9 Core Loop'});
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND49_CORE_LOOP'),'recently captured opens canonical Input Reader');
   const sourceInput=p.locator('.library-block').filter({hasText:'ROUND49_CORE_LOOP'}).locator('.library-prose');
   assert.equal(await p.locator('.core-loop-reuse').count(),0,'Reader no longer adds a persistent per-Input material button');
@@ -57,7 +57,7 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   await p.locator('.universal-close').click();
   await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#archive-root-main').isVisible(),'return from material selection to Archive');
 
-  await p.locator('#revisit-open').click();
+  await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'revisit'}})));
   await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'home Return opens existing Revisit service');
   assert.match(await p.locator('.revisit-intro').textContent(),/不表示|does not mark/i);
   await p.locator('.revisit-close').click();

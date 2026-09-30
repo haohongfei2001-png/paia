@@ -30,14 +30,11 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   const rootWindow=page.locator('.archive-navigator-window').first();
   await eventually(()=>rootWindow.isVisible(),'captured Conversation appears in the Archive tree');
   assert.equal(await page.locator('#uir-archive-assist,#uir-archive-frame').count(),0,'Archive root does not render the legacy dashboard');
-  assert.equal(await page.locator('#revisit-open').isVisible(),true,'Revisit remains reachable from the Archive header');
-  await page.locator('#revisit-open').click();
-  await eventually(()=>page.locator('#revisit-panel').isVisible(),'header Revisit action opens its real destination');
-  await page.locator('#primary-nav [data-view="library"]').click();
-  await eventually(()=>rootWindow.isVisible(),'return from Revisit restores the Archive tree');
-  await eventually(()=>page.locator('.archive-navigator-window-cue').first().isVisible(),'bounded local content cue is visible');
-  assert.match(await page.locator('.archive-navigator-window-cue').first().textContent(),/CPV1_SHELL_SEARCH unique saved idea/);
-  assert.match(await page.locator('.archive-navigator-window-time').first().textContent(),/2021/);
+  assert.equal(await page.locator('#revisit-open').isVisible(),false,'Revisit stays out of the Archive header');
+  assert.equal(await page.locator('#archive-root-recent,#archive-root-continue,.archive-navigator-window-cue,.archive-navigator-window-time,.archive-navigator-detail').count(),0,'Archive rows expose titles without retired shortcuts, previews, timestamps or detail controls');
+  assert.equal(await page.locator('input[type="search"]:visible').count(),1,'Archive has one primary search');
+  const searchBox=await page.locator('#search').boundingBox(),treeBox=await page.locator('#archive-navigator').boundingBox();
+  assert.ok(searchBox&&treeBox&&searchBox.y+searchBox.height<=treeBox.y,'primary search is above the Project tree');
   if(process.env.PAIA_BATCH_VISUAL_DIR){await mkdir(process.env.PAIA_BATCH_VISUAL_DIR,{recursive:true});await page.screenshot({path:process.env.PAIA_BATCH_VISUAL_DIR+'/archive-desktop.png',fullPage:true});}
   await eventually(async()=>await page.locator('#archive-source-scope option[value="chatgpt"]').count()===1,'source scope reflects captured provider');
   await page.locator('#archive-source-scope').selectOption('chatgpt');

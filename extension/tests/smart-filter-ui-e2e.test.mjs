@@ -23,19 +23,19 @@ test('Smart Filter isolated Chrome: capture, Light reading, full search/context,
   await eventually(async()=>(await h.state()).records.length===5);
   await eventually(async()=>(await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length===2);
   const baseline=(await h.state()).records;assert.ok(baseline.every(r=>!r.originalText.includes('SYNTHETIC_ATTACHMENT')));
-  await p.locator('[data-view="library"]').click();await openCapturedReader(p);await eventually(async()=>await p.locator('.library-prose:visible').count()===3);await p.locator('#document-filter-toggle').click();await eventually(async()=>await p.locator('.library-prose:visible').count()===5);assert.equal(await p.locator('.filtered-input-note').count(),2);assert.deepEqual((await h.state()).records,baseline);await p.locator('#document-filter-toggle').click();await eventually(async()=>await p.locator('.library-prose:visible').count()===3);assert.equal(await p.locator('#document-panel').getByText('智能过滤内容',{exact:true}).count(),0);assert.equal(await p.locator('#filter-onboarding:visible').count(),0);
-  await p.locator('#back').click();await p.locator('[data-view="library"]').click();await p.locator('#search').fill('请继续');await eventually(async()=>await p.locator('#empty-list').isVisible(),'ordinary archive search hides Smart Filter content');await p.locator('#search-include-filtered').check();await p.locator('.search-input').waitFor();assert.equal(await p.locator('.filter-search-label').textContent(),'智能过滤内容');await mkdir('work',{recursive:true});await p.screenshot({path:'work/smart-filter-search-synthetic.png',fullPage:true});await p.locator('.search-input').click();await eventually(async()=>(await p.locator('.library-prose').allTextContents()).includes('请继续'));await p.locator('#document-search').fill('请继续');await eventually(async()=>await p.locator('#document-search-status').textContent().then(value=>value.includes('没有匹配输入')),'conversation search also hides filtered content by default');await p.locator('#document-search-include-filtered').check();await eventually(async()=>await p.locator('.document-search-hit').count()===1,'explicit conversation scope finds filtered Input');
+  await p.locator('[data-view="library"]').click();await openCapturedReader(p);await eventually(async()=>await p.locator('.library-prose:visible').count()===3);assert.equal(await p.locator('#document-filter-toggle,#document-search-include-filtered,.filtered-input-note').count(),0,'Reader has no filter controls');assert.deepEqual((await h.state()).records,baseline);assert.equal(await p.locator('#filter-onboarding:visible').count(),0);
+  await p.locator('#back').click();await p.locator('[data-view="library"]').click();await p.locator('#search').fill('请继续');await eventually(async()=>await p.locator('#empty-list').isVisible(),'ordinary archive search hides Smart Filter content');await p.locator('#search-include-filtered').check();await p.locator('.search-input').waitFor();assert.equal(await p.locator('.filter-search-label').textContent(),'智能过滤内容');await mkdir('work',{recursive:true});await p.screenshot({path:'work/smart-filter-search-synthetic.png',fullPage:true});await p.locator('.search-input').click();await eventually(async()=>(await p.locator('.library-prose').allTextContents()).includes('请继续'));await p.locator('#document-search').fill('请继续');await eventually(async()=>await p.locator('#document-search-status').textContent().then(value=>value.includes('没有匹配输入')),'conversation search also hides filtered content by default');assert.equal(await p.locator('#document-search-include-filtered').count(),0,'Reader keeps filtered search default without an extra control');
   assert.equal((await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length,2);
   await p.locator('#back').click();await p.locator('#search').fill('');await p.locator('[data-view="settings"]').click();await p.locator('[name="smart-filter-mode"][value="light"]').waitFor();await eventually(async()=>await p.locator('[name="smart-filter-mode"][value="light"]').isChecked(),'Settings must render the persisted Light mode');assert.equal(await p.locator('[name="smart-filter-mode"][value="light"]').isChecked(),true);await p.locator('#filter-recent-open').click();await p.locator('.filter-recent-row').first().waitFor();await p.screenshot({path:'work/smart-filter-recent-synthetic.png',fullPage:true});await p.locator('.filter-recent-row').first().getByRole('button',{name:'恢复到 Input Archive'}).click();await eventually(async()=>(await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length===1);await p.locator('#filter-recent-close').click();await p.locator('[name="smart-filter-mode"][value="off"]').check();await p.locator('[data-view="library"]').click();await openCapturedReader(p);await eventually(async()=>await p.locator('.library-prose:visible').count()===5);
   await p.locator('[data-view="settings"]').click();await p.locator('[name="smart-filter-mode"][value="light"]').check();await p.locator('[data-view="library"]').click();await openCapturedReader(p);await eventually(async()=>await p.locator('.library-prose:visible').count()===4);
   const fields=p.locator('.library-prose');await fields.first().fill('Synthetic protected edit');await eventually(async()=>(await h.state()).library.blocks.some(b=>b.libraryText==='Synthetic protected edit'));await fields.first().press(process.platform==='darwin'?'Meta+z':'Control+z');await eventually(async()=>!(await h.state()).library.blocks.some(b=>b.libraryText==='Synthetic protected edit'));
   await p.locator('.library-block .reader-more').first().click();await p.getByRole('menuitem',{name:'从档案移除'}).click();await eventually(async()=>(await h.state()).library.blocks.some(b=>b.excluded));await p.locator('#notice').getByRole('button',{name:'撤销',exact:true}).click();await eventually(async()=>(await h.state()).library.blocks.every(b=>!b.excluded));assert.deepEqual((await h.state()).records,baseline);
   await mkdir('work',{recursive:true});await p.screenshot({path:'work/smart-filter-reading-synthetic.png',fullPage:true});await p.locator('[data-view="settings"]').click();await p.screenshot({path:'work/smart-filter-settings-synthetic.png',fullPage:true});
-  await h.restartWorker();assert.equal((await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length,1);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);await writeFile('work/smart-filter-ui-evidence.json',JSON.stringify({productVersion:await p.evaluate(()=>chrome.runtime.getManifest().version),scope:'isolated-synthetic',runtimeDigest:await inputDigest({runtimeOnly:true}),defaultLight:true,readingFilter:true,fullSearch:true,contextDoesNotKeep:true,restoreProtects:true,lightOff:true,editUndo:true,removalUndo:true,workerRestart:true,explicitReaderShowAll:true,noDocumentFilterModeControls:true,sourceTimesUnchanged:true,networkRequests:0},null,2)+'\n');
+  await h.restartWorker();assert.equal((await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length,1);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);await writeFile('work/smart-filter-ui-evidence.json',JSON.stringify({productVersion:await p.evaluate(()=>chrome.runtime.getManifest().version),scope:'isolated-synthetic',runtimeDigest:await inputDigest({runtimeOnly:true}),defaultLight:true,readingFilter:true,fullSearch:true,contextDoesNotKeep:true,restoreProtects:true,lightOff:true,editUndo:true,removalUndo:true,workerRestart:true,readerFilterControlsAbsent:true,settingsControlsPreserved:true,noDocumentFilterModeControls:true,sourceTimesUnchanged:true,networkRequests:0},null,2)+'\n');
  }finally{await h.close();}
 });
 
-test('VS-04 Reader keeps a filtered Input without changing Source',{timeout:75000},async()=>{
+test('VS-04 Reader keeps a filtered Input through Settings without changing Source',{timeout:75000},async()=>{
  const h=await FakeChatGPT.start({headless:false});
  try{
   const p=h.archive;await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
@@ -46,13 +46,14 @@ test('VS-04 Reader keeps a filtered Input without changing Source',{timeout:7500
   const original=(await h.state()).records;
   await p.locator('[data-view="library"]').click();await openCapturedReader(p);
   await eventually(async()=>await p.locator('.library-prose:visible').count()===3);
-  await p.locator('#document-filter-toggle').click();
-  await eventually(async()=>await p.locator('.library-prose:visible').count()===5);
-  assert.equal(await p.locator('.filtered-input-note').count(),2);
-  await p.locator('.filtered-input-note button').first().click();
+  assert.equal(await p.locator('#document-filter-toggle,.filtered-input-note').count(),0);
+  await p.locator('[data-view="settings"]').click();
+  await p.locator('#filter-recent-open').click();
+  await p.locator('.filter-recent-row').first().waitFor();
+  await p.locator('.filter-recent-row').first().getByRole('button',{name:'恢复到 Input Archive'}).click();
   await eventually(async()=>(await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}))).data.items.length===1);
-  await eventually(async()=>await p.locator('.filtered-input-note').count()===1);
-  await p.locator('#document-filter-toggle').click();
+  await p.locator('#filter-recent-close').click();
+  await p.locator('[data-view="library"]').click();await openCapturedReader(p);
   await eventually(async()=>await p.locator('.library-prose:visible').count()===4);
   assert.deepEqual((await h.state()).records,original);
   assert.equal(h.extensionNetworkRequests,0);
@@ -112,7 +113,7 @@ test('VS-04 archive search narrows by observed Source date without changing save
   const before=(await h.state()).records;
   const dates=before.map(row=>row.sourceSentAt?.slice(0,10)).sort();
   assert.equal(new Set(dates).size,2);
-  await p.locator('[data-view="library"]').click();await p.locator('#search').fill('DATE_SCOPE');
+  await p.locator('[data-view="library"]').click();assert.equal(await p.locator('#archive-search-date-scope').isVisible(),false,'default root has no date chrome');await p.locator('#search').fill('DATE_SCOPE');
   await eventually(async()=>await p.locator('.search-input').count()===2,'both dates appear before scoping');
   await p.locator('#archive-search-date-scope summary').click();
   await p.locator('#search-date-start').fill(dates[1]);await p.locator('#search-date-end').fill(dates[1]);

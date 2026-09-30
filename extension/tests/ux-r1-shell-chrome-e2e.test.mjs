@@ -4,6 +4,7 @@ import {mkdir,mkdtemp,cp,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {openArchiveWindow} from './harness/archive-navigator.mjs';
 import {syntheticRow} from './fixtures/import-adapter.mjs';
 
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
@@ -46,8 +47,8 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   assert.equal((await p.locator('#ux-local-state').textContent()).trim(),'本机保存');
   assert.equal(await p.evaluate(()=>location.hash+location.search),'','UX-R1 history must not invent hash/query routes');
   const recent=await rpc(p,'GET_PAGE',{page:{view:'library',limit:1}});assert.equal(recent.recentCapturedDocument?.id!==undefined,true);assert.equal(recent.recentCapturedDocument?.originalConversationTitle,'UX-R1 最近收录');
-  const recentButton=p.locator('#archive-root-recent');await eventually(async()=>!(await recentButton.isDisabled())&&(await recentButton.textContent()).includes('UX-R1 最近收录'),'recent capture projection reaches current Archive root');
-  assert.match(await recentButton.textContent(),/最近收录/);await recentButton.click();
+  assert.equal(await p.locator('#archive-root-recent,#archive-root-continue').count(),0);
+  await openArchiveWindow(p,{text:'UX-R1 最近收录'});
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('UXR1_CAPTURE'),'recently captured opens canonical Reader');
   await p.locator('#back').click();await eventually(()=>p.locator('#archive-root-main').isVisible(),'Reader returns to Archive home');
 
@@ -85,9 +86,9 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
    const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(overflow<=2,`root must reflow at ${width}px; overflow=${overflow}`);
   }
   const cdp=await p.context().newCDPSession(p);await p.setViewportSize({width:640,height:900});await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
-  await p.screenshot({path:'work/ux-r1/archive-200pct-light.png',fullPage:true});assert.equal(await p.locator('#archive-root-recent').isVisible(),true,'200% page scale keeps primary Archive action reachable');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
+  await p.screenshot({path:'work/ux-r1/archive-200pct-light.png',fullPage:true});assert.equal(await p.locator('#search').isVisible(),true,'200% page scale keeps primary Archive search reachable');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
   await p.setViewportSize({width:390,height:844});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(()=>p.locator('#primary-nav').isVisible(),'mobile root navigation visible');
-  await p.locator('#archive-root-recent').click();await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#primary-nav').isVisible(),false,'Reader removes bottom root navigation on mobile');
+  await openArchiveWindow(p,{text:'UX-R1 最近收录'});await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#primary-nav').isVisible(),false,'Reader removes bottom root navigation on mobile');
   await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),true);
   await assertNoNetwork(h);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}

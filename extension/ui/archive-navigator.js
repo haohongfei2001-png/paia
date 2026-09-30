@@ -22,6 +22,21 @@ const groupName=item=>item.groupKind==='project'?(item.title||copy('未命名 Pr
 }[item.groupKind]||item.groupKind);
 const focusable=root=>[...root.querySelectorAll('button:not(:disabled),[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])')].filter(node=>node.getClientRects().length);
 
+// Duplicate titles need a quiet, readable distinction without exposing content or IDs.
+// Labels are presentation-only and stay with each window for this navigator session,
+// including reordering and later pages. Unique titles never receive extra chrome.
+export function conversationDisambiguators(items, known=new Map()){
+ const titles=new Map(),labels=new Map();
+ for(const item of items){const title=String(item.title||'').normalize('NFC').trim().replace(/\s+/g,' ');if(!titles.has(title))titles.set(title,[]);titles.get(title).push(item.documentId);}
+ for(const [title,ids] of titles){
+  if(new Set(ids).size<2)continue;
+  let group=known.get(title);if(!group){group=new Map();known.set(title,group);}
+  for(const id of [...new Set(ids)].sort())if(!group.has(id))group.set(id,group.size+1);
+  for(const id of ids)labels.set(id,group.get(id));
+ }
+ return labels;
+}
+
 export class ArchiveNavigatorState{
  constructor(){this.expanded=new Set();this.scopes=new Map();this.selectedPath=null;this.scrollTop=0;}
  select(path){this.selectedPath=path||null;if(path?.available&&path.groupKind)this.expanded.add(navigatorGroupKey(path.providerKey,path.groupKind,path.projectRef));}
@@ -35,7 +50,7 @@ export class ArchiveNavigatorState{
 export class ArchiveNavigator{
  constructor({onOpenWindow,onSourceDetail,onProjectSearch,onStatus=()=>{},onRouteChange=()=>{},onScopeChange=()=>{}}={}){
   this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onProjectSearch=onProjectSearch;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.onScopeChange=onScopeChange;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;this.sourceScope=null;
-  this.previews=new Map();this.previewQueue=[];this.previewQueued=new Map();this.previewInFlight=0;this.previewGeneration=0;
+  this.duplicateLabels=new Map();
   this.sourceSelect=$('archive-source-scope');this.sourceLabel=$('archive-source-scope-label');this.sourceSelect?.addEventListener('change',()=>{this.sourceScope=this.sourceSelect.value||null;this.lastPaintSignature=null;this.paint();this.onRouteChange();this.onScopeChange();});
   this.host=element('aside','archive-navigator');this.host.id='archive-navigator';this.host.setAttribute('aria-label',copy('档案窗口导航','Archive window navigator'));this.host.tabIndex=-1;
   const head=element('header','archive-navigator-header'),title=element('h2','',copy('档案窗口','Archive windows'));this.status=element('p','archive-navigator-status','');this.status.setAttribute('role','status');this.status.setAttribute('aria-live','polite');this.applyOrder=element('button','archive-navigator-apply-order',copy('应用','Apply'));this.applyOrder.type='button';this.applyOrder.hidden=true;this.close=element('button','archive-navigator-close',copy('关闭','Close'));this.close.type='button';head.append(title,this.status,this.applyOrder,this.close);
@@ -53,8 +68,7 @@ export class ArchiveNavigator{
  isNarrow(){return innerWidth>=800&&innerWidth<1200;}
  groupOptions(item){return {providerKey:item.providerKey,groupKind:item.groupKind,...(item.groupKind==='project'?{projectRef:item.projectRef}:{})};}
  async sync({view,documentId,query='',consented=false}={}){
-  const previousSelected=this.selectedDocumentId,wasReader=this.reader;this.view=view;this.reader=!!documentId;this.selectedDocumentId=documentId||null;this.query=query||'';this.active=!!consented&&['library','archive'].includes(view);
-  if(this.reader&&!wasReader){this.previewGeneration++;this.previewQueue=[];this.previewQueued.clear();}
+  const previousSelected=this.selectedDocumentId;this.view=view;this.reader=!!documentId;this.selectedDocumentId=documentId||null;this.query=query||'';this.active=!!consented&&['library','archive'].includes(view);
   document.body.classList.toggle('ans-nav-surface',this.active);document.body.classList.toggle('ans-nav-reader',this.active&&this.reader);document.body.classList.toggle('ans-nav-root',this.active&&!this.reader);
   if(this.sourceLabel)this.sourceLabel.hidden=!this.active||this.reader;
   if(!this.active){this.host.hidden=true;if(this.toggle)this.toggle.hidden=true;this.restoreLegacy();return;}
@@ -72,7 +86,7 @@ export class ArchiveNavigator{
  place(){
   if(!this.active)return;
   if(this.reader){const panel=$('document-panel'),page=$('document-page');if(panel&&page&&this.host.parentElement!==panel)panel.insertBefore(this.host,page);}
-  else{const main=$('archive-root-main')||$('collection-panel'),search=$('search');if(main&&this.host.parentElement!==main){if(search?.parentElement===main)search.after(this.host);else main.prepend(this.host);}}
+  else{const main=$('archive-root-main')||$('collection-panel'),tools=$('archive-root-tools');if(main){if(tools?.parentElement===main){if(this.host.previousElementSibling!==tools)tools.after(this.host);}else if(this.host.parentElement!==main)main.prepend(this.host);}}
  }
  layout(){
   if(!this.active)return;
@@ -104,7 +118,7 @@ export class ArchiveNavigator{
   if(this.mode==='source'&&this.interactionLocked()){this.pendingInvalidate=true;this.applyOrder.hidden=false;this.setStatus(copy('位置有更新','Positions updated'));document.dispatchEvent(new CustomEvent('paia:archive-order-status',{detail:{pending:true}}));return;}
   this.applyInvalidation();
  }
- applyInvalidation(){this.pendingInvalidate=false;this.applyOrder.hidden=true;this.rememberLoadedDepth();this.state.resetScopes();this.previewGeneration++;this.previews.clear();this.previewQueue=[];this.previewQueued.clear();this.lastPaintSignature=null;void this.refresh(false);}
+ applyInvalidation(){this.pendingInvalidate=false;this.applyOrder.hidden=true;this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;void this.refresh(false);}
  applyPending(force=false){if(!this.pendingInvalidate||!force&&this.interactionLocked())return;this.applyInvalidation();}
  selectPath(path){const before=JSON.stringify(this.state.selectedPath);this.state.select(path);if(before!==JSON.stringify(this.state.selectedPath))this.onRouteChange();}
  schedule(){clearTimeout(this.refreshTimer);if(!this.active)return;this.refreshTimer=setTimeout(()=>void this.checkFreshness(),8000);}
@@ -147,7 +161,7 @@ export class ArchiveNavigator{
   for(const group of groupsToLoad){let scope=await this.readScope(this.groupOptions(group));if(token!==this.serial)return;if(scope.coverage.state!=='complete'||scope.unavailableReason==='SOURCE_ORDER_PREPARING'){building=true;continue;}const target=this.restoreDepth.get(scope.key)||0;while(scope.items.length<target&&scope.nextCursor){scope=await this.readScope(this.groupOptions(group),{append:true});if(token!==this.serial)return;}if(scope.items.length>=target||!scope.nextCursor)this.restoreDepth.delete(scope.key);}
   if(building){this.setStatus(copy('正在整理来源与窗口…','Preparing source groups and windows…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
   if(this.mode==='source'){const scopes=[...this.state.scopes.values()],fallback=scopes.some(scope=>scope.unavailableReason&&scope.unavailableReason!=='SOURCE_ORDER_PREPARING'),effective=scopes.some(scope=>scope.effectiveOrdering==='source');this.setStatus(fallback?copy('部分来源顺序不可用 · 使用 PAIA 回退','Some source order unavailable · PAIA fallback'):copy('来源顺序已就绪','Source order ready'));document.dispatchEvent(new CustomEvent('paia:archive-order-status',{detail:{effective:effective?'source':'paia',fallback}}));}
-  else this.setStatus(root.coverage.archiveComplete===false?copy('档案仍在整理，已显示可确认范围','Archive is still building; showing confirmed scope'):copy('窗口导航已就绪','Window navigation ready'));
+  else this.setStatus(root.coverage.archiveComplete===false?copy('档案仍在整理，已显示可确认范围','Archive is still building; showing confirmed scope'):'');
   this.paint();this.schedule();
  }
  setStatus(text){this.status.textContent=text;}
@@ -166,28 +180,6 @@ export class ArchiveNavigator{
   if(this.busy)return;this.busy=true;const current=item.documentId;this.lastOpenedDocumentId=current;this.lastOpenedGroupKey=navigatorGroupKey(item.providerKey,item.groupKind,item.projectRef);this.host.setAttribute('aria-busy','true');
   try{this.onRouteChange();const ok=await this.onOpenWindow?.(current);if(ok!==false&&this.isMobile())this.closeSheet(false);}
   finally{this.busy=false;this.host.removeAttribute('aria-busy');}
- }
- queuePreview(documentId){
-  if(this.previews.has(documentId)||this.previewQueued.get(documentId)===this.previewGeneration)return;
-  this.previewQueued.set(documentId,this.previewGeneration);this.previewQueue.push({documentId,generation:this.previewGeneration});queueMicrotask(()=>this.loadPreviews());
- }
- loadPreviews(){
-  while(this.previewInFlight<4&&this.previewQueue.length){
-   const {documentId,generation}=this.previewQueue.shift();this.previewInFlight++;
-   void request('GET_PAGE',{page:{view:'library',documentId,limit:1,sort:'desc'}}).then(page=>{
-    const block=page.library?.blocks?.[0],record=page.records?.find(row=>row.id===block?.originalTextReference),raw=block?.libraryText??record?.originalText??'';
-    const cue=String(raw).replace(/\s+/g,' ').trim().slice(0,160);
-    const sourceTime=page.conversations?.[0]?.lastSourceSentAt||null;
-    if(generation===this.previewGeneration)this.previews.set(documentId,{cue,sourceTime,error:false});
-   }).catch(()=>{if(generation===this.previewGeneration)this.previews.set(documentId,{cue:'',sourceTime:null,error:true});}).finally(()=>{
-    if(this.previewQueued.get(documentId)===generation)this.previewQueued.delete(documentId);this.previewInFlight--;this.lastPaintSignature=null;if(this.active&&!this.reader)this.paint();this.loadPreviews();
-   });
-  }
- }
- previewTime(value){
-  if(!value)return copy('时间待确认','Time unconfirmed');
-  const at=new Date(value);if(!Number.isFinite(at.getTime()))return copy('时间待确认','Time unconfirmed');
-  return new Intl.DateTimeFormat(document.documentElement.lang==='en'?'en-US':'zh-CN',{year:'numeric',month:'short',day:'numeric'}).format(at);
  }
  updateSourceOptions(providers){
   if(!this.sourceSelect)return;
@@ -215,7 +207,6 @@ export class ArchiveNavigator{
    for(const group of groups.items){
     const groupBox=element('div','archive-navigator-group'),row=element('div','archive-navigator-group-row'),open=this.state.expandedFor(group),key=navigatorGroupKey(group.providerKey,group.groupKind,group.projectRef);
     const expand=element('button','archive-navigator-group-toggle',groupName(group));expand.type='button';expand.dataset.ansNavKey='group:'+key;expand.setAttribute('aria-expanded',String(open));expand.addEventListener('click',()=>void this.toggleGroup(group));row.append(expand);
-    if(group.groupKind==='project'){const search=element('button','archive-navigator-detail',copy('搜索','Search'));search.type='button';search.setAttribute('aria-label',copy('在此 Project 搜索','Search this Project'));search.addEventListener('click',()=>this.onProjectSearch?.(group.projectRef,groupName(group)));row.append(search);const details=element('button','archive-navigator-detail',copy('详情','Details'));details.type='button';details.setAttribute('aria-label',copy('查看 Project 来源详情','View Project source details'));details.addEventListener('click',event=>this.detail({kind:'project',projectRef:group.projectRef},event.currentTarget));row.append(details);}
     groupBox.append(row);
     if(group.parentSourceStatus==='confirmed_deleted')groupBox.append(element('p','archive-navigator-source-state',copy('来源 Project 已删除；PAIA 内容保留','Source Project deleted; PAIA content retained')));
     if(open){
@@ -223,15 +214,13 @@ export class ArchiveNavigator{
      if(scope.error)list.append(element('p','archive-navigator-error',copy('此分组暂时不可读。','This group is temporarily unavailable.')));
      else if(scope.coverage.state!=='complete')list.append(element('p','archive-navigator-loading',copy('正在读取窗口…','Loading windows…')));
      else{
+      if(!this.duplicateLabels.has(key))this.duplicateLabels.set(key,new Map());
+      const labels=conversationDisambiguators(scope.items,this.duplicateLabels.get(key));
       for(const item of scope.items){
        const windowRow=element('div','archive-navigator-window-row'),button=element('button','archive-navigator-window');button.type='button';button.dataset.ansNavKey='window:'+item.documentId;button.dataset.documentId=item.documentId;if(item.documentId===this.selectedDocumentId)button.setAttribute('aria-current','page');button.addEventListener('click',()=>void this.openWindow(item));
        button.append(element('strong','archive-navigator-window-title',item.title||copy('未命名窗口','Untitled window')));
-       if(!this.reader){
-        const preview=this.previews.get(item.documentId);if(!preview)this.queuePreview(item.documentId);
-        if(preview){button.append(element('span','archive-navigator-window-cue',preview.error?copy('摘要暂不可读','Preview temporarily unavailable'):preview.cue||copy('尚无可显示的输入','No input preview available')),element('time','archive-navigator-window-time',this.previewTime(preview.sourceTime)));}
-       }
+       const number=labels.get(item.documentId);if(number)button.append(element('span','archive-navigator-window-disambiguator',copy('同名 '+number,'Same title '+number)));
        windowRow.append(button);
-       if(item.conversationRef){const details=element('button','archive-navigator-detail',copy('详情','Details'));details.type='button';details.setAttribute('aria-label',copy('查看窗口来源详情','View window source details'));details.addEventListener('click',event=>this.detail({kind:'conversation',conversationRef:item.conversationRef},event.currentTarget));windowRow.append(details);}
        list.append(windowRow);
       }
       if(scope.nextCursor){const more=element('button','archive-navigator-more',scope.loading?copy('正在载入…','Loading…'):copy('继续载入窗口','Load more windows'));more.type='button';more.disabled=scope.loading;more.addEventListener('click',()=>void this.more(group));list.append(more);}

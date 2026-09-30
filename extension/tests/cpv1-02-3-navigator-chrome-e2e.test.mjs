@@ -57,15 +57,11 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   await eventually(async()=>await page.locator('.archive-navigator-group-toggle').allTextContents().then(values=>values.some(value=>value.includes('Synthetic Alpha'))),'new Project appears');
   await eventually(async()=>await page.locator(`.archive-navigator-window[data-document-id="${documentId}"][aria-current="page"]`).count()===1,'selected Conversation moves without duplication');
   const projectGroup=page.locator('.archive-navigator-group').filter({has:page.locator('.archive-navigator-group-toggle').filter({hasText:'Synthetic Alpha'})}).first();
-  const projectSearch=projectGroup.locator('.archive-navigator-group-row > .archive-navigator-detail').first();
-  assert.equal(await projectSearch.count(),1,await projectGroup.evaluate(node=>node.outerHTML));
-  assert.match(await projectSearch.getAttribute('aria-label'),/^(在此 Project 搜索|Search this Project)$/);
-  await projectSearch.click();
+  assert.equal(await projectGroup.locator('.archive-navigator-detail').count(),0,'Project rows have no per-row search or detail chrome');
+  await page.locator('#back').click();
   await page.locator('#search').fill('CPV1_NAV_IDENTITY_BODY');
-  await eventually(async()=>await page.locator('.search-input').count()===1,'Project search excludes the same text in an unassigned Conversation');
-  assert.match(await page.locator('#search-project-scope').textContent(),/Synthetic Alpha/);
-  await page.locator('#search-project-scope').click();
-  await eventually(async()=>await page.locator('.search-input').count()===2,'clearing Project scope restores both matching Inputs');
+  await eventually(async()=>await page.locator('.search-input').count()===2,'one Archive search includes matching Project and unassigned Inputs');
+  assert.equal(await page.locator('#search-project-scope').isVisible(),false,'retired Project search chip is not visible');
   await page.locator('#search').fill('');
   await page.locator(`.archive-navigator-window[data-document-id="${documentId}"]`).click();
   await eventually(async()=>await page.locator(`.archive-navigator-window[data-document-id="${documentId}"][aria-current="page"]`).count()===1,'Reader reopens the same Conversation after scoped search');
@@ -98,4 +94,60 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   await eventually(async()=>await page.locator(`.archive-navigator-window[data-document-id="${documentId}"][aria-current="page"]`).count()===1,'source deletion keeps the selected Conversation');
   assert.equal(harness.externalRequests,0);
  }finally{await harness?.close();}
+});
+
+test('Bounded Archive keeps one search above a quiet tree and stable same-title Reader identity',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start({onboarding:true});
+ try{
+  const p=h.archive;await p.setViewportSize({width:1440,height:900});
+  await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);
+  await p.locator('#onboarding-skip').click();
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN',timeEmphasis:'subtle'}});
+  await eventually(()=>p.evaluate(()=>document.documentElement.dataset.paiaTheme==='light'&&document.documentElement.lang==='zh-CN'),'light Chinese preferences are rendered');
+  for(const [id,title] of [['bounded-a','相同标题'],['bounded-b','相同标题'],['bounded-c','独立标题']])
+   await h.open({id,title,base:1609459200,messages:[{id:id+'-1',text:'BOUNDARY_'+id+' first saved expression'},{id:id+'-2',text:'BOUNDARY_'+id+' second saved expression'}]});
+  await eventually(async()=>{const records=(await h.state()).records;return records.length===6&&records.every(row=>row.sourceSentAt);},'same-title fixtures have reliable captured timestamps');
+  await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').filter({hasText:'未归属 Project'}).first();
+  await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  await eventually(async()=>await p.locator('.archive-navigator-window').count()===3);
+  const white=async selectors=>{for(const selector of selectors)assert.equal(await p.locator(selector).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)',selector+' light background is white');};
+  await white(['body','.sidebar','.workspace','#archive-navigator']);
+  const rootContract=async()=>{
+   assert.equal(await p.locator('input[type="search"]:visible').count(),1);
+   const tools=await p.locator('#archive-root-tools').boundingBox(),tree=await p.locator('#archive-navigator').boundingBox();
+   assert.ok(tools&&tree&&tools.y+tools.height<=tree.y,'all primary search tools precede the Project tree');
+   assert.equal(await p.locator('.archive-navigator-window-cue,.archive-navigator-window-time,.archive-navigator-detail,#archive-root-recent,#archive-root-continue').count(),0);
+   assert.equal(await p.locator('#archive-search-date-scope').isVisible(),false);
+   assert.equal(await p.locator('#search-project-scope').isVisible(),false);
+  };
+  await rootContract();
+  const labels=()=>p.locator('.archive-navigator-window').evaluateAll(rows=>Object.fromEntries(rows.map(row=>[row.dataset.documentId,{title:row.querySelector('.archive-navigator-window-title')?.textContent,label:row.querySelector('.archive-navigator-window-disambiguator')?.textContent||''}])));
+  const before=await labels(),duplicates=Object.entries(before).filter(([,row])=>row.title==='相同标题');
+  assert.equal(duplicates.length,2);assert.deepEqual(duplicates.map(([,row])=>row.label).sort(),['同名 1','同名 2']);
+  assert.equal(Object.values(before).find(row=>row.title==='独立标题').label,'');
+  const quiet=await p.locator('.archive-navigator-window-disambiguator').first().evaluate(el=>{const small=getComputedStyle(el),title=getComputedStyle(el.parentElement.querySelector('strong'));return {small:Number.parseFloat(small.fontSize),title:Number.parseFloat(title.fontSize),color:small.color,titleColor:title.color};});
+  assert.ok(quiet.small<quiet.title);assert.notEqual(quiet.color,quiet.titleColor);
+  for(const [id] of duplicates){
+   await p.locator(`.archive-navigator-window[data-document-id="${id}"]`).click();
+   await eventually(async()=>await p.evaluate(()=>history.state?.paiaReader?.documentId)===id);
+   assert.equal(await p.locator('input[type="search"]:visible').count(),1,'Reader has one current-document search');
+   assert.equal(await p.locator('#document-search').isVisible(),true);
+   assert.equal(await p.locator('#document-filter-toggle,#document-search-include-filtered,.filtered-input-note').count(),0);
+   await white(['body','.sidebar','.workspace','#archive-navigator']);
+   assert.equal(await p.locator(`.archive-navigator-window[data-document-id="${id}"]`).getAttribute('aria-current'),'page');
+   const stamp=p.locator('#document-body .block-time').first();await stamp.waitFor({state:'visible'});
+   assert.match(await stamp.textContent(),/\d{2}:\d{2}/);
+   const timestamp=await stamp.evaluate(el=>{const style=getComputedStyle(el),prose=getComputedStyle(el.closest('.library-block').querySelector('.library-prose'));return {size:Number.parseFloat(style.fontSize),proseSize:Number.parseFloat(prose.fontSize),color:style.color,proseColor:prose.color,opacity:style.opacity};});
+   assert.ok(timestamp.size<timestamp.proseSize);assert.notEqual(timestamp.color,timestamp.proseColor);assert.ok(Number(timestamp.opacity)>0);
+   const sources=(await h.state()).records;
+   const sort=p.locator('#input-time-toggle'),previous=await sort.getAttribute('data-current-sort');await sort.click();
+   await eventually(async()=>await sort.getAttribute('data-current-sort')!==previous);
+   assert.equal(await p.evaluate(()=>history.state?.paiaReader?.documentId),id);
+   assert.deepEqual(await labels(),before,'same-title labels survive Reader sort');
+   assert.deepEqual((await h.state()).records,sources,'sorting never mutates Source');
+   await p.locator('#back').click();await eventually(()=>p.locator('#archive-root-tools').isVisible());
+   await rootContract();assert.deepEqual(await labels(),before,'same-title identity survives Reader/back');
+  }
+  assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
 });

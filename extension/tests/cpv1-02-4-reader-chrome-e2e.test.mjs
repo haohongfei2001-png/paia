@@ -26,6 +26,7 @@ test('CPV1-02.4 Reader keeps actions contextual and removal reversible', {timeou
   await h.open(conversation('cpv1-reader-actions'));
   await eventually(async()=>(await h.state()).records.length===3);
   await openCapturedReader(p);
+  assert.equal(await p.locator('#document-filter-toggle,#document-search-include-filtered,.filtered-input-note').count(),0,'Reader has no show-all or Smart Filter chrome');
   const before=await h.state(),first=p.locator('.library-prose').first();
   await eventually(async()=>await p.locator('.library-block .reader-more').count()===3,'Reader actions mounted');
   assert.equal(await p.locator('.library-block .reading-copy,.library-block .input-remove').count(),0);

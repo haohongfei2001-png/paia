@@ -87,7 +87,7 @@ async function connectChromeByPort({headless, userDataDir}) {
  }
 }
 export class FakeChatGPT {
- static async start({extensionPath=root,headless=true,deepSeekFixture=null,onboarding=false,userDataDir='',launchThroughPort=false}={}) {
+ static async start({extensionPath=root,headless=true,deepSeekFixture=null,onboarding=false,userDataDir='',launchThroughPort=false,viewport=undefined}={}) {
   if(process.env.PAIA_HEADLESS==='1')headless=true;
   const h=new FakeChatGPT();h.pages=new Map();h.pending=new Map();h.historyRequests=0;h.externalRequests=0;h.extensionNetworkRequests=0;h.deepSeekRequests=[];h.errors=[];
   h.manifest=JSON.parse(await readFile(extensionPath+'/manifest.json','utf8'));
@@ -95,7 +95,9 @@ export class FakeChatGPT {
    h.externalChrome=await connectChromeByPort({headless,userDataDir});
    h.context=h.externalChrome.context;
   }else{
-   h.context=await chromium.launchPersistentContext(userDataDir,{headless,acceptDownloads:true,locale:'zh-CN',
+   // Omit viewport by default so existing fixtures retain Playwright's default.
+   // Native action-popup tests pass null to let Chrome choose intrinsic sizing.
+   h.context=await chromium.launchPersistentContext(userDataDir,{headless,acceptDownloads:true,locale:'zh-CN',...(viewport===undefined?{}:{viewport}),
     executablePath:process.env.CHROME_PATH||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':undefined),
     ignoreDefaultArgs:['--disable-extensions'],args:['--enable-unsafe-extension-debugging','--disable-background-networking','--disable-component-update','--disable-sync','--host-resolver-rules=MAP * ~NOTFOUND',...(process.env.CI&&process.platform==='linux'?['--disable-gpu']:[])]});
   }
