@@ -1,0 +1,201 @@
+Synthetic/sanitized Q2 negative evidence. These failed attempts are not certification. Full raw logs remain in the task workspace.
+
+
+FILE original-unit-attempt-1.txt
+FAIL dvn-original-sequence.test.mjs: Q2 Conversation reads every immutable Source through bounded pages even after Input removal and Source hiding
+Error [ERR_TEST_FAILURE]: Expected values to be strictly equal:
++ actual - expected
+
++ '5b98db01-5f98-4460-b94f-37da2e60753e'
+- '717a1f07-9cec-48cd-b6ec-df22dd9456bb'
+
+PASS dvn-original-sequence.test.mjs: Q2 selected Input scope never substitutes another Input or Working text; unavailable Source is explicit
+PASS dvn-original-sequence.test.mjs: Q2 rejects stale/cross-target/forged bounds and discloses no technical or capture metadata
+PASS dvn-original-sequence.test.mjs: Q2 complete Copy fails closed on late generation changes, unavailable tail, duplicate pages or abandoned modal
+{
+  "total": 4,
+  "pass": 3,
+  "fail": 1,
+  "skipped": 0,
+  "groups": {
+    "unit": {
+      "pass": 3,
+{
+  "total": 4,
+  "pass": 3,
+  "fail": 1,
+  "skipped": 0,
+  "groups": {
+    "unit": {
+      "pass": 3,
+      "fail": 1,
+      "skipped": 0
+    }
+  },
+  "files":
+
+FILE original-browser-attempt-1.txt
+FAIL cpv1-02-4-reader-chrome-e2e.test.mjs: VS-04 source purge refuses an unfinished Reader IME edit
+Error [ERR_TEST_FAILURE]: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#revision-history')[22m
+[2m    - locator resolved to <button hidden="" id="revision-history">版本历史</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    58 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not visible[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+FAIL cpv1-02-dvn-original-chrome-e2e.test.mjs: D1 explicit Original reads and copies the entire Conversation, then selected Input only; History selects real owners
+Error [ERR_TEST_FAILURE]: Expected values to be strictly equal:
+
+41 !== 0
+
+PASS cpv1-02-dvn-original-chrome-e2e.test.mjs: D1 late Original reads and Copy failure cannot resurrect closed or purged Source in hidden DOM
+{
+  "total": 11,
+  "pass": 9,
+  "fail": 2,
+  "skipped": 0,
+  "groups": {
+    "browser E2E": {
+      "pass": 9,
+      "fail": 2,
+      "skipped": 0
+    }
+  },
+{
+  "total": 11,
+  "pass": 9,
+  "fail": 2,
+  "skipped": 0,
+  "groups": {
+    "browser E2E": {
+      "pass": 9,
+      "fail": 2,
+      "skipped": 0
+    }
+  },
+  
+
+FILE original-affected-browser-attempt-2.txt
+FAIL cpv1-02-dvn-original-chrome-e2e.test.mjs: D1 explicit Original reads and copies the entire Conversation, then selected Input only; History selects real owners
+Error [ERR_TEST_FAILURE]: complete Copy acknowledged
+PASS cpv1-02-dvn-original-chrome-e2e.test.mjs: D1 late Original reads and Copy failure cannot resurrect closed or purged Source in hidden DOM
+PASS uir-02-archive-search-reader-chrome-e2e.test.mjs: UIR-02 Archive, Search, Revisit and Reader presentation stays on existing owners in source and built release Chrome
+PASS ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 overlapping startup reads wait for the rendered Reader; late stale failures cannot move or fail the resumed page
+PASS ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 true dwell position survives another capture, tab reopen, paging and sort; default/selected responsive matrix
+PASS ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 IME saves only complete text; failed save preserves buffer, retry/undo/revision/Source and mobile Done work
+PASS ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 live capture scope, remove/undo/recapture, opt-in exclusions and purge remain authoritative
+PASS ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 topic exclusion removes related Input previews; Revisit visual matrix and keyboard remain usable
+PASS ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 F-LARGE real IndexedDB: 100k Inputs, 1000 documents, 300 topics and 5000 entries keep Reader/Revisit bounded
+PASS ux-r2-reader-revisit-chrome-e2e.test.mjs: VS07 Revisit explains a finite priority set and keeps saved position and exclusions
+PASS ux-r2-reader-revisit-chrome-e2e.test.mjs: VS07 Revisit finds worked material beyond the first ordinary cursor page
+PASS ux-r2-reader-revisit-chrome-e2e.test.mjs: VS07 Revisit revokes delayed real reads on leave and cannot revive purged previews
+{
+  "total": 24,
+  "pass": 23,
+  "fail": 1,
+  "skipped": 0,
+{
+  "total": 24,
+  "pass": 23,
+  "fail": 1,
+  "skipped": 0,
+  "groups": {
+    "browser E2E": {
+      "pass": 23,
+      "fail": 1,
+      "skipped": 0
+    }
+  },
+
+
+FILE original-owning-browser-attempt-3.txt
+FAIL cpv1-02-dvn-original-chrome-e2e.test.mjs: D1 explicit Original reads and copies the entire Conversation, then selected Input only; History selects real owners
+Error [ERR_TEST_FAILURE]: Expected values to be strictly equal:
++ actual - expected
+
++ ''
+- 'document-menu'
+
+PASS cpv1-02-dvn-original-chrome-e2e.test.mjs: D1 late Original reads and Copy failure cannot resurrect closed or purged Source in hidden DOM
+{
+  "total": 2,
+  "pass": 1,
+  "fail": 1,
+  "skipped": 0,
+  "groups": {
+    "browser E2E": {
+      "pass": 1,
+      "fail": 1,
+      "skipped": 0
+{
+  "total": 2,
+  "pass": 1,
+  "fail": 1,
+  "skipped": 0,
+  "groups": {
+    "browser E2E": {
+      "pass": 1,
+      "fail": 1,
+      "skipped": 0
+    }
+  },
+  "
+
+FILE source-package-attempt-1.txt
+FAIL: 1 package guardrail issue(s), 10202 checks
+- ui/original-surface.js:31: forbidden clipboard access
+
+FILE adapter-contracts.txt
+FAIL adapter.test.mjs: DOM time contract: only canonical-owned sent metadata outside body becomes a candidate
+Error [ERR_TEST_FAILURE]: failed running before hook
+FAIL adapter.test.mjs: DOM time contract: bounded descendants, unique ancestor and duplicate identity fail closed
+Error [ERR_TEST_FAILURE]: failed running before hook
+FAIL adapter.test.mjs: role ID without a turn reaches stability and reads only its confirmed text leaf
+Error [ERR_TEST_FAILURE]: failed running before hook
+FAIL adapter.test.mjs: v0.1.2 reports synthetic role-anchor and remaining fail-closed checks
+Error [ERR_TEST_FAILURE]: failed running before hook
+
+RAW_TASK_LOG final-owning-browser-diagnostic.txt
+  const err = new Error(message);
+Error: Command failed: python3 scripts/build_current_release.py
+    at genericNodeError (node:internal/errors:999:15)
+    at checkExecSyncError (node:child_process:942:11)
+✖ tests/cpv1-02-dvn-original-chrome-e2e.test.mjs (32351.813667ms)
+ℹ tests 1
+ℹ pass 0
+ℹ fail 1
+✖ failing tests:
+✖ tests/cpv1-02-dvn-original-chrome-e2e.test.mjs (32351.813667ms)
+
+RAW_TASK_LOG isolated-source-built-owning-browser.txt
+✖ D1 explicit Original reads and copies the entire Conversation, then selected Input only; History selects real owners (source) (8559.779833ms)
+ℹ tests 4
+ℹ pass 3
+ℹ fail 1
+✖ failing tests:
+✖ D1 explicit Original reads and copies the entire Conversation, then selected Input only; History selects real owners (source) (8559.779833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    actual: '2026/10/01 01:26:56 · 编辑查看变化操作前\n未编辑的来源内容（通过查看来源阅读）\n保留在 Input Archive\n\n操作后\nSYNTHETIC Current rewrite\n保留在 Input Archive恢复操作前恢复此版本2026/10/01 01:26:54 · 初始版本 · 重要版本查看变化操作前\n未编辑的来源内容（通过查看来源阅读）\n保留在 Input Archive\n\n操作后\n未编辑的来源内容（通过查看来源阅读）\n保留在 Input Archive恢复操作前恢复此版本',
+    expected: '',
+The shared ignored release tree contained unexpected duplicate filename suffixes. Source core/ui did not contain them. Origin is undetermined; no source/privacy/package allowlist was relaxed. New Original test builds into its own temporary output directory and removes only that directory after testing. Isolated first run: 3/4 passed; Source History Escape exposed delayed content clearing, now clears synchronously on native cancel, retaining the strict empty-DOM assertion. All four source/release scenarios remain.
+
+HOSTED_FULL_FAILURE run36752203076 head3144676828389a2dcdbe33b3da061192050b81db tested merge-candidate44825c18602c509b98d840e306c71b7d68cd53ff tree59293c39890ada9858da2a8a71c74d0f52129e8c
+Current Browser4/4 job110013411527 failed one case:
+FAIL cpv1-02-4-reader-chrome-e2e.test.mjs: VS-04 source purge refuses an unfinished Reader IME edit
+locator.click: Timeout30000ms exceeded; waiting getByRole menuitem Chinese-only 查看修改历史.
+CDP-port launch uses host Chrome language; cloud host English, local host Chinese. The owning persistent-context harness explicitly uses zh-CN. Newly localized header requires a bilingual exact alternative. Retain all full Source/draft/search/remove/navigation/History refusal oracles; the full same case now explicitly sets existing English preference to reproduce language behavior on every host. Local original replay1/1 passed before repair under Chinese host; not misreported as reproduction of cloud English failure. Full CI failure remains FAIL, not relabeled.
+
+HOSTED_SECOND_FULL_FAILURE run36755079730 head51c359d3ffce6949958586f60cbf3add9cc77a1d merge-candidate401f21f0e9d70ef8efa79c417856d1b3fe18afa1
+Current Browser4/4 job110023182994: FAIL VS07 current real capture replaces loaded generation without mixing old paging. Expected false, actual true. Local original replay reproduced at historical-comparison test line638: actual UI next page returned changed=true after the earlier authoritative read. The production backend correctly refused a generation changed by continued real synthetic capture. The stable post-capture paging portion now explicitly pauses actual capture after observing new Source, formal time and visible new generation, then waits existing real maintenance. All43 Sources and full1000paragraph bodies remain. All two-page/whole authority, selection, Source/network and stale cursor assertions remain. Added deterministic actual EDIT_DOCUMENT invalidation of that same previously healthy cursor and zero mixed rows; concurrent coverage is strengthened, not skipped or accepted as healthy. No Source/runtime guard/timeout/exclusion/fixture shrink. Second full run remains FAIL pending repaired-head validation.
+
+REPAIR_TEST_NEGATIVE capture-stable-plus-real-stale-repair: historical stale paging PASS; repaired healthy capture/current portion passed all prior43/two-page guards, added mutation assertion then failed because it incorrectly required stale RPC items.length=0 (actual3). Existing RPC reports changed=true with diagnostic rows; UI must not admit them. Correct new oracle keeps changed=true and strictly verifies actual refreshed UI material keys equal the new current first-page authority, no mixed stale tail. No prior assertion was removed. The new erroneous assumption and failure remain recorded; no production service was changed to satisfy it.

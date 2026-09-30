@@ -1,3 +1,4 @@
+import {ArchiveOriginalQuery} from '../core/archive-original-query.js';
 import {installCaptureRecovery} from './capture-recovery.js';
 import {ArchiveNavigationQuery} from '../core/archive-navigation-query.js';
 import {assertLocalNetworkAllowed} from '../core/local-network-policy.js';
@@ -42,6 +43,7 @@ const revisit = new RevisitService(store);
 const readerState = new ReaderStateService(store);
 const sourceStructure = new SourceStructureStore(store);
 const archiveNavigation = new ArchiveNavigationQuery(store);
+const archiveOriginal = new ArchiveOriginalQuery(store);
 const archiveOrderPreference = new ArchiveOrderPreferenceService(store);
 const sourceOrderRegistry = new SourceOrderRegistry([['chatgpt',unavailableSourceOrderProvider('UNVERIFIED')]]);
 let recoveryDrafts=null;
@@ -231,6 +233,10 @@ async function handle(request, sender) {
     case 'PAIA_ARCHIVE_OPERATION_OUTCOME': {
       if(Object.keys(request).some(key=>!['type','query'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
       return store.operationOutcome(request.query);
+    }
+    case 'PAIA_ARCHIVE_ORIGINAL_PAGE': {
+      if(Object.keys(request).some(key=>!['type','page'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return archiveOriginal.page(request.page);
     }
     case 'PAIA_ARCHIVE_NAV_PAGE': return archiveNavigation.page(request.page);
     case 'PAIA_ARCHIVE_NAV_STATUS': return archiveNavigation.status(request.page);

@@ -1,8 +1,9 @@
 // Explicit user-initiated text copying only. Never reads the clipboard.
-export async function copyReadingText(text){
+export async function copyReadingText(text,{fallback=true}={}){
  if(typeof text!=='string')return;
  try{await navigator.clipboard.writeText(text);return true;}
  catch{
+  if(!fallback)return false;
   const dialog=document.createElement('dialog');dialog.className='reading-copy-dialog';
   const title=document.createElement('h2');title.textContent='复制内容';
   const help=document.createElement('p');help.textContent='浏览器未允许直接复制。选中文字后使用系统复制。';

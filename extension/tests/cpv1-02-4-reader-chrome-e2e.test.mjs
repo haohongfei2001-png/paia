@@ -147,11 +147,14 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
   assert.deepEqual((await h.state()).records,baseline.records,'editing cannot rewrite Source');
 
   await p.locator('.library-block .reader-more').first().click();
-  await p.getByRole('menuitem',{name:'查看当时记录'}).click();
+  await p.getByRole('menuitem',{name:'查看原始内容'}).click();
   await p.locator('#info-dialog').waitFor({state:'visible'});
   assert.equal(await p.locator('#info-dialog .source-original').first().textContent(),source);
-  assert.equal(await p.locator('#info-dialog .reader-working-comparison').textContent(),changed);
-  await p.locator('#info-dialog').getByRole('button',{name:'查看工作版本'}).click();
+  assert.equal(await first.textContent(),changed,'Original does not replace or edit Current');
+  assert.equal(await p.locator('#info-dialog .reader-working-comparison').count(),0,'Original contains only immutable Source');
+  await p.locator('#close-info').click();
+  await p.locator('.library-block .reader-more').first().click();
+  await p.getByRole('menuitem',{name:'版本历史'}).click();
   await p.locator('#revision-dialog').waitFor({state:'visible'});
   assert.match(await p.locator('#revision-list .revision-row').first().textContent(),/编辑/);
   await p.locator('#close-revisions').click();
@@ -238,6 +241,10 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
   const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);
+  // CDP-port Chrome uses the host locale, unlike the persistent-context harness.
+  // Exercise the complete IME safety journey in explicit English on every host.
+  const locale=await p.evaluate(()=>chrome.runtime.sendMessage({type:'UPDATE_PREFERENCES',changes:{language:'en'}}));assert.equal(locale.ok,true);
+  await eventually(()=>p.evaluate(()=>document.documentElement.lang==='en'),'existing English preference applies');
   await p.locator('#onboarding-skip').click();
   const c=conversation('cpv1-purge-ime');c.messages=[{id:'cpv1-purge-ime-input',text:'Synthetic source kept'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
@@ -264,13 +271,15 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await eventually(()=>p.locator('.library-prose').first().isVisible(),'Reader opens');
   const prose=p.locator('.library-prose').first();
   await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='未完成的输入';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:'未完成的输入',isComposing:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
-  await p.getByRole('menuitem',{name:/^(查看当时记录|View source record)$/}).click();
-  await p.locator('#info-content button.danger').click();
-  await eventually(async()=>/请先完成并保存当前输入修改/.test(await p.locator('#notice').textContent()),'unfinished IME edit blocks purge');
+  await p.getByRole('menuitem',{name:/^(查看原始内容|View original content)$/}).click();
+  assert.equal(await p.locator('#info-content button.danger').count(),0,'Original admits no destructive action');
+  await p.locator('#close-info').click();
+  await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'archive'}})));
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.equal(await p.locator('.library-prose').first().isVisible(),true,'unfinished IME edit blocks leaving for Source deletion');
   assert.equal(await p.locator('.reader-confirm').count(),0,'source purge never reaches confirmation while a Reader edit cannot save');
   assert.equal((await h.state()).records.length,1,'immutable Source remains present');
   assert.equal(await prose.textContent(),'未完成的输入','the composing text remains visible after refused purge');
-  await p.locator('#close-info').click();
   await prose.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true})));
   await p.locator('#document-search').evaluate(el=>{el.value='未完成的输入';el.dispatchEvent(new Event('input',{bubbles:true}));});
   await eventually(async()=>/请先完成并保存当前输入修改|Finish and save the current Input edit/.test(await p.locator('#document-search-status').textContent()),'search waits for unfinished IME edit');
@@ -280,7 +289,7 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await p.getByRole('menuitem',{name:/从档案移除|Remove from archive/}).click();
   assert.equal((await h.state()).library.blocks[0].excluded,false,'reversible removal cannot hide an unfinished edit');
   assert.equal(await prose.textContent(),'未完成的输入','rejected removal preserves the composing text');
-  await p.locator('#revision-history').click();
+  await p.locator('#document-menu').click();await p.getByRole('menuitem',{name:/^(查看修改历史|View edit history)$/}).click();
   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
   assert.equal(await p.locator('#revision-dialog').evaluate(el=>el.open),false,'version history does not open over unfinished IME text');
   await p.locator('#back').click();

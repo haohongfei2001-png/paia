@@ -27,7 +27,7 @@ test('CPV1-02.6 Reader and Archive keep long multilingual content, focus, 200% s
   assert.equal((await p.locator('.library-prose').textContent()).trim(),body.trim(),'long Chinese, English, code and emoji are readable without rewriting Source');
   assert.ok(await noOverflow(p)<=2,'320px Reader does not scroll horizontally');
   const more=p.locator('.reader-more').first();assert.ok((await more.boundingBox()).height>=44,'Reader overflow meets the touch target floor');
-  const prose=p.locator('.library-prose').first();await prose.click({button:'right'});await p.locator('#context-menu button').filter({hasText:'查看当时记录'}).click();
+  const prose=p.locator('.library-prose').first();await prose.click({button:'right'});await p.locator('#context-menu button').filter({hasText:'查看原始内容'}).click();
   await eventually(()=>p.locator('#info-dialog').evaluate(el=>el.open),'Source dialog opens');
   assert.equal(await p.evaluate(()=>document.activeElement?.closest('dialog')?.id),'info-dialog','dialog takes focus');
   await p.keyboard.press('Tab');assert.equal(await p.evaluate(()=>document.activeElement?.closest('dialog')?.id),'info-dialog','keyboard focus stays in the dialog');

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {materialKey} from '../core/manual-materials.js';
 
 const rpc=(p,type,fields={})=>p.evaluate(async message=>{
  const result=await chrome.runtime.sendMessage(message);
@@ -602,6 +603,12 @@ test('VS07 current real capture replaces loaded generation without mixing old pa
   // Capture completion precedes real filter/library maintenance. Pagination is
   // checked only after those actual jobs and the complete generation settle.
   await currentMaintenanceReady(p,43);
+  // The real capture and its visible generation change were observed above.
+  // Pause further capture before asserting a stable healthy two-page snapshot;
+  // ongoing capture is allowed to invalidate it and must never be papered over.
+  await rpc(p,'SET_ENABLED',{enabled:false});
+  assert.equal((await rpc(p,'GET_STATUS')).enabled,false,'actual user pause closes capture admission');
+  await currentMaintenanceReady(p,43);
   let first,whole,admitted=false;
   // Maintenance/status completion is not a promise that no later archive
   // transaction can commit. A real changed-generation read must be refused;
@@ -635,7 +642,7 @@ test('VS07 current real capture replaces loaded generation without mixing old pa
    'actual current UI paging response completed');
   const next=await p.evaluate(()=>globalThis.__captureUIReads.at(-1));
   assert.equal(next.ok,true);assert.deepEqual(next.options.cursor,first.data.nextCursor);
-  assert.equal(next.data.changed,false);assert.equal(next.data.generation,whole.generation);
+  assert.equal(next.data.changed,false,'settled paused-capture UI next page is fresh');assert.equal(next.data.generation,whole.generation);
   assert.deepEqual(next.data.items.map(x=>x.ref),nextExpected.items.map(x=>x.ref));
   await eventually(async()=>!await p.locator('.universal-results').getAttribute('aria-busy'),'current paging released');
   assert.equal(await p.locator('.universal-hit').count(),3,JSON.stringify(await p.evaluate(()=>({
@@ -650,6 +657,29 @@ test('VS07 current real capture replaces loaded generation without mixing old pa
   const all=(await h.state()).records;
   assert.deepEqual(all.filter(row=>sources.some(x=>x.id===row.id)),sources);
   assert.equal(all.find(row=>row.originalText===complete)?.originalText,complete);
+  // Preserve concurrency coverage deterministically after the healthy snapshot:
+  // a real Working edit must revoke that same cursor, with zero mixed rows.
+  const edited=await rpc(p,'GET_INPUT',{id:first.data.items[0].id});
+  const original=all.find(row=>row.id===edited.originalTextReference)?.originalText;
+  assert.equal(typeof original,'string');
+  const changed=await rpc(p,'EDIT_DOCUMENT',{edit:{documentId:edited.documentId,
+   operationId:crypto.randomUUID(),blocks:[{id:edited.id,expectedRevision:edited.revision,
+    libraryText:(edited.libraryText??original)+'\nSYNTHETIC explicit current paging mutation',note:edited.note,excluded:edited.excluded}]}});
+  assert.equal(changed.ok,true);
+  const stale=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,cursor:first.data.nextCursor}});
+  assert.equal(stale.changed,true,'real mutation rejects the exact previously healthy cursor');
+  assert.ok(stale.generation>whole.generation);
+  // The existing RPC may return diagnostic rows alongside changed=true; they
+  // are not an admitted page. Verify fresh UI rendering, never admit that page.
+  await currentMaintenanceReady(p,43);
+  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');await currentReady(p);
+  const refreshed=await p.evaluate(()=>globalThis.__captureUIReads.at(-1));
+  assert.equal(refreshed.ok,true);assert.equal(refreshed.options.cursor,null);
+  assert.equal(refreshed.data.changed,false);assert.equal(refreshed.data.items.length,40);
+  assert.deepEqual(await p.locator('.universal-hit').evaluateAll(rows=>rows.map(row=>row.dataset.materialKey)),
+   refreshed.data.items.map(item=>materialKey(item.ref)),'UI contains exactly the fresh first page, with no mixed stale tail');
+  assert.deepEqual((await h.state()).records,all,'all43 complete immutable Sources survive concurrent Working edit');
+  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'),'explicit selection survives real invalidation');
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}

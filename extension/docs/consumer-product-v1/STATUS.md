@@ -4,11 +4,17 @@
 
 **Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D1`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
 
-Fresh engineering base: `4c6af485e3d73f520574aca35473854ea60a98ca` (merge #107). Sole active product writer: `feat/desktop-vnext-d1-archive`, first coherent batch D1/Q1 durable edit acknowledgement. The design and architecture contracts remain frozen; #99 stays preserved, unmerged and inactive at `991f78f4c54b79d67428bf3209fb4eaa18f1cc9b`.
+Fresh engineering base: `0b8d10cb9960833e5343f962d7d87e0f2d2caa01` (merge #108). Sole active product writer: `feat/desktop-vnext-d1-original-history`, current coherent batch D1/Q2 Original and revision-owner selection. Q1 is integrated; D1 is not yet complete. The design and architecture contracts remain frozen; #99 stays preserved, unmerged and inactive at `991f78f4c54b79d67428bf3209fb4eaa18f1cc9b`.
 
 Each batch records exact base/head, Surface/Acceptance/P-I-D, actual tests, failures and NOT_RUN; integration and exact-main verification precede the next batch. No permanent dual coordinator or second body truth. B-01–B-05 and other owner gates remain open, with dependent behavior fail closed; independent approved work continues. Search remains lexical/fuzzy/filter. Context Release is Copy/Export. No new provider permission, upload, reply-reading, paid service, cloud authority, destructive policy or distribution/legal commitment is approved.
 
 Implementation status is engineering progress, not certification of current-live/provider/device/performance/100k/120Hz/physical-IME/screen-reader/owner acceptance. Synthetic browser evidence must be labeled as such.
+
+## Desktop vNext D1/Q1 exact integration — 2026-10-01
+
+[PR #108](https://github.com/haohongfei2001-png/paia/pull/108) head `13e7fc720fbd0f1184432fbb1704f150714cd84c` merged to main `0b8d10cb9960833e5343f962d7d87e0f2d2caa01`. Full current CI [36740650140](https://github.com/haohongfei2001-png/paia/actions/runs/36740650140) actually tested merge candidate `b8f2ad17a7f14b5340f8c303a5f063ed74f101f0`: unit1270/current-browser150/adapter102/privacy58 all PASS, plus release/Mac synthetic/full aggregation. Candidate, PR head and integrated main tree are all `a6400a244713c59b89b01074aae6703940b87084`; input digest all `12e05b02ad294685faeb083f153fd9ff509a63a0d17b1e629754d26b705e1110`. Exact-main [36744095449](https://github.com/haohongfei2001-png/paia/actions/runs/36744095449) round integration PASS (unit/contracts/privacy/release); main browser/Mac/full aggregation SKIPPED, not relabelled as another main full certification. The exact PR head separately ran15/15 owning recovery browser, including unchanged old-main81478c9 upgrade. All prior failed evidence remains.
+
+Current Q2 [receipt](implementation/desktop-vnext/D1-Q2.md) is a candidate, not complete D1/A-08/A-09 certification. Q3 whole-target Remove, Q4 trusted B-02 zero-effect refusal, remaining History compare/restore acknowledgement, frozen shell/Reader cutover and old-coordinator retirement are still pending. No B-01–B-05 decision or live/device gate is closed by these engineering results.
 
 ## Historical owner stop and read-only handoff — 2026-09-30
 
@@ -45,15 +51,15 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: D1 — Archive / Q1 durable edit acknowledgement
+current_slice: D1 — Archive / Q2 Original and revision-owner selection
 
 current_slice_status: IMPLEMENTING
 
-current_round: D1-Q1
+current_round: D1-Q2
 
 current_round_status: IMPLEMENTING
 
-current_writer: feat/desktop-vnext-d1-archive — sole active product writer
+current_writer: feat/desktop-vnext-d1-original-history — sole active product writer
 
 writer_status: ACTIVE — owner-approved Desktop vNext D1–D4 only
 
