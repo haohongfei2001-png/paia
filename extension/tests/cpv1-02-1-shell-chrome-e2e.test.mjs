@@ -75,10 +75,15 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await eventually(()=>page.locator('#document-panel').isVisible(),'Forward restores the Reader container');
   assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),documentId);
   await page.evaluate(()=>history.back());
+  // The same row also exists in Reader's Navigator, so row visibility alone
+  // cannot establish that the asynchronous Back navigation has completed.
+  await eventually(()=>page.locator('#collection-panel').isVisible(),'second Back restores the Archive container before responsive checks');
+  assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),null);
   await eventually(()=>rootWindow.isVisible(),'a second Back keeps the Conversation reachable');
   await page.setViewportSize({width:320,height:700});
   await eventually(()=>rootWindow.isVisible(),'the same Conversation remains available at phone width');
-  assert.equal(await page.locator('#archive-root-overflow summary').isVisible(),true,'Archive overflow remains visible at phone width');
+  const phoneRoute=await page.evaluate(()=>({route:history.state?.paiaReader,collectionHidden:document.querySelector('#collection-panel').hidden,readerHidden:document.querySelector('#document-panel').hidden,overflowHidden:document.querySelector('#archive-root-overflow').hidden,navigatorParent:document.querySelector('#archive-navigator').parentElement.id,width:innerWidth}));
+  assert.equal(await page.locator('#archive-root-overflow summary').isVisible(),true,'Archive overflow remains visible at phone width; settled state '+JSON.stringify(phoneRoute));
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'long source title does not create horizontal page overflow');
   if(process.env.PAIA_BATCH_VISUAL_DIR)await page.screenshot({path:process.env.PAIA_BATCH_VISUAL_DIR+'/archive-320.png',fullPage:true});
   assert.equal(harness.externalRequests,0);
