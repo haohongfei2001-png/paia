@@ -16,11 +16,16 @@ export class WorkingInputSaveSession {
     }
     catch { return {state: 'unknown'}; }
   }
-  async save(edit, epoch) {
-    if (!this.pending) this.pending = {edit, state: 'new', query: {
+  async stage(edit, epoch, state = 'new') {
+    if (this.pending) throw unknown();
+    this.pending = {edit, state: 'new', query: {
       version: 1, namespace: 'working-input', ownerRef: edit.documentId,
       operationId: edit.operationId, requestDigest: await hashText(JSON.stringify(edit)), epoch
     }};
+    this.pending.state = state;
+  }
+  async save(edit, epoch) {
+    if (!this.pending) await this.stage(edit, epoch);
     const attempt = this.pending;
     if (attempt.state === 'unknown') {
       const outcome = await this.read();

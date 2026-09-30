@@ -53,15 +53,61 @@ export class DocumentEditor {
  buildEdit(){
   const pending=this.saveSession.pending?.edit;
   if(!this.dirty()&&!pending)return null;
+  if(pending?.restoreRevisionId&&pending.blocks.every(b=>equal(this.entries.get(b.id)?.local,value(b)))&&(pending.title===undefined||this.title===pending.title))return pending;
   const pendingBlocks=new Map((pending?.blocks||[]).map(b=>[b.id,b]));
   const blocks=[...this.entries].filter(([id,e])=>!equal(e.local,e.saved)||(pendingBlocks.has(id)&&!equal(e.local,value(pendingBlocks.get(id))))).map(([id,e])=>({id,expectedRevision:e.revision,...e.local}));
   const title=this.title!==this.savedTitle||(pending?.title!==undefined&&this.title!==pending.title)?this.title:undefined;
   if(!blocks.length&&title===undefined)return null;
   return this.revisions.attempt({documentId:this.id,blocks,...(title===undefined?{}:{title,expectedTitleRevision:this.titleRevision})});
  }
- async protectRecovery(edit=this.buildEdit()){if(!edit)return true;const pending=this.saveSession.pending?.edit;if(pending){const comparable=({...request})=>{delete request.operationId;return request;};if(equal(comparable(edit),comparable(pending)))edit=pending;}try{await this.recovery.protect({type:'EDIT_DOCUMENT',edit},edit.operationId);this.recoveryFailed=false;return true;}catch{this.recoveryFailed=true;return false;}}
+ async protectRecovery(edit=this.buildEdit()){
+  if(!edit)return true;
+  const pending=this.saveSession.pending?.edit;
+  if(pending){const comparable=({...request})=>{delete request.operationId;return request;};if(equal(comparable(edit),comparable(pending)))edit=pending;}
+  const operation={type:'EDIT_DOCUMENT',edit,...(pending?.restoreRevisionId?{pendingRequest:JSON.stringify(pending)}:{})};
+  try{await this.recovery.protect(operation,edit.operationId);this.recoveryFailed=false;return true;}catch{this.recoveryFailed=true;return false;}
+ }
  applyRecovery(edit){if(edit?.title!==undefined)this.title=edit.title;for(const b of edit?.blocks||[]){const e=this.entries.get(b.id);if(e)e.local={libraryText:b.libraryText,note:b.note,excluded:b.excluded};}this.paint();}
- async restoreRecovery(){let draft;try{draft=await this.recovery.load();}catch{return false;}if(!draft)return false;const operation=draft.operation,edit=operation?.edit;if(operation?.type!=='EDIT_DOCUMENT'||edit?.documentId!==this.id){await this.recovery.clear(draft.token).catch(()=>{});return false;}try{const {result}=await this.saveSession.save(edit,this.recovery.epoch);if(result?.conflict){this.applyRecovery(edit);this.failed=true;this.conflicted=true;this.onStatus('检测到上次未完成的修改，但已保存版本同时发生变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}await this.recovery.clear(draft.token).catch(()=>{});this.onStatus('已恢复上次未完成的修改');queueMicrotask(()=>this.onRecovered());return true;}catch(error){if(error?.code==='INVALID_REQUEST'){this.saveSession.pending=null;await this.recovery.clear(draft.token).catch(()=>{});return false;}this.applyRecovery(edit);this.failed=true;this.onStatus(error?.code==='SAVE_OUTCOME_UNKNOWN'?'保存结果暂时无法确认。上次未完成的草稿已恢复，请核对保存结果。':'检测到上次未完成的修改。草稿仍保存在本机，可在连接恢复后重试。',error?.code==='SAVE_OUTCOME_UNKNOWN'?'unknown':'error');return false;}}
+ acknowledge(edit){
+  for(const b of edit.blocks){const e=this.entries.get(b.id);if(!e)continue;e.saved={libraryText:b.libraryText,note:b.note,excluded:b.excluded};e.revision=b.expectedRevision+1;const field=this.field(b.id);if(field)field.closest('.library-block').hidden=e.saved.excluded;}
+  if(edit.title!==undefined){this.savedTitle=edit.title;this.titleRevision=edit.expectedTitleRevision+1;}
+ }
+ async admitRecoveryInputs(edits){
+  for(const id of new Set(edits.flatMap(edit=>(edit?.blocks||[]).map(b=>b.id)))){
+   if(this.entries.has(id))continue;
+   const b=await request('GET_INPUT',{id});if(b.documentId!==this.id)throw Object.assign(Error('Invalid recovery owner'),{code:'INVALID_REQUEST'});
+   const p=await request('PAIA_ARCHIVE_ORIGINAL_PAGE',{page:{target:{kind:'input',ref:id},limit:100}});
+   if(p.availability!=='available'||p.nextCursor)throw Object.assign(Error('Unavailable recovery source'),{code:'INVALID_REQUEST'});
+   this.absorb({records:p.records,library:{blocks:[b]},pageItemIds:[id]});
+  }
+ }
+ async restorePrepared(prepared){
+  if(this.disposed||this.composing||this.saving||this.failed||this.conflicted||this.saveSession.pending)return false;
+  this.collect();if(this.dirty())return false;
+  const edit=prepared?.edit;if(edit?.documentId!==this.id||!edit.restoreRevisionId)return false;
+  if(prepared.input)this.absorb({records:prepared.records,library:{blocks:[prepared.input]},pageItemIds:[prepared.input.id]});
+  if(edit.title!==undefined&&edit.expectedTitleRevision!==this.titleRevision||edit.blocks.some(b=>this.entries.get(b.id)?.revision!==b.expectedRevision))return false;
+  await this.saveSession.stage(edit,this.recovery.epoch);
+  this.applyRecovery(edit);this.onStatus('正在保存…');return this.flush();
+ }
+ async restoreRecovery(){
+  let draft;try{draft=await this.recovery.load();}catch{return false;}if(!draft)return false;
+  const operation=draft.operation,edit=operation?.edit;let pending;
+  try{if(operation?.pendingRequest!==undefined){if(typeof operation.pendingRequest!=='string'||operation.pendingRequest.length>800000)throw Error('Invalid recovery request');pending=JSON.parse(operation.pendingRequest);}}catch{await this.recovery.clear(draft.token).catch(()=>{});return false;}
+  if(operation?.type!=='EDIT_DOCUMENT'||edit?.documentId!==this.id||pending&&(pending.documentId!==this.id||!pending.restoreRevisionId)){await this.recovery.clear(draft.token).catch(()=>{});return false;}
+  try{
+   await this.admitRecoveryInputs([edit,pending]);
+   if(pending){await this.saveSession.stage(pending,this.recovery.epoch,'unknown');this.applyRecovery(edit);}
+   const acknowledged=await this.saveSession.save(pending||edit,this.recovery.epoch),result=acknowledged.result;
+   if(result?.conflict){this.applyRecovery(edit);this.failed=true;this.conflicted=true;this.onStatus('检测到上次未完成的修改，但已保存版本同时发生变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}
+   if(pending){this.acknowledge(acknowledged.edit);if(this.dirty()){await this.protectRecovery();queueMicrotask(()=>void this.flush());return true;}}
+   await this.recovery.clear(draft.token).catch(()=>{});this.onStatus('已恢复上次未完成的修改');queueMicrotask(()=>this.onRecovered());return true;
+  }catch(error){
+   if(error?.code==='INVALID_REQUEST'){this.saveSession.pending=null;await this.recovery.clear(draft.token).catch(()=>{});return false;}
+   this.applyRecovery(edit);this.failed=true;
+   this.onStatus(error?.code==='SAVE_OUTCOME_UNKNOWN'?'保存结果暂时无法确认。上次未完成的草稿已恢复，请核对保存结果。':'检测到上次未完成的修改。草稿仍保存在本机，可在连接恢复后重试。',error?.code==='SAVE_OUTCOME_UNKNOWN'?'unknown':'error');return false;
+  }
+ }
  get recoveryPending(){return !!this.recovery?.pending;}
  async flush(){
   this.autosave.cancel();
@@ -74,8 +120,7 @@ export class DocumentEditor {
    try{
     const acknowledged=await this.saveSession.save(edit,this.recovery.epoch),result=acknowledged.result;
     if(result.conflict){this.failed=true;this.conflicted=true;this.onStatus('其他页面或来源发生变化。当前修改尚未保存。','conflict');return false;}
-    for(const b of acknowledged.edit.blocks){const e=this.entries.get(b.id);e.saved={libraryText:b.libraryText,note:b.note,excluded:b.excluded};e.revision++;const field=this.field(b.id);if(field)field.closest('.library-block').hidden=e.saved.excluded;}
-    if(acknowledged.edit.title!==undefined){this.savedTitle=acknowledged.edit.title;this.titleRevision++;}
+    this.acknowledge(acknowledged.edit);
     this.onStatus(this.dirty()?'正在保存…':'已保存到本机');
     void this.recovery.clear(acknowledged.edit.operationId).catch(()=>{});return true;
    }catch(error){

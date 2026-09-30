@@ -1,0 +1,13 @@
+Synthetic/sanitized negative development evidence — D1/Q2.1. FAIL is not converted to PASS. Raw logs retained in work/evidence/d1-q2-restore/.
+
+prepare-and-existing-restore-attempt1.txt: stage extraction accidentally generated `this.pending this.pending =` (syntax error); owning file could not load, IA 12 cases passed. Corrected immediately; same targeted 24 cases passed attempt2. No production checkpoint claimed before correction.
+
+restore-owning-browser-attempt1.txt: 0/4 PASS, four FAIL. Two fixture selector failures referenced nonexistent `继续选择 Input`; actual existing caption `加载更多 Input`. Full45 fixture/unmounted-tail and restore oracles retained. Two source/release restart recovery failures persisted latest draft visibly but stopped unknown.
+
+restore-owning-browser-attempt2.txt: 2/4 PASS, two FAIL. Both45-input comparisons/restores passed. Actual worker/page restart left canonical Input at revision2/null while newer human draft and pending restore remained in recovery, status `保存结果暂时无法确认。上次未完成的草稿已恢复，请核对保存结果。` No page errors. Chrome storage reordered pending object's keys; JSON.stringify digest differed from the committed receipt. Production now persists only its exact serialized pendingRequest in the existing recovery row; existing namespace, UUID, digest rule unchanged.
+
+restore-domain-worker-targeted-final.txt: new transaction-abort assertion falsely expected diagnostics.lastError unchanged. Actual failure diagnostics were retained. No original safety test changed; final new oracle compares records/library/conversations/tombstones/sourceTimes/settings/preferences/revisions/removal intent exactly and separately asserts diagnostic failure exists.
+
+restore-domain-worker-targeted-repair.txt: 43/43 PASS including actual abort/retry and storage key-order reproduction. restore-original-reader-recovery-browser-attempt3.txt:20/20 PASS; same4 Source/release restart/comparison cases plus unchanged Original4/Reader8/save-recovery4. Prior failed logs retained.
+
+An initial file-writing command used a repository-relative extension/ prefix from extension cwd and failed before creating the new file. Its combined run executed existing Reader/save tests12/12, not the absent new History file. The file was then created at its correct path and tested as above. A guessed browser-coverage script name did not exist and was not used as evidence; required CI coverage owner remains unchanged.

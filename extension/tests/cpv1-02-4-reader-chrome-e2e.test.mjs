@@ -173,10 +173,11 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
   await history.waitFor();
   assert.match(await history.textContent(),/编辑/);
   await history.getByRole('button',{name:'恢复操作前'}).click();
-  const confirmation=p.locator('dialog.reader-confirm');
+  const confirmation=p.locator('#revision-dialog [data-restore-confirm]');
   await confirmation.waitFor({state:'visible'});
   assert.match(await confirmation.textContent(),/恢复会建立今天的新版本/);
-  await confirmation.getByRole('button',{name:'恢复这个工作版本'}).click();
+  assert.equal(await p.locator('dialog[open]').count(),1,'History comparison and confirmation share one modal');
+  await confirmation.getByRole('button',{name:'确认恢复这个工作版本'}).click();
   await eventually(async()=>{
    const current=await h.state(),block=current.library.blocks.find(b=>b.id===id);
    return block?.revision>initialRevision+1;

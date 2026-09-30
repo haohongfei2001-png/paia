@@ -138,13 +138,47 @@ export class IAStore extends IndexedArchiveStore {
   const value=saved[side];
   if(saved.kind==='input'){
    const b=await this.input(saved.entityId);if(value.provenanceSignature!==b.provenanceSignature)fail();
-   return this.editDocument({operationId,documentId:b.documentId,revisionReason:'restore',restoreRevisionId:id,blocks:[{id:b.id,expectedRevision,libraryText:value.libraryText,note:value.note,excluded:value.excluded}]});
+   return this.editDocument({operationId,documentId:b.documentId,revisionReason:'restore',restoreRevisionId:id,restoreRevisionSide:side,blocks:[{id:b.id,expectedRevision,libraryText:value.libraryText,note:value.note,excluded:value.excluded}]});
   }
-  if(saved.kind==='title')return this.editDocument({operationId,documentId:saved.entityId,title:value.title,expectedTitleRevision:expectedRevision,blocks:[],revisionReason:'restore',restoreRevisionId:id});
+  if(saved.kind==='title')return this.editDocument({operationId,documentId:saved.entityId,title:value.title,expectedTitleRevision:expectedRevision,blocks:[],revisionReason:'restore',restoreRevisionId:id,restoreRevisionSide:side});
   return this.editThought({id:saved.entityId,expectedRevision,operationId,changes:value,revisionReason:'restore',restoreRevisionId:id});
  }
+ // A read adapter prepares the existing editDocument command; it does not
+ // create a restore writer, receipt namespace or stored historical body.
+ prepareWorkingRevision(request){
+  if(!request||Object.keys(request).some(k=>!['id','side','documentId'].includes(k))||!validId(request.id)||!['before','after'].includes(request.side)||!validId(request.documentId))return Promise.reject(new ArchiveError('INVALID_REQUEST'));
+  return this.run(()=>this.repository.transaction(false,async t=>{
+   const r=await t.get('revisions',request.id);
+   if(!r||r.documentId!==request.documentId||!['input','title'].includes(r.kind))fail();
+   for(const id of r.sourceRecordIds)if(!await t.get('records',id))fail();
+   const doc=(await t.get('documents',r.documentId))?.value;if(!doc)fail();
+   const historical=r[request.side],edit={operationId:this.uuid(),documentId:doc.id,revisionReason:'restore',restoreRevisionId:r.id,restoreRevisionSide:request.side,blocks:[]};
+   if(r.kind==='title'){
+    if(r.entityId!==doc.id||typeof historical?.title!=='string')fail();
+    Object.assign(edit,{title:historical.title,expectedTitleRevision:doc.titleRevision});
+    return {kind:'title',current:{title:doc.userTitle},historical,edit,records:[],input:null};
+   }
+   const b=(await t.get('blocks',r.entityId))?.value;
+   if(!b||b.documentId!==doc.id||historical?.provenanceSignature!==b.provenanceSignature||historical.originalTextReference!==b.originalTextReference)fail();
+   const ids=[...new Set([...refIds(b),b.originalTextReference].filter(Boolean))],records=[];if(ids.length>100)fail();
+   for(const id of ids){const record=(await t.get('records',id))?.value;if(!record)fail();records.push(record);}
+   edit.blocks.push({id:b.id,expectedRevision:b.revision,libraryText:historical.libraryText,note:historical.note,excluded:historical.excluded});
+   return {kind:'input',current:blockSnapshot(b),historical,edit,records,input:b};
+  }));
+ }
  async validateInputEdit(t,request){
-  if(request.restoreRevisionId){const r=await t.get('revisions',request.restoreRevisionId);if(!r)fail();for(const id of r.sourceRecordIds)if(!await t.get('records',id))fail();}
+  if(!request.restoreRevisionId){if(request.restoreRevisionSide!==undefined||request.revisionReason==='restore')fail();return;}
+  const r=await t.get('revisions',request.restoreRevisionId);
+  if(!r||r.documentId!==request.documentId||!['input','title'].includes(r.kind)||request.revisionReason!=='restore')fail();
+  for(const id of r.sourceRecordIds)if(!await t.get('records',id))fail();
+  const sides=request.restoreRevisionSide===undefined?['before','after']:[request.restoreRevisionSide];
+  if(sides.some(side=>!['before','after'].includes(side)))fail();
+  if(r.kind==='title'){
+   if(r.entityId!==request.documentId||request.blocks.length||!sides.some(side=>r[side]?.title===request.title))fail();return;
+  }
+  if(request.title!==undefined||request.blocks.length!==1||request.blocks[0].id!==r.entityId)fail();
+  const b=(await t.get('blocks',r.entityId))?.value,change=request.blocks[0];
+  if(!b||b.documentId!==request.documentId||!sides.some(side=>{const v=r[side];return v&&v.provenanceSignature===b.provenanceSignature&&v.originalTextReference===b.originalTextReference&&same({libraryText:change.libraryText,note:change.note,excluded:change.excluded},{libraryText:v.libraryText,note:v.note,excluded:v.excluded});}))fail();
  }
  async categoriesFor(t,dimension,values){
   if(!Array.isArray(values)||values.length>30||values.some(v=>typeof v!=='string'||v.trim().length<1||v.length>100))fail();

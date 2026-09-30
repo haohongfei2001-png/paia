@@ -234,6 +234,10 @@ async function handle(request, sender) {
       if(Object.keys(request).some(key=>!['type','query'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
       return store.operationOutcome(request.query);
     }
+    case 'PAIA_ARCHIVE_PREPARE_REVISION': {
+      if(Object.keys(request).some(key=>!['type','revision'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return store.prepareWorkingRevision(request.revision);
+    }
     case 'PAIA_ARCHIVE_ORIGINAL_PAGE': {
       if(Object.keys(request).some(key=>!['type','page'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
       return archiveOriginal.page(request.page);
