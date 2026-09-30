@@ -32,6 +32,7 @@
 
   let noticeTimer = null;
   let retireNotice = null;
+  let noticeObserver = null;
   function showRefreshAction() {
     if (noticeTimer !== null || !globalThis.document?.documentElement) return;
     // Give the worker's replacement time to arrive. This is a quiet fallback
@@ -65,8 +66,23 @@
     globalThis.document?.getElementById('paia-reconnect-notice')?.remove();
   }
 
+  function stopNoticeWatching() { noticeObserver?.disconnect(); noticeObserver = null; }
+  function watchObsoleteNotice() {
+    if (noticeObserver || !globalThis.MutationObserver || !document.documentElement) return;
+    const observer = new MutationObserver(() => {
+      if (noticeObserver !== observer || stopped || suspended || globalThis.PAIACaptureController !== controller ||
+          lifecycle && (!lifecycle.active || !lifecycle.ready || globalThis.PAIACaptureLifecycle !== lifecycle)) return;
+      // The pre-recovery capture script may report its dead context after this
+      // replacement has verified a live one. Retire only that obsolete notice.
+      clearRefreshAction();
+    });
+    noticeObserver = observer;
+    observer.observe(document.documentElement, {childList: true});
+  }
+
   function stop() {
     stopped = true; generation++;
+    stopNoticeWatching();
     for (const cancel of pendingReplies) cancel();
     pendingReplies.clear();
     clearTimeout(noticeTimer); noticeTimer = null;
@@ -170,6 +186,7 @@
       const status = response?.ok === true ? response.data : null;
       if (!status) {
         if (lifecycle) lifecycle.ready = false;
+        stopNoticeWatching();
         adapter.stopWatching();
         // Worker suspension and a lost reply are recoverable transport states.
         // Do not mislabel them as a dead document or block the next status probe
@@ -183,6 +200,7 @@
       }
       clearRefreshAction();
       if (lifecycle) lifecycle.ready = true;
+      watchObsoleteNotice();
       if (status.consented !== true || status.enabled !== true) {
         adapter.stopWatching();
         await diagnostic(status.consented === true ? 'PAUSED' : 'CONSENT_REQUIRED');
@@ -190,6 +208,7 @@
       }
       if (status.adapterVersion !== adapter.version) {
         if (lifecycle) lifecycle.ready = false;
+        stopNoticeWatching();
         adapter.stopWatching();
         await diagnostic('ADAPTER_VERSION_MISMATCH');
         return;
@@ -242,7 +261,7 @@
   }
 
   function onPageHide() {
-    suspended=true; generation++; clearTimeout(timer); timer=null;
+    suspended=true; generation++; stopNoticeWatching(); clearTimeout(timer); timer=null;
     clearInterval(connectionTimer); connectionTimer=null; adapter.stopWatching();
   }
   function onPageShow() {

@@ -8,7 +8,7 @@ const captureSource = await readFile(new URL('../content/capture.js', import.met
 const schemaSource = await readFile(new URL('../core/diagnostics-schema.js', import.meta.url), 'utf8');
 
 async function schedulerFixture(status, options = {}) {
-  const sent = [];
+  const sent = [], mutationObservers = [];
   const state = {reads: 0, watching: 0, stops: 0, captures: 0, invalidations: 0, diagnostics: 0};
   const timers = [],intervals=new Map(),deadlines=new Map(),notices=new Map();let serial=0;const handlers=new Map();
   const elements = new Map(),documentHandlers=new Map();
@@ -32,6 +32,7 @@ async function schedulerFixture(status, options = {}) {
     }
   }
   const context = vm.createContext({
+    MutationObserver: class {constructor(callback){this.callback=callback;mutationObservers.push(this);} observe(target,options){this.target=target;this.options=options;} disconnect(){this.disconnected=true;}},
     ChatGPTAdapter: FakeAdapter, TextEncoder, document, location: {reload() {state.reloads = (state.reloads || 0) + 1;}},
     addEventListener:(key,fn)=>handlers.set(key,fn),
     ArchiveResponseTime: options.responseDiagnosticThrows ? {observe() {throw new Error('synthetic optional diagnostic failure');}} : undefined,
@@ -58,7 +59,7 @@ async function schedulerFixture(status, options = {}) {
   vm.runInContext(schemaSource, context);
   vm.runInContext(captureSource, context);
   await new Promise((resolve) => setImmediate(resolve));
-  return {sent, state, timers,intervals,deadlines,notices,handlers,documentHandlers,elements,context,runtime:context.chrome.runtime};
+  return {sent, state, timers,intervals,deadlines,notices,handlers,documentHandlers,elements,context,mutationObservers,runtime:context.chrome.runtime};
 }
 
 test('capture scheduler never reads content before consent, while paused, or after status failure', async () => {
@@ -297,4 +298,25 @@ test('repeated capture injection retires the previous scheduler and late respons
  assert.equal(f.state.captures,1);assert.equal(f.intervals.size,1);
  f.state.resolveStatus({ok:true,data:status});await new Promise(resolve=>setImmediate(resolve));
  assert.equal(f.state.captures,1);assert.equal(f.intervals.size,1);
+});
+
+
+test('verified current connection removes only an obsolete legacy notice through a child-list-only watcher',async()=>{
+ const f=await schedulerFixture({enabled:false,consented:true,epoch:1,adapterVersion:'0.3.0'});
+ const observer=f.mutationObservers[0];assert.ok(observer);assert.deepEqual(JSON.parse(JSON.stringify(observer.options)),{childList:true});
+ const legacy=f.context.document.createElement('div');legacy.id='paia-reconnect-notice';f.context.document.documentElement.append(legacy);
+ observer.callback();assert.equal(f.elements.size,0);assert.equal(f.state.reads,0,'paused capture stays paused');
+});
+test('transport failure disconnects obsolete-notice watcher and cannot remove a genuine later notice',async()=>{
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'});
+ const observer=f.mutationObservers[0];f.runtime.sendMessage=async()=>{throw Error('synthetic lost connection');};
+ f.timers.at(-1).callback();await new Promise(resolve=>setImmediate(resolve));assert.equal(observer.disconnected,true);
+ const fallback=f.context.document.createElement('div');fallback.id='paia-reconnect-notice';f.context.document.documentElement.append(fallback);
+ observer.callback();assert.equal(f.elements.size,1);
+});
+test('a queued legacy-notice callback cannot remove anything after its capture instance is retired',async()=>{
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'});
+ const observer=f.mutationObservers[0];f.context.PAIACaptureController.dispose();
+ const next=f.context.document.createElement('div');next.id='paia-reconnect-notice';f.context.document.documentElement.append(next);
+ observer.callback();assert.equal(f.elements.size,1);assert.equal(observer.disconnected,true);
 });

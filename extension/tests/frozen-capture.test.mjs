@@ -86,7 +86,7 @@ const pendingReconnectEdits=[
 // Owner-approved 2026-09-30 capture recovery. Exact reviewed bytes remain pinned;
 // previous checkpoint digests and literal patch history above are preserved.
 const captureRecovery20260930={
-  "content/capture.js": "5bf8c807b81a8c46507d1c3815bcc39edf5a87852648b9cef57989fb7c22482d",
+  "content/capture.js": "d5d4005bce438d72d7cc3c58f5bf92db86ec07009999463cf55c08722417675f",
   "content/response-bridge.js": "dfd1928dbca47e75086b5a1e94732c1a581e7fdd626de37dd81e1224c6a9a875",
   "content/response-observer.js": "42d79dec23e464496f541a0ab9dd4f535bc580135a58acc953190ed40c2c452d"
 };
