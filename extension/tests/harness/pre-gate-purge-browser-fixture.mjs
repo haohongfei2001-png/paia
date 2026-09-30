@@ -16,7 +16,7 @@ export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=
   const error=code=>{throw new ArchiveError(code);},id=${JSON.stringify(id)};
   const store=new OrganizerStore(chrome.storage.local);
   await store.drainPurgeCleanup();await store.drainInvalidations();await store.drainLibraryMaintenance();
-  let prior=null,stable=0;for(let n=0;n<100&&stable<3;n++){const generation=await store.repository.transaction(false,async t=>(await t.get('meta','backup-data-generation'))?.value||0,['meta']);stable=generation===prior?stable+1:0;prior=generation;if(stable<3)await new Promise(resolve=>setTimeout(resolve,25));}if(stable<3)throw Error('HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED');
+  let prior=null,stable=0;for(let n=0;n<100&&stable<8;n++){const generation=await store.repository.transaction(false,async t=>(await t.get('meta','backup-data-generation'))?.value||0,['meta']);stable=generation===prior?stable+1:0;prior=generation;if(stable<8)await new Promise(resolve=>setTimeout(resolve,25));}if(stable<8)throw Error('HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED');
   const preview=await chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',id});
   if(!preview.ok)throw Error('HISTORICAL_FIXTURE_PREFLIGHT_FAILED');
   if(${JSON.stringify(allowCurrentPure)}&&preview.data.state==='unambiguous'){
@@ -29,7 +29,7 @@ export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=
    return {snapshot:{db,local},hash:[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw)))].map(n=>n.toString(16).padStart(2,'0')).join('')};
   };
   const before=await digest(),snapshot=before.snapshot,denied=await chrome.runtime.sendMessage({type:'PURGE_SOURCE',id,confirm:true});
-  const after=await digest();if(denied.ok||denied.error!=='SOURCE_PURGE_OWNER_GATE'||after.hash!==before.hash){const next=after.snapshot,changed=Object.keys(snapshot.db).filter(k=>JSON.stringify(snapshot.db[k])!==JSON.stringify(next.db[k])),local=Object.keys({...snapshot.local,...next.local}).filter(k=>JSON.stringify(snapshot.local[k])!==JSON.stringify(next.local[k]));throw Error('CURRENT_B02_ZERO_EFFECTS_FAILED:'+JSON.stringify({denied,changed,local}));}
+  const after=await digest();if(denied.ok||denied.error!=='SOURCE_PURGE_OWNER_GATE'||after.hash!==before.hash){const next=after.snapshot,changed=Object.keys(snapshot.db).filter(k=>JSON.stringify(snapshot.db[k])!==JSON.stringify(next.db[k])),local=Object.keys({...snapshot.local,...next.local}).filter(k=>JSON.stringify(snapshot.local[k])!==JSON.stringify(next.local[k]));const meta=changed.includes('meta')?[...new Set([...snapshot.db.meta,...next.db.meta].map(r=>r.id))].filter(id=>JSON.stringify(snapshot.db.meta.find(r=>r.id===id))!==JSON.stringify(next.db.meta.find(r=>r.id===id))):[];throw Error('CURRENT_B02_ZERO_EFFECTS_FAILED:'+JSON.stringify({denied,changed,local,meta}));}
   const form=${formPreGatePurgeState.toString()};await form.call(store,id,true);
   await chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'SYNTHETIC_PRE_GATE_FIXTURE'});
   return {evidenceClass:'CURRENT_B02_REFUSAL_PLUS_HISTORICAL_COMPATIBILITY',beforeDigest:before.hash};
