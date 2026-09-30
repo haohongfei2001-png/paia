@@ -117,3 +117,34 @@ test('Reader protects an undo back to the old baseline while the earlier save ou
  editor.saveSession.pending.edit={...edit,title:'SYNTHETIC pending title',expectedTitleRevision:0,blocks:[]};
  const titleUndo=editor.buildEdit();assert.equal(titleUndo.title,'');assert.equal(titleUndo.expectedTitleRevision,0);
 });
+
+test('Reader defers external refresh while an unacknowledged save could overwrite a later undo in an unfocused field',async()=>{
+ const {DocumentEditor}=await import('../ui/library.js');const {b,edit}=await fixture();
+ const editor=Object.create(DocumentEditor.prototype),field={textContent:'SYNTHETIC original Source',closest:()=>({hidden:false})};
+ const saved={libraryText:b.libraryText,note:b.note,excluded:b.excluded},entry={saved,local:{...saved},revision:b.revision,signature:b.provenanceSignature};
+ Object.assign(editor,{id:edit.documentId,title:'',savedTitle:'',titleRevision:0,entries:new Map([[b.id,entry]]),saveSession:{unresolved:true,pending:{edit,state:'unknown'}},root:{contains:()=>true},field:()=>field,dirty:()=>false,journal:{undo:[],redo:[]},onStatus:()=>{}});
+ const incoming={conversations:[{id:edit.documentId,titleRevision:0}],library:{blocks:[{...b,revision:b.revision+1,libraryText:edit.blocks[0].libraryText}]}};
+ const previous=globalThis.document;globalThis.document={activeElement:null};
+ try{editor.receive(incoming);}finally{if(previous===undefined)delete globalThis.document;else globalThis.document=previous;}
+ assert.equal(entry.local.libraryText,b.libraryText,'unfocused undo must remain the local human draft');
+ assert.equal(field.textContent,'SYNTHETIC original Source');assert.equal(editor.deferredState,incoming);
+});
+
+test('Reader unknown acknowledgement cannot postpone the existing Source removal/invalidation fence',async()=>{
+ const {DocumentEditor}=await import('../ui/library.js');const {b,edit}=await fixture();
+ const editor=Object.create(DocumentEditor.prototype),saved={libraryText:b.libraryText,note:b.note,excluded:b.excluded};
+ Object.assign(editor,{id:edit.documentId,title:'',savedTitle:'',titleRevision:0,entries:new Map([[b.id,{saved,local:{...saved},revision:b.revision,signature:b.provenanceSignature}]]),saveSession:{unresolved:true,pending:{edit,state:'unknown'}},dirty:()=>false,journal:{undo:[],redo:[]},autosave:{cancel:()=>{}}});
+ const incoming={conversations:[{id:edit.documentId,titleRevision:0}],library:{blocks:[]}};
+ const effect=editor.receive(incoming);assert.equal(effect?.rebuild,true);assert.equal(effect?.removed,true);
+ assert.equal(editor.deferredState,undefined,'removed Source cannot be retained as an ordinary unresolved refresh');
+});
+
+test('Reader treats missing or invalid outcome response data as unknown and retains the original operation',async()=>{
+ const {edit,query}=await fixture();
+ for(const response of [null,undefined,{}, {state:'committed',result:{ok:false}}]){
+  let writes=0;const session=new WorkingInputSaveSession(async type=>{if(type==='EDIT_DOCUMENT'){writes++;throw Error('Synthetic response lost');}return response;});
+  await assert.rejects(session.save(edit,query.epoch),{code:'SAVE_OUTCOME_UNKNOWN'});
+  await assert.rejects(session.save({...edit,operationId:crypto.randomUUID()},query.epoch),{code:'SAVE_OUTCOME_UNKNOWN'});
+  assert.equal(writes,1);assert.equal(session.pending.edit,edit);assert.equal(session.unresolved,true);
+ }
+});

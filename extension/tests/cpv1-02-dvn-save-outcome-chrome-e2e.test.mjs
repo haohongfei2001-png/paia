@@ -90,3 +90,35 @@ test('D1 undo during unknown acknowledgement protects the full undo draft instea
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
+
+test('D1 an unfocused undo survives canonical refresh during lost save/readback responses, then commits from the acknowledged base',{timeout:90000},async()=>{
+ const {h,page,field,inputId,before}=await fixture();
+ try{
+  const sources=(await h.state()).records;
+  await page.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__dvnWrites=0;globalThis.__dvnAllowOutcome=false;
+   chrome.runtime.sendMessage=async message=>{
+    if(message?.type==='EDIT_DOCUMENT'){globalThis.__dvnWrites++;await send(message);throw Error('Synthetic message channel closed after commit');}
+    if(message?.type==='PAIA_ARCHIVE_OPERATION_OUTCOME'&&!globalThis.__dvnAllowOutcome)throw Error('Synthetic outcome response channel interrupted');
+    return send(message);
+   };
+  });
+  await field.fill('SYNTHETIC durable text subsequently undone');
+  await eventually(()=>page.locator('#retry').isVisible(),'lost commit/readback responses leave unknown outcome');
+  assert.equal((await rpc(page,'GET_INPUT',{id:inputId})).revision,before.revision+1);
+  await field.press(process.platform==='darwin'?'Meta+z':'Control+z');
+  await eventually(async()=>await field.textContent()==='SYNTHETIC original Source','later undo remains visible');
+  await page.locator('#document-title').click();
+  await rpc(page,'UPDATE_PREFERENCES',{changes:{timeEmphasis:'standard'}});
+  await eventually(()=>page.evaluate(()=>document.querySelector('#save-status').textContent.includes('保存结果暂时无法确认')),'canonical refresh keeps acknowledgement uncertainty');
+  assert.equal(await field.textContent(),'SYNTHETIC original Source','canonical refresh cannot overwrite the unfocused undo');
+  assert.equal(await page.evaluate(()=>globalThis.__dvnWrites),1);
+  await page.evaluate(()=>{globalThis.__dvnAllowOutcome=true;});
+  await page.locator('#retry').click();
+  await eventually(async()=>(await rpc(page,'GET_INPUT',{id:inputId})).revision===before.revision+2,'undo commits only after the prior durable operation is acknowledged');
+  assert.equal((await rpc(page,'GET_INPUT',{id:inputId})).libraryText,before.libraryText);
+  assert.equal(await field.textContent(),'SYNTHETIC original Source');
+  assert.equal(await page.evaluate(()=>globalThis.__dvnWrites),2);
+  assert.deepEqual((await h.state()).records,sources);assert.deepEqual(h.errors,[]);
+ }finally{await h.close();}
+});

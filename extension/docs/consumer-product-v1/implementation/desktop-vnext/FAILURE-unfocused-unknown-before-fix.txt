@@ -1,0 +1,39 @@
+✔ Q1 reads a durable, owner/digest-bound receipt after lost acknowledgement without duplicating revisions (19.419459ms)
+✔ Q1 never infers non-commit from absence; an actual aborted transaction provides only bounded worker-lifetime negative knowledge (9.638583ms)
+✔ Q1 serialized fresh read waits for the actual in-flight transaction (8.901709ms)
+✔ Q1 rejects enumeration/extra data, isolates legacy receipts, and invalidates acknowledgement after restore (7.554458ms)
+✔ Q1 negative knowledge is body-free, bounded and conservatively evicted (0.08125ms)
+✔ Reader reconciles a lost acknowledgement through the production receipt, keeping a newer local edit separate (8.738708ms)
+✔ Reader keeps unknown operations stable and blocks autosave/new UUID retry until trusted reconciliation (6.172958ms)
+✔ Reader retries only a known aborted attempt and retains its exact operation ID and payload (8.313042ms)
+✔ Reader protects an undo back to the old baseline while the earlier save outcome is unknown (7.350375ms)
+✖ Reader defers external refresh while an unacknowledged save could overwrite a later undo in an unfocused field (7.136833ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 164.501375
+
+✖ failing tests:
+
+test at extension/tests/dvn-operation-outcome.test.mjs:121:1
+✖ Reader defers external refresh while an unacknowledged save could overwrite a later undo in an unfocused field (7.136833ms)
+  AssertionError [ERR_ASSERTION]: unfocused undo must remain the local human draft
+  + actual - expected
+
+  + 'SYNTHETIC durable edit, not a private source'
+  - null
+
+      at TestContext.<anonymous> (file://<workspace>/extension/tests/dvn-operation-outcome.test.mjs:129:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'SYNTHETIC durable edit, not a private source',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

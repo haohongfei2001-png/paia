@@ -9,7 +9,11 @@ export class WorkingInputSaveSession {
   constructor(send = request) { this.send = send; this.pending = null; }
   get unresolved() { return this.pending?.state === 'unknown'; }
   async read() {
-    try { return await this.send('PAIA_ARCHIVE_OPERATION_OUTCOME', {query: this.pending.query}); }
+    try {
+      const outcome = await this.send('PAIA_ARCHIVE_OPERATION_OUTCOME', {query: this.pending.query});
+      if (outcome?.state === 'committed' && outcome.result?.ok === true) return outcome;
+      return {state: outcome?.state === 'not_committed' ? 'not_committed' : 'unknown'};
+    }
     catch { return {state: 'unknown'}; }
   }
   async save(edit, epoch) {
