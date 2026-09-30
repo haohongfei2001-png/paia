@@ -1,0 +1,185 @@
+{
+  "remote": "https://github.com/haohongfei2001-png/paia.git",
+  "main_sha": "8a2921bf8cc668c4909d4c1e3742985be93027af",
+  "main_tree": "11cebf82b118a973a4aa42a9961d44b61f250602",
+  "design_package": "DVN-1.0",
+  "read_date": "2026-09-30",
+  "authorities": [
+    {
+      "path": "extension/AGENTS.md",
+      "sha256": "8330befe8b3d12bae6970e7b73b5780f89c0a9b7b606341898609e4c92d3c538"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/STATUS.md",
+      "sha256": "2390f8027ea66b76851fe3f876a74788c3fda5cc7e9f275654fad30466f7db97"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/AUTHORITY.md",
+      "sha256": "7c48b317573e24faf2cc6255c0192ea5fcf145324faf5b041960c0614791aaec"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/PRODUCT_INTENT_CONTRACT.md",
+      "sha256": "b8a990f41a8cc3224ac561e7ac5206ceaea8a4b6d9c1cb544df350dde42fe9a1"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/UX_CONTRACT.md",
+      "sha256": "5891a484b4826ee1bcd8a2be7fea217c6843b4d87c7f5436cc6c1a8db25c9484"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/TECHNICAL_PLAN.md",
+      "sha256": "9831edce755a09df731d6405cc3f82fd957751e0ee623dd19129095b47f09f02"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/VERIFICATION.md",
+      "sha256": "e3a0b83f6b7eaa7c09f91f7489b43a59d880580f7723d42f6b18b051b3aa67b3"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/DEFERRED_FINAL_GATES.md",
+      "sha256": "29ee543443d701790f21a8898d4b0d2c88ad7b53997aaaf0b37d90a2501a10c4"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/MASTER_PLAN.md",
+      "sha256": "54589d9c51eeb7536022d09540d6f5192c29df8cc249ba1d5103d2bb3a36b42e"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md",
+      "sha256": "eab5539e15b3b9c2f8b3911f3237327bc3a0aee7bec9867af8daa26dbb2d5718"
+    },
+    {
+      "path": "extension/PRODUCT.md",
+      "sha256": "1ab9f3e4983680c6017e57d27b648893da874dde59d01297bc2e88e88c1fa9a4"
+    },
+    {
+      "path": "extension/ARCHITECTURE.md",
+      "sha256": "025079191535b39aa16487e203785a992e1429ba068679e68d45349d634c2f41"
+    },
+    {
+      "path": "extension/ROADMAP.md",
+      "sha256": "97521fd43d128a0b425ec19d9e86356ead6a5bdf028dd7922f130ee5966f0a4c"
+    },
+    {
+      "path": "extension/PRIVACY.md",
+      "sha256": "309cb51366cdf2421891d603f7167bec81dc4abaf92b649bb0394ce5cc213830"
+    },
+    {
+      "path": "extension/BACKUP.md",
+      "sha256": "df21767bc87ad1e8b3d11d1fbfd9f5928a074d8bbd43119b01b33053c34074d7"
+    },
+    {
+      "path": "extension/AI_CONTEXT.md",
+      "sha256": "880c3eaff64248b807818763889944336acfe16cd7ef593c5a4a1347a3065177"
+    }
+  ],
+  "frozen_files": [
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/ACCEPTANCE.md",
+      "sha256": "d404f98dc56125afd64eef814350717565857634486ea04898ab989fc5a2387b"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/FROZEN_CONTRACT.md",
+      "sha256": "624d389b0bcd212b46e8146070b842af20fd3882041905d77999483f5ccfadf1"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/GAP_AUDIT.md",
+      "sha256": "c3ed00c10e54675c73234ef63db1cfe9f8328daa8af855cfb4005a7d84949706"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/IMPLEMENTATION_MAP.md",
+      "sha256": "b44047a8c1cc5a106bcda7e5ebf5101a0776d81a10a949d228b57486bebfea32"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/README.md",
+      "sha256": "aad2e0070653f9c465125d67546108ccbace0958c4f743f054a234b108c8d0d6"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/SOURCES.md",
+      "sha256": "66324454bbf48c0ee938ee3b5764d39541b28b1c97b820d7dff425a4fca69bb8"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/STATE_MATRIX.md",
+      "sha256": "6853b5076899766a80921a20bfb68f7e13b0800f74a423c0e7c20bca5924c39e"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/SURFACES.md",
+      "sha256": "4ec99c2b83037fd630b9aeb84bc3547d3097a6e9721f9d992059d702f2d89c29"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/UI_SYSTEM.md",
+      "sha256": "d5a4eb747950dd96e17dcf1638b722bf53bce10699359e5d20ad3a8cc0adc16e"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/VALIDATION.md",
+      "sha256": "f1ff40a75a69b84fde91314ebe49ad6e000b3e5eb254547dcde2ac97a1e64266"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/WORK_HANDOFF.md",
+      "sha256": "9d517a158c1a85e9eee279c6156252160161b000e13c56ea00087a7b60ec3f4f"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/assets/manifest.json",
+      "sha256": "5020864aac497edf28c6c5df3124847a879d647678b598b56998fc551a596077"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/assets/paia-icon-32.png",
+      "sha256": "6e487abdab45de5f5dbec02f2a05098797616e949c409c93082a4e0488194065"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/fixtures/stress.json",
+      "sha256": "7e0bf4045515a10940b0ca01a96d64adc544a4d20d9bbc7ed2394bbda92d4ce2"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/screens/index.html",
+      "sha256": "01c046ed7df57bbf04eef6468f738bd1df325e5c418a4e3fdd5439dddb88131c"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/screens/screens.css",
+      "sha256": "b119399865375a0bd14823ee668d3613b10abd33f85b896ff70a1880643701fe"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/screens/specimens.js",
+      "sha256": "3b1961156a21cefd000c8fde0130f6910d6135e2924fea3d08391b02494852d1"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/tokens.css",
+      "sha256": "e3e788c50bc98a918fcc4a83242faf12f504e23740edda5074322bbb58e9f0fc"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/desktop-vnext/verification/check_specimens.py",
+      "sha256": "49af9a7e1635f5ae0c5df4d7f69df36b9d6b9a81531def5647b2425156a55197"
+    }
+  ],
+  "protected_groups": {
+    "production_ui": {
+      "files": 78,
+      "git_entries_sha256": "6bac2a7075c779d192f7a174d70e1b94f2fadb851e933ec382f8142368c2f15a"
+    },
+    "production_core": {
+      "files": 139,
+      "git_entries_sha256": "819e46cfa8c42a4a5211accb31a32f84b54e7e8d3124fb1c1ad016ba263cf46a"
+    },
+    "production_background": {
+      "files": 5,
+      "git_entries_sha256": "c4de1c0cd9864ee0301326cf7c4c14a3b2a3c6d27d2d44688cb8193b6d1d1e66"
+    },
+    "tests": {
+      "files": 469,
+      "git_entries_sha256": "6135ce72c1f9728337746031fe3e3d51962de878600b2751e0cc001924b23014"
+    },
+    "manifest": {
+      "files": 1,
+      "git_entries_sha256": "828913c5fe439908ea4463658e06daa5af0e53187f1642a04cd25133223d1b39"
+    },
+    "workflows": {
+      "files": 6,
+      "git_entries_sha256": "bab15a7094d776a5a9fc5837a38b512a8173167efa0b17a6e7cad27f395d8161"
+    }
+  },
+  "reference_pr99": {
+    "number": 99,
+    "head": "991f78f4c54b79d67428bf3209fb4eaa18f1cc9b",
+    "state": "OPEN",
+    "draft": true,
+    "role": "READ_ONLY_REFERENCE_NOT_BASELINE"
+  },
+  "runtime_verification_this_review": "NOT_RUN"
+}
