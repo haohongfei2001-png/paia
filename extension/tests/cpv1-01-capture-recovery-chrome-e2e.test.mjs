@@ -52,7 +52,7 @@ async function saveEvidence(h,page,name,fields={}){
 async function setup(old=false){
  const workspace=await mkdtemp(join(tmpdir(),'paia-recovery-')),release=join(workspace,'release');
  if(old){
-  const archive=execFileSync('git',['archive',baseline,'extension'],{cwd:root,maxBuffer:64*1024*1024});
+  const archive=execFileSync('git',['archive',baseline,'extension'],{cwd:join(root,'..'),maxBuffer:64*1024*1024});
   execFileSync('tar',['-xf','-','-C',workspace],{input:archive});
   execFileSync('python3',['scripts/build_current_release.py',release],{cwd:join(workspace,'extension'),stdio:'pipe'});
  }else execFileSync('python3',['scripts/build_current_release.py',release],{cwd:root,stdio:'pipe'});
