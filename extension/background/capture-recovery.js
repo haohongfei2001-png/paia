@@ -14,7 +14,7 @@ function probeCapture() {
     ready: lifecycle?.ready === true, version: lifecycle?.version || null};
 }
 
-export function installCaptureRecovery(chrome, ready) {
+export function installCaptureRecovery(chrome, ready, {waitForStartup = ms => new Promise(resolve => setTimeout(resolve, ms))} = {}) {
   if (!chrome.scripting?.executeScript || !chrome.tabs?.query) return;
   const pending = new Map();
   const manifest = chrome.runtime.getManifest();
@@ -36,10 +36,26 @@ export function installCaptureRecovery(chrome, ready) {
         task.force = false;
         const tab = await chrome.tabs.get(tabId);
         if (!allowedTab(tab)) return;
-        const [probe] = await chrome.scripting.executeScript({
+        let [probe] = await chrome.scripting.executeScript({
           target: {tabId, frameIds: [0]}, world: 'ISOLATED', func: probeCapture
         });
         if (!probe?.documentId || !probe.result) return;
+        // document_start bridges can already hold authorized response metadata
+        // while document_idle capture is still waiting for its first status.
+        // An activation/complete event must not replace that healthy startup.
+        // Bound the grace period; a genuinely stalled runtime remains repairable.
+        const documentId = probe.documentId;
+        for (let attempt = 0; !replacing && !task.force && attempt < 20 &&
+          probe.result.active && !probe.result.ready && probe.result.version === manifest.version; attempt++) {
+          await waitForStartup(250);
+          if (task.force) break;
+          const [next] = await chrome.scripting.executeScript({
+            target: {tabId, documentIds: [documentId]}, world: 'ISOLATED', func: probeCapture
+          });
+          if (next?.documentId !== documentId || !next.result) return;
+          probe = next;
+        }
+        if (!replacing && task.force) continue;
         if (!replacing && probe.result.active && probe.result.ready && probe.result.version === manifest.version) {
           if (task.force) continue; // An update queued while the probe awaited must win.
           return;

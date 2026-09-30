@@ -26,11 +26,16 @@ fact source. Preserve correct historical implementation and evidence, but do not
 resume old queues merely because their own historical STATUS still names a next
 round.
 
-Current owner authorization is
-`TEMPORARY_NIGHT_WHOLE_EXECUTION / MAX_9_ROUNDS`. Continue consecutive rounds
-within that cap without stopping for ordinary engineering decisions. Stop only
-at the owner gates defined in `AUTHORITY.md` / `EXECUTION_PROTOCOL.md`, a
-truthful BLOCKED/FAIL, or the authorization cap.
+Current owner authorization is `DesktopVNextOwnerApprovedRestart`:
+the owner approved frozen DVN-1.0 and foundation PR #107, then explicitly
+released the review pause for D1 Archive → D2 Thought Library → D3 AI Organize
+→ D4 AI Context on 2026-09-30. Follow the approved architecture/roadmap with one
+active product writer, fresh remote main for every slice/batch, and exact-head
+regression evidence before integration. Preserve #99 unchanged and unmerged.
+B-01–B-05 and the deferred live/device/legal gates remain unresolved; dependent
+behavior fails closed while independent authorized engineering continues.
+The earlier `TEMPORARY_NIGHT_WHOLE_EXECUTION / MAX_9_ROUNDS` authorization is
+historical and does not cap this separately approved Desktop vNext restart.
 
 ### Historical execution packages
 

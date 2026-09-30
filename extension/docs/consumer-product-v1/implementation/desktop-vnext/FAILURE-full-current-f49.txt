@@ -1,0 +1,124 @@
+Preserved local negative run: f49c52994d3be627a27aa900b763450db54d172d
+Current suite: 1577 total, 1538 PASS, 39 FAIL, 0 SKIP.
+Unit 1266 PASS / 1 FAIL; browser 112 PASS / 38 FAIL;
+adapter 102 PASS / 0 FAIL; privacy/security 58 PASS / 0 FAIL.
+Isolated headless synthetic fixtures; no live/device/performance acceptance.
+The 10k fake-IDB 120-second controlled benchmark failed; threshold is unchanged.
+Release build failures also found unexpected duplicate files in generated output;
+the complete output was quarantined, not discarded, and rebuilt cleanly.
+Missing historical fixture Git blobs are an environment failure, not a skipped PASS.
+
+FAIL ans-01-reader-surfaces-chrome-e2e.test.mjs: ANS-01 Reader surfaces stay quiet while order, time, reuse and failure recovery remain real
+Error [ERR_TEST_FAILURE]: ANS-01 source times are known
+FAIL ans-04-navigation-query-chrome-e2e.test.mjs: ANS-04 real Chrome: cold bounded navigation, worker restart, lossless Reader fallback and active-path relocation
+Error [ERR_TEST_FAILURE]: real capture + time enrichment
+FAIL ans-05-navigator-workspace-chrome-e2e.test.mjs: ANS-05 persistent Navigator keeps Reader, history, paging and responsive sheet safe
+Error [ERR_TEST_FAILURE]: autosave failure visible
+FAIL ans-09-integration-chrome-e2e.test.mjs: ANS-09 source: legacy Backup, multi-tab unsaved edit, metadata move/delete, restart, Topic and purge retain trust
+Error [ERR_TEST_FAILURE]: save failure acknowledged
+FAIL ans-09-integration-chrome-e2e.test.mjs: ANS-09 release: legacy Backup, multi-tab unsaved edit, metadata move/delete, restart, Topic and purge retain trust
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL cpv1-01-4-degraded-chrome-e2e.test.mjs: CPV1-01.4 storage pressure gives one safe next action without hiding the local archive
+Error [ERR_TEST_FAILURE]: 320px popup recovery has no horizontal overflow: 30
+FAIL cpv1-01-capture-recovery-chrome-e2e.test.mjs: capture recovery: unmodified old main upgrade keeps the existing document and resumes durable capture
+Error [ERR_TEST_FAILURE]: Command failed: git archive 81478c9 extension
+fatal: not a valid object name: 81478c9
+
+FAIL cpv1-02-3-navigator-chrome-e2e.test.mjs: CPV1-02.3 Navigator projects a Project move, rename and source deletion without losing the selected Conversation
+Error [ERR_TEST_FAILURE]: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('.archive-navigator-group-toggle').nth(1)[22m
+[2m    - locator resolved to <button type="button" aria-expanded="false" class="archive-navigator-group-toggle" data-ans-nav-key="group:["chatgpt","unknown",null]">归属未知</button>[22m
+FAIL cpv1-02-3-navigator-chrome-e2e.test.mjs: Bounded Archive keeps one search above a quiet tree and stable same-title Reader identity
+Error [ERR_TEST_FAILURE]: same-title fixtures have reliable captured timestamps
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 historical comparison keeps complete originals and current edits distinct across scope and deletion
+Error [ERR_TEST_FAILURE]: synthetic expected state
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 search read failure clears unchecked query results and preserves explicit selection
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 search read failure clears unchecked filter results and preserves explicit selection
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 search read failure clears unchecked page results and preserves explicit selection
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 superseded whole-result enumeration success cannot release a newer search fence
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current search real edit retires hidden results and refreshes full working evidence
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current edit fences an older actual query success without releasing the newer scope
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current edit fences an older actual query failure without releasing the newer scope
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current mutation during composition retires results without searching unfinished input
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current edit cancels whole-result enumeration success without confirmation or old selection expansion
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current edit cancels whole-result enumeration failure without confirmation or old selection expansion
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current real capture replaces loaded generation without mixing old paging
+Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+FAIL history-performance-v090.test.mjs: 10000 synthetic historical Inputs: bounded batches, direct reading/search and idempotent repeat
+Error [ERR_TEST_FAILURE]: 10k fake-IDB commit must remain below 120 seconds on the controlled benchmark
+FAIL uir-01-shell-chrome-e2e.test.mjs: UIR-01 shell and Archive frame stay semantic across source and current-release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-02-archive-search-reader-chrome-e2e.test.mjs: UIR-02 Archive, Search, Revisit and Reader presentation stays on existing owners in source and built release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-03-ai-candidate-chrome-e2e.test.mjs: UIR-03 candidate comparison keeps current work distinct, stages choices locally and fails closed when stale in source and built release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-03-ai-candidate-chrome-e2e.test.mjs: VS-05 complete living Topic path captures two Conversations, composes a new Thought and protects human work through new-source candidate update in source and built release
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-03-ai-candidate-chrome-e2e.test.mjs: VS-05 all six authored AI lists and deliberate empty overview survive collapsed/hidden panes and route reopen in source and built release
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-03-ai-presentation-chrome-e2e.test.mjs: UIR-03 Organized presentation uses saved clues and true runtime states without hidden Provider work in source and built release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-03-ai-presentation-chrome-e2e.test.mjs: VS-05 long Topic remains interactive across a held AI request, navigation and restrained/reduced motion in source and built release
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-03-preview-mask-chrome-e2e.test.mjs: UIR-03 preview mask hides card/selection previews without hiding explicitly opened Original, Organized or evidence bodies in source and built release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-03-thought-original-chrome-e2e.test.mjs: UIR-03 Thought home and Topic Original presentation keep existing identity, editing owners and reading width in source and built release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-04-context-chrome-e2e.test.mjs: UIR-04 Context keeps MaterialTray as the single owner while widening the workspace and preserving drawer, draft, reading-width and restriction boundaries in source and built release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-04-data-chrome-e2e.test.mjs: UIR-04 Data & devices separates Backup, complete export, local status and scoped Source owners while preserving explicit restore in source and current release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-04-popup-local-tools-chrome-e2e.test.mjs: UIR-04 popup document-tab rendering and local tools preserve capture/Passport owners in source and built release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL uir-04-settings-chrome-e2e.test.mjs: UIR-04 Settings keeps one six-group owner projection while applying the 180/840 desktop frame and same-control mobile switch in source and built release Chrome
+Error [ERR_TEST_FAILURE]: Command failed: python3 scripts/build_current_release.py
+Current release failed package guardrails
+
+FAIL ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 live capture scope, remove/undo/recapture, opt-in exclusions and purge remain authoritative
+Error [ERR_TEST_FAILURE]: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#context-menu button').filter({ hasText: '会话收录设置' })[22m
+
+FAIL ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 topic exclusion removes related Input previews; Revisit visual matrix and keyboard remain usable
+Error [ERR_TEST_FAILURE]: explicit opt-in reveals eligible old Input
+FAIL ux-r2-reader-revisit-chrome-e2e.test.mjs: VS07 Revisit finds worked material beyond the first ordinary cursor page
+Error [ERR_TEST_FAILURE]: all full cross-page historical captures are ready
+FAIL ux-r2-reader-revisit-chrome-e2e.test.mjs: VS07 Revisit revokes delayed real reads on leave and cannot revive purged previews
+Error [ERR_TEST_FAILURE]: synthetic expected state

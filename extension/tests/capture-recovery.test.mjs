@@ -19,12 +19,13 @@ function fixture(options={}) {
    calls.push(['execute',request]);
    if(options.failFirst&&attempts++===0)throw Error('withheld');
    if(request.func&&options.probeHold)await options.probeHold;
+   if(request.func&&typeof options.probe==='function')return options.probe(request);
    if(request.func)return options.probe||[{documentId:'document-a',result:{active:false,ready:false,version:null}}];
    if(options.hold)await options.hold;
    return [{documentId:'document-a',result:undefined}];
   }}
  };
- return {api:installCaptureRecovery(chrome,options.ready||Promise.resolve()),calls,events};
+ return {api:installCaptureRecovery(chrome,options.ready||Promise.resolve(),options.waitForStartup?{waitForStartup:options.waitForStartup}:{}),calls,events};
 }
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 test('recovery registers events before isolation, then injects exact packaged worlds into only the probed main document',async()=>{
@@ -95,6 +96,27 @@ test('document lifecycle replacement tears down once; page-triggered retirement 
 
 test('forced update queued behind a delayed healthy probe cannot be dropped',async()=>{
  let release;const f=fixture({probeHold:new Promise(resolve=>{release=resolve;}),probe:[{documentId:'document-a',result:{active:true,ready:true,version:manifest.version}}]});
+ const ordinary=f.api.repair(1);await tick();const forced=f.api.repair(1,true);release();
+ await Promise.all([ordinary,forced]);assert.equal(f.calls.filter(c=>c[1]?.files).length,3);
+});
+
+
+test('ordinary startup waits for document_idle readiness without retiring already authorized metadata', async () => {
+ let probes=0;const waits=[];
+ const f=fixture({waitForStartup:async ms=>{waits.push(ms);},probe:()=>[{documentId:'document-a',result:{active:true,ready:++probes>1,version:manifest.version}}]});
+ await f.api.repair(1);
+ assert.deepEqual(waits,[250]);assert.equal(probes,2);
+ assert.equal(f.calls.filter(c=>c[1]?.files).length,0);
+ assert.deepEqual(f.calls.filter(c=>c[1]?.func)[1][1].target,{tabId:1,documentIds:['document-a']});
+});
+test('startup grace is bounded and cannot inject into a navigated document', async () => {
+ const waits=[];const stalled=fixture({waitForStartup:async ms=>{waits.push(ms);},probe:[{documentId:'document-a',result:{active:true,ready:false,version:manifest.version}}]});
+ await stalled.api.repair(1);assert.equal(waits.length,20);assert.equal(waits.reduce((a,b)=>a+b,0),5000);assert.equal(stalled.calls.filter(c=>c[1]?.files).length,3);
+ let probes=0;const navigated=fixture({waitForStartup:async()=>{},probe:()=>[{documentId:++probes===1?'document-a':'document-other',result:{active:true,ready:false,version:manifest.version}}]});
+ await navigated.api.repair(1);assert.equal(navigated.calls.filter(c=>c[1]?.files).length,0);
+});
+test('forced replacement queued during startup grace wins exactly once', async () => {
+ let release;const f=fixture({waitForStartup:()=>new Promise(resolve=>{release=resolve;}),probe:[{documentId:'document-a',result:{active:true,ready:false,version:manifest.version}}]});
  const ordinary=f.api.repair(1);await tick();const forced=f.api.repair(1,true);release();
  await Promise.all([ordinary,forced]);assert.equal(f.calls.filter(c=>c[1]?.files).length,3);
 });

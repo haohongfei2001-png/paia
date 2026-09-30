@@ -49,7 +49,9 @@ test('Archive search toolbar precedes the tree with its real nested search struc
 
 test('popup sizing declares intrinsic width independently of the initial browser viewport',async()=>{
  const css=await source('popup.css');
- assert.match(css,/html,body\{width:350px;min-width:350px;/);
+ assert.match(css,/html\{width:350px;min-width:350px\}/);
+ assert.match(css,/body\{width:100%;/,'body fills the intrinsic root width');
+ assert.match(css,/html\[data-popup-view="document"\]\{width:min\(350px,100vw\);min-width:0\}/,'only a document tab can reflow below intrinsic native width');
  assert.doesNotMatch(css,/max-width:100vw/,'the initial action viewport must not constrain intrinsic width');
  assert.match(css,/\.count\{[^}]*flex-wrap:wrap/);
  assert.match(css,/\.count>span\{[^}]*flex:1 0 132px/,'CJK label keeps a readable line width');

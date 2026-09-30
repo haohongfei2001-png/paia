@@ -4,6 +4,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {failWorkingInputCommits} from './harness/working-input-failure.mjs';
 import {openArchiveWindow} from './harness/archive-navigator.mjs';
 import {legacy,digest} from './harness/ans09-legacy.mjs';
 const run=promisify(execFile);
@@ -32,14 +33,14 @@ for(const artifact of ['source','release'])test(`ANS-09 ${artifact}: legacy Back
   const second=await h.context.newPage();second.on('pageerror',e=>h.errors.push(e.message));await second.goto(p.url());
   await p.locator('#primary-nav [data-view="library"]').click();await openArchiveWindow(p,{text:'虚构验收'});
   const field=p.locator('[data-edit-id="'+legacy.firstInputId+'"]');await field.waitFor({state:'visible'});assert.equal(await field.textContent(),'ANS09 human working text');
-  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__ans09Resume=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=async m=>{if(m.type==='EDIT_DOCUMENT')throw Error('ANS09_INJECTED_SAVE_FAILURE');return send(m);};});
+  const resumeSave=await failWorkingInputCommits(h);
   await field.fill('ANS09 unsaved surviving project move');await eventually(async()=>(await p.locator('#error').textContent()).includes('尚未保存'),'save failure acknowledged');
   const projectRef={providerKey:'chatgpt',namespace:'ans09-browser',projectId:'ans09-project'};
   await relation(second,1,{membership:{state:'project',projectRef},projectName:'ANS09 Project',sourceStatus:'observed_active'});await p.evaluate(()=>document.dispatchEvent(new Event('paia:navigator-refresh')));
   assert.equal(await field.textContent(),'ANS09 unsaved surviving project move');assert.equal((await rpc(p,'GET_INPUT',{id:legacy.firstInputId})).libraryText,'ANS09 human working text','failed save did not commit');
   await relation(second,2,{sourceStatus:'confirmed_deleted'});await p.evaluate(()=>document.dispatchEvent(new Event('paia:navigator-refresh')));
   assert.equal(await field.textContent(),'ANS09 unsaved surviving project move');assert.deepEqual(immutable(await backup(second)),immutable(initial));
-  await p.evaluate(()=>window.__ans09Resume());await p.locator('#retry').click();await eventually(async()=>(await rpc(p,'GET_INPUT',{id:legacy.firstInputId})).libraryText==='ANS09 unsaved surviving project move','explicit retry commits exact buffer');
+  await resumeSave();await p.locator('#retry').click();await eventually(async()=>(await rpc(p,'GET_INPUT',{id:legacy.firstInputId})).libraryText==='ANS09 unsaved surviving project move','explicit retry commits exact buffer');
   // Reload restores the selected Window asynchronously. Require that real
   // restoration rather than racing it with a second navigation fallback.
   await h.restartWorker();await p.reload();await field.waitFor({state:'visible'});assert.equal(await field.textContent(),'ANS09 unsaved surviving project move');

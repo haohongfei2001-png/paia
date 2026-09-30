@@ -273,6 +273,8 @@ function openDocumentMenu(){
   add('文档版本历史',()=>showRevisions());
   add('不主动回顾这个对话',async()=>{await request('PAIA_READER_CONFIGURE',{change:{kind:'document',id,excluded:true}});document.dispatchEvent(new Event('paia:reader-policy'));notify('这个对话将不再主动回顾。');});
   add('会话收录设置',()=>captureScope());
+  const doc=state.conversations?.find(d=>d.id===id);
+  if(doc?.sourceConversationId)add('来源变化',()=>showNavigatorSourceDetail({kind:'conversation',conversationRef:{platform:doc.platform,sourceConversationId:doc.sourceConversationId}},$('document-menu')));
   add('撤销',()=>editor?.history());add('重做',()=>editor?.history(true));
  }else if(view==='archive')add('定位到 Input Archive',()=>navigate('library',id));
  else add('文档版本历史',()=>showRevisions());

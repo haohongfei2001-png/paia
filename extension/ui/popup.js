@@ -4,6 +4,10 @@ import { briefStructure } from './structure-diagnostics.js';
 import { normalizeUXPreferences, resolveAppearance } from './ux-r1-state.js';
 import { recoveryGuidance } from './recovery-guidance.js';
 
+// Native action views need intrinsic width before Chrome chooses their viewport.
+// An explicitly opened document tab can instead reflow at a narrower viewport.
+if (!chrome.extension.getViews({type: 'popup'}).includes(window)) document.documentElement.dataset.popupView = 'document';
+
 const $ = (id) => document.getElementById(id);
 const UPDATE_STATE_KEY = 'paia-consumer-update:v1';
 let state;

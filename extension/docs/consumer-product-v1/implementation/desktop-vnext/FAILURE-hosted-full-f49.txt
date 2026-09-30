@@ -1,0 +1,70 @@
+Preserved hosted negative run: https://github.com/haohongfei2001-png/paia/actions/runs/36733487063
+Tested PR head f49c52994d3be627a27aa900b763450db54d172d.
+28 browser case failures; full aggregation/gate FAIL.
+All four unit shards, adapter/privacy, release guards and hosted macOS Chrome
+synthetic discard lifecycle passed. Secure Store job CANCELLED before steps.
+This is not certification, current-live, model quality, physical IME or device PASS.
+
+Current Browser 3/4	UNKNOWN STEP	2026-09-30T15:04:50.2381930Z FAIL ans-05-navigator-workspace-chrome-e2e.test.mjs: ANS-05 persistent Navigator keeps Reader, history, paging and responsive sheet safe
+Current Browser 3/4	UNKNOWN STEP	2026-09-30T15:04:50.2383413Z Error [ERR_TEST_FAILURE]: autosave failure visible
+Current Browser 3/4	UNKNOWN STEP	2026-09-30T15:05:11.7967235Z FAIL cpv1-01-4-degraded-chrome-e2e.test.mjs: CPV1-01.4 storage pressure gives one safe next action without hiding the local archive
+Current Browser 3/4	UNKNOWN STEP	2026-09-30T15:05:11.7968694Z Error [ERR_TEST_FAILURE]: 320px popup recovery has no horizontal overflow: 30
+Current Browser 3/4	UNKNOWN STEP	2026-09-30T15:06:54.0380375Z FAIL cpv1-02-3-navigator-chrome-e2e.test.mjs: Bounded Archive keeps one search above a quiet tree and stable same-title Reader identity
+Current Browser 3/4	UNKNOWN STEP	2026-09-30T15:06:54.0381589Z Error [ERR_TEST_FAILURE]: same-title fixtures have reliable captured timestamps
+Current Browser 1/4	UNKNOWN STEP	2026-09-30T15:02:11.9750968Z FAIL ans-04-navigation-query-chrome-e2e.test.mjs: ANS-04 real Chrome: cold bounded navigation, worker restart, lossless Reader fallback and active-path relocation
+Current Browser 1/4	UNKNOWN STEP	2026-09-30T15:02:11.9752433Z Error [ERR_TEST_FAILURE]: real capture + time enrichment
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:07:04.1887340Z FAIL ans-09-integration-chrome-e2e.test.mjs: ANS-09 source: legacy Backup, multi-tab unsaved edit, metadata move/delete, restart, Topic and purge retain trust
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:07:04.1887855Z Error [ERR_TEST_FAILURE]: save failure acknowledged
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:07:23.6488718Z FAIL ans-09-integration-chrome-e2e.test.mjs: ANS-09 release: legacy Backup, multi-tab unsaved edit, metadata move/delete, restart, Topic and purge retain trust
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:07:23.6489378Z Error [ERR_TEST_FAILURE]: save failure acknowledged
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:09:20.9050091Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 historical comparison keeps complete originals and current edits distinct across scope and deletion
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:09:20.9050599Z Error [ERR_TEST_FAILURE]: Expected values to be strictly deep-equal:
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:09:20.9050826Z + actual - expected
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:09:20.9050953Z ... Skipped lines
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:09:20.9051030Z 
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:09:20.9051080Z   [
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:10:01.7323520Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 search read failure clears unchecked query results and preserves explicit selection
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:10:01.7324338Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:10:16.8000100Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 search read failure clears unchecked filter results and preserves explicit selection
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:10:16.8001179Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:10:31.7903577Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 search read failure clears unchecked page results and preserves explicit selection
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:10:31.7904706Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:10:46.8276948Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 superseded whole-result enumeration success cannot release a newer search fence
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:10:46.8277705Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:11:01.8822617Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 superseded whole-result enumeration failure cannot release a newer search fence
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:11:01.8823543Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:11:17.0603712Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current search real edit retires visible results and refreshes full working evidence
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:11:17.0604220Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:11:32.2344536Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current search real edit retires hidden results and refreshes full working evidence
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:11:32.2345415Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:11:47.3046560Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current edit fences an older actual query success without releasing the newer scope
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:11:47.3047052Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:12:02.4132991Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current edit fences an older actual query failure without releasing the newer scope
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:12:02.4133997Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:12:17.5296693Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current mutation refresh failure stays unavailable through localization and explicit retry
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:12:17.5297341Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:12:32.6355863Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current unlabelled eligibility completion rereads while benign notifications preserve the query
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:12:32.6356657Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:12:47.7173811Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current mutation during composition retires results without searching unfinished input
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:12:47.7174548Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:13:02.7488596Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current edit cancels whole-result enumeration success without confirmation or old selection expansion
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:13:02.7489320Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:13:17.8202787Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current edit cancels whole-result enumeration failure without confirmation or old selection expansion
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:13:17.8205199Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:13:32.9226101Z FAIL cpv1-07-historical-comparison-chrome-e2e.test.mjs: VS07 current real capture replaces loaded generation without mixing old paging
+Current Browser 4/4	UNKNOWN STEP	2026-09-30T15:13:32.9226574Z Error [ERR_TEST_FAILURE]: all42 complete known-time Sources captured
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:05:16.3721630Z FAIL ans-01-reader-surfaces-chrome-e2e.test.mjs: ANS-01 Reader surfaces stay quiet while order, time, reuse and failure recovery remain real
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:05:16.3723099Z Error [ERR_TEST_FAILURE]: ANS-01 source times are known
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:14:40.9582241Z FAIL ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 live capture scope, remove/undo/recapture, opt-in exclusions and purge remain authoritative
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:14:40.9583208Z Error [ERR_TEST_FAILURE]: locator.click: Timeout 30000ms exceeded.
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:14:40.9583600Z Call log:
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:14:40.9584285Z   - waiting for locator('#context-menu button').filter({ hasText: '会话收录设置' })
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:14:40.9584863Z 
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:15:00.9138475Z FAIL ux-r2-reader-revisit-chrome-e2e.test.mjs: UX-R2 topic exclusion removes related Input previews; Revisit visual matrix and keyboard remain usable
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:15:00.9139700Z Error [ERR_TEST_FAILURE]: explicit opt-in reveals eligible old Input
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:17:25.2919640Z FAIL ux-r2-reader-revisit-chrome-e2e.test.mjs: VS07 Revisit explains a finite priority set and keeps saved position and exclusions
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:17:25.2920623Z Error [ERR_TEST_FAILURE]: all eight real historical-time captures are ready
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:17:40.7941154Z FAIL ux-r2-reader-revisit-chrome-e2e.test.mjs: VS07 Revisit finds worked material beyond the first ordinary cursor page
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:17:40.7942722Z Error [ERR_TEST_FAILURE]: all full cross-page historical captures are ready
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:18:00.5959585Z FAIL ux-r2-reader-revisit-chrome-e2e.test.mjs: VS07 Revisit revokes delayed real reads on leave and cannot revive purged previews
+Current Browser 2/4	UNKNOWN STEP	2026-09-30T15:18:00.5960454Z Error [ERR_TEST_FAILURE]: synthetic expected state

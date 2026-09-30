@@ -1,0 +1,20 @@
+Preserved repair negatives (synthetic headless):
+- canonical-failure-popup-attempt-1: 5/7 PASS, 2 FAIL.
+  Native popup collapsed to 150px when a viewport-relative clamp constrained
+  Chrome's initial intrinsic sizing. Native width assertion retained unchanged.
+  ANS-05 referenced the old per-window details button removed on the verified main baseline;
+  no such old chrome is restored. Frozen Source changes goes through the
+  low-frequency current Conversation menu and the existing trusted service.
+- startup-grace-and-popup-browser: 7/8 PASS, 1 FAIL.
+  The new Source changes action initially read the root-only documents list;
+  current Reader document metadata is in conversations. Owner projection fixed.
+- startup-popup-boundary-unit: 36/37 PASS, 1 FAIL.
+  The source-only CSS pin still expected the former shared html/body declaration.
+  Root remains intrinsically 350px; body fills it. Added document-tab-only narrow
+  reflow assertion, retaining readable count and no native viewport clamp guards.
+- exact fresh-main runtime comparison reproduced both missing historical times
+  and 320px popup overflow of 30px. These failures predate Q1.
+- timeline diagnostic reproduced ordinary recovery replacing a document-start
+  bridge at about 33ms before document-idle capture readiness, clearing accepted
+  42-row metadata. Explicit replay then enriched all complete Sources; it is
+  diagnostic evidence, not the accepted fix or a repeated-fetch production policy.
