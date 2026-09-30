@@ -262,6 +262,11 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
    const result=await chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_NAV_STATUS',page:{selectedDocumentId:id}});
    return result.ok&&result.data.selectedPath?.available&&result.data.selectedPath.groupKind==='unassigned';
   },documentId),'ordinary fixture membership settles as verified unassigned');
+  // This fixed-data IME journey asserts editing and purge admission, not live
+  // capture. Settle actual capture/membership first, then pause through the real
+  // worker to fence pending enrichment/filter notifications before opening Source.
+  const paused=await p.evaluate(()=>chrome.runtime.sendMessage({type:'SET_ENABLED',enabled:false}));assert.equal(paused.ok,true);
+  await eventually(()=>p.evaluate(async()=>{const r=await chrome.runtime.sendMessage({type:'GET_STATUS'});return r.ok&&r.data.enabled===false;}),'actual capture is paused after its complete fixture');
   const group=p.locator('.archive-navigator-group-toggle').filter({hasText:/未归属 Project|Not assigned to a Project/}).first();
   await eventually(()=>group.isVisible(),'verified unassigned group is visible');
   assert.match(await group.textContent(),/未归属 Project|Not assigned to a Project/);
@@ -273,6 +278,8 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   const prose=p.locator('.library-prose').first();
   await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='未完成的输入';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:'未完成的输入',isComposing:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
   await p.getByRole('menuitem',{name:/^(查看原始内容|View original content)$/}).click();
+  await p.locator('#info-dialog').waitFor({state:'visible'});
+  assert.equal(await p.locator('#info-content .source-original').innerText(),'Synthetic source kept','Original displays the actual admitted immutable Source while IME remains unfinished');
   assert.equal(await p.locator('#info-content button.danger').count(),0,'Original admits no destructive action');
   await p.locator('#close-info').click();
   await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'archive'}})));
