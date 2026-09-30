@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const workflow=await readFile(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8');
+const job=workflow.match(/^  capture_recovery:\n([\s\S]*?)(?=^  \w+:)/m)?.[1];
+test('capture recovery hosted gate is opt-in draft, exact head, read-only and complete owning lifecycle scope',()=>{
+ assert.ok(job);assert.equal((workflow.match(/^  capture_recovery:/gm)||[]).length,1);
+ assert.match(job,/github\.event\.pull_request\.draft == true.*PAIA_CAPTURE_RECOVERY_BROWSER/);
+ assert.match(workflow,/permissions:\n  contents: read/);
+ assert.match(job,/ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
+ assert.match(job,/persist-credentials: false/);assert.match(job,/fetch-depth: 0/);
+ assert.doesNotMatch(job,/continue-on-error|secrets\.|workflow_dispatch|test-name-pattern/);
+ for(const file of ['cpv1-01-capture-recovery-chrome-e2e.test.mjs','cpv1-01-2-reconnect-chrome-e2e.test.mjs','cpv1-01-6-lifecycle-chrome-e2e.test.mjs'])assert.ok(job.includes('tests/'+file));
+ assert.match(job,/set -o pipefail/);assert.match(job,/assert.equal\(report.headSha,process.env.PAIA_TESTED_HEAD\)/);
+ for(const name of ['legacy-upgrade','same-version-reload','consent-pause','transient-worker','tombstone-replay'])assert.ok(job.includes("'"+name+"'"));
+ assert.match(job,/assert.equal\(report.status,'PASS'\)/);assert.match(job,/\.png/);
+ assert.match(job,/if-no-files-found: error/);
+ assert.match(workflow,/needs: \[[^\]]*capture_recovery/);
+ assert.match(workflow,/if \[ "\$CAPTURE_RECOVERY_SELECTED" = true \]; then test "\$CAPTURE_RECOVERY" = success;/);
+});

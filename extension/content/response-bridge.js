@@ -1,6 +1,21 @@
 /* ISOLATED: raw response metadata stays in this document's bounded memory. */
 (() => {
   'use strict';
+  globalThis.PAIAResponseBridge?.dispose();
+  const lifecycle = globalThis.PAIACaptureLifecycle;
+  const contentVersion = lifecycle?.version || (() => { try { return chrome.runtime.getManifest().version; } catch { return null; } })();
+  let disposed = false;
+  let generation = 0;
+  const requests = new Set();
+  function available() {
+    try { return !disposed && lifecycle?.active !== false && (!lifecycle || globalThis.PAIACaptureLifecycle === lifecycle) && !!chrome.runtime.id; }
+    catch { return false; }
+  }
+  function current(token = generation) {
+    if (!available()) { if (!disposed) invalidate(); return false; }
+    return !stopped && token === generation;
+  }
+  function invalidate() { if (lifecycle?.active) lifecycle.dispose(); else dispose(); }
   const protocol = globalThis.ResponseTimeProtocol;
   const model = new protocol.Model();
   const fingerprints = new globalThis.JSONFingerprintProtocol.Model();
@@ -25,27 +40,36 @@
   let responseObservation={state:'NOT_OBSERVED',acceptedRows:0,rejectedFrames:0};
   let canonicalAt = 0;
   function control() {
-    window.postMessage({channel: 'archive-response-control-v1', active, chat: model.chat, epoch, session, historySession, arm, fingerprint: fingerprintAllowed, history: active}, 'https://chatgpt.com');
+    window.postMessage({channel: 'archive-response-control-v2', active: active && current(), chat: model.chat, epoch, session, historySession, arm, fingerprint: fingerprintAllowed, history: active}, 'https://chatgpt.com');
   }
   function clear() {
+    generation++;
     fingerprints.clear(); semantics.clear(); fingerprintAllowed = false;
     model.reset(); active = false; arm = 0; canonicalAt = 0; session = crypto.randomUUID(); control();
     responseObservation={state:'NOT_OBSERVED',acceptedRows:0,rejectedFrames:0};
     history.reset(); proofs.clear(); acknowledged.clear(); proofChat = null; historySession = crypto.randomUUID();
   }
   async function request(message) {
-    let deadline;
+    if (!current()) { if (!available()) invalidate(); return null; }
+    const token = generation;
+    let deadline, cancel;
     try {
-      return await Promise.race([chrome.runtime.sendMessage(message),new Promise(resolve=>{
+      const cancelled = new Promise(resolve => { cancel = () => resolve(null); requests.add(cancel); });
+      const reply = await Promise.race([chrome.runtime.sendMessage({...message, contentVersion}), cancelled, new Promise(resolve => {
         deadline=setTimeout(()=>resolve({ok:false,error:'MESSAGE_RESPONSE_TIMEOUT'}),35000);
       })]);
-    } finally { globalThis.clearTimeout?.(deadline); }
+      if (!available() || reply?.error === 'CONTEXT_INVALIDATED') invalidate();
+      return current(token) ? reply : null;
+    } catch (error) {
+      if (!available() || /extension context invalidated/i.test(String(error?.message || ''))) invalidate();
+      throw error;
+    } finally { globalThis.clearTimeout?.(deadline); requests.delete(cancel); }
   }
-  function eligible() { return active && adapter.route().id === model.chat && adapter.route().code === 'READY'; }
-  window.addEventListener('message', event => {
+  function eligible() { return current() && active && adapter.route().id === model.chat && adapter.route().code === 'READY'; }
+  function onMetadata(event) {
     if (event.source !== window || event.origin !== 'https://chatgpt.com' || !eligible()) return;
     const data = event.data;
-    if (data?.channel !== 'archive-response-metadata-v1' || data.epoch !== epoch || data.chat !== model.chat) return;
+    if (data?.channel !== 'archive-response-metadata-v2' || data.epoch !== epoch || data.chat !== model.chat) return;
     if(data.historyState&&data.historySession===historySession){
       const value=globalThis.ArchiveDiagnostics?.sanitizeResponseObservation(data.historyState);
       if(value)responseObservation=value;
@@ -71,7 +95,8 @@
     if (data.error === 'LIMIT') model.limitedResponses = Math.min(1000000, model.limitedResponses + 1);
     else if (data.error === 'SCHEMA') model.rejectedResponses = Math.min(1000000, model.rejectedResponses + 1);
     else if (!model.ingest(data)) model.rejectedResponses = Math.min(1000000, model.rejectedResponses + 1);
-  });
+  }
+  window.addEventListener('message', onMetadata);
   async function flush() {
     if (flushing) { flushAgain = true; return; }
     if (!eligible() || !proofChat || !proofs.size) return;
@@ -94,7 +119,7 @@
           if (!eligible() || historySession !== generation || epoch !== batchEpoch) return;
           const messages = pending.slice(start, start + 200);
           const reply = await request({type:'ENRICH_SOURCE_METADATA',epoch:batchEpoch,adapterVersion:globalThis.ChatGPTAdapter.version,chat,messages});
-          if (!reply?.ok || historySession !== generation) return; // Keep evidence for the next authorized poll.
+          if (!reply?.ok || !eligible() || epoch !== batchEpoch || historySession !== generation) return; // Keep evidence for the next authorized poll.
           // Only the trusted writer can confirm persistence or an explicit exclusion.
           // Missing sources keep their evidence pending, even after an OK response.
           for (let index=0; index<messages.length; index++) {
@@ -110,7 +135,7 @@
       if (flushAgain) { flushAgain = false; void flush(); }
     }
   }
-  globalThis.ArchiveResponseTime = Object.freeze({
+  const api = Object.freeze({
     persisted() { void flush(); },
     owns(chatId,messageId) { return eligible()&&chatId===model.chat&&history.rows.has(messageId); },
     health(snapshot,status) {
@@ -144,14 +169,16 @@
     }
   });
   async function poll() {
-    if (stopped || polling) return;
+    if (!current() || polling) return;
     polling = true;
+    const token = generation;
     try {
       const response = await request({type: 'GET_STATUS'});
-      if (stopped) return;
+      if (!current(token)) return;
       const status = response?.ok ? response.data : null;
+      if (status && (!contentVersion || status.runtimeVersion && status.runtimeVersion !== contentVersion)) { invalidate(); return; }
       const route = adapter.route();
-      const allowed = status?.enabled === true && status.consented === true && status.adapterVersion === '0.3.0' && route.code === 'READY';
+      const allowed = status?.enabled === true && status.consented === true && status.adapterVersion === (adapter.version || globalThis.ChatGPTAdapter.version) && route.code === 'READY';
       if (!allowed) { if (active) clear(); }
       else {
         if (!active || epoch !== status.epoch || model.chat !== route.id) {
@@ -159,10 +186,13 @@
         }
         control();
       }
+      const pollGeneration = generation;
       await flush();
+      if (!current(pollGeneration)) return;
       let reply;
       // Diagnostic transport/lease failure must not clear authorized formal evidence.
       try { reply = await request({type: 'RESPONSE_POLL', session, epoch, summary: {...model.summary(), fingerprints: fingerprints.summary(model.chat, model.canonical, fingerprintAllowed), semantics: semantics.summary(fingerprintAllowed)}}); } catch {}
+      if (!current(pollGeneration)) return;
       const allowFingerprint = reply?.ok === true && reply.data?.fingerprintAllowed === true && eligible();
       if (!allowFingerprint) {
         fingerprints.clear(); semantics.clear();
@@ -173,19 +203,34 @@
       if (reply?.ok && reply.data?.arm === true && eligible() && canonicalAt && Date.now() - canonicalAt < 5000 && model.canonical.length) {
         model.arm(); arm++; control();
       }
-    } catch { clear(); }
+    } catch { if (current(token)) clear(); }
     finally {
       polling = false;
-      if (!stopped) pollTimer=setTimeout(() => { pollTimer=null; void poll(); }, 500);
+      if (current()) pollTimer=setTimeout(() => { pollTimer=null; void poll(); }, 500);
     }
   }
-  window.addEventListener('pagehide', () => {
-    stopped = true; globalThis.clearTimeout?.(pollTimer); pollTimer=null; clear();
-    try { void chrome.runtime.sendMessage({type: 'RESPONSE_POLL', session, epoch, summary: model.summary()}).catch(() => {}); } catch {}
-  });
-  window.addEventListener('pageshow', () => {
-    if (!stopped) return;
+  function cancelRequests() { for (const cancel of requests) cancel(); requests.clear(); }
+  function onPageHide() {
+    stopped = true; globalThis.clearTimeout?.(pollTimer); pollTimer=null;
+    clear(); cancelRequests();
+  }
+  function onPageShow() {
+    if (!available() || !stopped) return;
     stopped=false; void poll();
-  });
+  }
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    onPageHide();
+    window.removeEventListener?.('message', onMetadata);
+    window.removeEventListener?.('pagehide', onPageHide);
+    window.removeEventListener?.('pageshow', onPageShow);
+    if (globalThis.ArchiveResponseTime === api) delete globalThis.ArchiveResponseTime;
+  }
+  globalThis.PAIAResponseBridge = Object.freeze({dispose});
+  globalThis.ArchiveResponseTime = api;
+  window.addEventListener('pagehide', onPageHide);
+  window.addEventListener('pageshow', onPageShow);
+  lifecycle?.add(dispose);
   void poll();
 })();

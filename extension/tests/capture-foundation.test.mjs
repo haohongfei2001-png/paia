@@ -40,14 +40,14 @@ async function bridgeFixture(){
  const handlers=new Map(),controls=[],requests=[],timers=[];let persisted=false,serial=0;
  const window={addEventListener(k,fn){handlers.set(k,fn);},postMessage(d){controls.push(d);}};
  class Adapter{static version=ADAPTER_VERSION;route(){return {code:'READY',id:chat};}}
- const c=vm.createContext({window,ChatGPTAdapter:Adapter,Date,crypto:{randomUUID:()=>`synthetic-session-${++serial}`},setTimeout:(fn,delay)=>{if(delay===35000)return 0;timers.push(fn);return timers.length;},clearTimeout(){},chrome:{runtime:{sendMessage:async req=>{
+ const c=vm.createContext({window,ChatGPTAdapter:Adapter,Date,crypto:{randomUUID:()=>`synthetic-session-${++serial}`},setTimeout:(fn,delay)=>{if(delay===35000)return 0;timers.push(fn);return timers.length;},clearTimeout(){},chrome:{runtime:{id:'synthetic-extension',getManifest:()=>({version:'0.12.0'}),sendMessage:async req=>{
   requests.push(req);if(req.type==='GET_STATUS')return {ok:true,data:{enabled:true,consented:true,epoch:1,adapterVersion:ADAPTER_VERSION}};
   if(req.type==='ENRICH_SOURCE_METADATA')return {ok:true,data:{enriched:0,settled:req.messages.map(()=>persisted)}};
   return {ok:true,data:{fingerprintAllowed:false}};
  }}}});
  for(const path of ['core/json-fingerprint.js','core/history-time.js','core/source-time.js','core/response-time.js','content/response-bridge.js'])vm.runInContext(await readFile(new URL('../'+path,import.meta.url),'utf8'),c);
  await tick();c.ArchiveResponseTime.observe({chat:{id:chat,url:'https://chatgpt.com/c/'+chat},messages:[{sourceMessageId:id,pageOrder:1}]},{epoch:1});
- const g=controls.at(-1);handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-metadata-v1',chat,epoch:1,historySession:g.historySession,history:{contract:'chatgpt-history-user-v1',rows:[{chat,id,create:{state:'value',value:1609459200},update:{state:'missing',value:null}}]}}});await tick();
+ const g=controls.at(-1);handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-metadata-v2',chat,epoch:1,historySession:g.historySession,history:{contract:'chatgpt-history-user-v1',rows:[{chat,id,create:{state:'value',value:1609459200},update:{state:'missing',value:null}}]}}});await tick();
  return {handlers,requests,timers,persist:()=>{persisted=true;},c};
 }
 test('foundation: zero-match enrichment is retried after source persists even without another DOM scan',async()=>{

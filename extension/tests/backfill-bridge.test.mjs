@@ -7,8 +7,8 @@ const chat='fake-bridge-chat',id='fake-bridge-user';
 async function fixture(){
  const handlers=new Map(),controls=[],timers=[],requests=[];let allowed=true,diagnosticError=false,enrichmentError=false,serial=0;
  const window={addEventListener(k,fn){handlers.set(k,fn);},postMessage(d){controls.push(d);}};
- class Adapter{route(){return {code:'READY',id:chat,url:'https://chatgpt.com/c/'+chat};}}
- const context=vm.createContext({window,ChatGPTAdapter:Adapter,Date,crypto:{randomUUID:()=>`fake-session-${++serial}`},setTimeout:(fn,delay)=>delay===35000?0:timers.push(fn),chrome:{runtime:{async sendMessage(req){
+ class Adapter{static version=ADAPTER_VERSION;route(){return {code:'READY',id:chat,url:'https://chatgpt.com/c/'+chat};}}
+ const context=vm.createContext({window,ChatGPTAdapter:Adapter,Date,crypto:{randomUUID:()=>`fake-session-${++serial}`},setTimeout:(fn,delay)=>delay===35000?0:timers.push(fn),chrome:{runtime:{id:'synthetic-extension',getManifest:()=>({version:'0.12.0'}),async sendMessage(req){
   requests.push(req);if(req.type==='GET_STATUS')return {ok:true,data:{enabled:true,consented:true,epoch:1,adapterVersion:ADAPTER_VERSION}};
   if(req.type==='RESPONSE_POLL'){if(diagnosticError)throw Error('fake transient diagnostic outage');return {ok:true,data:{fingerprintAllowed:allowed}};}
   return enrichmentError?{ok:false,error:'STORAGE_FAILED'}:{ok:true,data:{enriched:1}};
@@ -16,7 +16,7 @@ async function fixture(){
  for(const name of ['core/json-fingerprint.js','core/history-time.js','core/source-time.js','core/response-time.js','content/response-bridge.js'])vm.runInContext(await readFile(new URL('../'+name,import.meta.url),'utf8'),context);
  const tick=()=>new Promise(r=>setImmediate(r));await tick();
  const observe=()=>context.ArchiveResponseTime.observe({chat:{id:chat,url:'https://chatgpt.com/c/'+chat},messages:[{sourceMessageId:id,pageOrder:1,originalText:'FAKE_BODY_NOT_FOR_ENRICHMENT'}]},{epoch:1});
- const emit=(g=controls.at(-1),rows=[{chat,id,create:{state:'value',value:1609459200},update:{state:'missing',value:null}}])=>handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-metadata-v1',chat,epoch:1,session:g.session,historySession:g.historySession,history:{contract:'chatgpt-history-user-v1',rows}}});
+ const emit=(g=controls.at(-1),rows=[{chat,id,create:{state:'value',value:1609459200},update:{state:'missing',value:null}}])=>handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-metadata-v2',chat,epoch:1,session:g.session,historySession:g.historySession,history:{contract:'chatgpt-history-user-v1',rows}}});
  const poll=async()=>{timers.shift()();await tick();};
  return {context,controls,requests,observe,emit,tick,poll,allow:v=>allowed=v,error:v=>diagnosticError=v,enrichmentError:v=>enrichmentError=v,close:()=>handlers.get('pagehide')()};
 }

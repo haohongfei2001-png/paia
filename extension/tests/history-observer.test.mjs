@@ -22,10 +22,10 @@ async function observe({active=true,type='application/json',url=`https://chatgpt
  const response=new ProbeResponse(stream,{headers:{'content-type':type}});Object.defineProperties(response,{url:{value:url},ok:{value:ok}});
  const original=Promise.resolve(response);
  const request={get body(){assert.fail('request body read');},get headers(){assert.fail('request headers read');},get credentials(){assert.fail('request credentials read');}};
- const window={fetch(...args){calls++;assert.equal(this,window);assert.equal(args[0],request);return original;},addEventListener(k,fn){handlers.set(k,fn);},postMessage(v){sent.push(v);for(const check of listeners)check();}};
- const c=vm.createContext({window,location:{pathname:'/c/'+chat},Response:ProbeResponse,URL,TextDecoder,setTimeout,clearTimeout});
+ const window={fetch(...args){calls++;assert.equal(this,window);assert.equal(args[0],request);return original;},addEventListener(k,fn){handlers.set(k,fn);},postMessage(v){if(v.channel==='archive-response-metadata-v2')sent.push(v);for(const check of listeners)check();}};
+ const c=vm.createContext({window,location:{origin:'https://chatgpt.com',pathname:'/c/'+chat},Response:ProbeResponse,URL,TextDecoder,setTimeout,clearTimeout});
  for(const path of ['adapter/response-parser.js','adapter/json-fingerprint.js','adapter/history-contract.js','content/response-observer.js'])vm.runInContext(await readFile(new URL('../'+path,import.meta.url),'utf8'),c);
- const control=session=>handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-control-v1',active,chat,epoch:1,session,historySession:'fake-history-session',fingerprint:false,history:true}});
+ const control=session=>handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-control-v2',active,chat,epoch:1,session,historySession:'fake-history-session',fingerprint:false,history:true}});
  if(!startBeforeGate)control('fake-session');
  const result=window.fetch(request);assert.equal(result,original);
  if(startBeforeGate)control('fake-session');

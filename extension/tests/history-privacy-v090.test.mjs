@@ -27,6 +27,6 @@ test('import commits recheck concurrent capture, user edits, removal and Source 
 });
 test('history provider stays local while required and optional permissions remain exact allowlists',async()=>{
  const provider=new OfficialExportProvider();assert.equal(provider.describe().network,false);assert.equal(provider.describe().input,'user_selected_file');assert.equal(provider.describe().realExportVerified,false);
- const current=JSON.parse(await readFile('manifest.json','utf8'));assert.deepEqual(current.permissions,['storage']);assert.deepEqual(current.optional_permissions,['nativeMessaging']);assert.deepEqual(current.host_permissions,['https://api.deepseek.com/*']);
+ const current=JSON.parse(await readFile('manifest.json','utf8'));assert.deepEqual(current.permissions,['storage','scripting']);assert.deepEqual(current.optional_permissions,['nativeMessaging']);assert.deepEqual(current.host_permissions,['https://api.deepseek.com/*','https://chatgpt.com/*']);
  for(const file of ['core/import/chatgpt-export.js','core/import/detector.js','core/import/reader.js','core/import/provider.js','core/import/coordinator.js','core/import/ledger.js'])assert.doesNotMatch(await readFile(file,'utf8'),/\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|document\.cookie|chrome\.storage\.sync|sendNativeMessage|connectNative/);
 });

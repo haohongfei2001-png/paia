@@ -53,10 +53,10 @@ async function observed({allow=true,type='application/json',origin='https://chat
   Object.defineProperties(response,{url:{value:origin+path},ok:{value:ok},redirected:{value:redirect}});
   if(declared) response.headers.set('content-length',declared);
   const promise=Promise.resolve(response);let calls=0;
-  const window={fetch(){calls++;return promise;},addEventListener(k,f){handlers.set(k,f);},postMessage(v){sent.push(v);}};
-  const c=vm.createContext({window,location:{pathname:'/c/'+chat},Response,URL,TextDecoder,setTimeout,clearTimeout});
+  const window={fetch(){calls++;return promise;},addEventListener(k,f){handlers.set(k,f);},postMessage(v){if(v.channel==='archive-response-metadata-v2')sent.push(v);}};
+  const c=vm.createContext({window,location:{origin:'https://chatgpt.com',pathname:'/c/'+chat},Response,URL,TextDecoder,setTimeout,clearTimeout});
   vm.runInContext(parser,c);vm.runInContext(fp,c);vm.runInContext(observer,c);
-  handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-control-v1',active:true,chat,epoch:1,session:'test',fingerprint:allow}});
+  handlers.get('message')({source:window,origin:'https://chatgpt.com',data:{channel:'archive-response-control-v2',active:true,chat,epoch:1,session:'test',fingerprint:allow}});
   assert.equal(window.fetch('synthetic-input'),promise);
   await new Promise(r=>setTimeout(r,35));
   assert.equal(await response.text(),body);assert.equal(calls,1);

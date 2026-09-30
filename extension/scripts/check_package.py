@@ -65,12 +65,12 @@ def audit_manifest():
         require(False, "manifest.json is not valid readable JSON")
         return
     require(manifest.get("manifest_version") == 3, "Manifest must be version 3")
-    require(manifest.get("permissions") == ["storage"],
-            "Required permissions must remain storage-only")
+    require(manifest.get("permissions") == ["storage", "scripting"],
+            "Required permissions must remain storage plus reviewed capture recovery scripting")
     require(manifest.get("optional_permissions") == ["nativeMessaging"],
             "nativeMessaging must be the sole reviewed optional permission")
-    require(manifest.get("host_permissions") in (None, ["https://api.deepseek.com/*"]),
-            "DeepSeek host permission must be the sole exact approved origin")
+    require(manifest.get("host_permissions") == ["https://api.deepseek.com/*", "https://chatgpt.com/*"],
+            "Only the exact approved DeepSeek and ChatGPT origins are permitted")
     for key in ("optional_host_permissions", "externally_connectable", "web_accessible_resources", "sandbox",
                 "update_url", "devtools_page", "chrome_url_overrides"):
         require(not manifest.get(key), f"Unexpected manifest capability: {key}")
@@ -146,6 +146,11 @@ FORBIDDEN_JS = {
 def audit_js(path, text):
     for label, pattern in FORBIDDEN_JS.items():
         scanned = text
+        if label == "credential, history or unrelated privileged API" and path == ROOT / "background/capture-recovery.js":
+            # Only this reviewed coordinator may inject bundled capture scripts.
+            # Exact host/manifest bounds and document pinning have owning tests.
+            scanned = scanned.replace("chrome.scripting?.executeScript", "APPROVED_CAPTURE_SCRIPTING_AVAILABLE")
+            scanned = scanned.replace("chrome.scripting.executeScript(", "APPROVED_CAPTURE_SCRIPTING(")
         if label == "network API" and path == ROOT / "core/organizer/deepseek.js":
             scanned = scanned.replace("this.fetchImpl(", "APPROVED_DEEPSEEK_FETCH(")
         if label == "website storage or nonlocal extension storage" and path in {ROOT / "core/organizer/deepseek.js", ROOT / "background/service-worker.js"}:

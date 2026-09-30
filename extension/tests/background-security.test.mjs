@@ -39,7 +39,7 @@ function sourceObservation(epoch,changes={}) {
     subject:{kind:'conversation',conversationId:CHAT_ID},
     observation:{}
   };
-  return {type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
+  return {type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',contentVersion:'0.8.1',
     chat:{id:CHAT_ID,url:CHAT_URL},observations:[observation],...changes};
 }
 
@@ -51,7 +51,7 @@ function projectObservationBatch(epoch,projectId=PROJECT_ID,name='Synthetic Proj
     observedAt
   };
   return {
-    type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
+    type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',contentVersion:'0.8.1',
     chat:{id:CHAT_ID,url:CHAT_URL},
     observations:[
       {...common,capability:'membership',subject:{kind:'conversation',conversationId:CHAT_ID},
@@ -66,7 +66,7 @@ function projectObservationBatch(epoch,projectId=PROJECT_ID,name='Synthetic Proj
 
 function unassignedObservation(epoch,generation=3,observedAt='2026-09-22T11:21:00.000Z') {
   return {
-    type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',
+    type:'OBSERVE_SOURCE_STRUCTURE',epoch,adapterVersion:'0.3.0',contentVersion:'0.8.1',
     chat:{id:CHAT_ID,url:CHAT_URL},
     observations:[{
       schemaVersion:1,contractId:'chatgpt.current-project-absence',contractVersion:1,
@@ -485,7 +485,7 @@ test('CPR-02 plain-route absence is trusted, custom GPT is not, and only relatio
 test('metadata enrichment uses the same trusted top-level sender and epoch gates as capture',async()=>{
  const app=await fixture();await app.send({type:'CONSENT',accepted:true});const epoch=(await app.send({type:'GET_STATUS'})).data.epoch;
  await app.send(capture(epoch),content);
- const req={type:'ENRICH_SOURCE_METADATA',epoch,adapterVersion:'0.3.0',chat:{id:CHAT_ID,url:CHAT_URL},messages:[{sourceMessageId:'synthetic-message-001',pageOrder:1,sourceTime:{state:'valid',createTime:1609459200,updateTime:null}}]};
+ const req={type:'ENRICH_SOURCE_METADATA',epoch,adapterVersion:'0.3.0',contentVersion:'0.8.1',chat:{id:CHAT_ID,url:CHAT_URL},messages:[{sourceMessageId:'synthetic-message-001',pageOrder:1,sourceTime:{state:'valid',createTime:1609459200,updateTime:null}}]};
  for(const sender of [ui,popup,{...content,id:'fake-wrong-extension'},{...content,frameId:1},{...content,tab:{id:23,url:'https://chatgpt.com/c/fake-other-chat'}},{...content,tab:{id:23,incognito:true}}])await expectError(app.send(req,sender),'FORBIDDEN');
  assert.equal((await app.send(req,content)).ok,true);
  const after=(await app.send({type:'GET_STATE'})).data.records[0];assert.equal(after.timeConfidence,'high');
@@ -570,4 +570,17 @@ test('foundation worker: time-only CAPTURE notifies readers but unchanged replay
  await new Promise(resolve=>setImmediate(resolve));assert.equal(app.notifications.filter(n=>n.cause==='CAPTURE').length,1);
  app.notifications.length=0;assert.equal((await app.send(q,content)).data.timeChanged,false);
  await new Promise(resolve=>setImmediate(resolve));assert.equal(app.notifications.filter(n=>n.cause==='CAPTURE').length,0);
+});
+
+
+test('capture recovery fences every old-version content write before metadata or source mutation',async()=>{
+ const app=await fixture();await app.send({type:'CONSENT',accepted:true});
+ const epoch=(await app.send({type:'GET_STATUS'})).data.epoch;
+ for(const request of [capture(epoch),sourceObservation(epoch),{...capture(epoch),type:'ENRICH_SOURCE_METADATA'}]){
+  for(const contentVersion of [undefined,'stale-version']){
+   const before=app.counts().writes;
+   await expectError(app.send({...request,contentVersion},content),'CONTEXT_INVALIDATED');
+   assert.equal(app.counts().writes,before,'stale content cannot write Source or metadata');
+  }
+ }
 });

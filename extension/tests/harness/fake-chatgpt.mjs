@@ -33,7 +33,7 @@ function fakePage(c,arrival) {
  };
  if(config.arrival!=='metadata-first'&&config.arrival!=='empty')window.fake.render(config.c);
  window.addEventListener('message',event=>{
-  if(event.source!==window||event.data?.channel!=='archive-response-control-v1')return;
+  if(event.source!==window||event.data?.channel!=='archive-response-control-v2')return;
   window.historyGateActive=event.data.active===true&&event.data.history===true&&location.pathname.endsWith('/'+event.data.chat);
   if(!loaded&&window.historyGateActive&&config.arrival==='metadata-first'){
    loaded=true;void window.fake.response().then(()=>{setTimeout(()=>window.fake.render(config.c),300);});

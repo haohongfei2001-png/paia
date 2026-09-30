@@ -22,7 +22,7 @@ for(const kind of ['array','dictionary','messages'])test(`structural browser cle
   await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();await h.archive.locator('[data-view="settings"]').click();await h.archive.locator('[data-view="archive"]').click();
   await h.context.addInitScript(()=>{
    window.fakeDiscovery={other:false,rejectedURL:false,projected:0};
-   window.addEventListener('message',e=>{if(e.source!==window||e.data?.channel!=='archive-response-metadata-v1')return;
+   window.addEventListener('message',e=>{if(e.source!==window||e.data?.channel!=='archive-response-metadata-v2')return;
     if(e.data.trace){window.fakeDiscovery.other ||= e.data.trace.endpointClass==='other';window.fakeDiscovery.rejectedURL ||= e.data.trace.reason==='URL_SHAPE_NOT_ALLOWED';}
     if(e.data.history)window.fakeDiscovery.projected=e.data.history.rows.length;
    });

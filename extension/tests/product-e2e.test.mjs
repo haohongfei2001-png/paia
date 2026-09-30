@@ -96,7 +96,7 @@ test('Fake ChatGPT full product workflow in an isolated offline browser', {timeo
   await t.test('G privacy: all requests are local fixtures, archive has no assistant/draft content, manifest scope unchanged',async()=>{
    const text=JSON.stringify((await h.state()).records);for(const sentinel of ['FAKE_ASSISTANT','FAKE_DRAFT','FAKE_EDITOR_NEW_TEXT','FAKE_INVALID_TIME'])assert.equal(text.includes(sentinel),false);
    assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.ok(h.historyRequests>0);assert.deepEqual(h.errors,[]);
-   assert.deepEqual(h.manifest.permissions,['storage']);assert.deepEqual(h.manifest.host_permissions,['https://api.deepseek.com/*']);
+   assert.deepEqual(h.manifest.permissions,['storage','scripting']);assert.deepEqual(h.manifest.host_permissions,['https://api.deepseek.com/*','https://chatgpt.com/*']);
   });
  }finally{await h.close();}
 });

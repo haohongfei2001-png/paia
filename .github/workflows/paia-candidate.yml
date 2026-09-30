@@ -293,6 +293,67 @@ jobs:
           if-no-files-found: error
 
 
+  capture_recovery:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_CAPTURE_RECOVERY_BROWSER')
+    name: Candidate capture recovery acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Select hosted Chrome for real extension lifecycle
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Verify same-document capture recovery and retained lifecycle cases
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          PLAYWRIGHT_MODULE: playwright
+        run: |
+          set -o pipefail
+          mkdir -p work/capture-recovery
+          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-01-capture-recovery-chrome-e2e.test.mjs tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs tests/cpv1-01-6-lifecycle-chrome-e2e.test.mjs 2>&1 | tee work/capture-recovery/test.log
+      - name: Require exact-head recovery evidence
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          for(const name of ['legacy-upgrade','same-version-reload','consent-pause','transient-worker','tombstone-replay']){
+            const report=JSON.parse(await readFile(`work/capture-recovery/${name}.json`,'utf8'));
+            assert.equal(report.status,'PASS');assert.equal(report.headSha,process.env.PAIA_TESTED_HEAD);
+            assert.equal(report.noExternalRequests,true);assert.equal(report.noUnsentOrAssistantArchived,true);
+            const png=await readFile(`work/capture-recovery/${name}.png`);
+            assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));
+          }
+          console.log('CAPTURE_RECOVERY_EVIDENCE_PASS '+process.env.PAIA_TESTED_HEAD);
+          JS
+      - name: Retain exact-head synthetic recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capture-recovery-${{ github.event.pull_request.head.sha }}
+          path: extension/work/capture-recovery/
+          if-no-files-found: error
+          retention-days: 7
+
   native_popup:
     if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER')
     name: Candidate native popup acceptance
@@ -433,7 +494,7 @@ jobs:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release, targeted_browser, native_popup, scale_probe, macos_reload_diagnostic]
+    needs: [unit, contracts, release, targeted_browser, native_popup, capture_recovery, scale_probe, macos_reload_diagnostic]
     steps:
       - name: Require light candidate gates
         env:
@@ -443,6 +504,8 @@ jobs:
           TARGETED_BROWSER: ${{ needs.targeted_browser.result }}
           NATIVE_POPUP: ${{ needs.native_popup.result }}
           NATIVE_POPUP_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER') }}
+          CAPTURE_RECOVERY: ${{ needs.capture_recovery.result }}
+          CAPTURE_RECOVERY_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_CAPTURE_RECOVERY_BROWSER') }}
           SCALE_PROBE: ${{ needs.scale_probe.result }}
           MACOS_RELOAD_DIAGNOSTIC: ${{ needs.macos_reload_diagnostic.result }}
         run: |
@@ -452,5 +515,6 @@ jobs:
           test "$RELEASE" = success
           if [ "$TARGETED_BROWSER" != skipped ]; then test "$TARGETED_BROWSER" = success; fi
           if [ "$NATIVE_POPUP_SELECTED" = true ]; then test "$NATIVE_POPUP" = success; elif [ "$NATIVE_POPUP" != skipped ]; then test "$NATIVE_POPUP" = success; fi
+          if [ "$CAPTURE_RECOVERY_SELECTED" = true ]; then test "$CAPTURE_RECOVERY" = success; elif [ "$CAPTURE_RECOVERY" != skipped ]; then test "$CAPTURE_RECOVERY" = success; fi
           if [ "$SCALE_PROBE" != skipped ]; then test "$SCALE_PROBE" = success; fi
           if [ "$MACOS_RELOAD_DIAGNOSTIC" != skipped ]; then test "$MACOS_RELOAD_DIAGNOSTIC" = success; fi

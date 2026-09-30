@@ -8,11 +8,13 @@ const captureSource = await readFile(new URL('../content/capture.js', import.met
 const schemaSource = await readFile(new URL('../core/diagnostics-schema.js', import.meta.url), 'utf8');
 
 async function schedulerFixture(status, options = {}) {
-  const sent = [];
+  const sent = [], mutationObservers = [];
   const state = {reads: 0, watching: 0, stops: 0, captures: 0, invalidations: 0, diagnostics: 0};
-  const timers = [],intervals=new Map(),deadlines=new Map();let serial=0;const handlers=new Map();
-  const elements = new Map();
+  const timers = [],intervals=new Map(),deadlines=new Map(),notices=new Map();let serial=0;const handlers=new Map();
+  const elements = new Map(),documentHandlers=new Map();
   const document = {
+    addEventListener(name,fn) {documentHandlers.set(name,fn);},
+    removeEventListener(name,fn) {if(documentHandlers.get(name)===fn)documentHandlers.delete(name);},
     documentElement: {append(element) {elements.set(element.id, element);}},
     getElementById(id) {return elements.get(id) || null;},
     createElement(tag) {return {tag, style: {}, children: [], setAttribute(name, value) {this[name] = value;}, addEventListener(name, listener) {this[name] = listener;}, append(...children) {this.children.push(...children);}, remove() {elements.delete(this.id);}};}
@@ -30,6 +32,7 @@ async function schedulerFixture(status, options = {}) {
     }
   }
   const context = vm.createContext({
+    MutationObserver: class {constructor(callback){this.callback=callback;mutationObservers.push(this);} observe(target,options){this.target=target;this.options=options;} disconnect(){this.disconnected=true;}},
     ChatGPTAdapter: FakeAdapter, TextEncoder, document, location: {reload() {state.reloads = (state.reloads || 0) + 1;}},
     addEventListener:(key,fn)=>handlers.set(key,fn),
     ArchiveResponseTime: options.responseDiagnosticThrows ? {observe() {throw new Error('synthetic optional diagnostic failure');}} : undefined,
@@ -48,15 +51,15 @@ async function schedulerFixture(status, options = {}) {
       }
       return message.type === 'GET_STATUS' ? {ok: true, data: status} : {ok: true, data: {added: 1}};
     }}},
-    setTimeout(callback, delay) { const id=++serial;if(delay===35000)deadlines.set(id,callback);else timers.push({callback,delay});return id; },
-    clearTimeout(id) {deadlines.delete(id);},
+    setTimeout(callback, delay) { const id=++serial;if(delay===35000||delay===5000)deadlines.set(id,callback);else if(delay===15000)notices.set(id,callback);else timers.push({callback,delay});return id; },
+    clearTimeout(id) {deadlines.delete(id);notices.delete(id);},
     setInterval(callback, delay) {const id=++serial;intervals.set(id,{callback,delay});return id;},
     clearInterval(id) {intervals.delete(id);}, Date
   });
   vm.runInContext(schemaSource, context);
   vm.runInContext(captureSource, context);
   await new Promise((resolve) => setImmediate(resolve));
-  return {sent, state, timers,intervals,deadlines,handlers,elements,runtime:context.chrome.runtime};
+  return {sent, state, timers,intervals,deadlines,notices,handlers,documentHandlers,elements,context,mutationObservers,runtime:context.chrome.runtime};
 }
 
 test('capture scheduler never reads content before consent, while paused, or after status failure', async () => {
@@ -88,16 +91,16 @@ test('enabled capture forwards the current consent epoch and keeps polling at mo
   assert.ok(result.timers[0].delay >= 1900 && result.timers[0].delay <= 2000);
 });
 
-test('stale content version stops capture and offers one visible refresh action', async () => {
+test('stale content version stops capture with a delayed quiet fallback if recovery never arrives', async () => {
   const result = await schedulerFixture({enabled: true, consented: true, epoch: 42, adapterVersion: '0.3.0', runtimeVersion: '0.9.0'});
   assert.equal(result.state.captures, 0);
   assert.equal(result.timers.length, 0);
+  assert.equal(result.elements.size,0,'normal recovery has time to replace the runtime');
+  [...result.notices.values()][0]();
   const banner = result.elements.get('paia-reconnect-notice');
-  assert.equal(banner.role, 'alert');
-  assert.match(banner.children[0].textContent, /不会继续归档/);
-  assert.match(banner.children[0].textContent, /PAIA 已更新/);
-  assert.match(banner.children[0].textContent, /先保存正在输入的文字/);
-  assert.equal(banner.children[1].textContent, '刷新此 ChatGPT 页面');
+  assert.equal(banner.role, 'status');
+  assert.match(banner.children[0].textContent, /归档连接已断开/);
+  assert.equal(banner.children[1].textContent, '保存输入后刷新');
   banner.children[1].click();
   assert.equal(result.state.reloads, 1);
 });
@@ -228,10 +231,11 @@ test('capture reconnect: pending status cannot hide invalidation or accept a lat
  assert.equal(f.deadlines.size,1);assert.equal(f.intervals.size,1);
  const watcher=[...f.intervals.values()][0];assert.equal(watcher.delay,2000);
  f.runtime.id=undefined;watcher.callback();
+ assert.equal(f.elements.size,0);[...f.notices.values()][0]();
  const banner=f.elements.get('paia-reconnect-notice');
- assert.ok(banner);assert.equal(banner.role,'alert');
- assert.match(banner.children[0].textContent,/当前页面不会继续归档/);
- assert.equal(banner.children[1].textContent,'刷新此 ChatGPT 页面');
+ assert.ok(banner);assert.equal(banner.role,'status');
+ assert.match(banner.children[0].textContent,/归档连接已断开/);
+ assert.equal(banner.children[1].textContent,'保存输入后刷新');
  assert.equal(f.intervals.size,0);
  f.state.resolveStatus({ok:true,data:{enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'}});
  await new Promise(resolve=>setImmediate(resolve));
@@ -246,11 +250,11 @@ test('capture reconnect: pending capture detects invalidation before its reply d
  const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'},{hangFirstCapture:true});
  assert.equal(f.state.captures,1);assert.equal(f.deadlines.size,1);
  const watcher=[...f.intervals.values()][0];f.runtime.id=undefined;watcher.callback();
- assert.ok(f.elements.has('paia-reconnect-notice'));
+ [...f.notices.values()][0]();assert.ok(f.elements.has('paia-reconnect-notice'));
  assert.equal(f.intervals.size,0);assert.equal(f.state.captures,1);
- // The already attempted request remains unknown until the existing deadline;
- // connection failure does not imply it was undone or permit another capture.
- [...f.deadlines.values()][0]();await new Promise(resolve=>setImmediate(resolve));
+ // Teardown releases the local wait; the already-sent write can still have
+ // committed, so it must not cause another capture from this retired instance.
+ await new Promise(resolve=>setImmediate(resolve));
  assert.equal(f.state.captures,1);assert.equal(f.deadlines.size,0);
  assert.equal(f.timers.length,0);assert.equal(f.intervals.size,0);
  assert.equal(f.elements.size,1);
@@ -261,6 +265,58 @@ test('capture reconnect: pagehide suspends identity checks and pageshow rechecks
  assert.equal(f.intervals.size,1);f.handlers.get('pagehide')();assert.equal(f.intervals.size,0);
  f.runtime.id=undefined;f.handlers.get('pageshow')();
  await new Promise(resolve=>setImmediate(resolve));
- assert.ok(f.elements.has('paia-reconnect-notice'));
+ [...f.notices.values()][0]();assert.ok(f.elements.has('paia-reconnect-notice'));
  assert.equal(f.state.captures,1);assert.equal(f.intervals.size,0);
+});
+
+
+test('transient status timeout retries a fresh status without a refresh notice or content scan',async()=>{
+ const status={enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'};
+ const f=await schedulerFixture(status,{hangFirstStatus:true});
+ assert.equal(f.state.reads,0);
+ [...f.deadlines.values()][0]();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.state.reads,0);assert.equal(f.notices.size,0);assert.equal(f.elements.size,0);
+ assert.deepEqual(f.sent.map(x=>x.type),['GET_STATUS'],'a status failure does not queue a second blocking diagnostic');
+ f.timers.at(-1).callback();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.state.captures,1);assert.equal(f.elements.size,0);
+ f.state.resolveStatus({ok:true,data:{...status,epoch:0}});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.state.captures,1,'late old status cannot start a second capture');
+ assert.equal(f.sent.find(x=>x.type==='CAPTURE').epoch,1);
+});
+
+test('retiring an invalidated instance cancels its delayed notice',async()=>{
+ const f=await schedulerFixture({}, {invalidated:true});
+ assert.equal(f.notices.size,1);assert.equal(f.state.reads,0);
+ f.documentHandlers.get('paia-capture-retire-v1')();
+ assert.equal(f.notices.size,0);assert.equal(f.elements.size,0);
+});
+
+test('repeated capture injection retires the previous scheduler and late response',async()=>{
+ const status={enabled:true,consented:true,epoch:7,adapterVersion:'0.3.0'};
+ const f=await schedulerFixture(status,{hangFirstStatus:true});
+ vm.runInContext(captureSource,f.context);await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.state.captures,1);assert.equal(f.intervals.size,1);
+ f.state.resolveStatus({ok:true,data:status});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.state.captures,1);assert.equal(f.intervals.size,1);
+});
+
+
+test('verified current connection removes only an obsolete legacy notice through a child-list-only watcher',async()=>{
+ const f=await schedulerFixture({enabled:false,consented:true,epoch:1,adapterVersion:'0.3.0'});
+ const observer=f.mutationObservers[0];assert.ok(observer);assert.deepEqual(JSON.parse(JSON.stringify(observer.options)),{childList:true});
+ const legacy=f.context.document.createElement('div');legacy.id='paia-reconnect-notice';f.context.document.documentElement.append(legacy);
+ observer.callback();assert.equal(f.elements.size,0);assert.equal(f.state.reads,0,'paused capture stays paused');
+});
+test('transport failure disconnects obsolete-notice watcher and cannot remove a genuine later notice',async()=>{
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'});
+ const observer=f.mutationObservers[0];f.runtime.sendMessage=async()=>{throw Error('synthetic lost connection');};
+ f.timers.at(-1).callback();await new Promise(resolve=>setImmediate(resolve));assert.equal(observer.disconnected,true);
+ const fallback=f.context.document.createElement('div');fallback.id='paia-reconnect-notice';f.context.document.documentElement.append(fallback);
+ observer.callback();assert.equal(f.elements.size,1);
+});
+test('a queued legacy-notice callback cannot remove anything after its capture instance is retired',async()=>{
+ const f=await schedulerFixture({enabled:true,consented:true,epoch:1,adapterVersion:'0.3.0'});
+ const observer=f.mutationObservers[0];f.context.PAIACaptureController.dispose();
+ const next=f.context.document.createElement('div');next.id='paia-reconnect-notice';f.context.document.documentElement.append(next);
+ observer.callback();assert.equal(f.elements.size,1);assert.equal(observer.disconnected,true);
 });
