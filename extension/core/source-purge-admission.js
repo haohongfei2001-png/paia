@@ -1,3 +1,4 @@
+import {validateRemovalEdit} from './archive-removal.js';
 import {ArchiveError} from './constants.js';
 import {chatOf} from './idb-repository.js';
 import {detachSources} from './library.js';
@@ -158,8 +159,9 @@ async function assessRecovery(t,all,{sourceIds,blocks,thoughts,metadataOwners,to
    if(row.operation.pendingRequest!==undefined){if(typeof row.operation.pendingRequest!=='string'||row.operation.pendingRequest.length>800000)gate();try{edits.push(JSON.parse(row.operation.pendingRequest));}catch{gate();}}
    for(const edit of edits){
     if(row.operation.type!=='EDIT_DOCUMENT'||!edit||edit.documentId!==row.ownerId||!Array.isArray(edit.blocks)||edit.blocks.length>1000)gate();
-    if(Object.keys(edit).some(k=>!['operationId','documentId','blocks','title','expectedTitleRevision','revisionReason','restoreRevisionId','restoreRevisionSide'].includes(k)))gate();
-    for(const change of edit.blocks){
+    if(Object.keys(edit).some(k=>!['operationId','documentId','blocks','title','expectedTitleRevision','revisionReason','restoreRevisionId','restoreRevisionSide','removeScope'].includes(k)))gate();
+    let refs=edit.blocks;if(edit.removeScope!==undefined){try{refs=validateRemovalEdit(edit).members;}catch{gate();}}
+    for(const change of refs){
      if(blocks.has(change.id))gate();const b=(await t.get('blocks',change.id))?.value;
      if(!b||b.documentId!==row.ownerId||!Array.isArray(b.provenance))gate();
      if(b.provenance.some(p=>sourceIds.has(p.sourceRecordId)))gate();

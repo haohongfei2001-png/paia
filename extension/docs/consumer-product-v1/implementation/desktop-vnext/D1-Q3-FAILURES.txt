@@ -1,0 +1,5 @@
+Synthetic/sanitized D1 Q3 retained negative ledger (not relabeled):
+1. initial-removal-browser.txt: 7 PASS / 1 FAIL. Existing reading:v1 durable anchor update raced whole-database cancel equality. Repair awaited actual anchor and edited anchor revision; full equality, fixture and timeout unchanged.
+2. full-development-unit.txt: 1306 PASS / 1 FAIL (1307 actual cases). Existing header static function slice included the newly inserted removal confirmation helper and permanent-delete explanation. Helper relocated after the existing boundary; original assertion unchanged, repaired-header-boundary.txt 8 PASS / 0 FAIL.
+3. Earlier repaired/affected development runs precede the last async conflict refinements. They are development evidence only; final targeted45 and owning8 correspond to frozen input e9720c3f9820dcfc57aa5872b811fe87ba46a01a825da61dc8ea0def5063e98f. Hosted full final evidence required separately.
+Raw logs: task work/evidence/d1-q3. Production/Source content never dumped into this ledger.

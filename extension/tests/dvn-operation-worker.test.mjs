@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
 import {hashText} from '../core/dedupe.js';
 
-test('Q1/Q2/Q4 production worker enforces extension-page/consent/strict request boundaries and returns no bodies',async()=>{
+test('Q1/Q2/Q3/Q4 production worker enforces extension-page/consent/strict request boundaries and returns no bodies',async()=>{
  globalThis.indexedDB=new IDBFactory();globalThis.IDBKeyRange=IDBKeyRange;
  const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`,ui={id,url:origin+'ui/archive.html'};
  let listener,data={},networkCalls=0;
@@ -17,6 +17,8 @@ test('Q1/Q2/Q4 production worker enforces extension-page/consent/strict request 
  assert.equal((await send({type:'PAIA_ARCHIVE_ORIGINAL_PAGE',page:{target:{kind:'conversation',ref:'unknown'}}})).error,'CONSENT_REQUIRED');
  assert.equal((await send({type:'PAIA_ARCHIVE_PREPARE_REVISION',revision:{id:'unknown',documentId:'unknown',side:'before'}})).error,'CONSENT_REQUIRED');
  assert.equal((await send({type:'PAIA_ARCHIVE_OPERATION_OUTCOME',query})).error,'CONSENT_REQUIRED');
+ assert.equal((await send({type:'PAIA_ARCHIVE_PREPARE_REMOVAL',removal:{target:{kind:'conversation',ref:'unknown'}}})).error,'CONSENT_REQUIRED');
+ assert.equal((await send({type:'EDIT_DOCUMENT',edit:{removeScope:{}}})).error,'CONSENT_REQUIRED');
  for(const type of ['PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT','PURGE_SOURCE','PURGE_RECORD'])assert.equal((await send({type,id:'unknown',...(type==='PURGE_SOURCE'?{confirm:true}:{})})).error,'CONSENT_REQUIRED');
  await rpc('CONSENT',{accepted:true});
  const url='https://chatgpt.com/c/dvn-receipt',content={id,url,frameId:0,tab:{id:23,url,incognito:false}};
@@ -35,6 +37,7 @@ test('Q1/Q2/Q4 production worker enforces extension-page/consent/strict request 
  assert.equal((await send({type:'PAIA_ARCHIVE_ORIGINAL_PAGE',page:originalPage},content)).error,'FORBIDDEN');
  assert.equal((await send({type:'PAIA_ARCHIVE_ORIGINAL_PAGE',page:originalPage,extra:true})).error,'INVALID_REQUEST');
  const original=await rpc('PAIA_ARCHIVE_ORIGINAL_PAGE',{page:originalPage});assert.equal(original.records[0].originalText,'SYNTHETIC immutable source');assert.equal(original.records.length,1);assert.equal(original.records[0].capturedAt,undefined);
+ const removal={target:{kind:'conversation',ref:b.documentId}};assert.equal((await send({type:'PAIA_ARCHIVE_PREPARE_REMOVAL',removal},content)).error,'FORBIDDEN');assert.equal((await send({type:'PAIA_ARCHIVE_PREPARE_REMOVAL',removal,extra:true})).error,'INVALID_REQUEST');const preparedRemoval=await rpc('PAIA_ARCHIVE_PREPARE_REMOVAL',{removal});assert.equal(preparedRemoval.inputCount,1);assert.equal(JSON.stringify(preparedRemoval).includes('SYNTHETIC immutable source'),false);assert.equal((await send({type:'EDIT_DOCUMENT',edit:preparedRemoval.edit},content)).error,'FORBIDDEN');
  const edit={operationId:crypto.randomUUID(),documentId:b.documentId,blocks:[{id:b.id,expectedRevision:b.revision,libraryText:'SYNTHETIC working body',note:b.note,excluded:b.excluded}]};
  await rpc('EDIT_DOCUMENT',{edit});
  const revisions=await rpc('GET_REVISIONS',{options:{documentId:b.documentId,kind:'input',entityId:b.id}}),revision={id:revisions.items[0].id,documentId:b.documentId,side:'before'};

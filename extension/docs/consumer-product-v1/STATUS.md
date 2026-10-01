@@ -4,7 +4,7 @@
 
 **Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D1`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
 
-Fresh engineering base: `3c199eda740e7c0751fd7571deb95854fb0fb1f6` (merge #111, exact-main integration36790810117 PASS). Sole active product writer: `feat/desktop-vnext-d1-ime-invalidation`, current coherent batch D1/Q1.1 physical Input absence clears forbidden DOM before unrelated IME/save deferral. Q1, Q2, Q2.1 and Q4 are integrated; D1 is not yet complete. The design and architecture contracts remain frozen; #99 stays preserved, unmerged and inactive at `991f78f4c54b79d67428bf3209fb4eaa18f1cc9b`.
+Fresh engineering base: `16152b8b6fd09ef554803da0673749d465062b72` (merge #112, exact-main integration36794733760 PASS). Sole active product writer: `feat/desktop-vnext-d1-complete-remove`, current coherent batch D1/Q3 complete typed-target removal through the existing edit/receipt/recovery owner. Q1, Q2, Q2.1, Q4 and Q1.1 are integrated; D1 is not yet complete. Frozen DVN-1.0 and foundation107 remain controlling; #99 stays unchanged at991f78f4c54b79d67428bf3209fb4eaa18f1cc9b.
 
 Each batch records exact base/head, Surface/Acceptance/P-I-D, actual tests, failures and NOT_RUN; integration and exact-main verification precede the next batch. No permanent dual coordinator or second body truth. B-01–B-05 and other owner gates remain open, with dependent behavior fail closed; independent approved work continues. Search remains lexical/fuzzy/filter. Context Release is Copy/Export. No new provider permission, upload, reply-reading, paid service, cloud authority, destructive policy or distribution/legal commitment is approved.
 
@@ -33,6 +33,12 @@ Current [D1/Q2.1 receipt](implementation/desktop-vnext/D1-Q2.1.md) covers one-mo
 [PR111](https://github.com/haohongfei2001-png/paia/pull/111) final headbe2a3dee2429a995ecb05ed71dee530937dd1a83 merged to main3c199eda740e7c0751fd7571deb95854fb0fb1f6. Full [36789065047](https://github.com/haohongfei2001-png/paia/actions/runs/36789065047) actually tested equal-tree candidate52b0511a51fc355789cb101d368163895cec8f92: unit1292/browser168/adapter102/privacy58 cases all PASS; release/Mac synthetic/full aggregate237 FILES PASS. Exact-main [36790810117](https://github.com/haohongfei2001-png/paia/actions/runs/36790810117) integration PASS, browser/Mac/full aggregate SKIPPED. Digest/tree and first full36786602266 FAIL remain in the [Q4 receipt](implementation/desktop-vnext/D1-Q4.md). B-02 remains open.
 
 Fresh-main [Q1.1](implementation/desktop-vnext/D1-Q1.1.md) is a reproduced safety repair before Q3/cutover. Two actual source/release journeys fail on integrated main: unrelated pure Source is physically purged but the existing Reader defers its DOM removal during a surviving Input's IME. Fix must clear only proved physically absent projections, preserve the eligible composing node/draft/operation, and retain all prior negative evidence and safeguards. No design or slice reorder; D1 remains incomplete, D2–D4 continue after D1.
+
+## Desktop vNext D1/Q1.1 exact integration and Q3 entry — 2026-10-01
+
+[PR112](https://github.com/haohongfei2001-png/paia/pull/112) head38e7690e06c9966b566c3627c8e463d9a182a390 merged to main16152b8b6fd09ef554803da0673749d465062b72. Full [36793252248](https://github.com/haohongfei2001-png/paia/actions/runs/36793252248) actually tested equal-tree candidateb95e42c03968e2382bd5efbcf3aa43a14d96f9a3: unit1296/browser170/adapter102/privacy58 PASS, release/Mac synthetic/full aggregation238 FILES PASS. Tree40bddf393e92091eec2f413a7df6b2b8eeb3eb0e; input digestba4ea013673616ef0365cd82fb46846b617c13d81affb3ff8ad042e57fb9d8a3. Exact-main [36794733760](https://github.com/haohongfei2001-png/paia/actions/runs/36794733760) integration PASS; browser/Mac/full aggregation SKIPPED. Golden UNAVAILABLE, historical76 separate and experimental8 unchanged. Negative evidence remains in Q1.1 receipt. No current-live/device/physical-IME/performance or D1 completion claim.
+
+Q3 admits the complete canonical Conversation membership, not a mounted/filtered prefix, and refuses when fresh membership/revisions differ or the whole transaction exceeds its declared availability bound. It retains Source/Working/history and existing negative intent; no B-02 policy or future-capture exclusion is invented. Frozen shell/Reader/Search/selection/responsive cutover and old-coordinator retirement remain required before D2.
 
 ## Historical owner stop and read-only handoff — 2026-09-30
 
@@ -69,15 +75,15 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: D1 — Archive / Q1.1 Source invalidation before unrelated IME
+current_slice: D1 — Archive / Q3 complete target removal
 
 current_slice_status: IMPLEMENTING
 
-current_round: D1-Q1.1
+current_round: D1-Q3
 
 current_round_status: IMPLEMENTING
 
-current_writer: feat/desktop-vnext-d1-purge-boundary — sole active product writer
+current_writer: feat/desktop-vnext-d1-complete-remove — sole active product writer
 
 writer_status: ACTIVE — owner-approved Desktop vNext D1–D4 only
 

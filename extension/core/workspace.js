@@ -24,6 +24,7 @@ export function workspaceDocuments(state,layer,query=''){
 }
 // A single UI transaction; source and time identities cannot be supplied by editors.
 export function applyDocumentEdit(state,request,now){
+ if(request?.removeScope!==undefined)throw new ArchiveError('INVALID_REQUEST');
  const {documentId,title,expectedTitleRevision,blocks}=request||{};const doc=state.conversations.find(d=>d.id===documentId);
  if(!doc||!Array.isArray(blocks)||blocks.length>1000||new Set(blocks.map(b=>b?.id)).size!==blocks.length)throw new ArchiveError('INVALID_REQUEST');
  if(title!==undefined&&(typeof title!=='string'||title.length>300||!Number.isSafeInteger(expectedTitleRevision)))throw new ArchiveError('INVALID_REQUEST');

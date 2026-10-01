@@ -1,3 +1,4 @@
+import {prepareRemoval,expandRemoval,validateRemovalEdit} from './archive-removal.js';
 import {queryPage} from './archive-query.js';
 import {OperationAttemptLedger,validateOperationQuery} from './operation-outcome.js';
 import {captureIsExcluded,clearReadingTargets,clearPurgedReaderPolicy} from './reader-state.js';
@@ -141,14 +142,17 @@ export class IndexedArchiveStore {
    for(const id of docs)await this.refreshDoc(t,id);await clearPurgedReaderPolicy(t,new Set(blocks.keys()),key);return {id};
   });await this.publish();return result;
  });}
- async editDocument(request){const operationId=request?.operationId;if(operationId!==undefined&&(typeof operationId!=='string'||operationId.length>128||operationId.length<8))error('INVALID_REQUEST');const digest=operationId?await hashText(JSON.stringify(request)):null;const query=operationId&&typeof request.documentId==='string'&&request.documentId.length<=512?{ownerRef:request.documentId,operationId,requestDigest:digest}:null;const attempt=query?this.operationAttempts.begin(query):null;let durable=false;try{const outcome=await this.write(async t=>{
+ prepareRemoval(request){return this.run(()=>this.repository.transaction(false,t=>prepareRemoval(this,t,request)));}
+ async editDocument(request){if(request?.removeScope!==undefined)validateRemovalEdit(request);const operationId=request?.operationId;if(operationId!==undefined&&(typeof operationId!=='string'||operationId.length>128||operationId.length<8))error('INVALID_REQUEST');const digest=operationId?await hashText(JSON.stringify(request)):null;const query=operationId&&typeof request.documentId==='string'&&request.documentId.length<=512?{ownerRef:request.documentId,operationId,requestDigest:digest}:null;const attempt=query?this.operationAttempts.begin(query):null;let durable=false;try{const outcome=await this.write(async t=>{
   if(attempt)attempt.epoch=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';
+  if(request?.removeScope&&(await this.control(t)).settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');
   if(operationId){const receipt=await t.get('operationReceipts',operationId);if(receipt){if(receipt.digest!==digest)error('INVALID_REQUEST');return receipt.result;}}
-  if(!request||!Array.isArray(request.blocks)||request.blocks.length>1000)error('INVALID_REQUEST');const row=await t.get('documents',request.documentId);if(!row)error('INVALID_REQUEST');const ld=await t.get('libraryDocuments',row.id),blocks=[];
-  for(const change of request.blocks){const b=await t.get('blocks',change.id);if(b)blocks.push(b.value);}
-  if(this.validateInputEdit)await this.validateInputEdit(t,request);
-  const state={conversations:[row.value],library:{documents:[ld.value],blocks}};const before=blocks.map(b=>b.excluded),priorBlocks=structuredClone(blocks),priorTitle=structuredClone(row.value);const result=applyDocumentEdit(state,request,this.clock());if(!result.ok)return result;
-  if(this.afterInputEdit)await this.afterInputEdit(t,priorBlocks,blocks,priorTitle,row.value,request);
+  const canonical=request?.removeScope?await expandRemoval(this,t,request):request;if(canonical?.conflict)return canonical;
+  if(!canonical||!Array.isArray(canonical.blocks)||canonical.blocks.length>1000)error('INVALID_REQUEST');const row=await t.get('documents',request.documentId);if(!row)error('INVALID_REQUEST');const ld=await t.get('libraryDocuments',row.id),blocks=[];
+  for(const change of canonical.blocks){const b=await t.get('blocks',change.id);if(b)blocks.push(b.value);}
+  if(this.validateInputEdit)await this.validateInputEdit(t,canonical);
+  const state={conversations:[row.value],library:{documents:[ld.value],blocks}};const before=blocks.map(b=>b.excluded),priorBlocks=structuredClone(blocks),priorTitle=structuredClone(row.value);const result=applyDocumentEdit(state,canonical.removeScope?{...canonical,removeScope:undefined}:canonical,this.clock());if(!result.ok)return result;
+  if(this.afterInputEdit)await this.afterInputEdit(t,priorBlocks,blocks,priorTitle,row.value,canonical);
   for(const b of blocks){await t.put('blocks',{id:b.id,value:b});const ix=await t.get('blockIndex',b.id);ix.excluded=b.excluded;ix.excludedKey=b.excluded?1:0;ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);}
   if(request.title!==undefined){await t.put('documents',row);await t.put('libraryDocuments',ld);}
   if(blocks.some((b,i)=>b.excluded!==before[i])){for(const b of blocks)await this.trackBlock(t,b);await this.refreshDoc(t,row.id);}if(operationId)await t.put('operationReceipts',{id:operationId,namespace:'working-input',schemaVersion:1,ownerId:row.id,createdAt:this.clock(),digest,result});return result;

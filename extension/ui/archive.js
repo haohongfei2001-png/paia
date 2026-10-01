@@ -279,6 +279,7 @@ function openDocumentMenu(){
  if(view==='library'){
   add(tc('查看原始内容'),()=>{navigatorDetailFocus=$('document-menu');sourceFocusId=null;return originals.open({kind:'conversation',ref:id},$('document-menu'));});
   add(tc('查看修改历史'),()=>showRevisions());
+  add(readerCopy('移出整段对话…','Remove entire conversation…'),()=>removeConversation(id));
   add('不主动回顾这个对话',async()=>{await request('PAIA_READER_CONFIGURE',{change:{kind:'document',id,excluded:true}});document.dispatchEvent(new Event('paia:reader-policy'));notify('这个对话将不再主动回顾。');});
   add('会话收录设置',()=>captureScope());
   const doc=state.conversations?.find(d=>d.id===id);
@@ -290,6 +291,26 @@ function openDocumentMenu(){
  menu.style.left=Math.max(12,Math.min(bounds.left,window.innerWidth-300))+'px';menu.style.top=Math.max(12,Math.min(bounds.bottom,window.innerHeight-menu.offsetHeight-12))+'px';menu.querySelector('button')?.focus();
 }
 async function openSourceRecord(recordId){const source=state.records.find(r=>r.id===recordId);if(!source)return;let cursor=null;do{const p=await request('GET_PAGE',{page:{view:'archive',limit:100,cursor}}),doc=p.documents.find(d=>d.sourceConversationId===source.chatId&&d.platform===source.platform);if(doc){await navigate('archive',doc.id);while(state.nextCursor&&!state.pageItemIds.includes(recordId)){pageHistory.push(pageCursor);pageCursor=state.nextCursor;await refresh();}[...$('document-body').children].find(el=>el.dataset.recordId===recordId)?.scrollIntoView({block:'center'});return;}cursor=p.nextCursor;}while(cursor);error('此来源已不可用，整理内容保留。');}
+let removalBusy=false;
+async function removeConversation(id){
+ const active=editor,intent=navigationIntent;
+ if(removalBusy||view!=='library'||documentId!==id||!active)return;
+ if(active.composing){notify(readerCopy('请先完成当前文字输入，再核对移出范围。','Finish composing before reviewing removal.'));return;}
+ removalBusy=true;
+ try{
+  await active.recoveryReady;if(editor!==active||navigationIntent!==intent||documentId!==id)return;
+  active.collect();if(!await active.flush()){notify(readerCopy('请先完成并保存当前修改。','Finish saving the current edits first.'));return;}
+  const prepared=await request('PAIA_ARCHIVE_PREPARE_REMOVAL',{removal:{target:{kind:'conversation',ref:id}}});
+  if(editor!==active||navigationIntent!==intent||documentId!==id)return;
+  const summary=element('section','reader-removal-scope'),doc=state.conversations.find(d=>d.id===id);
+  summary.append(element('h3','',doc?.userTitle||doc?.originalConversationTitle||readerCopy('当前对话','Current conversation')),element('p','',readerCopy(`完整范围：${prepared.inputCount} 条 Input，包含当前屏幕之外的内容。`,`Complete scope: ${prepared.inputCount} Inputs, including material outside this view.`)),element('p','muted',readerCopy(`已移出 ${prepared.alreadyRemovedCount} · 分支 ${prepared.branchCount} · 过滤 ${prepared.filteredCount}`,`Already removed ${prepared.alreadyRemovedCount} · Branch ${prepared.branchCount} · Filtered ${prepared.filteredCount}`)));
+  if(!await confirmReaderAction({target:prepared.target,invoker:$('document-menu'),title:readerCopy('移出整段对话','Remove entire conversation'),text:readerCopy('从 Input Archive 移出这段对话的全部现有输入。原始来源、工作文字和修改历史保留，可通过单条修改历史恢复。这不是永久删除，也不会更改今后的收录设置。','Remove all current Inputs in this conversation from Input Archive. Source, Working text and history remain; permitted individual history restores stay available. This is reversible removal and does not change future capture settings.'),confirm:readerCopy('确认移出整段对话','Confirm entire conversation removal'),content:summary}))return;
+  if(editor!==active||navigationIntent!==intent||documentId!==id)return;
+  if(!await active.removePrepared(prepared)){notify(readerCopy('移出尚未确认，请核对保存状态或重新查看范围。','Removal is not acknowledged; check save status or review the scope again.'));return;}
+  notify(readerCopy('已移出整段对话，来源与修改历史保留。','Entire conversation removed; Source and history remain.'));await navigate('library');
+ }catch(error){notify(statusLabel(error?.code||'REMOVAL_SCOPE_UNAVAILABLE'));}
+ finally{removalBusy=false;}
+}
 async function showNavigatorSourceDetail(subject,trigger){
  navigatorDetailFocus=trigger||null;sourceFocusId=null;
  const isCurrent=readingModals.open($('info-dialog'),{trigger});$('info-dialog').dataset.readingSurface='source-detail';
@@ -355,7 +376,7 @@ $('archive-root-history').addEventListener('click',()=>{archiveRootOverflow.open
 const archiveRootOverflow=$('archive-root-overflow'),archiveRootSummary=archiveRootOverflow.querySelector('summary');
 archiveRootOverflow.addEventListener('toggle',()=>archiveRootSummary.setAttribute('aria-expanded',String(archiveRootOverflow.open)));
 
-installSaveLifecycle(()=>[editor,thoughts.editor,thoughts.dialogEditor,thoughts.aiEditor]);chrome.storage.onChanged.addListener((changes,area)=>{if(area!=='local'||!Object.keys(changes).some(k=>['settings','paia-settings'].includes(k)))return;void refresh();});document.addEventListener('paia:navigator-refresh',()=>archiveNavigator.invalidate());chrome.runtime.onMessage.addListener(m=>{if(navigatorInvalidationMessage(m))archiveNavigator.invalidate();});chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'){if(!['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS'].includes(m.cause))readingModals.close();if(m.cause&&!['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS'].includes(m.cause))thoughts.invalidateHomeSnapshot();if(m.cause==='RECORD_TOPIC_READ'){if(view==='thoughts'&&!thoughts.id)void thoughts.refresh();return;}if(['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS'].includes(m.cause))return;smartFilter.changed();invalidateDocumentSearch();if(!m.cause)return;$('revision-dialog').close();$('revision-list').replaceChildren();if(view==='thoughts')void thoughts.refresh();else if(view==='memory'){void refresh();}else{memory.invalidate();void refresh();}}});const historyPanel=initHistoryCompletion({beforeOpen:()=>leave(true),onChange:()=>void refresh(),onNavigate:async next=>{const origin=view;await navigate(next);if(next==='excluded'){review.enter(origin,true);review.paint(view);}}});
+installSaveLifecycle(()=>[editor,thoughts.editor,thoughts.dialogEditor,thoughts.aiEditor]);chrome.storage.onChanged.addListener((changes,area)=>{if(area!=='local'||!Object.keys(changes).some(k=>['settings','paia-settings'].includes(k)))return;void refresh();});document.addEventListener('paia:navigator-refresh',()=>archiveNavigator.invalidate());chrome.runtime.onMessage.addListener(m=>{if(navigatorInvalidationMessage(m))archiveNavigator.invalidate();});chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'){if(!['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS'].includes(m.cause))document.querySelector('dialog[data-removal-target][open]')?.close();if(!['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS'].includes(m.cause))readingModals.close();if(m.cause&&!['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS'].includes(m.cause))thoughts.invalidateHomeSnapshot();if(m.cause==='RECORD_TOPIC_READ'){if(view==='thoughts'&&!thoughts.id)void thoughts.refresh();return;}if(['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS'].includes(m.cause))return;smartFilter.changed();invalidateDocumentSearch();if(!m.cause)return;$('revision-dialog').close();$('revision-list').replaceChildren();if(view==='thoughts')void thoughts.refresh();else if(view==='memory'){void refresh();}else{memory.invalidate();void refresh();}}});const historyPanel=initHistoryCompletion({beforeOpen:()=>leave(true),onChange:()=>void refresh(),onNavigate:async next=>{const origin=view;await navigate(next);if(next==='excluded'){review.enter(origin,true);review.paint(view);}}});
 $('settings-branch-review').addEventListener('click',()=>void navigate('excluded'));
 function revisionText(value,kind){if(kind==='title')return value.title||'使用来源标题';const text=kind==='thought'?value.thoughtText:value.libraryText??'未编辑的来源内容（通过查看来源阅读）';return text+(value.note?'\n备注：'+value.note:'')+(kind==='input'?'\n'+(value.excluded?'已从 Input Archive 移除':'保留在 Input Archive'):'');}
 let revisionCursor=null,revisionContext=null;

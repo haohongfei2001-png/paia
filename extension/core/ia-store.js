@@ -71,7 +71,7 @@ export class IAStore extends IndexedArchiveStore {
  async afterInputEdit(t,before,after,oldDoc,newDoc,request){
   for(let i=0;i<after.length;i++){
    const a=before[i],b=after[i];await this.initializeInput(t,a);const meta=await t.get('inputStates',b.id);
-   const textChanged=a.libraryText!==b.libraryText||a.note!==b.note,removed=a.excluded!==b.excluded;
+   const textChanged=a.libraryText!==b.libraryText||a.note!==b.note,removed=a.excluded!==b.excluded||!!request.removeScope;
    if(textChanged)meta.contentRevision++;
    if(removed){meta.removalState=b.excluded?'user_removed':'active';await this.markRemoval(t,b,b.excluded);}
    if(textChanged||removed)meta.deltaSequence=await nextSequence(t,'input-delta-sequence');
