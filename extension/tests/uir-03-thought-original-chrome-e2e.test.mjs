@@ -205,12 +205,12 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
   window.vs05SearchRace={started:false,done:false};
   const gate=new Promise(resolve=>{window.vs05SearchRace.release=resolve;});
   proto.focusSection=async function(...args){window.vs05SearchRace.started=true;await gate;return focus.apply(this,args);};
-  proto.openSearchResult=async function(...args){try{return await open.apply(this,args);}finally{window.vs05SearchRace.done=true;}};
+  proto.openSearchResult=async function(...args){window.vs05SearchOwner=this;window.vs05SearchRace.target={kind:args[0]?.kind,entryId:args[0]?.entryId,path:args[1]||args[0]?.paths?.[0]};try{return await open.apply(this,args);}catch(error){window.vs05SearchRace.error=String(error?.message||error?.code||error);throw error;}finally{window.vs05SearchRace.done=true;}};
   window.vs05SearchRace.restore=()=>{proto.focusSection=focus;proto.openSearchResult=open;};
  });
  try{
   await rootList.locator('.topic-index-row').click();
-  await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.started),'real search continuation reaches section focus');
+  try{await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.started),'real search continuation reaches section focus');}catch(error){const diagnostic=await page.evaluate(()=>{const owner=window.vs05SearchOwner;return {race:window.vs05SearchRace&&{started:vs05SearchRace.started,done:vs05SearchRace.done,target:vs05SearchRace.target,error:vs05SearchRace.error},owner:owner&&{id:owner.id,openIntent:owner.openIntent,serial:owner.serial,view:owner.view,readFailed:owner.readFailed,refreshKey:owner.refreshRun?.key},visibleError:document.getElementById('error')?.textContent,notice:document.getElementById('notice')?.textContent};});throw new Error(error.message+' '+JSON.stringify(diagnostic));}
   await eventually(async()=>await page.locator('#thought-document').isVisible(),'scoped root search opens the canonical Topic');
   await page.locator('#back').click();
   await eventually(async()=>await rootScope.isVisible(),'Back completes before the delayed search continuation');

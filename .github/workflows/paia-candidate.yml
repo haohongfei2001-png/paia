@@ -242,7 +242,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: topic-root-${{ github.event.pull_request.head.sha }}
-          path: extension/work/qa-dvn-topic-root/
+          path: |
+            extension/work/qa-dvn-topic-root/
+            extension/work/uir-03/
+            extension/work/ans-07/
+            extension/work/ans-08/
           if-no-files-found: error
           retention-days: 7
 
