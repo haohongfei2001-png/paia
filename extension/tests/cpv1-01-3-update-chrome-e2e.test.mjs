@@ -13,6 +13,8 @@ async function journey(extensionPath) {
     await page.goto(`chrome-extension://${h.extensionId}/ui/popup.html`);
     await page.locator('#update-message').waitFor();
     const version = await page.evaluate(() => chrome.runtime.getManifest().version);
+    // A visible loading node is not acknowledgement of the asynchronous status read.
+    await eventually(async () => new RegExp(version.replaceAll('.', '\\.')).test(await page.locator('#update-message').textContent()), 'actual current version status is rendered');
     assert.match(await page.locator('#update-message').textContent(), new RegExp(version.replaceAll('.', '\\.')));
     assert.equal(await page.locator('#check-update').isVisible(),true);
     const originalId = await page.evaluate(() => chrome.runtime.id);
