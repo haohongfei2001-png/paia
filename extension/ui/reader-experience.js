@@ -1,5 +1,6 @@
 import {request,element} from './common.js';
 import {copyReadingText} from './reading-actions.js';
+import {captureReaderSelection} from './reader-selection.js';
 import {safeOffset} from '../core/reader-state.js';
 export const readerCopy=(zh,en)=>document.documentElement.lang==='en'?en:zh;
 const $=id=>document.getElementById(id);
@@ -23,7 +24,7 @@ export class ReaderExperience {
   $('document-body').addEventListener('focusin',e=>{const el=e.target.closest('[data-edit-id]');if(el){this.lastInput=el.dataset.editId;this.expand(el);}});
   $('document-body').addEventListener('input',()=>this.schedule());
   document.addEventListener('selectionchange',()=>this.selection());
-  this.toolbar=element('div','reader-selection');this.toolbar.hidden=true;this.toolbar.setAttribute('role','toolbar');this.toolbar.setAttribute('aria-label',readerCopy('所选文字','Selected text'));const copy=element('button','',readerCopy('复制所选文字','Copy selection'));copy.addEventListener('pointerdown',e=>e.preventDefault());copy.addEventListener('click',()=>void copyReadingText(this.selectedText));this.toolbar.append(copy);$('document-panel').append(this.toolbar);
+  this.toolbar=element('div','reader-selection');this.toolbar.hidden=true;this.toolbar.setAttribute('role','toolbar');this.toolbar.setAttribute('aria-label',readerCopy('所选文字','Selected text'));this.toolbar.setAttribute('aria-keyshortcuts','Alt+S');const copy=element('button','',readerCopy('复制所选文字','Copy selection'));copy.addEventListener('pointerdown',e=>e.preventDefault());copy.addEventListener('click',()=>{if(this.selected)void copyReadingText(this.selected.text);});this.toolbar.append(copy);$('document-panel').append(this.toolbar);
   const recovery=element('button','',readerCopy('复制当前文字','Copy current text'));recovery.id='reader-copy-buffer';recovery.hidden=true;recovery.addEventListener('click',()=>{const {editor}=this.read();if(!editor)return;editor.collect();void copyReadingText([...editor.entries.values()].filter(e=>!e.local.excluded).map(e=>editor.text(e)).join('\n\n'));});$('retry').after(recovery);
   new MutationObserver(()=>{recovery.hidden=$('retry').hidden&&$('reload-document').hidden;}).observe($('save-status'),{childList:true,subtree:true});
  }
@@ -65,11 +66,12 @@ export class ReaderExperience {
   }
  }
  expand(prose){this.expanded.add(prose.dataset.editId);prose.classList.remove('reader-collapsed');prose.closest('.library-block')?.querySelector('.reader-expand')?.remove();}
- invalidateInputs(ids){this.toolbar.hidden=true;this.selectedText='';for(const id of ids)this.expanded.delete(id);if(ids.includes(this.lastInput))this.lastInput=null;}
- unmount(){this.cancel();this.active=false;this.toolbar.hidden=true;}
+ invalidateInputs(ids){this.toolbar.hidden=true;this.selected=null;this.selectedText='';for(const id of ids)this.expanded.delete(id);if(ids.includes(this.lastInput))this.lastInput=null;}
+ unmount(){this.cancel();this.active=false;this.toolbar.hidden=true;this.selected=null;this.selectedText='';}
  selection(){
-  const selection=document.getSelection();const range=selection?.rangeCount?selection.getRangeAt(0):null;
-  if(!this.active||!range||selection.isCollapsed||!$('document-body').contains(range.commonAncestorContainer)){this.toolbar.hidden=true;return;}
-  this.selectedText=selection.toString();this.toolbar.hidden=!this.selectedText;
+  if(this.active&&this.toolbar.contains(document.activeElement)&&this.selected)return;
+  this.selected=this.active?captureReaderSelection($('document-body'),document.getSelection()):null;
+  this.selectedText=this.selected?.text||'';this.toolbar.hidden=!this.selected;
+  for(const button of this.toolbar.querySelectorAll('[data-single-input]'))button.disabled=!this.selected?.input;
  }
 }

@@ -58,21 +58,20 @@ export class ArchiveNavigator{
   this.toggle=$('archive-navigator-toggle');this.close.addEventListener('click',()=>this.closeOrCollapse(true));this.toggle?.addEventListener('click',()=>this.toggleSurface());this.applyOrder.addEventListener('click',()=>this.applyPending(true));
   this.host.addEventListener('scroll',()=>{this.state.scrollTop=this.host.scrollTop;clearTimeout(this.routeSaveTimer);this.routeSaveTimer=setTimeout(()=>this.onRouteChange(),120);},{passive:true});this.host.addEventListener('pointerdown',()=>{this.pointerDown=true;},{passive:true});window.addEventListener('pointerup',()=>{this.pointerDown=false;this.applyPending(false);},{passive:true});this.host.addEventListener('focusout',()=>queueMicrotask(()=>this.applyPending(false)));document.addEventListener('paia:archive-order-mode',event=>this.setMode(event.detail?.mode));
   void request('PAIA_ARCHIVE_ORDER_PREFERENCE').then(value=>this.setMode(value.mode)).catch(()=>{});
-  this.media=matchMedia('(max-width:799px)');this.media.addEventListener?.('change',()=>this.layout());
+  this.media=matchMedia('(max-width:1023px)');this.media.addEventListener?.('change',()=>this.layout());
   window.addEventListener('resize',()=>this.layout(),{passive:true});
-  const collection=$('collection-panel');if(collection)new MutationObserver(()=>this.place()).observe(collection,{subtree:true,childList:true});
  }
  navigationSnapshot(){const loaded=[];for(const scope of this.state.scopes.values()){const kind=scope.options?.groupKind;if(!['project','unassigned','unknown','deleted','detached'].includes(kind))continue;const groupKey=navigatorGroupKey(scope.options.providerKey,kind,scope.options.projectRef);if(this.state.expanded.has(groupKey)&&scope.items.length)loaded.push([scope.key,Math.min(10000,scope.items.length)]);}return {expanded:[...this.state.expanded].slice(0,100),loaded:loaded.slice(0,100),scrollTop:Math.max(0,Math.round(this.state.scrollTop||0)),narrowCollapsed:!!this.narrowCollapsed,sourceScope:this.sourceScope};}
  restoreNavigation(snapshot){if(!snapshot)return;this.state.expanded=new Set(snapshot.expanded||[]);this.restoreDepth=new Map(snapshot.loaded||[]);this.state.scrollTop=Math.max(0,snapshot.scrollTop||0);this.narrowCollapsed=!!snapshot.narrowCollapsed;this.sourceScope=snapshot.sourceScope||null;if(this.sourceSelect)this.sourceSelect.value=this.sourceScope||'';this.layout();this.paint();}
  isMobile(){return this.media.matches;}
- isNarrow(){return innerWidth>=800&&innerWidth<1200;}
+ isNarrow(){return false;}
  groupOptions(item){return {providerKey:item.providerKey,groupKind:item.groupKind,...(item.groupKind==='project'?{projectRef:item.projectRef}:{})};}
  async sync({view,documentId,query='',consented=false}={}){
   const previousSelected=this.selectedDocumentId;this.view=view;this.reader=!!documentId;this.selectedDocumentId=documentId||null;this.query=query||'';this.active=!!consented&&['library','archive'].includes(view);
   document.body.classList.toggle('ans-nav-surface',this.active);document.body.classList.toggle('ans-nav-reader',this.active&&this.reader);document.body.classList.toggle('ans-nav-root',this.active&&!this.reader);
   if(this.sourceLabel)this.sourceLabel.hidden=!this.active||this.reader;
-  if(!this.active){this.host.hidden=true;if(this.toggle)this.toggle.hidden=true;this.restoreLegacy();return;}
-  this.place();this.layout();
+  if(!this.active){if(this.sheetOpen)this.closeSheet(false);this.host.hidden=true;if(this.toggle)this.toggle.hidden=true;this.restoreLegacy();return;}
+  this.mount($(this.reader?'archive-reader-navigator-slot':'archive-root-navigator-slot'));this.layout();
   if(!this.reader&&this.query.trim()){this.host.hidden=true;this.restoreLegacy();return;}
   this.host.hidden=this.reader&&this.isMobile()&&!this.sheetOpen||this.reader&&this.isNarrow()&&this.narrowCollapsed;
   if(this.toggle){this.toggle.hidden=!this.reader;this.toggle.setAttribute('aria-expanded',String(!this.host.hidden));}
@@ -83,10 +82,9 @@ export class ArchiveNavigator{
   this.paint();
   await this.refresh(false);
  }
- place(){
-  if(!this.active)return;
-  if(this.reader){const panel=$('document-panel'),page=$('document-page');if(panel&&page&&this.host.parentElement!==panel)panel.insertBefore(this.host,page);}
-  else{const main=$('archive-root-main')||$('collection-panel'),tools=$('archive-root-tools');if(main){if(tools?.parentElement===main){if(this.host.previousElementSibling!==tools)tools.after(this.host);}else if(this.host.parentElement!==main)main.prepend(this.host);}}
+ mount(slot){
+  if(!slot)throw Error('ARCHIVE_NAVIGATOR_SLOT_MISSING');
+  if(this.host.parentElement!==slot)slot.append(this.host);
  }
  layout(){
   if(!this.active)return;
@@ -194,7 +192,7 @@ export class ArchiveNavigator{
  paintSignature(){return JSON.stringify({mode:this.mode,sourceScope:this.sourceScope,selected:this.selectedDocumentId,expanded:[...this.state.expanded].sort(),scopes:[...this.state.scopes].sort(([a],[b])=>a.localeCompare(b)).map(([key,scope])=>[key,scope.coverage?.state||null,scope.generation,scope.effectiveOrdering,scope.unavailableReason,scope.nextCursor,scope.error,scope.loading,scope.items.map(item=>[item.kind,item.id,item.title,item.providerKey,item.groupKind,item.projectRef,item.sourceStatus,item.parentSourceStatus])])});}
  syncSelection(){for(const button of this.host.querySelectorAll('.archive-navigator-window')){if(button.dataset.documentId===this.selectedDocumentId)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}}
  paint(){
-  if(!this.active)return;this.place();const signature=this.paintSignature();if(signature===this.lastPaintSignature){this.syncSelection();this.syncLegacy();return;}this.lastPaintSignature=signature;const activeInside=this.host.contains(document.activeElement),activeKey=activeInside?document.activeElement?.dataset?.ansNavKey:null,scroll=this.state.scrollTop;this.tree.replaceChildren();
+  if(!this.active)return;const signature=this.paintSignature();if(signature===this.lastPaintSignature){this.syncSelection();this.syncLegacy();return;}this.lastPaintSignature=signature;const activeInside=this.host.contains(document.activeElement),activeKey=activeInside?document.activeElement?.dataset?.ansNavKey:null,scroll=this.state.scrollTop;this.tree.replaceChildren();
   const root=this.state.scope({groupKind:'providers'});
   if(root.error){this.tree.append(element('p','archive-navigator-error',copy('窗口导航暂时不可读；当前 Reader 仍可使用。','Window navigation is unavailable; the current Reader still works.')));this.syncLegacy();return;}
   if(root.coverage.state!=='complete'){this.tree.append(element('p','archive-navigator-loading',copy('正在整理窗口…','Preparing windows…')));this.syncLegacy();return;}
@@ -218,7 +216,7 @@ export class ArchiveNavigator{
       const labels=conversationDisambiguators(scope.items,this.duplicateLabels.get(key));
       for(const item of scope.items){
        const windowRow=element('div','archive-navigator-window-row'),button=element('button','archive-navigator-window');button.type='button';button.dataset.ansNavKey='window:'+item.documentId;button.dataset.documentId=item.documentId;if(item.documentId===this.selectedDocumentId)button.setAttribute('aria-current','page');button.addEventListener('click',()=>void this.openWindow(item));
-       button.append(element('strong','archive-navigator-window-title',item.title||copy('未命名窗口','Untitled window')));
+       button.title=item.title||copy('未命名窗口','Untitled window');button.append(element('strong','archive-navigator-window-title',button.title));
        const number=labels.get(item.documentId);if(number)button.append(element('span','archive-navigator-window-disambiguator',copy('同名 '+number,'Same title '+number)));
        windowRow.append(button);
        list.append(windowRow);

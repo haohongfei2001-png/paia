@@ -2,7 +2,7 @@
 import {appShellRoute,presentAppShell} from './app-shell-state.js';
 import {RouteHistory,validRoute,routeViews as views} from './route-history.js';
 export const requestNavigation=detail=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail}));
-export function installReaderNavigation({navigate,current,captureNavigator=()=>null,restoreNavigator=()=>{}}){
+export function installReaderNavigation({navigate,current,captureNavigator=()=>null,restoreNavigator=()=>{},present=(route,options)=>presentAppShell(document,route,options)}){
  let applying=false,ready=false;
  const route=()=>appShellRoute(current(),captureNavigator());
  const valid=validRoute,historyRoutes=new RouteHistory();let lastRoute=null;
@@ -19,5 +19,5 @@ export function installReaderNavigation({navigate,current,captureNavigator=()=>n
   applying=true;try{restoreNavigator(r.navigator);const ok=await navigate(r.view,r.documentId||null,r.contextInputId||null,{topicId:r.topicId,returnTo:r.returnTo,searchQuery:r.searchQuery,sort:r.sort,anchor:r.anchor,history:true});if(ok===false)history.pushState({paiaReader:historyRoutes.encode(route())},'',location.href);}finally{applying=false;lastRoute=null;}
  });
  const restore=async()=>{const r=historyRoutes.decode(history.state?.paiaReader);if(valid(r)&&(r.documentId||r.view!=='library'||r.searchQuery)){applying=true;try{restoreNavigator(r.navigator);await navigate(r.view,r.documentId||null,r.contextInputId||null,{topicId:r.topicId,returnTo:r.returnTo,searchQuery:r.searchQuery,sort:r.sort,anchor:r.anchor,restore:true});}finally{applying=false;lastRoute=null;}}commit({replace:true});};
- return {commit,restore,present:options=>presentAppShell(document,route(),options)};
+ return {commit,restore,present:options=>present(route(),options)};
 }

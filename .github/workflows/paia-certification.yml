@@ -146,7 +146,6 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
-      - run: npx playwright install --with-deps chromium
       - name: Prepare portable Chrome test environment
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
@@ -154,6 +153,13 @@ jobs:
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
+      - name: Provide Chinese glyph coverage for actual visual evidence
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
+          fc-list :lang=zh | grep -q .
+      - name: Verify the installed Chrome actually launches
+        run: xvfb-run -a node scripts/check-hosted-chrome.mjs
       - name: Verify current browser coverage contract
         if: matrix.index == 1
         run: node scripts/check-ui-refresh-ci.mjs

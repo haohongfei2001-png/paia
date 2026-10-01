@@ -96,13 +96,13 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   phase='responsive appearance matrix';
   for(const appearance of ['light','dark']){
    await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});await eventually(async()=>await p.evaluate(()=>document.documentElement.dataset.paiaTheme)===appearance,appearance+' theme');
-   for(const [width,height] of [[1440,900],[1200,800],[1024,768],[800,700],[390,844],[320,720]]){
+   for(const [width,height] of [[1440,900],[1280,800],[1024,768],[768,700],[390,844],[320,720]]){
     phase='responsive '+appearance+' '+width+'x'+height;
     await p.setViewportSize({width,height});await pause(120);
     assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'no page overflow at '+width+' '+appearance);
     const shell=await p.evaluate(()=>({sidebar:document.querySelector('.sidebar').getBoundingClientRect().width,navigator:document.getElementById('archive-navigator').getBoundingClientRect().width,display:getComputedStyle(document.getElementById('document-panel')).display,columns:getComputedStyle(document.getElementById('document-panel')).gridTemplateColumns,trigger:!document.getElementById('archive-navigator-toggle').hidden}));
-    if(width>=1200){assert.ok(shell.sidebar>=200&&shell.navigator>=230,'desktop three-level widths at '+width);assert.equal(shell.display,'grid');}
-    else if(width>=800){assert.ok(shell.sidebar<=70&&shell.navigator>=198,'narrow compact widths at '+width);assert.equal(shell.display,'grid');assert.equal(shell.trigger,true);}
+    if(width>=1024){assert.equal(Math.round(shell.sidebar),width>=1440?184:160,'frozen primary rail at '+width);assert.ok(shell.navigator>=(width>=1440?279:239),'frozen contextual navigator at '+width);assert.equal(shell.display,'grid');}
+    else if(width>=768){assert.equal(Math.round(shell.sidebar),64,'tablet icon rail');assert.equal(shell.display,'block');assert.equal(shell.trigger,true);}
     else{
      assert.equal(shell.trigger,true);const mobileTrigger=p.locator('#archive-navigator-toggle');if(await p.locator('#archive-navigator').isVisible())await p.keyboard.press('Escape');await mobileTrigger.click();await eventually(()=>p.locator('#archive-navigator').isVisible(),'mobile sheet '+width);
      const targets=await p.locator('#archive-navigator button:visible').evaluateAll(nodes=>nodes.slice(0,12).map(n=>({w:n.getBoundingClientRect().width,h:n.getBoundingClientRect().height})));assert.ok(targets.length&&targets.every(r=>r.h>=44),'mobile targets >=44px at '+width);
@@ -111,11 +111,12 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
      await p.keyboard.press('Escape');await eventually(async()=>!await p.locator('#archive-navigator').isVisible(),'mobile sheet closes '+width);assert.equal(await mobileTrigger.evaluate(el=>document.activeElement===el),true,'mobile trigger regains focus');
     }
     const contrast=await p.evaluate(()=>{const node=document.querySelector('.archive-navigator-status'),parse=value=>(value.match(/[\d.]+/g)||[]).slice(0,3).map(Number),linear=v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;},lum=value=>{const [r=0,g=0,b=0]=parse(value);return .2126*linear(r)+.7152*linear(g)+.0722*linear(b);},style=getComputedStyle(node),host=getComputedStyle(document.getElementById('archive-navigator')),fg=lum(style.color),bg=lum(host.backgroundColor==='rgba(0, 0, 0, 0)'?getComputedStyle(document.body).backgroundColor:host.backgroundColor),hi=Math.max(fg,bg),lo=Math.min(fg,bg);return (hi+.05)/(lo+.05);});assert.ok(contrast>=4.5,'Navigator meta contrast '+appearance+' '+width+' got '+contrast);
+    const breadcrumbContrast=await p.evaluate(()=>{const parse=value=>(value.match(/[\d.]+/g)||[]).slice(0,3).map(Number),linear=v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;},lum=value=>{const [r=0,g=0,b=0]=parse(value);return .2126*linear(r)+.7152*linear(g)+.0722*linear(b);},fg=lum(getComputedStyle(document.querySelector('#page-breadcrumb')).color),bg=lum(getComputedStyle(document.body).backgroundColor);return (Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05);});assert.ok(breadcrumbContrast>=4.5,'breadcrumb text contrast '+appearance+' '+width+' got '+breadcrumbContrast);
     await p.screenshot({path:`work/ans-05-navigator/${appearance}-${width}x${height}.png`,fullPage:false});
    }
   }
   phase='page scale and final evidence';
-  await p.setViewportSize({width:1024,height:768});const cdp=await h.context.newCDPSession(p);await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});assert.equal(await p.locator('#archive-navigator-toggle').isVisible(),true,'Navigator remains reachable at 200% page scale');assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'200% page scale does not create page overflow');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
+  await p.setViewportSize({width:1024,height:768});await eventually(async()=>await p.locator('#archive-navigator').isVisible()&&await p.locator('#archive-navigator').evaluate(el=>!el.classList.contains('is-sheet')),'1024px layout commits after leaving the closed320px sheet');const cdp=await h.context.newCDPSession(p);await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});assert.equal(await p.locator('#archive-navigator').isVisible(),true,'frozen 1024px persistent Navigator remains reachable at 200% page scale');assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'200% page scale does not create page overflow');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
   await p.screenshot({path:'work/ans-05-navigator/desktop-reader.png',fullPage:true});
   phase='final privacy assertions';
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);phase='complete';

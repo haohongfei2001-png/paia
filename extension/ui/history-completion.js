@@ -7,7 +7,7 @@ const $=id=>document.getElementById(id);
 const sourceName=id=>id==='claude-conversations-v1'?'Claude':id==='chatgpt-mapping-v1'?'ChatGPT':'AI';
 async function send(type,payload){const r=await chrome.runtime.sendMessage({type,payload});if(!r?.ok)throw new ImportError(r?.error);return r.data;}
 const errorText=code=>errors[code]??(code?.startsWith('ZIP_')?'压缩包损坏、加密或包含不支持的内容。请检查文件或重新下载。':code?.startsWith('JSON_')||code==='UTF8_INVALID'?'文件内容不完整或格式无效。请重新下载后再试。':'暂时无法完成处理，请重新选择文件再试。');
-export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},onNavigate=()=>{}}={}){
+export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},onNavigate=()=>{},onRead=()=>onNavigate('library')}={}){
  let resumeTaskId,processing=false,port=null;
  const controller=new OfficialExportProvider().createSession({transport:(method,q)=>send('IMPORT_'+method.toUpperCase(),q),onProgress:paint});
  function paint(s){setProductState($('history-dialog'),({selected:'ready',checking:'loading',importing:'updating',completed:'saved',unsupported:'failed',cancelled:'paused',awaiting_file:'paused'})[s.phase]||s.phase);
@@ -65,7 +65,7 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
  });
  $('history-pause').addEventListener('click',()=>void controller.pause().then(()=>{resumeTaskId=controller.summary.taskId||resumeTaskId;$('history-file-consent').checked=false;paint(controller.summary);void tasks();}).catch(()=>{$('history-error').textContent='暂停尚未完成。请保持页面打开后再试；已经补全的输入保留。';}));
  $('history-cancel').addEventListener('click',async()=>{try{await controller.cancel();resumeTaskId=undefined;paint(controller.summary);void tasks();onChange();}catch{$('history-error').textContent='暂时无法取消，请再试一次。';}});
- $('history-read').addEventListener('click',async()=>{await close();await onNavigate('library');});
+ $('history-read').addEventListener('click',async()=>{await close();await onRead();});
  $('history-thoughts').addEventListener('click',async()=>{await close();await onNavigate('thoughts');});
  $('history-review').addEventListener('click',async()=>{await close();await onNavigate('excluded');});
  window.addEventListener('pagehide',()=>{void controller.pause().catch(()=>{});port?.disconnect();});

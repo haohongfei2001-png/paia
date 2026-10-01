@@ -1,9 +1,4 @@
 import {element} from './common.js';
-import {installUniversalSearch} from './universal-search.js';
-import {installRevisit} from './revisit.js';
-import {installCoreLoop} from './core-loop.js';
-import {installUXR1ShellCoordinator} from './ux-r1-shell-coordinator.js';
-import {installArchiveShellChrome} from './archive-shell-chrome.js';
 
 // `data-view` is the primary-navigation contract. Auxiliary CTAs may navigate to
 // a view, but they must not masquerade as another nav item (it also makes test
@@ -72,10 +67,5 @@ export function wireScopeSearchKeyboard(input,pages){
 }
 export async function findLibraryPage(read,{query,cursor=null,isCurrent=()=>true,onProgress=()=>{}}){let next=cursor;for(;;){if(!isCurrent())return null;const page=await read({query,cursor:next,ranked:true});if(!isCurrent())return null;if(page.items.length||!page.nextCursor)return page;if(JSON.stringify(next)===JSON.stringify(page.nextCursor))throw Error('Search did not advance');next=page.nextCursor;onProgress();await new Promise(r=>setTimeout(r,0));}}
 
-queueMicrotask(installUniversalSearch);
-queueMicrotask(installRevisit);
-queueMicrotask(installCoreLoop);
-queueMicrotask(installUXR1ShellCoordinator);
-queueMicrotask(installArchiveShellChrome);
 
 export function wireContinuousKeyboard(results,run){results.addEventListener('keydown',event=>{if(!['Enter',' '].includes(event.key))return;event.preventDefault();void Promise.resolve().then(run);});}

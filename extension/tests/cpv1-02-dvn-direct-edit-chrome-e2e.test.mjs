@@ -67,7 +67,11 @@ for(const variant of ['source','release']){
     // Compare against the captured DOM range, not a re-derived normalized string.
     assert.equal(await p.evaluate(()=>{const s=getSelection();return s.anchorNode===__directRange.node&&s.focusNode===__directRange.node&&s.anchorOffset===__directRange.start&&s.focusOffset===__directRange.end&&s.toString()===__directRange.text;}),true,'complete emoji and combining selection survives resize');
     const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(overflow<=2,`${width}px Reader overflow ${overflow}`);
-    await evidence(p,variant,`selection-${width}`);measurements.push({width,overflow});
+    const geometry=await p.evaluate(()=>({rail:document.querySelector('.sidebar').getBoundingClientRect().width,nav:document.querySelector('#archive-navigator').getBoundingClientRect().width,display:getComputedStyle(document.querySelector('#document-panel')).display,rootSlot:document.querySelector('#archive-root-navigator-slot').children.length,readerSlot:document.querySelector('#archive-reader-navigator-slot').children.length}));
+    assert.equal(geometry.rootSlot,0);assert.equal(geometry.readerSlot,1,'one contextual navigator in its explicit Reader slot');
+    if(width>=1024){assert.equal(Math.round(geometry.rail),width>=1440?184:160);assert.equal(Math.round(geometry.nav),width>=1440?280:240);assert.equal(geometry.display,'grid');}
+    else if(width>=768){assert.equal(Math.round(geometry.rail),64);assert.equal(geometry.display,'block');}
+    await evidence(p,variant,`selection-${width}`);measurements.push({width,overflow,geometry});
    }
    await field.evaluate(el=>{getSelection().collapseToEnd();el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='SYNTHETIC 未完成拼音 ni';el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,inputType:'insertCompositionText',data:'ni'}));});
    for(const width of [768,1440,320]){await p.setViewportSize({width,height:844});await assertEditable(p);assert.equal(await field.textContent(),'SYNTHETIC 未完成拼音 ni');}
@@ -88,6 +92,24 @@ for(const variant of ['source','release']){
    assert.equal(await p.locator('#document-title').textContent(),'SYNTHETIC human working title');
    assert.deepEqual((await h.state()).records,before.records,'body/title edits never rewrite immutable Source');offline(h);
    writeFileSync(`work/qa-dvn-direct-edit/${variant}-matrix.json`,JSON.stringify({status:'PASS',evidence:'SYNTHETIC_BROWSER',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,measurements,noExternalRequests:true},null,2));
+  }finally{await h.close();}
+ });
+ test(`D1 selection keyboard handoff preserves exact Unicode and refuses a stale selected body (${variant})`,{timeout:90000},async()=>{
+  const {h,p,field,id}=await fixture(variant);
+  try{
+   await field.evaluate(el=>{el.focus();const text=el.firstChild,start=text.textContent.indexOf('👩‍💻'),end=start+'👩‍💻 é'.length;getSelection().setBaseAndExtent(text,start,text,end);});
+   await eventually(()=>p.locator('.reader-selection').isVisible());await p.keyboard.press('Alt+s');
+   assert.equal(await p.locator('.reader-selection button').first().evaluate(el=>el===document.activeElement),true,'keyboard reaches actions without requiring pointer selection');
+   await p.evaluate(()=>{globalThis.__dvnCopied=null;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{globalThis.__dvnCopied=text;}}});});
+   await p.keyboard.press('Enter');assert.equal(await p.evaluate(()=>__dvnCopied),'👩‍💻 é','keyboard copy uses exact original Unicode range');
+   // Hold focus in the toolbar while a new Input body arrives. The preserved
+   // snapshot must be refused, rather than silently selecting shifted offsets.
+   await field.evaluate(el=>{el.textContent='SYNTHETIC changed before selected action';});
+   await p.locator('.reader-selection button[data-single-input]').first().click();
+   await eventually(async()=>/重新选择/.test(await p.locator('#notice').textContent()),'stale selection gets explicit feedback');
+   assert.equal(await p.locator('dialog[open]').count(),0,'no Topic chooser receives an incorrectly shifted substring');
+   assert.equal((await rpc(p,'GET_INPUT',{id})).libraryText,null,'refused selection itself does not persist the changed DOM');
+   offline(h);
   }finally{await h.close();}
  });
  test(`D1 narrow failed direct edit retains full buffer, cross-Input copy/boundary and retry without an Edit mode (${variant})`,{timeout:90000},async()=>{

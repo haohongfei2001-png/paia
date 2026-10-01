@@ -1,29 +1,22 @@
 import {request} from './common.js';
-import {normalizeUXPreferences,resolveAppearance,resolveLanguage,validReturnTarget,SETTINGS_GROUPS} from './ux-r1-state.js';
+import {normalizeUXPreferences,resolveAppearance,resolveLanguage,SETTINGS_GROUPS} from './ux-r1-state.js';
 import {ArchiveOrderSettings} from './archive-order-settings.js';
 
 const $=id=>document.getElementById(id);
 const FONT_PX={small:16,standard:17,large:19,xlarge:21};
 const WIDTH_PX={narrow:640,standard:680,wide:720};
-let uxPreferences=normalizeUXPreferences(),settingsReturn='library',preferenceBusy=false;
+let uxPreferences=normalizeUXPreferences(),preferenceBusy=false,settingsVisible=false,notifyOrganizerSettings=()=>{};let onBack=()=>{};
 const archiveOrderSettings=new ArchiveOrderSettings();
 
 function node(tag,className='',text=''){const el=document.createElement(tag);if(className)el.className=className;if(text)el.textContent=text;return el;}
 function button(text,className=''){const el=node('button',className,text);el.type='button';return el;}
-function installStyles(){if(document.querySelector('link[data-core-loop]'))return;const link=document.createElement('link');link.rel='stylesheet';link.href=chrome.runtime.getURL('ui/core-loop.css');link.dataset.coreLoop='true';document.head.append(link);}
 function language(){return resolveLanguage(uxPreferences.language,navigator.language);}
 function copy(zh,en){return language()==='zh-CN'?zh:en;}
 
 function applyPreferences(){
  const dark=globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches===true,theme=resolveAppearance(uxPreferences.appearance,dark),root=document.documentElement;
  const lang=language();root.dataset.paiaTheme=theme;root.dataset.paiaLanguage=lang;if(root.lang!==lang)root.lang=lang;root.style.setProperty('--paia-prose-size',`${FONT_PX[uxPreferences.fontSize]||17}px`);root.style.setProperty('--paia-prose-width',`${WIDTH_PX[uxPreferences.readingWidth]||680}px`);
- document.body?.classList.toggle('ux-sidebar-collapsed',uxPreferences.sidebarCollapsed===true);applyLabels();syncPreferenceControls();
-}
-function applyLabels(){
- const labels=language()==='zh-CN'?{library:'档案',thoughts:'思想库',memory:'用于 AI',settings:'设置',archive:'来源记录'}:{library:'Archive',thoughts:'Thought Library',memory:'For AI',settings:'Settings',archive:'Source Records'};
- for(const [view,label] of Object.entries(labels))for(const el of document.querySelectorAll(`[data-view="${view}"]`))if(el.closest('#primary-nav,.sidebar-bottom')){const chromeLabel=el.querySelector('.ux-nav-label');if(chromeLabel){if(chromeLabel.textContent!==label)chromeLabel.textContent=label;}else if(el.textContent!==label)el.textContent=label;}
- const current=document.querySelector('#primary-nav [aria-current="page"],.sidebar-bottom [aria-current="page"]')?.dataset.view,title=$('view-title');if(title&&current&&labels[current]&&!title.hidden&&title.textContent!==labels[current])title.textContent=labels[current];
- const settingsTitle=$('ux-settings-title'),settingsText=copy('设置','Settings');if(settingsTitle&&settingsTitle.textContent!==settingsText)settingsTitle.textContent=settingsText;
+ syncPreferenceControls();syncSettingsLocale();document.dispatchEvent(new CustomEvent('paia:preferences-applied'));
 }
 async function loadPreferences(){
  try{const page=await request('GET_PAGE',{page:{view:'settings'}});uxPreferences=normalizeUXPreferences(page.preferences);applyPreferences();updateLocalStatus(page);return page;}catch{applyPreferences();const state=$('ux-local-state');if(state)state.textContent=copy('本机保存遇到问题','Local storage unavailable');return null;}
@@ -35,19 +28,6 @@ async function savePreference(key,value,control){
  finally{preferenceBusy=false;}
 }
 function updateLocalStatus(page){const el=$('ux-local-state');if(!el)return;const failed=page?.diagnostics?.lastError?.code==='STORAGE_FAILED'||page?.diagnostics?.lastError?.code==='STORAGE_FULL';el.textContent=failed?copy('本机保存遇到问题','Local storage unavailable'):copy('本机保存','Saved locally');el.dataset.kind=failed?'error':'ok';}
-
-function setupShell(){
- const sidebar=document.querySelector('.sidebar'),workspace=document.querySelector('.workspace'),nav=$('primary-nav'),bottom=document.querySelector('.sidebar-bottom');if(!sidebar||!workspace||!nav||!bottom)return;
- if(!$('ux-skip-main')){const skip=node('a','ux-skip-main',copy('跳到主要内容','Skip to main content'));skip.id='ux-skip-main';skip.href='#paia-main';document.body.prepend(skip);}workspace.id='paia-main';workspace.tabIndex=-1;nav.setAttribute('aria-label',copy('主要导航','Primary navigation'));
- const brand=sidebar.querySelector('.brand');if(brand){brand.childNodes[0].textContent='PAIA';const small=brand.querySelector('small');if(small)small.textContent=copy('私人输入与思想','PERSONAL ARCHIVE');}
- const memory=nav.querySelector('[data-view="memory"]');if(memory)memory.classList.add('ux-nav-ai');
- let status=bottom.querySelector('#ux-local-state');if(!status){status=node('span','ux-local-state',copy('本机保存','Saved locally'));status.id='ux-local-state';bottom.append(status);}
- if(!$('ux-sidebar-toggle')){const toggle=button(copy('收起侧栏','Collapse sidebar'),'ux-sidebar-toggle');toggle.id='ux-sidebar-toggle';toggle.setAttribute('aria-label',copy('收起或展开侧栏','Collapse or expand sidebar'));toggle.addEventListener('click',()=>void savePreference('sidebarCollapsed',!uxPreferences.sidebarCollapsed,toggle));brand?.after(toggle);}
- document.addEventListener('click',event=>{const hit=event.target.closest?.('[data-view="settings"]');if(!hit)return;const active=document.querySelector('#primary-nav [aria-current="page"]')?.dataset.view;if(active&&active!=='settings')settingsReturn=validReturnTarget(active);},{capture:true});
- const title=$('view-title');if(title)new MutationObserver(applyLabels).observe(title,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
- const panels=[$('document-panel'),$('thought-document')].filter(Boolean);for(const panel of panels)new MutationObserver(updateSurfaceClass).observe(panel,{attributes:true,attributeFilter:['hidden']});updateSurfaceClass();
-}
-function updateSurfaceClass(){const reader=!$('document-panel')?.hidden||!$('thought-document')?.hidden;document.body.classList.toggle('ux-reader-active',reader);}
 
 function tuneOnboarding(){
  const consent=$('consent-panel');if(consent){const eyebrow=consent.querySelector('.eyebrow'),title=$('consent-title'),paras=[...consent.querySelectorAll(':scope > p:not(.muted)')];if(eyebrow)eyebrow.textContent=copy('本机保存','LOCAL SAVE');if(title)title.textContent=copy('你对 AI 说过的，不必只留在那次聊天里。','What you told AI does not have to stay in that one chat.');if(paras[0])paras[0].textContent=copy('PAIA 把你发给 AI 的文字留在本机，方便以后阅读、找到，并继续使用。','PAIA keeps the text you send to AI on this device so you can read, find and reuse it later.');if(paras[1])paras[1].textContent=copy('保存范围：普通聊天中已经发送、已经显示的用户文字；不保存草稿、完整 AI 回复、附件正文或账户凭证。Temporary Chat 默认跳过。','Saved scope: user text already sent and visible in normal chats. Drafts, full AI replies, attachment bodies and credentials are excluded. Temporary Chat is skipped by default.');if(paras[2])paras[2].textContent=copy('捕获、历史导入和普通阅读都在本机。云端 AI 处理、同步和对外提供是另外的授权。','Capture, history import and ordinary reading stay local. Cloud AI processing, sync and external access are separate permissions.');const enable=$('enable-consent');if(enable)enable.textContent=copy('开始在本机保存','Start saving locally');
@@ -61,11 +41,11 @@ function preferenceSelect(id,labelText,options,key){const label=node('label','se
 function syncPreferenceControls(){for(const [id,key] of [['ux-appearance','appearance'],['ux-language','language'],['ux-font-size','fontSize'],['ux-reading-width','readingWidth']]){const el=$(id);if(el&&document.activeElement!==el)el.value=String(uxPreferences[key]);}}
 function setupSettingsShell(){
  const panel=$('settings-panel');if(!panel||$('ux-settings-shell'))return;
- const shell=node('div','ux-settings-shell');shell.id='ux-settings-shell';const head=node('header','ux-settings-header'),back=button(copy('‹ 返回','‹ Back'),'ux-settings-back'),title=node('h1','',copy('设置','Settings')),feedback=node('p','ux-settings-feedback');back.id='ux-settings-back';title.id='ux-settings-title';feedback.id='ux-settings-feedback';feedback.setAttribute('role','status');back.addEventListener('click',()=>document.querySelector(`#primary-nav [data-view="${settingsReturn}"]`)?.click());head.append(back,title,feedback);
+ const shell=node('div','ux-settings-shell');shell.id='ux-settings-shell';const head=node('header','ux-settings-header'),back=button(copy('‹ 返回','‹ Back'),'ux-settings-back'),title=node('h1','',copy('设置','Settings')),feedback=node('p','ux-settings-feedback');back.id='ux-settings-back';title.id='ux-settings-title';feedback.id='ux-settings-feedback';feedback.setAttribute('role','status');back.addEventListener('click',()=>onBack());head.append(back,title,feedback);
  const layout=node('div','ux-settings-layout'),nav=node('nav','ux-settings-nav'),body=node('div','ux-settings-body');nav.setAttribute('aria-label',copy('设置分组','Settings groups'));const groups=new Map(),tabs=new Map();
  const groupEnglish={content:'Content & capture',reading:'Reading & appearance',ai:'AI',privacy:'Privacy & external use',data:'Data & devices',advanced:'Advanced'};
  const mobileSwitch=node('label','ux-settings-mobile-switch'),mobileSwitchLabel=node('span','',copy('当前分组','Current group')),mobileSelect=node('select');mobileSelect.id='ux-settings-group-switch';mobileSelect.setAttribute('aria-label',copy('切换设置分组','Switch settings group'));mobileSwitch.append(mobileSwitchLabel,mobileSelect);nav.append(mobileSwitch);
- const notifyOrganizerSettings=()=>{const group=groups.get('ai');if(group&&!panel.hidden&&!group.hidden)document.dispatchEvent(new CustomEvent('paia:organizer-settings-visible'));};
+ notifyOrganizerSettings=()=>{const group=groups.get('ai');if(group&&!panel.hidden&&!group.hidden)document.dispatchEvent(new CustomEvent('paia:organizer-settings-visible'));};
  const activateGroup=key=>{const section=groups.get(key);if(!section)return;for(const [group,item] of groups)item.hidden=group!==key;for(const [group,tab] of tabs)tab.setAttribute('aria-current',group===key?'page':'false');if(mobileSelect.value!==key)mobileSelect.value=key;notifyOrganizerSettings();};
  for(const [key,zh] of SETTINGS_GROUPS){
   const label=language()==='zh-CN'?zh:groupEnglish[key],section=node('section','ux-settings-group'),h=node('h2','',label),tab=button(label),option=node('option','',label);section.dataset.group=key;section.id=`ux-settings-${key}-group`;section.hidden=key!=='content';h.id=`ux-settings-${key}-title`;section.setAttribute('aria-labelledby',h.id);section.append(h);groups.set(key,section);body.append(section);
@@ -73,7 +53,7 @@ function setupSettingsShell(){
   option.value=key;mobileSelect.append(option);
  }
  mobileSelect.value='content';mobileSelect.addEventListener('change',()=>activateGroup(mobileSelect.value));
- layout.append(nav,body);shell.append(head,layout);panel.prepend(shell);new MutationObserver(notifyOrganizerSettings).observe(panel,{attributes:true,attributeFilter:['hidden']});
+ layout.append(nav,body);shell.append(head,layout);panel.prepend(shell);
  const move=(target,key)=>{const el=typeof target==='string'?$(target):target;if(el&&groups.get(key))groups.get(key).append(el);};
  move('enabled-state','content');move('toggle-capture','content');move('smart-filter-settings','content');move('history-settings','content');
  move($('time-display')?.closest('.setting'),'reading');move($('time-emphasis')?.closest('.setting'),'reading');
@@ -91,7 +71,6 @@ function setupSettingsShell(){
 
 // Preference refresh stays independent of the retired Archive shortcut cards.
 function installPreferenceUpdates(){
- for(const nav of document.querySelectorAll('[data-view]'))new MutationObserver(applyLabels).observe(nav,{attributes:true,attributeFilter:['aria-current']});
  chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type))void loadPreferences();});
  const media=globalThis.matchMedia?.('(prefers-color-scheme: dark)');media?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});
 }
@@ -99,7 +78,27 @@ function installPreferenceUpdates(){
 function preserveInternalToolAccess(){const details=$('product-diagnostics');if(!details||$('core-loop-product-signals'))return;const link=node('a','core-loop-internal-link',copy('查看本机产品验证数据 / Passport','Local product validation / Passport'));link.id='core-loop-product-signals';link.href='product-signals.html';link.target='_blank';link.rel='noopener';details.append(link);}
 
 let installed=false;
-export function installCoreLoop(){
- if(installed)return;installed=true;installStyles();setupShell();setupSettingsShell();tuneOnboarding();preserveInternalToolAccess();void loadPreferences();void archiveOrderSettings.load();
+export function installSettingsPreferences({back=()=>{}}={}){
+ if(installed)return;installed=true;onBack=back;setupSettingsShell();tuneOnboarding();preserveInternalToolAccess();void loadPreferences();void archiveOrderSettings.load();
  installPreferenceUpdates();
+}
+
+const SETTINGS_LABELS={
+ content:['内容与收录','Content & capture'],reading:['阅读与外观','Reading & appearance'],ai:['AI','AI'],
+ privacy:['隐私与对外使用','Privacy & external use'],data:['数据与设备','Data & devices'],advanced:['高级','Advanced']
+};
+function syncSettingsLocale(){
+ for(const [key,pair] of Object.entries(SETTINGS_LABELS)){
+  const text=pair[language()==='zh-CN'?0:1],tab=document.querySelector(`[data-settings-group="${key}"]`),heading=document.querySelector(`.ux-settings-group[data-group="${key}"] > h2`),option=document.querySelector(`#ux-settings-group-switch option[value="${key}"]`);
+  if(tab&&tab.textContent!==text)tab.textContent=text;if(heading&&heading.textContent!==text)heading.textContent=text;if(option&&option.textContent!==text)option.textContent=text;
+ }
+ const switcher=$('ux-settings-group-switch'),switcherLabel=document.querySelector('.ux-settings-mobile-switch > span');if(switcher){const text=language()==='zh-CN'?'切换设置分组':'Switch settings group';if(switcher.getAttribute('aria-label')!==text)switcher.setAttribute('aria-label',text);}if(switcherLabel){const text=language()==='zh-CN'?'当前分组':'Current group';if(switcherLabel.textContent!==text)switcherLabel.textContent=text;}
+ const capability=document.querySelector('.ux-capability-fact');if(capability){const heading=capability.querySelector('strong'),detail=capability.querySelector('p'),headingText=language()==='zh-CN'?'设备同步':'Device sync',detailText=language()==='zh-CN'?'当前版本未提供设备同步。':'Device sync is not available in this version.';if(heading&&heading.textContent!==headingText)heading.textContent=headingText;if(detail&&detail.textContent!==detailText)detail.textContent=detailText;}
+ const read=$('history-read');if(read){const text=language()==='zh-CN'?'读一篇':'Read one';if(read.textContent!==text)read.textContent=text;}
+ const optional=$('consent-check')?.closest('.consent-checkbox')?.querySelector('.ux-consent-optional');if(optional){const text=language()==='zh-CN'?' 可选：用于标记你已阅读上面的完整说明。':' Optional: mark that you read the detailed explanation.';if(optional.textContent!==text)optional.textContent=text;}
+
+}
+
+export function presentSettingsPreferences({visible=false}={}) {
+ settingsVisible=visible;syncSettingsLocale();if(settingsVisible)notifyOrganizerSettings();
 }
