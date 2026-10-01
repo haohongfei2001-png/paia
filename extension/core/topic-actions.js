@@ -51,7 +51,7 @@ export async function continueThinking(s,r){
  let evidence=[];
  if(r.inputId){try{evidence=await s.evidenceFor([{inputId:r.inputId,role:'context_only',selectedFields:['body']}],{independentContext:true});}catch{}}
  return s.createEntry({operationId:r.operationId,actor:'user',body:r.body,type:'idea',formation:'explicit',evidence},{
-  receiptRequest:r,independentContext:true,
+  receiptRequest:r,independentContext:true,independentExpression:true,
   before:async t=>{
    if(r.topicId)await topicsFor(s,t,[r.topicId]);
    if(r.relation){const related=await s.readableEntry(t,r.relation.id);if(related.lifecycle!=='active'||related.revision!==r.relation.expectedRevision||!await s.sourcePresent(t,related.sourceRecordIds||[])||(await bindingRead(s,t,related)).thoughtText!==relatedBody)return {conflict:true,relatedChanged:true};}

@@ -65,5 +65,13 @@ export async function prepareBodyEdit(store,t,row,request,reason){
  applyBinding(row,{bodyBinding:'thought'});row.thoughtEditedAt=store.clock();markHuman(row,'body',request.operationId||'thought-edit',store.clock());return {shared:false,detached:true};
 }
 export const THOUGHT_LAYOUT_ROW='thought-layout:v1';
-export const validThoughtLayout=r=>r?.version===1&&['grid','list'].includes(r.layout)&&Object.keys(r).every(k=>['id','version','layout'].includes(k));
-export async function thoughtLayout(store,layout){if(layout!==undefined&&!['grid','list'].includes(layout))fail();await store.finishFoundation();return store.run(()=>store.repository.transaction(layout!==undefined,async t=>{if(layout)await t.put('meta',{id:THOUGHT_LAYOUT_ROW,version:1,layout});const row=await t.get('meta',THOUGHT_LAYOUT_ROW);return {layout:validThoughtLayout(row)?row.layout:'list'};},['meta']));}
+export const validThoughtLayout=r=>r?.version===1&&['grid','list'].includes(r.layout)&&Object.keys(r).every(k=>['id','version','layout'].includes(k))||r?.version===2&&r.layout==='list'&&r.previousLayout==='grid'&&r.migration==='desktop-vnext-compact'&&typeof r.migratedAt==='string'&&Object.keys(r).every(k=>['id','version','layout','previousLayout','migration','migratedAt'].includes(k));
+export async function thoughtLayout(store,layout){
+ if(layout!==undefined&&!['grid','list'].includes(layout))fail();await store.finishFoundation();
+ return store.run(()=>store.repository.transaction(true,async t=>{
+  const prior=await t.get('meta',THOUGHT_LAYOUT_ROW),valid=validThoughtLayout(prior);
+  if(valid&&prior.version===1&&prior.layout==='grid'||layout==='grid')await t.put('meta',valid&&prior.version===2?prior:{id:THOUGHT_LAYOUT_ROW,version:2,layout:'list',previousLayout:'grid',migration:'desktop-vnext-compact',migratedAt:store.clock()});
+  else if(layout==='list'&&(!valid||prior.layout!=='list'))await t.put('meta',{id:THOUGHT_LAYOUT_ROW,version:1,layout:'list'});
+  return {layout:'list',...(layout==='grid'?{deprecated:true}:{})};
+ },['meta']));
+}

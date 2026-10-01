@@ -55,19 +55,16 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
   await mkdir('work/ans-07',{recursive:true});await page.screenshot({path:'work/ans-07/root-six-batches.png'});
 
   const beforeLayout=await visibleAnchor(page);
-  await page.evaluate(()=>{const menu=document.querySelector('#thought-home-tools details.library-actions');menu.open=true;[...menu.querySelectorAll('button')].find(b=>b.textContent.includes('列表 / 网格')).click();});
-  // The new installation starts in list mode. On list -> grid several
-  // keys share one row, so "first visible DOM key" need not remain identical.
-  // Require the exact captured key itself at its retained visible position.
-  await eventually(async()=>(await rpc(page,'GET_THOUGHT_LAYOUT')).layout==='grid','explicit grid preference saved',20000);
+  await rpc(page,'SET_THOUGHT_LAYOUT',{layout:'grid'});
+  assert.equal((await rpc(page,'GET_THOUGHT_LAYOUT')).layout,'list','deprecated grid request preserves frozen compact layout');
   await eventually(async()=>{
    const node=page.locator('#thought-list [data-topic-id="'+beforeLayout.id+'"]');
    return await node.evaluate((el,before)=>{const r=el.getBoundingClientRect();return r.bottom>120&&r.top<innerHeight&&Math.abs(r.top-before.top)<90;},beforeLayout);
   },'exact captured layout key retains visible position',20000);
   const afterLayout=await page.locator('#thought-list [data-topic-id="'+beforeLayout.id+'"]').evaluate(el=>({id:el.dataset.topicId,top:el.getBoundingClientRect().top}));
   assert.equal(afterLayout.id,beforeLayout.id);
-  assert.ok(Math.abs(afterLayout.top-beforeLayout.top)<90,'layout switch retains the same visible key');
-  assert.equal(await page.locator('#thought-list').evaluate(el=>el.classList.contains('topic-list-layout')),false,'explicit grid is rendered');
+  assert.ok(Math.abs(afterLayout.top-beforeLayout.top)<90,'deprecated layout request retains the same visible key');
+  assert.equal(await page.locator('#thought-list').evaluate(el=>el.classList.contains('topic-compact-list')),true,'compact layout remains rendered');
 
   const targetRow=page.locator('#thought-list [data-topic-id]').nth(150);await targetRow.scrollIntoViewIfNeeded();
   const beforeOpen=await visibleAnchor(page),openedId=await targetRow.getAttribute('data-topic-id');

@@ -64,12 +64,17 @@ for(const rebindFirst of [false,true])test('UX-R3 shared Undo rejects an incompa
  const state=async()=>Object.fromEntries(await Promise.all(['blocks','thoughts','provenance','dependencies','revisions','operationReceipts'].map(async store=>[store,await rows(f.s,store)]))),before=await state(),result=await f.s.thoughtEditHistory({operationId:op(),items,confirmArchive:true});assert.equal(result.conflict,true);assert.equal(result.sourceChanged,true);assert.deepEqual(await state(),before,'incompatible planned Input bodies must not commit any edit, evidence, history or receipt');assert.equal((await f.s.input(f.b.id)).libraryText,'Synthetic final shared body');assert.equal((await f.s.entry(other.id)).body,'Synthetic detached rebind target');
 });
 
-test('VS-05 compact root default preserves a saved grid choice and never rewrites Topic content',async()=>{
+test('D2 frozen compact root migrates a saved grid preference without rewriting Topic content',async()=>{
  const f=await completeFixture({texts:['Synthetic untouched source']});
  const topic=await f.s.createTopic({name:'Synthetic full Topic name',operationId:op()});
  assert.deepEqual(await f.s.thoughtLayout(),{layout:'list'});
- assert.deepEqual(await f.s.thoughtLayout('grid'),{layout:'grid'});
- assert.deepEqual(await f.s.thoughtLayout(),{layout:'grid'});
+ await f.s.foundationWrite(t=>t.put('meta',{id:'thought-layout:v1',version:1,layout:'grid'}));
+ const before=JSON.stringify({topics:await rows(f.s,'topics'),thoughts:await rows(f.s,'thoughts'),records:await rows(f.s,'records')});
+ assert.deepEqual(await f.s.thoughtLayout(),{layout:'list'});
+ const receipt=await f.s.repository.transaction(false,t=>t.get('meta','thought-layout:v1'));
+ assert.equal(receipt.previousLayout,'grid');assert.equal(receipt.migration,'desktop-vnext-compact');
+ assert.deepEqual(await f.s.thoughtLayout('grid'),{layout:'list',deprecated:true});
+ assert.equal(JSON.stringify({topics:await rows(f.s,'topics'),thoughts:await rows(f.s,'thoughts'),records:await rows(f.s,'records')}),before);
  assert.deepEqual(await f.s.thoughtLayout('list'),{layout:'list'});
  await assert.rejects(f.s.thoughtLayout('unknown'));
  assert.deepEqual(await f.s.thoughtLayout(),{layout:'list'});

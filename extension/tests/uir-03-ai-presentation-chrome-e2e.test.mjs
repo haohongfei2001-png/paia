@@ -64,7 +64,7 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
   ThoughtWorkspace.prototype.flushEditors=async function(...args){const before=snapshot(this);const result=await flush.apply(this,args);window.__vs05SwitchTrace.push({action:'flush',before,result,after:snapshot(this)});return result;};
   ThoughtWorkspace.prototype.switchView=async function(view,...args){window.__vs05Workspace=this;window.__vs05SwitchTrace.push({action:'switch-start',requested:view,...snapshot(this)});try{return await switchView.call(this,view,...args);}finally{window.__vs05SwitchTrace.push({action:'switch-end',requested:view,...snapshot(this)});}};
   const saved={query:'local query',scroll:735,rootProviderKey:'synthetic-source',collection:{items:Array.from({length:80},(_,id)=>({id}))}};
-  const context={homePositions:new Map([['home',saved]]),homeDesiredCount:40};
+  const context={homePositions:new Map([['home',saved]]),homeDesiredCount:40,homeCollection:null,homePage:null,thoughtRootVisible:()=>false};
   ThoughtWorkspace.prototype.invalidateHomeSnapshot.call(context);
   if(saved.collection!==undefined||context.homeDesiredCount!==80||saved.query!=='local query'||saved.scroll!==735||saved.rootProviderKey!=='synthetic-source')throw new Error('saved root invalidation must use production home key and preserve reading position/extent');
   ThoughtWorkspace.prototype.invalidateHomeSnapshot.call(context);

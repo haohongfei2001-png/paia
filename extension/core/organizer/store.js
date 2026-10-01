@@ -3,6 +3,8 @@ import {sourceRootPage} from '../thought-root-source-scope.js';
 import {recoverAIDraft} from './ai-draft.js';
 import {changeTopicContainer,removedTopics} from '../topic-governance.js';
 import {topicReadingPage,topicSectionsPage,topicAdjacency} from './topic-reading.js';
+import {topicTimelinePage} from './topic-timeline.js';
+import {topicRootExcerpt} from './topic-excerpt.js';
 import {importedTimeChanged} from '../import/library-integration.js';
 import {topicMergeSuggestions,keepTopicsSeparate,topicRenameSuggestions} from './topic-quality.js';
 import {entryTime,ensureTopicChronology} from './topic-chronology.js';
@@ -27,7 +29,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
  safeOrganization(t,kind,row){return safeOrganization(this,t,kind,row);}
  clearDerivedMetadata(t,marker){return clearDerivedMetadata(this,t,marker);}
  async canonicalTopic(t,id){return safeOrganization(this,t,'topic',await super.canonicalTopic(t,id));}
- async libraryIndexPage(o={}){const page=o.providerKey!==undefined&&o.providerKey!==null?await sourceRootPage(this,o,({query,cursor,limit})=>query?this.searchLibrary({query,cursor,limit}):super.libraryIndexPage({mode:'stable',cursor,limit})):await super.libraryIndexPage(o);return this.run(()=>this.repository.transaction(false,async t=>{for(let i=0;i<page.items.length;i++)page.items[i]=await safeOrganization(this,t,'topic',page.items[i]);return page;}));}
+ async libraryIndexPage(o={}){const page=o.providerKey!==undefined&&o.providerKey!==null?await sourceRootPage(this,o,({query,cursor,limit})=>query?this.searchLibrary({query,cursor,limit}):super.libraryIndexPage({mode:'stable',cursor,limit})):await super.libraryIndexPage(o);return this.run(()=>this.repository.transaction(false,async t=>{for(let i=0;i<page.items.length;i++){const item=await safeOrganization(this,t,'topic',page.items[i]);page.items[i]=!o.query&&item?.id&&item.activeLayoutGeneration?{...item,rootCue:await topicRootExcerpt(this,t,item,o.providerKey??null)}:item;}return page;}));}
  // Read-only expression chronology; never use capture/model time as expression time.
  async readingEntry(id){
   // Evidence validation and chronology use separate bounded reads. An edit may
@@ -49,6 +51,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async afterSourceTimeChanged(t,recordId){return importedTimeChanged(this,t,recordId);}
  async topicSectionsPage(o={}){return topicSectionsPage(this,o);}
  async topicAdjacency(o={}){return topicAdjacency(this,o);}
+ async topicTimelinePage(o={}){return topicTimelinePage(this,o);}
  async topicDocumentPage(o={}){
   const view=o.view??'original';if(!['original','ai'].includes(view))reject('INVALID_OUTPUT');
   const scoped=o.providerKey!==undefined&&o.providerKey!==null;if(view==='original'&&!o.sort&&!scoped)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort||scoped?await topicReadingPage(this,{...o,sort:o.sort||'asc'}):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;

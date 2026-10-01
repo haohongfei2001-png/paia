@@ -2,9 +2,9 @@
 
 ## Desktop vNext owner-approved restart — 2026-09-30
 
-**Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D1`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
+**Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D2`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
 
-Fresh engineering base: `46b3d4fe6ce68809efc442fb6545839c582ce2b6` (merge #116; full Q7 certification36918513720 PASS; exact-main integration36920963461 and Pages36920962540 PASS). Sole active product writer: `feat/desktop-vnext-d1-selection-closure`, current bounded batch [D1/Q8](implementation/desktop-vnext/D1-Q8.md) adjacent viewport-clamped native selection toolbar, Escape dismissal and explicit keyboard reopen. Q1–Q7 are integrated; D1 is not yet complete. New Q8 hosted gates remain pending. Frozen DVN-1.0 and foundation107 remain controlling; #99 remains unchanged and unmerged.
+Fresh engineering base: `7c1e1897f1f180e34ab09df1470069f768eb8b1f` (merge #117; full Q8 certification36923897714 PASS; exact-main integration36926366117 and Pages36926366090 PASS). Sole active product writer: `feat/desktop-vnext-d2-expression-time`, current bounded batch D2/Q1 reliable expression-year read model and frozen Topic presentation. D1 Q1–Q8 engineering is integrated; live/device/performance/owner acceptance remains separate. D2 hosted acceptance is not yet run. Frozen DVN-1.0 and foundation107 remain controlling; #99 remains unchanged and unmerged.
 
 Each batch records exact base/head, Surface/Acceptance/P-I-D, actual tests, failures and NOT_RUN; integration and exact-main verification precede the next batch. No permanent dual coordinator or second body truth. B-01–B-05 and other owner gates remain open, with dependent behavior fail closed; independent approved work continues. Search remains lexical/fuzzy/filter. Context Release is Copy/Export. No new provider permission, upload, reply-reading, paid service, cloud authority, destructive policy or distribution/legal commitment is approved.
 
@@ -89,15 +89,15 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: D1 — Archive / Q8 selection presentation closure
+current_slice: D2 — Thought Library / Q1 expression chronology
 
 current_slice_status: IMPLEMENTING
 
-current_round: D1-Q8
+current_round: D2-Q1
 
 current_round_status: IMPLEMENTING
 
-current_writer: feat/desktop-vnext-d1-selection-closure — sole active product writer
+current_writer: feat/desktop-vnext-d2-expression-time — sole active product writer
 
 writer_status: ACTIVE — owner-approved Desktop vNext D1–D4 only
 
