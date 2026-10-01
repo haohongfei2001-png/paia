@@ -1,0 +1,8 @@
+/* One Archive search; layout shares the existing header until D1 shell cutover. */
+#scope-search-host{flex:1 1 280px;min-width:0;max-width:520px}
+.scope-search{display:flex;align-items:center;gap:8px;min-width:0;width:100%}
+.scope-search[hidden],#scope-search-host:not(:has(.scope-search:not([hidden]))){display:none}
+.scope-search-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#scope-search{width:100%;min-width:0;min-height:36px;padding:8px 12px;font:inherit;background:var(--paia-surface);color:var(--paia-text);border:1px solid var(--paia-subtle);border-radius:6px}
+@media(pointer:coarse){#scope-search{min-height:44px}}
+@media(max-width:767px){#scope-search-host{flex-basis:100%;max-width:none}}

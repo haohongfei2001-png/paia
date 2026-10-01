@@ -18,7 +18,7 @@ for(const count of process.env.PAIA_HISTORY_STRESS==='100000'?[100000]:[1000,100
   const heartbeat=await h.archive.evaluate(()=>{clearInterval(window.scaleProbe.timer);return {ticks:window.scaleProbe.ticks,maxGapMs:window.scaleProbe.maxGapMs};});
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.ok(heartbeat.ticks>0);assert.ok(heartbeat.maxGapMs<3000,'page must remain responsive');
   const latest=await rpc(h,'IMPORT_LATEST');assert.equal(latest.lastImport.counts.added,count);await h.archive.screenshot({path:'work/history-v090/scale-'+count+'-complete.png'});
-  await h.archive.locator('#history-read').click();const searchStart=Date.now();await h.archive.locator('#search').fill('UNIQUE_LATE_HISTORICAL_MATCH');await eventually(async()=>await h.archive.locator('.search-input-result').count()>0||await h.archive.locator('#document-list').textContent().then(t=>t.includes('UNIQUE_LATE_HISTORICAL_MATCH')),'late history search finds match',count===100000?180000:60000);const searchMs=Date.now()-searchStart;
+  await h.archive.locator('#history-read').click();const searchStart=Date.now();await h.archive.locator('#scope-search').fill('UNIQUE_LATE_HISTORICAL_MATCH');await eventually(async()=>await h.archive.locator('.search-input-result').count()>0||await h.archive.locator('#document-list').textContent().then(t=>t.includes('UNIQUE_LATE_HISTORICAL_MATCH')),'late history search finds match',count===100000?180000:60000);const searchMs=Date.now()-searchStart;
   await h.archive.screenshot({path:'work/history-v090/scale-'+count+'-search.png'});
   let explicitOriginalRequests=0,explicitAIRequests=0;
   if(count===1000){

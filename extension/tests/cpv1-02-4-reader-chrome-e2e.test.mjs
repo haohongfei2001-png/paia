@@ -89,7 +89,7 @@ test('CPV1-02.4 conversation search steps into unmounted text and close restores
   await openCapturedReader(p);
   const first=p.locator('.library-prose').first();await first.focus();await first.scrollIntoViewIfNeeded();
   const firstId=await first.getAttribute('data-edit-id');
-  await p.locator('#document-search').fill('CPV1_MATCH');
+  await p.locator('#scope-search').fill('CPV1_MATCH');
   await eventually(async()=>await p.locator('.document-search-hit').count()===2,'both mounted and unmounted matches are indexed');
   await p.locator('#document-search-match-next').click();
   await eventually(async()=>await p.locator('#document-search-status').textContent().then(t=>t.includes('已定位 1/2')));
@@ -98,7 +98,7 @@ test('CPV1-02.4 conversation search steps into unmounted text and close restores
   await eventually(async()=>await p.locator('.library-prose').filter({hasText:'Synthetic text 100'}).isVisible(),'next match opens unmounted body');
   await p.locator('#document-search-close').click();
   await eventually(async()=>await p.locator(`[data-edit-id="${firstId}"]`).isVisible(),'closing search restores the prior reading Input');
-  assert.equal(await p.locator('#document-search').inputValue(),'');
+  assert.equal(await p.locator('#scope-search').inputValue(),'');
   assert.equal(await p.locator('#document-search-results').isVisible(),false);
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
@@ -112,7 +112,7 @@ test('VS-04 search positions a lexical hit inside a long Input without mutating 
   const c=conversation('vs04-long-search');c.messages=[{id:'vs04-long-search-input',text:body}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await openCapturedReader(p);
-  await p.locator('#document-search').fill('UNIQUE_LEXICAL_TARGET');
+  await p.locator('#scope-search').fill('UNIQUE_LEXICAL_TARGET');
   await eventually(async()=>await p.locator('.document-search-hit').count()===1,'long Input is indexed');
   await p.locator('.document-search-hit').click();
   await eventually(async()=>p.evaluate(async()=>{
@@ -160,7 +160,7 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
   await p.locator('#close-revisions').click();
 
   await p.locator('#back').click();
-  await p.locator('#search').fill('VS04 unique retrieval');
+  await p.locator('#scope-search').fill('VS04 unique retrieval');
   await eventually(()=>p.locator('.search-input').first().isVisible(),'edited Input is searchable');
   await p.locator('.search-input').first().click();
   await eventually(()=>p.locator('[data-edit-id="'+id+'"]').isVisible(),'search reopens the edited Input');
@@ -202,7 +202,7 @@ test('VS-04 current-document search saves a live edit before indexing it',{timeo
   const prose=p.locator('.library-prose').first();await eventually(()=>prose.isVisible());
   const id=await prose.getAttribute('data-edit-id'),changed='中文 🧭 code const searchDuringEdit = 42; UNIQUE_VS04_LIVE_EDIT';
   await prose.fill(changed);
-  await p.locator('#document-search').fill('UNIQUE_VS04_LIVE_EDIT');
+  await p.locator('#scope-search').fill('UNIQUE_VS04_LIVE_EDIT');
   await eventually(()=>p.locator('.document-search-hit').count().then(n=>n===1),'the live edit is searchable');
   assert.equal(await p.locator('.document-search-hit').first().getAttribute('data-input-id'),id);
   assert.equal((await h.state()).library.blocks.find(b=>b.id===id)?.libraryText,changed);
@@ -289,7 +289,7 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   assert.equal((await h.state()).records.length,1,'immutable Source remains present');
   assert.equal(await prose.textContent(),'未完成的输入','the composing text remains visible after refused purge');
   await prose.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true})));
-  await p.locator('#document-search').evaluate(el=>{el.value='未完成的输入';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await p.locator('#scope-search').evaluate(el=>{el.value='未完成的输入';el.dispatchEvent(new Event('input',{bubbles:true}));});
   await eventually(async()=>/请先完成并保存当前输入修改|Finish and save the current Input edit/.test(await p.locator('#document-search-status').textContent()),'search waits for unfinished IME edit');
   assert.equal(await p.locator('.document-search-hit').count(),0,'unfinished text is not presented as indexed data');
   assert.equal(await prose.textContent(),'未完成的输入','search preserves composing text');

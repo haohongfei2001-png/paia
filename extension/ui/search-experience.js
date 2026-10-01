@@ -48,12 +48,13 @@ export function revealSearchResult(itemId,query,{attempts=40}={}){
    requestAnimationFrame(()=>requestAnimationFrame(()=>{
     if(token!==revealToken||!target.isConnected)return;
     highlightReading(root,needle);
-    const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true,section=target.closest('section');
+    const section=target.closest('section');
     if(section)section.dataset.searchOrigin='true';
     const match=firstLexicalRange(target,needle),rect=match?.getBoundingClientRect();
-    if(rect?.height)window.scrollBy({top:rect.top-innerHeight*0.45,behavior:reduced?'instant':'smooth'});
-    else target.scrollIntoView({block:'center',behavior:reduced?'instant':'smooth'});
-    if(!reduced)section?.animate?.([{backgroundColor:'#eef3e9'},{backgroundColor:'transparent'}],{duration:900,easing:'ease-out'});
+    if(rect?.height)window.scrollTo({top:Math.max(0,window.scrollY+rect.top-innerHeight*0.45),behavior:'instant'});
+    else target.scrollIntoView({block:'center',behavior:'instant'});
+    // Exact-result navigation has one explicit jump, without competing smooth
+    // scrolls or decorative animation over an editable Input.
    }));
    return;
   }
@@ -62,7 +63,13 @@ export function revealSearchResult(itemId,query,{attempts=40}={}){
  setTimeout(attempt,0);
 }
 
-export function wireSearchKeyboard(input,results){input.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){const first=results.querySelector('button:not(:disabled)');if(first){e.preventDefault();first.focus();}}});results.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','Escape'].includes(e.key))return;const all=[...results.querySelectorAll('button:not(:disabled)')].filter(x=>x.getClientRects().length),at=all.indexOf(document.activeElement);if(at<0)return;e.preventDefault();if(e.key==='Escape'||e.key==='ArrowUp'&&at===0)input.focus();else all[Math.max(0,Math.min(all.length-1,at+(e.key==='ArrowDown'?1:-1)))]?.focus();});results.addEventListener('click',e=>{const hit=e.target.closest?.('button.search-input[data-input-id]');if(hit&&results.contains(hit))revealSearchResult(hit.dataset.inputId,input.value);});}
+export function wireSearchKeyboard(input,results,{listenInput=true}={}){if(listenInput)input.addEventListener('keydown',e=>{if(!e.isComposing&&e.keyCode!==229&&e.key==='ArrowDown'){const first=results.querySelector('button:not(:disabled)');if(first){e.preventDefault();first.focus();}}});results.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','Escape'].includes(e.key))return;const all=[...results.querySelectorAll('button:not(:disabled)')].filter(x=>x.getClientRects().length),at=all.indexOf(document.activeElement);if(at<0)return;e.preventDefault();if(e.key==='Escape'||e.key==='ArrowUp'&&at===0)input.focus();else all[Math.max(0,Math.min(all.length-1,at+(e.key==='ArrowDown'?1:-1)))]?.focus();});results.addEventListener('click',e=>{const hit=e.target.closest?.('button.search-input[data-input-id]');if(hit&&results.contains(hit))revealSearchResult(hit.dataset.inputId,input.value);});}
+// A single input listener chooses only the admitted, visible page. Result
+// lists keep their reviewed keyboard behavior without duplicate input owners.
+export function wireScopeSearchKeyboard(input,pages){
+ input.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229||e.key!=='ArrowDown')return;const page=pages.find(p=>p.active());const first=page?.results.querySelector('button:not(:disabled)');if(first?.getClientRects().length){e.preventDefault();first.focus();}});
+ for(const page of pages)wireSearchKeyboard(input,page.results,{listenInput:false});
+}
 export async function findLibraryPage(read,{query,cursor=null,isCurrent=()=>true,onProgress=()=>{}}){let next=cursor;for(;;){if(!isCurrent())return null;const page=await read({query,cursor:next,ranked:true});if(!isCurrent())return null;if(page.items.length||!page.nextCursor)return page;if(JSON.stringify(next)===JSON.stringify(page.nextCursor))throw Error('Search did not advance');next=page.nextCursor;onProgress();await new Promise(r=>setTimeout(r,0));}}
 
 queueMicrotask(installUniversalSearch);

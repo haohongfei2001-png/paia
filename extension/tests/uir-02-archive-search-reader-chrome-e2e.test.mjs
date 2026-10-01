@@ -131,6 +131,8 @@ async function sourceJourney(page,h){
 
   await page.locator('.universal-open').first().click();
   await eventually(()=>page.locator('#document-panel').isVisible(),'Search result opens Reader');
+  await eventually(()=>page.locator('#scope-search').isEnabled(),'actual Reader scope is ready');
+  assert.equal(await page.locator('#scope-search').inputValue(),'UIR02_TARGET','explicit result query belongs to the Reader scope');
   assert.match(await page.locator('#document-body').textContent(),/UIR02_TARGET/,'explicit Reader full text remains readable while preview mask is enabled');
   const detailField=page.locator('.library-prose').first();
   const detailId=await detailField.getAttribute('data-edit-id');
@@ -160,8 +162,9 @@ async function sourceJourney(page,h){
   await eventually(()=>page.locator('#material-workbench').isVisible(),'Search close restores the retained For AI material surface');
   await page.locator('#primary-nav [data-view="library"]').click();
   await eventually(()=>page.locator('#collection-panel').isVisible(),'Archive remains directly reachable after material selection');
-  assert.equal(await page.locator('#search').inputValue(),'UIR02_TARGET','Reader result query remains the existing Archive filter after Search closes');
-  await page.locator('#search').fill('');
+  await eventually(()=>page.locator('#scope-search').isEnabled(),'actual Archive scope is ready after the task closes');
+  assert.equal(await page.locator('#scope-search').inputValue(),'','Reader/material-task query does not overwrite the independent Archive-root filter');
+  await page.locator('#scope-search').fill('');
   await eventually(()=>page.locator('#archive-navigator').isVisible(),'clearing the Archive filter restores the source tree before Revisit');
   assert.equal(await page.locator('#uir-archive-assist,#uir-archive-frame').count(),0,'Archive does not restore the legacy side dashboard');
 

@@ -84,7 +84,7 @@ test('UIS-01 quiets Archive root and consolidates history/export actions without
 
     await page.locator('#r6-source-records button').click();
     await eventually(()=>page.locator('#collection-panel').isVisible(),'Source Records root opens');
-    await page.locator('#search').fill('UIS01_EXPORT_FILTER_A');
+    await page.locator('#scope-search').fill('UIS01_EXPORT_FILTER_A');
     await eventually(async()=>await page.locator('.conversation-document').count()===1,'Source Records filter narrows the current scope');
     const json=JSON.parse(await download(page,'json'));
     assert.equal(json.format,'personal-ai-input-archive');

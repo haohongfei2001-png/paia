@@ -63,7 +63,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   assert.equal(await p.evaluate(()=>location.hash+location.search),'','Back/Forward keeps the verified archive URL unchanged');
   await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#archive-root-main').isVisible());
 
-  assert.equal(await p.locator('#universal-search-open').isVisible(),false,'normal shell exposes no global Search launcher');await p.keyboard.press('Control+k');await eventually(async()=>await p.locator('#search').evaluate(el=>document.activeElement===el),'Ctrl/Cmd+K focuses the Archive surface search');assert.equal(await p.locator('#universal-search-dialog').isVisible(),false,'Archive shortcut does not open the internal material-search shell');
+  assert.equal(await p.locator('#universal-search-open').isVisible(),false,'normal shell exposes no global Search launcher');await p.keyboard.press('Control+k');await eventually(async()=>await p.locator('#scope-search').evaluate(el=>document.activeElement===el),'Ctrl/Cmd+K focuses the Archive surface search');assert.equal(await p.locator('#universal-search-dialog').isVisible(),false,'Archive shortcut does not open the internal material-search shell');
   const skip=p.locator('#ux-skip-main');await skip.focus();assert.equal(await skip.isVisible(),true,'skip link is keyboard reachable');
 
   await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'dark',fontSize:'large',readingWidth:'wide',language:'zh-CN'}});
@@ -86,7 +86,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
    const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(overflow<=2,`root must reflow at ${width}px; overflow=${overflow}`);
   }
   const cdp=await p.context().newCDPSession(p);await p.setViewportSize({width:640,height:900});await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
-  await p.screenshot({path:'work/ux-r1/archive-200pct-light.png',fullPage:true});assert.equal(await p.locator('#search').isVisible(),true,'200% page scale keeps primary Archive search reachable');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
+  await p.screenshot({path:'work/ux-r1/archive-200pct-light.png',fullPage:true});assert.equal(await p.locator('#scope-search').isVisible(),true,'200% page scale keeps primary Archive search reachable');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
   await p.setViewportSize({width:390,height:844});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(()=>p.locator('#primary-nav').isVisible(),'mobile root navigation visible');
   await openArchiveWindow(p,{text:'UX-R1 最近收录'});await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#primary-nav').isVisible(),false,'Reader removes bottom root navigation on mobile');
   await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),true);
