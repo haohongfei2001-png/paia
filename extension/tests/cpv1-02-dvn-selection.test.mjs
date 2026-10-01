@@ -23,3 +23,7 @@ test('D1 one shell explicitly composes existing owners; retired observer bootstr
  assert.match(archive,/owner!==editor/,'async selection cannot act on a replacement editor');
  assert.equal((archive.match(/selectionMatchesBody\(selection,owner\.text\(/g)||[]).length,2,'selection validated before and after save');
 });
+
+test('D1 frozen token aliases are not redefined by retained feature styles',async()=>{
+ for(const name of ['archive.css','experience.css']){const css=await readFile(new URL('../ui/'+name,import.meta.url),'utf8');assert.doesNotMatch(css,/--paia-(?:ink|muted|line|surface|focus|accent):/,'one theme owner for '+name);}
+});

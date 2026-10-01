@@ -1,4 +1,4 @@
-:root{--paia-ink:#252d28;--paia-muted:#69756c;--paia-line:#e5e9e2;--paia-accent:#516f4c;color:var(--paia-ink);background:#fff}
+/* Shared color roles are owned exclusively by desktop-tokens.css. */
 body{background:#fff;color:var(--paia-ink)}
 #page-breadcrumb{font-size:12px;color:var(--paia-muted);margin-bottom:12px}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #57784e;outline-offset:3px}
