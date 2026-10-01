@@ -115,7 +115,7 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
    }
   }
   phase='page scale and final evidence';
-  await p.setViewportSize({width:1024,height:768});const cdp=await h.context.newCDPSession(p);await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});assert.equal(await p.locator('#archive-navigator-toggle').isVisible(),true,'Navigator remains reachable at 200% page scale');assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'200% page scale does not create page overflow');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
+  await p.setViewportSize({width:1024,height:768});const cdp=await h.context.newCDPSession(p);await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});assert.equal(await p.locator('#archive-navigator').isVisible(),true,'frozen 1024px persistent Navigator remains reachable at 200% page scale');assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'200% page scale does not create page overflow');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
   await p.screenshot({path:'work/ans-05-navigator/desktop-reader.png',fullPage:true});
   phase='final privacy assertions';
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);phase='complete';

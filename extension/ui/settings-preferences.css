@@ -19,7 +19,7 @@
 .history-counts span{color:var(--paia-secondary)}
 .ux-settings-shell{display:block}
 .ux-settings-header{display:flex;align-items:center;gap:16px;margin-bottom:24px}
-.ux-settings-header h1{font-size:36px;line-height:1.2;margin:0}
+.ux-settings-header h1{font-size:28px;line-height:1.2;margin:0}
 .ux-settings-back{color:var(--paia-secondary)}
 .ux-settings-feedback{margin-left:auto;font-size:13px;color:var(--paia-meta)}
 .ux-settings-feedback[data-kind="error"]{color:var(--paia-danger)}
@@ -42,7 +42,7 @@ dialog,#context-menu,.source-panel{background:var(--paia-surface);color:var(--pa
 dialog::backdrop{background:#10171366}
 .source-panel pre{background:var(--paia-canvas);color:var(--paia-text)}
 html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #context-menu{background:var(--paia-surface);border-color:var(--paia-subtle)}
-@media (min-width:768px) and (max-width:1023px){.ux-settings-header h1{font-size:30px}
+@media (min-width:768px) and (max-width:1023px){.ux-settings-header h1{font-size:28px}
 .ux-settings-layout{grid-template-columns:180px minmax(0,840px);gap:32px}
 }
 @media(max-width:767px){.ux-settings-header{position:sticky;top:56px;background:var(--paia-canvas);z-index:40;padding:8px 0;margin:-8px 0 12px}
