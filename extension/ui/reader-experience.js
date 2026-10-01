@@ -23,7 +23,6 @@ export class ReaderExperience {
   $('document-body').addEventListener('focusin',e=>{const el=e.target.closest('[data-edit-id]');if(el){this.lastInput=el.dataset.editId;this.expand(el);}});
   $('document-body').addEventListener('input',()=>this.schedule());
   document.addEventListener('selectionchange',()=>this.selection());
-  this.onResize=()=>{if(!this.active)return;const mobile=matchMedia('(max-width: 799px)').matches;for(const el of $('document-page').querySelectorAll('[contenteditable]'))if(el!==document.activeElement&&!this.read().editor?.composing)el.contentEditable=mobile?'false':'plaintext-only';};window.addEventListener('resize',this.onResize);
   this.toolbar=element('div','reader-selection');this.toolbar.hidden=true;this.toolbar.setAttribute('role','toolbar');this.toolbar.setAttribute('aria-label',readerCopy('所选文字','Selected text'));const copy=element('button','',readerCopy('复制所选文字','Copy selection'));copy.addEventListener('pointerdown',e=>e.preventDefault());copy.addEventListener('click',()=>void copyReadingText(this.selectedText));this.toolbar.append(copy);$('document-panel').append(this.toolbar);
   const recovery=element('button','',readerCopy('复制当前文字','Copy current text'));recovery.id='reader-copy-buffer';recovery.hidden=true;recovery.addEventListener('click',()=>{const {editor}=this.read();if(!editor)return;editor.collect();void copyReadingText([...editor.entries.values()].filter(e=>!e.local.excluded).map(e=>editor.text(e)).join('\n\n'));});$('retry').after(recovery);
   new MutationObserver(()=>{recovery.hidden=$('retry').hidden&&$('reload-document').hidden;}).observe($('save-status'),{childList:true,subtree:true});
@@ -50,22 +49,18 @@ export class ReaderExperience {
  }
  mount(){
   this.active=true;const {view,editor}=this.read();if(view!=='library'||!editor){this.active=false;return;}
-  const mobile=matchMedia('(max-width: 799px)').matches,body=$('document-body');
-  $('document-title').contentEditable=mobile?'false':'plaintext-only';$('reader-title-edit')?.remove();const titleEdit=element('button','reader-mobile-title-edit',readerCopy('编辑标题','Edit title'));titleEdit.id='reader-title-edit';titleEdit.onclick=async()=>{const title=$('document-title');if(title.contentEditable==='false'){title.contentEditable='plaintext-only';titleEdit.textContent=readerCopy('完成','Done');title.focus();}else{editor.collect();if(!await editor.flush())return;title.contentEditable='false';titleEdit.textContent=readerCopy('编辑标题','Edit title');title.blur();}};$('document-title').after(titleEdit);
+  // Direct editing is owned by DocumentEditor at every layout width. In
+  // particular, presentation/resize must never reopen its pending Remove lock.
+  const body=$('document-body');
   this.mountRows(body);
   if(!body.querySelector('.library-block')){const empty=element('p','reader-empty',readerCopy('这篇暂时没有显示内容，可在设置中查看最近收起或已移除的内容。','This document has no visible inputs. Hidden and removed items are available in Settings.'));body.append(empty);}
   this.schedule();
  }
  mountRows(body){
-  const {editor}=this.read(),mobile=matchMedia('(max-width: 799px)').matches;
   for(const section of body.querySelectorAll('.library-block')){
-   const prose=section.querySelector('.library-prose');if(!prose)continue;prose.contentEditable=mobile?'false':'plaintext-only';
+   const prose=section.querySelector('.library-prose');if(!prose)continue;
    const actions=element('div','reader-margin-actions'),more=element('button','reader-more','···');more.setAttribute('aria-label',readerCopy('这条输入的更多操作','More actions for this input'));more.onclick=()=>{this.lastInput=section.dataset.blockId;const r=more.getBoundingClientRect();this.menu(section.dataset.blockId,r.left,r.bottom);};
    actions.append(more);section.append(actions);
-   const edit=element('button','reader-mobile-edit',readerCopy('编辑','Edit'));edit.onclick=async()=>{
-    if(prose.contentEditable!=='false'){editor.collect();if(!await editor.flush())return;prose.contentEditable='false';edit.textContent=readerCopy('编辑','Edit');prose.blur();}
-    else{this.expand(prose);prose.contentEditable='plaintext-only';edit.textContent=readerCopy('完成','Done');prose.focus();}
-   };actions.append(edit);
    if(!this.expanded.has(prose.dataset.editId)&&prose.getBoundingClientRect().height>innerHeight*1.5){const expand=element('button','reader-expand',readerCopy(`展开全文 · 约 ${[...prose.innerText].length} 字`,`Expand full text · ${[...prose.innerText].length} characters`));prose.classList.add('reader-collapsed');expand.onclick=()=>this.expand(prose);section.append(expand);}
   }
  }

@@ -4,11 +4,19 @@
 
 **Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D1`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
 
-Fresh engineering base: `bb4ba007d153270efb040f3e29344aa9fef1564e` (merge #113, exact-main integration36803171261 PASS). Sole active product writer: `feat/desktop-vnext-d1-scoped-search`, current coherent batch D1/Q5 single scope Search and bounded safe view history. Q1, Q2, Q2.1, Q4, Q1.1 and Q3 are integrated; D1 is not yet complete. Frozen DVN-1.0 and foundation107 remain controlling; #99 stays unchanged at991f78f4c54b79d67428bf3209fb4eaa18f1cc9b.
+Fresh engineering base: `af3777c3333e8f8a0ee83dc58b521a613add304c` (merge #114; exact-main integration36813577806 PASS). Sole active product writer: `feat/desktop-vnext-d1-direct-edit`, current bounded batch D1/Q6 direct editing at every width and editor-owned pending-removal lock preservation. Q1, Q2, Q2.1, Q4, Q1.1, Q3 and Q5 are integrated; D1 is not yet complete. Frozen DVN-1.0 and foundation107 remain controlling; #99 stays unchanged at991f78f4c54b79d67428bf3209fb4eaa18f1cc9b.
 
 Each batch records exact base/head, Surface/Acceptance/P-I-D, actual tests, failures and NOT_RUN; integration and exact-main verification precede the next batch. No permanent dual coordinator or second body truth. B-01–B-05 and other owner gates remain open, with dependent behavior fail closed; independent approved work continues. Search remains lexical/fuzzy/filter. Context Release is Copy/Export. No new provider permission, upload, reply-reading, paid service, cloud authority, destructive policy or distribution/legal commitment is approved.
 
 Implementation status is engineering progress, not certification of current-live/provider/device/performance/100k/120Hz/physical-IME/screen-reader/owner acceptance. Synthetic browser evidence must be labeled as such.
+
+## Desktop vNext D1/Q5 integration and Q6 entry — 2026-10-01
+
+[PR #114](https://github.com/haohongfei2001-png/paia/pull/114) head `66885c1b9ec57b52797a713c84162c80c504f731` merged to `af3777c3333e8f8a0ee83dc58b521a613add304c`. Its recorded full candidate [36812077556](https://github.com/haohongfei2001-png/paia/actions/runs/36812077556) passed unit1318/browser182/adapter102/privacy58 and release/Mac/full aggregation; its earlier full36809729487 remains FAIL. Fresh read of exact-main [36813577806](https://github.com/haohongfei2001-png/paia/actions/runs/36813577806) confirms four unit shards, contracts/privacy, release and integration gate SUCCESS; browser/Mac/full aggregation SKIPPED. These distinct boundaries are not two full certifications.
+
+[Q6](implementation/desktop-vnext/D1-Q6.md) retires the Reader's narrow Edit/Done mode and presentation writes to contenteditable. Existing DocumentEditor is the sole editability/save/transaction-lock owner at every width. The old resize callback could reopen fields intentionally locked for a pending Conversation removal; the actual held-command source/release journey must prove that resize leaves them locked. Local unit/package/release evidence is separate from pending hosted browser/screenshot evidence. No new domain, Source/Working/schema/permission/provider or B-02 policy change.
+
+Remaining D1 work still includes the frozen AppShell/Navigator/Reader composition, selection interaction and responsive layout cutover plus verified old-coordinator/CSS retirement. Q6 does not claim the entire shell cutover, D1 completion, physical IME, accessibility/device/performance or owner acceptance. D2 → D3 → D4 remain the approved subsequent sequence.
 
 ## Desktop vNext D1/Q1 exact integration — 2026-10-01
 
@@ -81,15 +89,15 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: D1 — Archive / Q5 single scope Search
+current_slice: D1 — Archive / Q6 direct editing across widths
 
 current_slice_status: IMPLEMENTING
 
-current_round: D1-Q5
+current_round: D1-Q6
 
 current_round_status: IMPLEMENTING
 
-current_writer: feat/desktop-vnext-d1-scoped-search — sole active product writer
+current_writer: feat/desktop-vnext-d1-direct-edit — sole active product writer
 
 writer_status: ACTIVE — owner-approved Desktop vNext D1–D4 only
 

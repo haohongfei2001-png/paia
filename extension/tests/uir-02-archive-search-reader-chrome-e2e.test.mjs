@@ -209,7 +209,8 @@ async function sourceJourney(page,h){
   });
   await eventually(()=>page.locator('#retry').isVisible(),'failed save exposes retry without dropping the edit buffer');
   assert.match(await prose.textContent(),/UIR02_BUFFER_STAYS/,'failed save keeps the current text in place');
-  assert.equal(await page.locator('.reader-mobile-edit').first().isVisible(),true,'mobile Reader keeps explicit Edit control');
+  assert.equal(await page.locator('.reader-mobile-edit,#reader-title-edit').count(),0,'narrow Reader retires separate Edit/Done modes');
+  assert.equal(await prose.getAttribute('contenteditable'),'plaintext-only','failed narrow edit remains directly editable');
   const mobileOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   assert.ok(mobileOverflow<=2,`390px Reader has no root horizontal overflow; got ${mobileOverflow}`);
   await shot(page,'uir-02-reader-390x844-save-failure',{fullPage:false});

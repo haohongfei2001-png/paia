@@ -547,17 +547,81 @@ jobs:
           PAIA_HEADLESS: '1'
         run: node --test tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs
 
+  direct_edit:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_DVN_DIRECT_EDIT_BROWSER')
+    name: Candidate direct-edit acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Select hosted Chrome for isolated extension journeys
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Verify source and built direct editing plus complete affected Reader regressions
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          mkdir -p work/qa-dvn-direct-edit
+          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs tests/cpv1-02-4-reader-chrome-e2e.test.mjs tests/uir-02-archive-search-reader-chrome-e2e.test.mjs tests/ux-r2-reader-revisit-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-direct-edit/test.log
+      - name: Require exact-head synthetic evidence
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          for(const variant of ['source','release']){
+            const report=JSON.parse(await readFile(`work/qa-dvn-direct-edit/${variant}-matrix.json`,'utf8'));
+            assert.equal(report.status,'PASS');assert.equal(report.headSha,process.env.PAIA_TESTED_HEAD);
+            assert.equal(report.noExternalRequests,true);
+            assert.deepEqual(report.measurements.map(row=>row.width),[1440,1280,1024,768,390,320]);
+            for(const name of [...report.measurements.map(row=>`selection-${row.width}`),'failed-direct-edit','pending-removal']){
+              const png=await readFile(`work/qa-dvn-direct-edit/${variant}-${name}.png`);
+              assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));
+            }
+          }
+          JS
+      - name: Retain synthetic direct-edit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: direct-edit-${{ github.event.pull_request.head.sha }}
+          path: extension/work/qa-dvn-direct-edit/
+          if-no-files-found: error
+          retention-days: 7
+
   candidate:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic]
+    needs: [unit, contracts, release, direct_edit, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic]
     steps:
       - name: Require light candidate gates
         env:
           UNIT: ${{ needs.unit.result }}
           CONTRACTS: ${{ needs.contracts.result }}
           RELEASE: ${{ needs.release.result }}
+          DIRECT_EDIT: ${{ needs.direct_edit.result }}
+          DIRECT_EDIT_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_DIRECT_EDIT_BROWSER') }}
           TARGETED_BROWSER: ${{ needs.targeted_browser.result }}
           NATIVE_POPUP: ${{ needs.native_popup.result }}
           NATIVE_POPUP_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER') }}
@@ -572,6 +636,7 @@ jobs:
           test "$UNIT" = success
           test "$CONTRACTS" = success
           test "$RELEASE" = success
+          if [ "$DIRECT_EDIT_SELECTED" = true ]; then test "$DIRECT_EDIT" = success; elif [ "$DIRECT_EDIT" != skipped ]; then test "$DIRECT_EDIT" = success; fi
           if [ "$TARGETED_BROWSER" != skipped ]; then test "$TARGETED_BROWSER" = success; fi
           if [ "$NATIVE_POPUP_SELECTED" = true ]; then test "$NATIVE_POPUP" = success; elif [ "$NATIVE_POPUP" != skipped ]; then test "$NATIVE_POPUP" = success; fi
           if [ "$CAPTURE_RECOVERY_SELECTED" = true ]; then test "$CAPTURE_RECOVERY" = success; elif [ "$CAPTURE_RECOVERY" != skipped ]; then test "$CAPTURE_RECOVERY" = success; fi
