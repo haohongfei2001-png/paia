@@ -58,8 +58,11 @@ export function testShard(file, position, total, category) {
   // file placements and the unchanged18-minute budget. No case is omitted.
   // D1 Search adds one complete source/release file on2. All61 earlier
   // file placements, fixtures, cases and the18-minute budget remain intact.
-  // Q6 adds one complete source/release file on2 without moving any prior file.
-  if(name===purge||name===removal||name===search||name===directEdit)return 2;
+  // Q5 full36812077556 used17m50s on2 versus13m08s on3. Q6 full
+  // 36884491807 exceeded2's18-minute budget. Put only the new whole
+  // Q6 file on3, preserving all62 earlier file placements and every case.
+  if(name===directEdit)return 3;
+  if(name===purge||name===removal||name===search)return 2;
   if(name>directEdit)position--;
   if(name>purge)position--;
   if(name>removal)position--;

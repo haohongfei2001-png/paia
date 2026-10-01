@@ -62,10 +62,10 @@ if(partition.some(part=>!part.length)
     || !partition[1].includes('cpv1-02-dvn-purge-chrome-e2e.test.mjs')
     || !partition[1].includes('cpv1-02-dvn-removal-chrome-e2e.test.mjs')
     || !partition[1].includes('cpv1-02-dvn-search-chrome-e2e.test.mjs')
-    || !partition[1].includes('cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs')){
+    || !partition[2].includes('cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs')){
  throw Error('CURRENT_BROWSER_SHARD_PARTITION_INVALID');
 }
-// These four whole inserted files are explicitly required on2 above. Every
+// The three earlier inserted files stay on2; the new Q6 file is on3. Every
 // previously certified file must retain its original placement below.
 const beforeQ4=current.filter(name=>!['cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs','cpv1-02-dvn-purge-chrome-e2e.test.mjs','cpv1-02-dvn-removal-chrome-e2e.test.mjs','cpv1-02-dvn-search-chrome-e2e.test.mjs'].includes(name));
 for(const [position,name]of beforeQ4.entries()){
