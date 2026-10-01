@@ -71,6 +71,12 @@ for(const variant of ['source','release']){
     assert.equal(geometry.rootSlot,0);assert.equal(geometry.readerSlot,1,'one contextual navigator in its explicit Reader slot');
     if(width>=1024){assert.equal(Math.round(geometry.rail),width>=1440?184:160);assert.equal(Math.round(geometry.nav),width>=1440?280:240);assert.equal(geometry.display,'grid');}
     else if(width>=768){assert.equal(Math.round(geometry.rail),64);assert.equal(geometry.display,'block');}
+    await eventually(()=>p.locator('.reader-selection').isVisible(),'native selection exposes its adjacent toolbar');
+    const toolbar=await p.locator('.reader-selection').boundingBox();
+    assert.ok(toolbar.x>=15&&toolbar.x+toolbar.width<=width-15,'toolbar stays inside horizontal viewport at '+width);
+    assert.ok(toolbar.y>=15&&toolbar.y+toolbar.height<=844-15,'toolbar stays inside vertical viewport at '+width);
+    const selected=await p.evaluate(()=>{const r=getSelection().getRangeAt(0).getBoundingClientRect();return {top:r.top,bottom:r.bottom}});
+    assert.ok(toolbar.y>=selected.bottom+7||toolbar.y+toolbar.height<=selected.top-7,'toolbar does not cover the selected text at '+width);
     await evidence(p,variant,`selection-${width}`);measurements.push({width,overflow,geometry});
    }
    await field.evaluate(el=>{getSelection().collapseToEnd();el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='SYNTHETIC 未完成拼音 ni';el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,inputType:'insertCompositionText',data:'ni'}));});
@@ -102,6 +108,10 @@ for(const variant of ['source','release']){
    assert.equal(await p.locator('.reader-selection button').first().evaluate(el=>el===document.activeElement),true,'keyboard reaches actions without requiring pointer selection');
    await p.evaluate(()=>{globalThis.__dvnCopied=null;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{globalThis.__dvnCopied=text;}}});});
    await p.keyboard.press('Enter');assert.equal(await p.evaluate(()=>__dvnCopied),'👩‍💻 é','keyboard copy uses exact original Unicode range');
+   await p.keyboard.press('Escape');await eventually(async()=>!await p.locator('.reader-selection').isVisible(),'Escape dismisses only the visual toolbar');
+   assert.equal(await p.evaluate(()=>getSelection().toString()),'👩‍💻 é','Escape preserves the native selected range');
+   assert.equal(await field.evaluate(el=>document.activeElement===el),true,'Escape restores the original contenteditable focus without scrolling');
+   await p.keyboard.press('Alt+s');await eventually(()=>p.locator('.reader-selection').isVisible(),'explicit keyboard action reopens the dismissed selection');
    // Hold focus in the toolbar while a new Input body arrives. The preserved
    // snapshot must be refused, rather than silently selecting shifted offsets.
    await field.evaluate(el=>{el.textContent='SYNTHETIC changed before selected action';});

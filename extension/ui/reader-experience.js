@@ -1,6 +1,6 @@
 import {request,element} from './common.js';
 import {copyReadingText} from './reading-actions.js';
-import {captureReaderSelection} from './reader-selection.js';
+import {captureReaderSelection,readerToolbarPosition,sameReaderSelection} from './reader-selection.js';
 import {safeOffset} from '../core/reader-state.js';
 export const readerCopy=(zh,en)=>document.documentElement.lang==='en'?en:zh;
 const $=id=>document.getElementById(id);
@@ -20,10 +20,13 @@ function textPoint(el,offset){const walk=document.createTreeWalker(el,NodeFilter
 export class ReaderExperience {
  constructor({read,notify,menu,reload}){
   this.read=read;this.notify=notify;this.menu=menu;this.reload=reload;this.timer=null;this.expanded=new Set();this.active=false;this.lastInput=null;
-  this.onScroll=()=>this.schedule();window.addEventListener('scroll',this.onScroll,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden)this.cancel();else this.schedule();});
+  this.onScroll=()=>{this.schedule();this.positionSelection();};window.addEventListener('scroll',this.onScroll,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden)this.cancel();else this.schedule();});
   $('document-body').addEventListener('focusin',e=>{const el=e.target.closest('[data-edit-id]');if(el){this.lastInput=el.dataset.editId;this.expand(el);}});
   $('document-body').addEventListener('input',()=>this.schedule());
   document.addEventListener('selectionchange',()=>this.selection());
+  window.addEventListener('resize',()=>this.positionSelection(),{passive:true});
+  window.visualViewport?.addEventListener('resize',()=>this.positionSelection(),{passive:true});
+  window.visualViewport?.addEventListener('scroll',()=>this.positionSelection(),{passive:true});
   this.toolbar=element('div','reader-selection');this.toolbar.hidden=true;this.toolbar.setAttribute('role','toolbar');this.toolbar.setAttribute('aria-label',readerCopy('所选文字','Selected text'));this.toolbar.setAttribute('aria-keyshortcuts','Alt+S');const copy=element('button','',readerCopy('复制所选文字','Copy selection'));copy.addEventListener('pointerdown',e=>e.preventDefault());copy.addEventListener('click',()=>{if(this.selected)void copyReadingText(this.selected.text);});this.toolbar.append(copy);$('document-panel').append(this.toolbar);
   const recovery=element('button','',readerCopy('复制当前文字','Copy current text'));recovery.id='reader-copy-buffer';recovery.hidden=true;recovery.addEventListener('click',()=>{const {editor}=this.read();if(!editor)return;editor.collect();void copyReadingText([...editor.entries.values()].filter(e=>!e.local.excluded).map(e=>editor.text(e)).join('\n\n'));});$('retry').after(recovery);
   new MutationObserver(()=>{recovery.hidden=$('retry').hidden&&$('reload-document').hidden;}).observe($('save-status'),{childList:true,subtree:true});
@@ -66,12 +69,37 @@ export class ReaderExperience {
   }
  }
  expand(prose){this.expanded.add(prose.dataset.editId);prose.classList.remove('reader-collapsed');prose.closest('.library-block')?.querySelector('.reader-expand')?.remove();}
- invalidateInputs(ids){this.toolbar.hidden=true;this.selected=null;this.selectedText='';for(const id of ids)this.expanded.delete(id);if(ids.includes(this.lastInput))this.lastInput=null;}
- unmount(){this.cancel();this.active=false;this.toolbar.hidden=true;this.selected=null;this.selectedText='';}
+ invalidateInputs(ids){this.toolbar.hidden=true;this.selected=null;this.dismissed=null;this.selectedText='';for(const id of ids)this.expanded.delete(id);if(ids.includes(this.lastInput))this.lastInput=null;}
+ unmount(){this.cancel();this.active=false;this.toolbar.hidden=true;this.selected=null;this.dismissed=null;this.selectedText='';}
+ positionSelection(){
+  if(!this.active||!this.selected||this.dismissed)return;
+  if(document.querySelector('dialog[open]')){this.toolbar.hidden=true;return;}
+  this.toolbar.hidden=false;
+  const v=window.visualViewport,viewport={left:v?.offsetLeft||0,top:v?.offsetTop||0,width:v?.width||innerWidth,height:v?.height||innerHeight};
+  this.toolbar.style.maxWidth=Math.max(0,viewport.width-32)+'px';this.toolbar.style.maxHeight=Math.max(0,viewport.height-32)+'px';
+  const rects=[...this.selected.range.getClientRects()].filter(r=>r.width&&r.height&&r.bottom>viewport.top+16&&r.top<viewport.top+viewport.height-16);
+  if(!rects.length&&!this.toolbar.contains(document.activeElement)){this.toolbar.hidden=true;return;}
+  const rect=rects.at(-1)||this.selected.range.getBoundingClientRect(),size=this.toolbar.getBoundingClientRect(),position=readerToolbarPosition(rect,size,viewport);
+  this.toolbar.style.left=position.left+'px';this.toolbar.style.top=position.top+'px';
+ }
+ focusSelection(){
+  this.dismissed=null;this.selection();if(!this.selected)return false;
+  this.toolbar.hidden=false;this.positionSelection();if(this.toolbar.hidden)return false;
+  this.toolbar.querySelector('button:not(:disabled)')?.focus({preventScroll:true});return true;
+ }
+ dismissSelection({restore=true}={}){
+  if(!this.selected)return;const ownedFocus=this.toolbar.contains(document.activeElement);this.dismissed={...this.selected,range:this.selected.range.cloneRange()};this.toolbar.hidden=true;
+  if(restore&&ownedFocus){
+   const range=this.selected.range.cloneRange(),node=range.startContainer,field=(node.nodeType===1?node:node.parentElement)?.closest('[data-edit-id]');
+   if(field?.isConnected){field.focus({preventScroll:true});const selection=getSelection();selection.removeAllRanges();selection.addRange(range);}
+  }
+ }
  selection(){
   if(this.active&&this.toolbar.contains(document.activeElement)&&this.selected)return;
   this.selected=this.active?captureReaderSelection($('document-body'),document.getSelection()):null;
-  this.selectedText=this.selected?.text||'';this.toolbar.hidden=!this.selected;
+  if(!sameReaderSelection(this.selected,this.dismissed))this.dismissed=null;
+  this.selectedText=this.selected?.text||'';this.toolbar.hidden=!this.selected||!!this.dismissed;
   for(const button of this.toolbar.querySelectorAll('[data-single-input]'))button.disabled=!this.selected?.input;
+  this.positionSelection();
  }
 }
