@@ -2,6 +2,7 @@ import {PlainTextSurface,AutosaveSession,UndoJournal,RevisionSession} from './ed
 import {WorkingInputSaveSession} from './working-input-save.js';
 import {RecoveryDraftSession} from './recovery-draft.js';
 import {request} from './common.js';
+import {validateRemovalEdit} from '../core/archive-removal.js';
 const value=b=>({libraryText:b.libraryText,note:b.note,excluded:b.excluded});
 const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export class DocumentEditor {
@@ -29,7 +30,7 @@ export class DocumentEditor {
   }
  }
  compact(visibleIds,limit=600){
-  const visible=new Set([...visibleIds,...(this.saveSession.pending?.edit.blocks||[]).map(b=>b.id)]),referenced=()=>new Set([...this.undoStack,...this.redoStack].flatMap(p=>p.map(x=>x.id)).filter(id=>id!=='title'));
+  const command=this.saveSession.pending?.edit;const visible=new Set([...visibleIds,...(command?.removeScope?.members||command?.blocks||[]).map(b=>b.id)]),referenced=()=>new Set([...this.undoStack,...this.redoStack].flatMap(p=>p.map(x=>x.id)).filter(id=>id!=='title'));
   let history=referenced();
   while(new Set([...visible,...history]).size>limit&&(this.undoStack.length||this.redoStack.length)){
    if(this.undoStack.length)this.undoStack.shift();else this.redoStack.shift();
@@ -62,6 +63,7 @@ export class DocumentEditor {
  beforeInput(event){if(event.inputType==='historyUndo'||event.inputType==='historyRedo'){event.preventDefault();void this.history(event.inputType==='historyRedo');return;}if(this.composing||event.isComposing)return;const selection=document.getSelection();if(!selection?.rangeCount||selection.isCollapsed)return;const range=selection.getRangeAt(0);if(!this.root.contains(range.startContainer)||!this.root.contains(range.endContainer))return;const fields=[...this.root.querySelectorAll('[data-edit-id]')].filter(el=>!el.closest('.library-block').hidden&&range.intersectsNode(el));if(fields.length<2)return;event.preventDefault();this.onStatus('不能跨输入修改，请逐条编辑；所选文字仍可复制。','boundary');}
  buildEdit(){
   const pending=this.saveSession.pending?.edit;
+  if(pending?.removeScope)return pending;
   if(!this.dirty()&&!pending)return null;
   if(pending?.restoreRevisionId&&pending.blocks.every(b=>equal(this.entries.get(b.id)?.local,value(b)))&&(pending.title===undefined||this.title===pending.title))return pending;
   const pendingBlocks=new Map((pending?.blocks||[]).map(b=>[b.id,b]));
@@ -74,11 +76,17 @@ export class DocumentEditor {
   if(!edit)return true;
   const pending=this.saveSession.pending?.edit;
   if(pending){const comparable=({...request})=>{delete request.operationId;return request;};if(equal(comparable(edit),comparable(pending)))edit=pending;}
-  const operation={type:'EDIT_DOCUMENT',edit,...(pending?.restoreRevisionId?{pendingRequest:JSON.stringify(pending)}:{})};
+  const operation={type:'EDIT_DOCUMENT',edit,...(pending?.restoreRevisionId||pending?.removeScope?{pendingRequest:JSON.stringify(pending)}:{})};
   try{await this.recovery.protect(operation,edit.operationId);this.recoveryFailed=false;return true;}catch{this.recoveryFailed=true;return false;}
  }
  applyRecovery(edit){if(edit?.title!==undefined)this.title=edit.title;for(const b of edit?.blocks||[]){const e=this.entries.get(b.id);if(e)e.local={libraryText:b.libraryText,note:b.note,excluded:b.excluded};}this.paint();}
  acknowledge(edit){
+  if(edit.removeScope){
+   const ids=new Set(edit.removeScope.members.map(ref=>ref.id));
+   this.undoStack=this.undoStack.filter(patches=>!patches.some(p=>ids.has(p.id)));this.redoStack=this.redoStack.filter(patches=>!patches.some(p=>ids.has(p.id)));
+   for(const ref of edit.removeScope.members){const e=this.entries.get(ref.id);if(!e)continue;e.saved={...e.saved,excluded:true};e.local={...e.local,excluded:true};e.revision=ref.expectedRevision+1;const field=this.field(ref.id);if(field)field.closest('.library-block').hidden=true;}
+   this.lockRemoval(false);this.onChange?.();return;
+  }
   for(const b of edit.blocks){const e=this.entries.get(b.id);if(!e)continue;e.saved={libraryText:b.libraryText,note:b.note,excluded:b.excluded};e.revision=b.expectedRevision+1;const field=this.field(b.id);if(field)field.closest('.library-block').hidden=e.saved.excluded;}
   if(edit.title!==undefined){this.savedTitle=edit.title;this.titleRevision=edit.expectedTitleRevision+1;}
  }
@@ -90,6 +98,23 @@ export class DocumentEditor {
    if(p.availability!=='available'||p.nextCursor)throw Object.assign(Error('Unavailable recovery source'),{code:'INVALID_REQUEST'});
    this.absorb({records:p.records,library:{blocks:[b]},pageItemIds:[id]});
   }
+ }
+ lockRemoval(locked){
+  if(locked){if(this.removalLocks)return;this.removalLocks=new Map();for(const field of this.root?.querySelectorAll?.('[contenteditable]')||[]){this.removalLocks.set(field,field.getAttribute('contenteditable'));field.setAttribute('contenteditable','false');}this.root?.setAttribute?.('aria-busy','true');}
+  else{for(const [field,attribute]of this.removalLocks||[])if(field.isConnected){if(attribute===null)field.removeAttribute('contenteditable');else field.setAttribute('contenteditable',attribute);}this.removalLocks=null;this.root?.removeAttribute?.('aria-busy');}
+ }
+ async removalConflict(edit){
+  try{await this.recovery.clear(edit.operationId);}
+  catch(error){await this.saveSession.stage(edit,this.recovery.epoch,'not_committed');throw error;}
+  this.lockRemoval(false);this.failed=false;this.conflicted=false;
+  this.onStatus('范围或版本已变化，尚未移出。请重新核对。','conflict');return false;
+ }
+ async removePrepared(prepared){
+  await this.recoveryReady;
+  if(this.disposed||this.composing||this.saving||this.failed||this.conflicted||this.saveSession.pending)return false;
+  this.collect();if(this.dirty())return false;const edit=prepared?.edit;try{validateRemovalEdit(edit);}catch{return false;}
+  if(edit.documentId!==this.id||edit.removeScope.members.some(ref=>this.entries.has(ref.id)&&this.entries.get(ref.id).revision!==ref.expectedRevision))return false;
+  await this.saveSession.stage(edit,this.recovery.epoch);this.lockRemoval(true);this.onStatus('正在保存…');return this.flush();
  }
  async restorePrepared(prepared){
   if(this.disposed||this.composing||this.saving||this.failed||this.conflicted||this.saveSession.pending)return false;
@@ -104,16 +129,18 @@ export class DocumentEditor {
   let draft;try{draft=await this.recovery.load();}catch{return false;}if(!draft)return false;
   const operation=draft.operation,edit=operation?.edit;let pending;
   try{if(operation?.pendingRequest!==undefined){if(typeof operation.pendingRequest!=='string'||operation.pendingRequest.length>800000)throw Error('Invalid recovery request');pending=JSON.parse(operation.pendingRequest);}}catch{await this.recovery.clear(draft.token).catch(()=>{});return false;}
-  if(operation?.type!=='EDIT_DOCUMENT'||edit?.documentId!==this.id||pending&&(pending.documentId!==this.id||!pending.restoreRevisionId)){await this.recovery.clear(draft.token).catch(()=>{});return false;}
+  if(operation?.type!=='EDIT_DOCUMENT'||edit?.documentId!==this.id||pending&&(pending.documentId!==this.id||!pending.restoreRevisionId&&!pending.removeScope)){await this.recovery.clear(draft.token).catch(()=>{});return false;}
   try{
+   if(edit.removeScope)validateRemovalEdit(edit);if(pending?.removeScope)validateRemovalEdit(pending);
    await this.admitRecoveryInputs([edit,pending]);
-   if(pending){await this.saveSession.stage(pending,this.recovery.epoch,'unknown');this.applyRecovery(edit);}
+   if(pending){await this.saveSession.stage(pending,this.recovery.epoch,'unknown');this.applyRecovery(edit);if(pending.removeScope)this.lockRemoval(true);}
    const acknowledged=await this.saveSession.save(pending||edit,this.recovery.epoch),result=acknowledged.result;
+   if(result?.conflict&&acknowledged.edit.removeScope)return await this.removalConflict(acknowledged.edit);
    if(result?.conflict){this.applyRecovery(edit);this.failed=true;this.conflicted=true;this.onStatus('检测到上次未完成的修改，但已保存版本同时发生变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}
    if(pending){this.acknowledge(acknowledged.edit);if(this.dirty()){await this.protectRecovery();queueMicrotask(()=>void this.flush());return true;}}
    await this.recovery.clear(draft.token).catch(()=>{});this.onStatus('已恢复上次未完成的修改');queueMicrotask(()=>this.onRecovered());return true;
   }catch(error){
-   if(error?.code==='INVALID_REQUEST'){this.saveSession.pending=null;await this.recovery.clear(draft.token).catch(()=>{});return false;}
+   if(error?.code==='INVALID_REQUEST'){this.saveSession.pending=null;this.lockRemoval(false);await this.recovery.clear(draft.token).catch(()=>{});return false;}
    this.applyRecovery(edit);this.failed=true;
    this.onStatus(error?.code==='SAVE_OUTCOME_UNKNOWN'?'保存结果暂时无法确认。上次未完成的草稿已恢复，请核对保存结果。':'检测到上次未完成的修改。草稿仍保存在本机，可在连接恢复后重试。',error?.code==='SAVE_OUTCOME_UNKNOWN'?'unknown':'error');return false;
   }
@@ -129,7 +156,7 @@ export class DocumentEditor {
    await this.protectRecovery(this.buildEdit()||edit);
    try{
     const acknowledged=await this.saveSession.save(edit,this.recovery.epoch),result=acknowledged.result;
-    if(result.conflict){this.failed=true;this.conflicted=true;this.onStatus('其他页面或来源发生变化。当前修改尚未保存。','conflict');return false;}
+    if(result.conflict){if(acknowledged.edit.removeScope)return await this.removalConflict(acknowledged.edit);this.failed=true;this.conflicted=true;this.onStatus('其他页面或来源发生变化。当前修改尚未保存。','conflict');return false;}
     this.acknowledge(acknowledged.edit);
     this.onStatus(this.dirty()?'正在保存…':'已保存到本机');
     void this.recovery.clear(acknowledged.edit.operationId).catch(()=>{});return true;

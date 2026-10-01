@@ -48,14 +48,17 @@ export function group(file) {
  * preserving every case/fixture and the unchanged18-minute job limit.
  */
 export function testShard(file, position, total, category) {
- const name=file.split('/').at(-1),purge='cpv1-02-dvn-purge-chrome-e2e.test.mjs';
+ const name=file.split('/').at(-1),purge='cpv1-02-dvn-purge-chrome-e2e.test.mjs',removal='cpv1-02-dvn-removal-chrome-e2e.test.mjs';
  // Preserve the exact previously certified 59-file routing when inserting Q4.
  // Full36776666083 browser2 took9m16s versus1=16m04,3=14m31,4=12m46.
  // Put the complete six Source/release purge journeys on2; retain all cases
  // and the unchanged18-minute budget, without shifting every later file.
  if(category==='browser E2E'&&total===4){
-  if(name===purge)return 2;
+  // Q3 adds one whole Source/release file to2, retaining all60 previous
+  // file placements and the unchanged18-minute budget. No case is omitted.
+  if(name===purge||name===removal)return 2;
   if(name>purge)position--;
+  if(name>removal)position--;
  }
  // The eight complete Source/release History journeys took 3m33s on full
  // 36767002782 and pushed shard4 past its unchanged18-minute job budget.

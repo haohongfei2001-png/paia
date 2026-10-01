@@ -1,5 +1,6 @@
 export const STATUS_LABELS = Object.freeze({
   SOURCE_PURGE_OWNER_GATE: '删除边界尚未确定，没有删除材料或恢复草稿',
+  REMOVAL_SCOPE_UNAVAILABLE: '无法完整核对移出范围，尚未移出任何内容',
   SOURCE_PURGE_UNAVAILABLE: '无法完整核对删除范围，没有删除材料',
   ADAPTER_LIMIT: '页面内身份缓存已达上限，请刷新该聊天后继续',
   CAPTURING: '最近一次扫描完成',
@@ -65,6 +66,7 @@ export const STATUS_LABELS = Object.freeze({
 export function statusLabel(code) {
   if(typeof document!=='undefined'&&document.documentElement.lang==='en'){
     if(code==='SOURCE_PURGE_OWNER_GATE')return 'Deletion policy is unresolved; no material or recovery draft was deleted';
+    if(code==='REMOVAL_SCOPE_UNAVAILABLE')return 'The complete removal scope could not be checked; no input was removed';
     if(code==='SOURCE_PURGE_UNAVAILABLE')return 'The complete deletion scope could not be checked; no material was deleted';
   }
   return STATUS_LABELS[code] || '操作未完成，请重试或查看诊断详情。';

@@ -1,3 +1,4 @@
+import {validateRemovalEdit} from '../archive-removal.js';
 import {sourceRootPage} from '../thought-root-source-scope.js';
 import {recoverAIDraft} from './ai-draft.js';
 import {changeTopicContainer,removedTopics} from '../topic-governance.js';
@@ -84,11 +85,12 @@ export class OrganizerStore extends LibraryDocumentsStore {
    if(kind==='document'){
     if(operation.type!=='EDIT_DOCUMENT')reject('INVALID_REQUEST');
     let pending;
-    if(operation.pendingRequest!==undefined){if(typeof operation.pendingRequest!=='string'||operation.pendingRequest.length>800000)reject('INVALID_REQUEST');try{pending=JSON.parse(operation.pendingRequest);}catch{reject('INVALID_REQUEST');}if(!pending?.restoreRevisionId)reject('INVALID_REQUEST');}
+    if(operation.pendingRequest!==undefined){if(typeof operation.pendingRequest!=='string'||operation.pendingRequest.length>800000)reject('INVALID_REQUEST');try{pending=JSON.parse(operation.pendingRequest);}catch{reject('INVALID_REQUEST');}if(!pending?.restoreRevisionId&&!pending?.removeScope)reject('INVALID_REQUEST');}
     const edits=[edit,...(pending?[pending]:[])];
     for(const candidate of edits){
      if(candidate?.documentId!==ownerId||!Array.isArray(candidate.blocks)||candidate.blocks.length>1000||!await t.get('documents',ownerId))reject('INVALID_REQUEST');
-     for(const change of candidate.blocks){const row=(await t.get('blocks',change.id))?.value;if(!row||row.documentId!==ownerId)reject('INVALID_REQUEST');const state=await t.get('inputStates',row.id);await purgeRevision(row,change.expectedRevision,state?.sourcePurged,value=>t.put('blocks',{id:value.id,value}));add(row);}
+     const refs=candidate.removeScope?validateRemovalEdit(candidate).members:candidate.blocks;
+     for(const change of refs){const row=(await t.get('blocks',change.id))?.value;if(!row||row.documentId!==ownerId)reject('INVALID_REQUEST');const state=await t.get('inputStates',row.id);await purgeRevision(row,change.expectedRevision,state?.sourcePurged,value=>t.put('blocks',{id:value.id,value}));add(row);}
     }
    }else if(kind==='library_entry'){
     if(operation.type!=='EDIT_LIBRARY_BATCH'||edit?.entries?.length!==1||edit.entries[0].id!==ownerId)reject('INVALID_REQUEST');
