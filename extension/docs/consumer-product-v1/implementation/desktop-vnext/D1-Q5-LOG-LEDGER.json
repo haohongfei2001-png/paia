@@ -1,0 +1,192 @@
+{
+  "format": "paia-sanitized-development-log-ledger-v1",
+  "scope": "D1-Q5 synthetic/headless development; failures remain failures",
+  "rawRetention": "Task work/evidence/d1-search; synthetic bodies only, not real user profile/data",
+  "logs": [
+    {
+      "file": "corrected-owning-browser.txt",
+      "sha256": "d600e3a81ba3786b5a46b8e5365ee377540a0638f7dd7cb11ed6f78e9c8d8b38",
+      "bytes": 1159
+    },
+    {
+      "file": "diagnostic-owning-browser.txt",
+      "sha256": "8c9d04e7def87ffd93d1c79a49632dfef49f29d3faea6b4f470f8f338d5a3a38",
+      "bytes": 7898
+    },
+    {
+      "file": "final-affected-browser.txt",
+      "sha256": "6b6d18402ac818ac9b1924e2c0508726e90ac0632b5d39eeb19f70133ab99366",
+      "bytes": 8031
+    },
+    {
+      "file": "final-coverage.txt",
+      "sha256": "c7d2031746c799e12e8df19238de02b22ca5361fe0631b041faeccdbdbc66759",
+      "bytes": 620
+    },
+    {
+      "file": "final-package.txt",
+      "sha256": "1ff3f05fab4d015a0ec3e1f6452e73b6439e0b86a7f307574782dacacab1ce86",
+      "bytes": 231
+    },
+    {
+      "file": "final-privacy.txt",
+      "sha256": "20d0d4cc1ed3ca08b7bb17bc2ecdea5eccc34c91a64d4324e948740c835626c0",
+      "bytes": 6201
+    },
+    {
+      "file": "final-targeted-unit.txt",
+      "sha256": "140a4bfefb426ef46246587a264d7f64e19c4402dcf43a6efea96b42587bc120",
+      "bytes": 1473
+    },
+    {
+      "file": "final-unit.txt",
+      "sha256": "9aa5afe0b7544b05f7fefd7488855bf4664d85ff8c10382fb05711c605347f7c",
+      "bytes": 178365
+    },
+    {
+      "file": "initial-browser.txt",
+      "sha256": "7216743c1d0a4df64a213820bf792118fed82d4adb5c3c1acf7b95a4df00bc76",
+      "bytes": 3037
+    },
+    {
+      "file": "initial-contracts-privacy.txt",
+      "sha256": "3a3b330856bd07dbdcff35c8ad2312905d8c9dabf7e0fd99d13201f2b0ba268c",
+      "bytes": 7462
+    },
+    {
+      "file": "initial-full-unit.txt",
+      "sha256": "693ad2b70d4341987b80e02bc9f35fa6e59ac71f0e3bc0c84ffcc7f1115e32eb",
+      "bytes": 178341
+    },
+    {
+      "file": "initial-package.txt",
+      "sha256": "819962f686421825c08cff83b339edc1a342843ca1406791c003b0500e031493",
+      "bytes": 153
+    },
+    {
+      "file": "initial-privacy.txt",
+      "sha256": "20d0d4cc1ed3ca08b7bb17bc2ecdea5eccc34c91a64d4324e948740c835626c0",
+      "bytes": 6201
+    },
+    {
+      "file": "initial-unit.txt",
+      "sha256": "8aceeb10900dabc8e59e2bc418d183f662797ad9020a78ac25efa57d6aa8445d",
+      "bytes": 941
+    },
+    {
+      "file": "isolated-10k-benchmark.txt",
+      "sha256": "1c807f85d39b1537a05ce7f321b58f5e439aea3981f605ffd9f16dba5b662a07",
+      "bytes": 349
+    },
+    {
+      "file": "isolated-local-10k-metrics.json",
+      "sha256": "5cd406f138cc5795f537cab711434030693bbe485bd7f74b8eae0eafce0e126f",
+      "bytes": 537
+    },
+    {
+      "file": "negative-local-10k-contention.json",
+      "sha256": "27796676e8094c1d132f881e35e02ed8481572e78f79115826a5fc748cf7f3e3",
+      "bytes": 547
+    },
+    {
+      "file": "owning-initial-browser.txt",
+      "sha256": "c5e117cf6be7d57a9a60a9a57d6db892e9470f1741e333446820c5c5389e4730",
+      "bytes": 5028
+    },
+    {
+      "file": "publication-digests.json",
+      "sha256": "064c2af0b972590b6537fb3d6f30ccea61302f704dabbce2200263ba420b10ba",
+      "bytes": 229
+    },
+    {
+      "file": "race-diagnostic.txt",
+      "sha256": "58301c21235e31a9c71dcd7ca4cbb8389447b6e01a80b637790597334e7b22a6",
+      "bytes": 600
+    },
+    {
+      "file": "renderer-repaired-owning-browser.txt",
+      "sha256": "a662bb2c58083187aa14b866522f42a7ec5cc8ebe6d26a1d013c6e64a01c43cb",
+      "bytes": 6020
+    },
+    {
+      "file": "repaired-adapter.txt",
+      "sha256": "c7e0817c8c97ffe4876f170d94c19c2aabfb9b53099c65ea204b751265676be9",
+      "bytes": 6235
+    },
+    {
+      "file": "repaired-affected-browser.txt",
+      "sha256": "2912faf56190f607239d567e6a7013b35b34e29cd702cc6f74da28c4244c0aab",
+      "bytes": 2611
+    },
+    {
+      "file": "repaired-browser.txt",
+      "sha256": "b56adfb1a1e3e7d9b8032764d665ac5c0d6a665e8b7d226f634d4fb78917f122",
+      "bytes": 2852
+    },
+    {
+      "file": "repaired-coverage.txt",
+      "sha256": "166d421c379c7085f96605513d5f86bf1af086ab99d55fa454f9ba35893d3ec3",
+      "bytes": 67
+    },
+    {
+      "file": "repaired-final-coverage.txt",
+      "sha256": "166d421c379c7085f96605513d5f86bf1af086ab99d55fa454f9ba35893d3ec3",
+      "bytes": 67
+    },
+    {
+      "file": "repaired-final-privacy.txt",
+      "sha256": "20d0d4cc1ed3ca08b7bb17bc2ecdea5eccc34c91a64d4324e948740c835626c0",
+      "bytes": 6201
+    },
+    {
+      "file": "repaired-final-targeted-unit.txt",
+      "sha256": "c2bfe5921306731851ea079dc032f79a4c3296e6a5c965bfd05fa0d09c1b2313",
+      "bytes": 1577
+    },
+    {
+      "file": "repaired-full-owning-browser.txt",
+      "sha256": "6021b332b2796fde8add930254163e46ab9a28baf4530364b491f384cc944684",
+      "bytes": 1305
+    },
+    {
+      "file": "repaired-package.txt",
+      "sha256": "819962f686421825c08cff83b339edc1a342843ca1406791c003b0500e031493",
+      "bytes": 153
+    },
+    {
+      "file": "repaired-targeted-unit.txt",
+      "sha256": "42240cdacf2cdc2c5b68ad7467fd9813016f71478ae21f5768dd7c60e2dfeb19",
+      "bytes": 1845
+    },
+    {
+      "file": "reveal-repaired-owning-browser-from-extension.txt",
+      "sha256": "09a119e2eec3379bf794ff143910e238f2fb208cd593a1a94738113b25616dab",
+      "bytes": 7601
+    },
+    {
+      "file": "reveal-repaired-owning-browser.txt",
+      "sha256": "093c1e3970f20956dfecae29eff9cab6024462128172cf0d212c123137c1d8a0",
+      "bytes": 2554
+    },
+    {
+      "file": "full-36809729487.txt",
+      "sha256": "c814d7c08a1c3b91b591c42196eaaa6d13eb8cab82d6c530915ea552289784af",
+      "bytes": 1325758
+    },
+    {
+      "file": "full-36809729487-reports.json",
+      "sha256": "3c42eb8ff02090f8039786220fdf3c08cdcf4544a845e6ad7520d016833548b6",
+      "bytes": 36323
+    },
+    {
+      "file": "hosted-negative-owning-local.txt",
+      "sha256": "4658dae271042eb07b2d5fa2635a61ffeba5c52dd705c0e52b3bc6b0e526ab79",
+      "bytes": 233
+    },
+    {
+      "file": "repaired-release-membership.txt",
+      "sha256": "359e847f8ecea062bdd82237f0ae69f8d90c6a92799e344c833ee419dbf72d27",
+      "bytes": 234
+    }
+  ]
+}

@@ -65,14 +65,14 @@ assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,
       const index=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}});
       assert.ok(index.recent.some(item=>item.id===topic.id),'recent metadata survives presentation cleanup');
       await nav(page,'library');
-      await eventually(()=>page.locator('#search').isVisible(),'Archive root is ready');
+      await eventually(()=>page.locator('#scope-search').isVisible(),'Archive root is ready');
       assert.equal(await page.locator('input[type="search"]:visible').count(),1);
       await noRemovedControls(page);
     }
     await page.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'revisit'}})));
     await eventually(()=>page.locator('#revisit-panel').isVisible(),'internal navigation retains the Revisit service owner');
     await page.locator('.revisit-close').click();
-    await eventually(()=>page.locator('#search').isVisible(),'Revisit returns to Archive');
+    await eventually(()=>page.locator('#scope-search').isVisible(),'Revisit returns to Archive');
     assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root duplicate material launcher stays removed');
     await page.locator('#primary-nav [data-view="memory"]').click();
     await eventually(()=>page.locator('#material-workbench').isVisible(),'For AI material surface is available');
@@ -87,7 +87,7 @@ assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,
     await page.locator('.universal-close').click();
     await eventually(()=>page.locator('#material-workbench').isVisible(),'closing selection restores For AI');
     await nav(page,'library');
-    await eventually(()=>page.locator('#search').isVisible(),'Archive scoped search remains reachable');
+    await eventually(()=>page.locator('#scope-search').isVisible(),'Archive scoped search remains reachable');
     await noRemovedControls(page);
     assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
   }finally{await h.close();}

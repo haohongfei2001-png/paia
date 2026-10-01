@@ -33,7 +33,7 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   assert.equal(await page.locator('#revisit-open').isVisible(),false,'Revisit stays out of the Archive header');
   assert.equal(await page.locator('#archive-root-recent,#archive-root-continue,.archive-navigator-window-cue,.archive-navigator-window-time,.archive-navigator-detail').count(),0,'Archive rows expose titles without retired shortcuts, previews, timestamps or detail controls');
   assert.equal(await page.locator('input[type="search"]:visible').count(),1,'Archive has one primary search');
-  const searchBox=await page.locator('#search').boundingBox(),treeBox=await page.locator('#archive-navigator').boundingBox();
+  const searchBox=await page.locator('#scope-search').boundingBox(),treeBox=await page.locator('#archive-navigator').boundingBox();
   assert.ok(searchBox&&treeBox&&searchBox.y+searchBox.height<=treeBox.y,'primary search is above the Project tree');
   if(process.env.PAIA_BATCH_VISUAL_DIR){await mkdir(process.env.PAIA_BATCH_VISUAL_DIR,{recursive:true});await page.screenshot({path:process.env.PAIA_BATCH_VISUAL_DIR+'/archive-desktop.png',fullPage:true});}
   await eventually(async()=>await page.locator('#archive-source-scope option[value="chatgpt"]').count()===1,'source scope reflects captured provider');
@@ -53,17 +53,17 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await eventually(()=>page.locator('#history-dialog').isVisible(),'root import opens existing verified import flow');
   await page.locator('#history-close').click();
   await eventually(async()=>!(await page.locator('#history-dialog').isVisible()),'import closes without changing the archive');
-  await page.locator('#search').fill('CPV1_SHELL_SEARCH');
-  await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.searchQuery)==='CPV1_SHELL_SEARCH','shell route owns scope search');
+  await page.locator('#scope-search').fill('CPV1_SHELL_SEARCH');
+  await eventually(async()=>await page.locator('#scope-search').inputValue()==='CPV1_SHELL_SEARCH'&&await page.evaluate(()=>history.state?.paiaReader?.version===2&&typeof history.state?.paiaReader?.sessionKey==='string'&&!Object.hasOwn(history.state.paiaReader,'searchQuery')),'shell keeps its scope query in the view session, outside browser history');
   await eventually(async()=>await page.locator('#document-list .conversation-document').count()===1,'source-scoped search returns the captured Conversation');
-  await page.locator('#search').fill('');
-  await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.searchQuery)==='','clearing search updates the same route');
+  await page.locator('#scope-search').fill('');
+  await eventually(async()=>await page.locator('#scope-search').inputValue()===''&&await page.evaluate(()=>!Object.hasOwn(history.state.paiaReader,'searchQuery')),'clearing search updates the same view session without putting query text into history');
   await eventually(()=>rootWindow.isVisible(),'source metadata transition keeps the open Conversation reachable');
   await rootWindow.click();
   await eventually(()=>page.locator('#document-panel').isVisible(),'Reader is the visible container');
   assert.equal(await page.locator('#collection-panel').isVisible(),false);
   assert.equal(await page.locator('#primary-nav').count(),1);
-  assert.equal(await page.locator('#search').count(),1);
+  assert.equal(await page.locator('#scope-search').count(),1);
   const documentId=await page.evaluate(()=>history.state?.paiaReader?.documentId);
   assert.ok(documentId,'Reader route contains a Conversation');
   await page.evaluate(()=>history.back());

@@ -31,10 +31,16 @@ test('ANS-04 current release artifact preserves Navigator entry modules and real
   await eventually(async()=>(await rpc(p,'GET_STATUS')).consented,'release consent');
   const chat=await h.open({id:'ans04-release-chat',title:'Release query title',messages:[{id:'ans04-release-input',text:'RELEASE_SOURCE_BODY_NOT_NAV'}]});
   await eventually(async()=>{const result=await rpc(p,'GET_PAGE',{page:{view:'library'}});return result.documents.length===1;},'release capture');
-  let page;for(let i=0;i<30;i++){page=await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:{providerKey:'chatgpt',groupKind:'unknown',mode:'source'}});assert.ok(page.operations.metadataScanned<=100);if(page.coverage.state==='complete')break;assert.equal(page.coverage.state,'building');}
-  assert.equal(page.coverage.state,'complete');assert.equal(page.items.length,1);assert.equal(page.items[0].title,'Release query title');assert.equal(page.items[0].conversationRef.sourceConversationId,'ans04-release-chat');
+  // Capture and the verified plain-route membership observation settle independently.
+  // Do not query the transient unknown group before that Source fact is committed.
+  const subject={kind:'conversation',conversationRef:{platform:'chatgpt',sourceConversationId:'ans04-release-chat'}};
+  await eventually(async()=>{const detail=await rpc(p,'PAIA_ARCHIVE_SOURCE_DETAIL',{subject});return detail.current?.membership?.state==='unassigned';},'release plain-route Source membership');
+  let page;for(let i=0;i<30;i++){page=await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:{providerKey:'chatgpt',groupKind:'unassigned',mode:'source'}});assert.ok(page.operations.metadataScanned<=100);if(page.coverage.state==='complete')break;assert.equal(page.coverage.state,'building');}
+  assert.equal(page.coverage.state,'complete');assert.equal(page.items.length,1,'complete unassigned Source window after membership acknowledgement');assert.equal(page.items[0].title,'Release query title');assert.equal(page.items[0].conversationRef.sourceConversationId,'ans04-release-chat');
   assert.equal(page.operations.inputBodyReads,0);assert.equal(page.effectiveOrdering,'paia');assert.equal(page.unavailableReason,'SOURCE_ORDER_UNAVAILABLE');assert.doesNotMatch(JSON.stringify(page),/RELEASE_SOURCE_BODY_NOT_NAV/);
-  const status=await rpc(p,'PAIA_ARCHIVE_NAV_STATUS',{page:{selectedDocumentId:page.items[0].documentId}});assert.equal(status.selectedPath.available,true);assert.equal(status.selectedPath.groupKind,'unknown');
+  const status=await rpc(p,'PAIA_ARCHIVE_NAV_STATUS',{page:{selectedDocumentId:page.items[0].documentId}});assert.equal(status.selectedPath.available,true);assert.equal(status.selectedPath.groupKind,'unassigned');
+  let unknown;for(let i=0;i<30;i++){unknown=await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:{providerKey:'chatgpt',groupKind:'unknown',mode:'source'}});assert.ok(unknown.operations.metadataScanned<=100);assert.equal(unknown.operations.inputBodyReads,0);if(unknown.coverage.state==='complete')break;assert.equal(unknown.coverage.state,'building');}
+  assert.equal(unknown.coverage.state,'complete');assert.equal(unknown.items.length,0,'confirmed unassigned Source must not remain in unknown');assert.doesNotMatch(JSON.stringify(unknown),/RELEASE_SOURCE_BODY_NOT_NAV/);
   await chat.close();assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{if(h)await h.close();await rm(temp,{recursive:true,force:true});}
 });

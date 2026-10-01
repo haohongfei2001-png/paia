@@ -40,7 +40,7 @@
 }
 
 /* UIR-02: Archive stays a bounded metadata list; no body previews are introduced. */
-#archive-root-tools > #search {
+#scope-search {
   flex: 1 1 280px;
   min-width: 0;
   width: auto;
@@ -52,7 +52,7 @@
   color: var(--paia-text);
 }
 
-#archive-root-tools > #search::placeholder {
+#scope-search::placeholder {
   color: var(--paia-meta);
 }
 
@@ -403,7 +403,7 @@ body #revisit-panel .revisit-more {
 }
 
 @media (max-width: 799px) {
-  #archive-root-tools > #search {
+  #scope-search {
     min-height: 44px;
   }
 

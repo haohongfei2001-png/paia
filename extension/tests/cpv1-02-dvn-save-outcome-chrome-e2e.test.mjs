@@ -28,7 +28,7 @@ test('D1 durable acknowledgement loss reads actual worker receipt, preserves con
    };
   });
   await field.fill('SYNTHETIC first durable body');
-  await eventually(()=>page.evaluate(()=>globalThis.__dvnReads===1),'lost response starts trusted outcome read');
+  await eventually(()=>page.evaluate(()=>globalThis.__dvnReads===1&&typeof globalThis.__releaseOutcome==='function'),'lost response receives the real trusted outcome before concurrent typing');
   await field.fill('SYNTHETIC typing while acknowledgement is pending');
   await page.evaluate(()=>globalThis.__releaseOutcome());
   await eventually(async()=>(await rpc(page,'GET_INPUT',{id:inputId})).libraryText==='SYNTHETIC typing while acknowledgement is pending','newer typing saves with reconciled revision');

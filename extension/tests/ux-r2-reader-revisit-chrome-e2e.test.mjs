@@ -39,7 +39,7 @@ test('UX-R2 true dwell position survives another capture, tab reopen, paging and
   const chat={id:'uxr2-read-a',title:'阅读 A · 连续记录',base:1609459200,messages:Array.from({length:135},(_,i)=>({id:'uxr2-a-'+i,text:i===110?long:`UXR2_A_${i} 这是合成记录第 ${i} 条，用于验证跨页定位。\n保持原始段落身份。`}))};
   const aPage=await h.open(chat);await eventually(async()=>(await h.state()).records.length===135,'all synthetic live inputs captured',35000);await p.bringToFront();
   assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[],'capture is not reading');
-  await p.locator('#search').fill('UXR2_LONG_TARGET');await eventually(()=>p.locator('.search-input').isVisible(),'search locates text beyond the first 100 inputs');await p.locator('.search-input').click();
+  await p.locator('#scope-search').fill('UXR2_LONG_TARGET');await eventually(()=>p.locator('.search-input').isVisible(),'search locates text beyond the first 100 inputs');await p.locator('.search-input').click();
   const target=p.locator('.library-prose').filter({hasText:'UXR2_LONG_TARGET'});await target.waitFor();assert.equal(await target.evaluate(el=>el.classList.contains('reader-collapsed')),false);assert.ok(await p.locator('.library-prose').count()<=100,'Reader mounts bounded surrounding Inputs');
   const id=await target.getAttribute('data-edit-id'),before=await rpc(p,'GET_INPUT',{id});
   await target.evaluate(el=>{el.focus();const r=document.createRange();r.setStart(el.firstChild,42);r.collapse(true);const s=getSelection();s.removeAllRanges();s.addRange(r);const rect=r.getBoundingClientRect();scrollBy(0,rect.top-180);});

@@ -5,7 +5,7 @@
 #input-time-order button{min-height:40px;color:var(--paia-text);border:1px solid var(--paia-control);padding:6px 10px;background:transparent}
 #input-time-order button:hover{background:var(--paia-hover)}
 #document-search-tools{width:100%;margin:0 0 22px}
-#document-search{width:100%;min-height:42px;padding:9px 10px;border:1px solid var(--paia-subtle);border-radius:8px;background:var(--paia-surface);color:var(--paia-text)}
+#scope-search{width:100%;min-height:42px;padding:9px 10px;border:1px solid var(--paia-subtle);border-radius:8px;background:var(--paia-surface);color:var(--paia-text)}
 #document-search-close{min-height:40px;margin:6px 0 0;padding:6px 8px;color:var(--paia-accent)}#document-search-status{min-height:18px;margin:7px 0 0;font-size:12px}
 #document-search-results{margin:10px 0 0;border-top:1px solid var(--paia-subtle)}
 .document-search-hit{display:block;width:100%;padding:11px 4px;text-align:left;border-bottom:1px solid var(--paia-subtle);border-radius:0;background:transparent}

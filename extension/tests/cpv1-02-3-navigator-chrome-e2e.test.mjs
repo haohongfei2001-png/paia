@@ -59,10 +59,10 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   const projectGroup=page.locator('.archive-navigator-group').filter({has:page.locator('.archive-navigator-group-toggle').filter({hasText:'Synthetic Alpha'})}).first();
   assert.equal(await projectGroup.locator('.archive-navigator-detail').count(),0,'Project rows have no per-row search or detail chrome');
   await page.locator('#back').click();
-  await page.locator('#search').fill('CPV1_NAV_IDENTITY_BODY');
+  await page.locator('#scope-search').fill('CPV1_NAV_IDENTITY_BODY');
   await eventually(async()=>await page.locator('.search-input').count()===2,'one Archive search includes matching Project and unassigned Inputs');
   assert.equal(await page.locator('#search-project-scope').isVisible(),false,'retired Project search chip is not visible');
-  await page.locator('#search').fill('');
+  await page.locator('#scope-search').fill('');
   await page.locator(`.archive-navigator-window[data-document-id="${documentId}"]`).click();
   await eventually(async()=>await page.locator(`.archive-navigator-window[data-document-id="${documentId}"][aria-current="page"]`).count()===1,'Reader reopens the same Conversation after scoped search');
 
@@ -131,7 +131,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
    await p.locator(`.archive-navigator-window[data-document-id="${id}"]`).click();
    await eventually(async()=>await p.evaluate(()=>history.state?.paiaReader?.documentId)===id);
    assert.equal(await p.locator('input[type="search"]:visible').count(),1,'Reader has one current-document search');
-   assert.equal(await p.locator('#document-search').isVisible(),true);
+   assert.equal(await p.locator('#scope-search').isVisible(),true);
    assert.equal(await p.locator('#document-filter-toggle,#document-search-include-filtered,.filtered-input-note').count(),0);
    await white(['body','.sidebar','.workspace','#archive-navigator']);
    assert.equal(await p.locator(`.archive-navigator-window[data-document-id="${id}"]`).getAttribute('aria-current'),'page');

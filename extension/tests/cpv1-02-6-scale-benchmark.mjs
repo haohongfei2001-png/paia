@@ -70,11 +70,11 @@ try{
    await page.screenshot({path:visualPrefix+'-'+size+'-top.png'});
   }
   await page.locator('.sidebar [data-view=library]').click();
-  await eventually(()=>page.locator('#search').isVisible(),'Archive root search',30000);
+  await eventually(()=>page.locator('#scope-search').isVisible(),'Archive root search',30000);
   // Measure the same browser event-to-render boundary as Reader navigation.
   // Driver round trips and polling cadence must not inflate the product SLO.
   const query=async i=>page.evaluate(({index,longContent})=>new Promise((resolve,reject)=>{
-   const field=document.querySelector('#search'),needle=(longContent?'Input ':'body ')+index;
+   const field=document.querySelector('#scope-search'),needle=(longContent?'Input ':'body ')+index;
    if(!field||!field.getClientRects().length)return reject(Error('Archive search is not visible'));
    const start=performance.now();
    const finish=()=>{const result=document.querySelector('.search-excerpt');if(!result?.getClientRects().length||!result.textContent?.includes(needle))return;

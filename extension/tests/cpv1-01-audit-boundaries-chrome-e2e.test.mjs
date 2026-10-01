@@ -13,7 +13,7 @@ test('audit Reader search refreshes edited/removed content, drops stale replies,
  const h=await FakeChatGPT.start({launchThroughPort:true});try{
   const p=await ready(h);await h.open({id:'audit-reader',title:'Synthetic audit Reader',messages:Array.from({length:45},(_,i)=>({id:'audit-reader-'+i,text:'AUDIT_MATCH independent synthetic reading statement '+i}))});
   await eventually(async()=>(await h.state()).records.length===45,'all synthetic Inputs captured',30000);await openArchiveWindow(p,{text:'Synthetic audit Reader'});
-  await p.locator('#document-search').fill('AUDIT_MATCH');await eventually(async()=>await p.locator('.document-search-hit').count()===40,'first search page');
+  await p.locator('#scope-search').fill('AUDIT_MATCH');await eventually(async()=>await p.locator('.document-search-hit').count()===40,'first search page');
   const worker=h.context.serviceWorkers().find(worker=>worker.url().endsWith('/background/service-worker.js'));
   await worker.evaluate(()=>{const put=IDBObjectStore.prototype.put;let pending=[];globalThis.__auditGenerationWrites=[];IDBObjectStore.prototype.put=function(value,...args){pending.push({store:this.name,id:value?.id,...(this.name==='meta'&&value?.id==='smart-filter'?{taskState:value.taskState,decisionSequence:value.decisionSequence,noticePending:value.noticePending}:{})});pending=pending.slice(-100);if(this.name==='meta'&&value?.id==='backup-data-generation'){globalThis.__auditGenerationWrites.push({generation:value.value,writes:pending});globalThis.__auditGenerationWrites=globalThis.__auditGenerationWrites.slice(-30);pending=[];}return put.call(this,value,...args);};});
   const old=(await h.state()).library.blocks[0],source=old.sourceRecordId;
@@ -23,7 +23,7 @@ test('audit Reader search refreshes edited/removed content, drops stale replies,
    chrome.runtime.sendMessage=message=>{
    if(message.type==='SEARCH_INPUTS'&&message.options?.documentId&&!globalThis.__auditHeld){globalThis.__auditHeld=true;return tracked(message).then(reply=>new Promise(resolve=>globalThis.__auditRelease=()=>resolve(reply)));}return tracked(message);
   };});
-  await p.locator('#document-search').fill('AUDIT_MATCH ');await eventually(()=>p.evaluate(()=>typeof globalThis.__auditRelease==='function'),'old search reply held');
+  await p.locator('#scope-search').fill('AUDIT_MATCH ');await eventually(()=>p.evaluate(()=>typeof globalThis.__auditRelease==='function'),'old search reply held');
   await rpc(p,'EDIT_DOCUMENT',{edit:{operationId:op(),documentId:old.documentId,blocks:[{id:old.id,expectedRevision:old.revision,libraryText:'Updated body without the previous search term',note:'',excluded:false}]}});
   await eventually(async()=>await p.locator('.document-search-hit').count()===40&&await p.locator(`.document-search-hit[data-input-id="${old.id}"]`).count()===0,'fresh search omits old snippet');
   await p.evaluate(()=>globalThis.__auditRelease());await pause(250);assert.equal(await p.locator(`.document-search-hit[data-input-id="${old.id}"]`).count(),0);
