@@ -6,9 +6,11 @@ test('full browser gate verifies its actual installed Chrome without changing sh
  const job=workflow.split('  current_browser:')[1].split('  full_suite:')[0];
  assert.match(job,/timeout-minutes: 18/);assert.match(job,/shard: '4\/4'/);
  assert.match(job,/CHROME_PATH=\$CHROME_BIN/);assert.match(job,/xvfb-run -a node scripts\/check-hosted-chrome.mjs/);
+ assert.match(job,/apt-get install -y --no-install-recommends fonts-wqy-zenhei/);assert.match(job,/fc-list :lang=zh/);
  assert.match(job,/xvfb-run -a npm run test:browser/);assert.match(job,/PAIA_TEST_CONCURRENCY: '1'/);
  assert.doesNotMatch(job,/playwright install|continue-on-error/);
  const smoke=await readFile(new URL('../scripts/check-hosted-chrome.mjs',import.meta.url),'utf8');
  assert.match(smoke,/executablePath:process.env.CHROME_PATH,headless:false/);assert.match(smoke,/route=>route.abort\(\)/);
+ assert.match(smoke,/page.locator\('#latin'\).textContent\(\)/);assert.match(smoke,/CSS.getPlatformFontsForNode/);assert.match(smoke,/font.glyphCount>=4/);
  assert.match(smoke,/finally\{await browser.close\(\)/);
 });

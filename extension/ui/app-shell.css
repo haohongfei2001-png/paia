@@ -38,7 +38,7 @@ body.ans-nav-reader #document-page{grid-column:2;width:100%;min-width:0;margin-i
 #archive-navigator-toggle{display:none;min-height:36px;padding:8px;color:var(--muted);border:1px solid var(--line);background:var(--bg)}
 #document-panel .document-page{max-width:none;line-height:1.85}
 #document-title{font-size:28px;line-height:1.35;font-weight:600}
-.library-prose,.original-prose,.excluded-prose,.entry-prose,.thought-prose{font-size:var(--paia-prose-size);line-height:1.85;color:var(--text)}
+.library-prose,.original-prose,.excluded-prose,.entry-prose,.thought-prose{font-size:var(--paia-prose-size)!important;line-height:1.85;color:var(--text)}
 .block-time,.document-day,.muted,small{color:var(--quiet)}
 #scope-search,#thought-search,#topic-search{color:var(--text);border-color:var(--line);background:var(--bg)}
 #document-body .block-time{opacity:1}

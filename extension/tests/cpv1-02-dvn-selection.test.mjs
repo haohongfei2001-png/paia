@@ -27,3 +27,8 @@ test('D1 one shell explicitly composes existing owners; retired observer bootstr
 test('D1 frozen token aliases are not redefined by retained feature styles',async()=>{
  for(const name of ['archive.css','experience.css']){const css=await readFile(new URL('../ui/'+name,import.meta.url),'utf8');assert.doesNotMatch(css,/--paia-(?:ink|muted|line|surface|focus|accent):/,'one theme owner for '+name);}
 });
+
+test('D1 shared shell preserves saved prose size precedence in unmigrated AI fields',async()=>{
+ const css=await readFile(new URL('../ui/app-shell.css',import.meta.url),'utf8');
+ assert.match(css,/\.entry-prose,\.thought-prose\{font-size:var\(--paia-prose-size\)!important/);
+});
