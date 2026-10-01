@@ -609,17 +609,67 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  shell_cutover:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_DVN_SHELL_CUTOVER_BROWSER')
+    name: Candidate shell-cutover acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Select hosted Chrome for isolated extension journeys
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Verify existing shell, Navigator and Settings safety journeys
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          mkdir -p work/qa-dvn-shell
+          xvfb-run -a node --test --test-concurrency=1 tests/ux-r1-shell-chrome-e2e.test.mjs tests/cpv1-02-1-shell-chrome-e2e.test.mjs tests/ans-05-navigator-workspace-chrome-e2e.test.mjs tests/uir-01-shell-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-shell/test.log
+      - name: Retain synthetic direct-edit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shell-cutover-${{ github.event.pull_request.head.sha }}
+          path: |
+            extension/work/qa-dvn-shell/
+            extension/work/ux-r1/
+            extension/work/ux-r6/
+            extension/work/ans-05-navigator/
+          if-no-files-found: error
+          retention-days: 7
+
   candidate:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release, direct_edit, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic]
+    needs: [unit, contracts, release, direct_edit, shell_cutover, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic]
     steps:
       - name: Require light candidate gates
         env:
           UNIT: ${{ needs.unit.result }}
           CONTRACTS: ${{ needs.contracts.result }}
           RELEASE: ${{ needs.release.result }}
+          SHELL_CUTOVER: ${{ needs.shell_cutover.result }}
+          SHELL_CUTOVER_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_SHELL_CUTOVER_BROWSER') }}
           DIRECT_EDIT: ${{ needs.direct_edit.result }}
           DIRECT_EDIT_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_DIRECT_EDIT_BROWSER') }}
           TARGETED_BROWSER: ${{ needs.targeted_browser.result }}
@@ -636,6 +686,7 @@ jobs:
           test "$UNIT" = success
           test "$CONTRACTS" = success
           test "$RELEASE" = success
+          if [ "$SHELL_CUTOVER_SELECTED" = true ]; then test "$SHELL_CUTOVER" = success; elif [ "$SHELL_CUTOVER" != skipped ]; then test "$SHELL_CUTOVER" = success; fi
           if [ "$DIRECT_EDIT_SELECTED" = true ]; then test "$DIRECT_EDIT" = success; elif [ "$DIRECT_EDIT" != skipped ]; then test "$DIRECT_EDIT" = success; fi
           if [ "$TARGETED_BROWSER" != skipped ]; then test "$TARGETED_BROWSER" = success; fi
           if [ "$NATIVE_POPUP_SELECTED" = true ]; then test "$NATIVE_POPUP" = success; elif [ "$NATIVE_POPUP" != skipped ]; then test "$NATIVE_POPUP" = success; fi

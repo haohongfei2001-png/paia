@@ -22,15 +22,16 @@ test('UIS-04 keeps real bootstrap owners and reusable search/read capabilities',
 });
 
 test('UIS-04 keeps bounded organizer maintenance in the existing Settings AI group',async()=>{
-  const shell=await read('ui/core-loop.js');
+  const shell=await read('ui/settings-preferences.js');
   assert.ok(shell.includes("['organizer-reading-actions','deepseek-settings','library-updates-drawer']"));
   assert.ok(shell.includes("move(id,'ai')"));
 });
 
 test('UIS-04 relocated Settings controls keep bounded read-only status loading',async()=>{
-  const shell=await read('ui/core-loop.js'),thought=await read('ui/thoughts-base.js');
+  const shell=await read('ui/settings-preferences.js'),thought=await read('ui/thoughts-base.js');
   assert.ok(shell.includes('notifyOrganizerSettings();'));
-  assert.ok(shell.includes("new MutationObserver(notifyOrganizerSettings).observe(panel,{attributes:true,attributeFilter:['hidden']})"));
+  assert.ok(shell.includes("export function presentSettingsPreferences"));
+  assert.doesNotMatch(shell,/MutationObserver/);
   assert.ok(shell.includes("new CustomEvent('paia:organizer-settings-visible')"));
   assert.ok(thought.includes("document.addEventListener('paia:organizer-settings-visible',()=>this.queueOptionalStatus())"));
   assert.ok(thought.includes('isCurrent:()=>this.organizerSettingsVisible()'));

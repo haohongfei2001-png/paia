@@ -30,21 +30,22 @@ class Node {
  get previousElementSibling(){const rows=this.parentElement?.children||[];return rows[rows.indexOf(this)-1]||null;}
  remove(){if(this.parentElement){const rows=this.parentElement.children;rows.splice(rows.indexOf(this),1);}this.parentElement=null;}
  insertBefore(node,before){node.remove();this.children.splice(before?this.children.indexOf(before):this.children.length,0,node);node.parentElement=this;this.moves++;}
+ append(node){this.insertBefore(node,null);}
  prepend(node){this.insertBefore(node,this.children[0]);}
  after(node){this.parentElement.insertBefore(node,this.parentElement.children[this.parentElement.children.indexOf(this)+1]);}
 }
 
-test('Archive search toolbar precedes the tree with its real nested search structure and after Reader return',()=>{
- const original=globalThis.document,main=new Node('archive-root-main'),tools=new Node('archive-root-tools'),search=new Node('search'),host=new Node('archive-navigator'),panel=new Node('document-panel'),page=new Node('document-page');
- main.prepend(tools);tools.prepend(search);main.prepend(host);panel.prepend(page);
- const nodes=new Map([main,tools,search,host,panel,page].map(n=>[n.id,n]));globalThis.document={getElementById:id=>nodes.get(id)};
- try{
-  const nav={active:true,reader:false,host};ArchiveNavigator.prototype.place.call(nav);
-  assert.deepEqual(main.children.map(n=>n.id),['archive-root-tools','archive-navigator']);
-  const moves=main.moves;ArchiveNavigator.prototype.place.call(nav);assert.equal(main.moves,moves,'MutationObserver re-entry does not move stable DOM');
-  nav.reader=true;ArchiveNavigator.prototype.place.call(nav);assert.deepEqual(panel.children.map(n=>n.id),['archive-navigator','document-page']);
-  nav.reader=false;ArchiveNavigator.prototype.place.call(nav);assert.deepEqual(main.children.map(n=>n.id),['archive-root-tools','archive-navigator']);
- }finally{globalThis.document=original;}
+test('Archive navigator explicitly mounts in root/Reader slots without observer relocation',async()=>{
+ const root=new Node('archive-root-navigator-slot'),reader=new Node('archive-reader-navigator-slot'),host=new Node('archive-navigator');
+ const nav={host};ArchiveNavigator.prototype.mount.call(nav,root);
+ assert.deepEqual(root.children.map(n=>n.id),['archive-navigator']);
+ const moves=root.moves;ArchiveNavigator.prototype.mount.call(nav,root);assert.equal(root.moves,moves,'stable explicit presentation does not move DOM');
+ ArchiveNavigator.prototype.mount.call(nav,reader);assert.equal(root.children.length,0);assert.deepEqual(reader.children.map(n=>n.id),['archive-navigator']);
+ ArchiveNavigator.prototype.mount.call(nav,root);assert.equal(reader.children.length,0);assert.equal(host.parentElement,root);
+ assert.throws(()=>ArchiveNavigator.prototype.mount.call(nav,null),/ARCHIVE_NAVIGATOR_SLOT_MISSING/);
+ const html=await source('archive.html'),runtime=await source('archive-navigator.js');
+ assert.ok(html.indexOf('id="archive-root-tools"')<html.indexOf('id="archive-root-navigator-slot"'),'tools precede explicit root tree slot');
+ assert.doesNotMatch(runtime,/MutationObserver|place\(\)/,'retired observer/relocation path stays removed');
 });
 
 test('popup sizing declares intrinsic width independently of the initial browser viewport',async()=>{
@@ -60,9 +61,9 @@ test('popup sizing declares intrinsic width independently of the initial browser
 });
 
 test('default light canvases are white and Reader removes filter chrome while Settings keeps recovery',async()=>{
- const [core,popup,html,archive,nav]=await Promise.all(['core-loop.css','popup.css','archive.html','archive.js','archive-navigator.js'].map(source));
- for(const css of [core,popup]){const light=css.split('html[data-paia-theme="dark"]')[0];assert.match(light,/--paia-canvas:#FFFFFF/);assert.doesNotMatch(light,/#F8FAF8|#F2F6F2|#F0F5F0|#E8F0E9/i);}
- assert.match(core.split('html[data-paia-theme="dark"]')[0],/--paia-sidebar:#FFFFFF/);
+ const [core,popup,html,archive,nav]=await Promise.all(['desktop-tokens.css','popup.css','archive.html','archive.js','archive-navigator.js'].map(source));
+ assert.match(core,/--bg:#ffffff/i);assert.match(core,/--paia-canvas:var\(--bg\)/);assert.match(popup,/--paia-canvas:#FFFFFF/);
+ assert.match(core,/--rail:#f7f8f6/,'frozen DVN rail is distinct from the white reading canvas');
  assert.doesNotMatch(html,/id="(?:archive-root-recent|archive-root-continue|document-filter-toggle|document-search-include-filtered)"/);
  assert.doesNotMatch(archive,/filtered-input-note|document-filter-toggle|document-search-include-filtered/);
  assert.match(html,/id="smart-filter-settings"/);assert.match(html,/id="filter-recent-open"/);assert.match(html,/id="search-include-filtered"/);

@@ -96,13 +96,13 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   phase='responsive appearance matrix';
   for(const appearance of ['light','dark']){
    await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});await eventually(async()=>await p.evaluate(()=>document.documentElement.dataset.paiaTheme)===appearance,appearance+' theme');
-   for(const [width,height] of [[1440,900],[1200,800],[1024,768],[800,700],[390,844],[320,720]]){
+   for(const [width,height] of [[1440,900],[1280,800],[1024,768],[768,700],[390,844],[320,720]]){
     phase='responsive '+appearance+' '+width+'x'+height;
     await p.setViewportSize({width,height});await pause(120);
     assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'no page overflow at '+width+' '+appearance);
     const shell=await p.evaluate(()=>({sidebar:document.querySelector('.sidebar').getBoundingClientRect().width,navigator:document.getElementById('archive-navigator').getBoundingClientRect().width,display:getComputedStyle(document.getElementById('document-panel')).display,columns:getComputedStyle(document.getElementById('document-panel')).gridTemplateColumns,trigger:!document.getElementById('archive-navigator-toggle').hidden}));
-    if(width>=1200){assert.ok(shell.sidebar>=200&&shell.navigator>=230,'desktop three-level widths at '+width);assert.equal(shell.display,'grid');}
-    else if(width>=800){assert.ok(shell.sidebar<=70&&shell.navigator>=198,'narrow compact widths at '+width);assert.equal(shell.display,'grid');assert.equal(shell.trigger,true);}
+    if(width>=1024){assert.equal(Math.round(shell.sidebar),width>=1440?184:160,'frozen primary rail at '+width);assert.ok(shell.navigator>=(width>=1440?279:239),'frozen contextual navigator at '+width);assert.equal(shell.display,'grid');}
+    else if(width>=768){assert.equal(Math.round(shell.sidebar),64,'tablet icon rail');assert.equal(shell.display,'block');assert.equal(shell.trigger,true);}
     else{
      assert.equal(shell.trigger,true);const mobileTrigger=p.locator('#archive-navigator-toggle');if(await p.locator('#archive-navigator').isVisible())await p.keyboard.press('Escape');await mobileTrigger.click();await eventually(()=>p.locator('#archive-navigator').isVisible(),'mobile sheet '+width);
      const targets=await p.locator('#archive-navigator button:visible').evaluateAll(nodes=>nodes.slice(0,12).map(n=>({w:n.getBoundingClientRect().width,h:n.getBoundingClientRect().height})));assert.ok(targets.length&&targets.every(r=>r.h>=44),'mobile targets >=44px at '+width);

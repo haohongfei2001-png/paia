@@ -4,7 +4,7 @@
 
 **Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D1`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
 
-Fresh engineering base: `af3777c3333e8f8a0ee83dc58b521a613add304c` (merge #114; exact-main integration36813577806 PASS). Sole active product writer: `feat/desktop-vnext-d1-direct-edit`, current bounded batch D1/Q6 direct editing at every width and editor-owned pending-removal lock preservation. Q1, Q2, Q2.1, Q4, Q1.1, Q3 and Q5 are integrated; D1 is not yet complete. Frozen DVN-1.0 and foundation107 remain controlling; #99 stays unchanged at991f78f4c54b79d67428bf3209fb4eaa18f1cc9b.
+Fresh engineering base: `2d011f3fefc9703782e1b3188305e251ea624e11` (merge #115; full Q6 certification attempt2 PASS, exact-main integration36904629850 PASS, Pages36904628534 PASS). Sole active product writer: `feat/desktop-vnext-d1-shell-cutover`, current bounded batch [D1/Q7](implementation/desktop-vnext/D1-Q7.md) explicit shell/Navigator composition, frozen responsive cutover and exact selection handoff. Q1–Q6 are integrated; D1 is not complete. New Q7 candidate browser/full gates remain pending. Frozen DVN-1.0 and foundation107 remain controlling; #99 remains unchanged and unmerged.
 
 Each batch records exact base/head, Surface/Acceptance/P-I-D, actual tests, failures and NOT_RUN; integration and exact-main verification precede the next batch. No permanent dual coordinator or second body truth. B-01–B-05 and other owner gates remain open, with dependent behavior fail closed; independent approved work continues. Search remains lexical/fuzzy/filter. Context Release is Copy/Export. No new provider permission, upload, reply-reading, paid service, cloud authority, destructive policy or distribution/legal commitment is approved.
 
@@ -89,15 +89,15 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: D1 — Archive / Q6 direct editing across widths
+current_slice: D1 — Archive / Q7 shell and selection cutover
 
 current_slice_status: IMPLEMENTING
 
-current_round: D1-Q6
+current_round: D1-Q7
 
 current_round_status: IMPLEMENTING
 
-current_writer: feat/desktop-vnext-d1-direct-edit — sole active product writer
+current_writer: feat/desktop-vnext-d1-shell-cutover — sole active product writer
 
 writer_status: ACTIVE — owner-approved Desktop vNext D1–D4 only
 
