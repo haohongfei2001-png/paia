@@ -14,7 +14,7 @@ const rpc=async(page,type,fields={})=>{
  const reply=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});
  assert.equal(reply?.ok,true,JSON.stringify(reply));return reply.data;
 };
-async function fixture(variant){
+async function fixture(variant,count=2){
  const h=await FakeChatGPT.start(variant==='release'?{extensionPath:releaseRoot}:{}),p=h.archive;
  try{
   await p.setViewportSize({width:390,height:844});
@@ -22,7 +22,8 @@ async function fixture(variant){
   if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const title='SYNTHETIC direct-edit Conversation',messages=[
    {id:'dvn-direct-message-000',text:'SYNTHETIC 原始表达 👩‍💻 é 保留不确定性。\n第二行保持完整。'},
-   {id:'dvn-direct-message-001',text:'SYNTHETIC 第二条输入保持独立，不能跨输入修改。'}
+   {id:'dvn-direct-message-001',text:'SYNTHETIC 第二条输入保持独立，不能跨输入修改。'},
+   ...Array.from({length:count-2},(_,i)=>({id:'dvn-direct-message-'+(i+2),text:'SYNTHETIC paged Input '+(i+2)+' 独立完整的来源和工作内容。'}))
   ];
   await h.open({id:'dvn-direct',title,base:1609459200,messages});
   await eventually(async()=>(await h.state()).records.length===messages.length,'both real Source records captured');
@@ -32,7 +33,7 @@ async function fixture(variant){
    return result.selectedPath?.available&&result.selectedPath.groupKind==='unassigned';
   },'verified ordinary Conversation membership settles before opening Navigator');
   await rpc(p,'SET_ENABLED',{enabled:false});await p.bringToFront();await openArchiveWindow(p,{text:title});
-  await eventually(()=>p.locator('.library-prose').count().then(n=>n===2));
+  await eventually(()=>p.locator('.library-prose').count().then(n=>n===Math.min(count,40)));
   await eventually(()=>p.locator('#scope-search').isEnabled(),'Reader route is admitted');
   const field=p.locator('.library-prose').first(),id=await field.getAttribute('data-edit-id');
   return {h,p,field,id,documentId};
@@ -94,13 +95,13 @@ for(const variant of ['source','release']){
   try{
    const before=await h.state(),worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));
    await worker.evaluate(()=>{const put=IDBObjectStore.prototype.put;IDBObjectStore.prototype.put=function(value,...args){if(this.name==='blocks'&&value?.value?.libraryText?.includes('SYNTHETIC_DIRECT_FAILED')){IDBObjectStore.prototype.put=put;throw new DOMException('Synthetic direct-edit storage failure','QuotaExceededError');}return put.call(this,value,...args);};});
-   const draft='SYNTHETIC_DIRECT_FAILED 完整草稿 👩‍💻 é\n'+('未保存段落完整保留。\n'.repeat(60));await field.fill(draft);
+   const draft='SYNTHETIC_DIRECT_FAILED 完整草稿 👩‍💻 é\n'+('未保存段落完整保留。\n'.repeat(60))+'SYNTHETIC 完整尾标记 END 👩‍💻 é';await field.fill(draft);
    await eventually(()=>p.locator('#retry').isVisible(),'actual failed transaction exposes Retry');
    await p.setViewportSize({width:320,height:844});await assertEditable(p);assert.equal(await field.innerText(),draft);
    assert.equal((await rpc(p,'GET_INPUT',{id})).libraryText,before.library.blocks.find(b=>b.id===id).libraryText);
    await p.locator('#back').click();assert.equal(await p.locator('#document-panel').isVisible(),true);assert.equal(await field.innerText(),draft);
    await p.evaluate(()=>{globalThis.__directCopied=null;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{globalThis.__directCopied=text;}}});});
-   await p.locator('#reader-copy-buffer').click();assert.ok((await p.evaluate(()=>__directCopied)).startsWith(draft),'recovery Copy retains every character including the long tail');
+   await p.locator('#reader-copy-buffer').click();assert.equal(await p.evaluate(()=>__directCopied),[draft,await p.locator('.library-prose').nth(1).innerText()].join('\n\n'),'recovery Copy retains every character including the long tail');
    await p.evaluate(()=>{const fields=[...document.querySelectorAll('.library-prose')],range=document.createRange();range.setStart(fields[0].firstChild,0);range.setEnd(fields[1].firstChild,12);getSelection().removeAllRanges();getSelection().addRange(range);globalThis.__directCrossText=getSelection().toString();globalThis.__directCrossAllowed=fields[0].dispatchEvent(new InputEvent('beforeinput',{bubbles:true,cancelable:true,inputType:'deleteByCut'}));});
    assert.equal(await p.evaluate(()=>__directCrossAllowed),false,'cross-Input mutation remains refused');await eventually(()=>p.locator('.reader-selection').isVisible());
    await p.locator('.reader-selection button').first().click();assert.equal(await p.evaluate(()=>__directCopied===__directCrossText),true,'cross-Input Copy is precisely the selected native text');
@@ -110,16 +111,26 @@ for(const variant of ['source','release']){
   }finally{await h.close();}
  });
  test(`D1 responsive presentation cannot reopen the editor-owned pending whole-Conversation removal lock (${variant})`,{timeout:90000},async()=>{
-  const {h,p}=await fixture(variant);
+  const {h,p}=await fixture(variant,101);
   try{
-   const before=await h.state();await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__directRemovalWrites=0;chrome.runtime.sendMessage=async message=>{if(message.type==='EDIT_DOCUMENT'&&message.edit?.removeScope){__directRemovalWrites++;await new Promise(resolve=>globalThis.__releaseDirectRemoval=resolve);}return send(message);};});
+   const before=await h.state(),mountedIds=await p.locator('.library-prose').evaluateAll(nodes=>nodes.map(el=>el.dataset.editId));assert.equal(mountedIds.length,40);
+   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__directRemovalWrites=0;globalThis.__directPageReads=0;chrome.runtime.sendMessage=async message=>{
+    if(message.type==='GET_PAGE'&&message.page?.documentId&&message.page?.cursor){__directPageReads++;const reply=await send(message);await new Promise(resolve=>globalThis.__releaseDirectPage=resolve);return reply;}
+    if(message.type==='EDIT_DOCUMENT'&&message.edit?.removeScope){__directRemovalWrites++;await new Promise(resolve=>globalThis.__releaseDirectRemoval=resolve);}return send(message);
+   };window.scrollTo(0,document.documentElement.scrollHeight);window.dispatchEvent(new Event('scroll'));});
+   await eventually(()=>p.evaluate(()=>typeof __releaseDirectPage==='function'),'real next-page response is in flight before removal acquires the lock');
    await p.locator('#document-menu').click();await p.getByRole('menuitem',{name:/移出整段对话|Remove entire conversation/}).click();
    await p.locator('dialog[data-removal-target][open]').getByRole('button',{name:/确认移出整段对话|Confirm entire conversation removal/}).click();
    await eventually(()=>p.evaluate(()=>typeof __releaseDirectRemoval==='function'),'actual removal request is in flight');
+   await p.evaluate(async()=>{__releaseDirectPage();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
+   assert.deepEqual(await p.locator('.library-prose').evaluateAll(nodes=>nodes.map(el=>el.dataset.editId)),mountedIds,'a response started before the lock cannot append editable rows');
    for(const width of [1440,768,320,1280]){
     await p.setViewportSize({width,height:844});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
-    assert.deepEqual(await p.locator('#document-title,.library-prose').evaluateAll(nodes=>nodes.map(el=>el.getAttribute('contenteditable'))),['false','false','false'],'resize must not bypass the existing transaction lock');
+    assert.deepEqual(await p.locator('#document-title,.library-prose').evaluateAll(nodes=>nodes.map(el=>el.getAttribute('contenteditable'))),Array(mountedIds.length+1).fill('false'),'resize must not bypass the existing transaction lock');
     assert.equal(await p.locator('#document-page').getAttribute('aria-busy'),'true');
+    await p.evaluate(()=>{window.scrollTo(0,document.documentElement.scrollHeight);window.dispatchEvent(new Event('scroll'));});
+    assert.equal(await p.evaluate(()=>__directPageReads),1,'held removal refuses new page requests');
+    assert.deepEqual(await p.locator('.library-prose').evaluateAll(nodes=>nodes.map(el=>el.dataset.editId)),mountedIds);
    }
    assert.deepEqual((await h.state()).library.blocks,before.library.blocks,'held request has not changed Working Inputs');await evidence(p,variant,'pending-removal');
    await p.evaluate(()=>__releaseDirectRemoval());await eventually(()=>p.locator('#collection-panel').isVisible(),'whole removal completes through its actual owner');

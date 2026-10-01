@@ -43,3 +43,20 @@ test('Direct-edit Draft CI requires the exact-head source/release journeys and a
  assert.match(workflow,/needs: \[unit, contracts, release, direct_edit,/);
  assert.ok(workflow.includes('if [ "$DIRECT_EDIT_SELECTED" = true ]; then test "$DIRECT_EDIT" = success;'));
 });
+
+for(const timing of ['before request','during flush','during page request'])test(`Production Reader paging refuses admission when removal locks ${timing}`,async()=>{
+ const {readFile}=await import('node:fs/promises'),{runInNewContext}=await import('node:vm');
+ const source=await readFile(new URL('../ui/archive.js',import.meta.url),'utf8');
+ const start=source.indexOf('async function loadReaderPage(direction)'),end=source.indexOf("$('reader-window-guard-continue')",start);assert.ok(start>=0&&end>start);
+ let requests=0,absorbed=0,appended=0,flushed=0;
+ const stream={documentId:'synthetic-document',loading:false,first:0,last:0,highWater:0,cursors:[null],endCursor:'synthetic-cursor'};
+ const active={entries:new Map(),removalLocks:timing==='before request'?new Map():null,collect(){},dirty:()=>timing==='during flush',async flush(){flushed++;this.removalLocks=new Map();return true;},absorb(){absorbed++;}};
+ const context={readerStream:stream,editor:active,view:'library',documentId:stream.documentId,READER_PAGE_LIMIT:40,
+  $:id=>id==='document-body'?{querySelectorAll:()=>[]}:{hidden:false},
+  async request(type){assert.equal(type,'GET_PAGE');requests++;active.removalLocks=new Map();return {pageItemIds:['synthetic-next'],nextCursor:null};},
+  appendDocumentPage(){appended++;return null;},notify(){assert.fail('a valid lock is not a paging error');}
+ };
+ const load=runInNewContext(source.slice(start,end)+'; loadReaderPage',context);await load('forward');
+ assert.equal(requests,timing==='during page request'?1:0);assert.equal(flushed,timing==='during flush'?1:0);
+ assert.equal(absorbed,0);assert.equal(appended,0);assert.equal(stream.loading,false);
+});

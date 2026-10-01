@@ -199,7 +199,7 @@ function readerVisibleIds(){return [...$('document-body').querySelectorAll('.lib
 function readerCanEvict(page){const focus=document.activeElement,selection=getSelection();return !page.contains(focus)&&!(selection?.rangeCount&&page.contains(selection.anchorNode));}
 function readerWindowGuard(direction,composing=false){const guard=$('reader-window-guard');guard.hidden=false;guard.dataset.direction=direction;$('reader-window-guard-message').textContent=composing?readerCopy('先完成当前输入法输入，再保存并继续。','Finish composing text before saving and continuing.'):readerCopy('当前输入或选区仍在上一段。保存后可继续阅读。','An edit or selection remains in the previous range. Save before continuing.');}
 async function loadReaderPage(direction){
- const stream=readerStream,active=editor;if(!stream||stream.loading||!active||view!=='library'||documentId!==stream.documentId)return;if(active.composing){readerWindowGuard(direction,true);return;}
+ const stream=readerStream,active=editor;if(!stream||stream.loading||!active||active.removalLocks||view!=='library'||documentId!==stream.documentId)return;if(active.composing){readerWindowGuard(direction,true);return;}
  const backward=direction==='back',index=backward?stream.first-1:stream.last+1;
  let cursor=backward?stream.cursors[index]:stream.cursors[index]??stream.endCursor;
  if(index<0||cursor===undefined||cursor===null&&!backward&&stream.last>=stream.highWater&&stream.endCursor===null)return;
@@ -208,11 +208,11 @@ async function loadReaderPage(direction){
  stream.loading=true;let loaded=false;
  try{
   active.collect();if(active.dirty()&&!await active.flush())return;
-  if(stream!==readerStream||active!==editor)return;
+  if(stream!==readerStream||active!==editor||active.removalLocks)return;
   let page,guard=0;
   do{
    page=await request('GET_PAGE',{page:{view:'library',documentId:stream.documentId,cursor,limit:READER_PAGE_LIMIT,readingSnapshot:stream.snapshot,sort:stream.sort,includeFiltered:stream.includeFiltered,trackedBlockIds:[...active.entries.keys()]}});
-   if(stream!==readerStream||active!==editor)return;
+   if(stream!==readerStream||active!==editor||active.removalLocks)return;
    if(backward||page.pageItemIds.length||!page.nextCursor)break;
    cursor=page.nextCursor;
   }while(++guard<30);
