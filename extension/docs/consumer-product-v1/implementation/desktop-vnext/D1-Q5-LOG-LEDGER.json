@@ -167,6 +167,26 @@
       "file": "reveal-repaired-owning-browser.txt",
       "sha256": "093c1e3970f20956dfecae29eff9cab6024462128172cf0d212c123137c1d8a0",
       "bytes": 2554
+    },
+    {
+      "file": "full-36809729487.txt",
+      "sha256": "c814d7c08a1c3b91b591c42196eaaa6d13eb8cab82d6c530915ea552289784af",
+      "bytes": 1325758
+    },
+    {
+      "file": "full-36809729487-reports.json",
+      "sha256": "3c42eb8ff02090f8039786220fdf3c08cdcf4544a845e6ad7520d016833548b6",
+      "bytes": 36323
+    },
+    {
+      "file": "hosted-negative-owning-local.txt",
+      "sha256": "4658dae271042eb07b2d5fa2635a61ffeba5c52dd705c0e52b3bc6b0e526ab79",
+      "bytes": 233
+    },
+    {
+      "file": "repaired-release-membership.txt",
+      "sha256": "359e847f8ecea062bdd82237f0ae69f8d90c6a92799e344c833ee419dbf72d27",
+      "bytes": 234
     }
   ]
 }
