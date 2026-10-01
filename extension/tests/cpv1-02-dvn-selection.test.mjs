@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {selectionMatchesBody} from '../ui/reader-selection.js';
+import {selectionMatchesBody,readerToolbarPosition,sameReaderSelection} from '../ui/reader-selection.js';
 import {readFile} from 'node:fs/promises';
 test('D1 selected Input retains exact Unicode range and refuses changed body before/after flush',()=>{
  const body='原文 👩‍💻 é 不确定。',text='👩‍💻 é',start=body.indexOf(text),selection={text,input:{id:'synthetic-input',body,span:{start,end:start+text.length}}};
@@ -31,4 +31,15 @@ test('D1 frozen token aliases are not redefined by retained feature styles',asyn
 test('D1 shared shell preserves saved prose size precedence in unmigrated AI fields',async()=>{
  const css=await readFile(new URL('../ui/app-shell.css',import.meta.url),'utf8');
  assert.match(css,/\.entry-prose,\.thought-prose\{font-size:var\(--paia-prose-size\)!important/);
+});
+
+test('D1 selection toolbar is adjacent and clamped across narrow/zoomed viewport edges',()=>{
+ const size={width:288,height:88},viewport={width:320,height:720,left:0,top:0};
+ assert.deepEqual(readerToolbarPosition({left:10,right:80,top:100,bottom:125},size,viewport),{left:16,top:133});
+ assert.deepEqual(readerToolbarPosition({left:280,right:318,top:650,bottom:675},size,viewport),{left:16,top:554});
+ const zoom={left:100,top:150,width:320,height:360},result=readerToolbarPosition({left:350,right:400,top:160,bottom:200},size,zoom);
+ assert.equal(result.left,116);assert.equal(result.top,208);
+ const edge=readerToolbarPosition({left:0,right:100,top:0,bottom:1000},size,viewport);assert.equal(edge.top,616);
+ assert.equal(sameReaderSelection(null,null),false);const node={},a={text:'原文',range:{startContainer:node,endContainer:node,startOffset:0,endOffset:2}};
+ assert.equal(sameReaderSelection(a,{...a,range:{...a.range}}),true);assert.equal(sameReaderSelection(a,{...a,text:'变化'}),false);
 });
