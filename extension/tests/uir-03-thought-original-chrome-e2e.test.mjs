@@ -196,7 +196,7 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  assert.equal(await page.locator('#library-unplaced').isVisible(),false,'independent unplaced expressions belong to All sources');
  assert.equal(await rootList.locator('.topic-index-row small').evaluateAll(nodes=>nodes.some(n=>/条内容/.test(n.textContent))),false,'whole-Topic counts are not labeled as selected-source counts');
  await rootSearch.fill('Scope shared claude');
- await eventually(async()=>await rootList.locator('.topic-index-row').count()===1&&/Scope shared claude/i.test(await rootList.textContent()),'root lexical search is limited to the selected direct source');
+ await eventually(async()=>await rootList.locator('.topic-index-row[data-render-key]').count()===1&&await rootList.locator('[data-topic-id]').count()===0&&/Scope shared claude/i.test(await rootList.textContent()),'root lexical search is limited to the selected direct source');
  // Hold the real search continuation at the section boundary, then navigate
  // Back. The obsolete continuation must finish without opening a content modal.
  await page.evaluate(async()=>{
@@ -209,7 +209,7 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
   window.vs05SearchRace.restore=()=>{proto.focusSection=focus;proto.openSearchResult=open;};
  });
  try{
-  await rootList.locator('.topic-index-row').click();
+  await rootList.locator('.topic-index-row[data-render-key]').click();
   try{await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.started),'real search continuation reaches section focus');}catch(error){const diagnostic=await page.evaluate(()=>{const owner=window.vs05SearchOwner;return {race:window.vs05SearchRace&&{started:vs05SearchRace.started,done:vs05SearchRace.done,target:vs05SearchRace.target,error:vs05SearchRace.error},owner:owner&&{id:owner.id,openIntent:owner.openIntent,serial:owner.serial,view:owner.view,readFailed:owner.readFailed,refreshKey:owner.refreshRun?.key},visibleError:document.getElementById('error')?.textContent,notice:document.getElementById('notice')?.textContent};});throw new Error(error.message+' '+JSON.stringify(diagnostic));}
   await eventually(async()=>await page.locator('#thought-document').isVisible(),'scoped root search opens the canonical Topic');
   await page.locator('#back').click();
@@ -222,7 +222,7 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
   await page.evaluate(()=>{window.vs05SearchRace.release();window.vs05SearchRace.restore();});
  }
  // Also retain the ordinary successful navigation and target-entry readback.
- await rootList.locator('.topic-index-row').click();
+ await rootList.locator('.topic-index-row[data-render-key]').click();
  await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1&&await page.locator('#library-dialog').evaluate(el=>!el.open),'scoped search focuses the actual placed expression without a standalone fallback');
  await page.locator('#back').click();
  await eventually(async()=>await rootScope.inputValue()==='claude'&&await rootSearch.inputValue()==='Scope shared claude'&&await rootList.locator('.topic-index-row').count()===1,'Back preserves root source/query and collection identity');
