@@ -131,7 +131,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
         assert.ok(await p.locator('.block-time').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).opacity==='1')),'timestamps stay visible at '+width);
         const contrast=await p.locator('.block-time').first().evaluate(node=>{
           const parse=value=>value.match(/[\d.]+/g).slice(0,3).map(Number),linear=v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;},lum=value=>{const [r,g,b]=parse(value);return .2126*linear(r)+.7152*linear(g)+.0722*linear(b);};
-          const fg=lum(getComputedStyle(node).color),bg=lum(getComputedStyle(document.querySelector('.workspace')).backgroundColor),hi=Math.max(fg,bg),lo=Math.min(fg,bg);return (hi+.05)/(lo+.05);
+          let surface=document.querySelector('.workspace'),background;while(surface){background=getComputedStyle(surface).backgroundColor;if(background!=='rgba(0, 0, 0, 0)'&&background!=='transparent')break;surface=surface.parentElement;}const fg=lum(getComputedStyle(node).color),bg=lum(background),hi=Math.max(fg,bg),lo=Math.min(fg,bg);return (hi+.05)/(lo+.05);
         });
         assert.ok(contrast>=4.5,'timestamp contrast stays readable at '+appearance+' '+width+'; got '+contrast);
         await p.screenshot({path:'work/ans-01/reader-'+appearance+'-'+width+'.png',fullPage:false});

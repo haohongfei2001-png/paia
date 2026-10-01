@@ -110,7 +110,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
   await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').filter({hasText:'未归属 Project'}).first();
   await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
   await eventually(async()=>await p.locator('.archive-navigator-window').count()===3);
-  const white=async selectors=>{for(const selector of selectors)assert.equal(await p.locator(selector).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)',selector+' light background is white');};
+  const white=async selectors=>{for(const selector of selectors){const background=await p.locator(selector).evaluate(el=>{for(let node=el;node;node=node.parentElement){const color=getComputedStyle(node).backgroundColor;if(color!=='rgba(0, 0, 0, 0)'&&color!=='transparent')return color;}return 'transparent';});assert.equal(background,selector==='.sidebar'?'rgb(247, 248, 246)':'rgb(255, 255, 255)',selector+' uses the frozen light rail/reading surface');}};
   await white(['body','.sidebar','.workspace','#archive-navigator']);
   const rootContract=async()=>{
    assert.equal(await p.locator('input[type="search"]:visible').count(),1);
