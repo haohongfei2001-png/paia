@@ -5,7 +5,7 @@ const rpc=async(page,type,fields={})=>{
   const result=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});
   assert.equal(result.ok,true,JSON.stringify(result));return result.data;
 };
-const nav=(page,view)=>page.locator(view==='settings'?'.sidebar-bottom [data-view="settings"]':`#primary-nav [data-view="${view}"]`).click();
+const nav=async(page,view)=>{await page.locator(view==='settings'?'.sidebar-bottom [data-view="settings"]':`#primary-nav [data-view="${view}"]`).click();await eventually(()=>page.locator('#scope-search').isEnabled(),'page navigation completes before inspecting destination controls');};
 async function noRemovedControls(page){
   for(const selector of ['#universal-search-open','#thought-recent','#thought-organize-tools','#core-loop-browse-title'])assert.equal(await page.locator(selector).count(),0,selector+' cannot be recreated');
 }

@@ -235,6 +235,9 @@ jobs:
       - name: Diagnose existing removed-anchor regression
         if: contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER')
         run: xvfb-run -a node --test --test-name-pattern="UX-R3 removed mid-topic reading anchor" tests/ux-r3-thought-chrome-e2e.test.mjs
+      - name: Verify existing page-scoped search readiness
+        if: contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER')
+        run: xvfb-run -a node --test tests/uis-02-page-scoped-search-chrome-e2e.test.mjs tests/uis-04-cleanup-chrome-e2e.test.mjs
       - name: Retain D3 synthetic source and release evidence
         if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER')
         uses: actions/upload-artifact@v4
