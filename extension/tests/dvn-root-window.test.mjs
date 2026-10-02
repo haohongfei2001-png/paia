@@ -141,5 +141,21 @@ test('D2 only the current root anchor restoration may release its programmatic-s
 });
 
 test('D2 explicit root reveal survives a focus-triggered replay already pending or failed',async()=>{
- for(const failed of [false,true]){const r={windowStart:40,windowSize:120,windowRevision:2,items:Array.from({length:200},(_,i)=>({key:'key'+i})),error:failed?Error('STORAGE_FAILED'):null},w=Object.assign(Object.create(TopicController.prototype),{homeCollection:r,homeWindowShifting:!failed,thoughtRootVisible:()=>true});await w.shiftHomeWindow('previous',{reveal:true});assert.deepEqual(w.homeHydrationAnchor,{key:'key40',top:140,focus:true});assert.equal(w.homeWindowReveal.collection,r);assert.equal(w.homeWindowReveal.revision,2);}
+ for(const failed of [false,true]){const r={windowStart:40,windowSize:120,windowRevision:2,items:Array.from({length:200},(_,i)=>({key:'key'+i})),error:failed?Error('STORAGE_FAILED'):null},w=Object.assign(Object.create(TopicController.prototype),{homeCollection:r,homeWindowShifting:!failed,homeWindowShift:failed?null:{collection:r},thoughtRootVisible:()=>true});await w.shiftHomeWindow('previous',{reveal:true});assert.deepEqual(w.homeHydrationAnchor,{key:'key40',top:140,focus:true});assert.equal(w.homeWindowReveal.collection,r);assert.equal(w.homeWindowReveal.revision,2);}
+});
+
+test('D2 a root replay owns its window until hydration completes even when Retry scrolls the sentinel into view',async()=>{
+ const reader={loading:false,hydration:{},shiftWindow(){throw Error('must not supersede retry');},loadNext(){throw Error('must not supersede retry');}},w=Object.assign(Object.create(TopicController.prototype),{homeCollection:reader,thoughtRootVisible:()=>true});await w.shiftHomeWindow('next');await w.loadHomeNext({explicit:false});assert.equal(w.homeCollection,reader);
+});
+test('D2 focusing the root search above a deep window retains its last body-free reading anchor',async()=>{
+ const f=fixture(),r=f.reader;await r.loadUntil({minItems:300});const previous={document:globalThis.document,scrollY:globalThis.scrollY},input={value:'needle'},anchor={key:r.items[240].key,top:130},w=Object.assign(Object.create(TopicController.prototype),{homeCollection:r,rootProviderKey:null,serial:1,captureHomeAnchor:()=>null,refresh:async()=>{}});globalThis.document={getElementById:()=>input};globalThis.scrollY=0;
+ try{w.rememberHomeAnchor(anchor);w.searchRoot();assert.deepEqual(w.rootPreSearch.anchor,{...anchor,id:null});assert.equal(w.rootPreSearch.snapshot.items.length,300);assert.doesNotMatch(JSON.stringify(w.homeReadingPosition),/SYNTHETIC/);}finally{clearTimeout(w.searchTimer);Object.assign(globalThis,previous);}
+});
+
+test('D2 a held old-scope window shift neither blocks nor unlocks a newer reader shift',async()=>{
+ const priorY=globalThis.scrollY;globalThis.scrollY=100;const old={shiftWindow:()=>true},next={shiftWindow:()=>true},finishes=[],w=Object.assign(Object.create(TopicController.prototype),{homeCollection:old,thoughtRootVisible:()=>true,captureHomeAnchor:()=>null,renderHomeReader:()=>new Promise(resolve=>finishes.push(resolve))});
+ try{const a=w.shiftHomeWindow('next');assert.equal(w.homeWindowShift.collection,old);w.homeCollection=next;const b=w.shiftHomeWindow('next');assert.equal(w.homeWindowShift.collection,next);finishes[0](true);await a;assert.equal(w.homeWindowShifting,true);assert.equal(w.homeWindowShift.collection,next);finishes[1](true);await b;assert.equal(w.homeWindowShifting,false);}finally{globalThis.scrollY=priorY;}
+});
+test('D2 a completed hydration retry cannot advance the frontier of a superseded root route',async()=>{
+ let finish,loads=0;const old={errorKind:'hydrate',loadNext(){loads++;}},w=Object.assign(Object.create(TopicController.prototype),{homeCollection:old,thoughtRootVisible:()=>true,captureHomeAnchor:()=>null,renderHomeReader:()=>new Promise(resolve=>finish=resolve)});const pending=w.loadHomeNext();w.homeCollection={};finish(false);await pending;assert.equal(loads,0);
 });
