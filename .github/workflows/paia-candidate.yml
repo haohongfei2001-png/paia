@@ -232,6 +232,9 @@ jobs:
           mkdir -p work/qa-dvn-organize
           set -o pipefail
           xvfb-run -a node --test --test-concurrency=1 tests/cpv1-05-dvn-organize-chrome-e2e.test.mjs tests/ux-r5-ai-organize-chrome-e2e.test.mjs tests/ux-r5-ai-update-chrome-e2e.test.mjs tests/ux-r5-certification-chrome-e2e.test.mjs tests/uir-03-ai-candidate-chrome-e2e.test.mjs tests/uir-03-ai-presentation-chrome-e2e.test.mjs tests/uir-03-preview-mask-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-organize/acceptance.log
+      - name: Diagnose existing removed-anchor regression
+        if: contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER')
+        run: xvfb-run -a node --test --test-name-pattern="UX-R3 removed mid-topic reading anchor" tests/ux-r3-thought-chrome-e2e.test.mjs
       - name: Retain D3 synthetic source and release evidence
         if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER')
         uses: actions/upload-artifact@v4
