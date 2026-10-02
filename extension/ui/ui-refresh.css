@@ -81,15 +81,6 @@
 #document-panel #document-body .library-prose:focus-visible{
   background: var(--paia-surface);
 }
-#info-dialog,#revision-dialog{
-  background: var(--paia-surface);
-  color: var(--paia-text);
-  border-color: var(--paia-subtle);
-}
-#info-dialog pre,#revision-dialog pre{
-  background: var(--paia-canvas);
-  color: var(--paia-text);
-}
 body #revisit-panel{
   width: min(980px, 100%);
   max-width: 980px;

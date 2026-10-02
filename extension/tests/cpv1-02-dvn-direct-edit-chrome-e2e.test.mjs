@@ -1,3 +1,4 @@
+import {compareD5ReadingSurfaces} from './harness/d5-reading-surfaces.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -170,3 +171,5 @@ for(const variant of ['source','release']){
   }finally{await h.close();}
  });
 }
+
+for(const variant of ['source','release'])test(`D5 actual Selection, Original and History match canonical transient geometry without changing evidence (${variant})`,{timeout:120000},()=>compareD5ReadingSurfaces({variant,extensionPath:variant==='release'?releaseRoot:null}));

@@ -1,5 +1,12 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q3 — reading surfaces in progress — 2026-10-02
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q3`.**
+D5/Q2 [PR127](https://github.com/haohongfei2001-png/paia/pull/127) is integrated at `f6a69b8907ff824bd2fde48ee66e269eb76cce5c`. Head `a0b980bbb8e87b7d437202ad26d343eb83ec4ef8`, full-tested merge `42712d0ad4a4c27466d8712cfb6c294763ce4765` and main share tree `5fed26c084e1b1b659426be6f324529dd8fb3b51`. Full37065332247, exact-main37067286400 and Pages37067285681 PASS. Main browser/Mac/full were SKIPPED, not a second full run; prior failures remain in [Q2 evidence](implementation/desktop-vnext/D5-Q2.md).
+
+Sole writer `feat/d5-q3-reading-surfaces` now aligns the real Selection toolbar and Original/History transient surface typography, geometry and controls with A03/A07/A08. Reuse the existing selection, Original sequence, modal host and working-revision owners; keep saved reading preferences, exact raw bodies, explicit restore/recovery, purge invalidation and focus return. Retire duplicate source-specific legacy style owners in-place. Actual paired source/release pixels, affected regressions and independent review are pending. This is not D5 or owner acceptance; all remaining product families and deferred gates remain open.
+
 ## D5/Q2 — Archive composition in progress — 2026-10-02
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q2`.**
