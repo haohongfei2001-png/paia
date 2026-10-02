@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {wireSearchKeyboard} from '../ui/search-experience.js';
 import {ContinuousRootReader} from '../ui/continuous-root-reader.js';
+import {FilterRunner} from '../core/filter-runner.js';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {setup} from './harness/thought-m1.mjs';
 import {TopicController} from '../ui/topic-workspace.js';
@@ -168,4 +169,8 @@ test('D2 native focus-scroll exclusion is short, token-owned and cancelled by de
 
 test('D2 page-scroll intent reuses scoped search keyboard owners without adding a document keyboard listener',()=>{
  const inputs=new Map(),results=new Map();let calls=0;wireSearchKeyboard({addEventListener:(name,fn)=>inputs.set(name,fn)},{addEventListener:(name,fn)=>results.set(name,fn)},{onScrollIntent:()=>calls++});inputs.get('keydown')({key:'PageDown'});results.get('keydown')({key:'PageUp'});assert.equal(calls,2);inputs.get('keydown')({key:'x'});inputs.get('keydown')({key:'PageDown',isComposing:true});assert.equal(calls,2);
+});
+
+test('D2 synthetic bulk reset removes its orphan filter queue rather than weakening root authority',async()=>{
+ const {s}=await setup(OrganizerStore);await s.createTopic({name:'SYNTHETIC fixture root',operationId:op()});await s.repository.transaction(true,async t=>{for(const name of ['records','recordIndex','blocks','blockIndex','documents','libraryDocuments','sourceCounts','inputStates'])await t.clear(name);});const runner=new FilterRunner(s),first=await s.libraryIndexPage({mode:'stable'});assert.equal((await s.filterStatus()).pending,1);await runner.wake();assert.equal((await s.libraryIndexPage({mode:'stable',authority:first.authority})).cursorInvalid,true,'orphan progress still trips the full authority fence');await s.repository.transaction(true,async t=>{await t.clear('filterInputs');await t.clear('filterIntents');});const fixed=await s.libraryIndexPage({mode:'stable'});for(let i=0;i<3;i++){await runner.wake();assert.equal((await s.filterStatus()).pending,0);const page=await s.libraryIndexPage({mode:'stable',authority:fixed.authority});assert.equal(page.cursorInvalid,undefined);assert.equal(page.items.length,1);assert.equal(page.authority,fixed.authority);}
 });
