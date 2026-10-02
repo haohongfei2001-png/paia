@@ -1,5 +1,16 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D4 engineering integrated — 2026-10-02
+
+**Current controlling state: `DESKTOP_VNEXT_D1_D4_ENGINEERING_INTEGRATED / DEFERRED_ACCEPTANCE_OPEN`.**
+[PR #123](https://github.com/haohongfei2001-png/paia/pull/123) is merged at main `bd667a3e5c6d6f75ecac9fa8f4062a1424374851`. Final head `e478a50f0b0576855949bec5256ad99829ff3aae`, tested merge candidate `68b745758afe06b539aa018c60567e399972deda` and integrated main share tree `f1c684611925163b882a5d79b4a209e459ea2083`.
+
+[Full 37027253266](https://github.com/haohongfei2001-png/paia/actions/runs/37027253266) PASS: unit 1464, current browser 205, adapter 102, privacy 58, release, hosted Mac lifecycle/Secure Store and full aggregate. [Exact-main integration 37030650257](https://github.com/haohongfei2001-png/paia/actions/runs/37030650257) and [Pages 37030648967](https://github.com/haohongfei2001-png/paia/actions/runs/37030648967) PASS. Main browser/Mac/full aggregation were SKIPPED, not a second full certification. Independent source and source/release pixel review cleared engineering integration. Earlier failed/cancelled/local-NOT_PASS evidence remains in [D4-Q1](implementation/desktop-vnext/D4-Q1.md).
+
+D1–D4 authorized engineering is integrated. D4 separates compilation from exact output/manifest review, retains fresh Copy/Export checks, supports output-only edits and explicit source reconciliation, and uses one ephemeral ContextController. Source/Input Archive and human Thought bodies remain protected; AI organization stays in its derivative layer and D3 adoption remains unchanged.
+
+This closes the bounded engineering queue, not production, device, model or owner acceptance. B-01–B-05 and the existing live/private-export/distribution/physical IME/screen-reader/performance/scale/actual-model gates remain OPEN; see [DEFERRED_FINAL_GATES.md](DEFERRED_FINAL_GATES.md). No new product slice, provider, Send, connector, permission, paid service or #99 activation is authorized by this status. All older controlling-state entries below are historical and superseded as the active queue only.
+
 ## D3 integrated; D4 implementation — 2026-10-02
 
 **Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D4`.**
