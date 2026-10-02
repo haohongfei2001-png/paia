@@ -282,8 +282,8 @@ async function currentTopicMeta(store,topicId){
   return {topic,meta,key:liveTopicKey(topic,epoch,meta?.timeRevision||0)};
  }));
 }
-async function seekDescriptor(store,{generationId,sort,entryId=null,sectionId=null}){
- const kind=topicKind(generationId,sort),range=prefix([THOUGHT_TOPIC_STATUS_KEY,kind]);let cursor=null,scanned=0;
+async function seekDescriptor(store,{generationId,sort,entryId=null,sectionId=null,expression=false}){
+ const kind=topicKind(generationId,expression?'expression-'+sort:sort),range=prefix([THOUGHT_TOPIC_STATUS_KEY,kind]);let cursor=null,scanned=0;
  for(let batch=0;batch<THOUGHT_TOPIC_MAX_BUILD_BATCHES;batch++){
   const page=await store.run(()=>store.repository.transaction(false,t=>t.rangePage('libraryMigrationItems','byStatus',range,cursor,THOUGHT_TOPIC_BUILD_BATCH)));
   for(const row of page.rows){scanned++;if(entryId&&row.value.entryId===entryId||sectionId&&row.value.sectionId===sectionId)return {key:row.key,row:row.value,scanned};}
@@ -335,10 +335,10 @@ export async function thoughtTopicDescriptorPage(store,{topicId,sort='asc',curso
 
 // Reliable expression-year projection uses the same generation owner as normal
 // reading. It keeps body-free rows and never changes legacy ordering fields.
-export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=null,providerKey=null,query='',direction='next',cursor=null,limit=40,expectedReadGeneration=null,describe}={}){
+export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=null,providerKey=null,query='',direction='next',cursor=null,limit=40,expectedReadGeneration=null,anchorId=null,sectionId=null,timeEdge=null,describe}={}){
  if(!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||year!==null&&year!=='unknown'&&(!Number.isInteger(year)||year<0||year>9999))throw Error('INVALID_EXPRESSION_PAGE');
  const build=await ensureThoughtTopicIndex(store,{topicId,describe}),state=await currentTopicMeta(store,topicId),meta=state.meta;
- const coverage={...topicSnapshot(meta),currentKey:state.key},operations={...(build.operations||{}),descriptorRowsRead:0};
+ const coverage={...topicSnapshot(meta),currentKey:state.key},operations={...(build.operations||{}),descriptorRowsRead:0,seekRowsScanned:0};
  const empty={items:[],nextCursor:null,previousCursor:null,coverage,operations,complete:false};
  if(!meta?.activeGeneration||meta.activeKey!==state.key)return {...empty,indexing:true};
  const generation=meta.activeGeneration;
@@ -346,13 +346,29 @@ export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=
  const kind=topicKind(generation,'expression-'+sort),stem=year===null?null:expressionPrefix(generation,sort,year==='unknown'?null:year);
  const range=stem?IDBKeyRange.bound([THOUGHT_TOPIC_STATUS_KEY,kind,stem],[THOUGHT_TOPIC_STATUS_KEY,kind,stem+'\uffff']):prefix([THOUGHT_TOPIC_STATUS_KEY,kind]);
  if(cursor&&(!Array.isArray(cursor.key)||!range.includes(cursor.key)))return {...empty,cursorInvalid:true};
- const page=direction==='prev'&&!cursor?{rows:[],next:null}:await store.run(()=>store.repository.transaction(false,t=>t.rangePage('libraryMigrationItems','byStatus',range,cursor?.key||null,limit,direction)));
+ let start=cursor?.key||null,anchor=null;
+ if(!cursor&&timeEdge&&direction==='next'){
+  const counts=providerKey===null?meta.expressionCounts.all:meta.expressionCounts.providers['provider:'+providerKey]||{known:{},unknown:0};
+  const years=Object.keys(counts.known).map(Number).sort((a,b)=>a-b),target=timeEdge==='unknown'?'unknown':timeEdge==='latest'?years.at(-1):years[0];
+  if(target!==undefined&&(target!=='unknown'||counts.unknown)){
+   const edge=expressionPrefix(generation,sort,target==='unknown'?null:target),edgeRange=IDBKeyRange.bound([THOUGHT_TOPIC_STATUS_KEY,kind,edge],[THOUGHT_TOPIC_STATUS_KEY,kind,edge+'\uffff']);
+   const edgePage=await store.run(()=>store.repository.transaction(false,t=>t.rangePage('libraryMigrationItems','byStatus',edgeRange,null,1,timeEdge==='earliest'&&sort==='desc'||timeEdge==='latest'&&sort==='asc'?'prev':'next')));
+   anchor=edgePage.rows[0]||null;if(anchor)start=anchor.key;
+  }
+ }
+ if(!cursor&&(anchorId||sectionId)&&direction==='next'){
+  const seek=await seekDescriptor(store,{generationId:generation,sort,entryId:anchorId,sectionId,expression:true});operations.seekRowsScanned=seek.scanned;
+  if(seek.key&&range.includes(seek.key)){start=seek.key;anchor={key:seek.key,value:seek.row};}
+ }
+ const take=anchor?limit-1:limit;
+ const page=direction==='prev'&&!start?{rows:[],next:null}:await store.run(()=>store.repository.transaction(false,t=>t.rangePage('libraryMigrationItems','byStatus',range,start,Math.max(1,take),direction)));
+ if(anchor){if(!take){page.next=page.rows.length?start:null;page.rows=[];}page.rows.unshift(anchor);}
  const ordered=direction==='prev'?[...page.rows].reverse():page.rows;
  operations.descriptorRowsRead=ordered.length;
  const counts=providerKey===null?meta.expressionCounts.all:meta.expressionCounts.providers['provider:'+providerKey]||{known:{},unknown:0,total:0};
  const years=Object.keys(counts.known).map(Number).sort((a,b)=>a-b);
  const overview={generation,knownYearCounts:counts.known,unknownCount:counts.unknown,total:counts.total,observedInterval:years.length?{from:years[0],to:years.at(-1)}:null,coverage:'complete',timeZone:'UTC'};
  const at=key=>key?{generation,viewKey:meta.activeKey,sort,year,providerKey,query,key}:null,first=ordered[0]?.key,last=ordered.at(-1)?.key;
- const nextCursor=direction==='next'?(page.next?at(last):null):at(last),previousCursor=direction==='prev'?(page.next?at(first):null):(cursor?at(first):null);
- return {items:ordered.map(r=>({...r.value,_cursorKey:r.key})).filter(d=>providerKey===null||d.providerKeys?.includes(providerKey)),nextCursor,previousCursor,coverage,operations,overview,complete:direction==='prev'?!previousCursor:!nextCursor};
+ const nextCursor=direction==='next'?(page.next?at(last):null):at(last),previousCursor=direction==='prev'?(page.next?at(first):null):(start?at(first):null);
+ return {items:ordered.map(r=>({...r.value,_cursorKey:r.key})).filter(d=>providerKey===null||d.providerKeys?.includes(providerKey)),nextCursor,previousCursor,coverage,operations,overview,timeEdgeUnavailable:!!timeEdge&&!anchor,complete:direction==='prev'?!previousCursor:!nextCursor};
 }

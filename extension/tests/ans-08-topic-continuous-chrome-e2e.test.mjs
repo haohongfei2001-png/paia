@@ -43,14 +43,14 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
    await eventually(async()=>await page.evaluate(n=>window.ans08Trace.topicPages.length>n,before)||/末尾/.test(await page.locator('#topic-continuous-after-status').textContent()),'next continuous chunk',20000);
   }
   await eventually(async()=>/末尾/.test(await page.locator('#topic-continuous-after-status').textContent()),'topic terminal',30000);
-  const trace=await page.evaluate(()=>structuredClone(window.ans08Trace.topicPages)),forward=trace.filter(x=>x.options?.direction!=='prev'&&!x.indexing),flat=forward.flatMap(x=>x.ids),unique=[...new Set(flat)];
+  const trace=await page.evaluate(()=>structuredClone(window.ans08Trace.topicPages)),forward=trace.filter(x=>x.options?.direction!=='prev'&&!x.options?.anchorId&&!x.indexing),flat=forward.flatMap(x=>x.ids),unique=[...new Set(flat)];
   assert.equal(unique.length,seed.count,'every Topic entry is reachable');assert.equal(flat.length,unique.length,'forward traversal has no duplicate entries');
   const domAfter=await page.locator('#topic-body [data-entry-id]').count();assert.ok(domAfter<=120,'clean DOM is bounded to about 3x40 entries');assert.equal(await page.locator('#topic-body [data-entry-id="'+firstId+'"]').count(),0,'early clean row is windowed out');
 
   const readsBeforeReturn=await page.evaluate(()=>window.ans08Trace.topicPages.length);
   await sentinel.scrollIntoViewIfNeeded();await page.evaluate(()=>window.scrollTo(0,0));
   await eventually(async()=>await page.locator('#topic-body [data-entry-id="'+firstId+'"]').count()===1,'loaded window rematerializes upward',30000);
-  assert.equal(await page.evaluate(()=>window.ans08Trace.topicPages.length),readsBeforeReturn,'revisiting an already loaded window does not re-read the server');
+  const refetches=await page.evaluate(n=>window.ans08Trace.topicPages.slice(n),readsBeforeReturn);assert.ok(refetches.length>0&&refetches.every(row=>row.options.anchorId&&row.options.expectedReadGeneration),'an evicted window refetches exact generation-bound refs rather than retaining all bodies');assert.ok(Number(await page.locator('#original-reading-body').getAttribute('data-retained-bodies'))<=120);
   assert.ok(await page.locator('#topic-body [data-entry-id]').count()<=120);
 
   await page.locator('#topic-outline>summary').click();const deepSection='ANS08 section 0011';await page.locator('#topic-section-nav').getByRole('button',{name:deepSection,exact:true}).click();
@@ -77,7 +77,7 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   assert.ok(perf.p95<=750,'warmed Topic next-chunk p95 <= 750 ms');assert.equal(perf.operations.buildRowsScanned,0);assert.ok(perf.operations.descriptorRowsRead<=40);
 
   await mkdir('work/ans-08',{recursive:true});await page.screenshot({path:'work/ans-08/topic-continuous.png',fullPage:true});
-  const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:0,deepSection:true,sortAnchor:true,returnAnchor:true,p95:perf.p95,operations:perf.operations,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
+  const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,sortAnchor:true,returnAnchor:true,p95:perf.p95,operations:perf.operations,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
   await writeFile('work/ans-08/topic-continuous.json',JSON.stringify(evidence,null,2));console.log('ANS08_CONTINUOUS_EVIDENCE '+JSON.stringify(evidence));
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{await page.evaluate(()=>window.ans08RestoreSend?.()).catch(()=>{});await h.close();}
