@@ -83,7 +83,7 @@ assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,
     await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()===1,'internal coordinator finds the synthetic input');
     await page.locator('#universal-search-dialog .universal-context').click();
     await eventually(async()=>await page.evaluate(async()=>{
-      const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));return getMaterialTray()?.data?.items.length===1;
+      const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));return getContextController()?.data?.items.length===1;
     }),'explicit selection reaches the existing material tray');
     await page.locator('.universal-close').click();
     await eventually(()=>page.locator('#material-workbench').isVisible(),'closing selection restores For AI');

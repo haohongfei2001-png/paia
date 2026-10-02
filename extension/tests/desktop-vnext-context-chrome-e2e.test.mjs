@@ -1,0 +1,37 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+const rpc=async(p,type,fields={})=>{const r=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
+const state=p=>p.evaluate(async()=>{const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));return getContextController().data;});
+for(const variant of ['source','release'])test('D4 '+variant+' production workspace retains incoming originals, requires explicit review and clears denied output including fallback',{timeout:180000},async()=>{
+ if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{maxBuffer:16*1024*1024});
+ const h=await FakeChatGPT.start(variant==='release'?{extensionPath:'work/current-release'}:{}),p=h.archive;
+ try{
+  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented,'consent');
+  await h.open({id:'d4-context',title:'D4 synthetic source',base:1609459200,messages:[{id:'d4-a',text:'D4_ORIGINAL_CANARY first human expression'},{id:'d4-b',text:'D4_ORIGINAL_CANARY second human expression'}]});
+  await eventually(async()=>(await h.state()).records.length===2,'two originals');const originalRecords=(await h.state()).records;await p.bringToFront();
+  await p.locator('#primary-nav [data-view=memory]').click();await p.getByRole('button',{name:'从档案选择',exact:true}).click();
+  await p.getByRole('searchbox',{name:'全局搜索'}).fill('D4_ORIGINAL_CANARY');await eventually(async()=>await p.locator('.universal-hit').count()===2,'search');
+  await p.locator('.universal-selection').getByRole('button',{name:'全选本页',exact:true}).click();await p.locator('.universal-selection').getByRole('button',{name:/加入本次材料/}).click();
+  await eventually(async()=>(await state(p))?.items.length===2&&await p.locator('[data-material-edit=purpose]').isVisible(),'same workspace selection');
+  assert.equal(await p.locator('.material-drawer').count(),0);assert.equal(await p.locator('#memory-build-form').count(),0);
+  await p.locator('#material-preview').click();await eventually(async()=>/任务/.test(await p.locator('.material-status').textContent()),'missing purpose retained');assert.equal((await state(p)).items.length,2);
+  await p.locator('[data-material-edit=purpose]').fill('Compare these expressions');await p.locator('#material-preview').click();
+  await eventually(async()=>(await state(p)).state==='review','compile only');assert.equal(await p.locator('[data-output=copy]').isDisabled(),true);
+  const compiled=await state(p);const rejected=await p.evaluate(s=>chrome.runtime.sendMessage({type:'PAIA_CONTEXT_MANUAL',options:{action:'share',selectionId:s.selectionId,generation:s.generation,format:'copy'}}),compiled);assert.equal(rejected.ok,false);
+  await p.locator('#context-confirm-review').click();await eventually(async()=>(await state(p)).state==='ready','explicit review');
+  await p.getByRole('button',{name:'编辑完整输出',exact:true}).click();await p.locator('[data-material-edit=output]').fill('D4_OUTPUT_ONLY edited synthesis');
+  await p.getByRole('button',{name:'确认本次修改',exact:true}).click();await eventually(async()=>(await state(p)).state==='review','output edit invalidates prior review');
+  assert.equal(await p.locator('[data-output=copy]').isDisabled(),true);await p.locator('#context-confirm-review').click();await eventually(async()=>(await state(p)).state==='ready','edited output reviewed');
+  const reviewed=await state(p);assert.equal(reviewed.text,'D4_OUTPUT_ONLY edited synthesis');assert.equal(reviewed.outputEdited,true);
+  await p.evaluate(()=>{Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw Error('synthetic denial');}}});});
+  await p.locator('[data-output=copy]').click();await eventually(()=>p.locator('.material-copy-fallback').isVisible(),'manual fallback');assert.equal(await p.locator('.material-copy-fallback').inputValue(),reviewed.text);
+  await mkdir('work/qa-dvn-context',{recursive:true});const sizes=[];
+  for(const width of [1440,900,390,320]){await p.setViewportSize({width,height:900});assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);await p.screenshot({path:`work/qa-dvn-context/${variant}-${width}.png`,fullPage:true,animations:'disabled'});sizes.push(width);}
+  await rpc(p,'PAIA_MEMORY_EXCLUDE',{options:{inputId:compiled.items[0].ref.id,excluded:true}});await eventually(async()=>(await state(p)).state==='blocked','deny');assert.equal(await p.locator('.material-copy-fallback').count(),0);assert.equal(await p.locator('#material-output-text').count(),0);
+  assert.deepEqual((await h.state()).records,originalRecords,'Context never changes original records');assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+  await writeFile(`work/qa-dvn-context/${variant}.json`,JSON.stringify({result:'PASS',head:process.env.PAIA_TESTED_HEAD||'local-uncommitted',variant,sizes,zeroExternalRequests:true,compileCannotRelease:true,denyClearsFallback:true},null,2));
+ }finally{await h.close();}
+});

@@ -201,7 +201,7 @@ jobs:
         run: npm run build:release
 
   targeted_browser:
-    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION') || contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER'))
+    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION') || contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER'))
     name: Candidate affected browser
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -224,6 +224,25 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
+      - name: D4 explicit Context review and existing reuse regressions
+        if: contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER')
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          mkdir -p work/qa-dvn-context
+          set -o pipefail
+          xvfb-run -a node --test --test-concurrency=1 tests/desktop-vnext-context-chrome-e2e.test.mjs tests/uir-04-context-chrome-e2e.test.mjs tests/ux-r4-search-reuse-chrome-e2e.test.mjs tests/uis-02-page-scoped-search-chrome-e2e.test.mjs tests/uis-04-cleanup-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-context/acceptance.log
+      - name: Retain D4 synthetic source and release evidence
+        if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER')
+        uses: actions/upload-artifact@v4
+        with:
+          name: dvn-context-candidate
+          path: |
+            extension/work/qa-dvn-context/
+            extension/work/ux-r4/
+          if-no-files-found: error
+          retention-days: 7
+
       - name: D3 trusted scope and first/update adoption boundary
         if: contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER')
         env:
@@ -731,7 +750,7 @@ jobs:
           DIRECT_EDIT: ${{ needs.direct_edit.result }}
           DIRECT_EDIT_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_DIRECT_EDIT_BROWSER') }}
           TARGETED_BROWSER: ${{ needs.targeted_browser.result }}
-          TOPIC_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') }}
+          TOPIC_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') }}
           NATIVE_POPUP: ${{ needs.native_popup.result }}
           NATIVE_POPUP_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER') }}
           CAPTURE_RECOVERY: ${{ needs.capture_recovery.result }}

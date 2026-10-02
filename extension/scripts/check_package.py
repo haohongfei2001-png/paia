@@ -159,7 +159,7 @@ def audit_js(path, text):
             scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
         if label == "clipboard access" and path == ROOT / "ui/reading-actions.js":
             scanned = scanned.replace("navigator.clipboard.writeText(text)", "EXPLICIT_READING_COPY(text)")
-        if label == "clipboard access" and path in (ROOT / "ui/memory.js", ROOT / "ui/material-tray.js"):
+        if label == "clipboard access" and path in (ROOT / "ui/context-workspace.js",):
             scanned = scanned.replace("navigator.clipboard.writeText(result.text)", "EXPLICIT_MEMORY_CONTEXT_COPY(result.text)")
         if label == "keyboard listener" and path in (ROOT / "ui/library.js", ROOT / "ui/library-entry-editor.js"):
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_EDITOR_SHORTCUT(")

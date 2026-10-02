@@ -27,8 +27,8 @@ async function openReader(page){
 
 async function tray(page){
   return page.evaluate(async()=>{
-    const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));
-    return getMaterialTray().data;
+    const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));
+    return getContextController().data;
   });
 }
 

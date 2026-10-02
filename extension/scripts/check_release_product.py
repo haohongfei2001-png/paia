@@ -22,9 +22,16 @@ def check_release(target):
     assert 'id="integrity-check"' in html
     assert 'id="product-diagnostics"' in html and '<details id="product-diagnostics" open' not in html
     if (target/'ui/memory.js').exists():
-        for id in ['memory-authorizations','memory-builder','memory-preview','memory-copy','memory-markdown']:
+        for id in ['memory-authorizations','memory-profile-form']:
             assert 'id="'+id+'"' in html,id
-        assert 'navigator.clipboard.read' not in (target/'ui/memory.js').read_text()
+        for id in ['memory-builder','memory-preview','memory-copy','memory-markdown']:
+            assert 'id="'+id+'"' not in html,id
+        controller=(target/'ui/context-workspace.js').read_text()
+        assert 'class ContextController' in controller and 'context-confirm-review' in controller
+        assert "this.rpc('compile')" in controller and "this.rpc('confirmReview'" in controller
+        assert not (target/'ui/material-tray.js').exists()
+        assert 'navigator.clipboard.read' not in controller
+        assert 'navigator.clipboard' not in (target/'ui/memory.js').read_text()
     manifest=json.loads((target/'manifest.json').read_text())
     assert manifest['permissions']==['storage','scripting']
     assert manifest['optional_permissions']==['nativeMessaging']
