@@ -1,3 +1,4 @@
+import {previewReviewedContext} from './harness/context-browser-review.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
@@ -28,7 +29,7 @@ test('Round 4.8 current release: internal material Search -> Reader / Context an
   // It remains local and does not grant future access to unorganized Inputs.
   hit=p.locator('#universal-search-dialog .universal-hit').first();await hit.locator('.universal-context').click();
   await eventually(()=>p.locator('#material-preview').isVisible(),'Search adds a real material reference');
-  await p.locator('#material-preview').click();await eventually(()=>p.locator('#material-output-text').isVisible(),'explicit material reaches trusted Preview');
+  await previewReviewedContext(p);await eventually(()=>p.locator('#material-output-text').isVisible(),'explicit material reaches trusted Preview');
   assert.match(await p.locator('#material-output-text').textContent(),/ROUND48_SEARCH_TARGET/);
   assert.equal((await rpc(p,'PAIA_MEMORY_STATUS')).config.includeUnorganizedInputs,false);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);

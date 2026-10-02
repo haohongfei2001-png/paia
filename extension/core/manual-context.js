@@ -9,7 +9,7 @@ import {ArchiveError} from './constants.js';
 import {own,validMaterialRef,materialRead,materialKey,materialIdentity} from './manual-materials.js';
 import {safeOffset} from './reader-state.js';
 const fail=code=>{throw new ArchiveError(code||'MEMORY_INVALID');};
-const ACTIONS={create:[],containers:['kind','cursor','limit'],addContainers:['containers'],profiles:[],addSupplement:['refs'],removeSupplements:[],read:[],add:['refs'],remove:['itemId'],clear:[],order:['itemIds'],edit:['itemId','text'],note:['text'],redact:['itemId','start','end'],budget:['budget'],preview:[],share:['format','packageIndex'],suggest:['query','profileId']};
+const ACTIONS={create:[],containers:['kind','cursor','limit'],addContainers:['containers'],profiles:[],addSupplement:['refs'],removeSupplements:[],read:[],add:['refs'],remove:['itemId'],clear:[],order:['itemIds'],edit:['itemId','text'],note:['text'],redact:['itemId','start','end'],budget:['budget'],reconcile:['accept','diffSha256'],task:['purpose'],compile:[],confirmReview:['outputSha256','manifestSha256'],editOutput:['text'],preview:[],share:['format','packageIndex'],suggest:['query','profileId']};
 const candidateRef=c=>({kind:c.kind==='input'?'input':'thought',id:c.inputId||c.entryId,revision:c.revision});
 const redact=(text,rules)=>rules.reduce((s,word)=>s.split(word).join('█'),text);
 // Owned by ContextPackageService. These snapshots are per-tab, short-lived memory,
@@ -20,7 +20,7 @@ export class ManualContext {
  async transaction(fn){return this.memory.s.run(()=>this.memory.s.repository.transaction(false,fn));}
  async validate(session){
   const temporary=(await this.memory.temporary()).revision;
-  if(session.temporaryPolicyRevision!==temporary){session.temporaryPolicyRevision=temporary;session.confirmed=null;session.suggestions=null;}
+  if(session.temporaryPolicyRevision!==temporary){session.temporaryPolicyRevision=temporary;this.invalidate(session);session.suggestions=null;}
   const eligibility=new Map();
   for(const item of session.items.filter(i=>i.origin==='retrieval'&&!i.blocked)){
    const profileId=item.retrieval.profileId;if(eligibility.has(profileId))continue;
@@ -28,7 +28,7 @@ export class ManualContext {
    catch(e){if(!['MEMORY_INVALID','MEMORY_UNAVAILABLE'].includes(e.code))throw e;eligibility.set(profileId,null);}
   }
   await this.transaction(async t=>{
-   const policyRevision=(await this.memory.state(t)).config.revision;if(session.policyRevision!==policyRevision){session.policyRevision=policyRevision;session.confirmed=null;session.suggestions=null;}
+   const policyRevision=(await this.memory.state(t)).config.revision;if(session.policyRevision!==policyRevision){session.policyRevision=policyRevision;this.invalidate(session);session.suggestions=null;}
    for(const group of session.containers||[]){try{const now=await readContextContainer(this.memory,t,{kind:group.kind,id:group.id});group.state=now.signature===group.signature?'ready':'stale';}catch(e){if(!['MEMORY_DENIED','MEMORY_UNAVAILABLE','MEMORY_STALE','MEMORY_LIMIT','MEMORY_EMPTY'].includes(e.code))throw e;group.state=['MEMORY_UNAVAILABLE','MEMORY_DENIED','MEMORY_EMPTY'].includes(e.code)?'blocked':'stale';}}
    for(const item of session.items){if(item.blocked)continue;try{
     const now=await materialRead(this.memory,t,item.ref);
@@ -42,15 +42,30 @@ export class ManualContext {
    const generation=(await t.get('meta','backup-data-generation'))?.value||0;
    if([...eligibility.values()].some(found=>found&&(found.generation!==generation||found.sessionRevision!==temporary))){session.confirmed=null;fail('MEMORY_STALE');}
   });
-  if((await this.memory.temporary()).revision!==temporary){session.confirmed=null;session.suggestions=null;fail('MEMORY_STALE');}
+  if(session.items.some(i=>i.state!=='ready')||(session.containers||[]).some(g=>g.state!=='ready'))this.invalidate(session);
+  if((await this.memory.temporary()).revision!==temporary){this.invalidate(session);session.suggestions=null;fail('MEMORY_STALE');}
  }
- text(session){return manualReviewText(session,redact);}
- dto(session){const state=session.items.some(i=>i.state==='blocked')||(session.containers||[]).some(i=>i.state==='blocked')?'blocked':session.items.some(i=>i.state==='stale')||(session.containers||[]).some(i=>i.state==='stale')?'stale':session.confirmed===session.generation?'ready':'dirty',text=state==='ready'?this.text(session):'';return {intent:'manual_selection',selectionId:session.id,generation:session.generation,state,expiresAt:session.expiresAt,note:session.note,containers:(session.containers||[]).map(({signature,refs,...group})=>({...group,title:redact(group.title,session.redactions),memberCount:refs.length,selectedMemberCount:refs.filter(ref=>session.items.some(item=>materialKey(item.ref)===materialKey(ref))).length})),items:session.items.map(({token,blocked,override,...item})=>({...item,title:redact(item.title,session.redactions),body:item.state==='blocked'?'':redact(override??item.body,session.redactions),edited:override!==undefined})),text,characters:[...text].length,manifest:{...manualContextManifest(session),previewSha256:state==='ready'?session.reviewedPayloadSha256:null,reviewedManifestSha256:state==='ready'?session.reviewedManifestSha256:null},outputBudget:session.outputBudget??null,outputPackages:state==='ready'?(session.reviewedPackages||[]).map(p=>({...p,body:text.slice(p.start,p.end),text:MANUAL_OUTPUT_ENVELOPE+text.slice(p.start,p.end)})):[],localOnly:true};}
+ invalidate(session,{overlay=true}={}){session.confirmed=null;session.compiled=null;if(overlay)delete session.outputOverride;}
+ text(session){return session.outputOverride??manualReviewText(session,redact);}
+ async compile(session){
+  if(!session.purpose?.trim())fail('MEMORY_PURPOSE_REQUIRED');
+  if(!session.items.length&&!session.note.trim())fail('MEMORY_EMPTY');
+  const manifest=JSON.stringify(manualContextManifest(session)),text=this.text(session);
+  const packages=session.outputBudget?partitionManualOutput(text,session.outputBudget):[];
+  const [outputSha256,manifestSha256,reviewedPackages]=await Promise.all([hashText(text),hashText(manifest),Promise.all(packages.map(async ({body,text:partText,...p})=>({...p,sha256:await hashText(partText)})))]);
+  await this.validate(session);
+  if(session.items.some(i=>i.state!=='ready')||(session.containers||[]).some(g=>g.state!=='ready')||JSON.stringify(manualContextManifest(session))!==manifest||this.text(session)!==text){this.invalidate(session);fail('MEMORY_STALE');}
+  session.confirmed=null;session.reviewedPackages=reviewedPackages;session.reviewedManifest=manifest;session.reviewedManifestSha256=manifestSha256;session.reviewedPayloadSha256=outputSha256;
+  session.compiled={generation:session.generation,outputSha256,manifestSha256};return this.dto(session);
+ }
+ dto(session){const state=session.items.some(i=>i.state==='blocked')||(session.containers||[]).some(i=>i.state==='blocked')?'blocked':session.items.some(i=>i.state==='stale')||(session.containers||[]).some(i=>i.state==='stale')?'stale':session.confirmed===session.generation?'ready':session.compiled?.generation===session.generation?'review':'dirty',text=['ready','review'].includes(state)?this.text(session):'';return {intent:'manual_selection',selectionId:session.id,generation:session.generation,state,expiresAt:session.expiresAt,purpose:redact(session.purpose||'',session.redactions),reviewBinding:['ready','review'].includes(state)?session.compiled:null,outputEdited:session.outputOverride!==undefined,note:redact(session.note,session.redactions),containers:(session.containers||[]).map(({signature,refs,...group})=>({...group,title:redact(group.title,session.redactions),memberCount:refs.length,selectedMemberCount:refs.filter(ref=>session.items.some(item=>materialKey(item.ref)===materialKey(ref))).length})),items:session.items.map(({token,blocked,override,...item})=>({...item,title:redact(item.title,session.redactions),body:item.state==='blocked'?'':redact(override??item.body,session.redactions),edited:override!==undefined})),text,characters:[...text].length,manifest:{...manualContextManifest(session),previewSha256:state==='ready'?session.reviewedPayloadSha256:null,reviewedManifestSha256:state==='ready'?session.reviewedManifestSha256:null},outputBudget:session.outputBudget??null,outputPackages:['ready','review'].includes(state)?(session.reviewedPackages||[]).map(p=>({...p,body:text.slice(p.start,p.end),text:MANUAL_OUTPUT_ENVELOPE+text.slice(p.start,p.end)})):[],localOnly:true};}
  async dispatch(o,owner){
   if(!own(o,['action','selectionId','generation',...(ACTIONS[o?.action]||[])])||!Object.hasOwn(ACTIONS,o.action)||typeof owner!=='string'||!owner)fail();
   for(const [id,s]of this.sessions)if(s.expiresAt<=this.clock())this.sessions.delete(id);await this.memory.ready();
-  if(o.action==='create'){if(o.selectionId!==undefined||o.generation!==undefined)fail();if(this.sessions.size>=20)this.sessions.delete(this.sessions.keys().next().value);const s={id:this.uuid(),owner,generation:0,confirmed:null,expiresAt:this.clock()+900000,items:[],excluded:new Set(),note:'',redactions:[],containers:[]};this.sessions.set(s.id,s);return this.dto(s);}
-  const s=this.sessions.get(o.selectionId);if(!s)fail('MEMORY_EXPIRED');if(s.owner!==owner)fail('MEMORY_DENIED');if(!Number.isSafeInteger(o.generation)||o.generation!==s.generation)fail('MEMORY_STALE');
+  if(o.action==='create'){if(o.selectionId!==undefined||o.generation!==undefined)fail();if(this.sessions.size>=20)this.sessions.delete(this.sessions.keys().next().value);const s={id:this.uuid(),owner,generation:0,confirmed:null,expiresAt:this.clock()+900000,items:[],excluded:new Set(),purpose:'',note:'',redactions:[],containers:[]};this.sessions.set(s.id,s);return this.dto(s);}
+  const s=this.sessions.get(o.selectionId);if(!s)fail('MEMORY_EXPIRED');if(s.owner!==owner)fail('MEMORY_DENIED');// A same-owner read can recover a committed mutation whose response was
+  // discarded by the UI source-epoch fence. It never replays that mutation.
+  if(!Number.isSafeInteger(o.generation)||o.generation<0||o.generation>s.generation||(o.action!=='read'&&o.generation!==s.generation))fail('MEMORY_STALE');
   await this.validate(s);if(o.action==='read')return this.dto(s);
   if(o.action==='profiles')return {...this.dto(s),profiles:(await this.transaction(t=>this.memory.state(t))).profiles.map(p=>({profileId:p.profileId,name:p.name,revision:p.revision})),defaultProfileId:'default'};
   if(o.action==='containers')return {...this.dto(s),containerPage:await this.transaction(t=>listContextContainers(this.memory,t,{kind:o.kind,cursor:o.cursor,limit:o.limit??40}))};
@@ -70,14 +85,55 @@ export class ManualContext {
    if(JSON.stringify(manualContextManifest(s))!==manifest||manifest!==s.reviewedManifest||this.text(s)!==text||digest!==s.reviewedPayloadSha256)fail('MEMORY_STALE');
    return {...this.dto(s),...(selected?{text:selected.text,characters:selected.characters,packageIndex:selected.index,packageCount:selected.count,packageSha256:s.reviewedPackages[selected.index-1].sha256}:{}),format:o.format};
   }
-  if(o.action==='preview'){
-   if(['blocked','stale'].includes(this.dto(s).state))return this.dto(s);if(!s.items.length&&!s.note.trim())fail('MEMORY_EMPTY');
-   const manifest=JSON.stringify(manualContextManifest(s)),text=this.text(s);
-   const packages=s.outputBudget?partitionManualOutput(text,s.outputBudget):[];
-   const [payloadDigest,manifestDigest,reviewedPackages]=await Promise.all([hashText(text),hashText(manifest),Promise.all(packages.map(async ({body,text:partText,...p})=>({...p,sha256:await hashText(partText)})))]);
+  if(o.action==='reconcile'){
+   if(o.accept!==undefined&&typeof o.accept!=='boolean'||o.diffSha256!==undefined&&typeof o.diffSha256!=='string')fail();
+   const next=structuredClone(s),changes=[];this.invalidate(next);next.suggestions=null;
+   await this.transaction(async t=>{
+    for(const item of next.items){
+     // A changed span cannot safely track a new version by numerical offsets.
+     // A blocked item must be explicitly removed/reselected, never revived.
+     if(item.blocked)continue;
+     try{const fresh=await materialRead(this.memory,t,item.ref,{checkRevision:false});
+      if(fresh.token!==item.token){
+       if(item.ref.span){changes.push({itemId:item.itemId,kind:'reselect_span'});continue;}
+       changes.push({itemId:item.itemId,kind:'changed',fromRevision:item.ref.revision,toRevision:fresh.revision});
+       delete item.override;Object.assign(item,fresh,{ref:{...item.ref,revision:fresh.revision},state:'ready'});
+      }
+     }catch(e){if(!['MEMORY_DENIED','MEMORY_UNAVAILABLE','MEMORY_STALE'].includes(e.code))throw e;changes.push({itemId:item.itemId,kind:'unavailable'});item.state='blocked';item.blocked=true;item.body='';delete item.override;}
+    }
+    // Whole-container scope is fixed. Membership changes require a new explicit
+    // whole-group choice; reconciliation cannot silently add or drop members.
+    for(const group of next.containers||[]){const fresh=await readContextContainer(this.memory,t,{kind:group.kind,id:group.id});
+     const keys=refs=>refs.map(materialIdentity).sort().join('|');
+     if(keys(fresh.refs)!==keys(group.refs)){changes.push({kind:'reselect_group',container:{kind:group.kind,id:group.id}});continue;}
+     Object.assign(group,fresh);
+    }
+   });
+   await this.validate(next);
+   const diffSha256=await hashText(JSON.stringify({generation:s.generation,policy:next.policyRevision,temporary:next.temporaryPolicyRevision,changes,items:next.items.map(i=>[i.itemId,i.ref,i.token,i.state,i.override??null]),containers:next.containers}));
+   if(!o.accept)return {...this.dto(s),reconciliation:{changes,diffSha256,canApply:!changes.some(c=>c.kind==='reselect_span'||c.kind==='reselect_group')&&this.dto(next).state==='dirty'}};
+   if(o.diffSha256!==diffSha256||changes.some(c=>c.kind==='reselect_span'||c.kind==='reselect_group')||['stale','blocked'].includes(this.dto(next).state))fail('MEMORY_STALE');
+   next.generation++;this.sessions.set(s.id,next);return this.dto(next);
+  }
+  // The historical preview name is a compile-only alias. It never authorizes release.
+  if(o.action==='preview'||o.action==='compile'){
+   if(['blocked','stale'].includes(this.dto(s).state))return this.dto(s);
+   return this.compile(s);
+  }
+  if(o.action==='confirmReview'){
+   const binding=s.compiled;
+   if(!binding||binding.generation!==s.generation||o.outputSha256!==binding.outputSha256||o.manifestSha256!==binding.manifestSha256)fail('MEMORY_STALE');
+   const manifest=JSON.stringify(manualContextManifest(s)),text=this.text(s),digest=await hashText(text);
    await this.validate(s);
-   if(s.items.some(i=>i.state!=='ready')||JSON.stringify(manualContextManifest(s))!==manifest||this.text(s)!==text){s.confirmed=null;fail('MEMORY_STALE');}
-   s.reviewedPackages=reviewedPackages;s.reviewedManifest=manifest;s.reviewedManifestSha256=manifestDigest;s.reviewedPayloadSha256=payloadDigest;s.confirmed=s.generation;return this.dto(s);
+   if(!s.compiled||['blocked','stale'].includes(this.dto(s).state)||manifest!==s.reviewedManifest||JSON.stringify(manualContextManifest(s))!==manifest||this.text(s)!==text||digest!==binding.outputSha256)fail('MEMORY_STALE');
+   s.confirmed=s.generation;return this.dto(s);
+  }
+  if(o.action==='editOutput'){
+   if(!s.compiled||!['ready','review'].includes(this.dto(s).state))fail('MEMORY_STALE');
+   if(typeof o.text!=='string'||!o.text.trim()||o.text.length>MANUAL_CONTEXT_LIMITS.materialUTF16Units)fail();
+   // One ephemeral final-output overlay; material overrides remain inputs to the
+   // compiler, never a competing final body. Any input/policy change discards it.
+   const next=structuredClone(s);next.outputOverride=redact(o.text,next.redactions);next.generation++;this.invalidate(next,{overlay:false});const result=await this.compile(next);this.sessions.set(s.id,next);return result;
   }
   if(o.action==='suggest'){
    if(typeof o.query!=='string'||o.query.length>1000||o.profileId!==undefined&&(typeof o.profileId!=='string'||!o.profileId||o.profileId.length>200))fail();
@@ -95,7 +151,9 @@ export class ManualContext {
    s.suggestions={options:{profileId:found.profile.profileId,query},generation:found.generation,policyRevision:s.policyRevision,sessionRevision:found.sessionRevision,profileRevision:found.profile.revision,querySha256,refs:items.map(i=>structuredClone(i.ref)),partial:found.partial,inspected:found.inspected};
    return {...this.dto(s),suggestions:items,partial:found.partial,retrieval:{profileId:found.profile.profileId,profileRevision:found.profile.revision,querySha256,inspected:found.inspected,partial:found.partial}};
   }
-  if(o.action==='budget'){
+  if(o.action==='task'){
+   if(typeof o.purpose!=='string'||o.purpose.length>2000)fail();s.purpose=redact(o.purpose,s.redactions);
+  }else if(o.action==='budget'){
    if(o.budget!==null&&!isBudget(o.budget))fail();s.outputBudget=o.budget;
   }else if(o.action==='addSupplement'){
    if(!Array.isArray(o.refs)||!o.refs.length||o.refs.length>20||!o.refs.every(validMaterialRef))fail();
@@ -134,6 +192,6 @@ export class ManualContext {
   }else if(o.action==='order'){if(!Array.isArray(o.itemIds)||o.itemIds.length!==s.items.length||new Set(o.itemIds).size!==s.items.length||o.itemIds.some(id=>!s.items.some(i=>i.itemId===id)))fail();s.items=o.itemIds.map(id=>s.items.find(i=>i.itemId===id));
   }else if(o.action==='note'){if(typeof o.text!=='string'||o.text.length>20000)fail();s.note=redact(o.text,s.redactions);
   }else{const item=s.items.find(i=>i.itemId===o.itemId);if(!item||item.state!=='ready')fail('MEMORY_STALE');if(o.action==='edit'){if(typeof o.text!=='string'||o.text.length>200000)fail();if(s.items.reduce((n,i)=>n+(i===item?o.text.length:(i.override??i.body).length),0)>4000000)fail('MEMORY_LIMIT');item.override=redact(o.text,s.redactions);}else if(o.action==='redact'){const text=redact(item.override??item.body,s.redactions);if(!Number.isSafeInteger(o.start)||!Number.isSafeInteger(o.end)||o.start<0||o.end<=o.start||o.end>text.length||safeOffset(text,o.start)!==o.start||safeOffset(text,o.end)!==o.end)fail();if(s.redactions.length>=200)fail('MEMORY_LIMIT');s.redactions.push(text.slice(o.start,o.end));item.override=redact(text,s.redactions);}}
-  s.generation++;s.confirmed=null;s.suggestions=null;return this.dto(s);
+  s.generation++;this.invalidate(s);s.suggestions=null;return this.dto(s);
  }
 }

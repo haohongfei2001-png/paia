@@ -8,7 +8,7 @@ import {readDocumentSearchWindow,resetDocumentSearchPage} from './document-searc
 import {readSourceExport} from './source-export.js';
 import {refreshCaptureTimes} from './capture-time-view.js';
 import {captureHealthText} from './common.js';
-import {getMaterialTray} from './material-tray.js';
+import {getContextController} from './context-workspace.js';
 import {thoughtCopy as tc} from './thought-copy.js';
 import {TopicActions} from './topic-actions.js';
 import {ReaderExperience,confirmReaderAction,readerCopy} from './reader-experience.js';
@@ -70,7 +70,7 @@ async function selectedInputOwner(id,selection){
 }
 async function addInputToTopic(id,selection){const current=await selectedInputOwner(id,selection);if(!current)return;const span=selection?.input?.span;await topicActions.add({kind:'input',id,expectedRevision:current.entry.revision,...(span?{span}:{})},selection?selection.text:current.body);}
 const addSelected=element('button','',tc('加入主题'));addSelected.dataset.singleInput='true';addSelected.addEventListener('pointerdown',e=>e.preventDefault());addSelected.onclick=()=>{const selection=reader.selected;if(selection?.input)void addInputToTopic(selection.input.id,selection);};reader.toolbar.append(addSelected);
-async function addInputMaterial(id,selection){const current=await selectedInputOwner(id,selection);if(!current)return;const span=selection?.input?.span;await getMaterialTray().add([{kind:'input',id,revision:current.entry.revision,...(span?{span}:{})}]);}
+async function addInputMaterial(id,selection){const current=await selectedInputOwner(id,selection);if(!current)return;const span=selection?.input?.span;await getContextController().add([{kind:'input',id,revision:current.entry.revision,...(span?{span}:{})}]);}
 const selectMaterial=element('button','','加入本次材料');selectMaterial.dataset.singleInput='true';selectMaterial.addEventListener('pointerdown',e=>e.preventDefault());selectMaterial.addEventListener('click',()=>{const selection=reader.selected;if(selection?.input)void addInputMaterial(selection.input.id,selection);});reader.toolbar.append(selectMaterial);
 const selectMore=element('button','',readerCopy('更多','More'));selectMore.dataset.singleInput='true';selectMore.addEventListener('pointerdown',e=>e.preventDefault());selectMore.addEventListener('click',()=>{const selection=reader.selected;if(!selection?.input)return;const rect=selection.range.getBoundingClientRect();reader.dismissSelection({restore:false});openMenu(selection.input.id,rect.left,rect.bottom);});reader.toolbar.append(selectMore);
 document.addEventListener('paia:open-thought',async e=>{const {topicId,entryId,aiField}=e.detail||{};await navigate('thoughts',null,null,{topicId:topicId||null});if(aiField&&thoughts.view!=='ai')await thoughts.switchView('ai');if(entryId){if(topicId)await thoughts.focusEntry(entryId);else await thoughts.openStandalone(entryId);}});
@@ -432,7 +432,7 @@ const initialLoad=beginLoading(document.querySelector('.workspace'),'正在打�
 $('input-time-toggle').addEventListener('click',async()=>{const toggle=$('input-time-toggle'),current=toggle.dataset.currentSort==='desc'?'desc':'asc',next=current==='asc'?'desc':'asc',anchor=reader.capture(),intent=navigationIntent;if(!await leave(true)||intent!==navigationIntent)return;try{await request('SET_ORGANIZER_CONTROLS',{changes:{inputReadingSort:next}});if(intent!==navigationIntent)return;inputSortSnapshot=next;routes.commit({replace:true,anchor:anchor?{...anchor,sort:next}:null});pageCursor=null;pageHistory=[];readingSnapshot=null;contextInputId=anchor?.inputId||null;await refresh();if(intent!==navigationIntent)return;await reader.restore(anchor);reader.schedule();}catch{if(intent!==navigationIntent)return;await refresh();if(intent!==navigationIntent)return;await reader.restore(anchor);reader.schedule();error('排序偏好尚未保存，已恢复原来的显示。请重试。');}});
 
 function currentSurfaceSearch(){
- if(view==='memory')return memory.page==='authorizations'?$('memory-auth-search'):$('memory-query');
+ if(view==='memory')return memory.materials.advanced?$('memory-auth-search'):document.querySelector('.material-retrieval-query input');
  if(view==='thoughts')return thoughts.id?$('topic-search'):$('thought-search');
  if(documentId)return view==='library'?scopeSearch.input:null;
  if(['library','archive','excluded'].includes(view))return scopeSearch.input;

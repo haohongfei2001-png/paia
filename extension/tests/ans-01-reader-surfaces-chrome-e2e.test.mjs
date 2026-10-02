@@ -27,8 +27,8 @@ async function openReader(page){
 
 async function tray(page){
   return page.evaluate(async()=>{
-    const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));
-    return getMaterialTray().data;
+    const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));
+    return getContextController().data;
   });
 }
 
@@ -189,7 +189,7 @@ test('ANS-01 Topic whole-selection moves into the existing menu and keeps the bo
     p.once('dialog',dialog=>dialog.accept());
     await choose.click();
     await eventually(async()=>((await tray(p))?.items||[]).length===2,'whole-topic menu selection adds exact saved Thought refs');
-    assert.equal(await p.locator('#material-preview').isVisible(),true,'selected material opens the existing tray');
+    await eventually(async()=>await p.locator('#material-preview').isVisible()&&await p.locator('#scope-search').isEnabled(),'selected materials finish navigation to the Context workspace');
 
     await p.getByRole('button',{name:'从档案选择',exact:true}).click();
     await eventually(()=>p.locator('#universal-search-dialog').isVisible(),'retained tray opens internal Archive material search');
@@ -197,6 +197,8 @@ test('ANS-01 Topic whole-selection moves into the existing menu and keeps the bo
     await eventually(async()=>await p.locator('.universal-hit').count()===1,'internal material search still finds Input');
     await p.locator('.universal-close').click();
 
+    await p.locator('#primary-nav [data-view="thoughts"]').click();
+    await eventually(async()=>await p.locator('#topic-menu summary').isVisible()&&await p.locator('#scope-search').isEnabled(),'return from Context to the preserved Topic Reader');
     await p.locator('#back').click();
     await eventually(()=>p.locator('[data-topic-id]').filter({hasText:'ANS01 大主题'}).isVisible(),'Thought home returns');
     await p.locator('[data-topic-id]').filter({hasText:'ANS01 大主题'}).click();

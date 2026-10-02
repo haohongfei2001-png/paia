@@ -1,5 +1,16 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D3 integrated; D4 implementation — 2026-10-02
+
+**Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D4`.**
+Fresh main is `51de0e0f344fd700ae054e7ccf9bd5d6f4846883`, merged [PR #122](https://github.com/haohongfei2001-png/paia/pull/122). Its final head `fab789b1860bd7e8c3fd1da7b757697346c5624e`, full-tested merge candidate `9cd3a557a992fc2d3d1fc527c42bfa0d63bc3843` and main share tree `3c98207db64ae3633ab6bf09cdbbb208b1bed4bc`.
+
+Full [37003283784](https://github.com/haohongfei2001-png/paia/actions/runs/37003283784) PASS: unit 1443, current browser 203, adapter 102, privacy 58; release, hosted synthetic Mac lifecycle/Secure Store and full aggregate PASS. Aggregate 257 is test files, not cases. Exact-main [37005129174](https://github.com/haohongfei2001-png/paia/actions/runs/37005129174) integration and [Pages 37005128357](https://github.com/haohongfei2001-png/paia/actions/runs/37005128357) PASS; main browser/Mac/full aggregate SKIPPED, not a second full certification. Final source/release pixels and zero-overflow receipts were independently reviewed. All earlier D3 failures remain FAIL; see D3-Q1 addendum.
+
+Sole writer: `feat/desktop-vnext-d4-context-review`. D4/Q1 implements approved Q8: task purpose, compile without confirmation, exact output/manifest review binding, output-only edits, explicit source reconciliation, and one Context workspace controller. Existing Copy/Export only. No Source/Input/human Thought body write, durable Context store, provider, Send, connector, permission or paid-call expansion. Targeted evidence is work in progress; full/browser/owner acceptance is not yet claimed. D3 adoption UX remains.
+
+B-01–B-05 and live/model/device/IME/accessibility/performance gates remain open. Historical sections below retain their original evidence and are superseded only as execution queue by this entry.
+
 ## Desktop vNext owner-approved restart — 2026-09-30
 
 **Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D3`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
@@ -93,15 +104,15 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: D3 — AI Organize / exact scope and unified candidate boundary
+current_slice: D4 — AI Context / explicit compiled-output review
 
 current_slice_status: IMPLEMENTING
 
-current_round: D3-Q1
+current_round: D4-Q1
 
 current_round_status: IMPLEMENTING
 
-current_writer: feat/desktop-vnext-d3-scope-confirmation — sole active product writer
+current_writer: feat/desktop-vnext-d4-context-review — sole active product writer
 
 writer_status: ACTIVE — owner-approved Desktop vNext D1–D4 only
 

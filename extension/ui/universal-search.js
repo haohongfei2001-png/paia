@@ -2,7 +2,7 @@ import {request,element} from './common.js';
 import {historicalComparison} from '../core/historical-comparison.js';
 import {historicalInstant} from '../core/historical-time.js';
 import {materialKey} from '../core/manual-materials.js';
-import {getMaterialTray} from './material-tray.js';
+import {getContextController} from './context-workspace.js';
 const c=(zh,en)=>document.documentElement.lang.startsWith('en')?en:zh;
 const button=(zh,en,fn,cls='')=>{const b=element('button',cls,c(zh,en));b.type='button';b.addEventListener('click',()=>void fn());return b;};
 export function installUniversalSearch(){
@@ -21,7 +21,7 @@ export function installUniversalSearch(){
  const modes=element('nav','universal-modes'),all=button('全部结果','All results',()=>setMode('current')),past=button('按时间看 · 以前的我','Read by time · Past me',()=>setMode('history'));modes.append(all,past);
  const status=element('p','universal-status');status.setAttribute('role','status');const selection=element('nav','universal-selection'),selected=new Map(),compared=new Map();
  const selectPage=button('全选本页','Select this page',()=>{for(const item of items)selected.set(materialKey(item.ref),item.ref);render();}),selectAll=button('全选全部结果','Select all results',()=>enumerate());
- const add=button('加入本次材料','Add selected materials',async()=>{if(!selected.size)return;await getMaterialTray()?.add([...selected.values()]);render();});selection.append(selectPage,selectAll,add);
+ const add=button('加入本次材料','Add selected materials',async()=>{if(!selected.size)return;await getContextController()?.add([...selected.values()]);render();});selection.append(selectPage,selectAll,add);
  const results=element('div','universal-results'),paging=element('nav','universal-pagination'),previous=button('上一页','Previous',()=>{cursor=pages.pop()??null;void run(false);}),next=button('下一页','Next',()=>{pages.push(cursor);cursor=nextCursor;void run(false);});paging.append(previous,next);
  root.append(header,box,modes,filters,status,selection,results,paging);let items=[],cursor=null,nextCursor=null,pages=[],mode='current',intent=0,timer,composing=false,loading=false,origin=null,lastScroll=0,readerReturn=false,historyItems=[],lastResult=null,comparisonOpen=false;
  function options(at=cursor){return {universal:true,paged:true,query:input.value.trim(),mode,documentId:scope.value==='document'?origin?.documentId||null:null,topicId:topic.value||null,source:source.value,dateFrom:dates[0].value,to:dates[1].value,types:[...types].filter(([,v])=>v.checked).map(([k])=>k),includeRemoved:removed.checked,includeFiltered:filtered.checked,cursor:at,limit:40};}
@@ -86,7 +86,7 @@ export function installUniversalSearch(){
    const row=element('article','universal-hit');row.dataset.materialKey=materialKey(item.ref);const primary=button(item.title,item.title,()=>openResult(item),'universal-open');primary.append(element('p','',item.snippet),element('small','',item.kind==='ai'?c('AI 整理','AI-generated'):sourceTimeLabel(item.sourceSentAt)));row.append(primary);if(item.filtered)row.append(element('small','filter-search-label',c('智能过滤内容','Smart Filter content')));
    if(mode==='history'){const body=element('pre','historical-body',item.body);row.append(body);const key=materialKey(item.ref),pair=button(compared.has(key)?'取消并置':'选择并置',compared.has(key)?'Remove comparison':'Select for comparison',()=>{comparisonOpen=false;if(compared.has(key))compared.delete(key);else if(compared.size<2)compared.set(key,item);render();});pair.setAttribute('aria-pressed',String(compared.has(key)));pair.disabled=!compared.has(key)&&compared.size===2;row.append(pair);}
    const check=element('input');check.type='checkbox';check.checked=selected.has(materialKey(item.ref));check.setAttribute('aria-label',c('选择 ','Select ')+item.title);check.addEventListener('change',()=>{if(check.checked)selected.set(materialKey(item.ref),item.ref);else selected.delete(materialKey(item.ref));render();});row.append(check);
-   const present=getMaterialTray()?.data?.items.some(i=>materialKey(i.ref)===materialKey(item.ref)),reuse=button(present?'已在本次材料中':'加入本次材料',present?'Already selected':'Add to selection',async()=>{await getMaterialTray()?.add([item.ref]);render();},'universal-context');row.append(reuse);results.append(row);
+   const present=getContextController()?.data?.items.some(i=>materialKey(i.ref)===materialKey(item.ref)),reuse=button(present?'已在本次材料中':'加入本次材料',present?'Already selected':'Add to selection',async()=>{await getContextController()?.add([item.ref]);render();},'universal-context');row.append(reuse);results.append(row);
   }
  }
  async function enumerate(){

@@ -1,3 +1,4 @@
+import {previewReviewedContext,confirmCompiledContext} from './harness/context-browser-review.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -7,7 +8,7 @@ import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 
 const execFileAsync=promisify(execFile);
 const rpc=async(page,type,fields={})=>{const response=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(response.ok,true,JSON.stringify(response));return response.data;};
-const tray=page=>page.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));return getMaterialTray().data;});
+const tray=page=>page.evaluate(async()=>{const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));return getContextController().data;});
 const nav=(page,view)=>page.locator(`[data-view="${view}"]`).first().click();
 
 async function consent(page){
@@ -48,7 +49,7 @@ async function addTwoFromSearch(page,label){
   await page.locator('.universal-hit input[type=checkbox]').nth(1).check();
   await page.locator('.universal-selection').getByRole('button',{name:'加入本次材料 (2)',exact:true}).click();
   await eventually(async()=>(await tray(page))?.items.length===2,'two exact refs enter MaterialTray');
-  await eventually(()=>page.locator('.material-drawer').isVisible(),'search selection opens the existing MaterialTray as a drawer');
+  await eventually(()=>page.locator('#material-workbench').isVisible(),'search selection opens the single Context workspace');assert.equal(await page.locator('.material-drawer').count(),0);
 }
 
 async function sourceJourney(page,h,label){
@@ -65,14 +66,14 @@ async function sourceJourney(page,h,label){
 
   await addTwoFromSearch(page,label);
   assert.equal(await page.evaluate(()=>globalThis.__uir04MaterialRoot===document.querySelector('#material-workbench')),true,'drawer moves the same MaterialTray root');
-  const drawer=await page.locator('.material-drawer').boundingBox();
-  assert.ok(drawer&&drawer.width>=398&&drawer.width<=402,`desktop drawer stays about 400px; got ${drawer?.width}`);
+  const selectedWorkspace=await page.locator('#material-workbench').boundingBox();
+  assert.ok(selectedWorkspace&&selectedWorkspace.width>900,'selected materials retain full workspace width');
   assert.equal(await page.locator('.app-shell').evaluate(el=>el.inert),false,'desktop drawer stays non-modal');
   assert.match(await page.locator('#material-count').textContent(),/2/);
   assert.equal(await page.locator('.material-source-role').count(),2,'each selected material keeps an explicit source role');
   await shot(page,'uir-04-context-drawer-1440x900-light',{fullPage:false});
 
-  await page.locator('#material-preview').click();
+  await previewReviewedContext(page);
   await eventually(async()=>(await tray(page)).state==='ready','local preview is ready');
   await eventually(()=>page.locator('#material-output-text').isVisible(),'continuous output preview is visible');
   assert.equal(await page.locator('#material-title').textContent(),'输出预览');
@@ -90,23 +91,19 @@ async function sourceJourney(page,h,label){
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'dark'}});
   assert.match(await editable.inputValue(),/UIR04_IME_DRAFT/,'IME draft stays in the same owner during preference projection');
   await editable.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionend',{data:'UIR04_IME_DRAFT'})));
-  await page.getByRole('button',{name:'确认本次修改',exact:true}).click();
+  await page.getByRole('button',{name:'确认本次修改',exact:true}).click();await confirmCompiledContext(page);
   await eventually(async()=>(await tray(page)).state==='ready'&&await page.locator('#material-output-text').isVisible(),'edited preview is revalidated');
   assert.match(await page.locator('#material-output-text').textContent(),/UIR04_IME_DRAFT/);
   await shot(page,'uir-04-context-preview-1440x900-dark');
 
   await page.getByRole('button',{name:'返回材料',exact:true}).click();
   await page.setViewportSize({width:390,height:844});
-  await page.evaluate(async()=>{const {getMaterialTray}=await import(chrome.runtime.getURL('ui/material-tray.js'));getMaterialTray().openDrawer();});
-  await eventually(()=>page.locator('.material-drawer').isVisible(),'mobile MaterialTray opens');
-  assert.equal(await page.evaluate(()=>globalThis.__uir04MaterialRoot===document.querySelector('#material-workbench')),true,'mobile drawer still moves the same root');
-  const mobileDrawer=await page.locator('.material-drawer').boundingBox();
-  assert.ok(mobileDrawer&&mobileDrawer.width>=388,`mobile drawer fills the viewport; got ${mobileDrawer?.width}`);
-  assert.equal(await page.locator('.app-shell').evaluate(el=>el.inert),true,'<=600px MaterialTray keeps the existing modal/inert boundary');
+  await eventually(()=>page.locator('#material-workbench').isVisible(),'narrow Context workspace remains visible');
+  assert.equal(await page.evaluate(()=>globalThis.__uir04MaterialRoot===document.querySelector('#material-workbench')),true,'narrow workspace preserves the same controller root');
+  assert.equal(await page.locator('.material-drawer').count(),0,'no retired drawer coordinator');
+  assert.equal(await page.locator('.app-shell').evaluate(el=>el.inert),false,'narrow workspace keeps navigation accessible');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'mobile Context has no root horizontal overflow');
-  await shot(page,'uir-04-context-drawer-390x844-dark',{fullPage:false});
-  await page.getByRole('button',{name:'关闭材料盘',exact:true}).click();
-  assert.equal(await page.locator('.app-shell').evaluate(el=>el.inert),false,'closing mobile MaterialTray restores the app shell');
+  await shot(page,'uir-04-context-workspace-390x844-dark',{fullPage:false});
 
   await page.setViewportSize({width:1024,height:768});
   const layout=page.locator('.material-tray-layout');
@@ -130,7 +127,7 @@ async function sourceJourney(page,h,label){
 async function releaseJourney(page,h,label){
   await page.setViewportSize({width:1440,height:900});
   await addTwoFromSearch(page,label);
-  await page.locator('#material-preview').click();
+  await previewReviewedContext(page);
   await eventually(async()=>(await tray(page)).state==='ready'&&await page.locator('#material-output-text').isVisible(),'built release MaterialTray produces a local preview');
   const root=await page.locator('#material-workbench').boundingBox(),output=await page.locator('#material-output-text').boundingBox();
   assert.ok(root&&output&&root.width>output.width&&output.width<=722,'built release preserves wide Context frame plus saved prose width');

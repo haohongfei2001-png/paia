@@ -22,7 +22,7 @@ export function manualContextManifest(session){
  const explicit=selected.filter(item=>item.origin==='explicit'),retrievalSupplements=selected.filter(item=>item.origin==='retrieval');
  const materialUTF16Units=selected.reduce((n,item)=>n+item.materialUTF16Units,0);
  if(selected.length>MANUAL_CONTEXT_LIMITS.items||materialUTF16Units>MANUAL_CONTEXT_LIMITS.materialUTF16Units)throw new ArchiveError('MEMORY_LIMIT');
- return Object.freeze({version:MANUAL_CONTEXT_MANIFEST_VERSION,selectionId:session.id,generation:session.generation,policyRevision:session.policyRevision??0,temporaryPolicyRevision:session.temporaryPolicyRevision??0,
+ return Object.freeze({version:MANUAL_CONTEXT_MANIFEST_VERSION,selectionId:session.id,generation:session.generation,purpose:session.redactions.reduce((text,word)=>text.split(word).join('█'),session.purpose||''),outputEdited:session.outputOverride!==undefined,policyRevision:session.policyRevision??0,temporaryPolicyRevision:session.temporaryPolicyRevision??0,
   containers:Object.freeze((session.containers||[]).map(group=>Object.freeze({kind:group.kind,id:group.id,state:group.state,selectedMemberCount:group.refs.filter(ref=>session.items.some(item=>materialKey(item.ref)===materialKey(ref))).length,members:Object.freeze(group.refs.map(ref=>Object.freeze(structuredClone(ref))))}))),
   explicit:Object.freeze(explicit),retrievalSupplements:Object.freeze(retrievalSupplements),
   exclusions:Object.freeze([...session.excluded]),redactionCount:session.redactions.length,

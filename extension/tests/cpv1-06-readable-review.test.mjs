@@ -1,3 +1,4 @@
+import {reviewManualSelection} from './harness/manual-reviewed-selection.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {manualReviewText,materialTimeLabel} from '../core/manual-review.js';
@@ -26,11 +27,11 @@ async function setup(){
  return {...f,service,ref:{kind:'input',id:block.id,revision:block.revision},get state(){return state;},async call(action,options={}){state=await service.manual({action,selectionId:state.selectionId,generation:state.generation,...options},'review-tab');return state;}};
 }
 test('VS06 actual manual service releases exact readable edited preview and preserves historical material',async()=>{
- const f=await setup(),source=await rows(f.s,'records');await f.call('add',{refs:[f.ref]});await f.call('note',{text:'TASK_NOTE_CANARY'});await f.call('preview');const initial=f.state,initialDigest=initial.manifest.previewSha256;
+ const f=await setup(),source=await rows(f.s,'records');await f.call('add',{refs:[f.ref]});await f.call('note',{text:'TASK_NOTE_CANARY'});await reviewManualSelection(f);const initial=f.state,initialDigest=initial.manifest.previewSha256;
  for(const format of ['copy','markdown']){const released=await f.service.manual({action:'share',selectionId:initial.selectionId,generation:initial.generation,format},'review-tab');assert.equal(released.text,initial.text);assert.equal(await hashText(released.text),initialDigest);}
  await f.call('edit',{itemId:initial.items[0].itemId,text:'# USER_EDIT_CANARY\nLiteral 2021-01-01T00:00:00Z'});
  await assert.rejects(f.service.manual({action:'share',selectionId:initial.selectionId,generation:initial.generation,format:'copy'},'review-tab'),{code:'MEMORY_STALE'});
- assert.equal(f.state.text,'');await f.call('preview');const reviewed=f.state;
+ assert.equal(f.state.text,'');await reviewManualSelection(f);const reviewed=f.state;
  assert.ok(reviewed.text.includes('# USER_EDIT_CANARY\nLiteral 2021-01-01T00:00:00Z'));assert.equal(reviewed.text.includes('SOURCE_IMMUTABLE_CANARY'),false);
  assert.notEqual(reviewed.manifest.previewSha256,initialDigest);assert.equal(await hashText(reviewed.text),reviewed.manifest.previewSha256);assert.deepEqual(await rows(f.s,'records'),source);
  for(const format of ['copy','markdown'])assert.equal((await f.service.manual({action:'share',selectionId:reviewed.selectionId,generation:reviewed.generation,format},'review-tab')).text,reviewed.text);
