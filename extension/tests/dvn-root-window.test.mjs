@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {wireSearchKeyboard} from '../ui/search-experience.js';
 import {ContinuousRootReader} from '../ui/continuous-root-reader.js';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {setup} from './harness/thought-m1.mjs';
@@ -158,4 +159,13 @@ test('D2 a held old-scope window shift neither blocks nor unlocks a newer reader
 });
 test('D2 a completed hydration retry cannot advance the frontier of a superseded root route',async()=>{
  let finish,loads=0;const old={errorKind:'hydrate',loadNext(){loads++;}},w=Object.assign(Object.create(TopicController.prototype),{homeCollection:old,thoughtRootVisible:()=>true,captureHomeAnchor:()=>null,renderHomeReader:()=>new Promise(resolve=>finish=resolve)});const pending=w.loadHomeNext();w.homeCollection={};finish(false);await pending;assert.equal(loads,0);
+});
+
+test('D2 native focus-scroll exclusion is short, token-owned and cancelled by deliberate scrolling',()=>{
+ const prior={requestAnimationFrame:globalThis.requestAnimationFrame,window:globalThis.window,document:globalThis.document,IntersectionObserver:globalThis.IntersectionObserver},frames=[],search={};let observe,calls=0;globalThis.requestAnimationFrame=fn=>frames.push(fn);globalThis.window={IntersectionObserver:true};globalThis.IntersectionObserver=class{constructor(fn){observe=fn;}disconnect(){}observe(){}};globalThis.document={activeElement:search,getElementById:id=>id==='thought-search'?search:{querySelectorAll:()=>[]}};const r={windowStart:40},w=Object.assign(Object.create(TopicController.prototype),{homeCollection:r,thoughtRootVisible:()=>true,topicScrollDirection:'previous',shiftHomeWindow(){calls++;}}),entry={isIntersecting:true,target:{dataset:{rootWindowTo:'39'}}};
+ try{w.observeHomeWindow();w.beginHomeFocusScroll();observe([entry]);assert.equal(calls,0);w.cancelHomeFocusScroll();observe([entry]);assert.equal(calls,1,'wheel/touch/page intent is admitted even while search retains focus');w.beginHomeFocusScroll();frames.shift()();frames.shift()();assert.equal(w.homeFocusScrolling,true,'old focus cleanup cannot release newer focus intent');frames.shift()();frames.shift()();assert.equal(w.homeFocusScrolling,false);}finally{Object.assign(globalThis,prior);}
+});
+
+test('D2 page-scroll intent reuses scoped search keyboard owners without adding a document keyboard listener',()=>{
+ const inputs=new Map(),results=new Map();let calls=0;wireSearchKeyboard({addEventListener:(name,fn)=>inputs.set(name,fn)},{addEventListener:(name,fn)=>results.set(name,fn)},{onScrollIntent:()=>calls++});inputs.get('keydown')({key:'PageDown'});results.get('keydown')({key:'PageUp'});assert.equal(calls,2);inputs.get('keydown')({key:'x'});inputs.get('keydown')({key:'PageDown',isComposing:true});assert.equal(calls,2);
 });
