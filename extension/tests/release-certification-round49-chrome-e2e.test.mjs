@@ -1,3 +1,4 @@
+import {previewReviewedContext} from './harness/context-browser-review.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
@@ -34,7 +35,7 @@ test('Round 4.9 current release: Archive home closes capture -> read -> retrieve
   // silently opting unorganized Inputs into future AI Context retrieval.
   let memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false);
   await sourceInput.click({button:'right'});await p.locator('#context-menu button').filter({hasText:'加入本次材料'}).click();await eventually(()=>p.locator('#material-preview').isVisible(),'Input more menu adds the exact saved Input to the tray');
-  await p.locator('#material-preview').click();await eventually(()=>p.locator('#material-output-text').isVisible(),'Reader selection reaches trusted manual Preview');
+  await previewReviewedContext(p);await eventually(()=>p.locator('#material-output-text').isVisible(),'Reader selection reaches trusted manual Preview');
   assert.match(await p.locator('#material-output-text').textContent(),/ROUND49_CORE_LOOP/);
   memoryStatus=await rpc(p,'PAIA_MEMORY_STATUS',{options:{profileId:'default'}});assert.equal(memoryStatus.config.includeUnorganizedInputs,false,'explicit manual selection grants no future automatic retrieval');
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);

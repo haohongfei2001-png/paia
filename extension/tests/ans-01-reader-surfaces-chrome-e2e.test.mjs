@@ -197,6 +197,8 @@ test('ANS-01 Topic whole-selection moves into the existing menu and keeps the bo
     await eventually(async()=>await p.locator('.universal-hit').count()===1,'internal material search still finds Input');
     await p.locator('.universal-close').click();
 
+    await p.locator('#primary-nav [data-view="thoughts"]').click();
+    await eventually(()=>p.locator('#topic-menu summary').isVisible(),'return from Context to the preserved Topic Reader');
     await p.locator('#back').click();
     await eventually(()=>p.locator('[data-topic-id]').filter({hasText:'ANS01 大主题'}).isVisible(),'Thought home returns');
     await p.locator('[data-topic-id]').filter({hasText:'ANS01 大主题'}).click();
