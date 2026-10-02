@@ -113,7 +113,11 @@ export class TopicTimeline {
   const total=this.state.query?null:this.state.year==='unknown'?this.overview.unknownCount:this.overview.knownYearCounts[this.state.year]||0;
   this.host.append(element('p','topic-year-coverage',total===null?text('检索整个主题，包含未展开的年份；继续读取可查到范围末尾。','Searching the whole Topic, including collapsed years. Continue reading to reach the end.'):text(`这一年已收录 ${total} 条 · 当前窗口 ${this.window.items.length} 条 · UTC`,` ${total} retained expressions · ${this.window.items.length} in this window · UTC`).trim()));
   const before=button(text('继续读取前面的表达','Read earlier expressions'),()=>this.load('prev'));before.dataset.timelineBefore='';before.hidden=!this.window.previousCursor;this.host.append(before);
-  for(const item of this.window.items)this.host.append(this.entryNode(item.entry));
+  let matchedYear=null,matchedSection=null;
+  for(const item of this.window.items){
+   if(this.state.query){const year=item.entry.expressionTime?.year??'unknown';if(year!==matchedYear){matchedYear=year;matchedSection=element('section','topic-year-matches');matchedSection.dataset.matchYear=String(year);matchedSection.append(element('h3','',yearLabel(year)));this.host.append(matchedSection);}matchedSection.append(this.entryNode(item.entry));}
+   else this.host.append(this.entryNode(item.entry));
+  }
   const after=button(this.window.error?text('重试读取','Retry reading'):text('继续读取全部表达','Continue reading all expressions'),()=>this.load('next'));after.dataset.timelineAfter='';after.hidden=!this.window.nextCursor;this.host.append(after);
   if(!this.window.nextCursor)this.host.append(element('p','muted',text('已到此范围的末尾','End of this range')));
   if(this.window.error)this.failure(()=>this.load(this.failedDirection||'next'));

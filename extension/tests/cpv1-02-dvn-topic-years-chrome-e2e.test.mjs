@@ -40,7 +40,7 @@ for(const variant of ['source','release'])test(`D2 actual years, full-year searc
   const selected=seed.ids[80];await p.locator(`[data-expression-id="${selected}"]`).scrollIntoViewIfNeeded();
   await p.locator('#topic-search').fill('SYNTHETIC_LATE_MATCH');
   await eventually(()=>p.locator(`[data-expression-id="${seed.ids[155]}"]`).count().then(n=>n===1),'full-topic search reaches unmounted later year',30000);
-  assert.match(await p.locator('#topic-timeline').innerText(),/2023/);
+  assert.match(await p.locator('#topic-timeline [data-match-year="2023"]').innerText(),/SYNTHETIC_LATE_MATCH/);
   await p.locator('#topic-search').fill('');await eventually(()=>p.locator(`[data-expression-id="${selected}"]`).count().then(n=>n===1),'closing search restores full-year extent',30000);
   await p.locator('[data-topic-view="content"]').click();await eventually(()=>p.locator('#original-reading-body [data-entry-id]').count().then(n=>n>0));
   await p.locator('[data-topic-view="years"]').click();await eventually(()=>p.locator(`[data-expression-id="${selected}"]`).count().then(n=>n===1),'tab return retains year extent',30000);
