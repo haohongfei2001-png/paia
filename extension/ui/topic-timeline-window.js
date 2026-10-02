@@ -50,5 +50,5 @@ export class TopicTimelinePositions {
  constructor(limit=100){this.limit=limit;this.rows=new Map();}
  save(id,state){if(!id)return;this.rows.delete(id);this.rows.set(id,structuredClone(state));while(this.rows.size>this.limit)this.rows.delete(this.rows.keys().next().value);}
  get(id){const row=this.rows.get(id);return row?structuredClone(row):null;}
- invalidate(){for(const row of this.rows.values()){row.position=null;row.anchor=null;row.queryPosition=null;}}
+ invalidate(){for(const row of this.rows.values()){row.position=null;row.anchor=null;row.queryPosition=null;if(row.preSearch){row.preSearch.position=null;row.preSearch.anchor=null;}}}
 }

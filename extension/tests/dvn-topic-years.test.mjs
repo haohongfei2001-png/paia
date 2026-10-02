@@ -99,3 +99,18 @@ test('D2 actual UI owner never auto-retries a failed read, including a queued ca
  await timeline.load('next',{automatic:true});assert.equal(reads,0);
  await timeline.load('next');assert.equal(reads,1);
 });
+
+test('D2 canonical Input exclusion excludes an invalidated expression before dependency cleanup',async()=>{
+ const f=await completeFixture({texts:['SYNTHETIC first excluded','SYNTHETIC surviving input']});await f.runner.wake();
+ const topic=(await rows(f.s,'topics'))[0],before=await f.s.topicTimelinePage({topicId:topic.id});assert.equal(before.overview.total,2);
+ const block=(await rows(f.s,'blocks')).find(row=>row.value.libraryText==='SYNTHETIC first excluded'||row.value.originalText==='SYNTHETIC first excluded')||(await rows(f.s,'blocks'))[0];
+ await f.s.excludeLibrary(block.id,true);
+ const raw=await rows(f.s,'thoughts'),invalid=[];for(const entry of raw)if((await f.s.entry(entry.id)).lifecycle==='invalidated')invalid.push(entry.id);
+ assert.equal(invalid.length,1);assert.equal(raw.find(row=>row.id===invalid[0]).lifecycle,'active','before dependency cleanup');
+ assert.equal((await f.s.topicTimelinePage({topicId:topic.id,expectedReadGeneration:before.overview.generation})).cursorInvalid,true);
+ for(let i=0;i<2;i++){const page=await f.s.topicTimelinePage({topicId:topic.id});assert.equal(page.cursorInvalid,undefined);assert.equal(page.overview.total,1);assert.equal(page.items.length,1);assert.notEqual(page.items[0].entry.id,invalid[0]);}
+});
+test('D2 search snapshots retain only one bounded pre-search state and invalidate both generations',()=>{
+ const timeline=Object.assign(Object.create(TopicTimeline.prototype),{state:{year:2021,query:'match'},preSearch:{year:2021,query:'',position:{requests:[{cursor:{generation:'prior'}}]},anchor:{id:'prior-entry',top:140}},window:{snapshot:()=>({requests:[{cursor:{generation:'search'}}]})},anchor:()=>({id:'match',top:150}),yearOffset:6,autoForward:true});
+ const prior=globalThis.scrollY;globalThis.scrollY=99;try{const saved=timeline.snapshot();assert.equal(saved.preSearch.anchor.id,'prior-entry');assert.equal(saved.preSearch.preSearch,undefined);assert.ok(!JSON.stringify(saved).includes('body'));const positions=new TopicTimelinePositions();positions.save('topic',saved);positions.invalidate();const next=positions.get('topic');assert.equal(next.position,null);assert.equal(next.preSearch.position,null);assert.equal(next.preSearch.anchor,null);}finally{globalThis.scrollY=prior;}
+});

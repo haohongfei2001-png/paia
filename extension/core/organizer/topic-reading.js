@@ -1,6 +1,7 @@
 import {prefix,fail,idOK} from '../thought-model.js';
 import {entryMatchesProvider,entryProviderKeys} from '../thought-source-scope.js';
 import {expressionTime} from './expression-time.js';
+import {readDependencyInputs,dependencyLifecycle} from '../thought-evidence.js';
 import {validProvider} from '../read-projection-keys.js';
 import {entryTime} from './topic-chronology.js';
 import {thoughtTopicDescriptorPage,invalidateThoughtTopicIndex} from '../thought-read-index.js';
@@ -16,7 +17,10 @@ async function describePlacement(s,t,topic,p){
  if(!row||row.storageSchema!==2||row.lifecycle!=='active')return null;
  // Purge can invalidate canonical readability before lazy row cleanup runs.
  // Both projections must count the same live eligible set as body resolution.
- if(!await s.sourcePresent(t,row.sourceRecordIds)&&(await s.readableEntry(t,row.id)).lifecycle!=='active')return null;
+ if(!await s.sourcePresent(t,row.sourceRecordIds)||!row.hasHumanAction&&row.origin==='ai'){
+  const current=await s.readableEntry(t,row.id);
+  if(current.lifecycle!=='active'||!current.hasHumanAction&&current.origin==='ai'&&dependencyLifecycle(current,await readDependencyInputs(s,t,current))!=='active')return null;
+ }
  const time=await entryTime(t,row.id),rawTime=time.sourceSentAt||time.capturedAt||row.createdAt||null;
  const effectiveTime=Number.isFinite(Date.parse(rawTime||''))?rawTime:null;
  return {

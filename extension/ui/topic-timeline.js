@@ -18,17 +18,17 @@ export class TopicTimeline {
  visible(){return this.active===true&&this.host.isConnected&&!this.host.hidden;}
  anchor(){const node=[...this.host.querySelectorAll('[data-expression-id]')].find(node=>node.getBoundingClientRect().bottom>140);return node?{id:node.dataset.expressionId,top:node.getBoundingClientRect().top}:null;}
  restoreAnchor(anchor){if(!anchor)return false;const node=[...this.host.querySelectorAll('[data-expression-id]')].find(node=>node.dataset.expressionId===anchor.id);if(node){scrollBy(0,node.getBoundingClientRect().top-anchor.top);return true;}return false;}
- snapshot(){return {...this.state,position:this.window.snapshot(),anchor:this.anchor(),yearOffset:this.yearOffset,scroll:scrollY,autoForward:this.autoForward};}
+ snapshot(){const {preSearch:ignored,...state}=this.state;return {...state,position:this.window.snapshot(),anchor:this.anchor(),yearOffset:this.yearOffset,scroll:scrollY,autoForward:this.autoForward,preSearch:this.preSearch?structuredClone(this.preSearch):null};}
  dispose(){this.active=false;this.host.hidden=true;this.epoch++;this.openIntent=(this.openIntent||0)+1;this.observer?.disconnect();clearTimeout(this.retryTimer);this.window.clear();this.overview=null;this.host.replaceChildren();this.dialog?.close();this.dialog?.remove();this.dialog=null;}
- invalidate(){const saved=this.snapshot();this.dispose();this.state={...saved,position:null,anchor:null};return saved;}
+ invalidate(){const saved=this.snapshot();this.dispose();if(saved.preSearch){saved.preSearch.position=null;saved.preSearch.anchor=null;}this.state={...saved,position:null,anchor:null};this.preSearch=saved.preSearch||null;return saved;}
  async open({topicId,providerKey=null,sort='asc',saved=null,query=''}){
-  this.dispose();this.active=true;this.host.hidden=false;this.topicId=topicId;this.providerKey=providerKey;this.sort=sort;this.state={year:null,query:'',position:null,anchor:null,...saved};this.yearOffset=saved?.yearOffset||0;this.autoForward=saved?.autoForward??true;
-  if(query!==this.state.query){if(query&&!this.state.query)this.preSearch={...this.state};this.state={...this.state,query,position:null,anchor:null};}
+  this.dispose();this.active=true;this.host.hidden=false;this.topicId=topicId;this.providerKey=providerKey;this.sort=sort;this.state={year:null,query:'',position:null,anchor:null,...saved};this.preSearch=saved?.preSearch?structuredClone(saved.preSearch):null;if(this.preSearch)delete this.preSearch.preSearch;this.yearOffset=saved?.yearOffset||0;this.autoForward=saved?.autoForward??true;
+  if(query!==this.state.query){if(query&&!this.state.query){const {preSearch:ignored,...prior}=this.state;this.preSearch=prior;}this.state={...this.state,query,position:null,anchor:null};}
   await this.render();
  }
  async changeQuery(query){
   if(query===this.state.query)return;
-  if(query&&!this.state.query)this.preSearch=this.snapshot();
+  if(query&&!this.state.query){this.preSearch=this.snapshot();delete this.preSearch.preSearch;}
   this.state=query?{...this.state,query,position:null,anchor:null}:{...(this.preSearch||this.state),query:''};
   this.autoForward=query?true:this.state.autoForward??true;if(!query)this.preSearch=null;await this.render();
  }

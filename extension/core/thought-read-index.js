@@ -112,7 +112,7 @@ export async function thoughtRootIndexPage(store,{cursor=null,limit=40}={}){
 // ANS-08 Topic Reader projection. Projection rows intentionally contain only
 // ordering / placement / time descriptors. Thought body/title/note remain in
 // the canonical Thought store and are resolved only for the visible response.
-export const THOUGHT_TOPIC_INDEX_VERSION=5;
+export const THOUGHT_TOPIC_INDEX_VERSION=6;
 export const THOUGHT_TOPIC_BUILD_BATCH=100;
 export const THOUGHT_TOPIC_STATUS_KEY=3;
 export const THOUGHT_TOPIC_MAX_BUILD_BATCHES=100;
