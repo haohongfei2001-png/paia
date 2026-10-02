@@ -1,15 +1,17 @@
 const itemKey=item=>item?.entry?.id||item?.id||null;
+const reference=item=>({entry:{id:itemKey(item),revision:item?.entry?.revision},unloaded:true});
+const clone=value=>value===undefined?undefined:structuredClone(value);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
 export class ContinuousTopicReader{
- constructor({load,chunk=40,windowChunks=3,maxEmptyLoads=20,estimatedHeight=180}={}){
+ constructor({load,chunk=40,windowChunks=3,maxEmptyLoads=20,estimatedHeight=180,pins=()=>new Set()}={}){
   if(typeof load!=='function'||!Number.isInteger(chunk)||chunk<1||chunk>40||!Number.isInteger(windowChunks)||windowChunks<1||windowChunks>5)throw new TypeError('INVALID_TOPIC_READER');
-  this.load=load;this.chunk=chunk;this.windowSize=chunk*windowChunks;this.maxEmptyLoads=maxEmptyLoads;this.defaultHeight=estimatedHeight;this.measurements=new Map();this.averageHeight=estimatedHeight;this.serial=0;this.reset({});
+  this.load=load;this.pins=pins;this.chunk=chunk;this.windowSize=chunk*windowChunks;this.maxEmptyLoads=maxEmptyLoads;this.defaultHeight=estimatedHeight;this.measurements=new Map();this.averageHeight=estimatedHeight;this.serial=0;this.reset({});
  }
  reset({topicId=null,sort='asc',query='',anchorId=null,sectionId=null,timeEdge=null}={}){
   this.serial++;this.topicId=topicId;this.sort=sort;this.query=query;this.anchorId=anchorId;this.sectionId=sectionId;this.timeEdge=timeEdge;
-  this.items=[];this.index=new Map();this.nextCursor=null;this.previousCursor=null;this.coverage=null;this.pageMeta=null;this.sections=new Map();this.sectionCursor=null;
-  this.windowStart=0;this.initialized=false;this.indexing=false;this.loadingNext=false;this.loadingPrevious=false;this.errorNext=null;this.errorPrevious=null;this.terminalNext=false;this.terminalPrevious=anchorId===null&&sectionId===null;this.stale=false;return this.state();
+  this.measurements.clear();this.items=[];this.index=new Map();this.bodyRevision=0;this.protectionBlocked=false;this.hydrating=false;this.hydrationPromise=null;this.hydrationError=null;this.windowRevision=0;this.nextCursor=null;this.previousCursor=null;this.coverage=null;this.pageMeta=null;this.sections=new Map();this.sectionCursor=null;
+  this.windowStart=0;this.initialized=false;this.indexing=false;this.loadingNext=false;this.loadingPrevious=false;this.errorNext=null;this.errorPrevious=null;this.terminalNext=false;this.terminalPrevious=anchorId===null&&sectionId===null;this.stale=false;this.anchorUnavailable=false;return this.state();
  }
  matches({topicId,sort,query}){return this.topicId===topicId&&this.sort===sort&&this.query===query;}
  state(){return {
@@ -17,22 +19,62 @@ export class ContinuousTopicReader{
   nextCursor:this.nextCursor,previousCursor:this.previousCursor,
   terminalNext:this.terminalNext,terminalPrevious:this.terminalPrevious,
   loadingNext:this.loadingNext,loadingPrevious:this.loadingPrevious,
-  errorNext:this.errorNext,errorPrevious:this.errorPrevious,indexing:this.indexing,
+  errorNext:this.errorNext||this.hydrationError,errorPrevious:this.errorPrevious,indexing:this.indexing,
   coverage:this.coverage,pageMeta:this.pageMeta,sectionCursor:this.sectionCursor,
-  initialized:this.initialized,stale:this.stale,windowStart:this.windowStart
+  initialized:this.initialized,stale:this.stale,anchorUnavailable:this.anchorUnavailable,windowStart:this.windowStart,bodyRevision:this.bodyRevision,protectionBlocked:this.protectionBlocked,retainedBodies:this.items.filter(item=>!item.unloaded).length
  };}
- snapshot(anchor=null){return {topicId:this.topicId,sort:this.sort,query:this.query,anchor:anchor?{id:anchor.id,top:anchor.top}:null};}
+ snapshot(anchor=null){return {topicId:this.topicId,sort:this.sort,query:this.query,anchor:anchor?{id:anchor.id,top:anchor.top}:null,
+  extent:this.items.map(reference),windowStart:this.windowStart,nextCursor:clone(this.nextCursor),previousCursor:clone(this.previousCursor),terminalNext:this.terminalNext,terminalPrevious:this.terminalPrevious,generation:this.coverage?.activeGeneration||null};}
+ restore(saved){
+  if(!saved||!this.matches(saved)||!Array.isArray(saved.extent)||!saved.extent.length)return false;
+  this.items=saved.extent.map(reference);this.index=new Map(this.items.map((item,i)=>[itemKey(item),i]));this.windowStart=clamp(saved.windowStart||0,0,Math.max(0,this.items.length-this.windowSize));
+  this.nextCursor=clone(saved.nextCursor);this.previousCursor=clone(saved.previousCursor);this.terminalNext=!!saved.terminalNext;this.terminalPrevious=!!saved.terminalPrevious;this.coverage={activeGeneration:saved.generation};this.initialized=true;return true;
+ }
+ trimBodies(pins=this.pins()){
+  const keep=new Set(this.protectedWindow(pins));
+  for(let i=0;i<this.items.length;i++)if(!keep.has(i)&&!this.items[i].unloaded)this.items[i]=reference(this.items[i]);
+  this.protectionBlocked=pins.size>this.windowSize;
+ }
+ async hydrateWindow(){
+  const serial=this.serial;
+  if(this.hydrationPromise){const revision=this.hydrationRevision,result=await this.hydrationPromise;if(serial!==this.serial)return false;return revision===this.windowRevision?result:this.hydrateWindow();}
+  this.hydrationRevision=this.windowRevision;const run=this._hydrateWindow(serial,this.windowRevision);this.hydrationPromise=run;
+  try{return await run;}finally{if(this.hydrationPromise===run)this.hydrationPromise=null;}
+ }
+ async _hydrateWindow(serial,windowRevision){
+  this.hydrating=true;
+  try{
+   const maxReads=this.protectedWindow(this.pins()).length;
+   for(let read=0;read<maxReads;read++){
+    const indices=this.protectedWindow(this.pins()),missing=indices.find(i=>this.items[i]?.unloaded);
+    if(missing===undefined){this.hydrationError=null;this.trimBodies();return true;}
+    const id=itemKey(this.items[missing]),page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,anchorId:id,cursor:null,direction:'next',expectedReadGeneration:this.coverage?.activeGeneration||null});
+    if(serial!==this.serial||windowRevision!==this.windowRevision)return false;
+    if(page?.cursorInvalid||page?.indexing||this.coverage?.activeGeneration&&page.coverage?.activeGeneration!==this.coverage.activeGeneration){this.stale=true;this.anchorUnavailable=page.anchorUnavailable===true;this.items=this.items.map(reference);this.pageMeta=null;return false;}
+    const rows=page.items||[],target=rows.find(item=>itemKey(item)===id);
+    if(!target||target.entry.revision!==this.items[missing].entry.revision){this.stale=true;this.items=this.items.map(reference);this.pageMeta=null;return false;}
+    this.readMeta(page);
+    for(const item of rows){const at=this.index.get(itemKey(item));if(Number.isInteger(at)&&this.items[at].unloaded){this.items[at]=item;this.bodyRevision++;}}
+    this.trimBodies();
+   }
+   if(this.protectedWindow(this.pins()).every(i=>!this.items[i]?.unloaded)){this.hydrationError=null;this.trimBodies();return true;}
+   throw Error('TOPIC_WINDOW_INCOMPLETE');
+  }catch(error){if(serial===this.serial&&windowRevision===this.windowRevision)this.hydrationError=error;return false;}
+  finally{if(serial===this.serial)this.hydrating=false;}
+ }
+ readMeta(page){const {items,tracked,...meta}=page||{};this.pageMeta=meta;this.addSections(page?.sections);this.coverage=page?.coverage||this.coverage;}
+
  addSections(rows=[]){for(const row of rows)if(row?.sectionId)this.sections.set(row.sectionId,row);}
  merge(items,direction){
   const fresh=[];
-  for(const item of items||[]){const key=itemKey(item);if(!key||this.index.has(key))continue;fresh.push(item);}
-  if(!fresh.length)return 0;
+  for(const item of items||[]){const key=itemKey(item);if(!key)continue;const at=this.index.get(key);if(Number.isInteger(at)){if(this.items[at].unloaded){this.items[at]=item;this.bodyRevision++;}continue;}fresh.push(item);}
+  if(!fresh.length)return 0;this.bodyRevision++;
   if(direction==='previous')this.items=[...fresh,...this.items];else this.items.push(...fresh);
   this.index=new Map(this.items.map((item,i)=>[itemKey(item),i]));
   return fresh.length;
  }
  async initial(){
-  if(this.initialized||this.loadingNext)return this.state();
+  if(this.initialized){await this.hydrateWindow();return this.state();}if(this.loadingNext)return this.state();
   return this._load('initial');
  }
  async next(){
@@ -45,19 +87,21 @@ export class ContinuousTopicReader{
  }
  async _load(kind){
   const direction=kind==='previous'?'prev':'next',serial=this.serial,flag=kind==='previous'?'loadingPrevious':'loadingNext',errorKey=kind==='previous'?'errorPrevious':'errorNext';
+  this.protectionBlocked=this.pins().size>this.windowSize;if(this.protectionBlocked)return this.state();
   this[flag]=true;this[errorKey]=null;let empty=0,addedTotal=0,initialPass=true;
   try{
    do{
     const cursor=kind==='initial'?(initialPass?null:this.nextCursor):kind==='previous'?this.previousCursor:this.nextCursor;
-    const page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,cursor,direction,anchorId:kind==='initial'&&initialPass?this.anchorId:null,sectionId:kind==='initial'&&initialPass?this.sectionId:null,timeEdge:kind==='initial'&&initialPass?this.timeEdge:null,sectionCursor:this.sectionCursor});
+    const page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,cursor,direction,anchorId:kind==='initial'&&initialPass?this.anchorId:null,sectionId:kind==='initial'&&initialPass?this.sectionId:null,timeEdge:kind==='initial'&&initialPass?this.timeEdge:null,sectionCursor:this.sectionCursor,expectedReadGeneration:this.coverage?.activeGeneration||null});
     if(serial!==this.serial)return {...this.state(),stale:true};
-    if(page?.cursorInvalid){this.stale=true;return this.state();}
-    this.initialized=true;this.indexing=page?.indexing===true;this.coverage=page?.coverage||this.coverage;this.pageMeta=page||this.pageMeta;this.addSections(page?.sections);
+    if(page?.cursorInvalid){this.stale=true;this.anchorUnavailable=page.anchorUnavailable===true;this.items=this.items.map(reference);this.pageMeta=null;return this.state();}
+    this.initialized=true;this.indexing=page?.indexing===true;this.readMeta(page);
     if(page?.sectionCursor!==undefined)this.sectionCursor=page.sectionCursor;
     const added=this.merge(page?.items||[],kind==='previous'?'previous':'next');addedTotal+=added;
     if(kind==='initial'){this.nextCursor=page?.nextCursor??null;if(initialPass)this.previousCursor=page?.previousCursor??null;}
     else if(kind==='previous')this.previousCursor=page?.previousCursor??null;
     else this.nextCursor=page?.nextCursor??null;
+    const previousWindow=this.windowStart;
     if(kind==='initial'){
       this.terminalPrevious=!this.previousCursor;this.terminalNext=!this.nextCursor&&!this.indexing;
       const target=this.anchorId&&this.index.get(this.anchorId);if(Number.isInteger(target))this.windowStart=clamp(Math.floor(target/this.chunk)*this.chunk-this.chunk,0,Math.max(0,this.items.length-this.windowSize));
@@ -68,7 +112,8 @@ export class ContinuousTopicReader{
       this.terminalNext=!page?.nextCursor&&!this.indexing;
       if(added&&this.items.length>this.windowSize)this.windowStart=Math.max(0,this.items.length-this.windowSize);
     }
-    initialPass=false;
+    if(this.windowStart!==previousWindow||kind==='previous'&&added)this.windowRevision++;
+    this.trimBodies();initialPass=false;
     if(added||this.indexing||kind==='previous'&&!this.previousCursor||kind!=='previous'&&!this.nextCursor)break;
     empty++;if(empty>=this.maxEmptyLoads)break;
    }while(true);
@@ -86,7 +131,7 @@ export class ContinuousTopicReader{
   const indices=this.protectedWindow(pins),out=[];let last=-1;
   for(const index of indices){
    if(index>last+1)out.push({kind:'spacer',from:last+1,to:index-1,count:index-last-1,height:this.estimateRange(last+1,index-1)});
-   out.push({kind:'item',index,item:this.items[index]});last=index;
+   if(this.items[index].unloaded)out.push({kind:'spacer',from:index,to:index,count:1,height:this.estimateRange(index,index)});else out.push({kind:'item',index,item:this.items[index]});last=index;
   }
   if(last<this.items.length-1)out.push({kind:'spacer',from:last+1,to:this.items.length-1,count:this.items.length-last-1,height:this.estimateRange(last+1,this.items.length-1)});
   return out;
@@ -107,12 +152,12 @@ export class ContinuousTopicReader{
  }
  moveWindowAround(id){
   const index=this.index.get(id);if(!Number.isInteger(index))return false;
-  this.windowStart=clamp(Math.floor(index/this.chunk)*this.chunk-this.chunk,0,Math.max(0,this.items.length-this.windowSize));return true;
+  this.windowStart=clamp(Math.floor(index/this.chunk)*this.chunk-this.chunk,0,Math.max(0,this.items.length-this.windowSize));this.windowRevision++;return true;
  }
- moveWindowToStart(){if(this.windowStart===0)return false;this.windowStart=0;return true;}
+ moveWindowToStart(){if(this.windowStart===0)return false;this.windowStart=0;this.windowRevision++;return true;}
  shiftWindow(direction){
   if(!['previous','next'].includes(direction))return false;const maxStart=Math.max(0,this.items.length-this.windowSize),delta=direction==='previous'?-this.chunk:this.chunk,next=clamp(this.windowStart+delta,0,maxStart);
-  if(next===this.windowStart)return false;this.windowStart=next;return true;
+  if(next===this.windowStart)return false;this.windowStart=next;this.windowRevision++;return true;
  }
 };
 export const topicReaderItemKey=itemKey;

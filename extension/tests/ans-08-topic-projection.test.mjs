@@ -91,7 +91,7 @@ test('ANS-08 ContinuousTopicReader keeps opposite cursors, windows 3x40 rows and
  await reader.next();assert.deepEqual(reader.previousCursor,{at:80},'loading next must not lose earliest previous cursor');assert.deepEqual(reader.nextCursor,{at:160});
  await reader.previous();assert.deepEqual(reader.previousCursor,{at:40});assert.deepEqual(reader.nextCursor,{at:160},'loading previous must not lose furthest next cursor');
  await reader.next();assert.deepEqual(reader.nextCursor,null);assert.equal(new Set(reader.items.map(x=>x.entry.id)).size,160);
- const pin=new Set(['reader-0045']),layout=reader.layout(pin),visible=layout.filter(x=>x.kind==='item').map(x=>x.item.entry.id);
+ const pin=new Set(['reader-0045']);reader.pins=()=>pin;assert.equal(await reader.hydrateWindow(),true);const layout=reader.layout(pin),visible=layout.filter(x=>x.kind==='item').map(x=>x.item.entry.id);
  assert.ok(visible.length<=121);assert.ok(visible.includes('reader-0045'));assert.ok(layout.some(x=>x.kind==='spacer'));
  const beforeStart=reader.windowStart;assert.equal(reader.shiftWindow('previous'),true);assert.equal(reader.windowStart,Math.max(0,beforeStart-40));assert.equal(reader.shiftWindow('next'),true);assert.equal(reader.windowStart,beforeStart);
 });

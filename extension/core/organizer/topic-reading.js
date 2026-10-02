@@ -4,7 +4,7 @@ import {expressionTime} from './expression-time.js';
 import {readDependencyInputs,dependencyLifecycle} from '../thought-evidence.js';
 import {validProvider} from '../read-projection-keys.js';
 import {entryTime} from './topic-chronology.js';
-import {thoughtTopicDescriptorPage,invalidateThoughtTopicIndex} from '../thought-read-index.js';
+import {thoughtTopicDescriptorPage,thoughtTopicExpressionPage,invalidateThoughtTopicIndex} from '../thought-read-index.js';
 
 const normalized=value=>String(value||'').normalize('NFKC').toLocaleLowerCase();
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
@@ -103,19 +103,24 @@ async function invalidateForTimeMismatch(s,topicId){
 // Time-sorted Topic reading now pages a body-free generation projection.
 // Only the descriptor chunk selected for this response resolves canonical
 // Thought bodies, so a warm next chunk never rescans the entire Topic.
-export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next',timeEdge=null,providerKey=null}={}){
+export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next',timeEdge=null,providerKey=null,chronology='placement',expectedReadGeneration=null}={}){
+ if(!['placement','expression'].includes(chronology))fail();
  if(!idOK(topicId)||!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||anchorId!==null&&!idOK(anchorId)||sectionId!==null&&!idOK(sectionId))fail();
  if(providerKey!==null&&!validProvider(providerKey))fail();
  if(timeEdge!==null&&(!['earliest','latest','unknown'].includes(timeEdge)||cursor||anchorId||sectionId||direction!=='next'||query.trim()||providerKey!==null))fail();
  await s.finishFoundation();const needle=normalized(query.trim());
  if(cursor&&(cursor.topicId!==topicId||cursor.query!==needle||cursor.sort!==sort||(cursor.providerKey??null)!==providerKey))return {cursorInvalid:true,items:[],tracked:[]};
- const descriptor=await thoughtTopicDescriptorPage(s,{
+ const expression=chronology==='expression';
+ const descriptor=expression?await thoughtTopicExpressionPage(s,{
+  topicId,sort,cursor:cursor?{...cursor,year:null}:null,limit,direction,providerKey,query:needle,
+  anchorId,sectionId,timeEdge,expectedReadGeneration,describe:descriptorReader(s)
+ }):await thoughtTopicDescriptorPage(s,{
   topicId,sort,cursor:cursorView(cursor),limit,direction,
   anchorId:anchorId||null,sectionId:sectionId||null,timeEdge,describe:descriptorReader(s)
  });
  const tracked=trackedEntryIds.length?await s.trackedLibraryEntries({ids:trackedEntryIds}):[];
  const topic=await s.topic(topicId);
- if(descriptor.cursorInvalid)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(descriptor.cursorInvalid)return {cursorInvalid:true,anchorUnavailable:descriptor.anchorUnavailable===true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  if(descriptor.indexing)return {topic,tracked,items:[],sort,query:needle,indexing:true,coverage:descriptor.coverage,operations:descriptor.operations,nextCursor:null,previousCursor:null,sections:[],sectionCursor:null,matchCount:null};
 
  const placements=await s.run(()=>s.repository.transaction(false,async t=>{
@@ -138,12 +143,19 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   const p=placements.get(d.entryId),section=sectionById.get(d.sectionId);
   if(!p||!section){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   if(providerMatches&&!providerMatches.has(d.entryId)){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
-  let e;try{e=await s.readingEntry(d.entryId);}catch{lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
-  if(e.lifecycle!=='active'){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
-  if((e.sourceSentAt||null)!==(d.sourceSentAt||null)||(e.capturedAt||null)!==(d.capturedAt||null)){timeMismatch=true;break;}
+  let e;try{e=await s.readingEntry(d.entryId);}catch(error){if(expression)throw error;lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(e.lifecycle!=='active'){if(expression){timeMismatch=true;break;}lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(expression){
+   const fresh=await s.run(()=>s.repository.transaction(false,async t=>{
+    const row=await t.get('thoughts',d.entryId);
+    return row?.revision===d.entryRevision&&e.revision===row.revision&&JSON.stringify(await expressionTime(s,t,row))===JSON.stringify(d.expressionTime);
+   }));
+   if(!fresh){timeMismatch=true;break;}
+  }else if((e.sourceSentAt||null)!==(d.sourceSentAt||null)||(e.capturedAt||null)!==(d.capturedAt||null)){timeMismatch=true;break;}
   if(needle&&![e.body,e.title,e.note,section.title].some(value=>normalized(value).includes(needle))){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
-  let entry={...e,effectiveTime:d.effectiveTime,timeBasis:d.timeBasis};
-  if(bytes(entry)>128*1024)entry={id:e.id,revision:e.revision,large:true,title:e.title,bodyBytes:bytes(e.body),sourceSentAt:e.sourceSentAt||null,capturedAt:e.capturedAt||null,effectiveTime:d.effectiveTime,timeBasis:d.timeBasis,createdAt:e.createdAt,provenanceType:e.provenanceType};
+  const effectiveTime=expression?d.expressionTime.at:d.effectiveTime,timeBasis=expression?d.expressionTime.basis:d.timeBasis;
+  let entry={...e,effectiveTime,timeBasis,...(expression?{expressionTime:d.expressionTime}:{})};
+  if(bytes(entry)>128*1024)entry={id:e.id,revision:e.revision,large:true,title:e.title,bodyBytes:bytes(e.body),sourceSentAt:e.sourceSentAt||null,capturedAt:e.capturedAt||null,effectiveTime,timeBasis,...(expression?{expressionTime:d.expressionTime}:{}),createdAt:e.createdAt,provenanceType:e.provenanceType};
   const item={placement:p,entry},itemBytes=bytes(item);
   if(items.length&&size+itemBytes>256*1024){payloadStopped=true;break;}
   items.push(item);size+=itemBytes;lastConsumedKey=d._cursorKey||lastConsumedKey;
@@ -154,17 +166,21 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  const sectionPage=await topicSectionsPage(s,{topicId,cursor:sectionCursor,limit:100});
  if(sectionPage.cursorInvalid)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  const sectionMap=new Map(sectionPage.items.map(row=>[row.sectionId,row]));for(const row of candidateSections)sectionMap.set(row.sectionId,row);
- const boundary=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey}:null;
+ if(expression){
+  const fresh=await thoughtTopicExpressionPage(s,{topicId,sort,limit:1,providerKey,query:needle,expectedReadGeneration:descriptor.coverage.activeGeneration,describe:descriptorReader(s)});
+  if(fresh.cursorInvalid||fresh.indexing)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:fresh.coverage};
+ }
+ const boundary=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey,...(expression?{year:null,providerKey,query:needle}:{})}:null;
  const limitedNext=direction==='next'&&boundary?boundary:descriptor.nextCursor,limitedPrevious=direction==='prev'&&boundary?boundary:descriptor.previousCursor;
  const nextCursor=wrapCursor(topic.id,needle,providerKey,limitedNext),previousCursor=wrapCursor(topic.id,needle,providerKey,limitedPrevious);
  return {
-  currentCursor:cursor||null,
+  currentCursor:cursor||null,chronology,...(expression?{overview:descriptor.overview}:{}),
   sectionStarts:{},
   topic,sections:[...sectionMap.values()],sectionCursor:sectionPage.nextCursor,
   items,tracked,sort,query:needle,providerKey,
   matchCount:needle||providerKey!==null?null:(descriptor.coverage?.activeCount??null),
   nextCursor,previousCursor,
-  complete:descriptor.complete,
+  complete:direction==='prev'?!previousCursor:!nextCursor,
   coverage:descriptor.coverage,
   operations:descriptor.operations,
   timeEdgeUnavailable:descriptor.timeEdgeUnavailable

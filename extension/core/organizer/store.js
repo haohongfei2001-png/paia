@@ -1,3 +1,4 @@
+import {thoughtTopicGenerationMatches} from '../thought-read-index.js';
 import {validateRemovalEdit} from '../archive-removal.js';
 import {sourceRootPage} from '../thought-root-source-scope.js';
 import {recoverAIDraft} from './ai-draft.js';
@@ -54,10 +55,10 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async topicTimelinePage(o={}){return topicTimelinePage(this,o);}
  async topicDocumentPage(o={}){
   const view=o.view??'original';if(!['original','ai'].includes(view))reject('INVALID_OUTPUT');
-  const scoped=o.providerKey!==undefined&&o.providerKey!==null;if(view==='original'&&!o.sort&&!scoped)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort||scoped?await topicReadingPage(this,{...o,sort:o.sort||'asc'}):await super.topicDocumentPage(o));if(page.cursorInvalid)return page;
-  if(view==='ai')return {...page,items:[],view,viewState:'not_updated'};
-  const items=await this.run(()=>this.repository.transaction(false,async t=>{const out=[];for(const item of page.items)out.push({...item,entry:{...item.entry,...await entryTime(t,item.entry.id),originalSource:false,originalInputId:null}});return out;}));
-  return {...page,items,view,viewState:'automatic'};
+  const scoped=o.providerKey!==undefined&&o.providerKey!==null;if(view==='original'&&o.chronology!=='expression'&&!o.sort&&!scoped)await ensureTopicChronology(this,o.topicId);const page=await sanitizePage(this,o.sort||scoped||o.chronology==='expression'?await topicReadingPage(this,{...o,sort:o.sort||'asc'}):await super.topicDocumentPage(o));if(page.cursorInvalid)return o.chronology==='expression'?{cursorInvalid:true,anchorUnavailable:page.anchorUnavailable===true,items:[],tracked:[],nextCursor:null,previousCursor:null,complete:false}:page;
+  const items=view==='ai'?[]:await this.run(()=>this.repository.transaction(false,async t=>{const out=[];for(const item of page.items)out.push({...item,entry:{...item.entry,...await entryTime(t,item.entry.id),originalSource:false,originalInputId:null}});return out;}));
+  if(o.chronology==='expression'&&!await thoughtTopicGenerationMatches(this,{topicId:o.topicId,generation:page.coverage?.activeGeneration,viewKey:page.coverage?.activeKey,currentKey:page.coverage?.currentKey,indexing:page.indexing===true}))return {cursorInvalid:true,items:[],tracked:[],nextCursor:null,previousCursor:null,complete:false};
+  return {...page,items,view,viewState:view==='ai'?'not_updated':'automatic'};
  }
  removeTopic(r){return changeTopicContainer(this,r);}
  restoreTopicContainer(r){return changeTopicContainer(this,r,true);}
