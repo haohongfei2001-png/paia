@@ -33,17 +33,7 @@
   width: 18px;
   height: 18px;
 }
-#scope-search{
-  flex: 1 1 280px;
-  min-width: 0;
-  width: auto;
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid var(--paia-subtle);
-  border-radius: 8px;
-  background: var(--paia-surface);
-  color: var(--paia-text);
-}
+
 #scope-search::placeholder{
   color: var(--paia-meta);
 }
@@ -80,23 +70,9 @@
 #archive-root-main .conversation-document:hover,#archive-root-main .conversation-document:focus-visible{
   background: var(--paia-hover);
 }
-#document-panel #document-title,#document-panel #document-search-tools,#document-panel #input-time-order,#document-panel #document-body{
-  width: min(100%, var(--paia-prose-width, 680px));
-  margin-left: auto;
-  margin-right: auto;
-}
-#document-panel #document-title{
-  margin-top: 16px;
-  margin-bottom: 20px;
-  font-size: 28px;
-  line-height: 1.35;
-}
-#document-panel #input-time-order{
-  margin-top: 0;
-  margin-bottom: 22px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--paia-subtle);
-}
+
+
+
 #document-panel #document-body .library-block,#document-panel #document-body .archive-block{
   background: transparent;
   border: 0;
@@ -164,15 +140,11 @@ body #revisit-panel .revisit-card-open small{
 body #revisit-panel .revisit-more{
   color: var(--paia-secondary);
 }
-@media (max-width: 799px){#scope-search{
-    min-height: 44px;
-  }
+@media (max-width: 799px){
 #archive-root-main .conversation-document{
     padding: 16px 4px;
   }
-#document-panel #document-title{
-    font-size: 28px;
-  }
+
 body #revisit-panel button,body #revisit-panel summary{
     min-height: 44px;
     min-width: 44px;
@@ -379,17 +351,13 @@ body #revisit-panel h1{
 
 
 @media (max-width: 767px) {
-  #scope-search {
-    min-height: 44px;
-  }
+
 
   #archive-root-main .conversation-document {
     padding: 16px 4px;
   }
 
-  #document-panel #document-title {
-    font-size: 28px;
-  }
+
 
   .workspace.search-task #universal-search-dialog {
     width: 100%;

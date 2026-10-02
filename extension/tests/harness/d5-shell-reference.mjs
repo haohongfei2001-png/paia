@@ -10,11 +10,14 @@ async function metrics(p,reference){return p.evaluate(reference=>{
  const get=s=>{const e=document.querySelector(s),r=e.getBoundingClientRect(),c=getComputedStyle(e);return {x:r.x,y:r.y,width:r.width,height:r.height,color:c.color,background:c.backgroundColor,border:c.borderRightColor,fontSize:c.fontSize,lineHeight:c.lineHeight,letterSpacing:c.letterSpacing,minHeight:c.minHeight,paddingTop:c.paddingTop,paddingBottom:c.paddingBottom,text:e.textContent};};
  return {rail:get(reference?'.rail':'.sidebar'),logo:get(reference?'.logo img':'.brand img'),brand:get(reference?'.logo':'.brand'),first:get(reference?'.rail nav a': '#primary-nav button'),nav:get(reference?'.rail nav':'#primary-nav'),selected:get(reference?'.rail nav a[aria-current]':'#primary-nav button[aria-current="page"]')};
  },reference);}
+export async function openD5Reference(h,route='archive-root'){
+ const page=await h.context.newPage();
+ await page.route('https://paia-reference.invalid/**',async request=>{const path=new URL(request.request().url()).pathname,type=files.get(path);assert.ok(type,'reference requests only fixed local files');await request.fulfill({contentType:type,body:await readFile(new URL(path.slice(1),base))});});
+ await page.goto('https://paia-reference.invalid/screens/index.html#'+route);return page;
+}
 export async function compareD5Shell(h,variant){
- const p=h.archive,ref=await h.context.newPage(),rows=[];
+ const p=h.archive,ref=await openD5Reference(h),rows=[];
  try{
-  await ref.route('https://paia-reference.invalid/**',async route=>{const path=new URL(route.request().url()).pathname,type=files.get(path);assert.ok(type,'reference requests only fixed local files');await route.fulfill({contentType:type,body:await readFile(new URL(path.slice(1),base))});});
-  await ref.goto('https://paia-reference.invalid/screens/index.html#archive-root');
   await mkdir('work/qa-dvn-shell/d5',{recursive:true});
   const logo=await readFile(new URL('../../ui/assets/paia-logo-32.png',import.meta.url));
   assert.equal(createHash('sha256').update(logo).digest('hex'),'6e487abdab45de5f5dbec02f2a05098797616e949c409c93082a4e0488194065');

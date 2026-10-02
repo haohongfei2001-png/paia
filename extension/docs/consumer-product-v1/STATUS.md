@@ -1,5 +1,12 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q2 — Archive composition in progress — 2026-10-02
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q2`.**
+D5/Q1 [PR126](https://github.com/haohongfei2001-png/paia/pull/126) is integrated at `68ddff2e3d446965190a5feb95b2403a970c1c34`; full37050304178 and exact-main37052293236/Pages37052292520 PASS. Final head/tested merge/main share tree `0a035afa75757a47e694369e83621eb245b5f844`. Full had1464unit/205browser/102adapter/58privacy plus actual hosted Mac/release; main browser/Mac/full were SKIPPED. See [Q1 retained evidence](implementation/desktop-vnext/D5-Q1.md).
+
+Q2 now aligns Archive topbar/title, contextual Navigator and Reader spacing with canonical A01/A02/A03 using existing AppShell/Reader owners. Retire duplicate Archive search/title/page/order visual rules in-place. Preserve saved reading preferences, editable node identity, scope/order/back/history behavior and all source/domain guards. Paired source/release geometry/pixels and affected regressions are pending; this entry is work started, not acceptance. Thought/Organize/Context/Settings and other D5 states, independent visual review and final owner acceptance remain open.
+
 ## D5/Q1 — canonical shell convergence in progress — 2026-10-02
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q1`.**
