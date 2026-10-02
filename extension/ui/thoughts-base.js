@@ -89,7 +89,7 @@ export class ThoughtWorkspace {
  applyLayout(){$('thought-list').classList.add('topic-compact-list');}
  thoughtRootVisible(){return !$('thought-panel').hidden&&!this.id&&!$('thought-collection').hidden;}
  ensureContinuousRoot(){if(this.continuousInstalled)return;this.continuousInstalled=true;wireContinuousKeyboard($('thought-continuous-sentinel'),()=>this.loadHomeNext());wireContinuousKeyboard($('unplaced-continuous-sentinel'),()=>this.loadUnplacedNext());$('thought-continuous-retry').addEventListener('click',()=>void this.loadHomeNext());$('unplaced-continuous-retry').addEventListener('click',()=>void this.loadUnplacedNext());if('IntersectionObserver'in window){this.continuousObserver=new IntersectionObserver(entries=>{if(!$('thought-panel').hidden)for(const entry of entries){if(!entry.isIntersecting)continue;if(entry.target.id==='thought-continuous-sentinel'&&this.thoughtRootVisible())void this.loadHomeNext();if(entry.target.id==='unplaced-continuous-sentinel'&&!this.id&&!$('library-unplaced-list').hidden)void this.loadUnplacedNext();}},{rootMargin:'600px 0px'});this.continuousObserver.observe($('thought-continuous-sentinel'));this.continuousObserver.observe($('unplaced-continuous-sentinel'));}}
- topicContinuousVisible(){return !!this.id&&this.view==='original'&&!$('thought-document').hidden;}
+ topicContinuousVisible(){return this.originalMode!=='years'&&!!this.id&&this.view==='original'&&!$('thought-document').hidden;}
  ensureTopicContinuous(){if(this.topicReaderInstalled)return;this.topicReaderInstalled=true;
   wireContinuousKeyboard($('topic-continuous-after'),()=>this.loadTopicContinuous('next'));wireContinuousKeyboard($('topic-continuous-before'),()=>this.loadTopicContinuous('previous'));
   $('topic-continuous-after-retry').addEventListener('click',()=>void this.loadTopicContinuous('next'));$('topic-continuous-before-retry').addEventListener('click',()=>void this.loadTopicContinuous('previous'));
@@ -120,6 +120,7 @@ export class ThoughtWorkspace {
 
  resetHomeCollection(){clearTimeout(this.continuousTimer);this.homeCollection=null;this.homeDesiredCount=40;this.homeRestoring=false;}
  invalidateHomeSnapshot(){
+  this.invalidateTimeline?.();
   // A saved list is only a reading-position optimization. Library mutations
   // invalidate its rows even while another Topic is open; retain query/scroll
   // and the loaded extent so returning reads current authority.

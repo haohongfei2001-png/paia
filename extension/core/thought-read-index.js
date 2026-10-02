@@ -112,7 +112,7 @@ export async function thoughtRootIndexPage(store,{cursor=null,limit=40}={}){
 // ANS-08 Topic Reader projection. Projection rows intentionally contain only
 // ordering / placement / time descriptors. Thought body/title/note remain in
 // the canonical Thought store and are resolved only for the visible response.
-export const THOUGHT_TOPIC_INDEX_VERSION=4;
+export const THOUGHT_TOPIC_INDEX_VERSION=5;
 export const THOUGHT_TOPIC_BUILD_BATCH=100;
 export const THOUGHT_TOPIC_STATUS_KEY=3;
 export const THOUGHT_TOPIC_MAX_BUILD_BATCHES=100;
@@ -335,22 +335,24 @@ export async function thoughtTopicDescriptorPage(store,{topicId,sort='asc',curso
 
 // Reliable expression-year projection uses the same generation owner as normal
 // reading. It keeps body-free rows and never changes legacy ordering fields.
-export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=null,providerKey=null,cursor=null,limit=40,expectedReadGeneration=null,describe}={}){
- if(!['asc','desc'].includes(sort)||!Number.isInteger(limit)||limit<1||limit>40||year!==null&&year!=='unknown'&&(!Number.isInteger(year)||year<0||year>9999))throw Error('INVALID_EXPRESSION_PAGE');
+export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=null,providerKey=null,query='',direction='next',cursor=null,limit=40,expectedReadGeneration=null,describe}={}){
+ if(!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||year!==null&&year!=='unknown'&&(!Number.isInteger(year)||year<0||year>9999))throw Error('INVALID_EXPRESSION_PAGE');
  const build=await ensureThoughtTopicIndex(store,{topicId,describe}),state=await currentTopicMeta(store,topicId),meta=state.meta;
  const coverage={...topicSnapshot(meta),currentKey:state.key},operations={...(build.operations||{}),descriptorRowsRead:0};
- const empty={items:[],nextCursor:null,coverage,operations,complete:false};
+ const empty={items:[],nextCursor:null,previousCursor:null,coverage,operations,complete:false};
  if(!meta?.activeGeneration||meta.activeKey!==state.key)return {...empty,indexing:true};
  const generation=meta.activeGeneration;
- if(expectedReadGeneration!==null&&expectedReadGeneration!==generation||cursor&&(cursor.generation!==generation||cursor.viewKey!==meta.activeKey||cursor.sort!==sort||cursor.year!==year||cursor.providerKey!==providerKey))return {...empty,cursorInvalid:true};
+ if(expectedReadGeneration!==null&&expectedReadGeneration!==generation||cursor&&(cursor.generation!==generation||cursor.viewKey!==meta.activeKey||cursor.sort!==sort||cursor.year!==year||cursor.providerKey!==providerKey||(cursor.query||'')!==query))return {...empty,cursorInvalid:true};
  const kind=topicKind(generation,'expression-'+sort),stem=year===null?null:expressionPrefix(generation,sort,year==='unknown'?null:year);
  const range=stem?IDBKeyRange.bound([THOUGHT_TOPIC_STATUS_KEY,kind,stem],[THOUGHT_TOPIC_STATUS_KEY,kind,stem+'\uffff']):prefix([THOUGHT_TOPIC_STATUS_KEY,kind]);
  if(cursor&&(!Array.isArray(cursor.key)||!range.includes(cursor.key)))return {...empty,cursorInvalid:true};
- const page=await store.run(()=>store.repository.transaction(false,t=>t.rangePage('libraryMigrationItems','byStatus',range,cursor?.key||null,limit)));
- operations.descriptorRowsRead=page.rows.length;
+ const page=direction==='prev'&&!cursor?{rows:[],next:null}:await store.run(()=>store.repository.transaction(false,t=>t.rangePage('libraryMigrationItems','byStatus',range,cursor?.key||null,limit,direction)));
+ const ordered=direction==='prev'?[...page.rows].reverse():page.rows;
+ operations.descriptorRowsRead=ordered.length;
  const counts=providerKey===null?meta.expressionCounts.all:meta.expressionCounts.providers['provider:'+providerKey]||{known:{},unknown:0,total:0};
  const years=Object.keys(counts.known).map(Number).sort((a,b)=>a-b);
  const overview={generation,knownYearCounts:counts.known,unknownCount:counts.unknown,total:counts.total,observedInterval:years.length?{from:years[0],to:years.at(-1)}:null,coverage:'complete',timeZone:'UTC'};
- const nextCursor=page.next?{generation,viewKey:meta.activeKey,sort,year,providerKey,key:page.rows.at(-1).key}:null;
- return {items:page.rows.map(r=>({...r.value,_cursorKey:r.key})).filter(d=>providerKey===null||d.providerKeys?.includes(providerKey)),nextCursor,coverage,operations,overview,complete:!nextCursor};
+ const at=key=>key?{generation,viewKey:meta.activeKey,sort,year,providerKey,query,key}:null,first=ordered[0]?.key,last=ordered.at(-1)?.key;
+ const nextCursor=direction==='next'?(page.next?at(last):null):at(last),previousCursor=direction==='prev'?(page.next?at(first):null):(cursor?at(first):null);
+ return {items:ordered.map(r=>({...r.value,_cursorKey:r.key})).filter(d=>providerKey===null||d.providerKeys?.includes(providerKey)),nextCursor,previousCursor,coverage,operations,overview,complete:direction==='prev'?!previousCursor:!nextCursor};
 }

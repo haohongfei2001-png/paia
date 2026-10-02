@@ -14,6 +14,9 @@ async function describePlacement(s,t,topic,p){
  if(!activePlacement(p))return null;
  const row=await t.get('thoughts',p.entryId);
  if(!row||row.storageSchema!==2||row.lifecycle!=='active')return null;
+ // Purge can invalidate canonical readability before lazy row cleanup runs.
+ // Both projections must count the same live eligible set as body resolution.
+ if(!await s.sourcePresent(t,row.sourceRecordIds)&&(await s.readableEntry(t,row.id)).lifecycle!=='active')return null;
  const time=await entryTime(t,row.id),rawTime=time.sourceSentAt||time.capturedAt||row.createdAt||null;
  const effectiveTime=Number.isFinite(Date.parse(rawTime||''))?rawTime:null;
  return {
