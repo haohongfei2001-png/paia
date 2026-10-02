@@ -139,3 +139,7 @@ test('D2 only the current root anchor restoration may release its programmatic-s
  const w=Object.assign(Object.create(TopicController.prototype),{homeCollection:{},serial:1});
  try{w.restoreHomeAnchor({key:'one',top:140});frames.shift()();const staleCleanup=frames.shift();w.restoreHomeAnchor({key:'one',top:150});staleCleanup();assert.equal(w.homeRestoring,true);const staleOuter=frames.shift();w.serial++;w.restoreHomeAnchor({key:'one',top:160});staleOuter();assert.equal(w.homeRestoring,true);frames.shift()();assert.equal(w.homeRestoring,true);frames.shift()();assert.equal(w.homeRestoring,false);}finally{Object.assign(globalThis,previous);}
 });
+
+test('D2 explicit root reveal survives a focus-triggered replay already pending or failed',async()=>{
+ for(const failed of [false,true]){const r={windowStart:40,windowSize:120,windowRevision:2,items:Array.from({length:200},(_,i)=>({key:'key'+i})),error:failed?Error('STORAGE_FAILED'):null},w=Object.assign(Object.create(TopicController.prototype),{homeCollection:r,homeWindowShifting:!failed,thoughtRootVisible:()=>true});await w.shiftHomeWindow('previous',{reveal:true});assert.deepEqual(w.homeHydrationAnchor,{key:'key40',top:140,focus:true});assert.equal(w.homeWindowReveal.collection,r);assert.equal(w.homeWindowReveal.revision,2);}
+});
