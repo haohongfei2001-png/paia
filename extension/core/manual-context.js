@@ -133,7 +133,7 @@ export class ManualContext {
    if(typeof o.text!=='string'||!o.text.trim()||o.text.length>MANUAL_CONTEXT_LIMITS.materialUTF16Units)fail();
    // One ephemeral final-output overlay; material overrides remain inputs to the
    // compiler, never a competing final body. Any input/policy change discards it.
-   s.outputOverride=redact(o.text,s.redactions);s.generation++;this.invalidate(s,{overlay:false});return this.compile(s);
+   const next=structuredClone(s);next.outputOverride=redact(o.text,next.redactions);next.generation++;this.invalidate(next,{overlay:false});const result=await this.compile(next);this.sessions.set(s.id,next);return result;
   }
   if(o.action==='suggest'){
    if(typeof o.query!=='string'||o.query.length>1000||o.profileId!==undefined&&(typeof o.profileId!=='string'||!o.profileId||o.profileId.length>200))fail();

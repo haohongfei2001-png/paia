@@ -85,8 +85,8 @@ assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,
     await eventually(async()=>await page.evaluate(async()=>{
       const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));return getContextController()?.data?.items.length===1;
     }),'explicit selection reaches the existing material tray');
-    await page.locator('.universal-close').click();
-    await eventually(()=>page.locator('#material-workbench').isVisible(),'closing selection restores For AI');
+    await eventually(async()=>!await page.locator('#universal-search-dialog').isVisible(),'explicit selection closes the picker for the single Context workspace');
+    await eventually(()=>page.locator('#material-workbench').isVisible(),'selection returns to the same Context owner');
     await nav(page,'library');
     await eventually(()=>page.locator('#scope-search').isVisible(),'Archive scoped search remains reachable');
     await noRemovedControls(page);

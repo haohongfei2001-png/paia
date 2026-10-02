@@ -10,7 +10,7 @@ for(const variant of ['source','release'])test('D4 '+variant+' production worksp
  const h=await FakeChatGPT.start(variant==='release'?{extensionPath:'work/current-release'}:{}),p=h.archive;
  try{
   await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented,'consent');
-  await h.open({id:'d4-context',title:'D4 synthetic source',base:1609459200,messages:[{id:'d4-a',text:'D4_ORIGINAL_CANARY first human expression'},{id:'d4-b',text:'D4_ORIGINAL_CANARY second human expression'}]});
+  await h.open({id:'d4-context',title:'D4 synthetic source',base:1609459200,messages:[{id:'d4-context-input-a',text:'D4_ORIGINAL_CANARY first human expression'},{id:'d4-context-input-b',text:'D4_ORIGINAL_CANARY second human expression'}]});
   await eventually(async()=>(await h.state()).records.length===2,'two originals');const originalRecords=(await h.state()).records;await p.bringToFront();
   await p.locator('#primary-nav [data-view=memory]').click();await p.getByRole('button',{name:'从档案选择',exact:true}).click();
   await p.getByRole('searchbox',{name:'全局搜索'}).fill('D4_ORIGINAL_CANARY');await eventually(async()=>await p.locator('.universal-hit').count()===2,'search');
@@ -26,6 +26,8 @@ for(const variant of ['source','release'])test('D4 '+variant+' production worksp
   await p.getByRole('button',{name:'确认本次修改',exact:true}).click();await eventually(async()=>(await state(p)).state==='review','output edit invalidates prior review');
   assert.equal(await p.locator('[data-output=copy]').isDisabled(),true);await p.locator('#context-confirm-review').click();await eventually(async()=>(await state(p)).state==='ready','edited output reviewed');
   const reviewed=await state(p);assert.equal(reviewed.text,'D4_OUTPUT_ONLY edited synthesis');assert.equal(reviewed.outputEdited,true);
+  await p.locator('#primary-nav [data-view=library]').click();await eventually(()=>p.locator('#scope-search').isEnabled(),'left Context');
+  await p.locator('#primary-nav [data-view=memory]').click();await eventually(async()=>await p.locator('[data-output=copy]').isEnabled()&&await p.locator('#material-output-text').textContent()===reviewed.text,'same ready output restored only after fresh read');
   await p.evaluate(()=>{Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw Error('synthetic denial');}}});});
   await p.locator('[data-output=copy]').click();await eventually(()=>p.locator('.material-copy-fallback').isVisible(),'manual fallback');assert.equal(await p.locator('.material-copy-fallback').inputValue(),reviewed.text);
   await mkdir('work/qa-dvn-context',{recursive:true});const sizes=[];

@@ -119,3 +119,31 @@ test('D4 whole-Topic material selection cannot continue an old click after flush
  globalThis.chrome={runtime:{async sendMessage(){statusReads++;owner.id='topic-after';return {ok:true,data:{topics:[]}};}}};
  try{owner.id='topic-before';owner.flushEditors=async()=>true;await owner.selectTopicMaterials();assert.equal(statusReads,1);}finally{globalThis.chrome=oldChrome;}
 });
+test('D4 add completes its mutation queue before navigation re-enters that same owner for refresh',async()=>{
+ const {ContextController}=await import('../ui/context-workspace.js');const ui=Object.create(ContextController.prototype),oldDocument=globalThis.document;
+ Object.assign(ui,{intent:0,serial:Promise.resolve(),busy:false,data:{items:[]},ensure:async()=>{},flush:async()=>{},render(){},feedback(){},rpc:async()=>({items:[{ref:{kind:'input',id:'synthetic',revision:1}}]})});
+ let unlocked=false,rechecked=false;ui.onMemory=async()=>{unlocked=!ui.busy;if(unlocked)await ui.perform(async()=>{rechecked=true;});};
+ globalThis.document={dispatchEvent(){}};
+ try{await ui.add([{kind:'input',id:'synthetic',revision:1}]);assert.equal(unlocked,true);assert.equal(rechecked,true);assert.equal(ui.busy,false);}finally{globalThis.document=oldDocument;}
+});
+test('D4 an unsplittable output edit is atomic and cannot strand the UI on an old generation',async()=>{
+ const f=await setup();await f.call('add',{refs:f.refs});await f.call('task',{purpose:'Review'});await f.call('budget',{budget:'short'});await f.call('compile');
+ const before=f.state;await assert.rejects(f.call('editOutput',{text:'a'+'\u0301'.repeat(20000)}),{code:'MEMORY_LIMIT'});
+ const current=await f.call('read');assert.equal(current.generation,before.generation);assert.equal(current.text,before.text);assert.deepEqual(current.reviewBinding,before.reviewBinding);assert.equal(current.outputEdited,false);
+});
+test('D4 missing purpose has a safe worker-visible classification, without exposing private exception text',async()=>{
+ const {ArchiveError,safeErrorCode}=await import('../core/constants.js');assert.equal(safeErrorCode(new ArchiveError('MEMORY_PURPOSE_REQUIRED')),'MEMORY_PURPOSE_REQUIRED');assert.equal(safeErrorCode(new Error('PRIVATE_PURPOSE_CANARY')),'STORAGE_FAILED');
+});
+test('D4 same-data workspace activation does not remount an already visible draft field',async()=>{
+ const {ContextController}=await import('../ui/context-workspace.js');const ui=Object.create(ContextController.prototype);let renders=0;
+ Object.assign(ui,{intent:0,serial:Promise.resolve(),busy:false,drafts:new Map(),data:{state:'dirty',items:[],note:'',text:''},root:{firstChild:{},hidden:true},legacyRoot:{hidden:false},ensure:async()=>{},invalidateOutput(){},render(){renders++;},feedback(){}});ui.rpc=async()=>structuredClone(ui.data);
+ ui.activate(true);await ui.serial;assert.equal(renders,0);assert.equal(ui.root.hidden,false);assert.equal(ui.legacyRoot.hidden,true);
+});
+test('D4 unchanged Ready activation restores validated output controls without replacing a draft field',async()=>{
+ const {ContextController}=await import('../ui/context-workspace.js'),ui=Object.create(ContextController.prototype);let renders=0;
+ const output={textContent:'EXACT_REVIEWED',replaceChildren(){this.textContent='';}},copy={disabled:false},choice={disabled:false},draft={value:'AUTHOR_DRAFT',selectionStart:3,selectionEnd:7,readOnly:false};
+ const root={firstChild:{},hidden:false,querySelector(selector){return selector==='#material-output-text'?output:selector==='[data-material-edit=output]'?draft:null;},querySelectorAll(selector){return selector==='[data-output]'?[copy]:selector==='[data-package-choice]'?[choice]:[copy,choice];}};
+ Object.assign(ui,{intent:0,serial:Promise.resolve(),busy:false,mode:'preview',drafts:new Map(),data:{state:'ready',items:[],text:'EXACT_REVIEWED'},root,legacyRoot:{hidden:true},ensure:async()=>{},render(){renders++;},feedback(){}});ui.rpc=async()=>structuredClone(ui.data);
+ ui.activate(false);assert.equal(output.textContent,'');assert.equal(copy.disabled,true);ui.activate(true);await ui.serial;
+ assert.equal(output.textContent,'EXACT_REVIEWED');assert.equal(copy.disabled,false);assert.equal(choice.disabled,false);assert.equal(renders,0);assert.deepEqual(draft,{value:'AUTHOR_DRAFT',selectionStart:3,selectionEnd:7,readOnly:false});
+});
