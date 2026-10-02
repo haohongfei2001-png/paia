@@ -4,8 +4,8 @@ import {eventually} from './fake-chatgpt.mjs';
 import {openArchiveWindow} from './archive-navigator.mjs';
 import {openD5Reference} from './d5-shell-reference.mjs';
 async function metrics(p,ref){return p.evaluate(ref=>{
- const measure=selector=>{const e=document.querySelector(selector),r=e.getBoundingClientRect(),c=getComputedStyle(e);return {x:r.x,y:r.y,width:r.width,height:r.height,paddingTop:c.paddingTop,paddingLeft:c.paddingLeft,paddingRight:c.paddingRight,fontSize:c.fontSize,fontWeight:c.fontWeight,fontSynthesis:c.fontSynthesis,lineHeight:c.lineHeight,borderRightWidth:c.borderRightWidth};};
- return {rail:measure(ref?'.rail':'.sidebar'),navigator:measure(ref?'.navigator':'#archive-navigator'),header:measure(ref?'.topbar':'.workspace-header'),body:measure(ref?'.main>.workspace':'#document-page'),title:measure(ref?'.main h1':'#document-title'),prose:measure(ref?'.prose':'.library-prose'),overflow:document.documentElement.scrollWidth-innerWidth};
+ const measure=selector=>{const e=document.querySelector(selector),r=e.getBoundingClientRect(),c=getComputedStyle(e);return {x:r.x,y:r.y,width:r.width,height:r.height,paddingTop:c.paddingTop,paddingLeft:c.paddingLeft,paddingRight:c.paddingRight,fontSize:c.fontSize,fontWeight:c.fontWeight,fontSynthesis:c.fontSynthesis,lineHeight:c.lineHeight,borderRightWidth:c.borderRightWidth,marginBottom:c.marginBottom};};
+ return {rail:measure(ref?'.rail':'.sidebar'),navigator:measure(ref?'.navigator':'#archive-navigator'),header:measure(ref?'.topbar':'.workspace-header'),body:measure(ref?'.main>.workspace':'#document-page'),title:measure(ref?'.main h1':'#document-title'),prose:measure(ref?'.prose':'.library-prose'),caption:measure(ref?'.input-entry time':'.block-time'),entry:measure(ref?'.input-entry':'.library-block'),overflow:document.documentElement.scrollWidth-innerWidth};
  },ref);}
 export async function compareD5Archive(h,variant){
  const p=h.archive,ref=await openD5Reference(h,'reader'),rows=[];
@@ -23,7 +23,7 @@ export async function compareD5Archive(h,variant){
   assert.equal(content.bodies.length,3,'canonical fixture contains exactly three expressions');
   await eventually(async()=>await p.locator('.library-prose').count()===3,'all three canonical expressions mounted');
   assert.deepEqual(await p.locator('.library-prose').allTextContents(),content.bodies);
-  const renderedTimes=await p.evaluate(times=>times.map(t=>new Date(t).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false})),times);
+  const renderedTimes=await p.evaluate(times=>times.map(t=>new Date(t).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'})+' · '+new Date(t).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false})),times);
   assert.deepEqual(await p.locator('#document-body .block-time').allTextContents(),renderedTimes);
   await p.evaluate(()=>globalThis.__d5ReaderNode=document.querySelector('.library-prose'));
   await mkdir('work/qa-dvn-shell/d5-archive',{recursive:true});
@@ -42,10 +42,10 @@ export async function compareD5Archive(h,variant){
    assert.ok(production.overflow<=1);assert.equal(await p.evaluate(()=>__d5ReaderNode.isConnected),true,'visual changes retain the actual editor node');
    if(width>=1024){
     for(const [key,fields]of Object.entries({navigator:['x','y','width'],header:['x','y','width','height'],body:['x','y','width']}))for(const field of fields)assert.ok(Math.abs(production[key][field]-reference[key][field])<=2,`${width} ${key}.${field}: ${production[key][field]} vs ${reference[key][field]}`);
-    assert.equal(production.navigator.borderRightWidth,'1px');
+    assert.equal(production.navigator.borderRightWidth,'1px');assert.equal(production.entry.marginBottom,reference.entry.marginBottom,'canonical inter-expression margin');assert.ok(Math.abs((production.caption.y-production.title.y-production.title.height)-(reference.caption.y-reference.title.y-reference.title.height))<=2,'first date follows canonical title/subtitle rhythm');
    }else{assert.equal(await p.locator('#archive-navigator-toggle').isVisible(),true,'narrow navigation remains explicit');}
    for(const key of ['paddingTop','paddingLeft','paddingRight']){assert.equal(production.body[key],reference.body[key]);assert.equal(production.header[key],reference.header[key]);}
-   assert.equal(production.title.fontWeight,reference.title.fontWeight);assert.equal(production.title.fontSize,reference.title.fontSize);assert.equal(production.title.lineHeight,reference.title.lineHeight);
+   assert.ok(Math.abs(production.caption.height-reference.caption.height)<=2,'inline metadata remains one canonical caption row');assert.equal(production.title.fontWeight,reference.title.fontWeight);assert.equal(production.title.fontSize,reference.title.fontSize);assert.equal(production.title.lineHeight,reference.title.lineHeight);
    assert.equal(await p.locator('.workspace-header #input-time-toggle').count(),1,'same sole order control lives in topbar');
    rows.push({width,theme,production,reference,scope:'Archive fixed composition with canonical synthetic expression content; wrapping follows retained reader preferences'});
   }

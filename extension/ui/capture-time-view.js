@@ -1,3 +1,10 @@
+// Read-only metadata formatting: one authoritative instant, no capture-time fallback.
+export function readerTimestamp(value,{day,time,unknown}){
+ if(value===null||value===undefined||value==='')return unknown;
+ const date=new Date(value);if(!Number.isFinite(date.getTime()))return unknown;
+ const instant=date.toISOString();return `${day(instant)} · ${time(instant)}`;
+}
+
 // Update source-time presentation without replacing editable prose or its undo state.
 // Sections retain the existing frozen reading order; this never changes user text.
 export function refreshCaptureTimes(body,rows,{day,time}) {
