@@ -124,4 +124,4 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader 
 @media(max-width:1439px){body:is([data-paia-space="library"],[data-paia-space="archive"]) #workspace-error{padding-inline:24px}}
 @media(max-width:1023px){body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader #workspace-error{margin-left:0}}
 @media(max-width:767px){body:is([data-paia-space="library"],[data-paia-space="archive"]) #workspace-error{padding-inline:16px}}
-@media(pointer:coarse){body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#document-menu,#back,#input-time-toggle,#archive-root-overflow summary,#archive-navigator-toggle,#scope-search){min-height:44px;min-width:44px}}
+@media(max-width:767px),(pointer:coarse){body:is([data-paia-space="library"],[data-paia-space="archive"]) .workspace-header :is(#document-menu,#back,#input-time-toggle,#archive-root-overflow summary,#archive-navigator-toggle,#scope-search){min-height:44px;min-width:44px}}
