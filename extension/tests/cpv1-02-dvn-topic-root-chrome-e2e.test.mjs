@@ -43,7 +43,7 @@ for(const variant of ['source','release'])test(`D2 compact Topic root migrates g
     await p.screenshot({path:`work/qa-dvn-topic-root/${variant}-${appearance}-${width}.png`});matrix.push({appearance,width,overflow});
    }
   }
-  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>row.locator('small').textContent().then(x=>/Thought excerpt/.test(x)));
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>row.locator('small').textContent().then(x=>/Thought excerpt/.test(x)));assert.equal(await p.locator('#thought-search').getAttribute('placeholder'),'Search thoughts, topics or text…');assert.doesNotMatch(await p.locator('#thought-home-tools').innerText(),/[\u3400-\u9fff]/,'root product controls follow English locale');
   assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id})).body,body);
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__d2RestoreSend=()=>chrome.runtime.sendMessage=send;globalThis.__d2Held=[];chrome.runtime.sendMessage=(message,...args)=>{const result=send(message,...args);return message.type==='LIBRARY_INDEX_PAGE'?Promise.resolve(result).then(value=>new Promise(resolve=>__d2Held.push(()=>resolve(value)))):result;};});
   await p.locator('[data-view="thoughts"]').click();await eventually(()=>p.evaluate(()=>__d2Held.length>0),'root reread is held before mutation');
@@ -85,10 +85,34 @@ for(const variant of ['source','release'])test(`D2 actual300 Topic DTO window, e
   // Exact backward replay at the terminal frontier fails visibly without an
   // automatic retry, then succeeds via the same explicit Retry control.
   await p.evaluate(()=>{globalThis.__d2RootSend=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__d2RootFailures=0;chrome.runtime.sendMessage=(message,...args)=>{if(message.type==='LIBRARY_INDEX_PAGE'){__d2RootFailures++;return Promise.resolve({ok:false,error:'STORAGE_FAILED'});}return __d2RootSend(message,...args);};});
-  await p.locator('[data-root-window-action="previous"]').evaluate(node=>node.click());await eventually(()=>p.locator('#thought-continuous-retry').isVisible(),'failed exact prior window has Retry');assert.equal(await p.evaluate(()=>__d2Root.homeCollection.terminal),true);const failures=await p.evaluate(()=>__d2RootFailures);await p.waitForTimeout(350);assert.equal(await p.evaluate(()=>__d2RootFailures),failures,'same failed window is never automatically retried');
-  await p.evaluate(()=>chrome.runtime.sendMessage=__d2RootSend);await p.locator('#thought-continuous-retry').click();await eventually(()=>p.locator('#thought-continuous-retry').isHidden(),'explicit terminal replay retry succeeds');assert.ok(await p.evaluate(()=>__d2Root.homeCollection.bodies.size<=120));
+  const previous=p.locator('[data-root-window-action="previous"]');await previous.focus();await previous.press('Enter');await eventually(()=>p.locator('#thought-continuous-retry').isVisible(),'failed exact prior window has Retry');assert.equal(await p.evaluate(()=>__d2Root.homeCollection.terminal),true);const failures=await p.evaluate(()=>__d2RootFailures);await p.waitForTimeout(350);assert.equal(await p.evaluate(()=>__d2RootFailures),failures,'same failed window is never automatically retried');
+  await p.evaluate(()=>chrome.runtime.sendMessage=__d2RootSend);await p.locator('#thought-continuous-retry').click();await eventually(()=>p.locator('#thought-continuous-retry').isHidden(),'explicit terminal replay retry succeeds');assert.ok(await p.evaluate(()=>__d2Root.homeCollection.bodies.size<=120));await eventually(()=>p.evaluate(()=>[...document.querySelectorAll('#thought-list [data-topic-id]')].some(node=>{const r=node.getBoundingClientRect();return r.bottom>140&&r.top<innerHeight&&node.innerText.trim();})),'explicit retry returns usable visible rows');
   mkdirSync('work/qa-dvn-topic-root',{recursive:true});await p.screenshot({path:`work/qa-dvn-topic-root/${variant}-dense-refetch.png`});
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
   writeFileSync(`work/qa-dvn-topic-root/${variant}-dense.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,topics:300,retainedBodies:audit.retained,bodyFreeSnapshots:true,hiddenRootReleased:true,exactBack:true,fullRootSearch:true,explicitTerminalRetry:true,zeroProviderCalls:true},null,2));
+ }finally{await h.close();}
+});
+
+for(const variant of ['source','release'])test(`D2 Topic note preserves the existing recovery owner through conflict, failure and lost acknowledgement (${variant})`,{timeout:120000},async()=>{
+ const h=await FakeChatGPT.start(variant==='release'?{extensionPath:release}:{}),p=h.archive,outcomes=[];
+ try{
+  await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  for(const mode of ['conflict','failure','lost-ack']){
+   const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC_NOTE_'+mode,operationId:op()}}),current=await rpc(p,'GET_LIBRARY_TOPIC',{id:topic.id}),epoch=(await rpc(p,'GET_STATE')).recoveryEpoch,summary='SYNTHETIC_RECOVERED_TOPIC_NOTE_'+mode,operationId=op(),edit={id:topic.id,expectedRevision:current.revision,changes:{summary},operationId};
+   await rpc(p,'PAIA_RECOVERY_DRAFT_SAVE',{draft:{epoch,kind:'topic_metadata',ownerId:topic.id,token:operationId,operation:{type:'EDIT_LIBRARY_TOPIC',edit}}});
+   if(mode==='conflict')await rpc(p,'EDIT_LIBRARY_TOPIC',{edit:{id:topic.id,expectedRevision:current.revision,changes:{summary:'SYNTHETIC_NEWER_SAVED_NOTE'},operationId:op()}});
+   else await p.evaluate(({operationId,mode})=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);let held=false;globalThis.__noteRestore=()=>chrome.runtime.sendMessage=send;globalThis.__noteAttempts=[];chrome.runtime.sendMessage=async(message,...args)=>{if(message.type==='EDIT_LIBRARY_TOPIC'&&message.edit.operationId===operationId){__noteAttempts.push(message.edit.operationId);if(!held){held=true;if(mode==='lost-ack')await send(message,...args);return {ok:false,error:'STORAGE_FAILED'};}}return send(message,...args);};},{operationId,mode});
+   await p.locator('[data-view="thoughts"]').click();await eventually(()=>p.locator(`[data-topic-id="${topic.id}"]`).count().then(n=>n===1));await p.locator(`[data-topic-id="${topic.id}"]`).click();
+   const note=p.locator('#topic-note-editor'),field=note.locator('textarea');await eventually(()=>field.inputValue().then(value=>value===summary),'recovered summary is visible through the same metadata owner');assert.equal(await note.isVisible(),true);
+   if(mode==='conflict'){
+    assert.equal((await rpc(p,'GET_LIBRARY_TOPIC',{id:topic.id})).summary,'SYNTHETIC_NEWER_SAVED_NOTE','recovery never silently overwrites the newer version');
+    await p.locator('#topic-menu summary').click();await p.locator('#topic-menu button').filter({hasText:/^主题说明$/}).click();assert.equal(await field.inputValue(),summary,'Topic note opens the conflicted owner without a blocking save');
+    await note.getByRole('button',{name:'核对说明版本',exact:true}).click();await p.locator('#library-form select[name="decision"]').selectOption('mine');await p.locator('#library-form button[type="submit"]').click();
+   }else await note.getByRole('button',{name:'重试保存说明',exact:true}).click();
+   await eventually(async()=>(await rpc(p,'GET_LIBRARY_TOPIC',{id:topic.id})).summary===summary,'explicit recovery save reaches canonical Topic');await eventually(async()=>(await rpc(p,'PAIA_RECOVERY_DRAFT_LOAD',{draft:{epoch,kind:'topic_metadata',ownerId:topic.id}}))===null,'acknowledged recovery clears only its draft');
+   if(mode!=='conflict'){assert.ok(await p.evaluate(()=>__noteAttempts.length>=2));assert.deepEqual(await p.evaluate(()=>[...new Set(__noteAttempts)]),[operationId]);await p.evaluate(()=>__noteRestore());}
+   outcomes.push({mode,visibleDraft:true,durableSave:true,sameOwner:true});await p.locator('#back').click();
+  }
+  mkdirSync('work/qa-dvn-topic-root',{recursive:true});writeFileSync(`work/qa-dvn-topic-root/${variant}-note-recovery.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,outcomes,zeroProviderCalls:true},null,2));assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });

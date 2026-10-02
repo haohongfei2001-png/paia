@@ -74,7 +74,8 @@ body.ans-nav-reader #document-page{grid-column:2;width:100%;min-width:0;margin-i
  #primary-nav{flex:1;display:flex;flex-direction:row;gap:4px;min-width:0}
  #primary-nav button{justify-content:center;flex:1;padding:8px 4px;min-height:40px}
  #primary-nav .ux-nav-label{display:none}
- #primary-nav button[aria-current="page"] .ux-nav-label{display:inline;font-size:12px}
+ #primary-nav button[aria-current="page"]{flex:2 1 0;min-width:0}
+ #primary-nav button[aria-current="page"] .ux-nav-label{display:inline;font-size:12px;overflow-wrap:normal;word-break:normal}
  .sidebar-bottom{margin:0;display:block}
  .sidebar-bottom>[data-view="settings"]{width:36px;padding:8px;justify-content:center}
  .sidebar-bottom .ux-nav-label{display:none}

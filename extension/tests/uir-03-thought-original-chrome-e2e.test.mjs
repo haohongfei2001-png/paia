@@ -381,7 +381,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await eventually(()=>page.locator('#original-reading-body .topic-section').count().then(count=>count>0),'Original content renders in the existing Topic document');
   assert.equal(await page.locator('h1:visible').count(),1,'Topic has one visible h1');
   assert.equal(await page.locator('#view-title').isVisible(),false,'global Thought Library title no longer competes with the Topic h1');
-  assert.equal(await page.locator('#topic-heading>p').count(),0,'normal Content does not publish an unlabelled generated summary');await page.locator('#topic-menu summary').click();await page.getByRole('button',{name:'主题说明',exact:true}).click();assert.equal(await page.getByLabel('你写的主题说明',{exact:true}).inputValue(),topics[0].summary,'the complete protected human cue remains editable from its metadata action');await page.locator('#library-dialog-close').click();
+  assert.equal(await page.locator('#topic-heading>p').count(),0,'normal Content does not publish an unlabelled generated summary');await page.locator('#topic-menu summary').click();await page.getByRole('button',{name:'主题说明',exact:true}).click();assert.equal(await page.getByLabel('你写的主题说明',{exact:true}).inputValue(),topics[0].summary,'the complete protected human cue remains editable from its existing metadata owner');await page.getByRole('button',{name:'收起说明',exact:true}).click();
   assert.equal(await page.locator('#back').isVisible(),true,'Topic keeps the existing return path');
 
   const shell=await page.locator('#thought-document').boundingBox();

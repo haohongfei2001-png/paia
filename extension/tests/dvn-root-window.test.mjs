@@ -133,3 +133,9 @@ test('D2 frontier advance cancels a held backward staging buffer before hydratin
  r.load=async options=>{if(++calls===2){reached();return new Promise(resolve=>finish=resolve);}return f.load(options);};const old=r.hydrateWindow();await second;const buffer=r.hydration.pending;assert.equal(buffer.size,40);
  await r.loadNext();assert.equal(buffer.size,0,'frontier admission releases the superseded partial replay');assert.equal(r.windowStart,240);assert.equal(await r.hydrateWindow(),true);assert.equal(r.bodies.size,120);assert.equal(buffer.size,0);assert.ok(r.bodies.size+buffer.size<=120);finish(await f.load({cursor:40,authority:'A'}));assert.equal(await old,false);assert.equal(r.bodies.size,120);assert.equal(r.bodies.has('item:topic-0'),false);
 });
+
+test('D2 only the current root anchor restoration may release its programmatic-scroll gate',()=>{
+ const previous={document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,scrollBy:globalThis.scrollBy},frames=[],node={dataset:{rootKey:'one'},getBoundingClientRect:()=>({top:200})};globalThis.document={getElementById:()=>({querySelectorAll:()=>[node]})};globalThis.requestAnimationFrame=fn=>frames.push(fn);globalThis.scrollBy=()=>{};
+ const w=Object.assign(Object.create(TopicController.prototype),{homeCollection:{},serial:1});
+ try{w.restoreHomeAnchor({key:'one',top:140});frames.shift()();const staleCleanup=frames.shift();w.restoreHomeAnchor({key:'one',top:150});staleCleanup();assert.equal(w.homeRestoring,true);const staleOuter=frames.shift();w.serial++;w.restoreHomeAnchor({key:'one',top:160});staleOuter();assert.equal(w.homeRestoring,true);frames.shift()();assert.equal(w.homeRestoring,true);frames.shift()();assert.equal(w.homeRestoring,false);}finally{Object.assign(globalThis,previous);}
+});

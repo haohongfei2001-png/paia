@@ -212,3 +212,7 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #thought-document .topic-title-row{grid-template-columns:minmax(0,1fr) auto}
 @media(min-width:768px) and (max-width:1023px){#thought-document .topic-title-row{grid-template-columns:1fr}#thought-document #topic-presentation #library-view-switch{justify-content:flex-start}}
 @media(max-width:767px){#thought-document .topic-title-row{grid-template-columns:1fr}#thought-document #topic-time-order{max-width:100%;flex-wrap:wrap}#thought-document #topic-order-toggle,#thought-document #topic-time-jumps>summary{min-height:44px}#thought-document .library-action-list{max-width:calc(100vw - 48px)}}
+
+.topic-note-editor{max-width:760px;margin:16px 0;padding:16px 0;border-block:1px solid var(--paia-line)}
+.topic-note-editor[hidden]{display:none}.topic-note-editor label{display:block}.topic-note-editor textarea{display:block;width:100%;min-height:160px;resize:vertical;font:inherit;line-height:1.75;color:var(--paia-text);background:var(--paia-surface);margin:8px 0 12px}.topic-note-editor button{margin:4px 8px 4px 0;min-height:36px}.topic-note-compare{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;max-height:30vh;overflow:auto}
+@media(max-width:767px){.topic-note-editor button{min-height:44px}}

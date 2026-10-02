@@ -1,5 +1,9 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '来源':'Source','搜索思想、主题或内容…':'Search thoughts, topics or text…','搜索思想':'Search thoughts','思想列表来源范围':'Topic list Source scope','全部来源（含独立写下的内容）':'All Sources (including independent thoughts)',
+ '重试保存说明':'Retry saving note','核对说明版本':'Compare note versions','复制说明':'Copy note','收起说明':'Close note',
+ '请选择要保留的版本':'Choose the version to keep','请选择':'Choose…','保留已保存版本':'Keep saved version','使用我的草稿':'Use my draft','已保存版本':'Saved version','我的草稿':'My draft',
+
  '主题说明':'Topic note','你写的主题说明':'Your Topic note','读取前面的主题':'Read earlier topics','读取后面的主题':'Read later topics',
  '请先关闭当前菜单或完成选择，再继续浏览。':'Close the menu or finish the selection before continuing.',
  '正在继续载入…':'Loading more…','加载中断；当前列表已保留。':'Loading stopped; the current list is retained.',
@@ -117,7 +121,7 @@ export function watchThoughtCopy(){
   for(const root of document.querySelectorAll('#thought-home-tools,#thought-empty,#create-entry,#library-unplaced,.reader-selection')){
    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
    while(node=walker.nextNode()){const key=reverse.get(node.data)||node.data;if(Object.hasOwn(english,key))node.data=thoughtCopy(key);}
-   for(const element of root.querySelectorAll('[aria-label]')){const label=element.getAttribute('aria-label'),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute('aria-label',thoughtCopy(key));}
+   for(const element of root.querySelectorAll('[aria-label],[placeholder]'))for(const attribute of ['aria-label','placeholder']){const label=element.getAttribute(attribute),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute(attribute,thoughtCopy(key));}
   }
  };
  new MutationObserver(apply).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});apply();
