@@ -23,7 +23,8 @@ async function retain(p,ref,variant,target,width,theme,production,reference){
 }
 const near=(actual,expected,label)=>assert.ok(Math.abs(actual-expected)<=2,`${label}: ${actual} vs ${expected}`);
 export async function compareD5ReadingSurfaces({variant,extensionPath}){
- const h=await FakeChatGPT.start(extensionPath?{extensionPath}:{}),p=h.archive,refs=[],rows=[];
+ const h=await FakeChatGPT.start(extensionPath?{extensionPath}:{}),p=h.archive,refs=[],rows=[],failures=[];
+ const audit=(label,check)=>{try{check();}catch(error){failures.push({label,error:error.message});}};
  try{
   await mkdir(directory,{recursive:true});await p.setViewportSize({width:1440,height:900});
   await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
@@ -35,14 +36,18 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
   const field=p.locator('.library-prose'),id=await field.getAttribute('data-edit-id'),source=structuredClone((await h.state()).records),baseline=await rpc(p,'GET_INPUT',{id});await p.evaluate(()=>globalThis.__d5ReadingNode=document.querySelector('.library-prose'));
   for(const width of [1440,1280,1024,768,320])for(const theme of ['light','dark']){
    await settle(p,selectionRef,width,theme);
+   // Complete a real deselection turn before selecting again after Escape.
+   // The production owner deliberately keeps an identical dismissed range hidden.
+   await field.evaluate(()=>{getSelection().removeAllRanges();document.dispatchEvent(new Event('selectionchange'));});
+   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
    await field.evaluate(e=>{e.focus();const range=document.createRange();range.selectNodeContents(e);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);document.dispatchEvent(new Event('selectionchange'));});
    await eventually(()=>p.locator('.reader-selection').isVisible());
    const production=await styles(p,{surface:'.reader-selection',control:'.reader-selection button'}),reference=await styles(selectionRef,{surface:'.selectionbar',control:'.selectionbar button'});
    await retain(p,selectionRef,variant,'selection',width,theme,production,reference);
-   for(const key of ['padding','borderWidth','borderColor','borderRadius','background','boxShadow','gap'])assert.equal(production.surface[key],reference.surface[key],'selection '+key);
+   audit(`Selection ${width}/${theme}`,()=>{for(const key of ['padding','borderWidth','borderColor','borderRadius','background','boxShadow','gap'])assert.equal(production.surface[key],reference.surface[key],'selection '+key);
    for(const key of ['fontSize','lineHeight','borderWidth','borderRadius'])assert.equal(production.control[key],reference.control[key],'selection control '+key);
    assert.ok(production.surface.x>=14&&production.surface.x+production.surface.width<=width-14);assert.ok(production.surface.y>=14&&production.surface.y+production.surface.height<=886);assert.ok(production.surface.overflow<=2);
-   assert.ok(production.control.height>=(width<768?44:36));assert.equal(await field.evaluate(e=>getSelection().toString()===e.textContent),true,'presentation never rewrites the native range');
+   assert.ok(production.control.height>=(width<768?44:36));});assert.equal(await field.evaluate(e=>getSelection().toString()===e.textContent),true,'presentation never rewrites the native range');
    await p.keyboard.press('Alt+s');assert.equal(await p.locator('.reader-selection button').first().evaluate(e=>e===document.activeElement),true,'selection actions are keyboard reachable');await p.keyboard.press('Escape');await eventually(()=>p.locator('.reader-selection').isHidden());rows.push({target:'A03',width,theme,production,reference});
   }
   await p.setViewportSize({width:1440,height:900});await field.evaluate(e=>{e.blur();getSelection().removeAllRanges();});
@@ -52,11 +57,11 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
   for(const width of [1440,1280,1024,768,320])for(const theme of ['light','dark']){
    await settle(p,originalRef,width,theme);const production=await styles(p,{surface:'#info-dialog',heading:'#info-dialog h2',caption:'.original-time',prose:'.source-original',control:'#original-copy'}),reference=await styles(originalRef,{surface:'.modal',heading:'.modal h2',caption:'.modal time',prose:'.modal .prose',control:'.modal footer button'});
    await retain(p,originalRef,variant,'original',width,theme,production,reference);
-   for(const key of ['padding','borderWidth','borderRadius','background','color','boxShadow'])assert.equal(production.surface[key],reference.surface[key],'Original '+key);
+   audit(`Original ${width}/${theme}`,()=>{for(const key of ['padding','borderWidth','borderRadius','background','color','boxShadow'])assert.equal(production.surface[key],reference.surface[key],'Original '+key);
    for(const key of ['fontSize','lineHeight','fontWeight'])assert.equal(production.heading[key],reference.heading[key],'Original heading '+key);
    for(const key of ['fontSize','lineHeight','color'])assert.equal(production.caption[key],reference.caption[key],'Original caption '+key);
    if(width>=768)near(production.surface.width,reference.surface.width,'Original fixed width');
-   assert.ok(production.surface.width<=width-30&&production.surface.height<=852&&production.surface.overflow<=2);near(production.surface.x,(width-production.surface.width)/2,'Original centered');assert.equal(await p.locator('.source-original').textContent(),canonical.body);
+   assert.ok(production.surface.width<=width-30&&production.surface.height<=852&&production.surface.overflow<=2);near(production.surface.x,(width-production.surface.width)/2,'Original centered');});assert.equal(await p.locator('.source-original').textContent(),canonical.body);
    rows.push({target:'A07',width,theme,production,reference});
   }
   await p.keyboard.press('Tab');assert.equal(await p.evaluate(()=>document.activeElement?.closest('dialog')?.id),'info-dialog');await p.keyboard.press('Escape');await eventually(()=>p.locator('#info-dialog').isHidden());assert.equal(await p.locator('#info-content').textContent(),'');
@@ -68,14 +73,14 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
   for(const width of [1440,1280,1024,768,320])for(const theme of ['light','dark']){
    await settle(p,historyRef,width,theme);const production=await styles(p,{surface:'#revision-dialog',heading:'#revision-dialog h2',pair:'.working-history-compare',current:'.working-history-compare>section:first-child',past:'.working-history-compare>section:last-child'}),reference=await styles(historyRef,{surface:'.modal',heading:'.modal h2',pair:'.modal .pair'});
    await retain(p,historyRef,variant,'history',width,theme,production,reference);
-   for(const key of ['padding','borderWidth','borderRadius','background','color','boxShadow'])assert.equal(production.surface[key],reference.surface[key],'History '+key);
+   audit(`History ${width}/${theme}`,()=>{for(const key of ['padding','borderWidth','borderRadius','background','color','boxShadow'])assert.equal(production.surface[key],reference.surface[key],'History '+key);
    for(const key of ['fontSize','lineHeight','fontWeight'])assert.equal(production.heading[key],reference.heading[key],'History heading '+key);
    if(width>=768)near(production.surface.width,reference.surface.width,'History fixed width');assert.equal(production.pair.gap,reference.pair.gap,'History compare gap');
-   assert.ok(production.surface.width<=width-30&&production.surface.height<=852&&production.surface.overflow<=2);if(width<1024)assert.ok(production.past.y>=production.current.y+production.current.height-2);else assert.ok(production.past.x>production.current.x);
+   assert.ok(production.surface.width<=width-30&&production.surface.height<=852&&production.surface.overflow<=2);if(width<1024)assert.ok(production.past.y>=production.current.y+production.current.height-2);else assert.ok(production.past.x>production.current.x);});
    rows.push({target:'A08',width,theme,production,reference});
   }
   await p.locator('[data-restore-confirm]').getByRole('button',{name:'取消',exact:true}).click();assert.deepEqual(await rpc(p,'GET_INPUT',{id}),beforeReview,'visual review and Cancel do not restore a revision');await p.keyboard.press('Escape');await eventually(()=>p.locator('#revision-dialog').isHidden());assert.equal(await p.locator('#revision-list').textContent(),'');
   assert.deepEqual((await h.state()).records,source);assert.equal(await p.evaluate(()=>__d5ReadingNode.isConnected),true);assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
-  const head=process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();await writeFile(`${directory}/${variant}-comparison.json`,JSON.stringify({result:'PASS',head,variant,rows,intentionalDifferences:['Saved Reader font-size preferences stay authoritative for raw prose.','Original target, exact page coverage and real history revision/restore labels remain truthful.','Below768px modal margins keep the explicit16px safety contract and48px viewport-height reserve; coarse/narrow action targets are44px.','History compares current and selected real versions; the canonical illustrative dates and revision-list content are not forged.']},null,2));
+  const head=process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();await writeFile(`${directory}/${variant}-comparison.json`,JSON.stringify({result:failures.length?'FAIL':'PASS',head,variant,rows,failures,intentionalDifferences:['Saved Reader font-size preferences stay authoritative for raw prose.','Original target, exact page coverage and real history revision/restore labels remain truthful.','Below768px modal margins keep the explicit16px safety contract and48px viewport-height reserve; coarse/narrow action targets are44px.','History compares current and selected real versions; the canonical illustrative dates and revision-list content are not forged.']},null,2));assert.deepEqual(failures,[],'every retained fixed-geometry comparison must pass');
  }finally{for(const ref of refs)await ref.close();await h.close();}
 }
