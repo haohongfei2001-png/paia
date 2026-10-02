@@ -1,5 +1,14 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q1 — canonical shell convergence in progress — 2026-10-02
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q1`.**
+The owner confirmed continuing D5. Approved [PR #124](https://github.com/haohongfei2001-png/paia/pull/124) is integrated at `6f6cc45bae1d87ceda8315a8a6a05c2afa33e052`, preserving verified D4 and its closure. [D5 visual contract](design/foundation/desktop-vnext/D5_VISUAL_CONVERGENCE.md) now governs the remaining whole-product visual acceptance.
+
+Q1 first aligns the shared production rail/brand with declared geometry and the exact approved logo, and adds paired offline canonical-reference/production measurements and screenshots. Existing route, Source/Input/Thought, D3 adoption, Context and permission owners remain intact. Saved reader-size/width preferences remain; preference-driven text differences are not treated as unexplained fixed-geometry defects. Source/release browser and independent pixel evidence are pending. This is a bounded first presentation batch, not D5 completion. Other production families and final explicit owner visual acceptance remain required.
+
+The earlier D1–D4 engineering closure below remains valid historical evidence; its statement that no new slice was then opened is superseded only by the owner's D5 continuation and the adopted D5 contract.
+
 ## D4 engineering integrated — 2026-10-02
 
 **Current controlling state: `DESKTOP_VNEXT_D1_D4_ENGINEERING_INTEGRATED / DEFERRED_ACCEPTANCE_OPEN`.**

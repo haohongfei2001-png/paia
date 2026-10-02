@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 const rpc=async(page,type,fields={})=>{
@@ -43,10 +43,19 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   assert.equal(await page.locator('#sync-history').isVisible(),false);
   await page.locator('#archive-root-overflow summary').click();
   assert.equal(await page.locator('#archive-root-history').isVisible(),true,'Archive overflow exposes the verified import action');
-  const [download]=await Promise.all([
+  // Retain exact export-read generations if this guarded download refuses.
+  await page.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__shellExportTrace=[];chrome.runtime.sendMessage=async message=>{const r=await send(message);if(message.type==='GET_PAGE')globalThis.__shellExportTrace.push({view:message.page?.view,providerKey:message.page?.providerKey,expectedGeneration:message.page?.expectedGeneration,ok:r.ok,error:r.error,generation:r.data?.dataGeneration,documents:r.data?.documents?.length,records:r.data?.records?.length});return r;};});
+  let download;
+  try{[download]=await Promise.all([
    page.waitForEvent('download'),
    page.locator('#archive-root-export-json').click()
-  ]);
+  ]);}catch(error){
+   await mkdir('work/qa-dvn-shell',{recursive:true});
+   await writeFile('work/qa-dvn-shell/export-failure.json',JSON.stringify(await page.evaluate(()=>({trace:globalThis.__shellExportTrace,notice:document.querySelector('#notice')?.textContent,scope:document.querySelector('#archive-source-scope')?.value,searchDisabled:document.querySelector('#scope-search')?.disabled,route:history.state?.paiaReader})),null,2));
+   await page.screenshot({path:'work/qa-dvn-shell/export-failure.png',fullPage:true});throw error;
+  }
+  await mkdir('work/qa-dvn-shell',{recursive:true});
+  await writeFile('work/qa-dvn-shell/export-observation.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,trace:await page.evaluate(()=>globalThis.__shellExportTrace),download:download.suggestedFilename()},null,2));
   assert.match(download.suggestedFilename(),/^archive-export-.*\.json$/);
   await page.locator('#archive-root-overflow summary').click();
   await page.locator('#archive-root-history').click();

@@ -53,7 +53,6 @@ export class AppShellController {
   document.getElementById('ux-skip-main').textContent=labels()?'Skip to main content':'跳到主要内容';
   document.getElementById('primary-nav').setAttribute('aria-label',labels()?'Primary navigation':'主要导航');
   const title=document.getElementById('view-title'),text=this.viewLabel(this.route.view);if(text&&!title.hidden)title.textContent=text;
-  document.querySelector('.brand small').textContent=labels()?'PERSONAL ARCHIVE':'私人输入与思想';
   document.querySelector('.ux-consent-optional').textContent=labels()?' Optional: mark that you read the detailed explanation.':' 可选：用于标记你已阅读上面的完整说明。';
   presentSettingsPreferences({visible:this.route.view==='settings'});
  }
