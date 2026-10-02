@@ -390,7 +390,8 @@ export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=
 
 // Last response fence: callers run this after every DTO sanitization/enrichment.
 // It performs only the current authority read, never advances/rebuilds a page.
-export async function thoughtTopicGenerationMatches(store,{topicId,generation,viewKey}){
+export async function thoughtTopicGenerationMatches(store,{topicId,generation,viewKey,currentKey,indexing=false}){
  const state=await currentTopicMeta(store,topicId);
- return !!generation&&state.meta?.activeGeneration===generation&&state.meta.activeKey===state.key&&state.meta.activeKey===viewKey;
+ if(!currentKey||state.key!==currentKey)return false;
+ return indexing||!!generation&&state.meta?.activeGeneration===generation&&state.meta.activeKey===state.key&&state.meta.activeKey===viewKey;
 }
