@@ -2,11 +2,13 @@
 
 ## Desktop vNext owner-approved restart — 2026-09-30
 
-**Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D2`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
+**Current controlling state: `DESKTOP_VNEXT_D1_D4_OWNER_APPROVED / IMPLEMENTING_D3`.** The owner explicitly approved the frozen Desktop vNext design baseline and [foundation architecture + roadmap PR #107](https://github.com/haohongfei2001-png/paia/pull/107) at head `17f646bac2aa5f818000efdd8a2ec5d55623db14`, and separately lifted `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` for production D1 Archive → D2 Thought Library → D3 AI Organize → D4 AI Context. This explicit scope authorization supersedes the historical stop/temporary-round continuation restrictions only for these slices. Approval is not inferred from merging a PR.
 
-Fresh engineering base: `34b5663ff07d213027cdc4bcc55a667a6ef7829b` (merge #120; Q3 candidate36959113738/full36959530570 PASS; exact-main integration36960981614 and Pages36960980753 PASS). Sole active product writer: `feat/desktop-vnext-d2-shell-cutover`, bounded batch D2/Q4 compact root DTO/window and single Topic controller/frozen control cutover. D1 Q1–Q8 and D2 Q1–Q3 engineering are integrated; live/device/performance/owner acceptance remains separate. Q4 hosted acceptance is pending. Frozen DVN-1.0 and foundation107 remain controlling; #99 remains unchanged and unmerged.
+Fresh engineering base: `4a3b9804b5b10a127702980c50648e495f204dee` (merge #121; reviewed tree `9251b63a6ca154f06b3bc92d1f93f217c875fb37`). Sole active product writer: `feat/desktop-vnext-d3-scope-confirmation`, bounded D3/Q1 exact Topic request scope and first/update candidate adoption boundary. D1 Q1–Q8 and D2 Q1–Q4 engineering are integrated. Frozen DVN-1.0 and foundation107 remain controlling; #99 remains unchanged and unmerged. The owner cancelled the earlier 2026-10-02 08:00 UTC campaign cutoff; this does not expand product, permission or budget authority.
 
-Q4 preserves the existing Topic/binding/editor/recovery owners while replacing the inherited page coordinator with one TopicController, body-free root extent/snapshots and authority-bound exact replay. Root full Topic summaries are absent from compact DTOs; complete authored cues stay available through their explicit metadata action. Current Content chronology/Years/independent creation remain the integrated Q1–Q3 behavior. The single order toggle, overflow details and responsive widths do not introduce a new edit mode or B-01 policy. Exact Q3 receipts are recorded in [D2-Q3](implementation/desktop-vnext/D2-Q3.md); Q4 scope, negative evidence and pending gates are in [D2-Q4](implementation/desktop-vnext/D2-Q4.md).
+D2 engineering closure covers T-01 compact300 Topic root/search/scope/Back, T-02 reliable159dated+1unknown Years, T-03 complete paging/anchors/pins, T-04 authorship/contradictions, T-05 independent creation and failed/lost acknowledgement, and T-06 unchanged B-01 refusal. [PR #121](https://github.com/haohongfei2001-png/paia/pull/121) final head `33a2907aee7b1131a2cf2f13858cdc5e9ed3aead`, full-tested merge-ref `c72b2da29ffd73008e5d16b4393c6ae35ad09b8b`, and integrated main share the reviewed tree. Full [36978968671](https://github.com/haohongfei2001-png/paia/actions/runs/36978968671) PASS: unit1411/current-browser200/adapter102/privacy58 cases, release and hosted synthetic Mac lifecycle/Secure Store. Exact-main integration [36980732147](https://github.com/haohongfei2001-png/paia/actions/runs/36980732147) and Pages [36980731384](https://github.com/haohongfei2001-png/paia/actions/runs/36980731384) PASS, freshly rechecked 2026-10-02. Main browser/Mac/full aggregation were SKIPPED, not a second full certification. Actual source/release candidate1440 and stacked900 pixels were independently inspected. Retained failed candidates and full36975696261 remain FAIL. See [D2-Q4](implementation/desktop-vnext/D2-Q4.md).
+
+D3/Q1 maps approved foundation Q6/Q7, F-06 and O-01–O-07: authoritative Topic-only scope/provider/batch confirmation, exact scope binding at dispatch, and one staged candidate/CAS adoption boundary for both first generation and updates. No fake empty Current, automatic first write, paid retry, second AI body store or new provider. Candidate/receipt/purge/Backup compatibility and protected human fields remain required. New D3 tests and hosted acceptance are pending; this entry is scope authorization and current work, not completion. Physical IME/screen-reader, installed profile, reference-device100k/120Hz, actual-model fidelity and owner acceptance remain OPEN.
 
 Each batch records exact base/head, Surface/Acceptance/P-I-D, actual tests, failures and NOT_RUN; integration and exact-main verification precede the next batch. No permanent dual coordinator or second body truth. B-01–B-05 and other owner gates remain open, with dependent behavior fail closed; independent approved work continues. Search remains lexical/fuzzy/filter. Context Release is Copy/Export. No new provider permission, upload, reply-reading, paid service, cloud authority, destructive policy or distribution/legal commitment is approved.
 
@@ -91,15 +93,15 @@ activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: D2 — Thought Library / Q2 reliable year view
+current_slice: D3 — AI Organize / exact scope and unified candidate boundary
 
 current_slice_status: IMPLEMENTING
 
-current_round: D2-Q2
+current_round: D3-Q1
 
 current_round_status: IMPLEMENTING
 
-current_writer: feat/desktop-vnext-d2-year-view — sole active product writer
+current_writer: feat/desktop-vnext-d3-scope-confirmation — sole active product writer
 
 writer_status: ACTIVE — owner-approved Desktop vNext D1–D4 only
 

@@ -128,6 +128,15 @@ Required intent:
 
 AI Organize is a second presentation over traceable Topic evidence.
 
+Owner clarification (2026-10-02): Input Archive and human Thought Library
+content are not AI-editable. AI may read explicitly authorized material; its
+organization, generation and updates belong to a separate derivative layer.
+Adopt/Keep chooses the saved AI derivative only. Adoption never authorizes a
+write-back to Source, Working Input or human Thought bodies or organization.
+Existing direct human editing remains governed by its own product rules and
+B-01; this clarification neither removes that editing nor resolves B-01.
+
+
 It may:
 
 - change structure, ordering, grouping, headings and hierarchy;

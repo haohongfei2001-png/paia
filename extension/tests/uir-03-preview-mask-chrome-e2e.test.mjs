@@ -1,3 +1,4 @@
+import {confirmOrganizeScope,adoptFirstCandidate} from './harness/ai-reviewed-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -63,7 +64,7 @@ async function journey(page,h,topic,label,{release=false}={}){
  await shot(page,release?'uir-03-current-release-preview-mask-home-1440x900-light':'uir-03-preview-mask-home-1440x900-light');
 
  await openTopic(page,topic);const original=page.locator('#original-reading-body [data-entry-field="body"]').first();await original.waitFor();assert.equal(await original.isVisible(),true,'explicitly opened Original body remains readable while preview masking is on');assert.match(await original.textContent(),new RegExp(`${label}_ORIGINAL_A`));
- const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch is available');await toggle.check();await page.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0,'masking and cached view switching do not call the Provider');await confirmGeneration(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:`${label}_BLOCK_SUMMARY`}).waitFor();
+ const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch is available');await toggle.check();await page.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0,'masking and cached view switching do not call the Provider');await confirmGeneration(page);await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:`${label}_BLOCK_SUMMARY`}).waitFor();
  const organized=page.locator('[data-ai-field="currentView"]'),evidence=page.locator('.evolution-excerpt .entry-prose').first();await organized.waitFor();await evidence.waitFor();assert.equal(await organized.isVisible(),true,'explicitly opened Organized body remains readable while preview masking is on');assert.equal(await evidence.isVisible(),true,'explicitly opened evidence body remains readable while preview masking is on');assert.match(await evidence.textContent(),new RegExp(`${label}_ORIGINAL_`));
  const privateTextInAttrs=await page.evaluate(prefix=>[...document.querySelectorAll('#topic-body [title],#topic-body [aria-label]')].some(node=>[node.getAttribute('title'),node.getAttribute('aria-label')].some(value=>value?.includes(prefix))),label);assert.equal(privateTextInAttrs,false,'opened body text is not copied into title or aria-label as a masking bypass');
  await shot(page,release?'uir-03-current-release-preview-mask-organized-1440x900-light':'uir-03-preview-mask-organized-1440x900-light');

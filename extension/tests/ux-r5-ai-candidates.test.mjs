@@ -1,3 +1,5 @@
+import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
+import {reviewAndAdoptFirstAI} from './harness/ai-reviewed.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {append,completeFixture,meta,rows,response} from './harness/original-complete.mjs';
@@ -15,9 +17,9 @@ async function fixture(){
 }
 async function addDelta(f,text='第二阶段：新增一条明确材料。',id='ux-r5-added'){await append(f.s,text,id);await f.runner.wake(action());}
 async function candidateAfterUpdate(f,{protect=false}={}){
- assert.equal((await f.ai.wake(action())).completed,true);let topic=(await aiPresentationStatus(f.s)).topics[0];
+ assert.equal((await reviewAndAdoptFirstAI(f.ai,action())).completed,true);let topic=(await aiPresentationStatus(f.s)).topics[0];
  if(protect){await editAIPresentation(f.s,{topicId:topic.topicId,field:'currentView',value:'人工维护的当前理解',expectedRevision:topic.presentation.revision,operationId:crypto.randomUUID()});}
- await addDelta(f);assert.equal((await f.ai.wake(action())).completed,true);return (await aiPresentationStatus(f.s)).topics[0];
+ await addDelta(f);assert.equal((await reviewAndAdoptFirstAI(f.ai,action())).completed,true);return (await aiPresentationStatus(f.s)).topics[0];
 }
 async function exportBackup(store){const service=new BackupService(store,{appVersion:'0.12.0'}),{sessionId,header}=await service.beginExport(),items=[header];let sequence=0;for(;;){const page=await service.exportPage({sessionId,sequence:sequence++});items.push(...page.items);if(page.done)break;}return items;}
 async function restoreBackup(store,items){const service=new BackupService(store,{appVersion:'0.12.0'}),{sessionId}=await service.beginRestore();for(let i=0;i<items.length;i+=30)await service.stageRestore({sessionId,items:items.slice(i,i+30)});const preview=await service.previewRestore({sessionId});assert.equal(preview.canRestore,true,JSON.stringify(preview));return service.restore({sessionId,confirmation:preview.integrity});}
@@ -32,7 +34,7 @@ test('UX-R5 candidate choices are staged and one atomic save adopts selected sec
  const partial={blockSummary:'adopt'};await assert.rejects(()=>editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:revision,expectedCandidateKey:aiCandidateKey(candidate),candidateDecisions:partial,operationId:crypto.randomUUID()}),error=>error?.code==='INVALID_OUTPUT');
  topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.presentation.revision,revision);assert.ok(topic.candidate);assert.equal(topic.presentation.blockSummary,'AI 摘要 1');assert.equal(topic.presentation.currentView,'人工维护的当前理解');
  const full=decisions(candidate,{blockSummary:'adopt',currentView:'keep'}),saved=await editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:revision,expectedCandidateKey:aiCandidateKey(candidate),candidateDecisions:full,operationId:crypto.randomUUID()});assert.equal(saved.revision,revision+1);
- topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.candidate,null);assert.equal(topic.presentation.blockSummary,'AI 摘要 2');assert.equal(topic.presentation.currentView,'人工维护的当前理解');assert.equal(topic.presentation.protections.blockSummary,true);assert.equal(topic.presentation.protections.currentView,true);assert.equal(f.calls(),2);assert.deepEqual((await aiPresentationRevisions(f.s,{topicId:topic.topicId})).items.map(row=>row.actor),['ai','user','user']);
+ topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.candidate,null);assert.equal(topic.presentation.blockSummary,'AI 摘要 2');assert.equal(topic.presentation.currentView,'人工维护的当前理解');assert.equal(topic.presentation.protections.blockSummary,true);assert.equal(topic.presentation.protections.currentView,true);assert.equal(f.calls(),2);assert.deepEqual((await aiPresentationRevisions(f.s,{topicId:topic.topicId})).items.map(row=>row.actor),['user','user','user']);
 });
 
 test('UX-R5 candidate save fails closed when the current draft or Topic material changes during comparison',async()=>{
@@ -41,8 +43,8 @@ test('UX-R5 candidate save fails closed when the current draft or Topic material
  assert.equal(topic.presentation.blockSummary,'比较期间人工修改');await addDelta(f,'第三阶段：比较期间材料又变化。','ux-r5-third');topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.candidate.stale,true);assert.equal(f.calls(),2);
 });
 
-test('UX-R5 purging candidate-only evidence removes the candidate while preserving the current presentation',async()=>{
- const f=await fixture(),topic=await candidateAfterUpdate(f),fences=await rows(f.s,'libraryMigrationItems'),candidateFence=fences.find(row=>row.ownerKind==='ai_presentation_candidate'&&row.ownerId===topic.topicId),currentFence=fences.find(row=>row.ownerKind==='ai_presentation'&&row.ownerId===topic.topicId);assert.ok(candidateFence);assert.ok(currentFence);const currentSources=new Set(currentFence.sourceRecordIds||[]),candidateOnly=(candidateFence.sourceRecordIds||[]).find(id=>!currentSources.has(id));assert.ok(candidateOnly);await f.s.permanentDelete(candidateOnly);await f.s.drainPurgeCleanup();const stored=await meta(f.s,'aiPresentation:'+topic.topicId);assert.ok(stored);assert.equal(stored.candidate,undefined);const after=(await aiPresentationStatus(f.s)).topics[0];assert.ok(after.presentation);assert.equal(after.presentation.blockSummary,'AI 摘要 1');assert.equal(after.candidate,null);
+test('CURRENT B-02 refusal + historical fixture: UX-R5 purging candidate-only evidence removes the candidate while preserving the current presentation',async()=>{
+ const f=await fixture(),topic=await candidateAfterUpdate(f),fences=await rows(f.s,'libraryMigrationItems'),candidateFence=fences.find(row=>row.ownerKind==='ai_presentation_candidate'&&row.ownerId===topic.topicId),currentFence=fences.find(row=>row.ownerKind==='ai_presentation'&&row.ownerId===topic.topicId);assert.ok(candidateFence);assert.ok(currentFence);const currentSources=new Set(currentFence.sourceRecordIds||[]),candidateOnly=(candidateFence.sourceRecordIds||[]).find(id=>!currentSources.has(id));assert.ok(candidateOnly);await admitPreGatePurgeFixture(f.s,candidateOnly);await f.s.drainPurgeCleanup();const stored=await meta(f.s,'aiPresentation:'+topic.topicId);assert.ok(stored);assert.equal(stored.candidate,undefined);const after=(await aiPresentationStatus(f.s)).topics[0];assert.ok(after.presentation);assert.equal(after.presentation.blockSummary,'AI 摘要 1');assert.equal(after.candidate,null);
 });
 
 test('UX-R5 Backup round-trip preserves a valid candidate without changing the current draft',async()=>{
@@ -50,7 +52,7 @@ test('UX-R5 Backup round-trip preserves a valid candidate without changing the c
 });
 
 test('UX-R5 no-delta update and status reads spend zero additional provider requests',async()=>{
- const f=await fixture();assert.equal((await f.ai.wake(action())).completed,true);const before=f.calls();await aiPresentationStatus(f.s);await aiPresentationStatus(f.s);const result=await f.ai.wake(action());assert.equal(result.noDelta,true);assert.equal(result.requestCount,0);assert.equal(f.calls(),before);
+ const f=await fixture();assert.equal((await reviewAndAdoptFirstAI(f.ai,action())).completed,true);const before=f.calls();await aiPresentationStatus(f.s);await aiPresentationStatus(f.s);const result=await reviewAndAdoptFirstAI(f.ai,action());assert.equal(result.noDelta,true);assert.equal(result.requestCount,0);assert.equal(f.calls(),before);
 });
 
 test('VS-05 saving choices fences the reviewed candidate even when current work revision is unchanged',async()=>{
@@ -85,7 +87,7 @@ async function chunkFixture(count){
 
 test('VS-05 three bounded AI chunks accumulate in the candidate without losing middle-batch evidence',async()=>{
  const f=await chunkFixture(24),original=await Promise.all(['thoughts','records','inputStates','topics','placements'].map(name=>rows(f.s,name)));
- for(let i=0;i<3;i++)assert.equal((await f.ai.wake(action())).completed,true);
+ for(let i=0;i<3;i++)assert.equal((await reviewAndAdoptFirstAI(f.ai,action())).completed,true);
  assert.deepEqual(f.requestsAI.map(request=>request.inputs.length),[8,8,8]);
  assert.deepEqual(f.requestsAI.map(request=>JSON.parse(request.context.find(row=>row.ref==='existing-presentation')?.text||'null')?.evidenceEntryIds.length||0),[0,8,16]);
  const topic=(await aiPresentationStatus(f.s)).topics[0],all=(await rows(f.s,'thoughts')).map(row=>row.id).sort();
@@ -95,20 +97,20 @@ test('VS-05 three bounded AI chunks accumulate in the candidate without losing m
  const choices=Object.fromEntries(topic.candidate.changedFields.map(field=>[field,'adopt']));
  await editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:topic.presentation.revision,expectedCandidateKey:aiCandidateKey(topic.candidate),candidateDecisions:choices,operationId:crypto.randomUUID()});
  const after=(await aiPresentationStatus(f.s)).topics[0];assert.deepEqual([...after.presentation.evidenceEntryIds].sort(),all);assert.equal(after.presentation.currentView,'当前综合涵盖 24 条表达');assert.equal(after.presentation.revision,topic.presentation.revision+1);
- assert.equal((await f.ai.wake(action())).noDelta,true);assert.equal(f.requestsAI.length,3);
+ assert.equal((await reviewAndAdoptFirstAI(f.ai,action())).noDelta,true);assert.equal(f.requestsAI.length,3);
 });
 
 test('VS-05 material changes recheck unaccepted candidate coverage rather than silently acknowledging it',async()=>{
- const f=await chunkFixture(16);await f.ai.wake(action());await f.ai.wake(action());let topic=(await aiPresentationStatus(f.s)).topics[0];
+ const f=await chunkFixture(16);await reviewAndAdoptFirstAI(f.ai,action());await reviewAndAdoptFirstAI(f.ai,action());let topic=(await aiPresentationStatus(f.s)).topics[0];
  assert.equal(topic.pending,false);assert.equal(topic.candidate.proposal.evidenceEntryIds.length,16);assert.equal(topic.presentation.evidenceEntryIds.length,8);
  await append(f.s,'同一主题的新表达：需要与已有未采用材料一起重新核对。','candidate-midstream-added');await f.runner.wake(action());
  topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.candidate.stale,true);assert.equal(topic.pendingEntryCount,9);
- assert.equal((await f.ai.wake(action())).completed,true);assert.equal((await f.ai.wake(action())).completed,true);
+ assert.equal((await reviewAndAdoptFirstAI(f.ai,action())).completed,true);assert.equal((await reviewAndAdoptFirstAI(f.ai,action())).completed,true);
  topic=(await aiPresentationStatus(f.s)).topics[0];assert.equal(topic.pending,false);assert.equal(topic.candidate.stale,false);
  const all=(await rows(f.s,'thoughts')).map(row=>row.id).sort();assert.equal(all.length,17);assert.deepEqual([...topic.candidate.proposal.evidenceEntryIds].sort(),all);assert.equal(topic.presentation.currentView,'当前综合涵盖 8 条表达');
  assert.deepEqual(f.requestsAI.map(request=>request.inputs.length),[8,8,8,1]);
  const choices=Object.fromEntries(topic.candidate.changedFields.map(field=>[field,'keep']));
  await editAIPresentation(f.s,{topicId:topic.topicId,expectedRevision:topic.presentation.revision,expectedCandidateKey:aiCandidateKey(topic.candidate),candidateDecisions:choices,operationId:crypto.randomUUID()});
  const stored=await meta(f.s,'aiPresentation:'+topic.topicId);assert.equal(Object.keys(stored.basedOnCheckpoint.entryVersions).length,17);assert.equal(stored.currentView,'当前综合涵盖 8 条表达');assert.equal(stored.candidate,undefined);
- assert.equal((await f.ai.wake(action())).noDelta,true);assert.equal(f.requestsAI.length,4);
+ assert.equal((await reviewAndAdoptFirstAI(f.ai,action())).noDelta,true);assert.equal(f.requestsAI.length,4);
 });

@@ -1,3 +1,4 @@
+import {reviewAndAdoptFirstAI} from './harness/ai-reviewed.mjs';
 import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -85,18 +86,18 @@ test('CURRENT B-02 refusal + historical fixture: repeated Source purge advances 
  assert.ok(floors[1]>floors[0]);
 });
 
-test('deleted and recreated AI owner cannot admit old text even when its numeric revision resets',async()=>{
+test('CURRENT B-02 refusal + historical fixture: deleted and recreated AI owner cannot admit old text even when its numeric revision resets',async()=>{
  const {AIPresentationRunner}=await import('../core/organizer/ai-presentation.js');
  const {DeepSeekOrganizerProvider}=await import('../core/organizer/deepseek.js');
  const {AI_LIST_FIELDS}=await import('../core/organizer/ai-contract.js');
  const {response,meta}=await import('./harness/original-complete.mjs');
  const f=await completeFixture({texts:['Synthetic initial source for generation test']});await f.runner.wake({userActionId:op()});
  const provider=new DeepSeekOrganizerProvider({limits:f.s.organizerBudget.limits,fetchImpl:async(_url,init)=>{const request=JSON.parse(JSON.parse(init.body).messages[1].content);return response({choices:[{message:{content:JSON.stringify({topicId:request.topicCandidates[0].id,blockSummary:'Synthetic summary',currentView:'Synthetic view',...Object.fromEntries(AI_LIST_FIELDS.map(field=>[field,[]])),evidenceEntryIds:request.inputs.map(input=>input.ref)})}}]});}});
- const runner=new AIPresentationRunner(f.s,{provider,credentials:f.credentials});assert.equal((await runner.wake({userActionId:op()})).completed,true);
+ const runner=new AIPresentationRunner(f.s,{provider,credentials:f.credentials});assert.equal((await reviewAndAdoptFirstAI(runner,{userActionId:op()})).completed,true);
  const old=(await f.s.aiPresentationStatus()).topics.find(topic=>topic.presentation).presentation;
  const draft={kind:'ai_presentation',ownerId:old.topicId,operation:{type:'AI_RECOVERY_SNAPSHOT',topicId:old.topicId,baseRevision:old.revision,generation:old.recoveryGeneration,values:{currentView:'Pre-purge recovery'}}};await f.s.recoveryDraftSourceIds(draft);
- await f.s.permanentDelete((await rows(f.s,'records'))[0].id);await f.s.drainPurgeCleanup();await f.s.drainInvalidations();assert.equal(await meta(f.s,'aiPresentation:'+old.topicId),undefined);
- await f.s.continueThinking({operationId:op(),body:'Independent replacement evidence',topicId:old.topicId});assert.equal((await runner.wake({userActionId:op(),topicId:old.topicId})).completed,true);
+ await admitPreGatePurgeFixture(f.s,(await rows(f.s,'records'))[0].id);await f.s.drainPurgeCleanup();await f.s.drainInvalidations();assert.equal(await meta(f.s,'aiPresentation:'+old.topicId),undefined);
+ await f.s.continueThinking({operationId:op(),body:'Independent replacement evidence',topicId:old.topicId});assert.equal((await reviewAndAdoptFirstAI(runner,{userActionId:op(),topicId:old.topicId})).completed,true);
  const current=(await f.s.aiPresentationStatus()).topics.find(topic=>topic.topicId===old.topicId).presentation;assert.equal(current.revision,old.revision);assert.notEqual(current.recoveryGeneration,old.recoveryGeneration);
  await assert.rejects(()=>f.s.recoveryDraftSourceIds(draft),e=>e.code==='INVALID_REQUEST');
  const fresh={...draft,operation:{...draft.operation,generation:current.recoveryGeneration}};await f.s.recoveryDraftSourceIds(fresh);

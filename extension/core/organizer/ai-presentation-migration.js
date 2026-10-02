@@ -1,4 +1,5 @@
 import {AI_SCHEMA_VERSION} from './ai-contract.js';
+import {isBaseNoneEnvelope} from './ai-candidate.js';
 import {prefix} from '../thought-model.js';
 import {validTopicGeneration} from '../topic-compatibility.js';
 
@@ -6,6 +7,7 @@ const MARKER='aiProductizationMigration',ROW='aiPresentation:',FENCE='ai-present
 const sameIds=(a,b)=>Array.isArray(a)&&a.length===b.length&&a.every((id,index)=>id===b[index]);
 
 async function migratePresentationRow(t,topic,row){
+ if(isBaseNoneEnvelope(row))return; // Already-versioned staged proposal; never fabricate Current fields.
  if(row.schemaVersion!==AI_SCHEMA_VERSION)await t.put('meta',{...row,schemaVersion:0,needsUpdate:true});
  const sourceRecordIds=[];
  for(const placement of await t.all('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]))){

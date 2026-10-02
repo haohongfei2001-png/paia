@@ -1,3 +1,4 @@
+import {reviewAndAdoptFirstAI} from './harness/ai-reviewed.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {mkdir,writeFile} from 'node:fs/promises';
 import {completeFixture,rows,response,append} from './harness/original-complete.mjs';import {exported,prepared} from './harness/backup-v081.mjs';
 import {ImportCoordinator} from '../core/import/coordinator.js';import {ImportLedger} from '../core/import/ledger.js';import {officialExportAdapter} from '../core/import/chatgpt-export.js';
@@ -22,7 +23,7 @@ test('600 historical Inputs through preview, manual protections, explicit bounde
  const organized=await bounded.start({userActionId:op(),kind:'original',maxRequests:3,maxInputs:50});assert.equal(organized.state,'completed');assert.equal(organized.requestsReserved,3);assert.equal(organized.completedInputs,48);assert.equal(f.requests.length,3);assert.deepEqual(f.requests.map(x=>JSON.parse(JSON.parse(x.init.body).messages[1].content).inputs.length),[20,20,8]);
  const topic=(await f.s.libraryIndexPage({mode:'all'})).items[0],entry=(await f.s.topicDocumentPage({topicId:topic.id,sort:'asc'})).items[0].entry;
  await f.s.editEntry({id:entry.id,expectedRevision:entry.revision,changes:{body:entry.body+' 虚构人工补充，不能覆盖。'},operationId:op()});
- const aiResult=await ai.wake({userActionId:op(),topicId:topic.id});assert.equal(aiResult.error,undefined,JSON.stringify(aiResult));assert.equal(f.requests.length,4);
+ const aiResult=await reviewAndAdoptFirstAI(ai,{userActionId:op(),topicId:topic.id});assert.equal(aiResult.error,undefined,JSON.stringify(aiResult));assert.equal(f.requests.length,4);
  const userEntry=await f.s.entry(entry.id),aiStatus=await f.s.aiPresentationStatus();assert.ok(aiStatus.topics.find(t=>t.topicId===topic.id).presentation);
  await controller.select(file,{consent:true});await controller.preflight();const repeated=await controller.commit();assert.equal(repeated.counts.added,0);assert.equal(f.requests.length,4);assert.deepEqual((await f.s.entry(entry.id)).protections,userEntry.protections);
  const service=new BackupService(f.s,{appVersion:'0.9.0'}),backup=await exported(service),restored=await completeFixture({texts:[]}),restore=new BackupService(restored.s,{appVersion:'0.9.0'}),stage=await prepared(restore,backup);
