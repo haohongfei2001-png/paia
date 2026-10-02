@@ -1,10 +1,10 @@
 # Desktop vNext implementation roadmap
 
-状态：PROPOSED / OWNER_APPROVAL_PENDING。以下是批准后可直接执行的有限 vertical slices；本 PR 不启动其中任何工作。冻结 DVN-1.0 决定视觉/交互，本包决定代码 ownership、trusted interfaces、验证和迁移。未列能力不得自行扩展。
+状态：**OWNER_APPROVED / D1_D5_IMPLEMENTATION_AUTHORIZED**。D1→D4 已按 owner 批准范围实施；owner 于 2026-10-02 明确新增并批准 D5 Visual Convergence & Product Acceptance，要求把冻结设计页面以高视觉还原度落实到真实 production PAIA，而不是停留在结构正确或 loose reinterpretation。冻结 DVN-1.0 决定视觉/交互，本包决定代码 ownership、trusted interfaces、验证和迁移。未列能力不得自行扩展。
 
 ## 1. 顺序、依赖与进入条件
 
-采用 **D1 Archive finalization → D2 Thought Library → D3 AI Organize → D4 AI Context**。D1 同时交付实际 Archive journey 所必需的 shared shell/router/components/editor adapter，避免一个独立“只做框架”的横向 D0。D2 依赖 D1 的 route/selection/editor/acknowledgement，建立 Topic 真正完整、可靠时间和角色的读模型；D3 使用它确认实际 organization scope；D4 使用这些稳定 evidence refs/container coverage 和所有 source/candidate invalidation 做完整跨空间 reuse。D4 的现有 Context domain 并不技术依赖 D3 新候选，但默认先稳定 Topic/AI field owner，减少整 Topic选材和 review race 的返工。
+采用 **D1 Archive finalization → D2 Thought Library → D3 AI Organize → D4 AI Context → D5 Visual Convergence & Product Acceptance**。D5 只在 D4 完成 required verification 并 exact-main integration 后启动，是 Desktop vNext 的强制收口门；D1–D4 的 engineering integration 不等于整包视觉完成，也不得据此宣称 Desktop vNext 产品完成。D1 同时交付实际 Archive journey 所必需的 shared shell/router/components/editor adapter，避免一个独立“只做框架”的横向 D0。D2 依赖 D1 的 route/selection/editor/acknowledgement，建立 Topic 真正完整、可靠时间和角色的读模型；D3 使用它确认实际 organization scope；D4 使用这些稳定 evidence refs/container coverage 和所有 source/candidate invalidation 做完整跨空间 reuse。D4 的现有 Context domain 并不技术依赖 D3 新候选，但默认先稳定 Topic/AI field owner，减少整 Topic选材和 review race 的返工。
 
 DFG-009 未关闭时，D3 engineering 与 synthetic safety 可以独立验证；不得把它标为 live-model fidelity complete。owner另行授权时可继续依赖安全的 D4 engineering，D4不得把未经采纳candidate当Current。B-01/B-02/B-03/B-04/B-05 不以改变顺序绕过；相关 paths保持 fail closed。真实新依赖若要求调整，仅记录具体证据、影响和新的 approval boundary，不能重新设计产品。
 
@@ -111,7 +111,33 @@ DFG-009 未关闭时，D3 engineering 与 synthetic safety 可以独立验证；
 
 **Evidence / delete：** C每ID、Q8 confirm/sharefreshtrace、source/Thought unchangedhash、wholeintended/included/excludedcounts、allpackageexactreconstruction、denyabsence assertions含hiddenDOM/fallback、zero automaticrequests、completecrossspacesreceipt。通过后删除MaterialTray永久drawer/DOMrelocation与oldContexttaskrenderer/重复search，保留可复用eligibility/focus/raceguard进入唯一ContextController。D4结束不得留下LegacyPageAdapter或双coordinator。
 
-## 6. Test architecture 与统一回归纪律
+## 6. D5 — Visual Convergence & Product Acceptance
+
+**唯一目标：** 在不改变 D1–D4 已验证数据/权限/状态语义的前提下，把真实 production PAIA 的全部 Desktop vNext Surface **高还原**到冻结设计。D5 不是“再 polish 一下”，也不是重新设计；它是产品完成前必须通过的 visual conformance gate。详细合同见 [D5_VISUAL_CONVERGENCE.md](D5_VISUAL_CONVERGENCE.md)。
+
+**不可接受的完成方式：**
+- 只证明 Shell/route/state/keyboard 正确，却让页面继续保留明显 legacy 视觉；
+- 只检查 overflow / clipping / contrast，就把 pixel review 当作 design acceptance；
+- 用“截图只是 specimen”为理由自由重解释 PrimaryNav、Navigator、Reader、Topic、Compare、Context 的视觉层级；
+- 通过新增更高 specificity 覆盖旧 CSS 而长期保留两套视觉 owner；
+- 仅以 unit/browser green、截图无报错或 responsive 不溢出宣称 Desktop vNext 完成。
+
+**D5 production scope：** AppShell / PrimaryNav、Archive root / Navigator / Reader / selection / Original / History、Thought root / Topic / dense year / longitudinal、AI Organize scope / running / candidate / compare / decisions、AI Context task / select / retrieve / review / stale / budget / ready、Settings / recovery / capture / import-backup，以及这些 Surface 的 normal/empty/loading/failure/stale/conflict/long/narrow/dark/reduced-motion 状态。原则上为 P/I presentation-only；若视觉切换暴露真实 behavior defect，必须拆成独立 bounded repair，不得在“视觉还原”名义下改变 Source/Working/Thought/AI/Context/Passport 语义。
+
+**高还原验收：**
+1. 使用 production extension + synthetic fixtures，在 **1440 / 1280 / 1024 / 768 / 320 CSS px** 和 light/dark 下生成实际页面，不使用 documentation HTML 代替 production。
+2. 同 viewport、同 synthetic content 渲染 DVN canonical reference screens；对固定几何（rail/nav/workspace、gutter、max-width、control height/radius、modal size、selected state、typography roles）做 computed-layout 对照。可确定值必须遵守 tokens；无解释的 >2px fixed-geometry drift 视为 defect。
+3. 对 A02 Reader、T01/T03 Thought、O01/O04/O05 Organize、C01/C04/C06/C08 Context、A07/A08 modal、S01 Settings 至少建立 production screenshot ↔ canonical reference 的 side-by-side visual audit。Pixel diff 仅作为信号，不能替代人工设计审查。
+4. 真实 Logo 必须使用 approved asset，禁止重绘/替换；品牌 accent、selection、danger、focus 各自语义分离。
+5. Typography、视觉层级、正文宽度、留白、导航密度、边界线、selected states、按钮显著性、modal/elevated surface、dark mode 必须与冻结 visual language 保持高一致性；不得以 generic SaaS / Finder / Mail / ChatGPT 风格替代。
+6. 清理残留 legacy selectors / overrides / old visual owners；同一 Surface 最终只能有一套 production style owner。不能把 legacy CSS 藏在更高 specificity 下。
+7. 每个代表 Surface 必须通过独立 design-conformance review；最后需要 owner visual acceptance。**没有 owner visual acceptance，不得标记 Desktop vNext whole-product COMPLETE。**
+
+**证据：** production SHA、实际 extension screenshots（synthetic/sanitized only）、canonical comparison sheet、computed-style/layout report、legacy CSS retirement list、light/dark/narrow/200%/reduced-motion checks、现有 behavior/security regression、owner acceptance record。Design specimen 本身不是 production PASS；production screenshot 无视觉一致性也不是 PASS。
+
+**进入/回滚：** D5 从 D4 exact-main verified main 开始，不与 active D4 writer 并行修改同一 UI roots。回滚仅限 presentation/theme/component composition，必须保留 D1–D4 已提交 revisions、receipts、negative intent、candidate/context state 与安全 guards。任何回滚不得恢复已退役的双 coordinator、永久 Inspector、第四列、composer、重复 Search、永久 MaterialTray 或旧视觉分支。
+
+## 7. Test architecture 与统一回归纪律
 
 1. **Domain contracts：** 直接执行实际store/services，用syntheticrefs/实际revision/tombstone/operation metadata，failure injection区分not-committed/committed-no-ack/unknown；测试trustedhandlers而非仅disabledbutton。新Q接口的正反boundedvalidation、untrustedcaller、freshness与all-or-refuse都覆盖。
 2. **Controller/components：** route/intent/generation/lifecycle/focus/pins/oneeffect仅验证可观测behavior；不写与implementation一比一镜像的无意义tests。token/layoutfreeze由实际production DOM验证；无截图替代domain evidence。
@@ -124,7 +150,7 @@ DFG-009 未关闭时，D3 engineering 与 synthetic safety 可以独立验证；
 
 每slice completion receipt至少包含：approvedscope与openowner/DFG、mainparent/PRhead/mergecandidate/exactmain（如已授权合并）、source/runtime digests、fixture/environment、逐AcceptanceID observedresult、existing和newtests/CI immutableURLs、privacyzeronegativeassertions、性能原始数据、删旧path/uniqueowner证据、migrationcompatreceipt、rollbackparent/限制。未做项写NOT_RUN/NOT_CERTIFIED；失败BLOCKED/FAIL，不以overallgreen或旧COMPLETE替代。
 
-## 7. Legacy retirement ledger
+## 8. Legacy retirement ledger
 
 | 现有文件/职责 | Cutover / deletion boundary | 必须先保留或提取 | 通过证据 |
 |---|---|---|---|
@@ -138,6 +164,6 @@ DFG-009 未关闭时，D3 engineering 与 synthetic safety 可以独立验证；
 
 若旧文件包含其它仍使用能力，仅删除本slice废弃职责/selector，先提取可复用机制。删除不能推迟为永久双运行“以后cleanup”；同一cutover验新路径后移除旧订阅/入口，在该slice PR完成前证明零activelegacycoordinator。未通过时不宣布切换完成。
 
-## 8. 本阶段停止条件
+## 9. 当前执行与完成条件
 
-仅提交foundation文档PR并等owner明确批准architecture + roadmap；不更新STATUS推进、合并PR、改UI/core/tests、部署或操作PR #99。未来Work引用本包和冻结设计逐slice实现，不自行作新产品或视觉决定。
+Foundation 与 D1–D4 已获 owner 批准并进入实施；2026-10-02 owner 进一步批准 D5。当前 active D4 writer 不因本 amendment 被打断；D5 在 D4 required verification、merge 与 exact-main integration 后成为唯一下一产品收口阶段。D5 完成前不得宣称 Desktop vNext whole-product COMPLETE。Work 必须引用本包、冻结设计和 D5 visual contract，真实高还原 production surfaces，不自行重新设计，也不得以“结构正确/测试绿色”替代 owner visual acceptance。PR #99、B-01～B-05 和其它独立 gates 的状态不因此改变。

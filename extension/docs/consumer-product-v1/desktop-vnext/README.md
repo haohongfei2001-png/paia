@@ -23,3 +23,18 @@ Frozen owner decisions are recorded in FROZEN_CONTRACT. Numeric tokens, paginati
 Text contracts prevail over accidental defects in reference images. The original/working distinction, exclusion policy and final domain-service checks prevail over UI appearance. Every screen has one canonical route; prior generated posters and fake logos are not alternate implementations.
 
 Only this documentation subtree may change in this PR. No production UI, core, tests, manifests, workflows, distribution assets, STATUS or historical receipts are changed. No production test, live-model fidelity, real-device, large-library performance or WCAG conformance PASS is asserted.
+
+
+## D5 visual-authority clarification — owner decision 2026-10-02
+
+The reference HTML remains documentation-only and must never be imported/shipped as production code. **However, for D5 pure visual composition it is a canonical visual target, not merely inspiration.** Work must implement the real extension at high visual fidelity to the frozen reference surfaces and visual system.
+
+Authority split:
+- behavior, data ownership, privacy, destructive semantics and capability truth → FROZEN_CONTRACT / SURFACES / STATE_MATRIX / product-domain contracts;
+- literal declared geometry/color/spacing/responsive values → UI_SYSTEM + tokens.css;
+- pure visual composition/hierarchy/density/brand character → canonical high-fidelity reference surfaces rendered from screens/index.html, together with the declared tokens;
+- an intentional visual departure requires an explicit recorded owner decision; it cannot be justified as ordinary implementation freedom.
+
+“High fidelity” means the production surface should visibly read as the same approved design: same shell proportions, visual hierarchy, whitespace rhythm, reading width, navigation density, logo treatment, search/control prominence, selected states, border/radius/shadow language, typography roles and brand balance, allowing only content/localization/responsive differences required by the contracts. A page that is merely functionally correct, unclipped, accessible or CI-green but still looks like the legacy PAIA UI is **not** D5 PASS.
+
+Where a visual reference and literal token appear inconsistent, do not silently choose a divergent third style. Record the conflict in D5, keep behavior/data contracts untouched, and resolve the pure visual choice through owner visual review. Private owner screenshots may be used during review but must not be committed to this public repository.
