@@ -47,7 +47,8 @@ await eventually(()=>page.locator('#original-library-update').isEnabled(),'the a
 assert.equal(h.deepSeekRequests.length,0,'loading Settings organizer status is not authorization');
 await page.locator('#organizer-batch-actions > summary').click();
 assert.equal(await page.locator('#bounded-original-start').isVisible(),true);
-assert.equal(await page.locator('#bounded-ai-start').isVisible(),true);
+assert.equal(await page.locator('#bounded-ai-start').count(),1,'the scoped AI action owner remains installed');
+assert.equal(await page.locator('#bounded-ai-start').isVisible(),false,'D3 cannot start AI organization from Settings without a concrete Topic');
 await page.locator('#bounded-original-start').click();
 await eventually(()=>page.locator('#library-dialog').isVisible(),'Settings reaches the unchanged bounded confirmation');
 assert.equal(await page.locator('#library-form [name="requests"]').inputValue(),'1');
