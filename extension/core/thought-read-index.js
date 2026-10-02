@@ -356,8 +356,23 @@ export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=
    anchor=edgePage.rows[0]||null;if(anchor)start=anchor.key;
   }
  }
- if(!cursor&&(anchorId||sectionId)&&direction==='next'){
-  const seek=await seekDescriptor(store,{generationId:generation,sort,entryId:anchorId,sectionId,expression:true});operations.seekRowsScanned=seek.scanned;
+ if(!cursor&&anchorId&&direction==='next'){
+  // An exact ref must not scan a fixed prefix of a long Topic and then fall
+  // back to the beginning. Resolve its current metadata and the exact key.
+  const found=await store.run(()=>store.repository.transaction(false,async t=>{
+   const placement=await t.get('placements',JSON.stringify([state.topic.id,state.topic.activeLayoutGeneration,anchorId]));
+   if(placement?.lifecycle!=='active')return null;
+   const descriptor=await describe(t,state.topic,placement);if(!descriptor)return null;
+   const id=expressionDescriptorId(generation,sort,descriptor),row=await t.get('libraryMigrationItems',id);
+   if(!row||row.entryRevision!==descriptor.entryRevision||row.placementRevision!==descriptor.placementRevision)return null;
+   return {key:[THOUGHT_TOPIC_STATUS_KEY,kind,id],value:row};
+  }));
+  operations.seekRowsScanned=1;
+  if(!found||!range.includes(found.key)||providerKey!==null&&!found.value.providerKeys?.includes(providerKey))return {...empty,cursorInvalid:true,anchorUnavailable:true};
+  start=found.key;anchor=found;
+ }else if(!cursor&&sectionId&&direction==='next'){
+  const seek=await seekDescriptor(store,{generationId:generation,sort,sectionId,expression:true});operations.seekRowsScanned=seek.scanned;
+  if(seek.truncated)throw Error('TOPIC_SEEK_INCOMPLETE');
   if(seek.key&&range.includes(seek.key)){start=seek.key;anchor={key:seek.key,value:seek.row};}
  }
  const take=anchor?limit-1:limit;
@@ -371,4 +386,11 @@ export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=
  const at=key=>key?{generation,viewKey:meta.activeKey,sort,year,providerKey,query,key}:null,first=ordered[0]?.key,last=ordered.at(-1)?.key;
  const nextCursor=direction==='next'?(page.next?at(last):null):at(last),previousCursor=direction==='prev'?(page.next?at(first):null):(start?at(first):null);
  return {items:ordered.map(r=>({...r.value,_cursorKey:r.key})).filter(d=>providerKey===null||d.providerKeys?.includes(providerKey)),nextCursor,previousCursor,coverage,operations,overview,timeEdgeUnavailable:!!timeEdge&&!anchor,complete:direction==='prev'?!previousCursor:!nextCursor};
+}
+
+// Last response fence: callers run this after every DTO sanitization/enrichment.
+// It performs only the current authority read, never advances/rebuilds a page.
+export async function thoughtTopicGenerationMatches(store,{topicId,generation,viewKey}){
+ const state=await currentTopicMeta(store,topicId);
+ return !!generation&&state.meta?.activeGeneration===generation&&state.meta.activeKey===state.key&&state.meta.activeKey===viewKey;
 }

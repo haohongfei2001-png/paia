@@ -11,7 +11,7 @@ export class ContinuousTopicReader{
  reset({topicId=null,sort='asc',query='',anchorId=null,sectionId=null,timeEdge=null}={}){
   this.serial++;this.topicId=topicId;this.sort=sort;this.query=query;this.anchorId=anchorId;this.sectionId=sectionId;this.timeEdge=timeEdge;
   this.measurements.clear();this.items=[];this.index=new Map();this.bodyRevision=0;this.protectionBlocked=false;this.hydrating=false;this.hydrationPromise=null;this.hydrationError=null;this.windowRevision=0;this.nextCursor=null;this.previousCursor=null;this.coverage=null;this.pageMeta=null;this.sections=new Map();this.sectionCursor=null;
-  this.windowStart=0;this.initialized=false;this.indexing=false;this.loadingNext=false;this.loadingPrevious=false;this.errorNext=null;this.errorPrevious=null;this.terminalNext=false;this.terminalPrevious=anchorId===null&&sectionId===null;this.stale=false;return this.state();
+  this.windowStart=0;this.initialized=false;this.indexing=false;this.loadingNext=false;this.loadingPrevious=false;this.errorNext=null;this.errorPrevious=null;this.terminalNext=false;this.terminalPrevious=anchorId===null&&sectionId===null;this.stale=false;this.anchorUnavailable=false;return this.state();
  }
  matches({topicId,sort,query}){return this.topicId===topicId&&this.sort===sort&&this.query===query;}
  state(){return {
@@ -21,7 +21,7 @@ export class ContinuousTopicReader{
   loadingNext:this.loadingNext,loadingPrevious:this.loadingPrevious,
   errorNext:this.errorNext||this.hydrationError,errorPrevious:this.errorPrevious,indexing:this.indexing,
   coverage:this.coverage,pageMeta:this.pageMeta,sectionCursor:this.sectionCursor,
-  initialized:this.initialized,stale:this.stale,windowStart:this.windowStart,bodyRevision:this.bodyRevision,protectionBlocked:this.protectionBlocked,retainedBodies:this.items.filter(item=>!item.unloaded).length
+  initialized:this.initialized,stale:this.stale,anchorUnavailable:this.anchorUnavailable,windowStart:this.windowStart,bodyRevision:this.bodyRevision,protectionBlocked:this.protectionBlocked,retainedBodies:this.items.filter(item=>!item.unloaded).length
  };}
  snapshot(anchor=null){return {topicId:this.topicId,sort:this.sort,query:this.query,anchor:anchor?{id:anchor.id,top:anchor.top}:null,
   extent:this.items.map(reference),windowStart:this.windowStart,nextCursor:clone(this.nextCursor),previousCursor:clone(this.previousCursor),terminalNext:this.terminalNext,terminalPrevious:this.terminalPrevious,generation:this.coverage?.activeGeneration||null};}
@@ -50,7 +50,7 @@ export class ContinuousTopicReader{
     if(missing===undefined){this.hydrationError=null;this.trimBodies();return true;}
     const id=itemKey(this.items[missing]),page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,anchorId:id,cursor:null,direction:'next',expectedReadGeneration:this.coverage?.activeGeneration||null});
     if(serial!==this.serial||windowRevision!==this.windowRevision)return false;
-    if(page?.cursorInvalid||page?.indexing||this.coverage?.activeGeneration&&page.coverage?.activeGeneration!==this.coverage.activeGeneration){this.stale=true;this.items=this.items.map(reference);this.pageMeta=null;return false;}
+    if(page?.cursorInvalid||page?.indexing||this.coverage?.activeGeneration&&page.coverage?.activeGeneration!==this.coverage.activeGeneration){this.stale=true;this.anchorUnavailable=page.anchorUnavailable===true;this.items=this.items.map(reference);this.pageMeta=null;return false;}
     const rows=page.items||[],target=rows.find(item=>itemKey(item)===id);
     if(!target||target.entry.revision!==this.items[missing].entry.revision){this.stale=true;this.items=this.items.map(reference);this.pageMeta=null;return false;}
     this.readMeta(page);
@@ -94,7 +94,7 @@ export class ContinuousTopicReader{
     const cursor=kind==='initial'?(initialPass?null:this.nextCursor):kind==='previous'?this.previousCursor:this.nextCursor;
     const page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,cursor,direction,anchorId:kind==='initial'&&initialPass?this.anchorId:null,sectionId:kind==='initial'&&initialPass?this.sectionId:null,timeEdge:kind==='initial'&&initialPass?this.timeEdge:null,sectionCursor:this.sectionCursor,expectedReadGeneration:this.coverage?.activeGeneration||null});
     if(serial!==this.serial)return {...this.state(),stale:true};
-    if(page?.cursorInvalid){this.stale=true;this.items=this.items.map(reference);this.pageMeta=null;return this.state();}
+    if(page?.cursorInvalid){this.stale=true;this.anchorUnavailable=page.anchorUnavailable===true;this.items=this.items.map(reference);this.pageMeta=null;return this.state();}
     this.initialized=true;this.indexing=page?.indexing===true;this.readMeta(page);
     if(page?.sectionCursor!==undefined)this.sectionCursor=page.sectionCursor;
     const added=this.merge(page?.items||[],kind==='previous'?'previous':'next');addedTotal+=added;

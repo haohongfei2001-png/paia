@@ -109,3 +109,43 @@ test('D2 a frontier move invalidates an older in-flight hydration window',async(
  f.reader.load=options=>options.anchorId?new Promise(resolve=>finish=()=>load(options).then(resolve)):load(options);
  const pending=f.reader.hydrateWindow(),revision=f.reader.windowRevision;await f.reader.next();assert.ok(f.reader.windowRevision>revision);await finish();assert.equal(await pending,false);assert.equal(f.reader.windowStart,120);
 });
+
+test('D2 expression Content never consumes a storage-failed eligible row as a complete empty answer',async()=>{
+ const {s}=await completeFixture({texts:[]}),topic=await s.createTopic({name:'SYNTHETIC body read interruption',operationId:op()}),entry=await s.continueThinking({operationId:op(),topicId:topic.id,body:'SYNTHETIC retained expression'});
+ await s.topicDocumentPage({topicId:topic.id,chronology:'expression'});const read=s.readingEntry.bind(s);s.readingEntry=async()=>{throw Error('SYNTHETIC_STORAGE_INTERRUPTION');};
+ await assert.rejects(()=>s.topicDocumentPage({topicId:topic.id,chronology:'expression'}),/SYNTHETIC_STORAGE_INTERRUPTION/);s.readingEntry=read;
+ const page=await s.topicDocumentPage({topicId:topic.id,chronology:'expression'});assert.deepEqual(page.items.map(row=>row.entry.id),[entry.id]);assert.equal(page.complete,true);
+});
+
+import {RevisionSession} from '../ui/editor-primitives.js';
+function recoveryEditor(){return Object.assign(Object.create(LibraryEntryEditor.prototype),{entries:new Map(),recoveries:new Map(),recoveryOps:new Map(),recoveryChecked:new Set(),root:{querySelectorAll:()=>[]},field:()=>null,paint:()=>{},collect:()=>{},surface:{composing:false},autosave:{cancel(){}},revisions:new RevisionSession(),journal:{undo:[],redo:[],clear(){this.undo=[];this.redo=[];}},onStatus:()=>{},onSaved:()=>{}});}
+async function withRecoveryTransport(run){
+ const old=globalThis.chrome,calls=[],row={id:'safe-owner',lifecycle:'active',body:'SYNTHETIC_SAFE_CURRENT',note:'',type:'idea',revision:3,fieldRevisions:{body:3,note:0,type:0},currentInputRevision:null,recoveryEpoch:{id:'synthetic-safe-epoch'},sourceRecordIds:[]};
+ globalThis.chrome={runtime:{sendMessage:async message=>{calls.push(structuredClone(message));if(message.type==='GET_LIBRARY_ENTRY')return {ok:true,data:structuredClone(row)};if(message.type==='PAIA_RECOVERY_DRAFT_SAVE')return {ok:true,data:{saved:true}};if(message.type==='EDIT_LIBRARY_BATCH')return {ok:false,error:'STORAGE_FAILED'};if(message.type==='THOUGHT_EDIT_HISTORY')return {ok:true,data:{items:[]}};throw Error('UNEXPECTED_'+message.type);}}};
+ try{await run({calls,row});}finally{globalThis.chrome=old;}
+}
+test('D2 surviving purged owner gets a fresh recovery session before a new failed edit',async()=>withRecoveryTransport(async({calls,row})=>{
+ const editor=recoveryEditor();editor.entries.set(row.id,{saved:{body:'SYNTHETIC_PURGED_CANARY',note:'',type:'idea'},local:{body:'SYNTHETIC_PURGED_CANARY',note:'',type:'idea'},revision:1,fieldRevisions:{body:1,note:0,type:0}});editor.recoveries.set(row.id,{persisted:{signature:'SYNTHETIC_PURGED_CANARY'}});
+ await editor.checkTracked([{id:row.id,lifecycle:'active',purged:true}]);assert.equal(editor.recoveries.get(row.id).persisted,null);editor.entries.get(row.id).local.body='SYNTHETIC_NEW_DRAFT';assert.equal(await editor.flush(),false);
+ const saved=calls.find(call=>call.type==='PAIA_RECOVERY_DRAFT_SAVE');assert.ok(saved);assert.deepEqual(saved.draft.epoch,row.recoveryEpoch);assert.deepEqual(saved.draft.sourceRecordIds,[]);assert.equal(saved.draft.operation.edit.entries[0].changes.body,'SYNTHETIC_NEW_DRAFT');assert.doesNotMatch(JSON.stringify(saved),/PURGED_CANARY/);assert.equal(editor.entries.get(row.id).local.body,'SYNTHETIC_NEW_DRAFT');
+}));
+test('D2 saved-history readback restores recovery ownership for an evicted entry',async()=>withRecoveryTransport(async({calls,row})=>{
+ const editor=recoveryEditor(),patches=[{id:row.id,field:'body',before:'before',after:'after'}];patches.savedEdit=[{id:row.id,revisionId:'saved-revision'}];editor.journal.undo.push(patches);await editor.history();assert.ok(editor.entries.has(row.id));assert.ok(editor.recoveries.has(row.id));
+ editor.entries.get(row.id).local.body='SYNTHETIC_AFTER_UNDO_DRAFT';assert.equal(await editor.flush(),false);const save=calls.find(call=>call.type==='PAIA_RECOVERY_DRAFT_SAVE');assert.ok(save);assert.equal(save.draft.operation.edit.entries[0].changes.body,'SYNTHETIC_AFTER_UNDO_DRAFT');assert.deepEqual(save.draft.epoch,row.recoveryEpoch);
+}));
+
+test('D2 expression response rejects an admitted Source purge after sanitizer before wrapper readback',async()=>{
+ const f=await completeFixture({texts:['SYNTHETIC_RESPONSE_PURGE_CANARY']}),{s}=f;await f.runner.wake();const topic=(await s.libraryIndexPage({mode:'stable'})).items[0],record=(await rows(s,'records'))[0];
+ const initial=await s.topicDocumentPage({topicId:topic.id,chronology:'expression'});assert.match(JSON.stringify(initial),/SYNTHETIC_RESPONSE_PURGE_CANARY/);
+ const transaction=s.repository.transaction.bind(s.repository);let triggered=false,purge=null,finished=false;
+ s.repository.transaction=async(...args)=>{const result=await transaction(...args);if(!triggered&&result?.chronology==='expression'&&Array.isArray(result.items)){triggered=true;purge=s.purge(record.id,true).then(()=>{finished=true;});}return result;};
+ try{const response=await s.topicDocumentPage({topicId:topic.id,chronology:'expression'});assert.equal(triggered,true);assert.equal(finished,true);assert.equal(response.cursorInvalid,true);assert.doesNotMatch(JSON.stringify(response),/SYNTHETIC_RESPONSE_PURGE_CANARY/);await purge;}finally{s.repository.transaction=transaction;}
+});
+
+test('D2 exact expression anchors remain directly addressable beyond the old10000-row seek prefix',async()=>{
+ const {s}=await completeFixture({texts:[]}),topic=await s.createTopic({name:'SYNTHETIC deep exact-ref',operationId:op()}),first=await s.continueThinking({operationId:op(),topicId:topic.id,body:'SYNTHETIC deep seed'}),count=10005;
+ await s.foundationWrite(async t=>{const live=await t.get('topics',topic.id),template=await t.get('thoughts',first.id),placement=await t.get('placements',JSON.stringify([topic.id,live.activeLayoutGeneration,first.id]));for(let i=1;i<count;i++){const id='d2-deep-'+String(i).padStart(6,'0');await t.put('thoughts',{...template,id,thoughtText:'SYNTHETIC_DEEP_'+i});await t.put('placements',{...placement,id:JSON.stringify([topic.id,live.activeLayoutGeneration,id]),entryId:id,rank:String(i).padStart(12,'0')});}live.organizationRevision++;live.countVersion++;await t.put('topics',live);});
+ let page;for(let build=0;build<4;build++){page=await s.topicDocumentPage({topicId:topic.id,chronology:'expression',limit:1});if(!page.indexing)break;}assert.equal(page.indexing,undefined);assert.equal(page.overview.total,count);
+ const last='d2-deep-010004',seek=await s.topicDocumentPage({topicId:topic.id,chronology:'expression',anchorId:last,limit:1});assert.equal(seek.items[0].entry.id,last);assert.equal(seek.items[0].entry.body,'SYNTHETIC_DEEP_10004');assert.equal(seek.operations.seekRowsScanned,1);assert.equal(seek.nextCursor,null);assert.ok(seek.previousCursor);
+ const missing=await s.topicDocumentPage({topicId:topic.id,chronology:'expression',anchorId:'d2-deep-missing',limit:1});assert.equal(missing.cursorInvalid,true);assert.equal(missing.anchorUnavailable,true);assert.deepEqual(missing.items,[]);
+});
