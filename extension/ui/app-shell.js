@@ -38,6 +38,10 @@ export class AppShellController {
   for(const [view,path]of Object.entries(NAV_PATHS)){
    const button=document.querySelector(`.sidebar [data-view="${view}"]`),label=document.createElement('span');label.className='ux-nav-label';button.replaceChildren(navIcon(path),label);
   }
+  // Fixed controls keep their existing listeners and domain owners.
+  document.querySelector('.workspace-header').insertBefore(document.getElementById('scope-search-host'),document.getElementById('save-status'));
+  document.querySelector('.workspace-header').insertBefore(document.getElementById('archive-navigator-toggle'),document.getElementById('scope-search-host'));
+  document.querySelector('.workspace-header').insertBefore(document.getElementById('input-time-order'),document.getElementById('document-menu'));
   installUniversalSearch();installRevisit();
   installSettingsPreferences({back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
   const optional=document.createElement('small');optional.className='ux-consent-optional';document.getElementById('consent-check').closest('.consent-checkbox').append(optional);
@@ -59,6 +63,11 @@ export class AppShellController {
  present(route,options){
   if(route.view==='settings'&&this.route.view!=='settings')this.settingsReturn=this.route;
   this.route=route;presentAppShell(document,route,options);
+  const archiveRoot=['library','archive'].includes(route.view)&&!route.documentId,heading=document.getElementById('workspace-heading'),header=document.querySelector('.workspace-header'),headingHost=archiveRoot?document.getElementById('archive-root-heading'):header;
+  if(heading.parentElement!==headingHost)headingHost.prepend(heading);
+  const overflow=document.getElementById('archive-root-overflow'),overflowHost=archiveRoot?header:document.getElementById('archive-root-tools');
+  if(overflow.parentElement!==overflowHost)overflowHost.append(overflow);
+  document.getElementById('input-time-order').hidden=route.view!=='library'||!route.documentId;
   const reader=!!route.documentId||route.view==='thoughts'&&!!route.topicId;
   document.body.classList.toggle('ux-reader-active',reader);
   document.body.classList.toggle('uir-settings-active',route.view==='settings');
