@@ -4,7 +4,7 @@ import {eventually} from './fake-chatgpt.mjs';
 import {openArchiveWindow} from './archive-navigator.mjs';
 import {openD5Reference} from './d5-shell-reference.mjs';
 async function metrics(p,ref){return p.evaluate(ref=>{
- const measure=selector=>{const e=document.querySelector(selector),r=e.getBoundingClientRect(),c=getComputedStyle(e);return {x:r.x,y:r.y,width:r.width,height:r.height,paddingTop:c.paddingTop,paddingLeft:c.paddingLeft,paddingRight:c.paddingRight,fontSize:c.fontSize,lineHeight:c.lineHeight,borderRightWidth:c.borderRightWidth};};
+ const measure=selector=>{const e=document.querySelector(selector),r=e.getBoundingClientRect(),c=getComputedStyle(e);return {x:r.x,y:r.y,width:r.width,height:r.height,paddingTop:c.paddingTop,paddingLeft:c.paddingLeft,paddingRight:c.paddingRight,fontSize:c.fontSize,fontWeight:c.fontWeight,fontSynthesis:c.fontSynthesis,lineHeight:c.lineHeight,borderRightWidth:c.borderRightWidth};};
  return {rail:measure(ref?'.rail':'.sidebar'),navigator:measure(ref?'.navigator':'#archive-navigator'),header:measure(ref?'.topbar':'.workspace-header'),body:measure(ref?'.main>.workspace':'#document-page'),title:measure(ref?'.main h1':'#document-title'),prose:measure(ref?'.prose':'.library-prose'),overflow:document.documentElement.scrollWidth-innerWidth};
  },ref);}
 export async function compareD5Archive(h,variant){
@@ -41,11 +41,11 @@ export async function compareD5Archive(h,variant){
    await p.screenshot({path:stem+'-production.png',fullPage:true,animations:'disabled'});await ref.screenshot({path:stem+'-reference.png',fullPage:true,animations:'disabled'});
    assert.ok(production.overflow<=1);assert.equal(await p.evaluate(()=>__d5ReaderNode.isConnected),true,'visual changes retain the actual editor node');
    if(width>=1024){
-    for(const [key,fields]of Object.entries({navigator:['x','y','width'],header:['x','width'],body:['x','width']}))for(const field of fields)assert.ok(Math.abs(production[key][field]-reference[key][field])<=2,`${width} ${key}.${field}: ${production[key][field]} vs ${reference[key][field]}`);
+    for(const [key,fields]of Object.entries({navigator:['x','y','width'],header:['x','y','width','height'],body:['x','y','width']}))for(const field of fields)assert.ok(Math.abs(production[key][field]-reference[key][field])<=2,`${width} ${key}.${field}: ${production[key][field]} vs ${reference[key][field]}`);
     assert.equal(production.navigator.borderRightWidth,'1px');
    }else{assert.equal(await p.locator('#archive-navigator-toggle').isVisible(),true,'narrow navigation remains explicit');}
-   for(const key of ['paddingTop','paddingLeft','paddingRight'])assert.equal(production.body[key],reference.body[key]);
-   assert.equal(production.title.fontSize,reference.title.fontSize);assert.equal(production.title.lineHeight,reference.title.lineHeight);
+   for(const key of ['paddingTop','paddingLeft','paddingRight']){assert.equal(production.body[key],reference.body[key]);assert.equal(production.header[key],reference.header[key]);}
+   assert.equal(production.title.fontWeight,reference.title.fontWeight);assert.equal(production.title.fontSize,reference.title.fontSize);assert.equal(production.title.lineHeight,reference.title.lineHeight);
    assert.equal(await p.locator('.workspace-header #input-time-toggle').count(),1,'same sole order control lives in topbar');
    rows.push({width,theme,production,reference,scope:'Archive fixed composition with canonical synthetic expression content; wrapping follows retained reader preferences'});
   }

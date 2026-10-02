@@ -45,7 +45,7 @@ dialog::backdrop{background:#16221638}
 #info-content{overflow-wrap:anywhere;white-space:pre-wrap;font-size:14px}
 #info-content pre{white-space:pre-wrap}
 #info-content textarea{width:100%;min-height:100px;border:1px solid #dce2d7;padding:10px}
-#error{color:#993e33;background:#fff3ee;padding:14px}
+#error{color:var(--danger);background:var(--warning-bg);border-left:2px solid var(--danger);padding:16px 18px}
 #notice{color:#65715d;font-size:13px}
 .consent-panel{max-width:780px;margin:auto;line-height:1.8}
 .consent-panel li{margin-bottom:10px}
@@ -53,7 +53,7 @@ dialog::backdrop{background:#16221638}
 .consent-checkbox{display:block}
 .legacy-row{padding:20px 0;border-bottom:1px solid #e3e8de}
 .legacy-row pre{white-space:pre-wrap}
-#document-menu{font-size:22px}
+
 @media(max-width:850px){nav button{font-size:13px}
 
 

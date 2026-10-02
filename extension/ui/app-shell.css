@@ -109,10 +109,19 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) .workspace-head
 body:is([data-paia-space="library"],[data-paia-space="archive"]) .workspace-header #save-status{order:2;margin-left:auto}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #input-time-order{order:3}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #archive-navigator-toggle{order:0}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-menu{order:4}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-menu{order:4;min-height:36px;padding:6px 12px;font-size:14px;line-height:21px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #collection-panel{max-width:calc(var(--compare) + 64px);padding:54px 32px 80px;margin:auto}
-#archive-root-heading h1{font-size:28px;line-height:1.35;font-weight:600;margin:0 0 16px}
+#archive-root-heading h1{font-synthesis:weight;font-size:28px;line-height:1.35;font-weight:600;margin:0 0 16px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader .workspace-header{margin-left:var(--nav-width);top:0}
 @media(min-width:1024px) and (max-width:1439px){body:is([data-paia-space="library"],[data-paia-space="archive"]) .workspace-header{padding:16px 24px}body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #collection-panel{padding:40px 24px 64px}}
-@media(max-width:1023px){body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader .workspace-header{margin-left:0}body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #collection-panel{padding:32px 24px 64px}}
+@media(max-width:1023px){body:is([data-paia-space="library"],[data-paia-space="archive"]) .workspace-header{padding:16px 24px}body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader .workspace-header{margin-left:0}body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #collection-panel{padding:32px 24px 64px}}
 @media(max-width:767px){body:is([data-paia-space="library"],[data-paia-space="archive"]) .workspace-header{padding:12px 16px;gap:8px}body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader .workspace-header{top:57px}body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #collection-panel{padding:28px 16px 56px}#archive-root-heading h1{font-size:24px}}
+
+/* Recovery belongs to the active main column, never underneath fixed navigation. */
+#workspace-error:not(:has(> :not([hidden]))){display:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #workspace-error{padding:16px 32px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader #workspace-error{margin-left:var(--nav-width)}
+@media(max-width:1439px){body:is([data-paia-space="library"],[data-paia-space="archive"]) #workspace-error{padding-inline:24px}}
+@media(max-width:1023px){body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader #workspace-error{margin-left:0}}
+@media(max-width:767px){body:is([data-paia-space="library"],[data-paia-space="archive"]) #workspace-error{padding-inline:16px}}
+@media(pointer:coarse){body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#document-menu,#back,#input-time-toggle,#archive-root-overflow summary,#archive-navigator-toggle,#scope-search){min-height:44px;min-width:44px}}

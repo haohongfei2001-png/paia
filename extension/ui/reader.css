@@ -1,7 +1,7 @@
 /* UX-R2 consumes the shared Design System. No new content or AI color role. */
 #document-panel .document-page{border:0;background:transparent;width:100%;min-width:0;padding:54px 32px 80px;max-width:calc(var(--prose) + 64px);margin:0 auto;line-height:1.85;overflow-wrap:anywhere}
 #document-title,#document-search-tools,#document-body{width:min(100%,var(--paia-prose-width,680px));margin-inline:auto}
-#document-title{font-size:28px;font-weight:600;line-height:1.35;letter-spacing:normal;overflow-wrap:anywhere;white-space:pre-wrap;margin-block:0 30px}
+#document-title{font-synthesis:weight;font-size:28px;font-weight:600;line-height:1.35;letter-spacing:normal;overflow-wrap:anywhere;white-space:pre-wrap;margin-block:0 30px}
 #input-time-order{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--paia-meta);font-size:13px;margin:0}
 #input-time-order>span{display:none}
 #input-time-order button{min-height:36px;color:var(--text);border:0;padding:6px 12px;background:transparent}
