@@ -147,3 +147,41 @@ test('D4 unchanged Ready activation restores validated output controls without r
  ui.activate(false);assert.equal(output.textContent,'');assert.equal(copy.disabled,true);ui.activate(true);await ui.serial;
  assert.equal(output.textContent,'EXACT_REVIEWED');assert.equal(copy.disabled,false);assert.equal(choice.disabled,false);assert.equal(renders,0);assert.deepEqual(draft,{value:'AUTHOR_DRAFT',selectionStart:3,selectionEnd:7,readOnly:false});
 });
+test('D4 stale unsent item drafts cannot block explicit reconciliation or removal; independent drafts survive',async()=>{
+ const {ContextController}=await import('../ui/context-workspace.js'),f=await setup();await f.call('add',{refs:f.refs});
+ const [changed,safe]=f.state.items,b=f.blocks[0];await f.s.editDocument({documentId:b.documentId,operationId:crypto.randomUUID(),blocks:[{id:b.id,expectedRevision:b.revision,libraryText:'CURRENT_SOURCE',note:b.note,excluded:false}]});await f.call('read');
+ const ui=Object.create(ContextController.prototype),old={chrome:globalThis.chrome,document:globalThis.document,window:globalThis.window};let accept=false,prompt='';const actions=[];
+ Object.assign(ui,{data:f.state,sourceEpoch:0,serial:Promise.resolve(),busy:false,drafts:new Map([[changed.itemId,'STALE_UNSENT'],[safe.itemId,'INDEPENDENT_UNSENT']]),render(){},feedback(){}});
+ globalThis.document={documentElement:{lang:'en'},dispatchEvent(){}};globalThis.window={confirm(text){prompt=text;return accept;}};
+ globalThis.chrome={runtime:{async sendMessage(m){actions.push(m.options.action);try{return {ok:true,data:await f.context.run(m.options,'tab')};}catch(e){return {ok:false,error:e.code};}}}};
+ try{
+  await ui.reconcile();assert.equal(ui.drafts.get(changed.itemId),'STALE_UNSENT');assert.match(prompt,/discards 1 affected unsent/);assert.equal(ui.data.state,'stale');assert.equal(ui.drafts.get(safe.itemId),'INDEPENDENT_UNSENT');assert.equal(ui.data.generation,f.state.generation);assert.deepEqual(actions,['reconcile']);
+  accept=true;await ui.reconcile();assert.equal(ui.data.state,'dirty');assert.equal(ui.data.items[0].body,'CURRENT_SOURCE');assert.equal(ui.drafts.get(safe.itemId),'INDEPENDENT_UNSENT');assert.equal(ui.drafts.has(changed.itemId),false);
+  ui.drafts.set(changed.itemId,'ANOTHER_UNSENT');await f.s.editDocument({documentId:b.documentId,operationId:crypto.randomUUID(),blocks:[{id:b.id,expectedRevision:b.revision+1,libraryText:'CURRENT_SOURCE_AGAIN',note:b.note,excluded:false}]});ui.data=await ui.rpc('read');
+  await ui.change('remove',{itemId:changed.itemId});assert.equal(ui.data.items.length,1);assert.equal(ui.drafts.get(safe.itemId),'INDEPENDENT_UNSENT');assert.equal(ui.drafts.has(changed.itemId),false);
+ }finally{Object.assign(globalThis,old);}
+});
+test('D4 a source change during reconciliation confirmation preserves every unsent draft and old selection',async()=>{
+ const {ContextController}=await import('../ui/context-workspace.js'),f=await setup();await f.call('add',{refs:f.refs});const b=f.blocks[0],[changed,safe]=f.state.items;
+ await f.s.editDocument({documentId:b.documentId,operationId:crypto.randomUUID(),blocks:[{id:b.id,expectedRevision:b.revision,libraryText:'FIRST_CHANGE',note:b.note,excluded:false}]});await f.call('read');
+ const ui=Object.create(ContextController.prototype),old={chrome:globalThis.chrome,document:globalThis.document,window:globalThis.window};const drafts=new Map([[changed.itemId,'AFFECTED_UNSENT'],[safe.itemId,'SAFE_UNSENT'],['output','WHOLE_UNSENT']]);let confirmed=false;
+ Object.assign(ui,{data:f.state,sourceEpoch:0,serial:Promise.resolve(),busy:false,drafts:new Map(drafts),render(){},feedback(){}});globalThis.document={documentElement:{lang:'en'}};globalThis.window={confirm(text){assert.match(text,/discards 2 affected unsent/);confirmed=true;return true;}};
+ globalThis.chrome={runtime:{async sendMessage(m){if(m.options.action==='reconcile'&&m.options.accept)await f.s.editDocument({documentId:b.documentId,operationId:crypto.randomUUID(),blocks:[{id:b.id,expectedRevision:b.revision+1,libraryText:'SECOND_CHANGE',note:b.note,excluded:false}]});try{return {ok:true,data:await f.context.run(m.options,'tab')};}catch(e){return {ok:false,error:e.code};}}}};
+ try{await ui.reconcile();assert.equal(confirmed,true);assert.deepEqual(ui.drafts,drafts);const held=f.context.sessions.get(f.state.selectionId);assert.equal(held.generation,f.state.generation);assert.equal(held.items[0].ref.revision,b.revision);}finally{Object.assign(globalThis,old);}
+});
+test('D4 source recheck masks an unsent complete-output draft, restores unchanged eligible editing, and clears it only on denial',async()=>{
+ const oldDocument=globalThis.document;globalThis.document={documentElement:{lang:'en'}};try{
+ const {ContextController}=await import('../ui/context-workspace.js'),ui=Object.create(ContextController.prototype);const field={value:'UNSENT_OUTPUT',readOnly:false,selectionStart:2,selectionEnd:6,setSelectionRange(start,end){this.selectionStart=start;this.selectionEnd=end;}},item={itemId:'material',state:'ready',body:'source'};
+ const root={querySelector(selector){return ['[data-material-edit=output]','textarea:focus'].includes(selector)?field:null;},querySelectorAll(){return [];}};
+ Object.assign(ui,{data:{state:'ready',items:[item],text:'COMPILED'},sourceEpoch:0,serial:Promise.resolve(),busy:false,rechecking:true,drafts:new Map([['output','UNSENT_OUTPUT']]),root,ensure:async()=>{},renderReconcileAction(){},render(){},feedback(){}});ui.rpc=async()=>structuredClone(ui.data);
+ ui.invalidateOutput(true);assert.equal(field.value,'');assert.equal(field.readOnly,true);assert.equal(ui.drafts.get('output'),'UNSENT_OUTPUT');await ui.refresh();assert.equal(field.value,'UNSENT_OUTPUT');assert.equal(field.readOnly,false);assert.equal(field.selectionStart,2);assert.equal(field.selectionEnd,6);
+ ui.rechecking=true;ui.invalidateOutput(true);ui.rpc=async()=>({state:'blocked',items:[{...item,state:'blocked',body:''}],text:''});await ui.refresh();assert.equal(field.value,'');assert.equal(field.readOnly,true);assert.equal(ui.drafts.has('output'),false);
+ }finally{globalThis.document=oldDocument;}
+});
+test('D4 denial clears material bodies in the hidden workspace even while permission management prevents remount',async()=>{
+ const {ContextController}=await import('../ui/context-workspace.js'),ui=Object.create(ContextController.prototype),oldDocument=globalThis.document;globalThis.document={documentElement:{lang:'en'}};
+ const snippet={textContent:'HIDDEN_FORBIDDEN_BODY',replaceChildren(){this.textContent='';}},field={dataset:{materialEdit:'blocked'},value:'HIDDEN_FORBIDDEN_BODY',readOnly:false},row={dataset:{materialId:'blocked'},querySelector(){return snippet;}};
+ const root={querySelector(){return null;},querySelectorAll(selector){return selector==='[data-material-id]'?[row]:selector==='[data-material-edit]'?[field]:[];}};
+ Object.assign(ui,{advanced:true,data:{state:'ready',items:[{itemId:'blocked',state:'ready',body:'HIDDEN_FORBIDDEN_BODY'}]},sourceEpoch:0,serial:Promise.resolve(),busy:false,rechecking:true,drafts:new Map([['blocked','UNSENT_FORBIDDEN']]),root,ensure:async()=>{},renderReconcileAction(){},render(){},feedback(){}});ui.rpc=async()=>({state:'blocked',items:[{itemId:'blocked',state:'blocked',body:''}],text:''});
+ try{await ui.refresh();assert.equal(snippet.textContent,'');assert.equal(field.value,'');assert.equal(field.readOnly,true);assert.equal(ui.drafts.has('blocked'),false);}finally{globalThis.document=oldDocument;}
+});

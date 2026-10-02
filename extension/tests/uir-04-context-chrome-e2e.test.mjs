@@ -114,7 +114,7 @@ async function sourceJourney(page,h,label){
   const blockedId=(await tray(page)).items[0].ref.id;
   await rpc(page,'PAIA_MEMORY_EXCLUDE',{options:{inputId:blockedId,excluded:true}});
   await eventually(async()=>(await tray(page)).state==='blocked','persistent restriction invalidates the current selection');
-  await previewReviewedContext(page);
+  await page.locator('#material-preview').click();
   await pause(120);
   assert.equal(await page.locator('#material-output-text').count(),0,'blocked state exposes no old output body');
   assert.equal(await page.locator('[data-output]').count(),0,'blocked state exposes no copy/export bypass');
