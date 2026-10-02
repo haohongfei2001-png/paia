@@ -47,6 +47,7 @@ async function expectSingleSearch(page,id,label){
   assert.equal(await visibleSearches(page),1,`${label} exposes exactly one visible search box`);
   assert.equal(await page.locator('#'+id).isVisible(),true,`${label} owns the visible search box`);
   assert.equal(await page.locator('#universal-search-open').isVisible(),false,`${label} has no visible global search launcher`);
+  await eventually(()=>page.locator('#'+id).isEnabled(),`${label} releases its actual scoped search before keyboard input`);
 }
 
 test('UIS-02 search is page-scoped across Archive, Reader, Thought root/topic and absent from Settings',{timeout:180000},async()=>{

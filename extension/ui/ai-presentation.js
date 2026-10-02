@@ -11,7 +11,7 @@ export function aiTopicStatusModel({view='original',hasTopic=false,aiPending=fal
  if(!hasTopic||(view!=='ai'&&!aiPending))return null;
  const readable=view==='original'||!selected?.presentation?'原话保持可读；可以继续阅读或离开。':'当前已保存的整理保持可读；可以切回原话或离开。';
  if(statusUnavailable)return {state:'unavailable',text:'AI 整理状态暂时无法确认。'+readable};
- if(aiPending){const state=Object.hasOwn(runningStatus,runtime?.state)?runtime.state:'prepared';return {state,text:runningStatus[state]+' '+readable};}
+ if(aiPending||Object.hasOwn(runningStatus,runtime?.state)){const state=Object.hasOwn(runningStatus,runtime?.state)?runtime.state:'prepared';return {state,text:runningStatus[state]+' '+readable};}
  if(selected?.candidate)return selected.candidate.stale?{state:'stale',text:'更新候选已过期，当前稿保持不变。请重新更新后再核对。'}:{state:'candidate',text:'新整理已准备好。当前稿尚未被替换；请核对更新候选后再保存。'};
  if(runtime?.state==='outcome_unknown')return {state:'outcome_unknown',text:'最近一次 AI 整理结果尚未确认。请先检查当前状态；再次发起可能计费，本次不会自动重试。'};
  if(runtime?.state==='failed')return {state:'failed',text:'最近一次 AI 整理未完成'+(runtime.errorCode?'：'+statusLabel(runtime.errorCode):'')+'。'+readable};

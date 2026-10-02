@@ -54,6 +54,9 @@ export function testShard(file, position, total, category) {
  // Put the complete six Source/release purge journeys on2; retain all cases
  // and the unchanged18-minute budget, without shifting every later file.
  if(category==='browser E2E'&&total===4){
+  // D3 adds its entire source/release file to1; all66 previous placements stay.
+  if(name==='cpv1-05-dvn-organize-chrome-e2e.test.mjs')return 1;
+  if(name>'cpv1-05-dvn-organize-chrome-e2e.test.mjs')position--;
   // Q3 adds one whole Source/release file to2, retaining all60 previous
   // file placements and the unchanged18-minute budget. No case is omitted.
   // D1 Search adds one complete source/release file on2. All61 earlier

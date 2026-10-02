@@ -12,7 +12,7 @@ import {topicMergeSuggestions,keepTopicsSeparate,topicRenameSuggestions} from '.
 import {entryTime,ensureTopicChronology} from './topic-chronology.js';
 import {organizerControls,setOrganizerControls} from './controls.js';
 import {planDynamicOriginalBatch} from './original-batch.js';
-import {aiPresentationStatus,editAIPresentation,aiPresentationRevisions,searchSavedAI} from './ai-presentation.js';
+import {aiPresentationStatus,editAIPresentation,aiPresentationRevisions,aiPresentationOperationOutcome,searchSavedAI} from './ai-presentation.js';
 import {safeOrganization,clearDerivedMetadata,sanitizePage} from './metadata.js';
 import {LibraryDocumentsStore} from '../library-documents-store.js';
 import {UniversalSearchService} from '../universal-search.js';
@@ -127,7 +127,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
     const row=active(await t.get('thoughts',ownerId));await purgeRevision(row,edit.entries[0].expectedRevision,row.staleReasons?.includes('source_purged'),value=>t.put('thoughts',value));add(row);
    }else if(kind==='ai_presentation'){
     if(operation.type!=='AI_RECOVERY_SNAPSHOT'||operation.topicId!==ownerId)reject('INVALID_REQUEST');
-    active(await t.get('topics',ownerId));const presentation=await t.get('meta','aiPresentation:'+ownerId);if(!presentation||(operation.generation??'legacy')!==(presentation.recoveryGeneration||'legacy'))reject('INVALID_REQUEST');
+    active(await t.get('topics',ownerId));const presentation=await t.get('meta','aiPresentation:'+ownerId);if(!presentation||presentation.currentState==='none'||presentation.envelopeVersion!==undefined||(operation.generation??'legacy')!==(presentation.recoveryGeneration||'legacy'))reject('INVALID_REQUEST');
     await purgeRevision(presentation,operation.baseRevision,presentation.detachedUserFields,value=>t.put('meta',value));
     const fence=await t.get('libraryMigrationItems','ai-presentation-fence:'+ownerId);
     if(fence?.sourceRecordIds?.length)add(fence);
@@ -147,7 +147,8 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async aiPresentationRevisions(options){return aiPresentationRevisions(this,options);}
  async revisions(o={}){const page=await super.revisions(o);return {...page,items:page.items.filter(x=>x.kind!=='ai_presentation')};}
  recoverAIDraft(r){return recoverAIDraft(this,r);}
- async aiPresentationStatus(){return aiPresentationStatus(this);}
+ async aiPresentationStatus(options){return aiPresentationStatus(this,options);}
+ async aiPresentationOperationOutcome(options){return aiPresentationOperationOutcome(this,options);}
  async editAIPresentation(edit){return editAIPresentation(this,edit);}
  async dualViewStatus(){return dualViewStatus(this);}
  async previewAIDelta(){return previewAIDelta(this);}

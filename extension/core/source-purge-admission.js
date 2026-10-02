@@ -1,3 +1,4 @@
+import {isBaseNoneEnvelope,validAIPresentationCandidate} from './organizer/ai-candidate.js';
 import {validateRemovalEdit} from './archive-removal.js';
 import {ArchiveError} from './constants.js';
 import {chatOf} from './idb-repository.js';
@@ -107,7 +108,9 @@ export async function assessSourcePurge(t,{id,key,record},rawRecovery){
   do{
   const page=await t.primaryRangePage('meta',{prefix:'aiPresentation:',limit:100,after});after=page.next;total+=page.rows.length;if(total>1000)unavailable();
   for(const {value:row}of page.rows){
-   if(!Array.isArray(row.evidenceEntryIds)||row.candidate&&!Array.isArray(row.candidate.proposal?.evidenceEntryIds))gate();
+   const none=isBaseNoneEnvelope(row);
+   if(none){if(row.candidate&&(!validAIPresentationCandidate(row.candidate,new Set(row.candidate.proposal?.evidenceEntryIds||[]))||row.candidate.baseKind!=='none'||row.candidate.proposal.topicId!==row.topicId))gate();}
+   else if(!Array.isArray(row.evidenceEntryIds)||row.candidate&&!Array.isArray(row.candidate.proposal?.evidenceEntryIds))gate();
    const ids=[...(row.evidenceEntryIds||[]),...(row.candidate?.proposal?.evidenceEntryIds||[])];
    if(ids.length>1000||ids.some(id=>!idOK(id)))gate();
    let affected=false;for(const eid of new Set(ids)){

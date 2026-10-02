@@ -7,28 +7,30 @@ const supporting=(tag,value,className='ai-candidate-note')=>{const node=element(
 
 export {aiCandidateKey} from '../core/organizer/ai-candidate.js';
 
-export function renderAICandidateComparison(root,{candidate,current,choices,onChoice,onSave,onRefresh}){
+export function renderAICandidateComparison(root,{candidate,current,choices,pending=false,saving=false,onEvidence=()=>{},onChoice,onSave,onRefresh}){
  const previous=root.querySelector('[data-ai-candidate]'),active=root.ownerDocument.activeElement;
  const focus=previous?.contains(active)?{field:active.closest('[data-ai-candidate-field]')?.dataset.aiCandidateField,decision:active.dataset.candidateDecision,footer:!!active.closest('.ai-candidate-footer')}:null;
  previous?.remove();
- if(!candidate||!current)return null;
+ if(!candidate||!current&&candidate.baseKind!=='none')return null;
  const panel=element('section','ai-update-candidate');panel.dataset.aiCandidate='true';panel.dataset.candidateState=candidate.stale?'stale':'ready';panel.setAttribute('aria-label','AI 更新候选');panel.style.width='min(100%,1040px)';panel.style.maxWidth='1040px';
- const header=element('header','ai-candidate-header');header.append(supporting('p','AI整理更新','ai-candidate-eyebrow'),element('h2','',candidate.stale?'更新候选已过期':'核对更新候选'),supporting('p',candidate.stale?'当前稿或主题材料在候选生成后又发生了变化。已暂存的选择仍显示在下方，但旧候选不能保存；重新更新后再核对。':'当前稿不会自动改变。逐段比较“当前稿”和“更新候选”，为每个实际变化选择采用或保留；所有选择只暂存在本页，最后一次保存。'));panel.append(header);
+ const header=element('header','ai-candidate-header');header.append(supporting('p','AI整理更新','ai-candidate-eyebrow'),element('h2','',candidate.stale?'更新候选已过期':'这还是你的意思吗？'),supporting('p',candidate.stale?'当前稿或主题材料在候选生成后又发生了变化。已暂存的选择仍显示在下方，但旧候选不能保存；重新更新后再核对。':'当前稿不会自动改变。逐段比较“当前稿”和“更新候选”，为每个实际变化选择采用或保留；所有选择只暂存在本标签页，最多保留最近 24 个主题的选择；最后一次保存。'));panel.append(header);
  for(const field of candidate.changedFields||[]){
   const label=LABELS[field]||field,card=element('section','ai-candidate-field');card.dataset.aiCandidateField=field;const heading=element('h3','',label);heading.id=`ai-candidate-${field}`;card.setAttribute('aria-labelledby',heading.id);card.append(heading);
   const compare=element('div','ai-candidate-compare'),before=element('div','ai-candidate-version'),after=element('div','ai-candidate-version');
   before.dataset.candidateVersion='current';before.setAttribute('aria-label',`${label} · 当前稿`);after.dataset.candidateVersion='proposal';after.setAttribute('aria-label',`${label} · 更新候选`);
-  before.append(element('strong','','当前稿'),element('p','entry-prose',text(current[field])||'（空）'));
-  after.append(element('strong','','更新候选'),element('p','entry-prose',text(candidate.proposal?.[field])||'（空）'));
+  before.append(element('strong','','当前稿'),element('p','entry-prose',text(current?.[field])||(candidate.baseKind==='none'?'尚无当前稿；保留表示此字段仍未生成。':'（空）')));
+  after.append(element('strong','','更新候选'),supporting('p','AI 新写 · 不是用户原话'),element('p','entry-prose',text(candidate.proposal?.[field])||'（空）'));
   compare.append(before,after);card.append(compare);
-  const actions=element('div','ai-candidate-actions');actions.setAttribute('aria-label',candidate.stale?`${label} · 已暂存选择（候选已过期）`:`${label} · 选择处理方式`);
-  for(const [decision,actionLabel]of [['adopt','采用这段'],['keep','保留当前']]){const choice=button(actionLabel,()=>onChoice(field,decision));choice.dataset.candidateDecision=decision;choice.setAttribute('aria-pressed',String(choices[field]===decision));choice.disabled=!!candidate.stale;actions.append(choice);}card.append(actions);
+  const evidence=Array.isArray(candidate.proposal?.[field])?[...new Set(candidate.proposal[field].flatMap(item=>item.evidenceEntryIds||[]))]:candidate.proposal?.evidenceEntryIds||[];
+  const source=element('details','ai-candidate-evidence');source.append(element('summary','',`核对原话依据 · ${evidence.length} 段`));for(const [index,id]of evidence.entries())source.append(button(`阅读原话 ${index+1}`,()=>onEvidence(id)));card.append(source);
+  const actions=element('fieldset','ai-candidate-actions');actions.append(element('legend','',candidate.stale?`${label} · 已暂存选择（候选已过期）`:`${label} · 选择处理方式`));
+  for(const [decision,actionLabel]of [['adopt','采用这段'],['keep','保留当前']]){const labelNode=element('label',''),choice=element('input');choice.type='radio';choice.name='candidate-choice-'+field;choice.value=decision;choice.dataset.candidateDecision=decision;choice.checked=choices[field]===decision;choice.disabled=!!candidate.stale||pending;choice.addEventListener('change',()=>{if(choice.checked)onChoice(field,decision);});labelNode.append(choice,document.createTextNode(actionLabel));actions.append(labelNode);}card.append(actions);
   if(candidate.stale&&['adopt','keep'].includes(choices[field]))card.append(supporting('p',choices[field]==='adopt'?'已暂存：采用这段。重新更新后需要再次核对。':'已暂存：保留当前。重新更新后需要再次核对。'));
   panel.append(card);
  }
  const footer=element('div','ai-candidate-footer');
  if(candidate.stale){const refresh=button('重新更新 AI整理',()=>onRefresh());refresh.className='primary';footer.append(refresh,supporting('span','旧候选不可保存；当前稿保持不变。'));}
- else{const save=button('保存这些选择',()=>onSave());save.className='primary';save.disabled=(candidate.changedFields||[]).some(field=>!['adopt','keep'].includes(choices[field]));footer.append(save,supporting('span',save.disabled?'请先为每个变化选择采用或保留。':'所有选择已准备好，保存时一次提交。'));}
+ else{const decided=(candidate.changedFields||[]).filter(field=>['adopt','keep'].includes(choices[field])).length;footer.append(supporting('span',`${decided} / ${candidate.changedFields.length} 已决定`));const next=button('下一处未决定',()=>{const field=candidate.changedFields.find(field=>!['adopt','keep'].includes(choices[field])),node=[...panel.querySelectorAll('[data-ai-candidate-field]')].find(node=>node.dataset.aiCandidateField===field);node?.querySelector('input')?.focus();});next.disabled=pending||decided===candidate.changedFields.length;footer.append(next);const save=button('保存这些选择',()=>onSave());save.className='primary';save.disabled=saving||(candidate.changedFields||[]).some(field=>!['adopt','keep'].includes(choices[field]));footer.append(save,supporting('span',save.disabled?'请先为每个变化选择采用或保留。':'所有选择已准备好，保存时一次提交。'));}
  panel.append(footer);root.prepend(panel);
  // Rebuilding local choices must not eject keyboard users to the document body.
  if(focus){const card=[...panel.querySelectorAll('[data-ai-candidate-field]')].find(node=>node.dataset.aiCandidateField===focus.field),target=focus.decision?[...(card?.querySelectorAll('[data-candidate-decision]')||[])].find(node=>node.dataset.candidateDecision===focus.decision):focus.footer?footer.querySelector('button'):null;if(target&&!target.disabled)target.focus({preventScroll:true});else{panel.tabIndex=-1;panel.focus({preventScroll:true});}}

@@ -5,7 +5,7 @@ const rpc=async(page,type,fields={})=>{
   const result=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});
   assert.equal(result.ok,true,JSON.stringify(result));return result.data;
 };
-const nav=(page,view)=>page.locator(view==='settings'?'.sidebar-bottom [data-view="settings"]':`#primary-nav [data-view="${view}"]`).click();
+const nav=async(page,view)=>{await page.locator(view==='settings'?'.sidebar-bottom [data-view="settings"]':`#primary-nav [data-view="${view}"]`).click();await eventually(()=>page.locator('#scope-search').isEnabled(),'page navigation completes before inspecting destination controls');};
 async function noRemovedControls(page){
   for(const selector of ['#universal-search-open','#thought-recent','#thought-organize-tools','#core-loop-browse-title'])assert.equal(await page.locator(selector).count(),0,selector+' cannot be recreated');
 }
@@ -47,7 +47,8 @@ await eventually(()=>page.locator('#original-library-update').isEnabled(),'the a
 assert.equal(h.deepSeekRequests.length,0,'loading Settings organizer status is not authorization');
 await page.locator('#organizer-batch-actions > summary').click();
 assert.equal(await page.locator('#bounded-original-start').isVisible(),true);
-assert.equal(await page.locator('#bounded-ai-start').isVisible(),true);
+assert.equal(await page.locator('#bounded-ai-start').count(),1,'the scoped AI action owner remains installed');
+assert.equal(await page.locator('#bounded-ai-start').isVisible(),false,'D3 cannot start AI organization from Settings without a concrete Topic');
 await page.locator('#bounded-original-start').click();
 await eventually(()=>page.locator('#library-dialog').isVisible(),'Settings reaches the unchanged bounded confirmation');
 assert.equal(await page.locator('#library-form [name="requests"]').inputValue(),'1');
