@@ -20,6 +20,7 @@ export async function compareD5Archive(h,variant){
   await eventually(async()=>{const state=await h.state();return content.bodies.every((text,i)=>state.records.some(row=>row.originalText===text&&row.sourceSentAt===new Date(times[i]).toISOString()));},'canonical synthetic expressions captured completely');
   await p.bringToFront();await openArchiveWindow(p,{text:content.title,label:'D5 Reader opens through existing navigation'});
   await eventually(()=>p.locator('#scope-search').isEnabled(),'Reader navigation completes');
+  assert.equal(await p.locator('#document-search-tools').isVisible(),false,'empty query has no phantom search-results area');
   assert.equal(content.bodies.length,3,'canonical fixture contains exactly three expressions');
   await eventually(async()=>await p.locator('.library-prose').count()===3,'all three canonical expressions mounted');
   assert.deepEqual(await p.locator('.library-prose').allTextContents(),content.bodies);

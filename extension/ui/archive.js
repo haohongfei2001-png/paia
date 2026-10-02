@@ -98,7 +98,7 @@ function renderDocumentSearch(){
  const current=documentSearchState();input.placeholder=readerCopy('在当前聊天窗口中查找…','Find in this conversation…');input.setAttribute('aria-label',readerCopy('在当前聊天窗口中查找','Find in this conversation'));tools.setAttribute('aria-label',readerCopy('当前聊天窗口搜索','Current conversation search'));
  if(document.activeElement!==input&&input.value!==current.query)input.value=current.query;
  results.replaceChildren();const needle=current.query.trim();close.hidden=!needle;
- if(!needle){results.hidden=true;paging.hidden=true;steps.hidden=true;retrySearch.hidden=true;statusNode.textContent='';highlightReading($('document-body'),'');return;}
+ if(!needle){tools.hidden=true;results.hidden=true;paging.hidden=true;steps.hidden=true;retrySearch.hidden=true;statusNode.textContent='';highlightReading($('document-body'),'');return;}
  results.hidden=false;
  retrySearch.hidden=!current.error&&!current.unsaved;
  for(const item of current.items){const hit=element('button','document-search-hit');hit.type='button';hit.dataset.inputId=item.id;hit.setAttribute('aria-current',String(current.activeInputId===item.id));hit.append(element('strong','',item.title||readerCopy('当前聊天窗口','Current conversation')),element('p','',item.snippet||''),element('small','',item.sourceSentAt?day(item.sourceSentAt):tc('发送时间未知')));hit.addEventListener('click',()=>void openDocumentSearchItem(current,item).catch(()=>showLocalFailure()));results.append(hit);}
