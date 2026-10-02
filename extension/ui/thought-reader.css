@@ -179,3 +179,19 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 /* Authored AI fields retain literal line breaks in both overview and collapsed
    legacy sections. Rendered text must not turn multiline input into a new value. */
 #ai-reading-body [data-ai-field]{white-space:pre-wrap;overflow-wrap:anywhere;}
+
+/* D2 reliable years: one read-only projection, no timeline diagram or AI story. */
+.topic-original-tabs{display:flex;flex-wrap:wrap;gap:20px;border-bottom:1px solid var(--paia-subtle);margin:18px 0 12px}
+.topic-original-tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;min-height:44px;color:var(--paia-secondary);padding:8px 2px}
+.topic-original-tabs button[aria-pressed="true"]{border-bottom-color:var(--paia-accent);color:var(--paia-text)}
+.topic-timeline{max-width:880px;margin:24px auto;min-width:0;overflow-wrap:anywhere}
+.topic-timeline p{line-height:1.75}.topic-year-links{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
+.topic-timeline button{min-height:44px;max-width:100%;white-space:normal}
+.topic-year-section{padding:28px 0;border-bottom:1px solid var(--paia-subtle)}
+.topic-year-section h2{font-size:24px;margin:0 0 12px}.topic-year-coverage{color:var(--paia-secondary);font-size:14px}
+.topic-year-expression{margin:24px 0;max-width:var(--paia-prose-width,680px)}
+.topic-year-expression .entry-prose,.topic-expression-dialog .entry-prose{white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--reader-font-size,18px);line-height:1.9;margin:8px 0}
+.topic-year-expression .entry-sent-time{font-size:12px;color:var(--paia-meta);margin:0}
+.topic-expression-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}.topic-expression-actions button{font-size:13px;color:var(--paia-secondary);background:transparent;border:0;padding:4px 0}
+.topic-expression-dialog{width:min(760px,calc(100vw - 32px));max-height:85vh;overflow:auto;background:var(--paia-surface);color:var(--paia-text);border:1px solid var(--paia-subtle);padding:24px}
+@media(max-width:799px){.topic-timeline{margin:16px 0}.topic-year-section{padding:22px 0}.topic-original-tabs{gap:18px}.topic-expression-dialog{padding:16px}}

@@ -231,7 +231,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p work/qa-dvn-topic-root
-          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-02-dvn-topic-root-chrome-e2e.test.mjs tests/ans-07-library-root-chrome-e2e.test.mjs tests/ans-08-topic-continuous-chrome-e2e.test.mjs tests/ans-08-topic-edit-preservation-chrome-e2e.test.mjs tests/uir-03-thought-original-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-topic-root/acceptance.log
+          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-02-dvn-topic-root-chrome-e2e.test.mjs tests/cpv1-02-dvn-topic-years-chrome-e2e.test.mjs tests/ans-07-library-root-chrome-e2e.test.mjs tests/ans-08-topic-continuous-chrome-e2e.test.mjs tests/ans-08-topic-edit-preservation-chrome-e2e.test.mjs tests/uir-03-thought-original-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-topic-root/acceptance.log
           xvfb-run -a node --test --test-name-pattern="UX-R3 independent today draft" tests/ux-r3-thought-chrome-e2e.test.mjs
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
@@ -244,6 +244,7 @@ jobs:
           name: topic-root-${{ github.event.pull_request.head.sha }}
           path: |
             extension/work/qa-dvn-topic-root/
+            extension/work/qa-dvn-topic-years/
             extension/work/uir-03/
             extension/work/ans-07/
             extension/work/ans-08/

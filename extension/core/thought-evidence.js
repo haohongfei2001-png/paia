@@ -53,11 +53,21 @@ export async function checkEvidenceInTransaction(store,t,evidence) {
   if(e.role!=='context_only'&&await store.isFiltered(t,p.block,await t.get('meta','smart-filter')))fail();
  }
 }
+// Transaction-safe availability shared by canonical reads and body-free projections.
+// It does not hash, mutate, or create another content authority.
+export async function readDependencyInputs(store,t,current){
+ const dependencies=await t.all('dependencies','byTarget',IDBKeyRange.bound(['entry',current.id],['entry',current.id,[]],false,true)),items=[];
+ for(const dep of dependencies){let input=await inputProjection(store,t,dep.inputId);if(input&&(input.lastRemovalSequence||0)>(dep.eligibilityEpochAtUse||0)&&current.workingInputId!==dep.inputId)input=null;items.push({dep,input});}
+ return items;
+}
+export function dependencyLifecycle(row,items){
+ const missing=items.some(({input})=>!input),valid=items.some(({dep,input})=>input&&dep.status!=='version_unknown'&&dep.selectedFields?.length&&dep.roles?.some(role=>role!=='context_only'));
+ return missing&&!valid&&!row.hasHumanAction&&row.origin==='ai'&&row.lifecycle==='active'?'invalidated':row.lifecycle;
+}
 export async function dependencyState(store,row,project=async(_store,_t,value)=>value) {
  const read=await store.run(()=>store.repository.transaction(false,async t=>{
   const current=await store.readableEntry(t,row.id);if(!current)return null;
-  const epoch=(await t.get('meta','thought-epoch'))?.value||0,dependencies=await t.all('dependencies','byTarget',IDBKeyRange.bound(['entry',row.id],['entry',row.id,[]],false,true)),items=[];
-  for(const dep of dependencies){let input=await inputProjection(store,t,dep.inputId);if(input&&(input.lastRemovalSequence||0)>(dep.eligibilityEpochAtUse||0)&&current.workingInputId!==dep.inputId)input=null;items.push({dep,input});}
+  const epoch=(await t.get('meta','thought-epoch'))?.value||0,items=await readDependencyInputs(store,t,current);
   return {row:await project(store,t,current),items,epoch};
  }));
  if(!read)return null;
@@ -70,7 +80,7 @@ export async function dependencyState(store,row,project=async(_store,_t,value)=>
   if(dep.roles?.some(r=>r!=='context_only'))valid++;
  }
  const result=structuredClone(read.row);
- if(missing){result.integrity=valid?'partial':'detached';if(!valid&&!result.hasHumanAction&&result.origin==='ai'&&result.lifecycle==='active')result.lifecycle='invalidated';}
+ if(missing){result.integrity=valid?'partial':'detached';result.lifecycle=dependencyLifecycle(result,read.items);}
  if(missing||changed){result.freshness='stale';result.staleReasons=[...reasons];}
  const epoch=await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-epoch'))?.value||0,['meta']));
  if(epoch!==read.epoch)fail();

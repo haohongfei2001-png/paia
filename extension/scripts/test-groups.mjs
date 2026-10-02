@@ -61,6 +61,9 @@ export function testShard(file, position, total, category) {
   // Q5 full36812077556 used17m50s on2 versus13m08s on3. Q6 full
   // 36884491807 exceeded2's18-minute budget. Put only the new whole
   // Q6 file on3, preserving all62 earlier file placements and every case.
+  // D2 whole source/release years file joins4; all64 previous file routes stay.
+  if(name==='cpv1-02-dvn-topic-years-chrome-e2e.test.mjs')return 4;
+  if(name>'cpv1-02-dvn-topic-years-chrome-e2e.test.mjs')position--;
   // D2 adds only its complete source/release root file to4; all63 prior routes stay.
   if(name==='cpv1-02-dvn-topic-root-chrome-e2e.test.mjs')return 4;
   if(name>'cpv1-02-dvn-topic-root-chrome-e2e.test.mjs')position--;
