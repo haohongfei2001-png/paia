@@ -777,7 +777,7 @@ jobs:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release, context_compatibility, direct_edit, shell_cutover, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic]
+    needs: [unit, contracts, release, direct_edit, shell_cutover, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility]
     steps:
       - name: Require light candidate gates
         env:

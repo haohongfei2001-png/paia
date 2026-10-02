@@ -185,3 +185,12 @@ test('D4 denial clears material bodies in the hidden workspace even while permis
  Object.assign(ui,{advanced:true,data:{state:'ready',items:[{itemId:'blocked',state:'ready',body:'HIDDEN_FORBIDDEN_BODY'}]},sourceEpoch:0,serial:Promise.resolve(),busy:false,rechecking:true,drafts:new Map([['blocked','UNSENT_FORBIDDEN']]),root,ensure:async()=>{},renderReconcileAction(){},render(){},feedback(){}});ui.rpc=async()=>({state:'blocked',items:[{itemId:'blocked',state:'blocked',body:''}],text:''});
  try{await ui.refresh();assert.equal(snippet.textContent,'');assert.equal(field.value,'');assert.equal(field.readOnly,true);assert.equal(ui.drafts.has('blocked'),false);}finally{globalThis.document=oldDocument;}
 });
+test('D4 compatibility candidate keeps all complete files and is mandatory whenever selected',async()=>{
+ const {readFile}=await import('node:fs/promises'),workflow=await readFile(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8'),job=workflow.match(/^  context_compatibility:\n([\s\S]*?)(?=^  \w+:)/m)?.[1];
+ assert.ok(job);assert.match(job,/timeout-minutes: 12/);assert.match(job,/ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);assert.match(job,/persist-credentials: false/);
+ const command=job.split('\n').find(line=>line.includes('node --test'));assert.ok(command);assert.doesNotMatch(command,/test-name-pattern|skip/);
+ assert.deepEqual(command.match(/tests\/[^ ]+\.test\.mjs/g),['tests/release-certification-round48-chrome-e2e.test.mjs','tests/release-certification-round49-chrome-e2e.test.mjs','tests/ans-01-reader-surfaces-chrome-e2e.test.mjs']);
+ assert.match(workflow,/needs: \[unit, contracts, release, direct_edit, shell_cutover, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility\]/);
+ assert.match(workflow,/CONTEXT_COMPAT: \$\{\{ needs\.context_compatibility\.result \}\}/);assert.match(workflow,/if \[ "\$CONTEXT_COMPAT_SELECTED" = true \]; then test "\$CONTEXT_COMPAT" = success;/);
+ assert.match(job,/PAIA_DVN_CONTEXT_BROWSER/);assert.match(job,/PAIA_DVN_CONTEXT_COMPAT_BROWSER/);assert.doesNotMatch(job,/continue-on-error|secrets\.|permissions:/);
+});
