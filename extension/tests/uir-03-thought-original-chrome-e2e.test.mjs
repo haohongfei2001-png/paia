@@ -196,7 +196,7 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  assert.equal(await page.locator('#library-unplaced').isVisible(),false,'independent unplaced expressions belong to All sources');
  assert.equal(await rootList.locator('.topic-index-row small').evaluateAll(nodes=>nodes.some(n=>/条内容/.test(n.textContent))),false,'whole-Topic counts are not labeled as selected-source counts');
  await rootSearch.fill('Scope shared claude');
- await eventually(async()=>await rootList.locator('.topic-index-row').count()===1&&/Scope shared claude/i.test(await rootList.textContent()),'root lexical search is limited to the selected direct source');
+ await eventually(async()=>await rootList.locator('.topic-index-row[data-render-key]').count()===1&&await rootList.locator('[data-topic-id]').count()===0&&/Scope shared claude/i.test(await rootList.textContent()),'root lexical search is limited to the selected direct source');
  // Hold the real search continuation at the section boundary, then navigate
  // Back. The obsolete continuation must finish without opening a content modal.
  await page.evaluate(async()=>{
@@ -205,12 +205,12 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
   window.vs05SearchRace={started:false,done:false};
   const gate=new Promise(resolve=>{window.vs05SearchRace.release=resolve;});
   proto.focusSection=async function(...args){window.vs05SearchRace.started=true;await gate;return focus.apply(this,args);};
-  proto.openSearchResult=async function(...args){try{return await open.apply(this,args);}finally{window.vs05SearchRace.done=true;}};
+  proto.openSearchResult=async function(...args){window.vs05SearchOwner=this;window.vs05SearchRace.target={kind:args[0]?.kind,entryId:args[0]?.entryId,path:args[1]||args[0]?.paths?.[0]};try{return await open.apply(this,args);}catch(error){window.vs05SearchRace.error=String(error?.message||error?.code||error);throw error;}finally{window.vs05SearchRace.done=true;}};
   window.vs05SearchRace.restore=()=>{proto.focusSection=focus;proto.openSearchResult=open;};
  });
  try{
-  await rootList.locator('.topic-index-row').click();
-  await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.started),'real search continuation reaches section focus');
+  await rootList.locator('.topic-index-row[data-render-key]').click();
+  try{await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.started),'real search continuation reaches section focus');}catch(error){const diagnostic=await page.evaluate(()=>{const owner=window.vs05SearchOwner;return {race:window.vs05SearchRace&&{started:vs05SearchRace.started,done:vs05SearchRace.done,target:vs05SearchRace.target,error:vs05SearchRace.error},owner:owner&&{id:owner.id,openIntent:owner.openIntent,serial:owner.serial,view:owner.view,readFailed:owner.readFailed,refreshKey:owner.refreshRun?.key},visibleError:document.getElementById('error')?.textContent,notice:document.getElementById('notice')?.textContent};});throw new Error(error.message+' '+JSON.stringify(diagnostic));}
   await eventually(async()=>await page.locator('#thought-document').isVisible(),'scoped root search opens the canonical Topic');
   await page.locator('#back').click();
   await eventually(async()=>await rootScope.isVisible(),'Back completes before the delayed search continuation');
@@ -222,7 +222,7 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
   await page.evaluate(()=>{window.vs05SearchRace.release();window.vs05SearchRace.restore();});
  }
  // Also retain the ordinary successful navigation and target-entry readback.
- await rootList.locator('.topic-index-row').click();
+ await rootList.locator('.topic-index-row[data-render-key]').click();
  await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1&&await page.locator('#library-dialog').evaluate(el=>!el.open),'scoped search focuses the actual placed expression without a standalone fallback');
  await page.locator('#back').click();
  await eventually(async()=>await rootScope.inputValue()==='claude'&&await rootSearch.inputValue()==='Scope shared claude'&&await rootList.locator('.topic-index-row').count()===1,'Back preserves root source/query and collection identity');
@@ -330,7 +330,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   const homeMenu=page.locator('#thought-home-tools .library-actions').first();
   await homeMenu.locator('summary').click();
   assert.equal(await homeMenu.getByRole('button',{name:'添加主题',exact:true}).isVisible(),true,'root menu keeps Add Topic');
-  assert.equal(await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).isVisible(),true,'root menu keeps layout control');
+  assert.equal(await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).count(),0,'frozen compact layout retires the grid control');
   assert.equal(await homeMenu.getByRole('button',{name:'整理新增内容',exact:true}).count(),0,'root menu no longer starts AI organization');
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#thought-home-tools').getByRole('button',{name:'接着写',exact:true}).isVisible(),true,'independent Thought creation remains reachable');
@@ -341,19 +341,16 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await page.locator('h1:visible').count(),1,'Thought home has one visible page heading');
   assert.equal(await page.locator('#thought-document').isVisible(),false,'Topic document stays out of the home view');
   assert.equal((await rpc(page,'GET_THOUGHT_LAYOUT')).layout,'list','new users default to compact Topic scanning');
-  await eventually(async()=>await page.locator('#thought-list').evaluate(el=>el.classList.contains('topic-list-layout')),'compact layout applies');
+  await eventually(async()=>await page.locator('#thought-list').evaluate(el=>el.classList.contains('topic-compact-list')),'compact layout applies');
   assert.equal(await page.locator('#thought-list').evaluate(el=>getComputedStyle(el).display),'block','List mode actually uses one stacked column, including wide desktops');
   const listRows=await page.locator('#thought-list [data-topic-id]').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {left:r.left,width:r.width};}));
   assert.ok(listRows.every(row=>Math.abs(row.left-listRows[0].left)<=2&&Math.abs(row.width-listRows[0].width)<=2),'all compact Topic rows share one reading column');
   assert.equal(await page.locator('#thought-list .topic-index-row strong').first().textContent(),(await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id})).name,'root keeps the complete Topic title');
-  assert.equal(await page.locator('#thought-list .topic-index-row .summary').first().textContent(),topics[0].summary,'the root cue retains the original summary text');
-  assert.equal(await page.locator('#thought-list .topic-index-row .summary').first().evaluate(el=>getComputedStyle(el).webkitLineClamp),'2','root content cue is visually bounded');
+  const rootCue=(await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}})).items.find(item=>item.id===topics[0].id).rootCue;
+  assert.equal(rootCue.kind,'human_cue');assert.equal(rootCue.text,topics[0].summary.slice(rootCue.range.start,rootCue.range.end));
+  assert.equal(await page.locator('#thought-list .topic-index-row .summary').first().evaluate(el=>el.firstChild.textContent),rootCue.text,'root keeps the exact bounded human cue');
+  assert.ok(rootCue.text.length<=140);assert.equal(rootCue.truncated,true);
   await shot(page,release?'vs05-release-thought-list-1440x900-light':'vs05-thought-list-1440x900-light');
-  await homeMenu.locator('summary').click();
-  await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).click();
-  await eventually(async()=>!(await page.locator('#thought-list').evaluate(el=>el.classList.contains('topic-list-layout'))),'explicit grid choice applies');
-  assert.equal((await rpc(page,'GET_THOUGHT_LAYOUT')).layout,'grid','an explicit user grid choice is durable');
-  await shot(page,release?'uir-03-current-release-thought-home-1440x900-light':'uir-03-thought-home-1440x900-light');
 
   if(!release){
     await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'dark'}});
@@ -365,9 +362,9 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
 
   await page.setViewportSize({width:1200,height:800});
   const gridAt1200=await page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length);
-  assert.equal(gridAt1200,2,'Thought home uses two columns when the main workspace is below the three-column threshold');
+  assert.equal(gridAt1200,1,'frozen Thought root keeps one editorial column');
   const cardWidth=await page.locator('#thought-list .topic-index-row').first().evaluate(el=>el.getBoundingClientRect().width);
-  assert.ok(cardWidth>=300,`Topic card keeps an approximately 300px minimum readable width; got ${cardWidth}`);
+  assert.ok(cardWidth>=300,`Topic row keeps an approximately 300px minimum readable width; got ${cardWidth}`);
   assert.notEqual(await page.locator('#thought-list .topic-index-row strong').first().evaluate(el=>getComputedStyle(el).webkitLineClamp),'2','long Topic titles are not forced to the old two-line clamp');
 
   await page.setViewportSize({width:390,height:844});
@@ -375,7 +372,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(mobileColumns,1,'Thought home becomes one column on the mobile-like viewport');
   const homeOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   assert.ok(homeOverflow<=2,`390px Thought home has no root horizontal overflow; got ${homeOverflow}`);
-  const topicMenuBox=await page.locator('#thought-list .topic-tile>.library-actions>summary').first().boundingBox();
+  const topicMenuBox=await page.locator('#thought-list .topic-compact-row>.library-actions>summary').first().boundingBox();
   assert.ok(topicMenuBox&&topicMenuBox.width>=44&&topicMenuBox.height>=44,'touch Topic more action remains a 44px target');
 
   await page.setViewportSize({width:1440,height:900});

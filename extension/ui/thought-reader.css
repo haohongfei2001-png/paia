@@ -1,4 +1,14 @@
 /* UX-R3 uses the shared UX-R1 tokens; no new theme or content layer. */
+.topic-compact-list{display:block;max-width:900px;margin-inline:auto}
+.topic-compact-row{position:relative;border-bottom:1px solid var(--paia-line);min-width:0}
+.topic-compact-row>.topic-index-row{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;width:100%;padding:22px 52px 22px 0;border:0;border-radius:0;background:transparent;color:var(--paia-text);min-height:0;height:auto}
+.topic-compact-row>.topic-index-row strong{font-size:20px;line-height:1.45;white-space:normal;overflow-wrap:anywhere}
+.topic-compact-row .summary{font-size:15px;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--paia-text)}
+.topic-compact-row .summary:empty{display:none}
+.topic-compact-row small{font-size:12px;line-height:1.6;color:var(--paia-meta)}
+.topic-compact-row>.library-actions{position:absolute;right:0;top:20px;z-index:2}
+.topic-compact-row .library-action-list{right:0;top:32px}
+.topic-compact-row>.library-actions>summary{min-width:44px;min-height:44px;display:grid;place-items:center}
 .topic-action-dialog { width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:24px;border:1px solid var(--paia-control);border-radius:12px;color:var(--paia-text);background:var(--paia-surface); }
 .topic-action-dialog::backdrop {background:rgba(20,28,22,.24);}
 html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0,.48);}
@@ -13,11 +23,6 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 .topic-action-feedback {white-space:normal;overflow-wrap:anywhere;}
 #thought-home-tools {display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
 #thought-home-tools .thought-search-row {flex:1;min-width:160px;}
-#thought-list.topic-list-layout {display:block;}
-#thought-list.topic-list-layout .topic-tile {margin-block:8px;}
-#thought-list.topic-list-layout .topic-index-row {min-height:88px!important;padding:16px 44px 16px 16px;gap:6px;}
-#thought-list.topic-list-layout .summary:empty {display:none;}
-#thought-list.topic-list-layout strong {font-size:18px;}
 #topic-body .entry-provenance {display:block;}
 #topic-body .entry-prose {font-size:var(--paia-prose-size,17px);line-height:1.9;}
 #topic-body .library-entry {border:0;background:transparent;padding-block:16px;}
@@ -34,7 +39,6 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
  .thought-mobile-edit:not([hidden]),.thought-mobile-done:not([hidden]) {display:inline-flex;}
  #topic-toolbar,#topic-reading-controls {flex-wrap:wrap;}
  #topic-body .entry-prose {line-height:1.8;}
- #thought-list.topic-grid {grid-template-columns:minmax(0,1fr);}
 }
 @media(prefers-reduced-motion:reduce){.topic-action-dialog,*:has(> .thought-draft){transition:none;animation:none;}}
 
@@ -62,17 +66,6 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #thought-home-tools #thought-search::placeholder {color:var(--paia-meta);}
 #thought-home-tools>button,#thought-home-tools>.library-actions>summary {min-height:40px;padding:8px 10px;color:var(--paia-secondary);}
 #thought-collection {width:100%;max-width:none;margin:0 auto;}
-#thought-list.topic-grid {display:grid;grid-template-columns:repeat(2,minmax(300px,1fr));gap:16px 20px;margin:0;}
-#thought-list.topic-grid .topic-tile {min-width:0;}
-#thought-list.topic-grid .topic-index-row {height:auto!important;min-height:176px!important;padding:20px 22px!important;gap:12px!important;border:1px solid var(--paia-subtle)!important;border-radius:12px!important;background:var(--paia-surface)!important;color:var(--paia-text)!important;box-shadow:none!important;transform:none!important;transition:background-color 140ms ease,border-color 140ms ease;}
-#thought-list.topic-grid .topic-index-row:hover,#thought-list.topic-grid .topic-index-row:focus-visible {background:var(--paia-hover)!important;border-color:var(--paia-control)!important;transform:none!important;}
-#thought-list.topic-grid .topic-index-row strong {display:block;-webkit-line-clamp:unset;overflow:visible;padding-right:18px;font-size:20px;line-height:1.45;font-weight:640;overflow-wrap:anywhere;}
-#thought-list.topic-grid .topic-index-row .summary {min-height:0;margin:0;color:var(--paia-secondary);font-size:14px;line-height:1.7;}
-#thought-list.topic-grid .topic-index-row .summary:empty {display:none;}
-#thought-list.topic-grid .topic-index-row small {margin-top:auto;color:var(--paia-meta);font-size:13px;line-height:1.55;}
-#thought-list.topic-grid .topic-tile>.library-actions {right:8px;top:8px;}
-#thought-list.topic-grid .topic-tile>.library-actions>summary {min-width:36px;min-height:36px;display:grid;place-items:center;padding:0;color:var(--paia-secondary);}
-#thought-list.topic-list-layout .topic-index-row {height:auto!important;min-height:84px!important;border-color:var(--paia-subtle)!important;background:transparent!important;}
 
 #thought-document {width:100%;max-width:1280px;margin:12px auto 0;}
 #thought-document .topic-title-row {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px 28px;align-items:start;}
@@ -104,15 +97,10 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #original-reading-body .entry-meta>.library-actions>summary,#original-reading-body .entry-provenance>summary,#original-reading-body .entry-note>summary {min-height:36px;display:inline-flex;align-items:center;}
 #original-reading-body .entry-note[open],#original-reading-body .entry-provenance[open] {width:100%;}
 #thought-document .library-pagination {width:min(100%,var(--paia-prose-width,680px));margin:20px auto 0;}
-
-@media(min-width:1430px){#thought-list.topic-grid{grid-template-columns:repeat(3,minmax(300px,1fr));}}
-@media(max-width:899px){#thought-list.topic-grid{grid-template-columns:minmax(0,1fr);}}
 @media(max-width:799px){
  #thought-home-tools {align-items:stretch;}
  #thought-home-tools .thought-search-row {flex-basis:100%;}
- #thought-home-tools>button,#thought-home-tools>.library-actions>summary,#thought-list.topic-grid .topic-tile>.library-actions>summary {min-height:44px;min-width:44px;}
- #thought-list.topic-grid .topic-index-row {min-height:0!important;padding:18px!important;}
- #thought-list.topic-grid .topic-tile>.library-actions {opacity:1;}
+ #thought-home-tools>button,#thought-home-tools>.library-actions>summary{min-height:44px;min-width:44px;}
  #thought-document .topic-title-row {grid-template-columns:1fr;gap:10px;}
  #thought-document #topic-heading h1 {font-size:28px;}
  #thought-document #topic-presentation {padding-top:0;}
@@ -126,7 +114,6 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
  #original-reading-body .entry-meta {opacity:1;}
  #original-reading-body .entry-meta>.library-actions>summary,#original-reading-body .entry-provenance>summary,#original-reading-body .entry-note>summary {min-height:44px;}
 }
-@media(prefers-reduced-motion:reduce){#thought-list.topic-grid .topic-index-row{transition:none;}}
 
 /* UIR-03 execution 2: Organized presentation and real runtime state stay on existing owners. */
 #thought-document #ai-topic-status{width:min(100%,920px);margin:14px auto 8px;padding:10px 14px;border-left:2px solid var(--paia-subtle);border-radius:0 8px 8px 0;background:var(--paia-surface);color:var(--paia-secondary);font-size:13px;line-height:1.65;}
@@ -171,16 +158,6 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #library-unplaced-list[hidden]{display:none}
 #library-unplaced-list{display:grid;gap:8px;margin-top:10px}
 #library-unplaced-list>[data-unplaced-id]{min-height:44px;text-align:left}
-
-
-/* CPV1-05.1: compact scanning is the default; saved grid choice is retained.
-   Topic names stay complete. Only the root content cue is visually bounded;
-   opening the Topic shows the unchanged full summary. */
-#thought-list.topic-grid.topic-list-layout{display:block;}
-#thought-list.topic-grid.topic-list-layout .topic-tile{margin-block:0;}
-#thought-list.topic-grid.topic-list-layout .topic-index-row{width:100%;min-height:84px!important;padding:14px 48px 14px 16px!important;gap:6px!important;border:0!important;border-bottom:1px solid var(--paia-subtle)!important;border-radius:0!important;background:transparent!important;}
-#thought-list.topic-grid.topic-list-layout .topic-index-row strong{font-size:18px;line-height:1.5;}
-#thought-list.topic-grid .topic-index-row .summary{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
 
 /* VS-05 time jumps stay reachable without widening a narrow Reader. */
 #thought-document #topic-time-order {flex-wrap:wrap;}

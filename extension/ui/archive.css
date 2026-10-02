@@ -186,12 +186,6 @@ dialog::backdrop{background:#16221638}
 #ai-library-update{font-size:12px;color:#65715d}
 .original-source-note{font-size:12px;color:#8a9188;margin:10px 0 0}
 #thought-collection{max-width:1120px;margin:auto}
-#thought-list.topic-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:28px 0}
-.topic-grid .topic-index-row{display:flex!important;flex-direction:column;align-items:flex-start!important;justify-content:space-between;text-align:left;min-height:180px;padding:24px!important;border:1px solid #e1e5dc!important;border-radius:15px!important;background:#f7f8f3!important;box-shadow:none!important;transition:background 220ms,transform 220ms;gap:15px!important}
-.topic-grid .topic-index-row:hover{background:#edf1e7!important;transform:translateY(-2px)}
-.topic-grid .topic-index-row strong{font-size:19px;font-weight:600}
-.topic-grid .topic-index-row .summary{font-size:14px;line-height:1.65;color:#65715d;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.topic-grid .topic-index-row small{font-size:11px;color:#92978c}
 .ai-toggle-label{display:flex;gap:10px;align-items:center;white-space:nowrap;font-size:13px}
 .ai-toggle-label input{appearance:none;width:34px;height:20px;border-radius:15px;background:#dadfd4;position:relative;cursor:pointer;margin:0}
 .ai-toggle-label input:before{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:white;transition:transform 200ms}
@@ -206,10 +200,7 @@ dialog::backdrop{background:#16221638}
 .ai-evidence{font-size:12px;color:#89917f;margin-top:8px}
 .ai-evidence button{font-size:12px}
 .ai-reading-section [contenteditable]:focus{outline:1px solid #c7d2bd;outline-offset:7px}
-@media(max-width:1100px){#thought-list.topic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media(max-width:650px){#thought-list.topic-grid{grid-template-columns:1fr}
-.topic-grid .topic-index-row{min-height:150px}
+@media(max-width:650px){
 #library-view-switch{flex-wrap:wrap}
 }
 #thought-panel{max-width:1120px}
@@ -219,13 +210,6 @@ dialog::backdrop{background:#16221638}
 #ai-update-feedback{line-height:1.8;margin-top:10px}
 #library-update-details{margin:10px 0;font-size:12px}
 #library-update-diagnostic{white-space:pre-wrap}
-#thought-list.topic-grid{gap:18px}
-.topic-grid .topic-index-row{padding:24px;min-height:205px;border:1px solid #e0e5da;border-radius:12px;background:#fafbf8;transition:background-color .22s ease,border-color .22s ease}
-.topic-grid .topic-index-row:hover{background:#f3f6ef;border-color:#b6c2ad}
-.topic-grid .topic-index-row strong{font-size:20px;line-height:1.45}
-.topic-grid .topic-index-row .summary{line-height:1.8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:3.6em}
-.topic-grid .topic-index-row small{margin-top:auto;line-height:1.65}
-.topic-grid.ai-mode .topic-index-row{background:#f1f5ed;border-color:#cad6bd}
 .ai-toggle-label{padding:7px 12px;border:1px solid #dde4d6;border-radius:24px}
 .ai-toggle-label input{accent-color:#557148}
 #ai-onboarding{padding:18px 24px;margin-top:18px;background:#f1f5ed;border-radius:10px;font-size:14px;line-height:1.8}
@@ -249,11 +233,10 @@ dialog::backdrop{background:#16221638}
 .library-entry>.entry-note,.library-entry>.entry-provenance{display:inline-block;margin-top:9px;margin-right:20px;font-size:12px}
 .library-entry>.entry-note[open],.library-entry>.entry-provenance[open]{display:block}
 .library-updates-bar:has(button:only-child){font-size:12px}
-@media(prefers-reduced-motion:reduce){.topic-grid .topic-index-row,.library-entry .entry-meta{transition:none}
+@media(prefers-reduced-motion:reduce){.library-entry .entry-meta{transition:none}
 }
 @media(max-width:650px){.library-index-tools{flex-wrap:wrap;gap:10px}
 .library-index-tools input{flex-basis:100%}
-.topic-grid .topic-index-row{min-height:175px}
 #library-view-switch{gap:10px}
 }
 .library-history-tools{opacity:.6;pointer-events:auto}
@@ -294,18 +277,11 @@ dialog::backdrop{background:#16221638}
 .ai-reading-section:first-child .entry-prose{font-size:17px;color:#6d7b65}
 .ai-statement{margin:18px 0 26px}
 .ai-evidence:not([open]){opacity:.6}
-.topic-grid .topic-index-row{height:230px;min-height:230px!important}
-.topic-grid .topic-index-row strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.topic-grid .topic-index-row small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.topic-grid .summary{animation:reading-arrive 260ms ease-out}
 @keyframes reading-arrive{from{opacity:.35;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
-@media(prefers-reduced-motion:reduce){.topic-grid .summary{animation:none}
-}
 @media(max-width:650px){#thought-document{margin-top:22px}
 #topic-heading h1{font-size:28px}
 .entry-prose{font-size:17px}
 #topic-search{width:100%;max-width:none;margin:0}
-.topic-grid .topic-index-row{height:215px}
 .section-heading h2,.ai-reading-section h2{font-size:21px}
 }
 #bounded-update-tools{display:flex;justify-content:flex-end;gap:12px;margin:8px 0}
@@ -317,12 +293,6 @@ dialog::backdrop{background:#16221638}
 #backup-preview{background:#f3f6ef;padding:18px;margin:18px 0;border-radius:8px}
 #backup-preview-content p{margin:5px 0}
 #backup-status{font-size:13px;overflow-wrap:anywhere}
-.topic-tile{position:relative;min-width:0}
-.topic-tile>.library-actions{position:absolute;right:12px;top:10px;z-index:2;opacity:0;transition:opacity 220ms}
-.topic-tile:hover>.library-actions,.topic-tile:focus-within>.library-actions,.topic-tile>.library-actions[open]{opacity:1}
-.topic-tile .topic-index-row strong{padding-right:15px}
-.topic-tile>.library-actions .library-action-list{right:0;top:32px}
-.topic-tile .library-action-list button{font-size:12px}
 .onboarding{max-width:850px;margin:45px auto 0}
 .onboarding h2{font-size:34px;line-height:1.5;font-weight:550;max-width:710px;margin:18px 0 38px}
 .eyebrow{font-size:12px;letter-spacing:.08em;color:#748574}
@@ -425,26 +395,19 @@ dialog h2{font-size:21px;line-height:1.5;overflow-wrap:anywhere}
 #product-diagnostics button{margin-right:8px}
 #integrity-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}
 #integrity-results p{margin:5px 0}
-#thought-list.topic-grid .topic-index-row:hover{transform:none}
 #topic-toolbar .library-action-list button{padding:8px 12px}
 .conversation-document strong,.topic-index-row{overflow-wrap:anywhere}
 #settings-panel p{line-height:1.8}
-#settings-panel .setting span{max-width:65%;text-align:right}
-.topic-grid .topic-index-row small,.block-time,.entry-sent-time{font-size:var(--paia-caption)}
+#settings-panel .setting span{max-width:65%;text-align:right}.block-time,.entry-sent-time{font-size:var(--paia-caption)}
 #thought-empty{margin:42px auto}
-@media(max-width:1024px){#thought-list.topic-grid{gap:14px}
-.topic-grid .topic-index-row{padding:20px!important}
-}
-@media(max-width:768px){#thought-list.topic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-.topic-grid .topic-index-row{height:240px}
+@media(max-width:768px){
 .setting{gap:16px}
 .setting select{max-width:58%}
 #deepseek-settings,#backup-settings{padding:18px}
 #deepseek-settings input[type=password]{width:100%}
 #topic-modes{gap:16px}
 }
-@media(max-width:650px){#thought-list.topic-grid{grid-template-columns:1fr}
-.topic-grid .topic-index-row{height:205px}
+@media(max-width:650px){
 .setting{flex-wrap:wrap;gap:10px}
 .setting>*{max-width:100%!important}
 .setting span{text-align:left!important}
@@ -453,7 +416,6 @@ dialog h2{font-size:21px;line-height:1.5;overflow-wrap:anywhere}
 .document-page h1,#topic-heading h1{font-size:27px}
 .library-index-tools{gap:8px}
 #topic-modes{gap:16px}
-#thought-list.topic-grid .topic-tile>.library-actions{opacity:.8}
 .library-pagination{flex-wrap:wrap}
 #library-dialog{width:calc(100vw - 32px);padding:20px}
 }
@@ -506,7 +468,6 @@ dialog h2{font-size:21px;line-height:1.5;overflow-wrap:anywhere}
 .memory-overview strong{font-size:21px}
 }
 .memory-context-entry small{overflow-wrap:anywhere}
-.topic-grid .summary{animation:none}
 #thought-home-tools{margin:16px auto}
 #thought-document{margin-top:20px}
 #topic-toolbar{margin:8px 0 16px}

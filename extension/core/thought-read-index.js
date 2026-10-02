@@ -112,7 +112,7 @@ export async function thoughtRootIndexPage(store,{cursor=null,limit=40}={}){
 // ANS-08 Topic Reader projection. Projection rows intentionally contain only
 // ordering / placement / time descriptors. Thought body/title/note remain in
 // the canonical Thought store and are resolved only for the visible response.
-export const THOUGHT_TOPIC_INDEX_VERSION=3;
+export const THOUGHT_TOPIC_INDEX_VERSION=4;
 export const THOUGHT_TOPIC_BUILD_BATCH=100;
 export const THOUGHT_TOPIC_STATUS_KEY=3;
 export const THOUGHT_TOPIC_MAX_BUILD_BATCHES=100;
@@ -138,6 +138,10 @@ const descriptorId=(generationId,sort,d)=>[
  timeKey(d.effectiveTime,sort),
  entryKey(d.entryId,sort)
 ].join(':');
+const expressionYearKey=(year,sort)=>Number.isInteger(year)?'0:'+String(sort==='desc'?9999-year:year).padStart(4,'0'):'1:unknown';
+const expressionPrefix=(generationId,sort,year)=>'thought-expression:'+generationId+':'+sort+':'+expressionYearKey(year,sort)+':';
+const expressionTimeKey=(at,sort)=>{const time=Date.parse(at||''),shifted=Number.isFinite(time)?time+62167219200000:0;return String(sort==='desc'?315569520000000-shifted:shifted).padStart(15,'0');};
+const expressionDescriptorId=(generationId,sort,d)=>expressionPrefix(generationId,sort,d.expressionTime?.year)+expressionTimeKey(d.expressionTime?.at,sort)+':'+entryKey(d.entryId,sort);
 const topicSnapshot=meta=>({
  version:meta?.version||THOUGHT_TOPIC_INDEX_VERSION,
  activeGeneration:meta?.activeGeneration||null,
@@ -168,6 +172,7 @@ function startTopicBuild(store,meta,key){
  meta.indexed=0;
  meta.buildingEarliest=null;meta.buildingLatest=null;
  meta.buildingUnknown={asc:null,desc:null};meta.buildingUnknownCount=0;
+ meta.buildingExpressionCounts={all:{known:{},unknown:0,total:0},providers:{}};
 }
 async function topicMeta(store,t,topic){
  let meta=await t.get('meta',topicMetaId(topic.id));
@@ -199,11 +204,17 @@ async function writeTopicDescriptor(t,generationId,descriptor){
    entryId:descriptor.entryId,sectionId:descriptor.sectionId,
    sectionRank:descriptor.sectionRank,rank:descriptor.rank,
    placementRevision:descriptor.placementRevision,
+   entryRevision:descriptor.entryRevision,
+   expressionTime:descriptor.expressionTime,providerKeys:descriptor.providerKeys||[],
    sourceSentAt:descriptor.sourceSentAt||null,
    capturedAt:descriptor.capturedAt||null,
    effectiveTime:descriptor.effectiveTime||null,
    timeBasis:descriptor.timeBasis||'unknown',
    sourceRecordIds:[]
+  });
+  await t.put('libraryMigrationItems',{
+   id:expressionDescriptorId(generationId,sort,descriptor),statusKey:THOUGHT_TOPIC_STATUS_KEY,
+   entityKind:topicKind(generationId,'expression-'+sort),...descriptor,sourceRecordIds:[]
   });
  }
 }
@@ -220,6 +231,9 @@ export async function advanceThoughtTopicIndex(store,{topicId,describe}){
    const descriptor=await describe(t,topic,placement);
    meta.scanned++;
    if(descriptor){await writeTopicDescriptor(t,meta.buildingGeneration,descriptor);meta.indexed++;added++;
+    const count=stats=>{stats.total++;const year=descriptor.expressionTime?.year;if(Number.isInteger(year))stats.known[year]=(stats.known[year]||0)+1;else stats.unknown++;};
+    count(meta.buildingExpressionCounts.all);
+    for(const provider of descriptor.providerKeys||[]){const key='provider:'+provider;meta.buildingExpressionCounts.providers[key]??={known:{},unknown:0,total:0};count(meta.buildingExpressionCounts.providers[key]);}
     // Reuse the body-free build pass; time jumps do not scan the warm Topic.
     const time=Date.parse(descriptor.effectiveTime||'');
     if(Number.isFinite(time)){
@@ -242,6 +256,7 @@ export async function advanceThoughtTopicIndex(store,{topicId,describe}){
    meta.activeCount=meta.indexed;
    meta.earliestDescriptor=meta.buildingEarliest;meta.latestDescriptor=meta.buildingLatest;
    meta.unknownDescriptor=meta.buildingUnknown;meta.unknownTimeCount=meta.buildingUnknownCount;
+   meta.expressionCounts=meta.buildingExpressionCounts;meta.buildingExpressionCounts=null;
    meta.buildingEarliest=null;meta.buildingLatest=null;
    meta.completedAt=store.clock();
    meta.buildingGeneration=null;meta.buildingKey=null;meta.sourceCursor=null;
@@ -316,4 +331,26 @@ export async function thoughtTopicDescriptorPage(store,{topicId,sort='asc',curso
   if(lastKey)nextCursor={generation:meta.activeGeneration,viewKey:meta.activeKey,sort,key:lastKey};
  }
  return {items,nextCursor,previousCursor,coverage,complete:direction==='next'?!nextCursor:!previousCursor,indexing:false,operations,timeEdgeUnavailable:!!timeEdge&&!anchor};
+}
+
+// Reliable expression-year projection uses the same generation owner as normal
+// reading. It keeps body-free rows and never changes legacy ordering fields.
+export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=null,providerKey=null,cursor=null,limit=40,expectedReadGeneration=null,describe}={}){
+ if(!['asc','desc'].includes(sort)||!Number.isInteger(limit)||limit<1||limit>40||year!==null&&year!=='unknown'&&(!Number.isInteger(year)||year<0||year>9999))throw Error('INVALID_EXPRESSION_PAGE');
+ const build=await ensureThoughtTopicIndex(store,{topicId,describe}),state=await currentTopicMeta(store,topicId),meta=state.meta;
+ const coverage={...topicSnapshot(meta),currentKey:state.key},operations={...(build.operations||{}),descriptorRowsRead:0};
+ const empty={items:[],nextCursor:null,coverage,operations,complete:false};
+ if(!meta?.activeGeneration||meta.activeKey!==state.key)return {...empty,indexing:true};
+ const generation=meta.activeGeneration;
+ if(expectedReadGeneration!==null&&expectedReadGeneration!==generation||cursor&&(cursor.generation!==generation||cursor.viewKey!==meta.activeKey||cursor.sort!==sort||cursor.year!==year||cursor.providerKey!==providerKey))return {...empty,cursorInvalid:true};
+ const kind=topicKind(generation,'expression-'+sort),stem=year===null?null:expressionPrefix(generation,sort,year==='unknown'?null:year);
+ const range=stem?IDBKeyRange.bound([THOUGHT_TOPIC_STATUS_KEY,kind,stem],[THOUGHT_TOPIC_STATUS_KEY,kind,stem+'\uffff']):prefix([THOUGHT_TOPIC_STATUS_KEY,kind]);
+ if(cursor&&(!Array.isArray(cursor.key)||!range.includes(cursor.key)))return {...empty,cursorInvalid:true};
+ const page=await store.run(()=>store.repository.transaction(false,t=>t.rangePage('libraryMigrationItems','byStatus',range,cursor?.key||null,limit)));
+ operations.descriptorRowsRead=page.rows.length;
+ const counts=providerKey===null?meta.expressionCounts.all:meta.expressionCounts.providers['provider:'+providerKey]||{known:{},unknown:0,total:0};
+ const years=Object.keys(counts.known).map(Number).sort((a,b)=>a-b);
+ const overview={generation,knownYearCounts:counts.known,unknownCount:counts.unknown,total:counts.total,observedInterval:years.length?{from:years[0],to:years.at(-1)}:null,coverage:'complete',timeZone:'UTC'};
+ const nextCursor=page.next?{generation,viewKey:meta.activeKey,sort,year,providerKey,key:page.rows.at(-1).key}:null;
+ return {items:page.rows.map(r=>({...r.value,_cursorKey:r.key})).filter(d=>providerKey===null||d.providerKeys?.includes(providerKey)),nextCursor,coverage,operations,overview,complete:!nextCursor};
 }

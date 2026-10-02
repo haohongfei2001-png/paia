@@ -1,5 +1,6 @@
 import {prefix,fail,idOK} from '../thought-model.js';
-import {entryMatchesProvider} from '../thought-source-scope.js';
+import {entryMatchesProvider,entryProviderKeys} from '../thought-source-scope.js';
+import {expressionTime} from './expression-time.js';
 import {validProvider} from '../read-projection-keys.js';
 import {entryTime} from './topic-chronology.js';
 import {thoughtTopicDescriptorPage,invalidateThoughtTopicIndex} from '../thought-read-index.js';
@@ -18,12 +19,13 @@ async function describePlacement(s,t,topic,p){
  return {
   topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,
   entryId:p.entryId,sectionId:p.sectionId,sectionRank:p.sectionRank,rank:p.rank,
-  placementRevision:p.revision,
+  placementRevision:p.revision,entryRevision:row.revision,
+  expressionTime:await expressionTime(s,t,row),providerKeys:await entryProviderKeys(s,t,row.id),
   ...time,effectiveTime,
   timeBasis:!effectiveTime?'unknown':time.sourceSentAt?'source':time.capturedAt?'capture':'created'
  };
 }
-const descriptorReader=s=>(t,topic,p)=>describePlacement(s,t,topic,p);
+export const descriptorReader=s=>(t,topic,p)=>describePlacement(s,t,topic,p);
 const cursorView=cursor=>cursor?{generation:cursor.generation,viewKey:cursor.viewKey,sort:cursor.sort,key:cursor.key}:null;
 const wrapCursor=(topicId,query,providerKey,cursor)=>cursor?{topicId,query,providerKey,...cursor}:null;
 

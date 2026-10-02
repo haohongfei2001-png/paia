@@ -4,6 +4,10 @@ import {validProvider} from './read-projection-keys.js';
 // Resolve current direct evidence; a Topic's historical sourceRecordIds are
 // not a membership truth. Context-only evidence never attributes expression.
 export async function entryMatchesProvider(store,t,entryId,providerKey){
+ return (await entryProviderKeys(store,t,entryId)).includes(providerKey);
+}
+export async function entryProviderKeys(store,t,entryId){
+ const providers=new Set();
  const refs=await t.all('provenance','byOwner',prefix(['entry',entryId]));
  for(const ref of refs){
   if(!['primary','supporting'].includes(ref.role))continue;
@@ -14,8 +18,8 @@ export async function entryMatchesProvider(store,t,entryId,providerKey){
      ||!await store.sourcePresent(t,ref.sourceRecordIds))continue;
   for(const id of ref.sourceRecordIds||[]){
    const record=await t.get('records',id);
-   if(validProvider(record?.value?.platform)&&record.value.platform===providerKey)return true;
+   if(validProvider(record?.value?.platform))providers.add(record.value.platform);
   }
  }
- return false;
+ return [...providers].sort();
 }

@@ -98,7 +98,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
    }
    await hooks.after?.(t,row,evidence);await t.put('thoughts',row);
    await journal(this,t,{kind:'library_entry',entityId:id,before:entrySnapshot(row),after:entrySnapshot(row),fieldMask:ENTRY_FIELDS,actor:request.actor,reason:'baseline',important:true,operationId:request.operationId,baseRevision:0,afterRevision:0,sourceRecordIds:row.sourceRecordIds});
-   return {id,revision:row.revision};
+   return {id,revision:row.revision,...(hooks.independentExpression===true&&human&&request.body.trim()?{independentExpression:{version:1,kind:'committed_human_expression',at}}:{})};
   });
  }
  async editEntry(request) {
