@@ -48,6 +48,7 @@ const english={
  '当时来源已不可用。':'The original Source is unavailable.',
  '部分当时来源已不可用；不能复制为完整原文。':'Some original Source is unavailable. Complete original Copy is blocked.',
  '原始内容只读。缺少当时引用的内容时，PAIA 不猜测或补写 AI 回复。':'Original content is read only. PAIA does not infer or fill in missing AI replies.',
+ '所选输入的原始文字 · 只读':'Original text of the selected Input · Read only',
  '原文暂时无法读取或已经变化。关闭后重新核对；未复制旧文本。':'Original content changed or is unavailable. Close and review again. Old text was not copied.',
  '正在核对完整原文…':'Checking the complete original…',
  '原文已复制。':'Original copied.',

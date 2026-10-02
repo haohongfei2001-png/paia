@@ -18,7 +18,9 @@ export class OriginalSurface {
     generation=page.generation;next=page.nextCursor;
     dialog.querySelector('h2').textContent=(target.kind==='conversation'?(page.title||tc('当前 Conversation')):tc('所选 Input'))+tc(' · 原始内容');
     for(const r of page.records){const row=element('section','original-row');row.append(element('p','original-time',r.sourceSentAt?tc('发送于 ')+dateLabel(r.sourceSentAt):tc('发送时间未知')),element('pre','source-original',r.originalText));rows.append(row);}
-    status.textContent=page.availability==='unavailable'?tc('当时来源已不可用。'):page.availability==='partial'?tc('部分当时来源已不可用；不能复制为完整原文。'):tc('原始内容只读。缺少当时引用的内容时，PAIA 不猜测或补写 AI 回复。');
+    const singleComplete=target.kind==='input'&&page.availability==='available'&&page.records.length===1&&page.intended===1&&!next&&!history.length;
+    controls.hidden=singleComplete;
+    status.textContent=page.availability==='unavailable'?tc('当时来源已不可用。'):page.availability==='partial'?tc('部分当时来源已不可用；不能复制为完整原文。'):singleComplete?tc('所选输入的原始文字 · 只读'):tc('原始内容只读。缺少当时引用的内容时，PAIA 不猜测或补写 AI 回复。');
     position.textContent=page.records.length?(document.documentElement.lang==='en'?`Section ${index+1} · ${page.records.length} of ${page.intended} original Inputs`:`第 ${index+1} 段 · 本段 ${page.records.length} 条 / 共 ${page.intended} 条原始输入`):'';
     copy.disabled=page.availability!=='available';more.hidden=!next;previous.disabled=!history.length;more.disabled=false;
    }catch{if(isCurrent()){rows.replaceChildren();status.textContent=tc('原文暂时无法读取或已经变化。关闭后重新核对；未复制旧文本。');more.hidden=true;previous.disabled=true;}}
