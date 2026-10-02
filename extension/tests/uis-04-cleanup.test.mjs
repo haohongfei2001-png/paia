@@ -18,7 +18,7 @@ test('UIS-04 keeps real bootstrap owners and reusable search/read capabilities',
   assert.match(search,/universal:true,paged:true/,'internal picker still reuses the bounded coordinator');
   assert.match(await read('ui/revisit.js'),/\$\('workspace-heading'\)\?\.after\(open\)/,'Revisit no longer depends on a removed control');
   assert.match(await read('core/universal-search.js'),/UniversalSearchService/);
-  assert.match(await read('ui/thoughts-base.js'),/RECORD_TOPIC_READ/,'read metadata remains recorded');
+  assert.match(await read('ui/topic-workspace.js'),/RECORD_TOPIC_READ/,'read metadata remains recorded');
 });
 
 test('UIS-04 keeps bounded organizer maintenance in the existing Settings AI group',async()=>{
@@ -28,7 +28,7 @@ test('UIS-04 keeps bounded organizer maintenance in the existing Settings AI gro
 });
 
 test('UIS-04 relocated Settings controls keep bounded read-only status loading',async()=>{
-  const shell=await read('ui/settings-preferences.js'),thought=await read('ui/thoughts-base.js');
+  const shell=await read('ui/settings-preferences.js'),thought=await read('ui/topic-workspace.js');
   assert.ok(shell.includes('notifyOrganizerSettings();'));
   assert.ok(shell.includes("export function presentSettingsPreferences"));
   assert.doesNotMatch(shell,/MutationObserver/);

@@ -1,5 +1,14 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '来源':'Source','搜索思想、主题或内容…':'Search thoughts, topics or text…','搜索思想':'Search thoughts','思想列表来源范围':'Topic list Source scope','全部来源（含独立写下的内容）':'All Sources (including independent thoughts)',
+ '重试保存说明':'Retry saving note','核对说明版本':'Compare note versions','复制说明':'Copy note','收起说明':'Close note',
+ '请选择要保留的版本':'Choose the version to keep','请选择':'Choose…','保留已保存版本':'Keep saved version','使用我的草稿':'Use my draft','已保存版本':'Saved version','我的草稿':'My draft',
+
+ '主题说明':'Topic note','你写的主题说明':'Your Topic note','读取前面的主题':'Read earlier topics','读取后面的主题':'Read later topics',
+ '请先关闭当前菜单或完成选择，再继续浏览。':'Close the menu or finish the selection before continuing.',
+ '正在继续载入…':'Loading more…','加载中断；当前列表已保留。':'Loading stopped; the current list is retained.',
+ '已到列表末尾':'End of the list','搜索索引更新中…':'Updating the search index…','正在准备思想列表…':'Preparing the Topic list…','向下滚动继续加载':'Scroll down to continue',
+
  '暂不能永久删除':'Permanent deletion is unavailable',
  '这条来源包含经过人工改写的派生内容，或无法确定其删除边界。删除边界尚未确定。没有删除任何材料，也没有清除恢复草稿。':'This Source has human-edited derivatives or unknown deletion boundaries. The deletion policy remains unresolved. No material or recovery draft was deleted.',
  '暂时无法核对删除范围。没有删除任何材料。':'Deletion scope could not be checked. No material was deleted.',
@@ -112,7 +121,7 @@ export function watchThoughtCopy(){
   for(const root of document.querySelectorAll('#thought-home-tools,#thought-empty,#create-entry,#library-unplaced,.reader-selection')){
    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
    while(node=walker.nextNode()){const key=reverse.get(node.data)||node.data;if(Object.hasOwn(english,key))node.data=thoughtCopy(key);}
-   for(const element of root.querySelectorAll('[aria-label]')){const label=element.getAttribute('aria-label'),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute('aria-label',thoughtCopy(key));}
+   for(const element of root.querySelectorAll('[aria-label],[placeholder]'))for(const attribute of ['aria-label','placeholder']){const label=element.getAttribute(attribute),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute(attribute,thoughtCopy(key));}
   }
  };
  new MutationObserver(apply).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});apply();

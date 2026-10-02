@@ -109,7 +109,7 @@ async function provenanceRoleJourney(page,topics,{release=false}={}){
   await entry.waitFor({state:'visible'});
   const provenance=entry.locator('.entry-provenance');
   assert.equal(await provenance.getAttribute('open'),null,'source roles stay on demand');
-  await provenance.locator('summary').first().click();
+  await entry.locator('.library-actions summary').click();await entry.getByRole('button',{name:'来源',exact:true}).click();
   await eventually(async()=>await provenance.locator('[data-evidence-role]').count()===3,'each real evidence role receives its user-language label');
   assert.match(await provenance.innerText(),/主要来源 1 · 补充来源 1 · 辅助上下文 1/);
   for(const [role,label]of [['primary','主要来源'],['supporting','补充来源'],['context_only','辅助上下文']]){
@@ -381,12 +381,12 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await eventually(()=>page.locator('#original-reading-body .topic-section').count().then(count=>count>0),'Original content renders in the existing Topic document');
   assert.equal(await page.locator('h1:visible').count(),1,'Topic has one visible h1');
   assert.equal(await page.locator('#view-title').isVisible(),false,'global Thought Library title no longer competes with the Topic h1');
-  assert.equal(await page.locator('#topic-heading>p').textContent(),topics[0].summary,'opening the Topic reveals the unchanged complete summary');
+  assert.equal(await page.locator('#topic-heading>p').count(),0,'normal Content does not publish an unlabelled generated summary');await page.locator('#topic-menu summary').click();await page.getByRole('button',{name:'主题说明',exact:true}).click();assert.equal(await page.getByLabel('你写的主题说明',{exact:true}).inputValue(),topics[0].summary,'the complete protected human cue remains editable from its existing metadata owner');await page.getByRole('button',{name:'收起说明',exact:true}).click();
   assert.equal(await page.locator('#back').isVisible(),true,'Topic keeps the existing return path');
 
   const shell=await page.locator('#thought-document').boundingBox();
   const section=await page.locator('#original-reading-body .topic-section').first().boundingBox();
-  assert.ok(shell&&section&&shell.width>900,'Topic shell uses the main workspace rather than the old narrow document shell');
+  assert.ok(shell&&section&&shell.width<=880&&shell.width>=760,'Topic shell follows the frozen880px workspace boundary');
   assert.ok(section.width<=722,`Original prose keeps the saved 640/680/720px reading-width boundary; got ${section?.width}`);
   assert.ok(shell.width-section.width>120,'Topic shell and readable prose width remain distinct');
   assert.equal(await page.locator('input[type="search"]:visible').count(),1,'open Topic exposes exactly one visible search control');
@@ -404,11 +404,13 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   const beforeFirst=await rpc(page,'GET_LIBRARY_ENTRY',{id:firstId}),beforeLatest=await rpc(page,'GET_LIBRARY_ENTRY',{id:latestId});
   await page.locator('#topic-search').fill('_THOUGHT_0_A');
   await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').count()===1,'Topic search narrows original records');
+  await page.locator('#topic-time-jumps summary').click();
   await page.locator('[data-reading-start="desc"]').click();
   await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===latestId,'recent-time jump reaches a record beyond the initial 40-row page');
   assert.equal(await page.locator('#topic-search').inputValue(),'','time navigation explicitly returns to all original records');
   assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,'desc','time navigation durably records its direction');
   assert.equal(await page.locator('#original-reading-body [data-entry-id]').first().evaluate(el=>document.activeElement===el),true,'keyboard focus follows the addressed original record');
+  await page.locator('#topic-time-jumps summary').click();
   await page.locator('[data-reading-start="asc"]').click();
   await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===firstId,'earlier-time jump starts with the original earliest record');
   assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,'asc');
@@ -429,6 +431,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await page.locator('.topic-unknown-time [data-meta-field]').count(),0,'the reading group is not an editable or persisted organization section');
   assert.equal(await page.locator('.topic-unknown-time .topic-origin-section').count(),2,'original section membership remains visible');
   await shot(page,release?'vs05-release-unknown-time':'vs05-source-unknown-time');
+  await page.locator('#topic-time-jumps summary').click();
   await page.locator('[data-reading-start="asc"]').click();
   await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===firstId,'dated original reading remains reachable after the unknown section');
   const unknownAfter=await Promise.all(topics[0].unknownIds.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));

@@ -5,7 +5,7 @@ import {expressionTime,expressionInstant} from '../core/organizer/expression-tim
 import {exactExcerpt} from '../core/organizer/topic-excerpt.js';
 import {topicRootCaption} from '../ui/topic-root.js';
 import {ContinuousCollection} from '../ui/continuous-collection.js';
-import {ThoughtWorkspace} from '../ui/thoughts-base.js';
+import {TopicController as ThoughtWorkspace} from '../ui/topic-workspace.js';
 
 const op=()=>crypto.randomUUID();
 const time=(s,id)=>s.repository.transaction(false,async t=>expressionTime(s,t,await t.get('thoughts',id)));
@@ -104,7 +104,7 @@ test('D2 actual root invalidation clears visible and cached cues and rejects a h
  let finish;const collection=new ContinuousCollection({scope:'root',query:'',load:()=>new Promise(resolve=>{finish=resolve;})});
  const pending=collection.loadNext(),nodes=[{textContent:'SYNTHETIC_ROOT_STALE_CANARY'},{textContent:'old attribution'}],saved={collection:{items:[{rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}]}};
  const workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{homePositions:new Map([['home',saved]]),homeCollection:collection,homePage:{page:{items:[{rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}]}},homeDesiredCount:40,thoughtRootVisible:()=>true,captureHomeAnchor:()=>({id:'topic',top:140})});
- const prior=globalThis.document;globalThis.document={getElementById:id=>{assert.equal(id,'thought-list');return {querySelectorAll:()=>nodes};}};
+ const prior=globalThis.document;globalThis.document={getElementById:id=>{assert.equal(id,'thought-list');return {children:[],querySelectorAll:()=>nodes};}};
  try{
   workspace.invalidateHomeSnapshot();assert.equal(workspace.homeCollection,null);assert.equal(workspace.homePage,null);assert.equal(saved.collection,undefined);assert.equal(workspace.rootCueEpoch,1);assert.ok(nodes.every(node=>node.textContent===''));
   finish({items:[{id:'old',rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}],complete:true});assert.equal((await pending).stale,true);assert.deepEqual(collection.items,[]);

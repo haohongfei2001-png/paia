@@ -3,9 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const html=readFileSync(new URL('../ui/archive.html',import.meta.url),'utf8');
-const thoughts=readFileSync(new URL('../ui/thoughts.js',import.meta.url),'utf8');
-const thoughtsBase=readFileSync(new URL('../ui/thoughts-base.js',import.meta.url),'utf8');
-const thoughtControllerSources=thoughts+'\n'+thoughtsBase;
+const thoughts=readFileSync(new URL('../ui/topic-workspace.js',import.meta.url),'utf8');
+const thoughtControllerSources=thoughts;
 
 const between=(start,end)=>{
   const a=html.indexOf(start),b=html.indexOf(end,a+start.length);

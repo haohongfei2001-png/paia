@@ -41,6 +41,26 @@ class Transaction {
   this.backupChanged=changed;
   return result;
  }
+ async putDerivedTopicCount(value){
+  if(!value?.id||!value.countCache)throw fail();const count=value.countCache;
+  if(Object.keys(count).sort().join(',')!=='complete,count,key,meaningfulContentAt'||typeof count.key!=='string'||count.key.length>500||!Number.isSafeInteger(count.count)||count.count<0||!Number.isFinite(count.meaningfulContentAt)||count.meaningfulContentAt<0||typeof count.complete!=='boolean')throw fail();
+  const previous=await this.get('topics',value.id);if(!previous)throw fail();
+  const withoutCount=row=>{const copy=structuredClone(row);delete copy.countCache;return copy;};
+  // countCache is excluded from BACKUP_FIELDS.topics. This exemption can only
+  // replace that rebuildable cache, never mask a name/body/ownership mutation.
+  if(!same(withoutCount(previous),withoutCount(value)))throw fail();
+  const changed=this.backupChanged,result=await this.put('topics',value);this.backupChanged=changed;return result;
+ }
+ async putDerivedTopicRead(value){
+  if(!value?.id||!value.readingActivity)throw fail();const read=value.readingActivity;
+  if(Object.keys(read).sort().join(',')!=='at,weight'||!Number.isFinite(read.at)||!Number.isFinite(read.weight)||read.weight<0||read.weight>8)throw fail();
+  const previous=await this.get('topics',value.id);if(!previous)throw fail();
+  const withoutRead=row=>{const copy=structuredClone(row);delete copy.readingActivity;return copy;};
+  // Reading activity is also excluded from the portable Topic contract. Keep
+  // it as derived metadata without changing any canonical field or authority.
+  if(!same(withoutRead(previous),withoutRead(value)))throw fail();
+  const changed=this.backupChanged,result=await this.put('topics',value);this.backupChanged=changed;return result;
+ }
  async delete(store,key){await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
  async clear(store){if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;return req(this.tx.objectStore(store).clear());}
  async count(store,index,key){return req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count());}

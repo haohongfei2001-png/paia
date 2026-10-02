@@ -17,7 +17,7 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
   const seed=await page.evaluate(async()=>{
    const {LibraryDocumentsStore}=await import('../core/library-documents-store.js');
    const s=new LibraryDocumentsStore(chrome.storage.local),topics=[];
-   for(let i=0;i<244;i++){const t=await s.createTopic({name:'ANS07_ROOT_'+String(i).padStart(3,'0'),operationId:crypto.randomUUID()});topics.push(t.id);}
+   for(let i=0;i<299;i++){const t=await s.createTopic({name:'ANS07_ROOT_'+String(i).padStart(3,'0'),operationId:crypto.randomUUID()});topics.push(t.id);}
    await new Promise(resolve=>setTimeout(resolve,12));
    const target=await s.createTopic({name:'ANS07_DEEP_SEARCH_TARGET',operationId:crypto.randomUUID()});topics.push(target.id);
    const entries=[];
@@ -29,7 +29,7 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
    }
    const independent=entries.slice(45).map(e=>e.id);
    await s.drainLibraryMaintenance();
-   return {targetId:target.id,independent,topicCount:topics.length};
+   return {targetId:target.id,topics,independent,topicCount:topics.length};
   });
   const firstUnplaced=await rpc(page,'GET_LIBRARY_UNPLACED',{options:{limit:40}});
   assert.equal(firstUnplaced.items.length,0,'first unplaced source page is intentionally empty');
@@ -45,13 +45,13 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
   await eventually(async()=>await page.locator('#thought-list [data-topic-id]').count()>firstCount,'keyboard continuous load',20000);
   assert.equal(await sentinel.evaluate(el=>document.activeElement===el),true,'continuous load does not steal focus');
 
-  for(let i=0;i<8&&(await page.locator('#thought-list [data-topic-id]').count())<240;i++){
+  for(let i=0;i<10&&Number(await page.locator('#thought-list').getAttribute('data-loaded-extent'))<300;i++){
    await sentinel.scrollIntoViewIfNeeded();
    await page.evaluate(()=>document.getElementById('thought-continuous-sentinel').scrollIntoView({block:'end'}));
-   const before=await page.locator('#thought-list [data-topic-id]').count();
-   await eventually(async()=>{const n=await page.locator('#thought-list [data-topic-id]').count();return n>before||/末尾/.test(await page.locator('#thought-continuous-status').textContent());},'scroll continuous load',15000);
+   const before=Number(await page.locator('#thought-list').getAttribute('data-loaded-extent'));
+   await eventually(async()=>{const n=Number(await page.locator('#thought-list').getAttribute('data-loaded-extent'));return n>before||/末尾/.test(await page.locator('#thought-continuous-status').textContent());},'scroll continuous load',15000);
   }
-  const loaded=await page.locator('#thought-list [data-topic-id]').count();assert.ok(loaded>=240,'at least six 40-item batches are reachable');
+  const loaded=Number(await page.locator('#thought-list').getAttribute('data-loaded-extent'));assert.equal(loaded,300,'every approved dense-root Topic is reachable');assert.ok(await page.locator('#thought-list [data-topic-id]').count()<=152,'only120 plus protected pins remain mounted');assert.ok(Number(await page.locator('#thought-list').getAttribute('data-retained-bodies'))<=152,'DTO bodies are bounded independently from total extent');
   await mkdir('work/ans-07',{recursive:true});await page.screenshot({path:'work/ans-07/root-six-batches.png'});
 
   const beforeLayout=await visibleAnchor(page);
@@ -66,13 +66,13 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
   assert.ok(Math.abs(afterLayout.top-beforeLayout.top)<90,'deprecated layout request retains the same visible key');
   assert.equal(await page.locator('#thought-list').evaluate(el=>el.classList.contains('topic-compact-list')),true,'compact layout remains rendered');
 
-  const targetRow=page.locator('#thought-list [data-topic-id]').nth(150);await targetRow.scrollIntoViewIfNeeded();
+  const targetRow=page.locator('#thought-list [data-topic-id]').nth(60);await targetRow.scrollIntoViewIfNeeded();
   const beforeOpen=await visibleAnchor(page),openedId=await targetRow.getAttribute('data-topic-id');
   await targetRow.click();await eventually(async()=>!(await page.locator('#thought-document').isHidden()),'topic opened');
   await page.locator('#back').click();
   await eventually(async()=>await page.locator('#thought-list [data-topic-id="'+openedId+'"]').count()===1,'root snapshot restored',20000);
-  await eventually(async()=>{const a=await visibleAnchor(page);return a?.id===beforeOpen.id&&Math.abs(a.scrollY-beforeOpen.scrollY)<140;},'root scroll restored',20000);
-  const afterBack=await visibleAnchor(page);assert.equal(afterBack.id,beforeOpen.id);assert.ok(Math.abs(afterBack.scrollY-beforeOpen.scrollY)<140,'back returns to prior root scroll');
+  try{await eventually(async()=>{const a=await visibleAnchor(page);return a?.id===beforeOpen.id&&Math.abs(a.top-beforeOpen.top)<140;},'root scroll restored',20000);}finally{const after=await visibleAnchor(page),exact=await page.locator('#thought-list [data-topic-id="'+beforeOpen.id+'"]').evaluate(node=>({top:node.getBoundingClientRect().top,height:node.getBoundingClientRect().height}));await writeFile('work/ans-07/back-diagnostics.json',JSON.stringify({beforeOpen,after,exact,extent:await page.locator('#thought-list').getAttribute('data-loaded-extent')},null,2));await page.screenshot({path:'work/ans-07/back-diagnostics.png'});}
+  const afterBack=await visibleAnchor(page);assert.equal(afterBack.id,beforeOpen.id);assert.ok(Math.abs(afterBack.top-beforeOpen.top)<140,'back returns the exact key to its prior viewport offset');assert.equal(Number(await page.locator('#thought-list').getAttribute('data-loaded-extent')),300,'Back preserves the complete visited extent');
   await page.screenshot({path:'work/ans-07/root-return-restored.png'});
 
   await page.locator('#thought-search').fill('ANS07_DEEP_SEARCH_TARGET');

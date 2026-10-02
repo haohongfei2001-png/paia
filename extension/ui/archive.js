@@ -28,7 +28,7 @@ import {findInputPage} from './input-search.js';
 import {OnboardingUI} from './onboarding.js';
 import {BackupPanel} from './backup.js';
 import {SmartFilterUI} from './smart-filter.js';
-import {ThoughtWorkspace} from './thoughts.js';
+import {TopicController as ThoughtWorkspace} from './topic-workspace.js';
 import {initHistoryCompletion} from './history-completion.js';
 import {formatStructure} from './structure-diagnostics.js';
 import {DocumentEditor} from './library.js';
