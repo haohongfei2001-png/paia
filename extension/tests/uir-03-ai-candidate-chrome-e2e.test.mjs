@@ -85,7 +85,7 @@ async function livingTopicJourney(page,h,topic,label){
  for(const entry of sourceEntries){
   const node=page.locator('#original-reading-body [data-entry-id="'+entry.id+'"]');await node.waitFor();
   assert.equal(await node.locator('[data-entry-field="body"]').textContent(),entry.body);
-  const provenance=node.locator('.entry-provenance');await provenance.locator('summary').first().click();
+  const provenance=node.locator('.entry-provenance');await node.locator('.library-actions summary').click();await node.getByRole('button',{name:'来源',exact:true}).click();
   await eventually(async()=>await provenance.getByRole('button',{name:'查看输入',exact:true}).count()===1,'one direct captured source remains inspectable for each Conversation expression');
   assert.ok((await rpc(page,'GET_LIBRARY_PATHS',{id:entry.id})).length,'joined expression retains a real Topic path');
  }

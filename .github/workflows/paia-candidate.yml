@@ -232,10 +232,11 @@ jobs:
           set -o pipefail
           mkdir -p work/qa-dvn-topic-root
           xvfb-run -a node --test --test-concurrency=1 tests/cpv1-02-dvn-topic-root-chrome-e2e.test.mjs tests/cpv1-02-dvn-topic-years-chrome-e2e.test.mjs tests/cpv1-02-dvn-topic-content-chrome-e2e.test.mjs tests/ans-07-library-root-chrome-e2e.test.mjs tests/ans-08-topic-continuous-chrome-e2e.test.mjs tests/ans-08-topic-edit-preservation-chrome-e2e.test.mjs tests/uir-03-thought-original-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-topic-root/acceptance.log
-          xvfb-run -a node --test --test-name-pattern="UX-R3 independent today draft" tests/ux-r3-thought-chrome-e2e.test.mjs
+          xvfb-run -a node --test --test-name-pattern="UX-R3 independent today draft|UX-R3 real Reader" tests/ux-r3-thought-chrome-e2e.test.mjs
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
           for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-topic-root/${variant}.json`));assert.equal(receipt.status,'PASS');assert.equal(receipt.headSha,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.matrix.length,12);assert.equal(receipt.zeroProviderCalls,true);}
+          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-topic-root/${variant}-dense.json`));assert.equal(receipt.status,'PASS');assert.equal(receipt.headSha,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.topics,300);assert.ok(receipt.retainedBodies<=120);assert.equal(receipt.zeroProviderCalls,true);}
           JS
       - name: Retain D2 synthetic root evidence
         if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER')

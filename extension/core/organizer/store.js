@@ -1,3 +1,4 @@
+import {rootReadAuthority,invalidRootRead,validateRootRead,compactTopic,compactSearchResult} from './root-read.js';
 import {thoughtTopicGenerationMatches} from '../thought-read-index.js';
 import {validateRemovalEdit} from '../archive-removal.js';
 import {sourceRootPage} from '../thought-root-source-scope.js';
@@ -11,7 +12,7 @@ import {topicMergeSuggestions,keepTopicsSeparate,topicRenameSuggestions} from '.
 import {entryTime,ensureTopicChronology} from './topic-chronology.js';
 import {organizerControls,setOrganizerControls} from './controls.js';
 import {planDynamicOriginalBatch} from './original-batch.js';
-import {aiPresentationStatus,editAIPresentation,aiPresentationRevisions} from './ai-presentation.js';
+import {aiPresentationStatus,editAIPresentation,aiPresentationRevisions,searchSavedAI} from './ai-presentation.js';
 import {safeOrganization,clearDerivedMetadata,sanitizePage} from './metadata.js';
 import {LibraryDocumentsStore} from '../library-documents-store.js';
 import {UniversalSearchService} from '../universal-search.js';
@@ -30,7 +31,32 @@ export class OrganizerStore extends LibraryDocumentsStore {
  safeOrganization(t,kind,row){return safeOrganization(this,t,kind,row);}
  clearDerivedMetadata(t,marker){return clearDerivedMetadata(this,t,marker);}
  async canonicalTopic(t,id){return safeOrganization(this,t,'topic',await super.canonicalTopic(t,id));}
- async libraryIndexPage(o={}){const page=o.providerKey!==undefined&&o.providerKey!==null?await sourceRootPage(this,o,({query,cursor,limit})=>query?this.searchLibrary({query,cursor,limit}):super.libraryIndexPage({mode:'stable',cursor,limit})):await super.libraryIndexPage(o);return this.run(()=>this.repository.transaction(false,async t=>{for(let i=0;i<page.items.length;i++){const item=await safeOrganization(this,t,'topic',page.items[i]);page.items[i]=!o.query&&item?.id&&item.activeLayoutGeneration?{...item,rootCue:await topicRootExcerpt(this,t,item,o.providerKey??null)}:item;}return page;}));}
+ async libraryIndexPage(o={}){
+  validateRootRead(o);await this.finishFoundation();
+  const readScope={search:!!o.query?.trim()},authority=await this.run(()=>this.repository.transaction(false,t=>rootReadAuthority(t,readScope),['meta','libraryMigrationItems']));
+  const expected=o.authority??o.cursor?.authority;if(expected&&expected!==authority||o.authority&&o.cursor?.authority&&o.authority!==o.cursor.authority)return invalidRootRead();
+  const scoped=o.providerKey!==undefined&&o.providerKey!==null,query=(o.query||'').trim();
+  const page=scoped?await sourceRootPage(this,o,({query,cursor,limit})=>query?this.searchLibrary({query,cursor,limit}):super.libraryIndexPage({mode:'stable',cursor,limit})):query?await this.searchRoot({query,cursor:o.cursor,limit:o.limit||40}):await super.libraryIndexPage(o);
+  if(page.cursorInvalid)return invalidRootRead();
+  return this.run(()=>this.repository.transaction(false,async t=>{
+   if(await rootReadAuthority(t,readScope)!==authority)return invalidRootRead();
+   const items=[];
+   for(const raw of page.items){
+    if(query){items.push(compactSearchResult(raw));continue;}
+    const live=await t.get('topics',raw.id);if(!live||live.lifecycle!=='active'||live.redirectTo)return invalidRootRead();
+    const topic=await safeOrganization(this,t,'topic',{...live,visibleEntryCount:raw.visibleEntryCount,countComplete:raw.countComplete,countApproximate:raw.countApproximate,compatibilityUnavailable:raw.compatibilityUnavailable});
+    items.push(compactTopic(topic,topic.activeLayoutGeneration?await topicRootExcerpt(this,t,topic,o.providerKey??null):null));
+   }
+   return {...page,items,authority,nextCursor:page.nextCursor?{...page.nextCursor,authority}:null,recent:(page.recent||[]).map(row=>({id:row.id,readAt:row.readingActivity?.at??null}))};
+  }));
+ }
+ searchSavedAI(o){return searchSavedAI(this,o);}
+ async searchRoot({query,cursor=null,limit=40}){
+  const normalized=query.trim().normalize('NFKC').toLocaleLowerCase();if(cursor&&(cursor.mode!=='compact_root_search'||cursor.query!==normalized))return invalidRootRead();
+  if(cursor?.phase==='ai')return this.searchSavedAI({query,cursor:cursor.key,limit});
+  const page=await this.searchLibrary({query,cursor:cursor?.key||null,limit});
+  return {...page,nextCursor:page.nextCursor?{mode:'compact_root_search',query:normalized,phase:'library',key:page.nextCursor}:page.complete?{mode:'compact_root_search',query:normalized,phase:'ai',key:null}:null,complete:false};
+ }
  // Read-only expression chronology; never use capture/model time as expression time.
  async readingEntry(id){
   // Evidence validation and chronology use separate bounded reads. An edit may

@@ -129,3 +129,22 @@ export class AIPresentationRunner {
  await t.put('meta',{...row,state:'committed',phase:'completed',requestCount:calls,committedItemCount:1,candidateCreated,phaseTimestamps:{...row.phaseTimestamps,completed:s.clock()}});return {candidateCreated};});return {completed:true,requestCount:calls,topicId:topic.id,candidateCreated:committed.candidateCreated};
  }catch(error){const code=safe(error);try{if(requestId)await s.foundationWrite(async t=>{const row=await t.get('meta',REQUEST+requestId);if(row&&ACTIVE.has(row.state))await t.put('meta',{...row,state:'failed',errorCode:code,phase,requestCount:calls});});}catch{}return {error:code,phase,requestCount:calls};}finally{if(credential?.handle)this.credentials.revoke(credential.handle);}}
 }
+
+// Bounded root search over saved fields, using the same eligibility snapshot as
+// the AI reader. No provider request and no all-Topic body DTO reaches the UI.
+export async function searchSavedAI(s,{query,cursor=null,limit=40}={}){
+ if(typeof query!=='string'||query.length>300||!Number.isInteger(limit)||limit<1||limit>100)reject('INVALID_OUTPUT');
+ await migrateAIPresentations(s);const needle=query.trim().normalize('NFKC').toLocaleLowerCase();
+ return s.run(()=>s.repository.transaction(false,async t=>{
+  const page=await t.page('topics',{after:cursor??undefined,limit}),items=[];
+  for(const {value:raw}of page.rows){
+   if(raw.lifecycle!=='active'||raw.redirectTo||!validTopicGeneration(raw.activeLayoutGeneration))continue;
+   const stored=await t.get('meta',ROW+raw.id);if(!stored)continue;
+   const topic=await s.canonicalTopic(t,raw.id),current=await topicSnapshot(s,t,topic,{summaryOnly:true});
+   if(stored.topicId!==topic.id||!isStoredAIPresentation(stored,new Set(current.entries.map(e=>e.id))))continue;
+   const field=AI_FIELDS.find(field=>{const value=stored[field],text=Array.isArray(value)?value.map(x=>x.text).join(' '):value;return typeof text==='string'&&text.normalize('NFKC').toLocaleLowerCase().includes(needle);});
+   if(field)items.push({kind:'ai',topicId:topic.id,topicName:topic.name,aiField:field,sectionTitle:'AI整理'});
+  }
+  return {items,nextCursor:page.next?{mode:'compact_root_search',query:needle,phase:'ai',key:page.next}:null,complete:!page.next};
+ }));
+}

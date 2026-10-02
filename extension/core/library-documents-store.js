@@ -81,7 +81,7 @@ export class LibraryDocumentsStore extends LibraryFoundationStore {
   const items=[];for(const {value:row}of page.rows){if(row.lifecycle!=='active'||row.redirectTo)continue;const count=await this.topicCount(row.id);items.push({...row,...count});}
   const entryCountHint=await this.run(()=>this.repository.transaction(false,t=>t.count('thoughts','byLifecycle',prefix([0]))));return {items,entryCountHint,nextCursor:page.next?{mode,key:page.next}:null};
  }
- async recordTopicRead(id){if(!idOK(id))fail();await this.finishFoundation();return this.run(()=>this.repository.transaction(true,async t=>{const topic=await this.canonicalTopic(t,id);topic.readingActivity=recordRead(topic.readingActivity,this.clock());await t.put('topics',topic);return {ok:true};}));}
+ async recordTopicRead(id){if(!idOK(id))fail();await this.finishFoundation();return this.run(()=>this.repository.transaction(true,async t=>{const resolved=await this.canonicalTopic(t,id),topic=await t.get('topics',resolved.id);topic.readingActivity=recordRead(topic.readingActivity,this.clock());await t.putDerivedTopicRead(topic);return {ok:true};}));}
  async readingIndexPage({cursor,limit}){
   const rows=await this.run(()=>this.repository.transaction(false,t=>t.all('topics','byIndex',prefix([0]))));
   const items=[];for(const row of rows){if(row.lifecycle!=='active'||row.redirectTo)continue;const count=await this.topicCount(row.id);items.push({...row,...count,meaningfulContentAt:row.countCache?.meaningfulContentAt||0});}

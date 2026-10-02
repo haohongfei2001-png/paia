@@ -74,7 +74,7 @@ test('D2 Content explicit hydration retry clears only its failure and overlappin
  const older=f.reader.hydrateWindow();f.reader.shiftWindow('next');const newer=f.reader.hydrateWindow();f.reader.load=load;await finish();assert.equal(await older,false);assert.equal(await newer,true);assert.equal(f.reader.windowStart,40);assert.equal(f.reader.items[40].entry.body,'SYNTHETIC_BODY_CANARY_40');
 });
 
-import {ThoughtWorkspace} from '../ui/thoughts-base.js';
+import {TopicController as ThoughtWorkspace} from '../ui/topic-workspace.js';
 test('D2 actual workspace refuses a held hydration after reader or render intent replacement',async()=>{
  for(const replacement of ['reader','intent']){
   let finish,painted=0,restored=0;const reader={windowRevision:0,hydrateWindow:()=>new Promise(resolve=>finish=resolve)},workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{topicReader:reader,serial:1,topicPageFromReader:()=>{painted++;return {topic:{}};},renderDocument:()=>painted++,updateTopicContinuous:()=>{},observeTopicWindowSpacers:()=>{}});
