@@ -213,7 +213,7 @@ async function leave(preserve=false,{composeId=null,isCurrent=()=>true}={}){
    active.dispose();editor=null;readerStream=null;$('document-page').inert=true;
   }else if(!preserve)partHistory=null;
   if(!isCurrent())return false;routeStates.set(view+':'+(documentId||''),{query,cursor:pageCursor,pages:[...pageHistory],scroll:window.scrollY});accepted=true;return true;
- }finally{readerLeaving--;if(!accepted&&!readerLeaving&&stream===readerStream)stream.frozen=false;if(!accepted&&!readerLeaving&&readerRefreshDeferred){readerRefreshDeferred=false;queueMicrotask(()=>void refresh());}}
+ }finally{readerLeaving--;if(!accepted&&!readerLeaving&&stream&&stream===readerStream)stream.frozen=false;if(!accepted&&!readerLeaving&&readerRefreshDeferred){readerRefreshDeferred=false;queueMicrotask(()=>void refresh());}}
 }
 let navigationIntent=0,inputSearchInProgress=false,releaseStartupNavigation;
 const startupNavigation=new Promise(resolve=>{releaseStartupNavigation=resolve;});
