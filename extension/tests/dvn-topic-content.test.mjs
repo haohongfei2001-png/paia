@@ -77,7 +77,7 @@ test('D2 Content explicit hydration retry clears only its failure and overlappin
 import {TopicController as ThoughtWorkspace} from '../ui/topic-workspace.js';
 test('D2 actual workspace refuses a held hydration after reader or render intent replacement',async()=>{
  for(const replacement of ['reader','intent']){
-  let finish,painted=0,restored=0;const reader={windowRevision:0,hydrateWindow:()=>new Promise(resolve=>finish=resolve)},workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{topicReader:reader,serial:1,topicPageFromReader:()=>{painted++;return {topic:{}};},renderDocument:()=>painted++,updateTopicContinuous:()=>{},observeTopicWindowSpacers:()=>{}});
+  let finish,painted=0,restored=0;const reader={windowRevision:0,hydrateWindow:()=>new Promise(resolve=>finish=resolve)},workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{pageVisible:()=>true,topicReader:reader,serial:1,topicPageFromReader:()=>{painted++;return {topic:{}};},renderDocument:()=>painted++,updateTopicContinuous:()=>{},observeTopicWindowSpacers:()=>{}});
   const pending=workspace.renderTopicReader({id:'old',top:140});if(replacement==='reader')workspace.topicReader={measure:()=>{},restoreAnchor:()=>restored++};else workspace.serial++;
   finish(true);assert.equal(await pending,false);assert.equal(painted,0);assert.equal(restored,0);
  }
@@ -130,7 +130,7 @@ test('D2 surviving purged owner gets a fresh recovery session before a new faile
  const saved=calls.find(call=>call.type==='PAIA_RECOVERY_DRAFT_SAVE');assert.ok(saved);assert.deepEqual(saved.draft.epoch,row.recoveryEpoch);assert.deepEqual(saved.draft.sourceRecordIds,[]);assert.equal(saved.draft.operation.edit.entries[0].changes.body,'SYNTHETIC_NEW_DRAFT');assert.doesNotMatch(JSON.stringify(saved),/PURGED_CANARY/);assert.equal(editor.entries.get(row.id).local.body,'SYNTHETIC_NEW_DRAFT');
 }));
 test('D2 saved-history readback restores recovery ownership for an evicted entry',async()=>withRecoveryTransport(async({calls,row})=>{
- const editor=recoveryEditor(),patches=[{id:row.id,field:'body',before:'before',after:'after'}];patches.savedEdit=[{id:row.id,revisionId:'saved-revision'}];editor.journal.undo.push(patches);await editor.history();assert.ok(editor.entries.has(row.id));assert.ok(editor.recoveries.has(row.id));
+ const editor=recoveryEditor(),patches=[{id:row.id,field:'body',before:'before',after:'after'}];editor.historyVersions={[row.id]:structuredClone(row.fieldRevisions)};patches.savedEdit=[{id:row.id,revisionId:'saved-revision'}];editor.journal.undo.push(patches);await editor.history();assert.ok(editor.entries.has(row.id));assert.ok(editor.recoveries.has(row.id));
  editor.entries.get(row.id).local.body='SYNTHETIC_AFTER_UNDO_DRAFT';assert.equal(await editor.flush(),false);const save=calls.find(call=>call.type==='PAIA_RECOVERY_DRAFT_SAVE');assert.ok(save);assert.equal(save.draft.operation.edit.entries[0].changes.body,'SYNTHETIC_AFTER_UNDO_DRAFT');assert.deepEqual(save.draft.epoch,row.recoveryEpoch);
 }));
 
@@ -158,3 +158,9 @@ test('D2 cold-indexing metadata is fenced after an admitted purge without invent
  s.repository.transaction=async(...args)=>{const result=await transaction(...args);if(!triggered&&result?.indexing===true&&result.topic&&Array.isArray(result.items)){triggered=true;scanned=result.coverage?.scanned;purge=s.purge(record.id,true).then(()=>{finished=true;});}return result;};
  try{const response=await s.topicDocumentPage({topicId:topic.id,chronology:'expression'});assert.equal(triggered,true);assert.equal(scanned,10000,'real bounded index build, not a fabricated indexing DTO');assert.equal(finished,true);assert.equal(response.cursorInvalid,true);assert.equal(response.complete,false);assert.deepEqual(response.items,[]);assert.doesNotMatch(JSON.stringify(response),/SYNTHETIC_INDEXING_(METADATA|SUMMARY)_CANARY/);await purge;}finally{s.repository.transaction=transaction;}
 });
+
+for(const mode of ['changed-off-window','missing-versions','purged','inactive','changed-resident'])test(`D5 saved undo refuses ${mode} before a durable restore request`,async()=>withRecoveryTransport(async({calls,row})=>{
+ const editor=recoveryEditor(),patches=[{id:row.id,field:'body',before:'SYNTHETIC old text',after:'SYNTHETIC prior text'}];patches.savedEdit=[{id:row.id,revisionId:'synthetic-prior-revision'}];editor.journal.undo.push(patches);editor.historyVersions={[row.id]:{...row.fieldRevisions}};
+ if(mode==='changed-off-window')editor.historyVersions[row.id].body--;if(mode==='missing-versions')delete editor.historyVersions[row.id];if(mode==='purged')row.staleReasons=['source_purged'];if(mode==='inactive')row.lifecycle='removed';if(mode==='changed-resident')editor.entries.set(row.id,{saved:{body:row.body,note:row.note,type:row.type},local:{body:row.body,note:row.note,type:row.type},revision:row.revision-1,fieldRevisions:row.fieldRevisions});
+ const before=structuredClone(row);await editor.history();assert.equal(calls.some(call=>call.type==='THOUGHT_EDIT_HISTORY'),false);assert.deepEqual(row,before);assert.equal(editor.journal.undo.length,1);assert.equal(editor.journal.redo.length,0);assert.equal(editor.recoveries.size,0);
+}));

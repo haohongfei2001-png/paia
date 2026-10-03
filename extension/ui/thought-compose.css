@@ -1,0 +1,29 @@
+/* Frozen T05 main workspace; TopicActions retains the real optional controls. */
+body[data-paia-space="thought-compose"] .workspace{padding:0}
+body[data-paia-space="thought-compose"] .workspace-header{min-height:72px;padding:18px 28px;margin:0;border-bottom:1px solid var(--line)}
+body[data-paia-space="thought-compose"] .workspace-header #back{border:0;padding:6px 0;min-height:36px}
+body[data-paia-space="thought-compose"] #workspace-error{padding:16px 32px}
+#thought-compose-panel{width:100%;max-width:824px;margin:auto;padding:54px 32px 80px;font-size:14px;line-height:1.5}
+#thought-compose-panel>header{display:block;margin:0}
+#thought-compose-title{margin:0 0 16px;font-size:28px;line-height:1.35;font-weight:600;overflow-wrap:anywhere}
+#thought-compose-panel .topic-action-content{display:block}
+#thought-compose-panel .thought-compose-intro{margin:0 0 30px;color:var(--muted)}
+#thought-compose-panel .thought-compose-destination{margin:0 0 8px;color:var(--text);overflow-wrap:anywhere}
+#thought-compose-panel .thought-compose-topics{margin:0 0 16px}
+#thought-compose-panel summary{width:fit-content;max-width:100%;min-height:36px;padding:6px 0;cursor:pointer}
+#thought-compose-panel .thought-compose-topics>div{padding-block:12px}
+#thought-compose-panel input:not([type=checkbox]),#thought-compose-panel .thought-draft{display:block;width:100%;min-width:0;padding:12px;color:var(--text);background:var(--bg);border:1px solid var(--control);border-radius:6px;font:inherit}
+#thought-compose-panel input[type=checkbox]{flex:none;width:18px;height:18px}
+#thought-compose-panel .thought-draft{min-height:180px;resize:vertical;line-height:1.5}
+#thought-compose-panel .thought-response-choice{display:flex;align-items:center;gap:12px;min-height:44px;margin-block:12px}
+#thought-compose-panel .thought-compose-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+#thought-compose-panel button{min-height:36px;padding:6px 12px;font:inherit;border:1px solid var(--control);border-radius:var(--radius);background:var(--bg);color:var(--text)}
+#thought-compose-panel .thought-compose-save{background:var(--text);color:var(--bg);border-color:var(--text)}
+#thought-compose-panel .thought-compose-copy{color:var(--muted)}
+#thought-compose-panel .topic-action-feedback:empty{display:none}
+#thought-compose-panel .topic-action-feedback{margin:16px 0 0;color:var(--muted)}
+#thought-compose-panel :is(button,input,textarea,summary):focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+@media(min-width:1024px) and (max-width:1439px){#thought-compose-panel{padding:40px 24px 64px}body[data-paia-space="thought-compose"] .workspace-header{padding:16px 24px}}
+@media(min-width:768px) and (max-width:1023px){#thought-compose-panel{padding:32px 24px 64px}body[data-paia-space="thought-compose"] .workspace-header{padding:16px 24px}}
+@media(max-width:767px){#thought-compose-panel{padding:28px 16px 56px}#thought-compose-title{font-size:24px}body[data-paia-space="thought-compose"] .workspace-header{padding:12px 16px;gap:8px}body[data-paia-space="thought-compose"] #workspace-error{padding-inline:16px}}
+@media(max-width:767px),(pointer:coarse){#thought-compose-panel :is(button,summary,input:not([type=checkbox])),body[data-paia-space="thought-compose"] .workspace-header #back{min-height:44px;min-width:44px}}

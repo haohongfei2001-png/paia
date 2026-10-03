@@ -264,17 +264,17 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
 
 async function independentThoughtRelationJourney(page,h,topics,{release=false}={}){
  await page.setViewportSize({width:1440,height:900});
- const dialog=page.locator('#topic-action-dialog'),content=page.locator('#library-dialog-content');
+ const dialog=page.locator('#topic-action-dialog'),composer=page.locator('#thought-compose-panel'),content=page.locator('#library-dialog-content');
  const prefix=release?'VS05_RELEASE_NEW':'VS05_SOURCE_NEW',standaloneBody=prefix+' 独立想法，不需要主题或关联。';
  const started=Date.now();
  await page.locator('#create-entry').click();
- await dialog.getByLabel('今天的新想法',{exact:true}).fill(standaloneBody);
- await dialog.locator('summary').filter({hasText:'选择主题（可不选）'}).click();
- const topicChoice=dialog.getByLabel(topics[1].name,{exact:true});
+ await composer.getByLabel('今天的新想法',{exact:true}).fill(standaloneBody);
+ await composer.locator('summary').filter({hasText:'选择主题（可不选）'}).click();
+ const topicChoice=composer.getByLabel(topics[1].name,{exact:true});
  await topicChoice.waitFor();assert.equal(await topicChoice.isChecked(),true,'current Topic is only an optional initial choice');
  await topicChoice.uncheck();
- await dialog.getByRole('button',{name:'保存想法',exact:true}).click();
- await eventually(async()=>!await dialog.isVisible(),'independent Thought saves through the real composer');
+ await composer.getByRole('button',{name:'保存想法',exact:true}).click();
+ await eventually(async()=>!await composer.isVisible(),'independent Thought saves through the real composer');
  await page.locator('#notice').getByRole('button',{name:'查看',exact:true}).click();
  await eventually(async()=>await content.locator('[data-entry-field="body"]').textContent()===standaloneBody,'saved independent Thought opens from actual success feedback');
  const standaloneId=await content.locator('[data-entry-id]').getAttribute('data-entry-id');
@@ -289,13 +289,13 @@ async function independentThoughtRelationJourney(page,h,topics,{release=false}={
  const before=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId});
  await row.locator('.library-actions summary').click();
  await row.getByRole('button',{name:'接着写',exact:true}).click();
- const relationChoice=dialog.getByLabel('记录与这条内容的回应关系',{exact:true});
+ const relationChoice=composer.getByLabel('记录与这条内容的回应关系',{exact:true});
  assert.equal(await relationChoice.isChecked(),false,'a quoted response has no relation without explicit selection');
  await relationChoice.check();
  const responseBody=prefix+' 回应后独立保存，不重写原内容。';
- await dialog.getByLabel('今天的新想法',{exact:true}).fill(responseBody);
- await dialog.getByRole('button',{name:'保存想法',exact:true}).click();
- await eventually(async()=>!await dialog.isVisible(),'explicit optional response relation saves');
+ await composer.getByLabel('今天的新想法',{exact:true}).fill(responseBody);
+ await composer.getByRole('button',{name:'保存想法',exact:true}).click();
+ await eventually(async()=>!await composer.isVisible(),'explicit optional response relation saves');
  await page.locator('#notice').getByRole('button',{name:'查看',exact:true}).click();
  await eventually(async()=>await content.locator('[data-entry-field="body"]').textContent()===responseBody);
  const responseId=await content.locator('[data-entry-id]').getAttribute('data-entry-id');

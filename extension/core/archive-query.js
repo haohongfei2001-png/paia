@@ -39,6 +39,9 @@ export async function queryPage(t,control,{view='library',query='',limit=50,curs
   const candidates=await t.page('recordIndex',{index:'bySequence',after:cursor?.[0],limit:100});for(const {value:r}of candidates.rows)if(r.hidden||r.deletedAt)state.records.push((await t.get('records',r.id)).value);state.nextCursor=candidates.next===null?null:[candidates.next];return state;
  }
  if(documentId){
+  // Smart Filter may have resolved a contextual cursor before this read.
+  // Return that exact body-free descriptor for a bounded Reader window return.
+  state.effectivePageCursor=cursor===null?null:structuredClone(cursor);
   const readingSort=sort||((await t.get('meta','organizer-controls'))?.inputReadingSort==='desc'?'desc':'asc');state.readingSort=readingSort;
   const row=await t.get('documents',documentId);if(!row){if(view==='library'&&trackedBlockIds.length){state.unavailableTrackedInputIds=[];for(const id of trackedBlockIds)if(!await t.get('blocks',id))state.unavailableTrackedInputIds.push(id);}return state;}state.conversations.push(row.value);state.library.documents.push((await t.get('libraryDocuments',documentId)).value);
   const prefix=view==='archive'?[row.chatKey,0]:[documentId,view==='excluded'?1:0];if(prefix[0]===undefined)return state;

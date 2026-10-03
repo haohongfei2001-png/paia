@@ -1,5 +1,7 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '写下想法':'Add a thought from today','写下此刻的想法，不改写过去的输入。':'Write a thought from now without changing earlier inputs.','主题':'Topic','已选择一个主题':'One topic selected','已选择多个主题，保存前请保留一个。':'Multiple topics selected; keep one before saving.',
+ '暂时无法返回，文字仍保留在这里。':'Returning is temporarily unavailable. Your text is still here.',
  '加入结果尚未确认，请重试核对先前选择。':'The earlier add result is not confirmed. Retry to check the same selection.',
  '先前选择已加入主题。这里的新选择仍未提交。':'The earlier selection was added. Your new selection here has not been submitted.',
  '主题保存结果尚未确认，请重试核对。':'The Topic save result is unconfirmed. Retry to check it.',
