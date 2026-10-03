@@ -185,3 +185,25 @@ for(const outcome of ['current','obsolete','failed'])test(`D5 returned Topic too
  let release;const active=editor(),page=owner({id:'synthetic-topic',editor:active,snapshotKey:'synthetic-read',readKey:()=> 'synthetic-read',readRefresh:()=>new Promise(resolve=>release=resolve),queueOptionalStatus(){}});nodes.get('thought-document').dataset={state:'ready'};nodes.get('topic-body').querySelectorAll=()=>[];
  assert.equal(await page.leaveEditors(),true);assert.equal(nodes.get('topic-toolbar').inert,true,'accepted leave disables ownerless toolbar actions together with the body');const reading=page.refreshOnce();assert.equal(nodes.get('topic-toolbar').inert,true,'held returned read cannot expose a no-op Undo');if(outcome==='obsolete')page.statusEpoch++;release(outcome!=='failed');await reading;assert.equal(nodes.get('topic-toolbar').inert,outcome!=='current','only successful current read restores toolbar interaction');
 }));
+
+import {TopicAIViewSession} from '../core/topic-ai-view-session.js';
+import {TopicTimelinePositions} from '../ui/topic-timeline-window.js';
+import {ContinuousTopicReader} from '../ui/continuous-topic-reader.js';
+for(const scope of ['topic','root'])for(const mode of ['global-return','internal-open','refused-return'])test(`D5 actual ${scope} ${mode} captures only the current outgoing owner`,async()=>{
+ const keys=['document','chrome','scrollY','scrollTo'],prior=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ try{
+  const nodes=new Map(),calls=[];
+  globalThis.document={hidden:false,getElementById(id){if(!nodes.has(id))nodes.set(id,{hidden:false,inert:false,value:'',classList:{toggle(){}},replaceChildren(){}});return nodes.get(id);},querySelector:()=>null};
+  document.getElementById('topic-body');globalThis.scrollY=7000;globalThis.scrollTo=()=>{};
+  globalThis.chrome={runtime:{sendMessage:async message=>{calls.push(message.type);return {ok:true,data:null};}}};
+  let anchor={id:'entry45',top:140},rootAnchor={key:'root45',id:'topic45',top:140};
+  const reader=new ContinuousTopicReader({load:async()=>({})});reader.reset({topicId:'topic',sort:'asc',query:''});reader.items=Array.from({length:65},(_,i)=>({entry:{id:'entry'+i,revision:1}}));reader.index=new Map(reader.items.map((row,index)=>[row.entry.id,index]));reader.captureAnchor=()=>anchor;reader.restoreAnchor=()=>true;
+  const page=Object.assign(Object.create(TopicController.prototype),{id:scope==='topic'?'topic':null,editor:null,aiEditor:null,dialogEditor:null,view:'original',originalMode:'content',serial:0,statusEpoch:0,statusReadSerial:0,readRetry:{},readingSort:'asc',pages:[],topicProviderKey:null,homePositions:new Map(),aiViewSession:new TopicAIViewSession(),contentPositions:new TopicTimelinePositions(),timelinePositions:new TopicTimelinePositions(),topicReader:reader,originalPane:{},aiTopics:new Map(),homeCollection:{snapshot:()=>({items:[{key:'root45'}]})},captureHomeAnchor:()=>rootAnchor,createHomeCollection:()=>({restore(){}}),clearActionFeedback(){},onOpen(){calls.push('onOpen');},schedulePosition(){},async refresh(){calls.push('refresh');this.observedReturn=scope==='topic'?this.topicNavigationAnchor:this.rootInvalidationAnchor;}});
+  page.rememberRoute();const cacheKey=page.id||'home',saved=structuredClone(page.homePositions.get(cacheKey));
+  globalThis.scrollY=0;anchor={id:'entry0',top:580};rootAnchor={key:'root0',id:'topic0',top:300};
+  let active;if(mode==='refused-return'){active={entry:{historyPending:true},metadata:[],dirty:()=>false,dispose(){throw Error('refused owner disposed');}};page.editor=active;}
+  const result=await page.open(page.id,mode==='internal-open'?{}:{rememberCurrent:false});await new Promise(setImmediate);
+  if(mode==='refused-return'){assert.equal(result,undefined);assert.equal(page.editor,active);assert.deepEqual(calls,[]);assert.deepEqual(page.homePositions.get(cacheKey),saved);assert.equal(nodes.get('topic-body').inert,false);}
+  else{const expected=scope==='topic'?(mode==='internal-open'?'entry0':'entry45'):(mode==='internal-open'?'topic0':'topic45');assert.equal(scope==='topic'?page.observedReturn.entryId:page.observedReturn.id,expected);assert.equal(calls.filter(value=>value==='refresh').length,1);if(mode==='global-return')assert.deepEqual(page.homePositions.get(cacheKey),saved);}
+ }finally{for(const key of keys){const descriptor=prior.get(key);if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
+});
