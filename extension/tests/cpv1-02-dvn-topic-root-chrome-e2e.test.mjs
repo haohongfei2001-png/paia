@@ -1,4 +1,4 @@
-import {openD5ThoughtRoot} from './harness/d5-thought-root.mjs';
+import {openD5ThoughtRoot,observeD5ThoughtRootScroll,verifyD5ThoughtRootTextZoom} from './harness/d5-thought-root.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -20,7 +20,7 @@ for(const variant of ['source','release'])test(`D2 compact Topic root migrates g
   const original=await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id});
   const excerpt=await rpc(p,'ADD_TO_TOPICS',{selection:{operationId:op(),kind:'thought',id:created.id,expectedRevision:original.revision,span:{start:0,end:11},topicIds:[topic.id]}});
   await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local);await s.foundationWrite(t=>t.put('meta',{id:'thought-layout:v1',version:1,layout:'grid'}));});
-  await p.reload();await p.locator('[data-view="thoughts"]').click();
+  await p.reload();await observeD5ThoughtRootScroll(p);await p.locator('[data-view="thoughts"]').click();
   await eventually(()=>p.locator(`[data-topic-id="${topic.id}"]`).count().then(n=>n===1));
   assert.equal((await rpc(p,'GET_THOUGHT_LAYOUT')).layout,'list');
   const migration=await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local);return s.repository.transaction(false,t=>t.get('meta','thought-layout:v1'));});
@@ -55,7 +55,7 @@ for(const variant of ['source','release'])test(`D2 compact Topic root migrates g
   await p.evaluate(old=>{globalThis.__d2StaleRendered=false;globalThis.__d2CueObserver=new MutationObserver(()=>{if(document.getElementById('thought-list').textContent.includes(old))__d2StaleRendered=true;});__d2CueObserver.observe(document.getElementById('thought-list'),{subtree:true,childList:true,characterData:true});__d2RestoreSend();for(const finish of __d2Held)finish();},cue.text);
   await eventually(()=>row.locator('.summary').textContent().then(text=>text===replacement),'queued fresh read uses the new authoritative text');
   assert.equal(await p.evaluate(()=>__d2StaleRendered),false,'late pre-mutation root response never resurrects its excerpt');await p.evaluate(()=>__d2CueObserver.disconnect());
-  await p.evaluate(()=>{globalThis.__d2ZoomRows=[...document.querySelectorAll('#thought-root-heading h1,#thought-home-tools summary,#thought-home-tools input,#thought-home-tools button,#thought-home-tools label,#thought-home-tools select,#thought-panel button,#thought-panel strong,#thought-panel span,#thought-panel small,#thought-panel p,#thought-panel label,#thought-panel select')].map(node=>({node,size:getComputedStyle(node).fontSize,prior:node.style.fontSize}));for(const row of __d2ZoomRows)row.node.style.fontSize=(parseFloat(row.size)*2)+'px';scrollTo(0,0);});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth<=2),'200% text at320px has no page horizontal overflow');await p.screenshot({path:`work/qa-dvn-topic-root/${variant}-text200-320.png`});await p.evaluate(()=>{for(const row of __d2ZoomRows)row.node.style.fontSize=row.prior;delete globalThis.__d2ZoomRows;});
+  await verifyD5ThoughtRootTextZoom(p,variant);
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   await d5.finish();writeFileSync(`work/qa-dvn-topic-root/${variant}.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,matrix,text200Reflow:true,migration:true,sourceUnchanged:true,zeroProviderCalls:true},null,2));
  }finally{await d5?.close();await h.close();}
