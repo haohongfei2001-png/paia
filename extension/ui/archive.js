@@ -76,7 +76,7 @@ async function finishReaderReturn(attempt){
 }
 let state,view='library',documentId=null,query='',searchProject=null,editor=null,serial=0,menuId=null,readingInvoker=null,infoIds=[];let showFilteredCurrent=false;let partHistory=null;const documentHistories=new Map();let readerStream=null;let inputSortSnapshot=null;let readingSnapshot=null,contextInputId=null,originalClientError=null,originalClientPhase=null,originalActionPending=false,originalServerActive=false;
 const smartFilter=new SmartFilterUI({onError:error,onContext:(doc,id)=>navigate('library',doc,id)});
-const thoughts=new ThoughtWorkspace({onStatus:status,onSettings:()=>navigate('settings'),onOpen:()=>{render();routes.commit();},onInput:async id=>{const b=await request('GET_INPUT',{id});await navigate('library',b.documentId,id);}});
+const thoughts=new ThoughtWorkspace({isActive:()=>view==='thoughts',onStatus:status,onSettings:()=>navigate('settings'),onOpen:()=>{render();routes.commit();},onInput:async id=>{const b=await request('GET_INPUT',{id});await navigate('library',b.documentId,id);}});
 const memory=new MemoryPanel({onHome:()=>navigate('thoughts'),onMemory:()=>navigate('memory'),onThought:async(topicId,entryId)=>{await navigate('thoughts');if(thoughts.view==='ai')await thoughts.switchView('original');await thoughts.open(topicId);if(entryId)await thoughts.focusEntry(entryId);},onInput:async inputId=>{const b=await request('GET_INPUT',{id:inputId});await navigate('library',b.documentId,inputId);}});
 let shellRouteReady=false,navigationInFlight=0;
 const reader=new ReaderExperience({read:()=>({view,documentId,editor,state}),notify,menu:(...args)=>openMenu(...args),reload:()=>refresh()});
@@ -236,7 +236,7 @@ async function navigate(next,id=null,contextId=null,options={}){let intent=null;
  if(view!==next){thoughts.clearActionFeedback();$('organizer-setting-feedback').hidden=true;}
  if(view==='memory'&&next!=='memory')await memory.activate(false);
  showFilteredCurrent=readerReturn?readerReturn.window.includeFiltered:next==='library'&&id?(typeof options.showFiltered==='boolean'?options.showFiltered:next===view&&id===documentId&&showFilteredCurrent):false;
- returnTo=options.returnTo||(id&&origin==='revisit'?'revisit':id?origin:null);view=next;documentId=id;menuId=null;$('document-body').replaceChildren();routes.present({consented:state?.settings?.consentVersion===1});
+ returnTo=options.returnTo||(id&&origin==='revisit'?'revisit':id?origin:null);view=next;documentId=id;menuId=null;$('document-body').replaceChildren();
  if(next==='library'&&id&&options.searchQuery!==undefined){const search=documentSearchState(id);if(search.query!==options.searchQuery){search.query=options.searchQuery;resetDocumentSearchPage(search);search.stale=!!search.query.trim();}}
  const saved=routeStates.get(next+':'+(id||''));pageCursor=!id?saved?.cursor??null:null;pageHistory=!id?saved?.pages||[]:[];query=(!id?options.searchQuery:undefined)??saved?.query??queries.get(view)??'';if(!documentId)scopeSearch.input.value=query;for(const id of ['search-date-start','search-date-end'])$(id).disabled=!query.trim();
  // Global leave already captured the origin before presenting the destination.
@@ -270,8 +270,10 @@ function readerCanEvict(page){
 }
 function readerWindowGuard(direction,composing=false){const guard=$('reader-window-guard');guard.hidden=false;guard.dataset.direction=direction;$('reader-window-guard-message').textContent=composing?readerCopy('先完成当前输入法输入，再保存并继续。','Finish composing text before saving and continuing.'):readerCopy('当前输入或选区仍在上一段。保存后可继续阅读。','An edit or selection remains in the previous range. Save before continuing.');}
 async function loadReaderPage(direction){
- const stream=readerStream,active=editor,intent=navigationIntent,epoch=stream?.epoch;
- const current=()=>stream===readerStream&&active===editor&&!stream.frozen&&epoch===stream.epoch&&intent===navigationIntent&&!active.removalLocks&&view==='library'&&documentId===stream.documentId;
+ const stream=readerStream,active=editor,intent=navigationIntent,epoch=stream?.epoch,freezeEpoch=stream?.freezeEpoch;
+ const owned=()=>stream===readerStream&&active===editor&&!stream.frozen&&freezeEpoch===stream.freezeEpoch&&intent===navigationIntent&&!active.removalLocks&&view==='library'&&documentId===stream.documentId;
+ const current=()=>owned()&&epoch===stream.epoch;
+ const settled=()=>!active.disposed&&!active.composing&&!active.dirty()&&!active.saving&&!active.failed&&!active.conflicted&&!active.saveSession.pending;
  if(!stream||stream.loading||stream.frozen||!active||!current())return;if(active.composing){readerWindowGuard(direction,true);return;}
  const backward=direction==='back';let index=backward?stream.first-1:stream.last+1,cursor=backward?stream.cursors[index]:stream.pages.at(-1)?.nextCursor;
  if(index<0||cursor===undefined||!backward&&cursor===null)return;
@@ -303,7 +305,9 @@ async function loadReaderPage(direction){
   const visible=readerVisibleIds();active.compact(visible);state.library.blocks=state.library.blocks.filter(row=>active.entries.has(row.id));state.pageItemIds=visible;
   loaded=true;renderDocumentSearch();scheduleDocumentSearch();reader.schedule();
  }catch{if(current())notify('下一段暂时无法读取，请稍后继续滚动重试。');}
- finally{stream.loading=false;if(loaded&&current())requestAnimationFrame(()=>{if(!current())return;const bounds=$('document-body').getBoundingClientRect();if(bounds.bottom<innerHeight+700)void loadReaderPage('forward');else if(bounds.top>-700&&stream.first>0)void loadReaderPage('back');});}
+ // A late data notification invalidates this reply, not the user's continuation.
+ // Re-read only for the same clean owner; a new freeze/navigation cannot resume it.
+ finally{stream.loading=false;if((loaded||epoch!==stream.epoch)&&owned())requestAnimationFrame(()=>{if(!owned()||!settled())return;if(epoch!==stream.epoch){void loadReaderPage(direction);return;}const bounds=$('document-body').getBoundingClientRect();if(bounds.bottom<innerHeight+700)void loadReaderPage('forward');else if(bounds.top>-700&&stream.first>0)void loadReaderPage('back');});}
 }
 $('reader-window-guard-continue').addEventListener('click',async()=>{const guard=$('reader-window-guard'),direction=guard.dataset.direction,active=editor;if(guard.hidden||!active)return;if(active.composing){readerWindowGuard(direction,true);return;}active.collect();if(!await active.flush()){readerWindowGuard(direction);return;}document.activeElement?.blur();getSelection()?.removeAllRanges();guard.hidden=true;void loadReaderPage(direction);});
 window.addEventListener('scroll',()=>{const stream=readerStream;if(!stream||stream.loading||stream.frozen||view!=='library')return;const body=$('document-body'),bounds=body.getBoundingClientRect();if(bounds.bottom<innerHeight+700)void loadReaderPage('forward');else if(bounds.top>-700&&stream.first>0)void loadReaderPage('back');},{passive:true});
