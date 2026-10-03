@@ -3,7 +3,7 @@ import {element} from './common.js';
 const LABELS={blockSummary:'主题速览',currentView:'当前理解',keyInformation:'核心信息',preferences:'偏好与原则',decisions:'重要决定',judgments:'判断',openQuestions:'待解决问题',possibleEvolution:'可能变化'};
 const text=value=>Array.isArray(value)?value.map(item=>item?.text||'').filter(Boolean).join('\n\n'):typeof value==='string'?value:'';
 const button=(label,run)=>{const node=element('button','',label);node.type='button';node.addEventListener('click',()=>void Promise.resolve().then(()=>run(node)));return node;};
-const supporting=(tag,value,className='ai-candidate-note')=>{const node=element(tag,className,value);node.style.color='var(--paia-secondary)';return node;};
+const supporting=(tag,value,className='ai-candidate-note')=>element(tag,className,value);
 
 export {aiCandidateKey} from '../core/organizer/ai-candidate.js';
 
@@ -12,7 +12,7 @@ export function renderAICandidateComparison(root,{candidate,current,choices,pend
  const focus=previous?.contains(active)?{field:active.closest('[data-ai-candidate-field]')?.dataset.aiCandidateField,decision:active.dataset.candidateDecision,footer:!!active.closest('.ai-candidate-footer')}:null;
  previous?.remove();
  if(!candidate||!current&&candidate.baseKind!=='none')return null;
- const panel=element('section','ai-update-candidate');panel.dataset.aiCandidate='true';panel.dataset.candidateState=candidate.stale?'stale':'ready';panel.setAttribute('aria-label','AI 更新候选');panel.style.width='min(100%,1040px)';panel.style.maxWidth='1040px';
+ const panel=element('section','ai-update-candidate');panel.dataset.aiCandidate='true';panel.dataset.candidateState=candidate.stale?'stale':'ready';panel.setAttribute('aria-label','AI 更新候选');
  const header=element('header','ai-candidate-header');header.append(supporting('p','AI整理更新','ai-candidate-eyebrow'),element('h2','',candidate.stale?'更新候选已过期':'这还是你的意思吗？'),supporting('p',candidate.stale?'当前稿或主题材料在候选生成后又发生了变化。已暂存的选择仍显示在下方，但旧候选不能保存；重新更新后再核对。':'当前稿不会自动改变。逐段比较“当前稿”和“更新候选”，为每个实际变化选择采用或保留；所有选择只暂存在本标签页，最多保留最近 24 个主题的选择；最后一次保存。'));panel.append(header);
  for(const field of candidate.changedFields||[]){
   const label=LABELS[field]||field,card=element('section','ai-candidate-field');card.dataset.aiCandidateField=field;const heading=element('h3','',label);heading.id=`ai-candidate-${field}`;card.setAttribute('aria-labelledby',heading.id);card.append(heading);

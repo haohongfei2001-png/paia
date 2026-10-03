@@ -1,3 +1,4 @@
+import {compareD5Candidate} from './harness/d5-candidate-comparison.mjs';
 import {confirmOrganizeScope,adoptFirstCandidate} from './harness/ai-reviewed-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -282,4 +283,12 @@ test('VS-05 all six authored AI lists and deliberate empty overview survive coll
    await hiddenDraftJourney(page,h,topic,label);
   }finally{await h?.close();}
  }
+});
+
+// Isolated D5 presentation fixtures keep the original interaction journeys unchanged.
+for(const variant of ['source','release'])test(`D5 O04/O05 comparison fields preserve literal text, decisions and preferences (${variant})`,{timeout:180000},async()=>{
+ if(variant==='release')await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+ let calls=0,h;const label='D5_COMPARE_'+variant.toUpperCase();
+ try{h=await FakeChatGPT.start({...(variant==='release'?{extensionPath:'work/current-release'}:{}),onboarding:true,deepSeekFixture:async body=>{const output=aiOutput(requestOf(body),label,++calls),value=JSON.parse(output.choices[0].message.content);value.blockSummary+='\n<literal> 👩‍💻 é\n条件仍需核对。';value.currentView+='\n<literal> 👩‍💻 é\n不把未定选择写成结论。';output.choices[0].message.content=JSON.stringify(value);return output;}});const page=await ready(h),topic=await createTopic(page,label);await openTopic(page,topic);await organized(page);await confirmGeneration(page);await adoptFirstCandidate(page);await updateCandidate(page,h,topic,label+' 合成补充材料：保留不确定性与原话边界。',2);await compareD5Candidate(h,variant,topic.id);assert.equal(calls,2);assert.equal(h.deepSeekRequests.length,2);assert.equal(h.extensionNetworkRequests,2);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
+ finally{await h?.close();}
 });
