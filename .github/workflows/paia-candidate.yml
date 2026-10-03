@@ -225,7 +225,7 @@ jobs:
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
       - name: Provide Chinese glyph coverage for paired Thought evidence
-        if: contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER')
+        if: contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER')
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
@@ -381,7 +381,18 @@ jobs:
 
       - name: AI candidate comparison, explicit decisions and stale protection
         if: contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER')
-        run: xvfb-run -a node --test tests/uir-03-ai-candidate-chrome-e2e.test.mjs
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          mkdir -p work/qa-dvn-compare
+          xvfb-run -a node --test --test-concurrency=1 --test-reporter=./scripts/test-report.mjs tests/uir-03-ai-candidate-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-compare/acceptance.log
+          cp work/test-summary.json work/qa-dvn-compare/test-summary.json
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+          const report=JSON.parse(readFileSync('work/qa-dvn-compare/test-summary.json'));assert.equal(report.total,5);assert.equal(report.pass,5);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files),['uir-03-ai-candidate-chrome-e2e.test.mjs']);
+          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-compare/${variant}.json`));assert.equal(receipt.result,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.rows.length,24);assert.equal(receipt.preferences.length,11);assert.equal(receipt.targets.length,2);}
+          JS
 
       - name: Thought root layout and invalidated history regressions
         if: contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER')
@@ -398,7 +409,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vs05-topic-root-candidate
-          path: extension/work/ux-r3/*.png
+          path: |
+            extension/work/ux-r3/*.png
+            extension/work/qa-dvn-compare/
           if-no-files-found: error
 
 

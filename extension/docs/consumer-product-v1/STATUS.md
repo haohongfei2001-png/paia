@@ -1,5 +1,14 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q7 — comparison fields and decision presentation — 2026-10-03
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q7`.**
+Verified main remains `f11675ce73cd7a023889e7a1673f4837283cedc1`, adopting Q6a through [PR131](https://github.com/haohongfei2001-png/paia/pull/131). Full37136103888, exact-main37137588277 and Pages37137587915 PASS as recorded in [Q6](implementation/desktop-vnext/D5-Q6.md).
+
+[PR132](https://github.com/haohongfei2001-png/paia/pull/132) is preserved and unmerged at `497847ea39547df0d069676dda0b6645eb58b6da`. Candidate37155471100 passed an earlier head, but full37156063394 failed8 old browser assertions and corrective full37158433470 failed7 different assertions after those8 were repaired. Main never adopted that route/return candidate. The compatibility patch chain is stopped; T05 main workspace and cross-route return remain unfinished. Its source, receipts, failures and diagnostics stay intact for later reassessment.
+
+The approved independent [Q7](implementation/desktop-vnext/D5-Q7.md) starts from exact stable main and aligns only O04/O05 comparison fields and existing decision controls. Retire legacy card/inline visual owners, use the declared960px comparison cap and canonical spacing/typography, preserve saved reading sizes, exact current/candidate text, staged decisions, evidence, stale refusal and the existing single-commit owner. No routing, cache, paging, editor, schema, provider or permission change. Existing complete source/release journeys and isolated paired pixels must pass before §7.2 light integration. Whole Organize-page composition, T05, remaining D5 surfaces and final owner visual acceptance remain open. Public consumer release and install-package delivery remain held. Older controlling entries below are historical.
+
 ## D5/Q6 — independent Thought composition and acknowledgement ownership — 2026-10-03
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q6A`.**
