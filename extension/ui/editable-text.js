@@ -28,7 +28,9 @@ function readSnapshot(root,preview=null){
  }
  if(!preview){if(markers.length)nativeMarkers.set(root,markers);else nativeMarkers.delete(root);}
  const authored=node=>{const marker=markers.find(record=>record.node===node);return marker?text(node).slice(0,marker.range.startOffset):text(node);};
- const meaningful=node=>node.nodeType===3?authored(node)!=='':node.nodeType===1&&(blocks.has(tag(node))||tag(node)==='BR'||children(node).some(meaningful));
+ // A proved replacement residue still occupies its empty native line.
+ // Omitting its character must not erase a boundary before a following block.
+ const meaningful=node=>node.nodeType===3?authored(node)!==''||markers.some(record=>record.node===node&&record.kind==='residue'):node.nodeType===1&&(blocks.has(tag(node))||tag(node)==='BR'||children(node).some(meaningful));
  const boundaries=new WeakMap(),starts=new WeakMap(),runs=[],anchors=new Map(),parts=[];let length=0;
  const append=value=>{parts.push(value);length+=value.length;};
  const visit=parent=>{
