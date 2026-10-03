@@ -286,7 +286,7 @@ jobs:
           cp work/test-summary.json work/qa-dvn-compose/test-summary.json
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-          const report=JSON.parse(readFileSync('work/qa-dvn-compose/test-summary.json'));assert.equal(report.pass,23);assert.equal(report.fail,0);assert.equal(report.skipped,3);assert.deepEqual(Object.keys(report.files),['ux-r3-thought-chrome-e2e.test.mjs']);
+          const report=JSON.parse(readFileSync('work/qa-dvn-compose/test-summary.json'));assert.equal(report.total,23);assert.equal(report.pass,23);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files),['ux-r3-thought-chrome-e2e.test.mjs']);
           const names=['newer-text','reopened-draft','lost-ack','changed-retry','malformed-ack','malformed-success','ime-settlement'].map(name=>'compose-ack-'+name).concat(['compose-topic-owner','compose-relation-digest','compose-add-owner']);
           for(const variant of ['source','release'])for(const name of names){const receipt=JSON.parse(readFileSync(`work/ux-r3/${name}-${variant}.json`));assert.equal(receipt.stage,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);}
           JS
