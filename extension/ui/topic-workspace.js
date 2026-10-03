@@ -290,7 +290,7 @@ export class TopicController {
    const read=await this.readRefresh();
    if(read!==true||this.loadToken!==token||epoch!==this.statusEpoch){done();return;}
    this.snapshotKey=this.readKey();this.snapshotRoute=this.id||'home';if(!this.id)this.homeLoaded=true;
-   for(const id of ['topic-body','topic-heading'])$(id).inert=false;
+   for(const id of ['topic-body','topic-heading','topic-toolbar'])$(id).inert=false;
    highlightReading(this.id?$('topic-body'):null,this.id?$('topic-search').value:'');
    done(host.dataset.state==='empty'?'empty':'ready');this.readRetry.hidden=true;
    if(this.readFailed){this.readFailed=false;this.onStatus('');}
@@ -606,7 +606,7 @@ export class TopicController {
   this.dialogOpenIntent=(this.dialogOpenIntent||0)+1;clearTimeout(this.positionTimer);stopMemoryRecomposition();this.serial++;this.statusEpoch++;this.statusReadSerial++;this.loadToken=null;this.readRetry.hidden=true;
   for(const timer of ['refreshTimer','updateTimer','topicSearchTimer','searchTimer'])clearTimeout(this[timer]);
   for(const [index,key]of keys.entries()){const active=owners[index];if(!active)continue;active.dispose();this[key]=null;if(key==='dialogEditor')this.closeDialog();}
-  if(this.view==='ai')this.originalPane?.replaceChildren();else{this.aiPane?.replaceChildren();this.aiSignature=undefined;}for(const id of ['topic-body','topic-heading'])$(id).inert=true;return true;
+  if(this.view==='ai')this.originalPane?.replaceChildren();else{this.aiPane?.replaceChildren();this.aiSignature=undefined;}for(const id of ['topic-body','topic-heading','topic-toolbar'])$(id).inert=true;return true;
  }
  installOriginalTabs(){
   const tabs=element('div','topic-original-tabs');tabs.id='topic-original-tabs';tabs.setAttribute('role','group');tabs.setAttribute('aria-label','Topic reading view');
