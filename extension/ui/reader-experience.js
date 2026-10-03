@@ -1,3 +1,4 @@
+import {editableTextSnapshot} from './editable-text.js';
 import {request,element} from './common.js';
 import {copyReadingText} from './reading-actions.js';
 import {captureReaderSelection,readerToolbarPosition,sameReaderSelection} from './reader-selection.js';
@@ -11,12 +12,12 @@ export function confirmReaderAction({title,text,confirm='确认',danger=false,co
  return new Promise(resolve=>{let accepted=false;cancel.onclick=()=>dialog.close();ok.onclick=()=>{accepted=true;dialog.close();};dialog.addEventListener('close',()=>{dialog.remove();prior?.isConnected&&prior.focus({preventScroll:true});resolve(accepted);},{once:true});dialog.showModal();cancel.focus();});
 }
 function offsetAt(el){
- const selection=document.getSelection();if(selection?.rangeCount&&el.contains(selection.anchorNode)){const r=document.createRange();r.selectNodeContents(el);try{r.setEnd(selection.anchorNode,selection.anchorOffset);return r.toString().length;}catch{}}
+ const snapshot=editableTextSnapshot(el),selection=document.getSelection();if(selection?.rangeCount&&el.contains(selection.anchorNode)){const offset=snapshot.offset(selection.anchorNode,selection.anchorOffset);if(offset!==null)return offset;const r=document.createRange();r.selectNodeContents(el);try{r.setEnd(selection.anchorNode,selection.anchorOffset);return r.toString().length;}catch{}}
  const rect=el.getBoundingClientRect(),y=Math.min(innerHeight-20,Math.max(100,rect.top+8)),x=Math.max(20,rect.left+8);
  const point=document.caretPositionFromPoint?.(x,y),range=!point&&document.caretRangeFromPoint?.(x,y),node=point?.offsetNode||range?.startContainer,offset=point?.offset??range?.startOffset;
- if(node&&el.contains(node)){const r=document.createRange();r.selectNodeContents(el);r.setEnd(node,offset);return r.toString().length;}return 0;
+ if(node&&el.contains(node)){const logical=snapshot.offset(node,offset);if(logical!==null)return logical;const r=document.createRange();r.selectNodeContents(el);r.setEnd(node,offset);return r.toString().length;}return 0;
 }
-function textPoint(el,offset){const walk=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let node;while((node=walk.nextNode())){if(offset<=node.length)return {node,offset};offset-=node.length;}return {node:el,offset:el.childNodes.length};}
+function textPoint(el,offset){const logical=editableTextSnapshot(el).point(offset);if(logical)return logical;const walk=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let node;while((node=walk.nextNode())){if(offset<=node.length)return {node,offset};offset-=node.length;}return {node:el,offset:el.childNodes.length};}
 export class ReaderExperience {
  constructor({read,notify,menu,reload}){
   this.read=read;this.notify=notify;this.menu=menu;this.reload=reload;this.timer=null;this.expanded=new Set();this.active=false;this.lastInput=null;

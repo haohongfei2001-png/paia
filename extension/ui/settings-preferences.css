@@ -40,7 +40,6 @@
 .ux-settings-group #toggle-capture{border:1px solid var(--paia-subtle)}
 dialog,#context-menu,.source-panel{background:var(--paia-surface);color:var(--paia-text);border-color:var(--paia-subtle)}
 dialog::backdrop{background:#10171366}
-.source-panel pre{background:var(--paia-canvas);color:var(--paia-text)}
 html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #context-menu{background:var(--paia-surface);border-color:var(--paia-subtle)}
 @media (min-width:768px) and (max-width:1023px){.ux-settings-header h1{font-size:28px}
 .ux-settings-layout{grid-template-columns:180px minmax(0,840px);gap:32px}

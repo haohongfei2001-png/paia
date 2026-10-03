@@ -117,7 +117,7 @@ jobs:
   current_browser:
     needs: mode
     if: needs.mode.outputs.full == 'true'
-    name: Current Browser ${{ matrix.index }}/4
+    name: Current Browser ${{ matrix.index }}/5
     runs-on: ubuntu-latest
     timeout-minutes: 18
     strategy:
@@ -125,13 +125,15 @@ jobs:
       matrix:
         include:
           - index: 1
-            shard: '1/4'
+            shard: '1/5'
           - index: 2
-            shard: '2/4'
+            shard: '2/5'
           - index: 3
-            shard: '3/4'
+            shard: '3/5'
           - index: 4
-            shard: '4/4'
+            shard: '4/5'
+          - index: 5
+            shard: '5/5'
     defaults:
       run:
         working-directory: extension

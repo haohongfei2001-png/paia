@@ -1,3 +1,5 @@
+import {verifyD5NativeEdit} from './harness/d5-native-edit.mjs';
+import {compareD5ReadingSurfaces} from './harness/d5-reading-surfaces.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -170,3 +172,7 @@ for(const variant of ['source','release']){
   }finally{await h.close();}
  });
 }
+
+for(const variant of ['source','release'])test(`D5 actual Selection, Original and History match canonical transient geometry without changing evidence (${variant})`,{timeout:120000},()=>compareD5ReadingSurfaces({variant,extensionPath:variant==='release'?releaseRoot:null}));
+
+for(const variant of ['source','release'])for(const segment of ['bulk','reload','selection','sentinel','range'])test(`D5 native ${segment} multiline fill, Enter, Shift+Enter, selection, undo and reload keep exact Working text (${variant})`,{timeout:120000},async()=>{const context=await fixture(variant);try{await verifyD5NativeEdit({...context,variant,segment});}finally{await context.h.close();}});

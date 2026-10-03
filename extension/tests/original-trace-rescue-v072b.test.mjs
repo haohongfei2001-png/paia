@@ -13,7 +13,28 @@ async function trace(store){return store.repository.transaction(false,async t=>{
 
 test('real DeepSeek request uses one fixed JSON request and records every successful phase',async()=>{let calls=0,seen;const f=await fixture(async(url,init)=>{calls++;seen={url,init};return valid(init);}),result=await f.runner.wake({userActionId:'trace-success'}),row=await trace(f.s);assert.ok(result.result);assert.equal(calls,1);assert.equal(seen.url,'https://api.deepseek.com/chat/completions');const body=JSON.parse(seen.init.body);assert.equal(body.model,'deepseek-v4-flash');assert.deepEqual(body.thinking,{type:'disabled'});assert.deepEqual(body.response_format,{type:'json_object'});assert.equal(body.stream,false);assert.equal(row.state,'committed');assert.equal(row.phase,'completed');for(const phase of ['preparing','fetch_started','headers_received','body_reading','body_received','json_parsing','schema_validating','span_validating','committing','completed'])assert.ok(row.phaseTimestamps[phase],phase);assert.equal(row.httpStatus,200);assert.ok(row.responseBytes>0);assert.equal(row.committedItemCount,1);assert.equal(JSON.stringify(row).includes('Synthetic explicit working input'),false);});
 
-test('headers received followed by a body that never ends hits the same absolute deadline',async()=>{let calls=0;const f=await fixture(async()=>{calls++;return envelope({},200,async()=>new Promise(()=>{}));},{timeoutMs:10}),result=await f.runner.wake({userActionId:'body-hang'}),row=await trace(f.s);assert.equal(calls,1);assert.equal(result.error,'PROVIDER_TIMEOUT');assert.equal(row.phase,'body_reading');assert.equal(row.httpStatus,200);assert.equal(row.errorCode,'PROVIDER_TIMEOUT');assert.equal((await f.s.originalOrganizerStatus()).bootstrap.processed,0);});
+test('headers received followed by a body that never ends hits the same absolute deadline',{timeout:5000},async t=>{
+ let calls=0,enteredBody,settled=false;const bodyEntered=new Promise(resolve=>{enteredBody=resolve;});
+ const f=await fixture(async()=>{calls++;t.mock.timers.tick(4);return envelope({},200,async()=>{enteredBody();return new Promise(()=>{});});},{timeoutMs:10});
+ // Keep the same 10ms absolute budget, but admit the intended hanging-body
+ // phase deterministically instead of racing durable trace writes against CPU.
+ t.mock.timers.enable({apis:['Date','setTimeout'],now:Date.now()});
+ const pending=f.runner.wake({userActionId:'body-hang'});pending.then(()=>{settled=true;});await bodyEntered;
+ assert.equal((await trace(f.s)).phase,'body_reading');t.mock.timers.tick(5);await Promise.resolve();assert.equal(settled,false,'the original deadline has not expired at9ms');t.mock.timers.tick(1);
+ const result=await pending,row=await trace(f.s);assert.equal(calls,1);assert.equal(result.error,'PROVIDER_TIMEOUT');assert.equal(row.phase,'body_reading');assert.equal(row.httpStatus,200);assert.equal(row.errorCode,'PROVIDER_TIMEOUT');assert.equal((await f.s.originalOrganizerStatus()).bootstrap.processed,0);
+});
+
+test('slow durable header trace acknowledgement consumes the same absolute budget before body entry',{timeout:5000},async t=>{
+ let calls=0,bodyCalls=0,held=false,settled=false,enteredHeaders,releaseHeaders;const headersEntered=new Promise(resolve=>{enteredHeaders=resolve;}),headersGate=new Promise(resolve=>{releaseHeaders=resolve;});
+ const f=await fixture(async()=>{calls++;t.mock.timers.tick(4);return envelope({},200,async()=>{bodyCalls++;return new Promise(()=>{});});},{timeoutMs:10}),write=f.s.foundationWrite.bind(f.s);
+ f.s.foundationWrite=async(...args)=>{const result=await write(...args);if(!held&&result?.state==='response_received'&&result?.phase==='headers_received'){held=true;enteredHeaders();await headersGate;}return result;};
+ t.mock.timers.enable({apis:['Date','setTimeout'],now:Date.now()});
+ try{
+  const pending=f.runner.wake({userActionId:'slow-header-trace'});pending.then(()=>{settled=true;});await headersEntered;assert.equal((await trace(f.s)).phase,'headers_received');t.mock.timers.tick(5);await Promise.resolve();assert.equal(settled,false);assert.equal(bodyCalls,0);t.mock.timers.tick(1);
+  const result=await pending,row=await trace(f.s);assert.equal(calls,1);assert.equal(bodyCalls,0);assert.equal(result.error,'PROVIDER_TIMEOUT');assert.equal(row.phase,'headers_received');assert.equal(row.errorCode,'PROVIDER_TIMEOUT');assert.equal(row.httpStatus,200);assert.equal((await f.s.originalOrganizerStatus()).bootstrap.processed,0);
+ }finally{releaseHeaders();}
+});
+
 
 test('body read, JSON parse, and schema failures preserve their exact phase and never retry',async()=>{const cases=[['body',async()=>envelope({},200,async()=>{throw new Error('synthetic body failure');}),'RESPONSE_BODY_READ_FAILED','body_reading'],['outer-json',async()=>({status:200,ok:true,headers:{get:()=>null},text:async()=>'{'}),'INVALID_JSON','json_parsing'],['inner-json',async()=>envelope('{'),'INVALID_JSON','json_parsing'],['schema',async()=>envelope({wrong:[]}),'INVALID_SCHEMA','schema_validating']];for(const [name,fetchImpl,code,phase] of cases){let calls=0;const f=await fixture(async(...args)=>{calls++;return fetchImpl(...args);}),result=await f.runner.wake({userActionId:'phase-'+name}),row=await trace(f.s);assert.equal(calls,1,name);assert.equal(result.error,code,name);assert.equal(row.phase,phase,name);assert.equal(row.errorCode,code,name);assert.equal(row.committedItemCount,0,name);assert.equal((await f.s.originalOrganizerStatus()).bootstrap.processed,0,name);}});
 

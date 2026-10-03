@@ -78,4 +78,7 @@ for(const [position,name]of beforeQ4.entries()){
  const expected=['cpv1-02-dvn-working-revision-chrome-e2e.test.mjs','cpv1-07-historical-comparison-chrome-e2e.test.mjs'].includes(name)?1:position%4+1;
  if(testShard(name,current.indexOf(name),4,'browser E2E')!==expected)throw Error('Q4_SHIFTED_PREVIOUS_BROWSER_ROUTING:'+name);
 }
+const expanded=Array.from({length:5},(_,slot)=>current.filter((name,position)=>testShard('tests/'+name,position,5,'browser E2E')===slot+1));
+if(expanded.some(part=>!part.length)||expanded.flat().sort().join('|')!==current.join('|')||expanded[4].join('|')!=='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs')throw Error('D5_BROWSER_SHARD_PARTITION_INVALID');
+for(const [position,name]of current.entries())if(name!=='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs'&&testShard(name,position,5,'browser E2E')!==testShard(name,position,4,'browser E2E'))throw Error('D5_SHIFTED_PREVIOUS_BROWSER_ROUTING:'+name);
 console.log(`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=${formerCore.length} uir=${uir.length} ans=${ans.length} cpr=${cpr.length}`);

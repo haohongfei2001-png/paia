@@ -1,7 +1,7 @@
 // Trusted extension UI only. These primitives know nothing about storage or sources.
 export const textOf=el=>el.matches('input,textarea,select')?el.value:el.textContent===''?'':el.innerText;
 export class PlainTextSurface {
- constructor(root,{start=()=>{},end=()=>{},input=()=>{},leave=()=>{},paste=null}={}){this.controller=new AbortController();const options={signal:this.controller.signal};this.composing=false;root.addEventListener('compositionstart',event=>{this.composing=true;start(event);},options);root.addEventListener('compositionend',()=>{this.composing=false;end();},options);root.addEventListener('input',()=>{if(!this.composing)input();},options);root.addEventListener('focusout',()=>{if(!this.composing)leave();},options);if(paste)root.addEventListener('paste',paste,options);}
+ constructor(root,{start=()=>{},end=()=>{},input=()=>{},leave=()=>{},paste=null}={}){this.controller=new AbortController();const options={signal:this.controller.signal};this.composing=false;root.addEventListener('compositionstart',event=>{this.composing=true;start(event);},options);root.addEventListener('compositionend',()=>{this.composing=false;end();},options);root.addEventListener('input',event=>{if(!this.composing)input(event);},options);root.addEventListener('focusout',()=>{if(!this.composing)leave();},options);if(paste)root.addEventListener('paste',paste,options);}
  dispose(){this.controller.abort();}
 }
 export class AutosaveSession {

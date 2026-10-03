@@ -91,8 +91,6 @@ body.ans-nav-reader #archive-navigator{position:relative;top:0;width:100%;height
 @media(pointer:coarse){button,summary,input,select{min-height:44px}.sidebar-bottom>[data-view="settings"]{min-width:44px}.archive-navigator-window,.archive-navigator-group-toggle,.archive-navigator-more{min-height:44px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:0s!important;transition-duration:0s!important}}
 
-.reader-selection{display:flex;flex-wrap:wrap;gap:4px}
-.reader-selection button:disabled{opacity:.55}
 
 @media(min-width:1440px){#primary-nav button,.sidebar-bottom>[data-view="settings"]{gap:8px;padding-left:10px;padding-right:10px}}
 

@@ -626,7 +626,11 @@ jobs:
 
   direct_edit:
     if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_DVN_DIRECT_EDIT_BROWSER')
-    name: Candidate direct-edit acceptance
+    name: Candidate direct-edit acceptance (${{ matrix.suite }})
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [direct-edit, reader-regression]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     defaults:
@@ -652,14 +656,22 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
+      - name: Provide Chinese glyph coverage for actual visual evidence
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
+          fc-list :lang=zh | grep -q .
       - name: Verify source and built direct editing plus complete affected Reader regressions
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -o pipefail
           mkdir -p work/qa-dvn-direct-edit
-          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs tests/cpv1-02-4-reader-chrome-e2e.test.mjs tests/uir-02-archive-search-reader-chrome-e2e.test.mjs tests/ux-r2-reader-revisit-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-direct-edit/test.log
+          mapfile -t FILES < <(node scripts/d5-direct-edit-matrix.mjs "${{ matrix.suite }}")
+          test "${#FILES[@]}" -gt 0
+          xvfb-run -a node --test --test-concurrency=1 "${FILES[@]}" 2>&1 | tee work/qa-dvn-direct-edit/test.log
       - name: Require exact-head synthetic evidence
+        if: matrix.suite == 'direct-edit'
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
@@ -681,7 +693,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: direct-edit-${{ github.event.pull_request.head.sha }}
+          name: direct-edit-${{ github.event.pull_request.head.sha }}-${{ matrix.suite }}
           path: extension/work/qa-dvn-direct-edit/
           if-no-files-found: error
           retention-days: 7

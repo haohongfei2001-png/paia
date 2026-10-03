@@ -86,7 +86,6 @@ button:hover{background:#f0f3ed}
 #settings-panel{max-width:790px}
 #settings-panel h2{margin-top:42px;font-size:18px}
 #settings-panel details{line-height:1.8}
-.source-panel{box-shadow:none}
 .muted,small{color:var(--paia-muted)}
 ::view-transition-group(root),::view-transition-old(root),::view-transition-new(root){animation:none}
 ::view-transition-group(paia-memory){animation-duration:0s}

@@ -30,13 +30,15 @@ test('DocumentEditor remains the sole owner of reversible removal editability lo
 test('Direct-edit Draft CI requires the exact-head source/release journeys and all screenshots before its selected gate passes',async()=>{
  const {readFile}=await import('node:fs/promises');
  const workflow=await readFile(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8');
+ const {directEditCandidateFiles}=await import('../scripts/d5-direct-edit-matrix.mjs');const coverage=Object.values(directEditCandidateFiles).flat().join('\n');
  const job=workflow.match(/^  direct_edit:\n([\s\S]*?)(?=^  \w+:)/m)?.[1];assert.ok(job);
  assert.match(job,/ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
  assert.match(job,/persist-credentials: false/);assert.match(job,/PAIA_TESTED_HEAD:/);assert.match(job,/set -o pipefail/);
- assert.match(job,/tests\/cpv1-02-dvn-direct-edit-chrome-e2e\.test\.mjs/);
- assert.match(job,/tests\/cpv1-02-4-reader-chrome-e2e\.test\.mjs/);
- assert.match(job,/tests\/uir-02-archive-search-reader-chrome-e2e\.test\.mjs/);
- assert.match(job,/tests\/ux-r2-reader-revisit-chrome-e2e\.test\.mjs/);
+ assert.match(coverage,/tests\/cpv1-02-dvn-direct-edit-chrome-e2e\.test\.mjs/);
+ assert.match(coverage,/tests\/cpv1-02-4-reader-chrome-e2e\.test\.mjs/);
+ assert.match(coverage,/tests\/uir-02-archive-search-reader-chrome-e2e\.test\.mjs/);
+ assert.match(coverage,/tests\/ux-r2-reader-revisit-chrome-e2e\.test\.mjs/);
+ assert.match(job,/node scripts\/d5-direct-edit-matrix\.mjs/);assert.match(job,/\"\$\{FILES\[@\]\}\"/);
  assert.match(job,/\['source','release'\]/);assert.match(job,/assert\.equal\(report\.headSha,process\.env\.PAIA_TESTED_HEAD\)/);
  assert.match(job,/\[1440,1280,1024,768,390,320\]/);assert.match(job,/'failed-direct-edit','pending-removal'/);
  assert.match(job,/if: always\(\)/);assert.match(job,/if-no-files-found: error/);assert.doesNotMatch(job,/continue-on-error/);
