@@ -7,10 +7,26 @@ export async function verifyD5NativeEdit({h,p,field,id,variant,segment}){
  const observe=()=>{globalThis.__d5NativeEvents=[];const ids=new WeakMap();let serial=0;const id=node=>node?(ids.has(node)?ids.get(node):(ids.set(node,++serial),serial)):null;
   for(const type of ['beforeinput','input','keydown','keyup','compositionstart','compositionend'])document.addEventListener(type,event=>{const field=event.target?.closest?.('[data-edit-id]');if(!field)return;const walk=document.createTreeWalker(field,NodeFilter.SHOW_TEXT),nodes=[];let node;while((node=walk.nextNode()))nodes.push({id:id(node),data:node.data});const elements=[field,...field.querySelectorAll('*')].map(node=>({id:id(node),name:node.nodeName,parent:id(node.parentNode),children:[...node.childNodes].map(id)})),selection=getSelection();__d5NativeEvents.push({type,trusted:event.isTrusted,inputType:event.inputType,key:event.key,data:event.data,composing:event.isComposing,html:field.innerHTML,nodes,elements,anchor:{node:id(selection?.anchorNode),offset:selection?.anchorOffset},focus:{node:id(selection?.focusNode),offset:selection?.focusOffset},collapsed:selection?.isCollapsed});if(__d5NativeEvents.length>200)__d5NativeEvents.shift();},true);
  };await p.addInitScript(observe);await p.evaluate(observe);
+
+ const neutralReplacementProbe=async expected=>{
+  const events=await p.evaluate(()=>__d5NativeEvents),before=[...events].reverse().find(event=>event.type==='beforeinput'&&event.inputType==='insertText'&&event.data===expected);
+  if(!before||!outcomes.length)return null;
+  const page=await h.context.newPage(),rows=[];
+  try{
+   await page.setContent('<!doctype html><meta charset="utf-8"><style>body{font:18px/1.85 system-ui;margin:24px}#neutral{white-space:pre-wrap;min-height:80px;outline:1px solid #777}</style><div id="neutral" data-edit-id="neutral" contenteditable="plaintext-only"></div>');await page.evaluate(observe);
+   for(const shape of ['retained-dom','canonical-text'])for(const action of ['fill','keyboard']){
+    await page.evaluate(({html,body,shape})=>{const el=document.getElementById('neutral');if(shape==='retained-dom')el.innerHTML=html;else el.textContent=body;globalThis.__d5NativeEvents=[];},{html:before.html,body:outcomes.at(-1).expected,shape});
+    const field=page.locator('#neutral');if(action==='fill')await field.fill(expected);else{await field.focus();await page.keyboard.press('Control+a');await page.keyboard.insertText(expected);}
+    rows.push({shape,action,expected,after:await field.evaluate(el=>({html:el.innerHTML,text:el.innerText,textContent:el.textContent})),events:await page.evaluate(()=>__d5NativeEvents)});
+    await page.screenshot({path:`work/qa-dvn-direct-edit/d5-reading-surfaces/${variant}-${segment}-neutral-${shape}-${action}.png`});
+   }
+   return {before,canonicalBody:outcomes.at(-1).expected,rows,scope:'Offline neutral plaintext-only field; diagnostic comparison, not production acceptance'};
+  }finally{await page.close();}
+ };
  try{
  const saved=async(expected,label)=>{
   try{await eventually(async()=>(await rpc(p,'GET_INPUT',{id})).libraryText===expected&&await p.locator('#save-status').getAttribute('data-state')==='saved',label);outcomes.push({label,expected,actual:(await rpc(p,'GET_INPUT',{id})).libraryText,html:await field.evaluate(e=>e.innerHTML)});}
-  catch(error){await mkdir('work/qa-dvn-direct-edit/d5-reading-surfaces',{recursive:true});await writeFile(`work/qa-dvn-direct-edit/d5-reading-surfaces/${variant}-${segment}-native-edit-failure.json`,JSON.stringify({label,expected,actual:await rpc(p,'GET_INPUT',{id}),dom:await field.evaluate(e=>({html:e.innerHTML,text:e.innerText,textContent:e.textContent})),outcomes,events:await p.evaluate(()=>__d5NativeEvents),errors:h.errors},null,2));throw error;}
+  catch(error){await mkdir('work/qa-dvn-direct-edit/d5-reading-surfaces',{recursive:true});await writeFile(`work/qa-dvn-direct-edit/d5-reading-surfaces/${variant}-${segment}-native-edit-failure.json`,JSON.stringify({label,expected,actual:await rpc(p,'GET_INPUT',{id}),dom:await field.evaluate(e=>({html:e.innerHTML,text:e.innerText,textContent:e.textContent})),outcomes,events:await p.evaluate(()=>__d5NativeEvents),neutral:await neutralReplacementProbe(expected).catch(error=>({error:String(error)})),errors:h.errors},null,2));throw error;}
  };
  if(segment==='bulk'){
  for(const value of ['A\nB','A\n\nB','A\n\n\nB','\nA','\n\nA','A\n','A\n\n','\n\n','', ' literal <div> & <br>\t👩‍💻 é\n  tail  ']){await field.fill(value);await saved(value,'native bulk text preserves '+JSON.stringify(value));}
