@@ -11,6 +11,10 @@ for(const [label,dom,wanted]of [
  ['observed empty DIV is one blank line',line(t('A'),line(br()),line(t('B'))),'A\n\nB'],
  ['two empty browser lines remain two',line(t('A'),line(br()),line(br()),line(t('B'))),'A\n\n\nB'],
  ['leading empty line',line(line(br()),t('A')),'\nA'],['trailing empty line',line(t('A'),line(br())),'A\n'],
+ ['observed leading BR before native DIV counts once',line(br(),line(t('A'))),'\nA'],
+ ['leading BR and empty DIV retain both authored lines',line(br(),line(br()),line(t('A'))),'\n\nA'],
+ ['adjacent BRs before native DIV remain distinct',line(br(),br(),line(t('A'))),'\n\nA'],
+ ['literal newline before a block is never collapsed',line(t('A\n'),line(t('B'))),'A\n\nB'],
  ['only empty lines',line(line(br()),line(br()),line(br())),'\n\n'],
  ['internal BR',line(t('A'),br(),t('B')),'A\nB'],['consecutive internal BRs',line(t('A'),br(),br(),t('B')),'A\n\nB'],
  ['native terminal BR placeholder',line(t('A'),br(),br()),'A\n'],
@@ -31,7 +35,7 @@ test('D5 logical offsets cross line boundaries and supplementary Unicode without
 });
 
 test('D5 leading, trailing and all-empty line endpoints roundtrip without shifting into adjacent text',()=>{
- for(const root of [line(line(br()),line(t('A')),line(br()),line(br())),line(br(),br(),br()),line(line(br()),line(br()),line(br()))]){
+ for(const root of [line(line(br()),line(t('A')),line(br()),line(br())),line(br(),br(),br()),line(line(br()),line(br()),line(br())),line(br(),line(t('A'))),line(br(),line(br()),line(t('A')))]){
   const snapshot=editableTextSnapshot(root);for(let i=0;i<=snapshot.text.length;i++){const point=snapshot.point(i);assert.ok(point);assert.equal(snapshot.offset(point.node,point.offset),i);}
  }
 });
@@ -45,5 +49,5 @@ test('D5 selection uses the exact same logical body and endpoint map as the save
 });
 
 test('D5 unfamiliar rich structure keeps existing extraction and refuses guessed selection offsets',()=>{
- const root=e('DIV',e('TABLE',t('SYNTHETIC'))),snapshot=editableTextSnapshot(root);assert.equal(snapshot.text,root.innerText);assert.equal(snapshot.offset(root,0),null);assert.equal(snapshot.point(0),null);
+ for(const root of [e('DIV',e('TABLE',t('SYNTHETIC'))),line(t('A'),e('SPAN',line(t('B'))),t('C'))]){const snapshot=editableTextSnapshot(root);assert.equal(snapshot.text,root.innerText);assert.equal(snapshot.offset(root,0),null);assert.equal(snapshot.point(0),null);}
 });

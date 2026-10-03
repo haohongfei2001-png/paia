@@ -5,7 +5,7 @@ const rpc=async(p,type,fields={})=>{const r=await p.evaluate(m=>chrome.runtime.s
 export async function verifyD5NativeEdit({h,p,field,id,variant}){
  const source=structuredClone((await h.state()).records),outcomes=[];
  const saved=async(expected,label)=>{
-  try{await eventually(async()=>(await rpc(p,'GET_INPUT',{id})).libraryText===expected,label);outcomes.push({label,expected,actual:(await rpc(p,'GET_INPUT',{id})).libraryText});}
+  try{await eventually(async()=>(await rpc(p,'GET_INPUT',{id})).libraryText===expected,label);outcomes.push({label,expected,actual:(await rpc(p,'GET_INPUT',{id})).libraryText,html:await field.evaluate(e=>e.innerHTML)});}
   catch(error){await mkdir('work/qa-dvn-direct-edit/d5-reading-surfaces',{recursive:true});await writeFile(`work/qa-dvn-direct-edit/d5-reading-surfaces/${variant}-native-edit-failure.json`,JSON.stringify({label,expected,actual:await rpc(p,'GET_INPUT',{id}),dom:await field.evaluate(e=>({html:e.innerHTML,text:e.innerText,textContent:e.textContent})),outcomes,errors:h.errors},null,2));throw error;}
  };
  for(const value of ['A\nB','A\n\nB','A\n\n\nB','\nA','\n\nA','A\n','A\n\n','\n\n','', ' literal <div> & <br>\t👩‍💻 é\n  tail  ']){await field.fill(value);await saved(value,'native bulk text preserves '+JSON.stringify(value));}
@@ -15,6 +15,14 @@ export async function verifyD5NativeEdit({h,p,field,id,variant}){
  await field.fill('HEAD');await saved('HEAD','trailing keyboard base');await field.press('End');await p.keyboard.press('Shift+Enter');await saved('HEAD\n','trailing Shift+Enter placeholder is not an extra authored newline');
  await field.fill('TAIL');await saved('TAIL','leading keyboard base');await field.press('Home');await p.keyboard.press('Enter');await saved('\nTAIL','leading Enter keeps the empty first line');
  await field.fill('');await saved('','bulk insertion base');await p.keyboard.insertText('\nPasted block one\n\nPasted block two\n');await saved('\nPasted block one\n\nPasted block two\n','native bulk insertion retains leading, blank and trailing lines');
+ // A saved/reloaded body is one literal text node. Real editing then mixes
+ // literal newlines with native line containers; do not test only fill's shape.
+ const reloaded='HEAD\n\nTAIL';
+ for(const [key,offset,expected]of [['Enter',4,'HEAD\n\n\nTAIL'],['Enter',5,'HEAD\n\n\nTAIL'],['Shift+Enter',6,'HEAD\n\n\nTAIL'],['Backspace',6,'HEAD\nTAIL'],['Delete',4,'HEAD\nTAIL'],['Enter',10,'HEAD\n\nTAIL\n'],['Enter',0,'\nHEAD\n\nTAIL']]){
+  await field.fill(reloaded);await saved(reloaded,'reload edit base');await p.reload();await field.waitFor();assert.equal(await field.textContent(),reloaded);
+  await field.evaluate((el,at)=>{assertTextNode(el);el.focus();getSelection().setBaseAndExtent(el.firstChild,at,el.firstChild,at);function assertTextNode(node){if(node.childNodes.length!==1||node.firstChild.nodeType!==3)throw Error('reload must render the canonical literal text node');}},offset);
+  await p.keyboard.press(key);await saved(expected,`reloaded literal body ${key} at ${offset}`);
+ }
  const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC multiline selection',operationId:crypto.randomUUID()}});
  const body='A👩‍💻\n\nB é',selected='👩‍💻\n\nB é';await field.fill(body);await saved(body,'multiline selection base');
  await field.evaluate(el=>{el.focus();const walk=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),nodes=[];let node;while((node=walk.nextNode()))if(node.data)nodes.push(node);getSelection().setBaseAndExtent(nodes[0],1,nodes.at(-1),nodes.at(-1).length);});
