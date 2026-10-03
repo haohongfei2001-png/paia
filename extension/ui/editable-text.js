@@ -3,13 +3,13 @@
 // DIV/BR line; those are not additional characters the person entered.
 const blocks=new Set(['DIV','P']);
 const inline=new Set(['SPAN','MARK','B','I','U','STRONG','EM']);
-const children=node=>Array.from(node.childNodes||[]);
+const children=node=>Array.from(node?.childNodes||[]);
 const tag=node=>String(node.nodeName||node.tagName||'').toUpperCase();
 const text=node=>node.data??node.nodeValue??node.textContent??'';
 // Only DocumentEditor's matched native input events can establish this ephemeral
 // provenance. It is never inferred from whitespace, focus or a saved body.
 // Full replacement clears prior markers and can prove at most one residue.
-// A later native line break may independently prove one terminal character.
+// A later native line break may independently prove one terminal LF or BR.
 const nativeMarkers=new WeakMap(),markerLimit=2;
 const textNodes=root=>{const nodes=[];const visit=node=>{if(node.nodeType===3)nodes.push(node);else for(const child of children(node))visit(child);};visit(root);return nodes;};
 const terminalNode=node=>{if(node.nodeType===3)return text(node)?node:null;if(node.nodeType!==1)return null;for(const child of children(node).reverse()){const last=terminalNode(child);if(last)return last;}return blocks.has(tag(node))||tag(node)==='BR'?node:null;};
@@ -19,8 +19,12 @@ function readSnapshot(root,preview=null){
  const nodes=new Set(textNodes(root)),markers=[];
  for(const record of preview||nativeMarkers.get(root)||[]){
   const {range,node,parent,kind}=record;
-  if(markers.length===markerLimit||node?.nodeType!==3||range.startContainer!==node||range.endContainer!==node||node.parentNode!==parent||!nodes.has(node)||range.endOffset!==range.startOffset+1||range.endOffset!==text(node).length||text(node).slice(range.startOffset,range.endOffset)!=='\n'||kind==='terminal'&&terminalNode(root)!==node)continue;
-  if(!markers.some(prior=>prior.node===node&&prior.range.startOffset===range.startOffset))markers.push(record);
+  if(markers.length===markerLimit||node?.parentNode!==parent)continue;
+  if(kind==='br'){
+   const siblings=children(parent),index=siblings.indexOf(node);
+   if(tag(node)!=='BR'||terminalNode(root)!==node||index<1||siblings[index-1]!==record.before||record.before?.parentNode!==parent||text(record.before)!=='\n')continue;
+  }else if(node?.nodeType!==3||range.startContainer!==node||range.endContainer!==node||!nodes.has(node)||range.endOffset!==range.startOffset+1||range.endOffset!==text(node).length||text(node).slice(range.startOffset,range.endOffset)!=='\n'||kind==='terminal'&&terminalNode(root)!==node)continue;
+  if(!markers.some(prior=>prior.node===node))markers.push(record);
  }
  if(!preview){if(markers.length)nativeMarkers.set(root,markers);else nativeMarkers.delete(root);}
  const authored=node=>{const marker=markers.find(record=>record.node===node);return marker?text(node).slice(0,marker.range.startOffset):text(node);};
@@ -39,7 +43,7 @@ function readSnapshot(root,preview=null){
    else if(name==='BR'){
     // Chrome's sole BR in an empty line, or final BR after another BR,
     // is its caret placeholder. Every other explicit BR is a real newline.
-    const lineContainer=parent===root||blocks.has(tag(parent)),placeholder=lineContainer&&(visible.length===1||child===visible.at(-1)&&tag(visible.at(-2))==='BR');
+    const lineContainer=parent===root||blocks.has(tag(parent)),placeholder=markers.some(record=>record.kind==='br'&&record.node===child)||lineContainer&&(visible.length===1||child===visible.at(-1)&&tag(visible.at(-2))==='BR');
     boundaries.set(child,[length]);if(!placeholder)append('\n');
    }else visit(child);
    prior=true;priorBlock=block;priorBR=name==='BR';points.push(length);
@@ -72,8 +76,10 @@ export class NativeLineBreakTracker {
   if(start===null||end===null||end<start)return;
   const newline=['insertLineBreak','insertParagraph'].includes(event.inputType),replacement=event.inputType==='insertText'&&typeof event.data==='string'&&start===0&&end===snapshot.text.length;
   if(!newline&&!replacement)return;
-  const old=replacement?(nativeMarkers.get(root)||[]).filter(record=>range.isPointInRange?.(record.node,record.range.startOffset)&&range.isPointInRange?.(record.node,record.range.endOffset)):[];
-  this.pending.set(root,{inputType:event.inputType,replacement,data:event.data,expected:replacement?event.data:snapshot.text.slice(0,start)+'\n'+snapshot.text.slice(end),nodes:new WeakSet(textNodes(root)),old});
+  const old=replacement?(nativeMarkers.get(root)||[]).filter(record=>record.range&&range.isPointInRange?.(record.node,record.range.startOffset)&&range.isPointInRange?.(record.node,record.range.endOffset)):[];
+  const last=terminalNode(root),parent=last?.parentNode,index=children(parent).indexOf(last),beforeBR=snapshot.offset(parent,index),afterBR=snapshot.offset(parent,index+1);
+  const caretBR=newline&&tag(last)==='BR'&&beforeBR!==null&&beforeBR===afterBR?{node:last,parent}:null;
+  this.pending.set(root,{inputType:event.inputType,replacement,data:event.data,expected:replacement?event.data:snapshot.text.slice(0,start)+'\n'+snapshot.text.slice(end),nodes:new WeakSet(textNodes(root)),old,caretBR});
  }
  input(root,event,selection){
   if(!root)return;const prior=this.pending.get(root);this.pending.delete(root);
@@ -96,6 +102,16 @@ export class NativeLineBreakTracker {
    if(event.data!==prior.data)return;
   }
   if(!selection?.isCollapsed)return;
+  // Empty native lines may keep their existing zero-character caret BR when
+  // InsertLineBreak adds one literal LF before it. Only that matched identity,
+  // new LF and exact caret/delta can exclude the retained BR after the edit.
+  if(!prior.replacement&&prior.caretBR){
+   const {node,parent}=prior.caretBR,index=children(parent).indexOf(node),before=children(parent)[index-1],snapshot=editableTextSnapshot(root),markers=nativeMarkers.get(root)||[];
+   if(markers.length<markerLimit&&terminalNode(root)===node&&node.parentNode===parent&&before?.nodeType===3&&before.parentNode===parent&&text(before)==='\n'&&!prior.nodes.has(before)&&selection.anchorNode===parent&&selection.focusNode===parent&&selection.anchorOffset===index&&selection.focusOffset===index&&snapshot.text===prior.expected+'\n'){
+    const candidate={node,parent,before,kind:'br'},preview=readSnapshot(root,[...markers,candidate]);
+    if(preview.text===prior.expected&&preview.offset(parent,index)===prior.expected.length){nativeMarkers.set(root,[...markers,candidate]);return;}
+   }
+  }
   const node=terminalNode(root),offset=node?.nodeType===3?text(node).length-1:-1;
   if(offset<0||text(node)[offset]!=='\n'||!prior.replacement&&(offset!==0||prior.nodes.has(node)))return;
   const snapshot=editableTextSnapshot(root),at=snapshot.offset(node,offset);if(at===null)return;

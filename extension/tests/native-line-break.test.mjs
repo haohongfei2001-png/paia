@@ -107,3 +107,18 @@ test('ambiguous old characters cannot be selected merely because either exclusio
 test('paint or unsupported structure invalidates both markers without reviving them later',()=>{
  for(const mode of ['paint','unsupported']){const r=coexist();if(mode==='paint')r.owner.clear(r.field);else{r.field.childNodes.push({nodeType:1,nodeName:'TABLE',childNodes:[]});r.field.innerText='EXACT FALLBACK';assert.equal(editableText(r.field),'EXACT FALLBACK');r.field.childNodes.pop();}assert.equal(editableText(r.field),'\n\n\nTAIL\n\n');}
 });
+
+function retainedBR({withResidue=true,replaceBR=false,wrongCaret=false,beforeEvent={},afterEvent={}}={}){
+ const r=withResidue?residue():(()=>{const owner=tracker(),last=root({nodeType:1,nodeName:'BR',childNodes:[]}),field=root(last);return {owner,last,field};})(),br=r.last.childNodes[0];br.parentNode=r.last;r.last.parentNode=r.field;
+ r.owner.before(r.field,event(beforeEvent),selection(r.last,0));const literal=t('\n'),afterBR=replaceBR?{nodeType:1,nodeName:'BR',childNodes:[]}:br;literal.parentNode=r.last;afterBR.parentNode=r.last;r.last.childNodes=[literal,afterBR];r.owner.input(r.field,event(afterEvent),selection(r.last,wrongCaret?2:1));return {...r,br:afterBR,literal};
+}
+for(const withResidue of [false,true])test('matched native LF retains only the same previously zero-character BR'+(withResidue?' beside proved residue':''),()=>{
+ const r=retainedBR({withResidue}),snapshot=editableTextSnapshot(r.field),expected='\n'.repeat(withResidue?3:1);assert.equal(snapshot.text,expected);assert.equal(snapshot.offset(r.last,1),expected.length);assert.equal(snapshot.offset(r.last,2),expected.length);assert.equal(snapshot.offset(r.br,0),expected.length);for(let i=0;i<=expected.length;i++){const at=snapshot.point(i);assert.equal(snapshot.offset(at.node,at.offset),i);}r.owner.input(r.field,event(),selection(r.last,1));assert.equal(editableText(r.field),expected);
+});
+for(const [name,options]of [['replacement BR',{replaceBR:true}],['after-BR caret',{wrongCaret:true}],['untrusted before',{beforeEvent:{isTrusted:false}}],['composing before',{beforeEvent:{isComposing:true}}],['mismatched event',{afterEvent:{inputType:'insertText'}}]])test('retained caret BR refuses '+name,()=>{assert.equal(editableText(retainedBR(options).field),'\n'.repeat(4));});
+test('literal/pasted/reloaded LF followed by BR is never excluded without matched native identity proof',()=>{
+ for(const body of ['\n','TEXT\n','\n\n']){const field=root(root(t(body),{nodeType:1,nodeName:'BR',childNodes:[]}));assert.equal(editableText(field),body+'\n');}
+});
+test('retained BR proof is invalidated by changed predecessor, replacement, appended structure or owner clear',()=>{
+ for(const mode of ['predecessor','replacement','appended','clear']){const r=retainedBR();if(mode==='predecessor'){r.literal.data='X\n';assert.equal(editableText(r.field),'\n\nX\n\n');}else if(mode==='replacement'){r.last.childNodes[1]={nodeType:1,nodeName:'BR',childNodes:[],parentNode:r.last};assert.equal(editableText(r.field),'\n'.repeat(4));}else if(mode==='appended'){r.field.childNodes.push(root({nodeType:1,nodeName:'BR',childNodes:[]}));assert.equal(editableText(r.field),'\n'.repeat(5));}else{r.owner.clear(r.field);assert.equal(editableText(r.field),'\n'.repeat(5));}}
+});
