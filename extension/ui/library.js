@@ -63,9 +63,11 @@ export class DocumentEditor {
  note(id,text){const e=this.entries.get(id);if(e)this.change([{id,after:{...e.local,note:text}}]);}
  paint(){const title=this.root.querySelector('#document-title');if(title&&title.innerText!==(this.title||this.originalTitle||'独立整理文档'))title.textContent=this.title||this.originalTitle||'独立整理文档';for(const [id,e]of this.entries){const el=this.field(id);if(el){if(editableText(el)!==this.text(e)){this.nativeLines.clear(el);el.textContent=this.text(e);}el.closest('.library-block').hidden=e.saved.excluded;}}this.onChange();}
  replaceWholeInput(event,field,selection,range){
-  if(event.type!=='beforeinput'||!event.isTrusted||!event.cancelable||event.defaultPrevented||event.inputType!=='insertText'||typeof event.data!=='string'||this.disposed||this.composing||event.isComposing||this.removalLocks||!selection?.rangeCount||selection.isCollapsed||!field.isContentEditable||field!==this.nativeField(event))return false;
+  if(event.type!=='beforeinput'||!event.isTrusted||!event.cancelable||event.defaultPrevented||event.inputType!=='insertText'||typeof event.data!=='string'||!event.data||event.data.endsWith('\n')||this.disposed||this.composing||event.isComposing||this.removalLocks||!selection?.rangeCount||selection.isCollapsed||!field.isContentEditable||field!==this.nativeField(event))return false;
   const id=field.dataset.editId,entry=this.entries.get(id);if(!entry||entry.local.excluded||!field.contains(range.startContainer)||!field.contains(range.endContainer))return false;
   const snapshot=editableTextSnapshot(field);if(snapshot.offset(range.startContainer,range.startOffset)!==0||snapshot.offset(range.endContainer,range.endOffset)!==snapshot.text.length)return false;
+  // Keep terminal/all-empty-line replacement on the native path: a bare
+  // literal terminal LF is a Chromium caret placeholder after this paint.
   // The author explicitly replaces this complete Working Input. Use the same
   // journal/recovery/save owner as every other edit; do not infer text by
   // deleting a browser-generated leading BR after Chromium's replacement.
