@@ -1,5 +1,10 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '加入结果尚未确认，请重试核对先前选择。':'The earlier add result is not confirmed. Retry to check the same selection.',
+ '先前选择已加入主题。这里的新选择仍未提交。':'The earlier selection was added. Your new selection here has not been submitted.',
+ '主题保存结果尚未确认，请重试核对。':'The Topic save result is unconfirmed. Retry to check it.',
+ '先前提交已保存。这里的新文字或选择尚未保存，仍保留在此。':'The earlier submission was saved. Your newer text or choice is still here and has not been saved.',
+ '保存结果尚未确认，文字保留。再次保存会先核对上次提交。':'The save result is unconfirmed. Your text is retained; Save will first check the earlier submission.',
  '来源':'Source','搜索思想、主题或内容…':'Search thoughts, topics or text…','搜索思想':'Search thoughts','思想列表来源范围':'Topic list Source scope','全部来源（含独立写下的内容）':'All Sources (including independent thoughts)',
  '重试保存说明':'Retry saving note','核对说明版本':'Compare note versions','复制说明':'Copy note','收起说明':'Close note',
  '请选择要保留的版本':'Choose the version to keep','请选择':'Choose…','保留已保存版本':'Keep saved version','使用我的草稿':'Use my draft','已保存版本':'Saved version','我的草稿':'My draft',
