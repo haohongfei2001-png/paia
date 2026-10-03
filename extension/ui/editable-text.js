@@ -74,9 +74,10 @@ export class NativeLineBreakTracker {
   if(prior.replacement){terminalPlaceholders.delete(root);if(event.data!==prior.data)return;}
   if(!selection?.isCollapsed)return;
   const node=terminalNode(root),offset=node?.nodeType===3?text(node).length-1:-1;
-  if(offset<0||text(node)[offset]!=='\n'||!prior.replacement&&(offset!==0||prior.nodes.has(node))||selection.anchorNode!==node||selection.anchorOffset!==offset||selection.focusNode!==node||selection.focusOffset!==offset)return;
-  const snapshot=editableTextSnapshot(root);
-  if(snapshot.text===prior.expected+'\n'&&snapshot.offset(node,offset)===prior.expected.length){const marker=this.createRange(node);marker.setStart(node,offset);marker.setEnd(node,offset+1);terminalPlaceholders.set(root,marker);}
+  if(offset<0||text(node)[offset]!=='\n'||!prior.replacement&&(offset!==0||prior.nodes.has(node)))return;
+  const snapshot=editableTextSnapshot(root),at=snapshot.offset(node,offset);if(at===null)return;
+  const caretBefore=prior.replacement?snapshot.offset(selection.anchorNode,selection.anchorOffset)===at&&snapshot.offset(selection.focusNode,selection.focusOffset)===at:selection.anchorNode===node&&selection.anchorOffset===offset&&selection.focusNode===node&&selection.focusOffset===offset;
+  if(caretBefore&&snapshot.text===prior.expected+'\n'&&at===prior.expected.length){const marker=this.createRange(node);marker.setStart(node,offset);marker.setEnd(node,offset+1);terminalPlaceholders.set(root,marker);}
  }
  clear(root){if(root){this.pending.delete(root);terminalPlaceholders.delete(root);}}
 }

@@ -51,3 +51,19 @@ test('character exclusion follows a moved live range and refuses collapsed, wide
  let r=replacement(),marker=r.ranges[0];r.node.data='BEFORE HEAD\n';marker.startOffset+=7;marker.endOffset+=7;assert.equal(editableText(r.field),'BEFORE HEAD');assert.equal(editableTextSnapshot(r.field).offset(r.node,12),11);
  for(const mode of ['collapsed','wide','detached']){r=replacement();marker=r.ranges[0];if(mode==='collapsed')marker.endOffset=marker.startOffset;else if(mode==='wide')marker.startOffset--;else r.field.childNodes=[t('HEAD\n')];assert.equal(editableText(r.field),'HEAD\n');}
 });
+
+for(const endpoint of ['previous text end','parent boundary'])test('proved full replacement accepts equivalent caret '+endpoint,()=>{
+ const owner=tracker(),head=t('HEAD'),tail=t('\n'),field=root(head,tail),selected={...selection(field,0),isCollapsed:false,focusOffset:2,getRangeAt:()=>({startContainer:field,startOffset:0,endContainer:field,endOffset:2})};
+ owner.before(field,event({inputType:'insertText',data:'HEAD'}),selected);owner.input(field,event({inputType:'insertText',data:'HEAD'}),endpoint==='previous text end'?selection(head,4):selection(field,1));assert.equal(editableText(field),'HEAD');
+});
+for(const endpoint of ['previous character','after LF'])test('full replacement refuses non-equivalent caret '+endpoint,()=>{
+ const owner=tracker(),head=t('HEAD'),tail=t('\n'),field=root(head,tail),selected={...selection(field,0),isCollapsed:false,focusOffset:2,getRangeAt:()=>({startContainer:field,startOffset:0,endContainer:field,endOffset:2})};
+ owner.before(field,event({inputType:'insertText',data:'HEAD'}),selected);owner.input(field,event({inputType:'insertText',data:'HEAD'}),endpoint==='previous character'?selection(head,3):selection(tail,1));assert.equal(editableText(field),'HEAD\n');
+});
+
+test('matching numeric caret offsets outside the field cannot establish replacement provenance',()=>{
+ const owner=tracker(),head=t('HEAD'),tail=t('\n'),field=root(head,tail),outside=t('HEAD'),selected={...selection(field,0),isCollapsed:false,focusOffset:2,getRangeAt:()=>({startContainer:field,startOffset:0,endContainer:field,endOffset:2})};owner.before(field,event({inputType:'insertText',data:'HEAD'}),selected);owner.input(field,event({inputType:'insertText',data:'HEAD'}),selection(outside,4));assert.equal(editableText(field),'HEAD\n');
+});
+for(const tag of ['TABLE','SPAN'])test('unsupported '+tag+' mapping cannot prove replacement caret equivalence',()=>{
+ const owner=tracker(),head=t('HEAD\n'),field=root(head),selected={...selection(head,0),isCollapsed:false,focusOffset:5,getRangeAt:()=>({startContainer:head,startOffset:0,endContainer:head,endOffset:5})};owner.before(field,event({inputType:'insertText',data:'HEAD'}),selected);const tail=t('\n'),block={nodeType:1,nodeName:'DIV',childNodes:[tail]};field.childNodes=[t('HEAD'),{nodeType:1,nodeName:tag,childNodes:[block]}];field.innerText='HEAD\n';owner.input(field,event({inputType:'insertText',data:'HEAD'}),selection(tail,0));assert.equal(editableText(field),'HEAD\n');assert.equal(editableTextSnapshot(field).offset(tail,0),null);
+});

@@ -9,7 +9,7 @@ export async function verifyD5NativeEdit({h,p,field,id,variant,segment}){
  };await p.addInitScript(observe);await p.evaluate(observe);
  try{
  const saved=async(expected,label)=>{
-  try{await eventually(async()=>(await rpc(p,'GET_INPUT',{id})).libraryText===expected,label);outcomes.push({label,expected,actual:(await rpc(p,'GET_INPUT',{id})).libraryText,html:await field.evaluate(e=>e.innerHTML)});}
+  try{await eventually(async()=>(await rpc(p,'GET_INPUT',{id})).libraryText===expected&&await p.locator('#save-status').getAttribute('data-state')==='saved',label);outcomes.push({label,expected,actual:(await rpc(p,'GET_INPUT',{id})).libraryText,html:await field.evaluate(e=>e.innerHTML)});}
   catch(error){await mkdir('work/qa-dvn-direct-edit/d5-reading-surfaces',{recursive:true});await writeFile(`work/qa-dvn-direct-edit/d5-reading-surfaces/${variant}-${segment}-native-edit-failure.json`,JSON.stringify({label,expected,actual:await rpc(p,'GET_INPUT',{id}),dom:await field.evaluate(e=>({html:e.innerHTML,text:e.innerText,textContent:e.textContent})),outcomes,events:await p.evaluate(()=>__d5NativeEvents),errors:h.errors},null,2));throw error;}
  };
  if(segment==='bulk'){
