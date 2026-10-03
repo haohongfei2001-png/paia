@@ -79,7 +79,7 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
   await p.setViewportSize({width:1440,height:900});const current=canonical.body+'\n\nSYNTHETIC 后来的工作文字，原文保持不变。';await snapshot('before-fill',current);await field.fill(current);await snapshot('after-fill',current);
   try{await eventually(async()=>(await rpc(p,'GET_INPUT',{id})).libraryText===current,'native edit must reach exact durable current text');}catch(error){await snapshot('durable-equality-failure',current);throw error;}await snapshot('durable-equality-pass',current);await field.blur();
   const historyRef=await openD5Reference(h,'history');refs.push(historyRef);
-  await p.locator('.reader-more').click();await p.evaluate(()=>globalThis.__d5HistoryInvoker=document.activeElement);await p.getByRole('menuitem',{name:'版本历史',exact:true}).click();await p.locator('.revision-row').first().getByRole('button',{name:'恢复操作前',exact:true}).click();await p.locator('.working-history-compare').waitFor();
+  await p.locator('.reader-more').evaluate(node=>globalThis.__d5HistoryInvoker=node);await p.locator('.reader-more').click();await p.getByRole('menuitem',{name:'版本历史',exact:true}).click();await p.locator('.revision-row').first().getByRole('button',{name:'恢复操作前',exact:true}).click();await p.locator('.working-history-compare').waitFor();
   const beforeReview=await rpc(p,'GET_INPUT',{id});assert.equal(beforeReview.revision,baseline.revision+1);
   const texts=await p.locator('.working-history-compare pre').allTextContents();assert.ok(texts[0].startsWith(current));assert.ok(texts[1].startsWith(canonical.body));assert.equal(await p.locator('dialog[open]').count(),1);
   for(const width of [1440,1280,1024,768,320])for(const theme of ['light','dark']){

@@ -1,0 +1,39 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {editableText,editableTextSnapshot,NativeLineBreakTracker} from '../ui/editable-text.js';
+const t=data=>({nodeType:3,data}),root=(...childNodes)=>({nodeType:1,nodeName:'DIV',childNodes});
+const event=(changes={})=>({isTrusted:true,inputType:'insertLineBreak',isComposing:false,defaultPrevented:false,...changes});
+const selection=(node,offset)=>({isCollapsed:true,anchorNode:node,anchorOffset:offset,focusNode:node,focusOffset:offset,rangeCount:1,getRangeAt:()=>({startContainer:node,startOffset:offset,endContainer:node,endOffset:offset})});
+function inserted(body='HEAD',options={}){const owner=new NativeLineBreakTracker(),text=t(body),field=root(text);owner.before(field,event(options.before),selection(text,body.length));const newline=t('\n'),sentinel=t('\n');field.childNodes.push(newline,sentinel);const before=JSON.stringify(field);owner.input(field,event(options.after),options.caret||selection(sentinel,0));assert.equal(JSON.stringify(field),before,'recognition never mutates native DOM');return {owner,text,field,newline,sentinel};}
+
+test('native line-break provenance excludes only the newly inserted terminal caret Text node',()=>{
+ const {field,sentinel}=inserted('👩‍💻\n\nHEAD'),snapshot=editableTextSnapshot(field);assert.equal(snapshot.text,'👩‍💻\n\nHEAD\n');assert.equal(snapshot.offset(sentinel,0),snapshot.text.length);assert.equal(snapshot.offset(sentinel,1),snapshot.text.length);const endpoint=snapshot.point(snapshot.text.length);assert.equal(snapshot.offset(endpoint.node,endpoint.offset),snapshot.text.length);
+});
+for(const [label,options]of [['untrusted before',{before:{isTrusted:false}}],['untrusted input',{after:{isTrusted:false}}],['composing before',{before:{isComposing:true}}],['composing input',{after:{isComposing:true}}],['cancelled before',{before:{defaultPrevented:true}}],['cancelled input',{after:{defaultPrevented:true}}],['paste before',{before:{inputType:'insertFromPaste'}}],['mismatched input',{after:{inputType:'insertText'}}]])test('native sentinel refuses '+label,()=>{assert.equal(editableText(inserted('HEAD',options).field),'HEAD\n\n');});
+
+test('identical literal, pasted or reloaded two-LF DOM without native event proof remains exact',()=>{
+ for(const field of [root(t('HEAD\n\n')),root(t('HEAD'),t('\n'),t('\n'))]){const owner=new NativeLineBreakTracker(),tail=field.childNodes.at(-1);owner.input(field,event(),selection(tail,0));assert.equal(editableText(field),'HEAD\n\n');}
+});
+
+test('native sentinel refuses an old node, wrong caret or larger unexplained delta',()=>{
+ for(const kind of ['old node','wrong caret','larger delta']){const owner=new NativeLineBreakTracker(),text=t('HEAD'),old=t('\n'),field=root(text,...(kind==='old node'?[old]:[]));owner.before(field,event(),selection(text,4));const newline=t('\n'),candidate=kind==='old node'?old:t('\n');field.childNodes=[text,newline,candidate,...(kind==='larger delta'?[t('\n')]:[])];owner.input(field,event(),selection(candidate,kind==='wrong caret'?1:0));assert.equal(editableText(field),'HEAD'+'\n'.repeat(kind==='larger delta'?3:2));}
+});
+
+test('typing before a tracked terminal node retains provenance; its removal or mutation invalidates it',()=>{
+ let {field,text,sentinel}=inserted();text.data='AHEAD';assert.equal(editableText(field),'AHEAD\n');field.childNodes=field.childNodes.filter(n=>n!==sentinel);field.childNodes.push(t('TAIL'));assert.equal(editableText(field),'AHEAD\nTAIL');
+ ({field,sentinel}=inserted());sentinel.data='AUTHORED\n';assert.equal(editableText(field),'HEAD\nAUTHORED\n');
+ ({field}=inserted());field.childNodes=[t('PASTED\n\n')];assert.equal(editableText(field),'PASTED\n\n');
+});
+
+test('a second native newline preserves the first authored break and existing sentinel identity',()=>{
+ const {owner,field,sentinel}=inserted();owner.before(field,event(),selection(sentinel,0));field.childNodes.splice(-1,0,t('\n'));owner.input(field,event(),selection(sentinel,0));assert.equal(editableText(field),'HEAD\n\n');
+});
+
+test('paint/dispose clears provenance and never blesses a replacement canonical body',()=>{
+ const {owner,field}=inserted();owner.clear(field);field.childNodes=[t('HEAD\n\n')];assert.equal(editableText(field),'HEAD\n\n');
+});
+
+for(const tag of ['BR','DIV','P'])test('appended '+tag+' invalidates a no-longer-terminal sentinel even without a later text node',()=>{
+ const {field}=inserted();field.childNodes.push({nodeType:1,nodeName:tag,childNodes:[]});assert.equal(editableText(field),'HEAD\n\n\n');field.childNodes.pop();assert.equal(editableText(field),'HEAD\n\n','removing later structure cannot silently revive lost provenance');
+});
+
+test('unsupported replacement shape invalidates sentinel provenance before fallback',()=>{const {field}=inserted();field.innerText='EXACT FALLBACK';field.childNodes.push({nodeType:1,nodeName:'TABLE',childNodes:[]});assert.equal(editableText(field),'EXACT FALLBACK');field.childNodes.pop();assert.equal(editableText(field),'HEAD\n\n');});

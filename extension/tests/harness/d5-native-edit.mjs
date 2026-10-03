@@ -31,6 +31,17 @@ export async function verifyD5NativeEdit({h,p,field,id,variant,segment}){
   await p.keyboard.press(key);await saved(expected,`reloaded literal body ${key} at ${offset}`);
  }
  }
+ if(segment==='sentinel'){
+ const line=async(key='Enter')=>{await field.fill('HEAD');await saved('HEAD','terminal lifecycle base');await field.press('End');await p.keyboard.press(key);await saved('HEAD\n','one native terminal break');};
+ await line();await p.keyboard.press('Enter');await saved('HEAD\n\n','second native terminal break after first save');await p.keyboard.insertText('TAIL');await saved('HEAD\n\nTAIL','typing consumes the native terminal caret placeholder');
+ await line('Shift+Enter');await field.evaluate(el=>{const walk=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),first=walk.nextNode();getSelection().setBaseAndExtent(first,0,first,0);});await p.keyboard.insertText('BEFORE ');await saved('BEFORE HEAD\n','editing before terminal placeholder preserves its identity');await p.locator('#document-title').focus();await field.focus();await saved('BEFORE HEAD\n','blur and refocus do not reinterpret the sentinel as authored text');
+ await line();await p.keyboard.press('Backspace');await saved('HEAD','Backspace removes the authored final break');
+ await line();await p.keyboard.press('Delete');await saved('HEAD\n','Delete at terminal caret does not delete an authored break');
+ await field.fill('EXACT\n\n');await saved('EXACT\n\n','select-all replacement retains two authored trailing newlines');
+ await line();await field.press('Control+z');await saved('HEAD','Undo drops the terminal edit');await field.press('Control+Shift+z');await saved('HEAD\n','Redo paints exact canonical text without a native sentinel');await p.reload();await field.waitFor();assert.equal(await field.textContent(),'HEAD\n','reload retains exactly one authored terminal newline');
+ await line();await field.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='SYNTHETIC 未完 ni\n\n';el.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true,inputType:'insertCompositionText',data:'ni'}));});await p.waitForTimeout(650);assert.equal((await rpc(p,'GET_INPUT',{id})).libraryText,'HEAD\n','unfinished synthetic composition never persists partial text');
+ const completed='SYNTHETIC 完整中文\n\n';await field.evaluate((el,value)=>{el.textContent=value;el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:value}));el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:value}));},completed);await saved(completed,'completed composition replacement retains authored trailing whitespace');
+ }
  if(segment==='selection'){
  const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC multiline selection',operationId:crypto.randomUUID()}});
  const body='A👩‍💻\n\nB é',selected='👩‍💻\n\nB é';await field.fill(body);await saved(body,'multiline selection base');

@@ -175,4 +175,4 @@ for(const variant of ['source','release']){
 
 for(const variant of ['source','release'])test(`D5 actual Selection, Original and History match canonical transient geometry without changing evidence (${variant})`,{timeout:120000},()=>compareD5ReadingSurfaces({variant,extensionPath:variant==='release'?releaseRoot:null}));
 
-for(const variant of ['source','release'])for(const segment of ['bulk','reload','selection'])test(`D5 native ${segment} multiline fill, Enter, Shift+Enter, selection, undo and reload keep exact Working text (${variant})`,{timeout:120000},async()=>{const context=await fixture(variant);try{await verifyD5NativeEdit({...context,variant,segment});}finally{await context.h.close();}});
+for(const variant of ['source','release'])for(const segment of ['bulk','reload','selection','sentinel'])test(`D5 native ${segment} multiline fill, Enter, Shift+Enter, selection, undo and reload keep exact Working text (${variant})`,{timeout:120000},async()=>{const context=await fixture(variant);try{await verifyD5NativeEdit({...context,variant,segment});}finally{await context.h.close();}});
