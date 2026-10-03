@@ -1,5 +1,14 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q5 — Thought Content and Years reading roles — 2026-10-03
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q5`.**
+D5/Q4 [PR129](https://github.com/haohongfei2001-png/paia/pull/129) is integrated at `029ddb48766276d8f0d723123c79df71a66bba08`. Reviewed head `0b725a89eebf187075e009c6044f6cb3792a5c0c`, full-tested merge `c6c73e10025cb99b8f67308b8a32295a0c80e1c5` and main share tree `40b44fe434e08a9484c8b556aef68699d074c46a`. Candidate37119872969, full37120565091, exact-main37121869777 and Pages37121869506 PASS. Full proof:1608 unit/217 current-browser/102 adapter/58 privacy, release and hosted Mac checks. Main browser/Mac/full were SKIPPED, not another full run. [Q4 evidence](implementation/desktop-vnext/D5-Q4.md) retains prior failures and the limited initial-versus-settled200%-text finding.
+
+Sole writer `feat/d5-q5-thought-reading` now aligns [Q5](implementation/desktop-vnext/D5-Q5.md) T03/T04 existing Content/Years reading roles, retires duplicate visual owners and corrects the demonstrated32px overflow-summary cascade at narrow/coarse input. Preserve all saved font/width preferences, truthful dates/coverage, authored bytes and existing Topic/reader/selection/IME/recovery owners. Paired production/reference source+release pixels and actual preference/target tests are pending. This CSS/tests/docs-only batch uses existing EXECUTION_PROTOCOL §7.2 affected-browser/light integration; full certification is NOT RUN / not required here and remains reserved for the owner-sensitive T05 / D5 closure boundary. No new runtime data owner or body normalization.
+
+Content year-navigation composition, T05 Add Thought workspace and remaining Organize/Context/Settings families remain open. Q3 reloaded all-empty literal-body caret continuation, physical/device and deferred final gates remain unproven. Final D5 owner visual acceptance is OPEN; public consumer release and further install-package delivery remain held. Older controlling-state entries below are historical.
+
 ## D5/Q4 — Thought root and header composition — 2026-10-03
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q4`.**

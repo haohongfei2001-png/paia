@@ -5,6 +5,7 @@ import {mkdtempSync,rmSync,mkdirSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {openD5ThoughtReading} from './harness/d5-thought-reading.mjs';
 const release=mkdtempSync(join(tmpdir(),'paia-d2-content-'));
 test.after(()=>rmSync(release,{recursive:true,force:true}));
 console.log(execFileSync('python3',['scripts/build_current_release.py',release],{encoding:'utf8'}));
@@ -60,4 +61,30 @@ for(const variant of ['source','release'])test(`D2 Content trusted chronology, b
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   writeFileSync(`work/qa-dvn-topic-content/${variant}.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,matrix,entries:165,trustedGlobalChronology:true,unknownLegacy:true,boundedBodies:full.bodies,bodyFreeExtent:true,searchReturn:true,rootReturn:true,exactRefRefetch:true,timeChangeImePreserved:true,largeBodyEditorOwner:true,resizeImePreserved:true,localeCaptionOnly:true,singleOrderControl:true,zeroProviderCalls:true},null,2));
  }finally{await h.close();}
+});
+
+
+// The visual/preference journey owns a separate real reader instance. The
+// original complete-extent journey above keeps its exact pre-Q5 interaction state.
+for(const variant of ['source','release'])test(`D5 Content paired reading roles, preferences and pointer targets (${variant})`,{timeout:180000},async()=>{
+ const h=await FakeChatGPT.start(variant==='release'?{extensionPath:release}:{}),p=h.archive;let d5;
+ try{
+  await p.setViewportSize({width:1440,height:900});await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  const seed=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),topic=await s.createTopic({name:'SYNTHETIC 跨章节的真实表达时间与不确定性',operationId:op()}),other=await s.createSection({topicId:topic.id,title:'SYNTHETIC 不决定年代的人工章节',expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,operationId:op()}),records=[];
+   for(let i=0;i<165;i++){const at=new Date(Date.UTC(i%2?2021:2023,0,1)+i*1000).toISOString();s.clock=()=>at;const row=await s.continueThinking({operationId:op(),body:i===10?'SYNTHETIC_LARGE_BODY '+('长表达'.repeat(18000)):'SYNTHETIC_CONTENT_'+i+' '+(i%2?'访谈者说“我不愿意”，我还没做判断。':'我可能更适合消费产品，但现在样本还太少。')+' 👩‍💻 é\n'+('这是保留语气和归属的原话。'.repeat(8)),topicId:topic.id});records.push({id:row.id,at,i});if(i%3===0){const entry=await s.entry(row.id);await s.placeEntry({entryId:entry.id,topicId:topic.id,sectionId:other.sectionId,expectedPlacementRevision:(await s.entryPaths(entry.id))[0].placement.revision,expectedEntryRevision:entry.revision,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,operationId:op()});}}
+   await s.foundationWrite(async t=>{for(const receipt of await t.all('operationReceipts'))if(receipt.ownerId===records[164].id){delete receipt.result.independentExpression;await t.put('operationReceipts',receipt);}});
+   const ordered=records.slice(0,164).sort((a,b)=>a.at.localeCompare(b.at)).map(row=>row.id);ordered.push(records[164].id);
+   await s.repository.close();
+   const {ThoughtWorkspace}=await import('../ui/thoughts.js'),create=ThoughtWorkspace.prototype.createTopicReader;ThoughtWorkspace.prototype.createTopicReader=function(...args){globalThis.__d2Content=this;return create.apply(this,args);};
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__d2ContentReads=[];chrome.runtime.sendMessage=(message,...args)=>Promise.resolve(send(message,...args)).then(result=>{if(message.type==='TOPIC_DOCUMENT_PAGE'&&result?.ok)__d2ContentReads.push({options:message.options,ids:result.data.items.map(row=>row.entry.id)});return result;});
+   return {topicId:topic.id,ordered,records};
+  });
+  await p.locator('[data-view="thoughts"]').click();await eventually(()=>p.locator(`[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`[data-topic-id="${seed.topicId}"]`).click();
+  await eventually(()=>p.locator('#original-reading-body [data-entry-id]').count().then(n=>n>=40),'first Content page');
+  d5=await openD5ThoughtReading(h,variant,'content',seed.ordered[0]);
+  for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const width of [1440,1280,1024,768,390,320]){await p.setViewportSize({width,height:900});await d5.capture(width,appearance);}}
+  await d5.verifyPreferences();await d5.verifyTextZoom();await d5.finishInteractions();
+  assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);await d5.finish();
+ }finally{try{await d5?.close();}finally{await h.close();}}
 });
