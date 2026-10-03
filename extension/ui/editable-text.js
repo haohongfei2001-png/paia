@@ -14,8 +14,9 @@ const terminalNode=node=>{if(node.nodeType===3)return text(node)?node:null;if(no
 export function editableTextSnapshot(root){
  const supported=(node,inInline=false)=>children(node).every(child=>child.nodeType===3||child.nodeType===8||child.nodeType===1&&(!inInline&&blocks.has(tag(child))||inline.has(tag(child))||tag(child)==='BR')&&supported(child,inInline||inline.has(tag(child))));
  if(!root?.childNodes||!supported(root)){if(root)terminalPlaceholders.delete(root);return {text:root?.textContent===''?'':root?.innerText??root?.textContent??'',offset:()=>null,point:()=>null};}
- let sentinel=terminalPlaceholders.get(root);if(sentinel&&(text(sentinel)!=='\n'||terminalNode(root)!==sentinel)){terminalPlaceholders.delete(root);sentinel=null;}
- const authored=node=>node===sentinel?'':text(node);
+ let marker=terminalPlaceholders.get(root);const sentinel=marker?.startContainer;
+ if(marker&&(sentinel?.nodeType!==3||marker.endContainer!==sentinel||marker.endOffset!==marker.startOffset+1||marker.endOffset!==text(sentinel).length||text(sentinel).slice(marker.startOffset,marker.endOffset)!=='\n'||terminalNode(root)!==sentinel)){terminalPlaceholders.delete(root);marker=null;}
+ const authored=node=>marker&&node===sentinel?text(node).slice(0,marker.startOffset):text(node);
  const meaningful=node=>node.nodeType===3?authored(node)!=='':node.nodeType===1&&(blocks.has(tag(node))||tag(node)==='BR'||children(node).some(meaningful));
  const boundaries=new WeakMap(),starts=new WeakMap(),runs=[],anchors=new Map(),parts=[];let length=0;
  const append=value=>{parts.push(value);length+=value.length;};
@@ -55,20 +56,27 @@ export const editableText=root=>editableTextSnapshot(root).text;
 // caret, then places the caret at that node's start. Recognize only that proven
 // beforeinput→input delta; ordinary, pasted and reloaded LF remain untouched.
 export class NativeLineBreakTracker {
- constructor(){this.pending=new WeakMap();}
+ constructor({createRange=node=>node.ownerDocument.createRange()}={}){this.pending=new WeakMap();this.createRange=createRange;}
  before(root,event,selection){
   if(!root)return;this.pending.delete(root);
-  if(!event.isTrusted||event.defaultPrevented||event.isComposing||!['insertLineBreak','insertParagraph'].includes(event.inputType)||!selection?.rangeCount)return;
+  if(!event.isTrusted||event.defaultPrevented||event.isComposing||!selection?.rangeCount)return;
   const range=selection.getRangeAt(0),snapshot=editableTextSnapshot(root),start=snapshot.offset(range.startContainer,range.startOffset),end=snapshot.offset(range.endContainer,range.endOffset);
   if(start===null||end===null||end<start)return;
-  this.pending.set(root,{inputType:event.inputType,expected:snapshot.text.slice(0,start)+'\n'+snapshot.text.slice(end),nodes:new WeakSet(textNodes(root))});
+  const newline=['insertLineBreak','insertParagraph'].includes(event.inputType),replacement=event.inputType==='insertText'&&typeof event.data==='string'&&start===0&&end===snapshot.text.length;
+  if(!newline&&!replacement)return;
+  this.pending.set(root,{inputType:event.inputType,replacement,data:event.data,expected:replacement?event.data:snapshot.text.slice(0,start)+'\n'+snapshot.text.slice(end),nodes:new WeakSet(textNodes(root))});
  }
  input(root,event,selection){
   if(!root)return;const prior=this.pending.get(root);this.pending.delete(root);
-  if(!prior||!event.isTrusted||event.defaultPrevented||event.isComposing||event.inputType!==prior.inputType||!selection?.isCollapsed)return;
-  const node=terminalNode(root);if(node?.nodeType!==3||text(node)!=='\n'||prior.nodes.has(node)||selection.anchorNode!==node||selection.anchorOffset!==0||selection.focusNode!==node||selection.focusOffset!==0)return;
+  if(!prior||!event.isTrusted||event.defaultPrevented||event.isComposing||event.inputType!==prior.inputType)return;
+  // Complete replacement supersedes any old sentinel provenance, even when
+  // Chrome reuses its Text node. Only a matching payload can prove a new one.
+  if(prior.replacement){terminalPlaceholders.delete(root);if(event.data!==prior.data)return;}
+  if(!selection?.isCollapsed)return;
+  const node=terminalNode(root),offset=node?.nodeType===3?text(node).length-1:-1;
+  if(offset<0||text(node)[offset]!=='\n'||!prior.replacement&&(offset!==0||prior.nodes.has(node))||selection.anchorNode!==node||selection.anchorOffset!==offset||selection.focusNode!==node||selection.focusOffset!==offset)return;
   const snapshot=editableTextSnapshot(root);
-  if(snapshot.text===prior.expected+'\n'&&snapshot.offset(node,0)===prior.expected.length)terminalPlaceholders.set(root,node);
+  if(snapshot.text===prior.expected+'\n'&&snapshot.offset(node,offset)===prior.expected.length){const marker=this.createRange(node);marker.setStart(node,offset);marker.setEnd(node,offset+1);terminalPlaceholders.set(root,marker);}
  }
  clear(root){if(root){this.pending.delete(root);terminalPlaceholders.delete(root);}}
 }
