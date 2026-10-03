@@ -50,6 +50,14 @@ export function group(file) {
  */
 export function testShard(file, position, total, category) {
  const name=file.split('/').at(-1),purge='cpv1-02-dvn-purge-chrome-e2e.test.mjs',removal='cpv1-02-dvn-removal-chrome-e2e.test.mjs',search='cpv1-02-dvn-search-chrome-e2e.test.mjs',directEdit='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs';
+ // Full37134318053 exhausted2/4's18-minute budgets. Preserve all65
+ // other placements; move complete Thought ownership to6 and the measured
+ // Content/Years pair onto5's spare capacity. No file/case is split or skipped.
+ if(category==='browser E2E'&&total===6){
+  if(name==='ux-r3-thought-chrome-e2e.test.mjs')return 6;
+  if(['cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs'].includes(name))return 5;
+  return testShard(file,position,5,category);
+ }
  // D5 expands native/visual direct editing by more than200s. Keep every
  // other certified4-way placement; isolate this whole file on a fifth job.
  if(category==='browser E2E'&&total===5)return name===directEdit?5:testShard(file,position,4,category);
