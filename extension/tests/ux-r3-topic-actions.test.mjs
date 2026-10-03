@@ -70,7 +70,7 @@ test('unknown Topic creation retains its operation and blocks dependent Thought 
 
 test('acknowledged relation hash cannot close newer text typed during digest',()=>withTopicActions(async f=>{
  f.owner.close(true);await f.owner.compose({relatedThought:{id:'synthetic-related',revision:0,body:'SYNTHETIC prior body'}});const relation=find(f.owner.content,node=>node.type==='checkbox');relation.checked=true;
- await f.submit('SYNTHETIC acknowledged');const field=f.owner.draft;field.listeners.get('compositionstart')();await f.respond(success);field.listeners.get('compositionend')();
+ await f.submit('SYNTHETIC acknowledged');await f.waitForRpc(1);const field=f.owner.draft;field.listeners.get('compositionstart')();await f.respond(success);field.listeners.get('compositionend')();
  const original=crypto.subtle.digest;let release;crypto.subtle.digest=function(...args){return new Promise(resolve=>release=()=>resolve(original.apply(this,args)));};
  try{await f.submit();assert.equal(typeof release,'function');field.value='SYNTHETIC newer during digest 👩‍💻\n';release();await tick();await tick();assert.equal(f.owner.draft,field);assert.equal(field.value,'SYNTHETIC newer during digest 👩‍💻\n');assert.equal(f.owner.dialog.open,true);assert.equal(f.calls.length,1);}
  finally{crypto.subtle.digest=original;}
@@ -83,4 +83,27 @@ test('unknown Add result reconciles original Topic choices through failed retry 
  const list=find(f.owner.content,node=>node.className==='topic-choice-list'),boxes=list.children.map(label=>label.children[0]);boxes[0].checked=true;boxes[0].onchange();clickText(f.owner.content,'加入');await tick();const first=f.rpcCalls.at(-1);await f.respond({ok:false,error:'MESSAGE_CHANNEL_INTERRUPTED'});
  boxes[0].checked=false;boxes[0].onchange();boxes[1].checked=true;boxes[1].onchange();clickText(f.owner.content,'加入');await tick();assert.deepEqual(f.rpcCalls.at(-1),first);await f.respond({ok:false,error:'STORAGE_FAILED'});clickText(f.owner.content,'加入');await tick();assert.deepEqual(f.rpcCalls.at(-1),first);await f.respond(success);assert.equal(f.owner.dialog.open,true);assert.equal(boxes[1].checked,true);assert.equal(f.owner.feedback.textContent,'先前选择已加入主题。这里的新选择仍未提交。');
  clickText(f.owner.content,'加入');await tick();const next=f.rpcCalls.at(-1);assert.notEqual(next.selection.operationId,first.selection.operationId);assert.deepEqual(next.selection.topicIds,['topic-b']);await f.respond(success);assert.equal(f.owner.dialog.open,false);
+}));
+
+async function routeComposer(f,{exit=async()=>f.owner.leave()}={}){
+ f.owner.dismiss(true);f.owner.enterCompose=async id=>{assert.equal(f.owner.leave({composeId:id}),true);const host=document.createElement('article');document.body.append(host);return host;};f.owner.exitCompose=exit;await f.owner.compose();return f.owner.surface;
+}
+test('D5 workspace mount retains the same command owner and teardown does not recursively navigate',()=>withTopicActions(async f=>{
+ let exits=0;const owner=await routeComposer(f,{exit:async()=>{exits++;return f.owner.leave();}});assert.equal(owner.workspace,true);assert.equal(f.owner.dialog.open,false);assert.equal(f.owner.composeSessionIs(owner.sessionId),true);await f.submit('SYNTHETIC workspace body');await f.respond(success);await tick();assert.equal(exits,1);assert.equal(f.calls.length,1);assert.equal(f.owner.surface,null);assert.equal(f.owner.composeSessionIs(owner.sessionId),false);assert.equal(owner.host.children.length,0);
+}));
+test('D5 rejected workspace close preserves its exact textarea without requesting navigation',()=>withTopicActions(async f=>{
+ let exits=0;const owner=await routeComposer(f,{exit:async()=>{exits++;return true;}}),field=f.owner.draft;field.value='SYNTHETIC retained workspace draft';globalThis.confirm=()=>false;assert.equal(f.owner.close(),false);assert.equal(f.owner.draft,field);assert.equal(owner.closing,false);assert.equal(exits,0);assert.equal(f.owner.surface,owner);
+}));
+test('D5 pending workspace return blocks duplicate command/close and a rejected transition keeps the draft',()=>withTopicActions(async f=>{
+ let finish,exits=0;const owner=await routeComposer(f,{exit:()=>{exits++;return new Promise(resolve=>finish=resolve);}}),field=f.owner.draft;await f.submit('SYNTHETIC acknowledged workspace body');await f.respond(success);assert.equal(owner.closing,true);assert.equal(owner.content.inert,true);await f.submit();assert.equal(f.owner.close(true),false);assert.equal(f.calls.length,1);assert.equal(exits,1);finish(false);await tick();assert.equal(owner.closing,false);assert.equal(owner.content.inert,false);assert.equal(f.owner.draft,field);assert.equal(field.value,'SYNTHETIC acknowledged workspace body');
+}));
+test('D5 a newer navigation invalidates a pending compose host before any draft is mounted',()=>withTopicActions(async f=>{
+ f.owner.dismiss(true);let finish,sessionId;const host=document.createElement('article');document.body.append(host);f.owner.enterCompose=id=>{sessionId=id;return new Promise(resolve=>finish=resolve);};f.owner.exitCompose=async()=>true;const opening=f.owner.compose();await tick();assert.equal(f.owner.pendingComposeIs(sessionId),true);assert.equal(f.owner.leave(),true);finish(host);await opening;assert.equal(f.owner.surface,null);assert.equal(f.owner.draft,null);assert.equal(host.children.length,0);assert.equal(f.owner.pendingComposeIs(sessionId),false);
+}));
+test('D5 repeated compose intent keeps an existing workspace draft and cannot replace it with another modal',()=>withTopicActions(async f=>{
+ const owner=await routeComposer(f),field=f.owner.draft;field.value='SYNTHETIC one owned body';await f.owner.compose();assert.equal(f.owner.surface,owner);assert.equal(f.owner.draft,field);assert.equal(f.owner.open('SYNTHETIC conflicting modal'),false);assert.equal(f.owner.draft.value,'SYNTHETIC one owned body');
+}));
+
+for(const materialBound of [false,true])test(`D5 destructive material changes ${materialBound?'refuse a pending quoted workspace':'preserve an independent pending workspace'}`,()=>withTopicActions(async f=>{
+ f.owner.dismiss(true);let finish,id;const host=document.createElement('article');document.body.append(host);f.owner.enterCompose=sessionId=>{id=sessionId;return new Promise(resolve=>finish=resolve);};f.owner.exitCompose=async()=>true;const opening=f.owner.compose(materialBound?{inputId:'synthetic-input',quote:'SYNTHETIC obsolete source quote'}:{});await tick();f.emit({type:'ARCHIVE_CHANGED',cause:'PURGE_SOURCE'});assert.equal(f.owner.pendingComposeIs(id),!materialBound);finish(host);await opening;if(materialBound){assert.equal(f.owner.surface,null);assert.equal(host.children.length,0);}else{assert.equal(f.owner.surface.workspace,true);assert.ok(f.owner.draft.isConnected);}
 }));

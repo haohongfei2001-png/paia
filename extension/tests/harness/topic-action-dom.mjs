@@ -3,7 +3,8 @@ import {TopicActions} from '../../ui/topic-actions.js';
 
 class Element {
  constructor(tag){this.tagName=tag.toUpperCase();this.children=[];this.listeners=new Map();this.value='';this.textContent='';this.open=false;this.dataset={};}
- append(...nodes){for(const node of nodes){node.parentElement=this;this.children.push(node);}}
+ append(...nodes){for(const node of nodes){node.remove();node.parentElement=this;this.children.push(node);}}
+ insertBefore(node,before){if(node===before)return;node.remove();const index=before?this.children.indexOf(before):this.children.length;assert.ok(index>=0);node.parentElement=this;this.children.splice(index,0,node);}
  replaceChildren(...nodes){for(const node of this.children)node.parentElement=null;this.children=[];this.append(...nodes);}
  setAttribute(key,value){this[key]=value;}
  addEventListener(type,listener){this.listeners.set(type,listener);}
@@ -16,10 +17,10 @@ class Element {
 export const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function fixture(){
  globalThis.document={body:new Element('body'),documentElement:{lang:'zh-CN'},createElement:tag=>new Element(tag),createTextNode:text=>Object.assign(new Element('#text'),{textContent:text}),activeElement:null};globalThis.window={addEventListener(){}};globalThis.confirm=()=>true;
- const calls=[],rpcCalls=[],held=[];globalThis.chrome={runtime:{onMessage:{addListener(){}},sendMessage:message=>{rpcCalls.push(structuredClone(message));if(message.type==='CONTINUE_THINKING')calls.push(structuredClone(message.thought));return new Promise(resolve=>held.push(resolve));}}};
+ const calls=[],rpcCalls=[],held=[],listeners=[],arrivals=[];globalThis.chrome={runtime:{onMessage:{addListener:listener=>listeners.push(listener)},sendMessage:message=>{rpcCalls.push(structuredClone(message));for(const listener of arrivals.splice(0))listener();if(message.type==='CONTINUE_THINKING')calls.push(structuredClone(message.thought));return new Promise(resolve=>held.push(resolve));}}};
  const owner=new TopicActions({flush:async()=>true,notify(){}});await owner.compose();
- const save=()=>owner.content.children.find(node=>node.tagName==='BUTTON'&&node.textContent==='保存想法');
- return {owner,calls,rpcCalls,held,async submit(value){if(value!==undefined)owner.draft.value=value;save().onclick();await tick();},async respond(value){assert.ok(held.length);held.shift()(value);await tick();}};
+ const save=()=>find(owner.content,node=>node.tagName==='BUTTON'&&node.textContent==='保存想法');
+ return {owner,calls,rpcCalls,held,waitForRpc:async count=>{while(rpcCalls.length<count)await new Promise(resolve=>arrivals.push(resolve));},emit:message=>listeners.forEach(listener=>listener(message)),async submit(value){if(value!==undefined)owner.draft.value=value;save().onclick();await tick();},async respond(value){assert.ok(held.length);held.shift()(value);await tick();}};
 }
 export const success={ok:true,data:{id:'synthetic-created'}};
 function descendants(root){return [root,...root.children.flatMap(descendants)];}
@@ -31,5 +32,5 @@ export async function createPendingTopic(f){await openChoices(f);clickText(f.own
 export async function withTopicActions(run){
  const keys=['document','window','confirm','chrome'],descriptors=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));let fixtureValue;
  try{fixtureValue=await fixture();return await run(fixtureValue);}
- finally{fixtureValue?.owner.close(true);for(const key of keys){const descriptor=descriptors.get(key);if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
+ finally{fixtureValue?.owner.dismiss(true);for(const key of keys){const descriptor=descriptors.get(key);if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
 }

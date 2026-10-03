@@ -71,7 +71,7 @@ import {ThoughtWorkspace} from '../ui/thoughts.js';
 import {TopicTimeline} from '../ui/topic-timeline.js';
 test('D2 actual view owner rejects uncollected IME and latest content click cancels a waiting years transition',async()=>{
  let disposed=0,flushed=0;
- const workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{id:'topic',view:'original',originalMode:'content',editor:{composing:true,dispose(){disposed++;}},flushEditors:async()=>{flushed++;return true;}});
+ const workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{id:'topic',view:'original',originalMode:'content',pageVisible:()=>true,editor:{composing:true,dispose(){disposed++;}},flushEditors:async()=>{flushed++;return true;}});
  await workspace.switchOriginalMode('years');assert.equal(workspace.originalMode,'content');assert.equal(disposed,0);assert.equal(flushed,0);
  let finish;workspace.editor.composing=false;workspace.flushEditors=()=>new Promise(resolve=>finish=resolve);
  const older=workspace.switchOriginalMode('years');await workspace.switchOriginalMode('content');finish(true);await older;

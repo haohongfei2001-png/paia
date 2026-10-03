@@ -90,7 +90,7 @@ async function livingTopicJourney(page,h,topic,label){
   await eventually(async()=>await provenance.getByRole('button',{name:'查看输入',exact:true}).count()===1,'one direct captured source remains inspectable for each Conversation expression');
   assert.ok((await rpc(page,'GET_LIBRARY_PATHS',{id:entry.id})).length,'joined expression retains a real Topic path');
  }
- const composer=page.locator('#topic-action-dialog'),newBody=label+' 今天的新想法\n这不是过去原话的改写。';
+ const composer=page.locator('#thought-compose-panel'),newBody=label+' 今天的新想法\n这不是过去原话的改写。';
  await page.locator('#create-entry').click();await composer.getByLabel('今天的新想法',{exact:true}).fill(newBody);
  await composer.getByRole('button',{name:'保存想法',exact:true}).click();
  await eventually(async()=>!await composer.isVisible(),'new Thought saves through the real composer');

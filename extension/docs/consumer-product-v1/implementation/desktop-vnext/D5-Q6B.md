@@ -1,0 +1,55 @@
+# D5/Q6b — approved T05 workspace and safe origin return
+
+State: IMPLEMENTING / NOT ACCEPTED. Base is verified main `f11675ce73cd7a023889e7a1673f4837283cedc1`, tree `1485e28a4973d629d2e5ccaeabe586a924ed560c`. [Q6a](D5-Q6.md) closes command-acknowledgement ownership; this slice retains those semantics while moving only compose presentation into the canonical main workspace.
+
+## Existing owners and scope
+
+Use AppShell/RouteHistory for one internal compose route mapped to the Thought primary space. TopicActions alone owns the draft, quote, optional relation/Topic choices, attempts and acknowledgements. Route/history state contains only validated object/session references. Save/Cancel/Back request a transition; the navigation leave phase guards and tears down the owner without recursively requesting another return. Expired Forward/reload references cannot recreate or resubmit drafts.
+
+The approved architecture permits safe flush/leave, fresh reads, remount and logical anchor/focus restoration. Do not add a hidden-reader parking subsystem. Preserve live bodies on rejected dirty/IME/failed leave. Native browser undo across intentional remount is distinct from the existing application undo/history owners.
+
+## Demonstrated origin defects and preparation
+
+The existing Topic leave path admits an uncollected composing editor when dirty() is false and then disposes it. It can also dispose a replacement editor or an earlier owner that becomes dirty across asynchronous flush boundaries. Preparation now checks all current owners, then rechecks identity/composition/dirty/saving immediately before any disposal.
+
+Global leave previously failed to capture the complete root session, and reopening could overwrite it using another page’s scroll. Capture existing body-free scope/query/extent/anchor only while the Thought page is active. Guard held Topic/root/unplaced/section reads, queued anchor restoration, Years locale reads, initial/background position reads, and view/sort/section transitions by active page plus the existing leave/render/presentation ownership. Obsolete reads cannot publish into or move the destination.
+
+Existing savedEdit Undo admits off-window rows without comparing cached field versions. Preparation adds the same absent-row expected-version, lifecycle and source-purge admission used by the existing non-saved branch. The core transactional revision/entity/source/CAS/shared-Input checks remain unchanged. Reuse LibraryEntryEditor export/import under one controller-owned, five-owner transient history cache only after accepted global leave. Source purge, backup restore, removal and revision pruning invalidate cached/queued/current journals; an epoch prevents an in-flight export/import from reviving cleared history. Successful CONTINUE_THINKING is not a blanket invalidator. Before/after history strings stay out of RouteHistory and ViewSessions.
+
+## Reader return metadata and fresh authority
+
+ReaderWindowSessions retains at most five owners within a global2MiB metadata budget. It validates dense arrays, complete cursor spines, one/two mounted descriptors, actual page-local context refs, next cursors and logical anchor/focus refs. Oversized or evicted snapshots lose the whole extent and require a truthful fresh anchored fallback; they are never silently sliced. Tests cover101/1001 cursor entries and malformed/sparse/body-bearing metadata.
+
+GET_PAGE exposes the body-free effective cursor passed to queryPage, including Smart Filter contextual seek. readReaderWindow reads at most the saved one/two descriptors and publishes nothing until both succeed on one fresh data generation and current attempt. It uses only fresh records/blocks, limits history tracking, and never displays excluded/branch or history-only rows. Context filtering stays local to the request that produced that page; an excluded/purged context cannot revive filtered material. An effective null contextual cursor may be freshly repositioned by the existing core; changed boundaries must use explicit fallback rather than claiming exact replay.
+
+Exact comparison applies only to the mounted windows: ordered visible IDs plus effective/next cursors must match. On overlap or changed boundaries, choose one complete fresh page containing the surviving anchor or a deterministic nearby page, align its cursor/filter metadata, and announce changed-range restoration. No third automatic read. Older unmounted cursor entries remain navigation hints; forward continuation must use fresh nextCursor, and backward hints must verify adjacency. Fresh text/revision updates never restore cached bodies.
+
+The local candidate now wires these descriptors through the existing Archive navigation/refresh owner, freezes/invalidate paging during leave, suppresses return prefetch, restores grapheme-clamped caret/focus against fresh text, and offers an explicit retry if a two-page return fails. Keep the existing DocumentEditor history export/import and its revision/signature checks. A return failure must leave a readable retry state rather than publish half a mixed-generation window.
+
+## T05 and verification obligations
+
+Implement frozen T05 heading/subtitle,760px prose workspace/gutters, optional Topic selection, literal textarea and Save/Cancel hierarchy. Retain real lazy Topic search/create/retry, Copy, explicit conditional relation and truthful status. No fabricated specimen dropdown or new design.
+
+Local preparation and review regressions pass, including the actual deferred Undo owner, refusal of a clickable success-notice transition, Reader thaw across data invalidation, and normal conversation-removal admission. A preliminary complete local run was1703PASS/6FAIL: two exact CI dependency guards needed the added candidate job, three existing paging fixtures lacked the new navigation/descriptor fields, and the unchanged10k history-performance fixture again exceeded its bound. The five integration-fixture failures are corrected without weakening their oracles; all105 affected correction cases pass. This preliminary run spanned active review edits and is not exact-tree certification. Privacy58 and static package/development guards pass. Local adapter browser setup failed before its hook; native/browser and complete exact-head acceptance remain hosted gates.
+
+Remaining native source/release proof: deep Archive two-page/query/sort/expanded/body/undo return; deep Thought root/Content/Years scope/extent/anchor return; standalone fresh reopen/undo; rejected dirty/IME/failed leave; held reads and late acknowledgements; Back/Forward/Escape/sidebar, repeated routes and expired sessions; changed/removed/purged origins; exact optional Topic/relation semantics; actual T05 paired pixels at the approved widths/themes,200% text, coarse pointer, keyboard and reduced motion. Run existing complete regressions, independent source/pixel review, full certification and exact-main checks before adoption. Physical devices/IME and final owner visual acceptance remain separate gates. Public consumer release stays held.
+
+
+## Finite visual-scope boundary
+
+D5 is visual/interaction convergence, as defined by [D5 Visual Convergence §1–2](../../design/foundation/desktop-vnext/D5_VISUAL_CONVERGENCE.md). This batch ends when the existing write Thought → save → return to the same origin → continue editing flow passes actual source/release, paired T05 review and required full/exact-main gates. It adds no business operation or durable data owner.
+
+| Local change | Approved T05 compatibility requirement |
+| --- | --- |
+| Compose HTML/CSS and AppShell route | Reproduce the frozen main-workspace composer while keeping the existing TopicActions draft/command owner |
+| Reader window refs, fresh reads, focus and retry | Replacing a modal with a route must preserve the origin's range, query, sort, current text and usable return; no body in route metadata |
+| Topic inactive-read and leave fences | A departed origin cannot remount or scroll/focus over the composer |
+| Existing transient Undo export/import and pending-history guard | Intentional safe remount must not drop the existing application Undo or let its old callback overwrite the returned owner |
+| Clickable success-notice navigation guard | The new nonmodal presentation must honor a refused or superseded departure |
+| Existing native selector migrations, additive8-case browser file and CI guards | Retain old operation assertions and prove the changed route; no skipped old files, timeout increase or reduced aggregate |
+
+Review caught one accidental undefined guard in existing conversation removal. The exact original guard is restored; a retained failing actual-function regression and15 passing owning removal cases distinguish the repair from a new removal feature. Review also retained concrete late-Undo and data-epoch/thaw counterexamples. The local corrections are not browser acceptance.
+
+All68 existing full-browser files retain their exact six-job placement. [Q6b full mapping](D5-Q6B-FULL-MATRIX.json) adds only the complete new source/release file to existing shard6. Its prior577s leaves503s under the unchanged18-minute job cap; actual fit must pass rather than be assumed. The separate12-minute candidate job requires8/8 native cases,8 exact-head final receipts and20 paired comparison rows. Old23-case compose candidate and its20 outcome receipts remain required separately.
+
+After this batch, known remaining visual groups are Topic header/actions/year navigation, Organize representative states, Context representative states, and Settings/recovery/import representative states. The finite D5 exit remains the canonical family/state comparison and retirement ledger plus the exact-candidate review set and explicit owner visual acceptance in D5 §8. Unrelated historical behavior repairs, including the unproven all-empty reload caret case, stay in their separate backlog/evidence class and do not expand this T05 batch.

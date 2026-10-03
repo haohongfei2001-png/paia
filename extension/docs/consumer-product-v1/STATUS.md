@@ -1,5 +1,12 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q6b — T05 workspace and safe origin return — 2026-10-03
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q6B`.**
+Q6a [PR131](https://github.com/haohongfei2001-png/paia/pull/131) is adopted at `f11675ce73cd7a023889e7a1673f4837283cedc1`. Head `c36f4383bb0d73ed43b6d7e783a3c5eeb6ad8db4`, tested merge `55008cca61b7328d8e1fe6302cae46700edce9d4` and main share tree `1485e28a4973d629d2e5ccaeabe586a924ed560c`. Full37136103888 passes1627 unit/239 browser/102 adapter/58 privacy, release, both Mac gates and aggregate. Exact-main37137588277 and Pages37137587915 PASS; main full/browser/Mac stages are intentionally skipped. Prior failed accounting/performance/overflow runs remain in [Q6a evidence](implementation/desktop-vnext/D5-Q6.md).
+
+Sole writer `feat/d5-q6-compose-route` continues [Q6b](implementation/desktop-vnext/D5-Q6B.md): safely leave and restore existing Reader/Thought origins, then mount the approved independent Thought composer as T05 in the existing AppShell/RouteHistory. The local candidate now implements the existing write Thought → save → same origin → continue editing flow. Its bounded route/leave/history compatibility repairs and actual native tests are under exact-head review; hosted browser, visual and full acceptance remain pending. Keep Q6a owner semantics, Source/Input/Thought boundaries, existing domain history/recovery and all safety gates. No second router, durable draft/body store, provider or permission. Browser extension remains the priority; other apps stay secondary when nonblocking. Remaining D5 surfaces and final owner visual acceptance remain open; public consumer release and install-package delivery stay held. Older controlling entries below are historical.
+
 ## D5/Q6 — independent Thought composition and acknowledgement ownership — 2026-10-03
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q6A`.**

@@ -49,11 +49,12 @@ export function group(file) {
  * preserving every case/fixture and the unchanged18-minute job limit.
  */
 export function testShard(file, position, total, category) {
- const name=file.split('/').at(-1),purge='cpv1-02-dvn-purge-chrome-e2e.test.mjs',removal='cpv1-02-dvn-removal-chrome-e2e.test.mjs',search='cpv1-02-dvn-search-chrome-e2e.test.mjs',directEdit='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs';
+ const name=file.split('/').at(-1),compose='cpv1-02-dvn-compose-chrome-e2e.test.mjs',purge='cpv1-02-dvn-purge-chrome-e2e.test.mjs',removal='cpv1-02-dvn-removal-chrome-e2e.test.mjs',search='cpv1-02-dvn-search-chrome-e2e.test.mjs',directEdit='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs';
  // Full37134318053 exhausted2/4's18-minute budgets. Preserve all65
  // other placements; move complete Thought ownership to6 and the measured
  // Content/Years pair onto5's spare capacity. No file/case is split or skipped.
  if(category==='browser E2E'&&total===6){
+  if(name===compose)return 6;
   if(name==='ux-r3-thought-chrome-e2e.test.mjs')return 6;
   if(['cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs'].includes(name))return 5;
   return testShard(file,position,5,category);
@@ -66,6 +67,9 @@ export function testShard(file, position, total, category) {
  // Put the complete six Source/release purge journeys on2; retain all cases
  // and the unchanged18-minute budget, without shifting every later file.
  if(category==='browser E2E'&&total===4){
+  // One new complete Q6b file; remove its sorted insertion from the historical baseline.
+  if(name===compose)return 4;
+  if(name>compose)position--;
   if(name==='desktop-vnext-context-chrome-e2e.test.mjs')return 3;
   if(name>'desktop-vnext-context-chrome-e2e.test.mjs')position--;
   // D3 adds its entire source/release file to1; all66 previous placements stay.
