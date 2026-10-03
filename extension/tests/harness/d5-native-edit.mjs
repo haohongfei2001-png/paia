@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {eventually} from './fake-chatgpt.mjs';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 export async function verifyD5NativeEdit({h,p,field,id,variant,segment}){
@@ -11,17 +11,37 @@ export async function verifyD5NativeEdit({h,p,field,id,variant,segment}){
  const neutralReplacementProbe=async expected=>{
   const events=await p.evaluate(()=>__d5NativeEvents),before=[...events].reverse().find(event=>event.type==='beforeinput'&&event.inputType==='insertText'&&event.data===expected);
   if(!before||!outcomes.length)return null;
-  const page=await h.context.newPage(),rows=[];
-  try{
-   await page.setContent('<!doctype html><meta charset="utf-8"><style>body{font:18px/1.85 system-ui;margin:24px}#neutral{white-space:pre-wrap;min-height:80px;outline:1px solid #777}</style><div id="neutral" data-edit-id="neutral" contenteditable="plaintext-only"></div>');await page.evaluate(observe);
-   for(const shape of ['retained-dom','canonical-text'])for(const action of ['fill','keyboard']){
-    await page.evaluate(({html,body,shape})=>{const el=document.getElementById('neutral');if(shape==='retained-dom')el.innerHTML=html;else el.textContent=body;globalThis.__d5NativeEvents=[];},{html:before.html,body:outcomes.at(-1).expected,shape});
-    const field=page.locator('#neutral');if(action==='fill')await field.fill(expected);else{await field.focus();await page.keyboard.press('Control+a');await page.keyboard.insertText(expected);}
-    rows.push({shape,action,expected,after:await field.evaluate(el=>({html:el.innerHTML,text:el.innerText,textContent:el.textContent})),events:await page.evaluate(()=>__d5NativeEvents)});
+  const definitions=new Map([...before.elements,...before.nodes].map(node=>[node.id,node])),tree=id=>{const node=definitions.get(id);return node.name?{id,name:node.name,children:node.children.map(tree)}:{id,data:node.data};},topology=tree(before.elements[0].id);
+  const presentation=await field.evaluate(el=>({className:el.className,theme:document.documentElement.dataset.paiaTheme,lang:document.documentElement.lang,rootStyle:document.documentElement.style.cssText,css:[...document.styleSheets].flatMap(sheet=>[...sheet.cssRules].map(rule=>rule.cssText)).join('\n')}));
+  const moduleSource=await readFile(new URL('../../ui/editable-text.js',import.meta.url),'utf8'),rows=[];
+  const shapes=['retained-dom','canonical-text','exact-topology','exact-topology-ranges','exact-topology-listeners','exact-topology-css','exact-topology-css-ranges-listeners'];
+  for(const shape of shapes)for(const action of ['fill','keyboard']){
+   let page;
+   try{
+    page=await h.context.newPage();await page.setContent('<!doctype html><meta charset="utf-8"><style>body{font:18px/1.85 system-ui;margin:24px}#neutral{white-space:pre-wrap;min-height:80px;outline:1px solid #777}</style><div id="document-body"><section class="library-block"><div id="neutral" data-edit-id="neutral" contenteditable="plaintext-only"></div></section></div>');
+    if(shape.includes('css')){await page.addStyleTag({content:presentation.css});await page.evaluate(style=>{const el=document.getElementById('neutral');el.className=style.className;document.documentElement.dataset.paiaTheme=style.theme;document.documentElement.lang=style.lang;document.documentElement.style.cssText=style.rootStyle;},presentation);}
+    const prepared=await page.evaluate(({html,body,shape,topology})=>{
+     const el=document.getElementById('neutral'),nodes=new Map();const build=node=>{const value=node.name?document.createElement(node.name):document.createTextNode(node.data);nodes.set(node.id,value);if(node.name)value.append(...node.children.map(build));return value;};
+     if(shape==='retained-dom')el.innerHTML=html;else if(shape==='canonical-text')el.textContent=body;else el.replaceChildren(...topology.children.map(build));
+     const describe=node=>node.nodeType===3?{data:node.data}:{name:node.nodeName,children:[...node.childNodes].map(describe)},expected=node=>node.name?{name:node.name,children:node.children.map(expected)}:{data:node.data},exactTopology=JSON.stringify(describe(el))===JSON.stringify(expected(topology));
+     globalThis.__d5Ranges=[];if(shape.includes('ranges')){const texts=[...nodes.values()].filter(node=>node.nodeType===3);for(const node of [texts[0],texts.at(-1)]){const range=document.createRange();range.setStart(node,0);range.setEnd(node,node.length);__d5Ranges.push(range);}const selected=document.createRange();selected.selectNodeContents(el);__d5Ranges.push(selected);}
+     return {exactTopology,topology:describe(el),liveRanges:__d5Ranges.length};
+    },{html:before.html,body:outcomes.at(-1).expected,shape,topology});
+    if(shape.startsWith('exact-topology'))assert.equal(prepared.exactTopology,true,'neutral replay preserves every adjacent Text-node boundary');
+    await page.evaluate(observe);
+    if(shape.includes('listeners'))await page.evaluate(async code=>{
+     const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));try{const {editableTextSnapshot,NativeLineBreakTracker}=await import(url),el=document.getElementById('neutral'),owner=new NativeLineBreakTracker();
+      el.addEventListener('beforeinput',event=>{owner.before(el,event,getSelection());const selection=getSelection();if(selection.rangeCount){const range=selection.getRangeAt(0);range.intersectsNode(el);for(const old of __d5Ranges){range.isPointInRange(old.startContainer,old.startOffset);range.isPointInRange(old.endContainer,old.endOffset);}}});
+      el.addEventListener('input',event=>owner.input(el,event,getSelection()));document.addEventListener('selectionchange',()=>{editableTextSnapshot(el);const selection=getSelection();if(selection.rangeCount){globalThis.__d5SelectedRange=selection.getRangeAt(0).cloneRange();__d5SelectedRange.getClientRects();}});
+     }finally{URL.revokeObjectURL(url);}
+    },moduleSource);
+    const neutral=page.locator('#neutral');if(action==='fill')await neutral.fill(expected);else{await neutral.focus();await page.keyboard.press('Control+a');await page.keyboard.insertText(expected);}
+    rows.push({shape,action,expected,prepared,trackerHistory:shape.includes('listeners')?'fresh tracker; prior product provenance is not reconstructed':null,after:await neutral.evaluate(el=>({html:el.innerHTML,text:el.innerText,textContent:el.textContent})),events:await page.evaluate(()=>__d5NativeEvents)});
     await page.screenshot({path:`work/qa-dvn-direct-edit/d5-reading-surfaces/${variant}-${segment}-neutral-${shape}-${action}.png`});
-   }
-   return {before,canonicalBody:outcomes.at(-1).expected,rows,scope:'Offline neutral plaintext-only field; diagnostic comparison, not production acceptance'};
-  }finally{await page.close();}
+   }catch(error){rows.push({shape,action,error:String(error)});}
+   finally{if(page)await page.close().catch(error=>rows.push({shape,action,closeError:String(error)}));await writeFile(`work/qa-dvn-direct-edit/d5-reading-surfaces/${variant}-${segment}-neutral-partial.json`,JSON.stringify({before,canonicalBody:outcomes.at(-1).expected,rows},null,2));}
+  }
+  return {before,canonicalBody:outcomes.at(-1).expected,rows,scope:'Fresh offline neutral fields: exact node topology, live Ranges, copied product CSS and read-only tracker/selection listeners isolated; no storage or product acceptance'};
  };
  try{
  const saved=async(expected,label)=>{
