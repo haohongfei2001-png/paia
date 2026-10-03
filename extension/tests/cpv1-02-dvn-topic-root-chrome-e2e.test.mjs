@@ -1,3 +1,4 @@
+import {openD5ThoughtRoot,observeD5ThoughtRootScroll,verifyD5ThoughtRootTextZoom} from './harness/d5-thought-root.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -11,7 +12,7 @@ console.log(execFileSync('python3',['scripts/build_current_release.py',release],
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 const op=()=>crypto.randomUUID();
 for(const variant of ['source','release'])test(`D2 compact Topic root migrates grid and renders exact excerpts with actual worker chronology (${variant})`,{timeout:120000},async()=>{
- const h=await FakeChatGPT.start(variant==='release'?{extensionPath:release}:{}),p=h.archive;
+ const h=await FakeChatGPT.start(variant==='release'?{extensionPath:release}:{}),p=h.archive;let d5;
  try{
   await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const name='SYNTHETIC 长主题名称 '+('长期保留原话与不确定性 '.repeat(6)),body='  SYNTHETIC 我可能更适合消费产品，但现在样本还太少。👩‍💻 é\n'+('不自动改写结论。'.repeat(30));
@@ -19,7 +20,7 @@ for(const variant of ['source','release'])test(`D2 compact Topic root migrates g
   const original=await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id});
   const excerpt=await rpc(p,'ADD_TO_TOPICS',{selection:{operationId:op(),kind:'thought',id:created.id,expectedRevision:original.revision,span:{start:0,end:11},topicIds:[topic.id]}});
   await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local);await s.foundationWrite(t=>t.put('meta',{id:'thought-layout:v1',version:1,layout:'grid'}));});
-  await p.reload();await p.locator('[data-view="thoughts"]').click();
+  await p.reload();await observeD5ThoughtRootScroll(p);await p.locator('[data-view="thoughts"]').click();
   await eventually(()=>p.locator(`[data-topic-id="${topic.id}"]`).count().then(n=>n===1));
   assert.equal((await rpc(p,'GET_THOUGHT_LAYOUT')).layout,'list');
   const migration=await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local);return s.repository.transaction(false,t=>t.get('meta','thought-layout:v1'));});
@@ -32,7 +33,7 @@ for(const variant of ['source','release'])test(`D2 compact Topic root migrates g
   const timeline=await rpc(p,'GET_LIBRARY_TOPIC_TIMELINE',{options:{topicId:topic.id}});
   assert.equal(timeline.overview.total,2);assert.equal(timeline.overview.unknownCount,1);
   assert.equal(timeline.items.find(x=>x.entry.id===excerpt.id).entry.expressionTime.basis,'unknown');
-  mkdirSync('work/qa-dvn-topic-root',{recursive:true});const matrix=[];
+  mkdirSync('work/qa-dvn-topic-root',{recursive:true});const matrix=[];d5=await openD5ThoughtRoot(h,variant);
   for(const appearance of ['light','dark']){
    await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});
    for(const width of [1440,1280,1024,768,390,320]){
@@ -40,11 +41,12 @@ for(const variant of ['source','release'])test(`D2 compact Topic root migrates g
     const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth);assert.ok(overflow<=2,`${appearance}/${width}: ${overflow}`);
     const style=await row.evaluate(el=>({border:getComputedStyle(el).borderRadius,title:getComputedStyle(el.querySelector('strong')).webkitLineClamp}));
     assert.equal(style.border,'0px');assert.ok(!style.title||style.title==='none','complete title is not line-clamped');
-    await p.screenshot({path:`work/qa-dvn-topic-root/${variant}-${appearance}-${width}.png`});matrix.push({appearance,width,overflow});
+    await p.screenshot({path:`work/qa-dvn-topic-root/${variant}-${appearance}-${width}.png`});matrix.push({appearance,width,overflow});await d5.capture(width,appearance);
    }
   }
-  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>row.locator('small').textContent().then(x=>/Thought excerpt/.test(x)));assert.equal(await p.locator('#thought-search').getAttribute('placeholder'),'Search thoughts, topics or text…');assert.doesNotMatch(await p.locator('#thought-home-tools').innerText(),/[\u3400-\u9fff]/,'root product controls follow English locale');
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>row.locator('small').textContent().then(x=>/Thought excerpt/.test(x)));assert.equal(await p.locator('#thought-search').getAttribute('placeholder'),'Search thoughts, topics or text…');assert.doesNotMatch(await p.locator('#thought-home-tools,#thought-root-source').allTextContents().then(rows=>rows.join(' ')),/[\u3400-\u9fff]/,'root product controls follow English locale');
   assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id})).body,body);
+  await p.evaluate(()=>globalThis.__d5ThoughtRootNodes=[document.getElementById('thought-search'),document.getElementById('thought-home-tools')]);await p.locator('[data-view="settings"]').click();await eventually(()=>p.locator('#settings-panel').isVisible(),'Settings navigation completes before checking off-route controls');assert.equal(await p.locator('#thought-root-header').isVisible(),false);assert.equal(await p.locator('#thought-root-source').isVisible(),false);assert.equal(await p.locator('#thought-topic-header').isVisible(),false);await p.locator('[data-view="thoughts"]').click();await eventually(()=>row.isVisible());assert.equal(await p.evaluate(()=>__d5ThoughtRootNodes[0]===document.getElementById('thought-search')&&__d5ThoughtRootNodes[1]===document.getElementById('thought-home-tools')&&__d5ThoughtRootNodes.every(node=>node.isConnected)),true,'route handoff keeps the same control/listener owners');
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__d2RestoreSend=()=>chrome.runtime.sendMessage=send;globalThis.__d2Held=[];chrome.runtime.sendMessage=(message,...args)=>{const result=send(message,...args);return message.type==='LIBRARY_INDEX_PAGE'?Promise.resolve(result).then(value=>new Promise(resolve=>__d2Held.push(()=>resolve(value)))):result;};});
   await p.locator('[data-view="thoughts"]').click();await eventually(()=>p.evaluate(()=>__d2Held.length>0),'root reread is held before mutation');
   const live=await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id}),replacement='SYNTHETIC newer independent expression';
@@ -53,10 +55,10 @@ for(const variant of ['source','release'])test(`D2 compact Topic root migrates g
   await p.evaluate(old=>{globalThis.__d2StaleRendered=false;globalThis.__d2CueObserver=new MutationObserver(()=>{if(document.getElementById('thought-list').textContent.includes(old))__d2StaleRendered=true;});__d2CueObserver.observe(document.getElementById('thought-list'),{subtree:true,childList:true,characterData:true});__d2RestoreSend();for(const finish of __d2Held)finish();},cue.text);
   await eventually(()=>row.locator('.summary').textContent().then(text=>text===replacement),'queued fresh read uses the new authoritative text');
   assert.equal(await p.evaluate(()=>__d2StaleRendered),false,'late pre-mutation root response never resurrects its excerpt');await p.evaluate(()=>__d2CueObserver.disconnect());
-  await p.evaluate(()=>{globalThis.__d2ZoomRows=[...document.querySelectorAll('#thought-panel button,#thought-panel strong,#thought-panel span,#thought-panel small,#thought-panel p,#thought-panel label,#thought-panel select')].map(node=>({node,size:getComputedStyle(node).fontSize,prior:node.style.fontSize}));for(const row of __d2ZoomRows)row.node.style.fontSize=(parseFloat(row.size)*2)+'px';scrollTo(0,0);});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth<=2),'200% text at320px has no page horizontal overflow');await p.screenshot({path:`work/qa-dvn-topic-root/${variant}-text200-320.png`});await p.evaluate(()=>{for(const row of __d2ZoomRows)row.node.style.fontSize=row.prior;delete globalThis.__d2ZoomRows;});
+  await verifyD5ThoughtRootTextZoom(p,variant);
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
-  writeFileSync(`work/qa-dvn-topic-root/${variant}.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,matrix,text200Reflow:true,migration:true,sourceUnchanged:true,zeroProviderCalls:true},null,2));
- }finally{await h.close();}
+  await d5.finish();writeFileSync(`work/qa-dvn-topic-root/${variant}.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,matrix,text200Reflow:true,migration:true,sourceUnchanged:true,zeroProviderCalls:true},null,2));
+ }finally{await d5?.close();await h.close();}
 });
 
 for(const variant of ['source','release'])test(`D2 actual300 Topic DTO window, exact refetch and search/Back (${variant})`,{timeout:180000},async()=>{
@@ -77,7 +79,7 @@ for(const variant of ['source','release'])test(`D2 actual300 Topic DTO window, e
   const audit=await p.evaluate(()=>{const w=__d2Root,r=w.homeCollection;return {ids:r.items.map(x=>x.ref.id),extent:r.items.length,retained:r.bodies.size,unique:new Set([...r.bodies.values(),...w.homePage.page.items]).size,snapshot:JSON.stringify(r.snapshot()),metadata:JSON.stringify(r.pageMeta),mounted:document.querySelectorAll('#thought-list [data-topic-id]').length};});
   assert.deepEqual([...audit.ids].sort(),[...seed.ids].sort());assert.equal(audit.extent,300);assert.ok(audit.retained<=120);assert.ok(audit.unique<=120);assert.ok(audit.mounted<=120);assert.doesNotMatch(audit.snapshot,/SYNTHETIC_DENSE_CUE|这是保留完整名称/);assert.doesNotMatch(audit.metadata,/SYNTHETIC_DENSE_CUE|summary|recent/);
   const mounted=p.locator('#thought-list [data-topic-id]'),row=mounted.nth(60),id=await row.getAttribute('data-topic-id');await row.scrollIntoViewIfNeeded();
-  const anchor=await row.evaluate(node=>({id:node.dataset.topicId,top:node.getBoundingClientRect().top}));await row.click();await eventually(()=>p.locator('#thought-document').isVisible());
+  const anchor=await row.evaluate(node=>({id:node.dataset.topicId,top:node.getBoundingClientRect().top}));await row.click();await eventually(()=>p.locator('#thought-document').isVisible());assert.equal(await p.locator('#thought-root-header').isVisible(),false);assert.equal(await p.locator('#thought-root-source').isVisible(),false);assert.equal(await p.locator('#thought-topic-header').isVisible(),true);assert.equal(await p.locator('#thought-topic-header #topic-search').count(),1,'same sole Topic search lives in the route-fenced header');
   assert.equal(await p.locator('#thought-list [data-topic-id]').count(),0,'hidden root holds no body-bearing nodes or old closures');assert.equal(await p.evaluate(()=>__d2Root.homeCollection.bodies.size),0,'Topic route releases root DTO bodies');assert.doesNotMatch(await p.evaluate(()=>JSON.stringify(__d2Root.homePositions.get('home'))),/SYNTHETIC_DENSE_CUE/);
   await p.locator('#back').click();await eventually(()=>p.locator(`[data-topic-id="${id}"]`).count().then(n=>n===1),'Back refetches exact prior window');await eventually(()=>p.locator(`[data-topic-id="${id}"]`).evaluate((node,a)=>Math.abs(node.getBoundingClientRect().top-a.top)<140,anchor),'Back restores stable row anchor');assert.equal(await p.evaluate(()=>__d2Root.homeCollection.items.length),300);
   await p.locator('#thought-search').fill('D2_DENSE_007');await eventually(()=>p.locator('#thought-list .topic-index-row').count().then(n=>n===1),'full root search reaches an evicted item');assert.match(await p.locator('#thought-list').innerText(),/D2_DENSE_007/);assert.doesNotMatch(await p.evaluate(()=>JSON.stringify(__d2Root.rootPreSearch)),/SYNTHETIC_DENSE_CUE/);

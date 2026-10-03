@@ -24,3 +24,10 @@ test('the shell owns primary navigation and the visible content container',()=>{
  assert.deepEqual(ids.filter(id=>!panels.get(id).hidden),['thought-panel']);
  assert.equal(buttons[1].attributes['aria-current'],'page');
 });
+
+test('Thought header slots stay consent- and route-owned even when a late page read unhides its inner controls',()=>{
+ const names=['thought-root-header','thought-root-source','thought-topic-header'],panels=new Map(names.map(id=>[id,{hidden:true}])),root={getElementById:id=>panels.get(id),querySelectorAll:()=>[]};
+ for(const [route,consented,shown]of [[{view:'thoughts'},true,['thought-root-header','thought-root-source']],[{view:'thoughts',topicId:'topic'},true,['thought-topic-header']],[{view:'thoughts'},false,null],[{view:'thoughts',topicId:'topic'},false,null],[{view:'library'},true,null],[{view:'memory'},true,null],[{view:'settings'},true,null]]){
+  presentAppShell(root,route,{consented});assert.deepEqual(names.filter(id=>!panels.get(id).hidden),shown||[]);
+ }
+});

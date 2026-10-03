@@ -1,5 +1,14 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q4 — Thought root and header composition — 2026-10-03
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q4`.**
+D5/Q3 [PR128](https://github.com/haohongfei2001-png/paia/pull/128) is integrated at `4dd502d45ceb9a624ea07fed43626764f21ee45d`. Reviewed head `7622226dd3df57784925bc393534f293963f5bfa`, full-tested merge `3aa3790cd334f504af113e718d520369e763a9a7` and main share tree `2ef5422be8e27eb4d072a724f0c369f9ad12ea76`. Candidate37115388267, full37116026116, exact-main37117018508 and Pages37117018274 PASS. Full proof:1606 unit/217 current-browser/102 adapter/58 privacy cases, release and hosted Mac lifecycle/Secure Store. Main browser/Mac/full were SKIPPED, not a second full certification. Earlier failures remain in [Q3 evidence](implementation/desktop-vnext/D5-Q3.md).
+
+Sole writer `feat/d5-q4-thought-root` now applies the already-reviewed [Q4](implementation/desktop-vnext/D5-Q4.md) T01/T06 root/header composition using the same Topic/search/source-filter owners and DOM nodes. Preserve route/consent fencing, two-way product-control locale changes, complete authored titles/cues, actual attribution/time, dense navigation, B-01 and Topic-note recovery. Paired actual source/release reference pixels and affected/full browser gates remain pending. The explicit Context maximum remains880px; specimen-container differences are retained, not hidden through tolerance changes.
+
+Q3's accepted native journey covers exact bulk/line/replacement/selection/reload,43 terminal-lifecycle steps per variant and immutable Source. It is not universal native-editor certification: reloaded all-empty literal bodies still need a separate caret-continuation proof, as do physical IME and real devices. No general whitespace normalization is authorized. Final D5 owner visual acceptance is still OPEN; public consumer release and further install-package delivery remain held.
+
 ## D5/Q3 — reading surfaces in progress — 2026-10-02
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q3`.**

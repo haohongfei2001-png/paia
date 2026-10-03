@@ -1,12 +1,16 @@
-/* UX-R3 uses the shared UX-R1 tokens; no new theme or content layer. */
-.topic-compact-list{display:block;max-width:900px;margin-inline:auto}
+/* D5 Thought root/search presentation. Existing Topic data and query owners. */
+.topic-index-row{display:flex;flex-direction:column;gap:8px;text-align:left;width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:24px 0}
+.topic-index-row strong{font-size:19px;line-height:1.5;font-weight:700}
+.topic-index-row .summary{font-size:14px;line-height:1.5;color:var(--muted);white-space:pre-wrap}
+.topic-index-row small{font-size:12px;line-height:1.5;color:var(--quiet)}
+#thought-list.topic-compact-list{display:block;max-width:880px;margin-inline:auto}
 .topic-compact-row{position:relative;border-bottom:1px solid var(--paia-line);min-width:0}
-.topic-compact-row>.topic-index-row{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;width:100%;padding:22px 52px 22px 0;border:0;border-radius:0;background:transparent;color:var(--paia-text);min-height:0;height:auto}
-.topic-compact-row>.topic-index-row strong{font-size:20px;line-height:1.45;white-space:normal;overflow-wrap:anywhere}
-.topic-compact-row .summary{font-size:15px;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--paia-text)}
+.topic-compact-row>.topic-index-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;text-align:left;gap:8px 12px;width:100%;padding:24px 52px 24px 0;border:0;border-radius:0;background:transparent;color:var(--paia-text);min-height:0;height:auto}
+.topic-compact-row>.topic-index-row strong{font-synthesis:weight;grid-column:1;min-width:0;font-size:19px;line-height:1.5;font-weight:700;white-space:normal;overflow-wrap:anywhere}
+.topic-compact-row .summary{grid-column:1;min-width:0;font-size:14px;line-height:1.5;max-width:580px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted)}
 .topic-compact-row .summary:empty{display:none}
-.topic-compact-row small{font-size:12px;line-height:1.6;color:var(--paia-meta)}
-.topic-compact-row>.library-actions{position:absolute;right:0;top:20px;z-index:2}
+.topic-compact-row small{grid-column:2;grid-row:1 / span 2;max-width:180px;font-size:12px;line-height:1.5;color:var(--paia-meta)}
+.topic-compact-row>.library-actions{position:absolute;right:0;top:24px;z-index:2}
 .topic-compact-row .library-action-list{right:0;top:32px}
 .topic-compact-row>.library-actions>summary{min-width:44px;min-height:44px;display:grid;place-items:center}
 .topic-action-dialog { width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:24px;border:1px solid var(--paia-control);border-radius:8px;color:var(--paia-text);background:var(--paia-surface); }
@@ -21,8 +25,6 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 .topic-choice-list label {display:flex;align-items:center;gap:12px;min-height:44px;}
 .thought-draft {min-height:180px;width:100%;font:inherit;line-height:1.9;resize:vertical;}
 .topic-action-feedback {white-space:normal;overflow-wrap:anywhere;}
-#thought-home-tools {display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
-#thought-home-tools .thought-search-row {flex:1;min-width:160px;}
 #topic-body .entry-provenance {display:block;}
 #topic-body .entry-prose {font-size:var(--paia-prose-size,17px);line-height:1.9;}
 #topic-body .library-entry {border:0;background:transparent;padding-block:16px;}
@@ -34,6 +36,8 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 #topic-body .section-heading:has(h2:empty) {display:none;}
 
 @media(max-width:767px){
+ .topic-compact-row>.topic-index-row{grid-template-columns:minmax(0,1fr)}
+ .topic-compact-row small{grid-column:1;grid-row:auto;max-width:none}
  .topic-action-dialog {width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border-radius:0;padding:20px;}
  .topic-action-dialog button {min-height:44px;}
 
@@ -58,15 +62,33 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 @media(prefers-reduced-motion:reduce){.ai-first-generation,.ai-update-candidate{scroll-behavior:auto}}
 
 /* UIR-03 execution 1: Thought home and Topic Original stay on the existing owners. */
-body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-panel {
- width:100%;max-width:min(1280px,100%);margin:0 auto;color:var(--paia-text);
-}
-#thought-home-tools {max-width:1280px;margin:8px auto 20px;gap:10px 12px;align-items:center;}
-#thought-home-tools .thought-search-row {flex:1 1 320px;min-width:min(100%,260px);}
-#thought-home-tools #thought-search {width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--paia-subtle);border-radius:8px;background:var(--paia-surface);color:var(--paia-text);}
-#thought-home-tools #thought-search::placeholder {color:var(--paia-meta);}
-#thought-home-tools>button,#thought-home-tools>.library-actions>summary {min-height:40px;padding:8px 10px;color:var(--paia-secondary);}
-#thought-collection {width:100%;max-width:none;margin:0 auto;}
+/* Thought root owns its compact editorial list. The shell header slots keep
+   the same controls and are consent/route fenced independently of late reads. */
+body[data-paia-space="thoughts"] .workspace{padding:0 0 64px}
+body[data-paia-space="thoughts"] #page-breadcrumb{display:none}
+body[data-paia-space="thoughts"] .workspace-header{min-height:72px;padding:18px 28px;margin:0;border-bottom:1px solid var(--line)}
+#thought-root-header,#thought-topic-header{min-width:0;flex:1}
+#thought-root-header[hidden],#thought-topic-header[hidden],#thought-root-source[hidden]{display:none}
+#thought-panel{width:100%;max-width:calc(var(--context) + 64px);padding:54px 32px 80px;margin:auto;color:var(--text)}
+#thought-root-heading{max-width:880px;margin-inline:auto}
+#thought-root-heading h1{font-synthesis:weight;font-size:28px;line-height:1.35;font-weight:600;margin:0 0 16px}
+#thought-home-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:0;max-width:none}
+#thought-home-tools .thought-search-row{display:flex;align-items:center;gap:8px;flex:0 1 auto;min-width:0;margin:0;color:var(--muted)}
+#thought-home-tools .thought-search-icon{flex:none}
+#thought-home-tools #thought-search,#thought-topic-header #topic-search{width:100%;min-width:0;max-width:310px;min-height:36px;margin:0;padding:8px 12px;border:0;border-radius:6px;background:var(--rail);color:var(--text);font-size:14px;line-height:21px}
+#thought-home-tools #thought-search{width:min(310px,45vw)}
+#thought-home-tools #thought-search::placeholder,#thought-topic-header #topic-search::placeholder{color:var(--muted)}
+#thought-home-tools>button,#thought-home-tools>.library-actions>summary{min-height:36px;padding:6px 12px;color:var(--text);border:0}
+#thought-home-tools>.library-actions{margin-left:auto}
+#thought-root-source{max-width:880px;margin:0 auto 16px}
+#thought-root-source .thought-source-scope-label{white-space:nowrap;margin:0;font-size:12px;max-width:100%}
+#thought-root-source #thought-source-scope{flex:0 1 310px;min-width:0;min-height:36px;max-width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+#thought-collection{width:100%;max-width:880px;margin:0 auto}
+body[data-paia-space="thoughts"] #workspace-error{padding:16px 32px}
+@media(min-width:1024px) and (max-width:1439px){#thought-panel{padding:40px 24px 64px}body[data-paia-space="thoughts"] .workspace-header{padding:16px 24px}}
+@media(min-width:768px) and (max-width:1023px){#thought-panel{padding:32px 24px 64px}body[data-paia-space="thoughts"] .workspace-header{padding:16px 24px}}
+@media(max-width:767px){#thought-panel{padding:28px 16px 56px}#thought-root-heading h1{font-size:24px}body[data-paia-space="thoughts"] .workspace-header{padding:12px 16px;gap:8px}#thought-home-tools .thought-search-row{flex:1 1 100px;max-width:none}#thought-home-tools #thought-search{width:100%}body[data-paia-space="thoughts"] #workspace-error{padding-inline:16px}}
+@media(max-width:767px),(pointer:coarse){#thought-home-tools #thought-search,#thought-home-tools>button,#thought-home-tools>.library-actions>summary,#thought-topic-header #topic-search,#thought-root-source #thought-source-scope{min-height:44px}}
 
 #thought-document {width:100%;max-width:880px;margin:12px auto 0;}
 #thought-document .topic-title-row {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px 28px;align-items:start;}
@@ -79,8 +101,6 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #thought-document #topic-toolbar #create-entry {min-height:36px;padding:7px 10px;border:1px solid var(--paia-subtle);border-radius:8px;color:var(--paia-accent);background:var(--paia-surface);}
 #thought-document #topic-toolbar .library-history-tools {margin-left:auto;opacity:.7;pointer-events:auto;}
 #thought-document #topic-reading-controls {display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:10px 0 8px;padding:0;color:var(--paia-secondary);}
-#thought-document #topic-search {order:0;flex:1 1 240px;width:auto;max-width:360px;min-width:180px;min-height:40px;margin:0;padding:8px 10px;border:1px solid var(--paia-subtle);border-radius:8px;background:var(--paia-surface);color:var(--paia-text);}
-#thought-document #topic-search::placeholder {color:var(--paia-meta);}
 #thought-document #topic-time-order {display:flex;align-items:center;gap:8px;}
 #thought-document #topic-time-order button {min-height:36px;padding:6px 8px;}
 #thought-document #topic-outline {margin:8px 0 16px;color:var(--paia-secondary);}
@@ -100,7 +120,6 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 #thought-document .library-pagination {width:min(100%,var(--paia-prose-width,680px));margin:20px auto 0;}
 @media(max-width:767px){
  #thought-home-tools {align-items:stretch;}
- #thought-home-tools .thought-search-row {flex-basis:100%;}
  #thought-home-tools>button,#thought-home-tools>.library-actions>summary{min-height:44px;min-width:44px;}
  #thought-document .topic-title-row {grid-template-columns:1fr;gap:10px;}
  #thought-document #topic-heading h1 {font-size:28px;}
@@ -110,7 +129,6 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
  #thought-document #topic-toolbar button,#thought-document #topic-toolbar summary,#thought-document #topic-reading-controls button,#thought-document #topic-outline>summary {min-height:44px;}
  #thought-document #topic-toolbar .library-history-tools {margin-left:0;}
  #thought-document #topic-reading-controls {align-items:stretch;}
- #thought-document #topic-search {flex-basis:100%;width:100%;max-width:none;min-height:44px;}
  #original-reading-body .topic-section {width:100%;margin:24px auto 38px;}
  #original-reading-body .entry-meta {opacity:1;}
  #original-reading-body .entry-meta>.library-actions>summary,#original-reading-body .entry-provenance>summary,#original-reading-body .entry-note>summary {min-height:44px;}
@@ -198,7 +216,6 @@ body:has(#primary-nav [data-view="thoughts"][aria-current="page"]) #thought-pane
 @media(max-width:767px){.topic-timeline{margin:16px 0}.topic-year-section{padding:22px 0}.topic-original-tabs{gap:18px}.topic-expression-dialog{padding:16px}}
 
 /* D2 frozen root/Content cutover. Breakpoints inherit AppShell's 1440/1024/768 grid. */
-#thought-list.topic-compact-list{max-width:880px;margin-inline:auto}
 #thought-list .root-window-spacer{width:100%;min-height:1px;pointer-events:none}
 #thought-list .topic-index-row{min-width:0;max-width:100%;overflow-wrap:anywhere;white-space:normal}
 #thought-document #topic-time-order{gap:8px}
