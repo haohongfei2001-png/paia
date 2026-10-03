@@ -5,12 +5,13 @@ import {mkdtempSync,rmSync,mkdirSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {openD5ThoughtReading} from './harness/d5-thought-reading.mjs';
 const release=mkdtempSync(join(tmpdir(),'paia-d2-years-'));
 test.after(()=>rmSync(release,{recursive:true,force:true}));
 console.log(execFileSync('python3',['scripts/build_current_release.py',release],{encoding:'utf8'}));
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 for(const variant of ['source','release'])test(`D2 actual years, full-year search, return and mutation fences (${variant})`,{timeout:180000},async()=>{
- const h=await FakeChatGPT.start(variant==='release'?{extensionPath:release}:{}),p=h.archive;
+ const h=await FakeChatGPT.start(variant==='release'?{extensionPath:release}:{}),p=h.archive;let d5;
  try{
   await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const seed=await p.evaluate(async()=>{
@@ -30,13 +31,15 @@ for(const variant of ['source','release'])test(`D2 actual years, full-year searc
   assert.match(await p.locator('[data-year-section="2021"]').innerText(),/100/);assert.match(await p.locator('[data-year-section="2023"]').innerText(),/59/);assert.match(await p.locator('[data-year-section="2022"]').innerText(),/没有已收录记录/);
   assert.equal(await p.locator('[data-year-section="2021"] [data-expression-id]').count(),2);assert.equal(await p.locator('[data-year-section="2023"] [data-expression-id]').count(),2);assert.equal(await p.locator('[data-year-section="unknown"] [data-expression-id]').count(),1);
   assert.equal(await p.locator('#original-reading-body [data-entry-id]').count(),0,'content DTO DOM is released while years owns reading');
-  mkdirSync('work/qa-dvn-topic-years',{recursive:true});const matrix=[];
-  for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const width of [1440,1280,1024,768,390,320]){await p.setViewportSize({width,height:900});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth);assert.ok(overflow<=2,`${appearance}/${width}: ${overflow}`);await p.screenshot({path:`work/qa-dvn-topic-years/${variant}-${appearance}-${width}.png`});matrix.push({appearance,width,overflow});}}
+  mkdirSync('work/qa-dvn-topic-years',{recursive:true});const matrix=[];d5=await openD5ThoughtReading(h,variant,'years');
+  for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const width of [1440,1280,1024,768,390,320]){await p.setViewportSize({width,height:900});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth);assert.ok(overflow<=2,`${appearance}/${width}: ${overflow}`);await p.screenshot({path:`work/qa-dvn-topic-years/${variant}-${appearance}-${width}.png`});matrix.push({appearance,width,overflow});await d5.capture(width,appearance);}}
+  await d5.verifyPreferences();await d5.verifyTextZoom();await d5.state('known-empty','[data-year-section="2022"]');await d5.state('unknown','[data-year-section="unknown"]');
   await p.setViewportSize({width:1280,height:900});await p.locator('[data-open-year="2021"]').click();
   await eventually(()=>p.locator('#topic-timeline [data-expression-id]').count().then(n=>n>0));
   for(let i=0;i<4;i++){const next=p.locator('[data-timeline-after]');if(!await next.isVisible())break;const before=await p.locator('#topic-timeline [data-expression-id]').count();await next.click();await eventually(async()=>await p.locator('#topic-timeline [data-expression-id]').count()>before||await next.isHidden());}
   await eventually(()=>p.locator('#topic-timeline [data-expression-id]').count().then(n=>n===100));
   const ids=await p.locator('#topic-timeline [data-expression-id]').evaluateAll(nodes=>nodes.map(n=>n.dataset.expressionId));assert.deepEqual(ids,seed.ids.slice(0,100));
+  await d5.state('full-year','#topic-timeline>.topic-year-expression');
   const selected=seed.ids[80];await p.locator(`[data-expression-id="${selected}"]`).scrollIntoViewIfNeeded();
   await p.locator('#topic-search').fill('SYNTHETIC_LATE_MATCH');
   await eventually(()=>p.locator(`[data-expression-id="${seed.ids[155]}"]`).count().then(n=>n===1),'full-topic search reaches unmounted later year',30000);
@@ -64,7 +67,8 @@ for(const variant of ['source','release'])test(`D2 actual years, full-year searc
   for(let i=0;i<10;i++){if(await p.locator(`[data-expression-id="${sparse.first}"]`).count())break;const before=p.locator('[data-timeline-before]');assert.ok(await before.isVisible());await before.click();await eventually(async()=>await p.locator('#topic-timeline').getAttribute('aria-busy')!=='true');}
   await eventually(()=>p.locator(`[data-expression-id="${sparse.first}"]`).count().then(n=>n===1),'explicit backward reading reaches the first distant match without auto-forward bounce',30000);
   await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>p.locator('[data-topic-view="years"]').textContent().then(t=>t==='Through the years'));await eventually(()=>p.locator('#topic-timeline>h2').textContent().then(t=>t==='Matching expressions in this Topic'));
+  await d5.finish();
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   writeFileSync(`work/qa-dvn-topic-years/${variant}.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,matrix,dated:159,unknown:1,fullYear:100,queryReturn:true,tabReturn:true,rootReturn:true,imePreserved:true,mutationFence:true,sparseQuery241:true,zeroProviderCalls:true},null,2));
- }finally{await h.close();}
+ }finally{try{await d5?.close();}finally{await h.close();}}
 });
