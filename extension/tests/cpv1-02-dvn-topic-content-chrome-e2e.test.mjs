@@ -29,7 +29,7 @@ for(const variant of ['source','release'])test(`D2 Content trusted chronology, b
   assert.equal(await p.locator('#topic-time-order [data-reading-sort]').count(),1,'one frozen order toggle');assert.equal(await p.locator('#original-reading-body .reading-copy').count(),0,'Copy remains in row overflow');
   d5=await openD5ThoughtReading(h,variant,'content',seed.ordered[0]);
   for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const width of [1440,1280,1024,768,390,320]){await p.setViewportSize({width,height:900});await d5.capture(width,appearance);}}
-  await d5.verifyPreferences();await d5.verifyTextZoom();await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await p.setViewportSize({width:1440,height:900});
+  await d5.verifyPreferences();await d5.verifyTextZoom();await d5.finishInteractions();await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await p.setViewportSize({width:1440,height:900});
   const next=p.locator('#topic-continuous-after');
   for(let i=0;i<6;i++){if(/末尾/.test(await p.locator('#topic-continuous-after-status').textContent()))break;const before=await p.evaluate(()=>__d2Content.topicReader.items.length);await next.evaluate(node=>node.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})));await eventually(()=>p.evaluate(n=>__d2Content.topicReader.items.length>n||__d2Content.topicReader.terminalNext,before));}
   await eventually(()=>p.evaluate(()=>__d2Content.topicReader.terminalNext),'complete Content extent');

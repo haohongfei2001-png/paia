@@ -89,6 +89,12 @@ export async function openD5ThoughtReading(h,variant,kind,id){
     if(kind==='content')await overflowTarget('320px 200% text overflow');
    }finally{await p.evaluate(()=>{for(const item of globalThis.__d5ReadingZoom||[])item.node.style.setProperty('font-size',item.prior,item.priority);delete globalThis.__d5ReadingZoom;scrollTo(0,0);});await p.setViewportSize({width:1440,height:900});await frame(p);}
   },
+  async finishInteractions(){
+   if(kind!=='content')return;
+   const observe=label=>p.evaluate(label=>{const active=document.activeElement,selection=getSelection();return {label,active:{tag:active?.tagName,id:active?.id,entryId:active?.closest('[data-entry-id]')?.dataset.entryId||null},pins:[...__d2Content.editor.entry.protectedIds()],selectionCollapsed:selection?.isCollapsed,openEntryMenus:[...document.querySelectorAll('#original-reading-body [data-entry-id] details[open]')].map(node=>node.closest('[data-entry-id]').dataset.entryId)};},label);
+   const before=await observe('after exact menu focus return');targets.push(before);await persist('PENDING');assert.equal(before.active.entryId,id,'the added menu journey retains its exact first-entry invoker');assert.deepEqual(before.pins,[id],'the existing owner protects that focused entry');
+   await p.locator('#topic-heading h1').click();await frame(p);const after=await observe('neutral heading focus before original paging journey');targets.push(after);await persist('PENDING');assert.equal(after.active.entryId,null);assert.deepEqual(after.pins,[],'explicitly leave the completed interaction before testing the unpinned120-row paging window');assert.deepEqual(after.openEntryMenus,[]);
+  },
   async state(name,selector){const target=p.locator(selector).first();await target.scrollIntoViewIfNeeded();assert.ok((await target.textContent()).trim());await p.screenshot({path:`${directory}/${variant}-${name}.png`});},
   async finish(){await persist(failures.length?'FAIL':'PASS');assert.deepEqual(failures,[],'all observed fixed Thought reading comparisons must pass');},
   async close(){await ref.close();await p.emulateMedia({reducedMotion:'no-preference'});await rpc(p,'UPDATE_PREFERENCES',{changes:{fontSize:saved.fontSize,readingWidth:saved.readingWidth}});}
