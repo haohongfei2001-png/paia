@@ -28,7 +28,7 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 #topic-body .entry-provenance {display:block;}
 #topic-body .entry-prose {font-size:var(--paia-prose-size,17px);line-height:1.9;}
 #topic-body .library-entry {border:0;background:transparent;padding-block:16px;}
-#topic-body .entry-sent-time,.thought-binding-status {font-size:13px;color:var(--paia-meta);margin-block:8px;}
+.thought-binding-status {font-size:13px;color:var(--paia-meta);margin-block:8px;}
 #topic-body .entry-meta {opacity:1;flex-wrap:wrap;}
 #topic-body .entry-meta select {display:none;}
 #topic-body .entry-provenance {margin-block:8px;font-size:13px;}
@@ -99,8 +99,8 @@ body[data-paia-space="thoughts"] #workspace-error{padding:16px 32px}
 #thought-document #topic-presentation {padding-top:2px;}
 #thought-document #topic-presentation #library-view-switch {margin:0;justify-content:flex-end;}
 #thought-document #topic-toolbar {display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin:18px 0 10px;padding:0 0 12px;}
-#thought-document #topic-toolbar button {font-size:14px;}
-#thought-document #topic-toolbar #create-entry {min-height:36px;padding:7px 10px;font-size:14px;border:1px solid var(--paia-subtle);border-radius:6px;color:var(--paia-accent);background:var(--paia-surface);}
+#thought-document #topic-toolbar button {min-height:36px;font-size:14px;}
+#thought-document #topic-toolbar #create-entry {padding:7px 10px;font-size:14px;border:1px solid var(--paia-subtle);border-radius:6px;color:var(--paia-accent);background:var(--paia-surface);}
 #thought-document #topic-toolbar .library-history-tools {margin-left:auto;opacity:.7;pointer-events:auto;}
 #thought-document #topic-reading-controls {display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:10px 0 8px;padding:0;color:var(--muted);font-size:12px;}
 #thought-document #topic-time-order {display:flex;align-items:center;gap:8px;}

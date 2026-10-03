@@ -67,8 +67,8 @@ for(const variant of ['source','release'])test(`D2 actual years, full-year searc
   for(let i=0;i<10;i++){if(await p.locator(`[data-expression-id="${sparse.first}"]`).count())break;const before=p.locator('[data-timeline-before]');assert.ok(await before.isVisible());await before.click();await eventually(async()=>await p.locator('#topic-timeline').getAttribute('aria-busy')!=='true');}
   await eventually(()=>p.locator(`[data-expression-id="${sparse.first}"]`).count().then(n=>n===1),'explicit backward reading reaches the first distant match without auto-forward bounce',30000);
   await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>p.locator('[data-topic-view="years"]').textContent().then(t=>t==='Through the years'));await eventually(()=>p.locator('#topic-timeline>h2').textContent().then(t=>t==='Matching expressions in this Topic'));
-  await d5.finish();
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
+  await d5.finish();
   writeFileSync(`work/qa-dvn-topic-years/${variant}.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,matrix,dated:159,unknown:1,fullYear:100,queryReturn:true,tabReturn:true,rootReturn:true,imePreserved:true,mutationFence:true,sparseQuery241:true,zeroProviderCalls:true},null,2));
  }finally{try{await d5?.close();}finally{await h.close();}}
 });
