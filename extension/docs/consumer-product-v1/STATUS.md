@@ -1,5 +1,18 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q6 — independent Thought composition and acknowledgement ownership — 2026-10-03
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q6A`.**
+D5/Q5 [PR130](https://github.com/haohongfei2001-png/paia/pull/130) is integrated at `f3d0884bf62512f7c48696ef1e053b7347ae90b8`. Reviewed head `7dc280947f11b3b2f53c51491f09f16fdd5de7d9`, tested merge `ff24912e6316787ad4c097c0533d30061fa7b125` and main share tree `33bd52b532dc8cde1121b1fb152c9dd5520d5366`. Candidate37128002213 passes1608 unit/18 affected browser/102 adapter/58 privacy cases plus release and aggregate;48 paired comparisons and132 reading-preference observations pass. Light integration37129153844, exact-main37129759987 and Pages37129761386 PASS. Full browser/Mac certification was intentionally NOT RUN for this CSS-only batch under existing §7.2. Earlier failures remain in [Q5 evidence](implementation/desktop-vnext/D5-Q5.md).
+
+Sole writer `feat/d5-q6-thought-compose` now addresses [Q6](implementation/desktop-vnext/D5-Q6.md): Q6a first closes the demonstrated independent Thought/Add command lifecycle defects; Q6b then mounts the canonical T05 main workspace. Bind asynchronous completions, feedback and dismissal to the same current surface/attempt, retain unknown outcome until reconciliation, preserve newer drafts and pending Topic intent, then use the existing navigation/leave/state-restoration owners for the workspace. No new router, durable draft/body store, Source/Input mutation policy, B-01 decision, provider or permission. Current owner tests are synthetic DOM evidence; native source/release, actual pixels and full certification are pending.
+
+[Q6a Draft PR131](https://github.com/haohongfei2001-png/paia/pull/131) `eca77344791d2de7f83ff4679e89d7a640ee9711` has1626 hosted unit,23 affected browser,102 adapter,58 privacy and release PASS. Candidate37132941714 is nevertheless FAIL at the new skip-count receipt guard: Node22 reports0 skipped selected registrations, while it expected3 unselected registrations. All20 exact-head ownership receipts/pixels are retained. Correct only accounting to23 total/23PASS/0FAIL/0SKIP; fresh candidate/full certification remain mandatory. Two unchanged local10k performance failures remain explicit and separate from hosted success.
+
+Q6a corrected Candidate37133777677 PASS on `1b02dca581b026cf4539c5105bbfa718cf34fdaa`, including all20 exact-head source/release receipts (artifact11277644594). Mandatory Full37134318053 is FAIL: browser2/4 exhaust18-minute job bounds after64/44 PASS cases;1/3/5, unit/contracts/release/Mac PASS. A frozen68-file rebalance moves only UX-R3 Thought2→6 and Content/Years4→5, retains all65 other assignments and all18-minute budgets, and requires all six jobs. Fresh complete certification remains mandatory; Q6a is unmerged.
+
+Browser-extension development and usable existing flows take priority. iOS and other applications remain secondary/deferred when they do not block the extension. Remaining Topic header/action/year-navigation composition, Organize/Context/Settings families, Q3 reloaded-all-empty caret proof and deferred final gates remain open. Final D5 owner visual acceptance is OPEN; public consumer release and install-package delivery remain held. Older controlling-state entries below are historical.
+
 ## D5/Q5 — Thought Content and Years reading roles — 2026-10-03
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q5`.**
