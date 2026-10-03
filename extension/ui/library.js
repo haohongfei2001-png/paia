@@ -1,4 +1,4 @@
-import {editableText,NativeLineBreakTracker} from './editable-text.js';
+import {editableText,editableTextSnapshot,NativeLineBreakTracker} from './editable-text.js';
 import {PlainTextSurface,AutosaveSession,UndoJournal,RevisionSession} from './editor-primitives.js';
 import {WorkingInputSaveSession} from './working-input-save.js';
 import {RecoveryDraftSession} from './recovery-draft.js';
@@ -62,7 +62,29 @@ export class DocumentEditor {
  async exclude(id,excluded){if(this.composing)return false;this.collect();if(!await this.flush())return false;const e=this.entries.get(id);if(!e)return false;this.change([{id,after:{...e.local,excluded}}]);this.paint();this.root.focus();return this.flush();}
  note(id,text){const e=this.entries.get(id);if(e)this.change([{id,after:{...e.local,note:text}}]);}
  paint(){const title=this.root.querySelector('#document-title');if(title&&title.innerText!==(this.title||this.originalTitle||'独立整理文档'))title.textContent=this.title||this.originalTitle||'独立整理文档';for(const [id,e]of this.entries){const el=this.field(id);if(el){if(editableText(el)!==this.text(e)){this.nativeLines.clear(el);el.textContent=this.text(e);}el.closest('.library-block').hidden=e.saved.excluded;}}this.onChange();}
- beforeInput(event){this.nativeLines?.before(this.nativeField(event),event,document.getSelection());if(event.inputType==='historyUndo'||event.inputType==='historyRedo'){event.preventDefault();void this.history(event.inputType==='historyRedo');return;}if(this.composing||event.isComposing)return;const selection=document.getSelection();if(!selection?.rangeCount||selection.isCollapsed)return;const range=selection.getRangeAt(0);if(!this.root.contains(range.startContainer)||!this.root.contains(range.endContainer))return;const fields=[...this.root.querySelectorAll('[data-edit-id]')].filter(el=>!el.closest('.library-block').hidden&&range.intersectsNode(el));if(fields.length<2)return;event.preventDefault();this.onStatus('不能跨输入修改，请逐条编辑；所选文字仍可复制。','boundary');}
+ replaceWholeInput(event,field,selection,range){
+  if(event.type!=='beforeinput'||!event.isTrusted||!event.cancelable||event.defaultPrevented||event.inputType!=='insertText'||typeof event.data!=='string'||this.disposed||this.composing||event.isComposing||this.removalLocks||!selection?.rangeCount||selection.isCollapsed||!field.isContentEditable||field!==this.nativeField(event))return false;
+  const id=field.dataset.editId,entry=this.entries.get(id);if(!entry||entry.local.excluded||!field.contains(range.startContainer)||!field.contains(range.endContainer))return false;
+  const snapshot=editableTextSnapshot(field);if(snapshot.offset(range.startContainer,range.startOffset)!==0||snapshot.offset(range.endContainer,range.endOffset)!==snapshot.text.length)return false;
+  // The author explicitly replaces this complete Working Input. Use the same
+  // journal/recovery/save owner as every other edit; do not infer text by
+  // deleting a browser-generated leading BR after Chromium's replacement.
+  this.collect();event.preventDefault();this.change([{id,after:{...entry.local,libraryText:event.data}}]);
+  this.nativeLines.clear(field);field.textContent=event.data;
+  const caret=field.firstChild||field,offset=field.firstChild?event.data.length:0;selection.setBaseAndExtent(caret,offset,caret,offset);
+  // Notify existing Reader listeners. Collect sees the same model value, so
+  // this synthetic notification cannot create a second journal/save operation.
+  field.dispatchEvent(new Event('input',{bubbles:true}));return true;
+ }
+ beforeInput(event){
+  const selection=document.getSelection();this.nativeLines?.before(this.nativeField(event),event,selection);
+  if(event.inputType==='historyUndo'||event.inputType==='historyRedo'){event.preventDefault();void this.history(event.inputType==='historyRedo');return;}
+  if(this.composing||event.isComposing||!selection?.rangeCount||selection.isCollapsed)return;
+  const range=selection.getRangeAt(0);if(!this.root.contains(range.startContainer)||!this.root.contains(range.endContainer))return;
+  const fields=[...this.root.querySelectorAll('[data-edit-id]')].filter(el=>!el.closest('.library-block').hidden&&range.intersectsNode(el));
+  if(fields.length>=2){event.preventDefault();this.onStatus('不能跨输入修改，请逐条编辑；所选文字仍可复制。','boundary');return;}
+  if(fields.length===1)this.replaceWholeInput(event,fields[0],selection,range);
+ }
  buildEdit(){
   const pending=this.saveSession.pending?.edit;
   if(pending?.removeScope)return pending;
