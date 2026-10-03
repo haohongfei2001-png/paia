@@ -5,7 +5,7 @@ const tracker=()=>new NativeLineBreakTracker({createRange});
 const t=data=>({nodeType:3,data}),root=(...childNodes)=>({nodeType:1,nodeName:'DIV',childNodes});
 const event=(changes={})=>({isTrusted:true,inputType:'insertLineBreak',isComposing:false,defaultPrevented:false,...changes});
 const selection=(node,offset)=>({isCollapsed:true,anchorNode:node,anchorOffset:offset,focusNode:node,focusOffset:offset,rangeCount:1,getRangeAt:()=>({startContainer:node,startOffset:offset,endContainer:node,endOffset:offset})});
-function inserted(body='HEAD',options={}){const owner=tracker(),text=t(body),field=root(text);owner.before(field,event(options.before),selection(text,body.length));const newline=t('\n'),sentinel=t('\n');field.childNodes.push(newline,sentinel);const before=JSON.stringify(field);owner.input(field,event(options.after),options.caret||selection(sentinel,0));assert.equal(JSON.stringify(field),before,'recognition never mutates native DOM');return {owner,text,field,newline,sentinel};}
+function inserted(body='HEAD',options={}){const owner=options.owner||tracker(),text=t(body),field=root(text);owner.before(field,event(options.before),selection(text,body.length));const newline=t('\n'),sentinel=t('\n');field.childNodes.push(newline,sentinel);const before=JSON.stringify(field);owner.input(field,event(options.after),options.caret||selection(sentinel,0));assert.equal(JSON.stringify(field),before,'recognition never mutates native DOM');return {owner,text,field,newline,sentinel};}
 
 test('native line-break provenance excludes only the newly inserted terminal caret Text node',()=>{
  const {field,sentinel}=inserted('👩‍💻\n\nHEAD'),snapshot=editableTextSnapshot(field);assert.equal(snapshot.text,'👩‍💻\n\nHEAD\n');assert.equal(snapshot.offset(sentinel,0),snapshot.text.length);assert.equal(snapshot.offset(sentinel,1),snapshot.text.length);const endpoint=snapshot.point(snapshot.text.length);assert.equal(snapshot.offset(endpoint.node,endpoint.offset),snapshot.text.length);
@@ -66,4 +66,44 @@ test('matching numeric caret offsets outside the field cannot establish replacem
 });
 for(const tag of ['TABLE','SPAN'])test('unsupported '+tag+' mapping cannot prove replacement caret equivalence',()=>{
  const owner=tracker(),head=t('HEAD\n'),field=root(head),selected={...selection(head,0),isCollapsed:false,focusOffset:5,getRangeAt:()=>({startContainer:head,startOffset:0,endContainer:head,endOffset:5})};owner.before(field,event({inputType:'insertText',data:'HEAD'}),selected);const tail=t('\n'),block={nodeType:1,nodeName:'DIV',childNodes:[tail]};field.childNodes=[t('HEAD'),{nodeType:1,nodeName:tag,childNodes:[block]}];field.innerText='HEAD\n';owner.input(field,event({inputType:'insertText',data:'HEAD'}),selection(tail,0));assert.equal(editableText(field),'HEAD\n');assert.equal(editableTextSnapshot(field).offset(tail,0),null);
+});
+
+function residue({inputData=null,oldIdentity=true,covered=true,expected='\n\n',extra=false,wrongCaret=false,invalidRange=null}={}){
+ const ranges=[],owner=new NativeLineBreakTracker({createRange:()=>{const range=createRange();ranges.push(range);return range;}}),r=inserted('HEAD',{owner}),node=r.sentinel,prior=r.field,range={startContainer:prior,startOffset:0,endContainer:prior,endOffset:prior.childNodes.length,isPointInRange:()=>covered},selected={...selection(prior,0),isCollapsed:false,getRangeAt:()=>range};
+ r.owner.before(prior,event({inputType:'insertText',data:expected}),selected);const leftover=oldIdentity?node:t('\n'),first=root(leftover),second=root({nodeType:1,nodeName:'BR',childNodes:[]}),last=root({nodeType:1,nodeName:'BR',childNodes:[]});prior.childNodes=[first,second,last,...(extra?[root({nodeType:1,nodeName:'BR',childNodes:[]})]:[])];leftover.parentNode=first;if(invalidRange==='collapsed')ranges[0].endOffset=ranges[0].startOffset;if(invalidRange==='wide')ranges[0].endOffset++;r.owner.input(prior,event({inputType:'insertText',data:inputData}),selection(wrongCaret?second:last,0));return {...r,first,last,leftover,ranges};
+}
+test('trusted full replacement re-proves only its selected old sentinel residue before new empty blocks',()=>{
+ const r=residue();assert.equal(editableText(r.field),'\n\n');const read=editableTextSnapshot(r.field);assert.equal(read.offset(r.leftover,0),0);assert.equal(read.offset(r.leftover,1),0);assert.equal(read.offset(r.last,0),2);r.owner.input(r.field,event({inputType:'insertText',data:null}),selection(r.last,0));assert.equal(editableText(r.field),'\n\n','second native data-less input does not discard proven residue');
+});
+for(const [name,options]of [['new LF identity',{oldIdentity:false}],['old character outside pre-selection',{covered:false}],['non-null mismatched payload',{inputData:'OTHER'}],['wrong expected payload',{expected:'\n'}],['extra structural line',{extra:true}],['nonterminal post-caret',{wrongCaret:true}]])test('replacement residue refuses '+name,()=>{const r=residue(options);assert.equal(editableText(r.field),'\n'.repeat(options.extra?4:3));});
+test('replacement residue invalidates after range mutation, detachment or moving to another parent',()=>{
+ for(const kind of ['character','detached','parent']){const r=residue();if(kind==='character'){r.leftover.data='AUTHORED\n';assert.equal(editableText(r.field),'AUTHORED\n\n\n');}else if(kind==='detached'){r.first.childNodes=[t('\n')];assert.equal(editableText(r.field),'\n\n\n');}else{r.leftover.parentNode={};assert.equal(editableText(r.field),'\n\n\n');}}
+});
+
+for(const invalidRange of ['collapsed','wide'])test('invalid '+invalidRange+' old marker cannot be reclassified from coincidental strings',()=>{const r=residue({invalidRange});assert.equal(editableText(r.field),'\n\n\n');});
+
+function coexist(){
+ const r=residue(),tail=t('TAIL');r.last.childNodes=[tail];tail.parentNode=r.last;assert.equal(editableText(r.field),'\n\nTAIL');r.owner.before(r.field,event(),selection(tail,4));const authored=t('\n'),placeholder=t('\n');r.last.childNodes.push(authored,placeholder);authored.parentNode=r.last;placeholder.parentNode=r.last;r.owner.input(r.field,event(),selection(placeholder,0));return {...r,tail,authored,placeholder};
+}
+test('independently proved residue and later terminal LF coexist without adding a saved newline',()=>{
+ const r=coexist(),snapshot=editableTextSnapshot(r.field);assert.equal(snapshot.text,'\n\nTAIL\n');assert.equal(r.ranges.length,2);for(let i=0;i<=snapshot.text.length;i++){const at=snapshot.point(i);assert.equal(snapshot.offset(at.node,at.offset),i);}assert.equal(snapshot.offset(r.leftover,1),0);assert.equal(snapshot.offset(r.placeholder,1),7);
+ r.owner.input(r.field,event(),selection(r.placeholder,0));assert.equal(r.ranges.length,2);assert.equal(editableText(r.field),'\n\nTAIL\n','repeated input cannot duplicate an exclusion');
+});
+for(const invalid of ['residue','terminal','both'])test('pruning invalid '+invalid+' markers keeps other independent provenance',()=>{
+ const r=coexist();if(invalid!=='terminal')r.ranges[0].endOffset=r.ranges[0].startOffset;if(invalid!=='residue')r.ranges[1].endOffset=r.ranges[1].startOffset;assert.equal(editableText(r.field),'\n'.repeat(invalid==='terminal'?2:3)+'TAIL'+'\n'.repeat(invalid==='residue'?1:2));
+});
+test('both live character ranges preserve prefix edits and supplementary Unicode endpoint roundtrips',()=>{
+ const r=coexist(),prefix='👩‍💻 ';r.leftover.data=prefix+'\n';r.ranges[0].startOffset+=prefix.length;r.ranges[0].endOffset+=prefix.length;r.tail.data='OTHER TAIL';const snapshot=editableTextSnapshot(r.field);assert.equal(snapshot.text,prefix+'\n\nOTHER TAIL\n');for(let i=0;i<=snapshot.text.length;i++){const at=snapshot.point(i);assert.equal(snapshot.offset(at.node,at.offset),i);}
+});
+test('terminal marker moving to another parent is pruned without dropping the valid residue',()=>{
+ const r=coexist();r.last.childNodes.pop();const block=root(r.placeholder);block.parentNode=r.field;r.placeholder.parentNode=block;r.field.childNodes.push(block);assert.equal(editableText(r.field),'\n\nTAIL\n\n\n');
+});
+test('full replacement clears both markers before preserving an exact literal replacement',()=>{
+ const r=coexist(),selected={...selection(r.field,0),isCollapsed:false,getRangeAt:()=>({startContainer:r.field,startOffset:0,endContainer:r.field,endOffset:r.field.childNodes.length,isPointInRange:()=>true})};r.owner.before(r.field,event({inputType:'insertText',data:'EXACT\n\n'}),selected);const node=t('EXACT\n\n');r.field.childNodes=[node];r.owner.input(r.field,event({inputType:'insertText',data:'EXACT\n\n'}),selection(node,node.data.length));assert.equal(editableText(r.field),'EXACT\n\n');
+});
+test('ambiguous old characters cannot be selected merely because either exclusion matches replacement bytes',()=>{
+ const r=coexist(),payload='\n'.repeat(4),selected={...selection(r.field,0),isCollapsed:false,getRangeAt:()=>({startContainer:r.field,startOffset:0,endContainer:r.field,endOffset:r.field.childNodes.length,isPointInRange:()=>true})};r.owner.before(r.field,event({inputType:'insertText',data:payload}),selected);r.tail.data='';r.owner.input(r.field,event({inputType:'insertText',data:payload}),selection(r.placeholder,1));assert.equal(editableText(r.field),'\n'.repeat(5),'ambiguous proof preserves all current bytes');
+});
+test('paint or unsupported structure invalidates both markers without reviving them later',()=>{
+ for(const mode of ['paint','unsupported']){const r=coexist();if(mode==='paint')r.owner.clear(r.field);else{r.field.childNodes.push({nodeType:1,nodeName:'TABLE',childNodes:[]});r.field.innerText='EXACT FALLBACK';assert.equal(editableText(r.field),'EXACT FALLBACK');r.field.childNodes.pop();}assert.equal(editableText(r.field),'\n\n\nTAIL\n\n');}
 });
