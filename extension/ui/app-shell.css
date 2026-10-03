@@ -29,7 +29,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .workspace.search-task>.workspace-header{display:none}
 .ux-skip-main{position:fixed;left:16px;top:-80px;z-index:10000;padding:8px 12px;background:var(--bg);border:1px solid var(--control);color:var(--text)}
 .ux-skip-main:focus{top:8px}
-#collection-panel,#thought-panel,#settings-panel,#legacy-panel{max-width:1280px;margin-inline:auto}
+#collection-panel,#settings-panel,#legacy-panel{max-width:1280px;margin-inline:auto}
 #archive-root-main{min-width:0;max-width:1280px;margin-inline:auto}
 #archive-root-main>#result-count{margin-top:16px}
 body.ans-nav-reader #document-panel{display:grid;grid-template-columns:minmax(0,1fr);max-width:none;margin:0 0 0 var(--nav-width)}
@@ -40,7 +40,6 @@ body.ans-nav-reader #archive-navigator{position:relative;top:0;width:100%;height
 
 .library-prose,.original-prose,.excluded-prose,.entry-prose,.thought-prose{font-size:var(--paia-prose-size)!important;line-height:1.85;color:var(--text)}
 .block-time,.document-day,.muted,small{color:var(--quiet)}
-#thought-search,#topic-search{color:var(--text);border-color:var(--line);background:var(--bg)}
 #document-body .block-time{opacity:1}
 @media(min-width:1024px) and (max-width:1439px){
  :root{--rail-width:160px;--nav-width:240px}

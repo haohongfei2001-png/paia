@@ -7,7 +7,7 @@ button:hover{background:#f0f3ed}
 .primary{background:#3e5b39;color:#fff;border-radius:7px}
 .primary:hover{background:#344d30}
 ::selection{background:#e1ebdc;color:#263625}
-#collection-panel,#thought-panel{max-width:1030px}
+#collection-panel{max-width:1030px}
 
 #thought-document{max-width:1000px;margin:28px auto 0}
 #topic-heading h1{font-size:36px;font-weight:600;letter-spacing:-.025em;line-height:1.4;margin-bottom:20px}
@@ -22,8 +22,7 @@ button:hover{background:#f0f3ed}
 .library-block{padding-right:44px;margin-bottom:34px}
 .reading-copy{font-size:12px;padding:6px;color:var(--paia-muted)}
 .reading-copy-dialog textarea{width:100%;min-height:220px;resize:vertical;line-height:1.8;font:inherit;border:1px solid var(--paia-line);padding:14px}
-#search,#thought-search,#topic-search{border:1px solid var(--paia-line);border-radius:8px;background:#fafbf9;padding:12px 14px;font-size:14px;color:var(--paia-ink)}
-#topic-search{max-width:560px;min-width:180px;flex:1}
+#search{border:1px solid var(--paia-line);border-radius:8px;background:#fafbf9;padding:12px 14px;font-size:14px;color:var(--paia-ink)}
 #topic-search-count:empty{display:none}
 #library-view-switch{margin:0 0 0 auto;max-width:none;border-bottom:0;padding:0;display:flex;align-items:center}
 .ai-toggle-label{display:inline-flex;gap:14px;align-items:center;padding:9px 14px;border:1px solid #d9e1d7;border-radius:999px;background:#f4f7f2;font-size:13px;color:#3b5141}
@@ -112,7 +111,6 @@ button:hover{background:#f0f3ed}
 .library-prose,.entry-prose{font-size:17px}
 
 #topic-toolbar{gap:12px}
-#topic-search{max-width:none;flex-basis:100%}
 .entry-meta{opacity:1}
 .reading-copy{min-height:38px}
 .evolution-excerpt>.reading-copy{opacity:1}

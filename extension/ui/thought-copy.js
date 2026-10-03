@@ -119,7 +119,7 @@ export function watchThoughtCopy(){
  const reverse=new Map(Object.entries(english).map(([zh,en])=>[en,zh]));
  const apply=()=>{
   // These roots contain product controls only, never topic names or body text.
-  for(const root of document.querySelectorAll('#thought-home-tools,#thought-empty,#create-entry,#library-unplaced,.reader-selection')){
+  for(const root of document.querySelectorAll('#thought-home-tools,#thought-root-source,#thought-empty,#create-entry,#library-unplaced,.reader-selection')){
    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
    while(node=walker.nextNode()){const key=reverse.get(node.data)||node.data;if(Object.hasOwn(english,key))node.data=thoughtCopy(key);}
    for(const element of root.querySelectorAll('[aria-label],[placeholder]'))for(const attribute of ['aria-label','placeholder']){const label=element.getAttribute(attribute),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute(attribute,thoughtCopy(key));}

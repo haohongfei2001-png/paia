@@ -224,6 +224,12 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
+      - name: Provide Chinese glyph coverage for paired Thought evidence
+        if: contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
+          fc-list :lang=zh | grep -q .
       - name: D4 explicit Context review and existing reuse regressions
         if: contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER')
         env:
