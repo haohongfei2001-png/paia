@@ -1,3 +1,28 @@
+# Prompt Reuse visual convergence — OWNER REVIEW REOPENED
+
+**Current Prompt Reuse state: `FUNCTIONAL_ENGINEERING_COMPLETE / VISUAL_ACCEPTANCE_OPEN / REAL_CHATGPT_FINAL_CERTIFICATION_DEFERRED`.**
+
+After review of the actual production Prompt Reuse appearance on 2026-10-04,
+the owner rejected the current 09.3 visual result as too close to a generic
+browser-extension utility panel. This does **not** reopen Prompt Family,
+ranking, template management, insertion, privacy or lifecycle engineering.
+
+The owner-approved product direction is now translated into the literal
+[prompt-reuse-visual-v1](prompt-reuse-visual-v1/README.md) master package.
+It is the pure-visual authority for the Prompt Reuse overlay. Current runtime
+screenshots are evidence only.
+
+**Unique next Prompt Reuse task: CPV1-09.3V — visual convergence.**
+Keep the existing 09.0–09.5 functional implementation and change only the
+Prompt Reuse presentation needed to match V01–V08. Require target / actual /
+difference comparison and explicit owner visual acceptance. Source/release
+pixel parity alone is not visual acceptance.
+
+CPV1-09.6 second-provider work, CPV1-09.7 real-site certification and Stage 3
+remain deferred until this visual convergence closes. The existing
+`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE` state is
+unchanged and does not authorize a compatibility claim.
+
 # Prompt Reuse 09.0–09.5 — ENGINEERING_COMPLETE
 
 The owner-authorized parallel line is integrated through PRs
