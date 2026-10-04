@@ -9,7 +9,10 @@ const execFileAsync=promisify(execFile);
 const rpc=async(page,type,fields={})=>{const response=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(response.ok,true,JSON.stringify(response));return response.data;};
 async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()));await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true);if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();}
 async function chooseGroup(page,key){const select=page.locator('#ux-settings-group-switch');if(await select.isVisible())await select.selectOption(key);else await page.locator(`[data-settings-group="${key}"]`).click();await page.locator(`[data-group="${key}"]`).waitFor({state:'visible'});}
-async function openData(page){await page.locator('.sidebar-bottom [data-view="settings"]').click();await eventually(()=>page.locator('#settings-panel').isVisible());await chooseGroup(page,'data');}
+async function openData(page){
+ const compact=await page.evaluate(()=>innerWidth<768);
+ await eventually(()=>page.evaluate(compact=>{const button=document.querySelector('.sidebar [data-view="settings"]'),menu=document.getElementById('archive-compact-navigation');return compact?button?.parentElement?.id==='archive-compact-nav-items'&&menu.hidden===false:button?.parentElement?.classList.contains('sidebar-bottom');},compact),'Settings primary control has settled in its real breakpoint owner');
+ if(compact){await page.locator('#archive-compact-navigation > summary').click();await page.locator('#archive-compact-nav-items [data-view="settings"]').click();}else await page.locator('.sidebar-bottom [data-view="settings"]').click();await eventually(()=>page.locator('#settings-panel').isVisible());await chooseGroup(page,'data');}
 async function shot(page,name){await mkdir('work/ux-r6',{recursive:true});await page.screenshot({path:`work/ux-r6/${name}.png`,fullPage:true});}
 async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
 
