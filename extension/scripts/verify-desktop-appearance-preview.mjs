@@ -58,6 +58,7 @@ async function captureSettingsPages(h,variant,rows,persist){
     if(screen==='settings-data'){for(const id of ['ux-history-start','backup-create','backup-create-segmented','backup-choose','r6-export-json','r6-export-markdown'])assert.equal(await page.locator('#'+id).isEnabled(),true);}
     if(screen==='settings-invalid'){
      assert.equal(await page.locator('h1:visible').count(),1);assert.equal(actual.heading.text,'数据与恢复');assert.equal(await page.locator('.ux-settings-nav').isVisible(),false);assert.equal(await page.locator('#ux-history-start').isVisible(),false);assert.equal(await page.locator('#backup-create').isVisible(),false);
+     assert.equal(await page.locator('#ux-backup-failure-title').evaluate(node=>getComputedStyle(node).fontSize),'24px','S05 failure heading matches the actual master type size');
      assert.equal(await page.locator('#backup-choose').innerText(),'重新选择文件');assert.equal(await page.locator('#backup-choose').isEnabled(),true);assert.equal(await page.locator('#backup-failure-return').isEnabled(),true);
      assert.equal(await page.locator('#backup-settings > :first-child').getAttribute('id'),'backup-failure-page-title');assert.equal(await page.locator('#backup-choose').getAttribute('aria-describedby'),'ux-backup-failure-title backup-status');
      for(const id of ['ux-backup-failure-title','backup-status','backup-choose']){const box=await page.locator('#'+id).boundingBox();assert.ok(box&&box.y>=0&&box.y+box.height<=1000,id+' is visible in the first S05 viewport');}
