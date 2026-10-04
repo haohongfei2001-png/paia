@@ -15,6 +15,23 @@ reply-aware suggestions reuse this surface but remain separately gated by B-04.
 This feature contract does not redesign Input Archive, Thought Library, AI
 Context or the D6.2 Desktop vNext visual masters.
 
+## Pure visual authority
+
+Product/data/privacy/interaction behavior remains controlled by this file and
+higher PAIA contracts. Pure visual presentation of the cross-site Prompt Reuse
+overlay is controlled by:
+
+`prompt-reuse-visual-v1/`
+
+The stored V01–V08 master images are literal implementation targets. If a master
+image and an older loose visual description conflict on a pure visual choice,
+the master image wins. Current runtime screenshots are evidence only and do not
+become the design target merely because their automated tests pass.
+
+Owner review on 2026-10-04 explicitly reopened only the visual implementation
+after the first production surface appeared too much like a generic utility
+panel. Functional 09.0–09.5 behavior remains preserved.
+
 ---
 
 ## 1. Product model
