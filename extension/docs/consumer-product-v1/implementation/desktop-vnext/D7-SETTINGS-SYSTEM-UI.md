@@ -73,3 +73,38 @@ Organize future preview states remain held; old AI Context functionality remains
 void pending redesign. Current-live/physical device/IME and public distribution
 remain separate gates. Existing real Settings/import/backup functionality is
 preserved rather than relabeled as preview-only.
+
+## First hosted candidate and bounded correction
+
+Remote candidate `bf11a4cb1b97e6c9272431e0d674ac71065962f8` has the same tree
+`cc7c7fc23b19cdda3370235052b154359278ebe6` as reviewed local `a4a2ea3`.
+[Whole-page run 37230629599](https://github.com/haohongfei2001-png/paia/actions/runs/37230629599)
+retained all 67 source and 67 release rows. Release PASS; source FAIL on the
+existing Context-retrieve all-storage serialization comparison. The old boolean
+comparison did not retain changed keys, so its cause is unproven, not relabeled
+flaky or PASS. The correction compares the same complete before/after snapshots
+with deep equality and changed-key diagnostics, with no field exclusion, sleep,
+retry or weakened data invariant. Total run time was 298 seconds.
+
+[Candidate 37230629611](https://github.com/haohongfei2001-png/paia/actions/runs/37230629611)
+passed release and adapter/privacy. Settings native was 8/9 PASS: both 30-row
+source/release geometry, keyboard, coarse, text200 and rollback journeys, the
+historical baseline and actual backup/restore journey passed. The old UX-R1
+mobile test expected an obsolete visible primary-nav parent; it now checks the
+real compact menu, all four existing reachable actions, Escape/focus and the
+same button owners in Reader. The matching unit assertion now verifies Settings
+keeps this compact owner and a non-D6 route still restores original parents.
+Every original registration remains. New-head results are still pending.
+
+Actual independent image review found no new clipping, overlap or unreadable
+dark/compact controls. S01 all themes/widths and S05 images are source/release
+pixel-identical; S03 scan timestamps/release diagnostics pruning and S04 storage
+estimate digits are real differences. S05 still presents its failure below
+working Data controls rather than the master’s standalone primary failure page;
+it is explicitly not master-equivalent.
+
+S01 also exposes an existing initialization gap: Archive order is loaded once at
+mount, before first-use consent, while that read correctly requires consent. The
+unchanged owner retains its honest unavailable/PAIA fallback until manual choice
+or page reload. The real worker interface exists; no successful load is claimed,
+no warning is hidden, and this UI-only batch does not redesign source ordering.

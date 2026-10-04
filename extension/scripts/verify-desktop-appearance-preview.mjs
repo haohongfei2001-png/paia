@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {isDeepStrictEqual} from 'node:util';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from '../tests/harness/fake-chatgpt.mjs';
@@ -155,11 +156,12 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
       const root=page.locator('#context-workspace-design-preview');assert.match(await root.innerText(),/功能未开放/);assert.match(await root.innerText(),/未生成、未保存/);assert.equal(await root.locator('[data-preview-action]:enabled').count(),0);assert.equal(await root.locator('input:enabled,textarea:not([readonly])').count(),0);
       const rail=width>=1280?184:width>=1024?160:width>=768?64:0,gutter=width<768?20:width<1024?36:44,standalone=['context-empty','context-incomplete'].includes(screen),axis=rail+(standalone?gutter:Math.max(gutter,(width-rail-880)/2));
       assert.ok(Math.abs(actual.heading.x-axis)<=2,`${screen}/${width}: approved journey or standalone axis`);assert.equal(parseFloat(actual.heading.font),width<768?24:28);assert.match(await root.locator('h1').evaluate(node=>getComputedStyle(node).fontFamily),/Georgia/);
-      // Even synthetic event dispatch cannot enable an old action. Compare all
-      // extension-local values around the event batch, excluding harness prefs.
-      const unchanged=await page.evaluate(async()=>{
-       const before=await chrome.storage.local.get(null);for(const button of document.querySelectorAll('#context-workspace-design-preview [data-preview-action]'))button.dispatchEvent(new MouseEvent('click',{bubbles:true}));await new Promise(resolve=>setTimeout(resolve,0));return JSON.stringify(before)===JSON.stringify(await chrome.storage.local.get(null));
-      });assert.equal(unchanged,true,'preview actions write no extension-local data');
+      // Compare every extension-local key and value, including harness prefs.
+      // Object insertion order is not stored-data meaning. Keep both complete
+      // snapshots so a real difference is diagnosed, never excluded or retried.
+      const storage=await page.evaluate(async()=>{
+       const before=await chrome.storage.local.get(null);for(const button of document.querySelectorAll('#context-workspace-design-preview [data-preview-action]'))button.dispatchEvent(new MouseEvent('click',{bubbles:true}));await new Promise(resolve=>setTimeout(resolve,0));return {before,after:await chrome.storage.local.get(null)};
+      });const changedKeys=[...new Set([...Object.keys(storage.before),...Object.keys(storage.after)])].filter(key=>!isDeepStrictEqual(storage.before[key],storage.after[key]));assert.deepEqual(storage.after,storage.before,'preview actions write no extension-local data; changed keys: '+changedKeys.join(', '));
       if(screen==='context-copied')assert.match(await root.innerText(),/未复制到剪贴板/);
       if(screen==='context-blocked'){const body=await root.locator('[data-context-panel=blocked]').innerText();assert.doesNotMatch(body,/职业方向\n/);assert.match(body,/不显示普通输出快照/);}
       if(['context-review','context-ready'].includes(screen)){const prose=await root.locator(`[data-context-panel=${screen.slice(8)}] .context-preview-prose`).first().evaluate(node=>({size:getComputedStyle(node).fontSize,width:getComputedStyle(node).maxWidth}));assert.deepEqual(prose,{size:'17px',width:'680px'});}
