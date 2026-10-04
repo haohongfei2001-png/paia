@@ -4,7 +4,7 @@
 
 Current progress is owned by fresh remote `STATUS.md` and `EXECUTION_PROTOCOL.md`. At this amendment's pinned main `5d7440d86dbee9c9994302915f162567f971a747`, D5 has bounded Q12 integration and remains **D5_OPEN**. D5 is not reset, renamed as an unstarted design phase or declared complete.
 
-The owner authorized D6 design work through the attached Final Visual Master brief. This authorizes creating design references and this design-only PR, **not owner approval of the resulting images and not D7 runtime implementation**.
+The owner explicitly approved **D6.2 Final Visual Master** on 2026-10-04 after the compact A02 correction. D6.2 is now the highest pure-visual authority for Desktop vNext. The owner also authorizes D7 production high-fidelity implementation within this approved visual scope. This does not authorize public release, new provider/permission/cloud behavior, B-01–B-05 decisions, destructive-policy changes or any expansion beyond the approved product contracts.
 
 | Stage | Meaning | Boundary |
 |---|---|---|
@@ -13,8 +13,8 @@ The owner authorized D6 design work through the attached Final Visual Master bri
 | D3 | AI Organize | Existing derivative-only adoption and safety retained |
 | D4 | AI Context | Existing exact review/release boundary retained |
 | D5 | Existing visual-convergence engineering | Already executed; Q12 bounded/integrated at the checkpoint; still OPEN |
-| D6 | Final Visual Master | Design authoring authorized; D6.2 submitted as OWNER_REVIEW_PENDING |
-| D7 | Production high-fidelity implementation | PLANNED / NOT_AUTHORIZED; requires explicit D6 visual approval and implementation scope |
+| D6 | Final Visual Master | **OWNER_APPROVED — D6.2**; visual authority frozen for D7 |
+| D7 | Production high-fidelity implementation | **OWNER_AUTHORIZED / READY_AFTER_FRESH_MAIN_RECONCILIATION**; implement D6.2 without redesign |
 
 ## Existing D1–D5 obligations are preserved verbatim
 
@@ -30,13 +30,13 @@ D6 may proceed as design-only work alongside the existing D5 queue. It must insp
 
 Deliverables: D5 visual audit with evidence limits;59 actual whole-window artboards covering all39 frozen surfaces and dark/compact/failure variants; exact approved raster mark; literal palette/typography/geometry/control tokens; surface mapping; responsive/dark/motion specifications; D7 acceptance and handoff. Finished image bytes are versioned in the D6 package, losslessly split/compressed with checksums and a non-generative unpack helper. Work must open the images, not merely read descriptions.
 
-The owner's current Reader image establishes art direction. The resulting D6 proposal becomes visual authority only after explicit owner acceptance of a named revision. Before that, previous runtime and approved visual contracts are not silently overridden. Data/privacy/behavior authority is never overridden by visuals.
+The owner's current Reader image established art direction. **D6.2 is explicitly accepted by the owner** and therefore governs final pure visual composition for D7. Data/privacy/behavior authority is never overridden by visuals. D6.2 supersedes earlier loose visual specimens and D5 presentation decisions only where they conflict on pure appearance.
 
 D6 does not change D5's writer, runtime, unfinished conformance or release hold. It does not require pretending D5 is complete before design work begins.
 
 ## D7 — Production high-fidelity implementation
 
-Entry requires: owner approval of named D6 visual revision and implementation scope; fresh remote main/current writer review; explicit reconciliation of still-unclosed D5 work. Do not turn unresolved D5 work into PASS merely to advance the number. Preserve failed/preserved PRs and all exact-head evidence.
+Entry is authorized by the owner's D6.2 confirmation. Before the first runtime edit, Work must still re-read fresh remote main/current writer state and explicitly reconcile still-unclosed D5 work. Do not turn unresolved D5 work into PASS merely to advance the number. Preserve failed/preserved PRs and all exact-head evidence.
 
 Use [D7_HANDOFF](../../../desktop-vnext/d6-final-visual-master/D7_HANDOFF.md). Default finite sequence is full Archive/Reader → full Topic/Years/Add Thought → full Organize including first generation → full Context → system/dark/compact convergence. Reuse verified D1–D5 behavior/state/data owners. No independent body store, fake Send, new provider/permission, destructive policy or automatic paid call.
 
@@ -46,4 +46,4 @@ D7 completion requires correct behavior + preserved safety + high visual fidelit
 
 ## Current single next action
 
-Review the corrected D6.2 actual artboards and approve or request changes to that design revision. Do not start D7 from this design PR alone. D5's existing authorized queue remains controlled by its current status and protocol.
+Merge the approved D6.2 design package, record D7 as the active authorized production-convergence queue, then begin D7 from fresh remote main with one active product writer. Preserve every unresolved/failed D5 receipt as evidence; do not relabel it PASS merely because D7 is now active.
