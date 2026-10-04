@@ -589,3 +589,18 @@ test('capture recovery fences every old-version content write before metadata or
   }
  }
 });
+
+test('VS09 actual worker keeps prompt library and mutations behind exact trusted callers and consent',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});const app=await fixture();
+ const promptUI={id:EXTENSION_ID,url:EXTENSION_ORIGIN+'ui/prompt-reuse-test.html'};
+ await expectError(app.send({type:'PAIA_PROMPT_QUERY'},promptUI),'CONSENT_REQUIRED');
+ for(const type of ['PAIA_PROMPT_QUERY','PAIA_PROMPT_CHANGE','PAIA_PROMPT_COPY_TEXT','PAIA_PROMPT_TARGETS','PAIA_PROMPT_INSERT'])for(const sender of [content,{...promptUI,url:promptUI.url+'?spoof'},{...promptUI,id:'other'}])await expectError(app.send({type},sender),'FORBIDDEN');
+ assert.equal((await app.send({type:'CONSENT',accepted:true})).ok,true);
+ const before=(await app.send({type:'GET_STATE'})).data.records;
+ const created=await app.send({type:'PAIA_PROMPT_CHANGE',change:{action:'create',revision:0,text:'PRIVATE_TEMPLATE_CANARY'}},promptUI);assert.equal(created.ok,true);
+ const q=await app.send({type:'PAIA_PROMPT_QUERY'},promptUI);assert.equal(q.ok,true);assert.equal(q.data.items[0].text,'PRIVATE_TEMPLATE_CANARY');
+ await expectError(app.send({type:'GET_STATE'},promptUI),'FORBIDDEN');
+ assert.deepEqual((await app.send({type:'GET_STATE'})).data.records,before);
+ const copy=await app.send({type:'PAIA_PROMPT_COPY_TEXT',id:created.data.id,text:'PRIVATE_TEMPLATE_CANARY'},promptUI);assert.deepEqual(copy,{ok:true,data:{text:'PRIVATE_TEMPLATE_CANARY'}});
+ assert.ok(app.notifications.some(x=>x.type==='PAIA_PROMPT_CHANGED'));assert.ok(!app.notifications.some(x=>JSON.stringify(x).includes('PRIVATE_TEMPLATE_CANARY')));
+});

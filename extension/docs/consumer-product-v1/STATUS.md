@@ -1789,3 +1789,13 @@ The owner directed PAIA v1 search back to the VS-04 local lexical/fuzzy/filter d
 The sole product PR #88 retains its historical comparison and finite Revisit work and moves the unadmitted semantic index/store bridge out of packaged `core/` into `experiments/`. The public retrieval lab workflow is retired from automatic PR execution; all underlying experimental scripts, fixed data and owning tests remain. The production Universal Search and VS-04 search/filter routes stay model-free; this checkpoint does not invent fuzzy matches that the current product has not proved. This correction introduces no permission, schema, provider, local model load, Context release or user data action.
 
 Exact prior head `17f109cddb0c944fcf17bdcf62f92dad4e92e308` Candidate `36378886166` SUCCESS, including 3/3 hosted Chrome index journeys on 1025 Sources, 17 long bodies and 11 complete hybrid queries; sampled median 8195 ms/p95 8477 ms and bounded sampled JS heap 28–38 MB are *experimental* host observations, not production admission or a process peak-memory certificate. Semantic Lab `36378886112` SUCCESS only on its classified existing path. Full Certification has not run on this scope-correction head. Existing Source/history/Revisit targeted evidence remains; candidate full certification, merge and exact-main receipt remain PENDING. VS-07 is not yet COMPLETE. Independent owner/device/live gates remain deferred on their existing paths.
+
+## Independent Prompt Reuse foundation branch — 2026-10-04
+
+Owner explicitly authorized `feat/prompt-reuse-vs09-foundation` from fresh remote
+main `feea729e2fc19e69d5b842a7ca00305f31cda0cc`, limited to CPV1-09.0–09.2.
+This parallel line does not replace the Desktop/D7 queue or modify its visual
+masters, AppShell, Archive/Reader, Thought Library or AI Context surfaces.
+See [foundation implementation and evidence](implementation/prompt-reuse/FOUNDATION.md).
+CPV1-09.2 current ChatGPT compatibility remains `CURRENT_LIVE_NOT_VERIFIED`
+(DFG-CPV1-011, HTTP 403). No merge, 09.3 orb/card or Stage 3 is authorized here.

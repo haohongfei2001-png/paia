@@ -127,3 +127,18 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
 - **Safe interim:** reject weights/inference/candidate admission for this revision; never inherit rights from a library/upstream name or title. Do not repeat unchanged model trial or mark diagnostic reads as quality certification.
 - **Non-blocked engineering:** independently declared licensed candidate screening, fixed synthetic evaluation, rebuildable index/invalidations/interfaces, production-environment compatibility, longitudinal retrieval/Revisit and later dependency-safe work.
 - **Final closure:** actual converted-source permissible license/conversion provenance at an exact independently verified revision, or select a separately evidenced compatible candidate through the unchanged fixed quality/resource/Chrome gates. A candidate rejection does not require owner input or a paid commitment.
+
+### DFG-CPV1-011 — VS09 current ChatGPT composer insertion
+
+- **Owner round:** CPV1-09.2; isolated Prompt Reuse foundation branch only.
+- **State:** CURRENT_LIVE_NOT_VERIFIED. This is not compatibility PASS.
+- **Observed:** one fresh anonymous headless attempt on 2026-10-04 at
+  12:15:39 UTC returned HTTP 403 and no supported composer. No login/profile,
+  assistant reply or Send action was used. Actions run `37201457221`, artifact
+  `11302937092`, head `7672c8faf2ee0722cde671352bee2443039fd777` retains the receipt.
+- **Required:** current supported ChatGPT page, source and release adapter,
+  exact empty/existing drafts, caret/selection/Chinese IME, read-back,
+  non-destructive failure/uncertainty and zero Send. Synthetic ProseMirror
+  evidence cannot close this gate. No unchanged external retry is planned.
+- **Boundary:** no merge by this executor; CPV1-09.3 remains owner-held pending
+  this PR's review and insertion gate. Stage 3/B-04 and D7 remain separate.

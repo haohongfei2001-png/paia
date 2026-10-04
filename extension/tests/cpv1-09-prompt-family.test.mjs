@@ -43,3 +43,12 @@ test('open-list revalidation removes unavailable text but preserves ordering thr
  assert.deepEqual(s.reconcile({items:[b,a,{id:'c',text:'new'}]}),[a,b]);
  assert.deepEqual(s.reconcile({items:[b]}),[b]);assert.deepEqual(s.reconcile({items:[{...b,text:'edited B'}]}),[]);
 });
+test('split is a do-not-merge fence, never authority to merge later divergent Working Inputs',async()=>{
+ const p=emptyPromptPreferences(),group='a'.repeat(8)+'-aaaa-aaaa-aaaa-'+'a'.repeat(12);p.splits=[{inputId:'a',group},{inputId:'b',group}];
+ const result=await projectPromptFamilies([sample('a','不要删除注释'),sample('b','请删除注释')],p,now);assert.equal(result.length,2);
+});
+test('explicit representative outranks frequency; explicit template edit outranks representative',async()=>{
+ const inputs=[sample('a','解释这个算法'),sample('b','解释这个算法'),sample('c','请解释这个算法')],initial=await projectPromptFamilies(inputs,undefined,now),p=emptyPromptPreferences();
+ assert.equal(initial.length,1);assert.equal(initial[0].text,'解释这个算法');p.overrides=[{id:initial[0].id,hidden:false,reuseCount:0,representative:'c'}];
+ assert.equal((await projectPromptFamilies(inputs,p,now))[0].text,'请解释这个算法');p.overrides[0].text='独立用户模板';assert.equal((await projectPromptFamilies(inputs,p,now))[0].text,'独立用户模板');
+});

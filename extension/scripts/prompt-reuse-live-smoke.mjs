@@ -7,7 +7,7 @@ const source=await readFile(new URL('../adapter/chatgpt-composer.js',import.meta
 const receipt={evidence:'CURRENT_LIVE',at:new Date().toISOString(),head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),adapterSHA256:createHash('sha256').update(source).digest('hex'),status:'NOT_VERIFIED',sendActions:0,loginUsed:false,attempts:1};
 let browser;
 try{
- browser=await chromium.launch({headless:true});receipt.browser=browser.version();const context=await browser.newContext(),page=await context.newPage();
+ browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});receipt.browser=browser.version();const context=await browser.newContext(),page=await context.newPage();
  const response=await page.goto('https://chatgpt.com/',{waitUntil:'domcontentloaded',timeout:30000});receipt.httpStatus=response?.status()??null;
  try{await page.locator('#prompt-textarea.ProseMirror[contenteditable="true"]').waitFor({state:'visible',timeout:10000});}catch{receipt.reason='supported_composer_unavailable';}
  if(!receipt.reason){

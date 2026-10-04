@@ -72,7 +72,7 @@ for(const runtime of ['source','release'])test('CPV1-09 '+runtime+' native Chrom
   await t.test('zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure',async()=>{
    assert.deepEqual(await chat.evaluate(()=>({send:fixture.send,enter:fixture.enter,adapter:typeof PAIAChatGPTComposerAdapter,storage:[localStorage.length,sessionStorage.length]})),{send:0,enter:0,adapter:'undefined',storage:[0,0]});
    assert.doesNotMatch(await chat.locator('body').textContent(),/UNSELECTED_PRIVATE_LIBRARY_CANARY/);
-   assert.equal((await h.state()).records.length,0);assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.historyRequests,0);
+   assert.equal((await h.state()).records.length,0);assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.historyRequests,0);assert.deepEqual(h.errors,[]);
   });
  }finally{await world?.cdp.detach();await h.close();}
 });

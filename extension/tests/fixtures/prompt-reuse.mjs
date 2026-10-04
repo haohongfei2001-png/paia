@@ -14,6 +14,7 @@ export const pairs=[
  ['near but different','请解释安全问题','请解决安全问题',false],
  ['code indent','if ready:\n  act()','if ready:\n    act()',false],
  ['code case','const Mode = 1;','const mode = 1;',false],
+ ['code Unicode','const s = "cafe\u0301";','const s = "café";',false],
  ['multiline','解释以下步骤\n保留细节','解释以下步骤\r\n保留细节',true],
  ['article payload','总结以下文章：\n'+'虚构正文甲。'.repeat(100),'总结以下文章：\n'+'虚构正文乙。'.repeat(100),true],
  ['English payload','Summarize the following article:\n'+'Synthetic paragraph A. '.repeat(60),'Summarize the following article:\n'+'Synthetic paragraph B. '.repeat(60),true],

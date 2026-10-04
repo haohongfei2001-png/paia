@@ -1,6 +1,6 @@
 import {hashText} from './dedupe.js';
 import {emptyPromptPreferences} from './prompt-reuse-preferences.js';
-const structured=text=>/[`{}<>\t]|^ {2,}\S/m.test(text);
+const structured=text=>/[`{}<>\t"'()[\]\\=;]|^ {2,}\S|^(?:const|let|var|def|class|import|from|function|SELECT|echo|printf|git|npm|python|node|curl|sudo|ls|cd)\b/m.test(text);
 export function promptCandidate(text){
  if(typeof text!=='string'||!text.trim()||text.length>200000)return null;
  const raw=text.replace(/\r\n?/g,'\n');let reusable=raw,mode='whole';
@@ -20,8 +20,8 @@ export async function projectPromptFamilies(inputs,preferences=emptyPromptPrefer
  for(const input of inputs){
   if(input.role!=='user'||input.eligible!==true)continue;
   const candidate=promptCandidate(input.text);if(!candidate)continue;
-  const key=splits.has(input.id)?'split:'+splits.get(input.id):candidate.normalized;
-  let g=groups.get(key);if(!g){g={key,members:[],variants:new Map(),conversations:new Map(),trivial:candidate.trivial};groups.set(key,g);}
+  const corrected=splits.has(input.id),key=JSON.stringify(corrected?['split',splits.get(input.id),candidate.normalized]:['normal',candidate.normalized]);
+  let g=groups.get(key);if(!g){g={key,corrected,members:[],variants:new Map(),conversations:new Map(),trivial:candidate.trivial};groups.set(key,g);}
   g.members.push(input.id);const at=Number.isFinite(input.at)?Math.min(now,input.at):null;
   const v=g.variants.get(candidate.text)||{text:candidate.text,count:0,at:0};v.count++;v.at=Math.max(v.at,at||0);g.variants.set(candidate.text,v);
   const c=g.conversations.get(input.conversation)||{count:0,at:null};c.count++;if(at!==null)c.at=Math.max(c.at||0,at);g.conversations.set(input.conversation,c);
@@ -32,7 +32,7 @@ export async function projectPromptFamilies(inputs,preferences=emptyPromptPrefer
   const representative=override?.representative&&inputs.find(x=>x.id===override.representative&&g.members.includes(x.id));
   const text=override?.text??(representative?promptCandidate(representative.text).text:[...g.variants.values()].sort((a,b)=>b.count-a.count||b.at-a.at||(a.text<b.text?-1:a.text>b.text?1:0))[0].text);
   const frequency=[...g.conversations.values()].reduce((sum,c)=>sum+(c.at===null?.75:.75+.25*Math.pow(.5,Math.max(0,now-c.at)/(180*86400000))),0);
-  result.push({id,text,members:g.members.sort(),conversations:g.conversations.size,score:frequency+Math.min(.2,Math.max(0,g.members.length-g.conversations.size)*.01)+Math.min(.1,(override?.reuseCount||0)*.01),hidden:override?.hidden===true,edited:override?.text!==undefined,useful:!g.trivial&&(g.members.length>=2||g.key.startsWith('split:')),retained:!!override});
+  result.push({id,text,members:g.members.sort(),conversations:g.conversations.size,score:frequency+Math.min(.2,Math.max(0,g.members.length-g.conversations.size)*.01)+Math.min(.1,(override?.reuseCount||0)*.01),hidden:override?.hidden===true,edited:override?.text!==undefined,useful:!g.trivial&&(g.members.length>=2||g.corrected),retained:!!override});
  }
  for(const o of preferences.overrides)if(o.text!==undefined&&!result.some(x=>x.id===o.id))result.push({id:o.id,text:o.text,members:[],conversations:0,score:Math.min(.1,o.reuseCount*.01),hidden:o.hidden,edited:true,useful:true});
  const pins=new Map(preferences.pins.map((id,i)=>[id,i]));for(const r of result)r.pinned=pins.has(r.id);

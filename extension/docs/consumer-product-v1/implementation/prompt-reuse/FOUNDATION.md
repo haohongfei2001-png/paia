@@ -46,5 +46,68 @@ and exact selected text. All evaluation text is synthetic.
 
 ## Evidence
 
-Implementation and evidence pending. Synthetic browser evidence cannot close
-current ChatGPT compatibility. CPV1-09.3 remains outside this branch.
+CPV1-09.0 and 09.1 engineering is implemented; 09.2 has source/release native
+Chrome evidence against an offline ProseMirror fixture. Synthetic browser evidence
+cannot close current ChatGPT compatibility. CPV1-09.3 remains outside this branch.
+
+## Responsibility and trust boundaries
+
+- `core/prompt-family.js`: deterministic grouping/ranking and open-list snapshots.
+- `core/prompt-reuse-service.js`: current Working Input projection using existing
+  Input and explicit material-exclusion gates; no Source/Working Input writes.
+- `core/prompt-reuse-preferences.js`: strict, bounded versioned `meta` preferences.
+- `background/prompt-reuse-commands.js`: exact trusted caller and consent checks,
+  current selected-text revalidation and once-only tab/frame dispatch. The worker
+  has only a dispatch hook; Prompt commands never wake Provider/organizer work.
+- `adapter/chatgpt-composer.js`: exact ChatGPT ProseMirror selector, transient
+  caret/selection/composition state, native `insertText`, trusted input event and
+  delayed full-text/caret/focus read-back. Pending/results are retained for 500
+  operations per page/worker lifetime; exhaustion fails closed, never evicts and
+  retries an unknown operation. A replay does not increment reuse again.
+- `content/prompt-reuse.js`: isolated-world, extension-message-only receiver.
+  No window messages, page DOM list, website storage, reply access or full library.
+- `ui/prompt-reuse-test.html`: unlinked extension-owned engineering entry only.
+  Open/refresh freezes order; revalidation can remove stale/unavailable entries
+  but does not apply automatic reordering. Each selection inserts once; re-arm is
+  explicit. Copy is a separate click and revalidates before browser writeText.
+  This is deliberately not CPV1-09.3 or its final management UI.
+
+The adapter intentionally refuses other editors, multiple matching composers,
+noneditable embedded atoms, active composition and unsupported DOM. Native
+editing may already have happened when acknowledgement is uncertain; PAIA leaves
+that current draft alone, reports uncertainty and does not roll back/retry.
+
+## Backup and compatibility detail
+
+Existing atomic restore owns the new portable preference row. Empty-only restore
+refuses a target with independent Prompt work, even if its Archive is empty.
+Disjoint merge refuses different local/backup Prompt preference rows; it does not
+silently discard either version. Explicit replace uses the existing confirmation
+and generation fence. Missing row in an old backup is still supported. Restore
+and ordinary queries grant no Provider/site permission. Edited independent
+Prompt text survives support loss only under the specific approved §5.7 rule.
+
+No D7 visual owner changed. Shared plumbing changes are limited to worker routing,
+manifest script registration (same hosts/permissions), Backup validation and
+package guard exceptions for the one audited native insertText/write-only copy.
+The existing D5 frozen 68-file evidence manifest remains unchanged: its owning
+test now verifies those same 68 placements plus the one new VS09 browser owner.
+
+## Negative evidence retained
+
+- Local sandbox blocked headless Chrome launch; no visible browser was opened.
+- Actions `37200978274`: new runtime/family tests passed; frozen D5 68-file equality
+  rejected the added browser file. Fixed additively while preserving all 68 files,
+  shard positions, assertions and original job budgets.
+- Actions `37201457221`: Playwright headless shell lacked Extensions.loadUnpacked.
+  Switched this isolated workflow to the repository's existing full hosted Chrome.
+- The same run's one CURRENT_LIVE attempt returned HTTP 403. Artifact
+  `11302937092` is NOT_VERIFIED, not insertion compatibility evidence.
+
+- Actions `37201606298`: native Chrome source/release, full unit and 102 adapter
+  contracts passed. Privacy scan rejected the new explicit clipboard helper.
+  Added an exact single-helper exception; clipboard reads remain forbidden.
+
+Final candidate receipts are recorded below after validation. Full historical
+browser/device/visual certification, merged-main evidence and real ChatGPT
+compatibility are not claimed by this first-stage PR.
