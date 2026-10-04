@@ -1,0 +1,12 @@
+{
+  "package":"D6.1",
+  "status":"OWNER_REVIEW_PENDING",
+  "audited_main":"5d7440d86dbee9c9994302915f162567f971a747",
+  "runtime_checkpoint":"b81ebfee6683d2eabc17d8ae50c34a717ac52cc3",
+  "original_icon_sha256":"91d8c1ed98e42e193d67d3ad029dac1b2e427d6efcab12aed54863b4ce7af647",
+  "icon_derivative":{"file":"paia-icon-64.png","sha256":"8ceeec4a7044006eda727ab25fe420a594ce2abb1c4c428204ed9f653f007863","transform":"complete64pxLanczosRGB; no crop/redraw"},
+  "archive_sha256":"ee090564d016edec90b20d95b8437448a57d0e3cc61301728212e526ae90ca59",
+  "artboard_count":59,
+  "frozen_surface_coverage":39,
+  "artboards":["A00-1440-light","A01-1440-light","A02-1024-light","A02-1280-light","A02-1440-dark","A02-1440-light","A02-320-light","A02-768-light","A03-1440-light","A04-1440-light","A05-1440-light","A06-1440-light","A07-1440-light","A08-1440-light","A09-1440-light","A10-1440-light","A11-1440-light","A12-1440-light","A13-1440-light","A14-1440-light","C00-1440-light","C01-1440-light","C01-320-light","C01-768-light","C02-1440-light","C03-1440-light","C04-1440-dark","C04-1440-light","C05-1440-light","C06-1440-light","C07-1440-light","C08-1440-light","C09-1440-light","C10-1440-light","C11-1440-light","O01-1440-light","O02-1440-light","O03-1440-light","O04-1440-dark","O04-1440-light","O04-768-light","O05-1440-light","O06-1440-light","O07-1440-light","O08-1440-light","O09-1440-light","S01-1440-light","S02-1440-light","S03-1440-light","S04-1440-light","S05-1440-light","T00-1440-light","T01-1440-light","T02-1440-light","T03-1440-dark","T03-1440-light","T04-1440-light","T05-1440-light","T06-1440-light"]
+}
