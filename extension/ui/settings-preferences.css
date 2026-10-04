@@ -68,9 +68,22 @@ body.uir-settings-active .workspace-header{display:none}
 #settings-panel #backup-settings>p{max-width:880px;font-size:13px;color:var(--muted)}
 #backup-settings>p:first-of-type{margin:0 0 36px}
 #backup-settings>p:last-of-type{margin:36px 0 0;padding:14px 18px;background:var(--soft);border-left:2px solid var(--muted);border-radius:6px}
-.ux-backup-failure-title{display:none}
-#backup-settings[data-inspection-failure] .ux-backup-failure-title{display:block;margin:32px 0 16px}
-#backup-settings[data-inspection-failure] #backup-status{color:var(--danger);font-size:14px;line-height:1.857142857}
+.ux-backup-failure-title,#backup-failure-page-title,#backup-failure-return,#backup-failure-note{display:none}
+/* S05 is the existing Backup owner in its real rejected-inspection state.
+   Other groups and their controls are retained; only the active Data view changes. */
+body.uir-settings-active:has(#ux-settings-data-group:not([hidden])>#backup-settings[data-inspection-failure]) .workspace{padding-bottom:0}
+#settings-panel:has(#ux-settings-data-group:not([hidden])>#backup-settings[data-inspection-failure]){padding-bottom:40px}
+.ux-settings-shell:has(#ux-settings-data-group:not([hidden])>#backup-settings[data-inspection-failure])>.ux-settings-header,
+.ux-settings-shell:has(#ux-settings-data-group:not([hidden])>#backup-settings[data-inspection-failure]) .ux-settings-nav,
+#ux-settings-data-group:has(>#backup-settings[data-inspection-failure])>:not(#backup-settings){display:none}
+#settings-panel #backup-settings[data-inspection-failure]{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:calc(100dvh - 64px);padding:0;border:0}
+#backup-settings[data-inspection-failure]>:not(#backup-failure-page-title):not(.ux-backup-failure-title):not(#backup-status):not(#backup-choose):not(#backup-failure-return):not(#backup-failure-note){display:none}
+#settings-panel #backup-settings[data-inspection-failure]>#backup-failure-page-title{display:block;order:0;max-width:calc(100% - 96px);margin:0;font:500 28px/1.357142857 var(--title-font);overflow-wrap:anywhere}
+#settings-panel #backup-settings[data-inspection-failure]>.ux-backup-failure-title{display:block;order:1;margin:92px 0 16px}
+#settings-panel #backup-settings[data-inspection-failure]>#backup-status{display:block;order:2;margin:0;color:var(--muted);font-size:16px;line-height:1.625;overflow-wrap:anywhere}
+#settings-panel #backup-settings[data-inspection-failure]>#backup-choose{display:block;order:3;max-width:100%;margin:60px 0 0;padding:6px 14px;border-color:var(--text);background:var(--text);color:var(--bg);font-size:13px;line-height:1.692307692;white-space:normal;overflow-wrap:anywhere}
+#settings-panel #backup-settings[data-inspection-failure]>#backup-failure-return{display:block;position:absolute;top:0;right:0;max-width:80px;margin:0;padding:6px 12px;min-height:36px;border:0;background:transparent;color:var(--muted);line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+#settings-panel #backup-settings[data-inspection-failure]>#backup-failure-note{display:block;order:4;max-width:100%;margin-top:auto;padding-top:48px;color:var(--muted);font-size:12px;line-height:1.666666667;overflow-wrap:anywhere}
 #backup-preview{margin:28px 0;padding:20px;border:1px solid var(--line);border-radius:6px}
 #backup-preview-content>p{overflow-wrap:anywhere}
 body.uir-settings-active #workspace-error{padding:16px 44px}
@@ -91,8 +104,12 @@ body.uir-settings-active #workspace-error{padding:16px 44px}
  #ux-settings-reading-group>.ux-preference-setting,#ux-settings-reading-group>.ux-reduced-motion{min-height:112px;padding:20px 0}
  .ux-capture-summary #toggle-capture{float:none;margin-bottom:12px}
  .ux-settings-notice{margin-top:32px}
+ #settings-panel #backup-settings[data-inspection-failure]{min-height:calc(100dvh - 122px)}
+ #settings-panel #backup-settings[data-inspection-failure]>#backup-failure-page-title{font-size:24px;line-height:1.458333333}
+ #settings-panel #backup-settings[data-inspection-failure]>.ux-backup-failure-title{margin-top:64px}
 }
 @media(max-width:767px),(pointer:coarse){
+ #settings-panel #backup-settings[data-inspection-failure]>#backup-failure-return{min-height:44px}
  .ux-settings-back,.ux-settings-nav>button{min-height:44px;min-width:44px}
  #settings-panel .ux-preference-setting select,.ux-capture-summary #toggle-capture{min-height:44px}
  #settings-panel :is(button,summary,select,input:not([type="checkbox"]):not([type="radio"])){min-height:44px;min-width:44px}

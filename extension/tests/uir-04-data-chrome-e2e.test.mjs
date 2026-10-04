@@ -32,6 +32,22 @@ async function assertDataOwners(page){
  assert.match(await group.textContent(),/不是完整导出/);assert.match(await group.textContent(),/未提供设备同步/);
 }
 
+async function rejectAndReselectBackup(page,backupBytes){
+ const invalid={name:'S05-invalid.paia-backup',mimeType:'application/x-ndjson',buffer:Buffer.from('{"not":"a PAIA backup"}\n')};
+ const choose=async files=>{const picker=page.waitForEvent('filechooser');await page.locator('#backup-choose').click();await (await picker).setFiles(files);};
+ await page.evaluate(()=>{globalThis.__s05Picker=document.getElementById('backup-choose');globalThis.__s05File=document.getElementById('backup-file');});
+ await choose(invalid);await page.locator('#backup-settings[data-inspection-failure]').waitFor();await eventually(()=>page.locator('#backup-failure-return').isEnabled());
+ assert.equal(await page.locator('#backup-restore').isDisabled(),true);assert.equal(await page.locator('h1:visible').count(),1);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),true);assert.equal(await page.locator('#ux-history-start').isVisible(),false);
+ const reason=await page.locator('#backup-status').innerText();await choose([]);assert.equal(await page.locator('#backup-status').innerText(),reason,'empty picker result leaves the rejected inspection visible');
+ await choose(invalid);await eventually(()=>page.locator('#backup-failure-return').isEnabled());assert.equal(await page.locator('#backup-status').innerText(),reason,'the same rejected file can be chosen again');
+ await page.locator('#backup-failure-return').focus();await page.keyboard.press('Enter');await page.locator('#backup-settings[data-inspection-failure]').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'backup-choose');assert.equal(await page.locator('#ux-history-start').isVisible(),true);assert.equal(await page.locator('#r6-export-json').isEnabled(),true);await assertDataOwners(page);
+ await choose(invalid);await page.locator('#backup-settings[data-inspection-failure]').waitFor();await eventually(()=>page.locator('#backup-choose').isEnabled());
+ await choose({name:'UIR-04-data.paia-backup',mimeType:'application/x-ndjson',buffer:backupBytes});await page.locator('#backup-preview').waitFor({state:'visible'});
+ assert.equal(await page.locator('#backup-settings[data-inspection-failure]').count(),0);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),false);assert.equal(await page.locator('#ux-history-start').isVisible(),true);
+ assert.equal(await page.evaluate(()=>globalThis.__s05Picker===document.getElementById('backup-choose')&&globalThis.__s05File===document.getElementById('backup-file')),true,'failed and valid inspections keep the same picker and file owners');
+ await page.evaluate(()=>{delete globalThis.__s05Picker;delete globalThis.__s05File;});
+}
+
 async function sourceAndBackup(marker){
  const h=await FakeChatGPT.start({onboarding:true});let backupBytes;
  try{
@@ -48,18 +64,18 @@ async function sourceAndBackup(marker){
 async function restoreJourney(backupBytes,marker){
  const h=await FakeChatGPT.start({onboarding:true});
  try{
-  const page=h.archive;await consent(page);await openData(page);await page.locator('#backup-file').setInputFiles({name:'UIR-04-data.paia-backup',mimeType:'application/x-ndjson',buffer:backupBytes});
+  const page=h.archive;await consent(page);await openData(page);const before=await h.state();await rejectAndReselectBackup(page,backupBytes);assert.deepEqual(await h.state(),before,'rejected/preview-only inspections never change the current library');
   await eventually(()=>page.locator('#backup-preview').isVisible(),'restore preview is explicit');assert.equal(await page.locator('#backup-restore').isEnabled(),true,'validated empty-library restore requires the explicit confirm action');assert.match(await page.locator('#backup-status').textContent(),/请核对/);await shot(page,'uir-04-data-restore-preview');
   await page.locator('#backup-restore').click();await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),'explicit restore completes');
   const index=await rpc(page,'GET_PAGE',{page:{view:'archive',limit:100}}),doc=index.documents.find(row=>row.originalConversationTitle==='UIR-04 数据恢复');assert.ok(doc?.id);const records=await rpc(page,'GET_PAGE',{page:{view:'archive',documentId:doc.id,limit:100}});assert.ok(records.records.some(row=>row.originalText===marker));await assertDataOwners(page);await assertNoNetwork(h);
  }finally{await h.close();}
 }
 
-async function releaseJourney(){
+async function releaseJourney(backupBytes){
  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});const h=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});
- try{const page=h.archive;await consent(page);await page.setViewportSize({width:390,height:844});await openData(page);await assertDataOwners(page);assert.equal(await page.locator('#filter-advanced').count(),0,'current release keeps diagnostics pruning');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-data-390x844-light');await assertNoNetwork(h);}finally{await h.close();}
+ try{const page=h.archive;await consent(page);await page.setViewportSize({width:390,height:844});await openData(page);await assertDataOwners(page);assert.equal(await page.locator('#filter-advanced').count(),0,'current release keeps diagnostics pruning');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-data-390x844-light');const before=await h.state();await rejectAndReselectBackup(page,backupBytes);assert.deepEqual(await h.state(),before,'release inspection never commits a restore');assert.equal(await page.locator('#backup-restore').isEnabled(),true);await page.locator('#backup-cancel').click();assert.equal(await page.locator('#backup-preview').isVisible(),false);await assertNoNetwork(h);}finally{await h.close();}
 }
 
 test('UIR-04 Data & devices separates Backup, complete export, local status and scoped Source owners while preserving explicit restore in source and current release Chrome',{timeout:300000},async()=>{
- const marker='UIR04_DATA_PRIVATE synthetic input for local-only data presentation.';const backupBytes=await sourceAndBackup(marker);assert.ok(backupBytes?.length);await restoreJourney(backupBytes,marker);await releaseJourney();
+ const marker='UIR04_DATA_PRIVATE synthetic input for local-only data presentation.';const backupBytes=await sourceAndBackup(marker);assert.ok(backupBytes?.length);await restoreJourney(backupBytes,marker);await releaseJourney(backupBytes);
 });
