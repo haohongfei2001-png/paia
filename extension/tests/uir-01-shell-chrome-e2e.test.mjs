@@ -4,8 +4,7 @@ import {mkdir} from 'node:fs/promises';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
-import {compareD5Shell} from './harness/d5-shell-reference.mjs';
-import {compareD5Archive} from './harness/d5-archive-reference.mjs';
+import {compareD7Archive,seedD7Archive} from './harness/d7-archive-reference.mjs';
 
 const execFileAsync=promisify(execFile);
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
@@ -42,7 +41,7 @@ async function screenshotArchiveMatrix(p){
 test('UIR-01 shell and Archive frame stay semantic across source and current-release Chrome',{timeout:240000},async()=>{
  let h;
  try{
-  h=await FakeChatGPT.start({onboarding:true});const {p}=await prepareArchive(h);await assertShell(p);await assertLocaleChrome(p);await screenshotArchiveMatrix(p);await compareD5Shell(h,'source');await compareD5Archive(h,'source');
+  h=await FakeChatGPT.start({onboarding:true});const {p}=await prepareArchive(h);await assertShell(p);await assertLocaleChrome(p);await screenshotArchiveMatrix(p);await compareD7Archive(h,'source',{matrix:'archive',directory:'work/d7-archive-reader-compat'});await compareD7Archive(h,'source',{matrix:'reader-compat',directory:'work/d7-archive-reader-compat',seed:await seedD7Archive(h,{readerOnly:true})});
   await p.setViewportSize({width:1440,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await p.locator('.sidebar-bottom > [data-view="settings"]').click();await eventually(()=>p.locator('#settings-panel').isVisible(),'Settings opens');assert.equal(await p.locator('h1:visible').count(),1,'Settings has one visible page-level heading');assert.equal((await p.locator('#ux-settings-title').textContent()).trim(),'设置');assert.equal(await p.locator('#page-breadcrumb').isVisible(),false,'Settings hides duplicate global breadcrumb');assert.equal(await p.locator('.workspace-header #back').isVisible(),false,'Settings hides duplicate global return');await mkdir('work/ux-r6',{recursive:true});await p.screenshot({path:'work/ux-r6/uir-01-settings-1440x900-light.png',fullPage:true});
   await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('#archive-navigator').isVisible(),'Settings Back restores Archive root');assert.equal(await p.locator('#universal-search-open').isVisible(),false,'global Search launcher stays absent after Settings return');await p.evaluate(()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',metaKey:true,bubbles:true,cancelable:true})));await eventually(async()=>await p.locator('#scope-search').evaluate(el=>document.activeElement===el),'Archive shortcut focuses the current-surface search');assert.equal(await p.locator('#universal-search-dialog').isVisible(),false,'shortcut does not open the internal search shell');assert.equal(await p.evaluate(()=>location.hash+location.search),'');await assertNoNetwork(h);
  }finally{await h?.close();}
@@ -50,6 +49,6 @@ test('UIR-01 shell and Archive frame stay semantic across source and current-rel
  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  let release;
  try{
-  release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});const {p}=await prepareArchive(release,'UIR01_RELEASE');await assertShell(p);await p.setViewportSize({width:1440,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light');await p.screenshot({path:'work/ux-r1/uir-01-current-release-archive-1440x900-light.png',fullPage:true});await compareD5Shell(release,'release');await compareD5Archive(release,'release');await assertNoNetwork(release);
+  release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});const {p}=await prepareArchive(release,'UIR01_RELEASE');await assertShell(p);await p.setViewportSize({width:1440,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light');await p.screenshot({path:'work/ux-r1/uir-01-current-release-archive-1440x900-light.png',fullPage:true});await compareD7Archive(release,'release',{matrix:'archive',directory:'work/d7-archive-reader-compat'});await compareD7Archive(release,'release',{matrix:'reader-compat',directory:'work/d7-archive-reader-compat',seed:await seedD7Archive(release,{readerOnly:true})});await assertNoNetwork(release);
  }finally{await release?.close();}
 });

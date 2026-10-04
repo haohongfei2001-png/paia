@@ -87,6 +87,7 @@ function presentScopeSearch(){
  scopeSearch.present({scope:readerScope?'reader':rootScope?'archive':null,owner:documentId||view,label,query:readerScope?documentSearchState().query:query,placeholder:label+'…'});
 }
 const appShell=new AppShellController();
+archiveNavigator.beforeLayout=()=>appShell.presentArchiveComposition();
 const routes=appShell.connect({navigate:(...args)=>navigate(...args),current:()=>({view,documentId,topicId:view==='thoughts'?thoughts.id:null,contextInputId,returnTo,sourcePath:archiveNavigator.state.selectedPath,sourceScope:archiveNavigator.sourceScope,searchQuery:view==='library'&&documentId?documentSearchState().query:query,sort:inputSortSnapshot,anchor:reader.capture()}),captureNavigator:()=>archiveNavigator.navigationSnapshot(),restoreNavigator:snapshot=>archiveNavigator.restoreNavigation(snapshot)});
 const positions=new Map(),queries=new Map();
 const documentSearchStates=new DocumentSearchSessions();let documentSearchIntent=0,documentSearchTimer=null;
@@ -456,8 +457,8 @@ document.addEventListener('keydown',event=>{
  if(event.isComposing||event.keyCode===229||editor?.composing)return;
  if(archiveNavigator.handleKeydown(event))return;
  if(event.altKey&&event.key.toLowerCase()==='s'&&!document.querySelector('dialog[open]')&&reader.focusSelection()){event.preventDefault();return;}
- if(archiveRootOverflow.contains(event.target)&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
-  event.preventDefault();archiveRootOverflow.open=true;const actions=[...archiveRootOverflow.querySelectorAll('[role="menuitem"]')],at=actions.indexOf(document.activeElement);
+ if(archiveRootOverflow.contains(event.target)&&!event.target.closest('select,input,textarea')&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+  event.preventDefault();archiveRootOverflow.open=true;const actions=[...archiveRootOverflow.querySelectorAll('.archive-root-overflow-actions button:not(:disabled)')],at=actions.indexOf(document.activeElement);
   const next=event.key==='Home'?0:event.key==='End'?actions.length-1:event.key==='ArrowUp'?at<0?actions.length-1:(at+actions.length-1)%actions.length:(at+1)%actions.length;
   actions[next]?.focus({preventScroll:true});return;
  }

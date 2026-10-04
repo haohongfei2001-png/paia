@@ -189,6 +189,19 @@ def audit_js(path, text):
             require(text.count(reviewed) == 1 and exact in text,
                     "ui/topic-workspace.js: reviewed Library menu Escape listener changed or duplicated")
             scanned = scanned.replace(reviewed, "SCOPED_LIBRARY_MENU_ESCAPE(", 1)
+        if label == "keyboard listener" and path == ROOT / "ui/app-shell.js":
+            reviewed = "menu.addEventListener('keydown',"
+            exact = "menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;label.focus({preventScroll:true});}});"
+            require(text.count(reviewed) == 1 and exact in text,
+                    "ui/app-shell.js: reviewed compact navigation Escape listener changed or duplicated")
+            scanned = scanned.replace(reviewed, "SCOPED_COMPACT_NAV_ESCAPE(", 1)
+        if label == "keyboard listener" and path == ROOT / "ui/components/scope-search.js":
+            reviewed = "host.addEventListener('keydown',"
+            exact = "host.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&((event.key.toLowerCase()==='z'&&!event.altKey)||event.key.toLowerCase()==='y'))isolated(event);});"
+            boundary = "const isolated=event=>{if(host.closest('#document-page'))event.stopPropagation();};"
+            require(text.count(reviewed) == 1 and exact in text and boundary in text,
+                    "ui/components/scope-search.js: reviewed native search history boundary changed or duplicated")
+            scanned = scanned.replace(reviewed, "SCOPED_SEARCH_NATIVE_HISTORY(", 1)
         if label == "keyboard listener" and path == ROOT / "content/prompt-surface.js":
             require("listen(orb,'keydown'," in text and "listen(document,'keydown'," not in text,
                     "Prompt movement keys must be orb scoped")

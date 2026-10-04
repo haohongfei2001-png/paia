@@ -37,8 +37,10 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   assert.ok(searchBox&&treeBox&&searchBox.y+searchBox.height<=treeBox.y,'primary search is above the Project tree');
   if(process.env.PAIA_BATCH_VISUAL_DIR){await mkdir(process.env.PAIA_BATCH_VISUAL_DIR,{recursive:true});await page.screenshot({path:process.env.PAIA_BATCH_VISUAL_DIR+'/archive-desktop.png',fullPage:true});}
   await eventually(async()=>await page.locator('#archive-source-scope option[value="chatgpt"]').count()===1,'source scope reflects captured provider');
+  await page.locator('#archive-root-overflow summary').click();
   await page.locator('#archive-source-scope').selectOption('chatgpt');
   await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.sourceKey)==='chatgpt','source scope belongs to the shell route');
+  await page.locator('#archive-root-overflow summary').click();
   await eventually(()=>rootWindow.isVisible(),'scoping to ChatGPT keeps its Conversation visible');
   assert.equal(await page.locator('#sync-history').isVisible(),false);
   await page.locator('#archive-root-overflow summary').click();

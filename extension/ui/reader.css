@@ -1,6 +1,4 @@
 /* UX-R2 consumes the shared Design System. No new content or AI color role. */
-#document-panel .document-page{border:0;background:transparent;width:100%;min-width:0;padding:54px 32px 80px;max-width:calc(var(--prose) + 64px);margin:0 auto;line-height:1.85;overflow-wrap:anywhere}
-#document-title,#document-subtitle,#document-search-tools,#document-body{width:min(100%,var(--paia-prose-width,680px));margin-inline:auto}
 #document-title{font-synthesis:weight;font-size:28px;font-weight:600;line-height:1.35;letter-spacing:normal;overflow-wrap:anywhere;white-space:pre-wrap;margin-block:0 16px}
 #input-time-order{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--paia-meta);font-size:13px;margin:0}
 #input-time-order>span{display:none}
@@ -86,11 +84,73 @@ body:has(#document-panel:not([hidden])) #notice button{min-height:44px;color:var
 .working-history-confirm>button+button,.working-history-actions>button+button{margin-inline-start:12px}
 @media(max-width:1023px){.working-history-compare{grid-template-columns:minmax(0,1fr);gap:14px}}
 
-@media(min-width:1024px) and (max-width:1439px){#document-panel .document-page{padding:40px 24px 64px}}
-@media(min-width:768px) and (max-width:1023px){#document-panel .document-page{padding:32px 24px 64px}}
-@media(max-width:767px){#document-panel .document-page{padding:28px 16px 56px}}
 
 #document-subtitle{font-size:14px;line-height:1.5;color:var(--muted);margin-block:0 30px}
 @media(max-width:767px){#document-body :is(.library-block,.archive-block){margin-bottom:24px}}
 @media(pointer:coarse){#document-body .reader-margin-actions button{min-width:44px;min-height:44px}}
 @media(min-width:768px) and (pointer:coarse){#document-body :is(.library-block,.archive-block){margin-bottom:48px}.reader-margin-actions{bottom:-48px}}
+
+/* Preserve the existing Reader geometry outside the Archive visual owner. */
+body:not(:is([data-paia-space="library"],[data-paia-space="archive"])) #document-panel .document-page{border:0;background:transparent;width:100%;min-width:0;padding:54px 32px 80px;max-width:calc(var(--prose) + 64px);margin:0 auto;line-height:1.85;overflow-wrap:anywhere}
+body:not(:is([data-paia-space="library"],[data-paia-space="archive"])) :is(#document-title,#document-subtitle,#document-search-tools,#document-body){width:min(100%,var(--paia-prose-width,680px));margin-inline:auto}
+@media(min-width:1024px) and (max-width:1439px){body:not(:is([data-paia-space="library"],[data-paia-space="archive"])) #document-panel .document-page{padding:40px 24px 64px}}
+@media(min-width:768px) and (max-width:1023px){body:not(:is([data-paia-space="library"],[data-paia-space="archive"])) #document-panel .document-page{padding:32px 24px 64px}}
+@media(max-width:767px){body:not(:is([data-paia-space="library"],[data-paia-space="archive"])) #document-panel .document-page{padding:28px 16px 56px}}
+
+/* D6.2 Reader: document and controls share one flowing, preference-aware column. */
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-panel .document-page{width:100%;min-width:0;max-width:none;margin:0;padding:24px var(--archive-gutter) 80px;border:0;border-radius:0;background:transparent;line-height:1.8125;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px 20px;margin:0 0 48px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-copy{min-width:0;flex:1 1 320px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-title{width:100%;max-width:none;margin:0;font:500 28px/38px var(--title-font);letter-spacing:0;white-space:pre-wrap;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-subtitle{width:100%;margin:4px 0 0;font-size:12px;line-height:20px;color:var(--muted);white-space:normal;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-subtitle:empty{display:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:0;max-width:100%;margin:0 -20px 0 auto}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions:empty{display:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #input-time-order{min-width:0;max-width:100%;margin:0;gap:0}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #input-time-order button{min-height:36px;padding:6px 4px;color:var(--muted);font-size:12px;line-height:20px;white-space:normal;text-align:left;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-menu{min-width:32px;min-height:36px;padding:6px 8px;color:var(--text);font-size:17px;line-height:20px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#document-body,#document-search-tools,#reader-search-slot,#reader-status-slot,#reader-window-guard){width:min(100%,var(--paia-prose-width,800px));max-width:100%;margin-inline:0}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-status-slot{position:relative;margin-top:-36px;margin-bottom:16px;color:var(--muted);font-size:12px;line-height:20px;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-status-slot:not(:has(#save-status:not(:empty))){display:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #save-status{display:block;max-width:100%;margin:0;color:var(--muted);font-size:12px;line-height:20px;white-space:normal}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools{display:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot:empty{display:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-search-tools{margin-block:0 28px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body :is(.library-block,.archive-block){margin:0 0 48px;padding:0;background:transparent;border:0;box-shadow:none;border-radius:0}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .block-time{margin:0 0 8px;font-size:12px;line-height:20px;color:var(--quiet);font-variant-numeric:normal;opacity:1}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .library-prose{font-family:var(--font);font-size:var(--paia-prose-size,16px);line-height:1.8125;min-height:1.8125em;margin:0;padding:0;border:0;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .library-prose:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) .reader-margin-actions{gap:4px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #context-menu{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:6px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #context-menu button{min-height:36px;line-height:20px;color:var(--text);white-space:normal;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #context-menu button.danger{color:var(--danger)}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog,#revision-dialog){padding:28px;border:1px solid var(--line);border-radius:10px;box-shadow:0 18px 60px rgba(23,35,60,.18)}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog,#revision-dialog)::backdrop{background:rgba(23,35,60,.24)}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog h2,#revision-dialog h2){font-size:18px;line-height:26px;font-weight:600}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-content .source-original,#revision-dialog pre){font-family:var(--font);line-height:1.8125}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog button:not(.danger):not(.primary),#revision-dialog button:not(.danger):not(.primary)){border-color:var(--line);font-size:13px;line-height:20px}
+@media(max-width:1023px){
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-panel .document-page{padding-top:0}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 0 0 -8px;min-height:44px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools:empty{display:none}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools button{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:8px;color:var(--muted);font-size:12px;line-height:20px;white-space:normal}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools #back{color:var(--text);font-size:0}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools #back::before{content:"‹";font-size:24px;line-height:24px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading{margin-bottom:16px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions{margin-right:0}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot{margin-bottom:48px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-status-slot{margin-top:0;margin-bottom:20px}
+}
+@media(max-width:767px){
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-panel .document-page{padding-top:0;padding-bottom:56px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-title{font-size:24px;line-height:35px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading{gap:12px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions{flex:1 1 100%;justify-content:flex-end;gap:8px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot{margin-bottom:38px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body :is(.library-block,.archive-block){margin-bottom:48px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .reader-margin-actions{min-height:44px;margin-top:8px;flex-wrap:wrap}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog,#revision-dialog){padding:20px 16px}
+}
+@media(max-width:767px),(pointer:coarse){
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#input-time-order button,#document-menu,#context-menu button,.reader-selection button){min-height:44px;min-width:44px}
+}

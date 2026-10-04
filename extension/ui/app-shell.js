@@ -45,11 +45,49 @@ export class AppShellController {
   document.getElementById('thought-root-header').append(document.getElementById('thought-home-tools'));
   document.getElementById('thought-root-source').append(document.getElementById('thought-source-scope-label'));
   document.getElementById('thought-topic-header').append(document.getElementById('topic-search'));
+  this.installArchivePresentation();
   installUniversalSearch();installRevisit();
   installSettingsPreferences({back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
   const optional=document.createElement('small');optional.className='ux-consent-optional';document.getElementById('consent-check').closest('.consent-checkbox').append(optional);
   document.addEventListener('paia:preferences-applied',()=>this.localize());
   this.localize();
+ }
+ installArchivePresentation(){
+  const get=id=>document.getElementById(id),header=document.querySelector('.workspace-header');
+  this.archiveHeaderOrder=[...header.children];
+  this.archiveControlHomes=new Map(['scope-search-host','back','archive-navigator-toggle','input-time-order','document-menu','save-status'].map(id=>[id,header]));
+  this.archiveNavHomes=[...document.querySelectorAll('.sidebar [data-view]')].map(node=>({node,parent:node.parentElement,next:node.nextSibling}));
+  const menu=document.createElement('details');menu.id='archive-compact-navigation';menu.hidden=true;const label=document.createElement('summary');label.id='archive-compact-nav-label';const items=document.createElement('div');items.id='archive-compact-nav-items';const actions=document.createElement('div');actions.id='archive-compact-reader-actions';actions.hidden=true;items.append(actions);menu.append(label,items);menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;label.focus({preventScroll:true});}});document.querySelector('.sidebar').append(menu);this.archiveCompactMenu=menu;
+  this.archiveDesktop=matchMedia('(min-width:1024px)');this.archiveCompact=matchMedia('(max-width:767px)');
+  const image=document.querySelector('.brand img');image.src='assets/paia-logo-64.png';
+ }
+ presentArchiveComposition(options=this.archivePresentationOptions){
+  if(!this.mounted||!this.archiveControlHomes)return;this.archivePresentationOptions=options;
+  const get=id=>document.getElementById(id),route=this.route,active=!!options?.consented&&['library','archive'].includes(route.view),reader=active&&!!route.documentId,root=active&&!reader,desktop=this.archiveDesktop.matches,compact=active&&this.archiveCompact.matches;
+  const focusBefore=document.activeElement,focusedReaderAction=['back','archive-navigator-toggle','input-time-order','document-menu'].some(id=>get(id)?.contains(focusBefore))?focusBefore:null;
+  const move=(node,host,before=undefined)=>{if(!node||!host)return;const anchor=before?.parentElement===host?before:null;if(node.parentElement===host&&(before===undefined||node.nextSibling===anchor))return;const focus=document.activeElement,retains=focus&&node.contains(focus);host.insertBefore(node,anchor);if(retains&&focus.isConnected)focus.focus({preventScroll:true});};
+  for(const [id,home]of this.archiveControlHomes){
+   let host=home;
+   if(root&&id==='scope-search-host')host=get('archive-root-header-actions');
+   if(reader){
+    if(id==='scope-search-host')host=get(desktop?'archive-reader-search-slot':'reader-search-slot');
+    else if(id==='back')host=get('archive-reader-back-slot');
+    else if(id==='archive-navigator-toggle')host=get(compact?'archive-compact-reader-actions':desktop?'reader-compact-tools':'archive-reader-back-slot');
+    else if(['input-time-order','document-menu'].includes(id))host=get(compact?'archive-compact-reader-actions':'reader-heading-actions');
+    else if(id==='save-status')host=get('reader-status-slot');
+   }
+   const node=get(id),next=host===home?this.archiveHeaderOrder?.slice(this.archiveHeaderOrder.indexOf(node)+1).find(item=>item.parentElement===home)||null:undefined;move(node,host,next);
+  }
+  move(get('archive-root-overflow'),get(root?'archive-root-header-actions':'archive-root-tools'));
+  move(get('archive-source-scope-label'),root?get('archive-root-overflow').querySelector('.archive-root-overflow-actions'):get('archive-root-tools'));
+  for(const {node,parent,next}of this.archiveNavHomes)move(node,compact?get('archive-compact-nav-items'):parent,compact?undefined:next||null);
+  move(get('archive-compact-reader-actions'),get('archive-compact-nav-items'),null);get('archive-compact-reader-actions').hidden=!(reader&&compact);
+  this.archiveCompactMenu.hidden=!compact;
+  if(!compact||this.archivePresentedView!==route.view)this.archiveCompactMenu.open=false;
+  const restoreFocus=()=>{if(!reader||this.route!==route||!focusedReaderAction?.isConnected||![focusBefore,document.body,document.documentElement,null].includes(document.activeElement))return;if(compact&&get('archive-compact-reader-actions').contains(focusedReaderAction))this.archiveCompactMenu.open=true;const target=focusedReaderAction.getClientRects().length?focusedReaderAction:get('back');if(target?.getClientRects().length)target.focus({preventScroll:true});};
+  restoreFocus();
+  this.archivePresentedView=route.view;
+  return restoreFocus;
  }
  viewLabel(view){return NAV_LABELS[view]?.[labels()]||null;}
  localize(){
@@ -61,6 +99,8 @@ export class AppShellController {
   document.getElementById('primary-nav').setAttribute('aria-label',labels()?'Primary navigation':'主要导航');
   const title=document.getElementById('view-title'),text=this.viewLabel(this.route.view);if(text&&!title.hidden)title.textContent=text;
   document.querySelector('.ux-consent-optional').textContent=labels()?' Optional: mark that you read the detailed explanation.':' 可选：用于标记你已阅读上面的完整说明。';
+  document.getElementById('archive-root-description').textContent=labels()?'Return to the places you once expressed yourself.':'回到你曾经表达过的地方。';
+  document.getElementById('archive-compact-nav-label').textContent=this.viewLabel(this.route.view)||this.viewLabel('library');
   presentSettingsPreferences({visible:this.route.view==='settings'});
  }
  present(route,options){
@@ -68,14 +108,13 @@ export class AppShellController {
   this.route=route;presentAppShell(document,route,options);
   const archiveRoot=['library','archive'].includes(route.view)&&!route.documentId,heading=document.getElementById('workspace-heading'),header=document.querySelector('.workspace-header'),thoughtRoot=route.view==='thoughts'&&!route.topicId,headingHost=archiveRoot?document.getElementById('archive-root-heading'):thoughtRoot?document.getElementById('thought-root-heading'):header;
   if(heading.parentElement!==headingHost)headingHost.prepend(heading);
-  const overflow=document.getElementById('archive-root-overflow'),overflowHost=archiveRoot?header:document.getElementById('archive-root-tools');
-  if(overflow.parentElement!==overflowHost)overflowHost.append(overflow);
   document.getElementById('input-time-order').hidden=route.view!=='library'||!route.documentId;
   const reader=!!route.documentId||route.view==='thoughts'&&!!route.topicId;
   document.body.classList.toggle('ux-reader-active',reader);
   document.body.classList.toggle('uir-settings-active',route.view==='settings');
   document.body.dataset.paiaSpace=route.view;
   document.body.dataset.paiaSurface=reader?'reader':'root';
+  this.presentArchiveComposition(options);
   this.localize();
  }
 }

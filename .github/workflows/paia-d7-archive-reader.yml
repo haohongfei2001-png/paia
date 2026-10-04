@@ -1,0 +1,94 @@
+name: PAIA D7 Archive Reader Appearance
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'extension/**'
+      - '.github/workflows/paia-d7-archive-reader.yml'
+permissions:
+  contents: read
+concurrency:
+  group: paia-d7-archive-reader-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  appearance:
+    if: contains(github.event.pull_request.body, 'PAIA_D7_ARCHIVE_READER')
+    name: Complete Archive Reader (${{ matrix.suite }})
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [appearance, compatibility]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+      PAIA_D7_SUITE: ${{ matrix.suite }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Use hosted Chrome and approved CJK font roles
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-match 'Noto Sans CJK SC'
+          fc-match 'Noto Serif CJK SC'
+      - name: Verify and unpack the approved D6.2 masters
+        run: python3 docs/consumer-product-v1/desktop-vnext/d6-final-visual-master/source/unpack_masters.py
+      - name: Run complete visual and existing owning journeys
+        run: |
+          set -o pipefail
+          mkdir -p work/d7-archive-reader
+          D7_FILES="$(node scripts/d7-archive-suite.mjs "$PAIA_D7_SUITE")"
+          xvfb-run -a node --test --test-concurrency=1 $D7_FILES 2>&1 | tee work/d7-archive-reader/acceptance.log
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+          import {D7_FULL_MATRIX,D7_ARCHIVE_MATRIX} from './tests/harness/d7-archive-matrix.mjs';
+          assert.equal(D7_FULL_MATRIX.length,23);assert.equal(D7_ARCHIVE_MATRIX.length,10);
+          const matrices=process.env.PAIA_D7_SUITE==='appearance'?[['d7-archive-reader','full',D7_FULL_MATRIX]]:[['d7-archive-reader-compat','archive',D7_ARCHIVE_MATRIX],['d7-archive-reader-compat','reader-compat',D7_FULL_MATRIX.filter(row=>row.screen==='A02'&&!row.stress)]];
+          for(const variant of ['source','release'])for(const [directory,matrix,declared]of matrices){
+           const report=JSON.parse(readFileSync(`work/${directory}/${variant}-${matrix}.json`));assert.equal(report.result,'PASS');assert.equal(report.head,process.env.PAIA_TESTED_HEAD);assert.equal(report.rows.length,declared.length);assert.deepEqual(report.rows.map(row=>row.id),declared.map(row=>row.id));assert.deepEqual(report.errors,[]);assert.ok(report.rows.every(row=>row.status==='PASS'));
+           assert.deepEqual(report.network,{externalRequests:0,extensionNetworkRequests:0,providerRequests:0,pageErrors:[]});
+          }
+          JS
+      - name: Retain completed or failed whole-window evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d7-archive-reader-${{ matrix.suite }}-${{ github.event.pull_request.head.sha }}
+          path: |
+            extension/work/d7-archive-reader/
+            extension/work/d7-archive-reader-compat/
+            extension/work/qa-dvn-shell/
+            extension/work/ux-r1/
+            extension/work/ux-r6/
+            extension/work/ans-05-navigator/
+          if-no-files-found: error
+          retention-days: 7
+  required:
+    name: D7 Archive Reader required aggregate
+    needs: [appearance]
+    if: always() && contains(github.event.pull_request.body, 'PAIA_D7_ARCHIVE_READER')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every selected complete-file suite
+        env:
+          D7_MATRIX_RESULT: ${{ needs.appearance.result }}
+        run: test "$D7_MATRIX_RESULT" = success

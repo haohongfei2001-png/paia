@@ -95,6 +95,13 @@ holds below are historical and superseded only by this explicit owner amendment.
 
 # Canonical Status — PAIA Consumer Product v1
 
+## D5 broad appearance adopted; D7 Archive/Reader implementation — 2026-10-04
+
+**Current batch: `D7_ARCHIVE_READER_VISUAL_IMPLEMENTING`.** The owner requested continued high-fidelity implementation against the approved D6.2 images after merging D5. [PR142](https://github.com/haohongfei2001-png/paia/pull/142) is adopted at `4cba58db72ef14f756676d0048cbd0709c6df2c9`; reviewed head `d07756fb`, tested merge and main share tree `7d9519f4b74e24128f447f9d3f7214062943a432`. Source/release whole-page37195667267, candidate37195667301, integration37195702398, exact-main37196059116 and Pages37196058747 PASS. This closes the owner's bounded D5 major-composition batch, not historical full functional certification or final consumer release.
+
+The next [finite Archive/Reader visual batch](implementation/desktop-vnext/D7-ARCHIVE-READER.md) uses the actual D6.2 whole-window masters: primary rail, root composition, Reader navigator/title/body/search/actions, narrow layout and color/type hierarchy. Existing routes, editor/data owners and explicit reading preferences remain authoritative. The latest owner amendment continues to supersede older functional completion wording: AI Context is UI-only pending redesign; Thought Library, writing and export completeness are deferred. No old functionality checklist is silently reactivated by D7. Public consumer release and install delivery remain held. Prior entries and negative evidence below remain historical facts.
+
+
 ## Immediate priority: finish and merge bounded D5 appearance — 2026-10-04
 
 **Current controlling batch: `D5_APPEARANCE_CLOSURE_FIRST / FUNCTIONAL_REDESIGN_DEFERRED`.**
