@@ -7,6 +7,10 @@ on:
         default: main
         required: true
         type: string
+      visual_states:
+        description: Comma-separated frozen states (empty captures all eight)
+        default: ''
+        type: string
   pull_request:
     paths:
       - 'extension/content/prompt-surface.js'
@@ -31,6 +35,8 @@ jobs:
       PAIA_HEADLESS: '1'
       PLAYWRIGHT_MODULE: playwright
       PAIA_TEST_CONCURRENCY: '4'
+      # PR 151 owner follow-up: only V03/V08 remain open; six states are frozen/accepted.
+      PAIA_VISUAL_STATES: ${{ github.event.pull_request.number == 151 && '03,08' || inputs.visual_states || '' }}
     defaults:
       run:
         working-directory: extension

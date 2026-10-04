@@ -12,6 +12,8 @@ await mkdir(out,{recursive:true});
 const sha=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const prompts=['帮我把这件事拆成下一步可以执行的任务','检查一下有没有逻辑漏洞','不要重新设计，继续修改现有方案','用更简单的话解释','比较这两个方案的主要差别','整理成待办清单'];
 const files=(await readdir(masters)).filter(x=>x.endsWith('.svg')).sort();
+const selected=process.env.PAIA_VISUAL_STATES?.split(',');
+if(selected)assert.ok(selected.length&&selected.every(id=>files.some(file=>file.startsWith(id+'-'))),'unknown visual state');
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(',')){
  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'inherit'});
@@ -26,6 +28,7 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
   for(const id of ids){const q=await rpc(engineering,'PAIA_PROMPT_QUERY');await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'pin',id,revision:q.revision}});}
   await routeComposer(h.context,root);
   for(let i=0;i<files.length;i++){
+   if(selected&&!selected.includes(files[i].slice(0,2)))continue;
    const file=files[i],name=file.replace('.svg',''),compact=i===6,dark=i===5,viewport=compact?{width:390,height:844}:{width:1440,height:900};
    const svg=await readFile(join(masters,file),'utf8');
    const target=await h.context.newPage();await target.setViewportSize(viewport);await target.goto('file://'+join(masters,file));await target.screenshot({path:join(out,'target-'+name+'.png')});await target.close();
@@ -50,7 +53,7 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
    if(i===2)await f.locator('.row').nth(1).hover();
    if(i===3)await f.locator('.row').nth(1).locator('.edit-shortcut').click();
    if(i===4){await f.locator('.row').nth(1).hover();const from=await f.locator('.row').nth(1).locator('.grip').boundingBox(),to=await f.locator('.row').nth(2).boundingBox();await page.mouse.move(from.x+11,from.y+13);await page.mouse.down();await page.mouse.move(to.x+20,to.y+8,{steps:8});}
-   if(i===7){await page.locator('#prompt-textarea').focus();await f.locator('.insert').first().click();await eventually(()=>f.locator('#status').textContent().then(x=>x.includes('已插入，未发送')));const box=await(await f.frameElement()).boundingBox();await page.mouse.move(box.x+100,box.y+4);await page.mouse.move(500,100);}
+   if(i===7){await page.locator('#prompt-textarea').focus();await f.locator('.insert').first().click();await eventually(()=>f.locator('#status').textContent().then(x=>x.includes('已插入，未发送')));const box=await(await f.frameElement()).boundingBox();await page.mouse.move(box.x+100,box.y+4);await page.mouse.move(500,100);assert.equal(await f.locator('#status button').count(),0);await page.screenshot({path:join(out,variant+'-08-inserted-feedback.png'),animations:'disabled',caret:'hide'});await eventually(()=>f.locator('#status').textContent().then(x=>x===''));assert.equal(await f.locator('#status').isVisible(),false);}
    await page.waitForTimeout(200);
    if(i===4)for(const selector of ['.edit-shortcut','.more'])assert.equal(await f.locator('.moving '+selector).evaluate(el=>getComputedStyle(el).opacity),'0','drag keeps secondary controls quiet');
    if(i===7){const hit=await f.locator('.insert').last().evaluate(el=>{const r=el.getBoundingClientRect(),at=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return at===el||el.contains(at);});assert.equal(hit,true,'inserted status/footer must not cover the last prompt target');}
@@ -60,7 +63,7 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
    for(const box of [orbBox,cardBox].filter(Boolean)){assert.ok(disjoint(box,formBox));assert.ok(box.x>=0&&box.x+box.width<=viewport.width);}
    assert.equal(orbBox.width,44);assert.equal(orbBox.height,44);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.text()),i===7?prompts[0]:'');
    if(f){assert.equal(await f.evaluate(()=>getComputedStyle(document.documentElement).color),dark?'rgb(233, 238, 246)':'rgb(29, 39, 56)');assert.ok(await f.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
-   receipt.screens.push({name,typography:f?await f.locator('.insert').first().evaluate(el=>({font:getComputedStyle(el).font,body:getComputedStyle(document.body).font})):null,viewport,theme:dark?'dark':'light',dpr:await page.evaluate(()=>devicePixelRatio),scale:1,prompts:compact?prompts.slice(0,5):prompts,orb:orbBox,card:cardBox,composer:formBox,targetSha256:createHash('sha256').update(svg).digest('hex')});
+   receipt.screens.push({name,...(i===7?{phase:'settled verified success; feedback cleared',transientFeedbackMs:1800}:{}),typography:f?await f.locator('.insert').first().evaluate(el=>({font:getComputedStyle(el).font,body:getComputedStyle(document.body).font})):null,viewport,theme:dark?'dark':'light',dpr:await page.evaluate(()=>devicePixelRatio),scale:1,prompts:compact?prompts.slice(0,5):prompts,orb:orbBox,card:cardBox,composer:formBox,targetSha256:createHash('sha256').update(svg).digest('hex')});
    console.log('CAPTURE',variant,name);
    if(i===4)await page.mouse.up();
    await page.close();

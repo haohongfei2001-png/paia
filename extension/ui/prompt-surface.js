@@ -6,7 +6,8 @@ const attempted=new Set();
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}
 const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-label',label);if(busy||refreshing){b.dataset.pendingDisabled='0';b.disabled=true;}b.addEventListener('click',e=>{if(e.isTrusted)void fn(e);});return b;};
 function pending(value){busy=value;for(const b of document.querySelectorAll('button,textarea,input')){if(value){if(!('pendingDisabled' in b.dataset))b.dataset.pendingDisabled=b.disabled?'1':'0';b.disabled=true;}else if('pendingDisabled' in b.dataset){b.disabled=b.dataset.pendingDisabled==='1';delete b.dataset.pendingDisabled;}}}
-const tell=text=>{status.replaceChildren(document.createTextNode(text));};
+let feedbackTimer;
+const tell=(text,temporary=false)=>{clearTimeout(feedbackTimer);status.replaceChildren(...(text?[document.createTextNode(text)]:[]));if(temporary)feedbackTimer=setTimeout(()=>tell(''),1800);};
 async function refresh(internal=false){
  if(editing||(busy&&internal!==true)||drag||refreshing)return;
  refreshing=true;pending(true);const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;manualOrder=q.manualOrder;session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);}
@@ -19,7 +20,9 @@ async function manage(action,item,extra={}){if(busy||composing)return;pending(tr
 async function insert(item,b){
  if(editing||busy||drag||composing||attempted.has(item.id))return;
  attempted.add(item.id);b.disabled=true;pending(true);tell('正在插入…');
- try{const r=await rpc({type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});tell(r.status==='inserted'?'已插入，未发送。':r.status==='uncertain'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。');}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
+ let verified=false;
+ try{const r=await rpc({type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});verified=r.status==='inserted'&&r.verified===true;tell(verified?'已插入，未发送。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
+ if(verified)return;
  const copy=button('复制',async()=>{try{const x=await rpc({type:'PAIA_PROMPT_COPY_TEXT',id:item.id,text:item.text}),r=await copyPrompt(x.text);tell(r.status==='copied'?'已复制，请手动粘贴。':'未能复制，请检查浏览器权限。');}catch{tell('此 Prompt 已变化，请刷新。');}});status.append(copy);
 }
 function edit(item){
