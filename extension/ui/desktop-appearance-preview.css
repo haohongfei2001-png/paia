@@ -33,3 +33,4 @@ body[data-desktop-appearance-preview=organize] .dvn-preview-back{font:12px/20px 
 body[data-desktop-appearance-preview=organize] .dvn-preview-workspace{width:100%}
 @media(max-width:1023px){body[data-desktop-appearance-preview=organize] .workspace-header{width:calc(100% - 72px)}}
 @media(max-width:767px){body[data-desktop-appearance-preview=organize] .workspace-header{width:calc(100% - 40px);padding-top:12px;flex-wrap:wrap}body[data-desktop-appearance-preview=organize] .dvn-preview-exit{min-height:44px}}
+body[data-desktop-appearance-preview=organize] .workspace:has([data-organize-state=failed]) :is(.workspace-header,.organize-scope-workspace){margin-inline:var(--archive-gutter) auto}
