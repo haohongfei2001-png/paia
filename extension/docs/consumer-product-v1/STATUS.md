@@ -1,5 +1,15 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q12 — Existing Organize running/stale notices — 2026-10-04
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q12`.**
+Q11 [PR137](https://github.com/haohongfei2001-png/paia/pull/137) is adopted at exact main `8c73fc83fba2a1f20af9e5e4c5ef1631be0a89ce`. Head `8dbd2c2e`, tested merge `ae838f62` and main share tree `9770f01246189ee975ce688ae191d7ac643b04cd`. Candidate37178453386, light37178842010, exact-main37179070397 and Pages37179070098 PASS: 1,641 unit/9 complete selected browser/102 adapter/58 privacy plus release. Independent final artifact/pixel review confirms disclosure before approval, exact44px narrow/coarse controls and complete native/no-request exits. [Q11](implementation/desktop-vnext/D5-Q11.md) preserves all failed evidence and the qualified native picker sequence correction. Full browser/Mac skipped under §7.2.
+
+Approved [Q12](implementation/desktop-vnext/D5-Q12.md) changes only existing O02/O06 running/stale notice CSS and its Stop presentation. Keep the five specified states, same status host/text/model/handler/route, synthetic request bounds and original material. First-generation has no frozen matching visual and is excluded; other status states, Current/timeline and composition remain unchanged. Preserve all11 old browser registrations plus two isolated source/release notice fixtures. Measured677.097s old workload plus setup cannot fit13 in one12-minute job; the approved complete-file8+5 split keeps both12-minute budgets, all13 required, no filtering and unchanged full-suite placement. New native timing and paired pixels remain pending.
+
+Finish this useful bounded slice within the 08:00 UTC unattended window; no late broad owner work. O01 workspace composition, PR132/T05 and final D5 owner acceptance remain open. Browser extension remains the priority. Public consumer release and install-package delivery remain held. Older controlling entries below are historical.
+
+
 ## D5/Q11 — Scope disclosure before Organize approval — 2026-10-04
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q11`.**

@@ -1,4 +1,5 @@
 import {confirmOrganizeScope,adoptFirstCandidate} from './harness/ai-reviewed-browser.mjs';
+import {inspectOrganizeNotices} from './harness/d5-organize-notices.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -165,4 +166,15 @@ test('VS-05 long Topic remains interactive across a held AI request, navigation 
    await longRunningJourney(page,h,topic,label,releaseRequest);
   }finally{releaseRequest?.();await h?.close();}
  }
+});
+
+for(const variant of ['source','release'])test(`D5 O02/O06 notices preserve real synthetic Stop and stale refusal (${variant})`,{timeout:180000},async()=>{
+ if(variant==='release')await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+ const releases=[],gates=[0,1].map(index=>new Promise(resolve=>{releases[index]=resolve;}));let calls=0,h;
+ try{
+  h=await FakeChatGPT.start({onboarding:true,...variant==='release'?{extensionPath:'work/current-release'}:{},deepSeekFixture:async body=>{const index=calls++;if(index<2)await gates[index];return aiOutput(requestOf(body),'SYNTHETIC_Q12');}});
+  const page=await readyAI(h),topic=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC_Q12 可读的真实整理状态',operationId:op()}}),ids=[];
+  for(let i=0;i<2;i++)ids.push((await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`SYNTHETIC_Q12_ORIGINAL_${i} 原话保持完整。\n<literal> 👩‍💻 é；我仍然不确定，不代替我下结论。`}})).id);
+  await inspectOrganizeNotices(h,variant,{topic,ids,releaseRequest:index=>releases[index]()});
+ }finally{for(const release of releases)release();await h?.close();}
 });
