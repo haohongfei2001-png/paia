@@ -929,6 +929,42 @@ The surface is independent from Desktop vNext D6.2 geometry. It inherits PAIA's
 restrained typography/contrast discipline but does not modify the owner-approved
 D6.2 desktop masters.
 
+## CPV1-09.3V — Owner visual convergence amendment
+
+Owner review of the integrated 09.3 runtime rejected the visual result while
+retaining the functional implementation. Reopen only pure visual presentation.
+
+Authority:
+- `prompt-reuse-visual-v1/README.md`;
+- literal V01–V08 masters;
+- `prompt-reuse-visual-v1/VISUAL_CONTRACT.md`;
+- target tokens and validation contract in that package.
+
+Work:
+- keep current Prompt Family, ranking, persistence, insertion and authorization
+  semantics unchanged;
+- replace the flat utility-button orb with the literal iridescent frosted sphere;
+- make the expanded card read as one continuous glass object rather than a
+  settings/tool panel;
+- converge row density, typography, divider weight, hover controls, edit/drag
+  states, scrollbar, light/dark material and compact reflow to the masters;
+- preserve all current accessibility targets;
+- for every V01–V08 state render target / source actual / release actual /
+  difference at equal viewport, theme, data, scale and DPR;
+- record a human design-conformance judgment; source/release parity alone is
+  insufficient.
+
+No schema, provider, permission, Prompt Family, Stage 3 or Desktop/D7 behavior
+change is authorized by this amendment.
+
+Exit:
+- V01–V08 conform to the visual masters;
+- affected browser/privacy/package gates remain green;
+- owner explicitly accepts the actual production screenshots.
+
+Until that exit is recorded, Prompt Reuse is correctly described as
+`FUNCTIONAL_ENGINEERING_COMPLETE / VISUAL_ACCEPTANCE_OPEN`.
+
 ## CPV1-09.4 — Edit, pin/order, hide and family correction
 
 Implement management without polluting normal use:
