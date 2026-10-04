@@ -56,7 +56,9 @@
         "content/response-bridge.js",
         "content/source-structure-bridge.js",
         "adapter/chatgpt-composer.js",
-        "content/prompt-reuse.js"
+        "content/prompt-reuse.js",
+        "core/prompt-surface-layout.js",
+        "content/prompt-surface.js"
       ],
       "run_at": "document_start",
       "all_frames": false,
@@ -90,5 +92,15 @@
   ],
   "content_security_policy": {
     "extension_pages": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; connect-src https://api.deepseek.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "ui/prompt-surface.html"
+      ],
+      "matches": [
+        "https://chatgpt.com/*"
+      ]
+    }
+  ]
 }

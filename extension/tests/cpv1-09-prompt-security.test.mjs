@@ -31,6 +31,6 @@ test('clipboard success waits for browser acknowledgement; rejection does not re
 test('new Stage 1/2 runtime has no network, send, reply, website storage, page bridge or raw HTML write',async()=>{
  const paths=['adapter/chatgpt-composer.js','content/prompt-reuse.js','core/prompt-family.js','core/prompt-reuse-service.js','background/prompt-reuse-commands.js'];
  for(const path of paths){const text=await readFile(new URL('../'+path,import.meta.url),'utf8');assert.doesNotMatch(text,/\b(?:fetch|XMLHttpRequest|WebSocket|sendBeacon)\s*\(|(?:localStorage|sessionStorage)|(?:innerHTML|outerHTML)\s*=|\.submit\s*\(|\.requestSubmit\s*\(|dispatchEvent\s*\(|postMessage\s*\(|KeyboardEvent\s*\(/,path);}
- const manifest=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url),'utf8'));assert.deepEqual(manifest.host_permissions,['https://api.deepseek.com/*','https://chatgpt.com/*']);assert.deepEqual(manifest.permissions,['storage','scripting']);assert.equal(manifest.web_accessible_resources,undefined);
+ const manifest=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url),'utf8'));assert.deepEqual(manifest.host_permissions,['https://api.deepseek.com/*','https://chatgpt.com/*']);assert.deepEqual(manifest.permissions,['storage','scripting']);assert.deepEqual(manifest.web_accessible_resources,[{resources:['ui/prompt-surface.html'],matches:['https://chatgpt.com/*']}]);
  const scripts=manifest.content_scripts.filter(x=>x.js.includes('content/prompt-reuse.js'));assert.equal(scripts.length,1);assert.equal(scripts[0].world,'ISOLATED');
 });

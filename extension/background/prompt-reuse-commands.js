@@ -5,6 +5,10 @@ export class PromptReuseCommands{
  async handle(request,sender){
   const api=this.api;
   if(sender.id!==api.runtime.id||!['ui/prompt-reuse-test.html','ui/archive.html','ui/popup.html'].some(path=>sender.url===api.runtime.getURL(path)))throw new ArchiveError('FORBIDDEN');
+  return this.dispatch(request);
+ }
+ async dispatch(request){
+  const api=this.api;
   if(!(await this.service.s.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   if(request.type==='PAIA_PROMPT_QUERY'&&own(request,['type','includeHidden']))return this.service.query({includeHidden:request.includeHidden});
   if(request.type==='PAIA_PROMPT_COPY_TEXT'&&own(request,['type','id','text'])){const selected=await this.service.resolve(request);return {text:selected.text};}

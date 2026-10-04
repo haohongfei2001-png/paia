@@ -71,9 +71,11 @@ def audit_manifest():
             "nativeMessaging must be the sole reviewed optional permission")
     require(manifest.get("host_permissions") == ["https://api.deepseek.com/*", "https://chatgpt.com/*"],
             "Only the exact approved DeepSeek and ChatGPT origins are permitted")
-    for key in ("optional_host_permissions", "externally_connectable", "web_accessible_resources", "sandbox",
+    for key in ("optional_host_permissions", "externally_connectable", "sandbox",
                 "update_url", "devtools_page", "chrome_url_overrides"):
         require(not manifest.get(key), f"Unexpected manifest capability: {key}")
+    require(manifest.get("web_accessible_resources") == [{"resources": ["ui/prompt-surface.html"], "matches": ["https://chatgpt.com/*"]}],
+            "Only the reviewed cross-origin Prompt frame may be web accessible")
     minimum_version = str(manifest.get("minimum_chrome_version", "0"))
     major_version = minimum_version.split(".")[0]
     require(major_version.isdigit() and int(major_version) >= 114,
@@ -187,6 +189,11 @@ def audit_js(path, text):
             require(text.count(reviewed) == 1 and exact in text,
                     "ui/topic-workspace.js: reviewed Library menu Escape listener changed or duplicated")
             scanned = scanned.replace(reviewed, "SCOPED_LIBRARY_MENU_ESCAPE(", 1)
+        if label == "keyboard listener" and path == ROOT / "content/prompt-surface.js":
+            require("listen(orb,'keydown'," in text and "listen(document,'keydown'," not in text,
+                    "Prompt movement keys must be orb scoped")
+        if label == "keyboard listener" and path == ROOT / "ui/prompt-surface.js":
+            scanned = scanned.replace("document.getElementById('card').addEventListener('keydown',", "SCOPED_PROMPT_CARD_KEYS(")
         match = re.search(pattern, scanned, re.I if label == "system keychain" else 0)
         line = text.count("\n", 0, match.start()) + 1 if match else 0
         require(not match, f"{path.relative_to(ROOT)}:{line}: forbidden {label}")

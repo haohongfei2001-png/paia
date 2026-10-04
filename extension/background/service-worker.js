@@ -1,3 +1,4 @@
+import {PromptSurfaceCommands} from './prompt-surface.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
 import {PromptReuseCommands} from './prompt-reuse-commands.js';
 import {ArchiveOriginalQuery} from '../core/archive-original-query.js';
@@ -40,6 +41,7 @@ import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 const store = new IndexedArchiveStore(chrome.storage.local);
 const promptReuse = new PromptReuseCommands(new PromptReuseService(store),chrome);
+const promptSurface = new PromptSurfaceCommands(promptReuse,chrome);
 const productSignals = new ProductSignals(store);
 const passport = new PassportService(store);
 const revisit = new RevisitService(store);
@@ -146,6 +148,7 @@ function isChatGPTContent(sender) {
 async function handle(request, sender) {
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
+  if(request.type.startsWith('PAIA_PROMPT_SURFACE_'))return promptSurface.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_'))return promptReuse.handle(request,sender);
   if(request.type.startsWith('IMPORT_'))return imports.handle(request,sender);
   const ui = isExtensionPage(sender);
@@ -463,6 +466,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:request.type==='OBSERVE_SOURCE_STRUCTURE'?false:true;
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
       sendResponse({ ok: true, data });
+      if(request.type==='CONSENT')void chrome.tabs.query({url:'https://chatgpt.com/*'}).then(tabs=>Promise.allSettled(tabs.filter(t=>!t.incognito).map(t=>chrome.tabs.sendMessage(t.id,{type:'PAIA_PROMPT_SURFACE_ACTIVATE'},{frameId:0})))).catch(()=>{});
       if(request.type==='OBSERVE_SOURCE_STRUCTURE'&&data?.event===true)void notifySourceStructureChanged();
       if(request.type==='PAIA_PROMPT_CHANGE')void chrome.runtime.sendMessage?.({type:'PAIA_PROMPT_CHANGED'}).catch(()=>{});
       if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);

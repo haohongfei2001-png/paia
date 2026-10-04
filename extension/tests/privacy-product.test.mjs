@@ -7,7 +7,8 @@ test('privacy: manifest keeps an exact reviewed required and optional permission
  assert.deepEqual(m.permissions,['storage','scripting']);
  assert.deepEqual(m.optional_permissions,['nativeMessaging']);
  assert.deepEqual(m.host_permissions,['https://api.deepseek.com/*','https://chatgpt.com/*']);
- for(const key of ['optional_host_permissions','externally_connectable','web_accessible_resources'])assert.equal(m[key],undefined);
+ for(const key of ['optional_host_permissions','externally_connectable'])assert.equal(m[key],undefined);
+ assert.deepEqual(m.web_accessible_resources,[{resources:['ui/prompt-surface.html'],matches:['https://chatgpt.com/*']}]);
  for(const s of m.content_scripts){assert.deepEqual(s.matches,['https://chatgpt.com/*']);assert.equal(s.all_frames,false);assert.ok(s.js.every(p=>!/^tests|^work/.test(p)));}
  assert.match(m.content_security_policy.extension_pages,/connect-src https:\/\/api\.deepseek\.com/);
 });
