@@ -62,10 +62,14 @@ body.uir-settings-active #workspace-error{padding:16px 32px}
  .ux-settings-mobile-switch select{width:100%;min-height:44px;padding:8px 36px 8px 10px;background:var(--bg);border:1px solid var(--control);border-radius:6px;color:var(--text)}
  #settings-panel .setting{align-items:stretch;flex-direction:column;gap:8px}
  #settings-panel .setting>span{max-width:100%}
- #settings-panel .setting input:is([type="checkbox"],[type="radio"]){align-self:flex-start;flex:none}
  #settings-panel .setting select{width:100%;max-width:100%;min-height:44px}
 }
-@media(max-width:767px),(pointer:coarse){.ux-settings-back,.ux-settings-nav>button{min-height:44px;min-width:44px}#settings-panel :is(button,summary,select,input){min-height:44px;min-width:44px}}
+@media(max-width:767px),(pointer:coarse){
+ .ux-settings-back,.ux-settings-nav>button{min-height:44px;min-width:44px}
+ #settings-panel :is(button,summary,select,input:not([type="checkbox"]):not([type="radio"])){min-height:44px;min-width:44px}
+ #settings-panel label:has(>input:is([type="checkbox"],[type="radio"])){display:flex;flex-direction:row;align-items:center;gap:10px;min-height:44px;min-width:44px}
+ #settings-panel input:is([type="checkbox"],[type="radio"]){width:16px;height:16px;min-width:16px;min-height:16px;max-width:16px;max-height:16px;flex:none;align-self:center;padding:0}
+}
 dialog,#context-menu,.source-panel{background:var(--paia-surface);color:var(--paia-text);border-color:var(--paia-subtle)}
 dialog::backdrop{background:#10171366}
 html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #context-menu{background:var(--paia-surface);border-color:var(--paia-subtle)}
