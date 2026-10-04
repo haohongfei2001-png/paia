@@ -1,5 +1,38 @@
 # CPV1-09.3V — Prompt Reuse visual convergence
 
+## Final owner acceptance and integration — 2026-10-05
+
+**`VISUAL_ACCEPTED` / `OWNER_VISUAL_ACCEPTANCE = PASS` (V01–V08).**
+The owner explicitly accepted all eight states in the task conversation and
+authorized PR #151 to merge. This acceptance supersedes the pending owner-review
+labels in the historical capture receipts below; original screenshots, hashes,
+run identities and failed attempts remain unchanged.
+
+PR #151 was clean against main `3a127c2d69f9d33cc0e7ae90d7d1c5e3ac0e5408` and merged
+as `a91943cae2b754202339993174beb9976c6b40e3`. Accepted/tested head:
+`293c6c42aed5083f31226fd9f919d03461103b3a`. Both use tree
+`3b156a156bfe9a1eb15fcf02003dc85c3e68e8f7`, preserving the tested runtime exactly.
+
+Existing final results remain PASS:
+[Foundation 37225100419, attempt 2](https://github.com/haohongfei2001-png/paia/actions/runs/37225100419/attempts/2),
+[Visual 37225100429](https://github.com/haohongfei2001-png/paia/actions/runs/37225100429),
+and [Certification 37225100413](https://github.com/haohongfei2001-png/paia/actions/runs/37225100413).
+Insertion 20/20 and Surface 30/30 registrations (46 browser cases plus four parent
+containers), affected local Surface/security 14/14, automatic unit 1,780,
+adapter 102, privacy 59, source/release parity and package guards all passed.
+Foundation attempt 1 at that head hit the unchanged legacy UX-R3 digest-readiness
+race; its isolated file passed 26/26 and only the failed job was rerun. The run
+history is retained rather than presented as first-attempt success.
+
+This post-merge closure edits canonical documentation only. It grants no new
+runtime capability and does not claim a fresh execution of earlier test runs.
+**`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE` remains unchanged.**
+No Stage 3, second provider, B-04 or D7 implementation is started.
+
+## Historical engineering and review receipt
+
+The following records the state at capture time, before final owner acceptance.
+
 **ENGINEERING_VISUAL_CONVERGENCE_COMPLETE / OWNER_VISUAL_ACCEPTANCE_PENDING**.
 Owner visual acceptance remains `VISUAL_ACCEPTANCE_OPEN`.
 Real ChatGPT final certification remains DEFERRED_EXTERNAL_EVIDENCE.

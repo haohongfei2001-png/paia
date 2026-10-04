@@ -1,26 +1,30 @@
-# CPV1-09.3V — V03/V08 final owner review pending
+# CPV1-09.3V — VISUAL_ACCEPTED
 
-**Current delivery state: `ENGINEERING_VISUAL_CONVERGENCE_COMPLETE / OWNER_VISUAL_ACCEPTANCE_PENDING`.**
-**Acceptance boundaries remain `FUNCTIONAL_ENGINEERING_COMPLETE / VISUAL_ACCEPTANCE_OPEN / REAL_CHATGPT_FINAL_CERTIFICATION_DEFERRED`.**
+**Current Prompt Reuse state: `FUNCTIONAL_ENGINEERING_COMPLETE / VISUAL_ACCEPTED`.**
+**`OWNER_VISUAL_ACCEPTANCE = PASS` — V01–V08 all accepted by the owner on 2026-10-05.**
+**`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`.**
 
-Owner review has accepted V01, V02, V04, V05, V06 and V07. Those surfaces and
-frozen masters are unchanged. The remaining PR #151 follow-up changes only the
-V03 pencil glyph and V08 feedback: verified success shows `已插入，未发送。`
-for 1.8 seconds, then clears without Copy; failed/unconfirmed outcomes retain
-explicit manual-copy recovery. No automatic send or retry is introduced.
+The owner explicitly approved the final visual result and authorized integration.
+[PR #151](https://github.com/haohongfei2001-png/paia/pull/151) was confirmed conflict-free
+against main `3a127c2d69f9d33cc0e7ae90d7d1c5e3ac0e5408`, with the existing required
+checks passing, then merged as `a91943cae2b754202339993174beb9976c6b40e3`.
+The accepted head is `293c6c42aed5083f31226fd9f919d03461103b3a`.
+Its tree and the merge tree are identical: `3b156a156bfe9a1eb15fcf02003dc85c3e68e8f7`.
 
-[Bounded follow-up receipt and V03/V08 comparison boards](implementation/prompt-reuse/V03-V08-OWNER-FOLLOWUP.md)
-record the directly inspected target/source/release evidence and the preceding
-50/50 source/release browser result. Latest exact-head checks remain attached to
-[PR #151](https://github.com/haohongfei2001-png/paia/pull/151).
-The same branch is reconciled onto main `3a127c2d69f9d33cc0e7ae90d7d1c5e3ac0e5408`;
-D7 PR #152 files and every main status entry below are preserved.
+[Visual convergence receipt](implementation/prompt-reuse/VISUAL-CONVERGENCE.md)
+and [V03/V08 follow-up receipt](implementation/prompt-reuse/V03-V08-OWNER-FOLLOWUP.md)
+record owner acceptance and retain the original comparison artifacts and test
+history. Existing results remain valid: insertion 20/20 and Surface 30/30 browser
+registrations, affected Surface/security 14/14, full unit 1,780, adapter 102,
+privacy 59, visual source/release parity and package/release guards PASS.
+This closure changes documentation only; it does not relabel prior runs as new
+post-merge executions or erase the recorded failed attempts.
 
-**Unique remaining Prompt Reuse action: final owner review of V03 and V08.**
-The PR stays unmerged. Family/ranking, schema, Backup, provider adapter,
-trusted commands, permissions and insertion acknowledgement are unchanged.
-Real ChatGPT certification stays `DEFERRED_EXTERNAL_EVIDENCE`; no Stage 3,
-B-04, second provider or D7 work is authorized by this follow-up.
+**CPV1-09.3V is closed as `VISUAL_ACCEPTED`.** No additional Prompt Reuse work
+is started by this acceptance. Real ChatGPT certification remains deferred;
+Stage 3, B-04 and the second provider are not started. D7 files and all main
+status entries below remain unchanged. Earlier Prompt Reuse pending/reopened
+entries below are historical and are superseded by this owner acceptance.
 
 # Prompt Reuse visual convergence — OWNER REVIEW REOPENED
 
