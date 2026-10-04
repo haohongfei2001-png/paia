@@ -108,3 +108,9 @@ test('Reader return preserves original header sibling ordering around retained c
  owner.route={view:'thoughts',topicId:'synthetic-topic'};owner.presentArchiveComposition();
  assert.deepEqual(home.children,before);
 }));
+
+
+test('Display-only Context uses the same compact primary menu and restores existing desktop parents',()=>fixture(({owner,nodes,buttons,nav,bottom})=>{
+ owner.route={view:'memory'};owner.archiveCompact.matches=true;owner.presentArchiveComposition({consented:true});assert.equal(owner.archiveCompactMenu.hidden,false);assert.deepEqual(nodes.get('archive-compact-nav-items').children,[...buttons,nodes.get('archive-compact-reader-actions')]);assert.equal(nodes.get('archive-compact-reader-actions').hidden,true);
+ owner.archiveCompact.matches=false;owner.presentArchiveComposition();assert.equal(owner.archiveCompactMenu.hidden,true);assert.equal(owner.archiveCompactMenu.open,false);for(const row of owner.archiveNavHomes)assert.equal(row.node.parentElement,row.parent);
+}));

@@ -34,10 +34,10 @@ class Node {
 }
 
 function withPreview(run){
- const names=['document','chrome'],saved=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)]));
+ const names=['document','chrome','fetch','localStorage','navigator','indexedDB'],saved=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)]));
  const body=new Node('body'),host=new Node('section'),headerHost=new Node('header');body.append(headerHost,host);
  globalThis.document={body,documentElement:{lang:'zh-CN'},activeElement:null,createElement:tag=>new Node(tag)};
- globalThis.chrome=new Proxy({}, {get(){throw Error('Design preview must not access extension APIs');}});
+ for(const name of ['chrome','localStorage','navigator','indexedDB'])Object.defineProperty(globalThis,name,{configurable:true,value:new Proxy({}, {get(){throw Error('Design preview must not access '+name);}})});globalThis.fetch=()=>{throw Error('Design preview must not access network');};
  const model={purpose:'Synthetic design task',materials:[{id:'first',title:'Synthetic title',body:'Synthetic selected passage',meta:'Synthetic source label'}],suggestions:[{id:'extra',body:'Synthetic suggested passage'}],output:{purpose:'Synthetic output purpose',sections:[{title:'Synthetic section',paragraphs:['Exact first paragraph','Exact second paragraph'],meta:'Synthetic provenance'}]}};
  try{return run({host,headerHost,model,preview:mountContextWorkspacePreview({host,headerHost,model})});}
  finally{for(const name of names){const descriptor=saved.get(name);if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];}}
@@ -59,4 +59,22 @@ test('Every displayed business action is disabled and has no behavior handler',(
 
 test('Invalid preview page cannot change the view; disposal removes the entire isolated surface',()=>withPreview(({preview,host,headerHost})=>{
  assert.throws(()=>preview.setStage('not-a-page'),RangeError);assert.equal(preview.root.dataset.contextStep,'task');assert.equal(host.firstChild,preview.root);assert.equal(headerHost.firstChild,preview.header);preview.dispose();assert.equal(host.children.length,0);assert.equal(headerHost.children.length,0);
+}));
+
+
+test('All C00–C11 snapshots preserve supplied text and remain ungenerated, unsaved and inert',()=>withPreview(({preview,model})=>{
+ const original=JSON.stringify(model);for(const stage of ['empty','task','select','retrieve','review','edit','stale','budget','ready','copied','blocked','incomplete']){
+  preview.setStage(stage);const visible=preview.root.querySelectorAll('[data-context-panel]').filter(node=>!node.hidden);assert.equal(visible.length,1);assert.equal(visible[0].dataset.contextPanel,stage);assert.match(visible[0].textContent,/未生成、未保存/);
+  for(const node of visible[0].querySelectorAll('[data-preview-action]')){assert.equal(node.disabled,true);assert.equal(node.listeners.has('click'),false);}
+ }
+ assert.equal(JSON.stringify(model),original);assert.doesNotMatch(preview.root.querySelector('[data-context-panel=blocked]').textContent,/Synthetic output purpose|Exact first paragraph/);assert.match(preview.root.querySelector('[data-context-panel=copied]').textContent,/未复制到剪贴板/);assert.match(preview.root.querySelector('[data-context-panel=budget]').textContent,/未执行分份/);
+}));
+
+test('Empty ordinary model invents no selected material, output, completed task or progress count',()=>withPreview(({host,headerHost,preview})=>{
+ preview.dispose();const empty=mountContextWorkspacePreview({host,headerHost});assert.equal(empty.root.querySelector('textarea').value,'');assert.equal(empty.root.querySelectorAll('[data-preview-material]').length,0);assert.match(empty.root.querySelector('[data-context-panel=review]').textContent,/未生成任何内容/);assert.match(empty.root.querySelector('[data-context-panel=incomplete]').textContent,/读取未完成 · 状态预览/);assert.doesNotMatch(empty.root.textContent,/124|160|已复制到剪贴板/);empty.dispose();
+}));
+
+test('Supplied parts, coverage and separate blocked snapshot are exact display facts only',()=>withPreview(({host,headerHost,preview,model})=>{
+ preview.dispose();const extended={...model,coverage:{loaded:124,total:160},parts:[{title:'Exact part title',meta:'Exact part metadata'}],blockedOutput:{sections:[{title:'Safe snapshot',body:'Exact permitted snapshot text'}]}};const original=JSON.stringify(extended),shown=mountContextWorkspacePreview({host,headerHost,model:extended,stage:'incomplete'});
+ assert.match(shown.root.querySelector('[data-context-panel=incomplete]').textContent,/124 \/ 160/);assert.match(shown.root.querySelector('[data-context-panel=budget]').textContent,/Exact part title/);const blocked=shown.root.querySelector('[data-context-panel=blocked]');assert.match(blocked.textContent,/Exact permitted snapshot text/);assert.doesNotMatch(blocked.textContent,/Synthetic output purpose|Exact first paragraph/);assert.equal(JSON.stringify(extended),original);
 }));
