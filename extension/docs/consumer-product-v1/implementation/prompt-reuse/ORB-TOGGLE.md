@@ -37,8 +37,8 @@ its tests; they are NOT_RUN, never a product failure or PASS.
 Targeted production source/worker tests: 14 PASS locally, including initial
 reproduction, drag/cancel/keyboard gating, exact document/nonce validation,
 negative callers, navigation/revoke races and SPA document handling.
-Hosted source/release browser, complete unit, adapter/privacy, package and visual
-checks are pending on the published candidate. Browser additions cover ordinary
+Final hosted source/release browser, complete unit, adapter/privacy, package and
+visual checks PASS as recorded below. Browser additions cover ordinary
 and sub-threshold click, Enter/Space, both Escape owners, unsaved/IME preservation,
 pending-query and close races, two-tab isolation, drag-then-click, saved position,
 reload, SPA and worker restart. Existing insertion and lifecycle cases remain.
@@ -80,3 +80,61 @@ the same explicit orb-click followed immediately by pointer-fallback `open()`.
 Its redundant click detached the just-created frame and cascaded into two later
 cases per variant. That explicit gesture now waits for its frame before readiness,
 retaining every compact/200%/coarse assertion. No further runtime change is needed.
+
+## Final integration — ENGINEERING_COMPLETE
+
+[PR #159](https://github.com/haohongfei2001-png/paia/pull/159) merged as
+`fe1ab72fee35965548f7980a6b3e0b638cb4c332` after a fresh main read of
+`e53943eda5adc5ed26bc6489ea1757615eb93c0d`, exact-head passing gates and
+independent source/final-test review with no remaining findings. The branch was
+opened as a Draft, marked ready after verification, and merged only after the
+non-draft integration gate passed. No protection was bypassed.
+
+Tested head: `85135a19ef6b68e6405ca0a8701322fd1c3d7ac6`.
+Head and remote merge trees both equal
+`82bcc6bb07da4007f0c9b9120109baa7af32031d`.
+Remote main and merged PR were separately read back. A subsequent documentation
+closure changes only this receipt and the Prompt Reuse STATUS entry; it does not
+relabel a documentation SHA as the tested runtime.
+
+### Exact candidate evidence
+
+- [Foundation 37241180030](https://github.com/haohongfei2001-png/paia/actions/runs/37241180030):
+  PASS, Surface 36/36, compatibility 14/14 and insertion 40/40 source/release
+  browser registrations; complete unit 1,814/1,814, adapter 102/102,
+  privacy/security 59/59; zero failures or skips in those suites.
+- [Candidate aggregate 37241183019](https://github.com/haohongfei2001-png/paia/actions/runs/37241183019),
+  [all-eight visual evidence 37241183021](https://github.com/haohongfei2001-png/paia/actions/runs/37241183021),
+  and [ready-state integration 37241574867](https://github.com/haohongfei2001-png/paia/actions/runs/37241574867): PASS.
+- Candidate Surface artifact `11317538176`, ZIP SHA-256
+  `7c171b11011e1a69fa76371e4feae4aa1175da45ddd05de217d75d15c9d239bb`.
+
+### Exact merged-main evidence
+
+- [Foundation 37241922675](https://github.com/haohongfei2001-png/paia/actions/runs/37241922675):
+  PASS on the exact remote merge SHA. Surface 36/36, compatibility 14/14,
+  insertion 40/40, unit 1,814/1,814, adapter 102/102 and privacy/security 59/59.
+- [Integration 37241922694](https://github.com/haohongfei2001-png/paia/actions/runs/37241922694): PASS.
+- Source package 11,445 guardrails / 292 resources; release 11,010 / 285
+  resources; `RELEASE_PRODUCT_GUARD_PASS 309 files`. The three affected runtime
+  files are source/release byte-identical.
+- Main Surface artifact `11317038587`, ZIP SHA-256
+  `1464abb4633a746e7235a120fc8e048e7eb5740712bba5a2e2ab0c450505dc69`.
+
+Actual production source/release journeys prove idle click, native Enter/Space,
+sub-threshold pointer movement, unsaved editor retention and save/cancel guidance,
+IME refusal, busy query/close races, both Escape owners, separate-tab isolation,
+real drag staying open, subsequent ordinary click collapse, saved-anchor round
+trip, reload, SPA, worker restart, compact/200%/coarse/light/dark behavior and
+unchanged exact insertion/draft/no-send/one-shot/privacy contracts.
+
+Earlier local and hosted failures remain FAIL history with their causes recorded;
+the final hosted complete benchmark passes without modifying its 120-second gate.
+Unrelated full current/historical browser and macOS/platform certification jobs
+were not selected, and are not claimed as rerun. This bounded engineering repair
+does not certify authenticated current ChatGPT, a public release or another site.
+No new real-use risk was observed in the tested scope; current live-provider
+compatibility remains the explicit deferred evidence limit.
+
+`VISUAL_ACCEPTED / OWNER_VISUAL_ACCEPTANCE = PASS` remains unchanged.
+`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE` remains unchanged.

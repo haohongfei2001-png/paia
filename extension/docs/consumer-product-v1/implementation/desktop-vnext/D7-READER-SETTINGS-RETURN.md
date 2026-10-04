@@ -1,7 +1,7 @@
 # Bounded Reader return repair
 
 Base: `e53943eda5adc5ed26bc6489ea1757615eb93c0d` (main after PR158).
-Status: ORIGINAL_HEAD_HOSTED_PASS / INTEGRATED_HEAD_PENDING.
+Status: INTEGRATED_HEAD_HOSTED_PASS / FINAL_MAIN_PENDING.
 
 ## Reproduced defect and boundary
 
@@ -87,3 +87,23 @@ shared STATUS conflict is resolved by retaining both complete entries. Reader
 runtime and its regression tests are unchanged. Fresh combined-head D7 and
 round-integration gates are required; the earlier head is not relabeled as
 combined-head verification.
+
+## Combined runtime verified; later documentation-only main preserved
+
+Combined head `266b0ab90217d8c32c545c2f8abc689c220fd77c`, tree
+`b9952cfe9bda53a027f4d9b47cb8cbefef9f67eb`: candidate `37242275267`,
+complete D7 `37242275247` and round-integration `37242292277` all PASS.
+The tested merge `c18b48a344842e2398e0d45745252b6fda64fd0f` has that same tree.
+Both new full reports again retain 23 PASS rows and the complete two-return,
+two-reload, browser-history and final Archive destination observation; the four
+compatibility reports retain all 40 PASS rows with zero network/page errors.
+Appearance artifact `11317976611`, ZIP SHA256
+`451041e711546a3cf812e2cfda2d4b902a49b0818c53a745ac4b7598b28d6f22`;
+compatibility `11318050820`, ZIP SHA256
+`6669a862267de9625ef6a24a2a29af3b3afb68b4fc3e5446402f63538e42580c`.
+
+Immediately before merge, main advanced only in the Prompt Reuse receipt and
+shared STATUS to `0febaac616ca5a1c5307fb3428650ee1285fa08b`. Preserve both complete
+updated documents. This reconciliation changes documentation only relative to
+the verified combined head; no runtime/test/workflow byte changes. The prior
+negative local evidence and both successful hosted runtime receipts stay intact.

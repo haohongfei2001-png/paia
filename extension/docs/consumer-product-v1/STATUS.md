@@ -7,22 +7,32 @@ adapter 102, privacy 59 and release/package checks. Both real browser variants
 completed two Settings returns, two Reader reloads and browser Back/Forward,
 then Reader Back reached Archive. Local negative timing/launch evidence remains.
 
-Main `fe1ab72f` (PR159) is now integrated with every Prompt Reuse file and status
-entry preserved. Fresh integrated-head checks remain pending; no broader D7,
-provider, functional redesign or release scope is opened.
+Integrated head `266b0ab9` passed fresh D7, candidate and round-integration gates.
+The later documentation-only main `0febaac6` is also preserved in full. Runtime
+and regression files remain unchanged; final merge/main verification is pending.
+No broader D7, provider, functional redesign or release scope is opened.
 
-# Prompt Reuse — guarded orb toggle repair candidate
+# Prompt Reuse — guarded orb toggle repair integrated
 
-The owner-authorized bounded repair makes an open orb request the private card's
-existing guarded close policy, shared with Close and Escape. Editing/IME/busy
-states stay protected; real dragging stays open and the next ordinary click can
-collapse. Saved geometry, accepted visuals and all D7 work remain unchanged.
+[PR #159](https://github.com/haohongfei2001-png/paia/pull/159) merged as
+`fe1ab72fee35965548f7980a6b3e0b638cb4c332`, preserving current main
+`e53943eda5adc5ed26bc6489ea1757615eb93c0d`. Open orb click and native
+Enter/Space now toggle through the private card's same Close/Escape guard.
+Unsaved editing, IME and pending work remain protected. Real dragging stays open;
+the subsequent ordinary click collapses, with the saved visible anchor retained.
 
-[Toggle receipt](implementation/prompt-reuse/ORB-TOGGLE.md) retains the initial
-failing production-host regression and local browser startup limitation. Targeted
-CODE tests pass; exact-head hosted source/release and integration gates are pending.
-`VISUAL_ACCEPTED / OWNER_VISUAL_ACCEPTANCE = PASS` and
-`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE` are unchanged.
+**Bounded toggle defect: ENGINEERING_COMPLETE. Visual state: `VISUAL_ACCEPTED`.**
+**`OWNER_VISUAL_ACCEPTANCE = PASS`.**
+**`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`.**
+
+[Toggle receipt](implementation/prompt-reuse/ORB-TOGGLE.md) records the initial
+failing regression, both fixture-readiness failures and final exact-head and
+exact-merged-main PASS: Surface 36/36, compatibility 14/14, insertion 40/40,
+1,814 unit, 102 adapter, 59 privacy/security, package/release and integration.
+Independent review and all-eight visual evidence pass. Local browser restrictions
+and the local 10k benchmark failure remain explicit historical evidence.
+No D7, Visual Master, insertion semantics, schema, permissions, Stage 3/capsule,
+reply reading, second provider, paid-service or B-01–B-05 expansion.
 
 # Prompt Reuse — open Surface drag repair integrated
 
