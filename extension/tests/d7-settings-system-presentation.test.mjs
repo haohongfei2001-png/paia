@@ -4,14 +4,18 @@ import {readFile} from 'node:fs/promises';
 import {BackupPanel} from '../ui/backup.js';
 
 class Node {
- constructor(){this.dataset={};this.children=[];this.textContent='';this.hidden=false;this.value='';this.checked=false;this.disabled=false;}
- append(...nodes){this.children.push(...nodes);}
- setAttribute(){}
+ constructor(registry){this.registry=registry;this.dataset={};this.children=[];this.attributes=new Map();this.textContent='';this.hidden=false;this.value='';this.checked=false;this.disabled=false;}
+ append(...nodes){this.children.push(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
+ prepend(...nodes){this.children.unshift(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
+ setAttribute(name,value){this.attributes.set(name,value);}
+ getAttribute(name){return this.attributes.get(name);}
+ removeAttribute(name){this.attributes.delete(name);}
+ focus(){document.activeElement=this;}
  addEventListener(){}
 }
 async function withDOM(run){
- const names=['document','navigator','chrome'],prior=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)])),nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,new Node());return nodes.get(id);};
- Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:{documentElement:{lang:'zh-CN'},createElement:()=>new Node(),addEventListener(){},getElementById:get}});
+ const names=['document','navigator','chrome'],prior=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)])),nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,new Node(nodes));return nodes.get(id);};
+ Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:{documentElement:{lang:'zh-CN'},createElement:()=>new Node(nodes),addEventListener(){},getElementById:get}});
  Object.defineProperty(globalThis,'navigator',{configurable:true,writable:true,value:{language:'zh-CN'}});
  Object.defineProperty(globalThis,'chrome',{configurable:true,writable:true,value:new Proxy({}, {get(){throw Error('Read-only presentation cannot access extension services');}})});
  try{await run({get,nodes});}finally{for(const [name,descriptor]of prior)if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];}
@@ -51,3 +55,32 @@ test('S01 keeps legal saved sizes, six groups and actual controls; system stylin
  const source=await readFile(new URL('../ui/settings-preferences.js',import.meta.url),'utf8'),css=await readFile(new URL('../ui/settings-preferences.css',import.meta.url),'utf8');
  assert.match(source,/FONT_PX=\{small:16,standard:17,large:19,xlarge:21\}/);assert.match(source,/WIDTH_PX=\{narrow:640,standard:680,wide:720\}/);assert.match(source,/for\(const \[key,zh\] of SETTINGS_GROUPS\)/);assert.match(source,/importButton.addEventListener\('click',\(\)=>\$\('settings-history'\)\?\.click\(\)\)/);assert.doesNotMatch(source,/savePreference\('(?:reducedMotion|motion)'/);assert.match(css,/\.reader-confirm:has\(\.reader-conflict-comparison\)/);assert.doesNotMatch(source,/PAIA_RECOVERY_DRAFT|PAIA_BACKUP_RESTORE|SAVE_DEEPSEEK_CREDENTIAL|AUTHORIZE/);
 });
+
+test('S05 uses one existing picker and cancellation owner, with local-only presentation and explicit return focus',()=>withDOM(async({get})=>{
+ const panel=Object.assign(Object.create(BackupPanel.prototype),{busy:false,mode:'empty',sessionId:null}),choose=get('backup-choose'),host=get('backup-settings');host.append(choose,get('backup-file'),get('ux-backup-failure-title'),get('backup-status'));panel.installInspectionPresentation();
+ choose.focus();panel.presentInspectionFailure(true);assert.equal(document.activeElement,choose);assert.equal(host.children[0],get('backup-failure-page-title'));assert.equal(choose.getAttribute('aria-describedby'),'ux-backup-failure-title backup-status');
+ assert.equal(get('backup-choose'),choose);assert.equal(choose.textContent,'重新选择文件');assert.equal(host.getAttribute('aria-labelledby'),'backup-failure-page-title');
+ assert.equal(get('backup-failure-page-title').textContent,'数据与恢复');assert.match(get('backup-failure-note').textContent,/不会自动触发外部请求/);
+ get('backup-failure-return').focus();await panel.cancel();assert.equal(document.activeElement,choose);assert.equal(choose.getAttribute('aria-describedby'),undefined);assert.equal(choose.textContent,'从备份恢复');assert.equal(host.getAttribute('aria-labelledby'),'r6-backup-heading');
+ panel.presentInspectionFailure(true);get('backup-failure-return').focus();get('settings-panel').hidden=true;await panel.cancel();assert.equal(document.activeElement,get('backup-failure-return'),'a hidden Settings owner never steals focus');
+ get('settings-panel').hidden=false;get('ux-settings-data-group').hidden=true;panel.presentInspectionFailure(true);await panel.cancel();assert.equal(document.activeElement,get('backup-failure-return'),'another Settings group keeps its focus');
+ document.documentElement.lang='en';panel.presentInspectionFailure(true);assert.equal(choose.textContent,'Choose another file');panel.presentInspectionFailure(false);assert.equal(choose.textContent,'Restore from backup');
+ panel.pickerDescription='original-help';panel.presentInspectionFailure(true);assert.equal(choose.getAttribute('aria-describedby'),'original-help ux-backup-failure-title backup-status');panel.presentInspectionFailure(false);assert.equal(choose.getAttribute('aria-describedby'),'original-help');
+}));
+
+test('S05 retains all five inspection rejection reasons; an empty chooser result preserves the current failure',()=>withDOM(async({get})=>{
+ for(const code of ['BACKUP_INVALID','BACKUP_VERSION_UNSUPPORTED','BACKUP_INTEGRITY_FAILED','BACKUP_INCOMPLETE','BACKUP_TOO_LARGE']){
+  const calls=[];globalThis.chrome={runtime:{sendMessage:async message=>{calls.push(message.type);return {ok:false,error:code};}}};
+  const panel=Object.assign(Object.create(BackupPanel.prototype),{busy:false,mode:'empty',sessionId:null});const file=new Blob(['{}']);file.name='synthetic.paia-backup';await panel.inspect([file]);
+  assert.equal(get('backup-settings').dataset.inspectionFailure,'true',code);assert.equal(get('backup-choose').textContent,'重新选择文件');assert.equal(get('backup-failure-return').disabled,false);assert.equal(get('backup-restore').disabled,true);
+  const status=get('backup-status').textContent;await panel.inspect([]);assert.equal(get('backup-status').textContent,status);assert.equal(get('backup-settings').dataset.inspectionFailure,'true');assert.deepEqual(calls,['PAIA_BACKUP_BEGIN_RESTORE']);
+ }
+}));
+
+test('S05 late inspection rejection does not move navigation or focus after leaving Data',()=>withDOM(async({get})=>{
+ let reject;globalThis.chrome={runtime:{sendMessage:()=>new Promise(resolve=>{reject=()=>resolve({ok:false,error:'BACKUP_INVALID'});})}};
+ const panel=Object.assign(Object.create(BackupPanel.prototype),{busy:false,mode:'empty',sessionId:null});const file=new Blob(['{}']);file.name='synthetic.paia-backup';const pending=panel.inspect([file]);
+ await Promise.resolve();get('settings-panel').hidden=true;get('ux-settings-data-group').hidden=true;const library=get('primary-library');library.focus();reject();await pending;
+ assert.equal(document.activeElement,library);assert.equal(get('settings-panel').hidden,true);assert.equal(get('ux-settings-data-group').hidden,true);assert.equal(get('backup-settings').dataset.inspectionFailure,'true');
+ const css=await readFile(new URL('../ui/settings-preferences.css',import.meta.url),'utf8');assert.match(css,/#ux-settings-data-group:not\(\[hidden\]\)>#backup-settings\[data-inspection-failure\]/);assert.doesNotMatch(css,/#backup-settings\[data-inspection-failure\][^{]*\{[^}]*position:fixed/);
+}));
