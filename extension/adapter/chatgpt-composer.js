@@ -27,7 +27,7 @@
     if(n.nodeType!==1)return false;
     if(n.tagName==='BR'){
      // ProseMirror's terminal break is a caret placeholder, not a draft character.
-     if(n===n.parentNode.lastChild)return true;
+     if(n.classList.contains('ProseMirror-trailingBreak')){point(n.parentNode,[...n.parentNode.childNodes].indexOf(n));return true;}
      point(n.parentNode,[...n.parentNode.childNodes].indexOf(n));text+='\n';point(n.parentNode,[...n.parentNode.childNodes].indexOf(n)+1);return true;
     }
     if(!['P','DIV','SPAN','STRONG','EM','B','I','U','S'].includes(n.tagName))return false;
@@ -68,14 +68,13 @@
   }
   async insert({text,operationId,url}){
    if(typeof operationId!=='string'||!/^[a-f0-9-]{36}$/.test(operationId)||typeof text!=='string'||!text.trim()||text.length>LIMIT||text.includes('\r'))return {status:'failed',reason:'invalid_request'};
-   if(this.attempts.has(operationId))return this.attempts.get(operationId);
-   const result=await this.once(text,url);this.attempts.set(operationId,result);
-   // No eviction/replay ambiguity in a page lifetime; fail closed at the bound.
-   return result;
+   if(this.attempts.has(operationId))return {...await this.attempts.get(operationId),replayed:true};
+   // Cache the pending attempt as well as its result; never evict and replay.
+   if(this.attempts.size>=500)return {status:'failed',reason:'reload_required'};
+   const pending=this.once(text,url);this.attempts.set(operationId,pending);return pending;
   }
   async once(text,url){
    if(this.busy)return {status:'failed',reason:'busy'};
-   if(this.attempts.size>=500)return {status:'failed',reason:'reload_required'};
    const node=this.find();if(!node||url!==this.location.href)return {status:'failed',reason:'composer_unavailable'};
    if(this.composing.has(node))return {status:'failed',reason:'composition_active'};
    const before=this.model(node);if(!before)return {status:'failed',reason:'unsupported_composer'};

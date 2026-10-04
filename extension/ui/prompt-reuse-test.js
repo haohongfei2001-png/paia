@@ -20,10 +20,12 @@ async function refresh(){
     // Re-arm only on explicit refresh; no duplicate insertion retry.
     copy.hidden=false;
    });
-   copy.addEventListener('click',async()=>{const r=await copyPrompt(item.text);status.textContent=r.status==='copied'?'Copied. Paste manually.':'Copy failed. Prompt remains available.';});
+   copy.addEventListener('click',async()=>{try{const selected=await command({type:'PAIA_PROMPT_COPY_TEXT',id:item.id,text:item.text});const r=await copyPrompt(selected.text);status.textContent=r.status==='copied'?'Copied. Paste manually.':'Copy failed. Prompt remains available.';}catch{status.textContent='Prompt changed or became unavailable. Refresh before copying.';}});
    row.append(insert,copy);root.append(row);
   }
   status.textContent=projection.items.length?'Snapshot ready. Background activity will not reorder it.':'No useful repeated prompts yet.';
  }catch{status.textContent='Unavailable. Check PAIA consent and refresh.';}
 }
 document.getElementById('refresh').addEventListener('click',refresh);
+
+chrome.runtime.onMessage.addListener(request=>{if(request?.type==='ARCHIVE_CHANGED'||request?.type==='PAIA_PROMPT_CHANGED'){session.close();root.replaceChildren();status.textContent='Content changed. Refresh the snapshot before reuse.';}});

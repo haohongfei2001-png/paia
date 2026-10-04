@@ -72,3 +72,18 @@ test('backup empty/merge cannot silently overwrite independent template work',as
  const target=await completeFixture({texts:[]}),other=new PromptReuseService(target.s);await other.change({action:'create',revision:0,text:'独立模板乙'});
  const b=new BackupService(target.s),r=await stage(b,items);assert.equal(r.preview.canRestore,false);assert.equal((await b.previewRestore({sessionId:r.sessionId,mode:'merge'})).reason,'BACKUP_MERGE_CONFLICT');assert.equal((await other.query()).items[0].text,'独立模板乙');
 });
+test('removed input and purge fences veto old automatic read-back, without resurrecting through rebuild',async()=>{
+ const f=await fixture(),family=(await f.service.query()).items.find(x=>x.text===text);
+ for(const id of family.members){const b=(await rows(f.s,'blocks')).find(x=>x.id===id).value;await f.s.editDocument({operationId:crypto.randomUUID(),documentId:b.documentId,blocks:[{id:b.id,expectedRevision:b.revision,libraryText:b.libraryText,note:'',excluded:true}]});}
+ assert.ok(!(await f.service.query()).items.some(x=>x.id===family.id));await assert.rejects(()=>f.service.resolve(family));
+ const other=(await f.service.query()).items[0];for(const id of other.members){const b=(await rows(f.s,'blocks')).find(x=>x.id===id).value,source=(await rows(f.s,'recordIndex')).find(x=>x.id===b.originalTextReference);await f.s.repository.transaction(true,t=>t.put('tombstones',{id:'source:'+source.sourceKey,sequence:1,value:{sourceIdentityHash:source.sourceKey}}));}
+ assert.equal((await f.service.query()).items.length,0);
+});
+test('storage abort preserves overrides and archive; a changed release generation is rejected',async()=>{
+ const f=await fixture(),family=(await f.service.query()).items[0];await change(f,'edit',family.id,{text:'saved before failure'});const saved=await meta(f.s,PROMPT_REUSE_ROW),before=await authority(f.s);
+ const transaction=f.s.repository.transaction.bind(f.s.repository);
+ f.s.repository.transaction=(write,fn,...args)=>transaction(write,async t=>{const put=t.put.bind(t);t.put=async(name,value,...rest)=>{if(name==='meta'&&value.id===PROMPT_REUSE_ROW)throw Error('synthetic write failure');return put(name,value,...rest);};return fn(t);},...args);
+ await assert.rejects(()=>change(f,'hide',family.id));f.s.repository.transaction=transaction;
+ assert.deepEqual(await meta(f.s,PROMPT_REUSE_ROW),saved);assert.deepEqual(await authority(f.s),before);
+ const selection=await f.service.resolve({id:family.id,text:'saved before failure'});await change(f,'hide',family.id);await assert.rejects(()=>f.service.assertCurrent(selection.generation));
+});

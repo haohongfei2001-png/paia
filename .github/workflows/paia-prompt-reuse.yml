@@ -40,8 +40,17 @@ jobs:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
+      - run: node --test tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
       - run: npm run test:unit
       - run: node scripts/test.mjs 'adapter contract'
       - run: node scripts/test.mjs 'privacy/security'
-      - run: node --test tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
       - run: npm run check && npm run build:release
+      - name: One current-site smoke (explicit batch only)
+        if: always() && contains(github.event.head_commit.message, '[prompt-live-smoke]')
+        run: node scripts/prompt-reuse-live-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && contains(github.event.head_commit.message, '[prompt-live-smoke]')
+        with:
+          name: prompt-reuse-current-live
+          path: extension/work/prompt-reuse/current-live.json
+          if-no-files-found: error

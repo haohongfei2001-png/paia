@@ -18,6 +18,8 @@ for(const runtime of ['source','release'])test('CPV1-09 '+runtime+' native Chrom
   const ui=await h.context.newPage();await ui.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');
   const chosen='请保留全部细节 👩🏽‍💻\nEnglish line\n\n```js\n  const x = "汉字";\n```\n';
   const created=await rpc(ui,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:0,text:chosen}});
+  await rpc(ui,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:created.revision,text:'UNSELECTED_PRIVATE_LIBRARY_CANARY'}});
+  await rpc(ui,'PAIA_PROMPT_CHANGE',{change:{action:'pin',id:created.id,revision:created.revision+1}});
   const targets=await rpc(ui,'PAIA_PROMPT_TARGETS'),target=targets.find(x=>x.url===url);assert.ok(target);
   const request=()=>({id:created.id,text:chosen,tabId:target.id,url,operationId:crypto.randomUUID()});
   const insert=async fields=>rpc(ui,'PAIA_PROMPT_INSERT',fields||request());
@@ -59,7 +61,7 @@ for(const runtime of ['source','release'])test('CPV1-09 '+runtime+' native Chrom
   await t.test('insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback',async()=>{
    await set('完整草稿 👨‍👩‍👧',3);await world.run('document.execCommand=()=>false;');assert.equal((await insert()).status,'failed');assert.equal(await value(),'完整草稿 👨‍👩‍👧');await world.run('document.execCommand=__nativeInsert;');
    await ui.bringToFront();await ui.locator('#refresh').click();await ui.locator('#prompts button').first().click();await eventually(async()=>!(await ui.locator('#prompts button').nth(1).isHidden()));
-   await ui.locator('#prompts button').nth(1).click();await eventually(async()=>['Copied. Paste manually.','Copy failed. Prompt remains available.'].includes(await ui.locator('#status').textContent()));
+   await ui.bringToFront();await ui.locator('#prompts button').nth(1).click();await eventually(async()=>['Copied. Paste manually.','Copy failed. Prompt remains available.'].includes(await ui.locator('#status').textContent()));
    assert.equal(await ui.locator('#status').textContent(),'Copied. Paste manually.');
    await ui.evaluate(()=>{navigator.clipboard.writeText=async()=>{throw Error('synthetic denied');};});await ui.locator('#prompts button').nth(1).click();await eventually(async()=>await ui.locator('#status').textContent()==='Copy failed. Prompt remains available.');
   });
@@ -69,6 +71,7 @@ for(const runtime of ['source','release'])test('CPV1-09 '+runtime+' native Chrom
   });
   await t.test('zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure',async()=>{
    assert.deepEqual(await chat.evaluate(()=>({send:fixture.send,enter:fixture.enter,adapter:typeof PAIAChatGPTComposerAdapter,storage:[localStorage.length,sessionStorage.length]})),{send:0,enter:0,adapter:'undefined',storage:[0,0]});
+   assert.doesNotMatch(await chat.locator('body').textContent(),/UNSELECTED_PRIVATE_LIBRARY_CANARY/);
    assert.equal((await h.state()).records.length,0);assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.historyRequests,0);
   });
  }finally{await world?.cdp.detach();await h.close();}

@@ -5,8 +5,8 @@ import {PromptReuseCommands} from '../background/prompt-reuse-commands.js';
 import {copyPrompt} from '../core/prompt-clipboard.js';
 const url='https://chatgpt.com/c/synthetic-0001';
 function fixture(result={status:'inserted',verified:true}){
- const sends=[],uses=[],calls=[];const service={s:{status:async()=>({consented:true})},query:async()=>({items:[{text:'SECRET_LIBRARY'}]}),resolve:async x=>({id:x.id,text:'selected only'}),noteVerifiedReuse:async id=>uses.push(id)};
- const api={runtime:{id:'extension',getURL:p=>'chrome-extension://extension/'+p},tabs:{get:async()=>({id:7,url}),query:async()=>[{id:7,url}],sendMessage:async(...args)=>{sends.push(args);return result;}}};
+ const sends=[],uses=[],calls=[];const service={s:{status:async()=>({consented:true})},query:async()=>({items:[{text:'SECRET_LIBRARY'}]}),resolve:async x=>({id:x.id,text:'selected only'}),assertCurrent:async()=>{},noteVerifiedReuse:async id=>uses.push(id)};
+ const api={runtime:{id:'extension',getURL:p=>'chrome-extension://extension/'+p},tabs:{get:async()=>({id:7,url}),update:async()=>{},query:async()=>[{id:7,url}],sendMessage:async(...args)=>{sends.push(args);return result;}}};
  const c=new PromptReuseCommands(service,api),sender={id:'extension',url:api.runtime.getURL('ui/prompt-reuse-test.html')};
  const request={type:'PAIA_PROMPT_INSERT',id:'family',text:'selected only',tabId:7,url,operationId:crypto.randomUUID()};return {c,sender,request,sends,uses,service,api,calls};
 }

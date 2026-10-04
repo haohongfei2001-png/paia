@@ -66,6 +66,9 @@ export function testShard(file, position, total, category) {
  // Put the complete six Source/release purge journeys on2; retain all cases
  // and the unchanged18-minute budget, without shifting every later file.
  if(category==='browser E2E'&&total===4){
+  // Keep all existing placements stable when adding the complete VS09 owner.
+  if(name==='cpv1-09-prompt-insertion-chrome-e2e.test.mjs')return 3;
+  if(name>'cpv1-09-prompt-insertion-chrome-e2e.test.mjs')position--;
   if(name==='desktop-vnext-context-chrome-e2e.test.mjs')return 3;
   if(name>'desktop-vnext-context-chrome-e2e.test.mjs')position--;
   // D3 adds its entire source/release file to1; all66 previous placements stay.

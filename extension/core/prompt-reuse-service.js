@@ -48,8 +48,9 @@ export class PromptReuseService{
  async resolve({id,text}={}){
   if(typeof id!=='string'||!validPromptText(text))fail();const x=await this.snapshot();
   const f=x.families.find(f=>f.id===id&&!f.hidden&&(f.useful||f.pinned||f.edited||f.retained));
-  if(!f||f.text!==text)changed();return {id:f.id,text:f.text};
+  if(!f||f.text!==text)changed();return {id:f.id,text:f.text,generation:x.generation};
  }
+ async assertCurrent(expected){return this.s.run(()=>this.s.repository.transaction(false,async t=>{if(expected!==await generation(t))changed();},['meta']));}
  async change(change){
   if(!own(change,['action','id','revision','text','order','inputIds','representative'])||!Number.isSafeInteger(change.revision))fail();
   const {action,id}=change,x=await this.snapshot();if(x.preferences.revision!==change.revision)changed();
