@@ -1,3 +1,20 @@
+# Prompt Reuse owner execution amendment — 2026-10-04
+
+The owner now authorizes the sole Prompt Reuse engineering owner to integrate
+PR #144 after fresh passing engineering gates, then implement and integrate
+CPV1-09.3–09.5 on a separate branch from current main. This line remains isolated
+from Desktop/D7 visuals. No Stage 3, reply reading or B-01–B-05 expansion.
+
+CPV1-09.0–09.2: ENGINEERING_COMPLETE after the two Work MUST FIX repairs;
+current-run gates must pass before integration. Real-site certification is
+separate: `REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`.
+Unavailable authenticated ChatGPT access does not block safe engineering merges
+or dependent implementation. It never permits a real compatibility PASS claim.
+No owner developer operations or repeated anonymous 403 probes are required.
+CPV1-09.6 is deferred unless a minimal-permission second provider can be genuinely
+verified without external account intervention. Earlier Draft/no-merge/09.3
+holds below are historical and superseded only by this explicit owner amendment.
+
 # Canonical Status — PAIA Consumer Product v1
 
 ## Immediate priority: finish and merge bounded D5 appearance — 2026-10-04
@@ -1789,3 +1806,20 @@ The owner directed PAIA v1 search back to the VS-04 local lexical/fuzzy/filter d
 The sole product PR #88 retains its historical comparison and finite Revisit work and moves the unadmitted semantic index/store bridge out of packaged `core/` into `experiments/`. The public retrieval lab workflow is retired from automatic PR execution; all underlying experimental scripts, fixed data and owning tests remain. The production Universal Search and VS-04 search/filter routes stay model-free; this checkpoint does not invent fuzzy matches that the current product has not proved. This correction introduces no permission, schema, provider, local model load, Context release or user data action.
 
 Exact prior head `17f109cddb0c944fcf17bdcf62f92dad4e92e308` Candidate `36378886166` SUCCESS, including 3/3 hosted Chrome index journeys on 1025 Sources, 17 long bodies and 11 complete hybrid queries; sampled median 8195 ms/p95 8477 ms and bounded sampled JS heap 28–38 MB are *experimental* host observations, not production admission or a process peak-memory certificate. Semantic Lab `36378886112` SUCCESS only on its classified existing path. Full Certification has not run on this scope-correction head. Existing Source/history/Revisit targeted evidence remains; candidate full certification, merge and exact-main receipt remain PENDING. VS-07 is not yet COMPLETE. Independent owner/device/live gates remain deferred on their existing paths.
+
+## Independent Prompt Reuse foundation branch — 2026-10-04
+
+Owner explicitly authorized `feat/prompt-reuse-vs09-foundation` from fresh remote
+main `feea729e2fc19e69d5b842a7ca00305f31cda0cc`, limited to CPV1-09.0–09.2.
+This parallel line does not replace the Desktop/D7 queue or modify its visual
+masters, AppShell, Archive/Reader, Thought Library or AI Context surfaces.
+See [foundation implementation and evidence](implementation/prompt-reuse/FOUNDATION.md).
+CPV1-09.2 current ChatGPT compatibility remains `REAL_CHATGPT_NOT_VERIFIED`
+(DFG-CPV1-011, HTTP 403). No merge, 09.3 orb/card or Stage 3 is authorized here.
+
+PR #144 independent Work audit repair: first-line/length payload extraction is
+removed; explicit delete is restricted to independent reusable templates with
+zero members and frees override/pin capacity without deleting archive history.
+The owning negative fixtures and deletion/Backup regressions are documented in
+the foundation receipt. The two MUST FIX changes require independent Work
+re-verification; this is not real ChatGPT acceptance or authority to start 09.3.

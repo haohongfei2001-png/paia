@@ -14,6 +14,9 @@
     "build:release": "python3 scripts/build_current_release.py"
   },
   "devDependencies": {
-    "playwright": "1.63.0"
+    "playwright": "1.63.0",
+    "prosemirror-model": "1.25.12",
+    "prosemirror-state": "1.4.4",
+    "prosemirror-view": "1.42.6"
   }
 }

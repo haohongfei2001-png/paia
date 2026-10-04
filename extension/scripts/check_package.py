@@ -157,6 +157,14 @@ def audit_js(path, text):
             scanned = scanned.replace("chrome.storage.session", "APPROVED_SESSION_CREDENTIAL_STORAGE")
         if label == "native messaging" and path == ROOT / "core/macos-native-secure-store.js":
             scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
+        if label == "clipboard access" and path == ROOT / "adapter/chatgpt-composer.js":
+            exact = "this.document.execCommand('insertText',false,insertion)"
+            require(text.count(exact) == 1, "ChatGPT composer must retain one native insertText call")
+            scanned = scanned.replace(exact, "REVIEWED_CHATGPT_INSERT_TEXT", 1)
+        if label == "clipboard access" and path == ROOT / "core/prompt-clipboard.js":
+            scanned = scanned.replace("globalThis.navigator.clipboard", "EXPLICIT_PROMPT_CLIPBOARD")
+            require("clipboard.writeText(text)" in text and "readText" not in text,
+                    "Prompt fallback may only write the explicitly selected text")
         if label == "clipboard access" and path == ROOT / "ui/reading-actions.js":
             scanned = scanned.replace("navigator.clipboard.writeText(text)", "EXPLICIT_READING_COPY(text)")
         if label == "clipboard access" and path in (ROOT / "ui/context-workspace.js",):
