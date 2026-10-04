@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow} from './harness/archive-navigator.mjs';
+import {inspectComposeAppearance} from './harness/d5-thought-composition.mjs';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 const op=()=>crypto.randomUUID();
 async function ready(h){const p=h.archive;await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});return p;}
@@ -91,7 +92,7 @@ for(const variant of ['source','release'])for(const scenario of ['newer-text','r
    };
   },scenario);
   const open=()=>p.locator('#thought-home-tools').getByRole('button',{name:'接着写',exact:true}).click();await open();
-  const host=p.locator('#topic-action-dialog'),field=host.getByRole('textbox',{name:'今天的新想法'}),save=host.getByRole('button',{name:'保存想法',exact:true});
+  const host=p.locator('#topic-action-dialog'),field=host.getByRole('textbox',{name:'今天的新想法'}),save=host.getByRole('button',{name:'保存想法',exact:true});if(scenario==='newer-text')await inspectComposeAppearance(h,variant);
   const original='SYNTHETIC submitted Thought 👩‍💻\nKeep every authored line.',newer='SYNTHETIC newer unsaved Thought 👩‍💻\nNever close this newer draft.';
   await field.fill(original);await save.click();await eventually(()=>p.evaluate(()=>__composeAckCommitted.length===1),'real worker has committed the first request');const first=await p.evaluate(()=>({call:__composeAckCalls[0],response:__composeAckCommitted[0]}));assert.equal(first.response.ok,true);const id=first.response.data.id;assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id})).body,original);trace.stage='first committed';trace.first=first;
   if(['lost-ack','malformed-ack','malformed-success','changed-retry'].includes(scenario)){

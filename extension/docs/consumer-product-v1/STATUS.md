@@ -1,5 +1,11 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5 appearance-first — Thought page and writing — 2026-10-04
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / APPEARANCE_FIRST / D5_OPEN`.** The owner now prioritizes the frozen interface appearance before unfinished functionality. From exact main `5d7440d8`, [Thought page and writing appearance](implementation/desktop-vnext/D5-THOUGHT-APPEARANCE.md) aligns the title/actions/switch and existing writing-dialog roles. Actual candidate screenshots and source/release acceptance are pending. The native dialog hierarchy remains explicit; this does not claim T05 routing complete.
+
+The complex Reader/Topic return preparation and PR132 remain preserved, unmerged and outside this visual candidate. Existing Organize-scope and Context-workspace appearance work may proceed as isolated local patches under the sole integrator; no new state, provider, permission or business feature. Preserve Q7–Q12, current interaction guards and exact-head evidence. Final whole-interface owner review and public consumer release remain held/open as recorded below; website deployment does not update the installed extension.
+
 ## D5 verified checkpoint through Q12 — 2026-10-04
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / Q12_BOUNDED_INTEGRATED / D5_OPEN`.**

@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import {TopicActions} from '../../ui/topic-actions.js';
 
 class Element {
- constructor(tag){this.tagName=tag.toUpperCase();this.children=[];this.listeners=new Map();this.value='';this.textContent='';this.open=false;this.dataset={};}
+ constructor(tag){this.tagName=tag.toUpperCase();this.children=[];this.listeners=new Map();this.value='';this.textContent='';this.open=false;this.dataset={};this.classList={add:(...names)=>{this.className=[this.className,...names].filter(Boolean).join(' ');}};}
  append(...nodes){for(const node of nodes){node.parentElement=this;this.children.push(node);}}
+ insertBefore(node,before){if(node.parentElement)node.parentElement.children=node.parentElement.children.filter(child=>child!==node);const index=this.children.indexOf(before);assert.ok(index>=0);node.parentElement=this;this.children.splice(index,0,node);}
  replaceChildren(...nodes){for(const node of this.children)node.parentElement=null;this.children=[];this.append(...nodes);}
  setAttribute(key,value){this[key]=value;}
  addEventListener(type,listener){this.listeners.set(type,listener);}
@@ -16,10 +17,10 @@ class Element {
 export const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function fixture(){
  globalThis.document={body:new Element('body'),documentElement:{lang:'zh-CN'},createElement:tag=>new Element(tag),createTextNode:text=>Object.assign(new Element('#text'),{textContent:text}),activeElement:null};globalThis.window={addEventListener(){}};globalThis.confirm=()=>true;
- const calls=[],rpcCalls=[],held=[];globalThis.chrome={runtime:{onMessage:{addListener(){}},sendMessage:message=>{rpcCalls.push(structuredClone(message));if(message.type==='CONTINUE_THINKING')calls.push(structuredClone(message.thought));return new Promise(resolve=>held.push(resolve));}}};
+ const calls=[],rpcCalls=[],held=[],requestWaiters=[];globalThis.chrome={runtime:{onMessage:{addListener(){}},sendMessage:message=>{rpcCalls.push(structuredClone(message));if(message.type==='CONTINUE_THINKING')calls.push(structuredClone(message.thought));const pending=new Promise(resolve=>held.push(resolve));for(const waiter of requestWaiters)if(waiter.type===message.type)waiter.resolve();return pending;}}};
  const owner=new TopicActions({flush:async()=>true,notify(){}});await owner.compose();
- const save=()=>owner.content.children.find(node=>node.tagName==='BUTTON'&&node.textContent==='保存想法');
- return {owner,calls,rpcCalls,held,async submit(value){if(value!==undefined)owner.draft.value=value;save().onclick();await tick();},async respond(value){assert.ok(held.length);held.shift()(value);await tick();}};
+ const save=()=>descendants(owner.content).find(node=>node.tagName==='BUTTON'&&node.textContent==='保存想法');
+ return {owner,calls,rpcCalls,held,waitForRequest:type=>rpcCalls.some(message=>message.type===type)?Promise.resolve():new Promise(resolve=>requestWaiters.push({type,resolve})),async submit(value){if(value!==undefined)owner.draft.value=value;save().onclick();await tick();},async respond(value){assert.ok(held.length);held.shift()(value);await tick();}};
 }
 export const success={ok:true,data:{id:'synthetic-created'}};
 function descendants(root){return [root,...root.children.flatMap(descendants)];}
