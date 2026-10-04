@@ -69,6 +69,8 @@ export function testShard(file, position, total, category) {
   if(name==='cpv1-09-prompt-surface-chrome-e2e.test.mjs')return 3;
   if(name>'cpv1-09-prompt-surface-chrome-e2e.test.mjs')position--;
   // Keep all existing placements stable when adding the complete VS09 owner.
+  if(name==='cpv1-09-prompt-compatibility-chrome-e2e.test.mjs')return 3;
+  if(name>'cpv1-09-prompt-compatibility-chrome-e2e.test.mjs')position--;
   if(name==='cpv1-09-prompt-insertion-chrome-e2e.test.mjs')return 3;
   if(name>'cpv1-09-prompt-insertion-chrome-e2e.test.mjs')position--;
   if(name==='desktop-vnext-context-chrome-e2e.test.mjs')return 3;
