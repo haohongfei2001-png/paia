@@ -9,7 +9,14 @@
    for(const event of ['selectionchange','pointerup','focusout'])this.listen(event,()=>this.remember());
    this.listen('compositionstart',e=>{const node=this.find();if(node?.contains(e.target)){this.composing.add(node);this.saved=null;}});
    this.listen('compositionend',e=>{const node=this.find();if(node?.contains(e.target)){this.composing.delete(node);this.remember();}});
-   this.listen('input',()=>this.remember());
+   this.listen('input',e=>{
+    // Chromium may commit/cancel IME on cross-origin frame blur without a final
+    // compositionend on the old editor. Only subsequent native plain typing
+    // proves composition has ended; page-script events cannot clear the fence.
+    const node=this.find();
+    if(node?.contains(e.target)&&e.isTrusted&&e.isComposing===false&&e.inputType==='insertText')this.composing.delete(node);
+    this.remember();
+   });
   }
   listen(event,fn){this.document.addEventListener(event,fn,true);this.listeners.push([event,fn]);}
   dispose(){for(const [event,fn]of this.listeners)this.document.removeEventListener(event,fn,true);this.saved=null;this.attempts.clear();}
