@@ -196,3 +196,26 @@ final human visual evidence when that legitimate environment is available.
 `REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`; 09.6 second
 provider remains deferred without a verifiable minimally permissioned composer.
 No further dependency-safe implementation remains in this authorized batch.
+
+## Visual acceptance delivery — theme transition repair
+
+The owner requested actual source/release overlay screenshots on controlled,
+non-private data only. The visual pass found a real rendering defect: after
+switching from dark to light, the host retained its dark surface token while the
+card query selected light text tokens, producing inadequate contrast.
+
+The bounded repair listens for system appearance changes, derives one host
+appearance, and sets the embedded frame's `color-scheme`. The cross-origin card
+uses its inherited media appearance instead of a stale query-time override.
+Host class changes and system light/dark transitions now use the same path;
+this does not refresh, reorder, remount or discard an in-progress edit.
+No data bridge, permission, durable schema, provider, or product feature is added.
+
+`PAIA Prompt Reuse Visual Evidence` captures 19 real UI states for each source
+and release runtime, including dragging, recovery, long text, 320 CSS px and
+200% text scaling. Its workflow-dispatch `runtime_ref` defaults to current main.
+Each receipt identifies the actually checked-out commit. Original PNGs remain
+unmodified; the host page is explicitly labeled as a synthetic fixture.
+The foundation gate adds source/release transition and unsaved-edit regression.
+Human visual acceptance is requested by screenshot delivery, not self-certified.
+`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE` is unchanged.

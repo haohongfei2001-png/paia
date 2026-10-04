@@ -9,7 +9,7 @@ function pending(value){busy=value;for(const b of document.querySelectorAll('but
 const tell=text=>{status.replaceChildren(document.createTextNode(text));};
 async function refresh(internal=false){
  if(editing||(busy&&internal!==true)||drag||refreshing)return;
- refreshing=true;pending(true);const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;manualOrder=q.manualOrder;document.documentElement.dataset.theme=q.theme||'';session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);}
+ refreshing=true;pending(true);const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;manualOrder=q.manualOrder;session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);}
 }
 function focusRow(id){list.querySelector(`[data-id="${id}"] .more`)?.focus();}
 async function change(action,id,extra={}){

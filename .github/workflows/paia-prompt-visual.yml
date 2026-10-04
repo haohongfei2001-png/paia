@@ -1,0 +1,54 @@
+name: PAIA Prompt Reuse Visual Evidence
+on:
+  workflow_dispatch:
+    inputs:
+      runtime_ref:
+        description: Runtime Git ref to capture
+        default: main
+        required: true
+        type: string
+  push:
+    branches: ['evidence/prompt-reuse-visual-*']
+    paths: ['extension/scripts/capture-prompt-visual.mjs', 'extension/content/prompt-surface.js', 'extension/ui/prompt-surface.*', '.github/workflows/paia-prompt-visual.yml']
+permissions:
+  contents: read
+concurrency:
+  group: prompt-visual-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PAIA_TEST_CONCURRENCY: '4'
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.runtime_ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - name: Use hosted full Chrome and Chinese fonts
+        run: |
+          echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-color-emoji
+      - name: Capture actual production surfaces with synthetic data
+        run: node scripts/capture-prompt-visual.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prompt-visual-originals
+          path: extension/work/prompt-visual/
+          if-no-files-found: error
