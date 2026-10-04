@@ -10,6 +10,7 @@ async function refresh(){
   root.replaceChildren();
   for(const item of session.current()){
    const row=document.createElement('p'),insert=document.createElement('button'),copy=document.createElement('button');
+   row.dataset.promptId=item.id;
    insert.type=copy.type='button';insert.textContent=item.text;copy.textContent='Copy explicitly';copy.hidden=true;
    insert.addEventListener('click',async()=>{
     if(!target.value){status.textContent='Open a supported ChatGPT tab first.';copy.hidden=false;return;}
@@ -28,4 +29,5 @@ async function refresh(){
 }
 document.getElementById('refresh').addEventListener('click',refresh);
 
-chrome.runtime.onMessage.addListener(request=>{if(request?.type==='ARCHIVE_CHANGED'||request?.type==='PAIA_PROMPT_CHANGED'){session.close();root.replaceChildren();status.textContent='Content changed. Refresh the snapshot before reuse.';}});
+let validation=0;
+chrome.runtime.onMessage.addListener(request=>{if(request?.type==='ARCHIVE_CHANGED'||request?.type==='PAIA_PROMPT_CHANGED'){const attempt=++validation;void command({type:'PAIA_PROMPT_QUERY'}).then(projection=>{if(attempt!==validation)return;const ids=new Set(session.reconcile(projection).map(x=>x.id));for(const row of [...root.children])if(!ids.has(row.dataset.promptId))row.remove();},()=>{if(attempt!==validation)return;session.close();root.replaceChildren();status.textContent='Content changed. Refresh the snapshot before reuse.';});}});

@@ -42,6 +42,7 @@ export async function projectPromptFamilies(inputs,preferences=emptyPromptPrefer
 export class PromptListSession{
  open(projection){this.items=structuredClone(projection.items);return structuredClone(this.items);}
  current(){return structuredClone(this.items||[]);}
+ reconcile(projection){const current=new Map(projection.items.map(x=>[x.id,x]));this.items=(this.items||[]).filter(x=>current.get(x.id)?.text===x.text);return this.current();}
  refresh(projection){return this.open(projection);}
  close(){this.items=null;}
 }

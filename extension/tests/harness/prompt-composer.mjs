@@ -6,7 +6,7 @@ export async function routeComposer(context,root){
   const name=new URL(route.request().url()).pathname.split('/').at(-1);if(!packages.includes(name))throw Error('Unexpected fixture module');
   await route.fulfill({contentType:'text/javascript',body:await readFile(join(root,'node_modules',name,'dist/index.js'),'utf8')});
  });
- await context.route('https://chatgpt.com/c/prompt-insertion-fixture',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html><body>
+ await context.route('https://chatgpt.com/c/prompt-insertion-fixture',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html><head><style>.ProseMirror{white-space:pre-wrap;overflow-wrap:break-word;min-height:40px}</style></head><body>
  <main><form id="form"><div id="mount"></div><button id="send" type="submit">Send</button></form><button id="blur" type="button">Panel focus</button></main>
  <script type="importmap">${JSON.stringify({imports:Object.fromEntries(packages.map(p=>[p,'/__pm__/'+p]))})}</script>
  <script type="module">

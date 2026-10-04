@@ -38,3 +38,8 @@ test('stable payload extraction preserves an actually used instruction; ambiguou
  const x=promptCandidate(pairs.find(x=>x[0]==='article payload')[1]);assert.equal(x.text,'总结以下文章：');assert.equal(x.mode,'instruction');
  const y=promptCandidate(pairs.find(x=>x[0]==='unknown long payload')[1]);assert.equal(y.mode,'whole');assert.equal(y.text,pairs.find(x=>x[0]==='unknown long payload')[1]);
 });
+test('open-list revalidation removes unavailable text but preserves ordering through frequency changes',()=>{
+ const s=new PromptListSession(),a={id:'a',text:'same A'},b={id:'b',text:'same B'};s.open({items:[a,b]});
+ assert.deepEqual(s.reconcile({items:[b,a,{id:'c',text:'new'}]}),[a,b]);
+ assert.deepEqual(s.reconcile({items:[b]}),[b]);assert.deepEqual(s.reconcile({items:[{...b,text:'edited B'}]}),[]);
+});
