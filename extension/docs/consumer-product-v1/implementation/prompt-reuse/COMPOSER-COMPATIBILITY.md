@@ -69,3 +69,36 @@ or D7 change. Real-site evidence remains deferred separately from synthetic test
   duplicate generated files; rebuilding the disposable output restored clean
   package validation. Source files were unaffected. Cloud clean-checkout browser
   runs supply the runtime evidence. No external visible browser was used.
+
+## Final integration — ENGINEERING_COMPLETE
+
+[PR #155](https://github.com/haohongfei2001-png/paia/pull/155) merged as
+`16f19634c97ffbee9b0b036157b996e9e497de6e` after a conflict-free reconciliation
+with remote main `9c86f4ece9dd549c5846ebe00edc2b0fd4adab48` (D7 PR #154).
+Tested head: `363055139722895974b34cf081561f393082aca1`.
+Head and merge trees both equal `27562ecafd7ca95571d1e5ae678104e018e032ac`.
+
+- [Foundation](https://github.com/haohongfei2001-png/paia/actions/runs/37233142557):
+  source/release compatibility 14/14, old/current insertion 40/40, Surface 30/30
+  browser registrations; 1,790 full unit, 102 adapter and 59 privacy/security PASS.
+  Includes draft/caret/selection/IME, uncertain no retry, clipboard fallback,
+  no send/Provider/capture, keyboard, theme/layout/compact, SPA, discard and worker
+  restart. No regressions observed in the tested scope.
+- Source package: 11,445 guardrails / 292 runtime resources PASS. Release:
+  11,010 guardrails / 285 runtime resources and 309-file product guard PASS.
+- [Visual evidence](https://github.com/haohongfei2001-png/paia/actions/runs/37233142378)
+  recaptured all eight states successfully. Existing owner acceptance remains
+  `VISUAL_ACCEPTED`; this compatibility repair does not reopen visual design.
+- [Integration/certification](https://github.com/haohongfei2001-png/paia/actions/runs/37233142445)
+  PASS. Unrelated optional full-browser/device gates were not selected; this is
+  not a claim that every historical/platform certification was rerun.
+
+The corrected build should show the orb for the recognized visible unique
+signatures even while capture is paused. Unknown or ambiguous variants fail
+closed with a folded popup explanation. This does not assert that an already
+loaded older installation was automatically updated or that the owner's live
+DOM has been inspected.
+
+`OWNER_VISUAL_ACCEPTANCE = PASS`.
+`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`.
+No Stage 3, second provider, B-04 or D7 work started by this repair.

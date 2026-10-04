@@ -1,3 +1,22 @@
+# Prompt Reuse — bounded composer compatibility repair integrated
+
+[PR #155](https://github.com/haohongfei2001-png/paia/pull/155) merged as
+`16f19634c97ffbee9b0b036157b996e9e497de6e`, after synchronizing current main
+`9c86f4ece9dd549c5846ebe00edc2b0fd4adab48`. This owner-authorized defect repair
+supports explicit id-less ChatGPT composer signatures and a retained, low-frequency
+popup diagnostic. Capture pause does not block consented Prompt Reuse.
+
+**Compatibility engineering: COMPLETE. Visual state: `VISUAL_ACCEPTED`.**
+**`OWNER_VISUAL_ACCEPTANCE = PASS`.**
+**`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`.**
+
+[Compatibility receipt](implementation/prompt-reuse/COMPOSER-COMPATIBILITY.md)
+records final source/release browser results (14 compatibility + 40 insertion +
+30 Surface registrations), 1,790 unit, 102 adapter, 59 privacy/security, package
+and visual checks, intermediate failures and current-site evidence limitations.
+No schema, permissions, Family/ranking, Backup, Visual Master, Stage 3, second
+provider, B-04 or D7 runtime change. All D7 entries below are preserved.
+
 # CPV1-09.3V — VISUAL_ACCEPTED
 
 **Current Prompt Reuse state: `FUNCTIONAL_ENGINEERING_COMPLETE / VISUAL_ACCEPTED`.**
