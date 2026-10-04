@@ -84,7 +84,7 @@ for(const variant of ['source','release'])test(`D5 Content paired reading roles,
   await eventually(()=>p.locator('#original-reading-body [data-entry-id]').count().then(n=>n>=40),'first Content page');
   d5=await openD5ThoughtReading(h,variant,'content',seed.ordered[0]);
   for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const width of [1440,1280,1024,768,390,320]){await p.setViewportSize({width,height:900});await d5.capture(width,appearance);}}
-  await d5.verifyPreferences();await d5.verifyTextZoom();await d5.finishInteractions();
+  await d5.verifyPreferences();await d5.verifyTextZoom();await d5.finishInteractions();await d5.verifyHeaderInteractions();
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);await d5.finish();
  }finally{try{await d5?.close();}finally{await h.close();}}
 });

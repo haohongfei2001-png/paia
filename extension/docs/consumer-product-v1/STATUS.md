@@ -1,5 +1,14 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q10 — Existing Topic header alignment — 2026-10-04
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q10`.**
+Q9 [PR135](https://github.com/haohongfei2001-png/paia/pull/135) is adopted at exact main `56413162e7b8318eecb270781acd5b76046c0822`. Reviewed head `e07146f8dfabcc0bd661e2930aa92dd73ac3b09b`, tested merge `4241ce76ca1759a857332696873c5d1c277a36cd` and main share tree `6a26c5b9c9e839e1a12c7a8ad45acbacb2572645`. Candidate37169856053, light37170596347, exact-main37170778368 and Pages37170778168 PASS. Evidence includes1,633 unit/nine complete affected browser/102 adapter/58 privacy cases,60 paired rows,12 trusted touch group activations and10 outside-glyph label checks. Independent actual pixels clear the corrected16px glyphs with44px associated targets. Earlier failed evidence and retained limitations remain in [Q9](implementation/desktop-vnext/D5-Q9.md). Full browser/Mac were intentionally skipped under §7.2.
+
+Approved [Q10](implementation/desktop-vnext/D5-Q10.md) begins on that clean main and aligns the existing Topic header as one coherent CSS-only surface: height, trailing search, readable title/status, Back/History targets and keyboard/narrow/coarse/200% behavior. Same nodes, state and focus order remain. Reuse48 existing paired frames and the isolated Content visual fixtures; retain all seven complete Topic files plus the unchanged22-case UX-R3 selection. The approved two-job split preserves all38 current cases and20 ownership receipts within unchanged12-minute job/180-second case bounds. No action relocation, year semantic change, route/cache/paging/editor owner, provider or permission work.
+
+PR132 remains preserved and unmerged; T05, action/year-navigation composition, remaining Organize/Context families and final D5 owner visual acceptance stay open. Public consumer release and install-package delivery remain held. Older controlling entries below are historical.
+
 ## D5/Q9 — Settings single reading column — 2026-10-04
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q9`.**

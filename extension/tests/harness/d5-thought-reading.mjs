@@ -1,3 +1,4 @@
+import {measureTopicHeader,assertTopicHeader,verifyTopicHeaderInteractions} from './d5-topic-header.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {openD5Reference} from './d5-shell-reference.mjs';
@@ -16,9 +17,9 @@ async function measure(page,kind,id,reference=false){return page.evaluate(({kind
  },{kind,id,reference});}
 export async function openD5ThoughtReading(h,variant,kind,id){
  const p=h.archive,route=kind==='content'?'topic-dense':'longitudinal',ref=await openD5Reference(h,route),directory=`work/qa-dvn-topic-${kind}/d5`;
- const saved=(await rpc(p,'GET_PAGE',{page:{view:'settings'}})).preferences,rows=[],failures=[],preferences=[],targets=[];
+ const saved=(await rpc(p,'GET_PAGE',{page:{view:'settings'}})).preferences,rows=[],failures=[],preferences=[],targets=[],headers=[],headerInteractions=[];
  await mkdir(directory,{recursive:true});await p.emulateMedia({reducedMotion:'reduce'});await ref.emulateMedia({reducedMotion:'reduce'});
- const persist=result=>writeFile(`${directory}/${variant}.json`,JSON.stringify({result,head:process.env.PAIA_TESTED_HEAD,variant,kind,rows,failures,preferences,targets,scope:'Fixed reading roles and explicit saved-preference formulas. Truthful provenance, coverage and synthetic wrapping differ. Content year navigation and Add Thought workspace remain separate composition work.'},null,2));
+ const persist=result=>writeFile(`${directory}/${variant}.json`,JSON.stringify({result,head:process.env.PAIA_TESTED_HEAD,variant,kind,rows,failures,preferences,targets,headers,headerInteractions,scope:'Fixed reading roles and explicit saved-preference formulas. Truthful provenance, coverage and synthetic wrapping differ. Content year navigation and Add Thought workspace remain separate composition work.'},null,2));
  const near=(a,b,label)=>{if(Math.abs(a-b)>2)failures.push(`${label}: ${a} != ${b}`);};
  const exact=(a,b,label)=>{if(a!==b)failures.push(`${label}: ${a} != ${b}`);};
  const body=()=>p.locator(kind==='content'?`[data-entry-id="${id}"] [data-entry-field="body"]`:'[data-year-section="2023"] .topic-year-expression .entry-prose').first();
@@ -48,6 +49,7 @@ export async function openD5ThoughtReading(h,variant,kind,id){
    if(kind==='years')for(const key of ['gap','marginBottom'])exact(a.yearsNav[key],b.yearsNav[key],label+' yearsNav.'+key);
    const current=(await rpc(p,'GET_PAGE',{page:{view:'settings'}})).preferences;await verifyPreference(label,current.fontSize,current.readingWidth);
    const stem=`${directory}/${variant}-${width}-${theme}`;await p.screenshot({path:stem+'-top-production.png'});await ref.screenshot({path:stem+'-top-reference.png'});
+   const header={width,theme,production:await measureTopicHeader(p),reference:await measureTopicHeader(ref,true)};headers.push(header);await persist('PENDING');assertTopicHeader(header.production,header.reference,label);
    if(kind==='content'&&width===1440&&theme==='light'){
     await ref.goto('https://paia-reference.invalid/screens/index.html#topic-original');await frame(ref);await ref.screenshot({path:stem+'-original-top-reference.png'});await writeFile(stem+'-original-reference.json',JSON.stringify(await measure(ref,kind,id,true),null,2));await ref.goto('https://paia-reference.invalid/screens/index.html#'+route);await ref.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
    }
@@ -95,6 +97,7 @@ export async function openD5ThoughtReading(h,variant,kind,id){
    const before=await observe('after exact menu focus return');targets.push(before);await persist('PENDING');assert.equal(before.active.entryId,id,'the added menu journey retains its exact first-entry invoker');assert.deepEqual(before.pins,[id],'the existing owner protects that focused entry');
    await p.locator('#topic-heading h1').click();await frame(p);const after=await observe('neutral heading focus before original paging journey');targets.push(after);await persist('PENDING');assert.equal(after.active.entryId,null);assert.deepEqual(after.pins,[],'explicitly leave the completed interaction before testing the unpinned120-row paging window');assert.deepEqual(after.openEntryMenus,[]);
   },
+  async verifyHeaderInteractions(){assert.equal(kind,'content','native additions stay in the isolated Content visual fixture');try{await verifyTopicHeaderInteractions(h,variant,id,{directory,persist,interactions:headerInteractions});}catch(error){failures.push('header interactions: '+error.message);await persist('FAIL');throw error;}},
   async state(name,selector){const target=p.locator(selector).first();await target.scrollIntoViewIfNeeded();assert.ok((await target.textContent()).trim());await p.screenshot({path:`${directory}/${variant}-${name}.png`});},
   async finish(){await persist(failures.length?'FAIL':'PASS');assert.deepEqual(failures,[],'all observed fixed Thought reading comparisons must pass');},
   async close(){await ref.close();await p.emulateMedia({reducedMotion:'no-preference'});await rpc(p,'UPDATE_PREFERENCES',{changes:{fontSize:saved.fontSize,readingWidth:saved.readingWidth}});}
