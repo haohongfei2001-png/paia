@@ -83,3 +83,63 @@ actually verifiable composer is available without account intervention.
 Human visual acceptance remains an external final product gate; automated
 source/release screenshots establish implementation evidence, not owner review.
 No Stage 3/B-04 work, public store release or deployment is included.
+
+## Repair and environment evidence retained
+
+- 37207404150: source/release first-click insertion and management passed. A
+  background notification could cancel an explicit refresh; serialize refresh
+  admission and keep background reconciliation from superseding it.
+- 37207606426: hosted Chrome's pipe connection crashed during real tab discard,
+  including under a cloud virtual display. 37207713214 switched to the repository's
+  existing native Chrome port connection, then exposed the replaced tab ID.
+  Restore uses the actual returned tab ID. 37207881126 confirms source/release
+  discard/recovery, single surface and separate draft targets. No local browser
+  or user profile was opened.
+- That run also exposed missing compositionend after cross-origin frame blur.
+  Only a subsequent trusted non-composing native insertText event clears a stale
+  composition fence; scripted events cannot. The original active-composition
+  refusal and native commit/reuse tests remain, plus a forged-input negative test.
+- Failed runs remain failures even when their individual screenshots are useful.
+  The receipt writer now records FAIL if any earlier subtest failed. Font setup
+  installs system CJK fonts for actual Chinese screenshot legibility; no remote
+  fonts or font requests are added to the extension.
+
+## Engineering candidate receipt
+
+- Runtime candidate: `044ad4500fa182d725cd9dbc341712be8beb63bb`.
+- [Fresh complete engineering gate](https://github.com/haohongfei2001-png/paia/actions/runs/37208317427).
+- Source/release insertion and surface browser matrices: 40 native Chrome tests
+  including parent suites; no skips. All fixture content is synthetic. Original
+  foundation active-IME refusal, exact code/Unicode/selection and no-send checks
+  remain, including the forged-input negative regression.
+- Owning domain/service/security/layout tests: 64 PASS. Full unit: 1,739 PASS
+  locally and in the current cloud run. Adapter contracts: 102 PASS; privacy: 59
+  PASS; all zero failures/skips. Source guard: 11,350 checks / 291 resources;
+  release guard: 10,915 checks / 284 runtime resources, RELEASE_PRODUCT_GUARD_PASS
+  with 308 packaged files. Artifact `11305003369` contains both variant receipts
+  and ten actual overlay screenshots.
+- Runtime assets SHA-256:
+  `e6551aba36f98131c854381591ba2af59985c9efeb6d27aa618307f0f9345bd5`.
+  Definition: sorted paths under adapter/content/background/core/ui/icons with
+  JS/HTML/CSS/PNG/SVG suffix, plus manifest.json; hash relative-path + NUL + bytes
+  + NUL. Receipt/architecture documentation changes do not change this digest.
+- Actual production-frame screenshots cover light/dark at 1280 and 320 CSS px,
+  long internal scrolling and 200% text. CJK glyphs, native controls clearance,
+  quiet frosted appearance and visible focus are checked directly in exported
+  pixels. This engineering review does not impersonate final owner acceptance.
+- Existing Source/Working Input/Thought authority, override capacity/delete and
+  strict Backup remain unchanged. No object store, DB version, provider host or
+  D7/AppShell/Reader/Thought/AI Context page implementation changes.
+- Rapid management is serialized through committed refresh, including disabled
+  editor fields during save. New-edit actions cannot replace an unfinished edit.
+  Frame/geometry and transient edits stay tab-local; only approved preferences
+  cross tabs. Neither background rank nor notifications reorder the open list.
+
+ENGINEERING_COMPLETE: all current automatic gates above passed. The receipt-only
+commit changes no runtime/test/workflow files. The architecture note changes the
+packaged documentation, so the current package was rebuilt and validated locally;
+its package-source fingerprint is
+`d2adf45dd630fb98644aeb65da00d54fe70ef0c69986e5b658bc2117178ea2b0`.
+The next engineering action is safe integration with fresh main and PR checks. The next
+external closure is CPV1-09.7 real-site insertion/final visual acceptance; no
+09.6 arbitrary-site implementation or Stage 3 work is implied.

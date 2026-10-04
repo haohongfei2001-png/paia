@@ -827,6 +827,14 @@ Only after this may product copy say the external AI can directly read PAIA.
 Owner-approved feature contract:
 [PROMPT_REUSE_SURFACE.md](PROMPT_REUSE_SURFACE.md).
 
+Execution checkpoint (owner amendment 2026-10-04): CPV1-09.0–09.2 integrated
+through PR #144. CPV1-09.3–09.5 implemented on the independent surface branch;
+current engineering evidence is owned by [SURFACE.md](implementation/prompt-reuse/SURFACE.md).
+Real ChatGPT final certification remains external/deferred and does not block
+engineering integration after passing safety/source/release/package gates.
+CPV1-09.6 is deferred without a genuinely verifiable minimally permissioned
+second provider. CPV1-09.7's final real-site/human visual acceptance stays open.
+
 ## Outcome
 
 PAIA turns repeated personal AI inputs into a stable, editable reuse surface.
