@@ -1,3 +1,4 @@
+import {compareD5Context} from './harness/d5-context-presentation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -48,5 +49,19 @@ for(const variant of ['source','release'])test('D4 '+variant+' production worksp
   await rpc(p,'PAIA_MEMORY_EXCLUDE',{options:{inputId:hiddenTarget.ref.id,excluded:true}});await eventually(async()=>(await state(p)).items.every(item=>item.state==='blocked'),'hidden material denied');assert.equal((await p.locator('#material-workbench').textContent()).includes(hiddenTarget.body),false,'hidden workspace retains no denied material body');
   assert.deepEqual((await h.state()).records,originalRecords,'Context never changes original records');assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
   await writeFile(`work/qa-dvn-context/${variant}.json`,JSON.stringify({result:'PASS',head:process.env.PAIA_TESTED_HEAD||'local-uncommitted',variant,sizes,zeroExternalRequests:true,compileCannotRelease:true,denyClearsFallback:true,hiddenDeniedBodyCleared:true},null,2));
+ }finally{await h.close();}
+});
+
+// Separate D5 visual fixtures preserve the original D4 interaction journeys.
+for(const variant of ['source','release'])test(`D5 C04/C06/C08 preview preserves exact output, explicit review and saved reading preferences (${variant})`,{timeout:240000},async()=>{
+ if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{maxBuffer:16*1024*1024});
+ const h=await FakeChatGPT.start(variant==='release'?{extensionPath:'work/current-release'}:{}),p=h.archive;
+ try{
+  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);
+  await h.open({id:'d5-context-'+variant,title:'D5 synthetic Context',base:1609459200,messages:[{id:'d5-context-a',text:'D5_CONTEXT_LITERAL 第一段合成表达\n<literal> 👩‍💻 é\n保留原话和空行。\n\n尚未决定。'},{id:'d5-context-b',text:'D5_CONTEXT_LITERAL 第二段合成表达\n不把一次观察写成永久结论。'}]});
+  await eventually(async()=>(await h.state()).records.length===2);const originalRecords=structuredClone((await h.state()).records);await p.bringToFront();
+  await p.locator('#primary-nav [data-view=memory]').click();await p.getByRole('button',{name:'从档案选择',exact:true}).click();await p.getByRole('searchbox',{name:'全局搜索'}).fill('D5_CONTEXT_LITERAL');await eventually(async()=>await p.locator('.universal-hit').count()===2);await p.locator('.universal-selection').getByRole('button',{name:'全选本页',exact:true}).click();await p.locator('.universal-selection').getByRole('button',{name:/加入本次材料/}).click();await eventually(async()=>(await state(p))?.items.length===2&&await p.locator('[data-material-edit=purpose]').isVisible());
+  await p.locator('[data-material-edit=purpose]').fill('核对这些明确选择的表达，保留尚未决定的部分。');await p.locator('#material-preview').click();await eventually(async()=>(await state(p)).state==='review');
+  await compareD5Context(h,variant);assert.deepEqual((await h.state()).records,originalRecords,'visual review never changes immutable Source');assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
