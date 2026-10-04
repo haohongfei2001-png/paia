@@ -1,5 +1,14 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q9 — Settings single reading column — 2026-10-04
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q9`.**
+Q8 [PR134](https://github.com/haohongfei2001-png/paia/pull/134) is adopted at exact main `96832cd7e07db7f9946648c0079d1c49e2dfd6cc`. Reviewed head `9ecc9c7b7a1ea11bd941b8de0744be81ed310ada`, tested merge `aecca07ff0970e754ef8461f18b26eed06cea297` and main share tree `3d60a829a1a9535c3bfaaf92d22b5857d30dca91`. Candidate 37165300128, light integration 37165729430, exact-main 37166093196 and Pages 37166092893 PASS. Evidence includes 1,630 unit, five complete affected browser, 102 adapter and 58 privacy cases, 60 paired rows, 22 preference observations and four targets. Independent pixels verify corrected 10px action gaps, 200%/coarse controls, stale masking and exact saved widths. Earlier visual findings and the failed preference observation remain in [Q8 evidence](implementation/desktop-vnext/D5-Q8.md). Full browser/Mac were intentionally skipped under § 7.2.
+
+Approved [Q9](implementation/desktop-vnext/D5-Q9.md) starts from that clean main and replaces S01's legacy 180/840 Settings columns with one declared reading column and a wrapping row of the same six group buttons. Keep every section/mobile selector/owner, rollback, permission, same-node and Back assertion; replace only the obsolete geometry expectations with exact approved geometry and real before/after evidence. No new group state, Settings feature or JavaScript owner change. Existing complete Settings/Data/shell journeys, paired pixels and independent review must pass before light integration.
+
+PR132 remains preserved and unmerged at `497847ea39547df0d069676dda0b6645eb58b6da`; T05 remains unfinished. Topic/Organize/Context composition and final owner visual acceptance remain open. Public consumer release and install-package delivery remain held. Older controlling entries below are historical.
+
 ## D5/Q8 — Context review, ready and stale presentation — 2026-10-04
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q8`.**

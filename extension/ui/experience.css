@@ -77,9 +77,6 @@ button:hover{background:#f0f3ed}
 #memory-build-form textarea{font:inherit;font-size:17px;line-height:1.8;min-height:140px;padding:18px;border:1px solid var(--paia-line);border-radius:10px}
 #memory-preview-body{max-width:740px;margin:30px auto;line-height:1.9}
 #memory-preview-body .memory-entry{background:none;box-shadow:none;border:0;border-bottom:1px solid var(--paia-line);border-radius:0;padding:22px 0}
-#settings-panel{max-width:790px}
-#settings-panel h2{margin-top:42px;font-size:18px}
-#settings-panel details{line-height:1.8}
 .muted,small{color:var(--paia-muted)}
 ::view-transition-group(root),::view-transition-old(root),::view-transition-new(root){animation:none}
 ::view-transition-group(paia-memory){animation-duration:0s}

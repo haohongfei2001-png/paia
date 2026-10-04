@@ -29,8 +29,7 @@ button[aria-current=page]{background:#e7ece6;color:#244535;font-weight:600}
 .block-note{color:#73806f;font-size:14px;white-space:pre-wrap;padding-left:16px;border-left:2px solid #e3e9df}
 .muted,small{color:#7e887c}
 .source-detached{font-size:11px;color:#92988d}
-#settings-panel,#legacy-panel{max-width:850px;margin:auto}
-#settings-panel h2{font-size:18px;font-weight:500;margin-top:35px}
+#legacy-panel{max-width:850px;margin:auto}
 .setting{display:flex;justify-content:space-between;gap:30px;align-items:center;padding:20px 0;border-bottom:1px solid #ecefe8}
 .setting small{display:block;margin-top:8px;max-width:550px;font-size:12px}
 .setting select{background:#fafbf9;border:1px solid #dce2d7;border-radius:5px;padding:7px}
@@ -362,8 +361,7 @@ dialog h2{font-size:21px;line-height:1.5;overflow-wrap:anywhere}
 #integrity-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}
 #integrity-results p{margin:5px 0}
 .conversation-document strong,.topic-index-row{overflow-wrap:anywhere}
-#settings-panel p{line-height:1.8}
-#settings-panel .setting span{max-width:65%;text-align:right}.block-time,.entry-sent-time{font-size:var(--paia-caption)}
+.block-time,.entry-sent-time{font-size:var(--paia-caption)}
 #thought-empty{margin:42px auto}
 @media(max-width:768px){
 .setting{gap:16px}

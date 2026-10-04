@@ -1,3 +1,4 @@
+import {measureSettingsGeometry,materializeSettingsBaseline,captureSettingsBaseline,compareD5Settings} from './harness/d5-settings-presentation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -21,8 +22,8 @@ async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);asse
 async function sourceJourney(h){
  const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',readingWidth:'wide'}});await page.setViewportSize({width:1440,height:900});await openSettings(page);
  assert.equal(await page.locator('h1:visible').count(),1,'Settings owns one visible h1');assert.equal((await page.locator('#ux-settings-title').textContent()).trim(),'设置');
- const boxes=await page.evaluate(()=>{const nav=document.querySelector('.ux-settings-nav').getBoundingClientRect(),body=document.querySelector('.ux-settings-body').getBoundingClientRect();return {nav:nav.width,body:body.width,gap:body.x-nav.right};});
- assert.ok(boxes.nav>=179&&boxes.nav<=181,`desktop Settings nav is 180px; got ${boxes.nav}`);assert.ok(boxes.body>=830&&boxes.body<=842,`desktop Settings body is capped near 840px; got ${boxes.body}`);assert.ok(boxes.gap>=31&&boxes.gap<=33,`desktop Settings gap is 32px; got ${boxes.gap}`);
+ const boxes=await measureSettingsGeometry(page);
+ assert.ok(Math.abs(boxes.nav-760)<=2,`desktop Settings group row is 760px; got ${boxes.nav}`);assert.ok(Math.abs(boxes.body-760)<=2,`desktop Settings body uses the declared 760px cap; got ${boxes.body}`);assert.ok(Math.abs(boxes.navX-boxes.bodyX)<=2,'group navigation and body share the same reading column');assert.ok(Math.abs(boxes.gap-28)<=2,`group navigation is above the body with 28px gap; got ${boxes.gap}`);
  assert.equal(await page.locator('#ux-settings-group-switch').isVisible(),false,'mobile switch stays hidden on desktop');assert.equal(await page.locator('.ux-settings-nav>[data-settings-group]:visible').count(),6,'desktop keeps six group navigation actions');
 
  await eventually(()=>page.locator('#reader-revisit-settings').count().then(n=>n===1),'Reading controller projects Revisit settings');await eventually(()=>page.locator('#thought-reverse-edit').count().then(n=>n===1),'Thought controller projects reverse-edit setting');
@@ -51,13 +52,26 @@ async function sourceJourney(h){
 
 async function releaseJourney(h){
  const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await page.setViewportSize({width:1440,height:900});await openSettings(page);
- const geometry=await page.evaluate(()=>{const nav=document.querySelector('.ux-settings-nav').getBoundingClientRect(),body=document.querySelector('.ux-settings-body').getBoundingClientRect();return [nav.width,body.width,body.x-nav.right];});assert.ok(geometry[0]>=179&&geometry[0]<=181&&geometry[1]>=830&&geometry[1]<=842&&geometry[2]>=31&&geometry[2]<=33,'built release keeps the 180 / 840 / 32 Settings frame');
+ const geometry=await measureSettingsGeometry(page);assert.ok(Math.abs(geometry.nav-760)<=2&&Math.abs(geometry.body-760)<=2&&Math.abs(geometry.navX-geometry.bodyX)<=2&&Math.abs(geometry.gap-28)<=2,'built release keeps the declared 760px single reading column and 28px vertical group gap');
  await assertOwner(page,'#r6-hide-content-previews','privacy');await assertOwner(page,'#r6-complete-export','data');assert.equal(await page.locator('#filter-advanced').count(),0,'release-only diagnostics pruning still applies');
  await page.setViewportSize({width:390,height:844});const switcher=page.locator('#ux-settings-group-switch');await switcher.selectOption('data');await eventually(()=>page.locator('[data-group="data"]').isVisible());assert.equal(await switcher.isVisible(),true);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-settings-data-390x844-light');await assertNoNetwork(h);
 }
 
-test('UIR-04 Settings keeps one six-group owner projection while applying the 180/840 desktop frame and same-control mobile switch in source and built release Chrome',{timeout:300000},async()=>{
+test('UIR-04 Settings keeps one six-group owner projection while applying the single reading column and same-control mobile switch in source and built release Chrome',{timeout:300000},async()=>{
  let source;try{source=await FakeChatGPT.start({onboarding:true});await sourceJourney(source);}finally{await source?.close();}
  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  let release;try{release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});await releaseJourney(release);}finally{await release?.close();}
+});
+
+
+// Before evidence executes the exact adopted source, retaining the old geometry contract.
+test('D5 S01 records adopted Settings geometry before its presentation replacement',{timeout:120000},async()=>{
+ const extensionPath=await materializeSettingsBaseline();let h;
+ try{h=await FakeChatGPT.start({extensionPath,onboarding:true});const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await eventually(()=>page.evaluate(()=>document.documentElement.lang==='zh-CN'&&document.documentElement.dataset.paiaTheme==='light'));await page.setViewportSize({width:1440,height:900});await openSettings(page);await captureSettingsBaseline(h);await assertNoNetwork(h);}
+ finally{await h?.close();}
+});
+for(const variant of ['source','release'])test(`D5 S01 Settings preserves six group owners with paired reading-column, keyboard and reflow evidence (${variant})`,{timeout:240000},async()=>{
+ if(variant==='release')await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+ let h;try{h=await FakeChatGPT.start({...(variant==='release'?{extensionPath:'work/current-release'}:{}),onboarding:true});const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await eventually(()=>page.evaluate(()=>document.documentElement.lang==='zh-CN'&&document.documentElement.dataset.paiaTheme==='light'));await page.setViewportSize({width:1440,height:900});await openSettings(page);await compareD5Settings(h,variant);await assertNoNetwork(h);}
+ finally{await h?.close();}
 });
