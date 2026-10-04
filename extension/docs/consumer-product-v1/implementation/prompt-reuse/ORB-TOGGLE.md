@@ -71,3 +71,12 @@ Local source package 11,445 checks / 292 resources and generated release 309-fil
 product guard pass. Three changed runtime files match source/release bytes.
 [Initial visual evidence](https://github.com/haohongfei2001-png/paia/actions/runs/37240678117)
 passed; this does not certify the corrected head or current real ChatGPT.
+
+[Second Foundation 37240899956](https://github.com/haohongfei2001-png/paia/actions/runs/37240899956)
+on `bb721e91dd0b4d8b7fe4ba49c5ee04e65c16fa56` passed compatibility 14/14,
+insertion 40/40 and every new toggle/guard/drag/lifecycle case in source/release.
+Surface remained FAIL (28/36 PASS): the pre-existing compact/coarse journey had
+the same explicit orb-click followed immediately by pointer-fallback `open()`.
+Its redundant click detached the just-created frame and cascaded into two later
+cases per variant. That explicit gesture now waits for its frame before readiness,
+retaining every compact/200%/coarse assertion. No further runtime change is needed.
