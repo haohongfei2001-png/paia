@@ -27,3 +27,20 @@ visual acceptance is retained. Real ChatGPT certification stays
 `DEFERRED_EXTERNAL_EVIDENCE`; no real authenticated drag claim is made by synthetic
 browser tests. No Family, ranking, management, insertion semantics, schema,
 Backup, permissions, Stage 3, second provider, B-04 or D7 change.
+
+## First execution and bounded follow-up
+
+[Initial Foundation run](https://github.com/haohongfei2001-png/paia/actions/runs/37235480978)
+passed pointer motion/no jump, attachment, close/reopen, reload and SPA/worker
+geometry restoration, then exposed failure to persist a keyboard move after SPA.
+Chrome's sender URL can remain the initial document URL. HOST geometry requests
+now handle this mismatch only with a probe to the exact sender `documentId`, an
+active top-frame sender, matching current live/tab URLs and rechecked consent.
+Stale documents, navigation races and wrong origins fail closed. Insertion RPC
+authorization is untouched. Unit coverage verifies this metadata-only boundary.
+The later closed-reload failure in that run followed the unfinished fixture SPA
+route; the exact fixture route is restored after SPA verification.
+
+Geometry review also preserves default card height independently of pointer
+position, avoiding a resize on first movement in short viewports. Full geometry
+round trips are now asserted, not only orb coordinates.

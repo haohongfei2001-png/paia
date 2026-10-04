@@ -5,7 +5,7 @@
  globalThis.PAIAPromptLayout=(width,height,form,position,open=false)=>{
   const w=Math.min(width<=400?322:336,width-32);
   const candidates=[{x:form.left-52,y:form.top},{x:form.right+8,y:form.top},{x:width-52,y:form.top-52},{x:width-52,y:form.bottom+8},{x:8,y:8}];
-  if(position)candidates.unshift({x:position.x*(width-44),y:position.y*(height-44)});
+  if(position&&!open)candidates.unshift({x:position.x*(width-44),y:position.y*(height-44)});
   const orb=candidates.map(p=>({x:clamp(p.x,8,width-52),y:clamp(p.y,8,height-52),w:44,h:44})).find(p=>!intersects(p,form));
   if(!orb||width<120||height<120)return null;
   const cards=[];
@@ -20,9 +20,9 @@
   // Saved position owns the visible handle, never an invisible collapsed orb.
   // Project the complete attached surface into safe bands around the composer.
   if(position){
-   const desired={x:position.x*(width-44),y:position.y*(height-44)},placements=[];
+   const desired={x:position.x*(width-44),y:position.y*(height-44)},placements=[],preferredHeight=card?.h||(width<=400?340:350);
    for(const [start,end]of [[8,form.top-16],[form.bottom+8,height-8]]){
-    const h=Math.min(width<=400?340:350,end-start-32);if(h<96)continue;
+    const h=Math.min(preferredHeight,end-start-32);if(h<96)continue;
     const x=clamp(desired.x+40-w,8,width-w-8),y=clamp(desired.y,start,end-h-32);
     placements.push({x,y:y+32,w,h,distance:(x+w-40-desired.x)**2+(y-desired.y)**2});
    }

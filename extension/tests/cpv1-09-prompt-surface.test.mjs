@@ -55,6 +55,14 @@ test('open geometry uses one visible anchor, projects the attached card into saf
   const form={left:16,right:width-16,top:height-140,bottom:height-16},g=sandbox.PAIAPromptLayout(width,height,form,position,true);assert.ok(g?.card);
   assert.equal(g.orb.x,g.card.x+g.card.w-40);assert.equal(g.orb.y,g.card.y-32);
   for(const r of [g.orb,g.card]){assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=height);assert.ok(r.y+r.h<=form.top||r.y>=form.bottom);}
-  const saved={x:g.orb.x/(width-44),y:g.orb.y/(height-44)},restored=sandbox.PAIAPromptLayout(width,height,form,saved,true);assert.equal(restored.orb.x,g.orb.x);assert.equal(restored.orb.y,g.orb.y);
+  const saved={x:g.orb.x/(width-44),y:g.orb.y/(height-44)},restored=sandbox.PAIAPromptLayout(width,height,form,saved,true);assert.equal(restored.orb.x,g.orb.x);assert.equal(restored.orb.y,g.orb.y);assert.deepEqual(restored.card,g.card);
  }
+});
+
+test('SPA geometry save binds the initial sender URL to the exact live document, without authorizing stale navigation',async()=>{
+ const f=fixture(),sender={id:'ext',tab:{id:7},frameId:0,url:url+'?initial',documentId:'document-synthetic',documentLifecycle:'active'},state={version:1,open:true,position:{x:.4,y:.3}},request={type:'PAIA_PROMPT_SURFACE_HOST',state};
+ assert.deepEqual(await f.s.handle(request,sender),state);assert.deepEqual(f.sent.at(-1),[7,{type:'PAIA_PROMPT_SURFACE_PROBE'},{documentId:'document-synthetic'}]);
+ for(const bad of [{...sender,documentId:undefined},{...sender,documentLifecycle:'cached'},{...sender,url:'https://other.example/'},{...sender,frameId:2}])await assert.rejects(()=>f.s.handle(request,bad));
+ f.api.tabs.sendMessage=async()=>({url:url+'/another'});await assert.rejects(()=>f.s.handle(request,sender));
+ f.api.tabs.sendMessage=async()=>{f.api.tabs.get=async()=>({id:7,url:url+'/navigated'});return {url};};await assert.rejects(()=>f.s.handle(request,sender));assert.equal(f.writes.length,1);assert.equal(f.calls.length,0);
 });
