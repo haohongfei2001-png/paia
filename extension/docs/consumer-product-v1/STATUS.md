@@ -1,5 +1,17 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5 verified checkpoint through Q12 — 2026-10-04
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / Q12_BOUNDED_INTEGRATED / D5_OPEN`.**
+[PR138](https://github.com/haohongfei2001-png/paia/pull/138) is adopted at exact runtime main `b81ebfee6683d2eabc17d8ae50c34a717ac52cc3`. Reviewed head `ef1b6be1678c658106d920c02463cca1f9483f0d`, tested merge `0d1717846fc7c060cfb539bd00066398f804a324` and main share tree `6904c471db7e1b3a0a161f104a55dfe3ad2c62ba`. Candidate37180622516, light37181370604, exact-main37181668898 and Pages37181668571 PASS: 1,644 unit, all 13 complete selected browser registrations, 102 adapter, 58 privacy and release/aggregate. The approved 8+5 jobs took 189.334s and 662.738s within unchanged 12-minute bounds. Full browser/Mac intentionally skipped under §7.2.
+
+[Q12](implementation/desktop-vnext/D5-Q12.md) closes only existing O02/O06 running/stale notice and Stop presentation. Independent exact-head artifact/pixel review clears 40 notice pairs, native keyboard/touch cancellation and stale refusal, plus the unchanged complete comparison owner. Production remains six CSS lines on five specified states. No new route, model, provider, permission, request, cancellation or approval behavior.
+
+The [consolidated checkpoint](implementation/desktop-vnext/D5-CHECKPOINT-2026-10-04.md) distinguishes adopted Q7–Q12 results from the finite unclosed conformance boundaries: T05 origin-return/workspace, Thought action/year composition, O01/broader Organize composition, whole Context flow composition, remaining family/state evidence and the final exact-head review set/owner acceptance. PR132 remains preserved and unmerged. This is evidence consolidation, not new feature authorization or whole-D5 completion.
+
+A documentation-only commit may follow this runtime SHA; its different SHA does not represent a new tested runtime. Browser extension remains the priority. Public consumer release, store submission and install-package delivery remain held. Automatic Pages checks do not update the user's installed extension. Older controlling entries below are historical.
+
+
 ## D5/Q12 — Existing Organize running/stale notices — 2026-10-04
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q12`.**
