@@ -10,7 +10,7 @@ async function stylesheet(name){
  const href=chrome.runtime.getURL('ui/'+name);let link=[...document.styleSheets].find(sheet=>sheet.href===href);if(link)return;
  await new Promise((resolve,reject)=>{link=element('link');link.rel='stylesheet';link.href=href;link.onload=resolve;link.onerror=()=>reject(Error('PREVIEW_STYLE_UNAVAILABLE'));document.head.append(link);});
 }
-export async function openDesktopAppearancePreview(owners,{screen,topicId,scope,step='task',model={},composeOptions={}}={}){
+export async function openDesktopAppearancePreview(owners,{screen,topicId,scope,step='task',model={},composeOptions={},organizeOptions={}}={}){
  if(!['topic','compose','organize','context'].includes(screen))throw Error('PREVIEW_SCREEN_INVALID');
  if(!closeDesktopAppearancePreview())return false;const intent=++opening;
  await stylesheet('desktop-appearance-preview.css');
@@ -39,7 +39,7 @@ export async function openDesktopAppearancePreview(owners,{screen,topicId,scope,
    if(screen==='compose'){
     // Mount is completed below after teardown ownership is installed.
    }else{
-    presenter=scopeModule.mountOrganizeScopeWorkspace({host,scope,previewOnly:true});
+    presenter=scopeModule.mountOrganizeScopeWorkspace({host,scope,previewOnly:true,stage:organizeOptions.stage,model:organizeOptions.model});
    }
   }
  }

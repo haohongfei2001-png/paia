@@ -95,6 +95,18 @@ holds below are historical and superseded only by this explicit owner amendment.
 
 # Canonical Status — PAIA Consumer Product v1
 
+## D7 AI Organize appearance — 2026-10-04
+
+Current batch: `D7_ORGANIZE_UI_FROZEN_CANDIDATE`. Thought/Years/Write Thought
+PR150 is adopted at `bf2c1490478c9971286e6c1a219b6882797f2334`. The next
+[bounded Organize appearance slice](implementation/desktop-vnext/D7-ORGANIZE-UI.md)
+uses D6.2 O01–O09 actual masters with the existing ordinary workspace and shared
+candidate renderer. O01 remains real read-only scope; later states are explicit
+in-memory appearance previews, with all mutation/request actions disabled.
+No old AI Context plan or deferred Thought/export functionality is reactivated.
+Hosted source/release pixels and independent exact-head review remain pending.
+
+
 ## D7 Thought/Years/Write Thought appearance — 2026-10-04
 
 Current batch: `D7_THOUGHT_UI_FROZEN_CANDIDATE`. Archive/Reader PR143 is adopted
