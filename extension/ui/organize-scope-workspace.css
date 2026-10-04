@@ -12,7 +12,7 @@
 .organize-scope-facts dd{margin:0;font:14px/24px var(--font)}
 .organize-scope-workspace .organize-scope-materials,.organize-scope-workspace .organize-scope-service{margin:0;color:var(--muted);font:12px/20px var(--font)}
 .organize-scope-workspace .organize-scope-details{margin:8px 0 0;color:var(--muted);font:12px/20px var(--font)}
-.organize-scope-details summary{min-height:32px;width:fit-content;align-content:center;cursor:pointer}
+.organize-scope-details summary{color:var(--muted);min-height:32px;width:fit-content;align-content:center;cursor:pointer}
 .organize-scope-details p{margin:12px 0}
 .organize-originals{margin:30px 0 48px;padding-top:24px;border-top:1px solid var(--line)}
 .organize-originals h2{margin:0 0 22px;font:600 15px/24px var(--font)}
@@ -45,7 +45,7 @@
 .organize-scope-workspace .ai-candidate-version[data-candidate-version=proposal]{padding:0 0 0 16px;border-left:1px solid var(--line)}
 .organize-scope-workspace .ai-candidate-version>strong{margin:0 0 10px;color:var(--muted);font:400 12px/20px var(--font)}
 .organize-scope-workspace .ai-candidate-evidence{margin:0;color:var(--focus);font:12px/20px var(--font)}
-.organize-scope-workspace .ai-candidate-evidence summary{min-height:32px;width:fit-content;align-content:center}
+.organize-scope-workspace .ai-candidate-evidence summary{color:var(--focus);min-height:32px;width:fit-content;align-content:center}
 .organize-scope-workspace .ai-candidate-evidence .entry-prose{margin:12px 0;color:var(--text)}
 .organize-scope-workspace .ai-candidate-actions{gap:12px;margin:10px 0 0}
 .organize-scope-workspace .ai-candidate-actions legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
