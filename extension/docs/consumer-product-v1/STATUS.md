@@ -1,3 +1,17 @@
+# Bounded Reader / Settings return repair — verified candidate
+
+The [bounded receipt](implementation/desktop-vnext/D7-READER-SETTINGS-RETURN.md)
+records the reproduced PR143-era return gap and one-field fix. Candidate PR160
+`0d2957dd` passed complete D7 source/release and compatibility, unit 1,811,
+adapter 102, privacy 59 and release/package checks. Both real browser variants
+completed two Settings returns, two Reader reloads and browser Back/Forward,
+then Reader Back reached Archive. Local negative timing/launch evidence remains.
+
+Integrated head `266b0ab9` passed fresh D7, candidate and round-integration gates.
+The later documentation-only main `0febaac6` is also preserved in full. Runtime
+and regression files remain unchanged; final merge/main verification is pending.
+No broader D7, provider, functional redesign or release scope is opened.
+
 # Prompt Reuse — guarded orb toggle repair integrated
 
 [PR #159](https://github.com/haohongfei2001-png/paia/pull/159) merged as
