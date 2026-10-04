@@ -51,6 +51,7 @@ for(const runtime of ['source','release'])test('CPV1-09 '+runtime+' native Chrom
   await t.test('native CDP Chinese composition blocks insertion and remains usable after commit',async()=>{
    await set('');const cdp=await h.context.newCDPSession(chat);await cdp.send('Input.imeSetComposition',{text:'汉',selectionStart:1,selectionEnd:1});
    const before=await value(),r=await insert();assert.equal(r.status,'failed');assert.equal(r.reason,'composition_active');assert.equal(await value(),before);
+   await chat.locator('#prompt-textarea').dispatchEvent('input',{inputType:'insertText',isComposing:false});assert.equal((await insert()).reason,'composition_active');assert.equal(await value(),before);
    await cdp.send('Input.insertText',{text:'汉'});await chat.waitForTimeout(70);const draft=await value();assert.equal((await insert()).status,'inserted');assert.equal(await value(),draft+chosen);await cdp.detach();
   });
   await t.test('uncertain acknowledgement preserves result with exactly one attempt and no retry',async()=>{

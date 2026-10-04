@@ -4,28 +4,29 @@ const nonce=location.hash.slice(1),session=new PromptListSession(),list=document
 let refreshing=false,manualOrder=[],revision=0,hidden=false,editing=false,busy=false,composing=false,drag=null,epoch=0;
 const attempted=new Set();
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}
-const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-label',label);b.addEventListener('click',e=>{if(e.isTrusted)void fn(e);});return b;};
+const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-label',label);if(busy||refreshing){b.dataset.pendingDisabled='0';b.disabled=true;}b.addEventListener('click',e=>{if(e.isTrusted)void fn(e);});return b;};
+function pending(value){busy=value;for(const b of document.querySelectorAll('button')){if(value){if(!('pendingDisabled' in b.dataset))b.dataset.pendingDisabled=b.disabled?'1':'0';b.disabled=true;}else if('pendingDisabled' in b.dataset){b.disabled=b.dataset.pendingDisabled==='1';delete b.dataset.pendingDisabled;}}}
 const tell=text=>{status.replaceChildren(document.createTextNode(text));};
-async function refresh(){
- if(editing||busy||drag||refreshing)return;
- refreshing=true;const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;manualOrder=q.manualOrder;document.documentElement.dataset.theme=q.theme||'';session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;}
+async function refresh(internal=false){
+ if(editing||(busy&&internal!==true)||drag||refreshing)return;
+ refreshing=true;pending(true);const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;manualOrder=q.manualOrder;document.documentElement.dataset.theme=q.theme||'';session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);}
 }
 function focusRow(id){list.querySelector(`[data-id="${id}"] .more`)?.focus();}
 async function change(action,id,extra={}){
  const result=await rpc({type:'PAIA_PROMPT_CHANGE',change:{action,id,revision,...extra}});revision=result.revision;return result;
 }
-async function manage(action,item,extra={}){if(busy||composing)return;busy=true;try{await change(action,item.id,extra);editing=false;editor.hidden=true;list.hidden=false;busy=false;await refresh();focusRow(item.id);}catch{busy=false;tell('未保存。内容可能已变化；你的编辑仍保留，请取消后刷新再试。');}}
+async function manage(action,item,extra={}){if(busy||composing)return;pending(true);try{await change(action,item.id,extra);editing=false;editor.hidden=true;list.hidden=false;await refresh(true);focusRow(item.id);}catch{tell('未保存。内容可能已变化；你的编辑仍保留，请取消后刷新再试。');}finally{pending(false);}}
 async function insert(item,b){
  if(editing||busy||drag||composing||attempted.has(item.id))return;
- attempted.add(item.id);b.disabled=true;busy=true;tell('正在插入…');
- try{const r=await rpc({type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});tell(r.status==='inserted'?'已插入，未发送。':r.status==='uncertain'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。');}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{busy=false;}
+ attempted.add(item.id);b.disabled=true;pending(true);tell('正在插入…');
+ try{const r=await rpc({type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});tell(r.status==='inserted'?'已插入，未发送。':r.status==='uncertain'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。');}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
  const copy=button('复制',async()=>{try{const x=await rpc({type:'PAIA_PROMPT_COPY_TEXT',id:item.id,text:item.text}),r=await copyPrompt(x.text);tell(r.status==='copied'?'已复制，请手动粘贴。':'未能复制，请检查浏览器权限。');}catch{tell('此 Prompt 已变化，请刷新。');}});status.append(copy);
 }
 function edit(item){
- if(busy||drag)return;editing=true;++epoch;list.hidden=true;editor.hidden=false;editor.replaceChildren();
+ if(busy||drag||editing)return;editing=true;++epoch;list.hidden=true;editor.hidden=false;editor.replaceChildren();
  const label=document.createElement('label');label.textContent='复用文本';const area=document.createElement('textarea');area.value=item?.text||'';area.maxLength=200000;area.setAttribute('aria-label','复用文本');label.append(area);
  area.addEventListener('compositionstart',()=>{composing=true;});area.addEventListener('compositionend',()=>{composing=false;});
- const actions=document.createElement('div');actions.className='actions';actions.append(button('保存',async()=>{if(composing||!area.value.trim()||busy)return;busy=true;try{await change(item?'edit':'create',item?.id,{text:area.value});editing=false;editor.hidden=true;list.hidden=false;busy=false;await refresh();if(item)focusRow(item.id);}catch{busy=false;tell('未保存，编辑已保留。取消后刷新可重新编辑。');}}),button('取消',()=>{if(composing||busy)return;editing=false;editor.hidden=true;list.hidden=false;void refresh();}));editor.append(label,actions);area.focus();
+ const actions=document.createElement('div');actions.className='actions';actions.append(button('保存',async()=>{if(composing||!area.value.trim()||busy)return;pending(true);try{await change(item?'edit':'create',item?.id,{text:area.value});editing=false;editor.hidden=true;list.hidden=false;await refresh(true);if(item)focusRow(item.id);}catch{tell('未保存，编辑已保留。取消后刷新可重新编辑。');}finally{pending(false);}}),button('取消',()=>{if(composing||busy)return;editing=false;editor.hidden=true;list.hidden=false;void refresh();}));editor.append(label,actions);area.focus();
 }
 async function split(item){
  if(busy)return;editing=true;++epoch;editor.hidden=false;list.hidden=true;editor.replaceChildren();
@@ -39,8 +40,8 @@ function render(){
  list.replaceChildren();const items=session.current();if(!items.length){const empty=document.createElement('p');empty.className='empty';empty.textContent=hidden?'没有隐藏的 Prompt。':'常用表达会出现在这里，也可以新建自己的 Prompt。';list.append(empty);}
  for(const item of items){
   const row=document.createElement('div');row.className='row';row.dataset.id=item.id;
-  const insertButton=button('',()=>insert(item,insertButton),item.text),text=document.createElement('span');text.className='text';text.textContent=item.text;insertButton.className='insert';insertButton.append(text);insertButton.disabled=item.hidden||attempted.has(item.id);
-  const more=button('⋯',()=>{const old=row.nextElementSibling;if(old?.className==='tools'){old.remove();more.setAttribute('aria-expanded','false');return;}for(const el of list.querySelectorAll('.tools'))el.remove();const tools=document.createElement('div');tools.className='tools';tools.setAttribute('aria-label','管理 Prompt');more.setAttribute('aria-expanded','true');
+  const insertButton=button('',()=>insert(item,insertButton),item.text),text=document.createElement('span');text.className='text';text.textContent=item.text;insertButton.className='insert';insertButton.append(text);const disabled=item.hidden||attempted.has(item.id);insertButton.disabled=busy||refreshing||disabled;if(busy||refreshing)insertButton.dataset.pendingDisabled=disabled?'1':'0';
+  const more=button('⋯',()=>{if(busy||refreshing||editing)return;const old=row.nextElementSibling;if(old?.className==='tools'){old.remove();more.setAttribute('aria-expanded','false');return;}for(const el of list.querySelectorAll('.tools'))el.remove();const tools=document.createElement('div');tools.className='tools';tools.setAttribute('aria-label','管理 Prompt');more.setAttribute('aria-expanded','true');
    tools.append(button('编辑',()=>edit(item)),button(item.pinned?'取消置顶':'置顶',()=>manage(item.pinned?'unpin':'pin',item)),button(item.hidden?'恢复':'隐藏',()=>manage(item.hidden?'show':'hide',item)));
    if(item.members.length>1)tools.append(button('拆分',()=>split(item)));
    if(item.edited&&item.members.length===0)tools.append(button('删除',()=>{tools.replaceChildren(document.createTextNode('删除此复用模板？历史内容不受影响。'),button('确认删除',()=>manage('delete',item)),button('取消',()=>tools.remove()));}));
