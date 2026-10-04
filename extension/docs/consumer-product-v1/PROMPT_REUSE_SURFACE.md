@@ -1,6 +1,6 @@
 # PAIA Personal Prompt Reuse Surface v1
 
-Status: **OWNER_APPROVED / PRODUCT_AND_INTERACTION_FROZEN / NO_RUNTIME_CHANGE**
+Status: **OWNER_APPROVED / PRODUCT_AND_INTERACTION_FROZEN**
 
 Owner approval date: **2026-10-04**
 
@@ -619,6 +619,17 @@ and release browser journeys, current real-page insertion evidence, exact merged
 main evidence and human visual review of the actual production overlay.
 
 ---
+
+### Engineering/final-certification separation — owner amendment 2026-10-04
+
+The owner authorizes engineering integration and CPV1-09.3–09.5 continuation
+when all applicable code, safety, synthetic source/release and package gates pass.
+If an authenticated current ChatGPT environment is unavailable, retain
+`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`; it does not
+block engineering integration, but remains required for a real compatibility
+certification claim. Do not ask the owner to run developer operations. CPV1-09.6
+is optional/deferred unless minimally permissioned real composer verification is
+available without account intervention. Stage 3 remains excluded.
 
 ## 12. Frozen decisions and remaining gates
 

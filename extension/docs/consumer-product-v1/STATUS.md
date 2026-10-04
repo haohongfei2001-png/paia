@@ -1,3 +1,20 @@
+# Prompt Reuse owner execution amendment — 2026-10-04
+
+The owner now authorizes the sole Prompt Reuse engineering owner to integrate
+PR #144 after fresh passing engineering gates, then implement and integrate
+CPV1-09.3–09.5 on a separate branch from current main. This line remains isolated
+from Desktop/D7 visuals. No Stage 3, reply reading or B-01–B-05 expansion.
+
+CPV1-09.0–09.2: ENGINEERING_COMPLETE after the two Work MUST FIX repairs;
+current-run gates must pass before integration. Real-site certification is
+separate: `REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`.
+Unavailable authenticated ChatGPT access does not block safe engineering merges
+or dependent implementation. It never permits a real compatibility PASS claim.
+No owner developer operations or repeated anonymous 403 probes are required.
+CPV1-09.6 is deferred unless a minimal-permission second provider can be genuinely
+verified without external account intervention. Earlier Draft/no-merge/09.3
+holds below are historical and superseded only by this explicit owner amendment.
+
 # Canonical Status — PAIA Consumer Product v1
 
 ## Immediate priority: finish and merge bounded D5 appearance — 2026-10-04

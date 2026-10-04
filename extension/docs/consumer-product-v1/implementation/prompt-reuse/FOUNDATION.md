@@ -190,3 +190,13 @@ runtime is available in this session. No anonymous 403 retry, private profile or
 reply access was attempted. DFG-CPV1-011 remains REAL_CHATGPT_NOT_VERIFIED. Keep
 Draft; no merge, no 09.3. The repaired candidate should return to Work for
 independent re-verification, with the real-page gate still explicit.
+
+## Owner-authorized integration checkpoint
+
+The latest owner instruction supersedes the historical Draft/no-merge hold:
+09.0–09.2 is ENGINEERING_COMPLETE subject to fresh current-run engineering
+verification. Real ChatGPT remains DEFERRED_EXTERNAL_EVIDENCE, not compatibility
+PASS. The two Work MUST FIX repairs are re-executed through production tests;
+no authenticated site tool exists in this execution environment and no anonymous
+smoke is repeated. Integration evidence and exact commit are linked in PR #144;
+subsequent 09.3–09.5 engineering is expressly authorized on a fresh-main branch.

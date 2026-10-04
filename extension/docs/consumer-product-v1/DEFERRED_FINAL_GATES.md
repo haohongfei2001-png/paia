@@ -131,7 +131,9 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
 ### DFG-CPV1-011 — VS09 current ChatGPT composer insertion
 
 - **Owner round:** CPV1-09.2; isolated Prompt Reuse foundation branch only.
-- **State:** REAL_CHATGPT_NOT_VERIFIED. This is not compatibility PASS.
+- **State:** REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE.
+  Engineering integration is permitted by the 2026-10-04 owner amendment; this
+  remains NOT_VERIFIED and is never compatibility PASS.
 - **Observed:** one fresh anonymous headless attempt on 2026-10-04 at
   12:15:39 UTC returned HTTP 403 and no supported composer. No login/profile,
   assistant reply or Send action was used. Actions run `37201457221`, artifact
@@ -140,5 +142,6 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
   exact empty/existing drafts, caret/selection/Chinese IME, read-back,
   non-destructive failure/uncertainty and zero Send. Synthetic ProseMirror
   evidence cannot close this gate. No unchanged external retry is planned.
-- **Boundary:** no merge by this executor; CPV1-09.3 remains owner-held pending
-  this PR's review and insertion gate. Stage 3/B-04 and D7 remain separate.
+- **Boundary:** owner-authorized engineering merges and CPV1-09.3–09.5 may
+  proceed after passing code/safety/synthetic/package gates. Final real-site
+  certification remains deferred. Stage 3/B-04 and D7 remain separate.
