@@ -5,6 +5,9 @@ on:
     paths: ['extension/scripts/capture-prompt-visual.mjs', '.github/workflows/paia-prompt-visual.yml']
 permissions:
   contents: read
+concurrency:
+  group: prompt-visual-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   visual:
     runs-on: ubuntu-latest

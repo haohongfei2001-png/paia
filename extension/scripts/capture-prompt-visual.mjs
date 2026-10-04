@@ -10,7 +10,7 @@ const root=fileURLToPath(new URL('..',import.meta.url));
 const out=join(root,'work/prompt-visual');await mkdir(out,{recursive:true});
 const base='3a54efe0a1aa5b7d4e8cb41c1ef5cadca28ca961';
 // Refuse any production change: the evidence branch adds capture tooling only.
-const changed=execFileSync('git',['diff','--name-only',base,'HEAD','--','extension'],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(Boolean);
+const changed=execFileSync('git',['diff','--name-only',base,'HEAD','--','extension'],{cwd:join(root,'..'),encoding:'utf8'}).trim().split('\n').filter(Boolean);
 assert.deepEqual(changed,['extension/scripts/capture-prompt-visual.mjs']);
 const prompts=[
  '请用三句话总结核心观点，保留重要事实。',
