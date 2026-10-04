@@ -1,0 +1,18 @@
+{
+  "base": "bf2c1490478c9971286e6c1a219b6882797f2334",
+  "head": "8abb9e2fbd6a8b082ff0e245ce6cb88815202f0c",
+  "runtimeChanged": [
+    "extension/content/prompt-surface.js",
+    "extension/core/prompt-surface-layout.js",
+    "extension/ui/prompt-surface.css",
+    "extension/ui/prompt-surface.js"
+  ],
+  "protectedRuntimeDiff": [],
+  "d7StatusPreserved": true,
+  "runtimeHashes": {
+    "extension/content/prompt-surface.js": "8ec5bbec2b61c9638633d27e3c6dd76edb5724dfd379645bdf08ed088a307cd5",
+    "extension/core/prompt-surface-layout.js": "9e686b21f5e4e7724f407eaadc549bdbd69806d41fa1864153382ab5cf82d61e",
+    "extension/ui/prompt-surface.css": "65f1b5d908a43ed159c61deb302e35ad242d562d707f7d31d795a9b282d518ec",
+    "extension/ui/prompt-surface.js": "0553f649663b0aa319d2ed2394037aa9483785f78f476bd101cb411422dbedcf"
+  }
+}

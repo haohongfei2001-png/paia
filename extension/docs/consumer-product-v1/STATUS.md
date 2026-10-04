@@ -1,3 +1,28 @@
+# CPV1-09.3V — Engineering visual convergence complete; owner acceptance pending
+
+**Current Prompt Reuse delivery state: `ENGINEERING_VISUAL_CONVERGENCE_COMPLETE / OWNER_VISUAL_ACCEPTANCE_PENDING`.**
+**Acceptance boundaries remain `FUNCTIONAL_ENGINEERING_COMPLETE / VISUAL_ACCEPTANCE_OPEN / REAL_CHATGPT_FINAL_CERTIFICATION_DEFERRED`.**
+
+[PR #151](https://github.com/haohongfei2001-png/paia/pull/151) converges the production
+orb/card to frozen V01–V08 on reconciled main `bf2c1490478c9971286e6c1a219b6882797f2334`.
+The final runtime is `8abb9e2fbd6a8b082ff0e245ce6cb88815202f0c`; its tested merge
+candidate has the same tree. [Receipt and eight comparison boards](implementation/prompt-reuse/VISUAL-CONVERGENCE.md)
+record direct target/source/release visual inspection, explicit V04 layout and
+V08 status accommodations, target differences and runtime hashes. Source/release
+parity is 8/8; it is build equivalence only and does not grant owner acceptance.
+
+Engineering gates PASS: 64 owning tests, 1,768 full unit, 48 source/release browser
+test registrations (44 cases plus four parent containers), 102 adapter and 59
+privacy/security checks, source/release package guards. Native 200% zoom, narrow,
+coarse input, theme changes and lifecycle journeys are included. The PR remains
+unmerged for owner visual acceptance; no final human design acceptance is claimed.
+
+**Unique remaining Prompt Reuse action: owner review of V01–V08 in PR #151.**
+No schema, ranking, Backup, trusted-command, insertion/no-send, provider or
+permission changes. D7 files and its status entries are preserved. Real ChatGPT
+final certification remains `DEFERRED_EXTERNAL_EVIDENCE`; second provider,
+Stage 3 and B-04 are not started. The historical reopening below remains evidence.
+
 # Prompt Reuse visual convergence — OWNER REVIEW REOPENED
 
 **Current Prompt Reuse state: `FUNCTIONAL_ENGINEERING_COMPLETE / VISUAL_ACCEPTANCE_OPEN / REAL_CHATGPT_FINAL_CERTIFICATION_DEFERRED`.**

@@ -1,0 +1,335 @@
+{
+  "sha": "8abb9e2fbd6a8b082ff0e245ce6cb88815202f0c",
+  "hashes": {
+    "content/prompt-surface.js": "8ec5bbec2b61c9638633d27e3c6dd76edb5724dfd379645bdf08ed088a307cd5",
+    "core/prompt-surface-layout.js": "9e686b21f5e4e7724f407eaadc549bdbd69806d41fa1864153382ab5cf82d61e",
+    "ui/prompt-surface.css": "65f1b5d908a43ed159c61deb302e35ad242d562d707f7d31d795a9b282d518ec",
+    "ui/prompt-surface.js": "0553f649663b0aa319d2ed2394037aa9483785f78f476bd101cb411422dbedcf"
+  },
+  "variant": "source",
+  "evidence": "SYNTHETIC_BROWSER",
+  "ownerAcceptance": "PENDING",
+  "realChatGPT": "DEFERRED_EXTERNAL_EVIDENCE",
+  "screens": [
+    {
+      "name": "01-orb-light",
+      "typography": null,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "dpr": 1,
+      "scale": 1,
+      "prompts": [
+        "帮我把这件事拆成下一步可以执行的任务",
+        "检查一下有没有逻辑漏洞",
+        "不要重新设计，继续修改现有方案",
+        "用更简单的话解释",
+        "比较这两个方案的主要差别",
+        "整理成待办清单"
+      ],
+      "orb": {
+        "x": 1229,
+        "y": 659,
+        "width": 44,
+        "height": 44
+      },
+      "card": null,
+      "composer": {
+        "x": 340,
+        "y": 750,
+        "width": 760,
+        "height": 94
+      },
+      "targetSha256": "e95cf969660a84b1c5c764fef45c674aa7c0d5f0cd0b2bb0582311790602d054"
+    },
+    {
+      "name": "02-card-light",
+      "typography": {
+        "font": "430 13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "body": "13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "dpr": 1,
+      "scale": 1,
+      "prompts": [
+        "帮我把这件事拆成下一步可以执行的任务",
+        "检查一下有没有逻辑漏洞",
+        "不要重新设计，继续修改现有方案",
+        "用更简单的话解释",
+        "比较这两个方案的主要差别",
+        "整理成待办清单"
+      ],
+      "orb": {
+        "x": 1232,
+        "y": 224,
+        "width": 44,
+        "height": 44
+      },
+      "card": {
+        "x": 936,
+        "y": 256,
+        "width": 336,
+        "height": 350
+      },
+      "composer": {
+        "x": 340,
+        "y": 750,
+        "width": 760,
+        "height": 94
+      },
+      "targetSha256": "4604921316dec60c37e1e42d1a5475a75869180672fd9d2fd9143dd6e3d00d14"
+    },
+    {
+      "name": "03-card-hover",
+      "typography": {
+        "font": "430 13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "body": "13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "dpr": 1,
+      "scale": 1,
+      "prompts": [
+        "帮我把这件事拆成下一步可以执行的任务",
+        "检查一下有没有逻辑漏洞",
+        "不要重新设计，继续修改现有方案",
+        "用更简单的话解释",
+        "比较这两个方案的主要差别",
+        "整理成待办清单"
+      ],
+      "orb": {
+        "x": 1232,
+        "y": 224,
+        "width": 44,
+        "height": 44
+      },
+      "card": {
+        "x": 936,
+        "y": 256,
+        "width": 336,
+        "height": 350
+      },
+      "composer": {
+        "x": 340,
+        "y": 750,
+        "width": 760,
+        "height": 94
+      },
+      "targetSha256": "6a171c54092bd6683a3eb01f334cb36a8f512e3629bf05b1507e9da8040631c3"
+    },
+    {
+      "name": "04-card-edit",
+      "typography": {
+        "font": "430 13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "body": "13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "dpr": 1,
+      "scale": 1,
+      "prompts": [
+        "帮我把这件事拆成下一步可以执行的任务",
+        "检查一下有没有逻辑漏洞",
+        "不要重新设计，继续修改现有方案",
+        "用更简单的话解释",
+        "比较这两个方案的主要差别",
+        "整理成待办清单"
+      ],
+      "orb": {
+        "x": 1232,
+        "y": 224,
+        "width": 44,
+        "height": 44
+      },
+      "card": {
+        "x": 936,
+        "y": 256,
+        "width": 336,
+        "height": 350
+      },
+      "composer": {
+        "x": 340,
+        "y": 750,
+        "width": 760,
+        "height": 94
+      },
+      "targetSha256": "70b995e51a0a7e7e688852bc845a8858c3dcfaaa21c1b7ad9e5ed291670f212a"
+    },
+    {
+      "name": "05-card-drag",
+      "typography": {
+        "font": "430 13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "body": "13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "dpr": 1,
+      "scale": 1,
+      "prompts": [
+        "帮我把这件事拆成下一步可以执行的任务",
+        "检查一下有没有逻辑漏洞",
+        "不要重新设计，继续修改现有方案",
+        "用更简单的话解释",
+        "比较这两个方案的主要差别",
+        "整理成待办清单"
+      ],
+      "orb": {
+        "x": 1232,
+        "y": 224,
+        "width": 44,
+        "height": 44
+      },
+      "card": {
+        "x": 936,
+        "y": 256,
+        "width": 336,
+        "height": 350
+      },
+      "composer": {
+        "x": 340,
+        "y": 750,
+        "width": 760,
+        "height": 94
+      },
+      "targetSha256": "068946f26d098ccb08c9f8f4e8e6492a184e0484e35a5d6f45364ad4e94ba491"
+    },
+    {
+      "name": "06-card-dark",
+      "typography": {
+        "font": "430 13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "body": "13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "dpr": 1,
+      "scale": 1,
+      "prompts": [
+        "帮我把这件事拆成下一步可以执行的任务",
+        "检查一下有没有逻辑漏洞",
+        "不要重新设计，继续修改现有方案",
+        "用更简单的话解释",
+        "比较这两个方案的主要差别",
+        "整理成待办清单"
+      ],
+      "orb": {
+        "x": 1232,
+        "y": 224,
+        "width": 44,
+        "height": 44
+      },
+      "card": {
+        "x": 936,
+        "y": 256,
+        "width": 336,
+        "height": 350
+      },
+      "composer": {
+        "x": 340,
+        "y": 750,
+        "width": 760,
+        "height": 94
+      },
+      "targetSha256": "7406852200a56ad8efda756c9c3e7c032d085a92ffb48bbfbcd2630cc6bab34c"
+    },
+    {
+      "name": "07-card-compact",
+      "typography": {
+        "font": "430 13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "body": "13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "dpr": 1,
+      "scale": 1,
+      "prompts": [
+        "帮我把这件事拆成下一步可以执行的任务",
+        "检查一下有没有逻辑漏洞",
+        "不要重新设计，继续修改现有方案",
+        "用更简单的话解释",
+        "比较这两个方案的主要差别"
+      ],
+      "orb": {
+        "x": 316,
+        "y": 258,
+        "width": 44,
+        "height": 44
+      },
+      "card": {
+        "x": 34,
+        "y": 290,
+        "width": 322,
+        "height": 340
+      },
+      "composer": {
+        "x": 20,
+        "y": 694,
+        "width": 350,
+        "height": 94
+      },
+      "targetSha256": "a4868285acce77da726c9fb874df26428d7565600bec8801c8bb19da1883559e"
+    },
+    {
+      "name": "08-inserted-light",
+      "typography": {
+        "font": "430 13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "body": "13.3px / 20.615px \"Noto Sans CJK SC\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "dpr": 1,
+      "scale": 1,
+      "prompts": [
+        "帮我把这件事拆成下一步可以执行的任务",
+        "检查一下有没有逻辑漏洞",
+        "不要重新设计，继续修改现有方案",
+        "用更简单的话解释",
+        "比较这两个方案的主要差别",
+        "整理成待办清单"
+      ],
+      "orb": {
+        "x": 1232,
+        "y": 224,
+        "width": 44,
+        "height": 44
+      },
+      "card": {
+        "x": 936,
+        "y": 256,
+        "width": 336,
+        "height": 350
+      },
+      "composer": {
+        "x": 340,
+        "y": 750,
+        "width": 760,
+        "height": 94
+      },
+      "targetSha256": "d96e9514c9a2ce535166df787c7e8bd6ced11f020577bd19726997f509775692"
+    }
+  ],
+  "capture": "PASS"
+}
