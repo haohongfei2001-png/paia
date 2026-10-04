@@ -20,6 +20,7 @@ No standalone Figma/prototype phase is required. Production implementation itsel
 - AUTHORITY.md — authority order, private-source rules and conflict handling.
 - PRODUCT_INTENT_CONTRACT.md — executable product contract derived from the owner's design intent.
 - UX_CONTRACT.md — consumer-grade interaction and presentation contract.
+- PROMPT_REUSE_SURFACE.md — owner-approved stable product/interaction contract for personal high-frequency prompt reuse across supported AI pages.
 - TECHNICAL_PLAN.md — keep/refactor/rewrite/add strategy and migration boundaries.
 - MASTER_PLAN.md — twelve vertical slices and detailed round sequence.
 - VERIFICATION.md — package-wide Definition of Done and evidence classes.
