@@ -1,3 +1,4 @@
+import {PROMPT_REUSE_ROW,validPromptPreferences} from './prompt-reuse-preferences.js';
 import {THOUGHT_LAYOUT_ROW,validThoughtLayout} from './thought-binding.js';
 import {REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW,validReaderPolicy} from './reader-state.js';
 import {memoryMetaAllowed,validateMemoryRow} from './memory/model.js';
@@ -34,7 +35,7 @@ export const BACKUP_SECTIONS=Object.freeze({
  settings:fields('id preferences memoryAccessPolicy classificationRules filterRules')
 });
 export const BACKUP_META_KEYS=new Set(['thought-suppression-key','thought-sequence','revision-sequence','input-delta-sequence','thought-epoch','organizer-controls','originalOrganizerCheckpoint','aiOrganizerCheckpoint','originalOrganizerBootstrap','organizer-budget','smart-filter']);
-export const backupMetaAllowed=id=>[THOUGHT_LAYOUT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(id)||memoryMetaAllowed(id)||BACKUP_META_KEYS.has(id)||id.startsWith('aiPresentation:')||id.startsWith('topicKeepSeparate:')||sourceStructureMetaAllowed(id);
+export const backupMetaAllowed=id=>[PROMPT_REUSE_ROW,THOUGHT_LAYOUT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(id)||memoryMetaAllowed(id)||BACKUP_META_KEYS.has(id)||id.startsWith('aiPresentation:')||id.startsWith('topicKeepSeparate:')||sourceStructureMetaAllowed(id);
 export const backupError=code=>{throw new ArchiveError(code);};
 export const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 export function safeJSON(value,depth=0){if(depth>32)backupError('BACKUP_INVALID');if(typeof value==='number'&&!Number.isFinite(value))backupError('BACKUP_INVALID');if(value===null||['string','number','boolean'].includes(typeof value))return;if(Array.isArray(value)){if(value.length>100000)backupError('BACKUP_INVALID');for(const v of value)safeJSON(v,depth+1);return;}if(!plain(value))backupError('BACKUP_INVALID');for(const [key,v]of Object.entries(value)){if(['__proto__','constructor','prototype'].includes(key)||/^(api.?key|credentials?|authorization|password|access.?token)$/i.test(key))backupError('BACKUP_INVALID');safeJSON(v,depth+1);}}
@@ -63,6 +64,7 @@ export function validateBackupItem(row){safeJSON(row);if(!plain(row)||row.type!=
  if(row.section==='organizationState'&&row.value.id.startsWith('memory:')&&!validateMemoryRow(row.value.data))backupError('BACKUP_INVALID');
  if(row.section==='organizationState'&&[REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW].includes(row.value.id)&&!validReaderPolicy(row.value.data))backupError('BACKUP_INVALID');
  if(row.section==='organizationState'&&row.value.id===THOUGHT_LAYOUT_ROW&&!validThoughtLayout(row.value.data))backupError('BACKUP_INVALID');
+ if(row.section==='organizationState'&&row.value.id===PROMPT_REUSE_ROW&&!validPromptPreferences(row.value.data))backupError('BACKUP_INVALID');
  if(row.section==='settings'&&row.value.id!=='preferences')backupError('BACKUP_INVALID');
  return row;
 }

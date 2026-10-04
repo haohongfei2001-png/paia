@@ -54,7 +54,9 @@
         "core/source-time.js",
         "core/response-time.js",
         "content/response-bridge.js",
-        "content/source-structure-bridge.js"
+        "content/source-structure-bridge.js",
+        "adapter/chatgpt-composer.js",
+        "content/prompt-reuse.js"
       ],
       "run_at": "document_start",
       "all_frames": false,

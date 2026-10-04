@@ -1,3 +1,4 @@
+import {PROMPT_REUSE_ROW} from './prompt-reuse-preferences.js';
 import {BINDING_ROW,REVERSE_ROW} from './thought-binding.js';
 import {READING_ROW,VISIT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW,validReaderPolicy} from './reader-state.js';
 import {validateMemoryRow,memoryRange,key,DEFAULT_PROFILE} from './memory/model.js';
@@ -112,6 +113,7 @@ export class BackupService {
   }
   for(const prefix of Object.values(SOURCE_STRUCTURE_PREFIXES))
    if((await t.all('meta',null,sourceStructurePrefixRange(prefix),1)).length)return 'BACKUP_TARGET_NOT_EMPTY';
+  if(await t.get('meta',PROMPT_REUSE_ROW))return 'BACKUP_TARGET_NOT_EMPTY';
   if((await t.get('meta','memory:config'))?.userTouched)return 'BACKUP_TARGET_NOT_EMPTY';
   for(const name of new Set([...Object.entries(stores)
    .filter(([section])=>!['settings','organizationState','deletionFences'].includes(section))
@@ -133,7 +135,7 @@ export class BackupService {
     if(['sequence','input-delta-sequence','thought-sequence','revision-sequence',CAPTURE_POLICY_ROW,REVISIT_POLICY_ROW].includes(value.id))continue;
     const local=await t.get('meta',value.id);
     if(local&&JSON.stringify(local)!==JSON.stringify(value.data)){
-     const contentBound=sourceStructureMetaAllowed(value.id)
+     const contentBound=value.id===PROMPT_REUSE_ROW||sourceStructureMetaAllowed(value.id)
       ||value.id.startsWith('aiPresentation:')
       ||value.id.startsWith('topicKeepSeparate:')
       ||['topic','entry','input','section','activity'].includes(value.data.kind);

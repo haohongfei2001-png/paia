@@ -1,3 +1,5 @@
+import {PromptReuseService} from '../core/prompt-reuse-service.js';
+import {PromptReuseCommands} from './prompt-reuse-commands.js';
 import {ArchiveOriginalQuery} from '../core/archive-original-query.js';
 import {installCaptureRecovery} from './capture-recovery.js';
 import {ArchiveNavigationQuery} from '../core/archive-navigation-query.js';
@@ -37,6 +39,7 @@ import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.j
 import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 const store = new IndexedArchiveStore(chrome.storage.local);
+const promptReuse = new PromptReuseCommands(new PromptReuseService(store),chrome);
 const productSignals = new ProductSignals(store);
 const passport = new PassportService(store);
 const revisit = new RevisitService(store);
@@ -143,6 +146,7 @@ function isChatGPTContent(sender) {
 async function handle(request, sender) {
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
+  if(request.type.startsWith('PAIA_PROMPT_'))return promptReuse.handle(request,sender);
   if(request.type.startsWith('IMPORT_'))return imports.handle(request,sender);
   const ui = isExtensionPage(sender);
   const content = isChatGPTContent(sender);
@@ -444,7 +448,7 @@ const libraryRunner=new LibraryRunner(store);
 // Original Organizer is cost-gated: capture, startup, timers, and rerenders may
 // maintain local state but can never dispatch its remote provider.
 const scheduleFilter=(options)=>{void safety.wake(options);void libraryRunner.wake(options);return runner.wake(options);};
-const localToolRequest=type=>type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
+const localToolRequest=type=>type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
 runtime.onStartup?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 runtime.onInstalled?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 // Startup may reconcile an unknown prior outcome, but it never dispatches Original.

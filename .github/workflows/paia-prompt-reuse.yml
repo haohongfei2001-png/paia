@@ -1,0 +1,47 @@
+name: PAIA Prompt Reuse Foundation
+on:
+  push:
+    branches: [feat/prompt-reuse-vs09-foundation]
+    paths:
+      - 'extension/**'
+      - '!extension/docs/**'
+      - '.github/workflows/paia-prompt-reuse.yml'
+  pull_request:
+    paths:
+      - 'extension/**/prompt-*'
+      - 'extension/adapter/chatgpt-composer.js'
+      - 'extension/tests/cpv1-09-*'
+      - '.github/workflows/paia-prompt-reuse.yml'
+permissions:
+  contents: read
+concurrency:
+  group: prompt-reuse-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  foundation:
+    if: github.event_name == 'push' || github.head_ref != 'feat/prompt-reuse-vs09-foundation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PAIA_TEST_CONCURRENCY: '4'
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:unit
+      - run: node scripts/test.mjs 'adapter contract'
+      - run: node scripts/test.mjs 'privacy/security'
+      - run: node --test tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
+      - run: npm run check && npm run build:release
