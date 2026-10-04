@@ -189,6 +189,46 @@ It:
 - clears with relevant permanent deletion/data clearing;
 - is never stored in the host website's storage.
 
+### 5.4 Personal Prompt Reuse Surface
+
+The prompt surface is a derived/local reuse capability over eligible
+user-authored Working Inputs plus explicit user-owned template overrides. It is
+not a fourth archive, another Source layer or another AI Context store.
+
+Architecture requirements:
+
+- Stage 1/2 candidate grouping/ranking is local and does not read assistant
+  replies or call a Provider.
+- Keep provider-specific composer discovery/insertion in provider adapters.
+  Generic arbitrary-site contenteditable injection is not an accepted fallback.
+- The trusted extension side owns Prompt Family queries and user overrides.
+  The host page receives only the text the user explicitly chooses to insert.
+  Do not preload the whole personal prompt library into ordinary host-page DOM or
+  website storage as a convenience shortcut.
+- A Shadow DOM may provide style encapsulation but must not be treated as an
+  authorization boundary by itself; choose an extension-controlled rendering
+  boundary whose exposure model passes security review.
+- Ordinary insert is a user gesture and must never call send/submit. Exact
+  insertion is acknowledged only after the adapter can verify the composer state.
+  Unknown acknowledgement does not retry automatically.
+- Existing draft text, selection/IME state and framework editor ownership must be
+  preserved. Explicit destructive replace is separate from the normal row click.
+- Prompt Family membership/ranking is rebuildable. Durable state is limited to
+  real user work/preferences such as edited template text, pin/manual order,
+  chosen representative, hidden/split corrections and safe surface placement.
+- Reuse-template edits never rewrite Source or Working Input. Prompt-specific
+  independent template persistence does not resolve B-01/B-02 semantics for
+  Thought or other derivatives.
+- Do not add a new object store merely to cache ranking. If durable edited
+  template text cannot fit an existing versioned state boundary safely, answer
+  the durable-schema freeze questions and ship an explicit migration/Backup rule.
+- Stage 3 reply-aware recommendations remain a separate B-04-gated capability.
+  They reuse the insertion adapter but do not change Stage 1/2 authorization.
+
+Visual isolation and insertion security are both product requirements: style
+encapsulation alone is insufficient if it exposes the user's full prompt list to
+host scripts.
+
 ## 6. AI Organize
 
 Keep candidate/projection architecture.
