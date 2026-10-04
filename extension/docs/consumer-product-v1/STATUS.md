@@ -1,3 +1,31 @@
+# Prompt Reuse 09.0–09.5 — ENGINEERING_COMPLETE
+
+The owner-authorized parallel line is integrated through PRs
+[#144](https://github.com/haohongfei2001-png/paia/pull/144),
+[#145](https://github.com/haohongfei2001-png/paia/pull/145) and
+[#146](https://github.com/haohongfei2001-png/paia/pull/146).
+Latest validated runtime main: `433aa35977b65ad6c71120704ba59531e3d69807`.
+Both Work MUST FIX repairs, the orb/card, template management and engineering
+lifecycle/privacy gates are complete. The older failed main and follow-up below
+remain historical evidence, not active unfinished implementation.
+
+Exact-main [Prompt Reuse gate](https://github.com/haohongfei2001-png/paia/actions/runs/37209895245)
+and [integration gate](https://github.com/haohongfei2001-png/paia/actions/runs/37209895231)
+PASS: 42 source/release native Chrome cases, 1,739 full unit, 102 adapter,
+59 privacy and package guards; 64 owning tests also pass. Source/release screenshots
+and actual tab discard/worker restart are synthetic engineering evidence.
+[Final receipt](implementation/prompt-reuse/SURFACE.md) records fingerprints and
+retains the regression failures/repairs. A documentation-only closure may follow
+this runtime SHA without changing tested runtime assets.
+
+**Unique next Prompt Reuse task: CPV1-09.7 final external certification.**
+`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE` remains open,
+along with final human visual acceptance. No owner developer operations are
+requested. CPV1-09.6 is deferred without an independently verifiable second
+provider and minimal permission. No Stage 3/B-04 work, public store release or
+unrelated Desktop/D7 page implementation is included. Engineering completion
+never claims real ChatGPT compatibility certification.
+
 # Prompt Reuse exact-main refresh follow-up
 
 PR #145 merged at `945da10efbcb1eaefe781fcf2b5f1276efdd2979` with passing

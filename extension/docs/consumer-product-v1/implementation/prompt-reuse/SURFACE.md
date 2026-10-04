@@ -160,3 +160,39 @@ failure and asserts the exact current row identities/status remain unchanged.
 No retries, data mutation, timer budget increases or weakened assertions. Follow-up
 source/release browser count becomes 42 including parent suites. All management,
 IME, privacy, durable schema and external-certification boundaries remain intact.
+
+## Final integrated engineering closure
+
+- Adopted PRs: #144 foundation/Work repairs, #145 surface/management/lifecycle,
+  #146 deterministic stale-failure correction.
+- Validated runtime main: `433aa35977b65ad6c71120704ba59531e3d69807`, tree
+  `0ba4e9154891c93ebbf930eac8028a130cba66e6`, identical to reviewed #146 head
+  `e155736a92118a36f9dcbf7bdce4d8855f951d67`.
+- [Exact-main foundation](https://github.com/haohongfei2001-png/paia/actions/runs/37209895245)
+  and [exact-main integration](https://github.com/haohongfei2001-png/paia/actions/runs/37209895231)
+  PASS. Source/release browser 42, full unit 1,739, adapter 102, privacy 59,
+  source/release package guards; zero failures/skips in those executed suites.
+  Owning domain/service/security/layout tests 64 PASS. The broader historical
+  browser/macOS certification was not requested by the bounded integration mode
+  and is not claimed. Real current ChatGPT remains NOT_VERIFIED.
+- Runtime-assets SHA-256:
+  `9550f5a2064b2e96c7bee34525c88079b9914332302f9bf73ca5555396bff1d0`.
+  Package-source SHA-256:
+  `4f91bfa1a44269c4a89215448cc344969f677653e0912976d4bcaf199dceafbc`.
+  This final closure only changes canonical documentation under `docs/`, excluded
+  from runtime and release inputs; later documentation main SHA is not a new
+  runtime claim. No durable schema/version/object store or new host permission.
+- No D7/AppShell/Reader/Thought/AI Context page changes or semantic merge conflict.
+  UI geometry metadata is device-only; strict existing template Backup semantics
+  remain. All fixture material and screenshots are synthetic/non-private.
+
+09.0–09.5: **ENGINEERING_COMPLETE**. Eligible templates can be used and managed
+through the implemented card, including draft-safe insertion, explicit copy and
+truthful failure states. This supports controlled engineering trial, not a public
+release or verified current-site compatibility claim.
+
+The sole next task is CPV1-09.7: close current authenticated ChatGPT insertion and
+final human visual evidence when that legitimate environment is available.
+`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`; 09.6 second
+provider remains deferred without a verifiable minimally permissioned composer.
+No further dependency-safe implementation remains in this authorized batch.
