@@ -2,7 +2,7 @@
 (() => {
  'use strict';
  globalThis.PAIAPromptSurface?.dispose();
- let host,root,orb,frame,nonce,url=location.href,position=null,open=false,enabled=false,initialized=false,disposed=false,scheduled=false,geometry=null,drag=null,suppress=false;
+ let host,root,orb,frame,nonce,url=location.href,position=null,open=false,enabled=false,initialized=false,disposed=false,scheduled=false,geometry=null,drag=null,suppress=false,availability='surface_unavailable';
  const adapter=new globalThis.PAIAChatGPTComposerAdapter(),listeners=[],appearance=matchMedia('(prefers-color-scheme:dark)');
  const dark=()=>{const el=document.documentElement,scheme=getComputedStyle(el).colorScheme;return el.classList.contains('dark')||(!el.classList.contains('light')&&scheme!=='light'&&(scheme==='dark'||appearance.matches));};
  const listen=(node,event,fn,options)=>{node.addEventListener(event,fn,options);listeners.push(()=>node.removeEventListener(event,fn,options));};
@@ -16,10 +16,10 @@
  }
  function layout(){
   scheduled=false;if(disposed||!host)return;
-  const composer=adapter.find();if(!composer||!enabled){host.hidden=true;return;}
+  const discovery=adapter.discover(),composer=discovery.node;availability=enabled?discovery.status:'surface_unavailable';if(!composer||!enabled){host.hidden=true;return;}
   if(url!==location.href)url=location.href;
   const bounds=(composer.closest('form')||composer).getBoundingClientRect(),g=globalThis.PAIAPromptLayout(innerWidth,innerHeight,bounds,position);
-  if(!g){host.hidden=true;return;}geometry=g;host.hidden=false;
+  if(!g){availability='layout_unavailable';host.hidden=true;return;}geometry=g;host.hidden=false;availability='visible';
   host.dataset.theme=dark()?'dark':'light';
   const anchor=open&&g.card?{x:g.card.x+g.card.w-40,y:g.card.y-32}:g.orb;
   const style=`position:fixed;left:${anchor.x}px;top:${anchor.y}px;width:44px;height:44px;z-index:2147483646;`;
@@ -55,13 +55,14 @@ iframe{border:1px solid #ffffffd9;border-radius:20px;background:linear-gradient(
  async function activate(){try{const saved=await rpc();if(disposed)return;enabled=true;if(!initialized){position=saved.position;open=saved.open;initialized=true;}mount();schedule();}catch{enabled=false;if(host)host.hidden=true;frame?.remove();frame=null;}}
  const messages=(r,s,reply)=>{
   if(s.id!==chrome.runtime.id||s.tab)return;
+  if(r.type==='PAIA_PROMPT_SURFACE_DIAGNOSTIC_PROBE'&&r.url===location.href){layout();reply({status:availability});}
   if(r.type==='PAIA_PROMPT_SURFACE_PROBE'){reply({open:!!frame?.isConnected&&open&&!host.hidden,nonce,url:location.href,dark:dark()});}
   if(r.type==='PAIA_PROMPT_SURFACE_CLOSE'&&r.nonce===nonce){close(true);reply({closed:true});}
   if(r.type==='PAIA_PROMPT_SURFACE_ACTIVATE')void activate();
  };
  chrome.runtime.onMessage.addListener(messages);
  const observer=new MutationObserver(records=>{if(records.some(r=>r.target!==host)){if(!host?.isConnected&&enabled)mount();schedule();}});
- const observe=()=>{observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});if(enabled)mount();};
+ const observe=()=>{observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','id','role','contenteditable','hidden','inert','disabled','readonly','aria-hidden','aria-disabled','aria-readonly','data-chatgpt-composer','data-composer-markdown','data-testid','data-message-author-role','data-message-id','data-turn']});if(enabled)mount();};
  if(document.documentElement)observe();else listen(document,'DOMContentLoaded',observe);
  listen(appearance,'change',schedule);listen(window,'resize',schedule);listen(window,'scroll',schedule,{passive:true});listen(window,'popstate',schedule);listen(document,'visibilitychange',()=>{if(!document.hidden)void activate();});
  globalThis.PAIAPromptSurface={dispose(){disposed=true;observer.disconnect();listeners.forEach(fn=>fn());chrome.runtime.onMessage.removeListener(messages);adapter.dispose();host?.remove();}};

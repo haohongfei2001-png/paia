@@ -36,3 +36,15 @@ test('surface publishes only one static extension frame, no host library bridge 
  for(const file of ['content/prompt-surface.js','background/prompt-surface.js','ui/prompt-surface.js']){const source=await readFile(new URL('../'+file,import.meta.url),'utf8');assert.doesNotMatch(source,/postMessage\s*\(|localStorage|sessionStorage|\.submit\s*\(|fetch\s*\(|innerHTML|setInterval\s*\(/,file);}
  const host=await readFile(new URL('../content/prompt-surface.js',import.meta.url),'utf8');assert.doesNotMatch(host,/PAIA_PROMPT_QUERY|PAIA_PROMPT_COPY_TEXT|PAIA_PROMPT_CHANGE/);assert.match(host,/mode:'closed'/);
 });
+test('popup diagnostic is consent-only, exact-view authorized and returns bounded metadata',async()=>{
+ const f=fixture(),sender={id:'ext',url:f.api.runtime.getURL('ui/popup.html')},r={type:'PAIA_PROMPT_SURFACE_DIAGNOSTIC'};
+ f.api.tabs.query=async()=>[{id:7,url}];f.api.tabs.get=async()=>({id:7,url,active:true});f.api.tabs.sendMessage=async()=>({status:'composer_unrecognized',text:'PRIVATE_DRAFT'});
+ assert.deepEqual(await f.s.handle(r,sender),{status:'composer_unrecognized'});
+ for(const bad of [{...sender,id:'foreign'},{...sender,tab:{id:7}},{...sender,url},{...sender,url:f.api.runtime.getURL('ui/archive.html')}])await assert.rejects(()=>f.s.handle(r,bad));
+ await assert.rejects(()=>f.s.handle({...r,tabId:7},sender));
+ f.api.tabs.sendMessage=async()=>({status:'PRIVATE_DRAFT'});assert.deepEqual(await f.s.handle(r,sender),{status:'page_unavailable'});
+ f.api.tabs.sendMessage=async()=>({status:'visible'});assert.deepEqual(await f.s.handle(r,sender),{status:'visible'});
+ f.api.tabs.get=async()=>({id:7,url:url+'/changed',active:true});assert.deepEqual(await f.s.handle(r,sender),{status:'page_unavailable'});
+ f.api.tabs.query=async()=>[{id:7,url,incognito:true}];assert.deepEqual(await f.s.handle(r,sender),{status:'not_chatgpt'});
+ f.revoke();f.api.tabs.query=async()=>{throw Error('must not inspect tabs without consent');};assert.deepEqual(await f.s.handle(r,sender),{status:'consent_required'});assert.equal(f.writes.length,0);assert.equal(f.calls.length,0);
+});

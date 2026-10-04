@@ -20,11 +20,26 @@
   }
   listen(event,fn){this.document.addEventListener(event,fn,true);this.listeners.push([event,fn]);}
   dispose(){for(const [event,fn]of this.listeners)this.document.removeEventListener(event,fn,true);this.saved=null;this.attempts.clear();}
-  find(){
-   if(this.location.origin!=='https://chatgpt.com')return null;
-   const nodes=[...this.document.querySelectorAll('#prompt-textarea.ProseMirror[contenteditable="true"]')].filter(n=>n.isConnected&&n.getClientRects().length&&!n.closest('[data-message-author-role], [hidden], [inert], [aria-hidden="true"]')&&n.getAttribute('aria-disabled')!=='true');
-   return nodes.length===1?nodes[0]:null;
+  discover(){
+   // Explicit ChatGPT signatures only. Never rank or fall back to arbitrary editors.
+   if(this.location.origin!=='https://chatgpt.com')return {node:null,status:'composer_unrecognized'};
+   const selector='#prompt-textarea.ProseMirror[contenteditable="true"], form[data-chatgpt-composer] .ProseMirror[contenteditable="true"], form[data-chatgpt-composer] [data-composer-markdown][contenteditable="true"][role="textbox"]';
+   const candidates=[...this.document.querySelectorAll(selector)];
+   if(candidates.length>16)return {node:null,status:'composer_ambiguous'};
+   const excluded='[data-message-author-role], [data-message-id], [data-testid^="conversation-turn"], [data-turn="user"], [data-turn="assistant"], article, [hidden], [inert], [aria-hidden="true"], [aria-disabled="true"], [aria-readonly="true"], [disabled], [readonly]';
+   const nodes=candidates.filter(node=>{
+    if(!node.isConnected||!node.isContentEditable||node.closest(excluded)||!node.getClientRects().length)return false;
+    const rect=node.getBoundingClientRect();if(rect.width<=0||rect.height<=0)return false;
+    let ancestor=node,depth=0;
+    for(;ancestor&&depth<64;ancestor=ancestor.parentElement,depth++){
+     const style=this.document.defaultView.getComputedStyle(ancestor);
+     if(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||style.contentVisibility==='hidden'||Number(style.opacity)===0)return false;
+    }
+    return !ancestor;
+   });
+   return nodes.length===1?{node:nodes[0],status:'visible'}:{node:null,status:nodes.length?'composer_ambiguous':'composer_unrecognized'};
   }
+  find(){return this.discover().node;}
   model(node){
    if(!node||node.querySelector('[contenteditable="false"], img, iframe, button, input, textarea'))return null;
    let text='',points=[];
