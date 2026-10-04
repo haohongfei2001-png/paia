@@ -16,7 +16,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   const orb=page.locator('[data-paia-prompt-surface]');await orb.waitFor({state:'visible'});
   const card=()=>page.frames().find(f=>f.url().includes('/ui/prompt-surface.html#'));
   const open=async()=>{if(!card())await orb.click();await eventually(()=>!!card());await card().locator('.row').first().waitFor();return card();};
-  await open();world=await isolated(page,h.extensionId);
+  const collapsedBeforeOpen=await orb.boundingBox();await open();world=await isolated(page,h.extensionId);
   await check('private card is a cross-origin frame, prompt-only rows and one-click exact retained draft',async()=>{
    assert.equal(await page.evaluate(()=>document.querySelector('[data-paia-prompt-surface]').shadowRoot),null);
    assert.doesNotMatch(await page.locator('body').textContent(),/PRIVATE_LIBRARY_NEVER_IN_HOST|Only test/);
@@ -36,6 +36,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    await row.locator('.edit-shortcut').click();assert.equal(await f.locator('#list').isVisible(),true);assert.equal(await f.locator('#list > #editor').count(),1);
    assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),text);assert.equal(await f.locator('.row:not(.editing-row)').count(),1);
    await f.getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>f.locator('#refresh').isEnabled());assert.equal(await f.locator('.editing-row').count(),0);
+   await f.locator('#close').click();await eventually(()=>!card());assert.deepEqual(await orb.boundingBox(),collapsedBeforeOpen);await open();
   });
   await check('edit, pin/unpin, hidden recovery, explicit independent delete and no management insertion',async()=>{
    const before=await page.evaluate(()=>fixture.text());let f=card();await f.locator('#refresh').click();const row=f.locator('.row').filter({hasText:secret});await row.locator('.more').click();await f.getByRole('button',{name:'编辑',exact:true}).click();await f.getByRole('textbox',{name:'复用文本'}).fill('edited synthetic template');await orb.click();await f.locator('#close').click();assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'edited synthetic template');await page.evaluate(()=>{history.pushState({},'',location.pathname+'?editing=1');document.body.append(document.createElement('i'));});await page.waitForTimeout(100);assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'edited synthetic template');await f.getByRole('button',{name:'保存',exact:true}).click();await f.getByRole('button',{name:'edited synthetic template',exact:true}).waitFor();

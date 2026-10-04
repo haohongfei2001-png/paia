@@ -8,7 +8,7 @@
  const listen=(node,event,fn,options)=>{node.addEventListener(event,fn,options);listeners.push(()=>node.removeEventListener(event,fn,options));};
  const rpc=async state=>{const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_HOST',...(state?{state}:{})});if(!r?.ok)throw Error('unavailable');return r.data;};
  const save=()=>void rpc({version:1,open,position}).catch(()=>{orb.title='位置未保存；下次打开可重试';});
- function close(focus=false){open=false;frame?.remove();frame=null;nonce=null;orb?.setAttribute('aria-expanded','false');if(focus)orb?.focus();save();}
+ function close(focus=false){open=false;frame?.remove();frame=null;nonce=null;orb?.setAttribute('aria-expanded','false');layout();if(focus)orb?.focus();save();}
  function expand(){
   if(!enabled||frame)return;
   nonce=crypto.randomUUID();frame=document.createElement('iframe');frame.title='PAIA 常用 Prompt';frame.allow='clipboard-write';
