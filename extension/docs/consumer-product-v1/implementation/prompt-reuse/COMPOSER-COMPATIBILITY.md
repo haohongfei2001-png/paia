@@ -33,7 +33,7 @@ qualifying node fails closed. No arbitrary contenteditable or lexical fallback.
 Surface and insertion share the same adapter; draft/selection/IME/read-back and
 one-shot insertion code are unchanged. No send or provider calls are added.
 
-Popup's existing low-frequency diagnostics area queries only while expanded,
+Popup's folded low-frequency Prompt Reuse diagnostics area queries only while expanded,
 at most once per refresh interval (plus explicit opening). The exact popup sender
 is authorized; only current active ChatGPT tab, consent and enum status cross the
 boundary. No draft, message, DOM, URL persistence or new schema/permission.
@@ -47,3 +47,25 @@ Results and CI links are recorded after execution; pending is not PASS.
 
 No Visual Master, Prompt Family, ranking, Backup, Stage 3, second provider, B-04
 or D7 change. Real-site evidence remains deferred separately from synthetic tests.
+
+## Recorded iterations
+
+- Initial head `cd1e9e0628a01be645e8698b533ea09e17b5ba16`: new current-form,
+  native markdown, ambiguity/visibility and paused-capture cases passed for source
+  and release. Popup source passed, release failed because packaging removes the
+  old internal-tools area. Fixed by retaining a separate folded user diagnostic
+  in both products; refresh/listener stay present in packaged JavaScript.
+- Initial visual workflow failed on an empty `PAIA_VISUAL_STATES` environment
+  variable. Capture now treats empty as all eight, as documented; no target or
+  runtime material/style change.
+- New browser suite exposed the explicit frozen partition inventory. It is now
+  registered in Prompt Reuse's existing shard; all previous file placements and
+  strict inventory assertions are retained.
+- Runtime head `fb4bba92ee0dbf073f3f0a9d30494560285cb218` passed the browser step in
+  [Foundation run](https://github.com/haohongfei2001-png/paia/actions/runs/37232814191)
+  and [all-eight visual evidence](https://github.com/haohongfei2001-png/paia/actions/runs/37232814212).
+  Final aggregate verification follows the partition registration fix.
+- Local headless Chrome CDP could not start. One stale generated release contained
+  duplicate generated files; rebuilding the disposable output restored clean
+  package validation. Source files were unaffected. Cloud clean-checkout browser
+  runs supply the runtime evidence. No external visible browser was used.
