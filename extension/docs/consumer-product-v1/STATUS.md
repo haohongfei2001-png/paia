@@ -1,3 +1,16 @@
+# Prompt Reuse — guarded orb toggle repair candidate
+
+The owner-authorized bounded repair makes an open orb request the private card's
+existing guarded close policy, shared with Close and Escape. Editing/IME/busy
+states stay protected; real dragging stays open and the next ordinary click can
+collapse. Saved geometry, accepted visuals and all D7 work remain unchanged.
+
+[Toggle receipt](implementation/prompt-reuse/ORB-TOGGLE.md) retains the initial
+failing production-host regression and local browser startup limitation. Targeted
+CODE tests pass; exact-head hosted source/release and integration gates are pending.
+`VISUAL_ACCEPTED / OWNER_VISUAL_ACCEPTANCE = PASS` and
+`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE` are unchanged.
+
 # Prompt Reuse — open Surface drag repair integrated
 
 [PR #157](https://github.com/haohongfei2001-png/paia/pull/157) merged as

@@ -10,17 +10,22 @@ export class PromptSurfaceCommands{
   if(sender.id!==api.runtime.id||!sender.tab||sender.tab.incognito)fail();
   const tab=await api.tabs.get(sender.tab.id);if(tab.incognito||!site(tab.url))fail();
   if(!(await this.commands.service.s.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
-  if(r.type==='PAIA_PROMPT_SURFACE_HOST'){
-   if(sender.frameId!==0||!site(sender.url)||!own(r,['type','state']))fail();
-   if(sender.url!==tab.url){
+  if(r.type==='PAIA_PROMPT_SURFACE_HOST'||r.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){
+   const closing=r.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE';
+   if(sender.frameId!==0||!site(sender.url)||!own(r,closing?['type','nonce']:['type','state']))fail();
+   if(closing&&(typeof r.nonce!=='string'||!/^[a-f0-9-]{36}$/.test(r.nonce)))fail();
+   if(closing||sender.url!==tab.url){
     // Chrome can retain the document's initial sender URL after history.pushState.
     // Bind this geometry-only request to that exact still-live top document.
     if(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active')fail();
     const live=await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_PROBE'},{documentId:sender.documentId});
     const current=await api.tabs.get(tab.id);
-    if(live?.url!==tab.url||current.url!==tab.url||current.incognito)fail();
+    if(live?.url!==tab.url||current.url!==tab.url||current.incognito||closing&&(!live.open||live.nonce!==r.nonce))fail();
     if(!(await this.commands.service.s.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
    }
+   // A nonce-only signal reaches extension documents, never the host page or another card.
+   // The addressed card runs the same guard as its own Close and Escape controls.
+   if(closing){await api.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce:r.nonce});return {};}
    if(r.state!==undefined){if(!validSurface(r.state))throw new ArchiveError('INVALID_REQUEST');await api.storage.local.set({[KEY]:r.state});}
    const saved=(await api.storage.local.get(KEY))[KEY];return validSurface(saved)?saved:{version:1,open:false,position:null};
   }
