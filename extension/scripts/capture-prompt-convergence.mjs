@@ -51,7 +51,10 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
    if(i===3)await f.locator('.row').nth(1).locator('.edit-shortcut').click();
    if(i===4){await f.locator('.row').nth(1).hover();const from=await f.locator('.row').nth(1).locator('.grip').boundingBox(),to=await f.locator('.row').nth(2).boundingBox();await page.mouse.move(from.x+11,from.y+13);await page.mouse.down();await page.mouse.move(to.x+20,to.y+8,{steps:8});}
    if(i===7){await page.locator('#prompt-textarea').focus();await f.locator('.insert').first().click();await eventually(()=>f.locator('#status').textContent().then(x=>x.includes('已插入，未发送')));const box=await(await f.frameElement()).boundingBox();await page.mouse.move(box.x+100,box.y+4);await page.mouse.move(500,100);}
-   await page.waitForTimeout(200);await page.screenshot({path:join(out,variant+'-'+name+'.png'),animations:'disabled',caret:'hide'});
+   await page.waitForTimeout(200);
+   if(i===4)for(const selector of ['.edit-shortcut','.more'])assert.equal(await f.locator('.moving '+selector).evaluate(el=>getComputedStyle(el).opacity),'0','drag keeps secondary controls quiet');
+   if(i===7){const hit=await f.locator('.insert').last().evaluate(el=>{const r=el.getBoundingClientRect(),at=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return at===el||el.contains(at);});assert.equal(hit,true,'inserted status/footer must not cover the last prompt target');}
+   await page.screenshot({path:join(out,variant+'-'+name+'.png'),animations:'disabled',caret:'hide'});
    const orbBox=await orb.boundingBox(),cardBox=f?await(await f.frameElement()).boundingBox():null,formBox=await page.locator('form').boundingBox();
    const disjoint=(a,b)=>a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y;
    for(const box of [orbBox,cardBox].filter(Boolean)){assert.ok(disjoint(box,formBox));assert.ok(box.x>=0&&box.x+box.width<=viewport.width);}
