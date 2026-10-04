@@ -13,10 +13,11 @@ const sha=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).tr
 const prompts=['帮我把这件事拆成下一步可以执行的任务','检查一下有没有逻辑漏洞','不要重新设计，继续修改现有方案','用更简单的话解释','比较这两个方案的主要差别','整理成待办清单'];
 const files=(await readdir(masters)).filter(x=>x.endsWith('.svg')).sort();
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-const hashes={};for(const file of ['content/prompt-surface.js','core/prompt-surface-layout.js','ui/prompt-surface.css','ui/prompt-surface.js'])hashes[file]=createHash('sha256').update(await readFile(join(root,file))).digest('hex');
 for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(',')){
  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'inherit'});
- const h=await FakeChatGPT.start({extensionPath:variant==='source'?root:join(root,'work/current-release'),headless:true,launchThroughPort:true});
+ const extensionPath=variant==='source'?root:join(root,'work/current-release');
+ const hashes={};for(const file of ['content/prompt-surface.js','core/prompt-surface-layout.js','ui/prompt-surface.css','ui/prompt-surface.js'])hashes[file]=createHash('sha256').update(await readFile(join(extensionPath,file))).digest('hex');
+ const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true});
  const receipt={sha,hashes,variant,evidence:'SYNTHETIC_BROWSER',ownerAcceptance:'PENDING',realChatGPT:'DEFERRED_EXTERNAL_EVIDENCE',screens:[]};
  try{
   await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
