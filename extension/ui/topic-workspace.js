@@ -591,7 +591,7 @@ export class TopicController {
   const intent=this.presentationIntent=(this.presentationIntent||0)+1;if(mode===this.originalMode)return;
   const id=this.id;if([this.editor,this.aiEditor,this.dialogEditor].some(isComposing)||!await this.flushEditors()||id!==this.id||this.view!=='original'||intent!==this.presentationIntent)return;
   if(this.originalMode==='content')this.rememberContent();if(this.originalMode==='content')this.contentPosition={topicId:id,anchor:this.topicAnchor(),query:$('topic-search').value,scroll:scrollY};else this.rememberTimeline();
-  this.editor?.dispose();this.editor=null;this.topicReader=null;this.document=null;this.originalPane?.replaceChildren();this.topicTimeline?.dispose();this.originalMode=mode;
+  this.editor?.dispose();this.editor=null;this.topicReader=null;this.document=null;this.originalPane?.replaceChildren();this.topicTimeline?.dispose();this.originalMode=mode;this.desktopPresentation?.sync();
   if(mode==='content'){this.restoreContent(id);const saved=this.contentPosition?.topicId===id?this.contentPosition:null;$('topic-search').value=saved?.query||'';if(saved?.anchor)this.topicNavigationAnchor={entryId:saved.anchor.id,top:saved.anchor.top};this.timelinePositions.save(id,{...(this.timelinePositions.get(id)||{}),mode:'content'});}
   else $('topic-search').value=this.timelinePositions.get(id)?.query||'';
   await this.refresh();if(intent!==this.presentationIntent||id!==this.id)return;this.syncOriginalTabs();$('topic-original-tabs').querySelector(`[data-topic-view="${mode}"]`)?.focus({preventScroll:true});

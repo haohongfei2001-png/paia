@@ -3,7 +3,7 @@
 #thought-document.dvn-topic-composition #topic-heading{flex:1;min-width:0}
 #thought-document.dvn-topic-composition #topic-heading h1{margin:0;font-size:28px;line-height:1.35;font-weight:600;font-synthesis:weight}
 #thought-document.dvn-topic-composition #topic-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0;padding:0;border:0;background:transparent}
-#thought-document.dvn-topic-composition #create-entry{min-height:36px;padding:6px 0;border:0;background:transparent;color:var(--text);font:14px/1.5 var(--font)}
+#thought-document.dvn-topic-composition #topic-toolbar #create-entry{min-height:36px;padding:6px 0;border:0;background:transparent;color:var(--text);font:14px/1.5 var(--font)}
 #thought-document.dvn-topic-composition #topic-menu summary{min-width:36px;min-height:36px;align-content:center;color:var(--muted)}
 #thought-document.dvn-topic-composition #topic-menu .library-history-tools{display:flex;gap:12px;margin:0;opacity:1}
 #thought-document.dvn-topic-composition #topic-presentation{padding:0}

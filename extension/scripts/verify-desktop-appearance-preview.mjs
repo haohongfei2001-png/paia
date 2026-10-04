@@ -44,9 +44,9 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
    try{
     await reference.setViewportSize({width:1440,height:900});await reference.screenshot({path:`${directory}/${variant}-${screen}-canonical-original.png`,animations:'disabled'});
     if(screen==='topic'){
-     await reference.evaluate(evidence=>{DVN.evidence.splice(0,DVN.evidence.length,...evidence);location.hash='topics-root';},seed.evidence);await reference.goto('https://paia-reference.invalid/screens/index.html#topic-original');
+     await reference.evaluate(evidence=>{DVN.evidence.splice(0,DVN.evidence.length,...evidence);location.hash='topics-root';},seed.evidence.toReversed());await reference.goto('https://paia-reference.invalid/screens/index.html#topic-original');
      assert.equal(await open({screen:'topic',topicId:seed.topicId}),true);await page.evaluate(async()=>{await __desktopPreview.presenter.owner.changeReadingSort('desc',{fromStart:true});__desktopPreview.presenter.sync();});
-    }else if(screen==='years'){await page.locator('[data-topic-view=years]').click();await page.locator('#topic-timeline .topic-year-section').first().waitFor();assert.equal(await page.locator('#thought-document').evaluate(node=>node.classList.contains('dvn-topic-composition')),true);assert.equal(await page.locator('.dvn-topic-years').isVisible(),false);}
+    }else if(screen==='years'){await page.locator('[data-topic-view=years]').click();await page.locator('#topic-timeline .topic-year-section').first().waitFor();await page.locator('#thought-document[data-state=ready]').waitFor();assert.equal(await page.locator('#thought-document').evaluate(node=>node.classList.contains('dvn-topic-composition')),true);assert.equal(await page.locator('.dvn-topic-years').isVisible(),false);}
     else if(screen==='organize')assert.equal(await open({screen:'organize',topicId:seed.topicId,scope:normalScope}),true);
     else if(screen==='compose'){
      assert.equal(await open({screen:'topic',topicId:seed.topicId}),true);await page.locator('#create-entry').click();await page.locator('.thought-compose-workspace').waitFor();await page.locator('.thought-compose-workspace textarea').fill('我还没有确定结论。先把今天看到的变化留下来。');await page.locator('.thought-compose-workspace textarea').blur();

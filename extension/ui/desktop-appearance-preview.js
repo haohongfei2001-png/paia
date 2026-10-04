@@ -49,7 +49,7 @@ export async function openDesktopAppearancePreview(owners,{screen,topicId,scope,
   if(screen==='topic'){const active=owners.thoughts.desktopPresentation;active?.dispose();if(owners.thoughts.desktopPresentation===active)owners.thoughts.desktopPresentation=null;owners.thoughts.updateTopicContinuous();}
   for(const row of hidden.toReversed())row.node.hidden=row.hidden;for(const node of created)node.remove();delete document.body.dataset.desktopAppearancePreview;return true;
  }};current=session;
- const exit=element('button','dvn-preview-exit','退出界面预览');exit.type='button';exit.onclick=()=>{if(closeDesktopAppearancePreview())void owners.navigate('settings');};header.append(exit);created.push(exit);
+ const exit=element('button','dvn-preview-exit','退出界面预览');exit.type='button';exit.onclick=()=>{if(closeDesktopAppearancePreview())void owners.navigate('settings');};(screen==='context'?presenter.header:header).append(exit);created.push(exit);
  if(screen==='compose'){await owners.actions.compose({...composeOptions,topicId,workspacePreview:{host},isCurrent:()=>current===session&&intent===opening});if(current!==session||intent!==opening)return false;}
  return session;
 }
