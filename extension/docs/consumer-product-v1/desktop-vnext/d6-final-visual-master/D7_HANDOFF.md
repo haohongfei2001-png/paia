@@ -1,12 +1,12 @@
 # D7 — production high-fidelity implementation
 
-**PLANNED / NOT_AUTHORIZED.** This design PR does not start D7. Require explicit owner approval of a named D6 revision and implementation scope. Re-read remote main and the active D5 writer/remaining ledger first. Preserve D5's adopted results, PR132's unmerged failures, PR99 and all history.
+**OWNER_AUTHORIZED / READY.** The owner explicitly approved D6.2 on 2026-10-04 and authorizes D7 production high-fidelity implementation within that visual/product scope. Re-read remote main and the active D5 writer/remaining ledger first. Preserve D5's adopted results, PR132's unmerged failures, PR99 and all history.
 
 ## Gate and scope
 
 Do not pretend D5 was never started or rename it as a design phase. D5 remains its actual engineering history. Reconcile unfinished D5 composition into an explicitly approved D7 handoff; never mark those tasks PASS merely to start a new number. D6 design may proceed independently; concurrent production writers on the same roots may not.
 
-D6 governs pure visual targets only after approval. Product/safety/behavior contracts and actual service authority still prevail. Any unresolved contradiction is recorded and blocks only the affected surface. If a required reference is absent, report `VISUAL_REFERENCE_MISSING`; never silently invent it. Pictures, tokens and typography must agree—`VISUAL_REFERENCE_CONFLICT` is not a reason to ignore the pictures.
+D6.2 governs pure visual targets as the approved visual authority. Product/safety/behavior contracts and actual service authority still prevail. Any unresolved contradiction is recorded and blocks only the affected surface. If a required reference is absent, report `VISUAL_REFERENCE_MISSING`; never silently invent it. Pictures, tokens and typography must agree—`VISUAL_REFERENCE_CONFLICT` is not a reason to ignore the pictures.
 
 ## Implementation sequence
 
@@ -26,4 +26,4 @@ Preserve stored body-size/width/dark/locale preferences and IME/selection/paging
 
 Design image and actual application screenshot are different artifacts. A production screenshot must come from the tested source/release extension, not the D6 gallery, an overlaid PNG, an iframe of the SVG or a duplicate mock application. Target screenshots alone are not functionality, current-live, performance, model-fidelity, physical-IME, screen-reader or distribution evidence.
 
-D7 requires behavior correct + safety correct + high-fidelity complete-page implementation. Green CI and no overflow are necessary but insufficient. Final owner review covers Archive, Topic root+dense/Years, first/update Organize, Context Review+Ready+stale, one modal, dark and compact. Report unresolved gates and NOT_RUN honestly. No public release or install-package delivery is authorized by this design.
+D7 requires behavior correct + safety correct + high-fidelity complete-page implementation. Green CI and no overflow are necessary but insufficient. Final owner review covers Archive, Topic root+dense/Years, first/update Organize, Context Review+Ready+stale, one modal, dark and compact. Report unresolved gates and NOT_RUN honestly. No public release, store submission or install-package delivery is authorized by this D7 implementation approval; those remain separate gates.
