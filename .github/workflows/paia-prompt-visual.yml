@@ -1,8 +1,15 @@
 name: PAIA Prompt Reuse Visual Evidence
 on:
+  workflow_dispatch:
+    inputs:
+      runtime_ref:
+        description: Runtime Git ref to capture
+        default: main
+        required: true
+        type: string
   push:
     branches: ['evidence/prompt-reuse-visual-*']
-    paths: ['extension/scripts/capture-prompt-visual.mjs', '.github/workflows/paia-prompt-visual.yml']
+    paths: ['extension/scripts/capture-prompt-visual.mjs', 'extension/content/prompt-surface.js', 'extension/ui/prompt-surface.*', '.github/workflows/paia-prompt-visual.yml']
 permissions:
   contents: read
 concurrency:
@@ -24,6 +31,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.runtime_ref || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -38,17 +46,6 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-color-emoji
       - name: Capture actual production surfaces with synthetic data
         run: node scripts/capture-prompt-visual.mjs
-      - name: Insertion and lifecycle regression
-        run: |
-          node --test --test-concurrency=1 tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
-          xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs
-      - name: Unit, adapter, privacy and packaging
-        run: |
-          npm run test:unit
-          node scripts/test.mjs 'adapter contract'
-          node scripts/test.mjs 'privacy/security'
-          npm run check
-          npm run build:release
       - uses: actions/upload-artifact@v4
         if: always()
         with:

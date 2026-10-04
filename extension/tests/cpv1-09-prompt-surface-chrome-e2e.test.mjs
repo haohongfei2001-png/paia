@@ -74,6 +74,15 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    await card().evaluate(()=>document.documentElement.style.fontSize='28px');await page.screenshot({path:join(receiptDir,variant+'-200-percent.png')});screens.push(variant+'-200-percent.png');assert.ok(await card().evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await card().locator('#close').focus();await page.keyboard.press('Enter');await eventually(()=>!card());await orb.click();await open();
    const cdp=await h.context.newCDPSession(page);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});await cdp.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await card().locator('.more').first().click();assert.equal(await card().getByRole('button',{name:'编辑',exact:true}).isVisible(),true);await cdp.detach();
   });
+  await check('system and host theme transitions keep frame contrast without refresh, reordering or losing an edit',async()=>{
+   await page.emulateMedia({colorScheme:'light'});await card().locator('#refresh').click();await eventually(()=>card().locator('#refresh').isEnabled());
+   const f=card(),ids=await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id));
+   const expectTheme=async theme=>{await eventually(()=>orb.getAttribute('data-theme').then(x=>x===theme));await eventually(()=>f.evaluate(()=>getComputedStyle(document.documentElement).color).then(x=>x===(theme==='dark'?'rgb(225, 233, 231)':'rgb(36, 49, 51)')));assert.deepEqual(await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),ids);};
+   for(const theme of ['dark','light','dark','light']){await page.emulateMedia({colorScheme:theme});await expectTheme(theme);}
+   await f.locator('.row').first().locator('.more').click();await f.getByRole('button',{name:'编辑',exact:true}).click();await f.getByRole('textbox',{name:'复用文本'}).fill('unsaved theme transition');
+   await page.evaluate(()=>document.documentElement.classList.add('dark'));await expectTheme('dark');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved theme transition');
+   await page.evaluate(()=>document.documentElement.classList.remove('dark'));await expectTheme('light');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved theme transition');await f.getByRole('button',{name:'取消',exact:true}).click();
+  });
   await check('orb movement persists safely; idle CPU is bounded; no send, Provider, reply capture or site storage',async()=>{
    await card().locator('#close').click();await eventually(()=>!card());const box=await orb.boundingBox();await page.mouse.move(box.x+22,box.y+22);await page.mouse.down();await page.mouse.move(40,60,{steps:8});await page.mouse.up();await page.waitForTimeout(100);assert.equal(card(),undefined);const moved=await orb.boundingBox();assert.ok(Math.abs(moved.x-box.x)>5||Math.abs(moved.y-box.y)>5);
    await page.reload();await arrange(page);await orb.waitFor({state:'visible'});const restored=await orb.boundingBox();assert.ok(Math.abs(restored.x-moved.x)<2&&Math.abs(restored.y-moved.y)<2);
