@@ -1,0 +1,9 @@
+/* D6.1 proposed visual tokens. Documentation only; no production import. */
+:root{--d6-canvas:#fff;--d6-rail:#fafbfd;--d6-ink:#17233c;--d6-muted:#63728a;--d6-meta:#68778e;--d6-line:#e6ebf2;--d6-soft:#f4f6fa;--d6-selected:#eaf1ff;--d6-focus:#235dd3;--d6-selection:#ddeaff;--d6-brand:#a34f46;--d6-warning:#785a20;--d6-warning-bg:#faf5e9;--d6-danger:#b03549;--d6-danger-bg:#fcf0f2;--d6-success:#28694f;--d6-rail-width:184px;--d6-nav-width:312px;--d6-reader:800px;--d6-topic:936px;--d6-context:880px;--d6-compare:960px;--d6-gutter:44px;--d6-ui:13px;--d6-prose:16px;--d6-leading:29px;--d6-title:28px;--d6-title-leading:38px;--d6-radius:6px;--d6-modal-radius:10px;--d6-control-face:36px;--d6-target:32px;--d6-menu-motion:120ms;--d6-route-motion:180ms;--d6-candidate-motion:220ms;--d6-ease:cubic-bezier(.2,0,0,1);--d6-font:'Noto Sans CJK SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;--d6-title-font:Georgia,'Songti SC','Noto Serif CJK SC',SimSun,serif;--d6-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+[data-theme=dark]{--d6-canvas:#171d28;--d6-rail:#121823;--d6-ink:#e8edf7;--d6-muted:#b0bdd0;--d6-meta:#a5b4cb;--d6-line:#303b4c;--d6-soft:#202939;--d6-selected:#263b5b;--d6-focus:#94baff;--d6-selection:#314d79;--d6-brand:#e2a295;--d6-warning:#e4c387;--d6-warning-bg:#332c20;--d6-danger:#f4a2b1;--d6-danger-bg:#38242d;--d6-success:#96d7b9}
+@media(min-width:1280px) and (max-width:1439px){:root{--d6-nav-width:280px}}
+@media(min-width:1024px) and (max-width:1279px){:root{--d6-rail-width:160px;--d6-nav-width:240px}}
+@media(min-width:768px) and (max-width:1023px){:root{--d6-rail-width:64px;--d6-nav-width:0px}}
+@media(max-width:767px){:root{--d6-rail-width:0px;--d6-nav-width:0px;--d6-gutter:20px;--d6-title:24px;--d6-title-leading:35px;--d6-target:44px}}
+@media(pointer:coarse){:root{--d6-target:44px}}
+@media(prefers-reduced-motion:reduce){:root{--d6-menu-motion:0ms;--d6-route-motion:0ms;--d6-candidate-motion:0ms}}
