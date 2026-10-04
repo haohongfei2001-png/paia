@@ -44,3 +44,15 @@ route; the exact fixture route is restored after SPA verification.
 Geometry review also preserves default card height independently of pointer
 position, avoiding a resize on first movement in short viewports. Full geometry
 round trips are now asserted, not only orb coordinates.
+
+Safe placement also admits lateral space beside a narrow composer and intersects
+all candidate regions with the viewport, including when scrolling moves the
+composer off screen. Production lateral/edge/compact cases and offscreen units
+cover those bounds.
+
+[Run 37236682519](https://github.com/haohongfei2001-png/paia/actions/runs/37236682519)
+passed the complete release open/closed lifecycle. Its source run caught a test
+readiness error: the first storage sample still held the valid pre-drag `null`
+position while asynchronous persistence was pending. The existing bounded wait
+now checks that position exists before comparing the same exact coordinates;
+no timeout, numeric assertion or runtime behavior was weakened.
