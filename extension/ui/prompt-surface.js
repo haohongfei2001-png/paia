@@ -5,7 +5,7 @@ let refreshing=false,manualOrder=[],revision=0,hidden=false,editing=false,busy=f
 const attempted=new Set();
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}
 const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-label',label);if(busy||refreshing){b.dataset.pendingDisabled='0';b.disabled=true;}b.addEventListener('click',e=>{if(e.isTrusted)void fn(e);});return b;};
-function pending(value){busy=value;for(const b of document.querySelectorAll('button')){if(value){if(!('pendingDisabled' in b.dataset))b.dataset.pendingDisabled=b.disabled?'1':'0';b.disabled=true;}else if('pendingDisabled' in b.dataset){b.disabled=b.dataset.pendingDisabled==='1';delete b.dataset.pendingDisabled;}}}
+function pending(value){busy=value;for(const b of document.querySelectorAll('button,textarea,input')){if(value){if(!('pendingDisabled' in b.dataset))b.dataset.pendingDisabled=b.disabled?'1':'0';b.disabled=true;}else if('pendingDisabled' in b.dataset){b.disabled=b.dataset.pendingDisabled==='1';delete b.dataset.pendingDisabled;}}}
 const tell=text=>{status.replaceChildren(document.createTextNode(text));};
 async function refresh(internal=false){
  if(editing||(busy&&internal!==true)||drag||refreshing)return;
