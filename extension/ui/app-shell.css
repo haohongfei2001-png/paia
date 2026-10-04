@@ -29,7 +29,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .workspace.search-task>.workspace-header{display:none}
 .ux-skip-main{position:fixed;left:16px;top:-80px;z-index:10000;padding:8px 12px;background:var(--bg);border:1px solid var(--control);color:var(--text)}
 .ux-skip-main:focus{top:8px}
-#collection-panel,#settings-panel,#legacy-panel{max-width:1280px;margin-inline:auto}
+#collection-panel,#legacy-panel{max-width:1280px;margin-inline:auto}
 #archive-root-main{min-width:0;max-width:1280px;margin-inline:auto}
 #archive-root-main>#result-count{margin-top:16px}
 body.ans-nav-reader #document-panel{display:grid;grid-template-columns:minmax(0,1fr);max-width:none;margin:0 0 0 var(--nav-width)}
@@ -85,7 +85,6 @@ body.ans-nav-reader #archive-navigator{position:relative;top:0;width:100%;height
  .workspace-header #save-status{width:100%;order:10;margin:0}
  body.ans-nav-reader #archive-navigator.is-sheet{inset:72px 16px 16px;padding:16px}
 
- .ux-settings-header{top:57px}
 }
 @media(pointer:coarse){button,summary,input,select{min-height:44px}.sidebar-bottom>[data-view="settings"]{min-width:44px}.archive-navigator-window,.archive-navigator-group-toggle,.archive-navigator-more{min-height:44px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:0s!important;transition-duration:0s!important}}
