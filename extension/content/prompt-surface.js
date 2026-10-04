@@ -18,10 +18,10 @@
   scheduled=false;if(disposed||!host)return;
   const discovery=adapter.discover(),composer=discovery.node;availability=enabled?discovery.status:'surface_unavailable';if(!composer||!enabled){host.hidden=true;return;}
   if(url!==location.href)url=location.href;
-  const bounds=(composer.closest('form')||composer).getBoundingClientRect(),g=globalThis.PAIAPromptLayout(innerWidth,innerHeight,bounds,position);
+  const bounds=(composer.closest('form')||composer).getBoundingClientRect(),g=globalThis.PAIAPromptLayout(innerWidth,innerHeight,bounds,position,open);
   if(!g){availability='layout_unavailable';host.hidden=true;return;}geometry=g;host.hidden=false;availability='visible';
   host.dataset.theme=dark()?'dark':'light';
-  const anchor=open&&g.card?{x:g.card.x+g.card.w-40,y:g.card.y-32}:g.orb;
+  const anchor=g.orb;
   const style=`position:fixed;left:${anchor.x}px;top:${anchor.y}px;width:44px;height:44px;z-index:2147483646;`;
   if(host.getAttribute('style')!==style)host.setAttribute('style',style);
   if(open&&!frame&&g.card)expand();
@@ -46,10 +46,11 @@ iframe{border:1px solid #ffffffd9;border-radius:20px;background:linear-gradient(
 @media(prefers-reduced-motion:reduce){iframe{animation:none}}`;
   orb=document.createElement('button');orb.type='button';orb.setAttribute('aria-label','常用 Prompt；拖动或 Alt 加方向键移动');orb.setAttribute('aria-expanded','false');orb.title='常用 Prompt';const mark=document.createElement('span');mark.className='orb';mark.setAttribute('aria-hidden','true');const reflection=document.createElement('span');reflection.className='reflection';mark.append(reflection);orb.append(mark);root.append(style,orb);document.documentElement.append(host);
   listen(orb,'click',e=>{if(!e.isTrusted)return;if(suppress){suppress=false;return;}if(frame)frame.focus();else expand();});
-  listen(orb,'pointerdown',e=>{if(!e.isTrusted||e.button!==0)return;drag={x:e.clientX,y:e.clientY,start:geometry?.orb||host.getBoundingClientRect(),moved:false};orb.setPointerCapture(e.pointerId);});
+  listen(orb,'pointerdown',e=>{if(!e.isTrusted||e.button!==0)return;drag={x:e.clientX,y:e.clientY,start:host.getBoundingClientRect(),moved:false};orb.setPointerCapture(e.pointerId);});
   listen(orb,'pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)<5&&!drag.moved)return;drag.moved=true;suppress=true;position={x:Math.max(0,Math.min(1,(drag.start.x+dx)/(innerWidth-44))),y:Math.max(0,Math.min(1,(drag.start.y+dy)/(innerHeight-44)))};schedule();});
-  const end=()=>{if(drag?.moved)save();drag=null;};listen(orb,'pointerup',end);listen(orb,'pointercancel',end);
-  listen(orb,'keydown',e=>{if(e.altKey&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const r=geometry?.orb||host.getBoundingClientRect();position={x:Math.max(0,Math.min(1,(r.x+(e.key==='ArrowRight'?12:e.key==='ArrowLeft'?-12:0))/(innerWidth-44))),y:Math.max(0,Math.min(1,(r.y+(e.key==='ArrowDown'?12:e.key==='ArrowUp'?-12:0))/(innerHeight-44)))};layout();save();}else if(e.key==='Escape'&&open){e.preventDefault();frame?.focus();}});
+  const retainAnchor=()=>{layout();const r=host.getBoundingClientRect();position={x:Math.max(0,Math.min(1,r.x/(innerWidth-44))),y:Math.max(0,Math.min(1,r.y/(innerHeight-44)))};};
+  const end=()=>{if(drag?.moved){retainAnchor();save();}drag=null;};listen(orb,'pointerup',end);listen(orb,'pointercancel',end);
+  listen(orb,'keydown',e=>{if(e.altKey&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const r=host.getBoundingClientRect();position={x:Math.max(0,Math.min(1,(r.x+(e.key==='ArrowRight'?12:e.key==='ArrowLeft'?-12:0))/(innerWidth-44))),y:Math.max(0,Math.min(1,(r.y+(e.key==='ArrowDown'?12:e.key==='ArrowUp'?-12:0))/(innerHeight-44)))};retainAnchor();save();}else if(e.key==='Escape'&&open){e.preventDefault();frame?.focus();}});
   schedule();
  }
  async function activate(){try{const saved=await rpc();if(disposed)return;enabled=true;if(!initialized){position=saved.position;open=saved.open;initialized=true;}mount();schedule();}catch{enabled=false;if(host)host.hidden=true;frame?.remove();frame=null;}}

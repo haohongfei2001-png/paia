@@ -48,3 +48,33 @@ test('popup diagnostic is consent-only, exact-view authorized and returns bounde
  f.api.tabs.query=async()=>[{id:7,url,incognito:true}];assert.deepEqual(await f.s.handle(r,sender),{status:'not_chatgpt'});
  f.revoke();f.api.tabs.query=async()=>{throw Error('must not inspect tabs without consent');};assert.deepEqual(await f.s.handle(r,sender),{status:'consent_required'});assert.equal(f.writes.length,0);assert.equal(f.calls.length,0);
 });
+
+test('open geometry uses one visible anchor, projects the attached card into safe bands and restores without drift',async()=>{
+ const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
+ for(const width of [320,390,1280])for(const height of [500,844,900])for(const position of [null,{x:0,y:0},{x:1,y:1},{x:.5,y:.4}]){
+  const form={left:16,right:width-16,top:height-140,bottom:height-16},g=sandbox.PAIAPromptLayout(width,height,form,position,true);assert.ok(g?.card);
+  assert.equal(g.orb.x,g.card.x+g.card.w-40);assert.equal(g.orb.y,g.card.y-32);
+  for(const r of [g.orb,g.card]){assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=height);assert.ok(r.y+r.h<=form.top||r.y>=form.bottom);}
+  const saved={x:g.orb.x/(width-44),y:g.orb.y/(height-44)},restored=sandbox.PAIAPromptLayout(width,height,form,saved,true);assert.equal(restored.orb.x,g.orb.x);assert.equal(restored.orb.y,g.orb.y);assert.deepEqual(restored.card,g.card);
+ }
+});
+
+test('SPA geometry save binds the initial sender URL to the exact live document, without authorizing stale navigation',async()=>{
+ const f=fixture(),sender={id:'ext',tab:{id:7},frameId:0,url:url+'?initial',documentId:'document-synthetic',documentLifecycle:'active'},state={version:1,open:true,position:{x:.4,y:.3}},request={type:'PAIA_PROMPT_SURFACE_HOST',state};
+ assert.deepEqual(await f.s.handle(request,sender),state);assert.deepEqual(f.sent.at(-1),[7,{type:'PAIA_PROMPT_SURFACE_PROBE'},{documentId:'document-synthetic'}]);
+ for(const bad of [{...sender,documentId:undefined},{...sender,documentLifecycle:'cached'},{...sender,url:'https://other.example/'},{...sender,frameId:2}])await assert.rejects(()=>f.s.handle(request,bad));
+ f.api.tabs.sendMessage=async()=>({url:url+'/another'});await assert.rejects(()=>f.s.handle(request,sender));
+ f.api.tabs.sendMessage=async()=>{f.api.tabs.get=async()=>({id:7,url:url+'/navigated'});return {url};};await assert.rejects(()=>f.s.handle(request,sender));assert.equal(f.writes.length,1);assert.equal(f.calls.length,0);
+});
+
+test('open surface can move alongside a narrow composer instead of snapping to a vertical band',async()=>{
+ const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
+ const g=sandbox.PAIAPromptLayout(1280,900,{left:600,right:1264,top:770,bottom:884},{x:400/1236,y:500/856},true);assert.equal(g.orb.x,400);assert.equal(g.orb.y,500);assert.ok(g.card.x+g.card.w<600);assert.ok(g.card.y+g.card.h<=900);
+});
+
+test('saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport',async()=>{
+ const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
+ for(const width of [320,1280])for(const form of [{left:16,right:width-16,top:940,bottom:1040},{left:16,right:width-16,top:-200,bottom:-20},{left:width+20,right:width+400,top:300,bottom:500},{left:-400,right:-20,top:300,bottom:500}])for(const position of [{x:0,y:0},{x:1,y:1},{x:.5,y:.5}]){
+  const g=sandbox.PAIAPromptLayout(width,900,form,position,true);assert.ok(g?.card);for(const r of [g.orb,g.card])assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=900,JSON.stringify({form,position,g}));
+ }
+});
