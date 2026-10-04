@@ -1,3 +1,4 @@
+import {inspectScopeOrder,materializeScopeBaseline} from './harness/d5-organize-scope-order.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -44,4 +45,15 @@ for(const variant of ['source','release'])test(`D3 exact scope, first adoption a
   assert.deepEqual(await Promise.all([ids[0],ids.at(-1)].map(id=>rpc(p,'GET_LIBRARY_ENTRY',{id}))),before);await p.locator('#ai-presentation-toggle').uncheck();await p.locator('#ai-presentation-toggle').check();assert.equal(calls,3,'viewing saved output never generates');assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
   writeFileSync(`work/qa-dvn-organize/${variant}.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,intendedCount:160,batchCount:8,remainingCount:152,firstCurrentAbsent:true,firstAllKeep:true,mixedDefaults:true,afterCommitReadback:true,beforeCommitSameAttempt:true,sourceUnchanged:true,providerFixtureRequests:calls,matrix},null,2));
  }finally{await h.close();}
+});
+
+
+// Exact adopted-source and release baseline; no provider call is permitted.
+test('D5 O01 records the pinned adopted consent-review ordering in source and release',{timeout:240000},async()=>{
+ const paths=await materializeScopeBaseline();
+ for(const variant of ['source','release']){const h=await FakeChatGPT.start({extensionPath:paths[variant],onboarding:true,deepSeekFixture:async()=>{throw Error('UNEXPECTED_SCOPE_BASELINE_PROVIDER_CALL');}});try{const p=await ready(h),seeded=await seed(p);await open(p,seeded.topicId);await inspectScopeOrder(h,variant,{baseline:true,...seeded});}finally{await h.close();}}
+});
+for(const variant of ['source','release'])test(`D5 O01 disclosure precedes unchanged native approval and preserves no-request exits (${variant})`,{timeout:240000},async()=>{
+ const h=await FakeChatGPT.start({...variant==='release'?{extensionPath:release}:{},onboarding:true,deepSeekFixture:async()=>{throw Error('UNEXPECTED_SCOPE_ORDER_PROVIDER_CALL');}});
+ try{const p=await ready(h),seeded=await seed(p);await open(p,seeded.topicId);await inspectScopeOrder(h,variant,seeded);}finally{await h.close();}
 });
