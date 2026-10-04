@@ -123,6 +123,19 @@ holds below are historical and superseded only by this explicit owner amendment.
 
 # Canonical Status — PAIA Consumer Product v1
 
+## D7 AI Context appearance — 2026-10-04
+
+Current batch: `D7_CONTEXT_UI_FROZEN_CANDIDATE`. Organize PR152 is adopted at
+`3a127c2d69f9d33cc0e7ae90d7d1c5e3ac0e5408`. The next
+[bounded Context appearance slice](implementation/desktop-vnext/D7-CONTEXT-UI.md)
+uses actual D6.2 C00–C11 masters through the existing display-only presenter.
+The old Context functionality remains void: no retrieval, assembly, authorization,
+model call, clipboard/export or data-write path is connected. Ordinary entry
+stays empty and clearly unavailable; supplied states are explicitly not generated
+or saved. Exact-head hosted source/release pixels and independent review remain
+pending. No Settings/system expansion, public release or install delivery.
+
+
 ## D7 AI Organize appearance — 2026-10-04
 
 Current batch: `D7_ORGANIZE_UI_FROZEN_CANDIDATE`. Thought/Years/Write Thought
