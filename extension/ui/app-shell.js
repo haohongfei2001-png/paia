@@ -78,6 +78,7 @@ export class AppShellController {
    }
    const node=get(id),next=host===home?this.archiveHeaderOrder?.slice(this.archiveHeaderOrder.indexOf(node)+1).find(item=>item.parentElement===home)||null:undefined;move(node,host,next);
   }
+  if(reader&&!desktop)move(get('back'),get('reader-compact-tools'),get('archive-navigator-toggle'));
   move(get('archive-root-overflow'),get(root?'archive-root-header-actions':'archive-root-tools'));
   move(get('archive-source-scope-label'),root?get('archive-root-overflow').querySelector('.archive-root-overflow-actions'):get('archive-root-tools'));
   for(const {node,parent,next}of this.archiveNavHomes)move(node,compact?get('archive-compact-nav-items'):parent,compact?undefined:next||null);

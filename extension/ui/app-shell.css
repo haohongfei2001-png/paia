@@ -121,6 +121,7 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) .sidebar-bottom
 body:is([data-paia-space="library"],[data-paia-space="archive"]) .workspace{padding:0 0 64px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #page-breadcrumb{display:none}
 body:is([data-paia-space="library"],[data-paia-space="archive"]):is(.ans-nav-root,.ans-nav-reader) .workspace-header{display:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-reader-navigator-slot{display:none}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #collection-panel{max-width:none;margin:0;padding:24px var(--archive-gutter) 64px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #archive-root-main{max-width:none;margin:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #archive-root-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:20px 32px;margin:0 0 32px}

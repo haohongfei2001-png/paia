@@ -6,6 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {eventually} from './fake-chatgpt.mjs';
 import {openArchiveWindow} from './archive-navigator.mjs';
+import {assertTitleVisibility} from './d7-title-visibility.mjs';
 
 const masters=new URL('../../docs/consumer-product-v1/desktop-vnext/d6-final-visual-master/screens/',import.meta.url);
 import {D7_ARCHIVE_MATRIX,D7_FULL_MATRIX} from './d7-archive-matrix.mjs';
@@ -52,7 +53,7 @@ export async function seedD7Archive(h,{readerOnly=false}={}){
  const titles=[D7_READER_FIXTURE.title,'第一次试用之后的想法','路线可以少一点吗','Onboarding: what stays simple','长期使用，而不是一次惊喜','职业方向','学习与写作','日常想法','一次还没命名的讨论'];
  const projects=['河岸散步','河岸散步','河岸散步','河岸散步','河岸散步','职业方向','学习与写作','日常想法',null],fixtures=[];
  for(let i=0;i<(readerOnly?1:titles.length);i++){
-  const fixture={id:`d7-archive-normal-${i}`,title:titles[i],base:Date.parse(i?'2026-09-27T09:00:00Z':D7_READER_FIXTURE.times[0])/1000,messages:(i?['这是用于 D7 档案视觉验证的合成输入。']:D7_READER_FIXTURE.bodies).map((text,j)=>({id:`d7-archive-normal-${i}-${j}`,text}))};
+  const fixture={id:`d7-archive-normal-${i}`,title:titles[i],base:Date.parse(i?'2026-09-27T09:00:00Z':D7_READER_FIXTURE.times[0])/1000+(i?(9-i)*60:0),messages:(i?['这是用于 D7 档案视觉验证的合成输入。']:D7_READER_FIXTURE.bodies).map((text,j)=>({id:`d7-archive-normal-${i}-${j}`,text}))};
   const response=h.response(fixture);
   if(!i)for(const [j,node]of ['first','second','third','node3'].entries()){response.mapping[node].message.create_time=Date.parse(D7_READER_FIXTURE.times[j])/1000;response.mapping[node].message.update_time=response.mapping[node].message.create_time+1;}
   h.pending.set(fixture.id,response);const capture=await h.open(fixture);fixtures.push({id:fixture.id,project:projects[i]});
@@ -94,10 +95,24 @@ export async function openD7Reference(h,{screen='A02',width=1440,theme='light'}=
 }
 
 async function measure(page,screen){return page.evaluate(screen=>{
+ const titleVisibility=selector=>{
+  const node=document.querySelector(selector),rects=[],clips=[],hidden=[],unsupported=[];
+  const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);let text;
+  while((text=walker.nextNode())){if(!text.data)continue;const range=document.createRange();range.selectNodeContents(text);for(const r of range.getClientRects())rects.push({left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height});}
+  for(let ancestor=node;ancestor;ancestor=ancestor.parentElement){
+   const s=getComputedStyle(ancestor),r=ancestor.getBoundingClientRect(),id=ancestor.id||ancestor.tagName;
+   if(s.display==='none'||s.visibility!=='visible'||Number(s.opacity)===0)hidden.push(id);
+   if(s.clipPath!=='none'||s.clip!=='auto'||parseInt(s.webkitLineClamp)>0||(s.maskImage&&s.maskImage!=='none')||(s.webkitMaskImage&&s.webkitMaskImage!=='none'))unsupported.push({id,clipPath:s.clipPath,clip:s.clip,lineClamp:s.webkitLineClamp,maskImage:s.maskImage,webkitMaskImage:s.webkitMaskImage});
+   const x=s.overflowX!=='visible',y=s.overflowY!=='visible';
+   if(x||y)clips.push({id,x,y,left:r.left+ancestor.clientLeft,right:r.left+ancestor.clientLeft+ancestor.clientWidth,top:r.top+ancestor.clientTop,bottom:r.top+ancestor.clientTop+ancestor.clientHeight});
+  }
+  return {rects,clips,hidden,unsupported,viewport:{left:0,top:0,right:innerWidth,bottom:innerHeight}};
+ };
  const read=selector=>{const node=document.querySelector(selector);if(!node)return null;const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height,visible:!!(r.width&&r.height)&&s.visibility!=='hidden',text:node.textContent,value:node.value,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth,scrollHeight:node.scrollHeight,clientHeight:node.clientHeight,...Object.fromEntries(['fontFamily','fontSize','fontWeight','lineHeight','color','backgroundColor','borderRightColor','whiteSpace','paddingTop','paddingRight','paddingBottom','paddingLeft'].map(key=>[key,s[key]]))};};
  const reader=screen==='A02';
- return {viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},overflow:document.documentElement.scrollWidth-innerWidth,theme:document.documentElement.dataset.paiaTheme,language:document.documentElement.lang,coarse:matchMedia('(pointer:coarse)').matches,fontEnvironment:{sans:document.fonts.check('16px "Noto Sans CJK SC"'),serif:document.fonts.check('28px "Noto Serif CJK SC"'),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone},rail:read('.sidebar'),logo:read('.brand img'),brand:read('.brand'),nav:read('#primary-nav'),selected:read('.sidebar [data-view="library"]'),navigator:read('#archive-reader-navigator-slot'),root:read(reader?'#document-page':'#collection-panel'),title:read(reader?'#document-title':'#archive-root-heading h1'),search:read('#scope-search'),searchHost:document.querySelector('#scope-search-host')?.parentElement.id,back:read('#back'),backHost:document.querySelector('#back')?.parentElement.id,sort:read('#input-time-toggle'),menu:read('#document-menu'),status:read('#save-status'),actions:read(reader?'#reader-heading-actions':'#archive-root-header-actions'),body:read('#document-body'),prose:read('.library-prose'),caption:read('#document-body .block-time'),compact:read('#archive-compact-navigation'),rootOverflow:read('#archive-root-overflow'),groupTitles:[...document.querySelectorAll('.archive-navigator-group-toggle')].map(node=>node.textContent),documentTitleInsidePage:!!document.querySelector('#document-page #document-title'),oneSearch:document.querySelectorAll('#scope-search').length,oneSort:document.querySelectorAll('#input-time-toggle').length,modal:!!document.querySelector('dialog:modal'),declaredPreference:{size:document.documentElement.style.getPropertyValue('--paia-prose-size'),width:document.documentElement.style.getPropertyValue('--paia-prose-width')}};
+ return {titleVisibility:titleVisibility(reader?'#document-title':'#archive-root-heading h1'),viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},overflow:document.documentElement.scrollWidth-innerWidth,theme:document.documentElement.dataset.paiaTheme,language:document.documentElement.lang,coarse:matchMedia('(pointer:coarse)').matches,fontEnvironment:{sans:document.fonts.check('16px "Noto Sans CJK SC"'),serif:document.fonts.check('28px "Noto Serif CJK SC"'),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone},rail:read('.sidebar'),logo:read('.brand img'),brand:read('.brand'),nav:read('#primary-nav'),selected:read('.sidebar [data-view="library"]'),navigator:read('#archive-reader-navigator-slot'),root:read(reader?'#document-page':'#collection-panel'),title:read(reader?'#document-title':'#archive-root-heading h1'),search:read('#scope-search'),searchHost:document.querySelector('#scope-search-host')?.parentElement.id,back:read('#back'),backHost:document.querySelector('#back')?.parentElement.id,sort:read('#input-time-toggle'),menu:read('#document-menu'),status:read('#save-status'),actions:read(reader?'#reader-heading-actions':'#archive-root-header-actions'),body:read('#document-body'),prose:read('.library-prose'),caption:read('#document-body .block-time'),compact:read('#archive-compact-navigation'),rootOverflow:read('#archive-root-overflow'),groupTitles:[...document.querySelectorAll('.archive-navigator-group-toggle')].map(node=>node.textContent),documentTitleInsidePage:!!document.querySelector('#document-page #document-title'),oneSearch:document.querySelectorAll('#scope-search').length,oneSort:document.querySelectorAll('#input-time-toggle').length,modal:!!document.querySelector('dialog:modal'),declaredPreference:{size:document.documentElement.style.getPropertyValue('--paia-prose-size'),width:document.documentElement.style.getPropertyValue('--paia-prose-width')}};
  },screen);}
+
 
 function assertLayout(actual,row){
  const {width,theme,screen,stress}=row,reader=screen==='A02',rail=width>=1280?184:width>=1024?160:width>=768?64:0,nav=reader&&width>=1024?(width>=1440?312:width>=1280?280:240):0,gutter=width>=768?44:20;
@@ -122,8 +137,9 @@ function assertLayout(actual,row){
   assert.equal(parseFloat(actual.prose.fontSize),17*(stress==='text200'?2:1),'actual standard body size is reported honestly');assert.equal(actual.declaredPreference.width,'680px');assert.equal(actual.declaredPreference.size,'17px');
   assert.equal(actual.prose.whiteSpace,'pre-wrap');assert.ok(actual.caption.visible,'native time caption remains visible');
   if(!stress&&width>=1024)near(actual.title.y,24,row.id+' title top');
- }else{near(actual.root.x,rail,row.id+' root starts immediately after primary rail');assert.equal(actual.rootOverflow.visible,true,'root overflow remains available');}
- if(!stress)assert.equal(actual.title.scrollHeight,actual.title.clientHeight,'whole title has no clipped lines');
+ }else{near(actual.root.x,rail,row.id+' root starts immediately after primary rail');if(width>=768)near(actual.title.y,24,row.id+' root title top');assert.equal(actual.rootOverflow.visible,true,'root overflow remains available');}
+ assert.equal(parseFloat(actual.title.lineHeight),(width<768?35:38)*(stress==='text200'?2:1),'exact approved title line height');
+ assertTitleVisibility(actual.titleVisibility,row.id+' whole title');
 }
 
 async function nativeReachability(page,selectors,{floor=32}={}){
@@ -150,6 +166,9 @@ async function selectArchive(page){
 async function openNormalReader(page){
  await openArchiveWindow(page,{text:D7_READER_FIXTURE.title,label:'D7 ordinary root to project to Reader'});
  await eventually(async()=>await page.locator('#document-panel').isVisible()&&await page.locator('#scope-search').isEnabled()&&await page.locator('.library-prose').count()===4,'D7 normal Reader is complete');
+ // Discovery may expand earlier projects. Match the master selected-project
+ // state with the existing disclosure controls, without changing source order.
+ for(const group of await page.locator('.archive-navigator-group-toggle').all())if(!/河岸散步/.test(await group.textContent())&&await group.getAttribute('aria-expanded')==='true')await group.click();
  assert.deepEqual(await page.locator('.library-prose').allTextContents(),D7_READER_FIXTURE.bodies,'exact synthetic Working Input text');
  const dates=await page.evaluate(times=>times.map(at=>new Date(at).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'})+' · '+new Date(at).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false})),D7_READER_FIXTURE.times);
  assert.deepEqual(await page.locator('#document-body .block-time').allTextContents(),dates,'exact native captured source times');
@@ -167,14 +186,33 @@ async function inspectSource(page,bodies){
 export async function verifyD7ArchiveBehavior(h,seed,{directory,variant,observations,persist}){
  const page=h.archive,record=async(kind,data={})=>{observations.push({kind,...data});await persist();};
  await page.setViewportSize({width:1440,height:1000});await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await frame(page);await page.evaluate(()=>scrollTo(0,0));
+ // Prove the replacement oracle detects real clipping in this same Chromium,
+ // then restore the title's exact prior inline style before normal interactions.
+ const titleStyle=await page.locator('#document-title').getAttribute('style');
+ try{
+  for(const [kind,style]of [['overflow-hidden','height:1px;overflow:hidden'],['line-clamp','width:120px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden'],['mask','mask-image:linear-gradient(transparent,transparent)']]){
+   await page.locator('#document-title').evaluate((node,style)=>node.style.cssText=style,style);await frame(page);
+   const mutant=await measure(page,'A02');assert.throws(()=>assertTitleVisibility(mutant.titleVisibility),/clipping|line clamp/);await record('title-clipping-oracle-rejects',{kind,visibility:mutant.titleVisibility});
+  }
+ }finally{await page.locator('#document-title').evaluate((node,style)=>style===null?node.removeAttribute('style'):node.setAttribute('style',style),titleStyle);await frame(page);}
+ assertTitleVisibility((await measure(page,'A02')).titleVisibility);
  // DOM order follows the real relocated controls: search, then project Back.
  await page.locator('#scope-search').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'back');
  await page.locator('#input-time-toggle').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'document-menu');
  await record('wide-keyboard-order',{order:['scope-search','back','input-time-toggle','document-menu'],note:'navigator rows and editable title occur between Back and sort in the full native tab sequence'});
  await page.locator('#scope-search').fill('短暂的新鲜感');await eventually(()=>page.locator('.document-search-hit').count().then(count=>count>0),'existing local Reader search returns the exact normal fixture');await page.locator('#scope-search').fill('');
  await eventually(async()=>await page.locator('.library-prose').count()===4&&!await page.locator('#document-search-tools').isVisible(),'clearing Reader search returns the normal body');assert.deepEqual(await page.locator('.library-prose').allTextContents(),D7_READER_FIXTURE.bodies);await record('reader-search-clear');
- await page.locator('#input-time-toggle').press('Enter');await eventually(async()=>await page.locator('#input-time-toggle').getAttribute('data-current-sort')==='desc','native sort changes to descending');assert.deepEqual(await page.locator('.library-prose').allTextContents(),D7_READER_FIXTURE.bodies.toReversed());
- await page.locator('#input-time-toggle').press('Enter');await eventually(async()=>await page.locator('#input-time-toggle').getAttribute('data-current-sort')==='asc','native sort returns to ascending');assert.deepEqual(await page.locator('.library-prose').allTextContents(),D7_READER_FIXTURE.bodies);await record('sort-both-directions');
+ for(const [sort,query,expected]of [['desc','现在我更希望',D7_READER_FIXTURE.bodies.toReversed()],['asc','我可能更适合',D7_READER_FIXTURE.bodies]]){
+  await page.locator('#input-time-toggle').press('Enter');await eventually(async()=>await page.locator('#input-time-toggle').getAttribute('data-current-sort')===sort&&(await rpc(page,'GET_ORGANIZER_CONTROLS')).inputReadingSort===sort,'native sort and persisted preference '+sort);
+  const anchoredBodies=await page.locator('.library-prose').allTextContents();
+  // Existing sort retains the current Input anchor, so its bounded window may
+  // omit a prefix. Open this order's first Input through ordinary Reader search.
+  await page.locator('#scope-search').fill(query);await eventually(()=>page.locator('.document-search-hit').count().then(count=>count===1),'unique order endpoint search');await page.locator('.document-search-hit').click();
+  await eventually(async()=>JSON.stringify(await page.locator('.library-prose').allTextContents())===JSON.stringify(expected)&&await page.locator('#scope-search').isEnabled(),'all four exact bodies after opening '+sort+' endpoint');
+  await page.locator('#scope-search').fill('');await eventually(async()=>!await page.locator('#document-search-tools').isVisible(),'endpoint search cleared without restoring prior anchor');
+  assert.deepEqual(await page.locator('.library-prose').allTextContents(),expected);assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).inputReadingSort,sort);await record('sort-endpoint',{sort,anchoredBodies,endpointQuery:query,exactBodies:expected});
+ }
+ await record('sort-both-directions');
  await inspectSource(page,D7_READER_FIXTURE.bodies);const beforeEdit=await h.state();assert.deepEqual(beforeEdit.records,seed.sourceBefore,'all Sources unchanged before the edit');assert.deepEqual(beforeEdit.library.blocks,seed.workingBefore,'visual changes, search and sort preserve every existing Working Input');await record('source-and-working-before-edit');
  const field=page.locator('.library-prose').first(),id=await field.getAttribute('data-edit-id'),literal=D7_READER_FIXTURE.bodies[0]+'\n\n  D7 保存核验：空格与换行不变。\n\t<literal>& **原样**  ';
  await field.fill(literal);await page.locator('#scope-search').focus();await eventually(async()=>(await rpc(page,'GET_INPUT',{id})).libraryText===literal,'basic edit durably stores exact literal text');
@@ -242,7 +280,7 @@ export async function compareD7Archive(h,variant,{matrix='full',directory='work/
      row.reachability=await nativeReachability(page,['#back','#archive-navigator-toggle','#scope-search','#input-time-toggle','#document-menu'],{floor:44});
      if(row.stress==='text200'){
       row.stressMethod='200% text size on actual title, captions, prose and controls; not a claim of browser page zoom';
-      assert.equal(row.actual.title.text,D7_READER_FIXTURE.title);assert.equal(row.actual.title.scrollHeight,row.actual.title.clientHeight,'200% title has no clipped lines');
+      assert.equal(row.actual.title.text,D7_READER_FIXTURE.title);assertTitleVisibility(row.actual.titleVisibility,'200% title');
      }else{
       assert.equal(row.actual.coarse,true);await page.locator('#document-menu').scrollIntoViewIfNeeded();const box=await page.locator('#document-menu').boundingBox();await page.evaluate(()=>{globalThis.__d7Touch=[];document.getElementById('document-menu').addEventListener('click',event=>__d7Touch.push({trusted:event.isTrusted,pointerType:event.pointerType}),{once:true});});await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+box.width/2,y:box.y+box.height/2,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.locator('#context-menu').waitFor({state:'visible'});row.touch=await page.evaluate(()=>__d7Touch);assert.deepEqual(row.touch,[{trusted:true,pointerType:'touch'}]);await page.keyboard.press('Escape');
      }

@@ -58,6 +58,15 @@ test('Compact navigation reuses all buttons and restores each original owner on 
  assert.equal(nodes.get('scope-search-host').parentElement,home);assert.equal(nodes.get('save-status').parentElement,home);
  for(const node of buttons)assert.equal(node.handlers.length,1);
 }));
+test('Desktop to compact Reader preserves Back before the same navigator control and retains focus',()=>fixture(({owner,nodes})=>{
+ owner.route={view:'library',documentId:'synthetic-document'};owner.presentArchiveComposition({consented:true});
+ const back=nodes.get('back'),toggle=nodes.get('archive-navigator-toggle'),tools=nodes.get('reader-compact-tools');
+ assert.deepEqual(tools.children,[toggle]);back.focus();
+ for(let i=0;i<3;i++){
+  owner.archiveDesktop.matches=false;owner.presentArchiveComposition();assert.deepEqual(tools.children,[back,toggle]);assert.equal(document.activeElement,back);
+  owner.archiveDesktop.matches=true;owner.presentArchiveComposition();assert.deepEqual(tools.children,[toggle]);assert.equal(document.activeElement,back);
+ }
+}));
 test('Repeated route and width presentation never duplicates controls or acquires data access',()=>fixture(({owner,nodes,buttons,home})=>{
  for(let i=0;i<6;i++){owner.route={view:'library',documentId:i%2?'synthetic-document':null};owner.archiveDesktop.matches=i%3===0;owner.archiveCompact.matches=i%3===1;owner.presentArchiveComposition({consented:true});}
  owner.presentArchiveComposition({consented:false});

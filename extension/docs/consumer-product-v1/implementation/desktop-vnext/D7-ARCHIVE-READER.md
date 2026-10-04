@@ -23,3 +23,13 @@ The existing UIR-01 complete journey keeps its interaction/privacy assertions; o
 Required before adoption: independent source review, complete affected native evidence, original Source equality, durable exact Working Input readback, no external requests, package/privacy/unit gates, actual whole-window design review, exact-head merge and main verification. Screenshots and all checks remain pending. Public consumer release/install delivery remains held.
 
 The package audit records only the two reviewed extension-UI keyboard listeners as exact code/count matches: compact menu Escape and native search history isolation. Mutant checks reject duplicate, altered, broader or foreign-path listeners; all other keyboard restrictions remain.
+
+## First hosted candidate and bounded correction
+
+Candidate `ad8717734b3c2703c140fd9370ad038edafd807a`: basic candidate gate `37199584368` PASS; native `37199584450` FAIL (one prior shell case passed; both new variants and UIR-01 failed). Artifact `11302795795` retains all23 actual frames per variant; ZIP SHA256 `b2613ebc1a80ae81897196aed80442276c0ef5cd5523e44969da8bfad0945668`. This is failed evidence, not adoption.
+
+The actual pixels and owner inspection identified two presentation corrections: the empty Reader search slot contributed16px margin on the wide Archive root, and resizing from desktop left Back after the already-mounted navigator button. Scope the empty slot to Reader and explicitly preserve the same compact controls' order/focus. Native comparison now additionally asserts the root title's24px top.
+
+The first title oracle confused CJK glyph ink extending beyond a38px line box with clipping. Its replacement retains exact font/line/axis assertions and checks every text Range fragment against viewport and real clipping ancestors, rejecting masks/line clamps and hidden text. Pure negative cases and actual Chromium overflow-hidden/line-clamp/mask mutants must fail; no tolerance was enlarged. Discovery-expanded unrelated projects are closed via ordinary controls; synthetic conversation timestamps are distinct so source/release ordering is deterministic.
+
+The three-row descending result was the unchanged bounded window anchored to the previously visible2023 Input: its exclusive cursor omitted the prefix. The test now records that anchored result, opens the active order's endpoint using existing Reader search, then still asserts all four complete bodies in exact order and unchanged durable Source/Working snapshots. No pagination or storage implementation changes. The original source/release failure remains retained; corrected native evidence is pending.
