@@ -15,7 +15,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   const arrange=async p=>{await p.addStyleTag({content:'body{margin:0;min-height:100vh}form{position:fixed;left:16px;right:16px;bottom:16px;border:1px solid #aaa;padding:12px;background:#fafafa}#blur{position:fixed;top:8px;left:8px}@media(prefers-color-scheme:dark){body{background:#1f1f1f;color:#eee}form{background:#292929}}'});};await arrange(page);
   const orb=page.locator('[data-paia-prompt-surface]');await orb.waitFor({state:'visible'});
   const card=()=>page.frames().find(f=>f.url().includes('/ui/prompt-surface.html#'));
-  const open=async()=>{if(!card())await orb.click();await eventually(()=>!!card());await card().locator('.row').first().waitFor();return card();};
+  const open=async()=>{if(!card())await orb.click();await eventually(()=>!!card());await card().locator('.row').first().waitFor();await (await card().frameElement()).evaluate(async e=>{await Promise.all(e.getAnimations().map(a=>a.finished));});return card();};
   const collapsedBeforeOpen=await orb.boundingBox();await open();await card().locator('#close').click();await eventually(()=>!card());assert.deepEqual(await orb.boundingBox(),collapsedBeforeOpen);await open();world=await isolated(page,h.extensionId);
   await check('orb toggle collapses idle card, preserves anchor and uses native Enter and Space',async()=>{
    // Preserve the user's saved visible anchor across both states (default placement stays unchanged).
@@ -23,7 +23,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    const anchor=await orb.boundingBox();await orb.click();await eventually(()=>!card(),'idle orb click must collapse');assert.deepEqual(await orb.boundingBox(),anchor);
    await open();assert.deepEqual(await orb.boundingBox(),anchor);
    for(const key of ['Enter','Space']){
-    await page.locator('#blur').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.hasAttribute('data-paia-prompt-surface')),true);await page.keyboard.press(key);await eventually(()=>!card(),key+' closes');await page.keyboard.press(key);await open();assert.deepEqual(await orb.boundingBox(),anchor);
+    await page.locator('#blur').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.hasAttribute('data-paia-prompt-surface')),true);await page.keyboard.press(key);await eventually(()=>!card(),key+' closes');await page.keyboard.press(key);await eventually(()=>!!card(),key+' reopens');await open();assert.deepEqual(await orb.boundingBox(),anchor);
    }
    // A sub-threshold pointer excursion remains an ordinary click.
    const b=await orb.boundingBox();await page.mouse.move(b.x+22,b.y+22);await page.mouse.down();await page.mouse.move(b.x+24,b.y+24);await page.mouse.up();await eventually(()=>!card(),'short pointer movement still toggles');await open();

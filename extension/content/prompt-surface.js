@@ -8,7 +8,7 @@
  const listen=(node,event,fn,options)=>{node.addEventListener(event,fn,options);listeners.push(()=>node.removeEventListener(event,fn,options));};
  const rpc=async state=>{const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_HOST',...(state?{state}:{})});if(!r?.ok)throw Error('unavailable');return r.data;};
  // The private card owns editing/busy/IME guards. A host gesture only requests closure.
- const requestClose=()=>{if(frame)void chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce}).catch(()=>{orb.title='无法关闭，请稍后重试';});};
+ const requestClose=()=>{if(frame)void chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce}).then(r=>{if(!r?.ok)throw Error('unavailable');}).catch(()=>{orb.title='无法关闭，请稍后重试';});};
  const save=()=>void rpc({version:1,open,position}).catch(()=>{orb.title='位置未保存；下次打开可重试';});
  function close(focus=false){open=false;frame?.remove();frame=null;nonce=null;orb?.setAttribute('aria-expanded','false');layout();if(focus)orb?.focus();save();}
  function expand(){

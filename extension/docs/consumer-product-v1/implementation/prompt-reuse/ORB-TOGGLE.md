@@ -47,3 +47,27 @@ reload, SPA and worker restart. Existing insertion and lifecycle cases remain.
 `REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE` is preserved.
 No D7, Stage 3/capsule, reply reading, second provider, B-01–B-05, paid service or
 public distribution change is included.
+
+## First hosted execution and review follow-up
+
+[Foundation 37240671803](https://github.com/haohongfei2001-png/paia/actions/runs/37240671803)
+on `1b8e07dccd188449fefafa6ec3b900efc93e84d6` passed all 14 compatibility
+and 40 insertion registrations, then failed Surface (4/36 PASS, 32 FAIL including
+parent registrations). The first new keyboard test called the pointer-fallback
+`open()` helper before the key-created iframe had its navigated URL; the extra
+click now correctly toggled that frame closed, causing later shared-state
+failures. The correction explicitly waits for key-only frame creation before
+calling the readiness helper, so a missing keyboard-open cannot be masked.
+The drag follow-on also sampled the new frame's entry animation (0.32px offset).
+The readiness helper now awaits existing animation completion before preserving
+the same exact geometry assertions. No timeout, fixture or assertion is weakened.
+Independent review cleared the runtime; its additional safe-feedback correction
+handles ordinary worker `{ok:false}` responses as well as transport failures.
+
+Local full unit: 1,813 PASS / 1 FAIL / 0 SKIP. The unchanged 10,000-Input fake-IDB
+benchmark exceeded its existing 120-second gate on this execution machine. Its
+threshold and fixture remain untouched; hosted full-unit proof is still required.
+Local source package 11,445 checks / 292 resources and generated release 309-file
+product guard pass. Three changed runtime files match source/release bytes.
+[Initial visual evidence](https://github.com/haohongfei2001-png/paia/actions/runs/37240678117)
+passed; this does not certify the corrected head or current real ChatGPT.
