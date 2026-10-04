@@ -1,3 +1,24 @@
+# Prompt Reuse — open Surface drag repair integrated
+
+[PR #157](https://github.com/haohongfei2001-png/paia/pull/157) merged as
+`b959a69d66f5b780778f8e431c2e0c38656720b7`, after synchronizing main
+`4bff3d0b8fa48981aea2ee4e9fae1f2b2ac1c28c`. The visible orb is now the single
+Surface anchor for open pointer/keyboard movement and persistence. The card
+moves with it and remains open; viewport and whole-composer safety are retained.
+SPA position saving is bound to the same live document, without changing
+insertion authorization or semantics.
+
+**Bounded drag defect: ENGINEERING_COMPLETE. Visual state: `VISUAL_ACCEPTED`.**
+**`OWNER_VISUAL_ACCEPTANCE = PASS`.**
+**`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE`.**
+
+[Drag receipt](implementation/prompt-reuse/OPEN-SURFACE-DRAG.md) records source /
+release open and closed drag, lifecycle/persistence and keyboard/edge regressions:
+Surface 32/32, compatibility 14/14, insertion 40/40, 1,807 unit, 102 adapter,
+59 privacy/security plus package, visual and certification checks PASS.
+No Family/ranking/management, schema, Backup, permissions, Visual Master, Stage 3,
+second provider, B-04 or D7 change. All earlier entries below are preserved.
+
 # Prompt Reuse — bounded composer compatibility repair integrated
 
 [PR #155](https://github.com/haohongfei2001-png/paia/pull/155) merged as
