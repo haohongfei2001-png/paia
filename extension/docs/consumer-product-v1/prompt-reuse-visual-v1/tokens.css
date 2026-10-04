@@ -1,0 +1,40 @@
+/* PAIA Prompt Reuse Visual Master v1 — implementation target tokens.
+   Pure visual authority remains the SVG masters when a token and image disagree. */
+:root {
+  --pr-orb-face: 40px;
+  --pr-orb-target: 44px;
+
+  --pr-card-width: 336px;
+  --pr-card-reference-height: 350px;
+  --pr-card-max-height: 400px;
+  --pr-card-radius: 20px;
+
+  --pr-row-min-height: 51px;
+  --pr-row-pad-x: 20px;
+  --pr-row-font-size: 13.3px;
+  --pr-row-line-height: 1.55;
+
+  --pr-light-text: #1d2738;
+  --pr-light-muted: #64748b;
+  --pr-light-glass-a: rgba(255,255,255,.94);
+  --pr-light-glass-b: rgba(245,248,255,.90);
+  --pr-light-glass-c: rgba(234,241,255,.82);
+  --pr-light-line: rgba(127,147,174,.09);
+  --pr-light-hover: rgba(255,255,255,.55);
+
+  --pr-dark-text: #e9eef6;
+  --pr-dark-muted: #a6b2c2;
+  --pr-dark-glass-a: rgba(49,58,72,.86);
+  --pr-dark-glass-b: rgba(32,39,52,.82);
+  --pr-dark-glass-c: rgba(37,45,57,.78);
+  --pr-dark-line: rgba(255,255,255,.09);
+  --pr-dark-hover: rgba(255,255,255,.06);
+
+  --pr-focus: #5e8ee8;
+  --pr-card-shadow-light: 0 18px 48px rgba(34,49,77,.14);
+  --pr-card-shadow-dark: 0 18px 48px rgba(0,0,0,.34);
+  --pr-orb-shadow: 0 7px 20px rgba(82,98,127,.22);
+
+  --pr-motion-expand: 160ms;
+  --pr-motion-control: 120ms;
+}
