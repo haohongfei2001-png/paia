@@ -6,6 +6,7 @@ export class PromptSurfaceCommands{
  constructor(commands,api){this.commands=commands;this.api=api;}
  async handle(r,sender){
   const api=this.api,fail=()=>{throw new ArchiveError('FORBIDDEN');};
+  if(r.type==='PAIA_PROMPT_SURFACE_DIAGNOSTIC')return this.diagnostic(r,sender);
   if(sender.id!==api.runtime.id||!sender.tab||sender.tab.incognito)fail();
   const tab=await api.tabs.get(sender.tab.id);if(tab.incognito||!site(tab.url))fail();
   if(!(await this.commands.service.s.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
@@ -30,4 +31,20 @@ export class PromptSurfaceCommands{
   if(c.type==='PAIA_PROMPT_CHANGE')void api.runtime.sendMessage({type:'PAIA_PROMPT_CHANGED'}).catch(()=>{});
   return c.type==='PAIA_PROMPT_QUERY'?{...result,theme:host.dark?'dark':'light'}:result;
  }
+ async diagnostic(r,sender){
+  const api=this.api;
+  if(sender.id!==api.runtime.id||sender.tab||sender.url!==api.runtime.getURL('ui/popup.html')||!own(r,['type']))throw new ArchiveError('FORBIDDEN');
+  if(!(await this.commands.service.s.status()).consented)return {status:'consent_required'};
+  const tabs=await api.tabs.query({active:true,lastFocusedWindow:true});
+  if(tabs.length!==1||tabs[0].incognito||!site(tabs[0].url))return {status:'not_chatgpt'};
+  const tab=tabs[0];let timer;
+  try{
+   const result=await Promise.race([api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_DIAGNOSTIC_PROBE',url:tab.url},{frameId:0}),new Promise(resolve=>{timer=setTimeout(()=>resolve(null),1200);})]);
+   const current=await api.tabs.get(tab.id);
+   if(!current.active||current.incognito||current.url!==tab.url)return {status:'page_unavailable'};
+   if(!(await this.commands.service.s.status()).consented)return {status:'consent_required'};
+   return {status:['visible','composer_unrecognized','composer_ambiguous','layout_unavailable','surface_unavailable'].includes(result?.status)?result.status:'page_unavailable'};
+  }catch{return {status:'page_unavailable'};}finally{clearTimeout(timer);}
+ }
+
 }

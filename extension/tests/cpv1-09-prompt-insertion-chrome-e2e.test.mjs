@@ -7,13 +7,13 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {routeComposer,isolated} from './harness/prompt-composer.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url)),url='https://chatgpt.com/c/prompt-insertion-fixture';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-for(const runtime of ['source','release'])test('CPV1-09 '+runtime+' native Chromium + synthetic ProseMirror integration',{timeout:180000},async t=>{
+for(const runtime of ['source','release'])for(const signature of ['legacy','current'])test('CPV1-09 '+runtime+' '+signature+' native Chromium + synthetic ProseMirror integration',{timeout:180000},async t=>{
  const extensionPath=runtime==='source'?root:join(root,'work/current-release');
  if(runtime==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath,headless:true});let world;
  try{
   await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
-  await routeComposer(h.context,root);const chat=await h.context.newPage();await chat.goto(url);await chat.waitForFunction(()=>globalThis.fixture?.view);
+  await routeComposer(h.context,root,{signature});const chat=await h.context.newPage();await chat.goto(url);await chat.waitForFunction(()=>globalThis.fixture?.view);
   world=await isolated(chat,h.extensionId);
   const ui=await h.context.newPage();await ui.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');
   const chosen='请保留全部细节 👩🏽‍💻\nEnglish line\n\n```js\n  const x = "汉字";\n```\n';
@@ -27,7 +27,7 @@ for(const runtime of ['source','release'])test('CPV1-09 '+runtime+' native Chrom
   async function value(){return chat.evaluate(()=>fixture.text());}
   await t.test('empty exact Unicode/multiline/code, caret end, focus and actual framework state',async()=>{
    await set('');const r=await insert();assert.equal(r.status,'inserted',JSON.stringify(r));assert.equal(await value(),chosen);
-   assert.equal(await chat.evaluate(()=>document.activeElement.id),'prompt-textarea');assert.equal(await chat.evaluate(()=>fixture.view.state.selection.empty),true);
+   assert.equal(await chat.evaluate(()=>document.activeElement===fixture.view.dom),true);assert.equal(await chat.evaluate(()=>fixture.view.state.selection.empty),true);
    assert.equal(await chat.evaluate(()=>fixture.view.state.selection.$from.parentOffset),0,'trailing newline ends in empty paragraph');
    assert.ok(await chat.evaluate(()=>fixture.changes>0&&fixture.inputs>0));
   });
@@ -51,7 +51,7 @@ for(const runtime of ['source','release'])test('CPV1-09 '+runtime+' native Chrom
   await t.test('native CDP Chinese composition blocks insertion and remains usable after commit',async()=>{
    await set('');const cdp=await h.context.newCDPSession(chat);await cdp.send('Input.imeSetComposition',{text:'汉',selectionStart:1,selectionEnd:1});
    const before=await value(),r=await insert();assert.equal(r.status,'failed');assert.equal(r.reason,'composition_active');assert.equal(await value(),before);
-   await chat.locator('#prompt-textarea').dispatchEvent('input',{inputType:'insertText',isComposing:false});assert.equal((await insert()).reason,'composition_active');assert.equal(await value(),before);
+   await chat.locator('[data-fixture-composer]').dispatchEvent('input',{inputType:'insertText',isComposing:false});assert.equal((await insert()).reason,'composition_active');assert.equal(await value(),before);
    await cdp.send('Input.insertText',{text:'汉'});await chat.waitForTimeout(70);const draft=await value();assert.equal((await insert()).status,'inserted');assert.equal(await value(),draft+chosen);await cdp.detach();
   });
   await t.test('uncertain acknowledgement preserves result with exactly one attempt and no retry',async()=>{
@@ -68,7 +68,7 @@ for(const runtime of ['source','release'])test('CPV1-09 '+runtime+' native Chrom
   });
   await t.test('SPA mismatch and unsupported composer refuse without draft replacement',async()=>{
    await set('保留');await chat.evaluate(()=>history.pushState({},'', '/c/changed-fixture'));assert.equal((await insert()).status,'failed');assert.equal(await value(),'保留');await chat.evaluate(url=>history.replaceState({},'',url),url);
-   await chat.evaluate(()=>document.getElementById('prompt-textarea').classList.remove('ProseMirror'));assert.equal((await insert()).status,'failed');assert.equal(await value(),'保留');
+   await chat.evaluate(()=>fixture.view.dom.removeAttribute('contenteditable'));assert.equal((await insert()).status,'failed');assert.equal(await value(),'保留');
   });
   await t.test('zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure',async()=>{
    assert.deepEqual(await chat.evaluate(()=>({send:fixture.send,enter:fixture.enter,adapter:typeof PAIAChatGPTComposerAdapter,storage:[localStorage.length,sessionStorage.length]})),{send:0,enter:0,adapter:'undefined',storage:[0,0]});

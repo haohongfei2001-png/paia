@@ -48,6 +48,7 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-color-emoji
       - name: Source and release insertion and surface lifecycle
         run: |
+          node --test --test-concurrency=1 tests/cpv1-09-prompt-compatibility-chrome-e2e.test.mjs
           node --test --test-concurrency=1 tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
           xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs
       - run: npm run test:unit

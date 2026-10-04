@@ -12,7 +12,7 @@ await mkdir(out,{recursive:true});
 const sha=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const prompts=['帮我把这件事拆成下一步可以执行的任务','检查一下有没有逻辑漏洞','不要重新设计，继续修改现有方案','用更简单的话解释','比较这两个方案的主要差别','整理成待办清单'];
 const files=(await readdir(masters)).filter(x=>x.endsWith('.svg')).sort();
-const selected=process.env.PAIA_VISUAL_STATES?.split(',');
+const selected=process.env.PAIA_VISUAL_STATES?.trim() ? process.env.PAIA_VISUAL_STATES.split(',') : undefined;
 if(selected)assert.ok(selected.length&&selected.every(id=>files.some(file=>file.startsWith(id+'-'))),'unknown visual state');
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(',')){
