@@ -28,7 +28,7 @@ test('position is bounded device-only metadata, with no website or archive body 
 test('safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,640,1280])for(const height of [500,800])for(const position of [null,{x:0,y:0},{x:1,y:1},{x:.5,y:.9}]){
-  const form={left:8,right:width-8,top:height-140,bottom:height-10},g=sandbox.PAIAPromptLayout(width,height,form,position);assert.ok(g);for(const box of [g.orb,g.card]){assert.ok(box);assert.ok(box.x>=0&&box.y>=0&&box.x+box.w<=width&&box.y+box.h<=height);assert.ok(box.y+box.h<=form.top||box.y>=form.bottom);}assert.equal(g.orb.w,44);assert.ok(g.card.y+g.card.h<=g.orb.y||g.card.y>=g.orb.y+44);
+  const form={left:8,right:width-8,top:height-140,bottom:height-10},g=sandbox.PAIAPromptLayout(width,height,form,position);assert.ok(g);for(const box of [g.orb,g.card]){assert.ok(box);assert.ok(box.x>=0&&box.y>=0&&box.x+box.w<=width&&box.y+box.h<=height);assert.ok(box.y+box.h<=form.top||box.y>=form.bottom);}const attached={x:g.card.x+g.card.w-40,y:g.card.y-32,w:44,h:44};assert.ok(attached.y>=0&&attached.y+attached.h<=height);assert.ok(attached.y+attached.h<=form.top||attached.y>=form.bottom);assert.equal(g.orb.w,44);assert.ok(g.card.y+g.card.h<=g.orb.y||g.card.y>=g.orb.y+44);
  }
 });
 test('surface publishes only one static extension frame, no host library bridge or new privileged host',async()=>{
