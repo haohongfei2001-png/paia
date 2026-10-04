@@ -34,9 +34,10 @@ test('pinned exact manual order and edited text outrank all automatic signals; o
  const manual=await projectPromptFamilies(inputs,p,now);assert.deepEqual(manual.map(x=>x.id),p.pins);assert.equal(manual[0].text,p.overrides[0].text);
  const s=new PromptListSession();s.open({items:manual});manual.reverse();assert.deepEqual(s.current().map(x=>x.id),p.pins);assert.deepEqual(s.refresh({items:manual}).map(x=>x.id),[...p.pins].reverse());
 });
-test('stable payload extraction preserves an actually used instruction; ambiguous text is never invented',()=>{
- const x=promptCandidate(pairs.find(x=>x[0]==='article payload')[1]);assert.equal(x.text,'总结以下文章：');assert.equal(x.mode,'instruction');
- const y=promptCandidate(pairs.find(x=>x[0]==='unknown long payload')[1]);assert.equal(y.mode,'whole');assert.equal(y.text,pairs.find(x=>x[0]==='unknown long payload')[1]);
+test('an instruction-like first line and length never prove a payload boundary; keep full text',()=>{
+ for(const name of ['article payload','English payload','code payload','unknown long payload','long citation constraint','long language constraint','long code constraint','English trailing negation']){
+  for(const text of pairs.find(x=>x[0]===name).slice(1,3)){const x=promptCandidate(text);assert.equal(x.mode,'whole',name);assert.equal(x.text,text,name);}
+ }
 });
 test('open-list revalidation removes unavailable text but preserves ordering through frequency changes',()=>{
  const s=new PromptListSession(),a={id:'a',text:'same A'},b={id:'b',text:'same B'};s.open({items:[a,b]});

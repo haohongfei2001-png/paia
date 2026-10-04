@@ -602,5 +602,11 @@ test('VS09 actual worker keeps prompt library and mutations behind exact trusted
  await expectError(app.send({type:'GET_STATE'},promptUI),'FORBIDDEN');
  assert.deepEqual((await app.send({type:'GET_STATE'})).data.records,before);
  const copy=await app.send({type:'PAIA_PROMPT_COPY_TEXT',id:created.data.id,text:'PRIVATE_TEMPLATE_CANARY'},promptUI);assert.deepEqual(copy,{ok:true,data:{text:'PRIVATE_TEMPLATE_CANARY'}});
+ const deletion={type:'PAIA_PROMPT_CHANGE',change:{action:'delete',id:created.data.id,revision:q.data.revision}};
+ for(const sender of [content,{...promptUI,id:'other'},{...promptUI,url:promptUI.url+'?spoof'}])await expectError(app.send(deletion,sender),'FORBIDDEN');
+ assert.equal((await app.send(deletion,promptUI)).ok,true);
+ assert.deepEqual((await app.send({type:'PAIA_PROMPT_QUERY',includeHidden:true},promptUI)).data.items,[]);
+ await expectError(app.send({type:'PAIA_PROMPT_COPY_TEXT',id:created.data.id,text:'PRIVATE_TEMPLATE_CANARY'},promptUI),'MEMORY_STALE');
+ assert.deepEqual((await app.send({type:'GET_STATE'})).data.records,before);
  assert.ok(app.notifications.some(x=>x.type==='PAIA_PROMPT_CHANGED'));assert.ok(!app.notifications.some(x=>JSON.stringify(x).includes('PRIVATE_TEMPLATE_CANARY')));
 });

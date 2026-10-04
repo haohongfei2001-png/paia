@@ -1797,5 +1797,12 @@ main `feea729e2fc19e69d5b842a7ca00305f31cda0cc`, limited to CPV1-09.0–09.2.
 This parallel line does not replace the Desktop/D7 queue or modify its visual
 masters, AppShell, Archive/Reader, Thought Library or AI Context surfaces.
 See [foundation implementation and evidence](implementation/prompt-reuse/FOUNDATION.md).
-CPV1-09.2 current ChatGPT compatibility remains `CURRENT_LIVE_NOT_VERIFIED`
+CPV1-09.2 current ChatGPT compatibility remains `REAL_CHATGPT_NOT_VERIFIED`
 (DFG-CPV1-011, HTTP 403). No merge, 09.3 orb/card or Stage 3 is authorized here.
+
+PR #144 independent Work audit repair: first-line/length payload extraction is
+removed; explicit delete is restricted to independent reusable templates with
+zero members and frees override/pin capacity without deleting archive history.
+The owning negative fixtures and deletion/Backup regressions are documented in
+the foundation receipt. The two MUST FIX changes require independent Work
+re-verification; this is not real ChatGPT acceptance or authority to start 09.3.

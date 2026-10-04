@@ -34,9 +34,10 @@ not an IndexedDB schema upgrade. No new grants, permissions or provider hosts.
 NFC and CRLF normalization; only outer whitespace is ignored for plain prose.
 Code/structured text retains whitespace and case. A narrow polite-prefix grammar
 admits high-confidence near expressions. Negation, numbers, targets and constraints
-are never dropped. Stable payload extraction accepts only an explicit known
-instruction line followed by a newline and a long payload. Unknown structure is
-kept whole. No edit-distance/transitive semantic clustering or model is used.
+are never dropped. After the independent audit, first-line/length payload
+extraction is disabled: no trusted payload boundary exists in these Working
+Inputs, so the entire text is retained. Harmless duplicates are accepted.
+No edit-distance/transitive semantic clustering or model is used.
 
 Distinct conversation frequency is primary; same-conversation repeats add at
 most 0.2, recency has a 180-day half-life with a 0.75 floor, and confirmed reuse
@@ -143,3 +144,49 @@ compatibility are not claimed by this first-stage PR.
   engineering gate passed, current-site compatibility deferred as DFG-CPV1-011.
   The next task is review of this PR with current real ChatGPT insertion evidence;
   CPV1-09.3 must wait. No executor merge or production deployment.
+
+## Independent Work audit repair — 2026-10-04
+
+This follow-up remains on PR #144 and only closes the two owner-specified MUST
+FIX findings from Work's audit of `650ca69bcc1b93e45dcaf7948751c559e522e15c`.
+Fresh GitHub refs still report main `feea729e2fc19e69d5b842a7ca00305f31cda0cc`
+and that PR head before this repair. Work independently reproduced unsafe
+payload merges and the missing delete/capacity lifecycle despite 49 passing
+owning tests. Earlier engineering-complete claims above are historical, not
+acceptance of those defects.
+
+1. Remove the first-line-plus-length extraction entirely. Production-algorithm
+   fixtures now keep recognized-header long prompts separate when their trailing
+   constraints differ: retain/delete citations, English-only/Chinese-only and
+   do-not-modify/directly-modify code, plus English trailing negation. Different
+   Chinese article, English article and code payloads now intentionally stay
+   separate. Exact long repeats still merge. Existing negation, target language,
+   numeric and code-difference cases remain. Candidate text is asserted complete,
+   not just the family count. The new regression set failed on the old algorithm.
+2. Add trusted `PAIA_PROMPT_CHANGE` action `delete` only for an explicit edited
+   or manual template with zero projected members. Remove its override and pin
+   atomically under existing revision/generation fences; reject supported
+   Families. Hide remains reversible and does not free capacity. Split fences
+   and other manual order remain untouched. Delayed verified-reuse acknowledgements
+   revalidate existence/generation and cannot resurrect deleted overrides.
+
+Deletion tests cover ordinary/hidden lists, service restart, stale selected-text
+release, new Backup/restore, full 500-override capacity reclamation, pin-order
+preservation, purge-supported independent edits, refusal with historical members,
+write abort, stale revision and actual worker caller boundaries. Source, Working
+Input, Thought and historical rows remain unchanged. Previously exported backup
+files remain immutable snapshots; explicitly restoring an older backup keeps its
+existing semantics. This adds no global deletion policy or B-01/B-02 decision.
+
+Local affected evidence: owning tests 58/58 (previous 49 plus nine regressions),
+privacy/security 59/59 and package guard pass. Source/release insertion, full unit,
+adapter and release guards run in the existing cloud foundation/Candidate jobs;
+the PR body links their final exact-head receipts. Composer/bridge/UI, permission,
+Backup validator, preference schema/version and object stores are unchanged.
+Runtime fingerprint changes because the two core modules change.
+
+No connected authenticated current ChatGPT page with this source/release extension
+runtime is available in this session. No anonymous 403 retry, private profile or
+reply access was attempted. DFG-CPV1-011 remains REAL_CHATGPT_NOT_VERIFIED. Keep
+Draft; no merge, no 09.3. The repaired candidate should return to Work for
+independent re-verification, with the real-page gate still explicit.

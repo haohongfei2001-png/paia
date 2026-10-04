@@ -16,9 +16,14 @@ export const pairs=[
  ['code case','const Mode = 1;','const mode = 1;',false],
  ['code Unicode','const s = "cafe\u0301";','const s = "café";',false],
  ['multiline','解释以下步骤\n保留细节','解释以下步骤\r\n保留细节',true],
- ['article payload','总结以下文章：\n'+'虚构正文甲。'.repeat(100),'总结以下文章：\n'+'虚构正文乙。'.repeat(100),true],
- ['English payload','Summarize the following article:\n'+'Synthetic paragraph A. '.repeat(60),'Summarize the following article:\n'+'Synthetic paragraph B. '.repeat(60),true],
- ['code payload','Review the following code:\n'+'const a = 1;\n'.repeat(60),'Review the following code:\n'+'const b = 2;\n'.repeat(60),true],
+ ['article payload','总结以下文章：\n'+'虚构正文甲。'.repeat(100),'总结以下文章：\n'+'虚构正文乙。'.repeat(100),false],
+ ['English payload','Summarize the following article:\n'+'Synthetic paragraph A. '.repeat(60),'Summarize the following article:\n'+'Synthetic paragraph B. '.repeat(60),false],
+ ['code payload','Review the following code:\n'+'const a = 1;\n'.repeat(60),'Review the following code:\n'+'const b = 2;\n'.repeat(60),false],
+ ['long citation constraint','总结以下文章：\n'+'合成正文。'.repeat(100)+'\n保留引用','总结以下文章：\n'+'合成正文。'.repeat(100)+'\n删除引用',false],
+ ['long language constraint','总结以下文章：\n'+'合成正文。'.repeat(100)+'\n仅英文','总结以下文章：\n'+'合成正文。'.repeat(100)+'\n仅中文',false],
+ ['long code constraint','审查以下代码：\n'+'const x = 1;\n'.repeat(60)+'不得修改代码','审查以下代码：\n'+'const x = 1;\n'.repeat(60)+'直接修改代码',false],
+ ['English trailing negation','Review the following code:\n'+'const x = 1;\n'.repeat(60)+'Do not modify code','Review the following code:\n'+'const x = 1;\n'.repeat(60)+'Modify code directly',false],
+ ['long exact','总结以下文章：\n'+'合成正文。'.repeat(100)+'\n保留引用','总结以下文章：\n'+'合成正文。'.repeat(100)+'\n保留引用',true],
  ['unknown long payload','看看这个\n'+'甲'.repeat(500),'看看这个\n'+'乙'.repeat(500),false],
  ['long constraint','检查细节\n'+'内容'.repeat(500)+'不要删除','检查细节\n'+'内容'.repeat(500)+'请删除',false]
 ];

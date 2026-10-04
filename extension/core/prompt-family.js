@@ -3,9 +3,9 @@ import {emptyPromptPreferences} from './prompt-reuse-preferences.js';
 const structured=text=>/[`{}<>\t"'()[\]\\=;]|^ {2,}\S|^(?:const|let|var|def|class|import|from|function|SELECT|echo|printf|git|npm|python|node|curl|sudo|ls|cd)\b/m.test(text);
 export function promptCandidate(text){
  if(typeof text!=='string'||!text.trim()||text.length>200000)return null;
- const raw=text.replace(/\r\n?/g,'\n');let reusable=raw,mode='whole';
- const first=raw.indexOf('\n'),header=first<0?'':raw.slice(0,first).trim();
- if(first>0&&raw.length-first>256&&/^(?:(?:Please )?(?:Summarize the following article|Review the following code|Translate the following text into (?:English|Chinese))|(?:请)?(?:总结以下文章|审查以下代码|将以下文本翻译成(?:中文|英文)))[:：]$/.test(header)){reusable=header;mode='instruction';}
+ // An instruction-like first line plus length cannot distinguish payload from
+ // trailing constraints. Without an authoritative boundary, retain every line.
+ const reusable=text.replace(/\r\n?/g,'\n'),mode='whole';
  let normalized=structured(reusable)?reusable:reusable.normalize('NFC');
  if(!structured(normalized)){
   normalized=normalized.trim();

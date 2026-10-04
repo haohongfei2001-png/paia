@@ -131,7 +131,7 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
 ### DFG-CPV1-011 — VS09 current ChatGPT composer insertion
 
 - **Owner round:** CPV1-09.2; isolated Prompt Reuse foundation branch only.
-- **State:** CURRENT_LIVE_NOT_VERIFIED. This is not compatibility PASS.
+- **State:** REAL_CHATGPT_NOT_VERIFIED. This is not compatibility PASS.
 - **Observed:** one fresh anonymous headless attempt on 2026-10-04 at
   12:15:39 UTC returned HTTP 403 and no supported composer. No login/profile,
   assistant reply or Send action was used. Actions run `37201457221`, artifact

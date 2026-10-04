@@ -87,3 +87,50 @@ test('storage abort preserves overrides and archive; a changed release generatio
  assert.deepEqual(await meta(f.s,PROMPT_REUSE_ROW),saved);assert.deepEqual(await authority(f.s),before);
  const selection=await f.service.resolve({id:family.id,text:'saved before failure'});await change(f,'hide',family.id);await assert.rejects(()=>f.service.assertCurrent(selection.generation));
 });
+test('explicit independent-template delete removes hidden/pinned work, stale release and new Backup without touching history',async()=>{
+ const f=await fixture(),block=(await rows(f.s,'blocks'))[0].value,topic=await f.s.createTopic({name:'Synthetic preserved Thought',operationId:crypto.randomUUID()});
+ await f.s.addToTopics({kind:'input',id:block.id,expectedRevision:block.revision,topicIds:[topic.id],operationId:crypto.randomUUID()});
+ const {id}=await change(f,'create',undefined,{text:'DELETE_ONLY_THIS_TEMPLATE'});await change(f,'pin',id);
+ const selected=await f.service.resolve((await f.service.query()).items.find(x=>x.id===id));await change(f,'hide',id);
+ const before=await authority(f.s),thoughts=await rows(f.s,'thoughts'),topics=await rows(f.s,'topics');
+ const oldBackup=await exported(f.s);assert.match(JSON.stringify(oldBackup),/DELETE_ONLY_THIS_TEMPLATE/);
+ await change(f,'delete',id);
+ for(const includeHidden of [false,true])assert.ok(!(await new PromptReuseService(f.s).query({includeHidden})).items.some(x=>x.id===id));
+ const prefs=await meta(f.s,PROMPT_REUSE_ROW);assert.ok(!prefs.overrides.some(x=>x.id===id));assert.ok(!prefs.pins.includes(id));
+ await assert.rejects(()=>f.service.resolve(selected));await assert.rejects(()=>f.service.assertCurrent(selected.generation));
+ // A delayed successful insertion acknowledgement must not recreate a deleted override.
+ await f.service.noteVerifiedReuse(id);assert.deepEqual(await meta(f.s,PROMPT_REUSE_ROW),prefs);
+ const items=await exported(f.s);assert.doesNotMatch(JSON.stringify(items),/DELETE_ONLY_THIS_TEMPLATE/);
+ const target=await completeFixture({texts:[]}),backup=new BackupService(target.s),r=await stage(backup,items);
+ assert.equal(r.preview.canRestore,true);await backup.restore({sessionId:r.sessionId,confirmation:r.preview.integrity});
+ assert.ok(!(await new PromptReuseService(target.s).query({includeHidden:true})).items.some(x=>x.id===id));
+ assert.deepEqual(await authority(f.s),before);assert.deepEqual(await rows(f.s,'thoughts'),thoughts);assert.deepEqual(await rows(f.s,'topics'),topics);assert.equal(f.requests.length,0);
+});
+test('delete refuses any family with current members, but permits its independent edited template after support loss',async()=>{
+ const f=await fixture(),family=(await f.service.query()).items[0];
+ await assert.rejects(()=>change(f,'delete',family.id),e=>e.code==='INVALID_REQUEST');
+ await change(f,'edit',family.id,{text:'INDEPENDENT_AFTER_PURGE'});await change(f,'pin',family.id);const prefs=await meta(f.s,PROMPT_REUSE_ROW),before=await authority(f.s);
+ await assert.rejects(()=>change(f,'delete',family.id),e=>e.code==='INVALID_REQUEST');assert.deepEqual(await meta(f.s,PROMPT_REUSE_ROW),prefs);assert.deepEqual(await authority(f.s),before);
+ for(const row of await rows(f.s,'records'))await f.s.permanentDelete(row.id);
+ assert.equal((await f.service.query()).items[0].members.length,0);const afterPurge=await authority(f.s);
+ await change(f,'delete',family.id);await f.service.noteVerifiedReuse(family.id);
+ assert.deepEqual((await f.service.query({includeHidden:true})).items,[]);assert.equal((await meta(f.s,PROMPT_REUSE_ROW)).overrides.some(x=>x.id===family.id),false);
+ assert.deepEqual(await authority(f.s),afterPurge);assert.doesNotMatch(JSON.stringify(await exported(f.s)),/INDEPENDENT_AFTER_PURGE/);
+});
+test('delete frees a full bounded override slot; hide does not; unrelated manual order survives',async()=>{
+ const f=await fixture(),q=await f.service.query();await change(f,'pin',q.items[0].id);await change(f,'pin',q.items[1].id);
+ const prefs=await meta(f.s,PROMPT_REUSE_ROW),originalPins=[...prefs.pins];
+ for(let i=prefs.overrides.length;i<500;i++)prefs.overrides.push({id:'manual:'+crypto.randomUUID(),text:'synthetic template '+i,hidden:false,reuseCount:0});
+ const id=prefs.overrides[2].id;prefs.pins.splice(1,0,id);assert.equal(validPromptPreferences(prefs),true);await f.s.repository.transaction(true,t=>t.put('meta',prefs));
+ await assert.rejects(()=>change(f,'create',undefined,{text:'no room'}));await change(f,'hide',id);await assert.rejects(()=>change(f,'create',undefined,{text:'still no room'}));
+ await change(f,'delete',id);assert.equal((await meta(f.s,PROMPT_REUSE_ROW)).overrides.length,499);assert.deepEqual((await meta(f.s,PROMPT_REUSE_ROW)).pins,originalPins);
+ await change(f,'create',undefined,{text:'new template uses freed capacity'});assert.equal((await meta(f.s,PROMPT_REUSE_ROW)).overrides.length,500);
+});
+test('stale or aborted delete preserves the template, pin and archive atomically',async()=>{
+ const f=await fixture(),{id}=await change(f,'create',undefined,{text:'preserve on delete failure'}),q=await f.service.query();await change(f,'pin',id);
+ await assert.rejects(()=>f.service.change({action:'delete',id,revision:q.revision}),e=>e.code==='MEMORY_STALE');
+ const saved=await meta(f.s,PROMPT_REUSE_ROW),before=await authority(f.s),transaction=f.s.repository.transaction.bind(f.s.repository);let aborted=false;
+ f.s.repository.transaction=(write,fn,...args)=>transaction(write,async t=>{const put=t.put.bind(t);t.put=async(name,value,...rest)=>{if(name==='meta'&&value.id===PROMPT_REUSE_ROW){aborted=true;throw Error('synthetic delete abort');}return put(name,value,...rest);};return fn(t);},...args);
+ try{await assert.rejects(()=>change(f,'delete',id),e=>e.code==='STORAGE_FAILED');assert.equal(aborted,true);}finally{f.s.repository.transaction=transaction;}
+ assert.deepEqual(await meta(f.s,PROMPT_REUSE_ROW),saved);assert.deepEqual(await authority(f.s),before);
+});

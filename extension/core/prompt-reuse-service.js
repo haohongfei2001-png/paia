@@ -57,6 +57,10 @@ export class PromptReuseService{
   const p=structuredClone(x.preferences),f=x.families.find(f=>f.id===id);let o=p.overrides.find(o=>o.id===id);
   if(action==='create'){
    if(id!==undefined||!validPromptText(change.text))fail();o={id:'manual:'+crypto.randomUUID(),text:change.text,hidden:false,reuseCount:0};p.overrides.push(o);
+  }else if(action==='delete'){
+   // Delete only independent user-owned reuse work, never a supported Family.
+   if(!f||f.members.length!==0||o?.text===undefined)fail();
+   p.overrides=p.overrides.filter(x=>x.id!==id);p.pins=p.pins.filter(x=>x!==id);
   }else{
    if(!f&&!o)fail();if(!o){o={id,hidden:false,reuseCount:0};p.overrides.push(o);}
    if(action==='edit'){if(!validPromptText(change.text))fail();o.text=change.text;}
@@ -78,7 +82,10 @@ export class PromptReuseService{
  }
  // Only the trusted insertion coordinator calls this after verified read-back.
  async noteVerifiedReuse(id){
+  const x=await this.snapshot();if(!x.families.some(f=>f.id===id&&!f.hidden))return;
   return this.s.run(()=>this.s.repository.transaction(true,async t=>{
+   // A late acknowledgement cannot recreate an override deleted since selection.
+   if(await generation(t)!==x.generation)changed();
    const p=await readPromptPreferences(t);let o=p.overrides.find(x=>x.id===id);if(!o){o={id,hidden:false,reuseCount:0};p.overrides.push(o);}
    o.reuseCount=Math.min(1000000,o.reuseCount+1);p.revision++;if(!validPromptPreferences(p))fail();await t.put('meta',p);
   }));
