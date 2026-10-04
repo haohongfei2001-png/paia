@@ -30,7 +30,7 @@ for(const runtime of ['source','release'])test('bounded current composer compati
   });
   await t.test('popup low-frequency area renders unrecognized status without DevTools',async()=>{
    const popup=await h.context.newPage();await popup.goto('chrome-extension://'+h.extensionId+'/ui/popup.html');await popup.locator('#enabled-state').filter({hasText:'捕获已暂停'}).waitFor();
-   await popup.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.diagnosticRequests=0;chrome.runtime.sendMessage=message=>{if(message.type==='PAIA_PROMPT_SURFACE_DIAGNOSTIC'){diagnosticRequests++;return Promise.resolve({ok:true,data:{status:'composer_unrecognized'}});}return original(message);};document.getElementById('popup-internal-tools').open=true;});
+   await popup.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.diagnosticRequests=0;chrome.runtime.sendMessage=message=>{if(message.type==='PAIA_PROMPT_SURFACE_DIAGNOSTIC'){diagnosticRequests++;return Promise.resolve({ok:true,data:{status:'composer_unrecognized'}});}return original(message);};document.getElementById('prompt-reuse-diagnostics').open=true;});
    await eventually(()=>popup.locator('#diagnostic-prompt-reuse').textContent().then(x=>x==='Prompt Reuse：未识别当前 ChatGPT 输入框'));assert.equal(await popup.evaluate(()=>diagnosticRequests),1);await popup.close();
   });
   await t.test('zero send, Provider requests, draft capture or extension network',async()=>{assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);assert.equal((await h.state()).records.length,0);assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);});

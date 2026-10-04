@@ -48,13 +48,13 @@ async function openArchive() {
 let promptDiagnosticAt=0,promptDiagnosticEpoch=0;
 async function refreshPromptDiagnostic(force=false){
  if(state&&state.settings.consentVersion!==1){++promptDiagnosticEpoch;$('diagnostic-prompt-reuse').textContent='Prompt Reuse：请先在 PAIA 完成授权';return;}
- if(!$('popup-internal-tools').open||(!force&&Date.now()-promptDiagnosticAt<15000))return;
+ if(!$('prompt-reuse-diagnostics').open||(!force&&Date.now()-promptDiagnosticAt<15000))return;
  promptDiagnosticAt=Date.now();const ticket=++promptDiagnosticEpoch;
  const labels={visible:'Prompt Reuse：悬浮球可用',composer_unrecognized:'Prompt Reuse：未识别当前 ChatGPT 输入框',composer_ambiguous:'Prompt Reuse：发现多个输入框，已暂停定位',layout_unavailable:'Prompt Reuse：当前页面空间不足，暂无法显示悬浮球',surface_unavailable:'Prompt Reuse：页面尚未就绪',consent_required:'Prompt Reuse：请先在 PAIA 完成授权',not_chatgpt:'Prompt Reuse：请在当前 ChatGPT 页面查看',page_unavailable:'Prompt Reuse：暂时无法连接当前 ChatGPT 页面'};
  try{const result=await request('PAIA_PROMPT_SURFACE_DIAGNOSTIC');if(ticket===promptDiagnosticEpoch)$('diagnostic-prompt-reuse').textContent=labels[result?.status]||labels.page_unavailable;}
  catch{if(ticket===promptDiagnosticEpoch)$('diagnostic-prompt-reuse').textContent=labels.page_unavailable;}
 }
-$('popup-internal-tools').addEventListener('toggle',()=>{if($('popup-internal-tools').open)void refreshPromptDiagnostic(true);else ++promptDiagnosticEpoch;});
+$('prompt-reuse-diagnostics').addEventListener('toggle',()=>{if($('prompt-reuse-diagnostics').open)void refreshPromptDiagnostic(true);else ++promptDiagnosticEpoch;});
 
 async function refresh() {
   try {
@@ -72,6 +72,7 @@ async function refresh() {
     $('toggle-capture').disabled = busy;
     $('toggle-capture').textContent = state.settings.enabled ? '暂停捕获' : '恢复捕获';
     $('resume-note').hidden = !consented || state.settings.enabled;
+    void refreshPromptDiagnostic();
     $('diagnostic-status').textContent = diagnosticText(state);
     $('diagnostic-capture-health').textContent = captureHealthText(state.diagnostics);
     $('diagnostic-time').textContent = `最近扫描：${dateLabel(state.diagnostics.lastScanAt)}`;
@@ -80,7 +81,6 @@ async function refresh() {
     const lastError = state.diagnostics.lastError;
     $('diagnostic-error').textContent = lastError ? `最近错误：${statusLabel(lastError.code)} · ${dateLabel(lastError.at)}` : '最近错误：无';
     showRecovery();
-    void refreshPromptDiagnostic();
   } catch {
     state = undefined;
     archiveReadFailed = true;
