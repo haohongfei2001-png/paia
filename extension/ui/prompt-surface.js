@@ -1,14 +1,14 @@
 import {PromptListSession} from '../core/prompt-family.js';
 import {copyPrompt} from '../core/prompt-clipboard.js';
 const nonce=location.hash.slice(1),session=new PromptListSession(),list=document.getElementById('list'),editor=document.getElementById('editor'),status=document.getElementById('status');
-let manualOrder=[],revision=0,hidden=false,editing=false,busy=false,composing=false,drag=null,epoch=0;
+let refreshing=false,manualOrder=[],revision=0,hidden=false,editing=false,busy=false,composing=false,drag=null,epoch=0;
 const attempted=new Set();
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}
 const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-label',label);b.addEventListener('click',e=>{if(e.isTrusted)void fn(e);});return b;};
 const tell=text=>{status.replaceChildren(document.createTextNode(text));};
 async function refresh(){
- if(editing||busy||drag)return;
- const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;manualOrder=q.manualOrder;document.documentElement.dataset.theme=q.theme||'';session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}
+ if(editing||busy||drag||refreshing)return;
+ refreshing=true;const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;manualOrder=q.manualOrder;document.documentElement.dataset.theme=q.theme||'';session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;}
 }
 function focusRow(id){list.querySelector(`[data-id="${id}"] .more`)?.focus();}
 async function change(action,id,extra={}){
@@ -55,5 +55,5 @@ function render(){
 }
 document.getElementById('new').addEventListener('click',()=>edit(null));document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('hidden').addEventListener('click',()=>{if(editing||busy)return;hidden=!hidden;void refresh();});document.getElementById('close').addEventListener('click',()=>{if(editing||busy){tell('请先保存或取消编辑。');return;}void rpc({type:'close'}).catch(()=>tell('无法关闭，请稍后重试。'));});
 document.getElementById('card').addEventListener('keydown',e=>{if(e.key==='Escape'&&!editing&&!composing&&!busy){e.preventDefault();void rpc({type:'close'}).catch(()=>{});}});
-chrome.runtime.onMessage.addListener(r=>{if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;const ticket=++epoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(!editing)revision=q.revision;session.reconcile(q);if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
+chrome.runtime.onMessage.addListener(r=>{if(refreshing)return;if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;const ticket=++epoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(!editing)revision=q.revision;session.reconcile(q);if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
 void refresh();
