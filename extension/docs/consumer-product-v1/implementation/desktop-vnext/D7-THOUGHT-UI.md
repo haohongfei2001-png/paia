@@ -46,3 +46,22 @@ heading identifies the originating reading space, not a saved result.
 Frozen source review, actual hosted screenshots and independent visual review,
 exact candidate/merge/main checks are required before adoption. Public consumer
 release, install delivery and final D7 owner acceptance remain separate gates.
+
+## First hosted candidate
+
+Candidate `90c6f769976a3593a7de42c314f349415a00ab04` / PR150: Candidate gate
+37217761571 PASS (including hosted full unit, adapter/privacy and release).
+Native37217761631 FAIL, retained artifact11308983896, ZIP SHA256
+`240cc0a6512074001f6c0c0449dbc7cabe636df0a8eb07e6005e743fdd499b0c`.
+Both variants retained14/36 rows. The real1440 root passed geometry; its Source
+and Thought snapshots still matched at the final checks. No native completion
+or missing page is relabeled PASS.
+
+The failed compact waits exposed the shared layout callback being skipped when
+Archive is inactive. Move that existing callback before the inactive guard,
+without another listener or touching the inactive Archive tree. An owning unit
+case protects this boundary. Normal primary Thought navigation retains its open
+Topic, so the compose fixture uses actual Back before selecting the Topic again.
+The first root pixels also show the inherited76px overflow trigger crossing its
+caption; constrain that existing trigger to44px and reserve56px in the row.
+All36 native rows, side-effect assertions and12-minute budget remain required.

@@ -87,8 +87,8 @@ export class ArchiveNavigator{
   if(this.host.parentElement!==slot)slot.append(this.host);
  }
  layout(){
-  if(!this.active)return;
   const restoreFocus=this.beforeLayout?.();
+  if(!this.active){restoreFocus?.();return;}
   if(!this.isMobile()&&this.sheetOpen)this.closeSheet(false);
   this.host.classList.toggle('is-sheet',this.reader&&this.isMobile());
   document.body.classList.toggle('ans-nav-sheet-open',this.reader&&this.isMobile()&&this.sheetOpen);
