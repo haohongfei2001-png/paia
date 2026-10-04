@@ -1,14 +1,14 @@
 import {PromptListSession} from '../core/prompt-family.js';
 import {copyPrompt} from '../core/prompt-clipboard.js';
 const nonce=location.hash.slice(1),session=new PromptListSession(),list=document.getElementById('list'),editor=document.getElementById('editor'),status=document.getElementById('status');
-let revision=0,hidden=false,editing=false,busy=false,composing=false,drag=null,epoch=0;
+let manualOrder=[],revision=0,hidden=false,editing=false,busy=false,composing=false,drag=null,epoch=0;
 const attempted=new Set();
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}
 const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-label',label);b.addEventListener('click',e=>{if(e.isTrusted)void fn(e);});return b;};
 const tell=text=>{status.replaceChildren(document.createTextNode(text));};
 async function refresh(){
  if(editing||busy||drag)return;
- const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;document.documentElement.dataset.theme=q.theme||'';session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}
+ const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;manualOrder=q.manualOrder;document.documentElement.dataset.theme=q.theme||'';session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}
 }
 function focusRow(id){list.querySelector(`[data-id="${id}"] .more`)?.focus();}
 async function change(action,id,extra={}){
@@ -34,7 +34,7 @@ async function split(item){
  editor.append(button('拆分',()=>{if(!chosen.size||chosen.size===members.length){tell('请选择一部分表达。');return;}void manage('split',item,{inputIds:[...chosen]});}),button('取消',()=>{editing=false;editor.hidden=true;list.hidden=false;void refresh();}));
  }catch{tell('表达已变化，取消后刷新。');editor.append(button('返回',()=>{editing=false;editor.hidden=true;list.hidden=false;void refresh();}));}
 }
-function order(item,beforeId=null){const pins=session.current().filter(x=>x.pinned&&x.id!==item.id).map(x=>x.id);const index=pins.indexOf(beforeId);pins.splice(index<0?pins.length:index,0,item.id);return pins;}
+function order(item,beforeId=null){const pins=manualOrder.filter(id=>id!==item.id);const index=pins.indexOf(beforeId);pins.splice(index<0?pins.length:index,0,item.id);return pins;}
 function render(){
  list.replaceChildren();const items=session.current();if(!items.length){const empty=document.createElement('p');empty.className='empty';empty.textContent=hidden?'没有隐藏的 Prompt。':'常用表达会出现在这里，也可以新建自己的 Prompt。';list.append(empty);}
  for(const item of items){

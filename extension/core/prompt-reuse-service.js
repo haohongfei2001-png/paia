@@ -47,7 +47,7 @@ export class PromptReuseService{
  }
  async query({includeHidden=false}={}){
   if(typeof includeHidden!=='boolean')fail();const x=await this.snapshot();
-  return {revision:x.preferences.revision,items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true};
+  return {revision:x.preferences.revision,manualOrder:[...x.preferences.pins],items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true};
  }
  async resolve({id,text}={}){
   if(typeof id!=='string'||!validPromptText(text))fail();const x=await this.snapshot();

@@ -15,8 +15,8 @@
  }
  function layout(){
   scheduled=false;if(disposed||!host)return;
-  const composer=adapter.find();if(!composer||!enabled){host.hidden=true;frame?.remove();frame=null;nonce=null;return;}
-  if(url!==location.href){url=location.href;frame?.remove();frame=null;nonce=null;}
+  const composer=adapter.find();if(!composer||!enabled){host.hidden=true;return;}
+  if(url!==location.href)url=location.href;
   const bounds=(composer.closest('form')||composer).getBoundingClientRect(),g=globalThis.PAIAPromptLayout(innerWidth,innerHeight,bounds,position);
   if(!g){host.hidden=true;return;}host.hidden=false;
   host.dataset.theme=document.documentElement.classList.contains('dark')||getComputedStyle(document.documentElement).colorScheme==='dark'?'dark':'light';
