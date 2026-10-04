@@ -2,6 +2,7 @@ import {hashText} from '../core/dedupe.js';
 import {thoughtCopy as tc} from './thought-copy.js';
 import {request,element} from './common.js';
 import {copyReadingText} from './reading-actions.js';
+import {presentThoughtCompose} from './thought-compose-presentation.js';
 const op=()=>crypto.randomUUID();
 const creationResult=result=>{if(!result||typeof result.id!=='string'||!result.id.length||result.id.length>200){const error=Error('UNAVAILABLE');error.code='UNAVAILABLE';throw error;}return result;};
 const uncertainResult=error=>['MESSAGE_CHANNEL_INTERRUPTED','UNAVAILABLE','TIMEOUT','WORKER_INTERRUPTED'].includes(error?.code);
@@ -18,6 +19,7 @@ export class TopicActions {
  }
  open(title){
   if(!this.close())return false;
+  delete this.dialog.dataset.actionSurface;
   this.trigger=document.activeElement;const head=element('header'),heading=element('h2','',title);heading.id='topic-action-title';this.feedback=element('p','topic-action-feedback');this.feedback.setAttribute('role','status');this.content=element('div','topic-action-content');
   const owner={content:this.content,feedback:this.feedback,trigger:this.trigger,pendingChoices:0,submitPending:false};this.surface=owner;
   head.append(heading,button(tc('关闭'),()=>this.close(false,owner)));this.dialog.append(head,owner.content,owner.feedback);this.dialog.showModal();return true;
@@ -71,7 +73,7 @@ export class TopicActions {
   const owner=this.surface,session={draft,feedback:owner.feedback,attempt:null,acknowledged:null,pending:false,uncertain:false,composing:false};this.composeSession=session;
   const current=()=>this.currentSurface(owner)&&this.composeSession===session&&this.draft===draft&&draft.isConnected;
   draft.addEventListener('compositionstart',()=>session.composing=true);draft.addEventListener('compositionend',()=>session.composing=false);
-  this.content.append(element('p','muted',topicId?tc('保存到当前主题'):tc('暂不加入主题')));
+  const destination=element('p','muted',topicId?tc('保存到当前主题'):tc('暂不加入主题'));this.content.append(destination);
   let selected=topicId?new Set([topicId]):new Set();
   const choices=element('details');choices.append(element('summary','',tc('选择主题（可不选）')));const host=element('div');choices.append(host);this.content.append(choices);
   choices.addEventListener('toggle',()=>{if(choices.open&&!choices.dataset.loaded){choices.dataset.loaded='true';void this.topicChoices(host,topicId,{owner,selected});}});
@@ -108,7 +110,7 @@ export class TopicActions {
   });
   owner.onChoicePending=()=>{if(current())submit.disabled=session.pending||owner.pendingChoices>0;};
   draft.onkeydown=event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&!event.isComposing){event.preventDefault();submit.click();}};
-  this.content.append(submit,button(tc('复制当前文字'),()=>copyReadingText(draft.value)),button(tc('取消'),()=>this.close(false,owner)));draft.focus();
+  presentThoughtCompose({dialog:this.dialog,content:this.content,draft,destination,choices,submit,copy:button(tc('复制当前文字'),()=>copyReadingText(draft.value)),cancel:button(tc('取消'),()=>this.close(false,owner))});draft.focus();
  }
  async inspectRelations(id){
   const intent=this.beginOpen();if(!await this.flush()||intent!==this.openIntent)return;const result=await request('COMPARE_THOUGHT_INPUT',{id});if(intent!==this.openIntent||!this.open(tc('想法关联')))return;

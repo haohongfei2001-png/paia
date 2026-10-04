@@ -166,18 +166,9 @@ dialog::backdrop{background:#16221638}
 .library-update{ padding:18px 0; border-bottom:1px solid #e5e2db; }
 .library-update p{ white-space:pre-wrap; overflow-wrap:anywhere; }
 .library-update button{ margin-right:8px; }
-#library-view-switch{display:flex;align-items:center;gap:14px;margin:6px auto 24px;max-width:860px;border-bottom:1px solid #e8e7e3}
-#library-view-switch button{padding:8px 2px;border-radius:0;color:#777}
-#library-view-switch button[aria-current=true]{color:#262626;border-bottom:1px solid #555;font-weight:600}
 #library-view-status{margin-left:auto;font-size:12px}
 #ai-library-update{font-size:12px;color:#65715d}
 .original-source-note{font-size:12px;color:#8a9188;margin:10px 0 0}
-.ai-toggle-label{display:flex;gap:10px;align-items:center;white-space:nowrap;font-size:13px}
-.ai-toggle-label input{appearance:none;width:34px;height:20px;border-radius:15px;background:#dadfd4;position:relative;cursor:pointer;margin:0}
-.ai-toggle-label input:before{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:white;transition:transform 200ms}
-.ai-toggle-label input:checked{background:#637954}
-.ai-toggle-label input:checked:before{transform:translateX(14px)}
-#library-view-switch{max-width:1120px;border:0;justify-content:flex-end}
 #library-view-status{margin-left:0;margin-right:auto}
 #ai-update-feedback{max-width:1120px;margin:0 auto;font-size:13px;color:#6e755f}
 .ai-reading-section{margin:38px 0}
@@ -186,17 +177,11 @@ dialog::backdrop{background:#16221638}
 .ai-evidence{font-size:12px;color:#89917f;margin-top:8px}
 .ai-evidence button{font-size:12px}
 .ai-reading-section [contenteditable]:focus{outline:1px solid #c7d2bd;outline-offset:7px}
-@media(max-width:650px){
-#library-view-switch{flex-wrap:wrap}
-}
-#library-view-switch{align-items:center;gap:16px}
 #library-cost-preview{max-width:1120px;margin:8px auto 0;font-size:12px;line-height:1.7}
 #ai-update-feedback:empty{display:none}
 #ai-update-feedback{line-height:1.8;margin-top:10px}
 #library-update-details{margin:10px 0;font-size:12px}
 #library-update-diagnostic{white-space:pre-wrap}
-.ai-toggle-label{padding:7px 12px;border:1px solid #dde4d6;border-radius:24px}
-.ai-toggle-label input{accent-color:#557148}
 #ai-onboarding{padding:18px 24px;margin-top:18px;background:#f1f5ed;border-radius:10px;font-size:14px;line-height:1.8}
 #ai-onboarding p{margin:0 0 8px}
 #thought-empty{max-width:630px;margin:70px auto;text-align:center;padding:36px 20px}
@@ -222,7 +207,6 @@ dialog::backdrop{background:#16221638}
 }
 @media(max-width:650px){.library-index-tools{flex-wrap:wrap;gap:10px}
 .library-index-tools input{flex-basis:100%}
-#library-view-switch{gap:10px}
 }
 .library-history-tools{opacity:.6;pointer-events:auto}
 .topic-section{margin:28px 0 40px}
@@ -307,7 +291,6 @@ dialog::backdrop{background:#16221638}
 #history-dialog .history-actions{position:sticky;bottom:-30px;margin:16px -30px 0;padding:12px 30px;background:#fff;border-top:1px solid #edf0e9;z-index:2}
 .thought-header #save-status:empty{display:none}
 #view-subtitle{display:block;margin-top:6px;font-size:12px;color:#899187}
-.thought-header #library-view-switch{margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
 .library-index-tools{display:flex;gap:8px;margin:0 0 14px}
 .library-index-tools button{font-size:13px}
 #topic-modes{margin:0 0 12px}
@@ -336,7 +319,6 @@ dialog::backdrop{background:#16221638}
 #library-updates-drawer>nav{display:block;font-size:12px;color:#778371}
 #library-updates-drawer>p{font-size:13px;line-height:1.8}
 @media(max-width:700px){.thought-header{flex-wrap:wrap}
-.thought-header #library-view-switch{flex-basis:auto;margin-left:auto}
 .library-index-tools{flex-wrap:wrap}
 
 }
@@ -375,7 +357,6 @@ dialog h2{font-size:21px;line-height:1.5;overflow-wrap:anywhere}
 .setting>*{max-width:100%!important}
 .setting span{text-align:left!important}
 #integrity-results{grid-template-columns:1fr}
-#library-view-switch{margin-left:0!important}
 .library-index-tools{gap:8px}
 #topic-modes{gap:16px}
 .library-pagination{flex-wrap:wrap}

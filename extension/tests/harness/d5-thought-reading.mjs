@@ -1,4 +1,5 @@
 import {measureTopicHeader,assertTopicHeader,verifyTopicHeaderInteractions} from './d5-topic-header.mjs';
+import {inspectTopicComposition} from './d5-thought-composition.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {openD5Reference} from './d5-shell-reference.mjs';
@@ -39,7 +40,7 @@ export async function openD5ThoughtReading(h,variant,kind,id){
   async capture(width,theme){
    await ref.setViewportSize({width,height:900});await ref.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await eventually(()=>p.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,theme),'D5 reading settled theme');
    await p.evaluate(()=>scrollTo(0,0));await ref.evaluate(()=>scrollTo(0,0));await frame(p);await frame(ref);
-   const production=await measure(p,kind,id),reference=await measure(ref,kind,id,true),a=production.nodes,b=reference.nodes,label=`${variant}/${kind}/${width}/${theme}`;
+   const production=await measure(p,kind,id),reference=await measure(ref,kind,id,true),a=production.nodes,b=reference.nodes,label=`${variant}/${kind}/${width}/${theme}`;production.composition=await inspectTopicComposition(p,label);
    for(const key of ['x','width'])near(a.header[key],b.header[key],label+' header.'+key);
    for(const key of ['fontSize','lineHeight','fontWeight'])exact(a.heading[key],b.heading[key],label+' heading.'+key);
    for(const key of ['gap','marginTop','marginBottom'])exact(a.tabs[key],b.tabs[key],label+' tabs.'+key);
@@ -76,7 +77,7 @@ export async function openD5ThoughtReading(h,variant,kind,id){
     const session=await h.context.newCDPSession(p);
     try{
      await session.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});assert.equal(await p.evaluate(()=>matchMedia('(pointer:coarse)').matches),true,'actual coarse media query');
-     const controls=await p.locator('#topic-toolbar :is(button,summary),#topic-reading-controls :is(button,summary,select),#topic-source-scope,#topic-outline>summary,#topic-original-tabs button').evaluateAll(nodes=>nodes.map(node=>({node,r:node.getBoundingClientRect()})).filter(({r})=>r.width&&r.height).map(({node,r})=>({id:node.id,text:node.textContent,width:r.width,height:r.height})));
+     const controls=await p.locator('#topic-toolbar :is(button,summary),#library-view-switch button,.ai-toggle-label,#topic-reading-controls :is(button,summary,select),#topic-source-scope,#topic-outline>summary,#topic-original-tabs button').evaluateAll(nodes=>nodes.map(node=>({node,r:node.getBoundingClientRect()})).filter(({r})=>r.width&&r.height).map(({node,r})=>({id:node.id,text:node.textContent,width:r.width,height:r.height})));
      targets.push({label:'desktop coarse visible controls',controls});await persist('PENDING');assert.ok(controls.length>0);for(const control of controls)assert.ok(control.width>=44&&control.height>=44,`coarse control44px ${control.id||control.text}`);
      await overflowTarget('desktop coarse overflow');
     }finally{await session.send('Emulation.setTouchEmulationEnabled',{enabled:false});await session.detach();await p.evaluate(()=>scrollTo(0,0));await frame(p);}
@@ -85,7 +86,10 @@ export async function openD5ThoughtReading(h,variant,kind,id){
   async verifyTextZoom(){
    await p.setViewportSize({width:320,height:900});const before=await measure(p,kind,id);
    try{
-    await p.evaluate(()=>{globalThis.__d5ReadingZoom=[...document.querySelectorAll('#thought-document h1,#thought-document h2,#thought-document p,#thought-document button,#thought-document summary,#thought-document select,#thought-document .entry-prose,#thought-document .entry-sent-time')].map(node=>({node,prior:node.style.getPropertyValue('font-size'),priority:node.style.getPropertyPriority('font-size'),size:parseFloat(getComputedStyle(node).fontSize)}));for(const item of __d5ReadingZoom)item.node.style.setProperty('font-size',(item.size*2)+'px','important');});
+    await p.evaluate(()=>{globalThis.__d5ReadingZoom=[...document.querySelectorAll('#thought-document h1,#thought-document h2,#thought-document .ai-toggle-label,#thought-document p,#thought-document button,#thought-document summary,#thought-document select,#thought-document .entry-prose,#thought-document .entry-sent-time')].map(node=>({node,prior:node.style.getPropertyValue('font-size'),priority:node.style.getPropertyPriority('font-size'),size:parseFloat(getComputedStyle(node).fontSize)}));for(const item of __d5ReadingZoom)item.node.style.setProperty('font-size',(item.size*2)+'px','important');});
+    await p.evaluate(()=>scrollTo(0,0));await frame(p);const titleControls=[];
+    for(const selector of ['#create-entry','.ai-toggle-label input','#topic-menu summary','#library-undo','#library-redo','#topic-original-tabs button']){const target=p.locator(selector).first();if(!await target.isVisible())continue;await target.focus();await frame(p);const point=await target.evaluate(node=>{const host=node.matches('input')?node.closest('label'):node,r=host.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {height:r.height,width:r.width,focused:document.activeElement===node,hit:host===hit||host.contains(hit)};});assert.ok(point.focused&&point.height>=44&&point.width>=44&&point.hit,selector+' 200% title control reachable');titleControls.push({selector,...point});}
+    targets.push({label:'320px 200% title controls',controls:titleControls});await p.evaluate(()=>scrollTo(0,0));await frame(p);await p.screenshot({path:`${directory}/${variant}-title-text200-320.png`,animations:'disabled'});
     await body().evaluate(node=>node.scrollIntoView({block:'center'}));await frame(p);const measured=await measure(p,kind,id),overflow=await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
     targets.push({label:'320px 200% text',overflow,measured});await persist('PENDING');await p.screenshot({path:`${directory}/${variant}-text200-320.png`});assert.equal(parseFloat(measured.nodes.prose.fontSize),parseFloat(before.nodes.prose.fontSize)*2,'actual prose computed size doubles');assert.ok(overflow<=2,'200% reading text has no horizontal page overflow');assert.ok(measured.nodes.prose.visible&&measured.nodes.prose.text.trim(),'200% actual body is visible');
     if(kind==='content')await overflowTarget('320px 200% text overflow');

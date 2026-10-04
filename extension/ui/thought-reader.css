@@ -25,6 +25,27 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 .topic-choice-list label {display:flex;align-items:center;gap:12px;min-height:44px;}
 .thought-draft {min-height:180px;width:100%;font:inherit;line-height:1.9;resize:vertical;}
 .topic-action-feedback {white-space:normal;overflow-wrap:anywhere;}
+/* Approved T05 writing roles, within the existing native dialog interaction. */
+.topic-action-dialog[data-action-surface=compose] {width:min(824px,calc(100vw - 48px));padding:32px;font-size:14px;line-height:1.5;}
+.topic-action-dialog[data-action-surface=compose] header {align-items:flex-start;gap:20px;}
+.topic-action-dialog[data-action-surface=compose] h2 {font-synthesis:weight;margin:0;font-size:28px;line-height:1.35;font-weight:600;overflow-wrap:anywhere;}
+.topic-action-dialog[data-action-surface=compose] .topic-action-content {display:block;margin-top:30px;}
+.topic-action-dialog[data-action-surface=compose] .thought-compose-intro {margin:0 0 30px;color:var(--muted);}
+.topic-action-dialog[data-action-surface=compose] .thought-compose-destination {margin:0 0 8px;color:var(--text);}
+.topic-action-dialog[data-action-surface=compose] .thought-compose-topics {margin:0 0 16px;}
+.topic-action-dialog[data-action-surface=compose] summary {width:fit-content;max-width:100%;min-height:36px;padding:6px 0;cursor:pointer;}
+.topic-action-dialog[data-action-surface=compose] .thought-compose-topics>div {padding-block:12px;}
+.topic-action-dialog[data-action-surface=compose] input:not([type=checkbox]),.topic-action-dialog[data-action-surface=compose] .thought-draft {display:block;width:100%;min-width:0;padding:12px;border:1px solid var(--control);border-radius:6px;color:var(--text);background:var(--bg);font:inherit;line-height:1.5;}
+.topic-action-dialog[data-action-surface=compose] .thought-draft {min-height:180px;}
+.topic-action-dialog[data-action-surface=compose] .thought-compose-actions {display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;}
+.topic-action-dialog[data-action-surface=compose] button {min-height:36px;max-width:100%;padding:6px 12px;border:1px solid var(--control);border-radius:var(--radius);color:var(--text);background:var(--bg);font:inherit;line-height:1.5;}
+.topic-action-dialog[data-action-surface=compose] .thought-compose-save {background:var(--text);color:var(--bg);border-color:var(--text);}
+.topic-action-dialog[data-action-surface=compose] .thought-compose-copy {color:var(--muted);}
+.topic-action-dialog[data-action-surface=compose] .topic-action-feedback {margin:16px 0 0;color:var(--muted);}
+.topic-action-dialog[data-action-surface=compose] .topic-action-feedback:empty {margin:0;}
+.topic-action-dialog[data-action-surface=compose] :is(button,input,textarea,summary):focus-visible {outline:2px solid var(--focus);outline-offset:3px;}
+@media(max-width:767px){.topic-action-dialog[data-action-surface=compose] {width:100vw;max-width:100vw;padding:28px 16px 56px;}.topic-action-dialog[data-action-surface=compose] h2 {font-size:24px;}}
+@media(max-width:767px),(pointer:coarse){.topic-action-dialog[data-action-surface=compose] :is(button,summary,input:not([type=checkbox])) {min-height:44px;min-width:44px;}}
 #topic-body .entry-provenance {display:block;}
 #topic-body .entry-prose {font-size:var(--paia-prose-size,17px);line-height:1.9;}
 #topic-body .library-entry {border:0;background:transparent;padding-block:16px;}
@@ -130,18 +151,29 @@ body[data-paia-space="thoughts"] #workspace-error{padding:16px 32px}
 @media(max-width:767px),(pointer:coarse){#thought-home-tools #thought-search,#thought-home-tools>button,#thought-home-tools>.library-actions>summary,#thought-topic-header #topic-search,#thought-root-source #thought-source-scope{min-height:44px}}
 
 #thought-document {width:100%;max-width:880px;margin:0 auto;}
-#thought-document .topic-title-row {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px 28px;align-items:start;}
-#thought-document #topic-heading {min-width:0;max-width:880px;}
+#thought-document .topic-title-row {display:flex;align-items:flex-start;flex-wrap:wrap;gap:12px 24px;}
+#thought-document .topic-title-actions {display:flex;align-items:flex-start;flex-wrap:wrap;gap:12px;max-width:100%;}
+#thought-document #topic-heading {flex:1 1 360px;min-width:0;max-width:880px;}
 #thought-document #topic-heading h1 {font-synthesis:weight;margin:0 0 16px;min-height:1.35em;font-size:28px;line-height:1.35;font-weight:600;letter-spacing:normal;color:var(--paia-text);overflow-wrap:anywhere;}
 #thought-document #topic-heading>p {max-width:760px;margin:0 0 30px;white-space:pre-wrap;color:var(--muted);font-size:14px;line-height:1.5;}
 #thought-document #topic-heading>p:empty {display:none;}
-#thought-document #topic-presentation {padding-top:2px;}
-#thought-document #topic-presentation #library-view-switch {margin:0;justify-content:flex-end;}
-#thought-document #topic-toolbar {display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin:18px 0 10px;padding:0 0 12px;}
-#thought-document #topic-toolbar button {min-height:36px;font-size:14px;}
-#thought-document #topic-toolbar #create-entry {padding:7px 10px;font-size:14px;border:1px solid var(--paia-subtle);border-radius:6px;color:var(--paia-accent);background:var(--paia-surface);}
-#thought-document #topic-toolbar .library-history-tools {margin-left:auto;opacity:.7;pointer-events:auto;}
-#thought-document #topic-reading-controls {display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:10px 0 8px;padding:0;color:var(--muted);font-size:12px;}
+#thought-document #topic-presentation {display:inline-flex;max-width:100%;padding:0;}
+#library-view-switch {display:inline-flex;align-items:center;flex-wrap:wrap;gap:10px;max-width:100%;margin:0;padding:0;border:0;}
+#library-view-switch button {min-height:36px;padding:6px 0;border:0;border-radius:0;background:transparent;color:var(--muted);font-size:14px;line-height:1.5;}
+.ai-toggle-label {display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:6px 0;border:0;border-radius:0;font-size:14px;line-height:1.5;white-space:nowrap;color:var(--muted);}
+.ai-toggle-label input {appearance:none;flex:none;width:34px;height:20px;min-height:20px;border:0;border-radius:15px;background:var(--control);position:relative;cursor:pointer;margin:0;padding:0;}
+.ai-toggle-label input:before {content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--bg);transition:transform 160ms;}
+.ai-toggle-label input:checked {background:var(--brand);}
+.ai-toggle-label input:checked:before {transform:translateX(14px);}
+.ai-toggle-label:has(input:checked) {color:var(--brand);}
+.ai-toggle-label:focus-within {outline:2px solid var(--focus);outline-offset:3px;}
+#library-structure-status:empty {display:none;}
+#thought-document #topic-toolbar {display:flex;flex:0 1 auto;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px 12px;max-width:100%;margin:0;padding:0;}
+#thought-document #topic-toolbar button {min-height:36px;font-size:14px;line-height:1.5;}
+#thought-document #topic-toolbar #create-entry {padding:6px 0;border:0;border-radius:0;color:var(--text);background:transparent;}
+#thought-document #topic-toolbar .library-history-tools {display:flex;flex-basis:100%;justify-content:flex-end;gap:12px;margin:0;color:var(--muted);opacity:1;pointer-events:auto;}
+#thought-document #topic-toolbar .library-history-tools button {padding:6px 0;color:var(--muted);background:transparent;border:0;}
+#thought-document #topic-reading-controls {display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:0 0 16px;padding:0;color:var(--muted);font-size:12px;}
 #thought-document #topic-time-order {display:flex;align-items:center;gap:8px;}
 #thought-document #topic-time-order button {min-height:36px;padding:6px 8px;border:0;background:transparent;color:var(--muted);font-size:12px;}
 #thought-document #topic-outline {margin:8px 0 16px;color:var(--paia-secondary);font-size:12px;}
@@ -163,13 +195,11 @@ body[data-paia-space="thoughts"] #workspace-error{padding:16px 32px}
 @media(max-width:767px){
  #thought-home-tools {align-items:stretch;}
  #thought-home-tools>button,#thought-home-tools>.library-actions>summary{min-height:44px;min-width:44px;}
- #thought-document .topic-title-row {grid-template-columns:1fr;gap:10px;}
+ #thought-document .topic-title-row {gap:12px;}
  #thought-document #topic-heading h1 {font-size:24px;}
- #thought-document #topic-presentation {padding-top:0;}
- #thought-document #topic-presentation #library-view-switch {justify-content:flex-start;}
- #thought-document #topic-toolbar {align-items:stretch;}
+ #thought-document #topic-toolbar {justify-content:flex-start;}
  #thought-document #topic-toolbar button,#thought-document #topic-toolbar summary,#thought-document #topic-reading-controls button,#thought-document #topic-outline>summary {min-height:44px;}
- #thought-document #topic-toolbar .library-history-tools {margin-left:0;}
+ #thought-document #topic-toolbar .library-history-tools {justify-content:flex-start;}
  #thought-document #topic-reading-controls {align-items:stretch;}
 }
 
@@ -270,9 +300,8 @@ body[data-paia-space="thoughts"] #workspace-error{padding:16px 32px}
 #thought-document #topic-time-jumps>summary{min-height:36px;min-width:36px;display:grid;place-items:center}
 #thought-document .entry-note[hidden],#thought-document .entry-provenance[hidden]{display:none}
 #original-reading-body .entry-meta>.entry-stale:empty{display:none}
-#thought-document .topic-title-row{grid-template-columns:minmax(0,1fr) auto}
-@media(min-width:768px) and (max-width:1023px){#thought-document .topic-title-row{grid-template-columns:1fr}#thought-document #topic-presentation #library-view-switch{justify-content:flex-start}}
-@media(max-width:767px){#thought-document .topic-title-row{grid-template-columns:1fr}#thought-document #topic-time-order{max-width:100%;flex-wrap:wrap}#thought-document #topic-order-toggle,#thought-document #topic-time-jumps>summary{min-height:44px}#thought-document .library-action-list{max-width:calc(100vw - 48px)}}
+@media(min-width:768px) and (max-width:1023px){#thought-document #topic-toolbar,#thought-document #topic-toolbar .library-history-tools{justify-content:flex-start}}
+@media(max-width:767px){#thought-document #topic-time-order{max-width:100%;flex-wrap:wrap}#thought-document #topic-order-toggle,#thought-document #topic-time-jumps>summary{min-height:44px}#thought-document .library-action-list{max-width:calc(100vw - 48px)}}
 
 .topic-note-editor{max-width:760px;margin:16px 0;padding:16px 0;border-block:1px solid var(--paia-line)}
 .topic-note-editor[hidden]{display:none}.topic-note-editor label{display:block}.topic-note-editor textarea{display:block;width:100%;min-height:160px;resize:vertical;font:inherit;line-height:1.75;color:var(--paia-text);background:var(--paia-surface);margin:8px 0 12px}.topic-note-editor button{margin:4px 8px 4px 0;min-height:36px}.topic-note-compare{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;max-height:30vh;overflow:auto}
@@ -280,5 +309,7 @@ body[data-paia-space="thoughts"] #workspace-error{padding:16px 32px}
 
 /* The reading owner sets the final narrow/coarse target floor after desktop rules. */
 @media(max-width:767px),(pointer:coarse){
- #thought-document #topic-toolbar :is(button,summary),#thought-document #topic-reading-controls :is(button,summary,select),#thought-document #topic-source-scope,#thought-document #topic-outline>summary,#topic-original-tabs button,#topic-timeline button,#original-reading-body .entry-meta>.library-actions>summary,#original-reading-body .entry-provenance>summary,#original-reading-body .entry-note>summary{min-height:44px;min-width:44px}
+ #thought-document #topic-toolbar :is(button,summary),#library-view-switch button,.ai-toggle-label,#thought-document #topic-reading-controls :is(button,summary,select),#thought-document #topic-source-scope,#thought-document #topic-outline>summary,#topic-original-tabs button,#topic-timeline button,#original-reading-body .entry-meta>.library-actions>summary,#original-reading-body .entry-provenance>summary,#original-reading-body .entry-note>summary{min-height:44px;min-width:44px}
 }
+
+@media(prefers-reduced-motion:reduce){.ai-toggle-label input,.ai-toggle-label input:before{transition:none}}
