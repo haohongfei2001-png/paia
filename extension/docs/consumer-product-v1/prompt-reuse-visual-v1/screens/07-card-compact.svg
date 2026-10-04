@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <defs>
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+    <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#22314d" flood-opacity="0.14"/>
+  </filter>
+  <filter id="orbShadow" x="-70%" y="-70%" width="240%" height="240%">
+    <feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#52627f" flood-opacity="0.22"/>
+  </filter>
+  <radialGradient id="orb" cx="34%" cy="28%" r="80%">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.98"/>
+    <stop offset="0.22" stop-color="#eaf5ff" stop-opacity="0.98"/>
+    <stop offset="0.48" stop-color="#c8dcff" stop-opacity="0.94"/>
+    <stop offset="0.68" stop-color="#d5c8ff" stop-opacity="0.92"/>
+    <stop offset="0.84" stop-color="#c6f0e4" stop-opacity="0.88"/>
+    <stop offset="1" stop-color="#ffffff" stop-opacity="0.70"/>
+  </radialGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.94"/>
+    <stop offset="0.52" stop-color="#f5f8ff" stop-opacity="0.90"/>
+    <stop offset="1" stop-color="#eaf1ff" stop-opacity="0.82"/>
+  </linearGradient>
+  <linearGradient id="composer" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.98"/>
+    <stop offset="1" stop-color="#fbfcfe" stop-opacity="0.98"/>
+  </linearGradient>
+</defs>
+  <rect width="390" height="844" fill="#F8F9FB"/>
+  <text x="34" y="46" font-family="Noto Sans CJK SC,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="13" fill="#7C8797">受控 AI 页面 · Prompt Reuse Visual Master</text>
+  <rect x="20" y="694" width="350" height="94" rx="26" fill="url(#composer)" stroke="#d9e0e8"/>
+  <text x="42" y="730" font-family="Noto Sans CJK SC,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="16" fill="#1F2937">Message AI…</text>
+  <circle cx="50" cy="763" r="16" fill="#f2f4f7"/>
+  <path d="M 44 763 h12 M 50 757 v12" stroke="#7C8797" stroke-width="1.6" stroke-linecap="round"/>
+  <circle cx="336" cy="761" r="18" fill="#d9dde3"/>
+  <path d="M 330 763 l6 -6 6 6 M 336 757 v12" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <g filter="url(#shadow)"><rect x="34" y="290" width="322" height="340" rx="20" fill="url(#glass)" stroke="#ffffffd9" stroke-width="1.1"/></g><text x="54" y="324" font-family="Noto Sans CJK SC,system-ui,sans-serif" font-size="13.3" font-weight="430" fill="#1D2738">帮我把这件事拆成下一步可以执行的任务</text><line x1="52" y1="351" x2="338" y2="351" stroke="#7F93AE18"/><text x="54" y="375" font-family="Noto Sans CJK SC,system-ui,sans-serif" font-size="13.3" font-weight="430" fill="#1D2738">检查一下有没有逻辑漏洞</text><line x1="52" y1="402" x2="338" y2="402" stroke="#7F93AE18"/><text x="54" y="426" font-family="Noto Sans CJK SC,system-ui,sans-serif" font-size="13.3" font-weight="430" fill="#1D2738">不要重新设计，继续修改现有方案</text><line x1="52" y1="453" x2="338" y2="453" stroke="#7F93AE18"/><text x="54" y="477" font-family="Noto Sans CJK SC,system-ui,sans-serif" font-size="13.3" font-weight="430" fill="#1D2738">用更简单的话解释</text><line x1="52" y1="504" x2="338" y2="504" stroke="#7F93AE18"/><text x="54" y="528" font-family="Noto Sans CJK SC,system-ui,sans-serif" font-size="13.3" font-weight="430" fill="#1D2738">比较这两个方案的主要差别</text><line x1="52" y1="555" x2="338" y2="555" stroke="#7F93AE18"/><rect x="349" y="308" width="2.5" height="304" rx="2" fill="#52647c0a"/>
+  <rect x="349" y="334" width="2.5" height="74" rx="2" fill="#73839a4d"/><g filter="url(#orbShadow)">
+    <circle cx="338" cy="280" r="20" fill="url(#orb)" stroke="#7f95b8" stroke-opacity="0.28" stroke-width="1"/>
+    <circle cx="338" cy="280" r="21.5" fill="none" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1"/>
+    <ellipse cx="332" cy="273" rx="7" ry="5" fill="#ffffff" fill-opacity="0.78"/>
+    <circle cx="345" cy="285" r="6" fill="#8f95ff" fill-opacity="0.15"/>
+  </g>
+  <text x="34" y="820" font-family="Noto Sans CJK SC,system-ui,sans-serif" font-size="12" fill="#7e8897">V07 · Compact 390×844</text>
+</svg>
