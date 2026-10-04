@@ -48,3 +48,13 @@ test('popup diagnostic is consent-only, exact-view authorized and returns bounde
  f.api.tabs.query=async()=>[{id:7,url,incognito:true}];assert.deepEqual(await f.s.handle(r,sender),{status:'not_chatgpt'});
  f.revoke();f.api.tabs.query=async()=>{throw Error('must not inspect tabs without consent');};assert.deepEqual(await f.s.handle(r,sender),{status:'consent_required'});assert.equal(f.writes.length,0);assert.equal(f.calls.length,0);
 });
+
+test('open geometry uses one visible anchor, projects the attached card into safe bands and restores without drift',async()=>{
+ const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
+ for(const width of [320,390,1280])for(const height of [500,844,900])for(const position of [null,{x:0,y:0},{x:1,y:1},{x:.5,y:.4}]){
+  const form={left:16,right:width-16,top:height-140,bottom:height-16},g=sandbox.PAIAPromptLayout(width,height,form,position,true);assert.ok(g?.card);
+  assert.equal(g.orb.x,g.card.x+g.card.w-40);assert.equal(g.orb.y,g.card.y-32);
+  for(const r of [g.orb,g.card]){assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=height);assert.ok(r.y+r.h<=form.top||r.y>=form.bottom);}
+  const saved={x:g.orb.x/(width-44),y:g.orb.y/(height-44)},restored=sandbox.PAIAPromptLayout(width,height,form,saved,true);assert.equal(restored.orb.x,g.orb.x);assert.equal(restored.orb.y,g.orb.y);
+ }
+});
