@@ -87,6 +87,7 @@ function presentScopeSearch(){
  scopeSearch.present({scope:readerScope?'reader':rootScope?'archive':null,owner:documentId||view,label,query:readerScope?documentSearchState().query:query,placeholder:label+'…'});
 }
 const appShell=new AppShellController();
+archiveNavigator.beforeLayout=()=>appShell.presentArchiveComposition();
 const routes=appShell.connect({navigate:(...args)=>navigate(...args),current:()=>({view,documentId,topicId:view==='thoughts'?thoughts.id:null,contextInputId,returnTo,sourcePath:archiveNavigator.state.selectedPath,sourceScope:archiveNavigator.sourceScope,searchQuery:view==='library'&&documentId?documentSearchState().query:query,sort:inputSortSnapshot,anchor:reader.capture()}),captureNavigator:()=>archiveNavigator.navigationSnapshot(),restoreNavigator:snapshot=>archiveNavigator.restoreNavigation(snapshot)});
 const positions=new Map(),queries=new Map();
 const documentSearchStates=new DocumentSearchSessions();let documentSearchIntent=0,documentSearchTimer=null;

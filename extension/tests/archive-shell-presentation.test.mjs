@@ -9,6 +9,7 @@ class Node {
  get nextSibling(){return this.parentElement?.children[this.parentElement.children.indexOf(this)+1]||null;}
  contains(node){return this===node||this.children.some(child=>child.contains(node));}
  get isConnected(){return this===document.body||this.parentElement?.isConnected===true;}
+ getClientRects(){return this.hidden?[]:[{}];}
  setAttribute(key,value){this[key]=value;}
  addEventListener(type,handler){this.handlers.push([type,handler]);}
  focus(){document.activeElement=this;}
@@ -25,7 +26,7 @@ async function fixture(run){
   const home=make('header'),nav=make('primary-nav'),bottom=make('sidebar-bottom');
   make('archive-root-heading');make('thought-root-heading');home.append(make('workspace-heading'));
   document.querySelector=selector=>selector==='.workspace-header'?home:null;document.querySelectorAll=selector=>selector==='[data-view]'?[...nav.children,...bottom.children,...(nodes.get('archive-compact-nav-items')?.children||[])]:[];
-  for(const id of ['archive-root-header-actions','archive-reader-search-slot','archive-reader-back-slot','reader-search-slot','reader-compact-tools','reader-heading-actions','reader-status-slot','archive-root-tools','archive-compact-nav-items'])make(id);
+  for(const id of ['archive-root-header-actions','archive-reader-search-slot','archive-reader-back-slot','reader-search-slot','reader-compact-tools','reader-heading-actions','reader-status-slot','archive-root-tools','archive-compact-nav-items','archive-compact-reader-actions'])make(id);
   const controls=['scope-search-host','back','archive-navigator-toggle','input-time-order','document-menu','save-status'];for(const id of controls)home.append(make(id));
   const search=make('scope-search');search.value='SYNTHETIC 还没有结束的查询';nodes.get('scope-search-host').append(search);
   const overflow=make('archive-root-overflow'),actions=make('overflow-actions');actions.className='archive-root-overflow-actions';overflow.append(actions);nodes.get('archive-root-tools').append(make('archive-source-scope-label'));
@@ -51,12 +52,24 @@ test('Reader relocation preserves search identity, text and focus through deskto
 }));
 test('Compact navigation reuses all buttons and restores each original owner on another route',()=>fixture(({owner,nodes,nav,bottom,buttons,home})=>{
  owner.archiveCompact.matches=true;owner.presentArchiveComposition({consented:true});owner.archiveCompactMenu.open=true;
- assert.deepEqual(nodes.get('archive-compact-nav-items').children,buttons);
+ assert.deepEqual(nodes.get('archive-compact-nav-items').children,[...buttons,nodes.get('archive-compact-reader-actions')]);
  owner.route={view:'thoughts'};owner.presentArchiveComposition();
  assert.deepEqual(nav.children,buttons.slice(0,3));assert.deepEqual(bottom.children,[buttons[3]]);
  assert.equal(owner.archiveCompactMenu.open,false);assert.equal(owner.archiveCompactMenu.hidden,true);
  assert.equal(nodes.get('scope-search-host').parentElement,home);assert.equal(nodes.get('save-status').parentElement,home);
  for(const node of buttons)assert.equal(node.handlers.length,1);
+}));
+test('Phone Reader discloses the same window, sort and menu controls after primary navigation',()=>fixture(({owner,nodes,buttons})=>{
+ owner.route={view:'library',documentId:'synthetic-document'};owner.archiveDesktop.matches=false;owner.archiveCompact.matches=true;owner.presentArchiveComposition({consented:true});
+ const actions=nodes.get('archive-compact-reader-actions'),controls=['archive-navigator-toggle','input-time-order','document-menu'].map(id=>nodes.get(id));
+ assert.deepEqual(actions.children,controls);assert.equal(actions.hidden,false);assert.deepEqual(nodes.get('reader-compact-tools').children,[nodes.get('back')]);assert.deepEqual(nodes.get('reader-heading-actions').children,[]);
+ assert.deepEqual(nodes.get('archive-compact-nav-items').children,[...buttons,actions]);controls[2].focus();
+ owner.archiveCompact.matches=false;owner.presentArchiveComposition();assert.equal(document.activeElement,controls[2]);assert.deepEqual(nodes.get('reader-heading-actions').children,controls.slice(1));assert.equal(actions.hidden,true);
+}));
+test('Desktop to phone exposes a moved focused action before restoring its native focus',()=>fixture(({owner,nodes})=>{
+ owner.route={view:'library',documentId:'synthetic-document'};owner.presentArchiveComposition({consented:true});const menu=nodes.get('document-menu');menu.focus();
+ owner.archiveDesktop.matches=false;owner.archiveCompact.matches=true;owner.presentArchiveComposition();
+ assert.equal(nodes.get('archive-compact-reader-actions').hidden,false);assert.equal(owner.archiveCompactMenu.hidden,false);assert.equal(owner.archiveCompactMenu.open,true);assert.equal(document.activeElement,menu);
 }));
 test('Desktop to compact Reader preserves Back before the same navigator control and retains focus',()=>fixture(({owner,nodes})=>{
  owner.route={view:'library',documentId:'synthetic-document'};owner.presentArchiveComposition({consented:true});

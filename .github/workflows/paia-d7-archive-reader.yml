@@ -13,7 +13,11 @@ concurrency:
 jobs:
   appearance:
     if: contains(github.event.pull_request.body, 'PAIA_D7_ARCHIVE_READER')
-    name: Complete Archive Reader source and release appearance
+    name: Complete Archive Reader (${{ matrix.suite }})
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [appearance, compatibility]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     defaults:
@@ -23,6 +27,7 @@ jobs:
       CI: '1'
       PLAYWRIGHT_MODULE: playwright
       PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+      PAIA_D7_SUITE: ${{ matrix.suite }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,12 +56,14 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p work/d7-archive-reader
-          xvfb-run -a node --test --test-concurrency=1 scripts/verify-d7-archive-reader.mjs tests/uir-01-shell-chrome-e2e.test.mjs tests/cpv1-02-1-shell-chrome-e2e.test.mjs 2>&1 | tee work/d7-archive-reader/acceptance.log
+          D7_FILES="$(node scripts/d7-archive-suite.mjs "$PAIA_D7_SUITE")"
+          xvfb-run -a node --test --test-concurrency=1 $D7_FILES 2>&1 | tee work/d7-archive-reader/acceptance.log
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
           import {D7_FULL_MATRIX,D7_ARCHIVE_MATRIX} from './tests/harness/d7-archive-matrix.mjs';
           assert.equal(D7_FULL_MATRIX.length,23);assert.equal(D7_ARCHIVE_MATRIX.length,10);
-          for(const variant of ['source','release'])for(const [directory,matrix,declared]of [['d7-archive-reader','full',D7_FULL_MATRIX],['d7-archive-reader-compat','archive',D7_ARCHIVE_MATRIX],['d7-archive-reader-compat','reader-compat',D7_FULL_MATRIX.filter(row=>row.screen==='A02'&&!row.stress)]]){
+          const matrices=process.env.PAIA_D7_SUITE==='appearance'?[['d7-archive-reader','full',D7_FULL_MATRIX]]:[['d7-archive-reader-compat','archive',D7_ARCHIVE_MATRIX],['d7-archive-reader-compat','reader-compat',D7_FULL_MATRIX.filter(row=>row.screen==='A02'&&!row.stress)]];
+          for(const variant of ['source','release'])for(const [directory,matrix,declared]of matrices){
            const report=JSON.parse(readFileSync(`work/${directory}/${variant}-${matrix}.json`));assert.equal(report.result,'PASS');assert.equal(report.head,process.env.PAIA_TESTED_HEAD);assert.equal(report.rows.length,declared.length);assert.deepEqual(report.rows.map(row=>row.id),declared.map(row=>row.id));assert.deepEqual(report.errors,[]);assert.ok(report.rows.every(row=>row.status==='PASS'));
            assert.deepEqual(report.network,{externalRequests:0,extensionNetworkRequests:0,providerRequests:0,pageErrors:[]});
           }
@@ -65,12 +72,23 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: d7-archive-reader-${{ github.event.pull_request.head.sha }}
+          name: d7-archive-reader-${{ matrix.suite }}-${{ github.event.pull_request.head.sha }}
           path: |
             extension/work/d7-archive-reader/
             extension/work/d7-archive-reader-compat/
             extension/work/qa-dvn-shell/
             extension/work/ux-r1/
             extension/work/ux-r6/
+            extension/work/ans-05-navigator/
           if-no-files-found: error
           retention-days: 7
+  required:
+    name: D7 Archive Reader required aggregate
+    needs: [appearance]
+    if: always() && contains(github.event.pull_request.body, 'PAIA_D7_ARCHIVE_READER')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every selected complete-file suite
+        env:
+          D7_MATRIX_RESULT: ${{ needs.appearance.result }}
+        run: test "$D7_MATRIX_RESULT" = success

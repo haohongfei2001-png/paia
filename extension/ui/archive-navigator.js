@@ -70,7 +70,7 @@ export class ArchiveNavigator{
   const previousSelected=this.selectedDocumentId;this.view=view;this.reader=!!documentId;this.selectedDocumentId=documentId||null;this.query=query||'';this.active=!!consented&&['library','archive'].includes(view);
   document.body.classList.toggle('ans-nav-surface',this.active);document.body.classList.toggle('ans-nav-reader',this.active&&this.reader);document.body.classList.toggle('ans-nav-root',this.active&&!this.reader);
   if(this.sourceLabel)this.sourceLabel.hidden=!this.active||this.reader;
-  if(!this.active){if(this.sheetOpen)this.closeSheet(false);this.host.hidden=true;if(this.toggle)this.toggle.hidden=true;this.restoreLegacy();return;}
+  if(!this.active){if(this.sheetOpen)this.closeSheet(false);this.presentReaderContext(null);this.host.hidden=true;if(this.toggle)this.toggle.hidden=true;this.restoreLegacy();return;}
   this.mount($(this.reader?'archive-reader-navigator-slot':'archive-root-navigator-slot'));this.layout();
   if(!this.reader&&this.query.trim()){this.host.hidden=true;this.restoreLegacy();return;}
   this.host.hidden=this.reader&&this.isMobile()&&!this.sheetOpen||this.reader&&this.isNarrow()&&this.narrowCollapsed;
@@ -88,6 +88,7 @@ export class ArchiveNavigator{
  }
  layout(){
   if(!this.active)return;
+  this.beforeLayout?.();
   if(!this.isMobile()&&this.sheetOpen)this.closeSheet(false);
   this.host.classList.toggle('is-sheet',this.reader&&this.isMobile());
   document.body.classList.toggle('ans-nav-sheet-open',this.reader&&this.isMobile()&&this.sheetOpen);
@@ -96,6 +97,20 @@ export class ArchiveNavigator{
   else if(this.reader&&this.isNarrow())this.host.hidden=this.narrowCollapsed;
   else this.host.hidden=false;
   if(this.toggle){this.toggle.hidden=!this.reader;this.toggle.setAttribute('aria-expanded',String(!this.host.hidden));}
+  this.paint();
+ }
+ presentReaderContext(group,provider=null){
+  const slot=$('archive-reader-back-slot'),home=$('archive-reader-navigator-slot'),context=!!group&&this.active&&this.reader&&!this.isMobile();
+  this.host.classList.toggle('has-reader-context',context);
+  if(context){
+   group.classList.add('archive-navigator-context-group');provider.classList.add('archive-navigator-context-provider');
+   if(provider.children[1]!==group)provider.insertBefore(group,provider.children[1]||null);
+   if(this.tree.firstElementChild!==provider)this.tree.insertBefore(provider,this.tree.firstElementChild);
+  }
+  if(!slot||!home)return;
+  const target=context?this.host:home,before=context?this.tree:this.host.parentElement===home?this.host:null;
+  if(slot.parentElement===target&&slot.nextSibling===before)return;
+  const focus=document.activeElement,retains=slot.contains(focus);target.insertBefore(slot,before);if(retains&&focus.isConnected)focus.focus({preventScroll:true});
  }
  toggleSurface(){if(!this.reader)return;if(this.isMobile()){if(this.sheetOpen)this.closeSheet(true);else this.openSheet();return;}if(this.isNarrow()){this.narrowCollapsed=!this.narrowCollapsed;this.layout();if(!this.narrowCollapsed)this.host.focus({preventScroll:true});}}
  openSheet(){if(!this.reader||!this.isMobile())return;this.sheetOpen=true;this.originFocus=document.activeElement;const page=$('document-page');if(page)page.inert=true;this.layout();queueMicrotask(()=>this.close.focus({preventScroll:true}));}
@@ -189,13 +204,14 @@ export class ArchiveNavigator{
   this.sourceSelect.value=current||'';
  }
  detail(subject,trigger){this.onSourceDetail?.(subject,trigger);}
- paintSignature(){return JSON.stringify({mode:this.mode,sourceScope:this.sourceScope,selected:this.selectedDocumentId,expanded:[...this.state.expanded].sort(),scopes:[...this.state.scopes].sort(([a],[b])=>a.localeCompare(b)).map(([key,scope])=>[key,scope.coverage?.state||null,scope.generation,scope.effectiveOrdering,scope.unavailableReason,scope.nextCursor,scope.error,scope.loading,scope.items.map(item=>[item.kind,item.id,item.title,item.providerKey,item.groupKind,item.projectRef,item.sourceStatus,item.parentSourceStatus])])});}
+ paintSignature(){return JSON.stringify({mode:this.mode,sourceScope:this.sourceScope,selected:this.selectedDocumentId,reader:this.reader,mobile:this.isMobile(),selectedPath:this.state.selectedPath,expanded:[...this.state.expanded].sort(),scopes:[...this.state.scopes].sort(([a],[b])=>a.localeCompare(b)).map(([key,scope])=>[key,scope.coverage?.state||null,scope.generation,scope.effectiveOrdering,scope.unavailableReason,scope.nextCursor,scope.error,scope.loading,scope.items.map(item=>[item.kind,item.id,item.title,item.providerKey,item.groupKind,item.projectRef,item.sourceStatus,item.parentSourceStatus])])});}
  syncSelection(){for(const button of this.host.querySelectorAll('.archive-navigator-window')){if(button.dataset.documentId===this.selectedDocumentId)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}}
  paint(){
   if(!this.active)return;const signature=this.paintSignature();if(signature===this.lastPaintSignature){this.syncSelection();this.syncLegacy();return;}this.lastPaintSignature=signature;const activeInside=this.host.contains(document.activeElement),activeKey=activeInside?document.activeElement?.dataset?.ansNavKey:null,scroll=this.state.scrollTop;this.tree.replaceChildren();
   const root=this.state.scope({groupKind:'providers'});
-  if(root.error){this.tree.append(element('p','archive-navigator-error',copy('窗口导航暂时不可读；当前 Reader 仍可使用。','Window navigation is unavailable; the current Reader still works.')));this.syncLegacy();return;}
-  if(root.coverage.state!=='complete'){this.tree.append(element('p','archive-navigator-loading',copy('正在整理窗口…','Preparing windows…')));this.syncLegacy();return;}
+  if(root.error){this.presentReaderContext(null);this.tree.append(element('p','archive-navigator-error',copy('窗口导航暂时不可读；当前 Reader 仍可使用。','Window navigation is unavailable; the current Reader still works.')));this.syncLegacy();return;}
+  if(root.coverage.state!=='complete'){this.presentReaderContext(null);this.tree.append(element('p','archive-navigator-loading',copy('正在整理窗口…','Preparing windows…')));this.syncLegacy();return;}
+  const path=this.state.selectedPath,contextKey=this.reader&&!this.isMobile()&&path?.available&&path.documentId===this.selectedDocumentId?navigatorGroupKey(path.providerKey,path.groupKind,path.projectRef):null;let contextGroup=null,contextProvider=null;
   if(!root.items.length)this.tree.append(element('p','archive-navigator-empty',copy('还没有可导航的窗口。','No archive windows yet.')));
   for(const provider of root.items){
    if(this.sourceScope&&provider.providerKey!==this.sourceScope)continue;
@@ -227,10 +243,11 @@ export class ArchiveNavigator{
      groupBox.append(list);
     }
     section.append(groupBox);
+    if(key===contextKey){contextGroup=groupBox;contextProvider=section;}
    }
    this.tree.append(section);
   }
-  this.syncLegacy();this.host.scrollTop=scroll;
+  this.presentReaderContext(contextGroup,contextProvider);this.syncLegacy();this.host.scrollTop=scroll;
   if(activeKey)queueMicrotask(()=>this.host.querySelector('[data-ans-nav-key="'+CSS.escape(activeKey)+'"]')?.focus({preventScroll:true}));
  }
 }
