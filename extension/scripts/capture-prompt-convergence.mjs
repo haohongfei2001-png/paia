@@ -45,11 +45,11 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
    const orb=page.locator('[data-paia-prompt-surface]');await orb.waitFor({state:'visible'});let f;
    if(i!==0){await eventually(()=>page.frames().some(x=>x.url().includes('prompt-surface.html#')));f=page.frames().find(x=>x.url().includes('prompt-surface.html#'));await eventually(()=>f.locator('.row').count().then(n=>n===6));await eventually(()=>f.locator('#refresh').isEnabled());}
    if(compact){const q=await rpc(engineering,'PAIA_PROMPT_QUERY');await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'hide',id:ids[5],revision:q.revision}});await f.locator('#refresh').click();await eventually(()=>f.locator('.row').count().then(n=>n===5));}
-   await page.locator('#blur').focus();await page.mouse.move(compact?10:500,100);
+   await page.locator('#blur').focus();if(f){const box=await(await f.frameElement()).boundingBox();await page.mouse.move(box.x+100,box.y+4);}await page.mouse.move(compact?10:500,100);
    if(i===2)await f.locator('.row').nth(1).hover();
    if(i===3)await f.locator('.row').nth(1).locator('.edit-shortcut').click();
    if(i===4){await f.locator('.row').nth(1).hover();const from=await f.locator('.row').nth(1).locator('.grip').boundingBox(),to=await f.locator('.row').nth(2).boundingBox();await page.mouse.move(from.x+11,from.y+13);await page.mouse.down();await page.mouse.move(to.x+20,to.y+8,{steps:8});}
-   if(i===7){await page.locator('#prompt-textarea').focus();await f.locator('.insert').first().click();await eventually(()=>f.locator('#status').textContent().then(x=>x.includes('已插入，未发送')));await page.mouse.move(500,100);}
+   if(i===7){await page.locator('#prompt-textarea').focus();await f.locator('.insert').first().click();await eventually(()=>f.locator('#status').textContent().then(x=>x.includes('已插入，未发送')));const box=await(await f.frameElement()).boundingBox();await page.mouse.move(box.x+100,box.y+4);await page.mouse.move(500,100);}
    await page.waitForTimeout(200);await page.screenshot({path:join(out,variant+'-'+name+'.png'),animations:'disabled',caret:'hide'});
    const orbBox=await orb.boundingBox(),cardBox=f?await(await f.frameElement()).boundingBox():null,formBox=await page.locator('form').boundingBox();
    const disjoint=(a,b)=>a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y;
