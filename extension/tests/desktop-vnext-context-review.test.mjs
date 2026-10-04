@@ -190,7 +190,7 @@ test('D4 compatibility candidate keeps all complete files and is mandatory whene
  assert.ok(job);assert.match(job,/timeout-minutes: 12/);assert.match(job,/ref: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);assert.match(job,/persist-credentials: false/);
  const command=job.split('\n').find(line=>line.includes('node --test'));assert.ok(command);assert.doesNotMatch(command,/test-name-pattern|skip/);
  assert.deepEqual(command.match(/tests\/[^ ]+\.test\.mjs/g),['tests/release-certification-round48-chrome-e2e.test.mjs','tests/release-certification-round49-chrome-e2e.test.mjs','tests/ans-01-reader-surfaces-chrome-e2e.test.mjs']);
- assert.match(workflow,/needs: \[unit, contracts, release, direct_edit, shell_cutover, targeted_browser, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility\]/);
+ assert.match(workflow,/needs: \[unit, contracts, release, direct_edit, shell_cutover, targeted_browser, topic_compatibility, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility\]/);
  assert.match(workflow,/CONTEXT_COMPAT: \$\{\{ needs\.context_compatibility\.result \}\}/);assert.match(workflow,/if \[ "\$CONTEXT_COMPAT_SELECTED" = true \]; then test "\$CONTEXT_COMPAT" = success;/);
  assert.match(job,/PAIA_DVN_CONTEXT_BROWSER/);assert.match(job,/PAIA_DVN_CONTEXT_COMPAT_BROWSER/);assert.doesNotMatch(job,/continue-on-error|secrets\.|permissions:/);
 });
