@@ -123,6 +123,19 @@ holds below are historical and superseded only by this explicit owner amendment.
 
 # Canonical Status — PAIA Consumer Product v1
 
+## D7 Settings/system appearance — 2026-10-04
+
+Current batch: `D7_SETTINGS_SYSTEM_UI_FROZEN_CANDIDATE`. Context PR153 is adopted
+at `d76ff0147fcb668c3380f5769de11b5c44b9520f`. The
+[bounded Settings/system slice](implementation/desktop-vnext/D7-SETTINGS-SYSTEM-UI.md)
+converges ordinary preferences, capture, data/import and rejected-backup display
+against inspected D6.2 S01/S03–S05, retaining all real controls and owners. S02
+styles only the existing recovery comparison dialog; its separate standalone
+page remains an explicit UI gap. No fake recovery preview, old Context behavior,
+permission or data-policy change. Exact-head native pixels and independent review
+are pending; this does not declare whole D7 or full product completion.
+
+
 ## D7 AI Context appearance — 2026-10-04
 
 Current batch: `D7_CONTEXT_UI_FROZEN_CANDIDATE`. Organize PR152 is adopted at

@@ -23,7 +23,7 @@ async function sourceJourney(h){
  const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',readingWidth:'wide'}});await page.setViewportSize({width:1440,height:900});await openSettings(page);
  assert.equal(await page.locator('h1:visible').count(),1,'Settings owns one visible h1');assert.equal((await page.locator('#ux-settings-title').textContent()).trim(),'设置');
  const boxes=await measureSettingsGeometry(page);
- assert.ok(Math.abs(boxes.nav-760)<=2,`desktop Settings group row is 760px; got ${boxes.nav}`);assert.ok(Math.abs(boxes.body-760)<=2,`desktop Settings body uses the declared 760px cap; got ${boxes.body}`);assert.ok(Math.abs(boxes.navX-boxes.bodyX)<=2,'group navigation and body share the same reading column');assert.ok(Math.abs(boxes.gap-28)<=2,`group navigation is above the body with 28px gap; got ${boxes.gap}`);
+ assert.ok(Math.abs(boxes.nav-880)<=2,`desktop Settings group row is 880px; got ${boxes.nav}`);assert.ok(Math.abs(boxes.body-880)<=2,`desktop Settings body uses the declared 880px cap; got ${boxes.body}`);assert.ok(Math.abs(boxes.navX-boxes.bodyX)<=2,'group navigation and body share the same reading column');assert.ok(Math.abs(boxes.gap-28)<=2,`group navigation is above the body with 28px gap; got ${boxes.gap}`);
  assert.equal(await page.locator('#ux-settings-group-switch').isVisible(),false,'mobile switch stays hidden on desktop');assert.equal(await page.locator('.ux-settings-nav>[data-settings-group]:visible').count(),6,'desktop keeps six group navigation actions');
 
  await eventually(()=>page.locator('#reader-revisit-settings').count().then(n=>n===1),'Reading controller projects Revisit settings');await eventually(()=>page.locator('#thought-reverse-edit').count().then(n=>n===1),'Thought controller projects reverse-edit setting');
@@ -52,7 +52,7 @@ async function sourceJourney(h){
 
 async function releaseJourney(h){
  const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await page.setViewportSize({width:1440,height:900});await openSettings(page);
- const geometry=await measureSettingsGeometry(page);assert.ok(Math.abs(geometry.nav-760)<=2&&Math.abs(geometry.body-760)<=2&&Math.abs(geometry.navX-geometry.bodyX)<=2&&Math.abs(geometry.gap-28)<=2,'built release keeps the declared 760px single reading column and 28px vertical group gap');
+ const geometry=await measureSettingsGeometry(page);assert.ok(Math.abs(geometry.nav-880)<=2&&Math.abs(geometry.body-880)<=2&&Math.abs(geometry.navX-geometry.bodyX)<=2&&Math.abs(geometry.gap-28)<=2,'built release keeps the declared 880px single reading column and 28px vertical group gap');
  await assertOwner(page,'#r6-hide-content-previews','privacy');await assertOwner(page,'#r6-complete-export','data');assert.equal(await page.locator('#filter-advanced').count(),0,'release-only diagnostics pruning still applies');
  await page.setViewportSize({width:390,height:844});const switcher=page.locator('#ux-settings-group-switch');await switcher.selectOption('data');await eventually(()=>page.locator('[data-group="data"]').isVisible());assert.equal(await switcher.isVisible(),true);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-settings-data-390x844-light');await assertNoNetwork(h);
 }

@@ -32,6 +32,39 @@ async function renderContextReference(page,screen,width=1440,theme='light'){
 }
 async function contextReference(h,screen){const page=await h.context.newPage();await renderContextReference(page,screen);return page;}
 
+const settingsArtboards={'settings-reading':'S01','settings-capture':'S03','settings-data':'S04','settings-invalid':'S05'};
+async function captureSettingsPages(h,variant,rows,persist){
+ const page=h.archive,reference=await h.context.newPage();
+ const choose=async group=>{const select=page.locator('#ux-settings-group-switch');if(await select.isVisible())await select.selectOption(group);else await page.locator(`[data-settings-group="${group}"]`).click();await page.locator(`[data-group="${group}"]`).waitFor({state:'visible'});};
+ try{
+  await page.setViewportSize({width:1440,height:1000});await settlePrimary(page,1440);await page.locator('.sidebar-bottom [data-view=settings]').click();await page.locator('#settings-panel').waitFor({state:'visible'});
+  await choose('data');await page.locator('#ux-history-start').click();await page.locator('#history-dialog').waitFor({state:'visible'});assert.equal(await page.locator('#history-file-consent').isChecked(),false);await page.locator('#history-close').click();assert.equal(await page.locator('#history-dialog').isVisible(),false);
+  for(const [screen,artboard]of Object.entries(settingsArtboards)){
+   await choose(screen==='settings-reading'?'reading':screen==='settings-capture'?'content':'data');
+   if(screen==='settings-invalid'){
+    await page.locator('#backup-file').setInputFiles({name:'synthetic-invalid.paia-backup',mimeType:'application/x-ndjson',buffer:Buffer.from('{"not":"a PAIA backup"}\n')});
+    await page.locator('#backup-settings[data-inspection-failure]').waitFor();assert.equal(await page.locator('#backup-restore').isDisabled(),true);assert.match(await page.locator('#backup-status').innerText(),/未修改任何内容/);
+   }
+   for(const [width,theme]of [[1440,'light'],[1440,'dark'],[320,'dark']]){
+    await page.setViewportSize({width,height:1000});await settlePrimary(page,width);await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:theme}});await eventually(()=>page.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,theme));await page.evaluate(()=>scrollTo(0,0));await frame(page);
+    const name=`${artboard}-1440-light.svg`,original=await readFile(new URL(name,masters),'utf8'),svg=theme==='dark'?original.replace(/#[0-9a-f]{6}/gi,color=>d6Dark[color.toUpperCase()]||color):original;
+    await reference.setViewportSize({width:1440,height:1000});await reference.setContent('<style>body{margin:0}img{display:block}</style><img alt="Approved D6.2 '+artboard+' reference" src="data:image/svg+xml;base64,'+Buffer.from(svg).toString('base64')+'">');await reference.locator('img').evaluate(node=>node.decode());
+    const actual=await capture(page),stem=`${directory}/${variant}-${screen}-${width}-${theme}`,rail=width>=1280?184:width>=1024?160:width>=768?64:0,gutter=width<768?20:width<1024?36:44;
+    await page.screenshot({path:stem+'-actual.png',animations:'disabled'});await reference.screenshot({path:stem+'-reference.png',animations:'disabled'});rows.push({screen,width,theme,actual,reference:{artboard,name,width:1440,height:1000,paletteDerived:theme==='dark',comparison:'Ordinary Settings group; original functional controls and six-group navigation retained. S03/S04/S05 use standalone master hierarchy within the existing Settings owner; compact is a responsive-rule derivative.'}});await persist('PENDING');
+    assert.ok(actual.overflow<=2,screen+' no horizontal overflow');assert.ok(Math.abs(actual.heading.x-rail-gutter)<=2,screen+' D6.2 left axis');assert.ok(Math.abs(actual.root.width-Math.min(880,width-rail-gutter*2))<=2,screen+' 880px layout cap');assert.equal(parseFloat(actual.heading.font),width<768?24:28);assert.equal(actual.modal,false);assert.match(await page.locator('#ux-settings-title').evaluate(node=>getComputedStyle(node).fontFamily),/Georgia/);assert.equal(await page.locator('.sidebar [data-view=settings]').getAttribute('aria-current'),'page');
+    if(screen==='settings-reading'){assert.equal(await page.locator('#ux-font-size').inputValue(),'standard');assert.equal(await page.locator('#ux-reading-width').inputValue(),'standard');assert.equal(await page.locator('#ux-appearance').isEnabled(),true);assert.equal(await page.locator('#ux-reduced-motion :is(input,select,button)').count(),0);}
+    if(screen==='settings-capture'){assert.match(await page.locator('#ux-capture-last').innerText(),/最近一次成功扫描|尚无成功扫描/);assert.equal(await page.locator('#toggle-capture').isEnabled(),true);}
+    if(screen==='settings-data'){for(const id of ['ux-history-start','backup-create','backup-create-segmented','backup-choose','r6-export-json','r6-export-markdown'])assert.equal(await page.locator('#'+id).isEnabled(),true);}
+   }
+  }
+  // The invalid inspection never starts restore; its existing cancellation owner
+  // clears the temporary failure projection. This is fixture cleanup, not a UI-flow claim.
+  await page.locator('#backup-cancel').evaluate(node=>node.click());await eventually(()=>page.locator('#backup-settings[data-inspection-failure]').count().then(n=>n===0));
+  await page.locator('#archive-compact-navigation > summary').click();await page.locator('#archive-compact-nav-items [data-view=library]').click();await settlePrimary(page,320);await page.locator('#archive-compact-navigation > summary').click();await page.locator('#archive-compact-nav-items [data-view=settings]').click();await settlePrimary(page,320);await page.locator('#settings-panel').waitFor({state:'visible'});assert.equal(await page.locator('#ux-settings-shell').count(),1);
+ }finally{await reference.close();}
+}
+
+
 const sample=[
  '我可能更适合做消费产品，但现在样本还太少。我不想把一次顺利的试做，写成对自己的永久结论。',
  '最近越来越希望做面向普通人的工具。我在意的不只是“能完成什么”，还有人愿不愿意一直用下去。',
@@ -44,7 +77,7 @@ const frame=page=>page.evaluate(async()=>{await document.fonts.ready;await new P
 // acknowledgement alone does not establish that primary buttons have moved.
 async function settlePrimary(page,width){
  await eventually(()=>page.evaluate(width=>{
-  const menu=document.getElementById('archive-compact-navigation'),compact=width<768&&['library','archive','thoughts','memory'].includes(document.body.dataset.paiaSpace),buttons=[...document.querySelectorAll('.sidebar [data-view]')];
+  const menu=document.getElementById('archive-compact-navigation'),compact=width<768&&['library','archive','thoughts','memory','settings'].includes(document.body.dataset.paiaSpace),buttons=[...document.querySelectorAll('.sidebar [data-view]')];
   return innerWidth===width&&buttons.length===4&&menu.hidden===!compact&&!menu.open&&buttons.every(node=>compact?node.parentElement.id==='archive-compact-nav-items':node.dataset.view==='settings'?node.parentElement.classList.contains('sidebar-bottom'):node.parentElement.id==='primary-nav');
  },width),'primary navigation final breakpoint parents and disclosure state').catch(async error=>{const actual=await page.evaluate(()=>({width:innerWidth,space:document.body.dataset.paiaSpace,menu:{hidden:document.getElementById('archive-compact-navigation').hidden,open:document.getElementById('archive-compact-navigation').open},buttons:[...document.querySelectorAll('.sidebar [data-view]')].map(n=>({view:n.dataset.view,parent:n.parentElement.id||n.parentElement.className}))}));throw Error(error.message+' '+JSON.stringify(actual));});
 }
@@ -54,7 +87,7 @@ async function selectWidePrimary(page,view){
 
 const capture=async(page)=>page.evaluate(()=>{
  const read=node=>{if(!node)return null;const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {text:node.textContent,x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,font:s.fontSize,lineHeight:s.lineHeight,color:s.color,background:s.backgroundColor};};
- const preview=document.body.dataset.desktopAppearancePreview,selectors={topic:'#thought-document',compose:'.thought-compose-workspace',organize:'.organize-scope-workspace',context:'#context-workspace-design-preview .context-presentation-workspace'},root=preview?document.querySelector(selectors[preview]):document.body.dataset.paiaSpace==='thoughts'?document.querySelector(document.body.dataset.paiaSurface==='reader'?'#thought-document':'#thought-panel'):document.querySelector('.workspace.context,.workspace.wide,.workspace');
+ const preview=document.body.dataset.desktopAppearancePreview,selectors={topic:'#thought-document',compose:'.thought-compose-workspace',organize:'.organize-scope-workspace',context:'#context-workspace-design-preview .context-presentation-workspace'},root=preview?document.querySelector(selectors[preview]):document.body.dataset.paiaSpace==='settings'?document.querySelector('#ux-settings-shell'):document.body.dataset.paiaSpace==='thoughts'?document.querySelector(document.body.dataset.paiaSurface==='reader'?'#thought-document':'#thought-panel'):document.querySelector('.workspace.context,.workspace.wide,.workspace');
  return {viewport:{width:innerWidth,height:innerHeight},overflow:document.documentElement.scrollWidth-innerWidth,modal:!!document.querySelector('dialog:modal'),root:read(root),heading:read(root?.querySelector('h1,h2')),firstBody:read(root?.querySelector('.entry-prose,textarea,.material-snippet,.organize-scope-primary')),header:read(document.querySelector('.workspace-header,.topbar')),visibleControls:[...root?.querySelectorAll('button,summary,input,select,textarea')||[]].filter(node=>{const r=node.getBoundingClientRect();return r.width&&r.height&&getComputedStyle(node).visibility!=='hidden';}).map(node=>({tag:node.tagName,disabled:node.disabled||false,...read(node)}))};
 });
 
@@ -83,6 +116,7 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
   const normalScope=await rpc(page,'GET_AI_PRESENTATION_SCOPE',{options:{topicId:seed.topicId}});
   const organizeModel={materials:sample.map((body,i)=>({id:'organize-evidence-'+i,body,meta:['2023年6月18日 · 10:24','2024年9月12日 · 14:08','2025年11月6日 · 20:16'][i]})),current:{blockSummary:sample[0],currentView:sample[1]},candidate:{baseKind:'saved',changedFields:['blockSummary','currentView'],proposal:{blockSummary:'我正在探索消费产品方向。这个倾向仍需要更多真实使用证据，不是最终的职业结论。',currentView:'更在意产品如何被使用，同时保留还没有确定的问题。',evidenceEntryIds:['organize-evidence-0','organize-evidence-1']}},choices:{blockSummary:'adopt',currentView:'adopt'},manyChoices:{blockSummary:'adopt',currentView:'keep',keyInformation:'adopt'}};
   organizeModel.firstCandidate={...organizeModel.candidate,baseKind:'none'};organizeModel.manyCandidate={...organizeModel.candidate,changedFields:['blockSummary','currentView','keyInformation','preferences','decisions','judgments','openQuestions','possibleEvolution'],proposal:{...organizeModel.candidate.proposal,...Object.fromEntries(['keyInformation','preferences','decisions','judgments','openQuestions','possibleEvolution'].map(field=>[field,[{text:'合成候选示例：这处内容仍需要逐项核对，不代表用户已经确认。',evidenceEntryIds:['organize-evidence-0']}]]))}};
+  await captureSettingsPages(h,variant,rows,persist);
   for(const screen of ['root','topic','years','organize',...Object.keys(organizeArtboards).filter(key=>key!=='organize'),...Object.keys(contextArtboards),'compose']){
    const route=screen==='topic'?'topic-original':screen==='years'?'longitudinal':screen==='compose'?'add-thought':screen==='organize'?'organize-scope':screen,reference=thoughtScreens.has(screen)?await thoughtReference(h,screen):organizeArtboards[screen]?await organizeReference(h,screen):await contextReference(h,screen);
    try{
@@ -153,6 +187,6 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
    }catch(error){errors.push(screen+': '+(error.stack||error.message));await persist('PENDING');}finally{await reference.close();}
   }
   assert.deepEqual((await h.state()).records,originals,'all preview pages preserve immutable Source');assert.deepEqual(await Promise.all(seed.ids.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id}))),before,'preview never rewrites existing Thoughts');assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
-  assert.equal(rows.length,55,'all 47 retained rows plus seven missing C states and native 320px C01 are captured');assert.deepEqual(errors,[]);await persist('PASS');
+  assert.equal(rows.length,67,'all 55 retained rows plus 12 ordinary Settings source states are captured');assert.deepEqual(errors,[]);await persist('PASS');
  }catch(error){errors.push(error.stack||error.message);await persist('FAIL');throw error;}finally{await h.close();}
 });
