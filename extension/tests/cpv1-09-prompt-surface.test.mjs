@@ -66,3 +66,8 @@ test('SPA geometry save binds the initial sender URL to the exact live document,
  f.api.tabs.sendMessage=async()=>({url:url+'/another'});await assert.rejects(()=>f.s.handle(request,sender));
  f.api.tabs.sendMessage=async()=>{f.api.tabs.get=async()=>({id:7,url:url+'/navigated'});return {url};};await assert.rejects(()=>f.s.handle(request,sender));assert.equal(f.writes.length,1);assert.equal(f.calls.length,0);
 });
+
+test('open surface can move alongside a narrow composer instead of snapping to a vertical band',async()=>{
+ const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
+ const g=sandbox.PAIAPromptLayout(1280,900,{left:600,right:1264,top:770,bottom:884},{x:400/1236,y:500/856},true);assert.equal(g.orb.x,400);assert.equal(g.orb.y,500);assert.ok(g.card.x+g.card.w<600);assert.ok(g.card.y+g.card.h<=900);
+});

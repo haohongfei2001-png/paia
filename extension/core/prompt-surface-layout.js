@@ -21,9 +21,10 @@
   // Project the complete attached surface into safe bands around the composer.
   if(position){
    const desired={x:position.x*(width-44),y:position.y*(height-44)},placements=[],preferredHeight=card?.h||(width<=400?340:350);
-   for(const [start,end]of [[8,form.top-16],[form.bottom+8,height-8]]){
+   for(const [left,right,start,end]of [[8,width-8,8,form.top-16],[8,width-8,form.bottom+8,height-8],[8,form.left-16,8,height-8],[form.right+16,width-8,8,height-8]]){
+    if(right-left<w)continue;
     const h=Math.min(preferredHeight,end-start-32);if(h<96)continue;
-    const x=clamp(desired.x+40-w,8,width-w-8),y=clamp(desired.y,start,end-h-32);
+    const x=clamp(desired.x+40-w,left,right-w),y=clamp(desired.y,start,end-h-32);
     placements.push({x,y:y+32,w,h,distance:(x+w-40-desired.x)**2+(y-desired.y)**2});
    }
    placements.sort((a,b)=>a.distance-b.distance);const best=placements[0];
