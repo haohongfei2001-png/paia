@@ -13,7 +13,7 @@ The owner authorized D6 design work through the attached Final Visual Master bri
 | D3 | AI Organize | Existing derivative-only adoption and safety retained |
 | D4 | AI Context | Existing exact review/release boundary retained |
 | D5 | Existing visual-convergence engineering | Already executed; Q12 bounded/integrated at the checkpoint; still OPEN |
-| D6 | Final Visual Master | Design authoring authorized; D6.1 submitted as OWNER_REVIEW_PENDING |
+| D6 | Final Visual Master | Design authoring authorized; D6.2 submitted as OWNER_REVIEW_PENDING |
 | D7 | Production high-fidelity implementation | PLANNED / NOT_AUTHORIZED; requires explicit D6 visual approval and implementation scope |
 
 ## Existing D1–D5 obligations are preserved verbatim
@@ -24,7 +24,7 @@ No runtime/core/tests/workflow/manifest changes occur in this PR. No PR132 or PR
 
 ## D6 — Final Visual Master
 
-Package: [D6.1](../../../desktop-vnext/d6-final-visual-master/README.md).
+Package: [D6.2](../../../desktop-vnext/d6-final-visual-master/README.md).
 
 D6 may proceed as design-only work alongside the existing D5 queue. It must inspect current production facts without treating a previous screenshot or an old design ZIP as current implementation. Its output is a complete visual proposal, not another vague specimen or instruction for Work to invent missing visual choices.
 
@@ -46,4 +46,4 @@ D7 completion requires correct behavior + preserved safety + high visual fidelit
 
 ## Current single next action
 
-Review D6.1's actual artboards and approve or request changes to that design revision. Do not start D7 from this design PR alone. D5's existing authorized queue remains controlled by its current status and protocol.
+Review the corrected D6.2 actual artboards and approve or request changes to that design revision. Do not start D7 from this design PR alone. D5's existing authorized queue remains controlled by its current status and protocol.
