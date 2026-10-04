@@ -1,5 +1,21 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D6.2 approved; D7 production high-fidelity implementation authorized — 2026-10-04
+
+**Current controlling state: `DESKTOP_VNEXT_D6_2_OWNER_APPROVED / D7_OWNER_AUTHORIZED / READY_FOR_IMPLEMENTATION`.**
+
+The owner explicitly confirmed **D6.2 Final Visual Master** after review of the corrected visual set. [PR #141](https://github.com/haohongfei2001-png/paia/pull/141) is merged at `c1b008205584b10af92449921283d34c835923f9`. D6.2 is now the highest authority for **pure visual presentation** in Desktop vNext. Product/data/privacy/authorization contracts and the Source / Working Input / human Thought / AI derivative / Context boundaries remain higher authority for behavior and safety.
+
+D7 — **Production High-Fidelity Implementation** — is owner-authorized. Start from fresh remote main with one active product writer. The default implementation sequence is: whole Archive/Reader → whole Thought/Years/Add Thought → whole AI Organize including first-generation states → whole AI Context → Settings/system/dark/compact convergence. For every surface use: `approved D6.2 target → real production implementation → tested source/release screenshot → equal-state comparison → correction`. Work may not redesign missing or conflicting references; use `VISUAL_REFERENCE_MISSING` / `VISUAL_REFERENCE_CONFLICT` and stop only the affected surface.
+
+D5 is **not retroactively marked COMPLETE**. Its Q1–Q12 adopted runtime work and all failed/unclosed evidence remain truthful history. The unclosed D5 visual-composition/conformance boundaries are absorbed into D7 implementation scope without relabeling them PASS. PR132 remains preserved and unmerged; do not merge/cherry-pick it wholesale. PR99 remains preserved and unmerged.
+
+Latest tested production runtime before D6 is still `b81ebfee6683d2eabc17d8ae50c34a717ac52cc3`; the D6.2 merge is documentation/design-only and does not itself change the extension runtime. D7 must establish new exact-head runtime evidence for every implemented batch.
+
+D7 authorization does **not** include public consumer release/store submission/install-package delivery, new provider or connector behavior, broader permissions, automatic paid calls, cloud/sync expansion, destructive-policy changes, or B-01–B-05 decisions. Those gates remain separate. Final production visual acceptance remains an end-of-D7 owner gate.
+
+Current writer: **NONE**. Next engineering action: assign one fresh D7 writer from current main and begin the whole Archive/Reader high-fidelity implementation batch.
+
 ## D5 verified checkpoint through Q12 — 2026-10-04
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / Q12_BOUNDED_INTEGRATED / D5_OPEN`.**
@@ -232,27 +248,27 @@ For a future owner-approved restart, reuse verified core mechanisms and exact-he
 
 package_id: PAIA-CONSUMER-PRODUCT-v1
 
-package_status: DESKTOP_VNEXT_D1_D4_OWNER_APPROVED
+package_status: DESKTOP_VNEXT_D6_2_OWNER_APPROVED_D7_AUTHORIZED
 
 activation_status: ACTIVATED_AFTER_CPR02_RELEASE
 
 activation_baseline_main: c1d448fc51261369398f7e12aaacaafd233e23d2
 
-current_slice: D4 — AI Context / explicit compiled-output review
+current_slice: D7 — Production High-Fidelity Implementation
 
-current_slice_status: IMPLEMENTING
+current_slice_status: READY_FOR_IMPLEMENTATION
 
-current_round: D4-Q1
+current_round: NONE — next: whole Archive/Reader convergence
 
-current_round_status: IMPLEMENTING
+current_round_status: NOT_STARTED
 
-current_writer: feat/desktop-vnext-d4-context-review — sole active product writer
+current_writer: NONE — assign fresh D7 writer from current main
 
-writer_status: ACTIVE — owner-approved Desktop vNext D1–D4 only
+writer_status: IDLE / D7 OWNER-AUTHORIZED
 
 production_claim: NONE
 
-authorization_mode: DESKTOP_VNEXT_D1_D4_OWNER_APPROVED — explicit owner scope; no future-product expansion
+authorization_mode: DESKTOP_VNEXT_D7_OWNER_APPROVED — D6.2 high-fidelity implementation only; no future-product expansion
 
 prior_temporary_authorization_rounds_completed: 4
 
