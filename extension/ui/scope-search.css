@@ -1,4 +1,4 @@
-/* One Archive search; sole visual owner for the Archive topbar control. */
+/* One scoped search; DOM placement changes without replacing this control. */
 #scope-search-host{flex:1 1 280px;min-width:0;max-width:520px}
 .scope-search{display:flex;align-items:center;gap:8px;min-width:0;width:100%}
 .scope-search[hidden],#scope-search-host:not(:has(.scope-search:not([hidden]))){display:none}
@@ -6,3 +6,16 @@
 #scope-search{width:100%;min-width:0;min-height:36px;padding:8px 12px;font:inherit;background:var(--rail);color:var(--text);border:0;border-radius:6px}
 @media(pointer:coarse){#scope-search{min-height:44px}}
 @media(max-width:767px){#scope-search-host{flex-basis:100%;max-width:none}}
+
+/* D6.2 search face. The icon is decorative; the existing label remains native. */
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #scope-search-host{display:block;flex:1 1 250px;min-width:0;max-width:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #scope-search-host:not(:has(.scope-search:not([hidden]))){display:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) .scope-search{position:relative;isolation:isolate;gap:8px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) .scope-search::before{content:"";position:absolute;left:14px;top:50%;width:10px;height:10px;margin-top:-7px;border:1.4px solid var(--muted);border-radius:50%;pointer-events:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) .scope-search::after{content:"";position:absolute;left:23px;top:50%;width:6px;height:1.4px;margin-top:2px;background:var(--muted);transform:rotate(45deg);transform-origin:left center;pointer-events:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #scope-search{min-height:38px;padding:8px 12px 8px 37px;border:0;border-radius:7px;background:var(--soft);color:var(--text);font:400 12px/22px var(--font)}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #scope-search::placeholder{opacity:1;color:var(--muted)}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #scope-search:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media(max-width:767px),(pointer:coarse){
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #scope-search{min-height:44px}
+}
