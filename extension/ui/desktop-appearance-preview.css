@@ -1,0 +1,16 @@
+/* Shared actual AppShell. New page components own their content composition. */
+body[data-desktop-appearance-preview] .workspace-header{min-height:72px;box-sizing:border-box}
+body[data-desktop-appearance-preview=context] .workspace-header{padding:0;display:block;border:0}
+body[data-desktop-appearance-preview=context] #workspace-heading{display:none}
+body[data-desktop-appearance-preview] .dvn-preview-workspace{margin:0 auto;padding:0;min-width:0}
+body[data-desktop-appearance-preview] .dvn-preview-back{padding:6px 0;border:0;background:transparent;color:var(--text);font:14px/1.5 var(--font)}
+
+body[data-desktop-appearance-preview] .workspace{padding:0 0 64px}
+body[data-desktop-appearance-preview] .workspace-header{margin:0;padding:18px 28px;border-bottom:1px solid var(--line)}
+body[data-desktop-appearance-preview=context] .workspace-header{padding:0;border:0}
+@media(max-width:1439px){body[data-desktop-appearance-preview] .workspace-header{padding:16px 24px}body[data-desktop-appearance-preview=context] .workspace-header{padding:0}}
+@media(max-width:767px){body[data-desktop-appearance-preview] .workspace-header{padding:12px 16px}body[data-desktop-appearance-preview=context] .workspace-header{padding:0}}
+
+body[data-desktop-appearance-preview=compose] #thought-panel,body[data-desktop-appearance-preview=organize] #thought-panel,body[data-desktop-appearance-preview=context] #thought-panel{display:none}
+
+.dvn-preview-exit{margin-left:auto;border:0;background:transparent;color:var(--muted);font:12px/1.5 var(--font)}

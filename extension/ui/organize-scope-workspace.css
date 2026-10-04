@@ -1,0 +1,33 @@
+/* O01 uses the real scope renderer in an ordinary workspace. The isolated
+   preview loads this stylesheet; no modal or other surface is restyled. */
+.organize-scope-workspace {
+ box-sizing:border-box;width:100%;max-width:calc(var(--compare,960px) + 64px);
+ margin:0 auto;padding:54px 32px 80px;min-width:0;
+ border:0;border-radius:0;box-shadow:none;
+ color:var(--text,#263031);background:var(--bg,#fff);
+ font:14px/1.5 var(--font,system-ui,sans-serif);overflow-wrap:anywhere;
+}
+.organize-scope-workspace .organize-scope-eyebrow {margin:14px 0;color:var(--brand,#8d4937);font:inherit;}
+.organize-scope-workspace .organize-scope-title {margin:0 0 16px;padding:0;color:var(--text,#263031);font:600 28px/1.35 var(--font,system-ui,sans-serif);overflow-wrap:anywhere;}
+.organize-scope-workspace .organize-scope-subtitle {margin:0 0 30px;color:var(--muted,#606b70);font:inherit;}
+.organize-scope-workspace .organize-scope-topic {margin:28px 0 12px;padding:0;color:var(--text,#263031);font:600 18px/1.5 var(--font,system-ui,sans-serif);overflow-wrap:anywhere;}
+.organize-scope-workspace .organize-scope-review {margin:0;padding:0;min-width:0;border:0;background:transparent;box-shadow:none;}
+.organize-scope-workspace .organize-scope-materials {margin:16px 0;color:var(--text,#263031);font:16px/1.85 var(--font,system-ui,sans-serif);}
+.organize-scope-workspace .organize-scope-service {margin:14px 0;color:var(--text,#263031);font:inherit;}
+.organize-scope-workspace .organize-scope-actions {display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:24px;}
+.organize-scope-workspace button {box-sizing:border-box;width:auto;max-width:100%;min-height:36px;margin:0;padding:6px 12px;border:1px solid var(--control,#69777b);border-radius:6px;background:transparent;color:var(--text,#263031);font:inherit;white-space:normal;overflow-wrap:anywhere;cursor:pointer;}
+.organize-scope-workspace .organize-scope-cancel {padding:0;border:0;border-radius:0;}
+.organize-scope-workspace button:disabled {opacity:.55;cursor:default;}
+.organize-scope-workspace .organize-scope-preview-note {margin:16px 0 0;color:var(--muted,#606b70);font:12px/1.5 var(--font,system-ui,sans-serif);}
+.organize-scope-workspace .organize-scope-details {margin:16px 0 0;color:var(--muted,#606b70);font:inherit;}
+.organize-scope-workspace .organize-scope-details summary {min-height:32px;padding:4px 0;cursor:pointer;}
+.organize-scope-workspace .organize-scope-details p {margin:12px 0;color:var(--muted,#606b70);font:inherit;}
+.organize-scope-workspace .organize-scope-blocked {margin:24px 0;padding:16px 18px;border-left:2px solid var(--warning,#79500f);background:var(--warning-bg,#fcf5e9);color:var(--warning,#79500f);font:inherit;}
+.organize-scope-workspace :is(button,summary):focus-visible {outline:2px solid var(--focus,#215fbc);outline-offset:3px;}
+@media(max-width:1439px){.organize-scope-workspace {padding:40px 24px 64px;}}
+@media(max-width:1023px){.organize-scope-workspace {padding-top:32px;}}
+@media(max-width:767px){.organize-scope-workspace {padding:28px 16px 56px;}.organize-scope-workspace .organize-scope-title {font-size:24px;}}
+@media(pointer:coarse),(max-width:767px){.organize-scope-workspace :is(button,summary) {min-width:44px;min-height:44px;}}
+@media(prefers-reduced-motion:reduce){.organize-scope-workspace,.organize-scope-workspace * {animation:none;transition:none;scroll-behavior:auto;}}
+
+.organize-scope-workspace :is(.organize-scope-title,.organize-scope-topic){font-synthesis:weight}

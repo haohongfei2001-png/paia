@@ -1,0 +1,60 @@
+name: PAIA D5 Whole Page Appearance
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'extension/**'
+      - '.github/workflows/paia-appearance-preview.yml'
+permissions:
+  contents: read
+concurrency:
+  group: paia-appearance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  appearance:
+    if: contains(github.event.pull_request.body, 'PAIA_DVN_WHOLE_APPEARANCE')
+    name: Whole page source and release appearance
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Use hosted Chrome and Chinese glyphs
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
+          fc-list :lang=zh | grep -q .
+      - name: Capture complete production and reference windows
+        run: |
+          set -o pipefail
+          mkdir -p work/desktop-appearance-preview
+          xvfb-run -a node --test --test-concurrency=1 scripts/verify-desktop-appearance-preview.mjs 2>&1 | tee work/desktop-appearance-preview/acceptance.log
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+          for(const variant of ['source','release']){const report=JSON.parse(readFileSync(`work/desktop-appearance-preview/${variant}.json`));assert.equal(report.result,'PASS');assert.equal(report.head,process.env.PAIA_TESTED_HEAD);assert.equal(report.rows.length,32);assert.deepEqual(report.errors,[]);assert.deepEqual([...new Set(report.rows.map(row=>row.screen))].sort(),['compose','context-ready','context-retrieve','context-review','context-select','context-task','organize','topic','years']);for(const row of report.rows){assert.ok(row.actual.root.width>0&&row.actual.heading.height>0);assert.equal(row.actual.modal,false);}}
+          JS
+      - name: Retain every completed or failed frame and receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d5-whole-appearance-${{ github.event.pull_request.head.sha }}
+          path: extension/work/desktop-appearance-preview/
+          if-no-files-found: error
+          retention-days: 7
