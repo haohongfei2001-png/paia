@@ -1,5 +1,16 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q11 — Scope disclosure before Organize approval — 2026-10-04
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q11`.**
+Q10 [PR136](https://github.com/haohongfei2001-png/paia/pull/136) is adopted at exact main `e021cbdd65ab7e3c32da8aa24faae2bc619d45c6`. Reviewed head `a50488f953a1668605fff407b2eb4ead64b9acbd`, tested merge `b3ba458fa77589eeba6b3bfd9f3c874a70a72398` and main share tree `f43660be5b2daa5a61ee29c5bfe87db31e5fe345`. Candidate37174023756, light37174808689, exact-main37175084533 and Pages37175084417 PASS:1,638 unit/38 browser/102 adapter/58 privacy plus release;48 paired header rows,14 interactions,20 ownership receipts and eight native200% title-endpoint observations. Independent actual pixels clear the bounded header; earlier failed strict CI expectations remain in [Q10](implementation/desktop-vnext/D5-Q10.md). Full browser/Mac were intentionally skipped under §7.2.
+
+Approved [Q11](implementation/desktop-vnext/D5-Q11.md) starts from clean main. Move the one existing scope-disclosure node before the existing approval selector/Start in the same modal form. Keep every value, handler, permission, scope binding, blank/blocked refusal and explicit confirmation guard. Default to no CSS or other Organize family change. Pinned exact-source/release baseline plus unchanged complete owning journeys must prove ordering, readable scrolling, keyboard/focus, narrow/200% controls and zero requests before approval.
+
+Q11 draft [PR137](https://github.com/haohongfei2001-png/paia/pull/137), head `03e8e017`, candidate37176837903 retains seven browser PASS and two FAIL: existing narrow approval/Start/Close controls measure40/41/41px in both exact baseline and current. Add only the scope-dialog narrow/coarse44px floor and retain every assertion; corrected native/pixel gates remain pending. The six original request-owner cases, pinned source/release baseline, unit, adapter/privacy and release jobs pass.
+
+The modal-versus-main-workspace O01 gap remains explicit. PR132/T05 stays preserved/unmerged; action/year-navigation and remaining Organize/Context composition plus final owner visual acceptance remain open. Public consumer release and install-package delivery remain held. Older controlling entries below are historical.
+
 ## D5/Q10 — Existing Topic header alignment — 2026-10-04
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q10`.**

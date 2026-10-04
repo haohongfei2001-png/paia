@@ -202,7 +202,7 @@ export class TopicController {
    const scope=await request('GET_AI_PRESENTATION_SCOPE',{options:{topicId}});
    if(this.id!==topicId||this.openIntent!==intent)return;
    const choice=this.form('核对 AI整理范围',[{key:'approval',label:'本次有限请求',required:true,options:[['','请选择'],['confirm','确认本次生成']]}]);
-   $('library-dialog-content').append(organizeScopeReview(scope));const submit=$('library-form').querySelector('button[type=submit]');submit.textContent='确认并开始';submit.disabled=!!scope.blockedReason;
+   $('library-form').prepend(organizeScopeReview(scope));const submit=$('library-form').querySelector('button[type=submit]');submit.textContent='确认并开始';submit.disabled=!!scope.blockedReason;
    const value=await choice;if(value?.approval!=='confirm'||scope.blockedReason||this.id!==topicId||this.openIntent!==intent)return;
    await this.startAIUpdate(scope);
   }catch(error){this.onStatus('无法核对本次整理范围；没有发送请求。','error');}
