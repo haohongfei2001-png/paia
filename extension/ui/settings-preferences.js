@@ -5,6 +5,7 @@ import {ArchiveOrderSettings} from './archive-order-settings.js';
 const $=id=>document.getElementById(id);
 const FONT_PX={small:16,standard:17,large:19,xlarge:21};
 const WIDTH_PX={narrow:640,standard:680,wide:720};
+let preferenceRead=0;
 let uxPreferences=normalizeUXPreferences(),preferenceBusy=false,settingsVisible=false,notifyOrganizerSettings=()=>{};let onBack=()=>{};
 const archiveOrderSettings=new ArchiveOrderSettings();
 
@@ -21,7 +22,8 @@ function applyPreferences(){
  syncPreferenceControls();syncSettingsLocale();document.dispatchEvent(new CustomEvent('paia:preferences-applied'));
 }
 async function loadPreferences(){
- try{const page=await request('GET_PAGE',{page:{view:'settings'}});uxPreferences=normalizeUXPreferences(page.preferences);applyPreferences();updateLocalStatus(page);return page;}catch{applyPreferences();const state=$('ux-local-state');if(state)state.textContent=copy('本机保存遇到问题','Local storage unavailable');return null;}
+ const read=++preferenceRead;
+ try{const page=await request('GET_PAGE',{page:{view:'settings'}});if(read!==preferenceRead)return null;archiveOrderSettings.setConsented(page.settings?.consentVersion===1);uxPreferences=normalizeUXPreferences(page.preferences);applyPreferences();updateLocalStatus(page);return page;}catch{if(read!==preferenceRead)return null;applyPreferences();const state=$('ux-local-state');if(state)state.textContent=copy('本机保存遇到问题','Local storage unavailable');return null;}
 }
 async function savePreference(key,value,control){
  if(preferenceBusy)return;preferenceBusy=true;const before=uxPreferences[key],status=$('ux-settings-feedback');
@@ -101,7 +103,7 @@ function preserveInternalToolAccess(){const details=$('product-diagnostics');if(
 
 let installed=false;
 export function installSettingsPreferences({back=()=>{}}={}){
- if(installed)return;installed=true;onBack=back;setupSettingsShell();tuneOnboarding();preserveInternalToolAccess();void loadPreferences();void archiveOrderSettings.load();
+ if(installed)return;installed=true;onBack=back;setupSettingsShell();tuneOnboarding();preserveInternalToolAccess();void loadPreferences();
  installPreferenceUpdates();
 }
 

@@ -13,6 +13,20 @@ async function consent(page){
  const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()));await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true);
  if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();
 }
+async function consentAndRefreshOrder(page){
+ const refused=await page.evaluate(()=>chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_ORDER_PREFERENCE'}));
+ assert.equal(refused.ok,false);assert.equal(refused.error,'CONSENT_REQUIRED','real worker still refuses before consent');
+ await page.evaluate(()=>{
+  const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__uir04OrderCalls=[];window.__uir04OrderOwner=document.getElementById('archive-order-mode');window.__uir04RestoreOrderSend=()=>{chrome.runtime.sendMessage=send;};
+  chrome.runtime.sendMessage=async message=>{if(message.type==='PAIA_ARCHIVE_ORDER_PREFERENCE')window.__uir04OrderCalls.push({...message});return send(message);};
+ });
+ try{
+  await consent(page);
+  await eventually(async()=>/使用 PAIA 稳定顺序/.test(await page.locator('#archive-order-status').textContent()),'confirmed consent refreshes archive order automatically without reload or manual choice');
+  const proof=await page.evaluate(()=>({calls:window.__uir04OrderCalls,sameOwner:window.__uir04OrderOwner===document.getElementById('archive-order-mode'),mode:document.getElementById('archive-order-mode').value}));
+  assert.ok(proof.calls.length>0,'the successful state follows a real preference read');assert.ok(proof.calls.every(message=>Object.keys(message).length===1&&message.type==='PAIA_ARCHIVE_ORDER_PREFERENCE'),'automatic recovery only reads the preference');assert.equal(proof.sameOwner,true);assert.equal(proof.mode,'paia');
+ }finally{await page.evaluate(()=>{window.__uir04RestoreOrderSend();delete window.__uir04RestoreOrderSend;delete window.__uir04OrderCalls;delete window.__uir04OrderOwner;});}
+}
 async function openSettings(page){await page.locator('.sidebar-bottom [data-view="settings"]').click();await eventually(()=>page.locator('#settings-panel').isVisible(),'Settings opens');}
 async function chooseGroup(page,key){const select=page.locator('#ux-settings-group-switch');if(await select.isVisible())await select.selectOption(key);else await page.locator(`[data-settings-group="${key}"]`).click();await page.locator(`[data-group="${key}"]`).waitFor({state:'visible'});}
 async function shot(page,name){await mkdir('work/ux-r6',{recursive:true});await page.screenshot({path:`work/ux-r6/${name}.png`,fullPage:true});}
@@ -20,7 +34,7 @@ async function assertOwner(page,selector,key){const count=await page.locator(sel
 async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
 
 async function sourceJourney(h){
- const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',readingWidth:'wide'}});await page.setViewportSize({width:1440,height:900});await openSettings(page);
+ const page=h.archive;await consentAndRefreshOrder(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',readingWidth:'wide'}});await page.setViewportSize({width:1440,height:900});await openSettings(page);
  assert.equal(await page.locator('h1:visible').count(),1,'Settings owns one visible h1');assert.equal((await page.locator('#ux-settings-title').textContent()).trim(),'设置');
  const boxes=await measureSettingsGeometry(page);
  assert.ok(Math.abs(boxes.nav-880)<=2,`desktop Settings group row is 880px; got ${boxes.nav}`);assert.ok(Math.abs(boxes.body-880)<=2,`desktop Settings body uses the declared 880px cap; got ${boxes.body}`);assert.ok(Math.abs(boxes.navX-boxes.bodyX)<=2,'group navigation and body share the same reading column');assert.ok(Math.abs(boxes.gap-28)<=2,`group navigation is above the body with 28px gap; got ${boxes.gap}`);
@@ -51,7 +65,7 @@ async function sourceJourney(h){
 }
 
 async function releaseJourney(h){
- const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await page.setViewportSize({width:1440,height:900});await openSettings(page);
+ const page=h.archive;await consentAndRefreshOrder(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await page.setViewportSize({width:1440,height:900});await openSettings(page);
  const geometry=await measureSettingsGeometry(page);assert.ok(Math.abs(geometry.nav-880)<=2&&Math.abs(geometry.body-880)<=2&&Math.abs(geometry.navX-geometry.bodyX)<=2&&Math.abs(geometry.gap-28)<=2,'built release keeps the declared 880px single reading column and 28px vertical group gap');
  await assertOwner(page,'#r6-hide-content-previews','privacy');await assertOwner(page,'#r6-complete-export','data');assert.equal(await page.locator('#filter-advanced').count(),0,'release-only diagnostics pruning still applies');
  await page.setViewportSize({width:390,height:844});const switcher=page.locator('#ux-settings-group-switch');await switcher.selectOption('data');await eventually(()=>page.locator('[data-group="data"]').isVisible());assert.equal(await switcher.isVisible(),true);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-settings-data-390x844-light');await assertNoNetwork(h);
