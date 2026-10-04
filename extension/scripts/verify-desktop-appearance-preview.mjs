@@ -101,8 +101,8 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
      }
     }
     if(screen==='root'){
-     await page.locator('#thought-search').fill('职业方向');await eventually(()=>page.locator('#thought-list [data-topic-id]').count().then(n=>n===1),'same scoped search filters the actual root');
-     await page.locator('#thought-search').fill('');await eventually(()=>page.locator('#thought-list [data-topic-id]').count().then(n=>n===6),'clear restores the actual root');
+     try{await page.locator('#thought-search').fill('职业方向');await eventually(()=>page.locator('#thought-list > .topic-index-row').count().then(n=>n===1),'same scoped search filters the actual root');assert.match(await page.locator('#thought-list > .topic-index-row').innerText(),/职业方向/);}
+     finally{await page.locator('#thought-search').fill('');await eventually(()=>page.locator('#thought-list [data-topic-id]').count().then(n=>n===6),'clear restores the actual root');}
      await settlePrimary(page,320);await page.locator('#archive-compact-navigation > summary').click();await page.locator('#archive-compact-nav-items [data-view=thoughts]').click();await page.locator(`[data-topic-id="${seed.topicId}"]`).waitFor();await page.keyboard.press('Escape');await settlePrimary(page,320);
     }
     if(screen==='years'){

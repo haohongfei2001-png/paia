@@ -65,3 +65,15 @@ Topic, so the compose fixture uses actual Back before selecting the Topic again.
 The first root pixels also show the inherited76px overflow trigger crossing its
 caption; constrain that existing trigger to44px and reserve56px in the row.
 All36 native rows, side-effect assertions and12-minute budget remain required.
+
+Candidate `d93819f240ddfded7a0a0dcc19f644306eade953`: Candidate37218703502
+PASS. Native37218703427 FAIL; artifact11309851074, ZIP SHA256
+`ab3e1ec50adf9b199076beee20073ca04e3c674b70d170dcacaa9b867fcf214b`.
+Both variants retained21/36 rows, including the corrected320 root and every
+previously failed compact primary-layout wait. The new root search probe used
+non-search `[data-topic-id]` instead of the existing direct search-result
+`.topic-index-row`, so its failed assertion left the query set and blocked the
+later Topic entries. The probe now asserts the actual search-result row/text
+and clears the query in `finally`; runtime and all thresholds remain unchanged.
+Content, Years, normal Back/compose, selected-topic and full-year locators were
+cross-checked against their production DOM constructors before the next run.
