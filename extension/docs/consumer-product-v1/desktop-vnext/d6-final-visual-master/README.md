@@ -1,8 +1,8 @@
 # PAIA Desktop vNext — D6 Final Visual Master
 
-**D6.2 · 2026-10-04 · OWNER_REVIEW_PENDING**
+**D6.2 · 2026-10-04 · OWNER_APPROVED**
 
-This is a proposed final visual system, not a production release or an owner-approved visual baseline. D5 remains the existing engineering stage; it is not renamed or declared complete. D7 is planned and must not begin from this package alone.
+This is the **owner-approved final visual baseline** for PAIA Desktop vNext. It is not a production release. D5 remains truthful engineering history and is not retroactively declared complete. D7 is now owner-authorized to implement this visual system in the real production extension.
 
 ## Open the actual images
 
@@ -20,11 +20,11 @@ Read `VISUAL_AUDIT.md`, `FINAL_VISUAL_CONTRACT.md`, `SURFACE_MAP.md`, `DESIGN_SY
 
 ## What becomes authoritative, and when
 
-Before owner approval, the entire D6 visual proposal is pending. Approval must identify the D6 revision and accepted visual references. Only then may its pure visual decisions supersede earlier visual completion decisions. Product definitions, data/permission semantics, Source/Working/AI separation, denials and release checks are never superseded by pictures.
+The owner explicitly approved **D6.2** on 2026-10-04. Its pure visual decisions now supersede earlier conflicting visual completion decisions and loose specimens. Product definitions, data/permission semantics, Source/Working/AI separation, denials and release checks are never superseded by pictures.
 
 Do not repeat the earlier handoff mistake: the finished pictures and tokens must agree. A genuine conflict is `VISUAL_REFERENCE_CONFLICT`, not permission to choose a third style. A missing state is `VISUAL_REFERENCE_MISSING`, not permission for Work to design it.
 
-The single next step is owner review of the corrected D6.2 image set. This PR neither starts D7 nor changes D5's active writer, unfinished evidence or release hold.
+The single next step after merging this design package is to start D7 from fresh remote main under the approved D7 handoff. D5 unfinished evidence and the release hold remain truthful and must be preserved.
 
 ## D6.2 owner-review correction
 
