@@ -1,27 +1,26 @@
-# CPV1-09.3V — Engineering visual convergence complete; owner acceptance pending
+# CPV1-09.3V — V03/V08 final owner review pending
 
-**Current Prompt Reuse delivery state: `ENGINEERING_VISUAL_CONVERGENCE_COMPLETE / OWNER_VISUAL_ACCEPTANCE_PENDING`.**
+**Current delivery state: `ENGINEERING_VISUAL_CONVERGENCE_COMPLETE / OWNER_VISUAL_ACCEPTANCE_PENDING`.**
 **Acceptance boundaries remain `FUNCTIONAL_ENGINEERING_COMPLETE / VISUAL_ACCEPTANCE_OPEN / REAL_CHATGPT_FINAL_CERTIFICATION_DEFERRED`.**
 
-[PR #151](https://github.com/haohongfei2001-png/paia/pull/151) converges the production
-orb/card to frozen V01–V08 on reconciled main `bf2c1490478c9971286e6c1a219b6882797f2334`.
-The final runtime is `8abb9e2fbd6a8b082ff0e245ce6cb88815202f0c`; its tested merge
-candidate has the same tree. [Receipt and eight comparison boards](implementation/prompt-reuse/VISUAL-CONVERGENCE.md)
-record direct target/source/release visual inspection, explicit V04 layout and
-V08 status accommodations, target differences and runtime hashes. Source/release
-parity is 8/8; it is build equivalence only and does not grant owner acceptance.
+Owner review has accepted V01, V02, V04, V05, V06 and V07. Those surfaces and
+frozen masters are unchanged. The remaining PR #151 follow-up changes only the
+V03 pencil glyph and V08 feedback: verified success shows `已插入，未发送。`
+for 1.8 seconds, then clears without Copy; failed/unconfirmed outcomes retain
+explicit manual-copy recovery. No automatic send or retry is introduced.
 
-Engineering gates PASS: 64 owning tests, 1,768 full unit, 48 source/release browser
-test registrations (44 cases plus four parent containers), 102 adapter and 59
-privacy/security checks, source/release package guards. Native 200% zoom, narrow,
-coarse input, theme changes and lifecycle journeys are included. The PR remains
-unmerged for owner visual acceptance; no final human design acceptance is claimed.
+[Bounded follow-up receipt and V03/V08 comparison boards](implementation/prompt-reuse/V03-V08-OWNER-FOLLOWUP.md)
+record the directly inspected target/source/release evidence and the preceding
+50/50 source/release browser result. Latest exact-head checks remain attached to
+[PR #151](https://github.com/haohongfei2001-png/paia/pull/151).
+The same branch is reconciled onto main `3a127c2d69f9d33cc0e7ae90d7d1c5e3ac0e5408`;
+D7 PR #152 files and every main status entry below are preserved.
 
-**Unique remaining Prompt Reuse action: owner review of V01–V08 in PR #151.**
-No schema, ranking, Backup, trusted-command, insertion/no-send, provider or
-permission changes. D7 files and its status entries are preserved. Real ChatGPT
-final certification remains `DEFERRED_EXTERNAL_EVIDENCE`; second provider,
-Stage 3 and B-04 are not started. The historical reopening below remains evidence.
+**Unique remaining Prompt Reuse action: final owner review of V03 and V08.**
+The PR stays unmerged. Family/ranking, schema, Backup, provider adapter,
+trusted commands, permissions and insertion acknowledgement are unchanged.
+Real ChatGPT certification stays `DEFERRED_EXTERNAL_EVIDENCE`; no Stage 3,
+B-04, second provider or D7 work is authorized by this follow-up.
 
 # Prompt Reuse visual convergence — OWNER REVIEW REOPENED
 
