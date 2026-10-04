@@ -63,9 +63,16 @@ function render(){
   },'管理此 Prompt');more.className='more';more.setAttribute('aria-expanded','false');const editButton=button('',()=>edit(item),'编辑此 Prompt');editButton.className='edit-shortcut';row.append(insertButton,dragHandle(item,row,true),editButton,more);list.append(row);
  }
 }
-document.getElementById('new').addEventListener('click',()=>edit(null));document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('hidden').addEventListener('click',()=>{if(editing||busy)return;hidden=!hidden;void refresh();});document.getElementById('close').addEventListener('click',()=>{if(editing||busy){tell('请先保存或取消编辑。');return;}void rpc({type:'close'}).catch(()=>tell('无法关闭，请稍后重试。'));});
-document.getElementById('card').addEventListener('keydown',e=>{if(e.key==='Escape'&&!editing&&!composing&&!busy){e.preventDefault();void rpc({type:'close'}).catch(()=>{});}});
-chrome.runtime.onMessage.addListener(r=>{if(refreshing)return;if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;const ticket=++epoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(!editing)revision=q.revision;session.reconcile(q);if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
+async function requestClose(event){
+ if(composing||event?.isComposing||event?.keyCode===229)return;
+ if(editing){tell('请先保存或取消编辑。');return;}
+ if(busy||refreshing||drag)return;
+ // Freeze admission while the existing authenticated close RPC is in flight.
+ pending(true);try{await rpc({type:'close'});}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
+}
+document.getElementById('new').addEventListener('click',()=>edit(null));document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('hidden').addEventListener('click',()=>{if(editing||busy)return;hidden=!hidden;void refresh();});document.getElementById('close').addEventListener('click',e=>{if(e.isTrusted)void requestClose(e);});
+document.getElementById('card').addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Escape'&&!composing&&!e.isComposing&&e.keyCode!==229){e.preventDefault();void requestClose(e);}});
+chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;void requestClose();reply({received:true});return;}if(refreshing)return;if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;const ticket=++epoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(!editing)revision=q.revision;session.reconcile(q);if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
 void refresh();
 
 // An inactive cross-origin frame retains its last focused element. Reveal controls only while this document actually owns focus.

@@ -1,7 +1,7 @@
 # Bounded Reader return repair
 
 Base: `e53943eda5adc5ed26bc6489ea1757615eb93c0d` (main after PR158).
-Status: LOCAL_VERIFICATION / HOSTED_BROWSER_PENDING.
+Status: ORIGINAL_HEAD_HOSTED_PASS / INTEGRATED_HEAD_PENDING.
 
 ## Reproduced defect and boundary
 
@@ -58,3 +58,32 @@ there is no further local timing retry, and the threshold/fixture are unchanged.
 No broader D7 completion, live-site certification, consumer distribution or
 functional expansion is claimed. Exact-head hosted evidence and independent
 review are required before adoption.
+
+## Exact-head hosted verification and main reconciliation
+
+Head `0d2957dd15e7377938da70bf9aede26615a41ee6`, tree
+`069e7538290f58166466bacc21fce4ea81382dea`: candidate
+[37241338155](https://github.com/haohongfei2001-png/paia/actions/runs/37241338155)
+and complete D7
+[37241338178](https://github.com/haohongfei2001-png/paia/actions/runs/37241338178)
+PASS. Actual hosted results: unit 1,811; adapter 102; privacy 59; release/package
+checks; two full source/release and three complete compatibility registrations.
+Both downloaded full reports retain all 23 rows and record the original Archive
+destination after two Settings round trips, two reloads and browser Back/Forward.
+The four compatibility reports retain 40 rows. Network/page errors remain zero;
+all 54 paired retained source/release PNG files are byte-identical. Independent
+code review found no blocking issue; no new visual design is introduced.
+
+Appearance artifact `11316888295`, ZIP SHA256
+`a22b4f30c88a2cd63eb4848cc7b693fd14d87c00ad2e1ce10dbc416b06de24a7`.
+Compatibility artifact `11317950219`, ZIP SHA256
+`ebe535ef68257dfc21de4ab5da2e3f1d00cdbc415825b70ddfa522dbb9127d34`.
+Local failures above remain truthful; hosted CI is separate evidence and does
+not erase the controlled-machine 120-second benchmark result.
+
+Before integration, main advanced to `fe1ab72fee35965548f7980a6b3e0b638cb4c332`
+(PR159). All six external code/test/receipt files are adopted byte-for-byte; the
+shared STATUS conflict is resolved by retaining both complete entries. Reader
+runtime and its regression tests are unchanged. Fresh combined-head D7 and
+round-integration gates are required; the earlier head is not relabeled as
+combined-head verification.

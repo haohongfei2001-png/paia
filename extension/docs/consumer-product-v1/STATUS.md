@@ -1,13 +1,28 @@
-# Bounded Reader / Settings return repair — local candidate
+# Bounded Reader / Settings return repair — verified candidate
 
-A separate consumer-reading repair starts from `e53943eda5adc5ed26bc6489ea1757615eb93c0d`.
 The [bounded receipt](implementation/desktop-vnext/D7-READER-SETTINGS-RETURN.md)
-records the reproduced PR143-era return gap and the one-field fix: Settings Back
-now passes the Reader's already captured parent through the existing navigation
-owner. The same complete D7 source/release journeys must verify repeated returns,
-reloads, browser history and final Archive Back. Hosted browser evidence remains
-pending; no broader D7, provider, functional redesign or release scope is opened.
-Earlier receipts and their negative evidence remain unchanged.
+records the reproduced PR143-era return gap and one-field fix. Candidate PR160
+`0d2957dd` passed complete D7 source/release and compatibility, unit 1,811,
+adapter 102, privacy 59 and release/package checks. Both real browser variants
+completed two Settings returns, two Reader reloads and browser Back/Forward,
+then Reader Back reached Archive. Local negative timing/launch evidence remains.
+
+Main `fe1ab72f` (PR159) is now integrated with every Prompt Reuse file and status
+entry preserved. Fresh integrated-head checks remain pending; no broader D7,
+provider, functional redesign or release scope is opened.
+
+# Prompt Reuse — guarded orb toggle repair candidate
+
+The owner-authorized bounded repair makes an open orb request the private card's
+existing guarded close policy, shared with Close and Escape. Editing/IME/busy
+states stay protected; real dragging stays open and the next ordinary click can
+collapse. Saved geometry, accepted visuals and all D7 work remain unchanged.
+
+[Toggle receipt](implementation/prompt-reuse/ORB-TOGGLE.md) retains the initial
+failing production-host regression and local browser startup limitation. Targeted
+CODE tests pass; exact-head hosted source/release and integration gates are pending.
+`VISUAL_ACCEPTED / OWNER_VISUAL_ACCEPTANCE = PASS` and
+`REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE` are unchanged.
 
 # Prompt Reuse — open Surface drag repair integrated
 
