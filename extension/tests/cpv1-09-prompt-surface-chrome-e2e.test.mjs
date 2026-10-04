@@ -77,10 +77,11 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   await check('system and host theme transitions keep frame contrast without refresh, reordering or losing an edit',async()=>{
    await page.emulateMedia({colorScheme:'light'});await card().locator('#refresh').click();await eventually(()=>card().locator('#refresh').isEnabled());
    const f=card(),ids=await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id));
-   const expectTheme=async theme=>{await eventually(()=>orb.getAttribute('data-theme').then(x=>x===theme));await eventually(()=>f.evaluate(()=>getComputedStyle(document.documentElement).color).then(x=>x===(theme==='dark'?'rgb(225, 233, 231)':'rgb(36, 49, 51)')));assert.deepEqual(await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),ids);};
+   const expectTheme=async theme=>{await eventually(()=>orb.getAttribute('data-theme').then(x=>x===theme),'host theme '+theme);await eventually(()=>f.evaluate(()=>getComputedStyle(document.documentElement).color).then(x=>x===(theme==='dark'?'rgb(225, 233, 231)':'rgb(36, 49, 51)')),'frame contrast '+theme);assert.deepEqual(await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),ids);};
    for(const theme of ['dark','light','dark','light']){await page.emulateMedia({colorScheme:theme});await expectTheme(theme);}
    await f.locator('.row').first().locator('.more').click();await f.getByRole('button',{name:'编辑',exact:true}).click();await f.getByRole('textbox',{name:'复用文本'}).fill('unsaved theme transition');
-   await page.evaluate(()=>document.documentElement.classList.add('dark'));await expectTheme('dark');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved theme transition');
+   // CDP media emulation pins every frame directly; release it to test native inherited iframe appearance.
+   await page.emulateMedia({colorScheme:null});await page.evaluate(()=>document.documentElement.classList.add('dark'));await expectTheme('dark');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved theme transition');
    await page.evaluate(()=>document.documentElement.classList.remove('dark'));await expectTheme('light');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved theme transition');await f.getByRole('button',{name:'取消',exact:true}).click();
   });
   await check('orb movement persists safely; idle CPU is bounded; no send, Provider, reply capture or site storage',async()=>{
