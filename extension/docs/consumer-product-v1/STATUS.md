@@ -1,5 +1,14 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## D5/Q8 — Context review, ready and stale presentation — 2026-10-04
+
+**Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q8`.**
+Q7 [PR133](https://github.com/haohongfei2001-png/paia/pull/133) is adopted at exact main `e7e7ea97a6b1d512ccbe6ec53f2d7d602c9f38a5`. Reviewed head `ccd24b918ecb0ee4356cdbe042cf020aa398b9f2`, tested merge `7b3714262e6660280b691dc7e4aec7828277d3c2` and main share tree `4543645744ca46e1e80c4cb7c848dc40b509f2d8`. Candidate37161390305, light integration37162343604, exact-main37162678276 and Pages37162677993 PASS. Evidence includes1627 unit/5 complete affected browser/102 adapter/58 privacy cases,48 paired rows,22 preferences and4 targets. Independent pixel review cleared the bounded comparison cut with two retained capture limitations: sticky chrome crosses some tall crops; coarse pixels do not corroborate the separately-passing coarse geometry. See [Q7](implementation/desktop-vnext/D5-Q7.md). Full browser/Mac were intentionally skipped under §7.2.
+
+Approved [Q8](implementation/desktop-vnext/D5-Q8.md) starts from that clean main and aligns only existing Context C04/C06/C08 preview presentation:880px cap, readable hierarchy, saved prose/fallback widths, normal-flow output actions and truthful stale warnings. The two-mode controller, exact plain-text output, explicit review, permission/eligibility and all stale/denied guards remain unchanged. Full five-step Context workflow and whole-page composition are not claimed. Existing complete D4 and UIR-04 source/release journeys plus paired pixels must pass before light integration.
+
+PR132 remains intact and unmerged at `497847ea39547df0d069676dda0b6645eb58b6da`; its compatibility patch chain is stopped. T05, remaining Topic/Organize/Context/Settings composition and final owner visual acceptance stay open. Public consumer release and install-package delivery remain held. Older controlling entries below are historical.
+
 ## D5/Q7 — comparison fields and decision presentation — 2026-10-03
 
 **Current controlling state: `DESKTOP_VNEXT_D5_OWNER_APPROVED / IMPLEMENTING_Q7`.**
