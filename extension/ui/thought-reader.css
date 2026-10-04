@@ -28,7 +28,7 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 /* Approved T05 writing roles, within the existing native dialog interaction. */
 .topic-action-dialog[data-action-surface=compose] {width:min(824px,calc(100vw - 48px));padding:32px;font-size:14px;line-height:1.5;}
 .topic-action-dialog[data-action-surface=compose] header {align-items:flex-start;gap:20px;}
-.topic-action-dialog[data-action-surface=compose] h2 {margin:0;font-size:28px;line-height:1.35;font-weight:600;overflow-wrap:anywhere;}
+.topic-action-dialog[data-action-surface=compose] h2 {font-synthesis:weight;margin:0;font-size:28px;line-height:1.35;font-weight:600;overflow-wrap:anywhere;}
 .topic-action-dialog[data-action-surface=compose] .topic-action-content {display:block;margin-top:30px;}
 .topic-action-dialog[data-action-surface=compose] .thought-compose-intro {margin:0 0 30px;color:var(--muted);}
 .topic-action-dialog[data-action-surface=compose] .thought-compose-destination {margin:0 0 8px;color:var(--text);}
