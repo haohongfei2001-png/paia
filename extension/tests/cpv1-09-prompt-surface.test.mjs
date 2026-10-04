@@ -78,3 +78,55 @@ test('saved open anchor remains viewport-bounded when scrolling moves the compos
   const g=sandbox.PAIAPromptLayout(width,900,form,position,true);assert.ok(g?.card);for(const r of [g.orb,g.card])assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=900,JSON.stringify({form,position,g}));
  }
 });
+
+async function hostFixture(){
+ const nodes=[],sent=[],listeners=new Map();
+ const rect={x:500,y:100,width:44,height:44,left:500,right:544,top:100,bottom:144};
+ const element=tag=>{
+  const attrs=new Map(),handlers=new Map(),node={tag,dataset:{},style:{},hidden:false,isConnected:false,handlers,
+   setAttribute(k,v){attrs.set(k,v);},getAttribute:k=>attrs.get(k),addEventListener(k,v){handlers.set(k,v);},removeEventListener(){},
+   append(...children){for(const c of children)c.isConnected=true;},attachShadow(){return element('shadow');},remove(){this.isConnected=false;},
+   getBoundingClientRect:()=>({...rect}),setPointerCapture(){},focus(){this.focused=true;},closest(){return this;}};nodes.push(node);return node;
+ };
+ const html=element('html');html.classList={contains:()=>false};
+ const document={documentElement:html,createElement:element,addEventListener(){},removeEventListener(){}};
+ const sandbox={document,location:{href:url},innerWidth:1280,innerHeight:900,crypto:{randomUUID:()=>nonce},getComputedStyle:()=>({colorScheme:'light'}),
+  matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}}),MutationObserver:class{observe(){}disconnect(){}},
+  requestAnimationFrame:f=>{f();},PAIAChatGPTComposerAdapter:class{discover(){return {node:element('form'),status:'visible'};}dispose(){}},
+  PAIAPromptLayout:()=>({orb:{x:500,y:100,w:44,h:44},card:{x:204,y:132,w:336,h:350}}),
+  chrome:{runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,onMessage:{addListener:f=>listeners.set('message',f),removeListener(){}},sendMessage:async r=>{sent.push(r);return {ok:true,data:{version:1,open:false,position:null}};}}}};
+ sandbox.window={addEventListener(){},removeEventListener(){}};
+ vm.runInNewContext(await readFile(new URL('../content/prompt-surface.js',import.meta.url),'utf8'),sandbox);await new Promise(setImmediate);
+ const orb=nodes.find(n=>n.tag==='button');return {orb,nodes,sent,sandbox,listeners,fire(type,fields={}){orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:522,clientY:122,preventDefault(){},...fields});}};
+}
+
+test('open orb requests the private card close policy instead of only focusing or destroying its frame',async()=>{
+ const f=await hostFixture();f.fire('click');const frame=f.nodes.find(n=>n.tag==='iframe');assert.equal(frame.isConnected,true);
+ f.fire('click');await new Promise(setImmediate);assert.ok(f.sent.some(r=>r.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'&&r.nonce===nonce),'open orb must request the guarded close policy');assert.equal(frame.isConnected,true,'only authenticated close acknowledgement removes the frame');
+});
+
+test('orb drag click suppression ends with its gesture and keyboard activation still requests closure',async()=>{
+ const f=await hostFixture();f.fire('click');const count=()=>f.sent.filter(r=>r.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE').length;
+ f.fire('pointerdown');f.fire('pointermove',{clientX:532});f.fire('pointerup');f.fire('click',{detail:1});assert.equal(count(),0);
+ f.fire('pointerdown');f.fire('pointerup');f.fire('click',{detail:1});assert.equal(count(),1,'next pointer click toggles');
+ f.fire('pointerdown');f.fire('pointermove',{clientX:532});f.fire('pointercancel');f.fire('click',{detail:0});assert.equal(count(),2,'keyboard click after cancelled drag toggles');
+ f.fire('keydown',{key:'Escape',isComposing:true});f.fire('keydown',{key:'Escape',keyCode:229});assert.equal(count(),2);f.fire('keydown',{key:'Escape'});assert.equal(count(),3);
+});
+
+test('host close request is nonce-only and bound to the exact active top document, consent and live card',async()=>{
+ const f=fixture(),broadcast=[];f.api.runtime.sendMessage=async r=>broadcast.push(r);
+ const sender={id:'ext',tab:{id:7},frameId:0,url,documentId:'live-document',documentLifecycle:'active'},request={type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce};
+ assert.deepEqual(await f.s.handle(request,sender),{});assert.deepEqual(broadcast,[request]);assert.equal(f.writes.length,0);assert.equal(f.calls.length,0);assert.deepEqual(f.sent.at(-1),[7,{type:'PAIA_PROMPT_SURFACE_PROBE'},{documentId:'live-document'}]);
+ for(const bad of [{...sender,id:'foreign'},{...sender,frameId:1},{...sender,documentId:undefined},{...sender,documentLifecycle:'cached'},{...sender,tab:{id:7,incognito:true}},{...sender,url:'https://foreign.example/'}])await assert.rejects(()=>f.s.handle(request,bad));
+ for(const bad of [{...request,nonce:'invalid'},{...request,text:'private'},{...request,state:{open:false}}])await assert.rejects(()=>f.s.handle(bad,sender));
+ for(const response of [{open:false,nonce,url},{open:true,nonce:'22222222-2222-4222-8222-222222222222',url},{open:true,nonce,url:url+'/changed'}]){f.api.tabs.sendMessage=async()=>response;await assert.rejects(()=>f.s.handle(request,sender));}
+ assert.equal(broadcast.length,1);f.revoke();await assert.rejects(()=>f.s.handle(request,sender),e=>e.code==='CONSENT_REQUIRED');
+});
+
+test('host close request rejects navigation or consent changes during its live probe; SPA uses the live document',async()=>{
+ for(const reason of ['navigation','consent']){const f=fixture();let broadcast=0;f.api.runtime.sendMessage=async()=>broadcast++;
+  f.api.tabs.sendMessage=async()=>{if(reason==='navigation')f.api.tabs.get=async()=>({id:7,url:url+'/new'});else f.revoke();return {open:true,nonce,url};};
+  await assert.rejects(()=>f.s.handle({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce},{id:'ext',tab:{id:7},frameId:0,url,documentId:'live-document'}));assert.equal(broadcast,0);
+ }
+ const f=fixture();await f.s.handle({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce},{id:'ext',tab:{id:7},frameId:0,url:url+'?initial',documentId:'live-document'});assert.equal(f.calls.length,0);
+});
