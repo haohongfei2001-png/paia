@@ -1,7 +1,7 @@
 name: PAIA Prompt Reuse Foundation
 on:
   push:
-    branches: [feat/prompt-reuse-vs09-foundation]
+    branches: ['feat/prompt-reuse-vs09-*', main]
     paths:
       - 'extension/**'
       - '!extension/docs/**'
@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   foundation:
-    if: github.event_name == 'push' || github.head_ref != 'feat/prompt-reuse-vs09-foundation'
+    if: github.event_name == 'push' || !startsWith(github.head_ref, 'feat/prompt-reuse-vs09-')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -44,7 +44,12 @@ jobs:
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
-      - run: node --test tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
+      - name: Install CJK fonts for actual overlay screenshots
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-color-emoji
+      - name: Source and release insertion and surface lifecycle
+        run: |
+          node --test --test-concurrency=1 tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
+          xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs
       - run: npm run test:unit
       - run: node scripts/test.mjs 'adapter contract'
       - run: node scripts/test.mjs 'privacy/security'
@@ -58,3 +63,9 @@ jobs:
           name: prompt-reuse-current-live
           path: extension/work/prompt-reuse/current-live.json
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prompt-surface-evidence
+          path: extension/work/prompt-surface/
+          if-no-files-found: warn

@@ -134,3 +134,11 @@ test('stale or aborted delete preserves the template, pin and archive atomically
  try{await assert.rejects(()=>change(f,'delete',id),e=>e.code==='STORAGE_FAILED');assert.equal(aborted,true);}finally{f.s.repository.transaction=transaction;}
  assert.deepEqual(await meta(f.s,PROMPT_REUSE_ROW),saved);assert.deepEqual(await authority(f.s),before);
 });
+
+test('surface reorder retains the complete manual order including hidden pins',async()=>{
+ const f=await fixture(),q=await f.service.query(),[a,b]=q.items;
+ await change(f,'pin',a.id);await change(f,'pin',b.id);await change(f,'hide',a.id);
+ const visible=await f.service.query();assert.deepEqual(visible.manualOrder,[a.id,b.id]);assert.ok(!visible.items.some(x=>x.id===a.id));
+ await change(f,'pin',b.id,{order:[b.id,a.id]});await change(f,'show',a.id);
+ assert.deepEqual((await f.service.query()).items.slice(0,2).map(x=>x.id),[b.id,a.id]);
+});

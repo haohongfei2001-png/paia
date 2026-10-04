@@ -130,7 +130,7 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
 
 ### DFG-CPV1-011 — VS09 current ChatGPT composer insertion
 
-- **Owner round:** CPV1-09.2; isolated Prompt Reuse foundation branch only.
+- **Owner round:** CPV1-09.2 / 09.5 / 09.7; ChatGPT-first Prompt Reuse.
 - **State:** REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE.
   Engineering integration is permitted by the 2026-10-04 owner amendment; this
   remains NOT_VERIFIED and is never compatibility PASS.
@@ -145,3 +145,13 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
 - **Boundary:** owner-authorized engineering merges and CPV1-09.3–09.5 may
   proceed after passing code/safety/synthetic/package gates. Final real-site
   certification remains deferred. Stage 3/B-04 and D7 remain separate.
+
+### Prompt Reuse final external evidence — 09.6 / 09.7
+
+- CPV1-09.6: SECOND_PROVIDER_DEFERRED. No currently accessible second composer
+  can satisfy real-page evidence and minimal permission without account
+  intervention. No host permission or generic editor injection was added.
+- CPV1-09.7: final owner visual/product acceptance and DFG-CPV1-011 remain open.
+  Source/release production-overlay screenshots and automatic engineering checks
+  are implementation evidence, not a substitute for human/real-site acceptance.
+  These external gates do not block the owner-authorized engineering merges.

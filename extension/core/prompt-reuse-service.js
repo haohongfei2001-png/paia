@@ -39,11 +39,15 @@ export class PromptReuseService{
   }while(after!==undefined);
   const families=await projectPromptFamilies(inputs,preferences,this.clock());
   await this.s.run(()=>this.s.repository.transaction(false,async t=>{if(base!==await generation(t))changed();},['meta']));
-  return {families,preferences,generation:base};
+  return {families,preferences,generation:base,inputs};
+ }
+ async members(id){
+  const x=await this.snapshot(),family=x.families.find(f=>f.id===id);if(!family)changed();
+  return x.inputs.filter(i=>family.members.includes(i.id)).map(i=>({id:i.id,text:i.text}));
  }
  async query({includeHidden=false}={}){
   if(typeof includeHidden!=='boolean')fail();const x=await this.snapshot();
-  return {revision:x.preferences.revision,items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true};
+  return {revision:x.preferences.revision,manualOrder:[...x.preferences.pins],items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true};
  }
  async resolve({id,text}={}){
   if(typeof id!=='string'||!validPromptText(text))fail();const x=await this.snapshot();

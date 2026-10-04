@@ -1,3 +1,18 @@
+# Prompt Reuse parallel line — 09.3–09.5 ENGINEERING_COMPLETE
+
+PR #144 is integrated at `4a66b248e06348721942cefcd10e9eaa14a07cb2` after
+fresh verification of both Work MUST FIX repairs. The independent surface branch
+implements the approved orb/card, all template management and lifecycle/privacy
+coverage without Desktop/D7 page changes. [Current receipt](implementation/prompt-reuse/SURFACE.md)
+owns the exact candidate and verification results.
+
+Current automatic gates PASS: 64 owning tests, 1,739 full unit, 40 source/release
+native Chrome cases, 102 adapter, 59 privacy and package/release guards.
+The controlling distinction is **ENGINEERING_COMPLETE** versus **REAL_CHATGPT_FINAL_CERTIFICATION_DEFERRED**. Current
+real ChatGPT remains `DEFERRED_EXTERNAL_EVIDENCE`, never compatibility PASS.
+09.6 second-provider work and 09.7 final human/real-site acceptance remain deferred.
+No Stage 3/B-04 behavior or public consumer release is authorized by this batch.
+
 # Prompt Reuse owner execution amendment — 2026-10-04
 
 The owner now authorizes the sole Prompt Reuse engineering owner to integrate
