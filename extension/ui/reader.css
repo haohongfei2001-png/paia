@@ -130,8 +130,9 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialo
 body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-content .source-original,#revision-dialog pre){font-family:var(--font);line-height:1.8125}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog button:not(.danger):not(.primary),#revision-dialog button:not(.danger):not(.primary)){border-color:var(--line);font-size:13px;line-height:20px}
 @media(max-width:1023px){
- body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-panel .document-page{padding-top:12px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-panel .document-page{padding-top:0}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 0 0 -8px;min-height:44px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools:empty{display:none}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools button{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:8px;color:var(--muted);font-size:12px;line-height:20px;white-space:normal}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools #back{color:var(--text);font-size:0}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools #back::before{content:"‹";font-size:24px;line-height:24px}
@@ -141,7 +142,7 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialo
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-status-slot{margin-top:0;margin-bottom:20px}
 }
 @media(max-width:767px){
- body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-panel .document-page{padding-top:6px;padding-bottom:56px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-panel .document-page{padding-top:0;padding-bottom:56px}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-title{font-size:24px;line-height:35px}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading{gap:12px}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions{flex:1 1 100%;justify-content:flex-end;gap:8px}

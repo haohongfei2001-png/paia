@@ -32,7 +32,9 @@ Then:
 
 VS-07 → VS-08 → VS-09 → VS-10 → VS-11 → VS-12
 
-VS-09 phase 1 may be pulled earlier after VS-04 if it does not distract from the desktop core.
+VS-09 CPV1-09.0–09.2 may be pulled earlier after VS-04 if it does not distract
+from the desktop core. Pulling the foundation earlier does not authorize Stage 3
+reply reading, additional provider permissions or a competing product queue.
 
 ### 0.3 Round states
 
@@ -820,44 +822,165 @@ Only after this may product copy say the external AI can directly read PAIA.
 
 ---
 
-# VS-09 — Prompt reuse phases 1–2
+# VS-09 — Personal Prompt Reuse Surface, phases 1–2
+
+Owner-approved feature contract:
+[PROMPT_REUSE_SURFACE.md](PROMPT_REUSE_SURFACE.md).
+
+Execution checkpoint (owner amendment 2026-10-04): CPV1-09.0–09.2 integrated
+through PR #144. CPV1-09.3–09.5 implemented on the independent surface branch;
+current engineering evidence is owned by [SURFACE.md](implementation/prompt-reuse/SURFACE.md).
+Real ChatGPT final certification remains external/deferred and does not block
+engineering integration after passing safety/source/release/package gates.
+CPV1-09.6 is deferred without a genuinely verifiable minimally permissioned
+second provider. CPV1-09.7's final real-site/human visual acceptance stays open.
 
 ## Outcome
 
-Useful frequent/fixed prompts can be reused in PAIA and inserted/copied into a supported AI input without sending automatically.
+PAIA turns repeated personal AI inputs into a stable, editable reuse surface.
+Useful near-duplicate Inputs form Prompt Families; user pin/order/edit/hide
+outranks automatic ranking. On a supported AI page a compact floating PAIA
+surface opens to the same list, and one ordinary click fills the selected prompt
+into the current composer without sending or destroying the existing draft.
 
-## CPV1-09.0 — Candidate/usefulness contract
+Stage 1/2 remain local-first and reply-blind. They add no assistant-reply capture,
+hidden Provider call or automatic send.
 
-Define what qualifies as a useful prompt candidate so trivial control utterances do not dominate.
+## CPV1-09.0 — Prompt Family/usefulness contract and evaluation fixture
 
-## CPV1-09.1 — PAIA prompt panel
+Freeze and test:
+- eligible user-authored Working Inputs versus excluded/purged/non-user material;
+- cautious normalization and family grouping, with false merge treated as worse
+  than a harmless duplicate;
+- repeated stable instruction versus variable payload handling;
+- suppression of bursty/trivial same-conversation controls without banning useful
+  short prompts outright;
+- representative-text priority: user edit → user-chosen representative →
+  stable high-use original;
+- family split/recovery for an incorrect merge;
+- deterministic synthetic fixtures for Chinese/English, long prompts, code,
+  paraphrase, negation and repeated-session bursts.
 
-Implement P1:
-- frequent/fixed;
-- search;
-- copy;
-- pin/remove/edit reusable template;
-- source trace;
-- template edit does not rewrite historical Input.
+Do not require a model/vector store or network Provider for the v1 grouping path.
 
-## CPV1-09.2 — GPT/AI-page insertion
+## CPV1-09.1 — Local Prompt Family projection and durable user overrides
 
-Implement P2:
-- supported input detection;
-- append/replace with existing draft protection;
-- fallback to clipboard when injection unavailable;
-- no auto-send.
+Implement the minimum derived read model plus durable user work:
+- automatic rank uses distinct-conversation frequency as the primary signal,
+  bounded same-conversation repetition, light recency decay and explicit reuse
+  signals;
+- pinned/manual order is always above and independent from automatic order;
+- moving an automatic row into manual order pins it; unpinning returns it to the
+  current automatic rank;
+- hide is reversible and does not delete archive material;
+- editing creates reusable template text only and never rewrites Source/Working
+  Input;
+- an open list never jumps because background frequency changes; automatic
+  reorder applies on the next open/refresh;
+- normal overlay UI shows no counts, similarity scores, source labels or ranking
+  explanation.
 
-## CPV1-09.3 — Real-page reliability/UX
+Prefer existing durable state/meta boundaries. A new object store or parallel
+archive body is not authorized by convenience alone. If edited template text
+requires a schema change, justify and migrate it under the durable-schema rules.
+
+## CPV1-09.2 — ChatGPT composer insertion gate
+
+Before polishing the floating visual surface, prove exact one-click insertion on
+the current supported ChatGPT composer.
+
+Required behavior:
+- empty composer: insert exact prompt and place caret at end;
+- non-empty composer: preserve all existing draft text and insert at the current
+  or last reliable caret;
+- active selection is preserved by default rather than silently replaced;
+- explicit replace is a secondary action, never the ordinary row click;
+- multiline/Unicode/Chinese/code whitespace stays exact;
+- framework/editor state is updated through a provider adapter rather than
+  unsafe raw DOM replacement;
+- success is reported only after read-back verifies the intended text;
+- uncertain acknowledgement does not auto-retry and risk duplicate insertion;
+- focus returns to the composer;
+- no send/submit action is invoked;
+- if injection is unavailable, preserve the draft and offer an explicit
+  clipboard fallback with truthful success/failure.
+
+This is the technical gate for the rest of VS-09.
+
+## CPV1-09.3 — Floating orb and persistent prompt card
+
+Implement the approved surface:
+- ~40 px visible orb with at least 44 px effective target;
+- restrained high-quality frosted glass suitable for light/dark host pages;
+- click/keyboard activation expands to an anchored ~336 px card with bounded
+  height and internal scroll;
+- normal card contains prompt rows, not a dashboard/header/statistics surface;
+- long rows are readable but bounded; management controls appear only on
+  hover/focus/explicit management;
+- user can move the surface and PAIA remembers a safe per-site position;
+- card open/closed preference may persist, while edit/drag transient state does
+  not;
+- no overlap with the host composer send/attachment/voice controls;
+- no continuous decorative glow or motion;
+- reduced-motion keeps the state change without nonessential translation/blur
+  animation.
+
+The surface is independent from Desktop vNext D6.2 geometry. It inherits PAIA's
+restrained typography/contrast discipline but does not modify the owner-approved
+D6.2 desktop masters.
+
+## CPV1-09.4 — Edit, pin/order, hide and family correction
+
+Implement management without polluting normal use:
+- drag/reorder with keyboard-accessible move alternatives;
+- auto row dragged into manual area becomes pinned;
+- edit from contextual row action;
+- unpin;
+- reversible hide;
+- bounded "do not merge / split family" correction;
+- no historical Input mutation from any prompt-management action;
+- no accidental insert while dragging/editing.
+
+## CPV1-09.5 — Lifecycle, privacy and real-page reliability
 
 Test:
-- empty draft;
-- existing draft;
-- Chinese IME;
-- multiple tabs;
-- provider DOM drift;
-- keyboard accessibility;
-- idle resource.
+- empty/non-empty draft;
+- caret and selection preservation;
+- Chinese IME/composition;
+- long multilingual prompt and code whitespace;
+- SPA Conversation/Project navigation;
+- tab reload/discard and extension worker restart;
+- multiple tabs with independent active composer state;
+- provider DOM drift and unsupported state;
+- light/dark host pages;
+- 320 CSS px, 200% zoom/text scaling, keyboard and coarse pointer;
+- reduced motion;
+- insert failure and clipboard fallback;
+- no auto-send;
+- no assistant-reply read;
+- no Provider/network request caused by Stage 1/2;
+- no website storage of the user's prompt list;
+- host-page script does not receive the full prompt library merely because the
+  surface is visible.
+
+## CPV1-09.6 — Second-provider adapter, only with explicit permission scope
+
+After ChatGPT reliability passes, add one second supported AI page through a
+provider-specific composer adapter and the minimum explicit host permission.
+Do not ship generic arbitrary-site contenteditable injection. The provider must
+pass the same exact-insertion, draft-preservation, privacy and no-send matrix.
+
+## CPV1-09.7 — VS-09 closure
+
+Require:
+- Prompt Family evaluation receipt;
+- exact source/release browser journeys;
+- current real-page ChatGPT insertion evidence;
+- no-send/draft-preservation/security evidence;
+- high-fidelity light/dark/compact visual review of orb + card;
+- second provider claimed only if its own real-page evidence exists.
+
+Stage 3 next-prompt behavior remains CPV1-12.3 and B-04-gated.
 
 ---
 
@@ -1015,13 +1138,19 @@ Stale changes reject rather than overwrite.
 
 ## CPV1-12.3 — Reply-aware prompt assistant
 
-Implement P3:
+Implement P3 on top of the already-stable VS-09 surface:
 - explicit enable/pause;
 - allowed current reply only per B-04;
-- distinguish reused prompt versus generated suggestion;
-- preserve draft;
-- click inserts only;
-- user sends.
+- recommendation appears as a transient capsule/strip separate from the stable
+  frequent/fixed prompt card;
+- it never reorders the stable list while open;
+- distinguish reused historical prompt versus generated suggestion;
+- preserve the existing draft under the same verified insertion contract as
+  CPV1-09.2;
+- click fills only;
+- user sends;
+- disabling/revoking reply access stops further reply reading and recommendation
+  generation without disabling Stage 1/2 local prompt reuse.
 
 ## CPV1-12.4 — Privacy/security/adversarial tests
 

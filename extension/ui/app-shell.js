@@ -57,7 +57,7 @@ export class AppShellController {
   this.archiveHeaderOrder=[...header.children];
   this.archiveControlHomes=new Map(['scope-search-host','back','archive-navigator-toggle','input-time-order','document-menu','save-status'].map(id=>[id,header]));
   this.archiveNavHomes=[...document.querySelectorAll('.sidebar [data-view]')].map(node=>({node,parent:node.parentElement,next:node.nextSibling}));
-  const menu=document.createElement('details');menu.id='archive-compact-navigation';const label=document.createElement('summary');label.id='archive-compact-nav-label';const items=document.createElement('div');items.id='archive-compact-nav-items';const actions=document.createElement('div');actions.id='archive-compact-reader-actions';actions.hidden=true;items.append(actions);menu.append(label,items);menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;label.focus({preventScroll:true});}});document.querySelector('.sidebar').append(menu);this.archiveCompactMenu=menu;
+  const menu=document.createElement('details');menu.id='archive-compact-navigation';menu.hidden=true;const label=document.createElement('summary');label.id='archive-compact-nav-label';const items=document.createElement('div');items.id='archive-compact-nav-items';const actions=document.createElement('div');actions.id='archive-compact-reader-actions';actions.hidden=true;items.append(actions);menu.append(label,items);menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;label.focus({preventScroll:true});}});document.querySelector('.sidebar').append(menu);this.archiveCompactMenu=menu;
   this.archiveDesktop=matchMedia('(min-width:1024px)');this.archiveCompact=matchMedia('(max-width:767px)');
   const image=document.querySelector('.brand img');image.src='assets/paia-logo-64.png';
  }
@@ -71,14 +71,13 @@ export class AppShellController {
    if(root&&id==='scope-search-host')host=get('archive-root-header-actions');
    if(reader){
     if(id==='scope-search-host')host=get(desktop?'archive-reader-search-slot':'reader-search-slot');
-    else if(id==='back')host=get(desktop?'archive-reader-back-slot':'reader-compact-tools');
-    else if(id==='archive-navigator-toggle')host=get(compact?'archive-compact-reader-actions':'reader-compact-tools');
+    else if(id==='back')host=get('archive-reader-back-slot');
+    else if(id==='archive-navigator-toggle')host=get(compact?'archive-compact-reader-actions':desktop?'reader-compact-tools':'archive-reader-back-slot');
     else if(['input-time-order','document-menu'].includes(id))host=get(compact?'archive-compact-reader-actions':'reader-heading-actions');
     else if(id==='save-status')host=get('reader-status-slot');
    }
    const node=get(id),next=host===home?this.archiveHeaderOrder?.slice(this.archiveHeaderOrder.indexOf(node)+1).find(item=>item.parentElement===home)||null:undefined;move(node,host,next);
   }
-  if(reader&&!desktop&&!compact)move(get('back'),get('reader-compact-tools'),get('archive-navigator-toggle'));
   move(get('archive-root-overflow'),get(root?'archive-root-header-actions':'archive-root-tools'));
   move(get('archive-source-scope-label'),root?get('archive-root-overflow').querySelector('.archive-root-overflow-actions'):get('archive-root-tools'));
   for(const {node,parent,next}of this.archiveNavHomes)move(node,compact?get('archive-compact-nav-items'):parent,compact?undefined:next||null);

@@ -1,0 +1,60 @@
+import {PromptListSession} from '../core/prompt-family.js';
+import {copyPrompt} from '../core/prompt-clipboard.js';
+const nonce=location.hash.slice(1),session=new PromptListSession(),list=document.getElementById('list'),editor=document.getElementById('editor'),status=document.getElementById('status');
+let refreshing=false,manualOrder=[],revision=0,hidden=false,editing=false,busy=false,composing=false,drag=null,epoch=0;
+const attempted=new Set();
+async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}
+const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-label',label);if(busy||refreshing){b.dataset.pendingDisabled='0';b.disabled=true;}b.addEventListener('click',e=>{if(e.isTrusted)void fn(e);});return b;};
+function pending(value){busy=value;for(const b of document.querySelectorAll('button,textarea,input')){if(value){if(!('pendingDisabled' in b.dataset))b.dataset.pendingDisabled=b.disabled?'1':'0';b.disabled=true;}else if('pendingDisabled' in b.dataset){b.disabled=b.dataset.pendingDisabled==='1';delete b.dataset.pendingDisabled;}}}
+const tell=text=>{status.replaceChildren(document.createTextNode(text));};
+async function refresh(internal=false){
+ if(editing||(busy&&internal!==true)||drag||refreshing)return;
+ refreshing=true;pending(true);const ticket=++epoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;revision=q.revision;manualOrder=q.manualOrder;document.documentElement.dataset.theme=q.theme||'';session.open(q);attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);}
+}
+function focusRow(id){list.querySelector(`[data-id="${id}"] .more`)?.focus();}
+async function change(action,id,extra={}){
+ const result=await rpc({type:'PAIA_PROMPT_CHANGE',change:{action,id,revision,...extra}});revision=result.revision;return result;
+}
+async function manage(action,item,extra={}){if(busy||composing)return;pending(true);try{await change(action,item.id,extra);editing=false;editor.hidden=true;list.hidden=false;await refresh(true);focusRow(item.id);}catch{tell('未保存。内容可能已变化；你的编辑仍保留，请取消后刷新再试。');}finally{pending(false);}}
+async function insert(item,b){
+ if(editing||busy||drag||composing||attempted.has(item.id))return;
+ attempted.add(item.id);b.disabled=true;pending(true);tell('正在插入…');
+ try{const r=await rpc({type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});tell(r.status==='inserted'?'已插入，未发送。':r.status==='uncertain'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。');}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
+ const copy=button('复制',async()=>{try{const x=await rpc({type:'PAIA_PROMPT_COPY_TEXT',id:item.id,text:item.text}),r=await copyPrompt(x.text);tell(r.status==='copied'?'已复制，请手动粘贴。':'未能复制，请检查浏览器权限。');}catch{tell('此 Prompt 已变化，请刷新。');}});status.append(copy);
+}
+function edit(item){
+ if(busy||drag||editing)return;editing=true;++epoch;list.hidden=true;editor.hidden=false;editor.replaceChildren();
+ const label=document.createElement('label');label.textContent='复用文本';const area=document.createElement('textarea');area.value=item?.text||'';area.maxLength=200000;area.setAttribute('aria-label','复用文本');label.append(area);
+ area.addEventListener('compositionstart',()=>{composing=true;});area.addEventListener('compositionend',()=>{composing=false;});
+ const actions=document.createElement('div');actions.className='actions';actions.append(button('保存',async()=>{if(composing||!area.value.trim()||busy)return;pending(true);try{await change(item?'edit':'create',item?.id,{text:area.value});editing=false;editor.hidden=true;list.hidden=false;await refresh(true);if(item)focusRow(item.id);}catch{tell('未保存，编辑已保留。取消后刷新可重新编辑。');}finally{pending(false);}}),button('取消',()=>{if(composing||busy)return;editing=false;editor.hidden=true;list.hidden=false;void refresh();}));editor.append(label,actions);area.focus();
+}
+async function split(item){
+ if(busy)return;editing=true;++epoch;editor.hidden=false;list.hidden=true;editor.replaceChildren();
+ try{const members=await rpc({type:'members',id:item.id}),title=document.createElement('p');title.textContent='选择要独立保留、不再自动合并的原表达。';editor.append(title);
+ const chosen=new Set();for(const m of members){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.addEventListener('change',()=>{if(box.checked)chosen.add(m.id);else chosen.delete(m.id);});label.append(box,document.createTextNode(m.text));editor.append(label);}
+ editor.append(button('拆分',()=>{if(!chosen.size||chosen.size===members.length){tell('请选择一部分表达。');return;}void manage('split',item,{inputIds:[...chosen]});}),button('取消',()=>{editing=false;editor.hidden=true;list.hidden=false;void refresh();}));
+ }catch{tell('表达已变化，取消后刷新。');editor.append(button('返回',()=>{editing=false;editor.hidden=true;list.hidden=false;void refresh();}));}
+}
+function order(item,beforeId=null){const pins=manualOrder.filter(id=>id!==item.id);const index=pins.indexOf(beforeId);pins.splice(index<0?pins.length:index,0,item.id);return pins;}
+function render(){
+ list.replaceChildren();const items=session.current();if(!items.length){const empty=document.createElement('p');empty.className='empty';empty.textContent=hidden?'没有隐藏的 Prompt。':'常用表达会出现在这里，也可以新建自己的 Prompt。';list.append(empty);}
+ for(const item of items){
+  const row=document.createElement('div');row.className='row';row.dataset.id=item.id;
+  const insertButton=button('',()=>insert(item,insertButton),item.text),text=document.createElement('span');text.className='text';text.textContent=item.text;insertButton.className='insert';insertButton.append(text);const disabled=item.hidden||attempted.has(item.id);insertButton.disabled=busy||refreshing||disabled;if(busy||refreshing)insertButton.dataset.pendingDisabled=disabled?'1':'0';
+  const more=button('⋯',()=>{if(busy||refreshing||editing)return;const old=row.nextElementSibling;if(old?.className==='tools'){old.remove();more.setAttribute('aria-expanded','false');return;}for(const el of list.querySelectorAll('.tools'))el.remove();const tools=document.createElement('div');tools.className='tools';tools.setAttribute('aria-label','管理 Prompt');more.setAttribute('aria-expanded','true');
+   tools.append(button('编辑',()=>edit(item)),button(item.pinned?'取消置顶':'置顶',()=>manage(item.pinned?'unpin':'pin',item)),button(item.hidden?'恢复':'隐藏',()=>manage(item.hidden?'show':'hide',item)));
+   if(item.members.length>1)tools.append(button('拆分',()=>split(item)));
+   if(item.edited&&item.members.length===0)tools.append(button('删除',()=>{tools.replaceChildren(document.createTextNode('删除此复用模板？历史内容不受影响。'),button('确认删除',()=>manage('delete',item)),button('取消',()=>tools.remove()));}));
+   const pinned=items.filter(x=>x.pinned),index=pinned.findIndex(x=>x.id===item.id);
+   tools.append(button('上移',()=>manage('pin',item,{order:order(item,item.pinned?pinned[Math.max(0,index-1)]?.id:pinned[0]?.id)})),button('下移',()=>manage('pin',item,{order:order(item,pinned[index+2]?.id)})));
+   const handle=button('拖动排序',()=>{});handle.className='handle';handle.setAttribute('aria-label','拖动到目标行之前；也可使用上移下移');
+   handle.addEventListener('pointerdown',e=>{if(!e.isTrusted||e.button!==0||busy||editing)return;drag={item,startY:e.clientY,target:null,moved:false};handle.setPointerCapture(e.pointerId);row.classList.add('moving');});
+   handle.addEventListener('pointermove',e=>{if(!drag||Math.abs(e.clientY-drag.startY)<5&&!drag.moved)return;drag.moved=true;for(const n of list.querySelectorAll('.target'))n.classList.remove('target');const target=[...list.querySelectorAll('.row')].find(n=>{const r=n.getBoundingClientRect();return e.clientY>=r.top&&e.clientY<=r.bottom;});if(target&&target!==row){drag.target=target.dataset.id;target.classList.add('target');}});
+   handle.addEventListener('pointerup',()=>{const d=drag;drag=null;row.classList.remove('moving');if(d?.moved&&d.target)void manage('pin',d.item,{order:order(d.item,d.target)});});handle.addEventListener('pointercancel',()=>{drag=null;render();});tools.append(handle);row.after(tools);
+  },'管理此 Prompt');more.className='more';more.setAttribute('aria-expanded','false');row.append(insertButton,more);list.append(row);
+ }
+}
+document.getElementById('new').addEventListener('click',()=>edit(null));document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('hidden').addEventListener('click',()=>{if(editing||busy)return;hidden=!hidden;void refresh();});document.getElementById('close').addEventListener('click',()=>{if(editing||busy){tell('请先保存或取消编辑。');return;}void rpc({type:'close'}).catch(()=>tell('无法关闭，请稍后重试。'));});
+document.getElementById('card').addEventListener('keydown',e=>{if(e.key==='Escape'&&!editing&&!composing&&!busy){e.preventDefault();void rpc({type:'close'}).catch(()=>{});}});
+chrome.runtime.onMessage.addListener(r=>{if(refreshing)return;if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;const ticket=++epoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(!editing)revision=q.revision;session.reconcile(q);if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
+void refresh();

@@ -101,17 +101,13 @@ export class ArchiveNavigator{
   restoreFocus?.();
  }
  presentReaderContext(group,provider=null){
-  const slot=$('archive-reader-back-slot'),home=$('archive-reader-navigator-slot'),context=!!group&&this.active&&this.reader&&!this.isMobile();
+  const context=!!group&&this.active&&this.reader&&!this.isMobile();
   this.host.classList.toggle('has-reader-context',context);
   if(context){
    group.classList.add('archive-navigator-context-group');provider.classList.add('archive-navigator-context-provider');
    if(provider.children[1]!==group)provider.insertBefore(group,provider.children[1]||null);
    if(this.tree.firstElementChild!==provider)this.tree.insertBefore(provider,this.tree.firstElementChild);
   }
-  if(!slot||!home)return;
-  const target=context?this.host:home,before=context?this.tree:this.host.parentElement===home?this.host:null;
-  if(slot.parentElement===target&&slot.nextSibling===before)return;
-  const focus=document.activeElement,retains=slot.contains(focus);target.insertBefore(slot,before);if(retains&&focus.isConnected)focus.focus({preventScroll:true});
  }
  toggleSurface(){if(!this.reader)return;if(this.isMobile()){if(this.sheetOpen)this.closeSheet(true);else this.openSheet();return;}if(this.isNarrow()){this.narrowCollapsed=!this.narrowCollapsed;this.layout();if(!this.narrowCollapsed)this.host.focus({preventScroll:true});}}
  openSheet(){if(!this.reader||!this.isMobile())return;this.sheetOpen=true;this.originFocus=document.activeElement;const page=$('document-page');if(page)page.inert=true;this.layout();queueMicrotask(()=>this.close.focus({preventScroll:true}));}

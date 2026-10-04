@@ -172,3 +172,14 @@ Production publication is not a default verification step. It is required only w
 ## 7. Cadence amendment scope
 
 This lighter cadence applies prospectively to unfinished Consumer Product v1 work. Existing completed-round receipts remain valid and are not rerun. The amendment changes scheduling, not acceptance truth: a slice still cannot become COMPLETE without its applicable final evidence, and P0 data/privacy/integrity failures still block the affected work immediately.
+
+## Prompt Reuse 09.3–09.5 engineering/final-evidence boundary
+
+The [surface receipt](implementation/prompt-reuse/SURFACE.md) owns source/release
+production-extension journeys, current owning fixtures, full unit, adapter,
+privacy and package evidence. The native Chrome fixture exercises the actual
+worker, IndexedDB, cross-origin extension frame, provider adapter and browser
+editing transaction against synthetic ProseMirror. It is never evidence of a
+logged-in current ChatGPT deployment. DFG-CPV1-011 and final owner visual review
+remain separate external gates under the 2026-10-04 owner amendment. These gates
+do not prevent dependency-safe engineering integration after automatic gates pass.

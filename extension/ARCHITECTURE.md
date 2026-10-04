@@ -35,6 +35,21 @@ approval is introduced. The ANS package's [architecture](docs/archive-navigation
 and [integration matrix](docs/archive-navigation-source-v1/INTEGRATION_MATRIX.md) bind
 these boundaries to the current implementation and certification evidence.
 
+## Personal Prompt Reuse
+
+`prompt-family` derives conservative candidates and rank from eligible user-authored
+Working Inputs. Versioned `prompt-reuse:v1` preferences in the existing `meta`
+store own explicit template edits, pins/order, hide and split corrections; no new
+body archive or DB schema. Backup uses existing strict preference validation.
+
+`prompt-surface` renders personal rows in an extension-origin iframe. A closed
+shadow root contains only the static orb/frame; it is not the privacy boundary.
+Every frame command is consent-, tab-, origin- and live-nonce-checked by the
+worker. The host sees only the selected text released through the provider-specific
+composer adapter. `promptSurfaceV1` stores only device-local bounded geometry and
+open preference, outside Backup. No reply access, Provider call, site storage,
+broader host grant or Stage 3 behavior. [Implementation receipt](docs/consumer-product-v1/implementation/prompt-reuse/SURFACE.md).
+
 ## 1. Architectural goals
 
 PAIA should become easier, not more dangerous, to change as the archive grows. The architecture therefore optimizes for:

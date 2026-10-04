@@ -29,8 +29,8 @@ async function fixture(run){
  }finally{for(const [k,v]of prior)if(v)Object.defineProperty(globalThis,k,v);else delete globalThis[k];}
 }
 const titles=tree=>tree.querySelectorAll('.archive-navigator-group-toggle').map(n=>n.textContent);
-test('Reader pins current provider and group in DOM while every source scope/order/cursor stays intact',()=>fixture(({owner,state,tree,groups,slot,host})=>{
- const before=structuredClone([...state.scopes]);owner.paint();assert.deepEqual(titles(tree),['current','first','second']);assert.equal(tree.children[0].dataset.providerKey,'chatgpt');assert.equal(slot.parentElement,host);assert.equal(slot.nextSibling,tree);assert.deepEqual([...state.scopes],before);assert.deepEqual(state.scope({providerKey:'chatgpt',groupKind:'groups'}).items,groups);
+test('Reader pins current provider and group in DOM while every source scope/order/cursor stays intact',()=>fixture(({owner,state,tree,groups,slot,host,home})=>{
+ const before=structuredClone([...state.scopes]);owner.paint();assert.deepEqual(titles(tree),['current','first','second']);assert.equal(tree.children[0].dataset.providerKey,'chatgpt');assert.equal(slot.parentElement,home);assert.equal(slot.nextSibling,host);assert.deepEqual([...state.scopes],before);assert.deepEqual(state.scope({providerKey:'chatgpt',groupKind:'groups'}).items,groups);
 }));
 test('Collapsed or not-yet-loaded selected window keeps its real group header and collapse handler',()=>fixture(async({owner,state,groups,tree})=>{
  owner.paint();await owner.toggleGroup(groups[2]);assert.equal(state.expanded.has(navigatorGroupKey('chatgpt','project',groups[2].projectRef)),false);assert.equal(titles(tree)[0],'current');const button=tree.querySelector('.archive-navigator-group-toggle');assert.equal(button.getAttribute('aria-expanded'),'false');assert.equal(typeof button.handlers.click,'function');
@@ -38,13 +38,13 @@ test('Collapsed or not-yet-loaded selected window keeps its real group header an
 }));
 test('Desktop, compact and Root restore the ordinary DOM order and stable Back slot without losing focused Back',()=>fixture(({owner,tree,slot,home,back,host})=>{
  owner.paint();back.focus();owner.media.matches=true;owner.layout();assert.deepEqual(titles(tree),['first','second','current']);assert.equal(slot.parentElement,home);assert.equal(document.activeElement,back);
- owner.media.matches=false;owner.layout();assert.deepEqual(titles(tree),['current','first','second']);assert.equal(slot.parentElement,host);assert.equal(document.activeElement,back);
+ owner.media.matches=false;owner.layout();assert.deepEqual(titles(tree),['current','first','second']);assert.equal(slot.parentElement,home);assert.equal(document.activeElement,back);
  owner.reader=false;owner.paint();assert.deepEqual(titles(tree),['first','second','current']);assert.equal(slot.parentElement,home);assert.equal(document.activeElement,back);
 }));
 test('Unavailable, stale-document and absent-group selections keep generic Back and every available group',()=>fixture(({owner,state,tree,slot,home})=>{
  for(const path of [{...state.selectedPath,available:false},{...state.selectedPath,documentId:'obsolete'},{...state.selectedPath,projectRef:{providerKey:'chatgpt',namespace:'synthetic',projectId:'absent'}}]){state.selectedPath=path;owner.paint();assert.deepEqual(titles(tree),['first','second','current']);assert.equal(slot.parentElement,home);assert.equal(owner.host.classList.contains('has-reader-context'),false);}
 }));
-test('The sole layout boundary restores focus only after host visibility and contextual slot placement',()=>fixture(({owner,host,slot})=>{
+test('The sole layout boundary restores focus only after host visibility and fixed slot stability',()=>fixture(({owner,host,slot,home})=>{
  const phases=[];host.hidden=true;owner.beforeLayout=()=>{phases.push(['before',host.hidden,slot.parentElement]);return()=>phases.push(['after',host.hidden,slot.parentElement]);};
- owner.layout();assert.equal(phases[0][0],'before');assert.equal(phases[0][1],true);assert.deepEqual(phases[1],['after',false,host]);
+ owner.layout();assert.equal(phases[0][0],'before');assert.equal(phases[0][1],true);assert.deepEqual(phases[1],['after',false,home]);
 }));

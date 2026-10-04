@@ -71,9 +71,11 @@ def audit_manifest():
             "nativeMessaging must be the sole reviewed optional permission")
     require(manifest.get("host_permissions") == ["https://api.deepseek.com/*", "https://chatgpt.com/*"],
             "Only the exact approved DeepSeek and ChatGPT origins are permitted")
-    for key in ("optional_host_permissions", "externally_connectable", "web_accessible_resources", "sandbox",
+    for key in ("optional_host_permissions", "externally_connectable", "sandbox",
                 "update_url", "devtools_page", "chrome_url_overrides"):
         require(not manifest.get(key), f"Unexpected manifest capability: {key}")
+    require(manifest.get("web_accessible_resources") == [{"resources": ["ui/prompt-surface.html"], "matches": ["https://chatgpt.com/*"]}],
+            "Only the reviewed cross-origin Prompt frame may be web accessible")
     minimum_version = str(manifest.get("minimum_chrome_version", "0"))
     major_version = minimum_version.split(".")[0]
     require(major_version.isdigit() and int(major_version) >= 114,
@@ -157,6 +159,14 @@ def audit_js(path, text):
             scanned = scanned.replace("chrome.storage.session", "APPROVED_SESSION_CREDENTIAL_STORAGE")
         if label == "native messaging" and path == ROOT / "core/macos-native-secure-store.js":
             scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
+        if label == "clipboard access" and path == ROOT / "adapter/chatgpt-composer.js":
+            exact = "this.document.execCommand('insertText',false,insertion)"
+            require(text.count(exact) == 1, "ChatGPT composer must retain one native insertText call")
+            scanned = scanned.replace(exact, "REVIEWED_CHATGPT_INSERT_TEXT", 1)
+        if label == "clipboard access" and path == ROOT / "core/prompt-clipboard.js":
+            scanned = scanned.replace("globalThis.navigator.clipboard", "EXPLICIT_PROMPT_CLIPBOARD")
+            require("clipboard.writeText(text)" in text and "readText" not in text,
+                    "Prompt fallback may only write the explicitly selected text")
         if label == "clipboard access" and path == ROOT / "ui/reading-actions.js":
             scanned = scanned.replace("navigator.clipboard.writeText(text)", "EXPLICIT_READING_COPY(text)")
         if label == "clipboard access" and path in (ROOT / "ui/context-workspace.js",):
@@ -192,6 +202,11 @@ def audit_js(path, text):
             require(text.count(reviewed) == 1 and exact in text and boundary in text,
                     "ui/components/scope-search.js: reviewed native search history boundary changed or duplicated")
             scanned = scanned.replace(reviewed, "SCOPED_SEARCH_NATIVE_HISTORY(", 1)
+        if label == "keyboard listener" and path == ROOT / "content/prompt-surface.js":
+            require("listen(orb,'keydown'," in text and "listen(document,'keydown'," not in text,
+                    "Prompt movement keys must be orb scoped")
+        if label == "keyboard listener" and path == ROOT / "ui/prompt-surface.js":
+            scanned = scanned.replace("document.getElementById('card').addEventListener('keydown',", "SCOPED_PROMPT_CARD_KEYS(")
         match = re.search(pattern, scanned, re.I if label == "system keychain" else 0)
         line = text.count("\n", 0, match.start()) + 1 if match else 0
         require(not match, f"{path.relative_to(ROOT)}:{line}: forbidden {label}")

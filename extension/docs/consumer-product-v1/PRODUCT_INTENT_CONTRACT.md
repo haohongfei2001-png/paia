@@ -195,13 +195,30 @@ Confirmed future direction:
 
 ## 11. Prompt reuse
 
+The owner-approved product contract for this capability is
+[PROMPT_REUSE_SURFACE.md](PROMPT_REUSE_SURFACE.md). Prompt reuse is a stable
+cross-AI PAIA surface, not a fourth primary product space and not a prompt
+marketplace.
+
 Stages remain part of product intent:
 
-1. PAIA shows useful frequent/fixed prompts for easy reuse.
-2. Supported AI pages can show/insert those prompts; insertion never auto-sends.
-3. With separately approved access to current AI replies, PAIA may recommend existing/new next prompts; user still sends manually.
+1. **Frequent reuse** — PAIA derives useful personal Prompt Families from eligible
+   user-authored Inputs, removes cautious near-duplicates, and exposes a stable
+   frequent/fixed list. Manual pin/order/edit/hide always outranks automatic
+   ranking. Editing the reusable prompt never rewrites historical Input Archive.
+2. **AI-page insertion** — supported AI pages expose the same personal prompt
+   surface. One ordinary click fills the selected prompt into the current AI
+   composer and returns focus there. It never auto-sends. Existing draft text is
+   preserved by default; destructive replacement is never the implicit click
+   behavior.
+3. **Reply-aware next prompt** — only with separately approved access to the
+   current AI reply, PAIA may recommend an existing or newly generated next
+   prompt. This suggestion is a transient, separate surface and must not reorder
+   the stable frequent/fixed list. Clicking still only fills the composer; the
+   user sends.
 
-B-04 controls reply reading/retention/external processing for stage 3.
+Stage 1/2 do not require assistant-reply capture or Provider calls. B-04 controls
+reply reading, retention and external processing for Stage 3.
 
 ## 12. Mobile, MyWrite, voice and multiple sources
 
@@ -245,9 +262,14 @@ PAIA should be:
 - 120 Hz-friendly on supported hardware;
 - low friction for selection, editing, copying and returning.
 
-Avoid generic SaaS dashboards, decorative cards, unnecessary borders/labels, AI-purple/glow, decorative glass and developer-facing state leakage.
+Avoid generic SaaS dashboards, decorative cards, unnecessary borders/labels,
+gratuitous AI-purple/glow/gradient/glass and developer-facing state leakage.
+This is not a ban on glass as a material: restrained glass is allowed when it
+serves a real interaction need such as keeping the approved cross-site Prompt
+Reuse overlay legible across heterogeneous host-page backgrounds.
 
-AI visual identity comes from real structure transformation, not decoration.
+AI visual identity comes from real structure transformation and coherent product
+behavior, not decoration alone.
 
 ## 15. Commercial/product policy
 

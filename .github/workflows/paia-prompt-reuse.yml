@@ -1,0 +1,71 @@
+name: PAIA Prompt Reuse Foundation
+on:
+  push:
+    branches: ['feat/prompt-reuse-vs09-*', main]
+    paths:
+      - 'extension/**'
+      - '!extension/docs/**'
+      - '.github/workflows/paia-prompt-reuse.yml'
+  pull_request:
+    paths:
+      - 'extension/**/prompt-*'
+      - 'extension/adapter/chatgpt-composer.js'
+      - 'extension/tests/cpv1-09-*'
+      - '.github/workflows/paia-prompt-reuse.yml'
+permissions:
+  contents: read
+concurrency:
+  group: prompt-reuse-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  foundation:
+    if: github.event_name == 'push' || !startsWith(github.head_ref, 'feat/prompt-reuse-vs09-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PAIA_TEST_CONCURRENCY: '4'
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - name: Select the existing full Chrome binary for extension CDP
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+      - name: Install CJK fonts for actual overlay screenshots
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-color-emoji
+      - name: Source and release insertion and surface lifecycle
+        run: |
+          node --test --test-concurrency=1 tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
+          xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs
+      - run: npm run test:unit
+      - run: node scripts/test.mjs 'adapter contract'
+      - run: node scripts/test.mjs 'privacy/security'
+      - run: npm run check && npm run build:release
+      - name: One current-site smoke (explicit batch only)
+        if: always() && contains(github.event.head_commit.message, '[prompt-live-smoke]')
+        run: node scripts/prompt-reuse-live-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && contains(github.event.head_commit.message, '[prompt-live-smoke]')
+        with:
+          name: prompt-reuse-current-live
+          path: extension/work/prompt-reuse/current-live.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prompt-surface-evidence
+          path: extension/work/prompt-surface/
+          if-no-files-found: warn

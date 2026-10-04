@@ -127,3 +127,31 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
 - **Safe interim:** reject weights/inference/candidate admission for this revision; never inherit rights from a library/upstream name or title. Do not repeat unchanged model trial or mark diagnostic reads as quality certification.
 - **Non-blocked engineering:** independently declared licensed candidate screening, fixed synthetic evaluation, rebuildable index/invalidations/interfaces, production-environment compatibility, longitudinal retrieval/Revisit and later dependency-safe work.
 - **Final closure:** actual converted-source permissible license/conversion provenance at an exact independently verified revision, or select a separately evidenced compatible candidate through the unchanged fixed quality/resource/Chrome gates. A candidate rejection does not require owner input or a paid commitment.
+
+### DFG-CPV1-011 — VS09 current ChatGPT composer insertion
+
+- **Owner round:** CPV1-09.2 / 09.5 / 09.7; ChatGPT-first Prompt Reuse.
+- **State:** REAL_CHATGPT_FINAL_CERTIFICATION = DEFERRED_EXTERNAL_EVIDENCE.
+  Engineering integration is permitted by the 2026-10-04 owner amendment; this
+  remains NOT_VERIFIED and is never compatibility PASS.
+- **Observed:** one fresh anonymous headless attempt on 2026-10-04 at
+  12:15:39 UTC returned HTTP 403 and no supported composer. No login/profile,
+  assistant reply or Send action was used. Actions run `37201457221`, artifact
+  `11302937092`, head `7672c8faf2ee0722cde671352bee2443039fd777` retains the receipt.
+- **Required:** current supported ChatGPT page, source and release adapter,
+  exact empty/existing drafts, caret/selection/Chinese IME, read-back,
+  non-destructive failure/uncertainty and zero Send. Synthetic ProseMirror
+  evidence cannot close this gate. No unchanged external retry is planned.
+- **Boundary:** owner-authorized engineering merges and CPV1-09.3–09.5 may
+  proceed after passing code/safety/synthetic/package gates. Final real-site
+  certification remains deferred. Stage 3/B-04 and D7 remain separate.
+
+### Prompt Reuse final external evidence — 09.6 / 09.7
+
+- CPV1-09.6: SECOND_PROVIDER_DEFERRED. No currently accessible second composer
+  can satisfy real-page evidence and minimal permission without account
+  intervention. No host permission or generic editor injection was added.
+- CPV1-09.7: final owner visual/product acceptance and DFG-CPV1-011 remain open.
+  Source/release production-overlay screenshots and automatic engineering checks
+  are implementation evidence, not a substitute for human/real-site acceptance.
+  These external gates do not block the owner-authorized engineering merges.

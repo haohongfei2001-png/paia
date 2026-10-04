@@ -48,7 +48,7 @@ test('Reader relocation preserves search identity, text and focus through deskto
  owner.archiveDesktop.matches=false;owner.presentArchiveComposition();
  assert.equal(nodes.get('scope-search-host').parentElement,nodes.get('reader-search-slot'));
  assert.equal(document.activeElement,search);assert.equal(search.value,'SYNTHETIC 还没有结束的查询');
- assert.equal(nodes.get('back').parentElement,nodes.get('reader-compact-tools'));
+ assert.equal(nodes.get('back').parentElement,nodes.get('archive-reader-back-slot'));
 }));
 test('Compact navigation reuses all buttons and restores each original owner on another route',()=>fixture(({owner,nodes,nav,bottom,buttons,home})=>{
  owner.archiveCompact.matches=true;owner.presentArchiveComposition({consented:true});owner.archiveCompactMenu.open=true;
@@ -62,7 +62,7 @@ test('Compact navigation reuses all buttons and restores each original owner on 
 test('Phone Reader discloses the same window, sort and menu controls after primary navigation',()=>fixture(({owner,nodes,buttons})=>{
  owner.route={view:'library',documentId:'synthetic-document'};owner.archiveDesktop.matches=false;owner.archiveCompact.matches=true;owner.presentArchiveComposition({consented:true});
  const actions=nodes.get('archive-compact-reader-actions'),controls=['archive-navigator-toggle','input-time-order','document-menu'].map(id=>nodes.get(id));
- assert.deepEqual(actions.children,controls);assert.equal(actions.hidden,false);assert.deepEqual(nodes.get('reader-compact-tools').children,[nodes.get('back')]);assert.deepEqual(nodes.get('reader-heading-actions').children,[]);
+ assert.deepEqual(actions.children,controls);assert.equal(actions.hidden,false);assert.deepEqual(nodes.get('reader-compact-tools').children,[]);assert.deepEqual(nodes.get('archive-reader-back-slot').children,[nodes.get('back')]);assert.deepEqual(nodes.get('reader-heading-actions').children,[]);
  assert.deepEqual(nodes.get('archive-compact-nav-items').children,[...buttons,actions]);controls[2].focus();
  owner.archiveCompact.matches=false;owner.presentArchiveComposition();assert.equal(document.activeElement,controls[2]);assert.deepEqual(nodes.get('reader-heading-actions').children,controls.slice(1));assert.equal(actions.hidden,true);
 }));
@@ -71,17 +71,18 @@ test('Desktop to phone exposes a moved focused action before restoring its nativ
  owner.archiveDesktop.matches=false;owner.archiveCompact.matches=true;owner.presentArchiveComposition();
  assert.equal(nodes.get('archive-compact-reader-actions').hidden,false);assert.equal(owner.archiveCompactMenu.hidden,false);assert.equal(owner.archiveCompactMenu.open,true);assert.equal(document.activeElement,menu);
 }));
-test('Responsive layout restores Back after the destination becomes visible without stealing newer focus or routes',()=>fixture(({owner,nodes,search})=>{
- owner.route={view:'library',documentId:'synthetic-document'};owner.archiveDesktop.matches=false;owner.archiveCompact.matches=true;owner.presentArchiveComposition({consented:true});const back=nodes.get('back'),slot=nodes.get('archive-reader-back-slot');back.focus();slot.hidden=true;owner.archiveDesktop.matches=true;owner.archiveCompact.matches=false;
- const restore=owner.presentArchiveComposition();assert.notEqual(document.activeElement,back,'hidden destination cannot accept native focus yet');slot.hidden=false;restore();assert.equal(document.activeElement,back);
+test('Fixed Back stays focused and completion guards respect hidden targets, newer focus and routes',()=>fixture(({owner,nodes,search})=>{
+ owner.route={view:'library',documentId:'synthetic-document'};owner.presentArchiveComposition({consented:true});const back=nodes.get('back'),slot=nodes.get('archive-reader-back-slot'),route=owner.route;back.focus();
+ owner.archiveDesktop.matches=false;owner.archiveCompact.matches=true;const restore=owner.presentArchiveComposition();assert.equal(back.parentElement,slot);assert.equal(document.activeElement,back);assert.equal(owner.archiveCompactMenu.open,false);
  search.focus();restore();assert.equal(document.activeElement,search,'new live control has priority');document.activeElement=null;owner.route={view:'library',documentId:'newer'};restore();assert.equal(document.activeElement,null,'new route has priority');
+ owner.route=route;back.hidden=true;restore();assert.equal(document.activeElement,null,'hidden target cannot receive focus');back.hidden=false;restore();assert.equal(document.activeElement,back);
 }));
 test('Desktop to compact Reader preserves Back before the same navigator control and retains focus',()=>fixture(({owner,nodes})=>{
  owner.route={view:'library',documentId:'synthetic-document'};owner.presentArchiveComposition({consented:true});
  const back=nodes.get('back'),toggle=nodes.get('archive-navigator-toggle'),tools=nodes.get('reader-compact-tools');
  assert.deepEqual(tools.children,[toggle]);back.focus();
  for(let i=0;i<3;i++){
-  owner.archiveDesktop.matches=false;owner.presentArchiveComposition();assert.deepEqual(tools.children,[back,toggle]);assert.equal(document.activeElement,back);
+  owner.archiveDesktop.matches=false;owner.presentArchiveComposition();assert.deepEqual(tools.children,[]);assert.deepEqual(nodes.get('archive-reader-back-slot').children,[back,toggle]);assert.equal(document.activeElement,back);
   owner.archiveDesktop.matches=true;owner.presentArchiveComposition();assert.deepEqual(tools.children,[toggle]);assert.equal(document.activeElement,back);
  }
 }));

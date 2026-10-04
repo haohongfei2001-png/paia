@@ -29,6 +29,7 @@ const qualifications=[
  'Actual Reader date range and My inputs subtitle come from the existing owner. The drawing recent-modification subtitle and already-modified marker are not fabricated.',
  'A01 has only a 1440 light standalone master. Other root widths use the approved responsive rules with the original wide master retained, not a scaled desktop image advertised as a reflow drawing. Missing dark standalone masters use the approved palette on the unchanged light geometry.',
  'Actual localization follows the existing language preference; English product labels in the canonical master are retained in the target and never forced onto Chinese controls.',
+ 'The accepted stable Back fallback keeps its same visible slot at every width. Desktop retains a separate36px return row plus8px gap; the current window begins at166px rather than the drawing123px. Main title/body and compact layout remain aligned.',
  'Native controls, including the root overflow and compact Reader actions, remain reachable even where the static drawing omits their full hit areas. Geometry differences are recorded for independent visual review, never hidden by a pixel tolerance.'
 ];
 const darkPalette={'#FFFFFF':'#171D28','#FAFBFD':'#121823','#17233C':'#E8EDF7','#63728A':'#B0BDD0','#68778E':'#A5B4CB','#E6EBF2':'#303B4C','#F4F6FA':'#202939','#EAF1FF':'#263B5B','#235DD3':'#94BAFF','#A34F46':'#E2A295'};
@@ -130,13 +131,13 @@ function assertLayout(actual,row){
  assert.equal(actual.search.backgroundColor,theme==='dark'?'rgb(32, 41, 57)':'rgb(244, 246, 250)');
  assert.ok(actual.search.visible&&actual.search.width>0&&actual.search.x>=0&&actual.search.right<=width+2,'same search is visible and horizontally reachable');
  if(reader){
-  assert.equal(actual.documentTitleInsidePage,true);assert.equal(actual.backHost,width>=1024?'archive-reader-back-slot':'reader-compact-tools');
+  assert.equal(actual.documentTitleInsidePage,true);assert.equal(actual.backHost,'archive-reader-back-slot');
   if(width>=1024){near(actual.navigator.x,rail,row.id+' navigator x');near(actual.navigator.width,nav,row.id+' navigator width');near(actual.search.x,rail+20,row.id+' navigator search x');near(actual.search.width,nav-40,row.id+' navigator search width');if(!stress)near(actual.search.y,24,row.id+' navigator search y');}
   near(actual.body.x,rail+nav+gutter,row.id+' body reading axis');
   near(actual.body.width,Math.min(680,width-rail-nav-gutter*2),row.id+' exact retained standard width');
   assert.equal(parseFloat(actual.prose.fontSize),17*(stress==='text200'?2:1),'actual standard body size is reported honestly');assert.equal(actual.declaredPreference.width,'680px');assert.equal(actual.declaredPreference.size,'17px');
   assert.equal(actual.prose.whiteSpace,'pre-wrap');assert.ok(actual.caption.visible,'native time caption remains visible');
-  if(!stress&&width>=1024){near(actual.title.y,24,row.id+' title top');assert.equal(actual.contextBackParent,'archive-navigator');near(actual.contextGroup.y,actual.back.y,row.id+' one Back/project heading tier');near(actual.selectedWindow.y,122,row.id+' current project first window');}
+  if(!stress&&width>=1024){near(actual.title.y,24,row.id+' title top');assert.equal(actual.contextBackParent,'archive-reader-navigator-slot');near(actual.contextGroup.y,actual.back.bottom+8,row.id+' fixed Back before project heading');near(actual.selectedWindow.y,166,row.id+' current project first window with accepted independent Back row');}
   if(!stress&&width===320){near(actual.title.y,109,row.id+' compact title top');near(actual.search.y,219,row.id+' compact search after subtitle');near(actual.caption.y,301,row.id+' compact first caption');}
  }else{near(actual.root.x,rail,row.id+' root starts immediately after primary rail');if(width>=768)near(actual.title.y,24,row.id+' root title top');assert.equal(actual.rootOverflow.visible,true,'root overflow remains available');}
  assert.equal(parseFloat(actual.title.lineHeight),(width<768?35:38)*(stress==='text200'?2:1),'exact approved title line height');
@@ -159,10 +160,11 @@ async function settleD7Presentation(page,row){
   if(get('archive-compact-navigation').hidden===phone)return false;
   if(get('scope-search-host').parentElement.id!==(reader?(desktop?'archive-reader-search-slot':'reader-search-slot'):'archive-root-header-actions'))return false;
   if(!reader)return true;
-  if(get('back').parentElement.id!==(desktop?'archive-reader-back-slot':'reader-compact-tools'))return false;
+  if(get('back').parentElement.id!=='archive-reader-back-slot')return false;
+  if(get('archive-navigator-toggle').parentElement.id!==(phone?'archive-compact-reader-actions':desktop?'reader-compact-tools':'archive-reader-back-slot'))return false;
   if(get('document-menu').parentElement.id!==(phone?'archive-compact-reader-actions':'reader-heading-actions'))return false;
   if(getComputedStyle(get('document-menu')).fontSize!==(phone?'13px':'17px'))return false;
-  return !!document.querySelector('.archive-navigator-window[aria-current="page"]')&&(!desktop||get('archive-reader-back-slot').parentElement.id==='archive-navigator'&&!!document.querySelector('.archive-navigator-context-group'));
+  return !!document.querySelector('.archive-navigator-window[aria-current="page"]')&&(!desktop||get('archive-reader-back-slot').parentElement.id==='archive-reader-navigator-slot'&&!!document.querySelector('.archive-navigator-context-group'));
  },row),'responsive control parents, normal text size and selected window are ready');
 }
 
@@ -202,6 +204,14 @@ async function inspectSource(page,bodies){
  await page.locator('#close-info').click();await eventually(()=>page.locator('#document-menu').evaluate(node=>document.activeElement===node),'Source close restores original menu focus');
 }
 
+async function verifyD7ResponsiveFocus(page,record){
+ await page.setViewportSize({width:1440,height:1000});await settleD7Presentation(page,{screen:'A02',width:1440});await frame(page);
+ const focusSnapshot=()=>page.evaluate(()=>({activeId:document.activeElement?.id,activeTag:document.activeElement?.tagName,space:document.body.dataset.paiaSpace,menuOpen:document.getElementById('archive-compact-navigation').open,controls:['back','document-menu','archive-navigator-toggle'].map(id=>{const node=document.getElementById(id);return {id,parent:node.parentElement.id,connected:node.isConnected,rects:node.getClientRects().length};})}));
+ const resizeFocused=async(id,width,label)=>{await record('responsive-focus-before',{id,width,snapshot:await focusSnapshot()});try{await page.setViewportSize({width,height:1000});await eventually(()=>page.locator('#'+id).evaluate(node=>document.activeElement===node&&node.getClientRects().length>0),label);}finally{await record('responsive-focus-after',{id,width,snapshot:await focusSnapshot()});}};
+ await page.locator('#back').focus();await resizeFocused('back',320,'focused Back survives both responsive owners');assert.equal(await page.locator('#archive-compact-navigation').evaluate(node=>node.open),false,'Back does not open unrelated actions');await resizeFocused('back',1440,'focused Back returns to contextual desktop header');
+ await page.locator('#document-menu').focus();await resizeFocused('document-menu',320,'focused document action is exposed in phone disclosure');assert.equal(await page.locator('#archive-compact-navigation').evaluate(node=>node.open),true);await resizeFocused('document-menu',1440,'focused document action returns to desktop');await record('responsive-focused-back-and-action');
+}
+
 export async function verifyD7ArchiveBehavior(h,seed,{directory,variant,observations,persist}){
  const page=h.archive,record=async(kind,data={})=>{observations.push({kind,...data});await persist();};
  await page.setViewportSize({width:1440,height:1000});await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await frame(page);await page.evaluate(()=>scrollTo(0,0));
@@ -221,16 +231,13 @@ export async function verifyD7ArchiveBehavior(h,seed,{directory,variant,observat
   }
  }finally{await probe.close();}
  await page.bringToFront();await frame(page);assert.equal(await page.locator('#document-title').getAttribute('style'),titleBefore.inline);assert.equal(await page.locator('#document-title').textContent(),titleBefore.text);assertTitleVisibility((await measure(page,'A02')).titleVisibility,'unmodified production title after negative controls');await record('title-clipping-production-untouched',{inlineStyle:titleBefore.inline});
- const focusSnapshot=()=>page.evaluate(()=>({activeId:document.activeElement?.id,activeTag:document.activeElement?.tagName,space:document.body.dataset.paiaSpace,menuOpen:document.getElementById('archive-compact-navigation').open,controls:['back','document-menu','archive-navigator-toggle'].map(id=>{const node=document.getElementById(id);return {id,parent:node.parentElement.id,connected:node.isConnected,rects:node.getClientRects().length};})}));
- const resizeFocused=async(id,width,label)=>{await record('responsive-focus-before',{id,width,snapshot:await focusSnapshot()});try{await page.setViewportSize({width,height:1000});await eventually(()=>page.locator('#'+id).evaluate(node=>document.activeElement===node&&node.getClientRects().length>0),label);}finally{await record('responsive-focus-after',{id,width,snapshot:await focusSnapshot()});}};
- await page.locator('#back').focus();await resizeFocused('back',320,'focused Back survives both responsive owners');assert.equal(await page.locator('#archive-compact-navigation').evaluate(node=>node.open),false,'Back does not open unrelated actions');await resizeFocused('back',1440,'focused Back returns to contextual desktop header');
- await page.locator('#document-menu').focus();await resizeFocused('document-menu',320,'focused document action is exposed in phone disclosure');assert.equal(await page.locator('#archive-compact-navigation').evaluate(node=>node.open),true);await resizeFocused('document-menu',1440,'focused document action returns to desktop');await record('responsive-focused-back-and-action');
+
  // DOM order follows the real relocated controls: search, then project Back.
  await page.locator('#scope-search').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'back');
  const group=page.locator('#archive-navigator .archive-navigator-group-toggle').first();assert.equal(await group.textContent(),'河岸散步');await page.keyboard.press('Tab');assert.equal(await group.evaluate(node=>document.activeElement===node),true,'Back and current group have adjacent DOM focus order');
  await group.click();assert.equal(await group.getAttribute('aria-expanded'),'false');assert.equal(await page.locator('#archive-navigator .archive-navigator-group-toggle').first().textContent(),'河岸散步','collapsed current group remains first');await group.click();await eventually(()=>page.locator('.archive-navigator-window[aria-current="page"]').isVisible(),'current group reopens');
  await page.setViewportSize({width:1440,height:500});await frame(page);const beforeScroll=await page.evaluate(()=>({back:document.getElementById('back').getBoundingClientRect().top,group:document.querySelector('.archive-navigator-context-group .archive-navigator-group-toggle').getBoundingClientRect().top}));await page.locator('#archive-navigator').hover();await page.mouse.wheel(0,180);await eventually(()=>page.locator('#archive-navigator').evaluate(node=>node.scrollTop>0),'real wheel scrolls the contextual navigator');
- const afterScroll=await page.evaluate(()=>({back:document.getElementById('back').getBoundingClientRect().top,group:document.querySelector('.archive-navigator-context-group .archive-navigator-group-toggle').getBoundingClientRect().top}));near(afterScroll.back-beforeScroll.back,afterScroll.group-beforeScroll.group,'Back and current heading scroll together');await page.locator('#back').focus();await page.locator('#back').scrollIntoViewIfNeeded();await page.setViewportSize({width:1440,height:1000});await frame(page);await record('context-heading-order-collapse-and-scroll',{beforeScroll,afterScroll});
+ const afterScroll=await page.evaluate(()=>({back:document.getElementById('back').getBoundingClientRect().top,group:document.querySelector('.archive-navigator-context-group .archive-navigator-group-toggle').getBoundingClientRect().top}));near(afterScroll.back,beforeScroll.back,'fixed Back remains above the independently scrolling navigator');assert.ok(afterScroll.group<beforeScroll.group,'project/window list actually scrolls');await page.locator('#back').focus();await page.locator('#back').scrollIntoViewIfNeeded();await page.setViewportSize({width:1440,height:1000});await frame(page);await record('context-heading-order-collapse-and-fixed-back',{beforeScroll,afterScroll});
  await page.locator('#input-time-toggle').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'document-menu');
  await record('wide-keyboard-order',{order:['scope-search','back','input-time-toggle','document-menu'],note:'navigator rows and editable title occur between Back and sort in the full native tab sequence'});
  await page.locator('#scope-search').fill('短暂的新鲜感');await eventually(()=>page.locator('.document-search-hit').count().then(count=>count>0),'existing local Reader search returns the exact normal fixture');await page.locator('#scope-search').fill('');
@@ -280,6 +287,7 @@ export async function compareD7Archive(h,variant,{matrix='full',directory='work/
  const persist=()=>writeFile(`${directory}/${variant}-${matrix}.json`,JSON.stringify({...receipt,elapsedMs:Date.now()-started},null,2));
  try{
   await persist();await page.setViewportSize({width:1440,height:1000});await selectArchive(page);await page.locator('#scope-search').fill('');
+  if(matrix==='full'){await openNormalReader(page);await verifyD7ResponsiveFocus(page,async(kind,data)=>{observations.push({kind,...data});await persist();});await page.locator('#back').click();await eventually(()=>page.locator('#collection-panel').isVisible(),'fixed Back returns to Archive after early focus proof');}
   await eventually(()=>page.locator('#archive-navigator').isVisible(),'root navigator ready');
   // Keep root projects closed using their ordinary disclosure controls.
   for(const label of ['河岸散步','职业方向','学习与写作','日常想法']){const group=page.locator('.archive-navigator-group-toggle').filter({hasText:label}).first();if(await group.count()&&await group.getAttribute('aria-expanded')==='true')await group.click();}

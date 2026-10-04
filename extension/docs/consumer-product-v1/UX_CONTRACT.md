@@ -26,7 +26,7 @@ Root pages must not keep empty navigator columns.
 - metadata subordinate but legible;
 - one restrained accent family;
 - destructive color only for destructive actions;
-- no decorative gradient/glow/glass or generic AI styling;
+- no gratuitous decorative gradient/glow/glass or generic AI styling; restrained glass is allowed when it has a functional surface/adaptation role, including the approved Prompt Reuse overlay;
 - no dashboard statistics unless a real user task requires them;
 - no per-message card chrome when whitespace can provide structure.
 
@@ -477,13 +477,41 @@ All-source versus source-specific browsing does not duplicate the data model. Di
 
 ### P1/P2 — Prompt reuse
 
-PAIA prompt panel shows useful user prompts/templates, not a prompt marketplace.
+The detailed owner-approved contract is
+[PROMPT_REUSE_SURFACE.md](PROMPT_REUSE_SURFACE.md).
 
-On supported AI pages, selection inserts or copies; it never sends. Existing draft is preserved and the user chooses append/replace where needed.
+PAIA shows the user's own useful Prompt Families, not a prompt marketplace.
+Automatic ranking is stable while the surface is open. User pin/order/edit/hide
+outranks automatic ranking; edited reusable text is independent from historical
+Input and never writes back to Input Archive.
+
+On a supported AI page the normal state is a very small floating PAIA entry.
+Opening it reveals a persistent compact card whose normal presentation is
+essentially just the user's prompt rows. Row controls appear only on hover,
+keyboard focus or explicit management interaction. The approved visual direction
+is a restrained frosted-glass orb that expands into an anchored rectangular card;
+the material is functional adaptation to third-party page backgrounds, not a
+generic AI-decoration rule.
+
+One ordinary prompt click fills the exact reusable text into the current AI
+composer and returns focus there. It never sends. The default click preserves all
+existing draft text and inserts at the current/last reliable caret; an active
+selection is not destructively replaced by default. Explicit replace remains a
+secondary action. If exact insertion cannot be verified, PAIA leaves the draft
+unchanged, reports failure/uncertainty and may offer an explicit clipboard
+fallback. It must not retry automatically in a way that can duplicate text.
+
+The floating entry/card may remember a user-chosen position per supported site.
+Open/closed preference may persist; transient edit/drag state does not. SPA
+navigation must not create duplicate surfaces. Compact widths reflow the same
+surface rather than introducing a second prompt product.
 
 ### P3 — Reply-aware prompt suggestions
 
-Only after B-04. Explicit enable/pause. Suggestions distinguish reused historical prompt from generated suggestion. Clicking fills input; user sends.
+Only after B-04. Explicit enable/pause. A next-prompt suggestion is a separate
+transient capsule/strip attached to the Prompt Reuse surface; it never reshuffles
+the stable prompt card. Suggestions distinguish reused historical prompt from a
+generated suggestion. Clicking fills the composer only; the user sends.
 
 ## 10. Motion, accessibility and performance
 
