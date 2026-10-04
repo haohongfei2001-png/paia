@@ -40,7 +40,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    await eventually(async()=>await f.locator('.row').first().innerText()===text+'\n⋯');const q=await rpc(engineering,'PAIA_PROMPT_QUERY');assert.equal(q.items[0].id,a.id);assert.equal(q.items[0].pinned,true);assert.equal(await page.evaluate(()=>fixture.text()),before);
   });
   await check('older failed background query cannot erase a newer explicit refresh',async()=>{
-   const f=card();await f.locator('#refresh').click();await f.locator('#refresh').waitFor({state:'visible'});
+   const f=card();await f.locator('#refresh').click();await eventually(()=>f.locator('#refresh').isEnabled());
    await f.evaluate(()=>{globalThis.originalPromptSend=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.holdOneQuery=true;chrome.runtime.sendMessage=request=>{if(request?.command?.type==='PAIA_PROMPT_QUERY'&&globalThis.holdOneQuery){globalThis.holdOneQuery=false;return new Promise(resolve=>{globalThis.failOlderQuery=()=>resolve({ok:false,error:'MEMORY_STALE'});});}return globalThis.originalPromptSend(request);};});
    await engineering.evaluate(()=>chrome.runtime.sendMessage({type:'PAIA_PROMPT_CHANGED'}));await f.waitForFunction(()=>typeof globalThis.failOlderQuery==='function');
    await f.locator('#refresh').click();await eventually(()=>f.getByRole('button',{name:text,exact:true}).isEnabled());const ids=await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id));assert.equal(ids.length,2);
