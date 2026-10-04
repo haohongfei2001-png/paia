@@ -1,5 +1,13 @@
 # Canonical Status — PAIA Consumer Product v1
 
+## Immediate priority: finish and merge bounded D5 appearance — 2026-10-04
+
+**Current controlling batch: `D5_APPEARANCE_CLOSURE_FIRST / FUNCTIONAL_REDESIGN_DEFERRED`.**
+After the external D6.2/D7 plan update, the owner explicitly reaffirmed finishing and merging the current D5 batch first. [The limited owner amendment](implementation/desktop-vnext/D5-APPEARANCE-OWNER-AMENDMENT.md) governs this batch: complete the original D5 major page compositions on normal entry routes; the old AI Context feature plan is withdrawn, and Thought Library, writing and export feature completeness is deferred for redesign. Preserve existing data and historical code. Unavailable actions must be marked and must not report success or transmit material.
+
+The existing D6.2 design assets, approval records and D7 plan below remain intact for the later independent handoff; this D5 batch neither replaces those assets nor starts a competing D7 implementation. Current candidate source/release screenshots, basic data safety, independent review and exact-head integration are pending. PR132/PR140 and negative evidence remain preserved. Public consumer release remains held.
+
+
 ## D6.2 approved; D7 production high-fidelity implementation authorized — 2026-10-04
 
 **Current controlling state: `DESKTOP_VNEXT_D6_2_OWNER_APPROVED / D7_OWNER_AUTHORIZED / READY_FOR_IMPLEMENTATION`.**
