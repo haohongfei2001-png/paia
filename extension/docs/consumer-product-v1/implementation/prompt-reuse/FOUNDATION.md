@@ -111,3 +111,35 @@ test now verifies those same 68 placements plus the one new VS09 browser owner.
 Final candidate receipts are recorded below after validation. Full historical
 browser/device/visual certification, merged-main evidence and real ChatGPT
 compatibility are not claimed by this first-stage PR.
+
+## Final engineering candidate
+
+- Tested runtime head: `620fa759b175c2f03c06bbbd9525afeb5473f52f`.
+- Final validation: [Actions 37202183107](https://github.com/haohongfei2001-png/paia/actions/runs/37202183107).
+- Runtime/package source fingerprint: `611aed00814495ecb0e495efbb12258b408a117a7e163d83601af19e8c512caa`.
+- Source/release native Chrome + synthetic ProseMirror: 20/20, no skips.
+  This includes actual trusted test-entry click, full Unicode/multiline/code,
+  empty/existing draft, current/last caret, forward/reverse selection, safe append,
+  native Chinese composition, uncertain response, rejected insertion, browser
+  clipboard acknowledgement/denial, route change and unsupported composer.
+- Fixed domain/security evaluation: 49/49 owning tests, including candidate
+  uncertainty, long-payload grammar, code/negation, cross/same-conversation ranking,
+  manual order, history immutability, hide/unpin/split and post-split Working Input
+  changes, no-archive independent templates, Backup validation and stale fences.
+- The browser suite asserts zero Send/Enter, Provider/external/extension network,
+  draft archive records, site storage and unselected-library disclosure.
+- Full unit 1724/1724; adapter contract 102/102; privacy/security 59/59;
+  all zero failures/skips. Source package guard 11136 checks/285 resources;
+  release guard 10701 checks/278 runtime resources, RELEASE_PRODUCT_GUARD_PASS
+  (302 files). These are the relevant repository checks, not full historical
+  browser/device/visual certification. Final receipt-only commit changes no
+  runtime/test/build files and preserves the fingerprint above.
+- Re-fetched remote main remains `feea729e2fc19e69d5b842a7ca00305f31cda0cc`.
+  Read-only merge-tree with current D7 PR #143 head
+  `7c5be07fb2ee8723556d76b5786f873e0383c218` produced no text conflicts. Shared
+  file ownership is limited to STATUS and package guard; no D7 implementation was
+  imported or modified. This is not certification of that hypothetical merge.
+- CPV1-09.0/09.1: engineering complete in this branch. CPV1-09.2: synthetic
+  engineering gate passed, current-site compatibility deferred as DFG-CPV1-011.
+  The next task is review of this PR with current real ChatGPT insertion evidence;
+  CPV1-09.3 must wait. No executor merge or production deployment.
