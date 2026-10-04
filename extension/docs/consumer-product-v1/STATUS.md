@@ -7,6 +7,8 @@ Q10 [PR136](https://github.com/haohongfei2001-png/paia/pull/136) is adopted at e
 
 Approved [Q11](implementation/desktop-vnext/D5-Q11.md) starts from clean main. Move the one existing scope-disclosure node before the existing approval selector/Start in the same modal form. Keep every value, handler, permission, scope binding, blank/blocked refusal and explicit confirmation guard. Default to no CSS or other Organize family change. Pinned exact-source/release baseline plus unchanged complete owning journeys must prove ordering, readable scrolling, keyboard/focus, narrow/200% controls and zero requests before approval.
 
+Q11 draft [PR137](https://github.com/haohongfei2001-png/paia/pull/137), head `03e8e017`, candidate37176837903 retains seven browser PASS and two FAIL: existing narrow approval/Start/Close controls measure40/41/41px in both exact baseline and current. Add only the scope-dialog narrow/coarse44px floor and retain every assertion; corrected native/pixel gates remain pending. The six original request-owner cases, pinned source/release baseline, unit, adapter/privacy and release jobs pass.
+
 The modal-versus-main-workspace O01 gap remains explicit. PR132/T05 stays preserved/unmerged; action/year-navigation and remaining Organize/Context composition plus final owner visual acceptance remain open. Public consumer release and install-package delivery remain held. Older controlling entries below are historical.
 
 ## D5/Q10 — Existing Topic header alignment — 2026-10-04
