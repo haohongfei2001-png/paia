@@ -46,7 +46,7 @@ for(const variant of ['source','release']){
    const file=variant+'-'+name+'.png';await page.screenshot({path:join(out,file),animations:'disabled',caret:'hide'});
    const geometry=await orb.boundingBox();assert.equal(geometry.width,44);assert.equal(geometry.height,44);
    const form=await page.locator('form').boundingBox();const disjoint=(a,b)=>a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y;assert.ok(disjoint(geometry,form));
-   let panel=null;if(card()){const theme=await orb.getAttribute('data-theme');assert.equal(await card().evaluate(()=>getComputedStyle(document.documentElement).color),theme==='dark'?'rgb(225, 233, 231)':'rgb(36, 49, 51)');const el=await card().frameElement();panel=await el.boundingBox();assert.ok(disjoint(panel,form));assert.ok(panel.x>=0&&panel.x+panel.width<=page.viewportSize().width);assert.ok(panel.width<=336);assert.ok(panel.height<=400);}
+   let panel=null;if(card()){const theme=await orb.getAttribute('data-theme');assert.equal(await card().evaluate(()=>getComputedStyle(document.documentElement).color),theme==='dark'?'rgb(233, 238, 246)':'rgb(29, 39, 56)');const el=await card().frameElement();panel=await el.boundingBox();assert.ok(disjoint(panel,form));assert.ok(panel.x>=0&&panel.x+panel.width<=page.viewportSize().width);assert.ok(panel.width<=336);assert.ok(panel.height<=400);}
    assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.text()),'这是一段尚未发送的合成草稿。');
    receipt.screens.push({file,name,viewport:page.viewportSize(),orb:geometry,card:panel});console.log('CAPTURE',file);
   };

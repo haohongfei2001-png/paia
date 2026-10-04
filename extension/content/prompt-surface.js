@@ -2,7 +2,7 @@
 (() => {
  'use strict';
  globalThis.PAIAPromptSurface?.dispose();
- let host,root,orb,frame,nonce,url=location.href,position=null,open=false,enabled=false,initialized=false,disposed=false,scheduled=false,drag=null,suppress=false;
+ let host,root,orb,frame,nonce,url=location.href,position=null,open=false,enabled=false,initialized=false,disposed=false,scheduled=false,geometry=null,drag=null,suppress=false;
  const adapter=new globalThis.PAIAChatGPTComposerAdapter(),listeners=[],appearance=matchMedia('(prefers-color-scheme:dark)');
  const dark=()=>{const el=document.documentElement,scheme=getComputedStyle(el).colorScheme;return el.classList.contains('dark')||(!el.classList.contains('light')&&scheme!=='light'&&(scheme==='dark'||appearance.matches));};
  const listen=(node,event,fn,options)=>{node.addEventListener(event,fn,options);listeners.push(()=>node.removeEventListener(event,fn,options));};
@@ -19,9 +19,10 @@
   const composer=adapter.find();if(!composer||!enabled){host.hidden=true;return;}
   if(url!==location.href)url=location.href;
   const bounds=(composer.closest('form')||composer).getBoundingClientRect(),g=globalThis.PAIAPromptLayout(innerWidth,innerHeight,bounds,position);
-  if(!g){host.hidden=true;return;}host.hidden=false;
+  if(!g){host.hidden=true;return;}geometry=g;host.hidden=false;
   host.dataset.theme=dark()?'dark':'light';
-  const style=`position:fixed;left:${g.orb.x}px;top:${g.orb.y}px;width:44px;height:44px;z-index:2147483646;`;
+  const anchor=open&&g.card?{x:g.card.x+g.card.w-40,y:g.card.y-32}:g.orb;
+  const style=`position:fixed;left:${anchor.x}px;top:${anchor.y}px;width:44px;height:44px;z-index:2147483646;`;
   if(host.getAttribute('style')!==style)host.setAttribute('style',style);
   if(open&&!frame&&g.card)expand();
   if(frame){frame.hidden=!g.card;if(g.card){const c=g.card;const s=`position:fixed;left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;color-scheme:${host.dataset.theme};`;if(frame.getAttribute('style')!==s)frame.setAttribute('style',s);}}
@@ -31,13 +32,24 @@
   if(host?.isConnected||disposed)return;
   if(!document.documentElement)return;
   host=document.createElement('div');host.dataset.paiaPromptSurface='';root=host.attachShadow({mode:'closed'});
-  const style=document.createElement('style');style.textContent=`:host{color-scheme:light}:host([data-theme=dark]){color-scheme:dark}button{box-sizing:border-box;width:44px;height:44px;padding:2px;border:0;background:transparent;touch-action:none;cursor:grab;color:inherit}span{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(90,100,110,.22);border-radius:50%;background:rgba(250,251,253,.88);backdrop-filter:blur(16px) saturate(1.1);box-shadow:0 3px 14px #16203320;color:#365d58;font:600 9px system-ui;letter-spacing:.3px}button:focus-visible{outline:2px solid #36877b;outline-offset:2px;border-radius:50%}iframe{border:1px solid #71808040;border-radius:16px;background:#f9fafbd9;backdrop-filter:blur(18px) saturate(1.1);box-shadow:0 8px 30px #10202025;box-sizing:border-box;animation:appear .16s ease-out}@keyframes appear{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}:host([data-theme=dark]) span{background:#242b30eb;color:#a9d0c6;border-color:#9caaaa40}:host([data-theme=dark]) iframe{background:#222a30ed}@media(prefers-reduced-motion:reduce){iframe{animation:none}}`;
-  orb=document.createElement('button');orb.type='button';orb.setAttribute('aria-label','常用 Prompt；拖动或 Alt 加方向键移动');orb.setAttribute('aria-expanded','false');orb.title='常用 Prompt';const mark=document.createElement('span');mark.textContent='PAIA';orb.append(mark);root.append(style,orb);document.documentElement.append(host);
+  const style=document.createElement('style');style.textContent=`
+:host{color-scheme:light}:host([data-theme=dark]){color-scheme:dark}
+button{position:relative;z-index:1;box-sizing:border-box;width:44px;height:44px;padding:2px;border:0;background:transparent;touch-action:none;cursor:grab}
+.orb{position:relative;display:block;box-sizing:border-box;width:40px;height:40px;border:1px solid #7f95b847;border-radius:50%;background:radial-gradient(circle 32px at 34% 28%,#fffffffa 0%,#eaf5fffa 22%,#c8dcfff0 48%,#d5c8ffeb 68%,#c6f0e4e0 84%,#ffffffb3 100%);box-shadow:0 7px 20px #52627f38;backdrop-filter:blur(16px) saturate(1.1)}
+.orb:before{content:'';position:absolute;inset:-3px;border:1px solid #ffffffb8;border-radius:50%}
+.orb:after{content:'';position:absolute;left:6px;top:7px;width:14px;height:10px;border-radius:50%;background:#ffffffc7}
+.reflection{position:absolute;left:20px;top:18px;width:12px;height:12px;border-radius:50%;background:#8f95ff26}
+button:focus-visible{outline:2px solid #5e8ee8;outline-offset:3px;border-radius:50%}
+iframe{border:1px solid #ffffffd9;border-radius:20px;background:linear-gradient(136deg,#fffffff0 0%,#f5f8ffe6 52%,#eaf1ffd1 100%);backdrop-filter:blur(18px) saturate(1.1);box-shadow:0 18px 48px #22314d24;box-sizing:border-box;animation:appear .16s ease-out}
+@keyframes appear{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+:host([data-theme=dark]) iframe{background:linear-gradient(136deg,#313a48db 0%,#202734d1 52%,#252d39c7 100%);border-color:#ffffff28;box-shadow:0 18px 48px #00000057}
+@media(prefers-reduced-motion:reduce){iframe{animation:none}}`;
+  orb=document.createElement('button');orb.type='button';orb.setAttribute('aria-label','常用 Prompt；拖动或 Alt 加方向键移动');orb.setAttribute('aria-expanded','false');orb.title='常用 Prompt';const mark=document.createElement('span');mark.className='orb';mark.setAttribute('aria-hidden','true');const reflection=document.createElement('span');reflection.className='reflection';mark.append(reflection);orb.append(mark);root.append(style,orb);document.documentElement.append(host);
   listen(orb,'click',e=>{if(!e.isTrusted)return;if(suppress){suppress=false;return;}if(frame)frame.focus();else expand();});
-  listen(orb,'pointerdown',e=>{if(!e.isTrusted||e.button!==0)return;drag={x:e.clientX,y:e.clientY,start:host.getBoundingClientRect(),moved:false};orb.setPointerCapture(e.pointerId);});
+  listen(orb,'pointerdown',e=>{if(!e.isTrusted||e.button!==0)return;drag={x:e.clientX,y:e.clientY,start:geometry?.orb||host.getBoundingClientRect(),moved:false};orb.setPointerCapture(e.pointerId);});
   listen(orb,'pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)<5&&!drag.moved)return;drag.moved=true;suppress=true;position={x:Math.max(0,Math.min(1,(drag.start.x+dx)/(innerWidth-44))),y:Math.max(0,Math.min(1,(drag.start.y+dy)/(innerHeight-44)))};schedule();});
   const end=()=>{if(drag?.moved)save();drag=null;};listen(orb,'pointerup',end);listen(orb,'pointercancel',end);
-  listen(orb,'keydown',e=>{if(e.altKey&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const r=host.getBoundingClientRect();position={x:Math.max(0,Math.min(1,(r.x+(e.key==='ArrowRight'?12:e.key==='ArrowLeft'?-12:0))/(innerWidth-44))),y:Math.max(0,Math.min(1,(r.y+(e.key==='ArrowDown'?12:e.key==='ArrowUp'?-12:0))/(innerHeight-44)))};layout();save();}else if(e.key==='Escape'&&open){e.preventDefault();frame?.focus();}});
+  listen(orb,'keydown',e=>{if(e.altKey&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const r=geometry?.orb||host.getBoundingClientRect();position={x:Math.max(0,Math.min(1,(r.x+(e.key==='ArrowRight'?12:e.key==='ArrowLeft'?-12:0))/(innerWidth-44))),y:Math.max(0,Math.min(1,(r.y+(e.key==='ArrowDown'?12:e.key==='ArrowUp'?-12:0))/(innerHeight-44)))};layout();save();}else if(e.key==='Escape'&&open){e.preventDefault();frame?.focus();}});
   schedule();
  }
  async function activate(){try{const saved=await rpc();if(disposed)return;enabled=true;if(!initialized){position=saved.position;open=saved.open;initialized=true;}mount();schedule();}catch{enabled=false;if(host)host.hidden=true;frame?.remove();frame=null;}}

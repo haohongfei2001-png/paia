@@ -26,6 +26,16 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    assert.equal(await page.evaluate(()=>fixture.text()),'原草稿-A｜'+text+'B');assert.equal(await page.evaluate(()=>document.activeElement.id),'prompt-textarea');
    await page.keyboard.insertText('续');await page.waitForTimeout(120);assert.equal(await page.evaluate(()=>fixture.text()),'原草稿-A｜'+text+'续B');assert.ok(card());
   });
+  await check('visual master management reveal keeps geometry and editing stays inside the same list',async()=>{
+   const f=card();await f.locator('#refresh').click();await eventually(()=>f.locator('#refresh').isEnabled());
+   await page.locator('#blur').focus();await page.mouse.move(2,2);const row=f.locator('.row').first(),before=await row.boundingBox();
+   assert.equal(await row.locator('.more').evaluate(e=>getComputedStyle(e).opacity),'0');
+   await row.hover();await page.waitForTimeout(160);assert.deepEqual(await row.boundingBox(),before);
+   for(const selector of ['.grip','.edit-shortcut','.more'])assert.equal(await row.locator(selector).evaluate(e=>getComputedStyle(e).opacity),'1');
+   await row.locator('.edit-shortcut').click();assert.equal(await f.locator('#list').isVisible(),true);assert.equal(await f.locator('#list > #editor').count(),1);
+   assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),text);assert.equal(await f.locator('.row:not(.editing-row)').count(),1);
+   await f.getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>f.locator('#refresh').isEnabled());assert.equal(await f.locator('.editing-row').count(),0);
+  });
   await check('edit, pin/unpin, hidden recovery, explicit independent delete and no management insertion',async()=>{
    const before=await page.evaluate(()=>fixture.text());let f=card();await f.locator('#refresh').click();const row=f.locator('.row').filter({hasText:secret});await row.locator('.more').click();await f.getByRole('button',{name:'编辑',exact:true}).click();await f.getByRole('textbox',{name:'复用文本'}).fill('edited synthetic template');await orb.click();await f.locator('#close').click();assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'edited synthetic template');await page.evaluate(()=>{history.pushState({},'',location.pathname+'?editing=1');document.body.append(document.createElement('i'));});await page.waitForTimeout(100);assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'edited synthetic template');await f.getByRole('button',{name:'保存',exact:true}).click();await f.getByRole('button',{name:'edited synthetic template',exact:true}).waitFor();
    await f.locator('.row').filter({hasText:'edited synthetic template'}).locator('.more').click();await f.getByRole('button',{name:'置顶',exact:true}).click();await eventually(async()=>await f.locator('.row').first().innerText()==='edited synthetic template\n⋯');
@@ -77,7 +87,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   await check('system and host theme transitions keep frame contrast without refresh, reordering or losing an edit',async()=>{
    await page.emulateMedia({colorScheme:'light'});await card().locator('#refresh').click();await eventually(()=>card().locator('#refresh').isEnabled());
    const f=card(),ids=await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id));
-   const expectTheme=async theme=>{await eventually(()=>orb.getAttribute('data-theme').then(x=>x===theme),'host theme '+theme);await eventually(()=>f.evaluate(()=>getComputedStyle(document.documentElement).color).then(x=>x===(theme==='dark'?'rgb(225, 233, 231)':'rgb(36, 49, 51)')),'frame contrast '+theme);assert.deepEqual(await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),ids);};
+   const expectTheme=async theme=>{await eventually(()=>orb.getAttribute('data-theme').then(x=>x===theme),'host theme '+theme);await eventually(()=>f.evaluate(()=>getComputedStyle(document.documentElement).color).then(x=>x===(theme==='dark'?'rgb(233, 238, 246)':'rgb(29, 39, 56)')),'frame contrast '+theme);assert.deepEqual(await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),ids);};
    for(const theme of ['dark','light','dark','light']){await page.emulateMedia({colorScheme:theme});await expectTheme(theme);}
    await f.locator('.row').first().locator('.more').click();await f.getByRole('button',{name:'编辑',exact:true}).click();await f.getByRole('textbox',{name:'复用文本'}).fill('unsaved theme transition');
    // CDP media emulation pins every frame directly; release it to test native inherited iframe appearance.
