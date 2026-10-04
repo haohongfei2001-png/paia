@@ -1,0 +1,58 @@
+{
+  "base": "56413162e7b8318eecb270781acd5b76046c0822",
+  "before": {
+    "targeted_browser": {
+      "timeoutMinutes": 12,
+      "topicFiles": 7,
+      "topicCases": 16,
+      "compatibilityCases": 22
+    }
+  },
+  "after": {
+    "targeted_browser": {
+      "timeoutMinutes": 12,
+      "topicFiles": 7,
+      "topicCases": 16
+    },
+    "topic_compatibility": {
+      "timeoutMinutes": 12,
+      "compatibilityCases": 22
+    }
+  },
+  "compatibilityFile": "tests/ux-r3-thought-chrome-e2e.test.mjs",
+  "compatibilityPattern": "UX-R3 independent today draft|UX-R3 real Reader",
+  "compatibilityNames": [
+    "UX-R3 independent today draft Topic creation ownership (release)",
+    "UX-R3 independent today draft Topic creation ownership (source)",
+    "UX-R3 independent today draft acknowledged relation digest retains later text (release)",
+    "UX-R3 independent today draft acknowledged relation digest retains later text (source)",
+    "UX-R3 independent today draft acknowledgement ownership changed-retry (release)",
+    "UX-R3 independent today draft acknowledgement ownership changed-retry (source)",
+    "UX-R3 independent today draft acknowledgement ownership ime-settlement (release)",
+    "UX-R3 independent today draft acknowledgement ownership ime-settlement (source)",
+    "UX-R3 independent today draft acknowledgement ownership lost-ack (release)",
+    "UX-R3 independent today draft acknowledgement ownership lost-ack (source)",
+    "UX-R3 independent today draft acknowledgement ownership malformed-ack (release)",
+    "UX-R3 independent today draft acknowledgement ownership malformed-ack (source)",
+    "UX-R3 independent today draft acknowledgement ownership malformed-success (release)",
+    "UX-R3 independent today draft acknowledgement ownership malformed-success (source)",
+    "UX-R3 independent today draft acknowledgement ownership newer-text (release)",
+    "UX-R3 independent today draft acknowledgement ownership newer-text (source)",
+    "UX-R3 independent today draft acknowledgement ownership reopened-draft (release)",
+    "UX-R3 independent today draft acknowledgement ownership reopened-draft (source)",
+    "UX-R3 independent today draft survives earlier Add acknowledgement (release)",
+    "UX-R3 independent today draft survives earlier Add acknowledgement (source)",
+    "UX-R3 independent today draft: empty, cancelled, failed save, IME and keyboard recovery; home/modal visual matrix",
+    "UX-R3 real Reader → add whole Input → two Topics → independent edit → restore; headless responsive matrix"
+  ],
+  "totalCases": 38,
+  "retainedOwnershipReceipts": 20,
+  "measuredEvidence": {
+    "topicRun": 37128002213,
+    "topicSevenFilesMs": 601309,
+    "topicJobSeconds": 650,
+    "composeRun": 37133777677,
+    "compose23JobSeconds": 401,
+    "note": "The current22 subset excludes one advanced case from the measured23; do not label401s as a separately measured22-case duration."
+  }
+}
