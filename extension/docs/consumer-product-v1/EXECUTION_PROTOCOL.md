@@ -1,5 +1,25 @@
 # Execution Protocol — PAIA Consumer Product v1
 
+## D6.2 visual approval and D7 implementation authorization — 2026-10-04
+
+The owner explicitly approved **D6.2 Final Visual Master** and authorized **D7 — Production High-Fidelity Implementation**. PR #141 merged the approved design package at `c1b008205584b10af92449921283d34c835923f9`.
+
+This authorization is deliberately narrow:
+
+- D6.2 is the highest **pure visual** authority. Open the actual artboards; do not implement from prose alone.
+- Existing product/data/privacy/authorization contracts remain authoritative for behavior. A picture cannot grant new capability or weaken a safety boundary.
+- D7 must reuse the verified D1–D5 route/editor/domain/service owners. Do not create a second body truth, new provider/permission, fake Send, or alternate persistence path to match a picture.
+- Remaining D5 visual-conformance work is carried into D7 without marking failed/unclosed D5 evidence PASS. Preserve PR132 and PR99 unchanged/unmerged unless a later explicit owner decision says otherwise.
+- Use one active product writer. Start every coherent batch from fresh remote main and record base/head/tested merge/exact-main evidence.
+- Default order: whole Archive/Reader → whole Thought/Years/Add Thought → whole Organize including first-generation visual states → whole Context → Settings/system/dark/compact.
+- Each target uses `D6.2 artboard → actual production implementation → source/release screenshot → same-state comparison → correction`. Whole-screen design review is required; cropped components, no overflow, or green CI alone are insufficient.
+- A missing required target is `VISUAL_REFERENCE_MISSING`; a contradiction between image/tokens/contracts is `VISUAL_REFERENCE_CONFLICT`. Do not improvise a third visual design.
+- Preserve all existing failure/recovery, privacy, permissions, IME/selection/paging, revisions, tombstones, receipts and negative-history tests. A true behavior defect exposed by visual work gets a bounded repair with its own evidence.
+- Public release, store submission, install-package delivery, new external permission/provider, paid service, cloud/sync expansion, destructive policy and B-01–B-05 remain separate owner gates.
+- Final production visual acceptance is required at D7 completion.
+
+The D6.2 design merge is not a runtime certification. D7 creates new runtime evidence only when real production code is changed and tested.
+
 ## Controlling Desktop vNext restart — 2026-09-30
 
 The owner explicitly approved the frozen design and foundation PR #107 (head `17f646bac2aa5f818000efdd8a2ec5d55623db14`) and separately authorized continuous production D1 → D2 → D3 → D4. `PAUSED_FOR_PRODUCT_FOUNDATION_REVIEW` is lifted only for that approved scope. The [approved architecture](design/foundation/desktop-vnext/ARCHITECTURE_REVIEW.md) and [roadmap](design/foundation/desktop-vnext/IMPLEMENTATION_ROADMAP.md) govern implementation. Current writer/base/batch and evidence are recorded in [STATUS](STATUS.md).
