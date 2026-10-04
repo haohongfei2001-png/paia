@@ -4,7 +4,7 @@ const root=fileURLToPath(new URL('..',import.meta.url)),url='https://chatgpt.com
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isolated native Chrome',{timeout:240000},async t=>{
  const extensionPath=variant==='source'?root:join(root,'work/current-release');if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath,headless:!process.env.DISPLAY}),screens=[];let world;await mkdir(receiptDir,{recursive:true});
+ const h=await FakeChatGPT.start({extensionPath,headless:!process.env.DISPLAY,launchThroughPort:true}),screens=[];let world;await mkdir(receiptDir,{recursive:true});
  try{
   await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
   const engineering=await h.context.newPage();await engineering.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');
