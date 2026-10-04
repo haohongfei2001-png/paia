@@ -87,8 +87,12 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   }
   const cdp=await p.context().newCDPSession(p);await p.setViewportSize({width:640,height:900});await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
   await p.screenshot({path:'work/ux-r1/archive-200pct-light.png',fullPage:true});assert.equal(await p.locator('#scope-search').isVisible(),true,'200% page scale keeps primary Archive search reachable');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
-  await p.setViewportSize({width:390,height:844});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(()=>p.locator('#primary-nav').isVisible(),'mobile root navigation visible');
-  await openArchiveWindow(p,{text:'UX-R1 最近收录'});await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#primary-nav').isVisible(),true,'frozen narrow reflow retains compact top navigation while reading');
+  await p.setViewportSize({width:390,height:844});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});
+  await eventually(()=>p.evaluate(()=>{const menu=document.getElementById('archive-compact-navigation'),buttons=[...document.querySelectorAll('.sidebar [data-view]')];return !menu.hidden&&!menu.open&&buttons.length===4&&buttons.every(button=>button.parentElement.id==='archive-compact-nav-items');}),'mobile root navigation reaches its actual compact owner');
+  await p.evaluate(()=>globalThis.__uxrCompactButtons=[...document.querySelectorAll('.sidebar [data-view]')]);await p.locator('#archive-compact-navigation > summary').click();
+  for(const view of ['library','thoughts','memory','settings'])assert.equal(await p.locator(`#archive-compact-nav-items [data-view="${view}"]`).isVisible(),true,'same primary action is reachable: '+view);
+  await p.locator('#archive-compact-navigation > summary').press('Escape');assert.equal(await p.locator('#archive-compact-navigation').evaluate(node=>node.open),false);assert.equal(await p.locator('#archive-compact-navigation > summary').evaluate(node=>document.activeElement===node),true);
+  await openArchiveWindow(p,{text:'UX-R1 最近收录'});await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#archive-compact-navigation > summary').isVisible(),true,'narrow Reader retains compact top navigation');assert.equal(await p.evaluate(()=>__uxrCompactButtons.every(node=>node.isConnected&&node.parentElement.id==='archive-compact-nav-items')),true,'Reader preserves the same primary button owners');
   await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),true);
   await assertNoNetwork(h);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}

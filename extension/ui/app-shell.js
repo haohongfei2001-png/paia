@@ -63,7 +63,7 @@ export class AppShellController {
  }
  presentArchiveComposition(options=this.archivePresentationOptions){
   if(!this.mounted||!this.archiveControlHomes)return;this.archivePresentationOptions=options;
-  const get=id=>document.getElementById(id),route=this.route,active=!!options?.consented&&['library','archive'].includes(route.view),reader=active&&!!route.documentId,root=active&&!reader,desktop=this.archiveDesktop.matches,compact=!!options?.consented&&['library','archive','thoughts','memory'].includes(route.view)&&this.archiveCompact.matches;
+  const get=id=>document.getElementById(id),route=this.route,active=!!options?.consented&&['library','archive'].includes(route.view),reader=active&&!!route.documentId,root=active&&!reader,desktop=this.archiveDesktop.matches,compact=!!options?.consented&&['library','archive','thoughts','memory','settings'].includes(route.view)&&this.archiveCompact.matches;
   const focusBefore=document.activeElement,focusedReaderAction=['back','archive-navigator-toggle','input-time-order','document-menu'].some(id=>get(id)?.contains(focusBefore))?focusBefore:null;
   const move=(node,host,before=undefined)=>{if(!node||!host)return;const anchor=before?.parentElement===host?before:null;if(node.parentElement===host&&(before===undefined||node.nextSibling===anchor))return;const focus=document.activeElement,retains=focus&&node.contains(focus);host.insertBefore(node,anchor);if(retains&&focus.isConnected)focus.focus({preventScroll:true});};
   for(const [id,home]of this.archiveControlHomes){
