@@ -153,6 +153,18 @@ async function exposeReaderControl(page,selector){
  const needsMenu=await page.locator(selector).evaluate(node=>!!node.closest('#archive-compact-reader-actions'));
  if(await menu.evaluate(node=>node.open)!==needsMenu)await menu.locator('summary').click();
 }
+async function settleD7Presentation(page,row){
+ await eventually(()=>page.evaluate(({screen,width})=>{
+  const get=id=>document.getElementById(id),phone=width<768,desktop=width>=1024,reader=screen==='A02';
+  if(get('archive-compact-navigation').hidden===phone)return false;
+  if(get('scope-search-host').parentElement.id!==(reader?(desktop?'archive-reader-search-slot':'reader-search-slot'):'archive-root-header-actions'))return false;
+  if(!reader)return true;
+  if(get('back').parentElement.id!==(desktop?'archive-reader-back-slot':'reader-compact-tools'))return false;
+  if(get('document-menu').parentElement.id!==(phone?'archive-compact-reader-actions':'reader-heading-actions'))return false;
+  if(getComputedStyle(get('document-menu')).fontSize!==(phone?'13px':'17px'))return false;
+  return !!document.querySelector('.archive-navigator-window[aria-current="page"]')&&(!desktop||get('archive-reader-back-slot').parentElement.id==='archive-navigator'&&!!document.querySelector('.archive-navigator-context-group'));
+ },row),'responsive control parents, normal text size and selected window are ready');
+}
 
 async function pixelDifference(reference,actualBuffer,targetBuffer,path){
  const difference=await reference.evaluate(async({actual,target})=>{
@@ -209,8 +221,10 @@ export async function verifyD7ArchiveBehavior(h,seed,{directory,variant,observat
   }
  }finally{await probe.close();}
  await page.bringToFront();await frame(page);assert.equal(await page.locator('#document-title').getAttribute('style'),titleBefore.inline);assert.equal(await page.locator('#document-title').textContent(),titleBefore.text);assertTitleVisibility((await measure(page,'A02')).titleVisibility,'unmodified production title after negative controls');await record('title-clipping-production-untouched',{inlineStyle:titleBefore.inline});
- await page.locator('#back').focus();await page.setViewportSize({width:320,height:1000});await eventually(()=>page.locator('#back').evaluate(node=>document.activeElement===node&&node.getClientRects().length>0),'focused Back survives both responsive owners');await page.setViewportSize({width:1440,height:1000});await eventually(()=>page.locator('#back').evaluate(node=>document.activeElement===node&&node.getClientRects().length>0),'focused Back returns to contextual desktop header');
- await page.locator('#document-menu').focus();await page.setViewportSize({width:320,height:1000});await eventually(()=>page.locator('#document-menu').evaluate(node=>document.activeElement===node&&node.getClientRects().length>0),'focused document action is exposed in phone disclosure');assert.equal(await page.locator('#archive-compact-navigation').evaluate(node=>node.open),true);await page.setViewportSize({width:1440,height:1000});await eventually(()=>page.locator('#document-menu').evaluate(node=>document.activeElement===node&&node.getClientRects().length>0),'focused document action returns to desktop');await record('responsive-focused-back-and-action');
+ const focusSnapshot=()=>page.evaluate(()=>({activeId:document.activeElement?.id,activeTag:document.activeElement?.tagName,space:document.body.dataset.paiaSpace,menuOpen:document.getElementById('archive-compact-navigation').open,controls:['back','document-menu','archive-navigator-toggle'].map(id=>{const node=document.getElementById(id);return {id,parent:node.parentElement.id,connected:node.isConnected,rects:node.getClientRects().length};})}));
+ const resizeFocused=async(id,width,label)=>{await record('responsive-focus-before',{id,width,snapshot:await focusSnapshot()});try{await page.setViewportSize({width,height:1000});await eventually(()=>page.locator('#'+id).evaluate(node=>document.activeElement===node&&node.getClientRects().length>0),label);}finally{await record('responsive-focus-after',{id,width,snapshot:await focusSnapshot()});}};
+ await page.locator('#back').focus();await resizeFocused('back',320,'focused Back survives both responsive owners');assert.equal(await page.locator('#archive-compact-navigation').evaluate(node=>node.open),false,'Back does not open unrelated actions');await resizeFocused('back',1440,'focused Back returns to contextual desktop header');
+ await page.locator('#document-menu').focus();await resizeFocused('document-menu',320,'focused document action is exposed in phone disclosure');assert.equal(await page.locator('#archive-compact-navigation').evaluate(node=>node.open),true);await resizeFocused('document-menu',1440,'focused document action returns to desktop');await record('responsive-focused-back-and-action');
  // DOM order follows the real relocated controls: search, then project Back.
  await page.locator('#scope-search').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'back');
  const group=page.locator('#archive-navigator .archive-navigator-group-toggle').first();assert.equal(await group.textContent(),'河岸散步');await page.keyboard.press('Tab');assert.equal(await group.evaluate(node=>document.activeElement===node),true,'Back and current group have adjacent DOM focus order');
@@ -275,10 +289,11 @@ export async function compareD7Archive(h,variant,{matrix='full',directory='work/
    if(Date.now()-started>230000)throw Error('D7 matrix exhausted its bounded execution budget; remaining declared rows stay PENDING, never PASS');
    try{
     if(row.screen==='A02'&&!readerOpened){await page.setViewportSize({width:1440,height:1000});await openNormalReader(page);readerOpened=true;}
-    await page.setViewportSize({width:row.width,height:row.height});await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:row.theme,language:'zh-CN'}});await eventually(()=>page.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,row.theme),'D7 theme settled');await page.emulateMedia({reducedMotion:'reduce'});
+    await page.evaluate(()=>document.activeElement?.blur());await page.setViewportSize({width:row.width,height:row.height});await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:row.theme,language:'zh-CN'}});await eventually(()=>page.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,row.theme),'D7 theme settled');await page.emulateMedia({reducedMotion:'reduce'});await settleD7Presentation(page,row);
+    const defaultMenu=page.locator('#archive-compact-navigation');if(await visible(defaultMenu)&&await defaultMenu.evaluate(node=>node.open))await defaultMenu.locator('summary').click();assert.equal(await defaultMenu.evaluate(node=>node.open),false,'default comparison starts with the existing disclosure closed');await page.mouse.move(0,0);
     if(row.stress==='text200')await page.evaluate(()=>{globalThis.__d7TextZoom=[...document.querySelectorAll('#document-title,#document-subtitle,#document-body .library-prose,#document-body .block-time,#scope-search,#input-time-toggle,#document-menu,#archive-navigator-toggle')].map(node=>({node,properties:['font-size','line-height'].map(name=>({name,prior:node.style.getPropertyValue(name),priority:node.style.getPropertyPriority(name),value:parseFloat(getComputedStyle(node).getPropertyValue(name))}))}));for(const {node,properties}of __d7TextZoom)for(const {name,value}of properties)node.style.setProperty(name,`${value*2}px`,'important');});
     if(row.stress==='coarse'){cdp=await h.context.newCDPSession(page);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});}
-    await page.evaluate(()=>{document.activeElement?.blur();getSelection()?.removeAllRanges();scrollTo(0,0);});await frame(page);row.actual=await measure(page,row.screen);
+    await page.evaluate(()=>{document.activeElement?.blur();getSelection()?.removeAllRanges();scrollTo(0,0);});await frame(page);await eventually(async()=>{row.actual=await measure(page,row.screen);return row.screen!=='A02'||!!row.actual.selectedWindow&&(row.width<1024||!!row.actual.contextGroup);},'complete selected-window snapshot after asynchronous refresh');
     const stem=`${directory}/${variant}-${row.id}`,actualBuffer=await page.screenshot({path:stem+'-actual.png',animations:'disabled',fullPage:false});row.actualFile=stem.split('/').at(-1)+'-actual.png';
     const refKey=`${row.screen}-${row.screen==='A01'?1440:row.width}-${row.theme}`;
     if(!references.has(refKey)){

@@ -44,3 +44,7 @@ test('Desktop, compact and Root restore the ordinary DOM order and stable Back s
 test('Unavailable, stale-document and absent-group selections keep generic Back and every available group',()=>fixture(({owner,state,tree,slot,home})=>{
  for(const path of [{...state.selectedPath,available:false},{...state.selectedPath,documentId:'obsolete'},{...state.selectedPath,projectRef:{providerKey:'chatgpt',namespace:'synthetic',projectId:'absent'}}]){state.selectedPath=path;owner.paint();assert.deepEqual(titles(tree),['first','second','current']);assert.equal(slot.parentElement,home);assert.equal(owner.host.classList.contains('has-reader-context'),false);}
 }));
+test('The sole layout boundary restores focus only after host visibility and contextual slot placement',()=>fixture(({owner,host,slot})=>{
+ const phases=[];host.hidden=true;owner.beforeLayout=()=>{phases.push(['before',host.hidden,slot.parentElement]);return()=>phases.push(['after',host.hidden,slot.parentElement]);};
+ owner.layout();assert.equal(phases[0][0],'before');assert.equal(phases[0][1],true);assert.deepEqual(phases[1],['after',false,host]);
+}));

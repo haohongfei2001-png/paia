@@ -9,10 +9,10 @@ class Node {
  get nextSibling(){return this.parentElement?.children[this.parentElement.children.indexOf(this)+1]||null;}
  contains(node){return this===node||this.children.some(child=>child.contains(node));}
  get isConnected(){return this===document.body||this.parentElement?.isConnected===true;}
- getClientRects(){return this.hidden?[]:[{}];}
+ getClientRects(){for(let node=this;node;node=node.parentElement)if(node.hidden)return [];return [{}];}
  setAttribute(key,value){this[key]=value;}
  addEventListener(type,handler){this.handlers.push([type,handler]);}
- focus(){document.activeElement=this;}
+ focus(){if(this.getClientRects().length)document.activeElement=this;}
  querySelector(selector){return this.children.find(node=>'.'+node.className===selector)||null;}
 }
 async function fixture(run){
@@ -70,6 +70,11 @@ test('Desktop to phone exposes a moved focused action before restoring its nativ
  owner.route={view:'library',documentId:'synthetic-document'};owner.presentArchiveComposition({consented:true});const menu=nodes.get('document-menu');menu.focus();
  owner.archiveDesktop.matches=false;owner.archiveCompact.matches=true;owner.presentArchiveComposition();
  assert.equal(nodes.get('archive-compact-reader-actions').hidden,false);assert.equal(owner.archiveCompactMenu.hidden,false);assert.equal(owner.archiveCompactMenu.open,true);assert.equal(document.activeElement,menu);
+}));
+test('Responsive layout restores Back after the destination becomes visible without stealing newer focus or routes',()=>fixture(({owner,nodes,search})=>{
+ owner.route={view:'library',documentId:'synthetic-document'};owner.archiveDesktop.matches=false;owner.archiveCompact.matches=true;owner.presentArchiveComposition({consented:true});const back=nodes.get('back'),slot=nodes.get('archive-reader-back-slot');back.focus();slot.hidden=true;owner.archiveDesktop.matches=true;owner.archiveCompact.matches=false;
+ const restore=owner.presentArchiveComposition();assert.notEqual(document.activeElement,back,'hidden destination cannot accept native focus yet');slot.hidden=false;restore();assert.equal(document.activeElement,back);
+ search.focus();restore();assert.equal(document.activeElement,search,'new live control has priority');document.activeElement=null;owner.route={view:'library',documentId:'newer'};restore();assert.equal(document.activeElement,null,'new route has priority');
 }));
 test('Desktop to compact Reader preserves Back before the same navigator control and retains focus',()=>fixture(({owner,nodes})=>{
  owner.route={view:'library',documentId:'synthetic-document'};owner.presentArchiveComposition({consented:true});

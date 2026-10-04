@@ -88,7 +88,7 @@ export class ArchiveNavigator{
  }
  layout(){
   if(!this.active)return;
-  this.beforeLayout?.();
+  const restoreFocus=this.beforeLayout?.();
   if(!this.isMobile()&&this.sheetOpen)this.closeSheet(false);
   this.host.classList.toggle('is-sheet',this.reader&&this.isMobile());
   document.body.classList.toggle('ans-nav-sheet-open',this.reader&&this.isMobile()&&this.sheetOpen);
@@ -98,6 +98,7 @@ export class ArchiveNavigator{
   else this.host.hidden=false;
   if(this.toggle){this.toggle.hidden=!this.reader;this.toggle.setAttribute('aria-expanded',String(!this.host.hidden));}
   this.paint();
+  restoreFocus?.();
  }
  presentReaderContext(group,provider=null){
   const slot=$('archive-reader-back-slot'),home=$('archive-reader-navigator-slot'),context=!!group&&this.active&&this.reader&&!this.isMobile();

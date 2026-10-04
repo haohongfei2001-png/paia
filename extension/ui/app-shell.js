@@ -59,13 +59,12 @@ export class AppShellController {
   this.archiveNavHomes=[...document.querySelectorAll('.sidebar [data-view]')].map(node=>({node,parent:node.parentElement,next:node.nextSibling}));
   const menu=document.createElement('details');menu.id='archive-compact-navigation';const label=document.createElement('summary');label.id='archive-compact-nav-label';const items=document.createElement('div');items.id='archive-compact-nav-items';const actions=document.createElement('div');actions.id='archive-compact-reader-actions';actions.hidden=true;items.append(actions);menu.append(label,items);menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;label.focus({preventScroll:true});}});document.querySelector('.sidebar').append(menu);this.archiveCompactMenu=menu;
   this.archiveDesktop=matchMedia('(min-width:1024px)');this.archiveCompact=matchMedia('(max-width:767px)');
-  for(const media of [this.archiveDesktop,this.archiveCompact])media.addEventListener('change',()=>this.presentArchiveComposition());
   const image=document.querySelector('.brand img');image.src='assets/paia-logo-64.png';
  }
  presentArchiveComposition(options=this.archivePresentationOptions){
   if(!this.mounted||!this.archiveControlHomes)return;this.archivePresentationOptions=options;
   const get=id=>document.getElementById(id),route=this.route,active=!!options?.consented&&['library','archive'].includes(route.view),reader=active&&!!route.documentId,root=active&&!reader,desktop=this.archiveDesktop.matches,compact=active&&this.archiveCompact.matches;
-  const focusBefore=document.activeElement,focusedReaderAction=['archive-navigator-toggle','input-time-order','document-menu'].some(id=>get(id)?.contains(focusBefore))?focusBefore:null;
+  const focusBefore=document.activeElement,focusedReaderAction=['back','archive-navigator-toggle','input-time-order','document-menu'].some(id=>get(id)?.contains(focusBefore))?focusBefore:null;
   const move=(node,host,before=undefined)=>{if(!node||!host)return;const anchor=before?.parentElement===host?before:null;if(node.parentElement===host&&(before===undefined||node.nextSibling===anchor))return;const focus=document.activeElement,retains=focus&&node.contains(focus);host.insertBefore(node,anchor);if(retains&&focus.isConnected)focus.focus({preventScroll:true});};
   for(const [id,home]of this.archiveControlHomes){
    let host=home;
@@ -86,8 +85,10 @@ export class AppShellController {
   move(get('archive-compact-reader-actions'),get('archive-compact-nav-items'),null);get('archive-compact-reader-actions').hidden=!(reader&&compact);
   this.archiveCompactMenu.hidden=!compact;
   if(!compact||this.archivePresentedView!==route.view)this.archiveCompactMenu.open=false;
-  if(reader&&focusedReaderAction?.isConnected){if(compact)this.archiveCompactMenu.open=true;(focusedReaderAction.getClientRects().length?focusedReaderAction:get('back'))?.focus({preventScroll:true});}
+  const restoreFocus=()=>{if(!reader||this.route!==route||!focusedReaderAction?.isConnected||![focusBefore,document.body,document.documentElement,null].includes(document.activeElement))return;if(compact&&get('archive-compact-reader-actions').contains(focusedReaderAction))this.archiveCompactMenu.open=true;const target=focusedReaderAction.getClientRects().length?focusedReaderAction:get('back');if(target?.getClientRects().length)target.focus({preventScroll:true});};
+  restoreFocus();
   this.archivePresentedView=route.view;
+  return restoreFocus;
  }
  viewLabel(view){return NAV_LABELS[view]?.[labels()]||null;}
  localize(){
