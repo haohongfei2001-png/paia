@@ -48,3 +48,5 @@ test('The sole layout boundary restores focus only after host visibility and fix
  const phases=[];host.hidden=true;owner.beforeLayout=()=>{phases.push(['before',host.hidden,slot.parentElement]);return()=>phases.push(['after',host.hidden,slot.parentElement]);};
  owner.layout();assert.equal(phases[0][0],'before');assert.equal(phases[0][1],true);assert.deepEqual(phases[1],['after',false,home]);
 }));
+
+test('Inactive Archive still projects the shared primary navigation at a breakpoint without touching its tree',()=>{const calls=[];ArchiveNavigator.prototype.layout.call({active:false,beforeLayout(){calls.push('shared layout');return()=>calls.push('restore');},paint(){throw Error('Inactive Archive tree must not repaint');}});assert.deepEqual(calls,['shared layout','restore']);});

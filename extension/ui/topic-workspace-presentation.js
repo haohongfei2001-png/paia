@@ -13,10 +13,11 @@ export class TopicWorkspacePresentation {
   this.owner=owner;this.root=document.getElementById('thought-document');this.moves=[];this.created=[];
   const get=id=>document.getElementById(id),move=(node,target)=>{if(!node)return;this.moves.push({node,parent:node.parentNode,next:node.nextSibling});target.append(node);},make=(tag,name,text)=>{const node=element(tag,name,text);this.created.push(node);return node;};
   this.root.classList.add('dvn-topic-composition');const title=this.root.querySelector('.topic-title-row'),toolbar=get('topic-toolbar'),menu=get('topic-menu').querySelector('.library-action-list');
-  move(toolbar,title);move(get('topic-presentation'),title);move(toolbar.querySelector('.library-history-tools'),menu);
+  move(toolbar.querySelector('.library-history-tools'),menu);
   this.caption=make('p','dvn-topic-caption');title.after(this.caption);
-  this.line=make('div','dvn-topic-coverage-row');this.coverage=make('p','dvn-topic-coverage');this.options=make('details','dvn-topic-options');const summary=make('summary','','阅读选项');this.options.append(summary);move(get('topic-reading-controls'),this.options);move(get('topic-outline'),this.options);move(get('revision-history'),this.options);this.line.append(this.coverage,this.options);get('topic-original-tabs').after(this.line);
-  this.years=make('nav','dvn-topic-years');this.years.setAttribute('aria-label','年份');this.line.after(this.years);
+  this.actions=make('div','dvn-topic-action-row');this.caption.after(this.actions);move(get('topic-original-tabs'),this.actions);move(toolbar,this.actions);move(get('topic-presentation'),this.actions);
+  this.line=make('div','dvn-topic-coverage-row');this.coverage=make('p','dvn-topic-coverage');this.options=make('details','dvn-topic-options');const summary=make('summary','','阅读选项');this.options.append(summary);move(get('topic-reading-controls'),this.options);move(get('topic-outline'),this.options);move(get('revision-history'),this.options);this.line.append(this.coverage,this.options);this.actions.after(this.line);
+  this.years=make('nav','dvn-topic-years');this.years.setAttribute('aria-label','年份');this.line.before(this.years);
   this.write=get('create-entry');this.writeLabel=this.write.textContent;this.write.textContent='写下想法';this.sync();
  }
  sync(){

@@ -54,6 +54,8 @@ test('Compact navigation reuses all buttons and restores each original owner on 
  owner.archiveCompact.matches=true;owner.presentArchiveComposition({consented:true});owner.archiveCompactMenu.open=true;
  assert.deepEqual(nodes.get('archive-compact-nav-items').children,[...buttons,nodes.get('archive-compact-reader-actions')]);
  owner.route={view:'thoughts'};owner.presentArchiveComposition();
+ assert.deepEqual(nodes.get('archive-compact-nav-items').children,[...buttons,nodes.get('archive-compact-reader-actions')]);assert.equal(owner.archiveCompactMenu.hidden,false);assert.equal(owner.archiveCompactMenu.open,false);
+ owner.route={view:'settings'};owner.presentArchiveComposition();
  assert.deepEqual(nav.children,buttons.slice(0,3));assert.deepEqual(bottom.children,[buttons[3]]);
  assert.equal(owner.archiveCompactMenu.open,false);assert.equal(owner.archiveCompactMenu.hidden,true);
  assert.equal(nodes.get('scope-search-host').parentElement,home);assert.equal(nodes.get('save-status').parentElement,home);

@@ -14,3 +14,14 @@ body[data-desktop-appearance-preview=context] .workspace-header{padding:0;border
 body[data-desktop-appearance-preview=compose] #thought-panel,body[data-desktop-appearance-preview=organize] #thought-panel,body[data-desktop-appearance-preview=context] #thought-panel{display:none}
 
 .dvn-preview-exit{margin-left:auto;border:0;background:transparent;color:var(--muted);font:12px/1.5 var(--font)}
+
+/* The adopted Thought pages share the D6.2 left reading axis. */
+body[data-desktop-appearance-preview=topic] #thought-panel{padding-top:24px}
+body[data-desktop-appearance-preview=compose] .workspace-header{min-height:0;padding:24px 44px 0;border:0;align-items:flex-start;gap:12px}
+body[data-desktop-appearance-preview=compose] .dvn-preview-workspace{margin:0}
+@media(max-width:767px){body[data-desktop-appearance-preview=compose] .workspace-header{padding-inline:20px}}
+
+.thought-compose-context{flex:1;min-width:0}
+.thought-compose-context h2{margin:0;font:500 28px/38px var(--title-font);overflow-wrap:anywhere}
+.thought-compose-context p{margin:4px 0 0;color:var(--muted);font:12px/20px var(--font)}
+@media(max-width:767px){.thought-compose-context{flex-basis:100%}.thought-compose-context h2{font-size:24px;line-height:35px}}
