@@ -16,7 +16,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   const orb=page.locator('[data-paia-prompt-surface]');await orb.waitFor({state:'visible'});
   const card=()=>page.frames().find(f=>f.url().includes('/ui/prompt-surface.html#'));
   const open=async()=>{if(!card())await orb.click();await eventually(()=>!!card());await card().locator('.row').first().waitFor();return card();};
-  const collapsedBeforeOpen=await orb.boundingBox();await open();world=await isolated(page,h.extensionId);
+  const collapsedBeforeOpen=await orb.boundingBox();await open();await card().locator('#close').click();await eventually(()=>!card());assert.deepEqual(await orb.boundingBox(),collapsedBeforeOpen);await open();world=await isolated(page,h.extensionId);
   await check('private card is a cross-origin frame, prompt-only rows and one-click exact retained draft',async()=>{
    assert.equal(await page.evaluate(()=>document.querySelector('[data-paia-prompt-surface]').shadowRoot),null);
    assert.doesNotMatch(await page.locator('body').textContent(),/PRIVATE_LIBRARY_NEVER_IN_HOST|Only test/);
@@ -36,7 +36,6 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    await row.locator('.edit-shortcut').click();assert.equal(await f.locator('#list').isVisible(),true);assert.equal(await f.locator('#list > #editor').count(),1);
    assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),text);assert.equal(await f.locator('.row:not(.editing-row)').count(),1);
    await f.getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>f.locator('#refresh').isEnabled());assert.equal(await f.locator('.editing-row').count(),0);
-   await f.locator('#close').click();await eventually(()=>!card());assert.deepEqual(await orb.boundingBox(),collapsedBeforeOpen);await open();
   });
   await check('edit, pin/unpin, hidden recovery, explicit independent delete and no management insertion',async()=>{
    const before=await page.evaluate(()=>fixture.text());let f=card();await f.locator('#refresh').click();const row=f.locator('.row').filter({hasText:secret});await row.locator('.more').click();await f.getByRole('button',{name:'编辑',exact:true}).click();await f.getByRole('textbox',{name:'复用文本'}).fill('edited synthetic template');await orb.click();await f.locator('#close').click();assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'edited synthetic template');await page.evaluate(()=>{history.pushState({},'',location.pathname+'?editing=1');document.body.append(document.createElement('i'));});await page.waitForTimeout(100);assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'edited synthetic template');await f.getByRole('button',{name:'保存',exact:true}).click();await f.getByRole('button',{name:'edited synthetic template',exact:true}).waitFor();
@@ -48,7 +47,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   await check('new template, keyboard move controls and drag pin retain manual order without inserting',async()=>{
    const f=card(),before=await page.evaluate(()=>fixture.text());await f.locator('#new').click();await f.getByRole('textbox',{name:'复用文本'}).fill('move me synthetic');await f.getByRole('button',{name:'保存',exact:true}).click();await f.locator('.row').filter({hasText:'move me synthetic'}).locator('.more').click();await f.getByRole('button',{name:'上移',exact:true}).focus();await page.keyboard.press('Enter');
    await eventually(async()=>await f.locator('.row').first().innerText()==='move me synthetic\n⋯');assert.equal((await rpc(engineering,'PAIA_PROMPT_QUERY')).items[0].pinned,true);
-   await f.locator('.row').filter({hasText:text}).locator('.more').click();const handle=f.getByRole('button',{name:'拖动到目标行之前；也可使用上移下移'}),from=await handle.boundingBox(),to=await f.locator('.row').first().boundingBox();await page.mouse.move(from.x+20,from.y+20);await page.mouse.down();await page.mouse.move(to.x+20,to.y+10,{steps:8});await page.mouse.up();
+   const moving=f.locator('.row').filter({hasText:text});await moving.hover();const handle=moving.locator('.grip'),from=await handle.boundingBox(),to=await f.locator('.row').first().boundingBox();await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+20,to.y+10,{steps:8});await page.mouse.up();
    await eventually(async()=>await f.locator('.row').first().innerText()===text+'\n⋯');const q=await rpc(engineering,'PAIA_PROMPT_QUERY');assert.equal(q.items[0].id,a.id);assert.equal(q.items[0].pinned,true);assert.equal(await page.evaluate(()=>fixture.text()),before);
   });
   await check('older failed background query cannot erase a newer explicit refresh',async()=>{
@@ -93,6 +92,22 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:more.x+more.width/2,y:more.y+more.height/2}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
    await card().getByRole('button',{name:'编辑',exact:true}).waitFor();
    for(const session of [cdp,frameCdp]){await session.send('Emulation.setTouchEmulationEnabled',{enabled:false});await session.detach();}
+  });
+  await check('native 200% browser zoom keeps the card and management clear of the composer',async()=>{
+   await page.setViewportSize({width:1280,height:900});await page.emulateMedia({colorScheme:'light'});await card().locator('#refresh').click();await eventually(()=>card().locator('#refresh').isEnabled());
+   const worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));
+   const tab=await worker.evaluate(async url=>(await chrome.tabs.query({url:'https://chatgpt.com/*'})).find(t=>t.url===url).id,page.url());
+   const before=await page.evaluate(()=>({width:innerWidth,dpr:devicePixelRatio}));
+   try{
+    await worker.evaluate(id=>chrome.tabs.setZoom(id,2),tab);assert.equal(await worker.evaluate(id=>chrome.tabs.getZoom(id),tab),2);
+    await eventually(()=>page.evaluate(()=>devicePixelRatio).then(value=>value===before.dpr*2));
+    assert.equal(await page.evaluate(()=>innerWidth),before.width/2);
+    const bounds=await page.evaluate(()=>{const form=document.querySelector('form').getBoundingClientRect(),orb=document.querySelector('[data-paia-prompt-surface]').getBoundingClientRect();return {form:{x:form.x,y:form.y,right:form.right,bottom:form.bottom},orb:{x:orb.x,y:orb.y,right:orb.right,bottom:orb.bottom},width:innerWidth,height:innerHeight};});
+    const frame=await card().frameElement(),box=await frame.boundingBox();
+    for(const rect of [{x:box.x,y:box.y,right:box.x+box.width,bottom:box.y+box.height},bounds.orb]){assert.ok(rect.x>=0&&rect.y>=0&&rect.right<=bounds.width&&rect.bottom<=bounds.height);assert.ok(rect.bottom<=bounds.form.y||rect.y>=bounds.form.bottom||rect.right<=bounds.form.x||rect.x>=bounds.form.right);}
+    assert.ok(await card().evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await card().locator('#new').click();await card().getByRole('textbox',{name:'复用文本'}).fill('zoom draft');await card().getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>card().locator('#refresh').isEnabled());
+    const path=join(receiptDir,variant+'-browser-zoom200.png');await page.screenshot({path});screens.push(path.split('/').at(-1));
+   }finally{await worker.evaluate(id=>chrome.tabs.setZoom(id,1),tab);await eventually(()=>page.evaluate(()=>devicePixelRatio).then(value=>value===before.dpr));}
   });
   await check('system and host theme transitions keep frame contrast without refresh, reordering or losing an edit',async()=>{
    await page.emulateMedia({colorScheme:'light'});await card().locator('#refresh').click();await eventually(()=>card().locator('#refresh').isEnabled());
