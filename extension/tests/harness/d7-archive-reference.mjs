@@ -151,7 +151,7 @@ async function nativeReachability(page,selectors,{floor=32}={}){
 }
 async function exposeReaderControl(page,selector){
  const menu=page.locator('#archive-compact-navigation');if(!await visible(menu))return;
- const needsMenu=await page.locator(selector).evaluate(node=>!!node.closest('#archive-compact-reader-actions'));
+ const needsMenu=await page.locator(selector).evaluate(node=>!!node.closest('#archive-compact-nav-items'));
  if(await menu.evaluate(node=>node.open)!==needsMenu)await menu.locator('summary').click();
 }
 async function settleD7Presentation(page,row){
@@ -282,7 +282,7 @@ export async function verifyD7ArchiveBehavior(h,seed,{directory,variant,observat
  // claiming that Settings round trips preserve the earlier Reader origin.
  await page.locator('#back').click();await eventually(()=>page.locator('#settings-panel').isVisible(),'existing post-Settings Reader Back returns to Settings');await record('pre-existing-settings-return-target',{baseline:'3a54efe0a1aa5b7d4e8cb41c1ef5cadca28ca961',destination:'settings',disposition:'Known baseline route gap; deferred outside this visual batch'});
  await selectArchive(page);await page.locator('#archive-root-overflow > summary').focus();await page.keyboard.press('ArrowDown');assert.equal(await page.evaluate(()=>document.activeElement.id),'archive-root-history','existing More keyboard action remains reachable');assert.equal(await page.locator('#archive-source-scope').isVisible(),true);await page.locator('#archive-source-scope').focus();await page.keyboard.press('ArrowDown');assert.equal(await page.evaluate(()=>document.activeElement.id),'archive-source-scope','native source choice keeps its own arrow keys');await page.locator('#archive-source-scope').selectOption('chatgpt');await page.locator('#archive-source-scope').selectOption('');await page.locator('#archive-root-overflow > summary').click();await record('primary-root-source-chooser-after-settings');
- await page.setViewportSize({width:320,height:1000});await page.locator('#archive-compact-navigation > summary').click();assert.equal(await page.locator('#archive-compact-nav-items > [data-view]').count(),4);assert.equal(await page.locator('#primary-nav > button').count(),0);await nativeReachability(page,['#archive-compact-nav-items [data-view="library"]'],{floor:44});await page.locator('#archive-compact-nav-items [data-view="library"]').click();await record('same-compact-primary-buttons');
+ await page.setViewportSize({width:320,height:1000});await page.locator('#archive-compact-navigation > summary').click();assert.equal(await page.locator('#archive-compact-nav-items > [data-view]').count(),4);assert.equal(await page.locator('#primary-nav > button').count(),0);assert.equal(await page.locator('#archive-compact-navigation').evaluate(node=>node.open),true,'primary navigation is disclosed before reachability');await nativeReachability(page,['#archive-compact-nav-items [data-view="library"]'],{floor:44});assert.equal(await page.locator('#archive-compact-navigation').evaluate(node=>node.open),true,'reachability keeps the real primary navigation disclosed');await page.locator('#archive-compact-nav-items [data-view="library"]').click();await record('same-compact-primary-buttons');
  assert.deepEqual((await h.state()).records,seed.sourceBefore);await page.screenshot({path:`${directory}/${variant}-post-behavior-root.png`,animations:'disabled'});
 }
 
