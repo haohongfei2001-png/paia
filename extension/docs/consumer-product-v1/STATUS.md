@@ -1,3 +1,13 @@
+# Prompt Reuse exact-main refresh follow-up
+
+PR #145 merged at `945da10efbcb1eaefe781fcf2b5f1276efdd2979` with passing
+candidate and integration checks. Exact-main run 37209124864 subsequently exposed
+an intermittent stale failure callback clearing a newer successful refresh in
+source; the release variant passed. This is not relabeled PASS. The bounded
+refresh follow-up guards failed callbacks with the same request epoch as success
+callbacks and adds a deterministic delayed-failure browser regression. Current
+follow-up gates must pass before its integration. No new feature or schema work.
+
 # Prompt Reuse parallel line — 09.3–09.5 ENGINEERING_COMPLETE
 
 PR #144 is integrated at `4a66b248e06348721942cefcd10e9eaa14a07cb2` after

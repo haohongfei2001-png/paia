@@ -143,3 +143,20 @@ its package-source fingerprint is
 The next engineering action is safe integration with fresh main and PR checks. The next
 external closure is CPV1-09.7 real-site insertion/final visual acceptance; no
 09.6 arbitrary-site implementation or Stage 3 work is implied.
+
+## Exact-main stale-failure follow-up
+
+PR #145 integrated as `945da10efbcb1eaefe781fcf2b5f1276efdd2979`, identical tree
+`f8130ca7e6090fb058748b1cdbe52f0d327cfbe1` to reviewed head. Candidate 37208317427,
+receipt-head 37208783164 and PR integration 37208797669 passed. The subsequent
+exact-main browser run 37209124864 failed in source: an older background query's
+MEMORY_STALE failure could clear rows rendered by a newer explicit refresh.
+Only successful callbacks had the request-epoch check. The release variant passed;
+the overall main run remains failed evidence.
+
+Apply the same epoch guard to failures. A deterministic browser regression holds
+one background query, completes a newer explicit refresh, then releases the old
+failure and asserts the exact current row identities/status remain unchanged.
+No retries, data mutation, timer budget increases or weakened assertions. Follow-up
+source/release browser count becomes 42 including parent suites. All management,
+IME, privacy, durable schema and external-certification boundaries remain intact.
