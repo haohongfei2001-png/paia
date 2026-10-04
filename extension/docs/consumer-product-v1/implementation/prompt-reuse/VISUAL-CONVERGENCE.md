@@ -106,6 +106,15 @@ reserves two 44 px lines. Capture asserts actual last-prompt hit testing and zer
 drag-secondary-control opacity as well as inspecting their rendered pixels. These failures/corrections
 are not converted into historical PASS.
 
+Documentation-head foundation run 37221951337 exposed a source-only split fixture
+timeout (the release split and all other preceding management assertions passed).
+The directly seeded archive is now checked through the production Prompt query
+before refreshing the UI snapshot; both captured members and the single family
+must be present. The UI refresh completion and row/status diagnostics are explicit.
+Original split results and byte-identical archive assertions are unchanged. No
+production algorithm, request behavior or timeout is changed. The failed attempt
+remains negative evidence; the follow-up PR checks own its final verification.
+
 ## Verification and remaining gates
 
 The final runtime candidate has [eight-state visual capture and comparison](https://github.com/haohongfei2001-png/paia/actions/runs/37221128708)
