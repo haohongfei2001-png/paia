@@ -1,3 +1,14 @@
+# Bounded Reader / Settings return repair — local candidate
+
+A separate consumer-reading repair starts from `e53943eda5adc5ed26bc6489ea1757615eb93c0d`.
+The [bounded receipt](implementation/desktop-vnext/D7-READER-SETTINGS-RETURN.md)
+records the reproduced PR143-era return gap and the one-field fix: Settings Back
+now passes the Reader's already captured parent through the existing navigation
+owner. The same complete D7 source/release journeys must verify repeated returns,
+reloads, browser history and final Archive Back. Hosted browser evidence remains
+pending; no broader D7, provider, functional redesign or release scope is opened.
+Earlier receipts and their negative evidence remain unchanged.
+
 # Prompt Reuse — open Surface drag repair integrated
 
 [PR #157](https://github.com/haohongfei2001-png/paia/pull/157) merged as
