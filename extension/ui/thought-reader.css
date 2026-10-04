@@ -5,12 +5,12 @@
 .topic-index-row small{font-size:12px;line-height:1.5;color:var(--quiet)}
 #thought-list.topic-compact-list{display:block;max-width:880px;margin-inline:auto}
 .topic-compact-row{position:relative;border-bottom:1px solid var(--paia-line);min-width:0}
-.topic-compact-row>.topic-index-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;text-align:left;gap:8px 12px;width:100%;padding:24px 52px 24px 0;border:0;border-radius:0;background:transparent;color:var(--paia-text);min-height:0;height:auto}
-.topic-compact-row>.topic-index-row strong{font-synthesis:weight;grid-column:1;min-width:0;font-size:19px;line-height:1.5;font-weight:700;white-space:normal;overflow-wrap:anywhere}
-.topic-compact-row .summary{grid-column:1;min-width:0;font-size:14px;line-height:1.5;max-width:580px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted)}
+.topic-compact-row>.topic-index-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;text-align:left;gap:8px 12px;width:100%;padding:20px 44px 24px 0;border:0;border-radius:0;background:transparent;color:var(--paia-text);min-height:0;height:auto}
+.topic-compact-row>.topic-index-row strong{font-synthesis:weight;grid-column:1;min-width:0;font:500 23px/32px var(--title-font);white-space:normal;overflow-wrap:anywhere}
+.topic-compact-row .summary{grid-column:1;min-width:0;font-size:14px;line-height:1.5;max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text)}
 .topic-compact-row .summary:empty{display:none}
 .topic-compact-row small{grid-column:2;grid-row:1 / span 2;max-width:180px;font-size:12px;line-height:1.5;color:var(--paia-meta)}
-.topic-compact-row>.library-actions{position:absolute;right:0;top:24px;z-index:2}
+.topic-compact-row>.library-actions{position:absolute;right:0;top:20px;z-index:2}
 .topic-compact-row .library-action-list{right:0;top:32px}
 .topic-compact-row>.library-actions>summary{min-width:44px;min-height:44px;display:grid;place-items:center}
 .topic-action-dialog { width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:24px;border:1px solid var(--paia-control);border-radius:8px;color:var(--paia-text);background:var(--paia-surface); }
@@ -91,43 +91,51 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 @media(prefers-reduced-motion:reduce){.ai-update-candidate[data-ai-candidate]{scroll-behavior:auto}}
 
 
-/* D5 Thought Content/Years reading roles; existing state and saved-preference owners. */
-/* Thought root owns its compact editorial list. The shell header slots keep
-   the same controls and are consent/route fenced independently of late reads. */
-body[data-paia-space="thoughts"] .workspace{padding:0 0 64px}
+/* D6.2 Thought root. Same scoped search, source chooser and action owners. */
+body[data-paia-space="thoughts"] .workspace{position:relative;padding:0 0 64px}
 body[data-paia-space="thoughts"] #page-breadcrumb{display:none}
-body[data-paia-space="thoughts"] .workspace-header{min-height:72px;padding:18px 28px;margin:0;border-bottom:1px solid var(--line)}
+body[data-paia-space="thoughts"] .workspace-header{position:relative;top:auto;min-height:0;padding:24px 44px 0;margin:0;border:0;gap:8px;align-items:center}
 #thought-root-header{min-width:0;flex:1}
-#thought-topic-header{display:flex;justify-content:flex-end;min-width:0;flex:1 1 310px}
+#thought-topic-header{display:flex;justify-content:flex-end;min-width:0;flex:1 1 100%}
 #thought-root-header[hidden],#thought-topic-header[hidden],#thought-root-source[hidden]{display:none}
-/* Topic header keeps its existing control/focus order and current status owner. */
-body[data-paia-space="thoughts"][data-paia-surface="reader"] .workspace-header :is(#back,#revision-history){min-width:32px;min-height:32px;max-width:100%;padding:6px 12px;font-size:14px;line-height:1.5;white-space:normal;overflow-wrap:anywhere;color:var(--muted)}
-body[data-paia-space="thoughts"][data-paia-surface="reader"] .workspace-header #back{padding-left:0}
-body[data-paia-space="thoughts"][data-paia-surface="reader"] #save-status{min-width:0;max-width:min(240px,100%);margin-left:0;white-space:normal;overflow-wrap:anywhere}
-@media(max-width:767px){#thought-topic-header{flex-basis:180px}}
-@media(max-width:767px),(pointer:coarse){body[data-paia-space="thoughts"][data-paia-surface="reader"] .workspace-header :is(#back,#revision-history){min-height:44px;min-width:44px}}
-
-#thought-panel{width:100%;max-width:calc(var(--context) + 64px);padding:54px 32px 80px;margin:auto;color:var(--text)}
-#thought-root-heading{max-width:880px;margin-inline:auto}
-#thought-root-heading h1{font-synthesis:weight;font-size:28px;line-height:1.35;font-weight:600;margin:0 0 16px}
-#thought-home-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:0;max-width:none}
-#thought-home-tools .thought-search-row{display:flex;align-items:center;gap:8px;flex:0 1 auto;min-width:0;margin:0;color:var(--muted)}
+body[data-paia-space="thoughts"] .workspace-header :is(#back,#revision-history){min-width:32px;min-height:32px;max-width:100%;padding:4px 0;font-size:12px;line-height:24px;white-space:normal;overflow-wrap:anywhere;color:var(--muted)}
+body[data-paia-space="thoughts"] #save-status{min-width:0;max-width:100%;margin:0;white-space:normal;overflow-wrap:anywhere}
+#thought-panel{width:100%;max-width:none;padding:24px 44px 80px;margin:0;color:var(--text)}
+#thought-root-heading{max-width:936px;margin:0 0 34px}
+#thought-root-heading h1{font:500 28px/38px var(--title-font);font-synthesis:weight;margin:0;overflow-wrap:anywhere}
+#thought-root-description{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:20px}
+body[data-paia-surface="reader"] #thought-root-heading{display:none}
+#thought-home-tools{display:flex;align-items:center;gap:8px;margin:0;max-width:none}
+#thought-home-tools .thought-search-row{display:flex;align-items:center;gap:8px;flex:1;min-width:0;margin:0;padding:0 12px;background:var(--soft);border-radius:6px;color:var(--muted)}
 #thought-home-tools .thought-search-icon{flex:none}
-#thought-home-tools #thought-search,#thought-topic-header #topic-search{width:100%;min-width:0;max-width:310px;min-height:36px;margin:0;padding:8px 12px;border:0;border-radius:6px;background:var(--rail);color:var(--text);font-size:14px}
-#thought-home-tools #thought-search{width:min(310px,45vw);line-height:21px}
-#thought-topic-header #topic-search{line-height:1.5}
+#thought-home-tools #thought-search,#thought-topic-header #topic-search{width:100%;min-width:0;max-width:none;min-height:38px;margin:0;padding:8px 12px;border:0;border-radius:6px;background:var(--soft);color:var(--text);font-size:12px;line-height:22px}
+#thought-home-tools #thought-search{padding-inline:0}
 #thought-home-tools #thought-search::placeholder,#thought-topic-header #topic-search::placeholder{color:var(--muted)}
-#thought-home-tools>button,#thought-home-tools>.library-actions>summary{min-height:36px;padding:6px 12px;color:var(--text);border:0}
-#thought-home-tools>.library-actions{margin-left:auto}
-#thought-root-source{max-width:880px;margin:0 auto 16px}
-#thought-root-source .thought-source-scope-label{white-space:nowrap;margin:0;font-size:12px;max-width:100%}
-#thought-root-source #thought-source-scope{flex:0 1 310px;min-width:0;min-height:36px;max-width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
-#thought-collection{width:100%;max-width:880px;margin:0 auto}
-body[data-paia-space="thoughts"] #workspace-error{padding:16px 32px}
-@media(min-width:1024px) and (max-width:1439px){#thought-panel{padding:40px 24px 64px}body[data-paia-space="thoughts"] .workspace-header{padding:16px 24px}}
-@media(min-width:768px) and (max-width:1023px){#thought-panel{padding:32px 24px 64px}body[data-paia-space="thoughts"] .workspace-header{padding:16px 24px}}
-@media(max-width:767px){#thought-panel{padding:28px 16px 56px}#thought-root-heading h1{font-size:24px}body[data-paia-space="thoughts"] .workspace-header{padding:12px 16px;gap:8px}#thought-home-tools .thought-search-row{flex:1 1 100px;max-width:none}#thought-home-tools #thought-search{width:100%}body[data-paia-space="thoughts"] #workspace-error{padding-inline:16px}}
-@media(max-width:767px),(pointer:coarse){#thought-home-tools #thought-search,#thought-home-tools>button,#thought-home-tools>.library-actions>summary,#thought-topic-header #topic-search,#thought-root-source #thought-source-scope{min-height:44px}}
+#thought-root-source{display:flex;align-items:center;flex-wrap:wrap;gap:12px;max-width:936px;margin:0 0 0}
+#thought-root-source .thought-source-scope-label{white-space:nowrap;margin:0;font-size:12px;max-width:100%;color:var(--muted)}
+#thought-root-source #thought-source-scope{min-width:0;min-height:36px;max-width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font-size:12px}
+#thought-root-source>.library-actions{margin-left:auto}
+#thought-root-source>button{min-height:36px;padding:6px 20px;border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:13px;background:var(--bg)}
+#thought-collection,#thought-list.topic-compact-list{width:100%;max-width:936px;margin:0}
+#thought-panel :is(#ai-update-feedback,#library-search-status):empty{display:none}
+body[data-paia-space="thoughts"] #workspace-error{padding:16px 44px}
+@media(min-width:1024px){
+ body[data-paia-space="thoughts"]:not([data-desktop-appearance-preview]) .workspace-header{position:absolute;right:44px;top:24px;width:250px;padding:0;justify-content:space-between}
+ body[data-paia-space="thoughts"] #thought-topic-header{order:-1}
+ body[data-paia-space="thoughts"] #thought-root-heading,body[data-paia-space="thoughts"] #thought-document #topic-heading{max-width:min(936px,calc(100% - 294px))}
+ body[data-paia-space="thoughts"] .workspace:has(#save-status:not(:empty)) .workspace-header{position:relative;inset:auto;width:auto;padding:16px 44px;justify-content:flex-start}
+ body[data-paia-space="thoughts"] .workspace:has(#save-status:not(:empty)) #thought-topic-header{flex:1;order:0}
+ body[data-paia-space="thoughts"] .workspace:has(#save-status:not(:empty)) #topic-search{max-width:250px}
+}
+@media(max-width:1023px){#thought-root-heading{margin-bottom:24px}}
+@media(max-width:767px){
+ #thought-panel{padding:24px 20px 56px}#thought-root-heading h1{font-size:24px;line-height:35px}
+ body[data-paia-space="thoughts"] .workspace-header{padding:16px 20px 0;gap:8px}
+ body[data-paia-space="thoughts"] #workspace-error{padding-inline:20px}
+ #thought-root-source .thought-source-scope-label{display:flex;align-items:center;gap:8px;width:100%}
+ #thought-root-source #thought-source-scope{flex:1}
+}
+@media(max-width:767px),(pointer:coarse){body[data-paia-space="thoughts"] .workspace-header :is(#back,#revision-history),#thought-home-tools #thought-search,#thought-topic-header #topic-search,#thought-root-source :is(button,summary,select){min-height:44px;min-width:44px}}
 
 #thought-document {width:100%;max-width:880px;margin:0 auto;}
 #thought-document .topic-title-row {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px 28px;align-items:start;}

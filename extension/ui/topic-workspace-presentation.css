@@ -1,35 +1,59 @@
-/* Opt-in full composition of the same Topic nodes. Preview entry owns loading. */
-#thought-document.dvn-topic-composition .topic-title-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0}
-#thought-document.dvn-topic-composition #topic-heading{flex:1;min-width:0}
-#thought-document.dvn-topic-composition #topic-heading h1{margin:0;font-size:28px;line-height:1.35;font-weight:600;font-synthesis:weight}
-#thought-document.dvn-topic-composition #topic-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0;padding:0;border:0;background:transparent}
-#thought-document.dvn-topic-composition #topic-toolbar #create-entry{min-height:36px;padding:6px 0;border:0;background:transparent;color:var(--text);font:14px/1.5 var(--font)}
+/* D6.2 Thought composition. These are the existing Topic controls and readers. */
+#thought-document.dvn-topic-composition{width:100%;max-width:936px;margin:0}
+#thought-document.dvn-topic-composition .topic-title-row{display:block;margin:0}
+#thought-document.dvn-topic-composition #topic-heading{min-width:0}
+#thought-document.dvn-topic-composition #topic-heading h1{margin:0;min-height:38px;font:500 28px/38px var(--title-font);font-synthesis:weight;overflow-wrap:anywhere}
+#thought-document.dvn-topic-composition #topic-heading>p:not(:empty){margin:8px 0;color:var(--muted);font-size:13px;line-height:1.6}
+#thought-document.dvn-topic-composition .dvn-topic-caption{margin:4px 0 0;color:var(--muted);font:12px/20px var(--font)}
+#thought-document.dvn-topic-composition .dvn-topic-action-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:20px 0 28px;border-bottom:1px solid var(--line)}
+#thought-document.dvn-topic-composition #topic-original-tabs{flex:1;align-self:stretch;gap:24px;margin:0;padding:0;border:0;background:transparent}
+#thought-document.dvn-topic-composition #topic-original-tabs button{padding:8px 0 12px;font:14px/22px var(--font);color:var(--muted)}
+#thought-document.dvn-topic-composition #topic-original-tabs button[aria-pressed=true]{color:var(--focus);border-bottom-color:var(--focus)}
+#thought-document.dvn-topic-composition #topic-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 7px;padding:0;border:0;background:transparent}
+#thought-document.dvn-topic-composition #topic-toolbar #create-entry{min-height:36px;padding:6px 24px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text);font:13px/22px var(--font)}
 #thought-document.dvn-topic-composition #topic-menu summary{min-width:36px;min-height:36px;align-content:center;color:var(--muted)}
 #thought-document.dvn-topic-composition #topic-menu .library-history-tools{display:flex;gap:12px;margin:0;opacity:1}
-#thought-document.dvn-topic-composition #topic-presentation{padding:0}
+#thought-document.dvn-topic-composition #topic-presentation{padding:0 0 7px}
 #thought-document.dvn-topic-composition #library-view-switch{margin:0;padding:0;border:0;background:transparent}
-#thought-document.dvn-topic-composition .ai-toggle-label{margin:0;padding:6px 0;border:0;border-radius:0;background:transparent;color:var(--brand);font:14px/1.5 var(--font);min-height:36px}
+#thought-document.dvn-topic-composition .ai-toggle-label{margin:0;padding:6px 24px;min-height:36px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text);font:13px/22px var(--font)}
+#thought-document.dvn-topic-composition .ai-toggle-label:has(input:checked){color:var(--focus);background:var(--selected)}
 #thought-document.dvn-topic-composition .ai-toggle-label input{position:absolute;clip-path:inset(50%);width:1px;height:1px;padding:0;border:0}
-#thought-document.dvn-topic-composition .dvn-topic-caption{margin:16px 0 30px;color:var(--muted);font:14px/1.5 var(--font)}
-#thought-document.dvn-topic-composition #topic-original-tabs{margin:24px 0 28px;padding:0;gap:24px;border-bottom:1px solid var(--line)}
-#thought-document.dvn-topic-composition #topic-original-tabs button{padding:12px 0;font:14px/1.5 var(--font)}
-#thought-document.dvn-topic-composition .dvn-topic-coverage-row{display:flex;align-items:baseline;gap:16px;margin:0}
-#thought-document.dvn-topic-composition .dvn-topic-coverage{flex:1;margin:0;padding:0 0 16px;color:var(--muted);font:13px/1.5 var(--font)}
-#thought-document.dvn-topic-composition .dvn-topic-options{position:relative;margin:0;font:13px/1.5 var(--font);color:var(--muted)}
-#thought-document.dvn-topic-composition .dvn-topic-options>summary{min-height:36px;align-content:center;cursor:pointer}
+#thought-document.dvn-topic-composition .dvn-topic-years{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 24px}
+#thought-document.dvn-topic-composition .dvn-topic-years button{padding:0;border:0;min-height:24px;background:transparent;color:var(--muted);font:13px/24px var(--font)}
+#thought-document.dvn-topic-composition .dvn-topic-coverage-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:12px;margin:0}
+#thought-document.dvn-topic-composition .dvn-topic-coverage{flex:1;margin:0;color:var(--muted);font:12px/20px var(--font)}
+#thought-document.dvn-topic-composition .dvn-topic-options{position:relative;margin:0;font:12px/20px var(--font);color:var(--muted)}
+#thought-document.dvn-topic-composition .dvn-topic-options>summary{min-height:24px;align-content:center;cursor:pointer}
 #thought-document.dvn-topic-composition .dvn-topic-options[open]{padding:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg)}
 #thought-document.dvn-topic-composition .dvn-topic-options #topic-reading-controls{margin:0;padding:0;max-width:360px}
-#thought-document.dvn-topic-composition .dvn-topic-years{display:flex;gap:24px;flex-wrap:wrap;margin:0 0 28px}
-#thought-document.dvn-topic-composition .dvn-topic-years button{padding:0;border:0;min-height:32px;background:transparent;color:var(--text);font:14px/1.5 var(--font)}
-#thought-document.dvn-topic-composition #original-reading-body{margin-inline:0;width:100%;max-width:760px}
-#thought-document.dvn-topic-composition #original-reading-body .topic-section{margin:32px 0;width:min(100%,var(--paia-prose-width,680px))}
-#thought-document.dvn-topic-composition .topic-section:first-child{margin-top:32px}
-#thought-document.dvn-topic-composition #original-reading-body .library-entry{position:relative}
+#thought-document.dvn-topic-composition #original-reading-body,#thought-document.dvn-topic-composition #topic-timeline{margin:0;width:100%;max-width:936px}
+#thought-document.dvn-topic-composition #original-reading-body .topic-section{margin:24px 0 40px;width:min(100%,var(--paia-prose-width,680px));max-width:none}
+#thought-document.dvn-topic-composition :is(.section-heading h2,.topic-year-section h2){font:500 24px/33px var(--title-font);font-synthesis:weight;margin:0 0 16px}
+#thought-document.dvn-topic-composition #original-reading-body .library-entry{position:relative;margin-bottom:32px}
 #thought-document.dvn-topic-composition #original-reading-body .entry-meta{position:absolute;top:0;right:0;margin:0;min-height:0}
-#thought-document.dvn-topic-composition #original-reading-body .entry-sent-time{padding-right:36px}
+#thought-document.dvn-topic-composition #original-reading-body .entry-sent-time{padding-right:44px;margin-bottom:12px}
+#thought-document.dvn-topic-composition #topic-timeline{display:flex;flex-direction:column}
+#thought-document.dvn-topic-composition #topic-timeline[hidden]{display:none}
+#thought-document.dvn-topic-composition .topic-year-links{order:-2;gap:12px;margin:0 0 24px}
+#thought-document.dvn-topic-composition .topic-year-links button{font:13px/24px var(--font);min-height:24px;color:var(--muted)}
+#thought-document.dvn-topic-composition #topic-timeline>.topic-year-coverage{order:-1;margin:0 0 8px;font:12px/20px var(--font);color:var(--muted)}
+#thought-document.dvn-topic-composition #topic-timeline>p.muted{margin:0 0 8px;font:12px/20px var(--font)}
+#thought-document.dvn-topic-composition .topic-year-section{width:min(100%,var(--paia-prose-width,680px));margin:24px 0 16px;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:32px;align-items:baseline}
+#thought-document.dvn-topic-composition .topic-year-section>h2{grid-column:1;grid-row:1}
+#thought-document.dvn-topic-composition .topic-year-section>p.muted:first-of-type{grid-column:2;grid-row:1;margin:0;font:12px/20px var(--font)}
+#thought-document.dvn-topic-composition .topic-year-section>:is(.topic-year-previews,button),#thought-document.dvn-topic-composition .topic-year-section>p:not(:first-of-type){grid-column:1 / -1}
+#thought-document.dvn-topic-composition .topic-year-section>button{justify-self:start;padding:0;border:0;background:transparent;color:var(--focus);font:13px/24px var(--font);min-height:32px}
+#thought-document.dvn-topic-composition .topic-year-expression{margin-bottom:20px}
+#thought-document.dvn-topic-composition .topic-year-expression .entry-sent-time{font-size:12px;line-height:20px;margin-bottom:8px}
+#thought-document.dvn-topic-composition .topic-expression-actions{margin:0}
+#thought-document.dvn-topic-composition .topic-expression-actions button{min-height:28px;font-size:12px;color:var(--muted)}
 #thought-document.dvn-topic-composition :is(button,summary):focus-visible{outline:2px solid var(--focus);outline-offset:3px}
-@media(max-width:767px){#thought-document.dvn-topic-composition #topic-heading{flex-basis:100%}#thought-document.dvn-topic-composition #topic-heading h1{font-size:24px}#thought-document.dvn-topic-composition .dvn-topic-years{gap:16px}#thought-document.dvn-topic-composition .dvn-topic-coverage-row{flex-wrap:wrap}}
-@media(max-width:767px),(pointer:coarse){#thought-document.dvn-topic-composition :is(#create-entry,#topic-menu summary,.ai-toggle-label,.dvn-topic-years button,.dvn-topic-options>summary){min-height:44px;min-width:44px}}
-
-#thought-document.dvn-topic-composition #topic-timeline{margin-inline:0}
-#thought-document.dvn-topic-composition .topic-year-section{margin-inline:0}
+@media(max-width:1023px){#thought-document.dvn-topic-composition #topic-heading{max-width:none}}
+@media(max-width:767px){
+ #thought-document.dvn-topic-composition #topic-heading h1{font-size:24px;line-height:35px}
+ #thought-document.dvn-topic-composition .dvn-topic-action-row{gap:8px}
+ #thought-document.dvn-topic-composition #topic-original-tabs{flex-basis:100%}
+ #thought-document.dvn-topic-composition #topic-toolbar #create-entry,#thought-document.dvn-topic-composition .ai-toggle-label{padding-inline:12px}
+ #thought-document.dvn-topic-composition .topic-year-section{column-gap:16px}
+}
+@media(max-width:767px),(pointer:coarse){#thought-document.dvn-topic-composition :is(#create-entry,#topic-menu summary,.ai-toggle-label,.dvn-topic-years button,.dvn-topic-options>summary,.topic-year-links button,.topic-expression-actions button,.topic-year-section>button){min-height:44px;min-width:44px}}

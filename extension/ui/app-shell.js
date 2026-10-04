@@ -43,7 +43,7 @@ export class AppShellController {
   document.querySelector('.workspace-header').insertBefore(document.getElementById('archive-navigator-toggle'),document.getElementById('scope-search-host'));
   document.querySelector('.workspace-header').insertBefore(document.getElementById('input-time-order'),document.getElementById('document-menu'));
   document.getElementById('thought-root-header').append(document.getElementById('thought-home-tools'));
-  document.getElementById('thought-root-source').append(document.getElementById('thought-source-scope-label'));
+  document.getElementById('thought-root-source').append(document.getElementById('thought-source-scope-label'),...document.querySelectorAll('#thought-home-tools > .library-actions,#thought-home-tools > button'));
   document.getElementById('thought-topic-header').append(document.getElementById('topic-search'));
   this.installArchivePresentation();
   installUniversalSearch();installRevisit();
@@ -63,7 +63,7 @@ export class AppShellController {
  }
  presentArchiveComposition(options=this.archivePresentationOptions){
   if(!this.mounted||!this.archiveControlHomes)return;this.archivePresentationOptions=options;
-  const get=id=>document.getElementById(id),route=this.route,active=!!options?.consented&&['library','archive'].includes(route.view),reader=active&&!!route.documentId,root=active&&!reader,desktop=this.archiveDesktop.matches,compact=active&&this.archiveCompact.matches;
+  const get=id=>document.getElementById(id),route=this.route,active=!!options?.consented&&['library','archive'].includes(route.view),reader=active&&!!route.documentId,root=active&&!reader,desktop=this.archiveDesktop.matches,compact=!!options?.consented&&['library','archive','thoughts'].includes(route.view)&&this.archiveCompact.matches;
   const focusBefore=document.activeElement,focusedReaderAction=['back','archive-navigator-toggle','input-time-order','document-menu'].some(id=>get(id)?.contains(focusBefore))?focusBefore:null;
   const move=(node,host,before=undefined)=>{if(!node||!host)return;const anchor=before?.parentElement===host?before:null;if(node.parentElement===host&&(before===undefined||node.nextSibling===anchor))return;const focus=document.activeElement,retains=focus&&node.contains(focus);host.insertBefore(node,anchor);if(retains&&focus.isConnected)focus.focus({preventScroll:true});};
   for(const [id,home]of this.archiveControlHomes){
@@ -99,6 +99,7 @@ export class AppShellController {
   document.getElementById('primary-nav').setAttribute('aria-label',labels()?'Primary navigation':'主要导航');
   const title=document.getElementById('view-title'),text=this.viewLabel(this.route.view);if(text&&!title.hidden)title.textContent=text;
   document.querySelector('.ux-consent-optional').textContent=labels()?' Optional: mark that you read the detailed explanation.':' 可选：用于标记你已阅读上面的完整说明。';
+  document.getElementById('thought-root-description').textContent=labels()?'Return to your own expressions, by topic.':'按主题回到自己的表达。';
   document.getElementById('archive-root-description').textContent=labels()?'Return to the places you once expressed yourself.':'回到你曾经表达过的地方。';
   document.getElementById('archive-compact-nav-label').textContent=this.viewLabel(this.route.view)||this.viewLabel('library');
   presentSettingsPreferences({visible:this.route.view==='settings'});

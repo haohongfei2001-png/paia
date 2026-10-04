@@ -39,7 +39,7 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
           fc-list :lang=zh | grep -q .
       - name: Capture complete production and reference windows
         run: |
@@ -48,7 +48,7 @@ jobs:
           xvfb-run -a node --test --test-concurrency=1 scripts/verify-desktop-appearance-preview.mjs 2>&1 | tee work/desktop-appearance-preview/acceptance.log
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-          for(const variant of ['source','release']){const report=JSON.parse(readFileSync(`work/desktop-appearance-preview/${variant}.json`));assert.equal(report.result,'PASS');assert.equal(report.head,process.env.PAIA_TESTED_HEAD);assert.equal(report.rows.length,32);assert.deepEqual(report.errors,[]);assert.deepEqual([...new Set(report.rows.map(row=>row.screen))].sort(),['compose','context-ready','context-retrieve','context-review','context-select','context-task','organize','topic','years']);for(const row of report.rows){assert.ok(row.actual.root.width>0&&row.actual.heading.height>0);assert.equal(row.actual.modal,false);}}
+          for(const variant of ['source','release']){const report=JSON.parse(readFileSync(`work/desktop-appearance-preview/${variant}.json`));assert.equal(report.result,'PASS');assert.equal(report.head,process.env.PAIA_TESTED_HEAD);assert.equal(report.rows.length,36);assert.deepEqual(report.errors,[]);assert.deepEqual([...new Set(report.rows.map(row=>row.screen))].sort(),['compose','context-ready','context-retrieve','context-review','context-select','context-task','organize','root','topic','years']);for(const row of report.rows){assert.ok(row.actual.root.width>0&&row.actual.heading.height>0);assert.equal(row.actual.modal,false);}}
           JS
       - name: Retain every completed or failed frame and receipt
         if: always()

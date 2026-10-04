@@ -95,6 +95,17 @@ holds below are historical and superseded only by this explicit owner amendment.
 
 # Canonical Status — PAIA Consumer Product v1
 
+## D7 Thought/Years/Write Thought appearance — 2026-10-04
+
+Current batch: `D7_THOUGHT_UI_FROZEN_CANDIDATE`. Archive/Reader PR143 is adopted
+at `913aa5273777c842cabdcd2ff09aadb942f67716`; exact-main, Pages and the separate
+Prompt Reuse gates passed. The next [bounded Thought appearance slice](implementation/desktop-vnext/D7-THOUGHT-UI.md)
+uses D6.2 T01–T05 actual masters on existing owners. Native screenshots and
+independent review are pending. Writing Save/Cancel/return remain visibly held;
+functional Thought/export/composition redesign is deferred. No claim of full
+functional certification, public release or final D7 visual acceptance is made.
+
+
 ## D5 broad appearance adopted; D7 Archive/Reader implementation — 2026-10-04
 
 **Current batch: `D7_ARCHIVE_READER_VISUAL_IMPLEMENTING`.** The owner requested continued high-fidelity implementation against the approved D6.2 images after merging D5. [PR142](https://github.com/haohongfei2001-png/paia/pull/142) is adopted at `4cba58db72ef14f756676d0048cbd0709c6df2c9`; reviewed head `d07756fb`, tested merge and main share tree `7d9519f4b74e24128f447f9d3f7214062943a432`. Source/release whole-page37195667267, candidate37195667301, integration37195702398, exact-main37196059116 and Pages37196058747 PASS. This closes the owner's bounded D5 major-composition batch, not historical full functional certification or final consumer release.
