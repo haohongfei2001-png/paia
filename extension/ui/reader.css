@@ -32,6 +32,21 @@ body:has(#document-panel:not([hidden])) #notice{position:fixed;right:16px;bottom
 body:has(#document-panel:not([hidden])) #notice button{min-height:44px;color:var(--paia-accent)}
 .reader-confirm{width:min(560px,calc(100vw - 40px));max-height:calc(100dvh - 40px);padding:24px;background:var(--paia-surface);color:var(--paia-text);border:1px solid var(--paia-control);border-radius:12px;overflow:auto}
 .reader-confirm h2{font-size:21px}.reader-confirm>button{margin:8px 8px 0 0;min-height:44px}.reader-confirm::backdrop{background:rgba(20,28,22,.24)}
+/* D6.2 A11/A12: the existing confirmation owner keeps every original action. */
+.reader-confirm[data-confirm-surface]{width:min(700px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 48px);padding:32px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);box-shadow:0 18px 60px rgba(23,35,60,.18);overflow:hidden}
+.reader-confirm[data-confirm-surface][open]{display:flex;flex-direction:column}
+.reader-confirm[data-confirm-surface]::backdrop{background:#15203933}
+.reader-confirm[data-confirm-surface]>h2{flex:none;margin:0;font:500 23px/1.391304348 var(--title-font);overflow-wrap:anywhere}
+.reader-confirm-content{min-height:0;overflow:auto;margin-top:28px;overflow-wrap:anywhere;font-size:16px;line-height:1.625}
+.reader-confirm-content>p{margin:0}
+.reader-confirm-content .reader-removal-scope{margin-top:28px}
+.reader-confirm-content .reader-removal-scope h3{margin:0 0 12px;font-size:14px;line-height:1.571428571;font-weight:600}
+.reader-confirm-content .reader-removal-scope p{margin:8px 0 0;color:var(--muted);font-size:12px;line-height:1.666666667}
+.reader-confirm-actions{flex:none;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:12px;margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+.reader-confirm-actions>button{min-width:44px;min-height:36px;max-width:100%;margin:0;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;line-height:1.692307692;white-space:normal;overflow-wrap:anywhere}
+.reader-confirm-actions>button.primary{border-color:var(--text);background:var(--text);color:var(--bg)}
+@media(max-width:767px){.reader-confirm[data-confirm-surface]{padding:20px}}
+@media(max-width:767px),(pointer:coarse){.reader-confirm-actions>button{min-height:44px}}
 .reader-confirm pre,#info-content pre,:where(#library-dialog) .revision-row pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:var(--paia-prose-size,17px);line-height:1.8;max-width:100%;color:var(--paia-text);background:transparent}
 /* One presentation owner for existing Original / History modal state owners. */
 #info-dialog,#revision-dialog{position:fixed;inset:0;margin:auto;width:min(720px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 48px);padding:28px;background:var(--bg);color:var(--text);border:0;border-radius:var(--modal-radius);box-shadow:var(--shadow);overflow:auto}

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow} from './harness/archive-navigator.mjs';
+import {auditReaderConfirmation} from './harness/d7-reader-confirmation.mjs';
 import {execFileSync} from 'node:child_process';
 import {mkdtempSync,rmSync,mkdirSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -21,7 +22,8 @@ console.log(execFileSync('python3',['scripts/build_current_release.py',releaseRo
 for(const variant of ['source','release']){
  const extensionPath=variant==='release'?releaseRoot:null;
  test(`D1 mixed human purge refuses in actual worker and low-frequency UI without clearing recovery or canonical data (${variant})`,{timeout:90000},async()=>{
-  const {h,p,b}=await fixture(extensionPath);try{
+  const {h,p,b}=await fixture(extensionPath);let confirmation;try{
+   await p.setViewportSize({width:1440,height:800});
    const field=p.locator(`.library-prose[data-edit-id="${b.id}"]`);await field.fill('SYNTHETIC human working version');await eventually(async()=>(await rpc(p,'GET_INPUT',{id:b.id})).libraryText==='SYNTHETIC human working version');await eventually(async()=>/已保存|Saved/.test(await p.locator('#save-status').textContent()));
    const current=await rpc(p,'GET_INPUT',{id:b.id}),epoch=(await rpc(p,'GET_STATE')).recoveryEpoch;
    const draft={epoch,kind:'document',ownerId:b.documentId,token:crypto.randomUUID(),operation:{type:'EDIT_DOCUMENT',edit:{operationId:crypto.randomUUID(),documentId:b.documentId,blocks:[{id:b.id,expectedRevision:current.revision,libraryText:'SYNTHETIC unsaved human recovery',note:'',excluded:false}]}}};
@@ -29,12 +31,13 @@ for(const variant of ['source','release']){
    assert.deepEqual(await rpc(p,'PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',{id:b.sourceRecordId}),{state:'owner_gate_required',gate:'B-02',targetRef:b.sourceRecordId});assert.deepEqual(await dump(p),before);
    assert.equal((await reply(p,'PURGE_SOURCE',{id:b.sourceRecordId,confirm:true})).error,'SOURCE_PURGE_OWNER_GATE');assert.deepEqual(await dump(p),before);
    await p.locator('[data-view="settings"]').click();await p.locator('[data-settings-group="data"]').click();await p.locator('[data-view="archive"]').click();await openArchiveWindow(p,{text:'SYNTHETIC purge boundary'});await p.locator('.original-prose').first().click({button:'right'});await p.getByRole('menuitem',{name:'永久删除并忽略此来源…',exact:true}).click();
-   await p.getByRole('heading',{name:'暂不能永久删除',exact:true}).waitFor();assert.equal(await p.locator('dialog[open]').count(),1);assert.match(await p.locator('.reader-confirm').textContent(),/没有删除任何材料，也没有清除恢复草稿/);await p.keyboard.press('Escape');
+   await p.getByRole('heading',{name:'暂不能永久删除',exact:true}).waitFor();assert.equal(await p.locator('dialog[open]').count(),1);assert.match(await p.locator('.reader-confirm').textContent(),/没有删除任何材料，也没有清除恢复草稿/);await settle(p);const uiBefore=await dump(p);confirmation=await auditReaderConfirmation(h,{variant,surface:'purge-blocked'});assert.deepEqual(await dump(p),uiBefore,'all presentation variants retain every stored row and recovery draft');await p.keyboard.press('Escape');await eventually(()=>p.locator('dialog[open]').count().then(n=>n===0),'Escape completes the original blocked-purge close');assert.deepEqual(await dump(p),uiBefore,'blocked-purge Escape has no data effect');
+   for(const action of ['取消','关闭']){await p.locator('.original-prose').first().click({button:'right'});await p.getByRole('menuitem',{name:'永久删除并忽略此来源…',exact:true}).click();await p.getByRole('heading',{name:'暂不能永久删除',exact:true}).waitFor();await p.locator('.reader-confirm[data-confirm-surface="purge-blocked"]').getByRole('button',{name:action,exact:true}).click();await eventually(()=>p.locator('dialog[open]').count().then(n=>n===0),action+' completes the same blocked-purge close');assert.deepEqual(await dump(p),uiBefore,action+' cannot purge material or clear recovery');}
    await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>p.evaluate(()=>document.documentElement.lang==='en'));
    await p.locator('.original-prose').first().click({button:'right'});await p.getByRole('menuitem',{name:/永久删除并忽略此来源|Permanently delete.*Source/i}).click();
    await p.getByRole('heading',{name:'Permanent deletion is unavailable',exact:true}).waitFor();assert.match(await p.locator('.reader-confirm').textContent(),/No material or recovery draft was deleted/);assert.doesNotMatch(await p.locator('.reader-confirm').textContent(),/[\u3400-\u9fff]/);await p.keyboard.press('Escape');
-   assert.equal((await rpc(p,'GET_INPUT',{id:b.id})).libraryText,'SYNTHETIC human working version');assert.deepEqual(await rpc(p,'PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:draft.kind,ownerId:draft.ownerId,epoch}}),saved);assert.equal((await h.state()).records[0].originalText,'SYNTHETIC immutable source 中文 👩‍💻');assert.deepEqual(h.errors,[]);assert.equal(h.extensionNetworkRequests,0);
-  }finally{await h.close();}
+   assert.equal((await rpc(p,'GET_INPUT',{id:b.id})).libraryText,'SYNTHETIC human working version');assert.deepEqual(await rpc(p,'PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:draft.kind,ownerId:draft.ownerId,epoch}}),saved);assert.equal((await h.state()).records[0].originalText,'SYNTHETIC immutable source 中文 👩‍💻');assert.deepEqual(h.errors,[]);assert.equal(h.extensionNetworkRequests,0);await confirmation.finish();
+  }catch(error){await confirmation?.finish(error);throw error;}finally{await h.close();}
  });
  test(`D1 composing Input pins existing recovery and refuses another page's purge without collecting keystrokes (${variant})`,{timeout:90000},async()=>{
   const {h,p,b}=await fixture(extensionPath);try{
