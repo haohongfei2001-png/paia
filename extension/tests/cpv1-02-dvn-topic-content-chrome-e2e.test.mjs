@@ -10,6 +10,42 @@ const release=mkdtempSync(join(tmpdir(),'paia-d2-content-'));
 test.after(()=>rmSync(release,{recursive:true,force:true}));
 console.log(execFileSync('python3',['scripts/build_current_release.py',release],{encoding:'utf8'}));
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
+// Read-only evidence for the existing synthetic return journey. This adds no
+// navigation, wait, replacement handler, alternate assertion or production code.
+function installReturnEvidence({topicId,targetId}){
+ const owner=globalThis.__d2Content,events=[],limit=96,ids=rows=>(rows||[]).map(row=>row.entry?.id||row.id).slice(0,200);
+ const saved=value=>value?{anchor:value.anchor||null,windowStart:value.windowStart,extent:ids(value.extent),query:value.query,generation:value.generation}:null;
+ const snapshot=()=>{
+  const reader=owner.topicReader,body=document.getElementById('original-reading-body'),target=body?.querySelector(`[data-entry-id="${targetId}"]`),box=target?.getBoundingClientRect(),position=owner.contentPositions.get(topicId);
+  return {topicId:owner.id,view:owner.view,mode:owner.originalMode,serial:owner.serial,statusEpoch:owner.statusEpoch,openIntent:owner.openIntent,query:document.getElementById('topic-search')?.value,scrollY,anchor:owner.topicAnchor(),targetId,target:box?{top:box.top,bottom:box.bottom}:null,mounted:[...body?.querySelectorAll('[data-entry-id]')||[]].map(node=>node.dataset.entryId).slice(0,200),reader:reader?{query:reader.query,ids:ids(reader.items),loaded:ids(reader.items.filter(row=>!row.unloaded)),windowStart:reader.windowStart,windowRevision:reader.windowRevision,stale:reader.stale,hydrating:reader.hydrating,loadingNext:reader.loadingNext,loadingPrevious:reader.loadingPrevious,errorNext:reader.errorNext?.code||reader.hydrationError?.code||null}:null,saved:saved(position?.snapshot),resume:saved(owner.contentResume),preSearch:saved(owner.contentPreSearch?.snapshot),navigationAnchor:owner.topicNavigationAnchor||null,documentState:document.getElementById('thought-document')?.dataset.state,bodyInert:document.getElementById('topic-body')?.inert,rootHidden:document.getElementById('thought-collection')?.hidden,documentHidden:document.getElementById('thought-document')?.hidden,active:document.activeElement?.id||document.activeElement?.tagName};
+ };
+ const trace=globalThis.__d2ReturnEvidence={enabled:false,complete:false,events,snapshot,record(name,detail={}){
+  if(!this.enabled)return;
+  try{events.push({at:performance.now(),name,detail,state:snapshot()});if(events.length>limit)events.shift();}catch(error){events.push({at:performance.now(),name,diagnosticError:String(error)});if(events.length>limit)events.shift();}
+ }};
+ document.getElementById('topic-search').addEventListener('input',()=>{if(!trace.complete){trace.enabled=true;trace.record('search-input');}},{capture:true});
+ for(const name of ['pointerdown','click','focusin'])document.addEventListener(name,event=>{
+  const node=event.target.closest?.('#back,[data-topic-id],#topic-search');
+  if(node)trace.record(name,{id:node.id,topicId:node.dataset.topicId||null,trusted:event.isTrusted});
+ },true);
+ addEventListener('scroll',()=>trace.record('scroll'),{passive:true});
+ for(const name of ['rememberContent','restoreContent','searchContent','open','shiftTopicWindow','resetTopicReader','renderTopicReader']){
+  const original=owner[name];owner[name]=function(...args){
+   trace.record(name+':start',{argument:typeof args[0]==='string'?args[0]:null});
+   let result;try{result=original.apply(this,args);}catch(error){trace.record(name+':throw',{code:error?.code,message:String(error?.message||error)});throw error;}
+   trace.record(name+':returned',{promise:typeof result?.then==='function'});
+   return result;
+  };
+ }
+}
+async function retainReturnEvidence(p,variant,error=null){
+ try{
+  const evidence=await p.evaluate(()=>{const trace=globalThis.__d2ReturnEvidence;return trace?{events:trace.events,final:trace.snapshot(),reads:(globalThis.__d2ContentReads||[]).slice(-96)}:null;});
+  mkdirSync('work/qa-dvn-topic-content',{recursive:true});
+  writeFileSync(`work/qa-dvn-topic-content/${variant}-return-diagnostic.json`,JSON.stringify({kind:'synthetic-read-only-return-diagnostic',head:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,result:error?'FAIL':'PASS',error:error?{name:error.name,message:error.message,stack:error.stack}:null,evidence},null,2));
+  if(error)await p.screenshot({path:`work/qa-dvn-topic-content/${variant}-return-failure.png`,timeout:5000});
+ }catch(diagnosticError){console.error('D2_RETURN_DIAGNOSTIC_FAILED',String(diagnosticError));}
+}
 for(const variant of ['source','release'])test(`D2 Content trusted chronology, bounded bodies and exact return (${variant})`,{timeout:180000},async()=>{
  const h=await FakeChatGPT.start(variant==='release'?{extensionPath:release}:{}),p=h.archive;
  try{
@@ -21,11 +57,12 @@ for(const variant of ['source','release'])test(`D2 Content trusted chronology, b
    const ordered=records.slice(0,164).sort((a,b)=>a.at.localeCompare(b.at)).map(row=>row.id);ordered.push(records[164].id);
    await s.repository.close();
    const {ThoughtWorkspace}=await import('../ui/thoughts.js'),create=ThoughtWorkspace.prototype.createTopicReader;ThoughtWorkspace.prototype.createTopicReader=function(...args){globalThis.__d2Content=this;return create.apply(this,args);};
-   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__d2ContentReads=[];chrome.runtime.sendMessage=(message,...args)=>Promise.resolve(send(message,...args)).then(result=>{if(message.type==='TOPIC_DOCUMENT_PAGE'&&result?.ok)__d2ContentReads.push({options:message.options,ids:result.data.items.map(row=>row.entry.id)});return result;});
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__d2ContentReads=[];chrome.runtime.sendMessage=(message,...args)=>Promise.resolve(send(message,...args)).then(result=>{if(message.type==='TOPIC_DOCUMENT_PAGE'&&result?.ok){const read={options:message.options,ids:result.data.items.map(row=>row.entry.id)};__d2ContentReads.push(read);globalThis.__d2ReturnEvidence?.record('page-result',{...read,generation:result.data.coverage?.activeGeneration,cursorInvalid:result.data.cursorInvalid||false});}return result;});
    return {topicId:topic.id,ordered,records};
   });
   await p.locator('[data-view="thoughts"]').click();await eventually(()=>p.locator(`[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`[data-topic-id="${seed.topicId}"]`).click();
   await eventually(()=>p.locator('#original-reading-body [data-entry-id]').count().then(n=>n>=40),'first Content page');
+  await p.evaluate(installReturnEvidence,{topicId:seed.topicId,targetId:seed.ordered[140]});
   assert.equal(await p.locator('#topic-time-order [data-reading-sort]').count(),1,'one frozen order toggle');assert.equal(await p.locator('#original-reading-body .reading-copy').count(),0,'Copy remains in row overflow');
   const next=p.locator('#topic-continuous-after');
   for(let i=0;i<6;i++){if(/末尾/.test(await p.locator('#topic-continuous-after-status').textContent()))break;const before=await p.evaluate(()=>__d2Content.topicReader.items.length);await next.evaluate(node=>node.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})));await eventually(()=>p.evaluate(n=>__d2Content.topicReader.items.length>n||__d2Content.topicReader.terminalNext,before));}
@@ -41,6 +78,7 @@ for(const variant of ['source','release'])test(`D2 Content trusted chronology, b
   await p.locator('#topic-search').evaluate(input=>{input.value='SYNTHETIC_CONTENT_1 访谈者';input.dispatchEvent(new Event('input',{bubbles:true}));});await eventually(()=>p.locator('#original-reading-body [data-entry-id]').evaluateAll((nodes,id)=>nodes.length===1&&nodes[0].dataset.entryId===id,seed.records[1].id),'search reaches early unmounted expression');
   await p.locator('#topic-search').fill('');await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'closing search restores reading extent');assert.equal(await p.evaluate(()=>__d2Content.topicReader.items.length),165);
   await p.locator('#back').click();await eventually(()=>p.locator(`[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`[data-topic-id="${seed.topicId}"]`).click();await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'root return refetches saved window');assert.equal(await p.evaluate(()=>__d2Content.topicReader.items.length),165);
+  await p.evaluate(()=>{__d2ReturnEvidence.record('root-return-assertions-passed');__d2ReturnEvidence.enabled=false;__d2ReturnEvidence.complete=true;});
   await p.evaluate(()=>scrollTo(0,0));await eventually(()=>p.locator(`[data-entry-id="${seed.ordered[0]}"]`).count().then(n=>n===1),'evicted first window refetched');assert.ok(await p.evaluate(()=>__d2ContentReads.some(read=>read.options.anchorId&&read.options.expectedReadGeneration)));
   assert.ok(await p.evaluate(()=>__d2Content.topicReader.items.filter(row=>!row.unloaded).length<=120));
   // Reliable-time enrichment/invalidation may regroup clean rows, but cannot move a live IME owner.
@@ -60,7 +98,8 @@ for(const variant of ['source','release'])test(`D2 Content trusted chronology, b
   await large.locator('[data-entry-field="body"]').evaluate(node=>{node.focus();node.textContent+=' SYNTHETIC_SAVED_TAIL';node.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText'}));});await eventually(async()=>(await rpc(p,'GET_LIBRARY_ENTRY',{id:seed.records[10].id})).body.endsWith(' SYNTHETIC_SAVED_TAIL'),'editing the expanded large body is durably saved');await p.locator('#topic-heading h1').click();
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   writeFileSync(`work/qa-dvn-topic-content/${variant}.json`,JSON.stringify({status:'PASS',headSha:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,matrix,entries:165,trustedGlobalChronology:true,unknownLegacy:true,boundedBodies:full.bodies,bodyFreeExtent:true,searchReturn:true,rootReturn:true,exactRefRefetch:true,timeChangeImePreserved:true,largeBodyEditorOwner:true,resizeImePreserved:true,localeCaptionOnly:true,singleOrderControl:true,zeroProviderCalls:true},null,2));
- }finally{await h.close();}
+  await retainReturnEvidence(p,variant);
+ }catch(error){await retainReturnEvidence(p,variant,error);throw error;}finally{await h.close();}
 });
 
 
