@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {OriginalSurface} from '../ui/original-surface.js';
-class Node{constructor(tag){this.tagName=tag;this.children=[];this.hidden=false;this.dataset={};this.attributes={};this.textContent='';}append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=[...nodes];}setAttribute(name,value){this.attributes[name]=value;}}
+import {PresentationNode as Node} from './harness/presentation-dom.mjs';
 const one={id:'SYNTHETIC_SOURCE',originalText:'SYNTHETIC exact original 👩‍💻',sourceSentAt:'2023-04-27T22:11:00Z'};
 for(const [name,kind,page,quiet,copyAllowed]of [
  ['one complete Input','input',{availability:'available',records:[one],intended:1,nextCursor:null},true,true],
@@ -11,7 +11,7 @@ for(const [name,kind,page,quiet,copyAllowed]of [
  ['multi-Source Input','input',{availability:'available',records:[one,{...one,id:'SYNTHETIC_SECOND'}],intended:2,nextCursor:null},false,true],
  ['Input with next page','input',{availability:'available',records:[one],intended:1,nextCursor:{after:1}},false,true]
 ])test(`D5 Original quiet presentation keeps scope and copy authority: ${name}`,async()=>{
- const prior=globalThis.document;globalThis.document={createElement:tag=>new Node(tag),documentElement:{lang:'zh-CN'}};
+ const prior=globalThis.document;globalThis.document={createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace),documentElement:{lang:'zh-CN'}};
  try{
   const content=new Node('div'),heading=new Node('h2'),close=new Node('button'),dialog={dataset:{},querySelector:selector=>selector==='h2'?heading:close},readCalls=[];
   const surface=new OriginalSurface({dialog,content,host:{open:()=>()=>true},read:async request=>{readCalls.push(request);return {generation:4,...page};}});

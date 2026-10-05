@@ -3,12 +3,15 @@ import { request, enabledLabel, diagnosticText, dateLabel, statusLabel } from '.
 import { briefStructure } from './structure-diagnostics.js';
 import { normalizeUXPreferences, resolveAppearance } from './ux-r1-state.js';
 import { recoveryGuidance } from './recovery-guidance.js';
+import { setIconLabel } from './icons.js';
 
 // Native action views need intrinsic width before Chrome chooses their viewport.
 // An explicitly opened document tab can instead reflow at a narrower viewport.
 if (!chrome.extension.getViews({type: 'popup'}).includes(window)) document.documentElement.dataset.popupView = 'document';
 
 const $ = (id) => document.getElementById(id);
+setIconLabel($('open-archive'), 'external-link', $('open-archive').textContent, {side:'end'});
+for (const summary of document.querySelectorAll('details > summary')) setIconLabel(summary, 'chevron-right', summary.textContent, {side:'end',iconClass:'popup-disclosure-icon'});
 const UPDATE_STATE_KEY = 'paia-consumer-update:v1';
 let state;
 let busy = false;
@@ -67,7 +70,7 @@ async function refresh() {
     $('status-dot').classList.toggle('active', consented && state.settings.enabled);
     $('record-count').textContent = state.stats.total.toLocaleString('zh-CN');
     $('first-use').hidden = consented;
-    $('open-archive').textContent = consented ? '回到 PAIA ↗' : '阅读说明并启用 ↗';
+    setIconLabel($('open-archive'), 'external-link', consented ? '回到 PAIA' : '阅读说明并启用', {side:'end'});
     $('toggle-capture').hidden = !consented;
     $('toggle-capture').disabled = busy;
     $('toggle-capture').textContent = state.settings.enabled ? '暂停捕获' : '恢复捕获';

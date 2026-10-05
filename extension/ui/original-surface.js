@@ -2,12 +2,13 @@ import {thoughtCopy as tc} from './thought-copy.js';
 import {element,dateLabel} from './common.js';
 import {copyReadingText} from './reading-actions.js';
 import {readOriginalText} from './original-sequence.js';
+import {setIconLabel} from './icons.js';
 export class OriginalSurface {
  constructor({dialog,content,host,read}){Object.assign(this,{dialog,content,host,read});}
  async open(target,trigger){
   const {dialog,content,host,read}=this;content.replaceChildren();
   dialog.querySelector('h2').textContent=target.kind==='conversation'?tc('当前 Conversation · 原始内容'):tc('所选 Input · 原始内容');
-  dialog.dataset.readingSurface='original';dialog.querySelector('#close-info').textContent=tc('关闭');
+  dialog.dataset.readingSurface='original';setIconLabel(dialog.querySelector('#close-info'),'close',tc('关闭'));
   const isCurrent=host.open(dialog,{target,trigger}),history=[];let generation=null,cursor=null,next=null,index=0,loading=false;
   const rows=element('div','original-rows'),status=element('p','muted'),position=element('p','muted'),controls=element('nav','original-navigation');status.setAttribute('role','status');controls.setAttribute('aria-label',tc('原文位置'));
   const previous=element('button','',tc('上一段')),more=element('button','',tc('下一段')),copy=element('button','',tc('复制原文'));copy.id='original-copy';previous.disabled=true;more.hidden=true;copy.disabled=true;controls.append(previous,position,more);content.append(rows,status,controls,copy);

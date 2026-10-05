@@ -1,4 +1,5 @@
 import {element,request} from './common.js';
+import {setIconLabel} from './icons.js';
 
 // Shared ordinary-workspace transition for normal composition and the explicit
 // visual review entry. It mounts the same real production owners;
@@ -34,7 +35,7 @@ export async function openDesktopAppearancePreview(owners,{screen,topicId,scope,
   }else{
    remember(get('thought-panel'),true);for(const child of [...header.children])remember(child,true);
    if(screen==='compose'){const context=element('div','thought-compose-context');context.append(element('h2','',topicId?(owners.thoughts.topic?.name||'主题'):'Thought Library'),element('p','',topicId?'从主题阅读写下新的表达；可另选主题。':'独立写下新的表达；可选择已有主题。'));header.append(context);created.push(context);}
-   const back=element('button','dvn-preview-back',screen==='compose'?'‹ 返回':'‹ '+(scope?.topicName||owners.thoughts.topic?.name||'主题'));back.type='button';back.disabled=true;back.title='主工作区返回接线尚未完成';header.append(back);created.push(back);
+   const back=element('button','dvn-preview-back');setIconLabel(back,'back',screen==='compose'?'返回':(scope?.topicName||owners.thoughts.topic?.name||'主题'));back.type='button';back.disabled=true;back.title='主工作区返回接线尚未完成';header.append(back);created.push(back);
    host=element('section','dvn-preview-workspace');host.id='desktop-appearance-preview-workspace';workspace.append(host);created.push(host);
    if(screen==='compose'){
     // Mount is completed below after teardown ownership is installed.

@@ -1,23 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ArchiveNavigator,ArchiveNavigatorState,navigatorGroupKey} from '../ui/archive-navigator.js';
+import {PresentationNode} from './harness/presentation-dom.mjs';
 
-class Node {
- constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.dataset={};this.attrs={};this.className='';this.textContent='';this.handlers={};this.classList={contains:c=>this.className.split(' ').includes(c),add:c=>{if(!this.classList.contains(c))this.className+=' '+c;},toggle:(c,on)=>{const yes=on??!this.classList.contains(c);this.className=this.className.split(' ').filter(x=>x&&x!==c).concat(yes?[c]:[]).join(' ');return yes;}};}
- get firstElementChild(){return this.children[0]||null;}get nextSibling(){return this.parentElement?.children[this.parentElement.children.indexOf(this)+1]||null;}
- get isConnected(){return this===document.body||this.parentElement?.isConnected===true;}
- contains(node){return this===node||this.children.some(child=>child.contains(node));}
- remove(){if(this.parentElement)this.parentElement.children.splice(this.parentElement.children.indexOf(this),1);this.parentElement=null;}
- insertBefore(node,before){if(node===before)return;if(node.contains(globalThis.document?.activeElement))document.activeElement=null;node.remove();node.parentElement=this;this.children.splice(before?this.children.indexOf(before):this.children.length,0,node);}
- append(...nodes){for(const node of nodes)this.insertBefore(node,null);}replaceChildren(...nodes){for(const node of [...this.children])node.remove();this.append(...nodes);}
- setAttribute(k,v){this.attrs[k]=String(v);}removeAttribute(k){delete this.attrs[k];}getAttribute(k){return this.attrs[k]??null;}addEventListener(type,fn){this.handlers[type]=fn;}focus(){document.activeElement=this;}
+class Node extends PresentationNode {
+ constructor(tag='div',namespaceURI){super(tag,namespaceURI);this.handlers={};}
+ addEventListener(type,fn){this.handlers[type]=fn;}
  querySelectorAll(selector){const rows=this.children.flatMap(node=>[node,...node.querySelectorAll('*')]);if(selector==='*')return rows;if(selector.startsWith('.'))return rows.filter(n=>n.classList.contains(selector.slice(1)));const key=selector.match(/^\[data-ans-nav-key="(.*)"\]$/)?.[1];return rows.filter(n=>n.dataset.ansNavKey===key);}
  querySelector(s){return this.querySelectorAll(s)[0]||null;}
 }
 async function fixture(run){
  const prior=new Map(['document','chrome','CSS'].map(k=>[k,Object.getOwnPropertyDescriptor(globalThis,k)]));
  const body=new Node('body'),home=new Node(),slot=new Node(),back=new Node('button'),host=new Node('aside'),head=new Node('header'),tree=new Node();home.id='archive-reader-navigator-slot';slot.id='archive-reader-back-slot';back.id='back';body.append(home);home.append(slot,host);slot.append(back);host.append(head,tree);
- globalThis.document={body,documentElement:{lang:'zh-CN'},activeElement:null,createElement:tag=>new Node(tag),getElementById:id=>body.querySelectorAll('*').find(n=>n.id===id)||null};globalThis.CSS={escape:x=>x};globalThis.chrome={runtime:{sendMessage(){throw Error('No data reads/writes admitted by this presentation test');}}};
+ globalThis.document={body,documentElement:{lang:'zh-CN'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace),getElementById:id=>body.querySelectorAll('*').find(n=>n.id===id)||null};globalThis.CSS={escape:x=>x};globalThis.chrome={runtime:{sendMessage(){throw Error('No data reads/writes admitted by this presentation test');}}};
  try{
   const state=new ArchiveNavigatorState(),groups=['first','second','current'].map((title,i)=>({id:title,kind:'group',providerKey:'chatgpt',groupKind:'project',title,projectRef:{providerKey:'chatgpt',namespace:'synthetic',projectId:String(i)}}));
   const scope=(options,items)=>Object.assign(state.scope(options),{coverage:{state:'complete'},items,nextCursor:'synthetic-next',generation:7});

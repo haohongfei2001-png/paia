@@ -36,6 +36,10 @@ test('UI coherence requires complete popup and Settings/import owners within the
  assert.match(complete,/node --test --test-concurrency=1 --test-reporter=.\/scripts\/test-report.mjs tests\/uir-04-popup-local-tools-chrome-e2e.test.mjs/);
  assert.doesNotMatch(complete,/test-name-pattern|test-skip-pattern|continue-on-error/);
  for(const expected of ['report.total,2','report.pass,2','report.fail,0','report.skipped,0'])assert.ok(complete.includes(expected));
+ assert.match(complete,/PAIA_NATIVE_BROWSER_FRAME: '1'/);
+ assert.match(job,/fonts-noto-cjk imagemagick/);
+ assert.match(job,/NATIVE_BROWSER_FRAME_SELECTED:.*PAIA_D7_UI_COHERENCE/);
+ for(const expected of ["frame?.status,'captured'",'frame.headSha,evidence.headSha',"frame.kind,'synthetic-hosted-browser-window'",'frame.viewportEmulation,null','png.readUInt32BE(16),frame.display.width','png.readUInt32BE(20),frame.display.height'])assert.ok(job.includes(expected),expected);
  const targeted=workflow.slice(workflow.indexOf('  targeted_browser:'),workflow.indexOf('\n  capture_recovery:'));
  assert.match(targeted.split('    steps:')[0],/PAIA_D7_UI_COHERENCE/);assert.match(targeted,/timeout-minutes: 12/);
  const step=targeted.slice(targeted.indexOf('      - name: D7 UI coherence through'),targeted.indexOf('      - name: Retain D7 UI coherence'));

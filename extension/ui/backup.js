@@ -3,6 +3,7 @@ import {BackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.
 import {request,element} from './common.js';
 import {BACKUP_LIMITS,BackupValidator,backupError} from '../core/backup-format.js';
 import {installR6Settings,recordR6BackupSuccess,refreshR6Settings} from './r6-settings.js';
+import {setIconLabel} from './icons.js';
 const $=id=>document.getElementById(id);
 const INSPECTION_REJECTIONS=new Set(['BACKUP_INVALID','BACKUP_VERSION_UNSUPPORTED','BACKUP_INTEGRITY_FAILED','BACKUP_INCOMPLETE','BACKUP_TOO_LARGE']);
 export const backupMessage=code=>({BACKUP_BUSY:'请等待当前整理或组织变更结束，再创建备份。',BACKUP_CHANGED:'操作期间本机内容发生变化。请重新校验备份并确认当前库，原有内容保持不变。',BACKUP_INVALID:'这不是有效的 PAIA 备份，未修改任何内容。',BACKUP_VERSION_UNSUPPORTED:'此备份版本暂不支持，未修改任何内容。',BACKUP_INTEGRITY_FAILED:'完整性校验未通过，文件可能已损坏。',BACKUP_INCOMPLETE:'备份文件不完整，请重新选择完整文件。',BACKUP_TOO_LARGE:'本版单次恢复支持最多 512 MB / 500000 项；文件超出范围，原有内容保持不变。',BACKUP_SESSION_EXPIRED:'本次备份会话已中断，请重新开始。',BACKUP_TARGET_NOT_EMPTY:'当前已有用户数据。请选择合并互不冲突的数据，或明确选择替换当前库。',BACKUP_MERGE_CONFLICT:'备份与当前库存在同一来源、项目或状态冲突；未合并任何内容。请检查备份或明确选择替换。',BACKUP_PURGE_CONFLICT:'此备份包含本机已永久删除的来源，不能恢复。永久删除标记优先。',BACKUP_CONFIRMATION_REQUIRED:'请先查看预览并明确确认恢复。',STORAGE_FULL:'本机存储空间不足，原有内容保持不变。',STORAGE_FAILED:'本机保存未完成，请重新打开 Settings 检查。'}[code]||'操作未完成，未自动重试。请重新选择备份文件。');
@@ -29,9 +30,9 @@ export class BackupPanel {
   this.pickerDescription=$('backup-choose').getAttribute('aria-describedby');
   for(const [tag,id,zh,en]of [
    ['h1','backup-failure-page-title','数据与恢复','Data & recovery'],
-   ['button','backup-failure-return','‹ 返回','‹ Back'],
+   ['button','backup-failure-return','返回','Back'],
    ['small','backup-failure-note','当前状态不会自动触发外部请求。','This state does not automatically make external requests.'],
-  ]){const node=element(tag);node.id=id;node.dataset.r6Zh=zh;node.dataset.r6En=en;node.textContent=document.documentElement.lang==='en'?en:zh;if(tag==='button'){node.type='button';node.addEventListener('click',()=>void this.cancel());}if(tag==='small')host.append(node);else heading.push(node);}host.prepend(...heading);
+  ]){const node=element(tag);node.id=id;const value=document.documentElement.lang==='en'?en:zh,label=tag==='button'?setIconLabel(node,'back',value):node;label.dataset.r6Zh=zh;label.dataset.r6En=en;label.textContent=value;if(tag==='button'){node.type='button';node.addEventListener('click',()=>void this.cancel());}if(tag==='small')host.append(node);else heading.push(node);}host.prepend(...heading);
  }
  presentInspectionFailure(failed){
   const host=$('backup-settings'),choose=$('backup-choose');

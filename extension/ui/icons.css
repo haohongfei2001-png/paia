@@ -1,0 +1,8 @@
+/* Exact D6.2 18-unit glyph family; hit areas stay with the native controls. */
+.paia-icon{display:inline-block;flex:none;width:18px;height:18px;vertical-align:-.2em;overflow:visible;pointer-events:none;color:inherit}
+.paia-icon-control{display:inline-flex;align-items:center;gap:6px}
+.paia-icon-label{min-width:0;overflow-wrap:anywhere}
+.paia-icon-only{display:inline-grid;place-items:center}
+.paia-icon-only>.paia-icon{vertical-align:0}
+.paia-icon-control[hidden],.paia-icon-only[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){.paia-icon{transition:none!important}}
