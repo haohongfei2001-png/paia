@@ -62,3 +62,16 @@ low-saturation blue/lavender/mint diffuse core, with a softer lower-energy
 highlight. All behavior and card layout remain unchanged. New-head captures and
 owning checks are required; no old green result is reused as final acceptance.
 Local full unit results: 1,840 PASS / 1 unchanged 10k fake-IDB performance failure.
+
+## Second rendered candidate: light retained, dark corrected
+
+Head `67bf8366352722ee2dce8b3a7e415720d73c44c4`, tree
+`aa458881639ca91e859c911adeb227d4ff2d26f9`, visual run `37345738769`:
+8 primary states and 14 supplemental pairs pass build consistency; artifact
+SHA-256 `7d9860d23bde3072dbf43277083e8c198c1a20640d0b33d0c3ac694b7bc00928`.
+Two independent pixel reviews found the light orb materially improved, with no
+hard highlight or separate reflection, and real background participation.
+Dark still read as a gray solid sphere, so it was not accepted. Preserve the
+light/card candidate, lower only dark neutral-white layers/rim energy and retain
+more distinguishable blue/lavender/mint optical hues. Require fresh screenshots
+and affected gates for this presentation-only dark revision.

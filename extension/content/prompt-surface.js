@@ -41,9 +41,10 @@ button{position:relative;z-index:1;box-sizing:border-box;width:44px;height:44px;
 .orb:before{content:'';position:absolute;inset:1px;border-radius:inherit;background:radial-gradient(ellipse at 27% 23%,#ffffff70 0%,#ffffff1f 32%,#ffffff00 66%);filter:blur(3px);pointer-events:none}
 .orb:after{content:'';position:absolute;inset:5px;border-radius:inherit;background:radial-gradient(ellipse at 48% 53%,#eff4ff26 0%,#eff4ff00 72%);filter:blur(4px);pointer-events:none}
 button:hover .orb,button:focus-visible .orb{box-shadow:0 8px 24px -4px #52627f2e,inset 0 0 6px 1px #ffffff8a}
-:host([data-theme=dark]) .orb{background:radial-gradient(ellipse 72% 72% at 34% 56%,#a6c2e68a 0%,#a6c2e66b 24%,#a6c2e600 78%),radial-gradient(ellipse 68% 68% at 52% 68%,#b9add570 0%,#b9add542 18%,#b9add500 76%),radial-gradient(ellipse 62% 70% at 78% 44%,#b7d8cb61 0%,#b7d8cb00 78%),linear-gradient(140deg,#e8f0fa1a,#d8e5f00a);box-shadow:0 8px 24px -4px #00000038,inset 0 0 6px 1px #f1f6ff47}
-:host([data-theme=dark]) .orb:before{opacity:.55}
-:host([data-theme=dark]) button:hover .orb,:host([data-theme=dark]) button:focus-visible .orb{box-shadow:0 8px 26px -4px #00000042,inset 0 0 6px 1px #f1f6ff57}
+:host([data-theme=dark]) .orb{background:radial-gradient(ellipse 72% 72% at 34% 56%,#8bafe299 0%,#8bafe27a 24%,#8bafe200 78%),radial-gradient(ellipse 68% 68% at 52% 68%,#ad99d678 0%,#ad99d64d 18%,#ad99d600 76%),radial-gradient(ellipse 62% 70% at 78% 44%,#91bdac70 0%,#91bdac00 78%),linear-gradient(140deg,#d9e8ff0f,#a0b7d705);box-shadow:0 8px 24px -4px #00000038,inset 0 0 8px 1px #c4dcfa26}
+:host([data-theme=dark]) .orb:before{opacity:.28}
+:host([data-theme=dark]) .orb:after{opacity:.5}
+:host([data-theme=dark]) button:hover .orb,:host([data-theme=dark]) button:focus-visible .orb{box-shadow:0 8px 26px -4px #00000042,inset 0 0 8px 1px #c4dcfa38}
 button:focus-visible{outline:2px solid #5e8ee8;outline-offset:3px;border-radius:50%}
 iframe{border:1px solid #ffffff75;border-radius:20px;background:linear-gradient(136deg,#ffffffb8 0%,#f5f8ff9e 52%,#eaf1ff8a 100%);backdrop-filter:blur(18px) saturate(.92);box-shadow:0 18px 52px #22314d1a;box-sizing:border-box;animation:appear .16s ease-out}
 @keyframes appear{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}

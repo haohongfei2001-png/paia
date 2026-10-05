@@ -22,10 +22,13 @@ soft rim without a hard outline. Shadow: 0 8px 22px -4px rgba(82,98,127,.14).
 The highlight maximum is .44, blurred at 3 px; interior haze is .15 at 4 px.
 Hover/focus gently increases diffuse rim/shadow only. The existing visible 2 px
 keyboard focus indicator stays. No scaling, placement or interaction changes.
-Dark uses the same blended hues with .54/.42 blue and .44/.26 lavender, .38
-mint, a .10/.04 neutral base and .28 diffuse inner light. It must retain optical
-color instead of becoming a gray bead. Dark hover has its own gentle material
-response while preserving the keyboard focus outline.
+Dark preserves discernible cool optical hues instead of adding neutral white:
+blue #8bafe2 at .60/.48, lavender #ad99d6 at .47/.30, mint #91bdac at .44;
+a .06/.02 cool base replaces the stronger gray-white foundation. Broad white
+highlight is attenuated to .28 of the light layer and inner haze to .5. The
+8 px diffuse inner rim is pale blue at .15, increasing to .22 only on hover/
+focus. No solid perimeter is introduced. This lets the dark host show through
+without turning the object into a gray metal or pearl bead.
 
 ## Capsule
 
