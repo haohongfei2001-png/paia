@@ -1,6 +1,6 @@
 # D7 current certification scope synchronization
 
-Base: `80f3201d8138f37d3d02658663d25a0b46874125`. Three bounded presentation repairs accompany the test synchronization: restore the existing Topic presenter on AI reopen, preserve the existing 44px compact action target against a more-specific desktop rule, and use equivalent unitless Topic title line heights so text enlargement scales their line boxes.
+Base: `80f3201d8138f37d3d02658663d25a0b46874125`. Three bounded presentation repairs accompany the test synchronization: restore the existing Topic presenter and same-scope History disclosure/focus on AI reopen, preserve the existing 44px compact action target against a more-specific desktop rule, and use equivalent unitless Topic title and control line heights so text enlargement scales their line boxes.
 
 The full browser suite still contained pre-D7 navigation, D5 green/centered-layout
 expectations, and primary Context/Write/Organize flows withdrawn or held by the

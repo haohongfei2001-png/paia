@@ -1,5 +1,8 @@
 import {element} from './common.js';
 
+// One disposable reading-options state per owner, consumed on its next mount.
+const readingOptions=new WeakMap();
+
 // A presentation of the existing Topic owner and its nodes. No body, history,
 // pagination, save or authorization state is owned here.
 export function topicPresentationFacts(overview,sort='desc'){
@@ -10,25 +13,33 @@ export function topicPresentationFacts(overview,sort='desc'){
 
 export class TopicWorkspacePresentation {
  constructor(owner){
-  this.owner=owner;this.root=document.getElementById('thought-document');this.moves=[];this.created=[];
+  this.owner=owner;this.topicId=owner.id;this.view=owner.view;this.root=document.getElementById('thought-document');this.moves=[];this.created=[];
+  const previous=readingOptions.get(owner);readingOptions.delete(owner);
   const get=id=>document.getElementById(id),move=(node,target)=>{if(!node)return;this.moves.push({node,parent:node.parentNode,next:node.nextSibling});target.append(node);},make=(tag,name,text)=>{const node=element(tag,name,text);this.created.push(node);return node;};
   this.root.classList.add('dvn-topic-composition');const title=this.root.querySelector('.topic-title-row'),toolbar=get('topic-toolbar'),menu=get('topic-menu').querySelector('.library-action-list');
   move(toolbar.querySelector('.library-history-tools'),menu);
   this.caption=make('p','dvn-topic-caption');title.after(this.caption);
   this.actions=make('div','dvn-topic-action-row');this.caption.after(this.actions);move(get('topic-original-tabs'),this.actions);move(toolbar,this.actions);move(get('topic-presentation'),this.actions);
   this.line=make('div','dvn-topic-coverage-row');this.coverage=make('p','dvn-topic-coverage');this.options=make('details','dvn-topic-options');const summary=make('summary','','阅读选项');this.options.append(summary);move(get('topic-reading-controls'),this.options);move(get('topic-outline'),this.options);move(get('revision-history'),this.options);this.line.append(this.coverage,this.options);this.actions.after(this.line);
+  this.options.open=previous?.topicId===this.topicId&&previous?.view===this.view&&previous.open===true;
   this.years=make('nav','dvn-topic-years');this.years.setAttribute('aria-label','年份');this.line.before(this.years);
   this.write=get('create-entry');this.writeLabel=this.write.textContent;this.write.textContent='写下想法';this.sync();
  }
  sync(){
   const owner=this.owner,page=owner.document,facts=topicPresentationFacts(owner.originalMode==='years'?owner.topicTimeline?.overview:page?.overview,owner.readingSort);this.caption.textContent=facts.caption;this.coverage.textContent=facts.coverage;
-  const content=owner.view==='original'&&owner.originalMode!=='years';this.line.hidden=owner.view!=='original';this.coverage.hidden=!content;this.years.hidden=!content;this.caption.hidden=!owner.id;
+  if(this.topicId!==owner.id||this.view!==owner.view){this.options.open=false;this.topicId=owner.id;this.view=owner.view;}
+  const content=owner.view==='original'&&owner.originalMode!=='years';this.line.hidden=!owner.id;this.coverage.hidden=!content;this.years.hidden=!content;this.caption.hidden=!owner.id;
   const signature=JSON.stringify([facts.years,[...owner.originalPane?.querySelectorAll('[data-expression-year]')||[]].map(node=>node.dataset.expressionYear)]);
   if(this.signature!==signature){this.signature=signature;this.years.replaceChildren();for(const year of facts.years){const button=element('button','',year==='unknown'?'时间未知':year);button.type='button';const target=()=>[...owner.originalPane?.children||[]].find(node=>node.dataset.expressionYear===year);button.disabled=!target();if(button.disabled)button.title='该年份尚未载入当前阅读窗口';button.addEventListener('click',()=>{const node=target();node?.scrollIntoView({block:'start',behavior:'instant'});node?.querySelector('h2')?.focus({preventScroll:true});});this.years.append(button);}}
   const state=owner.topicReader?.state(),before=document.getElementById('topic-continuous-before');if(state?.terminalPrevious&&!state.loadingPrevious&&!state.errorPrevious&&content)before.hidden=true;
  }
  dispose(){
   if(this.disposed)return;this.disposed=true;
+  readingOptions.set(this.owner,{topicId:this.topicId,view:this.view,open:this.options.open});
+  const active=document.activeElement,moved=this.moves.some(({node})=>node===active||node.contains(active));
   this.root.classList.remove('dvn-topic-composition');this.write.textContent=this.writeLabel;for(const {node,parent,next}of this.moves.toReversed())if(parent?.isConnected)parent.insertBefore(node,next?.parentNode===parent?next:null);for(const node of this.created)node.remove();
+  // Reparenting can blur the History invoker before the owner opens its dialog.
+  // Restore only synchronous move loss, never replace another control's focus.
+  if(moved&&active?.isConnected&&document.activeElement===document.body)active.focus({preventScroll:true});
  }
 }
