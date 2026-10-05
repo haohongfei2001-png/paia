@@ -33,7 +33,7 @@ html[data-paia-theme="dark"]{
 html{width:350px;min-width:350px}
 html[data-popup-view="document"]{width:min(350px,100vw);min-width:0}
 html,body{background:var(--paia-canvas);color:var(--paia-text)}
-body{width:100%;margin:0;padding:20px;overflow-x:hidden}
+body{width:100%;margin:0;padding:20px;overflow-x:hidden;font-family:inherit}
 header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
 .brand-mark{display:block;width:32px;height:32px;flex:0 0 32px;object-fit:contain}
 .brand-copy{min-width:0}

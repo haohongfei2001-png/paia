@@ -1,13 +1,20 @@
 // Read actual Chromium glyph fonts as well as CSS families. A declared fallback
 // stack alone does not establish which CJK face painted a page.
+import {eventually} from './fake-chatgpt.mjs';
 export async function renderedTypography(page,selectors){
  const client=await page.context().newCDPSession(page),rows=[];
  try{
   await client.send('DOM.enable');await client.send('CSS.enable');
-  const {root}=await client.send('DOM.getDocument',{depth:0});
   for(const selector of selectors){
-   const {nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector});
-   if(!nodeId)throw Error('Missing typography target: '+selector);
+   let nodeId;
+   // The real navigator may replace its tree after an ordinary data refresh.
+   // Each glyph read must acquire the current node; an absent target never passes.
+   await page.locator(selector).first().waitFor({state:'visible'});
+   await eventually(async()=>{
+    const {root}=await client.send('DOM.getDocument',{depth:0});
+    ({nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector}));
+    return nodeId>0;
+   },'current typography target: '+selector);
    const {fonts}=await client.send('CSS.getPlatformFontsForNode',{nodeId});
    const geometry=await page.locator(selector).first().evaluate(node=>{
     const s=getComputedStyle(node),b=node.getBoundingClientRect(),r=document.createRange();r.selectNodeContents(node);

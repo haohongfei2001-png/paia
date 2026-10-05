@@ -86,6 +86,7 @@ for(const variant of ['source','release'])test(`D7 existing history import appea
    });
    try{
     await dialog.evaluate(node=>{node.scrollTop=0;});await frame(page);const top=await measure(page);
+    receipt.lastMeasurement={id,actual:top};await persist();
     assert.equal(top.dialog.backgroundColor,dark?'rgb(23, 29, 40)':'rgb(255, 255, 255)');
     assert.equal(top.dialog.color,dark?'rgb(232, 237, 247)':'rgb(23, 35, 60)');
     assert.equal(top.steps.color,dark?'rgb(176, 189, 208)':'rgb(99, 114, 138)');

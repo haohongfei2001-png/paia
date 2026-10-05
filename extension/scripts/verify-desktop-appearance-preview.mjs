@@ -144,7 +144,13 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
  try{
   await persist('PENDING');await page.locator('#consent-check').check();await page.locator('#enable-consent').click();if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();
   await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',fontSize:'standard',readingWidth:'standard'}});
-  for(let i=0;i<3;i++)await h.open({id:'dvn-preview-context-'+i,title:titles[i],base:1609459200+i*86400,messages:[{id:'dvn-preview-input-'+i,text:sample[i]}]});
+  // Complete capture first, then close only these fixture pages. Their continuing
+  // scan diagnostics must not race the later strict presentation no-write proof.
+  for(let i=0;i<3;i++){
+   const capture=await h.open({id:'dvn-preview-context-'+i,title:titles[i],base:1609459200+i*86400,messages:[{id:'dvn-preview-input-'+i,text:sample[i]}]});
+   await eventually(async()=>(await h.state()).records.some(row=>row.sourceMessageId==='dvn-preview-input-'+i&&row.originalText===sample[i]),'exact synthetic fixture captured before closing its page');
+   await capture.close();
+  }
   await eventually(async()=>(await h.state()).records.length===3);const originals=structuredClone((await h.state()).records);await page.bringToFront();
   const seed=await page.evaluate(async sample=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),store=new OrganizerStore(chrome.storage.local),topic=await store.createTopic({name:'职业方向',operationId:crypto.randomUUID()}),evidence=[],ids=[];
