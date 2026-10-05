@@ -14,9 +14,9 @@
   if(!host)return false;
   const state=globalThis.PAIAPromptSurface?.nextPlacement();
   if(!state||state.dragging){hide();return false;}
-  const p=globalThis.PAIANextPromptLayout(innerWidth,innerHeight,state.orb,state.card,state.form,height);
+  const p=globalThis.PAIANextPromptLayout(Math.min(innerWidth,document.documentElement.clientWidth),innerHeight,state.orb,state.card,state.form,height);
   if(!p){hide();return false;}
-  const style=`position:fixed;left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px;z-index:2147483646;`;
+  const style=`position:fixed;left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px;z-index:2147483646;color-scheme:${state.dark?'dark':'light'};`;
   if(host.getAttribute('style')!==style)host.setAttribute('style',style);return true;
  }
  async function show(manual=false){
@@ -24,7 +24,7 @@
   const ticket=epoch,id=candidate;
   try{const result=await rpc('PRESENT',{id});if(ticket!==epoch||host||!result.safe||!idle())return {shown:false};
    nonce=crypto.randomUUID();host=document.createElement('div');host.dataset.paiaNextPrompt='';const shadow=host.attachShadow({mode:'closed'});
-   frame=document.createElement('iframe');frame.title='来自本条回复的可选回复';frame.allow='clipboard-write';frame.src=chrome.runtime.getURL('ui/prompt-surface.html')+'#next-'+nonce;frame.style.cssText='border:0;width:100%;height:100%;color-scheme:normal;background:transparent;';shadow.append(frame);document.documentElement.append(host);
+   frame=document.createElement('iframe');frame.title='来自本条回复的可选回复';frame.allow='clipboard-write';frame.src=chrome.runtime.getURL('ui/prompt-surface.html')+'#next-'+nonce;frame.style.cssText='border:0;width:100%;height:100%;color-scheme:inherit;background:transparent;';shadow.append(frame);document.documentElement.append(host);
    if(!layout())return {shown:false};return {shown:true};
   }catch{return {shown:false};}
  }
