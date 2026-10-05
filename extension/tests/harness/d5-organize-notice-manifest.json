@@ -60,5 +60,27 @@
     "organize": 16.089
   },
   "existingTotalSeconds": 677.097,
-  "newFixtureSeconds": "NOT_YET_MEASURED"
+  "newFixtureSeconds": "NOT_YET_MEASURED",
+  "d7Scope": "The old candidate marker and visual receipts remain historical. Current full certification retains these complete owner files with explicitly labelled synthetic fixture/current held-route names.",
+  "d7Current": {
+    "uir-03-ai-presentation-chrome-e2e.test.mjs": [
+      "D7 synthetic worker notices preserve real Stop and stale refusal (release)",
+      "D7 synthetic worker notices preserve real Stop and stale refusal (source)",
+      "UIR-03 Organized presentation uses saved clues and true runtime states without hidden Provider work in source and built release Chrome (synthetic worker fixture)",
+      "VS-05 long Topic remains interactive across a held AI request, navigation and restrained/reduced motion in source and built release (synthetic worker fixture)"
+    ],
+    "ux-r5-ai-organize-chrome-e2e.test.mjs": [
+      "UX-R5 ON-01 current B-02 refusal; historical Source purge invalidates source-bound output without regeneration (synthetic worker fixture)",
+      "UX-R5 ON-01 current held scope preserves Local-only refusal with zero requests",
+      "UX-R5 ON-01 keeps Original readable, scopes generation to one Topic and reuses cache without provider calls (synthetic worker fixture)",
+      "UX-R5 ON-01 leaving during first generation never duplicates the request or navigates back (synthetic worker fixture)"
+    ],
+    "uir-03-ai-candidate-chrome-e2e.test.mjs": [
+      "D7 synthetic saved candidate preserves literal text, decisions and reading preferences (release)",
+      "D7 synthetic saved candidate preserves literal text, decisions and reading preferences (source)",
+      "UIR-03 candidate comparison keeps current work distinct, stages choices locally and fails closed when stale in source and built release Chrome (synthetic worker fixture)",
+      "VS-05 all six authored AI lists and deliberate empty overview survive collapsed/hidden panes and route reopen in source and built release (synthetic worker fixture)",
+      "VS-05 held Write and synthetic worker fixture preserve cross-Conversation Source and human candidate work in source and built release"
+    ]
+  }
 }

@@ -1,3 +1,7 @@
+## D7 current full-certification contract synchronization — 2026-10-05
+
+[PR170](https://github.com/haohongfei2001-png/paia/pull/170) is a test-only follow-through on main `80f3201d`. Its unchanged-executable baseline reproduces obsolete UI/reference assertions independently of Prompt Reuse. [The finite mapping](implementation/desktop-vnext/D7-CURRENT-CERTIFICATION.md) keeps all71 current browser files and unchanged six18-minute shards, preserves historical withdrawn contracts, and retains real data/edit/permission/recovery assertions plus current unavailable-page negatives. Runtime, external PR164 and pending icon work are unchanged. Corrected exact-head full Certification and independent review are required; no full PASS or deferred functionality is claimed before those gates.
+
 # D7 UI consistency — bounded implementation
 
 The [current UI batch](implementation/desktop-vnext/D7-UI-COHERENCE.md) follows

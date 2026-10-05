@@ -1,10 +1,11 @@
 // Paired canonical/production evidence. Documentation stays offline and outside runtime.
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from './fake-chatgpt.mjs';
 import {openArchiveWindow} from './archive-navigator.mjs';
 import {openD5Reference} from './d5-shell-reference.mjs';
+import {openD7Reference} from './d7-archive-reference.mjs';
 import {openReaderDialogReference,readerDialogContract} from './d7-reader-dialog-reference.mjs';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 const directory='work/qa-dvn-direct-edit/d5-reading-surfaces';
@@ -17,7 +18,7 @@ async function settle(p,ref,width,theme){
  await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:theme}});await eventually(()=>p.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,theme));await ref.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
  await p.emulateMedia({reducedMotion:'reduce'});await ref.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 }
-// A07/A08 now use approved D6.2 originals; Selection retains its existing owner.
+// D6.2 originals supply the visual reference; Selection retains its native owner.
 // A compact production derivative is never presented as a new compact artboard.
 async function settleModal(p,width,theme){
  await p.setViewportSize({width,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:theme}});await eventually(()=>p.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,theme));await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(async()=>{await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
@@ -28,6 +29,24 @@ async function retain(p,ref,variant,target,width,theme,production,reference){
  await p.screenshot({path:stem+'-production.png',fullPage:false,animations:'disabled'});await ref.screenshot({path:stem+'-reference.png',fullPage:false,animations:'disabled'});
 }
 const near=(actual,expected,label)=>assert.ok(Math.abs(actual-expected)<=2,`${label}: ${actual} vs ${expected}`);
+async function openSelectionReference(h,theme){
+ const reference=await openD7Reference(h,{screen:'A03',width:1440,theme});
+ const master=await reference.page.evaluate(()=>{
+  const surface=document.querySelector('svg > rect[x="765"][y="250"]'),label=surface?.nextElementSibling;
+  if(!surface||label?.tagName!=='text')throw Error('Expected unchanged A03 selection toolbar and first action');
+  return {width:Number(surface.getAttribute('width')),height:Number(surface.getAttribute('height')),radius:Number(surface.getAttribute('rx')),fontSize:Number(label.getAttribute('font-size')),background:getComputedStyle(surface).fill,borderColor:getComputedStyle(surface).stroke};
+ });
+ assert.deepEqual(master,{width:350,height:40,radius:8,fontSize:12,background:theme==='dark'?'rgb(23, 29, 40)':'rgb(255, 255, 255)',borderColor:theme==='dark'?'rgb(48, 59, 76)':'rgb(230, 235, 242)'},'unchanged A03 geometry and approved light/dark palette');
+ const base=new URL('../../docs/consumer-product-v1/desktop-vnext/d6-final-visual-master/',import.meta.url),[tokens,design]=await Promise.all([readFile(new URL('tokens.css',base),'utf8'),readFile(new URL('DESIGN_SYSTEM.md',base),'utf8')]);
+ const token=name=>{const value=tokens.match(new RegExp(`--d6-${name}:([^;}]+)`));assert.ok(value,'approved D6 token '+name);return value[1];};
+ assert.ok(design.includes('`0 4px 18px rgba(23,35,60,.10)` for menus'),'approved transient elevation remains the oracle');
+ return {...reference,master,borderRadius:token('modal-radius'),fontSize:token('ui'),boxShadow:'rgba(23, 35, 60, 0.1) 0px 4px 18px 0px'};
+}
+function selectionContract(reference,owner){
+ return {...owner,authority:'D6.2 A03 original + DESIGN_SYSTEM/tokens; retained native selection geometry',name:reference.name,sha256:reference.sha256,paletteDerived:reference.paletteDerived,referenceWidth:1440,master:reference.master,
+  surface:{...owner.surface,borderColor:reference.master.borderColor,borderRadius:reference.borderRadius,background:reference.master.background,boxShadow:reference.boxShadow},control:{...owner.control,fontSize:reference.fontSize},
+  retainedOwnerDifferences:['The native owner retains its 4px padding, 1px border, zero gap, 36px/44px hit targets and 13px/19.5px action type; the drawing has a 40px face and 12px labels.','The existing owner uses the shared D6.2 10px modal-radius token; the unchanged A03 face has an 8px radius. This discrepancy is retained, not full A03 visual acceptance.','The toolbar anchors to the exact native range and clamps/reflows to the viewport. Compact/dark derivatives do not replace the unchanged 1440px light master.']};
+}
 export async function compareD5ReadingSurfaces({variant,extensionPath}){
  const h=await FakeChatGPT.start(extensionPath?{extensionPath}:{}),p=h.archive,refs=[],rows=[],failures=[];
  const audit=(label,check)=>{try{check();}catch(error){failures.push({label,error:error.message});}};
@@ -36,6 +55,7 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
   await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const selectionRef=await openD5Reference(h,'selection');refs.push(selectionRef);
   const canonical=await selectionRef.evaluate(()=>({title:document.querySelector('.main h1').textContent,body:document.querySelector('.input-entry .prose').innerText}));
+  const selectionRefs={};for(const theme of ['light','dark']){selectionRefs[theme]=await openSelectionReference(h,theme);refs.push(selectionRefs[theme].page);}await p.bringToFront();
   const fixture={id:'d5-surfaces-'+variant,title:canonical.title,base:Date.parse('2023-04-27T22:11:00Z')/1000,messages:[{id:'d5-surface-input-'+variant,text:canonical.body}]};
   await h.open(fixture);await eventually(async()=>(await h.state()).records.some(r=>r.originalText===canonical.body&&r.sourceSentAt===new Date(fixture.base*1000).toISOString()));
   await openArchiveWindow(p,{text:canonical.title});await eventually(()=>p.locator('#scope-search').isEnabled());await rpc(p,'SET_ENABLED',{enabled:false});
@@ -48,8 +68,8 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
    await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
    await field.evaluate(e=>{e.focus();const range=document.createRange();range.selectNodeContents(e);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);document.dispatchEvent(new Event('selectionchange'));});
    await eventually(()=>p.locator('.reader-selection').isVisible());
-   const production=await styles(p,{surface:'.reader-selection',control:'.reader-selection button'}),reference=await styles(selectionRef,{surface:'.selectionbar',control:'.selectionbar button'});
-   await retain(p,selectionRef,variant,'selection',width,theme,production,reference);
+   const production=await styles(p,{surface:'.reader-selection',control:'.reader-selection button'}),reference=selectionContract(selectionRefs[theme],await styles(selectionRef,{surface:'.selectionbar',control:'.selectionbar button'}));
+   await retain(p,selectionRefs[theme].page,variant,'selection',width,theme,production,reference);
    audit(`Selection ${width}/${theme}`,()=>{for(const key of ['padding','borderWidth','borderColor','borderRadius','background','boxShadow','gap'])assert.equal(production.surface[key],reference.surface[key],'selection '+key);
    for(const key of ['fontSize','lineHeight','borderWidth','borderRadius'])assert.equal(production.control[key],reference.control[key],'selection control '+key);
    assert.ok(production.surface.x>=14&&production.surface.x+production.surface.width<=width-14);assert.ok(production.surface.y>=14&&production.surface.y+production.surface.height<=886);assert.ok(production.surface.overflow<=2);

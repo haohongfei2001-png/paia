@@ -1,0 +1,35 @@
+// Historical D5 reference contract, preserved verbatim from the pre-D7 registration.
+// This is retained evidence, not current primary-route acceptance.
+import {compareD5Candidate} from './harness/d5-candidate-comparison.mjs';
+import {confirmOrganizeScope,adoptFirstCandidate} from './harness/ai-reviewed-browser.mjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdir} from 'node:fs/promises';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
+
+const execFileAsync=promisify(execFile);
+const op=()=>crypto.randomUUID();
+const rpc=async(page,type,fields={})=>{const response=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(response.ok,true,JSON.stringify(response));return response.data;};
+const requestOf=body=>JSON.parse(body.messages[1].content);
+const aiOutput=(request,label,index)=>({choices:[{finish_reason:'stop',message:{content:JSON.stringify({topicId:request.topicCandidates[0].id,blockSummary:`${label} 主题速览 ${index}`,currentView:`${label} 当前理解 ${index}`,keyInformation:[],preferences:[],decisions:[],judgments:[],openQuestions:[],possibleEvolution:[],evidenceEntryIds:request.inputs.map(row=>row.ref)})}}]});
+async function ready(h){const page=h.archive,action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()),'UIR-03 consent action is available');await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-03 consent is durable');if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await rpc(page,'PAIA_MEMORY_SETTINGS',{options:{externalAccess:true,localOnly:false}});await rpc(page,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-uir03-candidate-key'}});await mkdir('work/ux-r3',{recursive:true});return page;}
+async function createTopic(page,label){const topic=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:`${label} 候选比较`,operationId:op()}});await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL 当前稿与更新候选必须保持清楚分离。`}});const readback=await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id});assert.equal(readback.id,topic.id);assert.equal(readback.name,`${label} 候选比较`);return readback;}
+async function settleThoughtHome(page){const nav=page.locator('[data-view="thoughts"]').first(),back=page.locator('#back'),list=page.locator('#thought-list'),documentView=page.locator('#thought-document');if(await nav.getAttribute('aria-current')!=='page')await nav.click();await page.locator('#thought-panel').waitFor({state:'visible'});await eventually(async()=>await list.isVisible()||await documentView.isVisible(),'Thought route settles before returning to its home');if(await documentView.isVisible()){await back.waitFor({state:'visible'});assert.match(await back.textContent(),/返回思想库/,'back belongs to the active Thought route');await back.click();}await list.waitFor({state:'visible'});}
+async function openTopic(page,topic){const nav=page.locator('[data-view="thoughts"]').first(),documentView=page.locator('#thought-document'),list=page.locator('#thought-list'),heading=page.locator('#topic-heading h1').filter({hasText:topic.name});if(await nav.getAttribute('aria-current')!=='page')await nav.click();await page.locator('#thought-panel').waitFor({state:'visible'});await eventually(async()=>await heading.isVisible()||await documentView.isVisible()||await list.isVisible(),'Thought route settles before Topic selection');if(await heading.isVisible())return;if(await documentView.isVisible())await settleThoughtHome(page);const tile=page.locator(`[data-topic-id="${topic.id}"]`);await tile.waitFor({state:'visible'});await tile.click();await heading.waitFor();}
+async function reopenTopic(page,topic){await settleThoughtHome(page);await openTopic(page,topic);}
+async function organized(page){const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch enabled');if(!await toggle.isChecked())await toggle.check();}
+async function confirmGeneration(page){await page.getByRole('button',{name:'生成 AI整理',exact:true}).click();const dialog=page.locator('#library-dialog[open]');await dialog.waitFor();await dialog.locator('select[name="approval"]').selectOption('confirm');await dialog.locator('button[type="submit"]').click();}
+async function state(page,topicId){const result=await rpc(page,'GET_AI_PRESENTATION_STATUS');return result.topics.find(row=>row.topicId===topicId);}
+async function updateCandidate(page,h,topic,body,expectedCalls){await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body}});await reopenTopic(page,topic);await organized(page);const update=page.locator('#ai-library-update');await update.waitFor({state:'visible'});await update.click();await confirmOrganizeScope(page);await page.locator('[data-ai-candidate]').waitFor();await eventually(()=>Promise.resolve(h.deepSeekRequests.length===expectedCalls),`candidate Provider call ${expectedCalls}`);}
+async function shot(page,name){await page.screenshot({path:`work/ux-r3/${name}.png`,fullPage:true});}
+async function pairGeometry(page,field='blockSummary'){return page.locator(`[data-ai-candidate-field="${field}"] [data-candidate-version]`).evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};}));}
+
+// Isolated D5 presentation fixtures keep the original interaction journeys unchanged.
+for(const variant of ['source','release'])test(`D5 O04/O05 comparison fields preserve literal text, decisions and preferences (${variant})`,{timeout:180000},async()=>{
+ if(variant==='release')await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+ let calls=0,h;const label='D5_COMPARE_'+variant.toUpperCase();
+ try{h=await FakeChatGPT.start({...(variant==='release'?{extensionPath:'work/current-release'}:{}),onboarding:true,deepSeekFixture:async body=>{const output=aiOutput(requestOf(body),label,++calls),value=JSON.parse(output.choices[0].message.content);value.blockSummary+='\n<literal> 👩‍💻 é\n条件仍需核对。';value.currentView+='\n<literal> 👩‍💻 é\n不把未定选择写成结论。';output.choices[0].message.content=JSON.stringify(value);return output;}});const page=await ready(h),topic=await createTopic(page,label);await openTopic(page,topic);await organized(page);await confirmGeneration(page);await adoptFirstCandidate(page);await updateCandidate(page,h,topic,label+' 合成补充材料：保留不确定性与原话边界。',2);await compareD5Candidate(h,variant,topic.id);assert.equal(calls,2);assert.equal(h.deepSeekRequests.length,2);assert.equal(h.extensionNetworkRequests,2);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
+ finally{await h?.close();}
+});

@@ -1,5 +1,4 @@
-import {confirmOrganizeScope,adoptFirstCandidate} from './harness/ai-reviewed-browser.mjs';
-import {inspectOrganizeNotices} from './harness/d5-organize-notices.mjs';
+import {assertHeldOrganizeScope,startSyntheticAIWorkerFixture,setAIView,adoptFirstCandidate} from './harness/ai-reviewed-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -19,7 +18,6 @@ async function readyAI(h){
 }
 async function createTopic(page,label){const topic=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:`${label} Organized 主题`,operationId:op()}});await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL_A 第一段原话必须在整理进行中持续可读。`}});await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL_B 第二段原话用于证据线索，不是虚构阶段。`}});return topic;}
 async function openTopic(page,topic){await nav(page,'thoughts');await page.locator('#thought-panel').waitFor({state:'visible'});await page.locator(`[data-topic-id="${topic.id}"]`).click();await page.locator('#topic-heading h1').filter({hasText:topic.name}).waitFor();}
-async function confirmGeneration(page){await page.getByRole('button',{name:'生成 AI整理',exact:true}).click();const dialog=page.locator('#library-dialog[open]');await dialog.waitFor();await dialog.locator('select[name="approval"]').selectOption('confirm');await dialog.locator('button[type="submit"]').click();}
 async function shot(page,name,{fullPage=true}={}){await mkdir('work/ux-r3',{recursive:true});await page.screenshot({path:`work/ux-r3/${name}.png`,fullPage});}
 async function mappedStates(page){return page.evaluate(async()=>{const {aiTopicStatusModel}=await import(chrome.runtime.getURL('ui/ai-presentation.js'));const selected={presentation:{revision:1},pending:false,candidate:null};return {
   prepared:aiTopicStatusModel({view:'ai',hasTopic:true,aiPending:true,runtime:{state:'prepared'},selected}),
@@ -34,19 +32,19 @@ async function mappedStates(page){return page.evaluate(async()=>{const {aiTopicS
  };});}
 
 async function sourceJourney(page,h,topic,releaseFirst){
- await page.setViewportSize({width:1440,height:900});await openTopic(page,topic);const original=page.locator('#original-reading-body [data-entry-field="body"]').first();await original.waitFor();const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch enabled');await toggle.check();await page.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0,'opening AI view does not call Provider');const originalDiag=await original.evaluate(el=>{const chain=[];for(let n=el;n;n=n.parentElement){const s=getComputedStyle(n),r=n.getBoundingClientRect();chain.push({tag:n.tagName,id:n.id,cls:n.className,hidden:n.hidden,display:s.display,visibility:s.visibility,opacity:s.opacity,width:r.width,height:r.height});if(n.id==='thought-document')break;}return {connected:el.isConnected,text:el.textContent,chain};}).catch(error=>({error:String(error),count:0}));console.log('UIR03_ORIGINAL_DIAG '+JSON.stringify(originalDiag));assert.equal(await original.isVisible(),true,'Original stays readable before first generation');
+ await page.setViewportSize({width:1440,height:900});await openTopic(page,topic);const original=page.locator('#original-reading-body [data-entry-field="body"]').first();await original.waitFor();const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch enabled');await setAIView(page,true);await page.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0,'opening AI view does not call Provider');const originalDiag=await original.evaluate(el=>{const chain=[];for(let n=el;n;n=n.parentElement){const s=getComputedStyle(n),r=n.getBoundingClientRect();chain.push({tag:n.tagName,id:n.id,cls:n.className,hidden:n.hidden,display:s.display,visibility:s.visibility,opacity:s.opacity,width:r.width,height:r.height});if(n.id==='thought-document')break;}return {connected:el.isConnected,text:el.textContent,chain};}).catch(error=>({error:String(error),count:0}));console.log('UIR03_ORIGINAL_DIAG '+JSON.stringify(originalDiag));assert.equal(await original.isVisible(),true,'Original stays readable before first generation');
  const states=await mappedStates(page);assert.equal(states.prepared.state,'prepared');assert.match(states.prepared.text,/准备当前主题/);assert.equal(states.sent.state,'sent');assert.match(states.sent.text,/已发送给 DeepSeek/);assert.equal(states.received.state,'response_received');assert.match(states.received.text,/收到整理结果/);assert.equal(states.validated.state,'validated');assert.match(states.validated.text,/已校验/);assert.equal(states.unavailable.state,'unavailable');assert.match(states.unavailable.text,/暂时无法确认/);assert.equal(states.candidate.state,'candidate');assert.match(states.candidate.text,/尚未被替换/);assert.equal(states.stale.state,'stale');assert.equal(states.unknown.state,'outcome_unknown');assert.match(states.unknown.text,/不会自动重试/);assert.equal(states.failed.state,'failed');assert.match(states.failed.text,/网络连接失败/);
- await confirmGeneration(page);await eventually(()=>Promise.resolve(h.deepSeekRequests.length===1),'one explicit Provider fixture request');await eventually(async()=>(await page.locator('#ai-topic-status').getAttribute('data-state'))==='sent','existing status owner reaches real sent state',12000);assert.match(await page.locator('#ai-topic-status').textContent(),/已发送给 DeepSeek/);assert.equal(await page.locator('[data-ai-first-generation]').count(),0,'first-generation action is absent while the explicit request is in flight');assert.equal(await original.isVisible(),true,'Original remains readable while the explicit request is in flight');assert.equal(await original.evaluate(el=>!!el.closest('[inert]')),false,'visible Original is also interactive while AI runs');await shot(page,'uir-03-ai-processing-1440x900-light');
+ await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});await eventually(()=>Promise.resolve(h.deepSeekRequests.length===1),'one explicit Provider fixture request');await eventually(async()=>(await page.locator('#ai-topic-status').getAttribute('data-state'))==='sent','existing status owner reaches real sent state',12000);assert.match(await page.locator('#ai-topic-status').textContent(),/已发送给 DeepSeek/);assert.equal(await page.locator('[data-ai-first-generation]').count(),0,'first-generation action is absent while the explicit request is in flight');assert.equal(await original.isVisible(),true,'Original remains readable while the explicit request is in flight');assert.equal(await original.evaluate(el=>!!el.closest('[inert]')),false,'visible Original is also interactive while AI runs');await shot(page,'uir-03-ai-processing-1440x900-light');
  releaseFirst();await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:'UIR03_AI 主题速览'}).waitFor();assert.equal(h.deepSeekRequests.length,1);assert.equal(await page.locator('h1:visible').count(),1,'Organized Topic keeps one visible h1');await page.getByRole('heading',{name:'思考线索',exact:true}).waitFor();assert.equal(await page.getByRole('heading',{name:'思考演化',exact:true}).count(),0,'Organized view no longer labels saved clues as thought evolution stages');const clueHeadings=await page.locator('.evolution-stage>h2').allTextContents();assert.ok(clueHeadings.some(text=>text.startsWith('线索 ')));assert.equal(clueHeadings.some(text=>text.startsWith('第 ')),false,'clues are not numbered as fixed stages');assert.match(await page.locator('.evolution-excerpt .entry-prose').first().textContent(),/UIR03_AI_ORIGINAL_/,'related original evidence remains directly readable');
  const legacy=page.locator('.ai-legacy').filter({has:page.locator('summary',{hasText:'其他已保存的整理'})}).first();await legacy.locator('summary').click();await page.getByRole('heading',{name:'已有信息',exact:true}).waitFor();assert.match(await legacy.textContent(),/UIR03_AI 已有信息/,'non-empty saved AI field remains available');await shot(page,'uir-03-organized-1440x900-light');
  await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'dark'}});await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark');assert.notEqual(await page.locator('.ai-overview').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)','dark Organized view does not force a white overview');await shot(page,'uir-03-organized-1440x900-dark');await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light');
- await page.emulateMedia({reducedMotion:'reduce'});await toggle.uncheck();await original.waitFor();await toggle.check();await page.locator('[data-ai-field="blockSummary"]').waitFor();assert.equal(h.deepSeekRequests.length,1,'cached view switching remains local only');for(const [width,height]of [[1024,768],[390,844]]){await page.setViewportSize({width,height});await pause(100);const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(overflow<=2,`${width}px Organized view has no root horizontal overflow; got ${overflow}`);}
+ await page.emulateMedia({reducedMotion:'reduce'});await setAIView(page,false);await original.waitFor();await setAIView(page,true);await page.locator('[data-ai-field="blockSummary"]').waitFor();assert.equal(h.deepSeekRequests.length,1,'cached view switching remains local only');for(const [width,height]of [[1024,768],[390,844]]){await page.setViewportSize({width,height});await pause(100);const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(overflow<=2,`${width}px Organized view has no root horizontal overflow; got ${overflow}`);}
  assert.equal(h.deepSeekRequests.length,1);assert.equal(h.extensionNetworkRequests,1,'only the explicitly confirmed DeepSeek fixture request leaves the extension');assert.equal(h.externalRequests,0,'there are no unexpected external requests');assert.deepEqual(h.errors,[]);
 }
 
-async function releaseJourney(page,h,topic){await page.setViewportSize({width:1440,height:900});await openTopic(page,topic);const toggle=page.locator('#ai-presentation-toggle');await toggle.check();await page.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0);await confirmGeneration(page);await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:'UIR03_RELEASE_AI 主题速览'}).waitFor();await page.getByRole('heading',{name:'思考线索',exact:true}).waitFor();assert.equal(await page.getByRole('heading',{name:'思考演化',exact:true}).count(),0);assert.equal(h.deepSeekRequests.length,1);await shot(page,'uir-03-current-release-organized-1440x900-light');assert.equal(h.extensionNetworkRequests,1);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
+async function releaseJourney(page,h,topic){await page.setViewportSize({width:1440,height:900});await openTopic(page,topic);const toggle=page.locator('#ai-presentation-toggle');await setAIView(page,true);await page.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0);await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:'UIR03_RELEASE_AI 主题速览'}).waitFor();await page.getByRole('heading',{name:'思考线索',exact:true}).waitFor();assert.equal(await page.getByRole('heading',{name:'思考演化',exact:true}).count(),0);assert.equal(h.deepSeekRequests.length,1);await shot(page,'uir-03-current-release-organized-1440x900-light');assert.equal(h.extensionNetworkRequests,1);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
 
-test('UIR-03 Organized presentation uses saved clues and true runtime states without hidden Provider work in source and built release Chrome',{timeout:300000},async()=>{
+test('UIR-03 Organized presentation uses saved clues and true runtime states without hidden Provider work in source and built release Chrome (synthetic worker fixture)',{timeout:300000},async()=>{
  let releaseFirst,source;const firstGate=new Promise(resolve=>{releaseFirst=resolve;});
  try{source=await FakeChatGPT.start({onboarding:true,deepSeekFixture:async body=>{const request=requestOf(body);await firstGate;return aiOutput(request,'UIR03_AI');}});const page=await readyAI(source),topic=await createTopic(page,'UIR03_AI');await sourceJourney(page,source,topic,releaseFirst);}finally{releaseFirst?.();await source?.close();}
  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
@@ -76,13 +74,13 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  const toggle=page.locator('#ai-presentation-toggle'),original=page.locator('#original-reading-body [data-entry-field="body"]').filter({hasText:label+'_LONG_00'}).first();
  await original.waitFor();const originalText=await original.textContent();
  const authorityBefore=await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id});
- await eventually(()=>toggle.isEnabled(),'long Topic view switch is ready');await toggle.check();await confirmGeneration(page);
+ await eventually(()=>toggle.isEnabled(),'long Topic view switch is ready');await setAIView(page,true);await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});
  await eventually(()=>Promise.resolve(h.deepSeekRequests.length===1),'one explicitly scoped long Topic request');
  await eventually(async()=>await page.locator('#ai-topic-status').getAttribute('data-state')==='sent','real provider sent state for held request');
  await checkpoint('sent');
  assert.equal(await original.evaluate(el=>!!el.closest('[inert]')),false,'AI request cannot make retained Original inert');
  await original.selectText();assert.match(await page.evaluate(()=>getSelection().toString()),new RegExp(label+'_LONG_00'),'Original selection works before provider completion');
- await toggle.uncheck();await original.waitFor();
+ await setAIView(page,false);await original.waitFor();
  assert.equal(await page.locator('#ai-topic-status').getAttribute('data-state'),'sent','Original mode retains truthful scoped running status');
  const search=page.locator('#topic-search');await search.fill(label+'_LONG_00');
  await eventually(async()=>await page.locator('#topic-search-count').textContent()==='1 条匹配内容','local Topic search works during provider request');
@@ -105,7 +103,7 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  assert.equal(await original.evaluate(el=>!!el.closest('[inert]')),false,'leave and return restores usable Original before provider completion');
  assert.equal(h.deepSeekRequests.length,1,'leave and return never retries provider');
  await checkpoint('returned-original');
- await toggle.check();await eventually(async()=>await page.locator('#ai-topic-status').getAttribute('data-state')==='sent','return resumes actual running state');
+ await setAIView(page,true);await eventually(async()=>await page.locator('#ai-topic-status').getAttribute('data-state')==='sent','return resumes actual running state');
  releaseRequest();await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览'}).waitFor();
  const row=(await rpc(page,'GET_AI_PRESENTATION_STATUS')).topics.find(row=>row.topicId===topic.id);
  assert.ok(row.presentation);assert.equal(row.pending,true,'one bounded generation does not claim whole long Topic coverage');
@@ -129,19 +127,19 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
    }));return transition;
   };
  });
- await page.emulateMedia({reducedMotion:'reduce'});await toggle.uncheck();await original.waitFor();await toggle.check();await page.locator('[data-ai-field="blockSummary"]').waitFor();
+ await page.emulateMedia({reducedMotion:'reduce'});await setAIView(page,false);await original.waitFor();await setAIView(page,true);await page.locator('[data-ai-field="blockSummary"]').waitFor();
  assert.equal(await page.evaluate(()=>window.__vs05Transitions.length),0,'reduced motion bypasses visual snapshots entirely');
- await page.emulateMedia({reducedMotion:'no-preference'});await toggle.uncheck();await original.waitFor();await toggle.check();await page.locator('[data-ai-field="blockSummary"]').waitFor();
+ await page.emulateMedia({reducedMotion:'no-preference'});await setAIView(page,false);await original.waitFor();await setAIView(page,true);await page.locator('[data-ai-field="blockSummary"]').waitFor();
  const transitions=await page.evaluate(async()=>{const reads=await Promise.all(window.__vs05TransitionReads);await Promise.all(window.__vs05Transitions.map(t=>t.finished));return reads;});
  assert.equal(transitions.length,2,'cached view changes use exactly one transition each');
  for(const motion of transitions){assert.equal(motion.host,'paia-memory');assert.equal(motion.workspace,'','navigation and status are outside the snapshot');assert.equal(motion.duration,'0.22s');assert.equal(motion.filter,'none');assert.equal(motion.mask,'none');assert.equal(motion.transform,'none');}
  assert.equal(await page.evaluate(()=>document.documentElement.classList.contains('paia-recomposing')),false,'completed motion releases class');
  assert.equal(await page.locator('#topic-body').evaluate(el=>el.style.viewTransitionName),'','completed motion releases host name');
- await page.emulateMedia({reducedMotion:'reduce'});await toggle.uncheck();await original.waitFor();assert.equal(await original.textContent(),originalText,'long Original text survives all switches');
+ await page.emulateMedia({reducedMotion:'reduce'});await setAIView(page,false);await original.waitFor();assert.equal(await original.textContent(),originalText,'long Original text survives all switches');
  assert.deepEqual((await rpc(page,'GET_AI_PRESENTATION_STATUS')).topics.find(row=>row.topicId===topic.id).presentation,savedPresentation,'read-only motion/switches do not silently rewrite saved AI fields or revision');
  // Editing while expanded, then collapsing before blur/save, retains real
  // authored lines. Exercise the same production editor and server readback.
- await toggle.check();await page.locator('[data-ai-field="blockSummary"]').waitFor();
+ await setAIView(page,true);await page.locator('[data-ai-field="blockSummary"]').waitFor();
  const legacy=page.locator('#ai-reading-body .ai-legacy').filter({has:page.locator('summary',{hasText:'其他已保存的整理'})}).first();
  await legacy.locator('summary').click();
  const authored=label+' 人工保留第一行\n第二行条件 remains explicit.';
@@ -149,13 +147,13 @@ async function longRunningJourney(page,h,topic,label,releaseRequest){
  await legacy.locator('[data-ai-field="keyInformation"]').first().fill(authored);
  await legacy.locator('summary').click();
  await eventually(async()=>{const current=(await rpc(page,'GET_AI_PRESENTATION_STATUS')).topics.find(row=>row.topicId===topic.id)?.presentation;return current?.keyInformation[0]?.text===authored;},'collapsed authored multiline draft is durably saved');
- await toggle.uncheck();await original.waitFor();assert.equal(await original.textContent(),originalText,'saving Organized edit never changes the full Original');
+ await setAIView(page,false);await original.waitFor();assert.equal(await original.textContent(),originalText,'saving Organized edit never changes the full Original');
  assert.equal(h.deepSeekRequests.length,1);assert.equal(h.extensionNetworkRequests,1);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  await shot(page,label.toLowerCase()+'-long-running-1024');
  }catch(error){await checkpoint('failed').catch(diagnostic=>console.log('VS05_LONG_DIAGNOSTIC_UNAVAILABLE '+String(diagnostic)));console.log('VS05_LONG_RUNNING_BOUNDARY '+JSON.stringify(stages));throw error;}
 }
 
-test('VS-05 long Topic remains interactive across a held AI request, navigation and restrained/reduced motion in source and built release',{timeout:300000},async()=>{
+test('VS-05 long Topic remains interactive across a held AI request, navigation and restrained/reduced motion in source and built release (synthetic worker fixture)',{timeout:300000},async()=>{
  for(const [extensionPath,label]of [[undefined,'VS05_SOURCE'],['work/current-release','VS05_RELEASE']]){
   if(extensionPath)await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
   let releaseRequest,h;const gate=new Promise(resolve=>{releaseRequest=resolve;});
@@ -168,13 +166,61 @@ test('VS-05 long Topic remains interactive across a held AI request, navigation 
  }
 });
 
-for(const variant of ['source','release'])test(`D5 O02/O06 notices preserve real synthetic Stop and stale refusal (${variant})`,{timeout:180000},async()=>{
+// Current retained owner/worker compatibility. Historical D5 pixel comparisons
+// remain in the explicitly historical file; current state/control checks stay active.
+async function inspectCurrentOrganizeNotices(h,variant,{topic,ids,releaseRequest}){
+ const page=h.archive,notice=page.locator('#ai-topic-status'),original=await Promise.all(ids.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
+ const read=async()=>{const value=await rpc(page,'GET_AI_PRESENTATION_STATUS',{options:{topicId:topic.id}});return {runtime:value.runtime,row:value.topics[0]};};
+ const unchanged=async calls=>{assert.equal(h.deepSeekRequests.length,calls);assert.equal(h.extensionNetworkRequests,calls);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);assert.deepEqual(await Promise.all(ids.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id}))),original);assert.equal((await read()).row.presentation,null);};
+ await page.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__currentNoticeStops=[];globalThis.__currentNoticeRestore=()=>{chrome.runtime.sendMessage=send;};chrome.runtime.sendMessage=(message,...args)=>{if(message.type==='STOP_AI_PRESENTATION')__currentNoticeStops.push(message.topicId);return send(message,...args);};});
+ try{
+  await openTopic(page,topic);await setAIView(page,true);
+  for(const [index,appearance]of ['light','dark'].entries()){
+   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance}});await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});
+   await eventually(()=>notice.getAttribute('data-state').then(value=>value==='sent'),'actual synthetic worker reaches sent');
+   const literal=await notice.textContent();assert.match(literal,/已发送给 DeepSeek/);assert.match(literal,/原话/);
+   for(const width of [1440,1280,1024,768,320]){
+    await page.setViewportSize({width,height:900});await notice.scrollIntoViewIfNeeded();assert.equal(await notice.textContent(),literal);assert.equal(await notice.getAttribute('data-state'),'sent');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2);
+    assert.equal(await page.locator('#original-reading-body').isVisible(),true);assert.equal(await page.locator('#original-reading-body').evaluate(node=>!!node.closest('[inert]')),false);
+   }
+   const stop=notice.getByRole('button',{name:'停止本次整理',exact:true});
+   if(index===0){
+    await stop.focus();await stop.scrollIntoViewIfNeeded();assert.equal(await stop.evaluate(node=>document.activeElement===node),true);await stop.press('Enter');
+   }else{
+    const cdp=await h.context.newCDPSession(page);
+    try{
+     await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});assert.equal(await page.evaluate(()=>matchMedia('(pointer:coarse)').matches),true);await stop.scrollIntoViewIfNeeded();
+     const hit=await stop.evaluate(node=>{const r=node.getBoundingClientRect(),at=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height,hit:at===node||node.contains(at)};});assert.ok(hit.width>=44&&hit.height>=44&&hit.hit);
+     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:hit.x,y:hit.y,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    }finally{await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});await cdp.detach();}
+   }
+   await eventually(()=>page.evaluate(count=>__currentNoticeStops.length===count,index+1),'exactly one real Stop dispatch');
+   assert.deepEqual(await page.evaluate(()=>__currentNoticeStops),Array(index+1).fill(topic.id));releaseRequest(index);
+   await eventually(async()=>{const {runtime}=await read();return runtime.state==='failed'&&runtime.errorCode==='CANCELLED';},'real worker cancellation is durable');
+   await page.locator('[data-ai-first-generation]').waitFor();assert.ok(!(await read()).row.candidate);await unchanged(index+1);
+   for(let i=0;i<3;i++)await read();assert.equal(h.deepSeekRequests.length,index+1,'Stop and status reads never retry');
+  }
+  await page.setViewportSize({width:1440,height:900});await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});
+  const candidate=page.locator('[data-ai-candidate]');await candidate.waitFor();const adopt=candidate.locator('[data-ai-candidate-field="blockSummary"] input[value="adopt"]');await adopt.check();
+  await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:'SYNTHETIC_Q12 explicitly added material invalidates the old candidate.'}});
+  await eventually(()=>notice.getAttribute('data-state').then(value=>value==='stale'),'real new material makes the retained candidate stale');const authority=await read();
+  assert.equal(authority.row.candidate.stale,true);
+  for(const appearance of ['light','dark']){
+   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance}});await eventually(()=>page.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,appearance));
+   assert.equal(await adopt.isChecked(),true);assert.equal(await adopt.isDisabled(),true);assert.equal(await candidate.getByRole('button',{name:'保存这些选择',exact:true}).count(),0);
+   assert.deepEqual(await read(),authority,'stale refusal preserves every saved state field');await unchanged(3);
+  }
+  await page.setViewportSize({width:320,height:900});await notice.scrollIntoViewIfNeeded();await shot(page,`current-organize-${variant}-stale`);await unchanged(3);
+ }finally{releaseRequest(0);releaseRequest(1);await page.evaluate(()=>{__currentNoticeRestore();delete globalThis.__currentNoticeRestore;});}
+}
+
+for(const variant of ['source','release'])test(`D7 synthetic worker notices preserve real Stop and stale refusal (${variant})`,{timeout:180000},async()=>{
  if(variant==='release')await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  const releases=[],gates=[0,1].map(index=>new Promise(resolve=>{releases[index]=resolve;}));let calls=0,h;
  try{
   h=await FakeChatGPT.start({onboarding:true,...variant==='release'?{extensionPath:'work/current-release'}:{},deepSeekFixture:async body=>{const index=calls++;if(index<2)await gates[index];return aiOutput(requestOf(body),'SYNTHETIC_Q12');}});
   const page=await readyAI(h),topic=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC_Q12 可读的真实整理状态',operationId:op()}}),ids=[];
   for(let i=0;i<2;i++)ids.push((await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`SYNTHETIC_Q12_ORIGINAL_${i} 原话保持完整。\n<literal> 👩‍💻 é；我仍然不确定，不代替我下结论。`}})).id);
-  await inspectOrganizeNotices(h,variant,{topic,ids,releaseRequest:index=>releases[index]()});
+  await inspectCurrentOrganizeNotices(h,variant,{topic,ids,releaseRequest:index=>releases[index]()});
  }finally{for(const release of releases)release();await h?.close();}
 });

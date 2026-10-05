@@ -15,7 +15,7 @@ const names=(await readdir('tests')).filter(n=>n.endsWith('.test.mjs')).sort();
 const historical=names.filter(n=>group(n)==='historical browser E2E');
 const experimental=names.filter(n=>group(n)==='experimental');
 let files=names.filter(n=>requested?group(n)===requested:!['historical browser E2E','experimental'].includes(group(n))).map(n=>'tests/'+n);
-if(!requested)console.log(`PAIA current full suite: ${files.length} files; ${historical.length} pre-migration browser files and ${experimental.length} archived experimental files remain available through their explicit test commands.`);
+if(!requested)console.log(`PAIA current full suite: ${files.length} files; ${historical.length} historical and withdrawn UI browser files and ${experimental.length} archived experimental files remain available through their explicit test commands.`);
 const shardSpec=process.env.PAIA_TEST_SHARD||'';
 if(shardSpec){
  const match=/^(\d+)\/(\d+)$/.exec(shardSpec),index=Number(match?.[1]),total=Number(match?.[2]);
@@ -30,5 +30,5 @@ const tests=spawnSync(process.execPath,['--test','--test-concurrency='+concurren
 if(tests.status!==0)process.exit(tests.status||1);
 const audit=spawnSync(process.env.PYTHON||'python3',['scripts/check_package.py'],{stdio:'inherit'});
 const developmentAudit=spawnSync(process.execPath,['scripts/check_development.mjs'],{stdio:'inherit'});
-if(audit.status===0&&developmentAudit.status===0&&!requested&&!shardSpec){const p='work/test-summary.json',r=JSON.parse(await readFile(p,'utf8'));r.fullSuite=true;r.auditPassed=true;r.testConcurrency=Number(concurrency);r.inputDigest=await inputDigest();r.historicalBrowserFiles=historical.length;r.historicalBrowserAudit='SEPARATE_PRE_MIGRATION_EVIDENCE';r.experimentalFiles=experimental.length;r.experimentalAudit='EXPLICIT_NON_BLOCKING_ARCHIVE';if(r.inputDigest!==startingDigest)throw Error('SOURCE_CHANGED_DURING_TESTS');r.realGolden=await goldenBundle()?'AVAILABLE':'UNAVAILABLE';await writeFile(p,JSON.stringify(r,null,2)+'\n');}
+if(audit.status===0&&developmentAudit.status===0&&!requested&&!shardSpec){const p='work/test-summary.json',r=JSON.parse(await readFile(p,'utf8'));r.fullSuite=true;r.auditPassed=true;r.testConcurrency=Number(concurrency);r.inputDigest=await inputDigest();r.historicalBrowserFiles=historical.length;r.historicalBrowserAudit='SEPARATE_HISTORICAL_AND_WITHDRAWN_UI_EVIDENCE';r.experimentalFiles=experimental.length;r.experimentalAudit='EXPLICIT_NON_BLOCKING_ARCHIVE';if(r.inputDigest!==startingDigest)throw Error('SOURCE_CHANGED_DURING_TESTS');r.realGolden=await goldenBundle()?'AVAILABLE':'UNAVAILABLE';await writeFile(p,JSON.stringify(r,null,2)+'\n');}
 process.exit(audit.status===0&&developmentAudit.status===0?0:1);

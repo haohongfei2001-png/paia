@@ -73,7 +73,11 @@ if(partition.some(part=>!part.length)
 // The three earlier inserted files stay on2; the new Q6 file is on3. Every
 // previously certified file must retain its original placement below. D3 adds
 // a separately pinned shard1 file; it is not part of that historical baseline.
-const beforeQ4=current.filter(name=>!['desktop-vnext-context-chrome-e2e.test.mjs','cpv1-05-dvn-organize-chrome-e2e.test.mjs','cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs','cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs','cpv1-02-dvn-purge-chrome-e2e.test.mjs','cpv1-02-dvn-removal-chrome-e2e.test.mjs','cpv1-02-dvn-search-chrome-e2e.test.mjs'].includes(name));
+// Prompt Reuse Stage 1/2 files were inserted after this frozen baseline.
+// Their explicit shard-3 placement is checked separately, not modulo-reindexed.
+const promptReuseFiles=['cpv1-09-prompt-compatibility-chrome-e2e.test.mjs','cpv1-09-prompt-insertion-chrome-e2e.test.mjs','cpv1-09-prompt-surface-chrome-e2e.test.mjs'];
+for(const name of promptReuseFiles){if(!current.includes(name))throw Error('PROMPT_REUSE_BROWSER_MISSING:'+name);for(const count of [4,5,6])if(testShard(name,current.indexOf(name),count,'browser E2E')!==3)throw Error('PROMPT_REUSE_BROWSER_ROUTING:'+name);}
+const beforeQ4=current.filter(name=>![...promptReuseFiles,'desktop-vnext-context-chrome-e2e.test.mjs','cpv1-05-dvn-organize-chrome-e2e.test.mjs','cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs','cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs','cpv1-02-dvn-purge-chrome-e2e.test.mjs','cpv1-02-dvn-removal-chrome-e2e.test.mjs','cpv1-02-dvn-search-chrome-e2e.test.mjs'].includes(name));
 for(const [position,name]of beforeQ4.entries()){
  const expected=['cpv1-02-dvn-working-revision-chrome-e2e.test.mjs','cpv1-07-historical-comparison-chrome-e2e.test.mjs'].includes(name)?1:position%4+1;
  if(testShard(name,current.indexOf(name),4,'browser E2E')!==expected)throw Error('Q4_SHIFTED_PREVIOUS_BROWSER_ROUTING:'+name);

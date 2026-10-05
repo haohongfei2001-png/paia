@@ -1,3 +1,4 @@
+import {openRetainedSearchComponent} from './harness/retained-search-component.mjs';
 import {admitPreGatePurgeBrowserFixture} from './harness/pre-gate-purge-browser-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -45,9 +46,7 @@ test('VS07 historical comparison keeps complete originals and current edits dist
   await rpc(p,'EDIT_DOCUMENT',{edit:{documentId:block.documentId,operationId:crypto.randomUUID(),blocks:[{
    id:block.id,expectedRevision:block.revision,libraryText:'CURRENT_INPUT_ONLY 当前重写不改当年原话',note:block.note,excluded:false}]}});
   const sourceBefore=(await h.state()).records;
-  await p.locator('#primary-nav [data-view="memory"]').click();
-  await eventually(()=>p.locator('#material-workbench').isVisible(),'For AI workbench');
-  await p.getByRole('button',{name:'从档案选择',exact:true}).click();
+  await openRetainedSearchComponent(p);
   await p.getByRole('button',{name:'按时间看 · 以前的我',exact:true}).click();
   await p.getByRole('searchbox',{name:'全局搜索'}).fill('HISTORY_COMPARE');
   await searchReady(p);
@@ -153,9 +152,7 @@ test('VS07 historical paging refuses changed generations without mixing old comp
    messages:texts.map((text,i)=>({id:'vs07-history-page-'+i,text}))});
   await eventually(async()=>(await h.state()).records.length===42,'all 42 sources captured');
   const sources=(await h.state()).records;
-  await p.locator('#primary-nav [data-view="memory"]').click();
-  await eventually(()=>p.locator('#material-workbench').isVisible());
-  await p.getByRole('button',{name:'从档案选择',exact:true}).click();
+  await openRetainedSearchComponent(p);
   await p.getByRole('button',{name:'按时间看 · 以前的我',exact:true}).click();
   await p.getByRole('searchbox',{name:'全局搜索'}).fill('HISTORY_PAGE');
   await eventually(async()=>await p.locator('.universal-hit').count()===40
@@ -207,9 +204,7 @@ async function searchLifetimeFixture(){
   const sources=(await h.state()).records;
   assert.deepEqual(new Set(sources.map(row=>row.originalText)),new Set(texts),
    'every complete body, including1000paragraphs, must be present');
-  await p.locator('#primary-nav [data-view="memory"]').click();
-  await eventually(()=>p.locator('#material-workbench').isVisible());
-  await p.getByRole('button',{name:'从档案选择',exact:true}).click();
+  await openRetainedSearchComponent(p);
   await p.getByRole('button',{name:'按时间看 · 以前的我',exact:true}).click();
   await p.getByRole('searchbox',{name:'全局搜索'}).fill('SEARCH_LIFETIME');
   await eventually(async()=>await p.locator('.universal-hit').count()===40

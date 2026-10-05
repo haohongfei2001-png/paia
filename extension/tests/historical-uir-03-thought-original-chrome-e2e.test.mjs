@@ -4,7 +4,6 @@ import {mkdir} from 'node:fs/promises';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
-import {thoughtPrimary,openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
 
 const execFileAsync=promisify(execFile);
 const op=()=>crypto.randomUUID();
@@ -13,7 +12,7 @@ const rpc=async(page,type,fields={})=>{
   assert.equal(response.ok,true,JSON.stringify(response));
   return response.data;
 };
-const nav=thoughtPrimary;
+const nav=(page,view)=>page.locator(`[data-view="${view}"]`).first().click();
 
 async function ready(h){
   const page=h.archive;
@@ -166,7 +165,7 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  assert.ok(available.items.some(item=>item.providerKey==='claude'),'official imported source is present in the completed index');
 
  assert.equal(await page.locator('input[type="search"]:visible').count(),1,'source selection keeps one Topic search');
- await openThoughtReadingOptions(page);await scope.selectOption('claude');
+ await scope.selectOption('claude');
  await eventually(async()=>await body.locator('[data-entry-id]').count()===2&&await body.locator('[data-entry-id="'+seeded.mixed+'"]').count()===1,'Claude view contains direct and mixed evidence only');
  assert.equal(await body.locator('[data-entry-id="'+seeded.claude+'"]').count(),1);
  assert.equal(await page.locator('[data-reading-start="asc"]').isDisabled(),true,'a source-scoped view cannot falsely use whole-Topic time endpoints');
@@ -175,14 +174,14 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  await eventually(async()=>await body.locator('[data-entry-id]').count()===1&&await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1,'Topic lexical search remains inside Claude scope');
  await page.locator('#topic-search').fill('');
  await eventually(async()=>await body.locator('[data-entry-id]').count()===2,'clearing query keeps source scope');
- await openThoughtReadingOptions(page);await scope.selectOption('chatgpt');
+ await scope.selectOption('chatgpt');
  await eventually(async()=>await body.locator('[data-entry-id]').count()===2&&await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===0,'ChatGPT view includes the mixed identity and existing role-bound expression');
  assert.equal(await body.locator('[data-entry-id="'+seeded.mixed+'"]').count(),1);
- await openThoughtReadingOptions(page);await scope.selectOption('claude');
+ await scope.selectOption('claude');
  await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1);
  await page.locator('#back').click();await page.locator('[data-topic-id="'+topics[1].id+'"]').click();
  await eventually(async()=>await scope.inputValue()==='claude'&&await body.locator('[data-entry-id]').count()===2,'return preserves Topic source scope without duplicating the Topic');
- await openThoughtReadingOptions(page);await scope.selectOption('');
+ await scope.selectOption('');
  await eventually(async()=>await body.locator('[data-entry-id]').count()===5,'All sources restores the original independent expressions');
  assert.equal(await page.locator('[data-reading-start="asc"]').isDisabled(),false);
  const after=await Promise.all([seeded.claude,seeded.mixed].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
@@ -268,41 +267,52 @@ async function independentThoughtRelationJourney(page,h,topics,{release=false}={
  const dialog=page.locator('#topic-action-dialog'),content=page.locator('#library-dialog-content');
  const prefix=release?'VS05_RELEASE_NEW':'VS05_SOURCE_NEW',standaloneBody=prefix+' 独立想法，不需要主题或关联。';
  const started=Date.now();
- // Fixture creation uses the guarded worker. Current Write holds Save; this is
- // an existing-content/relations UI audit, never a compose-save success claim.
- const seededStandalone=await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),body:standaloneBody}});
- await page.locator('#back').click();await eventually(()=>page.locator('#thought-list').isVisible());
- if(!await page.locator('#library-unplaced-list').isVisible())await page.locator('#library-unplaced').click();
- await page.locator(`[data-unplaced-id="${seededStandalone.id}"]`).click();
- await eventually(async()=>await content.locator('[data-entry-field="body"]').textContent()===standaloneBody,'seeded independent Thought opens through its actual Unplaced control');
- const standaloneId=await content.locator('[data-entry-id]').getAttribute('data-entry-id');assert.equal(standaloneId,seededStandalone.id);
+ await page.locator('#create-entry').click();
+ await dialog.getByLabel('今天的新想法',{exact:true}).fill(standaloneBody);
+ await dialog.locator('summary').filter({hasText:'选择主题（可不选）'}).click();
+ const topicChoice=dialog.getByLabel(topics[1].name,{exact:true});
+ await topicChoice.waitFor();assert.equal(await topicChoice.isChecked(),true,'current Topic is only an optional initial choice');
+ await topicChoice.uncheck();
+ await dialog.getByRole('button',{name:'保存想法',exact:true}).click();
+ await eventually(async()=>!await dialog.isVisible(),'independent Thought saves through the real composer');
+ await page.locator('#notice').getByRole('button',{name:'查看',exact:true}).click();
+ await eventually(async()=>await content.locator('[data-entry-field="body"]').textContent()===standaloneBody,'saved independent Thought opens from actual success feedback');
+ const standaloneId=await content.locator('[data-entry-id]').getAttribute('data-entry-id');
  const standalone=await rpc(page,'GET_LIBRARY_ENTRY',{id:standaloneId});
- assert.ok(Date.parse(standalone.createdAt)>=started&&Date.parse(standalone.createdAt)<=Date.now(),'creation time comes from this guarded fixture commit, not quoted history');
+ assert.ok(Date.parse(standalone.createdAt)>=started&&Date.parse(standalone.createdAt)<=Date.now(),'creation time comes from this real save, not quoted history');
  assert.deepEqual(await rpc(page,'GET_LIBRARY_PATHS',{id:standaloneId}),[],'optional Topic can be omitted');
  assert.deepEqual((await rpc(page,'COMPARE_THOUGHT_INPUT',{id:standaloneId})).relations,[],'independent save does not infer a relation');
  assert.equal(standalone.provenanceType,'user_created');
  await page.locator('#library-dialog-close').click();
 
- await page.locator(`[data-topic-id="${topics[1].id}"]`).click();await eventually(()=>page.locator('#thought-document').isVisible());
  const row=page.locator('#original-reading-body [data-entry-id]').first(),targetId=await row.getAttribute('data-entry-id');
- const before=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId}),responseBody=prefix+' 回应后独立保存，不重写原内容。';
- const expectedBodySha256=await page.evaluate(async body=>{const {hashText}=await import(chrome.runtime.getURL('core/dedupe.js'));return hashText(body);},before.body);
- const response=await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),body:responseBody,topicId:topics[1].id,relation:{id:targetId,expectedRevision:before.revision,expectedBodySha256}}}),responseId=response.id;
- const responseRow=page.locator(`#original-reading-body [data-entry-id="${responseId}"]`);await eventually(()=>responseRow.locator('[data-entry-field="body"]').textContent().then(body=>body===responseBody),'guarded fixture relation is visible in the real Topic');
+ const before=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId});
+ await row.locator('.library-actions summary').click();
+ await row.getByRole('button',{name:'接着写',exact:true}).click();
+ const relationChoice=dialog.getByLabel('记录与这条内容的回应关系',{exact:true});
+ assert.equal(await relationChoice.isChecked(),false,'a quoted response has no relation without explicit selection');
+ await relationChoice.check();
+ const responseBody=prefix+' 回应后独立保存，不重写原内容。';
+ await dialog.getByLabel('今天的新想法',{exact:true}).fill(responseBody);
+ await dialog.getByRole('button',{name:'保存想法',exact:true}).click();
+ await eventually(async()=>!await dialog.isVisible(),'explicit optional response relation saves');
+ await page.locator('#notice').getByRole('button',{name:'查看',exact:true}).click();
+ await eventually(async()=>await content.locator('[data-entry-field="body"]').textContent()===responseBody);
+ const responseId=await content.locator('[data-entry-id]').getAttribute('data-entry-id');
  assert.notEqual(responseId,targetId);
  assert.equal((await rpc(page,'GET_LIBRARY_PATHS',{id:responseId}))[0].topicId,topics[1].id,'optional current Topic remains selected for this save');
  const comparison=await rpc(page,'COMPARE_THOUGHT_INPUT',{id:responseId});
  assert.equal(comparison.relations.length,1);assert.equal(comparison.relations[0].state,'current');assert.equal(comparison.relations[0].id,targetId);assert.equal(comparison.relations[0].body,before.body);
  const after=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId});assert.equal(after.body,before.body);assert.equal(after.revision,before.revision);
- await responseRow.locator('.library-actions summary').click();
- await responseRow.getByRole('button',{name:'查看关联',exact:true}).click();
+ await content.locator('.library-actions summary').click();
+ await content.getByRole('button',{name:'查看关联',exact:true}).click();
  await eventually(async()=>await dialog.getByRole('heading',{name:'想法关联',exact:true}).isVisible());
  assert.equal(await dialog.locator('.topic-selection-preview').textContent(),before.body);
  assert.equal(await dialog.getByRole('button',{name:'查看关联内容',exact:true}).isVisible(),true);
  assert.doesNotMatch(await dialog.textContent(),/Placement|Binding|relationKey|expectedRevision/,'relation inspector uses user language');
  await shot(page,release?'vs05-release-independent-response-relation':'vs05-source-independent-response-relation');
  await dialog.getByRole('button',{name:'关闭',exact:true}).click();
- assert.equal(await responseRow.locator('[data-entry-field=body]').textContent(),responseBody);
+ await page.locator('#library-dialog-close').click();
  await assertOffline(h);
 }
 
@@ -317,13 +327,13 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await page.locator('#thought-recent').count(),0,'Thought root no longer renders 最近阅读');
   const index=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}});
   assert.ok(index.recent?.some(item=>item.id===topics[1].id),'recent-read metadata remains available behind the removed root section');
-  const homeMenu=page.locator('#thought-root-source .library-actions').first();
+  const homeMenu=page.locator('#thought-home-tools .library-actions').first();
   await homeMenu.locator('summary').click();
   assert.equal(await homeMenu.getByRole('button',{name:'添加主题',exact:true}).isVisible(),true,'root menu keeps Add Topic');
   assert.equal(await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).count(),0,'frozen compact layout retires the grid control');
   assert.equal(await homeMenu.getByRole('button',{name:'整理新增内容',exact:true}).count(),0,'root menu no longer starts AI organization');
   await page.keyboard.press('Escape');
-  assert.equal(await page.locator('#thought-root-source').getByRole('button',{name:'接着写',exact:true}).isVisible(),true,'independent Thought creation remains reachable');
+  assert.equal(await page.locator('#thought-home-tools').getByRole('button',{name:'接着写',exact:true}).isVisible(),true,'independent Thought creation remains reachable');
 
   await page.setViewportSize({width:1440,height:900});
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});
@@ -376,7 +386,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
 
   const shell=await page.locator('#thought-document').boundingBox();
   const section=await page.locator('#original-reading-body .topic-section').first().boundingBox();
-  assert.ok(shell&&section&&Math.abs(shell.width-936)<=2,'Topic shell follows the approved D6.2 936px workspace boundary');assert.ok(Math.abs(shell.x-228)<=2&&Math.abs(section.x-shell.x)<=2,'Topic and saved-width prose share the D6.2 left reading axis');
+  assert.ok(shell&&section&&shell.width<=880&&shell.width>=760,'Topic shell follows the frozen880px workspace boundary');
   assert.ok(section.width<=722,`Original prose keeps the saved 640/680/720px reading-width boundary; got ${section?.width}`);
   assert.ok(shell.width-section.width>120,'Topic shell and readable prose width remain distinct');
   assert.equal(await page.locator('input[type="search"]:visible').count(),1,'open Topic exposes exactly one visible search control');
@@ -394,13 +404,13 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   const beforeFirst=await rpc(page,'GET_LIBRARY_ENTRY',{id:firstId}),beforeLatest=await rpc(page,'GET_LIBRARY_ENTRY',{id:latestId});
   await page.locator('#topic-search').fill('_THOUGHT_0_A');
   await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').count()===1,'Topic search narrows original records');
-  await openThoughtReadingOptions(page);await page.locator('#topic-time-jumps summary').click();
+  await page.locator('#topic-time-jumps summary').click();
   await page.locator('[data-reading-start="desc"]').click();
   await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===latestId,'recent-time jump reaches a record beyond the initial 40-row page');
   assert.equal(await page.locator('#topic-search').inputValue(),'','time navigation explicitly returns to all original records');
   assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,'desc','time navigation durably records its direction');
   assert.equal(await page.locator('#original-reading-body [data-entry-id]').first().evaluate(el=>document.activeElement===el),true,'keyboard focus follows the addressed original record');
-  await openThoughtReadingOptions(page);await page.locator('#topic-time-jumps summary').click();
+  await page.locator('#topic-time-jumps summary').click();
   await page.locator('[data-reading-start="asc"]').click();
   await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===firstId,'earlier-time jump starts with the original earliest record');
   assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,'asc');
@@ -411,7 +421,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(afterLatest.revision,beforeLatest.revision,'time jumps change no human content or revision');
   assert.ok(await page.locator('#original-reading-body [data-entry-id]').count()<=120,'Topic keeps its bounded continuous reading window');
   const unknownBefore=await Promise.all(topics[0].unknownIds.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
-  await openThoughtReadingOptions(page);await page.locator('#topic-outline>summary').click();
+  await page.locator('#topic-outline>summary').click();
   await page.locator('#topic-section-nav [data-time-group="unknown"]').click();
   await eventually(async()=>await page.locator('.topic-unknown-time [data-entry-id]').count()===2,'missing and malformed legacy timestamps open a distinct unknown-time section');
   assert.equal(await page.locator('.topic-unknown-time h2').textContent(),'时间未知');
@@ -421,7 +431,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await page.locator('.topic-unknown-time [data-meta-field]').count(),0,'the reading group is not an editable or persisted organization section');
   assert.equal(await page.locator('.topic-unknown-time .topic-origin-section').count(),2,'original section membership remains visible');
   await shot(page,release?'vs05-release-unknown-time':'vs05-source-unknown-time');
-  await openThoughtReadingOptions(page);await page.locator('#topic-time-jumps summary').click();
+  await page.locator('#topic-time-jumps summary').click();
   await page.locator('[data-reading-start="asc"]').click();
   await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===firstId,'dated original reading remains reachable after the unknown section');
   const unknownAfter=await Promise.all(topics[0].unknownIds.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));

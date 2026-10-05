@@ -1,5 +1,4 @@
-import {compareD5Candidate} from './harness/d5-candidate-comparison.mjs';
-import {confirmOrganizeScope,adoptFirstCandidate} from './harness/ai-reviewed-browser.mjs';
+import {assertHeldOrganizeScope,startSyntheticAIWorkerFixture,setAIView,adoptFirstCandidate} from './harness/ai-reviewed-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -17,15 +16,14 @@ async function createTopic(page,label){const topic=await rpc(page,'CREATE_LIBRAR
 async function settleThoughtHome(page){const nav=page.locator('[data-view="thoughts"]').first(),back=page.locator('#back'),list=page.locator('#thought-list'),documentView=page.locator('#thought-document');if(await nav.getAttribute('aria-current')!=='page')await nav.click();await page.locator('#thought-panel').waitFor({state:'visible'});await eventually(async()=>await list.isVisible()||await documentView.isVisible(),'Thought route settles before returning to its home');if(await documentView.isVisible()){await back.waitFor({state:'visible'});assert.match(await back.textContent(),/返回思想库/,'back belongs to the active Thought route');await back.click();}await list.waitFor({state:'visible'});}
 async function openTopic(page,topic){const nav=page.locator('[data-view="thoughts"]').first(),documentView=page.locator('#thought-document'),list=page.locator('#thought-list'),heading=page.locator('#topic-heading h1').filter({hasText:topic.name});if(await nav.getAttribute('aria-current')!=='page')await nav.click();await page.locator('#thought-panel').waitFor({state:'visible'});await eventually(async()=>await heading.isVisible()||await documentView.isVisible()||await list.isVisible(),'Thought route settles before Topic selection');if(await heading.isVisible())return;if(await documentView.isVisible())await settleThoughtHome(page);const tile=page.locator(`[data-topic-id="${topic.id}"]`);await tile.waitFor({state:'visible'});await tile.click();await heading.waitFor();}
 async function reopenTopic(page,topic){await settleThoughtHome(page);await openTopic(page,topic);}
-async function organized(page){const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch enabled');if(!await toggle.isChecked())await toggle.check();}
-async function confirmGeneration(page){await page.getByRole('button',{name:'生成 AI整理',exact:true}).click();const dialog=page.locator('#library-dialog[open]');await dialog.waitFor();await dialog.locator('select[name="approval"]').selectOption('confirm');await dialog.locator('button[type="submit"]').click();}
+async function organized(page){const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch enabled');if(!await toggle.isChecked())await setAIView(page,true);}
 async function state(page,topicId){const result=await rpc(page,'GET_AI_PRESENTATION_STATUS');return result.topics.find(row=>row.topicId===topicId);}
-async function updateCandidate(page,h,topic,body,expectedCalls){await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body}});await reopenTopic(page,topic);await organized(page);const update=page.locator('#ai-library-update');await update.waitFor({state:'visible'});await update.click();await confirmOrganizeScope(page);await page.locator('[data-ai-candidate]').waitFor();await eventually(()=>Promise.resolve(h.deepSeekRequests.length===expectedCalls),`candidate Provider call ${expectedCalls}`);}
+async function updateCandidate(page,h,topic,body,expectedCalls){await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body}});await reopenTopic(page,topic);await organized(page);const update=page.locator('#ai-library-update');await update.waitFor({state:'visible'});await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id,trigger:'update'});await page.locator('[data-ai-candidate]').waitFor();await eventually(()=>Promise.resolve(h.deepSeekRequests.length===expectedCalls),`candidate Provider call ${expectedCalls}`);}
 async function shot(page,name){await page.screenshot({path:`work/ux-r3/${name}.png`,fullPage:true});}
 async function pairGeometry(page,field='blockSummary'){return page.locator(`[data-ai-candidate-field="${field}"] [data-candidate-version]`).evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};}));}
 
 async function sourceJourney(page,h,topic){
- await page.setViewportSize({width:1440,height:900});await openTopic(page,topic);await organized(page);await page.locator('[data-ai-first-generation]').waitFor();await confirmGeneration(page);await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:'UIR03_CANDIDATE 主题速览 1'}).waitFor();assert.equal(h.deepSeekRequests.length,1);
+ await page.setViewportSize({width:1440,height:900});await openTopic(page,topic);await organized(page);await page.locator('[data-ai-first-generation]').waitFor();await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:'UIR03_CANDIDATE 主题速览 1'}).waitFor();assert.equal(h.deepSeekRequests.length,1);
  const currentView=page.locator('[data-ai-field="currentView"]'),human='UIR03_CANDIDATE 人工维护的当前理解';await currentView.fill(human);await currentView.press('Tab');await eventually(async()=>(await state(page,topic.id))?.presentation?.currentView===human,'human current draft saved');
  await updateCandidate(page,h,topic,'UIR03_CANDIDATE 新材料 1：只形成更新候选。',2);let row=await state(page,topic.id);assert.equal(row.presentation.blockSummary,'UIR03_CANDIDATE 主题速览 1');assert.equal(row.presentation.currentView,human);assert.equal(row.candidate.proposal.blockSummary,'UIR03_CANDIDATE 主题速览 2');
  const panel=page.locator('[data-ai-candidate]');assert.equal(await panel.getAttribute('data-candidate-state'),'ready');assert.equal(await panel.locator('[data-candidate-version="current"]').count(),2);assert.equal(await panel.locator('[data-candidate-version="proposal"]').count(),2);assert.match(await panel.textContent(),/当前稿/);assert.match(await panel.textContent(),/更新候选/);
@@ -41,10 +39,10 @@ async function sourceJourney(page,h,topic){
 }
 
 async function releaseJourney(page,h,topic){
- await page.setViewportSize({width:1440,height:900});await openTopic(page,topic);await organized(page);await page.locator('[data-ai-first-generation]').waitFor();await confirmGeneration(page);await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:'UIR03_RELEASE_CANDIDATE 主题速览 1'}).waitFor();await updateCandidate(page,h,topic,'UIR03_RELEASE_CANDIDATE 新材料：构造更新候选。',2);const panel=page.locator('[data-ai-candidate]');await panel.waitFor();const pair=await pairGeometry(page);assert.ok(Math.abs(pair[0].y-pair[1].y)<=2,'built release keeps desktop current/proposal columns');assert.equal(await panel.locator('[data-candidate-version="current"]').count(),2);assert.equal(await panel.locator('[data-candidate-version="proposal"]').count(),2);await shot(page,'uir-03-current-release-candidate-1440x900-light');assert.equal(h.extensionNetworkRequests,2);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
+ await page.setViewportSize({width:1440,height:900});await openTopic(page,topic);await organized(page);await page.locator('[data-ai-first-generation]').waitFor();await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:'UIR03_RELEASE_CANDIDATE 主题速览 1'}).waitFor();await updateCandidate(page,h,topic,'UIR03_RELEASE_CANDIDATE 新材料：构造更新候选。',2);const panel=page.locator('[data-ai-candidate]');await panel.waitFor();const pair=await pairGeometry(page);assert.ok(Math.abs(pair[0].y-pair[1].y)<=2,'built release keeps desktop current/proposal columns');assert.equal(await panel.locator('[data-candidate-version="current"]').count(),2);assert.equal(await panel.locator('[data-candidate-version="proposal"]').count(),2);await shot(page,'uir-03-current-release-candidate-1440x900-light');assert.equal(h.extensionNetworkRequests,2);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
 }
 
-test('UIR-03 candidate comparison keeps current work distinct, stages choices locally and fails closed when stale in source and built release Chrome',{timeout:300000},async()=>{
+test('UIR-03 candidate comparison keeps current work distinct, stages choices locally and fails closed when stale in source and built release Chrome (synthetic worker fixture)',{timeout:300000},async()=>{
  let calls=0,source;try{source=await FakeChatGPT.start({onboarding:true,deepSeekFixture:async body=>aiOutput(requestOf(body),'UIR03_CANDIDATE',++calls)});const page=await ready(source),topic=await createTopic(page,'UIR03_CANDIDATE');await sourceJourney(page,source,topic);}finally{await source?.close();}
  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  let releaseCalls=0,release;try{release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true,deepSeekFixture:async body=>aiOutput(requestOf(body),'UIR03_RELEASE_CANDIDATE',++releaseCalls)});const page=await ready(release),topic=await createTopic(page,'UIR03_RELEASE_CANDIDATE');await releaseJourney(page,release,topic);}finally{await release?.close();}
@@ -83,7 +81,7 @@ async function livingTopicJourney(page,h,topic,label){
  assert.equal(inputs.length,2);assert.notEqual(inputs[0].documentId,inputs[1].documentId,'Inputs retain different Conversation identity');
  const sourceEntries=[];for(const input of inputs)sourceEntries.push(await addCapturedInput(page,input,topic));
  assert.equal(h.deepSeekRequests.length,0,'capture and explicit Topic placement never invoke AI');
- await openTopic(page,topic);if(await page.locator('#ai-presentation-toggle').isChecked())await page.locator('#ai-presentation-toggle').uncheck();
+ await openTopic(page,topic);if(await page.locator('#ai-presentation-toggle').isChecked())await setAIView(page,false);
  for(const entry of sourceEntries){
   const node=page.locator('#original-reading-body [data-entry-id="'+entry.id+'"]');await node.waitFor();
   assert.equal(await node.locator('[data-entry-field="body"]').textContent(),entry.body);
@@ -91,14 +89,22 @@ async function livingTopicJourney(page,h,topic,label){
   await eventually(async()=>await provenance.getByRole('button',{name:'查看输入',exact:true}).count()===1,'one direct captured source remains inspectable for each Conversation expression');
   assert.ok((await rpc(page,'GET_LIBRARY_PATHS',{id:entry.id})).length,'joined expression retains a real Topic path');
  }
- const composer=page.locator('#topic-action-dialog'),newBody=label+' 今天的新想法\n这不是过去原话的改写。';
- await page.locator('#create-entry').click();await composer.getByLabel('今天的新想法',{exact:true}).fill(newBody);
- await composer.getByRole('button',{name:'保存想法',exact:true}).click();
- await eventually(async()=>!await composer.isVisible(),'new Thought saves through the real composer');
- await page.locator('#notice').getByRole('button',{name:'查看',exact:true}).click();
- const standalone=page.locator('#library-dialog-content [data-entry-field="body"]');await standalone.waitFor();
- assert.equal(await standalone.textContent(),newBody);
- const newId=await page.locator('#library-dialog-content [data-entry-id]').getAttribute('data-entry-id');
+ const newBody=label+' 今天的新想法\n这不是过去原话的改写。';
+ const beforeCompose=await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}});
+ await page.locator('#create-entry').click();
+ const composer=page.locator('#desktop-appearance-preview-workspace');
+ await composer.locator('#thought-compose-workspace-title').waitFor();
+ assert.equal(await composer.evaluate(node=>!!node.closest('dialog,[role="dialog"]')),false);
+ assert.equal(await composer.locator('.thought-compose-save').isDisabled(),true);
+ assert.equal(await composer.locator('.thought-compose-cancel').isDisabled(),true);
+ assert.equal(await page.locator('.dvn-preview-back').isDisabled(),true);
+ const draft=composer.getByLabel('今天的新想法',{exact:true});await draft.fill(newBody);await draft.press('Control+Enter');
+ assert.deepEqual((await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}})).items,beforeCompose.items,'held ordinary Write does not save a Thought');
+ assert.equal(h.deepSeekRequests.length,0);
+ await draft.fill('');await page.locator('[data-view="thoughts"]').first().click();await composer.waitFor({state:'detached'});
+ // Explicit synthetic independent Thought fixture, using the real existing worker.
+ // The held ordinary Save above is not represented as a successful user journey.
+ const newId=(await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:newBody}})).id;
  const newEntry=await rpc(page,'GET_LIBRARY_ENTRY',{id:newId});
  assert.equal(newEntry.provenanceType,'user_created');
  const provenance=await rpc(page,'GET_LIBRARY_PROVENANCE',{id:newId});
@@ -107,10 +113,10 @@ async function livingTopicJourney(page,h,topic,label){
  assert.equal(comparison.entry.thoughtText,newBody);assert.deepEqual(comparison.entry.sourceRecordIds,[]);
  assert.deepEqual(comparison.sources,[]);assert.equal(comparison.input,null);assert.deepEqual(comparison.relations,[]);
  assert.equal((await rpc(page,'GET_LIBRARY_PATHS',{id:newId}))[0].topicId,topic.id);
- await page.locator('#library-dialog-close').click();await reopenTopic(page,topic);
+ await reopenTopic(page,topic);
  const authority=topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}));
  const beforeEntries=await Promise.all([...sourceEntries.map(e=>e.id),newId].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
- await organized(page);await confirmGeneration(page);await adoptFirstCandidate(page);
+ await organized(page);await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});await adoptFirstCandidate(page);
  await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览 1'}).waitFor();
  let row=await state(page,topic.id);assert.equal(h.deepSeekRequests.length,1);
  assert.deepEqual(new Set(row.presentation.evidenceEntryIds),new Set(beforeEntries.map(e=>e.id)),'one bounded generation includes both Conversations and independent Thought');
@@ -121,7 +127,7 @@ async function livingTopicJourney(page,h,topic,label){
  await eventually(async()=>(await state(page,topic.id)).presentation.currentView===human,'actual manual multiline overview is durable');
  row=await state(page,topic.id);assert.equal(row.presentation.protections.currentView,true);
  const protectedPresentation=structuredClone(row.presentation);
- await page.locator('#ai-presentation-toggle').uncheck();
+ await setAIView(page,false);
  await page.locator('#original-reading-body').waitFor({state:'visible'});
  await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'Original switch finishes before leaving the AI pane');
  assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'switching to Original preserves exact multiline human work, protection and revision');
@@ -131,7 +137,7 @@ async function livingTopicJourney(page,h,topic,label){
  await reopenTopic(page,topic);await organized(page);
  await page.locator('[data-ai-field="currentView"]').filter({hasText:human}).waitFor();
  assert.deepEqual((await state(page,topic.id)).presentation,protectedPresentation,'actual Topic reopen retains the exact saved multiline overview');
- await page.locator('#ai-presentation-toggle').uncheck();
+ await setAIView(page,false);
  await page.locator('#original-reading-body').waitFor({state:'visible'});
  await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'second Original switch finishes without a write');
  assert.deepEqual(await Promise.all(beforeEntries.map(e=>rpc(page,'GET_LIBRARY_ENTRY',{id:e.id}))),beforeEntries,'AI/human overview edits never rewrite any Original entry');
@@ -149,7 +155,7 @@ async function livingTopicJourney(page,h,topic,label){
  assert.deepEqual(afterAdditionSaved,protectedSaved,'source addition preserves every saved content/revision/protection/timestamp field');
  assert.equal(h.deepSeekRequests.length,1,'new capture/placement/read alone does not request AI');
  const updatedAuthority=topicAuthority(await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id}));
- await page.locator('#ai-library-update').click();await confirmOrganizeScope(page);await page.locator('[data-ai-candidate]').waitFor();
+ await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id,trigger:'update'});await page.locator('[data-ai-candidate]').waitFor();
  await eventually(()=>Promise.resolve(h.deepSeekRequests.length===2),'exactly one explicit protected update');
  row=await state(page,topic.id);assert.equal(row.pending,false);assert.equal(row.presentation.stale,false,'one explicit update acknowledges the new evidence while its proposal remains staged');assert.equal(row.presentation.currentView,human);assert.equal(row.presentation.revision,protectedPresentation.revision);
  assert.equal(row.candidate.proposal.currentView,label+' 当前理解 2');
@@ -173,7 +179,7 @@ async function livingTopicJourney(page,h,topic,label){
  assert.equal(h.deepSeekRequests.length,2);assert.equal(h.extensionNetworkRequests,2);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  await shot(page,label.toLowerCase()+'-complete-cross-conversation-living-topic');
 }
-test('VS-05 complete living Topic path captures two Conversations, composes a new Thought and protects human work through new-source candidate update in source and built release',{timeout:300000},async()=>{
+test('VS-05 held Write and synthetic worker fixture preserve cross-Conversation Source and human candidate work in source and built release',{timeout:300000},async()=>{
  for(const [extensionPath,label]of [[undefined,'VS05_LOOP_SOURCE'],['work/current-release','VS05_LOOP_RELEASE']]){
   if(extensionPath)await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
   let calls=0,h;
@@ -195,7 +201,7 @@ test('VS-05 complete living Topic path captures two Conversations, composes a ne
 
 async function hiddenDraftJourney(page,h,topic,label){
  await page.setViewportSize({width:1440,height:900});
- await openTopic(page,topic);await organized(page);await confirmGeneration(page);await adoptFirstCandidate(page);
+ await openTopic(page,topic);await organized(page);await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});await adoptFirstCandidate(page);
  await page.locator('[data-ai-field="blockSummary"]').filter({hasText:label+' 主题速览 1'}).waitFor();
  const documentAuthority=doc=>({...doc,topic:topicAuthority(doc.topic)});
  const original=documentAuthority(await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}}));
@@ -232,7 +238,7 @@ async function hiddenDraftJourney(page,h,topic,label){
  await summaryNode.fill(summary);
  // A deliberate clear is also a real draft. Hiding cannot restore old AI text.
  await page.locator('[data-ai-field="currentView"]').fill('');
- await page.locator('#ai-presentation-toggle').uncheck();
+ await setAIView(page,false);
  await page.locator('#original-reading-body').waitFor({state:'visible'});
  await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'hide saves actual collected overview drafts');
  let overviewReadback=null;
@@ -259,7 +265,7 @@ async function hiddenDraftJourney(page,h,topic,label){
  await reopenTopic(page,topic);await organized(page);
  await page.locator('[data-ai-field="blockSummary"]').filter({hasText:summary}).waitFor();
  assert.deepEqual((await state(page,topic.id)).presentation,saved,'all authored fields and intentional clear survive real Topic reopen');
- await page.locator('#ai-presentation-toggle').uncheck();await page.locator('#original-reading-body').waitFor({state:'visible'});
+ await setAIView(page,false);await page.locator('#original-reading-body').waitFor({state:'visible'});
  await eventually(()=>page.locator('#ai-presentation-toggle').isEnabled(),'final read-only switch settles');
  assert.deepEqual((await state(page,topic.id)).presentation,saved,'repeat hiding is idempotent for content/protection/revision');
  assert.deepEqual(documentAuthority(await rpc(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}})),original,'all Original entries/placements/document fields and Topic authority stay exact except validated reading telemetry');
@@ -269,7 +275,7 @@ async function hiddenDraftJourney(page,h,topic,label){
  await shot(page,label.toLowerCase()+'-hidden-authored-drafts');
 }
 
-test('VS-05 all six authored AI lists and deliberate empty overview survive collapsed/hidden panes and route reopen in source and built release',{timeout:300000},async()=>{
+test('VS-05 all six authored AI lists and deliberate empty overview survive collapsed/hidden panes and route reopen in source and built release (synthetic worker fixture)',{timeout:300000},async()=>{
  for(const [extensionPath,label]of [[undefined,'VS05_DRAFT_SOURCE'],['work/current-release','VS05_DRAFT_RELEASE']]){
   if(extensionPath)await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
   let h;try{
@@ -285,10 +291,54 @@ test('VS-05 all six authored AI lists and deliberate empty overview survive coll
  }
 });
 
-// Isolated D5 presentation fixtures keep the original interaction journeys unchanged.
-for(const variant of ['source','release'])test(`D5 O04/O05 comparison fields preserve literal text, decisions and preferences (${variant})`,{timeout:180000},async()=>{
+// Current saved-state compatibility, independent of historical D5 reference pixels.
+async function inspectCurrentCandidate(h,topicId){
+ const page=h.archive,panel=page.locator('[data-ai-candidate]'),initial=await state(page,topicId),saved=(await rpc(page,'GET_PAGE',{page:{view:'settings'}})).preferences;
+ const authority=row=>({presentation:row.presentation,candidate:row.candidate}),literal=await panel.locator('.entry-prose').allTextContents();
+ assert.equal(literal.length,4);assert.ok(literal.every(text=>text.includes('\n<literal> 👩‍💻 é')),'both Current/proposal pairs retain literal markup, emoji, combining accents and newlines');
+ assert.equal(await panel.locator('input:checked').count(),0);assert.equal(await panel.getByRole('button',{name:'保存这些选择',exact:true}).isDisabled(),true);
+ try{
+  for(const selected of [false,true]){
+   if(selected){
+    await panel.getByRole('button',{name:'下一处未决定',exact:true}).click();
+    const adopt=panel.locator('[data-ai-candidate-field="blockSummary"] input[value="adopt"]');
+    assert.equal(await adopt.evaluate(node=>document.activeElement===node),true);
+    await adopt.press('Space');await panel.locator('[data-ai-candidate-field="currentView"] input[value="keep"]').check();
+    assert.equal(await panel.getByRole('button',{name:'保存这些选择',exact:true}).isEnabled(),true);
+   }
+   for(const width of [1440,1280,1024,768,390,320])for(const appearance of ['light','dark']){
+    await page.setViewportSize({width,height:900});await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance}});
+    await eventually(()=>page.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,appearance));await panel.scrollIntoViewIfNeeded();
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2);
+    assert.deepEqual(await panel.locator('.entry-prose').allTextContents(),literal);
+    assert.deepEqual(authority(await state(page,topicId)),authority(initial),'viewport, theme and local choices cannot commit Current/candidate');
+    if(selected){assert.equal(await panel.locator('[data-ai-candidate-field="blockSummary"] input[value="adopt"]').isChecked(),true);assert.equal(await panel.locator('[data-ai-candidate-field="currentView"] input[value="keep"]').isChecked(),true);}
+   }
+  }
+  for(const width of [1440,320])for(const [fontSize,size]of Object.entries({small:16,standard:17,large:19,xlarge:21})){
+   await page.setViewportSize({width,height:900});await rpc(page,'UPDATE_PREFERENCES',{changes:{fontSize}});
+   await eventually(()=>panel.locator('.entry-prose').first().evaluate((node,size)=>parseFloat(getComputedStyle(node).fontSize)===size,size));
+   assert.deepEqual(await panel.locator('.entry-prose').allTextContents(),literal);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2);
+  }
+  const disclosure=panel.locator('.ai-candidate-evidence').first();await disclosure.locator('summary').click();assert.equal(await disclosure.evaluate(node=>node.open),true);await disclosure.locator('summary').click();assert.equal(await disclosure.evaluate(node=>node.open),false);
+  const keep=panel.locator('[data-ai-candidate-field="currentView"] input[value="keep"]');await keep.focus();await keep.press('ArrowLeft');
+  const adopt=panel.locator('[data-ai-candidate-field="currentView"] input[value="adopt"]');await eventually(()=>adopt.isChecked());assert.equal(await adopt.evaluate(node=>document.activeElement===node),true);await keep.check();
+  await page.setViewportSize({width:1440,height:900});
+  for(const [readingWidth,width]of Object.entries({narrow:640,standard:680,wide:720})){
+   await rpc(page,'UPDATE_PREFERENCES',{changes:{readingWidth}});await setAIView(page,false);await page.locator('#original-reading-body').waitFor();
+   await eventually(()=>page.evaluate(width=>parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--paia-prose-width'))===width,width));
+   const actual=await page.locator('#original-reading-body .topic-section').first().evaluate(node=>node.getBoundingClientRect().width);assert.ok(Math.abs(actual-width)<=2,'Original honors saved reading width');
+   assert.equal((await rpc(page,'GET_PAGE',{page:{view:'settings'}})).preferences.readingWidth,readingWidth);
+   await setAIView(page,true);await panel.waitFor();assert.equal(await panel.locator('[data-ai-candidate-field="blockSummary"] input[value="adopt"]').isChecked(),true);
+  }
+  assert.deepEqual(authority(await state(page,topicId)),authority(initial));assert.deepEqual(await panel.locator('.entry-prose').allTextContents(),literal);
+ }finally{await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:saved.appearance,fontSize:saved.fontSize,readingWidth:saved.readingWidth}});await page.setViewportSize({width:1440,height:900});}
+}
+
+
+for(const variant of ['source','release'])test(`D7 synthetic saved candidate preserves literal text, decisions and reading preferences (${variant})`,{timeout:180000},async()=>{
  if(variant==='release')await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  let calls=0,h;const label='D5_COMPARE_'+variant.toUpperCase();
- try{h=await FakeChatGPT.start({...(variant==='release'?{extensionPath:'work/current-release'}:{}),onboarding:true,deepSeekFixture:async body=>{const output=aiOutput(requestOf(body),label,++calls),value=JSON.parse(output.choices[0].message.content);value.blockSummary+='\n<literal> 👩‍💻 é\n条件仍需核对。';value.currentView+='\n<literal> 👩‍💻 é\n不把未定选择写成结论。';output.choices[0].message.content=JSON.stringify(value);return output;}});const page=await ready(h),topic=await createTopic(page,label);await openTopic(page,topic);await organized(page);await confirmGeneration(page);await adoptFirstCandidate(page);await updateCandidate(page,h,topic,label+' 合成补充材料：保留不确定性与原话边界。',2);await compareD5Candidate(h,variant,topic.id);assert.equal(calls,2);assert.equal(h.deepSeekRequests.length,2);assert.equal(h.extensionNetworkRequests,2);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
+ try{h=await FakeChatGPT.start({...(variant==='release'?{extensionPath:'work/current-release'}:{}),onboarding:true,deepSeekFixture:async body=>{const output=aiOutput(requestOf(body),label,++calls),value=JSON.parse(output.choices[0].message.content);value.blockSummary+='\n<literal> 👩‍💻 é\n条件仍需核对。';value.currentView+='\n<literal> 👩‍💻 é\n不把未定选择写成结论。';output.choices[0].message.content=JSON.stringify(value);return output;}});const page=await ready(h),topic=await createTopic(page,label);await openTopic(page,topic);await organized(page);await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});await adoptFirstCandidate(page);await updateCandidate(page,h,topic,label+' 合成补充材料：保留不确定性与原话边界。',2);await inspectCurrentCandidate(h,topic.id);assert.equal(calls,2);assert.equal(h.deepSeekRequests.length,2);assert.equal(h.extensionNetworkRequests,2);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
  finally{await h?.close();}
 });

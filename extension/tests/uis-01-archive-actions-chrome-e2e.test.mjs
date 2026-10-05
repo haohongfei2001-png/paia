@@ -54,11 +54,15 @@ test('UIS-01 quiets Archive root and consolidates history/export actions without
     assert.equal(await page.locator('#revisit-open').isVisible(),false,'Revisit does not add root chrome');
 
     const trigger=await openArchiveMenu(page);
-    assert.equal(await trigger.getAttribute('aria-haspopup'),'menu');
+    assert.deepEqual(await trigger.evaluate(node=>({tag:node.tagName,parent:node.parentElement.tagName,popup:node.getAttribute('aria-haspopup')})),{tag:'SUMMARY',parent:'DETAILS',popup:null},'Archive actions use a native disclosure that also contains the source chooser');
+    assert.equal(await page.locator('#archive-root-overflow .archive-root-overflow-actions').getAttribute('role'),'group');
     await eventually(async()=>await trigger.getAttribute('aria-expanded')==='true','overflow announces expanded state');
     await page.locator('#archive-root-history').waitFor({state:'visible'});
     await page.locator('#archive-root-export-json').waitFor({state:'visible'});
     await page.locator('#archive-root-export-markdown').waitFor({state:'visible'});
+    await page.locator('#archive-source-scope').focus();await page.keyboard.press('ArrowDown');
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-source-scope','native source selection keeps its own arrow-key behavior');
+    await page.locator('#archive-source-scope').selectOption('');
     await trigger.focus();await page.keyboard.press('ArrowDown');
     assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-root-history','arrow navigation enters the first menu action');
     await page.keyboard.press('End');
