@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {eventually} from './fake-chatgpt.mjs';
 import {openArchiveWindow} from './archive-navigator.mjs';
 import {assertTitleVisibility} from './d7-title-visibility.mjs';
+import {renderedTypography} from './rendered-typography.mjs';
 
 const masters=new URL('../../docs/consumer-product-v1/desktop-vnext/d6-final-visual-master/screens/',import.meta.url);
 import {D7_ARCHIVE_MATRIX,D7_FULL_MATRIX} from './d7-archive-matrix.mjs';
@@ -320,6 +321,13 @@ export async function compareD7Archive(h,variant,{matrix='full',directory='work/
      if(ref.paletteDerived){const original=await openD7Reference(h,{...row,theme:'light'});try{await original.page.screenshot({path:`${directory}/${variant}-${refKey}-source-canonical-original.png`,animations:'disabled',fullPage:false});}finally{await original.page.close();}}
     }
     const ref=references.get(refKey);row.reference={file:ref.file,source:ref.name,sha256:ref.sha256,comparison:row.stress?'REACHABILITY_STRESS':ref.referenceWidth!==row.width?'RESPONSIVE_RULE_DERIVATIVE':ref.paletteDerived?'APPROVED_PALETTE_DERIVATIVE':'CANONICAL_ORIGINAL',originalUnchanged:true};
+    if(row.width===1440&&row.theme==='light'&&!row.stress){
+     row.actualTypography=await renderedTypography(page,row.screen==='A01'?['#archive-root-heading h1','.archive-navigator-group-toggle']:['#document-title','.archive-navigator-window[aria-current="page"] .archive-navigator-window-title','.library-prose','.block-time']);
+     row.referenceTypography=await renderedTypography(ref.page,row.screen==='A01'?['svg text[font-size="28"]','svg text[font-size="21"]']:['svg text[font-size="28"]','svg text[font-size="16"]']);
+     row.density=await page.locator(row.screen==='A01'?'.archive-navigator-group-toggle':'.archive-navigator-window').evaluateAll(nodes=>nodes.map(node=>({text:node.textContent,height:node.getBoundingClientRect().height,minHeight:getComputedStyle(node).minHeight,padding:getComputedStyle(node).padding})));
+     for(const item of row.density)assert.equal(item.minHeight,row.screen==='A01'?'64px':'44px','title-only navigation does not reserve absent description/date space');
+     for(const item of [...row.actualTypography,...row.referenceTypography])assert.ok(item.fonts.some(font=>font.glyphCount>0),'actual glyph-font evidence: '+item.selector);
+    }
     if(!row.stress&&ref.referenceWidth===row.width)row.pixelDifference=await pixelDifference(ref.page,actualBuffer,ref.buffer,stem+'-difference.png');
     await persist();assertLayout(row.actual,row);
     assert.equal(await page.evaluate(()=>document.getElementById('scope-search')===__d7Search&&__d7PrimaryNodes.every(node=>node.isConnected)),true,'same search and primary nodes survive every responsive/theme projection');

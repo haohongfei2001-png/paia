@@ -1,3 +1,12 @@
+# D7 UI consistency — bounded implementation
+
+The [current UI batch](implementation/desktop-vnext/D7-UI-COHERENCE.md) follows
+owner feedback on popup, empty Thought, history import and main-page typography.
+It uses the existing D6.2 visual roles and real owners; saved reading preferences,
+data/consent boundaries and deferred functional redesign remain. Exact-head
+native screenshots and independent visual review are pending. This does not
+supersede the independent Prompt Reuse queue below.
+
 # D7 Input recovery conflict — local bounded candidate
 
 The [Input recovery presentation slice](implementation/desktop-vnext/D7-INPUT-RECOVERY-PRESENTATION.md)

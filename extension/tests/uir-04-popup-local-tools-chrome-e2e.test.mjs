@@ -16,14 +16,42 @@ async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);asse
 async function openExtensionPage(h,path,{width,height}){const page=await h.context.newPage();await page.setViewportSize({width,height});await page.goto(`chrome-extension://${h.extensionId}/ui/${path}`);return page;}
 async function assertNoOverflow(page,label){const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(overflow<=2,`${label} has no root horizontal overflow; got ${overflow}`);}
 
+// Computed presentation belongs to the real popup document, including when
+// inspected through Chrome's native action Window. No replacement tab is used.
+function popupPresentation(native=false){
+ const w=native?chrome.extension.getViews({type:'popup'}).find(view=>view.location.pathname==='/ui/popup.html'):window;
+ if(!w)throw Error('Native action popup closed before presentation inspection');
+ const d=w.document,style=selector=>w.getComputedStyle(d.querySelector(selector)),rect=selector=>{const r=d.querySelector(selector).getBoundingClientRect();return {width:r.width,height:r.height,top:r.top,bottom:r.bottom};};
+ const logo=d.querySelector('header img'),summary=d.querySelector('#prompt-reuse-diagnostics > summary'),disclosure=w.getComputedStyle(summary,'::after');
+ return {theme:d.documentElement.dataset.paiaTheme,font:style('body').fontFamily,canvas:style('body').backgroundColor,text:style('body').color,secondary:style('.count .subtle').color,primary:style('#open-archive').backgroundColor,onPrimary:style('#open-archive').color,pause:style('#toggle-capture').backgroundColor,pauseHovered:d.querySelector('#toggle-capture').matches(':hover:not(:disabled)'),update:style('.update-status').backgroundColor,line:style('.update-status').borderTopColor,controlRadius:style('#open-archive').borderRadius,
+  logo:{source:logo?.getAttribute('src'),loaded:!!logo?.complete&&logo.naturalWidth===32,width:logo?.width,height:logo?.height,decorative:logo?.getAttribute('alt')===''},
+  disclosure:{content:disclosure.content,width:disclosure.width,border:disclosure.borderRightStyle,transform:disclosure.transform},summary:rect('#prompt-reuse-diagnostics > summary'),primaryRect:rect('#open-archive'),updateRect:rect('.update-status'),order:[...d.querySelectorAll('main > details')].map(details=>details.id)};
+}
+function assertPopupPresentation(value,theme){
+ const palette=theme==='dark'?{canvas:'rgb(23, 29, 40)',text:'rgb(232, 237, 247)',secondary:'rgb(176, 189, 208)',primary:'rgb(148, 186, 255)',onPrimary:'rgb(23, 29, 40)',update:'rgb(32, 41, 57)',line:'rgb(48, 59, 76)'}:{canvas:'rgb(255, 255, 255)',text:'rgb(23, 35, 60)',secondary:'rgb(99, 114, 138)',primary:'rgb(35, 93, 211)',onPrimary:'rgb(255, 255, 255)',update:'rgb(244, 246, 250)',line:'rgb(230, 235, 242)'};
+ assert.equal(value.theme,theme);
+ for(const [role,color] of Object.entries(palette))assert.equal(value[role],color,`${theme} popup uses the D6.2 ${role} role`);
+ assert.equal(value.pause,value.pauseHovered?palette.update:palette.canvas,'pause remains a secondary control, including its quiet hover state');
+ assert.match(value.font,/Noto Sans CJK SC.*PingFang SC.*Microsoft YaHei.*system-ui/,'popup shares the main UI font stack');
+ assert.deepEqual(value.logo,{source:'assets/paia-logo-32.png',loaded:true,width:32,height:32,decorative:true},'the compact header uses the actual existing PAIA logo');
+ assert.equal(value.controlRadius,'6px','buttons share the main UI control shape');
+ assert.equal(value.disclosure.content,'""');assert.equal(value.disclosure.width,'6px');assert.equal(value.disclosure.border,'solid');assert.notEqual(value.disclosure.transform,'none','native details show their disclosure affordance');
+ assert.ok(value.summary.height>=40,'diagnostics remain a usable disclosure target');
+ assert.ok(value.primaryRect.height>=44&&value.primaryRect.bottom<=value.updateRect.top,'the main action precedes the quieter update section');
+ assert.equal(value.order[0],'prompt-reuse-diagnostics','retained Prompt Reuse diagnostic precedes optional internal tools');
+}
+
 async function sourceJourney(h){
  const archive=h.archive;await consent(archive);await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN'}});
  const popup=await openExtensionPage(h,'popup.html',{width:350,height:600});await popup.locator('#record-count').waitFor();await eventually(async()=>await popup.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','popup follows saved light appearance');
- assert.equal(await popup.locator('h1:visible').count(),1);assert.equal((await popup.locator('h1').textContent()).trim(),'PAIA');assert.equal(await popup.locator('#open-archive').isVisible(),true);assert.equal(await popup.locator('#toggle-capture').isVisible(),true);assert.equal(await popup.locator('#popup-internal-tools').count(),1,'source keeps internal tools owner');await assertNoOverflow(popup,'350px popup document tab (not native sizing)' );await shot(popup,'uir-04-popup-350x600-light');
+ assert.equal(await popup.locator('h1:visible').count(),1);assert.equal((await popup.locator('h1').textContent()).trim(),'PAIA');assert.equal(await popup.locator('#open-archive').isVisible(),true);assert.equal(await popup.locator('#toggle-capture').isVisible(),true);assert.equal(await popup.locator('#popup-internal-tools').count(),1,'source keeps internal tools owner');await assertNoOverflow(popup,'350px popup document tab (not native sizing)' );assertPopupPresentation(await popup.evaluate(popupPresentation),'light');await shot(popup,'uir-04-popup-350x600-light');
  await popup.locator('#toggle-capture').click();await eventually(async()=>(await rpc(popup,'GET_STATUS')).enabled===false,'popup pause uses existing capture handler');await eventually(async()=>/恢复捕获/.test(await popup.locator('#toggle-capture').textContent()),'popup renders paused action');
  await popup.locator('#toggle-capture').click();await eventually(async()=>(await rpc(popup,'GET_STATUS')).enabled===true,'popup resume uses existing capture handler');
+ await popup.locator('#prompt-reuse-diagnostics > summary').focus();await popup.keyboard.press('Enter');assert.equal(await popup.locator('#prompt-reuse-diagnostics').getAttribute('open'),'','diagnostic disclosure supports the native keyboard action');
+ const expanded=await popup.evaluate(popupPresentation);await popup.keyboard.press('Enter');assert.equal(await popup.locator('#prompt-reuse-diagnostics').getAttribute('open'),null,'the same keyboard action closes native details');assert.notEqual(expanded.disclosure.transform,(await popup.evaluate(popupPresentation)).disclosure.transform,'disclosure direction follows the real native open state');
  await popup.locator('#popup-internal-tools > summary').click();assert.equal(await popup.locator('#popup-internal-tools a[href="product-signals.html"]').count(),1,'Passport/local-tools entry remains reachable');
- await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance:'dark'}});await popup.reload();await eventually(async()=>await popup.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark','popup follows saved dark appearance');await shot(popup,'uir-04-popup-350x600-dark');await popup.close();
+ await popup.setViewportSize({width:320,height:600});await assertNoOverflow(popup,'320px popup document reflow');assertPopupPresentation(await popup.evaluate(popupPresentation),'light');await shot(popup,'uir-04-popup-320x600-light-expanded');await popup.setViewportSize({width:350,height:600});
+ await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance:'dark'}});await popup.reload();await eventually(async()=>await popup.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark','popup follows saved dark appearance');assertPopupPresentation(await popup.evaluate(popupPresentation),'dark');await shot(popup,'uir-04-popup-350x600-dark');await popup.close();
 
  const tools=await openExtensionPage(h,'product-signals.html',{width:1024,height:768});await tools.locator('#signals-status').waitFor();await eventually(async()=>await tools.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark','local tools follows saved dark appearance');assert.equal(await tools.locator('h1:visible').count(),1);assert.equal((await tools.locator('h1').textContent()).trim(),'本机工具');assert.match(await tools.locator('#local-tools-back').getAttribute('href'),/archive\.html$/);assert.equal(await tools.locator('#passport-section').count(),1);assert.equal(await tools.locator('#context-package-section').count(),1);await assertNoOverflow(tools,'1024px local tools');await shot(tools,'uir-04-local-tools-1024x768-dark');
  await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await tools.reload();await tools.setViewportSize({width:390,height:844});await eventually(async()=>await tools.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','local tools restores saved light appearance');await assertNoOverflow(tools,'390px local tools');const back=await tools.locator('#local-tools-back').boundingBox();assert.ok(back&&back.height>=18,'local tools back link remains visible on narrow viewport');await shot(tools,'uir-04-local-tools-390x844-light');await tools.close();await assertNoNetwork(h);
@@ -31,7 +59,7 @@ async function sourceJourney(h){
 
 async function releaseJourney(h){
  const archive=h.archive;await consent(archive);await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance:'dark',language:'zh-CN'}});
- const popup=await openExtensionPage(h,'popup.html',{width:350,height:600});await popup.locator('#record-count').waitFor();await eventually(async()=>await popup.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark');assert.equal(await popup.locator('#popup-internal-tools').count(),0,'release keeps popup internal-tool pruning');assert.equal(await popup.locator('#open-archive').isVisible(),true);assert.equal(await popup.locator('#toggle-capture').isVisible(),true);await assertNoOverflow(popup,'350px release popup document tab (not native sizing)' );await shot(popup,'uir-04-current-release-popup-350x600-dark');await popup.close();
+ const popup=await openExtensionPage(h,'popup.html',{width:350,height:600});await popup.locator('#record-count').waitFor();await eventually(async()=>await popup.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark');assert.equal(await popup.locator('#popup-internal-tools').count(),0,'release keeps popup internal-tool pruning');assert.equal(await popup.locator('#open-archive').isVisible(),true);assert.equal(await popup.locator('#toggle-capture').isVisible(),true);await assertNoOverflow(popup,'350px release popup document tab (not native sizing)' );assertPopupPresentation(await popup.evaluate(popupPresentation),'dark');await shot(popup,'uir-04-current-release-popup-350x600-dark');await popup.close();
  const tools=await openExtensionPage(h,'product-signals.html',{width:390,height:844});await tools.locator('#signals-status').waitFor();await eventually(async()=>await tools.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark');assert.equal(await tools.locator('h1:visible').count(),1);assert.equal(await tools.locator('#local-tools-back').count(),1);await assertNoOverflow(tools,'390px release local tools');await tools.close();await assertNoNetwork(h);
 }
 
@@ -113,6 +141,7 @@ async function captureNativeEvidence(h,name,{countEvidence='real-extension-state
  await artifactJSON(name,report);
  try{
   report.geometry=await nativePopupSnapshot(h.archive);
+  report.presentation=await h.archive.evaluate(popupPresentation,true);
   const targets=(await h.cdp.send('Target.getTargets')).targetInfos;
   const target=targets.find(item=>item.targetId===h.nativePopupTarget?.targetId&&item.url===report.geometry.url);
   if(!target)throw Error('NATIVE_POPUP_TARGET_MISSING: actual action target is unavailable; no ordinary-tab fallback is allowed');
@@ -161,7 +190,7 @@ test('Bounded native action popup has intrinsic width, readable count labels and
   if(process.env.PAIA_TESTED_HEAD)assert.equal(headSha,process.env.PAIA_TESTED_HEAD,'checked-out HEAD must match the requested native-popup test head');
   h=await FakeChatGPT.start({onboarding:true,headless:false,viewport:null});h.nativeEvidenceHead=headSha;
   const p=h.archive;await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN'}});
-  const capture=async(name,options)=>{currentState=name;const report=await captureNativeEvidence(h,name,options);states.push({name,screenshot:report.screenshot.file,geometry:report.geometry,target:report.target,countEvidence:report.countEvidence});return report.geometry;};
+  const capture=async(name,options)=>{currentState=name;const report=await captureNativeEvidence(h,name,options);states.push({name,screenshot:report.screenshot.file,geometry:report.geometry,presentation:report.presentation,target:report.target,countEvidence:report.countEvidence});assertPopupPresentation(report.presentation,'light');return report.geometry;};
   currentState='unconsented';await openNativePopup(h);let value=await capture(currentState);assertNativeGeometry(value,'unconsented');assert.equal(value.count,'0');assert.equal(value.consent,false);assert.equal(value.toggleHidden,true);assert.equal(value.active,false);assert.equal(value.background,'rgb(255, 255, 255)');await closeNativePopup(p);
   currentState='active';await consent(p);await openNativePopup(h);value=await capture(currentState);assertNativeGeometry(value,'active');assert.equal(value.active,true);assert.equal(value.toggleHidden,false);assert.match(value.toggleText,/暂停/);
   currentState='paused';await p.evaluate(()=>chrome.extension.getViews({type:'popup'})[0].document.querySelector('#toggle-capture').click());

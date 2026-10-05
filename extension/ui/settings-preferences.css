@@ -14,9 +14,6 @@
 .onboarding-history{background:var(--paia-surface)!important;color:var(--paia-text);border:1px solid var(--paia-subtle)}
 .onboarding-history .history-steps{border-color:var(--paia-subtle);color:var(--paia-secondary)}
 .onboarding-history .muted{color:var(--paia-secondary)}
-#history-dialog .history-actions{background:var(--paia-surface);border-color:var(--paia-subtle)}
-.history-counts div{background:var(--paia-hover)}
-.history-counts span{color:var(--paia-secondary)}
 /* D6.2 S01–S05 presentation. The existing controls remain their only owners. */
 body.uir-settings-active .workspace{padding:0 0 64px}
 body.uir-settings-active .workspace-header{display:none}
@@ -86,6 +83,74 @@ body.uir-settings-active:has(#ux-settings-data-group:not([hidden])>#backup-setti
 #settings-panel #backup-settings[data-inspection-failure]>#backup-failure-note{display:block;order:4;max-width:100%;margin-top:auto;padding-top:48px;color:var(--muted);font-size:12px;line-height:1.666666667;overflow-wrap:anywhere}
 #backup-preview{margin:28px 0;padding:20px;border:1px solid var(--line);border-radius:6px}
 #backup-preview-content>p{overflow-wrap:anywhere}
+/* The Data controls and the existing local import owner share D6.2 controls.
+   No global primary/dialog rule or import state/authorization owner changes. */
+#ux-settings-data-group :is(button,select,input:not([type="checkbox"]):not([type="radio"])){font-family:var(--font);font-size:13px;line-height:1.692307692;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+#ux-settings-data-group button{min-height:36px;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text)}
+#ux-settings-data-group button:hover:not(:disabled){background:var(--soft)}
+#ux-settings-data-group button.primary{border-color:var(--text);background:var(--text);color:var(--bg)}
+#ux-settings-data-group button.primary:hover:not(:disabled){background:var(--muted);border-color:var(--muted)}
+#ux-settings-data-group :is(input,select){accent-color:var(--focus)}
+#ux-settings-data-group :is(select,input:not([type="checkbox"]):not([type="radio"])){padding:6px 10px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px}
+/* The native dialog remains the bounded scroller. Sticky header/actions keep
+   its existing Close, Pause and Cancel reachable without reparenting controls. */
+#history-dialog{box-sizing:border-box;width:min(700px,calc(100vw - 32px));max-width:700px;max-height:calc(100dvh - 48px);padding:0;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);box-shadow:0 18px 60px rgba(23,35,60,.18);font:400 14px/1.714285714 var(--font);overflow:auto;overscroll-behavior:contain;scroll-padding-block:100px 90px;overflow-wrap:anywhere}
+#history-dialog[open]{display:flex;flex-direction:column}
+#history-dialog::backdrop{background:rgba(23,35,60,.36)}
+#history-dialog>*{flex:none;min-width:0;max-width:100%;margin-inline:32px}
+#history-dialog>header{position:sticky;top:0;z-index:3;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0;padding:28px 32px 20px;background:var(--bg);border-bottom:1px solid var(--line)}
+#history-dialog #history-title{margin:0;font:500 24px/1.375 var(--title-font);overflow-wrap:anywhere}
+#history-dialog button{min-width:44px;min-height:36px;max-width:100%;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text);font:500 13px/1.692307692 var(--font);white-space:normal;overflow-wrap:anywhere}
+#history-dialog button:hover:not(:disabled){background:var(--soft)}
+#history-dialog button.primary{background:var(--text);border-color:var(--text);color:var(--bg)}
+#history-dialog button.primary:hover:not(:disabled){background:var(--muted);border-color:var(--muted)}
+#history-dialog button:disabled{opacity:.45;cursor:default}
+#history-dialog #history-close{flex:none;max-width:96px;margin:-2px -8px 0 0;padding-inline:8px;background:transparent;border-color:transparent;color:var(--muted)}
+#history-dialog :is(button,input,summary):focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#history-dialog>p{margin-block:16px 0;line-height:1.714285714}
+#history-dialog>.muted,#history-dialog .muted{color:var(--muted)}
+#history-dialog .history-steps{display:flex;flex-wrap:wrap;gap:8px 24px;margin-block:20px 0;padding:14px 0;border-block:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.692307692;list-style-position:inside}
+#history-dialog .history-steps li{min-width:0;overflow-wrap:anywhere}
+#history-dialog .history-consent{display:flex;align-items:flex-start;gap:10px;min-height:44px;margin-block:20px 12px;font-size:13px;line-height:1.846153846}
+#history-dialog #history-file-consent{flex:none;box-sizing:border-box;width:16px;height:16px;min-width:16px;min-height:16px;max-width:16px;max-height:16px;padding:0;margin:4px 0 0;accent-color:var(--focus)}
+#history-dialog #history-choose{align-self:flex-start;max-width:calc(100% - 64px)}
+#history-dialog #history-status{margin-top:20px;color:var(--text)}
+#history-dialog #history-progress{width:calc(100% - 64px);height:6px;margin-block:12px 0;appearance:none;border:0;border-radius:6px;background:var(--soft);accent-color:var(--focus);overflow:hidden}
+#history-dialog #history-progress::-webkit-progress-bar{background:var(--soft);border-radius:6px}
+#history-dialog #history-progress::-webkit-progress-value{background:var(--focus);border-radius:6px}
+#history-dialog #history-format{font-size:12px;line-height:1.833333333;color:var(--muted)}
+#history-dialog #history-format:empty,#history-dialog #history-error:empty,#history-dialog #history-counts:empty,#history-dialog #history-tasks:empty{display:none}
+#history-dialog .history-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-block:16px 0}
+#history-dialog .history-counts>div{min-width:0;padding:12px;background:var(--soft);border:1px solid var(--line);border-radius:6px}
+#history-dialog .history-counts strong{display:block;margin:0 0 4px;font:500 22px/1.454545455 var(--font);color:var(--text)}
+#history-dialog .history-counts span{font-size:12px;line-height:1.666666667;color:var(--muted)}
+#history-dialog #history-error{margin-top:16px;padding:12px 14px;border-left:2px solid var(--danger);border-radius:6px;background:var(--danger-bg);color:var(--danger);font-size:13px;line-height:1.846153846}
+#history-dialog .history-actions{position:sticky;bottom:0;z-index:2;order:1;display:flex;flex-wrap:wrap;gap:8px 12px;margin:20px 0 0;padding:16px 32px;background:var(--bg);border-top:1px solid var(--line)}
+#history-dialog #history-success{padding:16px 0 0}
+#history-dialog #history-success p{margin:0 0 16px;font-size:14px;line-height:1.714285714}
+#history-dialog #history-success .muted{margin:8px 0 0;font-size:12px}
+#history-dialog #history-success button{margin:0 8px 8px 0}
+#history-dialog #history-tasks{display:grid;gap:12px;margin-top:16px}
+#history-dialog #history-tasks>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;padding:12px 0 0;border-top:1px solid var(--line)}
+#history-dialog #history-tasks>div>button:first-child{flex:1 1 200px;text-align:left}
+#history-dialog #history-details{margin-block:20px 0;padding:16px 0 0;border-top:1px solid var(--line);font-size:12px;line-height:1.833333333;color:var(--muted)}
+#history-dialog #history-details summary{min-height:36px;padding:6px 0;cursor:pointer;color:var(--muted);font-size:13px;line-height:1.846153846}
+#history-dialog #history-details p{margin:12px 0;line-height:1.833333333}
+#history-dialog #history-diagnostic{margin:12px 0 0;padding:12px;background:var(--soft);border:1px solid var(--line);border-radius:6px;font:400 11px/1.818181818 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted)}
+@media(max-width:767px){
+ #history-dialog{max-height:calc(100dvh - 32px);scroll-padding-block:112px 148px}
+ #history-dialog>*{margin-inline:20px}
+ #history-dialog>header{margin:0;padding:20px 20px 16px}
+ #history-dialog #history-title{font-size:24px;line-height:1.458333333}
+ #history-dialog .history-steps{gap:8px 16px}
+ #history-dialog #history-choose{max-width:calc(100% - 40px)}
+ #history-dialog #history-progress{width:calc(100% - 40px)}
+ #history-dialog .history-counts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #history-dialog .history-actions{margin-inline:0;padding:12px 20px}
+}
+@media(max-width:767px),(pointer:coarse){
+ #history-dialog :is(button,#history-details summary),#ux-settings-data-group :is(button,select,input:not([type="checkbox"]):not([type="radio"])){min-height:44px}
+}
 body.uir-settings-active #workspace-error{padding:16px 44px}
 @media(min-width:768px) and (max-width:1023px){#settings-panel{padding-inline:36px}}
 @media(max-width:767px){
