@@ -12,7 +12,7 @@ export class NextPromptCommands{
  constructor(service,api,surface){this.service=service;this.api=api;this.surface=surface;this.instance=crypto.randomUUID();this.groups=new Map();this.serial=0;this.changing=false;this.tail=Promise.resolve();this.offers=new Map();}
  async authorization(){
   const serial=this.serial;
-  const stored=(await this.api.storage.session.get(NEXT_AUTH_KEY))[NEXT_AUTH_KEY];
+  const stored=this.api.storage.session?(await this.api.storage.session.get(NEXT_AUTH_KEY))[NEXT_AUTH_KEY]:undefined;
   const consented=(await this.service.s.status()).consented;
   return {enabled:!this.changing&&serial===this.serial&&consented&&stored?.enabled===true&&uuid(stored.generation),generation:(stored?.generation||'off')+':'+this.instance+':'+this.serial};
  }
@@ -20,9 +20,10 @@ export class NextPromptCommands{
   // Synchronous invalidation precedes IO, including concurrent enable/revoke.
   const ticket=++this.serial;this.changing=true;this.groups.clear();this.offers.clear();
   const write=async()=>{
-   await this.api.storage.session.set({[NEXT_AUTH_KEY]:{enabled,generation:crypto.randomUUID()}});
+   if(!this.api.storage.session&&enabled)throw new ArchiveError('UNAVAILABLE');
+   if(this.api.storage.session)await this.api.storage.session.set({[NEXT_AUTH_KEY]:{enabled,generation:crypto.randomUUID()}});
    if(ticket===this.serial)this.changing=false;
-   const tabs=await this.api.tabs.query({url:'https://chatgpt.com/*'});
+   const tabs=this.api.tabs?.query?await this.api.tabs.query({url:'https://chatgpt.com/*'}):[];
    await Promise.allSettled(tabs.filter(t=>!t.incognito).map(t=>this.api.tabs.sendMessage(t.id,{type:'PAIA_PROMPT_NEXT_AUTH_CHANGED'},{frameId:0})));
    void this.api.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_CHANGED'}).catch(()=>{});
    return this.authorization();
