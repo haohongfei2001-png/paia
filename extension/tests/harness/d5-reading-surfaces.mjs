@@ -5,16 +5,22 @@ import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from './fake-chatgpt.mjs';
 import {openArchiveWindow} from './archive-navigator.mjs';
 import {openD5Reference} from './d5-shell-reference.mjs';
+import {openReaderDialogReference,readerDialogContract} from './d7-reader-dialog-reference.mjs';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 const directory='work/qa-dvn-direct-edit/d5-reading-surfaces';
 async function styles(page,selectors){return page.evaluate(selectors=>Object.fromEntries(Object.entries(selectors).map(([key,selector])=>{
  const e=document.querySelector(selector);if(!e)throw Error('Missing measured surface '+key);const r=e.getBoundingClientRect(),c=getComputedStyle(e);
- return [key,{x:r.x,y:r.y,width:r.width,height:r.height,padding:c.padding,borderWidth:c.borderWidth,borderColor:c.borderColor,borderRadius:c.borderRadius,background:c.backgroundColor,color:c.color,fontSize:c.fontSize,fontWeight:c.fontWeight,lineHeight:c.lineHeight,gap:c.gap,boxShadow:c.boxShadow,minHeight:c.minHeight,overflow:e.scrollWidth-e.clientWidth}];
+ return [key,{x:r.x,y:r.y,width:r.width,height:r.height,padding:c.padding,borderWidth:c.borderWidth,borderColor:c.borderColor,borderRadius:c.borderRadius,background:c.backgroundColor,color:c.color,fontSize:c.fontSize,fontFamily:c.fontFamily,fontWeight:c.fontWeight,lineHeight:c.lineHeight,gap:c.gap,boxShadow:c.boxShadow,minHeight:c.minHeight,overflow:e.scrollWidth-e.clientWidth}];
 })),selectors);}
 async function settle(p,ref,width,theme){
  await p.setViewportSize({width,height:900});await ref.setViewportSize({width,height:900});
  await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:theme}});await eventually(()=>p.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,theme));await ref.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
  await p.emulateMedia({reducedMotion:'reduce'});await ref.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+}
+// A07/A08 now use approved D6.2 originals; Selection retains its existing owner.
+// A compact production derivative is never presented as a new compact artboard.
+async function settleModal(p,width,theme){
+ await p.setViewportSize({width,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:theme}});await eventually(()=>p.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,theme));await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(async()=>{await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
 }
 async function retain(p,ref,variant,target,width,theme,production,reference){
  const stem=`${directory}/${variant}-${target}-${width}-${theme}`;
@@ -51,16 +57,16 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
    await p.keyboard.press('Alt+s');assert.equal(await p.locator('.reader-selection button').first().evaluate(e=>e===document.activeElement),true,'selection actions are keyboard reachable');await p.keyboard.press('Escape');await eventually(()=>p.locator('.reader-selection').isHidden());rows.push({target:'A03',width,theme,production,reference});
   }
   await p.setViewportSize({width:1440,height:900});await field.evaluate(e=>{e.blur();getSelection().removeAllRanges();});
-  const originalRef=await openD5Reference(h,'original');refs.push(originalRef);
+  const originalRefs={};for(const theme of ['light','dark']){originalRefs[theme]=await openReaderDialogReference(h,'A07',theme);refs.push(originalRefs[theme].page);}await p.bringToFront();
   await p.locator('.reader-more').click();await p.getByRole('menuitem',{name:'查看原始内容',exact:true}).click();await eventually(()=>p.locator('#original-copy').isEnabled());assert.equal(await p.locator('.source-original').textContent(),canonical.body);
   assert.equal(await p.locator('dialog[open]').count(),1);assert.equal(await p.evaluate(()=>document.activeElement?.closest('dialog')?.id),'info-dialog');
   for(const width of [1440,1280,1024,768,320])for(const theme of ['light','dark']){
-   await settle(p,originalRef,width,theme);const production=await styles(p,{surface:'#info-dialog',heading:'#info-dialog h2',caption:'.original-time',prose:'.source-original',control:'#original-copy'}),reference=await styles(originalRef,{surface:'.modal',heading:'.modal h2',caption:'.modal time',prose:'.modal .prose',control:'.modal footer button'});
+   await settleModal(p,width,theme);const originalRef=originalRefs[theme].page,production=await styles(p,{surface:'#info-dialog',heading:'#info-dialog h2',caption:'.original-time',prose:'.source-original',control:'#original-copy'}),reference=readerDialogContract(originalRefs[theme],width);
    await retain(p,originalRef,variant,'original',width,theme,production,reference);
    audit(`Original ${width}/${theme}`,()=>{for(const key of ['padding','borderWidth','borderRadius','background','color','boxShadow'])assert.equal(production.surface[key],reference.surface[key],'Original '+key);
-   for(const key of ['fontSize','lineHeight','fontWeight'])assert.equal(production.heading[key],reference.heading[key],'Original heading '+key);
+   for(const key of ['fontSize','lineHeight','fontWeight'])assert.equal(production.heading[key],reference.heading[key],'Original heading '+key);assert.match(production.heading.fontFamily,/Georgia.*Noto Serif CJK SC.*serif/);
    for(const key of ['fontSize','lineHeight','color'])assert.equal(production.caption[key],reference.caption[key],'Original caption '+key);
-   near(production.surface.width,Math.min(720,width-32),'explicit Original width formula');if(width>=768)near(production.surface.width,reference.surface.width,'Original fixed width');
+   near(production.surface.width,Math.min(700,width-32),'approved D6.2 Original width formula');if(width>=768)near(production.surface.width,reference.surface.width,'Original fixed width');
    assert.ok(production.surface.width<=width-30&&production.surface.height<=852&&production.surface.overflow<=2);near(production.surface.x,(width-production.surface.width)/2,'Original centered');});assert.equal(await p.locator('.source-original').textContent(),canonical.body);
    rows.push({target:'A07',width,theme,production,reference});
   }
@@ -78,16 +84,16 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
   await p.keyboard.press('Tab');assert.equal(await p.evaluate(()=>document.activeElement?.closest('dialog')?.id),'info-dialog');await p.keyboard.press('Escape');await eventually(()=>p.locator('#info-dialog').isHidden());assert.equal(await p.locator('#info-content').textContent(),'');
   await p.setViewportSize({width:1440,height:900});const current=canonical.body+'\n\nSYNTHETIC 后来的工作文字，原文保持不变。';await snapshot('before-fill',current);await field.fill(current);await snapshot('after-fill',current);
   try{await eventually(async()=>(await rpc(p,'GET_INPUT',{id})).libraryText===current,'native edit must reach exact durable current text');}catch(error){await snapshot('durable-equality-failure',current);throw error;}await snapshot('durable-equality-pass',current);await field.blur();
-  const historyRef=await openD5Reference(h,'history');refs.push(historyRef);
+  const historyRefs={};for(const theme of ['light','dark']){historyRefs[theme]=await openReaderDialogReference(h,'A08',theme);refs.push(historyRefs[theme].page);}await p.bringToFront();
   await p.locator('.reader-more').evaluate(node=>globalThis.__d5HistoryInvoker=node);await p.locator('.reader-more').click();await p.getByRole('menuitem',{name:'版本历史',exact:true}).click();await p.locator('.revision-row').first().getByRole('button',{name:'恢复操作前',exact:true}).click();await p.locator('.working-history-compare').waitFor();
   const beforeReview=await rpc(p,'GET_INPUT',{id});assert.equal(beforeReview.revision,baseline.revision+1);
   const texts=await p.locator('.working-history-compare pre').allTextContents();assert.ok(texts[0].startsWith(current));assert.ok(texts[1].startsWith(canonical.body));assert.equal(await p.locator('dialog[open]').count(),1);
   for(const width of [1440,1280,1024,768,320])for(const theme of ['light','dark']){
-   await settle(p,historyRef,width,theme);const production=await styles(p,{surface:'#revision-dialog',heading:'#revision-dialog h2',pair:'.working-history-compare',current:'.working-history-compare>section:first-child',past:'.working-history-compare>section:last-child'}),reference=await styles(historyRef,{surface:'.modal',heading:'.modal h2',pair:'.modal .pair'});
+   await settleModal(p,width,theme);const historyRef=historyRefs[theme].page,production=await styles(p,{surface:'#revision-dialog',heading:'#revision-dialog h2',pair:'.working-history-compare',current:'.working-history-compare>section:first-child',past:'.working-history-compare>section:last-child'}),reference=readerDialogContract(historyRefs[theme],width);
    await retain(p,historyRef,variant,'history',width,theme,production,reference);
    audit(`History ${width}/${theme}`,()=>{for(const key of ['padding','borderWidth','borderRadius','background','color','boxShadow'])assert.equal(production.surface[key],reference.surface[key],'History '+key);
-   for(const key of ['fontSize','lineHeight','fontWeight'])assert.equal(production.heading[key],reference.heading[key],'History heading '+key);
-   near(production.surface.width,Math.min(960,width-32),'explicit History width formula');if(width>=1024)near(production.surface.width,reference.surface.width,'History fixed width');assert.equal(production.pair.gap,reference.pair.gap,'History compare gap');
+   for(const key of ['fontSize','lineHeight','fontWeight'])assert.equal(production.heading[key],reference.heading[key],'History heading '+key);assert.match(production.heading.fontFamily,/Georgia.*Noto Serif CJK SC.*serif/);
+   near(production.surface.width,Math.min(860,width-32),'approved D6.2 History width formula');if(width>=1024)near(production.surface.width,reference.surface.width,'History fixed width');assert.equal(production.pair.gap,reference.pair.gap,'History compare gap');
    assert.ok(production.surface.width<=width-30&&production.surface.height<=852&&production.surface.overflow<=2);if(width<1024)assert.ok(production.past.y>=production.current.y+production.current.height-2);else assert.ok(production.past.x>production.current.x);});
    rows.push({target:'A08',width,theme,production,reference});
   }
@@ -98,6 +104,6 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
   await p.screenshot({path:`${directory}/${variant}-history-320-dark-confirm-reachable.png`});
   await p.locator('[data-restore-confirm]').getByRole('button',{name:'取消',exact:true}).click();assert.deepEqual(await rpc(p,'GET_INPUT',{id}),beforeReview,'visual review and Cancel do not restore a revision');await p.locator('#close-revisions').focus();const close=await p.locator('#close-revisions').boundingBox();assert.ok(close.y>=24&&close.y+close.height<=876,'keyboard reaches Close after scrolling');assert.equal(await p.locator('#close-revisions').evaluate(e=>e===document.activeElement),true);await modal.evaluate(dialog=>{globalThis.__d5HistoryClosed=false;dialog.addEventListener('close',()=>queueMicrotask(()=>{globalThis.__d5HistoryCloseState={connected:__d5HistoryInvoker.isConnected,invoker:__d5HistoryInvoker.outerHTML,active:document.activeElement?.outerHTML};globalThis.__d5HistoryClosed=true;}),{once:true});});await p.keyboard.press('Escape');await eventually(()=>p.evaluate(()=>__d5HistoryClosed),'native close event and the modal owner focus microtask complete');await eventually(()=>p.locator('#revision-dialog').isHidden());assert.equal(await p.locator('#revision-list').textContent(),'');assert.equal(await p.evaluate(()=>__d5HistoryInvoker.isConnected&&__d5HistoryInvoker===document.activeElement),true,'History returns focus to its surviving original invoker');
   assert.deepEqual((await h.state()).records,source);assert.equal(await p.evaluate(()=>__d5ReadingNode.isConnected),true);assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
-  const head=process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();await writeFile(`${directory}/${variant}-comparison.json`,JSON.stringify({result:failures.length?'FAIL':'PASS',head,variant,rows,failures,intentionalDifferences:['Saved Reader font-size preferences stay authoritative for raw prose.','Original target, exact page coverage and real history revision/restore labels remain truthful.','Constrained modal widths keep the explicit viewport-minus32px formula (including History768px) and48px height reserve; the specimen backdrop can impose24px gutters. Coarse/narrow action targets are44px.','History compares current and selected real versions; the canonical illustrative dates and revision-list content are not forged.']},null,2));assert.deepEqual(failures,[],'every retained fixed-geometry comparison must pass');
+  const head=process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();await writeFile(`${directory}/${variant}-comparison.json`,JSON.stringify({result:failures.length?'FAIL':'PASS',head,variant,rows,failures,intentionalDifferences:['Saved Reader font-size preferences stay authoritative for raw prose.','Original target, exact page coverage and real history revision/restore labels remain truthful.','Constrained modal widths keep the explicit viewport-minus32px formula (including History768px) and48px height reserve; A07/A08 retain the unchanged1440px SVG while compact production uses approved responsive rules. Coarse/narrow action targets are44px.','History compares current and selected real versions; the canonical illustrative dates and revision-list content are not forged.']},null,2));assert.deepEqual(failures,[],'every retained fixed-geometry comparison must pass');
  }finally{await writeFile(`${directory}/${variant}-retained-progress.json`,JSON.stringify({head:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,historyFocus:await p.evaluate(()=>globalThis.__d5HistoryCloseState||null).catch(()=>null),observedRows:rows.length,rows,failures,fullMatrix:rows.length===30},null,2));for(const ref of refs)await ref.close();await h.close();}
 }

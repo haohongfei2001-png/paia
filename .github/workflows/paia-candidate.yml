@@ -256,7 +256,7 @@ jobs:
           retention-days: 7
 
   targeted_browser:
-    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION') || contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER'))
+    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION') || contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS'))
     name: Candidate affected browser
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -285,6 +285,31 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
           fc-list :lang=zh | grep -q .
+      - name: D7 Reader Original and History complete owner regressions
+        if: contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS')
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
+          mkdir -p work/d7-reader-dialog-owners
+          xvfb-run -a node --test --test-concurrency=1 --test-reporter=./scripts/test-report.mjs tests/cpv1-02-dvn-original-chrome-e2e.test.mjs tests/cpv1-02-dvn-working-revision-chrome-e2e.test.mjs 2>&1 | tee work/d7-reader-dialog-owners/acceptance.log
+          cp work/test-summary.json work/d7-reader-dialog-owners/test-summary.json
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync,writeFileSync} from 'node:fs';
+          const report=JSON.parse(readFileSync('work/d7-reader-dialog-owners/test-summary.json'));
+          assert.equal(report.total,12);assert.equal(report.pass,12);assert.equal(report.fail,0);assert.equal(report.skipped,0);
+          assert.deepEqual(Object.keys(report.files).sort(),['cpv1-02-dvn-original-chrome-e2e.test.mjs','cpv1-02-dvn-working-revision-chrome-e2e.test.mjs']);
+          writeFileSync('work/d7-reader-dialog-owners/receipt.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,result:'PASS',total:report.total,pass:report.pass,fail:report.fail,skipped:report.skipped,files:Object.keys(report.files).sort()},null,2));
+          JS
+      - name: Retain D7 Reader dialog owner evidence
+        if: always() && contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS')
+        uses: actions/upload-artifact@v4
+        with:
+          name: d7-reader-dialog-owners-${{ github.event.pull_request.head.sha }}
+          path: extension/work/d7-reader-dialog-owners/
+          if-no-files-found: error
+          retention-days: 7
       - name: D4 explicit Context review and existing reuse regressions
         if: contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER')
         env:
@@ -1124,7 +1149,7 @@ jobs:
           TARGETED_BROWSER: ${{ needs.targeted_browser.result }}
           TOPIC_COMPAT: ${{ needs.topic_compatibility.result }}
           TOPIC_COMPAT_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') }}
-          TOPIC_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') }}
+          TOPIC_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS') }}
           NATIVE_POPUP: ${{ needs.native_popup.result }}
           NATIVE_POPUP_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER') }}
           CAPTURE_RECOVERY: ${{ needs.capture_recovery.result }}

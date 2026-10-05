@@ -69,7 +69,7 @@ jobs:
            assert.deepEqual(report.network,{externalRequests:0,extensionNetworkRequests:0,providerRequests:0,pageErrors:[]});
           }
           JS
-      - name: Capture adopted Reader dialogs through existing native owners
+      - name: Verify approved Reader dialogs through existing native owners
         if: matrix.suite == 'appearance' && contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS')
         run: |
           set -o pipefail
@@ -78,13 +78,15 @@ jobs:
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
           for(const variant of ['source','release']){
-            const report=JSON.parse(readFileSync(`work/d7-reader-dialogs/${variant}-baseline.json`));
+            const report=JSON.parse(readFileSync(`work/d7-reader-dialogs/${variant}-after.json`));
             assert.equal(report.result,'PASS');assert.equal(report.head,process.env.PAIA_TESTED_HEAD);
-            assert.equal(report.baselineHead,'e2f90cd8e81af5ba8bc3c840366d9e4f3e68f415');
-            assert.equal(report.phase,'before-production-style-change');assert.equal(report.rows.length,6);
-            assert.deepEqual(report.rows.map(row=>`${row.screen}-${row.width}-${row.theme}`),['A07-1440-light','A07-1440-dark','A07-320-dark','A08-1440-light','A08-1440-dark','A08-320-dark']);
+            assert.equal(report.baseline.productionHead,'e2f90cd8e81af5ba8bc3c840366d9e4f3e68f415');assert.equal(report.baseline.testHead,'75a68058cb172eb08f7423bd6f4ddde1d921ebe6');
+            assert.equal(report.phase,'after-approved-dialog-style-change');assert.equal(report.rows.length,14);
+            assert.deepEqual(report.rows.map(row=>`${row.screen}-${row.width}-${row.theme}${row.stress?'-'+row.stress:''}`),['A07','A08'].flatMap(screen=>['1440-light','1440-dark','1024-light','1023-light','320-dark','768-light-text200','320-dark-text200'].map(size=>`${screen}-${size}`)));
+            assert.equal(report.interactions.filter(row=>row.kind==='long-tail').length,14);assert.equal(report.interactions.filter(row=>row.kind==='source-detail-isolation').length,1);
             assert.deepEqual(report.network,{externalRequests:0,extensionNetworkRequests:0,providerRequests:0,pageErrors:[]});
-            for(const row of report.rows){const png=readFileSync(`work/d7-reader-dialogs/${row.name}.png`);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));}
+            for(const row of report.rows)for(const suffix of ['','-tail']){const png=readFileSync(`work/d7-reader-dialogs/${row.name}${suffix}.png`);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));}
+            for(const screen of ['A07','A08'])for(const theme of ['light','dark']){const png=readFileSync(`work/d7-reader-dialogs/${variant}-${screen}-reference-1440-${theme}.png`);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));}
           }
           JS
       - name: Retain completed or failed whole-window evidence
