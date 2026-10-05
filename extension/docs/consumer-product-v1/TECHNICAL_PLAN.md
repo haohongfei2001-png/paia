@@ -222,8 +222,35 @@ Architecture requirements:
 - Do not add a new object store merely to cache ranking. If durable edited
   template text cannot fit an existing versioned state boundary safely, answer
   the durable-schema freeze questions and ship an explicit migration/Backup rule.
-- Stage 3 reply-aware recommendations remain a separate B-04-gated capability.
-  They reuse the insertion adapter but do not change Stage 1/2 authorization.
+- Stage 3A is a separately authorized local capability governed by
+  `PROMPT_REUSE_STAGE_3A.md`. Keep Stage 1/2 reply-blind.
+- Stage 3A owns a provider-specific **CurrentReplyAdapter** that identifies the
+  current newly completed latest assistant reply and final-generation lifecycle
+  in the isolated extension world. Do not broaden the existing user-only capture
+  parser/metadata bridge into a general assistant-body pipeline merely for
+  convenience.
+- Full assistant reply text remains ephemeral. No reply body store, object store,
+  durable cache, Backup row, website storage or ordinary body log is added.
+- A pure local **NextActionDetector** produces DIRECT_REPLY / CHOICE /
+  REQUEST_USER_MATERIAL / PROMPT_FAMILY_MATCH / DEFER from bounded current-reply
+  input. It performs zero Provider/model/network requests.
+- Prompt Family matching reuses current eligible PromptReuseService results and
+  local lexical primitives through a disposable bounded view; it does not add a
+  second prompt archive, vector database or per-token full-library scan.
+- Direct-extracted/choice suggestions are ephemeral trusted candidates, not fake
+  persistent Prompt Families. The worker must bind each candidate to current
+  tab/document/conversation/reply revision and authorization generation, then
+  revalidate it at click time.
+- Recommendation rendering stays in an extension-controlled frame/boundary. Do
+  not expose the whole prompt library, reply snapshot or detector evidence to the
+  host page merely because a capsule is visible.
+- Suggestion insertion reuses the existing provider-specific composer execution
+  and read-back/no-send guarantees, but it must not weaken the current Prompt
+  Family resolver to admit arbitrary strings.
+- Disable/revoke invalidates the reply reader, in-flight analysis and candidate
+  tokens. A late result may not recreate a suggestion.
+- Stage 3B external/model generation remains B-04-3B-gated and is not authorized
+  by Stage 3A.
 
 Visual isolation and insertion security are both product requirements: style
 encapsulation alone is insufficient if it exposes the user's full prompt list to
