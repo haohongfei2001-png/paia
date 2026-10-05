@@ -18,5 +18,5 @@ test('D7 baseline receipts distinguish production identity, candidate identity a
  assert.doesNotMatch(script,/setContent\(|addStyleTag\(|style\.setProperty\(|showModal\(/,'no fake modal DOM or injected production styles');
 });
 test('D7 baseline retains actual full originals, native save, explicit cancellation and clearing',()=>{
- for(const value of ['SYNTHETIC_ORIGINAL_END','SYNTHETIC_CURRENT_END',"__readerDialogCopied),original",'reviewed.revision,before.revision+1',"Cancel never writes a restoration",'closeAndCheck(p,\'original\')','closeAndCheck(p,\'history\')','historyTail.dialog.scrollTop>0',"records,sources",'h.extensionNetworkRequests,0'])assert.ok(script.includes(value),value);
+ for(const value of ['SYNTHETIC_ORIGINAL_END','SYNTHETIC_CURRENT_END',"typeof __readerDialogCopied==='string'","__readerDialogCopied),original",'reviewed.revision,before.revision+1',"Cancel never writes a restoration",'closeAndCheck(p,\'original\')','closeAndCheck(p,\'history\')','historyTail.dialog.scrollTop>0',"records,sources",'h.extensionNetworkRequests,0'])assert.ok(script.includes(value),value);
 });

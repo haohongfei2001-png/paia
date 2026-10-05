@@ -78,3 +78,21 @@ comparison layout, 200% text, complete long tails and reachable controls. The
 baseline artifact remains identified by its original test head rather than being
 relabelled as final evidence. No broader D7 or final owner visual acceptance is
 claimed by this slice.
+
+## First hosted baseline attempt retained
+
+Test head `4f196f151fb05fe33b71dd656f55878e65a132e6`, production baseline
+unchanged e2f90cd8: [D7 run 37254949086](https://github.com/haohongfei2001-png/paia/actions/runs/37254949086)
+passed the full existing appearance and compatibility journeys. Candidate gate
+37254949037 also passed. The new baseline cases failed after 6.92s/8.83s because
+the test read the clipboard observation immediately after click, before the
+existing asynchronous complete-original read/copy returned. Each variant retained
+all three A07 frames and its long-tail frame; A08 was not reached.
+
+Artifact 11321913772 has SHA256
+`ee83325ade5c2d34c2530249deab5678cb728429a0a4a84f124d84b31c907c0c`.
+Both final failure images subsequently show the original-copy success status.
+The correction waits for the actual clipboard observation before the unchanged
+full-string equality assertion. Production, fixtures, full text, original limits,
+case/job timeouts and prior suites are unchanged. Corrected-head baseline and its
+A08 images remain PENDING; this failure is not relabelled PASS.
