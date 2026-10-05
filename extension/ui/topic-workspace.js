@@ -667,7 +667,16 @@ export class TopicController {
    if(!current())return;this.onStatus(error?.code==='STALE_BASE'?'内容刚有更新，请重新核对后再保存。':'保存结果尚未确认；原选择保持锁定。再次保存会先核对同一次操作，不调用 AI。',error?.code==='STALE_BASE'?'conflict':'error');
   }finally{state.pending=false;if(current())this.renderCandidate(this.aiTopics.get(topicId));}
  }
- async readRefresh(){this.syncOriginalTabs();if(this.id&&this.view==='original'&&this.originalMode==='years'){const result=await this.readYears();if(result&&this.desktopAppearance)this.enableDesktopPresentation();return result;}if(this.topicTimeline)this.topicTimeline.host.hidden=true;const result=await this.readContentRefresh();if(result!==true||!this.id||this.view!=='ai'){this.renderAITopicStatus(null,null);return result;}const row=this.aiTopics.get(this.id);if(!row?.presentation){this.originalPane.hidden=false;this.aiPane.hidden=false;const first=this.aiPane.querySelector('[data-ai-first-generation]');if(this.aiPending)first?.remove();else if(!row?.candidate&&!row?.userDraft&&!first)this.aiPane.replaceChildren(firstAIGenerationPanel({topicName:this.topic?.name||this.document?.topic?.name||'当前主题',count:this.firstGenerationCount(),onGenerate:()=>this.confirmFirstGeneration(this.id)}));}this.renderCandidate(row);return result;}
+ async readRefresh(){
+  this.syncOriginalTabs();if(this.id&&this.view==='original'&&this.originalMode==='years'){const result=await this.readYears();if(result&&this.desktopAppearance)this.enableDesktopPresentation();return result;}if(this.topicTimeline)this.topicTimeline.host.hidden=true;
+  const token=this.loadToken,epoch=this.statusEpoch,topicId=this.id,result=await this.readContentRefresh();
+  if(token!==this.loadToken||epoch!==this.statusEpoch||topicId!==this.id)return false;
+  if(result!==true||!this.id||this.view!=='ai'){this.renderAITopicStatus(null,null);return result;}
+  // Leaving disposes this composition; a successful AI reopen needs the same
+  // existing controls restored just as Original and Years already do.
+  if(this.desktopAppearance)this.enableDesktopPresentation();
+  const row=this.aiTopics.get(this.id);if(!row?.presentation){this.originalPane.hidden=false;this.aiPane.hidden=false;const first=this.aiPane.querySelector('[data-ai-first-generation]');if(this.aiPending)first?.remove();else if(!row?.candidate&&!row?.userDraft&&!first)this.aiPane.replaceChildren(firstAIGenerationPanel({topicName:this.topic?.name||this.document?.topic?.name||'当前主题',count:this.firstGenerationCount(),onGenerate:()=>this.confirmFirstGeneration(this.id)}));}this.renderCandidate(row);return result;
+ }
  async leave(){this.rememberTimeline();this.rememberView();const keepOriginal=this.view==='ai'&&this.aiPending&&!this.aiTopics.get(this.id)?.presentation;if(!keepOriginal){const ok=await this.leaveEditors();if(ok)this.topicTimeline?.dispose();return ok;}this.view='original';try{return await this.leaveEditors();}finally{this.view='ai';}}
  async open(id){
   this.rememberView();const currentAnchor=this.id&&this.view==='original'?this.topicAnchor():null;

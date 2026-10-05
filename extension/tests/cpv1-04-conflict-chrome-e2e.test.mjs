@@ -18,9 +18,9 @@ test('VS-04 Thought conflict compares both versions and saves only after explici
   await page.locator('#enable-consent').click();
   await page.locator('[data-view=thoughts]').click();
   const topic=await createLegacyTopic(page,'Synthetic VS-04 conflict');
-  await page.locator('#create-entry').click();
-  await page.locator('textarea.thought-draft').fill('Synthetic baseline');
-  await page.getByRole('button',{name:'保存想法',exact:true}).click();
+  // Creation is fixture setup; the current writing workspace deliberately holds Save.
+  // The conflict itself still uses the real editable Thought, worker and comparison controls.
+  await send(page,'CONTINUE_THINKING',{thought:{operationId:operationId(),topicId:topic.id,body:'Synthetic baseline'}});
   await eventually(async()=>{
    const result=await send(page,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id}});
    return result.items.some(item=>item.entry?.body==='Synthetic baseline');

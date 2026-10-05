@@ -1,5 +1,3 @@
-import {openRetainedSearchComponent} from './harness/retained-search-component.mjs';
-import {settleContextCapture,assertContextUnavailable,contextSafetySnapshot,observeContextEffects,assertNoContextEffects,assertNoContextSession} from './current-context-scope-helper.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -25,6 +23,13 @@ async function openReader(page){
   await page.locator('#primary-nav [data-view="library"]').click();
   await openArchiveWindow(page,{label:'ANS-01 Archive document appears'});
   await eventually(()=>page.locator('#input-time-toggle').isVisible(),'ANS-01 Reader opens');
+}
+
+async function tray(page){
+  return page.evaluate(async()=>{
+    const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));
+    return getContextController().data;
+  });
 }
 
 test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure recovery remain real',{timeout:240000},async()=>{
@@ -70,7 +75,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
     assert.equal(await p.locator('.core-loop-reuse').count(),0,'persistent per-Input material action is removed');
     const first=p.locator('.library-prose').filter({hasText:'ANS01_FIRST'}).first();
     await first.click({button:'right'});
-    assert.equal(await p.locator('#context-menu button').filter({hasText:'加入本次材料'}).count(),1,'Input more menu retains its explicit material entry');
+    assert.equal(await p.locator('#context-menu button').filter({hasText:'加入本次材料'}).count(),1,'Input more menu still owns exact reuse');
     await p.keyboard.press('Escape').catch(()=>{});
     await p.mouse.click(10,10);
     await first.evaluate(el=>{
@@ -78,7 +83,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
       const selection=getSelection();selection.removeAllRanges();selection.addRange(range);document.dispatchEvent(new Event('selectionchange'));
     });
     await eventually(()=>p.locator('.reader-selection').isVisible(),'native text selection opens the retained toolbar');
-    assert.equal(await p.locator('.reader-selection').getByRole('button',{name:'加入本次材料',exact:true}).count(),1,'native selected-text material entry remains present');
+    assert.equal(await p.locator('.reader-selection').getByRole('button',{name:'加入本次材料',exact:true}).count(),1,'native selected-text reuse remains available');
     await p.evaluate(()=>getSelection()?.removeAllRanges());
 
     const failureAnchorText=await p.locator('.library-prose').first().textContent();
@@ -133,7 +138,6 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
       }
     }
     await p.setViewportSize({width:1024,height:768});
-    await eventually(()=>p.locator('#input-time-order').evaluate(node=>node.parentElement?.id==='reader-heading-actions'&&!node.hidden),'Reader order control reaches its real wide layout owner after the compact matrix');
     const cdp=await h.context.newCDPSession(p);await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
     assert.equal(await p.locator('#input-time-toggle').isVisible(),true,'order control remains reachable at 200% zoom');
     await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
@@ -154,7 +158,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
   }finally{await h.close();}
 });
 
-test('ANS-01 Topic menu keeps the 200-item boundary and unavailable Context cannot create a selection',{timeout:300000},async()=>{
+test('ANS-01 Topic whole-selection moves into the existing menu and keeps the bounded trusted material path',{timeout:300000},async()=>{
   const h=await FakeChatGPT.start();
   try{
     const p=h.archive;
@@ -163,14 +167,14 @@ test('ANS-01 Topic menu keeps the 200-item boundary and unavailable Context cann
     await eventually(async()=>(await h.state()).records.length===1,'ANS-01 source captured');
 
     const small=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'ANS01 小主题',operationId:op()}});
-    const thoughtA=await rpc(p,'CONTINUE_THINKING',{thought:{topicId:small.id,body:'ANS01_TOPIC_A 第一段思想',operationId:op()}});
-    const thoughtB=await rpc(p,'CONTINUE_THINKING',{thought:{topicId:small.id,body:'ANS01_TOPIC_B 第二段思想',operationId:op()}});
+    await rpc(p,'CONTINUE_THINKING',{thought:{topicId:small.id,body:'ANS01_TOPIC_A 第一段思想',operationId:op()}});
+    await rpc(p,'CONTINUE_THINKING',{thought:{topicId:small.id,body:'ANS01_TOPIC_B 第二段思想',operationId:op()}});
     const big=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'ANS01 大主题',operationId:op()}});
-    const bigThoughtIds=await p.evaluate(async topicId=>{
-      const ids=[];for(let i=0;i<201;i++){
+    await p.evaluate(async topicId=>{
+      for(let i=0;i<201;i++){
         const r=await chrome.runtime.sendMessage({type:'CONTINUE_THINKING',thought:{topicId,body:'ANS01_BIG_'+String(i).padStart(3,'0'),operationId:crypto.randomUUID()}});
-        if(!r?.ok)throw Error(JSON.stringify(r));ids.push(r.data.id);
-      }return ids;
+        if(!r?.ok)throw Error(JSON.stringify(r));
+      }
     },big.id);
 
     await p.bringToFront();
@@ -182,14 +186,13 @@ test('ANS-01 Topic menu keeps the 200-item boundary and unavailable Context cann
     await p.locator('#topic-menu summary').click();
     const choose=p.locator('#topic-menu button').filter({hasText:'选择本主题材料'});
     assert.equal(await choose.count(),1,'whole-topic selection is retained in the topic menu');
-    await settleContextCapture(h);const snapshotOptions={thoughtIds:[thoughtA.id,thoughtB.id,...bigThoughtIds]},before=await contextSafetySnapshot(p,snapshotOptions);await observeContextEffects(p);
     p.once('dialog',dialog=>dialog.accept());
     await choose.click();
-    await eventually(()=>p.evaluate(()=>globalThis.__currentContextEffects.unavailable===1),'confirmed Topic menu action reports Context unavailable');
-    await assertNoContextSession(p);
-    assert.deepEqual(await contextSafetySnapshot(p,snapshotOptions),before,'Topic selection changes no Source, Thought, authorization or session');
-    await assertContextUnavailable(p);
-    await openRetainedSearchComponent(p,{types:['input','thought','ai']});
+    await eventually(async()=>((await tray(p))?.items||[]).length===2,'whole-topic menu selection adds exact saved Thought refs');
+    await eventually(async()=>await p.locator('#material-preview').isVisible()&&await p.locator('#scope-search').isEnabled(),'selected materials finish navigation to the Context workspace');
+
+    await p.getByRole('button',{name:'从档案选择',exact:true}).click();
+    await eventually(()=>p.locator('#universal-search-dialog').isVisible(),'retained tray opens internal Archive material search');
     await p.getByRole('searchbox',{name:'全局搜索'}).fill('ANS01_ARCHIVE_TARGET');
     await eventually(async()=>await p.locator('.universal-hit').count()===1,'internal material search still finds Input');
     await p.locator('.universal-close').click();
@@ -206,9 +209,7 @@ test('ANS-01 Topic menu keeps the 200-item boundary and unavailable Context cann
     await p.locator('#topic-menu button').filter({hasText:'选择本主题材料'}).click();
     await eventually(async()=>!await p.locator('#notice').isHidden()&&(await p.locator('#notice').textContent()).includes('超过本次 200 项保护上限'),'large topic gives bounded-selection notice');
     assert.equal(unexpectedDialog,false,'over-limit selection does not ask to confirm a truncated set');
-    await assertNoContextSession(p);assert.equal(await p.evaluate(()=>globalThis.__currentContextEffects.unavailable),1,'over-limit guard refuses before the disabled Context action');
-    assert.deepEqual(await contextSafetySnapshot(p,snapshotOptions),before,'201-item refusal keeps all 203 Thoughts and Source data unchanged');
-    await assertNoContextEffects(p,h);
+    assert.equal((await tray(p)).items.length,2,'over-limit selection does not silently change the existing tray');
 
     assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
   }finally{await h.close();}

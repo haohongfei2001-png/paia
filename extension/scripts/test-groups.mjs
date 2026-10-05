@@ -54,6 +54,9 @@ export function testShard(file, position, total, category) {
  // other placements; move complete Thought ownership to6 and the measured
  // Content/Years pair onto5's spare capacity. No file/case is split or skipped.
  if(category==='browser E2E'&&total===6){
+  // Full37323881161 exhausted3 while Settings alone took400s and6 took331s.
+  // Move this complete file to6; keep all cases and the same18-minute budgets.
+  if(name==='uir-04-settings-chrome-e2e.test.mjs')return 6;
   if(name==='ux-r3-thought-chrome-e2e.test.mjs')return 6;
   if(['cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs'].includes(name))return 5;
   return testShard(file,position,5,category);

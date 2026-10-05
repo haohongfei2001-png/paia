@@ -1,5 +1,4 @@
-import {openRetainedSearchComponent} from './harness/retained-search-component.mjs';
-import {settleContextCapture,assertContextUnavailable,contextSafetySnapshot,observeContextEffects,assertNoContextEffects} from './current-context-scope-helper.mjs';
+import {previewReviewedContext} from './harness/context-browser-review.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
@@ -8,9 +7,9 @@ const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.run
 const rawRpc=(page,type,fields={})=>page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});
 
 async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
-async function openUniversal(page,query){assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root has no duplicate material-selection launcher');await assertContextUnavailable(page);await openRetainedSearchComponent(page,{types:['input','thought','ai']});const box=page.getByRole('searchbox',{name:'全局搜索'});await box.fill(query);await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()>0,'internal material Search returns a current-runtime result');return page.locator('#universal-search-dialog .universal-hit').first();}
+async function openUniversal(page,query){assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root has no duplicate material-selection launcher');await page.locator('#primary-nav [data-view="memory"]').click();await eventually(()=>page.locator('#material-workbench').isVisible(),'For AI material tray opens');await page.getByRole('button',{name:'从档案选择',exact:true}).click();const box=page.getByRole('searchbox',{name:'全局搜索'});await box.fill(query);await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()>0,'internal material Search returns a current-runtime result');return page.locator('#universal-search-dialog .universal-hit').first();}
 
-test('Round 4.8 current release: retained Search component -> Reader and Revisit survive the unavailable Context route',{timeout:120000},async()=>{
+test('Round 4.8 current release: internal material Search -> Reader / Context and Revisit are real Chrome journeys',{timeout:120000},async()=>{
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive,first='ROUND48_SEARCH_TARGET 我决定把 PAIA 做成长期可阅读的个人输入档案。',second='ROUND48_REVISIT_NEW 我后来补充：回访应该只提示真正新增的本机内容。';
@@ -18,21 +17,22 @@ test('Round 4.8 current release: retained Search component -> Reader and Revisit
   await h.open({id:'round48-current',title:'Round 4.8 Current Release',base:1609459200,messages:[{id:'round48-one',text:first}]});
   await eventually(async()=>(await h.state()).records.length===1,'first Input is captured');
 
-  // Component-only Search still uses the real Input Archive Reader. Its former
-  // Context picker launcher is withdrawn and is checked unavailable above.
+  // Explicit material selection uses the retained internal Search coordinator and the real
+  // Input Archive navigation path, rather than a unit-only projection.
   let hit=await openUniversal(p,'ROUND48_SEARCH_TARGET');
   await hit.locator('.universal-open').click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND48_SEARCH_TARGET'),'search result opens its Input document');
 
   await p.locator('#back').click();await eventually(()=>p.locator('#universal-search-dialog').isVisible(),'Reader returns to its Search task');assert.equal(await p.getByRole('searchbox',{name:'全局搜索'}).inputValue(),'ROUND48_SEARCH_TARGET');
 
-  // The withdrawn Context segment is a truthful no-op through ordinary navigation.
-  await p.locator('.universal-close').click();
-  await settleContextCapture(h);const before=await contextSafetySnapshot(p);await observeContextEffects(p);
-  await assertContextUnavailable(p);
-  assert.deepEqual(await contextSafetySnapshot(p),before);
+  // DELTA-04: fixed explicit Input selection replaces snippet-driven retrieval.
+  // It remains local and does not grant future access to unorganized Inputs.
+  hit=p.locator('#universal-search-dialog .universal-hit').first();await hit.locator('.universal-context').click();
+  await eventually(()=>p.locator('#material-preview').isVisible(),'Search adds a real material reference');
+  await previewReviewedContext(p);await eventually(()=>p.locator('#material-output-text').isVisible(),'explicit material reaches trusted Preview');
+  assert.match(await p.locator('#material-output-text').textContent(),/ROUND48_SEARCH_TARGET/);
   assert.equal((await rpc(p,'PAIA_MEMORY_STATUS')).config.includeUnorganizedInputs,false);
-  await assertNoContextEffects(p,h);
+  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);
 
   p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#collection-panel').isVisible());await p.locator('#scope-search').fill('');await eventually(()=>p.locator('#archive-root-main').isVisible());
   // UX-R2 creates a fixed visit window; a later captured Input becomes the

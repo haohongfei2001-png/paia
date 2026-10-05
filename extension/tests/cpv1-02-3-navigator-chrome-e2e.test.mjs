@@ -110,11 +110,11 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
   await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').filter({hasText:'未归属 Project'}).first();
   await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
   await eventually(async()=>await p.locator('.archive-navigator-window').count()===3);
-  const white=async selectors=>{for(const selector of selectors){const background=await p.locator(selector).evaluate(el=>{for(let node=el;node;node=node.parentElement){const color=getComputedStyle(node).backgroundColor;if(color!=='rgba(0, 0, 0, 0)'&&color!=='transparent')return color;}return 'transparent';});assert.equal(background,selector==='.sidebar'?'rgb(247, 248, 246)':'rgb(255, 255, 255)',selector+' uses the frozen light rail/reading surface');}};
+  const white=async selectors=>{for(const selector of selectors){const background=await p.locator(selector).evaluate(el=>{for(let node=el;node;node=node.parentElement){const color=getComputedStyle(node).backgroundColor;if(color!=='rgba(0, 0, 0, 0)'&&color!=='transparent')return color;}return 'transparent';});assert.equal(background,selector==='.sidebar'?'rgb(250, 251, 253)':'rgb(255, 255, 255)',selector+' uses the adopted D6.2 light rail/reading surface');}};
   await white(['body','.sidebar','.workspace','#archive-navigator']);
   const rootContract=async()=>{
    assert.equal(await p.locator('input[type="search"]:visible').count(),1);
-   const tools=await p.locator('#archive-root-tools').boundingBox(),tree=await p.locator('#archive-navigator').boundingBox();
+   const tools=await p.locator('#archive-root-header-actions').boundingBox(),tree=await p.locator('#archive-navigator').boundingBox();
    assert.ok(tools&&tree&&tools.y+tools.height<=tree.y,'all primary search tools precede the Project tree');
    assert.equal(await p.locator('.archive-navigator-window-cue,.archive-navigator-window-time,.archive-navigator-detail,#archive-root-recent,#archive-root-continue').count(),0);
    assert.equal(await p.locator('#archive-search-date-scope').isVisible(),false);
@@ -146,7 +146,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
    await eventually(async()=>await p.locator('.archive-navigator-window').count()===Object.keys(before).length&&await p.locator(`.archive-navigator-window[data-document-id="${id}"][aria-current="page"]`).count()===1,'Navigator completes the actual post-sort projection');
    assert.deepEqual(await labels(),before,'same-title labels survive Reader sort');
    assert.deepEqual((await h.state()).records,sources,'sorting never mutates Source');
-   await p.locator('#back').click();await eventually(()=>p.locator('#archive-root-tools').isVisible());
+   await p.locator('#back').click();await eventually(()=>p.locator('#archive-root-header-actions #scope-search').isVisible(),'Back restores the current Archive header search owner');
    await eventually(async()=>await p.locator('.archive-navigator-window').count()===Object.keys(before).length,'Navigator restores the complete root projection after Back');
    await rootContract();assert.deepEqual(await labels(),before,'same-title identity survives Reader/back');
   }

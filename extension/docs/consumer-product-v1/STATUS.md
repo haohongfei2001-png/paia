@@ -1,3 +1,7 @@
+## D7 current full-certification contract synchronization — 2026-10-05
+
+[PR170](https://github.com/haohongfei2001-png/paia/pull/170) follows through on main `80f3201d`. Its unchanged-executable baseline reproduces obsolete UI/reference assertions independently of Prompt Reuse. [The finite mapping](implementation/desktop-vnext/D7-CURRENT-CERTIFICATION.md) keeps all71 current browser files and six18-minute jobs, moving only the complete Settings file from3 to6 after measured shard3 overflow, preserves historical withdrawn contracts, and retains real data/edit/permission/recovery assertions plus current unavailable-page negatives. Corrective verification also exposed three bounded presentation gaps: AI Topic presenter remounting, compact action target specificity, and fixed title line heights under text enlargement. External PR164 and pending icon work are unchanged. Corrected exact-head full Certification and independent review are required; no full PASS or deferred functionality is claimed before those gates.
+
 # Prompt Reuse frosted material v2 — independent engineering integration
 
 **ENGINEERING_INTEGRATED / OWNER_VISUAL_ACCEPTANCE_PENDING**.

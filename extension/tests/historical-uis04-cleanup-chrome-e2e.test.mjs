@@ -1,5 +1,3 @@
-import {openRetainedSearchComponent} from './harness/retained-search-component.mjs';
-import {settleContextCapture,assertContextUnavailable,contextSafetySnapshot,observeContextEffects,assertNoContextEffects,assertNoContextSession} from './current-context-scope-helper.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
@@ -11,7 +9,7 @@ const nav=async(page,view)=>{await page.locator(view==='settings'?'.sidebar-bott
 async function noRemovedControls(page){
   for(const selector of ['#universal-search-open','#thought-recent','#thought-organize-tools','#core-loop-browse-title'])assert.equal(await page.locator(selector).count(),0,selector+' cannot be recreated');
 }
-test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit and retained Search while Context selection stays unavailable',{timeout:180000},async()=>{
+test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit and explicit material selection',{timeout:180000},async()=>{
   const h=await FakeChatGPT.start({onboarding:true});
   try{
     const page=h.archive;
@@ -77,16 +75,18 @@ assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,
     await page.locator('.revisit-close').click();
     await eventually(()=>page.locator('#scope-search').isVisible(),'Revisit returns to Archive');
     assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root duplicate material launcher stays removed');
-    await settleContextCapture(h);const before=await contextSafetySnapshot(page);await observeContextEffects(page);
-    await assertContextUnavailable(page);
-    assert.deepEqual(await contextSafetySnapshot(page),before,'unavailable navigation preserves stored data and authorization');
-    await openRetainedSearchComponent(page,{types:['input','thought','ai']});
+    await page.locator('#primary-nav [data-view="memory"]').click();
+    await eventually(()=>page.locator('#material-workbench').isVisible(),'For AI material surface is available');
+    await page.getByRole('button',{name:'从档案选择',exact:true}).click();
+    await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'retained material selection still opens internal search');
     await page.locator('#universal-search-dialog input[type="search"]').fill('UIS04_KEEP_INTERNAL_MATERIAL');
-    await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()===1,'retained component still finds the synthetic input');
-    await assertNoContextSession(page);
-    await page.locator('.universal-close').click();
-    await assertContextUnavailable(page,{navigate:false});
-    await assertNoContextEffects(page,h);
+    await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()===1,'internal coordinator finds the synthetic input');
+    await page.locator('#universal-search-dialog .universal-context').click();
+    await eventually(async()=>await page.evaluate(async()=>{
+      const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));return getContextController()?.data?.items.length===1;
+    }),'explicit selection reaches the existing material tray');
+    await eventually(async()=>!await page.locator('#universal-search-dialog').isVisible(),'explicit selection closes the picker for the single Context workspace');
+    await eventually(()=>page.locator('#material-workbench').isVisible(),'selection returns to the same Context owner');
     await nav(page,'library');
     await eventually(()=>page.locator('#scope-search').isVisible(),'Archive scoped search remains reachable');
     await noRemovedControls(page);
