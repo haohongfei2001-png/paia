@@ -9,8 +9,10 @@ prompt reuse surface. It derives from the private product-intent source and the
 explicit later owner approval. It does not copy private examples or screenshots
 into the public repository.
 
-It governs **Stage 1 frequent reuse** and **Stage 2 AI-page insertion**. Stage 3
-reply-aware suggestions reuse this surface but remain separately gated by B-04.
+It governs **Stage 1 frequent reuse** and **Stage 2 AI-page insertion**. The
+owner-approved Stage 3A reply-aware behavior reuses this surface and is governed
+by [PROMPT_REUSE_STAGE_3A.md](PROMPT_REUSE_STAGE_3A.md). Stage 3B
+model-generated new prompts remain separately gated and not authorized.
 
 This feature contract does not redesign Input Archive, Thought Library, AI
 Context or the D6.2 Desktop vNext visual masters.
@@ -117,22 +119,29 @@ Normal display returns to prompt-only rows after the action.
 
 ### 2.4 Reply-aware next-prompt suggestion
 
-Stage 3 adds a **separate transient capsule/strip** attached to the same surface.
+Stage 3A adds a **separate transient capsule/strip** attached to the same surface.
 
 It is not a row that jumps to the top of the stable card. It does not reorder the
-frequent/fixed list.
+frequent/fixed list or move the user's saved orb merely to make room.
 
-A suggestion may represent:
+A Stage 3A suggestion may represent:
 
-- a reusable historical Prompt Family; or
-- a newly generated next prompt.
+- a literal reply/choice extracted from the current completed AI reply;
+- a conservative "material needed" notice; or
+- a clearly relevant reusable historical Prompt Family.
 
-Those two origins must be distinguishable.
+Direct reply conditions such as "完成后" / "when ready" must remain visible; PAIA
+does not turn a conditional phrase such as "已登录" into an assertion that the
+condition is already true.
 
-After a short idle period the suggestion may retract back to the collapsed entry
-without changing the stable list.
+A short automatic display may retract without changing the stable list. While the
+same reply remains current, a low-frequency "本轮建议" action keeps the suggestion
+available without depending on the timer.
 
-Stage 3 is unavailable until B-04 is resolved and implemented.
+Stage 3A is OFF by default and follows the separate local/ephemeral reply-access
+contract in `PROMPT_REUSE_STAGE_3A.md`.
+
+Model-generated new next prompts belong to future Stage 3B and are not authorized.
 
 ---
 
@@ -505,14 +514,22 @@ Visual encapsulation is not automatically a security boundary. If an
 implementation uses Shadow DOM, it must still pass an explicit host-script
 exposure review.
 
-### Stage 3
+### Stage 3A
 
-Stage 3 requires B-04.
+B-04-3A is resolved by the owner decision of 2026-10-05 for the exact Stage 3A
+scope in `PROMPT_REUSE_STAGE_3A.md`.
 
-B-04 must define current-reply scope, local/remote processing, retention,
-revocation and whether any reply text becomes durable evidence.
+Stage 3A:
+- is default-off and explicitly enabled;
+- reads only the newly completed latest assistant reply in the current supported
+  conversation;
+- processes locally and ephemerally;
+- persists no assistant reply body;
+- sends no reply text to a Provider/model;
+- clears current candidates and stops new reading on disable/revoke;
+- leaves local Stage 1/2 prompt reuse available.
 
-Disabling/revoking Stage 3 does not disable local Stage 1/2 prompt reuse.
+Stage 3B broader/model processing remains B-04-3B-gated and not authorized.
 
 ---
 
@@ -567,8 +584,11 @@ The shortest dependency-ordered implementation path is:
    - only after explicit permission and real-page verification.
 8. **CPV1-09.7 — phase 1/2 closure**
    - exact-main evidence and visual acceptance.
-9. **CPV1-12.3 — reply-aware next prompt**
-   - later, only after B-04.
+9. **CPV1-12.3A — reply-aware next prompt**
+   - Stage 3A is owner-approved under the bounded B-04-3A local/ephemeral
+     contract; implement 12.3A-1 direct reply/choice first, then Family matching
+     and final reliability/visual acceptance.
+   - Stage 3B remote/model-generated new prompts remain not authorized.
 
 The insertion gate precedes final visual polish because a beautiful overlay that
 cannot reliably fill the real composer is not a completed consumer feature.
