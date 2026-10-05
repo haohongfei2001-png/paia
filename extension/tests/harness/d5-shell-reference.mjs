@@ -1,3 +1,4 @@
+// Baseline certification records the unchanged current-main assertions before D7 path synchronization.
 // Canonical docs are served only inside this offline test page, never imported by production.
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
