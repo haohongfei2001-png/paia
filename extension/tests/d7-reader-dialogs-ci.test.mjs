@@ -13,7 +13,7 @@ test('D7 Reader dialog proof stays bounded within the existing complete appearan
 });
 test('D7 retains immutable before identity and requires all exact-head after, reference and long-tail images',()=>{
  for(const value of ['e2f90cd8e81af5ba8bc3c840366d9e4f3e68f415','75a68058cb172eb08f7423bd6f4ddde1d921ebe6','11323020941','2eddef43e9b9924e7a2a4ed70c0e890b35b9f73f36e61df1aaa7644ee40dddab',"assert.equal(head,actualHead",'runtime:{source:runtime,release:releaseRuntime}',"phase:'after-approved-dialog-style-change'",'build_current_release.py','FakeChatGPT.start','openArchiveWindow',"openMenu(p,'查看原始内容')","openMenu(p,'版本历史')"])assert.ok(script.includes(value),value);
- for(const value of ["report.result,'PASS'",'report.head,process.env.PAIA_TESTED_HEAD','report.baseline.productionHead','report.baseline.testHead',"report.phase,'after-approved-dialog-style-change'",'report.rows.length,14',"['1440-light','1440-dark','1024-light','1023-light','320-dark','768-light-text200','320-dark-text200']",'extension/work/d7-reader-dialogs/','report.network','137,80,78,71,13,10,26,10',"['','-tail']",'reference-1440-${theme}.png'])assert.ok(workflow.includes(value),value);
+ for(const value of ["report.result,'PASS'",'report.head,process.env.PAIA_TESTED_HEAD','report.baseline.productionHead','report.baseline.testHead',"report.phase,'after-approved-dialog-style-change'",'report.rows.length,14',"['1440-light','1440-dark','1024-light','1023-light','320-dark','768-light-text200','320-dark-text200']",'extension/work/d7-reader-dialogs/','report.network','137,80,78,71,13,10,26,10',"['','-tail']",'reference-1440-${theme}.png','${row.name}-actions.png'])assert.ok(workflow.includes(value),value);
  assert.doesNotMatch(script,/setContent\(|addStyleTag\(|showModal\(/,'no fabricated production modal');assert.match(script,/\['font-size','line-height'\]/);assert.doesNotMatch(script,/setProperty\(['"](?:width|height|padding|overflow|display)/);
  assert.match(reference,/openD7Reference\(h,\{screen,width:1440,theme\}\)/);assert.match(reference,/assert.deepEqual\(master/);assert.match(reference,/screen==='A07'\?700:860/);assert.match(script,/CSS.getPlatformFontsForNode/);
 });
@@ -37,4 +37,11 @@ test('D7 selects all twelve unchanged Original and Working History owner cases w
 });
 test('The existing D5 modal owner uses exact approved replacements while Selection and its data assertions remain',()=>{
  const previous=read('./harness/d5-reading-surfaces.mjs');assert.match(previous,/Math.min\(700,width-32\)/);assert.match(previous,/Math.min\(860,width-32\)/);assert.doesNotMatch(previous,/Math.min\((?:720|960),width-32\)/);assert.match(previous,/openD5Reference\(h,'selection'\)/);assert.match(previous,/readerDialogContract\(originalRefs\[theme\],width\)/);assert.match(previous,/readerDialogContract\(historyRefs\[theme\],width\)/);assert.match(previous,/visual review and Cancel do not restore a revision/);assert.match(previous,/every retained fixed-geometry comparison must pass/);
+});
+
+test('Original complete owner enters its real phone disclosure without bypassing narrow actionability',()=>{
+ const owner=read('./cpv1-02-dvn-original-chrome-e2e.test.mjs');
+ for(const value of ['async function openCompactDocumentMenu(p,variant)',"assert.equal(p.viewportSize().width,320)","node.parentElement.id==='archive-compact-reader-actions'","if(!before.open)await compact.locator('summary').click()","await button.click()",'await openCompactDocumentMenu(p,variant)','compact-history-entry.json','compact-history-entry.png'])assert.ok(owner.includes(value),value);
+ const helper=owner.slice(owner.indexOf('async function openCompactDocumentMenu'),owner.indexOf('const releaseRoot='));assert.doesNotMatch(helper,/setViewportSize|force:true|\.evaluate\([^;]*click\(/);
+ for(const value of ['fixture(123,extensionPath)','messages.map(m=>m.text).join',"[1440,1024,768,390,320]",'bounds.height<=752',"name:'查看修改历史'",'globalThis.__copiedOriginal[1]',"assert.equal(await p.locator('dialog[open]').count(),1)"])assert.ok(owner.includes(value),value);
 });

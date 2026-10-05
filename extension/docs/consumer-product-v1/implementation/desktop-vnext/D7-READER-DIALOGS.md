@@ -1,3 +1,41 @@
+## First after run: visuals pass; complete-owner gate remains failed
+
+CSS head `a068df4a28e825aeb55c881d8a63e825ca6d349f`, tree
+`d83bc88a94aadb146117ef0dd2e0f95610a40641` passed complete
+[D7 37258648688](https://github.com/haohongfei2001-png/paia/actions/runs/37258648688):
+all old visual/compatibility gates plus14 after frames,14 long tails and4 actual
+master references per source/release. New cases took12.61s/13.85s. Actual CJK
+heading glyphs use Noto Serif CJK SC;320 dark History heading/Close remain at
+45px/55px while its body scrolls. Text200 keeps them at45px/146px. Source detail
+isolation passes. Appearance artifact11324161680 SHA256
+`1376a22ccc6e3e2a690fac70f53219f5b006047c6fe20aac6eb3dcdc95c8ffa4`.
+The parent inspected actual desktop and compact/text200 images and accepted this
+bounded appearance; final complete-owner gates still govern adoption.
+
+Candidate37258648663 failed10PASS/2FAIL/0skipped in the twelve-owner route.
+All eight Working History cases and both Original late-read/purge cases pass;
+Original complete source/release cases time out clicking an invisible
+`#document-menu`. Hosted unit, adapter/privacy and release gates pass. Failed
+owner artifact11323977356 SHA256
+`e26b842d15bf655610ec9f279990370653459232f82c95f28b50e280966329ba` is retained.
+No failed gate is excused by the unrelated local benchmark result.
+
+The old complete Original case ends its width loop at320, closes the single-Input
+Original, then directly clicks the document menu. Current D7 keeps that same
+button inside the phone's closed native disclosure. The bounded fixture correction
+asserts320px and the same compact parent, clicks the existing summary when needed,
+and then clicks the original document-menu button. It retains all123 Inputs,
+paging/copy, Source/History/revision/focus assertions, four Original/eight History
+registrations and original timeouts. It neither changes viewport to bypass the
+phone route nor force-clicks or mutates production DOM. A real compact entry PNG
+and before/after owner metadata are retained for each variant.
+
+The already-passing after matrix additionally retains action-position PNGs for
+its existing320 dark and320 dark text200 rows, before moving to the exact tail.
+No new matrix or timeout is introduced. Production CSS and every other runtime
+file remain byte-identical to a068df4a; the corrected-head twelve-owner/required
+result is PENDING.
+
 # D7 Reader Original / History — bounded visual candidate
 
 The adopted-before capture below is complete. Production changes are limited to

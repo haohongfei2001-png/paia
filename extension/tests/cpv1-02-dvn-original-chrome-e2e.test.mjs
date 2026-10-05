@@ -3,11 +3,23 @@ import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {execFileSync} from 'node:child_process';
 import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {openArchiveWindow} from './harness/archive-navigator.mjs';
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 async function fixture(count=1,extensionPath=null){const h=await FakeChatGPT.start(extensionPath?{extensionPath}:{}),p=h.archive;await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);const messages=Array.from({length:count},(_,i)=>({id:'dvn-original-message-'+i,text:'SYNTHETIC Original '+i+' 中文 👩‍💻\n'+(i===count-1?'EXACT_UNMOUNTED_TAIL':'保留原话，不改写。')}));await h.open({id:'dvn-original-scope',title:'SYNTHETIC Original Conversation',base:1609459200,messages});await eventually(async()=>(await h.state()).records.length===count,'all immutable Source records captured');await openArchiveWindow(p,{text:'SYNTHETIC Original Conversation',label:'Q2 Reader opens'});await rpc(p,'SET_ENABLED',{enabled:false});return {h,p,messages};}
+// D7 keeps the same document menu inside the phone's existing disclosure.
+// The final320px History entry must use that visible native route, not force-click
+// a hidden button or switch back to a wide viewport.
+async function openCompactDocumentMenu(p,variant){
+ const compact=p.locator('#archive-compact-navigation'),button=p.locator('#document-menu');assert.equal(p.viewportSize().width,320);
+ await eventually(()=>button.evaluate(node=>node.parentElement.id==='archive-compact-reader-actions'),'same document-menu owner reaches the current compact slot');assert.equal(await compact.isVisible(),true);
+ const before={width:p.viewportSize().width,open:await compact.evaluate(node=>node.open),buttonVisible:await button.isVisible(),parent:await button.evaluate(node=>node.parentElement.id)};
+ if(!before.open)await compact.locator('summary').click();assert.equal(await compact.evaluate(node=>node.open),true);assert.equal(await button.isVisible(),true);assert.equal(p.viewportSize().width,320);
+ await mkdir('work/d7-reader-dialog-owners',{recursive:true});await writeFile(`work/d7-reader-dialog-owners/${variant}-compact-history-entry.json`,JSON.stringify({head:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),before,after:{width:p.viewportSize().width,open:true,buttonVisible:true,parent:await button.evaluate(node=>node.parentElement.id)}},null,2));await p.screenshot({path:`work/d7-reader-dialog-owners/${variant}-compact-history-entry.png`,animations:'disabled'});
+ await button.click();
+}
 const releaseRoot=mkdtempSync(join(tmpdir(),'paia-dvn-original-release-'));
 test.after(()=>rmSync(releaseRoot,{recursive:true,force:true}));
 try{console.log(execFileSync('python3',['scripts/build_current_release.py',releaseRoot],{encoding:'utf8'}));}catch(error){console.log(String(error.stdout||''));console.error(String(error.stderr||''));throw error;}
@@ -31,7 +43,7 @@ test(`D1 explicit Original reads and copies the entire Conversation, then select
   await p.keyboard.press('Escape');await eventually(()=>p.locator('#info-dialog').isHidden());await eventually(()=>p.evaluate(()=>document.activeElement.id==='document-menu'),'Escape returns focus after native dialog close event');assert.equal(await p.locator('#info-content').textContent(),'');
   await p.locator('[data-block-id="'+id+'"] .reader-more').click();await p.getByRole('menuitem',{name:'查看原始内容',exact:true}).click();await eventually(async()=>await p.locator('#info-content .source-original').count()===1);assert.equal(await p.locator('#info-content .source-original').textContent(),messages[0].text);assert.equal(await p.locator('.original-navigation').isVisible(),false,'one complete Input does not advertise a nonexistent previous page');assert.match(await p.locator('#info-content').textContent(),/所选输入的原始文字 · 只读/);await p.locator('#original-copy').click();await eventually(async()=>await p.evaluate(()=>globalThis.__copiedOriginal.length)===2);assert.equal(await p.evaluate(()=>globalThis.__copiedOriginal[1]),messages[0].text);assert.equal((await rpc(p,'GET_INPUT',{id})).revision,before.revision+1);
   for(const width of [1440,1024,768,390,320]){await p.setViewportSize({width,height:800});const bounds=await p.locator('#info-dialog').boundingBox();assert.ok(bounds.width<=width-30&&bounds.height<=752);assert.ok(Math.abs(bounds.x-(width-bounds.width)/2)<2);assert.ok(await p.locator('#info-dialog').evaluate(el=>el.scrollWidth-el.clientWidth)<=2);}
-  await p.locator('#close-info').click();await p.locator('#document-menu').click();await p.getByRole('menuitem',{name:'查看修改历史',exact:true}).click();await p.getByLabel('修改历史的 Input').waitFor();await eventually(async()=>await p.getByLabel('修改历史的 Input').locator('option').count()>2);assert.match(await p.locator('#revision-list').textContent(),/不是 Conversation 的原子历史/);await p.getByLabel('修改历史的 Input').selectOption(id);await eventually(()=>p.locator('.revision-row').first().isVisible());assert.equal(await p.locator('dialog[open]').count(),1);await p.keyboard.press('Escape');assert.equal(await p.locator('#revision-list').textContent(),'');assert.deepEqual(h.errors,[]);assert.equal(h.extensionNetworkRequests,0);
+  await p.locator('#close-info').click();await openCompactDocumentMenu(p,variant);await p.getByRole('menuitem',{name:'查看修改历史',exact:true}).click();await p.getByLabel('修改历史的 Input').waitFor();await eventually(async()=>await p.getByLabel('修改历史的 Input').locator('option').count()>2);assert.match(await p.locator('#revision-list').textContent(),/不是 Conversation 的原子历史/);await p.getByLabel('修改历史的 Input').selectOption(id);await eventually(()=>p.locator('.revision-row').first().isVisible());assert.equal(await p.locator('dialog[open]').count(),1);await p.keyboard.press('Escape');assert.equal(await p.locator('#revision-list').textContent(),'');assert.deepEqual(h.errors,[]);assert.equal(h.extensionNetworkRequests,0);
  }finally{await h.close();}
 });
 test(`D1 late Original reads and Copy failure cannot resurrect closed or purged Source in hidden DOM (${variant})`,{timeout:90000},async()=>{

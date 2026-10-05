@@ -86,6 +86,7 @@ jobs:
             assert.equal(report.interactions.filter(row=>row.kind==='long-tail').length,14);assert.equal(report.interactions.filter(row=>row.kind==='source-detail-isolation').length,1);
             assert.deepEqual(report.network,{externalRequests:0,extensionNetworkRequests:0,providerRequests:0,pageErrors:[]});
             for(const row of report.rows)for(const suffix of ['','-tail']){const png=readFileSync(`work/d7-reader-dialogs/${row.name}${suffix}.png`);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));}
+            for(const row of report.rows.filter(row=>row.width===320)){const png=readFileSync(`work/d7-reader-dialogs/${row.name}-actions.png`);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));}
             for(const screen of ['A07','A08'])for(const theme of ['light','dark']){const png=readFileSync(`work/d7-reader-dialogs/${variant}-${screen}-reference-1440-${theme}.png`);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));}
           }
           JS

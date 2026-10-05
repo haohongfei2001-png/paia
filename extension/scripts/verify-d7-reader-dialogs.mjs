@@ -79,12 +79,13 @@ async function captureMatrix(p,kind,variant,references,rows,interactions,persist
   assert.equal(after.heading.y,proof.actual.heading.y,'heading stays pinned during body scroll');assert.equal(after.close.y,proof.actual.close.y,'Close stays pinned during body scroll');
   await assertVisibleText(p,`${modalFor(kind)} h2`,'heading after long scroll');await assertVisibleText(p,`${modalFor(kind)} header button`,'Close after long scroll');await assertVisibleText(p,kind==='original'?'#original-copy':'[data-restore-confirm] button:first-of-type','lower action label');
   if(kind==='history')await assertVisibleText(p,'[data-restore-confirm] button:last-of-type','Cancel label');
+  if(row.width===320)await p.screenshot({path:`${directory}/${name}-actions.png`,animations:'disabled'});
   const tailSelector=kind==='original'?'.source-original':'.working-history-compare>section:last-child pre';
   // Reach the exact final text range through the real scroll container, without
   // changing content or layout, independently of the confirmation's position.
   await p.locator(tailSelector).evaluate((node,tail)=>{const range=document.createRange(),text=node.firstChild,start=text.data.indexOf(tail);if(start<0)throw Error('Complete original Unicode tail is missing');range.setStart(text,start);range.setEnd(text,start+tail.length);const r=range.getBoundingClientRect(),body=node.closest('#info-content,#revision-list'),b=body.getBoundingClientRect();body.scrollTop+=r.bottom-b.bottom+16;},originalTail);await frame(p);
   const tail=await assertVisibleText(p,tailSelector,'complete original Unicode tail',originalTail);
-  await p.screenshot({path:`${directory}/${name}-tail.png`,animations:'disabled'});interactions.push({kind:'long-tail',screen,...row,after,tail});await persist('PENDING');
+  await p.screenshot({path:`${directory}/${name}-tail.png`,animations:'disabled'});interactions.push({kind:'long-tail',screen,...row,after,tail,...(row.width===320?{actionsImage:`${name}-actions.png`}:{})});await persist('PENDING');
  }
  await resetText(p);
 }
