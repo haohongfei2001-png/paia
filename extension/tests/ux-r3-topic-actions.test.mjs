@@ -70,7 +70,9 @@ test('unknown Topic creation retains its operation and blocks dependent Thought 
 
 test('acknowledged relation hash cannot close newer text typed during digest',()=>withTopicActions(async f=>{
  f.owner.close(true);await f.owner.compose({relatedThought:{id:'synthetic-related',revision:0,body:'SYNTHETIC prior body'}});const relation=find(f.owner.content,node=>node.type==='checkbox');relation.checked=true;
- await f.submit('SYNTHETIC acknowledged');const field=f.owner.draft;field.listeners.get('compositionstart')();await f.respond(success);field.listeners.get('compositionend')();
+ // The first real WebCrypto digest may outlive submit's one event-loop tick.
+ const sendMessage=chrome.runtime.sendMessage,dispatched=new Promise(resolve=>{chrome.runtime.sendMessage=message=>{const response=sendMessage(message);if(message.type==='CONTINUE_THINKING'){chrome.runtime.sendMessage=sendMessage;resolve();}return response;};});
+ await f.submit('SYNTHETIC acknowledged');await dispatched;const field=f.owner.draft;field.listeners.get('compositionstart')();await f.respond(success);field.listeners.get('compositionend')();
  const original=crypto.subtle.digest;let release;crypto.subtle.digest=function(...args){return new Promise(resolve=>release=()=>resolve(original.apply(this,args)));};
  try{await f.submit();assert.equal(typeof release,'function');field.value='SYNTHETIC newer during digest 👩‍💻\n';release();await tick();await tick();assert.equal(f.owner.draft,field);assert.equal(field.value,'SYNTHETIC newer during digest 👩‍💻\n');assert.equal(f.owner.dialog.open,true);assert.equal(f.calls.length,1);}
  finally{crypto.subtle.digest=original;}
