@@ -46,7 +46,7 @@ export class NextPromptCommands{
   return {tab,live};
  }
  async handle(r,sender){
-  const api=this.api,popup=sender.id===api.runtime.id&&!sender.tab&&sender.url===api.runtime.getURL('ui/popup.html');
+  const api=this.api,popup=sender.id===api.runtime.id&&(!sender.tab||sender.frameId===0&&!sender.tab.incognito)&&sender.url===api.runtime.getURL('ui/popup.html');
   if(r.type==='PAIA_PROMPT_NEXT_CONFIGURE'){
    if(!popup||!own(r,['type','enabled'])||typeof r.enabled!=='boolean')fail();
    if(r.enabled&&!(await this.service.s.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');

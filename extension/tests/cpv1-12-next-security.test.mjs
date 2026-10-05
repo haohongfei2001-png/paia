@@ -57,3 +57,5 @@ test('Stage 3A has no network/body persistence/logging; existing user-only captu
  const capture=await readFile(new URL('../adapter/chatgpt-adapter.js',import.meta.url),'utf8');assert.doesNotMatch(capture,/CurrentReply|next-action/);
  const manifest=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url),'utf8'));assert.deepEqual(manifest.permissions,['storage','scripting']);assert.deepEqual(manifest.host_permissions,['https://api.deepseek.com/*','https://chatgpt.com/*']);
 });
+
+test('exact trusted popup document tab has the same opt-in as action popup',async()=>{const f=await fixture(),sender={...f.popup,tab:{id:8},frameId:0};assert.equal((await f.c.handle({type:'PAIA_PROMPT_NEXT_STATUS'},sender)).enabled,false);assert.equal((await f.c.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled:true},sender)).enabled,true);await assert.rejects(()=>f.c.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled:true},{...sender,frameId:4}));});
