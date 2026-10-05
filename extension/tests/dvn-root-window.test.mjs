@@ -9,6 +9,31 @@ import {setup} from './harness/thought-m1.mjs';
 import {TopicController} from '../ui/topic-workspace.js';
 const op=()=>crypto.randomUUID();
 const bodies=reader=>[...reader.bodies.values()];
+test('D7 empty root hides only a confirmed terminal notice and reveals every live recovery state',()=>{
+ const previous=globalThis.document,nodes=new Map(['thought-continuous-sentinel','thought-continuous-status','thought-continuous-retry'].map(id=>[id,{dataset:{},hidden:false,textContent:''}]));
+ globalThis.document={documentElement:{lang:'zh-CN'},getElementById:id=>nodes.get(id)};
+ const owner=Object.assign(Object.create(TopicController.prototype),{thoughtRootVisible:()=>false}),complete={items:[],terminal:true,complete:true,coverage:{complete:true},loading:false,error:null,stale:false,protectionBlocked:false,pageMeta:{indexing:false}};
+ const sentinel=nodes.get('thought-continuous-sentinel'),retry=nodes.get('thought-continuous-retry'),status=nodes.get('thought-continuous-status');
+ try{
+  owner.updateHomeContinuous(complete);assert.equal(sentinel.hidden,true);assert.equal(retry.hidden,true);assert.equal(sentinel.dataset.terminal,'true');
+  for(const state of [
+   {...complete,items:[{key:'existing-ref'}]},
+   {...complete,loading:true},
+   {...complete,error:Error('SYNTHETIC_FIRST_LOAD')},
+   {...complete,items:[{key:'unhydrated-ref'}],error:Error('SYNTHETIC_HYDRATION')},
+   {...complete,terminal:false,complete:false},
+   {...complete,complete:false},
+   {...complete,coverage:{complete:false}},
+   {...complete,pageMeta:{indexing:true}},
+   {...complete,stale:true},
+   {...complete,protectionBlocked:true}
+  ]){
+   owner.updateHomeContinuous(state);assert.equal(sentinel.hidden,false,JSON.stringify(state));assert.equal(retry.hidden,!state.error);assert.ok(status.textContent);
+   owner.updateHomeContinuous(complete);assert.equal(sentinel.hidden,true,'subsequent complete empty read can clear old feedback');
+  }
+  owner.updateHomeContinuous({...complete,items:[{key:'next-ref'}]});assert.equal(sentinel.hidden,false);assert.equal(status.textContent,'已到列表末尾');
+ }finally{clearTimeout(owner.continuousTimer);globalThis.document=previous;}
+});
 function fixture(count=300){
  const rows=Array.from({length:count},(_,i)=>({id:'topic-'+i,name:'SYNTHETIC_TITLE_'+i,revision:1,rootCue:{text:'SYNTHETIC_CUE_'+i},readRef:{kind:'topic',id:'topic-'+i,revision:1}}));
  const reads=[];let authority='A';
