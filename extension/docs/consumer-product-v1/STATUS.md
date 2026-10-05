@@ -1,3 +1,41 @@
+# D7 Input recovery conflict — local bounded candidate
+
+The [Input recovery presentation slice](implementation/desktop-vnext/D7-INPUT-RECOVERY-PRESENTATION.md)
+applies S02 main composition to a real stale Input recovery draft through the
+same editor, original comparison, explicit retry and leave guards. Archive stays
+the actual route. No new recovery service, standalone Settings page, Thought
+behavior or autosave/CAS change is opened. Independent owning review and 14 tests
+pass; the full local unit run retains one unchanged 10k performance-threshold
+failure. Hosted exact-head source/release native and visual evidence is pending.
+This is not full S02 or D7 completion. Earlier S02 gap statements remain history.
+
+# Prompt Reuse Stage 1/2 — FINAL_CLOSED / MAINTENANCE_ONLY
+
+**`REAL_CHATGPT_FINAL_CERTIFICATION = PASS`.**
+**`CPV1-09.7 = COMPLETE`; `PROMPT_REUSE_STAGE_1_2 = FINAL_CLOSED`.**
+**`VISUAL_ACCEPTED / OWNER_VISUAL_ACCEPTANCE = PASS` is retained.**
+**Prompt Reuse development is stopped; `MAINTENANCE_ONLY`. Stage 3 is `NOT_STARTED`.**
+
+On **2026-10-04 at 23:48:59 UTC**, the owner reported completing ordinary-use
+acceptance on a normally logged-in, real ChatGPT page and explicitly requested
+this final closure. The accepted claims are: orb visible, draggable, expandable /
+collapsible, position retained after refresh, prompt click correctly fills the
+composer, no automatic send, and existing draft preserved.
+
+[Final certification receipt](implementation/prompt-reuse/FINAL-CERTIFICATION.md)
+records the source message, exact bounded claims, retained engineering evidence
+and maintenance boundary. This is **owner-reported manual USER_ACCEPTANCE**,
+not assistant-executed live testing or a newly run automated certification.
+The owner did not identify a build SHA, browser version or source/release variant.
+
+This is the controlling current Prompt Reuse status and closes the accepted
+ChatGPT scope of DFG-CPV1-011. Earlier deferred/open labels in the status, gate
+registry and implementation receipts remain historical evidence, superseded only
+as current Prompt Reuse acceptance/queue state. Their failures, environment
+limits and evidence provenance are unchanged. No new feature development,
+Stage 3/reply reading, second provider or evaluation campaign follows this closure.
+D7 and all unrelated status entries below remain unchanged.
+
 # Bounded Reader / Settings return repair — verified candidate
 
 The [bounded receipt](implementation/desktop-vnext/D7-READER-SETTINGS-RETURN.md)
