@@ -33,6 +33,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -68,6 +69,24 @@ jobs:
            assert.deepEqual(report.network,{externalRequests:0,extensionNetworkRequests:0,providerRequests:0,pageErrors:[]});
           }
           JS
+      - name: Capture adopted Reader dialogs through existing native owners
+        if: matrix.suite == 'appearance' && contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS')
+        run: |
+          set -o pipefail
+          mkdir -p work/d7-reader-dialogs
+          xvfb-run -a node --test --test-concurrency=1 scripts/verify-d7-reader-dialogs.mjs 2>&1 | tee work/d7-reader-dialogs/acceptance.log
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+          for(const variant of ['source','release']){
+            const report=JSON.parse(readFileSync(`work/d7-reader-dialogs/${variant}-baseline.json`));
+            assert.equal(report.result,'PASS');assert.equal(report.head,process.env.PAIA_TESTED_HEAD);
+            assert.equal(report.baselineHead,'e2f90cd8e81af5ba8bc3c840366d9e4f3e68f415');
+            assert.equal(report.phase,'before-production-style-change');assert.equal(report.rows.length,6);
+            assert.deepEqual(report.rows.map(row=>`${row.screen}-${row.width}-${row.theme}`),['A07-1440-light','A07-1440-dark','A07-320-dark','A08-1440-light','A08-1440-dark','A08-320-dark']);
+            assert.deepEqual(report.network,{externalRequests:0,extensionNetworkRequests:0,providerRequests:0,pageErrors:[]});
+            for(const row of report.rows){const png=readFileSync(`work/d7-reader-dialogs/${row.name}.png`);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));}
+          }
+          JS
       - name: Retain completed or failed whole-window evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -75,6 +94,7 @@ jobs:
           name: d7-archive-reader-${{ matrix.suite }}-${{ github.event.pull_request.head.sha }}
           path: |
             extension/work/d7-archive-reader/
+            extension/work/d7-reader-dialogs/
             extension/work/d7-archive-reader-compat/
             extension/work/qa-dvn-shell/
             extension/work/ux-r1/
