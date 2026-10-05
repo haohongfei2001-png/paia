@@ -37,16 +37,19 @@
   const style=document.createElement('style');style.textContent=`
 :host{color-scheme:light}:host([data-theme=dark]){color-scheme:dark}
 button{position:relative;z-index:1;box-sizing:border-box;width:44px;height:44px;padding:2px;border:0;background:transparent;touch-action:none;cursor:grab}
-.orb{position:relative;display:block;box-sizing:border-box;width:40px;height:40px;border:1px solid #7f95b847;border-radius:50%;background:radial-gradient(circle 32px at 34% 28%,#fffffffa 0%,#eaf5fffa 22%,#c8dcfff0 48%,#d5c8ffeb 68%,#c6f0e4e0 84%,#ffffffb3 100%);box-shadow:0 7px 20px #52627f38;backdrop-filter:blur(16px) saturate(1.1)}
-.orb:before{content:'';position:absolute;inset:-3px;border:1px solid #ffffffb8;border-radius:50%}
-.orb:after{content:'';position:absolute;left:6px;top:7px;width:14px;height:10px;border-radius:50%;background:#ffffffc7}
-.reflection{position:absolute;left:20px;top:18px;width:12px;height:12px;border-radius:50%;background:#8f95ff26}
+.orb{position:relative;display:block;box-sizing:border-box;width:40px;height:40px;overflow:hidden;border:1px solid #8293ab29;border-radius:50%;background:radial-gradient(ellipse at 32% 30%,#f7fbff66 0%,#eef5fb00 68%),radial-gradient(ellipse at 30% 62%,#aac9e84d 0%,#aac9e800 64%),radial-gradient(ellipse at 60% 66%,#c3b9e33d 0%,#c3b9e300 66%),radial-gradient(ellipse at 80% 48%,#c3e0d638 0%,#c3e0d600 65%),linear-gradient(140deg,#ffffff52,#edf3fb26);box-shadow:0 8px 22px -4px #52627f24,inset 0 0 7px 1px #ffffff61;backdrop-filter:blur(9px) saturate(.92)}
+.orb:before{content:'';position:absolute;inset:1px;border-radius:inherit;background:radial-gradient(ellipse at 27% 23%,#ffffff94 0%,#ffffff30 32%,#ffffff00 66%);filter:blur(3px);pointer-events:none}
+.orb:after{content:'';position:absolute;inset:5px;border-radius:inherit;background:radial-gradient(ellipse at 48% 53%,#eff4ff38 0%,#eff4ff00 72%);filter:blur(4px);pointer-events:none}
+button:hover .orb,button:focus-visible .orb{border-color:#8293ab3d;box-shadow:0 8px 24px -4px #52627f2e,inset 0 0 7px 1px #ffffff70}
+:host([data-theme=dark]) .orb{border-color:#dce8f238;background:radial-gradient(ellipse at 32% 30%,#e5f0ff42 0%,#e5f0ff00 68%),radial-gradient(ellipse at 30% 62%,#aac9e852 0%,#aac9e800 64%),radial-gradient(ellipse at 60% 66%,#c3b9e342 0%,#c3b9e300 66%),radial-gradient(ellipse at 80% 48%,#c3e0d633 0%,#c3e0d600 65%),linear-gradient(140deg,#e8f0fa2e,#d8e5f014);box-shadow:0 8px 24px -4px #00000038,inset 0 0 7px 1px #f1f6ff38}
+:host([data-theme=dark]) .orb:before{opacity:.65}
+:host([data-theme=dark]) button:hover .orb,:host([data-theme=dark]) button:focus-visible .orb{border-color:#dce8f247;box-shadow:0 8px 26px -4px #00000042,inset 0 0 7px 1px #f1f6ff47}
 button:focus-visible{outline:2px solid #5e8ee8;outline-offset:3px;border-radius:50%}
-iframe{border:1px solid #ffffffd9;border-radius:20px;background:linear-gradient(136deg,#fffffff0 0%,#f5f8ffe6 52%,#eaf1ffd1 100%);backdrop-filter:blur(18px) saturate(1.1);box-shadow:0 18px 48px #22314d24;box-sizing:border-box;animation:appear .16s ease-out}
+iframe{border:1px solid #ffffff75;border-radius:20px;background:linear-gradient(136deg,#ffffffb8 0%,#f5f8ff9e 52%,#eaf1ff8a 100%);backdrop-filter:blur(18px) saturate(.92);box-shadow:0 18px 52px #22314d1a;box-sizing:border-box;animation:appear .16s ease-out}
 @keyframes appear{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
-:host([data-theme=dark]) iframe{background:linear-gradient(136deg,#313a48db 0%,#202734d1 52%,#252d39c7 100%);border-color:#ffffff28;box-shadow:0 18px 48px #00000057}
+:host([data-theme=dark]) iframe{background:linear-gradient(136deg,#313a48b8 0%,#202734a8 52%,#252d399e 100%);border-color:#ffffff1f;box-shadow:0 18px 52px #00000047}
 @media(prefers-reduced-motion:reduce){iframe{animation:none}}`;
-  orb=document.createElement('button');orb.type='button';orb.setAttribute('aria-label','常用 Prompt；拖动或 Alt 加方向键移动');orb.setAttribute('aria-expanded','false');orb.title='常用 Prompt';const mark=document.createElement('span');mark.className='orb';mark.setAttribute('aria-hidden','true');const reflection=document.createElement('span');reflection.className='reflection';mark.append(reflection);orb.append(mark);root.append(style,orb);document.documentElement.append(host);
+  orb=document.createElement('button');orb.type='button';orb.setAttribute('aria-label','常用 Prompt；拖动或 Alt 加方向键移动');orb.setAttribute('aria-expanded','false');orb.title='常用 Prompt';const mark=document.createElement('span');mark.className='orb';mark.setAttribute('aria-hidden','true');orb.append(mark);root.append(style,orb);document.documentElement.append(host);
   listen(orb,'click',e=>{if(!e.isTrusted)return;if(suppress&&e.detail!==0){suppress=false;return;}suppress=false;if(frame)requestClose();else expand();});
   listen(orb,'pointerdown',e=>{if(!e.isTrusted||e.button!==0)return;suppress=false;drag={x:e.clientX,y:e.clientY,start:host.getBoundingClientRect(),moved:false};orb.setPointerCapture(e.pointerId);});
   listen(orb,'pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)<5&&!drag.moved)return;drag.moved=true;suppress=true;position={x:Math.max(0,Math.min(1,(drag.start.x+dx)/(innerWidth-44))),y:Math.max(0,Math.min(1,(drag.start.y+dy)/(innerHeight-44)))};schedule();});

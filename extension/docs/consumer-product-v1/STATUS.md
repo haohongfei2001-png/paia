@@ -1,3 +1,22 @@
+# Prompt Reuse material correction — owner review reopened
+
+**PROMPT_REUSE_VISUAL_ACCEPTANCE = REOPENED / OWNER_REJECTED_CURRENT_MATERIAL**.
+**OWNER_VISUAL_ACCEPTANCE_PENDING; no merge authorized for this correction.**
+
+The owner confirmed the original design sheet and rejected the current pearl-like
+orb on 2026-10-05. [Visual Master v2](prompt-reuse-visual-v2/README.md) supersedes
+v1 material translation while preserving its historical files. This bounded
+branch starts from remote main `80f3201d8138f37d3d02658663d25a0b46874125`.
+Only orb/card presentation and visual evidence change. Stage 1/2 functional
+acceptance remains FINAL_CLOSED / MAINTENANCE_ONLY. New Stage 3A UI expansion is
+paused; capsule/conditional scenes are master-only because this main base has no
+capsule runtime. PR164 remains a separate preserved runtime candidate.
+
+[Correction receipt](implementation/prompt-reuse/FROSTED-MATERIAL-V2.md) owns
+checks, scope and remaining evidence. Earlier visual PASS labels below are
+historical and no longer close current material acceptance. D7 and all other
+queues, authorization/data/insertion/drag/toggle/persistence behavior stay intact.
+
 # D7 UI consistency — bounded implementation
 
 The [current UI batch](implementation/desktop-vnext/D7-UI-COHERENCE.md) follows
