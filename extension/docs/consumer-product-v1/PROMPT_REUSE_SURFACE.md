@@ -19,20 +19,19 @@ Context or the D6.2 Desktop vNext visual masters.
 
 ## Pure visual authority
 
-Product/data/privacy/interaction behavior remains controlled by this file and
-higher PAIA contracts. Pure visual presentation of the cross-site Prompt Reuse
-overlay is controlled by:
+The original owner-supplied design sheet is the highest pure-visual input.
+On 2026-10-05 the owner reopened material acceptance as
+**REOPENED / OWNER_REJECTED_CURRENT_MATERIAL**. The revised
+[`prompt-reuse-visual-v2/`](prompt-reuse-visual-v2/README.md) supersedes v1 material
+translation; v1 remains unchanged historical evidence. If the original and v2
+conflict, correct v2 first. Do not use v1 parity as a design PASS.
 
-`prompt-reuse-visual-v1/`
-
-The stored V01–V08 master images are literal implementation targets. If a master
-image and an older loose visual description conflict on a pure visual choice,
-the master image wins. Current runtime screenshots are evidence only and do not
-become the design target merely because their automated tests pass.
-
-Owner review on 2026-10-04 explicitly reopened only the visual implementation
-after the first production surface appeared too much like a generic utility
-panel. Functional 09.0–09.5 behavior remains preserved.
+This is presentation-only. Stage 1/2 functional acceptance remains
+FINAL_CLOSED / MAINTENANCE_ONLY. Source/release consistency is engineering
+evidence, never owner design acceptance. The later 2026-10-05 owner decision
+permits the retained PR171 candidate to integrate independently after affected
+regressions and normal light integration/exact-main gates; final material and
+current-live acceptance remain pending.
 
 ---
 

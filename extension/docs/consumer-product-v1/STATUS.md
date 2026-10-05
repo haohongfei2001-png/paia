@@ -1,22 +1,89 @@
-# Prompt Reuse Stage 3A-1 — ENGINEERING_VERIFYING
+# Prompt Reuse Stage 3A-1 — merged-glass candidate verification
 
-The sole Stage 3A writer implements CPV1-12.3A-1 and resumes integration against
-main `80f3201d` after the owner's 2026-10-05 scope clarification: D7 remains
-with its original owner; this writer connects and verifies only Prompt Reuse.
-[Candidate receipt](implementation/prompt-reuse/STAGE-3A-1.md) records the
-explicit session opt-in, prospective completion proof, finite local detector,
-private transient capsule and independently bound fill-only candidates.
-The `a056e9c4` exact-tree hosted source/release 3A-1 result is 18/18 PASS,
-with Stage 1/2 90/90, unit 1,956, adapter 102 and privacy 59 PASS. Full run
-37309848738 failed in Desktop journeys, with 90 observed failed entries and four
-timed-out browser jobs; this is not a completed full-suite denominator.
-Main then merged PR169. The recommendation entry preserves its new popup design;
-fresh exact-head recommendation CI is pending. The required full gate remains a
-D7 dependency and must pass before merge; no repeated known-failing full run is
-used to claim progress.
-No D7 implementation or assertion is repaired by this writer.
-Current-live ChatGPT evidence remains PENDING, never inferred from fixtures.
-Stage 1/2 acceptance and D7 are preserved. No 12.3A-2 or Stage 3B is started.
+**ENGINEERING_VERIFYING / REQUIRED_FULL_GATE_PENDING / UNMERGED**.
+The owner authorized finishing eligible existing Prompt Reuse integration after
+checking its independence. This bounded batch reconciles original PR164 head
+`5d454ab175be95da399638b2deb1e7cc4fbc9b61` with current main
+`16640fa3fff37d0f3d6e6987f310ca2dfc3e24b6`, which already contains the retained
+PR171 frosted orb/card and its canonical acceptance boundaries.
+
+Only the shared STATUS lead needed manual conflict resolution. Preserve every
+main orb/card material byte and every existing Stage3 authorization, detector,
+lifecycle and insertion behavior. The two Stage3 Surface probe/placement hooks
+merge alongside main's static material without a runtime conflict. All D7 files,
+icons, tests, workflows and budgets are retained from their existing owners.
+No PR170 changes are cherry-picked and no new material/features are added.
+
+The existing Stage3 capsule is deliberately unchanged in this reconciliation.
+It still has the older denser detached treatment and twelve-pixel layout gap;
+it has not converged to v2's thin continuous capsule master. This difference,
+owner visual acceptance and current-live ChatGPT evidence remain PENDING.
+Retaining or integrating the orb candidate does not accept that capsule.
+
+[Candidate receipt](implementation/prompt-reuse/STAGE-3A-1.md) records the exact
+new candidate and evidence. Run fresh affected Stage3/Stage1-2, material, privacy,
+package and independent boundary review, then one required full certification
+on the changed final candidate. Unlike presentation-only PR171, Stage3 includes
+the bounded authorization boundary and retains its established full gate.
+No PR164 merge unless mandatory Full and required acceptance conditions pass.
+
+Main does not contain PR170's D7 repairs. Do not assume its two remaining
+candidate failures describe this baseline, replace a failed Full with a lighter
+gate, or rerun an unchanged known failure for the appearance of progress.
+Classify any final Full failure exactly and pause only the dependent merge;
+D7 repair stays with its owner. No Stage3A-2/3B advancement follows this batch.
+
+# Prompt Reuse frosted material v2 — independent engineering integration
+
+**ENGINEERING_INTEGRATED / OWNER_VISUAL_ACCEPTANCE_PENDING**.
+**Current-live visual evidence remains PENDING; no material-restoration PASS.**
+
+The owner retained the shown candidate, then on 2026-10-05 explicitly authorized
+finishing its independent integration after checking eligibility. This later
+bounded decision supersedes the earlier no-merge hold only for PR171. It does
+not treat retaining a candidate or authorizing a merge as final visual acceptance.
+
+[PR171](https://github.com/haohongfei2001-png/paia/pull/171) merged frozen visual
+head `90b8ac066f9f13d3f83e95fa498cbff3517e79f4` as `ebdbf887b87cb16b29d8a6aeaf2f30a8fa1507a0`, preserving base `80f3201d8138f37d3d02658663d25a0b46874125`.
+The candidate/tested-merge/main runtime tree is `d00cdc7e6137a64069ab8d982ef97e49549f28db`.
+Under EXECUTION_PROTOCOL §7.2/§7.5 this is an ordinary presentation-only round.
+[Ready-PR light integration](https://github.com/haohongfei2001-png/paia/actions/runs/37353468659)
+and [exact-main light integration](https://github.com/haohongfei2001-png/paia/actions/runs/37354203435)
+PASS; directly affected source/release regression and
+[exact-main Prompt Reuse Foundation](https://github.com/haohongfei2001-png/paia/actions/runs/37354203635)
+PASS. Full-suite/macOS jobs were not selected; this is not full product certification.
+
+[The receipt](implementation/prompt-reuse/FROSTED-MATERIAL-V2.md) records all
+checks, scope, negative history and deferred evidence. Orb/card presentation is
+integrated without functional, 40/44px, insertion, drag, toggle, persistence,
+authorization, schema, permission or D7 changes. Stage1/2 functional acceptance
+stays closed; v1 history remains. Capsule/conditional targets are master-only;
+PR164 remains separate and unmerged. D7/PR170 failures and other gates are not
+closed, bypassed or relabeled by this independent merge.
+
+Known owner-review differences remain explicit: v2 is paler/lower-contrast than
+original B, highlight position/shape differ, and dark is darker/more restrained.
+No further material iteration or new Stage3 UI extension follows this receipt.
+Earlier status entries below retain their historical evidence and original holds.
+
+# Prompt Reuse material correction — owner review reopened
+
+**PROMPT_REUSE_VISUAL_ACCEPTANCE = REOPENED / OWNER_REJECTED_CURRENT_MATERIAL**.
+**OWNER_VISUAL_ACCEPTANCE_PENDING; no merge authorized for this correction.**
+
+The owner confirmed the original design sheet and rejected the current pearl-like
+orb on 2026-10-05. [Visual Master v2](prompt-reuse-visual-v2/README.md) supersedes
+v1 material translation while preserving its historical files. This bounded
+branch starts from remote main `80f3201d8138f37d3d02658663d25a0b46874125`.
+Only orb/card presentation and visual evidence change. Stage 1/2 functional
+acceptance remains FINAL_CLOSED / MAINTENANCE_ONLY. New Stage 3A UI expansion is
+paused; capsule/conditional scenes are master-only because this main base has no
+capsule runtime. PR164 remains a separate preserved runtime candidate.
+
+[Correction receipt](implementation/prompt-reuse/FROSTED-MATERIAL-V2.md) owns
+checks, scope and remaining evidence. Earlier visual PASS labels below are
+historical and no longer close current material acceptance. D7 and all other
+queues, authorization/data/insertion/drag/toggle/persistence behavior stay intact.
 
 # D7 UI consistency — bounded implementation
 
@@ -2156,3 +2223,26 @@ zero members and frees override/pin capacity without deleting archive history.
 The owning negative fixtures and deletion/Backup regressions are documented in
 the foundation receipt. The two MUST FIX changes require independent Work
 re-verification; this is not real ChatGPT acceptance or authority to start 09.3.
+
+
+# Prior Stage3A checkpoint — retained history
+
+# Prompt Reuse Stage 3A-1 — ENGINEERING_VERIFYING
+
+The sole Stage 3A writer implements CPV1-12.3A-1 and resumes integration against
+main `80f3201d` after the owner's 2026-10-05 scope clarification: D7 remains
+with its original owner; this writer connects and verifies only Prompt Reuse.
+[Candidate receipt](implementation/prompt-reuse/STAGE-3A-1.md) records the
+explicit session opt-in, prospective completion proof, finite local detector,
+private transient capsule and independently bound fill-only candidates.
+The `a056e9c4` exact-tree hosted source/release 3A-1 result is 18/18 PASS,
+with Stage 1/2 90/90, unit 1,956, adapter 102 and privacy 59 PASS. Full run
+37309848738 failed in Desktop journeys, with 90 observed failed entries and four
+timed-out browser jobs; this is not a completed full-suite denominator.
+Main then merged PR169. The recommendation entry preserves its new popup design;
+fresh exact-head recommendation CI is pending. The required full gate remains a
+D7 dependency and must pass before merge; no repeated known-failing full run is
+used to claim progress.
+No D7 implementation or assertion is repaired by this writer.
+Current-live ChatGPT evidence remains PENDING, never inferred from fixtures.
+Stage 1/2 acceptance and D7 are preserved. No 12.3A-2 or Stage 3B is started.

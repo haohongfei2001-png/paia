@@ -1,3 +1,62 @@
+# Current candidate — recommendation reconciled with integrated frosted glass
+
+Date: 2026-10-05. **ENGINEERING_VERIFYING / REQUIRED_FULL_GATE_PENDING**.
+PR164 remains unmerged. Owner visual acceptance and current-live evidence remain
+pending; earlier accepted v1 labels below are historical, not current material PASS.
+
+## Exact reconciliation and preserved scope
+
+- Original PR164 parent: `5d454ab175be95da399638b2deb1e7cc4fbc9b61`.
+- Adopted current main: `16640fa3fff37d0f3d6e6987f310ca2dfc3e24b6`.
+- Main includes PR171's retained visual runtime `90b8ac066f9f13d3f83e95fa498cbff3517e79f4`,
+  integrated as `ebdbf887b87cb16b29d8a6aeaf2f30a8fa1507a0` with passing ordinary
+  light/exact-main gates; this does not authorize downgrading Stage3's full gate.
+- The only textual merge conflict is the leading STATUS additions. Preserve main
+  canonical material/acceptance records and all prior Stage3/D7 negative evidence.
+- The Surface host auto-merges main's entire orb/card CSS and decorative-span
+  removal with Stage3's existing `dragging` probe and `nextPlacement` bridge.
+- Existing Stage3 authorization, current-reply adapter, detector, ephemeral worker
+  and view, draft/caret/selection/IME/no-send executor guard, popup opt-in and
+  revoke behavior are unchanged. No new schema/permission/provider/model request.
+- D7 pages, icons and tests are unchanged from the adopted main. No PR170 repair
+  is copied. The original Stage3 test routing/workflow additions are preserved.
+
+## Material boundary
+
+No further orb/card material iteration is included. The retained v2 orb/card
+must stay byte-identical to main's presentation, with 40/44px and all behavior.
+The existing recommendation capsule CSS/layout remains byte-identical to the
+PR164 parent: its higher-opacity detached panel and twelve-pixel gap do not yet
+match the thin continuous v2 master. Record that difference as unresolved visual
+work rather than changing capsule layout or calling it accepted in this batch.
+New source/release captures must show the actual recommendation beside the
+integrated glass. Pixel parity is build consistency, not design/current-live PASS.
+
+## Candidate verification and merge condition
+
+Fresh owning tests, source/release Stage3 and Stage1-2 journeys, visual capture,
+privacy/adapter/package and independent read-only boundary review are required.
+After that stable changed candidate, run the established full certification once
+with the existing full marker and unchanged budgets/assertions. This newly
+combined recommendation/material tree has a genuine final integration purpose;
+do not repeat the same unchanged Full again if inherited D7 failures persist.
+
+The current main does not include PR170's repairs; its two remaining failures
+cannot be projected onto this candidate. Preserve and classify all actual Full
+failures, including unreached assertions and timeouts. D7 repairs are outside this
+writer. Full failure blocks PR164 merge and final certification, while independent
+engineering evidence remains valid. No authorization to merge a red gate or
+claim the skipped/current-live/owner-visual evidence passed is implied.
+
+Hosted results obtained after publication will be recorded in the exact-head PR
+receipt; all new-head checks remain PENDING until actually observed.
+
+## Historical Stage3 implementation, gates and limits
+
+The records below are preserved verbatim. Their older baseline and pending or
+accepted-visual labels are superseded only by the explicit current context above.
+Their failures, evidence provenance and protected behaviors remain unchanged.
+
 # Prompt Reuse Stage 3A-1 — candidate implementation
 
 State: ENGINEERING_VERIFYING / INTEGRATION_PENDING. Current-live ChatGPT evidence: PENDING.

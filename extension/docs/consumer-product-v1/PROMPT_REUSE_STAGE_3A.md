@@ -752,9 +752,12 @@ This document owns Stage 3A semantics.
 Existing authority remains:
 
 - `PROMPT_REUSE_SURFACE.md` — Stage 1/2 plus shared surface/insertion invariants;
-- `prompt-reuse-visual-v1/` — accepted Stage 1/2 pure visual authority;
+- `prompt-reuse-visual-v2/` — revised material candidate beneath the original
+  owner design sheet; owner visual acceptance pending; v1 retained as history;
 - this document — reply-access boundary, detector semantics, transient capsule and
   Stage 3A evaluation/development contract.
 
-Stage 3A may add literal visual masters for the new capsule states during
-CPV1-12.3A-3. It does not reopen or redesign accepted V01–V08.
+The 2026-10-05 owner material correction pauses new Stage 3A UI expansion.
+The v2 ordinary/conditional capsule masters establish the shared material without
+adding runtime on main. Stage 3A behavior and B-04-3A scope are unchanged.
+Stage 1/2 functional acceptance is not reopened.
