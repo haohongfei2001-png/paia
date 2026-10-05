@@ -162,7 +162,7 @@ export class DocumentEditor {
    if(pending){await this.saveSession.stage(pending,this.recovery.epoch,'unknown');this.applyRecovery(edit);if(pending.removeScope)this.lockRemoval(true);}
    const acknowledged=await this.saveSession.save(pending||edit,this.recovery.epoch),result=acknowledged.result;
    if(result?.conflict&&acknowledged.edit.removeScope)return await this.removalConflict(acknowledged.edit);
-   if(result?.conflict){this.applyRecovery(edit);this.failed=true;this.conflicted=true;this.onStatus('检测到上次未完成的修改，但已保存版本同时发生变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}
+   if(result?.conflict){this.applyRecovery(edit);this.failed=true;this.conflicted=true;this.recoveryConflict={documentId:this.id,title:edit.title!==undefined,inputIds:[...new Set((edit.blocks||[]).map(block=>block.id))]};this.onStatus('检测到上次未完成的修改，但已保存版本同时发生变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}
    if(pending){this.acknowledge(acknowledged.edit);if(this.dirty()){await this.protectRecovery();queueMicrotask(()=>void this.flush());return true;}}
    await this.recovery.clear(draft.token).catch(()=>{});this.onStatus('已恢复上次未完成的修改');queueMicrotask(()=>this.onRecovered());return true;
   }catch(error){

@@ -8,6 +8,16 @@ Initial focused/privacy and package/release checks pass. Hosted production
 source/release browser evidence is PENDING; local browser launch is restricted.
 Current-live ChatGPT evidence remains PENDING, never inferred from fixtures.
 Stage 1/2 acceptance and D7 are preserved. No 12.3A-2 or Stage 3B is started.
+# D7 Input recovery conflict — local bounded candidate
+
+The [Input recovery presentation slice](implementation/desktop-vnext/D7-INPUT-RECOVERY-PRESENTATION.md)
+applies S02 main composition to a real stale Input recovery draft through the
+same editor, original comparison, explicit retry and leave guards. Archive stays
+the actual route. No new recovery service, standalone Settings page, Thought
+behavior or autosave/CAS change is opened. Independent owning review and 14 tests
+pass; the full local unit run retains one unchanged 10k performance-threshold
+failure. Hosted exact-head source/release native and visual evidence is pending.
+This is not full S02 or D7 completion. Earlier S02 gap statements remain history.
 
 # Prompt Reuse Stage 3A — OWNER_APPROVED / READY_FOR_IMPLEMENTATION
 

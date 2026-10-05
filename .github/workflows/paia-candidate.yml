@@ -671,27 +671,78 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
-      - name: Verify audit boundaries and retained reader/save recovery
+      - name: Verify source audit boundaries and retained reader/save recovery
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
           PLAYWRIGHT_MODULE: playwright
+          PAIA_RECOVERY_EXTENSION_PATH: .
+          PAIA_RECOVERY_EVIDENCE_DIR: work/audit-boundaries/source/recovery
         run: |
           set -o pipefail
-          mkdir -p work/audit-boundaries
-          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-01-audit-boundaries-chrome-e2e.test.mjs tests/cpv1-01-recovery-chrome-e2e.test.mjs tests/cpv1-01-save-recovery-chrome-e2e.test.mjs tests/cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs tests/cpv1-02-4-reader-chrome-e2e.test.mjs 2>&1 | tee work/audit-boundaries/test.log
-      - name: Require exact-head audit evidence
+          test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
+          mkdir -p work/audit-boundaries/source/recovery
+          xvfb-run -a node --test --test-reporter=tap --test-concurrency=1 tests/cpv1-01-audit-boundaries-chrome-e2e.test.mjs tests/cpv1-01-recovery-chrome-e2e.test.mjs tests/cpv1-01-save-recovery-chrome-e2e.test.mjs tests/cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs tests/cpv1-02-4-reader-chrome-e2e.test.mjs 2>&1 | tee work/audit-boundaries/source/test.log
+      - name: Build the same-head current release
+        run: |
+          set -o pipefail
+          npm run build:release 2>&1 | tee work/audit-boundaries/release-build.log
+      - name: Verify release Input recovery and S02 evidence
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          PLAYWRIGHT_MODULE: playwright
+          PAIA_RECOVERY_EXTENSION_PATH: work/current-release
+          PAIA_RECOVERY_EVIDENCE_DIR: work/audit-boundaries/release/recovery
+        run: |
+          set -o pipefail
+          test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
+          mkdir -p work/audit-boundaries/release/recovery
+          xvfb-run -a node --test --test-reporter=tap --test-concurrency=1 --test-name-pattern='CPV1-01.1 (interrupted Input save|stale recovery draft)|^S02 ' tests/cpv1-01-save-recovery-chrome-e2e.test.mjs 2>&1 | tee work/audit-boundaries/release/test.log
+      - name: Require exact-head audit and source-release recovery evidence
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import {readFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
           for(const name of ['reader-search-menu','thought-continuation','source-export']){
             const report=JSON.parse(await readFile(`work/audit-boundaries/${name}.json`,'utf8'));
             assert.equal(report.status,'PASS');assert.equal(report.headSha,process.env.PAIA_TESTED_HEAD);
             assert.equal(report.noExternalRequests,true);
             const png=await readFile(`work/audit-boundaries/${name}.png`);
             assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));
+          }
+          for(const variant of ['source','release']){
+            const directory=`work/audit-boundaries/${variant}/recovery`,reports={};
+            const log=await readFile(`work/audit-boundaries/${variant}/test.log`,'utf8'),count=key=>{const match=log.match(new RegExp(`^# ${key} (\\d+)$`,'m'));assert.ok(match,key+' summary missing');return Number(match[1]);};
+            assert.equal(count('fail'),0);assert.equal(count('cancelled'),0);assert.equal(count('todo'),0);assert.equal(count('pass'),variant==='source'?23:4);
+            const skipped=[...log.matchAll(/^ok \d+ - (.+) # SKIP.*$/gm)].map(match=>match[1]);
+            if(variant==='source'){assert.equal(count('tests'),23);assert.equal(count('skipped'),0);}
+            else{assert.ok(count('skipped')<=1);assert.equal(count('tests'),4+count('skipped'));assert.equal(skipped.length,count('skipped'));for(const name of skipped)assert.equal(name,'VS-04 failed Archive removal remains visible until retry durably saves it');}
+            for(const prefix of ['CPV1-01.1 interrupted Input save','CPV1-01.1 stale recovery draft','S02 Input recovery copies','S02 current B-02'])assert.ok(log.split('\n').some(line=>/^ok \d+ - /.test(line)&&line.includes(prefix)&&!line.includes('# SKIP')),prefix+' must pass');
+            for(const name of ['automatic-replay','stale-recovery','multi-field-copy','purge-invalidation']){
+              const report=JSON.parse(await readFile(`${directory}/${name}.json`,'utf8'));
+              assert.equal(report.status,'PASS');assert.equal(report.headSha,process.env.PAIA_TESTED_HEAD);
+              assert.equal(report.variant,variant);assert.equal(report.extensionPath,variant==='source'?'extension':'extension/work/current-release');
+              assert.equal(report.evidence,'SYNTHETIC_HOSTED_CHROME');assert.equal(report.noExternalRequests,true);reports[name]=report.checks;
+            }
+            assert.deepEqual(reports['automatic-replay'],{revisionDelta:1,draftCleared:true,surfaceVisible:false});
+            const stale=reports['stale-recovery'];assert.equal(stale.beforeConfirmationWrites,1);assert.equal(stale.afterExplicitRetryWrites,2);
+            for(const key of ['copyMatches','sameEditorAndCompare','cancelEscapeFocus','leaveBackForwardProtected','comparisonDoesNotSave'])assert.equal(stale[key],true);
+            assert.equal(stale.ordinaryConflictSurfaceVisible,false);
+            assert.deepEqual(reports['multi-field-copy'],{bodies:2,title:true,note:true,unaffectedOmitted:true,fullCopy:true,fullComparison:true,writeCount:1});
+            assert.deepEqual(reports['purge-invalidation'],{evidenceClass:'CURRENT_B02_REFUSAL_PLUS_HISTORICAL_COMPATIBILITY',projectedCharacters:0,openComparisons:0,lateFallbacks:0,writeCount:1});
+            assert.deepEqual(stale.layouts.map(row=>[row.kind,row.width,row.appearance]),[['ordinary',1440,'light'],['ordinary',1440,'dark'],['ordinary',320,'dark'],['text200',320,'light'],['coarse',1440,'light']]);
+            for(const row of stale.layouts){
+              const expected=`S02-${row.width}-${row.appearance}${row.kind==='ordinary'?'':'-'+row.kind}.png`;assert.equal(row.capture.file,expected);
+              const png=await readFile(`${directory}/${expected}`);assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));
+              assert.equal(png.readUInt32BE(16),row.width);assert.ok(png.readUInt32BE(20)>=row.height);
+              assert.equal(row.capture.width,png.readUInt32BE(16));assert.equal(row.capture.height,png.readUInt32BE(20));assert.equal(createHash('sha256').update(png).digest('hex'),row.capture.sha256);
+              if(row.kind!=='coarse')assert.ok(row.overflow<=0);
+              if(row.kind==='text200'){assert.ok(row.text.length>=8);for(const text of row.text){assert.ok(Math.abs(text.fontScale-2)<0.01);assert.ok(Math.abs(text.lineScale-2)<0.01);assert.equal(text.unclipped,true);assert.equal(text.glyphsContained,true);}assert.equal(row.sections.length,4);for(let i=1;i<row.sections.length;i++)assert.ok(row.sections[i].top>=row.sections[i-1].bottom-1);}
+              if(row.kind!=='ordinary'){assert.deepEqual(row.controls.map(control=>control.id),['input-recovery-copy','reload-document']);for(const control of row.controls)assert.ok(control.width>=44&&control.height>=44&&control.hit&&control.focus);}
+              if(row.kind==='coarse'){assert.equal(row.coarse,true);assert.deepEqual(row.events,[{pointerType:'touch',trusted:true}]);}
+            }
           }
           JS
       - name: Retain synthetic audit evidence
