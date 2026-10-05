@@ -20,7 +20,7 @@ const conditionLabel=s=>({'登录完成后':'登录后','如果已经登录':'�
 export function detectNextAction(snapshot){
  if(!snapshot||snapshot.completed!==true)return defer('COMPLETION_UNVERIFIED');
  const {text,blocks}=snapshot;
- if(typeof text!=='string'||!Number.isSafeInteger(blocks)||blocks<1||blocks>NEXT_REPLY_LIMITS.blocks||count(text)>NEXT_REPLY_LIMITS.characters||new TextEncoder().encode(text).length>NEXT_REPLY_LIMITS.bytes)return defer('RESOURCE_LIMIT');
+ if(typeof text!=='string'||text.length>NEXT_REPLY_LIMITS.characters*2||!Number.isSafeInteger(blocks)||blocks<1||blocks>NEXT_REPLY_LIMITS.blocks||count(text)>NEXT_REPLY_LIMITS.characters||new TextEncoder().encode(text).length>NEXT_REPLY_LIMITS.bytes)return defer('RESOURCE_LIMIT');
  if(snapshot.excluded===true||/(?:^|\n)\s*>|```|~~~|`/.test(text))return defer('QUOTED_OR_EXAMPLE');
  if(/[\u0000-\u0008\u000b-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2060-\u206f]/u.test(text))return defer('UNSUPPORTED_STRUCTURE');
  if(risk.test(text))return defer('SENSITIVE_AUTHORIZATION');

@@ -10,12 +10,14 @@
    const d=this.document,url=this.location.href;
    if(this.location.origin!=='https://chatgpt.com'||!/^\/(?:g\/[^/]+\/)?c\/[a-zA-Z0-9_-]+\/?$/.test(this.location.pathname)||d.querySelector('[data-testid="temporary-chat-indicator"]'))return null;
    // Metadata only. No old reply body, textContent or host response is read here.
-   const nodes=[...d.querySelectorAll('[data-message-author-role]')].filter(visible);
-   const last=nodes.at(-1);if(nodes.length>2000)return null;
+   const candidates=d.querySelectorAll('[data-message-author-role]');if(candidates.length>2000)return null;
+   const nodes=[...candidates].filter(visible);
+   const last=nodes.at(-1);
    const users=nodes.filter(n=>n.getAttribute('data-message-author-role')==='user');
    const turn=last?.closest('[data-testid^="conversation-turn"],article');
    const latest=last?.getAttribute('data-message-author-role')==='assistant'?last:null;
    const replyId=id(latest),userId=id(users.at(-1));
+   if(replyId&&nodes.filter(node=>id(node)===replyId).length!==1)return null;
    const stop=[...d.querySelectorAll('[data-testid="stop-button"],button[aria-label="Stop generating"],button[aria-label="停止生成"]')].some(visible);
    const uncertain=[...d.querySelectorAll('[data-testid="continue-button"],button[aria-label="Continue generating"],[data-testid="conversation-turn-error"],[data-testid="error-message"]')].some(visible)||!!latest?.closest('[data-is-streaming="true"]');
    const complete=!!latest&&!!turn&&[...turn.querySelectorAll('button[data-testid="copy-turn-action-button"]')].some(visible);
@@ -44,10 +46,11 @@
   snapshot(){
    const s=this.inspect();if(!this.armed||!s?.complete||s.latest!==this.current)return null;
    const bodies=[...s.latest.querySelectorAll('.markdown')].filter(visible);if(bodies.length!==1)return null;
-   const body=bodies[0];let text='',blocks=0,excluded=false,characters=0,bytes=0;
+   const body=bodies[0];let text='',blocks=0,excluded=false,characters=0,bytes=0,nodeCount=0;
    const encoder=new TextEncoder();
-   const add=value=>{characters+=Array.from(value).length;bytes+=encoder.encode(value).length;if(characters>32768||bytes>131072)throw Error('limit');text+=value;};
+   const add=value=>{if(value.length>65536)throw Error('limit');characters+=Array.from(value).length;bytes+=encoder.encode(value).length;if(characters>32768||bytes>131072)throw Error('limit');text+=value;};
    const walk=node=>{
+    if(++nodeCount>2048)throw Error('limit');
     if(node.nodeType===3){add(node.data);return;}
     if(node.nodeType!==1)return;
     if(node.matches('[hidden],[inert],[aria-hidden="true"],script,style,textarea,input,button'))throw Error('structure');

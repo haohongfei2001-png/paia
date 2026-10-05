@@ -5,11 +5,11 @@ const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.s
 for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' production direct loop',{timeout:180000},async t=>{
  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath:variant==='source'?root:join(root,'work/current-release'),headless:true,launchThroughPort:true});await mkdir(out,{recursive:true});let page,popup,world,failures=0;const cases=[],screens=[];
- const check=(name,fn)=>t.test(name,async()=>{try{await fn();cases.push({name,status:'PASS'});}catch(e){failures++;cases.push({name,status:'FAIL'});throw e;}});
+ const check=async(name,fn)=>{await t.test(name,async()=>{try{await fn();cases.push({name,status:'PASS'});}catch(e){failures++;cases.push({name,status:'FAIL'});throw e;}});if(failures)throw Error('Stage3 fixture stopped after failing '+name);};
  try{
   await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
   popup=await h.context.newPage();await popup.goto('chrome-extension://'+h.extensionId+'/ui/popup.html');await popup.locator('#next-enabled').waitFor();
-  await routeComposer(h.context,root);page=await h.context.newPage();await page.goto(url);await page.waitForFunction(()=>!!globalThis.fixture?.view);await page.setViewportSize({width:1280,height:900});
+  await routeComposer(h.context,root);page=await h.context.newPage();page.on('pageerror',error=>h.errors.push(error.message));await page.goto(url);await page.waitForFunction(()=>!!globalThis.fixture?.view);await page.setViewportSize({width:1280,height:900});
   await page.addStyleTag({content:'body{margin:0;min-height:100vh;background:#f6f7fb}form{position:fixed;left:16px;right:16px;bottom:16px;padding:12px;border:1px solid #aaa;background:white}article{margin:16px 80px;padding:12px}#blur{position:fixed;top:8px;left:8px}'});
   await page.evaluate(()=>{
    fixture.round=0;fixture.reply=(id,text,copy)=>{const article=document.createElement('article');article.dataset.testid='conversation-turn-'+id;const node=document.createElement('div');node.dataset.messageAuthorRole='assistant';node.dataset.messageId=id;const body=document.createElement('div');body.className='markdown';const p=document.createElement('p');p.textContent=text;body.append(p);node.append(body);article.append(node);if(copy){const b=document.createElement('button');b.dataset.testid='copy-turn-action-button';b.textContent='Copy';article.append(b);}document.querySelector('main').prepend(article);return article;};
@@ -21,12 +21,13 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
   });
   await page.locator('[data-paia-prompt-surface]').waitFor({state:'visible'});world=await isolated(page,h.extensionId);
   await world.run('globalThis.nextReads=0;globalThis.originalSnapshot=PAIAChatGPTCurrentReplyAdapter.prototype.snapshot;PAIAChatGPTCurrentReplyAdapter.prototype.snapshot=function(){nextReads++;return originalSnapshot.call(this);};');
+  await world.run(`globalThis.nextTrace=[];globalThis.nextObserve=null;const oldObserve=PAIAChatGPTCurrentReplyAdapter.prototype.observe;PAIAChatGPTCurrentReplyAdapter.prototype.observe=function(...args){const out=oldObserve.apply(this,args);nextObserve={armed:this.armed,seenIdle:this.seenIdle,streaming:this.streaming,finalized:this.finalized,hasCycleReply:!!this.cycleReplyId,ready:out.ready,hasBinding:!!out.binding};return out;};const oldSend=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async request=>{const r=await oldSend(request);if(request.type?.startsWith('PAIA_PROMPT_NEXT_')){nextTrace.push({type:request.type,ok:r?.ok,error:r?.error,available:r?.data?.available,safe:r?.data?.safe,enabled:r?.data?.enabled,reason:r?.data?.reason});if(nextTrace.length>30)nextTrace.shift();}return r;};`);
   const capsule=()=>page.frames().find(f=>f.url().includes('/ui/prompt-surface.html#next-'));
   const card=()=>page.frames().find(f=>/\/ui\/prompt-surface\.html#[a-f0-9-]+$/.test(f.url()));
   const enable=async()=>{await rpc(popup,'PAIA_PROMPT_NEXT_CONFIGURE',{enabled:true});await page.bringToFront();await page.waitForTimeout(150);};
   const disable=async()=>{await rpc(popup,'PAIA_PROMPT_NEXT_CONFIGURE',{enabled:false});await eventually(()=>!capsule());};
   const cycle=async(text='回复“继续”')=>{await page.evaluate(x=>fixture.start(x),text);await page.waitForTimeout(120);await page.evaluate(()=>fixture.finish());};
-  const shown=async()=>{await eventually(()=>!!capsule(),'new final reply produces capsule');await capsule().locator('.next-choices button').first().waitFor();return capsule();};
+  const shown=async()=>{try{await eventually(()=>!!capsule(),'new final reply produces capsule');}catch(error){throw Error(error.message+' '+JSON.stringify(await world.run('({reads:nextReads,observed:nextObserve,trace:nextTrace})')));}await capsule().locator('.next-choices button').first().waitFor();return capsule();};
   await check('OFF and enable are prospective with zero historical snapshot reads',async()=>{
    assert.equal((await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);await cycle();await page.waitForTimeout(1800);assert.equal(await world.run('nextReads'),0);assert.equal(capsule(),undefined);await enable();await page.waitForTimeout(1000);assert.equal(await world.run('nextReads'),0);assert.equal(capsule(),undefined);
   });
@@ -70,5 +71,5 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
    await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());await card().locator('#new').click();await card().getByRole('textbox',{name:'复用文本'}).fill('ordinary Stage 1/2');await card().getByRole('button',{name:'保存',exact:true}).click();await card().getByRole('button',{name:'ordinary Stage 1/2',exact:true}).click();await eventually(()=>card().locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.send),0);
   });
   assert.equal(failures,0);assert.deepEqual(h.errors,[]);
- }finally{await writeFile(join(out,variant+'.json'),JSON.stringify({variant,evidence:'SYNTHETIC_PRODUCTION_EXTENSION',head:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),cases,screens,failures,currentLive:'PENDING'},null,2));await world?.cdp.detach();await h.stop();}
+ }finally{await writeFile(join(out,variant+'.json'),JSON.stringify({variant,evidence:'SYNTHETIC_PRODUCTION_EXTENSION',head:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),cases,screens,failures,currentLive:'PENDING'},null,2));await world?.cdp.detach();await h.close();}
 });

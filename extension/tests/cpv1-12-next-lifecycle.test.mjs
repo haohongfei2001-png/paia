@@ -12,3 +12,12 @@ test('regenerate, continue, mutation, new user turn and route invalidate old ide
 test('failed regeneration and same-ID continue cannot reinterpret the historical final reply',()=>{const {a,s}=fixture();a.observe(0);s.streaming=true;s.complete=false;a.observe(10);s.streaming=false;s.complete=true;a.observe(20);assert.equal(a.observe(1000).binding,undefined);});
 test('autonomous branch replacement after final completion does not reuse the prior generation',()=>{const {a,s}=fixture();a.observe(0);start(a,s,10);finish(a,s,20);assert.equal(a.observe(700).ready,true);s.replyId='historical-branch';s.latest={};assert.equal(a.observe(800).binding,undefined);assert.equal(a.observe(1600).binding,undefined);});
 test('a reply that first appears after stop disappears has no observed generation identity',()=>{const {a,s}=fixture();a.observe(0);s.streaming=true;s.complete=false;a.observe(10);s.streaming=false;s.complete=true;s.replyId='late-unverified';s.latest={};a.observe(20);assert.equal(a.observe(1000).binding,undefined);});
+
+test('production snapshot enforces limits before unbounded text expansion and traversal',()=>{
+ const {a,s}=fixture();const element=(tag,children=[])=>({nodeType:1,isConnected:true,childNodes:children,getClientRects:()=>[{}],closest:()=>null,matches:selector=>selector.split(',').some(x=>x===tag)});
+ const body=element('div',[element('p',[{nodeType:3,data:'回复“继续”'}])]);s.latest.querySelectorAll=()=>[body];a.current=s.latest;a.armed=true;
+ assert.equal(a.snapshot().text.trim(),'回复“继续”');
+ body.childNodes=[{nodeType:3,data:'x'.repeat(1000000)}];assert.equal(a.snapshot(),null);
+ body.childNodes=Array.from({length:2050},()=>element('span',[]));assert.equal(a.snapshot(),null);
+ body.childNodes=[element('blockquote',[{nodeType:3,data:'回复“继续”'}])];assert.equal(a.snapshot().excluded,true);
+});
