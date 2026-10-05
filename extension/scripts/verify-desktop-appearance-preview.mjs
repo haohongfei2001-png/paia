@@ -119,12 +119,12 @@ async function verifyRootMenuGlyphs(page){
 }
 async function verifyRootMenus(page,variant){
  for(const selector of ['#thought-root-source>.library-actions>summary','.topic-compact-row>.library-actions>summary']){
-  const trigger=page.locator(selector).first(),menu=trigger.locator('..');await trigger.focus();await page.keyboard.press('Enter');await eventually(()=>menu.evaluate(node=>node.open),'native Enter opens the same root menu');
+  const trigger=page.locator(selector).first(),menu=trigger.locator('..'),settled=expected=>menu.evaluate((node,expected)=>node.open===expected&&node.firstElementChild.getAttribute('aria-expanded')===String(expected),expected);await trigger.focus();await page.keyboard.press('Enter');await eventually(()=>settled(true),'native Enter and the existing toggle event expose the same open root menu');
   assert.equal(await trigger.getAttribute('aria-expanded'),'true');const first=menu.locator('.library-action-list button').first();await page.keyboard.press('Tab');assert.equal(await first.evaluate(node=>document.activeElement===node),true,'Tab reaches the first real action');
   const bounds=await first.boundingBox();assert.ok(bounds&&bounds.x>=0&&bounds.x+bounds.width<=320,'compact menu action stays within the viewport');
   await page.screenshot({path:`${directory}/${variant}-root-menu-${selector.startsWith('#')?'root':'topic'}-320-open.png`,animations:'disabled'});
-  await page.keyboard.press('Escape');await eventually(()=>menu.evaluate(node=>!node.open));assert.equal(await trigger.evaluate(node=>document.activeElement===node),true,'Escape returns focus to the exact native trigger');
-  await trigger.click();await eventually(()=>menu.evaluate(node=>node.open),'pointer opens the same native menu');await trigger.click();await eventually(()=>menu.evaluate(node=>!node.open),'pointer closes the same native menu');
+  await page.keyboard.press('Escape');await eventually(()=>settled(false));assert.equal(await trigger.evaluate(node=>document.activeElement===node),true,'Escape returns focus to the exact native trigger');
+  await trigger.click();await eventually(()=>settled(true),'pointer opens the same native menu');await trigger.click();await eventually(()=>settled(false),'pointer closes the same native menu');
  }
 }
 
