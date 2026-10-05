@@ -1,7 +1,9 @@
 # Prompt Reuse Visual Master v2 — soft frosted glass
 
 Date: 2026-10-05. **REOPENED / OWNER_REJECTED_CURRENT_MATERIAL**.
-Engineering translation candidate; **OWNER_VISUAL_ACCEPTANCE_PENDING**.
+Retained engineering candidate, independently integrated through PR171;
+**OWNER_VISUAL_ACCEPTANCE_PENDING**. The later 2026-10-05 integration
+authorization is not an original-design restoration PASS or current-live proof.
 
 The original owner-supplied PAIA Personal Prompt Reuse Surface design sheet is
 the highest pure-visual source. The owner rejected v1's production orb material

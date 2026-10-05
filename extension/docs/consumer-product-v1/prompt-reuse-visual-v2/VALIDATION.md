@@ -21,7 +21,12 @@ gates without weakening prior assertions. Preserve failures and environment
 limits. Functional Stage 1/2 acceptance remains closed. No manual developer tools
 or duplicated owner source/release testing is required.
 
-Stop without merging at:
-`ENGINEERING_VISUAL_CORRECTION_COMPLETE / OWNER_VISUAL_ACCEPTANCE_PENDING`
-only once applicable engineering checks and actual material inspection complete.
-If the orb still reads as pearl/bead, revise again even if all tests pass.
+The original correction stopped before merge at
+`ENGINEERING_VISUAL_CORRECTION_COMPLETE / OWNER_VISUAL_ACCEPTANCE_PENDING`.
+On 2026-10-05 the owner retained the shown candidate and later authorized its
+eligible independent integration. That narrow later decision allows PR171 to
+merge after affected regressions and the normal light integration/exact-main
+gates, while **OWNER_VISUAL_ACCEPTANCE_PENDING** and current-live visual evidence
+remain open. Do not call the retained candidate a faithful-restoration PASS or
+restart material iteration merely because it is integrated. Original B remains
+the higher visual input; any later correction still needs actual pixel review.

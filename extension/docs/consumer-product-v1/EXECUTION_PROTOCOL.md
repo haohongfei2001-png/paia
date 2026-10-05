@@ -1,3 +1,20 @@
+# Prompt Reuse independent integration amendment — 2026-10-05
+
+After viewing and retaining the material candidate, the owner authorized finishing
+eligible independent orb integration after verification. Independent review found
+PR171 to be a static presentation-only ordinary round, disjoint from D7/PR170 and
+PR164. Its required cadence is existing affected regressions + ready-PR light
+Integration/certification gate + merge + exact-main readback, per §7.2/§7.5.
+No high-risk data/privacy/schema/capture/identity/migration boundary changed.
+
+This later authorization supersedes the earlier no-merge hold below only for the
+retained PR171 candidate. It is not final owner visual acceptance, current-live
+proof, whole-product certification, installation/distribution authorization or
+permission to alter the retained material again. Keep those evidence boundaries
+truthful and preserve all unrelated failed/unverified gates. The following
+2026-10-05 correction instructions remain historical scope/evidence, except for
+their now-superseded integration hold.
+
 # Prompt Reuse presentation correction — 2026-10-05
 
 The owner confirmed bounded material correction against the original design

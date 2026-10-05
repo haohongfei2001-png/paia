@@ -28,7 +28,10 @@ conflict, correct v2 first. Do not use v1 parity as a design PASS.
 
 This is presentation-only. Stage 1/2 functional acceptance remains
 FINAL_CLOSED / MAINTENANCE_ONLY. Source/release consistency is engineering
-evidence, never owner design acceptance. No merge before explicit visual review.
+evidence, never owner design acceptance. The later 2026-10-05 owner decision
+permits the retained PR171 candidate to integrate independently after affected
+regressions and normal light integration/exact-main gates; final material and
+current-live acceptance remain pending.
 
 ---
 

@@ -1,3 +1,36 @@
+# Prompt Reuse frosted material v2 — independent engineering integration
+
+**ENGINEERING_INTEGRATED / OWNER_VISUAL_ACCEPTANCE_PENDING**.
+**Current-live visual evidence remains PENDING; no material-restoration PASS.**
+
+The owner retained the shown candidate, then on 2026-10-05 explicitly authorized
+finishing its independent integration after checking eligibility. This later
+bounded decision supersedes the earlier no-merge hold only for PR171. It does
+not treat retaining a candidate or authorizing a merge as final visual acceptance.
+
+[PR171](https://github.com/haohongfei2001-png/paia/pull/171) merged frozen visual
+head `90b8ac066f9f13d3f83e95fa498cbff3517e79f4` as `ebdbf887b87cb16b29d8a6aeaf2f30a8fa1507a0`, preserving base `80f3201d8138f37d3d02658663d25a0b46874125`.
+The candidate/tested-merge/main runtime tree is `d00cdc7e6137a64069ab8d982ef97e49549f28db`.
+Under EXECUTION_PROTOCOL §7.2/§7.5 this is an ordinary presentation-only round.
+[Ready-PR light integration](https://github.com/haohongfei2001-png/paia/actions/runs/37353468659)
+and [exact-main light integration](https://github.com/haohongfei2001-png/paia/actions/runs/37354203435)
+PASS; directly affected source/release regression and
+[exact-main Prompt Reuse Foundation](https://github.com/haohongfei2001-png/paia/actions/runs/37354203635)
+PASS. Full-suite/macOS jobs were not selected; this is not full product certification.
+
+[The receipt](implementation/prompt-reuse/FROSTED-MATERIAL-V2.md) records all
+checks, scope, negative history and deferred evidence. Orb/card presentation is
+integrated without functional, 40/44px, insertion, drag, toggle, persistence,
+authorization, schema, permission or D7 changes. Stage1/2 functional acceptance
+stays closed; v1 history remains. Capsule/conditional targets are master-only;
+PR164 remains separate and unmerged. D7/PR170 failures and other gates are not
+closed, bypassed or relabeled by this independent merge.
+
+Known owner-review differences remain explicit: v2 is paler/lower-contrast than
+original B, highlight position/shape differ, and dark is darker/more restrained.
+No further material iteration or new Stage3 UI extension follows this receipt.
+Earlier status entries below retain their historical evidence and original holds.
+
 # Prompt Reuse material correction — owner review reopened
 
 **PROMPT_REUSE_VISUAL_ACCEPTANCE = REOPENED / OWNER_REJECTED_CURRENT_MATERIAL**.
