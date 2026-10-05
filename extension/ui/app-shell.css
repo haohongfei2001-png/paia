@@ -141,7 +141,7 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader 
  body:is([data-paia-space="library"],[data-paia-space="archive"]) .archive-navigator-context-group>.archive-navigator-group-row>.archive-navigator-group-toggle{min-height:44px;padding:10px 8px;font-weight:600}
 }
 #archive-compact-navigation{display:block}
-.document-menu-glyph{display:inline-flex;align-items:center;justify-content:center}
+.document-menu-glyph{display:inline-flex;align-items:center;justify-content:center;min-width:1em}
 .document-menu-label{display:none}
 /* Recovery stays in the main column and flows before the affected content. */
 #workspace-error:not(:has(> :not([hidden]))){display:none}
