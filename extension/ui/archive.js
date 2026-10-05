@@ -413,7 +413,7 @@ $('settings-branch-review').addEventListener('click',()=>void navigate('excluded
 function revisionText(value,kind){if(kind==='title')return value.title||'使用来源标题';const text=kind==='thought'?value.thoughtText:value.libraryText??'未编辑的来源内容（通过查看来源阅读）';return text+(value.note?'\n备注：'+value.note:'')+(kind==='input'?'\n'+(value.excluded?'已从 Input Archive 移除':'保留在 Input Archive'):'');}
 let revisionCursor=null,revisionContext=null;
 async function purgeSource(id){
- const refused=async()=>{readingModals.close();await confirmReaderAction({title:tc('暂不能永久删除'),text:tc('这条来源包含经过人工改写的派生内容，或无法确定其删除边界。删除边界尚未确定。没有删除任何材料，也没有清除恢复草稿。'),confirm:readerCopy('关闭','Close')});};
+ const refused=async()=>{readingModals.close();await confirmReaderAction({presentation:'purge-blocked',title:tc('暂不能永久删除'),text:tc('这条来源包含经过人工改写的派生内容，或无法确定其删除边界。删除边界尚未确定。没有删除任何材料，也没有清除恢复草稿。'),confirm:readerCopy('关闭','Close')});};
  let preview;try{preview=await request('PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',{id});}catch{error(tc('暂时无法核对删除范围。没有删除任何材料。'));return;}
  if(preview.state==='owner_gate_required'){await refused();return;}
  if(preview.state!=='unambiguous'){error(tc('暂时无法完整核对删除范围。没有删除任何材料。'));return;}

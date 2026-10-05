@@ -1,11 +1,17 @@
 # Prompt Reuse Stage 3A-1 — ENGINEERING_VERIFYING
 
-The sole Stage 3A writer implements CPV1-12.3A-1 on fresh main `967188ab`.
+The sole Stage 3A writer implements CPV1-12.3A-1 and resumes integration against
+main `bb52a1cc` after the owner's 2026-10-05 scope clarification: D7 remains
+with its original owner; this writer connects and verifies only Prompt Reuse.
 [Candidate receipt](implementation/prompt-reuse/STAGE-3A-1.md) records the
 explicit session opt-in, prospective completion proof, finite local detector,
 private transient capsule and independently bound fill-only candidates.
-Initial focused/privacy and package/release checks pass. Hosted production
-source/release browser evidence is PENDING; local browser launch is restricted.
+The prior exact-tree hosted source/release 3A-1 browser result is 18/18 PASS,
+with Stage 1/2 90/90, unit 1,948, adapter 102 and privacy 59 PASS. The broader
+full certification failed in unrelated Desktop journeys; its 86 observed failed
+entries and four timed-out browser jobs remain evidence, not a completed total.
+The main-reconciled candidate requires fresh exact-head CI before integration.
+No D7 implementation or assertion is repaired by this writer.
 Current-live ChatGPT evidence remains PENDING, never inferred from fixtures.
 Stage 1/2 acceptance and D7 are preserved. No 12.3A-2 or Stage 3B is started.
 # D7 Input recovery conflict — local bounded candidate

@@ -1,8 +1,65 @@
 # Prompt Reuse Stage 3A-1 — candidate implementation
 
-State: ENGINEERING_VERIFYING. Current-live ChatGPT evidence: PENDING.
+State: ENGINEERING_VERIFYING / INTEGRATION_PENDING. Current-live ChatGPT evidence: PENDING.
 Stage 1/2 FINAL_CLOSED and its accepted V01–V08 visuals remain unchanged.
 This batch does not start 12.3A-2, 3A-3 certification or Stage 3B.
+
+## Main reconciliation — 2026-10-05 12:25 UTC
+
+The owner confirmed that D7's original owner handles its pages, while this
+writer connects, verifies and finishes the recommendation feature. PR164 is
+unmerged. Current remote main is `bb52a1cc08a595273122f556b70e6286266f710f`
+(through PR168). All seventeen files changed on main since the previous
+`e2f90cd8` integration base are retained byte-for-byte. The only merge conflict
+was the shared Topic-action test's independently repaired WebCrypto dispatch
+wait; main's exact version wins. No D7 implementation or test contract is changed.
+The Stage 3A runtime is byte-identical to its previously reviewed `8fb3c2e9`
+checkpoint. Unmerged D7 PR169 is not copied into this branch.
+
+Fresh local checks after reconciliation: 152 detector/lifecycle/security,
+Topic-action and Reader-dialog CI cases, plus all three browser-partition cases,
+PASS. The coverage-contract checker passes. Hosted source/release, complete
+unit/adapter/privacy/package and full certification are PENDING for the new
+candidate. Full necessary gates must pass before merge; a D7 failure is handed
+back with exact evidence rather than changing its assertion or timeout here.
+
+## Retained exact-tree hosted results and failed full gate
+
+Previous branch head `e93d7d88e1fb1441abb62fd6e43f27d89d124686` and its tested
+PR merge `ff47991f354433fed814a2e188dfe9344d008a80` have the same tree
+`9f72904f9fd00972b03c5ad63beaa3705a69d822`.
+[Foundation 37253333564](https://github.com/haohongfei2001-png/paia/actions/runs/37253333564)
+passed: Stage 3A source/release 18/18 registered tests (eight child journeys per
+variant plus two parent registrations), Stage 1/2 90/90, complete unit 1,948,
+adapter 102, privacy/security 59, source 11,677 package checks/301 resources,
+release 11,242 checks/294 resources and 318-file release product guard.
+[Visual parity 37253333494](https://github.com/haohongfei2001-png/paia/actions/runs/37253333494)
+also passed. Artifact `11321229742`, SHA256
+`28f4bfef76c7786d1239d45cbaf7164b933413ba840648635b59eac545465020`,
+retains body-free journey receipts and synthetic screenshots. These are synthetic
+production-extension results, not authenticated current-live ChatGPT evidence.
+
+[Full certification 37253333513](https://github.com/haohongfei2001-png/paia/actions/runs/37253333513)
+failed. All 1,948 unit tests, adapter/privacy, release, hosted macOS secure-store
+and tab-discard gates passed. Browser4 completed 31 PASS/14 FAIL of45; Browser5
+completed 16 PASS/10 FAIL of26. Browser1/2/3/6 exhausted the unchanged eighteen-
+minute budget, with respectively 24/7/8/23 observed failed entries. The total86
+is observed failures, not the denominator of a completed full suite. Stage 3A
+source and release also passed in Browser3. Required aggregate gates failed.
+
+Read-only diagnosis proved Browser5's ten failures inherited the main D1/D5
+versus D7 contracts: Reader slot children, hidden compact menu, historical visual
+expectations and Topic-header padding. Other Desktop failures still need their
+owner's classification; this receipt does not label every failure as test drift.
+Several failed journeys never reached later data/safety assertions, so those
+full-path assertions remain unproven. Earlier failures and local Chrome socket
+restrictions below remain truthful history. No unchanged-tree rerun, assertion
+weakening, timeout increase or merge followed that failed gate.
+
+Independent security review passed the exact previous head and main integration,
+including document/reply/authorization binding, one-shot insertion, no new
+permissions/provider/persistence and preservation of all upstream D7 files.
+Fresh exact-head review is required after this reconciliation.
 
 ## Scope and authority
 
