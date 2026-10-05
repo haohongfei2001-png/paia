@@ -12,7 +12,7 @@
 .topic-compact-row small{grid-column:2;grid-row:1 / span 2;max-width:180px;font-size:12px;line-height:1.5;color:var(--paia-meta)}
 .topic-compact-row>.library-actions{position:absolute;right:0;top:20px;z-index:2}
 .topic-compact-row .library-action-list{right:0;top:32px}
-.topic-compact-row>.library-actions>summary{width:44px;min-width:44px;min-height:44px;padding:0;display:grid;place-items:center;color:var(--muted)}
+.topic-compact-row>.library-actions>summary{width:44px;min-width:44px;min-height:44px;padding:0;display:grid;place-items:center;color:var(--muted);font-family:Arial,sans-serif}
 .topic-action-dialog { width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:24px;border:1px solid var(--paia-control);border-radius:8px;color:var(--paia-text);background:var(--paia-surface); }
 .topic-action-dialog::backdrop {background:rgba(20,28,22,.24);}
 html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0,.48);}
@@ -115,7 +115,7 @@ body[data-paia-surface="reader"] #thought-root-heading{display:none}
 #thought-root-source .thought-source-scope-label{white-space:nowrap;margin:0;font-size:12px;max-width:100%;color:var(--muted)}
 #thought-root-source #thought-source-scope{min-width:0;min-height:36px;max-width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font-size:12px}
 #thought-root-source>.library-actions{margin-left:auto}
-#thought-root-source>.library-actions>summary{width:44px;min-width:44px;min-height:44px;padding:0;display:grid;place-items:center;color:var(--muted)}
+#thought-root-source>.library-actions>summary{width:44px;min-width:44px;min-height:44px;padding:0;display:grid;place-items:center;color:var(--muted);font-family:Arial,sans-serif}
 #thought-root-source>button{min-height:36px;padding:6px 20px;border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:13px;background:var(--bg)}
 #thought-collection,#thought-list.topic-compact-list{width:100%;max-width:936px;margin:0}
 #thought-panel :is(#ai-update-feedback,#library-search-status):empty{display:none}
