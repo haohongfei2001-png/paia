@@ -108,8 +108,8 @@ export async function runCurrentContextMatrix({variant,label,extensionPath,steps
   if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();
   await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',readingWidth:'standard'}});
   const capture=await h.open({id:label+'-'+variant,title:'Current Context synthetic source',base:1609459200,messages:[
-   {id:label+'-a',text:'CONTEXT_UNAVAILABLE_SOURCE 第一段原始表达。'},
-   {id:label+'-b',text:'CONTEXT_UNAVAILABLE_SOURCE 第二段原始表达。'}
+   {id:label+'-message-a',text:'CONTEXT_UNAVAILABLE_SOURCE 第一段原始表达。'},
+   {id:label+'-message-b',text:'CONTEXT_UNAVAILABLE_SOURCE 第二段原始表达。'}
   ]});
   await eventually(async()=>(await h.state()).records.length===2,'synthetic Source capture completes');await capture.close();
   await eventually(async()=>{const filter=await rpc(page,'FILTER_STATUS');return filter.pending===0&&filter.taskState==='idle';},'capture filtering completes before the no-write proof');
@@ -128,8 +128,20 @@ export async function runCurrentContextMatrix({variant,label,extensionPath,steps
    const before=await contextSafetySnapshot(page,options);
    await assertContextUnavailable(page);
    for(const step of steps){
-    await page.locator(`[data-context-preview-page="${step}"]`).click();
+    const stepButton=page.locator(`[data-context-preview-page="${step}"]`);
+    // Compact Context displays only the current step and has no step menu.
+    // Select other stages through the visible wide UI, then verify their compact
+    // rendering. This does not claim unsupported compact step navigation.
+    const selectWide=width<768&&!await stepButton.isVisible();
+    if(selectWide)await page.setViewportSize({width:768,height});
+    await stepButton.click();
+    if(selectWide)await page.setViewportSize({width,height});
     assert.equal(await page.locator('#context-workspace-design-preview').getAttribute('data-context-step'),step);
+    if(width<768){
+     assert.equal(await page.evaluate(()=>innerWidth),width,'every compact stage is checked at the original viewport');
+     assert.equal(await page.locator('.context-presentation-steps button:visible').count(),1,'compact Context displays only its current step');
+     assert.equal(await stepButton.isVisible(),true,'the selected step is visible after returning to compact rendering');
+    }
     await assertContextUnavailable(page,{navigate:false});
     assert.equal(await page.locator('h1:visible').count(),1,'Context uses one visible ordinary page heading');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'Context has no root overflow at '+width);

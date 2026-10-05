@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow,waitArchiveWindow} from './harness/archive-navigator.mjs';
+import {openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
 
 const op=()=>crypto.randomUUID();
 const rpc=async(page,type,fields={})=>{
@@ -113,6 +114,7 @@ test('UIS-02 search is page-scoped across Archive, Reader, Thought root/topic an
     await shortcut(page,'f',{metaKey:true});
     assert.equal(await activeId(page),'topic-search','Cmd/Ctrl+F focuses current Thought topic search');
     await page.locator('#topic-search').fill('UIS02_TOPIC_B_TARGET');
+    await openThoughtReadingOptions(page);
     await eventually(async()=>/0 条匹配内容/.test(await page.locator('#topic-search-count').innerText()),'other-topic content is excluded');
     assert.equal(await page.locator('#topic-body [data-entry-id]').count(),0,'Thought topic search cannot leak another topic');
     await page.locator('#topic-search').fill('UIS02_TOPIC_A_TARGET');

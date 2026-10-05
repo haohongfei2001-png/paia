@@ -77,6 +77,24 @@ export async function assertHeldOrganizeScope(page,h,{topicId,trigger='first',le
 // errors and receipts. No output, authorization token or handler is fabricated.
 export async function startSyntheticAIWorkerFixture(page,h,options){
  await assertHeldOrganizeScope(page,h,options);
+ const status=await workerRead(page,'GET_AI_PRESENTATION_STATUS',{options:{topicId:options.topicId}});
+ if(!status.topics.find(row=>row.topicId===options.topicId)?.presentation){
+  // The held-scope proof navigates away from the retained reader. Reestablish
+  // this synthetic worker fixture's Original precondition through real controls;
+  // this does not certify ordinary no-Current navigation or grant Start access.
+  const before={provider:h.deepSeekRequests.length,network:h.extensionNetworkRequests,external:h.externalRequests};
+  await setAIView(page,false);
+  const original=page.locator('#original-reading-body [data-entry-field="body"]').first();
+  await original.waitFor({state:'visible'});
+  await eventually(()=>page.evaluate(topicId=>{
+   const owner=globalThis.__syntheticAIWorkerOwner;
+   return owner?.id===topicId&&owner.view==='original'&&!!owner.editor&&!owner.pendingView;
+  },options.topicId),'synthetic fixture restores the real Original reader owner');
+  await setAIView(page,true);
+  assert.equal(await original.isVisible(),true,'synthetic worker starts with Original readable');
+  assert.equal(await original.evaluate(node=>!!node.closest('[inert]')),false,'synthetic worker starts with Original interactive');
+  assert.deepEqual({provider:h.deepSeekRequests.length,network:h.extensionNetworkRequests,external:h.externalRequests},before,'restoring the synthetic reader makes zero requests');
+ }
  const {topicId}=options,scope=await workerRead(page,'GET_AI_PRESENTATION_SCOPE',{options:{topicId}});
  assert.equal(scope.blockedReason,null,'synthetic fixture may start only an eligible real scope');
  assert.equal(scope.credentialReady,true);assert.match(scope.scopeBinding,/^[a-f0-9]{64}$/);

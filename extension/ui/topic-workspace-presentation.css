@@ -56,4 +56,4 @@
  #thought-document.dvn-topic-composition #topic-toolbar #create-entry,#thought-document.dvn-topic-composition .ai-toggle-label{padding-inline:12px}
  #thought-document.dvn-topic-composition .topic-year-section{column-gap:16px}
 }
-@media(max-width:767px),(pointer:coarse){#thought-document.dvn-topic-composition :is(#create-entry,#topic-menu summary,.ai-toggle-label,.dvn-topic-years button,.dvn-topic-options>summary,.topic-year-links button,.topic-expression-actions button,.topic-year-section>button){min-height:44px;min-width:44px}}
+@media(max-width:767px),(pointer:coarse){#thought-document.dvn-topic-composition :is(#topic-toolbar #create-entry,#topic-menu summary,.ai-toggle-label,.dvn-topic-years button,.dvn-topic-options>summary,.topic-year-links button,.topic-expression-actions button,.topic-year-section>button){min-height:44px;min-width:44px}}
