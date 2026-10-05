@@ -26,14 +26,25 @@ fact source. Preserve correct historical implementation and evidence, but do not
 resume old queues merely because their own historical STATUS still names a next
 round.
 
-Current owner authorization is `DesktopVNextOwnerApprovedRestart`:
-the owner approved frozen DVN-1.0 and foundation PR #107, then explicitly
-released the review pause for D1 Archive → D2 Thought Library → D3 AI Organize
-→ D4 AI Context on 2026-09-30. Follow the approved architecture/roadmap with one
-active product writer, fresh remote main for every slice/batch, and exact-head
-regression evidence before integration. Preserve #99 unchanged and unmerged.
-B-01–B-05 and the deferred live/device/legal gates remain unresolved; dependent
-behavior fails closed while independent authorized engineering continues.
+Current owner authorization includes two independent bounded product lines:
+
+1. `DesktopVNextOwnerApprovedRestart`: the owner approved frozen DVN-1.0 and
+   foundation PR #107, then explicitly released the review pause for D1 Archive
+   → D2 Thought Library → D3 AI Organize → D4 AI Context on 2026-09-30.
+2. `PromptReuseStage3AOwnerApproved`: on 2026-10-05 the owner approved
+   `docs/consumer-product-v1/PROMPT_REUSE_STAGE_3A.md`. B-04-3A is resolved
+   only for default-off, local, ephemeral analysis of the newly completed latest
+   assistant reply in the current supported conversation, with zero Provider
+   request and no durable assistant-reply body. CPV1-12.3A-1 is READY.
+   B-04-3B broader/model reply processing remains not authorized.
+
+Use fresh remote main for every coherent batch and avoid overlapping writers on
+the same runtime/data boundary. A Prompt Reuse Stage 3A writer may proceed in
+parallel with D7 only while it remains isolated from D7 page roots and shared
+runtime ownership. Preserve #99 unchanged and unmerged. B-01, B-02, B-03,
+B-04-3B, B-05 and deferred live/device/legal gates remain unresolved on their
+affected paths; dependent behavior fails closed while independent authorized
+engineering continues.
 The earlier `TEMPORARY_NIGHT_WHOLE_EXECUTION / MAX_9_ROUNDS` authorization is
 historical and does not cap this separately approved Desktop vNext restart.
 
