@@ -1,3 +1,13 @@
+# Prompt Reuse presentation correction — 2026-10-05
+
+The owner confirmed bounded material correction against the original design
+sheet. One Prompt Reuse writer owns this branch; Stage 3A new UI expansion pauses.
+Preserve v1 history and Stage 1/2 functional acceptance. v2 is a revised material
+candidate, not an owner-accepted replacement. No Detector, insertion, drag,
+toggle, persistence, authorization, D7, schema or permission changes. Capsule
+scenes are master-only on the current main base. Require actual source/release
+and original/master comparison; stop for owner visual acceptance without merge.
+
 # Prompt Reuse Stage 3A authorization — 2026-10-05
 
 The owner explicitly approved

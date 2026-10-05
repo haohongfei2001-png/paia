@@ -130,3 +130,17 @@ test('host close request rejects navigation or consent changes during its live p
  }
  const f=fixture();await f.s.handle({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce},{id:'ext',tab:{id:7},frameId:0,url:url+'?initial',documentId:'live-document'});assert.equal(f.calls.length,0);
 });
+
+test('frosted v2 presentation removes hard reflection and double rim without changing the accessible owner',async()=>{
+ const f=await hostFixture(),style=f.nodes.find(n=>n.tag==='style').textContent;
+ assert.equal(f.orb.getAttribute('aria-label'),'常用 Prompt；拖动或 Alt 加方向键移动');
+ assert.equal(f.orb.getAttribute('aria-expanded'),'false');
+ assert.match(style,/width:44px;height:44px/);assert.match(style,/width:40px;height:40px/);
+ assert.match(style,/backdrop-filter:blur\(9px\) saturate\(\.92\)/);
+ assert.match(style,/filter:blur\(3px\)/);assert.match(style,/filter:blur\(4px\)/);
+ assert.doesNotMatch(style,/inset:-3px|width:14px;height:10px|\.reflection|#fffffffa|#c8dcfff0/);
+ assert.equal(f.nodes.some(n=>n.className==='reflection'),false);
+ assert.match(style,/button:focus-visible\{outline:2px solid/);
+ assert.match(style,/@media\(prefers-reduced-motion:reduce\)/);
+ assert.doesNotMatch(style,/url\(|animation:.*infinite/);
+});
