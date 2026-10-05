@@ -66,7 +66,8 @@ The currently known owner-decision gates are:
 - B-01: whether an existing/old Thought may be directly edited, versus corrections being appended as new Thought material.
 - B-02: permanent Source deletion boundary for user-rewritten derivative material.
 - B-03: long-term default data residency and cloud relationship.
-- B-04: prompt-assistant access to AI replies, including retention and external processing.
+- B-04-3A: **resolved by owner decision 2026-10-05** for Prompt Reuse Stage 3A only. After an explicit, default-off enablement, PAIA may locally and ephemerally analyze only the newly completed latest assistant reply in the current supported conversation. The reply is not durably retained, not added to Archive/Thought/Context/Source/Backup/logs, and is not sent to an external model. Disable/revoke stops reading and clears transient candidates without disabling Stage 1/2.
+- B-04-3B: remains an owner gate for any broader reply scope, durable reply retention/evidence, external/model processing, model-generated next prompts or use of reply access outside the approved Stage 3A purpose.
 - B-05: regions, service burden and commercial commitments.
 
 These gates block only the rounds that need them. They do not block unrelated work.

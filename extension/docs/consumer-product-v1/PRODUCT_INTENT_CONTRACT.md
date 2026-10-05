@@ -211,14 +211,24 @@ Stages remain part of product intent:
    composer and returns focus there. It never auto-sends. Existing draft text is
    preserved by default; destructive replacement is never the implicit click
    behavior.
-3. **Reply-aware next prompt** — only with separately approved access to the
-   current AI reply, PAIA may recommend an existing or newly generated next
-   prompt. This suggestion is a transient, separate surface and must not reorder
-   the stable frequent/fixed list. Clicking still only fills the composer; the
-   user sends.
+3. **Reply-aware next prompt** — Stage 3 is split by authorization:
+   - **Stage 3A — local reply-to-next-action assistance:** owner-approved on
+     2026-10-05. It is default-off and explicitly enabled. PAIA may read only the
+     newly completed latest assistant reply in the current supported conversation,
+     process it locally and ephemerally, and recommend only when there is strong
+     evidence: an explicit literal reply, explicit choice, conservative request
+     for user material, or a clearly relevant existing Prompt Family. `DEFER`
+     is a normal result. Assistant reply text is not persisted or sent to a
+     Provider/model.
+   - **Stage 3B — model-generated new next prompts:** future and not authorized.
+     It requires a separate owner decision for Provider/context scope, retention,
+     cost and quality.
+   - Stage 3 suggestions remain a transient surface separate from the stable
+     frequent/fixed list. Clicking fills only; the user sends.
 
-Stage 1/2 do not require assistant-reply capture or Provider calls. B-04 controls
-reply reading, retention and external processing for Stage 3.
+Stage 1/2 remain reply-blind and require no Provider call. The detailed Stage 3A
+contract is [PROMPT_REUSE_STAGE_3A.md](PROMPT_REUSE_STAGE_3A.md). B-04-3A is
+resolved only for that exact local ephemeral scope; B-04-3B remains open.
 
 ## 12. Mobile, MyWrite, voice and multiple sources
 

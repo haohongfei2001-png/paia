@@ -183,3 +183,39 @@ editing transaction against synthetic ProseMirror. It is never evidence of a
 logged-in current ChatGPT deployment. DFG-CPV1-011 and final owner visual review
 remain separate external gates under the 2026-10-04 owner amendment. These gates
 do not prevent dependency-safe engineering integration after automatic gates pass.
+
+## Prompt Reuse Stage 3A verification boundary
+
+The owner-approved Stage 3A contract is
+[PROMPT_REUSE_STAGE_3A.md](PROMPT_REUSE_STAGE_3A.md).
+
+Stage 3A completion requires evidence that the production source/release path:
+
+- performs no reply-aware read while the feature is disabled;
+- begins only prospectively after explicit enablement;
+- binds analysis to the current newly completed latest assistant reply;
+- rejects streaming pauses, stale regenerate/continue/edit/branch results and
+  late results after revoke;
+- persists no assistant reply body and performs zero Stage 3A Provider/model
+  request;
+- treats assistant text as untrusted data with no permission/tool authority;
+- keeps Stage 1/2 available when Stage 3A is disabled or degraded;
+- keeps the stable Prompt list order unchanged when a capsule appears;
+- revalidates transient candidates before insertion;
+- preserves the existing composer draft/caret/selection/IME/no-send contract.
+
+The deterministic detector evaluation must report denominator and class-specific
+results. Initial targets are:
+- displayed-suggestion precision >= 98% on the fixed evaluation corpus;
+- accepted DIRECT_REPLY fixtures preserve exact text, negation and visible
+  prerequisites;
+- PROMPT_FAMILY_MATCH relevance >= 95% on independently labelled match fixtures;
+- zero critical destructive/credential/permission false positives on the fixed
+  adversarial set;
+- >= 80% coverage of explicitly supported direct-reply forms, preventing an
+  all-DEFER implementation from passing.
+
+Synthetic/browser fixtures do not prove current ChatGPT reply-completion
+compatibility. CPV1-12.3A-3 owns current-live provider evidence and owner
+acceptance for the new capsule states. Stage 3B evidence is not part of Stage 3A.
+

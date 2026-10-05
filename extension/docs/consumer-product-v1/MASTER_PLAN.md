@@ -1147,14 +1147,19 @@ External AI can propose safe PAIA organization changes under separate permission
 
 Use resolved B-01/B-02 decisions when available. If unresolved, keep only the affected direct-old-Thought/permanent-delete proposal types disabled and continue proposal types whose semantics are already unambiguous.
 
-B-04 must eventually define:
-- which AI reply can be read;
-- local versus remote processing;
-- retention;
-- whether reply text becomes durable context evidence;
-- disable/revoke behavior.
+B-04 is now split by the owner decision of 2026-10-05:
 
-If B-04 is unresolved, retain DFG-CPV1-008 and defer only reply-aware assistant behavior (CPV1-12.3 and its corresponding real acceptance). Continue typed AI changeset, review/commit, permission and adversarial work that does not read AI replies.
+- **B-04-3A RESOLVED:** Prompt Reuse may, after default-off explicit enablement,
+  read only the newly completed latest assistant reply in the current supported
+  conversation, process it locally/ephemerally, retain no assistant reply body,
+  make no Provider/model request, and clear transient candidates on revoke. This
+  scope is governed by `PROMPT_REUSE_STAGE_3A.md`.
+- **B-04-3B DEFERRED:** broader reply history, durable reply evidence, external
+  model processing and model-generated new prompts remain unauthorized.
+
+B-01/B-02 continue to gate only their affected AI write semantics. The resolved
+B-04-3A scope authorizes CPV1-12.3A independently; it does not authorize Stage
+3B or unrelated reply-reading capabilities.
 
 ## CPV1-12.1 — Typed AI changeset contract
 
@@ -1174,19 +1179,67 @@ Stale changes reject rather than overwrite.
 
 ## CPV1-12.3 — Reply-aware prompt assistant
 
-Implement P3 on top of the already-stable VS-09 surface:
-- explicit enable/pause;
-- allowed current reply only per B-04;
-- recommendation appears as a transient capsule/strip separate from the stable
-  frequent/fixed prompt card;
-- it never reorders the stable list while open;
-- distinguish reused historical prompt versus generated suggestion;
-- preserve the existing draft under the same verified insertion contract as
-  CPV1-09.2;
-- click fills only;
-- user sends;
-- disabling/revoking reply access stops further reply reading and recommendation
-  generation without disabling Stage 1/2 local prompt reuse.
+Detailed Stage 3A authority:
+[PROMPT_REUSE_STAGE_3A.md](PROMPT_REUSE_STAGE_3A.md).
+
+Stage 3A is not a generic next-message predictor. It is a local
+Reply → Next Action Detector with DEFER as a first-class result.
+
+### CPV1-12.3A-1 — Authorization + current reply + direct loop
+
+Implement first:
+- default-off explicit Stage 3A enable/pause/revoke;
+- current tab/conversation/new-generation/final-reply identity;
+- completion verification that does not equate a streaming pause with completion;
+- DIRECT_REPLY;
+- CHOICE;
+- DEFER;
+- transient capsule/strip separate from the stable prompt card;
+- ephemeral candidate identity/revalidation;
+- existing verified draft-preserving fill-only insertion.
+
+Required boundaries:
+- no historical-reply backlog when enabling/opening/reloading;
+- no assistant reply body persistence;
+- no Provider/model/network request caused by Stage 3A;
+- disable/revoke invalidates in-flight work and late results;
+- click fills only; user sends;
+- Stage 1/2 remains usable when Stage 3A is off or fails.
+
+This is the **unique next Prompt Reuse development task**.
+
+### CPV1-12.3A-2 — Personal Prompt Family match
+
+After 12.3A-1 is stable:
+- add a finite bilingual action/object vocabulary;
+- use current eligible Prompt Families only;
+- require action/object/constraint compatibility before ranking;
+- allow local lexical/synonym scoring only after hard relevance admission;
+- use manual/reuse/frequency signals only as tie-breaks among compatible
+  candidates;
+- DEFER on conflict, ambiguous deictic references or insufficient relevance;
+- no embedding/vector store or external model.
+
+### CPV1-12.3A-3 — Reliability, requested material, visual and real-site closure
+
+Complete:
+- conservative REQUEST_USER_MATERIAL notices without fabricated material;
+- regenerate/continue/edit/branch invalidation;
+- SPA/reload/worker/multi-tab/revoke races;
+- dark/compact/200%/keyboard/coarse-pointer/reduced-motion capsule states;
+- source/release production-path evaluation;
+- current real supported ChatGPT reply-completion → suggestion → fill-only
+  acceptance;
+- owner visual/product acceptance for the new capsule states.
+
+Stable frequent/fixed Prompt rows never reorder because a Stage 3A suggestion
+appears.
+
+### Stage 3B — not authorized
+
+Model-generated new prompts, external reply processing, broader conversation
+context and any paid/remote fallback require a separate B-04-3B owner decision.
+A Stage 3A DEFER must never automatically trigger Stage 3B.
 
 ## CPV1-12.4 — Privacy/security/adversarial tests
 

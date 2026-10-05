@@ -47,8 +47,24 @@ shadow root contains only the static orb/frame; it is not the privacy boundary.
 Every frame command is consent-, tab-, origin- and live-nonce-checked by the
 worker. The host sees only the selected text released through the provider-specific
 composer adapter. `promptSurfaceV1` stores only device-local bounded geometry and
-open preference, outside Backup. No reply access, Provider call, site storage,
-broader host grant or Stage 3 behavior. [Implementation receipt](docs/consumer-product-v1/implementation/prompt-reuse/SURFACE.md).
+open preference, outside Backup. Stage 1/2 has no reply access or Provider call.
+[Implementation receipt](docs/consumer-product-v1/implementation/prompt-reuse/SURFACE.md).
+
+Prompt Reuse Stage 3A is a separate, default-off authorization boundary governed
+by `docs/consumer-product-v1/PROMPT_REUSE_STAGE_3A.md`. A provider-specific
+CurrentReplyAdapter may expose one bounded, newly completed current assistant
+reply to a local ephemeral NextActionDetector. The full reply is not a durable
+entity and must not be added to Source, Working Input, Thought, Context, Backup,
+website storage or ordinary logs.
+
+Stage 3A transient candidates are bound to current document/conversation/reply
+revision and authorization generation. Direct-extracted candidates are not
+fabricated as Prompt Families. Prompt Family matching consumes only the existing
+eligible PromptReuseService projection through a disposable local view. The
+trusted worker revalidates the candidate before reusing the established
+provider-specific composer insertion execution. No Stage 3A path calls a
+Provider/model or weakens the existing no-send/read-back rules. Stage 3B broader
+or remote/model processing remains unauthorized.
 
 ## 1. Architectural goals
 
