@@ -107,6 +107,27 @@ async function selectWidePrimary(page,view){
  await page.setViewportSize({width:1440,height:1000});await settlePrimary(page,1440);await page.locator(`#primary-nav [data-view="${view}"]`).click();
 }
 
+const rootMenuSelector='#thought-root-source>.library-actions>summary,.topic-compact-row>.library-actions>summary';
+async function verifyRootMenuGlyphs(page){
+ const rows=await page.locator(rootMenuSelector).evaluateAll(nodes=>nodes.map(node=>{
+  const box=node.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(node);const glyph=range.getBoundingClientRect(),style=getComputedStyle(node),row=node.closest('.topic-compact-row')?.getBoundingClientRect();
+  return {label:node.getAttribute('aria-label'),text:node.textContent,font:style.fontFamily,size:style.fontSize,box:{left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:box.width,height:box.height},glyph:{left:glyph.left,right:glyph.right,top:glyph.top,bottom:glyph.bottom,width:glyph.width},rowRight:row?.right};
+ }));
+ assert.equal(rows.length,7,'six real Topic menus and the existing root menu remain');
+ for(const row of rows){assert.equal(row.text,'···');assert.ok(row.label);assert.ok(row.box.width>=44&&row.box.height>=44,'native menu retains its 44px target');assert.ok(row.glyph.left>=row.box.left-1&&row.glyph.right<=row.box.right+1,'all three visible dots fit the real trigger');if(row.rowRight)assert.ok(row.glyph.right<=row.rowRight+1,'Topic marker stays inside its row');}
+ return rows;
+}
+async function verifyRootMenus(page,variant){
+ for(const selector of ['#thought-root-source>.library-actions>summary','.topic-compact-row>.library-actions>summary']){
+  const trigger=page.locator(selector).first(),menu=trigger.locator('..');await trigger.focus();await page.keyboard.press('Enter');await eventually(()=>menu.evaluate(node=>node.open),'native Enter opens the same root menu');
+  assert.equal(await trigger.getAttribute('aria-expanded'),'true');const first=menu.locator('.library-action-list button').first();await page.keyboard.press('Tab');assert.equal(await first.evaluate(node=>document.activeElement===node),true,'Tab reaches the first real action');
+  const bounds=await first.boundingBox();assert.ok(bounds&&bounds.x>=0&&bounds.x+bounds.width<=320,'compact menu action stays within the viewport');
+  await page.screenshot({path:`${directory}/${variant}-root-menu-${selector.startsWith('#')?'root':'topic'}-320-open.png`,animations:'disabled'});
+  await page.keyboard.press('Escape');await eventually(()=>menu.evaluate(node=>!node.open));assert.equal(await trigger.evaluate(node=>document.activeElement===node),true,'Escape returns focus to the exact native trigger');
+  await trigger.click();await eventually(()=>menu.evaluate(node=>node.open),'pointer opens the same native menu');await trigger.click();await eventually(()=>menu.evaluate(node=>!node.open),'pointer closes the same native menu');
+ }
+}
+
 const capture=async(page)=>page.evaluate(()=>{
  const read=node=>{if(!node)return null;const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {text:node.textContent,x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,font:s.fontSize,lineHeight:s.lineHeight,color:s.color,background:s.backgroundColor};};
  const preview=document.body.dataset.desktopAppearancePreview,selectors={topic:'#thought-document',compose:'.thought-compose-workspace',organize:'.organize-scope-workspace',context:'#context-workspace-design-preview .context-presentation-workspace'},root=preview?document.querySelector(selectors[preview]):document.body.dataset.paiaSpace==='settings'?document.querySelector('#ux-settings-shell'):document.body.dataset.paiaSpace==='thoughts'?document.querySelector(document.body.dataset.paiaSurface==='reader'?'#thought-document':'#thought-panel'):document.querySelector('.workspace.context,.workspace.wide,.workspace');
@@ -192,6 +213,7 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
       assert.ok(Math.abs(actual.heading.x-rail-gutter)<=2,`${screen}/${width}: D6.2 left reading axis`);
       const expectedSize=width<768?24:screen==='compose'?26:28;assert.equal(parseFloat(actual.heading.font),expectedSize,`${screen}/${width}: D6.2 title size`);
       const font=await page.locator(screen==='root'?'#thought-root-heading h1':screen==='compose'?'.thought-compose-title':'#topic-heading h1').evaluate(node=>getComputedStyle(node).fontFamily);assert.match(font,/Georgia/,'D6.2 serif title role');
+      if(screen==='root'){rows.at(-1).rootMenuGlyphs=await verifyRootMenuGlyphs(page);await persist('PENDING');}
       if(screen==='compose'){
        assert.equal(await page.locator('.thought-compose-save').isDisabled(),true);assert.equal(await page.locator('.thought-compose-cancel').isDisabled(),true);assert.match(await page.locator('.thought-compose-preview-note').innerText(),/保存与返回尚未接通/);
        assert.equal(await page.locator('.thought-compose-workspace textarea').inputValue(),'我还没有确定结论。先把今天看到的变化留下来。');assert.equal(await page.locator('.thought-compose-topic select').isEnabled(),true);
@@ -199,6 +221,10 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
      }
     }
     if(screen==='root'){
+     await verifyRootMenus(page,variant);
+     await page.locator(rootMenuSelector).evaluateAll(nodes=>{globalThis.__rootMenuTextZoom=nodes.map(node=>({node,style:node.getAttribute('style')}));for(const node of nodes){const style=getComputedStyle(node),size=parseFloat(style.fontSize),lineHeight=parseFloat(style.lineHeight);node.style.fontSize=size*2+'px';node.style.lineHeight=lineHeight*2+'px';}});
+     try{await frame(page);rows.at(-1).rootMenuGlyphsText200=await verifyRootMenuGlyphs(page);await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`${directory}/${variant}-root-menu-glyphs-320-text200.png`,animations:'disabled'});await persist('PENDING');}
+     finally{await page.evaluate(()=>{for(const {node,style} of __rootMenuTextZoom){if(style===null)node.removeAttribute('style');else node.setAttribute('style',style);}delete globalThis.__rootMenuTextZoom;});await frame(page);}
      try{await page.locator('#thought-search').fill('职业方向');await eventually(()=>page.locator('#thought-list > .topic-index-row').count().then(n=>n===1),'same scoped search filters the actual root');assert.match(await page.locator('#thought-list > .topic-index-row').innerText(),/职业方向/);}
      finally{await page.locator('#thought-search').fill('');await eventually(()=>page.locator('#thought-list [data-topic-id]').count().then(n=>n===6),'clear restores the actual root');}
      await settlePrimary(page,320);await page.locator('#archive-compact-navigation > summary').click();await page.locator('#archive-compact-nav-items [data-view=thoughts]').click();await page.locator(`[data-topic-id="${seed.topicId}"]`).waitFor();await page.keyboard.press('Escape');await settlePrimary(page,320);
