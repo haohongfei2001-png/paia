@@ -14,7 +14,7 @@ export function topicPresentationFacts(overview,sort='desc'){
 export class TopicWorkspacePresentation {
  constructor(owner){
   this.owner=owner;this.topicId=owner.id;this.view=owner.view;this.root=document.getElementById('thought-document');this.moves=[];this.created=[];
-  const previous=readingOptions.get(owner);readingOptions.delete(owner);
+  const previous=readingOptions.get(owner),active=document.activeElement;readingOptions.delete(owner);
   const get=id=>document.getElementById(id),move=(node,target)=>{if(!node)return;this.moves.push({node,parent:node.parentNode,next:node.nextSibling});target.append(node);},make=(tag,name,text)=>{const node=element(tag,name,text);this.created.push(node);return node;};
   this.root.classList.add('dvn-topic-composition');const title=this.root.querySelector('.topic-title-row'),toolbar=get('topic-toolbar'),menu=get('topic-menu').querySelector('.library-action-list');
   move(toolbar.querySelector('.library-history-tools'),menu);
@@ -24,6 +24,9 @@ export class TopicWorkspacePresentation {
   this.options.open=previous?.topicId===this.topicId&&previous?.view===this.view&&previous.open===true;
   this.years=make('nav','dvn-topic-years');this.years.setAttribute('aria-label','年份');this.line.before(this.years);
   this.write=get('create-entry');this.writeLabel=this.write.textContent;this.write.textContent='写下想法';this.sync();
+  // A dialog may close before its read finishes, returning focus to a control
+  // that this same-view remount must move again. Preserve only that move loss.
+  if(previous?.topicId===this.topicId&&previous?.view===this.view&&active?.isConnected&&document.activeElement===document.body&&this.moves.some(({node})=>node===active||node.contains(active)))active.focus({preventScroll:true});
  }
  sync(){
   const owner=this.owner,page=owner.document,facts=topicPresentationFacts(owner.originalMode==='years'?owner.topicTimeline?.overview:page?.overview,owner.readingSort);this.caption.textContent=facts.caption;this.coverage.textContent=facts.coverage;

@@ -139,3 +139,25 @@ for(const presentation of [{revision:1},null])test(`D7 actual AI History keeps i
  }
  assert.equal(requests.length,2,'presentation adds no read, save, or authorization request');
 },{presentation}));
+
+for(const focus of ['returned-history','newer-before-read','newer-during-mount','disconnected'])test(`D7 actual AI History closed before its refresh preserves only valid focus: ${focus}`,()=>withTopicPresentation(async({owner,history,dialog,nodes})=>{
+ const requests=[];chrome.runtime.sendMessage=async message=>{requests.push(message);assert.deepEqual(message,{type:'GET_AI_PRESENTATION_REVISIONS',options:{topicId:'topic'}});return {ok:true,data:{items:[]}};};
+ let release,entered;const held=new Promise(resolve=>{release=resolve;}),started=new Promise(resolve=>{entered=resolve;});
+ owner.refresh=async()=>{entered();await held;owner.loadToken=Symbol('late history refresh');return owner.readRefresh();};
+ owner.enableDesktopPresentation().options.open=true;history.focus();const pending=owner.aiRevisions();await started;
+ assert.equal(dialog.open,true);assert.equal(dialog.invoker,history);assert.equal(owner.desktopPresentation,null);
+ await owner.requestCloseDialog();assert.equal(dialog.open,false);assert.equal(document.activeElement,history);assert.equal(history.parentElement.id,'header');
+ const newer=nodes.get('thought-search');if(focus==='newer-before-read')newer.focus();
+ const create=document.createElement;document.createElement=tag=>{const node=create(tag);if(tag==='nav'){if(focus==='newer-during-mount')newer.focus();if(focus==='disconnected')history.remove();}return node;};
+ release();await pending;
+ assert.equal(owner.desktopPresentation.options.open,true);assert.equal(history.isConnected,focus!=='disconnected');
+ assert.equal(document.activeElement,focus==='disconnected'?document.body:focus.startsWith('newer')?newer:history);assert.equal(requests.length,1);
+ if(focus==='returned-history')assert.deepEqual(history.focusOptions,{preventScroll:true});
+}));
+
+for(const identity of ['topic','view'])for(const timing of ['before-mount','during-mount'])test(`D7 remount does not restore moved focus for mismatched ${identity} ${timing}`,()=>withTopicPresentation(async({owner,history})=>{
+ owner.enableDesktopPresentation().options.open=true;history.focus();await owner.leaveEditors();assert.equal(document.activeElement,history);
+ const change=()=>{if(identity==='topic')owner.id='other';else owner.view='original';};
+ if(timing==='before-mount')change();else{const create=document.createElement;document.createElement=tag=>{const node=create(tag);if(tag==='nav')change();return node;};}
+ const active=owner.enableDesktopPresentation();assert.equal(active.options.open,false);assert.equal(history.isConnected,true);assert.equal(history.parentElement,active.options);assert.equal(document.activeElement,document.body);
+}));

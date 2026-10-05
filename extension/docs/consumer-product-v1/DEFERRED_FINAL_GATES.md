@@ -166,3 +166,21 @@ VS05 writer RELEASED. Next dependency-safe frontier VS06BatchA06.0–06.4 is REA
   Source/release production-overlay screenshots and automatic engineering checks
   are implementation evidence, not a substitute for human/real-site acceptance.
   These external gates do not block the owner-authorized engineering merges.
+
+
+### Prompt Reuse material v2 — final visual/current-live evidence
+
+- **State:** OWNER_VISUAL_ACCEPTANCE_PENDING / CURRENT_LIVE_VISUAL_EVIDENCE_PENDING.
+- **Scope:** the retained material candidate integrated by PR171 on 2026-10-05;
+  this does not reopen the already closed Stage1/2 functional/manual acceptance.
+- **Actual evidence:** real production source/release extension in synthetic
+  ChatGPT-layout fixtures, eight primary states and fourteen supplemental pairs;
+  private owner comparison pack and engineering/presentation review. Source/release
+  parity is build consistency, never final design or live-site acceptance.
+- **Known differences:** paler/lower-contrast light core, different highlight
+  position/shape and darker/more restrained dark material than original B.
+- **Still required for final material acceptance:** explicit owner visual
+  acceptance and current logged-in host evidence for any current-live claim.
+- **Non-blocked engineering:** the owner explicitly authorized this independent
+  ordinary-round merge after eligibility review and passing affected/light gates.
+  This does not resolve D7, PR164, broader provider, permission or data gates.
