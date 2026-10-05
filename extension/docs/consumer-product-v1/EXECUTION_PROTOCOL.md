@@ -1,3 +1,32 @@
+# Prompt Reuse Stage 3A authorization — 2026-10-05
+
+The owner explicitly approved
+[PROMPT_REUSE_STAGE_3A.md](PROMPT_REUSE_STAGE_3A.md) and resolved B-04-3A only
+for the bounded local/ephemeral current-reply scope described there.
+
+This authorization is independent from the ongoing D7 visual line and does not
+reopen Prompt Reuse Stage 1/2, which remains FINAL_CLOSED / MAINTENANCE_ONLY.
+
+Authorized runtime sequence:
+- CPV1-12.3A-1 — explicit enable/revoke, current-final-reply lifecycle,
+  DIRECT_REPLY / CHOICE / DEFER, transient capsule and verified fill-only
+  insertion;
+- CPV1-12.3A-2 — bounded personal Prompt Family matching after 12.3A-1 is stable;
+- CPV1-12.3A-3 — requested-material notice, lifecycle/reliability, capsule visual
+  convergence and current-live acceptance.
+
+Boundaries:
+- Stage 3A is OFF by default;
+- no durable assistant-reply body;
+- no Provider/model/network request caused by Stage 3A;
+- no Stage 3B remote/model fallback;
+- no schema, D7, Prompt Reuse Stage 1/2 or broader permission change is implied;
+- one Prompt Reuse Stage 3A writer may operate in parallel with D7 only when the
+  responsibility/file boundary is disjoint and fresh main is reconciled before
+  integration.
+
+Stage 3B remains `NOT_AUTHORIZED / B-04-3B OWNER_DECISION_DEFERRED`.
+
 # Execution Protocol — PAIA Consumer Product v1
 
 ## D6.2 visual approval and D7 implementation authorization — 2026-10-04
