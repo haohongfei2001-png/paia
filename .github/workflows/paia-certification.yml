@@ -180,6 +180,20 @@ jobs:
           path: extension/work
           if-no-files-found: warn
           retention-days: 14
+      - name: Upload focused synthetic text-size evidence
+        if: always() && matrix.index == 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: current-text-size-evidence-${{ github.sha }}
+          path: |
+            extension/work/qa-dvn-topic-content/d7/source.json
+            extension/work/qa-dvn-topic-content/d7/release.json
+            extension/work/qa-dvn-topic-content/d7/*-header-*.png
+            extension/work/qa-dvn-topic-content/d7/*-1440-light-top-production.png
+            extension/work/qa-dvn-topic-content/d7/*-768-light-top-production.png
+            extension/work/qa-dvn-topic-content/d7/*-320-light-top-production.png
+          if-no-files-found: warn
+          retention-days: 14
 
   full_suite:
     name: Full Suite Certification

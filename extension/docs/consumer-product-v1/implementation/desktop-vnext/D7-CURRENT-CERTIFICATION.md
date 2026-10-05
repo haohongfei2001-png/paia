@@ -1,6 +1,6 @@
 # D7 current certification scope synchronization
 
-Base: `80f3201d8138f37d3d02658663d25a0b46874125`. Two bounded presentation repairs accompany the test synchronization: restore the existing Topic presenter on AI reopen, and preserve the existing 44px compact action target against a more-specific desktop rule.
+Base: `80f3201d8138f37d3d02658663d25a0b46874125`. Three bounded presentation repairs accompany the test synchronization: restore the existing Topic presenter on AI reopen, preserve the existing 44px compact action target against a more-specific desktop rule, and use equivalent unitless Topic title line heights so text enlargement scales their line boxes.
 
 The full browser suite still contained pre-D7 navigation, D5 green/centered-layout
 expectations, and primary Context/Write/Organize flows withdrawn or held by the
@@ -93,6 +93,6 @@ Certification gate, not those old candidate markers.
 Independent source review and owning unit/static checks precede publication.
 Corrected native source/release results, exact head, merge tree and main checks
 are recorded in PR170 after the run; this document does not predeclare them PASS.
-This change repairs the current evidence boundary and the two presentation gaps.
+This change repairs the current evidence boundary and the three presentation gaps.
 It does not merge PR164,
 ship the pending icon work, update an installed extension or publish a product.

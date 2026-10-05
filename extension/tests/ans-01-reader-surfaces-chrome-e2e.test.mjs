@@ -133,6 +133,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
       }
     }
     await p.setViewportSize({width:1024,height:768});
+    await eventually(()=>p.locator('#input-time-order').evaluate(node=>node.parentElement?.id==='reader-heading-actions'&&!node.hidden),'Reader order control reaches its real wide layout owner after the compact matrix');
     const cdp=await h.context.newCDPSession(p);await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
     assert.equal(await p.locator('#input-time-toggle').isVisible(),true,'order control remains reachable at 200% zoom');
     await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});

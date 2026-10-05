@@ -2,7 +2,7 @@
 #thought-document.dvn-topic-composition{width:100%;max-width:936px;margin:0}
 #thought-document.dvn-topic-composition .topic-title-row{display:block;margin:0}
 #thought-document.dvn-topic-composition #topic-heading{min-width:0}
-#thought-document.dvn-topic-composition #topic-heading h1{margin:0;min-height:38px;font:500 28px/38px var(--title-font);font-synthesis:weight;overflow-wrap:anywhere}
+#thought-document.dvn-topic-composition #topic-heading h1{margin:0;min-height:38px;font:500 28px/1.357142857 var(--title-font);font-synthesis:weight;overflow-wrap:anywhere}
 #thought-document.dvn-topic-composition #topic-heading>p:not(:empty){margin:8px 0;color:var(--muted);font-size:13px;line-height:1.6}
 #thought-document.dvn-topic-composition .dvn-topic-caption{margin:4px 0 0;color:var(--muted);font:12px/20px var(--font)}
 #thought-document.dvn-topic-composition .dvn-topic-action-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:20px 0 28px;border-bottom:1px solid var(--line)}
@@ -50,7 +50,7 @@
 #thought-document.dvn-topic-composition :is(button,summary):focus-visible{outline:2px solid var(--focus);outline-offset:3px}
 @media(max-width:1023px){#thought-document.dvn-topic-composition #topic-heading{max-width:none}}
 @media(max-width:767px){
- #thought-document.dvn-topic-composition #topic-heading h1{font-size:24px;line-height:35px}
+ #thought-document.dvn-topic-composition #topic-heading h1{font-size:24px;line-height:1.458333333}
  #thought-document.dvn-topic-composition .dvn-topic-action-row{gap:8px}
  #thought-document.dvn-topic-composition #topic-original-tabs{flex-basis:100%}
  #thought-document.dvn-topic-composition #topic-toolbar #create-entry,#thought-document.dvn-topic-composition .ai-toggle-label{padding-inline:12px}
