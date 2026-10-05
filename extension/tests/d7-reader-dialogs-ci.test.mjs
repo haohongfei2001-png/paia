@@ -45,3 +45,13 @@ test('Original complete owner enters its real phone disclosure without bypassing
  const helper=owner.slice(owner.indexOf('async function openCompactDocumentMenu'),owner.indexOf('const releaseRoot='));assert.doesNotMatch(helper,/setViewportSize|force:true|\.evaluate\([^;]*click\(/);
  for(const value of ['fixture(123,extensionPath)','messages.map(m=>m.text).join',"[1440,1024,768,390,320]",'bounds.height<=752',"name:'查看修改历史'",'globalThis.__copiedOriginal[1]',"assert.equal(await p.locator('dialog[open]').count(),1)"])assert.ok(owner.includes(value),value);
 });
+
+test('A11/A12 require both complete native owner files in the unchanged candidate budget',()=>{
+ const candidate=read('../../.github/workflows/paia-candidate.yml'),job=candidate.slice(candidate.indexOf('  targeted_browser:'),candidate.indexOf('  shell_cutover:'));
+ assert.match(job,/timeout-minutes: 12/);assert.match(job.split('    steps:')[0],/PAIA_D7_CONFIRMATION_UI/);
+ const step=job.slice(job.indexOf('      - name: D7 removal and blocked-purge'),job.indexOf('      - name: Retain D7 confirmation'));
+ assert.match(step,/tests\/cpv1-02-dvn-removal-chrome-e2e\.test\.mjs tests\/cpv1-02-dvn-purge-chrome-e2e\.test\.mjs/);assert.doesNotMatch(step,/test-name-pattern|test-skip-pattern|continue-on-error/);
+ for(const value of ['report.total,16','report.pass,16','report.fail,0','report.skipped,0','head:process.env.PAIA_TESTED_HEAD'])assert.ok(step.includes(value),value);
+ assert.match(candidate,/TOPIC_SELECTED:.*PAIA_D7_CONFIRMATION_UI/);assert.ok(candidate.includes('if [ "$TOPIC_SELECTED" = true ]; then test "$TARGETED_BROWSER" = success;'));
+ assert.match(job,/if: always\(\) && contains\(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI'\)/);
+});

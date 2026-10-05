@@ -5,10 +5,14 @@ import {captureReaderSelection,readerToolbarPosition,sameReaderSelection} from '
 import {safeOffset} from '../core/reader-state.js';
 export const readerCopy=(zh,en)=>document.documentElement.lang==='en'?en:zh;
 const $=id=>document.getElementById(id);
-export function confirmReaderAction({title,text,confirm='确认',danger=false,content=null,target=null,invoker=null}){
+export function confirmReaderAction({title,text,confirm='确认',danger=false,content=null,target=null,invoker=null,presentation=null}){
  const prior=invoker||document.activeElement,dialog=element('dialog','reader-confirm'),heading=element('h2','',title),body=element('p','',text),cancel=element('button','',readerCopy('取消','Cancel')),ok=element('button',danger?'danger':'primary',confirm);
  if(target)dialog.dataset.removalTarget=JSON.stringify(target);
- heading.id='reader-confirm-title';dialog.setAttribute('aria-labelledby',heading.id);cancel.autofocus=true;dialog.append(heading,body);if(content)dialog.append(content);dialog.append(cancel,ok);document.body.append(dialog);
+ heading.id='reader-confirm-title';dialog.setAttribute('aria-labelledby',heading.id);cancel.autofocus=true;
+ if(target||presentation==='purge-blocked'){
+  dialog.dataset.confirmSurface=target?'removal':'purge-blocked';const copy=element('div','reader-confirm-content'),actions=element('div','reader-confirm-actions');copy.append(body);if(content)copy.append(content);actions.append(cancel,ok);dialog.append(heading,copy,actions);
+ }else{dialog.append(heading,body);if(content)dialog.append(content);dialog.append(cancel,ok);}
+ document.body.append(dialog);
  return new Promise(resolve=>{let accepted=false;cancel.onclick=()=>dialog.close();ok.onclick=()=>{accepted=true;dialog.close();};dialog.addEventListener('close',()=>{dialog.remove();prior?.isConnected&&prior.focus({preventScroll:true});resolve(accepted);},{once:true});dialog.showModal();cancel.focus();});
 }
 function offsetAt(el){
