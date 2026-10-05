@@ -4,6 +4,54 @@ State: ENGINEERING_VERIFYING / INTEGRATION_PENDING. Current-live ChatGPT evidenc
 Stage 1/2 FINAL_CLOSED and its accepted V01–V08 visuals remain unchanged.
 This batch does not start 12.3A-2, 3A-3 certification or Stage 3B.
 
+## Current integration dependency — 2026-10-05 12:50 UTC
+
+The reconciled head `a056e9c48a7dfaf7931ce52875737c61cb2b17d8` passed
+[Foundation 37309848854](https://github.com/haohongfei2001-png/paia/actions/runs/37309848854)
+and [Visual 37309848798](https://github.com/haohongfei2001-png/paia/actions/runs/37309848798).
+The tested PR merge `594ebc6858c9787025094c3494fceb24952e3342` has the exact
+candidate tree `4e41f8a90faac97edf32350061a06f70610df49f`, verified locally.
+Stage3 source/release is 18/18, Stage1/2 is 90/90, complete unit is 1,956,
+adapter is 102, privacy is 59, source guards are 11,677/301 resources, release
+guards are 11,242/294 resources and product guard is 318 files: all PASS.
+Artifact `11345294128`, SHA256
+`d34ce10f719da554345a5b4a1a1135ef45a106efec929b24b00580ef9e04cda9`, was
+downloaded, its source/release body-free receipts verified, and desktop
+conditional/compact dark actual screenshots inspected. Both variants retain
+eight successful journeys and explicit current-live PENDING. Independent
+exact-head security/scope review passes.
+
+[Full 37309848738](https://github.com/haohongfei2001-png/paia/actions/runs/37309848738)
+is terminal FAIL. Unit 1,956, adapter/privacy, release and both hosted Mac gates
+pass. Browser4 finishes 31 PASS/14 FAIL of45; Browser5 finishes 16 PASS/10 FAIL
+of26. Browser1/2/3/6 reach the unchanged eighteen-minute job limit with
+25/8/10/23 observed failed entries respectively. The combined90 is observed
+failures, not a completed full-suite denominator. Stage3 source and release
+also PASS in Browser3. Both required aggregate gates fail.
+
+Independent read-only diagnosis reconfirms Browser5's ten inherited failures:
+slot3-versus1, hidden compact document menu, old Selection palette, and Content/
+Years header0-versus18px. The seventeen checked Desktop runtime/test/helper
+paths are byte-identical to base main `bb52a1cc`; Stage3 has no Archive/Thought
+content-script or stylesheet dependency. Other failing Desktop journeys remain
+for their owner's classification, and later unreached assertions are unproven.
+
+While that run finished, main advanced through PR169 to
+`80f3201d8138f37d3d02658663d25a0b46874125`. The new popup branding and styles
+are retained with the existing recommendation authorization section. The only
+new merge conflict is the leading STATUS additions; both owners' complete
+entries are preserved. Stage3's authorization, detector, lifecycle and insertion
+runtime are unchanged. The other D7 changes are adopted byte-for-byte, without
+rewriting any D7 implementation or test contract. Local post-merge 148 owning/
+integration cases, coverage contract and source/release package checks PASS.
+Fresh hosted recommendation/source-release verification is PENDING.
+
+The current scope stops at this integration dependency. PR164 stays unmerged;
+full certification is still required after the D7 owner resolves its failures.
+Draft candidate verification may proceed for the new popup integration using
+the existing CI routes, without repeatedly rerunning known Desktop failures or
+changing their assertions, budgets or required gates. No Stage3A-2 follows.
+
 ## Main reconciliation — 2026-10-05 12:25 UTC
 
 The owner confirmed that D7's original owner handles its pages, while this

@@ -4,6 +4,7 @@ import {isDeepStrictEqual} from 'node:util';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from '../tests/harness/fake-chatgpt.mjs';
+import {renderedTypography} from '../tests/harness/rendered-typography.mjs';
 
 const directory='work/desktop-appearance-preview';
 const thoughtScreens=new Set(['root','topic','years','compose']);
@@ -143,7 +144,13 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
  try{
   await persist('PENDING');await page.locator('#consent-check').check();await page.locator('#enable-consent').click();if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();
   await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',fontSize:'standard',readingWidth:'standard'}});
-  for(let i=0;i<3;i++)await h.open({id:'dvn-preview-context-'+i,title:titles[i],base:1609459200+i*86400,messages:[{id:'dvn-preview-input-'+i,text:sample[i]}]});
+  // Complete capture first, then close only these fixture pages. Their continuing
+  // scan diagnostics must not race the later strict presentation no-write proof.
+  for(let i=0;i<3;i++){
+   const capture=await h.open({id:'dvn-preview-context-'+i,title:titles[i],base:1609459200+i*86400,messages:[{id:'dvn-preview-input-'+i,text:sample[i]}]});
+   await eventually(async()=>(await h.state()).records.some(row=>row.sourceMessageId==='dvn-preview-input-'+i&&row.originalText===sample[i]),'exact synthetic fixture captured before closing its page');
+   await capture.close();
+  }
   await eventually(async()=>(await h.state()).records.length===3);const originals=structuredClone((await h.state()).records);await page.bringToFront();
   const seed=await page.evaluate(async sample=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),store=new OrganizerStore(chrome.storage.local),topic=await store.createTopic({name:'职业方向',operationId:crypto.randomUUID()}),evidence=[],ids=[];
@@ -213,7 +220,14 @@ for(const variant of ['source','release'])test(`Full Desktop appearance preview 
       assert.ok(Math.abs(actual.heading.x-rail-gutter)<=2,`${screen}/${width}: D6.2 left reading axis`);
       const expectedSize=width<768?24:screen==='compose'?26:28;assert.equal(parseFloat(actual.heading.font),expectedSize,`${screen}/${width}: D6.2 title size`);
       const font=await page.locator(screen==='root'?'#thought-root-heading h1':screen==='compose'?'.thought-compose-title':'#topic-heading h1').evaluate(node=>getComputedStyle(node).fontFamily);assert.match(font,/Georgia/,'D6.2 serif title role');
-      if(screen==='root'){rows.at(-1).rootMenuGlyphs=await verifyRootMenuGlyphs(page);await persist('PENDING');}
+      if(screen==='root'){
+       rows.at(-1).rootMenuGlyphs=await verifyRootMenuGlyphs(page);
+       rows.at(-1).typography=await renderedTypography(page,['#thought-root-heading h1','.topic-compact-row strong','.topic-compact-row .summary','.topic-compact-row small']);
+       const [,title,excerpt,meta]=rows.at(-1).typography;assert.equal(title.size,'23px');assert.equal(excerpt.size,'15px');assert.equal(excerpt.lineHeight,'23px');assert.equal(meta.size,'12px');assert.equal(meta.lineHeight,'20px');
+       for(const item of rows.at(-1).typography)assert.ok(item.fonts.some(font=>font.glyphCount>0),'actual Thought glyph-font evidence');
+       assert.equal(await page.locator('.topic-compact-row small').first().evaluate(node=>getComputedStyle(node).textAlign),width<768?'left':'right');
+       await persist('PENDING');
+      }
       if(screen==='compose'){
        assert.equal(await page.locator('.thought-compose-save').isDisabled(),true);assert.equal(await page.locator('.thought-compose-cancel').isDisabled(),true);assert.match(await page.locator('.thought-compose-preview-note').innerText(),/保存与返回尚未接通/);
        assert.equal(await page.locator('.thought-compose-workspace textarea').inputValue(),'我还没有确定结论。先把今天看到的变化留下来。');assert.equal(await page.locator('.thought-compose-topic select').isEnabled(),true);

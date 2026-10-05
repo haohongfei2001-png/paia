@@ -1,19 +1,32 @@
 # Prompt Reuse Stage 3A-1 — ENGINEERING_VERIFYING
 
 The sole Stage 3A writer implements CPV1-12.3A-1 and resumes integration against
-main `bb52a1cc` after the owner's 2026-10-05 scope clarification: D7 remains
+main `80f3201d` after the owner's 2026-10-05 scope clarification: D7 remains
 with its original owner; this writer connects and verifies only Prompt Reuse.
 [Candidate receipt](implementation/prompt-reuse/STAGE-3A-1.md) records the
 explicit session opt-in, prospective completion proof, finite local detector,
 private transient capsule and independently bound fill-only candidates.
-The prior exact-tree hosted source/release 3A-1 browser result is 18/18 PASS,
-with Stage 1/2 90/90, unit 1,948, adapter 102 and privacy 59 PASS. The broader
-full certification failed in unrelated Desktop journeys; its 86 observed failed
-entries and four timed-out browser jobs remain evidence, not a completed total.
-The main-reconciled candidate requires fresh exact-head CI before integration.
+The `a056e9c4` exact-tree hosted source/release 3A-1 result is 18/18 PASS,
+with Stage 1/2 90/90, unit 1,956, adapter 102 and privacy 59 PASS. Full run
+37309848738 failed in Desktop journeys, with 90 observed failed entries and four
+timed-out browser jobs; this is not a completed full-suite denominator.
+Main then merged PR169. The recommendation entry preserves its new popup design;
+fresh exact-head recommendation CI is pending. The required full gate remains a
+D7 dependency and must pass before merge; no repeated known-failing full run is
+used to claim progress.
 No D7 implementation or assertion is repaired by this writer.
 Current-live ChatGPT evidence remains PENDING, never inferred from fixtures.
 Stage 1/2 acceptance and D7 are preserved. No 12.3A-2 or Stage 3B is started.
+
+# D7 UI consistency — bounded implementation
+
+The [current UI batch](implementation/desktop-vnext/D7-UI-COHERENCE.md) follows
+owner feedback on popup, empty Thought, history import and main-page typography.
+It uses the existing D6.2 visual roles and real owners; saved reading preferences,
+data/consent boundaries and deferred functional redesign remain. Exact-head
+native screenshots and independent visual review are pending. This does not
+supersede the independent Prompt Reuse queue below.
+
 # D7 Input recovery conflict — local bounded candidate
 
 The [Input recovery presentation slice](implementation/desktop-vnext/D7-INPUT-RECOVERY-PRESENTATION.md)
