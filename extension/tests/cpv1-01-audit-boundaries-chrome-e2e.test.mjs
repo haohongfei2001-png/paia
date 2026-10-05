@@ -38,18 +38,29 @@ test('audit Reader search refreshes edited/removed content, drops stale replies,
  }finally{await h.close();}
 });
 
-test('audit Thought continuation after a dirty edit quotes the current body and records the matching revision',{timeout:90000},async()=>{
+test('audit legacy Thought continuation preserves fresh quote and revision while the ordinary compose entry stays held',{timeout:90000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});try{
   const p=await ready(h),topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'Synthetic continuation audit',operationId:op()}}),created=await rpc(p,'CONTINUE_THINKING',{thought:{body:'Original first-render Thought',topicId:topic.id,operationId:op()}});
   await p.locator('[data-view="thoughts"]').first().click();await p.locator(`[data-topic-id="${topic.id}"]`).click();const row=p.locator(`#topic-body [data-entry-id="${created.id}"]`),body=row.locator('[data-entry-field="body"]');await body.waitFor();
-  await body.fill('Freshly edited Thought used for this response');const menu=row.locator('.library-actions');await menu.locator('summary').click();await menu.getByRole('button',{name:'接着写',exact:true}).click();
+  await p.evaluate(async()=>{const {TopicActions}=await import(chrome.runtime.getURL('ui/topic-actions.js')),compose=TopicActions.prototype.compose,send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__auditContinueWrites=0;globalThis.__auditRestoreCompose=()=>{TopicActions.prototype.compose=compose;chrome.runtime.sendMessage=send;const owner=globalThis.__auditComposeOwner;if(owner&&Object.hasOwn(owner,'__auditPresentation')){owner.composePresentation=owner.__auditPresentation;delete owner.__auditPresentation;}};TopicActions.prototype.compose=function(options){globalThis.__auditComposeOwner=this;return compose.call(this,options);};chrome.runtime.sendMessage=message=>{if(message.type==='CONTINUE_THINKING')globalThis.__auditContinueWrites++;return send(message);};});
+  await body.fill('SYNTHETIC ordinary held continuation edit');const menu=row.locator('.library-actions');await menu.locator('summary').click();await menu.getByRole('button',{name:'接着写',exact:true}).click();
+  const preview=p.locator('#desktop-appearance-preview-workspace');await preview.locator('#thought-compose-workspace-title').waitFor();assert.equal(await preview.locator('.topic-selection-preview').textContent(),'SYNTHETIC ordinary held continuation edit');
+  assert.equal(await preview.locator('.thought-compose-save').isDisabled(),true);assert.equal(await preview.locator('.thought-compose-cancel').isDisabled(),true);assert.equal(await p.locator('.dvn-preview-back').isDisabled(),true);
+  const heldDraft=preview.getByLabel('今天的新想法',{exact:true});await heldDraft.fill('SYNTHETIC held ordinary compose draft');await heldDraft.press('Control+Enter');await preview.locator('.thought-compose-save').evaluate(button=>button.click());assert.equal(await p.evaluate(()=>__auditContinueWrites),0);assert.equal((await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc'}})).items.length,1);
+  // Explicit retained legacy-owner compatibility. Only this isolated test
+  // temporarily removes the presentation hook; normal entry above remains held.
+  await heldDraft.fill('');await p.locator('[data-view="thoughts"]').first().click();await body.waitFor();
+  await p.evaluate(()=>{__auditComposeOwner.__auditPresentation=__auditComposeOwner.composePresentation;__auditComposeOwner.composePresentation=null;});
+  const beforeLegacy=await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id});assert.equal(beforeLegacy.body,'SYNTHETIC ordinary held continuation edit');
+  await body.fill('Freshly edited Thought used for this response');await menu.locator('summary').click();await menu.getByRole('button',{name:'接着写',exact:true}).click();
   const dialog=p.locator('#topic-action-dialog');await dialog.waitFor({state:'visible'});assert.equal(await dialog.locator('.topic-selection-preview').textContent(),'Freshly edited Thought used for this response');
-  const current=await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id});assert.equal(current.body,'Freshly edited Thought used for this response');
+  const current=await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id});assert.equal(current.body,'Freshly edited Thought used for this response');assert.ok(current.revision>beforeLegacy.revision,'legacy continuation flushes a distinct dirty edit to a newer revision');
   await dialog.getByLabel('今天的新想法',{exact:true}).fill('Independent follow-on thought');await dialog.getByLabel('记录与这条内容的回应关系',{exact:true}).check();await dialog.getByRole('button',{name:'保存想法',exact:true}).click();await eventually(()=>dialog.isVisible().then(value=>!value),'response saves with current relation');
   const page=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc'}}),response=page.items.find(item=>item.entry.id!==created.id);assert.ok(response);assert.equal(response.entry.body,'Independent follow-on thought');
   const relation=(await rpc(p,'COMPARE_THOUGHT_INPUT',{id:response.entry.id})).relations[0];assert.equal(relation.body,current.body);assert.equal(relation.state,'current');
-  await record(h,'thought-continuation',['dirty-edit-flushed','fresh-quote','matching-relation','independent-response-saved']);
- }finally{await h.close();}
+  assert.equal(await p.evaluate(()=>__auditContinueWrites),1);
+  await record(h,'thought-continuation',['ordinary-compose-held','legacy-owner-compatibility','dirty-edit-flushed','fresh-quote','matching-relation','independent-response-saved']);
+ }finally{try{await h.archive.evaluate(()=>globalThis.__auditRestoreCompose?.());}finally{await h.close();}}
 });
 
 test('audit Source export serializes repeated clicks, reports a read failure and retries without changing format',{timeout:90000},async()=>{

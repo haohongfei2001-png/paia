@@ -1,3 +1,39 @@
+# Prompt Reuse Stage 3A privacy authorization — 2026-10-05
+
+This section records the current owner-approved B-04-3A boundary and supersedes
+older general "no assistant reply reading" statements **only for this exact
+Stage 3A capability**. It does not grant other PAIA features access to assistant
+reply bodies.
+
+Stage 3A is OFF by default. After explicit enablement, PAIA may locally and
+ephemerally analyze only the newly completed latest assistant reply in the
+current supported conversation for Reply → Next Action detection.
+
+The assistant reply:
+- is not added to Source, Input Archive, Thought Library or AI Context;
+- is not persisted as a durable body, Backup row, website storage value or
+  ordinary log;
+- is not sent to DeepSeek, OpenAI or another Provider/model for Stage 3A;
+- is released after bounded local analysis except for the short transient
+  candidate/evidence needed while that same reply remains current.
+
+Disable/revoke stops new reply reads, cancels/invalidates in-flight analysis and
+clears transient candidates. Late results may not revive them. Stage 1/2 Prompt
+Reuse remains usable.
+
+If the user later sends text inserted from a suggestion, the existing
+user-authored sent-input capture path may admit that sent message under its normal
+rules. That does not authorize retention of the assistant reply that led to the
+suggestion.
+
+Broader reply history, durable reply evidence and external/model-generated next
+prompts remain B-04-3B `NOT_AUTHORIZED / OWNER_DECISION_DEFERRED`.
+
+Detailed contract:
+[docs/consumer-product-v1/PROMPT_REUSE_STAGE_3A.md](docs/consumer-product-v1/PROMPT_REUSE_STAGE_3A.md).
+
+---
+
 ## Bounded capture recovery — 2026-09-30
 
 The owner approved `scripting` plus exact `https://chatgpt.com/*` host access solely to replace stale capture scripts in already-open ChatGPT documents. No broad tab/history, other host, new provider, external network call, telemetry or content category is added. Recovery is metadata-only until a fresh trusted consent/epoch check; Source identity, tombstones, exclusions, unsent-draft and assistant-content boundaries are unchanged. It never reloads a ChatGPT page or handles the user's input field. See [scope and verification](docs/capture-recovery-20260930.md). Earlier permission statements below describe their historical releases.

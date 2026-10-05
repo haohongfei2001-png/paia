@@ -61,12 +61,23 @@ A ledger entry is never PASS. It may be removed only after the required evidence
 - **Non-blocked work:** mobile client architecture, MyWrite local-first path, mobile layouts, interruption state machine, explicit record/review/save flow, transcription interface and local/synthetic adapters.
 - **Safe interim:** no background listening and no new remote transcription processor without owner approval.
 
-### DFG-CPV1-008 — B-04 AI reply access/retention semantics
+### DFG-CPV1-008 — B-04-3B broader/model reply processing
 
-- **State:** OWNER_DECISION_DEFERRED.
-- **Blocks only:** VS-12 reply-aware prompt assistant behavior that reads/retains/processes AI replies and the corresponding real acceptance.
-- **Non-blocked work:** typed AI write proposals, review/commit path, permission enforcement, adversarial tests unrelated to reply retention, and all earlier product work.
-- **Safe interim:** reply-aware reading remains disabled; prompt reuse phases 1–2 remain independent.
+- **State:** `B-04-3A RESOLVED / B-04-3B OWNER_DECISION_DEFERRED`.
+- **Resolved scope:** on 2026-10-05 the owner approved Prompt Reuse Stage 3A only:
+  default-off explicit enablement; newly completed latest assistant reply in the
+  current supported conversation; local ephemeral analysis; no durable assistant
+  reply body; no Archive/Thought/Context/Source/Backup/log retention; zero
+  Provider/model request; revoke stops reading and invalidates transient
+  candidates. See `PROMPT_REUSE_STAGE_3A.md`.
+- **Blocks only:** Stage 3B broader conversation/reply scope, durable reply
+  evidence/retention, external/model processing, model-generated new prompts and
+  use of assistant-reply access outside the approved Stage 3A purpose.
+- **Non-blocked work:** CPV1-12.3A-1 through 12.3A-3, typed AI write proposals,
+  review/commit work and all earlier product work that stays within its own
+  authorization.
+- **Safe interim:** a Stage 3A DEFER is final for the local attempt; it must not
+  trigger a hidden remote/model fallback.
 
 ### DFG-CPV1-009 — Independent live generated-output meaning review
 

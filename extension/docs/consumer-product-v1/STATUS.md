@@ -9,6 +9,34 @@ pass; the full local unit run retains one unchanged 10k performance-threshold
 failure. Hosted exact-head source/release native and visual evidence is pending.
 This is not full S02 or D7 completion. Earlier S02 gap statements remain history.
 
+# Prompt Reuse Stage 3A — OWNER_APPROVED / READY_FOR_IMPLEMENTATION
+
+**`B-04-3A = RESOLVED / OWNER_APPROVED` for local ephemeral current-reply analysis.**
+**`STAGE_3A = OWNER_APPROVED / READY_FOR_IMPLEMENTATION`.**
+**`STAGE_3B = NOT_AUTHORIZED / OWNER_DECISION_DEFERRED`.**
+
+On **2026-10-05** the owner approved the bounded
+[Stage 3A canonical contract](PROMPT_REUSE_STAGE_3A.md). Stage 3A is OFF by
+default and, after explicit enablement, may read only the newly completed latest
+assistant reply in the current supported conversation for local ephemeral
+analysis. The reply is not added to Archive, Thought, Context, Source, Backup,
+website storage or ordinary logs, and Stage 3A makes no Provider/model request.
+
+The first implementation deliberately prioritizes `DIRECT_REPLY`, `CHOICE`
+and `DEFER`. Prompt Family matching follows as CPV1-12.3A-2; requested-material
+handling stays conservative; remote/model-generated new prompts remain Stage 3B
+and are not authorized.
+
+Stage 1/2 remains `FINAL_CLOSED / MAINTENANCE_ONLY`; this decision does not
+reopen its accepted orb/card, Prompt Family or insertion behavior.
+
+**Unique next Prompt Reuse development task: CPV1-12.3A-1 — explicit Stage 3A
+authorization + current-final-reply lifecycle + DIRECT_REPLY/CHOICE/DEFER +
+transient capsule + verified fill-only insertion.**
+
+This is a docs-only owner decision and design freeze. No Stage 3A runtime code is
+implemented by this entry.
+
 # Prompt Reuse Stage 1/2 — FINAL_CLOSED / MAINTENANCE_ONLY
 
 **`REAL_CHATGPT_FINAL_CERTIFICATION = PASS`.**

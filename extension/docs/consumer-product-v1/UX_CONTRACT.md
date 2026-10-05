@@ -508,10 +508,43 @@ surface rather than introducing a second prompt product.
 
 ### P3 — Reply-aware prompt suggestions
 
-Only after B-04. Explicit enable/pause. A next-prompt suggestion is a separate
-transient capsule/strip attached to the Prompt Reuse surface; it never reshuffles
-the stable prompt card. Suggestions distinguish reused historical prompt from a
-generated suggestion. Clicking fills the composer only; the user sends.
+Stage 3A follows the owner-approved
+[PROMPT_REUSE_STAGE_3A.md](PROMPT_REUSE_STAGE_3A.md) contract.
+
+It is OFF by default and has an explicit enable/pause control independent from
+ordinary capture pause. After the newly completed latest assistant reply is
+verified, PAIA may show one transient capsule/strip attached to the existing
+Prompt Reuse surface. It never becomes a normal prompt row and never reshuffles
+the stable prompt card.
+
+Stage 3A presentation rules:
+- the orb remains the stable entry and keeps its saved position;
+- the suggestion capsule is a separate nearby target with at least a 44 px
+  effective interaction height;
+- normal suggestion width is bounded by the existing Prompt Reuse surface;
+- conditions such as "登录后" / "when ready" are visible and are not hidden in
+  tooltip-only copy;
+- explicit choices are peers; PAIA does not preselect the affirmative option;
+- a request for user material may show what is needed without pretending the
+  material has been supplied;
+- direct-reply, personal-Family and material-needed origins are distinguishable
+  through restrained secondary affordance/accessible naming, not a permanent
+  "AI recommendation" badge or confidence score;
+- automatic display initially targets about 12 seconds, pauses while hover/focus
+  is inside the suggestion, and explicit dismiss suppresses that reply's
+  automatic suggestion;
+- while the same reply remains current, a low-frequency "本轮建议" action keeps
+  the suggestion accessible after automatic retraction;
+- active typing/IME, Prompt edit, surface drag or in-flight Prompt actions prevent
+  the suggestion from stealing focus or appearing under the active pointer;
+- if safe placement cannot be found promptly, skip automatic display rather than
+  move the user's orb or cover host composer controls.
+
+Clicking an insertable suggestion revalidates authorization and current-reply
+identity, then uses the existing verified composer insertion contract. It
+preserves the draft/selection/IME behavior, fills only and never sends.
+
+Stage 3B model-generated new prompts remain not authorized.
 
 ## 10. Motion, accessibility and performance
 
