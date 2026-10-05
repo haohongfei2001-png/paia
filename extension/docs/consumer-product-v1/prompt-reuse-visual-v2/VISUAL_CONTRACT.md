@@ -14,13 +14,18 @@ The broad highlight is a 3 px blurred radial wash over the full inset surface;
 a 4 px blurred inner haze has no hard-edged core. Backdrop blur is 9 px with
 saturation .92. Background content contributes to the final material.
 
-Light optical layers use maximum alpha .40 / .30 / .24 / .22, with base white
-.32 to cool .15. The one edge is rgba(130,147,171,.16); diffuse inner light is
-rgba(255,255,255,.38). Shadow: 0 8px 22px -4px rgba(82,98,127,.14).
-Hover/focus gently increases rim/shadow only. The existing visible 2 px keyboard
-focus indicator stays. No scaling, placement or interaction behavior changes.
-Dark uses the same geometry and lower white energy, a neutral translucent base,
-and a low-density dark shadow; it must not become a self-lit white bead.
+Light optical layers have broad pale-blue .60/.48 and lavender .45/.30
+centers, fading to full transparency; restrained mint peaks at .44. These are
+blended optical washes, not an opaque base. Base white is .24 to cool .08.
+The border is transparent: a 6 px diffuse inner white wash (.48) defines the
+soft rim without a hard outline. Shadow: 0 8px 22px -4px rgba(82,98,127,.14).
+The highlight maximum is .44, blurred at 3 px; interior haze is .15 at 4 px.
+Hover/focus gently increases diffuse rim/shadow only. The existing visible 2 px
+keyboard focus indicator stays. No scaling, placement or interaction changes.
+Dark uses the same blended hues with .54/.42 blue and .44/.26 lavender, .38
+mint, a .10/.04 neutral base and .28 diffuse inner light. It must retain optical
+color instead of becoming a gray bead. Dark hover has its own gentle material
+response while preserving the keyboard focus outline.
 
 ## Capsule
 

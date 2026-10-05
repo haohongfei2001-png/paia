@@ -37,13 +37,13 @@
   const style=document.createElement('style');style.textContent=`
 :host{color-scheme:light}:host([data-theme=dark]){color-scheme:dark}
 button{position:relative;z-index:1;box-sizing:border-box;width:44px;height:44px;padding:2px;border:0;background:transparent;touch-action:none;cursor:grab}
-.orb{position:relative;display:block;box-sizing:border-box;width:40px;height:40px;overflow:hidden;border:1px solid #8293ab29;border-radius:50%;background:radial-gradient(ellipse at 32% 30%,#f7fbff66 0%,#eef5fb00 68%),radial-gradient(ellipse at 30% 62%,#aac9e84d 0%,#aac9e800 64%),radial-gradient(ellipse at 60% 66%,#c3b9e33d 0%,#c3b9e300 66%),radial-gradient(ellipse at 80% 48%,#c3e0d638 0%,#c3e0d600 65%),linear-gradient(140deg,#ffffff52,#edf3fb26);box-shadow:0 8px 22px -4px #52627f24,inset 0 0 7px 1px #ffffff61;backdrop-filter:blur(9px) saturate(.92)}
-.orb:before{content:'';position:absolute;inset:1px;border-radius:inherit;background:radial-gradient(ellipse at 27% 23%,#ffffff94 0%,#ffffff30 32%,#ffffff00 66%);filter:blur(3px);pointer-events:none}
-.orb:after{content:'';position:absolute;inset:5px;border-radius:inherit;background:radial-gradient(ellipse at 48% 53%,#eff4ff38 0%,#eff4ff00 72%);filter:blur(4px);pointer-events:none}
-button:hover .orb,button:focus-visible .orb{border-color:#8293ab3d;box-shadow:0 8px 24px -4px #52627f2e,inset 0 0 7px 1px #ffffff70}
-:host([data-theme=dark]) .orb{border-color:#dce8f238;background:radial-gradient(ellipse at 32% 30%,#e5f0ff42 0%,#e5f0ff00 68%),radial-gradient(ellipse at 30% 62%,#aac9e852 0%,#aac9e800 64%),radial-gradient(ellipse at 60% 66%,#c3b9e342 0%,#c3b9e300 66%),radial-gradient(ellipse at 80% 48%,#c3e0d633 0%,#c3e0d600 65%),linear-gradient(140deg,#e8f0fa2e,#d8e5f014);box-shadow:0 8px 24px -4px #00000038,inset 0 0 7px 1px #f1f6ff38}
-:host([data-theme=dark]) .orb:before{opacity:.65}
-:host([data-theme=dark]) button:hover .orb,:host([data-theme=dark]) button:focus-visible .orb{border-color:#dce8f247;box-shadow:0 8px 26px -4px #00000042,inset 0 0 7px 1px #f1f6ff47}
+.orb{position:relative;display:block;box-sizing:border-box;width:40px;height:40px;overflow:hidden;border:1px solid transparent;border-radius:50%;background:radial-gradient(ellipse 72% 72% at 34% 56%,#a6c2e699 0%,#a6c2e67a 24%,#a6c2e600 78%),radial-gradient(ellipse 68% 68% at 52% 68%,#b9add573 0%,#b9add54d 18%,#b9add500 76%),radial-gradient(ellipse 62% 70% at 78% 44%,#b7d8cb70 0%,#b7d8cb00 78%),linear-gradient(140deg,#ffffff3d,#edf3fb14);box-shadow:0 8px 22px -4px #52627f24,inset 0 0 6px 1px #ffffff7a;backdrop-filter:blur(9px) saturate(.92)}
+.orb:before{content:'';position:absolute;inset:1px;border-radius:inherit;background:radial-gradient(ellipse at 27% 23%,#ffffff70 0%,#ffffff1f 32%,#ffffff00 66%);filter:blur(3px);pointer-events:none}
+.orb:after{content:'';position:absolute;inset:5px;border-radius:inherit;background:radial-gradient(ellipse at 48% 53%,#eff4ff26 0%,#eff4ff00 72%);filter:blur(4px);pointer-events:none}
+button:hover .orb,button:focus-visible .orb{box-shadow:0 8px 24px -4px #52627f2e,inset 0 0 6px 1px #ffffff8a}
+:host([data-theme=dark]) .orb{background:radial-gradient(ellipse 72% 72% at 34% 56%,#a6c2e68a 0%,#a6c2e66b 24%,#a6c2e600 78%),radial-gradient(ellipse 68% 68% at 52% 68%,#b9add570 0%,#b9add542 18%,#b9add500 76%),radial-gradient(ellipse 62% 70% at 78% 44%,#b7d8cb61 0%,#b7d8cb00 78%),linear-gradient(140deg,#e8f0fa1a,#d8e5f00a);box-shadow:0 8px 24px -4px #00000038,inset 0 0 6px 1px #f1f6ff47}
+:host([data-theme=dark]) .orb:before{opacity:.55}
+:host([data-theme=dark]) button:hover .orb,:host([data-theme=dark]) button:focus-visible .orb{box-shadow:0 8px 26px -4px #00000042,inset 0 0 6px 1px #f1f6ff57}
 button:focus-visible{outline:2px solid #5e8ee8;outline-offset:3px;border-radius:50%}
 iframe{border:1px solid #ffffff75;border-radius:20px;background:linear-gradient(136deg,#ffffffb8 0%,#f5f8ff9e 52%,#eaf1ff8a 100%);backdrop-filter:blur(18px) saturate(.92);box-shadow:0 18px 52px #22314d1a;box-sizing:border-box;animation:appear .16s ease-out}
 @keyframes appear{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}

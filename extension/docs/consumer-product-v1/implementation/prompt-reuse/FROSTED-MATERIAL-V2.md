@@ -47,3 +47,18 @@ weight; row layout, type, controls and information structure are preserved.
   reopened. No owner DevTools/Console/source-versus-release exercise is requested.
 - D7 full-gate failures remain owned by the independent D7 branch and cannot be
   bypassed by this presentation correction. PR164 is preserved and unmerged.
+
+## First rendered candidate: material rejected during engineering review
+
+Head `82cbca765cd63ae4e45cb26541e9030c6fe0f647`, tree
+`850b110a5ace10ae61c80b14e38640109589b0a9`, visual run `37344921316`:
+8 actual source/release states and 14 supplemental image pairs passed build
+consistency. The downloaded artifact SHA-256 is
+`b7d654d5be9016cba3bb55f01a1d1ad4baa566276f19c36388f4f696e00d5d3d`.
+Actual pixel inspection nevertheless found the light orb too empty with a
+visible ring, and the dark orb too gray. This is **not material acceptance**.
+The next bounded revision removes the hard border and restores a broader,
+low-saturation blue/lavender/mint diffuse core, with a softer lower-energy
+highlight. All behavior and card layout remain unchanged. New-head captures and
+owning checks are required; no old green result is reused as final acceptance.
+Local full unit results: 1,840 PASS / 1 unchanged 10k fake-IDB performance failure.
