@@ -154,3 +154,15 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialo
 @media(max-width:767px),(pointer:coarse){
  body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#input-time-order button,#document-menu,#context-menu button,.reader-selection button){min-height:44px;min-width:44px}
 }
+
+/* Approved D6.2 A07/A08. Reuse the native reading owners; the shared info
+   dialog keeps its existing appearance whenever it is not Original. */
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog[data-reading-surface="original"],#revision-dialog){padding:32px;overflow:hidden}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #info-dialog[data-reading-surface="original"]{width:min(700px,calc(100vw - 32px))}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #revision-dialog{width:min(860px,calc(100vw - 32px))}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #revision-dialog[open]{display:flex;flex-direction:column}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog[data-reading-surface="original"],#revision-dialog) h2{min-width:0;flex:1;font:500 23px/32px var(--title-font)}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog[data-reading-surface="original"],#revision-dialog) button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#revision-dialog>p,#revision-more){flex:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #revision-list{min-height:0;max-width:100%;overflow:auto;overscroll-behavior:contain}
+@media(max-width:767px){body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog[data-reading-surface="original"],#revision-dialog){padding:20px 16px}}
