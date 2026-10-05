@@ -3,7 +3,13 @@ import {own} from '../core/prompt-reuse-preferences.js';
 const KEY='promptSurfaceV1',site=url=>{try{return new URL(url).origin==='https://chatgpt.com';}catch{return false;}};
 export const validSurface=v=>own(v,['version','open','position'])&&v.version===1&&typeof v.open==='boolean'&&(v.position===null||own(v.position,['x','y'])&&['x','y'].every(k=>Number.isFinite(v.position[k])&&v.position[k]>=0&&v.position[k]<=1));
 export class PromptSurfaceCommands{
- constructor(commands,api){this.commands=commands;this.api=api;}
+ constructor(commands,api){this.commands=commands;this.api=api;this.frames=new Map();}
+ async isIdle(tabId){
+  const host=await this.api.tabs.sendMessage(tabId,{type:'PAIA_PROMPT_SURFACE_PROBE'},{frameId:0});
+  if(!host?.open)return host?.dragging!==true;
+  const frame=this.frames.get(tabId);if(!frame||frame.nonce!==host.nonce||host.dragging)return false;
+  try{const r=await this.api.tabs.sendMessage(tabId,{type:'PAIA_PROMPT_NEXT_ACTIVITY',nonce:frame.nonce},{frameId:frame.id});return r?.idle===true;}catch{return false;}
+ }
  async handle(r,sender){
   const api=this.api,fail=()=>{throw new ArchiveError('FORBIDDEN');};
   if(r.type==='PAIA_PROMPT_SURFACE_DIAGNOSTIC')return this.diagnostic(r,sender);
@@ -33,7 +39,9 @@ export class PromptSurfaceCommands{
   // No worker-lifetime capability cache: bind every call to the actual live host.
   const host=await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_PROBE'},{frameId:0});
   if(!host?.open||host.nonce!==r.nonce||host.url!==tab.url)fail();
+  this.frames.set(tab.id,{id:sender.frameId,nonce:r.nonce});
   const c=r.command;if(!c||typeof c.type!=='string')fail();
+  if(['next_available','next_reopen'].includes(c.type))return this.next.card(c,tab);
   if(c.type==='close'&&own(c,['type'])){await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:r.nonce},{frameId:0});return {};}
   if(c.type==='members'&&own(c,['type','id']))return this.commands.service.members(c.id);
   if(!['PAIA_PROMPT_QUERY','PAIA_PROMPT_CHANGE','PAIA_PROMPT_COPY_TEXT','PAIA_PROMPT_INSERT'].includes(c.type))fail();

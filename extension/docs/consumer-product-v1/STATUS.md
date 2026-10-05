@@ -1,3 +1,14 @@
+# Prompt Reuse Stage 3A-1 — ENGINEERING_VERIFYING
+
+The sole Stage 3A writer implements CPV1-12.3A-1 on fresh main `967188ab`.
+[Candidate receipt](implementation/prompt-reuse/STAGE-3A-1.md) records the
+explicit session opt-in, prospective completion proof, finite local detector,
+private transient capsule and independently bound fill-only candidates.
+Initial focused/privacy and package/release checks pass. Hosted production
+source/release browser evidence is PENDING; local browser launch is restricted.
+Current-live ChatGPT evidence remains PENDING, never inferred from fixtures.
+Stage 1/2 acceptance and D7 are preserved. No 12.3A-2 or Stage 3B is started.
+
 # Prompt Reuse Stage 3A — OWNER_APPROVED / READY_FOR_IMPLEMENTATION
 
 **`B-04-3A = RESOLVED / OWNER_APPROVED` for local ephemeral current-reply analysis.**

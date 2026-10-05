@@ -11,6 +11,9 @@ on:
       - 'extension/**/prompt-*'
       - 'extension/adapter/chatgpt-composer.js'
       - 'extension/tests/cpv1-09-*'
+      - 'extension/tests/cpv1-12-next-*'
+      - 'extension/adapter/chatgpt-current-reply.js'
+      - 'extension/core/next-action-detector.js'
       - '.github/workflows/paia-prompt-reuse.yml'
 permissions:
   contents: read
@@ -51,6 +54,8 @@ jobs:
           node --test --test-concurrency=1 tests/cpv1-09-prompt-compatibility-chrome-e2e.test.mjs
           node --test --test-concurrency=1 tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
           xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs
+      - name: Stage 3A-1 source and release direct loop
+        run: node --test --test-concurrency=1 tests/cpv1-12-next-prompt-chrome-e2e.test.mjs
       - run: npm run test:unit
       - run: node scripts/test.mjs 'adapter contract'
       - run: node scripts/test.mjs 'privacy/security'
@@ -68,5 +73,7 @@ jobs:
         if: always()
         with:
           name: prompt-surface-evidence
-          path: extension/work/prompt-surface/
+          path: |
+            extension/work/prompt-surface/
+            extension/work/prompt-next/
           if-no-files-found: warn

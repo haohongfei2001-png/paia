@@ -1,0 +1,74 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';import {join} from 'node:path';import {mkdir,writeFile,readFile} from 'node:fs/promises';import {execFileSync} from 'node:child_process';
+import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';import {routeComposer,isolated} from './harness/prompt-composer.mjs';
+const root=fileURLToPath(new URL('..',import.meta.url)),url='https://chatgpt.com/c/prompt-insertion-fixture',out=join(root,'work/prompt-next');
+const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
+for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' production direct loop',{timeout:180000},async t=>{
+ if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'pipe'});
+ const h=await FakeChatGPT.start({extensionPath:variant==='source'?root:join(root,'work/current-release'),headless:true,launchThroughPort:true});await mkdir(out,{recursive:true});let page,popup,world,failures=0;const cases=[],screens=[];
+ const check=(name,fn)=>t.test(name,async()=>{try{await fn();cases.push({name,status:'PASS'});}catch(e){failures++;cases.push({name,status:'FAIL'});throw e;}});
+ try{
+  await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
+  popup=await h.context.newPage();await popup.goto('chrome-extension://'+h.extensionId+'/ui/popup.html');await popup.locator('#next-enabled').waitFor();
+  await routeComposer(h.context,root);page=await h.context.newPage();await page.goto(url);await page.waitForFunction(()=>!!globalThis.fixture?.view);await page.setViewportSize({width:1280,height:900});
+  await page.addStyleTag({content:'body{margin:0;min-height:100vh;background:#f6f7fb}form{position:fixed;left:16px;right:16px;bottom:16px;padding:12px;border:1px solid #aaa;background:white}article{margin:16px 80px;padding:12px}#blur{position:fixed;top:8px;left:8px}'});
+  await page.evaluate(()=>{
+   fixture.round=0;fixture.reply=(id,text,copy)=>{const article=document.createElement('article');article.dataset.testid='conversation-turn-'+id;const node=document.createElement('div');node.dataset.messageAuthorRole='assistant';node.dataset.messageId=id;const body=document.createElement('div');body.className='markdown';const p=document.createElement('p');p.textContent=text;body.append(p);node.append(body);article.append(node);if(copy){const b=document.createElement('button');b.dataset.testid='copy-turn-action-button';b.textContent='Copy';article.append(b);}document.querySelector('main').prepend(article);return article;};
+   fixture.history=document.createElement('section');fixture.history.id='reply-history';document.querySelector('main').prepend(fixture.history);
+   fixture.user=()=>{const n=document.createElement('div');n.dataset.messageAuthorRole='user';n.dataset.messageId='next-user-'+fixture.round;n.textContent='Synthetic user';fixture.history.append(n);};
+   fixture.user();fixture.history.append(fixture.reply('old-final','回复“继续”',true));
+   fixture.start=(text='回复“继续”')=>{fixture.round++;fixture.user();const stop=document.createElement('button');stop.dataset.testid='stop-button';stop.textContent='Stop';document.querySelector('form').append(stop);fixture.latest=fixture.reply('next-reply-'+fixture.round,text,false);fixture.history.append(fixture.latest);};
+   fixture.finish=()=>{document.querySelector('[data-testid="stop-button"]')?.remove();const copy=document.createElement('button');copy.dataset.testid='copy-turn-action-button';copy.textContent='Copy';fixture.latest.append(copy);};
+  });
+  await page.locator('[data-paia-prompt-surface]').waitFor({state:'visible'});world=await isolated(page,h.extensionId);
+  await world.run('globalThis.nextReads=0;globalThis.originalSnapshot=PAIAChatGPTCurrentReplyAdapter.prototype.snapshot;PAIAChatGPTCurrentReplyAdapter.prototype.snapshot=function(){nextReads++;return originalSnapshot.call(this);};');
+  const capsule=()=>page.frames().find(f=>f.url().includes('/ui/prompt-surface.html#next-'));
+  const card=()=>page.frames().find(f=>/\/ui\/prompt-surface\.html#[a-f0-9-]+$/.test(f.url()));
+  const enable=async()=>{await rpc(popup,'PAIA_PROMPT_NEXT_CONFIGURE',{enabled:true});await page.bringToFront();await page.waitForTimeout(150);};
+  const disable=async()=>{await rpc(popup,'PAIA_PROMPT_NEXT_CONFIGURE',{enabled:false});await eventually(()=>!capsule());};
+  const cycle=async(text='回复“继续”')=>{await page.evaluate(x=>fixture.start(x),text);await page.waitForTimeout(120);await page.evaluate(()=>fixture.finish());};
+  const shown=async()=>{await eventually(()=>!!capsule(),'new final reply produces capsule');await capsule().locator('.next-choices button').first().waitFor();return capsule();};
+  await check('OFF and enable are prospective with zero historical snapshot reads',async()=>{
+   assert.equal((await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);await cycle();await page.waitForTimeout(1800);assert.equal(await world.run('nextReads'),0);assert.equal(capsule(),undefined);await enable();await page.waitForTimeout(1000);assert.equal(await world.run('nextReads'),0);assert.equal(capsule(),undefined);
+  });
+  await check('streaming silence cannot complete; direct conditional insert preserves selection and never sends',async()=>{
+   await page.evaluate(()=>fixture.set('ABCDE',1,4));await page.evaluate(()=>fixture.start('登录完成后告诉我“已登录”。'));await page.waitForTimeout(1800);assert.equal(await world.run('nextReads'),0);assert.equal(capsule(),undefined);
+   await page.evaluate(()=>fixture.finish());const f=await shown();assert.equal(await f.locator('.next-condition').textContent(),'登录后');const orb=await page.locator('[data-paia-prompt-surface]').boundingBox();await page.screenshot({path:join(out,variant+'-conditional-light.png')});screens.push(variant+'-conditional-light.png');
+   await f.getByRole('button',{name:'已登录',exact:true}).click();await eventually(()=>f.locator('.next-status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.text()),'ABCD已登录E');assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>document.activeElement.id),'prompt-textarea');assert.deepEqual(await page.locator('[data-paia-prompt-surface]').boundingBox(),orb);
+   assert.equal(await f.getByRole('button',{name:'复制',exact:true}).count(),0);await eventually(()=>!capsule(),'success retracts');
+  });
+  await check('choice peers preserve exact option meaning and do not preselect',async()=>{
+   await cycle('A. 概要\nB. 详细说明\nC. 比较\n请回复 A / B / C。');const f=await shown();assert.deepEqual(await f.locator('.next-choices button').allTextContents(),['A · 概要','B · 详细说明','C · 比较']);assert.equal(await f.locator('.next-choices button:focus').count(),0);assert.equal(await page.evaluate(()=>fixture.text()),'ABCD已登录E');await f.getByRole('button',{name:'收起本轮建议'}).click();await eventually(()=>!capsule());
+   await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());await card().getByRole('button',{name:'本轮建议'}).waitFor({state:'visible'});await card().getByRole('button',{name:'本轮建议'}).click();await shown();await capsule().getByRole('button',{name:'B · 详细说明',exact:true}).click();await eventually(()=>capsule()?.locator('.next-status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.text()),'ABCD已登录BE');await eventually(()=>!capsule());await card().locator('#close').click();await eventually(()=>!card());
+  });
+  await check('revision, regenerate, continue, new user and revoke invalidate stale candidates',async()=>{
+   await cycle();await shown();await page.evaluate(()=>fixture.latest.querySelector('p').textContent='回复“停止”');await eventually(()=>!capsule());
+   // Mutation alone cannot create a new completion cycle/recommendation.
+   await page.waitForTimeout(1800);assert.equal(capsule(),undefined);
+   await cycle();await shown();await page.evaluate(()=>{const button=document.createElement('button');button.dataset.testid='continue-button';button.textContent='Continue';fixture.latest.append(button);});await eventually(()=>!capsule());await page.evaluate(()=>fixture.latest.querySelector('[data-testid="continue-button"]').remove());
+   await cycle();await shown();await page.evaluate(()=>{fixture.round++;fixture.user();});await eventually(()=>!capsule());
+   await cycle();await shown();await disable();const count=await world.run('nextReads');await cycle();await page.waitForTimeout(1600);assert.equal(await world.run('nextReads'),count);assert.equal(capsule(),undefined);await enable();assert.equal(capsule(),undefined);
+  });
+  await check('IME/edit busy skip auto display; valid suggestion can reopen after user is idle',async()=>{
+   await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());await card().locator('#new').click();await card().getByRole('textbox',{name:'复用文本'}).fill('unsaved Stage 1/2 draft');await cycle();await page.waitForTimeout(2000);assert.equal(capsule(),undefined);assert.equal(await card().getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved Stage 1/2 draft');await card().getByRole('button',{name:'取消',exact:true}).click();await card().getByRole('button',{name:'本轮建议'}).click();await shown();await capsule().getByRole('button',{name:'收起本轮建议'}).click();await eventually(()=>!capsule());await card().locator('#close').click();await eventually(()=>!card());
+   await page.locator('#prompt-textarea').focus();const cdp=await h.context.newCDPSession(page);await cdp.send('Input.imeSetComposition',{text:'汉',selectionStart:1,selectionEnd:1});await cycle();await page.waitForTimeout(1900);assert.equal(capsule(),undefined);await cdp.send('Input.insertText',{text:'汉'});await cdp.detach();await page.waitForTimeout(900);assert.equal(capsule(),undefined,'no stale automatic queue');
+  });
+  await check('uncertain native edit is never retried and offers only explicit recovery',async()=>{
+   await cycle();const f=await shown();await world.run('globalThis.originalExec=document.execCommand.bind(document);document.execCommand=(...args)=>{originalExec(...args);return false;};');const before=await page.evaluate(()=>fixture.text());await f.getByRole('button',{name:'继续',exact:true}).click();await eventually(()=>f.locator('.next-status').textContent().then(x=>x.includes('未确认')));assert.equal(await page.evaluate(()=>fixture.text()),before+'继续');await world.run('document.execCommand=originalExec;');assert.equal(await f.getByRole('button',{name:'继续',exact:true}).isDisabled(),true);assert.equal(await f.getByRole('button',{name:'复制',exact:true}).isVisible(),true);await f.getByRole('button',{name:'收起本轮建议'}).click();await eventually(()=>!capsule());
+  });
+  await check('private light/dark/compact capsule, 44px targets, no stored body, no model request',async()=>{
+   for(const [theme,width]of [['light',1280],['dark',1280],['dark',320],['light',320]]){
+    await page.setViewportSize({width,height:900});await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await cycle('Tell me "done" when finished');const f=await shown();await eventually(()=>f.locator('html').getAttribute('data-theme').then(x=>x===theme));
+    if(width===320){await f.evaluate(()=>document.documentElement.style.fontSize='28px');await page.waitForTimeout(120);}
+    assert.ok(await f.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.ok(await f.locator('.next-choices button').first().evaluate(n=>n.getBoundingClientRect().height>=44));assert.ok(await f.locator('.next-condition').isVisible());
+    const frameBox=await (await f.frameElement()).boundingBox(),form=await page.locator('form').boundingBox();assert.ok(frameBox.y+frameBox.height<=form.y-8||frameBox.x+frameBox.width<=form.x-8||frameBox.x>=form.x+form.width+8);
+    const name=variant+'-'+theme+'-'+width+'.png';await page.screenshot({path:join(out,name)});screens.push(name);await f.getByRole('button',{name:'收起本轮建议'}).click();await eventually(()=>!capsule());
+   }
+   const durable=await popup.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js');const s=new OrganizerStore(chrome.storage.local);const local=await chrome.storage.local.get(null);await s.finishFoundation();const db=s.repository.db;const names=[...db.objectStoreNames];const rows=await s.repository.transaction(false,async t=>{const data={};for(const name of names)data[name]=await t.all(name);return data;},names);const {BackupService}=await import('../core/backup-service.js');const backup=new BackupService(s),{sessionId,header}=await backup.beginExport(),items=[header];for(let sequence=0;;sequence++){const page=await backup.exportPage({sessionId,sequence});items.push(...page.items);if(page.done)break;}return {local,rows,backup:items,session:await chrome.storage.session.get(null)};});assert.doesNotMatch(JSON.stringify(durable),/Tell me|when finished|登录完成后/);assert.deepEqual(await page.evaluate(()=>({local:localStorage.length,session:sessionStorage.length})),{local:0,session:0});assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.equal(await page.evaluate(()=>fixture.send),0);
+  });
+  await check('worker restart recovers prospectively; Stage 1/2 still works after Stage 3 revoke',async()=>{
+   await h.restartWorker();await cycle();await page.waitForTimeout(1700);assert.equal(capsule(),undefined,'restart loses old authority and current candidate');await cycle();await shown();await disable();
+   await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());await card().locator('#new').click();await card().getByRole('textbox',{name:'复用文本'}).fill('ordinary Stage 1/2');await card().getByRole('button',{name:'保存',exact:true}).click();await card().getByRole('button',{name:'ordinary Stage 1/2',exact:true}).click();await eventually(()=>card().locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.send),0);
+  });
+  assert.equal(failures,0);assert.deepEqual(h.errors,[]);
+ }finally{await writeFile(join(out,variant+'.json'),JSON.stringify({variant,evidence:'SYNTHETIC_PRODUCTION_EXTENSION',head:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),cases,screens,failures,currentLive:'PENDING'},null,2));await world?.cdp.detach();await h.stop();}
+});

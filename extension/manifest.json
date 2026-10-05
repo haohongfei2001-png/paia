@@ -58,7 +58,10 @@
         "adapter/chatgpt-composer.js",
         "content/prompt-reuse.js",
         "core/prompt-surface-layout.js",
-        "content/prompt-surface.js"
+        "content/prompt-surface.js",
+        "adapter/chatgpt-current-reply.js",
+        "core/prompt-next-layout.js",
+        "content/prompt-next.js"
       ],
       "run_at": "document_start",
       "all_frames": false,

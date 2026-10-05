@@ -27,6 +27,12 @@
       <p id="update-message" role="status">正在读取当前版本…</p>
       <button id="check-update" class="secondary" type="button">检查此安装的更新</button>
     </section>
+    <section class="update-status" aria-labelledby="next-heading">
+      <h2 id="next-heading">当前回复建议</h2>
+      <p class="subtle" id="next-explanation">在这台设备上，临时读取当前会话刚完成的 AI 回复，提取可选回复。PAIA 不保存整条 AI 回复，也不将其上传给其他 AI。点击建议只填入输入框，不会发送。</p>
+      <label><input id="next-enabled" type="checkbox" aria-describedby="next-explanation" disabled> 本次浏览器会话开启</label>
+      <p id="next-state" class="subtle" role="status">默认关闭；与捕获暂停独立。</p>
+    </section>
     <details id="prompt-reuse-diagnostics"><summary>Prompt Reuse 诊断</summary><p id="diagnostic-prompt-reuse" role="status">Prompt Reuse：打开此区域时检查当前页面</p></details>
     <details id="popup-internal-tools"><summary>捕获与本机工具</summary><p id="diagnostic-status">等待读取</p><p class="subtle" id="diagnostic-time"></p><p class="subtle" id="diagnostic-version"></p><p class="subtle" id="diagnostic-error"></p><p class="subtle" id="diagnostic-capture-health"></p><p id="diagnostic-structure">结构概览：暂无</p><p class="subtle">v0.6.2 Light Filter Coverage · 保留已验证的捕获规则。<a href="response-time.html" target="_blank" rel="noopener">打开响应时间诊断</a></p><p class="subtle"><a href="product-signals.html" target="_blank" rel="noopener">产品验证 / Passport</a></p></details>
   </main>
