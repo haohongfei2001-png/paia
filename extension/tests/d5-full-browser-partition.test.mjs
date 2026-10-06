@@ -1,3 +1,4 @@
+import {execFileSync} from 'node:child_process';
 import test from 'node:test';import assert from 'node:assert/strict';import {readdir,readFile} from 'node:fs/promises';import {group,testShard} from '../scripts/test-groups.mjs';
 test('D5 full browser partition preserves the original whole-file isolation and requires every current job',async()=>{
  const names=(await readdir(new URL('./',import.meta.url))).filter(x=>x.endsWith('.test.mjs')&&group(x)==='browser E2E').sort(),before=Array.from({length:4},(_,slot)=>names.filter((name,index)=>testShard(name,index,4,'browser E2E')===slot+1)),after=Array.from({length:5},(_,slot)=>names.filter((name,index)=>testShard(name,index,5,'browser E2E')===slot+1));
@@ -36,3 +37,5 @@ test('CTX4 adds its complete source/release file to current shard5 without movin
  for(const file of ['cpv1-09-prompt-compatibility-chrome-e2e.test.mjs','cpv1-09-prompt-insertion-chrome-e2e.test.mjs','cpv1-09-prompt-surface-chrome-e2e.test.mjs'])baseline.push({file,shard:3});baseline.push({file:'consumer-cleanup-chrome-e2e.test.mjs',shard:1},{file:'context-cards-chrome-e2e.test.mjs',shard:5});
  const names=(await readdir(new URL('./',import.meta.url))).filter(name=>name.endsWith('.test.mjs')&&group(name)==='browser E2E').sort();assert.equal(names.length,73);assert.deepEqual(baseline.map(x=>x.file).sort(),names);for(const row of baseline)assert.equal(testShard(row.file,names.indexOf(row.file),6,'browser E2E'),row.shard,row.file);
 });
+
+test('CTX4 complete CI coverage guard includes its new file without reindexing the historical baseline',()=>{assert.match(execFileSync(process.execPath,['scripts/check-ui-refresh-ci.mjs'],{cwd:new URL('../',import.meta.url),encoding:'utf8'}),/CURRENT_BROWSER_COVERAGE_CONTRACT_PASS/);});
