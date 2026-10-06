@@ -461,6 +461,7 @@ function isTextEntry(target){return !!target&&(target.isContentEditable||['INPUT
 // Search-focus shortcuts stay page-scoped. Settings deliberately falls through to native browser behavior.
 document.addEventListener('keydown',event=>{
  if(event.isComposing||event.keyCode===229||editor?.composing)return;
+ if(view==='thoughts'&&!document.querySelector('dialog[open]'))thoughts.topicRestoreInput(event);
  if(archiveNavigator.handleKeydown(event))return;
  if(event.altKey&&event.key.toLowerCase()==='s'&&!document.querySelector('dialog[open]')&&reader.focusSelection()){event.preventDefault();return;}
  if(archiveRootOverflow.contains(event.target)&&!event.target.closest('select,input,textarea')&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
