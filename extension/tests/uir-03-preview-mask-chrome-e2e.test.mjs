@@ -1,4 +1,4 @@
-import {assertHeldOrganizeScope,startSyntheticAIWorkerFixture,setAIView,adoptFirstCandidate} from './harness/ai-reviewed-browser.mjs';
+import {setAIView,seedSavedAI} from './harness/consumer-ai-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -19,15 +19,14 @@ async function ready(h){
  await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-03 preview-mask consent is durable');
  if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();
  await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',hideContentPreviews:false}});
- await rpc(page,'PAIA_MEMORY_SETTINGS',{options:{externalAccess:true,localOnly:false}});
- await rpc(page,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-uir03-preview-mask-key'}});
+
  return page;
 }
 
 async function seed(page,label){
  const topic=await rpc(page,'CREATE_LIBRARY_TOPIC',{topic:{name:`${label} Preview Mask 主题`,operationId:op()}});
- await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL_A 主动打开的 Original 正文必须保持可读。`}});
- await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL_B 这段正文也会成为 Organized evidence。`}});
+ const entries=[];entries.push(await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL_A 主动打开的 Original 正文必须保持可读。`}}));
+ entries.push(await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL_B 这段正文也会成为 Organized evidence。`}}));await seedSavedAI(page,topic.id,entries);
  const saved=await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id});
  await rpc(page,'EDIT_LIBRARY_TOPIC',{edit:{id:topic.id,expectedRevision:saved.revision,changes:{summary:`${label}_TOPIC_SUMMARY 私人主题摘要`},operationId:op()}});
  return topic;
@@ -61,14 +60,14 @@ async function journey(page,h,topic,label,{release=false}={}){
  await shot(page,release?'uir-03-current-release-preview-mask-home-1440x900-light':'uir-03-preview-mask-home-1440x900-light');
 
  await openTopic(page,topic);const original=page.locator('#original-reading-body [data-entry-field="body"]').first();await original.waitFor();assert.equal(await original.isVisible(),true,'explicitly opened Original body remains readable while preview masking is on');assert.match(await original.textContent(),new RegExp(`${label}_ORIGINAL_A`));
- const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch is available');await setAIView(page,true);await page.locator('[data-ai-first-generation]').waitFor();assert.equal(h.deepSeekRequests.length,0,'masking and cached view switching do not call the Provider');await startSyntheticAIWorkerFixture(page,h,{topicId:topic.id});await adoptFirstCandidate(page);await page.locator('[data-ai-field="blockSummary"]').filter({hasText:`${label}_BLOCK_SUMMARY`}).waitFor();
+ const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch is available');await setAIView(page,true);await page.locator('[data-ai-field="blockSummary"]').waitFor();
  const organized=page.locator('[data-ai-field="currentView"]'),evidence=page.locator('.evolution-excerpt .entry-prose').first();await organized.waitFor();await evidence.waitFor();assert.equal(await organized.isVisible(),true,'explicitly opened Organized body remains readable while preview masking is on');assert.equal(await evidence.isVisible(),true,'explicitly opened evidence body remains readable while preview masking is on');assert.match(await evidence.textContent(),new RegExp(`${label}_ORIGINAL_`));
  const privateTextInAttrs=await page.evaluate(prefix=>[...document.querySelectorAll('#topic-body [title],#topic-body [aria-label]')].some(node=>[node.getAttribute('title'),node.getAttribute('aria-label')].some(value=>value?.includes(prefix))),label);assert.equal(privateTextInAttrs,false,'opened body text is not copied into title or aria-label as a masking bypass');
  await shot(page,release?'uir-03-current-release-preview-mask-organized-1440x900-light':'uir-03-preview-mask-organized-1440x900-light');
- assert.equal(h.deepSeekRequests.length,1,'only the explicit synthetic worker fixture calls the intercepted Provider');assert.equal(h.extensionNetworkRequests,1,'only the explicit DeepSeek fixture request leaves the extension');assert.equal(h.externalRequests,0,'no unexpected external request occurs');assert.deepEqual(h.errors,[]);
+ assert.equal(h.deepSeekRequests.length,0,'saved AI and privacy masking never call a Provider');assert.equal(h.extensionNetworkRequests,0,'saved AI and privacy masking remain local');assert.equal(h.externalRequests,0,'no unexpected external request occurs');assert.deepEqual(h.errors,[]);
 }
 
-test('UIR-03 preview mask hides card/selection previews without hiding explicitly opened Original, Organized or evidence bodies in source and built release Chrome (synthetic worker fixture)',{timeout:300000},async()=>{
+test('UIR-03 preview mask hides card/selection previews without hiding explicitly opened Original, Organized or evidence bodies in source and built release Chrome (historical saved AI fixture)',{timeout:300000},async()=>{
  let source;try{source=await FakeChatGPT.start({onboarding:true,deepSeekFixture:async body=>aiOutput(requestOf(body),'UIR03_MASK')});const page=await ready(source),topic=await seed(page,'UIR03_MASK');await journey(page,source,topic,'UIR03_MASK');}finally{await source?.close();}
  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  let release;try{release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true,deepSeekFixture:async body=>aiOutput(requestOf(body),'UIR03_MASK_RELEASE')});const page=await ready(release),topic=await seed(page,'UIR03_MASK_RELEASE');await journey(page,release,topic,'UIR03_MASK_RELEASE',{release:true});}finally{await release?.close();}
