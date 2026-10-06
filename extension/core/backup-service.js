@@ -1,3 +1,4 @@
+import {topicIdentityMetaAllowed,validateTopicIdentityGraph} from './topic-identity-backup.js';
 import {PROMPT_REUSE_ROW} from './prompt-reuse-preferences.js';
 import {BINDING_ROW,REVERSE_ROW} from './thought-binding.js';
 import {READING_ROW,VISIT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW,validReaderPolicy} from './reader-state.js';
@@ -49,6 +50,8 @@ export class BackupService {
   // Reading-only controls omit retired settings; every supplied legacy or reading field still validates.
   for(const {value:row}of bySection.organizationState.values()){if(row.id==='organizer-controls'){const c=row.data;required((!Object.hasOwn(c,'dailyRequests')||Number.isInteger(c.dailyRequests)&&c.dailyRequests>=1&&c.dailyRequests<=200)&&(!Object.hasOwn(c,'batchMode')||['compact','recommended'].includes(c.batchMode))&&(!Object.hasOwn(c,'aiOnboardingSeen')||typeof c.aiOnboardingSeen==='boolean')&&(!Object.hasOwn(c,'readingSort')||['asc','desc'].includes(c.readingSort))&&(!Object.hasOwn(c,'inputReadingSort')||['asc','desc'].includes(c.inputReadingSort))&&(!Object.hasOwn(c,'libraryView')||['original','ai'].includes(c.libraryView)));}if(row.id==='thought-suppression-key')required(Array.isArray(row.data.value)&&row.data.value.length===32&&row.data.value.every(x=>Number.isInteger(x)&&x>=0&&x<=255));if(row.id.startsWith('aiPresentation:')){const p=row.data,allowed=new Set(entries.keys()),none=isBaseNoneEnvelope(p,{portable:true});required(topics.has(p.topicId)&&(none||Array.isArray(p.evidenceEntryIds)&&p.evidenceEntryIds.length>0&&isStoredAIPresentation(p,allowed)));if(p.candidate)required(validAIPresentationCandidate(p.candidate,allowed)&&p.candidate.proposal.topicId===p.topicId&&(none?p.candidate.baseKind==='none':p.candidate.baseKind!=='none'));}}
 
+  validateTopicIdentityGraph(bySection,required);
+
   // Privacy exclusions and default-scope policy do not require a stored Profile.
   // Named Profile references and actual Profile records still validate their graph.
   const memoryRows=[...bySection.organizationState.values()].map(x=>x.value.data).filter(x=>x.id.startsWith('memory:'));for(const row of memoryRows){required(validateMemoryRow(row));if(row.kind==='profile')required(bySection.organizationState.has('memory:config'));if(row.profileId&&row.kind!=='activity'&&!(row.kind==='topic'&&row.profileId===DEFAULT_PROFILE))required(bySection.organizationState.has(key('profile',row.profileId)));if(row.kind==='topic')required(topics.has(row.topicId));if(row.kind==='entry')required(entries.has(row.entryId));if(row.kind==='input')required(inputs.has(row.inputId)&&bySection.inputStates.has(row.inputId));if(row.kind==='section')required(topics.has(row.topicId)&&[...bySection.sections.values()].some(x=>x.value.topicId===row.topicId&&x.value.sectionId===row.sectionId));}
@@ -97,10 +100,10 @@ export class BackupService {
     if(local&&JSON.stringify(local)!==JSON.stringify(value.data)){
      const contentBound=value.id===PROMPT_REUSE_ROW||sourceStructureMetaAllowed(value.id)
       ||value.id.startsWith('aiPresentation:')
-      ||value.id.startsWith('topicKeepSeparate:')
+      ||value.id.startsWith('topicKeepSeparate:')||topicIdentityMetaAllowed(value.id)
       ||['topic','entry','input','section','activity'].includes(value.data.kind);
      const suppressionKey=value.id==='thought-suppression-key'
-      &&state.bySection.suppressions.size>0;
+      &&(state.bySection.suppressions.size>0||[...state.bySection.organizationState.keys()].some(topicIdentityMetaAllowed));
      if(contentBound||suppressionKey)return 'BACKUP_MERGE_CONFLICT';
     }
     continue;
@@ -147,6 +150,7 @@ export class BackupService {
      if(backupMetaAllowed(row.id)&&![CAPTURE_POLICY_ROW,REVISIT_POLICY_ROW].includes(row.id))
       await t.delete('meta',row.id);
    }
+   await t.delete('meta','personal-topic-identity-compat-v1');
    if(mode!=='merge')await t.put('meta',{id:'recovery-restore-epoch',value:this.s.uuid()});
    const previous=await t.get('meta','sequence');
    const max=mode==='merge'?{records:previous?.records||0,blocks:previous?.blocks||0,documents:previous?.documents||0}:{records:0,blocks:0,documents:0};
