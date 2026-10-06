@@ -1,45 +1,62 @@
 # Master Development Plan — PAIA Consumer Product v1
 
-## Current plan routing — 2026-10-07
+## Current routing — 2026-10-07 Personal Topic adoption
 
-This file remains the canonical master-plan entrypoint. [STATUS.md](STATUS.md) remains the sole execution queue. The owner has approved AI Context Cards v2 and requested documentation of its development plan; this change does not itself start runtime implementation or grant paid/external/deployment authority.
+[STATUS.md](STATUS.md) is the sole execution queue and next-task authority. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) freezes the owner-approved Personal Topic product semantics. [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) owns the gap register, ordered implementation slices, migration work and acceptance; [adoption](TOPIC_ARCHITECTURE_ADOPTION.md) lists scoped supersession. This is documentation, not implementation or new service/paid/deployment authority.
 
-**AI Context replacement slice:** [AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md). Its scope is four Cards, independent Info/Rules/Now Items, Topic-only deeper access, direct editing and real read-only connections in the existing PAIA shell. [The scoped authority amendment](AUTHORITY.md#ai-context-cards-v2--scoped-owner-decision-2026-10-07) replaces conflicting earlier Context plans, not the whole product.
+The current order starts with the identity and human-intent foundation designated in STATUS. Do not start independent competing Topic, Original-organizer, AI-library, taxonomy-directory or graph workstreams. Reuse current Topic/Section/Placement/body/provenance/CAS assets. The contract changes organization semantics and authority, not the entire Thought Library.
 
-| Phase | Outcome | Dependency |
+## Personal Topic delivery outcomes
+
+| Slice | Outcome | Dependency |
 |---|---|---|
-| CPV1-CTX4-01 | Independent data + real four-card home + persistent My Information editing | Current main, approved images, bounded storage/safety contract |
-| CPV1-CTX4-02 | Complete local three-card direct editing and state/navigation behavior | 01 |
-| CPV1-CTX4-03 | Stable Topic capsules, default-off and Thought owner integration | 01; shared UI from 02 |
-| CPV1-CTX4-04 | Trusted typed Context/Topic search and complete read-only retrieval | 01, 03 |
-| CPV1-CTX4-05 | Authorized incremental extraction/update with protected human edits | 01, 02; real processing service and permission |
-| CPV1-CTX4-06 | One real AI client, shared scope and real pause/revoke loop | 04; verified client and safe transport |
-| CPV1-CTX4-07 | Migration/retirement, 22-state visual convergence and real-use acceptance | Applicable 02–06 results |
+| CPV1-TOPIC-01 | Identity + durable human field/edge/keep-separate protection foundation and local contract tests | Fresh main; existing domain services; conservative compatibility mapping |
+| CPV1-TOPIC-02 | Identity retrieval across active/dormant/renamed/merged and removed fences; hidden candidates/unassigned | 01 |
+| CPV1-TOPIC-03 | Evidence-based identity-first formation, bounded incremental Section/multi-placement and trusted commit | 01/02; live model/service activation remains separately gated |
+| CPV1-TOPIC-04 | Confirmed Section promotion and protected structural reconciliation | 01/03 |
+| CPV1-TOPIC-05 | One-library reader/UI adaptation, retrieval and Context Personal Topic interface | Relevant 01-04; existing approved visuals, no redesign |
+| CPV1-TOPIC-06 | Migration, reliability, resource and real downstream acceptance closure | Applicable earlier evidence and separately authorized real dependencies |
 
-Next AI Context implementation task: **CPV1-CTX4-01**, on a subsequent implementation request. Do not return to product exploration or build another independent mock. CTX4-05 and CTX4-06 are not artificially serialized: real connection testing can use manually written Context when automatic extraction lacks its service. A missing client does not block independently authorized local/extraction work. Shared data boundaries still require a coordinated writer.
+All six are PLANNED at documentation adoption. Stage details are specified once in TOPIC_ARCHITECTURE_PLAN.md. No historical PASS closes them, and no stage number requires a separate PR/receipt cycle. End each coherent authorized batch with exact source and truthful evidence, not a new architecture discussion.
 
-## Preserved non-Context detailed plan
+## Retained AI Context Cards v2 plan
 
-The entire previous MASTER_PLAN is retained byte-for-byte as [MASTER_PLAN_PRE_CTX4_2026-10-07.md](MASTER_PLAN_PRE_CTX4_2026-10-07.md), original blob `bf4b786bb0047fb1c13f56fb3dbaac8c70d72b1b`. It remains the detailed reference for unchanged non-Context slice outcomes, batching, migration/recovery and sequencing, subject to current STATUS and later owner decisions. Existing deep section references can be found in that retained file. It is not a competing execution queue.
+[AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md) and [visual references](AI_CONTEXT_CARDS_V2_REFERENCES.md) retain the approved four-card design. Personal Topic identity is supplied by PT-1.0; Context owns independent Items and access state, not a second directory or copied Topic corpus.
 
-Only conflicting VS-06/CPV1-06 outcomes and old D4/D6/D7 Context journey work are superseded by CTX4. Do not transfer their historical completion to the new slice, revive their Build/Review/Export phases, or use their compiler-only data rule to prevent the explicitly approved independent Items. Unrelated Archive, Thought Library, Prompt Reuse, recovery and service work is not redesigned, cancelled, renumbered or restarted here.
+| Phase | Retained outcome | Dependency adjustment |
+|---|---|---|
+| CPV1-CTX4-01 | Independent data + real four-card home + persistent My Information editing | Retained planned phase, not current next pointer; STATUS sequences work |
+| CPV1-CTX4-02 | Three-card direct editing and local state/navigation | CTX4-01 |
+| CPV1-CTX4-03 | Stable Personal Topic capsules and default-off access | CTX4-01/02 plus compatible Personal identity/intent contract |
+| CPV1-CTX4-04 | Trusted typed Context/Topic query and complete read-only retrieval | CTX4-01/03 plus Topic dedupe/lifecycle/scope integration |
+| CPV1-CTX4-05 | Authorized incremental extraction with human protection | CTX4-01/02; real processing service and permission |
+| CPV1-CTX4-06 | One real AI client and pause/revoke loop | CTX4-04; verified client and safe transport |
+| CPV1-CTX4-07 | Migration/retirement, 22-state visual convergence, real-use acceptance | Applicable CTX4-02-06 evidence |
 
-## Current consumer scope corrections remain controlling
+This adoption changes only affected Topic semantics/dependencies and the current next-task routing. It does not redesign or cancel Context. CTX4-05 and 06 retain their independent external prerequisites; lack of one does not justify parking unrelated local work or weakening the other's gates. Coordinate one writer at shared data boundaries.
 
-Dedicated Profile management, Thought response relations, Material Tray, candidate approval management, activity-retention settings, Product Signals and ordinary diagnostics/maintenance pages remain retired. Preserve old data, saved AI/candidates, version protection, revocation and recovery for actual faults. User API configuration and direct AI transport remain removed without reading or clearing old credentials.
+## Preserved history and nonconflicting detailed plans
 
-All content/statistics/Context exports, backup generation and dedicated sharing remain **cancelled**. CPV1-03.3 and CPV1-06.5 are cancelled; CPV1-05.3 excludes response relations and former CPV1-06.3 does not regain Profile management. Existing-file restore, integrity, deletion protection and historical import remain. Retired positive paths require refusal/no-side-effect/data-preservation coverage. An internal protected migration checkpoint is not user backup generation.
+The immediately preceding master plan is retained byte-for-byte as [MASTER_PLAN_PRE_TOPIC_2026-10-07.md](MASTER_PLAN_PRE_TOPIC_2026-10-07.md), prior blob `ff4a21631c61f43fc8ccc2157c2996691a3a1942`. Its earlier full detail lives in [MASTER_PLAN_PRE_CTX4_2026-10-07.md](MASTER_PLAN_PRE_CTX4_2026-10-07.md), prior blob `bf4b786bb0047fb1c13f56fb3dbaac8c70d72b1b`.
 
-Current AI Context execution remains disabled until safe replacement behavior is actually implemented and verified. The four-card design approval is a new product contract, not evidence of shipped functionality. New AI generation remains unavailable until its real service exists; saved results stay readable/editable. CTX4 does not authorize sync, semantic-lab work, mobile, public network exposure or store publication.
+These are retained outcome/compatibility/evidence references subject to current AUTHORITY and STATUS, not independent queues. Conflicting old Topic/AI organization/recursive hierarchy and taxonomy assumptions are superseded by PT-1.0; conflicting old Context VS-06/CPV1-06/D4/D6/D7 outcomes remain superseded by CTX4. All other source, Archive, capture, Prompt Reuse, recovery and security outcomes remain unless a later explicit decision changes them. Neither planning adoption reclassifies historical failures or certifies new behavior.
 
-## Real AI service / external gates
+## Current consumer scope and real service gates
 
-The baseline has no real paid service. Paid activation still requires real verified payment callbacks, server-side identity/entitlement, quota and an authenticated gateway, protected provider credentials, authorized input boundaries and revision-checked output. Price/quotas, payment channel/regions, provider/data-region and cost ceilings are not decided by this plan. No purchase, billing activation, credentials or fake membership success is authorized.
+Dedicated Profile management, Thought response relations, Material Tray, candidate approval, activity-retention settings, Product Signals and ordinary diagnostic pages remain retired. Preserve existing saved AI/candidate content and human/version/deletion/revocation protections. Hidden Topic candidates are internal formation state, not a revival of approval management.
 
-External client transport and processing permission are separate dependencies, not excuses to weaken Context safety or reinstate BYO provider transport. Record exact missing preconditions under the existing deferred-gate mechanism and continue only independent work. Ordinary component, transaction and test choices are engineering responsibilities, not reasons for repeated owner questions.
+Content/statistics/Context exports, backup generation and dedicated sharing remain cancelled. CPV1-03.3 and CPV1-06.5 stay cancelled; CPV1-05.3 excludes response relations. Existing-file restore/import and integrity/deletion fences remain. An internal migration recovery checkpoint is not a user backup product. BYO configuration and retired direct transport do not return, and stored credentials are not read or cleared.
 
-## Evidence and integration discipline
+### Paid AI service — not implemented
 
-Continue to use complete vertical slices and coherent integration batches. Numbered stages need not each create a separate PR/receipt cycle. Re-read main before integration; retain all failed and not-run evidence; use one writer per shared boundary and exact-head/source/release checks appropriate to the change. Independent tests, visual conformance, model fidelity and real-client evidence remain different completion classes.
+The current baseline has no real paid service. Real payment callbacks, server identity/entitlement, quota, authenticated gateway, protected credentials, bounded authorized processing and revision-checked output must exist before activation. Market/payment regions, price/currency, quotas, provider/data region and cost ceilings are unresolved. Neither automatic Topic formation direction nor CTX4 approval grants hidden recurring billing, model calls or paid retries. Do not simulate membership/purchase success.
 
-[The approved reference manifest](AI_CONTEXT_CARDS_V2_REFERENCES.md) names the 22 original states and hashes. It does not contain their private visual bytes. Missing references block affected visual work only; prose or a recreated gallery cannot substitute. No image or prototype check is a production certificate. Full Context completion requires truthful outcomes for local data, safety, automatic maintenance, a real connection and same-state production visuals.
+### Optional Semantic Lab admission
+
+PAIA organization, retrieval and Context reuse must stand without 18/144 taxonomy. Lab R&D proceeds under its own unchanged constraints/status, not as a PAIA blocker or default integration task. A future optional proposal must pass comparable no-taxonomy/18/144 downstream evaluation and explicit integration authorization. Classifier accuracy alone is insufficient. No experiment, new data access or Lab production integration is started here.
+
+## Verification and migration discipline
+
+Use [VERIFICATION.md](VERIFICATION.md), existing deferred gates and TECHNICAL_PLAN's migration receipt. Preserve Source/Input/Entry bodies and identities, all human decisions, negative membership, redirects, revisions, tombstones and authorization through bounded resumable changes. Never silently rewrite historical library organization to fit the new contract.
+
+Use production functions for mechanical tests, independent held-out tasks for semantic quality, and actual clients/devices/approved visuals for their respective claims. Synthetic and documentation checks cannot close real-service, user-value, production-visual or installation gates. Missing prerequisites are recorded exactly; related behavior stays disabled without a second workflow or weakened acceptance.
