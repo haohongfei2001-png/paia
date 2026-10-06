@@ -75,23 +75,23 @@ test('UIS-02 search is page-scoped across Archive, Reader, Thought root/topic an
 
     // One Archive document: current-document search uses documentId and never leaks another document.
     await openArchiveWindow(page,{text:'UIS02 文档甲',label:'UIS02 文档甲 is reachable from current Archive navigation'});
-    await eventually(()=>page.locator('#scope-search').isVisible(),'Archive Reader exposes its scoped search');
-    await expectSingleSearch(page,'scope-search','Archive document');
+    await eventually(()=>page.locator('#reader-scope-search').isVisible(),'Archive Reader exposes its scoped search');
+    assert.equal(await visibleSearches(page),2,'persistent Archive directory and current Reader have separate visible searches');assert.equal(await page.locator('#scope-search').isVisible(),true);assert.equal(await page.locator('#scope-search').inputValue(),'');assert.equal(await page.locator('#universal-search-open').isVisible(),false);await eventually(()=>page.locator('#reader-scope-search').isEnabled(),'Reader releases its independent query before keyboard input');
     await page.evaluate(()=>{globalThis.__uis02SearchRequests=[];const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async message=>{if(message?.type==='SEARCH_INPUTS')globalThis.__uis02SearchRequests.push(structuredClone(message.options));return send(message);};});
     await shortcut(page,'k',{metaKey:true});
-    assert.equal(await activeId(page),'scope-search','Cmd/Ctrl+K focuses current Archive document search instead of a global launcher');
-    await page.locator('#scope-search').fill('UIS02_DOC_B_TARGET');
+    assert.equal(await activeId(page),'reader-scope-search','Cmd/Ctrl+K focuses current Archive document search instead of a global launcher');
+    await page.locator('#reader-scope-search').fill('UIS02_DOC_B_TARGET');
     await eventually(async()=>/没有匹配|No matching/.test(await page.locator('#document-search-status').innerText()),'other-document input is excluded');
     assert.equal(await page.locator('.document-search-hit').count(),0,'Archive document search cannot leak another document');
-    await page.locator('#scope-search').fill('UIS02_DOC_A_TARGET');
+    await page.locator('#reader-scope-search').fill('UIS02_DOC_A_TARGET');
     await eventually(async()=>await page.locator('.document-search-hit').count()===1,'current document result appears');
     const scoped=await page.evaluate(()=>globalThis.__uis02SearchRequests.filter(x=>x?.paged===true));
     assert.ok(scoped.length>0,'document search uses the shared paged lexical coordinator');
     assert.ok(scoped.every(x=>typeof x.documentId==='string'&&x.documentId.length>0),'every Reader search request is explicitly document-scoped');
-    const queryBeforeOpen=await page.locator('#scope-search').inputValue();
+    const queryBeforeOpen=await page.locator('#reader-scope-search').inputValue();
     await page.locator('.document-search-hit').first().click();
     await eventually(async()=>await page.locator('[data-search-origin="true"]').count()===1,'search result opens exact Reader input');
-    assert.equal(await page.locator('#scope-search').inputValue(),queryBeforeOpen,'document search query survives exact-result Reader navigation');
+    assert.equal(await page.locator('#reader-scope-search').inputValue(),queryBeforeOpen,'document search query survives exact-result Reader navigation');
     assert.ok(await page.evaluate(()=>CSS.highlights?.has('paia-search')===true),'Reader keeps local match highlighting after result open');
     await page.locator('#back').click();
     await eventually(async()=>(await page.locator('#collection-panel').isVisible())&&(await page.locator('#scope-search').isEnabled()),'Reader finishes returning to Archive root before inspecting its query');

@@ -13,6 +13,11 @@ body[data-paia-space="memory"] #workspace-error:has(#error[hidden]){display:none
 @media(pointer:coarse){.context-access,.standard-button,.add-item,.context-back,.connections-link{min-height:44px}.item-menu>summary{opacity:1;min-height:44px;min-width:44px}}
 
 #memory-panel .card-summary{white-space:pre-line}
+/* Restore AppShell breathing space overridden by the retired Context preview. */
+body[data-paia-space="memory"] .workspace:has(.context-page){padding-bottom:64px}
+@media(max-width:767px){body[data-paia-space="memory"] .workspace:has(.context-page){padding-bottom:48px}}
+/* Route focus announces the noninteractive heading without an input-like box. */
+.context-head h1[tabindex="-1"]:focus{outline:none}
 .context-notice{display:flex;align-items:center;gap:12px;margin-top:16px;font:13px/22px var(--font);color:var(--muted)}
 .context-notice:empty{display:none}
 .context-notice button{color:var(--focus)}

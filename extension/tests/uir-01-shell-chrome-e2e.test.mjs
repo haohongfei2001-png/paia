@@ -16,7 +16,7 @@ async function assertShell(p){
  assert.equal(await p.locator('#primary-nav > button .ux-nav-icon').count(),2,'each root destination has one restrained icon');
  assert.equal(await p.locator('.sidebar-bottom > [data-view="settings"] .ux-nav-icon').count(),1,'Settings has its shell icon');
  assert.equal((await p.locator('#workspace-heading').textContent()).trim(),'档案');
- assert.equal(await p.locator('h1:visible').count(),1,'Archive has one visible page-level heading');
+ assert.equal(await p.locator('h1:visible').count(),0,'Archive directory has no duplicate page title');assert.equal(await p.locator('#archive-root-heading').isVisible(),false);
  assert.equal(await p.locator('#universal-search-open').isVisible(),false,'normal Archive shell has no visible global search launcher');assert.equal(await p.locator('#universal-search-open').count(),0,'obsolete launcher is removed from the DOM, not merely hidden');assert.equal(await p.locator('#scope-search').isVisible(),true,'Archive root owns the visible search box');
  assert.equal(await p.locator('#uir-revisit-row,#core-loop-home,#core-loop-return').count(),0,'legacy Revisit row and Archive home are retired');assert.equal(await p.locator('#revisit-open').isVisible(),false,'retained Revisit compatibility owner stays hidden');assert.equal(await p.locator('#archive-root-recent,#archive-root-continue').count(),0,'Archive has no recent or continue shortcut');
  assert.equal(await p.locator('#archive-root-main').count(),1);assert.equal(await p.locator('#uir-archive-assist,#uir-archive-frame').count(),0,'Archive root has no default side dashboard');assert.equal(await p.evaluate(()=>location.hash+location.search),'','UI refresh must not invent URL routes');

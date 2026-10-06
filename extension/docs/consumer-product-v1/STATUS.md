@@ -31,9 +31,9 @@ The approved visual package, independent Context Item ownership, new-Topic-defau
 
 The owner requested CPV1-CTX4-01 implementation before this Topic adoption and subsequently approved a draft PR for hosted validation. This active local Item/My Information work is preserved under the independent-work clause above; it does not replace **CPV1-TOPIC-01** as the sole next-development pointer or start CTX4-02/03/04 or Topic implementation.
 
-[Draft PR #176](https://github.com/haohongfei2001-png/paia/pull/176) is **IN_PROGRESS / NOT_CERTIFIED**. Initial implementation base: `73f07b3dbe42fdb66f89500efa87513c2da96239`; documentation reconciliation base: `238d9f9889d0af4aa02b8467f46986a4db5e4d03`. New local independent Context Items, four-card home, My Information editing and access preferences are under verification. Retired outbound/provider/export paths remain disabled. No Topic body, identity or permission owner is changed.
+[PR #176](https://github.com/haohongfei2001-png/paia/pull/176) is **IN_PROGRESS / NOT_CERTIFIED**. Initial implementation base: `73f07b3dbe42fdb66f89500efa87513c2da96239`; documentation reconciliation base: `238d9f9889d0af4aa02b8467f46986a4db5e4d03`; current Archive runtime reconciliation base: `0093c81300b8dff80b0cf00c4f2cad6130840030`. New local independent Context Items, four-card home, My Information editing and access preferences are under verification. Retired outbound/provider/export paths remain disabled. No Topic body, identity or permission owner is changed.
 
-[CTX4-01 implementation/migration record](implementation/context-cards/CTX4-01.md) records exact owners, compatibility choices, negative evidence and pending source/release browser/full-certification gates. Draft publication is not main integration, completed runtime certification, installation or release.
+[CTX4-01 implementation/migration record](implementation/context-cards/CTX4-01.md) records exact owners, compatibility choices, negative evidence and passed source/release candidate journeys. The combined fresh-main full certification and detail reading-role visual decision remain open. Draft publication is not main integration, completed runtime certification, installation or release.
 
 ## Consumer cleanup 0.12.1 — unchanged recorded runtime status
 
