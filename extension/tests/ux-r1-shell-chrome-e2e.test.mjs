@@ -42,7 +42,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   const chat={id:'ux-r1-capture',title:'UX-R1 最近收录',base:1609459200,messages:[{id:'ux-r1-message',text}]};
   await h.open(chat);await eventually(async()=>(await h.state()).records.some(row=>row.originalText===text),'real synthetic capture reaches Source');
   await p.bringToFront();await eventually(()=>p.locator('#archive-reader-navigator-slot').isVisible(),'current Archive root is visible');
-  assert.deepEqual(await p.locator('#primary-nav button').allTextContents(),['档案','思想库']);
+  assert.deepEqual(await p.locator('#primary-nav button').allTextContents(),['档案','思想库','用于 AI']);
   assert.equal((await p.locator('.sidebar-bottom [data-view="settings"]').textContent()).trim(),'设置');
   assert.equal((await p.locator('#ux-local-state').textContent()).trim(),'本机保存');
   assert.equal(await p.evaluate(()=>location.hash+location.search),'','UX-R1 history must not invent hash/query routes');
