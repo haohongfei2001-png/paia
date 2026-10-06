@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {failWorkingInputCommits} from './harness/working-input-failure.mjs';
+import {rememberArchiveDirectory,assertArchiveDirectoryUnchanged,assertBlankArchiveReader} from './harness/d7-archive-reference.mjs';
 
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 async function consent(p){const check=p.locator('#consent-check');if(!await check.isChecked())await check.check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true,'ANS-05 consent');const skip=p.locator('#onboarding-skip');if(await skip.isVisible().catch(()=>false))await skip.click();}
@@ -51,20 +52,32 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   await unassigned.click();await eventually(()=>windowButton(p,'ANS-05 B').isVisible(),'B is reachable from explicit unassigned group');
   await alpha.click();await eventually(()=>windowButton(p,'ANS-05 A').isVisible(),'Project A Window visible');
   phase='Reader navigation and history';
+  await windowButton(p,'ANS-05 A').scrollIntoViewIfNeeded();await rememberArchiveDirectory(p,'ANS root to A');await assertBlankArchiveReader(p);await mkdir('work/ans-05-navigator',{recursive:true});await p.screenshot({path:'work/ans-05-navigator/persistent-directory-before.png',fullPage:false});
   await windowButton(p,'ANS-05 A').click();await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_A_BODY'}).isVisible(),'A Reader opens');
-  assert.equal(await p.locator('#archive-navigator').isVisible(),true,'Navigator persists beside Reader');
+  assert.equal(await p.locator('#archive-navigator').isVisible(),true,'Navigator persists beside Reader');await assertArchiveDirectoryUnchanged(p,'ANS root to A');await p.screenshot({path:'work/ans-05-navigator/persistent-directory-after.png',fullPage:false});
   await eventually(async()=>await windowButton(p,'ANS-05 A').getAttribute('aria-current')==='page','active A is selected in persistent Navigator');
-  await windowButton(p,'ANS-05 B').click();await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_B_BODY'}).isVisible(),'B opens from Navigator');
+  await p.locator('#archive-navigator').hover();await p.mouse.wheel(0,120);await eventually(()=>p.locator('#archive-navigator').evaluate(node=>node.scrollTop>0),'native wheel establishes nonzero directory scroll');await windowButton(p,'ANS-05 B').scrollIntoViewIfNeeded();const selectedScroll=await rememberArchiveDirectory(p,'ANS A to B');assert.ok(selectedScroll.scrollTop>0,'selection proof includes a genuinely scrolled directory');await windowButton(p,'ANS-05 B').click();await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_B_BODY'}).isVisible(),'B opens from Navigator');await assertArchiveDirectoryUnchanged(p,'ANS A to B');
   await p.goBack();await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_A_BODY'}).isVisible(),'Back restores A');await eventually(()=>windowButton(p,'ANS-05 B').isVisible(),'Back restores previously loaded Navigator depth');
   assert.equal(await group(p,'ANS05 Project Alpha').getAttribute('aria-expanded'),'true','Back keeps expansion');
+  phase='fast switch with late selection response';
+  // Keep the real first selection response pending while native clicks finish
+  // a newer Reader navigation; a stale response must not replace its highlight.
+  await unknown.click();await eventually(async()=>await unknown.getAttribute('aria-expanded')==='false','collapse only the long fixture group before native rapid clicks');
+  await p.evaluate(documentId=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__ans05DelayedSelection={held:false,finished:false,restore:()=>{chrome.runtime.sendMessage=send;}};chrome.runtime.sendMessage=async message=>{const result=await send(message);if(message?.type==='PAIA_ARCHIVE_NAV_STATUS'&&message.page?.selectedDocumentId===documentId&&!__ans05DelayedSelection.held){__ans05DelayedSelection.held=true;await new Promise(resolve=>{__ans05DelayedSelection.release=resolve;});__ans05DelayedSelection.finished=true;}return result;};},b.id);
+  try{
+   await windowButton(p,'ANS-05 B').scrollIntoViewIfNeeded();await rememberArchiveDirectory(p,'ANS fast selection');await windowButton(p,'ANS-05 B').click();await eventually(async()=>await p.evaluate(()=>__ans05DelayedSelection.held)&&await p.locator('.library-prose').filter({hasText:'ANS05_B_BODY'}).isVisible()&&await p.locator('#scope-search').isEnabled()&&await p.locator('#archive-navigator').getAttribute('aria-busy')===null,'B opens while its selection response remains pending');
+   await windowButton(p,'ANS-05 A').click();await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_A_BODY'}).isVisible(),'newer native selection opens A');await p.evaluate(()=>__ans05DelayedSelection.release());await eventually(()=>p.evaluate(()=>__ans05DelayedSelection.finished),'older B selection response resolves');await pause(120);
+   assert.equal(await windowButton(p,'ANS-05 A').getAttribute('aria-current'),'page');assert.equal(await windowButton(p,'ANS-05 B').getAttribute('aria-current'),null);await assertArchiveDirectoryUnchanged(p,'ANS fast selection');
+  }finally{await p.evaluate(()=>{__ans05DelayedSelection.release?.();__ans05DelayedSelection.restore();});}
   phase='unsaved edit failure and retry';
   const field=p.locator('.library-prose').filter({hasText:'ANS05_A_BODY'}).first(),inputId=await field.getAttribute('data-edit-id');
   const resumeSave=await failWorkingInputCommits(h,{once:true});
-  await field.fill('ANS05_DIRTY_BUFFER 必须保留');await eventually(async()=>(await p.locator('#error').textContent()).includes('尚未保存'),'autosave failure visible');await eventually(()=>windowButton(p,'ANS-05 B').isVisible(),'Navigator survives save-failure rebuild');await windowButton(p,'ANS-05 B').click();
+  await field.fill('ANS05_DIRTY_BUFFER 必须保留');await eventually(async()=>(await p.locator('#error').textContent()).includes('尚未保存'),'autosave failure visible');await eventually(()=>windowButton(p,'ANS-05 B').isVisible(),'Navigator survives save-failure rebuild');await windowButton(p,'ANS-05 B').scrollIntoViewIfNeeded();await rememberArchiveDirectory(p,'ANS failed save');await windowButton(p,'ANS-05 B').click();
   await eventually(async()=>(await p.locator('#error').textContent()).includes('尚未保存'),'save failure visible');
-  assert.equal(await p.locator('.library-prose').filter({hasText:'ANS05_DIRTY_BUFFER'}).count(),1,'failed switch keeps dirty Reader');
+  assert.equal(await p.locator('.library-prose').filter({hasText:'ANS05_DIRTY_BUFFER'}).count(),1,'failed switch keeps dirty Reader');assert.equal(await windowButton(p,'ANS-05 A').getAttribute('aria-current'),'page','failed save keeps A selected');await assertArchiveDirectoryUnchanged(p,'ANS failed save');await p.locator('#scope-search').fill('ANS05_B_BODY');await eventually(async()=>await p.locator('#scope-search').isEnabled()&&await p.locator('#scope-search').inputValue()==='','Archive query navigation obeys the failed-save guard');await assertArchiveDirectoryUnchanged(p,'ANS failed save');assert.equal(await p.locator('.library-prose').filter({hasText:'ANS05_DIRTY_BUFFER'}).count(),1,'failed Archive query navigation retains the dirty Reader');
   await resumeSave();await p.locator('#retry').click();await eventually(async()=>(await rpc(p,'GET_INPUT',{id:inputId})).libraryText==='ANS05_DIRTY_BUFFER 必须保留','retry saves buffer');
   await windowButton(p,'ANS-05 B').click();await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_B_BODY'}).isVisible(),'switch succeeds after retry');
+  phase='close returns to blank Reader';await rememberArchiveDirectory(p,'ANS Reader closes');await p.locator('#back').click();await eventually(()=>p.locator('#collection-panel').isVisible(),'Close returns to the same directory');await assertArchiveDirectoryUnchanged(p,'ANS Reader closes');await assertBlankArchiveReader(p);await p.screenshot({path:'work/ans-05-navigator/persistent-directory-closed.png',fullPage:false});await windowButton(p,'ANS-05 B').click();await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_B_BODY'}).isVisible(),'same directory reopens B');
   phase='selection and responsive sheet';
   const prose=p.locator('.library-prose').filter({hasText:'ANS05_B_BODY'}).first();
   await prose.evaluate(el=>{el.focus();const node=el.firstChild,range=document.createRange();range.setStart(node,0);range.setEnd(node,Math.min(8,node.length));const sel=getSelection();sel.removeAllRanges();sel.addRange(range);});

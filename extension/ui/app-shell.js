@@ -59,10 +59,9 @@ export class AppShellController {
   const move=(node,host,before=undefined)=>{if(!node||!host)return;const anchor=before?.parentElement===host?before:null;if(node.parentElement===host&&(before===undefined||node.nextSibling===anchor))return;const focus=document.activeElement,retains=focus&&node.contains(focus);host.insertBefore(node,anchor);if(retains&&focus.isConnected)focus.focus({preventScroll:true});};
   for(const [id,home]of this.archiveControlHomes){
    let host=home;
-   if(root&&id==='scope-search-host')host=get('archive-root-header-actions');
+   if(active&&id==='scope-search-host')host=get('archive-root-header-actions');
    if(reader){
-    if(id==='scope-search-host')host=get(desktop?'archive-reader-search-slot':'reader-search-slot');
-    else if(id==='back')host=get('archive-reader-back-slot');
+    if(id==='back')host=get('archive-reader-back-slot');
     else if(id==='archive-navigator-toggle')host=get(compact?'archive-compact-reader-actions':desktop?'reader-compact-tools':'archive-reader-back-slot');
     else if(['input-time-order','document-menu'].includes(id))host=get(compact?'archive-compact-reader-actions':'reader-heading-actions');
     else if(id==='save-status')host=get('reader-status-slot');
@@ -71,10 +70,10 @@ export class AppShellController {
   }
   // Archive always uses the same narrow navigator. Its root leaves the reading
   // column empty; search results still use the normal collection owner.
-  move(get('archive-root-header'),root?get('archive-reader-navigator-slot'):get('archive-root-main'),root?get('archive-reader-search-slot'):get('archive-root-tools'));
-  move(get('archive-root-tools'),root?get('archive-reader-navigator-slot'):get('archive-root-main'),root?get('archive-reader-search-slot'):get('archive-root-navigator-slot'));
-  move(get('archive-root-overflow'),get(root?'archive-root-header-actions':'archive-root-tools'));
-  move(get('archive-source-scope-label'),root?get('archive-root-overflow').querySelector('.archive-root-overflow-actions'):get('archive-root-tools'));
+  move(get('archive-root-header'),active?get('archive-reader-navigator-slot'):get('archive-root-main'),active?(get('archive-root-tools')?.parentElement===get('archive-reader-navigator-slot')?get('archive-root-tools'):get('archive-reader-search-slot')):get('archive-root-tools'));
+  move(get('archive-root-tools'),active?get('archive-reader-navigator-slot'):get('archive-root-main'),active?get('archive-reader-search-slot'):get('archive-root-navigator-slot'));
+  move(get('archive-root-overflow'),get(active?'archive-root-header-actions':'archive-root-tools'));
+  move(get('archive-source-scope-label'),active?get('archive-root-overflow').querySelector('.archive-root-overflow-actions'):get('archive-root-tools'));
   for(const {node,parent,next}of this.archiveNavHomes)move(node,compact?get('archive-compact-nav-items'):parent,compact?undefined:next||null);
   move(get('archive-compact-reader-actions'),get('archive-compact-nav-items'),null);get('archive-compact-reader-actions').hidden=!(reader&&compact);
   this.archiveCompactMenu.hidden=!compact;
@@ -102,7 +101,7 @@ export class AppShellController {
  present(route,options){
   if(route.view==='settings'&&this.route.view!=='settings')this.settingsReturn=this.route;
   this.route=route;presentAppShell(document,route,options);
-  const archiveRoot=['library','archive'].includes(route.view)&&!route.documentId,heading=document.getElementById('workspace-heading'),header=document.querySelector('.workspace-header'),thoughtRoot=route.view==='thoughts'&&!route.topicId,headingHost=archiveRoot?document.getElementById('archive-root-heading'):thoughtRoot?document.getElementById('thought-root-heading'):header;
+  const archiveRoot=['library','archive'].includes(route.view),heading=document.getElementById('workspace-heading'),header=document.querySelector('.workspace-header'),thoughtRoot=route.view==='thoughts'&&!route.topicId,headingHost=archiveRoot?document.getElementById('archive-root-heading'):thoughtRoot?document.getElementById('thought-root-heading'):header;
   if(heading.parentElement!==headingHost)headingHost.prepend(heading);
   document.getElementById('input-time-order').hidden=route.view!=='library'||!route.documentId;
   const reader=!!route.documentId||route.view==='thoughts'&&!!route.topicId;

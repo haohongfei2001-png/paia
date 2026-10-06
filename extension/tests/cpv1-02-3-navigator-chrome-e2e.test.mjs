@@ -114,7 +114,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
   await white(['body','.sidebar','.workspace','#archive-navigator']);
   const rootContract=async()=>{
    assert.equal(await p.locator('input[type="search"]:visible').count(),1);
-   const tools=await p.locator('#archive-reader-search-slot').boundingBox(),tree=await p.locator('#archive-navigator').boundingBox();
+   const tools=await p.locator('#archive-root-header-actions').boundingBox(),tree=await p.locator('#archive-navigator').boundingBox();
    assert.ok(tools&&tree&&tools.y+tools.height<=tree.y,'all primary search tools precede the Project tree');
    assert.equal(await p.locator('.archive-navigator-window-cue,.archive-navigator-window-time,.archive-navigator-detail,#archive-root-recent,#archive-root-continue').count(),0);
    assert.equal(await p.locator('#archive-search-date-scope').isVisible(),false);
@@ -130,7 +130,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
   for(const [id] of duplicates){
    await p.locator(`.archive-navigator-window[data-document-id="${id}"]`).click();
    await eventually(async()=>await p.evaluate(()=>history.state?.paiaReader?.documentId)===id);
-   assert.equal(await p.locator('input[type="search"]:visible').count(),1,'Reader has one current-document search');
+   assert.equal(await p.locator('input[type="search"]:visible').count(),2,'persistent Archive search and current-document search have separate owners');assert.equal(await p.locator('#reader-scope-search').isVisible(),true);
    assert.equal(await p.locator('#scope-search').isVisible(),true);
    assert.equal(await p.locator('#document-filter-toggle,#document-search-include-filtered,.filtered-input-note').count(),0);
    await white(['body','.sidebar','.workspace','#archive-navigator']);
@@ -146,7 +146,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
    await eventually(async()=>await p.locator('.archive-navigator-window').count()===Object.keys(before).length&&await p.locator(`.archive-navigator-window[data-document-id="${id}"][aria-current="page"]`).count()===1,'Navigator completes the actual post-sort projection');
    assert.deepEqual(await labels(),before,'same-title labels survive Reader sort');
    assert.deepEqual((await h.state()).records,sources,'sorting never mutates Source');
-   await p.locator('#back').click();await eventually(()=>p.locator('#archive-reader-search-slot #scope-search').isVisible(),'Back restores the current Archive header search owner');
+   await p.locator('#back').click();await eventually(()=>p.locator('#archive-root-header-actions #scope-search').isVisible(),'Back restores the current Archive header search owner');
    await eventually(async()=>await p.locator('.archive-navigator-window').count()===Object.keys(before).length,'Navigator restores the complete root projection after Back');
    await rootContract();assert.deepEqual(await labels(),before,'same-title identity survives Reader/back');
   }
