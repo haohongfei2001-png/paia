@@ -1,3 +1,47 @@
+# Consumer cleanup 0.12.1 — delivered, paid AI remains unavailable
+
+Current status as of 2026-10-07. This entry supersedes conflicting active-work
+instructions below for the owner-approved consumer cleanup only; earlier entries
+remain historical evidence and do not reopen cancelled products or deferred gates.
+
+[PR #173](https://github.com/haohongfei2001-png/paia/pull/173) merged as
+`3809646cfdc4465e9a887cb0a650abc9e96dbd6b`. The fully certified candidate
+`541d17ef0ea5c3a76dd38ec3a095a4636f91ed80` and merged main have identical tree
+`1ab0a17404c3e50ea8f512b0dbe31aa61d73206f`. Release: **0.12.1**.
+
+| Owner requirement | Current status and remaining boundary |
+| --- | --- |
+| Multi-Profile management; explicit Thought response relations; Material Tray | COMPLETE: dedicated management/creation paths removed. Independent Thoughts, ordinary selections, reference validation and legacy data compatibility remain. |
+| Candidate approval | COMPLETE: approval UI withdrawn; existing AI/candidate content retained, staging and revision protection remain, no automatic overwrite of human edits. |
+| Audit-retention configuration; Product Signals; ordinary diagnostics | COMPLETE: dedicated settings/collection/dashboard removed; existing records retained and minimal internal auditing keeps its prior limits. Ordinary trace/usage management is absent. |
+| Integrity checks and index rebuilding | COMPLETE: underlying recovery retained, ordinary settings entry absent; recovery is offered for an actual relevant failure. |
+| BYO API credentials/configuration and direct AI transport | COMPLETE: retired entry points and calls refuse. Old credentials are neither read nor cleared by this cleanup. |
+| Content/statistics/Context export, backup generation and dedicated sharing | CANCELLED; implementation retirement COMPLETE. Old calls refuse without export side effects. Historical-file import/restore, integrity checks and deletion protection remain. Do not resume export development from historical queue entries below. |
+| AI entry points | COMPLETE: Topic reading-page AI Organize and Settings membership/AI service only; honestly unavailable. Existing saved AI remains readable/editable. AI Context execution stays disabled. |
+| Settings, popup and Archive | COMPLETE: consistent existing visual system, compact popup, quiet task-based settings; Archive opens with a narrow directory and blank reader. Explicit reading routes, unsaved edits and anchors remain protected. |
+| Favicon and visual evidence | COMPLETE for the built package and synthetic real-browser tabs; light/dark desktop/narrow source and release screenshots checked. The owner's earlier green-icon screenshot was not reproduced or attributed to cache. |
+| Retained product directions | Archive, Thought Library and AI Context direction, Passport/revocation, local search, Smart Filter, Project recognition, historical import and existing Prompt Reuse remain. Approved Topic list is retained; no new Profile, relation-graph, sync, semantic or mobile scope. |
+| Real paid AI service | NOT STARTED: payment, server-side entitlement and unified AI backend remain unimplemented. Minimum integration needs verified payment callbacks, server-side membership/quota, protected provider credentials, authorized input boundaries and staged revision-checked output. Owner decisions: market/payment channel, currency/price, quotas/cost ceiling and provider/data region. No purchase or billing activation is authorized by this status entry. |
+| User installation and store publication | Program package prepared and existing runtime program files updated with a recoverable backup. User Chrome reload/running-version confirmation remains PENDING. No store publication. |
+
+Evidence: [final candidate full certification](https://github.com/haohongfei2001-png/paia/actions/runs/37518924245),
+[candidate Prompt Reuse foundation](https://github.com/haohongfei2001-png/paia/actions/runs/37518924345),
+[exact-main integration](https://github.com/haohongfei2001-png/paia/actions/runs/37521173213),
+[exact-main Prompt Reuse foundation](https://github.com/haohongfei2001-png/paia/actions/runs/37521173234).
+All passed. Full browser certification ran against the candidate; identical-tree
+verification and final-main source/release consumer/AI browser checks support the
+release without claiming a second full browser run on main. Real-user live-provider
+acceptance and deferred gates are not implied by synthetic browser evidence.
+
+The previously unavailable local candidates were not used as completion evidence.
+An earlier STATUS upload was refused by the prior platform's disclosure review;
+its exact uncommitted candidate was unavailable. On 2026-10-07 the owner explicitly
+requested another STATUS upload attempt. This update records the now-verified
+public implementation state, preserves the existing path and historical record,
+and does not copy private design sources or archive material.
+
+---
+
 ## D7 current full-certification contract synchronization — 2026-10-05
 
 [PR170](https://github.com/haohongfei2001-png/paia/pull/170) follows through on main `80f3201d`. Its unchanged-executable baseline reproduces obsolete UI/reference assertions independently of Prompt Reuse. [The finite mapping](implementation/desktop-vnext/D7-CURRENT-CERTIFICATION.md) keeps all71 current browser files and six18-minute jobs, moving only the complete Settings file from3 to6 after measured shard3 overflow, preserves historical withdrawn contracts, and retains real data/edit/permission/recovery assertions plus current unavailable-page negatives. Corrective verification also exposed three bounded presentation gaps: AI Topic presenter remounting, compact action target specificity, and fixed title line heights under text enlargement. External PR164 and pending icon work are unchanged. Corrected exact-head full Certification and independent review are required; no full PASS or deferred functionality is claimed before those gates.
