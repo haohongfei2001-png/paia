@@ -92,7 +92,12 @@ export class ContextCardsPage {
   }else this.page.append(element('p','empty-detail',copy('此页目前不可用。开放设置已保存在本机，不会向外部提供内容。','This page is not available yet. Access preferences are saved locally; no content is shared.')));
   this.page.append(this.message);this.paintAccess();
  }
- mountItem(item,options){let group=[...this.content.querySelectorAll('.context-section')].find(x=>x.dataset.section===item.section);if(!group){group=element('section','context-section');group.dataset.section=item.section;group.append(element('h2','',item.section));this.content.insertBefore(group,this.add);}const editor=new ContextItemEditor(this,item,options);this.editors.set(item.id,editor);group.append(editor.root);return editor;}
+ mountItem(item,options){
+  const order=id=>this.snapshot.items.find(row=>row.id===id)?.order??Number.MAX_SAFE_INTEGER,targetOrder=item.order??Number.MAX_SAFE_INTEGER;
+  let group=[...this.content.querySelectorAll('.context-section')].find(x=>x.dataset.section===item.section);
+  if(!group){group=element('section','context-section');group.dataset.section=item.section;group.append(element('h2','',item.section));const following=[...this.content.querySelectorAll('.context-section')].find(section=>Math.min(...[...section.querySelectorAll('.context-item')].map(node=>order(node.dataset.item)))>targetOrder);this.content.insertBefore(group,following||this.add);}
+  const editor=new ContextItemEditor(this,item,options),following=[...group.querySelectorAll('.context-item')].find(node=>order(node.dataset.item)>targetOrder);this.editors.set(item.id,editor);group.insertBefore(editor.root,following||null);return editor;
+ }
  paintEmpty(){if(this.empty)this.empty.hidden=this.editors.size>0;for(const group of this.content?.querySelectorAll('.context-section')||[])if(!group.querySelector('.context-item'))group.remove();}
  notice(text,undo=false){this.message?.replaceChildren(element('span','',text));if(undo)this.message.append(button(copy('撤销','Undo'),()=>void this.undoDelete()));}
  async toggle(key){if(this.busy)return;this.busy=true;this.paintAccess();try{const current=this.snapshot.access[key],ack=await this.accessCommit.save({kind:'access',operationId:crypto.randomUUID(),epoch:this.snapshot.epoch,key,enabled:!current.enabled,expectedRevision:current.revision});if(!ack.result.ok||ack.change.kind!=='access'||ack.result.key!==key||ack.change.key!==key)throw Error('conflict');await this.refresh({force:true});}catch{this.unconfirmed(copy('开放设置尚未确认，请核对上次操作。','Access preference is unconfirmed. Check the previous operation.'));}finally{this.busy=false;this.paintAccess();}}
