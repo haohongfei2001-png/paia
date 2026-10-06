@@ -236,6 +236,7 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) #archive-root-h
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools{display:flex;align-items:center;gap:8px;padding:12px 0 0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #archive-reader-back-slot{display:flex;align-items:center;gap:8px;margin:0;padding:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot{margin:0 0 16px;max-width:520px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-status-slot{margin-top:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot:not(:has(.scope-search:not([hidden]))){display:none}
 
 @media(max-width:1023px){

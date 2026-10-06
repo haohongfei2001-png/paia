@@ -146,7 +146,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
    await eventually(async()=>await p.locator('.archive-navigator-window').count()===Object.keys(before).length&&await p.locator(`.archive-navigator-window[data-document-id="${id}"][aria-current="page"]`).count()===1,'Navigator completes the actual post-sort projection');
    assert.deepEqual(await labels(),before,'same-title labels survive Reader sort');
    assert.deepEqual((await h.state()).records,sources,'sorting never mutates Source');
-   await p.locator('#back').click();await eventually(()=>p.locator('#archive-root-header-actions #scope-search').isVisible(),'Back restores the current Archive header search owner');
+   await p.locator('#back').click();await eventually(async()=>await p.locator('#collection-panel').isVisible()&&await p.locator('#scope-search').isEnabled()&&await p.evaluate(()=>history.state?.paiaReader?.view==='library'&&history.state.paiaReader.documentId===null&&document.getElementById('document-panel').hidden),'Back completes the empty Reader route before checking the persistent Archive search owner');
    await eventually(async()=>await p.locator('.archive-navigator-window').count()===Object.keys(before).length,'Navigator restores the complete root projection after Back');
    await rootContract();assert.deepEqual(await labels(),before,'same-title identity survives Reader/back');
   }
