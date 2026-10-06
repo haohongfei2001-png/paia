@@ -10,13 +10,12 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 function expectedReleaseWorker(source){
- // Independently encode the three existing build_daily_use.py diagnostics-only transforms.
- const a=source.indexOf('import { ResponseDiagnostics }'),b=source.indexOf('import { OrganizerStore',a);
- assert.ok(a>=0&&b>a,'expected diagnostic import range must exist exactly');
- let expected=source.slice(0,a)+source.slice(b);
- const transforms=[[/  const responseUI =[\s\S]*?  if \(!ui && !content\)/g,"  if (content && request.type === 'RESPONSE_POLL') return {arm:false,fingerprintAllowed:false};\n  if (!ui && !content)"],[/    case 'FILTER_DIAGNOSTICS': return store.filterDiagnostics\(\);\n/g,'']];
- for(const [pattern,replacement]of transforms){assert.equal([...expected.matchAll(pattern)].length,1,'release transform occurrence');expected=expected.replace(pattern,replacement);}
- return expected;
+ // Consumer cleanup removed the old ResponseDiagnostics implementation in source.
+ // Independently allow only the remaining diagnostics dispatch removal in release.
+ assert.doesNotMatch(source,/import \{ ResponseDiagnostics \}|const responseUI =/);
+ const pattern=/    case 'FILTER_DIAGNOSTICS': return store.filterDiagnostics\(\);\n/g;
+ assert.equal([...source.matchAll(pattern)].length,1,'release transform occurrence');
+ return source.replace(pattern,'');
 }
 
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
@@ -25,7 +24,7 @@ test('ANS-04 current release artifact preserves Navigator entry modules and real
  try{
   execFileSync('python3',[join(root,'scripts/build_current_release.py'),output],{cwd:root,stdio:'pipe'});
   for(const path of ['core/idb-repository.js','core/archive-navigation-query.js','core/archive-navigation-index.js','core/archive-navigation-invalidation.js','core/read-projection-keys.js'])assert.equal(digest(await readFile(join(output,path))),digest(await readFile(join(root,path))),path+' exact release parity');
-  assert.equal(digest(await readFile(join(output,'background/service-worker.js'))),digest(expectedReleaseWorker(await readFile(join(root,'background/service-worker.js'),'utf8'))),'entire worker parity after only the frozen diagnostics transforms');
+  assert.equal(digest(await readFile(join(output,'background/service-worker.js'))),digest(expectedReleaseWorker(await readFile(join(root,'background/service-worker.js'),'utf8'))),'entire worker parity after only the current diagnostics dispatch removal');
   h=await FakeChatGPT.start({extensionPath:output,headless:true});const p=h.archive;
   await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(p,'GET_STATUS')).consented,'release consent');
