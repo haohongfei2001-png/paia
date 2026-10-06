@@ -50,7 +50,7 @@ test('New Settings copy follows active language without replacing its nodes',()=
 
 test('S01 keeps legal saved sizes, six groups and actual controls; system styling cannot activate retired Context',async()=>{
  const source=await readFile(new URL('../ui/settings-preferences.js',import.meta.url),'utf8'),css=await readFile(new URL('../ui/settings-preferences.css',import.meta.url),'utf8');
- assert.match(source,/FONT_PX=\{small:16,standard:17,large:19,xlarge:21\}/);assert.match(source,/WIDTH_PX=\{narrow:640,standard:680,wide:720\}/);assert.match(source,/for\(const \[key,zh\] of SETTINGS_GROUPS\)/);assert.match(source,/importButton.addEventListener\('click',\(\)=>\$\('settings-history'\)\?\.click\(\)\)/);assert.doesNotMatch(source,/savePreference\('(?:reducedMotion|motion)'/);assert.match(css,/\.reader-confirm:has\(\.reader-conflict-comparison\)/);assert.doesNotMatch(source,/PAIA_RECOVERY_DRAFT|PAIA_BACKUP_RESTORE|SAVE_DEEPSEEK_CREDENTIAL|AUTHORIZE/);
+ assert.match(source,/FONT_PX=\{small:16,standard:17,large:19,xlarge:21\}/);assert.match(source,/WIDTH_PX=\{narrow:640,standard:680,wide:720\}/);assert.match(source,/for\(const \[key,zh\] of SETTINGS_GROUPS\)/);assert.match(source,/move\('history-settings','data'\)/);assert.doesNotMatch(source,/savePreference\('(?:reducedMotion|motion)'/);assert.match(css,/\.reader-confirm:has\(\.reader-conflict-comparison\)/);assert.doesNotMatch(source,/PAIA_RECOVERY_DRAFT|PAIA_BACKUP_RESTORE|SAVE_DEEPSEEK_CREDENTIAL|AUTHORIZE/);
 });
 
 test('S05 uses one existing picker and cancellation owner, with local-only presentation and explicit return focus',()=>withDOM(async({get})=>{

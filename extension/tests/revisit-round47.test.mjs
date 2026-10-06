@@ -5,7 +5,7 @@ import {backupMetaAllowed} from '../core/backup-format.js';
 import {completeFixture,meta} from './harness/original-complete.mjs';
 import {capture} from './harness/thought-m1.mjs';
 import {VISIT_ROW,READING_ROW} from '../core/reader-state.js';
-import {validateProductSignal} from '../core/product-signals.js';
+import {assertFeatureAvailable} from '../core/feature-availability.js';
 
 const now=Date.parse('2026-09-12T12:00:00Z');
 
@@ -33,9 +33,7 @@ test('legacy trusted mark cannot rewind or jump past the safe v2 boundary, and c
  assert.equal(backupMetaAllowed(REVISIT_ROW),false);assert.equal(backupMetaAllowed(VISIT_ROW),false);await assert.rejects(()=>service.mark({blockSequence:6}),e=>e.code==='INVALID_REQUEST');
 });
 
-test('Revisit product signals accept only fixed enum dimensions and no private payload',()=>{
- assert.deepEqual(validateProductSignal({name:'revisit_open',dimensions:{state:'new'}}),{name:'revisit_open',dimensions:{state:'new'}});
- assert.deepEqual(validateProductSignal({name:'revisit_item_open',dimensions:{kind:'old_input'}}),{name:'revisit_item_open',dimensions:{kind:'old_input'}});
- assert.equal(validateProductSignal({name:'revisit_item_open',dimensions:{kind:'old_input'},query:'private text'}),null);
- assert.equal(validateProductSignal({name:'revisit_item_open',dimensions:{kind:'diary'}}),null);
+test('retired signals reject even old valid enum events without examining private payloads',()=>{
+ let reads=0;const signal=new Proxy({}, {get(){reads++;throw Error('must not inspect signal');}});
+ assert.throws(()=>assertFeatureAvailable({type:'PAIA_PRODUCT_SIGNAL',signal}),{code:'FEATURE_UNAVAILABLE'});assert.equal(reads,0);
 });

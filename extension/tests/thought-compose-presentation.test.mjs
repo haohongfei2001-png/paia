@@ -68,7 +68,7 @@ test('T05 preview blocks every unwired write and dismissal even if its disabled 
  assert.match(find(mount,node=>node.id==='thought-compose-preview-note').textContent,/保存与返回尚未接通/);
 }));
 
-test('T05 More retains actual Copy and response metadata without duplicating draft text',()=>withTopicActions(async f=>{
+test('T05 More retains exact Copy but cannot revive response relationship metadata',()=>withTopicActions(async f=>{
  const previous=Object.getOwnPropertyDescriptor(globalThis,'navigator'),copied=[];
  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText:async text=>copied.push(text)}}});
  try{
@@ -76,7 +76,7 @@ test('T05 More retains actual Copy and response metadata without duplicating dra
   const field=f.owner.draft,more=find(mount,node=>node.className==='thought-compose-more');
   assert.equal(more.open,false);assert.equal(named(more,'复制当前文字').disabled,undefined);
   assert.equal(f.owner.quotePreview.parentElement,more);
-  assert.equal(find(more,node=>node.className==='thought-response-choice').children[0].checked,undefined);
+  assert.equal(descendants(more).some(node=>node.className==='thought-response-choice'),false);
   field.value='\nSYNTHETIC 最新文字 👩‍💻\n';clickText(more,'复制当前文字');await tick();
   assert.deepEqual(copied,[field.value]);assert.equal(f.rpcCalls.length,1);
  }finally{if(previous)Object.defineProperty(globalThis,'navigator',previous);else delete globalThis.navigator;}
