@@ -64,23 +64,24 @@
   "d7Scope": "The old candidate marker and visual receipts remain historical. Current full certification retains these complete owner files with explicitly labelled synthetic fixture/current held-route names.",
   "d7Current": {
     "uir-03-ai-presentation-chrome-e2e.test.mjs": [
-      "D7 synthetic worker notices preserve real Stop and stale refusal (release)",
-      "D7 synthetic worker notices preserve real Stop and stale refusal (source)",
-      "UIR-03 Organized presentation uses saved clues and true runtime states without hidden Provider work in source and built release Chrome (synthetic worker fixture)",
-      "VS-05 long Topic remains interactive across a held AI request, navigation and restrained/reduced motion in source and built release (synthetic worker fixture)"
+      "D7 retired worker launch cannot create pending work or replace saved AI (release)",
+      "D7 retired worker launch cannot create pending work or replace saved AI (source)",
+      "UIR-03 saved Organized presentation remains readable and editable while retired Provider commands refuse in source and release",
+      "VS-05 long Topic remains interactive across refused AI, navigation and reduced motion in source and release"
     ],
     "ux-r5-ai-organize-chrome-e2e.test.mjs": [
-      "UX-R5 ON-01 current B-02 refusal; historical Source purge invalidates source-bound output without regeneration (synthetic worker fixture)",
-      "UX-R5 ON-01 current held scope preserves Local-only refusal with zero requests",
-      "UX-R5 ON-01 keeps Original readable, scopes generation to one Topic and reuses cache without provider calls (synthetic worker fixture)",
-      "UX-R5 ON-01 leaving during first generation never duplicates the request or navigates back (synthetic worker fixture)"
+      "UX-R5 ON-01 Local-only and external-access refusal cannot authorize a Provider",
+      "UX-R5 ON-01 Original and saved AI remain readable; switching never generates",
+      "UX-R5 ON-01 historical Source purge invalidates saved source-bound AI without regeneration",
+      "UX-R5 ON-01 unavailable first generation cannot start or reopen a Topic after leaving"
     ],
     "uir-03-ai-candidate-chrome-e2e.test.mjs": [
-      "D7 synthetic saved candidate preserves literal text, decisions and reading preferences (release)",
-      "D7 synthetic saved candidate preserves literal text, decisions and reading preferences (source)",
-      "UIR-03 candidate comparison keeps current work distinct, stages choices locally and fails closed when stale in source and built release Chrome (synthetic worker fixture)",
-      "VS-05 all six authored AI lists and deliberate empty overview survive collapsed/hidden panes and route reopen in source and built release (synthetic worker fixture)",
-      "VS-05 held Write and synthetic worker fixture preserve cross-Conversation Source and human candidate work in source and built release"
+      "D7 saved candidate preserves literal text and reading preferences without approval controls (release)",
+      "D7 saved candidate preserves literal text and reading preferences without approval controls (source)",
+      "UIR-03 saved candidate stays distinct and read-only; current edits make it stale without adoption in source and release",
+      "VS-05 all six authored AI lists and deliberately empty overview survive hidden panes in source and release",
+      "VS-05 saved candidate and source evidence survive refused generation and human edits in source and release"
     ]
-  }
+  },
+  "consumerRetirement": "Current owner decision retires provider launches and candidate approval. Historical names stay in before/after; current cases retain saved content, refusal, version and privacy coverage."
 }
