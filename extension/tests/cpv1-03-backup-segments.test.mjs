@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {BackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.js';
+import {BackupSegmentWriter as RetiredBackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.js';
+import {BackupSegmentWriter} from './harness/historical-backup-segments.mjs';
 import {backupSegmentRows} from '../ui/backup.js';
 import {BackupService} from './harness/historical-backup.mjs';
 import {BACKUP_LIMITS,BackupValidator,backupHash} from '../core/backup-format.js';
@@ -9,7 +10,7 @@ import {exported,prepared} from './harness/backup-v081.mjs';
 
 const named=(name,blob)=>Object.assign(new Blob([blob]),{name});
 
-test('segmented backup keeps complete rows in bounded parts and verifies every part before restore',async()=>{
+test('historical synthetic segmented backup keeps complete rows in bounded parts and verifies every part before restore',async()=>{
  const files=[],rows=[{type:'header'},...Array.from({length:30},(_,index)=>({
   type:'item',section:'inputs',value:{id:`input-${index}`,text:'中文 text'},
  })),{type:'footer'}];
@@ -47,7 +48,7 @@ test('a missing, altered, or duplicated part cannot be accepted',async()=>{
  await assert.rejects(()=>verifyBackupSegments(manifest,[damaged,...files.slice(1)]));
 });
 
-test('interrupted segment output never produces a completion manifest',async()=>{
+test('historical fixture interrupted segment output never produces a completion manifest',async()=>{
  let calls=0;
  const writer=new BackupSegmentWriter({
   name:'PAIA-Backup-fixture',maxBytes:128,
@@ -62,7 +63,7 @@ test('interrupted segment output never produces a completion manifest',async()=>
  await assert.rejects(()=>writer.add({type:'footer'}));
 });
 
-test('footer is required before publishing a segmented backup',async()=>{
+test('historical fixture footer is required before publishing a segmented backup',async()=>{
  const writer=new BackupSegmentWriter({
   name:'PAIA-Backup-fixture',maxBytes:128,onSegment:async()=>{},
  });
@@ -196,3 +197,9 @@ test('orphan thought relations are omitted from export and rejected in a signed 
  await assert.rejects(()=>prepared(service,tampered),error=>error?.code==='BACKUP_INVALID');
  assert.equal((await rows(target.s,'thoughts')).length,0);
 });
+
+ test('current segmented export rejects before creating a file or invoking a callback',()=>{
+ let calls=0;
+ assert.throws(()=>new RetiredBackupSegmentWriter({name:'retired',onSegment(){calls++;}}),{code:'FEATURE_UNAVAILABLE'});
+ assert.equal(calls,0);
+ });
