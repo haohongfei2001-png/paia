@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
@@ -22,10 +22,10 @@ function popupPresentation(native=false){
  const w=native?chrome.extension.getViews({type:'popup'}).find(view=>view.location.pathname==='/ui/popup.html'):window;
  if(!w)throw Error('Native action popup closed before presentation inspection');
  const d=w.document,style=selector=>w.getComputedStyle(d.querySelector(selector)),rect=selector=>{const r=d.querySelector(selector).getBoundingClientRect();return {width:r.width,height:r.height,top:r.top,bottom:r.bottom};};
- const logo=d.querySelector('header img'),summary=d.querySelector('#prompt-reuse-diagnostics > summary'),disclosure=w.getComputedStyle(summary,'::after');
+ const logo=d.querySelector('header img'),summary=d.querySelector('#prompt-reuse-diagnostics > summary'),glyph=summary.querySelector('svg[data-paia-icon="chevron-right"]'),disclosure=w.getComputedStyle(glyph);
  return {theme:d.documentElement.dataset.paiaTheme,font:style('body').fontFamily,canvas:style('body').backgroundColor,text:style('body').color,secondary:style('.count .subtle').color,primary:style('#open-archive').backgroundColor,onPrimary:style('#open-archive').color,pause:style('#toggle-capture').backgroundColor,pauseHovered:d.querySelector('#toggle-capture').matches(':hover:not(:disabled)'),update:style('.update-status').backgroundColor,line:style('.update-status').borderTopColor,controlRadius:style('#open-archive').borderRadius,
   logo:{source:logo?.getAttribute('src'),loaded:!!logo?.complete&&logo.naturalWidth===32,width:logo?.width,height:logo?.height,decorative:logo?.getAttribute('alt')===''},
-  disclosure:{content:disclosure.content,width:disclosure.width,border:disclosure.borderRightStyle,transform:disclosure.transform},summary:rect('#prompt-reuse-diagnostics > summary'),primaryRect:rect('#open-archive'),updateRect:rect('.update-status'),order:[...d.querySelectorAll('main > details')].map(details=>details.id)};
+  disclosure:{width:disclosure.width,height:disclosure.height,stroke:glyph.getAttribute('stroke-width'),hidden:glyph.getAttribute('aria-hidden'),focusable:glyph.getAttribute('focusable'),path:glyph.querySelector('path').getAttribute('d'),transform:disclosure.transform},summary:rect('#prompt-reuse-diagnostics > summary'),primaryRect:rect('#open-archive'),updateRect:rect('.update-status'),order:[...d.querySelectorAll('main > details')].map(details=>details.id)};
 }
 function assertPopupPresentation(value,theme){
  const palette=theme==='dark'?{canvas:'rgb(23, 29, 40)',text:'rgb(232, 237, 247)',secondary:'rgb(176, 189, 208)',primary:'rgb(148, 186, 255)',onPrimary:'rgb(23, 29, 40)',update:'rgb(32, 41, 57)',line:'rgb(48, 59, 76)'}:{canvas:'rgb(255, 255, 255)',text:'rgb(23, 35, 60)',secondary:'rgb(99, 114, 138)',primary:'rgb(35, 93, 211)',onPrimary:'rgb(255, 255, 255)',update:'rgb(244, 246, 250)',line:'rgb(230, 235, 242)'};
@@ -35,7 +35,7 @@ function assertPopupPresentation(value,theme){
  assert.match(value.font,/Noto Sans CJK SC.*PingFang SC.*Microsoft YaHei.*system-ui/,'popup shares the main UI font stack');
  assert.deepEqual(value.logo,{source:'assets/paia-logo-32.png',loaded:true,width:32,height:32,decorative:true},'the compact header uses the actual existing PAIA logo');
  assert.equal(value.controlRadius,'6px','buttons share the main UI control shape');
- assert.equal(value.disclosure.content,'""');assert.equal(value.disclosure.width,'6px');assert.equal(value.disclosure.border,'solid');assert.notEqual(value.disclosure.transform,'none','native details show their disclosure affordance');
+ assert.equal(value.disclosure.width,'18px');assert.equal(value.disclosure.height,'18px');assert.equal(value.disclosure.stroke,'1.4');assert.equal(value.disclosure.hidden,'true');assert.equal(value.disclosure.focusable,'false');assert.equal(value.disclosure.path,'M6 4l5 5-5 5');
  assert.ok(value.summary.height>=40,'diagnostics remain a usable disclosure target');
  assert.ok(value.primaryRect.height>=44&&value.primaryRect.bottom<=value.updateRect.top,'the main action precedes the quieter update section');
  assert.equal(value.order[0],'prompt-reuse-diagnostics','retained Prompt Reuse diagnostic precedes optional internal tools');
@@ -98,6 +98,23 @@ async function closeNativePopup(p){await p.evaluate(()=>{for(const view of chrom
 const nativeArtifactDir='work/bounded-popup';
 const errorDetails=error=>({name:error?.name||'Error',message:String(error?.message||error),stack:error?.stack||null});
 const artifactJSON=(name,data)=>writeFile(`${nativeArtifactDir}/${name}.json`,JSON.stringify(data,null,2)+'\n');
+
+// Opt-in hosted evidence only: one raw Xvfb frame includes Chrome's own toolbar.
+// The existing popup target screenshots remain the functional/geometry evidence.
+async function captureNativeBrowserFrame(h){
+ assert.equal(process.env.CI,'1','whole-window capture is limited to the synthetic hosted fixture');
+ assert.equal(process.platform,'linux');assert.ok(process.env.DISPLAY,'the existing Xvfb display is required');
+ const display=await h.archive.evaluate(()=>({width:screen.width,height:screen.height,pixelRatio:devicePixelRatio,icons:chrome.runtime.getManifest().action.default_icon}));
+ const report={status:'PENDING',kind:'synthetic-hosted-browser-window',headSha:h.nativeEvidenceHead,viewportEmulation:null,display,file:'native-browser-window-active.png'};
+ await artifactJSON('native-browser-window-active',report);
+ try{
+  await execFileAsync('/usr/bin/import',['-window','root',`${nativeArtifactDir}/${report.file}`],{timeout:5000});
+  const png=await readFile(`${nativeArtifactDir}/${report.file}`);
+  assert.ok(png.length>24&&png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));
+  assert.equal(png.readUInt32BE(16),display.width);assert.equal(png.readUInt32BE(20),display.height);
+  report.status='captured';report.bytes=png.length;await artifactJSON('native-browser-window-active',report);return report;
+ }catch(error){report.status='FAIL';report.error=errorDetails(error);await artifactJSON('native-browser-window-active',report);throw error;}
+}
 
 // Public Playwright CDPSession.send cannot address an arbitrary target session
 // directly. This documented nested CDP transport handles popup targets that
@@ -181,7 +198,7 @@ function assertNativeGeometry(value,label){
 }
 
 test('Bounded native action popup has intrinsic width, readable count labels and reachable diagnostics',{timeout:90000},async()=>{
- let h,headSha=null;const states=[];let currentState='startup';
+ let h,headSha=null,nativeBrowserFrame=null;const states=[];let currentState='startup';
  await mkdir(nativeArtifactDir,{recursive:true});
  try{
   headSha=(await execFileAsync('git',['rev-parse','HEAD'],{cwd:process.cwd()})).stdout.trim();
@@ -193,6 +210,7 @@ test('Bounded native action popup has intrinsic width, readable count labels and
   const capture=async(name,options)=>{currentState=name;const report=await captureNativeEvidence(h,name,options);states.push({name,screenshot:report.screenshot.file,geometry:report.geometry,presentation:report.presentation,target:report.target,countEvidence:report.countEvidence});assertPopupPresentation(report.presentation,'light');return report.geometry;};
   currentState='unconsented';await openNativePopup(h);let value=await capture(currentState);assertNativeGeometry(value,'unconsented');assert.equal(value.count,'0');assert.equal(value.consent,false);assert.equal(value.toggleHidden,true);assert.equal(value.active,false);assert.equal(value.background,'rgb(255, 255, 255)');await closeNativePopup(p);
   currentState='active';await consent(p);await openNativePopup(h);value=await capture(currentState);assertNativeGeometry(value,'active');assert.equal(value.active,true);assert.equal(value.toggleHidden,false);assert.match(value.toggleText,/暂停/);
+  if(process.env.PAIA_NATIVE_BROWSER_FRAME==='1')nativeBrowserFrame=await captureNativeBrowserFrame(h);
   currentState='paused';await p.evaluate(()=>chrome.extension.getViews({type:'popup'})[0].document.querySelector('#toggle-capture').click());
   await eventually(async()=>(await rpc(p,'GET_STATUS')).enabled===false,'native popup pauses through real handler');
   await eventually(async()=>(await nativePopupSnapshot(p)).active===false,'native popup paints paused state');value=await capture(currentState);assertNativeGeometry(value,'paused');assert.match(value.toggleText,/恢复/);
@@ -212,7 +230,7 @@ test('Bounded native action popup has intrinsic width, readable count labels and
   assert.ok(value.scrollY>0&&diagnostics.y>=0&&diagnostics.bottom<=value.height+1,'last diagnostic action is reachable by vertical scrolling');
   assertNativeGeometry(value,'scrolled diagnostics');
   await closeNativePopup(p);await assertNoNetwork(h);
-  await artifactJSON('acceptance',{status:'PASS',headSha,kind:'native-action-popup',states,viewportEmulation:null});
+  await artifactJSON('acceptance',{status:'PASS',headSha,kind:'native-action-popup',states,viewportEmulation:null,nativeBrowserFrame});
  }catch(error){
   const failure={status:'FAIL',headSha,expectedHeadSha:process.env.PAIA_TESTED_HEAD||null,state:currentState,states,error:errorDetails(error)};
   if(h){try{await captureNativeEvidence(h,'failure-current',{countEvidence:'inspect state metadata; may contain DOM presentation stress',failure});}catch(captureError){failure.artifactError=errorDetails(captureError);}}

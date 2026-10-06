@@ -1,4 +1,5 @@
 import {request,element} from './common.js';
+import {setIconLabel} from './icons.js';
 
 const $=id=>document.getElementById(id);
 const copy=(zh,en)=>document.documentElement.lang==='en'?en:zh;
@@ -217,7 +218,7 @@ export class ArchiveNavigator{
    if(groups.coverage.state!=='complete'){section.append(element('p','archive-navigator-loading',copy('正在读取来源分组…','Loading source groups…')));this.tree.append(section);continue;}
    for(const group of groups.items){
     const groupBox=element('div','archive-navigator-group'),row=element('div','archive-navigator-group-row'),open=this.state.expandedFor(group),key=navigatorGroupKey(group.providerKey,group.groupKind,group.projectRef);
-    const expand=element('button','archive-navigator-group-toggle',groupName(group));expand.type='button';expand.dataset.ansNavKey='group:'+key;expand.setAttribute('aria-expanded',String(open));expand.addEventListener('click',()=>void this.toggleGroup(group));row.append(expand);
+    const expand=element('button','archive-navigator-group-toggle');setIconLabel(expand,'chevron-right',groupName(group),{labelClass:'archive-navigator-group-label',iconClass:'archive-navigator-group-icon'});expand.type='button';expand.dataset.ansNavKey='group:'+key;expand.setAttribute('aria-expanded',String(open));expand.addEventListener('click',()=>void this.toggleGroup(group));row.append(expand);
     groupBox.append(row);
     if(group.parentSourceStatus==='confirmed_deleted')groupBox.append(element('p','archive-navigator-source-state',copy('来源 Project 已删除；PAIA 内容保留','Source Project deleted; PAIA content retained')));
     if(open){

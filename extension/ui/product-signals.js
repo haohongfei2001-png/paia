@@ -1,7 +1,10 @@
 import {request} from './common.js';
 import {copyReadingText} from './reading-actions.js';
 import {normalizeUXPreferences,resolveAppearance} from './ux-r1-state.js';
+import {setIconLabel} from './icons.js';
 const $=id=>document.getElementById(id);
+setIconLabel($('local-tools-back'),'back',$('local-tools-back').textContent);
+for(const summary of document.querySelectorAll('details > summary'))setIconLabel(summary,'chevron-right',summary.textContent,{side:'end',iconClass:'local-tools-disclosure-icon'});
 let snapshot=null,passportSnapshot={grants:[],audits:[]},memoryStatus=null,packagePreview=null,busy=false,uxPreferences=normalizeUXPreferences();
 const appearanceMedia=globalThis.matchMedia?.('(prefers-color-scheme: dark)');
 function applyAppearance(value){uxPreferences=normalizeUXPreferences(value);document.documentElement.dataset.paiaTheme=resolveAppearance(uxPreferences.appearance,appearanceMedia?.matches);}

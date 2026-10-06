@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "extension/ui/assets/paia-logo-32.png": {
+      "sha256": "6e487abdab45de5f5dbec02f2a05098797616e949c409c93082a4e0488194065",
+      "dimensions": [
+        32,
+        32
+      ]
+    },
+    "extension/ui/assets/paia-logo-64.png": {
+      "sha256": "8ceeec4a7044006eda727ab25fe420a594ce2abb1c4c428204ed9f653f007863",
+      "dimensions": [
+        64,
+        64
+      ]
+    }
+  },
+  "desktop_asset_manifest": "extension/docs/consumer-product-v1/desktop-vnext/assets/manifest.json",
+  "source_description": "The exact existing Desktop logo assets used by the main UI. No website variant or new artwork.",
+  "generation": {
+    "script": "extension/scripts/build_brand_icons.py",
+    "pillow_version": "12.3.0",
+    "operation": "32px is copied byte-exact. 16px uses the32px asset;48px and128px use the64px asset. Full-canvas RGB LANCZOS scaling only, with no crop, redraw, recolor, sharpening or added transparency.128px is an honest2x upscale of the existing64px source, not higher-resolution artwork.",
+    "png": {
+      "optimize": false,
+      "compress_level": 9
+    },
+    "runtime_dependency": false
+  },
+  "outputs": {
+    "extension/icons/icon16.png": {
+      "source": "extension/ui/assets/paia-logo-32.png",
+      "dimensions": [
+        16,
+        16
+      ],
+      "sha256": "1a94003f30c5a2ca34fa5c50a19b8348ac81576b65b6e2f55fb6ad576da722cb"
+    },
+    "extension/icons/icon32.png": {
+      "source": "extension/ui/assets/paia-logo-32.png",
+      "dimensions": [
+        32,
+        32
+      ],
+      "sha256": "6e487abdab45de5f5dbec02f2a05098797616e949c409c93082a4e0488194065"
+    },
+    "extension/icons/icon48.png": {
+      "source": "extension/ui/assets/paia-logo-64.png",
+      "dimensions": [
+        48,
+        48
+      ],
+      "sha256": "eefe83f130c9f97b488c8bc76fbf36d1ecd86c3163f1b4f94f3a6a5819176983"
+    },
+    "extension/icons/icon128.png": {
+      "source": "extension/ui/assets/paia-logo-64.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "3ebd7ebbfa5a62efdf73350fd098f90ef03f2b546a7edc3c0999b51346f41888"
+    }
+  }
+}

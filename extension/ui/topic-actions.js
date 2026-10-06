@@ -3,12 +3,13 @@ import {thoughtCopy as tc} from './thought-copy.js';
 import {request,element} from './common.js';
 import {copyReadingText} from './reading-actions.js';
 import {createThoughtComposeNodes,mountThoughtComposePresentation,composeCopy} from './thought-compose-presentation.js';
+import {setIconLabel} from './icons.js';
 const op=()=>crypto.randomUUID();
 const creationResult=result=>{if(!result||typeof result.id!=='string'||!result.id.length||result.id.length>200){const error=Error('UNAVAILABLE');error.code='UNAVAILABLE';throw error;}return result;};
 const uncertainResult=error=>['MESSAGE_CHANNEL_INTERRUPTED','UNAVAILABLE','TIMEOUT','WORKER_INTERRUPTED'].includes(error?.code);
-const button=(text,run)=>{const b=element('button','',text);b.type='button';b.onclick=()=>void run();return b;};
+const button=(text,run,icon)=>{const b=element('button','',text);if(icon)setIconLabel(b,icon,text);b.type='button';b.onclick=()=>void run();return b;};
 export class TopicActions {
- constructor({flush,notify,onThought,onTopic}){Object.assign(this,{flush,notify,onThought,onTopic});this.dialog=element('dialog','topic-action-dialog');this.dialog.id='topic-action-dialog';this.dialog.setAttribute('aria-labelledby','topic-action-title');document.body.append(this.dialog);this.dialog.addEventListener('cancel',e=>{e.preventDefault();this.close();});this.dialog.addEventListener('paia:request-close',e=>{e.preventDefault();this.close();});window.addEventListener('beforeunload',e=>{if(this.draft?.value.trim()){e.preventDefault();e.returnValue='';}});chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'&&this.quotePreview&&!['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS','RECORD_TOPIC_READ','SET_THOUGHT_REVERSE_EDIT'].includes(m.cause)){this.quotePreview.remove();this.quotePreview=null;}if(m.type==='ARCHIVE_CHANGED'&&this.comparing&&!['UPDATE_PREFERENCES','RECORD_TOPIC_READ','SET_ORGANIZER_CONTROLS','SET_THOUGHT_REVERSE_EDIT'].includes(m.cause)){this.dialog.replaceChildren(element('p','',tc('内容已变化，请重新打开核对。')),button(tc('关闭'),()=>this.close()));this.comparing=false;}});}
+ constructor({flush,notify,onThought,onTopic}){Object.assign(this,{flush,notify,onThought,onTopic});this.dialog=element('dialog','topic-action-dialog');this.dialog.id='topic-action-dialog';this.dialog.setAttribute('aria-labelledby','topic-action-title');document.body.append(this.dialog);this.dialog.addEventListener('cancel',e=>{e.preventDefault();this.close();});this.dialog.addEventListener('paia:request-close',e=>{e.preventDefault();this.close();});window.addEventListener('beforeunload',e=>{if(this.draft?.value.trim()){e.preventDefault();e.returnValue='';}});chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'&&this.quotePreview&&!['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS','RECORD_TOPIC_READ','SET_THOUGHT_REVERSE_EDIT'].includes(m.cause)){this.quotePreview.remove();this.quotePreview=null;}if(m.type==='ARCHIVE_CHANGED'&&this.comparing&&!['UPDATE_PREFERENCES','RECORD_TOPIC_READ','SET_ORGANIZER_CONTROLS','SET_THOUGHT_REVERSE_EDIT'].includes(m.cause)){this.dialog.replaceChildren(element('p','',tc('内容已变化，请重新打开核对。')),button(tc('关闭'),()=>this.close(),'close'));this.comparing=false;}});}
  beginOpen(){return this.openIntent=(this.openIntent||0)+1;}
  currentSurface(owner){return !!owner&&this.surface===owner;}
  leave(){if(!this.surface){this.beginOpen();return true;}return this.close();}
@@ -21,7 +22,7 @@ export class TopicActions {
   if(!this.close())return false;
   this.trigger=document.activeElement;const head=element('header'),heading=element('h2','',title);heading.id='topic-action-title';this.feedback=element('p','topic-action-feedback');this.feedback.setAttribute('role','status');this.content=element('div','topic-action-content');
   const owner={content:this.content,feedback:this.feedback,trigger:this.trigger,pendingChoices:0,submitPending:false};this.surface=owner;
-  head.append(heading,button(tc('关闭'),()=>this.close(false,owner)));this.dialog.append(head,owner.content,owner.feedback);this.dialog.showModal();return true;
+  head.append(heading,button(tc('关闭'),()=>this.close(false,owner),'close'));this.dialog.append(head,owner.content,owner.feedback);this.dialog.showModal();return true;
  }
  openComposePreview(host){
   if(!host?.isConnected||host.tagName==='DIALOG'||host.getAttribute?.('role')==='dialog')throw new TypeError('Compose preview requires a connected ordinary workspace host.');

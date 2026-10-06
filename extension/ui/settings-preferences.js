@@ -1,6 +1,7 @@
 import {request,diagnosticText} from './common.js';
 import {normalizeUXPreferences,resolveAppearance,resolveLanguage,SETTINGS_GROUPS} from './ux-r1-state.js';
 import {ArchiveOrderSettings} from './archive-order-settings.js';
+import {setIconLabel} from './icons.js';
 
 const $=id=>document.getElementById(id);
 const FONT_PX={small:16,standard:17,large:19,xlarge:21};
@@ -48,7 +49,7 @@ function preferenceSelect(id,labelText,options,key){const label=node('label','se
 function syncPreferenceControls(){for(const [id,key] of [['ux-appearance','appearance'],['ux-language','language'],['ux-font-size','fontSize'],['ux-reading-width','readingWidth']]){const el=$(id);if(el&&document.activeElement!==el)el.value=String(uxPreferences[key]);}}
 function setupSettingsShell(){
  const panel=$('settings-panel');if(!panel||$('ux-settings-shell'))return;
- const shell=node('div','ux-settings-shell');shell.id='ux-settings-shell';const head=node('header','ux-settings-header'),back=button(copy('‹ 返回','‹ Back'),'ux-settings-back'),title=copyNode('h1','','设置','Settings'),feedback=node('p','ux-settings-feedback');back.id='ux-settings-back';title.id='ux-settings-title';feedback.id='ux-settings-feedback';feedback.setAttribute('role','status');back.addEventListener('click',()=>onBack());const subtitle=copyNode('p','ux-settings-subtitle','偏好不会改变原始内容。','Preferences do not change your original content.');subtitle.id='ux-settings-subtitle';head.append(back,title,subtitle,feedback);
+ const shell=node('div','ux-settings-shell');shell.id='ux-settings-shell';const head=node('header','ux-settings-header'),back=button('','ux-settings-back'),title=copyNode('h1','','设置','Settings'),feedback=node('p','ux-settings-feedback');const backLabel=setIconLabel(back,'back',copy('返回','Back'));backLabel.dataset.settingsZh='返回';backLabel.dataset.settingsEn='Back';back.id='ux-settings-back';title.id='ux-settings-title';feedback.id='ux-settings-feedback';feedback.setAttribute('role','status');back.addEventListener('click',()=>onBack());const subtitle=copyNode('p','ux-settings-subtitle','偏好不会改变原始内容。','Preferences do not change your original content.');subtitle.id='ux-settings-subtitle';head.append(back,title,subtitle,feedback);
  const layout=node('div','ux-settings-layout'),nav=node('nav','ux-settings-nav'),body=node('div','ux-settings-body');nav.setAttribute('aria-label',copy('设置分组','Settings groups'));const groups=new Map(),tabs=new Map();
  const groupEnglish={content:'Content & capture',reading:'Reading & appearance',ai:'AI',privacy:'Privacy & external use',data:'Data & devices',advanced:'Advanced'};
  const mobileSwitch=node('label','ux-settings-mobile-switch'),mobileSwitchLabel=copyNode('span','','当前分组','Current group'),mobileSelect=node('select');mobileSelect.id='ux-settings-group-switch';mobileSelect.setAttribute('aria-label',copy('切换设置分组','Switch settings group'));mobileSwitch.append(mobileSwitchLabel,mobileSelect);nav.append(mobileSwitch);

@@ -192,6 +192,9 @@ jobs:
             extension/work/qa-dvn-topic-content/d7/*-1440-light-top-production.png
             extension/work/qa-dvn-topic-content/d7/*-768-light-top-production.png
             extension/work/qa-dvn-topic-content/d7/*-320-light-top-production.png
+            extension/work/qa-dvn-topic-content/*-return-diagnostic.json
+            extension/work/qa-dvn-topic-content/*-return-paths.json
+            extension/work/qa-dvn-topic-content/*-return-failure.png
           if-no-files-found: warn
           retention-days: 14
 

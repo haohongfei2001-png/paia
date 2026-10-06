@@ -1,5 +1,6 @@
 // History owns a transient comparison and confirmation inside the existing
 // modal. The caller's existing DocumentEditor remains the sole write owner.
+import {setIconLabel} from './icons.js';
 export function appendWorkingRevision({container,entry,read,restore,isCurrent,tc,dateLabel,onError}){
  const make=(tag,cls='',text='')=>{const node=document.createElement(tag);node.className=cls;node.textContent=text;return node;};
  const row=make('section','revision-row'),reason={migration:'迁移初始版本',baseline:'初始版本',edit:'编辑',title_edit:'标题编辑',major_edit:'重大编辑',remove:'整条删除',restore:'恢复'};
@@ -25,7 +26,7 @@ export function appendWorkingRevision({container,entry,read,restore,isCurrent,tc
     const commit=make('button','',tc('确认恢复这个工作版本')),cancel=make('button','',tc('取消'));
     commit.type=cancel.type='button';let submitting=false,failed=false;
     const feedback=make('p','working-history-feedback');feedback.setAttribute('role','alert');feedback.hidden=true;
-    const failedSave=message=>{failed=true;feedback.hidden=false;feedback.textContent=message+' '+tc('请关闭修改历史后核对保存结果。');cancel.textContent=tc('关闭修改历史');cancel.onclick=()=>container.closest('dialog').close();onError(message);};
+    const failedSave=message=>{failed=true;feedback.hidden=false;feedback.textContent=message+' '+tc('请关闭修改历史后核对保存结果。');setIconLabel(cancel,'close',tc('关闭修改历史'));cancel.onclick=()=>container.closest('dialog').close();onError(message);};
     cancel.onclick=()=>{confirmation.remove();button.focus({preventScroll:true});};
     commit.onclick=async()=>{
      if(submitting||!isCurrent())return;submitting=true;commit.disabled=cancel.disabled=true;

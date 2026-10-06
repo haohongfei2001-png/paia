@@ -1,4 +1,5 @@
 import {editableTextSnapshot} from './editable-text.js';
+import {setIconOnly} from './icons.js';
 import {request,element} from './common.js';
 import {copyReadingText} from './reading-actions.js';
 import {captureReaderSelection,readerToolbarPosition,sameReaderSelection} from './reader-selection.js';
@@ -68,7 +69,7 @@ export class ReaderExperience {
  mountRows(body){
   for(const section of body.querySelectorAll('.library-block')){
    const prose=section.querySelector('.library-prose');if(!prose)continue;
-   const actions=element('div','reader-margin-actions'),more=element('button','reader-more','···');more.setAttribute('aria-label',readerCopy('这条输入的更多操作','More actions for this input'));more.onclick=()=>{this.lastInput=section.dataset.blockId;const r=more.getBoundingClientRect();this.menu(section.dataset.blockId,r.left,r.bottom);};
+   const actions=element('div','reader-margin-actions'),more=element('button','reader-more');setIconOnly(more,'more',readerCopy('这条输入的更多操作','More actions for this input'));more.onclick=()=>{this.lastInput=section.dataset.blockId;const r=more.getBoundingClientRect();this.menu(section.dataset.blockId,r.left,r.bottom);};
    actions.append(more);section.append(actions);
    if(!this.expanded.has(prose.dataset.editId)&&prose.getBoundingClientRect().height>innerHeight*1.5){const expand=element('button','reader-expand',readerCopy(`展开全文 · 约 ${[...prose.innerText].length} 字`,`Expand full text · ${[...prose.innerText].length} characters`));prose.classList.add('reader-collapsed');expand.onclick=()=>this.expand(prose);section.append(expand);}
   }

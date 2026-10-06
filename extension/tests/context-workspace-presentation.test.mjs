@@ -36,7 +36,7 @@ class Node {
 function withPreview(run){
  const names=['document','chrome','fetch','localStorage','navigator','indexedDB'],saved=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)]));
  const body=new Node('body'),host=new Node('section'),headerHost=new Node('header');body.append(headerHost,host);
- globalThis.document={body,documentElement:{lang:'zh-CN'},activeElement:null,createElement:tag=>new Node(tag)};
+ globalThis.document={body,documentElement:{lang:'zh-CN'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>Object.assign(new Node(tag),{namespaceURI:namespace})};
  for(const name of ['chrome','localStorage','navigator','indexedDB'])Object.defineProperty(globalThis,name,{configurable:true,value:new Proxy({}, {get(){throw Error('Design preview must not access '+name);}})});globalThis.fetch=()=>{throw Error('Design preview must not access network');};
  const model={purpose:'Synthetic design task',materials:[{id:'first',title:'Synthetic title',body:'Synthetic selected passage',meta:'Synthetic source label'}],suggestions:[{id:'extra',body:'Synthetic suggested passage'}],output:{purpose:'Synthetic output purpose',sections:[{title:'Synthetic section',paragraphs:['Exact first paragraph','Exact second paragraph'],meta:'Synthetic provenance'}]}};
  try{return run({host,headerHost,model,preview:mountContextWorkspacePreview({host,headerHost,model})});}

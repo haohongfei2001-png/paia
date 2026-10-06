@@ -2,20 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {BackupPanel} from '../ui/backup.js';
+import {PresentationNode} from './harness/presentation-dom.mjs';
 
-class Node {
- constructor(registry){this.registry=registry;this.dataset={};this.children=[];this.attributes=new Map();this.textContent='';this.hidden=false;this.value='';this.checked=false;this.disabled=false;}
- append(...nodes){this.children.push(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
- prepend(...nodes){this.children.unshift(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
- setAttribute(name,value){this.attributes.set(name,value);}
+class Node extends PresentationNode {
+ constructor(registry,tag='div',namespaceURI){super(tag,namespaceURI);this.registry=registry;this.checked=false;this.disabled=false;}
+ append(...nodes){super.append(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
+ prepend(...nodes){super.prepend(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
  getAttribute(name){return this.attributes.get(name);}
- removeAttribute(name){this.attributes.delete(name);}
- focus(){document.activeElement=this;}
- addEventListener(){}
 }
 async function withDOM(run){
  const names=['document','navigator','chrome'],prior=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)])),nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,new Node(nodes));return nodes.get(id);};
- Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:{documentElement:{lang:'zh-CN'},createElement:()=>new Node(nodes),addEventListener(){},getElementById:get}});
+ Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:{documentElement:{lang:'zh-CN'},createElement:tag=>new Node(nodes,tag),createElementNS:(namespace,tag)=>new Node(nodes,tag,namespace),addEventListener(){},getElementById:get}});
  Object.defineProperty(globalThis,'navigator',{configurable:true,writable:true,value:{language:'zh-CN'}});
  Object.defineProperty(globalThis,'chrome',{configurable:true,writable:true,value:new Proxy({}, {get(){throw Error('Read-only presentation cannot access extension services');}})});
  try{await run({get,nodes});}finally{for(const [name,descriptor]of prior)if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];}

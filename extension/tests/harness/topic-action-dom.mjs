@@ -1,21 +1,15 @@
 import assert from 'node:assert/strict';
 import {TopicActions} from '../../ui/topic-actions.js';
+import {PresentationNode,presentationText} from './presentation-dom.mjs';
 
-class Element {
- constructor(tag){this.tagName=tag.toUpperCase();this.children=[];this.listeners=new Map();this.value='';this.textContent='';this.open=false;this.dataset={};}
- append(...nodes){for(const node of nodes){node.parentElement=this;this.children.push(node);}}
- replaceChildren(...nodes){for(const node of this.children)node.parentElement=null;this.children=[];this.append(...nodes);}
- setAttribute(key,value){this[key]=value;}
- addEventListener(type,listener){this.listeners.set(type,listener);}
+class Element extends PresentationNode {
+ constructor(tag,namespaceURI){super(tag,namespaceURI);this.open=false;}
  showModal(){this.open=true;}
  close(){this.open=false;}
- get isConnected(){return this===document.body||this.parentElement?.isConnected===true;}
- remove(){if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(node=>node!==this);this.parentElement=null;}
- focus(){document.activeElement=this;}
 }
 export const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function fixture(){
- globalThis.document={body:new Element('body'),documentElement:{lang:'zh-CN'},createElement:tag=>new Element(tag),createTextNode:text=>Object.assign(new Element('#text'),{textContent:text}),activeElement:null};globalThis.window={addEventListener(){}};globalThis.confirm=()=>true;
+ globalThis.document={body:new Element('body'),documentElement:{lang:'zh-CN'},createElement:tag=>new Element(tag),createElementNS:(namespace,tag)=>new Element(tag,namespace),createTextNode:presentationText,activeElement:null};globalThis.window={addEventListener(){}};globalThis.confirm=()=>true;
  const calls=[],rpcCalls=[],held=[];globalThis.chrome={runtime:{onMessage:{addListener(){}},sendMessage:message=>{rpcCalls.push(structuredClone(message));if(message.type==='CONTINUE_THINKING')calls.push(structuredClone(message.thought));return new Promise(resolve=>held.push(resolve));}}};
  const owner=new TopicActions({flush:async()=>true,notify(){}});await owner.compose();
  const save=()=>owner.content.children.find(node=>node.tagName==='BUTTON'&&node.textContent==='保存想法');
