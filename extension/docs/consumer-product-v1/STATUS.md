@@ -6,9 +6,11 @@ As of 2026-10-07, the owner explicitly approved the four-card AI Context design 
 
 - DESIGN: OWNER_APPROVED.
 - DOCUMENTATION: plan and authority routing recorded by this documentation-only change.
-- RUNTIME: NOT_STARTED_BY_THIS_TASK; the existing 0.12.1 AI Context runtime remains disabled.
-- NEXT AI CONTEXT TASK: **CPV1-CTX4-01 — independent Context data + real four-card home + persistent My Information editing vertical slice**, when implementation is requested.
+- RUNTIME: CPV1-CTX4-01 IN_PROGRESS / NOT_CERTIFIED after the owner’s explicit implementation request. The new local four-card/My Information candidate is under independent review and verification; retired Context execution/outbound paths remain disabled.
+- NEXT AI CONTEXT TASK: **CPV1-CTX4-01 — independent Context data + real four-card home + persistent My Information editing vertical slice**, currently in implementation. This remains the unique next task until its required gates pass.
 - No new runtime writer, paid request, credential access, external connection, installation or public release is started by this entry.
+
+Implementation base: `73f07b3dbe42fdb66f89500efa87513c2da96239`; sole writer branch `codex/cpv1-ctx4-01`. [Owner mapping, additive-storage contract and current evidence](implementation/context-cards/CTX4-01.md). No integration or completion is claimed yet.
 
 The sole next-task pointer for this slice is here. The plan is its detailed specification, not a second execution queue. CTX4-02 through CTX4-07 are PLANNED. CTX4-05 requires an authorized real processing service; CTX4-06 requires a verified real client and safe transport. Missing external dependencies do not park independent local work. No prototype or historical PASS closes any of these new phases.
 
