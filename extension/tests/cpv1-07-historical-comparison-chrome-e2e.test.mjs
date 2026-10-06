@@ -22,6 +22,10 @@ const searchReady=async p=>eventually(async()=>{
  return !(await root.locator('.universal-results').getAttribute('aria-busy'))
   && await root.getAttribute('data-query')==='HISTORY_COMPARE'&&await root.locator('.universal-hit').count()===4;
 },'complete actual historical query');
+const noTray=async p=>{
+ assert.equal(await p.locator('.universal-selection,.universal-hit input[type=checkbox]').count(),0,'retired material selection stays absent');
+ assert.equal(await p.getByRole('button',{name:'全选全部结果',exact:true}).count(),0,'retired whole-result enumeration stays unreachable');
+};
 const selectTwo=async p=>{
  await p.getByRole('button',{name:'选择并置',exact:true}).nth(0).click();
  await p.getByRole('button',{name:'选择并置',exact:true}).nth(0).click();
@@ -157,7 +161,7 @@ test('VS07 historical paging refuses changed generations without mixing old comp
   await p.getByRole('searchbox',{name:'全局搜索'}).fill('HISTORY_PAGE');
   await eventually(async()=>await p.locator('.universal-hit').count()===40
    &&!await p.locator('.universal-results').getAttribute('aria-busy'),'first finite page');
-  await p.locator('.universal-hit input[type=checkbox]').first().check();
+  await noTray(p);
   await selectTwo(p);
   await p.evaluate(()=>{
    const send=chrome.runtime.sendMessage.bind(chrome.runtime);
@@ -178,7 +182,7 @@ test('VS07 historical paging refuses changed generations without mixing old comp
   await eventually(async()=>(await p.locator('.universal-status').textContent()).includes('范围刚有变化'));
   assert.equal(await p.locator('.historical-comparison').count(),0);
   assert.equal(await p.locator('.universal-hit').count(),0,'no mixed-generation old or new page');
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'),'explicit material selection retained');
+  await noTray(p);
   const all=(await h.state()).records;
   assert.deepEqual(all.filter(r=>sources.some(s=>s.id===r.id)),sources);
   await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');
@@ -209,13 +213,13 @@ async function searchLifetimeFixture(){
   await p.getByRole('searchbox',{name:'全局搜索'}).fill('SEARCH_LIFETIME');
   await eventually(async()=>await p.locator('.universal-hit').count()===40
    &&!await p.locator('.universal-results').getAttribute('aria-busy'),'first exact page');
-  await p.locator('.universal-hit input[type=checkbox]').first().check();
+  await noTray(p);
   return {h,p,sources,texts};
  }catch(error){await h.close();throw error;}
 }
 
 for(const boundary of ['query','filter','page'])
-test('VS07 search read failure clears unchecked '+boundary+' results and preserves explicit selection',
+test('VS07 search read failure clears '+boundary+' results with retired material selection absent',
  {timeout:180000},async()=>{
  const {h,p,sources}=await searchLifetimeFixture();
  try{
@@ -243,7 +247,7 @@ test('VS07 search read failure clears unchecked '+boundary+' results and preserv
   assert.equal(await p.locator('.universal-hit').count(),0);
   assert.equal(await p.locator('.historical-comparison').count(),0);
   assert.equal(await p.locator('#universal-search-dialog').getAttribute('data-query'),null);
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await noTray(p);
   assert.equal(await p.getByRole('button',{name:'下一页',exact:true}).count(),0);
   assert.equal(await p.getByRole('button',{name:'继续按时间读取',exact:true}).count(),0);
   // A localization render cannot turn the failed scope back into old healthy hits.
@@ -264,7 +268,7 @@ test('VS07 search read failure clears unchecked '+boundary+' results and preserv
 });
 
 for(const outcome of ['success','failure'])
-test('VS07 superseded whole-result enumeration '+outcome+' cannot release a newer search fence',
+test('VS07 superseded historical query '+outcome+' cannot release a newer search fence',
  {timeout:180000},async()=>{
  const {h,p,sources}=await searchLifetimeFixture();
  try{
@@ -290,8 +294,9 @@ test('VS07 superseded whole-result enumeration '+outcome+' cannot release a newe
     }return result;
    };
   },outcome);
-  await p.getByRole('button',{name:'全选全部结果',exact:true}).click();
-  await eventually(()=>p.evaluate(()=>globalThis.__oldLifetimeStarted),'old actual enumeration held');
+  await noTray(p);
+  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');
+  await eventually(()=>p.evaluate(()=>globalThis.__oldLifetimeStarted),'old actual query held');
   await p.getByRole('searchbox',{name:'全局搜索'}).fill('SEARCH_LIFETIME 合成独立原文 1');
   await eventually(()=>p.evaluate(()=>globalThis.__newLifetimeStarted),'new actual query held');
   assert.equal(await p.locator('.universal-hit').count(),0,'new scope immediately retires old hits');
@@ -300,18 +305,17 @@ test('VS07 superseded whole-result enumeration '+outcome+' cannot release a newe
   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   assert.deepEqual(await p.evaluate(()=>({
    busy:document.querySelector('.universal-results').getAttribute('aria-busy'),
-   selection:document.querySelector('.universal-selection').inert,
    paging:document.querySelector('.universal-pagination').inert,
    results:document.querySelector('.universal-results').inert,
    confirms:globalThis.__lifetimeConfirmations,
-  })),{busy:'true',selection:true,paging:true,results:true,confirms:0});
+  })),{busy:'true',paging:true,results:true,confirms:0});
   assert.ok((await p.locator('.universal-status').textContent()).includes('正在查找本机文字'));
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await noTray(p);
   await p.evaluate(()=>globalThis.__releaseNewLifetime());
   await eventually(async()=>await p.locator('.universal-hit').count()===11
    &&!await p.locator('.universal-results').getAttribute('aria-busy'),'new actual scope completes');
   assert.equal(await p.locator('#universal-search-dialog').getAttribute('data-query'),'SEARCH_LIFETIME 合成独立原文 1');
-  assert.equal(await p.locator('.universal-selection').evaluate(el=>el.inert),false);
+  await noTray(p);
   assert.equal(await p.evaluate(()=>globalThis.__lifetimeConfirmations),0);
   assert.deepEqual((await h.state()).records,sources);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
@@ -395,7 +399,7 @@ test('VS07 current search real edit retires '+visibility+' results and refreshes
    'actual edited current body published');
   await currentReady(p);
   assert.ok((await p.locator('.universal-results').textContent()).includes('CURRENT_REFRESH_ONLY'));
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await noTray(p);
   await assertCurrentFullAuthority(fixture);
  }finally{await h.close();}
 });
@@ -431,11 +435,10 @@ test('VS07 current edit fences an older actual query '+outcome+' without releasi
   assert.deepEqual(await p.evaluate(()=>({
    busy:document.querySelector('.universal-results').getAttribute('aria-busy'),
    inert:document.querySelector('.universal-results').inert,
-   selection:document.querySelector('.universal-selection').inert,
    paging:document.querySelector('.universal-pagination').inert
-  })),{busy:'true',inert:true,selection:true,paging:true});
+  })),{busy:'true',inert:true,paging:true});
   assert.ok((await p.locator('.universal-status').textContent()).includes('正在查找本机文字'));
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await noTray(p);
   await p.evaluate(()=>globalThis.__releaseCurrentNew());await currentReady(p);
   assert.ok((await p.locator('.universal-results').textContent()).includes('CURRENT_REFRESH_ONLY'));
   await assertCurrentFullAuthority(fixture);
@@ -460,7 +463,7 @@ test('VS07 current mutation refresh failure stays unavailable through localizati
   assert.equal(await p.locator('.universal-hit').count(),0);
   assert.equal(await p.locator('#universal-search-dialog').getAttribute('data-query'),null);
   assert.equal(await p.locator('.universal-pagination button:not([hidden])').count(),0);
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await noTray(p);
   await p.evaluate(()=>{document.documentElement.lang='en';});await frames(p);
   assert.equal(await p.locator('.universal-hit').count(),0);
   assert.ok((await p.locator('.universal-status').textContent()).includes('当前范围未能查完'));
@@ -489,7 +492,7 @@ test('VS07 current unlabelled eligibility completion rereads while benign notifi
   await notifyCurrent(h,undefined);
   await eventually(()=>p.evaluate(()=>globalThis.__currentReadCount===1),'actual unlabelled notification reread');
   await currentReady(p);
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await noTray(p);
   assert.deepEqual((await h.state()).records,sources);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
@@ -518,7 +521,7 @@ test('VS07 current mutation during composition retires results without searching
   assert.equal(await p.locator('.universal-hit').count(),0);
   assert.equal(await p.locator('#universal-search-dialog').getAttribute('data-query'),null);
   assert.equal(await p.locator('.universal-results').getAttribute('aria-busy'),'true');
-  assert.equal(await p.locator('.universal-selection').evaluate(el=>el.inert),true);
+  await noTray(p);
   await p.evaluate(()=>document.querySelector('.universal-search-box input')
    .dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'已完成'})));
   await currentReady(p);
@@ -529,7 +532,7 @@ test('VS07 current mutation during composition retires results without searching
 });
 
 for(const outcome of ['success','failure'])
-test('VS07 current edit cancels whole-result enumeration '+outcome+' without confirmation or old selection expansion',
+test('VS07 current edit cancels an older query '+outcome+' without confirmation or retired selection revival',
  {timeout:180000},async()=>{
  const fixture=await currentLifetimeFixture(),{h,p,block}=fixture;
  try{
@@ -544,8 +547,7 @@ test('VS07 current edit cancels whole-result enumeration '+outcome+' without con
    chrome.runtime.sendMessage=async(...args)=>{
     const result=await send(...args),o=args[0]?.options;
     if(args[0]?.type==='SEARCH_INPUTS'&&o?.universal&&o.mode==='current'&&o.query==='SEARCH_LIFETIME'){
-     if(o.limit===40&&!globalThis.__currentEnumStarted
-       &&document.querySelector('.universal-status').textContent==='正在枚举全部结果…'){
+     if(o.limit===40&&!globalThis.__currentEnumStarted){
       globalThis.__currentEnumStarted=true;await globalThis.__currentEnumGate;globalThis.__currentEnumDone=true;
       return mode==='failure'?{ok:false,error:'STORAGE_FAILED'}:result;
      }
@@ -553,16 +555,17 @@ test('VS07 current edit cancels whole-result enumeration '+outcome+' without con
     }return result;
    };
   },outcome);
-  await p.getByRole('button',{name:'全选全部结果',exact:true}).click();
+  await noTray(p);
+  await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');
   await eventually(()=>p.evaluate(()=>globalThis.__currentEnumStarted));
   await editCurrent(p,block);
   await eventually(()=>p.evaluate(()=>globalThis.__currentRefreshStarted));
   await p.evaluate(()=>globalThis.__releaseCurrentEnum());
   await eventually(()=>p.evaluate(()=>globalThis.__currentEnumDone));await frames(p);
   assert.equal(await p.evaluate(()=>globalThis.__currentConfirmations),0);
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await noTray(p);
   assert.equal(await p.locator('.universal-results').getAttribute('aria-busy'),'true');
-  assert.equal(await p.locator('.universal-selection').evaluate(el=>el.inert),true);
+  await noTray(p);
   assert.equal(await p.locator('.universal-pagination').evaluate(el=>el.inert),true);
   await p.evaluate(()=>globalThis.__releaseCurrentRefresh());await currentReady(p);
   assert.equal(await p.evaluate(()=>globalThis.__currentConfirmations),0);
@@ -631,7 +634,7 @@ test('VS07 current real capture replaces loaded generation without mixing old pa
   const nextExpected=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,cursor:first.data.nextCursor}});
   assert.equal(nextExpected.changed,false);assert.equal(nextExpected.generation,whole.generation);
   assert.equal(nextExpected.items.length,3,'actual bounded production next page retains all three remaining inputs');
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'));
+  await noTray(p);
   const beforeNext=await p.evaluate(()=>globalThis.__captureUIReads.length);
   await p.getByRole('button',{name:'下一页',exact:true}).click();
   await eventually(()=>p.evaluate(n=>globalThis.__captureUIReads.length>n,beforeNext),
@@ -675,7 +678,7 @@ test('VS07 current real capture replaces loaded generation without mixing old pa
   assert.deepEqual(await p.locator('.universal-hit').evaluateAll(rows=>rows.map(row=>row.dataset.materialKey)),
    refreshed.data.items.map(item=>materialKey(item.ref)),'UI contains exactly the fresh first page, with no mixed stale tail');
   assert.deepEqual((await h.state()).records,all,'all43 complete immutable Sources survive concurrent Working edit');
-  assert.ok((await p.locator('.universal-selection').textContent()).includes('(1)'),'explicit selection survives real invalidation');
+  await noTray(p);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);
   assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
