@@ -24,7 +24,7 @@ export async function retainedContextFixture({variant='allowed',long=false}={}){
   await t.put('meta',profileDefault());
   await t.put('meta',{...profileDefault(),id:key('profile','historical'),profileId:'historical',name:'Historical profile',instruction:'Synthetic saved instruction',revision:7});
   await t.put('meta',{id:key('topic','default',topic.id),kind:'topic',version:1,profileId:'default',topicId:topic.id,decision:variant==='denied'?'denied':variant==='never'?'never':'allowed',layoutGeneration:topic.activeLayoutGeneration});
-  await t.put('meta',{id:'product-signals-v1',version:1,enabled:true,daily:{'2026-01-01':{'synthetic':3}}});
+  await t.put('meta',{id:'product-signals:v1',version:1,enabled:true,daily:{'2026-01-01':{'synthetic':3}}});
  });
  const passport=new PassportService(s),grant=await passport.create({consumer:'chatgpt',purpose:'research',profileId:'default',duration:variant==='once'?'once':'7d'});
  if(variant==='revoked')await passport.revoke(grant.grantId);

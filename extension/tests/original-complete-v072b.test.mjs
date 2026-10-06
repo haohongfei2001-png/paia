@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {completeFixture,chineseInputs,sessionStorage,response,success,append,rows,meta} from './harness/original-complete.mjs';
 import {inputEdit} from './harness/thought-m1.mjs';
-import {organizerNetworkGuard} from '../background/organizer-network.js';
+import {organizerNetworkGuard} from './harness/historical-organizer-network.mjs';
 import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from './harness/historical-provider.mjs';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 import {bindBudgetSession,BudgetPolicy} from '../core/organizer/budget.js';

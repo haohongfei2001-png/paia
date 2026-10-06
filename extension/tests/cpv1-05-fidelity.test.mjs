@@ -3,8 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {completeFixture,append,rows,meta,response} from './harness/original-complete.mjs';
-import {AI_LIST_FIELDS,AI_TEXT_LIMITS,aiSynthesisPrompt} from '../core/organizer/ai-contract.js';
-import {DeepSeekOrganizerProvider} from './harness/historical-provider.mjs';
+import {AI_LIST_FIELDS,AI_TEXT_LIMITS} from '../core/organizer/ai-contract.js';
+import {aiSynthesisPrompt,DeepSeekOrganizerProvider} from './harness/historical-provider.mjs';
 import {AIPresentationRunner,aiPresentationStatus,editAIPresentation} from '../core/organizer/ai-presentation.js';
 
 const corpus=JSON.parse(await readFile(new URL('./fixtures/vs05-fidelity-v1.json',import.meta.url),'utf8'));
