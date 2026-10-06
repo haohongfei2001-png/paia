@@ -1,4 +1,7 @@
+import {assertFeatureAvailable} from '../core/feature-availability.js';
 export const STATUS_LABELS = Object.freeze({
+  FEATURE_UNAVAILABLE: '此功能已停用，已有资料仍保留',
+  AI_SERVICE_UNAVAILABLE: 'AI 服务尚未上线，已有整理内容仍可查看',
   SOURCE_PURGE_OWNER_GATE: '删除边界尚未确定，没有删除材料或恢复草稿',
   REMOVAL_SCOPE_UNAVAILABLE: '无法完整核对移出范围，尚未移出任何内容',
   SOURCE_PURGE_UNAVAILABLE: '无法完整核对删除范围，没有删除材料',
@@ -15,17 +18,17 @@ export const STATUS_LABELS = Object.freeze({
   CAPTURE_FAILED: '捕获未完成，请刷新 ChatGPT 后重试',
   MESSAGE_TOO_LARGE: '文字超出单条存储限制，已跳过',
   CONTEXT_INVALIDATED: '扩展已更新，请刷新 ChatGPT 标签页',
-  STORAGE_FULL: '存储空间不足，请先导出备份，再管理原始档案',
+  STORAGE_FULL: '存储空间不足，请保留现有资料并检查本机可用空间',
   STORAGE_FAILED: '本地保存失败，请重试',
   INVALID_REQUEST: '操作内容无效，未保存',
   FORBIDDEN: '此操作不被允许',
   STALE_CAPTURE: '已丢弃暂停或旧启用状态下的捕获',
   UNAVAILABLE: '扩展暂时不可用，请重新打开此页面',
-  CREDENTIAL_FAILURE: '请先在 Settings 配置 DeepSeek API Key',
+  CREDENTIAL_FAILURE: 'AI 服务尚未上线',
   RATE_LIMIT: '服务限流，请稍后重试',
   TIMEOUT: '连接超时，请重试',
   CANCELLED: '连接已取消',
-  INVALID_CREDENTIAL: 'API Key 无效或无权限',
+  INVALID_CREDENTIAL: 'AI 服务暂不可用',
   RATE_LIMITED: '请求受限，请稍后重试',
   PROVIDER_TIMEOUT: 'DeepSeek 响应超时，当前内容保留',
   PROVIDER_BAD_REQUEST: 'Provider 请求格式无效',
@@ -33,7 +36,7 @@ export const STATUS_LABELS = Object.freeze({
   PROVIDER_UNAVAILABLE: 'DeepSeek 暂时无法处理请求，当前内容保留',
   NETWORK_ERROR: '网络连接失败',
   INVALID_PROVIDER_OUTPUT: '服务响应异常',
-  NO_CREDENTIAL: '未配置 API Key',
+  NO_CREDENTIAL: 'AI 服务尚未上线',
   REQUEST_NOT_SENT: '请求尚未发送',
   SPAN_VALIDATION_FAILED: '原文引用位置无效',
   BASE_CHANGED: '输入或组织已变化，请重试',
@@ -74,6 +77,7 @@ export function statusLabel(code) {
 
 export async function request(type, fields = {}) {
   try {
+    assertFeatureAvailable({type,...fields});
     const response = await chrome.runtime.sendMessage({ type, ...fields });
     if (response?.ok) return response.data;
     const code = typeof response?.error==='string'&&/^[A-Z][A-Z0-9_]{1,63}$/.test(response.error) ? response.error : 'UNAVAILABLE';
