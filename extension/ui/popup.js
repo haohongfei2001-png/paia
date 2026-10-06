@@ -1,4 +1,4 @@
-import { request, enabledLabel } from './common.js';
+import { request, enabledLabel, statusLabel } from './common.js';
 import { normalizeUXPreferences, resolveAppearance } from './ux-r1-state.js';
 import { recoveryGuidance } from './recovery-guidance.js';
 import { setIconLabel } from './icons.js';

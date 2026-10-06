@@ -20,7 +20,7 @@ export class MemoryPanel {
   if(revoke)revoke.disabled=this.busy;
  }
  feedback(text,state='ready'){const el=$('memory-settings-status');if(el){setProductState(el,state);el.textContent=text;}}
- async perform(fn){try{return await fn();}catch{this.feedback(copy('操作未完成，请重试。已保存的设置保持不变。','Could not complete the action. Saved settings are unchanged.'),'failed');return null;}}
+ async perform(fn){try{return await fn();}catch{this.feedback(copy('操作未全部完成，请重试。','The action did not finish. Please retry.'),'failed');return null;}}
  leave(){return true;}
  activate(active){this.active=active===true;}
  invalidate(){this.serial++;}
