@@ -38,7 +38,7 @@ export class AppShellController {
   document.getElementById('thought-topic-header').append(document.getElementById('topic-search'));
   this.installArchivePresentation();
   installUniversalSearch();installRevisit();
-  installSettingsPreferences({back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,contextCard:this.settingsReturn.contextCard,returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
+  installSettingsPreferences({back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,...(this.settingsReturn.contextCard?{contextCard:this.settingsReturn.contextCard}:{}),returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
   const optional=document.createElement('small');optional.className='ux-consent-optional';document.getElementById('consent-check').closest('.consent-checkbox').append(optional);
   document.addEventListener('paia:preferences-applied',()=>this.localize());
   this.localize();
