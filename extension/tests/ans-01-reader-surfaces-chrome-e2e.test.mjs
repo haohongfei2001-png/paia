@@ -70,7 +70,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
     assert.equal(await p.locator('.core-loop-reuse').count(),0,'persistent per-Input material action is removed');
     const first=p.locator('.library-prose').filter({hasText:'ANS01_FIRST'}).first();
     await first.click({button:'right'});
-    assert.equal(await p.locator('#context-menu button').filter({hasText:'加入本次材料'}).count(),1,'Input more menu retains its explicit material entry');
+    assert.equal(await p.locator('#context-menu button').filter({hasText:'加入本次材料'}).count(),0,'retired Tray has no Input action');
     await p.keyboard.press('Escape').catch(()=>{});
     await p.mouse.click(10,10);
     await first.evaluate(el=>{
@@ -78,7 +78,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
       const selection=getSelection();selection.removeAllRanges();selection.addRange(range);document.dispatchEvent(new Event('selectionchange'));
     });
     await eventually(()=>p.locator('.reader-selection').isVisible(),'native text selection opens the retained toolbar');
-    assert.equal(await p.locator('.reader-selection').getByRole('button',{name:'加入本次材料',exact:true}).count(),1,'native selected-text material entry remains present');
+    assert.equal(await p.locator('.reader-selection').getByRole('button',{name:'加入本次材料',exact:true}).count(),0,'temporary native selection does not reopen the retired Tray');
     await p.evaluate(()=>getSelection()?.removeAllRanges());
 
     const failureAnchorText=await p.locator('.library-prose').first().textContent();
@@ -154,7 +154,7 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
   }finally{await h.close();}
 });
 
-test('ANS-01 Topic menu keeps the 200-item boundary and unavailable Context cannot create a selection',{timeout:300000},async()=>{
+test('ANS-01 Topic menus keep small and 201-item libraries intact with every Tray launcher absent',{timeout:300000},async()=>{
   const h=await FakeChatGPT.start();
   try{
     const p=h.archive;
@@ -180,15 +180,8 @@ test('ANS-01 Topic menu keeps the 200-item boundary and unavailable Context cann
     await eventually(()=>p.locator('#topic-menu summary').isVisible(),'small topic reader opens');
     assert.equal(await p.locator('#topic-material-select').count(),0,'whole-topic material action is not a toolbar surface');
     await p.locator('#topic-menu summary').click();
-    const choose=p.locator('#topic-menu button').filter({hasText:'选择本主题材料'});
-    assert.equal(await choose.count(),1,'whole-topic selection is retained in the topic menu');
-    await settleContextCapture(h);const snapshotOptions={thoughtIds:[thoughtA.id,thoughtB.id,...bigThoughtIds]},before=await contextSafetySnapshot(p,snapshotOptions);await observeContextEffects(p);
-    p.once('dialog',dialog=>dialog.accept());
-    await choose.click();
-    await eventually(()=>p.evaluate(()=>globalThis.__currentContextEffects.unavailable===1),'confirmed Topic menu action reports Context unavailable');
-    await assertNoContextSession(p);
-    assert.deepEqual(await contextSafetySnapshot(p,snapshotOptions),before,'Topic selection changes no Source, Thought, authorization or session');
-    await assertContextUnavailable(p);
+    assert.equal(await p.locator('#topic-menu button').filter({hasText:'选择本主题材料'}).count(),0,'whole-Topic Tray launcher is removed');
+    await p.keyboard.press('Escape');await settleContextCapture(h);const snapshotOptions={thoughtIds:[thoughtA.id,thoughtB.id,...bigThoughtIds]},before=await contextSafetySnapshot(p,snapshotOptions);await observeContextEffects(p);await assertContextUnavailable(p);
     await openRetainedSearchComponent(p,{types:['input','thought','ai']});
     await p.getByRole('searchbox',{name:'全局搜索'}).fill('ANS01_ARCHIVE_TARGET');
     await eventually(async()=>await p.locator('.universal-hit').count()===1,'internal material search still finds Input');
@@ -201,13 +194,8 @@ test('ANS-01 Topic menu keeps the 200-item boundary and unavailable Context cann
     await p.locator('[data-topic-id]').filter({hasText:'ANS01 大主题'}).click();
     await eventually(()=>p.locator('#topic-menu summary').isVisible(),'large topic opens');
     await p.locator('#topic-menu summary').click();
-    let unexpectedDialog=false;
-    p.once('dialog',async dialog=>{unexpectedDialog=true;await dialog.dismiss();});
-    await p.locator('#topic-menu button').filter({hasText:'选择本主题材料'}).click();
-    await eventually(async()=>!await p.locator('#notice').isHidden()&&(await p.locator('#notice').textContent()).includes('超过本次 200 项保护上限'),'large topic gives bounded-selection notice');
-    assert.equal(unexpectedDialog,false,'over-limit selection does not ask to confirm a truncated set');
-    await assertNoContextSession(p);assert.equal(await p.evaluate(()=>globalThis.__currentContextEffects.unavailable),1,'over-limit guard refuses before the disabled Context action');
-    assert.deepEqual(await contextSafetySnapshot(p,snapshotOptions),before,'201-item refusal keeps all 203 Thoughts and Source data unchanged');
+    assert.equal(await p.locator('#topic-menu button').filter({hasText:'选择本主题材料'}).count(),0,'large Topic cannot reopen a Tray or truncate a selection');
+    await assertNoContextSession(p);assert.deepEqual(await contextSafetySnapshot(p,snapshotOptions),before,'removed launcher preserves all 203 Thoughts and Source data');
     await assertNoContextEffects(p,h);
 
     assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);

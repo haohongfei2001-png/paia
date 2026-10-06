@@ -12,7 +12,7 @@ const rpc=async(page,type,fields={})=>{const r=await page.evaluate(m=>chrome.run
 async function consent(h){
  const p=h.archive;await eventually(async()=>!await p.locator('#enable-consent').isDisabled());await p.locator('#enable-consent').click();
  await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);
- await eventually(()=>p.locator('#onboarding-skip').isVisible());await p.locator('#onboarding-skip').click();
+ assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'Archive root stays blank; optional history import belongs to Settings');
  await rpc(p,'FILTER_MODE',{mode:'off'});
 }
 async function journey(extensionPath){

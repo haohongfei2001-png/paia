@@ -38,7 +38,7 @@ test('audit Reader search refreshes edited/removed content, drops stale replies,
  }finally{await h.close();}
 });
 
-test('audit legacy Thought continuation preserves fresh quote and revision while the ordinary compose entry stays held',{timeout:90000},async()=>{
+test('audit independent Thought continuation preserves fresh quote and revision while explicit response relations are retired',{timeout:90000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});try{
   const p=await ready(h),topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'Synthetic continuation audit',operationId:op()}}),created=await rpc(p,'CONTINUE_THINKING',{thought:{body:'Original first-render Thought',topicId:topic.id,operationId:op()}});
   await p.locator('[data-view="thoughts"]').first().click();await p.locator(`[data-topic-id="${topic.id}"]`).click();const row=p.locator(`#topic-body [data-entry-id="${created.id}"]`),body=row.locator('[data-entry-field="body"]');await body.waitFor();
@@ -55,28 +55,24 @@ test('audit legacy Thought continuation preserves fresh quote and revision while
   await body.fill('Freshly edited Thought used for this response');assert.equal(await body.textContent(),'Freshly edited Thought used for this response');await menu.locator('summary').click();await menu.getByRole('button',{name:'接着写',exact:true}).click();
   const dialog=p.locator('#topic-action-dialog');await dialog.waitFor({state:'visible'});assert.equal(await dialog.locator('.topic-selection-preview').textContent(),'Freshly edited Thought used for this response');
   const current=await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id});assert.equal(current.body,'Freshly edited Thought used for this response');assert.ok(current.revision>beforeLegacy.revision,'legacy continuation flushes a distinct dirty edit to a newer revision');
-  await dialog.getByLabel('今天的新想法',{exact:true}).fill('Independent follow-on thought');await dialog.getByLabel('记录与这条内容的回应关系',{exact:true}).check();await dialog.getByRole('button',{name:'保存想法',exact:true}).click();await eventually(()=>dialog.isVisible().then(value=>!value),'response saves with current relation');
+  await dialog.getByLabel('今天的新想法',{exact:true}).fill('Independent follow-on thought');assert.equal(await dialog.getByLabel('记录与这条内容的回应关系',{exact:true}).count(),0);await dialog.getByRole('button',{name:'保存想法',exact:true}).click();await eventually(()=>dialog.isVisible().then(value=>!value),'independent Thought saves without an explicit relation');
   const page=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc'}}),response=page.items.find(item=>item.entry.id!==created.id);assert.ok(response);assert.equal(response.entry.body,'Independent follow-on thought');
-  const relation=(await rpc(p,'COMPARE_THOUGHT_INPUT',{id:response.entry.id})).relations[0];assert.equal(relation.body,current.body);assert.equal(relation.state,'current');
-  assert.equal(await p.evaluate(()=>__auditContinueWrites),1);
-  await record(h,'thought-continuation',['ordinary-compose-held','legacy-owner-compatibility','dirty-edit-flushed','fresh-quote','matching-relation','independent-response-saved']);
+  assert.deepEqual((await rpc(p,'COMPARE_THOUGHT_INPUT',{id:response.entry.id})).relations,[]);
+  const beforeRelation=await h.state(),rejected=await p.evaluate(thought=>chrome.runtime.sendMessage({type:'CONTINUE_THINKING',thought}),{operationId:op(),body:'Retired response must not save',topicId:topic.id,relation:{id:created.id,expectedRevision:current.revision}});assert.equal(rejected.error,'FEATURE_UNAVAILABLE');assert.deepEqual(await h.state(),beforeRelation,'rejected relation retains Source, user work and history');
+  assert.equal(await p.evaluate(()=>__auditContinueWrites),2,'one independent commit and one rejected stale relation attempt');
+  await record(h,'thought-continuation',['ordinary-compose-held','legacy-owner-compatibility','dirty-edit-flushed','fresh-quote','relation-refused-no-side-effect','independent-thought-saved']);
  }finally{try{await h.archive.evaluate(()=>globalThis.__auditRestoreCompose?.());}finally{await h.close();}}
 });
 
-test('audit Source export serializes repeated clicks, reports a read failure and retries without changing format',{timeout:90000},async()=>{
+test('audit retired Source exports reject repeated calls without reads, downloads or data mutation',{timeout:90000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});try{
-  const p=await ready(h);await h.open({id:'audit-export',title:'Synthetic audit export',messages:[{id:'audit-export-one',text:'Synthetic export content'}]});await eventually(async()=>(await h.state()).records.length===1,'export source captured');await p.bringToFront();
-  const downloads=[];p.on('download',download=>downloads.push(download));
-  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__auditExportCalls=0;globalThis.__auditExportFailed=false;chrome.runtime.sendMessage=message=>{
-   if(message.type==='GET_PAGE'&&message.page?.view==='archive'&&!globalThis.__auditExportFailed){globalThis.__auditExportCalls++;if(!message.page.documentId)return new Promise(resolve=>globalThis.__auditExportRelease=()=>{send(message).then(resolve);});globalThis.__auditExportFailed=true;return Promise.resolve({ok:false,error:'STORAGE_FAILED'});}return send(message);
-  };});
-  await p.locator('#archive-root-overflow summary').click();await p.locator('#archive-root-export-json').click();await eventually(()=>p.evaluate(()=>typeof globalThis.__auditExportRelease==='function'),'export initial read held');
-  assert.equal(await p.locator('#archive-root-export-json').isDisabled(),true);assert.equal(await p.locator('#archive-root-export-markdown').isDisabled(),true);
-  await p.locator('#archive-root-export-json').evaluate(button=>button.click());assert.equal(await p.evaluate(()=>globalThis.__auditExportCalls),1);
-  await p.evaluate(()=>globalThis.__auditExportRelease());await p.locator('#notice').getByRole('button',{name:'重试导出',exact:true}).waitFor();assert.equal(downloads.length,0);assert.match(await p.locator('#notice').textContent(),/没有下载不完整文件/);
-  const downloaded=p.waitForEvent('download');await p.locator('#notice').getByRole('button',{name:'重试导出',exact:true}).click();const file=await downloaded;
-  const stream=await file.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);const payload=JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  assert.equal(payload.format,'personal-ai-input-archive');assert.equal(payload.schemaVersion,2);assert.equal(payload.recordCount,1);assert.equal(payload.records[0].originalText,'Synthetic export content');assert.equal(downloads.length,1);assert.equal(await p.locator('#archive-root-export-json').isDisabled(),false);
-  await record(h,'source-export',['single-flight','no-partial-download','visible-failure','retry','unchanged-source-format']);
+  const p=await ready(h);await h.open({id:'audit-export',title:'Synthetic audit export',messages:[{id:'audit-export-one',text:'Synthetic export content'}]});await eventually(async()=>(await h.state()).records.length===1,'source captured');await p.bringToFront();
+  const downloads=[];p.on('download',download=>downloads.push(download));const before=await h.state();
+  assert.equal(await p.locator('#archive-root-export-json,#archive-root-export-markdown,#r6-export-json,#r6-export-markdown,#backup-create').count(),0);
+  await p.evaluate(async()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__auditExportCalls=[];chrome.runtime.sendMessage=message=>{__auditExportCalls.push(message.type);return send(message);};for(let i=0;i<3;i++)document.dispatchEvent(new CustomEvent('paia:export',{detail:{format:'json'}}));});
+  assert.deepEqual(await p.evaluate(()=>__auditExportCalls),[],'stale export event cannot read Source or start a download');
+  for(let i=0;i<3;i++){const result=await p.evaluate(()=>chrome.runtime.sendMessage({type:'PAIA_BACKUP_BEGIN_EXPORT'}));assert.equal(result.error,'FEATURE_UNAVAILABLE');}
+  assert.deepEqual(await h.state(),before);assert.equal(downloads.length,0);
+  await record(h,'source-export-retired',['no-export-controls','repeated-calls-refused','no-canonical-read','no-download','data-retained']);
  }finally{await h.close();}
 });

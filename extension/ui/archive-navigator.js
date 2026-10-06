@@ -236,7 +236,6 @@ export class ArchiveNavigator{
        list.append(windowRow);
       }
       if(scope.nextCursor){const more=element('button','archive-navigator-more',scope.loading?copy('正在载入…','Loading…'):copy('继续载入窗口','Load more windows'));more.type='button';more.disabled=scope.loading;more.addEventListener('click',()=>void this.more(group));list.append(more);}
-      else if(scope.items.length)list.append(element('p','archive-navigator-end',copy('此分组已全部载入','All windows in this group are loaded')));
      }
      groupBox.append(list);
     }

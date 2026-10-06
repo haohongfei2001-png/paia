@@ -7,10 +7,10 @@ import {eventually} from './fake-chatgpt.mjs';
 export async function openRetainedSearchComponent(page,{types=['input']}={}){
  const context=()=>page.evaluate(async()=>{
   const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));
-  const owner=getContextController();return {disabled:owner?.disabled,data:owner?.data,hidden:owner?.root.hidden};
+  return getContextController();
  });
- assert.deepEqual(await context(),{disabled:true,data:null,hidden:true},'the withdrawn Context owner stays disabled without a material session');
+ assert.equal(await context(),null,'the retired Context has no owner or material session');
  await page.evaluate(types=>document.dispatchEvent(new CustomEvent('paia:search-open',{detail:{types}})),types);
  await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'installed search component accepts its existing consent-checked event');
- assert.deepEqual(await context(),{disabled:true,data:null,hidden:true},'opening retained search cannot initialize Context');
+ assert.equal(await context(),null,'opening retained search cannot initialize Context');
 }

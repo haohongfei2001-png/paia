@@ -22,51 +22,37 @@ function popupPresentation(native=false){
  const w=native?chrome.extension.getViews({type:'popup'}).find(view=>view.location.pathname==='/ui/popup.html'):window;
  if(!w)throw Error('Native action popup closed before presentation inspection');
  const d=w.document,style=selector=>w.getComputedStyle(d.querySelector(selector)),rect=selector=>{const r=d.querySelector(selector).getBoundingClientRect();return {width:r.width,height:r.height,top:r.top,bottom:r.bottom};};
- const logo=d.querySelector('header img'),summary=d.querySelector('#prompt-reuse-diagnostics > summary'),glyph=summary.querySelector('svg[data-paia-icon="chevron-right"]'),disclosure=w.getComputedStyle(glyph);
- return {theme:d.documentElement.dataset.paiaTheme,font:style('body').fontFamily,canvas:style('body').backgroundColor,text:style('body').color,secondary:style('.count .subtle').color,primary:style('#open-archive').backgroundColor,onPrimary:style('#open-archive').color,pause:style('#toggle-capture').backgroundColor,pauseHovered:d.querySelector('#toggle-capture').matches(':hover:not(:disabled)'),update:style('.update-status').backgroundColor,line:style('.update-status').borderTopColor,controlRadius:style('#open-archive').borderRadius,
+ const logo=d.querySelector('header img'),summary=d.querySelector('#update-details > summary'),glyph=summary.querySelector('svg[data-paia-icon="chevron-right"]'),disclosure=w.getComputedStyle(glyph);
+ return {theme:d.documentElement.dataset.paiaTheme,font:style('body').fontFamily,canvas:style('body').backgroundColor,text:style('body').color,secondary:style('.count > span').color,primary:style('#open-archive').backgroundColor,onPrimary:style('#open-archive').color,pause:style('#toggle-capture').backgroundColor,pauseHovered:d.querySelector('#toggle-capture').matches(':hover:not(:disabled)'),update:style('body').backgroundColor,line:style('.update-status').borderTopColor,controlRadius:style('#open-archive').borderRadius,
   logo:{source:logo?.getAttribute('src'),loaded:!!logo?.complete&&logo.naturalWidth===32,width:logo?.width,height:logo?.height,decorative:logo?.getAttribute('alt')===''},
-  disclosure:{width:disclosure.width,height:disclosure.height,stroke:glyph.getAttribute('stroke-width'),hidden:glyph.getAttribute('aria-hidden'),focusable:glyph.getAttribute('focusable'),path:glyph.querySelector('path').getAttribute('d'),transform:disclosure.transform},summary:rect('#prompt-reuse-diagnostics > summary'),primaryRect:rect('#open-archive'),updateRect:rect('.update-status'),order:[...d.querySelectorAll('main > details')].map(details=>details.id)};
+  disclosure:{width:disclosure.width,height:disclosure.height,stroke:glyph.getAttribute('stroke-width'),hidden:glyph.getAttribute('aria-hidden'),focusable:glyph.getAttribute('focusable'),path:glyph.querySelector('path').getAttribute('d'),transform:disclosure.transform},summary:rect('#update-details > summary'),primaryRect:rect('#open-archive'),updateRect:rect('.update-status'),order:[...d.querySelectorAll('main details')].map(details=>details.id),retired:d.querySelectorAll('#popup-internal-tools,#prompt-reuse-diagnostics').length};
 }
 function assertPopupPresentation(value,theme){
- const palette=theme==='dark'?{canvas:'rgb(23, 29, 40)',text:'rgb(232, 237, 247)',secondary:'rgb(176, 189, 208)',primary:'rgb(148, 186, 255)',onPrimary:'rgb(23, 29, 40)',update:'rgb(32, 41, 57)',line:'rgb(48, 59, 76)'}:{canvas:'rgb(255, 255, 255)',text:'rgb(23, 35, 60)',secondary:'rgb(99, 114, 138)',primary:'rgb(35, 93, 211)',onPrimary:'rgb(255, 255, 255)',update:'rgb(244, 246, 250)',line:'rgb(230, 235, 242)'};
+ const palette=theme==='dark'?{canvas:'rgb(23, 29, 40)',text:'rgb(232, 237, 247)',secondary:'rgb(176, 189, 208)',primary:'rgb(148, 186, 255)',onPrimary:'rgb(23, 29, 40)',update:'rgb(23, 29, 40)',line:'rgb(48, 59, 76)'}:{canvas:'rgb(255, 255, 255)',text:'rgb(23, 35, 60)',secondary:'rgb(99, 114, 138)',primary:'rgb(35, 93, 211)',onPrimary:'rgb(255, 255, 255)',update:'rgb(255, 255, 255)',line:'rgb(230, 235, 242)'};
  assert.equal(value.theme,theme);
  for(const [role,color] of Object.entries(palette))assert.equal(value[role],color,`${theme} popup uses the D6.2 ${role} role`);
- assert.equal(value.pause,value.pauseHovered?palette.update:palette.canvas,'pause remains a secondary control, including its quiet hover state');
+ assert.equal(value.pause,value.pauseHovered?(theme==='dark'?'rgb(32, 41, 57)':'rgb(244, 246, 250)'):palette.canvas,'pause remains a secondary control, including its quiet hover state');
  assert.match(value.font,/Noto Sans CJK SC.*PingFang SC.*Microsoft YaHei.*system-ui/,'popup shares the main UI font stack');
  assert.deepEqual(value.logo,{source:'assets/paia-logo-32.png',loaded:true,width:32,height:32,decorative:true},'the compact header uses the actual existing PAIA logo');
  assert.equal(value.controlRadius,'6px','buttons share the main UI control shape');
  assert.equal(value.disclosure.width,'18px');assert.equal(value.disclosure.height,'18px');assert.equal(value.disclosure.stroke,'1.4');assert.equal(value.disclosure.hidden,'true');assert.equal(value.disclosure.focusable,'false');assert.equal(value.disclosure.path,'M6 4l5 5-5 5');
  assert.ok(value.summary.height>=40,'diagnostics remain a usable disclosure target');
  assert.ok(value.primaryRect.height>=44&&value.primaryRect.bottom<=value.updateRect.top,'the main action precedes the quieter update section');
- assert.equal(value.order[0],'prompt-reuse-diagnostics','retained Prompt Reuse diagnostic precedes optional internal tools');
+ assert.deepEqual(value.order,['update-details'],'only on-demand update help remains');assert.equal(value.retired,0);
 }
 
-async function sourceJourney(h){
- const archive=h.archive;await consent(archive);await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN'}});
- const popup=await openExtensionPage(h,'popup.html',{width:350,height:600});await popup.locator('#record-count').waitFor();await eventually(async()=>await popup.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','popup follows saved light appearance');
- assert.equal(await popup.locator('h1:visible').count(),1);assert.equal((await popup.locator('h1').textContent()).trim(),'PAIA');assert.equal(await popup.locator('#open-archive').isVisible(),true);assert.equal(await popup.locator('#toggle-capture').isVisible(),true);assert.equal(await popup.locator('#popup-internal-tools').count(),1,'source keeps internal tools owner');await assertNoOverflow(popup,'350px popup document tab (not native sizing)' );assertPopupPresentation(await popup.evaluate(popupPresentation),'light');await shot(popup,'uir-04-popup-350x600-light');
- await popup.locator('#toggle-capture').click();await eventually(async()=>(await rpc(popup,'GET_STATUS')).enabled===false,'popup pause uses existing capture handler');await eventually(async()=>/恢复捕获/.test(await popup.locator('#toggle-capture').textContent()),'popup renders paused action');
- await popup.locator('#toggle-capture').click();await eventually(async()=>(await rpc(popup,'GET_STATUS')).enabled===true,'popup resume uses existing capture handler');
- await popup.locator('#prompt-reuse-diagnostics > summary').focus();await popup.keyboard.press('Enter');assert.equal(await popup.locator('#prompt-reuse-diagnostics').getAttribute('open'),'','diagnostic disclosure supports the native keyboard action');
- const expanded=await popup.evaluate(popupPresentation);await popup.keyboard.press('Enter');assert.equal(await popup.locator('#prompt-reuse-diagnostics').getAttribute('open'),null,'the same keyboard action closes native details');assert.notEqual(expanded.disclosure.transform,(await popup.evaluate(popupPresentation)).disclosure.transform,'disclosure direction follows the real native open state');
- await popup.locator('#popup-internal-tools > summary').click();assert.equal(await popup.locator('#popup-internal-tools a[href="product-signals.html"]').count(),1,'Passport/local-tools entry remains reachable');
- await popup.setViewportSize({width:320,height:600});await assertNoOverflow(popup,'320px popup document reflow');assertPopupPresentation(await popup.evaluate(popupPresentation),'light');await shot(popup,'uir-04-popup-320x600-light-expanded');await popup.setViewportSize({width:350,height:600});
- await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance:'dark'}});await popup.reload();await eventually(async()=>await popup.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark','popup follows saved dark appearance');assertPopupPresentation(await popup.evaluate(popupPresentation),'dark');await shot(popup,'uir-04-popup-350x600-dark');await popup.close();
-
- const tools=await openExtensionPage(h,'product-signals.html',{width:1024,height:768});await tools.locator('#signals-status').waitFor();await eventually(async()=>await tools.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark','local tools follows saved dark appearance');assert.equal(await tools.locator('h1:visible').count(),1);assert.equal((await tools.locator('h1').textContent()).trim(),'本机工具');assert.match(await tools.locator('#local-tools-back').getAttribute('href'),/archive\.html$/);assert.equal(await tools.locator('#passport-section').count(),1);assert.equal(await tools.locator('#context-package-section').count(),1);await assertNoOverflow(tools,'1024px local tools');await shot(tools,'uir-04-local-tools-1024x768-dark');
- await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await tools.reload();await tools.setViewportSize({width:390,height:844});await eventually(async()=>await tools.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','local tools restores saved light appearance');await assertNoOverflow(tools,'390px local tools');const back=await tools.locator('#local-tools-back').boundingBox();assert.ok(back&&back.height>=18,'local tools back link remains visible on narrow viewport');await shot(tools,'uir-04-local-tools-390x844-light');await tools.close();await assertNoNetwork(h);
+async function popupJourney(h){
+ const archive=h.archive;await consent(archive);const popup=await openExtensionPage(h,'popup.html',{width:350,height:600});popup.on('pageerror',e=>h.errors.push(e.message));
+ await eventually(()=>popup.locator('#record-count').textContent().then(x=>x==='0'));
+ await popup.locator('#toggle-capture').click();await eventually(async()=>(await rpc(popup,'GET_STATUS')).enabled===false);await popup.locator('#toggle-capture').click();await eventually(async()=>(await rpc(popup,'GET_STATUS')).enabled===true);
+ await popup.locator('#update-details > summary').focus();await popup.keyboard.press('Enter');assert.equal(await popup.locator('#update-details').getAttribute('open'),'');await popup.keyboard.press('Enter');assert.equal(await popup.locator('#update-details').getAttribute('open'),null);
+ for(const appearance of ['light','dark']){await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance}});await popup.reload();await eventually(()=>popup.evaluate(a=>document.documentElement.dataset.paiaTheme===a,appearance));for(const width of [350,320]){await popup.setViewportSize({width,height:600});await assertNoOverflow(popup,'popup '+width);assertPopupPresentation(await popup.evaluate(popupPresentation),appearance);await shot(popup,'consumer-popup-'+width+'-'+appearance);}}
+ await popup.evaluate(()=>{chrome.tabs.create=async()=>{throw Error('SYNTHETIC tab unavailable');};});await popup.locator('#open-archive').click();await eventually(()=>popup.locator('#error').isVisible());assert.match(await popup.locator('#error').textContent(),/不可用|无法|稍后/);assert.deepEqual(h.errors,[],'tabs.create failure is shown without ReferenceError');
+ const denied=await popup.evaluate(async()=>{try{const response=await fetch(chrome.runtime.getURL('ui/product-signals.html'));return !response.ok;}catch{return true;}});assert.equal(denied,true,'retired dedicated dashboard is absent from actual runtime');await popup.close();await assertNoNetwork(h);
 }
 
-async function releaseJourney(h){
- const archive=h.archive;await consent(archive);await rpc(archive,'UPDATE_PREFERENCES',{changes:{appearance:'dark',language:'zh-CN'}});
- const popup=await openExtensionPage(h,'popup.html',{width:350,height:600});await popup.locator('#record-count').waitFor();await eventually(async()=>await popup.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark');assert.equal(await popup.locator('#popup-internal-tools').count(),0,'release keeps popup internal-tool pruning');assert.equal(await popup.locator('#open-archive').isVisible(),true);assert.equal(await popup.locator('#toggle-capture').isVisible(),true);await assertNoOverflow(popup,'350px release popup document tab (not native sizing)' );assertPopupPresentation(await popup.evaluate(popupPresentation),'dark');await shot(popup,'uir-04-current-release-popup-350x600-dark');await popup.close();
- const tools=await openExtensionPage(h,'product-signals.html',{width:390,height:844});await tools.locator('#signals-status').waitFor();await eventually(async()=>await tools.evaluate(()=>document.documentElement.dataset.paiaTheme)==='dark');assert.equal(await tools.locator('h1:visible').count(),1);assert.equal(await tools.locator('#local-tools-back').count(),1);await assertNoOverflow(tools,'390px release local tools');await tools.close();await assertNoNetwork(h);
-}
-
-test('UIR-04 popup document-tab rendering and local tools preserve capture/Passport owners in source and built release Chrome',{timeout:300000},async()=>{
- let source;try{source=await FakeChatGPT.start({onboarding:true});await sourceJourney(source);}finally{await source?.close();}
- await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
- let release;try{release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});await releaseJourney(release);}finally{await release?.close();}
+test('UIR-04 popup keeps compact capture, accessible help and honest failure feedback with retired tools absent in source/release',{timeout:300000},async()=>{
+ for(const extensionPath of ['.','work/current-release']){const h=await FakeChatGPT.start({extensionPath,onboarding:true,headless:true});try{await popupJourney(h);}finally{await h.close();}}
 });
 
 // Native action popup, not popup.html in a resized ordinary tab. Chrome 127+
@@ -92,7 +78,7 @@ async function nativePopupSnapshot(p){return p.evaluate(()=>{
  const w=chrome.extension.getViews({type:'popup'}).find(view=>view.location.pathname==='/ui/popup.html');
  if(!w)throw Error('Native action popup closed before inspection');
  const d=w.document,rect=id=>{const r=d.querySelector(id).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom};};
- return {url:w.location.href,devicePixelRatio:w.devicePixelRatio,scrollY:w.scrollY,scrollHeight:d.documentElement.scrollHeight,diagnosticsOpen:!!d.querySelector('#popup-internal-tools')?.open,diagnosticsLastLink:rect('#popup-internal-tools a[href="product-signals.html"]'),width:w.innerWidth,clientWidth:d.documentElement.clientWidth,scrollbarGutter:w.innerWidth-d.documentElement.clientWidth,height:w.innerHeight,bodyWidth:d.body.getBoundingClientRect().width,overflow:d.documentElement.scrollWidth-d.documentElement.clientWidth,count:d.querySelector('#record-count').textContent,label:rect('.count > span'),background:w.getComputedStyle(d.body).backgroundColor,consent:d.querySelector('#first-use').hidden,toggleHidden:d.querySelector('#toggle-capture').hidden,toggleText:d.querySelector('#toggle-capture').textContent,active:d.querySelector('#status-dot').classList.contains('active'),action:rect('#open-archive')};
+ return {url:w.location.href,devicePixelRatio:w.devicePixelRatio,scrollY:w.scrollY,scrollHeight:d.documentElement.scrollHeight,helpOpen:!!d.querySelector('#update-details')?.open,helpText:rect('#update-details p'),width:w.innerWidth,clientWidth:d.documentElement.clientWidth,scrollbarGutter:w.innerWidth-d.documentElement.clientWidth,height:w.innerHeight,bodyWidth:d.body.getBoundingClientRect().width,overflow:d.documentElement.scrollWidth-d.documentElement.clientWidth,count:d.querySelector('#record-count').textContent,label:rect('.count > span'),background:w.getComputedStyle(d.body).backgroundColor,consent:d.querySelector('#first-use').hidden,toggleHidden:d.querySelector('#toggle-capture').hidden,toggleText:d.querySelector('#toggle-capture').textContent,active:d.querySelector('#status-dot').classList.contains('active'),action:rect('#open-archive')};
  });}
 async function closeNativePopup(p){await p.evaluate(()=>{for(const view of chrome.extension.getViews({type:'popup'}))view.close();});await eventually(()=>p.evaluate(()=>chrome.extension.getViews({type:'popup'}).length===0),'native action popup closes');}
 const nativeArtifactDir='work/bounded-popup';
@@ -197,7 +183,7 @@ function assertNativeGeometry(value,label){
  assert.ok(value.action.width>=260&&value.action.height>=42,label+' primary action remains usable');
 }
 
-test('Bounded native action popup has intrinsic width, readable count labels and reachable diagnostics',{timeout:90000},async()=>{
+test('Bounded native action popup has intrinsic width, readable count labels and reachable update help',{timeout:90000},async()=>{
  let h,headSha=null,nativeBrowserFrame=null;const states=[];let currentState='startup';
  await mkdir(nativeArtifactDir,{recursive:true});
  try{
@@ -221,14 +207,10 @@ test('Bounded native action popup has intrinsic width, readable count labels and
    currentState=name;await p.evaluate(count=>{chrome.extension.getViews({type:'popup'})[0].document.querySelector('#record-count').textContent=count;},count);
    value=await capture(name,{countEvidence:'DOM presentation stress only; archive count remains zero'});assert.equal(value.count,count);assertNativeGeometry(value,count);
   }
-  currentState='diagnostics-expanded';await p.evaluate(()=>{const w=chrome.extension.getViews({type:'popup'})[0];w.document.querySelector('#popup-internal-tools').open=true;});
-  await eventually(()=>p.evaluate(()=>{const w=chrome.extension.getViews({type:'popup'})[0];return w.document.documentElement.scrollHeight>w.innerHeight;}),'expanded native diagnostics exceed the popup viewport');
-  value=await capture(currentState,{countEvidence:'DOM presentation stress only; archive count remains zero'});assertNativeGeometry(value,'expanded diagnostics');
-  currentState='diagnostics-scrolled';await p.evaluate(()=>{const w=chrome.extension.getViews({type:'popup'})[0];w.document.querySelector('#popup-internal-tools a[href="product-signals.html"]').scrollIntoView({block:'end'});});
-  value=await capture(currentState,{countEvidence:'DOM presentation stress only; archive count remains zero'});
-  const diagnostics=value.diagnosticsLastLink;
-  assert.ok(value.scrollY>0&&diagnostics.y>=0&&diagnostics.bottom<=value.height+1,'last diagnostic action is reachable by vertical scrolling');
-  assertNativeGeometry(value,'scrolled diagnostics');
+  currentState='help-expanded';await p.evaluate(()=>{const w=chrome.extension.getViews({type:'popup'})[0];w.document.querySelector('#update-details').open=true;});
+  value=await capture(currentState,{countEvidence:'DOM presentation stress only; archive count remains zero'});assertNativeGeometry(value,'expanded update help');assert.equal(value.helpOpen,true);
+  await p.evaluate(()=>{const w=chrome.extension.getViews({type:'popup'})[0];w.document.querySelector('#update-details p').scrollIntoView({block:'end'});});
+  value=await capture('help-reachable',{countEvidence:'DOM presentation stress only; archive count remains zero'});assert.ok(value.helpText.y>=0&&value.helpText.bottom<=value.height+1,'on-demand help remains reachable within the actual popup');
   await closeNativePopup(p);await assertNoNetwork(h);
   await artifactJSON('acceptance',{status:'PASS',headSha,kind:'native-action-popup',states,viewportEmulation:null,nativeBrowserFrame});
  }catch(error){

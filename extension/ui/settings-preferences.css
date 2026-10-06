@@ -207,7 +207,7 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 #settings-panel #membership-ai-service>p:last-child{margin:0;color:var(--muted)}
 #settings-panel #memory-settings>.setting{min-height:72px;padding:16px 0;border-bottom:1px solid var(--line)}
 #settings-panel #memory-settings>p{margin:8px 0 20px;font-size:13px;color:var(--muted)}
-#settings-panel #memory-settings :is(input[type="checkbox"],input[type="radio"]){flex:none;width:18px;height:18px;accent-color:var(--focus)}
+#settings-panel #memory-settings :is(input[type="checkbox"],input[type="radio"]){flex:none;width:16px;height:16px;accent-color:var(--focus)}
 #settings-panel .r6-privacy-preview{margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
 #settings-panel #history-settings{margin-bottom:28px}
 #settings-panel #library-management{padding:16px 0;border-block:1px solid var(--line)}

@@ -21,8 +21,7 @@ async function consent(page){
   await eventually(async()=>!(await action.isDisabled()),'UIR-02 consent action is available');
   await action.click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-02 consent is durable');
-  await eventually(async()=>await page.locator('#onboarding-skip').isVisible(),'optional history onboarding appears');
-  await page.locator('#onboarding-skip').click();
+  assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive root stays blank after consent');
   await eventually(async()=>!(await page.locator('#onboarding-history-step').isVisible()),'optional history onboarding is dismissed before Archive evidence');
 }
 

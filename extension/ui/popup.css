@@ -82,3 +82,5 @@ details p{margin:0 0 10px;overflow-wrap:anywhere}
 details a{color:var(--paia-accent);text-underline-offset:3px}
 [hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+@media(pointer:coarse),(max-width:320px){.quiet{min-width:44px;min-height:44px}}
