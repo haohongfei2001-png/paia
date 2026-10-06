@@ -36,7 +36,7 @@ async function fixture(variant,count=2){
   },'verified ordinary Conversation membership settles before opening Navigator');
   await rpc(p,'SET_ENABLED',{enabled:false});await p.bringToFront();await openArchiveWindow(p,{text:title});
   await eventually(()=>p.locator('.library-prose').count().then(n=>n===Math.min(count,40)));
-  await eventually(()=>p.locator('#scope-search').isEnabled(),'Reader route is admitted');
+  await eventually(()=>p.locator('#reader-scope-search').isEnabled(),'Reader route is admitted');
   const field=p.locator('.library-prose').first(),id=await field.getAttribute('data-edit-id');
   return {h,p,field,id,documentId};
  }catch(error){await h.close();throw error;}
@@ -48,7 +48,7 @@ async function assertEditable(p){
 async function settleReaderPresentation(p,width=p.viewportSize().width){
  await eventually(()=>p.evaluate(width=>{
   const get=id=>document.getElementById(id),compact=width<768,desktop=width>=1024;
-  return innerWidth===width&&get('archive-compact-navigation').hidden===!compact&&get('archive-navigator').parentElement.id==='archive-reader-navigator-slot'&&get('scope-search-host').parentElement.id===(desktop?'archive-reader-search-slot':'reader-search-slot')&&get('back').parentElement.id==='archive-reader-back-slot'&&get('archive-navigator-toggle').parentElement.id===(compact?'archive-compact-reader-actions':desktop?'reader-compact-tools':'archive-reader-back-slot')&&get('document-menu').parentElement.id===(compact?'archive-compact-reader-actions':'reader-heading-actions');
+  return innerWidth===width&&get('archive-compact-navigation').hidden===!compact&&get('archive-navigator').parentElement.id==='archive-reader-navigator-slot'&&get('scope-search-host').parentElement.id==='archive-root-header-actions'&&get('reader-scope-search-host').parentElement.id==='reader-search-slot'&&get('archive-reader-back-slot').parentElement.id==='reader-compact-tools'&&get('back').parentElement.id==='archive-reader-back-slot'&&get('archive-navigator-toggle').parentElement.id===(compact?'archive-compact-reader-actions':desktop?'reader-compact-tools':'archive-reader-back-slot')&&get('document-menu').parentElement.id===(compact?'archive-compact-reader-actions':'reader-heading-actions');
  },width),'existing Reader controls reach their D7 responsive slots');
 }
 async function openDocumentMenu(p){

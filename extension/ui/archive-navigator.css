@@ -83,7 +83,6 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) .archive-naviga
 body:is([data-paia-space="library"],[data-paia-space="archive"]) .archive-navigator-window[aria-current="page"] .archive-navigator-window-title{color:var(--focus);font-weight:500}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(.archive-navigator-more,.archive-navigator-apply-order){min-height:32px;margin:4px 0;padding:6px 12px;color:var(--focus);font-size:12px;line-height:20px;white-space:normal}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(.archive-navigator-end,.archive-navigator-source-state){padding-left:12px;color:var(--quiet)}
-body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader .archive-navigator-tree>.archive-navigator-provider:only-child>.archive-navigator-provider-title{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader .archive-navigator-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator{max-width:980px;margin:0;padding:0;border:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root .archive-navigator-group{border-bottom:1px solid var(--line)}
@@ -107,3 +106,7 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) .archive-root-o
 @media(max-width:767px),(pointer:coarse){
  body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(.archive-navigator-more,.archive-navigator-apply-order,#archive-root-overflow summary){min-height:44px;min-width:44px}
 }
+
+/* Keep this disclosure inside the persistent directory instead of under the rail. */
+body:is([data-paia-space="library"],[data-paia-space="archive"]) .archive-root-overflow-actions{width:min(260px,calc(100vw - 40px));right:0;left:auto}
+@media(min-width:768px){body:is([data-paia-space="library"],[data-paia-space="archive"]) .archive-root-overflow-actions{width:min(260px,calc(var(--nav-width) - 40px))}}
