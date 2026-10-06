@@ -124,10 +124,4 @@ export function presentSettingsPreferences({visible=false}={}) {
  settingsVisible=visible;if(settingsVisible)syncSettingsLocale();
 }
 
-// Only a verified failure owner may expose maintenance controls. Opening Settings
-// never requests an integrity scan or index rebuild.
-export function presentSettingsRecovery({dataFailure=false,indexFailure=false}={}){
- const integrity=$('product-diagnostics'),rebuild=$('library-rebuild-search');
- if(integrity)integrity.hidden=dataFailure!==true;
- if(rebuild)rebuild.hidden=indexFailure!==true;
-}
+export {presentSettingsRecovery} from './maintenance-recovery.js';

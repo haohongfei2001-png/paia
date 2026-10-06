@@ -1,4 +1,5 @@
 import {assertFeatureAvailable} from '../core/feature-availability.js';
+import {beginMaintenanceRead} from './maintenance-recovery.js';
 export const STATUS_LABELS = Object.freeze({
   FEATURE_UNAVAILABLE: '此功能已停用，已有资料仍保留',
   AI_SERVICE_UNAVAILABLE: 'AI 服务尚未上线，已有整理内容仍可查看',
@@ -76,15 +77,17 @@ export function statusLabel(code) {
 }
 
 export async function request(type, fields = {}) {
+  const maintenanceRead=beginMaintenanceRead(type,fields);
   try {
     assertFeatureAvailable({type,...fields});
     const response = await chrome.runtime.sendMessage({ type, ...fields });
-    if (response?.ok) return response.data;
+    if (response?.ok) {maintenanceRead({data:response.data});return response.data;}
     const code = typeof response?.error==='string'&&/^[A-Z][A-Z0-9_]{1,63}$/.test(response.error) ? response.error : 'UNAVAILABLE';
     throw Object.assign(new Error(statusLabel(code)), { code, ...(typeof response?.phase==='string'&&/^[a-z_]{1,40}$/.test(response.phase)?{phase:response.phase}:{}) });
   } catch (error) {
     const interrupted=/message port|receiving end|message channel|context invalidated/i.test(error?.message||'');
     const code = typeof error?.code==='string'&&/^[A-Z][A-Z0-9_]{1,63}$/.test(error.code) ? error.code : interrupted?'MESSAGE_CHANNEL_INTERRUPTED':'UNAVAILABLE';
+    maintenanceRead({error:{code}});
     throw Object.assign(new Error(statusLabel(code)), { code, ...(typeof error?.phase==='string'&&/^[a-z_]{1,40}$/.test(error.phase)?{phase:error.phase}:{}) });
   }
 }
