@@ -6,7 +6,7 @@ import '../adapter/json-fingerprint.js';
 import '../core/source-time.js';
 import '../core/response-time.js';
 import {formatSemantic, PeriodSelection} from '../ui/source-time-display.js';
-import {ResponseDiagnostics} from '../background/response-diagnostics.js';
+import {assertFeatureAvailable} from '../core/feature-availability.js';
 import {historicalFixture, chat, ids, now, baseTime} from './fixtures/source-time.mjs';
 const {inspect} = globalThis.ChatGPTJSONFingerprint;
 const {Model, time, age, sanitize, evaluate, LIMIT} = globalThis.SourceTimeProtocol;
@@ -117,10 +117,7 @@ test('summary, relay and every UI state reject or strip raw content, IDs, JSON a
     for(const secret of ['SYNTHETIC_SECRET',chat,...ids,String(baseTime),String(now),'https://']) assert.equal(text.includes(secret),false);
   }
   for(const value of [{...s,matched:'3'},{...s,matched:4},{...s,ages:{...s.ages,older:999}},{...s,beforeCapture:99}])assert.equal(sanitize(value),null);
-  const base=new globalThis.ResponseTimeProtocol.Model();base.observe(chat,visible,now);
-  const relay=new ResponseDiagnostics();relay.poll({session:'s',summary:{...base.summary(now),semantics:s,raw:historicalFixture()}},{tab:{id:1},documentId:'d'},true,now);
-  const text=JSON.stringify(relay.view(true,false,now));
-  for(const secret of ['SYNTHETIC_SECRET',chat,...ids,String(baseTime),String(now)])assert.equal(text.includes(secret),false);
+  assert.throws(()=>assertFeatureAvailable({type:'RESPONSE_VIEW'}),{code:'FEATURE_UNAVAILABLE'});
 });
 test('manual period requires every matched age, fresh single-page generation and unchanged canonical revision', () => {
   const mixed=historicalFixture();row(mixed,2).create_time=now/1000-100;row(mixed,2).update_time=null;
@@ -132,18 +129,7 @@ test('manual period requires every matched age, fresh single-page generation and
     selection.accept(data);selection.choose('older');selection.accept(next);assert.equal(selection.period,'unknown');
   }
 });
-test('new document, same-count route session, expiry, pause and second known tab invalidate UI generation', () => {
-  const relay=new ResponseDiagnostics();const m=new globalThis.ResponseTimeProtocol.Model();m.observe(chat,visible,now);
-  const req={session:'session-one',summary:{...m.summary(now),semantics:make().summary(true,now)}};
-  const sender={tab:{id:1},documentId:'doc'};
-  relay.poll(req,sender,true,now);const old=relay.view(true,false,now).generation;
-  relay.poll({...req,session:'session-two'},sender,true,now+1);assert.notEqual(relay.view(true,false,now+1).generation,old);
-  relay.poll(req,{tab:{id:2},documentId:'second'},true,now+2);
-  relay.poll(req,sender,true,now+5000);assert.equal(relay.view(true,false,now+5000).summary,null);
-  relay.removeTab(2);assert.equal(relay.view(true,false,now+5001).pages,1);
-  assert.equal(relay.view(true,false,now+10000).summary,null);
-  assert.equal(relay.view(false,false,now+10001).summary,null);
-});
+test('retired diagnostic viewing and arming cannot re-open through old generation or page metadata',()=>{for(const type of ['RESPONSE_VIEW','RESPONSE_ARM'])for(const generation of [undefined,0,1])assert.throws(()=>assertFeatureAvailable({type,generation,session:'SYNTHETIC'}),{code:'FEATURE_UNAVAILABLE'});});
 
 test('revoked fingerprint lease changes session and rejects a late old payload after reauthorization', async () => {
   const handlers=new Map(), controls=[], requests=[], timers=new Map();

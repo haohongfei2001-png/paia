@@ -11,7 +11,7 @@ test('CPV1-01.4 degraded states each offer one bounded action without claiming a
     ['ARCHIVE_READ_FAILED','retry_read'],
     ['UPDATE_CHECK_FAILED','retry_update'],
     ['INDEX_UNAVAILABLE','retry_search'],
-    ['PROVIDER_UNAVAILABLE','review_ai'],
+    ['PROVIDER_UNAVAILABLE','open_archive'],
   ]);
   for (const [code,action] of expected) {
     const guidance=recoveryGuidance(code);

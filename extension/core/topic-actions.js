@@ -1,4 +1,3 @@
-import {hashText} from './dedupe.js';
 import {keys,fail,idOK,prefix,entrySnapshot,markHuman,refreshEntryIndex,keyedHash} from './thought-model.js';
 import {inputProjection} from './thought-evidence.js';
 import {bindingSource,applyBinding,bindingRead} from './thought-binding.js';
@@ -50,21 +49,10 @@ export async function continueThinking(s,r){
 }
 export async function compareThought(s,id){
  await s.finishFoundation();
- const result=await s.run(()=>s.repository.transaction(false,async t=>{
-  const row=await s.readableEntry(t,id),p=await bindingSource(s,t,row),relations=[];
-  for(const relation of await t.all('entryRelations','byFrom',prefix([id]),40)){
-   if(relation.kind!=='user_response'||relation.actor!=='user')continue;
-   const target=await t.get('thoughts',relation.toEntryId),available=target?.storageSchema===2&&target.lifecycle==='active'&&await s.sourcePresent(t,target.sourceRecordIds||[])&&await s.sourcePresent(t,relation.sourceRecordIds||[]);
-   const state=!available?'unavailable':target.revision!==relation.toRevision?'changed':'current';
-   relations.push({kind:'response',state,createdAt:relation.createdAt,...(state==='current'?{id:target.id,body:(await bindingRead(s,t,target)).thoughtText,expectedSha256:relation.toBodySha256}:{})});
-  }
-  return {entry:await bindingRead(s,t,row),relations,sources:await Promise.all((row.sourceRecordIds||[]).map(async id=>{const src=await s.sourcePresent(t,[id])?(await t.get('records',id))?.value:null;return src?{body:src.originalText,sourceSentAt:src.sourceSentAt||null}:null})).then(rows=>rows.filter(Boolean)),input:p?{id:p.inputId,body:p.body,revision:p.contentRevision}:null};
+ return s.run(()=>s.repository.transaction(false,async t=>{
+  const row=await s.readableEntry(t,id),p=await bindingSource(s,t,row);
+  return {entry:await bindingRead(s,t,row),relations:[],sources:await Promise.all((row.sourceRecordIds||[]).map(async id=>{const src=await s.sourcePresent(t,[id])?(await t.get('records',id))?.value:null;return src?{body:src.originalText,sourceSentAt:src.sourceSentAt||null}:null})).then(rows=>rows.filter(Boolean)),input:p?{id:p.inputId,body:p.body,revision:p.contentRevision}:null};
  }));
- for(const relation of result.relations){
-  if(relation.state==='current'&&await hashText(relation.body)!==relation.expectedSha256){relation.state='changed';delete relation.body;delete relation.id;}
-  delete relation.expectedSha256;
- }
- return result;
 }
 export async function restoreThoughtInput(s,r){
  keys(r,['id','operationId','expectedRevision','expectedInputRevision'],['id','operationId','expectedRevision','expectedInputRevision']);
