@@ -3,11 +3,11 @@ import {reviewAndAdoptFirstAI} from './harness/ai-reviewed.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {append,completeFixture,meta,rows,response} from './harness/original-complete.mjs';
-import {DeepSeekOrganizerProvider} from '../core/organizer/deepseek.js';
+import {DeepSeekOrganizerProvider} from './harness/historical-provider.mjs';
 import {AIPresentationRunner,aiPresentationStatus,editAIPresentation,aiPresentationRevisions} from '../core/organizer/ai-presentation.js';
 import {aiCandidateKey} from '../core/organizer/ai-candidate.js';
 import {AI_LIST_FIELDS} from '../core/organizer/ai-contract.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 
 const action=()=>({userActionId:crypto.randomUUID()});
 async function fixture(){

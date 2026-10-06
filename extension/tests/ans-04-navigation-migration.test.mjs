@@ -5,7 +5,7 @@ import {completeFixture,seedMetadata,settled,allPages,factDigest,windowOptions,A
 import {OrganizerStore} from '../core/organizer/store.js';
 import {SourceStructureStore} from '../core/source-structure-store.js';
 import {clearSourceStructureEphemeral} from '../core/source-structure-backup.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 const at=n=>new Date(Date.UTC(2026,8,1,0,n)).toISOString();
 const ref=i=>({platform:'chatgpt',sourceConversationId:'ans04-chat-'+i});

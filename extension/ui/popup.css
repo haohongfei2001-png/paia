@@ -55,7 +55,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var
 .primary:hover:not(:disabled){filter:brightness(.94)}
 .secondary{margin-top:8px;border-color:var(--paia-subtle);background:var(--paia-surface);color:var(--paia-text)}
 .secondary:hover:not(:disabled){background:var(--paia-hover)}
-.quiet{flex:0 0 auto;width:auto;padding-inline:10px;background:var(--paia-surface);color:var(--paia-secondary);font-size:12px}
+.quiet{flex:0 0 auto;width:auto;min-height:32px;padding:5px 8px;background:var(--paia-surface);color:var(--paia-secondary);font-size:12px}
 .quiet:hover:not(:disabled){background:var(--paia-hover);color:var(--paia-text)}
 p{line-height:1.65;overflow-wrap:anywhere}
 .subtle{color:var(--paia-secondary);font-size:11px}
@@ -80,7 +80,5 @@ details[open]>summary>.popup-disclosure-icon{transform:rotate(90deg)}
 summary:hover{color:var(--paia-text)}
 details p{margin:0 0 10px;overflow-wrap:anywhere}
 details a{color:var(--paia-accent);text-underline-offset:3px}
-/* Keep the source-only release marker without exposing developer tools. */
-#popup-internal-tools{display:none!important}
 [hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

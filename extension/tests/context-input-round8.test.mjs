@@ -5,7 +5,7 @@ import {setup,local,capture,derived,inputEdit} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {MemoryService} from '../core/memory/service.js';
 import {key,validateMemoryRow} from '../core/memory/model.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 
 async function fixture({text='ROUND8_DIRECT_INPUT unique reusable input'}={}){

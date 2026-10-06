@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {seedLongTerm} from './fixtures/long-term-v081.mjs';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {BackupValidator,BACKUP_LIMITS} from '../core/backup-format.js';
 
 test('CPV1-01.5 current-version recovery point round-trips a bounded synthetic library with human revisions',{timeout:120000},async()=>{

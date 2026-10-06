@@ -7,7 +7,7 @@ import {MemoryService} from '../core/memory/service.js';
 import {PassportService} from '../core/passport.js';
 import {ContextPackageService} from '../core/context-package-service.js';
 import {assertLocalNetworkAllowed} from '../core/local-network-policy.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 const op=()=>crypto.randomUUID();
 async function setup(texts=['合成姓名甲 的完整历史材料','另一条真实选择']){const f=await completeFixture({texts});const memory=new MemoryService(f.s),passport=new PassportService(f.s);let now=Date.now();const service=new ContextPackageService(memory,passport,{clock:()=>now});await memory.ready();const records=await rows(f.s,'records'),blocks=(await rows(f.s,'blocks')).map(x=>x.value).sort((a,b)=>texts.indexOf(records.find(r=>r.id===a.originalTextReference).value.originalText)-texts.indexOf(records.find(r=>r.id===b.originalTextReference).value.originalText)),refs=blocks.map(b=>({kind:'input',id:b.id,revision:b.revision}));let state=await service.manual({action:'create'},'tab-a');return {...f,memory,passport,service,blocks,refs,get state(){return state;},advance:()=>{now+=900001;},async call(action,options={}){const next=await service.manual({action,selectionId:state.selectionId,generation:state.generation,...options},'tab-a');state=next;return next;}};}

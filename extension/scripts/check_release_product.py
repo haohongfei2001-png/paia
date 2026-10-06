@@ -19,6 +19,10 @@ def check_release(target):
     html=(target/'ui/archive.html').read_text()
     for id in ['diagnostics','filter-advanced','library-organizer-jobs']:
         assert 'id="'+id+'"' not in html,id
+    popup=(target/'ui/popup.html').read_text()
+    assert 'popup-internal-tools' not in popup
+    assert 'diagnostic-status' not in (target/'ui/popup.js').read_text()
+    assert 'material-workbench[data-mode=' not in (target/'ui/reuse.css').read_text()
     assert 'id="integrity-check"' in html
     assert 'id="product-diagnostics"' in html and '<details id="product-diagnostics" open' not in html
     # The consumer build retains privacy/revocation, never retired product UI.

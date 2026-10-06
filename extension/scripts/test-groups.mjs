@@ -1,4 +1,5 @@
 const CURRENT_BROWSER=new Set([
+ 'consumer-cleanup-chrome-e2e.test.mjs',
  'desktop-vnext-context-chrome-e2e.test.mjs',
  'capture-foundation-chrome-e2e.test.mjs',
  'release-certification-round48-chrome-e2e.test.mjs',

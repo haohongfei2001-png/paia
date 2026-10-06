@@ -4,11 +4,8 @@ import {request,element,dateLabel} from './common.js';
 const $=id=>document.getElementById(id);
 export class SmartFilterUI {
  constructor({onError,onContext}){
-  this.diagnosticsBusy=false;
   this.onError=onError;this.onContext=onContext;this.noticeChecked=false;this.recentCursor=null;this.serial=0;this.protectedInputs=new Set();
   $('filter-recover').addEventListener('click',()=>void this.recover());
-  setInterval(()=>{if(!$('settings-panel').hidden)void this.diagnostics();},2000);
-  $('filter-advanced')?.addEventListener('toggle',()=>void this.diagnostics());
   $('document-page').addEventListener('input',e=>{const field=e.target.closest?.('.library-prose[data-edit-id]');if(field)void this.protectUserEdit(field.dataset.editId);});
   for(const radio of document.querySelectorAll('[name="smart-filter-mode"]'))radio.addEventListener('change',()=>void this.changeMode(radio.value));
   $('filter-recent-query').addEventListener('input',()=>void this.recent(false));
@@ -18,12 +15,8 @@ export class SmartFilterUI {
  }
  async changeMode(mode){try{await request('FILTER_MODE',{mode});await this.settings();}catch{this.onError('设置未保存，当前过滤程度未更改。');}}
  async protectUserEdit(id){if(this.protectedInputs.has(id))return;this.protectedInputs.add(id);try{await request('FILTER_PROTECT',{id});}catch{this.protectedInputs.delete(id);this.onError('编辑保留保护尚未保存，请重试。');}}
- async settings(){try{const s=await request('FILTER_STATUS');for(const r of document.querySelectorAll('[name="smart-filter-mode"]'))r.checked=r.value===s.mode;$('filter-processing').textContent='本机规则检查；仅过滤完整的纯控制输入，不确定时保留。';await this.diagnostics();}catch{this.onError('无法读取智能过滤设置。');}}
- async recover(){const button=$('filter-recover');button.disabled=true;try{await request('FILTER_RECOVER');await this.diagnostics();}catch{this.onError('历史输入检查暂未恢复，请稍后重试。');}finally{button.disabled=false;}}
- async diagnostics(){if(this.diagnosticsBusy||!$('filter-advanced')?.open||$('backup-settings')?.getAttribute('aria-busy')==='true')return;this.diagnosticsBusy=true;try{
-  const s=await request('FILTER_DIAGNOSTICS');const fields=[['当前模式',s.mode==='off'?'Off':'Light'],['Active Input',s.active],['已检查',s.checked],['待检查',s.pending],['Keep',s.keep],['Filter',s.filter],['Uncertain',s.uncertain],['User protected',s.userProtected],['Failed',s.failed],['Filter 比例',Number(s.filterRatio*100).toFixed(2)+'%'],['filterVersion',s.filterVersion],['policyVersion',s.policyVersion],['classifier/rules version',s.classifierVersion],['最近一次后台检查时间（Unix ms）',s.lastCheckedAt],['后台任务状态',s.taskState],['reason taxonomy',s.reasonTaxonomyVersion],...Object.entries(s.reasonCounts).map(([code,count])=>['reason / '+code,count]),...Object.entries(s.uncertainReasonCounts).map(([code,count])=>['uncertain / '+code,count]),['升级前原因快照',s.previousReasonState],['升级前 policyVersion',s.previousReasonPolicyVersion],...Object.entries(s.previousUncertainReasonCounts).map(([code,count])=>['previous uncertain / '+code,count])];
-  const list=$('filter-diagnostics');list.replaceChildren();for(const [label,value]of fields){list.append(element('dt','',label),element('dd','',String(value)));}list.dataset.state=s.taskState;$('filter-diagnostics-error').textContent='';
- }catch{$('filter-diagnostics-error').textContent='统计暂不可用，正在等待稳定状态。';}finally{this.diagnosticsBusy=false;}}
+ async settings(){try{const s=await request('FILTER_STATUS');for(const r of document.querySelectorAll('[name="smart-filter-mode"]'))r.checked=r.value===s.mode;$('filter-processing').textContent='本机规则检查；仅过滤完整的纯控制输入，不确定时保留。';}catch{this.onError('无法读取智能过滤设置。');}}
+ async recover(){const button=$('filter-recover');button.disabled=true;try{await request('FILTER_RECOVER');}catch{this.onError('历史输入检查暂未恢复，请稍后重试。');}finally{button.disabled=false;}}
  async home(eligible){
   if(!eligible){$('filter-onboarding').hidden=true;return;}
   if(this.noticeChecked)return;this.noticeChecked=true;

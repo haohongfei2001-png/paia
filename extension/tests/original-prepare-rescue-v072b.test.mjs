@@ -4,7 +4,7 @@ import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js
 import {setup} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {ArchiveRepository} from '../core/idb-repository.js';
-import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from '../core/organizer/deepseek.js';
+import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from './harness/historical-provider.mjs';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 
 globalThis.IDBKeyRange=IDBKeyRange;

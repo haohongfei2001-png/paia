@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {completeFixture,rows,append} from './harness/original-complete.mjs';
 import {backupHash,validateBackupItem} from '../core/backup-format.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {migrateBindings,BINDING_ROW} from '../core/thought-binding.js';
 const op=()=>crypto.randomUUID();

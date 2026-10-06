@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {setup,inputEdit,capture} from './harness/thought-m1.mjs';
 import {completeFixture,append,rows} from './harness/original-complete.mjs';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {projectBackupEntity} from '../core/backup-format.js';
 import {RecoveryDraftSession} from '../ui/recovery-draft.js';

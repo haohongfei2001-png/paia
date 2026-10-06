@@ -69,6 +69,10 @@ export class AppShellController {
    }
    const node=get(id),next=host===home?this.archiveHeaderOrder?.slice(this.archiveHeaderOrder.indexOf(node)+1).find(item=>item.parentElement===home)||null:undefined;move(node,host,next);
   }
+  // Archive always uses the same narrow navigator. Its root leaves the reading
+  // column empty; search results still use the normal collection owner.
+  move(get('archive-root-header'),root?get('archive-reader-navigator-slot'):get('archive-root-main'),root?get('archive-reader-search-slot'):get('archive-root-tools'));
+  move(get('archive-root-tools'),root?get('archive-reader-navigator-slot'):get('archive-root-main'),root?get('archive-reader-search-slot'):get('archive-root-navigator-slot'));
   move(get('archive-root-overflow'),get(root?'archive-root-header-actions':'archive-root-tools'));
   move(get('archive-source-scope-label'),root?get('archive-root-overflow').querySelector('.archive-root-overflow-actions'):get('archive-root-tools'));
   for(const {node,parent,next}of this.archiveNavHomes)move(node,compact?get('archive-compact-nav-items'):parent,compact?undefined:next||null);

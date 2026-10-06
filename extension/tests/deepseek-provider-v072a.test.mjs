@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BudgetPolicy} from '../core/organizer/budget.js';
-import {DEEPSEEK_MODEL,DeepSeekOrganizerProvider,DeepSeekSessionCredentials,requestFromInputProjection,validateDeepSeekResponse} from '../core/organizer/deepseek.js';
+import {DEEPSEEK_MODEL,DeepSeekOrganizerProvider,DeepSeekSessionCredentials,requestFromInputProjection,validateDeepSeekResponse} from './harness/historical-provider.mjs';
 import {productionProviders} from '../core/organizer/contracts.js';
 
 const limits=new BudgetPolicy().limits;

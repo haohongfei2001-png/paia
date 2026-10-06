@@ -2,7 +2,7 @@ import {reviewAndAdoptFirstAI} from './harness/ai-reviewed.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {mkdir,writeFile} from 'node:fs/promises';
 import {completeFixture,rows,response,append} from './harness/original-complete.mjs';import {exported,prepared} from './harness/backup-v081.mjs';
 import {ImportCoordinator} from '../core/import/coordinator.js';import {ImportLedger} from '../core/import/ledger.js';import {officialExportAdapter} from '../core/import/chatgpt-export.js';
-import {OnboardingService} from '../core/onboarding.js';import {BackupService} from '../core/backup-service.js';import {BoundedOrganizerWorkflow} from '../core/organizer/bounded-workflow.js';import {AIPresentationRunner} from '../core/organizer/ai-presentation.js';
+import {OnboardingService} from '../core/onboarding.js';import {BackupService} from './harness/historical-backup.mjs';import {BoundedOrganizerWorkflow} from '../core/organizer/bounded-workflow.js';import {AIPresentationRunner} from '../core/organizer/ai-presentation.js';
 import {conversation,historyFile} from './fixtures/history-v090.mjs';import {productHistory,productReply} from './fixtures/product-history-v080.mjs';
 const op=()=>crypto.randomUUID();
 test('600 historical Inputs through preview, manual protections, explicit bounded Original/AI, backup and recovery',{timeout:120000},async()=>{

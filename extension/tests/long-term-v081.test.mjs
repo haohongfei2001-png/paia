@@ -4,7 +4,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {seedLongTerm} from './fixtures/long-term-v081.mjs';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 const op=()=>crypto.randomUUID();
 test('500 synthetic Inputs / 30 Topics / 360 Entries: reading, merge, revisions, backup and isolated recovery',{timeout:120000},async()=>{
  const f=await completeFixture({texts:[]}),start=performance.now(),fixture=await seedLongTerm(f.s),seedMs=performance.now()-start;assert.equal((await rows(f.s,'records')).length,499);assert.equal((await rows(f.s,'topics')).length,30);assert.equal((await rows(f.s,'thoughts')).length,360);assert.equal((await rows(f.s,'tombstones')).length,1);const gridStart=performance.now(),grid=await f.s.libraryIndexPage({mode:'recent'}),gridMs=performance.now()-gridStart;assert.equal(grid.items.length,30);assert.equal(grid.items[0].id,fixture.topicIds[0]);const topicId=fixture.topicIds[0],readingStart=performance.now(),ascending=await f.s.topicDocumentPage({topicId,sort:'asc'}),descending=await f.s.topicDocumentPage({topicId,sort:'desc'}),readingMs=performance.now()-readingStart;for(const section of fixture.sectionIds[0])assert.deepEqual(descending.items.filter(x=>x.placement.sectionId===section).map(x=>x.entry.id),ascending.items.filter(x=>x.placement.sectionId===section).map(x=>x.entry.id).reverse());assert.equal((await f.s.topicDocumentPage({topicId,sort:'asc',query:'合成备注'})).items.length,1);

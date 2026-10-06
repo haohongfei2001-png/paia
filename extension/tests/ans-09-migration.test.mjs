@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {legacy,upgraded,canonical,digest} from './harness/ans09-legacy.mjs';
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {BACKUP_LIMITS} from '../core/backup-format.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {ReaderStateService} from '../core/reader-state.js';
 import {ArchiveNavigationQuery,settled} from './harness/ans-navigation.mjs';

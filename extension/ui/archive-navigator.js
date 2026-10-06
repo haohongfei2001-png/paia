@@ -72,12 +72,12 @@ export class ArchiveNavigator{
   document.body.classList.toggle('ans-nav-surface',this.active);document.body.classList.toggle('ans-nav-reader',this.active&&this.reader);document.body.classList.toggle('ans-nav-root',this.active&&!this.reader);
   if(this.sourceLabel)this.sourceLabel.hidden=!this.active||this.reader;
   if(!this.active){if(this.sheetOpen)this.closeSheet(false);this.presentReaderContext(null);this.host.hidden=true;if(this.toggle)this.toggle.hidden=true;this.restoreLegacy();return;}
-  this.mount($(this.reader?'archive-reader-navigator-slot':'archive-root-navigator-slot'));this.layout();
-  if(!this.reader&&this.query.trim()){this.host.hidden=true;this.restoreLegacy();return;}
+  this.mount($('archive-reader-navigator-slot'));this.layout();
   this.host.hidden=this.reader&&this.isMobile()&&!this.sheetOpen||this.reader&&this.isNarrow()&&this.narrowCollapsed;
   if(this.toggle){this.toggle.hidden=!this.reader;this.toggle.setAttribute('aria-expanded',String(!this.host.hidden));}
   this.paint();
-  if(previousSelected!==this.selectedDocumentId&&(this.selectedDocumentId||previousSelected)||!this.reader&&this.lastOpenedDocumentId)await this.refreshSelection(this.selectedDocumentId||previousSelected||this.lastOpenedDocumentId);
+  if(this.selectedDocumentId&&previousSelected!==this.selectedDocumentId)await this.refreshSelection(this.selectedDocumentId);
+  if(!this.reader)this.selectPath(null);
   // Reproject the cached tree immediately when Back returns to Archive. The
   // bounded source refresh below may still be rebuilding its index.
   this.paint();
@@ -178,7 +178,7 @@ export class ArchiveNavigator{
  setStatus(text){this.status.textContent=text;}
  restoreLegacy(){const list=$('document-list'),count=$('result-count');if(list)list.hidden=false;if(count)count.hidden=false;}
  syncLegacy(){
-  if(this.reader)return;const list=$('document-list'),count=$('result-count'),root=this.state.scope({groupKind:'providers'}),ready=!this.query.trim()&&root.coverage.state==='complete';
+  if(this.reader)return;const list=$('document-list'),count=$('result-count'),root=this.state.scope({groupKind:'providers'}),ready=!this.query.trim();
   if(list)list.hidden=ready;if(count)count.hidden=ready;
  }
  async toggleGroup(item){

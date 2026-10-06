@@ -4,7 +4,7 @@ import {semanticMaterialSnapshot,createMaterialSemanticIndex} from '../experimen
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {MemoryService} from '../core/memory/service.js';
 import {inputEdit,derived} from './harness/thought-m1.mjs';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {AI_FIELDS} from '../core/organizer/ai-contract.js';
 const model={id:'synthetic-local-encoder',revision:'a'.repeat(40),dimension:2};
 const op=()=>crypto.randomUUID();

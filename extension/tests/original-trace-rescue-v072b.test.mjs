@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {setup} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
-import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from '../core/organizer/deepseek.js';
+import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from './harness/historical-provider.mjs';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 
 const envelope=(content,status=200,textImpl=null)=>({status,ok:status>=200&&status<300,headers:{get:()=>null},text:textImpl||(async()=>JSON.stringify({choices:[{message:{content:typeof content==='string'?content:JSON.stringify(content)}}]}))});

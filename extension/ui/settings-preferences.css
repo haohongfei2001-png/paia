@@ -220,3 +220,5 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
  #settings-panel #memory-settings>.setting>span{max-width:calc(100% - 36px)}
 }
 #settings-panel #backup-settings[data-inspection-failure]>#backup-failure-return{min-height:44px;min-width:44px}
+
+.ux-settings-group .onboarding-history{max-width:none;margin:0 0 24px;padding:0;border:0;background:transparent!important}.ux-settings-group .onboarding-history h2{font:inherit;font-size:20px;line-height:1.4}.ux-settings-group .onboarding-history p{font-size:14px}

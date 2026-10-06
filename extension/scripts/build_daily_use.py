@@ -47,17 +47,6 @@ def build_release(source, target):
         shutil.copyfile(path, output)
     # Remove capture probing controls and legacy job controls from the release.
     # Only bounded internal recovery diagnostics remain; no consumer statistics product.
-    sub_once(target/'ui/popup.html', r'    <details id="popup-internal-tools">.*?</details>', '')
-    sub_once(target/'ui/popup.js', r"import \{ briefStructure \} from './structure-diagnostics.js';\n", '')
-    cut(target/'ui/popup.js', "    $('diagnostic-status')", '\n  } catch')
-    sub_once(target/'ui/archive.html', r'<details id="diagnostics" hidden>.*?</details>', '<section aria-label="捕获设置"><p id="enabled-state"></p><button id="toggle-capture">暂停捕获</button><p id="storage-usage"></p></section>')
-    sub_once(target/'ui/archive.html', r'<details id="filter-advanced" hidden>.*?</details>', '')
-    sub_once(target/'ui/archive.js', r"import \{formatStructure\} from './structure-diagnostics.js';\n", '')
-    sub_once(target/'ui/archive.js', r"\$\('structure-summary'\).textContent=formatStructure\(state.diagnostics.structure,state.diagnostics.structureAt\);", '')
-    cut(target/'ui/archive.js', "$('diagnostic-summary').textContent=", "$('storage-usage').textContent=")
-    sub_once(target/'ui/smart-filter.js', r"  setInterval\(\(\)=>\{if\(!\$\('settings-panel'\).hidden\)void this.diagnostics\(\);\},2000\);\n", '')
-    sub_once(target/'ui/smart-filter.js', r"  \$\('filter-advanced'\)\?\.addEventListener\('toggle',\(\)=>void this.diagnostics\(\)\);\n", '')
-    sub_once(target/'ui/smart-filter.js', r' async diagnostics\(\)\{.*?\n async home\(', ' async diagnostics(){}\n async home(')
     sub_once(target/'background/service-worker.js', r"    case 'FILTER_DIAGNOSTICS': return store.filterDiagnostics\(\);\n", '')
     for name in ['ui/structure-diagnostics.js','ui/fingerprint-display.js','ui/source-time-display.js']:
         (target/name).unlink()

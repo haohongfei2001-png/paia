@@ -49,6 +49,7 @@ export class MemoryPanel {
   if(this.busy)return;this.busy=true;this.serial++;this.lock();
   try{
    await request('PAIA_MEMORY_SETTINGS',{options:{externalAccess:false,clearTemporary:true}});
+   await request('PAIA_PASSPORT_REVOKE_ALL');
    this.feedback(copy('已有连接与临时授权已撤销。','Previous connections and temporary permissions were revoked.'),'saved');
   }finally{this.busy=false;this.lock();}
  }

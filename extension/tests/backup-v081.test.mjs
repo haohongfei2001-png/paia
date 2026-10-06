@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {completeFixture,append,rows,meta} from './harness/original-complete.mjs';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {BackupValidator,backupHash} from '../core/backup-format.js';
 const op=()=>crypto.randomUUID();
 export async function exported(service){const {sessionId,header}=await service.beginExport(),items=[header];let sequence=0;for(;;){const p=await service.exportPage({sessionId,sequence:sequence++});items.push(...p.items);if(p.done)break;}return items;}

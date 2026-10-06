@@ -2,7 +2,7 @@ import {IDBFactory,IDBKeyRange} from '../vendor/fake-indexeddb/build/esm/index.j
 import {local} from './thought-m1.mjs';
 import {OrganizerStore} from '../../core/organizer/store.js';
 import {SimpleOriginalOrganizerRunner} from '../../core/organizer/original-simple.js';
-import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from '../../core/organizer/deepseek.js';
+import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from './historical-provider.mjs';
 import {bindBudgetSession} from '../../core/organizer/budget.js';
 globalThis.IDBKeyRange=IDBKeyRange;
 

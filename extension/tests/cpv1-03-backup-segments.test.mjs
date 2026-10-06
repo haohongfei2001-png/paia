@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BackupSegmentWriter,verifyBackupSegments} from '../core/backup-segments.js';
 import {backupSegmentRows} from '../ui/backup.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {BACKUP_LIMITS,BackupValidator,backupHash} from '../core/backup-format.js';
 import {completeFixture,rows,meta} from './harness/original-complete.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';

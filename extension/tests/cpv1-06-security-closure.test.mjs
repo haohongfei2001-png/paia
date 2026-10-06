@@ -4,7 +4,7 @@ import {completeFixture,rows} from './harness/original-complete.mjs';
 import {MemoryService} from '../core/memory/service.js';
 import {PassportService} from '../core/passport.js';
 import {ContextPackageService} from '../core/context-package-service.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 
 async function fixture(){

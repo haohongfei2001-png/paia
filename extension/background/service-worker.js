@@ -260,6 +260,10 @@ async function handle(request, sender) {
     case 'PAIA_REVISIT_MARK': return revisit.mark(request.anchor);
     case 'PAIA_PASSPORT_STATUS': return passport.status();
     case 'PAIA_PASSPORT_REVOKE': return passport.revoke(request.grantId);
+    case 'PAIA_PASSPORT_REVOKE_ALL': {
+      if(Object.keys(request).some(key=>key!=='type'))throw new ArchiveError('INVALID_REQUEST');
+      return passport.revokeAll();
+    }
     case 'PAIA_PASSPORT_CLEAR_AUDITS': if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return passport.clearAudits();
     case 'REMOVE_LIBRARY_TOPIC': return store.removeTopic(request.edit);
     case 'RESTORE_LIBRARY_TOPIC': return store.restoreTopicContainer(request.edit);

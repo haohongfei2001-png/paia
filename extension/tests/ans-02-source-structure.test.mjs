@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {completeFixture,append,rows} from './harness/original-complete.mjs';
 import {exported} from './harness/backup-v081.mjs';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {SourceStructureStore} from '../core/source-structure-store.js';
 
 const project=(id,name=id)=>({ref:{providerKey:'chatgpt',namespace:'account-main',projectId:id},name});
