@@ -89,7 +89,7 @@ test('O01 workspace refuses absent opt-in and detached or modal hosts before cha
 }));
 
 test('O01 blocked and unknown-date disclosure stays truthful and visible before Start',()=>withDOM(({host})=>{
- for(const [blockedReason,expectedReason]of [['NO_DELTA','目前没有待整理的新变化。'],['HOST_PERMISSION_NOT_GRANTED','本次尚不能开始：Chrome 尚未授予 DeepSeek 网络权限。没有发送请求。']]){
+ for(const [blockedReason,expectedReason]of [['NO_DELTA','目前没有待整理的新变化。'],['HOST_PERMISSION_NOT_GRANTED','本次尚不能开始：当前 AI 服务不可用。没有发送请求。']]){
   const view=mountOrganizeScopeWorkspace({host,scope:scope({blockedReason,batchCount:0,timeRange:{from:null,to:null,unknownCount:150},budget:{usedRequests:10,dailyLimit:10,remainingRequests:0}}),previewOnly:true});
   const blocked=view.review.querySelector('.organize-scope-blocked'),children=view.review.children;
   assert.equal(blocked.textContent,expectedReason);assert.equal(blocked.getAttribute('role'),'status');assert.ok(children.indexOf(blocked)<children.indexOf(view.start.parentElement));
@@ -124,9 +124,9 @@ for(const stage of Object.keys(ORGANIZE_PREVIEW_STATES))test(`O01–O09 ${stage}
  assert.equal(view.root.dataset.organizeState,stage);assert.equal(view.root.dataset.previewOnly,'true');assert.match(view.root.textContent,/外观预览/);
  for(const node of all(view.root).filter(node=>['BUTTON','INPUT'].includes(node.tagName)))assert.equal(node.disabled,true,node.textContent);
  assert.deepEqual(model,before);
- if(stage==='first'){assert.match(view.root.textContent,/还没有已保存的 AI 整理/);assert.match(view.root.textContent,/用户原话依据/);assert.match(view.root.textContent,/SYNTHETIC exact source\n  whitespace stays/);assert.doesNotMatch(view.root.textContent,/SYNTHETIC saved/);assert.match(view.root.textContent,/不采用/);}
- if(stage==='many'){assert.equal(all(view.root).filter(node=>node.dataset.aiCandidateField).length,8);assert.match(view.root.textContent,/0 \/ 8 已决定/);}
- if(stage==='decisions')assert.match(view.root.textContent,/2 \/ 2 已决定/);
+ if(stage==='first'){assert.match(view.root.textContent,/还没有已保存的 AI 整理/);assert.match(view.root.textContent,/核对原话依据/);assert.match(view.root.textContent,/SYNTHETIC exact source\n  whitespace stays/);assert.doesNotMatch(view.root.textContent,/SYNTHETIC saved/);assert.match(view.root.textContent,/不采用/);}
+ if(stage==='many'){assert.equal(all(view.root).filter(node=>node.dataset.aiCandidateField).length,8);assert.doesNotMatch(view.root.textContent,/已决定/);assert.match(view.root.textContent,/仅供阅读/);}
+ if(stage==='decisions'){assert.doesNotMatch(view.root.textContent,/已决定/);assert.match(view.root.textContent,/仅供阅读/);}
  if(stage==='scope'){assert.match(view.root.textContent,/未核定为本次发送批次/);assert.match(view.root.textContent,/SYNTHETIC exact source/);}
  view.dispose();assert.equal(view.setStage('scope'),false);assert.equal(view.root.isConnected,false);
 }));
@@ -144,11 +144,11 @@ test('preview-only candidate controls and IDs cannot affect the default real ren
  const shown=renderAICandidateComparison(preview,{...args,choices:model.choices,presentationOnly:true,evidence:model.materials});
  assert.equal(original.textContent,originalText);assert.equal(writes,0);
  const realRadios=all(original).filter(node=>node.tagName==='INPUT'),previewRadios=all(shown).filter(node=>node.tagName==='INPUT');
- assert.equal(realRadios.every(node=>node.disabled===false),true);assert.equal(previewRadios.every(node=>node.disabled===true),true);
- for(const radio of previewRadios){assert.equal(realRadios.some(node=>node.name===radio.name),false);assert.equal(radio.listeners.change,undefined);}
- assert.equal(original.querySelector('.ai-candidate-field').getAttribute('aria-labelledby'),'ai-candidate-blockSummary');
- assert.notEqual(shown.querySelector('.ai-candidate-field').getAttribute('aria-labelledby'),'ai-candidate-blockSummary');
- assert.match(originalText,/AI整理更新/);assert.match(originalText,/采用这段/);assert.match(originalText,/更新候选/);
+ assert.equal(realRadios.length,0);assert.equal(previewRadios.length,0);
+ const realId=original.querySelector('.ai-candidate-field').getAttribute('aria-labelledby'),previewId=shown.querySelector('.ai-candidate-field').getAttribute('aria-labelledby');
+ assert.match(realId,/^saved-candidate-\d+-blockSummary$/);assert.notEqual(previewId,realId);
+ assert.match(originalText,/已保存的 AI 候选/);assert.match(originalText,/仅供阅读/);assert.doesNotMatch(originalText,/采用这段|更新候选|保存选择/);
+
 }));
 
 
