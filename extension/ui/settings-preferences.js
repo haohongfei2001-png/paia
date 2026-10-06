@@ -32,7 +32,7 @@ async function savePreference(key,value,control){
  finally{preferenceBusy=false;}
 }
 export function presentSettingsStatus(page){
- const scan=$('ux-capture-last'),health=$('ux-capture-health');if(scan){const at=page?.diagnostics?.lastSuccessAt,valid=typeof at==='string'&&Number.isFinite(Date.parse(at));scan.textContent=valid?copy('最近一次成功扫描：','Last successful scan: ')+new Date(at).toLocaleString(language()):copy('尚无成功扫描的时间记录。','No successful scan time has been recorded.');}if(health)health.textContent=diagnosticText(page);
+ const scan=$('ux-capture-last'),health=$('ux-capture-health');if(scan){const at=page?.diagnostics?.lastSuccessAt,valid=typeof at==='string'&&Number.isFinite(Date.parse(at));scan.textContent=valid?copy('最近检查：','Last checked: ')+new Date(at).toLocaleString(language()):'';scan.hidden=!valid;}if(health){health.textContent=diagnosticText(page);health.hidden=!health.textContent;}
 }
 function updateLocalStatus(page){presentSettingsStatus(page);const el=$('ux-local-state');if(!el)return;const failed=page?.diagnostics?.lastError?.code==='STORAGE_FAILED'||page?.diagnostics?.lastError?.code==='STORAGE_FULL';el.textContent=failed?copy('本机保存遇到问题','Local storage unavailable'):copy('本机保存','Saved locally');el.dataset.kind=failed?'error':'ok';}
 
@@ -62,7 +62,7 @@ function setupSettingsShell(){
  layout.append(nav,body);shell.append(head,layout);panel.prepend(shell);
  const move=(target,key)=>{const el=typeof target==='string'?$(target):target;if(el&&groups.get(key))groups.get(key).append(el);};
  const capture=node('section','ux-capture-summary');capture.id='ux-capture-summary';capture.setAttribute('aria-labelledby','ux-capture-title');
- const captureTitle=copyNode('h3','','捕获状态','Capture status');captureTitle.id='ux-capture-title';capture.append(captureTitle);
+ const captureTitle=copyNode('h3','','收录状态','Capture status');captureTitle.id='ux-capture-title';capture.append(captureTitle);
  for(const id of ['enabled-state','toggle-capture'])if($(id))capture.append($(id));
  const provider=copyNode('p','','当前适用来源：ChatGPT','Current supported source: ChatGPT'),last=node('p','muted'),health=node('p','muted');last.id='ux-capture-last';health.id='ux-capture-health';
  capture.append(provider,last,health,copyNode('p','muted','临时会话不会自动保存。','Temporary chats are not saved automatically.'));

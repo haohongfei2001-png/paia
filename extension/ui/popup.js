@@ -59,7 +59,7 @@ async function refresh() {
     setIconLabel($('open-archive'), 'external-link', consented ? '打开 PAIA' : '阅读说明并启用', {side:'end'});
     $('toggle-capture').hidden = !consented;
     $('toggle-capture').disabled = busy;
-    $('toggle-capture').textContent = state.settings.enabled ? '暂停捕获' : '恢复捕获';
+    $('toggle-capture').textContent = state.settings.enabled ? '暂停收录' : '恢复收录';
     $('resume-note').hidden = !consented || state.settings.enabled;
     showRecovery();
 

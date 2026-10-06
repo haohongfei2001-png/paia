@@ -14,9 +14,9 @@ export const STATUS_LABELS = Object.freeze({
   ADAPTER_MISMATCH: '页面结构不匹配，已跳过',
   ADAPTER_VERSION_MISMATCH: '内容脚本版本不一致，请刷新 ChatGPT 标签页',
   UNSTABLE_PAGE: '页面正在变化，等待稳定',
-  PAUSED: '捕获已暂停',
+  PAUSED: '收录已暂停',
   CONSENT_REQUIRED: '等待你的阅读与同意',
-  CAPTURE_FAILED: '捕获未完成，请刷新 ChatGPT 后重试',
+  CAPTURE_FAILED: '收录未完成，请刷新 ChatGPT 后重试',
   MESSAGE_TOO_LARGE: '文字超出单条存储限制，已跳过',
   CONTEXT_INVALIDATED: '扩展已更新，请刷新 ChatGPT 标签页',
   STORAGE_FULL: '存储空间不足，请保留现有资料并检查本机可用空间',
@@ -113,17 +113,14 @@ export function sizeLabel(bytes = 0) {
 
 export function enabledLabel(settings) {
   if (!settings?.consentVersion) return '尚未启用';
-  return settings.enabled ? '捕获已启用' : '捕获已暂停';
+  return settings.enabled ? '收录已启用' : '收录已暂停';
 }
 
 export function diagnosticText(state) {
-  if (!state?.settings?.consentVersion) return statusLabel('CONSENT_REQUIRED');
-  if (!state.settings.enabled) return statusLabel('PAUSED');
-  const diagnostics = state.diagnostics || {};
-  const lastScan = Date.parse(diagnostics.lastScanAt || '');
-  if (!Number.isFinite(lastScan)) return '等待 ChatGPT 页面首次扫描';
-  const stale = Date.now() - lastScan > 60_000;
-  return `${statusLabel(diagnostics.status)}${stale ? ' · 状态已过期，请查看 ChatGPT 标签页' : ' · 仅代表最近一次扫描'}`;
+  if (!state?.settings?.consentVersion || !state.settings.enabled) return '';
+  const status = state.diagnostics?.status;
+  if (!status || ['CAPTURING','WAITING_CHAT','TEMPORARY_CHAT','NO_MESSAGES','UNSTABLE_PAGE'].includes(status)) return '';
+  return statusLabel(status);
 }
 
 // Bounded local capture metadata, not a completeness claim or a source timestamp.
