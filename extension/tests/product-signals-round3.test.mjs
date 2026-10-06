@@ -1,76 +1,40 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {applyProductSignal,contentAgeBucket,emptyProductSignals,PRODUCT_SIGNAL_ROW,productSignalKey,summarizeProductSignals,validateProductSignal} from '../core/product-signals.js';
+import {LegacyUsageRecords} from '../core/legacy-usage-records.js';
+import {assertFeatureAvailable} from '../core/feature-availability.js';
+import {setup} from './harness/thought-m1.mjs';
+import {OrganizerStore} from '../core/organizer/store.js';
 import {backupMetaAllowed} from '../core/backup-format.js';
+const ROW='product-signals:v1';
+async function fixture(){const {s}=await setup(OrganizerStore);await s.finishFoundation();const row={id:ROW,version:1,enabled:true,daily:{'2020-01-01':{input_search:4},'2026-01-01':{context_build:2}}};await s.repository.transaction(true,t=>t.put('meta',row));return {s,row,service:new LegacyUsageRecords(s),read:()=>s.repository.transaction(false,t=>t.get('meta',ROW))};}
 
-const day=Date.parse('2026-09-12T12:00:00Z');
-
-test('product signals accept only fixed event names and fixed enum dimensions',()=>{
- const valid={name:'context_build',dimensions:{outcome:'hit',profile:'default',budget:'standard'}};
- assert.deepEqual(validateProductSignal(valid),valid);
- assert.equal(validateProductSignal({...valid,query:'private text'}),null);
- assert.equal(validateProductSignal({name:'context_build',dimensions:{outcome:'hit',profile:'default',budget:'standard',topicId:'private'}}),null);
- assert.equal(validateProductSignal({name:'unknown',dimensions:{}}),null);
- assert.equal(productSignalKey(valid),'context_build|budget=standard|outcome=hit|profile=default');
- assert.equal(backupMetaAllowed(PRODUCT_SIGNAL_ROW),false);
+test('all historical product signal names and dimensions are refused before reading their payload',()=>{
+ for(const name of ['context_build','context_share','input_search','input_target_open','reading_copy','thought_topic_open','thought_ai_view','thought_ai_edit','revisit_open','universal_result_open','unknown']){
+  let reads=0;const request={type:'PAIA_PRODUCT_SIGNAL',get signal(){reads++;throw Error('private payload read');}};
+  assert.throws(()=>assertFeatureAvailable(request),{code:'FEATURE_UNAVAILABLE'},name);assert.equal(reads,0);
+ }
+ assert.equal(backupMetaAllowed(ROW),false);
 });
 
-test('product signal rows retain aggregate counters only and prune old date buckets',()=>{
- let row=emptyProductSignals(day,true);
- row=applyProductSignal(row,{name:'input_search',dimensions:{outcome:'hit'}},day-91*86400000);
- row=applyProductSignal(row,{name:'input_search',dimensions:{outcome:'hit'}},day);
- row=applyProductSignal(row,{name:'input_target_open',dimensions:{origin:'search',age:'365_plus'}},day);
- row=applyProductSignal(row,{name:'reading_copy',dimensions:{surface:'input',origin:'search'}},day);
- assert.equal(Object.keys(row.daily).length,1);
- assert.equal(JSON.stringify(row).includes('private'),false);
- const summary=summarizeProductSignals(row,day);
- assert.equal(summary.input,undefined);
- assert.equal(summary.all.input.searches,1);
- assert.equal(summary.all.input.searchHits,1);
- assert.equal(summary.all.input.searchOpens,1);
- assert.equal(summary.all.input.searchCopies,1);
- assert.equal(summary.all.input.old180DayOpens,1);
- assert.equal(summary.all.input.searchCopyPerOpen,1);
+test('retired product signal status retains all old counters and never publishes analytics',async()=>{
+ const f=await fixture();const writes=f.s.repository.metrics.writes;
+ assert.deepEqual(await f.service.status(),{enabled:false,retired:true,hasHistory:true,legacyEnabled:true});
+ assert.deepEqual(await f.read(),f.row);assert.equal(f.s.repository.metrics.writes,writes);
 });
 
-test('30-day activity summary excludes sparse activity older than 30 days',()=>{
- let row=emptyProductSignals(day,true);
- row=applyProductSignal(row,{name:'thought_topic_open',dimensions:{repeat:'first'}},day-45*86400000);
- row=applyProductSignal(row,{name:'thought_topic_open',dimensions:{repeat:'repeat'}},day-2*86400000);
- const summary=summarizeProductSignals(row,day);
- assert.equal(summary.activeDaysLast30,1);
- assert.equal(summary.last30Days.thought.topicOpens,1);
- assert.equal(summary.all.thought.topicOpens,2);
+test('reading retired usage history does not prune sparse or old date buckets',async()=>{
+ const f=await fixture();await f.service.status();await f.service.status();
+ assert.deepEqual(await f.read(),f.row);assert.deepEqual(Object.keys((await f.read()).daily),['2020-01-01','2026-01-01']);
 });
 
-test('summaries expose observable product loops without claiming user intent',()=>{
- let row=emptyProductSignals(day,true);
- for(const signal of [
-  {name:'thought_topic_open',dimensions:{repeat:'first'}},
-  {name:'thought_topic_open',dimensions:{repeat:'repeat'}},
-  {name:'thought_ai_view',dimensions:{view:'ai'}},
-  {name:'thought_ai_view',dimensions:{view:'original'}},
-  {name:'thought_ai_edit',dimensions:{result:'saved'}},
-  {name:'context_build',dimensions:{outcome:'hit',profile:'custom',budget:'detailed'}},
-  {name:'context_share',dimensions:{format:'copy'}}
- ])row=applyProductSignal(row,signal,day);
- const summary=summarizeProductSignals(row,day);
- assert.equal(summary.all.thought.topicOpens,2);
- assert.equal(summary.all.thought.repeatTopicOpens,1);
- assert.equal(summary.all.thought.repeatOpenShare,.5);
- assert.equal(summary.all.thought.aiViewOpens,1);
- assert.equal(summary.all.thought.returnsToOriginal,1);
- assert.equal(summary.all.thought.aiSavedEdits,1);
- assert.equal(summary.all.context.builds,1);
- assert.equal(summary.all.context.customProfileBuilds,1);
- assert.equal(summary.all.context.shares,1);
- assert.equal(summary.all.context.sharePerBuild,1);
+test('retired usage settings cannot enable collection and explicit opt-out changes only its existing flag',async()=>{
+ const f=await fixture();for(const enabled of [true,undefined,null,1,'true'])await assert.rejects(f.service.settings({enabled}),{code:'FEATURE_UNAVAILABLE'});
+ assert.deepEqual(await f.read(),f.row);await f.service.settings({enabled:false});assert.deepEqual(await f.read(),{...f.row,enabled:false});
+ assert.deepEqual(await f.service.status(),{enabled:false,retired:true,hasHistory:true,legacyEnabled:false});
 });
 
-test('age buckets are coarse and never retain a source timestamp',()=>{
- assert.equal(contentAgeBucket('2026-09-01T00:00:00Z',day),'lt30');
- assert.equal(contentAgeBucket('2026-05-01T00:00:00Z',day),'30_179');
- assert.equal(contentAgeBucket('2026-01-01T00:00:00Z',day),'180_364');
- assert.equal(contentAgeBucket('2025-01-01T00:00:00Z',day),'365_plus');
- assert.equal(contentAgeBucket(null,day),'unknown');
+test('a fresh disabled usage status creates no timestamps, rows or counters',async()=>{
+ const {s}=await setup(OrganizerStore);await s.finishFoundation();const service=new LegacyUsageRecords(s),before=s.repository.metrics.writes;
+ assert.deepEqual(await service.status(),{enabled:false,retired:true,hasHistory:false,legacyEnabled:false});await service.settings({enabled:false});
+ assert.equal(await s.repository.transaction(false,t=>t.get('meta',ROW)),undefined);assert.equal(s.repository.metrics.writes,before);
 });

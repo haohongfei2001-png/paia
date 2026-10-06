@@ -18,13 +18,16 @@ async function withDOM(run){
  try{await run({get,nodes});}finally{for(const [name,descriptor]of prior)if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];}
 }
 
-test('S03 presents real successful-scan metadata without inventing capture or history completeness',()=>withDOM(async({get})=>{
+test('S03 keeps successful metadata quiet, shows genuine errors and makes no completeness claim',()=>withDOM(async({get})=>{
  const {presentSettingsStatus}=await import('../ui/settings-preferences.js');
  const empty={settings:{consentVersion:1,enabled:true},diagnostics:{lastSuccessAt:null,lastScanAt:null}};
- const before=structuredClone(empty);presentSettingsStatus(empty);assert.match(get('ux-capture-last').textContent,/尚无成功扫描/);assert.match(get('ux-capture-health').textContent,/首次扫描/);assert.deepEqual(empty,before);
+ const before=structuredClone(empty);presentSettingsStatus(empty);assert.equal(get('ux-capture-last').textContent,'');assert.equal(get('ux-capture-last').hidden,true);assert.equal(get('ux-capture-health').hidden,true);assert.deepEqual(empty,before);
  const paused={settings:{consentVersion:1,enabled:false},diagnostics:{lastSuccessAt:'2026-01-02T03:04:05.000Z',lastScanAt:'2026-01-02T03:04:05.000Z',status:'CAPTURING',added:0}};
- presentSettingsStatus(paused);assert.equal(get('ux-capture-last').textContent,'最近一次成功扫描：'+new Date(paused.diagnostics.lastSuccessAt).toLocaleString('zh-CN'));assert.match(get('ux-capture-health').textContent,/暂停/);assert.doesNotMatch(get('ux-capture-last').textContent,/新增|完整历史/);
- paused.settings.enabled=true;presentSettingsStatus(paused);assert.match(get('ux-capture-health').textContent,/状态已过期/);paused.diagnostics.lastSuccessAt='invalid';presentSettingsStatus(paused);assert.match(get('ux-capture-last').textContent,/尚无成功扫描/);
+ presentSettingsStatus(paused);assert.equal(get('ux-capture-last').textContent,'最近检查：'+new Date(paused.diagnostics.lastSuccessAt).toLocaleString('zh-CN'));assert.equal(get('ux-capture-health').hidden,true);assert.doesNotMatch(get('ux-capture-last').textContent,/新增|完整历史|成功扫描/);
+ paused.settings.enabled=true;presentSettingsStatus(paused);assert.equal(get('ux-capture-health').hidden,true,'old successful scans are not fabricated failures');paused.diagnostics.lastSuccessAt='invalid';presentSettingsStatus(paused);assert.equal(get('ux-capture-last').hidden,true);
+ for(const [status,message]of [['STORAGE_FAILED',/保存失败/],['STORAGE_FULL',/空间不足/],['ADAPTER_MISMATCH',/页面结构不匹配/]]){
+  paused.diagnostics.status=status;presentSettingsStatus(paused);assert.equal(get('ux-capture-health').hidden,false);assert.match(get('ux-capture-health').textContent,message);
+ }
 }));
 
 test('S05 is driven only by rejected backup inspection; cancellation clears it and no restore is attempted',()=>withDOM(async({get})=>{
@@ -50,7 +53,7 @@ test('New Settings copy follows active language without replacing its nodes',()=
 
 test('S01 keeps legal saved sizes, six groups and actual controls; system styling cannot activate retired Context',async()=>{
  const source=await readFile(new URL('../ui/settings-preferences.js',import.meta.url),'utf8'),css=await readFile(new URL('../ui/settings-preferences.css',import.meta.url),'utf8');
- assert.match(source,/FONT_PX=\{small:16,standard:17,large:19,xlarge:21\}/);assert.match(source,/WIDTH_PX=\{narrow:640,standard:680,wide:720\}/);assert.match(source,/for\(const \[key,zh\] of SETTINGS_GROUPS\)/);assert.match(source,/importButton.addEventListener\('click',\(\)=>\$\('settings-history'\)\?\.click\(\)\)/);assert.doesNotMatch(source,/savePreference\('(?:reducedMotion|motion)'/);assert.match(css,/\.reader-confirm:has\(\.reader-conflict-comparison\)/);assert.doesNotMatch(source,/PAIA_RECOVERY_DRAFT|PAIA_BACKUP_RESTORE|SAVE_DEEPSEEK_CREDENTIAL|AUTHORIZE/);
+ assert.match(source,/FONT_PX=\{small:16,standard:17,large:19,xlarge:21\}/);assert.match(source,/WIDTH_PX=\{narrow:640,standard:680,wide:720\}/);assert.match(source,/for\(const \[key,zh\] of SETTINGS_GROUPS\)/);assert.match(source,/move\('history-settings','data'\)/);assert.doesNotMatch(source,/savePreference\('(?:reducedMotion|motion)'/);assert.match(css,/\.reader-confirm:has\(\.reader-conflict-comparison\)/);assert.doesNotMatch(source,/PAIA_RECOVERY_DRAFT|PAIA_BACKUP_RESTORE|SAVE_DEEPSEEK_CREDENTIAL|AUTHORIZE/);
 });
 
 test('S05 uses one existing picker and cancellation owner, with local-only presentation and explicit return focus',()=>withDOM(async({get})=>{

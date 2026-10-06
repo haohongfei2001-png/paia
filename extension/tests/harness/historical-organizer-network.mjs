@@ -1,6 +1,7 @@
-import {OrganizerError} from '../core/organizer/contracts.js';
+// Historical synthetic transport preflight only; no production importer or shipped path.
+import {OrganizerError} from '../../core/organizer/contracts.js';
 
-import {DEEPSEEK_ORIGIN as ORIGIN} from '../core/organizer/deepseek.js';
+import {DEEPSEEK_ORIGIN as ORIGIN} from './historical-provider.mjs';
 const HOST=ORIGIN+'/*';
 const fail=code=>{throw new OrganizerError(code);};
 

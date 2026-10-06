@@ -5,7 +5,7 @@ import {capture,inputEdit} from './harness/thought-m1.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {ReaderStateService,READING_ROW,VISIT_ROW,REVISIT_POLICY_ROW,CAPTURE_POLICY_ROW,safeOffset} from '../core/reader-state.js';
 import {RevisitService,REVISIT_ROW} from '../core/revisit.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {backupMetaAllowed,validateBackupItem} from '../core/backup-format.js';
 const op=()=>crypto.randomUUID();
 const anchor=b=>({documentId:b.documentId,inputId:b.id,revision:b.revision,offset:3,sort:'asc',expanded:[b.id]});

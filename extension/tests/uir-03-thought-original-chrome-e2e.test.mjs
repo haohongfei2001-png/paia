@@ -287,22 +287,13 @@ async function independentThoughtRelationJourney(page,h,topics,{release=false}={
  const row=page.locator('#original-reading-body [data-entry-id]').first(),targetId=await row.getAttribute('data-entry-id');
  const before=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId}),responseBody=prefix+' 回应后独立保存，不重写原内容。';
  const expectedBodySha256=await page.evaluate(async body=>{const {hashText}=await import(chrome.runtime.getURL('core/dedupe.js'));return hashText(body);},before.body);
- const response=await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),body:responseBody,topicId:topics[1].id,relation:{id:targetId,expectedRevision:before.revision,expectedBodySha256}}}),responseId=response.id;
- const responseRow=page.locator(`#original-reading-body [data-entry-id="${responseId}"]`);await eventually(()=>responseRow.locator('[data-entry-field="body"]').textContent().then(body=>body===responseBody),'guarded fixture relation is visible in the real Topic');
- assert.notEqual(responseId,targetId);
- assert.equal((await rpc(page,'GET_LIBRARY_PATHS',{id:responseId}))[0].topicId,topics[1].id,'optional current Topic remains selected for this save');
- const comparison=await rpc(page,'COMPARE_THOUGHT_INPUT',{id:responseId});
- assert.equal(comparison.relations.length,1);assert.equal(comparison.relations[0].state,'current');assert.equal(comparison.relations[0].id,targetId);assert.equal(comparison.relations[0].body,before.body);
- const after=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId});assert.equal(after.body,before.body);assert.equal(after.revision,before.revision);
- await responseRow.locator('.library-actions summary').click();
- await responseRow.getByRole('button',{name:'查看关联',exact:true}).click();
- await eventually(async()=>await dialog.getByRole('heading',{name:'想法关联',exact:true}).isVisible());
- assert.equal(await dialog.locator('.topic-selection-preview').textContent(),before.body);
- assert.equal(await dialog.getByRole('button',{name:'查看关联内容',exact:true}).isVisible(),true);
- assert.doesNotMatch(await dialog.textContent(),/Placement|Binding|relationKey|expectedRevision/,'relation inspector uses user language');
- await shot(page,release?'vs05-release-independent-response-relation':'vs05-source-independent-response-relation');
- await dialog.getByRole('button',{name:'关闭',exact:true}).click();
- assert.equal(await responseRow.locator('[data-entry-field=body]').textContent(),responseBody);
+ const rejected=await page.evaluate(thought=>chrome.runtime.sendMessage({type:'CONTINUE_THINKING',thought}),{operationId:op(),body:responseBody,topicId:topics[1].id,relation:{id:targetId,expectedRevision:before.revision,expectedBodySha256}});assert.equal(rejected.error,'FEATURE_UNAVAILABLE','retired explicit response relation cannot create any new Thought');
+ assert.deepEqual(await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId}),before,'rejected relation leaves the original body and revision intact');
+ const response=await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),body:responseBody,topicId:topics[1].id}}),responseId=response.id;
+ const responseRow=page.locator(`#original-reading-body [data-entry-id="${responseId}"]`);await eventually(()=>responseRow.locator('[data-entry-field="body"]').textContent().then(body=>body===responseBody),'independent Thought remains available');assert.notEqual(responseId,targetId);
+ assert.deepEqual((await rpc(page,'COMPARE_THOUGHT_INPUT',{id:responseId})).relations,[],'independent save invents no response relation');
+ await responseRow.locator('.library-actions summary').click();assert.equal(await responseRow.getByRole('button',{name:'查看关联',exact:true}).count(),0);assert.equal(await responseRow.getByRole('button',{name:'回应',exact:true}).count(),0);await page.keyboard.press('Escape');
+ await shot(page,release?'vs05-release-independent-no-response':'vs05-source-independent-no-response');
  await assertOffline(h);
 }
 
@@ -386,7 +377,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await page.locator('#create-entry').isVisible(),true,'continue-thinking entry remains reachable');
   const topicMenu=page.locator('#topic-menu .library-actions');
   await topicMenu.locator('summary').click();
-  assert.equal(await topicMenu.getByRole('button',{name:'导出主题',exact:true}).isVisible(),true,'Topic-scoped export remains reachable in the Topic ··· menu');
+  assert.equal(await topicMenu.getByRole('button',{name:'导出主题',exact:true}).count(),0,'cancelled Topic export has no menu action');
   assert.equal(await page.getByRole('button',{name:'导出思想库',exact:true}).count(),0,'no whole-Library export scope is invented');
   await page.keyboard.press('Escape');
 

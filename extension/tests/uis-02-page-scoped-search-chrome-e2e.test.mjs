@@ -61,7 +61,9 @@ test('UIS-02 search is page-scoped across Archive, Reader, Thought root/topic an
 
     // Archive root: the one visible search box covers eligible Archive/Input content.
     await nav(page,'library');
-    await eventually(async()=>await page.locator('#document-list .conversation-document').count()===2,'Archive root shows both documents');
+    await waitArchiveWindow(page,{text:'UIS02 文档甲'});await waitArchiveWindow(page,{text:'UIS02 文档乙'});
+    assert.equal(await page.locator('.archive-navigator-window').count(),2,'Archive narrow directory shows both documents');
+    assert.equal(await page.locator('#document-body').textContent(),'','default Reader stays empty');
     await expectSingleSearch(page,'scope-search','Archive root');
     await shortcut(page,'/');
     assert.equal(await activeId(page),'scope-search','/ focuses Archive root search');

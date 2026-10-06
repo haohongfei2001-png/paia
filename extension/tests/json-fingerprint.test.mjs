@@ -75,17 +75,12 @@ test('single-chat authorization, origin, HTTP, redirect, type and strict byte li
 });
 
 
-test('stale heartbeats never turn two known ordinary documents into a single-tab fingerprint lease', async () => {
-  const {ResponseDiagnostics}=await import('../background/response-diagnostics.js');
-  await import('../core/response-time.js');
-  const base=new globalThis.ResponseTimeProtocol.Model();base.observe(chat,ids);
-  const relay=new ResponseDiagnostics();
-  const req={session:'s',summary:base.summary()};
-  const a={tab:{id:1},documentId:'a'},b={tab:{id:2},documentId:'b'};
-  assert.equal(relay.poll(req,a,true,0).fingerprintAllowed,true);
-  assert.equal(relay.poll(req,b,true,1).fingerprintAllowed,false);
-  assert.equal(relay.poll(req,a,true,5000).fingerprintAllowed,false);
-  relay.removeTab(2);assert.equal(relay.poll(req,a,true,5001).fingerprintAllowed,true);
+test('retired diagnostic lease cannot be armed by stale heartbeat callers', async () => {
+  await assert.rejects(readFile(new URL('../background/response-diagnostics.js',import.meta.url)),{code:'ENOENT'});
+  const {assertFeatureAvailable}=await import('../core/feature-availability.js');
+  for(const type of ['RESPONSE_ARM','RESPONSE_VIEW'])for(const at of [0,1,5000,5001]){
+   assert.throws(()=>assertFeatureAvailable({type,session:'synthetic',at}),{code:'FEATURE_UNAVAILABLE'});
+  }
 });
 
 

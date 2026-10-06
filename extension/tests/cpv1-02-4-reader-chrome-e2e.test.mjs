@@ -32,7 +32,7 @@ test('CPV1-02.4 Reader keeps actions contextual and removal reversible', {timeou
   assert.equal(await p.locator('.library-block .reading-copy,.library-block .input-remove').count(),0);
   await first.evaluate(el=>{const range=document.createRange();range.setStart(el.firstChild,0);range.setEnd(el.firstChild,Math.min(8,el.firstChild.length));getSelection().removeAllRanges();getSelection().addRange(range);});
   await eventually(()=>p.locator('.reader-selection').isVisible());
-  assert.deepEqual(await p.locator('.reader-selection button').allTextContents(),['复制所选文字','加入主题','加入本次材料','更多']);
+  assert.deepEqual(await p.locator('.reader-selection button').allTextContents(),['复制所选文字','加入主题','更多']);
   await p.locator('.reader-selection').getByRole('button',{name:'更多'}).click();
   assert.equal(await p.getByRole('menuitem',{name:'复制这条输入'}).count(),1);
   await p.getByRole('menuitem',{name:'从档案移除'}).click();
@@ -193,7 +193,7 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
 test('VS-04 current-document search saves a live edit before indexing it',{timeout:75000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
-  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);await p.locator('#onboarding-skip').click();
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   const c=conversation('vs04-search-during-edit');c.messages=[{id:'vs04-search-edit-input',text:'Original search body'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
@@ -214,7 +214,7 @@ test('VS-04 current-document search saves a live edit before indexing it',{timeo
 test('VS-04 undo survives navigation back to the same Reader only while revisions match',{timeout:75000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
-  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);await p.locator('#onboarding-skip').click();
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   const c=conversation('vs04-undo-after-navigation');c.messages=[{id:'vs04-undo-input',text:'Source before edit'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
@@ -246,7 +246,7 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   // Exercise the complete IME safety journey in explicit English on every host.
   const locale=await p.evaluate(()=>chrome.runtime.sendMessage({type:'UPDATE_PREFERENCES',changes:{language:'en'}}));assert.equal(locale.ok,true);
   await eventually(()=>p.evaluate(()=>document.documentElement.lang==='en'),'existing English preference applies');
-  await p.locator('#onboarding-skip').click();
+  assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   const c=conversation('cpv1-purge-ime');c.messages=[{id:'cpv1-purge-ime-input',text:'Synthetic source kept'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await p.bringToFront();

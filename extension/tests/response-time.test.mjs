@@ -4,8 +4,7 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import '../core/response-time.js';
 import '../adapter/response-parser.js';
-import {ResponseDiagnostics} from '../background/response-diagnostics.js';
-import {format} from '../ui/response-time.js';
+import {assertFeatureAvailable} from '../core/feature-availability.js';
 const {parse} = globalThis.ChatGPTResponseParser;
 const {Model, sanitize, time} = globalThis.ResponseTimeProtocol;
 const chat = 'synthetic-chat-001';
@@ -54,7 +53,7 @@ test('safe summaries and UI cannot carry raw IDs, body, absolute times, arbitrar
   const m = new Model(); m.observe(chat, [id], now); m.ingest({chat, rows: [row()]});
   const s = m.summary(now); const payload = {...s, url: 'https://chatgpt.com/c/secret', title: 'SECRET', rows: [row()], time: stamp};
   assert.deepEqual(sanitize(payload), s);
-  const output = format(payload);
+  const output = JSON.stringify(sanitize(payload));
   for (const secret of [chat, id, 'SECRET', String(stamp), 'https://']) assert.equal(output.includes(secret), false);
   assert.equal(sanitize({...s, earliestAge: 'SECRET'}), null);
   assert.equal(sanitize({...s, matched: '1'}), null);
@@ -62,17 +61,9 @@ test('safe summaries and UI cannot carry raw IDs, body, absolute times, arbitrar
   assert.equal(sanitize({...s, deltas: Array(21).fill(1)}), null);
 });
 
-test('background relay only retains safe counts, expires sessions and requires a single live page', () => {
-  const d = new ResponseDiagnostics(); const m = new Model(); m.observe(chat, [id], now);
-  const sender = {tab: {id: 1}, documentId: 'doc-a'};
-  const req = {session: 'session-a', summary: {...m.summary(now), raw: envelope()}};
-  d.poll(req, sender, true, 0); assert.equal(d.view(true, true, 1).pages, 1);
-  assert.equal(d.poll(req, sender, true, 2).arm, true);
-  assert.equal(JSON.stringify([...d.pages.values()]).includes(id), false);
-  d.poll(req, {tab: {id: 2}, documentId: 'doc-b'}, true, 3);
-  assert.equal(d.view(true, true, 4).summary, null);
-  assert.equal(d.view(true, false, 4000).pages, 0);
-  d.poll(req, sender, true, 5000); assert.equal(d.view(false, false, 5001).pages, 0);
+test('retired diagnostic relay and UI cannot be mounted or armed',async()=>{
+ for(const type of ['RESPONSE_VIEW','RESPONSE_ARM'])assert.throws(()=>assertFeatureAvailable({type}),{code:'FEATURE_UNAVAILABLE'});
+ for(const path of ['background/response-diagnostics.js','ui/response-time.js','ui/response-time.html'])await assert.rejects(readFile(new URL('../'+path,import.meta.url)),{code:'ENOENT'});
 });
 
 const schema = await readFile(new URL('../adapter/response-parser.js', import.meta.url), 'utf8');
@@ -159,12 +150,7 @@ test('memory bounds, bad roles and stale controls do not create matches or unbou
   assert.equal(m.ingest({chat, rows: Array(2001).fill(row())}), false);
   m.observe(chat, Array.from({length: 2001}, (_, n) => `synthetic-id-${n}`), now);
   assert.equal(m.summary(now).truncated, true); assert.equal(m.summary(now).canonical, 2000);
-  const d = new ResponseDiagnostics();
-  const sender = {tab: {id: 1}, documentId: 'old-doc'};
-  const request = {session: 'old-session', summary: m.summary(now)};
-  d.poll(request, sender, true, 0); d.view(true, true, 1);
-  assert.equal(d.poll({...request, session: 'new-session'}, {...sender, documentId: 'new-doc'}, true, 2).arm, false);
-  assert.equal(d.poll(request, sender, false, 3).arm, false);
+  assert.throws(()=>assertFeatureAvailable({type:'RESPONSE_ARM'}),{code:'FEATURE_UNAVAILABLE'});
 });
 
 test('rejection stages distinguish transport, clone, JSON and schema without admitting unknown formats', async () => {
@@ -231,7 +217,6 @@ test('diagnostic probing inspects only bounded known metadata paths, never assis
 });
 
 test('separate scenario summaries survive subsequent send failures and sanitize arbitrary fields at all projections', async () => {
-  const {formatRejections} = await import('../ui/response-time.js');
   const m = new Model(); m.observe(chat, [id], now);
   for (const sending of [false, true]) {
     const f = observerFixture(); f.control();
@@ -243,12 +228,11 @@ test('separate scenario summaries survive subsequent send failures and sanitize 
   assert.equal(summary.rejectionDiagnostics.observedFetchResponseCount, 2);
   assert.equal(summary.rejectionDiagnostics.byEndpoint.conversation_load_candidate.last.reason, 'ACCEPTED');
   assert.equal(summary.rejectionDiagnostics.byEndpoint.message_send_or_stream_candidate.last.reason, 'CONTENT_TYPE_NOT_ALLOWED');
-  const safeText = formatRejections(summary);
-  assert.ok(safeText.includes('CONTENT_TYPE_NOT_ALLOWED')); assert.ok(safeText.includes('B. 打开已有旧聊天'));
+  const safeText = JSON.stringify(sanitize(summary));
+  assert.ok(safeText.includes('CONTENT_TYPE_NOT_ALLOWED'));
   for (const secret of [id, chat, 'SYNTHETIC_RSC', String(stamp), 'https://']) assert.equal(safeText.includes(secret), false);
   const poisoned = structuredClone(summary); poisoned.rejectionDiagnostics.byEndpoint.other.last = {...summary.rejectionDiagnostics.byEndpoint.conversation_load_candidate.last, reason: 'SECRET'};
   assert.equal(sanitize(poisoned), null);
-  const relay = new ResponseDiagnostics(); relay.poll({session: 'safe', summary}, {tab: {id: 1}, documentId: 'doc'}, true, now);
-  assert.deepEqual(relay.view(true, false, now).summary.rejectionDiagnostics, summary.rejectionDiagnostics);
+  assert.throws(()=>assertFeatureAvailable({type:'RESPONSE_VIEW'}),{code:'FEATURE_UNAVAILABLE'});
   m.reset(); assert.equal(m.summary(now).rejectionDiagnostics.observedFetchResponseCount, 0);
 });

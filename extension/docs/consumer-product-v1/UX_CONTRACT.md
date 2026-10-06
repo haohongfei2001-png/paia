@@ -4,6 +4,8 @@ This is an implementation contract derived from PRODUCT_INTENT_CONTRACT.md. It m
 
 There is no mandatory standalone prototype phase. The production implementation is iterated until it satisfies this contract.
 
+The [current consumer scope](../../PRODUCT.md#current-consumer-scope) supersedes retired surfaces in older designs. Cancelled execution must refuse old commands as well as remove its entries; hidden internal safety/maintenance capabilities remain where specified. Neither change authorizes clearing old data or credentials.
+
 ## 1. Global product shell
 
 Desktop primary navigation is fixed:
@@ -16,7 +18,7 @@ Settings is low-frequency. Capture health is system status, not a dashboard dest
 
 Wide desktop uses a stable primary rail; Archive/Thought may add a contextual navigator; the Reader/workspace owns the remaining area. Compact desktop may compress navigation but must preserve object identity and back behavior. Tablet uses a sheet/panel navigator. Phone uses stacked navigation instead of squeezing desktop columns.
 
-Root pages must not keep empty navigator columns.
+Archive opens directly into primary navigation, a narrow project/conversation navigator and a blank Reader. No conversation is selected by default; title, time, ordering and body stay empty. Returning to its root clears the Reader and preserves navigator state. Explicit reading-route refreshes, unsaved edits and reading anchors must not be cleared accidentally. Other root pages do not reserve unnecessary empty navigator columns. AI Context remains a product direction with execution disabled.
 
 ## 2. Visual language
 
@@ -60,7 +62,7 @@ Use only for true destructive, restore or external-authorization risks. Normal r
 
 Purpose: find prior expression using familiar source organization.
 
-Default visible content:
+Default visible content in the narrow Navigator:
 - current source scope;
 - one scope search;
 - collapsed Project groups;
@@ -73,9 +75,9 @@ Unknown Project membership is distinct from confirmed unassigned.
 
 Do not add a permanent side dashboard, permanent material tray or duplicate explanatory headings.
 
-Opening a Conversation turns the same tree into the Navigator. Returning restores expansion/scroll.
+The same narrow Navigator is present immediately at the root; there is no full-page directory step. Its Reader starts blank. Opening a Conversation fills the Reader, and returning clears it while preserving Navigator expansion/scroll.
 
-Low-frequency import/export/data actions live in overflow.
+Low-frequency history import and data actions live in overflow. Export and backup-generation actions are removed.
 
 ### A2 — Project/Conversation Navigator
 
@@ -222,19 +224,17 @@ The body uses the same reading system as Archive. Original/user expression is de
 A user may write a new Thought directly:
 - body;
 - optional Topic;
-- optional relation to prior expression;
 - real current creation time.
+
+Dedicated response/relation creation and related-Thought viewing are removed. Existing relation data remains compatible; body editing and history remain available.
 
 Failure preserves text. Background classification must not block safe save.
 
 ### T4 — AI Organize
 
-Existing valid output switches instantly. Generating/updating has a distinct flow:
-not generated → scope review → running → candidate → applied.
+Existing valid output switches instantly. New generation/update is unavailable until real payment, server membership validation and a unified AI backend exist. The only ordinary AI entries are Topic AI Organize and Settings Membership / AI service, with an honest not-launched state.
 
-Running never locks the original text. The user may leave.
-
-A returned result is a candidate when source or protected human output has changed. Show compare with Adopt update / Keep current. Invalid output leaves the previous valid result intact.
+Existing candidates remain readable; approval management and Adopt/Keep controls are hidden. Preserve candidate staging, source/output version checks and invalid/stale-result rejection. Never automatically replace protected human output.
 
 AI output is editable and protected after human editing.
 
@@ -264,6 +264,8 @@ B-01 determines final old-Thought edit semantics. B-02 determines high-risk purg
 
 ## 6. AI Context surfaces
 
+Execution is disabled. C1–C6 retain future content/privacy constraints only, not current implementation tasks. Do not revive the old Context runtime. Dedicated Profile management, Material Tray and C7 output paths are cancelled; normal temporary selection and reference validation remain where existing reading/editing needs them.
+
 ### C1 — AI Context workspace
 
 Purpose: answer "what of my material should this AI task receive?"
@@ -275,7 +277,7 @@ Start with:
 - Select material;
 - Connections & permissions.
 
-A user may do a one-off task without first creating a persistent Profile.
+A future one-off task must not require a dedicated Profile product.
 
 Entering from Archive/Thought preselects the user's chosen material but does not auto-build or send.
 
@@ -302,13 +304,9 @@ Lexical remains available. Semantic becomes another capability of the same retri
 
 Every result exposes real text/time/source. Low confidence is not a user-truth score.
 
-### C4 — Profile / reusable scope
+### C4 — Profile management — cancelled
 
-Profile is a convenience for reusable eligibility and preference, not a permanent identity/personality model.
-
-Allow sources/Topics, explicit exclusions and never-use rules. Deleting a Profile deletes configuration, not content.
-
-Changing Profile does not itself send data.
+Remove dedicated Profile listing, creation and editing. Preserve only necessary legacy scope/exclusion compatibility; do not delete historical data or broaden access.
 
 ### C5 — Context build and budget
 
@@ -325,22 +323,15 @@ Never silently truncate a whole-Topic selection and call it complete.
 
 ### C6 — Review/edit
 
-The review surface shows exactly what will be copied/exported/sent in readable form.
+Any separately approved future connection must show exactly what it will access in readable form. This does not restore copy/export or sharing.
 
 The user may edit/redact the current output without rewriting Source/Thought. Any edit invalidates previous release binding and creates a new reviewable version.
 
 Do not display raw Markdown markers/internal IDs/ISO noise by default.
 
-### C7 — Release
+### C7 — Dedicated release — cancelled
 
-Distinct outputs:
-- Copy
-- Export file
-- Send/provide to a connected AI
-
-Success wording must match the real action.
-
-Sending requires a real connection and current authorization. If acknowledgement is uncertain, report uncertain status and avoid blind duplicate send.
+Remove Context copy/export, backup generation and dedicated sharing implementations and entries. Old requests refuse without side effects. Normal copying while reading is unaffected. Future connector work requires separate implementation and current authorization; no existing release path is reactivated by this contract.
 
 ### C8 — Passport
 
@@ -400,15 +391,11 @@ A small popup/surface shows:
 
 "Capture healthy" does not mean "full history imported".
 
-### S2 — Backup / Restore
+Keep capture state, counts and the main open action compact. Update and pause are secondary controls with usable targets and accessible labels. Repeated local-only explanations are removed; secondary help expands on demand. Use the adopted app typography, spacing, colors and components.
 
-Backup UI distinguishes backup from open export.
+### S2 — Existing-file restore
 
-Show:
-- last successfully validated recoverable backup;
-- scope/format/privacy;
-- create backup;
-- restore preview.
+Backup generation and exports are cancelled. Show file selection, format/privacy information and a restore preview; retain existing backup-file compatibility.
 
 Restore:
 select → validate → preview impact/conflicts → confirm → stage → validate → atomically activate.
@@ -435,12 +422,14 @@ Allow continue/copy/save as new version/discard. Index corruption rebuilds index
 Groups:
 - Content & capture
 - Reading & appearance
-- AI processing
+- Membership / AI service
 - Privacy & external use
 - Data & recovery
-- About / advanced
+- About
 
 No content search. Settings that can apply immediately do so, or visibly roll back on failure.
+
+Remove API/model/address/request-count/batch controls, Product Signals, retention configuration and permanent diagnostic/trace/usage-audit/integrity/rebuild entries. Actual data/index faults may reveal the relevant recovery action; a messaging timeout alone is not evidence of corruption. Successful recovery clears obsolete recovery state. Retain necessary permission, privacy, delete/overwrite-risk and real-error messages; remove repeated status and engineering terminology. Keep typography and components consistent with the adopted main design.
 
 ### S6 — Privacy / authorization / deletion
 

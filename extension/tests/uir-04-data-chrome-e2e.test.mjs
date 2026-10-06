@@ -1,3 +1,4 @@
+import {historicalBackupItems} from './harness/historical-backup-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,readFile} from 'node:fs/promises';
@@ -18,18 +19,18 @@ async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);asse
 
 async function assertDataOwners(page){
  const group=page.locator('[data-group="data"]');
- for(const id of ['backup-settings','r6-complete-export','r6-data-status','r6-source-records']){
+ for(const id of ['backup-settings','r6-data-status','r6-source-records']){
   const item=page.locator(`#${id}`);assert.equal(await item.count(),1,`${id} keeps one DOM owner`);assert.equal(await item.evaluate(el=>el.parentElement?.dataset.group),'data',`${id} belongs directly to Data & devices`);
  }
- const order=await group.evaluate((root)=>['backup-settings','r6-complete-export','r6-data-status','r6-source-records'].map(id=>[...root.children].findIndex(el=>el.id===id)));
+ const order=await group.evaluate((root)=>['backup-settings','r6-data-status','r6-source-records'].map(id=>[...root.children].findIndex(el=>el.id===id)));
  assert.ok(order.every((value,index)=>value>=0&&(index===0||value>order[index-1])),`data owners stay ordered: ${order.join(',')}`);
  assert.equal(await page.locator('#backup-settings #r6-complete-export').count(),0,'complete export is not nested inside Backup');
- assert.equal(await page.locator('#backup-settings #backup-create').count(),1);assert.equal(await page.locator('#backup-settings #backup-choose').count(),1);
- assert.equal(await page.locator('#r6-complete-export #r6-export-json').count(),1);assert.equal(await page.locator('#r6-complete-export #r6-export-markdown').count(),1);
- assert.equal(await page.locator('#r6-data-status #r6-storage-estimate').count(),1);assert.equal(await page.locator('#r6-data-status #r6-last-backup').count(),1);
+ assert.equal(await page.locator('#backup-create').count(),0);assert.equal(await page.locator('#backup-settings #backup-choose').count(),1);
+ assert.equal(await page.locator('#r6-complete-export,#r6-export-json,#r6-export-markdown').count(),0);
+ assert.equal(await page.locator('#r6-data-status #r6-storage-estimate').count(),1);assert.equal(await page.locator('#r6-last-backup').count(),0);
  assert.equal(await page.locator('#r6-source-records [data-view="archive"]').count(),1,'scoped Source Records keeps its existing navigation owner');
- for(const id of ['backup-create','backup-choose','backup-restore','r6-export-json','r6-export-markdown'])assert.equal(await page.locator(`#${id}`).count(),1,`${id} is not duplicated`);
- assert.match(await group.textContent(),/不是完整导出/);assert.match(await group.textContent(),/未提供设备同步/);
+ for(const id of ['backup-choose','backup-restore'])assert.equal(await page.locator(`#${id}`).count(),1,`${id} is not duplicated`);
+assert.match(await group.textContent(),/未提供设备同步/);
 }
 
 async function rejectAndReselectBackup(page,backupBytes){
@@ -37,13 +38,13 @@ async function rejectAndReselectBackup(page,backupBytes){
  const choose=async files=>{const picker=page.waitForEvent('filechooser');await page.locator('#backup-choose').click();await (await picker).setFiles(files);};
  await page.evaluate(()=>{globalThis.__s05Picker=document.getElementById('backup-choose');globalThis.__s05File=document.getElementById('backup-file');});
  await choose(invalid);await page.locator('#backup-settings[data-inspection-failure]').waitFor();await eventually(()=>page.locator('#backup-failure-return').isEnabled());
- assert.equal(await page.locator('#backup-restore').isDisabled(),true);assert.equal(await page.locator('h1:visible').count(),1);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),true);assert.equal(await page.locator('#ux-history-start').isVisible(),false);
+ assert.equal(await page.locator('#backup-restore').isDisabled(),true);assert.equal(await page.locator('h1:visible').count(),1);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),true);assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,false);
  const reason=await page.locator('#backup-status').innerText();await choose([]);assert.equal(await page.locator('#backup-status').innerText(),reason,'empty picker result leaves the rejected inspection visible');
  await choose(invalid);await eventually(()=>page.locator('#backup-failure-return').isEnabled());assert.equal(await page.locator('#backup-status').innerText(),reason,'the same rejected file can be chosen again');
- await page.locator('#backup-failure-return').focus();await page.keyboard.press('Enter');await page.locator('#backup-settings[data-inspection-failure]').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'backup-choose');assert.equal(await page.locator('#ux-history-start').isVisible(),true);assert.equal(await page.locator('#r6-export-json').isEnabled(),true);await assertDataOwners(page);
+ await page.locator('#backup-failure-return').focus();await page.keyboard.press('Enter');await page.locator('#backup-settings[data-inspection-failure]').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'backup-choose');assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,true);assert.equal(await page.locator('#r6-export-json').count(),0);await assertDataOwners(page);
  await choose(invalid);await page.locator('#backup-settings[data-inspection-failure]').waitFor();await eventually(()=>page.locator('#backup-choose').isEnabled());
  await choose({name:'UIR-04-data.paia-backup',mimeType:'application/x-ndjson',buffer:backupBytes});await page.locator('#backup-preview').waitFor({state:'visible'});
- assert.equal(await page.locator('#backup-settings[data-inspection-failure]').count(),0);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),false);assert.equal(await page.locator('#ux-history-start').isVisible(),true);
+ assert.equal(await page.locator('#backup-settings[data-inspection-failure]').count(),0);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),false);assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,true);
  assert.equal(await page.evaluate(()=>globalThis.__s05Picker===document.getElementById('backup-choose')&&globalThis.__s05File===document.getElementById('backup-file')),true,'failed and valid inspections keep the same picker and file owners');
  await page.evaluate(()=>{delete globalThis.__s05Picker;delete globalThis.__s05File;});
 }
@@ -54,8 +55,7 @@ async function sourceAndBackup(marker){
   const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
   await h.open({id:'uir04-data-source',title:'UIR-04 数据恢复',base:1609459200,messages:[{id:'uir04-data-message',text:marker}]});await eventually(async()=>(await h.state()).records.some(row=>row.originalText===marker));await page.bringToFront();
   await page.setViewportSize({width:1440,height:900});await openData(page);await assertDataOwners(page);await eventually(async()=>!(await page.locator('#r6-storage-estimate').textContent()).includes('正在读取'));
-  const openDownload=page.waitForEvent('download');await page.locator('#r6-export-json').click();const openPath=await (await openDownload).path(),bundle=JSON.parse(await readFile(openPath,'utf8'));assert.equal(bundle.format,'PAIA Open Export');assert.ok(bundle.records.some(row=>row.role==='immutable_source_record'&&row.originalText===marker));
-  const backupDownload=page.waitForEvent('download');await page.locator('#backup-create').click();const backup=await backupDownload;backupBytes=await readFile(await backup.path());await eventually(async()=>/最近成功创建备份/.test(await page.locator('#r6-last-backup').textContent()));
+  const before=await h.state();backupBytes=Buffer.from((await historicalBackupItems(page)).map(row=>JSON.stringify(row)).join('\n')+'\n');assert.deepEqual(await h.state(),before,'historical fixture encoding is read-only');
   await shot(page,'uir-04-data-1440x900-light');await page.setViewportSize({width:390,height:844});await assertDataOwners(page);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-data-390x844-light');await assertNoNetwork(h);
  }finally{await h.close();}
  return backupBytes;

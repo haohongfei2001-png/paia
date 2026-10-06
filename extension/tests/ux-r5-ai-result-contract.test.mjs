@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {append,completeFixture,meta,rows,response} from './harness/original-complete.mjs';
-import {DeepSeekOrganizerProvider} from '../core/organizer/deepseek.js';
+import {DeepSeekOrganizerProvider} from './harness/historical-provider.mjs';
 import {AIPresentationRunner,aiPresentationStatus,aiPresentationRevisions} from '../core/organizer/ai-presentation.js';
 import {AI_LIST_FIELDS} from '../core/organizer/ai-contract.js';
 

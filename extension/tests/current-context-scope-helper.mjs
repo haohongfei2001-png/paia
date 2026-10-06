@@ -12,10 +12,7 @@ const rpc=async(page,type,fields={})=>{
 // Current owner amendment: ordinary Context navigation is an unavailable UI.
 // These checks never create, replace or enable a Context controller.
 export async function assertNoContextSession(page){
- assert.deepEqual(await page.evaluate(async()=>{
-  const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));
-  const owner=getContextController();return {disabled:owner?.disabled,data:owner?.data,hidden:owner?.root.hidden};
- }),{disabled:true,data:null,hidden:true},'Context remains disabled with no material session');
+ assert.equal(await page.evaluate(async()=>{const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));return getContextController();}),null,'retired Material Tray constructs no owner or material session');
 }
 
 export async function contextSafetySnapshot(page,{thoughtIds=[]}={}){
@@ -74,29 +71,10 @@ export async function selectCurrentPrimary(page,view){
 }
 
 export async function assertContextUnavailable(page,{navigate=true,exercise=true}={}){
- if(navigate)await selectCurrentPrimary(page,'memory');
- const root=page.locator('#context-workspace-design-preview');
- await eventually(()=>root.isVisible(),'ordinary Context route displays the approved unavailable page');
- assert.equal(await root.count(),1);assert.match(await root.innerText(),/功能未开放|unavailable|not available/i);
- assert.match(await root.innerText(),/未生成、未保存|not generated or saved/i);
- assert.equal(await root.locator('[data-preview-action]:enabled').count(),0);
- assert.equal(await page.locator('.context-presentation-header [data-preview-action]:enabled').count(),0);
- assert.equal(await root.locator('input:enabled,textarea:not([readonly])').count(),0);
- assert.equal(await root.locator('textarea').inputValue(),'');
- assert.equal(await root.locator('[data-preview-material]').count(),0,'ordinary navigation supplies no retrieved/selected material');
- assert.equal(await page.locator('#material-preview,#material-output-text,[data-output]').count(),0);
- assert.equal(await page.locator('#universal-search-dialog').isVisible(),false,'ordinary Context does not launch retained Search');
+ assert.equal(await page.locator('.sidebar [data-view="memory"]').count(),0,'ordinary navigation has no additional AI launcher');
+ assert.equal(await page.locator('#context-workspace-design-preview,#material-preview,#material-output-text,[data-output],#material-tray').count(),0,'the retired workspace constructs no controls or output');
  await assertNoContextSession(page);
- if(exercise){
-  // DOM-dispatched clicks prove even an event on a disabled presentation action
-  // is disconnected. They do not synthesize a navigation or a functional owner.
-  const storage=await page.evaluate(async()=>{
-   const before=await chrome.storage.local.get(null);
-   for(const node of document.querySelectorAll('#context-workspace-design-preview [data-preview-action],.context-presentation-header [data-preview-action]'))node.dispatchEvent(new MouseEvent('click',{bubbles:true}));
-   await new Promise(resolve=>setTimeout(resolve,0));return {before,after:await chrome.storage.local.get(null)};
-  });
-  assert.deepEqual(storage.after,storage.before,'disabled presentation actions do not change any extension-local value');
- }
+ if(exercise){const storage=await page.evaluate(async()=>{const before=await chrome.storage.local.get(null);document.dispatchEvent(new CustomEvent('paia:context-open'));await new Promise(resolve=>setTimeout(resolve,0));return {before,after:await chrome.storage.local.get(null)};});assert.deepEqual(storage.after,storage.before,'old context events cannot mutate local data');}
 }
 
 export async function runCurrentContextMatrix({variant,label,extensionPath,steps=['task','select','retrieve','review','ready']}){
@@ -122,30 +100,16 @@ export async function runCurrentContextMatrix({variant,label,extensionPath,steps
   for(const [width,height,appearance] of [[1440,1000,'light'],[1440,1000,'dark'],[768,1000,'light'],[320,1000,'dark']]){
    await page.setViewportSize({width,height});await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance}});
    await eventually(()=>page.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,appearance));
-   await selectCurrentPrimary(page,'library');await eventually(()=>page.locator('#archive-root-main').isVisible());
+   await selectCurrentPrimary(page,'library');await eventually(()=>page.locator('#archive-reader-navigator-slot').isVisible());
    // Theme changes are authorized fixture writes. Compare every business value,
    // including portable generation, across only the subsequent Context actions.
    const before=await contextSafetySnapshot(page,options);
    await assertContextUnavailable(page);
    for(const step of steps){
-    const stepButton=page.locator(`[data-context-preview-page="${step}"]`);
-    // Compact Context displays only the current step and has no step menu.
-    // Select other stages through the visible wide UI, then verify their compact
-    // rendering. This does not claim unsupported compact step navigation.
-    const selectWide=width<768&&!await stepButton.isVisible();
-    if(selectWide)await page.setViewportSize({width:768,height});
-    await stepButton.click();
-    if(selectWide)await page.setViewportSize({width,height});
-    assert.equal(await page.locator('#context-workspace-design-preview').getAttribute('data-context-step'),step);
-    if(width<768){
-     assert.equal(await page.evaluate(()=>innerWidth),width,'every compact stage is checked at the original viewport');
-     assert.equal(await page.locator('.context-presentation-steps button:visible').count(),1,'compact Context displays only its current step');
-     assert.equal(await stepButton.isVisible(),true,'the selected step is visible after returning to compact rendering');
-    }
+    assert.equal(await page.locator(`[data-context-preview-page="${step}"]`).count(),0,'retired '+step+' step has no DOM entry');
     await assertContextUnavailable(page,{navigate:false});
-    assert.equal(await page.locator('h1:visible').count(),1,'Context uses one visible ordinary page heading');
-    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'Context has no root overflow at '+width);
-    assert.equal(await page.locator('dialog:modal').count(),0,'Context stays in the main workspace');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'retirement leaves normal Archive reflow intact');
+    assert.equal(await page.locator('dialog:modal').count(),0,'retired Context cannot open a modal');
     await page.screenshot({path:`work/current-context-scope/${label}-${variant}-${step}-${width}-${appearance}.png`,fullPage:false});
    }
    assert.deepEqual(await contextSafetySnapshot(page,options),before,'Source, Input, Thought, policy, grants, permissions and session storage remain exactly unchanged');

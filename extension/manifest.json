@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Personal AI Input Archive",
-  "version": "0.12.0",
-  "version_name": "v0.12.0 Thought Evolution & Shared Context",
-  "description": "经主动同意后，仅在本机归档 ChatGPT 已显示的用户文字。以连续文档阅读与整理，支持暂停、检索和导出。",
+  "version": "0.12.1",
+  "version_name": "v0.12.1 Consumer Cleanup",
+  "description": "经主动同意后，仅在本机归档 ChatGPT 已显示的用户文字。以连续文档阅读与整理，支持暂停、检索和编辑。",
   "minimum_chrome_version": "114",
   "permissions": [
     "storage",
@@ -13,7 +13,6 @@
     "nativeMessaging"
   ],
   "host_permissions": [
-    "https://api.deepseek.com/*",
     "https://chatgpt.com/*"
   ],
   "incognito": "not_allowed",
@@ -91,7 +90,7 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; connect-src https://api.deepseek.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'"
+    "extension_pages": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'"
   },
   "web_accessible_resources": [
     {

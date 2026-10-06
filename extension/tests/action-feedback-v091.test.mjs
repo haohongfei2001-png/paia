@@ -1,9 +1,18 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {actionFailure} from '../ui/action-feedback.js';
-test('action feedback distinguishes exhausted daily quota from local batch size without promising a paid retry',()=>{
- const daily=actionFailure('BUDGET_EXCEEDED',{usedRequests:20,dailyRequests:20,resetAt:'2030-01-01T00:00:00Z'});assert.match(daily.text,/重置时间/);assert.equal(daily.settings,true);assert.equal(daily.retry,false);
- const size=actionFailure('BUDGET_EXCEEDED',{usedRequests:0,dailyRequests:20});assert.match(size.text,/减小本批范围/);assert.doesNotMatch(size.text,/今日.*达到/);assert.equal(size.retry,false);
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {access,readFile} from 'node:fs/promises';
+import {request,statusLabel} from '../ui/common.js';
+
+test('retired quota, batch and credential feedback no longer offers configuration or paid retry',async()=>{
+ await assert.rejects(access(new URL('../ui/action-feedback.js',import.meta.url)),{code:'ENOENT'});
+ const page=await readFile(new URL('../ui/archive.html',import.meta.url),'utf8');
+ assert.doesNotMatch(page,/id="(?:daily-requests|batch-size|api-key|deepseek-key)"/);
+ assert.match(statusLabel('AI_SERVICE_UNAVAILABLE'),/尚未上线/);
+ assert.doesNotMatch(statusLabel('AI_SERVICE_UNAVAILABLE'),/购买成功|再次调用|重置时间|减小本批/);
 });
-test('credential failure offers Settings; actual request failure explains explicit paid retry',()=>{
- const key=actionFailure('CREDENTIAL_FAILURE');assert.equal(key.settings,true);assert.equal(key.retry,false);assert.doesNotMatch(key.text,/再次调用/);
- const error=actionFailure('PROVIDER_UNAVAILABLE');assert.equal(error.retry,true);assert.match(error.text,/重试将再次调用/);
+test('retired provider action explains unavailability before any transport or credential access',async t=>{
+ const prior=globalThis.chrome;let calls=0;globalThis.chrome={runtime:{sendMessage(){calls++;throw Error('must not reach transport');}},get storage(){throw Error('must not read old credentials');}};
+ t.after(()=>{if(prior===undefined)delete globalThis.chrome;else globalThis.chrome=prior;});
+ await assert.rejects(request('START_BOUNDED_ORGANIZER'),{code:'AI_SERVICE_UNAVAILABLE'});
+ assert.equal(calls,0);
 });

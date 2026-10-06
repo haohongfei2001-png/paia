@@ -42,7 +42,7 @@ test('purge and consent withdrawal after preflight prevent content writes',async
 test('metadata-only import never rewrites manual title and backup remains valid for v090',async()=>{
  const f=await setup(),c=conversation(1,1);c.title='';await importAll(f,[c]);const b=(await rows(f.s,'blocks'))[0].value;await f.s.updateDocument(b.documentId,{userTitle:'Synthetic manual title'});
  c.title='Synthetic enriched title';const r=await importAll(f,[c]);assert.equal(r.counts.metadataEnriched,1);assert.equal((await rows(f.s,'documents'))[0].value.userTitle,'Synthetic manual title');
- const {BackupService}=await import('../core/backup-service.js');const backup=new BackupService(f.s,{appVersion:'0.9.0'});const header=(await backup.beginExport()).header;const {validateBackupHeader}=await import('../core/backup-format.js');assert.doesNotThrow(()=>validateBackupHeader(header));
+ const {BackupService}=await import('./harness/historical-backup.mjs');const backup=new BackupService(f.s,{appVersion:'0.9.0'});const header=(await backup.beginExport()).header;const {validateBackupHeader}=await import('../core/backup-format.js');assert.doesNotThrow(()=>validateBackupHeader(header));
 });
 test('later branch changes re-review untouched Inputs, preserve authored/removal intent, and keep explicit confirmation',async()=>{
  for(const intent of ['untouched','edited','removed']){

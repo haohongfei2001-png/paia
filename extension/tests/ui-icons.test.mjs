@@ -23,7 +23,8 @@ test('manifest action and favicons use all four approved compact-brand derivativ
  assert.equal(proof.sources['extension/ui/assets/paia-logo-32.png'].sha256,'6e487abdab45de5f5dbec02f2a05098797616e949c409c93082a4e0488194065');
  assert.equal(proof.sources['extension/ui/assets/paia-logo-64.png'].sha256,'8ceeec4a7044006eda727ab25fe420a594ce2abb1c4c428204ed9f653f007863');
  for(const size of [16,32,48,128]){const path=`icons/icon${size}.png`,bytes=await readFile(new URL('../'+path,import.meta.url));assert.equal(manifest.icons[size],path);assert.equal(manifest.action.default_icon[size],path);assert.deepEqual([bytes.readUInt32BE(16),bytes.readUInt32BE(20)],[size,size]);assert.equal(hash(bytes),proof.outputs['extension/'+path].sha256);}
- for(const page of ['archive.html','popup.html','product-signals.html'])assert.match(await readFile(new URL('../ui/'+page,import.meta.url),'utf8'),/rel="icon" href="\.\.\/icons\/icon32\.png"/);
+ for(const page of ['archive.html','popup.html'])assert.match(await readFile(new URL('../ui/'+page,import.meta.url),'utf8'),/rel="icon" href="\.\.\/icons\/icon32\.png"/);
+ await assert.rejects(readFile(new URL('../ui/product-signals.html',import.meta.url)),{code:'ENOENT'});
  assert.equal(hash(await readFile(new URL('../ui/assets/paia-logo-32.png',import.meta.url))),'6e487abdab45de5f5dbec02f2a05098797616e949c409c93082a4e0488194065');
  assert.equal(hash(await readFile(new URL('../icons/icon32.png',import.meta.url))),proof.sources['extension/ui/assets/paia-logo-32.png'].sha256,'native32px action icon is the exact existing main-UI mark');
 });

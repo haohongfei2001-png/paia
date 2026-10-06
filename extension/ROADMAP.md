@@ -1,3 +1,13 @@
+# Current consumer scope
+
+The current [product scope](PRODUCT.md#current-consumer-scope) supersedes conflicting historical delivery descriptions and follow-up tasks below. Dedicated Profile management, Thought response relations, Material Tray, Candidate approval management, retention settings, Product Signals collection/dashboard and ordinary diagnostics/maintenance pages are retired. Candidate storage/version protection, old-data compatibility, revocation and fault-triggered recovery remain.
+
+All content/statistics/Context exports, backup generation and dedicated sharing are cancelled, including future work on these outputs. Existing-file restore, integrity, deletion protection and history import remain. User-provided AI configuration/direct transport is removed without reading or clearing legacy credentials; old AI Context execution stays disabled.
+
+Real paid AI is **not implemented**. Only Topic AI Organize and Settings Membership / AI service remain as ordinary entries, visibly unavailable until a real service exists; saved results remain readable/editable. The [minimum service task](docs/consumer-product-v1/MASTER_PLAN.md#paid-ai-service--not-implemented) requires decisions on price and payment channel before any paid activation. Sync, semantic retrieval, mobile and connector directions remain future work.
+
+The numbered delivery records below retain their historical meaning; they do not reopen cancelled functionality or authorize its positive-path tests.
+
 # Roadmap interlock update
 
 Before continuing Production Readiness from PRD-02 to PRD-03, PAIA must complete
@@ -61,7 +71,7 @@ UI Simplification v1 (`docs/ui-simplification/README.md`) supersedes the visible
 
 UX-R1 through UX-R6 and Chrome UI Refresh UIR-01 through UIR-04 are shipped historical evidence, not current execution queues. Their Design Core and trust constraints remain relevant. Do not resume their old branches/status machinery.
 
-Current presentation uses page-scoped search, contextual import/export menus, topic-only AI presentation controls, and no Thought-root Recent Reading section. The internal cross-surface search coordinator and existing read metadata remain reusable. These changes do not alter durable ownership, schema, capture, authorization, Backup or paid-AI behavior and are not evidence that real-use product-validation gates have been met.
+Current presentation uses page-scoped search, contextual history import, Topic reading of saved AI work, and no Thought-root Recent Reading section. Settings retains existing-file restore. Retired outputs and direct AI execution are unavailable; local reading, ownership, capture and authorization protections remain. These changes are not evidence that real-use product-validation gates have been met.
 
 ## Decision rules
 
@@ -176,9 +186,9 @@ Completed:
 - regressions found by executable validation were repaired;
 - current certification provides a repeatable merge gate for present daily-use paths.
 
-Still required for product evidence:
+Historical product-evidence follow-ups (superseded where retired):
 
-- explicitly enable local Product Signals on a real daily-use profile;
+- **Cancelled:** enabling Product Signals; collection and dashboard are removed;
 - accumulate repeat-use evidence over time;
 - determine whether Reader/Search/Revisit produce voluntary reopening, rereading, copying or Context reuse.
 

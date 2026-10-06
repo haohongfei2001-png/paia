@@ -4,28 +4,21 @@ import {PromptReuseCommands} from './prompt-reuse-commands.js';
 import {ArchiveOriginalQuery} from '../core/archive-original-query.js';
 import {installCaptureRecovery} from './capture-recovery.js';
 import {ArchiveNavigationQuery} from '../core/archive-navigation-query.js';
-import {assertLocalNetworkAllowed} from '../core/local-network-policy.js';
 import {MemoryService} from '../core/memory/service.js';
 import {PassportService} from '../core/passport.js';
-import {ContextPackageService} from '../core/context-package-service.js';
 import {RevisitService} from '../core/revisit.js';
 import {ReaderStateService} from '../core/reader-state.js';
 import {OnboardingService} from '../core/onboarding.js';
 import {IntegrityChecker} from '../core/integrity-checker.js';
 import {BackupService} from '../core/backup-service.js';
-import {ProductSignals} from '../core/product-signals.js';
+import {LegacyUsageRecords} from '../core/legacy-usage-records.js';
+import {assertFeatureAvailable} from '../core/feature-availability.js';
 import {BoundedOrganizerWorkflow} from '../core/organizer/bounded-workflow.js';
 import {AIPresentationRunner} from '../core/organizer/ai-presentation.js';
-import {bindBudgetSession} from '../core/organizer/budget.js';
-import {organizerNetworkGuard} from './organizer-network.js';
-import {OrganizerRunner} from '../core/organizer/runner.js';
 import {LibraryRunner} from '../core/library-runner.js';
 import {FilterRunner} from '../core/filter-runner.js';
 import {ImportHandler} from './import-handler.js';
 import {safeImportError} from '../core/import/errors.js';
-import { ResponseDiagnostics } from './response-diagnostics.js';
-const responseDiagnostics = new ResponseDiagnostics();
-chrome.tabs?.onRemoved?.addListener(id => responseDiagnostics.removeTab(id));
 import { OrganizerStore as IndexedArchiveStore } from '../core/organizer/store.js';
 import {SafetyRunner} from '../core/thought-runner.js';
 import { ADAPTER_VERSION, ArchiveError, safeErrorCode } from '../core/constants.js';
@@ -35,14 +28,14 @@ import {SourceStructureStore} from '../core/source-structure-store.js';
 import {subjectRef,sourceStructureSnapshot} from '../core/source-structure-model.js';
 import {admitChatGPTSourceStructureBatch,CHATGPT_PROJECT_STRUCTURE_POLICY} from '../core/source-structure-admission.js';
 import {ArchiveOrderPreferenceService,SourceOrderRegistry,unavailableSourceOrderProvider} from '../core/source-ordering.js';
-import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from '../core/organizer/deepseek.js';
+import {unavailableAIProvider,unavailableAICredentials} from '../core/organizer/unavailable-service.js';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 const store = new IndexedArchiveStore(chrome.storage.local);
 const promptReuse = new PromptReuseCommands(new PromptReuseService(store),chrome);
 const promptSurface = new PromptSurfaceCommands(promptReuse,chrome);
-const productSignals = new ProductSignals(store);
+const legacyUsage = new LegacyUsageRecords(store);
 const passport = new PassportService(store);
 const revisit = new RevisitService(store);
 const readerState = new ReaderStateService(store);
@@ -103,40 +96,33 @@ chrome.runtime.onInstalled?.addListener(details=>{
   }})).catch(()=>{});
 });
 // ChatGPT source ordering remains unavailable until a live provider contract is certified.
-const organizer = new OrganizerRunner(store);
-// DeepSeek stays outside the generic production registry. Only the explicit
-// manual Organizer actions can invoke this provider through their typed DTOs.
+// No credential reader or direct provider is constructed by this worker.
 const unavailableSession={get:async()=>{throw new ArchiveError('UNAVAILABLE');},set:async()=>{throw new ArchiveError('UNAVAILABLE');},remove:async()=>{throw new ArchiveError('UNAVAILABLE');}};
-const deepSeekSession=chrome.storage.session||unavailableSession;
-const deepSeekCredentials=new DeepSeekSessionCredentials(deepSeekSession);
-const deepSeekProvider=new DeepSeekOrganizerProvider({limits:store.organizerBudget.limits,networkGuard:async()=>{await assertLocalNetworkAllowed(store);await organizerNetworkGuard()();}});
-const originalOrganizer=new SimpleOriginalOrganizerRunner(store,{provider:deepSeekProvider,credentials:deepSeekCredentials});
-const aiOrganizer=new AIPresentationRunner(store,{provider:deepSeekProvider,credentials:deepSeekCredentials});
+const privacySession=chrome.storage.session||unavailableSession;
+const originalOrganizer=new SimpleOriginalOrganizerRunner(store,{provider:unavailableAIProvider,credentials:unavailableAICredentials});
+const aiOrganizer=new AIPresentationRunner(store,{provider:unavailableAIProvider,credentials:unavailableAICredentials});
 const boundedOrganizer=new BoundedOrganizerWorkflow(store,{original:originalOrganizer,ai:aiOrganizer});
 const onboarding=new OnboardingService(store);
 const integrity=new IntegrityChecker(store);
-const memory=new MemoryService(store,{session:deepSeekSession});
-const contextPackages=new ContextPackageService(memory,passport);
+const memory=new MemoryService(store,{session:privacySession});
 const backups=new BackupService(store,{appVersion:chrome.runtime.getManifest().version});
 const imports = new ImportHandler(store,chrome.runtime);
 chrome.runtime.onConnect?.addListener(port=>{if(port.name==='official-export-session')port.onDisconnect.addListener(()=>imports.disconnect(port.sender));});
 chrome.runtime.onConnect?.addListener(port=>{if(port.name.startsWith('bounded-organizer:')&&isExtensionPage(port.sender)){const id=port.name.slice('bounded-organizer:'.length);port.onDisconnect.addListener(()=>{if(boundedOrganizer.currentId===id&&boundedOrganizer.running)void boundedOrganizer.stop();});}});
 // Fail closed if storage isolation cannot be established; never expose records
 // directly to a content script, including the brief worker-startup period.
-const prepareBudgetSession=()=>bindBudgetSession(store.organizerLedger,deepSeekSession);
 const ready = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
-const providerReady=Promise.resolve(deepSeekSession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'})).then(()=>prepareBudgetSession());
-providerReady.catch(()=>{});
+const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'}));
+privacyReady.catch(()=>{});
 ready.catch(() => {});
 installCaptureRecovery(chrome, ready);
 const backupReady=ready.then(()=>backups.recoverSettings());backupReady.catch(()=>{});
-const originalReady=Promise.all([ready,providerReady,backupReady]).then(()=>Promise.all([originalOrganizer.reconcileInterrupted(),aiOrganizer.reconcileInterrupted(),boundedOrganizer.reconcileInterrupted()]));
+const originalReady=Promise.all([ready,privacyReady,backupReady]).then(()=>Promise.all([originalOrganizer.reconcileInterrupted(),aiOrganizer.reconcileInterrupted(),boundedOrganizer.reconcileInterrupted()]));
 originalReady.catch(()=>{});
-const CORE_LOOP_ACTIONS=new Set(['continue','find','return','reuse']);
 
 function isExtensionPage(sender) {
   if (sender.id !== chrome.runtime.id) return false;
-  return ['ui/popup.html', 'ui/archive.html', 'ui/product-signals.html'].some(path => sender.url === chrome.runtime.getURL(path));
+  return ['ui/popup.html', 'ui/archive.html'].some(path => sender.url === chrome.runtime.getURL(path));
 }
 
 function isChatGPTContent(sender) {
@@ -153,15 +139,7 @@ async function handle(request, sender) {
   if(request.type.startsWith('IMPORT_'))return imports.handle(request,sender);
   const ui = isExtensionPage(sender);
   const content = isChatGPTContent(sender);
-  const responseUI = sender.id === chrome.runtime.id && sender.url === chrome.runtime.getURL('ui/response-time.html');
-  if (content && request.type === 'RESPONSE_POLL') {
-    const status = await store.status();
-    return responseDiagnostics.poll(request, sender, status.enabled && status.consented && status.epoch === request.epoch);
-  }
-  if (responseUI && ['RESPONSE_VIEW', 'RESPONSE_ARM'].includes(request.type)) {
-    const status = await store.status();
-    return responseDiagnostics.view(status.enabled && status.consented, request.type === 'RESPONSE_ARM');
-  }
+  if (content && request.type === 'RESPONSE_POLL') return {arm:false,fingerprintAllowed:false};
   if (!ui && !content) throw new ArchiveError('FORBIDDEN');
   if (request.type === 'GET_STATUS') {
     const status = await store.status();
@@ -224,12 +202,11 @@ async function handle(request, sender) {
   }
   if (!ui || ['ENRICH_SOURCE_METADATA','OBSERVE_SOURCE_STRUCTURE'].includes(request.type)) throw new ArchiveError('FORBIDDEN');
   if(request.type==='PURGE_SOURCE'&&(request.confirm!==true||Object.keys(request).some(key=>!['type','id','confirm'].includes(key))))throw new ArchiveError('INVALID_REQUEST');
-  if(['GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))await providerReady;
+  const needsConsent=request.type==='START_BOUNDED_ORGANIZER'||request.type==='EDIT_DOCUMENT'&&request.edit?.removeScope!==undefined||request.type.startsWith('PAIA_ARCHIVE_')||request.type.startsWith('PAIA_RECOVERY_')||['PURGE_SOURCE','PURGE_RECORD','ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_CONTEXT_')||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
+  if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
+  assertFeatureAvailable(request);
   if(['START_BOUNDED_ORGANIZER','STOP_BOUNDED_ORGANIZER','GET_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME','STOP_AI_PRESENTATION','GET_AI_PRESENTATION_STATUS','EDIT_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW','STOP_ORIGINAL_LIBRARY_VIEW','GET_ORIGINAL_ORGANIZER_STATUS'].includes(request.type))await originalReady;
   if(request.type.startsWith('PAIA_BACKUP_'))await backupReady;
-  const needsConsent=request.type==='EDIT_DOCUMENT'&&request.edit?.removeScope!==undefined||request.type.startsWith('PAIA_ARCHIVE_')||request.type.startsWith('PAIA_RECOVERY_')||['PURGE_SOURCE','PURGE_RECORD','ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_CONTEXT_')||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
-  if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
-  if(request.type==='PAIA_BACKUP_BEGIN_EXPORT')await memory.ready();
   switch (request.type) {
     case 'PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT': {
       if(Object.keys(request).some(key=>!['type','id'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
@@ -268,14 +245,9 @@ async function handle(request, sender) {
       const subject=subjectRef(request.subject),current=subject.kind==='conversation'?await sourceStructure.conversation(subject.conversationRef):await sourceStructure.project(subject.projectRef),history=await sourceStructure.history(subject,{limit:40});
       return {subject,current:current?{...sourceStructureSnapshot(current),lastObservedAt:current.lastObservedAt,relationshipRevision:current.relationshipRevision}:null,history:history.items.map(row=>({observedAt:row.observedAt,change:[...row.change],after:structuredClone(row.after)})),hasMore:history.nextCursor!==null};
     }
-    case 'PAIA_PRODUCT_STATUS': return productSignals.status();
-    case 'PAIA_PRODUCT_SETTINGS': return productSignals.settings(request.settings);
-    case 'PAIA_PRODUCT_CLEAR': if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return productSignals.clear();
-    case 'PAIA_PRODUCT_SIGNAL': return productSignals.record(request.signal);
-    case 'PAIA_CORE_LOOP_ACTION': {
-      if(Object.keys(request).some(key=>!['type','action'].includes(key))||!CORE_LOOP_ACTIONS.has(request.action))throw new ArchiveError('INVALID_REQUEST');
-      return {accepted:true};
-    }
+    case 'PAIA_PRODUCT_STATUS': return legacyUsage.status();
+    case 'PAIA_PRODUCT_SETTINGS': return legacyUsage.settings(request.settings);
+    case 'PAIA_PRODUCT_CLEAR': if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return legacyUsage.clear();
     case 'PAIA_REVISIT_STATUS': return revisit.status(request.options);
     case 'PAIA_REVISIT_OPEN': return revisit.open(request.options);
     case 'PAIA_REVISIT_CLOSE': return revisit.close(request.options);
@@ -287,11 +259,12 @@ async function handle(request, sender) {
     case 'PAIA_READER_CAPTURE_SCOPE': return readerState.captureScope(request.options);
     case 'PAIA_REVISIT_MARK': return revisit.mark(request.anchor);
     case 'PAIA_PASSPORT_STATUS': return passport.status();
-    case 'PAIA_PASSPORT_CREATE': await memory.ready();return passport.create(request.grant);
     case 'PAIA_PASSPORT_REVOKE': return passport.revoke(request.grantId);
+    case 'PAIA_PASSPORT_REVOKE_ALL': {
+      if(Object.keys(request).some(key=>key!=='type'))throw new ArchiveError('INVALID_REQUEST');
+      return passport.revokeAll();
+    }
     case 'PAIA_PASSPORT_CLEAR_AUDITS': if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return passport.clearAudits();
-    case 'PAIA_CONTEXT_MANUAL': return contextPackages.manual(request.options,String(sender.tab?.id??sender.documentId??sender.url));
-    case 'PAIA_CONTEXT_BIND': return contextPackages.bind(request.previewId,request.grantId);
     case 'REMOVE_LIBRARY_TOPIC': return store.removeTopic(request.edit);
     case 'RESTORE_LIBRARY_TOPIC': return store.restoreTopicContainer(request.edit);
     case 'GET_LIBRARY_REMOVED_TOPICS': return store.removedTopics();
@@ -302,50 +275,33 @@ async function handle(request, sender) {
     case 'PAIA_MEMORY_AUTHORIZE': return memory.authorize(request.options);
     case 'PAIA_MEMORY_EXCLUDE': return memory.exclude(request.options);
     case 'PAIA_MEMORY_SETTINGS': {const result=await memory.settings(request.options);if(request.options?.localOnly===true)await boundedOrganizer.stop();return result;}
-    case 'PAIA_MEMORY_PROFILE': return memory.profile(request.options);
-    case 'PAIA_MEMORY_BUILD': return contextPackages.build(request.options);
-    case 'PAIA_MEMORY_SHARE': return contextPackages.share(request.options);
     case 'PAIA_MEMORY_ENTRIES': return memory.entries(request.options);
     case 'PAIA_INTEGRITY_BEGIN': return integrity.begin();
     case 'PAIA_INTEGRITY_PAGE': return integrity.page(request.options);
     case 'PAIA_INTEGRITY_CANCEL': return integrity.cancel(request.options);
-    case 'PAIA_BACKUP_BEGIN_EXPORT': return backups.beginExport();
-    case 'PAIA_BACKUP_EXPORT_PAGE': return backups.exportPage(request.options);
     case 'PAIA_BACKUP_BEGIN_RESTORE': return backups.beginRestore();
     case 'PAIA_BACKUP_STAGE': return backups.stageRestore(request.options);
     case 'PAIA_BACKUP_PREVIEW': return backups.previewRestore(request.options);
     case 'PAIA_BACKUP_RESTORE': return withRecoveryFence(async()=>{const result=await backups.restore(request.options);if(request.options?.mode!=='merge')await recoveryDraftStore().clearAll().catch(()=>{});return result;});
     case 'PAIA_BACKUP_CANCEL': return backups.cancel(request.options);
     case 'GET_BOUNDED_ORGANIZER': return boundedOrganizer.status();
-    case 'START_BOUNDED_ORGANIZER': if(!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');return boundedOrganizer.start(request.options);
     case 'STOP_BOUNDED_ORGANIZER': return boundedOrganizer.stop();
     case 'GET_ONBOARDING': return onboarding.status();
     case 'SET_ONBOARDING': return onboarding.action(request.action);
     case 'GET_ORGANIZER_CONTROLS': return store.organizerControls();
     case 'SET_ORGANIZER_CONTROLS': return store.setOrganizerControls(request.changes);
     case 'GET_AI_PRESENTATION_REVISIONS': return store.aiPresentationRevisions(request.options);
-    case 'GET_DEEPSEEK_STATUS': return deepSeekCredentials.status();
-    case 'SAVE_DEEPSEEK_CREDENTIAL': {
-      if(!request.config||Object.keys(request.config).some(k=>k!=='apiKey'))throw new ArchiveError('INVALID_REQUEST');
-      return deepSeekCredentials.configure({apiKey:request.config.apiKey});
-    }
-    case 'CLEAR_DEEPSEEK': await boundedOrganizer.stop();await aiOrganizer.stop();await originalOrganizer.stop('CANCELLED');return deepSeekCredentials.disable();
     case 'LIBRARY_UPDATES': return store.suggestionPage(request.options);
     case 'RESOLVE_LIBRARY_UPDATE': return store.resolveSuggestion(request.edit);
     case 'LIBRARY_ORGANIZER_JOBS': return store.organizerJobPage(request.options);
     case 'GET_LIBRARY_DUAL_VIEW_STATUS': return store.dualViewStatus();
     case 'GET_ORIGINAL_ORGANIZER_STATUS': return store.originalOrganizerStatus();
-    case 'PREVIEW_AI_LIBRARY_UPDATE': return store.previewAIDelta();
-    case 'GET_AI_PRESENTATION_SCOPE': {const scope=await aiOrganizer.scope(request.options);try{await assertLocalNetworkAllowed(store);}catch(error){scope.blockedReason=error.code||'MEMORY_EXTERNAL_DISABLED';}return scope;}
     case 'GET_AI_PRESENTATION_OPERATION_OUTCOME': return store.aiPresentationOperationOutcome(request.options);
     case 'STOP_AI_PRESENTATION': return aiOrganizer.stop({topicId:request.topicId});
     case 'GET_AI_PRESENTATION_STATUS': return recoverySnapshot(()=>store.aiPresentationStatus(request.options),(value,epoch)=>({...value,topics:value.topics.map(topic=>({...topic,recoveryEpoch:epoch,presentation:topic.presentation?{...topic.presentation,recoveryEpoch:epoch}:null}))}));
     case 'RECOVER_AI_PRESENTATION_DRAFT': return store.recoverAIDraft(request.options);
     case 'EDIT_AI_PRESENTATION': return store.editAIPresentation(request.edit);
-    case 'UPDATE_AI_PRESENTATION': if(boundedOrganizer.running||originalOrganizer.running)return {error:'REQUEST_ALREADY_IN_FLIGHT'};return aiOrganizer.wake({userActionId:request.userActionId,topicId:request.topicId||null,scopeBinding:request.scopeBinding});
-    case 'UPDATE_ORIGINAL_LIBRARY_VIEW': if(boundedOrganizer.running||aiOrganizer.running)return {error:'REQUEST_ALREADY_IN_FLIGHT'};return originalOrganizer.wake({manual:true,userActionId:typeof request.userActionId==='string'&&request.userActionId.length<=100?request.userActionId:store.uuid()});
     case 'STOP_ORIGINAL_LIBRARY_VIEW': return originalOrganizer.stop('CANCELLED');
-    case 'SET_ORIGINAL_LIBRARY_AUTO_UPDATE': return store.setOriginalAutoUpdate(request.enabled);
     case 'CONTROL_LIBRARY_ORGANIZER_JOB': return store.controlOrganizer(request.edit);
     case 'FILTER_DIAGNOSTICS': return store.filterDiagnostics();
     case 'FILTER_RECOVER': return store.recoverFilters();
@@ -357,11 +313,7 @@ async function handle(request, sender) {
     case 'FILTER_KEEP': return store.keepInput(request.id);
     case 'SEARCH_INPUTS': return store.searchInputs(request.options);
     case 'GET_INPUT': return recoverySnapshot(()=>store.input(request.id));
-    case 'RECORD_TOPIC_READ': {
-      const topic=await store.topic(request.id),before=Number(topic.readingActivity?.at)||0,shouldRecord=!before||Date.now()-before>=60000,repeat=before>0,result=await store.recordTopicRead(request.id);
-      if(shouldRecord)void productSignals.noteTopicRead(repeat,sender).catch(()=>{});
-      return result;
-    }
+    case 'RECORD_TOPIC_READ': return store.recordTopicRead(request.id);
     case 'LIBRARY_INDEX_PAGE': return store.libraryIndexPage(request.options);
     case 'TOPIC_DOCUMENT_PAGE': return recoverySnapshot(()=>store.topicDocumentPage(request.options),recoveryDocumentPage);
     case 'GET_LIBRARY_TRACKED_ENTRIES': return store.trackedLibraryEntries(request.options);
@@ -460,9 +412,6 @@ if(runtime.onStartup)void ready.then(()=>scheduleFilter()).catch(()=>{});
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   handle(request, sender)
     .then(async data => {
-      // Analytics observes only successful results. It cannot change authorization
-      // or mutate the payload returned by handle().
-      await productSignals.observe(request,data,sender).catch(()=>{});
       const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:request.type==='OBSERVE_SOURCE_STRUCTURE'?false:true;
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
       sendResponse({ ok: true, data });

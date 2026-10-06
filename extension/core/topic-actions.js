@@ -1,6 +1,5 @@
-import {hashText} from './dedupe.js';
-import {keys,fail,idOK,revisionOK,prefix,entrySnapshot,markHuman,refreshEntryIndex,keyedHash} from './thought-model.js';
-import {inputProjection,checkEvidenceInTransaction} from './thought-evidence.js';
+import {keys,fail,idOK,prefix,entrySnapshot,markHuman,refreshEntryIndex,keyedHash} from './thought-model.js';
+import {inputProjection} from './thought-evidence.js';
 import {bindingSource,applyBinding,bindingRead} from './thought-binding.js';
 import {journal,nextSequence} from './thought-journal.js';
 const validSpan=(body,span)=>{if(!span||!Number.isSafeInteger(span.start)||!Number.isSafeInteger(span.end)||span.start<0||span.end>body.length||span.end<=span.start)return false;const bounds=new Set([0,body.length,...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(body)].map(x=>typeof x==='number'?x:x.index));return bounds.has(span.start)&&bounds.has(span.end);};
@@ -33,52 +32,27 @@ async function addThoughtExcerpt(s,r){
  return s.createEntry({operationId:r.operationId,actor:'user',body,type:original.type,formation:'explicit',evidence},{receiptRequest:r,independentContext:true,before:async t=>{const live=await s.readableEntry(t,r.id);if(live.revision!==r.expectedRevision||live.lifecycle!=='active')fail();const topics=await topicsFor(s,t,r.topicIds),old=await t.edge('thoughts','byExact',exactKey);if(old?.lifecycle==='active'&&old.thoughtText===body)return place(s,t,old,topics,r.operationId);},after:async(t,row)=>{row.exactKey=exactKey;row.provenanceType=original.provenanceType==='user_created'?'user_created':'input_derived';await t.put('thoughts',row);await place(s,t,row,await topicsFor(s,t,r.topicIds),r.operationId);}});
 }
 export async function continueThinking(s,r){
- keys(r,['operationId','body','topicId','inputId','relation'],['operationId','body']);
+ // Own-property rejection precedes receipts, crypto, Source reads and storage.
+ // Even an undefined or non-enumerable legacy field cannot create a relationship.
+ if(r&&typeof r==='object'&&Object.hasOwn(r,'relation'))fail();
+ keys(r,['operationId','body','topicId','inputId'],['operationId','body']);
  if(typeof r.body!=='string'||!r.body.trim())fail();
  if(r.topicId!==undefined&&!idOK(r.topicId)||r.inputId!==undefined&&!idOK(r.inputId))fail();
- if(r.relation!==undefined){
-  keys(r.relation,['id','expectedRevision','expectedBodySha256'],['id','expectedRevision','expectedBodySha256']);
-  if(!idOK(r.relation.id)||!revisionOK(r.relation.expectedRevision)||typeof r.relation.expectedBodySha256!=='string'||!/^[a-f0-9]{64}$/.test(r.relation.expectedBodySha256))fail();
- }
  const prior=await s.priorOperation(r);if(prior)return prior;
- // Compute crypto outside IDB; the creation transaction compares the exact
- // observed body again, as well as revision and live Source availability.
- let relatedBody=null;
- if(r.relation){
-  const related=await s.entry(r.relation.id);relatedBody=related.body;
-  if(related.lifecycle!=='active'||related.revision!==r.relation.expectedRevision||await hashText(relatedBody)!==r.relation.expectedBodySha256)return {conflict:true,relatedChanged:true};
- }
  let evidence=[];
  if(r.inputId){try{evidence=await s.evidenceFor([{inputId:r.inputId,role:'context_only',selectedFields:['body']}],{independentContext:true});}catch{}}
  return s.createEntry({operationId:r.operationId,actor:'user',body:r.body,type:'idea',formation:'explicit',evidence},{
   receiptRequest:r,independentContext:true,independentExpression:true,
-  before:async t=>{
-   if(r.topicId)await topicsFor(s,t,[r.topicId]);
-   if(r.relation){const related=await s.readableEntry(t,r.relation.id);if(related.lifecycle!=='active'||related.revision!==r.relation.expectedRevision||!await s.sourcePresent(t,related.sourceRecordIds||[])||(await bindingRead(s,t,related)).thoughtText!==relatedBody)return {conflict:true,relatedChanged:true};}
-  },
-  after:async(t,row)=>{
-   if(r.topicId)await place(s,t,row,await topicsFor(s,t,[r.topicId]),r.operationId);
-   if(r.relation){const related=await s.readableEntry(t,r.relation.id),kind='user_response';await t.put('entryRelations',{id:s.uuid(),fromEntryId:row.id,toEntryId:related.id,toRevision:related.revision,toBodySha256:r.relation.expectedBodySha256,kind,relationKey:JSON.stringify([row.id,kind,related.id,related.revision]),sourceRecordIds:[...(related.sourceRecordIds||[])],createdAt:row.createdAt,actor:'user',operationId:r.operationId});}
-  }
+  before:async t=>{if(r.topicId)await topicsFor(s,t,[r.topicId]);},
+  after:async(t,row)=>{if(r.topicId)await place(s,t,row,await topicsFor(s,t,[r.topicId]),r.operationId);}
  });
 }
 export async function compareThought(s,id){
  await s.finishFoundation();
- const result=await s.run(()=>s.repository.transaction(false,async t=>{
-  const row=await s.readableEntry(t,id),p=await bindingSource(s,t,row),relations=[];
-  for(const relation of await t.all('entryRelations','byFrom',prefix([id]),40)){
-   if(relation.kind!=='user_response'||relation.actor!=='user')continue;
-   const target=await t.get('thoughts',relation.toEntryId),available=target?.storageSchema===2&&target.lifecycle==='active'&&await s.sourcePresent(t,target.sourceRecordIds||[])&&await s.sourcePresent(t,relation.sourceRecordIds||[]);
-   const state=!available?'unavailable':target.revision!==relation.toRevision?'changed':'current';
-   relations.push({kind:'response',state,createdAt:relation.createdAt,...(state==='current'?{id:target.id,body:(await bindingRead(s,t,target)).thoughtText,expectedSha256:relation.toBodySha256}:{})});
-  }
-  return {entry:await bindingRead(s,t,row),relations,sources:await Promise.all((row.sourceRecordIds||[]).map(async id=>{const src=await s.sourcePresent(t,[id])?(await t.get('records',id))?.value:null;return src?{body:src.originalText,sourceSentAt:src.sourceSentAt||null}:null})).then(rows=>rows.filter(Boolean)),input:p?{id:p.inputId,body:p.body,revision:p.contentRevision}:null};
+ return s.run(()=>s.repository.transaction(false,async t=>{
+  const row=await s.readableEntry(t,id),p=await bindingSource(s,t,row);
+  return {entry:await bindingRead(s,t,row),relations:[],sources:await Promise.all((row.sourceRecordIds||[]).map(async id=>{const src=await s.sourcePresent(t,[id])?(await t.get('records',id))?.value:null;return src?{body:src.originalText,sourceSentAt:src.sourceSentAt||null}:null})).then(rows=>rows.filter(Boolean)),input:p?{id:p.inputId,body:p.body,revision:p.contentRevision}:null};
  }));
- for(const relation of result.relations){
-  if(relation.state==='current'&&await hashText(relation.body)!==relation.expectedSha256){relation.state='changed';delete relation.body;delete relation.id;}
-  delete relation.expectedSha256;
- }
- return result;
 }
 export async function restoreThoughtInput(s,r){
  keys(r,['id','operationId','expectedRevision','expectedInputRevision'],['id','operationId','expectedRevision','expectedInputRevision']);

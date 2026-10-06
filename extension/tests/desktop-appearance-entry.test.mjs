@@ -22,14 +22,11 @@ test('refused Topic admission cannot replace its existing visible draft',()=>gua
  assert.equal(await openDesktopAppearancePreview({navigate:async()=>true,thoughts},{screen:'topic',topicId:'topic'}),false);
 }));
 test('withdrawn Context owner never creates a session, reads data or activates old UI',async()=>{
- const prior=new Map(['document','chrome'].map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)])),events=[];
- const root={dataset:{},classList:{add(){}},append(){}};
- globalThis.document={createElement:()=>root,getElementById:()=>({prepend(){}}),dispatchEvent:event=>events.push(event.type)};
- globalThis.chrome=new Proxy({}, {get(){throw Error('Withdrawn Context must not access extension APIs');}});
- try{const owner=new ContextController({disabled:true});assert.equal(owner.data,null);await assert.rejects(owner.rpc('create'),error=>error.code==='CONTEXT_DESIGN_ONLY');assert.equal(await owner.perform(()=>{throw Error('Old action ran');}),false);assert.equal(owner.activate(true),false);assert.equal(root.hidden,true);assert.deepEqual(events,['paia:context-unavailable']);assert.equal(owner.data,null);}finally{for(const [name,value]of prior)if(value)Object.defineProperty(globalThis,name,value);else delete globalThis[name];}
+ const prior=globalThis.chrome;let accesses=0;globalThis.chrome=new Proxy({}, {get(){accesses++;throw Error('no extension APIs');}});
+ try{const owner=new ContextController({disabled:false});assert.equal(owner.disabled,true);assert.equal(owner.data,undefined);assert.equal(owner.activate(true),false);await assert.rejects(owner.rpc('create'),{code:'FEATURE_UNAVAILABLE'});await assert.rejects(owner.add({kind:'input',id:'legacy'}),{code:'FEATURE_UNAVAILABLE'});assert.equal(accesses,0);}finally{globalThis.chrome=prior;}
 });
-
-test('withdrawn Context cannot reopen legacy authorization through Settings',async()=>{
- const seen=[],panel=Object.assign(Object.create(MemoryPanel.prototype),{contextDisabled:true,feedback:text=>seen.push(text),materials:{legacy(){throw Error('Legacy authorization must stay hidden');}}});
- assert.equal(await panel.open('authorizations'),false);assert.match(seen[0],/待重新设计/);assert.throws(()=>panel.rpc('AUTHORIZE',{decision:'allowed'}),error=>error.code==='CONTEXT_DESIGN_ONLY');assert.throws(()=>panel.rpc('PROFILE',{action:'create'}),error=>error.code==='CONTEXT_DESIGN_ONLY');
+test('withdrawn Context cannot reopen a legacy authorization panel through Settings',()=>{
+ const panel=Object.assign(Object.create(MemoryPanel.prototype),{contextDisabled:true});
+ assert.equal(panel.open('authorizations'),false);assert.equal(panel.open('profiles'),false);assert.equal(panel.rpc,undefined);
+ assert.equal(typeof panel.revoke,'function');assert.equal(typeof panel.saveLocalOnly,'function');
 });

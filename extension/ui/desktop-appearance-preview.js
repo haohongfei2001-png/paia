@@ -56,10 +56,5 @@ export async function openDesktopAppearancePreview(owners,{screen,topicId,scope,
  return session;
 }
 
-// A visible, explicit entry into the same components. It never seeds user data.
-export function installDesktopAppearancePreviewEntry(open){
- const host=document.getElementById('ux-settings-advanced-group');if(!host||document.getElementById('desktop-appearance-preview-entry'))return;
- const section=element('section'),heading=element('h3','','新版界面预览'),note=element('p','muted','查看 D5 完整页面。未开放的编写、整理和 AI Context 功能会明确标示；此入口不会替你授权外部处理。'),status=element('p','muted');section.id='desktop-appearance-preview-entry';status.setAttribute('role','status');section.append(heading,note);
- for(const [screen,label]of [['topic','思想阅读'],['compose','写下想法'],['organize','整理范围'],['context','AI Context 界面']]){const button=element('button','',label);button.type='button';button.onclick=async()=>{button.disabled=true;try{let topicId,scope;if(screen!=='context'){const result=await request('LIBRARY_INDEX_PAGE',{options:{mode:'stable',limit:1}});topicId=result.items?.[0]?.id;if(screen!=='compose'&&!topicId){status.textContent='目前没有主题可供展示。已有档案保持原样。';return;}if(screen==='organize')scope=await request('GET_AI_PRESENTATION_SCOPE',{options:{topicId}});}const shown=await open({screen,topicId,scope});if(!shown)status.textContent='页面未切换；请先处理仍在编辑的内容。';}catch{status.textContent='界面预览未打开，已有内容未改变。';}finally{button.disabled=false;}};section.append(button);}
- section.append(status);host.append(section);
-}
+// The consumer settings page no longer exposes a developer preview gallery.
+export function installDesktopAppearancePreviewEntry(){}

@@ -34,7 +34,7 @@ test('Round 4.8 current release: retained Search component -> Reader and Revisit
   assert.equal((await rpc(p,'PAIA_MEMORY_STATUS')).config.includeUnorganizedInputs,false);
   await assertNoContextEffects(p,h);
 
-  p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#collection-panel').isVisible());await p.locator('#scope-search').fill('');await eventually(()=>p.locator('#archive-root-main').isVisible());
+  p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await p.locator('#scope-search').fill('');await eventually(()=>p.locator('#archive-navigator').isVisible());assert.equal(await p.locator('.library-prose').count(),0,'Archive root clears only the Reader');
   // UX-R2 creates a fixed visit window; a later captured Input becomes the
   // only new-item signal and can navigate back to the canonical reader.
   await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'revisit'}})));await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'Revisit opens');
@@ -52,17 +52,31 @@ test('Round 4.8 current release: retained Search component -> Reader and Revisit
  }finally{await h.close();}
 });
 
-test('Round 4.8 current release: Passport grant binds a Context package and revoke fails closed in Chrome',{timeout:60000},async()=>{
+test('Round 4.8 current release: Context requests remain retired while saved Passport grants can be revoked without releasing content',{timeout:60000},async()=>{
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive;await consent(p);
-  await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{externalAccess:true}});
-  const status=await rpc(p,'PAIA_PASSPORT_STATUS');assert.equal(status.localOnly,true);assert.equal(status.storesBody,false);assert.equal(status.permission,'context_export');
-  const built=await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'ROUND48 passport certification',profileId:'default',budget:'short'}});assert.equal(built.contextPackage.grantId,null);assert.equal(built.contextPackage.persistedBody,false);
-  const grant=await rpc(p,'PAIA_PASSPORT_CREATE',{grant:{consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'}});assert.equal(grant.state,'active');
-  const bound=await rpc(p,'PAIA_CONTEXT_BIND',{previewId:built.previewId,grantId:grant.grantId});assert.equal(bound.grantId,grant.grantId);assert.equal(bound.consumer,'chatgpt');assert.equal(bound.purpose,'research');assert.equal(bound.persistedBody,false);
-  const revoked=await rpc(p,'PAIA_PASSPORT_REVOKE',{grantId:grant.grantId});assert.equal(revoked.state,'revoked');
-  const denied=await rawRpc(p,'PAIA_MEMORY_SHARE',{options:{previewId:built.previewId,grantId:grant.grantId,format:'copy',removed:[]}});assert.equal(denied.ok,false);assert.equal(denied.error,'MEMORY_DENIED');
+  await h.open({id:'round48-passport-history',title:'Synthetic retained grant',base:1609459200,messages:[{id:'round48-history-one',text:'ROUND48 retained original evidence'}]});await eventually(async()=>(await h.state()).records.length===1);await settleContextCapture(h);
+  const grantId=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js'),{profileDefault,configDefault}=await import('../core/memory/model.js'),{validatePassportRow}=await import('../core/passport.js');
+   const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();
+   // A synthetic grant already stored by the historical release, never a current grant-creation call.
+   const grant={id:'passport:grant:round48-historical',kind:'grant',version:1,grantId:'round48-historical',consumer:'chatgpt',purpose:'research',resourceScope:'profile',profileId:'default',permission:'context_export',duration:'once',createdAt:'2026-01-01T00:00:00.000Z',expiresAt:null,revokedAt:null,consumedAt:null,lastUsedAt:null,useCount:0};
+   if(!validatePassportRow(grant))throw Error('invalid historical synthetic grant');
+   await s.repository.transaction(true,async t=>{await t.put('meta',profileDefault());await t.put('meta',{...configDefault(),externalAccess:true});await t.put('meta',grant);});return grant.grantId;
+  });
+  const before=await contextSafetySnapshot(p),status=before.passport;assert.equal(status.localOnly,true);assert.equal(status.storesBody,false);assert.equal(status.permission,'context_export');assert.equal(status.grants[0].state,'active');
+  for(const [type,fields]of [
+   ['PAIA_MEMORY_SETTINGS',{options:{externalAccess:true}}],
+   ['PAIA_MEMORY_BUILD',{options:{query:'ROUND48 private query',profileId:'default',budget:'short'}}],
+   ['PAIA_PASSPORT_CREATE',{grant:{consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'}}],
+   ['PAIA_CONTEXT_BIND',{previewId:'historical-preview',grantId}],
+   ['PAIA_MEMORY_SHARE',{options:{previewId:'historical-preview',grantId,format:'copy'}}]
+  ]){const denied=await rawRpc(p,type,fields);assert.equal(denied.ok,false);assert.equal(denied.error,'FEATURE_UNAVAILABLE');}
+  assert.deepEqual(await contextSafetySnapshot(p),before,'old commands do not edit content, consume a grant, collect audit or change permissions');
+  const revoked=await rpc(p,'PAIA_PASSPORT_REVOKE',{grantId});assert.equal(revoked.state,'revoked');assert.equal(revoked.useCount,0);
+  for(const format of ['copy','markdown']){const denied=await rawRpc(p,'PAIA_MEMORY_SHARE',{options:{previewId:'historical-preview',grantId,format}});assert.equal(denied.error,'FEATURE_UNAVAILABLE');}
+  const after=await contextSafetySnapshot(p);assert.deepEqual(after.records,before.records);assert.deepEqual(after.library,before.library);assert.deepEqual(after.session,before.session);assert.deepEqual(after.permissions,before.permissions);assert.deepEqual(after.passport.audits,[]);assert.equal(after.passport.grants[0].consumedAt,null);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });

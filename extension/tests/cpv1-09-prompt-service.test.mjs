@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {completeFixture,append,rows,meta} from './harness/original-complete.mjs';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
 import {PROMPT_REUSE_ROW,validPromptPreferences} from '../core/prompt-reuse-preferences.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {validateBackupItem} from '../core/backup-format.js';
 import {key} from '../core/memory/model.js';
 const text='解释这个算法，保留限制和反例。';

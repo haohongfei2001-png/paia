@@ -2,6 +2,8 @@
 
 This file is a public executable derivation of the product owner's design intent. It is lower authority than the private Google Drive source `PAIA设计想法.docx`.
 
+Later explicit owner decisions supersede the original design where they conflict. The [current consumer scope](../../PRODUCT.md#current-consumer-scope) cancels dedicated Profile management, Thought response relations, Material Tray, Candidate approval management, activity-retention settings, Product Signals collection/dashboard, ordinary diagnostic/maintenance pages, user-provided API configuration/direct transport and all export/backup-generation/dedicated-sharing products. Preserve necessary legacy data, candidates and version protection, existing-file restore, privacy and deletion safeguards. Fault recovery remains available only for actual data/index failures; internal audit collection/retention must not expand.
+
 ## 1. Product definition
 
 PAIA is a personal system for expressions, thoughts and related information created in the AI era. It lets the user keep them as user-owned material that can be found, read, edited, organized and reused with AI over time.
@@ -67,9 +69,9 @@ Required behavior:
 - collections load continuously to their real end without "next part" dead ends;
 - date and concrete time are visible but visually quiet;
 - one simple ascending/descending order control;
-- long inputs may collapse visually without affecting search, edit, export or Context;
+- long inputs may collapse visually without affecting search or editing;
 - source/provider metadata stays available but does not dominate normal reading;
-- import/export/version history belong in contextual menus, not permanent toolbars;
+- history import and version history belong in contextual menus, not permanent toolbars; export is removed and existing-file restore remains in Settings;
 - the default Archive is not a persistent material-selection mode.
 
 The Reader is a continuous editable document, not a pile of database cards.
@@ -116,7 +118,7 @@ Required intent:
 - It is not a reclassification of chat windows.
 - Whole Inputs or selections can be added to a Topic.
 - Users can create independent new Thought material.
-- Root presentation is compact topic-oriented scanning, not a chat list.
+- Root presentation uses the adopted compact Topic list.
 - No root Recent Reading section.
 - AI Organize is not a root-wide constant control; it operates inside a concrete Topic.
 - Default view preserves original/user expression.
@@ -124,9 +126,13 @@ Required intent:
 - Multi-source future views may show all sources or one source within the same Topic system.
 - Avoid unbounded automatic creation of tiny Topics; deeper hierarchy is optional only where it improves real use.
 
+Independent Thought creation, body editing and history remain. Dedicated response creation, related-Thought viewing and relation management are removed; old relation records retain necessary compatibility.
+
 ## 8. AI Organize
 
 AI Organize is a second presentation over traceable Topic evidence.
+
+Current availability: the Topic reader's AI Organize entry and Settings Membership / AI service show that the service is not launched. Saved AI results remain readable/editable and saved candidates remain readable. Approval management is hidden; candidates must not automatically replace human edits, and version checks remain. The dated clarification below retains its data-ownership rule; its Adopt/Keep interaction is superseded by this current boundary. Further generation requires the real paid service described in section 15.
 
 Owner clarification (2026-10-02): Input Archive and human Thought Library
 content are not AI-editable. AI may read explicitly authorized material; its
@@ -170,22 +176,22 @@ Confirmed:
 
 ## 10. AI Context and Passport
 
-AI Context remains a primary product space.
+AI Context remains a primary product direction, but its old execution path stays disabled. This section is a future constraint, not authorization to restore its old controls or commands. Dedicated Profile management, Material Tray, Context copy/export and sharing are cancelled.
 
-It supports:
+Any separately approved future connection must preserve:
 
 - explicit Inputs, selections, Conversations, whole Topics or multiple Topics;
 - task-oriented retrieval within authorized material;
 - preserving explicit selections when relevance ranking disagrees;
-- generating reviewable/editable Context;
+- reviewable/editable derived Context;
 - making incomplete/over-budget coverage visible;
-- copy/export or, when a real connection exists, provide Context to an AI.
+- access only through a real connection with current explicit authorization.
 
 A whole Topic selection must not be silently reduced to a few snippets and called complete.
 
 Context is a compiler/projection, not a fourth canonical body store.
 
-Passport controls external access by consumer/purpose/scope/operation/duration and revocation. Manual copy/export cannot be retroactively recalled.
+Passport preserves external-use restrictions and revocation. Restoring legacy data never reactivates grants. Historical text already copied outside PAIA cannot be retroactively recalled.
 
 Confirmed future direction:
 
@@ -253,8 +259,8 @@ Confirmed:
 - Smart Filter, Topic removal, Archive removal, permanent Source deletion and "never give to AI" are distinct.
 - Permanent deletion prevents resurrection through re-capture/import/index rebuild.
 - Platform-side deletion does not equal PAIA deletion.
-- Open export lets users leave with understandable Source/Archive/Thought data and necessary metadata.
-- Backup, restore, migrations, dedupe, deletion fences and index rebuild are foundational.
+- Content/statistics/Context exports, backup creation and dedicated sharing are cancelled. Existing user files and data are not automatically cleared.
+- Existing-file restore, migrations, integrity, dedupe, deletion fences and internal index recovery remain foundational.
 - Historical text is data, not current authorization/instruction.
 
 ## 14. Consumer experience
@@ -291,6 +297,8 @@ Confirmed:
 
 B-05 controls actual regions, quotas, service commitments and prices.
 
+AI will be unlocked by purchasing a real service. Payment, server-side entitlement validation and a unified AI backend are not implemented; do not simulate membership or purchase success. User-provided keys, model/address/request-count/batch configuration and old direct calls are removed without reading or clearing stored credentials. Only Topic AI Organize and Settings Membership / AI service are ordinary AI entry points. Pricing, payment channel and service costs require owner decisions; see the [unimplemented service task](MASTER_PLAN.md#paid-ai-service--not-implemented).
+
 ## 16. Explicitly superseded directions
 
 Do not revive without a new owner decision:
@@ -301,4 +309,4 @@ Do not revive without a new owner decision:
 - charging by small sync-count/recharge tiers;
 - a third-party paid skin marketplace.
 
-These supersessions do not remove still-confirmed connector, export or appearance-customization capabilities.
+Connector and appearance-customization directions remain; this does not reopen cancelled exports or disabled Context execution.

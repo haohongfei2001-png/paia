@@ -1,3 +1,4 @@
+import {historicalBackupItems} from './harness/historical-backup-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -59,10 +60,9 @@ test('ANS-02 trusted source metadata survives restart and Backup restore while e
   const persisted=await p.evaluate(async conv=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js'),{BackupService}=await import('../core/backup-service.js');
    const s=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(s),current=await structure.conversation(conv),history=await structure.history({kind:'conversation',conversationRef:conv}),snapshot=await s.snapshot();
-   const backup=new BackupService(s,{appVersion:'0.12.0'}),{sessionId,header}=await backup.beginExport(),items=[header];let sequence=0;
-   for(;;){const page=await backup.exportPage({sessionId,sequence:sequence++});items.push(...page.items);if(page.done)break;}
-   return {current,history:history.items,snapshot:{records:snapshot.records.map(r=>[r.id,r.sourceKey,r.originalText,r.contentHash]),working:snapshot.library.blocks.map(x=>[x.id,x.libraryText,x.revision])},items};
+   return {current,history:history.items,snapshot:{records:snapshot.records.map(r=>[r.id,r.sourceKey,r.originalText,r.contentHash]),working:snapshot.library.blocks.map(x=>[x.id,x.libraryText,x.revision])}};
   },setup.conv);
+  persisted.items=await historicalBackupItems(p);
   assert.deepEqual(persisted.snapshot.records,setup.original);assert.deepEqual(persisted.snapshot.working,setup.working);assert.equal(persisted.current.relationshipRevision,4);
   const restored=await p.evaluate(async items=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js'),{BackupService}=await import('../core/backup-service.js');

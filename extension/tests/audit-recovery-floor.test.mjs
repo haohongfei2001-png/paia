@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {setup,inputEdit,capture} from './harness/thought-m1.mjs';
 import {completeFixture,append,rows} from './harness/original-complete.mjs';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {projectBackupEntity} from '../core/backup-format.js';
 import {RecoveryDraftSession} from '../ui/recovery-draft.js';
@@ -88,7 +88,7 @@ test('CURRENT B-02 refusal + historical fixture: repeated Source purge advances 
 
 test('CURRENT B-02 refusal + historical fixture: deleted and recreated AI owner cannot admit old text even when its numeric revision resets',async()=>{
  const {AIPresentationRunner}=await import('../core/organizer/ai-presentation.js');
- const {DeepSeekOrganizerProvider}=await import('../core/organizer/deepseek.js');
+ const {DeepSeekOrganizerProvider}=await import('./harness/historical-provider.mjs');
  const {AI_LIST_FIELDS}=await import('../core/organizer/ai-contract.js');
  const {response,meta}=await import('./harness/original-complete.mjs');
  const f=await completeFixture({texts:['Synthetic initial source for generation test']});await f.runner.wake({userActionId:op()});

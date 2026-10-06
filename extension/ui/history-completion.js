@@ -2,7 +2,7 @@ import {setProductState} from './product-state.js';
 import {OfficialExportProvider} from '../core/import/provider.js';
 import {ImportError,safeImportError} from '../core/import/errors.js';
 const phases={idle:'选择本次要读取的导出文件。',selected:'文件已选择。',checking:'正在检查文件，尚未写入档案…',ready:'检查完成。确认后才会写入档案。',importing:'正在补全历史输入…',completed:'历史补全完成。',partial:'已补全可识别的内容，部分输入需要确认。',unsupported:'无法可靠识别这份聊天记录，未写入档案。',failed:'本次处理未完成，已完成的部分仍保留。',paused:'已暂停。重新选择同一文件即可继续。',cancelled:'本次补全已取消，已完成的部分仍保留。',awaiting_file:'请重新同意并选择原文件，继续上次进度。'};
-const errors={SCHEMA_UNSUPPORTED:'暂不支持这份文件的聊天结构。请确认选择的是受支持的 AI 聊天导出 ZIP 或 JSON 文件。',SCHEMA_UNVERIFIED:'这份格式尚未得到支持，未写入档案。',PAIA_BACKUP_FILE:'这是 PAIA 备份，请到 Settings 的“数据备份”中恢复。',IMPORT_FILE_MISMATCH:'这不是上次选择的文件。请重新选择原文件，或另开一次补全。',IMPORT_SESSION_EXPIRED:'读取授权已结束。重新选择原文件即可继续。',STORAGE_FULL:'本机空间不足。请释放空间后，重新选择原文件继续。',STORAGE_FAILED:'暂时无法保存到本机。已完成的部分保留，请稍后重试。',FILE_INVALID:'文件为空或超过 1 GB。请检查所选文件。',RESOURCE_LIMIT:'文件超过安全处理上限，未继续读取。',CANCELLED:''};
+const errors={SCHEMA_UNSUPPORTED:'暂不支持这份文件的聊天结构。请确认选择的是受支持的 AI 聊天导出 ZIP 或 JSON 文件。',SCHEMA_UNVERIFIED:'这份格式尚未得到支持，未写入档案。',PAIA_BACKUP_FILE:'这是 PAIA 备份，请到设置的“数据与恢复”中恢复。',IMPORT_FILE_MISMATCH:'这不是上次选择的文件。请重新选择原文件，或另开一次补全。',IMPORT_SESSION_EXPIRED:'读取授权已结束。重新选择原文件即可继续。',STORAGE_FULL:'本机空间不足。请释放空间后，重新选择原文件继续。',STORAGE_FAILED:'暂时无法保存到本机。已完成的部分保留，请稍后重试。',FILE_INVALID:'文件为空或超过 1 GB。请检查所选文件。',RESOURCE_LIMIT:'文件超过安全处理上限，未继续读取。',CANCELLED:''};
 const $=id=>document.getElementById(id);
 const sourceName=id=>id==='claude-conversations-v1'?'Claude':id==='chatgpt-mapping-v1'?'ChatGPT':'AI';
 async function send(type,payload){const r=await chrome.runtime.sendMessage({type,payload});if(!r?.ok)throw new ImportError(r?.error);return r.data;}

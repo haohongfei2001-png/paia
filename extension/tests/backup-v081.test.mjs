@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {completeFixture,append,rows,meta} from './harness/original-complete.mjs';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 import {BackupValidator,backupHash} from '../core/backup-format.js';
 const op=()=>crypto.randomUUID();
 export async function exported(service){const {sessionId,header}=await service.beginExport(),items=[header];let sequence=0;for(;;){const p=await service.exportPage({sessionId,sequence:sequence++});items.push(...p.items);if(p.done)break;}return items;}
@@ -213,3 +213,13 @@ test('settings interruption after atomic data commit is recovered idempotently a
  const source=await completeFixture();await source.s.updatePreferences({timeEmphasis:'standard',timeDisplay:'date_and_seconds'});const items=await exported(new BackupService(source.s)),target=await completeFixture({texts:[]}),service=new BackupService(target.s),stage=await prepared(service,items),save=target.storage.set;
  target.storage.set=async()=>{throw new Error('Synthetic local settings write interruption');};await assert.rejects(()=>service.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity}));assert.equal((await rows(target.s,'records')).length,5);assert.ok(await meta(target.s,'backup-recovery-settings'));target.storage.set=save;await target.s.repository.close();const restarted=new target.s.constructor(target.storage,{indexedDB:target.indexedDB}),recovery=new BackupService(restarted);await recovery.recoverSettings();assert.equal((await restarted.snapshot()).preferences.timeEmphasis,'standard');assert.equal((await restarted.snapshot()).preferences.timeDisplay,'date_and_seconds');assert.equal(await meta(restarted,'backup-recovery-settings'),undefined);await recovery.recoverSettings();assert.equal((await rows(restarted,'records')).length,5);assert.equal(target.requests.length,0);
 });
+
+ test('restore accepts reading-only controls and preserves valid historical fields while rejecting malformed values',async()=>{
+ const f=await completeFixture(),backup=new BackupService(f.s),reading={id:'organizer-controls',readingSort:'desc',inputReadingSort:'asc',libraryView:'ai'},legacy={...reading,dailyRequests:7,batchMode:'compact',aiOnboardingSeen:true};
+ const state=controls=>({items:[{type:'item',section:'organizationState',value:{id:'organizer-controls',data:controls}}]});
+ await backup.validateReferences(state(reading));await backup.validateReferences(state(legacy));
+ for(const changes of [{dailyRequests:0},{dailyRequests:201},{dailyRequests:'20'},{dailyRequests:null},{batchMode:'infinite'},{batchMode:null},{aiOnboardingSeen:1},{aiOnboardingSeen:null},{readingSort:'random'},{readingSort:null},{inputReadingSort:'random'},{inputReadingSort:null},{libraryView:'grid'},{libraryView:null}])await assert.rejects(backup.validateReferences(state({...legacy,...changes})),{code:'BACKUP_INVALID'});
+ await f.s.repository.transaction(true,t=>t.put('meta',legacy));const items=await exported(backup),target=await completeFixture({texts:[]}),restore=new BackupService(target.s),stage=await prepared(restore,items);
+ await restore.restore({sessionId:stage.sessionId,confirmation:stage.preview.integrity});
+ assert.deepEqual(await meta(target.s,'organizer-controls'),legacy);assert.deepEqual(await target.s.organizerControls(),{readingSort:'desc',inputReadingSort:'asc',libraryView:'ai'});assert.equal(target.requests.length,0);
+ });

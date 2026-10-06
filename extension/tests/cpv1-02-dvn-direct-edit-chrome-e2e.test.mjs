@@ -85,7 +85,7 @@ for(const variant of ['source','release']){
     const geometry=await p.evaluate(()=>({rail:document.querySelector('.sidebar').getBoundingClientRect().width,nav:document.querySelector('#archive-reader-navigator-slot').getBoundingClientRect().width,display:getComputedStyle(document.querySelector('#document-panel')).display,rootSlot:document.querySelectorAll('#archive-root-navigator-slot > #archive-navigator').length,readerSlot:document.querySelectorAll('#archive-reader-navigator-slot > #archive-navigator').length,navigators:document.querySelectorAll('#archive-navigator').length}));
     assert.equal(geometry.rootSlot,0);assert.equal(geometry.readerSlot,1,'one contextual navigator in its explicit Reader slot');assert.equal(geometry.navigators,1,'responsive search/back slots never duplicate the navigator');
     // D6.2 RESPONSIVE defines the whole navigation column, including its border.
-    if(width>=1024){assert.equal(Math.round(geometry.rail),width>=1280?184:160);assert.equal(Math.round(geometry.nav),width>=1440?312:width>=1280?280:240);assert.equal(geometry.display,'block');}
+    if(width>=1024){assert.equal(Math.round(geometry.rail),width>=1280?184:160);assert.equal(Math.round(geometry.nav),width>=1440?272:width>=1280?280:240);assert.equal(geometry.display,'block');}
     else if(width>=768){assert.equal(Math.round(geometry.rail),64);assert.equal(geometry.display,'block');}
     await eventually(()=>p.locator('.reader-selection').isVisible(),'native selection exposes its adjacent toolbar');
     const toolbar=await p.locator('.reader-selection').boundingBox();

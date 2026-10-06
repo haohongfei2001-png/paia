@@ -203,3 +203,32 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader 
 @media(pointer:coarse){
  body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#primary-nav button,.sidebar-bottom>[data-view="settings"],#archive-reader-back-slot #back){min-height:44px}
 }
+
+/* Owner-approved Archive root: the same narrow tree, an unselected reading column. */
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-reader-navigator-slot{position:fixed;inset:0 auto 0 var(--rail-width);display:flex;flex-direction:column;width:var(--nav-width);height:100dvh;padding:24px 0 0;background:var(--bg);border-right:1px solid var(--line);z-index:40}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator{position:relative;inset:auto;width:100%;min-height:0;flex:1 1 auto;padding:0 16px 24px;overflow:auto;overscroll-behavior:contain}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #collection-panel{margin:0 0 0 var(--nav-width);padding:32px var(--archive-gutter);max-width:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-main{max-width:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-header{display:block;flex:none;margin:0;padding:0 20px 16px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-heading{margin-bottom:16px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-heading h1{font:600 16px/24px var(--font)}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-header-actions{width:100%;max-width:100%;gap:4px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-header-actions #scope-search-host{flex:1;min-width:0}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-tools{flex:none;margin:0 20px 12px;font-size:12px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root :is(#empty-list,#empty-sync){display:none}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator .archive-navigator-group{border:0}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator .archive-navigator-group-toggle{min-height:44px;padding:10px 8px;gap:12px;font:400 13px/24px var(--font);border-radius:6px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator .archive-navigator-group-icon{margin-top:4px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator .archive-navigator-windows{padding:0 0 12px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator .archive-navigator-window{min-height:44px;padding:10px 12px;margin:0 0 7px;border-radius:6px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator .archive-navigator-window-title{font-size:13px;line-height:21px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator .archive-navigator-status{position:static;width:auto;height:auto;clip:auto;clip-path:none;white-space:normal}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #workspace-error{margin-left:var(--nav-width)}
+@media(min-width:1440px){body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-surface{--nav-width:272px}}
+@media(min-width:768px) and (max-width:1023px){body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root{--nav-width:240px}}
+@media(max-width:767px){
+ body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-reader-navigator-slot{position:static;inset:auto;width:100%;height:auto;min-height:calc(100dvh - 58px);padding-top:24px;border:0}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator{padding-inline:20px;max-width:none}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #collection-panel{margin:0;padding:0 20px 24px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #workspace-error{margin-left:0}
+}

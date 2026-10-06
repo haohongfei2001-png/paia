@@ -103,10 +103,13 @@ test('D2 fresh root excerpt response contains no source canary after real admitt
 test('D2 actual root invalidation clears visible and cached cues and rejects a held production collection result',async()=>{
  let finish;const collection=new ContinuousCollection({scope:'root',query:'',load:()=>new Promise(resolve=>{finish=resolve;})});
  const pending=collection.loadNext(),nodes=[{textContent:'SYNTHETIC_ROOT_STALE_CANARY'},{textContent:'old attribution'}],saved={collection:{items:[{rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}]}};
- const workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{homePositions:new Map([['home',saved]]),homeCollection:collection,homePage:{page:{items:[{rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}]}},homeDesiredCount:40,thoughtRootVisible:()=>true,captureHomeAnchor:()=>({id:'topic',top:140})});
- const prior=globalThis.document;globalThis.document={getElementById:id=>{assert.equal(id,'thought-list');return {children:[],querySelectorAll:()=>nodes};}};
+ const sentinel={},unplaced={hidden:true,children:[{textContent:'SYNTHETIC_UNPLACED_STALE_CANARY'}],replaceChildren(...children){this.children=children;}};
+ const elements={'thought-list':{children:[],querySelectorAll:()=>nodes},'library-unplaced-list':unplaced,'unplaced-continuous-sentinel':sentinel};
+ const workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{homePositions:new Map([['home',saved]]),homeCollection:collection,homePage:{page:{items:[{rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}]}},unplacedCollection:{items:[{body:'SYNTHETIC_UNPLACED_STALE_CANARY'}]},homeDesiredCount:40,thoughtRootVisible:()=>true,captureHomeAnchor:()=>({id:'topic',top:140})});
+ const prior=globalThis.document;globalThis.document={getElementById:id=>{assert.ok(Object.hasOwn(elements,id),'expected root invalidation element '+id);return elements[id];}};
  try{
   workspace.invalidateHomeSnapshot();assert.equal(workspace.homeCollection,null);assert.equal(workspace.homePage,null);assert.equal(saved.collection,undefined);assert.equal(workspace.rootCueEpoch,1);assert.ok(nodes.every(node=>node.textContent===''));
+  assert.equal(workspace.unplacedCollection,null);assert.deepEqual(unplaced.children,[sentinel],'hidden unplaced excerpts clear along with the visible root');
   finish({items:[{id:'old',rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}],complete:true});assert.equal((await pending).stale,true);assert.deepEqual(collection.items,[]);
  }finally{globalThis.document=prior;}
 });

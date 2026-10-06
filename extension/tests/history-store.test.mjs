@@ -57,12 +57,12 @@ test('time storage: source fields cannot be edited; recycle/restore preserve tim
  await f.store.trash(record.id);await f.store.restore(record.id);assert.equal((await f.store.snapshot()).records[0].sourceSentAt,record.sourceSentAt);
  await f.store.trash(record.id);await f.store.purge(record.id);assert.deepEqual(f.disk()[STORAGE_KEY].sourceTimes,{});await f.store.capture(batch(f.epoch,evidence()));assert.equal((await f.store.snapshot()).records.length,0);
 });
-test('time storage: old schema migrates unknown without changing capturedAt, text or notes and export distinguishes dates',async()=>{
+test('time storage: old schema migrates unknown without changing capturedAt, text or notes and retired export cannot read dates',async()=>{
  const f=await setup();await f.store.capture(batch(f.epoch));const saved=f.disk();saved[STORAGE_KEY].schemaVersion=1;delete saved[STORAGE_KEY].sourceTimes;
  const old=saved[STORAGE_KEY].records[0];for(const key of ['sourceSentAt','timeSource','timeConfidence','conversationOrder'])delete old[key];old.note='虚构旧备注';
  const migrated=fixture(saved);const r=(await migrated.store.snapshot()).records[0];assert.equal(r.sourceSentAt,null);assert.equal(r.capturedAt,captured);assert.equal(r.note,old.note);assert.equal(migrated.writes(),1);
- assert.equal(JSON.parse(exportJSON([r])).schemaVersion,2);assert.match(exportMarkdown([r]),/发送时间未知/);
- await migrated.store.capture(batch(f.epoch,evidence()));assert.match(exportMarkdown((await migrated.store.snapshot()).records),/chatgpt_response_create_time/);
+ assert.throws(()=>exportJSON([r]),{code:'FEATURE_UNAVAILABLE'});assert.throws(()=>exportMarkdown([r]),{code:'FEATURE_UNAVAILABLE'});
+ await migrated.store.capture(batch(f.epoch,evidence()));assert.equal((await migrated.store.snapshot()).records[0].timeSource,'chatgpt_response_create_time');
 });
 test('time storage: backend independently rejects reversed time evidence within a canonical batch',async()=>{
  const f=await setup();const request=batch(f.epoch,evidence(stamp+10,stamp+11));

@@ -1,4 +1,5 @@
 const CURRENT_BROWSER=new Set([
+ 'consumer-cleanup-chrome-e2e.test.mjs',
  'desktop-vnext-context-chrome-e2e.test.mjs',
  'capture-foundation-chrome-e2e.test.mjs',
  'release-certification-round48-chrome-e2e.test.mjs',
@@ -69,6 +70,10 @@ export function testShard(file, position, total, category) {
  // Put the complete six Source/release purge journeys on2; retain all cases
  // and the unchanged18-minute budget, without shifting every later file.
  if(category==='browser E2E'&&total===4){
+  // Consumer cleanup adds one complete source/release journey to shard1.
+  // Subtract only its insertion so every preceding 71-file route is retained.
+  if(name==='consumer-cleanup-chrome-e2e.test.mjs')return 1;
+  if(name>'consumer-cleanup-chrome-e2e.test.mjs')position--;
   if(name==='cpv1-09-prompt-surface-chrome-e2e.test.mjs')return 3;
   if(name>'cpv1-09-prompt-surface-chrome-e2e.test.mjs')position--;
   // Keep all existing placements stable when adding the complete VS09 owner.

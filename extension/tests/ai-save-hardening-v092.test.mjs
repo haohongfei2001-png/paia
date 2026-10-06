@@ -1,3 +1,4 @@
+import {safeErrorCode} from '../core/constants.js';
 import {reviewAndAdoptFirstAI} from './harness/ai-reviewed.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {completeFixture,response,rows} from './harness/original-complete.mjs';import {productReply} from './fixtures/product-history-v080.mjs';
@@ -46,3 +47,16 @@ test('every grounded AI list field saves authored multiline text once, preserves
  assert.deepEqual((await reopened.aiPresentationStatus()).topics.find(t=>t.topicId===original.topicId).presentation,current);
  assert.doesNotMatch(JSON.stringify(await rows(reopened,'operationReceipts')),/第二行条件仍保留|ignoredProviderMetadata/);
 });
+
+ test('saved AI stale revision is a public CAS conflict and changes no protected work or journal',async()=>{
+ const f=await completeFixture({fetchImpl:async(_u,init)=>response(productReply(JSON.parse(init.body)))});
+ await f.runner.wake({userActionId:op()});const ai=new AIPresentationRunner(f.s,{provider:f.provider,credentials:f.credentials});await reviewAndAdoptFirstAI(ai,{userActionId:op()});
+ const presentation=(await f.s.aiPresentationStatus()).topics.find(t=>t.presentation).presentation;
+ await f.s.editAIPresentation({topicId:presentation.topicId,field:'currentView',value:'SYNTHETIC protected current edit',expectedRevision:presentation.revision,operationId:op()});
+ const before=await Promise.all(['meta','records','thoughts','revisions','operationReceipts'].map(name=>rows(f.s,name))),calls=f.requests.length;
+ await assert.rejects(f.s.editAIPresentation({topicId:presentation.topicId,field:'currentView',value:'SYNTHETIC stale overwrite',expectedRevision:presentation.revision,operationId:op()}),error=>{
+  assert.equal(error.code,'STALE_BASE');assert.equal(safeErrorCode(error),'STALE_BASE');return true;
+ });
+ assert.deepEqual(await Promise.all(['meta','records','thoughts','revisions','operationReceipts'].map(name=>rows(f.s,name))),before);assert.equal(f.requests.length,calls);
+ assert.equal(safeErrorCode({code:'STALE_BASE'}),'STORAGE_FAILED','untrusted objects cannot publish trusted errors');
+ });

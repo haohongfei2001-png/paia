@@ -3,8 +3,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {openArchiveWindow} from './harness/archive-navigator.mjs';
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-async function settled(page,options){for(let i=0;i<1000;i++){const r=await rpc(page,'PAIA_ARCHIVE_NAV_PAGE',{page:options});assert.ok(r.items.length<=40);assert.ok(r.operations.metadataScanned<=100);assert.equal(r.operations.inputBodyReads,0);if(r.coverage.state==='complete')return r;assert.equal(r.coverage.state,'building');assert.deepEqual(r.items,[]);}assert.fail('Navigator did not complete');}
+async function settled(page,options){
+ let last;
+ for(let i=0;i<1000;i++){
+  const r=await rpc(page,'PAIA_ARCHIVE_NAV_PAGE',{page:options});last=r;
+  assert.ok(r.items.length<=40);assert.ok(r.operations.metadataScanned<=100);assert.equal(r.operations.inputBodyReads,0);
+  if(r.coverage.state==='complete')return r;
+  assert.equal(r.coverage.state,'building');assert.deepEqual(r.items,[]);
+ }
+ const state=await page.evaluate(async()=>{
+  const {OrganizerStore}=await import('../core/organizer/store.js'),{NAV_CATALOG,NAV_DIRTY}=await import('../core/read-projection-keys.js');
+  const s=new OrganizerStore(chrome.storage.local);
+  return s.repository.transaction(false,async t=>({catalog:await t.get('meta',NAV_CATALOG),dirty:await t.primaryRangePage('meta',{prefix:NAV_DIRTY,limit:1})}),['meta']);
+ });
+ assert.fail('Navigator did not complete: '+JSON.stringify({last,state}));
+}
 async function all(page,options){let p=await settled(page,options),out=[...p.items];while(p.nextCursor){p=await rpc(page,'PAIA_ARCHIVE_NAV_PAGE',{page:{...options,cursor:p.nextCursor}});assert.equal(p.cursorInvalid,false);assert.equal(p.coverage.state,'complete');out.push(...p.items);}return out;}
 const worker=h=>h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));
 async function guard(h){await worker(h).evaluate(()=>{globalThis.__ans04GuardEnabled=true;});}
@@ -23,7 +38,10 @@ test('ANS-04 real Chrome: cold bounded navigation, worker restart, lossless Read
   const chatId='ans04-browser-real',chat=await h.open({id:chatId,title:'ANS-04 Reader',base:1609459200,messages:[{id:'ans04-browser-input',text:'ANS04_REAL_INPUT_BODY'}]});
   let doc;
   await eventually(async()=>{const page=await rpc(p,'GET_PAGE',{page:{view:'library'}});doc=page.documents.find(d=>d.sourceConversationId===chatId);return !!doc?.lastSourceSentAt;},'real capture + time enrichment');
-  await p.bringToFront();await eventually(()=>p.locator('.conversation-document').isVisible());await p.locator('.conversation-document').first().click();
+  await p.bringToFront();
+  await eventually(()=>p.locator('#archive-navigator').isVisible(),'blank Archive root keeps the narrow Navigator visible');
+  assert.equal(await p.locator('.library-prose').count(),0,'capture does not implicitly choose a Reader');
+  await openArchiveWindow(p,{text:'ANS-04 Reader',label:'captured conversation is reachable through the Navigator',timeout:14000});
   await eventually(()=>p.locator('#input-time-toggle').isVisible(),'existing Reader opens');
   assert.match(await p.locator('.library-prose').first().textContent(),/ANS04_REAL_INPUT_BODY/);await chat.close();
   const expected=await p.evaluate(async realId=>{
@@ -40,7 +58,22 @@ test('ANS-04 real Chrome: cold bounded navigation, worker restart, lossless Read
    await s.write(t=>t.put('meta',{...sequence,documents:sequence.documents+1001}));
    return keys.sort((a,b)=>a.key[0]-b.key[0]||(a.id<b.id?-1:a.id>b.id?1:0)).map(x=>x.id);
   },doc.id);
-  await guard(h);await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),{NAV_CATALOG}=await import('../core/read-projection-keys.js');const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();await s.repository.transaction(true,t=>t.delete('meta',NAV_CATALOG));});const options={providerKey:'chatgpt',groupKind:'unknown',selectedDocumentId:doc.id};
+  await guard(h);
+  await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js'),{NAV_CATALOG,NAV_DIRTY}=await import('../core/read-projection-keys.js');
+   const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();
+   // This synthetic cold-start fixture discards both parts of the prior derived
+   // build state atomically. The already-visible Navigator observed the 1000
+   // fixture writes; retaining their old dirty queue would add 1000 redundant
+   // reconciliation jobs to the complete fresh scan, depending on UI polling.
+   // Every canonical document remains and is checked losslessly below.
+   await s.repository.transaction(true,async t=>{
+    let batch;
+    do{batch=await t.primaryRangePage('meta',{prefix:NAV_DIRTY,limit:100});for(const row of batch.rows)await t.delete('meta',row.key);}while(batch.next);
+    await t.delete('meta',NAV_CATALOG);
+   },['meta']);
+  });
+  const options={providerKey:'chatgpt',groupKind:'unknown',selectedDocumentId:doc.id};
   const coldStart=performance.now(),cold=await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:options}),coldMs=performance.now()-coldStart;
   assert.equal(cold.coverage.state,'building');assert.deepEqual(cold.items,[]);assert.equal(cold.selectedPath.documentId,doc.id);assert.ok(coldMs<=1500);
   await rpc(p,'PAIA_ARCHIVE_NAV_PAGE',{page:options});

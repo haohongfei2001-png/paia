@@ -11,11 +11,11 @@ async function journey(extensionPath) {
     const page = await h.context.newPage();
     await page.setViewportSize({width:350,height:620});
     await page.goto(`chrome-extension://${h.extensionId}/ui/popup.html`);
-    await page.locator('#update-message').waitFor();
+    await page.locator('#update-version').waitFor();
     const version = await page.evaluate(() => chrome.runtime.getManifest().version);
-    // A visible loading node is not acknowledgement of the asynchronous status read.
-    await eventually(async () => new RegExp(version.replaceAll('.', '\\.')).test(await page.locator('#update-message').textContent()), 'actual current version status is rendered');
-    assert.match(await page.locator('#update-message').textContent(), new RegExp(version.replaceAll('.', '\\.')));
+    // The installed version is shown once; quiet normal status stays hidden.
+    await eventually(async () => new RegExp(version.replaceAll('.', '\\.')).test(await page.locator('#update-version').textContent()), 'actual current version status is rendered');
+    assert.match(await page.locator('#update-version').textContent(), new RegExp(version.replaceAll('.', '\\.')));assert.equal(await page.locator('#update-message').isVisible(),false);
     assert.equal(await page.locator('#check-update').isVisible(),true);
     const originalId = await page.evaluate(() => chrome.runtime.id);
     const retainedKey = 'paia-test-update-preservation:v1';

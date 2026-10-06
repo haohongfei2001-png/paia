@@ -69,8 +69,8 @@ def audit_manifest():
             "Required permissions must remain storage plus reviewed capture recovery scripting")
     require(manifest.get("optional_permissions") == ["nativeMessaging"],
             "nativeMessaging must be the sole reviewed optional permission")
-    require(manifest.get("host_permissions") == ["https://api.deepseek.com/*", "https://chatgpt.com/*"],
-            "Only the exact approved DeepSeek and ChatGPT origins are permitted")
+    require(manifest.get("host_permissions") == ["https://chatgpt.com/*"],
+            "Only the existing ChatGPT capture origin is permitted")
     for key in ("optional_host_permissions", "externally_connectable", "sandbox",
                 "update_url", "devtools_page", "chrome_url_overrides"):
         require(not manifest.get(key), f"Unexpected manifest capability: {key}")
@@ -116,12 +116,12 @@ def audit_manifest():
             "CSP default-src must be self or none")
     for name, expected in {
         "script-src": ["'self'"],
-        "connect-src": ["https://api.deepseek.com"], "object-src": ["'none'"],
+        "connect-src": ["'none'"], "object-src": ["'none'"],
         "base-uri": ["'none'"], "form-action": ["'none'"],
     }.items():
         require(directives.get(name) == expected, f"CSP must declare {name} {' '.join(expected)}")
     for name, values in directives.items():
-        require(all(value in {"'self'", "'none'", "data:", "blob:", "https://api.deepseek.com"} for value in values),
+        require(all(value in {"'self'", "'none'", "data:", "blob:"} for value in values),
                 f"CSP {name}: unsafe or remote source")
 
 
@@ -155,7 +155,7 @@ def audit_js(path, text):
             scanned = scanned.replace("chrome.scripting.executeScript(", "APPROVED_CAPTURE_SCRIPTING(")
         if label == "network API" and path == ROOT / "core/organizer/deepseek.js":
             scanned = scanned.replace("this.fetchImpl(", "APPROVED_DEEPSEEK_FETCH(")
-        if label == "website storage or nonlocal extension storage" and path in {ROOT / "core/organizer/deepseek.js", ROOT / "background/service-worker.js"}:
+        if label == "website storage or nonlocal extension storage" and path in {ROOT / "background/service-worker.js"}:
             scanned = scanned.replace("chrome.storage.session", "APPROVED_SESSION_CREDENTIAL_STORAGE")
         if label == "native messaging" and path == ROOT / "core/macos-native-secure-store.js":
             scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
@@ -221,7 +221,7 @@ def audit_js(path, text):
                 "macOS secure-store adapter must fail closed before optional permission and expose only explicit request")
     for match in re.finditer(r"['\"`](https?://[^'\"`\s]+)", text):
         parsed = urlsplit(match.group(1))
-        require(parsed.scheme == "https" and parsed.netloc in {"chatgpt.com", "api.deepseek.com"} and (parsed.netloc != "api.deepseek.com" or path == ROOT / "core/organizer/deepseek.js"),
+        require(parsed.scheme == "https" and parsed.netloc == "chatgpt.com",
                 f"{path.relative_to(ROOT)}: unexpected remote URL literal")
     for match in re.finditer(r"\b(?:chrome\s*\.\s*)?runtime\s*\.\s*getURL\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
         local_reference(match.group(1), ROOT / "manifest.json",
@@ -247,7 +247,7 @@ class PackageHTML(HTMLParser):
                     f"{self.path.relative_to(ROOT)}: inline event handler {name}")
             require(not (value or "").strip().lower().startswith("javascript:"),
                     f"{self.path.relative_to(ROOT)}: javascript URL")
-        require(not (tag == "input" and ((attrs.get("type", "").lower() == "password" and not (self.path == ROOT / "ui/archive.html" and attrs.get("id") == "deepseek-api-key" and attrs.get("autocomplete") == "off")) or (attrs.get("type", "").lower() == "file" and not (self.path == ROOT / "ui/archive.html" and ((attrs.get("id") == "history-file" and attrs.get("accept") == ".zip,.json,application/zip,application/json") or (attrs.get("id") == "backup-file" and attrs.get("accept") == ".paia-backup,.jsonl,application/x-ndjson")))))),
+        require(not (tag == "input" and (attrs.get("type", "").lower() == "password" or (attrs.get("type", "").lower() == "file" and not (self.path == ROOT / "ui/archive.html" and ((attrs.get("id") == "history-file" and attrs.get("accept") == ".zip,.json,application/zip,application/json") or (attrs.get("id") == "backup-file" and attrs.get("accept") == ".paia-backup,.jsonl,application/x-ndjson")))))),
                 f"{self.path.relative_to(ROOT)}: file/password input forbidden")
         require(tag not in {"iframe", "object", "embed"},
                 f"{self.path.relative_to(ROOT)}: embedded browsing context forbidden")

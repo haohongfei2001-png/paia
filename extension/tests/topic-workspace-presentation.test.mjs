@@ -57,7 +57,7 @@ for(const presentation of [{revision:1},null])test(`D7 actual AI refresh restore
   assert.equal(controls.parentElement,active.actions);assert.equal(toolbar.parentElement,active.actions);assert.equal(history.parentElement,active.options);assert.equal(historyTools.parentElement,menuItems);
   for(const [node,handler]of handlers){assert.equal(node.isConnected,true);assert.equal(node.handlers.get('click'),handler);assert.equal(node.listeners.get('click').size,1);node.click();assert.equal(clicks.get(node),reopen+1);}
   assert.equal(active.line.hidden,false);assert.equal(active.coverage.hidden,true);assert.equal(active.years.hidden,true);assert.equal(active.options.open,true);assert.equal(await owner.readRefresh(),true);assert.equal(owner.desktopPresentation,active,'same-owner refresh reuses one presentation');
-  assert.equal(ai.querySelectorAll('[data-ai-first-generation]').length,row.presentation?0:1);
+  assert.equal(ai.querySelectorAll('[data-ai-first-generation]').length,0,'retired generation launcher never returns');
   await owner.leaveEditors();assert.equal(owner.desktopPresentation,null);assert.equal(root.querySelectorAll('.dvn-topic-action-row').length,0);assert.equal(controls.parentElement,title);
  }
 },{presentation}));

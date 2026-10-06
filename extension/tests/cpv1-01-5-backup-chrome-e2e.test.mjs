@@ -1,3 +1,4 @@
+import {historicalBackupItems} from './harness/historical-backup-browser.mjs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
@@ -16,7 +17,7 @@ async function openBackup(page){
  const select=page.locator('#ux-settings-group-switch');
  if(await select.isVisible())await select.selectOption('data');
  else await page.locator('[data-settings-group="data"]').click();
- await page.locator('#backup-create').waitFor({state:'visible'});
+ await page.locator('#backup-file').waitFor({state:'attached'});assert.equal(await page.locator('#backup-create').count(),0);
 }
 
 async function libraryDigest(harness){
@@ -42,7 +43,7 @@ async function libraryDigest(harness){
  });
 }
 
-test('CPV1-01.5 current Backup is verified, keeps the current library safe, and restores to an isolated empty profile',{timeout:240000},async()=>{
+test('CPV1-01.5 retired export refuses while historical Backup imports protect current work and restore an isolated empty profile',{timeout:240000},async()=>{
  const root=new URL('../',import.meta.url).pathname;
  const dir=await mkdtemp(join(tmpdir(),'paia-cpv1-015-'));
  const output=join(dir,'recovery.paia-backup');
@@ -67,20 +68,9 @@ test('CPV1-01.5 current Backup is verified, keeps the current library safe, and 
   assert.equal(before.counts.records,119);
   assert.equal(before.counts.thoughts,90);
   await openBackup(page);
-  await rpc(page,'SAVE_DEEPSEEK_CREDENTIAL',{config:{apiKey:'synthetic-backup-key-must-not-export'}});
-  let file;
-  try{
-   [file]=await Promise.all([
-    page.waitForEvent('download',{timeout:90000}),
-    page.locator('#backup-create').click(),
-   ]);
-  }catch(error){
-   const status=await page.locator('#backup-status').textContent().catch(()=>'(browser closed)');
-   throw new Error(`Backup did not download; status=${status}; ${error.message}`);
-  }
-  await file.saveAs(output);
-  await eventually(async()=>/已生成.*完整性校验/.test(await page.locator('#backup-status').textContent()));
-  const content=await readFile(output,'utf8');
+  await page.evaluate(()=>chrome.storage.session.set({'deepseek-organizer-session-credential':{apiKey:'synthetic-backup-key-must-not-export'}}));
+  const items=await historicalBackupItems(page),content=items.map(row=>JSON.stringify(row)+'\n').join('');
+  await writeFile(output,content);
   assert.doesNotMatch(content,/synthetic-backup-key-must-not-export|apiKey|recordIndex/);
   await page.locator('#backup-file').setInputFiles(output);
   await eventually(async()=>await page.locator('#backup-preview').isVisible());
@@ -98,7 +88,7 @@ test('CPV1-01.5 current Backup is verified, keeps the current library safe, and 
   await page.locator('#backup-restore').click();
   await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),'atomic recovery',60000);
   assert.deepEqual(await libraryDigest(harness),before);
-  assert.equal((await rpc(page,'GET_DEEPSEEK_STATUS')).hasCredential,false);
+  assert.equal((await page.evaluate(()=>chrome.runtime.sendMessage({type:'GET_DEEPSEEK_STATUS'}))).error,'AI_SERVICE_UNAVAILABLE');assert.deepEqual(await page.evaluate(()=>chrome.storage.session.get('deepseek-organizer-session-credential')),{});
   assert.equal(harness.externalRequests,0);
   assert.deepEqual(harness.errors,[]);
  }finally{await harness?.close();await rm(dir,{recursive:true,force:true});}

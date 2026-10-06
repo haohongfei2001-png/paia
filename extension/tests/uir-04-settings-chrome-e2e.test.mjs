@@ -42,20 +42,21 @@ async function sourceJourney(h){
 
  await eventually(()=>page.locator('#reader-revisit-settings').count().then(n=>n===1),'Reading controller projects Revisit settings');await eventually(()=>page.locator('#thought-reverse-edit').count().then(n=>n===1),'Thought controller projects reverse-edit setting');
  for(const [selector,key] of [
-  ['#enabled-state','content'],['#toggle-capture','content'],['#smart-filter-settings','content'],['#history-settings','content'],
+  ['#enabled-state','content'],['#toggle-capture','content'],['#smart-filter-settings','content'],['#history-settings','data'],
   ['#ux-appearance','reading'],['#ux-language','reading'],['#ux-font-size','reading'],['#ux-reading-width','reading'],['#time-display','reading'],['#time-emphasis','reading'],['#reader-revisit-settings','reading'],
-  ['#deepseek-settings','ai'],['#library-updates','ai'],['#library-updates-drawer','ai'],
+  ['#membership-ai-service','ai'],
   ['#memory-settings','privacy'],['#r6-hide-content-previews','privacy'],
-  ['#backup-settings','data'],['#r6-complete-export','data'],['#manage-excluded','data'],['#legacy-entry','data'],
-  ['#library-management','advanced'],['#product-diagnostics','advanced'],['#diagnostics','advanced'],['#prune-revisions','advanced'],['#thought-reverse-edit','advanced']
+  ['#backup-settings','data'],['#manage-excluded','data'],['#legacy-entry','data'],
+  ['#library-management','data'],['#product-diagnostics','advanced'],['#prune-revisions','advanced'],['#thought-reverse-edit','advanced']
  ])await assertOwner(page,selector,key);
  const sourceButton=page.locator('[data-group="data"] [data-view="archive"]');assert.equal(await sourceButton.count(),1,'scoped Source Records entry belongs to Data & devices');
+ for(const selector of ['#diagnostics','#deepseek-settings','#library-updates','#library-updates-drawer','#backup-create','#r6-complete-export'])assert.equal(await page.locator(selector).count(),0);
  await shot(page,'uir-04-settings-content-1440x900-light');
 
  await chooseGroup(page,'reading');const width=page.locator('#ux-reading-width');assert.equal(await width.inputValue(),'wide');
  await page.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__uir04Send=send;chrome.runtime.sendMessage=async message=>message?.type==='UPDATE_PREFERENCES'&&message?.changes?.readingWidth==='narrow'?{ok:false,error:'STORAGE_FAILED'}:send(message);});
  await width.selectOption('narrow');await eventually(async()=>(await width.inputValue())==='wide','failed preference write rolls the same control back');assert.match(await page.locator('#ux-settings-feedback').textContent(),/恢复原值/);await page.evaluate(()=>{chrome.runtime.sendMessage=globalThis.__uir04Send;delete globalThis.__uir04Send;});
- await page.locator('#ux-language').selectOption('en');await eventually(async()=>await page.evaluate(()=>document.documentElement.lang)==='en');assert.deepEqual(await page.locator('#ux-settings-group-switch option').allTextContents(),['Content & capture','Reading & appearance','AI','Privacy & external use','Data & devices','Advanced']);
+ await page.locator('#ux-language').selectOption('en');await eventually(async()=>await page.evaluate(()=>document.documentElement.lang)==='en');assert.deepEqual(await page.locator('#ux-settings-group-switch option').allTextContents(),['Capture','Reading & appearance','Membership & AI service','Privacy','Data & recovery','Advanced']);
  await page.locator('#ux-language').selectOption('zh-CN');await eventually(async()=>await page.evaluate(()=>document.documentElement.lang)==='zh-CN');
  await rpc(page,'SET_ENABLED',{enabled:false});await page.reload();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true);await openSettings(page);assert.equal((await rpc(page,'GET_STATUS')).enabled,false,'opening Settings never resumes paused capture');assert.match(await page.locator('#enabled-state').textContent(),/暂停/);
 
@@ -67,7 +68,7 @@ async function sourceJourney(h){
 async function releaseJourney(h){
  const page=h.archive;await consentAndRefreshOrder(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await page.setViewportSize({width:1440,height:900});await openSettings(page);
  const geometry=await measureSettingsGeometry(page);assert.ok(Math.abs(geometry.nav-880)<=2&&Math.abs(geometry.body-880)<=2&&Math.abs(geometry.navX-geometry.bodyX)<=2&&Math.abs(geometry.gap-28)<=2,'built release keeps the declared 880px single reading column and 28px vertical group gap');
- await assertOwner(page,'#r6-hide-content-previews','privacy');await assertOwner(page,'#r6-complete-export','data');assert.equal(await page.locator('#filter-advanced').count(),0,'release-only diagnostics pruning still applies');
+ await assertOwner(page,'#r6-hide-content-previews','privacy');assert.equal(await page.locator('#r6-complete-export').count(),0);assert.equal(await page.locator('#filter-advanced').count(),0,'release-only diagnostics pruning still applies');
  await page.setViewportSize({width:390,height:844});const switcher=page.locator('#ux-settings-group-switch');await switcher.selectOption('data');await eventually(()=>page.locator('[data-group="data"]').isVisible());assert.equal(await switcher.isVisible(),true);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-settings-data-390x844-light');await assertNoNetwork(h);
 }
 

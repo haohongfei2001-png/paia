@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateAIPresentation,AI_FIELDS,AI_LIST_FIELDS,aiSynthesisPrompt} from '../core/organizer/ai-contract.js';
+import {validateAIPresentation,AI_FIELDS,AI_LIST_FIELDS} from '../core/organizer/ai-contract.js';
+import * as contract from '../core/organizer/ai-contract.js';
 const request={inputs:[{ref:'entry-1'},{ref:'entry-2'}],context:[],topicCandidates:[{id:'topic-1'}]};
 const base=()=>({topicId:'topic-1',blockSummary:'从记录输入走向思想主题',currentView:'保留证据，再形成判断。',...Object.fromEntries(AI_LIST_FIELDS.map(f=>[f,[]]))});
 test('canonical contract accepts user schema with empty categories and optional summary evidence',()=>{const r=validateAIPresentation(base(),request);assert.deepEqual(r.evidenceEntryIds,['entry-1','entry-2']);assert.deepEqual(Object.keys(r),['topicId',...AI_FIELDS,'evidenceEntryIds','fieldEvidenceEntryIds']);});
@@ -11,4 +12,4 @@ test('D3 explicit foreign or malformed evidence rejects the whole response; dupl
 });
 test('missing categories normalize to empty arrays; oversized text rejects rather than silently losing meaning',()=>{const r=validateAIPresentation({topicId:'topic-1',blockSummary:'文'.repeat(300)},request);assert.equal(r.blockSummary.length,300);assert.ok(AI_LIST_FIELDS.every(f=>r[f].length===0));assert.throws(()=>validateAIPresentation({topicId:'topic-1',blockSummary:'文'.repeat(500)},request),{code:'INVALID_OUTPUT'});});
 test('uninterpretable objects, wrong topic and fabricated top evidence fail closed',()=>{for(const x of [null,[],{}, {topicId:'wrong',currentView:'x'}, {topicId:'topic-1',nonsense:'x'}])assert.throws(()=>validateAIPresentation(x,request));assert.throws(()=>validateAIPresentation({...base(),evidenceEntryIds:['outside']},request),{code:'INVALID_OUTPUT'});});
-test('prompt keys come from canonical contract and declare no psychological inference',()=>{const p=aiSynthesisPrompt();for(const f of AI_FIELDS)assert.ok(p.includes('"'+f+'"'));assert.match(p,/psychological/i);assert.match(p,/\[\]/);});
+test('retired direct AI prompt builders are absent while saved result validation remains',()=>{assert.equal(contract.aiSynthesisPrompt,undefined);assert.equal(contract.aiSynthesisExample,undefined);assert.equal(typeof contract.validateAIPresentation,'function');});
