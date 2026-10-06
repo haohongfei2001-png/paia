@@ -158,7 +158,9 @@ export class TopicController {
  invalidateHomeSnapshot(){
   this.invalidateTimeline?.();this.rootPreSearch=null;
   this.unplacedCollection=null;
-  if(!$('library-unplaced-list').hidden){$('library-unplaced-list').replaceChildren($('unplaced-continuous-sentinel'));void this.unplaced().catch(()=>this.onStatus(tc('内容暂未能读取，请重试。')));}
+  const unplaced=$('library-unplaced-list'),unplacedExpanded=!unplaced.hidden;
+  unplaced.replaceChildren($('unplaced-continuous-sentinel'));
+  if(unplacedExpanded)void this.unplaced().catch(()=>this.onStatus(tc('内容暂未能读取，请重试。')));
   const saved=this.homePositions.get('home');
   if(saved?.collection){this.homeDesiredCount=Math.max(this.homeDesiredCount||40,saved.collection.items?.length||0,40);delete saved.collection;}
   if(this.thoughtRootVisible())this.rootInvalidationAnchor=this.captureHomeAnchor();
