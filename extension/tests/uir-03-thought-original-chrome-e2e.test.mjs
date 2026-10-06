@@ -377,7 +377,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await page.locator('#create-entry').isVisible(),true,'continue-thinking entry remains reachable');
   const topicMenu=page.locator('#topic-menu .library-actions');
   await topicMenu.locator('summary').click();
-  assert.equal(await topicMenu.getByRole('button',{name:'导出主题',exact:true}).isVisible(),true,'Topic-scoped export remains reachable in the Topic ··· menu');
+  assert.equal(await topicMenu.getByRole('button',{name:'导出主题',exact:true}).count(),0,'cancelled Topic export has no menu action');
   assert.equal(await page.getByRole('button',{name:'导出思想库',exact:true}).count(),0,'no whole-Library export scope is invented');
   await page.keyboard.press('Escape');
 
