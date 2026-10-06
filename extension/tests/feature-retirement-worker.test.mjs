@@ -52,6 +52,7 @@ test('actual worker refuses withdrawn commands, preserves capture/edit data and 
   assert.equal((await send({type:'PAIA_BACKUP_BEGIN_EXPORT'})).error,'CONSENT_REQUIRED');
   assert.equal((await send({type:'START_BOUNDED_ORGANIZER'})).error,'CONSENT_REQUIRED');
   await rpc('CONSENT',{accepted:true});
+  for(const type of ['GET_STATE','PAIA_PRODUCT_STATUS','PAIA_PASSPORT_STATUS'])assert.equal((await send({type},{...ui,url:origin+'ui/product-signals.html'})).error,'FORBIDDEN','the removed standalone page no longer has trusted access');
   const url='https://chatgpt.com/c/retirement',content={id,url,frameId:0,tab:{id:9,url,incognito:false}};
   for(const type of [...retired,...ai]) assert.equal((await send({type},content)).error,'FORBIDDEN',type);
   for(const [tab,at]of [[9,0],[10,1],[9,5000],[9,5001]])assert.deepEqual((await send({type:'RESPONSE_POLL',at,session:'synthetic-stale'},{...content,documentId:'document-'+tab,tab:{...content.tab,id:tab}})).data,{arm:false,fingerprintAllowed:false},'no tab or stale heartbeat can re-arm retired diagnostics');

@@ -122,7 +122,7 @@ originalReady.catch(()=>{});
 
 function isExtensionPage(sender) {
   if (sender.id !== chrome.runtime.id) return false;
-  return ['ui/popup.html', 'ui/archive.html', 'ui/product-signals.html'].some(path => sender.url === chrome.runtime.getURL(path));
+  return ['ui/popup.html', 'ui/archive.html'].some(path => sender.url === chrome.runtime.getURL(path));
 }
 
 function isChatGPTContent(sender) {

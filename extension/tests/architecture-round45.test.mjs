@@ -5,7 +5,7 @@ import {assertFeatureAvailable,unavailableFeatureCode} from '../core/feature-ava
 const source=path=>readFile(path,'utf8');
 
 test('retired Product Signals has no collector or product dashboard implementation',async()=>{
- await assert.rejects(access('core/product-signals.js'),{code:'ENOENT'});const legacy=await source('ui/product-signals.js');assert.doesNotMatch(legacy,/PAIA_PRODUCT_SIGNAL|PAIA_CONTEXT_BIND|PAIA_PASSPORT_CREATE|summarizeProductSignals/);
+ for(const path of ['core/product-signals.js','ui/product-signals.js','ui/product-signals.html','ui/product-signals.css'])await assert.rejects(access(path),{code:'ENOENT'});
  const worker=await source('background/service-worker.js');assert.doesNotMatch(worker,/new ProductSignals|import[^\n]*product-signals/);
  assert.throws(()=>assertFeatureAvailable({type:'PAIA_PRODUCT_SIGNAL'}),{code:'FEATURE_UNAVAILABLE'});
 });
