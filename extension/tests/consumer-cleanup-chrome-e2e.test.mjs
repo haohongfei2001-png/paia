@@ -3,10 +3,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 const windowButton=p=>p.locator('.archive-navigator-window').filter({hasText:'SYNTHETIC consumer archive'}).first();
 for(const variant of ['source','release'])test('consumer retirement: blank Archive, saved edits/history, local search, privacy and responsive '+variant,{timeout:180000},async t=>{
+ if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath:resolve(variant==='source'?'.':'work/current-release'),headless:true}),p=h.archive;t.after(()=>h.close());
  await p.setViewportSize({width:1440,height:900});await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented,'consent');if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
  assert.equal(await p.locator('#document-title').textContent(),'');assert.equal(await p.locator('#document-body').textContent(),'');assert.equal(await p.locator('.archive-navigator-window[aria-current]').count(),0);
