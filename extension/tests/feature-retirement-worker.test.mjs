@@ -54,7 +54,7 @@ test('actual worker refuses withdrawn commands, preserves capture/edit data and 
   await rpc('CONSENT',{accepted:true});
   const url='https://chatgpt.com/c/retirement',content={id,url,frameId:0,tab:{id:9,url,incognito:false}};
   for(const type of [...retired,...ai]) assert.equal((await send({type},content)).error,'FORBIDDEN',type);
-  assert.deepEqual((await send({type:'RESPONSE_POLL'},content)).data,{arm:false,fingerprintAllowed:false});
+  for(const [tab,at]of [[9,0],[10,1],[9,5000],[9,5001]])assert.deepEqual((await send({type:'RESPONSE_POLL',at,session:'synthetic-stale'},{...content,documentId:'document-'+tab,tab:{...content.tab,id:tab}})).data,{arm:false,fingerprintAllowed:false},'no tab or stale heartbeat can re-arm retired diagnostics');
   const epoch=(await rpc('GET_STATUS')).epoch;
   assert.equal((await send({type:'CAPTURE',epoch,adapterVersion:'0.3.0',contentVersion:'0.12.0',chat:{id:'retirement',url,title:'SYNTHETIC retained archive'},messages:[{sourceMessageId:'retained-message',pageOrder:1,originalText:'SYNTHETIC immutable input'}]},content)).ok,true);
   const before=await rpc('GET_STATE'),block=before.library.blocks[0];
