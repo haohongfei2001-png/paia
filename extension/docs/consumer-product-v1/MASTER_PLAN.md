@@ -4,6 +4,25 @@ This is the detailed construction sequence for PAIA Consumer Product v1.
 
 The execution unit is a complete vertical slice. Each round below is a bounded construction/verification stage inside that slice. The manager may adjust file-level implementation details, but it may not skip round outcomes or silently change product intent.
 
+## Current scope corrections
+
+The [current consumer scope](../../PRODUCT.md#current-consumer-scope) supersedes conflicting work below. Dedicated Profile management, Thought response relations, Material Tray, Candidate approval management, activity-retention settings, Product Signals collection/dashboard and ordinary diagnostic/maintenance pages are retired. Preserve old data, saved candidates, version protection, revocation and recovery for actual faults. User API configuration and direct AI transport are removed without reading or clearing old credentials.
+
+All content/statistics/Context exports, backup generation and dedicated sharing are **cancelled**, including their subsequent development tasks. CPV1-03.3 and CPV1-06.5 are cancelled; CPV1-05.3 excludes response relations and CPV1-06.3 excludes Profile management. Existing-file restore, integrity, deletion protection and history import remain. Retired positive-path tests become refusal/no-side-effect/data-preservation tests; historical fixtures do not enter the runtime package.
+
+AI Context execution remains **disabled**. VS-06's remaining material/permission constraints preserve future direction, not permission to resume its old runtime. New AI generation is unavailable until the real service below exists; saved results remain readable/editable. This scope correction does not start semantic retrieval, sync, mobile or connector work, or change recorded historical verification results.
+
+### Paid AI service — not implemented
+
+The client has only Topic AI Organize and Settings Membership / AI service as ordinary AI entries and displays that the service has not launched. The minimum future integration needs:
+
+- real payment checkout plus authenticated, idempotent payment notifications;
+- server-side identity and membership verification; client state cannot grant entitlement;
+- one authenticated AI gateway with bounded scope, quotas and request idempotency;
+- candidate staging and revision checks so generated results cannot overwrite human edits.
+
+Before paid activation, the owner must decide price/quotas, payment channel and regions, and the AI provider/service-cost budget. No credentials, purchases, billing activation or fake membership/purchase success are authorized by this plan. This independent unfinished task does not block the consumer interface and legacy-transport retirement.
+
 ## 0. Global sequencing rules
 
 ### 0.1 Activation
@@ -183,14 +202,14 @@ Exit:
 - unaffected local archive remains usable;
 - no internal runtime jargon in default UI.
 
-## CPV1-01.5 — Backup protection for update/migration
+## CPV1-01.5 — Recovery protection for update/migration
 
 Goal:
 - establish a truthful pre-change protection path for current supported real libraries.
 
 Work:
-- identify what current Backup can actually recover;
-- create/validate a current-version recovery point or local protected snapshot for the tested support range;
+- identify what supported existing Backup files can actually recover;
+- validate a local protected migration snapshot/recovery point for the tested support range; do not add backup-file generation;
 - do not claim the old 64 MiB/100k-entity limits cover a larger archive.
 
 Exit:
@@ -259,7 +278,7 @@ Implement:
 - collapsed Projects;
 - unassigned versus unknown;
 - compact Conversation rows with title/cue/time;
-- overflow import/export;
+- overflow history import and version history; no export;
 - no default material tray/dashboard.
 
 Use realistic long/dense synthetic library.
@@ -345,11 +364,11 @@ Exit:
 
 ---
 
-# VS-03 — History import, export and recoverable large library
+# VS-03 — History import and recoverable large library
 
 ## Outcome
 
-A real official history export can be imported, de-duplicated, read with honest time/role semantics, exported openly, and restored within the product's declared supported scale.
+A real official history export can be imported, de-duplicated and read with honest time/role semantics. Existing backup files can be restored within the declared supported scale. PAIA does not generate exports or new backup files.
 
 ## CPV1-03.0 — Support-scale contract
 
@@ -396,17 +415,9 @@ Add:
 - protected-edit/tombstone respect;
 - storage preflight.
 
-## CPV1-03.3 — Streaming/segmented Backup export
+## CPV1-03.3 — Backup export — cancelled
 
-Replace current whole-library execution bottlenecks as needed.
-
-Requirements:
-- consistent snapshot;
-- incremental output;
-- full domain coverage;
-- integrity;
-- privacy explanation;
-- no claim of encryption unless true.
+Do not implement or resume backup generation, including streaming/segmented output. Remove dedicated generators and reject old requests without side effects. Preserve existing-file decoders, integrity validation and restore compatibility.
 
 ## CPV1-03.4 — Staged restore and non-empty policy
 
@@ -422,7 +433,7 @@ Implement:
 
 Inject:
 - interrupted import;
-- interrupted export;
+- retired export/generation requests rejected without reading content or mutating data;
 - interrupted restore;
 - space exhaustion;
 - corrupted file;
@@ -438,9 +449,9 @@ Exit:
 Measure supported ranges and restore them end-to-end.
 
 Exit:
-- current-version Backup actually restores the declared supported library;
+- supported existing Backup files restore the declared supported library;
 - repeated import produces zero logical duplicates;
-- open export is understandable and complete for declared scope.
+- retired output requests preserve existing data and files.
 
 ---
 
@@ -550,7 +561,7 @@ If B-01 is already decided, record and use it.
 
 If B-01 is still unresolved, register/retain DFG-CPV1-002 and continue every VS-05 capability that does not require choosing direct mutation semantics for existing/old Thought. Do not invent that meaning merely to keep moving.
 
-The blocked old-Thought mutation path remains disabled/fail-closed until B-01 is resolved. Independent new Thought creation, Reader, relations that do not assume direct old-Thought mutation, AI Organize, fidelity and UX work continue.
+The blocked old-Thought mutation path remains disabled/fail-closed until B-01 is resolved. Independent new Thought creation, existing safe editing/history and Reader work continue. Explicit response relations are cancelled; new AI execution waits for the real paid service.
 
 Do not ask owner for layout, component or algorithm choices.
 
@@ -575,28 +586,28 @@ Implement UX T2/T5:
 - Add Thought;
 - AI Organize switch.
 
-## CPV1-05.3 — Independent Thought and relation UX
+## CPV1-05.3 — Independent Thought UX
 
 Implement:
 - new Thought;
 - optional Topic;
-- optional relation;
 - real creation time;
-- user-language relation inspector;
 - B-01 semantics.
 
-No internal Placement/Binding vocabulary in normal UI.
+Thought response creation, relation inspection and their dedicated implementation are cancelled. Preserve old relation data, body editing and history. No internal Placement/Binding vocabulary in normal UI.
 
 ## CPV1-05.4 — AI Organize candidate pipeline
 
-Refine:
+Current scope: preserve readable saved results/candidates, editing and the safeguards below. Candidate approval management is hidden; no automatic adoption replaces it. New generation waits for the real paid service, with only the two ordinary entry points described above.
+
+Retain:
 - current Topic scope;
 - incremental delta;
 - affected-old-relation checks;
 - candidate version;
 - invalid/stale result rejection;
 - protected edited output;
-- compare/adopt/keep.
+- no automatic replacement of human edits.
 
 ## CPV1-05.5 — Semantic fidelity evaluation
 
@@ -637,7 +648,7 @@ Exit:
 
 ## Outcome
 
-The user can take explicit Inputs/Conversations/whole Topics/multiple Topics, supplement with retrieval, review exactly what will leave PAIA, and copy/export/provide it under clear authorization.
+**Disabled; future constraints only.** Do not resume the old Context runtime or treat the implementation lists below as executable work. Preserve the design direction and privacy constraints for a separately approved future connection. Dedicated Profile management, Material Tray and all Context release/export/sharing paths are cancelled.
 
 ## CPV1-06.0 — Context manifest/completeness contract
 
@@ -662,7 +673,7 @@ Implement C1:
 - prepare Context;
 - connections/permissions.
 
-No requirement to create Profile first.
+Dedicated Profile creation is cancelled.
 
 ## CPV1-06.2 — Material selection
 
@@ -673,14 +684,9 @@ Implement C2:
 - upstream-change indicator;
 - no permanent material tray on ordinary Archive.
 
-## CPV1-06.3 — Authorized task retrieval/Profile
+## CPV1-06.3 — Profile management — cancelled
 
-Implement C3/C4:
-- retrieval within scope;
-- Profile as reusable eligibility;
-- explicit exclusions/never;
-- Profile changes do not send data;
-- lexical first; semantic only if VS-07 capability exists.
+Remove dedicated Profile creation/editing and retain only necessary legacy data compatibility. Scope, exclusions and never-use restrictions remain protective constraints for any separately approved future retrieval; they do not reopen Context execution.
 
 ## CPV1-06.4 — Build/budget completeness
 
@@ -691,15 +697,9 @@ Implement C5:
 - split packages;
 - no silent whole-Topic truncation.
 
-## CPV1-06.5 — Review/edit/release
+## CPV1-06.5 — Dedicated Context release — cancelled
 
-Implement C6/C7:
-- readable exact preview;
-- current-output edits/redactions;
-- copy/export;
-- connected AI only if a real connector exists;
-- success based on actual action;
-- uncertain acknowledgement handling.
+Remove copy/export and dedicated sharing implementations; old requests refuse without side effects. Do not restore these outputs as part of future connector work. Existing content, edits and privacy restrictions remain.
 
 ## CPV1-06.6 — Passport UX and gate hardening
 
@@ -712,19 +712,15 @@ Implement C8:
 ## CPV1-06.7 — Context security/reliability acceptance
 
 Test:
-- stale preview;
-- deleted material;
-- revoked/expired grant;
-- explicit material larger than budget;
-- unauthorized retrieval;
-- historical prompt injection;
-- edited output;
-- copy/export exactness.
+- retired Context generation/release requests refused without side effects;
+- legacy data, edits and existing credentials preserved;
+- revoked/expired access stays unavailable;
+- restore does not reactivate grants;
+- normal temporary selections/reference validation remain safe.
 
 Exit:
-- visible preview equals released body;
-- no unauthorized material;
-- explicit selection preserved.
+- no unauthorized content reads, provider calls or released output;
+- privacy and deletion protections remain enforced.
 
 ---
 
