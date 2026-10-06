@@ -1,111 +1,88 @@
 # Authority and Source Policy
 
-## AI Context Cards v2 — scoped owner decision, 2026-10-07
+## Personal Topic Architecture — scoped owner decision, 2026-10-07
 
-The owner explicitly approved the four-card design and requested its conversion into a development plan in GitHub. [The adoption](AI_CONTEXT_CARDS_V2_ADOPTION.md), [canonical plan](AI_CONTEXT_CARDS_V2_PLAN.md) and [visual references](AI_CONTEXT_CARDS_V2_REFERENCES.md) are the current AI Context product/design authority. Original design review-pending labels are historical; no production capability or production visual acceptance is implied.
+The owner explicitly directed adoption of the settled Personal Topic Architecture. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) is the single normative Topic contract; [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) contains implementation gaps, dependent slices and acceptance. [TOPIC_ARCHITECTURE_ADOPTION.md](TOPIC_ARCHITECTURE_ADOPTION.md) is the exact supersession/source audit, not a second product design. STATUS.md remains the sole execution queue and next-task authority.
 
-This latest explicit decision supersedes only conflicting AI Context requirements in PRODUCT_INTENT_CONTRACT.md §10, UX_CONTRACT.md's Context flow, TECHNICAL_PLAN.md and ARCHITECTURE.md's compiler-only/body-store limitation, the retained former VS-06/CPV1-06 plan, desktop-vnext/FROZEN_CONTRACT.md F-07, and D6/D7 Context journey/state/acceptance mappings. The old standalone Context design is not an alternative. Info/Rules/Now now own independent Items; Inputs remains a Topic-access reference. This is not permission to copy the full Archive/Thought corpus or alter their truth ownership.
+This later decision controls Personal Topic definition, identity-first formation, fixed Topic -> Section -> Entry depth, one Library, hidden candidate lifecycle, human field/edge authority, multi-placement, confirmed promotion and taxonomy independence. It supersedes conflicting older long-term-only definitions, optional recursive hierarchy, blanket organization freezes, ordinary catch-all Topic creation, candidate approval, or separate human/AI organization interpretations. Source-specific clauses and retained historical documents are enumerated in the adoption record, including PRODUCT/ARCHITECTURE/ROADMAP, UX, foundation, Organizer, AI Experience, Context/retrieval and Lab assumptions. Do not revive them by treating an old heading, PASS or implementation as current authority.
 
-The replacement visual-state mapping is AI_CONTEXT_CARDS_V2_REFERENCES.md; the replacement verification and dependent-gate requirements are plan §§7–8, applied through existing VERIFICATION.md and DEFERRED_FINAL_GATES.md rather than a parallel process. The unchanged text of the lower-order documents remains history/compatibility where it conflicts. This explicit supersession is effective without treating its historical PASS as a new PASS. Future edits should label affected paragraphs rather than resume them.
+The 2026-10-02 no-AI-write-back rule remains: Source, Working Input and human Thought bodies/organization facts are not writable by AI. The new decision permits scoped automatic Personal identity/organization projections under persistent human constraints, within the same Library and stable IDs. It does not create another body store, unlock human fields or enable a provider. New hidden Topic candidates are not old saved AI-presentation candidates and never appear as an approval inbox.
 
-The approved shell, brand and non-Context visuals remain. Thought Library is a separate design task. Current consumer-cleanup cancellations, including exports, backup generation and BYO/direct provider transport, remain in force. The design does not authorize new payment, recurring costs, external account connections, cloud uploads, destructive migrations, public release or runtime implementation in this documentation task. Source eligibility, human work, revocation, read/write separation and unresolved affected gates remain protected.
+PAIA production does not depend on the 18/144 taxonomy. System and Personal Topic identities are independent. Lab keeps its isolated research label universe, budgets, status and historical evidence; any future optional integration needs comparable no-taxonomy/18/144 downstream evaluation and separate authorization, not just classifier accuracy.
+
+This change documents direction and plans only. No code, schema migration execution, model call, live service, paid processing, real archive access, UI redesign, deployment or release is authorized in this task. Necessary implementation/schema choices must satisfy existing preservation gates. The new plan's first identity/intent slice replaces older next-task pointers only as current sequencing; approved CTX4 and unrelated directions are not cancelled.
+
+## AI Context Cards v2 — retained scoped owner decision, 2026-10-07
+
+The owner explicitly approved the four-card design and requested its conversion into a development plan in GitHub. [The adoption](AI_CONTEXT_CARDS_V2_ADOPTION.md), [canonical plan](AI_CONTEXT_CARDS_V2_PLAN.md) and [visual references](AI_CONTEXT_CARDS_V2_REFERENCES.md) remain the current AI Context product/design authority. Original design review-pending labels are historical; no production capability or production visual acceptance is implied.
+
+The Context decision supersedes conflicting AI Context requirements in PRODUCT_INTENT_CONTRACT.md section 10, UX_CONTRACT.md's Context flow, TECHNICAL_PLAN.md and ARCHITECTURE.md's compiler-only/body-store limitation, the retained former VS-06/CPV1-06 plan, desktop-vnext/FROZEN_CONTRACT.md F-07, and D6/D7 Context journey/state/acceptance mappings. The old standalone Context design is not an alternative. Info/Rules/Now own independent Items; Inputs remains a Topic-access reference. This is not permission to copy the full Archive/Thought corpus or alter their truth ownership.
+
+PT-1.0 supplies the meaning and stable identity of those Topics. Context list-size examples including 144 are capacity scenarios, not a System Catalog requirement. Context access cannot be expanded by formation, aliasing, promotion, merge, relation or additional Placement. New Topic identities stay off. Topic-dependent Context work uses the new identity/authority contract; its phase order is not a competing next-task pointer.
+
+The replacement visual-state mapping remains AI_CONTEXT_CARDS_V2_REFERENCES.md; verification and dependent gates remain plan sections 7-8 applied through existing VERIFICATION.md and DEFERRED_FINAL_GATES.md rather than a parallel process. Lower-order conflicting text is history/compatibility, not a competing instruction. Its historical PASS is not a new PASS.
+
+The approved shell, brand and Context visuals remain; this Topic task does not design a new Thought UI. Current consumer-cleanup cancellations, including exports, backup generation and BYO/direct provider transport, remain in force. Neither decision authorizes payment, recurring costs, external connections, cloud uploads, destructive migration or public release. Source eligibility, human work, revocation, read/write separation and unresolved affected gates remain protected.
 
 ## 1. Product authority
 
 The authority order for PAIA Consumer Product v1 is:
 
-1. Explicit latest product-owner decisions for their stated scope, including the AI Context decision above.
+1. Explicit latest product-owner decisions for their stated scope, including Personal Topic Architecture and AI Context Cards v2 above.
 2. Google Drive: PAIA设计想法.docx, where not superseded by a later explicit owner decision.
-3. PRODUCT_INTENT_CONTRACT.md and explicitly adopted scoped contracts — public executable derivations; AI Context uses AI_CONTEXT_CARDS_V2_PLAN.md where specified above.
-4. UX_CONTRACT.md and the current explicitly approved visual/interaction references.
-5. TECHNICAL_PLAN.md and MASTER_PLAN.md — implementation strategy and sequencing.
-6. Existing PRODUCT.md / ARCHITECTURE.md / ROADMAP.md and active historical package contracts, only where they do not contradict higher product intent.
-7. Current implementation — evidence of what exists, never proof of what the product should be.
+3. PRODUCT_INTENT_CONTRACT.md and explicitly adopted scoped contracts: Topic semantics use TOPIC_ARCHITECTURE.md; Context uses AI_CONTEXT_CARDS_V2_PLAN.md with the Topic identity clarification above.
+4. UX_CONTRACT.md and current explicitly approved visual/interaction references, subject to scoped product semantics.
+5. TECHNICAL_PLAN.md, MASTER_PLAN.md and scoped development plans for implementation strategy/dependencies; STATUS.md alone selects execution.
+6. Existing PRODUCT.md / ARCHITECTURE.md / ROADMAP.md and historical package contracts only where they do not contradict higher product intent.
+7. Current implementation: evidence of what exists, never proof of what the product should be.
 
-The current codebase must not redefine the product merely because a capability is difficult to implement or was previously frozen for validation. Newer explicit owner choices control conflicts; do not invoke an older Drive paragraph to undo the approved four-card model.
+Do not let current code, old Drive text, a classification metric or an engineering freeze reverse a later scoped owner decision. Ordinary technical parameters may evolve within the adopted contract; settled product direction is not reopened by an implementation inconvenience.
 
 ## 2. Private-source rule
 
 The repository is public.
 
-Do not copy the full Drive design document, the full Pro audit artifact, private archive content, private screenshots, personal examples, or source paragraph dumps into this repository.
+Do not copy the full Drive design document, full Pro audit, private archive content, private screenshots, personal examples or source paragraph dumps into this repository. Public contracts contain only necessary executable product decisions. Ambiguous future work must read its authorized source directly rather than mirror the private source text. Synthetic structural examples are not real archive records.
 
-The executable public contract should contain only the minimum product decisions required to build PAIA. If a future executor needs to resolve ambiguity, it must read the authorized Drive source directly and record only the resulting decision, not mirror the private source text.
-
-Planning source checkpoints:
+Retained planning checkpoints:
 
 - Design-intent source referenced by the 2026-09-23 audit: PAIA设计想法.docx.
-- The audit records the design-source SHA-256 as `d61b141afdeb794b74ffe627e12b0a2530acca53aa94e9f28b6d8c2f13c08824`.
-- Planning GitHub baseline: `fa1a6c6452153bb99ec24cdd8662b5d8c6a9371a`.
+- Design-source SHA-256 recorded by that audit: `d61b141afdeb794b74ffe627e12b0a2530acca53aa94e9f28b6d8c2f13c08824`.
+- Original planning GitHub baseline: `fa1a6c6452153bb99ec24cdd8662b5d8c6a9371a`.
 
-These checkpoints identify evidence; they do not make the audit artifact repository authority.
+These identify evidence, not authority of the private audit artifact. Current Topic adoption baselines are recorded separately without overwriting these checkpoints.
 
 ## 3. Product fixed, implementation negotiable
 
-Product intent may not be deleted because of:
+Product intent may not be deleted because of current architecture/UI inconvenience, engineering complexity, low use, test gaps, cosmetic simplicity or an earlier sequencing/validation freeze.
 
-- current architecture inconvenience;
-- current UI limitations;
-- engineering complexity;
-- low current usage;
-- current test gaps;
-- a desire to make the product look simpler;
-- an earlier roadmap freeze whose purpose was sequencing or validation.
+Implementation may be changed when justified: provider adapters; capture lifecycle; UI architecture; routing/state ownership; search/retrieval technology; storage implementation; supported restore/internal recovery; updater/distribution; components and deployment/service boundaries. User backup generation remains cancelled.
 
-Implementation may be changed aggressively when required, including:
-
-- provider adapters;
-- capture lifecycle;
-- UI architecture;
-- routing and state ownership;
-- search/retrieval technology;
-- storage implementation details;
-- Backup execution, only within current scope (user backup generation remains cancelled);
-- updater/distribution path;
-- component system;
-- deployment/service boundaries.
-
-Any migration must preserve the protected data/authorization invariants in TECHNICAL_PLAN.md. The Context Item product justification does not by itself approve an arbitrary schema or destructive migration.
+Any migration must preserve TECHNICAL_PLAN invariants. Approved independent Context Items and Personal Topic identity/authority provide bounded product justification, not permission for arbitrary stores, duplicated bodies or destructive migration. Reuse correct existing foundations.
 
 ## 4. Conflict handling
 
-Do not silently choose between incompatible product meanings.
+Do not silently choose between incompatible product meanings. The adoption record names exactly what is superseded and preserved.
 
-The currently known owner-decision gates are:
+Existing owner-decision gates remain:
 
-- B-01: whether an existing/old Thought may be directly edited, versus corrections being appended as new Thought material.
-- B-02: permanent Source deletion boundary for user-rewritten derivative material.
-- B-03: long-term default data residency and cloud relationship.
-- B-04-3A: **resolved by owner decision 2026-10-05** for Prompt Reuse Stage 3A only. After an explicit, default-off enablement, PAIA may locally and ephemerally analyze only the newly completed latest assistant reply in the current supported conversation. The reply is not durably retained, not added to Archive/Thought/Context/Source/Backup/logs, and is not sent to an external model. Disable/revoke stops reading and clears transient candidates without disabling Stage 1/2.
-- B-04-3B: remains an owner gate for any broader reply scope, durable reply retention/evidence, external/model processing, model-generated next prompts or use of reply access outside the approved Stage 3A purpose.
+- B-01: whether an existing/old Thought may be directly edited versus corrections appended as new material.
+- B-02: permanent Source deletion treatment of user-rewritten derivative material.
+- B-03: long-term default residency and cloud relationship.
+- B-04-3A: resolved by owner on 2026-10-05 for Prompt Reuse Stage 3A only. Explicit default-off local ephemeral analysis of the newly completed latest assistant reply in the current supported conversation; no durable reply in Archive/Thought/Context/Source/Backup/logs and no external-model processing. Revoke clears transient candidates without disabling Stage 1/2.
+- B-04-3B: remains a gate for broader reply scope, durable retention/evidence, external/model processing, model-generated next prompts or other uses of reply access.
 - B-05: regions, service burden and commercial commitments.
 
-These gates block only the rounds that need them. They do not block unrelated work. For CTX4, record concrete extraction-service, real-client/transport, paid activation and data-residency dependencies under the existing deferred-gate process. The four-card design does not resolve B-01/B-02/B-03 by implication.
-
-Ordinary UX/engineering questions are not owner gates. The manager decides them against the higher contracts.
+These block only affected behavior. For CTX4 and Topic formation record real-service, client/transport, paid activation and data-residency prerequisites under existing deferred gates. Neither adoption resolves them by implication. Ordinary engineering choices are not repeated owner-decision gates; choose within the higher contracts.
 
 ## 5. Historical package relationship
 
-Existing ANS, UIS, UIR, UX-R, PRD and CPR work remains valid evidence and useful implementation. Once this package activates:
+ANS, UIS, UIR, UX-R, PRD and CPR remain useful implementation/evidence, not competing current queues. Correct unfinished requirements are absorbed where relevant; historical PASS does not qualify a new slice and historical FAIL is not erased. Old freezes apply only where they still serve current product/trust requirements.
 
-- completed historical packages must not be resumed as competing queues;
-- unfinished correct work is absorbed into the relevant slice;
-- historical PASS does not automatically satisfy a Consumer Product v1 slice;
-- historical FAIL remains evidence and must not be erased;
-- previous freezes remain safety/evidence constraints only where they still serve higher product intent.
-
-The pre-CTX4 STATUS and MASTER_PLAN are retained byte-for-byte in same-directory dated snapshots. Current STATUS and MASTER_PLAN remain the routing entrypoints; retained non-Context plan details are unchanged subject to later decisions. AI_CONTEXT_LEGACY_PRE_CTX4.md preserves the old implementation contract without making it current product direction.
+Pre-CTX4 STATUS/MASTER and AI_CONTEXT_LEGACY_PRE_CTX4.md stay unchanged. Immediately pre-Topic STATUS and MASTER are preserved byte-for-byte in same-directory PRE_TOPIC snapshots. Frozen foundation/Organizer/AI-experience files, private references and Lab catalog/evaluation history are not rewritten to pretend they always described PT-1.0. Current routing and the adoption map supersede their conflicts explicitly.
 
 ## 6. No false completion
 
-A round or slice cannot be marked complete merely because:
+A slice is not complete merely because tests are green, a fallback/component exists, a screenshot is cleaner, synthetic DOM passes, developer tools can recover it or a target was removed.
 
-- tests are green;
-- a fallback is correct;
-- a component exists;
-- a screenshot looks cleaner;
-- a synthetic DOM path passes;
-- the user can recover only through developer tools;
-- a future target was removed from scope.
-
-Completion is governed by VERIFICATION.md and the applicable scoped plan. CTX4 separately requires local-data, security, whole-content, model-fidelity, real-connection and production-visual evidence. Prototype 78/78 and design approval are not production certification.
+Completion follows VERIFICATION and the applicable scoped plan. Topic requires separate identity/authority mechanics, formation quality, migration/reliability, one-library behavior and downstream utility evidence. CTX4 separately requires local data, security, whole-content, model fidelity, real connection and production visuals. Prototype 78/78, historical foundation acceptance and 144-label classification scores are not production certification. A documentation commit implements none of these runtime capabilities.
