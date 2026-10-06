@@ -9,7 +9,7 @@ def check_release(target):
     rel_files={str(p.relative_to(target)) for p in files}
     current_docs={'README.md','PRODUCT.md','ARCHITECTURE.md','ROADMAP.md','SYNC_CONTRACT.md','REMOTE_OBJECT_PROTOCOL.md','TRUSTED_DEVICE_PROTOCOL.md','SECURE_KEY_PERSISTENCE.md','ACCOUNT_DEVICE_SERVICE.md'}
     assert current_docs <= rel_files, sorted(current_docs-rel_files)
-    forbidden_paths={'ui/development-reload.js','ui/response-time.html','ui/response-time.js','ui/response-time.css','ui/structure-diagnostics.js'}
+    forbidden_paths={'ui/development-reload.js','ui/response-time.html','ui/response-time.js','ui/response-time.css','ui/structure-diagnostics.js','ui/product-signals.html','ui/product-signals.js','ui/product-signals.css','ui/action-feedback.js','ui/ai-first-generation.js','ui/continue-thought.js'}
     assert not any(str(p.relative_to(target)) in forbidden_paths or set(p.relative_to(target).parts)&{'experiments','tests','fixtures','development','node_modules','.git'} for p in files)
     markers=['globalThis.contextSyntheticScale','DEV_ONLY','globalThis.memorySyntheticScale','globalThis.syntheticMemory','globalThis.v092Synthetic','globalThis.v092Scale','synthetic generator','sensitive debug dump','development-reload','data-paia-development']
     for p in files:
