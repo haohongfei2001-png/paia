@@ -5,8 +5,8 @@ import {installSettingsPreferences,presentSettingsPreferences} from './settings-
 import {installUniversalSearch} from './universal-search.js';
 import {installRevisit} from './revisit.js';
 
-const NAV_LABELS={library:['档案','Archive'],thoughts:['思想库','Thought Library'],memory:['用于 AI','For AI'],settings:['设置','Settings']};
-const NAV_ICONS={library:'archive',thoughts:'thoughts',memory:'context',settings:'settings'};
+const NAV_LABELS={library:['档案','Archive'],thoughts:['思想库','Thought Library'],settings:['设置','Settings']};
+const NAV_ICONS={library:'archive',thoughts:'thoughts',settings:'settings'};
 const labels=()=>document.documentElement.lang==='en'?1:0;
 
 // One explicit composition boundary. RouteSession remains the only history and

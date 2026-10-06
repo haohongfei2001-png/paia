@@ -7,13 +7,12 @@ const $=id=>document.getElementById(id);
 const FONT_PX={small:16,standard:17,large:19,xlarge:21};
 const WIDTH_PX={narrow:640,standard:680,wide:720};
 let preferenceRead=0;
-let uxPreferences=normalizeUXPreferences(),preferenceBusy=false,settingsVisible=false,notifyOrganizerSettings=()=>{};let onBack=()=>{};
+let uxPreferences=normalizeUXPreferences(),preferenceBusy=false,settingsVisible=false;let onBack=()=>{};
 const archiveOrderSettings=new ArchiveOrderSettings();
 
 function node(tag,className='',text=''){const el=document.createElement(tag);if(className)el.className=className;if(text)el.textContent=text;return el;}
 function button(text,className=''){const el=node('button',className,text);el.type='button';return el;}
 function copyNode(tag,className,zh,en){const el=node(tag,className,copy(zh,en));el.dataset.settingsZh=zh;el.dataset.settingsEn=en;return el;}
-function copyButton(zh,en){const el=copyNode('button','',zh,en);el.type='button';return el;}
 function language(){return resolveLanguage(uxPreferences.language,navigator.language);}
 function copy(zh,en){return language()==='zh-CN'?zh:en;}
 
@@ -38,7 +37,7 @@ export function presentSettingsStatus(page){
 function updateLocalStatus(page){presentSettingsStatus(page);const el=$('ux-local-state');if(!el)return;const failed=page?.diagnostics?.lastError?.code==='STORAGE_FAILED'||page?.diagnostics?.lastError?.code==='STORAGE_FULL';el.textContent=failed?copy('本机保存遇到问题','Local storage unavailable'):copy('本机保存','Saved locally');el.dataset.kind=failed?'error':'ok';}
 
 function tuneOnboarding(){
- const consent=$('consent-panel');if(consent){const eyebrow=consent.querySelector('.eyebrow'),title=$('consent-title'),paras=[...consent.querySelectorAll(':scope > p:not(.muted)')];if(eyebrow)eyebrow.textContent=copy('本机保存','LOCAL SAVE');if(title)title.textContent=copy('你对 AI 说过的，不必只留在那次聊天里。','What you told AI does not have to stay in that one chat.');if(paras[0])paras[0].textContent=copy('PAIA 把你发给 AI 的文字留在本机，方便以后阅读、找到，并继续使用。','PAIA keeps the text you send to AI on this device so you can read, find and reuse it later.');if(paras[1])paras[1].textContent=copy('保存范围：普通聊天中已经发送、已经显示的用户文字；不保存草稿、完整 AI 回复、附件正文或账户凭证。Temporary Chat 默认跳过。','Saved scope: user text already sent and visible in normal chats. Drafts, full AI replies, attachment bodies and credentials are excluded. Temporary Chat is skipped by default.');if(paras[2])paras[2].textContent=copy('捕获、历史导入和普通阅读都在本机。云端 AI 处理、同步和对外提供是另外的授权。','Capture, history import and ordinary reading stay local. Cloud AI processing, sync and external access are separate permissions.');const enable=$('enable-consent');if(enable)enable.textContent=copy('开始在本机保存','Start saving locally');
+ const consent=$('consent-panel');if(consent){const eyebrow=consent.querySelector('.eyebrow'),title=$('consent-title'),paras=[...consent.querySelectorAll(':scope > p:not(.muted)')];if(eyebrow)eyebrow.textContent=copy('本机保存','LOCAL SAVE');if(title)title.textContent=copy('保存你的表达','Save what you share');if(paras[0])paras[0].textContent=copy('PAIA 把你发给 AI 的文字留在本机，方便以后阅读、找到，并继续使用。','PAIA keeps the text you send to AI on this device so you can read, find and reuse it later.');if(paras[1])paras[1].textContent=copy('保存范围：普通聊天中已经发送、已经显示的用户文字；不保存草稿、完整 AI 回复、附件正文或账户凭证。Temporary Chat 默认跳过。','Saved scope: user text already sent and visible in normal chats. Drafts, full AI replies, attachment bodies and credentials are excluded. Temporary Chat is skipped by default.');if(paras[2])paras[2].textContent=copy('收录、导入和阅读都在本机。会员 AI 服务、同步和外部连接尚未开放。','Capture, import and reading stay on this device. Membership AI, sync and external connections are not available.');const enable=$('enable-consent');if(enable)enable.textContent=copy('开始在本机保存','Start saving locally');
   if(!$('ux-onboarding-example')){const demo=button(copy('先看看示例','View an example'),'ux-onboarding-example');demo.id='ux-onboarding-example';demo.addEventListener('click',()=>$('ux-example-dialog')?.showModal());enable?.after(demo);}
  }
  const history=$('onboarding-history-step');if(history){const h=history.querySelector('h2'),p=history.querySelector('p');if(h)h.textContent=copy('把以前的内容也带进来。','Bring your earlier content too.');if(p)p.textContent=copy('可选择 ChatGPT 官方导出 ZIP 或聊天 JSON。先预览，再确认写入；整个导入过程不会调用 AI。','Choose an official ChatGPT export ZIP or chat JSON. Preview first, then confirm; importing does not call AI.');if($('onboarding-history'))$('onboarding-history').textContent=copy('选择历史导出文件','Choose history export');if($('onboarding-skip'))$('onboarding-skip').textContent=copy('以后再说','Maybe later');}
@@ -49,14 +48,13 @@ function preferenceSelect(id,labelText,options,key){const label=node('label','se
 function syncPreferenceControls(){for(const [id,key] of [['ux-appearance','appearance'],['ux-language','language'],['ux-font-size','fontSize'],['ux-reading-width','readingWidth']]){const el=$(id);if(el&&document.activeElement!==el)el.value=String(uxPreferences[key]);}}
 function setupSettingsShell(){
  const panel=$('settings-panel');if(!panel||$('ux-settings-shell'))return;
- const shell=node('div','ux-settings-shell');shell.id='ux-settings-shell';const head=node('header','ux-settings-header'),back=button('','ux-settings-back'),title=copyNode('h1','','设置','Settings'),feedback=node('p','ux-settings-feedback');const backLabel=setIconLabel(back,'back',copy('返回','Back'));backLabel.dataset.settingsZh='返回';backLabel.dataset.settingsEn='Back';back.id='ux-settings-back';title.id='ux-settings-title';feedback.id='ux-settings-feedback';feedback.setAttribute('role','status');back.addEventListener('click',()=>onBack());const subtitle=copyNode('p','ux-settings-subtitle','偏好不会改变原始内容。','Preferences do not change your original content.');subtitle.id='ux-settings-subtitle';head.append(back,title,subtitle,feedback);
+ const shell=node('div','ux-settings-shell');shell.id='ux-settings-shell';const head=node('header','ux-settings-header'),back=button('','ux-settings-back'),title=copyNode('h1','','设置','Settings'),feedback=node('p','ux-settings-feedback');const backLabel=setIconLabel(back,'back',copy('返回','Back'));backLabel.dataset.settingsZh='返回';backLabel.dataset.settingsEn='Back';back.id='ux-settings-back';title.id='ux-settings-title';feedback.id='ux-settings-feedback';feedback.setAttribute('role','status');back.addEventListener('click',()=>onBack());head.append(back,title,feedback);
  const layout=node('div','ux-settings-layout'),nav=node('nav','ux-settings-nav'),body=node('div','ux-settings-body');nav.setAttribute('aria-label',copy('设置分组','Settings groups'));const groups=new Map(),tabs=new Map();
- const groupEnglish={content:'Content & capture',reading:'Reading & appearance',ai:'AI',privacy:'Privacy & external use',data:'Data & devices',advanced:'Advanced'};
+ const groupEnglish=Object.fromEntries(Object.entries(SETTINGS_LABELS).map(([key,pair])=>[key,pair[1]]));
  const mobileSwitch=node('label','ux-settings-mobile-switch'),mobileSwitchLabel=copyNode('span','','当前分组','Current group'),mobileSelect=node('select');mobileSelect.id='ux-settings-group-switch';mobileSelect.setAttribute('aria-label',copy('切换设置分组','Switch settings group'));mobileSwitch.append(mobileSwitchLabel,mobileSelect);nav.append(mobileSwitch);
- notifyOrganizerSettings=()=>{const group=groups.get('ai');if(group&&!panel.hidden&&!group.hidden)document.dispatchEvent(new CustomEvent('paia:organizer-settings-visible'));};
- const activateGroup=key=>{const section=groups.get(key);if(!section)return;for(const [group,item] of groups)item.hidden=group!==key;for(const [group,tab] of tabs)tab.setAttribute('aria-current',group===key?'page':'false');if(mobileSelect.value!==key)mobileSelect.value=key;notifyOrganizerSettings();};
+ const activateGroup=key=>{const section=groups.get(key);if(!section)return;for(const [group,item] of groups)item.hidden=group!==key;for(const [group,tab] of tabs)tab.setAttribute('aria-current',group===key?'page':'false');if(mobileSelect.value!==key)mobileSelect.value=key;};
  for(const [key,zh] of SETTINGS_GROUPS){
-  const label=language()==='zh-CN'?zh:groupEnglish[key],section=node('section','ux-settings-group'),h=node('h2','',label),tab=button(label),option=node('option','',label);section.dataset.group=key;section.id=`ux-settings-${key}-group`;section.hidden=key!=='content';h.id=`ux-settings-${key}-title`;section.setAttribute('aria-labelledby',h.id);section.append(h);groups.set(key,section);body.append(section);
+  const label=language()==='zh-CN'?SETTINGS_LABELS[key][0]:groupEnglish[key],section=node('section','ux-settings-group'),h=node('h2','',label),tab=button(label),option=node('option','',label);section.dataset.group=key;section.id=`ux-settings-${key}-group`;section.hidden=key!=='content';h.id=`ux-settings-${key}-title`;section.setAttribute('aria-labelledby',h.id);section.append(h);groups.set(key,section);body.append(section);
   tab.dataset.settingsGroup=key;tab.setAttribute('aria-current',key==='content'?'page':'false');tab.setAttribute('aria-controls',section.id);tab.addEventListener('click',()=>activateGroup(key));tabs.set(key,tab);nav.append(tab);
   option.value=key;mobileSelect.append(option);
  }
@@ -68,14 +66,8 @@ function setupSettingsShell(){
  for(const id of ['enabled-state','toggle-capture'])if($(id))capture.append($(id));
  const provider=copyNode('p','','当前适用来源：ChatGPT','Current supported source: ChatGPT'),last=node('p','muted'),health=node('p','muted');last.id='ux-capture-last';health.id='ux-capture-health';
  capture.append(provider,last,health,copyNode('p','muted','临时会话不会自动保存。','Temporary chats are not saved automatically.'));
- const notice=node('div','ux-settings-notice'),importWay=copyButton('查看导入方式','View import options');
- notice.append(copyNode('p','','捕获正常不代表已导入完整历史','Capture health does not mean your complete history was imported'),copyNode('p','','旧会话与历史文件需要通过对应路径补充。','Earlier conversations and history files use their own import path.'),importWay);
- importWay.addEventListener('click',()=>{activateGroup('data');$('ux-history-start')?.focus();});capture.append(notice);groups.get('content').append(capture);
- move('smart-filter-settings','content');move('history-settings','content');
- // A second entry invokes the one existing import owner, including its leave,
- // consent, trusted picker, preview and explicit commit boundaries.
- const history=node('section','ux-settings-history'),importButton=copyButton('选择历史文件','Choose history file');importButton.id='ux-history-start';importButton.addEventListener('click',()=>$('settings-history')?.click());
- history.append(copyNode('h3','','历史导入','Import history'),copyNode('p','muted','先检查所选文件的范围、时间与重复项，再确认导入。','Review the file scope, dates and duplicates before confirming import.'),importButton);groups.get('data').append(history);
+ groups.get('content').append(capture);
+ move('smart-filter-settings','content');move('history-settings','data');
 
  move($('time-display')?.closest('.setting'),'reading');move($('time-emphasis')?.closest('.setting'),'reading');
  const reading=groups.get('reading'),existing=[...reading.children].filter(child=>child.tagName!=='H2');
@@ -84,12 +76,12 @@ function setupSettingsShell(){
  reading.append(preferenceSelect('ux-reading-width',copy('正文宽度','Reading width'),[['narrow','640 px'],['standard','680 px'],['wide','720 px']],'readingWidth'));
  const motion=node('div','setting ux-reduced-motion');motion.id='ux-reduced-motion';motion.append(copyNode('span','','减少动态效果','Reduced motion'),copyNode('span','ux-setting-value','跟随系统','Follow system'));reading.append(motion);
  reading.append(preferenceSelect('ux-language',copy('界面语言','Interface language'),[['system',copy('跟随系统','Follow system')],['zh-CN','简体中文'],['en','English']],'language'));
- reading.append(copyNode('p','ux-settings-reading-note','改变字号或外观，不会重新加载正在编辑的正文。','Changing text size or appearance does not reload text being edited.'),...existing);
+ reading.append(...existing);
  groups.get('reading').append(archiveOrderSettings.element());
- for(const id of ['organizer-reading-actions','deepseek-settings','library-updates-drawer'])move(id,'ai');move(panel.querySelector('.library-updates-bar'),'ai');move('memory-settings','privacy');
+ move('membership-ai-service','ai');move('memory-settings','privacy');
  const backupFailure=copyNode('h3','ux-backup-failure-title','这份备份未通过校验','This backup could not be validated');backupFailure.id='ux-backup-failure-title';$('backup-status')?.before(backupFailure);
- for(const id of ['backup-settings','r6-complete-export','r6-data-status','r6-source-records','manage-excluded','legacy-entry'])move(id,'data');if(!$('r6-source-records')){const sourceButton=[...panel.querySelectorAll('[data-view="archive"]')].find(el=>!el.closest('#primary-nav'));move(sourceButton,'data');}const syncFact=node('div','ux-capability-fact');syncFact.append(copyNode('strong','','设备同步','Device sync'),copyNode('p','muted','当前版本未提供设备同步。','Device sync is not available in this version.'));groups.get('data').append(syncFact);
- for(const id of ['library-management','product-diagnostics','diagnostics'])move(id,'advanced');const prune=$('prune-revisions');if(prune){move(prune.previousElementSibling,'advanced');move(prune,'advanced');}
+ for(const id of ['backup-settings','r6-data-status','r6-source-records','library-management','manage-excluded','legacy-entry'])move(id,'data');if(!$('r6-source-records')){const sourceButton=[...panel.querySelectorAll('[data-view="archive"]')].find(el=>!el.closest('#primary-nav'));move(sourceButton,'data');}const syncFact=node('div','ux-capability-fact');syncFact.append(copyNode('strong','','设备同步','Device sync'),copyNode('p','muted','当前版本未提供设备同步。','Device sync is not available in this version.'));groups.get('data').append(syncFact);
+ for(const id of ['settings-version-history','product-diagnostics','diagnostics'])move(id,'advanced');
  for(const child of [...panel.children]){if(child===shell)continue;if(child.tagName==='H2'){child.remove();continue;}groups.get('advanced').append(child);}
  syncPreferenceControls();
 }
@@ -100,24 +92,22 @@ function installPreferenceUpdates(){
  const media=globalThis.matchMedia?.('(prefers-color-scheme: dark)');media?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});
 }
 
-function preserveInternalToolAccess(){const details=$('product-diagnostics');if(!details||$('core-loop-product-signals'))return;const link=node('a','core-loop-internal-link',copy('查看本机产品验证数据 / Passport','Local product validation / Passport'));link.id='core-loop-product-signals';link.href='product-signals.html';link.target='_blank';link.rel='noopener';details.append(link);}
 
 let installed=false;
 export function installSettingsPreferences({back=()=>{}}={}){
- if(installed)return;installed=true;onBack=back;setupSettingsShell();tuneOnboarding();preserveInternalToolAccess();void loadPreferences();
+ if(installed)return;installed=true;onBack=back;setupSettingsShell();tuneOnboarding();void loadPreferences();
  installPreferenceUpdates();
 }
 
 const SETTINGS_LABELS={
- content:['内容与收录','Content & capture'],reading:['阅读与外观','Reading & appearance'],ai:['AI','AI'],
- privacy:['隐私与对外使用','Privacy & external use'],data:['数据与设备','Data & devices'],advanced:['高级','Advanced']
+ content:['收录','Capture'],reading:['阅读与外观','Reading & appearance'],ai:['会员与 AI 服务','Membership & AI service'],
+ privacy:['隐私','Privacy'],data:['数据与恢复','Data & recovery'],advanced:['高级','Advanced']
 };
 export function syncSettingsCopy(root=document){for(const el of root.querySelectorAll('[data-settings-zh]')){const text=copy(el.dataset.settingsZh,el.dataset.settingsEn);if(el.textContent!==text)el.textContent=text;}}
 function syncSettingsLocale(){
  syncSettingsCopy();
  for(const [id,zh,en]of [['ux-appearance','外观','Appearance'],['ux-font-size','阅读字号','Body text size'],['ux-reading-width','正文宽度','Reading width'],['ux-language','界面语言','Interface language']]){const label=$(id)?.closest('label')?.querySelector('span');if(label)label.textContent=copy(zh,en);}
 
- const subtitle=$('ux-settings-subtitle');if(subtitle)subtitle.textContent=copy('偏好不会改变原始内容。','Preferences do not change your original content.');
 
  for(const [key,pair] of Object.entries(SETTINGS_LABELS)){
   const text=pair[language()==='zh-CN'?0:1],tab=document.querySelector(`[data-settings-group="${key}"]`),heading=document.querySelector(`.ux-settings-group[data-group="${key}"] > h2`),option=document.querySelector(`#ux-settings-group-switch option[value="${key}"]`);
@@ -131,5 +121,13 @@ function syncSettingsLocale(){
 }
 
 export function presentSettingsPreferences({visible=false}={}) {
- settingsVisible=visible;syncSettingsLocale();if(settingsVisible)notifyOrganizerSettings();
+ settingsVisible=visible;if(settingsVisible)syncSettingsLocale();
+}
+
+// Only a verified failure owner may expose maintenance controls. Opening Settings
+// never requests an integrity scan or index rebuild.
+export function presentSettingsRecovery({dataFailure=false,indexFailure=false}={}){
+ const integrity=$('product-diagnostics'),rebuild=$('library-rebuild-search');
+ if(integrity)integrity.hidden=dataFailure!==true;
+ if(rebuild)rebuild.hidden=indexFailure!==true;
 }

@@ -13,24 +13,19 @@ export const composeCopy=text=>document.documentElement.lang==='en'?(english[tex
 
 // Presentation owns nodes only. TopicActions owns the draft, selected Topics,
 // acknowledgement lifecycle and every effect handler in both presentations.
-export function createThoughtComposeNodes({topicId,quote='',relatedThought=null}={}){
+export function createThoughtComposeNodes({topicId,quote=''}={}){
  const explanation=element('p','muted',tc('这会保存为今天的新想法，不修改以前的内容。'));
- let quotePreview=null,relation=null,relationLabel=null,relationNote=null;
- if(quote){quotePreview=element('details');quotePreview.append(element('summary','',tc('回应的文字')),element('pre','topic-selection-preview',quote));}
- if(relatedThought){
-  relationLabel=element('label','thought-response-choice');relation=element('input');relation.type='checkbox';relation.setAttribute('aria-label',tc('记录与这条内容的回应关系'));
-  relationLabel.append(relation,document.createTextNode(tc('记录与这条内容的回应关系（可不选）')));
-  relationNote=element('p','muted',tc('只记录你选择的关系；新想法独立保存，不改写这条内容。'));
- }
+ let quotePreview=null;
+ if(quote){quotePreview=element('details');quotePreview.append(element('summary','',tc('参考文字')),element('pre','topic-selection-preview',quote));}
  const draft=element('textarea','thought-draft');draft.setAttribute('aria-label',tc('今天的新想法'));draft.placeholder=tc('接着写…');
  const destination=element('p','muted',topicId?tc('保存到当前主题'):tc('暂不加入主题'));
  const choices=element('details'),choiceHost=element('div');choices.append(element('summary','',tc('选择主题（可不选）')),choiceHost);
- return {explanation,quotePreview,relation,relationLabel,relationNote,draft,destination,choices,choiceHost};
+ return {explanation,quotePreview,draft,destination,choices,choiceHost};
 }
 
 export function mountThoughtComposePresentation({content,feedback,nodes,submit,copy,cancel,workspacePreview=false}){
- const {explanation,quotePreview,relationLabel,relationNote,draft,destination,choices}=nodes;
- const optional=[quotePreview,relationLabel,relationNote].filter(Boolean);
+ const {explanation,quotePreview,draft,destination,choices}=nodes;
+ const optional=[quotePreview].filter(Boolean);
  if(!workspacePreview){content.append(explanation,...optional,draft,destination,choices,submit,copy,cancel);return {};}
 
  const heading=element('h1','thought-compose-title',composeCopy('写下想法'));heading.id='thought-compose-workspace-title';content.setAttribute('aria-labelledby',heading.id);

@@ -1,5 +1,4 @@
 /* Existing low-frequency Settings/onboarding styles; no shell owner. */
-.core-loop-internal-link{display:inline-block;margin-top:12px;font-size:12px;color:var(--paia-secondary)}
 .consent-panel,.onboarding,.onboarding-history{max-width:720px;margin:36px auto;line-height:1.75}
 .consent-panel h2,.onboarding h2,.onboarding-history h2{font-size:34px;line-height:1.3;margin:8px 0 18px;color:var(--paia-text)}
 .consent-panel>.eyebrow,.onboarding>.eyebrow{font-size:13px;color:var(--paia-meta)}
@@ -195,3 +194,29 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 .consent-panel,.onboarding-history{margin-top:12px}
 .consent-panel h2,.onboarding h2,.onboarding-history h2{font-size:28px}
 }
+
+/* Consumer Settings uses the existing desktop color and type roles. */
+#settings-panel :is(button,summary,select,input:not([type="checkbox"]):not([type="radio"])){min-width:44px;min-height:44px}
+#settings-panel label:has(>input:is([type="checkbox"],[type="radio"])){display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer}
+#settings-panel label:has(>input:is([type="checkbox"],[type="radio"]):disabled){cursor:default}
+#settings-panel .setting:has(>input[type="checkbox"]){justify-content:space-between;flex-direction:row}
+#settings-panel :is(button,summary,select,input):focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+#settings-panel :is(#membership-ai-service,#memory-settings,#history-settings,#settings-version-history){padding:0;border:0;background:transparent}
+#settings-panel :is(#membership-ai-title,#history-settings h3,#settings-version-history h3){margin:0 0 16px;font:500 22px/1.454545455 var(--title-font)}
+#settings-panel .ux-membership-state{display:inline-block;margin:0 0 12px;padding:6px 10px;border-radius:var(--radius);background:var(--selected);color:var(--muted);font-size:13px}
+#settings-panel #membership-ai-service>p:last-child{margin:0;color:var(--muted)}
+#settings-panel #memory-settings>.setting{min-height:72px;padding:16px 0;border-bottom:1px solid var(--line)}
+#settings-panel #memory-settings>p{margin:8px 0 20px;font-size:13px;color:var(--muted)}
+#settings-panel #memory-settings :is(input[type="checkbox"],input[type="radio"]){flex:none;width:18px;height:18px;accent-color:var(--focus)}
+#settings-panel .r6-privacy-preview{margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
+#settings-panel #history-settings{margin-bottom:28px}
+#settings-panel #library-management{padding:16px 0;border-block:1px solid var(--line)}
+#settings-panel #library-management>button{margin:8px 8px 8px 0}
+#settings-panel #settings-version-history>p{max-width:640px;font-size:13px;color:var(--muted)}
+#settings-panel .ux-settings-nav{gap:8px 26px}
+#settings-panel .ux-settings-group[hidden],#settings-panel [hidden]{display:none!important}
+@media(max-width:767px){
+ #settings-panel #memory-settings>.setting{gap:16px}
+ #settings-panel #memory-settings>.setting>span{max-width:calc(100% - 36px)}
+}
+#settings-panel #backup-settings[data-inspection-failure]>#backup-failure-return{min-height:44px;min-width:44px}

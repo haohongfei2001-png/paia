@@ -17,8 +17,8 @@ export function recoveryGuidance(code) {
       return {
         kind: 'storage',
         title: '本机空间不足，新内容可能尚未保存',
-        detail: '先打开 PAIA 导出备份，再检查可清理的内容。不要卸载扩展或删除浏览器资料。',
-        action: 'open_archive', label: '打开 PAIA 备份',
+        detail: '请先检查本机可用空间，并保留当前安装和资料。不要卸载扩展或清理浏览器资料。',
+        action: 'open_archive', label: '打开 PAIA 核对',
       };
     case 'STORAGE_FAILED':
       return {
@@ -54,9 +54,9 @@ export function recoveryGuidance(code) {
     case 'NETWORK_ERROR':
       return {
         kind: 'ai',
-        title: 'AI 暂时无法继续处理',
-        detail: '本机档案仍可阅读；先核对连接和当前内容，再决定是否手动重试。重试可能再次调用付费 API。',
-        action: 'review_ai', label: '核对后手动重试',
+        title: 'AI 服务尚未上线',
+        detail: '已有本机档案与整理内容仍可阅读。本版本不会发起新的 AI 处理。',
+        action: 'open_archive', label: '查看已有内容',
       };
     default:
       return null;
