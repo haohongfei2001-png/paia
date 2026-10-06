@@ -1,18 +1,16 @@
 # PAIA — Personal AI Input Archive
 
-**Current release: v0.12.0 — Thought Evolution & Shared Context**
+**Current source version: v0.12.1 — Consumer Cleanup**
 
 PAIA is a local-first Chrome extension for preserving, rereading and reusing what you say to AI.
 
-The current shipped loop remains:
+The current app supports capture, reading, editing, local search, Thought history, history import, and recovery from existing backup files. Archive opens directly into a narrow conversation directory with no conversation selected.
 
-**Input Archive → Thought Library → AI Context**
+The product direction remains **Input Archive → Thought Library → AI Context**. AI Context execution stays disabled. Existing Passport grants can be reviewed and revoked in Settings.
 
-The post-v0.12 product direction is broader but intentionally simpler at the conceptual level:
+New AI generation is unavailable until a real paid service is implemented. The ordinary AI entries are Topic **AI Organize** and Settings **Membership / AI service**; existing AI results remain readable and editable. No purchase, membership or paid backend is simulated.
 
-**Catch → Read → Remember → Organize → Reuse**
-
-A future cross-cutting **Passport** layer is intended to govern which AI/tool may use which personal context. Passport is a product direction, not a claim that a unified Passport runtime already ships in v0.12.0.
+Multi-Profile management, explicit Thought responses, Candidate approval UI, Material Tray, Product Signals and standalone diagnostic pages are retired. User API configuration, provider transport, content/statistics/Context export, backup generation and dedicated sharing are removed. Old commands refuse safely; old records and credentials are not automatically cleared. Recovery and version protection remain.
 
 For current product definition, architecture boundaries and next development rounds, read:
 
@@ -24,9 +22,9 @@ These three documents are the current source of truth for new product work. Olde
 
 The extension captures only eligible user-authored text after explicit consent. Source snapshots remain immutable; editable working content, organized Thoughts and AI-derived presentation are kept behind separate trust boundaries.
 
-## v0.12.0
+## Historical v0.12.0 baseline
 
-v0.12.0 is the first release that closes the current PAIA reading-and-reuse loop.
+The following describes the earlier release. Retired Context, export and provider execution are not current capabilities; the v0.12.1 scope above takes precedence.
 
 - **Thought evolution reading.** AI-organized Topics prioritize a concise current understanding plus a continuous, evidence-grounded evolution of the user's own expressions. Complete cited Thought bodies remain inline; PAIA does not invent a growth narrative when the evidence does not support one.
 - **Ordered memory recomposition.** Switching cached reading modes uses a short frosted recomposition transition. It is interruptible, respects reduced-motion preferences and never represents fake model progress.
@@ -43,7 +41,7 @@ The current durable schema is frozen by default while product value is validated
 
 1. strengthen Reader and retrieval quality;
 2. unify Search behind one reusable service boundary;
-3. measure reread/search/reuse behavior locally without transmitting private archive text;
+3. validate usability through explicit review without Product Signals collection;
 4. only then expand Context/Passport if repeated use justifies it;
 5. postpone general cloud sync and multi-platform duplication until ownership/conflict semantics and product value are proven.
 
@@ -51,11 +49,11 @@ See [ROADMAP.md](ROADMAP.md) for the development gates.
 
 ## Privacy and data boundaries
 
-- Local archive content remains in the extension's Chrome storage/IndexedDB unless the user explicitly exports or invokes an authorized external AI action.
+- Archive content remains in the extension's Chrome storage/IndexedDB. Export and provider execution are unavailable in this release.
 - Source Record text is not rewritten by ordinary editing.
 - Smart Filter does not delete Source data and restored/user-protected content is not silently filtered again.
-- Cached view switching and local Context preparation do not call the provider.
-- Provider requests remain explicit and bounded; PAIA does not add automatic paid retries for this release.
+- Reading existing AI results and switching cached views do not call a provider. Context preparation remains disabled.
+- The old direct provider transport is removed. A future paid service needs real server-side membership validation and a bounded AI gateway before activation.
 
 See [PRIVACY.md](PRIVACY.md), [BACKUP.md](BACKUP.md) and [AI_CONTEXT.md](AI_CONTEXT.md) for detailed implemented contracts.
 
