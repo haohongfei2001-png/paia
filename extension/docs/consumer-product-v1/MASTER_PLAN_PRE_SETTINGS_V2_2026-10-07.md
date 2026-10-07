@@ -1,27 +1,5 @@
 # Master Development Plan — PAIA Consumer Product v1
 
-## Settings Consumer v2 integration — 2026-10-07
-
-[SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), SETTINGS-CV2-1.0, freezes the owner-directed final Settings design. [SETTINGS_CONSUMER_V2_PLAN.md](SETTINGS_CONSUMER_V2_PLAN.md) owns the executable gap/owner/migration/test plan; [REFERENCES](SETTINGS_CONSUMER_V2_REFERENCES.md) identifies the corrected private visuals. This is a scoped replacement of old Settings presentation, not a new global roadmap or implementation authorization.
-
-Final integration read is main `288e17fb7adaf05b63a4af72458c1d6787488e0d`, manifest/package 0.13.0. Intervening PR177 already integrated Topic-01; its current implementation receipt remains EXACT_MAIN_FULL_CERTIFICATION_PENDING. STATUS therefore keeps that phase for verification/canonical closure, not a repeat foundation implementation. Earlier adoption-only PLANNED descriptions below retain their historical scope. Preserve the new identity/intent/strict restore validators and their recorded evidence; no runtime is reverted or certified by this Settings documentation task.
-
-STATUS retains the existing Personal Topic foundation as its sole current phase. After its verified closure, integrate the local Settings outcomes below into this Consumer Product sequence, without waiting for the entire Thought UI or paid AI service. SET2-03 consumes actual Context/Prompt interfaces when ready; it must not reimplement their products or restart historical writers. One writer owns shared runtime files. STATUS selects each actual batch; the rows below are planned dependencies, not parallel next tasks.
-
-| Slice | Outcome | Dependencies / acceptance boundary |
-|---|---|---|
-| CPV1-SET2-01 | Six-group shell/navigation and real Input Archive, reading and privacy preferences | Existing AppShell/RouteSession, capture/filter/preferences/r6 owners; exact final visuals. No full Thought/Context/service dependency. |
-| CPV1-SET2-02 | Five Data destinations, existing import/restore and typed removed-content recovery | 01 composition plus existing import/backup/Source/Thought recovery owners; ambiguous B-02 effects remain gated. |
-| CPV1-SET2-03 | Single Context status/route, Prompt-owned position reset and real suggestion preference | 01; genuine CTX4 state/route/revocation adapter and existing CPV1-12.3A-1 owner. Subsets may integrate independently but do not close the full stage. |
-| CPV1-SET2-04 | Truthful About/version/update and four verified destinations | 01; actual update lifecycle and confirmed legal/help/feedback content. Unknown is not latest/available. |
-| CPV1-SET2-05 | Migration, responsive/accessibility and source/release visual convergence | Applicable 01-04 outcomes, production tests and exact reference evidence; prototype PASS is not production acceptance. |
-
-All five are PLANNED. Detailed goal/scope/owner/exclusions/compatibility/tests/visual/exit/blocker requirements are specified once in the Settings plan. Keep existing preference enums and saved 21px/width/time values; remove only conflicting Settings controls, not data/history/revocation guards. No schema migration is required merely for relabeling. Position reset extends PromptSurfaceCommands, not Settings storage; Stage 3A is not implemented in this workstream. No false control, duplicate permission owner, export/backup-generation revival or general purge is authorized.
-
-SET2-01/02/04 can form a coherent local batch after the currently selected phase closes. Unavailable dependencies block only their affected interfaces and final closure; record honest unavailable states instead of manufacturing controls. CTX4, TOPIC and Prompt phase identities and their current source/service constraints below remain unchanged. Do not convert this plan into an additional parallel execution queue.
-
-Pre-adoption MASTER is preserved byte-for-byte as [MASTER_PLAN_PRE_SETTINGS_V2_2026-10-07.md](MASTER_PLAN_PRE_SETTINGS_V2_2026-10-07.md), original blob `92dac19a1b60dcd83f02bff124387e18a8bc4ec2`, unchanged at the final integration read; the matching STATUS snapshot retains its original blob. No frozen D6/D7 artifact or historical acceptance result is rewritten.
-
 ## Current routing — 2026-10-07 Thought final visual adoption
 
 [STATUS.md](STATUS.md) is the sole execution queue and next-task authority. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) freezes the owner-approved Personal Topic product semantics. [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, adopts the reviewed final Thought presentation; [its reference manifest](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) records private assets and evidence limitations. [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) owns the gap register, ordered implementation slices, migration work and acceptance; [architecture adoption](TOPIC_ARCHITECTURE_ADOPTION.md) and visual authority V8 list scoped supersession. This is documentation, not implementation or new service/paid/deployment authority.

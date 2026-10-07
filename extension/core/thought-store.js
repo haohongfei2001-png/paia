@@ -1,3 +1,4 @@
+import {assertMemoryPlacementChangeAllowed} from './memory/organization-guard.js';
 import {initializeTopicIdentity,prepareTopicName,assertTopicIdentityBase,registerTopicName,prepareTopicRename,recordTopicRename,resolveTopicIdentity,mapTopicIdentityBatch} from './topic-identity.js';
 import {newOrganizationIntents,recordMembershipIntent,fixMembershipSet,moveMembership} from './topic-intent.js';
 import {BINDING_ROW,applyBinding,classifyBinding,thoughtLayout,bindingRead,migrateBindings,reverseSetting,prepareBodyEdit} from './thought-binding.js';
@@ -211,6 +212,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
    const section=request.sectionId?await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,request.sectionId])):topic.defaultSectionId?await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,topic.defaultSectionId])):await t.edge('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));if(!section||section.lifecycle!=='active'||section.redirectTo)fail();
    const last=this.libraryDocumentMode&&request.rank===undefined&&(!old||old.sectionId!==section.sectionId)?await t.edge('placements','bySectionOrder',prefix([topic.id,topic.activeLayoutGeneration,section.sectionId,0]),'prev'):null;
    const rank=request.rank===undefined?(last?String(Number(last.rank)+1024).padStart(12,'0'):old?.rank||rankBetween()):normalizeRank(request.rank);normalizeRank(rank);const row={id,topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,entryId:e.id,sectionId:section.sectionId,rank,sectionRank:section.rank,revision:(old?.revision??-1)+1,activeKey:request.remove?1:0,lifecycle:request.remove?'removed':'active',membershipAuthorship:'user',sectionProtection:true,orderProtection:true};
+   await assertMemoryPlacementChangeAllowed(t,topic.id,old,row);
    recordMembershipIntent(e,topic.id,!request.remove,request.operationId,this.clock(),request.restoreRevisionId?'restore':'user_edit');e.organizationRevision++;e.revision++;
    topic.organizationRevision++;await t.put('thoughts',e);await t.put('topics',topic);await t.put('placements',row);
    await journal(this,t,{kind:'placement',entityId:id,documentId:topic.id,before:old||null,after:row,fieldMask:['membership','section','order'],actor:'user',reason:request.restoreRevisionId?'restore':request.remove?'remove':'place',important:true,operationId:request.operationId,sourceRecordIds:e.sourceRecordIds});return {id:e.id,revision:e.revision,placementRevision:row.revision,topicRevision:topic.organizationRevision};
