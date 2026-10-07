@@ -86,7 +86,7 @@ test('CTX4-03 actual worker keeps Topic choices local, durable, strictly fenced 
  const changeFor=(item,enabled)=>({topicId:item.topicId,enabled,expectedRevision:item.revision,expectedBinding:enabled?item.expectedBinding:item.binding,epoch:item.epoch,operationId:operationId()});
  const summary=async selectedCount=>{
   const snapshot=await rpc('PAIA_CONTEXT_CARDS_SNAPSHOT');
-  assert.deepEqual(snapshot.topicChoices,{available:true,selectedCount,externalAllowed:false});
+  assert.deepEqual(snapshot.topicChoices,{available:true,selectedCount,selectedNames:selectedCount?['Synthetic local Topic']:[],remainingSelectedCount:0,externalAllowed:false});
   assert.equal(snapshot.capabilities.inputs,true);assert.equal(snapshot.capabilities.external,false);assert.equal(snapshot.connections,0);
   return snapshot;
  };

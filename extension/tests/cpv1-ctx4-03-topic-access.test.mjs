@@ -52,7 +52,7 @@ test('CTX4-03 actual local directory defaults off without initializing or writin
  const i=page.items[0];assert.equal(i.name,'SYNTHETIC Local Topic');assert.equal(i.enabled,false);assert.equal(i.revision,0);assert.equal(i.binding,null);assert.equal(i.bindingValid,false);assert.equal(i.policyAllowed,false);assert.equal(i.canEnable,true);assert.equal(i.reason,'topic_off');assert.ok(i.expectedBinding);
  assert.equal(await prefs(f.s),undefined);assert.deepEqual(await snapshot(f.s),before);
  for(const forbidden of ['SYNTHETIC_PRIVATE','thoughtText','summary','instruction','fieldDigests','sourceRecordIds'])assert.ok(!JSON.stringify(page).includes(forbidden));
- const summary=await f.s.repository.transaction(false,t=>f.access.summaryInTransaction(t,'initial'));assert.deepEqual(summary,{available:true,selectedCount:0,reason:'preferences_ready',externalAllowed:false});
+ const summary=await f.s.repository.transaction(false,t=>f.access.summaryInTransaction(t,'initial'));assert.deepEqual(summary,{available:true,selectedCount:0,selectedNames:[],remainingSelectedCount:0,reason:'preferences_ready',externalAllowed:false});
  const unopened=new OrganizerStore(local());unopened.repository.open=()=>{throw Error('must not open');};assert.equal((await new ContextTopicAccessService(unopened).page()).reason,'not_ready');
 });
 
