@@ -182,6 +182,15 @@ def audit_js(path, text):
                     "Context shortcuts must defer to native IME composition")
             require("document.addEventListener('keydown'," not in text and "window.addEventListener('keydown'," not in text,
                     "Context must not install global keyboard capture")
+        if label == "keyboard listener" and path == ROOT / "ui/context-topics.js":
+            reviewed = "this.field.addEventListener('keydown',"
+            exact = "this.field.addEventListener('keydown',event=>this.move(event));"
+            boundary = "this.field=element('div','topic-field');this.field.setAttribute('role','group');"
+            require(text.count(reviewed) == 1 and exact in text and boundary in text,
+                    "Context Topic keys stay on one reviewed capsule group")
+            require("event.isComposing||event.keyCode===229" in text,
+                    "Context Topic navigation must defer to native composition")
+            scanned = scanned.replace(reviewed, "SCOPED_CONTEXT_TOPIC_NAVIGATION(", 1)
         if label == "keyboard listener" and path == ROOT / "ui/ai-presentation.js":
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_AI_EDITOR_SHORTCUT(")
         if label == "keyboard listener" and path == ROOT / "ui/search-experience.js":
