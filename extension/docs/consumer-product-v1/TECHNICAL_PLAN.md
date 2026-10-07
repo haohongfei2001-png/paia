@@ -1,6 +1,6 @@
 # Technical Restructuring Plan — PAIA Consumer Product v1
 
-Product semantics are fixed by current owner authority; implementation is replaceable where justified. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) PT-1.0 controls Topic identity/formation; [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) owns its gaps and delivery details. [AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md) controls Context Items/access. [STATUS.md](STATUS.md) alone selects execution. This documentation adoption changes no runtime, schema, provider, tests or installed data.
+Product semantics are fixed by current owner authority; implementation is replaceable where justified. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) PT-1.0 controls Topic identity/formation; [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) owns its gaps and delivery details. [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, controls adopted Thought presentation, with TOPIC-05.1 through 05.8 detailed in the Topic plan section 7. [AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md) controls Context Items/access. [STATUS.md](STATUS.md) alone selects execution. This documentation adoption changes no runtime, schema, provider, tests or installed data.
 
 ## 1. Target responsibility model
 
@@ -48,9 +48,9 @@ Preserve IME/grapheme/revision primitives and one EditorSession per editable bod
 
 ### 4.1 Consumer shell and page composition
 
-Existing approved visual authority remains. Where implementation still has competing DOM/coordinator owners, converge on one AppShell/navigation/history owner, one route/state model, one owner per control, one focus/dialog stack and notification presenter, with shared components/tokens. Certify a replacement route before retiring its old orchestration; do not keep two persistent handlers for the same action.
+Existing approved shared visual authority remains; Thought composition follows the later scoped TL-PT1-UI-1.0 contract. Where implementation still has competing DOM/coordinator owners, converge on one AppShell/navigation/history owner, one route/state model, one owner per control, one focus/dialog stack and notification presenter, with shared components/tokens. Certify a replacement route before retiring its old orchestration; do not keep two persistent handlers for the same action.
 
-Framework choice is secondary to Chrome MV3, IME, long-list behavior and current build constraints. Do not perform a framework rewrite or invent a new UI as part of Topic semantics. The Topic plan's later UI work adapts current readers, not another mock.
+Framework choice is secondary to Chrome MV3, IME, long-list behavior and current build constraints. Do not perform a framework rewrite or invent a new UI as part of Topic semantics. TOPIC-05 implements the adopted Root/Section reader using existing owners, not another mock. Its unified read model supplies real Topic/Section/Entry identities and bounded overviews; the UI neither invents Sections nor duplicates body storage. Stable Root slots, Section anchors, in-place search and Section-aware writing use existing bounded navigation/read/edit services. Detailed delivery/acceptance is specified once in the Topic plan section 7.
 
 ### 4.2 Supported restore and recovery at scale
 
@@ -104,6 +104,8 @@ Human facts and AI projection can be separate records internally, but the read m
 ## 6. AI Organize versus Topic Organizer
 
 Topic Organizer performs PT identity/formation/placement. Topic-local AI Organize renders a derivative interpretation over the same traceable evidence. Its prose grouping cannot create recursive durable hierarchy, replace human structure or become a second Library. Reuse versioned candidate/projection and protected-output mechanics without reviving candidate approval management.
+
+Durable default/named Sections exist with the reading toggle OFF and remain the same identities with it ON. Ephemeral reading headings belong to the derivative projection; they do not become Section records, Root overview items or authorization targets. The reading toggle cannot mutate durable Section names/order/placements or protected human bodies. Justified durable changes use the separate PT Organizer commit path. Version-check these boundaries and preserve Entry-relative reading anchors, active IME/selection and unsaved editor sessions; see TOPIC-05.7 for acceptance.
 
 Requests remain bounded by authorized relevant evidence, incremental changes and stable revision fingerprints. Processing service, entitlement, budget and cancellation must be real before enabling generation; cached reads do not call a Provider and there are no hidden paid retries. Existing saved AI content/version history remains intact. Schema/structure, evidence validity and semantic fidelity are separate validation layers; the third needs independent task evaluation, not reference validation alone.
 

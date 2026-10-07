@@ -2,8 +2,37 @@
 
 Base: remote main `0093c81300b8dff80b0cf00c4f2cad6130840030`.
 Scope: PT-01/PT-07/PT-08; G01/G02/G03/G08 foundation only.
-State: IMPLEMENTED_CANDIDATE / INDEPENDENT_REVIEW_CLEARED / HOSTED_CERTIFICATION_PENDING.
+State: IMPLEMENTED_CANDIDATE / RELEASE_ALIGNMENT_INDEPENDENT_REVIEW_CLEARED / SUCCESSOR_HOSTED_CERTIFICATION_PENDING.
 This receipt does not advance the sole STATUS queue or certify later slices.
+
+## Release-alignment successor — 2026-10-07
+
+Published implementation source: `de28068e54392de2d557fcf90b944f1201c3ddcc`.
+Prior hosted Full Certification `37549715747` belongs to that source head only;
+it is not exact-head evidence for this successor. The original candidate and
+its historical local evidence below remain preserved.
+
+This isolated successor reconciles documentation-only fresh main
+`29940a921e4797c463a5e7e8436bafe6125f9f1d` through local merge
+`28e7975adda6a5eff41b772a1200581ecea99e52`. It retains the final Thought visual
+adoption and Topic foundation, and applies the coordinated `0.13.0` product
+identity (`v0.13.0 Topic Identity Foundation`) with the version/build policy.
+The sole additional runtime logic change admits producer minor 13 to the
+existing strict restore header. Schema and secret refusal, future-minor
+refusal and cancelled production export remain unchanged. No Context runtime,
+Topic-02, STATUS queue, provider, permission or UI changes are included.
+
+Successor local verification: 75 owning/version/backup/restore/export tests
+passed; privacy/security passed 59 tests; source package audit passed 9,891 checks;
+development privacy/permission/network audit passed; generated 0.13.0 package passed 9,827 checks and the release
+product guard (313 files). Version identity agrees across manifest, version name,
+package and generated manifest. These are local candidate results only.
+The known unchanged local historical-import timing limitation was not rerun.
+Chromium was not relaunched or worked around after the recorded process-singleton
+socket restriction. Independent successor review cleared the bounded diff with
+35 owning current-version/identity/restore tests passing. Exact-successor hosted
+full certification remains pending, followed by exact-main validation if integrated.
+No installation, user reload, public release or production acceptance is claimed.
 
 ## Identity and ownership
 
@@ -128,8 +157,9 @@ source/release Topic Content attempts could not launch: process-singleton
 not a local pass. Hosted exact-head full/unit/adapter/browser certification and
 exact-main verification remain required before integration. Browser/device, installed version,
 real-data migration, model formation quality and downstream utility are not
-claimed. The runtime version is coordinated by the integration owner after a
-fresh main reconciliation, not changed concurrently here.
+claimed. The original foundation deferred its runtime version to the integration owner.
+The release-alignment successor above applies the coordinated version after
+fresh-main reconciliation; the historical evidence does not certify that new head.
 
 TOPIC-02 owns complete bounded identity retrieval and hidden candidate/unassigned
 handling. TOPIC-03 owns generated naming, six-part admission, Section formation
