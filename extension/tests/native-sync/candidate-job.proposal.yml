@@ -1,0 +1,69 @@
+# PROPOSAL ONLY. This file is not an Actions workflow and cannot run by itself.
+# After root review, copy this one job under jobs in paia-candidate.yml and apply
+# the bounded aggregator edits in README.md. Do not alter any existing selection,
+# matrix, timeout, assertion, or mandatory certification requirement.
+  sync_native_storage:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_BNS_NATIVE_STORAGE')
+    name: Candidate Sync native storage partial Core
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: mkdir -p work/qa-bns-native-storage
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Select hosted Chrome for isolated synthetic extension profiles
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version | tee work/qa-bns-native-storage/chrome-version.txt
+      - name: Verify whole owning Node files and fixture preflight
+        run: |
+          set -o pipefail
+          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
+      - name: Prove source and release native IndexedDB and worker durability
+        env:
+          CI: '1'
+          PLAYWRIGHT_MODULE: playwright
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
+          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
+      - name: Require exact-head complete native receipts
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {assertReceipt} from './tests/native-sync/receipt.mjs';
+          const receipts = ['source','release'].map(variant => assertReceipt(JSON.parse(readFileSync(`work/qa-bns-native-storage/${variant}.json`)), {head:process.env.PAIA_TESTED_HEAD,variant}));
+          const tree = execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim();
+          for (const receipt of receipts) assert.equal(receipt.tree,tree);
+          assert.deepEqual(receipts[0].productionHashes,receipts[1].productionHashes);
+          assert.equal(receipts[0].browserVersion,receipts[1].browserVersion);
+          console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
+          JS
+      - name: Retain exact-head synthetic storage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bns-native-storage-${{ github.event.pull_request.head.sha }}
+          path: extension/work/qa-bns-native-storage/
+          if-no-files-found: error
+          retention-days: 7

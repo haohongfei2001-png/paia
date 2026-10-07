@@ -1278,14 +1278,82 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  sync_native_storage:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_BNS_NATIVE_STORAGE')
+    name: Candidate Sync native storage partial Core
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: mkdir -p work/qa-bns-native-storage
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Select hosted Chrome for isolated synthetic extension profiles
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version | tee work/qa-bns-native-storage/chrome-version.txt
+      - name: Verify whole owning Node files and fixture preflight
+        run: |
+          set -o pipefail
+          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
+      - name: Prove source and release native IndexedDB and worker durability
+        env:
+          CI: '1'
+          PLAYWRIGHT_MODULE: playwright
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
+          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
+      - name: Require exact-head complete native receipts
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {assertReceipt} from './tests/native-sync/receipt.mjs';
+          const receipts = ['source','release'].map(variant => assertReceipt(JSON.parse(readFileSync(`work/qa-bns-native-storage/${variant}.json`)), {head:process.env.PAIA_TESTED_HEAD,variant}));
+          const tree = execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim();
+          for (const receipt of receipts) assert.equal(receipt.tree,tree);
+          assert.deepEqual(receipts[0].productionHashes,receipts[1].productionHashes);
+          assert.equal(receipts[0].browserVersion,receipts[1].browserVersion);
+          console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
+          JS
+      - name: Retain exact-head synthetic storage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bns-native-storage-${{ github.event.pull_request.head.sha }}
+          path: extension/work/qa-bns-native-storage/
+          if-no-files-found: error
+          retention-days: 7
+
   candidate:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release, direct_edit, shell_cutover, targeted_browser, topic_compatibility, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility, organize_candidate_compatibility]
+    needs: [unit, contracts, release, direct_edit, shell_cutover, targeted_browser, topic_compatibility, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility, organize_candidate_compatibility, sync_native_storage]
     steps:
       - name: Require light candidate gates
         env:
+          SYNC_NATIVE_STORAGE: ${{ needs.sync_native_storage.result }}
+          SYNC_NATIVE_STORAGE_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BNS_NATIVE_STORAGE') }}
           UNIT: ${{ needs.unit.result }}
           CONTRACTS: ${{ needs.contracts.result }}
           RELEASE: ${{ needs.release.result }}
@@ -1314,6 +1382,7 @@ jobs:
           test "$UNIT" = success
           test "$CONTRACTS" = success
           test "$RELEASE" = success
+          if [ "$SYNC_NATIVE_STORAGE_SELECTED" = true ]; then test "$SYNC_NATIVE_STORAGE" = success; elif [ "$SYNC_NATIVE_STORAGE" != skipped ]; then test "$SYNC_NATIVE_STORAGE" = success; fi
           if [ "$CONTEXT_COMPAT_SELECTED" = true ]; then test "$CONTEXT_COMPAT" = success; elif [ "$CONTEXT_COMPAT" != skipped ]; then test "$CONTEXT_COMPAT" = success; fi
           if [ "$SHELL_CUTOVER_SELECTED" = true ]; then test "$SHELL_CUTOVER" = success; elif [ "$SHELL_CUTOVER" != skipped ]; then test "$SHELL_CUTOVER" = success; fi
           if [ "$DIRECT_EDIT_SELECTED" = true ]; then test "$DIRECT_EDIT" = success; elif [ "$DIRECT_EDIT" != skipped ]; then test "$DIRECT_EDIT" = success; fi
