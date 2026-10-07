@@ -89,3 +89,24 @@ explicit file selection above excludes browser execution. No native qualificatio
 for the publication journal, CI, provider call, full canonical restore,
 activation, migration or deployment is claimed. The documented blocked/obsolete
 reconciliation and orphan-cleanup limitations remain open.
+
+
+## Native publication recovery successor — 2026-10-08
+
+Test-only successor `14377a4` adds actual isolated Chrome IndexedDB and service-
+worker stop/restart verification for source and built release. Both complete
+journeys pass (2/2, no failure/skip/cancellation); 19 publication owning tests
+plus 6 harness preflight tests also pass. The coordinator reviewed the new fixture,
+its native assertions and publication owner before this checkpoint.
+
+Each variant verifies prepared reservation, unknown-upload persistence through
+worker restart, same-ID readback without duplicate upload, acknowledgement
+transaction abort retaining outbox and withholding receipt, retry atomicity,
+confirmed receipt persistence through another worker restart, pending-publication
+restore refusal and old-publication-ID refusal after namespace restore.
+Synthetic transport bytes are retained only by the test; receipts record native
+IndexedDB, three real worker restarts, seven production module hashes and zero
+external network attempts. This is local native lifecycle proof, not a qualified
+cloud provider, complete canonical restore, cross-device sync or installed release.
+The previously documented obsolete/integrity reconciliation and orphan cleanup
+remain open; full integration certification is still required.
