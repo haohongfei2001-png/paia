@@ -5,15 +5,16 @@
 The owner's latest instruction authorizes one coordinator to advance CTX4-01–07,
 TOPIC-01–06 (including TOPIC-05.1–05.8), SET2-01–05, SYNC-01–06,
 AI-COST-01–07 under the current Qwen-primary revision, and their explicit Prompt
-dependencies. Independent work may run concurrently with one writer per shared
+dependencies, plus IAH-1.1 Existing UI Minimal Optimization. Independent work may run concurrently with one writer per shared
 boundary. The earlier single next-task pointer below is retained historical
 context; it must not cause already-integrated Topic mechanics to be reimplemented.
 
-**Archive / IAH-1.1 / ARCHIVE-HOME-01–06: EXCLUDED_FROM_CURRENT_DEVELOPMENT.**
-The current owner approves selected minimal visual changes and canonical/plan
-correction only, not runtime execution. This does not lift the existing Archive
-exclusion, choose a new global task or start an Archive writer. IAH-1.0's former
-Home/Main-only/split-click requirements are superseded by the current adoption.
+**Archive / IAH-1.1 / ARCHIVE-HOME-01–06: EXECUTION_SELECTED.**
+The owner's latest explicit seven-lane instruction supersedes the prior Archive
+exclusion. Implement only the confirmed Existing UI Minimal Optimization design.
+The former IAH-1.0 Home/Main-only/split-click requirements remain superseded.
+Current lane positions, owners and next tasks are recorded in
+[SEVEN_PLAN_EXECUTION_2026-10-08](SEVEN_PLAN_EXECUTION_2026-10-08.md).
 
 Handoff files are recovery evidence, not additional authority. Each lane's base,
 file diff and target tree must be checked separately; overlapping patches are not
@@ -24,7 +25,7 @@ merged source and the owning receipts controlling subsequent implementation fact
 ## Archive selected visual adoption and canonical correction — 2026-10-08
 
 **IAH-1.1: SELECTED_VISUAL_SCOPE_ADOPTED / CANONICAL_CORRECTED / PLAN_ALIGNED.**
-**DESIGN_SCOPE_READY: true. EXECUTION_SELECTED: false. ARCHIVE_RUNTIME: NOT_STARTED_BY_THIS_TASK.**
+**DESIGN_SCOPE_READY: true. EXECUTION_SELECTED: true. RUNTIME_ACCEPTANCE: PENDING.**
 
 The adopted direction is **PAIA Archive Existing UI — Minimal Optimization**.
 [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) owns the exact selected/rejected list;
@@ -50,14 +51,14 @@ selected; source-state distinctions remain protected.
 
 | Retained Archive outcome | Aligned state | Scope |
 |---|---|---|
-| ARCHIVE-HOME-01 | NARROWED / PLANNED / NOT_SELECTED | Minimal state/origin/session changes in existing owner |
-| ARCHIVE-HOME-02 | RE-SCOPED / PLANNED / NOT_SELECTED | Existing-field scope hints, Input-first results and state capture |
+| ARCHIVE-HOME-01 | NARROWED / EXECUTION_SELECTED | Minimal state/origin/session changes in existing owner |
+| ARCHIVE-HOME-02 | RE-SCOPED / EXECUTION_SELECTED | Existing-field scope hints, Input-first results and state capture |
 | ARCHIVE-HOME-03 | KEEP + GAP CHECKS ABSORBED INTO 01/02 | No split click, independent Browse page or inferred scope |
 | ARCHIVE-HOME-04 | REUSE / PLANNED GAP CLOSURE | Verify/repair existing exact-hit and temporary-reveal behavior |
 | ARCHIVE-HOME-05 | NARROWED / PLANNED | Normal-flow actual-origin Back; original-site action remains separate |
 | ARCHIVE-HOME-06 | CONSOLIDATED / PLANNED | Affected selected-scope visual, safety, accessibility and reliability evidence |
 
-Recommended future grouping is 01/02 with necessary 03 checks, then 04/05, then 06.
+Selected implementation grouping is 01/02 with necessary 03 checks, then 04/05, then 06.
 This does not create three new queues or six mandatory PRs. No correct existing
 component is reimplemented to manufacture a phase. A new permanent Project-scope
 control or new host-context entry is separately scoped follow-up, not permission
