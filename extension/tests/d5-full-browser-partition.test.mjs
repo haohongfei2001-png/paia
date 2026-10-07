@@ -94,12 +94,12 @@ test('CTX4-05 fast marked Context command runs its complete owner and retains na
 });
 
 
-test('measured seventh browser job isolates only complete Thought and preserves all other75-file routes',async()=>{
- const names=(await readdir(new URL('./',import.meta.url))).filter(name=>name.endsWith('.test.mjs')&&group(name)==='browser E2E').sort(),thought='ux-r3-thought-chrome-e2e.test.mjs',before=Array.from({length:6},(_,slot)=>names.filter((name,position)=>testShard(name,position,6,'browser E2E')===slot+1)),after=Array.from({length:7},(_,slot)=>names.filter((name,position)=>testShard(name,position,7,'browser E2E')===slot+1));
- assert.equal(names.length,75);assert.deepEqual(after.flat().sort(),names);assert.equal(new Set(after.flat()).size,names.length);assert.deepEqual(after[6],[thought]);assert.ok(after.every(part=>part.length));
- for(let slot=0;slot<6;slot++)assert.deepEqual(after[slot],before[slot].filter(name=>name!==thought));
+test('measured seventh browser job owns complete Thought and retained Root while preserving all75 files',async()=>{
+ const names=(await readdir(new URL('./',import.meta.url))).filter(name=>name.endsWith('.test.mjs')&&group(name)==='browser E2E').sort(),thought='ux-r3-thought-chrome-e2e.test.mjs',retainedRoot='cpv1-02-dvn-topic-root-chrome-e2e.test.mjs',before=Array.from({length:6},(_,slot)=>names.filter((name,position)=>testShard(name,position,6,'browser E2E')===slot+1)),after=Array.from({length:7},(_,slot)=>names.filter((name,position)=>testShard(name,position,7,'browser E2E')===slot+1));
+ assert.equal(names.length,75);assert.deepEqual(after.flat().sort(),names);assert.equal(new Set(after.flat()).size,names.length);assert.deepEqual(after[6],[retainedRoot,thought]);assert.ok(after.every(part=>part.length));
+ for(let slot=0;slot<6;slot++)assert.deepEqual(after[slot],before[slot].filter(name=>name!==thought&&name!==retainedRoot));
  assert.deepEqual(after[5],['context-cards-chrome-e2e.test.mjs','uir-04-settings-chrome-e2e.test.mjs']);
- for(const [position,name]of names.entries())assert.equal(testShard(name,position,7,'browser E2E'),name===thought?7:testShard(name,position,6,'browser E2E'),name);
+ for(const [position,name]of names.entries())assert.equal(testShard(name,position,7,'browser E2E'),[thought,retainedRoot].includes(name)?7:testShard(name,position,6,'browser E2E'),name);
  const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),job=workflow.split('  current_browser:')[1].split('  full_suite:')[0],aggregate=workflow.split('  full_suite:')[1].split('  macos_secure_store:')[0];
  assert.match(job,/name: Current Browser \$\{\{ matrix.index \}\}\/7/);assert.deepEqual([...job.matchAll(/index: (\d)/g)].map(row=>Number(row[1])),[1,2,3,4,5,6,7]);assert.deepEqual([...job.matchAll(/shard: '(\d\/7)'/g)].map(row=>row[1]),['1/7','2/7','3/7','4/7','5/7','6/7','7/7']);
  assert.match(job,/timeout-minutes: 18/);assert.match(job,/fail-fast: false/);assert.match(job,/PAIA_TEST_CONCURRENCY: '1'/);assert.match(job,/npm run test:browser/);assert.doesNotMatch(job,/continue-on-error|test-name-pattern|test-skip-pattern/);assert.match(aggregate,/needs: \[mode, unit, contracts, current_browser\]/);assert.match(aggregate,/CURRENT_BROWSER: \$\{\{ needs\.current_browser\.result \}\}/);

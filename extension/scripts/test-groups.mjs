@@ -57,7 +57,10 @@ export function testShard(file, position, total, category) {
  // Full37648849130 exhausted shard6 while Thought shared the same18-minute
  // budget with Context and Settings. Isolate this whole file on7 and retain
  // every prior six-way placement, fixture, case and deadline exactly.
- if(category==='browser E2E'&&total===7)return name==='ux-r3-thought-chrome-e2e.test.mjs'?7:testShard(file,position,6,category);
+ // Full37684301966 shard4 used764s plus280s font setup and was cancelled
+ // at job completion. Move its complete213s retained Root file to shard7,
+ // which finished in553s total. Keep all75 files and the18-minute budget.
+ if(category==='browser E2E'&&total===7)return ['ux-r3-thought-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs'].includes(name)?7:testShard(file,position,6,category);
  // Full37554248921: shard3 took561s of1080s. Add the whole two-case
  // Root journey there, preserving every prior73 placement and every timeout.
  if(category==='browser E2E'&&[4,5,6].includes(total)){if(name===root)return 3;if(name>root)position--;}

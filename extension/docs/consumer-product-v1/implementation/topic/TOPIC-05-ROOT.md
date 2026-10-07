@@ -146,3 +146,24 @@ This is local synthetic isolated headless Chrome source/release evidence. It doe
 not replace the required coherent full certification for the Root caller/read/
 backup admission boundaries, final visual acceptance, installed build or whole
 TOPIC-05 completion. The full certification is the next integration gate.
+
+
+## Full certification retained failure and measured routing repair
+
+Full run37684301966 at PR head6d55837 (tested merge c31b749e3621720acfb05d6027661a44dc20a9fd)
+failed its aggregate because Current Browser4/7 was cancelled at its18-minute
+job boundary. Its retained artifact11511127316 contains81/81 passing cases,
+zero failed/skipped, and logs show test and artifact steps completed. This does
+not convert the cancelled job or failed aggregate into a pass. The font setup
+spent about280 seconds downloading from a slow mirror; browser work took764
+seconds, leaving insufficient setup/cleanup margin. All other required jobs
+completed successfully.
+
+The repair moves only the complete cpv1-02-dvn-topic-root-chrome-e2e.test.mjs
+(about213 seconds in that serial log) from shard4 to existing shard7, whose
+previous complete job took553 seconds. The seven jobs,75 current files,
+exact-once coverage,18-minute deadlines and all assertions remain unchanged.
+No new runner or reduced font requirement is introduced. Independent routing
+review and14 targeted partition/Root routing checks pass, as does the full
+coverage guard. A new coherent full run is required; prior failed evidence is
+retained. This scheduling change is not a production or UI behavior change.
