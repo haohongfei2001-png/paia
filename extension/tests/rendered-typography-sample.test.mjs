@@ -24,3 +24,9 @@ test('stale DOM roots refuse the attempt while unrelated protocol errors remain 
 test('zero-glyph data is preserved for the existing strict glyph assertion, never manufactured',async()=>{
  const f=fixture({fonts:[]});assert.deepEqual((await sampleRenderedTypography(f.page,f.client,'.target')).fonts,[]);
 });
+
+test('a stable node survives Chromium frontend ID reset semantics because each attempt requests its document only once',async()=>{
+ let generation=0;const f=fixture(),original=f.client.send;
+ f.client.send=async(method,args)=>{if(method==='DOM.getDocument'){generation++;return {root:{nodeId:generation*100}};}if(method==='DOM.querySelector'){assert.equal(args.nodeId,generation*100,'query uses the active document binding');return {nodeId:generation*100+7};}return original(method,args);};
+ const result=await sampleRenderedTypography(f.page,f.client,'.target');assert.equal(result.text,geometry.text);assert.equal(generation,1,'a second getDocument would rebind the same node and falsely reject it');
+});

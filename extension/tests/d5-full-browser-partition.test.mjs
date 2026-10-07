@@ -51,6 +51,7 @@ test('CTX4 fast native probe admits only explicitly marked draft or full-certifi
  const workflow=await readFile(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8'),job=workflow.split('  context_compatibility:')[1].split('\n  candidate:')[0];
  const condition=job.split('\n').find(line=>line.trim().startsWith('if:')).trim();
  assert.equal(condition,"if: (github.event.pull_request.draft == true || contains(github.event.pull_request.body, 'PAIA_FULL_CERTIFICATION')) && (contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_COMPAT_BROWSER'))");
- assert.match(job,/timeout-minutes: 12/);assert.match(job,/ref: \$\{\{ github.event.pull_request.head.sha \}\}/);assert.match(job,/tests\/context-cards-chrome-e2e.test.mjs tests\/release-certification-round48-chrome-e2e.test.mjs tests\/release-certification-round49-chrome-e2e.test.mjs tests\/ans-01-reader-surfaces-chrome-e2e.test.mjs/);
+ assert.match(job,/timeout-minutes: 12/);assert.match(job,/ref: \$\{\{ github.event.pull_request.head.sha \}\}/);assert.match(job,/tests\/context-cards-chrome-e2e.test.mjs tests\/release-certification-round48-chrome-e2e.test.mjs tests\/release-certification-round49-chrome-e2e.test.mjs tests\/ans-01-reader-surfaces-chrome-e2e.test.mjs tests\/uir-01-shell-chrome-e2e.test.mjs/);
+ assert.match(job,/extension\/work\/d7-archive-reader-compat\//);assert.match(job,/extension\/work\/ux-r1\//);
  assert.match(workflow.split('  candidate:')[1],/github.event.pull_request.draft == true/);
 });
