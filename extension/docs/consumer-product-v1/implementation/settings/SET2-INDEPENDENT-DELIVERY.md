@@ -116,3 +116,22 @@ the same15-minute job limit. No case timeout or test threshold changes, no new
 job and no skipped performance case. Independent resource/evidence review
 recommended this bounded correction; current-head hosted verification remains
 required. Product and test code are unchanged by this CI-only follow-up.
+
+## Formal full candidate37702614386 — retained failure and bounded follow-up
+
+At4a1cf72, all four unit shards, contracts/privacy, release, both macOS jobs and
+current-browser shards1–6 passed. Shard7 failed only the UX-R3 advanced-edit case
+at the removed data-settings-group=advanced entry. The other cases in its file
+continued and passed; full aggregate correctly remains FAIL. No cancellation or
+skip is converted to success. Rebalanced full files1/4 both passed this run.
+
+SET2-01's already approved migration map explicitly removes Advanced enable UI
+while retaining previously saved reverse-edit=true and contextual restrictive
+opt-out. The fixture now establishes that legacy state through the real worker,
+then preserves all whole/partial edits, two-version/Undo/IME/mobile checks. Its
+former direct worker disable becomes a real contextual opt-out click with added
+complete Input equality assertion. The coordinator independently reviewed both
+hunks against the existing contract. The complete migrated case passed locally
+in11.9s; the complete owning file was still running at this checkpoint. No
+production, assertion, timeout or other case was changed. Final hosted combined
+acceptance remains required for the next coherent head.
