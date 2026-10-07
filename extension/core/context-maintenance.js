@@ -70,7 +70,7 @@ export class ContextMaintenanceService {
  }
  async #receipt(t,query,authority,scopeDigest,request=null){
   const r=await t.get('operationReceipts',PREFIX+query.operationId);if(!r)return null;
-  need(validReceipt(r)&&r.digest===query.digest&&r.epoch===query.epoch&&r.accountId===authority.accountId&&r.processorId===authority.processorId&&r.scopeDigest===scopeDigest,'INVALID_REQUEST');
+  need(validReceipt(r)&&r.digest===query.digest&&r.epoch===query.epoch&&r.accountId===authority.accountId&&r.processorId===authority.processorId&&r.authorizationGeneration===authority.authorizationGeneration&&r.scopeDigest===scopeDigest,'INVALID_REQUEST');
   need(r.card===authority.scope.card,'INVALID_REQUEST');
   const item=(await this.#cards.row(t)).items.find(x=>x.id===r.ownerId);
   need(item?.origin==='automatic'&&item.card===r.card&&item.revision>=r.result.revision&&item.maintenance.associationIds.includes(r.associationId),'INVALID_REQUEST');
@@ -85,16 +85,17 @@ export class ContextMaintenanceService {
    need(typeof this.#verifier?.verify==='function'&&typeof this.#verifier?.isCurrent==='function');
    need(signal===null||signalOK(signal),'INVALID_REQUEST');
    const c=structuredClone(validateContextMaintenanceChange(input)),serialized=JSON.stringify(c),prior=this.#attempts.get(c.operationId);
-   if(prior){need(prior.serialized===serialized&&prior.caller===caller&&prior.verifier===this.#verifier&&prior.signal===signal,'INVALID_REQUEST');return prior.promise;}
+   if(prior){need(prior.serialized===serialized&&prior.caller===caller&&prior.verifier===this.#verifier&&prior.signal===signal,'INVALID_REQUEST');if(prior.authority)this.#current(caller,prior.authority,null,true);return prior.promise;}
    need(this.#attempts.size<CONTEXT_MAINTENANCE_LIMITS.pending,'CONTEXT_LIMIT');
-   const attempt={serialized,caller,verifier:this.#verifier,signal,promise:null},boundedCall=new AbortController(),abort=()=>boundedCall.abort();this.#attempts.set(c.operationId,attempt);
+   const attempt={serialized,caller,verifier:this.#verifier,signal,promise:null,authority:null},boundedCall=new AbortController(),abort=()=>boundedCall.abort();this.#attempts.set(c.operationId,attempt);
    if(signal?.aborted)abort();else signal?.addEventListener('abort',abort);
    const timer=setTimeout(abort,CONTEXT_MAINTENANCE_LIMITS.requestMs);
-   attempt.promise=Promise.resolve().then(()=>this.#apply(caller,c,serialized,boundedCall.signal)).catch(error=>{throw new ArchiveError(['INVALID_REQUEST','CONTEXT_INVALIDATED','CONTEXT_LIMIT','STORAGE_FAILED','STORAGE_FULL','CONSENT_REQUIRED'].includes(error?.code)?error.code:'STORAGE_FAILED');}).finally(()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(this.#attempts.get(c.operationId)===attempt)this.#attempts.delete(c.operationId);});return attempt.promise;
+   attempt.promise=Promise.resolve().then(()=>this.#apply(caller,c,serialized,boundedCall.signal,attempt)).catch(error=>{throw new ArchiveError(['INVALID_REQUEST','CONTEXT_INVALIDATED','CONTEXT_LIMIT','STORAGE_FAILED','STORAGE_FULL','CONSENT_REQUIRED'].includes(error?.code)?error.code:'STORAGE_FAILED');}).finally(()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(this.#attempts.get(c.operationId)===attempt)this.#attempts.delete(c.operationId);});return attempt.promise;
   }catch(error){return Promise.reject(error);}
  }
- async #apply(caller,c,serialized,signal){
+ async #apply(caller,c,serialized,signal,attempt){
   const scope=scopeFor(c),authority=await this.#verify(caller,scope,signal?[signal]:[]);
+  attempt.authority=authority;
   const deadline=new AbortController(),phase=new AbortController(),phaseSources=[...new Set([signal,authority.revocationSignal,deadline.signal].filter(Boolean))],cancelPhase=()=>phase.abort();
   for(const source of phaseSources){if(source.aborted)cancelPhase();else source.addEventListener('abort',cancelPhase);}
   const phaseTimer=setTimeout(()=>deadline.abort(),Math.max(0,authority.expiresAt-Date.now()));

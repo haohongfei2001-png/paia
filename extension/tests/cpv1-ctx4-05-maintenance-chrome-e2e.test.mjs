@@ -9,7 +9,7 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 const root=fileURLToPath(new URL('..',import.meta.url));
 const cases=[
- 'default-denied','commit-replay-human-takeover-delete-undo',
+ 'default-denied','commit-replay-human-takeover-delete-undo','post-commit-regrant-before-settlement',
  ...['maintain','snapshot','shallow','recovery'].map(path=>path+'-hash-race'),
  ...['item','receipt','post-callback'].flatMap(phase=>['cancel','revoke'].map(kind=>phase+'-'+kind)),
  'post-callback-expiry','closed-database-before-write','denied-input-before-hash'
@@ -198,9 +198,56 @@ async function install(page){
      equal((await f.row()).items,[restored],'No replacement Item or overwrite after Undo');
      f.state.processing=false;f.revocation.abort();equal(await f.put(c),created,'Revoked processing can acknowledge exact committed history');
      check(!(await settled(f.put({...updated,operationId:op(),expectedRevision:5}))).fulfilled,'Revoked processing cannot create new maintenance');
+     const historic=await f.snapshot(),granted=new AbortController(),verify=f.verifier.verify.bind(f.verifier);
+     f.state.generation++;f.state.processing=true;
+     f.verifier.verify=async(...args)=>({...await verify(...args),revocationSignal:granted.signal});
+     const previousGeneration=await settled(f.put(c));
+     check(!previousGeneration.fulfilled&&previousGeneration.code==='INVALID_REQUEST','Regrant cannot replay a prior-generation receipt');
+     equal(await f.outcome(c),{state:'unknown',externalAllowed:false},'Prior-generation outcome cannot cross the authorization identity');
+     equal(await f.snapshot(),historic,'Cross-generation queries preserve every durable owner and historical receipt');
+     const currentGeneration={...updated,operationId:op(),expectedRevision:5};
+     equal((await f.put(currentGeneration)).disposition,'protected','Current-generation fresh request retains human protection');
+     equal((await f.outcome(currentGeneration)).state,'committed','Current-generation receipt acknowledges its own fresh operation');
+     equal((await f.row()).items,[restored],'Regrant never overwrites the human-owned Item');
      equal(protectedOwners(await f.snapshot()),protectedOwners(before),'Source, Input, Thought and all protected owner rows unchanged');
      const visible=await f.cards.snapshot();check(!visible.capabilities.automatic&&!visible.capabilities.external&&!visible.access.global.enabled,'Dormant capabilities and external access stay off');
      check(p.selectedHashes>0,'Native selected-field WebCrypto actually ran');
+    }else if(name==='post-commit-regrant-before-settlement'){
+     const transaction=f.s.repository.transaction.bind(f.s.repository),arrived=deferred(),release=deferred(),before=await f.snapshot();
+     let held=false,receiptWrites=0,writeTransactions=0;
+     p=probe(f,events);
+     f.s.repository.transaction=async(write,fn,stores)=>{
+      let nativeTransaction;
+      const value=await transaction(write,async t=>{if(write){writeTransactions++;nativeTransaction=t.tx;const save=t.put.bind(t);t.put=async(name,row)=>{if(name==='operationReceipts'&&row.namespace==='context-maintenance')receiptWrites++;return save(name,row);};}return fn(t);},stores);
+      if(write&&!held&&value?.ok&&value.itemId===c.itemId){
+       held=true;check(p.terminal.get(nativeTransaction)==='complete','The acknowledgement barrier follows the actual native commit');
+       p.mark('maintenance-native-commit-before-settlement',{transaction:p.ids.get(nativeTransaction)});arrived.resolve();await release.promise;
+      }
+      return value;
+     };
+     const original=f.put(c),originalResult=settled(original);
+     try{
+      await bounded(Promise.race([arrived.promise,originalResult.then(()=>{throw assertion('Operation settled before its native commit barrier');})]),'Native committed acknowledgement barrier did not arrive');
+      const stored=await f.snapshot();check(receiptWrites===1&&writeTransactions===1,'One native transaction and receipt committed');
+      equal(stored.meta.find(row=>row.id===CONTEXT_CARDS_ROW).items[0].revision,1,'Committed Item has revision one');
+      equal(stored.operationReceipts.find(row=>row.id==='context-maintenance:'+c.operationId).authorizationGeneration,1,'Committed receipt retains generation one');
+      check(f.put(c)===original,'Same-generation bound request shares the pending acknowledgement');
+      f.state.processing=false;f.revocation.abort();check(f.put(c)===original,'Same-generation revoked processing still shares committed history');
+      f.state.generation++;f.state.processing=true;const granted=new AbortController(),verify=f.verifier.verify.bind(f.verifier);
+      f.verifier.verify=async(...args)=>({...await verify(...args),revocationSignal:granted.signal});
+      const joined=f.put(c);check(joined!==original,'A new generation cannot join the old bound promise');
+      equal(await settled(joined),{fulfilled:false,code:'CONTEXT_INVALIDATED'},'New-generation pending join explicitly refuses');
+      equal(await f.outcome(c),{state:'unknown',externalAllowed:false},'New-generation outcome cannot acknowledge the old committed identity');
+      equal(await f.snapshot(),stored,'Pending retry and outcome preserve every durable row');
+      release.resolve();const acknowledged=await originalResult;
+      check(acknowledged.fulfilled,'The originally authorized call retains its durable acknowledgement');
+      equal(acknowledged.value,{ok:true,itemId:c.itemId,revision:1,disposition:'created',externalAllowed:false},'Original native commit is acknowledged exactly');
+      equal(await settled(f.put(c)),{fulfilled:false,code:'INVALID_REQUEST'},'Settled receipt replay uses the distinct persisted-identity refusal');
+      equal(await f.snapshot(),stored,'No second write or receipt occurs after settlement');
+      check(receiptWrites===1&&writeTransactions===1,'Exactly one write transaction and receipt remain');
+      equal(protectedOwners(stored),protectedOwners(before),'Source, Input, Thought and other protected owners remain unchanged');
+      p.mark('maintenance-new-generation-join-refused-original-acknowledged');
+     }finally{release.resolve();await originalResult;f.s.repository.transaction=transaction;}
     }else if(name.endsWith('-hash-race')){
      const path=name.slice(0,-10);let draft,sources,manual;
      if(path!=='maintain'){

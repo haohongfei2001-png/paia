@@ -105,8 +105,81 @@ test('CTX4-05 pending operation cannot report not committed or substitute anothe
  assert.equal(put(f,c),pending);assert.equal((await outcome(f,c)).state,'unknown');await assert.rejects(put(f,{...c,body:'SYNTHETIC substitution'}),{code:'INVALID_REQUEST'});release();await pending;assert.equal((await outcome(f,c)).state,'committed');
 });
 
+for(const change of ['generation','account','processor','same-generation','same-generation-revoked','caller-cancel-after-commit'])test('CTX4-05 '+change+' at the committed-but-unsettled boundary preserves the original acknowledgement and fences new joins',async()=>{
+ const f=await fixture(),c=await request(f),transaction=f.s.repository.transaction.bind(f.s.repository),controller=new AbortController();
+ let joined,joinedResult,stored,reached=false,receiptWrites=0,writeTransactions=0;
+ try{
+  f.s.repository.transaction=async(write,fn,stores)=>{
+   const result=await transaction(write,async t=>{if(write){writeTransactions++;const save=t.put.bind(t);t.put=async(name,value)=>{if(name==='operationReceipts'&&value.namespace==='context-maintenance')receiptWrites++;return save(name,value);};}return fn(t);},stores);
+   if(write&&!reached&&result?.ok&&result.itemId===c.itemId){
+    reached=true;stored=await snapshot(f.s);
+    if(change==='generation')f.state.generation++;
+    if(change==='account')f.state.accountId='synthetic-regranted-account';
+    if(change==='processor')f.state.processorId='synthetic-regranted-processor';
+    if(change==='same-generation-revoked'){f.state.processing=false;f.controller.abort();}
+    if(change==='caller-cancel-after-commit')controller.abort();
+    joined=f.service.maintain(f.caller,c,{signal:controller.signal});
+    joinedResult=joined.then(value=>({value}),error=>({code:error.code}));
+   }
+   return result;
+  };
+  const original=f.service.maintain(f.caller,c,{signal:controller.signal}),committed=await original,retry=await joinedResult;
+  const changed=['generation','account','processor'].includes(change);
+  assert.equal(reached,true);assert.equal(committed.ok,true);assert.equal(committed.revision,1);
+  assert.equal(joined===original,!changed);
+  if(changed)assert.deepEqual(retry,{code:'CONTEXT_INVALIDATED'});else assert.deepEqual(retry,{value:committed});
+  assert.equal(receiptWrites,1);assert.equal(writeTransactions,1);
+  assert.deepEqual(await snapshot(f.s),stored);
+  assert.equal((await raw(f.s,'operationReceipts','context-maintenance:'+c.operationId)).authorizationGeneration,1);
+  assert.equal((await row(f)).items[0].revision,1);
+  assert.deepEqual(await outcome(f,c),changed?{state:'unknown',externalAllowed:false}:{state:'committed',result:committed,externalAllowed:false});
+  assert.deepEqual(await snapshot(f.s),stored,'queries never rewrite committed history');
+ }finally{f.s.repository.transaction=transaction;await f.s.repository.close();}
+});
+
+for(const mode of ['current-after-wait','stale-captured'])test('CTX4-05 prebinding coalescence '+mode+' uses one verification without assuming an earlier generation',async()=>{
+ const f=await fixture(),c=await request(f),verify=f.verifier.verify.bind(f.verifier);let release,enter,first=true;
+ const reached=new Promise(resolve=>{enter=resolve;});
+ f.verifier.verify=async(...args)=>{if(!first)return verify(...args);first=false;const captured=mode==='stale-captured'?await verify(...args):null;enter();await new Promise(resolve=>{release=resolve;});return captured||verify(...args);};
+ try{
+  const before=await snapshot(f.s),original=put(f,c);await reached;f.state.generation++;
+  const joined=put(f,c);assert.equal(joined,original);release();const outcomes=await Promise.allSettled([original,joined]);
+  if(mode==='stale-captured'){assert.ok(outcomes.every(x=>x.status==='rejected'&&x.reason.code==='CONTEXT_INVALIDATED'));assert.deepEqual(await snapshot(f.s),before);}
+  else{assert.ok(outcomes.every(x=>x.status==='fulfilled'&&x.value.ok));assert.equal((await row(f)).items[0].revision,1);assert.equal((await raw(f.s,'operationReceipts','context-maintenance:'+c.operationId)).authorizationGeneration,2);}
+ }finally{release?.();await f.s.repository.close();}
+});
+
+test('CTX4-05 pending joins are authority-bound before the first request hash',async()=>{
+ const f=await fixture(),c=await request(f),digest=crypto.subtle.digest;let release,enter;
+ const reached=new Promise(resolve=>{enter=resolve;});
+ crypto.subtle.digest=async function(...args){const result=digest.apply(this,args);if(new TextDecoder().decode(args[1])===JSON.stringify(c)){enter();await new Promise(resolve=>{release=resolve;});}return result;};
+ let original;
+ try{
+  const before=await snapshot(f.s);original=put(f,c);const originalResult=original.then(()=>({ok:true}),error=>({code:error.code}));await reached;f.state.generation++;
+  const joined=put(f,c);assert.notEqual(joined,original);await assert.rejects(joined,{code:'CONTEXT_INVALIDATED'});release();assert.deepEqual(await originalResult,{code:'CONTEXT_INVALIDATED'});assert.deepEqual(await snapshot(f.s),before);
+ }finally{release?.();await original?.catch(()=>{});crypto.subtle.digest=digest;await f.s.repository.close();}
+});
+
 test('CTX4-05 revoked processing can acknowledge an exact historic commit without new maintenance',async()=>{
- const f=await fixture(),c=await request(f),committed=await put(f,c);f.state.processing=false;f.controller.abort();assert.deepEqual(await put(f,c),committed);assert.equal((await outcome(f,c)).state,'committed');await assert.rejects(put(f,{...c,operationId:op(),expectedRevision:1}));
+ const f=await fixture(),c=await request(f),committed=await put(f,c),before=await snapshot(f.s);f.state.processing=false;f.controller.abort();assert.deepEqual(await put(f,c),committed);assert.equal((await outcome(f,c)).state,'committed');await assert.rejects(put(f,{...c,operationId:op(),expectedRevision:1}));assert.deepEqual(await snapshot(f.s),before);
+});
+
+test('CTX4-05 regrant generation cannot replay a prior-generation receipt but may commit a fresh authorized operation',async()=>{
+ const f=await fixture(),c=await request(f);await put(f,c);
+ const receipt=await raw(f.s,'operationReceipts','context-maintenance:'+c.operationId);
+ f.state.processing=false;f.controller.abort();f.state.generation++;f.state.processing=true;
+ const granted=new AbortController(),verify=f.verifier.verify.bind(f.verifier);
+ f.verifier.verify=async(...args)=>({...await verify(...args),revocationSignal:granted.signal});
+ const before=await snapshot(f.s);
+ await assert.rejects(put(f,c),{code:'INVALID_REQUEST'});
+ assert.deepEqual(await outcome(f,c),{state:'unknown',externalAllowed:false});
+ assert.deepEqual(await snapshot(f.s),before,'cross-generation acknowledgement cannot write or replace history');
+ const fresh={...c,operationId:op(),expectedRevision:1,body:'SYNTHETIC authorized current-generation update'};
+ assert.equal((await put(f,fresh)).revision,2);assert.equal((await outcome(f,fresh)).state,'committed');
+ assert.equal((await raw(f.s,'operationReceipts','context-maintenance:'+fresh.operationId)).authorizationGeneration,f.state.generation);
+ assert.deepEqual(await raw(f.s,'operationReceipts','context-maintenance:'+c.operationId),receipt,'original historical receipt remains intact');
+ assert.deepEqual(await outcome(f,c),{state:'unknown',externalAllowed:false});
+ const after=await snapshot(f.s);for(const name of Object.keys(before).filter(n=>!['meta','operationReceipts'].includes(n)))assert.deepEqual(after[name],before[name],name);
 });
 
 for(const fault of ['namespace','epoch','owner','digest','scopeDigest','extra','result'])test('CTX4-05 malformed resident receipt '+fault+' never acknowledges a substituted commit',async()=>{
