@@ -1,80 +1,54 @@
 # PAIA Consumer Product v1 — Current Status
 
-## Qwen-primary model-route / cost amendment — 2026-10-08
-
-**AIU-QWEN-1.0: OWNER_DIRECTED_SCOPED_AMENDMENT / DOCUMENTATION_INTEGRATED. Model qualification, paid calls and all AI-COST runtime implementation remain NOT_RUN / NOT_STARTED_BY_THIS_TASK.**
-
-Fresh source read and integration base: **8c7561166e6fd617455e05ce19b1c65582b85692**, tree **9139fde803de116d4df433aef4774bc3a751f426**, the Topic04 mechanics integration at 0.18.0 after Topic02/03. This task preserves all its production code, tests, workflows, manifest/version and implementation/certification records. Those merged mechanics are not missing implementations; their exact-main closure remains governed by their own evidence and the current pointer below. No previous completed Topic/Context work is reopened or newly certified here.
-
-Qwen is the current primary candidate family; qwen3.8-max is the core high-quality candidate for Organize and selected high-risk semantic decisions. Routine maintenance/Assist first qualify qwen3.8-flash, with qwen3.7-plus an intermediate challenger. Provider-neutral jobs/domains, all Free/Pro entitlements, three Organize styles, Settings, Topic/Context, Prompt and Browser-Native Sync contracts are unchanged. Earlier non-Qwen cost vectors remain dated comparison evidence, not competing primary routes.
-
-[Architecture section 15](AI_USAGE_ARCHITECTURE.md#15-qwen-primary-scoped-route-and-accounting-amendment--aiu-qwen-10) owns scoped routing, bounded adjudication, Qwen ratebook and the existing single USD ledger with explicit CNY FX handling. [COST_MODEL](AI_USAGE_COST_MODEL.md) section 11 provides unchanged-workload All Max/Recommended CNY tables and separate stress/cache/thinking/region sensitivities. [PLAN](AI_USAGE_PLAN.md) section 12 refines the same seven phases. [ADOPTION](AI_USAGE_ADOPTION.md) section 7 and [REFERENCES](AI_USAGE_REFERENCES.md) sections 6–8 record official findings, conflicts and nonclaims.
-
-The synthetic calculated monthly means including 15% reserve are All Max ¥4.84610 Free / ¥28.26897 Pro, Recommended ¥2.23931 / ¥13.47146, and separate Max-heavy offered-load stress ¥8.37145 / ¥47.28293. They are not actual bills, statistical p99 or a commercial price. The stress case includes requests that current token/child/money admission must defer or reject. No cached-input, Batch or promotional discount is assumed in the baseline. Exact formulas and assumptions reside only in COST_MODEL; these figures are a status summary, not another allowance table.
-
-Open qualification requirements include actual per-facet/style fidelity, thinking/total-output enforcement, regional privacy and country-only processing, exact retention, model/snapshot throughput, Flash Batch support discrepancy, provider usage/invoice reconciliation and trusted atomic financial admission. The current empty production registry and monetary:null local budget are not a working Qwen service. No provider keys, Alibaba resources, subscriptions, billing, user entitlements or private data were changed.
-
-**First planned AI task remains AI-COST-01 — Semantic Delta / AI Job / Usage Receipt foundation.** This does not replace the sole global CPV1-TOPIC-02 closure pointer below or start a second writer. Performed here: source/official-document review, local numeric scenario calculations and eight Markdown amendments. No real-model benchmark, blind author review, production test, runtime/schema/UI change, deployment or release was performed. The retained records below preserve their original scope and dates.
-
-## AI usage / cost / quality / styles adoption — 2026-10-07
-
-**AIU-1.0 and AIOS-1.0 are adopted for implementation planning. No AI-COST runtime slice starts in this task.**
-
-Initial review source: main **4a3cb4e663d8ae745f8385c5c854d5b060e26309**. Fresh integration base: **0a438ccc67bb88d686d2939fa03027f09234d4ef**, tree **b0598ae3f5cf273438dc6740e5a2cf2bf2494797**, merging PR #189's Context 0.15 local editing and Topic choices. The final documentation preserves that upstream runtime/workflow/test/version/implementation-record tree; it does not reset main to the older source.
-
-Delivered: remote/no-model capability audit; semantic-delta shared maintenance; three-job admission; Free/Pro entitlement and bounded financial policy; cached/incremental/lazy generation; global three-mode Organize voice/evidence contract; body-free telemetry and quality gates; official-price parameter model; dependency-ordered AI-COST-01–07 plan; scoped Settings integration and explicit supersession.
-
-The only normative AI allowance/budget source is [AI_USAGE_ARCHITECTURE.md](AI_USAGE_ARCHITECTURE.md). Transformation authority is [AI_ORGANIZE_STYLE_CONTRACT.md](AI_ORGANIZE_STYLE_CONTRACT.md). [COST MODEL](AI_USAGE_COST_MODEL.md) contains disclosed synthetic assumptions, not actual user bills. [ADOPTION](AI_USAGE_ADOPTION.md) and [REFERENCES](AI_USAGE_REFERENCES.md) distinguish initial facts from fresh-main reconciliation.
-
 ## Current execution and scoped Topic01 closure
 
-**CPV1-TOPIC-01 is COMPLETE only for its identity/human-intent foundation.**
-[The foundation receipt](implementation/topic/TOPIC-01.md) and
-[effective-access repair](implementation/topic/TOPIC-01-ACCESS.md) retain the
-independent reviews, original missing-invariant reproduction, bounded repair and
-all earlier negative evidence. Exact main `948ea06a57cd932c187407faf7140d9fb6714eff`
-passed full `37611452025` and Prompt `37611451822`; the downloaded aggregate was
-hash-verified. This closes PT-01/PT-07/PT-08's bounded domain/compatibility contract,
-not actual-user migration, semantic/model quality, the Thought UI, live external
-services, installed builds or the whole product.
+**CPV1-TOPIC-01 is COMPLETE only for its identity/human-intent foundation.** The foundation and effective-access receipts retain their independent reviews, repair and earlier negative evidence. Its scoped completion does not certify actual-user migration, semantic/model quality, Thought UI, live external services, installed builds or the entire product.
 
 **NEXT DEVELOPMENT TASK (the sole current pointer): CPV1-TOPIC-02 — close bounded
 identity retrieval, hidden candidate/lifecycle and unassigned-state handling
 against its reviewed current dependencies and exact integration evidence.**
-Owner-authorized independent Topic/Context/Thought/Settings/Sync engineering
-continues on coordinated branches with separate dependencies and gates. No later
-Topic stage is certified by this documentation update.
 
-The AIU adoption retained the preceding Topic01 pointer without certifying it.
-[STATUS_PRE_AI_USAGE_2026-10-07.md](STATUS_PRE_AI_USAGE_2026-10-07.md) remains the
-exact historical snapshot, not a second current queue. The new AIU/AIOS contracts,
-Settings style amendment and their no-activation boundaries remain unchanged.
+This pointer is unchanged by the Archive adoption. Owner-authorized independent Topic/Context/Thought/Settings/Sync engineering retains its own coordinated branches, dependencies and gates. Existing later Topic mechanics and Context work are preserved, not reimplemented or newly certified here. No Archive runtime writer is started.
 
-Context0.15 main `0a438ccc67bb88d686d2939fa03027f09234d4ef`, tree
-`b0598ae3f5cf273438dc6740e5a2cf2bf2494797`, subsequently passed full
-`37630385096` and Prompt `37630385120`. Its manual local editing and qualified
-Topic choices are integrated. The bounded Context01 verification is reconciled in
-[its receipt](implementation/context-cards/CTX4-01.md). Structural Context read and
-maintenance owners remain dormant/default-denied; no live-product CTX4-04/05/06,
-real client/model, physical-device or real-Golden completion is inferred.
-Fresh main `9a742673` added AIU/AIOS documentation only; runtime proof is preserved.
+## Input Archive final interaction adoption — 2026-10-08
 
-When the new AI lane is explicitly selected, its unique first task is **AI-COST-01 — Semantic Delta / AI Job / Usage Receipt foundation**. This is planned only; current verification work is not displaced. [AI_USAGE_PLAN.md](AI_USAGE_PLAN.md) maps the dependencies.
+**IAH-1.0: DESIGN_ADOPTED / DOCUMENTATION_INTEGRATED / IMPLEMENTATION_PLANNED.**
+**ARCHIVE_RUNTIME: NOT_STARTED_BY_THIS_TASK. GLOBAL_POINTER_CHANGED: false.**
 
-## Current implementation facts relevant to AI
+Fresh review/integration base: main **1b3c3f91ea4e248fb048214fd1efceccc0b2f344**, tree **497095d5a09f12cd93707b6afd423911b3dde27e**, manifest 0.18.0. This source includes the reviewed Context access-readiness test integration and retains the existing Topic/Context mechanics. No test, manifest, code or implementation receipt is changed by this adoption.
 
-- Fresh ContextCardsService exposes manual Info, Rules and Now editing and conditionally qualified local Inputs Topic choices. Earlier Info-only descriptions apply to the initial review, not this final base. Current automatic:false and external:false flags remain.
-- New ContextMaintenanceService and ContextReadService are default-denied structural boundaries with constructor-injected trusted verifiers, lineage/authority/revision safeguards and receipts. There is no enabled real extractor, provider, transport, live connection or automatic background processor. AI-COST-03 and future authorized retrieval must reuse these owners instead of rebuilding them.
-- Neutral OrganizerProvider/CredentialProvider, local BudgetPolicy/BudgetLedger, organizerUsage, checkpoints and evidence-aware derivatives already exist. The production provider registry is empty and the inspected monetary budget is null; this is not a complete unified entitlement/billing service.
-- Retired BYO/DeepSeek setup and paid Organizer/presentation commands remain refused. Historical pure validators and lawful saved-output reading do not restore provider credentials or transport.
-- Smart Filter and ordinary lexical/paged retrieval remain local. New Pro AI Filter, remote Assist, shared maintenance scheduling and three-mode Organize are not claimed available.
-- Browser-Native Sync and Settings Consumer v2 retain their adopted planning boundaries. The new Settings target adds one style selection to the same six groups; no new production visual/persistence/Sync acceptance is claimed.
+[ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) freezes neutral Find Home; [CONTRACT](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) is the sole Archive interaction authority; [UX](INPUT_ARCHIVE_HOME_UX.md) freezes the scoped presentation; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns dependencies and acceptance; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) binds source/private references and evidence limits.
 
-All approved Topic, Context, Thought visual, Prompt, Settings and BNS outcomes remain in MASTER and the incorporated predecessor plan, with their actual implementation and permission/verification prerequisites. No unrelated requirement is cancelled.
+Final rules: primary-nav Archive opens ARCHIVE_HOME(all scope, empty query, no selected Source/Project/Conversation/Input); explicit Back/Forward and explicit-route reload restore their context. Four explicit states; one active Main search; Project is scope, Conversation is content selection; Input-first local search and exact Input arrival; temporary Smart Filter reveal without Keep; internal Back separate from verified original-site action. Home has neither Recently viewed nor common-search suggestions, feed or statistics. Narrow layouts use push navigation.
 
-## New AI lane
+Current main already clears Reader at the root and Project clicks expand groups; those are not reported as observed auto-open bugs. This adoption supplies the new Home, state/search/origin contract and planned gaps, not a new working implementation.
 
-| Outcome | State |
+| Archive outcome | Current state | Dependency/readiness |
+|---|---|---|
+| ARCHIVE-HOME-01 — route/state/origin foundation | PLANNED / NOT_SELECTED | Existing local owners available for future bounded work; owner scheduling/shared writer required |
+| ARCHIVE-HOME-02 — Home + one search + results | PLANNED | 01 and current lexical query owners |
+| ARCHIVE-HOME-03 — Browse scopes | PLANNED | 01/02 and current Source structure |
+| ARCHIVE-HOME-04 — exact Input / temporary reveal | PLANNED | 02/03 and existing Reader/eligibility |
+| ARCHIVE-HOME-05 — Back / original source / contextual entry | PLANNED | 01/03/04; live contextual evidence separate |
+| ARCHIVE-HOME-06 — responsive / reliability / acceptance | PLANNED | Applicable preceding behavior and actual evidence |
+
+**ARCHIVE-HOME-01 is only the first task of the Archive lane when explicitly selected. It is not the current global next task.** IAH does not preempt Topic, Sync, AI-COST or another current authorized lane.
+
+## Exact retained status and evidence
+
+The entire immediately preceding STATUS is preserved byte-for-byte in [STATUS_PRE_ARCHIVE_HOME_2026-10-08.md](STATUS_PRE_ARCHIVE_HOME_2026-10-08.md), blob `a8fcb26d5e5cbf2e5683c413ac535819aa0b176c`. **Its complete dated implementation facts, exact SHA/run/receipt records, quality/activation limitations and nonconflicting commitments are incorporated here.** Read that baseline for full retained evidence. It is not a second execution queue; the explicit current pointer above controls.
+
+Retained exact proof includes Topic01 main `948ea06a57cd932c187407faf7140d9fb6714eff` with full `37611452025` and Prompt `37611451822`, and Context0.15 main `0a438ccc67bb88d686d2939fa03027f09234d4ef` with full `37630385096` and Prompt `37630385120`. These are prior scoped records, not newly rerun tests or Archive acceptance. [Topic01](implementation/topic/TOPIC-01.md), [access repair](implementation/topic/TOPIC-01-ACCESS.md) and [Context receipt](implementation/context-cards/CTX4-01.md) retain their own exact evidence and unresolved boundaries.
+
+Current local Context exposes manual Info/Rules/Now editing and qualified Topic choices; structural Context read/maintenance remains default-denied, not enabled live processing. Existing neutral Organizer/budget/checkpoint machinery is not a working paid provider: production provider registration/financial admission and qualification remain incomplete. Saved lawful AI outputs stay readable. No old completed work is reopened.
+
+## Qwen-primary model-route / cost amendment — retained
+
+AIU-QWEN-1.0 remains documentation-integrated within the existing AIU/AIOS direction. Candidate models/ratebook/cost scenarios, qualification requirements and exact numeric accounting remain in AI_USAGE_ARCHITECTURE.md / COST_MODEL / PLAN / ADOPTION / REFERENCES and the retained STATUS; they are not altered or certified by IAH. No real model, paid usage, account, region/privacy qualification or service activation ran here.
+
+## New AI lane — unchanged planned outcomes
+
+| Outcome | State retained from preceding STATUS |
 |---|---|
 | AI-COST-01 Delta / Job / Receipt | PLANNED |
 | AI-COST-02 Budget / entitlement / quota / cache admission | PLANNED |
@@ -84,8 +58,10 @@ All approved Topic, Context, Thought visual, Prompt, Settings and BNS outcomes r
 | AI-COST-06 Lazy AI Assist / Orb | PLANNED |
 | AI-COST-07 Real cost / quality / budget acceptance | PLANNED |
 
+The first planned AI task remains AI-COST-01 when that lane is explicitly selected; the global pointer above is unchanged. Settings Consumer v2, BNS, Personal Topic, final Thought presentation, Prompt and Context plans retain their actual dependencies, implementation records and gates.
+
 ## Evidence and no-activation boundary
 
-Cost arithmetic uses official prices checked 2026-10-07 and explicit synthetic workloads. No real model calls, user evaluations, blind review, paid reconciliation or new production style/UI acceptance ran here. Prior fixture/browser/prototype and newly merged Context records remain unmodified; none is promoted to an AIU qualification.
+Performed by IAH adoption: fresh source/canonical review, final written design decisions, reference byte hashing, three core task design traces, dependency/gap planning, Markdown integration and exact remote readback. Design traces do not count as executed user journeys.
 
-This change is documentation only relative to the fresh integration base: no production code, schema, migration, test, manifest/version, API key, provider account, actual entitlement, subscription, charge, private data, cloud setup, installation, deployment or release modification. B-01/B-02 and affected privacy/region/commercial/runtime gates remain. Existing originals, manual work and lawful saved outputs remain available. An unset future global AI budget means no paid admission, not implicit spending permission.
+NOT_RUN by IAH: production runtime tests; source/release browser/visual checks; Task A/B/C production journeys; current logged-in contextual entry; accessibility/performance measurement; installed-profile verification; provider/model/payment qualification; schema/data migration; build/install/deployment/release. No production HTML/JS/CSS, schema, tests/workflows, manifest/version, keys, entitlements, private data or cloud resources are changed.
