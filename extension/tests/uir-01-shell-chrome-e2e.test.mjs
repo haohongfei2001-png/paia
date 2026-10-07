@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
@@ -8,7 +10,7 @@ import {compareD7Archive,seedD7Archive} from './harness/d7-archive-reference.mjs
 
 const execFileAsync=promisify(execFile);
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()),'UIR-01 local-save consent is actionable');await page.locator('#consent-check').check();await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-01 consent is durable');await eventually(()=>page.locator('#onboarding-history-step').isVisible(),'first-use Archive retains the optional history step');await page.locator('#onboarding-skip').click();await eventually(async()=>!(await page.locator('#onboarding-history-step').isVisible()),'the existing skip owner completes onboarding');}
+async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()),'UIR-01 local-save consent is actionable');await page.locator('#consent-check').check();await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-01 consent is durable');const onboarding=await rpc(page,'GET_ONBOARDING');assert.equal(onboarding.step,'history');assert.equal(onboarding.historyState,'not_started');assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'neutral Archive hides the old card without completing optional history');await page.locator('#archive-root-overflow > summary').click();await page.locator('#archive-root-history').click();await eventually(()=>page.locator('#history-dialog').evaluate(el=>el.open),'Archive menu opens the existing history owner');await page.locator('#history-close').click();assert.deepEqual(await rpc(page,'GET_ONBOARDING'),onboarding,'opening and closing the chooser does not skip or complete onboarding');}
 async function prepareArchive(h,label='UIR01_CAPTURE'){const p=h.archive;await consent(p);await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});const text=`${label} 用于验证 UI Refresh Shell 与 Archive 框架的合成输入。`;await h.open({id:label.toLowerCase(),title:'UIR-01 最近收录',base:1609459200,messages:[{id:label+'-message',text}]});await eventually(async()=>(await h.state()).records.some(row=>row.originalText===text),'synthetic capture reaches immutable Source');await p.bringToFront();await eventually(()=>p.locator('#archive-navigator').isVisible(),'Archive root is visible');return {p,text};}
 async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
 async function assertShell(p){
@@ -46,9 +48,9 @@ test('UIR-01 shell and Archive frame stay semantic across source and current-rel
   await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('#archive-navigator').isVisible(),'Settings Back restores Archive root');assert.equal(await p.locator('#universal-search-open').isVisible(),false,'global Search launcher stays absent after Settings return');await p.evaluate(()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',metaKey:true,bubbles:true,cancelable:true})));await eventually(async()=>await p.locator('#scope-search').evaluate(el=>document.activeElement===el),'Archive shortcut focuses the current-surface search');assert.equal(await p.locator('#universal-search-dialog').isVisible(),false,'shortcut does not open the internal search shell');assert.equal(await p.evaluate(()=>location.hash+location.search),'');await assertNoNetwork(h);
  }finally{await h?.close();}
 
- await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+ const releasePath=await mkdtemp(join(tmpdir(),'paia-uir01-release-'));await execFileAsync('python3',['scripts/build_current_release.py',releasePath],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  let release;
  try{
-  release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});const {p}=await prepareArchive(release,'UIR01_RELEASE');await assertShell(p);await p.setViewportSize({width:1440,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light');await p.screenshot({path:'work/ux-r1/uir-01-current-release-archive-1440x900-light.png',fullPage:true});await compareD7Archive(release,'release',{matrix:'archive',directory:'work/d7-archive-reader-compat'});await compareD7Archive(release,'release',{matrix:'reader-compat',directory:'work/d7-archive-reader-compat',seed:await seedD7Archive(release,{readerOnly:true})});await assertNoNetwork(release);
- }finally{await release?.close();}
+  release=await FakeChatGPT.start({extensionPath:releasePath,onboarding:true});const {p}=await prepareArchive(release,'UIR01_RELEASE');await assertShell(p);await p.setViewportSize({width:1440,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light');await p.screenshot({path:'work/ux-r1/uir-01-current-release-archive-1440x900-light.png',fullPage:true});await compareD7Archive(release,'release',{matrix:'archive',directory:'work/d7-archive-reader-compat'});await compareD7Archive(release,'release',{matrix:'reader-compat',directory:'work/d7-archive-reader-compat',seed:await seedD7Archive(release,{readerOnly:true})});await assertNoNetwork(release);
+ }finally{await release?.close();await rm(releasePath,{recursive:true,force:true});}
 });

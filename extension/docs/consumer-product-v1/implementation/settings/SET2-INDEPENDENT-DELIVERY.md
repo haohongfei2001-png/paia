@@ -44,3 +44,24 @@ remain PENDING. PR190 run37692797134 failures remain preserved. No current user
 installation, public release, model quality, cloud connection or paid dispatch is
 claimed. The latest owner scope includes IAH-1.1; its design/runtime work is a
 separate coordinated lane and does not enter this Settings tree.
+
+## First independent hosted candidate and follow-up
+
+Run37698542999 at85e7429 failed two unit checks that still treated0.20 as future,
+and three browser files. The complete Settings file's eight cases passed; shell
+fixtures still requested the removed Archive onboarding card. Prompt Foundation
+run37698542245 failed on the same two backup-version assertions, not a separately
+observed Prompt runtime defect. All negative logs are retained.
+
+The version fixtures now accept the exact current0.20 family and strictly reject
+0.21, major1, malformed, forbidden/private and schema/format variants. Two complete
+files pass4/4. The shell fixtures exercise actual Archive menu history, assert
+history/not_started is unchanged by opening/closing, and require completed only
+after the real synthetic import. Complete UIR01/Data/UXR1 files pass5/5 locally,
+including source/release, independent build directories and unchanged restore,
+cancel, inspection and data-preservation assertions. Coordinator review passed.
+
+The hosted Data true/false assertion did not reproduce locally; its exact checks
+remain with added diagnostic labels. This is unresolved hosted evidence, not a
+confirmed Linux fix. The next changed candidate must rerun the full affected
+files and strict receipt. These local passes are not current-head hosted PASS.

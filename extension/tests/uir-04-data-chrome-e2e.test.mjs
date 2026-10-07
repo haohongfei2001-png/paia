@@ -2,14 +2,16 @@ import {chooseConsumerGroup as chooseGroup} from './harness/settings-consumer-pr
 import {historicalBackupItems} from './harness/historical-backup-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,readFile} from 'node:fs/promises';
+import {mkdir,readFile,mkdtemp,rm} from 'node:fs/promises';
 import {execFile} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 const execFileAsync=promisify(execFile);
 const rpc=async(page,type,fields={})=>{const response=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(response.ok,true,JSON.stringify(response));return response.data;};
-async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()));await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true);if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();}
+async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()));await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true);const onboarding=await rpc(page,'GET_ONBOARDING');assert.equal(onboarding.step,'history');assert.equal(onboarding.historyState,'not_started');assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive hides the card without skipping optional import');}
 
 async function openData(page){
  const compact=await page.evaluate(()=>innerWidth<768);
@@ -46,13 +48,13 @@ async function rejectAndReselectBackup(page,backupBytes){
  const choose=async files=>{const picker=page.waitForEvent('filechooser');await page.locator('#backup-choose').click();await (await picker).setFiles(files);};
  await page.evaluate(()=>{globalThis.__s05Picker=document.getElementById('backup-choose');globalThis.__s05File=document.getElementById('backup-file');});
  await choose(invalid);await page.locator('#backup-settings[data-inspection-failure]').waitFor();await eventually(()=>page.locator('#backup-failure-return').isEnabled());
- assert.equal(await page.locator('#backup-restore').isDisabled(),true);assert.equal(await page.locator('h1:visible').count(),1);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),true);assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,false);
+ assert.equal(await page.locator('#backup-restore').isDisabled(),true);assert.equal(await page.locator('h1:visible').count(),1);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),true);assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,false,'backup rejection isolates the history destination');
  const reason=await page.locator('#backup-status').innerText();await choose([]);assert.equal(await page.locator('#backup-status').innerText(),reason,'empty picker result leaves the rejected inspection visible');
  await choose(invalid);await eventually(()=>page.locator('#backup-failure-return').isEnabled());assert.equal(await page.locator('#backup-status').innerText(),reason,'the same rejected file can be chosen again');
- await page.locator('#backup-failure-return').focus();await page.keyboard.press('Enter');await page.locator('#backup-settings[data-inspection-failure]').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'backup-choose');assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,true);assert.equal(await page.locator('#r6-export-json').count(),0);await assertDataOwners(page);
+ await page.locator('#backup-failure-return').focus();await page.keyboard.press('Enter');await page.locator('#backup-settings[data-inspection-failure]').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement?.id),'backup-choose');assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,true,'backup return restores the history destination');assert.equal(await page.locator('#r6-export-json').count(),0);await assertDataOwners(page);
  await choose(invalid);await page.locator('#backup-settings[data-inspection-failure]').waitFor();await eventually(()=>page.locator('#backup-choose').isEnabled());
  await choose({name:'UIR-04-data.paia-backup',mimeType:'application/x-ndjson',buffer:backupBytes});await page.locator('#backup-preview').waitFor({state:'visible'});
- assert.equal(await page.locator('#backup-settings[data-inspection-failure]').count(),0);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),false);assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,true);
+ assert.equal(await page.locator('#backup-settings[data-inspection-failure]').count(),0);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),false);assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,true,'backup return restores the history destination');
  assert.equal(await page.evaluate(()=>globalThis.__s05Picker===document.getElementById('backup-choose')&&globalThis.__s05File===document.getElementById('backup-file')),true,'failed and valid inspections keep the same picker and file owners');
  await page.evaluate(()=>{delete globalThis.__s05Picker;delete globalThis.__s05File;});
 }
@@ -80,8 +82,8 @@ async function restoreJourney(backupBytes,marker){
 }
 
 async function releaseJourney(backupBytes){
- await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});const h=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});
- try{const page=h.archive;await consent(page);await page.setViewportSize({width:390,height:844});await openData(page);await assertDataOwners(page);await readOnlyDetails(page,'release');assert.equal(await page.locator('#filter-advanced').count(),0,'current release keeps diagnostics pruning');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-data-390x844-light');const before=await h.state();await rejectAndReselectBackup(page,backupBytes);assert.deepEqual(await h.state(),before,'release inspection never commits a restore');assert.equal(await page.locator('#backup-restore').isEnabled(),true);await page.locator('#backup-cancel').click();assert.equal(await page.locator('#backup-preview').isVisible(),false);await assertNoNetwork(h);}finally{await h.close();}
+ const releasePath=await mkdtemp(join(tmpdir(),'paia-uir04-data-release-'));await execFileAsync('python3',['scripts/build_current_release.py',releasePath],{cwd:process.cwd(),maxBuffer:16*1024*1024});const h=await FakeChatGPT.start({extensionPath:releasePath,onboarding:true});
+ try{const page=h.archive;await consent(page);await page.setViewportSize({width:390,height:844});await openData(page);await assertDataOwners(page);await readOnlyDetails(page,'release');assert.equal(await page.locator('#filter-advanced').count(),0,'current release keeps diagnostics pruning');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-data-390x844-light');const before=await h.state();await rejectAndReselectBackup(page,backupBytes);assert.deepEqual(await h.state(),before,'release inspection never commits a restore');assert.equal(await page.locator('#backup-restore').isEnabled(),true);await page.locator('#backup-cancel').click();assert.equal(await page.locator('#backup-preview').isVisible(),false);await assertNoNetwork(h);}finally{await h.close();await rm(releasePath,{recursive:true,force:true});}
 }
 
 test('UIR-04 Data & devices separates Backup, complete export, local status and scoped Source owners while preserving explicit restore in source and current release Chrome',{timeout:300000},async()=>{
