@@ -114,3 +114,35 @@ and one coherent full certification remain required before integration.
 No paid/model/cloud operation, installed-build or whole-TOPIC-05 completion
 is claimed. The continuous Section reader/actions and its specifically deferred
 return-position replacement remain separate dependent acceptance.
+
+
+## Coordinator recovery and native successor — 2026-10-08
+
+Fresh remote main is `c9fa243d1c347e4ed5d945825e085794e4322bdd`; its latest
+change records coordinated scope and explicitly excludes IAH implementation.
+The Root runtime remains the PR185 0.19 candidate; Section reader recovery is a
+separate branch and is not included in this batch.
+
+The earlier ANS03 failure was an outstanding CAPTURE FilterRunner notification
+crossing a later negative-observation baseline. Commit `1282d5c` awaits the real
+capture completion; the original negative assertion and deadline remain intact.
+The subsequent Root native failure was a focus assertion running before the
+existing asynchronous navigation completed. Commit `c981136` awaits the exact
+canonical field becoming active, preserving the final identity/focus assertion.
+
+The complete source/release Root command now passes 2/2, zero failed, skipped or
+cancelled cases (83.03 seconds). It includes actual 30/50/100/144 Topic counts,
+search identity/position, Section targets, rename/delete/new-identity slots,
+restore of the same removed Topic and human rename, responsive viewport return,
+and deep Root → Topic → Back → Forward → Back with exact identity, native focus
+and viewport-relative anchor. Added assertions are committed as `49c0056`.
+The owning test's SHA256 was
+`73ecdac60a6b5c5205272be82000368998f02bb63c8da3a4673caeb127ee6c02`.
+The run recorded pre-commit HEAD c981136 with this exact working-tree test;
+49c0056 commits those unchanged bytes. Later main reconciliation changes only
+coordination documentation. Earlier failure/cancellation logs remain retained.
+
+This is local synthetic isolated headless Chrome source/release evidence. It does
+not replace the required coherent full certification for the Root caller/read/
+backup admission boundaries, final visual acceptance, installed build or whole
+TOPIC-05 completion. The full certification is the next integration gate.
