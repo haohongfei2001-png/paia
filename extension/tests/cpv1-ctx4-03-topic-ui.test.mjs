@@ -344,3 +344,30 @@ test('CTX4-03 a superseded conflict read cannot overwrite a newer read failure o
  const saving=inputs.toggle(id);document.activeElement=document.body;await entered.promise;assert.equal(await inputs.refresh(),false);const retry=inputs.status.querySelector('button'),text=inputs.status.textContent;assert.equal(document.activeElement,retry);
  held.resolve();assert.equal(await saving,false);assert.equal(inputs.status.querySelector('button'),retry);assert.equal(inputs.status.textContent,text);assert.equal(document.activeElement,retry);assert.equal(retry.isConnected,true);
 }));
+
+
+for(const key of ['inputs','global'])for(const phase of ['acknowledgment','snapshot'])test(`CTX4-03 persisted ${key} access and visible content do not certify settled page access at ${phase}`,()=>fixture(async({cards,makePage,transport,dispatch})=>{
+ const prior=(await cards.snapshot()).access[key];
+ await cards.change({kind:'access',key,enabled:false,expectedRevision:prior.revision,operationId:op(),epoch:'initial'});
+ const page=makePage();await page.open(key==='inputs'?'inputs':null);const entered=deferred(),held=deferred();let captured=false;
+ transport.dispatch=async message=>{
+  const value=await dispatch(message),target=phase==='acknowledgment'?'PAIA_CONTEXT_CARDS_CHANGE':'PAIA_CONTEXT_CARDS_SNAPSHOT';
+  if(!captured&&message.type===target){captured=true;entered.resolve();await held.promise;}
+  return value;
+ };
+ const saving=page.toggle(key);
+ try{
+  await entered.promise;
+  assert.equal((await cards.snapshot()).access[key].enabled,true,'actual durable access is already saved');
+  if(key==='inputs'){
+   assert.equal(page.inputs.root.getAttribute('aria-busy'),'false','previous complete Topic rows remain visible');
+   assert.equal(page.inputs.nodes.size,3);assert.ok([...page.inputs.nodes.values()].every(node=>!node.disabled));
+   assert.equal([...page.inputs.nodes.values()].filter(node=>node.tabIndex===0).length,1);
+  }else assert.equal(page.host.querySelectorAll('.context-card').length,4,'Home cards remain visible before global access settles');
+  const header=page.host.querySelector('.context-access');assert.equal(header.disabled,true,'page access owner still holds its operation');
+  assert.equal(page.busy,true);assert.equal(await page.leave(),false,'early navigation preserves pending access and stays on the current page');assert.equal(page.page.inert,false);
+  held.resolve();await saving;
+  assert.equal(page.busy,false);assert.equal(header.disabled,false);assert.equal(header.getAttribute('aria-pressed'),'true');
+  assert.equal(await page.leave(),true,'normal navigation succeeds after the same access owner settles');assert.equal(page.page.inert,true);
+ }finally{held.resolve();await saving;}
+}));

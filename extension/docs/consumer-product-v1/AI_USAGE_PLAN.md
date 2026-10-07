@@ -3,9 +3,11 @@
 Plan: **AIU-PLAN-1.0**, 2026-10-07. Status: **PLANNED / NO_RUNTIME_WORK_STARTED**.
 Product/entitlement authority: [AI_USAGE_ARCHITECTURE.md](AI_USAGE_ARCHITECTURE.md). Transformation: [STYLE](AI_ORGANIZE_STYLE_CONTRACT.md). Adoption and supersession: [ADOPTION](AI_USAGE_ADOPTION.md). STATUS alone selects execution.
 
+**Scoped refinement AIU-QWEN-1.0, 2026-10-08:** section 12 adds Qwen-primary qualification to these same seven outcomes. It does not replace their dependencies, Free/Pro policy, three styles or domain owners. All real-model and financial acceptance remains NOT_RUN. Current source is main `8c7561166e6fd617455e05ce19b1c65582b85692`; source/status distinctions are recorded in ADOPTION and STATUS.
+
 ## 1. Execution rule
 
-Preserve the current CPV1-TOPIC-01 exact-main verification closure and all approved non-AI work. This plan adds a dependency graph, not a second scheduler or a blanket authorization to implement. When the AI lane is selected, its unique first task is AI-COST-01. No real provider or paid test follows merely from merging this documentation.
+Preserve current STATUS's scoped Topic-01 completion, selected Topic-02 closure and all approved non-AI work, including already merged Topic-02/03/04 mechanics whose applicable exact-main completion remains evidence-controlled. Do not reimplement integrated foundations or advance their certification from this document. This plan adds a dependency graph, not a second scheduler or a blanket authorization to implement. When the AI lane is selected, its unique first task is AI-COST-01. No real provider or paid test follows merely from merging this documentation.
 
 Prefer the existing domain owners and stores: OrganizerProvider/CredentialProvider, BudgetPolicy/BudgetLedger, organizerJobs/work items/organizerUsage/operationReceipts, Entry/Input revision and source gateways, Topic identity/constraints, AI presentation/candidate/checkpoint owners, ContextCardsService, Smart Filter, existing Prompt surface and shared preference normalization/acknowledgement. Introduce physical stores only after a justified bounded schema decision preserving all existing invariants; never add a second copy of the Archive or another preference/entitlement contract.
 
@@ -27,7 +29,7 @@ Cross-plan dependencies:
 
 | Existing plan owner | Relationship |
 |---|---|
-| TOPIC-01 identity/human intent | Foundation prerequisite; keep current verification closure rather than reimplementing it |
+| TOPIC-01 identity/human intent | Foundation prerequisite; preserve its current scoped completion and receipt, rather than reimplementing it |
 | TOPIC identity retrieval and formation slices | Consumed by AI-COST-03; forming an identity requires their actual qualified policies, not just a model response |
 | Context Cards v2 manual Item/lifecycle/protection and automatic-maintenance slices | Preserve CTX4 ownership/phase gates. Shared remote extraction consumes AI-COST-03; a missing card capability remains unavailable, not faked |
 | Thought visual authority / TOPIC-05.7 AI reading | Consumes AI-COST-05 derivative/cache/style contract; no new reader or durable Section owner |
@@ -121,3 +123,67 @@ Rollback disables new paid admission and revokes new transient execution leases 
 ## 11. Completion taxonomy
 
 DESIGN_ADOPTED, IMPLEMENTED_LOCAL, FIXTURE_VERIFIED, REAL_PROVIDER_QUALIFIED, FINANCIALLY_RECONCILED, PRODUCTION_VERIFIED and OWNER_VISUAL_ACCEPTED are separate statuses. No earlier status implies a later one. This plan currently reaches only DESIGN_ADOPTED with calculated synthetic workload estimates. Current next execution remains whatever STATUS selects; the first task in this new AI lane is AI-COST-01.
+
+## 12. Qwen qualification refinement — same AI-COST-01 through 07
+
+Authority: Architecture section 15, AIU-QWEN-1.0; price/reproduction: COST_MODEL section 11; official evidence and unresolved conflicts: REFERENCES Q01–Q16. This section adds acceptance details to the existing outcomes, not seven new stages or a separate Qwen product. The current task changes documents only. No API experiment, provider registration, SDK transport implementation or real-user test is authorized here.
+
+### AI-COST-01 addition — neutral identities remain neutral
+
+Keep Semantic Delta, job/facet, evidence, quota and receipt schemas PAIA-owned. Provider/route/pricing/FX identifiers can be opaque metadata, never Qwen-specific domain types or body stores. Distinguish planned semantic adjudication from transport retries, and represent native billing evidence plus a single normalized cost in one receipt. Do not wire a Qwen SDK into Capture, Topic, Context or the Prompt surface.
+
+Local acceptance additionally proves that route/snapshot changes do not mutate Topic IDs, permissions, human work, style or entitlements; a provider field in an untrusted request does not choose the trusted route; and native currency cannot create a second allowance. Preserve the existing local-only first-slice scope. The unique next AI implementation remains this foundation, not a paid Max call.
+
+### AI-COST-02 addition — Qwen adapter, ratebook and trusted financial boundary
+
+Specify and then, only in separately authorized engineering, implement a server-side Qwen adapter against the qualified workspace-specific regional API profile. Reuse the neutral provider/job interface and current dormant domain commit boundaries. Credentials remain only in the trusted service; no client key, account-creation UI, Archive backend or subscription backend is introduced by this refinement.
+
+Build fixture-backed ratebook handling for exact model/alias or snapshot, region/deployment scope, account market/native tariff, tokenizer, API, thinking, standard/cached/create/read/Batch categories, effective date and expiration. Add CNY reservation normalized once into the existing USD ledger under Architecture's signed FX policy. Separate planned result quota from physical attempts, native estimated/settled cost, normalized reservation and financial adjustments.
+
+Test official response-shape fixtures for normal and streaming usage, reasoning as a subset of completion tokens, cache/create as disjoint parts of input, absent final usage and malformed totals. Validate `max_completion_tokens` plus the documented overshoot headroom; `max_tokens` alone cannot establish a total-cost bound. No uncontrolled thinking default, repeated private reasoning history or uncapped JSON repair is allowed. Strict JSON schema and evidence validation remain separate tests.
+
+Exercise expired pricing/FX, uncertain currency, cross-region key misuse, alias/snapshot capability mismatch, provider quota shared across tenants, concurrent principal reservations, server restart, canceled streaming, repeated request IDs, unknown outcome and delayed bill arrival. Provider request IDs or an SDK retry option do not prove idempotency. A Batch custom ID cannot authorize resubmission. Preserve all unsettled reservations and stop new affected admission on unresolved cost/capability state.
+
+Deliver an auditable qualification record for actual account billing/region/retention and an allowlist of supported API parameters. Fixture PASS is not live billing enforcement. All model calls stay off until the already required service/commercial/processing gates are independently satisfied.
+
+### AI-COST-03 addition — Flash maintenance and selective Max adjudication
+
+First compare non-thinking `qwen3.8-flash`, `qwen3.7-plus` as an intermediate challenger, and Max on a frozen, independently held-out multi-facet corpus. Pin the Max snapshot where supported; record the rolling Flash alias and test date. Keep identical authorized source access, semantic-delta scopes and decision thresholds. No vendor gets a larger evidence set that could masquerade as a model improvement.
+
+Measure routing correctness and coverage/DEFER, missed/unnecessary/duplicate formation, identity versus lexical similarity, alias/dormant/removed retrieval, keep-separate, quotation/third-party/hypothetical distinction, uncertainty, temporal scope, Info/Rules unsupported claims and Now freshness. Apply existing stricter Context thresholds and report denominators/confidence intervals. A small grammar fixture cannot prove a 0.1% population error bound; insufficient evidence leaves qualification pending.
+
+Predeclare risk features and compare direct Max against a successful structured first pass followed by optional scoped Max adjudication. Report error reduction, extra tokens, extra physical requests, latency and observed escalation rate. Calibrate acceptance risk on held-out data, not model-reported confidence alone. Missing evidence/human protection remains DEFER under both models. A failed or unknown first request never enters this escalation branch.
+
+Enforce the unchanged two-child maintenance cap across partitioning and adjudication together. Include a saturated two-part cycle that must defer a further semantic check, partial facet completion without repeated whole-batch costs, and the no-delta/sleep-resume cases already specified. Never force two stages just to demonstrate a router. Reuse ContextMaintenanceService's verifier, association, lineage and atomic commit; do not add a separate Context extractor scheduler.
+
+### AI-COST-04 addition — Qwen ambiguous filtering only
+
+Benchmark the qualified low-cost route within existing maintenance payloads, not a second all-Input service. Include user-important confirmations, corrections, negation, attachment/reference cases, edits/keep/restore, quotes and limited-context examples. Report precision and meaningful coverage separately; compare directly to Smart Filter and KEEP/DEFER. A high filtering rate is not a success criterion. Do not spend Max merely to force a filter decision.
+
+Evaluate provider Batch only as a future offline evaluation/backlog optimization with the actual model/region capability. Resolve the Flash model-page/generic-Batch support conflict before any live Batch test. Normal Free periodic and Pro hourly freshness cannot be replaced by a 24-hour Batch contract. Failed-row pricing and file retention are tested under the exact API, never generalized to all request failures.
+
+### AI-COST-05 addition — primary qwen3.8-max Organize qualification
+
+This is the principal high-quality model acceptance. Use the same frozen and held-out Topic material for all three existing transformation policies; do not edit AIOS-1.0 to fit a model. Initial primary candidate: `qwen3.8-max-0902` / exact qualified API-region profile. Compare main alias only with a separate versioned receipt. No lower model is admitted to Original merely because its label implies less rewriting.
+
+For each style, test typical incremental, typical full scope, 200+5 additions, multi-step incremental drift, long Topics within four children, removed/changed evidence, protected derivative edits, chronology changes, contradictions and unknown time. Original must retain exact source spans and can return grouping/ref instructions instead of re-emitting text; measure actual output savings without dropping evidence. Balanced must improve trimming/stitching/coherence while retaining characteristic phrases, stance and qualifiers. Concise must compress without new claims, fabricated current beliefs or third-person analysis.
+
+Compare explicit non-thinking and bounded-thinking profiles under the same total billed-output ceiling. Record reasoning/final token split, valid-schema completion, fidelity and cost; a profile that leaves too little room for a valid answer is not qualified by a lower bill. Do not silently grant a larger cap for thinking. Flash/Plus challenger qualification is optional and paired under the same quality criteria, not a style-to-model mapping.
+
+Retain STYLE's blinded within-author method and existing minimum evidence requirements. Randomize model/style labels, provide original evidence, and measure semantic fidelity, unsupported claims, voice, uncertainty, chronology, evidence coverage, compression and “这还是我” separately. A real author judgment is not replaced by another LLM judge or synthetic developer preference. No benchmark or blind review is claimed run in this amendment.
+
+### AI-COST-06 addition — low-latency Qwen Assist qualification
+
+Qualify non-thinking Flash first; compare Plus or direct Max only where a benchmark demonstrates material relevance/actionability improvement compatible with the existing one-child latency/cost envelope. Pro does not imply Max. Measure time to first token and time to a valid usable suggestion separately, including gateway/network and actual approved regions. Predeclare acceptance thresholds before testing; do not infer latency from price or provider marketing.
+
+Include DEFER/no-necessary-suggestion, prerequisites not yet satisfied, user-intent alignment, conditional wording, current-reply-only access, relevant versus irrelevant Context changes and newest-reply invalidation. Ten opens of one fingerprint still share one result; ordinary orb opens and unseen replies cost zero. Keep remote hover prefetch off and click-to-insert/no-send unchanged. A late/failed/truncated response keeps local Prompt Reuse usable without a paid Max fallback.
+
+### AI-COST-07 addition — real Qwen pilot and financial acceptance
+
+Only after separate authorization, run a bounded synthetic/consented pilot on an actual approved commercial account and region. The existing proposed $50 evaluation ceiling remains a proposal, not spending approval, and is normalized under the same FX rule for CNY invoices. It may be insufficient for final statistical qualification; report incomplete evidence instead of expanding spending or weakening thresholds.
+
+Produce versioned ratebook and route qualification receipts, actual native-currency bills versus per-operation token estimates, normalized FX reconciliation, and all unknown/uncommitted paid work. Test provider audit metadata versus delayed authoritative bills, absence of optional full-body logging, retention/deletion handling, implicit cache isolation, and API/model/region support conflicts. A no-training statement must not be reported as zero retention. If private-processing terms cannot satisfy the chosen route, keep it unavailable.
+
+Replay A/B unchanged-workload arithmetic independently, then C as explicitly separate offered-load stress. Measure actual p50/p95/p99/max by job, tier, style, token length, region, cache and thinking policy, with sample sizes. Replace the synthetic tail with measured distributions only when there is actual evidence. Verify that financial admission stops overlimit C requests, including extra children/reasoning, without blocking original/manual/cached product use. Repeated ordinary-use stops require transparent engineering/commercial remediation and, where necessary, a separately requested owner allowance decision.
+
+Final acceptance remains the existing framework: real qualified Qwen route, finances reconciled, domain protection intact, exact-main/source-release verification and required real client/device evidence. Price-table arithmetic, a successful single API call or a schema-valid response closes none of these other gates. No new stage, authority document, UI design or production activation is created by this plan refinement.

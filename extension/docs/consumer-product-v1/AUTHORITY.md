@@ -1,59 +1,56 @@
 # Authority and Source Policy
 
-Current scoped amendment: **AIU-1.0 / AIOS-1.0, 2026-10-07**.
+Current scoped adoption: **IAH-1.0, 2026-10-08 — Input Archive Home / Find / Browse / Reader**. Existing **AIU-1.0 / AIOS-1.0 / AIU-QWEN-1.0**, BNS, Settings, Personal Topic, Thought and Context adoptions remain unchanged outside the exact Archive scope below.
 
 ## 1. Current authority order
 
-1. Latest explicit owner decisions for their stated scope, including AI usage/cost/quality/styles, Browser-Native Sync, Settings Consumer v2, Thought final visual adoption, Personal Topic Architecture and AI Context Cards v2.
-2. Connected Google Drive PAIA设计想法, only where not superseded by a later explicit owner decision.
-3. PRODUCT_INTENT_CONTRACT.md and the scoped normative contracts mapped below. A scoped contract controls its stated domain, not unrelated surfaces.
-4. UX_CONTRACT.md and explicitly adopted visual/interaction authorities, subject to product/data/privacy semantics.
-5. TECHNICAL_PLAN.md, MASTER_PLAN.md and scoped development plans. **STATUS.md alone selects execution and the current next task.**
-6. Existing PRODUCT.md / ARCHITECTURE.md / ROADMAP.md and retained older contracts only where nonconflicting.
-7. Current implementation as evidence of what exists, never proof of what the product should be or of a new capability's quality.
+1. Latest explicit owner decisions within their stated scope, including IAH-1.0 and the previously adopted AI usage/styles/Qwen, Browser-Native Sync, Settings Consumer v2, Personal Topic, Thought presentation and Context Cards decisions.
+2. Connected Google Drive PAIA设计想法 only where not superseded by a later explicit owner decision.
+3. PRODUCT_INTENT_CONTRACT.md and the normative domain contracts mapped here; a scoped contract controls its domain, not unrelated spaces.
+4. UX_CONTRACT.md and explicitly adopted visual/interaction references, subordinate to product/data/privacy semantics and the latest scoped written decisions.
+5. TECHNICAL_PLAN.md, MASTER_PLAN.md and scoped development plans. **STATUS.md alone selects execution and the current global next task.**
+6. Existing PRODUCT.md / ARCHITECTURE.md / ROADMAP.md and retained earlier contracts where nonconflicting.
+7. Implementation is evidence of what exists, not proof of intended behavior, quality or acceptance.
 
-The complete immediately preceding authority policy is preserved byte-for-byte in [AUTHORITY_PRE_AI_USAGE_2026-10-07.md](AUTHORITY_PRE_AI_USAGE_2026-10-07.md). Its private-source restrictions, unaffected product decisions, evidence rules and nonconflicting requirements are incorporated here. Its earlier current-status/row-count/AI-trigger statements are historical where the scoped amendments below supersede them; it is not a second current authority index.
+The entire preceding authority policy is retained exactly in [AUTHORITY_PRE_ARCHIVE_HOME_2026-10-08.md](AUTHORITY_PRE_ARCHIVE_HOME_2026-10-08.md), Git blob `b9c0745a65267173834634dbf2943a4626dc120f`. Its complete nonconflicting requirements, domain decisions, gates, source/evidence policy and incorporation of earlier records remain normative. Read that baseline for their full wording. This current overlay changes only the stated Archive contract and its routing in the authority map; it neither silently deletes earlier obligations nor starts another queue. Historical current/next pointers in snapshots never override current STATUS.
 
-## 2. AI Usage / Cost / Quality / Free–Pro — current scoped adoption
+## 2. Input Archive — current scoped adoption
 
-[AI_USAGE_ADOPTION.md](AI_USAGE_ADOPTION.md) records the source audit, scope, preserved requirements and exact supersession. [AI_USAGE_ARCHITECTURE.md](AI_USAGE_ARCHITECTURE.md), AIU-1.0, is the **single normative AI job, entitlement, quota and budget contract**. [AI_ORGANIZE_STYLE_CONTRACT.md](AI_ORGANIZE_STYLE_CONTRACT.md), AIOS-1.0, owns the global three-mode transformation/voice/evidence preference. [PLAN](AI_USAGE_PLAN.md) owns dependencies; [COST_MODEL](AI_USAGE_COST_MODEL.md) owns calculated assumptions; [REFERENCES](AI_USAGE_REFERENCES.md) owns evidence. Do not duplicate allowance tables into another active contract.
+[INPUT_ARCHIVE_HOME_ADOPTION.md](INPUT_ARCHIVE_HOME_ADOPTION.md) records the owner-directed final freeze and exact supersession. [INPUT_ARCHIVE_INTERACTION_CONTRACT.md](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) is the **sole current Archive interaction authority**. [UX](INPUT_ARCHIVE_HOME_UX.md) supplies final composition and states; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) supplies dependencies, gaps and acceptance; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) binds sources/private assets and evidence limits.
 
-PAIA remains a reliable local-capable data product. Capture, Source/Input operations, Sync, permissions, ordinary search, UI/navigation, Smart Filter, Smart Orb and existing output reads do not invoke a remote LLM. External authorized Context retrieval performs authorization/search/evidence/read only; the external AI reasons for itself.
+**Fresh Archive Entry is not Resume Previous Reader. Back restores context; primary navigation opens Home.** Every ordinary Archive open/primary-nav Archive action targets ARCHIVE_HOME: all scope, empty query, no selected Source/Project/Conversation/Input and no old Reader body, after existing save/IME guards. Explicit Back/Forward and explicit-route reload restore their recorded contexts instead of guessing by session age.
 
-Remote work is admitted through AI_MAINTENANCE, AI_ORGANIZE and AI_ASSIST. Meaningful semantic delta, shared maintenance, cache, incremental processing and immutable usage receipts govern cost. Free and Pro share durable Topic/Context quality gates; differences are freshness and active generation volume. Model price is not proof of fidelity. All exact allowances and initial safety ceilings live only in Architecture.
+The four product states are ARCHIVE_HOME, SEARCH_RESULTS, BROWSE_SCOPE and CONVERSATION_READER. Project selection is scope; only explicit content selection opens Reader. Home has minimal Find copy and one primary search, no Recently viewed, common-search suggestions, feed or dashboard. Exactly one active content-search field lives in Main in every state, with explicit scope; no duplicate navigator search. Search results foreground current Input text, land at the actual Input and preserve their return context.
 
-The new global **AI 整理方式** preference has 原话优先 / 平衡整理 (default) / 更加概括 for both tiers. It changes derivative transformation only, not original bodies, human organization, durable Section identity, Topic permissions or ON/OFF ownership. Setting changes never regenerate the whole Library. All modes retain voice, uncertainty, chronology and traceable evidence.
+Ordinary local Find includes otherwise eligible smart-filtered Inputs; navigation permits a narrow temporary view exception, not Keep, restore or another permission. Removed/purged/otherwise ineligible material remains excluded. Main Back stays in PAIA; verified `在 ChatGPT 中打开` is a separate secondary action. Generic extension open never infers Reader intent from the host tab. Local lexical/full-text search remains zero remote AI and creates no AI job.
 
-This adoption supersedes lower-order conflicting per-Input/per-feature paid invocation, automatic generation on opening, hidden paid retries, full-profile rebuilding, all-Input AI filtering, degraded Free durable quality and style paywalls exactly as ADOPTION specifies. Existing retired BYO/direct-provider transport remains retired; saved legally readable output and user work remain protected. Historical byte/request budgets are not the new financial entitlement. Implementation is planned, not activated.
+IAH overrides only conflicting blank-root/search placement, ambiguous fresh/resume, Project/disclosure, result/Back and narrow-entry clauses in older UX, extension/PRODUCT, ANS, Consumer Cleanup and D6/D7 material, as enumerated in ADOPTION section 3. It does not claim current code exhibited every prohibited behavior. Current main already has an intentionally unselected root and Project disclosure; these correct foundations are preserved.
 
 ## 3. Preserved domain authorities
 
-| Domain | Current authority and scope |
+| Domain | Controlling source and unchanged boundary |
 |---|---|
-| Browser-Native Sync | BROWSER_NATIVE_SYNC_ADOPTION.md / CONTRACT / UX / PLAN / REFERENCES, BNS-1.0. Optional personal-cloud account binding; one Sync Core; no PAIA username/password/content-sync server. Chrome defaults to Google Drive, Edge to OneDrive, Safari to CloudKit/native bridge. Browser login is not storage consent. AIU adds only the consumer style preference to future sync; no jobs/caches/active grants/entitlement credentials are restored active |
-| Settings Consumer v2 | SETTINGS_CONSUMER_V2_ADOPTION.md and PLAN, with retained BNS and new STYLE amendments. Six unchanged groups; current final target 22 primary rows and one secondary position reset. No account/model/budget dashboard or broader Settings redesign |
-| Personal Topic semantics | TOPIC_ARCHITECTURE.md, PT-1.0; PLAN and ADOPTION retain identity-first admission, Topic -> Section -> Entry depth, one Library, hidden evidence candidates, human field/edge authority, keep-separate/removal fences, multi-placement and taxonomy independence. AIU supplies shared processing, not a replacement identity system |
-| Thought presentation | THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md / REFERENCES, TL-PT1-UI-1.0. Stable Topic blocks with real named Section overview, continuous original reading, derivative AI reading in the same Library. STYLE is a bounded transformation amendment, not a new UI or durable Section creator |
-| AI Context Cards v2 | AI_CONTEXT_CARDS_V2_ADOPTION.md / PLAN / REFERENCES. Independent editable Info/Rules/Now Items plus Inputs Topic-access references; human edits/removals outrank AI; external permissions stay restrictive. AIU supplies shared automatic maintenance and provider-free ordinary retrieval |
-| Prompt Reuse / Smart Orb | PROMPT_REUSE_SURFACE.md and PROMPT_REUSE_STAGE_3A.md preserve local personal prompt families/manual order/insertion/no-send and default-off local ephemeral latest-reply suggestions. AIU separately defines opt-in intent-driven remote Assist; Stage 3A consent is not extended |
-| Source / Working Input / human facts / recovery | Existing product/technical/trust invariants remain. No AI write-back into protected bodies or organization; current source eligibility and unresolved permanent-purge gates remain |
+| AI usage / quality / Free–Pro | AI_USAGE_ARCHITECTURE.md is the sole job/entitlement/quota/budget authority; AI_USAGE_ADOPTION/PLAN/COST_MODEL/REFERENCES retain their full scope. No duplication or change of allowances here. |
+| Qwen-primary candidate qualification | AIU-QWEN-1.0 in the AI usage set remains the scoped candidate/ratebook/FX refinement, not a running model service or permission to spend. |
+| AI Organize style | AI_ORGANIZE_STYLE_CONTRACT.md; all three styles, derivative-only transformation, evidence and lazy invalidation unchanged. |
+| Browser-Native Sync | BROWSER_NATIVE_SYNC_ADOPTION/CONTRACT/UX/PLAN/REFERENCES; one Core and qualified adapters, no PAIA account/content backend. Archive routes, queries, result sessions and temporary reveals are not portable canonical state. |
+| Settings Consumer v2 | SETTINGS_CONSUMER_V2_ADOPTION/PLAN/REFERENCES with BNS/AIOS amendments; six groups, 22 primary rows plus existing secondary reset unchanged. No new resume/search/account setting. |
+| Personal Topic semantics | TOPIC_ARCHITECTURE.md / PLAN / ADOPTION; one Library, stable identity, human authority, hidden candidates, finite depth and taxonomy independence unchanged. A Source Project is not a Topic. |
+| Thought presentation | THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md / REFERENCES; Root grid and same-Library continuous Section reader unchanged. Archive Results is not a new Thought result directory. |
+| AI Context Cards v2 | AI_CONTEXT_CARDS_V2_ADOPTION/PLAN/REFERENCES; independent Items and restrictive Topic access unchanged. Archive Find does not create external Archive fallback. |
+| Prompt Reuse / Smart Orb | PROMPT_REUSE_SURFACE.md and PROMPT_REUSE_STAGE_3A.md; local families, manual intent, fill-only and default-off ephemeral reply scope unchanged. |
+| Source / Working Input / human work / recovery | Full predecessor Product/Technical/UX contracts and current safety owners; bodies, identity, provenance, time, revisions, edits, tombstones and recovery unchanged. |
 
-Earlier list/Years/candidate-inbox Thought designs, old Context compiler/profile products and conflicting Settings inventories remain historical under their existing adoption ledgers. Current source reads do not reopen them. The retained standard 17px/680px shared reading role and saved user preferences remain; no independent font system is introduced.
+Existing shared visual roles, brand, typography and explicit saved reading preferences remain. The prior poster cannot override the final written rule on primary navigation, recents or suggestions. Private mock/prototype controls and samples are not production requirements or copied user records.
 
 ## 4. Gates and activation distinctions
 
-B-01 remains the owner decision for direct editing of old Thoughts versus appended correction. B-02 remains the permanent Source deletion treatment of user-rewritten derivative work. BNS resolves B-03 only for its specified optional personal-cloud relationship/trust model; it does not resolve AI-service residency/retention or all external processing.
+The complete prior gate policy is incorporated from the exact baseline. B-01/B-02 are not resolved by Archive navigation. BNS retains only its scoped B-03 resolution. Stage 3A and AIU's separate remote Assist consent/capability boundaries, B-04/B-05, provider/region/retention/payment and actual installation/release gates are unchanged. A Source URL or internal route is not an authorization grant.
 
-B-04-3A remains resolved for default-off local ephemeral analysis of the newly completed latest reply only, with no durable reply or external inference. AIU now defines the narrow AI Assist remote latest-reply product scope; actual user processing consent, qualified provider/region/privacy, service implementation and paid activation remain gated. Broader reply history, durable assistant-reply archiving, training reuse and auto-send are not authorized. The optional short-lived response handoff in AIU requires explicit service retention qualification; it is not a claim about provider policies.
-
-B-05 remains for region, service burden, commercial identity/payment selection, pricing and launch commitments. A future pseudonymous AI entitlement principal is distinct from personal-cloud authorization and does not require a PAIA password account or content cloud. This documentation creates no account, key, subscription, active entitlement, connection, spend authorization or backend.
-
-These gates block only affected behavior. Ordinary local capture/read/search/manual work and previously lawful cached reads cannot be blocked by AI quota or an unavailable provider. No historical PASS qualifies new runtime, quality, live-provider, financial or visual behavior.
+This adoption authorizes documentation and planning only: no runtime, UI, schema, tests/workflows, version, model, account, provider key, cloud resource, billing, real-data migration, deployment or release change. Ordinary local content remains usable under its own existing eligibility, not an AI-service or quota gate. ARCHIVE-HOME-01 is a planned lane entry, not a new global pointer or active writer.
 
 ## 5. Privacy, evidence and conflict handling
 
-The repository is public. Do not copy full private Drive text, private reviews, screenshots, archives, user examples or prompt bodies here. Public contracts contain necessary adopted decisions and explicitly synthetic examples. Preserve existing source hashes and prior acceptance evidence; the immediately prior Authority snapshot retains earlier source-identification records. New cost telemetry is body-free and is not a revival of retired product diagnostics.
+The repository is public. Private instruction bodies, reviews, screenshots, archives, user examples and identifying fixtures stay private. REFERENCES records hashes and necessary source facts, not the private originals. Public acceptance fixtures are synthetic/sanitized. No new analytics or query/body audit collector is authorized.
 
-Conflicts must be marked preserved, superseded or historical with stated scope. Do not silently choose the convenient old paragraph. Current technical parameters can evolve within an adopted contract, but changes to quotas or product promises must update the one Architecture authority and its rate/cost evidence. A new price or model version does not automatically rebuild user data or change the style policy.
-
-Design adoption, local implementation, fixture verification, real-provider qualification, financial reconciliation, production verification and owner visual approval are distinct. The current AI task completes design/cost/planning integration only. Prior records and snapshots remain evidence, not alternate active queues. STATUS records the scoped foundation closure and the sole current next task; AI-COST-01 remains the first planned task of the new AI lane, without activation by this receipt update.
+Preserve all historical successes and failures with their original scope. Mark conflicts preserved/superseded/historical rather than silently choosing an old clause. Design adoption, source review, production implementation, mechanical tests, real-provider/device verification, performance/accessibility, visual approval and release are separate evidence classes. This task supplies design/plan/documentation integration, not those future runtime claims.
