@@ -72,7 +72,7 @@ for(const variant of ['source','release'])test(`D2 Content trusted chronology, b
    const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__d2ContentReads=[];chrome.runtime.sendMessage=(message,...args)=>{const openIntent=globalThis.__d2Content?.openIntent;return Promise.resolve(send(message,...args)).then(result=>{if(message.type==='TOPIC_DOCUMENT_PAGE'&&result?.ok){const read={options:message.options,ids:result.data.items.map(row=>row.entry.id),openIntent};__d2ContentReads.push(read);globalThis.__d2ReturnEvidence?.record('page-result',{...read,generation:result.data.coverage?.activeGeneration,cursorInvalid:result.data.cursorInvalid||false});}return result;});};
    return {topicId:topic.id,ordered,records};
   });
-  await p.locator('[data-view="thoughts"]').click();await eventually(()=>p.locator(`[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`[data-topic-id="${seed.topicId}"]`).click();
+  await p.locator('[data-view="thoughts"]').click();await eventually(()=>p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).click();
   await eventually(()=>p.locator('#original-reading-body [data-entry-id]').count().then(n=>n>=40),'first Content page');
   await p.evaluate(installReturnEvidence,{topicId:seed.topicId,targetId:seed.ordered[140]});
   assert.equal(await p.locator('#topic-time-order [data-reading-sort]').count(),1,'one frozen order toggle');assert.equal(await p.locator('#original-reading-body .reading-copy').count(),0,'Copy remains in row overflow');
@@ -91,7 +91,7 @@ for(const variant of ['source','release'])test(`D2 Content trusted chronology, b
   await p.locator('#topic-search').fill('');await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'closing search restores reading extent');assert.equal(await p.evaluate(()=>__d2Content.topicReader.items.length),165);
   // Preserve the original rapid pointer path, without a new settle before Back.
   // Its native auto-scroll may advance the window before the trusted click.
-  await p.locator('#back').click();await eventually(()=>p.locator(`[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));
+  await p.locator('#back').click();await eventually(()=>p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));
   const rapidSaved=await p.evaluate(topicId=>{
    const events=__d2ReturnEvidence.events,index=events.findLastIndex(row=>row.name==='click'&&row.detail.id==='back'&&row.detail.trusted),click=events[index];
    const record=events.slice(index+1).filter(row=>row.name==='rememberContent:returned'&&row.state.topicId===topicId&&row.state.saved).at(-1);
@@ -99,7 +99,7 @@ for(const variant of ['source','release'])test(`D2 Content trusted chronology, b
    return structuredClone({clickAt:click.at,savedAt:record.at,readCount:record.state.readCount,snapshot:record.state.saved});
   },seed.topicId);
   assert.deepEqual(rapidSaved.snapshot.extent,seed.ordered);assert.ok(rapidSaved.snapshot.anchor,'rapid pointer retains its actual saved anchor');const rapidAnchorIndex=seed.ordered.indexOf(rapidSaved.snapshot.anchor.id);assert.ok(rapidAnchorIndex>=rapidSaved.snapshot.windowStart&&rapidAnchorIndex<rapidSaved.snapshot.windowStart+120,'saved anchor belongs to its saved body window');
-  await p.locator(`[data-topic-id="${seed.topicId}"]`).click();await eventually(()=>p.locator(`[data-entry-id="${rapidSaved.snapshot.anchor.id}"]`).count().then(n=>n===1),'rapid pointer return refetches the actual saved anchor');
+  await p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).click();await eventually(()=>p.locator(`[data-entry-id="${rapidSaved.snapshot.anchor.id}"]`).count().then(n=>n===1),'rapid pointer return refetches the actual saved anchor');
   const rapidPointer=await assertReturnedWindow(p,{ids:rapidSaved.snapshot.extent,references:rapidSaved.snapshot.references,windowStart:rapidSaved.snapshot.windowStart,generation:rapidSaved.snapshot.generation,target:{id:rapidSaved.snapshot.anchor.id,top:rapidSaved.snapshot.anchor.top},readCount:rapidSaved.readCount},'rapid pointer return');rapidPointer.trustedDeparture=rapidSaved;
   const returnPaths={rapidPointer},retainPaths=()=>writeFileSync(`work/qa-dvn-topic-content/${variant}-return-paths.json`,JSON.stringify(returnPaths,null,2));retainPaths();
   await p.mouse.wheel(0,1000000);await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'rapid return continues forward to the original deep entry');await settleContent(p);rapidPointer.continuedTo140=true;retainPaths();
@@ -110,11 +110,11 @@ for(const variant of ['source','release'])test(`D2 Content trusted chronology, b
   // Keep the deep-window contract on a real keyboard activation without scroll.
   await settleContent(p);const deepDeparture=await p.evaluate(contentReturnState,target);assert.ok(deepDeparture.scroll>0&&deepDeparture.target?.top>=0&&deepDeparture.target.top<deepDeparture.height);assert.ok(deepDeparture.windowStart>0);assert.deepEqual(deepDeparture.ids,seed.ordered);
   await p.locator('#back').evaluate(node=>node.focus({preventScroll:true}));const focused=await p.evaluate(contentReturnState,target);assert.equal(focused.active,'back');assert.equal(focused.scroll,deepDeparture.scroll);assert.equal(focused.windowStart,deepDeparture.windowStart);assert.deepEqual(focused.anchor,deepDeparture.anchor);assert.deepEqual(focused.target,deepDeparture.target);
-  await p.keyboard.press('Enter');await eventually(()=>p.locator(`[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`[data-topic-id="${seed.topicId}"]`).click();await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'root return refetches saved window');assert.equal(await p.evaluate(()=>__d2Content.topicReader.items.length),165);
+  await p.keyboard.press('Enter');await eventually(()=>p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).click();await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'root return refetches saved window');assert.equal(await p.evaluate(()=>__d2Content.topicReader.items.length),165);
   const deepKeyboard=await assertReturnedWindow(p,deepDeparture,'deep keyboard return');returnPaths.deepKeyboard=deepKeyboard;retainPaths();
   await p.evaluate(()=>scrollTo(0,0));await eventually(()=>p.locator(`[data-entry-id="${seed.ordered[0]}"]`).count().then(n=>n===1),'evicted first window refetched');assert.ok(await p.evaluate(()=>__d2ContentReads.some(read=>read.options.anchorId&&read.options.expectedReadGeneration)));
   await settleContent(p);const topDeparture=await p.evaluate(contentReturnState,seed.ordered[0]);assert.equal(topDeparture.scroll,0);assert.equal(topDeparture.windowStart,0);assert.deepEqual(topDeparture.ids,seed.ordered);assert.ok(topDeparture.back.top>=0&&topDeparture.back.bottom<=topDeparture.height,'pointer Back is already in the viewport');
-  await p.locator('#back').click();await eventually(()=>p.locator(`[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`[data-topic-id="${seed.topicId}"]`).click();await eventually(()=>p.locator(`[data-entry-id="${seed.ordered[0]}"]`).count().then(n=>n===1),'pointer root return refetches its actual departure window');assert.equal(await p.evaluate(()=>__d2Content.topicReader.items.length),165);
+  await p.locator('#back').click();await eventually(()=>p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).click();await eventually(()=>p.locator(`[data-entry-id="${seed.ordered[0]}"]`).count().then(n=>n===1),'pointer root return refetches its actual departure window');assert.equal(await p.evaluate(()=>__d2Content.topicReader.items.length),165);
   const topPointer=await assertReturnedWindow(p,topDeparture,'stable top pointer return');returnPaths.topPointer=topPointer;retainPaths();
   await p.evaluate(()=>{__d2ReturnEvidence.record('root-return-assertions-passed');__d2ReturnEvidence.enabled=false;__d2ReturnEvidence.complete=true;});
   assert.ok(await p.evaluate(()=>__d2Content.topicReader.items.filter(row=>!row.unloaded).length<=120));
@@ -156,7 +156,7 @@ for(const variant of ['source','release'])test(`D5 Content paired reading roles,
    const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__d2ContentReads=[];chrome.runtime.sendMessage=(message,...args)=>Promise.resolve(send(message,...args)).then(result=>{if(message.type==='TOPIC_DOCUMENT_PAGE'&&result?.ok)__d2ContentReads.push({options:message.options,ids:result.data.items.map(row=>row.entry.id)});return result;});
    return {topicId:topic.id,ordered,records};
   });
-  await p.locator('[data-view="thoughts"]').click();await eventually(()=>p.locator(`[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`[data-topic-id="${seed.topicId}"]`).click();
+  await p.locator('[data-view="thoughts"]').click();await eventually(()=>p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).count().then(n=>n===1));await p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).click();
   await eventually(()=>p.locator('#original-reading-body [data-entry-id]').count().then(n=>n>=40),'first Content page');
   d5=await openD5ThoughtReading(h,variant,'content',seed.ordered[0]);
   for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const width of [1440,1280,1024,768,390,320]){await p.setViewportSize({width,height:900});await d5.capture(width,appearance);}}
