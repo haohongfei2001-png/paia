@@ -21,9 +21,16 @@ export async function settingsPromptPositionEvidence({h,page,card,orb,rpc,engine
  await settings.locator('#settings-storage-dialog .ux-settings-detail-close').press('Escape');
  assert.equal(await settings.locator('#settings-storage').evaluate(n=>document.activeElement===n),true);
  await chooseConsumerGroup(settings,'ai');
- await page.locator('#blur').focus();await page.keyboard.press('Tab');await page.keyboard.press('Alt+ArrowLeft');
+ await page.locator('#blur').focus();await page.keyboard.press('Tab');
+ const anchorBeforeKey=await orb.boundingBox();await page.keyboard.press('Alt+ArrowLeft');
  const saved=()=>settings.evaluate(async()=>(await chrome.storage.local.get('promptSurfaceV1')).promptSurfaceV1);
- await eventually(async()=>!!(await saved()).position);
+ // The preceding viewport/composer checks can leave an older saved anchor.
+ // Await this native key's actual write, not merely any existing position.
+ await eventually(async()=>{
+  const anchor=await orb.boundingBox(),state=await saved(),viewport=await page.evaluate(()=>({width:innerWidth,height:innerHeight}));
+  return anchor&&anchorBeforeKey&&Math.abs(anchor.x-(anchorBeforeKey.x-12))<1&&state?.position
+   &&state.position.x===anchor.x/(viewport.width-44)&&state.position.y===anchor.y/(viewport.height-44);
+ },'Settings reset starts from the native AltLeft geometry persisted exactly');
  const before=await saved(),f=card(),draft='Settings reset keeps this unsaved card draft 中文 🙂';let cdp;
  try{
   await f.locator('#new').click();const edit=f.getByRole('textbox',{name:'复用文本'});await edit.fill(draft);await edit.focus();

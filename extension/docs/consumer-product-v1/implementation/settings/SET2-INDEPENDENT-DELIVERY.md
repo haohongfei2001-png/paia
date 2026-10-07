@@ -65,3 +65,31 @@ The hosted Data true/false assertion did not reproduce locally; its exact checks
 remain with added diagnostic labels. This is unresolved hosted evidence, not a
 confirmed Linux fix. The next changed candidate must rerun the full affected
 files and strict receipt. These local passes are not current-head hosted PASS.
+
+## Prompt readiness follow-up and preserved hosted result
+
+Candidate37700002136 at0b939158 passed every selected gate and all11 affected
+browser cases. Independent Prompt Foundation37700002068 failed its Settings
+position case: the fixture accepted any old saved position before the preceding
+native AltLeft write completed. The fixture now requires the actual12px move
+and exact persisted normalized geometry before taking its failure baseline;
+reset refusal, generation, draft and focus assertions are unchanged.
+
+The first full local run with that correction was33/40: source failed earlier
+with a detached Frame and a reload geometry sample during readiness, while
+release and both Settings cases passed. Read-only lifecycle traces did not
+reproduce the original detachment cause; retain this limitation. Current-frame
+readiness now uses the original14s budget, permits reacquisition only for an
+actually detached Frame, and asserts current/attached identity after the existing
+animation.finished wait. Reload reuses that same wait before unchanged exact
+geometry assertions. No product, tolerance, sleep or timeout was changed.
+
+The complete final source/release file passed40/40 in61.98s, zero failures, skips
+or cancellations (settings-prompt-ready-native.log). Coordinator independently
+reviewed both fixture changes. The tested native file SHA256 is
+e76d38a7851739bf1f4a2b0ad87f28e34928d2b7f995e7f04b81669cc2817e1e; harness
+9c3e288106882a927fee46107847367797f9d3eae0e89f0f54e3e41be88560ea.
+The release builder uses its supported unique output directory and unchanged
+release audit, avoiding retained duplicate generated assets. Diagnostic and
+negative logs remain; this is readiness evidence, not a proven product-root-cause
+fix. New-head hosted Prompt acceptance and formal integration remain pending.
