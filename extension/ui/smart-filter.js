@@ -1,5 +1,5 @@
 import {highlightText} from './search-experience.js';
-import {searchExcerpt} from '../core/search-service.js';
+import {searchExcerpt,normalizeSearch} from '../core/search-service.js';
 import {request,element,dateLabel} from './common.js';
 const $=id=>document.getElementById(id);
 export class SmartFilterUI {
@@ -22,9 +22,29 @@ export class SmartFilterUI {
   if(this.noticeChecked)return;this.noticeChecked=true;
   try{const r=await request('FILTER_NOTICE');if(r.show&&!$('collection-panel').hidden){$('filter-onboarding').textContent='已启用轻度智能过滤。仅隐藏高度确定的对话操作输入，内容未删除，可在设置中调整。';$('filter-onboarding').hidden=false;setTimeout(()=>{$('filter-onboarding').hidden=true;},12000);}}catch{/* Optional notice never blocks reading. */}
  }
- renderResults(result,query=''){const list=$('document-list');list.replaceChildren();$('result-count').textContent=`${result.items.length} 条匹配输入`;
-  for(const hit of result.items){const b=element('button','conversation-document search-input');b.dataset.inputId=hit.id;b.append(element('strong','',hit.title||'独立整理文档'),element('span','search-excerpt',hit.text),element('small','',hit.sourceSentAt?dateLabel(hit.sourceSentAt):'发送时间未知'));highlightText(b.querySelector('strong'),hit.title||'独立整理文档',query);const excerpt=searchExcerpt(hit.text,query,240);highlightText(b.querySelector('.search-excerpt'),excerpt,query);if(hit.filtered)b.append(element('small','filter-search-label','智能过滤内容'));b.addEventListener('click',()=>void this.onContext(hit.documentId,hit.id));list.append(b);}
-  $('empty-list').textContent='没有找到匹配内容。试试聊天标题或另一种表达。';$('empty-list').hidden=result.items.length>0;$('empty-sync').hidden=true;
+ renderResults(result,query=''){
+  const list=$('document-list'),en=document.documentElement.lang==='en',copy=(zh,english)=>en?english:zh;
+  list.replaceChildren();$('result-count').textContent=copy(`本页 ${result.items.length} 条匹配输入`,`This page: ${result.items.length} matching Inputs`);
+  for(const hit of result.items){
+   const button=element('button','conversation-document search-input'),excerpt=element('span','search-excerpt');
+   button.type='button';button.dataset.inputId=hit.id;
+   highlightText(excerpt,searchExcerpt(hit.text,query,240),query);button.append(excerpt);
+   // Only facts already supplied by the search owner become attribution. In
+   // particular a missing Project path is not inferred from the current tree.
+   const title=element('small','search-result-path');
+   highlightText(title,hit.title||copy('位置未知','Location unknown'),query);button.append(title);
+   button.append(element('small','',hit.sourceSentAt&&!Number.isNaN(Date.parse(hit.sourceSentAt))?dateLabel(hit.sourceSentAt):copy('发送时间未知','Send time unknown')));
+   const needle=normalizeSearch(query);
+   if(needle&&normalizeSearch(hit.title).includes(needle)&&!normalizeSearch(hit.text).includes(needle))button.append(element('small','search-title-match',copy('匹配对话标题','Conversation title match')));
+   if(hit.filtered)button.append(element('small','filter-search-label',copy('智能过滤内容','Smart-filtered content')));
+   button.addEventListener('click',event=>{
+    const selection=document.getSelection();
+    if(event.detail>0&&selection&&!selection.isCollapsed&&selection.rangeCount&&selection.getRangeAt(0).intersectsNode(button))return;
+    void this.onContext(hit.documentId,hit.id);
+   });list.append(button);
+  }
+  $('empty-list').textContent=result.nextCursor?copy('正在继续搜索本机输入…','Continuing to search local Inputs…'):copy('没有找到匹配内容。试试聊天标题或另一种表达。','No matches. Try a conversation title or another phrase.');
+  $('empty-list').hidden=result.items.length>0;$('empty-sync').hidden=true;
  }
  async recent(more=false){const serial=++this.serial;try{
   const [status,result]=await Promise.all([request('FILTER_STATUS'),request('FILTER_RECENT',{options:{cursor:more?this.recentCursor:null,limit:50,query:$('filter-recent-query').value}})]);if(serial!==this.serial)return;
