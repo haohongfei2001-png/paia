@@ -110,6 +110,7 @@ test('native receipt contract cannot turn missing cases or model evidence into n
 
 test('copied fixture calls actual owners and preserves abort, quota, restore and generation oracles in Node preflight', async () => {
   const copy = await instrumentedExtension(root), original = await readFile(join(root, 'background/service-worker.js'), 'utf8');
+  assert.equal(Object.keys(copy.hashes).length, 6, 'Shared storage receipt retains its exact production hash inventory');
   assert.equal(await readFile(join(copy.path, 'background/service-worker.js'), 'utf8'), "import './bns-native-storage-fixture.mjs';\n" + original);
   const globals = ['indexedDB', 'IDBFactory', 'IDBKeyRange', 'IDBTransaction', 'chrome', 'fetch', 'WebSocket', 'EventSource', 'XMLHttpRequest', '__bnsNative', '__bnsNativePhase'];
   const before = new Map(globals.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));

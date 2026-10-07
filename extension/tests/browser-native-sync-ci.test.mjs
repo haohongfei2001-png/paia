@@ -15,12 +15,12 @@ test('Sync native proof stays an exact-head opt-in draft job with complete owner
  assert.doesNotMatch(job,/permissions:|secrets\.|continue-on-error|test-name-pattern|test-skip-pattern|environment:/);
  assert.match(job,/command -v google-chrome/);
  assert.match(job,/node --test tests\/browser-native-sync-\*.test.mjs tests\/cpv1-09-prompt-service.test.mjs tests\/cpv1-09-prompt-family.test.mjs tests\/cpv1-09-prompt-security.test.mjs tests\/native-sync\/harness-contract.test.mjs/);
- assert.match(job,/xvfb-run -a node --test --test-concurrency=1 tests\/native-sync\/storage-chrome.test.mjs/);
+ assert.match(job,/xvfb-run -a node --test --test-concurrency=1 tests\/native-sync\/storage-chrome.test.mjs tests\/native-sync\/publication-chrome.test.mjs/);
  assert.match(job,/test "\$\(git rev-parse HEAD\)" = "\$PAIA_TESTED_HEAD"/);
  for(const text of ["['source','release'].map",'assertReceipt(JSON.parse','head:process.env.PAIA_TESTED_HEAD,variant',"['rev-parse','HEAD^{tree}']",'assert.equal(receipt.tree,tree)','assert.deepEqual(receipts[0].productionHashes,receipts[1].productionHashes)','assert.equal(receipts[0].browserVersion,receipts[1].browserVersion)'])assert.ok(job.includes(text),text);
  assert.match(job,/if: always\(\)\n        uses: actions\/upload-artifact@v4/);
  assert.match(job,/name: bns-native-storage-\$\{\{ github.event.pull_request.head.sha \}\}/);
- assert.match(job,/path: extension\/work\/qa-bns-native-storage\/\n          if-no-files-found: error\n          retention-days: 7/);
+ assert.match(job,/path: \|\n            extension\/work\/qa-bns-native-storage\/\n            extension\/work\/qa-bns-publication\/\n          if-no-files-found: error\n          retention-days: 7/);
 });
 
 test('Sync native aggregate retains every prior dependency and rejects non-success when selected',()=>{
@@ -33,4 +33,10 @@ test('Sync native aggregate retains every prior dependency and rejects non-succe
   const result=spawnSync('bash',['-c',line.trim()],{env:{...process.env,SYNC_NATIVE_STORAGE_SELECTED:selected,SYNC_NATIVE_STORAGE:value}});
   assert.equal(result.status===0,value==='success'||selected==='false',selected+':'+value);
  }
+});
+
+test('publication candidate retains exact-head source/release journal evidence',async()=>{
+ const workflow=readFileSync(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8');
+ const job=workflow.split('  sync_native_storage:')[1].split('  candidate:')[0];
+ for(const required of ["assert.equal(receipt.schema,1)","assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD)","assert.equal(receipt.tree,tree)","assert.equal(receipt.result,'PASS')","assert.equal(receipt.restarts.length,3)","assert.equal(receipt.isolation.networkAttempts,0)","assert.deepEqual(publications[0].productionHashes,publications[1].productionHashes)"])assert.ok(job.includes(required),required);
 });

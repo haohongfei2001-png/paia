@@ -28,7 +28,7 @@ export async function instrumentedExtension(runtimePath) {
     await cp(join(here, 'storage-worker-fixture.mjs'), join(path, 'background/bns-native-storage-fixture.mjs'));
     await cp(join(here, 'immutable-objects.mjs'), join(path, 'background/bns-native-immutable-objects.mjs'));
     await writeFile(worker, "import './bns-native-storage-fixture.mjs';\n" + original);
-    const files = ['core/idb-repository.js', 'core/prompt-reuse-service.js', 'core/browser-native-sync/core.js', 'core/browser-native-sync/prompt-journal.js', 'core/browser-native-sync/checkpoints.js', 'core/browser-native-sync/segments.js', 'core/browser-native-sync/publications.js'];
+    const files = ['core/idb-repository.js', 'core/prompt-reuse-service.js', 'core/browser-native-sync/core.js', 'core/browser-native-sync/prompt-journal.js', 'core/browser-native-sync/checkpoints.js', 'core/browser-native-sync/segments.js'];
     const hashes = Object.fromEntries(await Promise.all(files.map(async file => [file, hash(await readFile(join(path, file)))])));
     return {path, hashes, originalWorkerSha256: hash(original), cleanup: () => rm(path, {recursive: true, force: true})};
   } catch (error) { await rm(path, {recursive: true, force: true}); throw error; }
