@@ -1,5 +1,15 @@
 # Input Archive — minimal optimization development alignment
 
+> Execution update: the owner's later explicit seven-lane instruction selects
+> IAH-1.1 runtime development. It supersedes earlier documentation-only /
+> NOT_SELECTED / exclusion statements in this adoption record, not the confirmed
+> minimal design. See [current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
+> Implementation, tests, exact-main acceptance and user availability remain
+> separate claims; none is established by this authorization.
+
+
+> Historical adoption-time statement below; superseded by the execution update at the top.
+
 **IAH-1.1 / 2026-10-08 / DESIGN_SCOPE_READY / EXECUTION_NOT_SELECTED.** [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md), [INTERACTION](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) and [UX](INPUT_ARCHIVE_HOME_UX.md) control the selected subset. Current STATUS retains coordinated non-Archive work and Archive exclusion. This plan aligns future work; it does not acquire a writer or change production files.
 
 ## P1. Source and minimum-change rule
@@ -92,5 +102,7 @@ Not selected follow-ups: a newly permanent Project-scope selector, membership co
 | Browse | Neutral Archive -> whole Project-row expansion -> explicitly chosen Conversation -> 返回项目浏览 -> original tree/route, still no inferred search scope | Design selected; existing disclosure KEEP; return closure NOT_RUN |
 | Explicit scope | Separate supported scope action -> same query in narrower/all trusted scope -> result -> Back | Reuse/gap verification planned; no new permanent selector approved |
 | Existing explicit direct/contextual entry | Intended saved target only; generic open remains neutral; missing local target does not capture/import/select another | Retain safety; new entry rollout outside selected subset |
+
+> Historical adoption-time statement below; superseded by the execution update at the top.
 
 The selected minimal scope is design-ready, not execution-selected or production-complete. Current coordinated STATUS/exclusion remains; no new global next task, writer, schema, runtime, UI, manifest or user-data action follows from this plan correction.

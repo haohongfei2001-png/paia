@@ -1,5 +1,13 @@
 # Input Archive minimal optimization — references and evidence
 
+> Execution update: the owner's later explicit seven-lane instruction selects
+> IAH-1.1 runtime development. It supersedes earlier documentation-only /
+> NOT_SELECTED / exclusion statements in this adoption record, not the confirmed
+> minimal design. See [current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
+> Implementation, tests, exact-main acceptance and user availability remain
+> separate claims; none is established by this authorization.
+
+
 **IAH-1.1 / 2026-10-08.** [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) defines the selected/rejected scope, [CONTRACT](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) behavior and [UX](INPUT_ARCHIVE_HOME_UX.md) presentation. This manifest identifies evidence; it neither adopts the entire B prototype nor grants runtime authorization.
 
 ## R1. Current source and review baseline

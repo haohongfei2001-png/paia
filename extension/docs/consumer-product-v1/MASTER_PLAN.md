@@ -6,11 +6,11 @@ Current scoped integration: **IAH-1.1, 2026-10-08 — existing Archive UI, selec
 
 The immediately preceding master is preserved exactly in [MASTER_PLAN_PRE_ARCHIVE_HOME_2026-10-08.md](MASTER_PLAN_PRE_ARCHIVE_HOME_2026-10-08.md), blob `5c5b5acd5646bd01019bdf91de9dd0c59cf01570`. **All its nonconflicting adopted outcomes, detailed dependencies, incorporated predecessor plans, evidence obligations and gates remain part of this plan.** Read it and its linked detailed plans; this overlay does not drop any unfinished product requirement or reopen completed work. Prior next-task/current-status statements are historical where current STATUS differs.
 
-The earlier CPV1-TOPIC-02 sole-pointer paragraph described the initial IAH-1.0 adoption, not current execution. Current STATUS authorizes coordinated CTX4, TOPIC including TOPIC-05.1–05.8, SET2, SYNC, AI-COST under Qwen-primary and explicit Prompt dependencies, with one writer per shared boundary. Archive remains **EXCLUDED_FROM_CURRENT_DEVELOPMENT**. This correction neither restores an old global pointer nor interrupts those lanes.
+The earlier CPV1-TOPIC-02 sole-pointer paragraph described the initial IAH-1.0 adoption, not current execution. Current STATUS authorizes coordinated CTX4, TOPIC including TOPIC-05.1–05.8, SET2, SYNC, AI-COST under Qwen-primary and explicit Prompt dependencies, with one writer per shared boundary. The later explicit owner instruction adds **IAH-1.1 EXECUTION_SELECTED** as the seventh lane, superseding Archive exclusion without interrupting the existing lanes. See [seven-lane execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
 
 Initial source review was main `99bb95ed114c166347520b58e3216d0e63519379`. Before integration main advanced to `daf180762e2fe7718dfcddcf345c6a11749aad8e`, delivering Personal Topic Root 0.19. Preserve its runtime, shared navigation/Topic-fragment and keyboard changes, manifest/package, workflows and [Root receipt](implementation/topic/TOPIC-05-ROOT.md). The receipt's remaining continuous Section-reader and overall acceptance boundaries are not closed by Archive documentation. The exact-main certification requested by that merge is not certified here.
 
-IAH-1.1 corrects the same five Archive documents in place. The approved subset is design-ready but not execution-selected; there is no Archive runtime writer. Whole B adoption, a new Home/search layout, split Project clicks and sticky Back are excluded.
+IAH-1.1 corrects the same five Archive documents in place. The approved subset is design-ready and now execution-selected by the later owner instruction; shared boundaries retain one writer. Whole B adoption, a new Home/search layout, split Project clicks and sticky Back are excluded.
 
 ## 2. Active product authority map
 
