@@ -1,3 +1,4 @@
+import {chooseConsumerGroup as chooseGroup} from './harness/settings-consumer-presentation.mjs';
 import {historicalBackupItems} from './harness/historical-backup-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,7 +10,7 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 const execFileAsync=promisify(execFile);
 const rpc=async(page,type,fields={})=>{const response=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(response.ok,true,JSON.stringify(response));return response.data;};
 async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()));await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true);if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();}
-async function chooseGroup(page,key){const select=page.locator('#ux-settings-group-switch');if(await select.isVisible())await select.selectOption(key);else await page.locator(`[data-settings-group="${key}"]`).click();await page.locator(`[data-group="${key}"]`).waitFor({state:'visible'});}
+
 async function openData(page){
  const compact=await page.evaluate(()=>innerWidth<768);
  await eventually(()=>page.evaluate(compact=>{const button=document.querySelector('.sidebar [data-view="settings"]'),menu=document.getElementById('archive-compact-navigation');return compact?button?.parentElement?.id==='archive-compact-nav-items'&&menu.hidden===false:button?.parentElement?.classList.contains('sidebar-bottom');},compact),'Settings primary control has settled in its real breakpoint owner');
@@ -20,20 +21,20 @@ async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);asse
 async function assertDataOwners(page){
  const group=page.locator('[data-group="data"]');
  for(const id of ['backup-settings','r6-data-status','r6-source-records']){
-  const item=page.locator(`#${id}`);assert.equal(await item.count(),1,`${id} keeps one DOM owner`);assert.equal(await item.evaluate(el=>el.parentElement?.dataset.group),'data',`${id} belongs directly to Data & devices`);
+  const item=page.locator(`#${id}`);assert.equal(await item.count(),1,`${id} keeps one DOM owner`);assert.equal(await item.evaluate(el=>el.closest('.ux-settings-group')?.dataset.group),'data',`${id} remains in its Data destination`);
  }
- const order=await group.evaluate((root)=>['backup-settings','r6-data-status','r6-source-records'].map(id=>[...root.children].findIndex(el=>el.id===id)));
- assert.ok(order.every((value,index)=>value>=0&&(index===0||value>order[index-1])),`data owners stay ordered: ${order.join(',')}`);
+ const destinations=await group.locator(':scope > details > summary').allTextContents();assert.deepEqual(destinations,['存储空间','从已有 PAIA 备份恢复','已移除的内容']);
  assert.equal(await page.locator('#backup-settings #r6-complete-export').count(),0,'complete export is not nested inside Backup');
  assert.equal(await page.locator('#backup-create').count(),0);assert.equal(await page.locator('#backup-settings #backup-choose').count(),1);
  assert.equal(await page.locator('#r6-complete-export,#r6-export-json,#r6-export-markdown').count(),0);
  assert.equal(await page.locator('#r6-data-status #r6-storage-estimate').count(),1);assert.equal(await page.locator('#r6-last-backup').count(),0);
  assert.equal(await page.locator('#r6-source-records [data-view="archive"]').count(),1,'scoped Source Records keeps its existing navigation owner');
  for(const id of ['backup-choose','backup-restore'])assert.equal(await page.locator(`#${id}`).count(),1,`${id} is not duplicated`);
-assert.match(await group.textContent(),/未提供设备同步/);
+assert.equal(await group.locator('#settings-ai-context').count(),0,'Context has no duplicate Data owner');
 }
 
 async function rejectAndReselectBackup(page,backupBytes){
+ const destination=page.locator('details').filter({has:page.locator('#backup-settings')});if(!await page.locator('#backup-choose').isVisible())await destination.locator(':scope > summary').click();
  const invalid={name:'S05-invalid.paia-backup',mimeType:'application/x-ndjson',buffer:Buffer.from('{"not":"a PAIA backup"}\n')};
  const choose=async files=>{const picker=page.waitForEvent('filechooser');await page.locator('#backup-choose').click();await (await picker).setFiles(files);};
  await page.evaluate(()=>{globalThis.__s05Picker=document.getElementById('backup-choose');globalThis.__s05File=document.getElementById('backup-file');});

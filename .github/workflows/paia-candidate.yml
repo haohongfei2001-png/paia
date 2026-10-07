@@ -478,7 +478,7 @@ jobs:
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
           const report=JSON.parse(readFileSync('work/qa-dvn-settings/test-summary.json'));assert.equal(report.total,9);assert.equal(report.pass,9);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files).sort(),['uir-01-shell-chrome-e2e.test.mjs','uir-04-data-chrome-e2e.test.mjs','uir-04-settings-chrome-e2e.test.mjs','ux-r1-shell-chrome-e2e.test.mjs']);
           const baseline=JSON.parse(readFileSync('work/qa-dvn-settings/baseline.json'));assert.equal(baseline.result,'PASS');assert.equal(baseline.head,process.env.PAIA_TESTED_HEAD);assert.equal(baseline.baselineHead,'96832cd7e07db7f9946648c0079d1c49e2dfd6cc');assert.equal(baseline.rows.length,6);
-          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings/${variant}.json`));assert.equal(receipt.result,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.rows.length,30);assert.equal(receipt.targets.length,3);assert.equal(receipt.interactions.length,4);}
+          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings/${variant}.json`));assert.equal(receipt.result,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.rows.length,288);assert.equal(receipt.targets.length,3);assert.equal(receipt.interactions.length,4);}
           JS
       - name: Retain D5 Settings before and paired presentation evidence
         if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER')

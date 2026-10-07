@@ -15,7 +15,7 @@ export class PersonalTopicRoot {
  restoreFocus(ref){const node=this.nodes.get(ref?.topicId);if(!node)return;const section=ref.sectionId?[...node.querySelectorAll('[data-section-id]')].find(link=>link.dataset.sectionId===ref.sectionId&&!link.hidden):null,more=node.querySelector('.personal-topic-more');(section||(ref.more||ref.sectionId)&&!more.hidden&&more||node.querySelector('.personal-topic-link'))?.focus({preventScroll:true});}
  columns(){return Math.max(1,Math.min(4,Math.floor((this.host.clientWidth+16)/240)));}
  link(text,topicId,sectionId=null,className=''){
-  const a=element('a',className,text);a.href=topicRootURL(topicId,sectionId);a.dataset.topicId=topicId;if(sectionId)a.dataset.sectionId=sectionId;
+  const a=element('a',className,text);a.href=topicRootURL(topicId,sectionId);a.draggable=false;a.dataset.topicId=topicId;if(sectionId)a.dataset.sectionId=sectionId;
   a.title=text;
   a.addEventListener('click',event=>{
    const selection=getSelection();if(event.detail>0&&selection&&!selection.isCollapsed){event.preventDefault();return;}

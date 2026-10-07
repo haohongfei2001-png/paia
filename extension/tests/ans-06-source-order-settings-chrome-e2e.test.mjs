@@ -26,8 +26,8 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
   await eventually(async()=>{const page=await rpc(p,'GET_PAGE',{page:{view:'library',limit:100}});return page.documents.some(x=>x.sourceConversationId==='ans06-chatgpt-real');},'real ChatGPT captured');
   await p.bringToFront();
   const beforeControls=await rpc(p,'GET_ORGANIZER_CONTROLS');
-  await p.locator('[data-view="settings"]').first().click();
-  await p.locator('[data-settings-group="reading"]').click();
+  await p.locator('.sidebar [data-view="library"]').click();
+  await p.locator('#archive-root-overflow > summary').click();
   await p.locator('#archive-order-mode').waitFor();
   assert.equal(await p.locator('#archive-order-mode').inputValue(),'paia');
   // Hold the first setting write to prove the selected DOM value is not a
@@ -116,7 +116,7 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
    return texts.length>=3&&texts[0]==='ANS06 S1'&&texts[1]==='ANS06 S2'&&texts[2]==='ANS06 S3';
   },'atomic reordered windows',30000);
   await eventually(async()=>await windowButtons(groupBox(p,'ALPHA')).filter({hasText:'ANS06 S2'}).first().getAttribute('aria-current')==='page','selected S2 identity preserved across reorder');
-  await p.locator('[data-view="settings"]').first().click();await p.locator('[data-settings-group="reading"]').click();await p.locator('#archive-order-mode').waitFor();
+  await p.locator('.sidebar [data-view="library"]').click();await p.locator('#archive-root-overflow > summary').click();await p.locator('#archive-order-mode').waitFor();
   assert.equal(await p.locator('#archive-order-mode').inputValue(),'source');
   const rollback=await p.evaluate(async()=>{
    const {ArchiveOrderSettings}=await import('./archive-order-settings.js');

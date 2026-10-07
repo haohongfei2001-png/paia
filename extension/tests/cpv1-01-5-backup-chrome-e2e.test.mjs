@@ -1,3 +1,4 @@
+import {chooseConsumerGroup} from './harness/settings-consumer-presentation.mjs';
 import {historicalBackupItems} from './harness/historical-backup-browser.mjs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -14,9 +15,7 @@ const rpc=async(page,type,fields={})=>{
 
 async function openBackup(page){
  await page.locator('.sidebar [data-view=settings]').click();
- const select=page.locator('#ux-settings-group-switch');
- if(await select.isVisible())await select.selectOption('data');
- else await page.locator('[data-settings-group="data"]').click();
+ await chooseConsumerGroup(page,'data');await page.locator('details').filter({has:page.locator('#backup-settings')}).locator(':scope > summary').click();
  await page.locator('#backup-file').waitFor({state:'attached'});assert.equal(await page.locator('#backup-create').count(),0);
 }
 

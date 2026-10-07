@@ -54,8 +54,8 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
 
   await p.locator('#primary-nav [data-view="thoughts"]').click();await eventually(()=>p.locator('#thought-panel').isVisible(),'Thought Library remains reachable');
   await p.locator('.sidebar-bottom [data-view="settings"]').click();await eventually(()=>p.locator('#settings-panel').isVisible(),'Settings opens');
-  await eventually(async()=>JSON.stringify(await p.locator('.ux-settings-nav button').allTextContents())===JSON.stringify(['收录','阅读与外观','会员与 AI 服务','隐私','数据与恢复','高级']),'Settings groups follow the active interface language');
-  await p.locator('[data-settings-group="data"]').click();assert.match(await p.locator('[data-group="data"]').textContent(),/当前版本未提供设备同步/);
+  await eventually(async()=>JSON.stringify(await p.locator('.ux-settings-nav button').allTextContents())===JSON.stringify(['输入档案','阅读与外观','AI 与提示词','隐私与访问','数据与恢复','关于 PAIA']),'Settings groups follow the active interface language');
+  await p.locator('[data-settings-group="about"]').click();assert.match(await p.locator('[data-group="about"]').textContent(),/尚未接通/);
   await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('#thought-panel').isVisible(),'Settings Back restores its originating root through same-URL history');
   assert.equal(await p.locator('#primary-nav [data-view="memory"]').count(),1,'approved local Context has one launcher');
   await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#archive-reader-navigator-slot').isVisible(),'Archive navigation commits before browser Back');await p.evaluate(()=>history.back());await eventually(()=>p.locator('#thought-panel').isVisible(),'browser Back restores Thought root');await p.evaluate(()=>history.forward());await eventually(()=>p.locator('#archive-reader-navigator-slot').isVisible(),'browser Forward restores blank Archive root');
@@ -104,7 +104,7 @@ test('UX-R1 optional history import previews, confirms and reads one real import
   await writeFile(join(dir,'core/import/synthetic-test-adapter.js'),await readFile('tests/fixtures/import-adapter.mjs'));
   await writeFile(join(dir,'core/import/registry.js'),"import {syntheticAdapter} from './synthetic-test-adapter.js';export const VERIFIED_EXPORT_ADAPTER_IDS=Object.freeze([]);export const SUPPORTED_EXPORT_ADAPTER_IDS=Object.freeze(['synthetic-v1']);export const getOfficialExportAdapter=()=>syntheticAdapter;export const officialExportStatus=()=>({available:true,schemaVerified:false});\n");
   h=await FakeChatGPT.start({extensionPath:dir,onboarding:true});const p=h.archive;await consent(p);
-  assert.equal(await p.locator('#onboarding-history-step').isVisible(),false);await p.locator('.sidebar [data-view="settings"]').click();await p.locator('[data-settings-group="data"]').click();await p.locator('#onboarding-history-step').waitFor();assert.equal(await p.locator('#history-settings').isVisible(),false,'initial import has only one entry');
+  await eventually(()=>p.locator('#onboarding-history-step').isVisible(),'fresh consent preserves the first-use import owner in Archive');assert.equal(await p.locator('#history-settings').isVisible(),false,'Settings import is not duplicated into Archive');
   await p.locator('#onboarding-history').click();await eventually(()=>p.locator('#history-dialog').evaluate(el=>el.open),'history chooser opens');
   await p.locator('#history-file-consent').check();const chooser=p.waitForEvent('filechooser');await p.locator('#history-choose').click();await(await chooser).setFiles({name:'synthetic-history.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify([syntheticRow(1),syntheticRow(2)]))});
   await eventually(()=>p.locator('#history-commit').isEnabled(),'history is previewed before commit');assert.equal((await h.state()).records.length,0,'preflight must not write Source');

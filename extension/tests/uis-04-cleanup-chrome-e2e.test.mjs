@@ -43,8 +43,8 @@ test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit an
       assert.equal(await page.locator('#universal-search-dialog').isVisible(),false,'Settings shortcuts do not open the picker');
 await page.locator('.ux-settings-nav [data-settings-group="ai"]').click();
 assert.equal(await page.locator('#organizer-reading-actions,#original-library-update,#organizer-batch-actions,#bounded-original-start,#bounded-ai-start').count(),0,'retired organizing management is absent');
-assert.match(await page.locator('#membership-ai-service').textContent(),/尚未上线|not available/i);
-assert.equal(await page.locator('#membership-ai-service button').count(),0,'there is no fake purchase or AI launch');
+assert.match(await page.locator('#settings-ai-context').textContent(),/外部连接尚未开放|not available/i);
+assert.equal(await page.locator('#membership-ai-service').count(),0,'there is no fake purchase or AI launch');assert.equal(await page.locator('#settings-context-open').count(),1,'one real local Context entry');
 assert.equal(h.deepSeekRequests.length,0,'opening membership never starts a provider request');
       await nav(page,'thoughts');
       await eventually(()=>page.locator('#thought-search').isVisible(),'Thought root is ready');
