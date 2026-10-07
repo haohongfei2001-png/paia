@@ -1,4 +1,4 @@
-import {rankTopicCandidates} from './topic-quality.js';
+import {rankTopicCandidates,isTransientTopic} from './topic-quality.js';
 import {planDelta,commitOriginalDelta,originalAutoUpdateEnabled} from '../dual-view.js';
 import {inputProjection,checkEvidenceInTransaction} from '../thought-evidence.js';
 import {prefix} from '../thought-model.js';
@@ -7,7 +7,7 @@ import {bytes,descriptorOK,reject,safeError} from './contracts.js';
 import {requestFromInputProjection,TASK_PROFILES} from './deepseek.js';
 import {leaseGuard} from './commit.js';
 
-const DEFAULT_TOPIC='未归入主题',bootstrapId='originalOrganizerBootstrap';
+const bootstrapId='originalOrganizerBootstrap';
 const originalJob=job=>job?.kind==='original_organize';
 const emptyBootstrap=()=>({id:bootstrapId,state:'not_started',cursorSequence:-1,totalEligible:0,processed:0,updatedAt:null,lastError:null});
 async function bootstrapPlan(store,t){const state=await t.get('meta',bootstrapId)||emptyBootstrap(),filter=await t.get('meta','smart-filter'),rows=[];for(const ix of await t.all('blockIndex','bySequence')){const p=await inputProjection(store,t,ix.id);if(p&&!await store.isFiltered(t,p.block,filter))rows.push({id:ix.id,documentId:p.documentId,sequence:ix.sequence});}const remaining=rows.filter(x=>x.sequence>state.cursorSequence),first=remaining[0],selected=first?remaining.slice(0,remaining.findIndex(x=>x.documentId!==first.documentId)<0?remaining.length:remaining.findIndex(x=>x.documentId!==first.documentId)).slice(0,Math.min(20,store.organizerBudget.limits.maxInputs)):[];return {state,rows,remaining,selected,totalEligible:rows.length,advanceSequence:selected.length?selected.at(-1).sequence:state.cursorSequence};}
@@ -69,7 +69,18 @@ export async function originalProjection(store,job){
 }
 
 export function materializeOriginalCandidates(rows,request,projection){
- const inputs=request.inputs,candidates=[];for(const row of rows){if(row.uncertain)continue;const spans=row.spans.length?row.spans:(inputs.length===1?[{inputRef:inputs[0].ref,start:0,end:inputs[0].fields.body.length}]:null);if(!spans)reject('INVALID_OUTPUT');for(const span of spans){const input=inputs.find(x=>x.ref===span.inputRef);if(!input||!Number.isSafeInteger(span.start)||!Number.isSafeInteger(span.end)||span.start<0||span.end<=span.start||span.end>input.fields.body.length)reject('INVALID_OUTPUT');const body=input.fields.body.slice(span.start,span.end);if(!body.trim())reject('INVALID_OUTPUT');const topicRef=Object.entries(projection.topicMap).find(([,value])=>value.name===row.topic)?.[0],sectionRef=topicRef?Object.entries(projection.sectionMap).find(([,value])=>value.topicRef===topicRef&&value.title===row.section)?.[0]:undefined;candidates.push({action:'create',body,type:row.type||'idea',formation:'explicit',evidence:[{ref:span.inputRef,field:'body',start:span.start,end:span.end}],...(topicRef?{topicRef}: {newTopic:row.topic||DEFAULT_TOPIC}),...(sectionRef?{sectionRef}:row.section?{newSection:row.section}:{}),localOriginal:true});}}
+ const inputs=request.inputs,candidates=[];
+ for(const row of rows){
+  const spans=row.spans.length?row.spans:(inputs.length===1?[{inputRef:inputs[0].ref,start:0,end:inputs[0].fields.body.length}]:null);if(!spans)reject('INVALID_OUTPUT');
+  for(const span of spans){
+   const input=inputs.find(x=>x.ref===span.inputRef);if(!input||!Number.isSafeInteger(span.start)||!Number.isSafeInteger(span.end)||span.start<0||span.end<=span.start||span.end>input.fields.body.length)reject('INVALID_OUTPUT');
+   const body=input.fields.body.slice(span.start,span.end);if(!body.trim())reject('INVALID_OUTPUT');
+   const topicRef=row.uncertain?undefined:Object.entries(projection.topicMap).find(([,value])=>value.name===row.topic)?.[0];
+   const newTopic=row.uncertain||topicRef||!row.topic||row.topic==='未归入主题'||isTransientTopic(row.topic)?null:row.topic;
+   const sectionRef=topicRef?Object.entries(projection.sectionMap).find(([,value])=>value.topicRef===topicRef&&value.title===row.section)?.[0]:undefined;
+   candidates.push({action:'create',body,type:row.type||'idea',formation:'explicit',evidence:[{ref:span.inputRef,field:'body',start:span.start,end:span.end}],...(topicRef?{topicRef}:newTopic?{newTopic}:{}),...(sectionRef?{sectionRef}:(topicRef||newTopic)&&row.section?{newSection:row.section}:{}),localOriginal:true});
+  }
+ }
  return candidates;
 }
 

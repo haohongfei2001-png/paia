@@ -1,61 +1,62 @@
 # PAIA Consumer Product v1 — Canonical Master Plan
 
-Current scoped integration: **AIU-1.0 / AIOS-1.0, 2026-10-07**.
-STATUS.md remains the sole execution queue. This file maps adopted outcomes and dependencies; it does not start parallel writers.
+Current scoped integration: **IAH-1.0, 2026-10-08**, preserving AIU-1.0 / AIOS-1.0 and AIU-QWEN-1.0 plus all earlier adopted product lanes. **STATUS.md remains the sole execution queue.** A lane's first planned task is not an instruction to preempt the global selected task.
 
 ## 1. Preserved baseline and current sequencing
 
-The complete immediately preceding plan is retained byte-for-byte in [MASTER_PLAN_PRE_AI_USAGE_2026-10-07.md](MASTER_PLAN_PRE_AI_USAGE_2026-10-07.md). Its nonconflicting approved outcomes, dependencies, source/trust invariants and historical evidence are incorporated here. Earlier next-task/status and AI usage/allowance statements in that snapshot are historical where this current plan, STATUS or AI_USAGE_ADOPTION supersedes them. No unfinished accepted product requirement is dropped merely by shortening this current index.
+The immediately preceding master is preserved exactly in [MASTER_PLAN_PRE_ARCHIVE_HOME_2026-10-08.md](MASTER_PLAN_PRE_ARCHIVE_HOME_2026-10-08.md), blob `5c5b5acd5646bd01019bdf91de9dd0c59cf01570`. **All its nonconflicting adopted outcomes, detailed dependencies, incorporated predecessor plans, evidence obligations and gates remain part of this plan.** Read it and its linked detailed plans; this overlay does not drop any unfinished product requirement or reopen completed work. Prior next-task/current-status statements are historical where current STATUS differs.
 
-The selected current next task remains **CPV1-TOPIC-01 verification closure**, as recorded in STATUS. This adoption neither certifies it nor asks a second implementation of its integrated foundation. Existing local Context work and all unaffected approved lanes remain.
+At the fresh integration source `1b3c3f91ea4e248fb048214fd1efceccc0b2f344`, the current global pointer remains **CPV1-TOPIC-02 closure** against its reviewed dependencies and exact integration evidence. Later Topic02/03/04 mechanics and Context work are already present and remain preserved. IAH neither reimplements them nor certifies their remaining gates.
+
+IAH is a newly adopted local Archive outcome lane. All six ARCHIVE-HOME outcomes remain PLANNED / NOT_STARTED_BY_THIS_TASK. Owner scheduling and a coordinated shared-file writer are required before runtime work. Archive Home is not made the global next task.
 
 ## 2. Active product authority map
 
 | Lane | Canonical source / retained scope |
 |---|---|
-| Core capture / Source / Working Input / human work / recovery | PRODUCT_INTENT_CONTRACT.md, TECHNICAL_PLAN.md, UX_CONTRACT.md and existing safety/recovery contracts, subject to current scoped adoptions |
-| Personal Topic Architecture | TOPIC_ARCHITECTURE.md / PLAN / ADOPTION; TOPIC identity, retrieval, formation, promotion, presentation and closure slices remain |
-| Thought Library final presentation | THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md / REFERENCES; TOPIC-05.1–05.8 consume the one Library/real Section/derivative reading model |
-| Context Cards v2 | AI_CONTEXT_CARDS_V2_ADOPTION.md / PLAN / REFERENCES; preserve independent Items, restrictive Inputs Topic access and CTX4 phase gates |
-| Prompt Reuse / local next-action | PROMPT_REUSE_SURFACE.md and PROMPT_REUSE_STAGE_3A.md; no implicit remote pipeline or assistant reply archive |
-| Settings Consumer v2 | Current SETTINGS_CONSUMER_V2_ADOPTION.md / PLAN; SET2-01–05 with BNS row and scoped AI Organize style selection |
-| Browser-Native Sync | BROWSER_NATIVE_SYNC_ADOPTION.md / CONTRACT / UX / PLAN / REFERENCES; retain CPV1-SYNC-01–06 and their actual implementation/real-provider gates |
-| AI usage / quality / Free–Pro | AI_USAGE_ARCHITECTURE.md / ADOPTION / PLAN / COST_MODEL / REFERENCES and AI_ORGANIZE_STYLE_CONTRACT.md; all new execution remains planned |
+| Capture / Source / Working Input / human work / recovery | PRODUCT_INTENT_CONTRACT.md, TECHNICAL_PLAN.md, UX_CONTRACT.md and their fully incorporated exact baselines; existing safety/recovery owners |
+| Input Archive Home / Find / Browse / Reader | INPUT_ARCHIVE_HOME_ADOPTION.md, INPUT_ARCHIVE_INTERACTION_CONTRACT.md, INPUT_ARCHIVE_HOME_UX.md, INPUT_ARCHIVE_HOME_PLAN.md, INPUT_ARCHIVE_HOME_REFERENCES.md; IAH-1.0 |
+| Personal Topic Architecture | TOPIC_ARCHITECTURE.md / PLAN / ADOPTION; identity/retrieval/formation/promotion/presentation/closure outcomes unchanged |
+| Thought final presentation | THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md / REFERENCES; TOPIC-05.1–05.8 remain the current delivery breakdown |
+| Context Cards v2 | AI_CONTEXT_CARDS_V2_ADOPTION.md / PLAN / REFERENCES; existing independent Items/restrictive Topic access and CTX4 phase gates retained |
+| Prompt Reuse / local next-action | PROMPT_REUSE_SURFACE.md and PROMPT_REUSE_STAGE_3A.md; no hidden reply archive or remote pipeline |
+| Settings Consumer v2 | SETTINGS_CONSUMER_V2_ADOPTION.md / PLAN / REFERENCES; SET2 outcomes, six groups/22-row target and existing reset unchanged |
+| Browser-Native Sync | BROWSER_NATIVE_SYNC_ADOPTION.md / CONTRACT / UX / PLAN / REFERENCES; SYNC-01–06 and real-provider gates retained |
+| AI usage / quality / Free–Pro / style | AI_USAGE_ARCHITECTURE.md / ADOPTION / PLAN / COST_MODEL / REFERENCES and AI_ORGANIZE_STYLE_CONTRACT.md; AIU/AIOS/Qwen scope retained |
 
-Shared shell, typography, brand, source eligibility, user edits, restrictive permissions, tombstones and previous unresolved B-01/B-02 requirements remain. Approved Topic/Context semantics are not replaced by a new AI product or a 144-label dependency.
+The detailed implementation states and authorizations belong to current STATUS and each actual receipt, not an assertion that every retained lane is unimplemented or newly active.
 
-## 3. AI development chain — new planned outcomes
+## 3. Archive Home development chain — planned, not selected
 
-The dependency details and per-slice acceptance live only in [AI_USAGE_PLAN.md](AI_USAGE_PLAN.md):
+Details, owner/gap mapping, tests, failure handling and exit evidence live only in [INPUT_ARCHIVE_HOME_PLAN.md](INPUT_ARCHIVE_HOME_PLAN.md).
 
-| ID | Outcome | Dependency / integration |
+| ID | Outcome | Dependency / readiness |
 |---|---|---|
-| AI-COST-01 | Unified Semantic Delta / AI Job / Usage Receipt | Existing stable identity/revisions/protections; first new AI task when selected |
-| AI-COST-02 | Budget Manager / entitlement / quota / cache admission | 01; trusted service contract, conservative reservations and explicit no-activation gates |
-| AI-COST-03 | Unified Personal AI Maintenance | 01/02 plus actual relevant Topic/Context owners; one multi-facet delta pipeline |
-| AI-COST-04 | Pro ambiguous AI Filter | 03 plus local filter/search/reading protection; no independent provider pipeline |
-| AI-COST-05 | Organize cache/incremental refresh / three styles | 02 plus derivative/evidence reader and existing preference owner; integrates TOPIC-05.7 and SET2 |
-| AI-COST-06 | Lazy AI Assist / Orb | 02 plus local Prompt surface and separate default-off latest-reply remote processing consent |
-| AI-COST-07 | Production cost / quality / financial acceptance | Implemented enabled facets, trusted service and actual provider/privacy/region qualifications |
+| ARCHIVE-HOME-01 | Explicit four-state route, fresh-vs-Back/reload, origin and bounded tab-session foundation | Existing route/editor/source owners; no AI/Sync dependency. First Archive task only when explicitly scheduled; PLANNED. |
+| ARCHIVE-HOME-02 | Minimal Find Home, one active Main search, local Input-first results and result-state restoration | 01; existing trusted lexical query/coverage owners; PLANNED. |
+| ARCHIVE-HOME-03 | Source/Project/group Browse scope, separate disclosure, explicit Conversation selection | 01/02; existing qualified source-structure/query owners; PLANNED. |
+| ARCHIVE-HOME-04 | Exact Input/revision/Unicode-safe landing, highlight, temporary filter reveal and stale/removed handling | 02/03 plus current Reader/editing/eligibility; PLANNED. |
+| ARCHIVE-HOME-05 | Recorded Search/Browse Back, distinct verified original-site action and explicit contextual entry | 01/03/04; current-live contextual qualification is a distinct evidence dependency; PLANNED. |
+| ARCHIVE-HOME-06 | Wide/medium/narrow/dark, long-list, keyboard/accessibility/resource/reliability and production acceptance | Applicable earlier outcomes plus actual source/release and task evidence; PLANNED. |
 
-Default lane order: 01 -> 02 -> 03 -> 04 -> 05 -> 06 -> 07. Actual dependency graph allows 05/06 after 02 and their own prerequisites under explicit queue selection; it does not create parallel active plans. Metrics/fixtures and body-free telemetry begin with the foundation, not at the end.
+Default dependency order is 01 -> 02 -> 03 -> 04 -> 05 -> 06. A coherent authorized batch can cover several IDs; do not create one mandatory PR/certification loop per row. No Archive runtime writer is started by this documentation adoption.
 
-AIU owns all remote admission and exact allowances. Topic/Context/Filter owners submit scoped operations; Organize and Assist have separate effective quotas and budgets. No feature directly invokes a Provider, and no paid activation follows from a documentation merge or fixture PASS.
+The lane is independent of paid models, completion of the AI-COST lane, production Sync and the entire Thought UI. Its local foundations already exist, but the four-state/Home behavior is not thereby complete. Missing live provider evidence affects Task C's live claim, not independent Find/Browse engineering. Existing save, caller, deletion and privacy gates remain mandatory; a changed high-risk boundary follows the existing full-verification escalation.
 
-## 4. Scoped cross-plan amendments
+## 4. Preserved AI and cross-plan amendments
 
-Settings remains the approved Consumer v2 composition. The only new primary row is AI 整理方式 under AI 与提示词; current final inventory is 22 rows, four switches, six selections and twelve destinations, plus the existing secondary reset. All three styles are available to both tiers. SET2-01 uses the existing preference owner; SET2-05 verifies actual production behavior. Private 20/21-row prototype evidence is preserved, not relabeled as a new acceptance.
+The full seven-stage AI-COST chain, dependency graph, Qwen candidate/ratebook/FX refinement, same Free/Pro quality floor, style semantics and cost/quality qualification remain as in the exact preceding master and AI_USAGE_PLAN.md. **The first planned AI task remains AI-COST-01**, subject to current queue selection; this is not a second global pointer. Exact allowances stay only in AI_USAGE_ARCHITECTURE.md.
 
-Topic formation and Context automatic maintenance consume the shared AI-COST-03 semantic delta/job boundary. Their durable correctness/identity/human-protection gates are unchanged. AI Filter ambiguous cases join that job rather than becoming a separate full-input classification product. External Context retrieval does no PAIA inference.
+Settings receives no new primary row, resume toggle or search-history setting from IAH. Existing source/time/body-size preferences and all current Context/Prompt/Sync destinations keep their owners. Browser-Native Sync excludes Archive route/query/result/reveal metadata. Ordinary Find/Back/scope/highlight cause no remote AI call or semantic maintenance event and do not spend quota.
 
-TOPIC-05.7 consumes STYLE's derivative voice/evidence/cache rules. Changing style does not rebuild all Topics or overwrite original bodies. Existing legally readable organized output remains available independently of a new-generation allowance.
-
-Prompt Reuse and Stage 3A remain local. AI-COST-06 supplies only a separately opted-in, intent-driven real AI suggestion, not automatic generation after each reply. BNS may synchronize the style preference, not transient AI execution/cache/active consent/entitlement credentials. These are scoped integrations, not replacements for the domain plans.
+Source Project is not Personal Topic. Thought identity, durable Sections, body ownership, Context access and B-01/B-02 are unchanged. Archive result presentation does not replace Thought's in-place search contract or grant external Archive fallback. Cancelled exports, backup generation, Profile, Material Tray, approval inboxes, ordinary diagnostics and BYO-provider transport remain cancelled.
 
 ## 5. Release, economics and evidence
 
-The current work is design/cost/planning/canonical integration only. No production runtime, schema, test, manifest/version, real model, API key, entitlement, subscription, charge, user data or release changes occur.
+This integration is design tightening, adoption, planning and canonical documentation only. No runtime, schema, migration, UI, test/workflow, manifest/version, account/provider/entitlement/payment, cloud resource, build/install/deployment or release is changed. Existing evidence and failed gates remain truthful history, not IAH acceptance.
 
-Cost-model workloads and tail distributions are hypotheses; official published price is not quality evidence. Qualified models, actual token/financial reconciliation, region/privacy/commercial choices and authorized user processing remain prerequisites. The potential future evaluation envelope in AI_USAGE_PLAN is not spending approval. Literal unlimited-use marketing is prohibited unless the underlying limits actually support it; normal UI still avoids token/dollar or Pro counter anxiety.
+The three core tasks have reviewed design traces in the Archive plan; production Task A/B/C execution is NOT_RUN here. Future local mechanical tests, precise-hit correctness, current-live contextual compatibility, performance/accessibility, source/release visual convergence, installed build and owner acceptance are separate evidence classes. Do not convert a poster, prototype, previous CI success or docs-only diff into those claims.
 
-Preserve all prior failed/successful evidence and exact-main/release verification requirements through the existing framework. Design adoption, implementation, fixture verification, model qualification, financial reconciliation, production verification and owner visual acceptance are distinct. When the current closure is actually completed, update STATUS from concrete evidence; do not infer completion from this plan.
+## Paid AI service — not implemented
+
+Retain the full service-boundary wording and qualification requirements in the incorporated master and current AI_USAGE_* authorities. Candidate model/cost choices, IAH adoption and ordinary search do not authorize credentials, paid calls, hidden retries, subscriptions or deployment.

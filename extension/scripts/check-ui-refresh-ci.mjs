@@ -112,4 +112,10 @@ for(const row of prior)for(const count of [4,5,6]){
   count===4&&row.file==='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs'?3:row.before;
  if(testShard(row.file,current.indexOf(row.file),count,'browser E2E')!==expected)throw Error('CONTEXT_MAINTENANCE_SHIFTED_PRIOR_ROUTE:'+count+':'+row.file);
 }
+// The seventh job owns the complete Thought and measured retained Root files. Compare every
+// current file against the retained six-way map, including all frozen oracles.
+const thought='ux-r3-thought-chrome-e2e.test.mjs',retainedRoot='cpv1-02-dvn-topic-root-chrome-e2e.test.mjs';
+const seven=Array.from({length:7},(_,slot)=>current.filter((name,position)=>testShard(name,position,7,'browser E2E')===slot+1));
+if(seven.some(part=>!part.length)||seven.flat().sort().join('|')!==current.join('|')||new Set(seven.flat()).size!==current.length||seven[6].join('|')!==[retainedRoot,thought].join('|'))throw Error('D5_SEVEN_BROWSER_SHARD_PARTITION_INVALID');
+for(const [position,name]of current.entries())if(testShard(name,position,7,'browser E2E')!==([thought,retainedRoot].includes(name)?7:testShard(name,position,6,'browser E2E')))throw Error('D5_SEVEN_SHIFTED_UNREVIEWED_ROUTING:'+name);
 console.log(`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=${formerCore.length} uir=${uir.length} ans=${ans.length} cpr=${cpr.length}`);

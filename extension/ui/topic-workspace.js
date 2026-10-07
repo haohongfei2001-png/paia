@@ -225,14 +225,14 @@ export class TopicController {
  clearActionFeedback(){$('ai-update-feedback')?.replaceChildren();}
  rootAction(method,...args){return()=>this[method](...args);}
  async openRootTarget(topicId,sectionId=null){
-  const claim=this.openIntent=(this.openIntent||0)+1,serial=this.serial,epoch=this.statusEpoch;
-  const current=()=>claim===this.openIntent&&serial===this.serial&&epoch===this.statusEpoch&&!$('thought-panel').hidden;
+  const claim=this.openIntent=(this.openIntent||0)+1,serial=this.serial,epoch=this.statusEpoch,cueEpoch=this.rootCueEpoch||0;
+  const current=()=>claim===this.openIntent&&serial===this.serial&&epoch===this.statusEpoch&&cueEpoch===(this.rootCueEpoch||0)&&!$('thought-panel').hidden;
   let valid=false;try{valid=await resolveTopicRootTarget({topicId,sectionId},options=>request('GET_LIBRARY_SECTION_PROJECTION',{options}));}catch{if(current())this.onStatus('暂时无法核对这个主题或分区，请重试。','read_error');return;}
   if(!current())return;
   if(!valid){this.onStatus('这个主题或分区已不可用，请重新读取思想库。','read_error');return;}
   try{
   if(sectionId){this.requestedTopicView='original';if(this.id===topicId&&this.view!=='original'){await this.switchView('original');if(claim!==this.openIntent)return;}}
-  const intent=await this.open(topicId),active=()=>intent!==undefined&&intent===this.openIntent&&this.id===topicId&&!$('thought-panel').hidden;
+  const intent=await this.open(topicId),targetCueEpoch=this.rootCueEpoch||0,active=()=>intent!==undefined&&intent===this.openIntent&&this.id===topicId&&this.view==='original'&&targetCueEpoch===(this.rootCueEpoch||0)&&!$('thought-panel').hidden;
   if(!active()||!sectionId)return;
   await this.focusSection(sectionId,{isCurrent:active});if(!active())return;
   let cursor=null,section=null;
@@ -240,7 +240,7 @@ export class TopicController {
   if(!section){this.onStatus('这个分区已变化，请重新读取主题。','read_error');return;}
   const entry=[...this.originalPane.querySelectorAll('[data-entry-id][data-section-id]')].find(node=>node.dataset.sectionId===sectionId);
   for(const prior of this.originalPane.querySelectorAll('.topic-root-section-anchor'))prior.remove();
-  if(section.title){const anchor=element('section','topic-root-section-anchor'),heading=element('h2','',section.title);anchor.dataset.sectionId=sectionId;heading.tabIndex=-1;anchor.append(heading);if(entry)entry.before(anchor);else this.originalPane.append(anchor);anchor.scrollIntoView({block:'start'});heading.focus({preventScroll:true});}
+  if(section.title){const anchor=element('section','topic-root-section-anchor'),heading=element('h2','',section.title);anchor.dataset.sectionId=sectionId;anchor.dataset.topicId=topicId;anchor.dataset.rootOpenIntent=String(intent);anchor.dataset.layoutGeneration=String(section.layoutGeneration);anchor.dataset.sectionRevision=String(section.revision);heading.tabIndex=-1;anchor.append(heading);if(entry)entry.before(anchor);else this.originalPane.append(anchor);anchor.scrollIntoView({block:'start'});heading.focus({preventScroll:true});}
   else if(entry)entry.scrollIntoView({block:'start'});
   }catch{if(this.id===topicId&&!$('thought-panel').hidden)this.onStatus('这个分区暂时无法读取，请重试；已保存内容仍保留。','read_error');}
  }
@@ -257,10 +257,11 @@ export class TopicController {
  paintRootSearch(page,query){
   // Search uses the existing bounded lexical owner; presentation never creates
   // a second directory or changes the established Topic addresses.
-  const prior=this.rootPreSearch;
+  const prior=this.rootPreSearch,focus=this.personalRoot.focusRef();
   if(prior?.items)this.personalRoot.render(prior.items,{complete:prior.complete});
   const matches=new Set(page.items.flatMap(item=>(item.paths||[item]).map(path=>path.topicId||item.topicId)).filter(Boolean));
-  this.personalRoot.search(page.items,query,{open:(item,path)=>this.openSearchResult(item,path)});
+  this.personalRoot.search(page.items,query,{open:(item,path)=>this.openSearchResult(item,path),complete:page.complete===true});
+  if(focus?.matchKey||focus?.matchStep)this.personalRoot.restoreFocus(focus);
   $('library-search-status').textContent=page.indexing?'搜索索引正在准备，匹配尚未完整。':page.complete?(matches.size?'匹配的主题已保留在原位置。':page.items.some(item=>item.kind==='entry'&&!item.paths?.length)?'匹配位于单独写下的内容，可从更多操作打开。':'当前没有匹配内容。'):'继续读取其余匹配；主题位置保持不变。';
   $('thought-empty').hidden=true;
  }
@@ -314,6 +315,14 @@ export class TopicController {
   const heading=$('topic-heading'),body=this.originalPane,metadata=this.editor?.metadata||[],pins=this.editor?.entry.protectedIds?.()||new Set();
   if(!this.editor){heading.replaceChildren(...this.topicHeading(page.topic));metadata.push(new MetadataEditor(heading,page.topic,'topic',this.onStatus));}
   const existing=new Map([...body.querySelectorAll('[data-entry-id]')].map(node=>[node.dataset.entryId,node])),sections=new Map((page.sections||[]).map(section=>[section.sectionId,section]));
+  // Retain only an existing, source-qualified Root target; never manufacture
+  // or repaint this heading from the weaker legacy reader Section labels.
+  const rootAnchors=new Map(),rootLevelAnchors=new Set(),placedRootAnchors=new Set();
+  for(const node of body.querySelectorAll('.topic-root-section-anchor')){
+   const section=sections.get(node.dataset.sectionId),title=node.querySelector('h2');
+   if(node.dataset.topicId!==this.id||page.topic?.id!==this.id||node.dataset.rootOpenIntent!==String(this.openIntent)||!section||section.topicId!==this.id||section.lifecycle!=='active'||section.redirectTo||String(section.layoutGeneration)!==String(page.topic.activeLayoutGeneration)||node.dataset.layoutGeneration!==String(section.layoutGeneration)||node.dataset.sectionRevision!==String(section.revision)||!title?.textContent||title.textContent!==section.title||section.sourceUnavailable&&section.protections?.title?.locked!==true){node.remove();continue;}
+   rootAnchors.set(section.sectionId,node);if(node.parentElement===body)rootLevelAnchors.add(node);
+  }
   const groups=new Map(),ordered=[],groupFor=year=>{
    year=String(year);if(groups.has(year))return groups.get(year);
    let node=[...body.children].find(node=>node.dataset.expressionYear===String(year));
@@ -331,10 +340,12 @@ export class TopicController {
    const staleLabel=node.querySelector('.entry-stale');if(staleLabel){staleLabel.textContent=stale(entry);staleLabel.onclick=()=>this.actions.compare(entry.id);}
    let origin=node.querySelector('.topic-origin-section');const section=sections.get(item.placement.sectionId);
    if(section&&(!section.isDefault||year==='unknown')){if(!origin){origin=element('p','topic-origin-section muted');node.prepend(origin);}origin.textContent=(year==='unknown'?'所属章节：':'')+(section.title||'正文');}else origin?.remove();
+   const anchor=rootAnchors.get(item.placement.sectionId);if(anchor&&!placedRootAnchors.has(anchor)){current.children.push(anchor);placedRootAnchors.add(anchor);}
    current.children.push(node);
   }
   // Protected nodes stay in their current year and retain native editor identity.
-  for(const [id,node]of existing)if(pins.has(id)&&![...groups.values()].some(group=>group.children.includes(node))){const group=groupFor(node.dataset.expressionYear||'unknown');group.children.push(node);}
+  for(const [id,node]of existing)if(pins.has(id)&&![...groups.values()].some(group=>group.children.includes(node))){const group=groupFor(node.dataset.expressionYear||'unknown'),anchor=rootAnchors.get(node.dataset.sectionId);if(anchor&&!placedRootAnchors.has(anchor)){group.children.push(anchor);placedRootAnchors.add(anchor);}group.children.push(node);}
+  for(const anchor of rootLevelAnchors)if(!placedRootAnchors.has(anchor))ordered.push(anchor);
   for(const group of groups.values())placeChildren(group.node,group.children);
   placeChildren(body,ordered);
   const rows=page.items.filter(item=>!item.entry.large).map(item=>item.entry);
