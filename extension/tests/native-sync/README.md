@@ -68,3 +68,14 @@ if [ "$SYNC_NATIVE_STORAGE_SELECTED" = true ]; then test "$SYNC_NATIVE_STORAGE" 
 The nested test directory deliberately remains outside `scripts/test.mjs`'s top-level discovery. This prevents a new native case from silently shifting the existing certification shards or exhausting an unrelated job. The dedicated selected job owns all 30 native cases and must be green; it does not replace ordinary candidate/full gates. Broader mandatory routing requires a later explicit integration decision backed by measured hosted duration.
 
 No remote publication, workflow mutation, GitHub dispatch, installation, release or native PASS is performed by preparing this proposal.
+
+## Hosted restart correction
+
+The first hosted proof at `f3a981aa` failed both source and release on the clean
+restart boundary after three storage cases passed. Chrome emitted a stopped
+event but completed the artificial `pause-for-restart` command's sole `true`
+no-op reply. That failed run remains evidence, not a native pass. A clean restart
+may retain that exact reply only alongside observed stopped/restarted events, a
+fresh lifetime, and the complete per-lifetime network ledger. Transactional and
+staged interruption calls must still terminate; all complete-transition/rollback
+oracles and the required fifteen cases per variant are unchanged.

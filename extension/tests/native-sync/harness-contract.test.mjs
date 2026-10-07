@@ -9,7 +9,7 @@ import {IDBFactory, IDBKeyRange, IDBTransaction} from '../vendor/fake-indexeddb/
 import {ImmutableObjects} from './immutable-objects.mjs';
 import {instrumentedExtension, root} from './storage-harness.mjs';
 import {assertReceipt, CASES} from './receipt.mjs';
-import {assertPromptCrashOutcome, portablePrompt, LifetimeNetworkLedger, assertNetworkLedger} from './proof-oracles.mjs';
+import {assertPromptCrashOutcome, portablePrompt, LifetimeNetworkLedger, assertNetworkLedger, assertWorkerLifecycle} from './proof-oracles.mjs';
 
 function promptTransition(text = 'Synthetic distinct new text') {
   const preferences = {id: 'prompt-reuse:v1', version: 1, revision: 1, pins: [], overrides: [{id: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', text: 'Synthetic prior text', hidden: false, reuseCount: 0}], splits: []};
@@ -39,6 +39,14 @@ test('crash oracle rejects revision-only, same-text and every partial journal tr
   }
   for (const change of [{sequence: 3}, {generation: 3}, {outbox: [operation]}, {namespace: 'wrong'}]) assert.throws(() => assertPromptCrashOutcome(before, {...after, ...change}, {text, operation}));
   for (const change of [{operationId: before.outbox[0].operationId}, {revisionId: before.outbox[0].revisionId}, {parents: []}]) assert.throws(() => assertPromptCrashOutcome(before, after, {text, operation: {...operation, ...change}}));
+});
+
+test('only a completed restart no-op may survive a verified worker stop and fresh heap', () => {
+  const event = {phase: {name: 'restart-boundary', lifetime: 'before', hasNativeTransaction: false}, beforeLifetime: 'before', afterLifetime: 'after', stopped: true, restarted: true, interruptedCall: 'returned', completedNoopValue: true};
+  assertWorkerLifecycle(event);
+  assertWorkerLifecycle({...event, interruptedCall: 'terminated'});
+  for (const change of [{stopped: false}, {restarted: false}, {afterLifetime: 'before'}, {afterLifetime: ''}, {completedNoopValue: false}, {completedNoopValue: undefined}, {interruptedCall: 'pending'}]) assert.throws(() => assertWorkerLifecycle({...event, ...change}));
+  for (const phase of [{...event.phase, lifetime: 'wrong'}, {...event.phase, hasNativeTransaction: true}, {...event.phase, name: 'staged-item'}, {...event.phase, name: 'pause-before-journal'}, {...event.phase, name: 'pause-after-journal'}, {...event.phase, name: 'after-activation'}]) assert.throws(() => assertWorkerLifecycle({...event, phase}));
 });
 
 test('network oracle retains denied requests from stopped heaps and refuses missing pause evidence', () => {
@@ -91,6 +99,9 @@ test('native receipt contract cannot turn missing cases or model evidence into n
   };
   const validate = value => assertReceipt(value, {head: receipt.head, variant: 'source'});
   validate(receipt);
+  const completedRestart = structuredClone(receipt); completedRestart.committedRestart.interruptedCall = 'returned'; completedRestart.committedRestart.completedNoopValue = true; validate(completedRestart);
+  for (const change of [{stopped: false}, {afterLifetime: completedRestart.committedRestart.beforeLifetime}, {completedNoopValue: false}]) { const invalid = structuredClone(completedRestart); Object.assign(invalid.committedRestart, change); assert.throws(() => validate(invalid)); }
+  for (const index of [0, 1, 2, 3]) { const invalid = structuredClone(receipt); Object.assign(invalid.terminations[index], {interruptedCall: 'returned', completedNoopValue: true}); assert.throws(() => validate(invalid)); }
   for (const change of [{nativeFactory: false}, {result: 'IN_PROGRESS'}, {head: 'e'.repeat(40)}, {cases: receipt.cases.slice(1)}, {terminations: []}, {networkAttempts: 1}, {fullCanonicalCoverage: true}]) assert.throws(() => validate({...receipt, ...change}));
   const hiddenDenied = structuredClone(receipt); hiddenDenied.destinationNetwork.observations[2].networkAttempts.push('https://synthetic.invalid/denied'); assert.throws(() => validate(hiddenDenied));
   const missingRecovery = structuredClone(receipt); delete missingRecovery.activationAbortRestart; assert.throws(() => validate(missingRecovery));

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {assertPromptCrashOutcome, assertNetworkLedger} from './proof-oracles.mjs';
+import {assertPromptCrashOutcome, assertNetworkLedger, assertWorkerLifecycle} from './proof-oracles.mjs';
 
 export const CASES = Object.freeze([
   'prompt-atomic-success', 'prompt-injected-abort', 'prompt-injected-quota',
@@ -27,14 +27,12 @@ export function assertReceipt(receipt, {head, variant}) {
   for (const claim of ['productionActivation', 'uiQualification', 'providerQualification', 'installedUserBuild', 'fullCanonicalCoverage']) assert.equal(receipt[claim], false);
   const expectedPhases = ['pause-before-journal', 'pause-after-journal', 'staged-item', 'after-activation'];
   for (const event of [receipt.committedRestart, receipt.activationAbortRestart]) {
-    assert.equal(event.stopped, true); assert.equal(event.restarted, true); assert.equal(event.interruptedCall, 'terminated');
-    assert.notEqual(event.beforeLifetime, event.afterLifetime); assert.equal(event.phase.name, 'restart-boundary');
+    assertWorkerLifecycle(event); assert.equal(event.phase.name, 'restart-boundary');
     assert.equal(event.phase.hasNativeTransaction, false); assert.equal(event.phase.lifetime, event.beforeLifetime);
   }
   assert.deepEqual(receipt.terminations.map(value => value.phase.name), expectedPhases);
   for (const event of receipt.terminations) {
-    assert.equal(event.stopped, true); assert.equal(event.restarted, true); assert.equal(event.interruptedCall, 'terminated');
-    assert.notEqual(event.beforeLifetime, event.afterLifetime);
+    assertWorkerLifecycle(event); assert.equal(event.interruptedCall, 'terminated');
     assert.equal(event.phase.lifetime, event.beforeLifetime);
     assert.equal(event.phase.hasNativeTransaction, event.phase.name !== 'staged-item');
     if (event.phase.hasNativeTransaction) assert.ok(['both', 'neither'].includes(event.durabilityOutcome));

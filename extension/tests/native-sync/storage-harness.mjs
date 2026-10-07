@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join, relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {LifetimeNetworkLedger} from './proof-oracles.mjs';
+import {LifetimeNetworkLedger, assertWorkerLifecycle} from './proof-oracles.mjs';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 export const root = fileURLToPath(new URL('../..', import.meta.url));
@@ -112,13 +112,14 @@ export async function startNative(extensionPath) {
       await deadline(lifecycle.send('ServiceWorker.stopWorker', {versionId}), 'Stopping paused worker failed');
       await eventually(() => events.some(value => value.versionId === versionId && value.runningStatus === 'stopped'), 'Worker did not emit stopped');
       const outcome = await deadline(inFlight, 'Interrupted worker call did not settle');
-      assert.equal(outcome.settled, 'terminated', 'The paused operation must not return a success before termination');
+      if (expectedPhase !== 'restart-boundary') assert.equal(outcome.settled, 'terminated', 'The paused operation must not return a success before termination');
+      else if (outcome.settled === 'returned') assert.equal(outcome.value, true, 'Only the exact restart no-op reply may complete');
       await protocol.close(); protocol = null;
       await h.state();
       await eventually(() => events.some(value => value.runningStatus === 'running' && events.indexOf(value) > events.findIndex(entry => entry.runningStatus === 'stopped')), 'Worker did not emit restarted');
       const after = await call('identity'); assert.notEqual(after.lifetime, before.lifetime);
       network.restarted(before, after);
-      return {phase, pausedNetwork, beforeLifetime: before.lifetime, afterLifetime: after.lifetime, stopped: true, restarted: true, interruptedCall: outcome.settled};
+      return assertWorkerLifecycle({phase, pausedNetwork, beforeLifetime: before.lifetime, afterLifetime: after.lifetime, stopped: true, restarted: true, interruptedCall: outcome.settled, ...(outcome.settled === 'returned' ? {completedNoopValue: outcome.value} : {})});
     } finally { await protocol?.close(); await lifecycle.detach(); }
   }
   return {

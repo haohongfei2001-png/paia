@@ -26,6 +26,21 @@ export function assertPromptCrashOutcome(before, after, {text, operation}) {
   return 'both';
 }
 
+// A cooperative worker stop may complete the synthetic no-op used only for a
+// clean restart. Transaction/staging interruption evaluations must still reject.
+export function assertWorkerLifecycle(event) {
+  assert.equal(event.stopped, true); assert.equal(event.restarted, true);
+  for (const lifetime of [event.beforeLifetime, event.afterLifetime]) assert.ok(typeof lifetime === 'string' && lifetime.length > 0);
+  assert.notEqual(event.beforeLifetime, event.afterLifetime);
+  assert.equal(event.phase.lifetime, event.beforeLifetime);
+  if (event.interruptedCall === 'returned') {
+    assert.equal(event.phase.name, 'restart-boundary');
+    assert.equal(event.phase.hasNativeTransaction, false);
+    assert.equal(event.completedNoopValue, true);
+  } else assert.equal(event.interruptedCall, 'terminated');
+  return event;
+}
+
 export function assertNetworkLedger(ledger, expectedTransitions = ledger.transitions) {
   assert.equal(ledger.complete, true); assert.ok(ledger.observations.length >= 2);
   const observed = [], seen = new Set(); let current;
