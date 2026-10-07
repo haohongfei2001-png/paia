@@ -1,3 +1,4 @@
+import {settingsPromptPositionEvidence} from './harness/settings-prompt-position-browser.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';import {join} from 'node:path';import {mkdir,writeFile} from 'node:fs/promises';import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';import {routeComposer,isolated} from './harness/prompt-composer.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url)),url='https://chatgpt.com/c/prompt-insertion-fixture',receiptDir=join(root,'work/prompt-surface');
@@ -107,7 +108,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   });
   await check('second tab and actual tab discard restore their own surface and draft target',async()=>{
    const second=await h.context.newPage();await second.goto(url+'#second-tab');await arrange(second);await second.waitForFunction(()=>!!globalThis.fixture?.view);await second.locator('[data-paia-prompt-surface]').waitFor({state:'visible'});await page.evaluate(()=>fixture.set('first-tab-draft',15));await second.evaluate(()=>fixture.set('second-tab-draft',16));
-   let sf=second.frames().find(f=>f.url().includes('prompt-surface.html#'));if(!sf){await second.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!second.frames().find(f=>f.url().includes('prompt-surface.html#')));sf=second.frames().find(f=>f.url().includes('prompt-surface.html#'));}await sf.locator('.row').first().waitFor();const firstFrame=card();await second.locator('[data-paia-prompt-surface]').click();await eventually(()=>!second.frames().some(f=>f.url().includes('prompt-surface.html#')));assert.equal(card(),firstFrame);await second.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!second.frames().find(f=>f.url().includes('prompt-surface.html#')));sf=second.frames().find(f=>f.url().includes('prompt-surface.html#'));await sf.getByRole('button',{name:text,exact:true}).click();await eventually(()=>sf.locator('#status').textContent().then(x=>x.includes('已插入')));assert.equal(await page.evaluate(()=>fixture.text()),'first-tab-draft');assert.equal(await second.evaluate(()=>fixture.text()),'second-tab-draft'+text);
+   let sf=second.frames().find(f=>f.url().includes('prompt-surface.html#'));if(!sf){await second.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!second.frames().find(f=>f.url().includes('prompt-surface.html#')),'second tab opens its own card');sf=second.frames().find(f=>f.url().includes('prompt-surface.html#'));}await sf.locator('.row').first().waitFor();const firstFrame=card();await second.locator('[data-paia-prompt-surface]').click();await eventually(()=>!second.frames().some(f=>f.url().includes('prompt-surface.html#')),'second tab closes its own card');assert.equal(card(),firstFrame);await second.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!second.frames().find(f=>f.url().includes('prompt-surface.html#')),'second tab opens its own card');sf=second.frames().find(f=>f.url().includes('prompt-surface.html#'));await sf.getByRole('button',{name:text,exact:true}).click();await eventually(()=>sf.locator('#status').textContent().then(x=>x.includes('已插入')),'second tab insertion acknowledges its own selected draft');assert.equal(await page.evaluate(()=>fixture.text()),'first-tab-draft');assert.equal(await second.evaluate(()=>fixture.text()),'second-tab-draft'+text);
    await page.bringToFront();const worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));const tabs=await worker.evaluate(()=>chrome.tabs.query({url:'https://chatgpt.com/*'}));const inactive=tabs.find(x=>x.url===url+'#second-tab');assert.ok(inactive&&!inactive.active);const discarded=await worker.evaluate(id=>chrome.tabs.discard(id),inactive.id);assert.equal(discarded.discarded,true);await worker.evaluate(id=>chrome.tabs.update(id,{active:true}),discarded.id);await eventually(()=>h.context.pages().some(p=>!p.isClosed()&&p.url()===url+'#second-tab'));const restored=h.context.pages().find(p=>!p.isClosed()&&p.url()===url+'#second-tab');await restored.waitForFunction(()=>!!globalThis.fixture?.view);await arrange(restored);await restored.locator('[data-paia-prompt-surface]').waitFor({state:'visible'});assert.equal(await restored.locator('[data-paia-prompt-surface]').count(),1);await restored.close();await page.bringToFront();
   });
   await check('current/last selection, native IME and uncertain outcome keep one-shot safety through the real card',async()=>{
@@ -163,6 +164,12 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    const near=(a,b,label)=>assert.ok(Math.abs(a-b)<1,label+': '+a+' vs '+b);
    const attached=async()=>{assert.ok(card(),'card stays open');const b=await bounds();near(b.orb.x,b.card.x+b.card.width-40,'attached x');near(b.orb.y,b.card.y-32,'attached y');return b;};
    const saved=()=>engineering.evaluate(async()=> (await chrome.storage.local.get('promptSurfaceV1')).promptSurfaceV1);
+   // The preceding zoom/viewport cases leave a valid near-edge saved anchor.
+   // Put this free-motion test inside the safe band with a real drag before
+   // asserting exact deltas; the later boundary drags retain the clamp oracle.
+   const origin=await attached();await page.mouse.move(origin.orb.x+22,origin.orb.y+22);await page.mouse.down();
+   await page.mouse.move(922,272,{steps:8});await page.mouse.up();
+   await eventually(async()=>{const b=await attached(),v=await saved();return Math.abs(b.orb.x-900)<1&&Math.abs(b.orb.y-250)<1&&v.position&&Math.abs(v.position.x*1236-b.orb.x)<1&&Math.abs(v.position.y*856-b.orb.y)<1;},'native free-motion anchor is safely away from clamp boundaries');
    const initial=await attached(),sameFrame=card();await page.mouse.move(initial.orb.x+22,initial.orb.y+22);await page.mouse.down();
    assert.deepEqual(await bounds(),initial,'pointerdown does not jump');
    await page.mouse.move(initial.orb.x+14,initial.orb.y+16);await page.waitForTimeout(40);let b=await attached();near(b.orb.x,initial.orb.x-8,'first movement x');near(b.orb.y,initial.orb.y-6,'first movement y');near(b.card.x,initial.card.x-8,'card first movement x');near(b.card.y,initial.card.y-6,'card first movement y');near(b.card.height,initial.card.height,'card height stays stable');assert.equal(card(),sameFrame);
@@ -190,6 +197,46 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    const narrow=await page.addStyleTag({content:'form{left:600px;right:16px}'});await page.waitForTimeout(60);b=await attached();await page.mouse.move(b.orb.x+22,b.orb.y+22);await page.mouse.down();await page.mouse.move(422,522,{steps:8});await page.mouse.up();await page.waitForTimeout(60);const side=await safe();near(side.orb.x,400,'free lateral position x');near(side.orb.y,500,'free lateral position y');await narrow.evaluate(e=>e.remove());await page.waitForTimeout(60);
    await page.setViewportSize({width:320,height:844});await page.waitForTimeout(80);await safe();await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(80);await safe();
    assert.equal(await page.evaluate(()=>fixture.text()),'');assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);await page.evaluate(url=>history.replaceState({},'',url),url);
+  });
+  await check('Settings style, details and actual position-reset clicks preserve the concurrent Prompt draft and failure focus',()=>settingsPromptPositionEvidence({h,page,card,orb,rpc,engineering}));
+  await check('Settings position reset keeps the same composing card visible beside a tall composer',async()=>{
+   await page.setViewportSize({width:1280,height:900});await open();
+   const tall=await page.addStyleTag({content:'form{left:800px;right:80px;top:50px;bottom:50px;box-sizing:border-box}'});
+   const saved=()=>h.archive.evaluate(async()=> (await chrome.storage.local.get('promptSurfaceV1')).promptSurfaceV1);
+   const f=card(),draft='unsaved lateral reset draft 中文 🙂';let cdp,resetWorld;
+   try{
+    await page.locator('#blur').focus();await page.keyboard.press('Tab');await page.keyboard.press('Alt+ArrowLeft');
+    await eventually(async()=>!!(await saved()).position,'native move supplies a real custom position before reset');
+    const geometry=await saved(),families=await rpc(engineering,'PAIA_PROMPT_QUERY',{includeHidden:true}),records=(await h.state()).records;
+    resetWorld=await isolated(page,h.extensionId);await resetWorld.run("globalThis.resetPositionSeen=0;globalThis.resetPositionListener=r=>{if(r.type==='PAIA_PROMPT_SURFACE_POSITION_RESET')resetPositionSeen=r.positionGeneration;};chrome.runtime.onMessage.addListener(resetPositionListener);");
+    await f.locator('#new').click();const edit=f.getByRole('textbox',{name:'复用文本'});await edit.fill(draft);await edit.focus();
+    await edit.evaluate(node=>{globalThis.resetComposition={start:0,end:0};node.addEventListener('compositionstart',()=>resetComposition.start++);node.addEventListener('compositionend',()=>resetComposition.end++);});
+    cdp=await h.context.newCDPSession(page);await cdp.send('Input.imeSetComposition',{text:'汉',selectionStart:1,selectionEnd:1});
+    const editorState=()=>edit.evaluate(node=>({value:node.value,start:node.selectionStart,end:node.selectionEnd,focused:document.activeElement===node,composition:{...resetComposition}}));
+    const editor=await editorState();assert.equal(editor.composition.start,1);assert.equal(editor.composition.end,0);assert.equal(editor.focused,true);
+    assert.deepEqual(await rpc(h.archive,'PAIA_PROMPT_SURFACE_RESET_POSITION'),{status:'reset',changed:true});
+    await eventually(async()=>{const state=await saved();return state.position===null&&state.positionGeneration===(geometry.positionGeneration??0)+1;});
+    await eventually(()=>resetWorld.run('resetPositionSeen').then(value=>value===(geometry.positionGeneration??0)+1),'the real host receives this reset generation');
+    await eventually(async()=>{const box=await (await f.frameElement()).boundingBox();return box&&Math.abs(box.x-448)<1&&Math.abs(box.y-82)<1;},'default reset must keep the composing card visible in the available lateral band');
+    assert.equal(card(),f);assert.deepEqual(await editorState(),editor);assert.equal((await saved()).open,true);
+    const form=await page.locator('form').boundingBox();
+    for(const box of [await orb.boundingBox(),await (await f.frameElement()).boundingBox()]){
+     assert.ok(box&&box.x>=8&&box.y>=8&&box.x+box.width<=1272&&box.y+box.height<=892);
+     assert.ok(box.x+box.width<=form.x-8||box.x>=form.x+form.width+8,'default card and attached handle stay outside the tall composer');
+    }
+    assert.deepEqual(await rpc(h.archive,'PAIA_PROMPT_SURFACE_RESET_POSITION'),{status:'reset',changed:false});
+    await eventually(()=>resetWorld.run('resetPositionSeen').then(value=>value===(geometry.positionGeneration??0)+2));
+    assert.equal(card(),f);assert.deepEqual(await editorState(),editor);assert.equal((await saved()).position,null);
+    assert.deepEqual(await rpc(engineering,'PAIA_PROMPT_QUERY',{includeHidden:true}),families);assert.deepEqual((await h.state()).records,records);
+    assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);
+    const path=join(receiptDir,variant+'-reset-lateral-draft.png');await page.screenshot({path});screens.push(path.split('/').at(-1));
+   }finally{
+    if(cdp){await cdp.send('Input.insertText',{text:'汉'}).catch(()=>{});await cdp.detach();}
+    if(resetWorld){await resetWorld.run('chrome.runtime.onMessage.removeListener(resetPositionListener);delete globalThis.resetPositionListener;delete globalThis.resetPositionSeen;');await resetWorld.cdp.detach();}
+    await tall.evaluate(node=>node.remove());
+    if(await f.locator('#editor').isVisible())await f.getByRole('button',{name:'取消',exact:true}).click();
+    await eventually(()=>f.locator('#refresh').isEnabled());
+   }
   });
   await check('orb movement persists safely; idle CPU is bounded; no send, Provider, reply capture or site storage',async()=>{
    await card().locator('#close').click();await eventually(()=>!card());const box=await orb.boundingBox();await page.mouse.move(box.x+22,box.y+22);await page.mouse.down();await page.mouse.move(40,60,{steps:8});await page.mouse.up();await page.waitForTimeout(100);assert.equal(card(),undefined);const moved=await orb.boundingBox();assert.ok(Math.abs(moved.x-box.x)>5||Math.abs(moved.y-box.y)>5);

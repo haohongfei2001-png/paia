@@ -5,8 +5,8 @@ import {request} from '../ui/common.js';
 const archive=await readFile(new URL('../ui/archive.js',import.meta.url),'utf8');
 const html=await readFile(new URL('../ui/archive.html',import.meta.url),'utf8');
 const worker=await readFile(new URL('../background/service-worker.js',import.meta.url),'utf8');
-test('Settings replaces user credentials with an honest unavailable membership service',()=>{
- assert.match(html,/id="membership-ai-service"/);assert.match(html,/当前无法购买或开通/);
+test('Settings replaces user credentials with an honest truthful local Context entry and unavailable external connections',()=>{
+ assert.match(html,/id="settings-ai-context"/);assert.match(html,/外部连接尚未开放/);
  assert.doesNotMatch(html,/id="deepseek-|id="bounded-|id="start-thought-library"/);
  assert.doesNotMatch(archive,/SAVE_DEEPSEEK_CREDENTIAL|deepseek-api-key|CLEAR_DEEPSEEK/);
 });

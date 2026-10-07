@@ -13,65 +13,18 @@
 .onboarding-history{background:var(--paia-surface)!important;color:var(--paia-text);border:1px solid var(--paia-subtle)}
 .onboarding-history .history-steps{border-color:var(--paia-subtle);color:var(--paia-secondary)}
 .onboarding-history .muted{color:var(--paia-secondary)}
-/* D6.2 S01–S05 presentation. The existing controls remain their only owners. */
-body.uir-settings-active .workspace{padding:0 0 64px}
-body.uir-settings-active .workspace-header{display:none}
-#settings-panel{width:100%;max-width:968px;margin:0;padding:24px 44px 80px;color:var(--text)}
-.ux-settings-shell{display:block;width:100%;max-width:880px;min-width:0;margin:0}
-.ux-settings-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;margin-bottom:24px}
-.ux-settings-header h1{grid-column:1;grid-row:1;min-width:0;margin:0;font:500 28px/1.357142857 var(--title-font);overflow-wrap:anywhere}
-.ux-settings-subtitle{grid-column:1;grid-row:2;margin:0;font-size:12px;line-height:1.666666667!important;color:var(--muted)}
-.ux-settings-back{grid-column:2;grid-row:1 / 3;align-self:start;color:var(--muted);min-height:36px;padding:6px 12px}
-.ux-settings-feedback{grid-column:1 / -1;margin:8px 0 0;max-width:100%;font-size:13px;line-height:1.5;color:var(--quiet);overflow-wrap:anywhere}
-.ux-settings-feedback:empty{display:none}
-.ux-settings-feedback[data-kind="error"]{color:var(--danger)}
-.ux-settings-layout{display:block}
-.ux-settings-nav{display:flex;flex-direction:row;flex-wrap:wrap;align-items:stretch;gap:8px 36px;position:static;min-width:0;margin:0 0 28px;padding:0;border-bottom:1px solid var(--line)}
-.ux-settings-mobile-switch{display:none}
-.ux-settings-nav>button{min-width:32px;max-width:100%;min-height:42px;padding:8px 0 12px;text-align:left;white-space:normal;overflow-wrap:anywhere;font-size:13px;line-height:1.615384615;border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--muted);font-weight:500}
-.ux-settings-nav>button[aria-current="page"]{background:transparent;color:var(--focus);border-bottom-color:var(--focus);font-weight:500}
-.ux-settings-body{min-width:0;width:100%}
-#settings-panel h2{font:500 22px/1.454545455 var(--title-font);margin:28px 0 20px}
-#settings-panel .ux-settings-group>h2{margin:0 0 20px}
-#settings-panel .ux-settings-group:is([data-group="reading"],[data-group="content"],[data-group="data"])>h2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0}
-#settings-panel p,#settings-panel details{line-height:1.6}
-.ux-settings-group>.setting,.ux-preference-setting{min-height:58px;padding:16px 0;border-color:var(--line);gap:12px}
-#settings-panel .setting{min-width:0}
-#settings-panel .setting>span{max-width:65%;text-align:left;overflow-wrap:anywhere}
-.ux-settings-group fieldset,.ux-settings-group section,.ux-settings-group details{border-color:var(--line);background:transparent}
-.ux-settings-group select,.ux-settings-group input[type="text"],.ux-settings-group input[type="number"],.ux-settings-group input[type="password"],.ux-settings-group textarea{max-width:100%;min-width:0;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:6px}
-.ux-settings-layout:has([data-settings-group="reading"][aria-current="page"]) .ux-settings-nav{margin-bottom:0}
-#ux-settings-reading-group>.ux-preference-setting,#ux-settings-reading-group>.ux-reduced-motion{display:flex;align-items:center;justify-content:space-between;min-height:96px;margin:0;padding:24px 0;border-bottom:1px solid var(--line);font-size:16px;line-height:1.5}
-#ux-settings-reading-group>.ux-preference-setting:first-of-type{min-height:86px}
-#ux-settings-reading-group>.ux-preference-setting select,.ux-setting-value{width:254px;max-width:45%;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px;line-height:1.692307692;background:var(--bg);text-align:center;color:var(--text)}
-#ux-settings-reading-group>.ux-settings-reading-note{margin:68px 0 32px;color:var(--muted);font-size:13px;line-height:1.692307692}
-.ux-capability-fact{margin:24px 0;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.ux-capability-fact p{margin:6px 0 0}
-.ux-settings-group>p,.ux-settings-group>button,.ux-settings-group>details,.ux-settings-group>section,.ux-settings-group>fieldset{margin-top:12px}
-#settings-panel :is(.ux-capture-summary,.ux-settings-history){margin-top:0}
-#settings-panel :is(.ux-capture-summary h3,.ux-settings-history h3,#r6-backup-heading,.ux-backup-failure-title){font:500 22px/1.454545455 var(--title-font);margin:0 0 20px}
-.ux-capture-summary #enabled-state{font:500 22px/1.454545455 var(--title-font);margin:0 0 20px}
-.ux-capture-summary #toggle-capture{float:right;border:1px solid var(--line);min-height:36px}
-.ux-capture-summary>p{font-size:14px;line-height:1.714285714}
-.ux-capture-summary #ux-capture-last{margin-top:28px}
-.ux-settings-notice{clear:both;margin:64px 0 32px;padding:14px 18px;border-left:2px solid var(--muted);border-radius:6px;background:var(--soft);color:var(--muted);font-size:13px;line-height:1.846153846}
-.ux-settings-notice p{margin:0 0 4px}
-.ux-settings-notice button{margin-top:12px;border:1px solid var(--line);background:var(--bg)}
-#settings-panel .ux-settings-history{padding:0 0 60px}
-.ux-settings-history>p{margin:0 0 26px;font-size:13px}
-.ux-settings-history button,#backup-settings>button{min-height:36px;padding:6px 24px;border:1px solid var(--line);margin-right:8px;margin-bottom:8px}
-#settings-panel #backup-settings.r6-data-section{padding:28px 0 40px;margin:0;border-top:1px solid var(--line)}
-#settings-panel #backup-settings>p{max-width:880px;font-size:13px;color:var(--muted)}
-#backup-settings>p:first-of-type{margin:0 0 36px}
-#backup-settings>p:last-of-type{margin:36px 0 0;padding:14px 18px;background:var(--soft);border-left:2px solid var(--muted);border-radius:6px}
 .ux-backup-failure-title,#backup-failure-page-title,#backup-failure-return,#backup-failure-note{display:none}
 /* S05 is the existing Backup owner in its real rejected-inspection state.
    Other groups and their controls are retained; only the active Data view changes. */
-body.uir-settings-active:has(#ux-settings-data-group:not([hidden])>#backup-settings[data-inspection-failure]) .workspace{padding-bottom:0}
-#settings-panel:has(#ux-settings-data-group:not([hidden])>#backup-settings[data-inspection-failure]){padding-bottom:40px}
-.ux-settings-shell:has(#ux-settings-data-group:not([hidden])>#backup-settings[data-inspection-failure])>.ux-settings-header,
-.ux-settings-shell:has(#ux-settings-data-group:not([hidden])>#backup-settings[data-inspection-failure]) .ux-settings-nav,
-#ux-settings-data-group:has(>#backup-settings[data-inspection-failure])>:not(#backup-settings){display:none}
+body.uir-settings-active:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]) .workspace{padding-bottom:0}
+#settings-panel:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]){padding-bottom:40px}
+.ux-settings-shell:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure])>.ux-settings-header,
+.ux-settings-shell:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]) .ux-settings-nav,
+#ux-settings-data-group:has(#backup-settings[data-inspection-failure])>:not(.ux-settings-detail:has(>#backup-settings[data-inspection-failure])),
+#ux-settings-data-group>.ux-settings-detail:has(>#backup-settings[data-inspection-failure])>summary{display:none}
+#ux-settings-data-group:not([hidden])>.ux-settings-detail:has(>#backup-settings[data-inspection-failure]){display:block!important;border:0}
+#settings-panel .ux-settings-shell:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]) .ux-settings-layout{display:block}
+#settings-panel .ux-settings-shell:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]) #ux-settings-group-back{display:none}
 #settings-panel #backup-settings[data-inspection-failure]{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:calc(100dvh - 64px);padding:0;border:0}
 #backup-settings[data-inspection-failure]>:not(#backup-failure-page-title):not(.ux-backup-failure-title):not(#backup-status):not(#backup-choose):not(#backup-failure-return):not(#backup-failure-note){display:none}
 #settings-panel #backup-settings[data-inspection-failure]>#backup-failure-page-title{display:block;order:0;max-width:calc(100% - 96px);margin:0;font:500 28px/1.357142857 var(--title-font);overflow-wrap:anywhere}
@@ -150,36 +103,6 @@ body.uir-settings-active:has(#ux-settings-data-group:not([hidden])>#backup-setti
 @media(max-width:767px),(pointer:coarse){
  #history-dialog :is(button,#history-details summary),#ux-settings-data-group :is(button,select,input:not([type="checkbox"]):not([type="radio"])){min-height:44px}
 }
-body.uir-settings-active #workspace-error{padding:16px 44px}
-@media(min-width:768px) and (max-width:1023px){#settings-panel{padding-inline:36px}}
-@media(max-width:767px){
- #settings-panel{padding:24px 20px 56px}
- body.uir-settings-active #workspace-error{padding-inline:20px}
- .ux-settings-header{margin-bottom:24px}
- .ux-settings-header h1{font-size:24px;line-height:1.458333333}
- .ux-settings-nav{display:block;margin-bottom:24px!important;border:0}
- .ux-settings-nav>button{display:none}
- .ux-settings-mobile-switch{display:grid;gap:6px}
- .ux-settings-mobile-switch>span{font-size:12px;line-height:1.5;color:var(--quiet)}
- .ux-settings-mobile-switch select{width:100%;min-height:44px;padding:8px 36px 8px 10px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text)}
- #settings-panel .setting{align-items:stretch;flex-direction:column;gap:8px}
- #settings-panel .setting>span{max-width:100%}
- #settings-panel .setting select,.ux-setting-value{width:100%;max-width:100%;min-height:44px}
- #ux-settings-reading-group>.ux-preference-setting,#ux-settings-reading-group>.ux-reduced-motion{min-height:112px;padding:20px 0}
- .ux-capture-summary #toggle-capture{float:none;margin-bottom:12px}
- .ux-settings-notice{margin-top:32px}
- #settings-panel #backup-settings[data-inspection-failure]{min-height:calc(100dvh - 122px)}
- #settings-panel #backup-settings[data-inspection-failure]>#backup-failure-page-title{font-size:24px;line-height:1.458333333}
- #settings-panel #backup-settings[data-inspection-failure]>.ux-backup-failure-title{margin-top:64px;line-height:1.5}
-}
-@media(max-width:767px),(pointer:coarse){
- #settings-panel #backup-settings[data-inspection-failure]>#backup-failure-return{min-height:44px}
- .ux-settings-back,.ux-settings-nav>button{min-height:44px;min-width:44px}
- #settings-panel .ux-preference-setting select,.ux-capture-summary #toggle-capture{min-height:44px}
- #settings-panel :is(button,summary,select,input:not([type="checkbox"]):not([type="radio"])){min-height:44px;min-width:44px}
- #settings-panel label:has(>input:is([type="checkbox"],[type="radio"])){display:flex;flex-direction:row;align-items:center;gap:10px;min-height:44px;min-width:44px}
- #settings-panel input:is([type="checkbox"],[type="radio"]){width:16px;height:16px;min-width:16px;min-height:16px;max-width:16px;max-height:16px;flex:none;align-self:center;padding:0}
-}
 /* S02 warning/comparison language on the real Reader conflict owner. It remains a dialog. */
 .reader-confirm:has(.reader-conflict-comparison){width:min(880px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:28px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
 .reader-confirm:has(.reader-conflict-comparison)>h2{font:500 26px/1.384615385 var(--title-font);margin:0 0 16px}
@@ -195,33 +118,138 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 .consent-panel h2,.onboarding h2,.onboarding-history h2{font-size:28px}
 }
 
-/* Consumer Settings uses the existing desktop color and type roles. */
-#settings-panel :is(button,summary,select,input:not([type="checkbox"]):not([type="radio"])){min-width:44px;min-height:44px}
-#settings-panel label:has(>input:is([type="checkbox"],[type="radio"])){display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer}
-#settings-panel label:has(>input:is([type="checkbox"],[type="radio"]):disabled){cursor:default}
-#settings-panel .setting:has(>input[type="checkbox"]){justify-content:space-between;flex-direction:row}
-#settings-panel :is(button,summary,select,input):focus-visible{outline:2px solid var(--focus);outline-offset:3px}
-#settings-panel :is(#membership-ai-service,#memory-settings,#history-settings,#settings-version-history){padding:0;border:0;background:transparent}
-#settings-panel :is(#membership-ai-title,#history-settings h3,#settings-version-history h3){margin:0 0 16px;font:500 22px/1.454545455 var(--title-font)}
-#settings-panel .ux-membership-state{display:inline-block;margin:0 0 12px;padding:6px 10px;border-radius:var(--radius);background:var(--selected);color:var(--muted);font-size:13px}
-#settings-panel #membership-ai-service>p:last-child{margin:0;color:var(--muted)}
-#settings-panel #memory-settings>.setting{min-height:72px;padding:16px 0;border-bottom:1px solid var(--line)}
-#settings-panel #memory-settings>p{margin:8px 0 20px;font-size:13px;color:var(--muted)}
-#settings-panel #memory-settings :is(input[type="checkbox"],input[type="radio"]){flex:none;width:16px;height:16px;accent-color:var(--focus)}
-#settings-panel .r6-privacy-preview{margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
-#settings-panel #history-settings{margin-bottom:28px}
-#settings-panel #library-management{padding:16px 0;border-block:1px solid var(--line)}
-#settings-panel #library-management>button{margin:8px 8px 8px 0}
-#settings-panel #settings-version-history>p{max-width:640px;font-size:13px;color:var(--muted)}
-#settings-panel .ux-settings-nav{gap:8px 26px}
-#settings-panel .ux-settings-group[hidden],#settings-panel [hidden]{display:none!important}
-@media(max-width:767px){
- #settings-panel #memory-settings>.setting{gap:16px}
- #settings-panel #memory-settings>.setting>span{max-width:calc(100% - 36px)}
+/* SETTINGS-CV2-1.0: explicit directory and content, same shared PAIA roles. */
+#settings-panel{box-sizing:border-box;width:100%;max-width:1008px;padding:24px 32px 80px;margin:0}
+#settings-panel .ux-settings-shell{max-width:920px}
+#settings-panel .ux-settings-header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;margin:0 0 32px;padding-left:12px}
+#settings-panel .ux-settings-header h1{grid-column:1;grid-row:1;margin:0;font:500 28px/1.36 var(--title-font)}
+#settings-panel .ux-settings-back{grid-column:2;grid-row:1;border:0;background:transparent;color:var(--muted)}
+#settings-panel .ux-settings-layout{display:grid;grid-template-columns:196px minmax(0,680px);gap:44px;align-items:start}
+#settings-panel .ux-settings-nav{display:grid;gap:4px;margin:0;padding:0;border:0}
+#settings-panel .ux-settings-nav>button{display:flex;align-items:center;justify-content:space-between;text-align:left;min-height:44px;padding:10px 12px;border:0;border-radius:6px;background:transparent;color:var(--muted);font:400 13px/1.7 var(--font);white-space:normal}
+#settings-panel .ux-settings-nav>button[aria-current="page"]{background:var(--selected);color:var(--focus)}
+#settings-panel .ux-settings-nav>button>.paia-icon{display:none}
+#settings-panel .ux-settings-body,#settings-panel .ux-settings-group{min-width:0;width:100%;max-width:680px;padding:0;margin:0;border:0;background:transparent}
+#settings-panel .ux-settings-group>h2{display:block;margin:0 0 12px;font:500 22px/1.45 var(--title-font)}
+#settings-panel .ux-settings-group>h3,#settings-panel #settings-prompt-status>h3{font:500 14px/1.7 var(--font);margin:28px 0 8px}
+#settings-panel .ux-setting-row,#settings-panel .ux-preference-setting{box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:85px;padding:20px 0;margin:0;width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--text);text-align:left;font:400 14px/1.7 var(--font)}
+#settings-panel .ux-setting-copy{display:grid;gap:4px;min-width:0;flex:1}
+#settings-panel .ux-setting-description,#settings-panel .ux-settings-note{display:block;margin:4px 0 0;color:var(--muted);font:400 12px/1.85 var(--font);overflow-wrap:anywhere}
+#settings-panel .ux-settings-group>.ux-settings-note{margin-top:22px}
+#settings-panel .ux-setting-switch{flex:none;width:auto;min-width:58px;min-height:36px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--muted)}
+#settings-panel .ux-setting-switch[data-on="true"]{border-color:transparent;background:var(--selected);color:var(--focus)}
+#settings-panel .ux-preference-setting>span{max-width:none;flex:1}
+#settings-panel .ux-preference-setting select{max-width:52%;width:auto;min-width:112px;min-height:44px;padding:8px 8px;border:0;background-color:transparent;color:var(--muted);text-align:right;font:400 13px/1.7 var(--font)}
+#settings-panel .ux-reading-example{margin-top:28px;padding:0 20px;border-left:2px solid var(--line);max-width:var(--paia-prose-width)}
+#settings-panel .ux-reading-example small{color:var(--muted);font:400 12px/1.8 var(--font)}
+#settings-panel .ux-reading-example p{margin:12px 0 0;font:400 var(--paia-prose-size)/1.85 var(--font)}
+#settings-panel .ux-settings-feedback{margin:0;padding:0;color:var(--muted);font:400 12px/1.8 var(--font);overflow-wrap:anywhere}
+#settings-panel .ux-settings-feedback:not(:empty){padding:8px 0}
+#settings-panel .ux-settings-feedback[data-kind="error"]{color:var(--danger)}
+#settings-panel .ux-settings-detail{padding:0;margin:0;border:0;border-bottom:1px solid var(--line)}
+#settings-panel .ux-settings-detail>summary{cursor:pointer;padding:20px 0;min-height:44px;color:var(--text);font:400 14px/1.7 var(--font)}
+#settings-panel .ux-settings-detail[open]{padding-bottom:20px}
+#settings-panel #settings-legacy-access{margin-top:28px}
+#settings-panel .r6-privacy-preview{padding:0;margin:0;border:0}
+#settings-panel .r6-privacy-preview .setting{margin:0;min-height:64px;border:0}
+#settings-panel .r6-privacy-preview>p{font-size:12px;color:var(--muted)}
+#settings-panel #smart-filter-settings{min-width:0}
+#settings-panel #ux-settings-group-back{display:none}
+#settings-panel :is(button,select,summary):focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+#settings-panel :is(#settings-context-open){min-height:85px}
+.thought-reverse-edit-disable{margin:4px 0;background:transparent;border:1px solid var(--line);border-radius:6px;min-height:36px;color:var(--muted)}
+.thought-reverse-edit-feedback{display:block;color:var(--muted);font-size:12px}
+@media(max-width:1023px){
+ #settings-panel{max-width:760px;padding:24px 20px 56px}
+ #settings-panel .ux-settings-header{padding-left:0;margin-bottom:24px}
+ #settings-panel .ux-settings-layout{display:block}
+ #settings-panel .ux-settings-nav{display:block;margin:0!important}
+ #settings-panel .ux-settings-nav>button{display:flex;width:100%;min-height:68px;padding:20px 0;border-bottom:1px solid var(--line);border-radius:0;color:var(--text);background:transparent;font-size:14px}
+ #settings-panel .ux-settings-nav>button>.paia-icon{display:block}
+ #settings-panel .ux-settings-shell[data-settings-index="false"]>.ux-settings-header,#settings-panel .ux-settings-shell[data-settings-index="false"] .ux-settings-nav{display:none}
+ #settings-panel .ux-settings-shell[data-settings-index="true"] .ux-settings-body{display:none}
+ #settings-panel #ux-settings-group-back{display:inline-flex;margin:0 0 20px;padding:8px 0;border:0;background:transparent;color:var(--muted);min-height:44px}
+ #settings-panel .ux-setting-row,#settings-panel .ux-preference-setting{flex-direction:row;align-items:center;gap:12px;min-height:85px}
+ #settings-panel .ux-preference-setting select{width:auto;max-width:58%;min-width:96px;min-height:44px}
+ #settings-panel .ux-setting-switch{min-height:44px}
+ #settings-panel .ux-settings-group>h2{margin-bottom:12px}
 }
-#settings-panel #backup-settings[data-inspection-failure]>#backup-failure-return{min-height:44px;min-width:44px}
+@media(pointer:coarse){#settings-panel .ux-setting-switch,.thought-reverse-edit-disable{min-height:44px}}
 
-.ux-settings-group .onboarding-history{max-width:none;margin:0 0 24px;padding:0;border:0;background:transparent!important}.ux-settings-group .onboarding-history h2{font:inherit;font-size:20px;line-height:1.4}.ux-settings-group .onboarding-history p{font-size:14px}
-/* The import heading starts the Data group; its margin must not collapse
-   through the group and replace the navigation's responsive spacing. */
-#settings-panel .onboarding-history h2{margin-top:0}
+body.uir-settings-active .workspace{padding:0 0 64px}
+body.uir-settings-active .workspace-header{display:none}
+#settings-panel .ux-settings-feedback:empty{display:none}
+#settings-panel [hidden]{display:none!important}
+#settings-panel input:is([type="checkbox"],[type="radio"]){flex:none;width:16px;height:16px;min-width:16px;min-height:16px;max-width:16px;max-height:16px;accent-color:var(--focus)}
+#settings-panel label:has(>input:is([type="checkbox"],[type="radio"])){display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;cursor:pointer}
+#settings-panel #memory-settings>.setting{min-height:72px;padding:16px 0;border-bottom:1px solid var(--line)}
+#settings-panel #memory-settings>p{color:var(--muted);font-size:12px}
+#settings-panel #history-settings,#settings-panel #memory-settings{border:0;background:transparent;padding:0}
+#settings-panel #history-settings h3{font:500 14px/1.7 var(--font);margin:20px 0 8px}
+#settings-panel :is(button,select,summary){min-width:44px;overflow-wrap:anywhere}
+@media(max-width:767px),(pointer:coarse){#settings-panel :is(button,select,summary){min-height:44px}}
+
+/* Native privacy checkbox remains the only state/focus/label owner. The pill
+   is decorative and derives its state directly from that acknowledged input. */
+#settings-panel .ux-setting-switch::before{content:"";display:inline-block;width:4px;height:4px;margin-inline-end:8px;border-radius:50%;background:currentColor;vertical-align:middle}
+#settings-panel .r6-privacy-preview .ux-preview-setting{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:90px;margin:0;padding:20px 0;border-bottom:1px solid var(--line)}
+#settings-panel .ux-preview-setting>.ux-setting-copy{display:grid;max-width:none;gap:4px;flex:1}
+#settings-panel .ux-preview-control{position:relative;display:grid;place-items:center;flex:none;min-width:58px;min-height:44px}
+#settings-panel .ux-preview-control>input[type="checkbox"]{position:absolute;inset:50% auto auto 50%;margin:-8px 0 0 -8px;opacity:0;z-index:1}
+#settings-panel .ux-preview-pill{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:58px;min-height:32px;padding:4px 12px;border:1px solid var(--muted);border-radius:999px;color:var(--muted);font:400 12px/1.7 var(--font)}
+#settings-panel .ux-preview-pill::before{content:"";width:4px;height:4px;border:1px solid currentColor;border-radius:50%}
+#settings-panel .ux-preview-pill::after{content:"关"}
+#settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill{background:var(--selected);border-color:transparent;color:var(--focus)}
+#settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill::before{background:currentColor}
+#settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill::after{content:"开"}
+html:lang(en) #settings-panel .ux-preview-pill::after{content:"Off"}
+html:lang(en) #settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill::after{content:"On"}
+#settings-panel .ux-preview-control:has(input[data-loaded="false"]) .ux-preview-pill::after{content:"读取中"}
+html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="false"]) .ux-preview-pill::after{content:"Loading"}
+#settings-panel .ux-preview-control:has(input:focus-visible) .ux-preview-pill{outline:2px solid var(--focus);outline-offset:3px}
+#settings-panel .ux-preview-control:has(input:disabled){opacity:.65}
+#settings-panel .r6-privacy-preview>#r6-preview-status:empty{display:none}
+
+#settings-panel .ux-preview-control:has(input[data-loaded="error"]) .ux-preview-pill::after{content:"不可用"}
+html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]) .ux-preview-pill::after{content:"Unavailable"}
+
+#settings-panel .ux-about-version{margin:0 0 12px;font:400 14px/1.7 var(--font)}
+#settings-panel .ux-about-links{display:block;margin-top:28px}
+#settings-panel .ux-about-link{min-height:76px;color:var(--text);text-decoration:none}
+#settings-panel .ux-about-link:hover{color:var(--focus)}
+#settings-panel .ux-about-link:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+#settings-panel .ux-about-link .paia-icon{flex:none;color:var(--muted)}
+
+
+#settings-panel .ux-settings-destination{min-height:76px;cursor:pointer}
+#settings-panel .ux-settings-destination>.ux-setting-name{flex:1;min-width:0}
+#settings-panel .ux-setting-destination-value{flex:0 1 auto;max-width:42%;color:var(--muted);font-size:13px;text-align:right;overflow-wrap:anywhere}
+#settings-panel .ux-settings-destination>.paia-icon{flex:none;color:var(--muted)}
+.ux-settings-detail-dialog{box-sizing:border-box;width:min(560px,calc(100vw - 32px));max-width:560px;max-height:calc(100dvh - 32px);padding:28px 32px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);overflow:auto}
+.ux-settings-detail-dialog::backdrop{background:#1c29445c}
+.ux-settings-detail-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:nowrap}
+.ux-settings-detail-dialog h2{margin:0;min-width:0;font:500 24px/1.5 var(--title-font);overflow-wrap:anywhere}
+.ux-settings-detail-dialog .ux-settings-detail-close{flex:none;min-width:44px;min-height:44px;padding:8px;border:0;background:transparent;color:var(--muted);font:400 13px/1.6 var(--font)}
+.ux-settings-detail-dialog .ux-settings-detail-close:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.ux-settings-detail-dialog p{font:400 14px/1.85 var(--font);overflow-wrap:anywhere}
+.ux-settings-detail-dialog #r6-data-status{margin:0;padding:0;border:0;background:transparent}
+.ux-settings-detail-dialog #r6-data-status>h3{display:none}
+.ux-settings-detail-dialog #r6-data-status>p:last-child{color:var(--muted);font-size:12px}
+@media(max-width:767px){.ux-settings-detail-dialog{padding:24px 20px}.ux-settings-detail-dialog>header{gap:12px}.ux-settings-detail-dialog h2{font-size:22px}}
+
+/* Offline global style uses the same native Settings detail destination. */
+#settings-ai-style-open{width:100%;text-align:left}
+#settings-ai-style-open-dialog .ux-settings-style-content{padding:0}
+#settings-ai-style-open-dialog .ux-settings-note{margin:0 0 24px;color:var(--muted);font:400 13px/1.85 var(--font);overflow-wrap:anywhere}
+#settings-ai-style-open-dialog fieldset{min-width:0;border:0;padding:0;margin:0}
+#settings-ai-style-open-dialog legend{font:500 13px/1.7 var(--font);color:var(--muted);padding:0;margin:0 0 8px}
+#settings-ai-style-open-dialog label{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 0;min-height:72px;border-bottom:1px solid var(--line);cursor:pointer}
+#settings-ai-style-open-dialog label>span{min-width:0;display:grid;gap:6px;overflow-wrap:anywhere}
+#settings-ai-style-open-dialog .ux-settings-style-title{font:500 14px/1.7 var(--font)}
+#settings-ai-style-open-dialog .ux-settings-style-description{font:400 13px/1.85 var(--font);color:var(--muted)}
+#settings-ai-style-open-dialog input{flex:none;width:18px;height:18px;margin:0;accent-color:var(--focus)}
+#settings-ai-style-open-dialog .ux-settings-style-feedback{position:sticky;top:0;z-index:2;margin:8px 0;padding:8px 0;background:var(--bg);overflow-wrap:anywhere;color:var(--muted);font:400 12px/1.85 var(--font)}
+#settings-ai-style-open-dialog .ux-settings-style-feedback:empty{display:none}
+#settings-ai-style-open-dialog input{scroll-margin-block:calc(var(--style-feedback-height,0px) + 16px) 16px}
+#settings-ai-style-open-dialog .ux-settings-style-feedback[data-kind="error"]{color:var(--danger)}
+#settings-ai-style-open-dialog input:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
