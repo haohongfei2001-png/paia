@@ -59,3 +59,18 @@
  #thought-document.dvn-topic-composition .topic-year-section{column-gap:16px}
 }
 @media(max-width:767px),(pointer:coarse){#thought-document.dvn-topic-composition :is(#topic-toolbar #create-entry,#topic-menu summary,.ai-toggle-label,.dvn-topic-years button,.dvn-topic-options>summary,#revision-history,.topic-year-links button,.topic-expression-actions button,.topic-year-section>button){min-height:44px;min-width:44px}}
+
+/* TL-PT1-UI-1.0: one durable Section page, retaining shared reading preferences. */
+#thought-document.dvn-topic-composition .dvn-topic-action-row{border:0;margin:16px 0 12px;gap:12px}
+#thought-document.dvn-topic-composition #topic-toolbar,#thought-document.dvn-topic-composition #topic-presentation{padding:0;margin:0}
+#thought-document.dvn-topic-composition .dvn-topic-coverage-row{justify-content:flex-end;margin:0 0 28px}
+#thought-document.dvn-topic-composition #original-reading-body .topic-section{width:min(100%,var(--paia-prose-width,680px));margin:0 0 40px;padding:0;border:0;background:transparent;box-shadow:none}
+#thought-document.dvn-topic-composition #original-reading-body .section-heading{margin:0 0 20px;padding:0;border:0}
+#thought-document.dvn-topic-composition #original-reading-body .section-heading h2{font:500 22px/1.5 var(--title-font);margin:0;overflow-wrap:anywhere}
+#thought-document.dvn-topic-composition #original-reading-body .library-entry{margin:0 0 32px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+#thought-document.dvn-topic-composition #original-reading-body .entry-sent-time{margin:0 0 8px;font:12px/20px var(--font);color:var(--muted);user-select:none}
+#thought-document.dvn-topic-composition #original-reading-body .entry-prose{max-width:none;white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--paia-prose-size);line-height:1.85}
+#thought-document.dvn-topic-composition #original-reading-body .section-heading,#thought-document.dvn-topic-composition #original-reading-body .entry-meta{user-select:none}
+#thought-document.dvn-topic-composition #original-reading-body .topic-section:focus-visible{outline:2px solid var(--focus);outline-offset:6px}
+
+@media(max-width:767px){#thought-document.dvn-topic-composition #original-reading-body .section-heading h2{font-size:20px}}

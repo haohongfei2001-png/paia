@@ -23,17 +23,21 @@ export class TopicWorkspacePresentation {
   this.line=make('div','dvn-topic-coverage-row');this.coverage=make('p','dvn-topic-coverage');this.options=make('details','dvn-topic-options');const summary=make('summary','','阅读选项');this.options.append(summary);move(get('topic-reading-controls'),this.options);move(get('topic-outline'),this.options);move(get('revision-history'),this.options);this.line.append(this.coverage,this.options);this.actions.after(this.line);
   this.options.open=previous?.topicId===this.topicId&&previous?.view===this.view&&previous.open===true;
   this.years=make('nav','dvn-topic-years');this.years.setAttribute('aria-label','年份');this.line.before(this.years);
-  this.write=get('create-entry');this.writeLabel=this.write.textContent;this.write.textContent='写下想法';this.sync();
+  this.write=get('create-entry');this.writeLabel=this.write.textContent;this.write.textContent=document.documentElement.lang==='en'?'Add Thought':'写下想法';this.sync();
   // A dialog may close before its read finishes, returning focus to a control
   // that this same-view remount must move again. Preserve only that move loss.
   if(previous?.topicId===this.topicId&&previous?.view===this.view&&active?.isConnected&&document.activeElement===document.body&&this.moves.some(({node})=>node===active||node.contains(active)))active.focus({preventScroll:true});
  }
  sync(){
-  const owner=this.owner,page=owner.document,facts=topicPresentationFacts(owner.originalMode==='years'?owner.topicTimeline?.overview:page?.overview,owner.readingSort);this.caption.textContent=facts.caption;this.coverage.textContent=facts.coverage;
+  const owner=this.owner;
   if(this.topicId!==owner.id||this.view!==owner.view){this.options.open=false;this.topicId=owner.id;this.view=owner.view;}
-  const content=owner.view==='original'&&owner.originalMode!=='years';this.line.hidden=!owner.id;this.coverage.hidden=!content;this.years.hidden=!content;this.caption.hidden=!owner.id;
-  const signature=JSON.stringify([facts.years,[...owner.originalPane?.querySelectorAll('[data-expression-year]')||[]].map(node=>node.dataset.expressionYear)]);
-  if(this.signature!==signature){this.signature=signature;this.years.replaceChildren();for(const year of facts.years){const button=element('button','',year==='unknown'?'时间未知':year);button.type='button';const target=()=>[...owner.originalPane?.children||[]].find(node=>node.dataset.expressionYear===year);button.disabled=!target();if(button.disabled)button.title='该年份尚未载入当前阅读窗口';button.addEventListener('click',()=>{const node=target();node?.scrollIntoView({block:'start',behavior:'instant'});node?.querySelector('h2')?.focus({preventScroll:true});});this.years.append(button);}}
+  const content=owner.view==='original';this.line.hidden=!owner.id;this.coverage.hidden=true;this.years.hidden=true;this.caption.hidden=true;
+  // Date ranges, count summaries and a year index belong to evidence/history,
+  // not the normal durable Section reader. Keep only the existing controls.
+  this.coverage.textContent='';this.caption.textContent='';this.years.replaceChildren();
+  const tabs=document.getElementById('topic-original-tabs');if(tabs)tabs.hidden=true;
+  const order=document.getElementById('topic-time-order');if(order)order.hidden=true;
+  if(content){const outline=document.getElementById('topic-outline');if(outline)outline.hidden=true;}
   const state=owner.topicReader?.state(),before=document.getElementById('topic-continuous-before');if(state?.terminalPrevious&&!state.loadingPrevious&&!state.errorPrevious&&content)before.hidden=true;
  }
  dispose(){
