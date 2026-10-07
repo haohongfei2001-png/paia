@@ -9,78 +9,160 @@ dependencies. Independent work may run concurrently with one writer per shared
 boundary. The earlier single next-task pointer below is retained historical
 context; it must not cause already-integrated Topic mechanics to be reimplemented.
 
-**IAH-1.0 / ARCHIVE-HOME-01–06: EXCLUDED_FROM_CURRENT_DEVELOPMENT by explicit
-owner instruction.** The adopted design remains reference material; no Archive
-Home runtime implementation is scheduled. This supersedes any apparent readiness
-or task-selection implication in the historical plan tables below.
+**Archive / IAH-1.1 / ARCHIVE-HOME-01–06: EXCLUDED_FROM_CURRENT_DEVELOPMENT.**
+The current owner approves selected minimal visual changes and canonical/plan
+correction only, not runtime execution. This does not lift the existing Archive
+exclusion, choose a new global task or start an Archive writer. IAH-1.0's former
+Home/Main-only/split-click requirements are superseded by the current adoption.
 
 Handoff files are recovery evidence, not additional authority. Each lane's base,
 file diff and target tree must be checked separately; overlapping patches are not
 applied together. Current coordination and exact evidence boundaries are recorded
-in [COORDINATED_EXECUTION_2026-10-08](COORDINATED_EXECUTION_2026-10-08.md).
+in [COORDINATED_EXECUTION_2026-10-08](COORDINATED_EXECUTION_2026-10-08.md), with later
+merged source and the owning receipts controlling subsequent implementation facts.
 
-## Current execution and scoped Topic01 closure
+## Archive selected visual adoption and canonical correction — 2026-10-08
 
-**CPV1-TOPIC-01 is COMPLETE only for its identity/human-intent foundation.** The foundation and effective-access receipts retain their independent reviews, repair and earlier negative evidence. Its scoped completion does not certify actual-user migration, semantic/model quality, Thought UI, live external services, installed builds or the entire product.
+**IAH-1.1: SELECTED_VISUAL_SCOPE_ADOPTED / CANONICAL_CORRECTED / PLAN_ALIGNED.**
+**DESIGN_SCOPE_READY: true. EXECUTION_SELECTED: false. ARCHIVE_RUNTIME: NOT_STARTED_BY_THIS_TASK.**
 
-**NEXT DEVELOPMENT TASK (the sole current pointer): CPV1-TOPIC-02 — close bounded
-identity retrieval, hidden candidate/lifecycle and unassigned-state handling
-against its reviewed current dependencies and exact integration evidence.**
+The adopted direction is **PAIA Archive Existing UI — Minimal Optimization**.
+[ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) owns the exact selected/rejected list;
+[CONTRACT](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) owns the four logical states and
+click/search/return semantics; [UX](INPUT_ARCHIVE_HOME_UX.md) owns the selected
+visual scope; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) aligns minimum necessary work;
+[REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) identifies unmodified private review
+packages, hashes, source history and evidence limits. The same five current paths
+replace IAH-1.0 in place; PRE_MINIMAL snapshots are historical, not active alternatives.
 
-This pointer is unchanged by the Archive adoption. Owner-authorized independent Topic/Context/Thought/Settings/Sync engineering retains its own coordinated branches, dependencies and gates. Existing later Topic mechanics and Context work are preserved, not reimplemented or newly certified here. No Archive runtime writer is started.
+Approved: preserve the existing blank Main, brand/light primary navigation/tree/
+three-column geometry/Reader title-time-prose-spacing. Keep middle-column Archive
+Search and Reader-local Find, adding truthful visible scope hints. Use Input-first
+flat results, exact Input/range arrival, lightweight temporary non-editing highlight
+and real origin-aware Back with query/scope/result/tree/reading-state restoration.
 
-## Input Archive final interaction adoption — 2026-10-08
+Not adopted: Main-only Search/C, Home title/Welcome/P1, Project Main hint/P3,
+Project name/arrow split, sticky Back, blanket B prototype/copy/controls or a new
+permanently visible scope widget. Project rows remain whole-row disclosure; they
+do not silently change query/scope/content. Four logical states remain without
+forcing a new page for BROWSE_SCOPE. Additional B membership-copy edits are not
+selected; source-state distinctions remain protected.
 
-**IAH-1.0: DESIGN_ADOPTED / DOCUMENTATION_INTEGRATED / IMPLEMENTATION_PLANNED.**
-**ARCHIVE_RUNTIME: NOT_STARTED_BY_THIS_TASK. GLOBAL_POINTER_CHANGED: false.**
-
-Fresh review/integration base: main **1b3c3f91ea4e248fb048214fd1efceccc0b2f344**, tree **497095d5a09f12cd93707b6afd423911b3dde27e**, manifest 0.18.0. This source includes the reviewed Context access-readiness test integration and retains the existing Topic/Context mechanics. No test, manifest, code or implementation receipt is changed by this adoption.
-
-[ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) freezes neutral Find Home; [CONTRACT](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) is the sole Archive interaction authority; [UX](INPUT_ARCHIVE_HOME_UX.md) freezes the scoped presentation; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns dependencies and acceptance; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) binds source/private references and evidence limits.
-
-Final rules: primary-nav Archive opens ARCHIVE_HOME(all scope, empty query, no selected Source/Project/Conversation/Input); explicit Back/Forward and explicit-route reload restore their context. Four explicit states; one active Main search; Project is scope, Conversation is content selection; Input-first local search and exact Input arrival; temporary Smart Filter reveal without Keep; internal Back separate from verified original-site action. Home has neither Recently viewed nor common-search suggestions, feed or statistics. Narrow layouts use push navigation.
-
-Current main already clears Reader at the root and Project clicks expand groups; those are not reported as observed auto-open bugs. This adoption supplies the new Home, state/search/origin contract and planned gaps, not a new working implementation.
-
-| Archive outcome | Current state | Dependency/readiness |
+| Retained Archive outcome | Aligned state | Scope |
 |---|---|---|
-| ARCHIVE-HOME-01 — route/state/origin foundation | PLANNED / NOT_SELECTED | Existing local owners available for future bounded work; owner scheduling/shared writer required |
-| ARCHIVE-HOME-02 — Home + one search + results | PLANNED | 01 and current lexical query owners |
-| ARCHIVE-HOME-03 — Browse scopes | PLANNED | 01/02 and current Source structure |
-| ARCHIVE-HOME-04 — exact Input / temporary reveal | PLANNED | 02/03 and existing Reader/eligibility |
-| ARCHIVE-HOME-05 — Back / original source / contextual entry | PLANNED | 01/03/04; live contextual evidence separate |
-| ARCHIVE-HOME-06 — responsive / reliability / acceptance | PLANNED | Applicable preceding behavior and actual evidence |
+| ARCHIVE-HOME-01 | NARROWED / PLANNED / NOT_SELECTED | Minimal state/origin/session changes in existing owner |
+| ARCHIVE-HOME-02 | RE-SCOPED / PLANNED / NOT_SELECTED | Existing-field scope hints, Input-first results and state capture |
+| ARCHIVE-HOME-03 | KEEP + GAP CHECKS ABSORBED INTO 01/02 | No split click, independent Browse page or inferred scope |
+| ARCHIVE-HOME-04 | REUSE / PLANNED GAP CLOSURE | Verify/repair existing exact-hit and temporary-reveal behavior |
+| ARCHIVE-HOME-05 | NARROWED / PLANNED | Normal-flow actual-origin Back; original-site action remains separate |
+| ARCHIVE-HOME-06 | CONSOLIDATED / PLANNED | Affected selected-scope visual, safety, accessibility and reliability evidence |
 
-**ARCHIVE-HOME-01 is only the first task of the Archive lane when explicitly selected. It is not the current global next task.** IAH does not preempt Topic, Sync, AI-COST or another current authorized lane.
+Recommended future grouping is 01/02 with necessary 03 checks, then 04/05, then 06.
+This does not create three new queues or six mandatory PRs. No correct existing
+component is reimplemented to manufacture a phase. A new permanent Project-scope
+control or new host-context entry is separately scoped follow-up, not permission
+to change Project disclosure or a blocker for ordinary all-scope Find.
+
+## Source reconciliation for this documentation integration
+
+Initial current-source review was **99bb95ed114c166347520b58e3216d0e63519379**,
+tree **9438fb92d215833cdf8cd9d01047ad6ae804ea31**. Before integration, main advanced
+to **daf180762e2fe7718dfcddcf345c6a11749aad8e**, tree
+**cf179b2a0662af33f6ea6c93fa373f7fc27e5f2c**, delivering Personal Topic Root 0.19
+from PR185. The current four coordination/canonical entry files were reread;
+this correction preserves all intervening runtime, workflow, tests, manifest/
+package and receipt changes, rather than integrating an old full repository tree.
+
+The newer shared Reader navigation preserves Topic-root slots and strict Topic/
+Section targets. Worker admission now accepts exact entry URLs plus validated
+Topic fragments, not arbitrary Archive fragments. Shared keyboard search supports
+Topic link selectors. Future Archive changes must retain these additions and
+reconcile the actual owners. Earlier exact-entry-only source notes apply to the
+initial reviewed source, not a instruction to revert the new Topic capability.
+
+[TOPIC-05-ROOT](implementation/topic/TOPIC-05-ROOT.md) owns delivered Root behavior
+and its retained/negative evidence. Continuous Section reader and overall TOPIC-05
+acceptance remain separate. The merge requests exact-main full certification;
+this Archive task does not claim that certification, installed availability,
+provider/cloud/model activation or final production visual acceptance.
+
+## Historical single pointer and retained scoped Topic01 closure
+
+**CPV1-TOPIC-01 is COMPLETE only for its identity/human-intent foundation.** The
+foundation and effective-access receipts retain their independent reviews, repair
+and earlier negative evidence. Its scoped completion does not certify actual-user
+migration, semantic/model quality, Thought UI, live external services, installed
+builds or the entire product.
+
+The former **CPV1-TOPIC-02 sole next-development pointer** belonged to the earlier
+adoption record. It is historical under the coordinated execution section above;
+this correction neither restores it nor reopens integrated Topic mechanics. Other
+owner-authorized lanes retain current dependencies, branches and evidence gates.
 
 ## Exact retained status and evidence
 
-The entire immediately preceding STATUS is preserved byte-for-byte in [STATUS_PRE_ARCHIVE_HOME_2026-10-08.md](STATUS_PRE_ARCHIVE_HOME_2026-10-08.md), blob `a8fcb26d5e5cbf2e5683c413ac535819aa0b176c`. **Its complete dated implementation facts, exact SHA/run/receipt records, quality/activation limitations and nonconflicting commitments are incorporated here.** Read that baseline for full retained evidence. It is not a second execution queue; the explicit current pointer above controls.
+The entire earlier STATUS is preserved byte-for-byte in
+[STATUS_PRE_ARCHIVE_HOME_2026-10-08.md](STATUS_PRE_ARCHIVE_HOME_2026-10-08.md), blob
+`a8fcb26d5e5cbf2e5683c413ac535819aa0b176c`. **Its complete dated implementation facts,
+exact SHA/run/receipt records, quality/activation limitations and nonconflicting
+commitments remain incorporated.** Read it for retained evidence, not as a second
+queue. The pre-IAH-1.1 current STATUS is also retained exactly in Git at 99bb95e/
+daf1807, blob `0a193316d0255e720bbb234b17eaed7f1d369808`.
 
-Retained exact proof includes Topic01 main `948ea06a57cd932c187407faf7140d9fb6714eff` with full `37611452025` and Prompt `37611451822`, and Context0.15 main `0a438ccc67bb88d686d2939fa03027f09234d4ef` with full `37630385096` and Prompt `37630385120`. These are prior scoped records, not newly rerun tests or Archive acceptance. [Topic01](implementation/topic/TOPIC-01.md), [access repair](implementation/topic/TOPIC-01-ACCESS.md) and [Context receipt](implementation/context-cards/CTX4-01.md) retain their own exact evidence and unresolved boundaries.
+Retained exact proof includes Topic01 main `948ea06a57cd932c187407faf7140d9fb6714eff`
+with full `37611452025` and Prompt `37611451822`, and Context0.15 main
+`0a438ccc67bb88d686d2939fa03027f09234d4ef` with full `37630385096` and Prompt
+`37630385120`. These are prior scoped records, not newly rerun tests or Archive
+acceptance. [Topic01](implementation/topic/TOPIC-01.md),
+[access repair](implementation/topic/TOPIC-01-ACCESS.md) and
+[Context receipt](implementation/context-cards/CTX4-01.md) retain their own exact
+evidence and unresolved boundaries, including the newer Context evidence updates.
 
-Current local Context exposes manual Info/Rules/Now editing and qualified Topic choices; structural Context read/maintenance remains default-denied, not enabled live processing. Existing neutral Organizer/budget/checkpoint machinery is not a working paid provider: production provider registration/financial admission and qualification remain incomplete. Saved lawful AI outputs stay readable. No old completed work is reopened.
+Current local Context exposes manual Info/Rules/Now editing and qualified Topic
+choices; structural Context read/maintenance remains default-denied, not enabled
+live processing. Existing neutral Organizer/budget/checkpoint machinery is not a
+working paid provider: production provider registration/financial admission and
+qualification remain incomplete. Saved lawful AI outputs stay readable. No old
+completed work is reopened by this Archive correction.
 
 ## Qwen-primary model-route / cost amendment — retained
 
-AIU-QWEN-1.0 remains documentation-integrated within the existing AIU/AIOS direction. Candidate models/ratebook/cost scenarios, qualification requirements and exact numeric accounting remain in AI_USAGE_ARCHITECTURE.md / COST_MODEL / PLAN / ADOPTION / REFERENCES and the retained STATUS; they are not altered or certified by IAH. No real model, paid usage, account, region/privacy qualification or service activation ran here.
+AIU-QWEN-1.0 remains documentation-integrated within the existing AIU/AIOS direction.
+Candidate models/ratebook/cost scenarios, qualification requirements and exact
+numeric accounting remain in AI_USAGE_ARCHITECTURE.md / COST_MODEL / PLAN /
+ADOPTION / REFERENCES and the retained STATUS; they are not altered or certified
+by IAH. No real model, paid usage, account, region/privacy qualification or service
+activation ran here.
 
-## New AI lane — unchanged planned outcomes
+## AI lane — retained adoption plan, not a current completion reset
 
-| Outcome | State retained from preceding STATUS |
+| Outcome | State retained from the earlier AI adoption |
 |---|---|
-| AI-COST-01 Delta / Job / Receipt | PLANNED |
-| AI-COST-02 Budget / entitlement / quota / cache admission | PLANNED |
+| AI-COST-01 Delta / Job / Receipt | PLANNED in that adoption; later work follows current coordination/receipts |
+| AI-COST-02 Budget / entitlement / quota / cache admission | PLANNED in that adoption |
 | AI-COST-03 Unified Personal AI Maintenance | PLANNED; reuse current Context structural owners |
-| AI-COST-04 Pro ambiguous AI Filter | PLANNED |
-| AI-COST-05 Organize incremental cache / styles / preference | PLANNED |
-| AI-COST-06 Lazy AI Assist / Orb | PLANNED |
-| AI-COST-07 Real cost / quality / budget acceptance | PLANNED |
+| AI-COST-04 Pro ambiguous AI Filter | PLANNED in that adoption |
+| AI-COST-05 Organize incremental cache / styles / preference | PLANNED in that adoption |
+| AI-COST-06 Lazy AI Assist / Orb | PLANNED in that adoption |
+| AI-COST-07 Real cost / quality / budget acceptance | PLANNED in that adoption |
 
-The first planned AI task remains AI-COST-01 when that lane is explicitly selected; the global pointer above is unchanged. Settings Consumer v2, BNS, Personal Topic, final Thought presentation, Prompt and Context plans retain their actual dependencies, implementation records and gates.
+AI-COST-01 remains the lane's originally defined first task, not an instruction to
+restart the already-coordinated foundation. Settings Consumer v2, BNS, Personal
+Topic, Thought presentation, Prompt and Context retain their actual current
+implementation records, dependencies and gates. This Archive task updates none of
+their completion claims or runtime.
 
 ## Evidence and no-activation boundary
 
-Performed by IAH adoption: fresh source/canonical review, final written design decisions, reference byte hashing, three core task design traces, dependency/gap planning, Markdown integration and exact remote readback. Design traces do not count as executed user journeys.
+Performed here: source/canonical and private review-package inspection, artifact
+identity checks, selective visual adoption, scoped supersession, minimum-change
+plan alignment and Markdown integration/readback. The original A/B/C PNGs/report/
+HTML remain unmodified private review evidence; the whole B prototype is not a
+production master. Prior prototype assertions do not certify the corrected scope.
 
-NOT_RUN by IAH: production runtime tests; source/release browser/visual checks; Task A/B/C production journeys; current logged-in contextual entry; accessibility/performance measurement; installed-profile verification; provider/model/payment qualification; schema/data migration; build/install/deployment/release. No production HTML/JS/CSS, schema, tests/workflows, manifest/version, keys, entitlements, private data or cloud resources are changed.
+NOT_RUN by this task: production tests, source/release browser/visual checks,
+production Find/Browse journeys, current-live contextual entry, accessibility/
+performance certification, installed-profile verification, model/payment/cloud
+qualification, schema/data migration, extension build/install/deployment/release.
+No production HTML/JS/CSS, schema, tests/workflows, manifest/version, keys,
+entitlements, private archive data or cloud resources are changed by this commit.
