@@ -56,7 +56,9 @@ export function testShard(file, position, total, category) {
  // other placements; move complete Thought ownership to6 and the measured
  // Content/Years pair onto5's spare capacity. No file/case is split or skipped.
  if(category==='browser E2E'&&total===6){
-  if(name==='context-cards-chrome-e2e.test.mjs')return 5;
+  // Full37554001210 exhausted5 after both Context cases passed;6 took670s.
+  // Move only the complete Context file (~182s) to6, preserving the prior72.
+  if(name==='context-cards-chrome-e2e.test.mjs')return 6;
   // Full37323881161 exhausted3 while Settings alone took400s and6 took331s.
   // Move this complete file to6; keep all cases and the same18-minute budgets.
   if(name==='uir-04-settings-chrome-e2e.test.mjs')return 6;

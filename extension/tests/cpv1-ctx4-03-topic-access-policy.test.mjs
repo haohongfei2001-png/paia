@@ -6,16 +6,17 @@ import {ContextCardsService} from '../core/context-cards.js';
 import {MemoryService} from '../core/memory/service.js';
 import {key,profileDefault,validateMemoryRow} from '../core/memory/model.js';
 import {rootReadAuthority} from '../core/organizer/root-read.js';
-import {contextTopicSelectionBinding,evaluateContextTopicAccess} from '../core/context-topic-access-policy.js';
+import {setTopicLifecycle} from '../core/topic-identity.js';
+import {markHuman} from '../core/thought-model.js';
+import {BackupService as ExistingFileFixture} from './harness/historical-backup.mjs';
+import {BackupService} from '../core/backup-service.js';
+import {exported,prepared} from './harness/backup-v081.mjs';
+import {contextTopicOperationReservation,contextTopicSelectionBinding,evaluateContextTopicAccess} from '../core/context-topic-access-policy.js';
 
 const op=()=>crypto.randomUUID();
 const raw=(s,name,id)=>s.repository.transaction(false,t=>t.get(name,id));
 const authority=s=>s.repository.transaction(false,t=>rootReadAuthority(t));
-// Exact initializeTopicIdentity metadata shape from Topic-01 de28068e,
-// core/topic-identity.js. The Topic owner is deliberately not imported/merged
-// into this Context-only stack. These are explicit compatible read fixtures,
-// not a substitute implementation of its identity resolver or storage owner.
-const identityRow=row=>({...row,identity:{version:1,revision:0,origin:'user',scope:null,aliases:[],legacy:false,noRecreation:false}});
+const reservations=async(s,topics)=>s.repository.transaction(false,async t=>{const rows=[];for(const id of new Set(topics.map(row=>row.protections?.organization?.operationId).filter(Boolean))){const fact=contextTopicOperationReservation(await t.get('operationReceipts',id));if(fact)rows.push(fact);}return rows;});
 const legacyTopic=(topic,decision,profileId='default')=>({id:key('topic',profileId,topic.id),kind:'topic',version:1,profileId,topicId:topic.id,decision,layoutGeneration:topic.activeLayoutGeneration});
 async function fixture(){
  const {s}=await setup(OrganizerStore);await s.finishFoundation();
@@ -23,14 +24,14 @@ async function fixture(){
  const entry=await s.createEntry({operationId:op(),actor:'user',body:'SYNTHETIC independent Thought body',type:'idea',formation:'explicit',evidence:[]});
  const row=await s.entry(entry.id);
  await s.placeEntry({entryId:entry.id,topicId:created.id,operationId:op(),expectedEntryRevision:row.revision,expectedTopicRevision:0});
- const topic=identityRow(await raw(s,'topics',created.id)),input=(await s.snapshot()).library.blocks[0];
+ const topic=await raw(s,'topics',created.id),input=(await s.snapshot()).library.blocks[0];
  const c=new ContextCardsService(s),m=new MemoryService(s);await m.ready();
  const context=await c.snapshot(),current=await authority(s),legacyRows=(await m.s.repository.transaction(false,t=>m.state(t))).rows;
  // There is no whole-Topic eligibility snapshot producer yet. This finite
  // body-free contract fixture describes known test refs; trusted production
  // aggregation, full content and connection checks remain integration work.
  const scope={complete:true,legacyComplete:true,eligibility:'eligible',topicIds:[topic.id],entryIds:[entry.id],inputIds:[input.id],sections:[{topicId:topic.id,sectionId:topic.defaultSectionId}]};
- const inputSnapshot={context,topics:[topic],topicId:topic.id,selection:null,legacyRows,scope,capturedAuthority:current,currentAuthority:current};
+ const inputSnapshot={context,topics:[topic],topicId:topic.id,selection:null,legacyRows,scope,capturedAuthority:current,currentAuthority:current,organizationReservations:[]};
  return {s,c,m,topic,entry,input,inputSnapshot};
 }
 async function enabled(f){
@@ -42,6 +43,148 @@ async function enabled(f){
 }
 const evaluate=evaluateContextTopicAccess;
 const denied=value=>{const answer=evaluate(value);assert.equal(answer.policyAllowed,false);assert.equal(answer.externalAllowed,false);return answer;};
+
+// These actual owner fixtures deliberately contain empty Topics. Their complete
+// finite scope is known without inventing the still-missing production reader.
+async function emptyTopicPair(){
+ const {s}=await setup(OrganizerStore);await s.finishFoundation();
+ const a=await s.createTopic({name:'SYNTHETIC source object',operationId:op()}),b=await s.createTopic({name:'SYNTHETIC survivor object',operationId:op()}),c=new ContextCardsService(s),m=new MemoryService(s);await m.ready();
+ for(const key of ['global','inputs'])await c.change({kind:'access',operationId:op(),epoch:'initial',key,enabled:true,expectedRevision:0});
+ const request=async(topicId,selection)=>s.repository.transaction(false,async t=>{
+  const epoch=await c.admitted(t),row=await c.row(t),currentAuthority=await rootReadAuthority(t),topics=await t.all('topics'),organizationReservations=[];
+  for(const id of new Set(topics.map(row=>row.protections?.organization?.operationId).filter(Boolean))){const fact=contextTopicOperationReservation(await t.get('operationReceipts',id));if(fact)organizationReservations.push(fact);}
+  return {context:{version:1,epoch,access:row.access},topics,topicId,selection,legacyRows:(await m.state(t)).rows,scope:{complete:true,legacyComplete:true,eligibility:'eligible',topicIds:[topicId],entryIds:[],inputIds:[],sections:[]},capturedAuthority:currentAuthority,currentAuthority,organizationReservations};
+ });
+ const selection=async id=>{const topic=await raw(s,'topics',id),facts=await reservations(s,[topic]),binding=contextTopicSelectionBinding(topic,(await c.snapshot()).epoch,facts[0]??null);return binding?{...binding,enabled:true}:null;};
+ const merge=async()=>{await s.startLayout({kind:'topic_merge',topicId:a.id,survivorId:b.id,expectedTopicRevision:(await raw(s,'topics',a.id)).organizationRevision,expectedSurvivorRevision:(await raw(s,'topics',b.id)).organizationRevision,operationId:op()});await s.drainLibraryMaintenance();return (await s.revisions({kind:'topic',entityId:b.id})).items.find(x=>x.reason==='merge');};
+ const restore=async(rev,side)=>s.restoreRevision({id:rev.id,side,expectedRevision:(await raw(s,'topics',b.id)).revision,operationId:op()});
+ return {s,c,m,a,b,request,selection,merge,restore};
+}
+
+test('CTX4-03 actual merge Undo/redo cannot revive source or survivor bindings, including an unobserved merge',async()=>{
+ for(const observeMerged of [false,true]){
+  const f=await emptyTopicPair(),ids=[f.a.id,f.b.id],original=new Map();
+  for(const id of ids){original.set(id,await f.selection(id));assert.equal(evaluate(await f.request(id,original.get(id))).policyAllowed,true);}
+  const rev=await f.merge();
+  if(observeMerged){assert.equal(denied(await f.request(f.a.id,original.get(f.a.id))).reason,'topic_unavailable');assert.equal(denied(await f.request(f.b.id,original.get(f.b.id))).reason,'selection_stale');}
+  await f.restore(rev,'before');
+  const renewed=new Map();
+  for(const id of ids){
+   const answer=denied(await f.request(id,original.get(id)));assert.equal(answer.reason,'selection_stale');assert.equal(answer.selected,true,'retain the old choice without reviving its allowance');
+   renewed.set(id,await f.selection(id));assert.notEqual(renewed.get(id).organizationOperationId,original.get(id).organizationOperationId);assert.equal(evaluate(await f.request(id,renewed.get(id))).policyAllowed,true);
+  }
+  await f.restore(rev,'after');
+  if(observeMerged){assert.equal(denied(await f.request(f.a.id,renewed.get(f.a.id))).reason,'topic_unavailable');assert.equal(denied(await f.request(f.b.id,renewed.get(f.b.id))).reason,'selection_stale');}
+  await f.restore(rev,'before');
+  for(const id of ids){for(const old of [original.get(id),renewed.get(id)])assert.equal(denied(await f.request(id,old)).reason,'selection_stale');assert.equal(evaluate(await f.request(id,await f.selection(id))).policyAllowed,true);}
+ }
+});
+
+test('CTX4-03 actual same-Topic layout Undo cannot restore an old selection generation',async()=>{
+ const f=await emptyTopicPair(),id=f.b.id,other=await f.s.createSection({topicId:id,title:'SYNTHETIC named section',expectedTopicRevision:0,operationId:op()}),before=await raw(f.s,'topics',id),selection=await f.selection(id);
+ await f.s.startLayout({kind:'section_order',topicId:id,sectionId:before.defaultSectionId,otherSectionId:other.sectionId,expectedTopicRevision:before.organizationRevision,operationId:op()});await f.s.drainLibraryMaintenance();
+ const rev=(await f.s.revisions({kind:'topic',entityId:id})).items.find(x=>x.reason==='reorder');await f.restore(rev,'before');
+ assert.equal((await raw(f.s,'topics',id)).activeLayoutGeneration,before.activeLayoutGeneration);
+ assert.equal(denied(await f.request(id,selection)).reason,'selection_stale');assert.equal(evaluate(await f.request(id,await f.selection(id))).policyAllowed,true);
+});
+
+test('CTX4-03 current structural operation reservation prevents cross-command reuse after selection',async()=>{
+ const f=await emptyTopicPair(),rev=await f.merge();await f.restore(rev,'before');
+ const selection=await f.selection(f.b.id),reserved=selection.organizationOperationId,before=await f.s.repository.transaction(false,t=>t.all('topics'));
+ assert.equal((await raw(f.s,'operationReceipts',reserved)).namespace,'thought-library');
+ await assert.rejects(f.s.startLayout({kind:'topic_merge',topicId:f.a.id,survivorId:f.b.id,expectedTopicRevision:(await raw(f.s,'topics',f.a.id)).organizationRevision,expectedSurvivorRevision:(await raw(f.s,'topics',f.b.id)).organizationRevision,operationId:reserved}));
+ await assert.rejects(f.s.renameTopic({id:f.b.id,name:'SYNTHETIC reused operation',expectedRevision:(await raw(f.s,'topics',f.b.id)).revision,operationId:reserved}));
+ assert.deepEqual(await f.s.repository.transaction(false,t=>t.all('topics')),before);assert.equal(evaluate(await f.request(f.b.id,selection)).policyAllowed,true);
+});
+
+test('CTX4-03 actual owner rename, aliases, activity and appended membership preserve the structural binding',async()=>{
+ const f=await fixture(),request=await enabled(f),selection=structuredClone(request.selection);
+ await f.s.renameTopic({id:f.topic.id,name:'SYNTHETIC same identity renamed',expectedRevision:f.topic.revision,operationId:op()});
+ let topic=await raw(f.s,'topics',f.topic.id);assert.ok(topic.identity.aliases.length>0);assert.deepEqual(contextTopicSelectionBinding(topic,'initial'),Object.fromEntries(Object.entries(selection).filter(([key])=>key!=='enabled')));
+ for(const to of ['dormant','active']){
+  // Use the actual Topic01 lifecycle owner. Activity may separately advance
+  // organization revision; that broad revision must not invalidate a choice.
+  await f.s.foundationWrite(async t=>{const row=await t.get('topics',f.topic.id);setTopicLifecycle(row,to,{actor:'ai',operationId:op(),at:f.s.clock()});row.revision++;row.organizationRevision++;await t.put('topics',row);});
+  request.topics=[await raw(f.s,'topics',f.topic.id)];request.capturedAuthority=request.currentAuthority=await authority(f.s);assert.equal(evaluate(request).policyAllowed,true);
+ }
+ const entry=await f.s.createEntry({actor:'user',body:'SYNTHETIC later independent body',type:'idea',formation:'explicit',evidence:[],operationId:op()});topic=await raw(f.s,'topics',f.topic.id);
+ await f.s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:0,expectedTopicRevision:topic.organizationRevision,operationId:op()});
+ request.topics=[await raw(f.s,'topics',topic.id)];request.scope.entryIds.push(entry.id);request.capturedAuthority=request.currentAuthority=await authority(f.s);
+ assert.equal(evaluate(request).policyAllowed,true);assert.deepEqual(request.selection,selection);
+});
+
+test('CTX4-03 actual Topic remove/restore and same-name recreation never inherit old bindings',async()=>{
+ const f=await emptyTopicPair(),id=f.a.id,selection=await f.selection(id);
+ await f.s.removeTopic({id,expectedRevision:(await raw(f.s,'topics',id)).revision,operationId:op()});assert.equal(denied(await f.request(id,selection)).reason,'topic_unavailable');
+ await f.s.restoreTopicContainer({id,expectedRevision:(await raw(f.s,'topics',id)).revision,operationId:op()});assert.equal(denied(await f.request(id,selection)).reason,'selection_stale');
+ const other=await f.s.createTopic({name:(await raw(f.s,'topics',id)).name,operationId:op()});assert.equal(denied(await f.request(other.id,selection)).selected,false);assert.equal(denied(await f.request(other.id,null)).reason,'topic_off');
+});
+
+test('CTX4-03 actual existing-file replacement cannot revive a pre-merge selection even when old owner markers return',async()=>{
+ const f=await emptyTopicPair(),original=new Map();for(const id of [f.a.id,f.b.id])original.set(id,await f.selection(id));
+ const oldFile=await exported(new ExistingFileFixture(f.s));await f.merge();
+ const backup=new BackupService(f.s),stage=await prepared(backup,oldFile),preview=await backup.previewRestore({sessionId:stage.sessionId,mode:'replace'});assert.equal(preview.canRestore,true,preview.reason);
+ await backup.restore({sessionId:stage.sessionId,confirmation:preview.integrity,mode:'replace',targetGeneration:preview.targetGeneration,confirmReplace:true});
+ for(const id of [f.a.id,f.b.id]){const request=await f.request(id,original.get(id));assert.equal(request.topics.find(row=>row.id===id).protections.organization,undefined);assert.notEqual(request.context.epoch,original.get(id).epoch);assert.equal(denied(request).reason,'selection_stale');}
+});
+
+test('CTX4-03 structural binding requires explicit null or a valid current owner marker and never upgrades an old shape',async()=>{
+ const f=await fixture(),request=await enabled(f);assert.equal(request.selection.organizationOperationId,null);
+ const old=structuredClone(request);delete old.selection.organizationOperationId;assert.equal(denied(old).reason,'invalid_selection');
+ for(const value of [undefined,7,'short','',{},false]){const next=structuredClone(request);next.selection.organizationOperationId=value;assert.equal(denied(next).reason,'invalid_selection');}
+ const absent=structuredClone(request);absent.topics[0].protections={};assert.equal(evaluate(absent).policyAllowed,true,'genuine absent organization marker has an explicit null baseline');
+ for(const protections of [undefined,null,[],{organization:null},{organization:undefined},{organization:{}},
+  {organization:{locked:false,reason:'restore',operationId:op(),at:f.s.clock()}},
+  {organization:{locked:true,reason:'legacy_unknown',operationId:op(),at:f.s.clock()}},
+  {organization:{locked:true,reason:'legacy_unknown',operationId:null,at:f.s.clock()}},
+  {organization:{locked:true,reason:'restore',operationId:'short',at:f.s.clock()}},
+  {organization:{locked:true,reason:'restore',operationId:op(),at:'invalid'}},
+  {organization:{locked:true,reason:'restore',operationId:op(),at:f.s.clock(),grant:true}}
+ ]){
+  const next=structuredClone(request);next.topics[0].protections=protections;
+  assert.equal(denied(next).reason,'invalid_snapshot');assert.equal(contextTopicSelectionBinding(next.topics[0],'initial'),null);
+ }
+ const changed=structuredClone(request),id=op();changed.topics[0].protections.organization={locked:true,reason:'restore',operationId:id,at:f.s.clock()};assert.equal(denied(changed).reason,'organization_unavailable');assert.equal(contextTopicSelectionBinding(changed.topics[0],'initial'),null);
+ const fact=contextTopicOperationReservation({id,namespace:'thought-library',schemaVersion:1,ownerId:f.topic.id,operationSequence:1,createdAt:f.s.clock(),digest:'a'.repeat(64),result:{id:f.topic.id,revision:1}});changed.organizationReservations=[fact];assert.equal(denied(changed).reason,'selection_stale');
+ changed.selection={...contextTopicSelectionBinding(changed.topics[0],'initial',fact),enabled:true};assert.equal(evaluate(changed).policyAllowed,true);
+});
+
+test('CTX4-03 raw operation reservation validates committed truthy results without transporting them',async()=>{
+ const f=await emptyTopicPair(),rev=await f.merge();await f.restore(rev,'before');const selection=await f.selection(f.b.id),receipt=await raw(f.s,'operationReceipts',selection.organizationOperationId),fact=contextTopicOperationReservation(receipt);
+ assert.deepEqual(fact,{operationId:receipt.id,sequence:receipt.operationSequence,digest:receipt.digest});assert.deepEqual(Object.keys(fact),['operationId','sequence','digest']);assert.equal(Object.hasOwn(fact,'result'),false);
+ const mutations=[
+  row=>{delete row.result;},row=>{row.result=null;},row=>{row.result=false;},row=>{row.result=0;},row=>{row.result='committed';},row=>{row.result={};},row=>{row.result={id:row.ownerId,conflict:true};},row=>{row.result={id:row.ownerId,revision:1,body:'SYNTHETIC forbidden payload'};},
+  row=>{row.result.id=op();},row=>{row.result.revision=-1;},row=>{row.namespace='context-cards';},row=>{row.schemaVersion=2;},row=>{row.operationSequence=0;},row=>{row.operationSequence=NaN;},row=>{row.digest='unknown';},row=>{delete row.digest;},row=>{row.createdAt='unknown';},row=>{row.id='short';},row=>{row.extra=true;}
+ ];
+ for(const mutate of mutations){const next=structuredClone(receipt);mutate(next);assert.equal(contextTopicOperationReservation(next),null);}
+ for(const value of [undefined,null,[],false])assert.equal(contextTopicOperationReservation(value),null);
+ const topic=await raw(f.s,'topics',f.b.id);assert.equal(contextTopicSelectionBinding(topic,'initial'),null);assert.equal(contextTopicSelectionBinding(topic,'initial',{...fact,operationId:op()}),null);
+ const request=await f.request(f.b.id,selection);
+ for(const value of [undefined,null,[],[fact,fact],[{...fact,body:'SYNTHETIC forbidden body'}],[{...fact,sequence:0}],[{...fact,digest:'unknown'}],Array(4097).fill(fact)]){const next=structuredClone(request);next.organizationReservations=value;assert.equal(denied(next).reason,'organization_unavailable');}
+ const replaced=structuredClone(request);replaced.organizationReservations=replaced.organizationReservations.map(row=>row.operationId===fact.operationId?{...row,sequence:row.sequence+1}:row);assert.equal(denied(replaced).reason,'selection_stale');
+ const changed=structuredClone(request);changed.organizationReservations=changed.organizationReservations.map(row=>row.operationId===fact.operationId?{...row,digest:'b'.repeat(64)}:row);assert.equal(denied(changed).reason,'selection_stale');
+});
+
+test('CTX4-03 actual imported unreserved marker cannot create a choice or revive one through later ID reuse',async()=>{
+ const f=await emptyTopicPair(),unreserved=op();
+ await f.s.foundationWrite(async t=>{for(const id of [f.a.id,f.b.id]){const row=await t.get('topics',id);markHuman(row,'organization',unreserved,f.s.clock());await t.put('topics',row);}});
+ const file=await exported(new ExistingFileFixture(f.s)),backup=new BackupService(f.s),stage=await prepared(backup,file),preview=await backup.previewRestore({sessionId:stage.sessionId,mode:'replace'});assert.equal(preview.canRestore,true,preview.reason);
+ await backup.restore({sessionId:stage.sessionId,confirmation:preview.integrity,mode:'replace',targetGeneration:preview.targetGeneration,confirmReplace:true});
+ assert.equal(await raw(f.s,'operationReceipts',unreserved),undefined);
+ for(const id of [f.a.id,f.b.id]){assert.equal(await f.selection(id),null);assert.equal(denied(await f.request(id,null)).reason,'organization_unavailable');}
+ const rev=await f.merge();await f.s.restoreRevision({id:rev.id,side:'before',expectedRevision:(await raw(f.s,'topics',f.b.id)).revision,operationId:unreserved});
+ for(const id of [f.a.id,f.b.id]){assert.equal(denied(await f.request(id,null)).reason,'topic_off');const fresh=await f.selection(id);assert.equal(fresh.organizationOperationId,unreserved);assert.equal(evaluate(await f.request(id,fresh)).policyAllowed,true);}
+});
+
+test('CTX4-03 actual restored null or false receipt results are not operation reservations',async()=>{
+ for(const result of [null,false]){
+  const f=await emptyTopicPair(),marker=op();
+  await f.s.foundationWrite(async t=>{const row=await t.get('topics',f.a.id);markHuman(row,'organization',marker,f.s.clock());await t.put('topics',row);await t.put('operationReceipts',{id:marker,namespace:'thought-library',schemaVersion:1,ownerId:f.a.id,operationSequence:1,createdAt:f.s.clock(),digest:'a'.repeat(64),result});});
+  const file=await exported(new ExistingFileFixture(f.s)),backup=new BackupService(f.s),stage=await prepared(backup,file),preview=await backup.previewRestore({sessionId:stage.sessionId,mode:'replace'});assert.equal(preview.canRestore,true,preview.reason);
+  await backup.restore({sessionId:stage.sessionId,confirmation:preview.integrity,mode:'replace',targetGeneration:preview.targetGeneration,confirmReplace:true});
+  const receipt=await raw(f.s,'operationReceipts',marker);assert.equal(receipt.result,result);assert.equal(contextTopicOperationReservation(receipt),null);assert.equal(await f.selection(f.a.id),null);assert.equal(denied(await f.request(f.a.id,null)).reason,'organization_unavailable');
+ }
+});
 
 test('CTX4-03 pure prerequisites default off and never manufacture a current external capability',async()=>{
  const f=await fixture(),before=structuredClone(f.inputSnapshot);
@@ -70,10 +213,11 @@ test('CTX4-03 real Context parent toggles retain the same child choice and indep
 test('CTX4-03 actual same-ID rename retains selection after fresh authority but a new same-name identity remains closed',async()=>{
  const f=await fixture(),request=await enabled(f),selection=structuredClone(request.selection);
  await f.s.renameTopic({id:f.topic.id,name:'SYNTHETIC renamed object',expectedRevision:f.topic.revision,operationId:op()});
- request.topics=[identityRow(await raw(f.s,'topics',f.topic.id))];request.currentAuthority=await authority(f.s);
+ request.topics=[await raw(f.s,'topics',f.topic.id)];request.currentAuthority=await authority(f.s);
  assert.equal(denied(request).reason,'stale_authority');request.capturedAuthority=request.currentAuthority;
  assert.equal(evaluate(request).policyAllowed,true);assert.deepEqual(request.selection,selection);
- const other=await f.s.createTopic({name:'SYNTHETIC renamed object',operationId:op()}),newTopic=identityRow(await raw(f.s,'topics',other.id));
+ assert.ok(request.topics[0].identity.aliases.length>0,'actual rename records aliases without changing the access binding');
+ const other=await f.s.createTopic({name:'SYNTHETIC renamed object',operationId:op()}),newTopic=await raw(f.s,'topics',other.id);
  request.topics.push(newTopic);request.topicId=newTopic.id;request.scope={complete:true,legacyComplete:true,eligibility:'eligible',topicIds:[newTopic.id],entryIds:[],inputIds:[],sections:[]};
  request.capturedAuthority=request.currentAuthority=await authority(f.s);
  assert.equal(denied(request).selected,false);request.selection=null;assert.equal(denied(request).reason,'topic_off');

@@ -303,3 +303,10 @@ test('CTX4-01 older open completion cannot steal focus or composition from the c
  held.resolve();await opening;assert.equal(document.activeElement,editor.field);assert.equal(page.editors.get(editor.id),editor);assert.equal(editor.composing,true);assert.equal(editor.field.textContent,'SYNTHETIC current target composition');
  editor.field.listeners.get('compositionend')({});editor.autosave.cancel();if(editor.recovery.running)await editor.recovery.running;
 }));
+
+for(const residue of ['\n',' \n','\n\n'])test(`CTX4-01 erased fresh editor normalizes browser blank residue ${JSON.stringify(residue)} before final leave scan`,()=>fixture(async({makePage,c,recovery,calls})=>{
+ const page=makePage();await page.open('info');await page.addItem();const editor=[...page.editors.values()][0];
+ editor.field.textContent=residue;editor.changed();editor.autosave.cancel();if(editor.discarding)await editor.discarding;
+ assert.equal(await page.leave(),true);assert.equal(editor.local,'');assert.equal(editor.dirty(),false);assert.equal(page.page.inert,true);
+ assert.equal((await c.snapshot()).items.length,0);assert.equal((await recovery.list('context_item')).length,0);assert.equal(calls.some(call=>call.type==='PAIA_CONTEXT_CARDS_CHANGE'),false);
+},{seed:false}));
