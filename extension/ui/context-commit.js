@@ -10,7 +10,7 @@ export class ContextCommitSession {
    const prior=this.pending.change;
    // A retry may carry newer text for the same editor, but never a new target,
    // action, authorization value or restore epoch. Return the exact old edit.
-   if(['kind','itemId','key','epoch','expectedRevision','enabled','deletedBy'].some(k=>prior[k]!==change[k]))
+   if(['kind','itemId','key','epoch','expectedRevision','enabled','deletedBy'].some(k=>prior[k]!==change[k])||prior.kind==='put'&&(prior.card??'info')!==(change.card??'info'))
     throw Object.assign(new Error('Resolve the previous operation first'),{code:'SAVE_PENDING_OTHER'});
   }
   if(!this.pending)this.pending={change:structuredClone(change),digest:await hashText(JSON.stringify(change))};

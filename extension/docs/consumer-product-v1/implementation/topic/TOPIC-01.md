@@ -43,9 +43,12 @@ The downloaded exact-main aggregate `11479426003` was hash-verified as
 `24b1cd9ed18cb5a38073fe93dbc0b695987a801e628df365438d87de6a195568`.
 It records exact SHA `948ea06a`, fullSuite/auditPassed true and 317 current test
 files (235 unit, 73 browser, 3 adapter, 6 privacy); realGolden is UNAVAILABLE.
-Fresh closure base `4a3cb4e663d8ae745f8385c5c854d5b060e26309` adds only
-Browser-Native Sync documentation to that main and preserves its runtime.
-This receipt/pointer update changes no runtime, test, version or gate.
+Initial closure preparation base `4a3cb4e663d8ae745f8385c5c854d5b060e26309`
+adds only Browser-Native Sync documentation to that main. Final reconciliation
+preserves verified Context0.15 main `0a438ccc` and the subsequent AIU/AIOS
+documentation adoption `9a742673`, including its exact historical snapshots.
+Neither documentation adoption changes runtime. This receipt/pointer update
+changes no runtime, test, version or gate.
 
 COMPLETE applies only to the bounded foundation contract. Real user migration,
 semantic formation/model quality, the new Thought UI, live provider/client
