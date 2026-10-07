@@ -7,7 +7,7 @@ STATUS.md remains the sole execution queue. This file maps adopted outcomes and 
 
 The complete immediately preceding plan is retained byte-for-byte in [MASTER_PLAN_PRE_AI_USAGE_2026-10-07.md](MASTER_PLAN_PRE_AI_USAGE_2026-10-07.md). Its nonconflicting approved outcomes, dependencies, source/trust invariants and historical evidence are incorporated here. Earlier next-task/status and AI usage/allowance statements in that snapshot are historical where this current plan, STATUS or AI_USAGE_ADOPTION supersedes them. No unfinished accepted product requirement is dropped merely by shortening this current index.
 
-The selected current next task remains **CPV1-TOPIC-01 verification closure**, as recorded in STATUS. This adoption neither certifies it nor asks a second implementation of its integrated foundation. Existing local Context work and all unaffected approved lanes remain.
+At the AIU adoption, STATUS retained CPV1-TOPIC-01 verification closure. Its later scoped completion and the sole current next task are recorded in STATUS and the Topic01 receipt; no second implementation of the integrated foundation is requested. Existing local Context work and all unaffected owner-authorized parallel lanes remain.
 
 ## 2. Active product authority map
 

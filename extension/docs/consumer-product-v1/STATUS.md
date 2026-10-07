@@ -10,13 +10,38 @@ Delivered: remote/no-model capability audit; semantic-delta shared maintenance; 
 
 The only normative AI allowance/budget source is [AI_USAGE_ARCHITECTURE.md](AI_USAGE_ARCHITECTURE.md). Transformation authority is [AI_ORGANIZE_STYLE_CONTRACT.md](AI_ORGANIZE_STYLE_CONTRACT.md). [COST MODEL](AI_USAGE_COST_MODEL.md) contains disclosed synthetic assumptions, not actual user bills. [ADOPTION](AI_USAGE_ADOPTION.md) and [REFERENCES](AI_USAGE_REFERENCES.md) distinguish initial facts from fresh-main reconciliation.
 
-## Sole inherited next-task pointer — not displaced
+## Current execution and scoped Topic01 closure
 
-**CPV1-TOPIC-01 verification closure.**
+**CPV1-TOPIC-01 is COMPLETE only for its identity/human-intent foundation.**
+[The foundation receipt](implementation/topic/TOPIC-01.md) and
+[effective-access repair](implementation/topic/TOPIC-01-ACCESS.md) retain the
+independent reviews, original missing-invariant reproduction, bounded repair and
+all earlier negative evidence. Exact main `948ea06a57cd932c187407faf7140d9fb6714eff`
+passed full `37611452025` and Prompt `37611451822`; the downloaded aggregate was
+hash-verified. This closes PT-01/PT-07/PT-08's bounded domain/compatibility contract,
+not actual-user migration, semantic/model quality, the Thought UI, live external
+services, installed builds or the whole product.
 
-The preceding canonical STATUS still selected exact-main closure of the integrated Topic identity/human-intent foundation; the intervening Context merge did not modify that pointer. This documentation neither certifies that closure nor starts another implementation writer. The full preceding facts and negative/open evidence remain in [STATUS_PRE_AI_USAGE_2026-10-07.md](STATUS_PRE_AI_USAGE_2026-10-07.md). That exact snapshot is historical evidence, not a second current queue.
+**NEXT DEVELOPMENT TASK (the sole current pointer): CPV1-TOPIC-02 — close bounded
+identity retrieval, hidden candidate/lifecycle and unassigned-state handling
+against its reviewed current dependencies and exact integration evidence.**
+Owner-authorized independent Topic/Context/Thought/Settings/Sync engineering
+continues on coordinated branches with separate dependencies and gates. No later
+Topic stage is certified by this documentation update.
 
-The newly merged Context 0.15 commit also requires its stated exact-main verification after integration. Its merge message reports candidate/full/native results for specified heads; this documentation does not independently rerun or certify those results, installed builds, physical devices, live clients/models or real Golden evidence. Preserve its implementation records and existing verification workflow. Do not infer that CTX4 live-product 04/05/06 is complete merely because structural services exist.
+The AIU adoption retained the preceding Topic01 pointer without certifying it.
+[STATUS_PRE_AI_USAGE_2026-10-07.md](STATUS_PRE_AI_USAGE_2026-10-07.md) remains the
+exact historical snapshot, not a second current queue. The new AIU/AIOS contracts,
+Settings style amendment and their no-activation boundaries remain unchanged.
+
+Context0.15 main `0a438ccc67bb88d686d2939fa03027f09234d4ef`, tree
+`b0598ae3f5cf273438dc6740e5a2cf2bf2494797`, subsequently passed full
+`37630385096` and Prompt `37630385120`. Its manual local editing and qualified
+Topic choices are integrated. The bounded Context01 verification is reconciled in
+[its receipt](implementation/context-cards/CTX4-01.md). Structural Context read and
+maintenance owners remain dormant/default-denied; no live-product CTX4-04/05/06,
+real client/model, physical-device or real-Golden completion is inferred.
+Fresh main `9a742673` added AIU/AIOS documentation only; runtime proof is preserved.
 
 When the new AI lane is explicitly selected, its unique first task is **AI-COST-01 — Semantic Delta / AI Job / Usage Receipt foundation**. This is planned only; current verification work is not displaced. [AI_USAGE_PLAN.md](AI_USAGE_PLAN.md) maps the dependencies.
 
