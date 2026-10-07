@@ -92,8 +92,9 @@ function onArchiveSearchInput() {
 function onReaderSearchInput() {if(view!=='library'||!documentId)return;const current=documentSearchState();if(!current.query.trim()&&readerScopeSearch.input.value.trim())current.savedAnchor=reader.capture();current.query=readerScopeSearch.input.value;routes.commit({replace:true});resetDocumentSearchPage(current);current.stale=false;++documentSearchIntent;clearTimeout(documentSearchTimer);renderDocumentSearch();if(current.query.trim())documentSearchTimer=setTimeout(()=>void runDocumentSearch({reset:true}),180);}
 function presentScopeSearch(){
  const active=state?.settings?.consentVersion===1,readerScope=active&&view==='library'&&!!documentId,archiveScope=active&&['library','archive','excluded'].includes(view);
- scopeSearch.present({scope:archiveScope?'archive':null,owner:view,label:readerCopy('搜索输入标题或正文','Search Input titles or text'),query,placeholder:''});
- readerScopeSearch.present({scope:readerScope?'reader':null,owner:documentId,label:readerCopy('在当前聊天窗口中查找','Find in this conversation'),query:readerScope?documentSearchState().query:'',placeholder:''});
+ const archiveHint=view==='excluded'?readerCopy('搜索已移除内容','Search removed Inputs'):view==='library'&&searchProject?readerCopy('搜索此项目档案','Search this Project archive'):['library','archive'].includes(view)&&archiveNavigator.sourceScope?readerCopy('搜索此来源档案','Search this Source archive'):readerCopy('搜索全部档案','Search all archives');
+ scopeSearch.present({scope:archiveScope?'archive':null,owner:view,label:archiveHint,query,placeholder:archiveHint});
+ readerScopeSearch.present({scope:readerScope?'reader':null,owner:documentId,label:readerCopy('在当前聊天窗口中查找','Find in this conversation'),query:readerScope?documentSearchState().query:'',placeholder:readerCopy('在此对话中查找','Find in this conversation')});
 }
 const appShell=new AppShellController();
 archiveNavigator.beforeLayout=()=>appShell.presentArchiveComposition();
@@ -109,7 +110,7 @@ async function openDocumentSearchItem(current,item){
 function renderDocumentSearch(){
  const tools=$('document-search-tools'),input=readerScopeSearch.input,close=$('document-search-close'),results=$('document-search-results'),statusNode=$('document-search-status'),retrySearch=$('document-search-retry'),paging=$('document-search-pagination'),steps=$('document-search-steps'),previousMatch=$('document-search-match-previous'),nextMatch=$('document-search-match-next'),previousSearch=$('document-search-previous'),nextSearch=$('document-search-next'),active=view==='library'&&!!documentId;
  tools.hidden=!active;if(!active){retrySearch.hidden=true;highlightReading($('document-body'),'');return;}
- const current=documentSearchState();input.placeholder='';input.setAttribute('aria-label',readerCopy('在当前聊天窗口中查找','Find in this conversation'));tools.setAttribute('aria-label',readerCopy('当前聊天窗口搜索','Current conversation search'));
+ const current=documentSearchState();input.placeholder=readerCopy('在此对话中查找','Find in this conversation');input.setAttribute('aria-label',readerCopy('在当前聊天窗口中查找','Find in this conversation'));tools.setAttribute('aria-label',readerCopy('当前聊天窗口搜索','Current conversation search'));
  if(document.activeElement!==input&&input.value!==current.query)input.value=current.query;
  results.replaceChildren();const needle=current.query.trim();close.hidden=!needle;
  if(!needle){tools.hidden=true;results.hidden=true;paging.hidden=true;steps.hidden=true;retrySearch.hidden=true;statusNode.textContent='';highlightReading($('document-body'),'');return;}
