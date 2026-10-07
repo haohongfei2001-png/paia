@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,conversation,eventually} from './harness/fake-chatgpt.mjs';
 
 async function consent(page){
@@ -242,6 +243,14 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
   const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);
+  // Observe the actual modal and invalidation boundary without changing admission.
+  await p.evaluate(()=>{
+   const dialog=document.getElementById('info-dialog'),events=[];
+   const note=(event,cause=null)=>{if(events.length===32)events.shift();events.push({event,cause,open:dialog.open,surface:dialog.dataset.readingSurface||null});};
+   globalThis.readerPurgeImeTrace={events,note};
+   chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED')note('archive-changed',typeof message.cause==='string'?message.cause.slice(0,80):null);});
+   new MutationObserver(()=>note('modal-open-attribute')).observe(dialog,{attributes:true,attributeFilter:['open']});dialog.addEventListener('close',()=>note('modal-close'));note('armed');
+  });
   // CDP-port Chrome uses the host locale, unlike the persistent-context harness.
   // Exercise the complete IME safety journey in explicit English on every host.
   const locale=await p.evaluate(()=>chrome.runtime.sendMessage({type:'UPDATE_PREFERENCES',changes:{language:'en'}}));assert.equal(locale.ok,true);
@@ -277,7 +286,9 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await eventually(()=>p.locator('.library-prose').first().isVisible(),'Reader opens');
   const prose=p.locator('.library-prose').first();
   await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='未完成的输入';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:'未完成的输入',isComposing:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
+  await p.evaluate(()=>readerPurgeImeTrace.note('before-original-click'));
   await p.getByRole('menuitem',{name:/^(查看原始内容|View original content)$/}).click();
+  await p.evaluate(()=>readerPurgeImeTrace.note('after-original-click'));
   await p.locator('#info-dialog').waitFor({state:'visible'});
   assert.equal(await p.locator('#info-content .source-original').innerText(),'Synthetic source kept','Original displays the actual admitted immutable Source while IME remains unfinished');
   assert.equal(await p.locator('#info-content button.danger').count(),0,'Original admits no destructive action');
@@ -305,5 +316,9 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   assert.equal(await prose.isVisible(),true,'navigation preserves the unfinished Reader edit');
   assert.equal(await prose.textContent(),'未完成的输入');
   assert.deepEqual(h.errors,[]);
+ }catch(error){
+  const observation=await h.archive.evaluate(()=>({events:globalThis.readerPurgeImeTrace?.events||[],dialogOpen:document.getElementById('info-dialog')?.open===true,readerProseCount:document.querySelectorAll('.library-prose').length,activeTag:document.activeElement?.tagName||null})).catch(()=>({observation:'unavailable'}));
+  try{await mkdir(new URL('../work/reader-purge-ime/',import.meta.url),{recursive:true});await writeFile(new URL('../work/reader-purge-ime/failure-state.json',import.meta.url),JSON.stringify(observation));}catch{}
+  throw error;
  }finally{await h.close();}
 });
