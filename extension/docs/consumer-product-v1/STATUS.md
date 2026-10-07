@@ -1,5 +1,21 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Qwen-primary model-route / cost amendment — 2026-10-08
+
+**AIU-QWEN-1.0: OWNER_DIRECTED_SCOPED_AMENDMENT / DOCUMENTATION_INTEGRATED. Model qualification, paid calls and all AI-COST runtime implementation remain NOT_RUN / NOT_STARTED_BY_THIS_TASK.**
+
+Fresh source read and integration base: **8c7561166e6fd617455e05ce19b1c65582b85692**, tree **9139fde803de116d4df433aef4774bc3a751f426**, the Topic04 mechanics integration at 0.18.0 after Topic02/03. This task preserves all its production code, tests, workflows, manifest/version and implementation/certification records. Those merged mechanics are not missing implementations; their exact-main closure remains governed by their own evidence and the current pointer below. No previous completed Topic/Context work is reopened or newly certified here.
+
+Qwen is the current primary candidate family; qwen3.8-max is the core high-quality candidate for Organize and selected high-risk semantic decisions. Routine maintenance/Assist first qualify qwen3.8-flash, with qwen3.7-plus an intermediate challenger. Provider-neutral jobs/domains, all Free/Pro entitlements, three Organize styles, Settings, Topic/Context, Prompt and Browser-Native Sync contracts are unchanged. Earlier non-Qwen cost vectors remain dated comparison evidence, not competing primary routes.
+
+[Architecture section 15](AI_USAGE_ARCHITECTURE.md#15-qwen-primary-scoped-route-and-accounting-amendment--aiu-qwen-10) owns scoped routing, bounded adjudication, Qwen ratebook and the existing single USD ledger with explicit CNY FX handling. [COST_MODEL](AI_USAGE_COST_MODEL.md) section 11 provides unchanged-workload All Max/Recommended CNY tables and separate stress/cache/thinking/region sensitivities. [PLAN](AI_USAGE_PLAN.md) section 12 refines the same seven phases. [ADOPTION](AI_USAGE_ADOPTION.md) section 7 and [REFERENCES](AI_USAGE_REFERENCES.md) sections 6–8 record official findings, conflicts and nonclaims.
+
+The synthetic calculated monthly means including 15% reserve are All Max ¥4.84610 Free / ¥28.26897 Pro, Recommended ¥2.23931 / ¥13.47146, and separate Max-heavy offered-load stress ¥8.37145 / ¥47.28293. They are not actual bills, statistical p99 or a commercial price. The stress case includes requests that current token/child/money admission must defer or reject. No cached-input, Batch or promotional discount is assumed in the baseline. Exact formulas and assumptions reside only in COST_MODEL; these figures are a status summary, not another allowance table.
+
+Open qualification requirements include actual per-facet/style fidelity, thinking/total-output enforcement, regional privacy and country-only processing, exact retention, model/snapshot throughput, Flash Batch support discrepancy, provider usage/invoice reconciliation and trusted atomic financial admission. The current empty production registry and monetary:null local budget are not a working Qwen service. No provider keys, Alibaba resources, subscriptions, billing, user entitlements or private data were changed.
+
+**First planned AI task remains AI-COST-01 — Semantic Delta / AI Job / Usage Receipt foundation.** This does not replace the sole global CPV1-TOPIC-02 closure pointer below or start a second writer. Performed here: source/official-document review, local numeric scenario calculations and eight Markdown amendments. No real-model benchmark, blind author review, production test, runtime/schema/UI change, deployment or release was performed. The retained records below preserve their original scope and dates.
+
 ## AI usage / cost / quality / styles adoption — 2026-10-07
 
 **AIU-1.0 and AIOS-1.0 are adopted for implementation planning. No AI-COST runtime slice starts in this task.**

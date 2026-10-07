@@ -3,6 +3,8 @@
 Decision: **AIU-1.0**, 2026-10-07. State: **DESIGN_ADOPTED_FOR_IMPLEMENTATION_PLANNING**.
 Owner requested product/AI architecture, cost calculation, Organize styles, development planning and canonical integration, expressly excluding runtime changes and paid activation.
 
+**Later scoped owner decision, AIU-QWEN-1.0, 2026-10-08:** adopt Qwen as the current primary production candidate family and qwen3.8-max as the core high-quality candidate, while retaining the provider-neutral architecture, all entitlements and AIOS-1.0. Section 7 records the amendment. Sections 1–6 preserve the original adoption's dates, baselines and historical execution pointers; they do not roll current STATUS back to Topic-01 or claim fresh model acceptance.
+
 ## 1. Authority, initial read and fresh-main reconciliation
 
 Initial source read: main **4a3cb4e663d8ae745f8385c5c854d5b060e26309**, tree **a4270eb95b848c5406b7efd6e881e2dbaafd3727**, the Browser-Native Sync documentation adoption. Connected Google Drive's latest visible matching PAIA设计想法 was read as private design intent. The latest explicit owner instruction controls its scope.
@@ -92,3 +94,46 @@ Six AI documents and five current Authority/Status/Master/Settings routes integr
 | SETTINGS_CONSUMER_V2_PLAN_PRE_AI_USAGE_2026-10-07.md | e856a1ead2a2442561801b3868db240b3abd6b66 |
 
 No old private reference hash, failed run, fixture/browser result or approval is rewritten. No current paid/model, financial, user or production-style verification is claimed. The inherited global next-task pointer remains CPV1-TOPIC-01 verification closure; fresh Context exact-main verification is recorded without claiming completion or opening another writer. The first new AI-lane task is AI-COST-01, planned only.
+
+## 7. Qwen-primary scoped amendment — 2026-10-08
+
+### 7.1 Owner scope and new source
+
+The owner selected the Qwen family as the current primary production candidate and `qwen3.8-max` as the core high-quality candidate. The task is a model-route/cost/qualification refinement, not a redesign of PAIA or Free/Pro. The full private instruction is not copied into this public repository.
+
+Fresh source: main **8c7561166e6fd617455e05ce19b1c65582b85692**, tree **9139fde803de116d4df433aef4774bc3a751f426**, runtime metadata 0.18.0 in the Topic04 merge. Compared with the original AIU integration, main has advanced through additional Topic identity/retrieval/candidate/formation/promotion mechanics and closure records. Their code, tests, compatibility and historical certification evidence are preserved. The merge requests exact coherent-main verification; this docs-only task does not run or certify it.
+
+Current STATUS records scoped Topic-01 completion and selects CPV1-TOPIC-02. That pointer is not reset by the historical sentence in section 6. Already merged mechanics are not classified as absent merely because an execution pointer still calls for closure. AI-COST-01 remains the first task of the separate planned AI dependency chain, not an automatically started second writer.
+
+Fresh reads include all six AIU files, Authority/Status/Master/Technical/Product Intent, current Topic contract/plan, relevant Context Cards and Prompt/Orb contracts, Smart Filter and concrete provider/budget/Context-maintenance owners. OrganizerProvider remains neutral with an empty production registry; BudgetPolicy/BudgetLedger still record local logical usage with monetary:null. ContextMaintenanceService remains a constructor-verifier structural boundary, not a running extractor or model service. Current implementation is evidence of reusable owners, not authority to bypass new financial admission.
+
+### 7.2 Adopted routing and evidence limits
+
+Architecture section 15 is the sole scoped normative route/ratebook/FX authority. Organize first qualifies Max for all three styles; routine maintenance and Assist first qualify Flash, with Plus as an intermediate challenger. High-risk formation and Info/Rules can route directly to Max. An optional second-stage semantic adjudication requires a valid known first-stage outcome, predeclared policy, original evidence, reservation and an available child slot; it is not a retry after failure or an obligatory two-model chain. Confidence must be calibrated against held-out error/coverage evidence.
+
+The Qwen CNY cost view preserves the exact original workload for All Max and Recommended comparisons. Recommended's 10% direct-Max maintenance share is a disclosed scenario parameter, not a promised observed risk mix. Max-heavy sensitivity changes its stated token/full-refresh/escalation variables separately and is offered load before current limits; it is not an approved allowance. No provider-cache, Batch, promotion or free-credit discount is assumed in the baseline. Reasoning is included in billed output.
+
+Keep the existing USD financial ceilings and one authoritative normalized ledger. CNY tariffs/reporting normalize through the signed FX policy, not a second quota store. F=7 is only a hypothetical comparison rate; no current FX quote is claimed. Actual provider/account currency, expiry, billable categories, unknown outcomes and invoice reconciliation are qualification requirements. No subscription price or commercial margin is approved by a model-cost table.
+
+### 7.3 Exact scoped disposition
+
+| Prior interpretation or possible conflict | Current disposition |
+|---|---|
+| Gemini/GPT/Claude vectors as the primary production-candidate plan | SUPERSEDED only as primary routing. Dated USD tables/reproduction remain HISTORICAL COMPARISON, not newly verified prices or a competing default |
+| Provider-neutral job, evidence, schema, domain, cache and receipt contracts | PRESERVED; Qwen exists only at adapter/model-route metadata boundaries |
+| Free/Pro windows, effective-result quotas, physical/token/child caps and feature/user/global money limits | PRESERVED. No new allowance or hidden reduction |
+| Original / Balanced / Concise semantics and all-tier availability | PRESERVED byte-for-byte in AIOS-1.0; no model-per-style ladder |
+| Every job goes to Max, or every maintenance request goes cheap then Max | NOT ADOPTED. Local resolution, selective direct routing and bounded evidence-based adjudication govern |
+| All post-first-dispatch model changes are treated alike | CLARIFIED: preplanned adjudication of a valid DEFER is distinct from failure repair. Hidden paid retry/schema repair/unknown-outcome fallback remains prohibited |
+| Ordinary external Context retrieval calls PAIA Qwen again | PROHIBITED; authorization/search/evidence/read remains model-free |
+| Implicit prompt caching is equivalent to PAIA's zero-call result cache | NOT ADOPTED; provider caching still invokes inference and needs privacy/cost qualification |
+| Batch can replace hourly/current maintenance or interactive generation | NOT ADOPTED. Only separately qualified offline/backlog uses with truthful delay/retention |
+| CN and international endpoints/prices/residency are interchangeable | NOT ADOPTED; exact account/region/deployment/API profile controls; unresolved support/currency/retention stays gated |
+| Historic Topic-01 next-task text in old AIU adoption | HISTORICAL; latest STATUS controls and completed work is not reopened |
+| Topic/Context/Settings/BNS/Prompt product and UI contracts | PRESERVED; no current implementation or data changed |
+
+### 7.4 Integration and completion boundary
+
+This amendment updates AI_USAGE_ARCHITECTURE, AI_USAGE_COST_MODEL, AI_USAGE_PLAN, AI_USAGE_REFERENCES, AI_USAGE_ADOPTION and scoped routing in AUTHORITY, MASTER_PLAN and STATUS. Existing sections and historical snapshots remain; no new Qwen domain/entitlement document or parallel queue is created. The seven AI-COST identifiers/dependencies are preserved; their Qwen acceptance is refined in PLAN section 12.
+
+Performed: fresh connected repository reads, official Alibaba documentation research, local reproducible synthetic arithmetic, conflict/risk analysis and canonical document integration. Not performed: production runtime/schema/test/version changes, actual model calls, benchmark execution, author blind review, provider/resource/key/account creation, payment/entitlement changes, user-data processing, cloud/Sync changes, deployment or release. Model quality, actual latency, request-billing idempotency, exact retention and production financial enforcement remain evidence-gated. Price verification is not model qualification.

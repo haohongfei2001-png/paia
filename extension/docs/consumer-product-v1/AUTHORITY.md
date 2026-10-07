@@ -1,10 +1,18 @@
 # Authority and Source Policy
 
-Current scoped amendment: **AIU-1.0 / AIOS-1.0, 2026-10-07**.
+Current scoped amendment: **AIU-1.0 / AIOS-1.0, 2026-10-07**, with **AIU-QWEN-1.0, 2026-10-08** for primary model routing, cost reference and qualification only.
+
+## Qwen-primary scoped decision — 2026-10-08
+
+The owner selected Qwen as the current primary production candidate family, with `qwen3.8-max` as the core high-quality candidate. [AI_USAGE_ADOPTION.md](AI_USAGE_ADOPTION.md) section 7 records the exact scope; [AI_USAGE_ARCHITECTURE.md](AI_USAGE_ARCHITECTURE.md) section 15 owns the provider-neutral routing/ratebook/FX refinement; [COST_MODEL](AI_USAGE_COST_MODEL.md) section 11 is the CNY primary scenario view; [PLAN](AI_USAGE_PLAN.md) section 12 refines the same AI-COST-01–07 chain; [REFERENCES](AI_USAGE_REFERENCES.md) sections 6–8 identify official Alibaba evidence and unresolved capability/region/retention questions.
+
+No Qwen-specific Topic/Context/Organize domain contract, second usage ledger or new product queue is created. Architecture remains the only entitlement/budget authority, with unchanged USD normalized ceilings and explicit CNY-to-USD FX handling. Original workload assumptions, Free/Pro allowances, AIOS-1.0, Settings, Topic, Context, Browser-Native Sync and Prompt product/UI contracts remain unchanged. Earlier non-Qwen price vectors are retained dated comparisons, not competing primary routes.
+
+Max/Flash/Plus are qualification candidates only. A price/model page, fixed snapshot or structured-output capability is not semantic quality, safe private processing, actual billing or production acceptance. Paid activation, keys, resources, runtime and user-data changes remain outside this amendment. Current STATUS and actual main preserve the scoped Topic-01 completion, selected Topic-02 closure and subsequently merged mechanics; the AI lane's first planned task remains AI-COST-01. No historical pointer may reopen completed work.
 
 ## 1. Current authority order
 
-1. Latest explicit owner decisions for their stated scope, including AI usage/cost/quality/styles, Browser-Native Sync, Settings Consumer v2, Thought final visual adoption, Personal Topic Architecture and AI Context Cards v2.
+1. Latest explicit owner decisions for their stated scope, including AI usage/cost/quality/styles and the scoped Qwen-primary amendment, Browser-Native Sync, Settings Consumer v2, Thought final visual adoption, Personal Topic Architecture and AI Context Cards v2.
 2. Connected Google Drive PAIA设计想法, only where not superseded by a later explicit owner decision.
 3. PRODUCT_INTENT_CONTRACT.md and the scoped normative contracts mapped below. A scoped contract controls its stated domain, not unrelated surfaces.
 4. UX_CONTRACT.md and explicitly adopted visual/interaction authorities, subject to product/data/privacy semantics.
