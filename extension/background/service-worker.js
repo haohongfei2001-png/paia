@@ -1,5 +1,6 @@
 import {ContextCardsService} from '../core/context-cards.js';
 import {ThoughtLibraryReadModel} from '../core/thought-library-read-model.js';
+import {topicRootTarget} from '../core/topic-root-target.js';
 import {PromptSurfaceCommands} from './prompt-surface.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
 import {PromptReuseCommands} from './prompt-reuse-commands.js';
@@ -126,8 +127,8 @@ originalReady.catch(()=>{});
 
 function isExtensionPage(sender) {
   if (sender.id !== chrome.runtime.id) return false;
-  const page=typeof sender.url==='string'?sender.url.split('#',1)[0]:null;
-  return ['ui/popup.html', 'ui/archive.html'].some(path => page === chrome.runtime.getURL(path));
+  if (['ui/popup.html', 'ui/archive.html'].some(path => sender.url === chrome.runtime.getURL(path))) return true;
+  return typeof sender.url==='string'&&sender.url.startsWith(chrome.runtime.getURL('ui/archive.html')+'#')&&topicRootTarget(sender.url)!==null;
 }
 
 function isChatGPTContent(sender) {
