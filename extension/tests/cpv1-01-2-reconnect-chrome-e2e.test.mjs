@@ -14,28 +14,61 @@ test('CPV1-01.2: a newly opened tab after a version update retains the same arch
   const profile = await mkdtemp(join(tmpdir(), 'paia-cpv1-update-profile-'));
   execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
   let h;
+  let stage = 'start initial browser';
   try {
     h = await FakeChatGPT.start({ extensionPath: release, headless: true, userDataDir: profile });
+    stage = 'wait for initial consent control';
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
+    stage = 'enable initial consent';
     await h.archive.locator('#enable-consent').click();
+    stage = 'confirm initial consent';
     await eventually(async () => (await h.archive.evaluate(() => chrome.runtime.sendMessage({ type: 'GET_STATUS' }))).data?.consented === true);
+    stage = 'open initial conversation';
     const first = await h.open(conversation('cpv1-before-update'));
+    stage = 'wait for initial capture bridge';
     await h.ready(first);
+    stage = 'confirm initial three records';
     await eventually(async () => (await h.state()).records.length === 3);
     const extensionId = h.extensionId;
+    stage = 'close initial browser';
     await h.close(); h = undefined;
 
+    stage = 'change fixture version';
     const manifestPath = join(release, 'manifest.json');
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
     manifest.version = '0.12.1';
     await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+    stage = 'open updated browser';
     h = await FakeChatGPT.start({ extensionPath: release, headless: true, userDataDir: profile, onboarding: true });
+    stage = 'verify retained identity and archive';
     assert.equal(h.extensionId, extensionId, 'version update preserves extension identity');
     assert.equal((await h.state()).records.length, 3, 'the existing archive remains after update');
+    stage = 'open updated conversation';
     const fresh = await h.open(conversation('cpv1-after-update'));
+    stage = 'wait for updated capture bridge';
     await h.ready(fresh);
+    stage = 'confirm six records after update';
     await eventually(async () => (await h.state()).records.length === 6, 'new tab captures after update');
+    stage = 'verify no reconnect notice';
     assert.equal(await fresh.locator('#paia-reconnect-notice').count(), 0);
+  } catch (error) {
+    const state = { connected: h?.context?.browser()?.isConnected() ?? false, archiveClosed: h?.archive?.isClosed() ?? true };
+    let timer;
+    try {
+      if (!state.archiveClosed) Object.assign(state, await Promise.race([
+        h.archive.evaluate(async () => {
+          const [status, snapshot] = await Promise.all([
+            chrome.runtime.sendMessage({ type: 'GET_STATUS' }), chrome.runtime.sendMessage({ type: 'GET_STATE' }),
+          ]);
+          return { statusOK: status?.ok === true, consented: status?.data?.consented === true,
+            recordCount: Array.isArray(snapshot?.data?.records) ? snapshot.data.records.length : null,
+            consentDisabled: document.querySelector('#enable-consent')?.disabled ?? null };
+        }),
+        new Promise(resolve => { timer = setTimeout(() => resolve({ snapshotTimedOut: true }), 2500); }),
+      ]));
+    } catch { state.snapshotUnavailable = true; }
+    finally { clearTimeout(timer); }
+    throw new Error(`new-tab update lifecycle failed at ${stage}; state=${JSON.stringify(state)}`, { cause: error });
   } finally {
     await h?.close();
     await rm(release, { recursive: true, force: true });

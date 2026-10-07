@@ -1,6 +1,7 @@
 const CURRENT_BROWSER=new Set([
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
  'context-cards-chrome-e2e.test.mjs',
+ 'cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs',
  'consumer-cleanup-chrome-e2e.test.mjs',
  'desktop-vnext-context-chrome-e2e.test.mjs',
  'capture-foundation-chrome-e2e.test.mjs',
@@ -82,6 +83,10 @@ function previousTestShard(file, position, total, category) {
  // Put the complete six Source/release purge journeys on2; retain all cases
  // and the unchanged18-minute budget, without shifting every later file.
  if(category==='browser E2E'&&total===4){
+  // CTX4-05 adds one complete native source/release owner on4. Compensate
+  // here once, after the6->5->4 fallthrough, to preserve all73 old routes.
+  if(name==='cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs')return 4;
+  if(name>'cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs')position--;
   // CTX4 adds its whole source/release journey without shifting old placements.
   if(name==='context-cards-chrome-e2e.test.mjs')return 1;
   if(name>'context-cards-chrome-e2e.test.mjs')position--;
