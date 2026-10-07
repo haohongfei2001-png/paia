@@ -1,5 +1,24 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Owner-directed coordinated execution — 2026-10-08
+
+The owner's latest instruction authorizes one coordinator to advance CTX4-01–07,
+TOPIC-01–06 (including TOPIC-05.1–05.8), SET2-01–05, SYNC-01–06,
+AI-COST-01–07 under the current Qwen-primary revision, and their explicit Prompt
+dependencies. Independent work may run concurrently with one writer per shared
+boundary. The earlier single next-task pointer below is retained historical
+context; it must not cause already-integrated Topic mechanics to be reimplemented.
+
+**IAH-1.0 / ARCHIVE-HOME-01–06: EXCLUDED_FROM_CURRENT_DEVELOPMENT by explicit
+owner instruction.** The adopted design remains reference material; no Archive
+Home runtime implementation is scheduled. This supersedes any apparent readiness
+or task-selection implication in the historical plan tables below.
+
+Handoff files are recovery evidence, not additional authority. Each lane's base,
+file diff and target tree must be checked separately; overlapping patches are not
+applied together. Current coordination and exact evidence boundaries are recorded
+in [COORDINATED_EXECUTION_2026-10-08](COORDINATED_EXECUTION_2026-10-08.md).
+
 ## Current execution and scoped Topic01 closure
 
 **CPV1-TOPIC-01 is COMPLETE only for its identity/human-intent foundation.** The foundation and effective-access receipts retain their independent reviews, repair and earlier negative evidence. Its scoped completion does not certify actual-user migration, semantic/model quality, Thought UI, live external services, installed builds or the entire product.
