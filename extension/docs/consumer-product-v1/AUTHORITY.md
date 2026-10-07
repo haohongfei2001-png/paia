@@ -1,5 +1,17 @@
 # Authority and Source Policy
 
+## Browser-Native Sync — later scoped owner decision, 2026-10-07
+
+[BROWSER_NATIVE_SYNC_ADOPTION.md](BROWSER_NATIVE_SYNC_ADOPTION.md), BNS-1.0, records the owner's fixed no-PAIA-account, personal-cloud direction and exact supersession. [CONTRACT](BROWSER_NATIVE_SYNC_CONTRACT.md) is the normative product/data/security/provider contract; [UX](BROWSER_NATIVE_SYNC_UX.md) owns the scoped interaction; [PLAN](BROWSER_NATIVE_SYNC_PLAN.md) owns the implementation chain and gates; [REFERENCES](BROWSER_NATIVE_SYNC_REFERENCES.md) records current official findings, exact private design hashes and evidence limits. These are the sole Browser-Native Sync authority set, not another PAIA queue.
+
+Chrome defaults to Google Drive appDataFolder, Edge to OneDrive App Folder, Safari to CloudKit private database via its native bridge. One Core preserves canonical entities/revisions/human intent; adapters only transport/authenticate. V1 uses explicit provider trust, not PAIA zero-knowledge E2EE. Same-provider account recovery must need no old device, backup or Recovery Secret, conditional on an intact compatible cloud copy. Browser login is not automatic cloud consent; account changes never retarget an old queue. Context desired scope can travel, but live external grants, local consent/acknowledgements and credentials cannot return active through restore.
+
+This resolves B-03 only for the stated opt-in v1 cloud relationship/trust model. It supersedes conflicting no-cloud/undecided-B-03 and mandatory PAIA account/key/pairing prerequisites in lower PRODUCT_INTENT/UX/TECHNICAL_PLAN/PRODUCT/ARCHITECTURE and historical Sync documents, exactly as the adoption ledger specifies. Source immutability, human work, ancestry, tombstones, restrictive permission and secret handling remain. B-01/B-02, legal/region/commercial and actual provider/setup/release gates are not resolved. No old security document or evidence is deleted.
+
+Settings remains Consumer v2 with the minimal BNS amendment: one Sync row in Data & recovery, six unchanged groups, final available target 21 primary rows/six Data rows plus the existing secondary position reset; optional-cloud copy replaces only false all-local claims. No account group, cloud console or unrelated Settings redesign. Earlier 20/five inventories and no-cloud presentation statements below identify their prior adoption scope, not a veto of this later decision.
+
+The current read is main `948ea06a57cd932c187407faf7140d9fb6714eff` (0.14.0 metadata), with local CTX4-01 merged but no BNS runtime. The BNS task implements no production code, schema, permissions, cloud client/container, migration, real authorization, payment or release. Its 540-layout/8-interaction prototype evidence is independent design evidence only. STATUS retains existing closure work and queues CPV1-SYNC-01 as the first new Sync implementation, not a second active writer. The owner-directed product scope is adopted; subsequent owner pixel approval and real-provider qualification are not claimed.
+
 ## Settings Consumer v2 — scoped owner-directed final adoption, 2026-10-07
 
 The owner retained the reviewed Settings composition, directed the final consumer simplification, and requested design freeze plus canonical planning/integration. [SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), SETTINGS-CV2-1.0, is now the sole current Settings product/presentation authority. [PLAN](SETTINGS_CONSUMER_V2_PLAN.md) owns source-grounded gaps, five delivery stages, migration and acceptance; [REFERENCES](SETTINGS_CONSUMER_V2_REFERENCES.md) identifies the corrected private artifacts and evidence limits. Settings execution has not started. STATUS retains CPV1-TOPIC-01 as the sole current next task; SET2 is integrated planned work, not another queue.
@@ -50,10 +62,10 @@ The owner explicitly chose to retain PAIA's existing font size and prose width f
 
 The authority order for PAIA Consumer Product v1 is:
 
-1. Explicit latest product-owner decisions for their stated scope, including Settings Consumer v2, Thought final visual adoption, Personal Topic Architecture and AI Context Cards v2 above.
+1. Explicit latest product-owner decisions for their stated scope, including Browser-Native Sync, Settings Consumer v2, Thought final visual adoption, Personal Topic Architecture and AI Context Cards v2 above.
 2. Google Drive: PAIA设计想法.docx, where not superseded by a later explicit owner decision.
-3. PRODUCT_INTENT_CONTRACT.md and explicitly adopted scoped contracts: Settings uses SETTINGS_CONSUMER_V2_ADOPTION.md; Topic semantics use TOPIC_ARCHITECTURE.md; Context uses AI_CONTEXT_CARDS_V2_PLAN.md with the Topic identity clarification above.
-4. UX_CONTRACT.md and current explicitly approved visual/interaction references, subject to scoped product semantics. Settings uses SETTINGS_CONSUMER_V2_REFERENCES.md. Thought uses THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md and its private-reference manifest, not conflicting earlier list/Years/candidate or B2/pre-Section experiments.
+3. PRODUCT_INTENT_CONTRACT.md and explicitly adopted scoped contracts: Sync uses BROWSER_NATIVE_SYNC_CONTRACT.md; Settings uses SETTINGS_CONSUMER_V2_ADOPTION.md with the scoped BNS amendment; Topic semantics use TOPIC_ARCHITECTURE.md; Context uses AI_CONTEXT_CARDS_V2_PLAN.md with the Topic identity clarification above.
+4. UX_CONTRACT.md and current explicitly approved visual/interaction references, subject to scoped product semantics. Settings uses SETTINGS_CONSUMER_V2_REFERENCES.md, with BROWSER_NATIVE_SYNC_UX.md/REFERENCES for Sync-owned states. Thought uses THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md and its private-reference manifest, not conflicting earlier list/Years/candidate or B2/pre-Section experiments.
 5. TECHNICAL_PLAN.md, MASTER_PLAN.md and scoped development plans for implementation strategy/dependencies; STATUS.md alone selects execution.
 6. Existing PRODUCT.md / ARCHITECTURE.md / ROADMAP.md and historical package contracts only where they do not contradict higher product intent.
 7. Current implementation: evidence of what exists, never proof of what the product should be.
@@ -84,13 +96,13 @@ Any migration must preserve TECHNICAL_PLAN invariants. Approved independent Cont
 
 ## 4. Conflict handling
 
-Do not silently choose between incompatible product meanings. The Topic adoption record and final visual authority V8 name exactly what is superseded and preserved.
+Do not silently choose between incompatible product meanings. The Topic adoption record and final visual authority V8 name exactly what is superseded and preserved. Browser-Native Sync supersession is specified by its adoption ledger above.
 
 Existing owner-decision gates remain:
 
 - B-01: whether an existing/old Thought may be directly edited versus corrections appended as new material.
 - B-02: permanent Source deletion treatment of user-rewritten derivative material.
-- B-03: long-term default residency and cloud relationship.
+- B-03: resolved for Browser-Native Sync v1's optional personal-cloud relationship and provider trust only; other residency/processing/service choices remain scoped gates.
 - B-04-3A: resolved by owner on 2026-10-05 for Prompt Reuse Stage 3A only. Explicit default-off local ephemeral analysis of the newly completed latest assistant reply in the current supported conversation; no durable reply in Archive/Thought/Context/Source/Backup/logs and no external-model processing. Revoke clears transient candidates without disabling Stage 1/2.
 - B-04-3B: remains a gate for broader reply scope, durable retention/evidence, external/model processing, model-generated next prompts or other uses of reply access.
 - B-05: regions, service burden and commercial commitments.

@@ -1,5 +1,28 @@
 # Current status — PAIA Consumer Product v1
 
+## Browser-Native Sync — design and canonical plan integrated, 2026-10-07
+
+[BROWSER_NATIVE_SYNC_ADOPTION.md](BROWSER_NATIVE_SYNC_ADOPTION.md), BNS-1.0, adopts the owner-directed no-PAIA-account/personal-cloud product model. [CONTRACT](BROWSER_NATIVE_SYNC_CONTRACT.md), [UX](BROWSER_NATIVE_SYNC_UX.md), [PLAN](BROWSER_NATIVE_SYNC_PLAN.md) and [REFERENCES](BROWSER_NATIVE_SYNC_REFERENCES.md) are the single normative Sync set. Settings gains only a scoped Sync destination in Data & recovery; the final available target is 21 primary rows/six Data rows, with the same six groups and secondary Prompt position reset.
+
+| State | Current value |
+|---|---|
+| Sync product | OWNER_DIRECTED / ADOPTED; Chrome/Drive appDataFolder, Edge/OneDrive App Folder, Safari/native CloudKit private database |
+| Sync security | Explicit provider trust; no PAIA zero-knowledge/E2EE claim; provider-only same-ecosystem recovery with intact compatible cloud data |
+| Core and adapters | One canonical entity/revision/intent Core, three transport/auth adapters; all implementation slices PLANNED |
+| First new Sync implementation | CPV1-SYNC-01 — local two-device Core/outbox/segment/checkpoint/exact-restore proof; queued, not another current writer |
+| Existing current execution pointer | CPV1-TOPIC-01 exact-main verification/canonical closure retained; no merged foundation reimplementation |
+| Remote design and final pre-integration base | 948ea06a57cd932c187407faf7140d9fb6714eff; tree 78dbc060a3406ce301d1ca9b5f2d183d801ac619; 0.14.0 runtime metadata |
+| Current Context fact | CTX4-01 local manual My Information is in main; Rules/Now/Inputs/automatic/external capabilities remain false in the inspected owner |
+| Private Sync design evidence | 27 scenarios, 34 artboards; 540/540 horizontal-reflow checks, 8/8 demo interactions and viewer switching; independent prototype only |
+| Sync runtime / schema / manifest / test changes by this task | NONE |
+| Actual cloud authorization / upload / migration / container creation | NOT_RUN |
+| Real-provider / native-device / production visual / full restore qualification | NOT_RUN / NOT_CLAIMED |
+| Paid services / release / deployment / installed-version confirmation | NOT_ACTIVATED / NOT_RELEASED / NOT_DEPLOYED / NOT_VERIFIED |
+
+The actual main read contains the CTX4-01 merge. Older planned/candidate/0.12.1/0.13.0 statements below identify their historical task scope and do not erase that merge. Its merge message reports reviewed candidate evidence and requires exact-main full certification; this Sync task neither runs nor closes that gate. No Topic/Context/Settings/Prompt writer is silently started, stopped, certified or superseded by a design-only task.
+
+The first new Sync slice is explicitly queued under the one Consumer Product queue. When implementation is separately authorized and selected, read its plan's production-owner map and use one writer at shared storage/state boundaries. No cloud adapter, OAuth page or provider experiment precedes the local Core proof. Preserve all unrelated phase records below. B-03 is resolved only for this optional v1 personal-cloud/trust choice; B-01/B-02 and actual provider/legal/region/commercial gates remain on affected behavior.
+
 ## Settings Consumer v2 — final design adopted, 2026-10-07
 
 The owner retained the reviewed Settings direction, directed the final simplification, and requested design freeze, executable planning and canonical GitHub integration. [SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), SETTINGS-CV2-1.0, is the current Settings product/visual authority. [The implementation plan](SETTINGS_CONSUMER_V2_PLAN.md) maps actual owners, gaps, five stages, migration and acceptance; [the reference manifest](SETTINGS_CONSUMER_V2_REFERENCES.md) records the corrected private artifacts and their hashes.
@@ -7,21 +30,21 @@ The owner retained the reviewed Settings direction, directed the final simplific
 | State | Current value |
 |---|---|
 | Settings direction | OWNER_DIRECTED / ADOPTED / DESIGN_FROZEN; lightweight directory + rows, six groups |
-| Final inventory | 20 main actionable rows + one secondary position reset; unavailable dependencies are not pretend controls |
+| Final inventory | 21 main actionable rows after the scoped BNS addition + one secondary position reset; unavailable dependencies are not pretend controls |
 | Final simplification | One AI Context/access entry; one Data storage destination; no Settings version-history/helper, generic purge or Advanced |
 | Settings runtime implementation by this task | NOT_STARTED; existing Settings implementation is unchanged |
 | SET2-01 through SET2-05 | PLANNED, integrated under MASTER; not a competing execution queue |
-| Corrected prototype evidence | 144/144 layouts, 41/41 demo interactions, 26 rendered artboards; independent design evidence only |
+| Corrected original CV2 prototype evidence | 144/144 layouts, 41/41 demo interactions, 26 rendered artboards; independent 20-row design evidence only, not relabeled BNS evidence |
 | Production persistence / permissions / migration / accessibility / live-provider acceptance | NOT_EXECUTED_BY_THIS_TASK / NOT_CLAIMED |
 | User data / AI service / external grants / spending / deployment / release by this task | NOT_ACCESSED / NOT_ACTIVATED / NOT_CHANGED / NOT_RUN / NOT_DEPLOYED / NOT_RELEASED |
-| Initial design read | 29940a921e4797c463a5e7e8436bafe6125f9f1d, 0.12.1 |
-| Final integration read | 288e17fb7adaf05b63a4af72458c1d6787488e0d, manifest/package 0.13.0 |
+| Initial Settings design read | 29940a921e4797c463a5e7e8436bafe6125f9f1d, 0.12.1 |
+| Settings final integration read | 288e17fb7adaf05b63a4af72458c1d6787488e0d, manifest/package 0.13.0 |
 
-The final read preserves intervening PR177 and its Topic identity/human-intent/strict restore foundation. [TOPIC-01's implementation receipt](implementation/topic/TOPIC-01.md) records MAIN_INTEGRATED / INDEPENDENT_REVIEW_CLEARED / EXACT_MAIN_FULL_CERTIFICATION_PENDING. It reports full reviewed-head certification but distinguishes the insufficient round-integration merge run from the required full exact-main evidence. This task neither reruns that certification nor declares it passed. The selected phase remains TOPIC-01 for verification and canonical closure, not rebuilding its merged code. Earlier adoption-only NOT_STARTED and PLANNED descriptions below describe those documentation tasks; they do not erase the subsequently integrated foundation or certify later slices.
+The final Settings read preserves intervening PR177 and its Topic identity/human-intent/strict restore foundation. [TOPIC-01's implementation receipt](implementation/topic/TOPIC-01.md) records MAIN_INTEGRATED / INDEPENDENT_REVIEW_CLEARED / EXACT_MAIN_FULL_CERTIFICATION_PENDING. It reports full reviewed-head certification but distinguishes the insufficient round-integration merge run from the required full exact-main evidence. This task neither reruns that certification nor declares it passed. The selected phase remains TOPIC-01 for verification and canonical closure, not rebuilding its merged code. Earlier adoption-only NOT_STARTED and PLANNED descriptions below describe those documentation tasks; they do not erase the subsequently integrated foundation or certify later slices.
 
 Conflicting D6.2/D7 Settings presentation and older Settings IA are scoped history. Shared visual roles, existing Source/edit/recovery restrictions, CTX4, PT-1 and Prompt Reuse remain unchanged. The first complete corrected-prototype run's keyboard-focus failure and fix are retained in the reference evidence; no historical PASS is converted into new production acceptance.
 
-Settings does not implement Context permissions, Topic management or a Prompt manager. Context route/status and reachable legacy revocation, a Prompt-owned position-reset bridge, real Stage 3A enable/revoke and confirmed About destinations remain explicit integration gaps. Missing services cannot justify duplicate preference stores or fake connected/enabled states. Local Settings work does not wait for the entire Thought UI or paid AI service.
+Settings does not implement Context permissions, Topic management or a Prompt manager. Context route/status and reachable legacy revocation, a Prompt-owned position-reset bridge, real Stage 3A enable/revoke and confirmed About destinations remain explicit integration gaps. Missing services cannot justify duplicate preference stores or fake connected/enabled states. Local Settings work does not wait for the entire Thought UI or paid AI service. The Sync row is an additional separately qualified dependency, not a blocker for the five existing Data destinations.
 
 No Settings runtime writer starts from this documentation task. Pre-adoption status is preserved byte-for-byte as [STATUS_PRE_SETTINGS_V2_2026-10-07.md](STATUS_PRE_SETTINGS_V2_2026-10-07.md), original blob `d696ca599b67f1941ea3cd9acfffc289512eea92`, still unchanged at the final integration read. The matching MASTER snapshot is also retained. Older snapshots/reports/failures remain unchanged.
 
@@ -55,7 +78,7 @@ The owner directed adoption of the settled Personal Topic architecture, not anot
 | PAIA architecture-adoption read baseline | 73f07b3dbe42fdb66f89500efa87513c2da96239 |
 | Semantic Lab architecture-adoption read baseline | 0ec6d9748cb88422d20a1e02c8d2047343f8bf96 |
 
-**NEXT DEVELOPMENT TASK (the sole current pointer): CPV1-TOPIC-01 — complete exact-main full verification and canonical closure of the already integrated Personal Topic identity and durable human-intent foundation.** Re-read the current implementation receipt and actual run evidence; do not rebuild merged code, substitute reviewed-head/round-integration evidence for exact-main full verification, or advance to later slices without closure. This Settings documentation task starts no runtime or certification job and claims no new verification result.
+**NEXT DEVELOPMENT TASK (the sole current pointer): CPV1-TOPIC-01 — complete exact-main full verification and canonical closure of the already integrated Personal Topic identity and durable human-intent foundation.** Re-read the current implementation receipt and actual run evidence; do not rebuild merged code, substitute reviewed-head/round-integration evidence for exact-main full verification, or advance to later slices without closure. This documentation task starts no runtime or certification job and claims no new verification result. CPV1-SYNC-01 above is the queued first new Sync implementation, not a second current execution pointer.
 
 CPV1-TOPIC-02 through 06 are PLANNED, not parallel next tasks. The one-library identity/protection contract must precede affected automatic formation and Context Topic access integration. Product/design decisions are settled; storage, display calibration and algorithm parameters still require engineering evidence. Do not credit old foundation or classifier tests as new Topic acceptance. TOPIC-05.1-05.8 are internal deliverables of 05, not new queues.
 
@@ -63,17 +86,17 @@ CPV1-TOPIC-02 through 06 are PLANNED, not parallel next tasks. The one-library i
 
 [AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md), [adoption](AI_CONTEXT_CARDS_V2_ADOPTION.md) and [approved references](AI_CONTEXT_CARDS_V2_REFERENCES.md) remain authoritative for the four-card Context design. Info/Rules/Now own independent editable Items; Inputs references stable Personal Topic access state. No Topic body copy, Archive fallback, candidate approval inbox or second Library.
 
-CTX4-01 through CTX4-07 remain planned; implementation was not started by the prior Context planning task, Topic documentation task or this final visual integration. The former next-CTX4-01 pointer is a retained phase order, not a competing current queue. After the current Topic foundation, sequencing remains controlled here. CTX4-03/04 must consume the Personal identity/authority contract; 20/50/144 list-size examples do not bind Context to System Topics. CTX4-05 needs an authorized real processing service; CTX4-06 needs a verified real client/transport. Do not cancel unrelated independent local work or invent service readiness.
+The CTX4-01 through CTX4-07 order remains; implementation was not started by the prior Context planning task, Topic documentation task or final visual integration. Actual current main now includes local CTX4-01 as recorded above. CTX4-02 through 07 remain planned. The former next-CTX4-01 pointer is not a competing current queue or a reason to rebuild the merged local owner. Sequencing remains controlled here. CTX4-03/04 must consume the Personal identity/authority contract; 20/50/144 list-size examples do not bind Context to System Topics. CTX4-05 needs an authorized real processing service; CTX4-06 needs a verified real client/transport. Do not cancel unrelated independent local work or invent service readiness.
 
-The approved visual package, independent Context Item ownership, new-Topic-default-off, restrictive legacy denials, read/write separation and unresolved B-01/B-02/B-03/B-04-3B/B-05 gates remain unchanged. These adoptions do not authorize payment, external connection activation, cloud uploads, destructive migrations or release.
+The approved visual package, independent Context Item ownership, new-Topic-default-off, restrictive legacy denials, read/write separation and unresolved B-01/B-02/B-04-3B/B-05 gates remain unchanged. B-03 has only the later BNS optional-cloud/trust exception above. These adoptions do not authorize payment, external connection activation, real cloud uploads, destructive migrations or release.
 
-### Explicitly requested independent CTX4-01 candidate
+### Historical independent CTX4-01 candidate record — current merge fact above controls
 
 The owner requested CPV1-CTX4-01 implementation before this Topic adoption and subsequently approved a draft PR for hosted validation. This active local Item/My Information work is preserved under the independent-work clause above; it does not replace **CPV1-TOPIC-01** as the sole next-development pointer or include CTX4-02/03/04 or Topic implementation in this PR. Separately authorized parallel implementation tracks remain separate.
 
-[PR #176](https://github.com/haohongfei2001-png/paia/pull/176) is **IN_PROGRESS / NOT_CERTIFIED**. Initial implementation base: `73f07b3dbe42fdb66f89500efa87513c2da96239`; documentation reconciliation base: `238d9f9889d0af4aa02b8467f46986a4db5e4d03`; current Archive runtime reconciliation base: `0093c81300b8dff80b0cf00c4f2cad6130840030`. New local independent Context Items, four-card home, My Information editing and access preferences are under verification. Retired outbound/provider/export paths remain disabled. No Topic body, identity or permission owner is changed.
+At the prior reconciliation, [PR #176](https://github.com/haohongfei2001-png/paia/pull/176) was recorded **IN_PROGRESS / NOT_CERTIFIED**. Initial implementation base: `73f07b3dbe42fdb66f89500efa87513c2da96239`; documentation reconciliation base: `238d9f9889d0af4aa02b8467f46986a4db5e4d03`; Archive runtime reconciliation base: `0093c81300b8dff80b0cf00c4f2cad6130840030`. That candidate record described new local independent Context Items, four-card home, My Information editing and access preferences under verification. Retired outbound/provider/export paths remain disabled. No Topic body, identity or permission owner is changed by BNS documentation.
 
-[CTX4-01 implementation/migration record](implementation/context-cards/CTX4-01.md) records exact owners, compatibility choices, negative evidence and passed source/release candidate journeys. The later Thought visual documentation at `29940a921e4797c463a5e7e8436bafe6125f9f1d` is preserved. On 2026-10-07 the owner explicitly chose the existing PAIA font size and prose width for Context, resolving only the approved-reference reading-role discrepancy; saved reading preferences remain authoritative. Current full/native certification remains open after the latest navigation repairs. PR publication is not main integration, completed runtime certification, installation or release.
+[CTX4-01 implementation/migration record](implementation/context-cards/CTX4-01.md) records exact owners, compatibility choices, negative evidence and passed source/release candidate journeys. The later Thought visual documentation at `29940a921e4797c463a5e7e8436bafe6125f9f1d` is preserved. On 2026-10-07 the owner explicitly chose the existing PAIA font size and prose width for Context, resolving only the approved-reference reading-role discrepancy; saved reading preferences remain authoritative. The current merge message records candidate certification and requires exact-main full verification before closure. BNS documentation does not newly certify that main gate, installed runtime or release.
 
 ## Consumer cleanup 0.12.1 and Archive — retained runtime evidence
 
@@ -83,7 +106,7 @@ The fresh source also includes Archive PR #175 at `0093c81300b8dff80b0cf00c4f2ca
 
 Dedicated Profile management, Thought response relations, Material Tray, candidate approval management, Product Signals and ordinary diagnostics remain retired. Content/statistics/Context export, backup generation and dedicated sharing remain cancelled. BYO/direct AI transport remains retired; no legacy credentials are read or cleared. Existing-file restore, Source/deletion protection, manual editing, saved AI work, lexical search, capture/import and existing Prompt Reuse remain preserved. New AI generation and old Context execution remain unavailable until their legitimate replacement/service is implemented and verified. User reload/running-version confirmation is not newly verified by this task.
 
-The immediately preceding status is preserved byte-for-byte as [STATUS_PRE_THOUGHT_VISUAL_2026-10-07.md](STATUS_PRE_THOUGHT_VISUAL_2026-10-07.md). The earlier cleanup, Context, source and certification record remains [STATUS_PRE_TOPIC_2026-10-07.md](STATUS_PRE_TOPIC_2026-10-07.md), including its references to [STATUS_PRE_CTX4_2026-10-07.md](STATUS_PRE_CTX4_2026-10-07.md). Historical D7, Prompt Reuse, failures and authorizations are retained. No old next-task statement may independently restart a historical/cancelled queue. Unrelated work is not reset or silently certified.
+The immediately preceding visual-adoption status is preserved byte-for-byte as [STATUS_PRE_THOUGHT_VISUAL_2026-10-07.md](STATUS_PRE_THOUGHT_VISUAL_2026-10-07.md). The earlier cleanup, Context, source and certification record remains [STATUS_PRE_TOPIC_2026-10-07.md](STATUS_PRE_TOPIC_2026-10-07.md), including its references to [STATUS_PRE_CTX4_2026-10-07.md](STATUS_PRE_CTX4_2026-10-07.md). Historical D7, Prompt Reuse, failures and authorizations are retained. No old next-task statement may independently restart a historical/cancelled queue. Unrelated work is not reset or silently certified.
 
 ## Integration discipline
 

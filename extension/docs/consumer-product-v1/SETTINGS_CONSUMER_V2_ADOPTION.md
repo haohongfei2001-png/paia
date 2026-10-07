@@ -4,6 +4,12 @@ Decision date: 2026-10-07. Contract: **SETTINGS-CV2-1.0**.
 Status: **OWNER_DIRECTED / ADOPTED / DESIGN_FROZEN**.
 Implementation by this task: **NOT_STARTED**.
 
+## Later Browser-Native Sync scoped amendment — 2026-10-07
+
+[BROWSER_NATIVE_SYNC_ADOPTION.md](BROWSER_NATIVE_SYNC_ADOPTION.md) and [BROWSER_NATIVE_SYNC_UX.md](BROWSER_NATIVE_SYNC_UX.md) add one Sync-owned destination first in Data & recovery. The same six groups and all unrelated Settings decisions remain. The final available inventory below is now 21 primary rows, including six Data rows, plus the existing secondary Prompt position reset. The original 20-row private Settings package remains unchanged; exact new Sync states and hashes are recorded in BROWSER_NATIVE_SYNC_REFERENCES.md.
+
+Settings owns placement/navigation only. Sync owns the real provider binding/state/actions; Context continues to own external grants and live access. No account group, provider console, general purge, sync parameter or second permission store is created. The Settings plan's SET2-02 consumes the extra Sync row only when the relevant CPV1-SYNC adapter/status interface is genuinely available; its five existing Data destinations and their local work do not wait for cloud implementation. SET2-05 adds the corresponding scoped integration/visual checks rather than requalifying a new Settings concept. Unsupported enable controls remain unavailable, not fake connected states. Optional personal-cloud copy replaces only false all-local claims. This amendment performs no runtime, migration, authorization or cloud operation.
+
 The owner retained the reviewed Settings composition, directed a finite final simplification, and requested immediate design freeze, executable planning and canonical GitHub integration. This adopts those corrections; it is not another concept exploration. The corrected private artifacts are identified in [REFERENCES](SETTINGS_CONSUMER_V2_REFERENCES.md). Their verification is independent-prototype evidence, not production certification or a subsequently observed owner pixel review.
 
 [This document](SETTINGS_CONSUMER_V2_ADOPTION.md) owns Settings product/presentation decisions. [PLAN](SETTINGS_CONSUMER_V2_PLAN.md) owns implementation gaps, stages, compatibility and acceptance. [STATUS](STATUS.md) alone selects execution. Common PAIA shell/tokens and the existing Context, Thought and Prompt contracts retain their own authority.
@@ -18,12 +24,12 @@ Desktop uses a lightweight Settings directory plus one content area. Six groups,
 | 阅读与外观 / Reading & appearance | 外观; 语言; 正文字号; 阅读宽度; 时间显示 | 5 |
 | AI 与提示词 / AI & prompts | AI 上下文; 下一句建议 | 2 |
 | 隐私与访问 / Privacy & access | 隐藏内容预览; 支持的网站 | 2 |
-| 数据与恢复 / Data & recovery | 导入历史输入; 存储空间; 从已有 PAIA 备份恢复; 已移除的内容; 原始来源记录 | 5 |
+| 数据与恢复 / Data & recovery | 同步; 导入历史输入; 存储空间; 从已有 PAIA 备份恢复; 已移除的内容; 原始来源记录 | 6 |
 | 关于 PAIA / About PAIA | 隐私说明; 使用条款; 帮助; 反馈 | 4 |
 
-The final target has **20 main actionable rows: four switches, five selections, eleven destination rows; plus one secondary position-reset action**. This counts the fully connected design, not capability availability in the current extension. Conditional repair/update actions and temporary dialogs are not permanent rows. Do not manufacture controls to meet a numeric quota.
+The final target has **21 main actionable rows: four switches, five selections, twelve destination rows; plus one secondary position-reset action**. This counts the fully connected design, not capability availability in the current extension. Conditional repair/update actions and temporary dialogs are not permanent rows. Do not manufacture controls to meet a numeric quota.
 
-Prompt Reuse applicability is a compact heading/status beside its relevant preference, not an inert duplicate setting. About shows actual version and update status as unboxed metadata; an update action exists only for a real available update and supported safe route. The local-storage privacy fact is light prose, not a second storage row. Unsupported future languages/sites, membership, cloud controls and fake successes are absent.
+Prompt Reuse applicability is a compact heading/status beside its relevant preference, not an inert duplicate setting. About shows actual version and update status as unboxed metadata; an update action exists only for a real available update and supported safe route. The local-storage privacy fact is light prose, not a second storage row, and reflects the actual local-only or explicitly enabled Sync state. Unsupported future languages/sites, membership, unimplemented cloud controls and fake successes are absent.
 
 ## 2. Final consumer decisions
 
@@ -45,15 +51,15 @@ Prompt text, pin/order/edit/hide/split and insertion remain in the cross-site Pr
 
 ### Privacy, data and recovery
 
-Hide content previews controls excerpts in lists/search; detailed encryption/screenshot limitations belong in help. Supported websites shows actual supported service names and capability facts, not raw host patterns or an AI-connection matrix. Current local residency is one quiet sentence. Storage space and necessary browser estimates have their sole actionable destination in Data.
+Hide content previews controls excerpts in lists/search; detailed encryption/screenshot limitations belong in help. Supported websites shows actual supported service names and capability facts, not raw host patterns or an AI-connection matrix. Current residency is one quiet truthful sentence: local-only before opt-in, personal-cloud copy when genuinely enabled. Storage space and necessary browser estimates have their sole actionable destination in Data.
 
-Import remains import, not sync. Existing-file restore remains select -> validate -> preview impact/conflicts -> confirm, using the existing staged/validated activation service. No active library is changed before the authorized commit; isolated validation staging is not activation. Backup generation/export remain cancelled.
+Import remains import, not sync. Existing-file restore remains select -> validate -> preview impact/conflicts -> confirm, using the existing staged/validated activation service. No active library is changed before the authorized commit; isolated validation staging is not activation. Backup generation/export remain cancelled. Browser-Native Sync has its separately adopted automatic same-provider recovery contract and does not turn existing-file restore into another product.
 
 Removed content has one discovery entry but retains typed recovery: Input, Topic container/relationship, Entry and Placement operations remain distinct. A relationship restore cannot duplicate a body, undo a stronger deletion/negative intent, restore grants or broaden AI access. Unresolved import destinations are not removed content; use import results/Archive. Source records retain their existing low-frequency read route.
 
 **No version-history row, explanation, retention selector, automatic-version notice or pruning action remains in Settings.** Content-specific history/restore and underlying preservation rules remain. Help may explain them without creating a Settings history feature.
 
-**No abstract permanent-delete-data entry is adopted.** Supported permanent deletion begins on its actual Source/object, previews real scope and preserves the existing unambiguous/B-02 preflight and final revalidation. Mixed-human/unknown derivative boundaries remain gated. Removing an entry point never removes a safety restriction.
+**No abstract permanent-delete-data entry is adopted.** Supported permanent deletion begins on its actual Source/object, previews real scope and preserves the existing unambiguous/B-02 preflight and final revalidation. Mixed-human/unknown derivative boundaries remain gated. Removing an entry point never removes a safety restriction. The specific cloud-copy deletion in Sync Detail is governed by BNS, not a generic local purge.
 
 Diagnostics are absent normally. A relevant confirmed data/index failure reveals a local action; messaging interruption alone is not corruption. Failed repair keeps the real error visible without claiming success; successful recovery clears obsolete fault presentation. No telemetry/audit expansion follows from this design.
 
@@ -71,16 +77,17 @@ Rows can wrap, values remain identifiable, switches have labeled on/off states a
 | Input & capture / Content & capture name | Replaced by Input Archive, separating saving from filtering semantics. |
 | Membership/AI-service unavailable panel, including the Settings-entry wording in PRODUCT.md current scope and PRODUCT_INTENT_CONTRACT.md section 15 | Removed as ordinary Settings UI. Paid service prerequisites/unavailability remain unchanged. |
 | Duplicate Privacy AI access entry; local-only/external toggle console; revoke action as a separate Settings owner | Replaced by the sole Context route. Restrictive legacy state and reachable revocation must be safely handed to the real owner before removing the last usable path. |
-| Duplicate data/local storage rows | One Data storage destination; light local-residency prose only in Privacy. |
+| Duplicate data/local storage rows | One Data storage destination; light actual-residency prose only in Privacy. |
 | Settings version history/helper/retention/prune, generic permanent-delete entry | Removed from Settings. Content history and scoped legitimate Source purge remain. |
 | Topic/Section/Organizer permissions and Prompt manager/settings copies | Not Settings responsibilities. PT-1, CTX4 and Prompt contracts unchanged. |
 | Ordinary recovery/diagnostics dashboard | Absent; only actual-fault recovery remains. |
 | First Settings review's 25-row inventory and duplicate/history/general-purge screens | Superseded by corrected final artifacts; old checks remain historical prototype evidence. |
+| Original CV2 20-row/five-Data-row inventory and blanket no-cloud copy | Later BNS amendment adds only the Sync destination and truthful optional-cloud copy. The original private CV2 bytes/checks are retained, not relabeled as 21-row evidence. |
 
 Frozen D6/D7 artboards, implementation reports, acceptance registrations, failures and historical PASS remain unmodified. Their nonconflicting data/edit/privacy/recovery requirements survive and need equivalent current tests. Shared visual roles still govern all spaces. This does not reopen Thought, Context or Prompt design, change their identity/permissions, or authorize an unrelated feature.
 
 ## 5. Adoption boundary
 
-Initial design read: main `29940a921e4797c463a5e7e8436bafe6125f9f1d` (0.12.1). Final integration read: main `288e17fb7adaf05b63a4af72458c1d6787488e0d`, tree `550aab987b33196ea05ed5fec06e93771670b35e`, manifest/package 0.13.0. The intervening Topic-01 integration and strict identity/restore code are retained unchanged; its receipt still requires exact-main full verification and canonical closure. Settings/UI/Context/Prompt source files were unchanged by that intervening work. Corrected prototype verification is recorded in REFERENCES; it is not extension persistence, authorization, migration, physical IME, screen-reader or live-provider evidence.
+Initial design read: main `29940a921e4797c463a5e7e8436bafe6125f9f1d` (0.12.1). Final integration read: main `288e17fb7adaf05b63a4af72458c1d6787488e0d`, tree `550aab987b33196ea05ed5fec06e93771670b35e`, manifest/package 0.13.0. The intervening Topic-01 integration and strict identity/restore code are retained unchanged; its receipt still requires exact-main full verification and canonical closure. Settings/UI/Context/Prompt source files were unchanged by that intervening work. Corrected prototype verification is recorded in REFERENCES; it is not extension persistence, authorization, migration, physical IME, screen-reader or live-provider evidence. The later BNS amendment has its own fresh baseline and evidence manifest.
 
 This adoption changes documents and privately delivered design artifacts only. No production JS/CSS/HTML, manifest, schema, tests, user data, installed extension, AI service, permissions, spending, deployment or release is changed. Current restrictions and existing unfinished work remain. Exact pre-adoption STATUS/MASTER blobs are retained as same-directory PRE_SETTINGS_V2 snapshots. The sole next task remains the one selected in STATUS; Settings stages are planned outcomes, not a parallel execution queue.
