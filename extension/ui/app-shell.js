@@ -1,7 +1,7 @@
 import {presentAppShell} from './app-shell-state.js';
 import {mountIcon,setIconLabel} from './icons.js';
 import {installReaderNavigation} from './reader-navigation.js';
-import {installSettingsPreferences,presentSettingsPreferences} from './settings-preferences.js';
+import {installSettingsPreferences,presentSettingsPreferences,captureSettingsView,restoreSettingsView} from './settings-preferences.js';
 import {installUniversalSearch} from './universal-search.js';
 import {installRevisit} from './revisit.js';
 
@@ -17,9 +17,12 @@ export class AppShellController {
  connect(options){
   if(this.routes)throw Error('APP_SHELL_ALREADY_CONNECTED');
   this.navigate=options.navigate;
-  this.routes=installReaderNavigation({...options,present:(route,settings)=>this.present(route,settings)});
+  this.routes=installReaderNavigation({...options,captureSettings:()=>this.captureSettingsRoute(),restoreSettings:route=>this.restoreSettingsRoute(route),present:(route,settings)=>this.present(route,settings)});
   return this.routes;
  }
+ rememberSettingsOrigin(route){this.settingsReturn=route;this.settingsReturnPrepared=true;}
+ captureSettingsRoute(){return {...captureSettingsView(),settingsReturn:this.settingsReturn};}
+ restoreSettingsRoute(route){if(route.settingsReturn)this.settingsReturn=route.settingsReturn;restoreSettingsView(route);}
  mount(){
   if(this.mounted)return;this.mounted=true;
   const main=document.querySelector('.workspace');main.id='paia-main';main.tabIndex=-1;
@@ -38,7 +41,7 @@ export class AppShellController {
   document.getElementById('thought-topic-header').append(document.getElementById('topic-search'));
   this.installArchivePresentation();
   installUniversalSearch();installRevisit();
-  installSettingsPreferences({back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,...(this.settingsReturn.contextCard?{contextCard:this.settingsReturn.contextCard}:{}),returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
+  installSettingsPreferences({routeChanged:options=>this.routes?.commit(options),back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,...(this.settingsReturn.contextCard?{contextCard:this.settingsReturn.contextCard}:{}),returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
   const optional=document.createElement('small');optional.className='ux-consent-optional';document.getElementById('consent-check').closest('.consent-checkbox').append(optional);
   document.addEventListener('paia:preferences-applied',()=>this.localize());
   this.localize();
@@ -99,7 +102,7 @@ export class AppShellController {
   presentSettingsPreferences({visible:this.route.view==='settings'});
  }
  present(route,options){
-  if(route.view==='settings'&&this.route.view!=='settings')this.settingsReturn=this.route;
+  if(route.view==='settings'&&this.route.view!=='settings'&&!this.settingsReturnPrepared)this.settingsReturn=this.route;this.settingsReturnPrepared=false;
   this.route=route;presentAppShell(document,route,options);
   const archiveRoot=['library','archive'].includes(route.view),heading=document.getElementById('workspace-heading'),header=document.querySelector('.workspace-header'),thoughtRoot=route.view==='thoughts'&&!route.topicId,headingHost=archiveRoot?document.getElementById('archive-root-heading'):thoughtRoot?document.getElementById('thought-root-heading'):header;
   if(heading.parentElement!==headingHost)headingHost.prepend(heading);

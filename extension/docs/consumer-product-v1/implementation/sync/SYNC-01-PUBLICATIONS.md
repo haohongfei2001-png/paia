@@ -192,3 +192,19 @@ and publication lifecycle. Retirement's synthetic no-op restore owner does not
 prove production Prompt purge/restore; full canonical owner journals, consumer
 preference intent/dual-storage atomicity, large-scale experiments, cloud OAuth
 and cross-device service behavior remain open.
+
+## Current Settings reconciliation candidate
+
+The preserved Sync preparation at beaf4a8 incorporates Settings0f750af with no
+text conflicts. Independent comparison proves all31 Sync-only and102 Settings-
+only changed files retain their owner blobs. The coordinator reviewed the two
+shared CI workflow merges: the complete three-file native Sync job, exact-head
+receipt checks and required full aggregate remain, together with Settings
+source/release presentation validation. No cloud wiring or permissions changed.
+
+The complete12-file Sync/Prompt/harness/CI owner selection passes156/156 locally,
+zero skipped/cancelled, in3.398s (sync-settings-merged-owning.log). This is merged
+worktree evidence before commit, not exact-head hosted native certification.
+The prior0.19 native results do not certify this0.20 combined candidate. Full
+production preference journaling, canonical restore and real account/device
+qualification remain open; constructor seams are not deployed synchronization.

@@ -52,14 +52,34 @@ test('UIS-01 quiets Archive root and keeps history reachable while retired expor
     await page.locator('#archive-source-scope').focus();await page.keyboard.press('ArrowDown');
     assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-source-scope','native source selection keeps its own arrow-key behavior');
     await page.locator('#archive-source-scope').selectOption('');
+    const actionKeys=()=>page.locator('#archive-root-overflow .archive-root-overflow-actions button').evaluateAll(nodes=>nodes.map(node=>node.id||node.dataset.view));
+    assert.deepEqual(await actionKeys(),['filter-recent-open','revisit','archive-root-history'],'SET2 contextual actions keep their explicit order and single owners');
+    const order=page.locator('#archive-order-mode');await eventually(async()=>!await order.isDisabled(),'source-order control is ready');
+    assert.equal(await order.inputValue(),'paia');await order.focus();await page.keyboard.press('ArrowUp');
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-order-mode','native order selection keeps its own arrow-key behavior');
+    assert.equal(await order.inputValue(),'paia','ArrowUp at the first native option does not enter the action list or change the setting');
+    const activeAction=()=>page.evaluate(()=>document.activeElement?.id||document.activeElement?.dataset.view);
     await trigger.focus();await page.keyboard.press('ArrowDown');
-    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-root-history','arrow navigation enters the first menu action');
+    assert.equal(await activeAction(),'filter-recent-open','arrow navigation enters the first contextual action');
+    for(const expected of ['revisit','archive-root-history','filter-recent-open']){await page.keyboard.press('ArrowDown');assert.equal(await activeAction(),expected,'ArrowDown visits each action and wraps');}
+    await page.keyboard.press('ArrowUp');assert.equal(await activeAction(),'archive-root-history','ArrowUp wraps to the retained history action');
+    await page.keyboard.press('Home');assert.equal(await activeAction(),'filter-recent-open','Home reaches the first action');
     await page.keyboard.press('End');
-    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-root-history','keyboard reaches the only retained action');
+    assert.equal(await activeAction(),'archive-root-history','End still reaches the retained history action');
     await page.keyboard.press('Escape');
     await eventually(async()=>!(await page.locator('#archive-root-overflow').evaluate(el=>el.open)),'Escape closes Archive action menu');
     assert.equal(await page.evaluate(()=>document.activeElement?.closest('details')?.id),'archive-root-overflow','Escape returns focus to Archive overflow control');
+    assert.equal(await trigger.evaluate(node=>document.activeElement===node),true,'Escape returns focus to the exact disclosure trigger');
 
+    await openArchiveMenu(page);await page.locator('#filter-recent-open').click();
+    await eventually(()=>page.locator('#filter-recent-dialog').evaluate(node=>node.open),'moved filter discovery opens its existing dialog');
+    await page.locator('#filter-recent-close').click();await eventually(()=>page.locator('#filter-recent-dialog').isHidden(),'filter discovery closes normally');
+    assert.equal(await page.locator('#filter-recent-open').evaluate(node=>document.activeElement===node),true,'native dialog close returns focus to its filter trigger');
+    await page.keyboard.press('Escape');await eventually(async()=>!await page.locator('#archive-root-overflow').evaluate(node=>node.open),'dismiss filter menu before reopening another action');
+    await openArchiveMenu(page);await page.locator('#archive-root-overflow [data-view="revisit"]').click();
+    await eventually(()=>page.locator('#revisit-panel').isVisible(),'moved Revisit entry reaches its existing owner');
+    assert.equal(await page.locator('#archive-root-overflow').evaluate(node=>node.open),false,'leaving Archive closes its contextual menu');
+    await page.locator('.sidebar [data-view="library"]').click();await eventually(()=>page.locator('#collection-panel').isVisible(),'return to Archive before retained history flow');
     await openArchiveMenu(page);
     await page.locator('#archive-root-history').click();
     await eventually(()=>page.locator('#history-dialog').evaluate(el=>el.open),'history completion remains reachable from overflow menu');

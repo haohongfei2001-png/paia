@@ -421,7 +421,7 @@ jobs:
           retention-days: 7
 
   targeted_browser:
-    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS') || contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC'))
+    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS') || contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC'))
     name: Candidate affected browser
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -437,6 +437,20 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - name: Use signed Ubuntu archive over HTTPS before targeted browser dependencies
+        run: |
+          # Run37685485859 exhausted its unchanged budget on the Azure HTTP mirror.
+          # Change only that mirror URI; preserve suites, packages and signing keys.
+          sudo python3 - <<'PYAPT'
+          from pathlib import Path
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          for path in paths:
+              if path.is_file():
+                  text = path.read_text()
+                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                  if updated != text:
+                      path.write_text(updated)
+          PYAPT
       - run: npx playwright install --with-deps chromium
       - name: Select full hosted Chrome for extension CDP
         run: |
@@ -444,8 +458,21 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
+      - name: Pin verified full Chrome for Settings native evidence
+        if: contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER')
+        run: |
+          set -euo pipefail
+          PAIA_DIAGNOSTIC_ZIP="$RUNNER_TEMP/settings-chrome-155.0.8059.39.zip"
+          PAIA_DIAGNOSTIC_CHROME="$RUNNER_TEMP/settings-chrome-155.0.8059.39"
+          curl --fail --location --proto '=https' --tlsv1.2 --max-time 120 --output "$PAIA_DIAGNOSTIC_ZIP" 'https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'
+          echo "55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea  $PAIA_DIAGNOSTIC_ZIP" | sha256sum --check --status
+          unzip -q "$PAIA_DIAGNOSTIC_ZIP" -d "$PAIA_DIAGNOSTIC_CHROME"
+          test "$("$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" --version | awk '{print $NF}')" = '155.0.8059.39'
+          echo "CHROME_PATH=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"
+          echo 'PAIA_DIAGNOSTIC_BROWSER_VERSION=155.0.8059.39' >> "$GITHUB_ENV"
+          echo "PAIA_DIAGNOSTIC_BROWSER_SHA256=$(sha256sum "$PAIA_DIAGNOSTIC_ZIP" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
       - name: Provide Chinese glyph coverage for paired Thought evidence
-        if: contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC')
+        if: contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC')
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
@@ -603,8 +630,31 @@ jobs:
             extension/work/ux-r4/
           if-no-files-found: error
 
+      - name: Settings native device diagnosis and independent About evidence
+        if: contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
+          mkdir -p work/qa-dvn-settings-touch-diagnostic
+          xvfb-run -a node --test --test-concurrency=1 --test-reporter=./scripts/test-report.mjs tests/settings-touch-diagnostic-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-settings-touch-diagnostic/diagnostic.log
+          cp work/test-summary.json work/qa-dvn-settings-touch-diagnostic/test-summary.json
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+          const report=JSON.parse(readFileSync('work/qa-dvn-settings-touch-diagnostic/test-summary.json'));assert.equal(report.total,2);assert.equal(report.pass,2);assert.equal(report.fail,0);assert.equal(report.skipped,0);
+          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings-touch-diagnostic/${variant}.json`));assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.match(receipt.scope,/^DIAGNOSTIC_ONLY/);assert.equal(receipt.trials.length,4);assert.equal(receipt.browser,'155.0.8059.39');assert.match(receipt.browserZipSha256,/^[a-f0-9]{64}$/);assert.equal(receipt.aboutResult,'PASS');assert.deepEqual(receipt.aboutRows.map(row=>row.language+':'+row.state).sort(),['en:available','en:installed','en:read-error','en:unknown','zh-CN:available','zh-CN:installed','zh-CN:read-error','zh-CN:unknown']);}
+          JS
+      - name: Retain Settings device diagnostic evidence
+        if: always() && contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')
+        uses: actions/upload-artifact@v4
+        with:
+          name: settings-touch-diagnostic
+          path: extension/work/qa-dvn-settings-touch-diagnostic/
+          if-no-files-found: error
+
       - name: D5 Settings reading column and complete Settings Data and Back journeys
-        if: contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER')
+        if: contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') && !contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
@@ -617,12 +667,12 @@ jobs:
           cp work/test-summary.json work/qa-dvn-settings/test-summary.json
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-          const report=JSON.parse(readFileSync('work/qa-dvn-settings/test-summary.json'));assert.equal(report.total,9);assert.equal(report.pass,9);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files).sort(),['uir-01-shell-chrome-e2e.test.mjs','uir-04-data-chrome-e2e.test.mjs','uir-04-settings-chrome-e2e.test.mjs','ux-r1-shell-chrome-e2e.test.mjs']);
+          const report=JSON.parse(readFileSync('work/qa-dvn-settings/test-summary.json'));assert.equal(report.total,11);assert.equal(report.pass,11);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files).sort(),['uir-01-shell-chrome-e2e.test.mjs','uir-04-data-chrome-e2e.test.mjs','uir-04-settings-chrome-e2e.test.mjs','ux-r1-shell-chrome-e2e.test.mjs']);
           const baseline=JSON.parse(readFileSync('work/qa-dvn-settings/baseline.json'));assert.equal(baseline.result,'PASS');assert.equal(baseline.head,process.env.PAIA_TESTED_HEAD);assert.equal(baseline.baselineHead,'96832cd7e07db7f9946648c0079d1c49e2dfd6cc');assert.equal(baseline.rows.length,6);
-          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings/${variant}.json`));assert.equal(receipt.result,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.rows.length,30);assert.equal(receipt.targets.length,3);assert.equal(receipt.interactions.length,4);}
+          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings/${variant}.json`));assert.equal(receipt.result,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.rows.length,288);assert.equal(receipt.targets.length,3);const coarse=receipt.targets.find(row=>row.mode==='coarse');assert.equal(coarse.browser,'155.0.8059.39');assert.equal(coarse.browserZipSha256,'55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea');assert.equal(receipt.interactions.length,6);const style=receipt.interactions[5];assert.equal(style.kind,'offline-ai-style');assert.deepEqual(style.rows.map(row=>row.kind),['explicit-default','native-radio-keyboard','modal-escape-back-focus','cross-window-focus','failed-write-preserves-confirmed','lost-ack-reconciles-canonical','future-version-inert','compact-200-percent']);assert.deepEqual(receipt.interactions.slice(0,4).map(row=>row.kind),['native-select-keyboard','compact-failure-visible','directory-keyboard-history-focus','capture-filter-preview-persistence']);const about=receipt.interactions[4];assert.equal(about.kind,'read-only-about-status');assert.equal(about.rows.length,8);assert.deepEqual(about.rows.map(row=>row.language+':'+row.state).sort(),['en:available','en:installed','en:read-error','en:unknown','zh-CN:available','zh-CN:installed','zh-CN:read-error','zh-CN:unknown']);}
           JS
       - name: Retain D5 Settings before and paired presentation evidence
-        if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER')
+        if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') && !contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')
         uses: actions/upload-artifact@v4
         with:
           name: dvn-settings-presentation-candidate
@@ -1532,7 +1582,7 @@ jobs:
           TOPIC_RETAINED_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') }}
           TOPIC_COMPAT: ${{ needs.topic_compatibility.result }}
           TOPIC_COMPAT_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') }}
-          TOPIC_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS') || contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC') }}
+          TOPIC_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS') || contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC') }}
           NATIVE_POPUP: ${{ needs.native_popup.result }}
           NATIVE_POPUP_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') }}
           CAPTURE_RECOVERY: ${{ needs.capture_recovery.result }}
