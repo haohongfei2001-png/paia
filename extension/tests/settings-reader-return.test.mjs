@@ -49,6 +49,7 @@ test('Settings Back preserves the existing Reader parent through repeated return
   }
   owner.route={view:'thoughts',topicId:'synthetic-topic',returnTo:'revisit'};owner.present({view:'settings'},{consented:true});back.click();
   assert.deepEqual(calls.at(-1),['thoughts',null,null,{topicId:'synthetic-topic',returnTo:'revisit',searchQuery:undefined,anchor:undefined}]);
+  owner.route={view:'memory',contextCard:'info',returnTo:null};owner.present({view:'settings'},{consented:true});back.click();assert.equal(calls.at(-1)[3].contextCard,'info','Settings returns to the same Context detail');
   owner.route={view:'library',documentId:null,returnTo:null};owner.present({view:'settings'},{consented:true});back.click();
   assert.deepEqual(calls.at(-1),['library',null,null,{topicId:undefined,returnTo:null,searchQuery:undefined,anchor:undefined}]);
  }finally{for(const [name,value]of previous)if(value)Object.defineProperty(globalThis,name,value);else delete globalThis[name];}

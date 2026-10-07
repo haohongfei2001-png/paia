@@ -173,6 +173,15 @@ def audit_js(path, text):
             scanned = scanned.replace("navigator.clipboard.writeText(result.text)", "EXPLICIT_MEMORY_CONTEXT_COPY(result.text)")
         if label == "keyboard listener" and path in (ROOT / "ui/library.js", ROOT / "ui/library-entry-editor.js"):
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_EDITOR_SHORTCUT(")
+        if label == "keyboard listener" and path == ROOT / "ui/context-cards.js":
+            # Local Context textbox/menu only; no document/content-script capture.
+            for reviewed in ("this.menu.addEventListener('keydown',", "this.field.addEventListener('keydown',"):
+                require(text.count(reviewed) == 1, "Context keyboard handlers stay scoped to one menu/textbox")
+                scanned = scanned.replace(reviewed, "SCOPED_CONTEXT_EDITOR_KEYS(")
+            require("this.composing||e.isComposing||e.keyCode===229" in text,
+                    "Context shortcuts must defer to native IME composition")
+            require("document.addEventListener('keydown'," not in text and "window.addEventListener('keydown'," not in text,
+                    "Context must not install global keyboard capture")
         if label == "keyboard listener" and path == ROOT / "ui/ai-presentation.js":
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_AI_EDITOR_SHORTCUT(")
         if label == "keyboard listener" and path == ROOT / "ui/search-experience.js":

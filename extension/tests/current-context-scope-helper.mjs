@@ -9,8 +9,8 @@ const rpc=async(page,type,fields={})=>{
  assert.equal(result.ok,true,JSON.stringify(result));return result.data;
 };
 
-// Current owner amendment: ordinary Context navigation is an unavailable UI.
-// These checks never create, replace or enable a Context controller.
+// The approved local Context launcher does not reactivate retired Context
+// execution. These checks never construct an old controller or release data.
 export async function assertNoContextSession(page){
  assert.equal(await page.evaluate(async()=>{const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));return getContextController();}),null,'retired Material Tray constructs no owner or material session');
 }
@@ -40,7 +40,7 @@ export async function observeContextEffects(page){
  await page.evaluate(()=>{
   if(globalThis.__currentContextEffects)return;
   const effects=globalThis.__currentContextEffects={commands:[],clipboard:0,unavailable:0},send=chrome.runtime.sendMessage.bind(chrome.runtime);
-  const mutations=new Set(['PAIA_CONTEXT_MANUAL','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_CONTEXT_BIND','PAIA_PASSPORT_CREATE','PAIA_PASSPORT_REVOKE','PAIA_MEMORY_AUTHORIZE','PAIA_MEMORY_EXCLUDE','PAIA_MEMORY_SETTINGS']);
+  const mutations=new Set(['PAIA_CONTEXT_MANUAL','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_CONTEXT_BIND','PAIA_PASSPORT_CREATE','PAIA_PASSPORT_REVOKE','PAIA_MEMORY_AUTHORIZE','PAIA_MEMORY_EXCLUDE','PAIA_MEMORY_SETTINGS','PAIA_CONTEXT_CARDS_CHANGE']);
   chrome.runtime.sendMessage=(...args)=>{if(mutations.has(args[0]?.type))effects.commands.push(args[0].type);return send(...args);};
   Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{effects.clipboard++;throw Error('Unavailable Context must not write the clipboard');}}});
   document.addEventListener('paia:context-unavailable',()=>effects.unavailable++);
@@ -71,7 +71,7 @@ export async function selectCurrentPrimary(page,view){
 }
 
 export async function assertContextUnavailable(page,{navigate=true,exercise=true}={}){
- assert.equal(await page.locator('.sidebar [data-view="memory"]').count(),0,'ordinary navigation has no additional AI launcher');
+ assert.equal(await page.locator('.sidebar [data-view="memory"]').count(),1,'approved local Context has exactly one ordinary launcher');
  assert.equal(await page.locator('#context-workspace-design-preview,#material-preview,#material-output-text,[data-output],#material-tray').count(),0,'the retired workspace constructs no controls or output');
  await assertNoContextSession(page);
  if(exercise){const storage=await page.evaluate(async()=>{const before=await chrome.storage.local.get(null);document.dispatchEvent(new CustomEvent('paia:context-open'));await new Promise(resolve=>setTimeout(resolve,0));return {before,after:await chrome.storage.local.get(null)};});assert.deepEqual(storage.after,storage.before,'old context events cannot mutate local data');}

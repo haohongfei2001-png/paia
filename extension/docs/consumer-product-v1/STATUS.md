@@ -67,6 +67,14 @@ CTX4-01 through CTX4-07 remain planned; implementation was not started by the pr
 
 The approved visual package, independent Context Item ownership, new-Topic-default-off, restrictive legacy denials, read/write separation and unresolved B-01/B-02/B-03/B-04-3B/B-05 gates remain unchanged. These adoptions do not authorize payment, external connection activation, cloud uploads, destructive migrations or release.
 
+### Explicitly requested independent CTX4-01 candidate
+
+The owner requested CPV1-CTX4-01 implementation before this Topic adoption and subsequently approved a draft PR for hosted validation. This active local Item/My Information work is preserved under the independent-work clause above; it does not replace **CPV1-TOPIC-01** as the sole next-development pointer or include CTX4-02/03/04 or Topic implementation in this PR. Separately authorized parallel implementation tracks remain separate.
+
+[PR #176](https://github.com/haohongfei2001-png/paia/pull/176) is **IN_PROGRESS / NOT_CERTIFIED**. Initial implementation base: `73f07b3dbe42fdb66f89500efa87513c2da96239`; documentation reconciliation base: `238d9f9889d0af4aa02b8467f46986a4db5e4d03`; current Archive runtime reconciliation base: `0093c81300b8dff80b0cf00c4f2cad6130840030`. New local independent Context Items, four-card home, My Information editing and access preferences are under verification. Retired outbound/provider/export paths remain disabled. No Topic body, identity or permission owner is changed.
+
+[CTX4-01 implementation/migration record](implementation/context-cards/CTX4-01.md) records exact owners, compatibility choices, negative evidence and passed source/release candidate journeys. The later Thought visual documentation at `29940a921e4797c463a5e7e8436bafe6125f9f1d` is preserved. On 2026-10-07 the owner explicitly chose the existing PAIA font size and prose width for Context, resolving only the approved-reference reading-role discrepancy; saved reading preferences remain authoritative. Current full/native certification remains open after the latest navigation repairs. PR publication is not main integration, completed runtime certification, installation or release.
+
 ## Consumer cleanup 0.12.1 and Archive — retained runtime evidence
 
 PR #173 merged as `3809646cfdc4465e9a887cb0a650abc9e96dbd6b`; PR #174 synchronized the prior status at `b575ccd9d812b93be9004b73c18eaca8cd4257fd`. Release 0.12.1 and its earlier certification/installation limitations remain historical recorded evidence, not new verification here.

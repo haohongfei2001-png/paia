@@ -9,6 +9,7 @@ export function appShellRoute(current,navigator=null){
   view:current.view,
   documentId:current.documentId||null,
   topicId:current.topicId||null,
+  ...(current.contextCard?{contextCard:current.contextCard}:{}),
   contextInputId:current.contextInputId||null,
   returnTo:current.returnTo||null,
   sourceKey:current.sourceScope||selected?.providerKey||null,

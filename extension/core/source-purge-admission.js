@@ -1,3 +1,4 @@
+import {CONTEXT_CARDS_ROW,validateContextChange,validContextCards} from './context-cards.js';
 import {isBaseNoneEnvelope,validAIPresentationCandidate} from './organizer/ai-candidate.js';
 import {validateRemovalEdit} from './archive-removal.js';
 import {ArchiveError} from './constants.js';
@@ -170,6 +171,17 @@ async function assessRecovery(t,all,{sourceIds,blocks,thoughts,metadataOwners,to
      if(b.provenance.some(p=>sourceIds.has(p.sourceRecordId)))gate();
     }
    }
+  }else if(row.kind==='context_item'){
+   // Approved manual Context is independent human work, not a Source-derived
+   // body. Admit only the exact bounded, source-free recovery contract; any
+   // malformed/linked/unknown row retains the existing B-02 gate.
+   if(Object.keys(row).some(k=>!['version','kind','ownerId','token','epoch','operation','sourceRecordIds','updatedAt','expiresAt'].includes(k))||row.sourceRecordIds.length||Object.keys(row.operation).some(k=>!['type','change'].includes(k))||row.operation.type!=='PAIA_CONTEXT_CARDS_CHANGE')gate();
+   const change=row.operation.change;
+   try{validateContextChange(change,{draft:true});}catch{gate();}
+   if(change.kind!=='put'||change.itemId!==row.ownerId||change.epoch!==row.epoch)gate();
+   const context=await t.get('meta',CONTEXT_CARDS_ROW);if(context&&!validContextCards(context))gate();
+   const item=context?.items.find(x=>x.id===row.ownerId);
+   if(!item&&change.expectedRevision!==0||item&&(item.origin!=='manual'||item.protected!==true))gate();
   }else if(row.kind==='library_entry'){
    if(row.operation.type!=='EDIT_LIBRARY_BATCH'||row.operation.edit?.entries?.length!==1||row.operation.edit.entries[0].id!==row.ownerId)gate();
    const e=await t.get('thoughts',row.ownerId);if(!e||thoughts.has(e.id)||!Array.isArray(e.sourceRecordIds)||e.sourceRecordIds.some(id=>sourceIds.has(id)))gate();

@@ -40,6 +40,24 @@ Use one shared component language: AppShell, PrimaryNav, SourceScope, ProjectTre
 
 Do not create page-specific variants of the same search/menu/toast/dialog without a product reason. Shared component names do not restore superseded Thought list/Years/candidate layouts. The approved Root's rectangular grid is allowed; its content is Topic name plus real Section overview, not metadata cards.
 
+### Shared typography and proportional scaling direction
+
+Owner decision, 2026-10-06: font enlargement should eventually scale PAIA's
+typographic roles together, preserving their relative hierarchy across surfaces.
+Context must reuse the shared typography and reading-preference owner rather
+than introduce an independent font system. Existing saved preferences remain
+authoritative.
+
+This is a product direction, not a completed capability: the current reading
+font-size preference scales prose, not all AppShell, popup and Prompt Reuse
+text. Cross-surface proportional scaling requires its own bounded implementation
+and accessibility verification. On 2026-10-07 the owner explicitly chose to retain
+PAIA's existing font size and prose width for Context detail. Existing shared
+reading preferences, including saved user choices and the standard 680px/17px
+role, therefore take precedence over the reference's 800px/16px detail metrics.
+This scoped reading-role exception changes no global defaults and waives no
+other visual or accessibility requirement.
+
 ## 3. Global state behavior
 
 ### Loading

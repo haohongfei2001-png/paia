@@ -4,7 +4,7 @@ const DEFAULT_TTL_MS=7*24*60*60*1000;
 const DEFAULT_MAX_BYTES=1250*1024;
 const DEFAULT_MAX_DRAFTS=32;
 const DEFAULT_MAX_TOTAL_BYTES=4*1024*1024;
-const KINDS=new Set(['document','library_entry','topic_metadata','section_metadata','ai_presentation']);
+const KINDS=new Set(['document','library_entry','topic_metadata','section_metadata','ai_presentation','context_item']);
 const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const validId=value=>typeof value==='string'&&value.length>0&&value.length<=512;
 const clone=value=>JSON.parse(JSON.stringify(value));
@@ -39,6 +39,11 @@ export class RecoveryDraftStore{
   const k=key(kind,ownerId),value=(await this.local.get(k))?.[k];
   if(!rowValid(value)||value.kind!==kind||value.ownerId!==ownerId||value.expiresAt<=this.clock()){if(value!==undefined)await this.local.remove(k);return null;}
   return clone(value);
+ }
+ async list(kind){
+  if(!KINDS.has(kind))return [];
+  const rows=await this.local.get(null);
+  return Object.values(rows||{}).filter(row=>rowValid(row)&&row.kind===kind&&row.expiresAt>this.clock()).slice(0,this.maxDrafts).map(row=>({kind:row.kind,ownerId:row.ownerId,epoch:row.epoch}));
  }
  async clear(kind,ownerId,expectedToken=null){
   if(!KINDS.has(kind)||!validId(ownerId))return false;const k=key(kind,ownerId);

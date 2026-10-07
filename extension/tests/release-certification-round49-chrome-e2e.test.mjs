@@ -19,7 +19,7 @@ test('Round 4.9 current release: Archive capture, Reader, retained Search and Re
 
   await eventually(async()=>await p.locator('#archive-reader-navigator-slot').isVisible(),'Archive starts with its narrow directory');
   assert.equal(await p.locator('#document-title').textContent(),'');assert.equal(await p.locator('#document-body').textContent(),'');
-  assert.equal(await p.locator('#primary-nav [data-view="memory"]').count(),0,'retired AI Context has no ordinary launcher');
+  assert.equal(await p.locator('#primary-nav [data-view="memory"]').count(),1,'approved local Context has one ordinary launcher');
   assert.equal(await p.locator('.sidebar-bottom [data-view="memory"]').count(),0,'For AI must not have a duplicate secondary navigation entry');
   assert.equal(await p.locator('#archive-root-recent,#archive-root-continue').count(),0,'root shortcuts remain retired');
 
