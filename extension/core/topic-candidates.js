@@ -18,6 +18,8 @@ const result=row=>({candidateId:row.id,revision:row.revision,evidenceCount:row.e
 // Existing Source cleanup deletes this table bySource; replace restore clears
 // it. Omitting jobId deliberately keeps these rows out of runnable work indexes.
 export class HiddenTopicCandidates {
+ #recordPlans=new WeakMap();
+ #consumePlans=new WeakMap();
  constructor(store,options={}){this.store=store;this.retrieval=new TopicIdentityRetrieval(store,options);}
  async keyToken(prepared){return keyedHash(prepared.authority.secret,['topic-candidate-key-v1']);}
  validate(row){
@@ -42,7 +44,8 @@ export class HiddenTopicCandidates {
   if(row.evidence.some(e=>!same(e,current.get(e.inputId))))return false;
   return true;
  }
- async record(request){
+ async record(request){const prepared=await this.prepareRecord(request);return this.store.foundationWrite(t=>this.recordPreparedInTransaction(t,prepared));}
+ async prepareRecord(request){
   keys(request,['scope','names','coverage','candidateId','expectedRevision','relatedTopicIds','boundaryKey'],['scope','coverage']);
   const {candidateId=null,expectedRevision=null,relatedTopicIds=[],boundaryKey=null}=request;
   if(boundaryKey!==null&&!tokenOK(boundaryKey))fail();
@@ -56,16 +59,20 @@ export class HiddenTopicCandidates {
   const snapshot=await this.store.run(()=>this.store.repository.transaction(false,t=>t.get(TABLE,id)));if(snapshot)this.validate(snapshot);
   const nameTokens=unique([...(snapshot?.nameTokens||[]),...prepared.nameTokens]),related=unique([...(snapshot?.relatedTopicIds||[]),...relatedTopicIds]);
   const proof=await this.retrieval.constraintProof(prepared,{nameTokens,relatedTopicIds:related});
-  return this.store.foundationWrite(async t=>{
-   await this.retrieval.guard.check(t,prepared);const old=await t.get(TABLE,id);
-   if(!same(old,snapshot))return {conflict:true};
-   if(old){if(old.revision!==expectedRevision)return {conflict:true};if(boundaryKey!==null&&old.boundaryToken!==boundaryToken||!this.current(old,prepared,keyToken))fail();}
-   else if(candidateId!==null||expectedRevision!==null)return {conflict:true};
-   if(!await this.retrieval.checkConstraintProof(t,prepared,proof))return {deferred:true,reason:'identity_constraint'};
-   const at=Date.parse(this.store.clock()),row={id,kind:'personal_topic_candidate',version:1,state:'candidate',stateKey:1,revision:(old?.revision??-1)+1,evidence:prepared.evidence.map(reference),inputIds:prepared.evidence.map(e=>e.inputId),sourceRecordIds:unique(prepared.evidence.flatMap(e=>e.sourceRecordIds)),nameTokens,relatedTopicIds:related,authority:publicTopicAuthority(prepared.authority),keyToken,boundaryToken:old?.boundaryToken??boundaryToken,createdAt:old?.createdAt??at,expiresAt:old?.expiresAt??at+TOPIC_CANDIDATE_POLICY.lifetimeMs};
-   this.validate(row);await t.put(TABLE,row);return result(row);
-  });
+  const handle=Object.freeze({});this.#recordPlans.set(handle,{prepared,keyToken,boundaryToken,id,snapshot,nameTokens,related,proof,candidateId,expectedRevision,boundaryKey});return handle;
  }
+ async recordPreparedInTransaction(t,handle){
+  const plan=this.#recordPlans.get(handle);if(!plan||t?.tx?.db!==this.store.repository.db||t.tx.mode!=='readwrite')fail();
+  const {prepared,keyToken,boundaryToken,id,snapshot,nameTokens,related,proof,candidateId,expectedRevision,boundaryKey}=plan;
+  await this.retrieval.guard.check(t,prepared);const old=await t.get(TABLE,id);
+  if(!same(old,snapshot))return {conflict:true};
+  if(old){if(old.revision!==expectedRevision)return {conflict:true};if(boundaryKey!==null&&old.boundaryToken!==boundaryToken||!this.current(old,prepared,keyToken))fail();}
+  else if(candidateId!==null||expectedRevision!==null)return {conflict:true};
+  if(!await this.retrieval.checkConstraintProof(t,prepared,proof))return {deferred:true,reason:'identity_constraint'};
+  const at=Date.parse(this.store.clock()),row={id,kind:'personal_topic_candidate',version:1,state:'candidate',stateKey:1,revision:(old?.revision??-1)+1,evidence:prepared.evidence.map(reference),inputIds:prepared.evidence.map(e=>e.inputId),sourceRecordIds:unique(prepared.evidence.flatMap(e=>e.sourceRecordIds)),nameTokens,relatedTopicIds:related,authority:publicTopicAuthority(prepared.authority),keyToken,boundaryToken:old?.boundaryToken??boundaryToken,createdAt:old?.createdAt??at,expiresAt:old?.expiresAt??at+TOPIC_CANDIDATE_POLICY.lifetimeMs};
+  this.validate(row);await t.put(TABLE,row);return result(row);
+ }
+
  async consolidate(request){
   keys(request,['scope','names','coverage','targetId','sourceId','expectedTargetRevision','expectedSourceRevision'],['scope','coverage','targetId','sourceId','expectedTargetRevision','expectedSourceRevision']);
   if(!candidateIdOK(request.targetId)||!candidateIdOK(request.sourceId)||request.targetId===request.sourceId||!revisionOK(request.expectedTargetRevision)||!revisionOK(request.expectedSourceRevision))fail();
@@ -95,6 +102,22 @@ export class HiddenTopicCandidates {
   if(!tokenOK(boundaryKey))fail();const prepared=await this.retrieval.guard.prepare(scope),boundaryToken=await keyedHash(prepared.authority.secret,['topic-candidate-boundary-v1',boundaryKey]);
   const id=TOPIC_CANDIDATE_PREFIX+await keyedHash(prepared.authority.secret,['topic-candidate-boundary-work-v1',boundaryToken]),row=await this.read(id);
   await this.store.run(()=>this.store.repository.transaction(false,t=>this.retrieval.guard.check(t,prepared)));return row;
+ }
+ // Admission consumes a fully accounted-for evidence bundle, never identity
+ // inferred from its opaque key. Prepared handles are instance/store-bound.
+ async prepareConsume({candidateId,expectedRevision,scope,boundaryKey=null}){
+  if(!candidateIdOK(candidateId)||!revisionOK(expectedRevision)||boundaryKey!==null&&!tokenOK(boundaryKey))fail();
+  const snapshot=await this.read(candidateId);if(!snapshot||snapshot.revision!==expectedRevision)fail();
+  const prepared=await this.retrieval.guard.prepare(scope),keyToken=await this.keyToken(prepared),boundaryToken=await keyedHash(prepared.authority.secret,['topic-candidate-boundary-v1',boundaryKey]);
+  if(!this.current(snapshot,prepared,keyToken)||snapshot.boundaryToken!==boundaryToken)fail();
+  const proof=await this.retrieval.constraintProof(prepared,{nameTokens:snapshot.nameTokens,relatedTopicIds:snapshot.relatedTopicIds});
+  if(proof.blocked)fail();const handle=Object.freeze({});this.#consumePlans.set(handle,{snapshot,prepared,keyToken,proof});return handle;
+ }
+ async consumePreparedInTransaction(t,handle){
+  const plan=this.#consumePlans.get(handle);if(!plan||t?.tx?.db!==this.store.repository.db||t.tx.mode!=='readwrite')fail();
+  const {snapshot,prepared,keyToken,proof}=plan;await this.retrieval.guard.check(t,prepared);
+  const row=await t.get(TABLE,snapshot.id);if(!same(row,snapshot)||!this.current(row,prepared,keyToken)||!await this.retrieval.checkConstraintProof(t,prepared,proof))fail();
+  await t.delete(TABLE,row.id);return {consumed:true};
  }
  async discard({candidateId,expectedRevision}){
   if(!candidateIdOK(candidateId)||!revisionOK(expectedRevision))fail();

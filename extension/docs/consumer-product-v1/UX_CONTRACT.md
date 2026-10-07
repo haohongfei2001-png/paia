@@ -4,6 +4,8 @@ This is an implementation contract derived from PRODUCT_INTENT_CONTRACT.md. It m
 
 There is no mandatory standalone prototype phase. The production implementation is iterated until it satisfies this contract.
 
+Thought identity/formation follows [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md). The subsequently adopted [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, supplies the sole current Thought presentation contract; section 5 below routes to it. Implementation and acceptance are TOPIC-05.1 through 05.8 in [the Topic plan](TOPIC_ARCHITECTURE_PLAN.md), not another UI design queue. Common save/IME/accessibility and unrelated spaces retain their own contracts.
+
 The [current consumer scope](../../PRODUCT.md#current-consumer-scope) supersedes retired surfaces in older designs. Cancelled execution must refuse old commands as well as remove its entries; hidden internal safety/maintenance capabilities remain where specified. Neither change authorizes clearing old data or credentials.
 
 ## 1. Global product shell
@@ -16,7 +18,7 @@ Desktop primary navigation is fixed:
 
 Settings is low-frequency. Capture health is system status, not a dashboard destination. Revisit is retrieval/re-entry, not a new truth space.
 
-Wide desktop uses a stable primary rail; Archive/Thought may add a contextual navigator; the Reader/workspace owns the remaining area. Compact desktop may compress navigation but must preserve object identity and back behavior. Tablet uses a sheet/panel navigator. Phone uses stacked navigation instead of squeezing desktop columns.
+Wide desktop uses a stable primary rail; Archive/Thought may add a contextual navigator; the Reader/workspace owns the remaining area. Compact desktop may compress navigation but must preserve object identity and back behavior. Tablet uses a sheet/panel navigator. Phone uses stacked navigation instead of squeezing desktop columns. The adopted Thought reader does not add a permanent Topic/Section tree; its Section links are in-page anchors.
 
 Archive opens directly into primary navigation, a narrow project/conversation navigator and a blank Reader. No conversation is selected by default; title, time, ordering and body stay empty. Returning to its root clears the Reader and preserves navigator state. Explicit reading-route refreshes, unsaved edits and reading anchors must not be cleared accidentally. Other root pages do not reserve unnecessary empty navigator columns. AI Context remains a product direction with execution disabled.
 
@@ -34,7 +36,7 @@ Archive opens directly into primary navigation, a narrow project/conversation na
 
 Use one shared component language: AppShell, PrimaryNav, SourceScope, ProjectTree, ConversationRow, TopicTile, ReaderHeader, ProseBlock, TimeStamp, ScopeSearch, SelectionToolbar, OverflowMenu, InspectorPanel, InlineStatus, ProgressRow, ReviewDiff, PermissionSummary, RecoverySheet.
 
-Do not create page-specific variants of the same search/menu/toast/dialog without a product reason.
+Do not create page-specific variants of the same search/menu/toast/dialog without a product reason. Shared component names do not restore superseded Thought list/Years/candidate layouts. The approved Root's rectangular grid is allowed; its content is Topic name plus real Section overview, not metadata cards.
 
 ## 3. Global state behavior
 
@@ -196,73 +198,55 @@ Interrupted import is resumable/idempotent. Re-import does not duplicate or over
 
 Do not require understanding ZIP/JSON internals.
 
-## 5. Thought Library surfaces
+## 5. Thought Library surfaces — TL-PT1-UI-1.0
 
-### T1 — Thought root
+The complete current contract is [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md). The former compact-list/recency cue, Content/Years and candidate-oriented interpretations are superseded for Thought only; their data, provenance, version and recovery guarantees are retained. Approval adopts direction, not runtime/production completion.
 
-Purpose: rapidly scan long-term topics.
+### T1 — Stable Personal Topic Root
 
-Use compact topic blocks/list with real information density, not large decorative cards. No Recent Reading section and no root-wide AI Organize control.
+Purpose: identify a Personal Topic and its existing internal aspects, then return to its content.
 
-Each Topic can show title, a short real-content cue and quiet recency. Source scope may become All / one source without duplicating the Topic system.
+Use stable independent rectangular Topic blocks in the shared PAIA shell. Normal block content is Topic name plus bounded real named Section overview in durable order. No named Section is a normal title-only state, not incomplete organization; never fill it with a generated summary or Default/Uncategorized label. No default expression preview, recency/count/footer, images, shared table rules, Recent area, taxonomy bar or root-wide AI control.
 
-### T2 — Topic original view
+Plain Section anchors open the parent Topic at the Section, never a separate folder route. Keep native link/focus behavior and text selection without accidental block navigation. Ordinary content/name/Section/search updates do not globally repack Root. New Topics use a suitable hole or append; a removed slot has no border or placeholder. Responsive columns follow usable width, not Topic count. 30/50/100/144 are real scale scenarios, not a catalogue or cap.
 
-Header:
-- back;
-- Topic name;
-- source scope if relevant;
-- Original / AI Organize switch;
-- one Topic search;
-- overflow;
-- one compact Add Thought action.
+One Root search covers eligible Topic/Section names and Entry bodies beyond the current DOM. In-place matching can temporarily expose a matching Section or exact Entry excerpt; it does not create a second result directory. Explicit result stepping opens real text/Section offsets. Clear/close and Back/Forward restore prior overview, identity-relative viewport position and focus. Coverage failures are not no-results. See V2/V3 and TOPIC-05.2/05.3.
 
-The body uses the same reading system as Archive. Original/user expression is default. Evidence/source detail is available on demand, not permanently attached to every paragraph.
+### T2 — Continuous Topic reader
 
-### T3 — Add Thought
+Header: return, Topic title, one Topic search, compact Add Thought, Topic-local AI Organize and necessary overflow. Preserve current shared controls and reading preferences; no Content/Years tabs, timeline, permanent tree, statistics or default AI summary sidebar.
 
-A user may write a new Thought directly:
-- body;
-- optional Topic;
-- real current creation time.
+The body is one continuous reading surface over durable Sections and actual Entries. Untitled default Section content has no invented heading. Named Sections are natural unboxed headings; preserve manual empty Sections and order. Entry paragraphs have normal reading rhythm, quiet attributable time and source/version on demand, not bubbles, cards or metadata rows. Unknown time is not replaced with capture time. Bounded loading reaches the real end, without next-part dead ends or unmounting active editing/IME/selection. New content does not yank scroll. Search reaches unmounted content and restores the reader anchor.
 
-Dedicated response/relation creation and related-Thought viewing are removed. Existing relation data remains compatible; body editing and history remain available.
+### T3 — Section actions and Add Thought
 
-Failure preserves text. Background classification must not block safe save.
+A user may write directly into an explicitly active Section; without reliable Section context, use the stable default Section. Root-level writing can save before classification and remain lawfully unassigned. Use real current creation time/first-party identity, no chat send behavior or database form. Failed saves preserve text; durable acknowledgement precedes saved state.
 
-### T4 — AI Organize
+Section inline rename/create/reorder and Entry moves are contextual, not a permanent manager. Preserve stable IDs, protected name/order and membership edges, with non-drag keyboard/touch alternatives and safe undo. A span selection cannot silently become a whole-Entry move. Default destination can be described in an action without gaining a durable name. Promotion uses PT-06 and the ordinary explicit confirmation language, preserving actual moved scope, body/provenance and old anchor mapping; new Topic access remains closed.
 
-Existing valid output switches instantly. New generation/update is unavailable until real payment, server membership validation and a unified AI backend exist. The only ordinary AI entries are Topic AI Organize and Settings Membership / AI service, with an honest not-launched state.
+Dedicated response/relation creation and related-Thought viewing remain removed. Existing relation data remains compatible; lawful body editing and history remain available. No historical data migration or Source overwrite is implied by these UI actions.
 
-Existing candidates remain readable; approval management and Adopt/Keep controls are hidden. Preserve candidate staging, source/output version checks and invalid/stale-result rejection. Never automatically replace protected human output.
+### T4 — AI reading over the same durable Sections
 
-AI output is editable and protected after human editing.
+Existing valid saved output switches locally. Durable Sections exist with AI Organize OFF and remain the same identities with it ON. Organize may alter derivative reading order, reversibly fold exact repeats and add small ephemeral headings, but cannot turn those headings into Section entities/Root overview or rewrite protected human structure. Durable formation belongs to the separate PT Organizer. Entry edits target their canonical body owner; heading edits target their own derivative field.
 
-Transition may express structure change, but never obscure long text for decoration.
+New generation/update is unavailable until real payment, server membership validation, authorized processing scope and unified AI backend exist. Keep an honest not-launched state and no silent paid retry. Existing saved AI work and legacy candidates remain readable/version-protected; candidate approval and Adopt/Keep management do not return. Hidden Topic-formation candidates remain entirely invisible.
 
-### T5 — Longitudinal/evolution view
+Revalidate source, scope, content/Section revisions and human protection before activating output. Stale/partial/failed results preserve local text, show precise local state and do not invent completion. New/unprocessed material stays visible. Do not reflow composing/selected/dirty text. Transition explains structure with stable header/reading anchor and reduced motion, not decorative blur. Turning OFF returns around the same Entry. V6 and TOPIC-05.7 own detail; live semantic quality is separate from mechanical tests.
 
-Navigate real historical expression by reliable time. "Early / later / recent" are navigation labels, not psychological conclusions.
+### T5 — Historical expression, not a separate timeline surface
 
-Unknown-time material remains visible in an explicit unknown section.
+Reliable time remains part of each expression and explicit scoped retrieval. Early/later/recent can describe retrieved evidence, never psychological conclusions. Unknown-time entries remain reachable with an honest time label, not an invented chronological placement or mandatory extra named Section. Preserve source text and distinguish original expression date from current edit date. This capability does not restore Content/Years, a default timeline, or another Thought reading destination.
 
-Comparisons preserve source text and distinguish original expression date from current edit date.
+### T6 — Ownership, removal and propagation
 
-### T6 — Relationships and propagation
+Use normal reader/editing language. Binding/Placement/Entry internals are not default UI. Each Entry has one canonical body owner; Section membership is metadata and cannot duplicate the body to make a new view. Moving/reordering protects human organization intent and does not authorize Source edits or external access.
 
-Expose user concepts:
-- follows this Input;
-- independently edited;
-- used in these Topics;
-- allowed/not allowed for AI.
-
-Do not expose Binding/Placement/Entry internals as default UI.
-
-Removing from Topic changes a relationship, not Source existence. Reverse edit is advanced and OFF by default.
-
-B-01 determines final old-Thought edit semantics. B-02 determines high-risk purge of mixed human derivative material.
+Removing from a Topic changes a relationship, deleting shared visible content affects its actual other placements, and permanent Source purge is a separate high-risk operation. Show the relevant scope with existing confirmation/version/recovery controls. Existing body-binding safeguards remain: reverse edit is advanced and OFF by default; B-01 determines final old-Thought edit semantics and B-02 governs mixed-human-derivative purge. The visual adoption does not resolve those gates or introduce a new reverse-edit switch/second body store.
 
 ## 6. AI Context surfaces
+
+Current authority is [AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md) and its approved references, as already specified by AUTHORITY.md. The retained C1-C9 descriptions below are historical/future compatibility constraints where consistent, not a competing Builder/material workflow or implementation queue. This Thought adoption does not redesign Context or enable its runtime.
 
 Execution is disabled. C1–C6 retain future content/privacy constraints only, not current implementation tasks. Do not revive the old Context runtime. Dedicated Profile management, Material Tray and C7 output paths are cancelled; normal temporary selection and reference validation remain where existing reading/editing needs them.
 

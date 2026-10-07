@@ -1,23 +1,25 @@
 # Master Development Plan — PAIA Consumer Product v1
 
-## Current routing — 2026-10-07 Personal Topic adoption
+## Current routing — 2026-10-07 Thought final visual adoption
 
-[STATUS.md](STATUS.md) is the sole execution queue and next-task authority. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) freezes the owner-approved Personal Topic product semantics. [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) owns the gap register, ordered implementation slices, migration work and acceptance; [adoption](TOPIC_ARCHITECTURE_ADOPTION.md) lists scoped supersession. This is documentation, not implementation or new service/paid/deployment authority.
+[STATUS.md](STATUS.md) is the sole execution queue and next-task authority. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) freezes the owner-approved Personal Topic product semantics. [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, adopts the reviewed final Thought presentation; [its reference manifest](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) records private assets and evidence limitations. [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) owns the gap register, ordered implementation slices, migration work and acceptance; [architecture adoption](TOPIC_ARCHITECTURE_ADOPTION.md) and visual authority V8 list scoped supersession. This is documentation, not implementation or new service/paid/deployment authority.
 
-The current order starts with the identity and human-intent foundation designated in STATUS. Do not start independent competing Topic, Original-organizer, AI-library, taxonomy-directory or graph workstreams. Reuse current Topic/Section/Placement/body/provenance/CAS assets. The contract changes organization semantics and authority, not the entire Thought Library.
+The current order starts with the identity and human-intent foundation designated in STATUS. Do not start independent competing Topic, Original-organizer, AI-library, taxonomy-directory or graph workstreams. Reuse current Topic/Section/Placement/body/provenance/CAS assets. The final UI consumes those same identities: Root is Topic name plus stable named Section overview; reading is continuous Section/Entry prose; AI reading headings never automatically become durable Sections. Do not reopen product design during implementation.
 
 ## Personal Topic delivery outcomes
 
 | Slice | Outcome | Dependency |
 |---|---|---|
-| CPV1-TOPIC-01 | Identity + durable human field/edge/keep-separate protection foundation and local contract tests | Fresh main; existing domain services; conservative compatibility mapping |
+| CPV1-TOPIC-01 | Identity + durable human field/edge/keep-separate protection foundation and local contract tests; preserve Section/default identity and placement authority | Fresh main; existing domain services; conservative compatibility mapping |
 | CPV1-TOPIC-02 | Identity retrieval across active/dormant/renamed/merged and removed fences; hidden candidates/unassigned | 01 |
 | CPV1-TOPIC-03 | Evidence-based identity-first formation, bounded incremental Section/multi-placement and trusted commit | 01/02; live model/service activation remains separately gated |
 | CPV1-TOPIC-04 | Confirmed Section promotion and protected structural reconciliation | 01/03 |
-| CPV1-TOPIC-05 | One-library reader/UI adaptation, retrieval and Context Personal Topic interface | Relevant 01-04; existing approved visuals, no redesign |
-| CPV1-TOPIC-06 | Migration, reliability, resource and real downstream acceptance closure | Applicable earlier evidence and separately authorized real dependencies |
+| CPV1-TOPIC-05 | Final Thought Root/reader/Section/search/writing/AI-reading implementation and Context Personal Topic interface | Relevant 01-04; adopted visual authority; section 7 of the Topic plan |
+| CPV1-TOPIC-06 | Migration, reliability, resource and real downstream/production visual acceptance closure | Applicable earlier evidence and separately authorized real dependencies |
 
-All six are PLANNED at documentation adoption. Stage details are specified once in TOPIC_ARCHITECTURE_PLAN.md. No historical PASS closes them, and no stage number requires a separate PR/receipt cycle. End each coherent authorized batch with exact source and truthful evidence, not a new architecture discussion.
+All six remain PLANNED in this documentation integration. Stage details are specified once in TOPIC_ARCHITECTURE_PLAN.md. No historical PASS closes them, and no stage number requires a separate PR/receipt cycle. End each coherent authorized batch with exact source and truthful evidence, not a new architecture discussion.
+
+TOPIC-05's internal deliverables are **05.1 unified read model; 05.2 stable Root; 05.3 in-place Root search; 05.4 continuous Topic reader; 05.5 contextual Section operations/promotion entry; 05.6 Section-aware Add Thought; 05.7 AI reading over durable Sections; 05.8 responsive/accessibility/visual convergence**. Dependencies and acceptance live only in the Topic plan, not a parallel UI queue. Missing live processing blocks its affected path, not unrelated local work after its prerequisites. Visual adoption cannot bypass TOPIC-01 or claim production completion.
 
 ## Retained AI Context Cards v2 plan
 
@@ -33,13 +35,13 @@ All six are PLANNED at documentation adoption. Stage details are specified once 
 | CPV1-CTX4-06 | One real AI client and pause/revoke loop | CTX4-04; verified client and safe transport |
 | CPV1-CTX4-07 | Migration/retirement, 22-state visual convergence, real-use acceptance | Applicable CTX4-02-06 evidence |
 
-This adoption changes only affected Topic semantics/dependencies and the current next-task routing. It does not redesign or cancel Context. CTX4-05 and 06 retain their independent external prerequisites; lack of one does not justify parking unrelated local work or weakening the other's gates. Coordinate one writer at shared data boundaries.
+The architecture adoption changes only affected Topic semantics/dependencies and the current next-task routing; final visual adoption details the same Thought plan. Neither redesigns or cancels Context. CTX4-05 and 06 retain their independent external prerequisites; lack of one does not justify parking unrelated local work or weakening the other's gates. Coordinate one writer at shared data boundaries.
 
 ## Preserved history and nonconflicting detailed plans
 
-The immediately preceding master plan is retained byte-for-byte as [MASTER_PLAN_PRE_TOPIC_2026-10-07.md](MASTER_PLAN_PRE_TOPIC_2026-10-07.md), prior blob `ff4a21631c61f43fc8ccc2157c2996691a3a1942`. Its earlier full detail lives in [MASTER_PLAN_PRE_CTX4_2026-10-07.md](MASTER_PLAN_PRE_CTX4_2026-10-07.md), prior blob `bf4b786bb0047fb1c13f56fb3dbaac8c70d72b1b`.
+Immediately preceding this visual integration, the master plan is retained byte-for-byte as [MASTER_PLAN_PRE_THOUGHT_VISUAL_2026-10-07.md](MASTER_PLAN_PRE_THOUGHT_VISUAL_2026-10-07.md), prior blob `bb8d48d42023c4c3f175b70389501bc7c013a9ed`. The earlier [MASTER_PLAN_PRE_TOPIC_2026-10-07.md](MASTER_PLAN_PRE_TOPIC_2026-10-07.md), prior blob `ff4a21631c61f43fc8ccc2157c2996691a3a1942`, and its full detail in [MASTER_PLAN_PRE_CTX4_2026-10-07.md](MASTER_PLAN_PRE_CTX4_2026-10-07.md), prior blob `bf4b786bb0047fb1c13f56fb3dbaac8c70d72b1b`, remain unchanged.
 
-These are retained outcome/compatibility/evidence references subject to current AUTHORITY and STATUS, not independent queues. Conflicting old Topic/AI organization/recursive hierarchy and taxonomy assumptions are superseded by PT-1.0; conflicting old Context VS-06/CPV1-06/D4/D6/D7 outcomes remain superseded by CTX4. All other source, Archive, capture, Prompt Reuse, recovery and security outcomes remain unless a later explicit decision changes them. Neither planning adoption reclassifies historical failures or certifies new behavior.
+These are retained outcome/compatibility/evidence references subject to current AUTHORITY and STATUS, not independent queues. Conflicting old Topic/AI organization/recursive hierarchy and taxonomy assumptions are superseded by PT-1.0; conflicting compact-list/preview/B2/Years/candidate UI is superseded by TL-PT1-UI-1.0. Conflicting old Context VS-06/CPV1-06/D4/D6/D7 outcomes remain superseded by CTX4. All other source, Archive, capture, Prompt Reuse, recovery and security outcomes remain unless a later explicit decision changes them. No planning adoption reclassifies historical failures or certifies new behavior.
 
 ## Current consumer scope and real service gates
 
@@ -49,7 +51,7 @@ Content/statistics/Context exports, backup generation and dedicated sharing rema
 
 ### Paid AI service — not implemented
 
-The current baseline has no real paid service. Real payment callbacks, server identity/entitlement, quota, authenticated gateway, protected credentials, bounded authorized processing and revision-checked output must exist before activation. Market/payment regions, price/currency, quotas, provider/data region and cost ceilings are unresolved. Neither automatic Topic formation direction nor CTX4 approval grants hidden recurring billing, model calls or paid retries. Do not simulate membership/purchase success.
+The current baseline has no real paid service. Real payment callbacks, server identity/entitlement, quota, authenticated gateway, protected credentials, bounded authorized processing and revision-checked output must exist before activation. Market/payment regions, price/currency, quotas, provider/data region and cost ceilings are unresolved. Neither automatic Topic formation direction, final Thought visual adoption nor CTX4 approval grants hidden recurring billing, model calls or paid retries. Do not simulate membership/purchase success.
 
 ### Optional Semantic Lab admission
 
