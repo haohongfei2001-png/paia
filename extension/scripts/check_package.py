@@ -182,6 +182,11 @@ def audit_js(path, text):
                     "Context shortcuts must defer to native IME composition")
             require("document.addEventListener('keydown'," not in text and "window.addEventListener('keydown'," not in text,
                     "Context must not install global keyboard capture")
+        if label == "keyboard listener" and path == ROOT / "ui/settings-details.js":
+            # Exact local modal Tab loop: no text collection or global listener.
+            exact = " dialog.addEventListener('keydown',event=>{\n  if(event.key!=='Tab'||event.altKey||event.ctrlKey||event.metaKey)return;\n  const visible=[...dialog.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(node=>!node.disabled&&node.tabIndex>=0&&node.getClientRects().length);\n  const stops=visible.filter(node=>node.type!=='radio'||!node.name||node===(visible.find(other=>other.type==='radio'&&other.name===node.name&&other.checked)||visible.find(other=>other.type==='radio'&&other.name===node.name)));\n  const first=stops[0],last=stops.at(-1),active=document.activeElement;\n  if(!first)return;\n  if(event.shiftKey?(active===first||!dialog.contains(active)):(active===last||!dialog.contains(active))){event.preventDefault();(event.shiftKey?last:first).focus();}\n });"
+            require(text.count(exact) == 1, "settings details retains reviewed modal Tab-only focus loop")
+            scanned = scanned.replace(exact, "SCOPED_SETTINGS_DIALOG_TAB_LOOP")
         if label == "keyboard listener" and path == ROOT / "ui/context-topics.js":
             reviewed = "this.field.addEventListener('keydown',"
             exact = "this.field.addEventListener('keydown',event=>this.move(event));"

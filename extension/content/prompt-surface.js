@@ -2,14 +2,28 @@
 (() => {
  'use strict';
  globalThis.PAIAPromptSurface?.dispose();
- let host,root,orb,frame,nonce,url=location.href,position=null,open=false,enabled=false,initialized=false,disposed=false,scheduled=false,geometry=null,drag=null,suppress=false,availability='surface_unavailable';
+ let host,root,orb,frame,nonce,url=location.href,position=null,positionGeneration=0,open=false,enabled=false,initialized=false,disposed=false,scheduled=false,geometry=null,drag=null,suppress=false,availability='surface_unavailable';
  const adapter=new globalThis.PAIAChatGPTComposerAdapter(),listeners=[],appearance=matchMedia('(prefers-color-scheme:dark)');
  const dark=()=>{const el=document.documentElement,scheme=getComputedStyle(el).colorScheme;return el.classList.contains('dark')||(!el.classList.contains('light')&&scheme!=='light'&&(scheme==='dark'||appearance.matches));};
  const listen=(node,event,fn,options)=>{node.addEventListener(event,fn,options);listeners.push(()=>node.removeEventListener(event,fn,options));};
- const rpc=async state=>{const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_HOST',...(state?{state}:{})});if(!r?.ok)throw Error('unavailable');return r.data;};
+ const rpc=async state=>{const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_HOST',...(state?{state}:{})});if(!r?.ok){const error=Error('unavailable');error.code=r?.error;throw error;}return r.data;};
  // The private card owns editing/busy/IME guards. A host gesture only requests closure.
  const requestClose=()=>{if(frame)void chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce}).then(r=>{if(!r?.ok)throw Error('unavailable');}).catch(()=>{orb.title='无法关闭，请稍后重试';});};
- const save=()=>void rpc({version:1,open,position}).catch(()=>{orb.title='位置未保存；下次打开可重试';});
+ const reconcilePosition=saved=>{
+  const next=saved.positionGeneration??0;if(disposed||!Number.isSafeInteger(next)||next<=positionGeneration)return;
+  positionGeneration=next;position=saved.position;
+  // Reset cancels the old gesture, never the private frame, its edit or its focus.
+  if(drag){if(orb?.hasPointerCapture?.(drag.pointerId))orb.releasePointerCapture(drag.pointerId);drag=null;suppress=true;}
+  schedule();
+ };
+ const save=()=>{const sentGeneration=positionGeneration;
+  void rpc({version:1,open,position,positionGeneration}).then(reconcilePosition).catch(async error=>{
+   if(disposed||sentGeneration!==positionGeneration)return;
+   // Never replay a refused stale write. A single read recovers a missed reset.
+   if(error.code==='STALE_BASE'){try{reconcilePosition(await rpc());return;}catch{}}
+   if(!disposed&&sentGeneration===positionGeneration&&orb)orb.title='位置未保存；下次打开可重试';
+  });
+ };
  function close(focus=false){open=false;frame?.remove();frame=null;nonce=null;orb?.setAttribute('aria-expanded','false');layout();if(focus)orb?.focus();save();}
  function expand(){
   if(!enabled||frame)return;
@@ -52,16 +66,17 @@ iframe{border:1px solid #ffffff75;border-radius:20px;background:linear-gradient(
 @media(prefers-reduced-motion:reduce){iframe{animation:none}}`;
   orb=document.createElement('button');orb.type='button';orb.setAttribute('aria-label','常用 Prompt；拖动或 Alt 加方向键移动');orb.setAttribute('aria-expanded','false');orb.title='常用 Prompt';const mark=document.createElement('span');mark.className='orb';mark.setAttribute('aria-hidden','true');orb.append(mark);root.append(style,orb);document.documentElement.append(host);
   listen(orb,'click',e=>{if(!e.isTrusted)return;if(suppress&&e.detail!==0){suppress=false;return;}suppress=false;if(frame)requestClose();else expand();});
-  listen(orb,'pointerdown',e=>{if(!e.isTrusted||e.button!==0)return;suppress=false;drag={x:e.clientX,y:e.clientY,start:host.getBoundingClientRect(),moved:false};orb.setPointerCapture(e.pointerId);});
+  listen(orb,'pointerdown',e=>{if(!e.isTrusted||e.button!==0)return;suppress=false;drag={x:e.clientX,y:e.clientY,start:host.getBoundingClientRect(),moved:false,pointerId:e.pointerId};orb.setPointerCapture(e.pointerId);});
   listen(orb,'pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)<5&&!drag.moved)return;drag.moved=true;suppress=true;position={x:Math.max(0,Math.min(1,(drag.start.x+dx)/(innerWidth-44))),y:Math.max(0,Math.min(1,(drag.start.y+dy)/(innerHeight-44)))};schedule();});
   const retainAnchor=()=>{layout();const r=host.getBoundingClientRect();position={x:Math.max(0,Math.min(1,r.x/(innerWidth-44))),y:Math.max(0,Math.min(1,r.y/(innerHeight-44)))};};
   const end=()=>{if(drag?.moved){retainAnchor();save();}drag=null;};listen(orb,'pointerup',end);listen(orb,'pointercancel',()=>{end();suppress=false;});
   listen(orb,'keydown',e=>{if(e.altKey&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const r=host.getBoundingClientRect();position={x:Math.max(0,Math.min(1,(r.x+(e.key==='ArrowRight'?12:e.key==='ArrowLeft'?-12:0))/(innerWidth-44))),y:Math.max(0,Math.min(1,(r.y+(e.key==='ArrowDown'?12:e.key==='ArrowUp'?-12:0))/(innerHeight-44)))};retainAnchor();save();}else if(e.key==='Escape'&&open&&!e.isComposing&&e.keyCode!==229){e.preventDefault();requestClose();}});
   schedule();
  }
- async function activate(){try{const saved=await rpc();if(disposed)return;enabled=true;if(!initialized){position=saved.position;open=saved.open;initialized=true;}mount();schedule();}catch{enabled=false;if(host)host.hidden=true;frame?.remove();frame=null;}}
+ async function activate(){try{const saved=await rpc();if(disposed)return;enabled=true;if(!initialized){if((saved.positionGeneration??0)>=positionGeneration)position=saved.position;open=saved.open;initialized=true;}reconcilePosition(saved);mount();schedule();}catch{enabled=false;if(host)host.hidden=true;frame?.remove();frame=null;}}
  const messages=(r,s,reply)=>{
   if(s.id!==chrome.runtime.id||s.tab)return;
+  if(r.type==='PAIA_PROMPT_SURFACE_POSITION_RESET'&&Number.isSafeInteger(r.positionGeneration)&&r.positionGeneration>=0)reconcilePosition({position:null,positionGeneration:r.positionGeneration});
   if(r.type==='PAIA_PROMPT_SURFACE_DIAGNOSTIC_PROBE'&&r.url===location.href){layout();reply({status:availability});}
   if(r.type==='PAIA_PROMPT_SURFACE_PROBE'){reply({open:!!frame?.isConnected&&open&&!host.hidden,nonce,url:location.href,dark:dark()});}
   if(r.type==='PAIA_PROMPT_SURFACE_CLOSE'&&r.nonce===nonce){close(true);reply({closed:true});}

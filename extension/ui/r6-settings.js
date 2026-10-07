@@ -5,6 +5,10 @@ const $=id=>document.getElementById(id);
 let installed=false,storageNode=null,privacyStatus=null,previewToggle=null;
 let privacyRead=0,privacyBusy=false,privacyLoaded=false,previewValue=true,privacyRefresh=false,privacyReadFailed=false;
 const english=()=>document.documentElement.lang==='en';
+let storageEpoch=0,storageState={state:'loading',usage:null,quota:null};const storageSubscribers=new Set();
+export function subscribeStorageEstimate(listener){storageSubscribers.add(listener);listener({...storageState});return()=>storageSubscribers.delete(listener);}
+export function storageSummaryText(value={},useEnglish=false){if(value?.state==='loading')return useEnglish?'Reading…':'读取中…';if(value?.state==='error')return useEnglish?'Unavailable':'暂时无法读取';return Number.isFinite(value?.usage)&&value.usage>=0?`${mib(value.usage)} MiB`:(useEnglish?'Unknown':'未知');}
+function presentStorage(){if(storageNode)storageNode.textContent=storageState.state==='loading'?(english()?'Reading storage usage…':'正在读取存储空间…'):storageState.state==='error'?(english()?'Could not read local storage usage. Reopen Storage space to retry.':'暂时无法读取本机空间。重新打开“存储空间”可重试。'):storageEstimateText(storageState,english());for(const listener of storageSubscribers)listener({...storageState});}
 const mib=value=>(value/1024/1024).toFixed(value>=100*1024*1024?0:1);
 export function storageEstimateText(estimate={},useEnglish=false){
  const usage=Number.isFinite(estimate.usage)&&estimate.usage>=0?estimate.usage:null;
@@ -50,10 +54,11 @@ async function setPreviewMask(value){
   previewToggle.checked=previewValue;applyMask(previewValue);privacyStatus.textContent=confirmed?(english()?'Save was not confirmed. The current setting was checked. Retry if needed.':'保存未获确认，已核对当前设置。需要时请重试。'):(english()?'Save state is unknown. Previews remain hidden until it can be checked.':'保存状态尚不明确，核对前继续隐藏预览。');
  }finally{privacyBusy=false;previewToggle.disabled=false;if(privacyRefresh){privacyRefresh=false;void syncPrivacy();}}
 }
-async function refreshStorage(){
- if(!storageNode)return;
- try{storageNode.textContent=storageEstimateText(await navigator.storage?.estimate?.()||{},english());}
- catch{storageNode.textContent=storageEstimateText({},english());}
+export async function refreshStorage(){
+ const epoch=++storageEpoch;storageState={state:'loading',usage:null,quota:null};presentStorage();
+ try{const estimate=await navigator.storage?.estimate?.()||{};if(epoch!==storageEpoch)return;storageState={state:'ready',usage:Number.isFinite(estimate.usage)&&estimate.usage>=0?estimate.usage:null,quota:Number.isFinite(estimate.quota)&&estimate.quota>=0?estimate.quota:null};}
+ catch{if(epoch!==storageEpoch)return;storageState={state:'error',usage:null,quota:null};}
+ presentStorage();return {...storageState};
 }
 export async function refreshR6Settings(){await Promise.all([syncPrivacy(),refreshStorage()]);}
 function installPrivacy(){
