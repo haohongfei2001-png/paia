@@ -102,3 +102,72 @@ test('BNS purge while a publication iterator is suspended cannot publish its lat
  const row=await core.read('publication',prepared.publicationId);assert.equal(row.state,'obsolete');for(const ref of row.objectRefs.filter(ref=>ref.kind==='descriptor'))assert.equal(transport.objects.has(ref.id),false);
  assert.equal(await core.read('publicationReceipt',prepared.publicationId),undefined);
 });
+
+test('BNS obsolete retirement atomically releases surviving reservations and retains every possible object without bodies',async()=>{
+ const core=await device('device_alpha_01',null);await local(core,'obsolete body must not survive');
+ const other=await core.prepare([{type:'contextDesired',value:{id:'info',enabled:false,revision:1}}]);await core.commit(other);
+ const journal=new PreparedPublicationJournal(core),p=await journal.prepare(),refs=(await core.read('publication',p.publicationId)).objectRefs;
+ await core.commit(await core.prepare([{type:'promptPreferences',entityId:'prompt-reuse:v1',kind:'purge'}]));
+ await assert.rejects(journal.run(p.publicationId,cloud()),{code:'BNS_PUBLICATION_OBSOLETE'});
+ let broken=true;const retiring=new PreparedPublicationJournal(core,{checkpoint:async stage=>{if(broken&&stage==='publication-retired-before-commit')throw Error('synthetic retirement abort');}});
+ await assert.rejects(retiring.retireObsolete(p.publicationId));
+ assert.equal((await journal.pending()).items.length,1);assert.deepEqual((await journal.retainedObjects()).items,[]);
+ assert.equal((await core.read('outbox',other.operations[0].operationId)).publicationId,p.publicationId);
+ broken=false;const retired=await retiring.retireObsolete(p.publicationId);
+ assert.equal(retired.performedDeletion,false);assert.deepEqual(retired.objectRefs,refs);assert.doesNotMatch(JSON.stringify(retired),/obsolete body must not survive/);
+ assert.deepEqual(await journal.retireObsolete(p.publicationId),retired);assert.deepEqual((await journal.pending()).items,[]);
+ const remaining=await queued(core);assert.equal(remaining.length,2);assert.ok(remaining.some(x=>x.kind==='purge'));assert.ok(remaining.some(x=>x.operationId===other.operations[0].operationId));
+ assert.equal((await core.read('outbox',other.operations[0].operationId)).publicationId,undefined);
+ assert.equal(await core.read('publicationReceipt',p.publicationId),undefined);
+ assert.equal((await journal.prepare({publicationId:p.publicationId})).state,'retired_obsolete');
+ await assert.rejects(journal.run(p.publicationId,cloud()),{code:'BNS_PUBLICATION_RETIRED'});
+ const next=await journal.prepare();assert.notEqual(next.publicationId,p.publicationId);assert.equal(next.operationCount,2);
+});
+
+test('BNS retirement cannot clear an integrity block or retire a merely prepared cut',async()=>{
+ const core=await device();await local(core,'protected');const journal=new PreparedPublicationJournal(core),p=await journal.prepare();
+ await assert.rejects(journal.retireObsolete(p.publicationId),{code:'BNS_PUBLICATION_NOT_OBSOLETE'});
+ const transport=cloud(),get=transport.get.bind(transport);transport.get=async ref=>{const v=await get(ref);v[0]^=1;return v;};
+ await assert.rejects(journal.run(p.publicationId,transport),{code:'BNS_OBJECT_INTEGRITY'});
+ await assert.rejects(journal.retireObsolete(p.publicationId),{code:'BNS_PUBLICATION_NOT_OBSOLETE'});
+ assert.deepEqual((await journal.retainedObjects()).items,[]);assert.equal((await journal.pending()).items.length,1);assert.equal((await queued(core)).length,1);
+});
+
+test('BNS old suspended publisher cannot advance or acknowledge after obsolete retirement',async()=>{
+ const core=await device('device_alpha_01',null);await local(core,'suspended obsolete');const journal=new PreparedPublicationJournal(core),p=await journal.prepare(),transport=cloud();
+ const iterator=journal.publish(p.publicationId,transport);await iterator.next();
+ await core.commit(await core.prepare([{type:'promptPreferences',entityId:'prompt-reuse:v1',kind:'purge'}]));
+ await assert.rejects(new PreparedPublicationJournal(core).run(p.publicationId,transport),{code:'BNS_PUBLICATION_OBSOLETE'});
+ await journal.retireObsolete(p.publicationId);const puts=transport.puts.length;
+ await assert.rejects(iterator.next(),{code:'BNS_PUBLICATION_RETIRED'});assert.equal(transport.puts.length,puts);assert.equal(await core.read('publicationReceipt',p.publicationId),undefined);
+ assert.equal((await journal.state(p.publicationId)).state,'retired_obsolete');
+});
+
+test('BNS retired opaque object ledger survives namespace restore and cannot retarget its old publication ID',async()=>{
+ // Pure Core synthetic materializer only. Production Prompt purge/restore is
+ // separately unavailable and this fixture does not qualify that owner path.
+ const core=await device('device_alpha_01',null);await local(core,'purged prior namespace');const journal=new PreparedPublicationJournal(core),p=await journal.prepare(),transport=cloud();
+ await core.commit(await core.prepare([{type:'promptPreferences',entityId:'prompt-reuse:v1',kind:'purge'}]));
+ await assert.rejects(journal.run(p.publicationId,transport),{code:'BNS_PUBLICATION_OBSOLETE'});
+ const cp=await buildCheckpoint(core,transport),restore=new StagedSyncRestore(core,{owners:{promptPreferences:async()=>{}}});await restore.stageCheckpoint(cp.ref,ref=>transport.get(ref));
+ await assert.rejects(restore.activate(),{code:'BNS_RESTORE_PUBLICATION_PENDING'});
+ const retired=await journal.retireObsolete(p.publicationId);await restore.activate();
+ const fresh=new PreparedPublicationJournal(core);assert.deepEqual((await fresh.retainedObjects()).items,[retired]);
+ await assert.rejects(fresh.prepare({publicationId:p.publicationId}),{code:'BNS_BINDING_CHANGED'});
+ await assert.rejects(fresh.run(p.publicationId,transport),{code:'BNS_BINDING_CHANGED'});
+ assert.equal((await core.state())[0].purged,true);
+});
+
+test('BNS late in-flight descriptor completion remains retained and cannot create a publication acknowledgement',async()=>{
+ const core=await device('device_alpha_01',null);await local(core,'late descriptor body');const journal=new PreparedPublicationJournal(core),p=await journal.prepare(),transport=cloud(),put=transport.putImmutable.bind(transport);
+ let entered,release;const started=new Promise(resolve=>entered=resolve),gate=new Promise(resolve=>release=resolve);
+ transport.putImmutable=async(ref,data)=>{if(ref.kind==='descriptor'){entered(ref);await gate;}return put(ref,data);};
+ const running=journal.run(p.publicationId,transport);running.catch(()=>{});const descriptor=await started;
+ await core.commit(await core.prepare([{type:'promptPreferences',entityId:'prompt-reuse:v1',kind:'purge'}]));
+ await assert.rejects(new PreparedPublicationJournal(core).run(p.publicationId,cloud()),{code:'BNS_PUBLICATION_OBSOLETE'});
+ const retired=await journal.retireObsolete(p.publicationId);release();
+ await assert.rejects(running,{code:'BNS_PUBLICATION_RETIRED'});
+ assert.equal(transport.objects.has(descriptor.id),true,'already issued remote work cannot be recalled');
+ assert.ok(retired.objectRefs.some(ref=>ref.id===descriptor.id),'uncertain completed descriptor remains protected, never declared collectible');
+ assert.equal(await core.read('publicationReceipt',p.publicationId),undefined);assert.equal((await queued(core))[0].kind,'purge');
+});

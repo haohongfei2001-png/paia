@@ -110,3 +110,52 @@ external network attempts. This is local native lifecycle proof, not a qualified
 cloud provider, complete canonical restore, cross-device sync or installed release.
 The previously documented obsolete/integrity reconciliation and orphan cleanup
 remain open; full integration certification is still required.
+
+## Local obsolete-retirement candidate
+
+BNS-06 requires unknown outcomes to retain logical identity; BNS-07 prohibits
+collection without complete reference proof. The explicit `retireObsolete` seam
+therefore accepts only an obsolete cut with a durable purged/redacted revision
+witness. It never unlocks integrity or missing-object blocks. One native-store
+transaction retains every possible object reference, releases still-valid local
+reservations, marks the old publication terminal and removes its active restore
+blocker. It neither acknowledges operations nor advances any uploaded frontier.
+An injected transaction failure leaves all original reservations and blockers.
+
+The body-free `publicationRetirement` catalogue resides in the existing meta
+store under the dataset prefix outside the active generation, just like the
+existing publication identity fence. Its narrow purpose is to keep uncertain
+remote object identities discoverable after namespace activation; it adds no
+body copy, user entity, object store or schema version. Enumeration is bounded
+and explicitly paginated. Records say `retained_unproven` and
+`performedDeletion:false`. They are protection records, not deletion permission.
+No age-based expiry, remote delete, provider connection or background scheduler
+is implemented. Original publication identities cannot be recycled.
+
+A publisher already awaiting a remote put may still leave its immutable object
+behind. Retirement cannot recall that request; all possible references, including
+a late descriptor, stay recorded. Subsequent local acknowledgement is fenced.
+Any later cleanup must prove complete reference closure, retain required
+checkpoints, branches and restore pins, and include these uncertain objects.
+The current read-only compaction planner does not perform such orphan deletion.
+
+The new namespace-activation test uses a clearly synthetic pure-Core materializer.
+The existing production Prompt materializer rejects aggregate Prompt purge; this
+candidate does not expand that owner or certify production purge/restore. Native
+retirement/production-owner qualification is not implied by model-storage tests.
+
+Local retirement validation: the complete selected Sync/Prompt/harness corpus
+passes 163 tests with zero failures, skips or cancellations. A separate complete
+source/release headless native file passes 2/2. Each native journey injects a real
+IndexedDB retirement abort, checks unchanged reservations/catalogue, stops and
+restarts the worker three times, verifies committed retirement persistence and
+then confirms retained references survive namespace activation. Lifetime network
+ledgers prove native factories and no external requests through all restarts.
+This uses the explicit pure-Core synthetic no-op restore owner, not the production
+Prompt materializer. No product gate is relaxed.
+
+The local native run was made before this checkpoint commit: its head/tree
+metadata names the clean base, while the seven recorded production module hashes
+identify the tested working runtime. Do not present that base SHA as containing
+retirement or treat this as an exact-head hosted CI receipt. Logs/isolated receipts
+remain local under `work/qa-bns-retirement`; hosted admission is still pending.

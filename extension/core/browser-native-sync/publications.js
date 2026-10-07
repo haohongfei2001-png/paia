@@ -4,7 +4,7 @@ import {bytes,clone,count,digest,equal,exact,fail,hash,opaque} from './value.js'
 
 export const PUBLICATION_LIMITS=Object.freeze({operations:512,bytes:4*1024*1024,objects:512,journalBytes:256*1024,page:100});
 const activeStates=['prepared','uploading','unknown','blocked_integrity','blocked_remote_missing','obsolete'];
-const safeFailures=new Set(['BNS_OBJECT_INTEGRITY','BNS_OBJECT_NOT_FOUND','BNS_PUBLICATION_OBSOLETE','BNS_BINDING_CHANGED','BNS_PUBLICATION_CHANGED','BNS_CUT_RESERVED','BNS_PUBLICATION_BLOCKED','BNS_PUBLICATION_CORRUPT','BNS_PUBLICATION_REENCODED','BNS_PUBLICATION_INCOMPLETE']);
+const safeFailures=new Set(['BNS_OBJECT_INTEGRITY','BNS_OBJECT_NOT_FOUND','BNS_PUBLICATION_OBSOLETE','BNS_BINDING_CHANGED','BNS_PUBLICATION_CHANGED','BNS_CUT_RESERVED','BNS_PUBLICATION_BLOCKED','BNS_PUBLICATION_CORRUPT','BNS_PUBLICATION_REENCODED','BNS_PUBLICATION_INCOMPLETE','BNS_PUBLICATION_RETIRED']);
 const immutable=row=>({version:row.version,publicationId:row.publicationId,namespace:row.namespace,datasetId:row.datasetId,producer:row.producer,target:row.target,profile:row.profile,operationRefs:row.operationRefs,objectRefs:row.objectRefs});
 const withoutId=row=>{const {id,...value}=row;return value;};
 const publicState=row=>({publicationId:row.publicationId,namespace:row.namespace,state:row.state,operationCount:row.operationRefs.length,objectCount:row.objectRefs.length,verifiedObjects:row.nextIndex,blueprintDigest:row.blueprintDigest});
@@ -26,11 +26,11 @@ export class PreparedPublicationJournal {
  async #load(publicationId){
   if(!opaque(publicationId))fail('BNS_PUBLICATION_INVALID');
   const row=await this.core.transaction(false,async t=>{const identity=await t.get('meta',this.core.prefix+'publicationIdentity:'+publicationId),namespace=await this.core.bind(t);if(identity&&identity.namespace!==namespace)fail('BNS_BINDING_CHANGED');const row=await this.core.get(t,'publication',publicationId);if(!!identity!==!!row||identity&&identity.blueprintDigest!==row.blueprintDigest)fail('BNS_PUBLICATION_CORRUPT');return row;},['meta']);if(!row)return null;
-  if(row.version!==1||row.publicationId!==publicationId||row.datasetId!==this.core.datasetId||!opaque(row.producer)||row.namespace!=='initial'&&!opaque(row.namespace)||!['confirmed',...activeStates].includes(row.state)||!Array.isArray(row.operationRefs)||!row.operationRefs.length||row.operationRefs.length>PUBLICATION_LIMITS.operations||row.operationRefs.some(ref=>!exact(ref,['operationId','revisionId','bytes'])||!opaque(ref.operationId)||!hash(ref.revisionId)||!count(ref.bytes)||ref.bytes<1)||!Array.isArray(row.objectRefs)||!row.objectRefs.length||row.objectRefs.length>PUBLICATION_LIMITS.objects||!count(row.nextIndex)||row.nextIndex>row.objectRefs.length||!hash(row.blueprintDigest))fail('BNS_PUBLICATION_CORRUPT');
+  if(row.version!==1||row.publicationId!==publicationId||row.datasetId!==this.core.datasetId||!opaque(row.producer)||row.namespace!=='initial'&&!opaque(row.namespace)||!['confirmed','retired_obsolete',...activeStates].includes(row.state)||!Array.isArray(row.operationRefs)||!row.operationRefs.length||row.operationRefs.length>PUBLICATION_LIMITS.operations||row.operationRefs.some(ref=>!exact(ref,['operationId','revisionId','bytes'])||!opaque(ref.operationId)||!hash(ref.revisionId)||!count(ref.bytes)||ref.bytes<1)||!Array.isArray(row.objectRefs)||!row.objectRefs.length||row.objectRefs.length>PUBLICATION_LIMITS.objects||!count(row.nextIndex)||row.nextIndex>row.objectRefs.length||!hash(row.blueprintDigest))fail('BNS_PUBLICATION_CORRUPT');
   checkedProfile(row.profile);if(bytes(immutable(row)).length>PUBLICATION_LIMITS.journalBytes||await digest(immutable(row))!==row.blueprintDigest)fail('BNS_PUBLICATION_CORRUPT');
   return row;
  }
- async #bound(t,row){if(await this.core.bind(t)!==row.namespace)fail('BNS_BINDING_CHANGED');const current=await this.core.get(t,'publication',row.publicationId);if(!current||current.blueprintDigest!==row.blueprintDigest)fail('BNS_PUBLICATION_CHANGED');return current;}
+ async #bound(t,row){if(await this.core.bind(t)!==row.namespace)fail('BNS_BINDING_CHANGED');const current=await this.core.get(t,'publication',row.publicationId);if(!current||current.blueprintDigest!==row.blueprintDigest)fail('BNS_PUBLICATION_CHANGED');if(current.state==='retired_obsolete')fail('BNS_PUBLICATION_RETIRED');return current;}
  async #checkCut(t,row,{unreserved=false}={}){
   if(await this.core.bind(t)!==row.namespace)fail('BNS_BINDING_CHANGED');
   for(const ref of row.operationRefs){
@@ -64,6 +64,44 @@ export class PreparedPublicationJournal {
    for(const ref of operationRefs){const queued=await this.core.get(t,'outbox',ref.operationId);await this.core.put(t,'outbox',[ref.operationId],{...withoutId(queued),publicationId});}
    await this.core.put(t,'publication',[publicationId],row);await this.core.put(t,'publicationActive',[publicationId],{publicationId});await t.put('meta',{id:this.core.prefix+'publicationIdentity:'+publicationId,namespace:row.namespace,blueprintDigest:row.blueprintDigest});await this.checkpoint('prepared-before-commit',t);
   },['meta']);return publicState(row);
+ }
+ // Local retirement is not upload acknowledgement or remote deletion. Track
+ // every possibly uploaded reference outside the active restore namespace.
+ async retireObsolete(publicationId){
+  const row=await this.#load(publicationId);if(!row)fail('BNS_PUBLICATION_MISSING');
+  const key=this.core.prefix+'publicationRetirement:'+publicationId;
+  return this.core.transaction(true,async t=>{
+   if(await this.core.bind(t)!==row.namespace)fail('BNS_BINDING_CHANGED');
+   const current=await this.core.get(t,'publication',publicationId);
+   if(!current||current.blueprintDigest!==row.blueprintDigest)fail('BNS_PUBLICATION_CHANGED');
+   if(current.state==='retired_obsolete'){const saved=await t.get('meta',key);if(!saved||saved.blueprintDigest!==row.blueprintDigest)fail('BNS_PUBLICATION_CORRUPT');return withoutId(saved);}
+   if(current.state!=='obsolete')fail('BNS_PUBLICATION_NOT_OBSOLETE');
+   const release=[];let purged=false;
+   for(const ref of current.operationRefs){
+    const revision=await this.core.get(t,'revision',ref.revisionId),queued=await this.core.get(t,'outbox',ref.operationId);
+    if(!revision||revision.operation.operationId!==ref.operationId||revision.operation.revisionId!==ref.revisionId)fail('BNS_PUBLICATION_CORRUPT');
+    if(revision.redacted&&revision.operation.kind!=='purge'){
+     const head=await this.core.get(t,'head',revision.operation.type,revision.operation.entityId);
+     if(!head?.purged||queued)fail('BNS_PUBLICATION_CORRUPT');purged=true;
+    }else{
+     if(!queued||queued.revisionId!==ref.revisionId||queued.publicationId!==publicationId)fail('BNS_CUT_RESERVED');
+     release.push(queued);
+    }
+   }
+   if(!purged)fail('BNS_PUBLICATION_NOT_OBSOLETE');
+   const retained={version:1,publicationId,namespace:row.namespace,datasetId:row.datasetId,blueprintDigest:row.blueprintDigest,objectRefs:clone(row.objectRefs),state:'retained_unproven',performedDeletion:false};
+   if(await t.get('meta',key))fail('BNS_PUBLICATION_CORRUPT');
+   await t.put('meta',{id:key,...retained});
+   for(const queued of release){const {id,publicationId:reservation,...value}=queued;await this.core.put(t,'outbox',[queued.operationId],value);}
+   await this.core.put(t,'publication',[publicationId],{...withoutId(current),state:'retired_obsolete'});
+   await t.delete('meta',await this.core.idIn(t,'publicationActive',publicationId));
+   await this.checkpoint('publication-retired-before-commit',t);
+   return retained;
+  },['meta']);
+ }
+ async retainedObjects({after=null,limit=PUBLICATION_LIMITS.page}={}){
+  if(!count(limit)||limit<1||limit>PUBLICATION_LIMITS.page)fail('BNS_PUBLICATION_INVALID');
+  return this.core.transaction(false,async t=>{const page=await t.primaryRangePage('meta',{prefix:this.core.prefix+'publicationRetirement:',after,limit});return {items:page.rows.map(({value})=>withoutId(value)),nextCursor:page.next,performedDeletion:false};},['meta']);
  }
  async pending({after=null,limit=PUBLICATION_LIMITS.page}={}){
   if(!count(limit)||limit<1||limit>PUBLICATION_LIMITS.page)fail('BNS_PUBLICATION_INVALID');
@@ -109,6 +147,7 @@ export class PreparedPublicationJournal {
  async *publish(publicationId,transport){
   if(typeof transport?.putImmutable!=='function'||typeof transport?.get!=='function')fail('BNS_TRANSPORT_INVALID');
   const row=await this.#load(publicationId);if(!row)fail('BNS_PUBLICATION_MISSING');
+  if(row.state==='retired_obsolete')fail('BNS_PUBLICATION_RETIRED');
   if(row.state==='confirmed'){yield withoutId(await this.core.read('publicationReceipt',publicationId));return;}
   if(['blocked_integrity','blocked_remote_missing','obsolete'].includes(row.state))fail('BNS_PUBLICATION_BLOCKED');
   try{

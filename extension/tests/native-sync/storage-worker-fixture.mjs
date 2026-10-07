@@ -115,6 +115,29 @@ async function remoteOperations(entries, descriptors) {
   return operations;
 }
 async function run(command, args = {}) {
+  if (command.startsWith('retirement-')) {
+    // Explicit pure-Core test instance; production Prompt service/materializer
+    // stays unchanged and continues to reject aggregate Prompt purge.
+    const d=await device(args.name),core=new BrowserNativeSyncCore(d.store.repository,{datasetId:DATASET,deviceId:'native_device_'+args.name,materialize:null});
+    const journal=new PreparedPublicationJournal(core,{checkpoint:async(stage,t)=>{if(args.abort&&stage==='publication-retired-before-commit')fault('abort',t);}}),objects=new ImmutableObjects(args.entries||[]);
+    let result,code;
+    try{
+      if(command==='retirement-setup'){
+        const value={id:'prompt-reuse:v1',version:1,pins:[],overrides:[{id:'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',text:'Synthetic pure Core obsolete body',hidden:false}],splits:[]};
+        await core.commit(await core.prepare([{type:'promptPreferences',value}]));
+        result=await journal.prepare();
+        await core.commit(await core.prepare([{type:'promptPreferences',entityId:value.id,kind:'purge'}]));
+        try{await journal.run(result.publicationId,objects);}catch(error){if(error.code!=='BNS_PUBLICATION_OBSOLETE')throw error;}
+      }else if(command==='retirement-retire')result=await journal.retireObsolete(args.publicationId);
+      else if(command==='retirement-checkpoint')result=(await buildCheckpoint(core,objects)).ref;
+      else if(command==='retirement-activate'){
+        const staged=new StagedSyncRestore(core,{restoreId:args.restoreId,owners:{promptPreferences:async()=>{}}});
+        await staged.stageCheckpoint(args.checkpointRef,ref=>objects.get(ref));result=await staged.activate();
+      }else if(command==='retirement-old-id')result=await journal.prepare({publicationId:args.publicationId});
+      else if(command!=='retirement-state')throw Error('UNKNOWN_RETIREMENT_COMMAND');
+    }catch(error){code=error.code||error.name;}
+    return {result,code,entries:objects.entries(),namespace:await core.namespace(),retained:await journal.retainedObjects(),pending:await journal.pending(),outbox:await collect(core.outbox()),state:await core.state()};
+  }
   if (command.startsWith('publication-')) {
     const {core} = await device(args.name), objects = new ImmutableObjects(args.entries || []), puts = [], gets = [];
     const transport = {
