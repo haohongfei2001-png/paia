@@ -98,7 +98,7 @@ test('CTX4-05 fast marked Context command runs its complete owner and retains na
 test('seven browser jobs preserve all76 files and rebalance one complete historical file into4',async()=>{
  const names=(await readdir(new URL('./',import.meta.url))).filter(name=>name.endsWith('.test.mjs')&&group(name)==='browser E2E').sort(),thought='ux-r3-thought-chrome-e2e.test.mjs',retainedRoot='cpv1-02-dvn-topic-root-chrome-e2e.test.mjs',before=Array.from({length:6},(_,slot)=>names.filter((name,position)=>testShard(name,position,6,'browser E2E')===slot+1)),after=Array.from({length:7},(_,slot)=>names.filter((name,position)=>testShard(name,position,7,'browser E2E')===slot+1));
  assert.equal(names.length,76);assert.deepEqual(after.flat().sort(),names);assert.equal(new Set(after.flat()).size,names.length);assert.deepEqual(after[6],[retainedRoot,section,thought]);assert.ok(after.every(part=>part.length));
- const historical='cpv1-07-historical-comparison-chrome-e2e.test.mjs';
+ const historical='cpv1-07-historical-comparison-chrome-e2e.test.mjs';assert.ok(before[0].includes(historical));
  for(let slot=0;slot<6;slot++){const expected=before[slot].filter(name=>name!==thought&&name!==retainedRoot&&name!==section&&name!==historical);if(slot===3)expected.push(historical);assert.deepEqual(after[slot],[...expected].sort());}
  assert.deepEqual(after[5],['context-cards-chrome-e2e.test.mjs','uir-04-settings-chrome-e2e.test.mjs']);
  for(const [position,name]of names.entries())assert.equal(testShard(name,position,7,'browser E2E'),[thought,retainedRoot,section].includes(name)?7:name===historical?4:testShard(name,position,6,'browser E2E'),name);

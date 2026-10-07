@@ -229,3 +229,22 @@ still required. The two Prompt test files were copied only after verifying they
 exactly matched Settings4a1cf72's parent; they now include that reviewed native
 persistence/current-frame readiness fix. Settings40/40 is evidence for that
 separate tree, not a newly executed combined-tree result.
+
+## Settings 0f750af reconciliation
+
+Merged the current independent Settings candidate into the preserved Section
+branch after inspecting all eight conflict blocks. Section RPC classification,
+real Section target/focus assertions and explicit76-file routing retain their
+existing owners; the historical shard1 assertion from Settings is retained.
+Prompt serial unit execution and the exact current Settings/Prompt fixtures are
+included. An independent read-only review found no truncated files or lost
+Settings changes; topic-workspace.js is unchanged by this merge.
+
+A local conflict-resolution script initially consumed file tails and caused two
+syntax failures. The unresolved index copies were restored, all conflict blocks
+were resolved again with line-bounded markers, and the reviewed final files
+passed22/22 routing/arrival/presentation tests plus164/164 complete related
+Section-worker/reading/reader, Root anchor and Settings boundary tests. No skips,
+timeout increases or assertion removals. These are local merge checks only.
+The candidate still requires the next release identity and exact-head combined
+browser/full acceptance after independent Settings integration.
