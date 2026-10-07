@@ -53,8 +53,20 @@ export class ContextTopicAccessService {
   return result;
  }
  async summaryInTransaction(t,epoch){
-  try{await this.admission(t,epoch);const row=await this.row(t);return {available:true,selectedCount:storedCount(row),reason:'preferences_ready',externalAllowed:false};}
+  try{
+   await this.admission(t,epoch);const row=await this.row(t),selectedCount=storedCount(row),selectedNames=[];
+   // This is a local preview of retained choices, never an effective read grant.
+   // Stale identities stay counted but cannot provide a former identity's label.
+   if(selectedCount){await this.admission(t,epoch,{scope:true});const memory=new MemoryService(this.s),selected=(await this.directory(t,row)).filter(item=>item.choice?.enabled).slice(0,3);
+    for(const {topic,choice}of selected){if(!['active','dormant'].includes(topic.lifecycle)||!sameContextTopicBinding(choice.binding,await this.prospective(t,topic,epoch)))continue;const name=await this.displayName(t,topic,memory);if(name)selectedNames.push(name);}
+   }
+   return {available:true,selectedCount,selectedNames,remainingSelectedCount:selectedCount-selectedNames.length,reason:'preferences_ready',externalAllowed:false};
+  }
   catch(error){return {available:false,selectedCount:null,reason:errorReason(error),externalAllowed:false};}
+ }
+ async displayName(t,topic,memory=new MemoryService(this.s)){
+  if(topic.lifecycle==='missing'||typeof topic.name!=='string'||!topic.name.trim()||topic.name.length>300||topic.name.includes('\u0000')||topic.sourceRecordIds!==undefined&&(!Array.isArray(topic.sourceRecordIds)||topic.sourceRecordIds.length>CONTEXT_TOPIC_ACCESS_LIMITS.choices||!topic.sourceRecordIds.every(idOK)))return '';
+  return memory.safeLabel(t,topic,'name');
  }
  async prospective(t,topic,epoch){
   if(!topic||!validTopicIdentity(topic.identity)||topic.identity.aliases.length>CONTEXT_TOPIC_ACCESS_LIMITS.choices||topic.identity.noRecreation!==(['removed','merged'].includes(topic.lifecycle)||!!topic.redirectTo))return null;
@@ -101,7 +113,7 @@ export class ContextTopicAccessService {
     const items=[],memory=new MemoryService(this.s);
     for(const {topic,choice} of all.slice(offset,offset+limit)){
      const expectedBinding=await this.prospective(t,topic,admission.epoch),binding=choice?.binding||null;
-     let name='';if(topic.lifecycle!=='missing'&&typeof topic.name==='string'&&topic.name.length<=300&&(topic.sourceRecordIds===undefined||Array.isArray(topic.sourceRecordIds)&&topic.sourceRecordIds.length<=CONTEXT_TOPIC_ACCESS_LIMITS.choices&&topic.sourceRecordIds.every(idOK)))name=await memory.safeLabel(t,topic,'name');
+     const name=await this.displayName(t,topic,memory);
      const bindingValid=!!binding&&sameContextTopicBinding(binding,expectedBinding),enabled=choice?.enabled===true;
      items.push({topicId:topic.id,name,createdAt:topic.createdAt,lifecycle:topic.lifecycle,enabled,revision:choice?.revision||0,binding,expectedBinding,bindingValid,policyAllowed:false,reason:enabled?(bindingValid?'scope_pending':'selection_stale'):expectedBinding?'topic_off':'topic_unavailable',canEnable:!!expectedBinding,canDisable:enabled,externalAllowed:false});
     }

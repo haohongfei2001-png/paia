@@ -84,7 +84,7 @@ test('CTX4-03 home uses actual selected count while global and Inputs pause reta
  const page=makePage();await page.open('inputs');const id=page.inputs.order[0];await page.inputs.toggle(id);const saved=await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW);
  for(const key of ['global','inputs']){const access=(await cards.snapshot()).access[key];await cards.change({kind:'access',key,enabled:false,expectedRevision:access.revision,operationId:op(),epoch:'initial'});await page.refresh();assert.equal(page.inputs.rows.get(id).enabled,true);assert.equal(page.inputs.nodes.get(id).dataset.paused,'true');assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),saved);}
  assert.match(page.inputs.note.textContent,/private.*retained/);assert.equal(await page.leave(),true);await page.open(null);
- assert.equal(page.host.querySelector('[data-count="inputs"]').textContent,'1 topics selected');assert.match(page.host.querySelector('.input-summary').textContent,/retained.*unavailable/);assert.equal(page.snapshot.connections,0);assert.equal(page.snapshot.capabilities.external,false);
+ assert.equal(page.host.querySelector('[data-count="inputs"]').textContent,'1 topics selected');assert.equal(page.host.querySelector('.input-summary').textContent,page.snapshot.topicChoices.selectedNames.join(' · '));assert.equal(page.snapshot.topicChoices.remainingSelectedCount,0);assert.equal(page.snapshot.connections,0);assert.equal(page.snapshot.capabilities.external,false);
 }));
 
 test('CTX4-03 malformed Topic preferences show unavailable on home while all independent card Items survive',()=>fixture(async({s,cards,access,makePage,calls})=>{
