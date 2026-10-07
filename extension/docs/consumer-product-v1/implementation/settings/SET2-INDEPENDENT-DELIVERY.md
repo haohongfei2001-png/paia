@@ -93,3 +93,26 @@ The release builder uses its supported unique output directory and unchanged
 release audit, avoiding retained duplicate generated assets. Diagnostic and
 negative logs remain; this is readiness evidence, not a proven product-root-cause
 fix. New-head hosted Prompt acceptance and formal integration remain pending.
+
+## Prompt full-unit resource contention evidence
+
+At4a1cf72, Candidate37702154645 passed and Prompt37702154606 completed all native
+source/release lifecycle tests, then failed only history-performance-v090's10k
+unit case at its unchanged240000ms watchdog. Exact same merge checkout
+f2c10facc7806d6a6525e54dfe359a8407e6e80f and Node22.23.3/npm10.9.9 appeared in
+the full run37702614386: all four serial unit shards passed, including both
+history-performance cases on Unit2. Same install/dependency manifests are verified;
+no binary-by-binary installation hash is claimed. Full browser results were still
+pending when this note was prepared.
+
+The local complete serial unit suite also passed3023/3023, zero failures or skips,
+including1k/10k cases and existing package/development guards. This is consistent
+with resource contention in concurrent execution, not proof of a unique CPU cause
+or a controlled120-second commit benchmark. Preserve the original hosted failure.
+
+Only the Prompt workflow's full unit step now overrides concurrency to1. It still
+runs the entire same unit corpus, all native/contract/privacy/release steps and
+the same15-minute job limit. No case timeout or test threshold changes, no new
+job and no skipped performance case. Independent resource/evidence review
+recommended this bounded correction; current-head hosted verification remains
+required. Product and test code are unchanged by this CI-only follow-up.
