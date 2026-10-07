@@ -66,3 +66,34 @@ independent300-route admission guard is unchanged. Complete Root and admission
 files pass3/3 with zero skips/cancellations; independent review passed. No runtime,
 workflow, timeout, assertion threshold or prior mapping was changed. New-head
 hosted acceptance remains pending; the earlier failure is not rewritten.
+
+## Shared Reader regression after fresh primary Archive entry
+
+Runtime tested at `4e3149b3d9c45fadb4acc8baf0f76d9df0e1a134`:
+complete `ans-04-navigation-query-chrome-e2e.test.mjs` passes1/1 in10.33s
+(`work/iah-ans04-regression.log`), covering real bounded navigation, worker
+restart, Reader fallback and active-path relocation. Complete
+`uir-02-archive-search-reader-chrome-e2e.test.mjs`, including its source and
+built-release journeys, passes1/1 in23.59s
+(`work/iah-uir02-scope-regression.log`). Both have zero failures, cancellations
+or skips. Runtime/dependency byte digests and the exact changed test/harness
+hashes are retained in `work/iah-reader-regression-bytes.json`.
+
+The first complete UIR02 attempt failed in source at the old empty-placeholder
+assertion; release was not reached. That failure remains in
+`work/iah-uir02-regression.log`. The replacement assertion requires exactly
+`搜索全部档案` and `在此对话中查找`, as specified by
+`INPUT_ARCHIVE_INTERACTION_CONTRACT.md` sections describing neutral Archive and
+Reader scope. Accessible labels, independent queries, input counts, all geometry,
+image tolerances and execution budgets are unchanged. UIR02 now uses the existing
+release builder's explicit output argument with a unique temporary directory;
+the same package guardrails audit the resulting release.
+
+The shared D7 `assertLayout` empty-placeholder assertion receives the same narrow
+contract migration: its matrix first selects neutral Archive, clears its query,
+and opens the ordinary Reader; it does not establish a narrowed Source/Project
+scope. This changes no screenshot or geometry expectation. UIR02 imports the
+shared directory helpers but does not run the complete D7 layout matrix. Therefore
+D7 full visual acceptance is NOT_RUN in this batch, not PASS. These local owning
+regressions do not certify complete history restoration, all seven programme
+lanes, hosted full CI, current main, installed acceptance or deployment.

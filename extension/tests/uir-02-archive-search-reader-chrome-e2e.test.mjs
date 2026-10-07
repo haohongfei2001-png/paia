@@ -2,7 +2,9 @@ import {openRetainedSearchComponent} from './harness/retained-search-component.m
 import {assertContextUnavailable,settleContextCapture} from './current-context-scope-helper.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
@@ -84,7 +86,7 @@ async function sourceJourney(page,h){
   await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','light theme applies');
 
   assert.equal(await page.locator('h1:visible').count(),0,'Archive root has no duplicate title above its persistent directory');await assertBlankArchiveReader(page);
-  assert.deepEqual(await page.locator('#scope-search,#reader-scope-search').evaluateAll(nodes=>nodes.map(node=>node.placeholder)),['',''],'search controls have accessible labels without placeholder copy');
+  assert.deepEqual(await page.locator('#scope-search,#reader-scope-search').evaluateAll(nodes=>nodes.map(node=>node.placeholder)),['搜索全部档案','在此对话中查找'],'IAH-1.1 neutral Archive and Reader retain truthful independent scope hints');
   assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive evidence is not dominated by optional onboarding');
   assert.equal(await page.locator('.conversation-document .summary').first().evaluate(el=>getComputedStyle(el).display),'none','generic Archive subtitle is not presented');
   assert.match(await page.locator('#result-count').evaluate(el=>getComputedStyle(el,'::before').content),/当前范围/,'Archive count is explicitly scoped');
@@ -257,13 +259,15 @@ test('UIR-02 Archive, Search, Revisit and Reader presentation stays on existing 
     await source?.close();
   }
 
-  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+  const releasePath=await mkdtemp(join(tmpdir(),'paia-uir02-reader-'));
   let release;
   try{
-    release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});
+    await execFileAsync('python3',['scripts/build_current_release.py',releasePath],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+    release=await FakeChatGPT.start({extensionPath:releasePath,onboarding:true});
     const page=await prepare(release,'UIR02_RELEASE');
     await releaseJourney(page,release);
   }finally{
     await release?.close();
+    await rm(releasePath,{recursive:true,force:true});
   }
 });
