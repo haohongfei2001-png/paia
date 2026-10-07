@@ -46,4 +46,11 @@ behavior, native/hosted admission and real billing acceptance remain unqualified
 
 Final corrected local selection: 69/69 pass (15 new pure-policy checks, 46
 AI-COST-01 owning checks and 8 bounded-organizer owning checks), zero failures,
-skips or cancellations. Independent review and integration remain pending.
+skips or cancellations. The separate `root_finish` reviewer completed the
+independent review and ran the 15 new owning checks successfully. The subsequent
+`settings_review` pass was a re-review by the original author and does not count
+as another independent review or expand the 69-case validation scope.
+
+Integration, native/hosted admission, full certification and paid-service/billing
+qualification remain pending. The independent review certifies neither production
+activation nor those outstanding boundaries.
