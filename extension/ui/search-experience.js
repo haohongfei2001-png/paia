@@ -1,22 +1,63 @@
 import {element} from './common.js';
 
+import {normalizeSearch} from '../core/search-service.js';
+
+const graphemes=new Intl.Segmenter(undefined,{granularity:'grapheme'});
+// Sentinel padding preserves leading/trailing spaces while reusing the search
+// owner's exact normalization. Offsets always map back to original graphemes.
+const normalizedBody=value=>normalizeSearch('\0'+value+'\0').slice(1,-1);
+function lexicalSpans(value,query,limit=Infinity){
+ const needle=normalizeSearch(query);if(!needle)return [];
+ const normalized=normalizedBody(value),matches=[];let from=0,at;
+ while(matches.length<limit&&(at=normalized.indexOf(needle,from))!==-1){matches.push({start:at,end:at+needle.length});from=at+needle.length;}
+ if(!matches.length)return [];
+ const spans=[];let offset=0,first=0;
+ // Keep only match ranges, not a per-character copy of a potentially long Input.
+ for(const {segment,index} of graphemes.segment(value)){
+  const next=offset+normalizedBody(segment).length;
+  for(let i=first;i<matches.length&&matches[i].start<next;i++){
+   const match=matches[i];if(match.end<=offset)continue;
+   match.originalStart??=index;match.originalEnd=index+segment.length;
+  }
+  while(first<matches.length&&matches[first].end<=next)first++;
+  offset=next;
+ }
+ // Context-sensitive casing is evaluated on the full string above. Refuse an
+ // unmappable transformation instead of applying guessed offsets to prose.
+ if(offset!==normalized.length)return [];
+ for(const match of matches){
+  const start=match.originalStart,end=match.originalEnd;if(start===undefined||end===undefined)return [];
+  const previous=spans.at(-1);
+  if(previous&&start<previous.end)previous.end=Math.max(previous.end,end);
+  else spans.push({start,end});
+ }
+ return spans;
+}
 // Literal text only. Reading highlights use CSS ranges, never mutate editable DOM.
-export function highlightText(node,text,query){node.replaceChildren();const value=String(text||''),needle=String(query||'').trim().toLocaleLowerCase();let from=0,found;if(!needle){node.textContent=value;return;}while((found=value.toLocaleLowerCase().indexOf(needle,from))>=0){node.append(document.createTextNode(value.slice(from,found)),element('mark','search-match',value.slice(found,found+needle.length)));from=found+needle.length;}node.append(document.createTextNode(value.slice(from)));}
-export function highlightReading(root,query){if(!globalThis.CSS?.highlights||!globalThis.Highlight)return;CSS.highlights.delete('paia-search');const q=String(query||'').trim().toLocaleLowerCase();if(!q||!root)return;const ranges=[],walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode())&&ranges.length<500){if(node.parentElement.closest('[hidden],button,select'))continue;const text=node.data.toLocaleLowerCase();let from=0,index;while((index=text.indexOf(q,from))>=0&&ranges.length<500){const range=new Range();range.setStart(node,index);range.setEnd(node,index+q.length);ranges.push(range);from=index+q.length;}}CSS.highlights.set('paia-search',new Highlight(...ranges));}
+export function highlightText(node,text,query){
+ node.replaceChildren();const value=String(text||'');let from=0;
+ for(const {start,end} of lexicalSpans(value,query)){node.append(document.createTextNode(value.slice(from,start)),element('mark','search-match',value.slice(start,end)));from=end;}
+ node.append(document.createTextNode(value.slice(from)));
+}
+export function highlightReading(root,query){
+ if(!globalThis.CSS?.highlights||!globalThis.Highlight)return;
+ CSS.highlights.delete('paia-search');if(!normalizeSearch(query)||!root)return;
+ const ranges=[],walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
+ while((node=walker.nextNode())&&ranges.length<500){
+  if(node.parentElement.closest('[hidden],button,select'))continue;
+  for(const {start,end} of lexicalSpans(node.data,query,500-ranges.length)){const range=new Range();range.setStart(node,start);range.setEnd(node,end);ranges.push(range);}
+ }
+ CSS.highlights.set('paia-search',new Highlight(...ranges));
+}
 
 // Locate a lexical match within one Input without changing editable content.
 export function firstLexicalRange(root,query){
- const needle=String(query||'').trim().toLocaleLowerCase();
- if(!root||!needle)return null;
- const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
- let node;
+ if(!root||!normalizeSearch(query))return null;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
  while((node=walker.nextNode())){
   if(node.parentElement?.closest('[hidden],button,select'))continue;
-  const offset=node.data.toLocaleLowerCase().indexOf(needle);
-  if(offset<0)continue;
-  const range=new Range();
-  range.setStart(node,offset);range.setEnd(node,offset+needle.length);
-  return range;
+  const span=lexicalSpans(node.data,query,1)[0];if(!span)continue;
+  const range=new Range();range.setStart(node,span.start);range.setEnd(node,span.end);return range;
  }
  return null;
 }
