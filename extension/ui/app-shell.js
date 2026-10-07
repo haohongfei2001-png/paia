@@ -5,8 +5,8 @@ import {installSettingsPreferences,presentSettingsPreferences} from './settings-
 import {installUniversalSearch} from './universal-search.js';
 import {installRevisit} from './revisit.js';
 
-const NAV_LABELS={library:['档案','Archive'],thoughts:['思想库','Thought Library'],settings:['设置','Settings']};
-const NAV_ICONS={library:'archive',thoughts:'thoughts',settings:'settings'};
+const NAV_LABELS={library:['档案','Archive'],thoughts:['思想库','Thought Library'],memory:['用于 AI','For AI'],settings:['设置','Settings']};
+const NAV_ICONS={library:'archive',thoughts:'thoughts',memory:'context',settings:'settings'};
 const labels=()=>document.documentElement.lang==='en'?1:0;
 
 // One explicit composition boundary. RouteSession remains the only history and
@@ -38,7 +38,7 @@ export class AppShellController {
   document.getElementById('thought-topic-header').append(document.getElementById('topic-search'));
   this.installArchivePresentation();
   installUniversalSearch();installRevisit();
-  installSettingsPreferences({back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
+  installSettingsPreferences({back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,...(this.settingsReturn.contextCard?{contextCard:this.settingsReturn.contextCard}:{}),returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
   const optional=document.createElement('small');optional.className='ux-consent-optional';document.getElementById('consent-check').closest('.consent-checkbox').append(optional);
   document.addEventListener('paia:preferences-applied',()=>this.localize());
   this.localize();

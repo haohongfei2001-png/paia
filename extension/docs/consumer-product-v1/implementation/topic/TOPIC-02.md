@@ -9,6 +9,115 @@ IMPLEMENTED_LOCAL_CANDIDATE / INDEPENDENT_REVIEW_CLEARED /
 HOSTED_CERTIFICATION_PENDING. This receipt does not advance STATUS, integrate
 ahead of TOPIC-01, or certify semantic formation, deployment or the whole product.
 
+## Corrected coherent Context dependency — 2026-10-07
+
+Combined runtime `f54e683bc51c857ed94a56a6e9f916d0c3b73243`, tree
+`ca28cb3d3b20bbe49afb25afdafcdd40c01fdf57`, inherits independently reviewed
+Context0.15 candidate `a4d27a4ca6864d9af257ba422eb7d1bf66d8ddd4`, tree
+`6719461e5cae147afbabc3d1efbcf9392bc407da`. Its generation-bound receipt
+and pending-join acknowledgement corrections are preserved. All eighteen
+inherited paths equal that Context owner except the existing producer-minor16
+header addition. Topic02 domain/test bytes, including the reviewed dormant
+guard, are unchanged. Independent mechanical inheritance review cleared this
+exact merge without conflicts.
+
+The combined Topic01/02, Context03/04/05, restore, version and compatibility
+suite passes 644 cases with zero failures or skips. Source package guards pass
+10,508 checks across 311 resources; the release product guard passes 331 files
+at version0.16.0. The complete inherited stack also passes 59 serial privacy
+cases and the development audit when checked in the Topic04 superset. Candidate
+`37617340206` on prior checkpoint `49efa18e` passed; it is not certification of
+this new combined tree. Final hosted full/native dependency proof, normal
+ordered integration and exact-main verification remain pending.
+
+Main `948ea06a57cd932c187407faf7140d9fb6714eff` at0.14 passed exact full
+`37611452025` and Prompt `37611451822`. This records the coherent correction
+of the retained old-main sampler failure without changing that negative result.
+No local receipt advances the canonical queue or activates processing.
+
+## Coordinated integration candidate — 2026-10-07
+
+Runtime/version head `27a5727fed2810b9748985f7f2a8b08c86ca0269`, tree
+`f1c6616ddbcc069b6bfd87caaca5d1b618613bdb`, reconciles actual main
+`66fe65cae9ad7766362a0b09f2651e139b863258` and independently certified
+Context02 `8c9ba02104c90b14e8a05d6f2b43f3347c9b7f00`, tree
+`22d361f40c1e957da2705a04d256a40c664a4bc2`. All twelve previously reviewed
+Topic02 runtime/test/harness files remain byte-identical to published
+`bce39ea4cf8113ecf34d3607689a97a2043715c1`. Context runtime is inherited,
+not reimplemented by this Topic writer.
+
+The integration owner reserved `0.16.0` after Context01 `0.14.0` and Context02
+`0.15.0`. Manifest, numeric version-name prefix and package agree. The bounded
+five-file release delta adds only producer minor 16 to existing-file header
+admission, preserves all previously supported minors and strengthens malformed
+current-version coverage. Future minor 17, unknown schemas/sections and
+credential-bearing envelopes still refuse; production export remains retired.
+No backup entity/schema, restore graph or processing permission changes.
+
+Local combined owning/restore/Context compatibility checks: 197 passed,
+zero failed/skipped. Serial privacy/security: 59 passed, zero failed/skipped;
+development audit passed. Source package: 10,152 checks across 302 resources;
+release package: 10,088 checks across 298 resources, 322 packaged files.
+Independent review cleared the exact five-file release delta at `27a5727f`
+and separately reran all four owning version/backup cases successfully.
+Hosted exact-head full certification remains pending; these are candidate receipts.
+
+The original draft candidate `37555637460` passed on `bce39ea4`; it does not
+certify this successor. Topic01's repaired candidate full `37565860724` passed,
+while main `66fe65ca` recorded a retained release A01 typography-sampler stale-node
+failure in `37567653820`. The reviewed correction is already present in this
+certified Context ancestry. The authorized dependency sequence still requires
+successful corrected exact-main proof and normal Context integration; this
+receipt neither converts the failed run to PASS nor advances STATUS.
+
+## Recovery and current dependency reconciliation — 2026-10-07
+
+After the executor reset, the paused candidate was reconstructed from verified
+remote sources to exactly tree `ec1f41e8bd06060c44b78e6d9b346325c1448a92`.
+Read-only GitHub checks found none of the six interrupted new blob uploads and
+no branch update; no partial publication is credited as a checkpoint.
+
+Reconciled runtime `558f827eafdc4fb384360fc0b59edb3656892aaf`, tree
+`3b24c0f6be78d7c08545cd4ac29d49e857500d9d`, includes the certified combined
+Context 0.15 head `84edc0c8aa4528224492938430e304a5d6085de0`, tree
+`850cb29b413d6b40f785f34c6c3054e1e29846c2`. Its actual receipt-admission
+and restore-epoch corrections remain intact. The twelve reviewed Topic02
+code/test files still match `bce39ea4` byte-for-byte; the shared backup-format
+difference against that Context base remains only producer-minor 16 admission.
+
+Current combined Topic01/02, Context03/04, receipt portability and restore tests:
+514 passed, zero failed/skipped. Serial privacy/security and development audit
+passed. Source package: 10,415 checks across 309 resources. Release product
+guard: 329 files with synchronized 0.16.0 metadata. These results supplement,
+rather than replace, the earlier receipts. Hosted full proof and the declared
+Context-before-Topic02 integration sequence remain required. This recovery
+adds no provider/model activation, external grant, UI redesign or STATUS advance.
+
+## Lifecycle effective-access correction — 2026-10-07
+
+A focused integration test found a missing case in this unactivated candidate:
+active Topic A carried an explicit retained denial, Topic B allowed the same
+Entry, and automatic dormancy of A changed actual `MemoryService.permittedPaths`
+from zero to one while all permission rows stayed unchanged. This was a Topic02
+candidate transition, not a newly activated production service.
+
+Runtime/test commit `820d8d9c98f0453220d96a2050f08697a4686b7b`, tree
+`925c7e53943fd58a3d5862c8498f2191e2ec19dd`, invokes the existing foundation
+negative-witness guard inside the same write transaction before active-to-dormant
+mutation. It adds no permission owner, metadata copy or grant write. Explicit
+Topic/never/Section restrictions and restrictions in another retained profile
+refuse atomically; unrelated restrictions and empty excluded Sections do not
+block safe activity. Separate permission-owner revision remains authoritative.
+
+Seven new actual-owner regressions cover those paths, unchanged data/permissions,
+real replace restore and same-ID reactivation after lawful permission revision.
+The lifecycle/foundation removal-and-history/Context scope combination passes
+136 cases. Independent review cleared the exact two-file delta and repeated all
+11 lifecycle cases successfully. Earlier statements about unchanged Topic02
+files refer to their pinned recovery checkpoints; this later bounded correction
+changes only the lifecycle owner and its owning tests. Final inherited-base full
+certification remains required before integration.
+
 ## Owners and physical storage
 
 - `topic-processing.js`: default-denied trusted internal processing boundary.
@@ -137,8 +246,8 @@ Source-purge, restore and Context/Memory regressions: 73 passed, 0 failed,
 0 skipped. Privacy/security:
 59 passed, 0 failed, 0 skipped. Source static package guard: 10,005 checks passed
 across 297 resources. Release build: 9,941 package checks passed across 293
-runtime resources; release product guard passed with 317 files. Version remains
-the inherited 0.12.1 until the integration owner coordinates it.
+runtime resources; release product guard passed with 317 files. That historical
+checkpoint inherited 0.12.1; the coordinated successor above reserves 0.16.0.
 
 Two full-unit attempts have no terminal receipt and are PARTIAL / NOT_VERIFIED.
 The local runner sessions ended before a terminal result could be retrieved.

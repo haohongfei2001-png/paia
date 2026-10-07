@@ -6,6 +6,20 @@ Current runtime baseline: **v0.12.0 + post-release consolidation rounds**
 
 This document defines the architecture boundaries that new work must preserve unless an explicit migration is approved. Historical implementation documents remain evidence, but they do not define new architecture direction by default.
 
+## Approved Context Cards local owner (CTX4-01)
+
+`core/context-cards.js` owns bounded, independent manual Context Items in a
+versioned row in the existing `meta` store. It reuses strict repository
+transactions and body-free operation receipts; no DB/schema bump is needed.
+It does not mutate Source, Working Input or Thought truth. Global/Card access
+preferences default off and are not a connection or outbound authority.
+`ui/context-cards.js` reuses the AppShell route and existing editing/recovery
+primitives. Old package/Memory/BYO/export commands remain retired. The precise
+additive-storage, rollback, bounds and restore contract is recorded in
+[CTX4-01](docs/consumer-product-v1/implementation/context-cards/CTX4-01.md).
+Rules/Now editing, Topic access, retrieval, automatic maintenance and actual
+connections remain later-stage work, not implied by this local owner.
+
 ## Archive source metadata and bounded navigation
 
 `source-structure-model/store/backup` owns bounded Conversation/Project/history

@@ -42,7 +42,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   const chat={id:'ux-r1-capture',title:'UX-R1 最近收录',base:1609459200,messages:[{id:'ux-r1-message',text}]};
   await h.open(chat);await eventually(async()=>(await h.state()).records.some(row=>row.originalText===text),'real synthetic capture reaches Source');
   await p.bringToFront();await eventually(()=>p.locator('#archive-reader-navigator-slot').isVisible(),'current Archive root is visible');
-  assert.deepEqual(await p.locator('#primary-nav button').allTextContents(),['档案','思想库']);
+  assert.deepEqual(await p.locator('#primary-nav button').allTextContents(),['档案','思想库','用于 AI']);
   assert.equal((await p.locator('.sidebar-bottom [data-view="settings"]').textContent()).trim(),'设置');
   assert.equal((await p.locator('#ux-local-state').textContent()).trim(),'本机保存');
   assert.equal(await p.evaluate(()=>location.hash+location.search),'','UX-R1 history must not invent hash/query routes');
@@ -57,7 +57,7 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   await eventually(async()=>JSON.stringify(await p.locator('.ux-settings-nav button').allTextContents())===JSON.stringify(['收录','阅读与外观','会员与 AI 服务','隐私','数据与恢复','高级']),'Settings groups follow the active interface language');
   await p.locator('[data-settings-group="data"]').click();assert.match(await p.locator('[data-group="data"]').textContent(),/当前版本未提供设备同步/);
   await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('#thought-panel').isVisible(),'Settings Back restores its originating root through same-URL history');
-  assert.equal(await p.locator('#primary-nav [data-view="memory"]').count(),0,'additional AI launcher is retired');
+  assert.equal(await p.locator('#primary-nav [data-view="memory"]').count(),1,'approved local Context has one launcher');
   await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#archive-reader-navigator-slot').isVisible(),'Archive navigation commits before browser Back');await p.evaluate(()=>history.back());await eventually(()=>p.locator('#thought-panel').isVisible(),'browser Back restores Thought root');await p.evaluate(()=>history.forward());await eventually(()=>p.locator('#archive-reader-navigator-slot').isVisible(),'browser Forward restores blank Archive root');
   assert.equal(await p.evaluate(()=>location.hash+location.search),'','Back/Forward keeps the verified archive URL unchanged');
   await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#archive-reader-navigator-slot').isVisible());
@@ -87,9 +87,9 @@ test('UX-R1 shell uses real recently-captured content, same-URL history, reversi
   const cdp=await p.context().newCDPSession(p);await p.setViewportSize({width:640,height:900});await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
   await p.screenshot({path:'work/ux-r1/archive-200pct-light.png',fullPage:true});assert.equal(await p.locator('#scope-search').isVisible(),true,'200% page scale keeps primary Archive search reachable');await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});await cdp.detach();
   await p.setViewportSize({width:390,height:844});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});
-  await eventually(()=>p.evaluate(()=>{const menu=document.getElementById('archive-compact-navigation'),buttons=[...document.querySelectorAll('.sidebar [data-view]')];return !menu.hidden&&!menu.open&&buttons.length===3&&buttons.every(button=>button.parentElement.id==='archive-compact-nav-items');}),'mobile root navigation reaches its actual compact owner');
+  await eventually(()=>p.evaluate(()=>{const menu=document.getElementById('archive-compact-navigation'),buttons=[...document.querySelectorAll('.sidebar [data-view]')];return !menu.hidden&&!menu.open&&buttons.length===4&&buttons.every(button=>button.parentElement.id==='archive-compact-nav-items');}),'mobile root navigation reaches its actual compact owner');
   await p.evaluate(()=>globalThis.__uxrCompactButtons=[...document.querySelectorAll('.sidebar [data-view]')]);await p.locator('#archive-compact-navigation > summary').click();
-  for(const view of ['library','thoughts','settings'])assert.equal(await p.locator(`#archive-compact-nav-items [data-view="${view}"]`).isVisible(),true,'same primary action is reachable: '+view);
+  for(const view of ['library','thoughts','memory','settings'])assert.equal(await p.locator(`#archive-compact-nav-items [data-view="${view}"]`).isVisible(),true,'same primary action is reachable: '+view);
   await p.locator('#archive-compact-navigation > summary').press('Escape');assert.equal(await p.locator('#archive-compact-navigation').evaluate(node=>node.open),false);assert.equal(await p.locator('#archive-compact-navigation > summary').evaluate(node=>document.activeElement===node),true);
   await openArchiveWindow(p,{text:'UX-R1 最近收录'});await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#archive-compact-navigation > summary').isVisible(),true,'narrow Reader retains compact top navigation');assert.equal(await p.evaluate(()=>__uxrCompactButtons.every(node=>node.isConnected&&node.parentElement.id==='archive-compact-nav-items')),true,'Reader preserves the same primary button owners');
   await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),true);

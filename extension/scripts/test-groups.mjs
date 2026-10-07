@@ -1,4 +1,6 @@
 const CURRENT_BROWSER=new Set([
+ 'context-cards-chrome-e2e.test.mjs',
+ 'cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs',
  'consumer-cleanup-chrome-e2e.test.mjs',
  'desktop-vnext-context-chrome-e2e.test.mjs',
  'capture-foundation-chrome-e2e.test.mjs',
@@ -55,6 +57,9 @@ export function testShard(file, position, total, category) {
  // other placements; move complete Thought ownership to6 and the measured
  // Content/Years pair onto5's spare capacity. No file/case is split or skipped.
  if(category==='browser E2E'&&total===6){
+  // Full37554001210 exhausted5 after both Context cases passed;6 took670s.
+  // Move only the complete Context file (~182s) to6, preserving the prior72.
+  if(name==='context-cards-chrome-e2e.test.mjs')return 6;
   // Full37323881161 exhausted3 while Settings alone took400s and6 took331s.
   // Move this complete file to6; keep all cases and the same18-minute budgets.
   if(name==='uir-04-settings-chrome-e2e.test.mjs')return 6;
@@ -70,6 +75,13 @@ export function testShard(file, position, total, category) {
  // Put the complete six Source/release purge journeys on2; retain all cases
  // and the unchanged18-minute budget, without shifting every later file.
  if(category==='browser E2E'&&total===4){
+  // CTX4-05 adds one complete native source/release owner on4. Compensate
+  // here once, after the6->5->4 fallthrough, to preserve all73 old routes.
+  if(name==='cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs')return 4;
+  if(name>'cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs')position--;
+  // CTX4 adds its whole source/release journey without shifting old placements.
+  if(name==='context-cards-chrome-e2e.test.mjs')return 1;
+  if(name>'context-cards-chrome-e2e.test.mjs')position--;
   // Consumer cleanup adds one complete source/release journey to shard1.
   // Subtract only its insertion so every preceding 71-file route is retained.
   if(name==='consumer-cleanup-chrome-e2e.test.mjs')return 1;

@@ -12,8 +12,8 @@ async function consent(page){const action=page.locator('#enable-consent');await 
 async function prepareArchive(h,label='UIR01_CAPTURE'){const p=h.archive;await consent(p);await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});const text=`${label} 用于验证 UI Refresh Shell 与 Archive 框架的合成输入。`;await h.open({id:label.toLowerCase(),title:'UIR-01 最近收录',base:1609459200,messages:[{id:label+'-message',text}]});await eventually(async()=>(await h.state()).records.some(row=>row.originalText===text),'synthetic capture reaches immutable Source');await p.bringToFront();await eventually(()=>p.locator('#archive-navigator').isVisible(),'Archive root is visible');return {p,text};}
 async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
 async function assertShell(p){
- assert.equal(await p.locator('#primary-nav > button').count(),2,'Archive and Thought Library remain active; Context execution stays unavailable');
- assert.equal(await p.locator('#primary-nav > button .ux-nav-icon').count(),2,'each root destination has one restrained icon');
+ assert.equal(await p.locator('#primary-nav > button').count(),3,'Archive, Thought Library and approved local Context have real destinations');
+ assert.equal(await p.locator('#primary-nav > button .ux-nav-icon').count(),3,'each root destination has one restrained icon');
  assert.equal(await p.locator('.sidebar-bottom > [data-view="settings"] .ux-nav-icon').count(),1,'Settings has its shell icon');
  assert.equal((await p.locator('#workspace-heading').textContent()).trim(),'档案');
  assert.equal(await p.locator('h1:visible').count(),0,'Archive directory has no duplicate page title');assert.equal(await p.locator('#archive-root-heading').isVisible(),false);
@@ -23,7 +23,7 @@ async function assertShell(p){
 }
 async function assertLocaleChrome(p){
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.lang)==='en','English shell applies');
- assert.deepEqual(await p.locator('#primary-nav .ux-nav-label').allTextContents(),['Archive','Thought Library']);assert.equal(await p.locator('#primary-nav .ux-nav-icon').count(),2);assert.equal(await p.locator('#universal-search-open').isVisible(),false,'English shell also keeps global search launcher hidden');assert.equal(await p.locator('#scope-search').isVisible(),true);assert.equal(await p.locator('#revisit-open').isVisible(),false);assert.equal(await p.locator('#core-loop-return').count(),0,'English shell does not recreate the legacy Revisit card');
+ assert.deepEqual(await p.locator('#primary-nav .ux-nav-label').allTextContents(),['Archive','Thought Library','For AI']);assert.equal(await p.locator('#primary-nav .ux-nav-icon').count(),3);assert.equal(await p.locator('#universal-search-open').isVisible(),false,'English shell also keeps global search launcher hidden');assert.equal(await p.locator('#scope-search').isVisible(),true);assert.equal(await p.locator('#revisit-open').isVisible(),false);assert.equal(await p.locator('#core-loop-return').count(),0,'English shell does not recreate the legacy Revisit card');
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.lang)==='zh-CN','Chinese shell restores');await assertShell(p);
 }
 async function screenshotArchiveMatrix(p){

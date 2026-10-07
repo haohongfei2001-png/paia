@@ -6,6 +6,58 @@ mechanics. It installs no production semantic assessor, processing resolver,
 runner, provider, service, paid call, taxonomy or external grant. It does not
 advance STATUS or certify semantic/model quality, migration, UI or the product.
 
+## Corrected coherent Context dependency — 2026-10-07
+
+Combined runtime `ca686a323198ebcae1df5e448a15e0764f9cfc68`, tree
+`aa301884a8f429cf5da85dd80fdc68fd7b8bcba7`, inherits the independently
+reviewed Context0.15 `a4d27a4c` / tree `6719461e` correction through Topic02.
+All eighteen inherited paths equal the Context owner except the reserved
+producer-minor17 header; no Topic03 domain or test bytes change. Independent
+mechanical inheritance review cleared this exact conflict-free merge.
+
+Current selected formation/candidate/lifecycle/receipt/version checks pass
+90 cases, zero failures or skips. Source package guards pass 10,616 checks
+across 314 resources; release guards pass 334 files at0.17.0. The inherited
+stack's 59 serial privacy cases and development audit pass in the Topic04
+superset. Earlier 126-case evidence below remains a separately scoped run.
+Final hosted full/native dependency proof, ordered integration and exact-main
+verification remain pending; no semantic service or model-quality claim follows.
+
+## Recovered dependency checkpoint and reserved version — 2026-10-07
+
+The existing reviewed draft [PR #181](https://github.com/haohongfei2001-png/paia/pull/181)
+at `73a89d2bc193daa387880bcc65de9a2d5a1787aa` remains the Topic03 source
+baseline. All eleven Topic03-owned runtime, test, harness and receipt files were
+byte-identical before this receipt update. Recovery did not recreate formation
+logic or substitute a new semantic assessor.
+
+The coordinated successor inherits the certified Context0.15 tree
+`850cb29b413d6b40f785f34c6c3054e1e29846c2` through real parent `8e500508`,
+the repaired Topic01 foundation, and Topic02's independently reviewed dormant
+transition guard `820d8d9c`. Topic02 records its actual-path negative evidence,
+restore checks and correction separately. The final coherent Context0.15/05
+tree remains a required input before this stack's final certification.
+
+The integration owner reserved `0.17.0` after Topic02 `0.16.0`. Manifest and
+package agree; the producer-minor allowlist adds only 17, retaining prior 16
+and refusing future 18, malformed versions and existing invalid envelopes.
+The nonportable Context receipt restrictions and schema/secret protections
+remain. This is a dependency checkpoint, not an installed or released build.
+
+Exact runtime/version candidate `00ed4ddaa129f49cb92b785f99b1068d81c3c037`,
+tree `b14d822814c60504851f3afcba8807deb53e5891`, passed 126 owning/dependency
+tests, serial privacy and development audits, 10,526 source package checks
+across 312 resources, and a 332-file release guard. Independent read-only
+inheritance/version review verified owner-byte equality and reran 48 focused
+version, receipt, lifecycle and effective-access tests. The subsequent inherited
+Topic02 receipt and this update are documentation only.
+
+The original draft's candidate run `37556169882` passed; it is historical
+candidate evidence, not full certification of this successor. Final Context
+inheritance, exact-head full checks, dependency-ordered integration and
+exact-main verification remain open. Mechanical synthetic evidence does not
+establish real semantic model quality or activate any service.
+
 ## Source and ownership
 
 Reviewed TOPIC-02 tree: `bd5b501b0c2f71a7296e5e759196a6ae03a8e946`.

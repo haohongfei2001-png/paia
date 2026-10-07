@@ -42,6 +42,10 @@ The replacement visual-state mapping remains AI_CONTEXT_CARDS_V2_REFERENCES.md; 
 
 The approved shell, brand and Context visuals remain. The architecture task did not design a new Thought UI; the later scoped Thought visual adoption above now supplies that presentation authority. Current consumer-cleanup cancellations, including exports, backup generation and BYO/direct provider transport, remain in force. Neither decision authorizes payment, recurring costs, external connections, cloud uploads, destructive migration or public release. Source eligibility, human work, revocation, read/write separation and unresolved affected gates remain protected.
 
+## Context shared reading roles — scoped owner clarification, 2026-10-07
+
+The owner explicitly chose to retain PAIA's existing font size and prose width for Context detail. The existing shared reading-preference owner and saved user choices remain authoritative; its standard 17px/680px role is accepted in place of the approved package's 16px/800px detail role. This is a bounded exception for those reading metrics, not a new Context font system or a waiver of the remaining visual, interaction, accessibility or runtime gates. The original private reference bytes and hashes remain unchanged. Future proportional scaling across PAIA remains a separate implementation direction.
+
 ## 1. Product authority
 
 The authority order for PAIA Consumer Product v1 is:

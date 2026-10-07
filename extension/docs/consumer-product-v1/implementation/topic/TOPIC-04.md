@@ -6,6 +6,57 @@ processing resolver, worker command, automatic runner, provider, UI, external
 grant, private-data migration, deployment or release is installed by this slice.
 This receipt does not advance STATUS or claim the TOPIC-05 promotion UI is wired.
 
+## Corrected coherent Context dependency — 2026-10-07
+
+Combined runtime `21167ec66b3b7b6b327437903d2b1d8a752312aa`, tree
+`585e249b3f9c0d2892e106f99c47d22fc7be5fc8`, inherits independently reviewed
+Context0.15 `a4d27a4c` / tree `6719461e` through Topic02/03. All eighteen
+inherited paths equal the Context owner except the reserved producer-minor18
+header. Promotion domain/test bytes remain unchanged. Independent mechanical
+inheritance review cleared this exact conflict-free merge.
+
+The current selected promotion/formation/lifecycle/receipt/version suite passes
+153 cases with zero failures or skips. Serial privacy passes 59 cases and the
+development audit. Source package guards pass 10,865 checks across321 resources;
+release guards pass341 files at0.18.0. The earlier174-case evidence below is a
+separate scoped run. Final hosted full/native dependency proof, Topic02/03-first
+integration and exact-main verification remain pending. This correction does
+not activate any semantic service or ordinary promotion UI.
+
+## Recovered dependency checkpoint and reserved version — 2026-10-07
+
+The reviewed draft [PR #186](https://github.com/haohongfei2001-png/paia/pull/186)
+at `561ee566cb4e62fcf16397bd2f03c420accfd2e7`, tree
+`2845fe3e183039aef924fe2b9eb15121ce04b21d`, preserves the original Topic04
+work. Candidate run `37569024661` passed; full certification was not run for
+that draft. All fifteen Topic04-owned files were byte-identical before this
+receipt update, and inherited Topic03 mechanics remain unchanged.
+
+The coordinated successor consumes reviewed Topic03 `00ed4dda`, certified
+Context0.15 tree `850cb29b413d6b40f785f34c6c3054e1e29846c2`, the repaired
+Topic01 foundation and Topic02 dormant-transition guard `820d8d9c`. Its final
+Context0.15/05 inheritance is still pending; the existing correction receipt
+retains the actual-path negative evidence instead of erasing it.
+
+The integration owner reserved `0.18.0` after Topic03 `0.17.0`. Manifest and
+package agree. Only producer minor 18 is added; prior 17 is retained and future
+19, malformed versions, unknown schemas/sections, secret-bearing envelopes
+and nonportable Context receipts continue to refuse. This candidate allocation
+does not establish an installed or released build.
+
+Exact runtime/version candidate `e60cb049fd99efe37281ba87efeca5d291e07e5b`,
+tree `4b0149a5bd35c3219a0e37b6dc9b615bb1d682d2`, passed 174 owning/dependency
+tests, serial privacy and development audits, 10,775 source package checks
+across 319 resources, and the 339-file release guard. Independent read-only
+review verified all promotion owner bytes and reran 48 focused version,
+receipt, lifecycle and effective-access cases. Subsequent inherited Topic02/03
+receipts and this update change documentation only.
+
+Final combined-base review, exact-head full checks, Topic02/03-before-04
+integration and exact-main verification remain required. These local/synthetic
+mechanics do not certify real model quality, ordinary promotion UI, production
+service activation, user-data migration or external grants.
+
 ## Base and ownership
 
 Base `b4b05a2233110c1b6184f36d9f10bec34711ec56` contains independently reviewed
