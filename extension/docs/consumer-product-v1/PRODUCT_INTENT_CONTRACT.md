@@ -1,6 +1,6 @@
 # Product Intent Contract — PAIA Consumer Product v1
 
-This file is a public executable derivation of the product owner's design intent. The private Google Drive source PAIA设计想法.docx controls where not superseded by a later explicit owner decision. Current scoped authority: [Personal Topic Architecture](TOPIC_ARCHITECTURE.md) and [AI Context Cards v2](AI_CONTEXT_CARDS_V2_PLAN.md), under [AUTHORITY.md](AUTHORITY.md).
+This file is a public executable derivation of the product owner's design intent. The private Google Drive source PAIA设计想法.docx controls where not superseded by a later explicit owner decision. Current scoped authority: [Personal Topic Architecture](TOPIC_ARCHITECTURE.md), [adopted Thought presentation](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md) and [AI Context Cards v2](AI_CONTEXT_CARDS_V2_PLAN.md), under [AUTHORITY.md](AUTHORITY.md).
 
 Later explicit owner decisions supersede original design where they conflict. The [current consumer scope](../../PRODUCT.md#current-consumer-scope) cancels dedicated Profile management, Thought response relations, Material Tray, Candidate approval management, activity-retention settings, Product Signals collection/dashboard, ordinary diagnostic/maintenance pages, user-provided API configuration/direct transport and all export/backup-generation/dedicated-sharing products. Preserve necessary legacy data, saved AI-presentation candidates and version protection, existing-file restore, privacy and deletion safeguards. Hidden Topic formation candidates are defined separately by PT-08 and never become an approval product. Fault recovery remains available only for actual data/index failures; internal audit collection/retention must not expand.
 
@@ -93,7 +93,7 @@ Owner gate B-01: final semantics for direct editing of existing/old Thought vers
 
 Owner gate B-02: permanent Source deletion treatment for user-rewritten derivative material.
 
-PT-1.0 changes organization semantics, not these unresolved editing/purge decisions. AI has no authority to rewrite human bodies or human organization facts.
+PT-1.0 changes organization semantics, not these unresolved editing/purge decisions. AI has no authority to rewrite human bodies or human organization facts. Final visual adoption does not settle those gates or authorize a new body copy/implicit reverse write.
 
 ## 6. Smart Filter
 
@@ -105,7 +105,7 @@ Transient action words in an Input do not justify discarding its substantive dec
 
 ## 7. Thought Library — Personal Topic Architecture
 
-The sole detailed contract is [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md), PT-1.0. This replaces the former long-term-only/optional-deeper-hierarchy wording.
+The sole detailed semantic contract is [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md), PT-1.0. This replaces the former long-term-only/optional-deeper-hierarchy wording. The sole current presentation contract is [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0.
 
 A Personal Topic is a group of content the user can independently recognize and has reason to return to for reading, thinking, decisions or reuse, organized around a stable object or sustained subject. A bounded short-term project can qualify. The root directly contains Personal Topics in the user's language, not fixed category parents or 144 System Topics.
 
@@ -119,7 +119,9 @@ New Topic candidates are completely hidden. They accumulate evidence, consolidat
 
 User explicit intent is the highest organization authority: create, rename, keep-separate, move, exclude, Section edit/order, pin/keep/restore and never-reassign survive reruns/rebuilds. Preserve field/edge-specific protection and negative membership. Topic lifecycle is candidate/active/dormant/merged/removed under PT-08; dormancy retains identity and merged retains permanent redirects. related_to/part_of are deferred, not MVP dependencies or an invisible tree.
 
-Retain the adopted compact Topic list, no root Recent Reading section and no root-wide AI approval control. Multi-source views share the same Topic identities. Longitudinal views may show early/turning/recent evidence without inventing growth. Dedicated Thought response creation, related-Thought viewing and relation management remain removed; legacy records retain necessary compatibility.
+Root now uses stable independent rectangular Personal Topic blocks with Topic names and bounded real named Section overview. Title-only Topics are normal when default Sections are untitled. Section anchors open the same Topic reader, not another directory. No default expression preview/summary/recency/count template, shared table grid, Recent area or root-wide AI approval control. Search covers Topic/Section/Entry and may temporarily show exact Entry matches in place without rearranging the Root. Ordinary updates preserve identity-based positions and return anchors.
+
+The Topic reader is continuous default/named Section prose, with contextual Section rename/create/reorder/move and Section-aware Add Thought. No Content/Years tabs, timeline, Section panels, recursive sidebar or AI summary sidecar. Real time, source, versions and explicit longitudinal retrieval remain; differing expressions do not imply growth or belief change. Multi-source views share the same Topic identities. Dedicated Thought response creation, related-Thought viewing and relation management remain removed; legacy records retain necessary compatibility.
 
 ## 8. AI Topic Organizer and AI Organize are distinct responsibilities
 
@@ -129,7 +131,7 @@ Current availability remains honest: live AI generation requires the real servic
 
 The 2026-10-02 ownership rule remains controlling: Input Archive and human Thought content/organization facts are not AI-editable. AI may read only authorized material and maintain its own derivative output and scoped unprotected organization projection. Human confirmation does not authorize write-back to Source, Working Input or other human facts. B-01 remains unresolved. The 2026-10-07 clarification allows automatic Personal identity formation inside one Library, not a second AI library or general write permission.
 
-AI Organize may restructure its own derivative reading output, group/head it within the fixed organization-depth contract, process relevant changes incrementally, preserve evidence and allow human editing/protection. Generated prose headings do not establish new Topic/Section identities or recursive directory levels. Identity changes, human placement and promotion follow PT authority rules, not model text.
+AI Organize may restructure its own derivative reading output, group/head it within the fixed organization-depth contract, process relevant changes incrementally, preserve evidence and allow human editing/protection. Durable Sections already exist with AI Organize OFF; ON preserves those same identities and does not automatically create, rename or move durable Sections. Generated prose headings do not establish new Topic/Section identities, Root overview items or recursive directory levels. Identity changes, human placement and promotion follow PT authority rules, not model text. V6 of the visual authority governs the same-content reading toggle, reversible repetition, stale output, partial coverage and reading-anchor behavior.
 
 It may not silently alter the user's position, certainty, causality or emotional intensity; convert inference into stated belief; overwrite human edits/organization; become the only surviving thought body; automatically merge established identities; or silently retry paid calls. Schema validity, evidence-link validity and semantic fidelity are distinct acceptance levels.
 
@@ -204,7 +206,7 @@ Preserve human identity/organization intent across Topic migration and projectio
 
 PAIA should be quiet, coherent, reading-first, fast, dense enough for serious use, visually restrained, strong in typography/hierarchy, intuitive without database concepts, 120 Hz-friendly on supported hardware, and low-friction for selection/editing/copying/returning.
 
-Avoid generic SaaS dashboards, decorative cards, unnecessary borders/labels and gratuitous AI purple/glow/gradient/glass. Restrained glass is allowed when it serves a real interaction need such as approved cross-site Prompt Reuse legibility. AI identity comes from useful structure transformation and coherent behavior, not decoration alone. This Topic contract provides no new visual design and no graph/candidate-management surface.
+Avoid generic SaaS dashboards, decorative cards, unnecessary borders/labels and gratuitous AI purple/glow/gradient/glass. Restrained glass is allowed when it serves a real interaction need such as approved cross-site Prompt Reuse legibility. AI identity comes from useful structure transformation and coherent behavior, not decoration alone. The adopted Thought presentation reuses the existing PAIA shell and visual roles; rectangle/grid geometry is allowed, while graph/candidate-management surfaces and decorative database-card semantics are not.
 
 ## 15. Commercial/product policy
 
@@ -225,4 +227,4 @@ Do not revive without a new owner decision:
 - a third-party paid skin marketplace;
 - fixed-taxonomy user directories, recursive Topic/Section hierarchies, candidate approval inboxes or separate human/AI Thought Libraries.
 
-Connector and appearance-customization directions remain within their existing approvals; this does not reopen exports or disabled execution. See [Topic adoption](TOPIC_ARCHITECTURE_ADOPTION.md) for exact scoped supersession and preserved historical evidence.
+Connector and appearance-customization directions remain within their existing approvals; this does not reopen exports or disabled execution. See [Topic adoption](TOPIC_ARCHITECTURE_ADOPTION.md) and [final visual authority V8](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md#v8-scoped-supersession-and-retained-history) for exact scoped supersession and preserved historical evidence.
