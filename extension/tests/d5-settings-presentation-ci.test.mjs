@@ -22,8 +22,21 @@ test('Settings device diagnosis is explicit, isolated and cannot stand in for th
 });
 
 
-test('Settings diagnostic pins the official fixed full browser without changing normal selection or device oracles',()=>{
- const pin=job.slice(job.indexOf('      - name: Pin upstream touch-emulation'),job.indexOf('      - name: Provide Chinese glyph coverage'));
- assert.match(pin,/if: contains\(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC'\)/);assert.ok(pin.includes('https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'));assert.match(pin,/set -euo pipefail/);assert.match(pin,/sha256sum/);assert.doesNotMatch(pin,/\|\| true|continue-on-error|latest|canary/);
+test('Settings evidence pins the official fixed full browser without changing unrelated selections or device oracles',()=>{
+ const pin=job.slice(job.indexOf('      - name: Pin verified full Chrome'),job.indexOf('      - name: Provide Chinese glyph coverage'));
+ assert.match(pin,/if: contains\(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC'\) \|\| contains\(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER'\)/);assert.match(pin,/sha256sum --check --status/);assert.ok(pin.includes('https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'));assert.match(pin,/set -euo pipefail/);assert.match(pin,/sha256sum/);assert.doesNotMatch(pin,/\|\| true|continue-on-error|latest|canary/);
  const source=readFileSync(new URL('./settings-touch-diagnostic-chrome-e2e.test.mjs',import.meta.url),'utf8');for(const required of ["receipt.browser,'155.0.8059.39'",'browserZipSha256','trial.before.maxTouchPoints,1','trial.after.maxTouchPoints,1','trial.after.coarse,true','event.trusted,true','trial.afterBox.width>=44&&trial.afterBox.height>=44','for(const headless of [true,false])'])assert.ok(source.includes(required),required);
+});
+
+
+test('normal Settings coarse proof uses a separate coherent headed device and retains all trusted native oracles',()=>{
+ const source=readFileSync(new URL('./harness/settings-consumer-presentation.mjs',import.meta.url),'utf8'),coarse=source.slice(source.indexOf('async function coarseSettingsEvidence'),source.indexOf('export async function compareConsumerSettings'));
+ for(const required of ['hasTouch:true,headless:false','maxTouchPoints:1','page.touchscreen','trustedLabelTouch','disabled external access cannot be activated','observations,activations','await h?.close()','assert.deepEqual(before,seed)','assert.deepEqual(after,before','assert.deepEqual(reopened,before'])assert.ok(coarse.includes(required),required);
+ assert.doesNotMatch(source,/Emulation\.|Input.dispatchTouchEvent/);for(const required of ['event.trusted,true',"event.pointerType,'touch'",'device.maxTouchPoints,1','after.maxTouchPoints,1','point.width>=44&&point.height>=44','before.width>=44&&before.height>=44','await page.bringToFront()'])assert.ok(source.includes(required),required);
+});
+
+
+test('Settings pinned-browser receipt cannot impose fields on the independent Organize notice owner',()=>{
+ const organizer=job.slice(job.indexOf('      - name: D5 existing running and stale notices'),job.indexOf('      - name: Prepare the pinned scope baseline'));
+ assert.doesNotMatch(organizer,/coarse\.browser|browserZipSha256|155\.0\.8059/);assert.equal((job.match(/const coarse=receipt\.targets/g)||[]).length,1);
 });
