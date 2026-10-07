@@ -1,12 +1,12 @@
 import {idOK,validateMemoryRow} from './memory/model.js';
 
-// CTX4-03 preparation only: a pure local permission-policy prerequisite, not a
-// trusted reader, persistent grant owner, connection, or external capability.
-// The eventual caller must supply raw Topic-owner rows (before redirect
+// Pure local permission policy, not a trusted reader, persistent choice owner,
+// connection, or external capability. The trusted local service supplies
+// Topic-owner facts (before redirect
 // resolution), a ContextCardsService snapshot, complete legacy rows, and one
 // coherent body-free scope assessment from the existing eligibility owners,
 // plus body-free operation reservations projected from current raw receipts.
-// No whole-Topic assessment producer exists yet. Missing/partial/unknown facts
+// The separate scope producer supplies complete owner facts. Missing/partial/unknown facts
 // refuse; a matching rootReadAuthority token is freshness, not authentication.
 // Topic validation below covers consumed identity/lifecycle fields, not alias
 // history semantics. The Topic owner retains full identity/graph validation;
