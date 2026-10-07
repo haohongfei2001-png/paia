@@ -398,7 +398,7 @@ export class TopicController {
   const heading=$('topic-heading'),body=this.originalPane,metadata=this.editor?.metadata||[],pins=this.editor?.entry.protectedIds?.()||new Set();
   if(!this.editor){heading.replaceChildren(...this.topicHeading(page.topic));metadata.push(new MetadataEditor(heading,page.topic,'topic',this.onStatus));}
   if(page.kind==='section_reading'){
-  renderTopicSectionProse({body,page,pins,entryNode:item=>this.entryNode(item),updateEntry:(node,{entry})=>{
+  renderTopicSectionProse({body,page,pins,sectionActions:(header,section)=>this.renderSectionActions(header,section),entryNode:item=>this.entryNode(item),updateEntry:(node,{entry})=>{
    const sent=node.querySelector('.entry-sent-time');if(sent)sent.textContent=expressionCaption(entry,document.documentElement.lang);
    const staleLabel=node.querySelector('.entry-stale');if(staleLabel){staleLabel.textContent=stale(entry);staleLabel.onclick=()=>this.actions.compare(entry.id);}
   }});
@@ -542,6 +542,41 @@ export class TopicController {
   if(decision.decision==='mine')await owner.flush();
  }
  async createTopic(){const value=await this.form(tc('新建主题'),[{key:'name',label:'主题名称',required:true}]);if(!value)return;try{const r=await this.checked('CREATE_LIBRARY_TOPIC',{topic:{...value,operationId:op()}});await this.open(r.id);}catch{}}
+ renderSectionActions(header,section){
+  // Retain the native menu while updating its qualified identity, so paging
+  // does not steal focus or leave handlers bound to an older Section revision.
+  header.sectionActionRow={...section};
+  if(header.querySelector('.topic-section-actions'))return;
+  const menu=actionMenu('章节操作',[['重命名', 'rename'],['向上移动','up'],['向下移动','down']].map(([label,action])=>[label,()=>this.sectionContextAction(header.sectionActionRow,action)]));
+  menu.classList.add('topic-section-actions');header.append(menu);
+ }
+ async sectionContextAction(section,action){
+  if(this.sectionActionPending||!['rename','up','down'].includes(action)||section.isDefault)return;
+  const topicId=this.id,intent=this.openIntent,viewIntent=this.presentationIntent;
+  const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.presentationIntent===viewIntent;
+  const guard=()=>{if(!current())throw Error('TOPIC_SECTION_ROUTE_CHANGED');};
+  const read=async()=>{const rows=await this.topicSectionRows();guard();const row=rows.find(row=>row.sectionId===section.sectionId);
+   if(!row||row.isDefault||row.revision!==section.revision||row.layoutGeneration!==section.layoutGeneration||row.title!==section.title)throw Error('TOPIC_SECTION_CHANGED');return row;};
+  if(!topicId||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return;
+  this.sectionActionPending=true;
+  try{
+   if(!await this.flushEditors()||!current())return;
+   await read();let name=null;
+   if(action==='rename'){name=await this.form('章节名称',[{key:'title',label:'章节名称',value:section.title}]);if(!name||!current())return;}
+   if(action!=='rename'){const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId,kind:'section',id:section.sectionId,direction:action}});guard();if(!adjacent.id){announce(action==='up'?'已经是第一个章节。':'已经是最后一个章节。');return;}}
+   await this.mutate(async()=>{
+    guard();await read();
+    if(action==='rename'){await this.checked('EDIT_LIBRARY_SECTION',{edit:{topicId,sectionId:section.sectionId,expectedRevision:section.revision,title:name.title,operationId:op()}});return;}
+    const topic=await request('GET_LIBRARY_TOPIC',{id:topicId});guard();
+    const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId,kind:'section',id:section.sectionId,direction:action}});guard();
+    await read();
+    if(!adjacent.id)throw Error('TOPIC_SECTION_CHANGED');
+    const result=await this.checked('START_LIBRARY_LAYOUT',{layout:{kind:'section_order',topicId,sectionId:section.sectionId,targetSectionId:adjacent.id,expectedTopicRevision:topic.organizationRevision,operationId:op()}});
+    await this.waitLayout(result.jobId);
+   });
+   if(current())await this.focusSection(section.sectionId,{isCurrent:current});
+  }finally{this.sectionActionPending=false;}
+ }
  async createEntry(){return this.actions.compose({topicId:this.id||undefined});}
  async manageSections(){
   if(!this.id||!await this.flushEditors())return;const topicId=this.id,sections=await this.topicSectionRows();if(this.id!==topicId)return;
