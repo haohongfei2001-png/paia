@@ -160,6 +160,7 @@ export class StagedSyncRestore {
    if(((await this.stage.get(t,'generation'))?.value||0)!==restore.validatedGeneration)fail('BNS_RESTORE_STAGE_CHANGED');
    if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,'pending'),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
    if((await t.primaryRangePage('meta',{prefix:await this.stage.idIn(t,'pending'),limit:1})).rows.length)fail('BNS_RESTORE_STAGE_PENDING');
+   if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,'publicationActive'),limit:1})).rows.length)fail('BNS_RESTORE_PUBLICATION_PENDING');
    // The initial admitted materializer scope is bounded to one aggregate Prompt
    // preference owner. Other families need their own staged generation owners.
    if(restore.activeCoverage.reduce((sum,x)=>sum+x.count,0)>128)fail('BNS_OWNER_ACTIVATION_LIMIT');

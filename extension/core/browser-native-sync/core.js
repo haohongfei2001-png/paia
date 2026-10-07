@@ -205,7 +205,7 @@ export class BrowserNativeSyncCore {
  async *outbox(){for await(const row of this.rows('outbox')){const revision=await this.read('revision',row.revisionId);if(revision&&(!revision.redacted||revision.operation.kind==='purge'))yield clone(revision.operation);}}
  async acknowledge(operationId,revisionId){
   if(!opaque(operationId)||!hash(revisionId))fail('BNS_ACK_INVALID');
-  return this.transaction(true,async t=>{const row=await this.get(t,'outbox',operationId);if(!row)return {state:'absent'};if(row.revisionId!==revisionId)fail('BNS_ACK_INVALID');await t.delete('meta',row.id);return {state:'acknowledged'};},['meta']);
+  return this.transaction(true,async t=>{const row=await this.get(t,'outbox',operationId);if(!row)return {state:'absent'};if(row.revisionId!==revisionId)fail('BNS_ACK_INVALID');if(row.publicationId!==undefined)fail('BNS_PUBLICATION_OWNS_ACK');await t.delete('meta',row.id);return {state:'acknowledged'};},['meta']);
  }
  async state(){const heads=[];for await(const head of this.rows('head')){const versions=[];if(!head.purged)for(const revisionId of head.revisions){const row=await this.read('revision',revisionId);if(!row||row.redacted)fail('BNS_REVISION_MISSING');versions.push(row.operation);}heads.push({type:head.type,entityId:head.entityId,purged:head.purged,revisions:head.revisions,versions});}return heads.sort((a,b)=>canonical([a.type,a.entityId]).localeCompare(canonical([b.type,b.entityId])));}
 }
