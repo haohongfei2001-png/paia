@@ -1,6 +1,7 @@
 // Copied ONLY into a temporary source/release extension by storage-harness.mjs.
 // The production worker is retained, and these explicit test owners use isolated
 // native databases and chrome.storage key prefixes. No production command exists.
+import {PreparedPublicationJournal} from '../core/browser-native-sync/publications.js';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
 import {PromptSyncJournal, materializePrompt, restorePromptPreferences} from '../core/browser-native-sync/prompt-journal.js';
@@ -114,6 +115,27 @@ async function remoteOperations(entries, descriptors) {
   return operations;
 }
 async function run(command, args = {}) {
+  if (command.startsWith('publication-')) {
+    const {core} = await device(args.name), objects = new ImmutableObjects(args.entries || []), puts = [], gets = [];
+    const transport = {
+      async putImmutable(ref, value) { puts.push(ref.id); await objects.putImmutable(ref, value); if (args.unknownUpload) throw Error('SYNTHETIC_LOST_UPLOAD_ACK'); },
+      async get(ref) { gets.push(ref.id); return objects.get(ref); }
+    };
+    const journal = new PreparedPublicationJournal(core, {checkpoint: async stage => {
+      if (args.abortAck && stage === 'publication-after-ack') throw Error('SYNTHETIC_ACK_ABORT');
+    }});
+    let result, code;
+    try {
+      if (command === 'publication-prepare') result = await journal.prepare(args.publicationId ? {publicationId: args.publicationId} : {});
+      else if (command === 'publication-run') result = await journal.run(args.publicationId, transport);
+      else if (command === 'publication-checkpoint') result = (await buildCheckpoint(core, transport)).ref;
+      else if (command !== 'publication-state') throw Error('UNKNOWN_PUBLICATION_COMMAND');
+    } catch (error) { code = error.code || error.message; }
+    return {result, code, entries: objects.entries(), puts, gets,
+      row: args.publicationId ? await core.read('publication', args.publicationId) : null,
+      receipt: args.publicationId ? await core.read('publicationReceipt', args.publicationId) : null,
+      pending: await journal.pending(), snapshot: await snapshot(args.name)};
+  }
   if (command === 'identity') return {...networkEvidence(), databases: (await indexedDB.databases()).map(row => row.name)};
   if (command === 'pause-for-restart') { phase('restart-boundary'); return true; }
   if (command === 'snapshot') return snapshot(args.name);
