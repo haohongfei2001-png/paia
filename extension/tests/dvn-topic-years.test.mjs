@@ -69,14 +69,22 @@ test('D2 year position cache is bounded metadata and UTC labels agree with year 
 
 import {ThoughtWorkspace} from '../ui/thoughts.js';
 import {TopicTimeline} from '../ui/topic-timeline.js';
-test('D2 actual view owner rejects uncollected IME and latest content click cancels a waiting years transition',async()=>{
- let disposed=0,flushed=0;
- const workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{id:'topic',view:'original',originalMode:'content',editor:{composing:true,dispose(){disposed++;}},flushEditors:async()=>{flushed++;return true;}});
- await workspace.switchOriginalMode('years');assert.equal(workspace.originalMode,'content');assert.equal(disposed,0);assert.equal(flushed,0);
- let finish;workspace.editor.composing=false;workspace.flushEditors=()=>new Promise(resolve=>finish=resolve);
- const older=workspace.switchOriginalMode('years');await workspace.switchOriginalMode('content');finish(true);await older;
- assert.equal(workspace.originalMode,'content');assert.equal(disposed,0);
+test('D2 actual view owner rejects retired years and IME; latest Original cancels a waiting AI transition',async()=>{
+ let disposed=0,flushed=0;const prior=globalThis.document,toggle={checked:false,disabled:false};
+ globalThis.document={getElementById:id=>{assert.equal(id,'ai-presentation-toggle');return toggle;},activeElement:null};
+ const workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{id:'topic',view:'original',originalMode:'content',editor:{composing:true,dispose(){disposed++;}},rememberView(){},flushEditors:async()=>{flushed++;return true;}});
+ try{
+  // Years is no longer an admitted presentation. Keep the old refusal proof,
+  // then exercise IME and latest-intent fences on the surviving real owner.
+  await workspace.switchOriginalMode('years');assert.equal(workspace.originalMode,'content');assert.equal(disposed,0);assert.equal(flushed,0);
+  await workspace.switchView('ai');assert.equal(workspace.view,'original');assert.equal(disposed,0);assert.equal(flushed,0);assert.equal(toggle.disabled,false);
+  let finish;workspace.editor.composing=false;workspace.flushEditors=()=>{flushed++;return new Promise(resolve=>finish=resolve);};
+  const older=workspace.switchView('ai');assert.equal(typeof finish,'function','actual AI transition waits on the editor');
+  const latest=workspace.switchView('original');finish(true);await Promise.all([older,latest]);
+  assert.equal(workspace.originalMode,'content');assert.equal(workspace.view,'original');assert.equal(disposed,0);assert.equal(flushed,1);assert.equal(toggle.checked,false);assert.equal(toggle.disabled,false);
+ }finally{globalThis.document=prior;}
 });
+
 test('D2 actual read-only dialog owner rejects an older open after a newer attempt',async()=>{
  const pending=[],notices=[];
  const timeline=Object.assign(Object.create(TopicTimeline.prototype),{freshEntry:()=>new Promise((resolve,reject)=>pending.push({resolve,reject})),onStatus:message=>notices.push(message)});

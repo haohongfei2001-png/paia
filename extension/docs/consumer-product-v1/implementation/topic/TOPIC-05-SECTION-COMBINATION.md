@@ -58,3 +58,34 @@ Root must integrate first; version and current main must be reconciled again
 before this batch integrates. Hosted fixed-Chrome Settings matrices and full
 combined certification are still pending. No runtime here is claimed merged,
 installed, visually accepted by the owner, cloud-connected or publicly released.
+
+
+## First coherent hosted run and bounded corrections
+
+Candidate ccb6cb16 / run37688294927 failed. Unit smoke found the new0.20
+producer missing from the existing strict backup-header minor whitelist and
+two old reader fixtures that no longer reached their deferred body/view owner.
+The hosted fixed-Chrome browser job passed8/9, including both288-row Settings
+matrices; Data failed waiting for the rejected0.20 file's preview. Neither the
+matrix passes nor the component counts make that candidate gate successful.
+
+Corrections add only the explicit0.20 minor to the unchanged format/schema
+admission, retaining future0.21/major1/malformed/private-field refusals and the
+retired production export. Twelve complete backup-related files pass71/71.
+The large-body fixture now uses real ContinuousTopicReader; retired Years
+refusal stays tested, with IME/latest-intent checks on the current switchView
+owner. Seven complete reader-related files pass253/253, including both repaired
+files42/42. No timeout or negative boundary assertion was reduced.
+
+After those corrections, the complete Data native file passed1/1 with its
+source and current-release journeys (headless Chrome, no skipped/cancelled).
+Fourteen routing guards and11400 package checks pass. Fresh hosted candidate
+verification is still required for this combined correction checkpoint.
+
+The independently reviewed certification font pre-step replaces only the
+unreliable Azure HTTP Ubuntu mirror URI with the official signed HTTPS archive.
+It retains packages, signing configuration, all tests, seven jobs and original
+budgets. Root run37687078617 was cancelled in that dependency stage before
+shard5 browser tests; other required jobs passed. A single shard5 retry on the
+same Root head was requested, without rerunning successful groups. Its outcome
+is not presumed here; the original cancellation remains negative evidence.

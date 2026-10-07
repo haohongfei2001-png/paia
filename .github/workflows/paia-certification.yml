@@ -159,6 +159,20 @@ jobs:
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
+      - name: Use signed Ubuntu archive over HTTPS before browser font dependencies
+        run: |
+          # Run37687078617 stalled in font setup; prior37685485859 exhausted its adapter budget on this mirror.
+          # Change only that mirror URI; preserve suites, packages and signing keys.
+          sudo python3 - <<'PYAPT'
+          from pathlib import Path
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          for path in paths:
+              if path.is_file():
+                  text = path.read_text()
+                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                  if updated != text:
+                      path.write_text(updated)
+          PYAPT
       - name: Provide Chinese glyph coverage for actual visual evidence
         run: |
           sudo apt-get update
