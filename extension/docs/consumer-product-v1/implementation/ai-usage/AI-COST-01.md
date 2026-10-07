@@ -84,8 +84,45 @@ The first local full-unit run retained 2,815 passing tests and one failed
 10,000-Input benchmark: its non-CI 180-second watchdog expired. No timeout or
 assertion was changed. Sequential tests under the suite's existing CI profile
 passed on unchanged main 8c756116 (174.18 seconds) and candidate (183.22 seconds).
-These synthetic fake-IndexedDB/cloud timings do not meet or certify the separate
-controlled-machine 120-second commit target and do not prove browser performance.
+These historical timings are retained as reported, not relabeled as measured
+`commitMs`. They do not certify the separate controlled-machine 120-second
+commit target or real-browser performance.
+
+### Performance evidence clarification — 2026-10-08
+
+Read-only review at `0b157d10503c531c490bcb0610e5bf1d39e20787` confirmed that
+`tests/history-performance-v090.test.mjs` uses separate timing boundaries. Its
+non-CI 180-second outer watchdog covers the whole case: initial selection and
+preflight, first commit, reading/search, and repeat selection/preflight/commit.
+The `commitMs < 120000` assertion measures only the first commit. The watchdog
+failure above therefore does not establish that the first commit took 180
+seconds. The raw `performance-10000.json` behind the reported 174.18/183.22-second
+runs was not available in the reviewed handoff/workspace; their phase breakdown
+cannot be reconstructed from the retained prose.
+
+The existing test executes the 120-second assertion only when `CI` is unset.
+Under `CI`, its outer watchdog is 240 seconds; bounded batch rows/bytes,
+individual commit batches below 10 seconds, reading below 10 seconds, final
+counts, duplicate import and zero automatic provider requests remain asserted.
+A CI PASS is evidence for those assertions, not proof of the non-CI 120-second
+target. No threshold, test or CI setting was changed by this clarification.
+
+A saved candidate CI log for `51b99f621b2f74fdef6256af034f43b09fc6881a` records
+both the 1,000- and 10,000-Input cases passing, with `PAIA_TEST_CONCURRENCY=4`.
+It provides no per-phase timing receipt. Through the review head above, the
+benchmark, its fixture/vendor dependencies and its existing runtime dependencies
+are unchanged; the later three AI-COST-02 policy modules are independent.
+That earlier result can support unchanged correctness coverage, but the
+controlled-machine first-commit target remains **UNVERIFIED**.
+
+The benchmark uses Node plus `fake-indexeddb`; its heap measurement includes the
+synthetic fixture and database. The separate AI-COST-01 native source/release
+proof uses 100 synthetic captures in real Chrome IndexedDB and validates atomic
+behavior and page-reload fences. It is not a 10,000-Input import performance run.
+Closing the performance boundary requires fresh phase receipts on the declared
+controlled environment and separate current-browser import measurements. This
+clarification ran neither benchmark nor browser and does not replace or erase
+any prior failure or expand provider authorization.
 
 Follow-up regression covers known-response cancellation as EXPIRED_UNCOMMITTED
 without refunding attempts/spend; actual unknown children remain blocked. A
