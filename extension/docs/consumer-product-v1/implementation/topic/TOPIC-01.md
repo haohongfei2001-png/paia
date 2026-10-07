@@ -2,8 +2,25 @@
 
 Base: remote main `0093c81300b8dff80b0cf00c4f2cad6130840030`.
 Scope: PT-01/PT-07/PT-08; G01/G02/G03/G08 foundation only.
-State: MAIN_INTEGRATED / INDEPENDENT_REVIEW_CLEARED / EXACT_MAIN_FULL_CERTIFICATION_PENDING.
+State: REOPENED_EFFECTIVE_ACCESS_INVARIANT / REPAIR_CANDIDATE / CERTIFICATION_PENDING.
 This receipt does not advance the sole STATUS queue or certify later slices.
+
+## Effective-access repair — 2026-10-07
+
+Independent later integration review reproduced a missing foundation invariant:
+moving a shared Entry from an explicitly denied Topic to a default-off Topic
+removed the negative access witness, making an already-allowed third Topic a
+permitted path. No grant row changed. This is a real permission-semantics defect
+in structural membership changes, first reproduced through `moveMembership` and
+then through direct placement, Topic removal and layout staging owners. It does
+not establish an activated external client or provider. The earlier passing suites
+remain truthful evidence, but did not cover these cases.
+
+[The bounded repair record](TOPIC-01-ACCESS.md) tracks the fail-closed permission-
+owner guard, actual effective-path regressions and coordinated `0.13.1` candidate.
+Scoped COMPLETE and the next-task advance are withheld until the repaired head
+has independent review and the required exact-head/main proof. Later Topic and
+Context work keeps its own scope and does not erase this reopened obligation.
 
 ## Integration and verification routing — 2026-10-07
 
