@@ -243,3 +243,33 @@ assertions. An earlier native pass preceded the final outcome-verifier snapshot
 repair; it is not substituted for the final rebuilt two-case pass above.
 Coordinator review requested and verified the additional verifier-result snapshot
 repair; hosted high-risk/full integration and exact-main proof remain pending.
+
+
+## Main reconciliation and CI admission — local merge candidate
+
+Preserved AI checkpoint `e7cd0aa` and merged exact main
+`4fe2afd328c6e30e6a1d39d68415ad821a7f779c`. Only three CI files conflicted:
+`test-groups.mjs`, `check-ui-refresh-ci.mjs` and
+`d5-full-browser-partition.test.mjs`. Their main Root admission and measured
+seven-job routing replace the older six-job branch map; AI whole-file admission
+is reapplied outside the retained router, compensating its sorted insertion once.
+Main's scope-seven documents and production changes are retained. AI foundation,
+policy, repository/store changes and the complete source/release native file are
+byte-identical to the AI checkpoint; no new production implementation is added.
+
+Before resolving conflicts, the exact main router (blob
+`63fe2e9c57d001dd53502fbc18bb69c85f9809fa`) and75 test names exported an independent
+300-route oracle at widths4/5/6/7. `ai-cost-current-browser-admission.test.mjs`
+freezes those rows and asserts every previous route,76 unique current files and
+the complete AI foundation file on4 at all four widths. Historical68/73/75
+expectations remain explicit and are evaluated at current-corpus positions.
+The inherited workflow remains byte-identical to main: seven jobs,18 minutes,
+complete native files and source/release/publication coverage preserved.
+
+Local verification: `check-ui-refresh-ci.mjs` PASS; complete AI foundation,
+three policy, partition/admission, Settings/Context presentation and retained
+Topic guard files103/103 PASS, zero failure/cancel/skip
+(`work/ai-main-merge-related.log`). No browser, cloud or model run was launched.
+Earlier source/release results remain historical evidence; changed main/shared
+dependencies require fresh combined native/full acceptance before delivery.
+This local merge is not hosted CI, real-provider or installed-version acceptance.

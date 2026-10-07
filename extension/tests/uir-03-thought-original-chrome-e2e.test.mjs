@@ -105,7 +105,7 @@ async function provenanceRoleJourney(page,topics,{release=false}={}){
   await page.setViewportSize({width:1440,height:900});
   await page.locator('#back').click();
   await eventually(()=>page.locator('#thought-list').isVisible(),'return to Topic scanning after original reading');
-  await page.locator('[data-topic-id="'+topics[1].id+'"]').click();
+  await page.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').click();
   const entry=page.locator('#original-reading-body [data-entry-id="'+id+'"]');
   await entry.waitFor({state:'visible'});
   const provenance=entry.locator('.entry-provenance');
@@ -156,8 +156,8 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  await page.reload();
  await eventually(async()=>await page.locator('#thought-document').isVisible()&&await page.locator('#topic-heading h1').textContent()===topicBefore.name,'reload restores the same Topic reading route');
  await page.locator('#back').click();
- await eventually(async()=>await page.locator('[data-topic-id="'+topics[1].id+'"]').isVisible(),'explicit back returns to the same Topic in root scanning');
- await page.locator('[data-topic-id="'+topics[1].id+'"]').click();
+ await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').isVisible(),'explicit back returns to the same Topic in root scanning');
+ await page.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').click();
  const scope=page.locator('#topic-source-scope'),body=page.locator('#original-reading-body');
  await eventually(async()=>await scope.locator('option[value="claude"]').count()===1,'real imported Claude source becomes selectable');
  await eventually(async()=>await scope.getAttribute('aria-busy')==='false','source selector completes the bounded provider-index build');
@@ -180,7 +180,7 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  assert.equal(await body.locator('[data-entry-id="'+seeded.mixed+'"]').count(),1);
  await openThoughtReadingOptions(page);await scope.selectOption('claude');
  await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1);
- await page.locator('#back').click();await page.locator('[data-topic-id="'+topics[1].id+'"]').click();
+ await page.locator('#back').click();await page.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').click();
  await eventually(async()=>await scope.inputValue()==='claude'&&await body.locator('[data-entry-id]').count()===2,'return preserves Topic source scope without duplicating the Topic');
  await openThoughtReadingOptions(page);await scope.selectOption('');
  await eventually(async()=>await body.locator('[data-entry-id]').count()===5,'All sources restores the original independent expressions');
@@ -189,15 +189,37 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  for(let i=0;i<before.length;i++){assert.equal(after[i].body,before[i].body);assert.equal(after[i].revision,before[i].revision);}
 
  await page.locator('#back').click();
- const rootScope=page.locator('#thought-source-scope'),rootList=page.locator('#thought-list'),rootSearch=page.locator('#thought-search');
- await eventually(async()=>await rootScope.locator('option[value="claude"]').count()===1&&await rootScope.getAttribute('aria-busy')==='false','root source options honor completed provider index');
- assert.equal(await page.locator('input[type="search"]:visible').count(),1,'root has one Thought search beside source scope');
- await rootScope.selectOption('claude');
- await eventually(async()=>await rootList.locator('[data-topic-id]').count()===1&&await rootList.locator('[data-topic-id="'+topics[1].id+'"]').count()===1,'Claude root keeps one mixed Topic and excludes independent-only Topics');
- assert.equal(await page.locator('#library-unplaced').isVisible(),false,'independent unplaced expressions belong to All sources');
- assert.equal(await rootList.locator('.topic-index-row small').evaluateAll(nodes=>nodes.some(n=>/条内容/.test(n.textContent))),false,'whole-Topic counts are not labeled as selected-source counts');
+ const rootScope=page.locator('#thought-source-scope'),rootList=page.locator('#thought-list'),rootSearch=page.locator('#thought-search'),blocks=rootList.locator('article.personal-topic-block');
+ await eventually(async()=>await blocks.count()===3,'Root returns the same three independent Topic identities');
+ assert.equal(await rootScope.isHidden(),true,'the retired Root Source control cannot create a second organization view');
+ assert.equal(await page.locator('input[type="search"]:visible').count(),1,'Root retains one local Thought search');
+ // Preserve the real source-scoped owner contract independently of the retired
+ // Root selector. Topic reading above still exercises its actual visible UI.
+ const collectScoped=async options=>{
+  const items=[],seen=new Set();let cursor=null,current;
+  do{
+   current=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable',...options,cursor,limit:40}});
+   if(current.cursorInvalid)return {...current,items:[]};
+   assert.ok(current.items.length<=40,'source compatibility keeps the existing request bound');assert.ok((current.operations?.placementRowsRead||0)<=40,'source admission reads at most40 placement descriptors per page');
+   items.push(...current.items);cursor=current.nextCursor;
+   if(cursor){const key=JSON.stringify(cursor);assert.equal(seen.has(key),false,'scoped continuation must make progress');seen.add(key);}
+  }while(cursor);
+  return {...current,items};
+ };
+ for(const providerKey of ['claude','chatgpt']){
+  let scoped;await eventually(async()=>{scoped=await collectScoped({providerKey});return scoped.complete===true&&!scoped.cursorInvalid;},'source-scoped compatibility reaches its real terminal page');
+  assert.deepEqual(scoped.items.map(row=>row.id),[topics[1].id],'direct-source compatibility keeps the single mixed Topic without independent-only Topics');
+  assert.ok(scoped.items.every(row=>row.readRef?.kind==='topic'),'stable DTO identities come from the existing Topic read references');
+ }
+ let scopedSearch;await eventually(async()=>{scopedSearch=await collectScoped({providerKey:'claude',query:'Scope shared claude'});return scopedSearch.complete===true&&!scopedSearch.cursorInvalid;},'source lexical compatibility reaches a complete current index');
+ assert.ok(scopedSearch.items.some(row=>row.entryId===seeded.claude),'actual source-scoped lexical owner returns the direct Claude expression');
+ assert.ok(scopedSearch.items.every(row=>row.entryId===seeded.claude),'direct-source search never admits independent or nonmatching bodies');
+ assert.equal(await rootList.locator('small,.summary').count(),0,'normal metadata blocks publish no misleading source counts or body excerpts');
+ const addresses=await blocks.evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot]));
  await rootSearch.fill('Scope shared claude');
- await eventually(async()=>await rootList.locator('.topic-index-row[data-render-key]').count()===1&&await rootList.locator('[data-topic-id]').count()===0&&/Scope shared claude/i.test(await rootList.textContent()),'root lexical search is limited to the selected direct source');
+ const match=rootList.locator('article.personal-topic-block:not(.personal-topic-nonmatch)'),action=match.locator('.personal-entry-match');
+ await eventually(async()=>await match.count()===1&&await action.isVisible()&&/Scope shared claude/i.test(await action.innerText()),'eligible Root lexical match appears inside its existing Topic slot');
+ assert.equal(await match.getAttribute('data-topic-id'),topics[1].id);assert.deepEqual(await blocks.evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),addresses,'search preserves stable identities and addresses');
  // Hold the real search continuation at the section boundary, then navigate
  // Back. The obsolete continuation must finish without opening a content modal.
  await page.evaluate(async()=>{
@@ -210,11 +232,11 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
   window.vs05SearchRace.restore=()=>{proto.focusSection=focus;proto.openSearchResult=open;};
  });
  try{
-  await rootList.locator('.topic-index-row[data-render-key]').click();
+  await action.click();
   try{await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.started),'real search continuation reaches section focus');}catch(error){const diagnostic=await page.evaluate(()=>{const owner=window.vs05SearchOwner;return {race:window.vs05SearchRace&&{started:vs05SearchRace.started,done:vs05SearchRace.done,target:vs05SearchRace.target,error:vs05SearchRace.error},owner:owner&&{id:owner.id,openIntent:owner.openIntent,serial:owner.serial,view:owner.view,readFailed:owner.readFailed,refreshKey:owner.refreshRun?.key},visibleError:document.getElementById('error')?.textContent,notice:document.getElementById('notice')?.textContent};});throw new Error(error.message+' '+JSON.stringify(diagnostic));}
   await eventually(async()=>await page.locator('#thought-document').isVisible(),'scoped root search opens the canonical Topic');
   await page.locator('#back').click();
-  await eventually(async()=>await rootScope.isVisible(),'Back completes before the delayed search continuation');
+  await eventually(async()=>await rootList.isVisible()&&await blocks.count()===3,'Back completes before the delayed search continuation');
   await page.evaluate(()=>window.vs05SearchRace.release());
   await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.done),'obsolete search continuation settles');
   assert.equal(await page.locator('#library-dialog').evaluate(el=>el.open),false,'obsolete entry focus cannot open a modal after Back');
@@ -223,40 +245,19 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
   await page.evaluate(()=>{window.vs05SearchRace.release();window.vs05SearchRace.restore();});
  }
  // Also retain the ordinary successful navigation and target-entry readback.
- await rootList.locator('.topic-index-row[data-render-key]').click();
+ await action.click();
  await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1&&await page.locator('#library-dialog').evaluate(el=>!el.open),'scoped search focuses the actual placed expression without a standalone fallback');
  await page.locator('#back').click();
- await eventually(async()=>await rootScope.inputValue()==='claude'&&await rootSearch.inputValue()==='Scope shared claude'&&await rootList.locator('.topic-index-row').count()===1,'Back preserves root source/query and collection identity');
+ await eventually(async()=>await rootSearch.inputValue()==='Scope shared claude'&&await match.count()===1&&await action.isVisible(),'Back preserves Root query and qualified result identity');
+ assert.equal(await match.getAttribute('data-topic-id'),topics[1].id);assert.deepEqual(await blocks.evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),addresses);
  await rootSearch.fill('independent-only-never-in-source');
- await eventually(async()=>await page.locator('#library-search-status').textContent()==='当前来源没有匹配内容，试试另一种表达或全部来源。','empty scope search is an honest selected-source result');
+ await eventually(async()=>await page.locator('#library-search-status').textContent()==='当前没有匹配内容。','empty Root search reports a real completed no-match result');
+ assert.equal(await match.count(),0);assert.equal(await blocks.count(),3,'empty query results keep all existing stable Topic slots');
  await rootSearch.fill('');
- try{
-  await eventually(async()=>await rootList.locator('[data-topic-id="'+topics[1].id+'"]').count()===1,'clearing root search keeps Claude scope');
- }catch(error){
-  const pages=[];let cursor=null;
-  for(let i=0;i<12;i++){
-   const data=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable',providerKey:'claude',query:'',cursor,limit:40}});
-   pages.push({ids:data.items.map(x=>x.id),nextCursor:data.nextCursor,complete:data.complete,coverage:data.coverage,operations:data.operations});
-   cursor=data.nextCursor;if(!cursor)break;
-  }
-  console.error('VS05_ROOT_CLEAR_DIAG',JSON.stringify({release,pages,ui:await page.evaluate(()=>({
-   query:document.querySelector('#thought-search').value,provider:document.querySelector('#thought-source-scope').value,
-   status:document.querySelector('#library-search-status').textContent,error:document.querySelector('#error').textContent,
-   collection:document.querySelector('#thought-collection').dataset.state,
-   sentinel:document.querySelector('#thought-continuous-status').textContent,
-   rootIds:[...document.querySelectorAll('#thought-list [data-topic-id]')].map(x=>x.dataset.topicId),
-   rows:document.querySelectorAll('#thought-list .topic-index-row').length,
-   homeVisible:!document.querySelector('#thought-home-tools').hidden,
-   documentVisible:!document.querySelector('#thought-document').hidden
-  }))}));
-  throw error;
- }
- await rootScope.selectOption('chatgpt');
- await eventually(async()=>await rootList.locator('[data-topic-id]').count()===1&&await rootList.locator('[data-topic-id="'+topics[1].id+'"]').count()===1,'ChatGPT uses the same mixed Topic identity');
- await rootScope.selectOption('');
- await eventually(async()=>await rootList.locator('[data-topic-id]').count()===3,'All restores independent Topics without duplicated mixed identity');
+ await eventually(async()=>await rootList.locator('article.personal-topic-block:not(.personal-topic-nonmatch)').count()===3&&await rootList.locator('.personal-entry-preview').count()===0,'clearing Root search restores all metadata-only Topic blocks');
+ assert.deepEqual(await blocks.evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),addresses);
  assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),false,'source root adds no AI control');
- await rootList.locator('[data-topic-id="'+topics[1].id+'"]').click();
+ await rootList.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').click();
  await eventually(async()=>await page.locator('#thought-document').isVisible());
  await shot(page,release?'vs05-release-topic-source-scope':'vs05-source-topic-source-scope');
  await assertOffline(h);
@@ -283,7 +284,7 @@ async function independentThoughtRelationJourney(page,h,topics,{release=false}={
  assert.equal(standalone.provenanceType,'user_created');
  await page.locator('#library-dialog-close').click();
 
- await page.locator(`[data-topic-id="${topics[1].id}"]`).click();await eventually(()=>page.locator('#thought-document').isVisible());
+ await page.locator(`.personal-topic-link[data-topic-id="${topics[1].id}"]`).click();await eventually(()=>page.locator('#thought-document').isVisible());
  const row=page.locator('#original-reading-body [data-entry-id]').first(),targetId=await row.getAttribute('data-entry-id');
  const before=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId}),responseBody=prefix+' 回应后独立保存，不重写原内容。';
  const expectedBodySha256=await page.evaluate(async body=>{const {hashText}=await import(chrome.runtime.getURL('core/dedupe.js'));return hashText(body);},before.body);
@@ -300,7 +301,7 @@ async function independentThoughtRelationJourney(page,h,topics,{release=false}={
 async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await page.bringToFront();
   await nav(page,'thoughts');
-  await eventually(async()=>await page.locator('#thought-list [data-topic-id]').count()===3,'Thought home renders the seeded Topics');
+  await eventually(async()=>await page.locator('#thought-list article.personal-topic-block').count()===3,'Thought home renders the seeded Topics');
   assert.equal(await page.locator('input[type="search"]:visible').count(),1,'Thought root exposes exactly one visible search control');
   assert.equal(await page.locator('#thought-search').isVisible(),true,'Thought root keeps its page-scoped search');
   assert.equal(await page.locator('#library-view-switch').isVisible(),false,'Thought root hides AI presentation controls until a Topic is open');
@@ -311,7 +312,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   const homeMenu=page.locator('#thought-root-source .library-actions').first();
   await homeMenu.locator('summary').click();
   assert.equal(await homeMenu.getByRole('button',{name:'添加主题',exact:true}).isVisible(),true,'root menu keeps Add Topic');
-  assert.equal(await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).count(),0,'frozen compact layout retires the grid control');
+  assert.equal(await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).count(),0,'current Personal Topic layout has no competing layout switch');
   assert.equal(await homeMenu.getByRole('button',{name:'整理新增内容',exact:true}).count(),0,'root menu no longer starts AI organization');
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#thought-root-source').getByRole('button',{name:'接着写',exact:true}).isVisible(),true,'independent Thought creation remains reachable');
@@ -321,16 +322,18 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','light theme applies');
   assert.equal(await page.locator('h1:visible').count(),1,'Thought home has one visible page heading');
   assert.equal(await page.locator('#thought-document').isVisible(),false,'Topic document stays out of the home view');
-  assert.equal((await rpc(page,'GET_THOUGHT_LAYOUT')).layout,'list','new users default to compact Topic scanning');
-  await eventually(async()=>await page.locator('#thought-list').evaluate(el=>el.classList.contains('topic-compact-list')),'compact layout applies');
-  assert.equal(await page.locator('#thought-list').evaluate(el=>getComputedStyle(el).display),'block','List mode actually uses one stacked column, including wide desktops');
-  const listRows=await page.locator('#thought-list [data-topic-id]').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {left:r.left,width:r.width};}));
-  assert.ok(listRows.every(row=>Math.abs(row.left-listRows[0].left)<=2&&Math.abs(row.width-listRows[0].width)<=2),'all compact Topic rows share one reading column');
-  assert.equal(await page.locator('#thought-list .topic-index-row strong').first().textContent(),(await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id})).name,'root keeps the complete Topic title');
+  assert.equal((await rpc(page,'GET_THOUGHT_LAYOUT')).layout,'list','retired layout service retains its compatibility receipt');
+  await eventually(async()=>await page.locator('#thought-list').evaluate(el=>el.classList.contains('personal-topic-grid')),'current stable Personal Topic grid applies');
+  assert.equal(await page.locator('#thought-list').evaluate(el=>getComputedStyle(el).display),'grid');
+  const rootRows=page.locator('#thought-list article.personal-topic-block'),geometry=await rootRows.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {left:r.left,width:r.width,height:r.height,id:node.dataset.topicId,slot:node.dataset.rootSlot};}));
+  assert.equal(new Set(geometry.map(row=>row.left)).size,3,'three actual identities occupy separate stable blocks in the wide grid');
+  assert.ok(geometry.every(row=>Math.abs(row.width-geometry[0].width)<=2&&Math.abs(row.height-geometry[0].height)<=2),'independent Root blocks share the fixed footprint');
+  const title=page.locator(`.personal-topic-link[data-topic-id="${topics[0].id}"]`),canonical=(await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id})).name;
+  assert.equal(await title.textContent(),canonical);assert.equal(await title.getAttribute('title'),canonical,'bounded title presentation retains the full canonical name');
   const rootCue=(await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}})).items.find(item=>item.id===topics[0].id).rootCue;
-  assert.equal(rootCue.kind,'human_cue');assert.equal(rootCue.text,topics[0].summary.slice(rootCue.range.start,rootCue.range.end));
-  assert.equal(await page.locator('#thought-list .topic-index-row .summary').first().evaluate(el=>el.firstChild.textContent),rootCue.text,'root keeps the exact bounded human cue');
-  assert.ok(rootCue.text.length<=140);assert.equal(rootCue.truncated,true);
+  assert.equal(rootCue.kind,'human_cue');assert.equal(rootCue.text,topics[0].summary.slice(rootCue.range.start,rootCue.range.end));assert.ok(rootCue.text.length<=140);assert.equal(rootCue.truncated,true,'legacy summary owner remains unchanged');
+  const projection=await rpc(page,'GET_LIBRARY_ROOT_PROJECTION',{options:{limit:40,sectionLimit:4}});assert.doesNotMatch(JSON.stringify(projection),/"(?:body|summary|rootCue|snippet)"/,'normal Root never reads the preserved human summary as a preview');
+  assert.equal(await rootRows.locator('.summary,.personal-entry-preview,.personal-section-link,.personal-topic-more:visible').count(),0,'untitled default-only Topics show their title without invented Sections or previews');
   await shot(page,release?'vs05-release-thought-list-1440x900-light':'vs05-thought-list-1440x900-light');
 
   if(!release){
@@ -342,22 +345,22 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   }
 
   await page.setViewportSize({width:1200,height:800});
-  const gridAt1200=await page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length);
-  assert.equal(gridAt1200,1,'frozen Thought root keeps one editorial column');
-  const cardWidth=await page.locator('#thought-list .topic-index-row').first().evaluate(el=>el.getBoundingClientRect().width);
-  assert.ok(cardWidth>=300,`Topic row keeps an approximately 300px minimum readable width; got ${cardWidth}`);
-  assert.notEqual(await page.locator('#thought-list .topic-index-row strong').first().evaluate(el=>getComputedStyle(el).webkitLineClamp),'2','long Topic titles are not forced to the old two-line clamp');
+  await eventually(()=>page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===Math.max(1,Math.min(4,Math.floor((el.clientWidth+16)/240)))),'1200px Root refits to the actual remaining workspace width');
+  const cardWidth=await page.locator('#thought-list article.personal-topic-block').first().evaluate(el=>el.getBoundingClientRect().width);
+  assert.ok(cardWidth>=224,`Topic blocks keep the current minimum readable track width; got ${cardWidth}`);
+  assert.equal(await title.evaluate(el=>getComputedStyle(el).webkitLineClamp),'2','Root title previews have the adopted two-line limit and retain their complete accessible name');
 
   await page.setViewportSize({width:390,height:844});
+  await eventually(()=>page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===1),'compact Root resize settles');
   const mobileColumns=await page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length);
   assert.equal(mobileColumns,1,'Thought home becomes one column on the mobile-like viewport');
   const homeOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   assert.ok(homeOverflow<=2,`390px Thought home has no root horizontal overflow; got ${homeOverflow}`);
-  const topicMenuBox=await page.locator('#thought-list .topic-compact-row>.library-actions>summary').first().boundingBox();
-  assert.ok(topicMenuBox&&topicMenuBox.width>=44&&topicMenuBox.height>=44,'touch Topic more action remains a 44px target');
+  const topicLinkBox=await page.locator('#thought-list .personal-topic-link').first().boundingBox();
+  assert.ok(topicLinkBox&&topicLinkBox.width>=44&&topicLinkBox.height>=44,'native Topic activation remains a44px touch target');
 
   await page.setViewportSize({width:1440,height:900});
-  await page.locator(`[data-topic-id="${topics[0].id}"]`).click();
+  await page.locator(`.personal-topic-link[data-topic-id="${topics[0].id}"]`).click();
   await eventually(()=>page.locator('#thought-document').isVisible(),'Topic opens from the existing home owner');
   await eventually(()=>page.locator('#original-reading-body .topic-section').count().then(count=>count>0),'Original content renders in the existing Topic document');
   assert.equal(await page.locator('h1:visible').count(),1,'Topic has one visible h1');
