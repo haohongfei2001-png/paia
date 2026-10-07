@@ -125,3 +125,22 @@ The adapter-job HTTPS mirror pre-step is the exact independently reviewed
 60145d9 block already successful on Sync; the Settings browser receipt/count
 updates were independently reviewed, with7 CI tests and embedded-script syntax
 checks passing. These local results await the next exact-head hosted candidate.
+
+
+## Full-certification environment preparation
+
+Root PR185 merged as daf180762e2fe7718dfcddcf345c6a11749aad8e after full
+run37687078617 succeeded. Its tree exactly matches the tested merge candidate
+36e5f014c2f7614fd93aa199bb3dbc6ba4b850dc and Root head7a214ae.
+Exact-main full run37691533146 is separate and pending at this checkpoint.
+
+The complete Settings file requires the already qualified full Chrome155.0.8059.39
+and archive SHA55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea.
+Full certification previously supplied only runner Chrome; before entering that
+boundary, the same verified download/version setup is now selected only for
+current shard6. Both browser-path variables point to that binary, including its
+whole Context companion file. All76 files, seven jobs and18-minute budgets remain.
+The fixed download hash is checked before launch; no browser assertion is removed.
+Full adapter and candidate targeted-browser dependency installation also use the
+already reviewed official HTTPS Ubuntu mirror pre-step. Independent review and
+all22 local routing/environment guards pass; actual full execution is pending.
