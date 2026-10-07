@@ -1,5 +1,15 @@
 # Authority and Source Policy
 
+## Settings Consumer v2 — scoped owner-directed final adoption, 2026-10-07
+
+The owner retained the reviewed Settings composition, directed the final consumer simplification, and requested design freeze plus canonical planning/integration. [SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), SETTINGS-CV2-1.0, is now the sole current Settings product/presentation authority. [PLAN](SETTINGS_CONSUMER_V2_PLAN.md) owns source-grounded gaps, five delivery stages, migration and acceptance; [REFERENCES](SETTINGS_CONSUMER_V2_REFERENCES.md) identifies the corrected private artifacts and evidence limits. Settings execution has not started. STATUS retains CPV1-TOPIC-01 as the sole current next task; SET2 is integrated planned work, not another queue.
+
+The final composition is a lightweight directory and content area, six groups, 20 main actionable rows and one secondary position reset. Groups are Input Archive, Reading & appearance, AI & prompts, Privacy & access, Data & recovery, About PAIA. No Advanced, search or card grid. There is only one Settings Context/access entry, under AI & prompts; Privacy has only light local-residency prose, with storage details solely in Data. Version history, including its helper, and generic permanent deletion are absent from Settings. Content history and lawful object-specific Source purge remain. Prompt/Context/Thought state and daily controls stay in their actual owners; unavailable dependencies cannot be presented as connected or enabled.
+
+This supersedes only conflicting D6.2 Settings S01-S05 composition, D7 Settings presentation, older Settings IA, and the former Settings Membership/AI-service entry requirement in PRODUCT.md current scope and PRODUCT_INTENT_CONTRACT.md section 15. UX S5 carries the final interface contract. Shared D6/AppShell visual roles, unrelated surfaces, PT-1, CTX4, Prompt Reuse and all nonconflicting data/edit/privacy/recovery requirements remain authoritative. Existing ordinary-diagnostic retirement stays; actual-fault recovery remains. Deleting UI never cancels legacy deny/local-only/revoked state or makes a remaining revoke path unreachable.
+
+The corrected design package is private; public GitHub receives necessary adopted decisions, planning and hashes only. Exact pre-adoption STATUS/MASTER blobs are preserved as PRE_SETTINGS_V2 snapshots. Historical artboards, reports and PASS/FAIL remain unmodified. The independently rerun prototype's 144/144 layouts and 41/41 demo checks are not production persistence, accessibility, authorization, live-provider or release certification. This documentation task changes no production code, schema, tests, user data, services, grants, spending, installation or release, and does not settle B-01/B-02/B-03/B-04-3B/B-05.
+
 ## Thought Library final visual adoption — scoped owner decision, 2026-10-07
 
 The owner approved the reviewed PT-1.0 Thought Library direction and explicitly requested its adoption and development-plan integration in GitHub. [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, is the sole current Thought presentation/interaction contract. [The reference manifest](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) identifies the private instruction/overview and limits of available visual evidence. [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) section 7 maps it to TOPIC-05.1 through 05.8; STATUS still selects TOPIC-01 as the only next task.
@@ -36,10 +46,10 @@ The approved shell, brand and Context visuals remain. The architecture task did 
 
 The authority order for PAIA Consumer Product v1 is:
 
-1. Explicit latest product-owner decisions for their stated scope, including Thought final visual adoption, Personal Topic Architecture and AI Context Cards v2 above.
+1. Explicit latest product-owner decisions for their stated scope, including Settings Consumer v2, Thought final visual adoption, Personal Topic Architecture and AI Context Cards v2 above.
 2. Google Drive: PAIA设计想法.docx, where not superseded by a later explicit owner decision.
-3. PRODUCT_INTENT_CONTRACT.md and explicitly adopted scoped contracts: Topic semantics use TOPIC_ARCHITECTURE.md; Context uses AI_CONTEXT_CARDS_V2_PLAN.md with the Topic identity clarification above.
-4. UX_CONTRACT.md and current explicitly approved visual/interaction references, subject to scoped product semantics. Thought uses THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md and its private-reference manifest, not conflicting earlier list/Years/candidate or B2/pre-Section experiments.
+3. PRODUCT_INTENT_CONTRACT.md and explicitly adopted scoped contracts: Settings uses SETTINGS_CONSUMER_V2_ADOPTION.md; Topic semantics use TOPIC_ARCHITECTURE.md; Context uses AI_CONTEXT_CARDS_V2_PLAN.md with the Topic identity clarification above.
+4. UX_CONTRACT.md and current explicitly approved visual/interaction references, subject to scoped product semantics. Settings uses SETTINGS_CONSUMER_V2_REFERENCES.md. Thought uses THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md and its private-reference manifest, not conflicting earlier list/Years/candidate or B2/pre-Section experiments.
 5. TECHNICAL_PLAN.md, MASTER_PLAN.md and scoped development plans for implementation strategy/dependencies; STATUS.md alone selects execution.
 6. Existing PRODUCT.md / ARCHITECTURE.md / ROADMAP.md and historical package contracts only where they do not contradict higher product intent.
 7. Current implementation: evidence of what exists, never proof of what the product should be.
