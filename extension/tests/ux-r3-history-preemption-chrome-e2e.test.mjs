@@ -24,7 +24,7 @@ test('UX-R3 browser history restore preempts an invalidated Thought home read',{
   await rpc(p,'THOUGHT_POSITION',{position:{topicId:topic.id,entryId:anchor.id,revision:anchor.revision,offset:3,sort:'asc',expanded:[]}});
 
   await nav(p,'thoughts');
-  await p.locator(`[data-topic-id="${topic.id}"]`).click();
+  await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();
   await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor();
 
   // A same-session home list is now intentionally restored from its saved
@@ -51,7 +51,7 @@ test('UX-R3 browser history restore preempts an invalidated Thought home read',{
    window.r3ReleaseHomeRead=()=>{if(window.r3HistoryPreemption.homeReleased)return;window.r3HistoryPreemption.homeReleased=true;releaseHome();};
    window.r3RestoreSendMessage=()=>{chrome.runtime.sendMessage=send;chrome.runtime.onMessage.removeListener(window.r3HistoryMutationListener);};
    chrome.runtime.sendMessage=(message,...args)=>{
-    if(message?.type==='LIBRARY_INDEX_PAGE'&&!window.r3HistoryPreemption.homeDelayed){
+    if(message?.type==='GET_LIBRARY_ROOT_PROJECTION'&&!window.r3HistoryPreemption.homeDelayed){
      window.r3HistoryPreemption.homeDelayed=true;
      return homeGate.then(()=>send(message,...args));
     }
@@ -93,10 +93,10 @@ test('UX-R3 same-session Back restores a saved Topic page before durable positio
   await rpc(p,'THOUGHT_POSITION',{position:{topicId:topic.id,entryId:anchor.id,revision:anchor.revision,offset:4,sort:'asc',expanded:[]}});
 
   await nav(p,'thoughts');
-  await p.locator(`[data-topic-id="${topic.id}"]`).click();
+  await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();
   await p.locator(`[data-entry-id="${anchor.id}"]`).waitFor({timeout:30000});
   await p.locator('#back').click();
-  await p.locator(`[data-topic-id="${topic.id}"]`).waitFor({timeout:30000});
+  await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).waitFor({timeout:30000});
 
   await p.evaluate(({topicId,anchorId})=>{
    const send=chrome.runtime.sendMessage.bind(chrome.runtime);

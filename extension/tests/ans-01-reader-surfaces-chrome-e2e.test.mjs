@@ -175,8 +175,8 @@ test('ANS-01 Topic menus keep small and 201-item libraries intact with every Tra
 
     await p.bringToFront();
     await p.locator('#primary-nav [data-view="thoughts"]').click();
-    await eventually(()=>p.locator('[data-topic-id]').filter({hasText:'ANS01 小主题'}).isVisible(),'small topic appears');
-    await p.locator('[data-topic-id]').filter({hasText:'ANS01 小主题'}).click();
+    await eventually(()=>p.locator('.personal-topic-link[data-topic-id]').filter({hasText:'ANS01 小主题'}).isVisible(),'small topic appears');
+    await p.locator('.personal-topic-link[data-topic-id]').filter({hasText:'ANS01 小主题'}).click();
     await eventually(()=>p.locator('#topic-menu summary').isVisible(),'small topic reader opens');
     assert.equal(await p.locator('#topic-material-select').count(),0,'whole-topic material action is not a toolbar surface');
     await p.locator('#topic-menu summary').click();
@@ -190,8 +190,8 @@ test('ANS-01 Topic menus keep small and 201-item libraries intact with every Tra
     await p.locator('#primary-nav [data-view="thoughts"]').click();
     await eventually(async()=>await p.locator('#topic-menu summary').isVisible()&&await p.locator('#scope-search').isEnabled(),'return from Context to the preserved Topic Reader');
     await p.locator('#back').click();
-    await eventually(()=>p.locator('[data-topic-id]').filter({hasText:'ANS01 大主题'}).isVisible(),'Thought home returns');
-    await p.locator('[data-topic-id]').filter({hasText:'ANS01 大主题'}).click();
+    await eventually(()=>p.locator('.personal-topic-link[data-topic-id]').filter({hasText:'ANS01 大主题'}).isVisible(),'Thought home returns');
+    await p.locator('.personal-topic-link[data-topic-id]').filter({hasText:'ANS01 大主题'}).click();
     await eventually(()=>p.locator('#topic-menu summary').isVisible(),'large topic opens');
     await p.locator('#topic-menu summary').click();
     assert.equal(await p.locator('#topic-menu button').filter({hasText:'选择本主题材料'}).count(),0,'large Topic cannot reopen a Tray or truncate a selection');

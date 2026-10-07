@@ -32,8 +32,8 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   });
 
   await page.locator('[data-view=thoughts]').click();
-  await eventually(async()=>await page.locator('[data-topic-id="'+seed.topicId+'"]').count()===1,'topic root',30000);
-  await page.locator('[data-topic-id="'+seed.topicId+'"]').click();
+  await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').count()===1,'topic root',30000);
+  await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').click();
   await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>0,'topic initial rows',30000);
   assert.equal(await page.locator('#topic-next').count(),0);assert.equal(await page.locator('#topic-previous').count(),0);assert.doesNotMatch(await page.locator('#thought-document').innerText(),/下一部分|上一部分/);
 
@@ -68,7 +68,7 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   },'sort retains visible anchor',20000);
   const afterSort=await page.locator('#topic-body [data-entry-id="'+beforeSort.id+'"]').evaluate(n=>({top:n.getBoundingClientRect().top}));assert.ok(Math.abs(afterSort.top-beforeSort.top)<180,'sort retains visible anchor');
 
-  const beforeBack=await visibleAnchor(page);await page.locator('#back').click();await eventually(async()=>await page.locator('[data-topic-id="'+seed.topicId+'"]').count()===1,'back to root',20000);await page.locator('[data-topic-id="'+seed.topicId+'"]').click();
+  const beforeBack=await visibleAnchor(page);await page.locator('#back').click();await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').count()===1,'back to root',20000);await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').click();
   await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>0,'Topic reopens with readable entries',30000);
   // Owner scope amendment, 2026-10-06: defer only the old Topic return-position
   // contract until the Thought Library redesign. All other coverage stays live.

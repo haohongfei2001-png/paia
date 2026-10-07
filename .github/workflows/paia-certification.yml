@@ -117,7 +117,7 @@ jobs:
   current_browser:
     needs: mode
     if: needs.mode.outputs.full == 'true'
-    name: Current Browser ${{ matrix.index }}/6
+    name: Current Browser ${{ matrix.index }}/7
     runs-on: ubuntu-latest
     timeout-minutes: 18
     strategy:
@@ -125,17 +125,19 @@ jobs:
       matrix:
         include:
           - index: 1
-            shard: '1/6'
+            shard: '1/7'
           - index: 2
-            shard: '2/6'
+            shard: '2/7'
           - index: 3
-            shard: '3/6'
+            shard: '3/7'
           - index: 4
-            shard: '4/6'
+            shard: '4/7'
           - index: 5
-            shard: '5/6'
+            shard: '5/7'
           - index: 6
-            shard: '6/6'
+            shard: '6/7'
+          - index: 7
+            shard: '7/7'
     defaults:
       run:
         working-directory: extension
@@ -160,8 +162,12 @@ jobs:
       - name: Provide Chinese glyph coverage for actual visual evidence
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk
           fc-list :lang=zh | grep -q .
+          mkdir -p work
+          for family in 'Noto Serif CJK SC' 'Noto Sans CJK SC' 'WenQuanYi Zen Hei'; do
+            fc-match --format '%{family}: %{file}\n' "$family"
+          done | tee work/current-browser-fonts.txt
       - name: Verify the installed Chrome actually launches
         run: xvfb-run -a node scripts/check-hosted-chrome.mjs
       - name: Verify current browser coverage contract

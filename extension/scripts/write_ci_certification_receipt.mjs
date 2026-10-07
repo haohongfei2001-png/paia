@@ -33,7 +33,7 @@ const row={
   currentFiles,
   historicalBrowserFiles:counts['historical browser E2E']||0,
   historicalBrowserAudit:'SEPARATE_HISTORICAL_AND_WITHDRAWN_UI_EVIDENCE',
-  testConcurrency:'SHARDED_UNIT_4_BROWSER_6',
+  testConcurrency:'SHARDED_UNIT_4_BROWSER_7',
   inputDigest:await inputDigest(),
   realGolden:await goldenBundle()?'AVAILABLE':'UNAVAILABLE',
   jobResults:{
