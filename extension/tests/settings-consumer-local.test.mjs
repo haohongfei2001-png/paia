@@ -53,3 +53,14 @@ test('Settings history summary follows the resolved locale for empty, completed,
  assert.match(historyLatestText(record,'zh-CN',true),/^上次补全记录未能载入/);
  assert.deepEqual(record.counts,{added:3,duplicates:2,timeEnriched:1,issues:4});
 });
+
+test('Settings latest-import owner contains malformed summary failures and keeps locale changes local',async()=>{
+ const {initHistoryCompletion}=await import('../ui/history-completion.js');
+ const prior=new Map(['document','window','chrome'].map(key=>[key,globalThis[key]])),nodes=new Map(),listeners=new Map();let requests=0;
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',addEventListener(){}});return nodes.get(id);};
+ globalThis.document={documentElement:{lang:'en'},getElementById:node,addEventListener:(name,fn)=>listeners.set(name,fn)};
+ globalThis.window={addEventListener(){}};
+ globalThis.chrome={runtime:{sendMessage:async()=>{requests++;return {ok:true,data:{lastImport:{adapterId:'claude-conversations-v1',completedAt:'2026-01-01',counts:null}}};}}};
+ try{const owner=initHistoryCompletion();await assert.doesNotReject(owner.latest());assert.match(node('history-latest').textContent,/could not be loaded/);document.documentElement.lang='zh-CN';listeners.get('paia:preferences-applied')();assert.match(node('history-latest').textContent,/未能载入/);assert.equal(requests,1);}
+ finally{for(const [key,value]of prior)if(value===undefined)delete globalThis[key];else globalThis[key]=value;}
+});

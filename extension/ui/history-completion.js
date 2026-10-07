@@ -41,8 +41,8 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
  function paintLatest(){if(latestState==='unread')return;$('history-latest').textContent=historyLatestText(latestRecord,document.documentElement.lang,latestState==='failed');}
  document.addEventListener('paia:preferences-applied',paintLatest);
  async function latest(){
-  try{const {lastImport}=await send('IMPORT_LATEST');latestRecord=lastImport;latestState='loaded';}catch{latestState='failed';}
-  paintLatest();
+  try{const {lastImport}=await send('IMPORT_LATEST');latestRecord=lastImport;latestState='loaded';paintLatest();}
+  catch{latestState='failed';paintLatest();}
  }
  async function tasks(cursor){
   try{

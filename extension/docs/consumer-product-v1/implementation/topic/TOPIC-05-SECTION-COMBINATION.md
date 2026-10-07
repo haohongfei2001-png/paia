@@ -144,3 +144,30 @@ The fixed download hash is checked before launch; no browser assertion is remove
 Full adapter and candidate targeted-browser dependency installation also use the
 already reviewed official HTTPS Ubuntu mirror pre-step. Independent review and
 all22 local routing/environment guards pass; actual full execution is pending.
+
+
+## Final candidate repair and full-gate entry
+
+Run37691193380 at9af8647 passed the complete affected-browser job (all11
+cases and its strict receipt), privacy/contracts and release guards. Candidate
+unit failed on an obsolete source-string assertion for the pre-localization
+summary. The replacement calls the production summary function for both
+Claude/ChatGPT and zh/en, asserting correct provider inclusion and exclusion;
+the original session-adapter and official-export checks remain.
+
+Independent review also reproduced a real malformed-summary regression: rendering
+had moved outside the existing latest-import try/catch. It is restored inside
+that boundary, preserving localized safe failure and navigation. The new owner
+regression asserts no rejection and exactly one RPC across a locale change.
+The negative TypeError log is retained locally. Two complete affected unit files
+pass18/18; independent review passes. The existing Settings return/IME/reload
+owner journey and both compact locale source/release cases pass3/3 headlessly,
+with zero skips or cancellations. These are local targeted results, not full
+certification.
+
+The Root squash reconciliation is merge80fe80d: incoming main daf1807 has exactly
+the already incorporated7a214ae ancestor tree. The parent26c2c5b tree was retained
+byte-for-byte after recording this proof and merge conflicts; no product changes
+were overwritten. The reviewed browser/dependency preparation plus this repair
+now form the next full-certification candidate. Exact-main Root verification and
+this candidate's full results remain separate pending claims.
