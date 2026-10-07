@@ -6,6 +6,7 @@ import {exactExcerpt} from '../core/organizer/topic-excerpt.js';
 import {topicRootCaption} from '../ui/topic-root.js';
 import {ContinuousCollection} from '../ui/continuous-collection.js';
 import {TopicController as ThoughtWorkspace} from '../ui/topic-workspace.js';
+import {PersonalTopicRoot} from '../ui/personal-topic-root.js';
 
 const op=()=>crypto.randomUUID();
 const time=(s,id)=>s.repository.transaction(false,async t=>expressionTime(s,t,await t.get('thoughts',id)));
@@ -104,11 +105,12 @@ test('D2 actual root invalidation clears visible and cached cues and rejects a h
  let finish;const collection=new ContinuousCollection({scope:'root',query:'',load:()=>new Promise(resolve=>{finish=resolve;})});
  const pending=collection.loadNext(),nodes=[{textContent:'SYNTHETIC_ROOT_STALE_CANARY'},{textContent:'old attribution'}],saved={collection:{items:[{rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}]}};
  const sentinel={},unplaced={hidden:true,children:[{textContent:'SYNTHETIC_UNPLACED_STALE_CANARY'}],replaceChildren(...children){this.children=children;}};
- const elements={'thought-list':{children:[],querySelectorAll:()=>nodes},'library-unplaced-list':unplaced,'unplaced-continuous-sentinel':sentinel};
- const workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{homePositions:new Map([['home',saved]]),homeCollection:collection,homePage:{page:{items:[{rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}]}},unplacedCollection:{items:[{body:'SYNTHETIC_UNPLACED_STALE_CANARY'}]},homeDesiredCount:40,thoughtRootVisible:()=>true,captureHomeAnchor:()=>({id:'topic',top:140})});
- const prior=globalThis.document;globalThis.document={getElementById:id=>{assert.ok(Object.hasOwn(elements,id),'expected root invalidation element '+id);return elements[id];}};
+ const host={children:nodes,replaceChildren(...children){this.children=children;}},personalRoot=new PersonalTopicRoot(host,{open:()=>{}});personalRoot.items=[{id:'topic',name:'SYNTHETIC_ROOT_STALE_CANARY'}];personalRoot.nodes.set('topic',nodes[0]);let baseReleased=0,sectionRemoved=0;
+ const elements={'thought-list':host,'library-unplaced-list':unplaced,'unplaced-continuous-sentinel':sentinel};
+ const workspace=Object.assign(Object.create(ThoughtWorkspace.prototype),{personalRoot,rootPreSearch:{items:[{snippet:'SYNTHETIC_ROOT_STALE_CANARY'}]},rootBaseCollection:{releaseBodies:()=>baseReleased++},homePositions:new Map([['home',saved]]),homeCollection:collection,homePage:{page:{items:[{rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}]}},unplacedCollection:{items:[{body:'SYNTHETIC_UNPLACED_STALE_CANARY'}]},homeDesiredCount:40,thoughtRootVisible:()=>true,captureHomeAnchor:()=>({id:'topic',top:140})});
+ const prior=globalThis.document;globalThis.document={querySelectorAll:()=>[{remove:()=>sectionRemoved++}],getElementById:id=>{assert.ok(Object.hasOwn(elements,id),'expected root invalidation element '+id);return elements[id];}};
  try{
-  workspace.invalidateHomeSnapshot();assert.equal(workspace.homeCollection,null);assert.equal(workspace.homePage,null);assert.equal(saved.collection,undefined);assert.equal(workspace.rootCueEpoch,1);assert.ok(nodes.every(node=>node.textContent===''));
+  workspace.invalidateHomeSnapshot();assert.equal(workspace.homeCollection,null);assert.equal(workspace.homePage,null);assert.equal(saved.collection,undefined);assert.equal(workspace.rootCueEpoch,1);assert.deepEqual(host.children,[]);assert.deepEqual(personalRoot.items,[]);assert.equal(personalRoot.nodes.size,0);assert.equal(workspace.rootPreSearch,null);assert.equal(workspace.rootBaseCollection,null);assert.equal(baseReleased,1);assert.equal(sectionRemoved,1);
   assert.equal(workspace.unplacedCollection,null);assert.deepEqual(unplaced.children,[sentinel],'hidden unplaced excerpts clear along with the visible root');
   finish({items:[{id:'old',rootCue:{text:'SYNTHETIC_ROOT_STALE_CANARY'}}],complete:true});assert.equal((await pending).stale,true);assert.deepEqual(collection.items,[]);
  }finally{globalThis.document=prior;}

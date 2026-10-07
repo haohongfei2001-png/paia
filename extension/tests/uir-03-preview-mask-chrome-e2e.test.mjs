@@ -33,7 +33,7 @@ async function seed(page,label){
 }
 
 async function openTopic(page,topic){
- await nav(page,'thoughts');await page.locator('#thought-panel').waitFor({state:'visible'});await page.locator(`[data-topic-id="${topic.id}"]`).click();await page.locator('#topic-heading h1').filter({hasText:topic.name}).waitFor();
+ await nav(page,'thoughts');await page.locator('#thought-panel').waitFor({state:'visible'});await page.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();await page.locator('#topic-heading h1').filter({hasText:topic.name}).waitFor();
 }
 
 
@@ -52,10 +52,21 @@ async function previewScopeProbe(page){
 }
 
 async function journey(page,h,topic,label,{release=false}={}){
- await page.setViewportSize({width:1440,height:900});await nav(page,'thoughts');await page.locator(`[data-topic-id="${topic.id}"]`).waitFor();
- const card=page.locator(`[data-topic-id="${topic.id}"]`),summary=card.locator('.summary');await summary.waitFor();const currentRoot=(await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable',limit:40}})).items.find(row=>row.id===topic.id);assert.equal(currentRoot.rootCue?.kind,'human_cue');const previewText=currentRoot.rootCue.text;assert.equal(await summary.textContent(),previewText,'current card renders its real bounded expression cue');assert.equal(previewText,`${label}_TOPIC_SUMMARY 私人主题摘要`,'explicit authored Topic summary takes precedence over a fallback expression excerpt');assert.equal((await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})).summary,`${label}_TOPIC_SUMMARY 私人主题摘要`,'root projection preserves the separate Topic summary');assert.equal(await summary.isVisible(),true,'expression preview is visible while masking is off');
- const attrs=await card.evaluate(el=>({title:el.getAttribute('title'),aria:el.getAttribute('aria-label'),summaryTitle:el.querySelector('.summary')?.getAttribute('title'),summaryAria:el.querySelector('.summary')?.getAttribute('aria-label')}));assert.equal(Object.values(attrs).some(value=>value?.includes(previewText)),false,'masked Topic expression is not duplicated into title or aria-label attributes');
- await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:true}});await eventually(async()=>page.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews')),'preview mask class applies');assert.equal(await summary.isVisible(),false,'Topic expression cue slot is masked on the home card');
+ await page.setViewportSize({width:1440,height:900});await nav(page,'thoughts');
+ const card=page.locator(`article.personal-topic-block[data-topic-id="${topic.id}"]`);await card.waitFor();
+ const currentRoot=(await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable',limit:40}})).items.find(row=>row.id===topic.id);
+ assert.equal(currentRoot.rootCue?.kind,'human_cue');assert.equal(currentRoot.rootCue.text,`${label}_TOPIC_SUMMARY 私人主题摘要`,'legacy service preserves the independently authored Topic summary');
+ assert.equal((await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})).summary,`${label}_TOPIC_SUMMARY 私人主题摘要`,'Root presentation preserves the separate Topic summary');
+ const projection=await rpc(page,'GET_LIBRARY_ROOT_PROJECTION',{options:{limit:40,sectionLimit:4}});assert.doesNotMatch(JSON.stringify(projection),/"(?:body|summary|rootCue|snippet)"/,'normal Root is a body-free metadata projection');
+ assert.equal(await card.locator('.summary,.personal-entry-preview').count(),0,'normal Root has no unsolicited body preview');
+ const query=`${label}_ORIGINAL_A`;await page.locator('#thought-search').fill(query);
+ const preview=card.locator('.personal-entry-preview');await eventually(()=>preview.isVisible(),'real Root search exposes its eligible transient Entry excerpt');
+ const search=await rpc(page,'GET_LIBRARY_ROOT_SEARCH',{options:{query,limit:40}}),match=search.items.find(row=>row.kind==='entry'&&row.paths.some(path=>path.topicId===topic.id));assert.ok(match);
+ const previewText=match.snippet;assert.equal(await preview.textContent(),previewText,'transient preview is the actual bounded lexical owner excerpt');assert.ok(previewText.includes(query));
+ const attrs=await card.evaluate(root=>[root,...root.querySelectorAll('[title],[aria-label]')].flatMap(node=>[node.getAttribute('title'),node.getAttribute('aria-label')]));assert.equal(attrs.some(value=>value?.includes(query)),false,'private Entry text is not duplicated into title or aria-label attributes');
+ await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:true}});await eventually(async()=>page.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews')),'preview mask class applies');
+ assert.equal(await preview.isVisible(),false,'transient Root Entry preview is masked');assert.equal(await card.locator('.personal-entry-mask-label').isVisible(),true,'a body-free open action stays reachable');assert.equal(await card.locator('.personal-topic-link').isVisible(),true,'independent Topic identity remains readable');
+ const maskedAttrs=await card.evaluate(root=>[root,...root.querySelectorAll('[title],[aria-label]')].flatMap(node=>[node.getAttribute('title'),node.getAttribute('aria-label')]));assert.equal(maskedAttrs.some(value=>value?.includes(query)),false,'masking never copies private body text into accessible attributes');
  const probe=await previewScopeProbe(page);assert.equal(probe.add,'none','add-to-Topic selection preview is masked');assert.equal(probe.quote,'none','quoted related-text preview is masked');assert.notEqual(probe.compare,'none','explicitly opened compare/full-body content keeps the existing readable boundary');assert.deepEqual(probe.leaks,[],'preview probe does not move private body text into title or aria-label');
  await shot(page,release?'uir-03-current-release-preview-mask-home-1440x900-light':'uir-03-preview-mask-home-1440x900-light');
 

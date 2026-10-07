@@ -1,5 +1,7 @@
 # CTX4 local 0.15 coherent batch receipt
 
+> Current-state reconciliation (2026-10-08): [CTX4-07 evidence ledger](CTX4-07-EVIDENCE-2026-10-08.md) records actual main integration, verified historical runs and all 22 visual-state gaps. Candidate/pending statements below retain their historical checkpoint meaning; local 01–03 and dormant internal 04/05 code are now integrated. This does not complete automatic maintenance, a real connection or CTX4-07.
+
 This is an execution receipt for the authorized local Context batch, not a new
 product plan or a replacement for the individual stage records. It combines
 CTX4-02 local editing, CTX4-03 real Topic choices and the reviewed internal

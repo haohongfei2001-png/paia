@@ -85,13 +85,18 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
   let reads = 0;
   let writes = 0;
   let isolate;
-  const accessRequests = [],notifications=[];
+  const accessRequests = [],notifications=[],notificationWaiters=new Set();
   const isolation = delayedIsolation ? new Promise(resolve => { isolate = resolve; }) : Promise.resolve();
   globalThis.chrome = {
     runtime: {
       id: EXTENSION_ID,
       getManifest: () => ({version:'0.8.1'}),
-      sendMessage: async message => {notifications.push(structuredClone(message));},
+      sendMessage: async message => {
+        notifications.push(structuredClone(message));
+        for(const waiter of notificationWaiters)if(waiter.matches(message)){
+          notificationWaiters.delete(waiter);clearTimeout(waiter.timeout);waiter.resolve();
+        }
+      },
       getURL: path => `${EXTENSION_ORIGIN}${path}`,
       onMessage: { addListener: callback => { listener = callback; } }
     },
@@ -117,6 +122,13 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
   assert.equal(typeof listener, 'function');
   return {
     accessRequests,notifications,
+    nextNotification(matches){
+      return new Promise((resolve,reject)=>{
+        const waiter={matches,resolve};
+        waiter.timeout=setTimeout(()=>{notificationWaiters.delete(waiter);reject(new Error('Synthetic notification timed out'));},2000);
+        notificationWaiters.add(waiter);
+      });
+    },
     releaseIsolation: () => isolate?.(),
     persisted: () => structuredClone(persisted),
     counts: () => ({ reads, writes }),
@@ -400,7 +412,13 @@ test('ANS-03 source observations require trusted current-route sender, current e
  await expectError(app.send(unverified,content),'UNAVAILABLE');
  const poisoned={...req,observations:[{...req.observations[0],originalText:'SYNTHETIC_PRIVATE_BODY'}]};
  await expectError(app.send(poisoned,content),'INVALID_REQUEST');
+ // CAPTURE also starts the real asynchronous FilterRunner. Its completion
+ // notification belongs to capture, not the following source observation.
+ // Wait for that actual completion instead of a timing delay or filtering out
+ // ARCHIVE_CHANGED from the unchanged negative observation oracle below.
+ const captureFilterSettled=app.nextNotification(message=>message.type==='ARCHIVE_CHANGED'&&!Object.hasOwn(message,'cause'));
  assert.equal((await app.send(capture(epoch),content)).ok,true);
+ await captureFilterSettled;
  const notificationsBefore=app.notifications.length;
  const settled=await app.send(sourceObservation(epoch),content);
  assert.equal(settled.ok,true);assert.equal(settled.data.settled,true);

@@ -27,7 +27,7 @@ test('VS-04 Thought conflict compares both versions and saves only after explici
   });
   await page.reload();
   await page.locator('[data-view=thoughts]').click();
-  const topicRow=page.locator(`[data-topic-id="${topic.id}"]`);
+  const topicRow=page.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`);
   const body=page.locator('[data-entry-field=body]').first();
   await eventually(async()=>await body.isVisible()||await topicRow.isVisible(),'Topic route or index is ready');
   if(!await body.isVisible())await topicRow.click();
