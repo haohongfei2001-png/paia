@@ -21,14 +21,14 @@ test('Settings Back preserves the existing Reader parent through repeated return
  for(const id of ['scope-search-host','archive-navigator-toggle','input-time-order','document-menu','save-status','thought-root-header','thought-home-tools','thought-root-source','thought-source-scope-label','thought-topic-header','topic-search','settings-panel','universal-search-dialog','revisit-open','ux-example-dialog','toggle-capture'])make('div',id);
  make().append(make('input','consent-check'));const heading=make('div','workspace-heading');header.append(heading);make('div','archive-root-heading');make('div','thought-root-heading');
  const reads=[];
- for(const [name,value]of Object.entries({document:doc,navigator:{language:'zh-CN'},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},chrome:{runtime:{getManifest:()=>({version:'0.15.0'}),onMessage:{addListener(){}},sendMessage:async message=>{reads.push(message);assert.equal(message.type,'GET_PAGE');return {ok:true,data:{settings:{consentVersion:0},preferences:{}}};}}}}))Object.defineProperty(globalThis,name,{configurable:true,writable:true,value});
+ for(const [name,value]of Object.entries({document:doc,navigator:{language:'zh-CN'},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},chrome:{runtime:{getManifest:()=>({version:'0.15.0'}),onMessage:{addListener(){}},sendMessage:async message=>{reads.push(message);if(message.type==='PAIA_SETTINGS_AI_STYLE'){assert.deepEqual(message,{type:'PAIA_SETTINGS_AI_STYLE'});return {ok:true,data:{available:true,value:'balanced',revision:0,explicit:false,epoch:'initial'}};}assert.deepEqual(message,{type:'GET_PAGE',page:{view:'settings'}});return {ok:true,data:{settings:{consentVersion:0},preferences:{}}};}}}}))Object.defineProperty(globalThis,name,{configurable:true,writable:true,value});
  try{
   const {AppShellController}=await import('../ui/app-shell.js');
   const owner=new AppShellController(),calls=[];
   owner.installArchivePresentation=()=>{};owner.presentArchiveComposition=()=>{};owner.localize=()=>{};
   owner.navigate=(...args)=>{calls.push(args);return false;};
   owner.mount();await new Promise(resolve=>setImmediate(resolve));
-  const back=doc.getElementById('ux-settings-back');assert.ok(back);assert.equal(reads.length,1);
+  const back=doc.getElementById('ux-settings-back');assert.ok(back);assert.deepEqual(reads.map(message=>message.type).sort(),['GET_PAGE','PAIA_SETTINGS_AI_STYLE']);
   const history=new RouteHistory();
   for(const parent of ['library','archive','revisit']){
    const before={view:parent==='archive'?'archive':'library',documentId:'synthetic-conversation',topicId:null,returnTo:parent,searchQuery:'SYNTHETIC reader query',anchor:{documentId:'synthetic-conversation',inputId:'synthetic-input',offset:12,sort:'desc'}};
