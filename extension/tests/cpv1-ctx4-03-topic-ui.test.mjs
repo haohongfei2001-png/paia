@@ -10,6 +10,7 @@ import {ContextCardsPage} from '../ui/context-cards.js';
 import {ContextTopicInputs} from '../ui/context-topics.js';
 import {ContextTopicCommitSession} from '../ui/context-topic-commit.js';
 import {hashText} from '../core/dedupe.js';
+import {installContextInputsTrace,readContextInputsTrace} from './harness/context-inputs-trace.mjs';
 
 const op=()=>crypto.randomUUID();
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
@@ -142,6 +143,56 @@ test('CTX4-03 a read failure keeps current nodes and choices inert until actual-
  transport.dispatch=message=>{if(message.type==='PAIA_CONTEXT_TOPICS_PAGE')throw Error('SYNTHETIC read failure');return dispatch(message);};assert.equal(await inputs.refresh(),false);assert.equal(inputs.nodes.get(id),node);assert.equal(node.disabled,true);assert.equal(await inputs.toggle(id),false);assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),saved);assert.match(inputs.status.textContent,/Existing choices are unchanged/);
  const retry=inputs.status.querySelector('button');assert.equal(retry.textContent,'Retry');assert.equal(document.activeElement,retry);transport.dispatch=dispatch;let task;const refresh=inputs.refresh.bind(inputs);inputs.refresh=()=>{task=refresh();return task;};retry.onclick();assert.equal(await task,true);assert.equal(inputs.rows.get(id).enabled,true);assert.equal(node.disabled,false);assert.equal(inputs.nodes.get(id),node);
 }));
+
+test('CTX4-03 actual postcommit stale authority preserves saved choices and Retry restores a usable directory',()=>fixture(async({makePage,transport,dispatch,s,cards,calls})=>{
+ const previousTrace=globalThis.__ctx403UiTrace,notifications=new Set(),testPage={evaluate:fn=>fn()};
+ chrome.runtime.getURL=path=>new URL('../'+path,import.meta.url).href;
+ chrome.runtime.onMessage={addListener:listener=>notifications.add(listener),removeListener:listener=>notifications.delete(listener)};
+ await installContextInputsTrace(testPage);
+ const transaction=s.repository.transaction.bind(s.repository);
+ try{
+  const page=makePage();await page.open('inputs');const inputs=page.inputs,order=[...inputs.order],first=order[0],id=order[1],node=inputs.nodes.get(id);
+  assert.equal(await inputs.toggle(first),true);const before=await protectedRows(s),nodes=[...inputs.nodes.values()];
+  let armed=false,injected=false,capturedAuthority,currentAuthority,savedChoices;const replies=[];
+  transport.dispatch=async message=>{
+   const result=await dispatch(message);
+   if(message.type==='PAIA_CONTEXT_TOPICS_CHANGE'&&result.ok){savedChoices=await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW);armed=true;}
+   if(message.type==='PAIA_CONTEXT_TOPICS_PAGE')replies.push(result);
+   return result;
+  };
+  // Change real access metadata after this real postcommit page captures its
+  // authority. The service itself must return stale_authority, never a fake DTO.
+  s.repository.transaction=async(write,fn,stores)=>{
+   const value=await transaction(write,fn,stores);
+   if(armed&&!write&&!injected&&value?.offset===0&&Array.isArray(value.items)&&value.items.some(row=>row.topicId===id)&&typeof value.authority==='string'){
+    injected=true;capturedAuthority=value.authority;s.repository.transaction=transaction;
+    const snapshot=await cards.snapshot();
+    assert.equal((await cards.change({kind:'access',key:'global',enabled:false,expectedRevision:snapshot.access.global.revision,epoch:snapshot.epoch,operationId:op()})).ok,true);
+    currentAuthority=(await transaction(false,t=>new ContextTopicAccessService(s).admission(t,undefined,{scope:true}))).authority;
+   }
+   return value;
+  };
+  node.focus();const saving=inputs.toggle(id);document.activeElement=document.body; // Native disabled-button blur.
+  assert.equal(await saving,true,'the acknowledged save remains committed even when its following read fails');
+  assert.equal(injected,true);assert.notEqual(capturedAuthority,currentAuthority);assert.equal(replies.length,1);assert.equal(replies[0].available,false);assert.equal(replies[0].reason,'stale_authority');assert.equal(replies[0].complete,false);assert.deepEqual(replies[0].items,[]);
+  assert.equal(inputs.pending,false);assert.equal(inputs.busy,false);assert.equal(inputs.loading,false);assert.equal(inputs.failedRead,true);assert.equal(inputs.root.getAttribute('aria-busy'),'false');
+  assert.deepEqual(inputs.order,order);assert.deepEqual([...inputs.nodes.values()],nodes);assert.equal(nodes.length,20);assert.ok(nodes.every(node=>node.disabled));assert.equal(nodes.filter(node=>!node.disabled&&node.tabIndex===0).length,0,'retained nodes are not a usable roving directory');
+  assert.equal(inputs.rows.get(first).enabled,true);assert.equal(inputs.rows.get(id).enabled,false,'the prior UI snapshot is retained while the saved second choice awaits a complete read');
+  assert.equal(savedChoices.choices.filter(choice=>choice.enabled).length,2);assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),savedChoices);assert.deepEqual(await protectedRows(s),before);
+  assert.match(inputs.status.textContent,/Topics could not be read.*Existing choices are unchanged/);const retry=inputs.status.querySelector('button');assert.equal(retry.textContent,'Retry');assert.equal(retry.isConnected,true);assert.equal(document.activeElement,retry);
+  const changes=calls.filter(call=>call.type==='PAIA_CONTEXT_TOPICS_CHANGE').length;assert.equal(await inputs.toggle(id),false);await tick();assert.equal(replies.length,1,'failure does not start a silent read retry');assert.equal(calls.filter(call=>call.type==='PAIA_CONTEXT_TOPICS_CHANGE').length,changes);
+  let retryTask;const refresh=inputs.refresh.bind(inputs);inputs.refresh=()=>{retryTask=refresh();return retryTask;};retry.onclick();assert.ok(retryTask);assert.equal(await retryTask,true);
+  assert.equal(replies.length,2);assert.equal(replies[1].available,true);assert.equal(replies[1].complete,true);assert.equal(replies[1].authority,currentAuthority);assert.equal(replies[1].selectedCount,2);
+  assert.equal(inputs.failedRead,false);assert.equal(inputs.loading,false);assert.equal(inputs.root.getAttribute('aria-busy'),'false');assert.equal(inputs.status.querySelector('button'),null);assert.deepEqual(inputs.order,order);assert.deepEqual([...inputs.nodes.values()],nodes);assert.ok(nodes.every(node=>!node.disabled));assert.equal(nodes.filter(node=>node.tabIndex===0).length,1);assert.equal(inputs.nodes.get(id),node);assert.equal(document.activeElement,node);assert.equal(node.tabIndex,0);assert.equal(node.getAttribute('aria-pressed'),'true');assert.equal(inputs.rows.get(first).enabled,true);assert.equal(inputs.selectedCount,2);
+  assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),savedChoices);assert.deepEqual(await protectedRows(s),before);assert.equal(calls.filter(call=>call.type==='PAIA_CONTEXT_TOPICS_CHANGE').length,changes);
+  for(const listener of notifications)listener({type:'PAIA_CONTEXT_CARDS_CHANGED',body:'SYNTHETIC_PRIVATE_NOTIFICATION_BODY'});
+  const trace=await readContextInputsTrace(testPage),refusal=trace.entries.find(entry=>entry.event==='page_result'&&entry.page.reason==='stale_authority');
+  assert.ok(refusal);assert.equal(refusal.page.itemCount,0);assert.ok(trace.entries.some(entry=>entry.event==='refresh_end'&&entry.state.failedRead&&entry.state.enabledCount===0&&entry.state.focus.kind==='notice_button'));assert.ok(trace.entries.some(entry=>entry.event==='save_end'&&entry.result===true&&entry.state.failedRead));assert.ok(trace.entries.some(entry=>entry.event==='notification'&&entry.type==='PAIA_CONTEXT_CARDS_CHANGED'));assert.ok(trace.entries.some(entry=>entry.sequence>refusal.sequence&&entry.event==='page_result'&&entry.page.available&&entry.page.authority===currentAuthority));
+  assert.doesNotMatch(JSON.stringify(trace),/SYNTHETIC|expectedBinding|operationId|topicId|outerHTML|textContent/,'trace contains only bounded metadata and categorized focus');
+  for(let index=0;index<trace.capacity+1;index++)globalThis.__ctx403UiTrace.checkpoint('bounded_probe');
+  const bounded=await readContextInputsTrace(testPage);assert.equal(bounded.entries.length,bounded.capacity);assert.ok(bounded.dropped>0);assert.equal(bounded.untrackedOwners,0);
+ }finally{s.repository.transaction=transaction;globalThis.__ctx403UiTrace.restore();if(previousTrace)globalThis.__ctx403UiTrace=previousTrace;else delete globalThis.__ctx403UiTrace;assert.equal(notifications.size,0);}
+},{count:20}));
 
 for(const variant of ['malformed_cursor','repeated_cursor','malformed_page','mixed_count'])test(`CTX4-03 ${variant} never installs a partial list or changes choices`,()=>fixture(async({makeInputs,transport,dispatch,s})=>{
  const inputs=await makeInputs();await inputs.refresh();const order=[...inputs.order],nodes=[...inputs.nodes.values()],before=await protectedRows(s);let first=null;
