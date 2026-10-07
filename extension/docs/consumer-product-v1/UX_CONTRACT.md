@@ -4,6 +4,10 @@ This is an implementation contract derived from PRODUCT_INTENT_CONTRACT.md. It m
 
 There is no mandatory standalone prototype phase. The production implementation is iterated until it satisfies this contract.
 
+Settings product/presentation follows [SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), SETTINGS-CV2-1.0, and its [corrected visual references](SETTINGS_CONSUMER_V2_REFERENCES.md). S5 below is its current interface contract; the [Settings plan](SETTINGS_CONSUMER_V2_PLAN.md) owns implementation and acceptance. Only conflicting Settings presentation is superseded; shared roles, other spaces and data/permission/recovery protections remain.
+
+Thought identity/formation follows [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md). The subsequently adopted [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, supplies the sole current Thought presentation contract; section 5 below routes to it. Implementation and acceptance are TOPIC-05.1 through 05.8 in [the Topic plan](TOPIC_ARCHITECTURE_PLAN.md), not another UI design queue. Common save/IME/accessibility and unrelated spaces retain their own contracts.
+
 The [current consumer scope](../../PRODUCT.md#current-consumer-scope) supersedes retired surfaces in older designs. Cancelled execution must refuse old commands as well as remove its entries; hidden internal safety/maintenance capabilities remain where specified. Neither change authorizes clearing old data or credentials.
 
 ## 1. Global product shell
@@ -16,7 +20,7 @@ Desktop primary navigation is fixed:
 
 Settings is low-frequency. Capture health is system status, not a dashboard destination. Revisit is retrieval/re-entry, not a new truth space.
 
-Wide desktop uses a stable primary rail; Archive/Thought may add a contextual navigator; the Reader/workspace owns the remaining area. Compact desktop may compress navigation but must preserve object identity and back behavior. Tablet uses a sheet/panel navigator. Phone uses stacked navigation instead of squeezing desktop columns.
+Wide desktop uses a stable primary rail; Archive/Thought may add a contextual navigator; the Reader/workspace owns the remaining area. Compact desktop may compress navigation but must preserve object identity and back behavior. Tablet uses a sheet/panel navigator. Phone uses stacked navigation instead of squeezing desktop columns. The adopted Thought reader does not add a permanent Topic/Section tree; its Section links are in-page anchors.
 
 Archive opens directly into primary navigation, a narrow project/conversation navigator and a blank Reader. No conversation is selected by default; title, time, ordering and body stay empty. Returning to its root clears the Reader and preserves navigator state. Explicit reading-route refreshes, unsaved edits and reading anchors must not be cleared accidentally. Other root pages do not reserve unnecessary empty navigator columns. AI Context remains a product direction with execution disabled.
 
@@ -34,7 +38,25 @@ Archive opens directly into primary navigation, a narrow project/conversation na
 
 Use one shared component language: AppShell, PrimaryNav, SourceScope, ProjectTree, ConversationRow, TopicTile, ReaderHeader, ProseBlock, TimeStamp, ScopeSearch, SelectionToolbar, OverflowMenu, InspectorPanel, InlineStatus, ProgressRow, ReviewDiff, PermissionSummary, RecoverySheet.
 
-Do not create page-specific variants of the same search/menu/toast/dialog without a product reason.
+Do not create page-specific variants of the same search/menu/toast/dialog without a product reason. Shared component names do not restore superseded Thought list/Years/candidate layouts. The approved Root's rectangular grid is allowed; its content is Topic name plus real Section overview, not metadata cards.
+
+### Shared typography and proportional scaling direction
+
+Owner decision, 2026-10-06: font enlargement should eventually scale PAIA's
+typographic roles together, preserving their relative hierarchy across surfaces.
+Context must reuse the shared typography and reading-preference owner rather
+than introduce an independent font system. Existing saved preferences remain
+authoritative.
+
+This is a product direction, not a completed capability: the current reading
+font-size preference scales prose, not all AppShell, popup and Prompt Reuse
+text. Cross-surface proportional scaling requires its own bounded implementation
+and accessibility verification. On 2026-10-07 the owner explicitly chose to retain
+PAIA's existing font size and prose width for Context detail. Existing shared
+reading preferences, including saved user choices and the standard 680px/17px
+role, therefore take precedence over the reference's 800px/16px detail metrics.
+This scoped reading-role exception changes no global defaults and waives no
+other visual or accessibility requirement.
 
 ## 3. Global state behavior
 
@@ -169,7 +191,7 @@ Index-building/partial coverage must not be presented as "no results".
 
 ### A7 — Smart Filter
 
-Settings controls light/medium/strong where supported; default light.
+Settings presents on/off over the existing light/off modes; default light. Do not expose unsupported strengths or historical-processing controls. This changes default Archive visibility, not capture or Source existence.
 
 Reader only shows an unobtrusive scope indicator when content is filtered and can temporarily show all. User restore/edit/keep creates protected intent that automatic re-filtering cannot override.
 
@@ -196,73 +218,55 @@ Interrupted import is resumable/idempotent. Re-import does not duplicate or over
 
 Do not require understanding ZIP/JSON internals.
 
-## 5. Thought Library surfaces
+## 5. Thought Library surfaces — TL-PT1-UI-1.0
 
-### T1 — Thought root
+The complete current contract is [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md). The former compact-list/recency cue, Content/Years and candidate-oriented interpretations are superseded for Thought only; their data, provenance, version and recovery guarantees are retained. Approval adopts direction, not runtime/production completion.
 
-Purpose: rapidly scan long-term topics.
+### T1 — Stable Personal Topic Root
 
-Use compact topic blocks/list with real information density, not large decorative cards. No Recent Reading section and no root-wide AI Organize control.
+Purpose: identify a Personal Topic and its existing internal aspects, then return to its content.
 
-Each Topic can show title, a short real-content cue and quiet recency. Source scope may become All / one source without duplicating the Topic system.
+Use stable independent rectangular Topic blocks in the shared PAIA shell. Normal block content is Topic name plus bounded real named Section overview in durable order. No named Section is a normal title-only state, not incomplete organization; never fill it with a generated summary or Default/Uncategorized label. No default expression preview, recency/count/footer, images, shared table rules, Recent area, taxonomy bar or root-wide AI control.
 
-### T2 — Topic original view
+Plain Section anchors open the parent Topic at the Section, never a separate folder route. Keep native link/focus behavior and text selection without accidental block navigation. Ordinary content/name/Section/search updates do not globally repack Root. New Topics use a suitable hole or append; a removed slot has no border or placeholder. Responsive columns follow usable width, not Topic count. 30/50/100/144 are real scale scenarios, not a catalogue or cap.
 
-Header:
-- back;
-- Topic name;
-- source scope if relevant;
-- Original / AI Organize switch;
-- one Topic search;
-- overflow;
-- one compact Add Thought action.
+One Root search covers eligible Topic/Section names and Entry bodies beyond the current DOM. In-place matching can temporarily expose a matching Section or exact Entry excerpt; it does not create a second result directory. Explicit result stepping opens real text/Section offsets. Clear/close and Back/Forward restore prior overview, identity-relative viewport position and focus. Coverage failures are not no-results. See V2/V3 and TOPIC-05.2/05.3.
 
-The body uses the same reading system as Archive. Original/user expression is default. Evidence/source detail is available on demand, not permanently attached to every paragraph.
+### T2 — Continuous Topic reader
 
-### T3 — Add Thought
+Header: return, Topic title, one Topic search, compact Add Thought, Topic-local AI Organize and necessary overflow. Preserve current shared controls and reading preferences; no Content/Years tabs, timeline, permanent tree, statistics or default AI summary sidebar.
 
-A user may write a new Thought directly:
-- body;
-- optional Topic;
-- real current creation time.
+The body is one continuous reading surface over durable Sections and actual Entries. Untitled default Section content has no invented heading. Named Sections are natural unboxed headings; preserve manual empty Sections and order. Entry paragraphs have normal reading rhythm, quiet attributable time and source/version on demand, not bubbles, cards or metadata rows. Unknown time is not replaced with capture time. Bounded loading reaches the real end, without next-part dead ends or unmounting active editing/IME/selection. New content does not yank scroll. Search reaches unmounted content and restores the reader anchor.
 
-Dedicated response/relation creation and related-Thought viewing are removed. Existing relation data remains compatible; body editing and history remain available.
+### T3 — Section actions and Add Thought
 
-Failure preserves text. Background classification must not block safe save.
+A user may write directly into an explicitly active Section; without reliable Section context, use the stable default Section. Root-level writing can save before classification and remain lawfully unassigned. Use real current creation time/first-party identity, no chat send behavior or database form. Failed saves preserve text; durable acknowledgement precedes saved state.
 
-### T4 — AI Organize
+Section inline rename/create/reorder and Entry moves are contextual, not a permanent manager. Preserve stable IDs, protected name/order and membership edges, with non-drag keyboard/touch alternatives and safe undo. A span selection cannot silently become a whole-Entry move. Default destination can be described in an action without gaining a durable name. Promotion uses PT-06 and the ordinary explicit confirmation language, preserving actual moved scope, body/provenance and old anchor mapping; new Topic access remains closed.
 
-Existing valid output switches instantly. New generation/update is unavailable until real payment, server membership validation and a unified AI backend exist. The only ordinary AI entries are Topic AI Organize and Settings Membership / AI service, with an honest not-launched state.
+Dedicated response/relation creation and related-Thought viewing remain removed. Existing relation data remains compatible; lawful body editing and history remain available. No historical data migration or Source overwrite is implied by these UI actions.
 
-Existing candidates remain readable; approval management and Adopt/Keep controls are hidden. Preserve candidate staging, source/output version checks and invalid/stale-result rejection. Never automatically replace protected human output.
+### T4 — AI reading over the same durable Sections
 
-AI output is editable and protected after human editing.
+Existing valid saved output switches locally. Durable Sections exist with AI Organize OFF and remain the same identities with it ON. Organize may alter derivative reading order, reversibly fold exact repeats and add small ephemeral headings, but cannot turn those headings into Section entities/Root overview or rewrite protected human structure. Durable formation belongs to the separate PT Organizer. Entry edits target their canonical body owner; heading edits target their own derivative field.
 
-Transition may express structure change, but never obscure long text for decoration.
+New generation/update is unavailable until real payment, server membership validation, authorized processing scope and unified AI backend exist. Keep an honest not-launched state and no silent paid retry. Existing saved AI work and legacy candidates remain readable/version-protected; candidate approval and Adopt/Keep management do not return. Hidden Topic-formation candidates remain entirely invisible.
 
-### T5 — Longitudinal/evolution view
+Revalidate source, scope, content/Section revisions and human protection before activating output. Stale/partial/failed results preserve local text, show precise local state and do not invent completion. New/unprocessed material stays visible. Do not reflow composing/selected/dirty text. Transition explains structure with stable header/reading anchor and reduced motion, not decorative blur. Turning OFF returns around the same Entry. V6 and TOPIC-05.7 own detail; live semantic quality is separate from mechanical tests.
 
-Navigate real historical expression by reliable time. "Early / later / recent" are navigation labels, not psychological conclusions.
+### T5 — Historical expression, not a separate timeline surface
 
-Unknown-time material remains visible in an explicit unknown section.
+Reliable time remains part of each expression and explicit scoped retrieval. Early/later/recent can describe retrieved evidence, never psychological conclusions. Unknown-time entries remain reachable with an honest time label, not an invented chronological placement or mandatory extra named Section. Preserve source text and distinguish original expression date from current edit date. This capability does not restore Content/Years, a default timeline, or another Thought reading destination.
 
-Comparisons preserve source text and distinguish original expression date from current edit date.
+### T6 — Ownership, removal and propagation
 
-### T6 — Relationships and propagation
+Use normal reader/editing language. Binding/Placement/Entry internals are not default UI. Each Entry has one canonical body owner; Section membership is metadata and cannot duplicate the body to make a new view. Moving/reordering protects human organization intent and does not authorize Source edits or external access.
 
-Expose user concepts:
-- follows this Input;
-- independently edited;
-- used in these Topics;
-- allowed/not allowed for AI.
-
-Do not expose Binding/Placement/Entry internals as default UI.
-
-Removing from Topic changes a relationship, not Source existence. Reverse edit is advanced and OFF by default.
-
-B-01 determines final old-Thought edit semantics. B-02 determines high-risk purge of mixed human derivative material.
+Removing from a Topic changes a relationship, deleting shared visible content affects its actual other placements, and permanent Source purge is a separate high-risk operation. Show the relevant scope with existing confirmation/version/recovery controls. Existing body-binding safeguards remain: reverse edit is advanced and OFF by default; B-01 determines final old-Thought edit semantics and B-02 governs mixed-human-derivative purge. The visual adoption does not resolve those gates or introduce a new reverse-edit switch/second body store.
 
 ## 6. AI Context surfaces
+
+Current authority is [AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md) and its approved references, as already specified by AUTHORITY.md. The retained C1-C9 descriptions below are historical/future compatibility constraints where consistent, not a competing Builder/material workflow or implementation queue. This Thought adoption does not redesign Context or enable its runtime.
 
 Execution is disabled. C1–C6 retain future content/privacy constraints only, not current implementation tasks. Do not revive the old Context runtime. Dedicated Profile management, Material Tray and C7 output paths are cancelled; normal temporary selection and reference validation remain where existing reading/editing needs them.
 
@@ -417,19 +421,40 @@ After abnormal exit, show recovery only when actual unfinished work exists.
 
 Allow continue/copy/save as new version/discard. Index corruption rebuilds index rather than recommending data deletion. Provider/AI failures do not block local archive access.
 
-### S5 — Settings
+### S5 — Settings — SETTINGS-CV2-1.0
 
-Groups:
-- Content & capture
-- Reading & appearance
-- Membership / AI service
-- Privacy & external use
-- Data & recovery
-- About
+The complete frozen contract is [SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), with [corrected references](SETTINGS_CONSUMER_V2_REFERENCES.md) and [implementation plan](SETTINGS_CONSUMER_V2_PLAN.md). Settings owns low-frequency global preferences and access to legitimate recovery, not daily management of other spaces.
 
-No content search. Settings that can apply immediately do so, or visibly roll back on failure.
+Desktop uses a lightweight directory plus one content area. Exactly six groups; row-based settings, no Settings search, large card grid or Advanced fallback. First desktop entry opens Input Archive. Below 1024 CSS px use directory -> group with Back to Settings; enlarged text may stack earlier. Use the existing route/leave owner and preserve return group, scroll and focus, without another persistent navigator level.
 
-Remove API/model/address/request-count/batch controls, Product Signals, retention configuration and permanent diagnostic/trace/usage-audit/integrity/rebuild entries. Actual data/index faults may reveal the relevant recovery action; a messaging timeout alone is not evidence of corruption. Successful recovery clears obsolete recovery state. Retain necessary permission, privacy, delete/overwrite-risk and real-error messages; remove repeated status and engineering terminology. Keep typography and components consistent with the adopted main design.
+| Group | Normal actionable rows | Count |
+|---|---|---:|
+| 输入档案 / Input Archive | 保存我的 AI 输入; 智能过滤 | 2 |
+| 阅读与外观 / Reading & appearance | 外观; 语言; 正文字号; 阅读宽度; 时间显示 | 5 |
+| AI 与提示词 / AI & prompts | AI 上下文; 下一句建议 | 2 |
+| 隐私与访问 / Privacy & access | 隐藏内容预览; 支持的网站 | 2 |
+| 数据与恢复 / Data & recovery | 导入历史输入; 存储空间; 从已有 PAIA 备份恢复; 已移除的内容; 原始来源记录 | 5 |
+| 关于 PAIA / About PAIA | 隐私说明; 使用条款; 帮助; 反馈 | 4 |
+
+The full target has 20 main actionable rows and one secondary action, reset floating prompt position. Four switches, five selections and eleven destination rows; capability-unavailable and fault states do not manufacture extra controls. Prompt support, local residency and actual version/update status are compact facts, not inert duplicate rows. A real safe update action appears only when applicable; legal/help/feedback destinations must be verified.
+
+Saving refers to text the user sends to supported AI services. Preserve explicit consent, pause/resume semantics and Temporary Chat exclusion. Smart Filter is on/off over light/off, affects default visibility rather than capture, and retains human edits/keep/restore protection. Historical-processing controls are not normal Settings; filtered-content discovery stays in Archive.
+
+Keep actual stored font sizes 16/17/19/21 as small/standard/large/extra large and widths 640/680/720 as compact/standard/wide. Do not reset saved values or copy prototype aliases into production. Time is standard/detailed over date_and_time/date_and_seconds; legacy date_only keeps the existing minute-visible compatibility. Remove time-emphasis UI and keep time quiet and legible. Appearance and language follow actual supported enums; reading choices do not resize Settings itself.
+
+AI & prompts -> AI Context is the only Settings AI access entrance. It consumes truthful availability/state and opens the Context-owned route. No second Privacy entry or Settings permission writes. Four-card content, Global/Card/Topic access and Connections stay in Context; Topic/Section management and AI Organize stay in Thought; Prompt editing/pinning/sorting/hiding/splitting/insertion stay on the Prompt Surface.
+
+Next-reply suggestions uses the genuine Prompt Stage 3A owner: default off, explicit enable, local temporary latest-newly-completed-reply processing, no upload or durable assistant body, fill only and never send. Capture pause and this permission are independent. Disable clears current suggestions and rejects late results. Unavailable integration cannot be shown as a working switch. Position reset calls the Prompt owner, changes only position, and preserves prompts/order/pin/hide/open/authorization state; Settings owns no duplicate Prompt preference.
+
+Hide-preview details belong in help; failure must not reveal previously hidden excerpts. Privacy contains a light local-residency fact, not a storage-control row. Data alone offers storage usage/details with accurate units and honest unknown estimates. Supported websites shows actual service names/capabilities, not raw host patterns or a connection matrix.
+
+Import is not sync. Reuse existing official-file import and existing-backup restore, retaining preview, conflicts, cancellation/resumption, deletion fences and atomic activation. No backup creation/export. Removed content is a unified discovery entry, not a universal mutation: Input, Topic, Entry and Placement recoveries keep their own scope, revisions and human intent. Never copy bodies or reopen AI access. Pending import destinations stay in import results/Archive, not removed content.
+
+No Settings version-history row, explanation, retention/pruning or generic permanent-delete-data entry remains. Content history and legitimate object-specific Source deletion remain; actual purge obeys current preflight, B-02 and final revalidation. Removing old memory/access controls cannot remove restrictive legacy state or the last reachable revoke path before safe Context ownership handoff.
+
+No membership/API/model/address/request-count/batch/cloud placeholder, Product Signals or ordinary diagnostic/trace/usage-audit/integrity/rebuild page. Actual data/index faults reveal a relevant local action; messaging timeout alone is not corruption. Successful repair clears obsolete fault state. Cancelled backend commands still refuse without side effects.
+
+Retain current AppShell, title/UI/prose roles, palette, focus, controls and light/dark behavior. Rows wrap at 320px and 200% text, coarse targets are at least 44px, focus is not hidden by sticky chrome, and keyboard/IME/dirty work remain protected. Apply after durable acknowledgement, or retain/reconcile the last confirmed value on failure. Final prototype checks are design evidence only; production acceptance follows the plan and VERIFICATION.
 
 ### S6 — Privacy / authorization / deletion
 

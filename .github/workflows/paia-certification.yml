@@ -198,6 +198,15 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Upload focused Context source and release evidence
+        if: always() && matrix.index == 6
+        uses: actions/upload-artifact@v4
+        with:
+          name: context-cards-evidence-${{ github.sha }}
+          path: extension/work/ctx4-01/
+          if-no-files-found: error
+          retention-days: 14
+
   full_suite:
     name: Full Suite Certification
     runs-on: ubuntu-latest

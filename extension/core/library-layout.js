@@ -1,3 +1,4 @@
+import {assertMemoryTopicTransitionAllowed} from './memory/organization-guard.js';
 import {assertTopicMergeAllowed,setTopicLifecycle,prepareTopicIdentityName,assertTopicIdentityBase,registerTopicName} from './topic-identity.js';
 import {fail,keys,idOK,revisionOK,prefix,markHuman,rankBetween} from './thought-model.js';
 import {journal,nextSequence} from './thought-journal.js';
@@ -14,6 +15,7 @@ export async function startLayout(store,r,operationRequest=r){
   if(source.organizationRevision!==r.expectedTopicRevision||r.kind==='topic_merge'&&target.organizationRevision!==r.expectedSurvivorRevision||source.layoutJobId||target.layoutJobId)return {conflict:true};
   if(r.kind==='topic_merge'){await assertTopicIdentityBase(t,nameIdentity);if(source.revision!==nameIdentity.beforeRevision||source.name!==nameIdentity.beforeName)return {conflict:true};await assertTopicMergeAllowed(t,source.id,target.id);await registerTopicName(t,source,source.identity?.nameToken||nameIdentity.oldToken);}
   let a,b,aPosition,bPosition;if(r.kind==='entry_order'){a=await t.get('placements',placementKey(source.id,source.activeLayoutGeneration,r.entryId));b=await t.get('placements',placementKey(source.id,source.activeLayoutGeneration,r.otherEntryId));if(!a||!b||a.id===b.id||a.lifecycle!=='active'||b.lifecycle!=='active'||a.sectionId!==b.sectionId)fail();const start=[source.id,source.activeLayoutGeneration,a.sectionId,0];aPosition=await t.count('placements','bySectionOrder',IDBKeyRange.bound(start,[...start,a.rank,a.entryId]));bPosition=await t.count('placements','bySectionOrder',IDBKeyRange.bound(start,[...start,b.rank,b.entryId]));}else if(r.kind!=='topic_merge'){a=await t.get('sections',sectionKey(source.id,source.activeLayoutGeneration,r.sectionId));b=await t.get('sections',sectionKey(source.id,source.activeLayoutGeneration,r.targetSectionId||r.otherSectionId));if(!a||!b||a.sectionId===b.sectionId||a.lifecycle!=='active'||b.lifecycle!=='active'||r.kind==='section_merge'&&a.sectionId===source.defaultSectionId)fail();if(r.kind==='section_order'){const start=[source.id,source.activeLayoutGeneration,0];aPosition=await t.count('sections','byTopicOrder',IDBKeyRange.bound(start,[...start,a.rank,a.sectionId]));bPosition=await t.count('sections','byTopicOrder',IDBKeyRange.bound(start,[...start,b.rank,b.sectionId]));}}
+  await assertLayoutRemovalAllowed(t,source,r.kind,r.sectionId,r.targetSectionId);
   const id=store.uuid(),sequence=await nextSequence(t),job={id,kind:'library_layout',stateKey:0,state:'running',sequence,phase:'target_sections',cursor:null,operationId:r.operationId,layoutKind:r.kind,sourceId:source.id,targetId:target.id,sourceGeneration:source.activeLayoutGeneration,targetGeneration:target.activeLayoutGeneration,newGeneration:(target.layoutSequence||target.activeLayoutGeneration)+1,sourceRevision:source.organizationRevision,targetRevision:target.organizationRevision,aPosition:aPosition||0,bPosition:bPosition||0,orderSequence:0,sectionId:r.sectionId||null,targetSectionId:r.kind==='entry_order'?a.sectionId:r.targetSectionId||r.otherSectionId||null,aRank:a?.rank||null,bRank:b?.rank||null,sourceDefault:source.defaultSectionId,targetDefault:target.defaultSectionId,sourceRecordIds:[]};
   source.layoutJobId=id;target.layoutJobId=id;target.layoutSequence=job.newGeneration;await t.put('topics',source);await t.put('topics',target);await t.put('organizerJobs',job);return {id:target.id,jobId:id};
  });
@@ -23,6 +25,7 @@ export async function layoutBatch(store){
   const job=await t.edge('organizerJobs','byMaintenance',prefix(['library_layout',0]));if(!job)return {pending:false};
   const source=await t.get('topics',job.sourceId),target=await t.get('topics',job.targetId);
   if(source?.layoutJobId!==job.id||target?.layoutJobId!==job.id||source.organizationRevision!==job.sourceRevision||target.organizationRevision!==job.targetRevision)fail();
+  try{await assertLayoutRemovalAllowed(t,source,job.layoutKind,job.sectionId,job.targetSectionId);if(job.phase==='activate')await assertMemoryTopicTransitionAllowed(t,target,{nextGeneration:job.newGeneration});}catch(error){if(error.code!=='MEMORY_DENIED')throw error;for(const row of source.id===target.id?[target]:[source,target]){delete row.layoutJobId;await t.put('topics',row);}job.state='cancelled';job.stateKey=1;await t.put('organizerJobs',job);return {pending:true,jobId:job.id,cancelled:true,code:'MEMORY_DENIED'};}
   const sourcePhase=job.phase.startsWith('source'),sectionPhase=job.phase.endsWith('sections'),owner=sourcePhase?source:target,generation=sourcePhase?job.sourceGeneration:job.targetGeneration;
   if(job.phase!=='activate'){
    const table=sectionPhase?'sections':'placements',page=await t.rangePage(table,'byTopicOrder',prefix([owner.id,generation]),job.cursor,100);
@@ -66,4 +69,9 @@ export async function reorderPlacement(store,r){
   for(const [i,row]of [a,b].entries()){const before=structuredClone(row);row.rank=ranks[i];row.revision++;row.orderProtection=true;row.membershipAuthorship='user';await t.put('placements',row);const e=await t.get('thoughts',row.entryId);if(e){markHuman(e,'order',r.operationId,store.clock());e.organizationRevision++;e.revision++;await t.put('thoughts',e);}await journal(store,t,{kind:'placement',entityId:row.id,documentId:topic.id,before,after:row,fieldMask:['order'],actor:'user',reason:'reorder',important:true,operationId:r.operationId,baseRevision:before.revision,afterRevision:row.revision,sourceRecordIds:e?.sourceRecordIds||[]});}
   topic.organizationRevision++;await t.put('topics',topic);return {id:r.entryId,topicRevision:topic.organizationRevision};
  });
+}
+
+async function assertLayoutRemovalAllowed(t,source,kind,sectionId,targetSectionId){
+ if(kind==='topic_merge')await assertMemoryTopicTransitionAllowed(t,source,{nextGeneration:null});
+ else if(kind==='section_merge')await assertMemoryTopicTransitionAllowed(t,source,{sectionId,targetSectionId});
 }

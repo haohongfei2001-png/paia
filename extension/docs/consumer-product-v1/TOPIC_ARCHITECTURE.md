@@ -4,6 +4,8 @@ Decision: OWNER_APPROVED, 2026-10-07. Contract: PT-1.0. This is the settled Topi
 
 Approval establishes product semantics, not shipped capability, a running Organizer, paid processing, migration execution or production certification.
 
+Subsequent final presentation adoption, 2026-10-07: [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, and [its reference manifest](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) govern the reviewed Thought UI. Root consumes Personal Topic names and real named Section overview; the continuous reader consumes the same default/named Sections and Entries. AI reading headings are derivative presentation, not new durable Sections. This reference does not change PT-1.0 semantics, body ownership or unresolved gates. Implementation is integrated into the existing Topic plan, especially TOPIC-05.1 through 05.8, not a new design workstream.
+
 ## PT-01 — One Thought Library; personal objects and recurring subjects first
 
 A Personal Topic / Library Topic is:

@@ -1,27 +1,18 @@
 // Read actual Chromium glyph fonts as well as CSS families. A declared fallback
 // stack alone does not establish which CJK face painted a page.
 import {eventually} from './fake-chatgpt.mjs';
+import {sampleRenderedTypography} from './rendered-typography-sample.mjs';
 export async function renderedTypography(page,selectors){
  const client=await page.context().newCDPSession(page),rows=[];
  try{
   await client.send('DOM.enable');await client.send('CSS.enable');
   for(const selector of selectors){
-   let nodeId;
-   // The real navigator may replace its tree after an ordinary data refresh.
-   // Each glyph read must acquire the current node; an absent target never passes.
+   let sample;
+   // A real navigator refresh can replace the target between DOM and CSS calls.
+   // Retry the whole coherent sample, never accept missing nodes or mixed rows.
    await page.locator(selector).first().waitFor({state:'visible'});
-   await eventually(async()=>{
-    const {root}=await client.send('DOM.getDocument',{depth:0});
-    ({nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector}));
-    return nodeId>0;
-   },'current typography target: '+selector);
-   const {fonts}=await client.send('CSS.getPlatformFontsForNode',{nodeId});
-   const geometry=await page.locator(selector).first().evaluate(node=>{
-    const s=getComputedStyle(node),b=node.getBoundingClientRect(),r=document.createRange();r.selectNodeContents(node);
-    const rect=x=>({x:x.x,y:x.y,width:x.width,height:x.height,right:x.right,bottom:x.bottom});
-    return {text:node.textContent,family:s.fontFamily,size:s.fontSize,weight:s.fontWeight,lineHeight:s.lineHeight,synthesis:s.fontSynthesis,box:rect(b),textRects:[...r.getClientRects()].map(rect)};
-   });
-   rows.push({selector,...geometry,fonts});
+   await eventually(async()=>{sample=await sampleRenderedTypography(page,client,selector);return !!sample;},'current typography target: '+selector);
+   rows.push(sample);
   }
   return rows;
  }finally{await client.detach();}

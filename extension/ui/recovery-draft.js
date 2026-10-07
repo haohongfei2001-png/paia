@@ -45,6 +45,15 @@ export class RecoveryDraftSession{
   const draft=await request('PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:this.kind,ownerId:this.ownerId,epoch:this.epoch}});
   return this.currentToken?null:draft;
  }
+ async discard(token=this.currentToken){
+  // Wait for every already queued protection write before clearing its token.
+  // A newer edit has a different token and must survive this delayed discard.
+  if(!token)return true;
+  if(this.running)await this.running.catch(()=>{});
+  const result=await this.clear(token);
+  if(this.currentToken===token){this.currentToken=null;this.persisted=null;}
+  return result;
+ }
  async clear(token=this.currentToken){const result=await request('PAIA_RECOVERY_DRAFT_CLEAR',{draft:{kind:this.kind,ownerId:this.ownerId,token}});if(result&&this.persisted?.token===token)this.persisted=null;return result;}
 }
 
