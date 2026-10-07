@@ -195,7 +195,7 @@ export class TopicController {
  }
  searchRoot(){
   const query=$('thought-search').value.trim(),prior=this.homeCollection?.query||'';
-  if(query&&!prior&&this.homeCollection){this.rootBaseCollection=this.homeCollection;this.rootPreSearch={providerKey:null,snapshot:this.homeCollection.snapshot(),items:[...(this.homePage?.page?.items||[])],complete:this.homeCollection.terminal,anchor:this.captureHomeAnchor()||this.previousHomeAnchor(),scroll:scrollY};this.rootBaseCollection.releaseBodies();this.homeCollection=null;}
+  if(query&&!prior&&this.homeCollection){this.rootBaseCollection=this.homeCollection;this.rootPreSearch={providerKey:null,snapshot:this.homeCollection.snapshot(),items:[...(this.homePage?.page?.items||[])],complete:this.homeCollection.terminal,anchor:this.previousHomeAnchor()||this.captureHomeAnchor(),scroll:scrollY};this.rootBaseCollection.releaseBodies();this.homeCollection=null;}
   this.serial++;this.cursor=null;if(this.homeCollection)this.homeCollection.releaseBodies();this.homeCollection=null;this.homePage=null;
   if(!query){const saved=this.rootBaseCollection?.snapshot()||this.rootPreSearch?.snapshot;if(saved){this.homeCollection=this.createHomeCollection('');this.homeCollection.restore(saved);this.homeDesiredCount=Math.max(40,saved.items.length);}this.rootBaseCollection=null;this.rootInvalidationAnchor=this.rootPreSearch?.anchor||null;if(this.rootPreSearch?.items)this.personalRoot?.render(this.rootPreSearch.items,{complete:this.rootPreSearch.complete});this.homeRestoring=true;this.preserveHomeRefresh=true;this.rootPreSearch=null;}
   clearTimeout(this.searchTimer);this.searchTimer=setTimeout(()=>void this.refresh(),180);

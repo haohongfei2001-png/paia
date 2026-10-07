@@ -345,7 +345,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   }
 
   await page.setViewportSize({width:1200,height:800});
-  await eventually(()=>page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===3),'1200px Root refits into three stable columns');
+  await eventually(()=>page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===Math.max(1,Math.min(4,Math.floor((el.clientWidth+16)/240)))),'1200px Root refits to the actual remaining workspace width');
   const cardWidth=await page.locator('#thought-list article.personal-topic-block').first().evaluate(el=>el.getBoundingClientRect().width);
   assert.ok(cardWidth>=224,`Topic blocks keep the current minimum readable track width; got ${cardWidth}`);
   assert.equal(await title.evaluate(el=>getComputedStyle(el).webkitLineClamp),'2','Root title previews have the adopted two-line limit and retain their complete accessible name');

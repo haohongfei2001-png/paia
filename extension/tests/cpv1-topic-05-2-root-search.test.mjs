@@ -69,3 +69,17 @@ test('TOPIC-05.2 native identity links leave text drags selectable and preserve 
   selected=true;link.listeners.get('click')(click);assert.equal(prevented,2);assert.equal(opened.length,1,'finishing a text selection cannot activate the Topic');
  }finally{Object.assign(globalThis,prior);}
 });
+
+test('TOPIC-05.2 Root query preserves the validated reading anchor before search focus scrolls the page',()=>{
+ const prior={document:globalThis.document,scrollY:globalThis.scrollY};
+ globalThis.document={getElementById:()=>({value:'SYNTHETIC query'})};globalThis.scrollY=0;
+ try{
+  for(const stale of [false,true]){
+   const saved={key:'item:deep-topic',id:'deep-topic',top:181},current={key:'item:first-topic',id:'first-topic',top:164};
+   const collection={query:'',scope:'root',authority:'current-authority',keys:new Set([saved.key,current.key]),terminal:true,snapshot:()=>({items:[]}),releaseBodies(){}};
+   const owner=Object.assign(Object.create(TopicController.prototype),{homeCollection:collection,homeReadingPosition:{scope:'root',authority:stale?'old-authority':'current-authority',anchor:saved},homePage:{page:{items:[]}},serial:0,captureHomeAnchor:()=>current,refresh:()=>assert.fail('timer must be cleared by fixture')});
+   owner.searchRoot();clearTimeout(owner.searchTimer);
+   assert.deepEqual(owner.rootPreSearch.anchor,stale?current:saved,stale?'stale remembered authority cannot restore an old identity':'focus-induced scrolling cannot replace the last actual reading position');
+  }
+ }finally{Object.assign(globalThis,prior);}
+});
