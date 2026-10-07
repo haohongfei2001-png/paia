@@ -29,8 +29,8 @@ export class ContextItemEditor {
  }
  get composing(){return this.surface.composing;}
  get recoveryPending(){return this.recovery.pending||!!this.discarding||!!this.draftClearFailed;}
- dirty(){return this.local!==this.saved.body||this.fresh&&!!this.local.trim()||!!this.commit.pending;}
- collect(){this.local=this.field.innerText;}
+ dirty(){return this.local!==this.saved.body||this.fresh&&!!this.local.trim()||!!this.commit.pending||!!this.saving;}
+ collect(){const text=this.field.innerText;this.local=this.fresh&&!this.saving&&!this.commit.pending&&!text.trim()?'':text;}
  operation(){return this.revision.attempt({kind:'put',epoch:this.epoch,itemId:this.id,expectedRevision:this.saved.revision,body:this.local,section:this.saved.section,card:this.saved.card||'info'});}
  changed(){this.collect();this.feedback.replaceChildren();this.failed=false;if(this.fresh&&!this.local.trim()&&!this.saving&&!this.commit.pending){this.revision.last=null;void this.clearDraft();return;}if(!this.dirty()){this.revision.last=null;void this.clearDraft();return;}if(this.local.trim()||this.commit.pending||this.saving){const change=this.operation();void this.recovery.protect({type:'PAIA_CONTEXT_CARDS_CHANGE',change},change.operationId).catch(()=>{});}this.autosave.schedule();}
  async clearDraft(){
