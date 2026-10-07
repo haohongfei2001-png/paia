@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {cp,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {join,relative,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
@@ -330,21 +330,18 @@ async function install(page){
 }
 
 async function observeWorkerMaintenance(worker,page){
- await worker.evaluate(async()=>{
-  const [{FilterRunner},{SafetyRunner},{LibraryRunner}]=await Promise.all([
-   import(chrome.runtime.getURL('core/filter-runner.js')),import(chrome.runtime.getURL('core/thought-runner.js')),
-   import(chrome.runtime.getURL('core/library-runner.js'))]);
-  const owners=new Set(),originals=[FilterRunner,SafetyRunner,LibraryRunner].map(Type=>[Type.prototype,Type.prototype.wake]);
-  for(const [prototype,wake]of originals)prototype.wake=function(...args){owners.add(this);return Reflect.apply(wake,this,args);};
-  const restore=()=>{for(const [prototype,wake]of originals)prototype.wake=wake;};
-  globalThis.__ctx4Maintenance={owners,restore,async settle(){
-   if(owners.size!==3)throw Error('Actual worker maintenance owners were not observed');
-   // Await the actual runners, including a follow-on wake requested while a
-   // previous drain was running. No runner or derived field is disabled.
-   await Promise.all([...owners].map(owner=>owner.wake()));
+ await worker.evaluate(()=>{
+  const {filter,safety,library,cards}=globalThis.__ctx4WorkerOwners||{},owners=new Set([filter,safety,library]);
+  if(owners.size!==3||[...owners].some(owner=>typeof owner?.wake!=='function'||owner.store!==library?.store)
+   ||cards?.s!==library?.store)throw Error('Actual worker maintenance owners were not observed');
+  globalThis.__ctx4Maintenance={owners,async settle(){
+   // Filtering and safety invalidation can enqueue Library work. Drain those
+   // real owners in that order, including each follow-on wake, so Library
+   // cannot finish before the preceding owners queue their derived work.
+   for(const owner of owners){await owner.wake();while(owner.running)await owner.running;}
    for(;;){const running=[...owners].map(owner=>owner.running).filter(Boolean);if(!running.length)break;await Promise.all(running);}
    if([...owners].some(owner=>owner.failed||owner.store.libraryMaintenanceFailed))throw Error('Actual worker maintenance failed');
-   const store=[...owners].find(owner=>owner instanceof LibraryRunner).store;
+   const store=library.store;
    const foundation=await store.libraryStatus(),filter=await store.filterStatus();
    const pending=await store.repository.transaction(false,async t=>({
     searchComplete:(await t.get('meta','library-search-rebuild'))?.complete===true,
@@ -356,26 +353,37 @@ async function observeWorkerMaintenance(worker,page){
   }};
  });
  // GET_STATUS uses the existing worker dispatch path which wakes all three
- // local owners after responding. Observe those real instances once, then
- // immediately remove the prototype hooks before fixture work begins.
+ // local owners after responding. The fixture observes the already-created
+ // instances; their wake methods and maintenance behavior stay unchanged.
  await page.evaluate(async()=>{const value=await chrome.runtime.sendMessage({type:'GET_STATUS'});if(!value.ok)throw Error('Worker status unavailable');});
- await eventually(()=>worker.evaluate(()=>__ctx4Maintenance.owners.size===3),'actual worker local maintenance owners observed');
- await worker.evaluate(()=>__ctx4Maintenance.restore());
 }
 
 async function workerRecoveryBatch(extensionPath){
- const h=await FakeChatGPT.start({extensionPath}),page=h.archive;
- const report={name:'worker-recovery-batch-final-fence',passed:false,events:[]};let worker,phase='prepare';
+ const temporary=await mkdtemp(join(tmpdir(),'paia-ctx4-05-worker-')),fixturePath=join(temporary,'extension');
+ const report={name:'worker-recovery-batch-final-fence',passed:false,events:[]};let h,page,worker,phase='copy-worker-fixture';
  try{
-  await install(page);
+  // MV3 service workers reject dynamic import(), including from evaluate().
+  // Keep the selected source/release worker bytes intact and append only a
+  // test bridge to its existing production instances in a disposable copy.
+  await cp(extensionPath,fixturePath,{recursive:true,dereference:true,
+   filter:path=>!relative(extensionPath,path).split(sep).some(name=>['.git','node_modules','work','outputs'].includes(name))});
+  const workerPath=join(fixturePath,'background','service-worker.js'),original=await readFile(join(extensionPath,'background','service-worker.js'));
+  const bridge=Buffer.from('\n// Disposable native fixture: references only; no replacement owners or dispatch.\nglobalThis.__ctx4WorkerOwners={filter:runner,safety,library:libraryRunner,cards:contextCards};\n');
+  await writeFile(workerPath,Buffer.concat([original,bridge]));
+  assert.deepEqual(await readFile(workerPath),Buffer.concat([original,bridge]),'Disposable worker retains complete production bytes and only the reference bridge');
+  assert.deepEqual(await readFile(join(extensionPath,'background','service-worker.js')),original,'Selected worker payload remains unchanged');
+  report.workerInstrumentation='existing-production-owner-references';report.productionWorkerBytesPreserved=true;
+  phase='launch-worker-fixture';h=await FakeChatGPT.start({extensionPath:fixturePath});page=h.archive;
+  phase='install-page-fixture';await install(page);
+  phase='discover-worker';
   worker=h.context.serviceWorkers().find(value=>value.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`);assert.ok(worker);
-  await observeWorkerMaintenance(worker,page);
-  await page.evaluate(()=>__ctx4Native.prepareWorker());
+  phase='observe-worker-maintenance';await observeWorkerMaintenance(worker,page);
+  phase='prepare-worker-data';await page.evaluate(()=>__ctx4Native.prepareWorker());
   phase='settle-fixture-maintenance';await worker.evaluate(()=>__ctx4Maintenance.settle());
+  phase='seed-worker-drafts';
   assert.equal((await page.evaluate(()=>__ctx4Native.seedWorkerDrafts())).draftCount,2);
-  phase='install-native-hooks';await worker.evaluate(async()=>{
-   const {ContextCardsService}=await import(chrome.runtime.getURL('core/context-cards.js'));
-   const recoverySources=ContextCardsService.prototype.recoverySources,
+  phase='install-native-hooks';await worker.evaluate(()=>{
+   const prototype=Object.getPrototypeOf(__ctx4WorkerOwners.cards),recoverySources=prototype.recoverySources,
     digest=SubtleCrypto.prototype.digest,transaction=IDBDatabase.prototype.transaction,active=new Set(),events=[];
    let release;const gate=new Promise(resolve=>{release=resolve;});
    const state={events,active,held:false,notes:0,resolvedNotes:0,validatedDrafts:0,release,mark(event,detail={}){events.push({sequence:events.length,event,...detail});}};
@@ -390,7 +398,7 @@ async function workerRecoveryBatch(extensionPath){
    // Hold delivery of the actual second successful production validation.
    // Its data is unchanged; both native lineage fences have already passed.
    // Only the worker's subsequent aggregate fence can reject the coming edit.
-   ContextCardsService.prototype.recoverySources=async function(...args){
+   prototype.recoverySources=async function(...args){
     const value=await Reflect.apply(recoverySources,this,args);
     if(args[1]?.stored&&args[0]?.kind==='context_item'){
      const ordinal=++state.validatedDrafts;state.mark('worker-draft-validation-complete',{ordinal,activeTransactions:active.size});
@@ -399,7 +407,7 @@ async function workerRecoveryBatch(extensionPath){
     return value;
    };
    state.restore=()=>{release();SubtleCrypto.prototype.digest=digest;IDBDatabase.prototype.transaction=transaction;
-    ContextCardsService.prototype.recoverySources=recoverySources;};globalThis.__ctx4BatchProbe=state;
+    prototype.recoverySources=recoverySources;};globalThis.__ctx4BatchProbe=state;
   });
   phase='second-draft-validation';await page.evaluate(()=>{globalThis.__ctx4BatchPending=chrome.runtime.sendMessage({type:'PAIA_CONTEXT_CARDS_DRAFTS'});});
   await eventually(()=>worker.evaluate(()=>__ctx4BatchProbe.held),'both real worker drafts complete their individual native source validations');
@@ -419,11 +427,15 @@ async function workerRecoveryBatch(extensionPath){
   phase='network-and-errors';
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   report.passed=true;report.nativeIndexedDB=true;report.workerCommand='PAIA_CONTEXT_CARDS_DRAFTS';
- }catch{report.failure='Actual worker recovery batch boundary failed';report.failurePhase=phase;}
+ }catch(error){
+  report.failure='Actual worker recovery batch boundary failed';report.failurePhase=phase;
+  // Exception text and stacks may contain bodies. Emit only a fixed category.
+  report.failureCategory=['AssertionError','TypeError','ReferenceError','SyntaxError','TimeoutError'].includes(error?.name)?error.name:'Error';
+ }
  finally{
   if(worker)report.events=await worker.evaluate(()=>{const value=__ctx4BatchProbe;if(!value)return [];value.restore();return value.events;}).catch(()=>[]);
-  if(worker)await worker.evaluate(()=>globalThis.__ctx4Maintenance?.restore()).catch(()=>{});
-  await page.evaluate(()=>__ctx4Native?.closeWorker()).catch(()=>{});await h.close();
+  try{if(page)await page.evaluate(()=>globalThis.__ctx4Native?.closeWorker()).catch(()=>{});if(h)await h.close();}
+  finally{await rm(temporary,{recursive:true,force:true});}
  }
  return report;
 }
