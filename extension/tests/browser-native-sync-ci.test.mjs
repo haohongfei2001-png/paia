@@ -24,7 +24,7 @@ test('Sync native proof stays an exact-head opt-in draft job with complete owner
 });
 
 test('Sync native aggregate retains every prior dependency and rejects non-success when selected',()=>{
- assert.match(aggregate,/needs: \[unit, contracts, release, direct_edit, shell_cutover, targeted_browser, topic_compatibility, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility, organize_candidate_compatibility, sync_native_storage\]/);
+ assert.match(aggregate,/needs: \[unit, contracts, release, direct_edit, shell_cutover, targeted_browser, topic_compatibility, topic05_root, topic_retained, topic_retained_results, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility, organize_candidate_compatibility, sync_native_storage\]/);
  assert.ok(aggregate.includes('SYNC_NATIVE_STORAGE: ${{ needs.sync_native_storage.result }}'));
  assert.ok(aggregate.includes("SYNC_NATIVE_STORAGE_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BNS_NATIVE_STORAGE') }}"));
  const line=aggregate.split('\n').find(line=>line.includes('if [ "$SYNC_NATIVE_STORAGE_SELECTED"'));
@@ -39,4 +39,27 @@ test('publication candidate retains exact-head source/release journal evidence',
  const workflow=readFileSync(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8');
  const job=workflow.split('  sync_native_storage:')[1].split('  candidate:')[0];
  for(const required of ["assert.equal(receipt.schema,1)","assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD)","assert.equal(receipt.tree,tree)","assert.equal(receipt.result,'PASS')","assert.equal(receipt.restarts.length,3)","assert.equal(receipt.isolation.networkAttempts,0)","assert.deepEqual(publications[0].productionHashes,publications[1].productionHashes)"])assert.ok(job.includes(required),required);
+});
+
+
+test('full certification explicitly runs all nested native Sync files on tested merge or main SHA',()=>{
+ const full=readFileSync(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
+ const native=full.split('  sync_native_storage:\n')[1].split('  certified:')[0];
+ assert.match(native,/needs: mode\n    if: needs.mode.outputs.full == 'true'/);
+ assert.match(native,/ref: \$\{\{ github.sha \}\}\n          persist-credentials: false/);
+ assert.equal((native.match(/PAIA_TESTED_HEAD: \$\{\{ github.sha \}\}/g)||[]).length,2);
+ assert.doesNotMatch(native,/pull_request.head.sha|test-name-pattern|continue-on-error|test-skip-pattern/);
+ const command='xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs';
+ assert.ok(native.includes(command));
+ // The entire proven receipt verifier is identical except for its SHA binding.
+ const receiptBlock=value=>value.split("          node --input-type=module <<'JS'\n")[1].split('          JS')[0];
+ assert.equal(receiptBlock(native),receiptBlock(job));
+ const gate=full.split('  certified:')[1];
+ assert.match(gate,/needs: \[mode, unit, contracts, current_browser, full_suite, macos_secure_store, macos_discard_lifecycle, release, sync_native_storage\]/);
+ assert.ok(gate.includes('SYNC_NATIVE_STORAGE: ${{ needs.sync_native_storage.result }}'));
+ const script=gate.split('        run: |\n')[1];
+ for(const state of ['success','failure','cancelled','skipped','']){
+  const result=spawnSync('bash',['-e','-c',script],{env:{...process.env,FULL:'true',UNIT:'success',CONTRACTS:'success',RELEASE:'success',CURRENT_BROWSER:'success',FULL_SUITE:'success',MACOS_SECURE_STORE:'success',MACOS_DISCARD:'success',SYNC_NATIVE_STORAGE:state}});
+  assert.equal(result.status===0,state==='success',state);
+ }
 });

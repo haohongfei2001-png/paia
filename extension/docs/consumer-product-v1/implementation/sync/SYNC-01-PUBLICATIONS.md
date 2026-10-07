@@ -159,3 +159,36 @@ metadata names the clean base, while the seven recorded production module hashes
 identify the tested working runtime. Do not present that base SHA as containing
 retirement or treat this as an exact-head hosted CI receipt. Logs/isolated receipts
 remain local under `work/qa-bns-retirement`; hosted admission is still pending.
+
+
+## Full-gate preparation on certified Root baseline
+
+Draft PR192 headf834627 passed candidate37688529368, including native partial
+Core evidence. Full certification was skipped and the separate Prompt foundation
+workflow cancelled; neither is a pass. The regular test runner scans only top-level
+tests, so its full-browser discovery does not cover the three nested Sync files.
+
+Independent combination branch merged current main daf1807 as b6c2e23. The two
+conflicts were CI aggregate dependencies and their exact assertion; the union
+retains both Root jobs and Sync. Independent review checked all non-conflict
+source blobs (30 Sync-side and71 main-side files) against their original commits.
+No product/data logic was rewritten to resolve the merge.
+
+Full certification now explicitly runs all three native storage/publication/
+retirement files in one bounded12-minute job, binding receipts to github.sha
+(the tested merge or main), preserving the complete source/release receipt
+verifier and requiring success in the full aggregate. Draft candidate remains
+opt-in and bound to PR head. The full job reuses the reviewed signed HTTPS
+Ubuntu mirror pre-step. No provider, secret, deployment or permission is added.
+Local8 CI guards and independent184 Sync/Prompt/CI regressions pass, no skips or
+cancellations; workflow YAML, job dependency references and201 shell blocks
+validate. Initial gate-harness execution without GitHub bash -e was retained as
+a failed local fixture run, then corrected to the real runner shell semantics.
+
+This is preparation, not executed combined native/full certification. Reconcile
+the Settings0.20 batch before integration and test that exact version. The scope
+remains SYNC-01 local protocol, Prompt preferences partial transaction/restore
+and publication lifecycle. Retirement's synthetic no-op restore owner does not
+prove production Prompt purge/restore; full canonical owner journals, consumer
+preference intent/dual-storage atomicity, large-scale experiments, cloud OAuth
+and cross-device service behavior remain open.
