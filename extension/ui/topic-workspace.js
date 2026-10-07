@@ -256,10 +256,11 @@ export class TopicController {
  paintRootSearch(page,query){
   // Search uses the existing bounded lexical owner; presentation never creates
   // a second directory or changes the established Topic addresses.
-  const prior=this.rootPreSearch;
+  const prior=this.rootPreSearch,focus=this.personalRoot.focusRef();
   if(prior?.items)this.personalRoot.render(prior.items,{complete:prior.complete});
   const matches=new Set(page.items.flatMap(item=>(item.paths||[item]).map(path=>path.topicId||item.topicId)).filter(Boolean));
-  this.personalRoot.search(page.items,query,{open:(item,path)=>this.openSearchResult(item,path)});
+  this.personalRoot.search(page.items,query,{open:(item,path)=>this.openSearchResult(item,path),complete:page.complete===true});
+  if(focus?.matchKey||focus?.matchStep)this.personalRoot.restoreFocus(focus);
   $('library-search-status').textContent=page.indexing?'搜索索引正在准备，匹配尚未完整。':page.complete?(matches.size?'匹配的主题已保留在原位置。':page.items.some(item=>item.kind==='entry'&&!item.paths?.length)?'匹配位于单独写下的内容，可从更多操作打开。':'当前没有匹配内容。'):'继续读取其余匹配；主题位置保持不变。';
   $('thought-empty').hidden=true;
  }

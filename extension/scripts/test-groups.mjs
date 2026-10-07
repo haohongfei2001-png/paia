@@ -54,6 +54,10 @@ export function group(file) {
  */
 export function testShard(file, position, total, category) {
  const name=file.split('/').at(-1),root='cpv1-topic-05-2-root-chrome-e2e.test.mjs';
+ // Full37648849130 exhausted shard6 while Thought shared the same18-minute
+ // budget with Context and Settings. Isolate this whole file on7 and retain
+ // every prior six-way placement, fixture, case and deadline exactly.
+ if(category==='browser E2E'&&total===7)return name==='ux-r3-thought-chrome-e2e.test.mjs'?7:testShard(file,position,6,category);
  // Full37554248921: shard3 took561s of1080s. Add the whole two-case
  // Root journey there, preserving every prior73 placement and every timeout.
  if(category==='browser E2E'&&[4,5,6].includes(total)){if(name===root)return 3;if(name>root)position--;}

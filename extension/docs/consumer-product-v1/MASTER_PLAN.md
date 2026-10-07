@@ -1,7 +1,15 @@
 # PAIA Consumer Product v1 — Canonical Master Plan
 
-Current scoped integration: **AIU-1.0 / AIOS-1.0, 2026-10-07**.
+Current scoped integration: **AIU-1.0 / AIOS-1.0, 2026-10-07**, with **AIU-QWEN-1.0, 2026-10-08** model-route/cost qualification refinement.
 STATUS.md remains the sole execution queue. This file maps adopted outcomes and dependencies; it does not start parallel writers.
+
+## Qwen-primary refinement — same seven outcomes
+
+Qwen is the current primary production candidate family; Max is the high-quality candidate, Flash the first routine-maintenance/Assist challenger, and Plus an intermediate qualification option. [Architecture section 15](AI_USAGE_ARCHITECTURE.md#15-qwen-primary-scoped-route-and-accounting-amendment--aiu-qwen-10) supplies the scoped route/ratebook/FX policy. [AI_USAGE_PLAN.md](AI_USAGE_PLAN.md) section 12 adds precise Qwen acceptance to the existing AI-COST-01–07, not a new workstream. [COST_MODEL](AI_USAGE_COST_MODEL.md) section 11 retains the original workload for All Max and Recommended CNY comparisons, with separate offered-load sensitivities. [ADOPTION](AI_USAGE_ADOPTION.md) section 7 and [REFERENCES](AI_USAGE_REFERENCES.md) sections 6–8 record source and official API evidence.
+
+The refinement adds neutral route metadata in 01; Qwen adapter/ratebook/server credentials/one normalized ledger in 02; Flash/Plus/Max facet and selective-adjudication qualification in 03; conservative filter evaluation in 04; Max three-style/incremental/full qualification in 05; low-latency Flash versus qualified alternatives in 06; and real provider bills/region/retention/quality/tail-budget acceptance in 07. All are planned; no paid test or code is started.
+
+Free/Pro, all three styles, Settings UI, Topic/Context architecture, Browser-Native Sync and Prompt behavior are unchanged. Current main `8c7561166e6fd617455e05ce19b1c65582b85692` includes Topic04 mechanics after Topic02/03, while current STATUS still selects Topic02 closure against exact evidence. Preserve these implementations and scoped completed work; do not reimplement or certify them from this model amendment. The unique first AI task remains AI-COST-01, subject to actual queue selection.
 
 ## 1. Preserved baseline and current sequencing
 

@@ -74,3 +74,43 @@ result above is separate evidence. Independent reconciliation review and exact
 successor source/release/full certification are required before main integration.
 Main remains held for its own current certification. STATUS is not advanced by
 this candidate receipt.
+
+
+## Current coherent 0.19 successor batch
+
+Fresh integration base is exact main
+`1b3c3f91ea4e248fb048214fd1efceccc0b2f344`, tree
+`497095d5a09f12cd93707b6afd423911b3dde27e`. The reviewed Root delta
+is reapplied relative to the original reconciliation's main parent, preserving
+all eight current Qwen documentation blobs and the two reviewed Context
+readiness/trace correction test blobs. Version remains one compatible 0.19.0
+capability integration, not a series of intermediate delivered versions.
+
+Earlier Root full run `37648849130` remains failed evidence. The current batch
+includes the explicit current-0.19 versus future-0.20 Backup fixture correction,
+full-browser CJK font-package parity with the owning Root/retained candidates,
+and an isolated seventh full-browser job for the entire existing
+`ux-r3-thought-chrome-e2e.test.mjs`. All other 74 file placements remain
+unchanged; all 75 current-browser files still run exactly once. All seven
+matrix jobs are mandatory through the existing aggregate; concurrency,
+18-minute budgets, cases, fixtures and visual/privacy oracles are retained.
+
+Search retains every qualified Topic, Section, Entry and saved-AI field hit
+inside its existing Topic rectangle, with explicit previous/next actions,
+stable selected identity on continuation and body-free match controls.
+Independent review found and reproduced an active-search width refit defect
+and missing stale/detached callback defenses. The local successor preserves
+Entry/AI/Section overlays during refitting and rejects obsolete controls after
+repaint, query change, Root navigation or a same-key match cycle. Added unit
+regressions cover these negatives; the complete source/release Root journey now
+also asserts active Entry/Section search through a same-column width round trip.
+That native successor remains NOT_RUN; earlier unit/candidate results do not
+establish this corrected native behavior.
+
+Local Chromium preflight could not start: the environment refused the browser
+process singleton socket with `Operation not permitted (1)`; Xvfb is absent.
+No local native pass is claimed. Exact successor source/release Root journeys
+and one coherent full certification remain required before integration.
+No paid/model/cloud operation, installed-build or whole-TOPIC-05 completion
+is claimed. The continuous Section reader/actions and its specifically deferred
+return-position replacement remain separate dependent acceptance.
