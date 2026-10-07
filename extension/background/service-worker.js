@@ -61,7 +61,7 @@ async function saveRecoveryDraft(draft){
 async function loadRecoveryDraft({kind,ownerId,epoch}={}){
  const current=await store.recoveryDraftEpoch();if(epoch!==current)throw new ArchiveError('INVALID_REQUEST');
  const draft=await recoveryDraftStore().load(kind,ownerId);if(!draft)return null;
- try{if((draft.epoch||'initial')!==current)throw new ArchiveError('INVALID_REQUEST');await (draft.kind==='context_item'?contextCards.recoverySources(draft):store.recoveryDraftSourceIds(draft));return draft;}
+ try{if((draft.epoch||'initial')!==current)throw new ArchiveError('INVALID_REQUEST');if(draft.kind==='context_item'&&await contextCards.recoveryCommitted(draft)){await recoveryDraftStore().clear(kind,ownerId,draft.token);return null;}await (draft.kind==='context_item'?contextCards.recoverySources(draft,{stored:true}):store.recoveryDraftSourceIds(draft));return draft;}
  catch(error){if(!['INVALID_REQUEST','CONTEXT_INVALIDATED'].includes(error?.code))throw error;await recoveryDraftStore().clear(kind,ownerId,draft.token);return null;}
 }
 // Bind recovery identity to the same read that supplied editor bodies. A
@@ -212,8 +212,8 @@ async function handle(request, sender) {
   if(['START_BOUNDED_ORGANIZER','STOP_BOUNDED_ORGANIZER','GET_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME','STOP_AI_PRESENTATION','GET_AI_PRESENTATION_STATUS','EDIT_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW','STOP_ORIGINAL_LIBRARY_VIEW','GET_ORIGINAL_ORGANIZER_STATUS'].includes(request.type))await originalReady;
   if(request.type.startsWith('PAIA_BACKUP_'))await backupReady;
   switch (request.type) {
-    case 'PAIA_CONTEXT_CARDS_DRAFTS': return withRecoveryFence(async()=>{const drafts=[];for(const ref of await recoveryDraftStore().list('context_item')){const draft=await loadRecoveryDraft(ref);if(draft)drafts.push(draft);}return drafts;});
-    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': return contextCards.snapshot();
+    case 'PAIA_CONTEXT_CARDS_DRAFTS': return withRecoveryFence(async()=>{const captured=await contextCards.recoveryBatchFence(),drafts=[];for(const ref of await recoveryDraftStore().list('context_item')){const draft=await loadRecoveryDraft(ref);if(draft)drafts.push(draft);}await contextCards.recoveryBatchFence(captured);return drafts;});
+    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {const snapshot=await contextCards.snapshot();if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');return snapshot;}
     case 'PAIA_CONTEXT_CARDS_CHANGE': return contextCards.change(request.change);
     case 'PAIA_CONTEXT_CARDS_OUTCOME': return contextCards.outcome(request.query);
     case 'PAIA_CONTEXT_TOPICS_PAGE':

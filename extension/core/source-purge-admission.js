@@ -58,6 +58,36 @@ export async function assessSourcePurge(t,{id,key,record},rawRecovery){
    if(!state||state.contentRevision!==0||state.sourcePurged===true)gate();
   }
  }
+ // Source-linked Context remains protected pending the explicit B-02 decision,
+ // independently of whether an editor currently has a recovery draft.
+ const context=await t.get('meta',CONTEXT_CARDS_ROW);
+ if(context&&!validContextCards(context))gate();
+ const contextInputs=new Set(),contextSources=new Set(),savedFamilies=new Map();
+ const point=async(name,key)=>{if(--budget<0)unavailable();return t.get(name,key);};
+ const sourceList=value=>Array.isArray(value)&&value.length<=1000&&value.every(idOK)&&new Set(value).size===value.length;
+ const sameIds=(a,b)=>sourceList(a)&&sourceList(b)&&a.length===b.length&&a.every(id=>b.includes(id));
+ for(const item of context?.items||[])if(item.origin==='automatic')for(const evidence of item.maintenance.provenance.evidence){
+  if(evidence.sourceIdentityTokens.includes(key)||blocks.has(evidence.inputId)||evidence.sourceRecordIds.some(id=>sourceIds.has(id)))gate();
+  for(const sid of evidence.sourceRecordIds){contextSources.add(sid);const families=savedFamilies.get(sid)||[];families.push(evidence.sourceIdentityTokens);savedFamilies.set(sid,families);}
+  if(contextInputs.has(evidence.inputId))continue;contextInputs.add(evidence.inputId);
+  const block=await point('blocks',evidence.inputId),index=await point('blockIndex',evidence.inputId),state=await point('inputStates',evidence.inputId);
+  // Both-owner absence can be legitimate retained pre-restore history. A
+  // present-but-partial current owner cannot prove target disjointness.
+  if(!block&&!index&&!state)continue;
+  if(!block||!index||!state||block.id!==evidence.inputId||block.value?.id!==evidence.inputId||index.id!==evidence.inputId||state.id!==evidence.inputId||block.value.documentId!==index.documentId||block.value.documentId!==state.documentId||!Array.isArray(block.value.provenance))gate();
+  const ids=block.value.provenance.map(p=>p?.sourceRecordId);
+  if(!sameIds(ids,index.recordIds)||!sameIds(ids,state.sourceRecordIds))gate();
+  for(const sid of ids){if(sourceIds.has(sid))gate();contextSources.add(sid);}
+ }
+ for(const sid of contextSources){
+  const index=await point('recordIndex',sid),source=await point('records',sid);
+  if(!index&&!source){if(savedFamilies.get(sid)?.some(tokens=>tokens.includes('legacy:'+sid)))gate();continue;}
+  const value=source?.value;
+  if(!index||!source||source.id!==sid||value?.id!==sid||index.id!==sid||index.sourceKey!==value.sourceKey||index.sourceMessageId!==value.sourceMessageId||index.chatKey!==chatOf(value)||index.dedupeKey!==value.dedupeKey)gate();
+  if(savedFamilies.get(sid)?.some(tokens=>!tokens.includes(value.sourceKey)&&!tokens.includes('legacy:'+sid)))gate();
+  if(!value.sourceKey&&(!idOK(value.sourceMessageId)||!value.chatId&&!value.chatUrl))gate();
+  if(value.sourceKey===key||value.platform===record.platform&&chatOf(value)===chatOf(record)&&value.sourceMessageId===record.sourceMessageId)gate();
+ }
  const thoughts=new Map(),metadataOwners=new Set(),topicIds=new Set();
  if(has(t,'thoughts')){
   if(t.tx.objectStore('thoughts').indexNames.contains('byQuarantine')&&await t.edge('thoughts','byQuarantine',prefix([1])))gate();

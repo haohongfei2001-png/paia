@@ -6,6 +6,23 @@ mechanics. It installs no production semantic assessor, processing resolver,
 runner, provider, service, paid call, taxonomy or external grant. It does not
 advance STATUS or certify semantic/model quality, migration, UI or the product.
 
+## Corrected coherent Context dependency — 2026-10-07
+
+Combined runtime `ca686a323198ebcae1df5e448a15e0764f9cfc68`, tree
+`aa301884a8f429cf5da85dd80fdc68fd7b8bcba7`, inherits the independently
+reviewed Context0.15 `a4d27a4c` / tree `6719461e` correction through Topic02.
+All eighteen inherited paths equal the Context owner except the reserved
+producer-minor17 header; no Topic03 domain or test bytes change. Independent
+mechanical inheritance review cleared this exact conflict-free merge.
+
+Current selected formation/candidate/lifecycle/receipt/version checks pass
+90 cases, zero failures or skips. Source package guards pass 10,616 checks
+across 314 resources; release guards pass 334 files at0.17.0. The inherited
+stack's 59 serial privacy cases and development audit pass in the Topic04
+superset. Earlier 126-case evidence below remains a separately scoped run.
+Final hosted full/native dependency proof, ordered integration and exact-main
+verification remain pending; no semantic service or model-quality claim follows.
+
 ## Recovered dependency checkpoint and reserved version — 2026-10-07
 
 The existing reviewed draft [PR #181](https://github.com/haohongfei2001-png/paia/pull/181)

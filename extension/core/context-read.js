@@ -1,3 +1,4 @@
+import {readableContextItems} from './context-item-lineage.js';
 import {ContextCardsService,CONTEXT_ITEM_CARDS} from './context-cards.js';
 import {ContextTopicAccessService} from './context-topic-access.js';
 import {readContextTopicScope,CONTEXT_TOPIC_SCOPE_LIMITS} from './context-topic-scope.js';
@@ -185,7 +186,9 @@ export class ContextReadService {
    items.push(item);outputBytes+=size;return true;
   };
   if(kind==='shallow'){
-   const open=captured.cards.items.filter(x=>x.lifecycle==='active'&&CONTEXT_ITEM_CARDS.includes(x.card)&&captured.cards.access[x.card].enabled).sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id));
+   const effective=await readableContextItems(this.#s,captured.cards.items.filter(x=>x.lifecycle==='active'&&CONTEXT_ITEM_CARDS.includes(x.card)&&captured.cards.access[x.card].enabled),{epoch:captured.epoch,expectedAuthority:captured.authority,rowSerialized:JSON.stringify(captured.cards)});
+   need(!effective.automaticEvaluation,'content_unavailable');
+   const open=effective.items.filter(x=>x.lifecycle==='active'&&CONTEXT_ITEM_CARDS.includes(x.card)&&captured.cards.access[x.card].enabled).sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id));
    for(const x of open.slice(position.index,position.index+o.limit))if(!append({itemId:x.id,card:x.card,role:roles[x.card],authority:'data',origin:x.origin,revision:x.revision,section:x.section,text:x.body}))break;
    position={index:position.index+items.length,field:0,offset:0};complete=position.index===open.length;
   }else if(kind==='topics'){

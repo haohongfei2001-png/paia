@@ -9,6 +9,32 @@ IMPLEMENTED_LOCAL_CANDIDATE / INDEPENDENT_REVIEW_CLEARED /
 HOSTED_CERTIFICATION_PENDING. This receipt does not advance STATUS, integrate
 ahead of TOPIC-01, or certify semantic formation, deployment or the whole product.
 
+## Corrected coherent Context dependency — 2026-10-07
+
+Combined runtime `f54e683bc51c857ed94a56a6e9f916d0c3b73243`, tree
+`ca28cb3d3b20bbe49afb25afdafcdd40c01fdf57`, inherits independently reviewed
+Context0.15 candidate `a4d27a4ca6864d9af257ba422eb7d1bf66d8ddd4`, tree
+`6719461e5cae147afbabc3d1efbcf9392bc407da`. Its generation-bound receipt
+and pending-join acknowledgement corrections are preserved. All eighteen
+inherited paths equal that Context owner except the existing producer-minor16
+header addition. Topic02 domain/test bytes, including the reviewed dormant
+guard, are unchanged. Independent mechanical inheritance review cleared this
+exact merge without conflicts.
+
+The combined Topic01/02, Context03/04/05, restore, version and compatibility
+suite passes 644 cases with zero failures or skips. Source package guards pass
+10,508 checks across 311 resources; the release product guard passes 331 files
+at version0.16.0. The complete inherited stack also passes 59 serial privacy
+cases and the development audit when checked in the Topic04 superset. Candidate
+`37617340206` on prior checkpoint `49efa18e` passed; it is not certification of
+this new combined tree. Final hosted full/native dependency proof, normal
+ordered integration and exact-main verification remain pending.
+
+Main `948ea06a57cd932c187407faf7140d9fb6714eff` at0.14 passed exact full
+`37611452025` and Prompt `37611451822`. This records the coherent correction
+of the retained old-main sampler failure without changing that negative result.
+No local receipt advances the canonical queue or activates processing.
+
 ## Coordinated integration candidate — 2026-10-07
 
 Runtime/version head `27a5727fed2810b9748985f7f2a8b08c86ca0269`, tree
