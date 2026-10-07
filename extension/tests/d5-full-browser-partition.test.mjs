@@ -39,3 +39,18 @@ test('CTX4 adds its complete source/release file to current shard5 without movin
 });
 
 test('CTX4 complete CI coverage guard includes its new file without reindexing the historical baseline',()=>{assert.match(execFileSync(process.execPath,['scripts/check-ui-refresh-ci.mjs'],{cwd:new URL('../',import.meta.url),encoding:'utf8'}),/CURRENT_BROWSER_COVERAGE_CONTRACT_PASS/);});
+
+test('CTX4 focused source/release artifact follows its whole-file shard while complete evidence remains retained',async()=>{
+ const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),job=workflow.split('  current_browser:')[1].split('  full_suite:')[0],focused=job.split('      - name: Upload focused Context source and release evidence')[1];
+ assert.ok(focused);assert.ok(focused.includes(`if: always() && matrix.index == ${testShard('context-cards-chrome-e2e.test.mjs',0,6,'browser E2E')}`));
+ assert.match(focused,/path: extension\/work\/ctx4-01\//);assert.match(focused,/if-no-files-found: error/);assert.match(focused,/retention-days: 14/);
+ assert.match(job,/name: Upload current browser shard evidence/);assert.match(job,/path: extension\/work\n/);assert.match(job,/npm run test:browser/);assert.match(job,/timeout-minutes: 18/);
+});
+
+test('CTX4 fast native probe admits only explicitly marked draft or full-certification PRs without substituting the full gate',async()=>{
+ const workflow=await readFile(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8'),job=workflow.split('  context_compatibility:')[1].split('\n  candidate:')[0];
+ const condition=job.split('\n').find(line=>line.trim().startsWith('if:')).trim();
+ assert.equal(condition,"if: (github.event.pull_request.draft == true || contains(github.event.pull_request.body, 'PAIA_FULL_CERTIFICATION')) && (contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_COMPAT_BROWSER'))");
+ assert.match(job,/timeout-minutes: 12/);assert.match(job,/ref: \$\{\{ github.event.pull_request.head.sha \}\}/);assert.match(job,/tests\/context-cards-chrome-e2e.test.mjs tests\/release-certification-round48-chrome-e2e.test.mjs tests\/release-certification-round49-chrome-e2e.test.mjs tests\/ans-01-reader-surfaces-chrome-e2e.test.mjs/);
+ assert.match(workflow.split('  candidate:')[1],/github.event.pull_request.draft == true/);
+});

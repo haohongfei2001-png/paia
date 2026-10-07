@@ -1227,8 +1227,10 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # Explicit Context full-certification pushes retain a fast native probe too.
+  # This additional job never substitutes the separate mandatory full gate.
   context_compatibility:
-    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_COMPAT_BROWSER'))
+    if: (github.event.pull_request.draft == true || contains(github.event.pull_request.body, 'PAIA_FULL_CERTIFICATION')) && (contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_COMPAT_BROWSER'))
     name: Candidate Context compatibility
     runs-on: ubuntu-latest
     timeout-minutes: 12
