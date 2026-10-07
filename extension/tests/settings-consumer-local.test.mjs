@@ -38,3 +38,29 @@ test('only the five local preference keys can be changed',async()=>{
 test('disable-induced focus is repaired but newer user focus wins',async()=>{
  const document={body:{},documentElement:{},activeElement:null},control={ownerDocument:document,isConnected:true,getClientRects:()=>[{}],focus(){document.activeElement=this;}};document.activeElement=control;await withSettingsControlFocus(control,async()=>{document.activeElement=document.body;});assert.equal(document.activeElement,control);const newer={};await withSettingsControlFocus(control,async()=>{document.activeElement=newer;});assert.equal(document.activeElement,newer);
 });
+
+
+test('Settings history summary follows the resolved locale for empty, completed, partial and failed reads',async()=>{
+ const {historyLatestText}=await import('../ui/history-completion.js');
+ assert.match(historyLatestText(null,'en'),/^No history has been imported/);
+ assert.match(historyLatestText(null,'zh-CN'),/^尚未补全历史输入/);
+ const record={completedAt:'2026-10-08T12:00:00Z',adapterId:'chatgpt-mapping-v1',counts:{added:3,duplicates:2,timeEnriched:1,issues:4},phase:'partial'};
+ const english=historyLatestText(record,'en'),chinese=historyLatestText(record,'zh-CN');
+ assert.match(english,/ChatGPT official export · Added 3 · Already saved 2 · Times completed 1 · Issues 4 · Some inputs need review/);
+ assert.doesNotMatch(english,/[\u3400-\u9fff]/);assert.match(chinese,/新增 3 · 已存在 2 · 补全时间 1 · 异常 4 · 部分输入待确认/);
+ assert.doesNotMatch(historyLatestText({...record,phase:'completed'},'en'),/need review/);
+ assert.match(historyLatestText(record,'en',true),/^The last import record could not be loaded/);
+ assert.match(historyLatestText(record,'zh-CN',true),/^上次补全记录未能载入/);
+ assert.deepEqual(record.counts,{added:3,duplicates:2,timeEnriched:1,issues:4});
+});
+
+test('Settings latest-import owner contains malformed summary failures and keeps locale changes local',async()=>{
+ const {initHistoryCompletion}=await import('../ui/history-completion.js');
+ const prior=new Map(['document','window','chrome'].map(key=>[key,globalThis[key]])),nodes=new Map(),listeners=new Map();let requests=0;
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',addEventListener(){}});return nodes.get(id);};
+ globalThis.document={documentElement:{lang:'en'},getElementById:node,addEventListener:(name,fn)=>listeners.set(name,fn)};
+ globalThis.window={addEventListener(){}};
+ globalThis.chrome={runtime:{sendMessage:async()=>{requests++;return {ok:true,data:{lastImport:{adapterId:'claude-conversations-v1',completedAt:'2026-01-01',counts:null}}};}}};
+ try{const owner=initHistoryCompletion();await assert.doesNotReject(owner.latest());assert.match(node('history-latest').textContent,/could not be loaded/);document.documentElement.lang='zh-CN';listeners.get('paia:preferences-applied')();assert.match(node('history-latest').textContent,/未能载入/);assert.equal(requests,1);}
+ finally{for(const [key,value]of prior)if(value===undefined)delete globalThis[key];else globalThis[key]=value;}
+});

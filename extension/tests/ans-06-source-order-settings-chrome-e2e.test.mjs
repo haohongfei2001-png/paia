@@ -39,6 +39,11 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
   await p.evaluate(()=>window.__ans09ReleasePreference());
   await eventually(async()=>!await p.locator('#archive-order-mode').isDisabled()&&(await rpc(p,'PAIA_ARCHIVE_ORDER_PREFERENCE')).mode==='source','source preference durably committed before restart');
   await p.evaluate(()=>window.__ans09RestoreSend());
+  // The contextual menu now also owns filter/revisit actions. Dismiss its
+  // native disclosure before clicking the directory underneath it.
+  await p.locator('#archive-order-mode').focus();await p.keyboard.press('Escape');
+  await eventually(async()=>!await p.locator('#archive-root-overflow').evaluate(node=>node.open)&&await p.locator('#archive-root-overflow > summary').getAttribute('aria-expanded')==='false','source-order menu closes before directory interaction');
+  assert.equal(await p.locator('#archive-root-overflow > summary').evaluate(node=>document.activeElement===node),true,'Escape returns to the menu trigger');
   assert.match(await p.locator('#archive-order-status').textContent(),/ChatGPT|PAIA/);
   const afterControls=await rpc(p,'GET_ORGANIZER_CONTROLS');assert.deepEqual(afterControls,beforeControls,'source-order setting is independent of Input reading sort');
   await h.restartWorker();

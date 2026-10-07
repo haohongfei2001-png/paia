@@ -68,3 +68,24 @@ for(const variant of ['source','release'])test(`D5 S01 Settings preserves six gr
  let h;try{h=await FakeChatGPT.start({...(variant==='release'?{extensionPath:'work/current-release'}:{}),onboarding:true});const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});await eventually(()=>page.evaluate(()=>document.documentElement.lang==='zh-CN'&&document.documentElement.dataset.paiaTheme==='light'));await page.setViewportSize({width:1440,height:900});await openSettings(page);await compareD5Settings(h,variant);await assertNoNetwork(h);}
  finally{await h?.close();}
 });
+
+for(const variant of ['source','release'])test(`SET2 compact text and Data locale remain readable (${variant})`,{timeout:120000},async()=>{
+ if(variant==='release')await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+ let h;try{
+  h=await FakeChatGPT.start({...(variant==='release'?{extensionPath:'work/current-release'}:{}),onboarding:true});const page=h.archive;await consent(page);await openSettings(page);await page.setViewportSize({width:320,height:900});
+  const {scaleText}=await import('./harness/settings-consumer-presentation.mjs');
+  const wholeWords=async selector=>{
+   const result=await page.locator(selector).evaluate(node=>{const words=[],walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);while(walker.nextNode()){const text=walker.currentNode;for(const match of text.textContent.matchAll(/[A-Za-z]+/g)){const range=document.createRange();range.setStart(text,match.index);range.setEnd(text,match.index+match[0].length);const rects=[...range.getClientRects()].filter(r=>r.width>0);words.push({word:match[0],lines:new Set(rects.map(r=>Math.round(r.y))).size});}}return{words,overflow:document.documentElement.scrollWidth-innerWidth};});assert.ok(result.overflow<=2);for(const word of result.words)assert.equal(word.lines,1,`${selector}: ${word.word} stays on one line`);
+  };
+  for(const language of ['en','zh-CN']){
+   await rpc(page,'UPDATE_PREFERENCES',{changes:{language,appearance:'dark'}});await eventually(()=>page.evaluate(language=>document.documentElement.lang===language,language));await scaleText(page,2);await chooseGroup(page,'ai');await page.evaluate(()=>scrollTo(0,0));await wholeWords('#settings-ai-style-open');await shot(page,`set2-reflow-${variant}-ai-320-dark-${language}-2x`);await scaleText(page,1);
+   await chooseGroup(page,'privacy');await page.locator('#settings-supported-sites-open').click();const dialog=page.locator('#settings-supported-sites-open-dialog');await dialog.waitFor();
+   await dialog.evaluate(node=>{for(const el of node.querySelectorAll('h2,p,button'))el.style.fontSize=(parseFloat(getComputedStyle(el).fontSize)*2)+'px';});await wholeWords('#settings-supported-sites-open-title');const overlap=await dialog.evaluate(node=>{const title=node.querySelector('h2').getBoundingClientRect(),close=node.querySelector('button').getBoundingClientRect();return title.bottom>close.top&&title.top<close.bottom&&title.right>close.left&&title.left<close.right;});assert.equal(overlap,false);await shot(page,`set2-reflow-${variant}-sites-320-dark-${language}-2x`);await page.keyboard.press('Escape');assert.equal(await page.locator('#settings-supported-sites-open').evaluate(node=>document.activeElement===node),true);await dialog.evaluate(node=>{for(const el of node.querySelectorAll('h2,p,button'))el.style.fontSize='';});
+   await chooseGroup(page,'data');
+   assert.equal(await page.locator('#history-settings h3').textContent(),language==='en'?'Import history':'导入历史');assert.equal(await page.locator('#settings-history').textContent(),language==='en'?'Choose history file':'选择历史文件');assert.equal(await page.locator('#settings-panel [data-view="archive"]').textContent(),language==='en'?'Original source records':'原始来源记录');
+   await eventually(async()=>language==='en'?(await page.locator('#history-latest').textContent()).startsWith('No history'):(await page.locator('#history-latest').textContent()).startsWith('尚未补全'));
+   if(language==='en')assert.doesNotMatch(await page.locator('#history-settings').textContent(),/[\u3400-\u9fff]/);await scaleText(page,2);await shot(page,`set2-reflow-${variant}-data-320-dark-${language}-2x`);await scaleText(page,1);
+  }
+  await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'en',appearance:'light'}});await eventually(()=>page.evaluate(()=>document.documentElement.lang==='en'));await page.setViewportSize({width:1440,height:900});await shot(page,`set2-reflow-${variant}-data-1440-light-en-1x`);await assertNoNetwork(h);
+ }finally{await h?.close();}
+});

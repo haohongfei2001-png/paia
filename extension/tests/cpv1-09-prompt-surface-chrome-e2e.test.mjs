@@ -169,9 +169,25 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    // original exact pointer deltas and boundary-clamp assertions below.
    await page.locator('#blur').focus();await page.keyboard.press('Tab');
    assert.equal(await page.evaluate(()=>document.activeElement.hasAttribute('data-paia-prompt-surface')),true);
-   for(let n=0;n<30&&(await orb.boundingBox()).x>920;n++)await page.keyboard.press('Alt+ArrowLeft');
-   for(let n=0;n<30&&(await orb.boundingBox()).y<250;n++)await page.keyboard.press('Alt+ArrowDown');
-   await eventually(async()=>{const b=await attached(),v=await saved();return b.orb.x>850&&b.orb.x<=920&&b.orb.y>=250&&b.orb.y<270&&v.position&&Math.abs(v.position.x*1236-b.orb.x)<1&&Math.abs(v.position.y*856-b.orb.y)<1;},'native keyboard provides safe persisted anchor');
+   // Prior viewport/zoom cases may start on either side of the target on a
+   // different platform. Reach the same safe rectangle through real keys only.
+   const anchorTrace={variant,platform:process.platform,steps:[]};
+   const anchorState=async()=>({bounds:await bounds(),saved:await saved(),focus:await page.evaluate(()=>({documentFocused:document.hasFocus(),orbFocused:document.activeElement?.hasAttribute('data-paia-prompt-surface')===true,width:innerWidth,height:innerHeight,dpr:devicePixelRatio}))});
+   await page.evaluate(()=>{globalThis.__anchorKeys=[];globalThis.__anchorKeyListener=event=>{if(event.target?.hasAttribute('data-paia-prompt-surface'))__anchorKeys.push({key:event.key,alt:event.altKey,trusted:event.isTrusted,prevented:event.defaultPrevented});};document.addEventListener('keydown',__anchorKeyListener);});
+   try{
+    anchorTrace.before=await anchorState();
+    for(let n=0;n<30;n++){
+     const b=await orb.boundingBox(),key=b.x>920?'ArrowLeft':b.x<=850?'ArrowRight':null;if(!key)break;
+     await page.keyboard.press('Alt+'+key);anchorTrace.steps.push({key,state:await anchorState()});
+    }
+    for(let n=0;n<30;n++){
+     const b=await orb.boundingBox(),key=b.y<250?'ArrowDown':b.y>=270?'ArrowUp':null;if(!key)break;
+     await page.keyboard.press('Alt+'+key);anchorTrace.steps.push({key,state:await anchorState()});
+    }
+    await eventually(async()=>{const b=await attached(),v=await saved();return b.orb.x>850&&b.orb.x<=920&&b.orb.y>=250&&b.orb.y<270&&v.position&&Math.abs(v.position.x*1236-b.orb.x)<1&&Math.abs(v.position.y*856-b.orb.y)<1;},'native keyboard provides safe persisted anchor');
+    const events=(await page.evaluate(()=>__anchorKeys)).filter(event=>['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key));assert.deepEqual(events.map(event=>event.key),anchorTrace.steps.map(step=>step.key));for(const event of events){assert.equal(event.trusted,true);assert.equal(event.alt,true);assert.equal(event.prevented,true);}assert.equal(await page.evaluate(()=>document.activeElement?.hasAttribute('data-paia-prompt-surface')),true,'native anchor setup retains orb focus');anchorTrace.result='PASS';
+   }catch(error){anchorTrace.result='FAIL';anchorTrace.error=error.message;throw error;}
+   finally{anchorTrace.after=await anchorState();anchorTrace.events=await page.evaluate(()=>{document.removeEventListener('keydown',__anchorKeyListener);const events=__anchorKeys;delete globalThis.__anchorKeyListener;delete globalThis.__anchorKeys;return events;});await writeFile(join(receiptDir,variant+'-native-anchor.json'),JSON.stringify(anchorTrace,null,2));}
    const initial=await attached(),sameFrame=card();await page.mouse.move(initial.orb.x+22,initial.orb.y+22);await page.mouse.down();
    assert.deepEqual(await bounds(),initial,'pointerdown does not jump');
    await page.mouse.move(initial.orb.x+14,initial.orb.y+16);await page.waitForTimeout(40);let b=await attached();near(b.orb.x,initial.orb.x-8,'first movement x');near(b.orb.y,initial.orb.y-6,'first movement y');near(b.card.x,initial.card.x-8,'card first movement x');near(b.card.y,initial.card.y-6,'card first movement y');near(b.card.height,initial.card.height,'card height stays stable');assert.equal(card(),sameFrame);
