@@ -17,6 +17,8 @@ Synchronize `manifest.json`'s `version`, the numeric prefix of `version_name`, a
 
 Main SHA identifies source. A build receipt should bind source identity to the artifact digest and truthfully label dirty/non-main candidates. Chrome's manifest `version` remains numeric; display/build metadata belongs in `version_name` or a separate build-metadata field. The current Settings/update UI and release builder do **not** embed or display the source SHA. This policy adoption does not claim that display/build implementation, installation, public release or user reload has occurred, and does not authorize an automatic release pipeline.
 
+At a full-certification integration boundary, include the literal `PAIA_FULL_CERTIFICATION` in the merge commit message, as required by [the execution protocol](docs/consumer-product-v1/EXECUTION_PROTOCOL.md#75-github-ci-scheduling). Verify the resulting main run's selected depth and required job results; a successful round-integration run with skipped browser/macOS jobs is not full exact-main certification.
+
 ## Fresh development clone
 
 From `extension/`:

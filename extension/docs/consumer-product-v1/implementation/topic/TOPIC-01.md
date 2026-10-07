@@ -2,8 +2,26 @@
 
 Base: remote main `0093c81300b8dff80b0cf00c4f2cad6130840030`.
 Scope: PT-01/PT-07/PT-08; G01/G02/G03/G08 foundation only.
-State: IMPLEMENTED_CANDIDATE / RELEASE_ALIGNMENT_INDEPENDENT_REVIEW_CLEARED / SUCCESSOR_HOSTED_CERTIFICATION_PENDING.
+State: MAIN_INTEGRATED / INDEPENDENT_REVIEW_CLEARED / EXACT_MAIN_FULL_CERTIFICATION_PENDING.
 This receipt does not advance the sole STATUS queue or certify later slices.
+
+## Integration and verification routing — 2026-10-07
+
+PR #177 integrated as main `492899d4e0c79b6c0cbb9ca0212f3e073c871d83`, tree
+`7022ba0ec51bf0dcab7ac3cfd710f792817d30d2`, with product version `0.13.0`.
+The main tree is identical to independently reviewed head
+`802239b099b47f477c9cb8ddd0165609dd542e63`. Its full Certification
+`37554248921` passed all four unit shards, all six current-browser shards,
+adapter/privacy, release/build, both macOS jobs and the final certification gate.
+
+The merge message omitted the required full-depth marker. Consequently, push
+run `37557706680` selected round-integration and skipped the full browser/macOS
+jobs. That run cannot substitute for full exact-main certification, even if its
+ordinary checks pass. The workflow reminder added with this receipt repeats the
+existing protocol rule; no runtime, version, workflow, timeout or test changes.
+The documentation-only correction requests a full exact-main run with the
+literal marker. Its terminal result and the final canonical closure remain
+pending; no full main PASS or stage COMPLETE is claimed here.
 
 ## Release-alignment successor — 2026-10-07
 
