@@ -163,3 +163,8 @@ test('BNS whole receive batch is captured before the first asynchronous validati
 test('BNS inherited object properties cannot be used as registered purge codecs',async()=>{
  for(const type of ['constructor','__proto__','toString'])await assert.rejects(op(1,null,{type,kind:'purge',value:null}),{code:'BNS_OPERATION_INVALID'});
 });
+test('BNS current codec cannot implicitly admit future Context families or processing metadata',()=>{
+ const item={id:'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',card:'info',body:'Synthetic manual',section:'Information',revision:1,order:0,origin:'manual',protected:true,userEdited:true,lifecycle:'active',createdAt:'2026-10-07T00:00:00.000Z',updatedAt:'2026-10-07T00:00:00.000Z',deletedBy:null};
+ validateEntity('contextItem',item);
+ for(const change of [{card:'rules'},{card:'now'},{origin:'automatic'},{maintenance:{}},{protected:false}])assert.throws(()=>validateEntity('contextItem',{...item,...change}),{code:'BNS_CODEC_UNSUPPORTED'});
+});

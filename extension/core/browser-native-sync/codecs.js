@@ -26,6 +26,7 @@ const entries=Object.entries(domain).map(([type,[section,store]])=>[type,spec(ty
  return value;
 },{section,store,immutable:type==='source'})]);
 const contextItem=value=>{
+ if(!exact(value,['id','card','body','section','revision','order','origin','protected','userEdited','lifecycle','createdAt','updatedAt','deletedBy'])||value.card!=='info'||value.origin!=='manual'||value.protected!==true||value.userEdited!==true)fail('BNS_CODEC_UNSUPPORTED');
  const emptyAccess=Object.fromEntries(['global','info','rules','now','inputs'].map(key=>[key,{enabled:false,revision:0}]));
  if(!validContextCards({id:CONTEXT_CARDS_ROW,version:1,sequence:(value.order||0)+1,access:emptyAccess,items:[value]}))fail('BNS_CODEC_INVALID');
  return value;
