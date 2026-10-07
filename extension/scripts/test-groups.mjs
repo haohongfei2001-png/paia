@@ -1,4 +1,5 @@
 const CURRENT_BROWSER=new Set([
+ 'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
  'context-cards-chrome-e2e.test.mjs',
  'consumer-cleanup-chrome-e2e.test.mjs',
  'desktop-vnext-context-chrome-e2e.test.mjs',
@@ -51,6 +52,13 @@ export function group(file) {
  * preserving every case/fixture and the unchanged18-minute job limit.
  */
 export function testShard(file, position, total, category) {
+ const name=file.split('/').at(-1),root='cpv1-topic-05-2-root-chrome-e2e.test.mjs';
+ // Full37554248921: shard3 took561s of1080s. Add the whole two-case
+ // Root journey there, preserving every prior73 placement and every timeout.
+ if(category==='browser E2E'&&[4,5,6].includes(total)){if(name===root)return 3;if(name>root)position--;}
+ return previousTestShard(file,position,total,category);
+}
+function previousTestShard(file, position, total, category) {
  const name=file.split('/').at(-1),purge='cpv1-02-dvn-purge-chrome-e2e.test.mjs',removal='cpv1-02-dvn-removal-chrome-e2e.test.mjs',search='cpv1-02-dvn-search-chrome-e2e.test.mjs',directEdit='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs';
  // Full37134318053 exhausted2/4's18-minute budgets. Preserve all65
  // other placements; move complete Thought ownership to6 and the measured
@@ -64,11 +72,11 @@ export function testShard(file, position, total, category) {
   if(name==='uir-04-settings-chrome-e2e.test.mjs')return 6;
   if(name==='ux-r3-thought-chrome-e2e.test.mjs')return 6;
   if(['cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs'].includes(name))return 5;
-  return testShard(file,position,5,category);
+  return previousTestShard(file,position,5,category);
  }
  // D5 expands native/visual direct editing by more than200s. Keep every
  // other certified4-way placement; isolate this whole file on a fifth job.
- if(category==='browser E2E'&&total===5)return name===directEdit?5:testShard(file,position,4,category);
+ if(category==='browser E2E'&&total===5)return name===directEdit?5:previousTestShard(file,position,4,category);
  // Preserve the exact previously certified 59-file routing when inserting Q4.
  // Full36776666083 browser2 took9m16s versus1=16m04,3=14m31,4=12m46.
  // Put the complete six Source/release purge journeys on2; retain all cases
