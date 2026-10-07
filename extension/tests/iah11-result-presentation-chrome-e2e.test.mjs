@@ -47,6 +47,12 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
    await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
   }
   writeFileSync(out+variant+'-unicode.json',JSON.stringify({inputId,before,after:await readInput(),unicode},null,2));
+  await p.locator('#scope-search').fill('SYNTHETIC_NEEDLE');await eventually(()=>row.count().then(n=>n===1));await row.focus();await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('#scope-search').inputValue(),'SYNTHETIC_NEEDLE','ordinary Back preserves Archive query');
+  await row.focus();await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());
+  await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#scope-search').isEnabled());
+  assert.equal(await p.locator('#scope-search').inputValue(),'','primary Archive starts a fresh query');assert.equal(await p.locator('#document-panel').isVisible(),false);assert.equal(await p.locator('.search-input').count(),0);assert.equal(await p.locator('#scope-search').getAttribute('placeholder'),'搜索全部档案');
+
   const filteredChat={id:'iah11-filter-context',title:'SYNTHETIC_FILTER_CONTEXT',base:1609459300,messages:[{id:'iah11-normal',text:'SYNTHETIC_NORMAL_CONTEXT'},{id:'iah11-filter-before',text:'继续'},{id:'iah11-filter-target',text:'请继续'},{id:'iah11-filter-after',text:'开始吧'}]};
   await h.open(filteredChat);await eventually(async()=>(await h.state()).records.length===5);
   await eventually(async()=>{const r=await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}));return r.ok&&r.data.items.length===3;},'three actual captured Inputs are filtered');
