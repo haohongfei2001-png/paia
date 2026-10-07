@@ -1333,7 +1333,7 @@ jobs:
         run: |
           set -o pipefail
           test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
-          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
+          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
       - name: Require exact-head complete native receipts
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
@@ -1360,6 +1360,15 @@ jobs:
             assert.equal(Object.keys(receipt.productionHashes).length,7);return receipt;
           });
           assert.deepEqual(publications[0].productionHashes,publications[1].productionHashes);
+          for(const variant of ['source','release']){
+            const receipt=JSON.parse(readFileSync(`work/qa-bns-retirement/${variant}.json`));
+            assert.equal(receipt.schema,1);assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.tree,tree);assert.equal(receipt.variant,variant);assert.equal(receipt.result,'PASS');
+            assert.equal(receipt.scope,'pure-Core-synthetic-restore-owner');assert.equal(receipt.productionPromptPurgeRestore,false);assert.equal(receipt.providerQualification,false);assert.equal(receipt.performedDeletion,false);
+            assert.equal(receipt.restarts.length,3);assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);assert.equal(receipt.isolation.httpRequests,0);
+            assertNetworkLedger(receipt.isolation.networkLedger,receipt.restarts);
+            for(const event of receipt.restarts){assertWorkerLifecycle(event);const paused=receipt.isolation.networkLedger.observations.filter(value=>value.point==='paused-before-stop'&&value.lifetime===event.beforeLifetime);assert.equal(paused.length,1);assert.deepEqual(event.pausedNetwork,paused[0]);}
+            assert.deepEqual(receipt.productionHashes,publications.find(value=>value.variant===variant).productionHashes);
+          }
           console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
           JS
       - name: Retain exact-head synthetic storage evidence
@@ -1370,6 +1379,7 @@ jobs:
           path: |
             extension/work/qa-bns-native-storage/
             extension/work/qa-bns-publication/
+            extension/work/qa-bns-retirement/
           if-no-files-found: error
           retention-days: 7
 
