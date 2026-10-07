@@ -277,3 +277,16 @@ test('CTX4-03 nonportable receipt guard preserves admitted prior Context Item an
  await backup.restore({sessionId:stage.sessionId,confirmation:preview.integrity,mode:'replace',targetGeneration:preview.targetGeneration,confirmReplace:true});
  for(const row of prior)assert.deepEqual(await raw(f.s,'operationReceipts',row.value.id),row.value);
 });
+
+
+test('CTX4-03 direct directory read refuses an actual in-flight global change and a fresh whole read sees the new authority',async()=>{
+ const f=await fixture({pause:true});await f.cards.change({kind:'access',key:'inputs',enabled:true,expectedRevision:0,epoch:'initial',operationId:op()});await enable(f);
+ const protectedBefore=await protectedRows(f.s),choiceBefore=await prefs(f.s),transaction=f.s.repository.transaction.bind(f.s.repository);let injected=false,capturedAuthority,currentAuthority;
+ f.s.repository.transaction=async(write,fn,stores)=>{const value=await transaction(write,fn,stores);if(!write&&!injected&&value?.offset===0&&Array.isArray(value.items)&&value.items.some(row=>row.topicId===f.topic.id)&&typeof value.authority==='string'){
+  injected=true;capturedAuthority=value.authority;f.s.repository.transaction=transaction;
+  const before=await f.cards.snapshot();assert.equal(before.access.global.enabled,false);assert.equal((await f.cards.change({kind:'access',key:'global',enabled:true,expectedRevision:before.access.global.revision,epoch:before.epoch,operationId:op()})).ok,true);
+  currentAuthority=(await transaction(false,t=>f.access.admission(t,undefined,{scope:true}))).authority;
+ }return value;};
+ const refused=await f.access.page();f.s.repository.transaction=transaction;assert.equal(injected,true);assert.notEqual(capturedAuthority,currentAuthority);assert.equal(refused.available,false);assert.equal(refused.reason,'stale_authority');assert.equal(refused.complete,false);assert.deepEqual(refused.items,[]);
+ const fresh=await f.access.page({cursor:null});assert.equal(fresh.available,true);assert.equal(fresh.authority,currentAuthority);assert.equal(fresh.complete,true);assert.equal(fresh.items.find(row=>row.topicId===f.topic.id).policyAllowed,true);assert.equal(fresh.selectedCount,1);assert.equal(fresh.externalAllowed,false);assert.deepEqual(await prefs(f.s),choiceBefore);assert.deepEqual(await protectedRows(f.s),protectedBefore);
+});

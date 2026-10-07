@@ -68,6 +68,24 @@ current/prior Backup producer boundaries, with zero failures or skips. Source
 package guards passed 10,301 checks and the 0.15.0 release guard passed 325 files.
 These local results do not replace the full combined certification below.
 
+The first combined head `63fbd9e5` passed full Certification `37584685809`
+(tested merge `8a89826f`, same tree `c18b7d96`), including every selected browser
+and platform job. Its separate fast native run `37584685815` passed 11/12:
+release and all inherited cases passed, but one direct source-directory assertion
+received `stale_authority` following the global-access change. The original trace
+does not identify the individual concurrent writer and remains a negative result.
+An actual-owner regression proves a real global-access write between capture and
+the final check produces that empty refusal, while a fresh whole read sees the
+new authority and correct data without changing protected stores.
+
+The test helper now bounds a whole-directory restart for that exact transient,
+clearing cursor and accumulated rows on each attempt. Stable denials and unknown
+errors remain fatal; final authority, count, data and true-end assertions remain.
+Existing polling uses one attempt per poll, so no nested deadline is introduced.
+Synthetic native evidence records authority/cursor transitions. The successor
+still requires both combined full and native proof; the first full success does
+not erase its separate native failure.
+
 ## Remaining integration gates
 
 The combined tree must pass the complete required unit, privacy/contracts,
