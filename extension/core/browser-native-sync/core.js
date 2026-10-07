@@ -36,22 +36,31 @@ export function acceptSequence(current,sequence){
 // an explicit meta namespace. No schema upgrade, arbitrary-store export, network
 // adapter, automatic enablement or second user-facing content store is installed.
 export class BrowserNativeSyncCore {
- constructor(repository,{datasetId,deviceId,materialize=null,checkpoint=async()=>{}}={}){
+ constructor(repository,{datasetId,deviceId,materialize=null,checkpoint=async()=>{},namespace=null}={}){
   if(!opaque(datasetId)||!opaque(deviceId))fail('BNS_IDENTITY_INVALID');
   this.repository=repository;this.datasetId=datasetId;this.deviceId=deviceId;
-  this.prefix=`bns:v1:${datasetId}:`;this.materialize=materialize;this.checkpoint=checkpoint;
+  if(namespace!==null&&!opaque(namespace))fail('BNS_NAMESPACE_INVALID');
+  this.prefix=`bns:v1:${datasetId}:`;this.fixedNamespace=namespace;this.boundTransactions=new WeakMap();this.materialize=materialize;this.checkpoint=checkpoint;
  }
  async transaction(write,fn,stores){let semanticError;try{return await this.repository.transaction(write,async t=>{try{return await fn(t);}catch(error){if(error instanceof SyncError)semanticError=error;throw error;}},stores);}catch(error){throw semanticError||error;}}
- id(kind,...ids){return this.prefix+kind+':'+key(ids);}
- async get(t,kind,...ids){return t.get('meta',this.id(kind,...ids));}
- async put(t,kind,ids,data){return t.put('meta',{...data,id:this.id(kind,...ids)});}
+ async bind(t){
+  if(this.boundTransactions.has(t))return this.boundTransactions.get(t);
+  const active=this.fixedNamespace?null:await t.get('meta',this.prefix+'active');
+  const namespace=this.fixedNamespace||active?.namespace||'initial';
+  if(namespace!=='initial'&&!opaque(namespace))fail('BNS_NAMESPACE_INVALID');
+  this.boundTransactions.set(t,namespace);return namespace;
+ }
+ async idIn(t,kind,...ids){return this.prefix+'generation:'+await this.bind(t)+':'+kind+':'+key(ids);}
+ async get(t,kind,...ids){return t.get('meta',await this.idIn(t,kind,...ids));}
+ async put(t,kind,ids,data){return t.put('meta',{...data,id:await this.idIn(t,kind,...ids)});}
+ async namespace(){return this.transaction(false,t=>this.bind(t),['meta']);}
  async read(kind,...ids){return this.transaction(false,t=>this.get(t,kind,...ids),['meta']);}
  async prepareLocal(changes,{actor='user',operationIds=null}={}){
   if(!Array.isArray(changes)||!changes.length||changes.length>CORE_LIMITS.batch)fail('BNS_BATCH_LIMIT');
   changes=clone(changes);operationIds=operationIds?clone(operationIds):null;
   const snapshot=await this.transaction(false,async t=>({
    sequence:(await this.get(t,'device',this.deviceId))?.sequence||0,
-   generation:(await this.get(t,'generation'))?.value||0,
+   generation:(await this.get(t,'generation'))?.value||0,namespace:await this.bind(t),
    heads:await Promise.all(changes.map(c=>this.get(t,'head',c.type,c.entityId||c.value?.id))),
   }),['meta']);
   const operations=[],seen=new Set();let sequence=snapshot.sequence;
@@ -66,13 +75,14 @@ export class BrowserNativeSyncCore {
    operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:operationIds?.[index]||crypto.randomUUID(),type:change.type,entityId,codecVersion:1,kind:change.kind||'put',actor,parents:[...parents].sort(),value:change.kind==='purge'?null:clone(change.value)}));
   }
   if(operations.reduce((sum,operation)=>sum+bytes(operation).length,0)>CORE_LIMITS.batchBytes)fail('BNS_BATCH_BYTES');
-  return {datasetId:this.datasetId,deviceId:this.deviceId,baseSequence:snapshot.sequence,baseGeneration:snapshot.generation,operations};
+  return {datasetId:this.datasetId,deviceId:this.deviceId,baseSequence:snapshot.sequence,baseGeneration:snapshot.generation,baseNamespace:snapshot.namespace,operations};
  }
  async commitPrepared(t,prepared,{origin='local',materialize=true}={}){
   if(prepared.datasetId!==this.datasetId||prepared.deviceId!==this.deviceId||!['local','remote'].includes(origin))fail('BNS_BINDING_CHANGED');
   // Seals are prepared before the IDB transaction. Reject caller mutation using
   // a private capability below rather than starting crypto while IDB is alive.
   if(!this.prepared?.has(prepared))fail('BNS_PREPARATION_REQUIRED');
+  if(await this.bind(t)!==prepared.baseNamespace)fail('BNS_PREPARATION_STALE');
   if(((await this.get(t,'device',this.deviceId))?.sequence||0)!==prepared.baseSequence||((await this.get(t,'generation'))?.value||0)!==prepared.baseGeneration)fail('BNS_PREPARATION_STALE');
   for(const operation of prepared.operations){
    const result=await this.applyInTransaction(t,operation,{origin,materialize});if(result.state==='pending')fail('BNS_LOCAL_ANCESTRY_MISSING');
@@ -109,6 +119,9 @@ export class BrowserNativeSyncCore {
    await this.put(t,'pending',[operation.operationId],{operation});
    await this.put(t,'entityPending',[operation.type,operation.entityId,operation.operationId],{operationId:operation.operationId});
    for(const parent of missing){const row=await this.get(t,'waiting',parent),ids=[...new Set([...(row?.operations||[]),operation.operationId])];if(ids.length>CORE_LIMITS.pendingDependents)fail('BNS_PENDING_LIMIT');await this.put(t,'waiting',[parent],{operations:ids});}
+   // Pending content is durable work too. A restore/compaction cut cannot
+   // silently strand it merely because no canonical head advanced yet.
+   if(!pending)await this.advanceGeneration(t);
    return {state:'pending',missingParents:missing.length};
   }
   if(CODECS[operation.type].immutable&&current&&!current.purged&&operation.kind!=='purge')for(const rev of current.revisions){const prior=await this.get(t,'revision',rev);if(!equal(prior?.operation.value,operation.value))fail('BNS_IMMUTABLE_SOURCE_MISMATCH');}
@@ -119,8 +132,8 @@ export class BrowserNativeSyncCore {
    if(operation.kind==='purge')revisions=[...new Set([...(current?.purged?revisions:[]),operation.revisionId])];
    // Purge all body-bearing revisions of this entity, not only its live heads.
    if(operation.kind==='purge'){
-    let after=null;do{const page=await t.primaryRangePage('meta',{prefix:this.id('entityRevision',operation.type,operation.entityId)+':',after,limit:100});for(const {value:row}of page.rows){const prior=await this.get(t,'revision',row.revisionId);if(prior&&!prior.redacted){await this.put(t,'revision',[row.revisionId],{operation:{...prior.operation,value:null},redacted:true});await t.delete('meta',this.id('outbox',prior.operation.operationId));}}after=page.next;}while(after);
-    after=null;do{const page=await t.primaryRangePage('meta',{prefix:this.id('entityPending',operation.type,operation.entityId)+':',after,limit:100});for(const {value:row}of page.rows){const pending=await this.get(t,'pending',row.operationId);if(pending){await this.put(t,'revision',[pending.operation.revisionId],{operation:{...pending.operation,value:null},redacted:true});await this.put(t,'entityRevision',[operation.type,operation.entityId,pending.operation.revisionId],{revisionId:pending.operation.revisionId});await this.recordReceipt(t,pending.operation);await t.delete('meta',pending.id);}await t.delete('meta',row.id);}after=page.next;}while(after);
+    let after=null;do{const page=await t.primaryRangePage('meta',{prefix:await this.idIn(t,'entityRevision',operation.type,operation.entityId)+':',after,limit:100});for(const {value:row}of page.rows){const prior=await this.get(t,'revision',row.revisionId);if(prior&&!prior.redacted){await this.put(t,'revision',[row.revisionId],{operation:{...prior.operation,value:null},redacted:true});await t.delete('meta',await this.idIn(t,'outbox',prior.operation.operationId));}}after=page.next;}while(after);
+    after=null;do{const page=await t.primaryRangePage('meta',{prefix:await this.idIn(t,'entityPending',operation.type,operation.entityId)+':',after,limit:100});for(const {value:row}of page.rows){const pending=await this.get(t,'pending',row.operationId);if(pending){await this.put(t,'revision',[pending.operation.revisionId],{operation:{...pending.operation,value:null},redacted:true});await this.put(t,'entityRevision',[operation.type,operation.entityId,pending.operation.revisionId],{revisionId:pending.operation.revisionId});await this.recordReceipt(t,pending.operation);await t.delete('meta',pending.id);}await t.delete('meta',row.id);}after=page.next;}while(after);
    }
   }else{
    const retained=[];let stale=false;
@@ -132,8 +145,8 @@ export class BrowserNativeSyncCore {
   await this.put(t,'entityRevision',[operation.type,operation.entityId,operation.revisionId],{revisionId:operation.revisionId});
   await this.put(t,'head',[operation.type,operation.entityId],{type:operation.type,entityId:operation.entityId,revisions,purged:!!purged,fence:purged?revisions[0]:null});
   await this.recordReceipt(t,operation);
-  if(pending){await t.delete('meta',pending.id);await t.delete('meta',this.id('entityPending',operation.type,operation.entityId,operation.operationId));}
-  const generation=(await this.get(t,'generation'))?.value||0;await this.put(t,'generation',[],{value:generation+1});
+  if(pending){await t.delete('meta',pending.id);await t.delete('meta',await this.idIn(t,'entityPending',operation.type,operation.entityId,operation.operationId));}
+  await this.advanceGeneration(t);
   if(materialize&&this.materialize&&(purged||revisions.length===1)){
    const winner=purged?{...operation,value:null}:(await this.get(t,'revision',revisions[0])).operation;
    await this.materialize(t,{operation:winner,head:{revisions,purged:!!purged},origin});
@@ -147,7 +160,9 @@ export class BrowserNativeSyncCore {
   await this.put(t,'sequence',[operation.deviceId,sequenceKey],{operationId:operation.operationId,digest:operation.revisionId});
   const frontier=await this.get(t,'frontier',operation.deviceId);
   await this.put(t,'frontier',[operation.deviceId],{...acceptSequence(frontier?{frontier:frontier.frontier,ranges:frontier.ranges}:null,operation.sequence),deviceId:operation.deviceId});
+  if(operation.deviceId===this.deviceId){const local=await this.get(t,'device',this.deviceId);if((local?.sequence||0)<operation.sequence)await this.put(t,'device',[this.deviceId],{sequence:operation.sequence});}
  }
+ async advanceGeneration(t){const generation=(await this.get(t,'generation'))?.value||0;await this.put(t,'generation',[],{value:generation+1});}
  async receive(operation){
   return (await this.receiveBatch([operation]))[0];
  }
@@ -163,7 +178,7 @@ export class BrowserNativeSyncCore {
   const queue=[revisionId],visited=new Set();
   while(queue.length){const parent=queue.shift();if(visited.has(parent))continue;visited.add(parent);const waiting=await this.read('waiting',parent);if(!waiting)continue;
    for(const id of waiting.operations){const pending=await this.read('pending',id);if(!pending)continue;const result=await this.applyPending(pending);if(result.state!=='pending'&&result.state!=='quarantined')queue.push(pending.operation.revisionId);}
-   await this.transaction(true,t=>t.delete('meta',this.id('waiting',parent)),['meta']);
+   await this.transaction(true,async t=>t.delete('meta',await this.idIn(t,'waiting',parent)),['meta']);
   }
  }
  async applyPending(row){
@@ -173,8 +188,9 @@ export class BrowserNativeSyncCore {
    const operation=row.operation;
    await this.transaction(true,async t=>{
     await this.put(t,'quarantine',[operation.operationId],{operationId:operation.operationId,digest:operation.revisionId,reason:error.code});
-    await t.delete('meta',row.id);await t.delete('meta',this.id('entityPending',operation.type,operation.entityId,operation.operationId));
+    await t.delete('meta',row.id);await t.delete('meta',await this.idIn(t,'entityPending',operation.type,operation.entityId,operation.operationId));
     for(const parent of operation.parents){const waiting=await this.get(t,'waiting',parent);if(waiting)await this.put(t,'waiting',[parent],{operations:waiting.operations.filter(id=>id!==operation.operationId)});}
+    await this.advanceGeneration(t);
    },['meta']);return {state:'quarantined',reason:error.code};
   }
  }
@@ -185,7 +201,7 @@ export class BrowserNativeSyncCore {
   while(progressed){progressed=false;for await(const row of this.rows('pending')){const result=await this.applyPending(row);if(result.state!=='pending'){progressed=true;if(result.state!=='quarantined'){applied++;await this.reconcileDependents(row.operation.revisionId);}}}}
   return {applied};
  }
- async *rows(kind){let after=null;do{const page=await this.transaction(false,t=>t.primaryRangePage('meta',{prefix:this.prefix+kind+':',after,limit:100}),['meta']);for(const row of page.rows)yield row.value;after=page.next;}while(after);}
+ async *rows(kind){const namespace=await this.namespace();let after=null;do{const page=await this.transaction(false,async t=>{if(await this.bind(t)!==namespace)fail('BNS_SNAPSHOT_CHANGED');return t.primaryRangePage('meta',{prefix:await this.idIn(t,kind),after,limit:100});},['meta']);for(const row of page.rows)yield row.value;after=page.next;}while(after);}
  async *outbox(){for await(const row of this.rows('outbox')){const revision=await this.read('revision',row.revisionId);if(revision&&(!revision.redacted||revision.operation.kind==='purge'))yield clone(revision.operation);}}
  async acknowledge(operationId,revisionId){
   if(!opaque(operationId)||!hash(revisionId))fail('BNS_ACK_INVALID');

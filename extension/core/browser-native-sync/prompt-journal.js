@@ -27,6 +27,14 @@ export async function materializePrompt(t,{operation,head,origin}){
  if(operation.type!=='promptPreferences')fail('BNS_MATERIALIZER_UNSUPPORTED');
  if(head.purged)fail('BNS_PROMPT_PURGE_SCOPE_UNAVAILABLE');
  const portable=validateEntity(operation.type,operation.value),local=await readPromptPreferences(t);
- const value={...clone(portable),revision:local.revision+1,overrides:portable.overrides.map(item=>({...item,reuseCount:origin==='remote'?0:local.overrides.find(x=>x.id===item.id)?.reuseCount||0}))};
+ // Ranking is device-local: retain this device's matching-ID counter across a
+ // remote content update. A genuinely new restored ID starts at zero.
+ const value={...clone(portable),revision:local.revision+1,overrides:portable.overrides.map(item=>({...item,reuseCount:local.overrides.find(x=>x.id===item.id)?.reuseCount||0}))};
  await t.put('meta',value);
+}
+export async function restorePromptPreferences(t,context){
+ const local=projectEntity('promptPreferences',await readPromptPreferences(t));
+ if(!context.previousHead){if(local.pins.length||local.overrides.length||local.splits.length)fail('BNS_RESTORE_UNMANAGED_OWNER');}
+ else if(!context.previousHead.purged&&!context.previousVersions.some(operation=>equal(operation.value,local)))fail('BNS_OWNER_CHANGED');
+ return materializePrompt(t,context);
 }

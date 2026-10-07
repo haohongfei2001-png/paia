@@ -168,3 +168,17 @@ test('BNS current codec cannot implicitly admit future Context families or proce
  validateEntity('contextItem',item);
  for(const change of [{card:'rules'},{card:'now'},{origin:'automatic'},{maintenance:{}},{protected:false}])assert.throws(()=>validateEntity('contextItem',{...item,...change}),{code:'BNS_CODEC_UNSUPPORTED'});
 });
+test('BNS remote manual update retains existing device reuse counts and starts new IDs at zero',async()=>{
+ const a=await device('device_alpha_01'),b=await device('device_beta_001',{materialize:materializePrompt}),root=await local(a,'root');await b.receive(root);
+ await b.repository.transaction(true,async t=>{const row=await readPromptPreferences(t);row.overrides[0].reuseCount=7;row.revision++;await t.put('meta',row);});
+ const next=prompt('remote edit');next.overrides.push({id:'manual:bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',text:'fresh remote template',hidden:false});const prepared=await a.prepare([{type:'promptPreferences',value:next}]);await a.commit(prepared);await b.receive(prepared.operations[0]);
+ const actual=await b.repository.transaction(false,t=>readPromptPreferences(t));assert.equal(actual.overrides[0].reuseCount,7);assert.equal(actual.overrides[1].reuseCount,0);assert.equal(actual.revision,3);assert.deepEqual(projectEntity('promptPreferences',actual),next);
+});
+test('BNS verified reuse committed during remote validation survives owner materialization',async()=>{
+ const a=await device('device_alpha_01'),root=await local(a,'root'),remote=await local(a,'remote descendant'),{s}=await setup(OrganizerStore);await s.finishFoundation();
+ const b=new BrowserNativeSyncCore(s.repository,{datasetId,deviceId:'device_beta_001',materialize:materializePrompt}),service=new PromptReuseService(s,{syncJournal:new PromptSyncJournal(b)});await b.receive(root);
+ const original=crypto.subtle.digest.bind(crypto.subtle);let blocked=false,start,release;const entered=new Promise(resolve=>start=resolve),gate=new Promise(resolve=>release=resolve);
+ crypto.subtle.digest=async(...args)=>{const result=await original(...args);if(!blocked){blocked=true;start();await gate;}return result;};
+ try{const received=b.receive(remote);await entered;await service.noteVerifiedReuse(root.value.overrides[0].id);release();await received;}finally{release();crypto.subtle.digest=original;}
+ const actual=await s.repository.transaction(false,t=>readPromptPreferences(t));assert.equal(actual.overrides[0].text,'remote descendant');assert.equal(actual.overrides[0].reuseCount,1);assert.equal(actual.revision,3);assert.deepEqual(projectEntity('promptPreferences',actual),remote.value);
+});
