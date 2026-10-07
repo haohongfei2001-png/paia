@@ -1,4 +1,6 @@
+const IAH11_BROWSER='iah11-result-presentation-chrome-e2e.test.mjs';
 const CURRENT_BROWSER=new Set([
+ IAH11_BROWSER,
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
  'context-cards-chrome-e2e.test.mjs',
  'cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs',
@@ -53,6 +55,16 @@ export function group(file) {
  * preserving every case/fixture and the unchanged18-minute job limit.
  */
 export function testShard(file, position, total, category) {
+ const name=file.split('/').at(-1);
+ // Admit only the complete IAH-1.1 result journey to4. Compensate its sorted
+ // insertion exactly once, before the retained7->6->5->4 routing recursion.
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){
+  if(name===IAH11_BROWSER)return 4;
+  if(name>IAH11_BROWSER)position--;
+ }
+ return priorAdmissionShard(file,position,total,category);
+}
+function priorAdmissionShard(file, position, total, category) {
  const name=file.split('/').at(-1),root='cpv1-topic-05-2-root-chrome-e2e.test.mjs';
  // Full37648849130 exhausted shard6 while Thought shared the same18-minute
  // budget with Context and Settings. Isolate this whole file on7 and retain
@@ -60,7 +72,7 @@ export function testShard(file, position, total, category) {
  // Full37684301966 shard4 used764s plus280s font setup and was cancelled
  // at job completion. Move its complete213s retained Root file to shard7,
  // which finished in553s total. Keep all75 files and the18-minute budget.
- if(category==='browser E2E'&&total===7)return ['ux-r3-thought-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs'].includes(name)?7:testShard(file,position,6,category);
+ if(category==='browser E2E'&&total===7)return ['ux-r3-thought-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs'].includes(name)?7:priorAdmissionShard(file,position,6,category);
  // Full37554248921: shard3 took561s of1080s. Add the whole two-case
  // Root journey there, preserving every prior73 placement and every timeout.
  if(category==='browser E2E'&&[4,5,6].includes(total)){if(name===root)return 3;if(name>root)position--;}

@@ -36,7 +36,21 @@ filtered temporary reveal, full origin-aware Back, fresh primary navigation,
 all selected visual/accessibility states and combined Settings/Topic regressions
 remain separate work. No reference-package pixel comparison is claimed.
 
-The new complete native file still requires explicit current-CI admission before
-integration; local PASS is not CI/current-main/installed acceptance. Reconcile
-with Settings' existing SmartFilter owner by a narrow patch, not file replacement.
+The complete native file now has explicit current-CI admission: the corpus is76
+and the new whole file routes to shard4 at widths4/5/6/7. Before editing, all300
+previous routes were exported from exact parent main
+`4fe2afd328c6e30e6a1d39d68415ad821a7f779c` (router blob
+`63fe2e9c57d001dd53502fbc18bb69c85f9809fa`). The dedicated admission guard freezes
+those75 rows independently of the changed router and verifies every mapping.
+Historical68/73/75 snapshots retain their original expectations, projected through
+actual current-corpus positions. Historical comparison remains on1 in this base;
+Settings' separate routing change must be reconciled during integration.
+
+Local CI guards: `check-ui-refresh-ci.mjs` passes, and complete partition/admission,
+Settings-presentation, Context-presentation and retained-Topic guard files pass42/42
+with no failures, cancellations or skips (`work/iah11-ci-admission-related.log`).
+The workflow is unchanged: seven jobs,18 minutes each, no omitted cases. This
+admission check launches no browser or cloud run and does not certify hosted CI,
+current main or an installed version. Reconcile with Settings' existing
+SmartFilter owner by a narrow patch, not file replacement.
 No model call, permission expansion, body/schema copy, cloud access or deployment.
