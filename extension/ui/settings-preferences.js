@@ -65,7 +65,7 @@ function activateGroup(key,{history=true,focus=false}={}){
  if(key!=='index'&&!groups.has(key))return;if(history)rememberPosition();const changed=group!==key;group=key;const index=key==='index';$('ux-settings-shell').dataset.settingsIndex=String(index);
  for(const [name,section]of groups)section.hidden=index||name!==key;for(const [name,tab]of tabs)tab.setAttribute('aria-current',name===key?'page':'false');
  const feedback=$('ux-settings-feedback');if(feedback){const host=groups.get(key);if(host)host.insertBefore(feedback,host.children[1]||null);else $('ux-settings-header')?.append(feedback);}
- $('ux-settings-group-back').hidden=index;syncSettingsLocale();if(history&&changed)onRouteChange({replace:false});
+ $('ux-settings-group-back').hidden=index;syncSettingsLocale();if(history&&changed)onRouteChange({replace:false});if(settingsVisible&&key==='about')void about?.refresh();
  if(focus&&settingsVisible){const expected=key;requestAnimationFrame(()=>{if(!settingsVisible||group!==expected)return;const position=positions.get(key),saved=position?.focus?$(position.focus):null,target=saved?.getClientRects().length?saved:index?[...tabs.values()][0]:$(`ux-settings-${key}-title`);target?.focus({preventScroll:true});globalThis.scrollTo?.(0,position?.scrollTop||0);});}
 }
 function setupSettingsShell(){
@@ -81,16 +81,16 @@ function setupSettingsShell(){
  move('settings-ai-context','ai');move('settings-prompt-status','ai');move('settings-legacy-access','ai');move('settings-privacy-host','privacy');move('settings-supported-sites','privacy');groups.get('privacy').append(copyNode('p','ux-settings-note','PAIA 档案当前保存在本机。','Your PAIA archive is currently stored on this device.'));
  const backupFailure=copyNode('h3','ux-backup-failure-title','这份备份未通过校验','This backup could not be validated');backupFailure.id='ux-backup-failure-title';$('backup-status')?.before(backupFailure);
  move('history-settings','data');const data=groups.get('data');data.append(detail('存储空间','Storage space',[$('r6-data-status')]),detail('从已有 PAIA 备份恢复','Restore an existing PAIA backup',[$('backup-settings')]),detail('已移除的内容','Removed content',[$('manage-excluded'),$('library-management')]));move('r6-source-records','data');move('legacy-entry','data');move('product-diagnostics','data');
- about=mountSettingsAbout(groups.get('about'),{version:chrome.runtime.getManifest().version,language});
+ about=mountSettingsAbout(groups.get('about'),{version:chrome.runtime.getManifest().version,language,readUpdateStatus:()=>request('PAIA_SETTINGS_UPDATE_STATUS')});
  const orderHost=$('archive-order-host');if(orderHost)orderHost.append(archiveOrderSettings.element());activateGroup(compact()?'index':'content',{history:false});
 }
 export function syncSettingsCopy(root=document){for(const el of root.querySelectorAll('[data-settings-zh]')){const text=copy(el.dataset.settingsZh,el.dataset.settingsEn);if(el.textContent!==text)el.textContent=text;}}
 function syncSettingsLocale(){syncSettingsCopy();about?.sync();const read=$('history-read');if(read)read.textContent=copy('读一篇','Read one');document.querySelector('.ux-settings-nav')?.setAttribute('aria-label',copy('设置分组','Settings groups'));const back=$('ux-settings-group-back');if(back)setIconLabel(back,'back',copy('设置','Settings'));$('toggle-capture')?.setAttribute('aria-label',copy('保存我的 AI 输入','Save my AI inputs'));}
 export function installSettingsPreferences({back=()=>{},routeChanged=()=>{}}={}){
  if(installed)return;installed=true;onBack=back;onRouteChange=routeChanged;setupSettingsShell();tuneOnboarding();void loadPreferences();
- chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type))void loadPreferences();});chrome.storage?.onChanged?.addListener((changes,area)=>{if(area==='local'&&Object.keys(changes).some(key=>['settings','paia-settings'].includes(key)))void loadPreferences();});
+ chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type))void loadPreferences();});chrome.storage?.onChanged?.addListener((changes,area)=>{if(area==='local'&&Object.keys(changes).some(key=>['settings','paia-settings'].includes(key)))void loadPreferences();if(area==='local'&&changes['paia-consumer-update:v1']&&settingsVisible&&group==='about')void about?.refresh();});
  globalThis.matchMedia?.('(prefers-color-scheme: dark)')?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});globalThis.addEventListener?.('languagechange',()=>{if(uxPreferences.language==='system')applyPreferences();});globalThis.matchMedia?.('(max-width:1023px)')?.addEventListener?.('change',()=>{if(!compact()&&group==='index')activateGroup('content',{history:false});});
  const savePosition=()=>{if(settingsVisible&&!restoring){rememberPosition();onRouteChange({replace:true});}};globalThis.addEventListener?.('scroll',savePosition,{passive:true});$('settings-panel')?.addEventListener('focusin',savePosition);
 }
-export function presentSettingsPreferences({visible=false}={}){const opening=visible&&!settingsVisible;if(!visible&&settingsVisible)rememberPosition();settingsVisible=visible;if(opening){syncSettingsLocale();if(group===null)activateGroup(compact()?'index':'content',{history:false});}}
+export function presentSettingsPreferences({visible=false}={}){const opening=visible&&!settingsVisible;if(!visible&&settingsVisible)rememberPosition();settingsVisible=visible;if(opening){syncSettingsLocale();if(group===null)activateGroup(compact()?'index':'content',{history:false});else if(group==='about')void about?.refresh();}}
 export {presentSettingsRecovery} from './maintenance-recovery.js';
