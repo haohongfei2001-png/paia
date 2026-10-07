@@ -1,107 +1,62 @@
-# Master Development Plan — PAIA Consumer Product v1
+# PAIA Consumer Product v1 — Canonical Master Plan
 
-## Browser-Native Sync integration — 2026-10-07
+Current scoped integration: **IAH-1.0, 2026-10-08**, preserving AIU-1.0 / AIOS-1.0 and AIU-QWEN-1.0 plus all earlier adopted product lanes. **STATUS.md remains the sole execution queue.** A lane's first planned task is not an instruction to preempt the global selected task.
 
-[BROWSER_NATIVE_SYNC_ADOPTION.md](BROWSER_NATIVE_SYNC_ADOPTION.md), BNS-1.0, records the fixed owner direction; [CONTRACT](BROWSER_NATIVE_SYNC_CONTRACT.md) owns the one Core/three adapters, canonical scope, provider trust, recovery and account/deletion safety; [UX](BROWSER_NATIVE_SYNC_UX.md) limits the Settings integration; [PLAN](BROWSER_NATIVE_SYNC_PLAN.md) contains the complete source-grounded delivery and acceptance detail; [REFERENCES](BROWSER_NATIVE_SYNC_REFERENCES.md) records current official capability/price limits and exact private design artifacts.
+## 1. Preserved baseline and current sequencing
 
-This is a scoped addition to Consumer Product v1, not a replacement of the existing Topic/Context/Settings/Prompt plans. STATUS alone chooses the actual writer. Its current TOPIC-01 verification/closure is not interrupted or declared finished. The first new Sync implementation is CPV1-SYNC-01, queued for a separately authorized runtime task. The fresh main read is `948ea06a57cd932c187407faf7140d9fb6714eff` (0.14.0 metadata) and already includes local CTX4-01; older planned/candidate statements below describe their prior adoption scope, not the current code.
+The immediately preceding master is preserved exactly in [MASTER_PLAN_PRE_ARCHIVE_HOME_2026-10-08.md](MASTER_PLAN_PRE_ARCHIVE_HOME_2026-10-08.md), blob `5c5b5acd5646bd01019bdf91de9dd0c59cf01570`. **All its nonconflicting adopted outcomes, detailed dependencies, incorporated predecessor plans, evidence obligations and gates remain part of this plan.** Read it and its linked detailed plans; this overlay does not drop any unfinished product requirement or reopen completed work. Prior next-task/current-status statements are historical where current STATUS differs.
 
-| Slice | Required outcome | Dependency |
+At the fresh integration source `1b3c3f91ea4e248fb048214fd1efceccc0b2f344`, the current global pointer remains **CPV1-TOPIC-02 closure** against its reviewed dependencies and exact integration evidence. Later Topic02/03/04 mechanics and Context work are already present and remain preserved. IAH neither reimplements them nor certifies their remaining gates.
+
+IAH is a newly adopted local Archive outcome lane. All six ARCHIVE-HOME outcomes remain PLANNED / NOT_STARTED_BY_THIS_TASK. Owner scheduling and a coordinated shared-file writer are required before runtime work. Archive Home is not made the global next task.
+
+## 2. Active product authority map
+
+| Lane | Canonical source / retained scope |
+|---|---|
+| Capture / Source / Working Input / human work / recovery | PRODUCT_INTENT_CONTRACT.md, TECHNICAL_PLAN.md, UX_CONTRACT.md and their fully incorporated exact baselines; existing safety/recovery owners |
+| Input Archive Home / Find / Browse / Reader | INPUT_ARCHIVE_HOME_ADOPTION.md, INPUT_ARCHIVE_INTERACTION_CONTRACT.md, INPUT_ARCHIVE_HOME_UX.md, INPUT_ARCHIVE_HOME_PLAN.md, INPUT_ARCHIVE_HOME_REFERENCES.md; IAH-1.0 |
+| Personal Topic Architecture | TOPIC_ARCHITECTURE.md / PLAN / ADOPTION; identity/retrieval/formation/promotion/presentation/closure outcomes unchanged |
+| Thought final presentation | THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md / REFERENCES; TOPIC-05.1–05.8 remain the current delivery breakdown |
+| Context Cards v2 | AI_CONTEXT_CARDS_V2_ADOPTION.md / PLAN / REFERENCES; existing independent Items/restrictive Topic access and CTX4 phase gates retained |
+| Prompt Reuse / local next-action | PROMPT_REUSE_SURFACE.md and PROMPT_REUSE_STAGE_3A.md; no hidden reply archive or remote pipeline |
+| Settings Consumer v2 | SETTINGS_CONSUMER_V2_ADOPTION.md / PLAN / REFERENCES; SET2 outcomes, six groups/22-row target and existing reset unchanged |
+| Browser-Native Sync | BROWSER_NATIVE_SYNC_ADOPTION.md / CONTRACT / UX / PLAN / REFERENCES; SYNC-01–06 and real-provider gates retained |
+| AI usage / quality / Free–Pro / style | AI_USAGE_ARCHITECTURE.md / ADOPTION / PLAN / COST_MODEL / REFERENCES and AI_ORGANIZE_STYLE_CONTRACT.md; AIU/AIOS/Qwen scope retained |
+
+The detailed implementation states and authorizations belong to current STATUS and each actual receipt, not an assertion that every retained lane is unimplemented or newly active.
+
+## 3. Archive Home development chain — planned, not selected
+
+Details, owner/gap mapping, tests, failure handling and exit evidence live only in [INPUT_ARCHIVE_HOME_PLAN.md](INPUT_ARCHIVE_HOME_PLAN.md).
+
+| ID | Outcome | Dependency / readiness |
 |---|---|---|
-| CPV1-SYNC-01 | Canonical codec/outbox, gap-aware replay, merge, bounded segments/checkpoints, tombstones, safe compaction/crash recovery and fresh local virtual-device exact restore | Fresh main and actual domain owners; no network |
-| CPV1-SYNC-02 | Chrome/Drive appDataFolder A -> genuinely fresh B restore with A unavailable | 01; qualified minimal OAuth/app identity/subject/contained transport |
-| CPV1-SYNC-03 | Chrome production lifecycle, account change, quota/failure, scale, migration and actual uninstall/reinstall hardening | 02 |
-| CPV1-SYNC-04 | Edge/OneDrive App Folder using the same Core, with qualified delegated/PKCE/token lifecycle | 01/03; actual Edge/Graph qualification |
-| CPV1-SYNC-05 | Safari containing-app/native CloudKit private transport, stable app identity and native lifecycle proof | 01/03; actual Apple entitlements/container/signing/device qualification |
-| CPV1-SYNC-06 | Same canonical conformance, security/deletion/migration/performance and production UX/accessibility evidence across qualified providers | Applicable 02-05 evidence |
+| ARCHIVE-HOME-01 | Explicit four-state route, fresh-vs-Back/reload, origin and bounded tab-session foundation | Existing route/editor/source owners; no AI/Sync dependency. First Archive task only when explicitly scheduled; PLANNED. |
+| ARCHIVE-HOME-02 | Minimal Find Home, one active Main search, local Input-first results and result-state restoration | 01; existing trusted lexical query/coverage owners; PLANNED. |
+| ARCHIVE-HOME-03 | Source/Project/group Browse scope, separate disclosure, explicit Conversation selection | 01/02; existing qualified source-structure/query owners; PLANNED. |
+| ARCHIVE-HOME-04 | Exact Input/revision/Unicode-safe landing, highlight, temporary filter reveal and stale/removed handling | 02/03 plus current Reader/editing/eligibility; PLANNED. |
+| ARCHIVE-HOME-05 | Recorded Search/Browse Back, distinct verified original-site action and explicit contextual entry | 01/03/04; current-live contextual qualification is a distinct evidence dependency; PLANNED. |
+| ARCHIVE-HOME-06 | Wide/medium/narrow/dark, long-list, keyboard/accessibility/resource/reliability and production acceptance | Applicable earlier outcomes plus actual source/release and task evidence; PLANNED. |
 
-All are PLANNED, not six simultaneous queues. Detailed scope, negative tests, parameter experiment, gate and exit requirements are specified once in the Sync plan. The next Sync slice is not an OAuth page, PAIA account, backend deployment or three independent business sync engines.
+Default dependency order is 01 -> 02 -> 03 -> 04 -> 05 -> 06. A coherent authorized batch can cover several IDs; do not create one mandatory PR/certification loop per row. No Archive runtime writer is started by this documentation adoption.
 
-Settings receives one Sync destination first in Data & recovery when genuinely usable: 21 primary rows/six Data rows plus the existing secondary reset. Its five original Data destinations remain independently implementable. SET2-02 consumes the Sync-owned status/route interface; SET2-05 includes the scoped integration/visual checks. No second permission store, provider console, account group, manual sync-parameter configuration, user backup generation or generic purge is added.
+The lane is independent of paid models, completion of the AI-COST lane, production Sync and the entire Thought UI. Its local foundations already exist, but the four-state/Home behavior is not thereby complete. Missing live provider evidence affects Task C's live claim, not independent Find/Browse engineering. Existing save, caller, deletion and privacy gates remain mandatory; a changed high-risk boundary follows the existing full-verification escalation.
 
-B-03 is resolved only for optional personal-cloud storage with explicit provider trust. Source/Working/human intent, ancestry, monotonic tombstones, secret separation and no silent conflict overwrite remain; old account pairing/recovery-secret/backend prerequisites are superseded only for BNS normal recovery. Context desired Card/Topic ranges travel without live external grants/local acknowledgements. Exact migration/restore and actual provider qualification are future acceptance, not claims supplied by this design integration. No runtime, schema, permissions, cloud registration, real authorization/upload, migration, paid service or release changes here.
+## 4. Preserved AI and cross-plan amendments
 
-## Settings Consumer v2 integration — 2026-10-07
+The full seven-stage AI-COST chain, dependency graph, Qwen candidate/ratebook/FX refinement, same Free/Pro quality floor, style semantics and cost/quality qualification remain as in the exact preceding master and AI_USAGE_PLAN.md. **The first planned AI task remains AI-COST-01**, subject to current queue selection; this is not a second global pointer. Exact allowances stay only in AI_USAGE_ARCHITECTURE.md.
 
-[SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), SETTINGS-CV2-1.0, freezes the owner-directed final Settings design. [SETTINGS_CONSUMER_V2_PLAN.md](SETTINGS_CONSUMER_V2_PLAN.md) owns the executable gap/owner/migration/test plan; [REFERENCES](SETTINGS_CONSUMER_V2_REFERENCES.md) identifies the corrected private visuals. This is a scoped replacement of old Settings presentation, not a new global roadmap or implementation authorization.
+Settings receives no new primary row, resume toggle or search-history setting from IAH. Existing source/time/body-size preferences and all current Context/Prompt/Sync destinations keep their owners. Browser-Native Sync excludes Archive route/query/result/reveal metadata. Ordinary Find/Back/scope/highlight cause no remote AI call or semantic maintenance event and do not spend quota.
 
-Final Settings integration read is main `288e17fb7adaf05b63a4af72458c1d6787488e0d`, manifest/package 0.13.0. Intervening PR177 already integrated Topic-01; its current implementation receipt remains EXACT_MAIN_FULL_CERTIFICATION_PENDING. STATUS therefore keeps that phase for verification/canonical closure, not a repeat foundation implementation. Earlier adoption-only PLANNED descriptions below retain their historical scope. Preserve the new identity/intent/strict restore validators and their recorded evidence; no runtime is reverted or certified by this Settings documentation task.
+Source Project is not Personal Topic. Thought identity, durable Sections, body ownership, Context access and B-01/B-02 are unchanged. Archive result presentation does not replace Thought's in-place search contract or grant external Archive fallback. Cancelled exports, backup generation, Profile, Material Tray, approval inboxes, ordinary diagnostics and BYO-provider transport remain cancelled.
 
-STATUS retains the existing Personal Topic foundation as its sole current phase. After its verified closure, integrate the local Settings outcomes below into this Consumer Product sequence, without waiting for the entire Thought UI or paid AI service. SET2-03 consumes actual Context/Prompt interfaces when ready; it must not reimplement their products or restart historical writers. One writer owns shared runtime files. STATUS selects each actual batch; the rows below are planned dependencies, not parallel next tasks.
+## 5. Release, economics and evidence
 
-| Slice | Outcome | Dependencies / acceptance boundary |
-|---|---|---|
-| CPV1-SET2-01 | Six-group shell/navigation and real Input Archive, reading and privacy preferences | Existing AppShell/RouteSession, capture/filter/preferences/r6 owners; exact final visuals. No full Thought/Context/service dependency. |
-| CPV1-SET2-02 | Five existing Data destinations, existing import/restore and typed removed-content recovery; scoped sixth Sync destination when available | 01 composition plus existing import/backup/Source/Thought recovery owners; ambiguous B-02 effects remain gated. Sync row consumes the separately qualified BNS owner, not another cloud implementation. |
-| CPV1-SET2-03 | Single Context status/route, Prompt-owned position reset and real suggestion preference | 01; genuine CTX4 state/route/revocation adapter and existing CPV1-12.3A-1 owner. Subsets may integrate independently but do not close the full stage. |
-| CPV1-SET2-04 | Truthful About/version/update and four verified destinations | 01; actual update lifecycle and confirmed legal/help/feedback content. Unknown is not latest/available. |
-| CPV1-SET2-05 | Migration, responsive/accessibility and source/release visual convergence | Applicable 01-04 outcomes, production tests and exact reference evidence, including available scoped BNS integration; prototype PASS is not production acceptance. |
+This integration is design tightening, adoption, planning and canonical documentation only. No runtime, schema, migration, UI, test/workflow, manifest/version, account/provider/entitlement/payment, cloud resource, build/install/deployment or release is changed. Existing evidence and failed gates remain truthful history, not IAH acceptance.
 
-All five are PLANNED. Detailed goal/scope/owner/exclusions/compatibility/tests/visual/exit/blocker requirements are specified once in the Settings plan, with the narrow BNS amendment in its adoption. Keep existing preference enums and saved 21px/width/time values; remove only conflicting Settings controls, not data/history/revocation guards. No schema migration is required merely for relabeling. Position reset extends PromptSurfaceCommands, not Settings storage; Stage 3A is not implemented in this workstream. No false control, duplicate permission owner, export/backup-generation revival or general purge is authorized.
+The three core tasks have reviewed design traces in the Archive plan; production Task A/B/C execution is NOT_RUN here. Future local mechanical tests, precise-hit correctness, current-live contextual compatibility, performance/accessibility, source/release visual convergence, installed build and owner acceptance are separate evidence classes. Do not convert a poster, prototype, previous CI success or docs-only diff into those claims.
 
-SET2-01/02/04 can form a coherent local batch after the currently selected phase closes. Unavailable dependencies block only their affected interfaces and final closure; record honest unavailable states instead of manufacturing controls. CTX4, TOPIC and Prompt phase identities and their current source/service constraints below remain unchanged. Do not convert this plan into an additional parallel execution queue.
+## Paid AI service — not implemented
 
-Pre-adoption MASTER is preserved byte-for-byte as [MASTER_PLAN_PRE_SETTINGS_V2_2026-10-07.md](MASTER_PLAN_PRE_SETTINGS_V2_2026-10-07.md), original blob `92dac19a1b60dcd83f02bff124387e18a8bc4ec2`, unchanged at the final integration read; the matching STATUS snapshot retains its original blob. No frozen D6/D7 artifact or historical acceptance result is rewritten.
-
-## Current routing — 2026-10-07 Thought final visual adoption
-
-[STATUS.md](STATUS.md) is the sole execution queue and next-task authority. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) freezes the owner-approved Personal Topic product semantics. [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, adopts the reviewed final Thought presentation; [its reference manifest](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) records private assets and evidence limitations. [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) owns the gap register, ordered implementation slices, migration work and acceptance; [architecture adoption](TOPIC_ARCHITECTURE_ADOPTION.md) and visual authority V8 list scoped supersession. This is documentation, not implementation or new service/paid/deployment authority.
-
-The current order starts with the identity and human-intent foundation designated in STATUS. Do not start independent competing Topic, Original-organizer, AI-library, taxonomy-directory or graph workstreams. Reuse current Topic/Section/Placement/body/provenance/CAS assets. The final UI consumes those same identities: Root is Topic name plus stable named Section overview; reading is continuous Section/Entry prose; AI reading headings never automatically become durable Sections. Do not reopen product design during implementation.
-
-## Personal Topic delivery outcomes
-
-| Slice | Outcome | Dependency |
-|---|---|---|
-| CPV1-TOPIC-01 | Identity + durable human field/edge/keep-separate protection foundation and local contract tests; preserve Section/default identity and placement authority | Fresh main; existing domain services; conservative compatibility mapping |
-| CPV1-TOPIC-02 | Identity retrieval across active/dormant/renamed/merged and removed fences; hidden candidates/unassigned | 01 |
-| CPV1-TOPIC-03 | Evidence-based identity-first formation, bounded incremental Section/multi-placement and trusted commit | 01/02; live model/service activation remains separately gated |
-| CPV1-TOPIC-04 | Confirmed Section promotion and protected structural reconciliation | 01/03 |
-| CPV1-TOPIC-05 | Final Thought Root/reader/Section/search/writing/AI-reading implementation and Context Personal Topic interface | Relevant 01-04; adopted visual authority; section 7 of the Topic plan |
-| CPV1-TOPIC-06 | Migration, reliability, resource and real downstream/production visual acceptance closure | Applicable earlier evidence and separately authorized real dependencies |
-
-All six were PLANNED in the earlier documentation integration; current STATUS and the actual merged TOPIC-01 receipt control implementation facts. Stage details are specified once in TOPIC_ARCHITECTURE_PLAN.md. No historical PASS closes them, and no stage number requires a separate PR/receipt cycle. End each coherent authorized batch with exact source and truthful evidence, not a new architecture discussion.
-
-TOPIC-05's internal deliverables are **05.1 unified read model; 05.2 stable Root; 05.3 in-place Root search; 05.4 continuous Topic reader; 05.5 contextual Section operations/promotion entry; 05.6 Section-aware Add Thought; 05.7 AI reading over durable Sections; 05.8 responsive/accessibility/visual convergence**. Dependencies and acceptance live only in the Topic plan, not a parallel UI queue. Missing live processing blocks its affected path, not unrelated local work after its prerequisites. Visual adoption cannot bypass TOPIC-01 or claim production completion.
-
-## Retained AI Context Cards v2 plan
-
-[AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md) and [visual references](AI_CONTEXT_CARDS_V2_REFERENCES.md) retain the approved four-card design. Personal Topic identity is supplied by PT-1.0; Context owns independent Items and access state, not a second directory or copied Topic corpus.
-
-| Phase | Retained outcome | Dependency adjustment |
-|---|---|---|
-| CPV1-CTX4-01 | Independent data + real four-card home + persistent My Information editing | Local implementation is in current main 948ea06; exact-main closure remains evidence-controlled in STATUS, not a repeat implementation task |
-| CPV1-CTX4-02 | Three-card direct editing and local state/navigation | CTX4-01 |
-| CPV1-CTX4-03 | Stable Personal Topic capsules and default-off access | CTX4-01/02 plus compatible Personal identity/intent contract |
-| CPV1-CTX4-04 | Trusted typed Context/Topic query and complete read-only retrieval | CTX4-01/03 plus Topic dedupe/lifecycle/scope integration |
-| CPV1-CTX4-05 | Authorized incremental extraction with human protection | CTX4-01/02; real processing service and permission |
-| CPV1-CTX4-06 | One real AI client and pause/revoke loop | CTX4-04; verified client and safe transport |
-| CPV1-CTX4-07 | Migration/retirement, 22-state visual convergence, real-use acceptance | Applicable CTX4-02-06 evidence |
-
-The architecture adoption changes only affected Topic semantics/dependencies and the current next-task routing; final visual adoption details the same Thought plan. Neither redesigns or cancels Context. CTX4-05 and 06 retain their independent external prerequisites; lack of one does not justify parking unrelated local work or weakening the other's gates. Coordinate one writer at shared data boundaries.
-
-## Preserved history and nonconflicting detailed plans
-
-Immediately preceding this visual integration, the master plan is retained byte-for-byte as [MASTER_PLAN_PRE_THOUGHT_VISUAL_2026-10-07.md](MASTER_PLAN_PRE_THOUGHT_VISUAL_2026-10-07.md), prior blob `bb8d48d42023c4c3f175b70389501bc7c013a9ed`. The earlier [MASTER_PLAN_PRE_TOPIC_2026-10-07.md](MASTER_PLAN_PRE_TOPIC_2026-10-07.md), prior blob `ff4a21631c61f43fc8ccc2157c2996691a3a1942`, and its full detail in [MASTER_PLAN_PRE_CTX4_2026-10-07.md](MASTER_PLAN_PRE_CTX4_2026-10-07.md), prior blob `bf4b786bb0047fb1c13f56fb3dbaac8c70d72b1b`, remain unchanged.
-
-These are retained outcome/compatibility/evidence references subject to current AUTHORITY and STATUS, not independent queues. Conflicting old Topic/AI organization/recursive hierarchy and taxonomy assumptions are superseded by PT-1.0; conflicting compact-list/preview/B2/Years/candidate UI is superseded by TL-PT1-UI-1.0. Conflicting old Context VS-06/CPV1-06/D4/D6/D7 outcomes remain superseded by CTX4. All other source, Archive, capture, Prompt Reuse, recovery and security outcomes remain unless a later explicit decision changes them. The BNS adoption supplies that scoped optional-sync supersession, without rewriting history. No planning adoption reclassifies historical failures or certifies new behavior.
-
-## Current consumer scope and real service gates
-
-Dedicated Profile management, Thought response relations, Material Tray, candidate approval, activity-retention settings, Product Signals and ordinary diagnostic pages remain retired. Preserve existing saved AI/candidate content and human/version/deletion/revocation protections. Hidden Topic candidates are internal formation state, not a revival of approval management.
-
-Content/statistics/Context exports, backup generation and dedicated sharing remain cancelled. CPV1-03.3 and CPV1-06.5 stay cancelled; CPV1-05.3 excludes response relations. Existing-file restore/import and integrity/deletion fences remain. An internal migration recovery checkpoint is not a user backup product. BYO AI configuration and retired direct AI transport do not return, and stored credentials are not read or cleared. The separately adopted user-cloud Sync transport is not a revival of direct AI processing.
-
-### Paid AI service — not implemented
-
-The current baseline has no real paid service. Real payment callbacks, server identity/entitlement, quota, authenticated gateway, protected credentials, bounded authorized processing and revision-checked output must exist before activation. Market/payment regions, price/currency, quotas, provider/data region and cost ceilings are unresolved. Neither automatic Topic formation direction, final Thought visual adoption nor CTX4 approval grants hidden recurring billing, model calls or paid retries. Do not simulate membership/purchase success. BNS adds no PAIA account/content backend and grants no paid AI service activation.
-
-### Optional Semantic Lab admission
-
-PAIA organization, retrieval and Context reuse must stand without 18/144 taxonomy. Lab R&D proceeds under its own unchanged constraints/status, not as a PAIA blocker or default integration task. A future optional proposal must pass comparable no-taxonomy/18/144 downstream evaluation and explicit integration authorization. Classifier accuracy alone is insufficient. No experiment, new data access or Lab production integration is started here.
-
-## Verification and migration discipline
-
-Use [VERIFICATION.md](VERIFICATION.md), existing deferred gates and TECHNICAL_PLAN's migration receipt, with the BNS-specific entity/permission/recovery contract for Sync. Preserve Source/Input/Entry bodies and identities, all human decisions, negative membership, redirects, revisions, tombstones and authorization through bounded resumable changes. Never silently rewrite historical library organization to fit the new contract.
-
-Use production functions for mechanical tests, independent held-out tasks for semantic quality, and actual clients/devices/approved visuals for their respective claims. Synthetic and documentation checks cannot close real-service, user-value, production-visual or installation gates. Missing prerequisites are recorded exactly; related behavior stays disabled without a second workflow or weakened acceptance.
+Retain the full service-boundary wording and qualification requirements in the incorporated master and current AI_USAGE_* authorities. Candidate model/cost choices, IAH adoption and ordinary search do not authorize credentials, paid calls, hidden retries, subscriptions or deployment.

@@ -1,157 +1,87 @@
 # Technical Restructuring Plan — PAIA Consumer Product v1
 
-Product semantics are fixed by current owner authority; implementation is replaceable where justified. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) PT-1.0 controls Topic identity/formation; [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) owns its gaps and delivery details. [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, controls adopted Thought presentation, with TOPIC-05.1 through 05.8 detailed in the Topic plan section 7. [AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md) controls Context Items/access. [STATUS.md](STATUS.md) alone selects execution. This documentation adoption changes no runtime, schema, provider, tests or installed data.
+Current scoped addition: **IAH-1.0, 2026-10-08**. Product behavior is fixed in [INPUT_ARCHIVE_INTERACTION_CONTRACT.md](INPUT_ARCHIVE_INTERACTION_CONTRACT.md); source-grounded engineering and acceptance are in [INPUT_ARCHIVE_HOME_PLAN.md](INPUT_ARCHIVE_HOME_PLAN.md). STATUS alone chooses execution. No runtime/schema/test/permission/version change is made by this adoption.
+
+## Complete incorporated technical baseline
+
+[TECHNICAL_PLAN_PRE_ARCHIVE_HOME_2026-10-08.md](TECHNICAL_PLAN_PRE_ARCHIVE_HOME_2026-10-08.md), blob `b1df62582dea0ea4ea2cf32bb9033d83c823b2fc`, preserves the entire preceding technical plan exactly. **Every nonconflicting responsibility, keep/refactor rule, domain contract, migration receipt, privacy/source invariant and non-goal is incorporated in full.** Read the relevant complete baseline, not just this new Archive overlay. The earlier Topic/Thought/Context/Prompt/Sync/AI scopes and gates are not cancelled, restarted or certified here.
 
 ## 1. Target responsibility model
 
-```text
-Provider / first-party source adapter or explicit user write
- -> trusted admission: identity, role, consent, idempotency, time, deletion fences
- -> transactional Source + Working Input / independent Thought + human decisions
- -> bounded change cursor / receipt
- -> one Personal Topic identity and human-constraint owner
- -> replaceable automatic organization / search / AI reading projections
- -> trusted policy and revision-checked commit of allowed fields/edges only
- -> one Library query/edit model and existing UI router
- -> authorized Context Items / Personal Topic retrieval
- -> trusted connection/revocation/content gate
- -> read-only external response, only when actually enabled
-```
-
-This is a responsibility model, not a requirement for separate databases. No retired Context Builder/export path is reactivated. Internal organization and external read permissions are distinct. Capturing and saving do not wait for AI classification.
+The previous trusted admission -> canonical Source/Working/human intent -> replaceable projections -> existing query/editor/router -> restricted external release model remains. IAH is a route/query/presentation amendment over the same content owners, not a new layer of user truth. Capture/save stays independent of Find availability and AI processing.
 
 ## 2. KEEP
 
-Keep stable Source/message/Conversation and Topic identities; immutable source evidence versus Working Input; existing Thought evidence/body binding subject to B-01; single Entry body and multi-Placement; Sections/default Sections; rename/redirects; field protection and human include/exclude/keep-separate intent; revisions/CAS; deletion/tombstone anti-resurrection; provider adapters; trusted worker/caller validation; useful lexical/candidate retrieval; protected AI derivative output; current Context release revalidation and Passport metadata; strict import and existing-file Backup decoder/hash/graph checks; existing privacy tests and truthful failures.
-
-No UX/Organizer rewrite may weaken these. Reuse current services before introducing a new owner or schema. Historical broad AI-writing code is not permission to modify human facts.
+Keep the complete prior KEEP set: stable Source/message/Conversation/Project and Personal Topic identity; source evidence versus working bodies; human body/field/edge intent; attribution and real time; revisions/CAS; deletion/tombstone fences; bounded query/index owners; editor/IME/recovery; strict import/restore; permissions and current provider boundaries. Navigation or a search hit cannot authorize content resurrection, Source edits, Keep or external access.
 
 ## 3. REFACTOR
 
-### 3.1 Capture and source lifecycle
-
-Keep verified evidence channels; drive observation by meaningful route/DOM/visibility/reconnect changes with bounded compensation. Project membership/name changes can produce metadata events without duplicated Source/Conversation/body. Unknown, unassigned and last-known remain distinct. Temporary evidence loss does not invent moves. Detect stale content-script versions explicitly. Justify polling with measured idle resource cost. Absorb correct CPR-02 work rather than rewrite for style.
-
-### 3.2 Worker tasks
-
-Worker termination is normal. Import, supported index/recovery work and authorized AI tasks use bounded batches, durable checkpoint/receipt, idempotence, revision/generation checks and cancellation. No correctness-critical progress lives only in process memory. Long work cannot weaken scope gates or silently retry paid calls.
-
-### 3.3 Domain command/query APIs
-
-UI owns neither persistence nor provider/Passport policy. DTOs have version, operation ID, revision precondition, bounded payload and typed safe errors. Queries expose user concepts, not storage internals. Topic commands/read models share stable IDs, human constraints and current layout; there is no parallel human/AI directory or external candidate API.
-
-### 3.4 Editing
-
-Preserve IME/grapheme/revision primitives and one EditorSession per editable body: current text, base revision, dirty/composition/selection, save/failure state and approved recoverable drafts. Navigation cannot overwrite the session by independently refetching content. Topic name/field/placement protection is distinct from body protection; renaming does not freeze all future memberships.
+Prior capture lifecycle, worker task, domain API and EditorSession requirements remain. The Archive lane specifically reuses ArchiveNavigationQuery, SourceStructureStore, existing store.searchInputs/SEARCH_INPUTS, shared lexical helpers, ReaderStateService and current editor/navigation/session modules. Exact owner/gap mappings are specified once in the Archive plan P2.
 
 ## 4. REPLACE ONLY JUSTIFIED IMPLEMENTATION
 
 ### 4.1 Consumer shell and page composition
 
-Existing approved shared visual authority remains; Thought composition follows the later scoped TL-PT1-UI-1.0 contract. Where implementation still has competing DOM/coordinator owners, converge on one AppShell/navigation/history owner, one route/state model, one owner per control, one focus/dialog stack and notification presenter, with shared components/tokens. Certify a replacement route before retiring its old orchestration; do not keep two persistent handlers for the same action.
+Keep one AppShell/history/route coordinator. Add an explicit Archive product-state discriminant: ARCHIVE_HOME, SEARCH_RESULTS, BROWSE_SCOPE, CONVERSATION_READER. Do not infer it from a DOM class, nonempty Reader, a recent-document field or the active host site. Legacy view=library remains Input Archive; legacy view=archive remains Source Records compatibility, not a new Home alias that changes source ownership.
 
-Framework choice is secondary to Chrome MV3, IME, long-list behavior and current build constraints. Do not perform a framework rewrite or invent a new UI as part of Topic semantics. TOPIC-05 implements the adopted Root/Section reader using existing owners, not another mock. Its unified read model supplies real Topic/Section/Entry identities and bounded overviews; the UI neither invents Sections nor duplicates body storage. Stable Root slots, Section anchors, in-place search and Section-aware writing use existing bounded navigation/read/edit services. Detailed delivery/acceptance is specified once in the Topic plan section 7.
+Separate PRIMARY_ARCHIVE/OPEN_ARCHIVE, internal Back/Forward, explicit reload, Browse scope selection, search-scope change and content selection. All destructive-to-editor transitions pass the current leave/IME/save guard before route mutation. The global current-task pointer is not changed by this technical design.
+
+Use one active Main-owned ScopeSearch presentation and current query services. Reposition/repurpose the shared component without duplicate active listeners or hidden focusable clones. Reader Find remains local to its Conversation and separate from the originating Archive result session. Source/Project/group labels select scope; disclosure only expands; Conversation selection opens Reader.
 
 ### 4.2 Supported restore and recovery at scale
 
-The earlier backup-generation/streaming-export development path is cancelled by current consumer scope. Preserve supported existing-file restore, compatibility decoders and legitimate internal recovery. Necessary restore execution uses preflight, consistent generations, bounded staging, strict graph/hash/tombstone checks, atomic activation, non-empty restore/merge policy and a usable old library on failure. Supported browse/search and restore scales must not contradict each other. An internal migration recovery point is not authorization to recreate a user export/backup product.
+The entire preceding section applies unchanged. IAH does not add backup/export products, weaken graph/hash/tombstone checks, access a real archive or create a migration merely for a new view.
 
 ### 4.3 Consumer update/distribution
 
-Keep the developer updater as fallback. Normal consumer distribution requires verified packaging, extension identity preservation, schema preflight, unsaved-work protection, reconnect guidance, self-check and rollback where compatible. Do not define ordinary use as GitHub Desktop/manual scripts/chrome://extensions. No deployment/publication is performed by this documentation change.
+The entire preceding section applies unchanged. This is documentation-only: no manifest/package change, extension build, installer, daily-profile update or release is authorized.
+
+### 4.4 Archive route/session metadata and query continuity
+
+Reuse existing RouteHistory/ViewSessions/DocumentSearchSessions. Add typed scope, origin/history key, result-window IDs/revisions/order/cursors/coverage, result focus/viewport anchor and a narrowly scoped temporary reveal set as body-free view metadata. Reload restoration needs a bounded, actual-tab-scoped trusted extension-session checkpoint; current RAM-only snapshots alone do not prove that requirement.
+
+Safe refs/anchors/session keys can enter the versioned history projection. Private query/result metadata stays in the trusted tab session; no bodies, snippets, titles, arbitrary external URLs or secrets in route URLs. Do not use global last-query state, host-site storage, cloud sync or a new permanent IndexedDB entity/body store. Validate limits, eviction, cleanup and degraded restoration. Browser-Native Sync does not transport active route/query/result/reveal state.
+
+Planned direct-link fragments must be implemented together with strict sender admission. Current service-worker isExtensionPage accepts exact application entry URLs. Do not add fragments without testing the trusted command path; do not repair it by accepting arbitrary origins or paths. Retain source/caller validation, current permissions and negative tests. Concrete accepted route grammar/lifetime is in IAH-04, not another router specification.
+
+### 4.5 Archive search and precise Reader handoff
+
+Apply all/Source/Project/group scope in trusted query owners across the full eligible corpus, not in a UI filter over mounted results. Reuse deterministic lexical/rank/paging foundations with truthful coverage and current-body ownership. Input-first presentation does not imply that current title-first ranking has changed or that semantic search exists. Any necessary local ranking change must remain bounded and independently tested without altering unrelated consumers.
+
+Carry stable Input/document IDs, revision-qualified original-safe match data and origin key to the Reader. Resolve current eligibility, load the bounded window, safely remap Unicode/normalized offsets, then scroll/highlight without changing editable text or its revision. A changed match is recomputed; an unavailable/removed/purged one is never replayed from a cache as current truth.
+
+Smart-filtered Inputs can be found while explicit removals/purges remain protected. Use a narrow route/Input-local reveal rather than FILTER_KEEP/FILTER_PROTECT, automatic restore or global show-all policy mutation. Existing deliberate edit/Keep semantics remain separately owned. Reader bodies, their continuous loading, ordering, source attribution and editing/recovery are reused, not redesigned.
 
 ## 5. DERIVED CAPABILITIES
 
-### 5.1 Retrieval
-
-Current lexical search is not semantic search. Add replaceable semantic/hybrid retrieval only against fixed evaluation tasks and measured need. Preserve lexical fallback, rebuildable indexes, no new personal-truth body store, revision/deletion/exclusion invalidation, real body/time/source/Topic locations and honest partial coverage. Evaluate paraphrase, fuzzy memory, negation, corrections and no-answer cases across relevant languages. Choose model/vector technology from quality/cost/resource evidence.
-
-Personal Topic organization, retrieval and Context reuse must operate with no fixed taxonomy module/assets/service. Candidate lookup reuses existing names, aliases, boundaries and permitted historical evidence. Include dormant identities and redirected/renamed history; apply removed fences. Bounded shortlist omission is not proof of a new identity. Optional 18/144 semantic signals cannot hard-filter identity or content and require PT-12 downstream admission. A Lab classifier PASS is not integration approval. Taxonomy independence does not itself authorize an LLM or embeddings.
-
-### 5.2 Dependency invalidation
-
-Track revisions across Working Input, Thought evidence/binding, Topic/Section derived names/evidence, organization projection, AI reading output, search indexes and Context scope/manifests. Preserve generation evidence separately from current validity. Edits/deletion mark affected derivatives stale or remove them safely. Human facts survive rebuild, and paid recomputation is not automatically triggered. Purge cleans all relevant generations/history/caches and necessary source-derived naming without destroying independent human work outside the existing B-02 boundary.
-
-### 5.3 Recovery drafts
-
-Where failure testing requires it, use bounded protected local recovery drafts. They are not Source/history truth, have expiry, clear after commit and relevant permanent deletion/data clearing, and never live in host website storage.
-
-### 5.4 Personal Prompt Reuse Surface
-
-Retain the approved contracts PROMPT_REUSE_SURFACE.md and PROMPT_REUSE_STAGE_3A.md. This is local reuse over eligible Working Inputs and explicit template overrides, not another archive/Context store.
-
-Stage 1/2 remain local, reply-blind and Provider-free. Provider adapters own composer discovery/insertion; generic arbitrary-site contenteditable injection is not a fallback. Trusted extension services own family queries/overrides; the host receives only selected text released by the user's action. Do not preload a personal prompt corpus into host DOM/storage. Shadow DOM is style isolation, not an authorization boundary; use an extension-controlled boundary whose exposure is tested.
-
-Ordinary insertion never sends/submits; acknowledge only after composer verification, with no unknown-outcome retry. Preserve existing drafts, selection, IME and framework ownership; destructive replace is a separate explicit action. Family membership/ranking is rebuildable; durable user work is limited to actual template edits, pins/order, representative selection, hide/split corrections and safe geometry. Template editing never rewrites Source/Input and does not resolve Thought B-01/B-02. Any necessary new persistence satisfies the existing schema/migration/compatibility gate rather than adding a store just for ranking.
-
-Stage 3A uses a provider-specific CurrentReplyAdapter for only the newly completed latest assistant reply in the current supported conversation, under its default-off authorization. Do not expand user-only capture into an assistant archive. Reply text is ephemeral: no Source/Working/Thought/Context/Backup/website/log body. NextActionDetector locally derives DIRECT_REPLY, CHOICE, REQUEST_USER_MATERIAL, PROMPT_FAMILY_MATCH or DEFER with zero Provider/model/network calls. Family matching consumes the existing eligible reuse service through a disposable bounded view, not another vector/body index or per-token full-library scan.
-
-Direct suggestions are not persistent Prompt Families. Bind them to current tab/document/conversation/reply revision and authorization generation, revalidate at click, and reuse established provider insertion/read-back/no-send behavior without accepting arbitrary strings as trusted families. Render under the extension-controlled boundary; do not expose full prompts or reply evidence to host scripts. Disable/revoke invalidates reply reader, in-flight work and late candidates. Stage 3B remote/model generation remains separately gated by B-04-3B. Topic adoption changes none of this.
-
-### 5.5 Personal Topic identity and formation
-
-PT-1.0 defines behavior; TOPIC_ARCHITECTURE_PLAN.md supplies the implementation gap mapping and stage acceptance. Required internal responsibilities, preferably in existing domain owners:
-
-- Stable Personal Topic identity, scope/alias history, lifecycle and redirects, independent of names, human/AI origin, source Project and System Catalog.
-- Durable field/edge human intent including negative membership and cross-path keep-separate; conservative legacy authorship.
-- Eligible bounded identity retrieval covering active/dormant/renamed/merged identities and removed suppression, followed by a current-version duplicate/constraint recheck before creation.
-- Identity-first policy with explicit-object versus independent repeated-subject evidence, six-part admission, useful Section formation and per-additional-Placement value.
-- Hidden candidate evidence/lifecycle and ordinary unassigned state, not formal catch-all Topics or a user inbox.
-- Trusted commit that rechecks source, processing scope, human constraints, lifecycle, layout and CAS after inference; stale/cancelled results cannot alter the library.
-
-Human facts and AI projection can be separate records internally, but the read model resolves one stable identity set and one Library. No source/body copy per layer. No automatic writes to human facts; only scoped unprotected AI fields/edges and eligible new automatic placements. Renaming/takeover keeps ID; reconstructing a projection cannot reconstruct a removed identity under a synonym. Section promotion creates a new Topic only after explicit user confirmation and moves needed Placements without body duplication. related_to/part_of and Topic graph are not MVP dependencies.
+All preceding retrieval, invalidation, recovery-draft, Prompt Reuse and Personal Topic sections are incorporated unchanged except the narrow IAH search presentation/return rules. Ordinary Archive Find, navigation, scope changes and highlights have zero remote model calls, no embeddings dependency and no AI maintenance event. Explicit external Context retrieval still cannot fall back to Archive.
 
 ## 6. AI Organize versus Topic Organizer
 
-Topic Organizer performs PT identity/formation/placement. Topic-local AI Organize renders a derivative interpretation over the same traceable evidence. Its prose grouping cannot create recursive durable hierarchy, replace human structure or become a second Library. Reuse versioned candidate/projection and protected-output mechanics without reviving candidate approval management.
-
-Durable default/named Sections exist with the reading toggle OFF and remain the same identities with it ON. Ephemeral reading headings belong to the derivative projection; they do not become Section records, Root overview items or authorization targets. The reading toggle cannot mutate durable Section names/order/placements or protected human bodies. Justified durable changes use the separate PT Organizer commit path. Version-check these boundaries and preserve Entry-relative reading anchors, active IME/selection and unsaved editor sessions; see TOPIC-05.7 for acceptance.
-
-Requests remain bounded by authorized relevant evidence, incremental changes and stable revision fingerprints. Processing service, entitlement, budget and cancellation must be real before enabling generation; cached reads do not call a Provider and there are no hidden paid retries. Existing saved AI content/version history remains intact. Schema/structure, evidence validity and semantic fidelity are separate validation layers; the third needs independent task evaluation, not reference validation alone.
+The full existing distinction, derivative/human authority, evidence/revision/cache and no-activation boundaries remain. Archive Home selects no model, changes no style/budget and creates no Topic, Entry or AI output.
 
 ## 7. AI Context and Passport
 
-Cards v2 supersedes the old compiler-only/Builder/package workflow. Info/Rules/Now own small independent editable Items; Inputs owns access to stable Personal Topic identities. Do not clone the Archive/Thought corpus or maintain an independent Topic directory. New identities start externally closed, including promoted identities.
-
-At every trusted directory/search/read/continuation/cache/release boundary, enforce current global/category/connection/Topic eligibility plus stronger source/content/legacy restrictions. Ordinary Topic off and independent Item state remain distinct. Organization/alias/rename/dormancy/merge/extra membership or optional semantic signals cannot authorize reading or union grants. Shared Entries deduplicate by stable ID after eligibility checks. Changes invalidate affected current scope/revision tokens; a redirect is not permission inheritance.
-
-Whole requested eligible Topic contents must reach their real end or declare precise incompleteness. Excerpt-only Thought content does not authorize a hidden Archive tail. External retrieval has no Archive fallback or arbitrary Source/Conversation/Project permission. Preserve attribution, uncertainty and chronology. Passport remains trusted authorization/revocation metadata, not another body store or consumer console; restore cannot re-enable access.
+The full prior card/item/Topic access, complete-read, dedupe/revalidation/revocation requirements remain. Local Archive route references grant no external access or read/write capability.
 
 ## 8. Connector and internal processing
 
-The first real Context connector is read-only: list/query authorized Personal Topics/Items, read by stable permitted reference, bounded paging/rate/size, exact scope/revision checks, revocation and minimal body-free audit. No full-library upload for remote filtering. Historical text and Rules cannot change permissions.
-
-Internal Topic formation processing is separately authorized and uses typed changes through the trusted policy/commit path. A read-only external client cannot call it as a write bypass. Future external write/organize proposals require distinct explicit permission and current validation; no third party writes storage directly. Client/transport and paid processing are separate dependencies, not a reason to restore BYO transport or weaken authorization.
+Existing read-only/external versus internal-formation boundaries remain. A deliberate supported-site contextual action may resolve the exact already-saved local Conversation through a trusted owner; ordinary open does not infer it. Absent local data is not permission to capture/import or change consent. A verified original-site link is a separate secondary action, not a navigation return URL or new provider transport.
 
 ## 9. Import and source expansion
 
-Keep provider-neutral Source ownership and provider-specific adapters. Official import support requires a current real export passing preflight, role/time/branch handling, dedupe, interruption, preservation of human edits, tombstones and recoverability. Each live provider is a vertical integration, not a registry entry. Mutable sources define source revisions explicitly. Topic migration/reimport cannot duplicate identity or fabricate independent evidence from duplicate source events.
+The full prior import/role/time/branch/dedupe/provider qualification requirements remain. No provider, permission or account-history access is added here.
 
 ## 10. Sync / cloud / mobile
 
-B-03 must be resolved before production cloud Sync. Preserve account/device trust, appropriate encryption/key lifecycle, stable identity, revision/conflict behavior, offline replay, tombstone propagation, revoke/loss and recovery. No plaintext-content authority is delegated to a coordination service without an explicit decision. MyWrite uses first-party stable creation IDs/current time, not an impersonated AI message. Voice requires explicit microphone/transcription permissions. None is activated by Topic planning.
+The complete current BNS and prior nonconflicting mobile/MyWrite/voice boundaries remain. UI session restoration is not canonical Sync and never reactivates grants. Narrow push navigation changes presentation only, not identity or capture semantics.
 
 ## 11. Migration contract
 
-Schema, identity or canonical-body representation changes require the existing Migration Receipt, not another process:
+The complete exact predecessor migration receipt requirements remain mandatory if a future authorized change actually affects schema/identity/canonical representation. IAH has no approved new content schema or real-data migration. Preserve all old bodies, revisions, human decisions and deletion fences; do not alter them to make the Home fit.
 
-- from/to runtime and schema;
-- local entity counts and safe hashes;
-- identity/alias/redirect mappings and exact unknown-state handling;
-- Source/Working/Thought body and revision/provenance preservation;
-- unknown-time preservation;
-- human name/Section/order/pin/keep/include/exclude/keep-separate/no-recreation preservation;
-- source tombstone and all-generation deletion fences;
-- authorization delta, including no automatic grants/permission union;
-- existing-file compatibility and supported recovery point;
-- bounded staging, interruption injection, idempotent resume and atomic activation;
-- rollback that respects later human work and permanent deletion;
-- limitations and unsupported cases.
+## 12. Technical non-goals and verification
 
-Real private text/identifying evidence stays local. Public tests are synthetic/sanitized. Do not start a destructive real-data migration without a proven supported recovery point. In the current docs-only task no migration runs.
+All prior technical non-goals remain. No framework rewrite, new corpus/store, vector database, AI per search, dashboard/feed, second router/search policy, permission expansion or cancelled feature revival. Existing tests are not weakened to obtain green status.
 
-Legacy catch-all containers are not deleted by name. Migrate only proven unprotected system-generated placeholders under a reviewed plan; preserve manually authored or ambiguous structure. Candidate expiration cannot erase Source/Entry content, and old saved AI-presentation candidates are not hidden Topic candidates. Do not globally rename/recluster existing personal work to make it fit the new contract.
-
-## 12. Technical non-goals
-
-No vector database before retrieval evidence; no whole-library cloud shortcut; no Source rewrite during UI migration; no model per provider; no remote arbitrary executable adapter; no historical-prompt authorization; no body store per view; no recursive Topic/Section or invisible relation tree; no candidate inbox; no second AI Library; no required 18/144 taxonomy. Replace obsolete tests only with equivalent or stronger product/trust coverage, never to get a green build. Runtime tests and paid/downstream evaluation are future work, not claimed by documentation.
+ARCHIVE-HOME-01–06 implement the settled dependencies under the existing VERIFICATION/EXECUTION_PROTOCOL. Design traces are not browser tests. Actual source/release behavior, exact-main evidence, current-live contextual entry, accessibility and resource measurements retain separate acceptance labels and applicable gates. None is claimed performed by this documentation integration.

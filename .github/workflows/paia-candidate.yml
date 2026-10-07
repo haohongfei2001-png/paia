@@ -1263,7 +1263,7 @@ jobs:
         run: |
           mkdir -p work/qa-dvn-context-compat
           set -o pipefail
-          xvfb-run -a node --test --test-concurrency=1 tests/context-cards-chrome-e2e.test.mjs tests/release-certification-round48-chrome-e2e.test.mjs tests/release-certification-round49-chrome-e2e.test.mjs tests/ans-01-reader-surfaces-chrome-e2e.test.mjs tests/uir-01-shell-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-context-compat/acceptance.log
+          xvfb-run -a node --test --test-concurrency=1 tests/context-cards-chrome-e2e.test.mjs tests/release-certification-round48-chrome-e2e.test.mjs tests/release-certification-round49-chrome-e2e.test.mjs tests/ans-01-reader-surfaces-chrome-e2e.test.mjs tests/uir-01-shell-chrome-e2e.test.mjs tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-context-compat/acceptance.log
       - name: Retain compatibility evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -1272,6 +1272,7 @@ jobs:
           path: |
             extension/work/qa-dvn-context-compat/
             extension/work/ctx4-01/
+            extension/work/ctx4-05/
             extension/work/ans-01/
             extension/work/d7-archive-reader-compat/
             extension/work/ux-r1/

@@ -1,135 +1,63 @@
 # PAIA current engineering instructions
 
-## Browser-Native Sync — current scoped amendment, 2026-10-07
+## Current scoped Archive adoption — IAH-1.0, 2026-10-08
 
-For Sync work, after current STATUS/AUTHORITY read `docs/consumer-product-v1/BROWSER_NATIVE_SYNC_ADOPTION.md`, `BROWSER_NATIVE_SYNC_CONTRACT.md`, `BROWSER_NATIVE_SYNC_UX.md`, `BROWSER_NATIVE_SYNC_PLAN.md` and `BROWSER_NATIVE_SYNC_REFERENCES.md`. BNS-1.0 is the sole Browser-Native Sync product/architecture/plan set. No PAIA account/backend; Chrome/Drive appDataFolder, Edge/OneDrive App Folder, Safari/native CloudKit private database; one provider-neutral entity/revision Core and three auth/transport adapters. Provider-trust v1 is not PAIA zero-knowledge E2EE. Do not reinstate old-device pairing or Recovery Secret as the normal new-device prerequisite.
+The owner authorized final Input Archive interaction tightening, design adoption, a development plan and canonical documentation integration only. **This adoption does not start Archive runtime development and must not change the current global next-task pointer.** Current `docs/consumer-product-v1/STATUS.md` alone chooses execution.
 
-Keep immutable Source, exact shared Working Input and independent human Thought, durable Personal Topic/Section/Placement intent, Context Items/negative intent, manual Prompt work, ancestry, gap-aware idempotence and monotonic tombstones. Never use max received sequence as an out-of-order replay frontier. No whole database dump, per-Input cloud file, provider-specific business merger or timestamp winner. Context desired Card/Topic settings may restore; live external grants, local consent/acknowledgements, device receipts and provider tokens may not restore active. Account changes invalidate all in-flight binding generations and never retarget old content to a new subject automatically.
+For Archive work read, in order: current STATUS and AUTHORITY; `INPUT_ARCHIVE_HOME_ADOPTION.md`; `INPUT_ARCHIVE_INTERACTION_CONTRACT.md`; `INPUT_ARCHIVE_HOME_UX.md`; `INPUT_ARCHIVE_HOME_PLAN.md`; `INPUT_ARCHIVE_HOME_REFERENCES.md`. These five documents are under `docs/consumer-product-v1/`. They are the current scoped Archive authority, not another design exploration or a second active queue.
 
-B-03 is resolved only for the stated optional personal-cloud/trust model. The adoption ledger precisely supersedes conflicting lower-order cloud/account/key/pairing assumptions; old sync/security documents and their nonconflicting protections/evidence remain. No broad drive permissions, client secrets in an extension, silent PAIA Cloud fallback, real cloud creation/upload/migration, paid operation or release is authorized by this documentation task. Actual main 948ea06 already includes local CTX4-01; older planned text below is historical to its adoption. Do not reimplement it or claim its exact-main closure without evidence.
+## Complete incorporated engineering baseline
 
-Settings Consumer v2 receives only a Sync row in Data & recovery and truthful optional-cloud copy: same six groups, final available 21 primary rows/six Data rows plus the existing secondary position reset. Sync owns status/actions; Settings owns placement; Context owns permissions. Open the exact private Sync/Settings references when implementing presentation. The standalone 27-scenario/34-artboard prototype is not production or provider certification. STATUS retains the existing current closure task and queues CPV1-SYNC-01 as the first new Sync implementation; do not start a second active writer or OAuth integration before the local Core proof.
+[AGENTS_PRE_ARCHIVE_HOME_2026-10-08.md](AGENTS_PRE_ARCHIVE_HOME_2026-10-08.md), exact blob `cce0678a06bfdf3e703bd02325eafb0225782eb8`, preserves the entire preceding engineering instructions byte-for-byte. **All nonconflicting instructions, source/privacy restrictions, domain requirements, verification/migration rules and retained authorizations in that file remain effective and must be read for the relevant task.** This overlay is not permission to skip or silently drop them. Its historical current/next references are subordinate to current STATUS; scoped conflicting Archive presentation is superseded by IAH's adoption ledger. Earlier snapshots and implementation evidence stay intact.
 
-## Thought Library final visual adoption — current scoped amendment, 2026-10-07
-
-The owner approved the reviewed PT-1.0 Thought direction and requested canonical documentation and development-plan integration. Read `docs/consumer-product-v1/THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md` and `THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md` for Thought presentation. Root is a stable rectangular Personal Topic grid with real named Section overview; the reader is continuous default/named Section prose. AI reading headings are derivative, never automatic durable Sections. Do not reopen Card/Grid design, implement the old compact list/Years/candidate workflow, or copy incidental poster navigation/counts into the app.
-
-`TOPIC_ARCHITECTURE.md` remains the normative identity/formation contract. `TOPIC_ARCHITECTURE_PLAN.md` section 7 contains TOPIC-05.1 through 05.8 implementation detail, not a second UI workstream. STATUS still names TOPIC-01 as the only next development task. This adoption changes documentation only; it starts no runtime/CSS/schema/test writer, migration, model call, service or release. Private references stay private; visual approval does not prove production behavior or settle B-01/B-02.
-
-## Personal Topic Architecture — current scoped amendment, 2026-10-07
-
-The owner directed adoption of the settled Topic Architecture without new design or code changes. Read `docs/consumer-product-v1/TOPIC_ARCHITECTURE.md`, `TOPIC_ARCHITECTURE_ADOPTION.md` and `TOPIC_ARCHITECTURE_PLAN.md` after current STATUS/AUTHORITY. PT-1.0 is the sole normative Topic contract; the plan contains gaps and dependent implementation outcomes, not another queue.
-
-One Thought Library, one stable Personal Topic identity set, `Personal Topic -> Section -> Entry`. Identify the same object/subject before reuse. Automatic formation is permitted product direction only through eligible evidence, processing authorization and persistent human constraints. Hidden candidates must never become a user approval inbox. Do not create system-taxonomy parents, a 144-topic user directory, recursive hierarchy, a graph dependency or a second AI Library. Manual rename/takeover keeps ID; human facts are not AI-writable; protect fields/edges, exclusions and keep-separate through every path. Preserve existing correct Topic/Section/Placement, body, provenance and CAS foundations.
-
-PAIA production organization/retrieval/Context does not depend on 18/144 taxonomy. Lab remains independent research; its classifier success is not production admission. Current formation/identity work is a bounded approved product justification, not arbitrary schema/body-copy or migration permission. Record code gaps rather than changing product direction to match old code.
-
-STATUS.md contains the only current next-development pointer. Older per-feature next-phase text is a planned phase, not a competing queue. The architecture documentation adoption started no runtime writer, implementation, migration, provider/model call, paid processing, private archive access, UI redesign, installation or release. The later final visual adoption supplies the Thought presentation reference without implementing it.
-
-## AI Context Cards v2 — retained scoped planning amendment
-
-The approved four-card design remains. Read `AI_CONTEXT_CARDS_V2_PLAN.md`, its adoption record and visual-reference manifest for Context work. My Information / My Rules / My Now own independent editable Items; My Inputs stores access to the same stable Personal Topic IDs without copied Topic bodies. External retrieval stops at allowed Context and eligible Thought Topics, never Archive fallback. New Topic identities stay off; organization/merge/promotion cannot grant access. Capacity examples including 144 are not System Catalog binding.
-
-Use the approved PAIA shell, direct editing and capsule controls. Do not resume Builder/material/review/package/Passport-console UI or design another Thought UI in this task. The CTX4-01 planned-phase statement belongs to the earlier adoption; current STATUS/main now records its local implementation. It is not a competing next pointer or repeat implementation task. CTX4 Topic-dependent slices consume PT-1.0. Its design, correct existing work, unresolved gates and 0.12.1 cancellations remain unchanged.
+The other current domain authorities remain AIU/AIOS/Qwen, Browser-Native Sync, Settings Consumer v2, PT-1.0, final Thought presentation, Context Cards v2 and Prompt Reuse/Stage 3A. Follow their actual current adoption/plan/receipt records, not older superseded menus, inventories or implementation claims. IAH changes none of their quota, schema, permissions or product promises.
 
 ## Consumer Product v1 — active execution routing
 
-`PAIA-CONSUMER-PRODUCT-v1` is the sole active PAIA product/engineering queue. Canonical documents live under `docs/consumer-product-v1/`.
+`PAIA-CONSUMER-PRODUCT-v1` remains the sole active product/engineering queue. Read current STATUS, AUTHORITY, the relevant scoped contracts, Product Intent, UX, Technical Plan, Master, VERIFICATION and EXECUTION_PROTOCOL plus the relevant full preserved baselines and current code before any authorized batch.
 
-Before continuing development, read:
+At IAH adoption the global pointer remains **CPV1-TOPIC-02 closure**, not a new implementation of already-integrated Topic mechanics. ARCHIVE-HOME-01 is merely the first planned Archive task when scheduled; all six stages are PLANNED / NOT_STARTED_BY_THIS_TASK. Do not preempt another lane or start a writer from a design approval, an old READY flag, automation heartbeat or a historical plan pointer.
 
-1. `docs/consumer-product-v1/STATUS.md`.
-2. `docs/consumer-product-v1/AUTHORITY.md`.
-3. Current scoped contracts: the BROWSER_NATIVE_SYNC set above for Sync; SETTINGS_CONSUMER_V2_ADOPTION/PLAN/REFERENCES with its scoped BNS amendment for Settings; `TOPIC_ARCHITECTURE.md` / its adoption and plan plus `THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md` / references for Topic work; `AI_CONTEXT_CARDS_V2_PLAN.md` / references for Context.
-4. `PRODUCT_INTENT_CONTRACT.md`.
-5. `UX_CONTRACT.md`, subject to scoped amendments.
-6. `TECHNICAL_PLAN.md`.
-7. `MASTER_PLAN.md`.
-8. `VERIFICATION.md`.
-9. `EXECUTION_PROTOCOL.md`.
-10. Relevant current code/history for the authorized slice.
+Use one coordinated writer per shared runtime/data boundary. Existing independent owner-authorized branches retain their actual scope and gates; do not race Archive/AppShell/editor/query files or reopen past closures. Preserve PR #99 unchanged and unmerged unless a later explicit owner decision says otherwise. The complete preceding historical-package/authorization rules remain incorporated.
 
-Unless a full path is given, the numbered contract names above are in docs/consumer-product-v1/. Drive `PAIA设计想法.docx` remains primary intent only where newer explicit scoped decisions have not superseded it. Do not copy private source, archive material, screenshots or full conversation instructions into this public repository. Use minimal executable public derivations and synthetic/sanitized examples.
+## Archive implementation invariants
 
-Remote main is the engineering fact source. Preserve correct historical implementation/evidence, but never resume an old queue just because its historical STATUS names a next round. Pre-Thought-visual, pre-Topic and pre-CTX4 STATUS/MASTER snapshots are history/detail references, not parallel authority. The Topic adoption map, final visual authority V8 and BNS adoption ledger explicitly supersede conflicting lower-order clauses for their respective scope without editing frozen history.
+**Fresh Archive Entry is not Resume Previous Reader. Back restores context; primary navigation opens Home.** Ordinary open and every primary-nav Archive action target ARCHIVE_HOME with all scope, empty query and no selected Source/Project/Conversation/Input. Existing leave/save/IME guards run first; never discard unsaved work to reset a route. Explicit Back/Forward and explicit Reader-route reload restore validated context, not a vague same-session rule.
 
-Retained prior authorizations have bounded scope and current-status corrections:
+Use four explicit states in the one existing AppShell/history owner: ARCHIVE_HOME, SEARCH_RESULTS, BROWSE_SCOPE, CONVERSATION_READER. Do not infer state from selected DOM, previous body, recent-record metadata or the host tab. Current main already intentionally clears Reader at root and Project rows only disclose children; do not invent auto-open defects or rewrite correct existing Reader foundations.
 
-1. DesktopVNextOwnerApprovedRestart: the owner approved DVN-1.0/foundation PR #107 and released the D1 Archive -> D2 Thought Library -> D3 AI Organize -> D4 AI Context review pause on 2026-09-30. Old conflicting Topic semantics and Context design are now superseded. This historical authorization does not start code in a documentation-only task or revive cancelled surfaces.
-2. PromptReuseStage3AOwnerApproved: on 2026-10-05 the owner approved PROMPT_REUSE_STAGE_3A.md. B-04-3A resolves only default-off local ephemeral analysis of the current newly completed latest assistant reply, zero Provider and no durable reply body. Broader/model B-04-3B remains unauthorized. Consult retained status and later decisions; Topic adoption neither restarts nor closes this independent line.
+Home is minimal Find copy and one primary search. V1 has no Recently viewed, common-search suggestions, feed, recency collector or dashboard. Exactly one active visible content-search field lives in Main across all states; remove competing navigator search presentation/listeners. Preserve separate domain responsibilities behind the common ScopeSearch component.
 
-Use fresh main for each coherent batch and one writer per shared runtime/data boundary. Isolated Prompt Reuse work cannot race shared roots/state ownership. Preserve PR #99 unchanged and unmerged. B-01/B-02/B-04-3B/B-05 and deferred live/device/legal gates remain unresolved on their affected paths; B-03 has only the stated BNS optional-cloud exception. Fail closed on affected behavior while independently authorized work continues. The earlier temporary-night/max-nine-round instruction remains historical, not a cap on later separately approved work.
+Project label selects Browse scope; a separate arrow only expands. Conversation/Input/direct contextual target selects Reader. A Browse label parks an old query for Back; an explicit Search scope choice preserves it in Results. Search is Input-first current working text with quiet attribution/time and local full-text coverage. It never calls a model, creates an AI job, grants external access or requires a paid tier.
 
-### Historical packages
+Search result activation revalidates stable Input/document identity, revision, eligibility and original-safe Unicode match, loads the bounded Reader window and precisely scrolls/highlights without changing editable text. Smart-filtered otherwise eligible Inputs are searchable; temporary route/Input reveal is not Keep/protect/restore. Explicit removal/purge and stale-result invalidation retain their full protections.
 
-Production Readiness, ChatGPT Project Recognition, ANS, UIS, UIR and UX-R are historical after Consumer Product activation. Useful unfinished requirements belong in the current master plan. Do not start CPR-03/PRD-03/new ANS/legacy UI rounds without an explicit current bounded task. Old PASS/FAIL remains truthful history, not current slice acceptance.
+Main Back is recorded-origin PAIA navigation. `在 ChatGPT 中打开` is a separate secondary action with a qualified source URL. Ordinary extension open does not inspect host context to select content. A deliberate contextual view resolves an already-saved current Conversation; absent data is not consent/capture/import or permission to select another.
 
-## Authoritative source
+Reuse RouteHistory/ViewSessions/DocumentSearchSessions, trusted session storage, ArchiveNavigationQuery, SourceStructureStore, SEARCH_INPUTS/store, current ReaderStateService and EditorSession. No second router, corpus, Source/Project truth store or content schema. Private query/result-window/origin metadata is bounded and tab-local, with a qualified reload checkpoint; no bodies/snippets in URLs/history/checkpoints or active route state in Sync. Preserve limits, cross-tab isolation, cleanup and honest degraded restoration.
 
-- Repository: haohongfei2001-png/paia.
-- Active extension source: extension/; public product site: repository root.
-- Main is authoritative; clones, unpacked runtime folders, generated releases and worktrees are working/runtime copies only.
-- When the user explicitly asks to implement, fix, refactor, document or otherwise change PAIA, changes may be committed directly to main unless the user requests a branch/PR. Preserve concurrent work using a fresh base and guarded non-forced integration.
-- Historical task-specific no-push, timebox, worktree or deployment constraints do not override current main-based instructions.
+Future direct-link fragment handling must be qualified with current exact-entry worker sender validation. Do not add fragments while breaking isExtensionPage, and do not broaden trusted origin/path admission to compensate. Keep current permissions and negative caller tests. Provider-qualified Project identity, unknown/unassigned separation, last-known relationships and local content after external deletion remain unchanged.
 
-## General documentation order outside a scoped overlay
+Wide uses the existing primary/Browse/Main composition, medium can overlay Browse and narrow uses one-pane push navigation. Shared dark/typography/focus/reading preferences and edit-safe continuous paging remain. Private mock toolbar, sample text/counts and conflicting poster resume/suggestions are not production requirements.
 
-Read PRODUCT.md, ARCHITECTURE.md, ROADMAP.md, then relevant current privacy/source/sync/security/restore feature contracts and current release records. They apply only where consistent with Consumer Product/current scoped authority. PRODUCT_SPEC.md, DECISIONS.md, README_HISTORY.md, versioned V/ROUND/M1/M2 documents and completed UI/UX reports are historical compatibility/evidence.
+## Authoritative source and integration
 
-Preserve shipped safety/data guarantees until a justified migration is approved. Do not continue obsolete product plans merely because implementation or frozen tests exist.
+Remote `haohongfei2001-png/paia` main is the engineering fact source; local clones/unpacked copies/generated releases are not another authority. Active extension source is `extension/`; public site is repository root. When the user explicitly requests documentation or implementation changes, direct main integration is permitted unless a branch/PR was requested. Use a fresh base and guarded non-forced integration, preserve concurrent work and read back exact main. A repository design instruction cannot extend the user's present task into deployment or paid actions.
 
-## Before changing behavior
+For this documentation-only task, change only the necessary Markdown design/plan/canonical files and exact predecessor snapshots. No production runtime, HTML/JS/CSS, route/search/filter implementation, IndexedDB/schema, test/workflow, manifest/version, build/install or extension publication. The old runtime remains unchanged until separately authorized work.
 
-Identify the current task authorization. Preserve Source identity/time, Working Input edits, Thought work, tombstones, provenance, revisions and explicit permissions. Post-v0.12 durable schema is frozen by default. Any new object store, body copy, durable entity family or destructive migration must satisfy ARCHITECTURE schema questions and current TECHNICAL_PLAN migration receipts. Approved Context Items/Personal Topic intent and BNS's bounded journal/codec needs supply limited product justification, not approval of arbitrary persistence or a real-data migration.
+## Product, privacy and compatibility boundaries
 
-Prefer reusable domain service, read model, derived metadata or lightweight preference over extra truth layers. Reader is presentation; search/revisit are projections. AI Context Items are independent small content, not corpus copies. Passport is authorization metadata, not another content owner or default management product. Human organization facts and permitted AI projections resolve into the same stable IDs and Library.
+The complete baseline's Source/Working/human intent, strict import/restore, revision/CAS, tombstone anti-resurrection, source time, consent and permission rules remain mandatory. B-01/B-02 and all affected external/provider/device/legal/release gates remain; the BNS and Stage 3A exceptions apply only to their stated scope. IAH supplies no broad data access, credential read, account, cloud, model or spending authorization.
 
-## Product and privacy boundaries
+Never commit real archives, profiles, private instruction bodies, screenshots, session/cookie/token/key material or identifying fixtures. The public references contain hashes and necessary executable design derivations only. Use synthetic/sanitized acceptance data. Do not revive exports/backup-generation/sharing, Profile/Material Tray/candidate management, ordinary diagnostics/Product Signals or BYO transport. No new query/body analytics is authorized.
 
-PAIA is currently a desktop Chrome MV3 extension centered on ChatGPT Web. Source facts, user-edited Working Input and AI derivatives retain separate ownership. AI cannot overwrite Source evidence or human body/organization facts. Do not broaden capture to drafts, keystrokes, assistant replies, unrelated pages, browser history, cookies, credentials, clipboard or private local data without explicit scope. Prompt Reuse Stage 3A is the only separately approved limited reply exception described above.
+Preserve every nonconflicting existing Topic/Context/Prompt/Settings/Sync/AI outcome, actual runtime owner and evidence record. A source Project is not a Topic; an Archive result cannot provide an external Context fallback or grant read/write permission. Existing explicit human edits, Keep, removals, saved AI work and restrictive metadata survive UI changes.
 
-Never commit real archives, profiles, sessions, cookies, keys, private exports or identifying fixtures. Tests/public evidence use synthetic or sanitized material. Current manifest permission, processing consent, entitlement, bounded scope and revocation gates must hold before any Provider behavior. Do not add providers, permissions, hidden network requests, automatic paid calls or retries without approval. Automatic Topic direction does not restore BYO/direct transport or enable background billing. BNS design approval is not a live cloud authorization or permission to broaden storage scopes.
+## Engineering, verification and delivery
 
-Explicit user exclusions and source tombstones outrank convenience. Deletion must defeat recapture/import/caches/projection rebuild. Smart Filter never silently deletes Source. Topic keep-separate and removed/no-recreation intent survive identity normalization. Extra Placement and alias/redirect cannot become a permission bypass. Product Signals are observers, never authority, and current cleanup retired ordinary collection/dashboard.
+The entire baseline engineering/migration/verification discipline remains. Read actual package scripts and DEVELOPMENT_WORKFLOW.md at a future runtime start; documentation-only adoption does not bump manifest/package version. A later runtime batch follows its own version/build identity and release gates.
 
-## UI and interaction engineering
+Use production functions in targeted tests, affected browser/regression and the existing light integration gate, escalating at actual privacy/caller/deletion/identity/schema/migration/high-risk changes. Never weaken tests, privacy guards, certification workflows or timeouts to obtain green status. A slice's final acceptance still needs applicable real tasks, performance/accessibility, source/release visuals, live contextual action and exact-main evidence.
 
-Reuse existing domain/state owners; UI is not alternate persistence or authorization. No duplicate Source/Input/Thought/AI body truth to simplify a screen. Preserve approved Context Items' separate ownership. Keep navigation/search/menu state local and bounded. Preserve autosave, conflict/revision/leave guards, keyboard accessibility, focus, IME and selection. Hidden candidates are internal only; their counts/states must not leak into normal Topic lists, Context scopes or an inbox.
-
-Removing UI does not authorize deleting protected metadata or saved work. When an approved change invalidates an old UI assertion, replace it with equivalent or stronger behavior/security evidence; do not disable tests for green status. Open exact approved visual artifacts before implementation, subject to the reference manifest's availability and precedence rules. Do not implement a gallery/iframe/mock as the actual feature or invent a third design when references are missing. PT architecture adoption alone was not visual approval; the subsequent TL-PT1-UI-1.0 adoption is visual direction approval, not production acceptance. BNS's synthetic prototype is likewise not a real provider implementation.
-
-## Engineering and delivery
-
-Follow [Product version and build identity](DEVELOPMENT_WORKFLOW.md#product-version-and-build-identity): each main integration has a unique source SHA; delivered-runtime fixes bump PATCH and compatible new capabilities bump MINOR. Synchronize manifest/version_name/package once per coherent integration against fresh main; documentation-only work is exempt. Do not claim installed build identity from version alone.
-
-Keep adapters/capture/import, storage/model, query/organization, UI and provider boundaries separate. The worker remains trusted validation/dispatch, not a home for every service. Target actual production functions in tests, not duplicate algorithms written for fixtures. Recheck current package scripts at implementation start.
-
-Fresh setup under extension/:
-
-```bash
-npm install
-npx playwright install chromium
-```
-
-Established commands, subject to actual current scripts:
-
-```bash
-npm test
-npm run check
-npm run test:ui-refresh
-npm run build:release
-```
-
-Do not weaken assertions, privacy/release guards, certification jobs or timeouts. Release build is not publication authority. Preserve extension identity/daily runtime path on an authorized deployment: use development/Update PAIA.command after main sync; see DEVELOPMENT_WORKFLOW.md. This documentation task performs no deployment.
-
-Do not ask the user to maintain a second authoritative local copy or manually code changes when tools can perform the authorized work. Align docs with actual behavior. Never claim live-provider compatibility, model quality, semantic understanding, sync, real-user validation or installed-version confirmation without evidence.
-
-## Validation and migration discipline
-
-Engineering evidence is not product validity. Apply VERIFICATION.md plus the current scoped acceptance. Topic identity/authority, semantic formation, real migration, one-library behavior and downstream utility are separate evidence classes. Classifier metrics alone do not admit Lab into PAIA; optional proposals compare no-taxonomy/18/144 downstream effects with permissions and human intent intact. Do not expand Product Signals/audit collection to gather evidence without authorization.
-
-For Context, separately record local-function, security/migration, model fidelity, real-client and approved production-visual evidence. Prototype reports are not production PASS. Missing external prerequisites are specific deferred gates, not excuses to park independently authorized local work. For Sync, separately prove Core mechanics, actual provider least privilege/lifecycle, exact new-device restore, migration/deletion, native operation and production UX; 540/8 prototype checks close none of those runtime gates.
-
-Preserve migration identity/body/provenance/negative intent/redirects/history and source/deletion/authorization fences with bounded idempotent staging and safe rollback. Unknown legacy authorship is protected; names alone cannot justify deleting a catch-all Topic. Never recreate purged content or live external grants through restore. BNS may restore durable desired scope without device-local access acknowledgement. No actual user database was accessed by this adoption.
-
-The original GitHub source import used local commit `063ddb5cfae3a8b1ec637c2604639cbde11529c7`, tag checkpoint-v0.11.1-thought-library-reading-closure; see SOURCE_SNAPSHOT.md. Earlier authorization/acceptance history is retained, not current execution policy.
+The three IAH tasks are design traces only in this adoption; production execution is NOT_RUN. A poster, prototype, hash, docs diff or prior unrelated CI result is not proof of current behavior, installed build, live provider, semantic quality or visual acceptance. Missing external evidence blocks the affected claim without inventing success or restarting independent completed work.

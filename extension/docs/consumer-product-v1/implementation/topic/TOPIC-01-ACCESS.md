@@ -2,8 +2,26 @@
 
 Base: main `4de4e2257562f799babc524cd69310baa079b1cf`, preserving the Settings
 Consumer v2 and Thought visual documentation. Compatible patch candidate:
-`0.13.1`. State: IMPLEMENTED_CANDIDATE / INDEPENDENT_REVIEW_PASS /
-FULL_CERTIFICATION_PENDING. No stage completion or installation is claimed.
+`0.13.1`. Current state: MAIN_INTEGRATED / INDEPENDENT_REVIEW_PASS /
+EXACT_MAIN_FULL_VERIFIED. The scoped foundation closure is recorded in
+[TOPIC-01](TOPIC-01.md#scoped-closure-and-exact-proof--2026-10-07);
+installation, real-user migration and broader product completion are not claimed.
+
+## Integration and repaired-main proof
+
+Reviewed PR184 head `caf3b70b77599c7f2c12473c1ceac6d7616df63f`, tree
+`c6f6d5c1cee4e1b112e4a36afe84c4dd742c8700`, passed full `37565860724`
+and merged as main `66fe65cae9ad7766362a0b09f2651e139b863258` at 0.13.1.
+Its exact-main full `37567653820` retained one old typography-sampler failure;
+all other required jobs passed. The actual artifact and failing row remain in
+the linked closure receipt. No permission invariant was waived for that failure.
+
+The corrected sampler arrived through independently reviewed Context01, which
+preserves this repair. Main `948ea06a57cd932c187407faf7140d9fb6714eff`,
+tree `78dbc060a3406ce301d1ca9b5f2d183d801ac619`, passed full `37611452025`
+and Prompt `37611451822`; its exact-main aggregate was downloaded/hash-verified.
+The subsequent `4a3cb4e` Sync adoption is documentation only. The historical
+candidate verification and negative reproduction below remain unchanged.
 
 ## Confirmed negative evidence
 
