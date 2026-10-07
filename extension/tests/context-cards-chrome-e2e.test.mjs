@@ -62,7 +62,12 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath:resolve(variant==='release'?'work/current-release':'.'),headless:true}),p=h.archive;
  const dir=`work/ctx4-01/${variant}/ctx4-02`;await mkdir(dir,{recursive:true});
- t.after(async()=>{try{await p.screenshot({path:`${dir}/last-state.png`,fullPage:true});}catch{}await h.close();});
+ // Keep the case budget unchanged; an individual hung action must produce its
+ // own failing stack and current phase rather than consuming the whole case.
+ p.setDefaultTimeout(14000);const started=Date.now(),phases=[];
+ const phase=async label=>{const entry={label,elapsedMs:Date.now()-started};phases.push(entry);console.info('CTX4-02 '+variant+' '+JSON.stringify(entry));await writeFile(`${dir}/phases.json`,JSON.stringify(phases,null,2));};
+ t.after(async()=>{try{await writeFile(`${dir}/last-state.json`,JSON.stringify(await p.evaluate(()=>({route:history.state,space:document.body.dataset.paiaSpace,workspace:document.querySelector('.workspace')?.dataset.state,scrollY,inert:document.querySelector('.context-page')?.inert,heading:document.querySelector('#memory-panel h1')?.textContent,active:document.activeElement?.outerHTML,transitionHeld:globalThis.__ctx402Transition?.held,fields:[...document.querySelectorAll('#memory-panel .item-text')].map(el=>({textContent:el.textContent,innerText:el.innerText,html:el.innerHTML})),notice:document.querySelector('.context-notice')?.innerText})),null,2));await p.screenshot({path:`${dir}/last-state.png`,fullPage:true});}catch{}await h.close();});
+ await phase('setup');
  await p.setViewportSize({width:1440,height:900});await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
  await h.open({id:'ctx4-02-synthetic',title:'SYNTHETIC three-card preserved owners',base:1609459200,messages:[{id:'ctx4-02-input',text:'SYNTHETIC Source remains independent of all three Context cards.'}]},{arrival:'dom-first'});await eventually(async()=>(await rpc(p,'GET_STATE')).records.length===1);
  const working=(await rpc(p,'GET_STATE')).library.blocks[0];await rpc(p,'EDIT_DOCUMENT',{edit:{operationId:crypto.randomUUID(),documentId:working.documentId,blocks:[{id:working.id,expectedRevision:working.revision,libraryText:'SYNTHETIC protected Working Input for all three cards',note:'SYNTHETIC protected note',excluded:false}]}});
@@ -70,15 +75,17 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
  await eventually(async()=>{const index=await rpc(p,'SEARCH_LIBRARY',{options:{query:'SYNTHETIC CTX4-02 preserved Topic',limit:40}});return index.complete&&index.items.some(item=>item.topicId===topic.id);});await eventually(async()=>{const status=await rpc(p,'FILTER_STATUS');return status.pending===0&&status.taskState==='idle';});
  await p.locator('.sidebar [data-view="memory"]').click();await p.locator('.context-card').first().waitFor();const before=await protectedSnapshot(p),ids={};
  const settled=card=>p.waitForFunction(card=>document.body.dataset.paiaSpace==='memory'&&history.state?.paiaReader?.view==='memory'&&(history.state.paiaReader.contextCard??null)===card&&document.querySelector('.workspace')?.dataset.state==='ready'&&document.querySelector('.context-page')?.inert===false,card);
- const open=async card=>{await p.locator(`.context-card[data-card="${card}"] .card-link`).click();await p.locator('.add-item').waitFor();await settled(card);};
- const home=async()=>{await p.locator('.context-back').click();await p.locator('.context-card').first().waitFor();await settled(null);};
+ const open=async card=>{await phase('open '+card);await p.locator(`.context-card[data-card="${card}"] .card-link`).click();await p.locator('.add-item').waitFor();await settled(card);await phase('opened '+card);};
+ const home=async()=>{await phase('home click');await p.locator('.context-back').click();await p.locator('.context-card').first().waitFor();await settled(null);await phase('home ready');};
  const items=async card=>(await read(p)).items.filter(x=>x.card===card);
+ await phase('three-card creation');
  for(const card of ['info','rules','now']){
   await open(card);assert.equal(await p.locator('.item-text').count(),0);await p.locator('.add-item').click();const text=`SYNTHETIC ${card} natural-language item`;
   await field(p).fill(text);await field(p).press('Enter');await p.keyboard.insertText('Second line');await field(p).press('Control+Enter');await eventually(async()=>(await items(card))[0]?.body===text+'\nSecond line','Enter retains a real newline and shortcut commits '+card);
   ids[card]=(await items(card))[0].id;assert.equal(await p.locator('.item-text').count(),1);await home();assert.equal(await p.locator(`[data-count="${card}"]`).textContent(),'1 项');
  }
  assert.deepEqual((await read(p)).counts,{info:1,rules:1,now:1,inputs:0});
+ await phase('editing undo deletion IME failure');
  for(const card of ['rules','now']){
   await open(card);await field(p).fill(`SYNTHETIC ${card} manual edit`);await field(p).press('Control+Enter');await eventually(async()=>(await items(card))[0]?.body.endsWith('manual edit'));
   await field(p).hover();await p.locator('.item-menu summary').first().click();await p.locator('.item-menu').getByRole('button',{name:'查看依据',exact:true}).click();assert.match(await p.locator('.item-evidence').textContent(),/由你添加/);
@@ -94,15 +101,18 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
  }
  // Persist actual source-free draft envelopes through the worker; the UI must
  // recover only its own card, including old omitted-card Info payloads.
+ await phase('recovery');
  const epoch=(await read(p)).epoch,drafts=[];for(const card of ['info','rules','now']){const change={kind:'put',operationId:crypto.randomUUID(),epoch,itemId:crypto.randomUUID(),expectedRevision:0,body:`SYNTHETIC recovered ${card}`,section:'SYNTHETIC recovered group',...(card==='info'?{}:{card})};drafts.push(change);await rpc(p,'PAIA_RECOVERY_DRAFT_SAVE',{draft:{kind:'context_item',ownerId:change.itemId,epoch,token:change.operationId,sourceRecordIds:[],operation:{type:'PAIA_CONTEXT_CARDS_CHANGE',change}}});}
  for(const card of ['info','rules','now']){await open(card);await eventually(()=>p.locator('.item-text').count().then(n=>n===2));const recovered=p.locator('.item-text').filter({hasText:`SYNTHETIC recovered ${card}`});assert.equal(await recovered.count(),1);assert.equal(await p.locator('.item-text').filter({hasText:'SYNTHETIC recovered'}).count(),1);await recovered.press('Control+Enter');await eventually(async()=>(await items(card)).length===2);await home();}
  for(const card of ['info','rules','now']){await p.locator(`.context-card[data-card="${card}"] .context-access`).click();await eventually(async()=>(await read(p)).access[card].enabled);await eventually(()=>p.locator(`.context-card[data-card="${card}"] .context-access`).getAttribute('data-paused').then(value=>value==='true')); }
+ await phase('access and connections');
  await capture(p,`${dir}/03-all-local-paused.png`);await p.locator('.context-access.global').click();await eventually(async()=>(await read(p)).access.global.enabled);await capture(p,`${dir}/01-local-home.png`);
  await p.locator('.context-card[data-card="rules"] .context-access').click();await eventually(async()=>!(await read(p)).access.rules.enabled);assert.equal((await read(p)).access.info.enabled,true);assert.equal((await read(p)).access.now.enabled,true);assert.deepEqual((await read(p)).counts,{info:2,rules:2,now:2,inputs:0});
  await p.locator('.connections-link').click();await eventually(()=>p.locator('.context-head h1').textContent().then(x=>x==='已连接的 AI'));assert.equal(await p.locator('#memory-panel .context-access').count(),0);assert.match(await p.locator('#memory-panel').innerText(),/外部连接目前不可用/);await capture(p,`${dir}/connections-empty.png`);
  await p.waitForFunction(()=>history.state?.paiaReader?.contextCard==='connections');await p.reload();await eventually(()=>p.locator('.context-head h1').textContent().then(x=>x==='已连接的 AI'));await p.locator('.sidebar [data-view="settings"]').click();await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('.context-head h1').textContent().then(x=>x==='已连接的 AI'));await home();await p.goBack();await eventually(()=>p.locator('.context-head h1').textContent().then(x=>x==='已连接的 AI'));await p.goForward();await p.locator('.context-card').first().waitFor();
  // Long, real persisted card content exercises the existing per-page scroll
  // owner, groups, dark/narrow layouts and retained reading preferences.
+ await phase('visual and long fixtures');
  const groups={rules:['回答方式','表达偏好','工作方式'],now:['当前项目','阶段重点','最近关注']},visualSections={rules:[0,0,0,1,1,2,2],now:[0,0,1,2]};
  await p.locator('.context-card[data-card="rules"] .context-access').click();await eventually(async()=>(await read(p)).access.rules.enabled);
  for(const card of ['rules','now']){
@@ -112,27 +122,31 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
   for(let i=visualSections[card].length;i<16;i++)await rpc(p,'PAIA_CONTEXT_CARDS_CHANGE',{change:{kind:'put',card,operationId:crypto.randomUUID(),epoch,itemId:crypto.randomUUID(),expectedRevision:0,body:`SYNTHETIC ${card} ${i+1}：保留自然语言、多行内容与当前人工修改。\n第二行验证完整正文。`,section:groups[card][i%3]}});
  }
 
+ await phase('scroll and history');
  for(const card of ['rules','now']){await open(card);await eventually(()=>p.locator('.item-text').count().then(n=>n===16));await p.evaluate(()=>window.scrollTo(0,460));await eventually(()=>p.evaluate(()=>scrollY>=450),'settled Context page reaches the unchanged 460px scroll target');const at=await p.evaluate(()=>scrollY);assert.ok(at>=450);await p.goBack();await p.locator('.context-card').first().waitFor();await settled(null);assert.ok(await p.evaluate(()=>scrollY)<30,'home retains its own anchor');await p.goForward();await p.locator('.add-item').waitFor();await settled(card);await eventually(()=>p.evaluate(y=>Math.abs(scrollY-y)<3,at),'Back restores '+card+' anchor');await p.locator('.sidebar [data-view="settings"]').click();await p.locator('#ux-settings-back').click();await settled(card);await eventually(()=>p.evaluate(y=>Math.abs(scrollY-y)<3,at),'Settings returns to '+card+' anchor');await p.evaluate(()=>scrollTo(0,0));await capture(p,`${dir}/${card}-detail.png`);await home();}
  // Native attempts after accepted leave cannot modify outgoing text or Add
  // controls while the destination's actual worker snapshot is held.
  for(const fail of [false,true]){
-  await open('rules');const originalText=await field(p).innerText(),originalItems=(await read(p)).items;
+  await phase('held transition '+fail);await open('rules');const originalText=await field(p).innerText(),originalItems=(await read(p)).items;
   await p.evaluate(fail=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__ctx402Transition={held:false,restore:()=>{chrome.runtime.sendMessage=send;}};chrome.runtime.sendMessage=async message=>{const result=await send(message);if(message.type==='PAIA_CONTEXT_CARDS_SNAPSHOT'&&!__ctx402Transition.held){__ctx402Transition.held=true;return new Promise(resolve=>{__ctx402Transition.release=()=>resolve(fail?{ok:false,error:'STORAGE_FAILED'}:result);});}return result;};},fail);
   try{
-   await p.locator('.context-back').click();await eventually(()=>p.evaluate(()=>__ctx402Transition.held));assert.equal(await p.locator('.context-page').evaluate(node=>node.inert),true,'entire outgoing page is inert during admitted navigation');
+   await p.locator('.context-back').click();await eventually(()=>p.evaluate(()=>__ctx402Transition.held));await phase('snapshot held '+fail);assert.equal(await p.locator('.context-page').evaluate(node=>node.inert),true,'entire outgoing page is inert during admitted navigation');
    await field(p).click({force:true});await p.keyboard.type('LATE_TRANSITION_TEXT');await p.locator('.add-item').click({force:true});assert.equal(await field(p).innerText(),originalText);assert.equal(await p.locator('.item-text').count(),16,'late Add cannot create under a different route');
-   await p.evaluate(()=>__ctx402Transition.release());if(fail){await p.locator('.context-load-failed').waitFor();assert.equal(await p.locator('.item-text').count(),0);await p.locator('.context-load-failed').getByRole('button',{name:'重试',exact:true}).click();}
+   await phase('release snapshot '+fail);await p.evaluate(()=>__ctx402Transition.release());if(fail){await p.locator('.context-load-failed').waitFor();assert.equal(await p.locator('.item-text').count(),0);await p.locator('.context-load-failed').getByRole('button',{name:'重试',exact:true}).click();}
    await p.locator('.context-card').first().waitFor();assert.equal(await p.locator('.context-page').evaluate(node=>node.inert),false);assert.deepEqual((await read(p)).items,originalItems);
   }finally{await p.evaluate(()=>{__ctx402Transition.release?.();__ctx402Transition.restore();});}
  }
+ await phase('failed target retry');
  // A failed root-to-card read has its own target title and retry path.
  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);let fail=true;chrome.runtime.sendMessage=message=>{if(fail&&message.type==='PAIA_CONTEXT_CARDS_SNAPSHOT'){fail=false;return Promise.resolve({ok:false,error:'STORAGE_FAILED'});}return send(message);};});
  await p.locator('.context-card[data-card="now"] .card-link').click();await p.locator('.context-load-failed').waitFor();assert.equal(await p.locator('.item-text').count(),0);assert.equal(await p.locator('.context-head h1').textContent(),'我的现在');await p.locator('.context-load-failed').getByRole('button',{name:'重试',exact:true}).click();await eventually(()=>p.locator('.item-text').count().then(n=>n===16));assert.equal(await p.locator('.item-text').filter({hasText:'SYNTHETIC rules'}).count(),0);await home();
+ await phase('dark and reflow');
  await open('rules');await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'dark',fontSize:'xlarge',readingWidth:'wide'}});await eventually(()=>p.evaluate(()=>document.documentElement.dataset.paiaTheme==='dark'));await eventually(()=>field(p).evaluate(el=>getComputedStyle(el).fontSize==='21px'));await capture(p,`${dir}/rules-dark-large.png`);
  for(const width of [768,390,320]){await p.setViewportSize({width,height:900});await capture(p,`${dir}/rules-dark-${width}.png`);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
  // Emulate 200% text-only enlargement at the same narrow CSS viewport. This is
  // synthetic reflow evidence, not a claim of OS/browser zoom or physical IME.
  await p.evaluate(()=>document.documentElement.style.setProperty('--paia-prose-size','42px'));assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await capture(p,`${dir}/rules-320-text-200.png`);
+ await phase('final invariants');
  assert.deepEqual(await protectedSnapshot(p),before);assert.equal((await read(p)).capabilities.automatic,false);assert.equal((await read(p)).connections,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  await writeFile(`${dir}/evidence.json`,JSON.stringify({variant,threeCardIsolation:true,workerRecovery:true,legacyInfoRecovery:true,accessPreferencesOnly:true,connections:'unavailable',scrollAndHistory:true,sourceInputThoughtUnchanged:true,readingPreferences:true,syntheticTextScaling:true,physicalIme:'NOT_VERIFIED',externalClient:'NOT_AVAILABLE'},null,2));
 });
