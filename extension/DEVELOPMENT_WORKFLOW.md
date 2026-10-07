@@ -2,6 +2,23 @@
 
 GitHub `haohongfei2001-png/paia` `main` is the authoritative PAIA development source. The Chrome-loaded unpacked directory is a runtime copy only.
 
+## Product version and build identity
+
+Every integration into `main` is identified by its resulting full Git commit SHA. A short SHA is a display abbreviation, not another product version. Record the exact main SHA in verification and delivery receipts.
+
+The product version uses `MAJOR.MINOR.PATCH`. For each coherent integration that changes executable extension behavior, user-facing assets, runtime dependencies, permissions, or delivered runtime/package behavior, choose one appropriate increment against fresh main:
+
+- Compatible fixes and reliability improvements increment PATCH, for example `0.12.1` → `0.12.2`.
+- Compatible new capabilities increment MINOR and reset PATCH, for example `0.12.1` → `0.13.0`.
+- Breaking compatibility or migration changes require an explicit release decision; `0.x` remains initial development.
+- Pure documentation, tests or CI bookkeeping with no delivered-runtime effect retain the product version and are still identified by main SHA. Explanatory Markdown is included in some packages; incidental documentation-byte changes alone do not require a product bump.
+
+Synchronize `manifest.json`'s `version`, the numeric prefix of `version_name`, and `package.json`'s `version` in the same coherent change. Generated releases inherit the authoritative manifest. Reconcile/recalculate against latest main before integration; never decrement or reuse an already delivered numeric version or count branch commits individually. Do not create a post-merge version-bump commit/bot loop.
+
+Main SHA identifies source. A build receipt should bind source identity to the artifact digest and truthfully label dirty/non-main candidates. Chrome's manifest `version` remains numeric; display/build metadata belongs in `version_name` or a separate build-metadata field. The current Settings/update UI and release builder do **not** embed or display the source SHA. This policy adoption does not claim that display/build implementation, installation, public release or user reload has occurred, and does not authorize an automatic release pipeline.
+
+At a full-certification integration boundary, include the literal `PAIA_FULL_CERTIFICATION` in the merge commit message, as required by [the execution protocol](docs/consumer-product-v1/EXECUTION_PROTOCOL.md#75-github-ci-scheduling). Verify the resulting main run's selected depth and required job results; a successful round-integration run with skipped browser/macOS jobs is not full exact-main certification.
+
 ## Fresh development clone
 
 From `extension/`:

@@ -4,6 +4,8 @@ This is an implementation contract derived from PRODUCT_INTENT_CONTRACT.md. It m
 
 There is no mandatory standalone prototype phase. The production implementation is iterated until it satisfies this contract.
 
+Settings product/presentation follows [SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), SETTINGS-CV2-1.0, and its [corrected visual references](SETTINGS_CONSUMER_V2_REFERENCES.md). S5 below is its current interface contract; the [Settings plan](SETTINGS_CONSUMER_V2_PLAN.md) owns implementation and acceptance. Only conflicting Settings presentation is superseded; shared roles, other spaces and data/permission/recovery protections remain.
+
 Thought identity/formation follows [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md). The subsequently adopted [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, supplies the sole current Thought presentation contract; section 5 below routes to it. Implementation and acceptance are TOPIC-05.1 through 05.8 in [the Topic plan](TOPIC_ARCHITECTURE_PLAN.md), not another UI design queue. Common save/IME/accessibility and unrelated spaces retain their own contracts.
 
 The [current consumer scope](../../PRODUCT.md#current-consumer-scope) supersedes retired surfaces in older designs. Cancelled execution must refuse old commands as well as remove its entries; hidden internal safety/maintenance capabilities remain where specified. Neither change authorizes clearing old data or credentials.
@@ -37,6 +39,24 @@ Archive opens directly into primary navigation, a narrow project/conversation na
 Use one shared component language: AppShell, PrimaryNav, SourceScope, ProjectTree, ConversationRow, TopicTile, ReaderHeader, ProseBlock, TimeStamp, ScopeSearch, SelectionToolbar, OverflowMenu, InspectorPanel, InlineStatus, ProgressRow, ReviewDiff, PermissionSummary, RecoverySheet.
 
 Do not create page-specific variants of the same search/menu/toast/dialog without a product reason. Shared component names do not restore superseded Thought list/Years/candidate layouts. The approved Root's rectangular grid is allowed; its content is Topic name plus real Section overview, not metadata cards.
+
+### Shared typography and proportional scaling direction
+
+Owner decision, 2026-10-06: font enlargement should eventually scale PAIA's
+typographic roles together, preserving their relative hierarchy across surfaces.
+Context must reuse the shared typography and reading-preference owner rather
+than introduce an independent font system. Existing saved preferences remain
+authoritative.
+
+This is a product direction, not a completed capability: the current reading
+font-size preference scales prose, not all AppShell, popup and Prompt Reuse
+text. Cross-surface proportional scaling requires its own bounded implementation
+and accessibility verification. On 2026-10-07 the owner explicitly chose to retain
+PAIA's existing font size and prose width for Context detail. Existing shared
+reading preferences, including saved user choices and the standard 680px/17px
+role, therefore take precedence over the reference's 800px/16px detail metrics.
+This scoped reading-role exception changes no global defaults and waives no
+other visual or accessibility requirement.
 
 ## 3. Global state behavior
 
@@ -171,7 +191,7 @@ Index-building/partial coverage must not be presented as "no results".
 
 ### A7 — Smart Filter
 
-Settings controls light/medium/strong where supported; default light.
+Settings presents on/off over the existing light/off modes; default light. Do not expose unsupported strengths or historical-processing controls. This changes default Archive visibility, not capture or Source existence.
 
 Reader only shows an unobtrusive scope indicator when content is filtered and can temporarily show all. User restore/edit/keep creates protected intent that automatic re-filtering cannot override.
 
@@ -401,19 +421,40 @@ After abnormal exit, show recovery only when actual unfinished work exists.
 
 Allow continue/copy/save as new version/discard. Index corruption rebuilds index rather than recommending data deletion. Provider/AI failures do not block local archive access.
 
-### S5 — Settings
+### S5 — Settings — SETTINGS-CV2-1.0
 
-Groups:
-- Content & capture
-- Reading & appearance
-- Membership / AI service
-- Privacy & external use
-- Data & recovery
-- About
+The complete frozen contract is [SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), with [corrected references](SETTINGS_CONSUMER_V2_REFERENCES.md) and [implementation plan](SETTINGS_CONSUMER_V2_PLAN.md). Settings owns low-frequency global preferences and access to legitimate recovery, not daily management of other spaces.
 
-No content search. Settings that can apply immediately do so, or visibly roll back on failure.
+Desktop uses a lightweight directory plus one content area. Exactly six groups; row-based settings, no Settings search, large card grid or Advanced fallback. First desktop entry opens Input Archive. Below 1024 CSS px use directory -> group with Back to Settings; enlarged text may stack earlier. Use the existing route/leave owner and preserve return group, scroll and focus, without another persistent navigator level.
 
-Remove API/model/address/request-count/batch controls, Product Signals, retention configuration and permanent diagnostic/trace/usage-audit/integrity/rebuild entries. Actual data/index faults may reveal the relevant recovery action; a messaging timeout alone is not evidence of corruption. Successful recovery clears obsolete recovery state. Retain necessary permission, privacy, delete/overwrite-risk and real-error messages; remove repeated status and engineering terminology. Keep typography and components consistent with the adopted main design.
+| Group | Normal actionable rows | Count |
+|---|---|---:|
+| 输入档案 / Input Archive | 保存我的 AI 输入; 智能过滤 | 2 |
+| 阅读与外观 / Reading & appearance | 外观; 语言; 正文字号; 阅读宽度; 时间显示 | 5 |
+| AI 与提示词 / AI & prompts | AI 上下文; 下一句建议 | 2 |
+| 隐私与访问 / Privacy & access | 隐藏内容预览; 支持的网站 | 2 |
+| 数据与恢复 / Data & recovery | 导入历史输入; 存储空间; 从已有 PAIA 备份恢复; 已移除的内容; 原始来源记录 | 5 |
+| 关于 PAIA / About PAIA | 隐私说明; 使用条款; 帮助; 反馈 | 4 |
+
+The full target has 20 main actionable rows and one secondary action, reset floating prompt position. Four switches, five selections and eleven destination rows; capability-unavailable and fault states do not manufacture extra controls. Prompt support, local residency and actual version/update status are compact facts, not inert duplicate rows. A real safe update action appears only when applicable; legal/help/feedback destinations must be verified.
+
+Saving refers to text the user sends to supported AI services. Preserve explicit consent, pause/resume semantics and Temporary Chat exclusion. Smart Filter is on/off over light/off, affects default visibility rather than capture, and retains human edits/keep/restore protection. Historical-processing controls are not normal Settings; filtered-content discovery stays in Archive.
+
+Keep actual stored font sizes 16/17/19/21 as small/standard/large/extra large and widths 640/680/720 as compact/standard/wide. Do not reset saved values or copy prototype aliases into production. Time is standard/detailed over date_and_time/date_and_seconds; legacy date_only keeps the existing minute-visible compatibility. Remove time-emphasis UI and keep time quiet and legible. Appearance and language follow actual supported enums; reading choices do not resize Settings itself.
+
+AI & prompts -> AI Context is the only Settings AI access entrance. It consumes truthful availability/state and opens the Context-owned route. No second Privacy entry or Settings permission writes. Four-card content, Global/Card/Topic access and Connections stay in Context; Topic/Section management and AI Organize stay in Thought; Prompt editing/pinning/sorting/hiding/splitting/insertion stay on the Prompt Surface.
+
+Next-reply suggestions uses the genuine Prompt Stage 3A owner: default off, explicit enable, local temporary latest-newly-completed-reply processing, no upload or durable assistant body, fill only and never send. Capture pause and this permission are independent. Disable clears current suggestions and rejects late results. Unavailable integration cannot be shown as a working switch. Position reset calls the Prompt owner, changes only position, and preserves prompts/order/pin/hide/open/authorization state; Settings owns no duplicate Prompt preference.
+
+Hide-preview details belong in help; failure must not reveal previously hidden excerpts. Privacy contains a light local-residency fact, not a storage-control row. Data alone offers storage usage/details with accurate units and honest unknown estimates. Supported websites shows actual service names/capabilities, not raw host patterns or a connection matrix.
+
+Import is not sync. Reuse existing official-file import and existing-backup restore, retaining preview, conflicts, cancellation/resumption, deletion fences and atomic activation. No backup creation/export. Removed content is a unified discovery entry, not a universal mutation: Input, Topic, Entry and Placement recoveries keep their own scope, revisions and human intent. Never copy bodies or reopen AI access. Pending import destinations stay in import results/Archive, not removed content.
+
+No Settings version-history row, explanation, retention/pruning or generic permanent-delete-data entry remains. Content history and legitimate object-specific Source deletion remain; actual purge obeys current preflight, B-02 and final revalidation. Removing old memory/access controls cannot remove restrictive legacy state or the last reachable revoke path before safe Context ownership handoff.
+
+No membership/API/model/address/request-count/batch/cloud placeholder, Product Signals or ordinary diagnostic/trace/usage-audit/integrity/rebuild page. Actual data/index faults reveal a relevant local action; messaging timeout alone is not corruption. Successful repair clears obsolete fault state. Cancelled backend commands still refuse without side effects.
+
+Retain current AppShell, title/UI/prose roles, palette, focus, controls and light/dark behavior. Rows wrap at 320px and 200% text, coarse targets are at least 44px, focus is not hidden by sticky chrome, and keyboard/IME/dirty work remain protected. Apply after durable acknowledgement, or retain/reconcile the last confirmed value on failure. Final prototype checks are design evidence only; production acceptance follows the plan and VERIFICATION.
 
 ### S6 — Privacy / authorization / deletion
 
