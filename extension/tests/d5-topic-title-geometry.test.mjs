@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {assertTopicTitleVisible} from './harness/topic-title-geometry.mjs';
 
 const rect=(left,top,right,bottom)=>({left,top,right,bottom});
-const measured=()=>({width:1440,height:900,title:{text:'SYNTHETIC 跨章节的真实表达时间与不确定性',visible:true,scrollHeight:39,clientHeight:38,textRects:[rect(228,23,820.765625,63)],clips:[],neighbors:[{id:'search',...rect(1146,24,1396,62)},{className:'caption',...rect(228,66,800,86)}]}});
+const measured=()=>({width:1440,height:900,scrollY:0,documentHeight:900,title:{text:'SYNTHETIC 跨章节的真实表达时间与不确定性',visible:true,scrollHeight:39,clientHeight:38,textRects:[rect(228,23,820.765625,63)],clips:[],neighbors:[{id:'search',...rect(1146,24,1396,62)},{className:'caption',...rect(228,66,800,86)}]}});
 test('D5 actual fallback font text may extend beyond an unclipped CSS line box',()=>{
  const actual=measured();assert.notEqual(actual.title.scrollHeight,actual.title.clientHeight);assert.doesNotThrow(()=>assertTopicTitleVisible(actual,'real observed mixed-script geometry'));
 });
@@ -25,4 +25,11 @@ for(const kind of ['caption','search','actions'])test(`D5 refuses title glyph ov
 for(const change of ['left','right','top','bottom','hidden','unmeasured','clip-path'])test('D5 refuses incomplete title evidence: '+change,()=>{
  const actual=measured();if(change==='left')actual.title.textRects[0].left=-2;if(change==='right')actual.title.textRects[0].right=1442;if(change==='top')actual.title.textRects[0].top=-2;if(change==='bottom')actual.title.textRects[0].bottom=902;if(change==='hidden')actual.title.visible=false;if(change==='unmeasured')actual.title.textRects=[];if(change==='clip-path')actual.title.clips=[{id:'shape',x:'visible',y:'visible',clipPath:'inset(1px)',...rect(0,0,1440,900)}];
  assert.throws(()=>assertTopicTitleVisible(actual,change));
+});
+
+test('D5 enlarged multiline title may require vertical document scrolling without clipping',()=>{
+ const actual=measured();actual.width=320;actual.documentHeight=2400;actual.title.textRects=[rect(20,571,270,640),rect(20,641,258,710),rect(20,711,260,780),rect(20,781,260,850),rect(20,851,69,920)];actual.title.neighbors=[{id:'header',...rect(0,59,320,351)},{className:'caption',...rect(20,925,300,945)}];
+ assert.doesNotThrow(()=>assertTopicTitleVisible(actual,'scrollable enlarged title'));
+ actual.scrollY=600;actual.title.textRects=actual.title.textRects.map(r=>({...r,top:r.top-600,bottom:r.bottom-600}));actual.title.neighbors=actual.title.neighbors.map(r=>({...r,top:r.top-600,bottom:r.bottom-600}));assert.doesNotThrow(()=>assertTopicTitleVisible(actual,'same document after native scroll'));
+ actual.documentHeight=919;assert.throws(()=>assertTopicTitleVisible(actual,'inaccessible document tail'),/scrollable document/);
 });
