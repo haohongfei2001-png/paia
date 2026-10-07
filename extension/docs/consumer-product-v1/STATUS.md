@@ -1,5 +1,27 @@
 # Current status — PAIA Consumer Product v1
 
+## TOPIC-01 foundation — scoped COMPLETE, 2026-10-07
+
+[The foundation receipt](implementation/topic/TOPIC-01.md) and
+[effective-access repair](implementation/topic/TOPIC-01-ACCESS.md) close only
+PT-01/PT-07/PT-08 identity and durable human-intent protection. The repair was
+independently reviewed, integrated at 0.13.1 and carried into exact main
+`948ea06a57cd932c187407faf7140d9fb6714eff`, tree
+`78dbc060a3406ce301d1ca9b5f2d183d801ac619`, at 0.14.0.
+[Full 37611452025](https://github.com/haohongfei2001-png/paia/actions/runs/37611452025)
+and [Prompt 37611451822](https://github.com/haohongfei2001-png/paia/actions/runs/37611451822)
+passed. Earlier light verification and the repaired-main stale-node sampler
+failure remain recorded. Fresh main `4a3cb4e` changes Sync documentation only.
+
+**NEXT DEVELOPMENT TASK (the sole current pointer): CPV1-TOPIC-02 — close bounded
+identity retrieval, hidden candidate/lifecycle and unassigned-state handling
+against its reviewed current dependencies and exact integration evidence.**
+Do not rebuild the merged foundation or equate a candidate gate with stage closure.
+Owner-authorized independent Topic/Context/Thought/Settings/Sync engineering
+continues on coordinated branches; each retains its own dependencies and gates.
+This update certifies no later Topic stage, actual-user migration, semantic model,
+live service/client, installed build or whole product.
+
 ## Browser-Native Sync — design and canonical plan integrated, 2026-10-07
 
 [BROWSER_NATIVE_SYNC_ADOPTION.md](BROWSER_NATIVE_SYNC_ADOPTION.md), BNS-1.0, adopts the owner-directed no-PAIA-account/personal-cloud product model. [CONTRACT](BROWSER_NATIVE_SYNC_CONTRACT.md), [UX](BROWSER_NATIVE_SYNC_UX.md), [PLAN](BROWSER_NATIVE_SYNC_PLAN.md) and [REFERENCES](BROWSER_NATIVE_SYNC_REFERENCES.md) are the single normative Sync set. Settings gains only a scoped Sync destination in Data & recovery; the final available target is 21 primary rows/six Data rows, with the same six groups and secondary Prompt position reset.
@@ -9,8 +31,8 @@
 | Sync product | OWNER_DIRECTED / ADOPTED; Chrome/Drive appDataFolder, Edge/OneDrive App Folder, Safari/native CloudKit private database |
 | Sync security | Explicit provider trust; no PAIA zero-knowledge/E2EE claim; provider-only same-ecosystem recovery with intact compatible cloud data |
 | Core and adapters | One canonical entity/revision/intent Core, three transport/auth adapters; all implementation slices PLANNED |
-| First new Sync implementation | CPV1-SYNC-01 — local two-device Core/outbox/segment/checkpoint/exact-restore proof; queued, not another current writer |
-| Existing current execution pointer | CPV1-TOPIC-01 exact-main verification/canonical closure retained; no merged foundation reimplementation |
+| First new Sync implementation | CPV1-SYNC-01 — local two-device Core/outbox/segment/checkpoint/exact-restore proof; queued at adoption, with later owner-authorized Core work retaining its own checks |
+| Execution routing at Sync adoption | TOPIC-01 closure was retained at that read; the current sole pointer is above, with no merged foundation reimplementation |
 | Remote design and final pre-integration base | 948ea06a57cd932c187407faf7140d9fb6714eff; tree 78dbc060a3406ce301d1ca9b5f2d183d801ac619; 0.14.0 runtime metadata |
 | Current Context fact | CTX4-01 local manual My Information is in main; Rules/Now/Inputs/automatic/external capabilities remain false in the inspected owner |
 | Private Sync design evidence | 27 scenarios, 34 artboards; 540/540 horizontal-reflow checks, 8/8 demo interactions and viewer switching; independent prototype only |
@@ -40,7 +62,7 @@ The owner retained the reviewed Settings direction, directed the final simplific
 | Initial Settings design read | 29940a921e4797c463a5e7e8436bafe6125f9f1d, 0.12.1 |
 | Settings final integration read | 288e17fb7adaf05b63a4af72458c1d6787488e0d, manifest/package 0.13.0 |
 
-The final Settings read preserves intervening PR177 and its Topic identity/human-intent/strict restore foundation. [TOPIC-01's implementation receipt](implementation/topic/TOPIC-01.md) records MAIN_INTEGRATED / INDEPENDENT_REVIEW_CLEARED / EXACT_MAIN_FULL_CERTIFICATION_PENDING. It reports full reviewed-head certification but distinguishes the insufficient round-integration merge run from the required full exact-main evidence. This task neither reruns that certification nor declares it passed. The selected phase remains TOPIC-01 for verification and canonical closure, not rebuilding its merged code. Earlier adoption-only NOT_STARTED and PLANNED descriptions below describe those documentation tasks; they do not erase the subsequently integrated foundation or certify later slices.
+The final Settings adoption read preserved PR177 and recorded Topic01's then-pending exact-main closure. The later [foundation receipt](implementation/topic/TOPIC-01.md) and current status above now record its repaired full/main proof. The adoption itself did not run or certify those later checks. Earlier adoption-only NOT_STARTED and PLANNED descriptions below describe their documentation tasks; they neither erase later implementation nor certify other slices.
 
 Conflicting D6.2/D7 Settings presentation and older Settings IA are scoped history. Shared visual roles, existing Source/edit/recovery restrictions, CTX4, PT-1 and Prompt Reuse remain unchanged. The first complete corrected-prototype run's keyboard-focus failure and fix are retained in the reference evidence; no historical PASS is converted into new production acceptance.
 
@@ -78,9 +100,9 @@ The owner directed adoption of the settled Personal Topic architecture, not anot
 | PAIA architecture-adoption read baseline | 73f07b3dbe42fdb66f89500efa87513c2da96239 |
 | Semantic Lab architecture-adoption read baseline | 0ec6d9748cb88422d20a1e02c8d2047343f8bf96 |
 
-**NEXT DEVELOPMENT TASK (the sole current pointer): CPV1-TOPIC-01 — complete exact-main full verification and canonical closure of the already integrated Personal Topic identity and durable human-intent foundation.** Re-read the current implementation receipt and actual run evidence; do not rebuild merged code, substitute reviewed-head/round-integration evidence for exact-main full verification, or advance to later slices without closure. This documentation task starts no runtime or certification job and claims no new verification result. CPV1-SYNC-01 above is the queued first new Sync implementation, not a second current execution pointer.
+The architecture/visual/Settings adoptions originally selected TOPIC-01. Its scoped closure and the sole current pointer now appear above. CPV1-SYNC-01 remains the first Sync slice in its adopted dependency plan, not a competing next-task pointer.
 
-CPV1-TOPIC-02 through 06 are PLANNED, not parallel next tasks. The one-library identity/protection contract must precede affected automatic formation and Context Topic access integration. Product/design decisions are settled; storage, display calibration and algorithm parameters still require engineering evidence. Do not credit old foundation or classifier tests as new Topic acceptance. TOPIC-05.1-05.8 are internal deliverables of 05, not new queues.
+CPV1-TOPIC-02 through 06 were PLANNED at adoption; later authorized parallel candidates retain their own evidence and are not marked COMPLETE here. The one-library identity/protection contract must precede affected automatic formation and Context Topic access integration. Product/design decisions are settled; storage, display calibration and algorithm parameters still require engineering evidence. Do not credit old foundation or classifier tests as new Topic acceptance. TOPIC-05.1-05.8 are internal deliverables of 05, not new queues.
 
 ## AI Context Cards v2 — retained approved design and planned work
 
@@ -92,11 +114,11 @@ The approved visual package, independent Context Item ownership, new-Topic-defau
 
 ### Historical independent CTX4-01 candidate record — current merge fact above controls
 
-The owner requested CPV1-CTX4-01 implementation before this Topic adoption and subsequently approved a draft PR for hosted validation. This active local Item/My Information work is preserved under the independent-work clause above; it does not replace **CPV1-TOPIC-01** as the sole next-development pointer or include CTX4-02/03/04 or Topic implementation in this PR. Separately authorized parallel implementation tracks remain separate.
+The owner requested CPV1-CTX4-01 implementation before this Topic adoption and subsequently approved a draft PR for hosted validation. This active local Item/My Information work is preserved under the independent-work clause above; it does not replace the sole current STATUS pointer above or include CTX4-02/03/04 or Topic implementation in this PR. Separately authorized parallel implementation tracks remain separate.
 
 At the prior reconciliation, [PR #176](https://github.com/haohongfei2001-png/paia/pull/176) was recorded **IN_PROGRESS / NOT_CERTIFIED**. Initial implementation base: `73f07b3dbe42fdb66f89500efa87513c2da96239`; documentation reconciliation base: `238d9f9889d0af4aa02b8467f46986a4db5e4d03`; Archive runtime reconciliation base: `0093c81300b8dff80b0cf00c4f2cad6130840030`. That candidate record described new local independent Context Items, four-card home, My Information editing and access preferences under verification. Retired outbound/provider/export paths remain disabled. No Topic body, identity or permission owner is changed by BNS documentation.
 
-[CTX4-01 implementation/migration record](implementation/context-cards/CTX4-01.md) records exact owners, compatibility choices, negative evidence and passed source/release candidate journeys. The later Thought visual documentation at `29940a921e4797c463a5e7e8436bafe6125f9f1d` is preserved. On 2026-10-07 the owner explicitly chose the existing PAIA font size and prose width for Context, resolving only the approved-reference reading-role discrepancy; saved reading preferences remain authoritative. The current merge message records candidate certification and requires exact-main full verification before closure. BNS documentation does not newly certify that main gate, installed runtime or release.
+[CTX4-01 implementation/migration record](implementation/context-cards/CTX4-01.md) records exact owners, compatibility choices, negative evidence and passed source/release candidate journeys. The later Thought visual documentation at `29940a921e4797c463a5e7e8436bafe6125f9f1d` is preserved. On 2026-10-07 the owner explicitly chose the existing PAIA font size and prose width for Context, resolving only the approved-reference reading-role discrepancy; saved reading preferences remain authoritative. The BNS adoption retained the then-pending exact-main obligation. The current closure above records full `37611452025` and Prompt `37611451822` passing on main `948ea06a`; the bounded Context01 owner is MAIN_INTEGRATED / EXACT_MAIN_FULL_VERIFIED. This does not certify later Context stages, physical installation, a real external client or release.
 
 ## Consumer cleanup 0.12.1 and Archive — retained runtime evidence
 

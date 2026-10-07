@@ -4,7 +4,7 @@ Workstream: CPV1-TOPIC inside PAIA Consumer Product v1. Product authority: [TOPI
 
 State at adoption: product contract approved; runtime work NOT_STARTED_BY_THIS_TASK; migration NOT_EXECUTED; model/downstream evaluation NOT_RUN; production certification NOT_CLAIMED. No code, tests, schemas, provider configuration or real data are changed by adoption.
 
-Final visual integration, 2026-10-07: [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, now controls Thought presentation. [References and evidence limits](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) identify the owner-provided private artifacts. This update details TOPIC-05.1 through 05.8 in section 7; it creates no second workstream and leaves TOPIC-01 as the sole next pointer in STATUS. Visual adoption is not implementation or production visual acceptance.
+Final visual integration, 2026-10-07: [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, now controls Thought presentation. [References and evidence limits](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) identify the owner-provided private artifacts. This update details TOPIC-05.1 through 05.8 in section 7; it creates no second workstream; STATUS alone owns the current pointer, and the visual-adoption Topic01 selection is historical. Visual adoption is not implementation or production visual acceptance.
 
 ## 1. Baseline and reusable assets
 
@@ -55,7 +55,7 @@ These are dependent outcomes, not parallel product directions or a requirement f
 
 All slices remain PLANNED at this documentation integration. Implementation is not started here. The prior next Context phase remains planned rather than cancelled; it is not a competing next-task pointer. Topic identity/authority comes before affected CTX4 Topic access integration. Other nonconflicting approved product lines and their failures/blocks remain preserved under current STATUS.
 
-The display adds no new content layer: Topic identity, stable default/named Section identities, human order and Placement authority must be dependable before the consuming UI path is accepted. Stage 03 supplies actual organization, never pseudo-Sections inferred in UI. Stage 04 supplies promotion, not a requirement to wait for unrelated live services before all local reading checks. Section 7 specifies actual dependencies; STATUS still selects one next task, beginning at 01.
+The display adds no new content layer: Topic identity, stable default/named Section identities, human order and Placement authority must be dependable before the consuming UI path is accepted. Stage 03 supplies actual organization, never pseudo-Sections inferred in UI. Stage 04 supplies promotion, not a requirement to wait for unrelated live services before all local reading checks. Section 7 specifies actual dependencies; STATUS selects the current next task and records each scoped closure; the original sequence began at 01.
 
 ## 4. CPV1-TOPIC-01 — first bounded implementation contract
 

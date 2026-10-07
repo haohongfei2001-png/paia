@@ -1,9 +1,59 @@
-# CPV1-TOPIC-01 — identity and human-intent foundation candidate
+# CPV1-TOPIC-01 — identity and human-intent foundation
 
-Base: remote main `0093c81300b8dff80b0cf00c4f2cad6130840030`.
+Initial implementation base: remote main `0093c81300b8dff80b0cf00c4f2cad6130840030`.
 Scope: PT-01/PT-07/PT-08; G01/G02/G03/G08 foundation only.
-State: REOPENED_EFFECTIVE_ACCESS_INVARIANT / REPAIR_CANDIDATE / CERTIFICATION_PENDING.
-This receipt does not advance the sole STATUS queue or certify later slices.
+State: COMPLETE — scoped identity/human-intent foundation only;
+INDEPENDENT_REVIEW_CLEARED / MAIN_INTEGRATED / EXACT_MAIN_FULL_VERIFIED.
+The sole STATUS pointer advances to TOPIC-02. No later slice is certified here.
+
+## Scoped closure and exact proof — 2026-10-07
+
+The deliverable and acceptance in TOPIC_ARCHITECTURE_PLAN section 4 are closed:
+dynamic stable identity, durable human field/edge authority, bounded conservative
+compatibility mapping, strict restore/deletion fences and preserved effective
+access through the existing structural owners. The later permission defect was
+reopened and repaired before this closure; it is not erased by earlier passes.
+
+- Original reviewed 0.13.0 head `802239b099b47f477c9cb8ddd0165609dd542e63`
+  passed full `37554248921` and merged through PR177 as `492899d4`.
+  The insufficient light merge run `37557706680` remains insufficient. The
+  corrective marked main `288e17fb` subsequently passed full `37558949728`
+  and Prompt `37558949666`.
+- Effective-access repair PR184, reviewed head `caf3b70b77599c7f2c12473c1ceac6d7616df63f`,
+  tree `c6f6d5c1cee4e1b112e4a36afe84c4dd742c8700`, passed full
+  `37565860724`. Main `66fe65cae9ad7766362a0b09f2651e139b863258`
+  integrated that exact tree at 0.13.1.
+- Repair-main full `37567653820` failed only browser shard 2: release row
+  A01-1440-light hit the old `CSS.getPlatformFontsForNode` stale-node sampler
+  error, producing 9/10 instead of 10/10. Artifact `11460245920`, ZIP SHA256
+  `b58423c8520bf818647f72abd7d4352ab5c065cc08a6731574f0313f540eb389`,
+  preserves the negative; the source Archive and Reader matrices each passed
+  10/10. This failed run is not relabelled PASS.
+- The independently reviewed Context01 integration carries the corrected
+  sampler and repaired foundation. Exact main
+  `948ea06a57cd932c187407faf7140d9fb6714eff`, tree
+  `78dbc060a3406ce301d1ca9b5f2d183d801ac619`, version 0.14.0,
+  passed [full Certification 37611452025](https://github.com/haohongfei2001-png/paia/actions/runs/37611452025)
+  and [Prompt 37611451822](https://github.com/haohongfei2001-png/paia/actions/runs/37611451822).
+  All four unit shards, six current-browser shards, adapter/privacy, release,
+  both macOS jobs and final gates passed. Historical-browser audit stayed
+  separately policy-skipped.
+
+The downloaded exact-main aggregate `11479426003` was hash-verified as
+`24b1cd9ed18cb5a38073fe93dbc0b695987a801e628df365438d87de6a195568`.
+It records exact SHA `948ea06a`, fullSuite/auditPassed true and 317 current test
+files (235 unit, 73 browser, 3 adapter, 6 privacy); realGolden is UNAVAILABLE.
+Fresh closure base `4a3cb4e663d8ae745f8385c5c854d5b060e26309` adds only
+Browser-Native Sync documentation to that main and preserves its runtime.
+This receipt/pointer update changes no runtime, test, version or gate.
+
+COMPLETE applies only to the bounded foundation contract. Real user migration,
+semantic formation/model quality, the new Thought UI, live provider/client
+behavior, physical-device installation and whole-product acceptance remain
+outside this closure and are not inferred from hosted synthetic evidence.
+Separately authorized dependent engineering continues with its own exact proof.
+The following sections retain their historical candidate states and limitations;
+the closure above supersedes their then-pending certification state only.
 
 ## Effective-access repair — 2026-10-07
 
