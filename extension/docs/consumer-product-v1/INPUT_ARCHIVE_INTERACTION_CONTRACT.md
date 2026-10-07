@@ -1,175 +1,154 @@
 # Input Archive — interaction contract
 
-**IAH-1.0 / adopted 2026-10-08 / implementation planned.** Adoption and supersession: [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md). Presentation: [UX](INPUT_ARCHIVE_HOME_UX.md). Engineering: [PLAN](INPUT_ARCHIVE_HOME_PLAN.md). Source/evidence: [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md).
+> Execution update: the owner's later explicit seven-lane instruction selects
+> IAH-1.1 runtime development. It supersedes earlier documentation-only /
+> NOT_SELECTED / exclusion statements in this adoption record, not the confirmed
+> minimal design. See [current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
+> Implementation, tests, exact-main acceptance and user availability remain
+> separate claims; none is established by this authorization.
 
-MUST/MUST NOT are product requirements, not claims about current runtime. This contract changes no canonical content schema or authorization model.
 
-## IAH-01. Invariants and one state owner
+**IAH-1.1 / 2026-10-08 / selected minimal optimization adopted; runtime not started by this task.** [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) owns the selected/rejected ledger; [UX](INPUT_ARCHIVE_HOME_UX.md) owns presentation; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns bounded delivery; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) owns evidence. This revises IAH-1.0 in place without changing canonical content schema or authorization.
 
-The existing AppShell/navigation/history coordinator owns the route. Archive controllers consume that route; they must not infer product state from mounted DOM, selected-row classes, the active host tab, a recent-record field or whether Main happens to be empty.
+## IAH-01. Four logical states, one owner, no forced new page
 
-Four states are exhaustive for ordinary Archive work:
+The existing AppShell/navigation/history coordinator owns the route. DOM selection, mounted bodies, recent-record fields and the host tab are not independent state authorities. Keep all four states; logical state need not correspond to a newly designed screen.
 
-| State | Entry | Active scope/query | Selected content | Main and exit |
-|---|---|---|---|---|
-| ARCHIVE_HOME | Ordinary Archive open; primary-nav Archive; explicit return Home; safe invalid-route fallback | all; empty | no Source/Project selection; no Conversation/Input | Neutral Find Home. Search -> SEARCH_RESULTS; select scope -> BROWSE_SCOPE; explicit content target -> Reader |
-| BROWSE_SCOPE | Deliberate Source/Project/group label selection; valid scope link; narrow Browse action | all/Source/Project/typed group; empty | scope selected, never an inferred Conversation/Input | Scope heading, one scoped Find field and Conversation navigation. Search -> Results; Conversation -> Reader; Back -> recorded previous scope/Home |
-| SEARCH_RESULTS | First nonempty non-composing query from Home/Browse; explicit search-scope change; restored results session | all/Source/Project/typed group; nonempty | no Reader content selection; selected-result reference may be retained | Input-first results with coverage. Result -> Reader; clear -> neutral Home or Browse for current scope; Back -> recorded pre-search context |
-| CONVERSATION_READER | Explicit Conversation, result Input, valid content link or deliberate contextual action | active Find scope is this Conversation; separate local Reader-Find query | requested/resolved stable documentId and optional target Input | Existing continuous editable Reader. Main Back -> recorded origin; primary Archive -> Home; another explicit content selection -> Reader |
+| State | Entry | Content selection | Search and Main |
+|---|---|---|---|
+| ARCHIVE_HOME | Ordinary open or primary-nav 档案; neutral safe fallback | No selected Source/Project/Conversation/Input | Archive scope all, query empty; middle-column search/tree; blank Main |
+| BROWSE_SCOPE | A distinct explicit scope operation, a valid supported scope route, or restoration of that scoped context | No selected Conversation/Input | Archive scope recorded explicitly; empty query; existing tree and blank Main, not a Project welcome page |
+| SEARCH_RESULTS | Nonempty committed Archive query or explicit search-scope change/restored search | Selected-result reference may be remembered; no Reader body selected | Query and scope in the existing Archive field; Input-first results in Main, no extra global field there |
+| CONVERSATION_READER | Explicit Conversation, Input result, supported content route or separately qualified contextual action | Requested stable documentId and optional Input | Existing continuous Reader and local Reader Find; desktop middle-column Archive Search remains available with its own scope/query |
 
-Loading, empty, incomplete, unavailable, stale and save-blocked are subordinate states. A Reader load failure must not leave the previous Conversation body beneath a new title. A syntactically valid but unavailable target may remain as a Reader error state with its requested reference; it is not permission to select another Conversation.
+Project disclosure changes only tree expansion/extent/scroll/focus. It MUST NOT automatically change archiveState, Archive search scope/query, selected content, Main presentation or a browser-history step. An expanded Project is not a selected search scope. In particular, ordinary browsing in ARCHIVE_HOME remains possible without creating BROWSE_SCOPE.
 
-The active search scope and Reader provenance path are different. In Reader, Source/Project breadcrumbs describe current verified provenance; they must not silently change Conversation Find or overwrite the recorded result-origin scope.
+A Reader opened from an unscoped Project tree can have originKind=project-browse while its saved return route is ARCHIVE_HOME plus the exact tree snapshot. 返回项目浏览 restores that snapshot; it does not manufacture a scoped search or require a new Browse page. When an explicit scoped route actually existed, restore BROWSE_SCOPE. Origin label, tree browse context, Archive search scope and Reader provenance are separate metadata.
+
+Loading/empty/incomplete/error/stale/save-blocked are subordinate states. A failed Reader load never displays an old Conversation body beneath a new title. An unavailable target is not permission to select another Conversation.
 
 ## IAH-02. Fresh entry and preservation of work
 
-`OPEN_ARCHIVE` and `PRIMARY_ARCHIVE` target ARCHIVE_HOME with scope=all, query='', selected Source/Project/Conversation/Input=null, no selected result, no active highlight/reveal and no Reader title/time/body. No request to resolve the last-read or recent-captured Conversation is made to choose Home content. An active ChatGPT tab is irrelevant to this action.
+OPEN_ARCHIVE and PRIMARY_ARCHIVE request ARCHIVE_HOME(all, empty query, no selected Source/Project/Conversation/Input/result, no active match/reveal or old Reader title/time/body). Do not resolve last-read/recent/current-host content to populate it. Main is intentionally blank; no Home heading, search block, P1/P3 hint, recents, feed, recommendations or statistics.
 
-First pass the existing EditorSession leave/IME/save/recovery guard. On failure, remain at the current document with its text and actionable failure; do not reset the route and then lose the editor. Home reset clears active view selection, not stored Source, Working Input, history, user preferences or reading-position records.
+Pass the existing EditorSession leave/composition/save/recovery guard before committing a transition. Save failure retains the current page and text with recovery actions. Resetting view selection never deletes Source/Working text/history/preferences/saved reading positions. Within a live tab, neutral tree expansion/scroll can survive primary entry but cannot restrict search. A new view follows the existing collapsed-group convention.
 
-Within an open tab, tree expansion/scroll may remain as neutral geometry. It cannot imply a selected Project or restricted search scope. A genuinely new view session starts with the existing collapsed-group convention. Empty Home is not a loading placeholder.
+A meaningful primary navigation can record the old state for explicit browser Back. Repeating PRIMARY_ARCHIVE while already neutral is idempotent and does not flood history. Explicit Reader reload is not fresh primary entry.
 
-A primary click from another state records that state's valid return snapshot before entering Home. Clicking Home again is idempotent and must not fill browser history with duplicates. Browser Back from that Home may restore the earlier Reader because Back is an explicit return action; this does not weaken the fresh-entry rule.
+## IAH-03. Back, history and actual origin
 
-## IAH-03. Back, history and origin ownership
+**Back restores context; primary navigation opens neutral Archive.** Preserve the current Back location, styling and normal document flow. No sticky/floating return row or fixed header is required or adopted.
 
-**Back restores context; primary navigation opens Home.** Time elapsed and a vague same-session heuristic never decide between them.
-
-Record a typed origin/return reference when leaving Search/Browse/Home or entering another PAIA space. It includes the owning history-entry/session key, state, scope and identity-relative focus/viewport references. It is not an arbitrary external return URL.
-
-| Action/path | Required target |
+| Reader origin/action | Existing Back label and real target |
 |---|---|
-| Search Results -> Input -> Reader -> PAIA Back | Same results session, query, scope, deterministic order, result-window/scroll and focused result, after current eligibility revalidation |
-| Browse Project -> Conversation -> Reader -> PAIA Back | The recorded Project Browse state, tree expansion/list extent/scroll/focus; no first/latest Conversation opened |
-| Reader -> Thought/Settings -> explicit contextual Back, or native history Back | That recorded Reader with its actual anchor, local Find state and appropriate transient view state |
-| Anywhere -> primary-nav Archive | Fresh ARCHIVE_HOME, not any of the preceding contexts |
-| Direct content link/contextual entry without a PAIA origin | PAIA Back -> ARCHIVE_HOME; an explicitly supplied valid internal origin may be used instead |
-| Reload of an explicit Reader route | Restore that same target/anchor if available; never interpret reload as PRIMARY_ARCHIVE |
-| Browser Back/Forward | Traverse the actual recorded history entry, not the current primary-nav default |
+| Input activated from Archive results | 返回搜索结果 -> saved query, scope, deterministic results/window, viewport-relative result anchor and focus |
+| Conversation activated from Project tree | 返回项目浏览 -> saved tree expansion/extent/scroll/focus and its actual prior route/search state; no inferred search scope |
+| No internal origin / neutral Archive entry | 返回档案 -> neutral Archive |
+| Explicit contextual Back from another PAIA space | Recorded Reader and applicable reading/local-Find anchor; primary 档案 still goes neutral |
+| Browser Back/Forward | Actual history entries, including previous Reader siblings, not a fabricated parent path |
+| Reload of an explicit supported Reader route | Same valid target/anchor; do not choose the latest Conversation |
 
-Switching between Conversation siblings may retain their common Browse/Search parent for the Reader's labeled parent-return action. Native browser Back still traverses the actual prior Reader. The label must describe the recorded target; a generic browser-back command must not be disguised as a Project-parent action.
+Record typed originKind, return route/session key, scope, result identity and tree/reading anchors. Origin is not an arbitrary external URL. A sibling Conversation opened directly from the tree gets a tree-browse origin rather than incorrectly inheriting an unrelated search-hit origin. Native history still records the actual journey.
 
-Use an existing history entry when it exists; otherwise reconstruct/replace from its validated snapshot. Do not implement Back by repeatedly pushing new copies that create return loops. Query edits replace the current search entry; first entering Search, deliberate scope changes and explicit content selection create meaningful navigation entries, not an entry per keystroke. Modal dismissal follows the existing dialog stack before page-level Back.
+Reuse an existing valid history entry or reconstruct/replace its validated snapshot; Back must not push endless copies. Query edits replace the current search entry; meaningful content/scope transitions may create one. Disclosure and each keystroke do not. Dialog dismissal follows the existing focus/modal stack. Unavailable/evicted origins fall back to a valid recorded scope or neutral Archive with an honest local notice, not a claim of exact recovery.
 
-If an origin was evicted, corrupted or is no longer eligible, disclose the loss locally and fall back to its valid neutral scope or Home. Do not claim exact restoration when it was impossible. Deleted targets never resurrect from a cached result.
+Changing labels without restoring actual query/scope/position is not implementation completion. Deep-return convenience may be evaluated later but is not authority to reintroduce sticky UI.
 
-## IAH-04. Route representation and state lifetime
+## IAH-04. Route representation and lifetime
 
-The physical application remains `ui/archive.html`, using the one AppShell route/history owner. The future versioned Archive route discriminant is independent of content/database schema. Existing legacy `view='library'` is the Input Archive space; legacy `view='archive'` is Source Records and must not be accidentally reinterpreted as a new user space.
+Retain ui/archive.html and the existing route/history owner. Legacy view=library means Input Archive; view=archive means Source Records compatibility, not a new interpretation of original data. Use compatible versioned metadata for archiveState, explicit archiveSearchScope/query session, stable document/Input refs, sort/anchor, originKey, resultSessionKey and separate tree browse context/Reader provenance.
 
-Logical route fields:
+The old proposed #archive/... fragment spelling is a historical implementation proposal, not a mandatory URL migration for this minimal scope. Existing same-URL history and internal exact-Input handoffs may satisfy the approved behavior. Support valid existing explicit routes; introducing a new public/deep-link or host-context entry is separately scheduled work, not needed to make a search hit work.
 
-- `archiveState`: one of the four states;
-- `scope`: typed all, source(providerKey), project(providerKey, namespace, projectId), group(providerKey, groupKind), or conversation(documentId) for Reader Find;
-- `documentId`, optional `inputId`, revision-qualified anchor, and Reader sort;
-- `originKey`, `searchSessionKey`, navigation-entry identity;
-- separate active Reader provenance path and selected Browse scope; no title-based identity.
+Source reconciliation: the initial 99bb95e worker accepted exact entry URLs. Current main daf1807 also admits strictly validated Topic/Section fragments through topicRootTarget, and the shared Reader coordinator preserves Topic-root slots. Preserve that support and its strict extension identity/origin/path/query/fragment checks; do not revert to the older exact-entry-only behavior or infer that arbitrary Archive fragments are admitted. Any later authorized Archive fragment extension must be qualified with the current sender/route owner. No query, snippet, title, body, secret, permission or arbitrary return URL enters a URL. IDs are validated source-owned references, not parsed titles.
 
-Readable URL contract for future direct links: a validated fragment on the same application entry, with shapes `#archive/home`, `#archive/browse/<opaque-or-encoded-scope-ref>`, `#archive/results/<opaque-tab-session-key>`, `#archive/read/<encoded-document-ref>` and an optional encoded Input reference within the fragment. These are planned route representations, not existing supported links. Never put query text, snippets, user titles, bodies, credentials, arbitrary external URLs or permissions in a URL. Titles are resolved from the current source owner, never parsed as IDs. A result-session link is local context, not a sharing product.
-
-URL parsing and worker sender admission must be qualified together: current service-worker `isExtensionPage` accepts exact entry URLs. Do not merely add a fragment and accidentally break all requests, and do not fix it by admitting arbitrary extension/host origins or paths. Implement one strict canonical entry/fragment validator or a proven safe normalization path, with negative caller tests. The actual representation must preserve the above behavior and disclosure limits.
-
-| State data | Lifetime and persistence |
+| State data | Owner/lifetime |
 |---|---|
-| Source/Working Input/versions, manual intent and existing reading preferences | Existing canonical owners; unchanged by navigation |
-| Safe route refs, current state, sort, bounded anchor and opaque session keys | Existing versioned browser-history projection; validate on reload, direct entry and Back |
-| Private query, result-window IDs/revisions/order/cursors/coverage, result focus/anchor, origin snapshots, loaded tree extent | Bounded tab-scoped ViewSessions, with a reload-surviving trusted extension-session checkpoint for this metadata; not a new permanent database/body store |
-| Resolved bodies and result excerpts | Read from current canonical owners; not saved into route/history/checkpoint snapshots |
-| Temporary Smart Filter reveal | Reader/navigation-local ID allowlist; revalidate on restore, discard on fresh Home or normal route exit; never a durable Keep |
-| Global last-used product space or an old Reader anchor | Not an authority to override PRIMARY_ARCHIVE |
+| Canonical Source/Working text, revisions, human intent, reading preferences | Existing domain owners, untouched by navigation |
+| Validated route refs, discriminant, sort, bounded reading anchor, opaque session key | Existing browser-history projection |
+| Private queries, result IDs/revisions/order/cursors/coverage/focus, origin and tree extent | Bounded tab-local ViewSessions/DocumentSearchSessions; qualified trusted extension-session checkpoint only where needed for claimed reload restoration |
+| Bodies/snippets | Re-read current domain data; never route/history/checkpoint truth |
+| Temporary filter reveal | Narrow Input-ID/route-local set; expires on fresh Archive/unrelated exit; revalidated on explicit return |
 
-Reuse existing bounded ViewSessions/DocumentSearchSessions and the trusted extension-session boundary. Checkpoints must be keyed to the actual tab/view session, not a single global last-query record; a new ordinary Archive tab cannot inherit them. Preserve existing field limits and validate aggregate bounds, eviction and cleanup in implementation. If checkpoint storage is unavailable, retain safe live-tab memory, disclose degraded reload restoration, and do not fall back to cloud/host-site storage or unbounded local persistence. Full restoration claims require the checkpoint tests.
+No global last-query store, body cache in history, new permanent content database, host-site storage or cloud checkpoint. Preserve current limits; test aggregate bounds, cross-tab isolation, eviction and cleanup. With checkpoint unavailability retain safe live-tab operation and disclose degraded reload restoration. Missing private query state never claims exact restored search. Sync, backup, AI context, telemetry and logs do not transport active query/result/reveal state. Back revalidates current data rather than replaying stale snippets.
 
-Back restores metadata and re-queries the same real data generation/window where still valid; it never treats old snippets as current truth. Revisions/deletions may require recomputation. Preserve the surviving target's viewport-relative position rather than relying only on stale pixel scrollTop. Navigation/query/reveal/checkpoint state is excluded from Browser-Native Sync, backups, AI context, logs and analytics.
+## IAH-05. Two distinct search scopes in existing locations
 
-## IAH-05. One visible search and explicit scope
+**Desktop Archive Search stays at the middle-column top. Reader Find stays in the Reader.** Preserve current size, style, slots and shared component. Do not enforce an exact-one-field rule across two different scopes and do not add a duplicate global search to Main.
 
-A single active ScopeSearch presentation is mounted in Main. Home uses its primary large form; Results/Browse use the compact scoped header; Reader uses the Conversation header. Never show a duplicate navigator content-search input, including hidden-but-focusable duplicates. Distinct query services may remain behind this one component; there is no need to conflate their data responsibilities.
-
-| Surface | Visible field | Accessible scope |
+| Context | Archive Search | Reader Find |
 |---|---|---|
-| Home | 搜索我以前说过的内容 | 全部档案 |
-| Source Browse/Results | 在 ChatGPT 中搜索, with actual provider label | Source ID |
-| Project Browse/Results | 在 <当前项目名称> 中搜索 | Provider-qualified Project ID |
-| Reader | 在此对话中查找 | Current documentId only |
+| Neutral Archive | 搜索全部档案 in middle column | Absent |
+| Explicit Source/Project scope | Existing Archive field with visible truthful current-scope wording | Absent |
+| Archive results | Same field/query/scope in middle column; results in Main | Absent |
+| Reader on desktop | Same Archive field and independently retained Archive scope/query | 在此对话中查找 in existing Reader position; current documentId only |
+| Narrow/overlay | One logical Archive field in the existing usable navigation/result surface; no off-screen focusable clone | Current-Conversation field while reading; no squeezed desktop columns |
 
-Scope uses a heading plus a lightweight label/choice, not an advanced filter console. `全部档案` means unrestricted local eligible Archive scope, not a recent-Input feed. No selected Source is equivalent to default all, not unknown-source membership.
+Use real accessible labels as well as visible scope wording. Where query text replaces the placeholder, preserve the actual scope through existing supported scope presentation/conditional clear control; do not display 搜索全部档案 while silently restricting the query. No new permanently visible scope selector/chip/header row is approved by this correction.
 
-Two actions are deliberately different. Clicking a Source/Project **Browse label** requests BROWSE_SCOPE, parks any previous Search session for Back, and has no active query or selected Conversation. Changing the **search scope label** while searching preserves the query and stays SEARCH_RESULTS. This provides query broadening/narrowing without making a Project click secretly select content. Choosing all within Search keeps the query; primary-nav Archive clears it.
+Archive query/scope does not inherit the currently expanded Project or selected Reader. Only a distinct explicit scope operation changes it. Reuse the existing Source overflow selector and actual supported Project-search/clear facilities; a callback or DOM slot without a reachable action is not proof of a shipped Project-scope entry. If a new permanent control is necessary, record that precise unapproved follow-up; do not repurpose Project disclosure.
 
-Reader Find is a local substate of CONVERSATION_READER. Its result stepping stays within that Conversation and does not replace the recorded Archive Search origin. Opening Reader from an Archive hit carries a temporary match anchor/highlight but does not silently copy the global query into the editable Reader-Find field. An explicit `搜索全部档案` action may transfer an actively entered Reader-Find query to SEARCH_RESULTS after the save guard; passive scope changes may not do so.
+Changing an explicit search scope preserves the query and stays in SEARCH_RESULTS when nonempty. Clearing returns neutral Archive when scope=all or BROWSE_SCOPE for an explicit narrower scope, with blank Main. Primary 档案 resets both. Scope change must be enforced across the full trusted query, never just mounted results.
 
-Typing a nonempty committed query initiates local search with debounce/cancellation. IME composition must not dispatch a partial committed query. First nonempty query enters Results; clearing returns the neutral current-scope Find state. Empty query never triggers a full-Input listing or model request. Enter never auto-opens an unselected first hit; keyboard focus/selection and activation must be explicit.
+Opening Reader from Archive results retains the Archive query for return but does not copy it into Reader Find. Reader Find and its stepping/close use the local session and pre-Find anchor without overwriting the Archive origin. Focusing either field alone does not navigate. Entering a new nonempty committed Archive query while reading is an explicit Archive Find intent: pass the save/IME guard, preserve the Reader return snapshot, then show Archive results. Failed navigation retains text/query safely.
 
-## IAH-06. Search truth, results and coverage
+Debounce and cancel stale local requests; IME composition never dispatches a partial committed query or loses caret on re-render. Enter does not auto-open an unselected first result. Keyboard search shortcuts respect field, editor and dialog ownership, including the newer shared selector support for Topic links. No search action calls a remote model or requires an AI tier.
 
-Search the actual eligible current Working Input text (original source text only where it is still the working projection), including all text beyond mounted DOM and ordinary visual collapses. Do not silently search old edited-away revisions as if they were current Inputs. Source originals and versions remain available through their separate existing actions. AI replies, generated summaries, private drafts and future semantic paraphrase search are outside v1 Find.
+## IAH-06. Input-first search truth and coverage
 
-Input text/excerpt is the primary result; real send time, Source and Project/Conversation path are subordinate. A title-only match remains an actual Input result with honest title-match context, not a fabricated body match. Deduplicate by stable Input identity, not wording or Conversation title. Repeated identical Inputs in different positions remain distinct attributable records.
+Use actual eligible current Working Input text; immutable Source text supplies only the still-current unedited working projection. Do not present old edited-away wording as current Input. Source originals/versions remain separately available. No assistant replies, generated summaries, private drafts or invented paraphrases in Find.
 
-V1 keeps the current deterministic lexical query/rank owner as the baseline; this adoption does not silently replace it with a new scoring algorithm. Input-first **presentation** is mandatory. Evaluation must check that real body matches are practically reachable despite title matches; any necessary local ranking correction is bounded within HOME-02, versioned and tested across complete pagination, not bolted into one UI page. Do not claim body-first ranking from the existing title-first helper or semantic recall from normalization.
+Exact Input text/excerpt is primary. Real send time and Source/Project/Conversation path are subordinate. Preserve meaningful negation, qualifiers and conditions in an excerpt; show truncation honestly and make the full Input reachable. Unknown send time remains unknown, never replaced by capture/import/edit time. Title-only matches use honest title-match context, not fabricated body emphasis. Deduplicate by stable Input ID, not wording/title.
 
-Results have a deterministic total order and a generation-aware continuation. Store selected result and viewport-relative anchor. Revalidate eligibility before render and activation. A partial page count is not a global total. Empty intermediate pages with continuation mean progress; building/unavailable/incomplete coverage is not `没有找到`. No-result is valid only after the requested scope reaches a trustworthy end. Long lists must remain reachable with bounded continuation, not a hidden total limit.
+Keep the existing deterministic lexical ranking owner. Input-first presentation does not claim body-first ranking or semantic search. Any measured rank defect gets a bounded, versioned correction in that owner with complete-pagination evidence, not a new UI ranking algorithm.
 
-All/Source/Project/group scope must be applied in the trusted query owner, not by filtering only the currently mounted results. Preserve provider+namespace+Project identity and revalidate moves/renames. Missing Project evidence cannot silently broaden a scoped query to all or certify an empty Project. No search query, rerank, summary, answer, refresh, background prefetch or navigation calls Qwen or any remote model. No AI quota or entitlement gate may block ordinary local Find.
+Require generation-aware bounded continuation and deterministic total order. Partial counts are not global totals. Empty intermediate pages with continuation are not no-result. Building/incomplete/unavailable scope is not 没有找到. Results beyond current DOM/collapsed prose remain searchable to a trustworthy end. Revalidate provider-qualified Project refs, moves/renames, visibility and current working revisions before render/activation. Missing scope evidence cannot silently broaden a query.
+
+Basic search/open/clear/sort/scroll/highlight causes zero remote model calls, no AI maintenance event, no summaries, generative reranking or paid retries. This is not a new semantic-retrieval or embedding dependency.
 
 ## IAH-07. Search result to exact Input
 
-A result hands off stable documentId/Input ID, known revision, match information using original-text-safe offsets, current scope/generation and an origin session key. The trusted owner re-resolves identity and eligibility at activation. Load the bounded Reader window around that Input, expand its visual collapse as needed, then scroll to the actual occurrence after layout. Never open the Conversation top and call the task complete.
+Carry stable document/Input IDs, known revision, current query/scope generation, original-text-safe match data and origin session key. Re-resolve current eligibility on activation; load the bounded Reader window around the target, expand its visual collapse as needed and scroll to the real occurrence after layout. Merely opening the Conversation top is insufficient. Reuse the existing handoff/highlight/windowing helpers; prove missing behavior before replacing them.
 
-Offsets from normalized text cannot be used blindly against original UTF-16 text. Reuse grapheme/Unicode-safe helpers or an explicit normalization-to-original map. Temporary highlight uses a non-editing presentation layer; it must not mutate contenteditable text, create a revision, mark dirty, generate Keep or interrupt IME. It clears when dismissed/left or superseded, not through a new durable body field.
+Normalized offsets cannot be applied blindly to original Unicode/UTF-16. Use safe mapping or recompute against current text. Highlight is a lightweight temporary text/range presentation, not inserted editable markup, a body revision, a permanent card, required margin stripe or a Keep/protect write. Preserve IME, selection and applicable reading anchors. Ordinary surrounding eligible user Inputs stay available continuously; missing AI replies/time are never fabricated.
 
-Preserve surrounding real user Inputs for context and enable continuous navigation to the true end. Do not invent missing assistant replies or infer an original timestamp from capture/import time.
-
-| Change since search | Required response |
+| Target changed since search | Required handling |
 |---|---|
-| Working Input changed but still matches | Re-read current revision, recalculate match/offset; show a quiet changed-position notice when relevant |
-| Same Input survives but old phrase no longer matches | Open the current Input anchor; say the matching text changed; do not replay old text/highlight as current |
-| Conversation/Project renamed or moved | Stable Input/document identity wins; current provenance displayed; origin Search scope stays recorded and is revalidated on Back |
-| Smart Filter hid the target | Temporary narrowly scoped reveal; no Keep/protect/restore write merely from viewing |
-| External source unavailable or confirmed deleted, local content still lawfully present | Read local material; qualify/disable external action as appropriate; never equate external deletion with PAIA purge |
-| Input explicitly removed from Archive | Do not undo removal or include it through a view exception. Explain unavailability; use the existing explicit recovery destination only when legal |
-| Input/Source tombstoned or permanently purged | Never recover bytes/snippets from route/cache/history, or show a neighbor as if it were the hit. Purge-derived cleanup and B-02 remain controlling |
-| Document no longer available, index inconsistent or scope cannot be established | Local unavailable state plus recorded Back; no guessed Conversation or global-scope fallback |
+| Working text changed, still matches | Read current version and recompute offset; local changed-position notice only when useful |
+| Input survives, old phrase no longer matches | Open current Input anchor and explain match changed; no old phrase replay/highlight |
+| Conversation/Project renamed or moved | Stable identity wins; display current provenance and revalidate recorded origin scope on Back |
+| Smart Filter hid the eligible target | Narrow temporary reveal only |
+| Source externally unavailable/deleted, local data lawful | Keep local reading; qualify the separate external action |
+| Explicitly removed Input | No reveal bypass; explain unavailable, separate lawful recovery only by deliberate action |
+| Purged/tombstoned Input/Source | Never resurrect bytes/snippets from sessions/caches/history or substitute a neighbor as the hit |
+| Target/scope/index cannot be resolved | Honest affected-state error and recorded Back; no guessed/global target |
 
-## IAH-08. Smart Filter view exception
+## IAH-08. Temporary filter reveal is not human intent
 
-Ordinary all/Source/Project/Conversation Find includes smart-filtered Inputs that otherwise remain eligible. Their quiet result marker can say `平时已收起`. Existing user exclusions/removals, purges and access restrictions are NOT this category.
+Ordinary Archive and Conversation Find include smart-filtered Inputs that otherwise remain eligible. Explicit removals, purge fences and access restrictions remain stronger. A quiet existing result/state role can qualify hidden content; no new persistent management surface is approved.
 
-Activation may temporarily reveal the matched Input and bounded necessary, otherwise eligible adjacent context. Use an Input-ID/route-local view exception, not a global filter setting and not the existing durable FILTER_KEEP/FILTER_PROTECT path. A genuinely deliberate edit/Keep retains its existing separate human-intent semantics; highlight/focus/scroll are not edits.
+Reveal only the matched Input and bounded necessary otherwise-eligible context in the current navigation session. Never use FILTER_KEEP/FILTER_PROTECT, automatic restore, a global filter-mode toggle or durable show-all to implement viewing. Deliberate editing/Keep retains its separate human-intent semantics. Highlight/focus/scroll are not edits.
 
-Back restores a valid search-origin reveal only within that explicit navigation context. Fresh Archive and unrelated Reader selection discard it. A hidden target becoming removed/purged defeats the exception immediately. Search, temporary reveal and closing search produce no canonical content/filter-policy writes.
+Fresh Archive and unrelated Reader navigation discard the exception. Explicit Back can restore only a still-valid origin-bound exception. New removal/purge defeats it immediately. No query, reveal or search-close operation writes canonical content/filter policy.
 
-## IAH-09. Browse semantics and consumer language
+## IAH-09. Familiar tree behavior and scope safety
 
-Source/Project labels are explicit scope actions. A separate disclosure affordance controls children only. Project label activation enters BROWSE_SCOPE and ensures its children can be inspected; no first/latest Conversation is selected. Pure expand/collapse does not change route scope or the currently read Conversation. Keep these controls separately accessible without nested interactive elements.
+Project row remains one native disclosure control: name and arrow perform the same expand/collapse action. No split targets, new selection styling, renamed folder model or Main Browse dashboard. Expansion while reading preserves that Reader; expansion during search preserves query/scope/results. It may checkpoint local expansion with replace semantics, not add a navigation step.
 
-Conversation label activation is explicit content selection. Stable identity, not the title, chooses Reader. Duplicate-title disambiguation is secondary, stable and does not rename either Conversation. A title or membership change does not create a duplicate.
+Conversation activation alone chooses its stable content identity and records the exact browse/search origin. Preserve duplicate-title disambiguation, long-name wrapping, source ordering qualification, paged provider/group/Conversation coverage and current Source label weight. A title/membership change never creates a duplicate Conversation.
 
-| Actual source state | Ordinary copy | Meaning |
-|---|---|---|
-| confirmed unassigned | 未归入项目 | Reliable evidence says no Project |
-| unknown membership with no reliable attribution | 项目待确认 | PAIA cannot currently establish the Project; no user resolution task or deadline is implied |
-| temporary new evidence loss with a prior reliable relationship | Keep last reliable placement; expose qualification on demand | Do not fabricate an unassigned move |
-| confirmed source deletion | 来源已删除, only in relevant context | Existing PAIA material is retained under its own rules |
-| detached working document | 独立整理 | Not a claim about provider Project membership |
+Unknown membership, confirmed unassigned, last-known relationship, detached work and confirmed source deletion remain distinct. Keep current consumer copy in this selected scope; neither B M6 nor the earlier compulsory 项目待确认 wording is approved here. Temporary evidence loss does not invent a move. External deletion preserves lawful PAIA content. A known-empty group can use existing empty copy only with complete coverage; failure is not emptiness and does not block unrelated readable material.
 
-Do not merge unknown/unassigned into `其他对话`, synthesize catch-all Projects or use source errors to demand a management workflow. Detail copy for unknown: `暂时无法确认这些对话所属的项目，已保存内容不受影响。` These states remain separately typed in routes and queries. Typed groups are source-view partitions, not Personal Topics or a new Project entity.
+## IAH-10. Internal return versus original site
 
-Empty known Project: show `此项目中还没有已保存的对话` only with complete applicable coverage. Partial/unavailable source metadata gets a local qualified state instead. Source and group loading failures do not erase a readable local Reader or fabricate account-wide coverage.
+Back uses the exact labels/targets in IAH-03, within PAIA and in normal flow. A verified 在 ChatGPT 中打开 or equivalent original-site action is separate and secondary, preferably reusing the existing contextual/overflow location; no permanent toolbar expansion is required. Resolve qualified source-owned origin/path/identity, use existing no-opener protections, and never infer URLs from a title or untrusted return parameter. No automatic external prefetch. An unavailable source link does not block local reading.
 
-## IAH-10. Original site versus PAIA navigation
+Retain safety for valid explicit direct/contextual entries wherever supported. A separately authorized 在 PAIA 中查看此对话 action can resolve a verified already-saved Conversation; missing local data does not enable consent, capture/import history or choose another Conversation. Generic 打开 PAIA remains neutral. Creating a new host-site action or URL protocol is not part of this minimal visual approval.
 
-Primary Reader Back is origin-aware: `返回搜索结果`, the actual Project name/return Browse label, or `返回档案首页` for unparented direct entry. It stays inside PAIA.
+## IAH-11. Responsive, focus and unchanged reading
 
-`在 ChatGPT 中打开` is a separate secondary action for a provider-qualified original Conversation URL. Resolve the URL from trusted source/provider ownership, validate the current supported origin/path/identity, and open only on user activation. Do not construct unsupported URLs from a displayed title, arbitrary pasted URL or untrusted return parameter. Use the existing safe external-open/no-opener policy; it cannot replace Main or consume the internal Back state. An unavailable link does not block local reading. No automatic external request/prefetch is needed.
+Keep the existing PAIA responsive shell and source tree/overlay owners, light/dark semantic tokens and saved reading preferences. Wide stays primary rail | Archive navigator | Main; narrow uses the existing usable single-pane/overlay approach, not three thin columns or a new branded welcome stage. A narrow logical neutral Archive can show search/tree directly; it need not first display a blank standalone Home pane.
 
-A deliberate contextual action `在 PAIA 中查看此对话` carries verified current provider/Conversation identity through the trusted extension boundary and looks up the already-saved local Conversation. It may enter Reader directly. If no local Conversation is available, show an honest not-saved/unavailable state; do not silently capture history, turn on consent, import, create a Conversation or choose another one. Only the separately qualified provider action is enabled. Ordinary popup `打开 PAIA` continues to Home regardless of host context.
+Opening/closing the existing navigation overlay preserves underlying route/focus. Moving a logical control for necessary narrow reflow must not duplicate its scope owner or introduce hidden focusable copies. Resizing does not discard queries, change selected content or trigger model work. No automatic software keyboard, unsolicited focus stealing or new sticky Back row. Back restores the initiating result/row when available; precise arrival does not force an editable caret.
 
-## IAH-11. Responsive, focus and continuity
-
-Wide: Primary Nav | Browse/Scope | Main. Medium: retain usable reading width with compact primary navigation and a narrower or overlay Browse surface; no forced three-column minimum. Narrow: one content pane and push navigation Home -> Browse/Search -> Reader. Opening/closing an overlay preserves the underlying route; selecting a scope/content uses the same explicit actions. Return restores scope/list/query position instead of a new empty list.
-
-Desktop fresh explicit Find entry can focus the primary search after the leave guard. Narrow/coarse entry focuses the Home heading/container without opening a software keyboard; tapping search activates it. Never steal focus on refresh, back restoration or source updates. Result activation positions a non-editing reading target, not an involuntary caret edit. Back restores the initiating result/row when available. Keyboard shortcuts respect IME, text editing and dialog ownership.
-
-Use current PAIA light/dark/selection/focus/metadata/typography roles and saved reading preferences. No independent Archive theme, model styling or per-Input card chrome. Live additions never yank the reader or reflow active composition; applicable existing save/conflict/recovery/undo and continuous-reader invariants remain mandatory.
+Keep title/time/prose width/size/Input spacing, continuous loading, direct editing, recovery/conflict/undo and current sort positions unchanged. Respect reduced motion, text enlargement, keyboard/coarse targets and current accessibility guards. New captures do not yank reading or rebuild active IME. No prototype test or design approval certifies production behavior; PLAN governs actual affected evidence.
