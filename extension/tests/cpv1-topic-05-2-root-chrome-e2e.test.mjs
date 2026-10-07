@@ -54,6 +54,25 @@ async function multipleHitSearch(p,topic){
  await p.locator('#thought-search').fill('');await rootReady(p,144);assert.equal(await tile.locator('.personal-root-search-extra').count(),0);assert.deepEqual(await footprint(),before);for(const entry of entries)assert.deepEqual(await rpc(p,'GET_LIBRARY_ENTRY',{id:entry.id}),entry,'search navigation cannot rewrite body, provenance or revision');
  return {matchedTopics:1,hits:5,entryTargets:2,sectionTargets:2,keyboard:true,backIdentity:true,mask:true,slotStable:true};
 }
+async function deepRootHistory(p){
+ const tile=p.locator('.personal-topic-block[data-root-slot="100"]'),title=tile.locator('.personal-topic-link');
+ await tile.evaluate(node=>scrollBy(0,node.getBoundingClientRect().top-240));
+ await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await title.evaluate(node=>node.focus({preventScroll:true}));
+ const before=await tile.evaluate(node=>({id:node.dataset.topicId,slot:node.dataset.rootSlot,top:node.getBoundingClientRect().top,scroll:scrollY}));
+ assert.ok(before.scroll>3000,'history starts deep in the real 144-Topic extent');
+ assert.ok(before.top>=120&&before.top<500,'the selected identity has a visible viewport-relative anchor');
+ const topicReady=()=>p.waitForFunction(id=>history.state?.paiaReader?.topicId===id&&document.querySelector('.workspace')?.dataset.state==='ready'&&!document.querySelector('.workspace').inert,before.id);
+ const rootReturned=async()=>{
+  await eventually(async()=>await p.evaluate(()=>history.state?.paiaReader?.view==='thoughts'&&!history.state?.paiaReader?.topicId&&!document.querySelector('.workspace').inert)&&await tile.isVisible()&&await title.evaluate(node=>document.activeElement===node),'Back restores the deep Topic identity and native link focus');
+  await eventually(()=>tile.evaluate((node,top)=>Math.abs(node.getBoundingClientRect().top-top)<=2,before.top),'Back restores the same Topic viewport-relative position');
+  const after=await tile.evaluate(node=>({id:node.dataset.topicId,slot:node.dataset.rootSlot,top:node.getBoundingClientRect().top}));
+  assert.equal(after.id,before.id);assert.equal(after.slot,before.slot);assert.ok(Math.abs(after.top-before.top)<=2,'identity-relative Back never substitutes the top of Root or a stale document offset');
+ };
+ await p.keyboard.press('Enter');await topicReady();await p.goBack();await rootReturned();
+ await p.goForward();await topicReady();await p.goBack();await rootReturned();
+ return {topicId:before.id,slot:before.slot,viewportTop:before.top,back:true,forward:true,secondBack:true};
+}
 async function traceSelection(target){
  await target.evaluate(node=>{
   globalThis.__rootSelectionTrace=[];globalThis.__rootSelectionTraceAbort?.abort();const controller=new AbortController();globalThis.__rootSelectionTraceAbort=controller;
@@ -104,10 +123,15 @@ for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders r
   await rpc(p,'EDIT_LIBRARY_TOPIC',{edit:{id:target.id,expectedRevision:current.revision,changes:{name:'SYNTHETIC renamed 中文'},operationId:crypto.randomUUID()}});await eventually(()=>p.locator(`.personal-topic-block[data-topic-id="${target.id}"] h2`).textContent().then(x=>x==='SYNTHETIC renamed 中文'));await rootReady(p,144);
   const renamed=await boxes();for(const id of Object.keys(before))assert.deepEqual(renamed[id],before[id],'rename preserves every address and footprint');
   const live=await rpc(p,'GET_LIBRARY_TOPIC',{id:target.id});await rpc(p,'REMOVE_LIBRARY_TOPIC',{edit:{id:target.id,expectedRevision:live.revision,operationId:crypto.randomUUID()}});await rootReady(p,143);const removed=await boxes();assert.equal(removed[target.id],undefined);for(const id of Object.keys(removed))assert.deepEqual(removed[id],before[id],'remove leaves a blank address');
+  const removedOwner=(await rpc(p,'GET_LIBRARY_REMOVED_TOPICS')).items.find(row=>row.id===target.id);assert.ok(removedOwner,'the same removed Topic is recoverable through its existing owner');
+  await rpc(p,'RESTORE_LIBRARY_TOPIC',{edit:{id:target.id,expectedRevision:removedOwner.revision,operationId:crypto.randomUUID()}});await rootReady(p,144);
+  const restored=await boxes();assert.deepEqual(restored,before,'restoring the same identity recovers its vacant address without moving any peer');assert.equal((await rpc(p,'GET_LIBRARY_TOPIC',{id:target.id})).name,'SYNTHETIC renamed 中文','restore preserves the human rename');
+  const restoredOwner=await rpc(p,'GET_LIBRARY_TOPIC',{id:target.id});await rpc(p,'REMOVE_LIBRARY_TOPIC',{edit:{id:target.id,expectedRevision:restoredOwner.revision,operationId:crypto.randomUUID()}});await rootReady(p,143);
   const added=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC new identity in hole',operationId:crypto.randomUUID()}});await rootReady(p,144);assert.equal((await boxes())[added.id].slot,before[target.id].slot);
   const wide=await boxes();for(const width of [1024,768,390,320,1440]){await p.setViewportSize({width,height:1000});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2);const actual=await p.locator('#thought-list').evaluate(node=>({columns:getComputedStyle(node).gridTemplateColumns.split(' ').length,width:node.clientWidth}));assert.equal(actual.columns,Math.max(1,Math.min(4,Math.floor((actual.width+16)/240))));await p.screenshot({path:`${output}/144-${width}.png`,fullPage:width===1440});}assert.deepEqual(await boxes(),wide,'return to viewport restores addresses');
+  const deepHistory=await deepRootHistory(p);
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__rootRestore=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=(message,...args)=>message.type==='GET_LIBRARY_ROOT_PROJECTION'?Promise.resolve({ok:false,error:'MESSAGE_CHANNEL_INTERRUPTED'}):send(message,...args);});await thoughtPrimary(p,'thoughts');await eventually(()=>p.locator('#library-read-retry').isVisible(),'outage exposes retry');assert.equal(await p.locator('.personal-topic-block').count(),144,'ordinary read failure retains current blocks');await p.evaluate(()=>__rootRestore());await p.locator('#library-read-retry').click();await rootReady(p,144);
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
-  await writeFile(output+'/result.json',JSON.stringify({status:'PASS',head:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,actualCounts:[30,50,100,144],renameStable:true,deleteBlank:true,newIdentityReusesHole:true,responsiveReturn:true,multipleMatches,activeSearchSameColumnResize:true,nativeSection:true,newTabRefresh:true,backFocus:true,selection:true,sameColumnResize:true,outageRetry:true}));
+  await writeFile(output+'/result.json',JSON.stringify({status:'PASS',head:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,actualCounts:[30,50,100,144],renameStable:true,deleteBlank:true,newIdentityReusesHole:true,responsiveReturn:true,deleteRestore:true,deepHistory,multipleMatches,activeSearchSameColumnResize:true,nativeSection:true,newTabRefresh:true,backFocus:true,selection:true,sameColumnResize:true,outageRetry:true}));
  }catch(error){await writeFile(output+'/failure.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,error:String(error),stack:error.stack,state:await p.evaluate(()=>({scrollY,viewport:{width:innerWidth,height:innerHeight},selectionLength:getSelection()?.toString().length||0,selectionTrace:globalThis.__rootSelectionTrace||[],search:document.getElementById('thought-search')?.value,status:document.getElementById('thought-continuous-status')?.textContent,history:history.state?.paiaReader}))})).catch(()=>{});await p.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await h.close();}
 });
