@@ -3,7 +3,7 @@ import {request,element} from './common.js';
 
 const $=id=>document.getElementById(id);
 let installed=false,storageNode=null,privacyStatus=null,previewToggle=null;
-let privacyRead=0,privacyBusy=false,privacyLoaded=false,previewValue=true,privacyRefresh=false;
+let privacyRead=0,privacyBusy=false,privacyLoaded=false,previewValue=true,privacyRefresh=false,privacyReadFailed=false;
 const english=()=>document.documentElement.lang==='en';
 const mib=value=>(value/1024/1024).toFixed(value>=100*1024*1024?0:1);
 export function storageEstimateText(estimate={},useEnglish=false){
@@ -30,18 +30,18 @@ async function syncPrivacy(){
  const read=++privacyRead;
  try{
   const page=await request('GET_PAGE',{page:{view:'settings',limit:1}});if(read!==privacyRead)return;
-  previewValue=page?.preferences?.hideContentPreviews===true;privacyLoaded=true;
-  if(previewToggle){previewToggle.checked=previewValue;previewToggle.disabled=false;}applyMask(previewValue);
+  previewValue=page?.preferences?.hideContentPreviews===true;privacyLoaded=true;if(privacyReadFailed&&privacyStatus)privacyStatus.textContent='';privacyReadFailed=false;
+  if(previewToggle){previewToggle.checked=previewValue;previewToggle.dataset.loaded='true';previewToggle.disabled=false;}applyMask(previewValue);
  }catch{
   // A failed read must never reveal previews that the user previously hid.
   if(read!==privacyRead)return;
-  if(previewToggle)previewToggle.disabled=!privacyLoaded;
+  privacyReadFailed=true;if(previewToggle){previewToggle.disabled=!privacyLoaded;if(!privacyLoaded)previewToggle.dataset.loaded='error';}
   if(privacyStatus)privacyStatus.textContent=english()?'Could not refresh this setting.':'无法刷新此设置。';
  }
 }
 async function setPreviewMask(value){
  if(!previewToggle||privacyBusy||!privacyLoaded)return;
- privacyBusy=true;privacyRead++;previewToggle.disabled=true;privacyStatus.textContent=english()?'Saving…':'正在保存…';
+ privacyBusy=true;privacyRead++;privacyReadFailed=false;previewToggle.disabled=true;privacyStatus.textContent=english()?'Saving…':'正在保存…';
  try{
   const result=await request('UPDATE_PREFERENCES',{changes:{hideContentPreviews:value}});if(result?.ok!==true)throw Error('PREVIEW_WRITE_UNCONFIRMED');
   previewValue=value;previewToggle.checked=value;applyMask(value);privacyStatus.textContent=english()?'Saved':'已保存';
@@ -58,10 +58,10 @@ async function refreshStorage(){
 export async function refreshR6Settings(){await Promise.all([syncPrivacy(),refreshStorage()]);}
 function installPrivacy(){
  const host=$('settings-privacy-host');if(!host||$('r6-hide-content-previews'))return;
- const section=element('section','r6-privacy-preview'),label=element('label','setting'),name=text('span','','隐藏内容预览','Hide content previews'),input=document.createElement('input');
- input.id='r6-hide-content-previews';input.type='checkbox';input.setAttribute('role','switch');input.disabled=true;previewToggle=input;label.append(name,input);
- const note=text('p','muted','隐藏列表和搜索里的摘句，打开正文仍可阅读。不是加密，也不能阻止截图。','Hides excerpts in lists and search; opening the body still shows it. This is not encryption or screenshot protection.');
- privacyStatus=element('p','muted');privacyStatus.id='r6-preview-status';privacyStatus.setAttribute('role','status');section.append(label,note,privacyStatus);host.append(section);input.addEventListener('change',()=>{const value=input.checked;input.checked=previewValue;void withSettingsControlFocus(input,()=>setPreviewMask(value));});void syncPrivacy();
+ const section=element('section','r6-privacy-preview'),label=element('label','setting ux-preview-setting'),copy=element('span','ux-setting-copy'),control=element('span','ux-preview-control'),pill=element('span','ux-preview-pill'),name=text('span','ux-setting-name','隐藏内容预览','Hide content previews'),input=document.createElement('input');
+ input.id='r6-hide-content-previews';input.type='checkbox';input.setAttribute('role','switch');input.disabled=true;input.checked=true;input.dataset.loaded='false';name.id='r6-preview-name';input.setAttribute('aria-labelledby',name.id);input.setAttribute('aria-describedby','r6-preview-description r6-preview-status');pill.setAttribute('aria-hidden','true');previewToggle=input;control.append(input,pill);label.append(copy,control);
+ const note=text('span','ux-setting-description','隐藏列表和搜索里的摘句，打开正文仍可阅读。不是加密，也不能阻止截图。','Hides excerpts in lists and search; opening the body still shows it. This is not encryption or screenshot protection.');
+ note.id='r6-preview-description';copy.append(name,note);privacyStatus=element('p','muted');privacyStatus.id='r6-preview-status';privacyStatus.setAttribute('role','status');section.append(label,privacyStatus);host.append(section);input.addEventListener('change',()=>{const value=input.checked;input.checked=previewValue;void withSettingsControlFocus(input,()=>setPreviewMask(value));});void syncPrivacy();
 }
 function installData(){
  const host=$('backup-settings');if(!host||$('r6-data-status'))return;

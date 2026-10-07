@@ -23,7 +23,7 @@ async function assertDataOwners(page){
  for(const id of ['backup-settings','r6-data-status','r6-source-records']){
   const item=page.locator(`#${id}`);assert.equal(await item.count(),1,`${id} keeps one DOM owner`);assert.equal(await item.evaluate(el=>el.closest('.ux-settings-group')?.dataset.group),'data',`${id} remains in its Data destination`);
  }
- const destinations=await group.locator(':scope > details > summary').allTextContents();assert.deepEqual(destinations,['存储空间','从已有 PAIA 备份恢复','已移除的内容']);
+ const destinations=await group.locator(':scope > details.ux-settings-detail > summary').allTextContents();assert.deepEqual(destinations,['存储空间','从已有 PAIA 备份恢复','已移除的内容']);assert.equal(await page.locator('#product-diagnostics').isVisible(),false,'fault-only maintenance is not an ordinary Data destination');
  assert.equal(await page.locator('#backup-settings #r6-complete-export').count(),0,'complete export is not nested inside Backup');
  assert.equal(await page.locator('#backup-create').count(),0);assert.equal(await page.locator('#backup-settings #backup-choose').count(),1);
  assert.equal(await page.locator('#r6-complete-export,#r6-export-json,#r6-export-markdown').count(),0);

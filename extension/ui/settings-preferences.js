@@ -1,3 +1,4 @@
+import {mountSettingsAbout} from './settings-about.js';
 import {request,diagnosticText} from './common.js';
 import {resolveAppearance,resolveLanguage,SETTINGS_GROUPS} from './ux-r1-state.js';
 import {SettingsLocalState,timeDisplayValue,changePreferenceControl,withSettingsControlFocus} from './settings-local-state.js';
@@ -14,7 +15,7 @@ const PREFS=[
  ['ux-reading-width','readingWidth','阅读宽度','Reading width',[['narrow','紧凑','Compact'],['standard','标准','Standard'],['wide','宽','Wide']]],
  ['time-display','timeDisplay','时间显示','Time display',[['date_and_time','标准','Standard'],['date_and_seconds','详细','Detailed']]]
 ];
-let settingsVisible=false,onBack=()=>{},onRouteChange=()=>{},group=null,installed=false,restoring=false;
+let about=null,settingsVisible=false,onBack=()=>{},onRouteChange=()=>{},group=null,installed=false,restoring=false;
 const groups=new Map(),tabs=new Map(),positions=new Map();
 const archiveOrderSettings=new ArchiveOrderSettings();
 const local=new SettingsLocalState({send:request,changed:()=>applyPreferences()});
@@ -80,11 +81,11 @@ function setupSettingsShell(){
  move('settings-ai-context','ai');move('settings-prompt-status','ai');move('settings-legacy-access','ai');move('settings-privacy-host','privacy');move('settings-supported-sites','privacy');groups.get('privacy').append(copyNode('p','ux-settings-note','PAIA 档案当前保存在本机。','Your PAIA archive is currently stored on this device.'));
  const backupFailure=copyNode('h3','ux-backup-failure-title','这份备份未通过校验','This backup could not be validated');backupFailure.id='ux-backup-failure-title';$('backup-status')?.before(backupFailure);
  move('history-settings','data');const data=groups.get('data');data.append(detail('存储空间','Storage space',[$('r6-data-status')]),detail('从已有 PAIA 备份恢复','Restore an existing PAIA backup',[$('backup-settings')]),detail('已移除的内容','Removed content',[$('manage-excluded'),$('library-management')]));move('r6-source-records','data');move('legacy-entry','data');move('product-diagnostics','data');
- const version=chrome.runtime.getManifest().version;groups.get('about').append(copyNode('p','ux-settings-note','版本 '+version,'Version '+version),copyNode('p','ux-settings-note','暂未获取更新状态。','Update status is not available.'),copyNode('p','ux-settings-note','帮助、隐私说明、使用条款和反馈入口尚未接通。','Help, privacy, terms and feedback destinations are not connected yet.'));
+ about=mountSettingsAbout(groups.get('about'),{version:chrome.runtime.getManifest().version,language});
  const orderHost=$('archive-order-host');if(orderHost)orderHost.append(archiveOrderSettings.element());activateGroup(compact()?'index':'content',{history:false});
 }
 export function syncSettingsCopy(root=document){for(const el of root.querySelectorAll('[data-settings-zh]')){const text=copy(el.dataset.settingsZh,el.dataset.settingsEn);if(el.textContent!==text)el.textContent=text;}}
-function syncSettingsLocale(){syncSettingsCopy();document.querySelector('.ux-settings-nav')?.setAttribute('aria-label',copy('设置分组','Settings groups'));const back=$('ux-settings-group-back');if(back)setIconLabel(back,'back',copy('设置','Settings'));$('toggle-capture')?.setAttribute('aria-label',copy('保存我的 AI 输入','Save my AI inputs'));}
+function syncSettingsLocale(){syncSettingsCopy();about?.sync();const read=$('history-read');if(read)read.textContent=copy('读一篇','Read one');document.querySelector('.ux-settings-nav')?.setAttribute('aria-label',copy('设置分组','Settings groups'));const back=$('ux-settings-group-back');if(back)setIconLabel(back,'back',copy('设置','Settings'));$('toggle-capture')?.setAttribute('aria-label',copy('保存我的 AI 输入','Save my AI inputs'));}
 export function installSettingsPreferences({back=()=>{},routeChanged=()=>{}}={}){
  if(installed)return;installed=true;onBack=back;onRouteChange=routeChanged;setupSettingsShell();tuneOnboarding();void loadPreferences();
  chrome.runtime.onMessage.addListener(message=>{if(['ARCHIVE_CHANGED','PAIA_READER_POLICY_CHANGED'].includes(message?.type))void loadPreferences();});chrome.storage?.onChanged?.addListener((changes,area)=>{if(area==='local'&&Object.keys(changes).some(key=>['settings','paia-settings'].includes(key)))void loadPreferences();});

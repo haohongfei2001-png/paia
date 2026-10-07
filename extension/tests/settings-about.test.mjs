@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {PresentationNode} from './harness/presentation-dom.mjs';
+import {aboutDestinations,mountSettingsAbout} from '../ui/settings-about.js';
+
+test('About resolves only verified public localized resources and the existing empty mailto',()=>{
+ for(const language of ['zh-CN','en','invalid']){const links=aboutDestinations(language);assert.deepEqual(links.map(x=>x.key),['privacy','terms','help','feedback']);assert.equal(links[3].href,'mailto:haohongfei2001@gmail.com');for(const link of links.slice(0,3)){const url=new URL(link.href);assert.equal(url.origin,'https://inputarchive.com');assert.equal(url.search,'');assert.equal(url.hash,'');assert.equal(url.pathname.startsWith('/zh/'),language==='zh-CN');const html=readFileSync(new URL('../../'+url.pathname.slice(1),import.meta.url),'utf8');assert.ok(html.includes('rel="canonical"'));assert.ok(html.includes('href="'+link.href+'"'));}assert.equal(new URL(links[3].href).search,'');}
+});
+test('About mounts four real links without requests, writes, navigation or legal acceptance',()=>{
+ const prior=new Map(['document','chrome','fetch'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)])),created=[];let language='zh-CN';const document={documentElement:{lang:language},createElement:tag=>{const node=new PresentationNode(tag);created.push(node);return node;},createElementNS:(ns,tag)=>{const node=new PresentationNode(tag,ns);created.push(node);return node;}};
+ for(const [key,value]of Object.entries({document,chrome:new Proxy({}, {get(){throw Error('About mounting cannot call Chrome APIs');}}),fetch:()=>{throw Error('About mounting cannot fetch');}}))Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});
+ try{const host=new PresentationNode('section'),owner=mountSettingsAbout(host,{version:'0.15.0',language:()=>language}),links=created.filter(node=>node.tagName==='A');assert.equal(links.length,4);assert.equal(created.filter(node=>node.tagName==='BUTTON').length,0);assert.equal(created.find(node=>node.className==='ux-about-version').textContent,'PAIA 0.15.0');assert.match(created.find(node=>node.id==='settings-update-status').textContent,/尚无可确认/);assert.equal(links[0].target,'_blank');assert.equal(links[0].rel,'noopener noreferrer');assert.equal(links[3].target,undefined);assert.equal(links[3].href,'mailto:haohongfei2001@gmail.com');assert.equal(links.every(link=>link.listeners.size===0),true,'ordinary links need no automatic navigation listener');assert.equal(mountSettingsAbout(host,{version:'wrong'}),owner);assert.equal(created.filter(node=>node.tagName==='A').length,4);
+ document.activeElement=links[0];language='en';owner.sync();assert.equal(document.activeElement,links[0]);assert.equal(links[0].firstElementChild.textContent,'Privacy');assert.equal(links[0].href,'https://inputarchive.com/privacy-policy.html');assert.match(created.find(node=>node.id==='settings-update-status').textContent,/No confirmed/);assert.equal(created.filter(node=>node.tagName==='A').length,4);
+ }finally{for(const [key,value]of prior)if(value)Object.defineProperty(globalThis,key,value);else delete globalThis[key];}
+});

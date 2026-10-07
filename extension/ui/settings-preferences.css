@@ -188,3 +188,34 @@ body.uir-settings-active .workspace-header{display:none}
 #settings-panel #history-settings h3{font:500 14px/1.7 var(--font);margin:20px 0 8px}
 #settings-panel :is(button,select,summary){min-width:44px;overflow-wrap:anywhere}
 @media(max-width:767px),(pointer:coarse){#settings-panel :is(button,select,summary){min-height:44px}}
+
+/* Native privacy checkbox remains the only state/focus/label owner. The pill
+   is decorative and derives its state directly from that acknowledged input. */
+#settings-panel .ux-setting-switch::before{content:"";display:inline-block;width:4px;height:4px;margin-inline-end:8px;border-radius:50%;background:currentColor;vertical-align:middle}
+#settings-panel .r6-privacy-preview .ux-preview-setting{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:90px;margin:0;padding:20px 0;border-bottom:1px solid var(--line)}
+#settings-panel .ux-preview-setting>.ux-setting-copy{display:grid;max-width:none;gap:4px;flex:1}
+#settings-panel .ux-preview-control{position:relative;display:grid;place-items:center;flex:none;min-width:58px;min-height:44px}
+#settings-panel .ux-preview-control>input[type="checkbox"]{position:absolute;inset:50% auto auto 50%;margin:-8px 0 0 -8px;opacity:0;z-index:1}
+#settings-panel .ux-preview-pill{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:58px;min-height:32px;padding:4px 12px;border:1px solid var(--muted);border-radius:999px;color:var(--muted);font:400 12px/1.7 var(--font)}
+#settings-panel .ux-preview-pill::before{content:"";width:4px;height:4px;border:1px solid currentColor;border-radius:50%}
+#settings-panel .ux-preview-pill::after{content:"关"}
+#settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill{background:var(--selected);border-color:transparent;color:var(--focus)}
+#settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill::before{background:currentColor}
+#settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill::after{content:"开"}
+html:lang(en) #settings-panel .ux-preview-pill::after{content:"Off"}
+html:lang(en) #settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill::after{content:"On"}
+#settings-panel .ux-preview-control:has(input[data-loaded="false"]) .ux-preview-pill::after{content:"读取中"}
+html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="false"]) .ux-preview-pill::after{content:"Loading"}
+#settings-panel .ux-preview-control:has(input:focus-visible) .ux-preview-pill{outline:2px solid var(--focus);outline-offset:3px}
+#settings-panel .ux-preview-control:has(input:disabled){opacity:.65}
+#settings-panel .r6-privacy-preview>#r6-preview-status:empty{display:none}
+
+#settings-panel .ux-preview-control:has(input[data-loaded="error"]) .ux-preview-pill::after{content:"不可用"}
+html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]) .ux-preview-pill::after{content:"Unavailable"}
+
+#settings-panel .ux-about-version{margin:0 0 12px;font:400 14px/1.7 var(--font)}
+#settings-panel .ux-about-links{display:block;margin-top:28px}
+#settings-panel .ux-about-link{min-height:76px;color:var(--text);text-decoration:none}
+#settings-panel .ux-about-link:hover{color:var(--focus)}
+#settings-panel .ux-about-link:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+#settings-panel .ux-about-link .paia-icon{flex:none;color:var(--muted)}
