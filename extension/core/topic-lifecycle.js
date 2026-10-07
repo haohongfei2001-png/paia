@@ -1,3 +1,4 @@
+import {assertMemoryTopicTransitionAllowed} from './memory/organization-guard.js';
 import {fail,keys,idOK,revisionOK} from './thought-model.js';
 import {setTopicLifecycle,resolveTopicIdentity} from './topic-identity.js';
 import {TopicProcessingGuard} from './topic-processing.js';
@@ -19,6 +20,7 @@ export class TopicLifecycleService {
    if(row.lifecycle===request.to)return {id:row.id,revision:row.revision,lifecycle:row.lifecycle};
    // An explicit lifecycle decision cannot be undone by automatic reactivation.
    if(row.protections?.lifecycle?.locked)fail();
+   if(request.to==='dormant')await assertMemoryTopicTransitionAllowed(t,row,{nextGeneration:null});
    const before=structuredClone(row);setTopicLifecycle(row,request.to,{actor:'ai',operationId:request.operationId,at:this.store.clock()});row.revision++;row.organizationRevision++;
    await t.put('topics',row);await queueSearch(t,'topic',row);
    await journal(this.store,t,{kind:'topic',entityId:row.id,before,after:row,fieldMask:['lifecycle'],actor:'ai',reason:'activity',important:true,operationId:request.operationId,baseRevision:before.revision,afterRevision:row.revision,sourceRecordIds:row.sourceRecordIds||[]});

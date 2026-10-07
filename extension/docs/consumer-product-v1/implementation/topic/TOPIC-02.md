@@ -67,6 +67,31 @@ rather than replace, the earlier receipts. Hosted full proof and the declared
 Context-before-Topic02 integration sequence remain required. This recovery
 adds no provider/model activation, external grant, UI redesign or STATUS advance.
 
+## Lifecycle effective-access correction — 2026-10-07
+
+A focused integration test found a missing case in this unactivated candidate:
+active Topic A carried an explicit retained denial, Topic B allowed the same
+Entry, and automatic dormancy of A changed actual `MemoryService.permittedPaths`
+from zero to one while all permission rows stayed unchanged. This was a Topic02
+candidate transition, not a newly activated production service.
+
+Runtime/test commit `820d8d9c98f0453220d96a2050f08697a4686b7b`, tree
+`925c7e53943fd58a3d5862c8498f2191e2ec19dd`, invokes the existing foundation
+negative-witness guard inside the same write transaction before active-to-dormant
+mutation. It adds no permission owner, metadata copy or grant write. Explicit
+Topic/never/Section restrictions and restrictions in another retained profile
+refuse atomically; unrelated restrictions and empty excluded Sections do not
+block safe activity. Separate permission-owner revision remains authoritative.
+
+Seven new actual-owner regressions cover those paths, unchanged data/permissions,
+real replace restore and same-ID reactivation after lawful permission revision.
+The lifecycle/foundation removal-and-history/Context scope combination passes
+136 cases. Independent review cleared the exact two-file delta and repeated all
+11 lifecycle cases successfully. Earlier statements about unchanged Topic02
+files refer to their pinned recovery checkpoints; this later bounded correction
+changes only the lifecycle owner and its owning tests. Final inherited-base full
+certification remains required before integration.
+
 ## Owners and physical storage
 
 - `topic-processing.js`: default-denied trusted internal processing boundary.
