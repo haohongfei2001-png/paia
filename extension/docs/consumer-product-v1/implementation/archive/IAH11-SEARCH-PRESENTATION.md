@@ -54,3 +54,15 @@ admission check launches no browser or cloud run and does not certify hosted CI,
 current main or an installed version. Reconcile with Settings' existing
 SmartFilter owner by a narrow patch, not file replacement.
 No model call, permission expansion, body/schema copy, cloud access or deployment.
+
+## Retained Root routing snapshot correction
+
+Local Root-routing review of51a7d8d failed76!=75 before this correction.
+The historical Root guard still treated its75-file snapshot as the current total.
+Keep all74 predecessor mappings and the75-file Root snapshot, evaluate their
+routes at current corpus indices, and separately require the exact new file
+on4 plus76-file complete unique coverage. Unknown additions still fail; the
+independent300-route admission guard is unchanged. Complete Root and admission
+files pass3/3 with zero skips/cancellations; independent review passed. No runtime,
+workflow, timeout, assertion threshold or prior mapping was changed. New-head
+hosted acceptance remains pending; the earlier failure is not rewritten.
