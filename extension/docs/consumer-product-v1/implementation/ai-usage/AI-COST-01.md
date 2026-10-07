@@ -273,3 +273,15 @@ Topic guard files103/103 PASS, zero failure/cancel/skip
 Earlier source/release results remain historical evidence; changed main/shared
 dependencies require fresh combined native/full acceptance before delivery.
 This local merge is not hosted CI, real-provider or installed-version acceptance.
+
+## Retained Root routing snapshot correction
+
+Hosted Candidate37701270106 at35bc2bc failed unit/aggregate; contracts/privacy and release passed.
+The historical Root guard still treated its75-file snapshot as the current total.
+Keep all74 predecessor mappings and the75-file Root snapshot, evaluate their
+routes at current corpus indices, and separately require the exact new file
+on4 plus76-file complete unique coverage. Unknown additions still fail; the
+independent300-route admission guard is unchanged. Complete Root and admission
+files pass3/3 with zero skips/cancellations; independent review passed. No runtime,
+workflow, timeout, assertion threshold or prior mapping was changed. New-head
+hosted acceptance remains pending; the earlier failure is not rewritten.
