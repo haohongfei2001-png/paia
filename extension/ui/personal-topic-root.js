@@ -8,12 +8,13 @@ import {highlightText} from './search-experience.js';
 export class PersonalTopicRoot {
  constructor(host,{open,onResize=()=>{}}){
   this.host=host;this.open=open;this.slots=readTopicRootSlots();this.nodes=new Map();this.items=[];this.complete=false;
-  this.resize=globalThis.ResizeObserver?new ResizeObserver(()=>{if(!this.items.length||!host.getClientRects().length)return;const columns=this.columns();if(columns===this.columnCount)return;this.layout();onResize();}):null;this.resize?.observe(host);
+  this.resize=globalThis.ResizeObserver?new ResizeObserver(entries=>{if(!this.items.length||!host.getClientRects().length)return;const columns=this.columns();if(columns!==this.columnCount||host.clientWidth!==this.layoutWidth){this.layout();onResize();return;}for(const entry of entries){const node=entry.target.closest?.('.personal-topic-block');if(node&&this.nodes.get(node.dataset.topicId)===node&&!node.dataset.searchState)this.fit(node);}}):null;this.resize?.observe(host);
 
  }
  focusRef(){const active=document.activeElement;if(!this.host.contains(active)||active?.tagName!=='A')return null;return {topicId:active.dataset.topicId,sectionId:active.dataset.sectionId||null,more:active.classList.contains('personal-topic-more')};}
  restoreFocus(ref){const node=this.nodes.get(ref?.topicId);if(!node)return;const section=ref.sectionId?[...node.querySelectorAll('[data-section-id]')].find(link=>link.dataset.sectionId===ref.sectionId&&!link.hidden):null,more=node.querySelector('.personal-topic-more');(section||(ref.more||ref.sectionId)&&!more.hidden&&more||node.querySelector('.personal-topic-link'))?.focus({preventScroll:true});}
  columns(){return Math.max(1,Math.min(4,Math.floor((this.host.clientWidth+16)/240)));}
+ observeTitle(node,active){const title=node?.querySelector?.('.personal-topic-title');if(title)this.resize?.[active?'observe':'unobserve'](title);}
  link(text,topicId,sectionId=null,className=''){
   const a=element('a',className,text);a.href=topicRootURL(topicId,sectionId);a.draggable=false;a.dataset.topicId=topicId;if(sectionId)a.dataset.sectionId=sectionId;
   a.title=text;
@@ -35,20 +36,20 @@ export class PersonalTopicRoot {
  render(items,{complete=false}={}){
   const focus=this.focusRef();
   this.items=items;this.complete=complete;this.host.classList.remove('topic-compact-list');this.host.classList.add('personal-topic-grid');
-  const current=new Set(items.map(item=>item.id));for(const [id,node]of this.nodes)if(!current.has(id)){node.remove();this.nodes.delete(id);}
+  const current=new Set(items.map(item=>item.id));for(const [id,node]of this.nodes)if(!current.has(id)){this.observeTitle(node,false);node.remove();this.nodes.delete(id);}
   for(const item of items){
    const signature=JSON.stringify([document.documentElement.lang,item.name,item.sectionOverview.items.map(x=>[x.id,x.title]),item.sectionOverview.complete]),prior=this.nodes.get(item.id);
    if(prior?.dataset.searchState){for(const extra of prior.querySelectorAll('.personal-root-search-extra'))extra.remove();for(const link of prior.querySelectorAll('.personal-topic-link,.personal-section-link'))link.textContent=link.title;prior.classList.remove('personal-topic-nonmatch');delete prior.dataset.searchState;}
    if(prior?.dataset.signature===signature)continue;
    // Keep an active selection/focus attached through unrelated refreshes.
    const node=this.tile(item);node.dataset.signature=signature;
-   if(prior){const active=document.activeElement,sectionId=prior.contains(active)?active.dataset.sectionId:null,titleFocused=prior.contains(active)&&active.classList.contains('personal-topic-link');prior.replaceWith(node);if(sectionId)[...node.querySelectorAll('[data-section-id]')].find(x=>x.dataset.sectionId===sectionId)?.focus({preventScroll:true});else if(titleFocused)node.querySelector('.personal-topic-link').focus({preventScroll:true});}
-   this.nodes.set(item.id,node);
+   if(prior){this.observeTitle(prior,false);const active=document.activeElement,sectionId=prior.contains(active)?active.dataset.sectionId:null,titleFocused=prior.contains(active)&&active.classList.contains('personal-topic-link');prior.replaceWith(node);if(sectionId)[...node.querySelectorAll('[data-section-id]')].find(x=>x.dataset.sectionId===sectionId)?.focus({preventScroll:true});else if(titleFocused)node.querySelector('.personal-topic-link').focus({preventScroll:true});}
+   this.nodes.set(item.id,node);this.observeTitle(node,true);
   }
   this.layout();if(focus&&(!this.host.contains(document.activeElement)||document.activeElement.hidden))this.restoreFocus(focus);this.host.dataset.loadedExtent=String(items.length);this.host.dataset.retainedBodies='0';
  }
  layout(){
-  const columns=this.columns();this.columnCount=columns;const layout=this.slots.reconcile(this.items.map(item=>item.id),{columns,complete:this.complete}),nodes=[];
+  const columns=this.columns();this.columnCount=columns;this.layoutWidth=this.host.clientWidth;const layout=this.slots.reconcile(this.items.map(item=>item.id),{columns,complete:this.complete}),nodes=[];
   this.host.style.setProperty('--topic-root-columns',String(columns));
   this.host.style.gridTemplateRows=`repeat(${Math.ceil(this.slots.extent(columns)/columns)},var(--topic-root-block-size))`;
   for(const {id,slot,column,row}of layout){const node=this.nodes.get(id);if(!node)continue;node.style.gridColumn=String(column);node.style.gridRow=String(row);node.dataset.rootSlot=String(slot);nodes.push(node);}
@@ -80,6 +81,6 @@ export class PersonalTopicRoot {
    }
   }
  }
- clear(){this.items=[];this.complete=false;this.nodes.clear();this.host.replaceChildren();}
+ clear(){this.items=[];this.complete=false;for(const node of this.nodes.values())this.observeTitle(node,false);this.nodes.clear();this.host.replaceChildren();}
  dispose(){this.resize?.disconnect();this.clear();}
 }

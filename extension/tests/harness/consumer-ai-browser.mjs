@@ -21,7 +21,7 @@ export async function fixture(variant='source',{saved=true,candidate=false,count
 }
 export async function openTopic(p,topic){
  if(await p.locator('#thought-document').isVisible())await p.locator('#back').click();
- await p.locator('[data-view="thoughts"]').first().click();await p.locator(`[data-topic-id="${topic.id}"]`).click();await p.locator('#topic-heading h1').filter({hasText:topic.name}).waitFor();
+ await p.locator('[data-view="thoughts"]').first().click();await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();await p.locator('#topic-heading h1').filter({hasText:topic.name}).waitFor();
 }
 export async function seedSavedAI(p,topicId,entries,{candidate=false}={}){
  return p.evaluate(async({topicId,entries,candidate})=>{

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {PersonalTopicRoot} from '../ui/personal-topic-root.js';
 import {TopicRootSlots,readTopicRootSlots,saveTopicRootSlots,canRetainRootMetadata} from '../ui/topic-root-slots.js';
 const ids=count=>Array.from({length:count},(_,i)=>`synthetic-topic-${i}`);
 const addresses=list=>Object.fromEntries(list.map(({id,slot,column,row})=>[id,{slot,column,row}]));
@@ -27,4 +28,14 @@ test('TOPIC-05.2 corrupt presentation snapshots are discarded and invalid curren
 test('TOPIC-05.2 missing, ambiguous, restore, purge and exclusion causes always clear transient Root metadata',()=>{
  for(const cause of [undefined,null,'','PURGE_SOURCE','PAIA_BACKUP_RESTORE','EDIT_DOCUMENT','REMOVE_LIBRARY_TOPIC','EXCLUDE_LIBRARY','UNKNOWN','EDIT_LIBRARY_TOPIC,PURGE_SOURCE',['EDIT_LIBRARY_TOPIC','PURGE_SOURCE'],{cause:'EDIT_LIBRARY_TOPIC'}])assert.equal(canRetainRootMetadata(cause),false);
  for(const cause of ['EDIT_LIBRARY_TOPIC','CREATE_LIBRARY_SECTION','EDIT_LIBRARY_FIELDS'])assert.equal(canRetainRootMetadata(cause),true);
+});
+test('TOPIC-05.2 same-column width changes and enlarged titles refit whole Section labels without resetting search overlays',()=>{
+ const prior=globalThis.ResizeObserver,observed=new Set();let callback,layouts=0,refits=0;
+ globalThis.ResizeObserver=class{constructor(run){callback=run;}observe(node){observed.add(node);}unobserve(node){observed.delete(node);}disconnect(){observed.clear();}};
+ try{
+  const host={clientWidth:1000,getClientRects:()=>[{}],replaceChildren(){}},owner=new PersonalTopicRoot(host,{open:()=>{}});owner.items=[{id:'synthetic'}];owner.layout=()=>{layouts++;owner.columnCount=owner.columns();owner.layoutWidth=host.clientWidth;};owner.fit=()=>refits++;
+  callback([{target:host}]);assert.equal(layouts,1);assert.equal(owner.columnCount,4);host.clientWidth=980;callback([{target:host}]);assert.equal(owner.columnCount,4);assert.equal(layouts,2,'width changes must refit even within the same four-column view');
+  const node={dataset:{topicId:'synthetic'},querySelector:()=>title},title={closest:()=>node};owner.nodes.set('synthetic',node);owner.observeTitle(node,true);assert.ok(observed.has(title));callback([{target:title}]);assert.equal(refits,1,'title text enlargement changes the remaining Section capacity');node.dataset.searchState='true';callback([{target:title}]);assert.equal(refits,1,'a title observation must not reveal Section labels behind a search match');
+  owner.clear();assert.equal(observed.has(title),false);assert.equal(observed.has(host),true);owner.dispose();assert.equal(observed.size,0);
+ }finally{if(prior===undefined)delete globalThis.ResizeObserver;else globalThis.ResizeObserver=prior;}
 });

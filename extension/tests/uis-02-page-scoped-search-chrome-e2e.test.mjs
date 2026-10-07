@@ -99,18 +99,22 @@ test('UIS-02 search is page-scoped across Archive, Reader, Thought root/topic an
 
     // Thought Library root: its existing local search remains the sole visible search.
     await nav(page,'thoughts');
-    await eventually(async()=>await page.locator('#thought-list [data-topic-id]').count()===2,'Thought root shows both topics');
+    await eventually(async()=>await page.locator('#thought-list article.personal-topic-block').count()===2,'Thought root shows both topics');
     await expectSingleSearch(page,'thought-search','Thought Library root');
     await shortcut(page,'/');
     assert.equal(await activeId(page),'thought-search','/ focuses Thought Library root search');
+    const slots=await page.locator('#thought-list article.personal-topic-block').evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot]));
     await page.locator('#thought-search').fill('UIS02_TOPIC_B_TARGET');
-    await eventually(async()=>await page.locator('#thought-list .topic-index-row').count()===1,'Thought root search finds content across Thought Library');
-    assert.match(await page.locator('#thought-list').innerText(),/主题乙|UIS02_TOPIC_B_TARGET/);
+    const match=page.locator('#thought-list article.personal-topic-block:not(.personal-topic-nonmatch)');
+    await eventually(async()=>await match.count()===1&&await match.locator('.personal-entry-preview').isVisible(),'Thought root search finds eligible content in its existing stable Topic slot');
+    assert.equal(await match.getAttribute('data-topic-id'),topics.b.id);assert.match(await match.locator('.personal-entry-preview').innerText(),/UIS02_TOPIC_B_TARGET/);
+    assert.deepEqual(await page.locator('#thought-list article.personal-topic-block').evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),slots,'scoped search preserves both Topic identities and their addresses');
+    assert.equal(await page.locator('#thought-list .topic-index-row').count(),0,'Root search does not add a parallel result directory');
     await page.locator('#thought-search').fill('');
-    await eventually(async()=>await page.locator('#thought-list [data-topic-id]').count()===2,'Thought root query clears locally');
+    await eventually(async()=>await page.locator('#thought-list article.personal-topic-block:not(.personal-topic-nonmatch)').count()===2&&await page.locator('#thought-list .personal-entry-preview').count()===0,'Thought root query clears locally and restores both original Topic slots');
 
     // One Thought topic: search is restricted to that topic/document.
-    await page.locator(`[data-topic-id="${topics.a.id}"]`).click();
+    await page.locator(`.personal-topic-link[data-topic-id="${topics.a.id}"]`).click();
     await eventually(()=>page.locator('#topic-search').isVisible(),'Thought topic search is visible');
     await expectSingleSearch(page,'topic-search','Thought topic');
     await shortcut(page,'f',{metaKey:true});
