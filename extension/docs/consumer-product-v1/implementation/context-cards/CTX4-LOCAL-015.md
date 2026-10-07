@@ -97,3 +97,41 @@ Normal integration follows the Context01 prerequisite and fresh-main conflict
 checks, with the required full-depth marker and exact-main proof. Until then,
 this is an unreleased candidate. No installed build, physical IME/device,
 external client, paid-model quality or full-plan completion is claimed.
+
+## Local receipt portability correction
+
+Candidate `a1851878` subsequently passed full `37588183191` and native
+`37588183123` (12/12), with matching tested-merge tree `654852ee`. Those exact
+results remain historical evidence. A later actual-store restore probe found
+an additional correctness defect: projecting a genuine manual Context receipt
+into an existing-file envelope omits its local restore epoch. Production merge
+admission accepted that receipt while preserving the destination Context row.
+Replaying its matching edit/delete returned the imported success acknowledgment
+without changing the local Item; the separate outcome read correctly returned
+unknown. No body disclosure, live external access or installed-user incident was
+observed. Production file export remains retired (`FEATURE_UNAVAILABLE`); that
+does not justify accepting these receipts in incoming files.
+
+The isolated correction rejects `context:` receipt IDs or the `context-cards`
+namespace at Backup admission and requires the receipt's current matching epoch
+before change replay. Exact request bytes, valid local digests, stored bodies,
+local receipt semantics and the existing restore owner remain unchanged.
+Already-resident missing/malformed/old epochs refuse without rewriting the
+receipt or acknowledging the edit.
+
+Fifteen new actual-store cases cover independent receipt-marker refusals through
+staging and both restore modes, resident invalid epochs, genuine local replay
+for all manual operations and ordinary portable Thought receipts. All 562
+affected Context/Backup/purge cases passed after fixture alignment. The first
+affected run's 17 failures occurred while test-only historical encoders tried
+to produce the newly rejected local receipts. Four new CTX4 restore fixtures now
+explicitly encode portable Library state without the local Context ledger;
+their restore, identity, cursor and epoch assertions are retained. Genuine
+projected Context receipts remain in dedicated admission-refusal fixtures using
+the original encoder. One obsolete portability-positive assertion is replaced
+with nonportable admission and valid-local replay checks.
+
+This correction requires independent review and fresh candidate/full/native
+proof. It does not reopen the separately held Context01 main merge. The same
+small correction is prepared locally for that dependency; no held head is
+updated under this receipt.

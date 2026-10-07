@@ -8,7 +8,7 @@ import {key,profileDefault,validateMemoryRow} from '../core/memory/model.js';
 import {rootReadAuthority} from '../core/organizer/root-read.js';
 import {setTopicLifecycle} from '../core/topic-identity.js';
 import {markHuman} from '../core/thought-model.js';
-import {BackupService as ExistingFileFixture} from './harness/historical-backup.mjs';
+import {BackupService as ExistingFileFixture} from './harness/context-legacy-file.mjs';
 import {BackupService} from '../core/backup-service.js';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {contextTopicOperationReservation,contextTopicSelectionBinding,evaluateContextTopicAccess} from '../core/context-topic-access-policy.js';

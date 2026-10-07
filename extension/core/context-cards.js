@@ -47,7 +47,7 @@ export class ContextCardsService {
   return this.s.write(async t=>{
    await this.admitted(t,c.epoch);
    const receipt=await t.get('operationReceipts','context:'+c.operationId);
-   if(receipt){if(receipt.namespace!=='context-cards'||receipt.digest!==digest)fail();return receipt.result;}
+   if(receipt){if(receipt.namespace!=='context-cards'||receipt.digest!==digest||receipt.epoch!==c.epoch)fail();return receipt.result;}
    const row=await this.row(t);let result;
    if(c.kind==='access'){
     const value=row.access[c.key];if(value.revision!==c.expectedRevision)return {ok:false,conflict:true,revision:value.revision};

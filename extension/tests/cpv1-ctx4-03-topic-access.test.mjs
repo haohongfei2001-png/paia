@@ -12,7 +12,7 @@ import {setTopicLifecycle} from '../core/topic-identity.js';
 import {FilterRunner} from '../core/filter-runner.js';
 import {BackupService} from '../core/backup-service.js';
 import {BACKUP_SECTIONS,backupHash,backupMetaAllowed,projectBackupEntity,validateBackupItem} from '../core/backup-format.js';
-import {BackupService as ExistingFileFixture} from './harness/historical-backup.mjs';
+import {BackupService as ExistingFileFixture} from './harness/context-legacy-file.mjs';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 
@@ -270,12 +270,17 @@ for(const variant of ['genuine','namespace_only','prefix_only','prefix_impersona
  async function itemForOriginal(){return (await f.access.page()).items.find(x=>x.topicId===f.topic.id);}
 });
 
-test('CTX4-03 nonportable receipt guard preserves admitted prior Context Item and Thought receipt shapes',async()=>{
- const f=await fixture({empty:true}),baseline=await exported(new ExistingFileFixture(f.s)),prior=baseline.filter(x=>x.section==='receipts');assert.ok(prior.some(x=>x.value.namespace==='context-cards'));assert.ok(prior.some(x=>x.value.namespace==='thought-library'));
+test('CTX4-03 existing-file fixtures preserve Thought receipts while Context receipts remain local',async()=>{
+ const f=await fixture({empty:true}),request={kind:'access',operationId:op(),epoch:'initial',key:'now',enabled:true,expectedRevision:0},result=await f.cards.change(request);
+ assert.deepEqual(await f.cards.change(request),result,'genuine local Context receipt replay remains valid');
+ const localReceipt=await raw(f.s,'operationReceipts','context:'+request.operationId);
+ assert.throws(()=>validateBackupItem({type:'item',section:'receipts',value:projectBackupEntity('receipts',localReceipt)}),{code:'BACKUP_INVALID'});
+ const baseline=await exported(new ExistingFileFixture(f.s)),prior=baseline.filter(x=>x.section==='receipts');assert.ok(prior.every(x=>x.value.namespace!=='context-cards'&&!x.value.id.startsWith('context:')));assert.ok(prior.some(x=>x.value.namespace==='thought-library'));
  for(const row of prior)assert.strictEqual(validateBackupItem(row),row);
  const backup=new BackupService(f.s),stage=await prepared(backup,baseline),preview=await backup.previewRestore({sessionId:stage.sessionId,mode:'replace'});assert.equal(preview.canRestore,true);
  await backup.restore({sessionId:stage.sessionId,confirmation:preview.integrity,mode:'replace',targetGeneration:preview.targetGeneration,confirmReplace:true});
  for(const row of prior)assert.deepEqual(await raw(f.s,'operationReceipts',row.value.id),row.value);
+ await assert.rejects(f.cards.change(request),{code:'CONTEXT_INVALIDATED'},'replacement restore still invalidates the original local request epoch');
 });
 
 

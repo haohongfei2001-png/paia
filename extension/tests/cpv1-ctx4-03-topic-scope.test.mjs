@@ -11,7 +11,7 @@ import {evaluateContextTopicAccess} from '../core/context-topic-access-policy.js
 import {FilterRunner} from '../core/filter-runner.js';
 import {setTopicLifecycle} from '../core/topic-identity.js';
 import {markHuman} from '../core/thought-model.js';
-import {BackupService as ExistingFileFixture} from './harness/historical-backup.mjs';
+import {BackupService as ExistingFileFixture} from './harness/context-legacy-file.mjs';
 import {BackupService} from '../core/backup-service.js';
 import {exported,prepared} from './harness/backup-v081.mjs';
 

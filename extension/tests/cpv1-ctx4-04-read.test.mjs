@@ -10,7 +10,7 @@ import {ContextReadService,CONTEXT_READ_LIMITS} from '../core/context-read.js';
 import {MemoryService} from '../core/memory/service.js';
 import {key,profileDefault} from '../core/memory/model.js';
 import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
-import {BackupService as ExistingFileFixture} from './harness/historical-backup.mjs';
+import {BackupService as ExistingFileFixture} from './harness/context-legacy-file.mjs';
 import {BackupService} from '../core/backup-service.js';
 import {exported,prepared} from './harness/backup-v081.mjs';
 import {FilterRunner} from '../core/filter-runner.js';
