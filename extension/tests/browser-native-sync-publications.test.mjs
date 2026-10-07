@@ -86,3 +86,19 @@ test('BNS unqualified chunk profiles and malformed reservations are rejected bef
  const core=await device(),operation=await local(core,'shape');assert.throws(()=>new PreparedPublicationJournal(core,{profile:{...SEGMENT_PROFILE,chunk:1}}),{code:'BNS_PROFILE_INVALID'});
  await core.transaction(true,async t=>{const row=await core.get(t,'outbox',operation.operationId);row.publicationId=null;await core.put(t,'outbox',[operation.operationId],row);},['meta']);await assert.rejects(new PreparedPublicationJournal(core).prepare(),{code:'BNS_PUBLICATION_CORRUPT'});
 });
+
+test('BNS transport error bodies are neither persisted nor returned by the publication boundary',async()=>{
+ const core=await device();await local(core,'private local fixture');const journal=new PreparedPublicationJournal(core),prepared=await journal.prepare();
+ const transport={async putImmutable(){throw Object.assign(Error('PRIVATE_PROVIDER_ERROR_BODY'),{detail:'PRIVATE_PROVIDER_ERROR_BODY'});},async get(){throw Error('must not read before first upload');}};
+ await assert.rejects(journal.run(prepared.publicationId,transport),error=>error.code==='BNS_TRANSPORT_UNKNOWN'&&!String(error).includes('PRIVATE_PROVIDER_ERROR_BODY'));
+ const row=await core.read('publication',prepared.publicationId);assert.equal(row.state,'unknown');assert.equal(row.error,'BNS_TRANSPORT_UNKNOWN');assert.doesNotMatch(JSON.stringify(row),/PRIVATE_PROVIDER_ERROR_BODY|private local fixture/);assert.equal((await queued(core)).length,1);
+});
+
+test('BNS purge while a publication iterator is suspended cannot publish its later descriptor',async()=>{
+ const core=await device('device_alpha_01',null);await local(core,'suspended private body');const journal=new PreparedPublicationJournal(core),prepared=await journal.prepare(),transport=cloud(),iterator=journal.publish(prepared.publicationId,transport);
+ const first=await iterator.next();assert.equal(first.value.ref.kind,'segment');
+ await core.commit(await core.prepare([{type:'promptPreferences',entityId:'prompt-reuse:v1',kind:'purge'}]));
+ await assert.rejects(iterator.next(),{code:'BNS_PUBLICATION_OBSOLETE'});
+ const row=await core.read('publication',prepared.publicationId);assert.equal(row.state,'obsolete');for(const ref of row.objectRefs.filter(ref=>ref.kind==='descriptor'))assert.equal(transport.objects.has(ref.id),false);
+ assert.equal(await core.read('publicationReceipt',prepared.publicationId),undefined);
+});

@@ -64,3 +64,28 @@ lifetime qualification for this new journal remains open, separately from the
 prior Core's hosted native proof. Complete production owner coverage, consumer
 activation, real cloud access, OAuth, credentials, paid calls, real user data,
 migration and release remain outside this checkpoint.
+
+## Recovered local candidate and bounded review — 2026-10-08
+
+Recovery used published base `c76f260157cba6f00dda9a249dfac4b0b5ce7276`, whose
+exact tree `f08ac0e5de75906e78ad96771a97da8eb9608936` matches the handoff base.
+Applying only the publication increment produced the expected tree
+`93743e150663015eeb56a86d71031f7adc79a028`; this does not fabricate the original
+local commit ancestry. The published native-test successor `c6581e20` was merged
+separately: its 13 files change tests/workflow only, not this runtime.
+
+Bounded independent source review found no confirmed blocking defect in this
+increment. Two additional negative-path regressions prove that arbitrary
+transport error bodies are not persisted/returned, and that a purge while the
+publication iterator is suspended prevents its later descriptor publication.
+The full selected Sync/Prompt/native-harness preflight corpus passes 157 cases,
+zero skipped/cancelled. Source package audit passes 10,257 checks across 306
+runtime resources. These are fresh local model-storage/preflight results.
+
+An initial overly broad Prompt test selector also selected browser files; that
+attempt failed to obtain Chrome CDP and was stopped. Its failure/cancellation is
+retained outside the source tree, not counted as a native pass. The corrected
+explicit file selection above excludes browser execution. No native qualification
+for the publication journal, CI, provider call, full canonical restore,
+activation, migration or deployment is claimed. The documented blocked/obsolete
+reconciliation and orphan-cleanup limitations remain open.
