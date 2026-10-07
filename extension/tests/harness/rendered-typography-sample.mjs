@@ -2,7 +2,10 @@
 // entire sample; callers may retry within their existing bounded wait.
 export async function sampleRenderedTypography(page,client,selector){
  try{
-  const currentNode=async()=>{const {root}=await client.send('DOM.getDocument',{depth:0});return (await client.send('DOM.querySelector',{nodeId:root.nodeId,selector})).nodeId;};
+  // getDocument resets Chromium's frontend node bindings. Acquire it once per
+  // attempt so the final identity fence compares IDs in the same binding set.
+  const {root}=await client.send('DOM.getDocument',{depth:0});
+  const currentNode=async()=>(await client.send('DOM.querySelector',{nodeId:root.nodeId,selector})).nodeId;
   const nodeId=await currentNode();if(!nodeId)return null;
   const {fonts}=await client.send('CSS.getPlatformFontsForNode',{nodeId});
   const geometry=await page.locator(selector).first().evaluate(node=>{
