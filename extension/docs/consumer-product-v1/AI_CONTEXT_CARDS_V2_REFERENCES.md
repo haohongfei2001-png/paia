@@ -8,6 +8,10 @@ The package also contains Review.html, AI-Context.html, Screens.json, inherited 
 
 The original spec's review-pending label is historical; the later owner approval recorded in AI_CONTEXT_CARDS_V2_ADOPTION.md changes the design approval status. It does not change the original bytes or claim production visual acceptance. The approved source-code design baseline was 690a7e2bb8d838882f6eb3833f3bb909a158dc4f; the implementation plan is grounded in later main b575ccd9d812b93be9004b73c18eaca8cd4257fd.
 
+## Scoped shared-reading clarification, 2026-10-07
+
+The owner explicitly chose to retain PAIA's existing font size and prose width in Context. Compare detail states using the production shared reading-preference owner and the user's saved choices; the current standard role is 17px/680px rather than the package's 16px/800px. That precise difference is accepted. All other composition, hierarchy, spacing, controls, state, theme, compact-layout and interaction requirements remain applicable. Do not inject screenshot-only styles or change global preferences to imitate the original metrics. This clarification neither changes the private package bytes/hashes nor claims production acceptance or implemented global proportional scaling.
+
 ## Access and privacy
 
 Actual visual bytes remain in the owner's approved conversation artifact, not in this public repository. Retrieve that exact named package from the authorized handoff or file library; verify the hash and open the relevant screenshots. Do not use a sandbox URL from another session as a durable repository asset URL. This manifest alone is not a substitute for the images. If the executor cannot obtain them, report VISUAL_REFERENCE_MISSING for the affected visual work; continue independent domain/compatibility work without inventing a replacement design. Do not republish private source documents, archive material or identifying examples.

@@ -1,5 +1,13 @@
 # Authority and Source Policy
 
+## Thought Library final visual adoption — scoped owner decision, 2026-10-07
+
+The owner approved the reviewed PT-1.0 Thought Library direction and explicitly requested its adoption and development-plan integration in GitHub. [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, is the sole current Thought presentation/interaction contract. [The reference manifest](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) identifies the private instruction/overview and limits of available visual evidence. [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) section 7 maps it to TOPIC-05.1 through 05.8; STATUS still selects TOPIC-01 as the only next task.
+
+The adopted Root is a stable grid of independent rectangular Personal Topic blocks containing Topic name and real named Section overview. The reader is continuous default/named Section prose. AI reading headings remain derivative, never automatic durable Sections. Compact Topic list/recency/preview defaults, shared B2 table dividers, pre-Section B+, Content/Years/timeline surfaces and candidate approval flows are historical where they conflict. V8 of the visual authority provides scoped supersession for current and frozen lower-order descriptions; shared shell/tokens, nonconflicting safety and unrelated Archive/Context/Prompt Reuse remain intact.
+
+The written requirements and PT semantics outrank incidental details in the multi-panel overview. It is not approval for extra navigation, statistics, copied private sample text or a new token system. Approved visual direction is distinct from production pixel/interaction acceptance. No runtime, CSS, schema, migration, model/service, installed data or release is changed or certified by this documentation adoption. B-01/B-02 and other affected gates are not resolved by implication.
+
 ## Personal Topic Architecture — scoped owner decision, 2026-10-07
 
 The owner explicitly directed adoption of the settled Personal Topic Architecture. [TOPIC_ARCHITECTURE.md](TOPIC_ARCHITECTURE.md) is the single normative Topic contract; [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) contains implementation gaps, dependent slices and acceptance. [TOPIC_ARCHITECTURE_ADOPTION.md](TOPIC_ARCHITECTURE_ADOPTION.md) is the exact supersession/source audit, not a second product design. STATUS.md remains the sole execution queue and next-task authority.
@@ -10,7 +18,7 @@ The 2026-10-02 no-AI-write-back rule remains: Source, Working Input and human Th
 
 PAIA production does not depend on the 18/144 taxonomy. System and Personal Topic identities are independent. Lab keeps its isolated research label universe, budgets, status and historical evidence; any future optional integration needs comparable no-taxonomy/18/144 downstream evaluation and separate authorization, not just classifier accuracy.
 
-This change documents direction and plans only. No code, schema migration execution, model call, live service, paid processing, real archive access, UI redesign, deployment or release is authorized in this task. Necessary implementation/schema choices must satisfy existing preservation gates. The new plan's first identity/intent slice replaces older next-task pointers only as current sequencing; approved CTX4 and unrelated directions are not cancelled.
+The architecture adoption documented direction and plans only. No code, schema migration execution, model call, live service, paid processing, real archive access, UI redesign, deployment or release was authorized in that task. Necessary implementation/schema choices must satisfy existing preservation gates. The new plan's first identity/intent slice replaces older next-task pointers only as current sequencing; approved CTX4 and unrelated directions are not cancelled. The subsequent final visual adoption above supplies Thought presentation authority without starting implementation.
 
 ## AI Context Cards v2 — retained scoped owner decision, 2026-10-07
 
@@ -22,16 +30,20 @@ PT-1.0 supplies the meaning and stable identity of those Topics. Context list-si
 
 The replacement visual-state mapping remains AI_CONTEXT_CARDS_V2_REFERENCES.md; verification and dependent gates remain plan sections 7-8 applied through existing VERIFICATION.md and DEFERRED_FINAL_GATES.md rather than a parallel process. Lower-order conflicting text is history/compatibility, not a competing instruction. Its historical PASS is not a new PASS.
 
-The approved shell, brand and Context visuals remain; this Topic task does not design a new Thought UI. Current consumer-cleanup cancellations, including exports, backup generation and BYO/direct provider transport, remain in force. Neither decision authorizes payment, recurring costs, external connections, cloud uploads, destructive migration or public release. Source eligibility, human work, revocation, read/write separation and unresolved affected gates remain protected.
+The approved shell, brand and Context visuals remain. The architecture task did not design a new Thought UI; the later scoped Thought visual adoption above now supplies that presentation authority. Current consumer-cleanup cancellations, including exports, backup generation and BYO/direct provider transport, remain in force. Neither decision authorizes payment, recurring costs, external connections, cloud uploads, destructive migration or public release. Source eligibility, human work, revocation, read/write separation and unresolved affected gates remain protected.
+
+## Context shared reading roles — scoped owner clarification, 2026-10-07
+
+The owner explicitly chose to retain PAIA's existing font size and prose width for Context detail. The existing shared reading-preference owner and saved user choices remain authoritative; its standard 17px/680px role is accepted in place of the approved package's 16px/800px detail role. This is a bounded exception for those reading metrics, not a new Context font system or a waiver of the remaining visual, interaction, accessibility or runtime gates. The original private reference bytes and hashes remain unchanged. Future proportional scaling across PAIA remains a separate implementation direction.
 
 ## 1. Product authority
 
 The authority order for PAIA Consumer Product v1 is:
 
-1. Explicit latest product-owner decisions for their stated scope, including Personal Topic Architecture and AI Context Cards v2 above.
+1. Explicit latest product-owner decisions for their stated scope, including Thought final visual adoption, Personal Topic Architecture and AI Context Cards v2 above.
 2. Google Drive: PAIA设计想法.docx, where not superseded by a later explicit owner decision.
 3. PRODUCT_INTENT_CONTRACT.md and explicitly adopted scoped contracts: Topic semantics use TOPIC_ARCHITECTURE.md; Context uses AI_CONTEXT_CARDS_V2_PLAN.md with the Topic identity clarification above.
-4. UX_CONTRACT.md and current explicitly approved visual/interaction references, subject to scoped product semantics.
+4. UX_CONTRACT.md and current explicitly approved visual/interaction references, subject to scoped product semantics. Thought uses THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md and its private-reference manifest, not conflicting earlier list/Years/candidate or B2/pre-Section experiments.
 5. TECHNICAL_PLAN.md, MASTER_PLAN.md and scoped development plans for implementation strategy/dependencies; STATUS.md alone selects execution.
 6. Existing PRODUCT.md / ARCHITECTURE.md / ROADMAP.md and historical package contracts only where they do not contradict higher product intent.
 7. Current implementation: evidence of what exists, never proof of what the product should be.
@@ -50,7 +62,7 @@ Retained planning checkpoints:
 - Design-source SHA-256 recorded by that audit: `d61b141afdeb794b74ffe627e12b0a2530acca53aa94e9f28b6d8c2f13c08824`.
 - Original planning GitHub baseline: `fa1a6c6452153bb99ec24cdd8662b5d8c6a9371a`.
 
-These identify evidence, not authority of the private audit artifact. Current Topic adoption baselines are recorded separately without overwriting these checkpoints.
+These identify evidence, not authority of the private audit artifact. Current Topic adoption baselines and final-visual attachment hashes are recorded separately without overwriting these checkpoints.
 
 ## 3. Product fixed, implementation negotiable
 
@@ -62,7 +74,7 @@ Any migration must preserve TECHNICAL_PLAN invariants. Approved independent Cont
 
 ## 4. Conflict handling
 
-Do not silently choose between incompatible product meanings. The adoption record names exactly what is superseded and preserved.
+Do not silently choose between incompatible product meanings. The Topic adoption record and final visual authority V8 name exactly what is superseded and preserved.
 
 Existing owner-decision gates remain:
 
@@ -79,10 +91,10 @@ These block only affected behavior. For CTX4 and Topic formation record real-ser
 
 ANS, UIS, UIR, UX-R, PRD and CPR remain useful implementation/evidence, not competing current queues. Correct unfinished requirements are absorbed where relevant; historical PASS does not qualify a new slice and historical FAIL is not erased. Old freezes apply only where they still serve current product/trust requirements.
 
-Pre-CTX4 STATUS/MASTER and AI_CONTEXT_LEGACY_PRE_CTX4.md stay unchanged. Immediately pre-Topic STATUS and MASTER are preserved byte-for-byte in same-directory PRE_TOPIC snapshots. Frozen foundation/Organizer/AI-experience files, private references and Lab catalog/evaluation history are not rewritten to pretend they always described PT-1.0. Current routing and the adoption map supersede their conflicts explicitly.
+Pre-CTX4 STATUS/MASTER and AI_CONTEXT_LEGACY_PRE_CTX4.md stay unchanged. Immediately pre-Topic STATUS and MASTER remain byte-for-byte PRE_TOPIC snapshots. Immediately pre-final-visual STATUS and MASTER are likewise retained as same-directory PRE_THOUGHT_VISUAL snapshots referenced by the visual manifest. Frozen foundation/Organizer/AI-experience/D6 files, private references and Lab catalog/evaluation history are not rewritten to pretend they always described the current design. Current routing and scoped adoption maps supersede their conflicts explicitly.
 
 ## 6. No false completion
 
 A slice is not complete merely because tests are green, a fallback/component exists, a screenshot is cleaner, synthetic DOM passes, developer tools can recover it or a target was removed.
 
-Completion follows VERIFICATION and the applicable scoped plan. Topic requires separate identity/authority mechanics, formation quality, migration/reliability, one-library behavior and downstream utility evidence. CTX4 separately requires local data, security, whole-content, model fidelity, real connection and production visuals. Prototype 78/78, historical foundation acceptance and 144-label classification scores are not production certification. A documentation commit implements none of these runtime capabilities.
+Completion follows VERIFICATION and the applicable scoped plan. Topic requires separate identity/authority mechanics, formation quality, migration/reliability, one-library behavior and downstream utility evidence. CTX4 separately requires local data, security, whole-content, model fidelity, real connection and production visuals. Prototype 78/78, historical foundation acceptance and 144-label classification scores are not production certification. A documentation commit implements none of these runtime capabilities. Final design approval is not evidence that the supplied overview contains complete normal-scale or executable UI states.

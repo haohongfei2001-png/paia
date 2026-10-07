@@ -1,3 +1,4 @@
+import {topicIdentitiesSeparate,keepTopicIdentitiesSeparate} from '../topic-identity.js';
 import {prefix} from '../thought-model.js';
 import {inputProjection} from '../thought-evidence.js';
 
@@ -52,15 +53,14 @@ export async function rankTopicCandidates(s,t,texts,preferredIds=[]){
  return shortlist.filter(x=>x.isPreferred||x.score>=4).sort((a,b)=>b.score-a.score||a.topic.id.localeCompare(b.topic.id)).slice(0,8).map(x=>x.topic.id);
 }
 
-const pairKey=(a,b)=>'topicKeepSeparate:'+JSON.stringify([a,b].sort());
 export async function topicMergeSuggestions(s){await s.finishFoundation();return s.run(()=>s.repository.transaction(false,async t=>{
  const filter=await t.get('meta','smart-filter'),topics=[];
  for(const raw of (await t.all('topics')).filter(x=>x.lifecycle==='active'&&!x.redirectTo&&!x.layoutJobId).sort((a,b)=>(a.negativeUpdatedSequence||0)-(b.negativeUpdatedSequence||0)).slice(0,80)){const topic=await s.safeOrganization(t,'topic',raw);if(topic.sourceUnavailable||topic.name==='未归入主题')continue;let text=topic.name+' '+topic.summary;for(const p of await t.all('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),4))text+=' '+await eligibleSnippet(s,t,p.entryId,filter);topics.push({topic,tokens:topicTokens(text)});}
  const items=[];
- for(let i=0;i<topics.length;i++)for(let j=i+1;j<topics.length;j++){const a=topics[i],b=topics[j];if(await t.get('meta',pairKey(a.topic.id,b.topic.id)))continue;let common=0;for(const token of a.tokens)if(b.tokens.has(token))common++;const score=common/Math.max(1,Math.min(a.tokens.size,b.tokens.size));if(common<5||score<0.55)continue;const target=a.topic.name.length>=b.topic.name.length?a.topic:b.topic,source=target===a.topic?b.topic:a.topic;items.push({sourceId:source.id,sourceName:source.name,targetId:target.id,targetName:target.name,score});}
+ for(let i=0;i<topics.length;i++)for(let j=i+1;j<topics.length;j++){const a=topics[i],b=topics[j];if(await topicIdentitiesSeparate(t,a.topic.id,b.topic.id))continue;let common=0;for(const token of a.tokens)if(b.tokens.has(token))common++;const score=common/Math.max(1,Math.min(a.tokens.size,b.tokens.size));if(common<5||score<0.55)continue;const target=a.topic.name.length>=b.topic.name.length?a.topic:b.topic,source=target===a.topic?b.topic:a.topic;items.push({sourceId:source.id,sourceName:source.name,targetId:target.id,targetName:target.name,score});}
  return {items:items.sort((a,b)=>b.score-a.score).slice(0,8).map(({score,...item})=>item)};
 }));}
-export async function keepTopicsSeparate(s,{sourceId,targetId}){return s.foundationWrite(async t=>{const a=await s.canonicalTopic(t,sourceId),b=await s.canonicalTopic(t,targetId);if(a.id===b.id)return {kept:false};await t.put('meta',{id:pairKey(a.id,b.id),sourceId:a.id,targetId:b.id,at:s.clock(),actor:'user'});return {kept:true};});}
+export async function keepTopicsSeparate(s,request){return keepTopicIdentitiesSeparate(s,request);}
 
 // Suggestions only, using local existing headings/words; no Provider request.
 export async function topicRenameSuggestions(s){await s.finishFoundation();return s.run(()=>s.repository.transaction(false,async t=>{const items=[],filter=await t.get('meta','smart-filter');for(const raw of await t.all('topics')){if(raw.lifecycle!=='active'||raw.redirectTo||raw.createdBy!=='ai'||raw.protections?.name?.locked||!isTransientTopic(raw.name))continue;const topic=await s.safeOrganization(t,'topic',raw);if(topic.sourceUnavailable)continue;let suggestedName='';const sections=await t.all('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));suggestedName=sections.find(x=>x.title&&x.title.length>=4&&!isTransientTopic(x.title))?.title||'';if(!suggestedName){let text='';for(const p of await t.all('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),3))text+=' '+await eligibleSnippet(s,t,p.entryId,filter);const label=text.match(/(?:^|[。！？：\s])([A-Za-z][A-Za-z0-9_-]{2,15})/);suggestedName=label?label[1]+' 相关思考':'想法与后续计划';}items.push({topicId:topic.id,name:topic.name,suggestedName,revision:topic.revision});if(items.length===8)break;}return {items};}));}
