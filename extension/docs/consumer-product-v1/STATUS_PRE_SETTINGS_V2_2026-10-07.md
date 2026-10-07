@@ -1,30 +1,5 @@
 # Current status — PAIA Consumer Product v1
 
-## Settings Consumer v2 — final design adopted, 2026-10-07
-
-The owner retained the reviewed Settings direction, directed the final simplification, and requested design freeze, executable planning and canonical GitHub integration. [SETTINGS_CONSUMER_V2_ADOPTION.md](SETTINGS_CONSUMER_V2_ADOPTION.md), SETTINGS-CV2-1.0, is the current Settings product/visual authority. [The implementation plan](SETTINGS_CONSUMER_V2_PLAN.md) maps actual owners, gaps, five stages, migration and acceptance; [the reference manifest](SETTINGS_CONSUMER_V2_REFERENCES.md) records the corrected private artifacts and their hashes.
-
-| State | Current value |
-|---|---|
-| Settings direction | OWNER_DIRECTED / ADOPTED / DESIGN_FROZEN; lightweight directory + rows, six groups |
-| Final inventory | 20 main actionable rows + one secondary position reset; unavailable dependencies are not pretend controls |
-| Final simplification | One AI Context/access entry; one Data storage destination; no Settings version-history/helper, generic purge or Advanced |
-| Settings runtime implementation by this task | NOT_STARTED; existing Settings implementation is unchanged |
-| SET2-01 through SET2-05 | PLANNED, integrated under MASTER; not a competing execution queue |
-| Corrected prototype evidence | 144/144 layouts, 41/41 demo interactions, 26 rendered artboards; independent design evidence only |
-| Production persistence / permissions / migration / accessibility / live-provider acceptance | NOT_EXECUTED_BY_THIS_TASK / NOT_CLAIMED |
-| User data / AI service / external grants / spending / deployment / release by this task | NOT_ACCESSED / NOT_ACTIVATED / NOT_CHANGED / NOT_RUN / NOT_DEPLOYED / NOT_RELEASED |
-| Initial design read | 29940a921e4797c463a5e7e8436bafe6125f9f1d, 0.12.1 |
-| Final integration read | 288e17fb7adaf05b63a4af72458c1d6787488e0d, manifest/package 0.13.0 |
-
-The final read preserves intervening PR177 and its Topic identity/human-intent/strict restore foundation. [TOPIC-01's implementation receipt](implementation/topic/TOPIC-01.md) records MAIN_INTEGRATED / INDEPENDENT_REVIEW_CLEARED / EXACT_MAIN_FULL_CERTIFICATION_PENDING. It reports full reviewed-head certification but distinguishes the insufficient round-integration merge run from the required full exact-main evidence. This task neither reruns that certification nor declares it passed. The selected phase remains TOPIC-01 for verification and canonical closure, not rebuilding its merged code. Earlier adoption-only NOT_STARTED and PLANNED descriptions below describe those documentation tasks; they do not erase the subsequently integrated foundation or certify later slices.
-
-Conflicting D6.2/D7 Settings presentation and older Settings IA are scoped history. Shared visual roles, existing Source/edit/recovery restrictions, CTX4, PT-1 and Prompt Reuse remain unchanged. The first complete corrected-prototype run's keyboard-focus failure and fix are retained in the reference evidence; no historical PASS is converted into new production acceptance.
-
-Settings does not implement Context permissions, Topic management or a Prompt manager. Context route/status and reachable legacy revocation, a Prompt-owned position-reset bridge, real Stage 3A enable/revoke and confirmed About destinations remain explicit integration gaps. Missing services cannot justify duplicate preference stores or fake connected/enabled states. Local Settings work does not wait for the entire Thought UI or paid AI service.
-
-No Settings runtime writer starts from this documentation task. Pre-adoption status is preserved byte-for-byte as [STATUS_PRE_SETTINGS_V2_2026-10-07.md](STATUS_PRE_SETTINGS_V2_2026-10-07.md), original blob `d696ca599b67f1941ea3cd9acfffc289512eea92`, still unchanged at the final integration read. The matching MASTER snapshot is also retained. Older snapshots/reports/failures remain unchanged.
-
 ## Thought Library PT-1.0 final design — adopted, 2026-10-07
 
 The owner explicitly requested final-design adoption and development-plan integration after reviewing the Topic/Section design. [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0, is now the current Thought presentation authority: stable Personal Topic blocks with named Section overview, continuous Section/Entry reading, contextual editing and AI reading headings separate from durable Sections. [The private-reference manifest](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) records the available owner instruction/overview and its evidence limits without publishing private content.
@@ -55,7 +30,7 @@ The owner directed adoption of the settled Personal Topic architecture, not anot
 | PAIA architecture-adoption read baseline | 73f07b3dbe42fdb66f89500efa87513c2da96239 |
 | Semantic Lab architecture-adoption read baseline | 0ec6d9748cb88422d20a1e02c8d2047343f8bf96 |
 
-**NEXT DEVELOPMENT TASK (the sole current pointer): CPV1-TOPIC-01 — complete exact-main full verification and canonical closure of the already integrated Personal Topic identity and durable human-intent foundation.** Re-read the current implementation receipt and actual run evidence; do not rebuild merged code, substitute reviewed-head/round-integration evidence for exact-main full verification, or advance to later slices without closure. This Settings documentation task starts no runtime or certification job and claims no new verification result.
+**NEXT DEVELOPMENT TASK (the sole current pointer): CPV1-TOPIC-01 — Personal Topic identity and durable human-intent protection foundation, with conservative compatibility mapping and local contract tests, using existing domain services.** Start only on a subsequent implementation request; this instruction has not started a runtime writer. Scope and acceptance are in plan section 4. No LLM, taxonomy dependency, global reorganization or UI redesign belongs in that first slice. Final UI depends on the foundation but is not part of TOPIC-01 completion.
 
 CPV1-TOPIC-02 through 06 are PLANNED, not parallel next tasks. The one-library identity/protection contract must precede affected automatic formation and Context Topic access integration. Product/design decisions are settled; storage, display calibration and algorithm parameters still require engineering evidence. Do not credit old foundation or classifier tests as new Topic acceptance. TOPIC-05.1-05.8 are internal deliverables of 05, not new queues.
 

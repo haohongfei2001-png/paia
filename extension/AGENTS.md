@@ -90,6 +90,8 @@ Removing UI does not authorize deleting protected metadata or saved work. When a
 
 ## Engineering and delivery
 
+Follow [Product version and build identity](DEVELOPMENT_WORKFLOW.md#product-version-and-build-identity): each main integration has a unique source SHA; delivered-runtime fixes bump PATCH and compatible new capabilities bump MINOR. Synchronize manifest/version_name/package once per coherent integration against fresh main; documentation-only work is exempt. Do not claim installed build identity from version alone.
+
 Keep adapters/capture/import, storage/model, query/organization, UI and provider boundaries separate. The worker remains trusted validation/dispatch, not a home for every service. Target actual production functions in tests, not duplicate algorithms written for fixtures. Recheck current package scripts at implementation start.
 
 Fresh setup under extension/:
