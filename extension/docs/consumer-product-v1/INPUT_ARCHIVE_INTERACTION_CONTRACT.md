@@ -1,5 +1,13 @@
 # Input Archive — interaction contract
 
+> Execution update: the owner's later explicit seven-lane instruction selects
+> IAH-1.1 runtime development. It supersedes earlier documentation-only /
+> NOT_SELECTED / exclusion statements in this adoption record, not the confirmed
+> minimal design. See [current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
+> Implementation, tests, exact-main acceptance and user availability remain
+> separate claims; none is established by this authorization.
+
+
 **IAH-1.1 / 2026-10-08 / selected minimal optimization adopted; runtime not started by this task.** [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) owns the selected/rejected ledger; [UX](INPUT_ARCHIVE_HOME_UX.md) owns presentation; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns bounded delivery; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) owns evidence. This revises IAH-1.0 in place without changing canonical content schema or authorization.
 
 ## IAH-01. Four logical states, one owner, no forced new page

@@ -1,5 +1,13 @@
 # PAIA Archive Existing UI — Minimal Optimization visual specification
 
+> Execution update: the owner's later explicit seven-lane instruction selects
+> IAH-1.1 runtime development. It supersedes earlier documentation-only /
+> NOT_SELECTED / exclusion statements in this adoption record, not the confirmed
+> minimal design. See [current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
+> Implementation, tests, exact-main acceptance and user availability remain
+> separate claims; none is established by this authorization.
+
+
 **IAH-1.1 / selected visual scope approved 2026-10-08.** This is the sole current Archive presentation contract, correcting IAH-1.0 in place. [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) controls the allowlist/exclusions; [INTERACTION](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) owns behavior; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns implementation; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) binds the unmodified review assets. Approval is not a production acceptance claim.
 
 ## U1. Baseline and unchanged regions

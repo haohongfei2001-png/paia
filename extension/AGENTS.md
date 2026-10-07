@@ -2,7 +2,7 @@
 
 ## Current scoped Archive adoption — IAH-1.1, 2026-10-08
 
-The owner approved **PAIA Archive Existing UI — Minimal Optimization**, selecting necessary B changes rather than the entire prototype. The current task authorizes canonical documentation correction and plan alignment only. **It does not start Archive runtime development or lift Archive's exclusion from current coordinated execution.** Current `docs/consumer-product-v1/STATUS.md` controls scheduling; no old global next pointer is restored.
+The owner approved **PAIA Archive Existing UI — Minimal Optimization**, selecting necessary B changes rather than the entire prototype. The owner subsequently explicitly authorized IAH-1.1 runtime execution as the seventh coordinated lane. This supersedes the prior documentation-only task and Archive exclusion; the confirmed selected minimal design is unchanged. Current `docs/consumer-product-v1/STATUS.md` controls scheduling; no old global next pointer is restored.
 
 For Archive work read, in order: current STATUS and AUTHORITY; `INPUT_ARCHIVE_HOME_ADOPTION.md`; `INPUT_ARCHIVE_INTERACTION_CONTRACT.md`; `INPUT_ARCHIVE_HOME_UX.md`; `INPUT_ARCHIVE_HOME_PLAN.md`; `INPUT_ARCHIVE_HOME_REFERENCES.md`. These five documents are under `docs/consumer-product-v1/`. They now carry IAH-1.1 in place. PRE_MINIMAL predecessors and old IAH-1.0 mock rules are historical, not a second active authority. The legacy HOME filenames do not request a new Home page.
 
@@ -16,7 +16,7 @@ The other current domain authorities remain AIU/AIOS/Qwen, Browser-Native Sync, 
 
 `PAIA-CONSUMER-PRODUCT-v1` remains the sole active product/engineering queue. Read current STATUS, AUTHORITY, the relevant scoped contracts, Product Intent, UX, Technical Plan, Master, VERIFICATION and EXECUTION_PROTOCOL plus the relevant full preserved baselines and current code before any authorized batch.
 
-Current execution is the owner-directed coordinated CTX4/TOPIC/SET2/SYNC/AI-COST programme and explicit Prompt dependencies. The old CPV1-TOPIC-02 sole-pointer text is historical. Archive is design-ready for its selected scope but not execution-selected; its runtime exclusion remains. Do not start a writer from adoption, an old READY flag, automation heartbeat or a historical plan pointer.
+Current execution is the owner-directed coordinated CTX4/TOPIC/SET2/SYNC/AI-COST programme and explicit Prompt dependencies. The old CPV1-TOPIC-02 sole-pointer text is historical. Archive IAH-1.1 is now execution-selected by the owner, alongside the six existing lanes. Do not start a writer from adoption, an old READY flag, automation heartbeat or a historical plan pointer.
 
 Use one coordinated writer per shared runtime/data boundary. Existing independent owner-authorized branches retain their actual scope and gates; do not race Archive/AppShell/editor/query files or reopen past closures. Preserve PR #99 unchanged and unmerged unless a later explicit owner decision says otherwise. The complete preceding historical-package/authorization rules remain incorporated.
 
@@ -50,7 +50,7 @@ Keep current responsive navigation/overlay owners, shared dark/typography/focus/
 
 Remote `haohongfei2001-png/paia` main is the engineering fact source; local clones/unpacked copies/generated releases are not another authority. Active extension source is `extension/`; public site is repository root. When the user explicitly requests documentation or implementation changes, direct main integration is permitted unless a branch/PR was requested. Use a fresh base and guarded non-forced integration, preserve concurrent work and read back exact main. A repository design instruction cannot extend the user's present task into deployment or paid actions.
 
-For this documentation-only task, change only necessary Markdown design/plan/canonical files and exact Archive predecessor snapshots. No production runtime, HTML/JS/CSS, route/search/filter implementation, IndexedDB/schema, tests/workflows, manifest/version, build/install or extension publication. Preserve concurrent runtime changes unchanged relative to the actual integration parent. Archive execution requires separate selection.
+The earlier documentation-only adoption did not authorize runtime. The later explicit seven-lane instruction now authorizes ordinary implementation, tests, branches, PRs and protocol-compliant integration. Preserve concurrent changes and the selected minimal design. Paid models, cloud accounts/credentials, wider permissions, real-user uploads, formal deployment and irreversible deletion still require explicit authorization.
 
 ## Product, privacy and compatibility boundaries
 
@@ -68,4 +68,4 @@ Use production functions in targeted tests, affected browser/regression and the 
 
 The six Archive IDs are traceability, not six rewrites. PLAN groups necessary 01/02 with 03 checks, 04/05 gap closure and 06 acceptance into three coherent batches. Existing correct pieces are KEEP; cancelled Home/Main-only/split-click/sticky requirements are not acceptance gates. A new permanent scope widget or new host entry needs its own scope decision, not a fabricated prerequisite for local Find.
 
-Selected visual scope is approved; production execution is NOT_RUN by this adoption. Private package identity checks and old prototype assertions are not production behavior, installed build, live provider, semantic quality or blanket B approval. Missing external evidence blocks the affected claim without inventing success or restarting independently completed work.
+Selected visual scope is approved and execution is now selected; the adoption itself remains documentation evidence, not runtime acceptance. Private package identity checks and old prototype assertions are not production behavior, installed build, live provider, semantic quality or blanket B approval. Missing external evidence blocks the affected claim without inventing success or restarting independently completed work.

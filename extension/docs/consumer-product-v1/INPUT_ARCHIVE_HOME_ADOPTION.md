@@ -1,9 +1,19 @@
 # PAIA Archive Existing UI — Minimal Optimization adoption
 
+> Execution update: the owner's later explicit seven-lane instruction selects
+> IAH-1.1 runtime development. It supersedes earlier documentation-only /
+> NOT_SELECTED / exclusion statements in this adoption record, not the confirmed
+> minimal design. See [current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
+> Implementation, tests, exact-main acceptance and user availability remain
+> separate claims; none is established by this authorization.
+
+
 **IAH-1.1 / owner-approved scoped visual correction / 2026-10-08.**
 State: **SELECTED_VISUAL_SCOPE_ADOPTED / PLAN_ALIGNED / RUNTIME_NOT_STARTED_BY_THIS_TASK**.
 
 This corrects IAH-1.0 in place. It is not adoption of a new Archive UI or of the entire B prototype. The five existing Archive canonical paths remain the only active set: this adoption owns the decision/supersession ledger; [CONTRACT](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) owns interaction; [UX](INPUT_ARCHIVE_HOME_UX.md) owns the selected visual rules; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns implementation alignment; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) identifies exact private evidence. Their legacy HOME filenames do not require a welcome/search-home page.
+
+> Historical adoption-time statement below; superseded by the execution update at the top.
 
 The current owner explicitly authorizes documentation and development-plan correction, not production code, schema, UI, manifest changes or an Archive runtime start. The existing coordinated-execution exclusion of Archive remains effective. Current [STATUS](STATUS.md), not an old single-next-task paragraph, controls scheduling of other lanes.
 
@@ -51,6 +61,8 @@ All unchanged colors, fonts, backgrounds, borders, radii, blue selection and sha
 | UX U4 / B P3: Main Project heading/search/hint | No required Project Main page or hint; no duplicate Conversation list | Navigation tree and scoped-query semantics |
 | B M4: sticky search-origin return line | Normal-flow existing Back only; deep-return convenience is future usability evidence | Accurate origin, precise landing, applicable reading/selection guards |
 | B M6 / old mandatory membership copy | No additional wording change selected; keep source-state truth and current copy | Unknown is not confirmed unassigned; source deletion is not PAIA purge |
+> Historical adoption-time statement below; superseded by the execution update at the top.
+
 | B prototype and PNGs as a complete implementation target | Component/behavior allowlist in section 2; exclusions apply to every artboard, including dark/narrow/deep states | Compatible visual comparison and historical prototype evidence |
 | Older poster and pre-review Home mock precedence | Historical/rejected evidence only, never final pixel authority | Nonconflicting safety and provenance requirements |
 | Old six-stage Home rebuild / exact-one-search / split-label / sticky acceptance | Smaller gap-closure plan with KEEP coverage and selected-change acceptance | Necessary navigation, query, deletion, recovery, accessibility and exact-source verification |

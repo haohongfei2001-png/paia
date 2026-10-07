@@ -1,5 +1,17 @@
 # Authority and Source Policy
 
+## Latest execution authorization — seven coordinated lanes
+
+The owner explicitly selected TOPIC, CTX4, SET2, SYNC, AI-COST, approved Prompt
+Surface/Stage 3A dependencies and IAH-1.1 for continued development. This later
+decision supersedes the earlier documentation-only Archive authorization and
+execution exclusion below, while preserving its exact selected/rejected design.
+[Current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md) records bounded assignments.
+Ordinary engineering and compliant integration are authorized; paid models,
+cloud accounts/credentials, expanded permissions, real-user uploads, formal
+deployment and irreversible deletion are not inferred from this authorization.
+
+
 Current scoped adoption: **IAH-1.1, 2026-10-08 — PAIA Archive Existing UI / Minimal Optimization**. This corrects IAH-1.0 visual/click requirements in place; it does not adopt the whole B prototype. Existing **AIU-1.0 / AIOS-1.0 / AIU-QWEN-1.0**, BNS, Settings, Personal Topic, Thought and Context adoptions remain unchanged outside the exact Archive scope below.
 
 ## 1. Current authority order
