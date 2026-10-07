@@ -164,12 +164,14 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    const near=(a,b,label)=>assert.ok(Math.abs(a-b)<1,label+': '+a+' vs '+b);
    const attached=async()=>{assert.ok(card(),'card stays open');const b=await bounds();near(b.orb.x,b.card.x+b.card.width-40,'attached x');near(b.orb.y,b.card.y-32,'attached y');return b;};
    const saved=()=>engineering.evaluate(async()=> (await chrome.storage.local.get('promptSurfaceV1')).promptSurfaceV1);
-   // The preceding zoom/viewport cases leave a valid near-edge saved anchor.
-   // Put this free-motion test inside the safe band with a real drag before
-   // asserting exact deltas; the later boundary drags retain the clamp oracle.
-   const origin=await attached();await page.mouse.move(origin.orb.x+22,origin.orb.y+22);await page.mouse.down();
-   await page.mouse.move(922,272,{steps:8});await page.mouse.up();
-   await eventually(async()=>{const b=await attached(),v=await saved();return Math.abs(b.orb.x-900)<1&&Math.abs(b.orb.y-250)<1&&v.position&&Math.abs(v.position.x*1236-b.orb.x)<1&&Math.abs(v.position.y*856-b.orb.y)<1;},'native free-motion anchor is safely away from clamp boundaries');
+   // Earlier zoom/viewport checks can leave a near-edge anchor. Establish a
+   // persisted safe start with the existing native keyboard owner before the
+   // original exact pointer deltas and boundary-clamp assertions below.
+   await page.locator('#blur').focus();await page.keyboard.press('Tab');
+   assert.equal(await page.evaluate(()=>document.activeElement.hasAttribute('data-paia-prompt-surface')),true);
+   for(let n=0;n<30&&(await orb.boundingBox()).x>920;n++)await page.keyboard.press('Alt+ArrowLeft');
+   for(let n=0;n<30&&(await orb.boundingBox()).y<250;n++)await page.keyboard.press('Alt+ArrowDown');
+   await eventually(async()=>{const b=await attached(),v=await saved();return b.orb.x>850&&b.orb.x<=920&&b.orb.y>=250&&b.orb.y<270&&v.position&&Math.abs(v.position.x*1236-b.orb.x)<1&&Math.abs(v.position.y*856-b.orb.y)<1;},'native keyboard provides safe persisted anchor');
    const initial=await attached(),sameFrame=card();await page.mouse.move(initial.orb.x+22,initial.orb.y+22);await page.mouse.down();
    assert.deepEqual(await bounds(),initial,'pointerdown does not jump');
    await page.mouse.move(initial.orb.x+14,initial.orb.y+16);await page.waitForTimeout(40);let b=await attached();near(b.orb.x,initial.orb.x-8,'first movement x');near(b.orb.y,initial.orb.y-6,'first movement y');near(b.card.x,initial.card.x-8,'card first movement x');near(b.card.y,initial.card.y-6,'card first movement y');near(b.card.height,initial.card.height,'card height stays stable');assert.equal(card(),sameFrame);
