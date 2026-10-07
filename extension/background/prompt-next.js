@@ -107,6 +107,8 @@ export class NextPromptCommands{
   if(command?.type==='next_reopen'&&own(command,['type'])){
    const g=this.groups.get(tab.id);if(!g)fail();await this.assertCurrent(g);
    if(!await this.surface.isIdle(tab.id))fail();
+   // The idle probe yields: authorization or the current reply may change.
+   await this.assertCurrent(g);
    return this.api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_REOPEN',id:g.id},{documentId:g.documentId});
   }
   fail();
