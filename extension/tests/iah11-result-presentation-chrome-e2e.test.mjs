@@ -47,6 +47,26 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
    await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
   }
   writeFileSync(out+variant+'-unicode.json',JSON.stringify({inputId,before,after:await readInput(),unicode},null,2));
+  const filteredChat={id:'iah11-filter-context',title:'SYNTHETIC_FILTER_CONTEXT',base:1609459300,messages:[{id:'iah11-normal',text:'SYNTHETIC_NORMAL_CONTEXT'},{id:'iah11-filter-before',text:'继续'},{id:'iah11-filter-target',text:'请继续'},{id:'iah11-filter-after',text:'开始吧'}]};
+  await h.open(filteredChat);await eventually(async()=>(await h.state()).records.length===5);
+  await eventually(async()=>{const r=await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}));return r.ok&&r.data.items.length===3;},'three actual captured Inputs are filtered');
+  const capture=(await h.state()).records,targetRecord=capture.find(r=>r.originalText==='请继续'),normalRecord=capture.find(r=>r.originalText==='SYNTHETIC_NORMAL_CONTEXT');
+  assert.ok(targetRecord&&normalRecord);const targetId='block:'+targetRecord.id,normalId='block:'+normalRecord.id;
+  const filterState=()=>p.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('paia-archive');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});try{const names=['records','blocks','filterInputs','filterIntents','inputStates','revisions'],tx=db.transaction(names,'readonly');return Object.fromEntries(await Promise.all(names.map(name=>new Promise((resolve,reject)=>{const r=tx.objectStore(name).getAll();r.onsuccess=()=>resolve([name,r.result]);r.onerror=()=>reject(r.error);}))))}finally{db.close();}});
+  const filterBefore=await filterState();
+  await p.locator('#scope-search').fill('请继续');await p.locator('#search-include-filtered').check();
+  const filteredRow=p.locator('.search-input[data-input-id="'+targetId+'"]');await eventually(()=>filteredRow.count().then(n=>n===1),'explicit filtered search exposes target');await filteredRow.focus();await p.keyboard.press('Enter');
+  await eventually(()=>p.locator('[data-edit-id="'+targetId+'"]').isVisible(),'filtered target arrives in real Reader');
+  const visibleIds=()=>p.locator('#document-body [data-edit-id]:visible').evaluateAll(nodes=>nodes.map(n=>n.dataset.editId));
+  assert.deepEqual((await visibleIds()).sort(),[normalId,targetId].sort(),'temporary target does not reveal either filtered neighbour');
+  assert.equal(await p.locator('[data-edit-id="'+targetId+'"]').textContent(),'请继续');
+  assert.deepEqual(await filterState(),filterBefore,'temporary reveal never Keep/protects or rewrites originals/revisions');
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());await p.locator('#scope-search').fill('');
+  const group=p.locator('.archive-navigator-group-toggle').filter({hasText:'未归属 Project'}).first();await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  const ordinary=p.locator('.archive-navigator-window').filter({hasText:'SYNTHETIC_FILTER_CONTEXT'});await eventually(()=>ordinary.isVisible());await ordinary.click();
+  await eventually(async()=>JSON.stringify(await visibleIds())===JSON.stringify([normalId]),'ordinary Reader again hides every filtered Input');
+  assert.deepEqual(await filterState(),filterBefore,'ordinary return does not persist temporary visibility');
+  writeFileSync(out+variant+'-filter-context.json',JSON.stringify({targetId,normalId,visibleIds:await visibleIds(),unchanged:true},null,2));
   assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
