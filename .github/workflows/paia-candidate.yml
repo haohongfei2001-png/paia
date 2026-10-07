@@ -334,6 +334,18 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
+      - name: Pin upstream touch-emulation fix for the explicit Settings diagnostic
+        if: contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')
+        run: |
+          set -euo pipefail
+          PAIA_DIAGNOSTIC_ZIP="$RUNNER_TEMP/settings-chrome-155.0.8059.39.zip"
+          PAIA_DIAGNOSTIC_CHROME="$RUNNER_TEMP/settings-chrome-155.0.8059.39"
+          curl --fail --location --proto '=https' --tlsv1.2 --max-time 120 --output "$PAIA_DIAGNOSTIC_ZIP" 'https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'
+          unzip -q "$PAIA_DIAGNOSTIC_ZIP" -d "$PAIA_DIAGNOSTIC_CHROME"
+          test "$("$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" --version | awk '{print $NF}')" = '155.0.8059.39'
+          echo "CHROME_PATH=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"
+          echo 'PAIA_DIAGNOSTIC_BROWSER_VERSION=155.0.8059.39' >> "$GITHUB_ENV"
+          echo "PAIA_DIAGNOSTIC_BROWSER_SHA256=$(sha256sum "$PAIA_DIAGNOSTIC_ZIP" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
       - name: Provide Chinese glyph coverage for paired Thought evidence
         if: contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC')
         run: |
@@ -506,7 +518,7 @@ jobs:
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
           const report=JSON.parse(readFileSync('work/qa-dvn-settings-touch-diagnostic/test-summary.json'));assert.equal(report.total,2);assert.equal(report.pass,2);assert.equal(report.fail,0);assert.equal(report.skipped,0);
-          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings-touch-diagnostic/${variant}.json`));assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.match(receipt.scope,/^DIAGNOSTIC_ONLY/);assert.equal(receipt.trials.length,4);assert.equal(receipt.aboutResult,'PASS');assert.deepEqual(receipt.aboutRows.map(row=>row.language+':'+row.state).sort(),['en:available','en:installed','en:read-error','en:unknown','zh-CN:available','zh-CN:installed','zh-CN:read-error','zh-CN:unknown']);}
+          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings-touch-diagnostic/${variant}.json`));assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.match(receipt.scope,/^DIAGNOSTIC_ONLY/);assert.equal(receipt.trials.length,4);assert.equal(receipt.browser,'155.0.8059.39');assert.match(receipt.browserZipSha256,/^[a-f0-9]{64}$/);assert.equal(receipt.aboutResult,'PASS');assert.deepEqual(receipt.aboutRows.map(row=>row.language+':'+row.state).sort(),['en:available','en:installed','en:read-error','en:unknown','zh-CN:available','zh-CN:installed','zh-CN:read-error','zh-CN:unknown']);}
           JS
       - name: Retain Settings device diagnostic evidence
         if: always() && contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')

@@ -20,3 +20,10 @@ test('Settings device diagnosis is explicit, isolated and cannot stand in for th
  assert.match(diagnostic,/tests\/settings-touch-diagnostic-chrome-e2e.test.mjs/);assert.doesNotMatch(diagnostic,/test-name-pattern|test-skip-pattern|continue-on-error/);for(const required of ['report.total,2','report.pass,2','report.fail,0','report.skipped,0','DIAGNOSTIC_ONLY','receipt.trials.length,4',"receipt.aboutResult,'PASS'",'en:read-error','zh-CN:read-error'])assert.ok(diagnostic.includes(required),required);
  assert.equal(group('settings-touch-diagnostic-chrome-e2e.test.mjs'),'experimental');
 });
+
+
+test('Settings diagnostic pins the official fixed full browser without changing normal selection or device oracles',()=>{
+ const pin=job.slice(job.indexOf('      - name: Pin upstream touch-emulation'),job.indexOf('      - name: Provide Chinese glyph coverage'));
+ assert.match(pin,/if: contains\(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC'\)/);assert.ok(pin.includes('https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'));assert.match(pin,/set -euo pipefail/);assert.match(pin,/sha256sum/);assert.doesNotMatch(pin,/\|\| true|continue-on-error|latest|canary/);
+ const source=readFileSync(new URL('./settings-touch-diagnostic-chrome-e2e.test.mjs',import.meta.url),'utf8');for(const required of ["receipt.browser,'155.0.8059.39'",'browserZipSha256','trial.before.maxTouchPoints,1','trial.after.maxTouchPoints,1','trial.after.coarse,true','event.trusted,true','trial.afterBox.width>=44&&trial.afterBox.height>=44','for(const headless of [true,false])'])assert.ok(source.includes(required),required);
+});
