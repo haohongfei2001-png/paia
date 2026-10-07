@@ -89,3 +89,39 @@ budgets. Root run37687078617 was cancelled in that dependency stage before
 shard5 browser tests; other required jobs passed. A single shard5 retry on the
 same Root head was requested, without rerunning successful groups. Its outcome
 is not presumed here; the original cancellation remains negative evidence.
+
+
+## Settings visual and evidence-contract follow-up
+
+Run37689518845 at292cf46 passed all9 browser cases (including source/release
+Data and both288-row matrices), but the post-test evidence validator failed:
+it still required5 interactions while the recovered offline-style journey emits
+6. The correction strictly preserves the prior5, requires the sixth
+`offline-ai-style` and all8 ordered style subcases. Two additional compact text/
+Data locale cases increase the unchanged four whole-file command to11 cases.
+This is a failed candidate receipt, not a successful aggregate.
+
+Actual synthetic screenshots revealed untranslated English Settings Data labels
+and history summaries, plus split words at320px/enlarged text. The bounded UI
+correction follows existing document locale/preferences events, keeps all
+controls/IDs and actions, and gives narrow destination values and dialog titles
+whole-line space. Related local tests23/23 and new headless source/release2/2
+pass. The coordinator viewed the corrected release narrow AI and supported-sites
+images; the author viewed9 corrected images. Original design-reference bytes
+remain unavailable: VISUAL_REFERENCE_MISSING, no pixel-match acceptance claim.
+
+A supplementary existing owner journey first read Settings return metadata while
+navigation was still showing the panel but awaiting its history commit. The
+fixture now waits only for route view=settings, then executes every original
+strict document/input/anchor/IME/reload/Back assertion with unchanged timeout.
+Its full source/release owner case passes1/1. A polluted generated release cache
+was rejected by14 guards:626 files including267 duplicate-name copies were
+preserved with a SHA256 manifest under local diagnostics; source was clean and
+the unchanged builder produced a fresh359-file release. No duplicate was
+admitted and no guard was relaxed. An accidentally selected headed matrix run
+was cancelled locally and is not PASS evidence.
+
+The adapter-job HTTPS mirror pre-step is the exact independently reviewed
+60145d9 block already successful on Sync; the Settings browser receipt/count
+updates were independently reviewed, with7 CI tests and embedded-script syntax
+checks passing. These local results await the next exact-head hosted candidate.
