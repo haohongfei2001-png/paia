@@ -1,12 +1,12 @@
 import {settingsPromptPositionEvidence} from './harness/settings-prompt-position-browser.mjs';
-import test from 'node:test';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';import {join} from 'node:path';import {mkdir,writeFile} from 'node:fs/promises';import {execFileSync} from 'node:child_process';
+import test from 'node:test';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';import {join} from 'node:path';import {mkdir,writeFile,mkdtemp} from 'node:fs/promises';import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';import {routeComposer,isolated} from './harness/prompt-composer.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url)),url='https://chatgpt.com/c/prompt-insertion-fixture',receiptDir=join(root,'work/prompt-surface');
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isolated native Chrome',{timeout:240000},async t=>{
- const extensionPath=variant==='source'?root:join(root,'work/current-release');if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'pipe'});
+ const extensionPath=variant==='source'?root:await mkdtemp(join(root,'work/prompt-diagnostic-release-'));if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',extensionPath],{cwd:root,stdio:'pipe'});
  let failures=0;const check=(name,fn)=>t.test(name,async()=>{try{await fn();}catch(error){failures++;throw error;}});
- const h=await FakeChatGPT.start({extensionPath,headless:!process.env.DISPLAY,launchThroughPort:true}),screens=[];let world;await mkdir(receiptDir,{recursive:true});
+ const h=await FakeChatGPT.start({extensionPath,headless:!process.env.DISPLAY,launchThroughPort:true}),screens=[];let world,diagnosticCDP;const navigationTrace=[],diagnosticReads=[];await mkdir(receiptDir,{recursive:true});
  try{
   await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
   const engineering=await h.context.newPage();await engineering.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');
@@ -16,7 +16,21 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   const arrange=async p=>{await p.addStyleTag({content:'body{margin:0;min-height:100vh}form{position:fixed;left:16px;right:16px;bottom:16px;border:1px solid #aaa;padding:12px;background:#fafafa}#blur{position:fixed;top:8px;left:8px}@media(prefers-color-scheme:dark){body{background:#1f1f1f;color:#eee}form{background:#292929}}'});};await arrange(page);
   const orb=page.locator('[data-paia-prompt-surface]');await orb.waitFor({state:'visible'});
   const card=()=>page.frames().find(f=>f.url().includes('/ui/prompt-surface.html#'));
-  const open=async()=>{if(!card())await orb.click();await eventually(()=>!!card());await card().locator('.row').first().waitFor();await (await card().frameElement()).evaluate(async e=>{await Promise.all(e.getAnimations().map(a=>a.finished));});return card();};
+  // Resolve the current closed-shadow iframe within the existing readiness budget.
+  // Only an actually detached Frame permits reacquisition; all other errors fail.
+  const readyCard=async()=>{let ready;await eventually(async()=>{const f=card();if(!f||f.isDetached())return false;let visible;try{visible=await f.locator('.row').first().isVisible();}catch(error){if(f.isDetached())return false;throw error;}if(!visible||f.isDetached()||card()!==f)return false;ready=f;return true;},'current Prompt frame has visible rows');await (await ready.frameElement()).evaluate(async e=>{await Promise.all(e.getAnimations().map(a=>a.finished));});assert.equal(ready.isDetached(),false,'ready Prompt frame remains attached');assert.equal(card(),ready,'ready Prompt owner remains current');return ready;};
+  const open=async()=>{if(!card())await orb.click();return readyCard();};
+  // Read-only synthetic lifecycle trace: no retry, timeout or assertion changes.
+  const frameIds=new WeakMap();let nextFrameId=0;const frameId=f=>{if(!frameIds.has(f))frameIds.set(f,++nextFrameId);return frameIds.get(f);};
+  const trace=(phase,data={})=>navigationTrace.push({at:Date.now(),phase,...data});
+  for(const event of ['frameattached','framedetached','framenavigated'])page.on(event,f=>trace(event,{frame:frameId(f),main:f===page.mainFrame(),url:f.url(),detached:f.isDetached()}));
+  diagnosticCDP=await h.context.newCDPSession(page);const diagnosticContexts=new Map();
+  diagnosticCDP.on('Runtime.executionContextCreated',({context:c})=>diagnosticContexts.set(c.id,c));
+  diagnosticCDP.on('Runtime.executionContextDestroyed',e=>diagnosticContexts.delete(e.executionContextId));
+  diagnosticCDP.on('Runtime.executionContextsCleared',()=>diagnosticContexts.clear());
+  const traceLifecycle=phase=>{const read=Promise.all([...diagnosticContexts.values()].filter(c=>!c.auxData?.isDefault).map(async c=>{try{const r=await diagnosticCDP.send('Runtime.evaluate',{contextId:c.id,expression:'JSON.stringify({active:globalThis.PAIACaptureLifecycle?.active,ready:globalThis.PAIACaptureLifecycle?.ready,version:globalThis.PAIACaptureLifecycle?.version,surface:!!globalThis.PAIAPromptSurface})',returnByValue:true});trace(phase,{context:c.id,frame:c.auxData?.frameId,lifecycle:r.result.value,error:r.exceptionDetails?.text});}catch(e){trace(phase,{context:c.id,error:e.message});}}));diagnosticReads.push(read);};
+  diagnosticCDP.on('Page.frameNavigated',({frame:f})=>{trace('cdp-frameNavigated',{frame:f.id,parent:f.parentId,documentNonce:f.loaderId,url:f.url});traceLifecycle('navigation-lifecycle');});
+  await diagnosticCDP.send('Runtime.enable');await diagnosticCDP.send('Page.enable');
   const collapsedBeforeOpen=await orb.boundingBox();await open();await card().locator('#close').click();await eventually(()=>!card());assert.deepEqual(await orb.boundingBox(),collapsedBeforeOpen);await open();world=await isolated(page,h.extensionId);
   await check('orb toggle collapses idle card, preserves anchor and uses native Enter and Space',async()=>{
    // Preserve the user's saved visible anchor across both states (default placement stays unchanged).
@@ -103,7 +117,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   await check('worker restart, SPA and page reload preserve durable templates without duplicate surface',async()=>{
    await h.restartWorker();await card().locator('#refresh').click();await card().locator('.row').first().waitFor();
    await page.evaluate(()=>{history.pushState({},'', '/c/prompt-insertion-fixture?route=project');document.body.append(document.createElement('i'));});await eventually(()=>card()?.url().includes('prompt-surface.html#'));await page.waitForTimeout(150);assert.equal(await orb.count(),1);
-   await page.goto(url);await arrange(page);await orb.waitFor({state:'visible'});await open();assert.equal(await orb.count(),1);assert.ok((await rpc(engineering,'PAIA_PROMPT_QUERY')).items.find(x=>x.text==='move me synthetic'));
+   trace('case10-before-goto');traceLifecycle('case10-before-goto-lifecycle');await page.goto(url);trace('case10-after-goto');traceLifecycle('case10-after-goto-lifecycle');await arrange(page);await orb.waitFor({state:'visible'});await open();assert.equal(await orb.count(),1);assert.ok((await rpc(engineering,'PAIA_PROMPT_QUERY')).items.find(x=>x.text==='move me synthetic'));
    await world.cdp.detach();world=await isolated(page,h.extensionId);
   });
   await check('second tab and actual tab discard restore their own surface and draft target',async()=>{
@@ -169,9 +183,25 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    // original exact pointer deltas and boundary-clamp assertions below.
    await page.locator('#blur').focus();await page.keyboard.press('Tab');
    assert.equal(await page.evaluate(()=>document.activeElement.hasAttribute('data-paia-prompt-surface')),true);
-   for(let n=0;n<30&&(await orb.boundingBox()).x>920;n++)await page.keyboard.press('Alt+ArrowLeft');
-   for(let n=0;n<30&&(await orb.boundingBox()).y<250;n++)await page.keyboard.press('Alt+ArrowDown');
-   await eventually(async()=>{const b=await attached(),v=await saved();return b.orb.x>850&&b.orb.x<=920&&b.orb.y>=250&&b.orb.y<270&&v.position&&Math.abs(v.position.x*1236-b.orb.x)<1&&Math.abs(v.position.y*856-b.orb.y)<1;},'native keyboard provides safe persisted anchor');
+   // Prior viewport/zoom cases may start on either side of the target on a
+   // different platform. Reach the same safe rectangle through real keys only.
+   const anchorTrace={variant,platform:process.platform,steps:[]};
+   const anchorState=async()=>({bounds:await bounds(),saved:await saved(),focus:await page.evaluate(()=>({documentFocused:document.hasFocus(),orbFocused:document.activeElement?.hasAttribute('data-paia-prompt-surface')===true,width:innerWidth,height:innerHeight,dpr:devicePixelRatio}))});
+   await page.evaluate(()=>{globalThis.__anchorKeys=[];globalThis.__anchorKeyListener=event=>{if(event.target?.hasAttribute('data-paia-prompt-surface'))__anchorKeys.push({key:event.key,alt:event.altKey,trusted:event.isTrusted,prevented:event.defaultPrevented});};document.addEventListener('keydown',__anchorKeyListener);});
+   try{
+    anchorTrace.before=await anchorState();
+    for(let n=0;n<30;n++){
+     const b=await orb.boundingBox(),key=b.x>920?'ArrowLeft':b.x<=850?'ArrowRight':null;if(!key)break;
+     await page.keyboard.press('Alt+'+key);anchorTrace.steps.push({key,state:await anchorState()});
+    }
+    for(let n=0;n<30;n++){
+     const b=await orb.boundingBox(),key=b.y<250?'ArrowDown':b.y>=270?'ArrowUp':null;if(!key)break;
+     await page.keyboard.press('Alt+'+key);anchorTrace.steps.push({key,state:await anchorState()});
+    }
+    await eventually(async()=>{const b=await attached(),v=await saved();return b.orb.x>850&&b.orb.x<=920&&b.orb.y>=250&&b.orb.y<270&&v.position&&Math.abs(v.position.x*1236-b.orb.x)<1&&Math.abs(v.position.y*856-b.orb.y)<1;},'native keyboard provides safe persisted anchor');
+    const events=(await page.evaluate(()=>__anchorKeys)).filter(event=>['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key));assert.deepEqual(events.map(event=>event.key),anchorTrace.steps.map(step=>step.key));for(const event of events){assert.equal(event.trusted,true);assert.equal(event.alt,true);assert.equal(event.prevented,true);}assert.equal(await page.evaluate(()=>document.activeElement?.hasAttribute('data-paia-prompt-surface')),true,'native anchor setup retains orb focus');anchorTrace.result='PASS';
+   }catch(error){anchorTrace.result='FAIL';anchorTrace.error=error.message;throw error;}
+   finally{anchorTrace.after=await anchorState();anchorTrace.events=await page.evaluate(()=>{document.removeEventListener('keydown',__anchorKeyListener);const events=__anchorKeys;delete globalThis.__anchorKeyListener;delete globalThis.__anchorKeys;return events;});await writeFile(join(receiptDir,variant+'-native-anchor.json'),JSON.stringify(anchorTrace,null,2));}
    const initial=await attached(),sameFrame=card();await page.mouse.move(initial.orb.x+22,initial.orb.y+22);await page.mouse.down();
    assert.deepEqual(await bounds(),initial,'pointerdown does not jump');
    await page.mouse.move(initial.orb.x+14,initial.orb.y+16);await page.waitForTimeout(40);let b=await attached();near(b.orb.x,initial.orb.x-8,'first movement x');near(b.orb.y,initial.orb.y-6,'first movement y');near(b.card.x,initial.card.x-8,'card first movement x');near(b.card.y,initial.card.y-6,'card first movement y');near(b.card.height,initial.card.height,'card height stays stable');assert.equal(card(),sameFrame);
@@ -179,7 +209,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    await page.mouse.up();const moved=await attached();await eventually(async()=>{const v=await saved();return v?.open&&v.position&&Math.abs(v.position.x*1236-moved.orb.x)<1&&Math.abs(v.position.y*856-moved.orb.y)<1;});
    assert.equal(await page.evaluate(()=>fixture.text()),'DRAG_DRAFT_UNCHANGED');assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);
    await orb.click();await eventually(()=>!card(),'ordinary click after true drag closes');near((await orb.boundingBox()).x,moved.orb.x,'closed anchor x');near((await orb.boundingBox()).y,moved.orb.y,'closed anchor y');await open();assert.deepEqual(await attached(),moved);
-   await page.reload();await arrange(page);await page.waitForFunction(()=>!!globalThis.fixture?.view);await orb.waitFor({state:'visible'});await eventually(()=>!!card());await card().locator('.row').first().waitFor();assert.deepEqual(await attached(),moved);
+   await page.reload();await arrange(page);await page.waitForFunction(()=>!!globalThis.fixture?.view);await orb.waitFor({state:'visible'});await readyCard();trace('case16-reload-before-geometry',{frame:frameId(card()),animations:await (await card().frameElement()).evaluate(e=>e.getAnimations().map(a=>({currentTime:a.currentTime,playState:a.playState,timing:a.effect?.getComputedTiming()}))),geometry:await bounds()});assert.deepEqual(await attached(),moved);
    const restartTrace=[];let restartFailure=false;
    const restartState=async phase=>{const f=card();restartTrace.push({phase,framePresent:!!f,refreshEnabled:f?await f.locator('#refresh').isEnabled():null,closeEnabled:f?await f.locator('#close').isEnabled():null,rows:f?await f.locator('.row').count():0,savedOpen:(await saved())?.open===true});};
    try{
@@ -247,5 +277,5 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    assert.deepEqual(await page.evaluate(()=>({send:fixture.send,enter:fixture.enter,storage:[localStorage.length,sessionStorage.length]})),{send:0,enter:0,storage:[0,0]});assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.historyRequests,0);assert.equal((await h.state()).records.length,2);assert.deepEqual(h.errors,[]);
    await writeFile(join(receiptDir,variant+'.json'),JSON.stringify({head:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),variant,status:failures?'FAIL':'PASS',evidence:'SYNTHETIC_NATIVE_CHROME',screens,idleTaskSeconds:after.TaskDuration-before.TaskDuration,send:0,providerRequests:0}));
   });
- }finally{await world?.cdp.detach().catch(()=>{});await h.close();}
+ }finally{await Promise.allSettled(diagnosticReads);await writeFile(join(receiptDir,variant+'-navigation-diagnostic.json'),JSON.stringify({variant,failures,trace:navigationTrace},null,2));await diagnosticCDP?.detach().catch(()=>{});await world?.cdp.detach().catch(()=>{});await h.close();}
 });

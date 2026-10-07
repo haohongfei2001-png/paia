@@ -71,6 +71,10 @@ function rootTestShard(file, position, total, category) {
  // Full37684301966 shard4 used764s plus280s font setup and was cancelled
  // at job completion. Move its complete213s retained Root file to shard7,
  // which finished in553s total. Keep all75 files and the18-minute budget.
+ // Main37691533146: shard1 spent965s on tests and exhausted its18-minute
+ // job after font setup. Its complete historical17 took258s; shard4 took436s.
+ // Move only that whole file in7-way routing; retain4/5/6-way history exactly.
+ if(category==='browser E2E'&&total===7&&name==='cpv1-07-historical-comparison-chrome-e2e.test.mjs')return 4;
  if(category==='browser E2E'&&total===7)return ['ux-r3-thought-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs'].includes(name)?7:rootTestShard(file,position,6,category);
  // Full37554248921: shard3 took561s of1080s. Add the whole two-case
  // Root journey there, preserving every prior73 placement and every timeout.

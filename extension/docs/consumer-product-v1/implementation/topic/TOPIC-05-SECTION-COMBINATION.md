@@ -171,3 +171,61 @@ byte-for-byte after recording this proof and merge conflicts; no product changes
 were overwritten. The reviewed browser/dependency preparation plus this repair
 now form the next full-certification candidate. Exact-main Root verification and
 this candidate's full results remain separate pending claims.
+
+## Post-full-failure local closure candidate
+
+Full37692797134 at9adb1da failed browser groups1–5. Those failures are retained;
+the earlier successful groups and cancelled main jobs are not full acceptance.
+Settings now advances independently in PR198; PR190 preserves this combination.
+
+Two real Section presentation gaps were repaired: continuation language/loading
+status and qualified arrival when a known heading has no hydrated body. The
+latter always performs the existing qualified Section read with save/IME/tracked
+entry and identity/intent fences; an existing heading is not proof of arrival.
+Empty Sections remain valid. No unrelated fallback Entry receives focus.
+Independent coordinator review retained these boundaries and all original guards.
+
+Historical Content/Years tests now exercise durable Sections while preserving
+165/160+241 rows,120-body bounds, exact2px returns, Unicode/IME/preferences and
+real late-mutation refusal. Old Years controls are no longer the presentation
+owner. Held-response checks require a real old matching Input, absence of that
+Input/text before release, and a fully completed empty query after release.
+Pending legitimate prose remains with a visible loading state, not false completion.
+
+Retained local evidence and final-tree binding limits:
+- 148 related owner/unit tests pass, no skips; old missing editor/RPC stubs were
+  corrected without deleting their safety assertions. Original26fail log retained.
+- Complete Section native file4/4 passed in a separate earlier run; complete
+  Content/Years files6/6 passed together in121.3s, zero skips/cancellations.
+  These are local component results, not final combined certification.
+- UIR03 whole source/release case1/1 passes using the unchanged audited builder
+  with an isolated output; contaminated generated caches remain preserved.
+- ANS08 main case passes with440 reachable Entries,120-body bound, exact deep
+  Section first Placement/focus and zero provider traffic. Its historical
+  owner-deferred return-position subcase remains1 skipped and is not PASS.
+- ANS08 measured30 samples each: legacy page p95=82.5ms, Section p95=62.3ms;
+  each Section sample stays at placementCandidates/hydratedEntries<=40. This
+  synthetic local probe is not thousands-scale/live-provider acceptance.
+
+An attempted additional focus wait was rejected by automatic review and was not
+applied. Read-only event/state evidence established that old headings preceded
+qualified arrival. The existing20s entry wait was strengthened to the actual
+first Placement plus native heading focus; no new wait or budget was added and
+all independent assertions remain. A separate diagnostic proved the test's own
+programmatic search focus scrolled the page; standard preventScroll plus added
+same-ID/2px assertions now isolate Escape without faking keyboard events.
+
+Main/shared Settings/Prompt reconciliation and exact-head hosted combined/full
+certification remain pending. Native Prompt lifetime evidence and installed-user
+visual acceptance are not inferred from the Section passes. The latest owner
+scope includes separate IAH-1.1 minimal optimization, not the retired IAH-1.0 UI.
+
+Final checkpoint audit: current topic-workspace SHA256 is
+848ccde7a7dc842147cdcb4c7c146e54332ffe63ff6e2515015567a3dc9e7c53. Older
+final-bytes JSONs contain10fc7d and cannot bind this tree. Latest successful logs
+postdate the runtime edit but identify a dirty base; do not promote timestamps
+into an immutable exact-version full receipt. New-head combined acceptance is
+still required. The two Prompt test files were copied only after verifying they
+exactly matched Settings4a1cf72's parent; they now include that reviewed native
+persistence/current-frame readiness fix. Settings40/40 is evidence for that
+separate tree, not a newly executed combined-tree result.
