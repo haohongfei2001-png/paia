@@ -102,7 +102,7 @@ body[data-paia-space="thoughts"] .workspace-header :is(#back,#revision-history){
 body[data-paia-space="thoughts"] #save-status{min-width:0;max-width:100%;margin:0;white-space:normal;overflow-wrap:anywhere}
 #thought-panel{width:100%;max-width:none;padding:24px 44px 80px;margin:0;color:var(--text)}
 #thought-root-heading{max-width:936px;margin:0 0 34px}
-#thought-root-heading h1{font:500 28px/38px var(--title-font);font-synthesis:weight;margin:0;overflow-wrap:anywhere}
+#thought-root-heading h1{font:500 28px/1.357142857 var(--title-font);font-synthesis:weight;margin:0;overflow-wrap:anywhere}
 #thought-root-description{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:20px}
 body[data-paia-surface="reader"] #thought-root-heading{display:none}
 #thought-home-tools{display:flex;align-items:center;gap:8px;margin:0;max-width:none}
@@ -139,7 +139,7 @@ body[data-paia-space="thoughts"] #workspace-error{padding:16px 44px}
 }
 @media(max-width:1023px){#thought-root-heading{margin-bottom:24px}}
 @media(max-width:767px){
- #thought-panel{padding:24px 20px 56px}#thought-root-heading h1{font-size:24px;line-height:35px}
+ #thought-panel{padding:24px 20px 56px}#thought-root-heading h1{font-size:24px;line-height:1.458333333}
  body[data-paia-space="thoughts"] .workspace-header{padding:16px 20px 0;gap:8px}
  body[data-paia-space="thoughts"] #workspace-error{padding-inline:20px}
  #thought-root-source .thought-source-scope-label{display:flex;align-items:center;gap:8px;width:100%}

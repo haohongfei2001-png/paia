@@ -12,3 +12,11 @@ test('D5 Settings runs all four complete owner files and guards before and after
 test('D5 Settings retains failures and prior marker routes',()=>{
  assert.match(job,/if: always\(\) && contains\(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER'\)/);for(const path of ['extension/work/qa-dvn-settings/','extension/work/ux-r6/','extension/work/ux-r1/'])assert.ok(job.includes(path));for(const marker of ['PAIA_DVN_COMPOSE_BROWSER','PAIA_DVN_CONTEXT_PRESENTATION_BROWSER','PAIA_DVN_CONTEXT_BROWSER','PAIA_VS05_AI_CANDIDATE_BROWSER'])assert.ok(job.split('    steps:')[0].includes(marker));
 });
+
+test('Settings device diagnosis is explicit, isolated and cannot stand in for the normal nine-case gate',()=>{
+ const diagnostic=job.slice(job.indexOf('      - name: Settings native device diagnosis'),job.indexOf('      - name: D5 Settings reading column'));
+ assert.match(step,/PAIA_DVN_SETTINGS_PRESENTATION_BROWSER'\) && !contains\(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC'\)/);
+ assert.ok(job.split('    steps:')[0].includes('PAIA_SET2_TOUCH_DIAGNOSTIC'));assert.match(workflow,/TOPIC_SELECTED:.*PAIA_SET2_TOUCH_DIAGNOSTIC/);
+ assert.match(diagnostic,/tests\/settings-touch-diagnostic-chrome-e2e.test.mjs/);assert.doesNotMatch(diagnostic,/test-name-pattern|test-skip-pattern|continue-on-error/);for(const required of ['report.total,2','report.pass,2','report.fail,0','report.skipped,0','DIAGNOSTIC_ONLY','receipt.trials.length,2',"receipt.aboutResult,'PASS'",'en:read-error','zh-CN:read-error'])assert.ok(diagnostic.includes(required),required);
+ assert.equal(group('settings-touch-diagnostic-chrome-e2e.test.mjs'),'experimental');
+});

@@ -50,7 +50,7 @@ test('UX-R3 advanced whole/partial edits, one-time Undo confirmation, dirty/IME 
  }finally{await h.close();}
 });
 
-test('UX-R3 current root and independent Write preserve data, IME, save and explicit discard ownership',{timeout:180000},async()=>{
+test('UX-R3 independent today draft: empty, cancelled, failed save, IME and keyboard recovery; home/modal visual matrix',{timeout:180000},async()=>{
  const h=await FakeChatGPT.start({onboarding:true});try{
   const p=await ready(h);await p.setViewportSize({width:1440,height:900});await h.open({id:'uxr3-current-write-source',title:'SYNTHETIC protected Source',messages:[{id:'uxr3-current-write-input',text:'SYNTHETIC unchanged Source and Input 👩🏽‍💻'}]});await eventually(async()=>(await h.state()).records.length===1);
   const before=await h.state(),protectedBefore={records:before.records,blocks:before.library.blocks},created=await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:'UXR3_TODAY 今天独立记录 👩🏽‍💻'}}),row=await rpc(p,'GET_LIBRARY_ENTRY',{id:created.id});
@@ -64,15 +64,16 @@ test('UX-R3 current root and independent Write preserve data, IME, save and expl
   await p.emulateMedia({reducedMotion:'reduce'});for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const [width,height]of [[1440,900],[1024,768],[390,844],[320,720]]){await p.setViewportSize({width,height});await pause(80);await shot(p,`current-home-${appearance}-${width}`);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}}
   await p.evaluate(()=>document.body.style.zoom='2');await p.keyboard.press('Tab');assert.equal(await p.evaluate(()=>document.activeElement===document.body),false);await shot(p,'current-home-200-percent');await p.evaluate(()=>document.body.style.zoom='1');
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__writeCalls=[];chrome.runtime.sendMessage=(message,...args)=>{if(['CONTINUE_THINKING','CREATE_LIBRARY_TOPIC'].includes(message.type))__writeCalls.push(structuredClone(message));return send(message,...args);};});
-  await p.locator('#thought-root-source').getByRole('button',{name:'接着写',exact:true}).click();const workspace=p.locator('#topic-action-dialog'),draft=workspace.getByRole('textbox',{name:'今天的新想法'}),body='UXR3_CURRENT 新的未保存表达 👩🏽‍💻\n保留每一行。';await draft.fill(body);await draft.evaluate(node=>globalThis.__currentWriteDraft=node);
+  await p.locator('#thought-root-source').getByRole('button',{name:'接着写',exact:true}).click();const workspace=p.locator('#topic-action-dialog'),draft=workspace.getByRole('textbox',{name:'今天的新想法'}),body='UXR3_CURRENT 新的未保存表达 👩🏽‍💻\n保留每一行。';await workspace.getByRole('button',{name:'保存想法',exact:true}).click();await workspace.getByText('先写下一点内容。',{exact:true}).waitFor();assert.deepEqual(await p.evaluate(()=>__writeCalls),[]);await draft.fill(body);await draft.evaluate(node=>globalThis.__currentWriteDraft=node);
   assert.equal(await workspace.isVisible(),true);assert.equal(await workspace.getByRole('button',{name:'保存想法',exact:true}).isEnabled(),true);assert.equal(await workspace.getByRole('button',{name:'取消',exact:true}).isEnabled(),true);assert.equal(await p.locator('.thought-compose-preview-note,.dvn-preview-back').count(),0);
   await draft.dispatchEvent('compositionstart');await draft.press('Control+Enter');assert.equal(await draft.evaluate(node=>node===__currentWriteDraft),true);assert.equal(await draft.inputValue(),body);assert.deepEqual(await p.evaluate(()=>__writeCalls),[],'IME cannot prematurely save');await draft.dispatchEvent('compositionend');
   for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const [width,height]of [[1440,900],[1024,768],[390,844],[320,720]]){await p.setViewportSize({width,height});await pause(80);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await shot(p,`current-compose-${appearance}-${width}`);assert.equal(await draft.evaluate(node=>node===__currentWriteDraft),true);assert.equal(await draft.inputValue(),body);}}
   p.once('dialog',dialog=>dialog.dismiss());await workspace.getByRole('button',{name:'取消',exact:true}).click();assert.equal(await workspace.isVisible(),true);assert.equal(await draft.inputValue(),body);
-  await draft.press('Control+Enter');await eventually(()=>workspace.isVisible().then(value=>!value));const calls=await p.evaluate(()=>__writeCalls);assert.equal(calls.length,1);assert.equal(calls[0].thought.body,body);assert.equal(calls[0].thought.relation,undefined);
+  const saveFailure=await failComposeReceipt(h,{write:true});await workspace.getByRole('button',{name:'保存想法',exact:true}).click();await workspace.getByText('尚未保存，文字仍在这里。可以重试或复制。',{exact:true}).waitFor();const failedCall=await p.evaluate(()=>__writeCalls[0]);await saveFailure.verify(failedCall.thought.operationId);await saveFailure.restore();assert.equal(await draft.evaluate(node=>node===__currentWriteDraft),true);assert.equal(await draft.inputValue(),body);assert.deepEqual((await rpc(p,'GET_LIBRARY_UNPLACED',{options:{}})).items.map(item=>item.id),[row.id],'failed canonical commit leaves no partial Thought');await shot(p,'current-draft-save-error');
+  await draft.press('Control+Enter');await eventually(()=>workspace.isVisible().then(value=>!value));const calls=await p.evaluate(()=>__writeCalls);assert.equal(calls.length,2);assert.deepEqual(calls[1],calls[0],'explicit retry retains the exact failed operation');assert.equal(calls[0].thought.body,body);assert.equal(calls[0].thought.relation,undefined);
   await p.setViewportSize({width:1440,height:900});if(!await p.locator('#library-unplaced-list').isVisible())await p.locator('#library-unplaced').click();const independent=p.locator('[data-unplaced-id]').filter({hasText:'UXR3_CURRENT'});await independent.waitFor();const savedId=await independent.getAttribute('data-unplaced-id');assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:savedId})).body,body);await independent.click();await p.locator('#library-dialog [data-entry-field="body"]').waitFor();await p.locator('#library-dialog-close').click();
   await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await p.locator('#thought-root-source').getByRole('button',{name:'Continue thinking',exact:true}).click();await workspace.getByRole('heading',{name:'Add a thought from today',exact:true}).waitFor();await shot(p,'current-compose-English');assert.equal(await workspace.locator('textarea').inputValue(),'');await workspace.getByRole('button',{name:'Cancel',exact:true}).click();assert.equal(await workspace.isVisible(),false);assert.equal(await workspace.locator('textarea').count(),0);
-  assert.equal((await p.evaluate(()=>__writeCalls)).length,1);assert.deepEqual(await rpc(p,'GET_LIBRARY_ENTRY',{id:row.id}),row);const after=await h.state();assert.deepEqual({records:after.records,blocks:after.library.blocks},protectedBefore);offline(h);
+  assert.equal((await p.evaluate(()=>__writeCalls)).length,2);assert.deepEqual(await rpc(p,'GET_LIBRARY_ENTRY',{id:row.id}),row);const after=await h.state();assert.deepEqual({records:after.records,blocks:after.library.blocks},protectedBefore);offline(h);
  }finally{await h.close();}
 });
 
@@ -80,6 +81,150 @@ async function closeComposeFixture(h,release,primaryFailure){
  let cleanupFailure;try{await h.close();}catch(error){cleanupFailure=error;}try{if(release)await rm(release,{recursive:true,force:true});}catch(error){cleanupFailure??=error;}
  if(cleanupFailure){if(primaryFailure)console.error('Secondary synthetic compose cleanup failure:',cleanupFailure.message);else throw cleanupFailure;}
 }
+
+// Fault only the synthetic fixture's canonical receipt transaction. The real
+// repository aborts/classifies it and the real worker supplies the failed reply.
+async function failComposeReceipt(h,{operationId=null,write=false}={}){
+ const worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));assert.ok(worker,'production worker is available');
+ await worker.evaluate(({operationId,write})=>{
+  const method=write?'put':'get',original=IDBObjectStore.prototype[method];globalThis.__composeReceiptFault=null;
+  globalThis.__restoreComposeReceipt=()=>{IDBObjectStore.prototype[method]=original;};
+  IDBObjectStore.prototype[method]=function(value,...args){
+   const id=write?value?.id:value;
+   if(this.name==='operationReceipts'&&(!operationId||id===operationId)&&(!write||value.namespace==='thought-library')){
+    globalThis.__composeReceiptFault={id,method};globalThis.__restoreComposeReceipt();
+    throw new DOMException('Synthetic canonical Thought receipt transaction failure','UnknownError');
+   }
+   return original.call(this,value,...args);
+  };
+ },{operationId,write});
+ return {async verify(id){assert.deepEqual(await worker.evaluate(()=>globalThis.__composeReceiptFault),{id,method:write?'put':'get'});},async restore(){await worker.evaluate(()=>globalThis.__restoreComposeReceipt());}};
+}
+
+// D5 T05: real worker acknowledgement must remain bound to the submitting draft.
+// Only transport delivery is held/lost/corrupted after a real worker response;
+// successful persistence is always verified through the canonical reader.
+for(const variant of ['source','release'])for(const scenario of ['newer-text','reopened-draft','lost-ack','changed-retry','malformed-ack','malformed-success','ime-settlement'])test(`UX-R3 independent today draft acknowledgement ownership ${scenario} (${variant})`,{timeout:90000},async()=>{
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-compose-ack-')):null;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({onboarding:true,...(release?{extensionPath:release}:{})});const trace={variant,scenario,head:process.env.PAIA_TESTED_HEAD,stage:'start'};let p,failure;
+ try{
+  p=await ready(h);await p.setViewportSize({width:1440,height:900});await h.open({id:'synthetic-compose-ack-source',title:'SYNTHETIC protected source',messages:[{id:'synthetic-compose-ack-input',text:'SYNTHETIC immutable captured Input 👩‍💻\nSource remains separate.'}]});await eventually(async()=>(await h.state()).records.length===1);
+  const initial=await h.state(),protectedBefore={records:initial.records,blocks:initial.library.blocks};await nav(p,'thoughts');
+  await p.evaluate(scenario=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__composeAckCalls=[];globalThis.__composeAckCommitted=[];
+   chrome.runtime.sendMessage=async(message,...args)=>{
+    if(message.type!=='CONTINUE_THINKING')return send(message,...args);
+    __composeAckCalls.push(structuredClone(message.thought));
+    const response=await send(message,...args);__composeAckCommitted.push(structuredClone(response));
+    if(__composeAckCalls.length===1){if(['lost-ack','changed-retry'].includes(scenario))throw Error('SYNTHETIC message channel interrupted after commit');if(scenario==='malformed-ack')return {ok:false,error:{code:'STORAGE_FAILED'}};if(scenario==='malformed-success')return {ok:true,data:{}};return new Promise(resolve=>globalThis.__releaseComposeAck=()=>resolve(response));}
+    return response;
+   };
+  },scenario);
+  const open=()=>p.locator('#thought-root-source').getByRole('button',{name:'接着写',exact:true}).click();await open();
+  const host=p.locator('#topic-action-dialog'),field=host.getByRole('textbox',{name:'今天的新想法'}),save=host.getByRole('button',{name:'保存想法',exact:true});
+  const original='SYNTHETIC submitted Thought 👩‍💻\nKeep every authored line.',newer='SYNTHETIC newer unsaved Thought 👩‍💻\nNever close this newer draft.';
+  await field.fill(original);await save.click();await eventually(()=>p.evaluate(()=>__composeAckCommitted.length===1),'real worker has committed the first request');const first=await p.evaluate(()=>({call:__composeAckCalls[0],response:__composeAckCommitted[0]}));assert.equal(first.response.ok,true);const id=first.response.data.id;const savedBefore=await rpc(p,'GET_LIBRARY_ENTRY',{id}),savedProvenance=await rpc(p,'GET_LIBRARY_PROVENANCE',{id}),savedHistory=await rpc(p,'GET_REVISIONS',{options:{kind:'library_entry',entityId:id,documentId:id}});assert.equal(savedBefore.body,original);assert.equal(savedBefore.bodyBinding,'thought');assert.equal(savedBefore.provenanceType,'user_created');assert.deepEqual(savedProvenance,{userCreated:true,count:0,primary:0,supporting:0,contextOnly:0,items:[]});assert.equal(savedHistory.items.length,1,'one canonical creation baseline');trace.stage='first committed';trace.first=first;
+  if(['lost-ack','malformed-ack','malformed-success','changed-retry'].includes(scenario)){
+   await eventually(()=>save.isEnabled(),'interrupted acknowledgement permits explicit retry');assert.equal(await field.inputValue(),original);
+   let retryFailure;if(scenario==='changed-retry'){await field.fill(newer);retryFailure=await failComposeReceipt(h,{operationId:first.call.operationId});}
+   await save.click();
+   if(scenario==='changed-retry'){await eventually(()=>save.isEnabled(),'failed reconciliation permits another explicit retry');await retryFailure.verify(first.call.operationId);await retryFailure.restore();assert.deepEqual(await p.evaluate(()=>__composeAckCommitted.at(-1)),{ok:false,error:'STORAGE_FAILED'});await host.getByText('保存结果尚未确认，文字保留。再次保存会先核对上次提交。',{exact:true}).waitFor();await save.click();await host.getByText('先前提交已保存。这里的新文字或选择尚未保存，仍保留在此。',{exact:true}).waitFor();assert.equal(await field.inputValue(),newer);assert.equal(await host.isVisible(),true);p.once('dialog',dialog=>dialog.accept());await host.getByRole('button',{name:'取消',exact:true}).click();}
+   await eventually(()=>host.isHidden(),'same-operation retry confirms the saved Thought');
+   const calls=await p.evaluate(()=>__composeAckCalls);assert.equal(calls.length,scenario==='changed-retry'?3:2);for(const call of calls)assert.deepEqual(call,calls[0],'every uncertain retry keeps the original operation and payload');assert.equal((await p.evaluate(()=>__composeAckCommitted.at(-1))).data.id,id);
+  }else if(scenario==='ime-settlement'){
+   await field.evaluate(node=>node.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:''})));await p.evaluate(()=>__releaseComposeAck());
+   await host.getByText('先前提交已保存。这里的新文字或选择尚未保存，仍保留在此。',{exact:true}).waitFor();assert.equal(await field.inputValue(),original);assert.equal(await host.isVisible(),true);
+   await field.press('Control+Enter');assert.equal(await p.evaluate(()=>__composeAckCalls.length),1,'active composition cannot resubmit');
+   await field.evaluate(node=>node.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:''})));await save.click();await eventually(()=>host.isHidden(),'already acknowledged unchanged composition settlement closes without another creation');assert.equal(await p.evaluate(()=>__composeAckCalls.length),1);
+  }else{
+   if(scenario==='reopened-draft'){p.once('dialog',dialog=>dialog.accept());await host.getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>host.isHidden());await open();}
+   await field.fill(newer);await field.evaluate(node=>globalThis.__newerComposeDraft=node);trace.stage='newer draft present before old acknowledgement';await p.evaluate(()=>__releaseComposeAck());await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   trace.after=await p.evaluate(()=>({same:document.querySelector('.thought-draft')===__newerComposeDraft,value:__newerComposeDraft.value,connected:__newerComposeDraft.isConnected}));
+   assert.equal(await host.isVisible(),true,'older acknowledgement cannot close a newer draft');assert.equal(await field.evaluate(node=>node===__newerComposeDraft),true,'newer textarea owner is preserved');assert.equal(await field.inputValue(),newer);
+   assert.equal(await p.evaluate(()=>__composeAckCalls.length),1,'preserving newer text cannot submit it automatically');
+   p.once('dialog',dialog=>dialog.accept());await host.getByRole('button',{name:'取消',exact:true}).click();
+  }
+  const entries=(await rpc(p,'GET_LIBRARY_UNPLACED',{options:{}})).items;assert.equal(entries.length,1,'one acknowledged creation remains one Thought');assert.equal(entries[0].id,id);assert.deepEqual(await rpc(p,'GET_LIBRARY_ENTRY',{id}),savedBefore);assert.deepEqual(await rpc(p,'GET_LIBRARY_PROVENANCE',{id}),savedProvenance);assert.deepEqual(await rpc(p,'GET_REVISIONS',{options:{kind:'library_entry',entityId:id,documentId:id}}),savedHistory,'acknowledgement/retry never duplicates or mutates the creation baseline');const current=await h.state();assert.deepEqual({records:current.records,blocks:current.library.blocks},protectedBefore,'compose never changes captured Input or Source');offline(h);trace.stage='PASS';
+ }catch(error){failure=error;throw error;}finally{
+  if(p){try{trace.calls=await p.evaluate(()=>globalThis.__composeAckCalls||[]);trace.visible=await p.locator('#topic-action-dialog').isVisible();await mkdir('work/ux-r3',{recursive:true});await p.screenshot({path:`work/ux-r3/compose-ack-${scenario}-${variant}.png`});await writeFile(`work/ux-r3/compose-ack-${scenario}-${variant}.json`,JSON.stringify(trace,null,2));}catch{/* Keep the original failure if evidence capture is interrupted. */}}
+  await closeComposeFixture(h,release,failure);
+ }
+});
+
+// Synthetic transport interruption follows a real committed Topic creation.
+for(const variant of ['source','release'])test(`UX-R3 independent today draft Topic creation ownership (${variant})`,{timeout:120000},async()=>{
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-compose-topic-')):null;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({onboarding:true,...(release?{extensionPath:release}:{})});let p,failure;const trace={variant,head:process.env.PAIA_TESTED_HEAD,stage:'start'};
+ try{
+  p=await ready(h);await nav(p,'thoughts');await p.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__topicCreationCalls=[];globalThis.__topicCreationCommitted=[];globalThis.__dependentThoughtCalls=[];globalThis.__topicCreationMode='held';
+   chrome.runtime.sendMessage=async(message,...args)=>{
+    if(message.type==='CONTINUE_THINKING')__dependentThoughtCalls.push(structuredClone(message.thought));
+    if(message.type!=='CREATE_LIBRARY_TOPIC')return send(message,...args);
+    __topicCreationCalls.push(structuredClone(message.topic));
+    const response=await send(message,...args);__topicCreationCommitted.push(structuredClone(response));
+    if(__topicCreationMode==='lost'){__topicCreationMode='retry-fails';throw Error('SYNTHETIC lost Topic creation acknowledgement');}
+    if(__topicCreationMode==='held')return new Promise(resolve=>globalThis.__releaseTopicCreation=()=>resolve(response));
+    return response;
+   };
+  });
+  const open=()=>p.locator('#thought-root-source').getByRole('button',{name:'接着写',exact:true}).click(),host=p.locator('#topic-action-dialog'),field=host.getByRole('textbox',{name:'今天的新想法'}),save=host.getByRole('button',{name:'保存想法',exact:true});
+  for(const scenario of ['held','lost']){
+   await p.evaluate(mode=>globalThis.__topicCreationMode=mode,scenario);await open();const body=`SYNTHETIC ${scenario} Topic-bound Thought 👩‍💻\nExact body.`;await field.fill(body);await host.locator('summary').filter({hasText:'选择主题（可不选）'}).click();await host.getByRole('button',{name:'新建主题',exact:true}).click();const name=`SYNTHETIC ${scenario} Topic`;await host.getByLabel('新主题名称',{exact:true}).fill(name);await host.getByRole('button',{name:'创建主题',exact:true}).click();
+   await eventually(()=>p.evaluate(name=>__topicCreationCommitted.some((response,index)=>response.ok&&__topicCreationCalls[index]?.name===name),name),'Topic committed before its acknowledgement is released');assert.equal(await save.isDisabled(),true,'dependent Thought cannot save before Topic identity is confirmed');await field.press('Control+Enter');assert.equal(await p.evaluate(()=>__dependentThoughtCalls.length),scenario==='held'?0:1);
+   if(scenario==='held')await p.evaluate(()=>__releaseTopicCreation());
+   else{
+    const create=host.getByRole('button',{name:'创建主题',exact:true});await eventually(()=>create.isEnabled());assert.equal(await host.getByLabel('新主题名称',{exact:true}).getAttribute('readonly'),'');const submitted=await p.evaluate(()=>__topicCreationCalls.at(-1)),retryFailure=await failComposeReceipt(h,{operationId:submitted.operationId});await create.click();await eventually(()=>p.evaluate(()=>__topicCreationCommitted.at(-1)?.ok===false));await retryFailure.verify(submitted.operationId);await retryFailure.restore();assert.deepEqual(await p.evaluate(()=>__topicCreationCommitted.at(-1)),{ok:false,error:'STORAGE_FAILED'});await host.getByText('主题保存结果尚未确认，请重试核对。',{exact:true}).waitFor();assert.equal(await save.isDisabled(),true);await create.click();
+   }
+   await host.getByLabel(name,{exact:true}).waitFor();assert.equal(await host.getByLabel(name,{exact:true}).isChecked(),true);await eventually(()=>save.isEnabled());await save.click();await eventually(()=>host.isHidden());const calls=await p.evaluate(()=>__dependentThoughtCalls),last=calls.at(-1);assert.equal(last.body,body);assert.ok(last.topicId);const page=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:last.topicId,sort:'asc'}});assert.equal(page.items.length,1);assert.equal(page.items[0].entry.body,body);trace[scenario]={calls:await p.evaluate(()=>__topicCreationCalls),thought:last};
+  }
+  const calls=await p.evaluate(()=>__topicCreationCalls),lost=calls.filter(call=>call.name==='SYNTHETIC lost Topic');assert.equal(lost.length,3);for(const call of lost)assert.deepEqual(call,lost[0],'unknown Topic retry keeps exact name and operation through definitive retry failure');const confirmed=await p.evaluate(()=>__topicCreationCommitted.filter((response,index)=>response.ok&&__topicCreationCalls[index]?.name==='SYNTHETIC lost Topic'));assert.equal(confirmed.length,2);assert.equal(confirmed[0].data.id,confirmed[1].data.id,'same uncertain Topic operation resolves to its original identity');const topics=(await rpc(p,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}})).items;assert.equal(topics.length,2);assert.equal(await p.evaluate(()=>__dependentThoughtCalls.length),2);offline(h);trace.stage='PASS';
+ }catch(error){failure=error;throw error;}finally{if(p)try{await mkdir('work/ux-r3',{recursive:true});await p.screenshot({path:`work/ux-r3/compose-topic-owner-${variant}.png`});await writeFile(`work/ux-r3/compose-topic-owner-${variant}.json`,JSON.stringify(trace,null,2));}catch{/* Preserve the original failure. */}await closeComposeFixture(h,release,failure);}
+});
+
+// Keep the frozen case/receipt identity. Response relationships are retired:
+// current coverage fences that command and delays the real operation digest,
+// while preserving acknowledged and later drafts through their actual owners.
+for(const variant of ['source','release'])test(`UX-R3 independent today draft acknowledged relation digest retains later text (${variant})`,{timeout:90000},async()=>{
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-compose-relation-')):null;if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({onboarding:true,...(release?{extensionPath:release}:{})});let p,failure,worker;const trace={variant,head:process.env.PAIA_TESTED_HEAD,stage:'start',oracle:'retired-relation-fence-and-real-operation-digest'};
+ try{
+  p=await ready(h);await h.open({id:'synthetic-relation-owner-source',title:'SYNTHETIC relation boundary',messages:[{id:'synthetic-relation-owner-input',text:'SYNTHETIC prior Input with retained provenance 👩‍💻'}]});await eventually(async()=>(await h.state()).records.length===1);
+  const initial=await h.state(),protectedBefore={records:initial.records,blocks:initial.library.blocks},input=initial.library.blocks[0],topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC relation owner',operationId:op()}}),prior=await rpc(p,'ADD_TO_TOPICS',{selection:{kind:'input',id:input.id,expectedRevision:input.revision,operationId:op(),topicIds:[topic.id]}}),before=await rpc(p,'GET_LIBRARY_ENTRY',{id:prior.id}),provenanceBefore=await rpc(p,'GET_LIBRARY_PROVENANCE',{id:prior.id}),historyBefore=await rpc(p,'GET_REVISIONS',{options:{kind:'library_entry',entityId:prior.id,documentId:prior.id}});
+  assert.equal(before.bodyBinding,'input');assert.equal(provenanceBefore.count,1,'the preserved prior Thought has real Input provenance');assert.equal(provenanceBefore.primary,1);
+  const relationAttempt={operationId:op(),topicId:topic.id,body:'SYNTHETIC forbidden relation attempt',relation:{toEntryId:prior.id,toRevision:before.revision,toBodySha256:await p.evaluate(async body=>{const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(body));return [...new Uint8Array(hash)].map(n=>n.toString(16).padStart(2,'0')).join('');},before.body)}};
+  assert.deepEqual(await p.evaluate(thought=>chrome.runtime.sendMessage({type:'CONTINUE_THINKING',thought}),relationAttempt),{ok:false,error:'FEATURE_UNAVAILABLE'},'the actual worker rejects the retired relation command');
+  assert.equal((await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc'}})).items.length,1,'rejected relation cannot create an Entry');
+  await nav(p,'thoughts');await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();await p.locator('#create-entry').click();
+  const host=p.locator('#topic-action-dialog'),field=host.getByRole('textbox',{name:'今天的新想法'}),save=host.getByRole('button',{name:'保存想法',exact:true});assert.equal(await host.getByLabel('记录与这条内容的回应关系',{exact:true}).count(),0,'current composition cannot expose the retired relationship');
+  const acknowledged='SYNTHETIC acknowledged independent expression';await field.fill(acknowledged);
+  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__relationCalls=[];globalThis.__relationResults=[];chrome.runtime.sendMessage=async(message,...args)=>{if(message.type!=='CONTINUE_THINKING')return send(message,...args);__relationCalls.push(structuredClone(message.thought));const response=await send(message,...args);__relationResults.push(structuredClone(response));if(__relationCalls.length===1)return new Promise(resolve=>globalThis.__releaseRelationAck=()=>resolve(response));return response;};});
+  await save.click();await eventually(()=>p.evaluate(()=>!!globalThis.__releaseRelationAck));const first=await p.evaluate(()=>__relationResults[0]);assert.equal(first.ok,true);assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:first.data.id})).body,acknowledged);assert.equal(await host.locator('details').last().evaluate(node=>node.inert),true);
+  await field.dispatchEvent('compositionstart');await p.evaluate(()=>__releaseRelationAck());await host.getByText('先前提交已保存。这里的新文字或选择尚未保存，仍保留在此。',{exact:true}).waitFor();await field.press('Control+Enter');assert.equal(await p.evaluate(()=>__relationCalls.length),1,'IME cannot duplicate the acknowledged expression');await field.dispatchEvent('compositionend');await eventually(()=>save.isEnabled());await save.click();await eventually(()=>host.isHidden());assert.equal(await p.evaluate(()=>__relationCalls.length),1,'unchanged acknowledged settlement closes without another operation or relation digest');
+  await p.locator('#create-entry').click();const submitted='SYNTHETIC submitted while the real operation digest waits',later='SYNTHETIC later draft during digest 👩‍💻\nDo not discard.';await field.fill(submitted);
+  worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));assert.ok(worker);
+  await worker.evaluate(body=>{
+   const digest=crypto.subtle.digest.bind(crypto.subtle);globalThis.__restoreComposeDigest=()=>{crypto.subtle.digest=digest;};
+   crypto.subtle.digest=(algorithm,bytes)=>{
+    let request;try{request=JSON.parse(new TextDecoder().decode(bytes));}catch{}
+    if(request?.body===body&&typeof request.operationId==='string'){
+     globalThis.__restoreComposeDigest();globalThis.__heldComposeDigestRequest=structuredClone(request);
+     return new Promise(resolve=>{globalThis.__releaseComposeDigest=()=>resolve(digest(algorithm,bytes));});
+    }
+    return digest(algorithm,bytes);
+   };
+  },submitted);
+  await save.click();await eventually(()=>worker.evaluate(()=>!!globalThis.__releaseComposeDigest),'production receipt digest is suspended before canonical persistence');
+  const held=await worker.evaluate(()=>globalThis.__heldComposeDigestRequest);assert.deepEqual(held,await p.evaluate(()=>__relationCalls[1]));assert.equal(Object.hasOwn(held,'relation'),false);assert.equal((await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc'}})).items.length,2,'pending digest has not created an Entry');
+  await field.fill(later);await field.evaluate(node=>globalThis.__relationDraft=node);await worker.evaluate(()=>__releaseComposeDigest());await host.getByText('先前提交已保存。这里的新文字或选择尚未保存，仍保留在此。',{exact:true}).waitFor();await eventually(()=>save.isEnabled());assert.equal(await host.isVisible(),true);assert.equal(await field.evaluate(node=>node===__relationDraft),true);assert.equal(await field.inputValue(),later);assert.equal(await p.evaluate(()=>__relationCalls.length),2,'later text is never implicitly submitted');
+  const results=await p.evaluate(()=>__relationResults);assert.equal(results.length,2);assert.equal(results[1].ok,true);assert.notEqual(results[1].data.id,first.data.id);
+  for(const [index,body]of [acknowledged,submitted].entries()){const created=await rpc(p,'GET_LIBRARY_ENTRY',{id:results[index].data.id});assert.equal(created.body,body);assert.equal(created.bodyBinding,'thought');assert.equal(created.provenanceType,'user_created');assert.deepEqual(await rpc(p,'GET_LIBRARY_PROVENANCE',{id:created.id}),{userCreated:true,count:0,primary:0,supporting:0,contextOnly:0,items:[]});assert.deepEqual((await rpc(p,'COMPARE_THOUGHT_INPUT',{id:created.id})).relations,[]);}
+  assert.deepEqual(await rpc(p,'GET_LIBRARY_ENTRY',{id:prior.id}),before);assert.deepEqual(await rpc(p,'GET_LIBRARY_PROVENANCE',{id:prior.id}),provenanceBefore);assert.deepEqual(await rpc(p,'GET_REVISIONS',{options:{kind:'library_entry',entityId:prior.id,documentId:prior.id}}),historyBefore);const page=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc'}});assert.equal(page.items.length,3);assert.equal(page.items.some(item=>item.entry.body===later),false);
+  const current=await h.state();assert.deepEqual({records:current.records,blocks:current.library.blocks},protectedBefore);trace.calls=await p.evaluate(()=>__relationCalls);assert.ok(trace.calls.every(call=>!Object.hasOwn(call,'relation')));p.once('dialog',dialog=>dialog.accept());await host.getByRole('button',{name:'取消',exact:true}).click();offline(h);trace.stage='PASS';
+ }catch(error){failure=error;throw error;}finally{if(worker)try{await worker.evaluate(()=>{globalThis.__releaseComposeDigest?.();globalThis.__restoreComposeDigest?.();});}catch{/* Preserve the primary failure. */}if(p)try{await mkdir('work/ux-r3',{recursive:true});await p.screenshot({path:`work/ux-r3/compose-relation-digest-${variant}.png`});await writeFile(`work/ux-r3/compose-relation-digest-${variant}.json`,JSON.stringify(trace,null,2));}catch{/* Preserve the original failure. */}await closeComposeFixture(h,release,failure);}
+});
 
 for(const variant of ['source','release'])test(`UX-R3 independent today draft survives earlier Add acknowledgement (${variant})`,{timeout:120000},async()=>{
  const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-add-owner-')):null;if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});

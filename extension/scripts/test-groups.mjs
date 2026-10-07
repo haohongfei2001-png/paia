@@ -15,6 +15,7 @@ const CURRENT_BROWSER=new Set([
  'uir-03-preview-mask-chrome-e2e.test.mjs'
 ]);
 const EXPERIMENTAL=new Set([
+ 'settings-touch-diagnostic-chrome-e2e.test.mjs',
  'cpv1-07-lab-cadence.test.mjs',
  'cpv1-07-official-minilm.test.mjs',
  'cpv1-07-public-model-provenance.test.mjs',

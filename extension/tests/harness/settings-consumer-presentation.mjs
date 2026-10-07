@@ -10,7 +10,7 @@ export async function chooseConsumerGroup(page,group){
  if(!await link.isVisible()&&await back.isVisible())await back.click();await link.click();await page.locator(`[data-group="${group}"]`).waitFor({state:'visible'});
 }
 const frame=page=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-async function scaleText(page,scale){await page.evaluate(scale=>{
+export async function scaleText(page,scale){await page.evaluate(scale=>{
  if(globalThis.__settingsTextScale)for(const item of __settingsTextScale)item.node.style.setProperty('font-size',item.value,item.priority);
  globalThis.__settingsTextScale=null;if(scale===1)return;
  globalThis.__settingsTextScale=[...document.querySelectorAll('#settings-panel h1,#settings-panel h2,#settings-panel h3,#settings-panel p,#settings-panel button,#settings-panel label,#settings-panel summary,#settings-panel select,#settings-panel span')].map(node=>({node,value:node.style.getPropertyValue('font-size'),priority:node.style.getPropertyPriority('font-size'),size:parseFloat(getComputedStyle(node).fontSize)}));for(const item of __settingsTextScale)item.node.style.setProperty('font-size',item.size*scale+'px','important');
