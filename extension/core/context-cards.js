@@ -36,10 +36,12 @@ export function validateContextChange(c,{draft=false}={}){
  return c;
 }
 export class ContextCardsService {
- constructor(store){this.s=store;}
+ constructor(store,{topicSummary=null}={}){this.s=store;this.topicSummary=topicSummary;}
  async row(t){const row=await t.get('meta',CONTEXT_CARDS_ROW);if(row&&!validContextCards(row))fail('STORAGE_FAILED');return row||empty();}
  async admitted(t,epoch){if((await this.s.control(t)).settings.consentVersion!==CONSENT_VERSION)fail('CONSENT_REQUIRED');const current=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';if(epoch!==undefined&&epoch!==current)fail('CONTEXT_INVALIDATED');return current;}
- snapshot(){return this.s.run(()=>this.s.repository.transaction(false,async t=>{const epoch=await this.admitted(t),row=await this.row(t);return {version:1,epoch,access:row.access,items:row.items.filter(x=>x.lifecycle==='active'),counts:Object.fromEntries(CONTEXT_CARDS.map(k=>[k,row.items.filter(x=>x.card===k&&x.lifecycle==='active').length])),capabilities:{info:true,rules:true,now:true,inputs:false,automatic:false,external:false},connections:0};}));}
+ snapshot(){return this.s.run(()=>this.s.repository.transaction(false,async t=>{const epoch=await this.admitted(t),row=await this.row(t);let topicChoices;
+  if(this.topicSummary){try{const value=await this.topicSummary(t,epoch);if(typeof value?.available!=='boolean'||value.externalAllowed!==false||value.available&&(!revision(value.selectedCount)||value.selectedCount>4096))throw Error('TOPICS_UNAVAILABLE');const selectedNames=value.selectedNames??[],remainingSelectedCount=value.remainingSelectedCount??value.selectedCount;if(value.available&&(!Array.isArray(selectedNames)||selectedNames.length>3||Object.keys(selectedNames).length!==selectedNames.length||!selectedNames.every(name=>bounded(name,300)&&name.trim())||!revision(remainingSelectedCount)||selectedNames.length+remainingSelectedCount!==value.selectedCount))throw Error('TOPICS_UNAVAILABLE');topicChoices={available:value.available,selectedCount:value.available?value.selectedCount:null,...(value.available?{selectedNames,remainingSelectedCount}:{}),externalAllowed:false};}catch{topicChoices={available:false,selectedCount:null,externalAllowed:false};}}
+  return {version:1,epoch,access:row.access,items:row.items.filter(x=>x.lifecycle==='active'),counts:Object.fromEntries(CONTEXT_CARDS.map(k=>[k,row.items.filter(x=>x.card===k&&x.lifecycle==='active').length])),capabilities:{info:true,rules:true,now:true,inputs:topicChoices?.available===true,automatic:false,external:false},connections:0,...(topicChoices?{topicChoices}:{})};}));}
  async change(input){
   const c=structuredClone(validateContextChange(input)),digest=await hashText(JSON.stringify(c));
   return this.s.write(async t=>{
