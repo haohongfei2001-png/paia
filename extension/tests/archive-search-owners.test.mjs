@@ -14,7 +14,7 @@ function searchFixture({readerQuery='READER_ONLY',archiveQuery='ARCHIVE_ONLY',fl
 }
 test('actual Reader search and retry read only the independent Reader control',async()=>{
  const {context,calls,sessions}=searchFixture();await context.runDocumentSearch();await context.runDocumentSearch();
- assert.equal(calls.length,2);for(const call of calls){assert.equal(call.type,'SEARCH_INPUTS');assert.equal(call.options.query,'READER_ONLY');assert.equal(call.options.documentId,'synthetic-doc');assert.equal(call.options.mode,'current');}
+ assert.equal(calls.length,2);for(const call of calls){assert.equal(call.type,'SEARCH_INPUTS');assert.equal(call.options.query,'READER_ONLY');assert.equal(call.options.documentId,'synthetic-doc');assert.equal(call.options.mode,'current');assert.equal(call.options.includeFiltered,true,'ordinary Reader Find includes eligible filtered Inputs without changing normal Reader visibility');assert.equal(call.options.includeRemoved,false);}
  assert.equal(context.scopeSearch.input.value,'ARCHIVE_ONLY');assert.equal(sessions.get('synthetic-doc').query,'READER_ONLY');assert.equal(sessions.get('synthetic-doc').items[0].id,'synthetic-hit');
 });
 test('blank or unsaved Reader query cannot execute the Archive query',async()=>{

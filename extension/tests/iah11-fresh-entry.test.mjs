@@ -19,7 +19,7 @@ test('primary Archive clears scope, target, query and pagination after accepted 
  for(const fresh of [false,true]){const {context,seen}=freshFixture(),origin=context.routeStates.get('library:');origin.scroll=420;const scrolls=[];context.window.scrollTo=(...args)=>scrolls.push(args);await context.navigate('library',null,null,fresh?{freshArchiveEntry:true}:{});
  assert.deepEqual(seen,[fresh?{query:'',cursor:null,history:[]}:{query:'ARCHIVE_A',cursor:'ARCHIVE_A_PAGE_2',history:[null]}]);
  assert.equal(context.routeStates.get('library:'),origin,'fresh entry retains the existing origin snapshot');assert.deepEqual(scrolls,[[0,fresh?0:420]]);
- assert.equal(context.archiveNavigator.sourceScope,fresh?null:'chatgpt');assert.equal(context.archiveNavigator.state.selectedPath===null,fresh);assert.equal(context.searchProject===null,fresh);assert.equal(context.documentId,null);if(fresh)assert.equal(context.queries.get('library'),'');
+ assert.equal(context.archiveNavigator.sourceScope,fresh?null:'chatgpt');assert.equal(context.archiveNavigator.state.selectedPath===null,fresh);assert.equal(context.searchProject===null,fresh);assert.equal(context.documentId,null);if(fresh)assert.equal(context.$('search-include-filtered').checked,true);if(fresh)assert.equal(context.queries.get('library'),'');
  }
 });
 test('refused save or composition leave does not reset any Archive state',async()=>{
@@ -51,7 +51,7 @@ test('fresh entry leaves the saved query and page available to the existing retu
 
 test('Reader origin return restores its own query after another root snapshot replaces the view slot',async()=>{
  const {context,seen}=freshFixture();context.routeStates.set('library:',{query:'OTHER_QUERY_B',cursor:null,pages:[],scroll:0});
- context.archiveOrigins={get:key=>key==='origin-a'?{readerDocumentId:'synthetic-doc',view:'library',query:'ORIGIN_QUERY_A',cursor:{phase:1,offset:200},pages:[null],scroll:420,searchProject:null,sourceScope:null,navigator:null,dateStart:'',dateEnd:'',includeFiltered:false,focus:null}:null};
+ context.archiveOrigins={get:key=>key==='origin-a'?{originKind:'search-results',readerDocumentId:'synthetic-doc',view:'library',query:'ORIGIN_QUERY_A',cursor:{phase:1,offset:200},pages:[null],scroll:420,searchProject:null,sourceScope:null,navigator:null,dateStart:'',dateEnd:'',includeFiltered:false,focus:null}:null};
  context.archiveOriginKey='origin-a';context.restoreArchiveOrigin=()=>{};
  await context.navigate('library',null,null,{returnOriginKey:'origin-a'});
  assert.deepEqual(seen,[{query:'ORIGIN_QUERY_A',cursor:{phase:1,offset:200},history:[null]}]);
@@ -60,7 +60,7 @@ test('Reader origin return restores its own query after another root snapshot re
 test('origin restore waits for accepted leave, preserves Reader Find and commits with replacement',async()=>{
  for(const accepted of [false,true]){
   const {context,seen}=freshFixture(accepted),key='11111111-1111-4111-8111-111111111111';
-  const snapshot={readerDocumentId:'synthetic-doc',view:'library',query:'ORIGIN_A',cursor:{phase:1,offset:200},pages:[null],scroll:420,searchProject:null,sourceScope:'chatgpt',navigator:null,dateStart:'2024-01-01',dateEnd:'',includeFiltered:true,focus:null};
+  const snapshot={originKind:'search-results',readerDocumentId:'synthetic-doc',view:'library',query:'ORIGIN_A',cursor:{phase:1,offset:200},pages:[null],scroll:420,searchProject:null,sourceScope:'chatgpt',navigator:null,dateStart:'2024-01-01',dateEnd:'',includeFiltered:true,focus:null};
   context.archiveOrigins={get:()=>snapshot};context.archiveOriginKey=key;let restored=0,focus=0,nav=0;context.restoreArchiveOrigin=value=>{assert.equal(value,snapshot);restored++;};context.focusArchiveOrigin=()=>focus++;const commits=[];context.routes.commit=opts=>commits.push(opts);
   const find=context.documentSearchStates.get('synthetic-doc');find.query='READER_FIND_ONLY';
   await context.navigate('library',null,null,{returnOriginKey:key,replaceHistory:true,applyNavigator:()=>nav++});
@@ -69,7 +69,7 @@ test('origin restore waits for accepted leave, preserves Reader Find and commits
  }
 });
 test('evicted or mismatched Reader origin degrades to neutral instead of the last query slot',async()=>{
- for(const snapshot of [undefined,{readerDocumentId:'different-doc',view:'library',query:'PRIVATE_OTHER',cursor:null,pages:[],scroll:420,searchProject:null,sourceScope:null,navigator:null,dateStart:'',dateEnd:'',includeFiltered:false,focus:null}]){
+ for(const snapshot of [undefined,{originKind:'search-results',readerDocumentId:'different-doc',view:'library',query:'PRIVATE_OTHER',cursor:null,pages:[],scroll:420,searchProject:null,sourceScope:null,navigator:null,dateStart:'',dateEnd:'',includeFiltered:false,focus:null}]){
   const {context,seen}=freshFixture();context.archiveOrigins={get:()=>snapshot};let restored='pending';context.restoreArchiveOrigin=value=>restored=value;
   await context.navigate('library',null,null,{returnOriginKey:'11111111-1111-4111-8111-111111111111',replaceHistory:true});
   assert.equal(restored,null);assert.deepEqual(seen,[{query:'',cursor:null,history:[]}]);
@@ -83,7 +83,7 @@ test('actual origin restoration uses its explicit scope/date/tree snapshot, not 
  const snapshot={searchProject:{ref:{providerKey:'chatgpt',namespace:'project',projectId:'A'},title:'Synthetic A'},sourceScope:'chatgpt',navigator:{expanded:['A'],loaded:[],scrollTop:35,narrowCollapsed:false,sourceScope:'chatgpt'},dateStart:'2024-01-01',dateEnd:'2024-12-31',includeFiltered:true};
  context.restoreArchiveOrigin(snapshot);
  assert.equal(context.searchProject,snapshot.searchProject);assert.equal(context.archiveNavigator.sourceScope,'chatgpt');assert.equal(restored,snapshot.navigator);assert.equal(nodes.get('search-date-start').value,'2024-01-01');assert.equal(nodes.get('search-date-end').value,'2024-12-31');assert.equal(nodes.get('search-include-filtered').checked,true);assert.equal(context.archiveNavigator.state.selectedPath,null);
- context.restoreArchiveOrigin(null);assert.equal(context.searchProject,null);assert.equal(context.archiveNavigator.sourceScope,null);assert.equal(nodes.get('search-include-filtered').checked,false);
+ context.restoreArchiveOrigin(null);assert.equal(context.searchProject,null);assert.equal(context.archiveNavigator.sourceScope,null);assert.equal(nodes.get('search-include-filtered').checked,true);
 });
 
 test('superseded accepted leave cannot install a previous origin or mutate navigator scope',async()=>{
@@ -112,7 +112,7 @@ test('superseded leave callback cannot capture or replace origin metadata',async
   context.searchProject={ref:{providerKey:'chatgpt',namespace:'project',projectId:'A'},title:'Synthetic A'};context.archiveNavigator.navigationSnapshot=()=>null;
   context.document={activeElement:null,querySelectorAll:()=>[]};let saved;context.archiveOrigins={get:()=>null,set:(_key,value)=>saved=value};vm.runInContext(code,context);
   context.captureArchiveOrigin({kind:'tree',targetId:'sibling-doc',readerDocumentId:'sibling-doc'});assert.ok(saved);
-  assert.equal(saved.query,documentId?'':'ARCHIVE_A');assert.equal(saved.searchProject===null,!!documentId);assert.equal(saved.cursor?.offset??null,documentId?null:50);assert.equal(saved.pages.length,documentId?0:1);
+  assert.equal(saved.originKind,'project-browse');assert.equal(saved.includeFiltered,!!documentId,'Reader sibling resets Find coverage; real Search preserves an explicit unchecked filter');assert.equal(saved.query,documentId?'':'ARCHIVE_A');assert.equal(saved.searchProject===null,!!documentId);assert.equal(saved.cursor?.offset??null,documentId?null:50);assert.equal(saved.pages.length,documentId?0:1);
  }
  });
  test('lost recorded origin explains neutral return while direct entry stays quiet',async()=>{
