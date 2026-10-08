@@ -71,9 +71,10 @@ export async function topicIdentitiesSeparate(t,left,right){
  }while(after);return false;
 }
 export async function assertTopicMergeAllowed(t,sourceId,targetId){if(await topicIdentitiesSeparate(t,sourceId,targetId))fail();}
+export function planHumanKeepSeparate(sourceId,targetId,at){return {id:topicPairKey(sourceId,targetId),sourceId,targetId,at,actor:'user',revision:1,scope:'identity'};}
 export async function keepTopicIdentitiesSeparate(store,{sourceId,targetId}){
  return store.foundationWrite(async t=>{const a=await resolveTopicIdentity(t,sourceId),b=await resolveTopicIdentity(t,targetId);if(a.id===b.id)return {kept:false};if(a.layoutJobId||b.layoutJobId)fail();
-  const id=topicPairKey(a.id,b.id),prior=await t.get('meta',id);if(!prior)await t.put('meta',{id,sourceId:a.id,targetId:b.id,at:store.clock(),actor:'user',revision:1,scope:'identity'});return {kept:true};});
+  const id=topicPairKey(a.id,b.id),prior=await t.get('meta',id);if(!prior)await t.put('meta',planHumanKeepSeparate(a.id,b.id,store.clock()));return {kept:true};});
 }
 // Explicit, resumable metadata compatibility operation. It is not invoked at
 // startup and does not change existing IDs, content, permissions or revisions.

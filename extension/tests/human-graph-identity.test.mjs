@@ -1,0 +1,16 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';import {LibraryDocumentsStore} from '../core/library-documents-store.js';import {local} from './harness/thought-m1.mjs';import {portableHumanTopicIdentity,localHumanTopicIdentity} from '../core/browser-native-sync/human-library-identity.js';
+globalThis.IDBKeyRange=IDBKeyRange;
+async function fixture(){const s=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory()});await s.consent(true);await s.finishFoundation();return s;}
+test('real rename history proves portable alias plaintext and maps only device-local tokens',async()=>{
+ const a=await fixture(),b=await fixture(),q=await a.createTopic({name:'SYNTHETIC Old Topic',operationId:crypto.randomUUID()});await a.editTopic({id:q.id,expectedRevision:0,changes:{name:'SYNTHETIC New Topic'},operationId:crypto.randomUUID()});
+ const read=s=>s.repository.transaction(false,async t=>({topic:await t.get('topics',q.id),history:await t.all('revisions'),secret:(await t.get('meta','thought-suppression-key')).value})),x=await read(a),y=await read(b),portable=await portableHumanTopicIdentity(x.topic,x.history,x.secret),mapped=await localHumanTopicIdentity(x.topic.name,portable,y.secret);
+ assert.equal(portable.aliases[0].name,'SYNTHETIC Old Topic');assert.equal('token'in portable.aliases[0],false);assert.equal('nameToken'in portable,false);assert.notEqual(mapped.identity.nameToken,x.topic.identity.nameToken);assert.notEqual(mapped.identity.aliases[0].token,x.topic.identity.aliases[0].token);assert.equal(mapped.identity.aliases[0].operationId,x.topic.identity.aliases[0].operationId);assert.deepEqual((await localHumanTopicIdentity(x.topic.name,portable,x.secret)).identity,x.topic.identity);
+ await assert.rejects(portableHumanTopicIdentity(x.topic,[],x.secret),{code:'BNS_HUMAN_IDENTITY_UNPROVEN'});const bad=structuredClone(x.history);for(const h of bad)if(h.kind==='topic'&&h.fieldMask.includes('name')&&h.before)h.before.name='SYNTHETIC wrong old name';await assert.rejects(portableHumanTopicIdentity(x.topic,bad,x.secret),{code:'BNS_HUMAN_IDENTITY_UNPROVEN'});
+});
+import {keepTopicIdentitiesSeparate,planHumanKeepSeparate,topicPairKey} from '../core/topic-identity.js';
+test('actual keep-separate uses the same pair plan and repeat calls preserve identity/time without another allocation',async()=>{
+ let ticks=0;const s=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory(),clock:()=>new Date(Date.UTC(2026,9,9)+ticks++).toISOString()});await s.consent(true);await s.finishFoundation();const a=await s.createTopic({name:'SYNTHETIC same',operationId:crypto.randomUUID()}),b=await s.createTopic({name:'SYNTHETIC same',operationId:crypto.randomUUID()}),before=ticks;
+ assert.deepEqual(await keepTopicIdentitiesSeparate(s,{sourceId:a.id,targetId:b.id}),{kept:true});assert.equal(ticks,before+1);const row=await s.repository.transaction(false,t=>t.get('meta',topicPairKey(a.id,b.id)));assert.deepEqual(row,planHumanKeepSeparate(a.id,b.id,new Date(Date.UTC(2026,9,9)+before).toISOString()));
+ assert.deepEqual(await keepTopicIdentitiesSeparate(s,{sourceId:b.id,targetId:a.id}),{kept:true});assert.equal(ticks,before+1);assert.deepEqual(await s.repository.transaction(false,t=>t.get('meta',row.id)),row);
+});
