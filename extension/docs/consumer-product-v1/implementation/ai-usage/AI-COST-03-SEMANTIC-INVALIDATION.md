@@ -62,8 +62,52 @@ The browser test increment passed root_finish independent read-only review of th
 reused only because all runtime and unit-test bytes remain unchanged.
 
 
-## Coherent integration candidate0.24.1
+## Pre-optimization coherent integration candidate0.24.1
 
 The coordinator merged native-verified6b33e7b9 with Prompt/Settings8a38c864 without conflicts (merge8fb4e911). Product manifests/package now identify0.24.1 AI Job Safety, planned after0.24.0 Prompt; the existing strict0.24 backup admission already covers this patch and still rejects0.25. No backup/schema rule changed. The preceding bounded maintenance adapter from PR207 remains unused in production; this batch's actual runtime change is the existing semantic-write invalidation hook.
 
 On the combined tree, complete AI owner/CI plus backup files pass133/133 (1408.11ms), package guard12220 across369 resources passes, and the unchanged complete source/release native file passes2/2 in4648.00ms. Native assertions include actual IndexedDB unknown-spend retention, completed local child receipt identity, rollback and101-job overflow refusal. No model, entitlement authority, reservation or new dispatch path is enabled. Full high-risk current-head CI and exact-main integration remain pending; previous scoped evidence is not full-seven-lane completion.
+## Transaction-local evidence bound refinement
+
+The original measurement above used100 jobs with one evidence item each. A later
+actual Chrome diagnostic used the existing legitimate AI_ORGANIZE per-scope
+single-flight contract to create100 jobs with100 items each (10000 references).
+This is constructible with the synthetic injected resolver, although production
+still has no resolver or paid admission. /tmp/ai-invalidation-native-cost.log
+records capture348.7ms /10141 reads and edit477.8ms /10324 reads. Zero-job capture
+was5.5ms. This exposed synchronous repeated IndexedDB reads on the capture path;
+it is not dismissed as unreachable or described as an established SLO violation.
+
+The semantic writer now passes only the accepted known rows that it just wrote
+in the SAME transaction. Each job compares its evidence signatures with this
+transaction-local Map. This is not a cache across transactions, a new truth store
+or an assertion that all historical jobs are current. A job stale before this
+transaction whose key did not change remains protected by existing mandatory
+foundation.current dispatch/commit checks. Gate and restore epoch checks remain
+global within the transaction. Human-fence-only behavior, overflow all-or-nothing,
+completed receipt preservation and unknown reservation retention are unchanged.
+Distinct unrelated keys do not cause IndexedDB lookups: CPU membership checks
+are bounded by100 jobs times100 items, and only matched jobs read child receipts
+and dispatch fences. The delta producer's own known-row reads remain necessary.
+
+A genuine100-plan /100-evidence actual-owner negative failed before the change
+(/tmp/ai-stale-cost-before.log). The new complete owner file14/14 passes. Complete
+AI plus backup files133/133 pass with no failures/skips/cancellations,
+/tmp/ai-stale-optimized-all.log. Existing native wholefile retains every original
+safety assertion and adds this same real IndexedDB cardinality and deterministic
+read-count bounds, not a timing assertion. Source/release2/2 pass in11724.42ms,
+/tmp/ai-stale-optimized-native.log, with unchanged120s budget and zero network.
+
+Exact same diagnostic after optimization, /tmp/ai-invalidation-native-cost-after.log:
+zero-job capture6.7ms;100x100 capture29.9ms /141 reads /19 writes;
+edit129.3ms /324 reads /115 writes. The integrated source/release runs observed
+capture32.6/30.4ms and edit165.9/132.5ms with the same read counts. These are local
+synthetic Chrome samples, not p95/p99, user-device or service qualification.
+Static package11869/357 and diff-check pass. No CI, version, worker or production
+financial authority changes. Root independently reviewed the incremental diff and executed both complete affected owner files60/60PASS, work/ai-optimization-independent.log; no blocker found.
+
+Current refinement hashes (earlier hashes describe their earlier checkpoints):
+- core/ai-usage/delta.js:1ea2c9a4aebcabb9c2bd538a042c8bfd9b8bfa102ab36b7b3de107a83e5d8f21
+- core/ai-usage/semantic-invalidation.js:57e4c97bc135e2d9fbdad45a2632bc3bbfb389a36c9f4a0cd14c5daef976db5e
+- tests/ai-cost-semantic-invalidation.test.mjs:4d5e876db1dfe659de2d8b156f157369c738dff5318f6839a3d82eb194964c0f
+- tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs:9300d1edf62a91bce2839a16b1d2ca1449da38bdbd87bcb0781c52745261b203

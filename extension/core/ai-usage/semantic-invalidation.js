@@ -4,7 +4,7 @@ const stores=['meta','organizerJobs','organizerUsage'];
 const integer=x=>Number.isSafeInteger(x)&&x>=0;
 // This local evidence fence grants neither processing nor financial authority.
 // Overflow is deliberately all-or-nothing; existing current() remains mandatory.
-export async function invalidateSemanticJobs(t){
+export async function invalidateSemanticJobs(t,changedEvidence=new Map()){
  if(!stores.every(name=>t.tx.objectStoreNames.contains(name)))return {status:'UNSUPPORTED',checked:0,cancelled:0};
  const page=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_usage_v1',0]),null,LIMIT);
  if(page.next!==null)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
@@ -21,7 +21,9 @@ export async function invalidateSemanticJobs(t){
   if(gate&&typeof gate.enabled==='boolean'&&a.gateEpoch!==undefined&&gate.epoch!==undefined&&(gate.enabled===false||a.gateEpoch!==gate.epoch))stale=true;
   for(const item of job.items){
    if(typeof item.key!=='string'||typeof item.signature!=='string')continue;
-   const known=await t.get('meta','aiu:delta:known:'+item.key);
+   // The semantic writer supplies only rows already validated and written in
+   // this same transaction. No cross-transaction cache or historical scan.
+   const known=changedEvidence.get(item.key);
    if(known?.version===1&&known.descriptor?.key===item.key&&typeof known.signature==='string'&&(known.signature!==item.signature||known.descriptor.removed===true))stale=true;
   }
   if(!stale)continue;
