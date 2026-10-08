@@ -24,12 +24,14 @@ export async function readCanonicalReadiness(core,{promptService=null}={}){
    else if(type==='sourceStructure')count=scan.keys.filter(sourceStructureMetaAllowed).length;
    else if(type==='topicName')count=scan.keys.filter(topicIdentityMetaAllowed).length;
    else if(type==='consumerPreference')count=keys.has(codec.owner)?1:0;
-   else if(type==='contextItem'||type==='contextDesired'){
+   else if(['contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(type)){
     // Aggregate canonical owner has no item-count index. Read its shape only;
     // no body is compared, hashed, retained or returned by this preflight.
     const row=keys.has(CONTEXT_CARDS_ROW)?await t.get('meta',CONTEXT_CARDS_ROW):null;
     if(row&&(!Array.isArray(row.items)||!row.access||typeof row.access!=='object'))fail('BNS_CODEC_INVALID');
-    count=row?(type==='contextItem'?row.items.length:Object.keys(row.access).filter(k=>k!=='global').length):0;
+    // Keep the pre-existing aggregate Context blocker: automatic/unknown Items
+    // remain unrepresented. New card counts do not assert per-item journal proof.
+    count=row?(type==='contextDesired'?Object.keys(row.access).filter(k=>k!=='global').length:type==='contextItem'?row.items.length:row.items.filter(item=>item.card===(type==='contextRulesItem'?'rules':'now')).length):0;
    }
    const journalBound=type==='promptPreferences'&&promptService?.s?.repository===core.repository&&promptService.syncJournal instanceof PromptSyncJournal&&promptService.syncJournal.core===core&&core.materialize===materializePrompt;
    const head=type==='promptPreferences'&&count?await core.get(t,'head',type,PROMPT_REUSE_ROW):null;

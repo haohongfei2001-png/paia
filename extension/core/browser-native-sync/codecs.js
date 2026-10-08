@@ -25,8 +25,8 @@ const entries=Object.entries(domain).map(([type,[section,store]])=>[type,spec(ty
  if(type==='source'&&typeof value.originalText!=='string')fail('BNS_CODEC_INVALID');
  return value;
 },{section,store,immutable:type==='source'})]);
-const contextItem=value=>{
- if(!exact(value,['id','card','body','section','revision','order','origin','protected','userEdited','lifecycle','createdAt','updatedAt','deletedBy'])||value.card!=='info'||value.origin!=='manual'||value.protected!==true||value.userEdited!==true)fail('BNS_CODEC_UNSUPPORTED');
+const contextItemFor=card=>value=>{
+ if(!exact(value,['id','card','body','section','revision','order','origin','protected','userEdited','lifecycle','createdAt','updatedAt','deletedBy'])||value.card!==card||value.origin!=='manual'||value.protected!==true||value.userEdited!==true)fail('BNS_CODEC_UNSUPPORTED');
  const emptyAccess=Object.fromEntries(['global','info','rules','now','inputs'].map(key=>[key,{enabled:false,revision:0}]));
  if(!validContextCards({id:CONTEXT_CARDS_ROW,version:1,sequence:(value.order||0)+1,access:emptyAccess,items:[value]}))fail('BNS_CODEC_INVALID');
  return value;
@@ -37,7 +37,9 @@ const prompt=value=>{
  return value;
 };
 entries.push(
- ['contextItem',spec('contextItem',contextItem,{store:'meta',owner:'context-cards:v1'})],
+ ['contextItem',spec('contextItem',contextItemFor('info'),{store:'meta',owner:'context-cards:v1'})],
+ ['contextRulesItem',spec('contextRulesItem',contextItemFor('rules'),{store:'meta',owner:'context-cards:v1'})],
+ ['contextNowItem',spec('contextNowItem',contextItemFor('now'),{store:'meta',owner:'context-cards:v1'})],
  ['contextDesired',spec('contextDesired',value=>{
   if(!exact(value,['id','enabled','revision'])||!['info','rules','now','inputs'].includes(value.id)||typeof value.enabled!=='boolean'||!count(value.revision))fail('BNS_CODEC_INVALID');return value;
  },{store:'meta',owner:'context-cards:v1'})],
@@ -71,7 +73,7 @@ const sourceCodec=spec('source',value=>{
  if(!exact(value,sourceFields)||!['chatgpt'].includes(value.platform)||!identifier(value.chatId)||!identifier(value.sourceMessageId)||typeof value.originalText!=='string'||!validPortableSourceRecord(value)||!hash(value.contentHash)||!hash(value.sourceKey)||!hash(value.dedupeKey)||(value.previousVersionId!==null&&!identifier(value.previousVersionId)))fail('BNS_CODEC_INVALID');
  return value;
 },{store:'records',immutable:true});
-export const CODECS=Object.freeze({source:sourceCodec,...Object.fromEntries(entries.filter(([type])=>['contextItem','contextDesired','promptPreferences'].includes(type)))});
+export const CODECS=Object.freeze({source:sourceCodec,...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences'].includes(type)))});
 export function validateEntity(type,value,version=1){
  const codec=Object.hasOwn(CODECS,type)?CODECS[type]:null;if(!codec||version!==codec.version)fail('BNS_CODEC_UNSUPPORTED');
  canonical(value);
