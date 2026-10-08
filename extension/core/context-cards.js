@@ -37,21 +37,9 @@ export function validateContextChange(c,{draft=false}={}){
  }
  return c;
 }
-export class ContextCardsService {
- constructor(store,{topicSummary=null}={}){this.s=store;this.topicSummary=topicSummary;}
- async row(t){const row=await t.get('meta',CONTEXT_CARDS_ROW);if(row&&!validContextCards(row))fail('STORAGE_FAILED');return row||empty();}
- async admitted(t,epoch){if((await this.s.control(t)).settings.consentVersion!==CONSENT_VERSION)fail('CONSENT_REQUIRED');const current=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';if(epoch!==undefined&&epoch!==current)fail('CONTEXT_INVALIDATED');return current;}
- async snapshot(){const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{const epoch=await this.admitted(t),row=await this.row(t);let topicChoices;
-  if(this.topicSummary){try{const value=await this.topicSummary(t,epoch);if(typeof value?.available!=='boolean'||value.externalAllowed!==false||value.available&&(!revision(value.selectedCount)||value.selectedCount>4096))throw Error('TOPICS_UNAVAILABLE');const selectedNames=value.selectedNames??[],remainingSelectedCount=value.remainingSelectedCount??value.selectedCount;if(value.available&&(!Array.isArray(selectedNames)||selectedNames.length>3||Object.keys(selectedNames).length!==selectedNames.length||!selectedNames.every(name=>bounded(name,300)&&name.trim())||!revision(remainingSelectedCount)||selectedNames.length+remainingSelectedCount!==value.selectedCount))throw Error('TOPICS_UNAVAILABLE');topicChoices={available:value.available,selectedCount:value.available?value.selectedCount:null,...(value.available?{selectedNames,remainingSelectedCount}:{}),externalAllowed:false};}catch{topicChoices={available:false,selectedCount:null,externalAllowed:false};}}
-  return {rowSerialized:JSON.stringify(await t.get('meta',CONTEXT_CARDS_ROW)),version:1,epoch,access:row.access,items:row.items.filter(x=>x.lifecycle==='active'),counts:Object.fromEntries(CONTEXT_CARDS.map(k=>[k,row.items.filter(x=>x.card===k&&x.lifecycle==='active').length])),capabilities:{info:true,rules:true,now:true,inputs:topicChoices?.available===true,automatic:false,external:false},connections:0,...(topicChoices?{topicChoices}:{})};}));
-  const {rowSerialized,...snapshot}=captured;const readable=await readableContextItems(this.s,snapshot.items,{epoch:snapshot.epoch,rowSerialized});snapshot.items=readable.items;snapshot.counts=Object.fromEntries(CONTEXT_CARDS.map(k=>[k,readable.automaticEvaluation&&captured.items.some(x=>x.card===k&&x.origin==='automatic')?null:snapshot.items.filter(x=>x.card===k).length]));if(readable.automaticEvaluation)snapshot.automaticEvaluation=readable.automaticEvaluation;return snapshot;}
- async change(input){
-  const c=structuredClone(validateContextChange(input)),digest=await hashText(JSON.stringify(c));
-  return this.s.write(async t=>{
-   await this.admitted(t,c.epoch);
-   const receipt=await t.get('operationReceipts','context:'+c.operationId);
-   if(receipt){if(receipt.namespace!=='context-cards'||receipt.digest!==digest||receipt.epoch!==c.epoch)fail();return receipt.result;}
-   const row=await this.row(t);let result;
+export async function readContextCards(t){const row=await t.get('meta',CONTEXT_CARDS_ROW);if(row&&!validContextCards(row))fail('STORAGE_FAILED');return row||empty();}
+function applyContextChange(row,c,clock){
+ let result;
    if(c.kind==='access'){
     const value=row.access[c.key];if(value.revision!==c.expectedRevision)return {ok:false,conflict:true,revision:value.revision};
     value.enabled=c.enabled;value.revision++;result={ok:true,key:c.key,revision:value.revision,enabled:value.enabled};
@@ -61,7 +49,7 @@ export class ContextCardsService {
     if((item?.revision||0)!==c.expectedRevision)return {ok:false,conflict:true,revision:item?.revision||0,lifecycle:item?.lifecycle||'missing'};
     if(c.kind==='put'){
      if(item?.lifecycle==='removed')return {ok:false,conflict:true,revision:item.revision,lifecycle:'removed'};
-     if(!item){if(row.items.length>=CONTEXT_LIMITS.items)fail('CONTEXT_LIMIT');item={id:c.itemId,card:itemCard(c),revision:0,order:row.sequence++,origin:'manual',protected:true,userEdited:true,lifecycle:'active',createdAt:this.s.clock(),deletedBy:null};row.items.push(item);}
+     if(!item){if(row.items.length>=CONTEXT_LIMITS.items)fail('CONTEXT_LIMIT');item={id:c.itemId,card:itemCard(c),revision:0,order:row.sequence++,origin:'manual',protected:true,userEdited:true,lifecycle:'active',createdAt:clock(),deletedBy:null};row.items.push(item);}
      item.body=c.body;item.section=c.section;
     }else if(c.kind==='delete'){
      if(!item||item.lifecycle!=='active')fail('CONTEXT_INVALIDATED');item.lifecycle='removed';item.deletedBy=c.operationId;
@@ -69,10 +57,39 @@ export class ContextCardsService {
      if(!item||item.lifecycle!=='removed'||item.deletedBy!==c.deletedBy)fail('CONTEXT_INVALIDATED');item.lifecycle='active';item.deletedBy=null;
     }
     if(item.origin==='automatic'){item.protected=true;item.userEdited=true;}
-    item.revision++;item.updatedAt=this.s.clock();result={ok:true,itemId:item.id,revision:item.revision,lifecycle:item.lifecycle,deletedBy:item.deletedBy};
+    item.revision++;item.updatedAt=clock();result={ok:true,itemId:item.id,revision:item.revision,lifecycle:item.lifecycle,deletedBy:item.deletedBy};
    }
    if(!validContextCards(row))fail('CONTEXT_LIMIT');
+ return result;
+}
+export class ContextCardsService {
+ constructor(store,{topicSummary=null,syncJournal=null}={}){this.s=store;this.topicSummary=topicSummary;this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
+ async row(t){return readContextCards(t);}
+ async admitted(t,epoch){if((await this.s.control(t)).settings.consentVersion!==CONSENT_VERSION)fail('CONSENT_REQUIRED');const current=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';if(epoch!==undefined&&epoch!==current)fail('CONTEXT_INVALIDATED');return current;}
+ async snapshot(){const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{const epoch=await this.admitted(t),row=await this.row(t);let topicChoices;
+  if(this.topicSummary){try{const value=await this.topicSummary(t,epoch);if(typeof value?.available!=='boolean'||value.externalAllowed!==false||value.available&&(!revision(value.selectedCount)||value.selectedCount>4096))throw Error('TOPICS_UNAVAILABLE');const selectedNames=value.selectedNames??[],remainingSelectedCount=value.remainingSelectedCount??value.selectedCount;if(value.available&&(!Array.isArray(selectedNames)||selectedNames.length>3||Object.keys(selectedNames).length!==selectedNames.length||!selectedNames.every(name=>bounded(name,300)&&name.trim())||!revision(remainingSelectedCount)||selectedNames.length+remainingSelectedCount!==value.selectedCount))throw Error('TOPICS_UNAVAILABLE');topicChoices={available:value.available,selectedCount:value.available?value.selectedCount:null,...(value.available?{selectedNames,remainingSelectedCount}:{}),externalAllowed:false};}catch{topicChoices={available:false,selectedCount:null,externalAllowed:false};}}
+  return {rowSerialized:JSON.stringify(await t.get('meta',CONTEXT_CARDS_ROW)),version:1,epoch,access:row.access,items:row.items.filter(x=>x.lifecycle==='active'),counts:Object.fromEntries(CONTEXT_CARDS.map(k=>[k,row.items.filter(x=>x.card===k&&x.lifecycle==='active').length])),capabilities:{info:true,rules:true,now:true,inputs:topicChoices?.available===true,automatic:false,external:false},connections:0,...(topicChoices?{topicChoices}:{})};}));
+  const {rowSerialized,...snapshot}=captured;const readable=await readableContextItems(this.s,snapshot.items,{epoch:snapshot.epoch,rowSerialized});snapshot.items=readable.items;snapshot.counts=Object.fromEntries(CONTEXT_CARDS.map(k=>[k,readable.automaticEvaluation&&captured.items.some(x=>x.card===k&&x.origin==='automatic')?null:snapshot.items.filter(x=>x.card===k).length]));if(readable.automaticEvaluation)snapshot.automaticEvaluation=readable.automaticEvaluation;return snapshot;}
+ async change(input){
+  const c=structuredClone(validateContextChange(input)),digest=await hashText(JSON.stringify(c));
+  let staged=null;
+  if(this.syncJournal){
+   const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return {row:await this.row(t),receipt:await t.get('operationReceipts','context:'+c.operationId)};}));
+   if(captured.receipt){const r=captured.receipt;if(r.namespace!=='context-cards'||r.digest!==digest||r.epoch!==c.epoch)fail();return r.result;}
+   const before=JSON.stringify(captured.row),at=this.s.clock(),next=structuredClone(captured.row),result=applyContextChange(next,c,()=>at);
+   if(!result.ok)return result;
+   staged={before,at,prepared:await this.syncJournal.prepare(captured.row,next,c)};
+  }
+  return this.s.write(async t=>{
+   await this.admitted(t,c.epoch);
+   const receipt=await t.get('operationReceipts','context:'+c.operationId);
+   if(receipt){if(receipt.namespace!=='context-cards'||receipt.digest!==digest||receipt.epoch!==c.epoch)fail();return receipt.result;}
+   const row=await this.row(t);
+   if(staged&&JSON.stringify(row)!==staged.before)fail('CONTEXT_INVALIDATED');
+   const result=applyContextChange(row,c,staged?()=>staged.at:()=>this.s.clock());
+   if(!result.ok)return result;
    await t.put('meta',row);
+   if(staged)await this.syncJournal.commit(t,staged.prepared);
    // Receipt contains no second body. Only a committed transaction can return it.
    await t.put('operationReceipts',{id:'context:'+c.operationId,namespace:'context-cards',schemaVersion:1,ownerId:c.itemId||c.key,createdAt:this.s.clock(),digest,epoch:c.epoch,result});
    return result;
