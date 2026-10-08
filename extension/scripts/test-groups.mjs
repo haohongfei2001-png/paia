@@ -62,6 +62,8 @@ export function group(file) {
  */
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
+ // Full37775540355/37777034587 exhausted3; complete search file costs258s while6 is~8m.
+ if(category==='browser E2E'&&total===7&&file.replaceAll('\\','/').split('/').at(-1)==='ux-r4-search-reuse-chrome-e2e.test.mjs')return 6;
  const newName=file.replaceAll('\\','/').split('/').at(-1);
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(newName===settingsNext)return 2;if(newName>settingsNext)position--;}
  return priorSettingsNextShard(file,position,total,category);

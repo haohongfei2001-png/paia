@@ -111,3 +111,7 @@ Current refinement hashes (earlier hashes describe their earlier checkpoints):
 - core/ai-usage/semantic-invalidation.js:57e4c97bc135e2d9fbdad45a2632bc3bbfb389a36c9f4a0cd14c5daef976db5e
 - tests/ai-cost-semantic-invalidation.test.mjs:4d5e876db1dfe659de2d8b156f157369c738dff5318f6839a3d82eb194964c0f
 - tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs:9300d1edf62a91bce2839a16b1d2ca1449da38bdbd87bcb0781c52745261b203
+
+### Coherent optimized integration verification
+
+Root integration `f45df1113c4e22375ac06b1dd850aeefb05bd773` combines the reviewed accepted-row optimization with Prompt/Settings `8a38c864` and AI delivery identity 0.24.1. The 134 complete affected unit/backup cases passed (3.1086s); the original full source/release native file passed 2/2 (11.663088s), including bounded read-count assertions. Logs: local `work/ai-delivery-optimized-units.log` and `work/ai-delivery/ai-delivery-optimized-native.log`. These results do not certify a later Sync conflict fix or a provider connection. Earlier Full `37777034587` was cancelled at the unchanged Browser 3 job budget, and its aggregate failed; that run is not a pass.
