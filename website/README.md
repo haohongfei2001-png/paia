@@ -1,3 +1,40 @@
+# Current website: approved-product consistency (8 October 2026)
+
+The website now follows the completed form of the current approved product plan,
+with explicit availability labels. The text-first hero, native scroll cards,
+V7.1 design system and brand assets are retained. The four downstream previews
+cover working inputs, personal prompts, personal Topics and four-card Context;
+the standalone example uses the same component to prevent product-model drift.
+Optional personal-cloud sync is explained as planned, with actual beta/sample
+CTA routes. No extension source, permission, model service or cloud connection
+is changed by this work.
+
+[Product capability map](PRODUCT_CAPABILITY_MAP.md) binds each main claim to its
+approved source and records the retired features that no longer belong in the
+site. `product_sections.py`, `product_pages.py` and the scoped
+`assets/website/product-consistency.css` extend the existing generators. Shared
+`site.css`/`site.js`, `home-origin-v7.css`, `home-core-v1.css` and brand/media/font
+assets remain byte-identical. `assets/website/demo.js` is retained as a historical
+asset; current routes no longer load its retired Context-packet flow.
+
+Run the normal build and complete website gate:
+
+```sh
+python website/build.py
+python website/build.py --check
+python website/test.py
+```
+
+After normal GitHub Pages deployment, `python website/verify_live.py` verifies
+actual deployed bytes and the current homepage/standalone interactions. Hosted
+CI runs the full browser gate when the local environment cannot launch Chromium.
+No private data or form submission is used. This is website verification, not
+certification of installed-product, model, cloud or real-device capabilities.
+
+---
+
+## Historical implementation records (superseded where the map above differs)
+
 # V7 origin fidelity — Draft review only (2026-09-28)
 
 The V7 owner request supersedes the earlier pale/green palette and frozen hero

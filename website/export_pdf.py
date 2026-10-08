@@ -78,31 +78,14 @@ with sync_playwright() as pw:
             single=native(page);combined.insert_pdf(single);single.close()
             page.screenshot(path=str(SHOTS/f'{lang.lower()}-{Path(route).stem}-desktop.png'),full_page=True)
             manifest['routes'].append({'locale':lang,'route':prefix+route,'pdf_page':len(combined),'title':title})
-        # Complete interactive-demo views, not fake feature screenshots.
+        # Current Context card details, from the shared live website component.
         page.goto(origin+'/'+prefix+'demo.html',wait_until='networkidle');ready(page)
-        for n in [1,2,3]:
-            tab=page.get_by_role('tab').nth(n);tab.click()
-            if n==3:page.locator('[data-build]').click()
-            ready(page)
-            title=('Example — ' if lang=='EN' else '交互示例 — ')+tab.inner_text().replace('\n',' ')
+        for key in ['info','rules','now','inputs']:
+            page.locator(f'[data-card-open="{key}"]').click();ready(page)
+            title=('Context example — ' if lang=='EN' else 'Context 示例 — ')+page.locator(f'#pc-detail-{key}').inner_text()
             toc.append([1,title,len(combined)+1]);single=native(page);combined.insert_pdf(single);single.close()
-            page.screenshot(path=str(SHOTS/f'{lang.lower()}-demo-view-{n}.png'),full_page=True)
-        # Print hidden homepage tab content as labelled, separate product regions.
-        page.goto(origin+'/'+prefix+'index.html',wait_until='networkidle');ready(page)
-        for view in ['topic','context']:
-            page.locator(f'[data-mini-tab={view}]').click();ready(page)
-            box=page.locator('.product-section').bounding_box()
-            sy=page.evaluate('scrollY');clip=fitz.Rect(0,(box['y']+sy)*.75,1080,(box['y']+sy+box['height'])*.75)
-            single=native(page)
-            # Copy the native PDF page, then crop only this EXTRA tab specimen.
-            # Full canonical routes above remain uncropped. Avoid retaining a
-            # cross-document form graft after closing its source document.
-            combined.insert_pdf(single)
-            target=combined[-1]
-            target.set_cropbox(clip)
-            del target
-            toc.append([1,('Homepage example — ' if lang=='EN' else '首页交互示例 — ')+view,len(combined)])
-            single.close()
+            page.screenshot(path=str(SHOTS/f'{lang.lower()}-context-{key}.png'),full_page=True)
+            page.locator(f'[data-card-detail="{key}"] [data-context-back]').click()
         public_links(combined);combined.set_toc(toc)
         combined.set_metadata({'title':f'PAIA — Complete Website — {lang}','author':'PAIA','subject':'Actual rendered website. Scroll motion is represented separately. Synthetic example data.','keywords':'PAIA, website, actual HTML, context'})
         filename=f'PAIA-Website-{lang}.pdf';combined.save(OUT/filename,garbage=4,deflate=True,use_objstms=1)
@@ -127,7 +110,7 @@ with sync_playwright() as pw:
         if i in [0,10,20,30]:
             p=keydoc.new_page(width=1080,height=675);p.insert_image(p.rect,stream=data)
             (SHOTS/f'motion-{i:02d}.png').write_bytes(data)
-    keydoc.set_toc([[1,title,n+1] for n,title in enumerate(['Text-only first frame','Inputs emerge','Sources gather','Completed context'])])
+    keydoc.set_toc([[1,title,n+1] for n,title in enumerate(['Text-only first frame','Inputs emerge','Sources gather','Collected inputs'])])
     keydoc.set_metadata({'title':'PAIA — Scroll sequence — actual website','subject':'Static keyframes sampled from the real implemented homepage.'})
     keydoc.save(OUT/'PAIA-Motion-Keyframes.pdf',garbage=4,deflate=True)
     keydoc.close()
