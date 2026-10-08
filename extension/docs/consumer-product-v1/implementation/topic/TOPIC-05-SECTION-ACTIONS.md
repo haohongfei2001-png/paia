@@ -188,3 +188,27 @@ the actions whole file on4 at widths4/5/6; its separate7-way guard is unchanged.
 Three complete routing test files passed15/15. Independent review found no removed
 assertion or changed timeout. Production runtime, dependencies and browser cases
 are unchanged. The failed06df run is retained, not certification success.
+
+
+## PR203 hosted focus completion failure and bounded fixture repair
+
+Full37715972815 at exact5a82ec7cf5b0dff77773693ec1c00ebd9a0bc9b9 failed
+Current Browser4/7 job113112408722:92 passed,2 failed,0 skipped. Both failures
+were this whole native file's source/release first rename assertion, “focus
+returns to exact Section heading”. Other browser shards succeeded. Preserve
+`ROOT/work/topic203-full-shard4-failed.log`; this run is not certification PASS.
+
+The test waited only for updated heading text, then synchronously asserted
+focus. Actual sectionContextAction awaits mutate/refresh before focusSection;
+text publication can occur before that continuation completes. The existing
+wait now requires both exact title and exact activeElement within its original
+budget; the subsequent exact focus assertion remains. No runtime, assertion,
+case timeout, geometry or CI routing change is included. A deterministic actual
+controller deferred-refresh test proves focus is restored only after refresh.
+
+Owning complete unit file18/18 PASS (91.164875ms),
+`ROOT/work/topic203-focus-unit.log`. Complete headless source/release native
+file2/2 PASS (12141.809833ms), zero fail/skip/cancel,
+`ROOT/work/topic203-focus-native.log`. These are local5a82 plus this test delta,
+not evidence that the failed hosted run passed. Hosted certification remains
+pending on the resulting integrated candidate.

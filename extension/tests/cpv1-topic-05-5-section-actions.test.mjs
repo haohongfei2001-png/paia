@@ -44,3 +44,9 @@ test('05.5 held read ignores round-trip route intent and duplicate activation',(
  let release;w.topicSectionRows=()=>new Promise(resolve=>release=resolve);const pending=w.sectionContextAction(section,'rename');await Promise.resolve();assert.equal(typeof release,'function');await w.sectionContextAction(section,'down');w.openIntent++;release([{...section}]);await assert.rejects(pending,/ROUTE_CHANGED/);assert.deepEqual(writes,[]);assert.equal(w.sectionActionPending,false);
 }));
 test('05.5 revalidates after leave/save before a rename is dispatched',()=>fixture(async({w,writes})=>{let read=0;w.topicSectionRows=async()=>[{...section,revision:++read===1?3:4}];await assert.rejects(w.sectionContextAction(section,'rename'),/SECTION_CHANGED/);assert.deepEqual(writes,[]);}));
+
+test('05.5 rename finishes refresh before restoring exact Section focus',()=>fixture(async({w,focus})=>{
+ let release,entered;const enteredRefresh=new Promise(resolve=>entered=resolve),heldRefresh=new Promise(resolve=>release=resolve);
+ w.mutate=async run=>{await run();entered();await heldRefresh;return true;};
+ const pending=w.sectionContextAction(section,'rename');await enteredRefresh;assert.deepEqual(focus,[],'published rename does not imply completed refresh or restored focus');release();await pending;assert.deepEqual(focus,['named']);assert.equal(w.sectionActionPending,false);
+}));
