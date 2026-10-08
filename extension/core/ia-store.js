@@ -1,3 +1,4 @@
+import {sourceAppendPlan} from './browser-native-sync/source-append-plan.js';
 import {initialSourcePlan} from './browser-native-sync/source-bootstrap-plan.js';
 import {IndexedArchiveStore} from './indexed-store.js';
 import {ArchiveError} from './constants.js';
@@ -53,8 +54,10 @@ export class IAStore extends IndexedArchiveStore {
   if(policy==='user_removed')await this.markRemoval(t,b,true);
   await this.journal(t,{kind:'input',entityId:b.id,documentId:b.documentId,before:blockSnapshot(b),after:blockSnapshot(b),reason,important:true,sourceRecordIds:refIds(b)});
  }
- async applyInitialBaseline(t,capability){
-  const e=initialSourcePlan(capability),b=e.input;if(await t.get('inputStates',b.id)||await t.get('revisions',e.baselineRevision.id))fail();
+ async applyInitialBaseline(t,capability){return this.#applySourceBaseline(t,initialSourcePlan(capability));}
+ async applyAppendBaseline(t,capability){return this.#applySourceBaseline(t,sourceAppendPlan(capability));}
+ async #applySourceBaseline(t,e){
+  const b=e.input;if(await t.get('inputStates',b.id)||await t.get('revisions',e.baselineRevision.id))fail();
   const state={...e.inputState,deltaSequence:await nextSequence(t,'input-delta-sequence')},sequence=await nextSequence(t,'revision-sequence'),h=e.baselineRevision;
   await t.put('inputStates',state);await t.put('revisions',{...h,sequence,listKey:[h.entityKey,sequence],documentList:[h.documentId,sequence]});return state;
  }

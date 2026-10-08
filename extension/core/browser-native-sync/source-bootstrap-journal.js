@@ -1,3 +1,4 @@
+import {captureSourceAppend} from './source-append-journal.js';
 import {validateCapture} from '../validation.js';
 import {identify} from '../dedupe.js';
 import {initialSourceRecord,initialSourceObjects} from '../source-initial.js';
@@ -24,7 +25,11 @@ export class SourceBootstrapJournal{
   if(store.repository!==this.core.repository||store.sourceBootstrapJournal!==this||enrich)fail('BNS_SOURCE_BOOTSTRAP_UNSUPPORTED');
   const {chat,messages}=validateCapture(request);if(messages.length!==1)fail('BNS_SOURCE_BOOTSTRAP_UNSUPPORTED');
   return store.run(async()=>{
-   const entryFence=await this.core.transaction(false,t=>new JournalRestoreFence(this.core).snapshot(t));
+   // Capture authority in the same first read as dispatch, before any branch
+   // can await identity/digest work or rebind to a newer namespace.
+   const entry=await this.core.transaction(false,async t=>{const fence=await new JournalRestoreFence(this.core).snapshot(t),control=await store.control(t);return {authority:{fence,settings:control.settings,generation:(await t.get('meta','backup-data-generation'))?.value||0},hasDocument:await t.count('documents','byChat','chatgpt:'+chat.id)};});
+   if(entry.hasDocument)return captureSourceAppend(store,this.core,request,entry.authority);
+   const entryFence=entry.authority.fence;
    const at=store.clock(),r=initialSourceRecord({id:store.uuid(),chat,message:messages[0],identity:await identify(chat.id,messages[0].sourceMessageId,messages[0].originalText),at});
    const timeState={records:[r],sourceTimes:{}},timeChanged=applySourceTime(timeState,r.sourceKey,messages[0].sourceTime,messages[0].pageOrder,at,[r],messages[0].domTime);
    const first=initialSourceObjects(r),source={...first.document,titleRevision:0};delete source.sourceRecordIds;const working=clone(source);delete working.titleRevision;const input={...first.block,revision:0,provenanceSignature:JSON.stringify(first.block.provenance)};

@@ -1,5 +1,11 @@
 # Seven-lane coordinated execution
 
+## Latest integration checkpoint — 2026-10-08 22:10 UTC
+
+PR218/0.31 merged normally as main `e2a5acd61f8c919bf8a4b7692f682e068b4fd078`, tree `d6f710b661181d701d3a6befe56a02dd7b3e2ae4`, identical to reviewed head905fb9c9 after Full37849428072 SUCCESS. Its exact-main Full/Prompt checks and package are pending.0.30 main1b06 has Full37848783654 and Prompt37848783642 SUCCESS and a byte-verified406-file package; no automatic installation.
+
+The next0.32 candidate follows fresh main with optional same-conversation Source append, full local AI adoption proof and qualified cache reentry. Exact cfefadb7 has4375unit passes and52actual whole-file native passes across ten files, strict eight-family receipts and416-file release proof. See COHERENT-032-CANDIDATE. Root and independent reviewers verified author bytes and retained every failure. It is not yet hosted-certified or merged. Grouped checkpoint recovery, the200+5 versioned AI manifest and the reviewed Settings focus fix are separate future work. Runtime/main/package/real-provider/physical/installed acceptance remain distinct.
+
 ## Latest integration checkpoint — 2026-10-08 21:45 UTC
 
 PR217/0.30 merged normally at main `1b06ffc2ad0ed91475fefc99772c3a4351649004`, tree `1ddd70214e3dbbb4b02acfbf0a0882e902999a7a`. Runtime candidate290ae884 passed Full37845700194. Final8f13294d changed only two evidence documents; independent review verified unchanged code, dependencies, tests, CI and package identity, and light integration37848219297 passed. Skipped full jobs on that document-only amendment are not full passes. One exact-main Full/Prompt verification is pending. Prior0.29 exact-main Full37845431936 and Prompt37845430575 both passed.
