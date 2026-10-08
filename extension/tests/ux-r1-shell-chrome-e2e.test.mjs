@@ -110,8 +110,8 @@ test('UX-R1 optional history import previews, confirms and reads one real import
   await eventually(()=>p.locator('#history-commit').isEnabled(),'history is previewed before commit');assert.equal((await h.state()).records.length,0,'preflight must not write Source');
   assert.match(await p.locator('#history-status').textContent(),/检查完成/);await p.locator('#history-commit').click();await eventually(async()=>(await p.locator('#history-status').textContent())==='历史补全完成。','history commit completes');
   assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'completed import removes first-run prompt');const imported=await h.state();assert.equal((await rpc(p,'GET_ONBOARDING')).historyState,'completed','actual import completes durable optional-history state');assert.equal(imported.records.length,2);assert.equal(imported.library.blocks.length,2);assert.ok(imported.records.every(row=>row.originalText.includes('Synthetic')));assert.equal((await rpc(p,'PAIA_REVISIT_STATUS')).newInputs.count,0,'UX-R2: imported history creates no new-input debt');assert.deepEqual(await rpc(p,'PAIA_READER_RECENT'),[],'import is not a formal read');
-  assert.match(await p.locator('#history-read').textContent(),/读一篇|Read one/i);await p.locator('#history-read').click();
-  await eventually(()=>p.locator('#document-panel').isVisible(),'Read one opens the canonical imported Reader directly');const body=(await p.locator('#document-body').textContent()).trim();assert.ok(body.length>0,'imported Reader contains real saved content');
+  assert.match(await p.locator('#history-read').textContent(),/^(阅读 Input Archive|Read Input Archive)$/);await p.locator('#history-read').click();
+  await eventually(()=>p.locator('#document-panel').isVisible(),'Read Input Archive opens the canonical imported Reader directly');const body=(await p.locator('#document-body').textContent()).trim();assert.ok(body.length>0,'imported Reader contains real saved content');
   await assertNoNetwork(h);assert.deepEqual(h.errors,[]);
  }finally{await h?.close();await rm(dir,{recursive:true,force:true});}
 });
