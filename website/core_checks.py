@@ -4,6 +4,7 @@ Product-model guards survive the visual redesign: immutable sources, safe text,
 explicit insertion, stable Topic readers and independent default-closed Context.
 These checks never certify a real extension, AI connection or cloud service.
 """
+import json
 from urllib.parse import urlsplit
 
 
@@ -36,8 +37,18 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
         selector = f'[data-topic-block="{key}"] h3 a' if section is None else f'[data-topic-block="{key}"] a[href="#pc-section-{section}"]'
         link = page.locator(selector)
         link.evaluate("e=>e.scrollIntoView({block:'center',behavior:'instant'})")
-        position = page.evaluate('scrollY')
-        link.click()
+        # Observe the real click after Playwright's actionability/focus scrolling,
+        # before the page's bubbling handler changes the Topic view.
+        click_position = link.evaluate_handle("""link=>{
+            const observed={scrollY:null};
+            link.addEventListener('click',()=>{observed.scrollY=scrollY;},{capture:true,once:true});
+            return observed;
+        }""")
+        try:
+            link.click()
+            position = click_position.evaluate('observed=>observed.scrollY')
+        finally:
+            click_position.dispose()
         test(page.locator(f'[data-topic-reader="{key}"]').is_visible(), f'{key} opens its continuous reader')
         test(not page.locator('[data-topic-overview]').is_visible(), 'Topic reader replaces the overview')
         test(page.locator('[data-topic-reader]:visible').count() == 1, 'only the selected Topic reader is visible')
@@ -49,7 +60,17 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
         page.locator(f'[data-topic-reader="{key}"] [data-topic-back]').click()
         test(page.locator('[data-topic-overview]').is_visible() and page.locator('[data-topic-reader]:visible').count() == 0, 'Back restores the overview and closes every reader')
         test(page.locator(selector).evaluate('e=>e===document.activeElement'), 'Topic Back restores the exact originating link')
-        test(abs(page.evaluate('scrollY') - position) <= 2, 'Topic Back restores the previous scroll position')
+        actual = page.evaluate('scrollY')
+        restored = abs(actual - position) <= 2
+        diagnostic = ''
+        if not restored:
+            observed = page.evaluate("""({selector,expected,actual})=>{
+                const describe=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {tag:el.localName,id:el.id,classes:el.className,href:el.getAttribute('href'),rect:{x:r.x,y:r.y,width:r.width,height:r.height,top:r.top,right:r.right,bottom:r.bottom,left:r.left}};};
+                const scroller=document.scrollingElement||document.documentElement;
+                return {expected,actual,maxScroll:Math.max(0,scroller.scrollHeight-scroller.clientHeight),currentScrollY:scrollY,viewport:{width:innerWidth,height:innerHeight},selector,focus:describe(document.activeElement),target:describe(document.querySelector(selector))};
+            }""", {'selector': selector, 'expected': position, 'actual': actual})
+            diagnostic = '; ' + json.dumps(observed, ensure_ascii=False)
+        test(restored, 'Topic Back restores the previous scroll position' + diagnostic)
 
     requests = []
     host = urlsplit(page.url).netloc
