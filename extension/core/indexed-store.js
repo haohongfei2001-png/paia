@@ -1,3 +1,5 @@
+import {initialSourceRecord,initialSourceObjects} from './source-initial.js';
+import {initialSourcePlan,verifyInitialSourceWrite} from './browser-native-sync/source-bootstrap-plan.js';
 import {prepareRemoval,expandRemoval,validateRemovalEdit} from './archive-removal.js';
 import {queryPage} from './archive-query.js';
 import {OperationAttemptLedger,validateOperationQuery} from './operation-outcome.js';
@@ -18,7 +20,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
 export class IndexedArchiveStore {
- constructor(local,options={}){this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;}
+ constructor(local,options={}){this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;}
  run(fn){const task=this.tail.then(async()=>{if(!this.loaded){await this.repository.initialize();this.loaded=true;}const local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;this.changedSources=new Set();return fn();});this.tail=task.catch(()=>{});return task;}
  async control(t){const c=structuredClone(this.pendingControl||this.controlCache),gate=await t.get('meta','gate');if(gate&&(gate.epoch!==c.settings.epoch||gate.enabled!==c.settings.enabled))c.settings.enabled=false;return c;}
  async saveControl(t,c){this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});}
@@ -45,9 +47,21 @@ export class IndexedArchiveStore {
  async defaultBlock(t,r,sequence,options={}){
   if(await t.get('blocks','block:'+r.id))return;
   let row=(await t.all('documents','byChat',chatOf(r)))[0];
-  const state={records:[r],library:emptyLibrary()};syncLibrary(state);let doc=state.library.documents[0],b=state.library.blocks[0];
+  const initial=initialSourceObjects(r);let doc=initial.document,b=initial.block;
   if(row)b.documentId=row.id;else{doc={...doc,titleRevision:0};delete doc.sourceRecordIds;row={id:doc.id,chatKey:chatOf(r),sequence:sequence.documents++,displayKey:[-(Date.parse(doc.lastSourceSentAt)||0),doc.id],value:doc};await t.put('documents',row);const ld={...doc};delete ld.titleRevision;await t.put('libraryDocuments',{id:doc.id,value:ld});}
   if(options.branch&&options.branch!=='current'){b.excluded=true;b.branchStatus=options.branch;b.status='import_branch_review';}b.revision=0;b.provenanceSignature=JSON.stringify(b.provenance);if(this.prepareInput)await this.prepareInput(t,b,r);await t.put('blocks',{id:b.id,value:b});await t.put('blockIndex',blockIndex(b,sequence.blocks++,[r]));return row.id;
+ }
+ // Complete validated initial closure only. No fallback creation or post-write repair.
+ async applyInitialSource(t,capability){
+  const e=initialSourcePlan(capability),r=e.source,b=e.input,c=await this.control(t);protectedConsent(c,c.settings.epoch);
+  if(await t.get('records',r.id)||await t.get('blocks',b.id)||await t.get('documents',b.documentId)||await t.count('recordIndex','bySource',r.sourceKey)||await t.count('recordIndex','byDedupe',r.dedupeKey)||await t.get('libraryDocuments',b.documentId)||await t.get('times',r.sourceKey)||await t.count('documents','byChat',chatOf(r))||await t.get('tombstones','source:'+r.sourceKey)||await t.get('tombstones','snapshot:'+r.dedupeKey)||await t.get('inputRemovals',r.sourceKey)||await captureIsExcluded(t,r.chatId))error('BNS_SOURCE_BOOTSTRAP_UNAVAILABLE');
+  if(typeof this.applyInitialBaseline!=='function'||typeof this.initialFilter!=='function')error('BNS_SOURCE_BOOTSTRAP_UNSUPPORTED');
+  const sequence=await t.get('meta','sequence');await this.saveRecord(t,r,{sequence:sequence.records++});
+  if(e.timeEvidence.value!==null)await t.put('times',e.timeEvidence);
+  const doc=e.inputDocument.source;await t.put('documents',{id:doc.id,chatKey:chatOf(r),sequence:sequence.documents++,displayKey:[-(Date.parse(doc.lastSourceSentAt)||0),doc.id],value:doc});await t.put('libraryDocuments',{id:doc.id,value:e.inputDocument.working});
+  await t.put('blocks',{id:b.id,value:b});await t.put('blockIndex',blockIndex(b,sequence.blocks++,[r]));
+  const state=await this.applyInitialBaseline(t,capability);await t.put('filterInputs',this.initialFilter(b,state));
+  await this.refreshDoc(t,doc.id);await t.put('meta',sequence);await verifyInitialSourceWrite(t,capability);return {sourceId:r.id,inputId:b.id,documentId:b.documentId};
  }
  async trackBlock(t,b){for(const p of b.provenance){const r=await t.get('recordIndex',p.sourceRecordId);if(r)this.changedSources.add(r.sourceKey||'legacy:'+r.id);}}
  async refreshDoc(t,id){
@@ -65,7 +79,7 @@ export class IndexedArchiveStore {
  }
  capture(request){return this.sourceOperation(request,false);}
  enrich(request){return this.sourceOperation(request,true);}
- sourceOperation(request,enrich){return this.run(async()=>{
+ sourceOperation(request,enrich){if(this.sourceBootstrapJournal)return this.sourceBootstrapJournal.capture(this,request,enrich);return this.run(async()=>{
   await this.repository.transaction(false,async t=>protectedConsent(await this.control(t),request?.epoch));
   const {chat,messages}=(enrich?validateEnrichment:validateCapture)(request);
   const legacy=await this.repository.transaction(false,t=>t.all('recordIndex','byLegacyChat','chatgpt:'+chat.id));
@@ -80,7 +94,7 @@ export class IndexedArchiveStore {
     let selected=await this.recordsFor(t,chat,m.sourceMessageId,key,identity,proofs),records=selected.map(x=>x.r);
     const known=identity?await t.count('recordIndex','byDedupe',identity.dedupeKey):0;
     if(!enrich&&!known&&!await t.get('tombstones','snapshot:'+identity.dedupeKey)){
-     const now=this.clock(),prior=records.at(-1);const r={id:this.uuid(),platform:'chatgpt',chatId:chat.id,chatUrl:chat.url,chatTitle:chat.title,sourceMessageId:m.sourceMessageId,pageOrder:m.pageOrder,originalText:m.originalText,...identity,...unknownTime(),capturedAt:now,previousVersionId:prior?.id||null,note:'',editedText:'',hidden:false,deletedAt:null,updatedAt:now};
+     const now=this.clock(),prior=records.at(-1);const r=initialSourceRecord({id:this.uuid(),chat,message:m,identity,at:now,previousVersionId:prior?.id||null});
      selected.push({r,index:{sequence:seq.records++}});records.push(r);added++;
     }
     // Successful transport is not proof that a source exists yet.
