@@ -21,7 +21,7 @@ for(const variant of ['source','release'])test('BNS manual Context native owner 
   evidence.productionHashes={...extension.hashes};
   for(const path of ['core/browser-native-sync/manual-owners.js','core/context-cards.js','core/browser-native-sync/context-journal.js','core/browser-native-sync/codecs.js','core/browser-native-sync/canonical-readiness.js'])evidence.productionHashes[path]=createHash('sha256').update(await readFile(join(extension.path,path))).digest('hex');
   device=await startNative(extension.path);evidence.browserVersion=device.browserVersion;
-  evidence.ownerCases=await device.call('matrix');assert.equal(evidence.ownerCases.length,60);
+  evidence.ownerCases=await device.call('matrix');assert.equal(evidence.ownerCases.length,68);
   if(variant==='source'){sourceCases=evidence.ownerCases;sourceHashes=evidence.productionHashes;}else{assert.deepEqual(evidence.ownerCases,sourceCases);assert.deepEqual(evidence.productionHashes,sourceHashes);}
   const before=await device.call('durable-create');assert.equal(before.prompts.overrides.length,1);assert.equal(before.prompts.overrides[0].text,'SYNTHETIC durable mixed Prompt');assert.equal(before.row.items[0].lifecycle,'removed');assert.deepEqual(before.row.items.map(x=>[x.card,x.lifecycle]),[['info','removed'],['rules','removed'],['now','removed']]);
   evidence.restart=await device.restart();

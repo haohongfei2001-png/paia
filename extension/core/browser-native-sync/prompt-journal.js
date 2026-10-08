@@ -52,6 +52,8 @@ export class PromptSyncJournal {
   await this.core.recordMaterializedOwner(t,prepared.operations[0],(await readPromptPreferences(t)).revision);return result;
  }
  async noteVerifiedReuse(t,before,after){
+  // Local ranking remains usable after recovery, but cannot renew old sync proof.
+  try{await this.restoreFence.snapshot(t);}catch(error){if(['BNS_RESTORE_EPOCH_CHANGED','BNS_RESTORE_EPOCH_UNBOUND'].includes(error.code))return;throw error;}
   const proof=await this.core.materializedOwner(t,'promptPreferences',PROMPT_REUSE_ROW);
   if(proof&&proof.ownerRevision===before.revision&&equal(projectEntity('promptPreferences',before),proof.operation.value)&&equal(projectEntity('promptPreferences',after),proof.operation.value))await this.core.recordMaterializedOwner(t,proof.operation,after.revision);
  }
@@ -80,6 +82,7 @@ async function qualifyPromptOwner(t,context){
  if(context.previousHead&&!context.previousHead.purged&&context.previousVersions.some(operation=>equal(operation.value,local)))return;
  const proof=context.previousCore?await context.previousCore.materializedOwner(t,'promptPreferences',PROMPT_REUSE_ROW):null;
  if(proof){
+  await new JournalRestoreFence(context.previousCore).snapshot(t);
   if(proof.ownerRevision!==preferences.revision||!equal(proof.operation.value,local)||!context.previousHead||context.previousHead.purged||!await context.core.ownerAncestor(t,proof.operation,context.previousHead.revisions))fail('BNS_OWNER_CHANGED');
   return;
  }
