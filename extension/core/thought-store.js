@@ -14,6 +14,27 @@ import {journal,nextSequence,receipt,saveReceipt} from './thought-journal.js';
 import {FAMILY_BY_TYPE,ENTRY_FIELDS,fail,keys,idOK,revisionOK,prefix,same,validateFields,validateGenerator,protections,markHuman,refreshEntryIndex,entrySnapshot,entryDTO,keyedHash,rankBetween,normalizeRank} from './thought-model.js';
 import {editSharedBodyFromEntry} from './shared-working-content.js';
 
+// Named domain computation; callers still need the existing operation/CAS and
+// private identity authority before any write. No transaction callback accepted.
+export function planHumanTopicCreation(request,{id,sectionId,at}) {
+ const rank=rankBetween(),topic={id,defaultSectionId:sectionId,name:request.name,summary:'',nameKey:request.name.toLocaleLowerCase(),revision:0,organizationRevision:0,activeLayoutGeneration:1,activeKey:0,pinKey:1,pinRank:rank,negativeUpdatedSequence:0,lifecycle:'active',createdBy:'user',createdAt:at,protections:protections('user',request.operationId,at)};
+ initializeTopicIdentity(topic,'user');
+ const section={id:JSON.stringify([id,1,sectionId]),topicId:id,layoutGeneration:1,sectionId,isDefault:true,title:'',rank,revision:0,activeKey:0,lifecycle:'active',protections:protections('user',request.operationId,at)};
+ return {topic,section};
+}
+
+export function planHumanPlacement({entry,topic,placement},request,at) {
+ const e=structuredClone(entry),owner=structuredClone(topic);
+ recordMembershipIntent(e,owner.id,!request.remove,request.operationId,at,request.restoreRevisionId?'restore':'user_edit');e.organizationRevision++;e.revision++;owner.organizationRevision++;
+ return {entry:e,topic:owner,placement:structuredClone(placement)};
+}
+
+export function planHumanEntryCreation(request,{id,at,sequence,exactSignature,evidence,nonContext}) {
+ const human=request.actor==='user';
+ const row={id,storageSchema:2,...(request.title?.trim()?{title:request.title}:{}),thoughtText:request.body,note:request.note??'',family:FAMILY_BY_TYPE[request.type],type:request.type,formation:request.formation,origin:request.actor,revision:0,contentRevision:0,fieldRevisions:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,0])),organizationRevision:0,dependencyRevision:0,createdAt:at,updatedAt:at,updatedSequence:sequence,createdSequence:sequence,hasHumanAction:human,userEdited:human,protections:protections(request.actor,request.operationId,at),authorship:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,{actor:request.actor,everHumanConfirmed:human,operationId:request.operationId,at}])),organizationIntents:newOrganizationIntents(),lifecycle:'active',freshness:'current',integrity:evidence.length?'complete':'detached',staleReasons:[],sourceRecordIds:[...new Set(evidence.flatMap(e=>e.sourceRecordIds))],inputRefs:evidence.map(e=>({inputBlockId:e.inputId,basedOnContentRevision:e.basedOnContentRevision})),exactSignature,topics:[],types:['type:'+request.type],bodyBinding:'thought',provenanceType:nonContext.length?'input_derived':'user_created'};
+ refreshEntryIndex(row);return row;
+}
+
 // M1 data boundary only. There is no extraction runner, provider, or runtime
 // creation command. Internal calls still revalidate all evidence and CAS guards.
 export class LibraryFoundationStore extends SmartFilterStore {
@@ -93,8 +114,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
     if(suppressed.size){const oldScopes=new Set([...suppressed.values()].flatMap(s=>s.scopeTokens));return {suppressed:true,eligibleFutureCandidate:nonContext.some(e=>!oldScopes.has(e.scopeToken))};}
    }
    const id=this.uuid(),at=this.clock(),sequence=await nextSequence(t),human=request.actor==='user';
-   const row={id,storageSchema:2,...(request.title?.trim()?{title:request.title}:{}),thoughtText:request.body,note:request.note??'',family:FAMILY_BY_TYPE[request.type],type:request.type,formation:request.formation,origin:request.actor,revision:0,contentRevision:0,fieldRevisions:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,0])),organizationRevision:0,dependencyRevision:0,createdAt:at,updatedAt:at,updatedSequence:sequence,createdSequence:sequence,hasHumanAction:human,userEdited:human,protections:protections(request.actor,request.operationId,at),authorship:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,{actor:request.actor,everHumanConfirmed:human,operationId:request.operationId,at}])),organizationIntents:newOrganizationIntents(),lifecycle:'active',freshness:'current',integrity:evidence.length?'complete':'detached',staleReasons:[],sourceRecordIds:[...new Set(evidence.flatMap(e=>e.sourceRecordIds))],inputRefs:evidence.map(e=>({inputBlockId:e.inputId,basedOnContentRevision:e.basedOnContentRevision})),exactSignature,topics:[],types:['type:'+request.type],bodyBinding:'thought',provenanceType:nonContext.length?'input_derived':'user_created'};
-   refreshEntryIndex(row);await t.put('thoughts',row);
+   const row=planHumanEntryCreation(request,{id,at,sequence,exactSignature,evidence,nonContext});await t.put('thoughts',row);
    const generationId=this.uuid();for(const e of evidence) {
     const p={id:this.uuid(),ownerKind:'entry',ownerId:id,generationId,inputId:e.inputId,basedOnContentRevision:e.basedOnContentRevision,actualVersion:{inputRevision:e.basedOnContentRevision,projectionVersion:1,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests},role:e.role,contributionType:e.role==='context_only'?'context':request.formation==='synthesized'?'combination':'paraphrase',formation:request.formation,generatedAt:at,generator,inputAuthorshipAtUse:'working_input',entryFieldAuthorshipAtCommit:request.actor,sourceRecordIds:e.sourceRecordIds,sourceIdentityTokens:e.sourceIdentityTokens,scopeToken:e.scopeToken,versionToken:e.versionToken,availability:'resolvable',contributionKey:JSON.stringify([id,e.inputId,e.basedOnContentRevision,e.role,generationId])};
     await t.put('provenance',p);await t.put('dependencies',{id:JSON.stringify([e.inputId,'entry',id]),inputId:e.inputId,inputList:[e.inputId,id],thoughtId:id,targetKind:'entry',targetId:id,eligibilityEpochAtUse:e.epoch,basedOnContentRevision:e.basedOnContentRevision,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests,validatedAgainstContentRevision:e.basedOnContentRevision,status:'valid',roles:[e.role],sourceRecordIds:e.sourceRecordIds,scopeToken:e.scopeToken,versionToken:e.versionToken});
@@ -179,8 +199,8 @@ export class LibraryFoundationStore extends SmartFilterStore {
   keys(request,['name','operationId'],['name','operationId']);if(typeof request.name!=='string'||!request.name.trim()||request.name.length>300)fail();
   const nameIdentity=await prepareTopicName(this,request.name);
   return this.operation(request,async t=>{
-   await assertTopicIdentityBase(t,nameIdentity);const id=this.uuid(),sectionId=this.uuid(),at=this.clock(),rank=rankBetween(),row={id,defaultSectionId:sectionId,name:request.name,summary:'',nameKey:request.name.toLocaleLowerCase(),revision:0,organizationRevision:0,activeLayoutGeneration:1,activeKey:0,pinKey:1,pinRank:rank,negativeUpdatedSequence:0,lifecycle:'active',createdBy:'user',createdAt:at,protections:protections('user',request.operationId,at)};
-   initializeTopicIdentity(row,'user');await registerTopicName(t,row,nameIdentity.token);await t.put('topics',row);const section={id:JSON.stringify([id,1,sectionId]),topicId:id,layoutGeneration:1,sectionId,isDefault:true,title:'',rank,revision:0,activeKey:0,lifecycle:'active',protections:protections('user',request.operationId,at)};await t.put('sections',section);
+   await assertTopicIdentityBase(t,nameIdentity);const id=this.uuid(),sectionId=this.uuid(),at=this.clock(),{topic:row,section}=planHumanTopicCreation(request,{id,sectionId,at});
+   await registerTopicName(t,row,nameIdentity.token);await t.put('topics',row);await t.put('sections',section);
    await journal(this,t,{kind:'topic',entityId:id,before:null,after:row,fieldMask:['name'],actor:'user',reason:'baseline',important:true,operationId:request.operationId,sourceRecordIds:[]});
    await journal(this,t,{kind:'section',entityId:sectionId,documentId:id,before:null,after:section,fieldMask:['title','rank'],actor:'user',reason:'baseline',important:true,operationId:request.operationId,sourceRecordIds:[]});return {id,sectionId,revision:0};
   });
@@ -213,8 +233,8 @@ export class LibraryFoundationStore extends SmartFilterStore {
    const last=this.libraryDocumentMode&&request.rank===undefined&&(!old||old.sectionId!==section.sectionId)?await t.edge('placements','bySectionOrder',prefix([topic.id,topic.activeLayoutGeneration,section.sectionId,0]),'prev'):null;
    const rank=request.rank===undefined?(last?String(Number(last.rank)+1024).padStart(12,'0'):old?.rank||rankBetween()):normalizeRank(request.rank);normalizeRank(rank);const row={id,topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,entryId:e.id,sectionId:section.sectionId,rank,sectionRank:section.rank,revision:(old?.revision??-1)+1,activeKey:request.remove?1:0,lifecycle:request.remove?'removed':'active',membershipAuthorship:'user',sectionProtection:true,orderProtection:true};
    await assertMemoryPlacementChangeAllowed(t,topic.id,old,row);
-   recordMembershipIntent(e,topic.id,!request.remove,request.operationId,this.clock(),request.restoreRevisionId?'restore':'user_edit');e.organizationRevision++;e.revision++;
-   topic.organizationRevision++;await t.put('thoughts',e);await t.put('topics',topic);await t.put('placements',row);
+   const planned=planHumanPlacement({entry:e,topic,placement:row},request,this.clock());
+   Object.assign(e,planned.entry);Object.assign(topic,planned.topic);await t.put('thoughts',e);await t.put('topics',topic);await t.put('placements',planned.placement);
    await journal(this,t,{kind:'placement',entityId:id,documentId:topic.id,before:old||null,after:row,fieldMask:['membership','section','order'],actor:'user',reason:request.restoreRevisionId?'restore':request.remove?'remove':'place',important:true,operationId:request.operationId,sourceRecordIds:e.sourceRecordIds});return {id:e.id,revision:e.revision,placementRevision:row.revision,topicRevision:topic.organizationRevision};
  }
 }
