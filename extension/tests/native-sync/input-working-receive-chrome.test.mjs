@@ -7,7 +7,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {instrumentedExtension,root,startNative} from './storage-harness.mjs';
 import {nativeWorkingReceiveFixture} from './input-working-receive-fixture.mjs';
-const files=['core/browser-native-sync/core.js','core/browser-native-sync/codecs.js','core/browser-native-sync/input-working-journal.js','core/browser-native-sync/input-working-commit.js','core/browser-native-sync/filter-intent-journal.js','core/ia-store.js','core/smart-filter-store.js'];
+import {assertInputWorkingReceiveReceipt,INPUT_WORKING_RECEIVE_PATHS as files} from './input-working-receive-receipt.mjs';
 const head=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),tree=execFileSync('git',['rev-parse','HEAD^{tree}'],{cwd:root,encoding:'utf8'}).trim();
 if(process.env.PAIA_TESTED_HEAD)assert.equal(head,process.env.PAIA_TESTED_HEAD);
 let sourceProof;
@@ -24,7 +24,7 @@ for(const variant of ['source','release'])test('BNS complete optional Working re
   browser=await startNative(extension.path);receipt.browserVersion=browser.browserVersion;receipt.cases=await browser.call('working-receive-matrix');assert.equal(receipt.cases.length,17);assert.equal(new Set(receipt.cases).size,17);
   const before=await browser.call('working-receive-durable-create');assert.equal(before.filterIntents.length,1);assert.ok(before.blocks.some(row=>row.value.note==='SYNTHETIC atomic remote human note'));receipt.restart=await browser.restart();assert.deepEqual(await browser.call('working-receive-durable-read'),before);
   receipt.isolation=await browser.isolation();assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);
-  const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);receipt.result='PASS';assert.equal(receipt.isolation.httpRequests,0);
+  const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);receipt.result='PASS';assert.equal(receipt.isolation.httpRequests,0);assertInputWorkingReceiveReceipt(receipt,{head,tree,variant});
  }catch(error){receipt.result='FAIL';receipt.error=error.message;throw error;}
  finally{await writeFile(join(output,variant+'.json'),JSON.stringify(receipt,null,2));await browser?.close();await extension?.cleanup();await rm(directory,{recursive:true,force:true});}
 });
