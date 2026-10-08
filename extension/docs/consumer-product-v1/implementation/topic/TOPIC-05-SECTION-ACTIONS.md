@@ -265,3 +265,9 @@ Independent lifecycle review covered pending publication, generic busy release,
 rebuilt menus and qualified arrival. Final native-inert follow-up review was
 requested separately; its result is not inferred from package/native success. This is local bounded repair evidence, not success for the
 failed hosted run, exact-main certification, installed availability or whole05.5.
+
+### Exact3f hosted follow-up and font mirror correction
+
+Full37750522190 did not pass: corrected Section cases passed, but CTX4-03 source failed with synthetic expected state (release passed), Browser1 was cancelled after font setup consumed11minutes, and both macOS jobs were cancelled because hosted arm64 runners were not acquired due to capacity. None is converted to PASS.
+
+Actual Ubuntu font logs still used HTTP Azure via mirror+file:/etc/apt/apt-mirrors.txt, which the prior source-list-only HTTPS rewrite missed. Include existing *mirrors*.txt files in that same URI-only normalization. Independent offline fixtures exercised all five real PYAPT blocks, retaining suites/components/signing keys/security URI and the mirror+file reference. YAML parse,18 complete CI guards and coverage contract passed. No assertion, job budget, runner class or package change. This correction does not claim faster hosted performance until a new candidate runs.
