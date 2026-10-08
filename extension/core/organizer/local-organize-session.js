@@ -2,7 +2,7 @@ import {AIUsageFoundation} from '../ai-usage/foundation.js';
 import {localProviderDescriptor,canonical,digest,fail} from '../ai-usage/contracts.js';
 import {KNOWN_PREFIX} from '../ai-usage/delta.js';
 import {validOrganizeCacheProfile} from './organize-cache-qualification.js';
-import {readLocalOrganizeScopeInTransaction,commitLocalOrganizeCandidateInTransaction} from './ai-presentation.js';
+import {readLocalOrganizeScopeInTransaction,commitLocalOrganizeCandidateInTransaction,confirmLocalOrganizeCacheProof,releaseLocalOrganizeCacheProof} from './ai-presentation.js';
 import {bytes} from './contracts.js';
 import {validateLocalOrganizeResponse} from './ai-contract.js';
 // No production worker creates this explicitly configured local owner. Handles
@@ -13,10 +13,11 @@ export class LocalOrganizeSession {
   this.#store=store;this.#profile=structuredClone(profile);this.#route=routeVersion;
   this.#foundation=new AIUsageFoundation(store,{resolveAuthority,committers:{organize:async(t,r)=>{
    const state=this.#jobs.get(r.logicalJobId);if(!state?.validated||state.job.childIds[0]!==r.childOperationId||canonical(r.units)!==canonical(state.coverage))fail('STALE_BASE');
-   await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:state.validated,candidateId:r.childOperationId});
+   releaseLocalOrganizeCacheProof(store,state.cacheProof);const committed=await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:state.validated,candidateId:r.childOperationId,qualification:{jobId:r.logicalJobId,childId:r.childOperationId,coverage:r.units,profile:this.#profile}});state.cacheProof=committed.cacheProof;
    return {committed:true,coverage:r.units};
   }}});
  }
+ async #completed(state,result){if(this.#jobs.get(state.job.id)!==state)releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);else if(result.state==='COMMITTED')await confirmLocalOrganizeCacheProof(this.#store,state.cacheProof);return result;}
  #state(handle){const state=this.#handles.get(handle);if(!state)fail('UNAVAILABLE');return state;}
  async prepare({topicId,children=1}={}){
   if(children!==1)return {state:'DEFER',reason:'multiple_children_not_supported'};
@@ -48,8 +49,8 @@ export class LocalOrganizeSession {
  async run(handle,provider){
   const state=this.#state(handle);if(state.running)fail('REQUEST_ALREADY_IN_FLIGHT');state.running=true;
   try{
-   const status=await this.#foundation.status(state.job.id);if(status.state==='COMMITTED')return status;
-   if(status.state==='RESPONSE_RECORDED'&&state.validated)return await this.#foundation.commitFacet(state.job.id,state.job.childIds[0],{facet:'organize',units:state.coverage});
+   const status=await this.#foundation.status(state.job.id);if(status.state==='COMMITTED')return this.#completed(state,status);
+   if(status.state==='RESPONSE_RECORDED'&&state.validated)return await this.#completed(state,await this.#foundation.commitFacet(state.job.id,state.job.childIds[0],{facet:'organize',units:state.coverage}));
    if(!['PLANNED','RESERVED'].includes(status.state))fail('OUTCOME_UNKNOWN');
    const descriptor=localProviderDescriptor(provider);await this.assemble(handle);
    await this.#foundation.reserve(state.job.id,{reservationId:'local-organize:'+state.job.childIds[0],executionKind:descriptor.executionKind});
@@ -61,8 +62,8 @@ export class LocalOrganizeSession {
     return {accepted:true,operationReceiptId:state.job.childIds[0]};
    }});
    if(dispatched.state!=='RESPONSE_RECORDED')return dispatched;
-   return await this.#foundation.commitFacet(state.job.id,state.job.childIds[0],{facet:'organize',units:state.coverage});
+   return await this.#completed(state,await this.#foundation.commitFacet(state.job.id,state.job.childIds[0],{facet:'organize',units:state.coverage}));
   }finally{state.running=false;}
  }
- dispose(){this.#handles=new WeakMap();this.#jobs.clear();}
+ dispose(){for(const state of this.#jobs.values())releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);this.#handles=new WeakMap();this.#jobs.clear();}
 }

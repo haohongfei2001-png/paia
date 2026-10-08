@@ -1,5 +1,5 @@
 import {readAIStyle} from '../ai-organize-style-preference.js';
-import {qualifyOrganizeCache,organizeCacheEvidenceVersion} from './organize-cache-qualification.js';
+import {qualifyOrganizeCache,organizeCacheEvidenceVersion,validOrganizeCacheProfile} from './organize-cache-qualification.js';
 import {entryTime} from './topic-chronology.js';
 import {expressionTime} from './expression-time.js';
 import {userAIDraft} from './ai-draft.js';
@@ -11,7 +11,7 @@ import {validTopicGeneration} from '../topic-compatibility.js';
 import {inputProjection} from '../thought-evidence.js';
 import {planDelta} from '../dual-view.js';
 import {migrateAIPresentationProductization} from './ai-presentation-migration.js';
-import {createAIPresentationCandidate,publicAIPresentationCandidate,applyAIPresentationCandidate,isBaseNoneEnvelope} from './ai-candidate.js';
+import {aiCandidateKey,createAIPresentationCandidate,publicAIPresentationCandidate,applyAIPresentationCandidate,isBaseNoneEnvelope} from './ai-candidate.js';
 
 import {AI_FIELDS,AI_LIST_FIELDS,AI_SCHEMA_VERSION,isStoredAIPresentation,presentationContent,validateAIPresentation} from './ai-contract.js';
 import {validateDeepSeekRequest,DEEPSEEK_MODEL} from './deepseek.js';
@@ -156,7 +156,8 @@ export async function editAIPresentation(s,edit={}){
  if(candidateDecisions!==undefined){
   if(!idOK(topicId)||!Number.isSafeInteger(expectedRevision)||expectedRevision<0||!candidateDecisions||typeof candidateDecisions!=='object'||Array.isArray(candidateDecisions)||!idOK(operationId)||operationId.length<8)reject('INVALID_OUTPUT');
   await migrateAIPresentations(s);const request={id:topicId,expectedRevision,expectedCandidateKey,candidateDecisions:structuredClone(candidateDecisions),operationId,kind:'ai-candidate-save'},digest=await hashText(JSON.stringify(request));
-  return s.foundationWrite(async t=>{const prior=await receipt(t,request,digest);if(prior)return prior;const row=await t.get('meta',ROW+topicId),topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic),allowed=new Set(current.entries.map(e=>e.id));if(!row||!isStoredAIPresentation(row,allowed)&&!isBaseNoneEnvelope(row))reject('STALE_BASE');const gate=await t.get('meta','gate');const resolved=applyAIPresentationCandidate(row,{decisions:candidateDecisions,expectedRevision,expectedCandidateKey},allowed,row.candidate?.schemaVersion===1?current.versions:current.scopeVersions,s.clock(),sourceBinding({...topic,...current},gate?.epoch,await sourcePolicy(t))),checkpoint=await t.get('meta',CHECKPOINT);resolved.next.basedOnCheckpoint={entryVersions:structuredClone(checkpoint?.topicVersions?.[topicId]||row.basedOnCheckpoint?.entryVersions||{})};await t.put('meta',resolved.next);if(resolved.changed)await aiJournal(s,t,isBaseNoneEnvelope(row)?null:row,resolved.next,'user',operationId);await candidateFence(t,topicId,null);const result={revision:resolved.revision,adopted:resolved.adopted,kept:resolved.kept,hasCurrent:resolved.hasCurrent};await saveReceipt(s,t,request,digest,result);return result;});
+  const result=await s.foundationWrite(async t=>{const prior=await receipt(t,request,digest);if(prior)return prior;const row=await t.get('meta',ROW+topicId),topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic),allowed=new Set(current.entries.map(e=>e.id));if(!row||!isStoredAIPresentation(row,allowed)&&!isBaseNoneEnvelope(row))reject('STALE_BASE');const gate=await t.get('meta','gate');const resolved=applyAIPresentationCandidate(row,{decisions:candidateDecisions,expectedRevision,expectedCandidateKey},allowed,row.candidate?.schemaVersion===1?current.versions:current.scopeVersions,s.clock(),sourceBinding({...topic,...current},gate?.epoch,await sourcePolicy(t))),checkpoint=await t.get('meta',CHECKPOINT);resolved.next.basedOnCheckpoint={entryVersions:structuredClone(checkpoint?.topicVersions?.[topicId]||row.basedOnCheckpoint?.entryVersions||{})};await bindAdoptedLocalCache(s,t,{row,topic,current,resolved,checkpoint});await t.put('meta',resolved.next);if(resolved.changed)await aiJournal(s,t,isBaseNoneEnvelope(row)?null:row,resolved.next,'user',operationId);await candidateFence(t,topicId,null);const result={revision:resolved.revision,adopted:resolved.adopted,kept:resolved.kept,hasCurrent:resolved.hasCurrent};await saveReceipt(s,t,request,digest,result);return result;});
+  for(const [token,proof]of localCacheProofs)if(proof.store===s&&proof.key===expectedCandidateKey)localCacheProofs.delete(token);return result;
  }
  if(!idOK(topicId)||!AI_FIELDS.includes(field)||operationId!==null&&(!idOK(operationId)||operationId.length<8))reject('INVALID_OUTPUT');await migrateAIPresentations(s);const request={id:topicId,field,value,expectedRevision,operationId,kind:'ai-field-edit'},digest=operationId?await hashText(JSON.stringify(request)):null;
  return s.foundationWrite(async t=>{if(operationId){const prior=await receipt(t,request,digest);if(prior)return prior;}const row=await t.get('meta',ROW+topicId),topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic),allowed=new Set(current.entries.map(e=>e.id));if(!row||row.revision!==expectedRevision||!isStoredAIPresentation(row,allowed))reject('STALE_BASE');
@@ -241,10 +242,39 @@ export async function readLocalOrganizeScopeInTransaction(s,t,topicId){
  if(!cache.complete||!cache.evidenceVersion)reject('STALE_BASE');
  return {topic,checkpoint:cp,inputs,evidenceVersion:cache.evidenceVersion,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof:JSON.stringify([topic.id,topic.name,topic.binding,topic.scopeVersions,topic.stored,cp,gate,restore?.value??'initial',style,cache.evidenceVersion])};
 }
-export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId}){
+export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId,qualification=null}){
  const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id);if(current.proof!==prepared.proof)reject('STALE_BASE');
  const topic=current.topic,old=topic.stored,cp=current.checkpoint,candidate=createAIPresentationCandidate(topic.presentation,result,{createdAt:s.clock(),materialVersions:topic.scopeVersions,sourceBinding:topic.binding,candidateId});
  if(candidate){const base=topic.presentation?old:{id:ROW+topic.id,topicId:topic.id,envelopeVersion:1,currentState:'none',revision:0,recoveryGeneration:isBaseNoneEnvelope(old)?old.recoveryGeneration:candidateId,...(isBaseNoneEnvelope(old)&&old.recoveryPurgeRevision!==undefined?{recoveryPurgeRevision:old.recoveryPurgeRevision}:{}),basedOnCheckpoint:old?.basedOnCheckpoint||{entryVersions:{}}};await t.put('meta',{...base,candidate,needsUpdate:false,stale:false});await candidateFence(t,topic.id,candidate);}
  await t.put('meta',{...cp,version:3,topicVersions:{...cp.topicVersions,[topic.id]:topic.versions},inputVersions:await acknowledgedInputs(s,t,cp,topic,topic.versions),updatedAt:s.clock()});
- return {candidateCreated:!!candidate};
+ let cacheProof=null;
+ if(candidate?.baseKind==='none'&&qualification?.childId===candidateId&&validOrganizeCacheProfile(qualification.profile)){
+  cacheProof=Object.freeze({});if(localCacheProofs.size>=32)localCacheProofs.delete(localCacheProofs.keys().next().value);
+  localCacheProofs.set(cacheProof,{store:s,jobId:qualification.jobId,childId:candidateId,key:aiCandidateKey(candidate),topicId:topic.id,coverage:structuredClone(qualification.coverage),profile:structuredClone(qualification.profile),style:structuredClone(prepared.style),evidenceVersion:prepared.evidenceVersion,confirmed:false});
+ }
+ return {candidateCreated:!!candidate,cacheProof};
+}
+
+// Process-local capabilities only: globally bounded, never exported in DTOs or
+// backups, and invalidated on adoption/disposal. A rolled-back transaction can
+// leave only an unconfirmed token; durable COMMITTED checks are mandatory.
+const localCacheProofs=new Map();
+export function releaseLocalOrganizeCacheProof(s,token){if(localCacheProofs.get(token)?.store===s)localCacheProofs.delete(token);}
+export async function confirmLocalOrganizeCacheProof(s,token){
+ const proof=localCacheProofs.get(token);if(!proof||proof.store!==s)return false;
+ const valid=await s.run(()=>s.repository.transaction(false,async t=>{
+  const job=await t.get('organizerJobs',proof.jobId),receipt=await t.get('organizerUsage','aiu:attempt:'+proof.childId),row=await t.get('meta',ROW+proof.topicId);
+  return job?.kind==='ai_usage_v1'&&job.type==='AI_ORGANIZE'&&job.state==='COMMITTED'&&job.childIds.length===1&&job.childIds[0]===proof.childId&&Array.isArray(job.coverage)&&equal(job.coverage,proof.coverage)&&Array.isArray(job.committedCoverage)&&equal([...job.committedCoverage].sort(),proof.coverage.map(u=>JSON.stringify([u.key,u.facet,u.scope])).sort())&&receipt?.jobId===proof.jobId&&receipt.state==='COMMITTED'&&isBaseNoneEnvelope(row)&&row.needsUpdate!==true&&row.stale!==true&&aiCandidateKey(row.candidate)===proof.key;
+ }));
+ if(!valid){localCacheProofs.delete(token);return false;}if(localCacheProofs.get(token)!==proof)return false;proof.confirmed=true;return true;
+}
+async function bindAdoptedLocalCache(s,t,{row,topic,current,resolved,checkpoint}){
+ // Never recycle an old binding through partial adoption or a human-owned row.
+ delete resolved.next.cacheBinding;
+ if(!isBaseNoneEnvelope(row)||!resolved.changed||!resolved.hasCurrent||resolved.kept.length||row.needsUpdate===true||row.stale===true||Object.values(resolved.next.protections||{}).some(Boolean)||!equal(presentationContent(resolved.next),row.candidate.proposal))return;
+ const key=aiCandidateKey(row.candidate),match=[...localCacheProofs].find(([,p])=>p.store===s&&p.confirmed&&p.key===key&&p.topicId===topic.id);if(!match)return;const [token,proof]=match;
+ if(!equal(checkpoint?.topicVersions?.[topic.id]||{},current.versions))return;
+ const snapshot=await cacheSnapshot(s,t,topic,current),style=snapshot.style;
+ if(localCacheProofs.get(token)!==proof||!proof.confirmed||!snapshot.complete||snapshot.evidenceVersion!==proof.evidenceVersion||!style.available||style.value!==proof.style.value||style.revision!==proof.style.expectedRevision||style.epoch!==proof.style.expectedEpoch)return;
+ resolved.next.cacheBinding={version:1,topicId:topic.id,presentationRevision:resolved.next.revision,profile:structuredClone(proof.profile),style:{value:style.value,policyVersion:proof.style.policyVersion},evidenceVersion:snapshot.evidenceVersion};
 }
