@@ -99,3 +99,9 @@ the reserved-sibling regression. No failed assertion was weakened or hidden.
 Independent review of this follow-up is pending. AI-COST-02 remains incomplete;
 paid/model/identity/billing, native service integration and exact-head hosted
 acceptance are still open.
+
+### Settings combination and candidate unit scheduling
+
+Exact10546bcf reconciles current Settings main a733ae5. Independent review verified all300 prior browser routes against actual main, all9 AI runtime files unchanged from c24128ab, and46/46 foundation checks. Related AI/partition files41/41 passed. The unchanged complete AI-COST-01 native source/release file2/2 passed6.24s using explicit Playwright1.63.0, with HEAD and recorded bytes unchanged and an isolated audited release. This remains page/IndexedDB synthetic evidence, not worker termination or paid/cloud acceptance.
+
+Candidate37709124549 failed the retained10k history performance case at its original240-second limit while running four unit workers. The history test and production owners are unchanged from Settings main. Candidate unit execution now uses one worker within its existing15-minute job budget; no file selection, assertion or timeout changes. Independent YAML/environment review and17 complete CI/routing checks passed. The failed old run remains FAIL; a new exact-head complete suite must establish whether the unchanged budget is met.

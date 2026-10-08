@@ -47,6 +47,8 @@ jobs:
       - run: npm install --no-audit --no-fund
       - name: Run owning unit contracts or complete unit suite
         env:
+          # Keep the10k history owner inside its unchanged240s deadline without competing unit workers.
+          PAIA_TEST_CONCURRENCY: '1'
           EVENT_ACTION: ${{ github.event.action }}
           PREVIOUS_HEAD: ${{ github.event.before }}
           CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha }}
