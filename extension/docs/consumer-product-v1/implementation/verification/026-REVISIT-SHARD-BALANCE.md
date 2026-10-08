@@ -17,3 +17,15 @@ Three complete routing/setup contract files:4/4 PASS,53.061ms. Independent revie
 seven-way move changed and the other335 stayed identical. Review APPROVED.
 The next coherent candidate hosted run remains pending; no unchanged rerun is
 requested solely to check this routing edit.
+
+## Separate strict CI inventory correction
+
+Candidate a9efb167 run37816144963 Browser1 stopped before browser execution:
+`D5_SEVEN_SHIFTED_UNREVIEWED_ROUTING:ux-r2-reader-revisit-chrome-e2e.test.mjs`.
+The coordinator had updated the routing and its unit inventory but missed the
+separate strict expected mapping in `check-ui-refresh-ci.mjs`. That failure is
+retained and is not runtime-test evidence. Add the identical one-file4→1 exception
+there; all other mappings, file inventory and budgets remain asserted. Running
+the complete actual CI script locally now prints
+`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=11 uir=10 ans=11 cpr=3`.
+Independent review APPROVED and independently ran the same complete CI script. Do not rerun the unchanged failing head.
