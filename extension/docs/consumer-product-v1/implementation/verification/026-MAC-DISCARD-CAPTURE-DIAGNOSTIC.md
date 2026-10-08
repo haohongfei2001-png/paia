@@ -19,3 +19,20 @@ PR214 targeted run37814104170/job113438160243 (`work/macos-discard-2e7-diagnosti
 The next failure-only observer targets exactly the synthetic conversation tab and reads its ISOLATED lifecycle presence/active/ready, controller presence, content version and a separate temporary adapter's first scan code/count/sanitized structural metrics. The temporary adapter is never installed as the capture owner or allowed to mutate its pending/stability state; its first scan may legitimately be UNSTABLE_PAGE. Existing archive diagnostics contribute only status/scanned/time/error-code/sanitized structure. All four observers share the unchanged 2500ms diagnostic ceiling. No activation, retry, capture RPC or content/body logging is introduced. Private capture closure state is not observable: controller presence alone is not claimed to prove a running cycle.
 
 One complete headless local execution with `CI=1 PAIA_HEADLESS=1`: **2/2 PASS**, zero fail/skip/cancel, 25.975639167 seconds, `/tmp/macos-discard-ci-capture-diagnostic-final.log`. Browser version154.0.8037.98, platform-default Chrome; initial visibility visible, bridge false, messages0, then original capture/discard/restore/uniqueness assertions passed. The new failure branch was not naturally entered on this successful run. The preceding invocation from the wrong working directory only reported a missing test path (`/tmp/macos-discard-ci-capture-diagnostic.log`); no test ran there. Hosted root cause remains pending.
+
+## Hosted targeted result and remaining uncertainty
+
+Exact diagnostic head c8b480e3773f29e9a0294e5e5d516bc5ccc23484, run37815295895
+Mac job113442270936: complete2/2 PASS53.189s. Initial bridge=false, then actual
+three-record capture, native discard/restore and fourth-record deduplication all
+passed. Previous head2e7a6a19 run37814104170 failed with bridge=true and three DOM
+messages but zero captured records. The successful-path test behavior is the
+same; this result does not establish a runtime repair or explain the intermittent
+failure. Original negative evidence remains. Diagnostics only, no timeout or
+assertion relaxation, production capture unchanged.
+
+The coordinator is combining the independently reviewed diagnostic with the
+whole-file shard-balance correction for the next exact PR210 full candidate.
+A full candidate pass and exact-main verification are still required. Further
+failure must be diagnosed using the new bounded lifecycle/status metadata; no
+unchanged targeted rerun is requested.
