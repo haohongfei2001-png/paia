@@ -54,3 +54,48 @@ as another independent review or expand the 69-case validation scope.
 Integration, native/hosted admission, full certification and paid-service/billing
 qualification remain pending. The independent review certifies neither production
 activation nor those outstanding boundaries.
+
+## Fixture-backed atomic reservation follow-up
+
+Base caee2bd709a0463fc731bef13089cdefd13c4ebb; local working-tree evidence,
+not an exact-head hosted or production financial certificate.
+
+`FixtureAtomicReservation` reuses `quoteRequestBound` and `evaluateAdmission`.
+An injected shared transaction reads usage, checks all existing policy ceilings
+and stores the bounded request/quote reservation in one commit. Missing authority
+verifier/clock/transaction fails closed; the verifier must bind the exact request.
+Operation replay is idempotent across reconstructed instances, job/child identity
+cannot be rebound, and transaction abort rolls back both occupation and clock
+watermark. Both already-reserved and new siblings are refused behind a dispatched
+or unknown child. No method grants dispatch: every returned receipt explicitly
+sets dispatchAllowed=false; lifecycle recording is simulated evidence only.
+
+All unresolved reservations count against day and month envelopes regardless of
+age. This proves conservative unknown retention across windows, NOT complete
+rolling-window/calendar entitlement accounting. Only cancellation before dispatch
+releases occupation; its immutable child identity cannot be reminted. No settlement,
+NOT_ACCEPTED proof release, paid retry, bill reconciliation, quota expiry, cadence,
+interactive concurrency scheduler, signed entitlement or production adapter is
+implemented. The bounded 10,000-row snapshot refuses further reservations when
+full; no history is silently pruned. Scalable service storage/retention remains
+unqualified. This module does not create a store, schema or feature-specific ledger.
+
+The tests supply a visibly synthetic transaction implementation that serializes
+all principals and atomically publishes a copied snapshot. Reconstruction shares
+that fixture state; it is not a real process restart, IndexedDB durability test,
+cross-device backend, clock attestation or signature validation. The eventual
+trusted service must supply those guarantees before any financial activation.
+No shared data owner, foundation module, worker, UI, Sync, CI or network is changed.
+The existing local/cache policy remains available when financial admission fails.
+
+Validation: 13 new owning cases plus all existing AI-COST-02 and AI-COST-01
+foundation tests: 74/74 PASS, zero failures/skips/cancellations, 1.433 seconds.
+Command: `node --test --test-concurrency=1 tests/ai-cost-02-*.test.mjs tests/cpv1-ai-cost-01-foundation.test.mjs`.
+Local log: task workspace `work/ai-cost-02-atomic-regression.log`.
+An initial file-creation command used a duplicated extension/ path and failed
+before creating the new test. Its subsequent 15 old-policy passes were not new
+module evidence; corrected owning selection first passed27/27, then74/74 after
+the reserved-sibling regression. No failed assertion was weakened or hidden.
+Independent review of this follow-up is pending. AI-COST-02 remains incomplete;
+paid/model/identity/billing, native service integration and exact-head hosted
+acceptance are still open.
