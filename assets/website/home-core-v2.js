@@ -14,9 +14,7 @@
     field.style.height = 'auto';
     field.style.height = `${Math.max(field.scrollHeight + 2, 36)}px`;
   }
-  all('[disabled]').forEach(el => {
-    if (!el.hasAttribute('data-await-confirmation')) el.disabled = false;
-  });
+  all('[disabled]').forEach(el => { el.disabled = false; });
   all('textarea').forEach(field => {
     fit(field);
     field.addEventListener('input', () => fit(field));
@@ -37,17 +35,23 @@
     output.textContent = field.value;
     text('[data-edit-status]', t('本页工作版本已更新 · 原始来源保留', 'Page working text updated · Original preserved'));
     filterInputs();
+    renderReading();
+    renderContext();
   }
   function filterInputs() {
     const query = $('[data-archive-search]').value.trim().toLocaleLowerCase();
     let count = 0;
     records.forEach(record => {
-      record.hidden = !record.querySelector('textarea').value.toLocaleLowerCase().includes(query);
+      const field = record.querySelector('textarea');
+      record.hidden = document.activeElement !== field && !field.value.toLocaleLowerCase().includes(query);
       if (!record.hidden) count++;
     });
     $('[data-archive-empty]').hidden = count !== 0;
   }
-  all('[data-working]').forEach(field => field.addEventListener('input', () => updateWorking(field)));
+  all('[data-working]').forEach(field => {
+    field.addEventListener('input', () => updateWorking(field));
+    field.addEventListener('blur', filterInputs);
+  });
   $('[data-archive-search]').addEventListener('input', filterInputs);
   let reversed = false;
   $('[data-sort]').addEventListener('click', () => {
@@ -68,7 +72,8 @@
   const promptList = $('[data-prompt-list]');
   const composer = $('#pc-composer');
   function insertPrompt(value) {
-    composer.value = value; fit(composer); composer.focus({preventScroll: true});
+    composer.value = composer.value.length ? composer.value + '\n\n' + value : value;
+    fit(composer); composer.focus({preventScroll: true});
     text('[data-prompt-status]', t('已填入本页输入框 · 没有发送', 'Inserted in this page’s composer · Not sent'));
   }
   function rankPrompts() {
@@ -148,89 +153,139 @@
       card.animate([{transform: `translate(${before[i].left - after.left}px,${before[i].top - after.top}px)`}, {transform: 'translate(0,0)'}], {duration: 540, easing: 'cubic-bezier(.2,.75,.2,1)'});
     });
   }));
-  $('[data-topic-export]').addEventListener('click', () => {
-    const title = t('产品的第一步', 'A product’s first step');
-    const lines = ['# ' + title, '', t('PAIA 官网互动示例 · 虚构数据 · 含本页工作版本', 'PAIA website interactive example · Fictional data · Includes page working text'), ''];
-    all('[data-thought]').forEach(card => {
-      lines.push('## ' + card.querySelector('time').textContent.trim(), '', card.querySelector('.pc-topic-source').textContent.trim(), '', card.querySelector('[data-thought-text]').textContent, '');
-    });
-    const url = URL.createObjectURL(new Blob([lines.join('\n')], {type: 'text/markdown;charset=utf-8'}));
-    const link = document.createElement('a');
-    link.href = url; link.download = 'paia-example-thought-trail.md'; link.hidden = true;
-    root.append(link); link.click(); link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    text('[data-topic-status]', t('已生成本页思路的 Markdown 文件', 'Markdown file generated from this page’s thought trail'));
-  });
+  // The three approved styles illustrate derivative reading only. An edited
+  // source never leaves the prewritten derivative looking like a current result.
+  const reading = $('[data-reading-style]');
+  function renderReading() {
+    const changed = all('[data-working]').some(field => field.value !== originals.get(field.dataset.working));
+    const wording = {
+      original: t('保留上方原话。整理只改变阅读呈现，不覆盖你的文字或主题组织。', 'Keep the words above. Organization changes the reading view, never your words or topic structure.'),
+      balanced: t('最初比较素材找回和内容生成，判断创作者更需要什么。随后把第一版缩到一个反复发生的问题，暂缓协作。最新保留的决定是先做素材找回，是否增加生成待后续判断；仍以能否接上下一次任务作为标准。', 'The early question compared material retrieval with generation. The scope then narrowed to one recurring problem, with collaboration deferred. The latest retained decision is to start with retrieval and decide later whether to add generation. Success still means helping the next task build on existing work.'),
+      concise: t('当前决定：先验证素材找回，暂缓协作；是否增加生成以后再判断，标准是下一次任务能否接上积累。', 'Current decision: validate retrieval first and defer collaboration. Decide later whether to add generation, judging it by whether the next task builds on existing work.')
+    };
+    const output = $('[data-reading-output]');
+    output.replaceChildren();
+    const line = document.createElement('p');
+    line.textContent = changed && reading.value !== 'original'
+      ? t('原话已被修改，这份预设整理已不再对应当前文字。请查看上方工作版本，或还原示例再比较整理方式。本页不会调用 AI 重新生成。', 'The words have changed, so the preset organization is out of date. Read the current working text above, or reset the example to compare styles. This page does not call AI to regenerate it.')
+      : wording[reading.value];
+    output.append(line);
+    output.dataset.stale = String(changed && reading.value !== 'original');
+  }
+  reading.addEventListener('change', renderReading);
+  renderReading();
 
-  // Local consent demonstration: confirmation is separate from selection;
-  // changing any selected content invalidates the previously approved preview.
-  let authorized = false;
-  const log = [];
-  const labels = {
-    preference: t('沟通偏好', 'Communication preference'),
-    project: t('当前项目', 'Current project'),
-    candidate: t('工作方式', 'Working preference')
+  // Four independent cards and explicit Personal Topic access. Switches only
+  // update this page's scope illustration; there is no real grant or AI client.
+  const master = $('[data-context-global]');
+  const isOn = field => field.getAttribute('aria-pressed') === 'true';
+  const setOn = (field, value) => field.setAttribute('aria-pressed', String(value));
+  const removedItems = new Set();
+  let openedCard = null;
+  const cardLabels = {
+    info: t('我的信息', 'My Information'),
+    rules: t('我的规则', 'My Rules'),
+    now: t('我的现在', 'My Now')
   };
-  function valueFor(key) {
-    return key === 'preference' ? $('#pc-personal-note').value : $(key === 'project' ? '[data-context-project]' : '[data-context-candidate]').textContent.trim();
-  }
-  function selectedFacts() {
-    return all('[data-context-item]').filter(field => field.checked && !field.disabled).map(field => ({key: field.dataset.contextItem, value: valueFor(field.dataset.contextItem)}));
-  }
-  function logAction(message) {
-    log.unshift(message);
-    if (log.length > 8) log.pop();
-    $('[data-usage-log]').replaceChildren(...log.map(value => {
-      const item = document.createElement('li'); item.textContent = value; return item;
-    }));
-  }
-  function renderContext(invalidate = true) {
-    if (invalidate && authorized) {
-      authorized = false;
-      logAction(t('内容或范围改变，先前的示例授权已失效。没有内容外发。', 'Content or scope changed; previous example access invalidated. Nothing transmitted.'));
+  function renderContext() {
+    const scope = [];
+    if (isOn(master)) {
+      Object.entries(cardLabels).forEach(([key, label]) => {
+        if (!isOn($(`[data-card-allow="${key}"]`)) || removedItems.has(key)) return;
+        const value = $(`[data-context-text="${key}"]`).value;
+        if (value.trim()) scope.push({label, value});
+      });
+      if (isOn($('[data-card-allow="inputs"]'))) {
+        if (isOn($('[data-topic-allow="product"]'))) {
+          scope.push({label: t('我的输入 / 产品的第一步', 'My Inputs / A product’s first step'),
+            value: all('[data-thought-text]').map(field => field.textContent).join('\n\n')});
+        }
+        if (isOn($('[data-topic-allow="writing"]'))) {
+          scope.push({label: t('我的输入 / 写作习惯', 'My Inputs / Writing practice'),
+            value: t('这个示例主题没有内容，因此没有可读取的条目。', 'This example topic is empty, so there are no entries to read.')});
+        }
+      }
     }
-    const selected = selectedFacts();
     const preview = $('[data-context-preview]');
     preview.replaceChildren();
-    if (!selected.length) {
-      const empty = document.createElement('p'); empty.textContent = t('尚未选择信息。', 'No information selected.'); preview.append(empty);
+    if (!scope.length) {
+      const empty = document.createElement('p');
+      empty.textContent = isOn(master)
+        ? t('尚未开放任何内容。分别选择卡片，以及“我的输入”中的主题。', 'Nothing is open yet. Choose cards, and topics within My Inputs, separately.')
+        : t('已暂停：没有内容在允许范围内。卡片内容和单独的开关选择仍然保留。', 'Paused: no content is in the allowed scope. Card content and individual choices are retained.');
+      preview.append(empty);
     }
-    selected.forEach(fact => {
-      const line = document.createElement('p'), title = document.createElement('strong');
-      title.textContent = labels[fact.key]; line.append(title, document.createTextNode(fact.value)); preview.append(line);
+    scope.forEach(item => {
+      const line = document.createElement('p');
+      const label = document.createElement('strong');
+      label.textContent = item.label;
+      line.append(label, document.createTextNode(item.value));
+      preview.append(line);
     });
-    text('[data-access-state]', authorized ? t(`${selected.length} 条示例信息已授权 · 实际发送 0 条`, `${selected.length} example items authorized · 0 transmitted`) : t(`${selected.length} 条已选 · 尚未授权`, `${selected.length} selected · Not authorized`));
-    $('[data-authorize]').disabled = selected.length === 0;
-    $('[data-authorize]').hidden = authorized;
-    $('[data-revoke]').hidden = !authorized;
-    $('.pc-access').classList.toggle('is-authorized', authorized);
+    text('[data-access-state]', isOn(master)
+      ? t('允许范围已在本页更新 · 未连接 AI', 'Page scope updated · No AI connected')
+      : t('已暂停 · 没有内容外发', 'Paused · Nothing transmitted'));
+    $('.pc-access').classList.toggle('is-authorized', isOn(master) && scope.length > 0);
+    master.textContent = isOn(master) ? t('AI 访问：开', 'AI access: on') : t('AI 访问：关', 'AI access: off');
+    all('[data-card-allow], [data-topic-allow]').forEach(control => {
+      const parentsOpen = isOn(master) && (!control.hasAttribute('data-topic-allow') || isOn($('[data-card-allow="inputs"]')));
+      control.textContent = isOn(control)
+        ? (parentsOpen ? t('AI 可读', 'AI readable') : t('已开放', 'Open'))
+        : t('仅自己', 'Only me');
+    });
+    Object.keys(cardLabels).forEach(key => {
+      const removed = removedItems.has(key);
+      $(`[data-context-entry="${key}"]`).hidden = removed;
+      $(`[data-context-empty="${key}"]`).hidden = !removed;
+      text(`[data-card-count="${key}"]`, removed ? t('0 条内容', '0 items') : t('1 条内容', '1 item'));
+    });
+    const topicsOpen = all('[data-topic-allow]').filter(isOn).length;
+    text('[data-topic-count]', topicsOpen ? t(`${topicsOpen} 个主题已开放`, `${topicsOpen} topics open`) : t('尚未开放主题', 'No topics open'));
+
+    $('[data-context-pause]').disabled = !isOn(master);
+    $('[data-context-clear]').disabled = !isOn(master) && !all('[data-card-allow], [data-topic-allow]').some(isOn);
   }
-  all('[data-context-item]').forEach(field => field.addEventListener('change', () => renderContext()));
-  $('#pc-personal-note').addEventListener('input', () => renderContext());
-  $('[data-confirm-candidate]').addEventListener('click', () => {
-    $('[data-await-confirmation]').disabled = false;
-    $('[data-pending-fact]').classList.add('is-confirmed');
-    text('[data-candidate-badge]', t('你已确认', 'CONFIRMED BY YOU'));
-    text('[data-candidate-note]', t('现在可选择是否用于本次任务。', 'You can now select it for this task.'));
-    $('[data-confirm-candidate]').hidden = true;
-    $('[data-await-confirmation]').focus({preventScroll: true});
-    logAction(t('已确认候选信息。没有自动选用或授权。', 'Candidate confirmed. Not automatically selected or authorized.'));
+  all('[data-card-allow], [data-topic-allow], [data-context-global]').forEach(field => field.addEventListener('click', () => {
+    setOn(field, !isOn(field));
+    renderContext();
+  }));
+  all('[data-card-open]').forEach(control => control.addEventListener('click', () => {
+    openedCard = control.dataset.cardOpen;
+    $('[data-context-overview]').hidden = true;
+    all('[data-card-detail]').forEach(detail => { detail.hidden = detail.dataset.cardDetail !== openedCard; });
+    all(`[data-card-detail="${openedCard}"] textarea`).forEach(fit);
+    $(`#pc-detail-${openedCard}`).focus({preventScroll: true});
+  }));
+  all('[data-context-back]').forEach(control => control.addEventListener('click', () => {
+    all('[data-card-detail]').forEach(detail => { detail.hidden = true; });
+    $('[data-context-overview]').hidden = false;
+    $(`[data-card-open="${openedCard}"]`).focus({preventScroll: true});
+  }));
+  all('[data-context-remove]').forEach(control => control.addEventListener('click', () => {
+    removedItems.add(control.dataset.contextRemove);
+    renderContext();
+    $(`[data-context-undo="${control.dataset.contextRemove}"]`).focus({preventScroll: true});
+  }));
+  all('[data-context-undo]').forEach(control => control.addEventListener('click', () => {
+    const key = control.dataset.contextUndo;
+    removedItems.delete(key);
+    renderContext();
+    fit($(`[data-context-text="${key}"]`));
+    $(`[data-context-text="${key}"]`).focus({preventScroll: true});
+  }));
+  all('[data-context-text]').forEach(field => field.addEventListener('input', renderContext));
+  $('[data-context-pause]').addEventListener('click', () => {
+    setOn(master, false);
+    renderContext();
+    master.focus({preventScroll: true});
   });
-  $('[data-authorize]').addEventListener('click', () => {
-    const selected = selectedFacts();
-    if (!selected.length) return;
-    authorized = true;
-    logAction(t(`示例授权：仅本次任务，${selected.length} 条信息；实际发送 0 条。`, `Example access: this task only, ${selected.length} items; 0 transmitted.`));
-    renderContext(false);
-    $('[data-revoke]').focus({preventScroll: true});
+  $('[data-context-clear]').addEventListener('click', () => {
+    setOn(master, false);
+    all('[data-card-allow], [data-topic-allow]').forEach(field => { setOn(field, false); });
+    renderContext();
+    master.focus({preventScroll: true});
   });
-  $('[data-revoke]').addEventListener('click', () => {
-    authorized = false;
-    logAction(t('本次示例授权已撤回。未连接任何 AI。', 'Example access revoked. No AI was connected.'));
-    renderContext(false);
-    $('[data-authorize]').focus({preventScroll: true});
-  });
-  renderContext(false);
+  renderContext();
 
   // One bounded reveal per product surface. No hidden-content dependency.
   if ('IntersectionObserver' in window && !motion.matches) {
