@@ -1,0 +1,37 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {setup,inputEdit} from './harness/thought-m1.mjs';
+import {OrganizerStore} from '../core/organizer/store.js';
+import {AIUsageFoundation} from '../core/ai-usage/foundation.js';
+import {JOB_TYPES} from '../core/ai-usage/contracts.js';
+import {readDomainCommitEvidence} from '../core/ai-usage/domain-commit-evidence.js';
+async function fixture({local=false,partial=false,unknown=false,noChange=false}={}){
+ const f=await setup(OrganizerStore),permission={allowed:true,principalId:'synthetic-principal',libraryId:'synthetic-library',consentEpoch:'synthetic-epoch',jobTypes:JOB_TYPES};
+ const options={resolveAuthority:async(_t,r)=>({...permission,scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}}),committers:Object.fromEntries(['topic','context'].map(k=>[k,async(t,r)=>{await t.put('meta',{id:'synthetic-domain:'+k,committed:true});return {committed:true,coverage:r.units};}]))};
+ const ai=new AIUsageFoundation(f.s,options),items=(await ai.collect()).items,coverage=['context','topic'].map(facet=>({key:items[0].key,facet,scope:'synthetic-scope'}));
+ const job=await ai.plan({type:'AI_MAINTENANCE',items,coverage,children:coverage.map(u=>[u]),intent:'maintenance',contractVersion:'synthetic-contract',routeVersion:'synthetic-route'});
+ if(!local){await ai.reserve(job.id,{reservationId:'synthetic-parent'});for(const id of job.childIds)await ai.dispatch(job.id,id,{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{if(unknown)throw Error('synthetic-offline');return {accepted:true,operationReceiptId:'synthetic-receipt:'+id};}});}
+ if(!unknown)for(let i=0;i<(partial?1:2);i++){const u=coverage[i];if(local)await ai.resolveLocal(job.id,{facet:u.facet,units:[u]});else await ai.commitFacet(job.id,job.childIds[i],{facet:u.facet,units:[u],outcome:noChange?'NO_CHANGE':'COMMITTED'});}
+ return {...f,ai,job,items,permission,options};
+}
+const get=f=>readDomainCommitEvidence(f.ai,f.job.id);
+const mutate=(f,table,id,fn)=>f.s.foundationWrite(async t=>{const row=await t.get(table,id);await t.put(table,fn(row));});
+test('domain evidence uses actual owner full child/coverage commit, metadata only and restart stable',async()=>{
+ const f=await fixture(),before=await f.ai.status(f.job.id),proof=await get(f);
+ assert.equal(proof.status,'CANDIDATE_ONLY');assert.equal(proof.dispatchAllowed,false);assert.equal(proof.financialAuthority,false);assert.equal(proof.evidence.children.length,2);assert.match(proof.evidence.coverageFingerprint,/^[a-f0-9]{64}$/);assert.deepEqual(proof.evidence.children.map(c=>c.operationId),f.job.childIds);
+ assert.doesNotMatch(JSON.stringify(proof),/Synthetic explicit working input|originalText|libraryText|signature|prompt|body/);
+ assert.deepEqual(await readDomainCommitEvidence(new AIUsageFoundation(f.s,f.options),f.job.id),proof);assert.deepEqual(await f.ai.status(f.job.id),before);
+});
+test('partial and unknown actual owner jobs cannot create commit evidence',async()=>{for(const mode of [{partial:true},{unknown:true}])assert.equal((await get(await fixture(mode))).status,'INCOMPLETE');});
+test('local NO_CHANGE and fixture NO_CHANGE never become effective result proof',async()=>{for(const mode of [{local:true},{noChange:true}])assert.equal((await get(await fixture(mode))).status,'NO_EFFECTIVE_RESULT');});
+test('missing production authority stays unavailable',async()=>{const f=await fixture();await assert.rejects(readDomainCommitEvidence(f.s.aiUsageFoundation,f.job.id),e=>e.code==='UNAVAILABLE');});
+test('current edit, consent and human epochs invalidate even completed evidence',async()=>{
+ for(const mode of ['edit','consent','human']){const f=await fixture();if(mode==='edit')await inputEdit(f.s,f.items[0].descriptor.entityId,{libraryText:'New human revision'});else if(mode==='consent')f.permission.consentEpoch='revoked';else await f.s.createTopic({name:'New human intent',operationId:crypto.randomUUID()});await assert.rejects(get(f),e=>['STALE_BASE','CANCELLED'].includes(e.code));}
+});
+test('missing, cross-job and cross-child attempt records fail closed',async()=>{for(const mode of ['missing','job','child','sequence']){const f=await fixture(),id='aiu:attempt:'+f.job.childIds[0];if(mode==='missing')await f.s.foundationWrite(t=>t.delete('organizerUsage',id));else await mutate(f,'organizerUsage',id,r=>({...r,...(mode==='job'?{jobId:'alien'}:mode==='child'?{childId:f.job.childIds[1]}:{sequence:1})}));assert.equal((await get(f)).status,'INCOMPLETE');}});
+test('missing or rebound acknowledgements cannot borrow another scope or revision',async()=>{for(const mode of ['missing','job','signature','scope']){const f=await fixture(),rows=await f.s.repository.transaction(false,t=>t.all('organizerWorkItems')),row=rows.find(r=>r.state==='ACKNOWLEDGED');if(mode==='missing')await f.s.foundationWrite(t=>t.delete('organizerWorkItems',row.id));else await mutate(f,'organizerWorkItems',row.id,r=>({...r,...(mode==='job'?{jobId:'alien'}:mode==='signature'?{signature:'stale'}:{unit:{...r.unit,scope:'alien'}})}));assert.equal((await get(f)).status,'INCOMPLETE');}});
+test('unknown execution kind and missing receipt are unsupported without invented fields',async()=>{for(const mode of ['remote','receipt']){const f=await fixture();await mutate(f,'organizerUsage','aiu:attempt:'+f.job.childIds[0],r=>({...r,...(mode==='remote'?{executionKind:'remote'}:{operationReceiptId:null})}));assert.equal((await get(f)).status,'UNSUPPORTED');}});
+test('one same read transaction supplies all evidence and read failure propagates without writes',async()=>{const f=await fixture(),original=f.ai.read.bind(f.ai);let reads=0;f.ai.read=fn=>original(async t=>{reads++;t.put=()=>{throw Error('unexpected write');};t.delete=t.put;return fn(t);});assert.equal((await get(f)).status,'CANDIDATE_ONLY');assert.equal(reads,1);f.ai.read=async()=>{throw Error('synthetic-read-failure');};await assert.rejects(get(f),/synthetic-read-failure/);});
+test('rebound parent, reused outcome receipt and missing complete coverage fail closed',async()=>{for(const mode of ['parent','receipt','coverage']){const f=await fixture();if(mode==='coverage')await mutate(f,'organizerJobs',f.job.id,r=>({...r,committedCoverage:r.committedCoverage.slice(1)}));else await mutate(f,'organizerUsage','aiu:attempt:'+f.job.childIds[1],r=>({...r,...(mode==='parent'?{parentReservationId:'alien'}:{operationReceiptId:'synthetic-receipt:'+f.job.childIds[0]})}));assert.equal((await get(f)).status,'INCOMPLETE');}});
+test('source deletion, gate and restore epoch changes reject previously committed evidence',async()=>{for(const mode of ['source','gate','restore']){const f=await fixture();if(mode==='source')await f.s.foundationWrite(t=>t.delete('records',f.items[0].descriptor.sourceRecordIds[0]));else if(mode==='gate')await mutate(f,'meta','gate',r=>({...r,epoch:r.epoch+1}));else await f.s.foundationWrite(t=>t.put('meta',{id:'recovery-restore-epoch',value:'new-restore'}));await assert.rejects(get(f),e=>['STALE_BASE','CANCELLED'].includes(e.code));}});
+test('mixed checked NO_CHANGE and committed facets remain unsupported, not an invented financial result',async()=>{const f=await fixture(),row=await f.s.repository.transaction(false,async t=>(await t.all('organizerWorkItems')).find(r=>r.state==='ACKNOWLEDGED'));await mutate(f,'organizerWorkItems',row.id,r=>({...r,outcome:'NO_CHANGE'}));assert.equal((await get(f)).status,'UNSUPPORTED');});
