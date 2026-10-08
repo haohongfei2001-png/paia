@@ -170,7 +170,7 @@ export class TopicController {
   this.desktopPresentation?.sync();
   clearTimeout(this.topicContinuousTimer);if(state.indexing&&!state.loadingNext&&!state.errorNext)this.topicContinuousTimer=setTimeout(()=>{if(this.topicContinuousVisible())void this.loadTopicContinuous('next');},250);
  }
- async renderTopicReader(anchor=null,restore=null){
+ async renderTopicReader(anchor=null,restore=null,{preserveLiveAnchor=false}={}){
   const reader=this.topicReader,serial=this.serial,windowRevision=reader?.windowRevision,cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;if(!reader)return false;
   const current=()=>{
    const valid=reader===this.topicReader&&serial===this.serial&&windowRevision===reader.windowRevision&&cueEpoch===(this.rootCueEpoch||0)&&intent===this.openIntent&&view===this.view;
@@ -194,10 +194,12 @@ export class TopicController {
    if(metadata&&!metadata.receiveQualified(row,qualification))throw Error('TOPIC_METADATA_CHANGED');
    page.topic=row;
   }
+  // Continuation reads may outlive scrolling or reflow. Capture the current
+  // DOM immediately before paint; never fall back to an already removed anchor.
+  const readingAnchor=preserveLiveAnchor?this.topicAnchor():anchor||reader.sectionRestoreAnchor;
   this.topic=page.topic;this.document=page;this.renderDocument(page);reader.measure(this.originalPane);
   this.originalPane.dataset.retainedBodies=String(reader.items.filter(item=>!item.unloaded).length);this.originalPane.dataset.loadedExtent=String(reader.items.length);
-  const readingAnchor=anchor||reader.sectionRestoreAnchor;
-  if(readingAnchor&&(!restore||!restore.cancelled&&this.topicRestore===restore)&&(anchor||reader.sectionRestoreInputEpoch===(this.topicRestoreInputEpoch||0)))reader.restoreAnchor(this.originalPane,readingAnchor);
+  if(readingAnchor&&(!restore||!restore.cancelled&&this.topicRestore===restore)&&(preserveLiveAnchor||anchor||reader.sectionRestoreInputEpoch===(this.topicRestoreInputEpoch||0)))reader.restoreAnchor(this.originalPane,readingAnchor);
   // A successful paint consumes this one return attempt, including a return
   // interrupted by deliberate scrolling. Later paging must not replay it.
   if(!anchor)reader.sectionRestoreAnchor=null;
@@ -218,7 +220,7 @@ export class TopicController {
    const state=reader.state();if(state.errorNext&&!state.items.length)throw state.errorNext;await this.renderTopicReader(restoreAnchor,restore);if(!current())return {...reader.state(),stale:true};void this.loadRemainingTopicSections(reader);completed=!reader.hydrationError&&!reader.stale;return reader.state();
   }finally{if(restore){if(completed&&this.topicRestore===restore)this.finishTopicRestore(restore);else this.cancelTopicRestore(restore);}}
  }
- async loadTopicContinuous(direction,{explicit=true}={}){if(explicit)this.interruptTopicRestore();else if(this.topicRestoring())return;const reader=this.topicReader;if(!explicit&&(reader?.errorNext||reader?.hydrationError||reader?.errorPrevious||reader?.protectionBlocked||direction==='next'&&reader?.continuationNext||direction==='previous'&&reader?.continuationPrevious||direction==='next'&&this.topicAutoForward===false))return;if(explicit)this.topicAutoForward=direction!=='previous';if(!reader||!this.topicContinuousVisible()||direction==='next'&&reader.loadingNext||direction==='previous'&&reader.loadingPrevious)return;const serial=this.serial,anchor=this.topicAnchor(),sectionAnchor=!anchor?this.topicSectionAnchor():null,sectionSnapshot=sectionAnchor?reader.snapshot(null,sectionAnchor):null;if(!await this.checkAllTracked(serial)||serial!==this.serial||reader!==this.topicReader)return;if(reader.hydrationError){if(explicit)await this.renderTopicReader(anchor);else this.updateTopicContinuous();return;}const priorRevision=reader.bodyRevision,pending=direction==='previous'?reader.previous():reader.next();this.updateTopicContinuous();await pending;if(serial!==this.serial||reader!==this.topicReader)return;if(reader.stale){await this.resetTopicReader({anchorId:anchor?.id||reader.items[0]?.entry?.id||null,restoreAnchor:anchor,saved:sectionSnapshot?.sectionAnchor?sectionSnapshot:null,expectedSerial:serial});return;}if(reader.bodyRevision!==priorRevision||reader.errorNext||reader.errorPrevious||reader.indexing||reader.protectionBlocked)await this.renderTopicReader(anchor);else this.updateTopicContinuous();}
+ async loadTopicContinuous(direction,{explicit=true}={}){if(explicit)this.interruptTopicRestore();else if(this.topicRestoring())return;const reader=this.topicReader;if(!explicit&&(reader?.errorNext||reader?.hydrationError||reader?.errorPrevious||reader?.protectionBlocked||direction==='next'&&reader?.continuationNext||direction==='previous'&&reader?.continuationPrevious||direction==='next'&&this.topicAutoForward===false))return;if(explicit)this.topicAutoForward=direction!=='previous';if(!reader||!this.topicContinuousVisible()||direction==='next'&&reader.loadingNext||direction==='previous'&&reader.loadingPrevious)return;const serial=this.serial,anchor=this.topicAnchor(),sectionAnchor=!anchor?this.topicSectionAnchor():null,sectionSnapshot=sectionAnchor?reader.snapshot(null,sectionAnchor):null;if(!await this.checkAllTracked(serial)||serial!==this.serial||reader!==this.topicReader)return;if(reader.hydrationError){if(explicit)await this.renderTopicReader(anchor);else this.updateTopicContinuous();return;}const priorRevision=reader.bodyRevision,pending=direction==='previous'?reader.previous():reader.next();this.updateTopicContinuous();await pending;if(serial!==this.serial||reader!==this.topicReader)return;if(reader.stale){await this.resetTopicReader({anchorId:anchor?.id||reader.items[0]?.entry?.id||null,restoreAnchor:anchor,saved:sectionSnapshot?.sectionAnchor?sectionSnapshot:null,expectedSerial:serial});return;}if(reader.bodyRevision!==priorRevision||reader.errorNext||reader.errorPrevious||reader.indexing||reader.protectionBlocked)await this.renderTopicReader(anchor,null,{preserveLiveAnchor:true});else this.updateTopicContinuous();}
  async loadRemainingTopicSections(){
   // Each qualified reading page supplies only its own Section metadata. A
   // separate legacy continuation must never supplement those labels.

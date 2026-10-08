@@ -312,3 +312,44 @@ viewport before header interactions. This unresolved boundary is not called
 flaky, skipped or covered by Root/UX-R3 successes. Overall combination, refreshed
 full certification, integration and user availability remain pending. No CI,
 shared data, version, provider or permission change is included here.
+
+## Normal continuation preserves the current viewport — reviewed combination
+
+The retained Content release failure was a real timing boundary. Its qualified
+Section navigation reset the earlier165-reference window to40; automatic previous
+reads then loaded80/120/150 references during the responsive matrix. Native trace
+recorded a body positioned at387 while a previous read was pending, followed by
+restoration of an earlier222/259.97 viewport anchor and late scrollBy7467.97/5514.78.
+A trace-only run happened to pass and was not treated as resolution.
+
+Six deterministic tests call the actual continuation/render owners. Before the
+repair, scroll, resize and a removed live anchor failed (3FAIL/3PASS); unchanged
+viewport, replaced route and explicit snapshot controls passed. Normal continuation
+now samples its live DOM anchor synchronously immediately before paint, after all
+existing hydration, metadata, read-generation, reader, serial, window-revision,
+cue, intent and view checks. A missing live anchor never falls back to the earlier
+ID. Explicit navigation/reset and saved snapshot restoration retain their exact
+qualified target. The coordinator independently reviewed this repair. No extra
+sleep, timeout, weakened oracle, dropped fixture or provider/data change is used.
+
+Final local combination: five complete related unit files119/119PASS; complete
+Root05.2 + Section05.4 + UX-R3 native files32/32PASS427.65s, including both release
+variants, empty/named Section behavior, exact focus/Back, retained prose/IME,
+late-response purge refusal and F-LARGE100kInputs/1000documents/300Topics/5000Thoughts.
+The separate complete Content file passed4/4 on the same runtime after the compact
+title repair, closing its previously retained3/4 result. All36 native cases passed;
+none skipped or cancelled. Section's existing audited release build now uses an
+exclusive temporary output and cleanup, preserving every case and budget.
+
+Evidence is the exact dirty candidate, not an inferred clean-HEAD certificate.
+`work/section-live-anchor-native-bytes.json` records start basec460ebd3 plus SHA256
+of the runtime, reader, presentation and all three native owners; its final
+`endBytesUnchanged:true` proves unchanged bytes throughout32case execution.
+The presentation checkpoint226c1548 recorded already-present tested bytes during
+that execution; it did not replace runtime. Preserve logs
+`work/section-live-anchor-before.log`, `work/section-live-anchor-after.log`,
+`work/section-live-anchor-native-final.log`, and Content's separate complete
+`extension/work/section-content-liveanchor-native.log`/byte receipt recorded by its owner.
+Old hosted/local failures remain above and in coordination evidence. This local
+combination does not replace refreshed current-head CI, integration or installed
+user availability; those remain the coordinator's next delivery gates.
