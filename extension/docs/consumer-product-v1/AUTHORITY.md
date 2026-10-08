@@ -59,7 +59,7 @@ Existing shared visual roles, brand, typography and explicit saved reading prefe
 
 The complete prior gate policy is incorporated from the exact baseline. B-01/B-02 are not resolved by Archive navigation. BNS retains only its scoped B-03 resolution. Stage 3A and AIU's separate remote Assist consent/capability boundaries, B-04/B-05, provider/region/retention/payment and actual installation/release gates are unchanged. A Source URL or internal route is not an authorization grant.
 
-This adoption authorizes documentation and plan alignment only: no runtime, UI, schema, tests/workflows, version, model, account, provider key, cloud resource, billing, real-data migration, deployment or release change. Ordinary local content remains usable under its own existing eligibility, not an AI-service or quota gate. Selected Archive design is ready, but its existing coordinated-execution exclusion remains. ARCHIVE-HOME identifiers are traceability, not a new global pointer or active writer.
+The earlier adoption alone authorized documentation and plan alignment. That historical execution exclusion is superseded by the latest seven-lane authorization at the top of this document: ordinary scoped implementation, tests, branches and protocol-compliant integration are selected. It still grants no paid model, account/credential, wider permission, real-user upload, formal deployment or irreversible deletion authority. Ordinary local content remains usable under its own eligibility, not an AI-service or quota gate. ARCHIVE-HOME identifiers are outcome traceability within the coordinated lane.
 
 ## 5. Privacy, evidence and conflict handling
 
