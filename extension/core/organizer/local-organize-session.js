@@ -2,13 +2,13 @@ import {AIUsageFoundation} from '../ai-usage/foundation.js';
 import {localProviderDescriptor,canonical,digest,fail} from '../ai-usage/contracts.js';
 import {KNOWN_PREFIX} from '../ai-usage/delta.js';
 import {validOrganizeCacheProfile} from './organize-cache-qualification.js';
-import {readLocalOrganizeScopeInTransaction,commitLocalOrganizeCandidateInTransaction,confirmLocalOrganizeCacheProof,releaseLocalOrganizeCacheProof} from './ai-presentation.js';
+import {readLocalOrganizeScopeInTransaction,commitLocalOrganizeCandidateInTransaction,confirmLocalOrganizeCacheProof,releaseLocalOrganizeCacheProof,assertLocalOrganizeCacheControls} from './ai-presentation.js';
 import {bytes} from './contracts.js';
 import {validateLocalOrganizeResponse} from './ai-contract.js';
 // No production worker creates this explicitly configured local owner. Handles
 // and response bodies never enter a new durable handoff store or public DTO.
 export class LocalOrganizeSession {
- #store;#foundation;#profile;#route;#handles=new WeakMap();#jobs=new Map();
+ #store;#foundation;#profile;#route;#handles=new WeakMap();#jobs=new Map();#cached=new Map();#generation=0;
  constructor(store,{resolveAuthority=null,profile=null,routeVersion=null}={}){
   this.#store=store;this.#profile=structuredClone(profile);this.#route=routeVersion;
   this.#foundation=new AIUsageFoundation(store,{resolveAuthority,committers:{organize:async(t,r)=>{
@@ -20,35 +20,56 @@ export class LocalOrganizeSession {
  async #completed(state,result){if(this.#jobs.get(state.job.id)!==state)releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);else if(result.state==='COMMITTED')await confirmLocalOrganizeCacheProof(this.#store,state.cacheProof);return result;}
  #state(handle){const state=this.#handles.get(handle);if(!state)fail('UNAVAILABLE');return state;}
  async prepare({topicId,children=1}={}){
+  const generation=this.#generation;
   if(children!==1)return {state:'DEFER',reason:'multiple_children_not_supported'};
   if(!validOrganizeCacheProfile(this.#profile)||typeof this.#route!=='string'||!this.#route.length||this.#route.length>200)fail('UNAVAILABLE');
-  if(this.#jobs.size>=8)fail('UNAVAILABLE');
+  if(this.#jobs.size+this.#cached.size>=8&&!this.#cached.has(topicId))fail('UNAVAILABLE');
   await this.#store.aiPresentationStatus({topicId}); // Existing migration/readability owner.
   const data=await this.#foundation.read(async t=>{
-   const prepared=await readLocalOrganizeScopeInTransaction(this.#store,t,topicId),items=[];
+   const prepared=await readLocalOrganizeScopeInTransaction(this.#store,t,topicId,this.#profile),items=[];
    const keys=new Set(Object.keys(prepared.topic.inputVersions).map(id=>JSON.stringify(['input',id])));
    for(const input of prepared.inputs){const key=JSON.stringify(['library_entry',input.ref]),known=await t.get('meta',KNOWN_PREFIX+key);if(known)keys.add(key);else if(!JSON.parse(prepared.topic.versions[input.ref])[2]?.length)fail('STALE_BASE');}
    if(!keys.size||keys.size>100)fail('BUDGET_EXCEEDED');
    for(const key of keys){const known=await t.get('meta',KNOWN_PREFIX+key);if(!known||known.descriptor.removed||known.descriptor.fenceOnly)fail('STALE_BASE');items.push({key:known.descriptor.key,signature:known.signature,descriptor:known.descriptor});}
-   return {prepared,items};
+   const coverage=items.map(i=>({key:i.key,facet:'organize',scope:topicId})).sort((a,b)=>canonical([a.key,a.facet,a.scope]).localeCompare(canonical([b.key,b.facet,b.scope])));
+   let cacheAuthority=null;
+   if(prepared.cachePresentation){cacheAuthority=await this.#foundation.authority(t,'AI_ORGANIZE',{items,coverage});await this.#foundation.current(t,{type:'AI_ORGANIZE',items,coverage,organizeStyle:prepared.style,authority:cacheAuthority,cancelEpoch:0});const current=await readLocalOrganizeScopeInTransaction(this.#store,t,topicId,this.#profile);if(current.proof!==prepared.proof||!current.cachePresentation)fail('STALE_BASE');if(canonical(await this.#foundation.authority(t,'AI_ORGANIZE',{items,coverage}))!==canonical(cacheAuthority))fail('CANCELLED');await assertLocalOrganizeCacheControls(this.#store,t,prepared);}
+   return {prepared,items,cacheAuthority,coverage};
   });
-  const coverage=data.items.map(i=>({key:i.key,facet:'organize',scope:topicId})).sort((a,b)=>canonical([a.key,a.facet,a.scope]).localeCompare(canonical([b.key,b.facet,b.scope])));
+  if(this.#generation!==generation)fail('UNAVAILABLE');
+  const coverage=data.coverage;
+  if(data.cacheAuthority){if(this.#jobs.size+this.#cached.size>=8&&!this.#cached.has(topicId))fail('UNAVAILABLE');const prior=this.#cached.get(topicId);if(prior)this.#handles.delete(prior.handle);const handle=Object.freeze({state:'CACHED',jobId:null}),state={...data,handle,cached:true,running:false};this.#handles.set(handle,state);this.#cached.set(topicId,state);return handle;}
   const job=await this.#foundation.plan({type:'AI_ORGANIZE',intent:'explicit',items:data.items,coverage,contractVersion:this.#profile.contractVersion,routeVersion:await digest([this.#route,this.#profile,data.prepared.evidenceVersion]),organizeStyle:data.prepared.style});
+  if(this.#generation!==generation)fail('UNAVAILABLE');
   const handle=Object.freeze({state:job.state,jobId:job.id});if(!job.id)return handle;
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
+  if(this.#jobs.size+this.#cached.size>=8)fail('UNAVAILABLE');
   const state={...data,coverage,job,handle,validated:null,running:false};this.#handles.set(handle,state);this.#jobs.set(job.id,state);return handle;
  }
  async assemble(handle){
-  const state=this.#state(handle);return this.#foundation.read(async t=>{
+  const state=this.#state(handle);if(state.cached)fail('UNAVAILABLE');return this.#foundation.read(async t=>{
    const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);
    const current=await readLocalOrganizeScopeInTransaction(this.#store,t,state.prepared.topic.id);if(current.proof!==state.prepared.proof)fail('STALE_BASE');
    if(job.childIds.length!==1||job.committedCoverage.length)fail('STALE_BASE');
    const request={topicId:current.topic.id,style:current.style,inputs:current.inputs,profile:this.#profile};if(bytes(request)>this.#store.organizerBudget.limits.maxRequestBytes)fail('BUDGET_EXCEEDED');return structuredClone(request);
   });
  }
+ async #readCached(state){
+  return this.#foundation.read(async t=>{
+   const {items,coverage,cacheAuthority,prepared}=state;
+   await this.#foundation.current(t,{type:'AI_ORGANIZE',items,coverage,organizeStyle:prepared.style,authority:cacheAuthority,cancelEpoch:0});
+   const current=await readLocalOrganizeScopeInTransaction(this.#store,t,prepared.topic.id,this.#profile);
+   if(current.proof!==prepared.proof||!current.cachePresentation)fail('STALE_BASE');
+   if(canonical(await this.#foundation.authority(t,'AI_ORGANIZE',{items,coverage}))!==canonical(cacheAuthority))fail('CANCELLED');
+   await assertLocalOrganizeCacheControls(this.#store,t,prepared);
+   if(this.#handles.get(state.handle)!==state||this.#cached.get(prepared.topic.id)!==state)fail('UNAVAILABLE');
+   return {state:'CACHED',jobId:null,presentation:structuredClone(current.cachePresentation)};
+  });
+ }
  async run(handle,provider){
   const state=this.#state(handle);if(state.running)fail('REQUEST_ALREADY_IN_FLIGHT');state.running=true;
   try{
+   if(state.cached)return await this.#readCached(state);
    const status=await this.#foundation.status(state.job.id);if(status.state==='COMMITTED')return this.#completed(state,status);
    if(status.state==='RESPONSE_RECORDED'&&state.validated)return await this.#completed(state,await this.#foundation.commitFacet(state.job.id,state.job.childIds[0],{facet:'organize',units:state.coverage}));
    if(!['PLANNED','RESERVED'].includes(status.state))fail('OUTCOME_UNKNOWN');
@@ -65,5 +86,5 @@ export class LocalOrganizeSession {
    return await this.#completed(state,await this.#foundation.commitFacet(state.job.id,state.job.childIds[0],{facet:'organize',units:state.coverage}));
   }finally{state.running=false;}
  }
- dispose(){for(const state of this.#jobs.values())releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);this.#handles=new WeakMap();this.#jobs.clear();}
+ dispose(){this.#generation++;for(const state of this.#jobs.values())releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);this.#handles=new WeakMap();this.#jobs.clear();this.#cached.clear();}
 }

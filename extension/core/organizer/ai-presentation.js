@@ -232,15 +232,22 @@ export async function searchSavedAI(s,{query,cursor=null,limit=40}={}){
 }
 
 // Internal local feature lifecycle. No worker route exposes these transaction APIs.
-export async function readLocalOrganizeScopeInTransaction(s,t,topicId){
+export async function readLocalOrganizeScopeInTransaction(s,t,topicId,expectedProfile=null){
  const gate=await t.get('meta','gate'),restore=await t.get('meta','recovery-restore-epoch'),cp=await t.get('meta',CHECKPOINT)||{id:CHECKPOINT,view:'ai',version:3,inputVersions:{},topicVersions:{},lastSequence:0};
  if(!gate?.enabled||await t.get('meta','backup-recovery-settings'))reject('UNAVAILABLE');
- const topic=await topicState(s,t,await s.canonicalTopic(t,topicId),cp,gate.epoch),style=readAIStyle((await s.control(t)).preferences,restore?.value??'initial');
+ const topic=await topicState(s,t,await s.canonicalTopic(t,topicId),cp,gate.epoch,{expectedProfile}),style=readAIStyle((await s.control(t)).preferences,restore?.value??'initial');
  if(!style.available||topic.userDraft||topic.candidate||topic.unavailable.length||topic.excluded.length)reject('STALE_BASE');
  if(!topic.entries.length||topic.entries.length>100||topic.entries.length>s.organizerBudget.limits.maxInputs||bytes(topic.entries.map(e=>e.body))>s.organizerBudget.limits.maxContentBytes)reject('BUDGET_EXCEEDED');
  const inputs=topic.entries.map(e=>({ref:e.id,revision:topic.versions[e.id],text:e.body})),cache=await cacheSnapshot(s,t,await s.canonicalTopic(t,topicId),topic);
  if(!cache.complete||!cache.evidenceVersion)reject('STALE_BASE');
- return {topic,checkpoint:cp,inputs,evidenceVersion:cache.evidenceVersion,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof:JSON.stringify([topic.id,topic.name,topic.binding,topic.scopeVersions,topic.stored,cp,gate,restore?.value??'initial',style,cache.evidenceVersion])};
+ return {topic,gateEpoch:gate.epoch,cachePresentation:topic.cacheQualification.reusable?publicTopic(topic):null,checkpoint:cp,inputs,evidenceVersion:cache.evidenceVersion,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof:JSON.stringify([topic.id,topic.name,topic.binding,topic.scopeVersions,topic.stored,cp,gate,restore?.value??'initial',style,cache.evidenceVersion])};
+}
+// IDB evidence/restore/policy share the surrounding readonly transaction. Local
+// preferences use this store's serialized control snapshot; recheck it after
+// the final injected authority await, including a change during control().
+export async function assertLocalOrganizeCacheControls(s,t,prepared){
+ const controls=await s.control(t),current=s.pendingControl||s.controlCache;
+ for(const value of [controls,current]){const style=readAIStyle(value?.preferences,prepared.style.expectedEpoch);if(value?.settings?.enabled!==true||value.settings.epoch!==prepared.gateEpoch||!style.available||style.value!==prepared.style.value||style.revision!==prepared.style.expectedRevision||style.epoch!==prepared.style.expectedEpoch)reject('STALE_BASE');}
 }
 export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId,qualification=null}){
  const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id);if(current.proof!==prepared.proof)reject('STALE_BASE');
