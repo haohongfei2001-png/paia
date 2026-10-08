@@ -161,3 +161,19 @@ commit during that run changed only admission files, not tested runtime. Prior
 failed fixtures and visual/control defects remain documented above. This is
 local combined evidence plus routing admission, not hosted certification,
 merged user availability, private-design acceptance or whole05.5 completion.
+
+## Independent delivery identity
+
+Official main03a57b5357d71cca3cfdfbdfce915d5ced5a5e77 was merged as
+6e4af671a1233d9e0092112114d4da2577884828. Its tree is identical to
+d9a1dbf; no unchanged native suite was repeated for this merge alone.
+The compatible new contextual actions use0.22.0 Section Actions. Manifest/package
+agree; strict existing-file admission adds only current minor22 and still
+rejects future23 and malformed versions. Schema and retired export are unchanged.
+Two complete version/restore files passed4/4; package guards passed11416 across339
+resources. Independent review passed. An isolated release build passed11352
+packaging checks across335 release runtime resources and RELEASE_PRODUCT_GUARD
+359 files, reporting0.22.0 and reused:false. Version-boundary file hashes stayed
+unchanged during that build. Hosted current-head and exact-main gates remain
+pending; earlier native evidence is scoped to unchanged UI behavior, not a new
+claim that the0.22 package itself was previously browser-certified.
