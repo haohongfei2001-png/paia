@@ -121,3 +121,9 @@ test('superseded leave callback cannot capture or replace origin metadata',async
   await context.navigate('library',null,null,{returnOriginKey:key,replaceHistory:true});assert.equal(messages.includes('The original search state is unavailable. Returned to Archive.'),!!key);
  }
  });
+test('actual same-origin restoration preserves the navigator render identity cache',()=>{
+ const {context}=freshFixture();context.archiveNavigator.lastPaintSignature='actual retained tree signature';
+ context.archiveNavigator.restoreNavigation=()=>assert.equal(context.archiveNavigator.lastPaintSignature,'actual retained tree signature');
+ vm.runInContext(actual('function restoreArchiveOrigin(', '\nfunction focusArchiveOrigin('),context);
+ context.restoreArchiveOrigin({navigator:{expanded:[],loaded:[],scrollTop:0},includeFiltered:true});
+});

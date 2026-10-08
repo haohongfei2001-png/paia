@@ -1,24 +1,18 @@
 # Seven-lane coordinated execution
 
-The latest owner instruction selects all seven rows below. This supersedes the
-prior Archive execution exclusion, not IAH-1.1's confirmed minimal design. Remote
-main checked at `f1740bc47ff8495bdf3457b5db195075a7404c87`, integrating Settings
-0.20 via PR198 after exact candidate full and Prompt certification. Main's own
-[Full37706096966](https://github.com/haohongfei2001-png/paia/actions/runs/37706096966)
-and [Prompt37706097001](https://github.com/haohongfei2001-png/paia/actions/runs/37706097001)
-have both succeeded on that exact main SHA; its tree matches candidate0f750af.
-These results certify the Settings batch, not completion of all seven lanes.
+The owner's latest scope includes all seven lanes and IAH-1.1's confirmed minimal design. Work continues while any approved independent task is executable; the20-minute heartbeat is a recovery/check-in mechanism, not a turn deadline. Preserve each failure and exact code/dependency evidence. This record is an engineering checkpoint, not whole-product completion or installation acceptance.
+
+Remote main verified at `c168b13170d762b4774740ce218613a45e31cde4`. Its Full37746137320 and Prompt37746137296 succeeded; its tree equals certified Sync candidate713237ee. Settings0.20 and Section Reader0.21 are integrated. Open candidates below remain unmerged.
 
 | Lane / stage position | Verified boundary | Next executable batch / dependency | Owner |
 |---|---|---|---|
-| TOPIC-01–06, 05.1–05.8 | Root0.19 merged; Section0.21 PR190 headb2fe6cb1 reconciles current Settings/main with reviewed arrival/continuation fixes | Complete exact-current Section native, candidate and combined full checks; then preserved chapter actions | Coordinator; Section verifier |
-| CTX4-01–07 | Local01–03 merged;04/05 unavailable verifiers still deny; external connection/overall closure incomplete | Complete eligible behavioral/visual gaps; actual reference package and real connection evidence remain separate | Coordinator |
-| SET2-01–05 | Settings0.20 PR198 merged; Full37704406932 and Prompt37704406755 passed | Exact-main Full37706096966 and Prompt37706097001 passed; remaining whole-SET2/user/device acceptance stays scoped | Coordinator; independent reviewer |
-| SYNC-01–06 | Partial Core/publication/retirement proofs; 0a8d0fd7 combines current main with156 owning checks and matched-dependency native36/36 passed | Exact-head native/CI proof then bounded integration; complete production restore/cloud/device coverage remains open | Coordinator owns shared data; independent verifier |
-| AI-COST-01–07 |01 local foundation;02 pure policy plus c24128a fixture atomic reservation/unknown holds;74 related checks pass, independent13 pass | Current candidate/reconciliation; trusted production ledger/entitlement/settlement and paid dispatch remain unqualified | AI executor owns isolated module; coordinator owns runtime admission |
-| Prompt Surface / Stage3A / AI-COST-06 | Position reset merged with Settings; Stage3A1c9e8580 reconciles current owners with165 checks and300 prior routes preserved | One bounded Linux hosted comparison for unresolved local native pointer failure; reset/draft case not yet reached | Prompt verifier; coordinator owns runtime |
-| IAH-1.1 / outcomes01–06 | PR199 ef20ca3: truthful scope/Input-first, Unicode-safe Range, narrow filtered reveal, fresh primary, deep/current-match arrival; native2/2 and related2/2 passed | Reconcile current main; remaining revision/generation metadata and complete origin-aware Back; selected visual/accessibility/combined acceptance | Results verifier; coordinator owns Archive/navigation/data |
-
+| TOPIC-01–06;05.1–05.8 | Root0.19 and Section Reader0.21 integrated. PR203 fe4bd15b adds0.22 contextual rename/reorder; local125units and6 combined native cases passed. Earlier full failures remain. | New exact-head Full37758929304 pending after reviewed pending-control, Context fixture and font setup fixes. New Section creation eff3a2e1 is independently reviewed local work with151units/6native, not delivered. | Coordinator integrates; Topic executor owns isolated UI batch |
+| CTX4-01–07 | Local01–03, bounded internal04 and dormant05 foundations retained; local labels integrated.173 related checks and6 native cases qualify the current feedback/fixture repair. | Preserve rejected-choice explanation. Real capture interleave proves a legitimate stale-authority path, but the original hosted rejection's unique cause remains unproven. Real connection and final reference/device acceptance remain open. | Context executor; coordinator owns shared integration |
+| SET2-01–05 | Settings0.20 PR198 integrated with exact candidate/main full and Prompt checks. Six groups, style preferences/details and Prompt position reset retained. | Stage3A binding follows PR164; whole-SET2/device/user acceptance is separate. No new Settings write entry point. | Coordinator; independent reviewer |
+| SYNC-01–06 | Partial local Core/publication/retirement PR192 integrated and exact-main certified. PR204 c27ad659 preserves pre-existing local Prompt owners on ordinary receive;109units/32storage native and independent review pass; Candidate37757522541 and Prompt37757522538 pass. | Formal high-risk owner-protection integration. Full canonical restore, Prompt purge/restore owner closure and real Chrome/Edge/Safari account/device transport remain open. | Sync executor; one shared-data writer |
+| AI-COST-01–07 | PR19413e01afe local foundation plus fixture reservation/settlement; release fixture isolation repaired. Full37750815697 executed browser/other checks passed but two macOS jobs cancelled; overallFAIL, not certified. | Trusted financial service/entitlement remains an external prerequisite. Continue bounded metadata-only domain commit evidence locally without financial authority, schema or dispatch activation. | AI executor; coordinator owns runtime admission |
+| Prompt Surface / Stage3A / AI-COST-06 | Position reset integrated. PR16488b470ac candidate/Foundation/visual checks passed; local Sync-main combinatione58953a8 has317 complete checks. | Reconcile coherent delivery identity/formal integration. Stage3A-2 bounded local Family matcher is next isolated implementation; remoteStage3B remains unauthorized. | Prompt executor; coordinator owns shared worker/Settings |
+| IAH-1.1 outcomes01–06 | PR199dc022ee3 Candidate37757508205 passed. Qualified search paging/activation, Reader Find and same-tab Back have108unit/2native proof. Selected actual baseline/source/release UI set3/3 passes; newtest preserves308 prior routes. | Coherent version identity, applicable formal/exact-main gates. Same-tab restoration is qualified; no invented durable reload checkpoint or installed/hardware claim. | Archive executor; coordinator owns routing/CI |
 
 Assignments describe current responsibility, not completion percentages. Independent
 work uses separate branches and nonoverlapping file ownership. Shared data,
@@ -28,16 +22,15 @@ continues without forcing overlapping patches or long-lived combined branches.
 
 ## Evidence and resource boundary
 
+Historical failure records below preserve their original scope; their old scheduling actions do not reopen completed work.
+
 Root merge-candidate certification [37687078617, attempt 2](https://github.com/haohongfei2001-png/paia/actions/runs/37687078617) passed at its exact tree; see the [owning Root receipt](implementation/topic/TOPIC-05-ROOT.md). Exact-main run
 37691533146 attempt 2 remains CANCELLED for browser shard 1; shard 6 passed on
-that attempt. Cancellation is not pass. Retain original evidence; do not loop
-reruns. Rebalance complete files with full coverage and unchanged assertions and
-budgets in the next reviewed candidate.
+that attempt. Cancellation is not pass. The later reviewed partition changes preserved complete files, assertions and budgets; this historical cancellation is still not a pass.
 
 Settings/Section full run 37692797134 at 9adb1da failed browser groups 1–5;
 groups 6–7 and unit/contracts/release/macOS checks passed. This is not full batch
-acceptance. Keep the combined branch and failed evidence while independently
-closing Settings. A new branch must receive its own exact-version evidence.
+acceptance. Its original failure evidence remains; subsequent Settings and Section delivery used their separately qualified exact versions and did not convert this failed run into a pass.
 
 Use targeted checks and independent review for small changes, combined checks
 for stable batches, and necessary full acceptance at delivery/high-risk boundaries.

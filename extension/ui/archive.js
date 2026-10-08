@@ -205,7 +205,7 @@ function captureArchiveOrigin({kind=null,targetId=null,readerDocumentId=null}={}
 function currentArchiveOrigin(){if(!documentId&&['library','archive'].includes(view))archiveOriginKey=captureArchiveOrigin();return archiveOriginKey;}
 function restoreArchiveOrigin(snapshot){
  searchProject=snapshot?.searchProject||null;archiveNavigator.sourceScope=snapshot?.sourceScope||null;archiveNavigator.sourceSelect.value=archiveNavigator.sourceScope||'';
- archiveNavigator.state.select(null);archiveNavigator.lastPaintSignature=null;
+ archiveNavigator.state.select(null);
  if(snapshot?.navigator)archiveNavigator.restoreNavigation(snapshot.navigator);
  $('search-date-start').value=snapshot?.dateStart||'';$('search-date-end').value=snapshot?.dateEnd||'';$('search-include-filtered').checked=snapshot?snapshot.includeFiltered:true;
 }
@@ -246,7 +246,7 @@ async function navigate(next,id=null,contextId=null,options={}){if(!options.keep
  if(next==='library'&&!id&&options.freshArchiveEntry===true){
   options={...options,searchQuery:'',resetArchiveSearch:true};
   searchProject=null;archiveNavigator.sourceScope=null;archiveNavigator.sourceSelect.value='';
-  archiveNavigator.state.select(null);archiveNavigator.lastPaintSignature=null;
+  archiveNavigator.state.select(null);
   for(const field of ['search-date-start','search-date-end'])$(field).value='';$('search-include-filtered').checked=true;
  }
  inputSortSnapshot=null;readingSnapshot=null;let pendingAnchor=options.anchor||null;

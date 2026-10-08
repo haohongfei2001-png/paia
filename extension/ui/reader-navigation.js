@@ -12,7 +12,11 @@ export function installReaderNavigation({navigate,current,captureNavigator=()=>n
  const commit=({replace=false,anchor,originKey}={})=>{
   if(applying)return;const next=route(),old=history.state?.paiaReader;if(anchor!==undefined)next.anchor=anchor;if(originKey!==undefined)next.originKey=originKey;
   if(ready&&lastRoute===JSON.stringify(next))return;lastRoute=JSON.stringify(next);
-  const state={...(history.state?.paiaTopicRootSlots?{paiaTopicRootSlots:readTopicRootSlots().snapshot()}:{}),...(history.state?.paiaRevisitWindow?{paiaRevisitWindow:history.state.paiaRevisitWindow}:{}),paiaReader:historyRoutes.encode(next,{reuseKey:!ready||replace?old?.sessionKey:null}),paiaShell:{version:2,view:next.view,returnTo:old?.view||history.state?.paiaShell?.returnTo||null}};
+  const previous=historyRoutes.decode(old);
+  // Updating the same history entry must retain its existing Search owner.
+  // A Reader push or a different owner never inherits this marker.
+  const searchOwner=replace&&history.state?.paiaSearch===true&&previous&&['view','documentId','topicId','contextCard','contextInputId','sourceKey','projectRef'].every(key=>JSON.stringify(previous[key]??null)===JSON.stringify(next[key]??null));
+  const state={...(searchOwner?{paiaSearch:true}:{}),...(history.state?.paiaTopicRootSlots?{paiaTopicRootSlots:readTopicRootSlots().snapshot()}:{}),...(history.state?.paiaRevisitWindow?{paiaRevisitWindow:history.state.paiaRevisitWindow}:{}),paiaReader:historyRoutes.encode(next,{reuseKey:!ready||replace?old?.sessionKey:null}),paiaShell:{version:2,view:next.view,returnTo:old?.view||history.state?.paiaShell?.returnTo||null}};
   history[!ready||replace?'replaceState':'pushState'](state,'',location.href);ready=true;
  };
  document.addEventListener('paia:navigate',event=>{const r=event.detail;if(valid(r))void navigate(r.view,r.documentId||null,r.contextInputId||null,{topicId:r.topicId,contextCard:r.contextCard,originKey:r.originKey,anchor:r.anchor,returnTo:r.returnTo,searchQuery:typeof r.searchQuery==='string'&&r.searchQuery.length<=1000?r.searchQuery:undefined});});

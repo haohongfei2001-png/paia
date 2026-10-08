@@ -1,5 +1,7 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '章节操作':'Section actions','重命名':'Rename','向上移动':'Move up','向下移动':'Move down','章节名称':'Section name',
+ '已经是第一个章节。':'Already the first Section.','已经是最后一个章节。':'Already the last Section.',
  '加入结果尚未确认，请重试核对先前选择。':'The earlier add result is not confirmed. Retry to check the same selection.',
  '先前选择已加入主题。这里的新选择仍未提交。':'The earlier selection was added. Your new selection here has not been submitted.',
  '主题保存结果尚未确认，请重试核对。':'The Topic save result is unconfirmed. Retry to check it.',
@@ -131,7 +133,7 @@ export function watchThoughtCopy(){
  const reverse=new Map(Object.entries(english).map(([zh,en])=>[en,zh]));
  const apply=()=>{
   // These roots contain product controls only, never topic names or body text.
-  for(const root of document.querySelectorAll('#thought-home-tools,#thought-root-source,#thought-empty,#create-entry,#library-unplaced,.reader-selection')){
+  for(const root of document.querySelectorAll('#thought-home-tools,#thought-root-source,#thought-empty,#create-entry,#library-unplaced,.reader-selection,.topic-section-actions')){
    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
    while(node=walker.nextNode()){const key=reverse.get(node.data)||node.data;if(Object.hasOwn(english,key))node.data=thoughtCopy(key);}
    for(const element of root.querySelectorAll('[aria-label],[placeholder]'))for(const attribute of ['aria-label','placeholder']){const label=element.getAttribute(attribute),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute(attribute,thoughtCopy(key));}
