@@ -1,0 +1,7 @@
+# AI-COST-05 qualified local cache reentry
+
+Root approved this bounded follow-up on 7bbb06f7. Existing real local generation/full adoption and style A→B→A produce an exact cache, but a new LocalOrganizeSession returns NO_DELTA without a registered handle, so run rejects UNAVAILABLE. The actual owner reproduction is retained at /tmp/ai-cache-reentry-audit.mjs.
+
+Only LocalOrganizeSession and the existing aiPresentation qualified-read owner, owning/native tests and this receipt may change. Prepare may issue an opaque private cache handle only after current complete evidence and the existing Foundation authority/permission owner qualify the result. Run must revalidate the same store, full authority, current profile/style/evidence/restore/readability before returning the existing public presentation projection as an explicit CACHED result. NO_DELTA alone grants nothing. Never derive a trusted profile from persisted content or public request options.
+
+No Foundation/schema/worker/100-reference limit/provider/profile service changes are approved. This remains explicitly configured internal local execution, not production Qwen activation or 200+5/multi-child support. Tests must preserve cold/partial/manual protection, invalidation during awaited reads, revocation, restore, disposal and zero additional attempts/provider calls. Independent review precedes one complete original source/release native run. This design checkpoint makes no implementation or PASS claim.
