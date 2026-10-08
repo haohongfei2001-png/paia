@@ -9,9 +9,9 @@ import {FakeChatGPT,eventually} from './fake-chatgpt.mjs';
 import {setAIView} from './ai-reviewed-browser.mjs';
 export {setAIView};
 export const rpc=async(p,type,fields={})=>{const r=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-export async function fixture(variant='source',{saved=true,candidate=false,count=2}={}){
- if(variant==='release'&&!releaseReady){execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});releaseReady=true;}
- const h=await FakeChatGPT.start({extensionPath:resolve(variant==='source'?'.':'work/current-release'),headless:true}),p=h.archive;
+export async function fixture(variant='source',{saved=true,candidate=false,count=2,releasePath=null}={}){
+ if(variant==='release'&&!releasePath&&!releaseReady){execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});releaseReady=true;}
+ const h=await FakeChatGPT.start({extensionPath:resolve(variant==='source'?'.':releasePath||'work/current-release'),headless:true}),p=h.archive;
  await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
  const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC 已有主题 '+variant,operationId:crypto.randomUUID()}}),entries=[];
