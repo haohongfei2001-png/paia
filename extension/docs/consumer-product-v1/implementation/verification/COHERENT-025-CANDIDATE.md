@@ -19,3 +19,7 @@ Independent component and integration reviews cover all changes. The ab9c926f Wr
 These are explicitly component/pre-final-checkpoint results. The final exact head/tested merge and main still require their own recorded full gates. All initial product, fixture, browser-launch, budget and output-contamination failures remain in owning receipts. The current 84-file browser corpus preserves all prior coverage with only the separately measured search-file width7 redistribution. Original budgets remain unchanged.
 
 This does not complete all TOPIC-05.7/05.8, CTX4 real connection, whole SET2 recovery, Chrome/Edge/Safari account sync or AI live Qwen cost/quality acceptance. Installation, paid models, cloud credentials, wider permissions, uploads and formal deployment are not implied.
+
+## Exact-candidate registration correction
+
+Candidate db5d6810 Prompt37785814375 failed unit3 because the historical D5 registration guard did not include the two newly approved source/release selection-protection cases. Full37785814351 also recorded Unit3 failure. The original historical before/after/D7 arrays are unchanged; an explicit currentAdditions collection names exactly those two cases. The existing complete targeted browser command therefore requires10 results instead of8. Its original failure/skip/receipt/budget assertions remain. Nine complete related guard cases pass locally. This is a registration correction, not a reclassification of the failed runs; corrected-head CI is required.

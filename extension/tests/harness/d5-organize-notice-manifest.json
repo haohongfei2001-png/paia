@@ -83,5 +83,11 @@
       "VS-05 saved candidate and source evidence survive refused generation and human edits in source and release"
     ]
   },
-  "consumerRetirement": "Current owner decision retires provider launches and candidate approval. Historical names stay in before/after; current cases retain saved content, refusal, version and privacy coverage."
+  "consumerRetirement": "Current owner decision retires provider launches and candidate approval. Historical names stay in before/after; current cases retain saved content, refusal, version and privacy coverage.",
+  "currentAdditions": {
+    "uir-03-ai-presentation-chrome-e2e.test.mjs": [
+      "TOPIC-05.7 saved revision waits for Unicode selection and composition (release)",
+      "TOPIC-05.7 saved revision waits for Unicode selection and composition (source)"
+    ]
+  }
 }
