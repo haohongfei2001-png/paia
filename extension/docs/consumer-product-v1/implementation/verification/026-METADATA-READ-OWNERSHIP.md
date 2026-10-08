@@ -13,3 +13,14 @@ Evidence:
 - Package guard12394 /374 resources PASS; diff-check PASS.
 
 The coordinator authored this narrow repair after the independent review agents hit the account quota. Independent review and fresh hosted CI remain pending; no merge, deployment or release claim is made. These proofs do not establish that this was the only possible source of the original hosted exception.
+
+
+## Final independent authority-loss correction
+
+Independent reviewer root_finish reproduced two second-await negatives, then three first-await negatives: a newer heading read token could suppress an actual current-reader purge/restore/metadata-unavailable signal. `/tmp/topic-qualified-supersession-before.log` retains the first2 failures; `/tmp/topic-qualified-supersession-metadata-before.log` retains the follow-up2 pass/3 fail. These are real production-controller cases, not an exemption to the existing safety assertions.
+
+The final implementation first checks current reader/window/navigation, then handles explicit destructive qualification signals by invalidating the reader and checking tracked entries, and only then retires the superseded metadata response. Ordinary retired responses cannot receive/paint, while current purge, unavailable and restore-epoch signals still fence bodies. Malformed ordinary rows are not fabricated into a purge signal; the original coherent metadata checks remain.
+
+Final independent related files152/152 PASS9.659s plus external5/5 confirmation (overlapping the five migrated cases, not additional coverage), `/tmp/topic-qualified-final-independent.log`. Coordinator four-file selection128/128 PASS408ms. Final complete unchanged UX-R3 browser file26/26 PASS283.755s, no skipped/cancelled (`/tmp/topic-qualified-authority-native-final.log`), including the original100k case. The intermediate second-await-only browser run was intentionally stopped when first-await defects were discovered; `/tmp/topic-qualified-boundary-native.log` is interrupted, not successful evidence. Package12394/374 PASS and diff-check PASS.
+
+Final runtime SHA256 b29fd996f058503a754efccef8f2339bff2ae4d5ecefd8efa97c894ea882655a, independently reviewed and frozen during final native verification. Remote main3d69b95f (PR213) was reconciled while running; its68 changed paths are website-only, zero extension or workflow changes, and the tested runtime/dependencies stayed unchanged. Earlier pending-review notes are historical; this final repair passed independent review. Hosted25eaa Full subsequently failed a separate Data & devices case; root_finish is diagnosing it. Neither its failed/cancelled jobs nor any earlier passing component prove final candidate certification.

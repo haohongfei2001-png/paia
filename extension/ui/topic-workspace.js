@@ -190,15 +190,19 @@ export class TopicController {
    // A newer metadata read owns its token even when the reader/window is unchanged.
    // Retired reads must stop before validating or applying their old response.
    const ownsQualification=()=>!metadata||this.topicMetadata()===metadata&&!metadata.disposed&&metadata.qualifiedReadToken===qualification;
-   const row=await request('GET_LIBRARY_TOPIC_READING_METADATA',{id:page.topic.id});if(!current()||!ownsQualification())return false;
+   const row=await request('GET_LIBRARY_TOPIC_READING_METADATA',{id:page.topic.id});if(!current())return false;
+   // Explicit read-authority loss still fences retained bodies, even if another
+   // metadata request has since taken ownership of the heading.
+   if(row?.cursorInvalid===true||row?.unavailable===true||validTopicEditorRow(row,page.topic.id)&&row.recoveryEpoch!==page.recoveryEpoch){reader.invalidate(row);await this.checkAllTracked(serial);throw Error('TOPIC_READING_CHANGED');}
+   if(!ownsQualification())return false;
    if(!coherentTopicEditorRow(page,row))throw Error('TOPIC_METADATA_CHANGED');
    // Metadata uses its existing owner. Recheck the read generation after that
    // asynchronous boundary so a concurrent move, purge or restore cannot paint
    // a previously valid body/Section snapshot under a newly fetched heading.
    const checked=await request('GET_LIBRARY_SECTION_READING',{options:{topicId:reader.topicId,query:reader.query,sort:reader.sort,providerKey:'providerKey'in reader?reader.providerKey:this.topicProviderKey,limit:1,expectedReadGeneration:page.coverage?.activeGeneration}});
-   if(!current()||!ownsQualification())return false;
+   if(!current())return false;
    if(checked.cursorInvalid||checked.unavailable||checked.coverage?.activeGeneration!==page.coverage?.activeGeneration||checked.recoveryEpoch!==page.recoveryEpoch){reader.invalidate(checked);await this.checkAllTracked(serial);throw Error('TOPIC_READING_CHANGED');}
-   if(metadata&&this.topicMetadata()!==metadata)return false;
+   if(!ownsQualification())return false;
    if(metadata&&!metadata.receiveQualified(row,qualification))throw Error('TOPIC_METADATA_CHANGED');
    page.topic=row;
   }
