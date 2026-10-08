@@ -18,8 +18,18 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   const title='SYNTHETIC_TITLE_ONLY '+ 'LongSyntheticLocation'.repeat(16);
   const text='SYNTHETIC_NEEDLE Do not publish unless approved. 中文 👩‍💻 é. İx ＱＺ';
   const initialSource=await h.open({id:'iah11-results',title,base:1609459200,messages:[{id:'iah11-input',text}]});
-  await eventually(async()=>(await h.state()).records.length===1);assert.equal(await p.locator('#scope-search').getAttribute('placeholder'),'搜索全部档案');await p.locator('#scope-search').fill('SYNTHETIC_NEEDLE');await eventually(()=>p.locator('.search-input').count().then(n=>n===1));
-  const row=p.locator('.search-input');assert.equal(await row.locator(':scope > :first-child').textContent(),text);assert.equal(await row.locator('.search-result-path').textContent(),title);assert.equal(await row.locator('.search-title-match').count(),0);
+  await eventually(async()=>(await h.state()).records.length===1);
+  await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js');
+   const store=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(store);await store.finishFoundation();
+   const conversationRef={platform:'chatgpt',sourceConversationId:'iah11-results'},previous=await structure.conversation(conversationRef);
+   const projectRef={providerKey:'chatgpt',namespace:'iah-source-fixture',projectId:'source-project'};
+   const evidence={id:'iah-source-path',contractId:'iah.synthetic',contractVersion:1,channel:'synthetic_fixture',scope:'conversation',originClass:'fixture',requestGeneration:1,evidenceKind:'relationship',digest:'1'.repeat(64)};
+   await structure.observeConversation({conversationRef,expectedRevision:previous?.relationshipRevision||0,observedAt:new Date(Math.max(Date.now(),Date.parse(previous?.lastObservedAt||'')||0)+1000).toISOString(),evidence,membership:{state:'project',projectRef},projectName:'Synthetic source Project',sourceStatus:'observed_active'});
+   await structure.observeProject({projectRef,expectedRevision:0,observedAt:new Date(Date.now()+2000).toISOString(),evidence:{...evidence,id:'iah-source-project'},currentName:'Synthetic source Project',sourceStatus:'observed_active'});
+  });
+  assert.equal(await p.locator('#scope-search').getAttribute('placeholder'),'搜索全部档案');await p.locator('#scope-search').fill('SYNTHETIC_NEEDLE');await eventually(()=>p.locator('.search-input').count().then(n=>n===1));
+  const row=p.locator('.search-input');assert.equal(await row.locator(':scope > :first-child').textContent(),text);assert.equal(await row.locator('.search-result-path').textContent(),'ChatGPT · Synthetic source Project · '+title);assert.equal(await row.locator('.search-title-match').count(),0);
   // Native pointer drag must not become activation. No programmatic Selection
   // and no forced clicks stand in for the actual text-selection gesture.
   await p.bringToFront();const box=await row.locator('.search-excerpt').boundingBox();await p.mouse.move(box.x+5,box.y+8);await p.mouse.down();await p.mouse.move(box.x+180,box.y+8,{steps:12});await p.mouse.up();
