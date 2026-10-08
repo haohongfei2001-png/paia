@@ -60,8 +60,8 @@ a local screenshot inspection, not private-design comparison or whole-stage
 visual acceptance.
 
 Whole05.5 acceptance, hosted CI, combined/full certification and integration
-remain pending. The new native file is not yet admitted to the full browser
-routing corpus; the coordinator owns its later unified admission. Remaining
+remained pending at that checkpoint. At that time the native file was not yet
+admitted; the later admission checkpoint below supersedes that routing status. Remaining
 05.5 operations and promotion readiness are not implied by this checkpoint.
 
 ## Section candidate integration and bounded presentation follow-up
@@ -123,5 +123,41 @@ Preserved earlier diagnostics include `section-actions-presentation-before.log`
 The intermediate combined native 6/6 result predates the opacity correction and
 is not the final-byte evidence. No failure was counted as passing; no assertion
 or timeout was relaxed. Final full-file runs above supersede only their local
-verification scope. Independent review of this follow-up, hosted admission and
-certification, integration and whole TOPIC-05.5 acceptance remain pending.
+verification scope. Independent review and routing admission were still pending
+at this historical checkpoint; the follow-up below records their completion.
+Hosted certification, integration and whole TOPIC-05.5 acceptance remain pending.
+
+## Current Section/Settings reconciliation and complete-file admission
+
+Merge `b482cac587baf5edb13f870073116bfcfc365e20` reconciles actions44f67232 with
+Section/Settings `ff730401`, preserving the latest explicit-arrival guard, live
+continuation anchors, compact-title visibility, Context locale and Settings
+repairs. The sole conflict was the Section-reader test DOM: retain both
+createElementNS for action icons and requestAnimationFrame for restoration.
+No assertion was removed. Seven complete owning/related unit files passed139/139,
+zero skipped/cancelled (`work/topic-actions-merged-owning-unit.log`). Independent
+review found no blocker in stable identities, revision/layout-generation/title
+revalidation, adjacency/organization CAS, route/view fences, duplicate activation,
+IME/draft protection, default-Section suppression or localized44px controls.
+Scope remains contextual rename/up/down; no Entry movement, creation or AI work.
+
+Coordinator CI checkpoint `de9c0c7fcc55e464f81901239457306ce96ab103` admits only the
+complete05.5 native file, at shard4 for widths4/5/6/7. Independent review executed
+the actual router from git `ff730401` against that commit's actual76-file corpus:
+all304 prior routes and the frozen router blob match exactly. The current77-file
+corpus has unique complete coverage; historical assertions exclude only the new
+file to retain their original corpus. Seven jobs and18-minute budgets, whole-file
+execution and all existing assertions remain. The coordinator's13 CI tests and
+coverage script passed; the independent admission guard also passed1/1. No
+workflow, timeout, skipped test or historical audit was rewritten into success.
+
+Final local combined native run: complete05.4 Section reader and05.5 contextual
+Section actions source/release files passed6/6 in34.28s, zero failed/skipped/
+cancelled. Preserve `work/topic-actions-combined-native.log` and
+`work/topic-actions-combined-native-bytes.json`. The manifest binds the starting
+b482 candidate's runtime, reader, presentation, copy, CSS and both native owners;
+`endBytesUnchanged:true` confirms their exact bytes throughout the run. The CI
+commit during that run changed only admission files, not tested runtime. Prior
+failed fixtures and visual/control defects remain documented above. This is
+local combined evidence plus routing admission, not hosted certification,
+merged user availability, private-design acceptance or whole05.5 completion.
