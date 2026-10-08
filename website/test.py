@@ -9,7 +9,7 @@ from urllib.parse import urlparse, unquote
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from functools import partial
 from threading import Thread
-import json, os, re, sys, struct, hashlib
+import json, os, re, sys, struct, hashlib, traceback
 from core_checks import verify_core
 from origin_checks import verify_origin, verify_assets, verify_hero, verify_typography
 from playwright.sync_api import sync_playwright
@@ -276,7 +276,16 @@ try:
                     page.screenshot(path=str(OUT / f'{name.replace("/", "-")}-320-header.png'), animations='disabled')
                     check(page.evaluate("""()=>{const selectors=['.brand-lockup','.header-actions','.mobile-menu summary'];const r=selectors.map(s=>document.querySelector(s).getBoundingClientRect());const centers=r.map(e=>e.y+e.height/2);return Math.max(...centers)-Math.min(...centers)<5 && r.every(e=>e.left>=0&&e.right<=innerWidth+1) && r[0].right<=r[1].left+1 && r[1].right<=r[2].left+1;}"""), f'{name}: 320px brand, CTA and menu share a clear header row')
                 if name in review_pages and width in (1440, 390):
-                    capture_scenes(page, name, width)
+                    # Evidence starts in a fresh page so prior focus-driven
+                    # browser scrolling cannot race screenshot positioning.
+                    capture_page = browser.new_page(viewport={'width': width, 'height': 900}, reduced_motion='reduce')
+                    try:
+                        capture_page.on('pageerror', lambda error: errors.append(str(error)))
+                        capture_page.on('request', lambda request: external.append(request.url) if request.url.startswith('http') and not request.url.startswith(origin + '/') else None)
+                        load(capture_page, name)
+                        capture_scenes(capture_page, name, width)
+                    finally:
+                        capture_page.close()
                 if width == 320:
                     page.add_style_tag(content='html{font-size:200%!important}')
                     page.evaluate('dispatchEvent(new Event("resize"))')
@@ -387,7 +396,7 @@ try:
             context.close()
         browser.close()
 except Exception as error:
-    results.append({'check': 'suite execution', 'pass': False, 'error': str(error)})
+    results.append({'check': 'suite execution', 'pass': False, 'error': str(error), 'traceback': traceback.format_exc()})
 finally:
     if server:
         server.shutdown()
