@@ -210,3 +210,7 @@ This closes independent review of this bounded fixture-only slice (93 owning/
 foundation cases plus1 admission-route case), not subsequent main integration or
 any production service/whole AI-COST-02 gate. Earlier pending notes describe the
 historical review state and remain preserved.
+
+### Current-main combination 2026-10-08
+
+Settlement feature5fc3b318 was independently reviewed. Section-main merge1bdf0677 passed105 complete related checks and AI-COST-01 source/release headless2/2 (Playwright1.63,398 bound files unchanged during run). This covers page IndexedDB and reload fencing, not worker termination or real provider service. Sync-main c168b131 merged at a2b391d1 without conflicts; AI runtime, AI01 native/harness, worker and backup bytes are unchanged versus1bdf. Additional AI/CI/Sync combination66/66 PASS. Independent CI review retains every304 baseline routing assignment and all77 complete browser files. Current remote candidate checks remain required; no production settlement adapter or paid model activation is claimed.
