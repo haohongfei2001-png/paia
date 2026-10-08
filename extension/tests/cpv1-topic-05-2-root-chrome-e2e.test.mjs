@@ -7,6 +7,24 @@ import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
+async function rootTypography(p,width){
+ const selectors={topic:'.personal-topic-block .personal-topic-link',section:'.personal-topic-block .personal-section-link:not([hidden])'};
+ const client=await p.context().newCDPSession(p);
+ try{
+  await client.send('DOM.enable');await client.send('CSS.enable');
+  const {root}=await client.send('DOM.getDocument');const roles={};
+  for(const [role,selector]of Object.entries(selectors)){
+   const node=p.locator(selector).first();assert.ok(await node.count(),role+' typography owner exists');
+   const computed=await node.evaluate(el=>{const c=getComputedStyle(el),r=el.getBoundingClientRect();return {text:el.textContent,topicId:el.closest('[data-topic-id]').dataset.topicId,sectionId:el.dataset.sectionId||null,width:r.width,height:r.height,...Object.fromEntries(['fontFamily','fontSize','lineHeight','fontWeight','fontSynthesis','letterSpacing','overflowWrap'].map(key=>[key,c[key]]))};});
+   const {nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector});assert.ok(nodeId);
+   const {fonts}=await client.send('CSS.getPlatformFontsForNode',{nodeId});
+   assert.ok(fonts.some(font=>font.glyphCount>0),role+' reports actual rendered glyph fonts');
+   assert.ok(parseFloat(computed.fontSize)>0&&parseFloat(computed.lineHeight)>0);
+   roles[role]={...computed,platformFonts:fonts};
+  }
+  return {width,browserVersion:p.context().browser().version(),roles};
+ }finally{await client.detach();}
+}
 async function rootReady(p,count){
  await eventually(async()=>{
   const loaded=await p.locator('.personal-topic-block').count();if(loaded<count)await p.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
@@ -141,7 +159,8 @@ for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders r
   const restored=await boxes();assert.deepEqual(restored,before,'restoring the same identity recovers its vacant address without moving any peer');assert.equal((await rpc(p,'GET_LIBRARY_TOPIC',{id:target.id})).name,'SYNTHETIC renamed 中文','restore preserves the human rename');
   const restoredOwner=await rpc(p,'GET_LIBRARY_TOPIC',{id:target.id});await rpc(p,'REMOVE_LIBRARY_TOPIC',{edit:{id:target.id,expectedRevision:restoredOwner.revision,operationId:crypto.randomUUID()}});await rootReady(p,143);
   const added=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC new identity in hole',operationId:crypto.randomUUID()}});await rootReady(p,144);assert.equal((await boxes())[added.id].slot,before[target.id].slot);
-  const wide=await boxes();for(const width of [1024,768,390,320,1440]){await p.setViewportSize({width,height:1000});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2);const actual=await p.locator('#thought-list').evaluate(node=>({columns:getComputedStyle(node).gridTemplateColumns.split(' ').length,width:node.clientWidth}));assert.equal(actual.columns,Math.max(1,Math.min(4,Math.floor((actual.width+16)/240))));await p.screenshot({path:`${output}/144-${width}.png`,fullPage:width===1440});}assert.deepEqual(await boxes(),wide,'return to viewport restores addresses');
+  const typography=[];const wide=await boxes();for(const width of [1024,768,390,320,1440]){await p.setViewportSize({width,height:1000});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2);const actual=await p.locator('#thought-list').evaluate(node=>({columns:getComputedStyle(node).gridTemplateColumns.split(' ').length,width:node.clientWidth}));assert.equal(actual.columns,Math.max(1,Math.min(4,Math.floor((actual.width+16)/240))));if(width===320||width===1440)typography.push(await rootTypography(p,width));await p.screenshot({path:`${output}/144-${width}.png`,fullPage:width===1440});}assert.deepEqual(await boxes(),wide,'return to viewport restores addresses');
+  await writeFile(output+'/typography.json',JSON.stringify({variant,head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),samples:typography},null,2));
   const deepHistory=await deepRootHistory(p);
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__rootRestore=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=(message,...args)=>message.type==='GET_LIBRARY_ROOT_PROJECTION'?Promise.resolve({ok:false,error:'MESSAGE_CHANNEL_INTERRUPTED'}):send(message,...args);});await thoughtPrimary(p,'thoughts');await eventually(()=>p.locator('#library-read-retry').isVisible(),'outage exposes retry');assert.equal(await p.locator('.personal-topic-block').count(),144,'ordinary read failure retains current blocks');await p.evaluate(()=>__rootRestore());await p.locator('#library-read-retry').click();await rootReady(p,144);
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
