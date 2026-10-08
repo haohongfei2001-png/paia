@@ -56,7 +56,7 @@ export class NextPromptCommands{
    if(!own(r,['type']))fail();if(!popup)await this.top(sender);return this.authorization();
   }
   if(r.type==='PAIA_PROMPT_NEXT_INVALIDATE'){
-   if(!own(r,['type','id'])||!uuid(r.id))fail();await this.top(sender);const g=this.groups.get(sender.tab.id);if(g?.documentId===sender.documentId&&g.id===r.id)this.groups.delete(sender.tab.id);return {};
+   if(!own(r,['type','id'])||!uuid(r.id))fail();await this.top(sender);const g=this.groups.get(sender.tab.id);if(g?.documentId===sender.documentId&&g.id===r.id){this.groups.delete(sender.tab.id);void api.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_CHANGED'}).catch(()=>{});}return {};
   }
   if(r.type==='PAIA_PROMPT_NEXT_OFFER'){
    if(!own(r,['type','binding','authorization','snapshot'])||!validBinding(r.binding)||!own(r.snapshot,['completed','text','blocks','excluded']))fail();

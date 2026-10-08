@@ -77,3 +77,38 @@ stop here. One current-head existing Linux hosted Prompt workflow comparison
 is the next bounded environment discriminator; the PR remains draft and cannot
 claim formal/full acceptance. Missing initial dependencies are separately
 recorded in prompt-settings-native.log, not counted as runtime evidence.
+
+## Hosted Settings coexistence boundary — partial repair
+
+Exact head `1c9e85802a89f647d47bc0b7291fffaca205b201` was tested by
+Prompt run https://github.com/haohongfei2001-png/paia/actions/runs/37707523450.
+The source/release Stage1/2 lifecycle step passed. Both Stage3A variants passed
+the original conditional and choice native mouse insertion cases, unlike the
+retained local Chrome154/macOS no-iframe-click failures. This does not establish
+the local browser root cause or turn keyboard/layout diagnostics into acceptance.
+
+Both hosted variants then failed the new Settings coexistence case at
+`invalidated candidate cannot be reopened after returning`: the retained card
+still showed its reopen button. Earlier same-frame, completed unsaved draft,
+actual reset and hidden-source iframe-detachment assertions passed, but the
+whole case failed and later workflow gates were skipped. Candidate light run
+https://github.com/haohongfei2001-png/paia/actions/runs/37707523655 passed at the
+same head; its unselected browser jobs are not acceptance evidence.
+
+The actual worker had deleted the invalidated candidate and already rejected
+reopen. Its matching INVALIDATE path omitted the existing NEXT_CHANGED broadcast,
+so the retained card did not refresh availability. A deterministic actual-owner
+regression reproduced the missing notification (1FAIL/5PASS), including explicit
+unavailable/reopen-refusal assertions. The minimal repair broadcasts only after
+matching candidate ID and document identity deletion. Duplicate invalidations,
+old IDs and wrong documents do not remove or announce the current candidate.
+No content, permission, provider, schema or new product surface is introduced.
+
+The coordinator independently reviewed this two-file repair. Five complete owning
+and related unit files pass139/139, zero skipped/cancelled: reopen boundary,
+CPV1-12 detector/lifecycle/security and CPV1-09 surface. Retain coordination logs
+`work/prompt-hosted-37707523450.log`, `work/prompt-invalidation-before.log` and
+`work/prompt-invalidation-after.log`. Native source/release verification of the
+repaired bytes remains pending; the earlier hosted failure is not reused as a
+pass. This is not overall Stage3A acceptance, merge, installed availability or
+real ChatGPT/provider qualification. No duplicate local browser retry was run.
