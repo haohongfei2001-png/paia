@@ -51,3 +51,29 @@ Stage3A plus Settings reset/draft/temporary-card coexistence remains pending.
 Preserve PR164 Full37358353603: browser4/5 failed and other browser/full/aggregate
 cancelled. Reconciliation does not turn those into passes. No provider or paid
 call, permission expansion, public release or installed-user availability.
+
+## Native combination failure and hosted comparison checkpoint
+
+Current macOS headless Chrome154.0.8037.98 / Playwright1.63.0 source/release
+both fail the retained first conditional native mouse insertion. The button is
+visible and coordinates correctly hit its iframe. Trusted pointer events reach
+the outer document but none reach the inner Frame; no insert RPC is sent. The
+Frame then closes on its unchanged12s idle timer. No product root cause is yet
+claimed. A diagnostic-only fixed-rectangle layout comparison also failed. A
+separate diagnostic native Enter reached the existing real worker and verified
+insertion; that does not satisfy or replace the required mouse assertion.
+
+All temporary layout/keyboard substitutions were removed. Read-only event/RPC/
+geometry/browser-version evidence remains in the owning test, with original
+mouse, exact insertion, no-send, authorization and deadline assertions. The new
+Settings case exercises real position reset with a composed unsaved card draft,
+and requires Next invalidation on hiding its source page; it remains NOT_REACHED
+until the original preceding mouse case passes. Release builds use an isolated
+audited output. No production fix, timeout increase or skipped case was added.
+
+Preserved logs include prompt-settings-native-deps.log and
+prompt-fixed-frame-DIAGNOSTIC-ONLY.log. Local repeated same-configuration trials
+stop here. One current-head existing Linux hosted Prompt workflow comparison
+is the next bounded environment discriminator; the PR remains draft and cannot
+claim formal/full acceptance. Missing initial dependencies are separately
+recorded in prompt-settings-native.log, not counted as runtime evidence.
