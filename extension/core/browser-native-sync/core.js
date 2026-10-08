@@ -125,6 +125,11 @@ export class BrowserNativeSyncCore {
    return {state:'pending',missingParents:missing.length};
   }
   if(CODECS[operation.type].immutable&&current&&!current.purged&&operation.kind!=='purge')for(const rev of current.revisions){const prior=await this.get(t,'revision',rev);if(!equal(prior?.operation.value,operation.value))fail('BNS_IMMUTABLE_SOURCE_MISMATCH');}
+  // Capture canonical predecessor versions before purge redaction or head
+  // replacement. Trusted materializers can reject unmanaged/local owner edits
+  // within this same transaction, rolling back all protocol acknowledgements.
+  const previousVersions=[];
+  if(materialize&&this.materialize&&current&&!current.purged)for(const revision of current.revisions){const prior=await this.get(t,'revision',revision);if(!prior||prior.redacted)fail('BNS_REVISION_MISSING');previousVersions.push(prior.operation);}
   const purged=current?.purged||operation.kind==='purge';
   await this.put(t,'revision',[operation.revisionId],{operation:purged?{...operation,value:null}:operation,redacted:purged});
   let revisions=[...(current?.revisions||[])];
@@ -149,7 +154,7 @@ export class BrowserNativeSyncCore {
   await this.advanceGeneration(t);
   if(materialize&&this.materialize&&(purged||revisions.length===1)){
    const winner=purged?{...operation,value:null}:(await this.get(t,'revision',revisions[0])).operation;
-   await this.materialize(t,{operation:winner,head:{revisions,purged:!!purged},origin});
+   await this.materialize(t,{operation:winner,head:{revisions,purged:!!purged},origin,previousHead:current||null,previousVersions});
   }
   return {state:purged?'purged':revisions.length>1?'conflict':'applied',revisions};
  }

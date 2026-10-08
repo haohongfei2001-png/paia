@@ -58,6 +58,14 @@ for (const variant of ['source', 'release']) test('BNS isolated native IndexedDB
     await runCase(CASES[0], async () => {
       const value = await b.call('change', {name: 'journal', text: 'Synthetic saved exact e\u0301\n第二行'});
       assert.equal(value.ok, true); atomic(value.snapshot, 'Synthetic saved exact e\u0301\n第二行');
+      receipt.promptOwnerGuard=[];
+      for(const [mode,code]of [['unmanaged','BNS_RESTORE_UNMANAGED_OWNER'],['changed','BNS_OWNER_CHANGED'],['empty',null]]){
+        const proof=await b.call('prompt-owner-guard',{mode});assert.equal(proof.code,code);
+        if(code)assert.deepEqual(proof.after,proof.before,'native owner refusal rolls back all canonical and protocol meta');
+        else assert.equal(proof.result.state,'applied');
+        receipt.promptOwnerGuard.push({mode,code,atomic:code?JSON.stringify(proof.before)===JSON.stringify(proof.after):true});
+      }
+
     });
     for (const [index, faultAt, code] of [[1, 'abort', 'STORAGE_FAILED'], [2, 'quota', 'STORAGE_FULL']]) await runCase(CASES[index], async () => {
       const before = await b.call('snapshot', {name: 'journal'});

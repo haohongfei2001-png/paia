@@ -172,3 +172,9 @@ chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local') 
 await refresh();
 await refreshUpdate();
 setInterval(refresh, 15_000);
+
+// The only Stage 3A opt-in. Session-only permission is never restored from Backup.
+async function refreshNext(){try{const a=await request('PAIA_PROMPT_NEXT_STATUS');$('next-enabled').checked=a.enabled===true;$('next-enabled').disabled=false;}catch{$('next-enabled').checked=false;$('next-enabled').disabled=true;}}
+$('next-enabled').addEventListener('change',async e=>{if(!e.isTrusted)return;const enabled=e.target.checked;e.target.disabled=true;try{const a=await request('PAIA_PROMPT_NEXT_CONFIGURE',{enabled});e.target.checked=a.enabled===true;$('next-state').textContent=a.enabled?'只分析开启后新完成的当前回复。可随时关闭。':'已关闭，临时建议已清除。';}catch{e.target.checked=false;$('next-state').textContent='无法开启。请先在 PAIA 完成授权。';}finally{e.target.disabled=false;}});
+chrome.storage.onChanged.addListener((changes,area)=>{if(area==='session'&&changes.promptNextAuthorizationV1)void refreshNext();});
+await refreshNext();

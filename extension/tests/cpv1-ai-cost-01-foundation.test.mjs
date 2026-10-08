@@ -27,7 +27,7 @@ test('AI-COST-01 duplicate capture, Sync delivery, reads and reopen do not creat
 });
 test('AI-COST-01 rapid edits coalesce latest revision; create/delete before dispatch removes pending work',async()=>{
  const f=await fixture(),id=(await read(f.s,'inputStates'))[0].id;for(let i=0;i<8;i++)await inputEdit(f.s,id,{libraryText:'Synthetic changed body '+i});assert.equal((await f.ai.collect()).items.length,1);assert.equal((await f.ai.collect()).items[0].descriptor.revision,8);
- const job=await plan(f);await inputEdit(f.s,id,{excluded:true});assert.equal((await f.ai.collect()).items.length,0);await assert.rejects(f.ai.reserve(job.id,{reservationId:'synthetic'}),e=>e.code==='STALE_BASE');assert.equal((await f.ai.counters()).physicalAttempt,0);
+ const job=await plan(f);await inputEdit(f.s,id,{excluded:true});assert.equal((await f.ai.collect()).items.length,0);assert.equal((await f.ai.status(job.id)).state,'CANCELLED_BEFORE_DISPATCH');await assert.rejects(f.ai.reserve(job.id,{reservationId:'synthetic'}),e=>e.code==='CANCELLED');await assert.rejects(f.ai.dispatch(job.id,job.childIds[0],fixtureProvider()),e=>e.code==='CANCELLED');assert.equal((await f.ai.counters()).physicalAttempt,0);
 });
 test('AI-COST-01 canonical mutation and dirty marker roll back together on flush failure',async()=>{
  const f=await fixture(),before=await read(f.s,'inputStates'),known=await read(f.s,'meta',KNOWN_PREFIX+(await f.ai.collect()).items[0].key);

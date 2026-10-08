@@ -1,3 +1,4 @@
+import {NextFamilyView} from './next-family-view.js';
 import {ArchiveError} from './constants.js';
 import {inputProjection} from './thought-evidence.js';
 import {materialRead} from './manual-materials.js';
@@ -8,7 +9,8 @@ const fail=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const changed=()=>{throw new ArchiveError('MEMORY_STALE');};
 const generation=async t=>(await t.get('meta','backup-data-generation'))?.value||0;
 export class PromptReuseService{
- constructor(store,{clock=()=>Date.now(),syncJournal=null}={}){this.s=store;this.clock=clock;this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
+ #nextFamilyView;
+ constructor(store,{clock=()=>Date.now(),syncJournal=null}={}){this.s=store;this.clock=clock;this.#nextFamilyView=new NextFamilyView(clock);this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
  async snapshot(){
   await this.s.finishFoundation();
   let after,base,preferences;const inputs=[];
@@ -46,9 +48,11 @@ export class PromptReuseService{
   return x.inputs.filter(i=>family.members.includes(i.id)).map(i=>({id:i.id,text:i.text}));
  }
  async query({includeHidden=false}={}){
-  if(typeof includeHidden!=='boolean')fail();const x=await this.snapshot();
+  if(typeof includeHidden!=='boolean')fail();const serial=this.#nextFamilyView.begin(),x=await this.snapshot();
+  this.#nextFamilyView.publish(serial,x);
   return {revision:x.preferences.revision,manualOrder:[...x.preferences.pins],items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true};
  }
+ async nextFamilyView(){return this.#nextFamilyView.read(expected=>this.assertCurrent(expected));}
  async resolve({id,text}={}){
   if(typeof id!=='string'||!validPromptText(text))fail();const x=await this.snapshot();
   const f=x.families.find(f=>f.id===id&&!f.hidden&&(f.useful||f.pinned||f.edited||f.retained));
