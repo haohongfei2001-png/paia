@@ -2,12 +2,20 @@ import {request,element} from './common.js';
 import {setIconLabel} from './icons.js';
 const $=id=>document.getElementById(id);
 export class InputReview {
- constructor({navigate,refresh}){this.navigate=navigate;this.refresh=refresh;this.origin='library';$('review-back').addEventListener('click',()=>void navigate(this.origin));$('review-inputs').addEventListener('click',()=>void navigate('library'));$('review-dialog-close').addEventListener('click',()=>$('review-dialog').close());}
- enter(origin,history=false){this.origin=origin==='settings'?'settings':'library';this.history=history;}
- paint(view){$('review-navigation').hidden=view!=='excluded';if(view!=='excluded')return;const label=this.origin==='settings'?'Settings':'Input Archive';$('review-breadcrumb').textContent=label+(this.history?' / 历史补全':'')+' / 待确认与已移除输入';setIconLabel($('review-back'),'back',this.origin==='settings'?'返回设置':'返回输入档案');}
- actions(b,doc){const box=element('div','review-actions'),message=element('p','muted');message.setAttribute('role','status');const pending=!!b.branchStatus;box.dataset.reviewState=pending?'pending':'removed';box.append(element('strong','review-state-label',pending?'待确认归属':'已移除'),element('p','muted review-state-copy',pending?'先确认这条输入应归入哪个聊天窗口；当时记录保持不变。':'当前工作文字仍保留，可恢复到 Input Archive；当时记录不会被改写。'));const add=(label,run)=>{const button=element('button','',label);button.addEventListener('click',()=>void run().catch(()=>{message.textContent='处理未完成，当前内容保留。请重新打开后再试。';}));box.append(button);};
+ constructor({navigate,refresh}){this.navigate=navigate;this.refresh=refresh;this.origin='library';this.reviewEpoch=0;this.reviewActive=false;this.restoringInputs=new Map();$('review-back').addEventListener('click',()=>void navigate(this.origin));$('review-inputs').addEventListener('click',()=>void navigate('library'));$('review-dialog-close').addEventListener('click',()=>$('review-dialog').close());}
+ enter(origin,history=false){this.reviewEpoch++;this.origin=origin==='settings'?'settings':'library';this.history=history;}
+ paint(view){const active=view==='excluded';if(this.reviewActive!==active){this.reviewEpoch++;this.reviewActive=active;}$('review-navigation').hidden=view!=='excluded';if(view!=='excluded')return;const label=this.origin==='settings'?'Settings':'Input Archive';$('review-breadcrumb').textContent=label+(this.history?' / 历史补全':'')+' / 待确认与已移除输入';setIconLabel($('review-back'),'back',this.origin==='settings'?'返回设置':'返回输入档案');}
+ actions(b,doc){const box=element('div','review-actions'),message=element('p','muted');message.setAttribute('role','status');const pending=!!b.branchStatus;box.dataset.reviewState=pending?'pending':'removed';box.append(element('strong','review-state-label',pending?'待确认归属':'已移除'),element('p','muted review-state-copy',pending?'先确认这条输入应归入哪个聊天窗口；当时记录保持不变。':'当前工作文字仍保留，可恢复到 Input Archive；当时记录不会被改写。'));const add=(label,run)=>{const button=element('button','',label);button.addEventListener('click',()=>void run().catch(()=>{message.textContent='处理未完成，当前内容保留。请重新打开后再试。';}));box.append(button);return button;};
   if(pending){add('归入现有聊天窗口',()=>this.choose(b,doc));add('保留为独立整理文档',()=>this.resolve(b,'standalone',null,message));add('忽略',()=>this.resolve(b,'ignore',null,message));add('暂不处理',async()=>{message.textContent='已保留待确认状态，可以稍后从设置继续。';});}
-  else add('恢复到输入档案',async()=>{await request('EXCLUDE_LIBRARY',{id:b.id,excluded:false});await this.navigate('library',b.documentId,b.id);});box.append(message);return box;
+  else {const input={id:b.id,documentId:b.documentId},button=add('恢复到输入档案',()=>this.restoreRemoved(input,button,message));const pending=this.restoringInputs.get(input.id);if(pending){pending.add({button,message});button.disabled=true;button.setAttribute('aria-busy','true');}}box.append(message);return box;
+ }
+ async restoreRemoved(input,button,message){
+  if(!this.reviewActive||!button.isConnected||this.restoringInputs.has(input.id))return;
+  const epoch=this.reviewEpoch,buttons=new Set([{button,message}]);this.restoringInputs.set(input.id,buttons);button.disabled=true;button.setAttribute('aria-busy','true');
+  const current=()=>this.reviewActive&&this.reviewEpoch===epoch;
+  try{await request('EXCLUDE_LIBRARY',{id:input.id,excluded:false});if(current())await this.navigate('library',input.documentId,input.id);}
+  catch{if(current())for(const control of buttons)if(control.button.isConnected)control.message.textContent='处理未完成，当前内容保留。请重新打开后再试。';}
+  finally{this.restoringInputs.delete(input.id);for(const {button:node} of buttons){node.disabled=false;node.setAttribute('aria-busy','false');}}
  }
  async choose(b,doc){const select=$('review-document');select.replaceChildren();const ids=new Set();const add=d=>{if(ids.has(d.id))return;ids.add(d.id);const o=element('option','',d.userTitle||d.originalConversationTitle||'独立整理文档');o.value=d.id;select.append(o);};add(doc);let cursor=null;
   const more=$('review-documents-more'),load=async()=>{more.disabled=true;try{const p=await request('GET_PAGE',{page:{view:'library',limit:100,cursor}});p.documents.forEach(add);cursor=p.nextCursor;more.hidden=!cursor;}finally{more.disabled=false;}};
