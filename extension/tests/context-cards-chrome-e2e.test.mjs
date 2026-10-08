@@ -97,6 +97,20 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
   ids[card]=(await items(card))[0].id;assert.equal(await p.locator('.item-text').count(),1);await home();assert.equal(await p.locator(`[data-count="${card}"]`).textContent(),'1 项');
  }
  assert.deepEqual((await read(p)).counts,{info:1,rules:1,now:1,inputs:0});
+ // CTX4-07: hold only delivery of a real committed acknowledgement. The
+ // worker/IDB owner runs unchanged; UI must remain truthful until delivery.
+ await phase('compact committed acknowledgement pending');await p.setViewportSize({width:320,height:900});await open('info');
+ const pendingText='SYNTHETIC compact pending 👩‍💻 é 中文 draft',pendingBefore=(await items('info'))[0];
+ await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__ctx407Ack={node:document.querySelector('#memory-panel .item-text'),held:false,delivered:false,calls:0,restore:()=>{chrome.runtime.sendMessage=send;}};chrome.runtime.sendMessage=async(message,...args)=>{if(message.type==='PAIA_CONTEXT_CARDS_CHANGE'&&message.change?.kind==='put'&&message.change.card==='info')__ctx407Ack.calls++;const result=await send(message,...args);if(message.type==='PAIA_CONTEXT_CARDS_CHANGE'&&message.change?.kind==='put'&&message.change.card==='info'&&!__ctx407Ack.held){__ctx407Ack.held=true;__ctx407Ack.result=result;return new Promise(resolve=>{__ctx407Ack.release=()=>{__ctx407Ack.delivered=true;resolve(result);};});}return result;};});
+ try{
+  await field(p).fill(pendingText);await field(p).press('Control+Enter');await eventually(()=>p.evaluate(()=>__ctx407Ack.held));
+  const pendingSaved=(await items('info'))[0];assert.equal(pendingSaved.body,pendingText);assert.equal(pendingSaved.id,pendingBefore.id);assert.equal(pendingSaved.revision,pendingBefore.revision+1,'real commit precedes held ACK delivery');
+  assert.equal(await p.locator('.item-feedback').first().textContent(),'正在保存…');assert.equal(await field(p).evaluate(el=>el===__ctx407Ack.node),true);assert.equal(await field(p).innerText(),pendingText);
+  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await capture(p,`${dir}/07-compact-saving-real-ack-held.png`);
+  await p.locator('.context-back').click();assert.equal(await p.evaluate(()=>history.state.paiaReader.contextCard),'info','pending leave does not switch route before acknowledgement');assert.equal(await field(p).evaluate(el=>el===__ctx407Ack.node),true);assert.equal(await field(p).innerText(),pendingText);assert.equal(await p.evaluate(()=>__ctx407Ack.delivered),false);
+  await p.evaluate(()=>__ctx407Ack.release());await p.locator('.context-card').first().waitFor();await settled(null);await open('info');assert.equal(await field(p).innerText(),pendingText);assert.equal((await items('info'))[0].revision,pendingSaved.revision);assert.equal(await p.evaluate(()=>__ctx407Ack.calls),1,'leave joins the single real save');await home();
+ }finally{await p.evaluate(()=>{__ctx407Ack.release?.();__ctx407Ack.restore();});}
+ await p.setViewportSize({width:1440,height:900});
  await phase('editing undo deletion IME failure');
  for(const card of ['rules','now']){
   await open(card);await field(p).fill(`SYNTHETIC ${card} manual edit`);await field(p).press('Control+Enter');await eventually(async()=>(await items(card))[0]?.body.endsWith('manual edit'));
@@ -128,6 +142,20 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
  await phase('access and connections');
  await capture(p,`${dir}/03-all-local-paused.png`);await p.locator('.context-access.global').click();await eventually(async()=>(await read(p)).access.global.enabled);await capture(p,`${dir}/01-local-home.png`);
  await p.locator('.context-card[data-card="rules"] .context-access').click();await eventually(async()=>!(await read(p)).access.rules.enabled);assert.equal((await read(p)).access.info.enabled,true);assert.equal((await read(p)).access.now.enabled,true);assert.deepEqual((await read(p)).counts,{info:2,rules:2,now:2,inputs:0});
+ // Populated cards-off is distinct from global pause or the empty screen.
+ await phase('populated cards off and responsive Home');const allOffBefore=await read(p);
+ for(const card of ['info','rules','now','inputs'])if((await read(p)).access[card].enabled){await p.locator(`.context-card[data-card="${card}"] .context-access`).click();await eventually(async()=>!(await read(p)).access[card].enabled);}
+ assert.equal((await read(p)).access.global.enabled,true);assert.deepEqual((await read(p)).items,allOffBefore.items);assert.deepEqual((await read(p)).counts,allOffBefore.counts);
+ for(const width of [1440,768,320]){
+  await p.setViewportSize({width,height:900});await capture(p,`${dir}/07-populated-cards-off-${width}.png`);
+  assert.equal(await p.locator('.context-card').count(),4);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  const overview=await p.locator('#memory-panel').innerText();for(const item of allOffBefore.items)assert.equal(overview.includes(item.body),false,'Home never exposes independent Item bodies');
+  for(const card of ['info','rules','now','inputs']){const capsule=p.locator(`.context-card[data-card="${card}"] .context-access`);assert.equal(await capsule.isVisible(),true);assert.equal(await capsule.isEnabled(),true);assert.match(await capsule.textContent(),/仅自己/);}
+ }
+ await p.locator('.context-card[data-card="info"] .context-access').click();await eventually(async()=>(await read(p)).access.info.enabled);assert.equal(await p.locator('.context-card').count(),4,'compact capsule does not open detail');await open('info');assert.equal(await p.locator('.item-text').count(),2);await home();
+ // Restore the exact existing desired access values for the remaining journey.
+ for(const card of ['info','rules','now','inputs'])if((await read(p)).access[card].enabled!==allOffBefore.access[card].enabled){await p.locator(`.context-card[data-card="${card}"] .context-access`).click();await eventually(async()=>(await read(p)).access[card].enabled===allOffBefore.access[card].enabled);}
+ assert.deepEqual((await read(p)).items,allOffBefore.items);await p.setViewportSize({width:1440,height:900});
  await p.locator('.connections-link').click();await eventually(()=>p.locator('.context-head h1').textContent().then(x=>x==='已连接的 AI'));assert.equal(await p.locator('#memory-panel .context-access').count(),0);assert.match(await p.locator('#memory-panel').innerText(),/外部连接目前不可用/);await capture(p,`${dir}/connections-empty.png`);
  await p.waitForFunction(()=>history.state?.paiaReader?.contextCard==='connections');await p.reload();await eventually(()=>p.locator('.context-head h1').textContent().then(x=>x==='已连接的 AI'));await p.locator('.sidebar [data-view="settings"]').click();await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('.context-head h1').textContent().then(x=>x==='已连接的 AI'));await home();await p.goBack();await eventually(()=>p.locator('.context-head h1').textContent().then(x=>x==='已连接的 AI'));await p.goForward();await p.locator('.context-card').first().waitFor();
  // Long, real persisted card content exercises the existing per-page scroll
