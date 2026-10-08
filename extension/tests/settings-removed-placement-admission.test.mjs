@@ -19,7 +19,7 @@ test('removed Placement admits one complete file and checks all336 prior routes 
   const parts=Array.from({length:total},(_,i)=>names.filter((n,p)=>testShard(n,p,total,'browser E2E')===i+1));
   assert.deepEqual(parts.flat().sort(),names);assert.equal(new Set(parts.flat()).size,85);assert.ok(parts.every(part=>part.length));
  }
- assert.equal(checked,336);
+ assert.equal(checked,336);assert.equal(testShard(added,names.indexOf(added),9,'browser E2E'),4);
  const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),job=workflow.split('  current_browser:')[1].split('  full_suite:')[0];
  assert.match(job,/timeout-minutes: 18/);assert.match(job,/npm run test:browser/);assert.doesNotMatch(job,/continue-on-error|test-name-pattern|test-skip-pattern/);
 });
