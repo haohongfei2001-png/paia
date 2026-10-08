@@ -513,10 +513,12 @@ jobs:
           import {execFileSync} from 'node:child_process';
           import {assertReceipt} from './tests/native-sync/receipt.mjs';
           import {assertWorkerLifecycle,assertNetworkLedger} from './tests/native-sync/proof-oracles.mjs';
-          const receipts = ['source','release'].map(variant => assertReceipt(JSON.parse(readFileSync(`work/qa-bns-native-storage/${variant}.json`)), {head:process.env.PAIA_TESTED_HEAD,variant}));
+          const receipts = ['source','release'].map(variant => assertReceipt(JSON.parse(readFileSync(`work/qa-bns-native-storage/${variant}.json`)), {head:process.env.PAIA_TESTED_HEAD,variant,requiredFilterIntent:true}));
           const tree = execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim();
           for (const receipt of receipts) assert.equal(receipt.tree,tree);
           assert.deepEqual(receipts[0].productionHashes,receipts[1].productionHashes);
+          assert.deepEqual(receipts[0].filterIntentCases,receipts[1].filterIntentCases);
+          assert.deepEqual(receipts[0].filterIntentHashes,receipts[1].filterIntentHashes);
           assert.equal(receipts[0].browserVersion,receipts[1].browserVersion);
           const publications = ['source','release'].map(variant => {
             const receipt=JSON.parse(readFileSync(`work/qa-bns-publication/${variant}.json`));
