@@ -295,3 +295,15 @@ test('CTX4-03 direct directory read refuses an actual in-flight global change an
  const refused=await f.access.page();f.s.repository.transaction=transaction;assert.equal(injected,true);assert.notEqual(capturedAuthority,currentAuthority);assert.equal(refused.available,false);assert.equal(refused.reason,'stale_authority');assert.equal(refused.complete,false);assert.deepEqual(refused.items,[]);
  const fresh=await f.access.page({cursor:null});assert.equal(fresh.available,true);assert.equal(fresh.authority,currentAuthority);assert.equal(fresh.complete,true);assert.equal(fresh.items.find(row=>row.topicId===f.topic.id).policyAllowed,true);assert.equal(fresh.selectedCount,1);assert.equal(fresh.externalAllowed,false);assert.deepEqual(await prefs(f.s),choiceBefore);assert.deepEqual(await protectedRows(f.s),protectedBefore);
 });
+
+test('CTX4-03 late duplicate capture presence enrichment safely refuses an in-flight choice',async()=>{
+ const f=await fixture({empty:true}),change=request(await item(f)),write=f.s.write.bind(f.s);let injected=false,before,after;
+ f.s.write=async fn=>{if(!injected){injected=true;f.s.write=write;
+   const authority=()=>f.s.repository.transaction(false,async t=>(await f.access.admission(t,undefined,{scope:true})).authority);
+   before=JSON.parse(await authority());const recapture=capture((await f.s.status()).epoch);recapture.messages[0].presence={version:1,attachment:'absent',reference:'absent',confidence:'verified'};
+   await f.s.capture(recapture);after=JSON.parse(await authority());
+  }return write(fn);};
+ const result=await f.access.change(change);assert.equal(injected,true);assert.equal(result.ok,false);assert.equal(result.reason,'stale_authority');assert.equal(await prefs(f.s),undefined);assert.equal((await receipts(f.s)).length,0);
+ assert.ok(after[5]>before[5],'real optional capture metadata advances portable authority');assert.deepEqual(after.filter((_,i)=>i!==5),before.filter((_,i)=>i!==5),'no content/organization/filter-decision authority change is needed');
+ assert.equal((await f.s.snapshot()).records.length,1,'duplicate capture did not create a new Source');
+});
