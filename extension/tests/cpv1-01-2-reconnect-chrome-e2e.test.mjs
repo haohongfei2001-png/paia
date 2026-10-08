@@ -185,7 +185,25 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await eventually(async () => (await h.state()).records.length === 4, 'restored tab captures new content once');
   } catch (error) {
     let browserState = 'unavailable';
-    try{const page=h?.context?.pages().find(p=>p.url().includes('/c/cpv1-discarded-tab'));console.error('DISCARD_CAPTURE_FAILURE',JSON.stringify({state:page?await page.evaluate(()=>({visibility:document.visibilityState,ready:document.readyState,bridge:window.historyGateActive===true,messages:document.querySelectorAll('#messages [data-message-id]').length})):null,records:(await h.state()).records.length,errors:h.errors}));}catch{}
+    let diagnosticTimer;
+    try {
+      const page=h?.context?.pages().find(p=>p.url().includes('/c/cpv1-discarded-tab'));
+      const snapshot={errors:h.errors};
+      const diagnostic=Promise.allSettled([
+        (page? page.evaluate(()=>({visibility:document.visibilityState,ready:document.readyState,bridge:window.historyGateActive===true,messages:document.querySelectorAll('#messages [data-message-id]').length})):Promise.resolve(null)).then(state=>snapshot.state=state),
+        h.archive.evaluate(async()=>{
+          const status=await chrome.runtime.sendMessage({type:'GET_STATUS'}),value=status?.ok===true?status.data:null;
+          return {statusOK:status?.ok===true,enabled:value?.enabled===true,consented:value?.consented===true,
+            adapterVersion:typeof value?.adapterVersion==='string'?value.adapterVersion:null,
+            runtimeVersion:chrome.runtime.getManifest().version,runtimeVersionSource:'extension-manifest',
+            statusReadiness:status?.ok===true?'responded':'rejected'};
+        }).then(status=>snapshot.status=status),
+        h.archive.evaluate(async()=>{const result=await chrome.runtime.sendMessage({type:'GET_STATE'});return Array.isArray(result?.data?.records)?result.data.records.length:null;}).then(records=>snapshot.records=records),
+      ]).then(results=>({...snapshot,diagnosticRejected:results.some(x=>x.status==='rejected')}));
+      const result=await Promise.race([diagnostic,new Promise(resolve=>{diagnosticTimer=setTimeout(()=>resolve({...snapshot,diagnosticTimedOut:true}),2500);})]);
+      console.error('DISCARD_CAPTURE_FAILURE',JSON.stringify(result));
+    }catch{console.error('DISCARD_CAPTURE_FAILURE',JSON.stringify({diagnosticUnavailable:true}));}
+    finally{clearTimeout(diagnosticTimer);}
     try {
       browserState = JSON.stringify({
         connected: h?.context?.browser()?.isConnected() ?? false,
