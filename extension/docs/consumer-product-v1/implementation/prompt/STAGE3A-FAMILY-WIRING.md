@@ -51,3 +51,12 @@ ff1147d1faa2b028de9a8318fc1cc352535e0af3105cb672c68e1e38bb053d7e  ui/prompt-next
 cb188f380ab1f7950cd736a2cd3cc5f95633a55c8394901470eed4530df45451  core/prompt-reuse-service.js
 1bc5d213f55f07d55937265ef0a85687c4dab42c63fdcb4168cc7cb0f70554e1  tests/cpv1-12-next-prompt-chrome-e2e.test.mjs
 ```
+
+
+### Coherent0.24 candidate integration
+
+The coordinator merges planned Sync0.23.1b8ce2ef6, which contains Archive0.23 and Section0.22. Independent review compared358 production JS/CSS/HTML files: every file equals one parent, except the intentional strict backup minor24 admission. All eight reviewed Prompt runtime/native files remain byte-identical to f1f747e1. Manifest/package/version_name identify0.24.0 Prompt Next Actions; future25 and malformed24 remain rejected, schema5 and retired export unchanged.
+
+Actual parent-router execution preserves all308 placements from f1 and324 from b8; union82 files is covered exactly once. Next remains fixed3, other five new whole files fixed4. Historical75/300 and76/304 oracles and7×18-minute jobs remain unchanged. Six complete CI owners plus two version owners independently pass22/22; root explicit nine-file unit combination passes211/211. Actual0.24 package/release guard passes385 files.
+
+The coordinator's first broad unit glob accidentally included the native file; it was stopped and retained as work-family-final-combination-unit.log (failure/cancellation, not native evidence). Subsequent exact unit list excludes native. The existing isolated Mac native failure described above still means Family native was NOT_REACHED. Final actual PR-merge candidate must run the existing Linux Prompt Foundation workflow, without a live-site marker or new paid/visible-browser action. Its checkout is the PR merge ref, so evidence must bind the actual checkout SHA and tree rather than relabel it a bare-head run. No installed0.24 or completed Stage3A quality/lifecycle claim precedes that verification.

@@ -7,6 +7,7 @@ export function appShellRoute(current,navigator=null){
  const selected=['library','archive'].includes(current.view)?current.sourcePath||null:null;
  return {
   view:current.view,
+  ...(current.originKey?{originKey:current.originKey}:{}),
   documentId:current.documentId||null,
   topicId:current.topicId||null,
   ...(current.contextCard?{contextCard:current.contextCard}:{}),

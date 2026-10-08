@@ -3,7 +3,7 @@ import {placeChildren} from './retained-dom.js';
 
 // Presentation only: rows and placement/Section refs come from the reader. A
 // continuous page never joins bodies or turns a reading heading into an entity.
-export function renderTopicSectionProse({body,page,pins=new Set(),entryNode,updateEntry=()=>{}}){
+export function renderTopicSectionProse({body,page,pins=new Set(),entryNode,updateEntry=()=>{},sectionActions=()=>{}}){
  const existing=new Map([...body.querySelectorAll('[data-entry-id]')].map(node=>[node.dataset.entryId,node]));
  const oldSections=new Map([...body.children].filter(node=>node.classList.contains('topic-section')).map(node=>[node.dataset.sectionId,node]));
  const sections=new Map((page.sections||[]).map(section=>[section.sectionId,section])),groups=new Map();
@@ -13,7 +13,7 @@ export function renderTopicSectionProse({body,page,pins=new Set(),entryNode,upda
   node.dataset.sectionId=id;node.tabIndex=-1;
   const title=section&&!section.isDefault?section.title:'';
   let header=node.querySelector('.section-heading');
-  if(title){if(!header){header=element('header','section-heading');const heading=element('h2');heading.tabIndex=-1;header.append(heading);}header.firstElementChild.textContent=title;}
+  if(title){if(!header){header=element('header','section-heading');const heading=element('h2');heading.tabIndex=-1;header.append(heading);}header.firstElementChild.textContent=title;sectionActions(header,section);}
   const group={id,node,children:title?[header]:[],rank:section?.rank||'',section};groups.set(id,group);return group;
  };
  // Include real empty named Sections encountered by the bounded read. An empty

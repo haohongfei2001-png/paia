@@ -182,3 +182,27 @@ test('BNS verified reuse committed during remote validation survives owner mater
  try{const received=b.receive(remote);await entered;await service.noteVerifiedReuse(root.value.overrides[0].id);release();await received;}finally{release();crypto.subtle.digest=original;}
  const actual=await s.repository.transaction(false,t=>readPromptPreferences(t));assert.equal(actual.overrides[0].text,'remote descendant');assert.equal(actual.overrides[0].reuseCount,1);assert.equal(actual.revision,3);assert.deepEqual(projectEntity('promptPreferences',actual),remote.value);
 });
+
+test('BNS remote first apply refuses unmanaged manual Prompt work without protocol side effects',async()=>{
+ const a=await device('device_alpha_01'),remote=await local(a,'remote synthetic'),{s}=await setup(OrganizerStore);await s.finishFoundation();
+ const service=new PromptReuseService(s),created=await service.change({action:'create',revision:0,text:'independent local synthetic'}),b=new BrowserNativeSyncCore(s.repository,{datasetId,deviceId:'device_beta_001',materialize:materializePrompt});
+ const before=await s.repository.transaction(false,t=>t.all('meta'));
+ await assert.rejects(b.receive(remote),{code:'BNS_RESTORE_UNMANAGED_OWNER'});
+ assert.deepEqual(await s.repository.transaction(false,t=>t.all('meta')),before,'owner, protocol heads/revisions/receipts/frontiers/outbox and generations all roll back');
+ assert.equal((await service.query()).items.some(row=>row.id===created.id),true);assert.equal(await b.read('receipt',remote.operationId),undefined);
+});
+test('BNS remote descendant refuses a changed canonical Prompt owner outside the optional journal',async()=>{
+ const a=await device('device_alpha_01'),root=await local(a,'root synthetic'),remote=await local(a,'remote descendant'),{s}=await setup(OrganizerStore);await s.finishFoundation();
+ const b=new BrowserNativeSyncCore(s.repository,{datasetId,deviceId:'device_beta_001',materialize:materializePrompt});await b.receive(root);
+ const service=new PromptReuseService(s),prefs=await s.repository.transaction(false,t=>readPromptPreferences(t));await service.change({action:'edit',id:root.value.overrides[0].id,revision:prefs.revision,text:'independent local edit'});
+ const before=await s.repository.transaction(false,t=>t.all('meta'));await assert.rejects(b.receive(remote),{code:'BNS_OWNER_CHANGED'});assert.deepEqual(await s.repository.transaction(false,t=>t.all('meta')),before);assert.equal(await b.read('receipt',remote.operationId),undefined);
+});
+test('BNS empty remote first apply and managed descendant retain their normal idempotent owner path',async()=>{
+ const a=await device('device_alpha_01'),root=await local(a,'root synthetic'),remote=await local(a,'next synthetic'),b=await device('device_beta_001',{materialize:materializePrompt});
+ assert.equal((await b.receive(root)).state,'applied');assert.equal((await b.receive(remote)).state,'applied');const before=await b.repository.transaction(false,t=>t.all('meta'));assert.equal((await b.receive(remote)).state,'duplicate');assert.deepEqual(await b.repository.transaction(false,t=>t.all('meta')),before);assert.equal((await b.repository.transaction(false,t=>readPromptPreferences(t))).overrides[0].text,'next synthetic');
+});
+test('BNS Prompt purge remains explicitly unavailable and atomically preserves the existing owner',async()=>{
+ const a=await device('device_alpha_01'),root=await local(a,'preserved synthetic'),b=await device('device_beta_001',{materialize:materializePrompt});await b.receive(root);
+ const prepared=await a.prepare([{type:'promptPreferences',entityId:PROMPT_REUSE_ROW,kind:'purge'}]);await a.commit(prepared);const before=await b.repository.transaction(false,t=>t.all('meta'));
+ await assert.rejects(b.receive(prepared.operations[0]),{code:'BNS_PROMPT_PURGE_SCOPE_UNAVAILABLE'});assert.deepEqual(await b.repository.transaction(false,t=>t.all('meta')),before);
+});

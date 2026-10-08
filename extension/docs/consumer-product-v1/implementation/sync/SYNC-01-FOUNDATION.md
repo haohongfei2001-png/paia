@@ -130,3 +130,39 @@ snapshots full incoming batches/objects before asynchronous validation, rejects
 sparse arrays, bounds aggregate decoded operation bytes before chunk allocation,
 uses own-property codec registry admission, and quarantines terminal invalid pending ancestry without failing a valid parent.
 Focused regression evidence includes each reproduced failure; no gate was waived.
+
+## Local Prompt receive owner protection follow-up
+
+Based on merged main `c168b13170d762b4774740ce218613a45e31cde4`. Read-only audit found that ordinary `materializePrompt` receive bypassed the unmanaged/changed-owner checks already used by staged restore. Real synthetic `PromptReuseService` writes demonstrated both an independent existing manual template and an unjournaled local edit being overwritten by remote application. `/tmp/sync-prompt-owner-before.log` preserves two missing-rejection failures.
+
+The local correction captures the previous protocol head and its bounded current versions in the same Core transaction before changing the head or redacting history. Remote Prompt application and staged restore then use one existing owner-qualification rule: empty unmanaged owners may accept a first operation; populated unmanaged owners and changed portable canonical content refuse. A refusal rolls back all owner/protocol metadata, including receipts, revisions, heads, frontiers, outbox and generation. Device-local reuse counters remain excluded from the portable comparison and continue to survive valid remote updates. Explicit local commits keep their existing behavior.
+
+`/tmp/sync-prompt-owner-final-unit.log`: seven complete relevant Core/Prompt files, **109/109 PASS**, no skips/cancellations. New tests use real synthetic repositories and actual PromptReuseService actions, compare complete meta rows before/after rejected receive, and cover valid empty first application, managed descendant and duplicate delivery. The existing aggregate Prompt purge rejection is separately asserted with whole-meta rollback; no deletion policy, purge admission, schema, cloud adapter, worker activation or permission changed.
+
+Existing storage-native harness preflight: **6/6 PASS** (`/tmp/sync-prompt-native-preflight.log`). The complete existing `native-sync/storage-chrome.test.mjs` source/release file then passed **32/32**, zero skipped/cancelled, 13.700 seconds (`/tmp/sync-prompt-owner-native.log`). Each variant additionally exercises actual PromptReuseService unmanaged and changed-owner refusal through native IndexedDB, compares every meta row across rollback, and accepts a legitimately empty first receive. These are synthetic local operations through the real owner, not cloud transport. Existing worker-restart, native-factory and zero-network assertions remain intact.
+
+Generated storage receipts retain production byte hashes and report all three new owner outcomes. SHA-256: source `bd6156be8679cfae3fb44c3f2218fd683039db9d8316bd2d7b771ab8c38260e6`; release `7f8fc7e445ae2610b0f4d1b304d96398c764e43a9fc2fd7ccd30899055ed4f9b`. Their HEAD/tree identify the base checkout; `productionHashes` identify the tested, uncommitted candidate bytes.
+
+This is local candidate evidence awaiting independent review and required integration gates. It does not close full Prompt purge/restore, dataset retirement, all-codec restoration, production Sync activation or real cloud recovery. The prior pure-Core retirement fixture still has a deliberate no-op owner and cannot stand in for Prompt purge materialization.
+
+
+## AI foundation main integration checkpoint
+
+Local merge `475870a2dad2833ac0b32ababc65909fb35b145c` combines Prompt owner checkpoint `c27ad659` with exact main `208787bc19294f8f3315f15e589ad8d2974499bf`. The merge was conflict-free. CI changes are inherited unchanged from main; no routing, assertion or timeout was edited. Sync Core and Prompt journal bytes remain identical to c27ad659.
+
+Review of the integrated transaction path found that AI semantic hooks do not track Prompt preferences or Sync protocol meta. AI delta flush remains inside the same repository IDB transaction after the operation callback. A Sync owner refusal aborts the transaction before flush, preserving whole-meta rollback; no out-of-transaction accounting side effect was introduced. This compatibility statement concerns the currently implemented Prompt owner, not hypothetical future Sync materializers for other entities.
+
+On exact merge HEAD, fourteen complete Sync/Core/Prompt/AI owner test files passed **236/236**, zero failed/skipped/cancelled (`work/sync-ai-main-combined-unit.log`, 2003.459375 ms in the coordinator workspace). The existing complete native storage source/release suite passed **32/32**, zero failed/skipped/cancelled (`work/sync-ai-main-combined-native.log`, 14720.05275 ms). The latter retains the actual Prompt owner rejection/full-meta equality cases, worker restart and zero-network assertions. No browser retry or budget change was needed.
+
+Generated source and release receipts identify the exact merge HEAD and agree on all six production hashes. Receipt SHA-256: source `9a0751846c5f68aecc642d7e6c23c6782aadea6668b485a8c7318ae6261ccecd`; release `de6d3eb337f5efc56c46554f4e40d8990cb2f83f8d012704735dc6c151da94ff`. Integrated repository SHA-256 is `48c1ce41777821288db4d6c0ce5a99853346b206f1eb6ef6474e9d14b2ce1916`; Core `12d74ef9c641084a2b454e2dc7020840b0d49b03013bb74d9cd57a88976573ca`; Prompt journal `4ac0b312140b29126a9d37f00c5b115d726dde32d615218ddf88afcdd6dc1cf3`.
+
+The subsequent receipt-only commit does not change tested bytes. This is local integration evidence, not full CI, current-main availability, real cloud transport, full Prompt purge/restore or all-codec recovery qualification. All prior failures and limitations above remain retained.
+
+
+### Final protected-owner batch0.23.1
+
+Full37762330185 on c67db15a is CANCELLED, not PASS: Browser5 font setup spent over16 minutes downloading61MB over the hosted Azure HTTP mirror before its unchanged budget expired. Raw coordinator log sync-ai-shard5-cancelled.log retains the failure; other completed jobs are not a substitute. No identical retry was dispatched.
+
+The final candidate incorporates reviewed Archivecf10ea7c and Section4ff675d6 (main15091f1a included). This inherits the independently reviewed mirror-list HTTPS correction without further workflow modification. Existing Sync Core/Prompt materializer bytes remain exactly c67db15a; no runtime conflict resolution was needed. Under the runtime version policy and intended Topic0.22→Archive0.23→Sync integration sequence, this compatible safety fix is0.23.1 Sync Owner Safety. The existing strictminor23 admission already accepts the patch; schema/permissions/export remain unchanged.
+
+Final local combination:197 complete Sync/AI/version unit cases PASS; complete native storage source/release32/32 PASS20.47s including unmanaged/locally edited owner refusal, atomic receipts/head/frontier/outbox rollback, restore and generation boundaries. Zero failed/skipped/cancelled. Independent review compared exact c67 runtime and cf10 workflows/router/backup format, and reran actual0.23.1 restore3/3. Final-head hosted certification and prerequisite integrations are still required. This does not enable a production cloud journal or claim full canonical restoration/browser account transport.
