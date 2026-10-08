@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
@@ -63,6 +65,7 @@ async function seed(page,prefix){
   },{topicId:topics[0].id,ids:topics[0].unknownIds});
   topics[0].summary=`${prefix} 这是保留完整来源表达的真实内容线索。 `.repeat(40);
   const current=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id});
+  topics[0].defaultSectionId=current.defaultSectionId;assert.equal(typeof topics[0].defaultSectionId,'string','fixture reads the canonical default Section identity');
   await rpc(page,'EDIT_LIBRARY_TOPIC',{edit:{id:current.id,expectedRevision:current.revision,changes:{summary:topics[0].summary},operationId:op()}});
   await rpc(page,'RECORD_TOPIC_READ',{id:topics[1].id});
   return topics;
@@ -386,38 +389,38 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
 
   const firstId=topics[0].readingIds[0],latestId=topics[0].readingIds.at(-1);
   const beforeFirst=await rpc(page,'GET_LIBRARY_ENTRY',{id:firstId}),beforeLatest=await rpc(page,'GET_LIBRARY_ENTRY',{id:latestId});
+  const unknownBefore=await Promise.all(topics[0].unknownIds.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
+  const originalSort=(await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort;
   await page.locator('#topic-search').fill('_THOUGHT_0_A');
   await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').count()===1,'Topic search narrows original records');
-  await openThoughtReadingOptions(page);await page.locator('#topic-time-jumps summary').click();
-  await page.locator('[data-reading-start="desc"]').click();
-  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===latestId,'recent-time jump reaches a record beyond the initial 40-row page');
-  assert.equal(await page.locator('#topic-search').inputValue(),'','time navigation explicitly returns to all original records');
-  assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,'desc','time navigation durably records its direction');
-  assert.equal(await page.locator('#original-reading-body [data-entry-id]').first().evaluate(el=>document.activeElement===el),true,'keyboard focus follows the addressed original record');
-  await openThoughtReadingOptions(page);await page.locator('#topic-time-jumps summary').click();
-  await page.locator('[data-reading-start="asc"]').click();
-  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===firstId,'earlier-time jump starts with the original earliest record');
-  assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,'asc');
-  const afterFirst=await rpc(page,'GET_LIBRARY_ENTRY',{id:firstId}),afterLatest=await rpc(page,'GET_LIBRARY_ENTRY',{id:latestId});
-  assert.equal(afterFirst.body,beforeFirst.body);
-  assert.equal(afterFirst.revision,beforeFirst.revision);
-  assert.equal(afterLatest.body,beforeLatest.body);
-  assert.equal(afterLatest.revision,beforeLatest.revision,'time jumps change no human content or revision');
+  assert.equal(await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id'),firstId,'search addresses the same canonical Entry');
+  // TOPIC-05.4 Content uses durable Section order and continuous paging. The
+  // old time-endpoint/unknown-year menu is intentionally not a Content route.
+  assert.equal(await page.locator('#topic-time-jumps summary').isVisible(),false,'Content does not expose the retired chronological jump menu');
+  assert.equal(await page.locator('#topic-outline').isVisible(),false,'Content does not expose the retired year outline');
+  await page.locator('#topic-search').fill('');
+  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').count()>1,'clearing Topic search restores continuous Section reading');
+  await eventually(async()=>{await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));return await page.locator('#topic-continuous-after').getAttribute('data-terminal')==='true';},'continuous Section reading reaches the actual end beyond its initial 40 rows',30000);
+  const entry=id=>page.locator(`#original-reading-body [data-entry-id="${id}"]`);
+  assert.equal(await entry(latestId).count(),1,'later canonical Entry remains reachable beyond the first page');
+  await entry(latestId).scrollIntoViewIfNeeded();assert.equal(await entry(latestId).isVisible(),true,'later Entry is actually rendered in the current reading surface');
+  assert.equal(await page.locator('#topic-search').inputValue(),'','continuous reading uses the explicitly cleared search');
+  assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,originalSort,'Section reading does not overwrite the saved chronological preference');
   assert.ok(await page.locator('#original-reading-body [data-entry-id]').count()<=120,'Topic keeps its bounded continuous reading window');
-  const unknownBefore=await Promise.all(topics[0].unknownIds.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
-  await openThoughtReadingOptions(page);await page.locator('#topic-outline>summary').click();
-  await page.locator('#topic-section-nav [data-time-group="unknown"]').click();
-  await eventually(async()=>await page.locator('.topic-unknown-time [data-entry-id]').count()===2,'missing and malformed legacy timestamps open a distinct unknown-time section');
-  assert.equal(await page.locator('.topic-unknown-time h2').textContent(),'时间未知');
-  assert.equal(await page.locator('.topic-unknown-time h2').evaluate(el=>document.activeElement===el),true,'unknown-time heading receives keyboard focus');
-  assert.deepEqual(new Set(await page.locator('.topic-unknown-time [data-entry-id]').evaluateAll(nodes=>nodes.map(n=>n.dataset.entryId))),new Set(topics[0].unknownIds));
-  assert.equal(await page.locator('.topic-unknown-time .entry-sent-time').first().textContent(),'时间未知','legacy gaps never become 1970 or Invalid Date');
-  assert.equal(await page.locator('.topic-unknown-time [data-meta-field]').count(),0,'the reading group is not an editable or persisted organization section');
-  assert.equal(await page.locator('.topic-unknown-time .topic-origin-section').count(),2,'original section membership remains visible');
+  assert.equal(await page.locator('#original-reading-body .topic-expression-year,.topic-unknown-time').count(),0,'Content preserves real Sections instead of manufacturing year groups');
+  for(const id of topics[0].unknownIds){
+    assert.equal(await entry(id).count(),1,'missing/invalid legacy time does not hide an Entry');
+    assert.equal(await entry(id).locator('.entry-sent-time').textContent(),'时间未知','legacy gaps never become 1970 or Invalid Date');
+    assert.equal(await entry(id).getAttribute('data-section-id'),topics[0].defaultSectionId,'unknown-time Entry retains its durable Section membership');
+    assert.equal(await entry(id).evaluate(node=>node.closest('.topic-section').dataset.sectionId),topics[0].defaultSectionId,'presentation uses that same durable Section');
+  }
   await shot(page,release?'vs05-release-unknown-time':'vs05-source-unknown-time');
-  await openThoughtReadingOptions(page);await page.locator('#topic-time-jumps summary').click();
-  await page.locator('[data-reading-start="asc"]').click();
-  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id')===firstId,'dated original reading remains reachable after the unknown section');
+  await eventually(async()=>{await page.evaluate(()=>scrollTo(0,0));return await entry(firstId).count()===1;},'backward continuous reading returns to the original first Entry',30000);
+  const firstField=entry(firstId).locator('[data-entry-field="body"]');await firstField.focus();
+  assert.equal(await firstField.evaluate(node=>document.activeElement===node),true,'the canonical original editor remains keyboard focusable');
+  const afterFirst=await rpc(page,'GET_LIBRARY_ENTRY',{id:firstId}),afterLatest=await rpc(page,'GET_LIBRARY_ENTRY',{id:latestId});
+  assert.equal(afterFirst.body,beforeFirst.body);assert.equal(afterFirst.revision,beforeFirst.revision);
+  assert.equal(afterLatest.body,beforeLatest.body);assert.equal(afterLatest.revision,beforeLatest.revision,'continuous navigation changes no human content or revision');
   const unknownAfter=await Promise.all(topics[0].unknownIds.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
   for(let i=0;i<unknownBefore.length;i++){assert.equal(unknownAfter[i].body,unknownBefore[i].body);assert.equal(unknownAfter[i].revision,unknownBefore[i].revision);}
   await shot(page,release?'uir-03-current-release-topic-original-1440x900-light':'uir-03-topic-original-1440x900-light');
@@ -462,14 +465,16 @@ test('UIR-03 Thought home and Topic Original presentation keep existing identity
     await source?.close();
   }
 
-  await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+  const releasePath=await mkdtemp(join(tmpdir(),'paia-uir03-release-'));
   let release;
   try{
-    release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});
+    await execFileAsync('python3',['scripts/build_current_release.py',releasePath],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+    release=await FakeChatGPT.start({extensionPath:releasePath,onboarding:true});
     const page=await ready(release);
     const topics=await seed(page,'UIR03_RELEASE');
     await homeAndOriginalJourney(page,release,topics,{release:true});
   }finally{
     await release?.close();
+    await rm(releasePath,{recursive:true,force:true});
   }
 });

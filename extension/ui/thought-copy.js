@@ -11,6 +11,13 @@ const english={
 
  '主题说明':'Topic note','你写的主题说明':'Your Topic note','读取前面的主题':'Read earlier topics','读取后面的主题':'Read later topics',
  '请先关闭当前菜单或完成选择，再继续浏览。':'Close the menu or finish the selection before continuing.',
+ '已到主题开头':'Beginning of the Topic','已到主题末尾':'End of the Topic',
+ '继续载入':'Continue loading','重试加载':'Retry loading','正在载入更早内容…':'Loading earlier content…',
+ '更早内容加载中断；当前文字与草稿已保留。':'Loading earlier content stopped; current text and drafts are retained.',
+ '加载中断；当前文字与草稿已保留。':'Loading stopped; current text and drafts are retained.',
+ '还有内容待载入，请继续读取。':'More content remains to load. Continue reading.',
+ '暂缓继续加载：请先保存或完成当前编辑，文字与选择仍保留。':'Loading paused: save or finish the current edit. Text and selection are retained.',
+ '正在准备主题索引…':'Preparing the Topic index…','向上滚动继续加载':'Scroll up to continue',
  '正在继续载入…':'Loading more…','加载中断；当前列表已保留。':'Loading stopped; the current list is retained.',
  '已到列表末尾':'End of the list','搜索索引更新中…':'Updating the search index…','正在准备思想列表…':'Preparing the Topic list…','向下滚动继续加载':'Scroll down to continue',
 

@@ -253,3 +253,14 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 #settings-ai-style-open-dialog input{scroll-margin-block:calc(var(--style-feedback-height,0px) + 16px) 16px}
 #settings-ai-style-open-dialog .ux-settings-style-feedback[data-kind="error"]{color:var(--danger)}
 #settings-ai-style-open-dialog input:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
+
+/* Narrow destinations retain whole-word space even with enlarged text. */
+@media(max-width:479px){
+ #settings-panel .ux-settings-destination{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
+ #settings-panel .ux-settings-destination>.ux-setting-name{grid-column:1;grid-row:1}
+ #settings-panel .ux-settings-destination>.ux-setting-destination-value{grid-column:1;grid-row:2;max-width:none;text-align:left}
+ #settings-panel .ux-settings-destination>.paia-icon{grid-column:2;grid-row:1 / span 2}
+ .ux-settings-detail-dialog>header{flex-wrap:wrap}
+ .ux-settings-detail-dialog>header>h2{flex:1 1 100%}
+ .ux-settings-detail-dialog .ux-settings-detail-close{margin-inline-start:auto}
+}

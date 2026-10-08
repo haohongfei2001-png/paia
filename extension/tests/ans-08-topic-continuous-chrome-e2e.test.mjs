@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
-import {openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
 
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 const visibleAnchor=page=>page.evaluate(()=>{const rows=[...document.querySelectorAll('#topic-body [data-entry-id]')],node=rows.find(x=>{const r=x.getBoundingClientRect();return r.bottom>140&&r.top<innerHeight;})||rows[0];return node?{id:node.dataset.entryId,top:node.getBoundingClientRect().top,scrollY}:null;});
@@ -16,19 +15,19 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
    const [{OrganizerStore},{refreshEntryIndex}]=await Promise.all([import('../core/organizer/store.js'),import('../core/thought-model.js')]);
    const s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),pad=n=>String(n).padStart(4,'0'),rank=n=>String(n*1024).padStart(12,'0');
    const topic=await s.createTopic({name:'ANS08_CONTINUOUS_TOPIC',operationId:op()}),first=await s.continueThinking({operationId:op(),body:'ANS08 body 0000',topicId:topic.id});
+   const named=[];for(let i=1;i<12;i++)named.push(await s.createSection({topicId:topic.id,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,title:'ANS08 section '+pad(i),rank:rank(i+1),operationId:op()}));
    await s.foundationWrite(async t=>{
-    const live=await t.get('topics',topic.id),template=await t.get('thoughts',first.id),basePlacement=await t.get('placements',JSON.stringify([topic.id,live.activeLayoutGeneration,first.id])),baseSection=await t.get('sections',JSON.stringify([topic.id,live.activeLayoutGeneration,live.defaultSectionId])),sectionIds=[live.defaultSectionId];
+    const live=await t.get('topics',topic.id),template=await t.get('thoughts',first.id),basePlacement=await t.get('placements',JSON.stringify([topic.id,live.activeLayoutGeneration,first.id])),baseSection=await t.get('sections',JSON.stringify([topic.id,live.activeLayoutGeneration,live.defaultSectionId])),sectionIds=[live.defaultSectionId,...named.map(section=>section.sectionId)];
     baseSection.rank=rank(1);await t.put('sections',baseSection);
-    for(let i=1;i<12;i++){const sectionId='ans08-browser-section-'+pad(i);sectionIds.push(sectionId);await t.put('sections',{...structuredClone(baseSection),id:JSON.stringify([topic.id,live.activeLayoutGeneration,sectionId]),sectionId,isDefault:false,title:'ANS08 section '+pad(i),rank:rank(i+1),revision:0});}
     for(let i=0;i<440;i++){const id=i===0?first.id:'ans08-browser-entry-'+pad(i),sectionIndex=i%12,sectionId=sectionIds[sectionIndex],at=new Date(Date.UTC(2026,0,1)+i*1000).toISOString(),row=i===0?template:{...structuredClone(template),id};row.thoughtText='ANS08 body '+pad(i);row.title='';row.createdAt=at;row.updatedAt=at;row.createdSequence=(template.createdSequence||1)+i;row.updatedSequence=(template.updatedSequence||1)+i;row.sourceRecordIds=[];row.provenanceType='user_created';refreshEntryIndex(row);await t.put('thoughts',row);await t.put('placements',{...structuredClone(basePlacement),id:JSON.stringify([topic.id,live.activeLayoutGeneration,id]),entryId:id,sectionId,sectionRank:rank(sectionIndex+1),rank:rank(Math.floor(i/12)+1),revision:0,lifecycle:'active',activeKey:0});}
     live.organizationRevision++;live.countVersion=(live.countVersion||0)+1;await t.put('topics',live);
    });
-   await s.repository.close();return {topicId:topic.id,count:440};
+   await s.repository.close();return {topicId:topic.id,count:440,deepSectionId:named[10].sectionId};
   });
 
   await page.evaluate(()=>{
    const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.ans08Trace={topicPages:[],tracked:[]};window.ans08RestoreSend=()=>chrome.runtime.sendMessage=send;
-   chrome.runtime.sendMessage=(message,...args)=>{const out=send(message,...args);return Promise.resolve(out).then(result=>{if(message?.type==='TOPIC_DOCUMENT_PAGE'&&result?.ok)window.ans08Trace.topicPages.push({options:structuredClone(message.options||{}),ids:(result.data?.items||[]).map(x=>x.entry.id),operations:result.data?.operations||null,indexing:result.data?.indexing===true});if(message?.type==='GET_LIBRARY_TRACKED_ENTRIES')window.ans08Trace.tracked.push(message.options?.ids?.length||0);return result;});};
+   chrome.runtime.sendMessage=(message,...args)=>{const out=send(message,...args);return Promise.resolve(out).then(result=>{if(message?.type==='GET_LIBRARY_SECTION_READING'&&message.options?.limit===40&&result?.ok)window.ans08Trace.topicPages.push({options:structuredClone(message.options||{}),ids:(result.data?.items||[]).map(x=>x.entry.id),operations:result.data?.operations||null,indexing:result.data?.indexing===true});if(message?.type==='GET_LIBRARY_TRACKED_ENTRIES')window.ans08Trace.tracked.push(message.options?.ids?.length||0);return result;});};
   });
 
   await page.locator('[data-view=thoughts]').click();
@@ -54,19 +53,23 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   const refetches=await page.evaluate(n=>window.ans08Trace.topicPages.slice(n),readsBeforeReturn);assert.ok(refetches.length>0&&refetches.every(row=>row.options.anchorId&&row.options.expectedReadGeneration),'an evicted window refetches exact generation-bound refs rather than retaining all bodies');assert.ok(Number(await page.locator('#original-reading-body').getAttribute('data-retained-bodies'))<=120);
   assert.ok(await page.locator('#topic-body [data-entry-id]').count()<=120);
 
-  await openThoughtReadingOptions(page);await page.locator('#topic-outline>summary').click();const deepSection='ANS08 section 0011';await page.locator('#topic-section-nav').getByRole('button',{name:deepSection,exact:true}).click();
-  await eventually(async()=>await page.locator('.topic-section').filter({hasText:deepSection}).count()===1,'deep section seek',20000);
-
-  const beforeSort=await visibleAnchor(page);assert.ok(beforeSort?.id);
-  // Activate without Playwright scrolling the non-sticky toolbar into view first: the contract
-  // under test is the Topic Reader's sort transition, not an automation-induced navigation.
-  await page.locator('[data-reading-sort=desc]').evaluate(button=>button.click());
-  await eventually(async()=>{
-   const node=page.locator('#topic-body [data-entry-id="'+beforeSort.id+'"]');if(await node.count()!==1)return false;
-   const top=await node.evaluate(n=>n.getBoundingClientRect().top);
-   return Math.abs(top-beforeSort.top)<180;
-  },'sort retains visible anchor',20000);
-  const afterSort=await page.locator('#topic-body [data-entry-id="'+beforeSort.id+'"]').evaluate(n=>({top:n.getBoundingClientRect().top}));assert.ok(Math.abs(afterSort.top-beforeSort.top)<180,'sort retains visible anchor');
+  // Durable Sections replace the retired Original outline and time sorting.
+  // Reach the deep Section through its actual Root search/link owner.
+  const controlsBefore=await rpc(page,'GET_ORGANIZER_CONTROLS'),deepSection='ANS08 section 0011',deepSectionId=seed.deepSectionId;
+  await page.locator('#back').click();await eventually(()=>page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').isVisible(),'Root before Section entry',20000);
+  await page.locator('#thought-search').fill(deepSection);
+  const sectionLink=page.locator('.personal-root-search-extra.personal-section-link[data-section-id="'+deepSectionId+'"]');
+  await eventually(()=>sectionLink.isVisible(),'Root exposes matching durable Section',20000);await sectionLink.click();
+  await eventually(()=>page.locator('.topic-section[data-section-id="'+deepSectionId+'"]').evaluateAll(nodes=>nodes.some(node=>node.querySelector('[data-entry-id="ans08-browser-entry-0011"]')&&document.activeElement===node.querySelector('.section-heading h2'))),'deep Section native entry',20000);
+  assert.equal(await page.locator('.topic-section[data-section-id="'+deepSectionId+'"] > .section-heading h2').textContent(),deepSection);
+  const arrivalDiagnostic=await page.evaluate(()=>({active:document.activeElement?.outerHTML?.slice(0,500),state:document.querySelector('#thought-document')?.dataset,headings:[...document.querySelectorAll('.topic-section')].map(node=>({id:node.dataset.sectionId,entries:node.querySelectorAll('[data-entry-id]').length})),reads:window.ans08Trace.topicPages.slice(-3)}));
+  assert.equal(await page.locator('.topic-section[data-section-id="'+deepSectionId+'"] > .section-heading h2').evaluate(node=>document.activeElement===node),true,'native Section entry focuses its actual heading '+JSON.stringify(arrivalDiagnostic));
+  assert.equal(await page.locator('.topic-section[data-section-id="'+deepSectionId+'"] [data-entry-id]').first().getAttribute('data-entry-id'),'ans08-browser-entry-0011','target Section starts at its real first Placement while neighboring loaded Sections may remain mounted');
+  assert.equal(await page.locator('#topic-time-order').isVisible(),false,'retired chronology control cannot reorder durable Sections');
+  assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,controlsBefore.readingSort,'native Section entry does not rewrite global reading preference');
+  const sectionAnchor=await visibleAnchor(page);assert.ok(sectionAnchor?.id);
+  await page.locator('#topic-search').evaluate(node=>node.focus({preventScroll:true}));const afterSearchFocus=await visibleAnchor(page);assert.equal(afterSearchFocus?.id,sectionAnchor.id,'test focus does not itself scroll away from the Section anchor');assert.ok(Math.abs(afterSearchFocus.top-sectionAnchor.top)<=2,'test focus preserves the Section pixel anchor');await page.keyboard.press('Escape');
+  assert.equal((await visibleAnchor(page))?.id,sectionAnchor.id,'leaving empty search preserves the current Section anchor '+JSON.stringify({sectionAnchor,afterSearchFocus,afterEscape:await visibleAnchor(page)}));
 
   const beforeBack=await visibleAnchor(page);await page.locator('#back').click();await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').count()===1,'back to root',20000);await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').click();
   await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>0,'Topic reopens with readable entries',30000);
@@ -81,9 +84,15 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
    if(!cursor)throw Error('NO_CURSOR');for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,sort:'asc',cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples};
   },seed.topicId);
   assert.ok(perf.p95<=750,'warmed Topic next-chunk p95 <= 750 ms');assert.equal(perf.operations.buildRowsScanned,0);assert.ok(perf.operations.descriptorRowsRead<=40);
+  const sectionPerf=await page.evaluate(async topicId=>{
+   const call=async options=>{const r=await chrome.runtime.sendMessage({type:'GET_LIBRARY_SECTION_READING',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},first=await call({topicId,limit:40}),cursor=first.nextCursor,samples=[],operationSamples=[];let operations=null;
+   if(!cursor)throw Error('NO_SECTION_CURSOR');for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;operationSamples.push(operations);}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples,operationSamples};
+  },seed.topicId);
+  assert.ok(sectionPerf.p95<=750,'actual warmed Section next-chunk p95 <= 750 ms');assert.equal(sectionPerf.operationSamples.length,30);for(const sample of sectionPerf.operationSamples){assert.ok(sample.placementCandidates<=40);assert.ok(sample.hydratedEntries<=40);}
+
 
   await mkdir('work/ans-08',{recursive:true});await page.screenshot({path:'work/ans-08/topic-continuous.png',fullPage:true});
-  const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,sortAnchor:true,returnAnchor:'DEFERRED_OWNER_SCOPE',readableAfterReturn:true,deferredChecks:['ANS08_TOPIC_RETURN_POSITION'],p95:perf.p95,operations:perf.operations,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
+  const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,durableSectionEntry:true,readingPreferenceUnchanged:true,returnAnchor:'DEFERRED_OWNER_SCOPE',readableAfterReturn:true,deferredChecks:['ANS08_TOPIC_RETURN_POSITION'],p95:perf.p95,operations:perf.operations,sectionPerf,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
   await writeFile('work/ans-08/topic-continuous.json',JSON.stringify(evidence,null,2));console.log('ANS08_CONTINUOUS_EVIDENCE '+JSON.stringify(evidence));
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{await page.evaluate(()=>window.ans08RestoreSend?.()).catch(()=>{});await h.close();}

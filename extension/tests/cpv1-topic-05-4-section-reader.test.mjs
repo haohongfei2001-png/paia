@@ -98,10 +98,12 @@ test('TOPIC-05.4 actual controller keeps ordinary and lexical scopes distinct th
  assert.deepEqual(calls.map(call=>call.type),['GET_LIBRARY_SECTION_READING','GET_LIBRARY_SECTION_READING']);assert.equal(calls[0].options.sort,'asc');assert.equal(calls[0].options.sectionId,'section');assert.equal(calls[0].options.providerKey,'chatgpt');assert.equal(calls[1].options.query,'needle');assert.equal(calls[1].options.sort,'asc');assert.equal(calls[1].options.chronology,undefined);assert.equal(owner.readingSort,'desc');assert.equal(calls[1].options.expectedReadGeneration,null);
 }));
 for(const empty of [false,true])test(`TOPIC-05.4 Root opens ${empty?'empty':'nonempty'} named Section with exactly one genuine heading and focus`,()=>withDOM(async({body,entryNode,get})=>{
- const data=page([section('named',1,'Named')],empty?[]:[item(1,'named')]);renderTopicSectionProse({body,page:data,entryNode});get('topic-body').append(body);get('thought-panel').hidden=false;
- let reads=0;globalThis.chrome={runtime:{sendMessage:async message=>{reads++;assert.equal(message.type,'GET_LIBRARY_SECTION_PROJECTION');return {ok:true,data:{topic:{id:'topic'},items:[{id:'named',topicId:'topic',title:'Named',titleProtected:true}],nextCursor:null}};}}};
- const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',view:'original',serial:1,statusEpoch:0,openIntent:0,document:data,originalPane:body,onStatus:text=>assert.fail(text),async open(){return ++this.openIntent;}});
- await owner.openRootTarget('topic','named');assert.equal(reads,1,'no fallback projection/heading injection after the validated durable render');assert.equal(body.querySelectorAll('h2').length,1);assert.equal(document.activeElement,body.querySelector('h2'));assert.deepEqual(document.activeElement.focusOptions,{preventScroll:true});
+ const f=rootSectionRouteFixture({body,entryNode,get},{empty});
+ renderTopicSectionProse({body,page:f.data,entryNode});
+ await f.owner.openRootTarget('topic','named');
+ assert.equal(f.calls.filter(call=>call.type==='GET_LIBRARY_SECTION_PROJECTION').length,1,'no fallback projection/heading injection after the validated durable render');
+ assert.equal(f.calls.some(call=>call.type==='GET_LIBRARY_SECTION_READING'&&call.options.sectionId==='named'),true,'an existing heading still requires a qualified target read');
+ assert.deepEqual(f.statuses,[]);assert.equal(body.querySelectorAll('h2').length,1);assert.equal(document.activeElement,body.querySelector('h2'));assert.deepEqual(document.activeElement.focusOptions,{preventScroll:true});
 }));
 
 test('TOPIC-05.4 an empty-Section-only extent stays bounded and rereads discarded headings toward both real ends',async()=>{
@@ -388,7 +390,7 @@ function rootSectionRouteFixture({body,entryNode,get},{empty=false,hold=null}={}
   const response={ok:true,data:structuredClone(result)};
   return stage===hold?new Promise(resolve=>{release=()=>resolve(response);}):Promise.resolve(response);
  }}};
- const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',view:'original',serial:1,statusEpoch:0,openIntent:0,rootCueEpoch:0,readingSort:'asc',topicProviderKey:null,originalPane:body,aiPane:get('ai-reading-body'),homePositions:new Map(),entryNode,onStatus:text=>statuses.push(text),async open(){return ++this.openIntent;},ensurePanes(){},checkAllTracked:async()=>true,applyLayout(){},renderSectionNav(){},observeTopicWindowSpacers(){},updateTopicContinuous(){},invalidateTimeline(){},clearHomeRows(){},editor:{metadata:[],entry:{protectedIds:()=>new Set(),addRows(){},releaseRows(){},receive(){}}}});
+ const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',view:'original',serial:1,statusEpoch:0,openIntent:0,rootCueEpoch:0,readingSort:'asc',topicProviderKey:null,originalPane:body,aiPane:get('ai-reading-body'),homePositions:new Map(),entryNode,onStatus:text=>statuses.push(text),async open(){return ++this.openIntent;},ensurePanes(){},checkAllTracked:async()=>true,applyLayout(){},renderSectionNav(){},observeTopicWindowSpacers(){},updateTopicContinuous(){},invalidateTimeline(){},clearHomeRows(){},editor:{collect(){},async flush(){return true;},dirty(){return false;},metadata:[],entry:{protectedIds:()=>new Set(),addRows(){},releaseRows(){},receive(){}}}});
  return {owner,calls,statuses,data,release:()=>release?.(),held:()=>!!release};
 }
 for(const empty of [false,true])test(`TOPIC-05.4 current Root RPC path retains ${empty?'empty':'nonempty'} Section heading and canonical nodes through repeated qualified redraw`,()=>withDOM(async env=>{

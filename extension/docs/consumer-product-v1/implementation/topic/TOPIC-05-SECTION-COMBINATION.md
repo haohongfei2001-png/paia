@@ -89,3 +89,189 @@ budgets. Root run37687078617 was cancelled in that dependency stage before
 shard5 browser tests; other required jobs passed. A single shard5 retry on the
 same Root head was requested, without rerunning successful groups. Its outcome
 is not presumed here; the original cancellation remains negative evidence.
+
+
+## Settings visual and evidence-contract follow-up
+
+Run37689518845 at292cf46 passed all9 browser cases (including source/release
+Data and both288-row matrices), but the post-test evidence validator failed:
+it still required5 interactions while the recovered offline-style journey emits
+6. The correction strictly preserves the prior5, requires the sixth
+`offline-ai-style` and all8 ordered style subcases. Two additional compact text/
+Data locale cases increase the unchanged four whole-file command to11 cases.
+This is a failed candidate receipt, not a successful aggregate.
+
+Actual synthetic screenshots revealed untranslated English Settings Data labels
+and history summaries, plus split words at320px/enlarged text. The bounded UI
+correction follows existing document locale/preferences events, keeps all
+controls/IDs and actions, and gives narrow destination values and dialog titles
+whole-line space. Related local tests23/23 and new headless source/release2/2
+pass. The coordinator viewed the corrected release narrow AI and supported-sites
+images; the author viewed9 corrected images. Original design-reference bytes
+remain unavailable: VISUAL_REFERENCE_MISSING, no pixel-match acceptance claim.
+
+A supplementary existing owner journey first read Settings return metadata while
+navigation was still showing the panel but awaiting its history commit. The
+fixture now waits only for route view=settings, then executes every original
+strict document/input/anchor/IME/reload/Back assertion with unchanged timeout.
+Its full source/release owner case passes1/1. A polluted generated release cache
+was rejected by14 guards:626 files including267 duplicate-name copies were
+preserved with a SHA256 manifest under local diagnostics; source was clean and
+the unchanged builder produced a fresh359-file release. No duplicate was
+admitted and no guard was relaxed. An accidentally selected headed matrix run
+was cancelled locally and is not PASS evidence.
+
+The adapter-job HTTPS mirror pre-step is the exact independently reviewed
+60145d9 block already successful on Sync; the Settings browser receipt/count
+updates were independently reviewed, with7 CI tests and embedded-script syntax
+checks passing. These local results await the next exact-head hosted candidate.
+
+
+## Full-certification environment preparation
+
+Root PR185 merged as daf180762e2fe7718dfcddcf345c6a11749aad8e after full
+run37687078617 succeeded. Its tree exactly matches the tested merge candidate
+36e5f014c2f7614fd93aa199bb3dbc6ba4b850dc and Root head7a214ae.
+Exact-main full run37691533146 is separate and pending at this checkpoint.
+
+The complete Settings file requires the already qualified full Chrome155.0.8059.39
+and archive SHA55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea.
+Full certification previously supplied only runner Chrome; before entering that
+boundary, the same verified download/version setup is now selected only for
+current shard6. Both browser-path variables point to that binary, including its
+whole Context companion file. All76 files, seven jobs and18-minute budgets remain.
+The fixed download hash is checked before launch; no browser assertion is removed.
+Full adapter and candidate targeted-browser dependency installation also use the
+already reviewed official HTTPS Ubuntu mirror pre-step. Independent review and
+all22 local routing/environment guards pass; actual full execution is pending.
+
+
+## Final candidate repair and full-gate entry
+
+Run37691193380 at9af8647 passed the complete affected-browser job (all11
+cases and its strict receipt), privacy/contracts and release guards. Candidate
+unit failed on an obsolete source-string assertion for the pre-localization
+summary. The replacement calls the production summary function for both
+Claude/ChatGPT and zh/en, asserting correct provider inclusion and exclusion;
+the original session-adapter and official-export checks remain.
+
+Independent review also reproduced a real malformed-summary regression: rendering
+had moved outside the existing latest-import try/catch. It is restored inside
+that boundary, preserving localized safe failure and navigation. The new owner
+regression asserts no rejection and exactly one RPC across a locale change.
+The negative TypeError log is retained locally. Two complete affected unit files
+pass18/18; independent review passes. The existing Settings return/IME/reload
+owner journey and both compact locale source/release cases pass3/3 headlessly,
+with zero skips or cancellations. These are local targeted results, not full
+certification.
+
+The Root squash reconciliation is merge80fe80d: incoming main daf1807 has exactly
+the already incorporated7a214ae ancestor tree. The parent26c2c5b tree was retained
+byte-for-byte after recording this proof and merge conflicts; no product changes
+were overwritten. The reviewed browser/dependency preparation plus this repair
+now form the next full-certification candidate. Exact-main Root verification and
+this candidate's full results remain separate pending claims.
+
+## Post-full-failure local closure candidate
+
+Full37692797134 at9adb1da failed browser groups1–5. Those failures are retained;
+the earlier successful groups and cancelled main jobs are not full acceptance.
+Settings now advances independently in PR198; PR190 preserves this combination.
+
+Two real Section presentation gaps were repaired: continuation language/loading
+status and qualified arrival when a known heading has no hydrated body. The
+latter always performs the existing qualified Section read with save/IME/tracked
+entry and identity/intent fences; an existing heading is not proof of arrival.
+Empty Sections remain valid. No unrelated fallback Entry receives focus.
+Independent coordinator review retained these boundaries and all original guards.
+
+Historical Content/Years tests now exercise durable Sections while preserving
+165/160+241 rows,120-body bounds, exact2px returns, Unicode/IME/preferences and
+real late-mutation refusal. Old Years controls are no longer the presentation
+owner. Held-response checks require a real old matching Input, absence of that
+Input/text before release, and a fully completed empty query after release.
+Pending legitimate prose remains with a visible loading state, not false completion.
+
+Retained local evidence and final-tree binding limits:
+- 148 related owner/unit tests pass, no skips; old missing editor/RPC stubs were
+  corrected without deleting their safety assertions. Original26fail log retained.
+- Complete Section native file4/4 passed in a separate earlier run; complete
+  Content/Years files6/6 passed together in121.3s, zero skips/cancellations.
+  These are local component results, not final combined certification.
+- UIR03 whole source/release case1/1 passes using the unchanged audited builder
+  with an isolated output; contaminated generated caches remain preserved.
+- ANS08 main case passes with440 reachable Entries,120-body bound, exact deep
+  Section first Placement/focus and zero provider traffic. Its historical
+  owner-deferred return-position subcase remains1 skipped and is not PASS.
+- ANS08 measured30 samples each: legacy page p95=82.5ms, Section p95=62.3ms;
+  each Section sample stays at placementCandidates/hydratedEntries<=40. This
+  synthetic local probe is not thousands-scale/live-provider acceptance.
+
+An attempted additional focus wait was rejected by automatic review and was not
+applied. Read-only event/state evidence established that old headings preceded
+qualified arrival. The existing20s entry wait was strengthened to the actual
+first Placement plus native heading focus; no new wait or budget was added and
+all independent assertions remain. A separate diagnostic proved the test's own
+programmatic search focus scrolled the page; standard preventScroll plus added
+same-ID/2px assertions now isolate Escape without faking keyboard events.
+
+Main/shared Settings/Prompt reconciliation and exact-head hosted combined/full
+certification remain pending. Native Prompt lifetime evidence and installed-user
+visual acceptance are not inferred from the Section passes. The latest owner
+scope includes separate IAH-1.1 minimal optimization, not the retired IAH-1.0 UI.
+
+Final checkpoint audit: current topic-workspace SHA256 is
+848ccde7a7dc842147cdcb4c7c146e54332ffe63ff6e2515015567a3dc9e7c53. Older
+final-bytes JSONs contain10fc7d and cannot bind this tree. Latest successful logs
+postdate the runtime edit but identify a dirty base; do not promote timestamps
+into an immutable exact-version full receipt. New-head combined acceptance is
+still required. The two Prompt test files were copied only after verifying they
+exactly matched Settings4a1cf72's parent; they now include that reviewed native
+persistence/current-frame readiness fix. Settings40/40 is evidence for that
+separate tree, not a newly executed combined-tree result.
+
+## Settings 0f750af reconciliation
+
+Merged the current independent Settings candidate into the preserved Section
+branch after inspecting all eight conflict blocks. Section RPC classification,
+real Section target/focus assertions and explicit76-file routing retain their
+existing owners; the historical shard1 assertion from Settings is retained.
+Prompt serial unit execution and the exact current Settings/Prompt fixtures are
+included. An independent read-only review found no truncated files or lost
+Settings changes; topic-workspace.js is unchanged by this merge.
+
+A local conflict-resolution script initially consumed file tails and caused two
+syntax failures. The unresolved index copies were restored, all conflict blocks
+were resolved again with line-bounded markers, and the reviewed final files
+passed22/22 routing/arrival/presentation tests plus164/164 complete related
+Section-worker/reading/reader, Root anchor and Settings boundary tests. No skips,
+timeout increases or assertion removals. These are local merge checks only.
+The candidate still requires the next release identity and exact-head combined
+browser/full acceptance after independent Settings integration.
+
+## Post-Settings next release candidate
+
+Settings PR198 merged as main f1740bc47ff8495bdf3457b5db195075a7404c87 after
+Full37704406932 and Prompt37704406755 succeeded. This Section branch reconciles
+that actual main, preserving both Settings fixes and the reviewed Section work.
+Main tree801227d1b4945082226eb0ea745c589601a97df6 equals the certified Settings
+head tree; its separate exact-main Full37706096966 is still in progress.
+
+The next Section candidate identifies as0.21.0, with no format/schema change.
+Backup accepts the new producer minor21 while retaining historical versions and
+strict rejection of22/malformed versions. Independent review passed; four
+complete version checks and11416 package checks pass. Previously recorded
+Section/Content/Years evidence stays component evidence; current-head candidate
+and final combined acceptance remain required before integration.
+
+Candidate37706458872 at83d28ba passed its entire affected-browser job and all
+contracts/privacy/release checks; its unit suite failed only the old header
+source oracle expecting verifyHeaderInteractions() with no argument. The real
+Content journey deliberately passes seed.records[1].id to validate its exact
+search target. The follow-up requires that precise argument and unchanged call
+order, budgets, isolated visual owner and non-forced pointer checks. Independent
+review and the complete five-case guard pass. No runtime changes in this repair.
+
+On83d28ba, the complete Section source/release native file also passes4/4 in
+24.62s, including late purge refusal.1307 non-document tracked files matched the
+pre/post byte manifest. These results do not turn the failed aggregate into PASS.

@@ -20,7 +20,7 @@ test('UX-R3 browser history restore preempts an invalidated Thought home read',{
  try{
   const p=await ready(h),topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'R3 history preemption',operationId:op()}});
   for(let i=0;i<60;i++)await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:`R3 history entry ${String(i).padStart(2,'0')}`,topicId:topic.id}});
-  const page=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}}),anchor=page.items[20].entry;
+  const page=await rpc(p,'GET_LIBRARY_SECTION_READING',{options:{topicId:topic.id,sort:'asc',limit:40}}),anchor=page.items[20].entry;
   await rpc(p,'THOUGHT_POSITION',{position:{topicId:topic.id,entryId:anchor.id,revision:anchor.revision,offset:3,sort:'asc',expanded:[]}});
 
   await nav(p,'thoughts');
@@ -55,7 +55,7 @@ test('UX-R3 browser history restore preempts an invalidated Thought home read',{
      window.r3HistoryPreemption.homeDelayed=true;
      return homeGate.then(()=>send(message,...args));
     }
-    if(message?.type==='TOPIC_DOCUMENT_PAGE'&&message?.options?.topicId===topicId&&window.r3HistoryPreemption.homeDelayed)window.r3HistoryPreemption.topicReadStarted=true;
+    if(message?.type==='GET_LIBRARY_SECTION_READING'&&message?.options?.topicId===topicId&&window.r3HistoryPreemption.homeDelayed)window.r3HistoryPreemption.topicReadStarted=true;
     return send(message,...args);
    };
   },topic.id);
@@ -87,9 +87,9 @@ test('UX-R3 same-session Back restores a saved Topic page before durable positio
  try{
   const p=await ready(h),topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'R3 saved page resume',operationId:op()}});
   for(let i=0;i<90;i++)await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:`R3 saved page entry ${String(i).padStart(2,'0')}`,topicId:topic.id}});
-  const first=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:40}});
+  const first=await rpc(p,'GET_LIBRARY_SECTION_READING',{options:{topicId:topic.id,sort:'asc',limit:40}});
   assert.ok(first.nextCursor,'fixture must span more than one Topic page');
-  const second=await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',cursor:first.nextCursor,limit:40}}),anchor=second.items[10].entry;
+  const second=await rpc(p,'GET_LIBRARY_SECTION_READING',{options:{topicId:topic.id,sort:'asc',cursor:first.nextCursor,limit:40}}),anchor=second.items[10].entry;
   await rpc(p,'THOUGHT_POSITION',{position:{topicId:topic.id,entryId:anchor.id,revision:anchor.revision,offset:4,sort:'asc',expanded:[]}});
 
   await nav(p,'thoughts');
@@ -113,7 +113,7 @@ test('UX-R3 same-session Back restores a saved Topic page before durable positio
      window.r3PositionPreemption.positionSawAnchor=!!document.querySelector(`[data-entry-id="${anchorId}"]`);
      return positionGate.then(()=>send(message,...args));
     }
-    if(message?.type==='TOPIC_DOCUMENT_PAGE'&&message?.options?.topicId===topicId)window.r3PositionPreemption.topicReadStarted=true;
+    if(message?.type==='GET_LIBRARY_SECTION_READING'&&message?.options?.topicId===topicId)window.r3PositionPreemption.topicReadStarted=true;
     return send(message,...args);
    };
   },{topicId:topic.id,anchorId:anchor.id});

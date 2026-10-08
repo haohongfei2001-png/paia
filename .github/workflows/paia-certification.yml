@@ -107,6 +107,20 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
+      - name: Use signed Ubuntu archive over HTTPS before adapter dependencies
+        run: |
+          # Run37685485859 exhausted its unchanged budget on the Azure HTTP mirror.
+          # Change only that mirror URI; preserve suites, packages and signing keys.
+          sudo python3 - <<'PYAPT'
+          from pathlib import Path
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          for path in paths:
+              if path.is_file():
+                  text = path.read_text()
+                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                  if updated != text:
+                      path.write_text(updated)
+          PYAPT
       - name: Install Chromium for adapter contracts
         run: npx playwright install --with-deps chromium
       - name: Adapter contract
@@ -182,6 +196,20 @@ jobs:
           for family in 'Noto Serif CJK SC' 'Noto Sans CJK SC' 'WenQuanYi Zen Hei'; do
             fc-match --format '%{family}: %{file}\n' "$family"
           done | tee work/current-browser-fonts.txt
+      - name: Pin verified full Chrome for Settings native evidence
+        if: matrix.index == 6
+        run: |
+          set -euo pipefail
+          PAIA_DIAGNOSTIC_ZIP="$RUNNER_TEMP/settings-chrome-155.0.8059.39.zip"
+          PAIA_DIAGNOSTIC_CHROME="$RUNNER_TEMP/settings-chrome-155.0.8059.39"
+          curl --fail --location --proto '=https' --tlsv1.2 --max-time 120 --output "$PAIA_DIAGNOSTIC_ZIP" 'https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'
+          echo "55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea  $PAIA_DIAGNOSTIC_ZIP" | sha256sum --check --status
+          unzip -q "$PAIA_DIAGNOSTIC_ZIP" -d "$PAIA_DIAGNOSTIC_CHROME"
+          test "$("$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" --version | awk '{print $NF}')" = '155.0.8059.39'
+          echo "PAIA_CHROME=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"
+          echo 'PAIA_DIAGNOSTIC_BROWSER_VERSION=155.0.8059.39' >> "$GITHUB_ENV"
+          echo "PAIA_DIAGNOSTIC_BROWSER_SHA256=$(sha256sum "$PAIA_DIAGNOSTIC_ZIP" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
       - name: Verify the installed Chrome actually launches
         run: xvfb-run -a node scripts/check-hosted-chrome.mjs
       - name: Verify current browser coverage contract
