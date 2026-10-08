@@ -4,6 +4,28 @@ import assert from 'node:assert/strict';
 import {fixture as baseFixture,rpc,authority,savedRow,editSaved,refusedAI,setAIView as rawSetAIView,openTopic,noApproval,quiet,screenshotMatrix} from './harness/consumer-ai-browser.mjs';
 import {eventually} from './harness/fake-chatgpt.mjs';
 
+async function verifySavedSummaryAccess(p,variant){
+ const summary=p.locator('[data-ai-saved-fields] > summary'),details=p.locator('[data-ai-saved-fields]'),cdp=await p.context().newCDPSession(p);
+ const initial=await summary.evaluate(n=>({font:parseFloat(getComputedStyle(n).fontSize),style:n.getAttribute('style')}));
+ try{
+  await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+  assert.equal(await p.evaluate(()=>matchMedia('(pointer:coarse)').matches),true,'real coarse pointer media is active');
+  await summary.evaluate((n,size)=>n.style.setProperty('font-size',size*2+'px','important'),initial.font);
+  for(const [language,label] of [['en','Saved AI organization'],['zh-CN','已保存的 AI 整理']]){
+   await rpc(p,'UPDATE_PREFERENCES',{changes:{language}});await eventually(async()=>await summary.textContent()===label);
+   await summary.scrollIntoViewIfNeeded();await summary.focus();
+   const g=await summary.evaluate(n=>{const r=n.getBoundingClientRect(),at=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height,font:parseFloat(getComputedStyle(n).fontSize),sw:n.scrollWidth,cw:n.clientWidth,sh:n.scrollHeight,ch:n.clientHeight,overflow:document.documentElement.scrollWidth-innerWidth,hit:at===n||n.contains(at),focused:document.activeElement===n};});
+   console.log('SAVED_SUMMARY_COARSE_TEXT200',variant,language,JSON.stringify(g));
+   assert.equal(g.font,initial.font*2);assert.ok(g.width>=44&&g.height>=44&&g.hit&&g.focused,'coarse enlarged summary remains reachable');assert.ok(g.overflow<=2&&g.sw<=g.cw&&g.sh<=g.ch,'enlarged label fits without clipping or horizontal overflow');
+   const opened=await details.evaluate(n=>n.open);await summary.evaluate(n=>{globalThis.__summaryTouch=[];n.addEventListener('click',e=>__summaryTouch.push({trusted:e.isTrusted,pointerType:e.pointerType}),{once:true});});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:g.x,y:g.y,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   await eventually(async()=>await details.evaluate(n=>n.open)!==opened,'trusted touch toggles the real saved-field disclosure');assert.deepEqual(await p.evaluate(()=>__summaryTouch),[{trusted:true,pointerType:'touch'}]);
+   await summary.focus();await p.keyboard.press('Space');assert.equal(await details.evaluate(n=>n.open),opened);assert.equal(await summary.evaluate(n=>document.activeElement===n),true);
+   await p.screenshot({path:`work/consumer-cleanup/${variant}-saved-summary-coarse-text200-${language}.png`});
+  }
+ }finally{await summary.evaluate((n,style)=>{if(style===null)n.removeAttribute('style');else n.setAttribute('style',style);},initial.style);try{await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});}finally{await cdp.detach();}}
+}
+
 async function setAIView(p,on){await rawSetAIView(p,on);if(on){const details=p.locator('[data-ai-saved-fields]');await details.waitFor();if(!await details.evaluate(n=>n.open))await details.locator('summary').click();}}
 
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -101,6 +123,6 @@ for(const variant of ['source','release'])test(`TOPIC-05.7 cached A never concea
  await p.evaluate(()=>{const n=document.querySelector('[data-ai-field="currentView"]');window.__localeField={node:n,text:n.textContent,first:n.firstChild};n.focus();n.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'中'}));});
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(async()=>await summary.textContent()==='Saved AI organization');assert.equal(await p.locator('[data-ai-field="currentView"]').getAttribute('aria-label'),'Current understanding');
  assert.deepEqual(await p.evaluate(()=>{const s=window.__localeField;return {same:s.node===document.querySelector('[data-ai-field="currentView"]'),first:s.first===s.node.firstChild,text:s.text===s.node.textContent};}),{same:true,first:true,text:true});
- await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(async()=>await summary.textContent()==='已保存的 AI 整理');await p.evaluate(()=>window.__localeField.node.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:''})));assert.deepEqual(await savedRow(p,topic.id),saved);await quiet(f.h);
+ await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(async()=>await summary.textContent()==='已保存的 AI 整理');await p.evaluate(()=>window.__localeField.node.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:''})));assert.deepEqual(await savedRow(p,topic.id),saved);await verifySavedSummaryAccess(p,variant);assert.deepEqual(await authority(p),before);assert.deepEqual(await savedRow(p,topic.id),saved);await quiet(f.h);
  }finally{await f.h.close();}
 });
