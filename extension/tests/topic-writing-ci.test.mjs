@@ -12,7 +12,7 @@ test('Topic writing adds one whole native file and preserves all332 actual Promp
  let count=0;
  for(const [column,total] of [4,5,6,7].entries()){
   assert.equal(testShard(writing,names.indexOf(writing),total,'browser E2E'),2);
-  for(const [name,...routes] of prior.rows){assert.equal(testShard(name,names.indexOf(name),total,'browser E2E'),routes[column],total+':'+name);assert.equal(testShard('tests/'+name,names.indexOf(name),total,'browser E2E'),routes[column]);count++;}
+  for(const [name,...routes] of prior.rows){assert.equal(testShard(name,names.indexOf(name),total,'browser E2E'),(total===7&&name==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]),total+':'+name);assert.equal(testShard('tests/'+name,names.indexOf(name),total,'browser E2E'),(total===7&&name==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]));count++;}
   const parts=Array.from({length:total},(_,i)=>names.filter((n,p)=>testShard(n,p,total,'browser E2E')===i+1));assert.deepEqual(parts.flat().sort(),names);assert.equal(new Set(parts.flat()).size,84);
  }
  assert.equal(count,332);

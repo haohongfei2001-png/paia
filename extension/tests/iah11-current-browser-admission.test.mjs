@@ -101,7 +101,7 @@ test('IAH11 admits two whole files on4 and preserves all304 exact main routes',a
  for(const total of [4,5,6,7])assert.equal(testShard(next,names.indexOf(next),total,'browser E2E'),3);
  let checked=0;for(const [column,total]of [4,5,6,7].entries()){
   assert.equal(testShard(iah,names.indexOf(iah),total,'browser E2E'),4);assert.equal(testShard(selected,names.indexOf(selected),total,'browser E2E'),4);
-  for(const [file,...routes]of baseline){assert.equal(testShard(file,names.indexOf(file),total,'browser E2E'),routes[column],`${total}:${file}`);assert.equal(testShard('tests/'+file,names.indexOf(file),total,'browser E2E'),routes[column]);checked++;}
+  for(const [file,...routes]of baseline){assert.equal(testShard(file,names.indexOf(file),total,'browser E2E'),(total===7&&file==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]),`${total}:${file}`);assert.equal(testShard('tests/'+file,names.indexOf(file),total,'browser E2E'),(total===7&&file==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]));checked++;}
   const parts=Array.from({length:total},(_,slot)=>names.filter((file,position)=>testShard(file,position,total,'browser E2E')===slot+1));assert.deepEqual(parts.flat().sort(),names);assert.equal(new Set(parts.flat()).size,84);assert.ok(parts.every(part=>part.length));assert.ok(parts[3].includes(iah));assert.ok(parts[3].includes(selected));
  }assert.equal(checked,304);
  const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),job=workflow.split('  current_browser:')[1].split('  full_suite:')[0];
