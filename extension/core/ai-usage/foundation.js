@@ -32,6 +32,32 @@ export class AIUsageFoundation {
   if(!Array.isArray(keys)||!keys.length||keys.length>100||keys.some(key=>typeof key!=='string'||key.length>450)||new Set(keys).size!==keys.length)fail();
   return this.read(async t=>{const items=[];for(const key of keys){const row=await t.get('meta',KNOWN_PREFIX+key);if(!row||row.descriptor.removed||row.descriptor.fenceOnly)fail('STALE_BASE');items.push({key,signature:row.signature,descriptor:row.descriptor});}return {items};});
  }
+ // Bounded scheduling-index maintenance, not job/receipt deletion or a retry.
+ // Preserve every original DEFER field under a non-scheduling history key.
+ async archiveObsoleteDeferred({cursor=null,limit=100}={}){
+  if(!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(typeof cursor!=='string'||!cursor.startsWith('aiu:defer:')||cursor.length>2000))fail();
+  return this.write(async t=>{
+   const page=await t.primaryRangePage('organizerWorkItems',{prefix:'aiu:defer:',after:cursor,limit});let archived=0;
+   for(const {value:row}of page.rows){
+    try{
+     exact(row,['id','kind','jobId','state','stateKey','sequence','unit','retryCondition','signature']);
+     const job=await t.get('organizerJobs',row.jobId);
+     if(row.kind!==KIND||row.state!=='DEFERRED'||row.stateKey!==0||!integer(row.sequence)||!opaque(row.retryCondition)||typeof row.signature!=='string'||!job||job.kind!==KIND)fail();
+     validateCoverage([row.unit],job.type);
+     if(row.id!=='aiu:defer:'+canonical([row.jobId,unitKey(row.unit)])||!job.childCoverage?.[row.sequence]?.some(u=>equal(u,row.unit))||!job.items?.some(i=>i.key===row.unit.key&&i.signature===row.signature))fail();
+    }catch(error){if(error.code==='INVALID_REQUEST')fail('DEFER_RECORD_INVALID');throw error;}
+    const known=await t.get('meta',KNOWN_PREFIX+row.unit.key),ack=await t.get('organizerWorkItems',coverId(row.unit.key,row.unit.facet,row.unit.scope));
+    const changed=known?.descriptor?.key===row.unit.key&&typeof known.signature==='string'&&(known.signature!==row.signature||known.descriptor.removed===true);
+    const acknowledged=ack?.kind===KIND&&ack.state==='ACKNOWLEDGED'&&ack.signature===row.signature&&equal(ack.unit,row.unit);
+    if(!changed&&!acknowledged)continue;
+    const history={...row,id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
+    if(prior&&!equal(prior,history))fail('DEFER_HISTORY_CONFLICT');
+    if(!prior)await t.put('organizerWorkItems',history);
+    await t.delete('organizerWorkItems',row.id);archived++;
+   }
+   return {scanned:page.rows.length,archived,nextCursor:page.next};
+  });
+ }
  async counters(){return this.read(async t=>await t.get('meta',COUNTERS)||{id:COUNTERS,skippedNoDelta:0,localResolved:0,cacheIntent:0,physicalAttempt:0});}
  async cacheIntent(){await this.write(t=>count(t,'cacheIntent'));}
  async current(t,job,{allowCancelled=false}={}){

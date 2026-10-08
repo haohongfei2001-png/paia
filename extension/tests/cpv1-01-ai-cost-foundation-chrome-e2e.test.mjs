@@ -86,6 +86,32 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
  return {cardinality,zero,captureCost,edit,cancelled:await s.repository.transaction(false,async t=>(await t.all('organizerJobs')).filter(j=>j.state==='CANCELLED_BEFORE_DISPATCH').length),defaultAuthorityMissing:s.aiUsageFoundation.resolveAuthority===null};
   });
   assert.deepEqual(boundedCost.cardinality,{jobs:100,items:10000,attempts:0});assert.equal(boundedCost.defaultAuthorityMissing,true);assert.ok(boundedCost.captureCost.reads<500,'bounded capture avoids per-job unchanged-evidence reads');assert.ok(boundedCost.edit.reads<1000,'one changed key cancels all affected scopes without rereading the corpus');assert.equal(boundedCost.cancelled,100);console.log('AI_NATIVE_BOUNDED_COST',label,JSON.stringify(boundedCost));
+  const deferredHistory=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js'),{AIUsageFoundation}=await import('../core/ai-usage/foundation.js'),{readMaintenanceBatch}=await import('../core/ai-usage/maintenance-batch.js');
+   const storage={values:{},async get(k){return {[k]:this.values[k]};},async set(v){Object.assign(this.values,v);}},s=new OrganizerStore(storage,{name:'aiu-native-defer-history'}),ai=new AIUsageFoundation(s,__aiu.options);
+   await s.consent(true);await s.capture({epoch:(await s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'defer-history',url:'https://chatgpt.com/c/defer-history',title:'Synthetic'},messages:[{sourceMessageId:'defer-one',pageOrder:1,originalText:'SYNTHETIC DEFER unchanged Source'}]});
+   const options={scope:'synthetic-defer',contractVersion:'synthetic',routeVersion:'synthetic'};
+   const snapshot=()=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(['meta','organizerJobs','organizerWorkItems','organizerUsage','records','inputStates'].map(async name=>[name,await t.all(name)]))));
+   const provider={describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>({accepted:true,operationReceiptId:'synthetic-defer'})};
+   for(let n=0;n<51;n++){
+    const batch=await readMaintenanceBatch(ai,options);if(batch.status!=='CANDIDATE_ONLY')throw Error('legal DEFER setup blocked '+n);
+    const job=await ai.plan(batch.request);await ai.reserve(job.id,{reservationId:'synthetic-defer'});for(const childId of job.childIds)await ai.dispatch(job.id,childId,provider);
+    for(const facet of ['topic','context'])await ai.commitFacet(job.id,job.childIds[0],{facet,units:batch.request.coverage.filter(u=>u.facet===facet),outcome:'DEFER',retryCondition:'synthetic-needs-context'});
+    const input=await s.input(batch.request.items[0].descriptor.entityId);await s.editDocument({operationId:crypto.randomUUID(),documentId:input.documentId,blocks:[{id:input.id,expectedRevision:input.revision,libraryText:'SYNTHETIC new DEFER signature '+n,note:input.note,excluded:input.excluded}]});
+   }
+   const before=await snapshot(),write=ai.write.bind(ai);let removed=0,error=null;
+   ai.write=fn=>write(t=>fn(new Proxy(t,{get(target,key){if(key==='delete')return async(...args)=>{await target.delete(...args);if(++removed===2)throw Error('synthetic abort archival');};const value=target[key];return typeof value==='function'?value.bind(target):value;}})));
+   try{await ai.archiveObsoleteDeferred();}catch(e){error=e.code;}finally{ai.write=write;}
+   const abortUnchanged=JSON.stringify(await snapshot())===JSON.stringify(before);
+   const result=await readMaintenanceBatch(ai,options),after=await snapshot(),histories=after.organizerWorkItems.filter(row=>row.id.startsWith('aiu:defer-history:'));
+   const {equal}=await import('../core/ai-usage/contracts.js');const preserved=histories.every(({id,originalId,...fields})=>equal({...fields,id:originalId},before.organizerWorkItems.find(row=>row.id===originalId)));
+   // Same unknown/malformed records remain fail-closed; this is a separate
+   // deliberate corruption fixture, not the normal-history reproduction.
+   await s.foundationWrite(async t=>{for(let n=0;n<101;n++)await t.put('organizerWorkItems',{id:'aiu:defer:malformed-'+n,kind:'ai_usage_v1',state:'DEFERRED'});});
+   const malformedBefore=await snapshot(),malformed=await readMaintenanceBatch(ai,options),malformedUnchanged=JSON.stringify(await snapshot())===JSON.stringify(malformedBefore);
+   return {nativeFactory:indexedDB instanceof IDBFactory,activeBefore:before.organizerWorkItems.filter(row=>row.id.startsWith('aiu:defer:')).length,error,removed,abortUnchanged,status:result.status,cleanup:result.cleanup,historyCount:histories.length,preserved,jobsUnchanged:JSON.stringify(before.organizerJobs)===JSON.stringify(after.organizerJobs),usageUnchanged:JSON.stringify(before.organizerUsage)===JSON.stringify(after.organizerUsage),recordsUnchanged:JSON.stringify(before.records)===JSON.stringify(after.records),inputsUnchanged:JSON.stringify(before.inputStates)===JSON.stringify(after.inputStates),malformedReason:malformed.reason,malformedUnchanged};
+  });
+  assert.equal(deferredHistory.nativeFactory,true);assert.equal(deferredHistory.activeBefore,102);assert.equal(deferredHistory.error,'STORAGE_FAILED');assert.equal(deferredHistory.removed,2);assert.equal(deferredHistory.abortUnchanged,true);assert.equal(deferredHistory.status,'CANDIDATE_ONLY');assert.equal(deferredHistory.cleanup.scanned,100);assert.equal(deferredHistory.cleanup.archived,100);assert.equal(deferredHistory.historyCount,100);assert.equal(deferredHistory.preserved,true);for(const key of ['jobsUnchanged','usageUnchanged','recordsUnchanged','inputsUnchanged','malformedUnchanged'])assert.equal(deferredHistory[key],true,key);assert.equal(deferredHistory.malformedReason,'DEFER_SCAN_BOUND');console.log('AI_NATIVE_DEFER_HISTORY',label,JSON.stringify(deferredHistory));
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{try{await h?.close();}finally{if(release)rmSync(release,{recursive:true,force:true});}}
 });

@@ -10,9 +10,9 @@ export async function readMaintenanceBatch(foundation,options){
  const {scope,contractVersion,routeVersion,cursor=null,limit=37}=options;
  if(![scope,contractVersion,routeVersion].every(opaque)||!Number.isInteger(limit)||limit<1||limit>50||cursor!==null&&(typeof cursor!=='string'||!cursor.startsWith(DIRTY_PREFIX)))fail();
  if(typeof foundation?.read!=='function'||typeof foundation?.current!=='function'||typeof foundation?.authority!=='function')fail('UNAVAILABLE');
- return foundation.read(async t=>{
+ const read=()=>foundation.read(async t=>{
   const page=await t.primaryRangePage('meta',{prefix:DIRTY_PREFIX,after:cursor,limit});
-  // Existing DEFER rows have no per-unit index or executable condition owner.
+  // Active DEFER rows have no per-unit index or executable condition owner.
   // Never silently overlook one or guess that its opaque reason has cleared.
   const deferred=await t.primaryRangePage('organizerWorkItems',{prefix:'aiu:defer:',limit:LIMIT});
   if(deferred.next!==null)return result('UNAVAILABLE',{reason:'DEFER_SCAN_BOUND'});
@@ -43,4 +43,11 @@ export async function readMaintenanceBatch(foundation,options){
   await foundation.current(t,{type:TYPE,items,coverage:sorted,authority,cancelEpoch:0});
   return result('CANDIDATE_ONLY',{...boundary,request:{type:TYPE,intent:'maintenance',items,coverage:sorted,children,contractVersion,routeVersion}});
  });
+ const initial=await read();
+ if(initial.reason!=='DEFER_SCAN_BOUND'||typeof foundation.archiveObsoleteDeferred!=='function')return initial;
+ let cleanup;
+ try{cleanup=await foundation.archiveObsoleteDeferred({limit:LIMIT});}catch(error){if(error.code==='DEFER_RECORD_INVALID')return {...initial,cleanup:{blocked:true,reason:error.code}};throw error;}
+ // One bounded archival transaction and one fresh qualification read, never a
+ // loop, background scheduler, condition guess or provider retry.
+ return {...await read(),cleanup};
 }
