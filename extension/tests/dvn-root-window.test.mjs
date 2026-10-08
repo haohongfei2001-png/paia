@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {wireSearchKeyboard} from '../ui/search-experience.js';
 import {ContinuousRootReader} from '../ui/continuous-root-reader.js';
+import {ContinuousTopicReader} from '../ui/continuous-topic-reader.js';
 import {FilterRunner} from '../core/filter-runner.js';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {setup} from './harness/thought-m1.mjs';
@@ -136,16 +137,22 @@ test('D2 live Topic constructor initializes view sessions once without executing
  try{const controller=new TopicController({onStatus(){},onOpen(){}});await Promise.resolve();assert.equal(controller.originalMode,'content');assert.ok(controller.aiViewSession);assert.equal(controller.aiCandidateChoices,undefined,'retired approval state is not constructed');assert.ok(controller.timelinePositions);assert.ok(controller.contentPositions);assert.equal(get('library-rebuild-search').listeners.get('click').length,1);assert.equal(get('thought-search').listeners.get('input').length,1);assert.equal(get('topic-search').listeners.get('input').length,1);assert.equal(get('ai-presentation-toggle').listeners.get('change').length,1);}finally{for(const [key,value]of previous)if(value===undefined)delete globalThis[key];else globalThis[key]=value;}
 });
 test('D2 held large-body read cannot enter a new editor or an old expression generation',async()=>{
- const previous=globalThis.chrome;
- try{
-  for(const mode of ['route','revision','generation','current']){
-   let finish,added=0,painted=0,refreshed=0,rendered;const node={isConnected:true,replaceWith(){painted++;}},owner={entry:{addRows(){added++;}}},descriptor={entry:{id:'entry',revision:7,expressionTime:{basis:'source',year:2021,at:'2021-01-01T00:00:00Z'},timeBasis:'source'}};
-   const reader={sort:'asc',query:'',coverage:{activeGeneration:'G'},items:[descriptor],index:new Map([['entry',0]]),bodyRevision:0,trimBodies(){},load:async options=>{assert.equal(options.expectedReadGeneration,'G');return mode==='generation'?{cursorInvalid:true,items:[]}:{items:[descriptor]};}};
-   const w=Object.assign(Object.create(TopicController.prototype),{id:'topic',view:'original',serial:1,editor:owner,topicReader:reader,onStatus(){},refresh(){refreshed++;},entryNode(item){rendered=item;return {};}});globalThis.chrome={runtime:{sendMessage:()=>new Promise(resolve=>finish=resolve)}};
-   const pending=w.loadLargeEntry(descriptor,node);if(mode==='route')w.editor={entry:{addRows(){throw Error('wrong owner');}}};finish({ok:true,data:{id:'entry',revision:mode==='revision'?8:7,body:'SYNTHETIC_LARGE_BODY'}});await pending;
-   assert.equal(added,mode==='current'?1:0,mode);assert.equal(painted,mode==='current'?1:0,mode);assert.equal(refreshed,['revision','generation'].includes(mode)?1:0,mode);if(mode==='current'){assert.equal(rendered.entry.body,'SYNTHETIC_LARGE_BODY');assert.deepEqual(rendered.entry.expressionTime,descriptor.entry.expressionTime);assert.equal(reader.items[0].entry.body,'SYNTHETIC_LARGE_BODY');assert.equal(reader.items[0].entry.large,undefined);assert.equal(reader.bodyRevision,1);}
-  }
- }finally{globalThis.chrome=previous;}
+ for(const mode of ['route','revision','generation','current']){
+  let finish,added=0,painted=0,refreshed=0,rendered;
+  const node={isConnected:true,replaceWith(){painted++;}},owner={entry:{addRows(){added++;}}};
+  const descriptor={entry:{id:'entry',revision:7,large:true,expressionTime:{basis:'source',year:2021,at:'2021-01-01T00:00:00Z'},timeBasis:'source'},placement:{id:'placement',topicId:'topic',sectionId:'section',layoutGeneration:1,revision:1,rank:'000000001024'}};
+  const reader=new ContinuousTopicReader({loadEntry:id=>{assert.equal(id,'entry');return new Promise(resolve=>finish=resolve);},load:async options=>{
+   assert.equal(options.expectedReadGeneration,'G');assert.equal(options.anchorId,'entry');
+   return mode==='generation'?{cursorInvalid:true,items:[]}:{kind:'section_reading',topic:{id:'topic'},coverage:{activeGeneration:'G'},recoveryEpoch:'E',items:[descriptor],sections:[]};
+  }});
+  reader.reset({topicId:'topic',sort:'asc',query:''});reader.coverage={activeGeneration:'G'};reader.recoveryEpoch='E';reader.items=[descriptor];reader.index.set('entry',0);
+  const w=Object.assign(Object.create(TopicController.prototype),{id:'topic',view:'original',serial:1,editor:owner,topicReader:reader,originalPane:{querySelectorAll:()=>[]},onStatus(){},refresh(){refreshed++;},entryNode(item){rendered=item;return {dataset:{}};}});
+  const pending=w.loadLargeEntry(descriptor,node);assert.equal(typeof finish,'function','the actual reader reached its held canonical-body read');
+  if(mode==='route')w.editor={entry:{addRows(){throw Error('wrong owner');}}};
+  finish({id:'entry',revision:mode==='revision'?8:7,body:'SYNTHETIC_LARGE_BODY',lifecycle:'active',recoveryEpoch:'E'});await pending;
+  assert.equal(added,mode==='current'?1:0,mode);assert.equal(painted,mode==='current'?1:0,mode);assert.equal(refreshed,['revision','generation'].includes(mode)?1:0,mode);
+  if(mode==='current'){assert.equal(rendered.entry.body,'SYNTHETIC_LARGE_BODY');assert.deepEqual(rendered.entry.expressionTime,descriptor.entry.expressionTime);assert.equal(rendered.placement.sectionId,'section');assert.equal(reader.items[0].entry.body,'SYNTHETIC_LARGE_BODY');assert.equal(reader.items[0].entry.large,undefined);assert.equal(reader.bodyRevision,1);}
+ }
 });
 
 test('D2 cache plus staged replay stays within120 and a held second page releases all old-scope bodies on reset',async()=>{
