@@ -78,7 +78,7 @@ def build(lang):
         return f'''<header class="site-header"><div class="header-inner">
 <div class="brand-lockup"><a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}">PAIA</a></div>
 <nav class="desktop-nav" aria-label="{t('主导航','Main navigation')}">{nav}</nav>
-<div class="header-actions"><a class="language" href="{other}" lang="{'zh-CN' if en else 'en'}" hreflang="{'zh-Hans' if en else 'en'}">{t('EN','中文')}</a>{button('beta.html',t('申请内测','Request beta access'),'button button-small')}</div>
+<div class="header-actions"><a class="language" href="{other}" lang="{'zh-CN' if en else 'en'}" hreflang="{'zh-Hans' if en else 'en'}">{t('EN','中文')}</a>{button('beta.html',t('申请内测','Request beta'),'button button-small')}</div>
 <details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}{a('status.html',t('当前状态','Current status'))}</nav></details>
 </div></header>'''
     def footer():

@@ -174,6 +174,7 @@ try:
                 check(not errors, f'{name}: {width}px no JS errors')
                 check(not external, f'{name}: {width}px no unsolicited external requests')
                 if width == 320 and name in ('index.html','zh/index.html'):
+                    page.screenshot(path=str(OUT / f'{name.replace("/","-")}-320-header.png'))
                     check(page.locator('.mobile-menu summary').bounding_box()['y'] < 60, f'{name}: 320px menu stays in the header row')
                 if width == 320:
                     page.add_style_tag(content='html{font-size:200%!important}')

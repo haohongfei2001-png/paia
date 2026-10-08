@@ -47,7 +47,7 @@ def render_trust(t, a, invitation):
 def render_status(t, a, invitation, statusmini):
     rows = [
         (t('输入档案', 'Input Archive'), t('Chrome / ChatGPT 的本地采集、查找、编辑与来源核对已有集成实现。', 'Local Chrome / ChatGPT capture, search, working-text editing and source readback are integrated.')),
-        (t('个人提示词', 'Personal prompts'), t('本地常用表达、编辑、固定、排序和手动填入已有实现。实际支持范围以获邀版本为准。', 'Local reusable phrases, editing, pinning, ordering and manual insertion are implemented. Your invited build determines actual support.')),
+        (t('个人提示词', 'Personal prompts'), t('本地常用表达、编辑、固定、排序和手动填入已有实现。默认关闭的本地下一步建议也已合入开发版；实际可用范围仍以获邀版本和真实站点验证为准。', 'Local reusable phrases, editing, pinning, ordering and manual insertion are implemented. Optional local next-step suggestions, off by default, are also integrated into development builds. Actual support depends on your invited build and site validation.')),
         (t('Thought Library', 'Thought Library'), t('个人主题与章节阅读已有基础；完整写作、组织体验和 AI 阅读方式仍在完善。', 'Personal topics and section reading have an integrated foundation. The full writing, organization and AI reading experience is still being completed.')),
         (t('四卡 Context', 'Four-card Context'), t('本地界面与手动内容管理已有基础，完整自动维护与真实外部 AI 按需读取尚未开放。', 'Local cards and manual content management have an integrated foundation. Full automatic maintenance and real external AI reading are not available.')),
         (t('AI 整理与协助', 'AI organization and assistance'), t('三种整理方式及明确的用户控制已确定。真实模型服务、质量和费用支持尚未上线。', 'Three reading styles and explicit user controls are approved. Live model services, quality validation and billing support are not launched.')),

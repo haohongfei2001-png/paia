@@ -7,6 +7,9 @@ permissions, services and the coordinated product writers are outside this work.
 
 Website writer: `feat/website-product-consistency-20261008`.
 Source reconciliation began at main `075fd12288c4c922eaf85e417e4da507061a9422`.
+Integration review at main `c877ded684b0ebc492839755daf964914f407fc8` found
+unchanged approved contracts and the newly integrated 0.24 local Prompt Next
+foundation; the availability wording below includes that update.
 The site is the root static website in this repository, published through the
 existing GitHub Pages process to `https://inputarchive.com`.
 
@@ -51,7 +54,7 @@ live service, an installed extension or product release.
 | Personal Topic → Section → Entry; source and timeline, human organization priority; Thought example and how-to | `TOPIC_ARCHITECTURE.md` PT-01–11; `THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md` | Integrated foundations, final experience still completing. Preset grouping is not live AI |
 | Three whole-input references follow the corresponding working edit in this example | `TOPIC_ARCHITECTURE.md` PT-02; retained Technical Plan body binding; `extension/ARCHITECTURE.md` whole one-to-one binding | Narrowly labelled reference example. Independently edited Thought bodies are not overwritten |
 | AI finds related themes in permitted material; three derivative reading styles, Original-first / Balanced / More concise | `TOPIC_ARCHITECTURE.md` PT-03–08; `AI_ORGANIZE_STYLE_CONTRACT.md` §§1–4; `AI_USAGE_ARCHITECTURE.md` §1.2 | Planned. Preset text retains chronological changes and becomes visibly stale after a source edit |
-| Personal prompt wording, pinning/order, intentional insertion; Prompt example and essay | `PROMPT_REUSE_SURFACE.md` §§4–8 and 11; `PROMPT_REUSE_STAGE_3A.md` | Local core implemented; example has no external composer. Existing draft is preserved; never auto-sends. Optional reply suggestion is a preset of planned capability |
+| Personal prompt wording, pinning/order, intentional insertion; Prompt example and essay | `PROMPT_REUSE_SURFACE.md` §§4–8 and 11; `PROMPT_REUSE_STAGE_3A.md` | Local core implemented; example has no external composer. Existing draft is preserved; never auto-sends. Local default-off Stage 3A is integrated in 0.24; real-site and installed-build validation remain separate. New model-generated suggestions remain planned. The website reply suggestion is a preset, not a live result |
 | Four independent Context cards; overview, separate editing, removal/undo, My Inputs topic controls | `AI_CONTEXT_CARDS_V2_PLAN.md` §§1.1–1.3; adoption and current `extension/AI_CONTEXT.md` | Local foundations; no real connection. The website uses a compact illustration, not an asserted product screenshot |
 | Global, card and Topic access start off; pause retains lower choices; opening lower scope never opens parents; no Archive fallback | `AI_CONTEXT_CARDS_V2_PLAN.md` §§1.3–1.4, CTX4-03–06 | Demonstrated as permission scope only. No real grants, client, reads or network traffic. Closing a Topic does not erase independent card Items |
 | Connected AI can read open Context and eligible complete Topic content on demand; no per-task materials packet | `AI_CONTEXT_CARDS_V2_PLAN.md` §1.4 | Explicitly planned/unavailable. No fictitious “Connect” button. Revocation cannot recall already-delivered external content |
