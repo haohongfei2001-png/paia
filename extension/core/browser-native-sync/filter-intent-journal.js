@@ -21,6 +21,13 @@ async function sources(t,key){
  return rows;
 }
 
+const restoredProofs=new WeakMap();
+export async function prepareRestoredFilterSources(records){
+ if(!Array.isArray(records)||records.length>128)fail('BNS_FILTER_SOURCE_UNQUALIFIED');
+ const byKey=new Map();for(const candidate of records){const row=projectEntity('source',candidate);await validateEntityAsync('source',row);const rows=byKey.get(row.sourceKey)||[];rows.push(row);if(rows.length>LIMIT||rows.reduce((n,x)=>n+x.originalText.length,0)>BODY_LIMIT)fail('BNS_FILTER_SOURCE_UNQUALIFIED');byKey.set(row.sourceKey,rows);}
+ const cap=Object.freeze({});restoredProofs.set(cap,byKey);return cap;
+}
+
 export class FilterIntentSyncJournal{
  constructor(core){this.core=core;this.fence=new JournalRestoreFence(core);this.prepared=new WeakMap();this.working=new WeakSet();}
  assertStore(store){if(store.repository!==this.core.repository)fail('BNS_BINDING_CHANGED');}
@@ -34,6 +41,11 @@ export class FilterIntentSyncJournal{
  async current(t,before){
   if(!equal(await this.fence.snapshot(t),before.fence)||((await t.get('meta','backup-data-generation'))?.value||0)!==before.generation)fail('BNS_FILTER_SOURCE_CHANGED');
   for(let i=0;i<before.keys.length;i++)if(!equal(await sources(t,before.keys[i]),before.sources[i])||!equal((await t.get('filterIntents',before.keys[i]))??null,before.local[i]??null))fail('BNS_OWNER_CHANGED');
+ }
+ async restoredSources(t,cap,keys){
+  const proof=restoredProofs.get(cap);if(!proof||!Array.isArray(keys)||!keys.length||keys.length>LIMIT||new Set(keys).size!==keys.length)fail('BNS_PREPARATION_REQUIRED');
+  const rows=[];for(const key of keys){const current=await sources(t,key),expected=proof.get(key);if(!expected||!equal([...current].sort((a,b)=>a.id.localeCompare(b.id)),[...expected].sort((a,b)=>a.id.localeCompare(b.id))))fail('BNS_FILTER_SOURCE_CHANGED');rows.push(current);}
+  return {keys,sources:rows,local:await Promise.all(keys.map(key=>t.get('filterIntents',key))),fence:await this.fence.snapshot(t),generation:(await t.get('meta','backup-data-generation'))?.value||0};
  }
  async prepareKeep(store,id){
   this.assertStore(store);
@@ -68,6 +80,10 @@ export class FilterIntentSyncJournal{
  }
  release(prepared){this.prepared.delete(prepared);}
  async commit(t,prepared){if(!this.prepared.has(prepared))fail('BNS_PREPARATION_REQUIRED');return this.core.commitPrepared(t,prepared,{materialize:false});}
+ async applyRestored(t,cap,sourceProof){
+  const a=filterApplications.get(cap);if(!a||a.journal!==this)fail('BNS_PREPARATION_REQUIRED');const operation=a.operation,before=await this.restoredSources(t,sourceProof,[operation.entityId]);
+  return applyFilterOwner(this,t,operation,before);
+ }
  async receive(input){
   const operation=clone(await validateOperation(input));if(operation.datasetId!==this.core.datasetId)fail('BNS_DATASET_MISMATCH');
   if(operation.type!=='filterIntent'||operation.kind!=='put'||operation.value?.reason!=='restored_from_filter')fail('BNS_FILTER_WRITER_UNSUPPORTED');validateEntity('filterIntent',operation.value);
@@ -75,14 +91,25 @@ export class FilterIntentSyncJournal{
   // This bounded owner does not admit unresolved dependency queues or full restore.
   return this.core.transaction(true,async t=>{
    await this.current(t,before);
-   for(const parent of operation.parents)if(!await this.core.get(t,'revision',parent))fail('BNS_FILTER_ANCESTRY_REQUIRED');
-   const old=await this.core.get(t,'head','filterIntent',operation.entityId),local=before.local[0];
-   if(old?.purged)fail('BNS_ENTITY_PURGED');
-   if(local){const values=await Promise.all((old?.revisions||[]).map(async id=>(await this.core.get(t,'revision',id))?.operation.value));if(!values.some(value=>equal(value,local)))fail('BNS_OWNER_CHANGED');}
-   const result=await this.core.applyInTransaction(t,operation,{origin:'remote',materialize:false});
-   const head=await this.core.get(t,'head','filterIntent',operation.entityId);
-   if(head?.revisions.length===1&&head.revisions[0]===operation.revisionId&&!equal(before.local[0]??null,operation.value))await t.put('filterIntents',clone(operation.value));
-   return result;
+   return applyFilterOwner(this,t,operation,before);
   });
  }
+}
+
+const filterApplications=new WeakMap();
+export async function prepareFilterApplication(journal,input){
+ if(!(journal instanceof FilterIntentSyncJournal))fail('BNS_BINDING_CHANGED');const operation=clone(await validateOperation(input));
+ if(operation.datasetId!==journal.core.datasetId)fail('BNS_DATASET_MISMATCH');
+ if(operation.type!=='filterIntent'||operation.kind!=='put'||operation.value?.reason!=='restored_from_filter')fail('BNS_FILTER_WRITER_UNSUPPORTED');
+ const cap=Object.freeze({});filterApplications.set(cap,{journal,operation});return cap;
+}
+async function applyFilterOwner(journal,t,operation,before){
+   for(const parent of operation.parents)if(!await journal.core.get(t,'revision',parent))fail('BNS_FILTER_ANCESTRY_REQUIRED');
+   const old=await journal.core.get(t,'head','filterIntent',operation.entityId),local=before.local[0];
+   if(old?.purged)fail('BNS_ENTITY_PURGED');
+   if(local){const values=await Promise.all((old?.revisions||[]).map(async id=>(await journal.core.get(t,'revision',id))?.operation.value));if(!values.some(value=>equal(value,local)))fail('BNS_OWNER_CHANGED');}
+   const result=await journal.core.applyInTransaction(t,operation,{origin:'remote',materialize:false});
+   const head=await journal.core.get(t,'head','filterIntent',operation.entityId);
+   if(head?.revisions.length===1&&head.revisions[0]===operation.revisionId&&!equal(before.local[0]??null,operation.value))await t.put('filterIntents',clone(operation.value));
+   return result;
 }

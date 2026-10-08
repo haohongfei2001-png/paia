@@ -11,12 +11,29 @@ export class SourceBootstrapReceiver{
  async receive(input){
   await this.store.finishFoundation();
   const before=await this.store.run(()=>this.core.transaction(false,t=>this.current(t)));
-  const prepared=await this.core.prepareSourceBootstrapReceive(input),v=prepared.descriptor.value,entities=Object.fromEntries(prepared.members.map(op=>[op.value.entityType,op.value.entity]));
-  if(Object.keys(entities).length!==6||v.sourceId!==entities.source?.id||v.sourceKey!==entities.source?.sourceKey||v.documentId!==entities.inputDocument?.id||v.inputId!==entities.input?.id||v.baselineId!==entities.baselineRevision?.id)fail('BNS_SOURCE_BOOTSTRAP_INVALID');
-  const capability=await prepareInitialSourcePlan(entities);
+  const application=await prepareBootstrapApplication(this.store,this.core,input);
   return this.store.run(()=>this.core.transaction(true,async t=>{
    if(!equal(await this.current(t),before))fail('BNS_SOURCE_BOOTSTRAP_CHANGED');
-   const snapshot=await sourceBootstrapSnapshot(this.store,this.core,t,entities.source),receipt=await this.core.get(t,'receipt',prepared.descriptor.operationId);
+   return applyBootstrapApplication(t,application);
+  }));
+ }
+}
+
+// Trusted grouped-checkpoint seam: cryptographic preparation outside IDB, same
+// original domain qualification and writer inside the coordinator transaction.
+const applications=new WeakMap();
+export async function prepareBootstrapApplication(store,core,input){
+ if(store.repository!==core.repository)fail('BNS_SOURCE_BOOTSTRAP_BINDING');
+  const prepared=await core.prepareSourceBootstrapReceive(input),v=prepared.descriptor.value,entities=Object.fromEntries(prepared.members.map(op=>[op.value.entityType,op.value.entity]));
+  if(Object.keys(entities).length!==6||v.sourceId!==entities.source?.id||v.sourceKey!==entities.source?.sourceKey||v.documentId!==entities.inputDocument?.id||v.inputId!==entities.input?.id||v.baselineId!==entities.baselineRevision?.id)fail('BNS_SOURCE_BOOTSTRAP_INVALID');
+  const capability=await prepareInitialSourcePlan(entities);
+ const cap=Object.freeze({});applications.set(cap,{store,core,prepared,entities,capability});return cap;
+}
+export async function applyBootstrapApplication(t,application){
+ const a=applications.get(application);if(!a)fail('BNS_PREPARATION_REQUIRED');
+ const {store,core,prepared,entities,capability}=a;
+ const before=await new SourceBootstrapReceiver(store,core).current(t);
+   const snapshot=await sourceBootstrapSnapshot(store,core,t,entities.source),receipt=await core.get(t,'receipt',prepared.descriptor.operationId);
    if(receipt){
     if(receipt.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');
     // Exact old ACK may not recreate a deleted/edited Source or a lost baseline.
@@ -26,10 +43,8 @@ export class SourceBootstrapReceiver{
     return {state:'duplicate'};
    }
    requireAbsent(snapshot);
-   return this.core.commitSourceBootstrapReceive(t,prepared,async()=>{
-    await this.store.applyInitialSource(t,capability);
-    if(!before.fence.marker)await this.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:before.fence.epoch});
+   return core.commitSourceBootstrapReceive(t,prepared,async()=>{
+    await store.applyInitialSource(t,capability);
+    if(!before.fence.marker)await core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:before.fence.epoch});
    });
-  }));
- }
 }
