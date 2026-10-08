@@ -2,14 +2,18 @@ import {PROMPT_REUSE_ROW,readPromptPreferences} from '../prompt-reuse-preference
 import {projectEntity,validateEntity} from './codecs.js';
 import {clone,equal,fail,opaque} from './value.js';
 
+export async function readRestoreEpoch(t){
+ const row=await t.get('meta','recovery-restore-epoch');
+ if(row!==undefined&&row!==null&&(!row||Object.keys(row).some(k=>!['id','value'].includes(k))||!opaque(row.value)))fail('BNS_RESTORE_EPOCH_INVALID');
+ return row?.value??null;
+}
+
 // Shared persistent fence for the admitted local journals, not sync identity.
 // An old namespace after local backup replacement requires explicit reconciliation.
 export class JournalRestoreFence {
  constructor(core){this.core=core;this.prepared=new WeakMap();}
  async snapshot(t){
-  const row=await t.get('meta','recovery-restore-epoch');
-  if(row!==undefined&&row!==null&&(!row||Object.keys(row).some(k=>!['id','value'].includes(k))||!opaque(row.value)))fail('BNS_RESTORE_EPOCH_INVALID');
-  const epoch=row?.value??null,namespace=await this.core.bind(t),marker=await this.core.get(t,'ownerRecoveryEpoch');
+  const epoch=await readRestoreEpoch(t),namespace=await this.core.bind(t),marker=await this.core.get(t,'ownerRecoveryEpoch');
   if(marker){
    if(marker.version!==1||Object.keys(marker).some(k=>!['id','version','epoch'].includes(k))||marker.epoch!==null&&!opaque(marker.epoch))fail('BNS_RESTORE_EPOCH_INVALID');
    if(marker.epoch!==epoch)fail('BNS_RESTORE_EPOCH_CHANGED');

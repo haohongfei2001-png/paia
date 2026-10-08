@@ -1,7 +1,7 @@
 import {CONTEXT_CARDS_ROW,readContextCards,validContextCards} from '../context-cards.js';
 import {validateEntity} from './codecs.js';
-import {clone,equal,fail} from './value.js';
-import {JournalRestoreFence} from './prompt-journal.js';
+import {clone,equal,fail,exact,opaque} from './value.js';
+import {JournalRestoreFence,readRestoreEpoch} from './prompt-journal.js';
 const infoTypes=Object.freeze({info:'contextItem'});
 const manualTypes=Object.freeze({...infoTypes,rules:'contextRulesItem',now:'contextNowItem'});
 const itemType=(types,item)=>{const type=types[item?.card];if(!type)fail('BNS_CONTEXT_SCOPE_UNAVAILABLE');return type;};
@@ -18,8 +18,9 @@ function step(operation,parent=null){
   if(next.deletedBy!==operation.operationId||!equal(next.body,before.body)||!equal(next.section,before.section))fail('BNS_CONTEXT_TRANSITION_INVALID');
  }else if(next.deletedBy!==null)fail('BNS_CONTEXT_TRANSITION_INVALID');
 }
-async function chain(t,core,operation){
+async function chain(t,core,operation,verified=null){
  for(let n=0;n<128;n++){
+  if(verified&&operation.revisionId===verified.revisionId)return;
   if(operation.parents.length>1)fail('BNS_CONTEXT_CONFLICT_UNSUPPORTED');
   const parentId=operation.parents[0],parent=parentId?(await core.get(t,'revision',parentId))?.operation:null;
   if(parentId&&!parent)fail('BNS_REVISION_MISSING');
@@ -62,14 +63,27 @@ function materializer(core,types){
   if(!Object.values(types).includes(operation.type))fail('BNS_CONTEXT_SCOPE_UNAVAILABLE');
   const type=operation.type;
   if(head.purged)fail('BNS_CONTEXT_PURGE_SCOPE_UNAVAILABLE');
-  await chain(t,core,operation);
   const value=validateEntity(type,operation.value),row=await readContextCards(t),index=row.items.findIndex(x=>x.id===value.id),local=row.items[index];
+  const epoch=await readRestoreEpoch(t),proof=await core.materializedOwner(t,type,value.id),binding=await core.get(t,'contextValidation',type,value.id);let verified=null;
+  if(binding&&!proof)fail('BNS_OWNER_PROOF_INVALID');
+  if(proof){
+   if(!binding||!exact(binding,['id','version','epoch','revisionId'])||binding.version!==1||binding.revisionId!==proof.revisionId||binding.epoch!==null&&!opaque(binding.epoch))fail('BNS_OWNER_PROOF_INVALID');
+   if(binding.epoch!==epoch)fail('BNS_RESTORE_EPOCH_CHANGED');
+   if(previousHead&&!previousHead.purged&&previousHead.revisions.length===1&&previousHead.revisions[0]===proof.revisionId&&local&&local.revision===proof.ownerRevision&&equal(local,proof.operation.value))verified=proof.operation;
+   // A lawful journaled local change can advance past this older proof. It
+   // must use the full bounded chain and normal local-owner checks below.
+  }
+  await chain(t,core,operation,verified);
   if(local){if(!previousHead)fail('BNS_RESTORE_UNMANAGED_OWNER');if(!previousVersions.some(p=>equal(p.value,local)))fail('BNS_OWNER_CHANGED');}
   else if(previousHead&&!previousHead.purged)fail('BNS_OWNER_CHANGED');
   if(index<0)row.items.push(clone(value));else row.items[index]=clone(value);
   row.sequence=Math.max(row.sequence,value.order+1);
   if(!validContextCards(row))fail('BNS_CONTEXT_OWNER_INVALID');
   await t.put('meta',row);
+  // Only this successful canonical materialization establishes the next bounded
+  // validation anchor. It cannot be borrowed across namespace/restore epochs.
+  await core.recordMaterializedOwner(t,operation,value.revision);
+  await core.put(t,'contextValidation',[type,value.id],{version:1,epoch,revisionId:operation.revisionId});
  };
 }
 
