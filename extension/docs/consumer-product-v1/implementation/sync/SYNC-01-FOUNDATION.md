@@ -130,3 +130,17 @@ snapshots full incoming batches/objects before asynchronous validation, rejects
 sparse arrays, bounds aggregate decoded operation bytes before chunk allocation,
 uses own-property codec registry admission, and quarantines terminal invalid pending ancestry without failing a valid parent.
 Focused regression evidence includes each reproduced failure; no gate was waived.
+
+## Local Prompt receive owner protection follow-up
+
+Based on merged main `c168b13170d762b4774740ce218613a45e31cde4`. Read-only audit found that ordinary `materializePrompt` receive bypassed the unmanaged/changed-owner checks already used by staged restore. Real synthetic `PromptReuseService` writes demonstrated both an independent existing manual template and an unjournaled local edit being overwritten by remote application. `/tmp/sync-prompt-owner-before.log` preserves two missing-rejection failures.
+
+The local correction captures the previous protocol head and its bounded current versions in the same Core transaction before changing the head or redacting history. Remote Prompt application and staged restore then use one existing owner-qualification rule: empty unmanaged owners may accept a first operation; populated unmanaged owners and changed portable canonical content refuse. A refusal rolls back all owner/protocol metadata, including receipts, revisions, heads, frontiers, outbox and generation. Device-local reuse counters remain excluded from the portable comparison and continue to survive valid remote updates. Explicit local commits keep their existing behavior.
+
+`/tmp/sync-prompt-owner-final-unit.log`: seven complete relevant Core/Prompt files, **109/109 PASS**, no skips/cancellations. New tests use real synthetic repositories and actual PromptReuseService actions, compare complete meta rows before/after rejected receive, and cover valid empty first application, managed descendant and duplicate delivery. The existing aggregate Prompt purge rejection is separately asserted with whole-meta rollback; no deletion policy, purge admission, schema, cloud adapter, worker activation or permission changed.
+
+Existing storage-native harness preflight: **6/6 PASS** (`/tmp/sync-prompt-native-preflight.log`). The complete existing `native-sync/storage-chrome.test.mjs` source/release file then passed **32/32**, zero skipped/cancelled, 13.700 seconds (`/tmp/sync-prompt-owner-native.log`). Each variant additionally exercises actual PromptReuseService unmanaged and changed-owner refusal through native IndexedDB, compares every meta row across rollback, and accepts a legitimately empty first receive. These are synthetic local operations through the real owner, not cloud transport. Existing worker-restart, native-factory and zero-network assertions remain intact.
+
+Generated storage receipts retain production byte hashes and report all three new owner outcomes. SHA-256: source `bd6156be8679cfae3fb44c3f2218fd683039db9d8316bd2d7b771ab8c38260e6`; release `7f8fc7e445ae2610b0f4d1b304d96398c764e43a9fc2fd7ccd30899055ed4f9b`. Their HEAD/tree identify the base checkout; `productionHashes` identify the tested, uncommitted candidate bytes.
+
+This is local candidate evidence awaiting independent review and required integration gates. It does not close full Prompt purge/restore, dataset retirement, all-codec restoration, production Sync activation or real cloud recovery. The prior pure-Core retirement fixture still has a deliberate no-op owner and cannot stand in for Prompt purge materialization.

@@ -159,6 +159,22 @@ async function run(command, args = {}) {
       receipt: args.publicationId ? await core.read('publicationReceipt', args.publicationId) : null,
       pending: await journal.pending(), snapshot: await snapshot(args.name)};
   }
+  if (command === 'prompt-owner-guard') {
+    const remote=await device('guard_remote'),local=await device('guard_'+args.mode);
+    let operations=(await collect(remote.core.outbox()));
+    if(!operations.length){await change({name:'guard_remote',text:'Synthetic remote initial'});await change({name:'guard_remote',text:'Synthetic remote descendant'});operations=await collect(remote.core.outbox());}
+    operations.sort((a,b)=>a.sequence-b.sequence);
+    const service=new PromptReuseService(local.store);
+    if(args.mode==='changed')await local.core.receive(operations[0]);
+    if(args.mode!=='empty'){
+      const prefs=await local.store.repository.transaction(false,t=>readPromptPreferences(t));
+      await service.change(args.mode==='changed'?{action:'edit',id:prefs.overrides[0].id,revision:prefs.revision,text:'Synthetic independent local edit'}:{action:'create',revision:prefs.revision,text:'Synthetic independent local manual'});
+    }
+    const before=await local.store.repository.transaction(false,t=>t.all('meta'));let code=null,result=null;
+    try{result=await local.core.receive(operations[args.mode==='changed'?1:0]);}catch(error){code=error.code;}
+    const after=await local.store.repository.transaction(false,t=>t.all('meta'));
+    return {before,after,code,result,snapshot:await snapshot('guard_'+args.mode)};
+  }
   if (command === 'identity') return {...networkEvidence(), databases: (await indexedDB.databases()).map(row => row.name)};
   if (command === 'pause-for-restart') { phase('restart-boundary'); return true; }
   if (command === 'snapshot') return snapshot(args.name);
