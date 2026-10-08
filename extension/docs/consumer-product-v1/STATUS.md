@@ -1,5 +1,11 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Latest integration checkpoint — 2026-10-08 23:23 UTC
+
+PR220/0.33 merged normally at `eece4e42bafb4e0be19531bb487f06d7bfd46fe9`, tree `51436b14b46861b42ae72307e6516a08a69e01c1`, after Full37856573572 and Prompt37856573450 SUCCESS. Exact-main Full37858439480 / Prompt37858439430 are pending. Its byte-verified420-file package includes Settings recovery-focus continuity; no automatic installation. 0.32 exact-main Full37855910790 / Prompt37855910855 also passed.
+
+The local0.34 candidate adds reviewed two–four-child atomic local Organize closure. Original source/release AI plus current backup combination passes4/4. Complete unit coverage has4453passes and one retained stale-version-test failure; the corrected two whole version files pass4/4 with runtime unchanged. This is not reported as a single clean full run. See [COHERENT-034-CANDIDATE](implementation/verification/COHERENT-034-CANDIDATE.md) for exact identities, unchanged-evidence reuse and pending hosted gates. Human Library graph Sync remains under development. The next independently audited AI semantic-style return repair is outside this frozen candidate. No production Qwen, financial expansion, multi-child exact-cache, physical/account or installed completion is claimed.
+
 ## Latest integration checkpoint — 2026-10-08 22:51 UTC
 
 PR219/0.32 merged normally at `57ba551cf3ab7bb3adb08bac9e98aaecbdc7166f`, tree `2d1d8ba6a089fc163d7583eda38b54ec5842f39b`, after corrected candidate Full37854230896 and Prompt37854230860 SUCCESS. Its exact-main Full37855910790 / Prompt37855910855 are pending. Earlier writing failure37851777635 remains failed; the corrected native wheel prerequisite passed without weakening the oracle. Main0.31 exact Full37851440123 / Prompt37851440041 passed. A byte-verified416-file0.32 package exists; no automatic installation.
