@@ -58,14 +58,13 @@
 .pc-sync-mapping dd{font-size:17px;color:#343638;margin:0}
 .pc-sync>div>p.pc-sync-note{font-size:14px;line-height:1.7}
 .product-demo-intro .lead{max-width:760px}
-.product-demo-intro .demo-disclosure{max-width:840px}
+.product-demo-intro .demo-disclosure{max-width:840px;background:#f3f4f5;border:1px solid #d3d8df}
 .product-demo-intro{padding-bottom:34px}
+.product-demo-page .paia-core{--serif:'PAIA Editorial','Songti SC','Noto Serif CJK SC',Georgia,serif}
 .product-demo-page .pc-nav{padding-top:12px}
 .product-demo-page .pc-disclosure{display:none}
 .product-demo-page .pc-section:first-of-type{padding-top:55px}
 .product-demo-page .pc-context-card,.product-demo-page .pc-access-four{color:#343638}
-.product-demo-page .pc-prompts{background:#f6f7f6}
-.product-demo-page .pc-context{background:#f6f7f6}
 .product-demo-page .pc-local-tag{color:#62666c}
 .product-scope-note{font-size:15px;line-height:1.75;max-width:760px;color:#62666c}
 .product-scope-note a{text-underline-offset:4px}

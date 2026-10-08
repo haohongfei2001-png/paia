@@ -173,6 +173,13 @@ try:
                 check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: {width}px reflow')
                 check(not errors, f'{name}: {width}px no JS errors')
                 check(not external, f'{name}: {width}px no unsolicited external requests')
+                if path.name in ('index.html','demo.html'):
+                    check(page.locator('[data-pin]').evaluate_all('els=>els.every(e=>{const r=document.createRange();r.selectNodeContents(e);return r.getClientRects().length===1})'), f'{name}: {width}px prompt pin labels stay on one line')
+                    check(page.locator('[data-thought-text]').evaluate_all('els=>els.every(e=>parseFloat(getComputedStyle(e).fontSize)>=14)'), f'{name}: {width}px topic body remains readable')
+                    check(page.locator('.pc-thought').evaluate_all('els=>els.every(e=>parseFloat(getComputedStyle(e.querySelector(".pc-topic-source")).fontSize)<=parseFloat(getComputedStyle(e.querySelector("[data-thought-text]")).fontSize))'), f'{name}: {width}px provenance stays subordinate to the words')
+                    check(page.locator('.pc-access').evaluate('e=>getComputedStyle(e).backgroundColor.match(/\\d+/g).slice(0,3).every(c=>Number(c)>=240)'), f'{name}: {width}px access panel retains the light visual direction')
+                    if width <= 600:
+                        check(page.locator('.pc-thoughts').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px topics use one readable column')
                 if width == 320 and name in ('index.html','zh/index.html'):
                     page.screenshot(path=str(OUT / f'{name.replace("/","-")}-320-header.png'))
                     check(page.locator('.mobile-menu summary').bounding_box()['y'] < 60, f'{name}: 320px menu stays in the header row')
