@@ -38,3 +38,12 @@ CTX4 coarse target correction ae24a05c is integrated as e5684b95. The existing g
 ## Preserved historical Root inventory failure
 
 The later0.30 full-unit run (same current browser corpus) exposed one omitted historical Root routing oracle:4276PASS/1FAIL, `85 !== 84`, `/tmp/030-all-unit.log`. This is a coordinator inventory omission, not a production failure or a full-suite pass. A direct0.29 two-case run reproduced it in `/tmp/029-root-routing-negative.log`. The fix explicitly admits only removed Placement, asserts its4/5/6 positions are4, retains every original74 route and requires the exact85-file union. No original baseline, assertion, timeout or browser execution changes. Independent code review approved; three complete affected guard files4/4PASS88ms (`/tmp/029-root-routing-fixed.log`). The current96fb hosted run is allowed to finish to retain all outcomes before one corrective push.
+
+
+## Final96fb cloud outcomes and one repair batch
+
+Full37839224739 failed Unit2 historical Root inventory and Browser6; the other eight current browser groups passed. Browser6 exposed CTX4-02 release `false !== true` at the tablet stage and the Prompt release200% zoom viewport assertion. Prompt37839224802 failed the same unit inventory. Raw logs remain `work/029-unit2-routing-failure.log` and `work/029-browser6-failure.log`; the aggregate is FAIL, not a partially certified result.
+
+The coherent correction contains only reviewed tests/receipts:8050ea1d routing admission;44813e03→64611c9a explicit UI clock origin and actual coarse-media readiness after owner settlement;1d25c4dc→b05a1739 observation of the actual Prompt layout callback completing after native zoom. Context whole6/6PASS73.302s and Prompt whole40/40PASS59.876s retain every strict geometry, trusted-input, transaction and recovery assertion and original budgets. Context's local diagnostic5/6 failure proved pauseAt could target the past; its coarse cloud failure had insufficient stack to establish a unique cause. Prompt's controlled real-callback hold proved zoom DPR can update before layout; it is not claimed as an exact replay of the cloud scheduling. Neither correction changes runtime.
+
+Final combined targeted owner/route guards70/70PASS511.9ms, actual current-browser coverage script and diff check pass. Integrated native test files are byte-identical to their independently reviewed author commits. One corrective push follows completion of the failed hosted run; exact corrected-head candidate and main gates remain mandatory.
