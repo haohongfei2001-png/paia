@@ -76,8 +76,9 @@ document.getElementById('card').addEventListener('keydown',e=>{if(e.isTrusted&&e
 chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;void requestClose();reply({received:true});return;}if(refreshing)return;if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;const ticket=++epoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(!editing)revision=q.revision;session.reconcile(q);if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
 void refresh();
 const next=document.createElement('button');next.id='next-reopen';next.textContent='本轮建议';next.hidden=true;document.querySelector('nav').insertBefore(next,document.getElementById('close'));
-async function nextAvailable(){try{next.hidden=!(await rpc({type:'next_available'})).available;}catch{next.hidden=true;}}
-next.addEventListener('click',e=>{if(e.isTrusted&&!busy&&!editing&&!drag&&!composing)void rpc({type:'next_reopen'}).catch(()=>{next.hidden=true;});});
+let nextAvailabilityEpoch=0;
+async function nextAvailable(){const ticket=++nextAvailabilityEpoch;try{const value=await rpc({type:'next_available'});if(ticket===nextAvailabilityEpoch)next.hidden=!value.available;}catch{if(ticket===nextAvailabilityEpoch)next.hidden=true;}}
+next.addEventListener('click',e=>{if(e.isTrusted&&!busy&&!editing&&!drag&&!composing){const ticket=nextAvailabilityEpoch;void rpc({type:'next_reopen'}).catch(()=>{if(ticket===nextAvailabilityEpoch)next.hidden=true;});}});
 chrome.runtime.onMessage.addListener((r,s)=>{if(s.id===chrome.runtime.id&&!s.tab&&r.type==='PAIA_PROMPT_NEXT_CHANGED')void nextAvailable();});void nextAvailable();
 
 // An inactive cross-origin frame retains its last focused element. Reveal controls only while this document actually owns focus.
