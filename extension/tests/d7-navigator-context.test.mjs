@@ -77,3 +77,11 @@ test('A real selected Conversation membership move still reveals its new source 
  owner.selectPath({...before,projectRef:target.projectRef});assert.equal(state.expanded.has(newKey),true);assert.equal(state.expanded.has(oldKey),true,'direct page projection preserves unrelated existing expansion');
  state.expanded.delete(newKey);owner.selectPath({...state.selectedPath});assert.equal(state.expanded.has(newKey),false,'subsequent unchanged metadata respects the user collapse');
 }));
+test('restoring equal navigator tree preserves every node while restoring scroll; changed origin still repaints',()=>fixture(({owner,state,groups,tree,host})=>{
+ owner.layout=()=>{};owner.restoreDepth=new Map();state.scrollTop=237;owner.paint();
+ const snapshot=owner.navigationSnapshot(),nodes=tree.querySelectorAll('*');host.scrollTop=19;state.scrollTop=19;
+ owner.restoreNavigation(snapshot);assert.equal(host.scrollTop,237);assert.deepEqual(tree.querySelectorAll('*'),nodes);
+ for(const [i,node]of tree.querySelectorAll('*').entries())assert.equal(node,nodes[i]);
+ const changed={...snapshot,expanded:[]};owner.restoreNavigation(changed);assert.equal(state.expanded.size,0);assert.notEqual(tree.children[0],nodes[0]);
+ owner.restoreNavigation(snapshot);assert.deepEqual([...state.expanded],snapshot.expanded);assert.equal(host.scrollTop,237);assert.equal(tree.querySelectorAll('.archive-navigator-group-toggle').length,groups.length);
+}));
