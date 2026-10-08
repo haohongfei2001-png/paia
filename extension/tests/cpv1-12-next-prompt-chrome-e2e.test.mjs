@@ -7,7 +7,7 @@ const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.s
 for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' production direct loop',{timeout:180000},async t=>{
  const releasePath=variant==='release'?await mkdtemp(join(tmpdir(),'paia-next-settings-')):null;
  if(releasePath)execFileSync('python3',['scripts/build_current_release.py',releasePath],{cwd:root,stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath:releasePath||root,headless:process.env.PAIA_HEADLESS!=='0',launchThroughPort:true});await mkdir(out,{recursive:true});let page,popup,world,failures=0;const cases=[],screens=[],diagnostics=[];
+ const h=await FakeChatGPT.start({extensionPath:releasePath||root,headless:process.env.PAIA_HEADLESS!=='0',launchThroughPort:true,nativeTabVisibility:true});await mkdir(out,{recursive:true});let page,popup,world,failures=0;const cases=[],screens=[],diagnostics=[];
  const check=async(name,fn)=>{await t.test(name,async()=>{try{await fn();cases.push({name,status:'PASS'});}catch(e){failures++;cases.push({name,status:'FAIL'});throw e;}});if(failures)throw Error('Stage3 fixture stopped after failing '+name);};
  try{
   await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
@@ -50,10 +50,6 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
    await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());await card().getByRole('button',{name:'本轮建议'}).waitFor({state:'visible'});await card().getByRole('button',{name:'本轮建议'}).click();await shown();await capsule().getByRole('button',{name:'B · 详细说明',exact:true}).click();await eventually(()=>capsule()?.locator('.next-status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.text()),'ABCD已登录BE');await eventually(()=>!capsule());await card().locator('#close').click();await eventually(()=>!card());
   });
   await check('actual Settings position reset preserves unsaved card and respects hidden-page Next invalidation',async()=>{
-   const visibilityCDP=await h.context.newCDPSession(page);
-   try{
-    // Let real browser tab visibility drive the production lifecycle.
-    await visibilityCDP.send('Emulation.setFocusEmulationEnabled',{enabled:false});
    const settings=h.archive;await settings.locator('.sidebar-bottom [data-view="settings"]').click();await chooseConsumerGroup(settings,'ai');const reset=settings.locator('#settings-prompt-position-reset');await eventually(()=>reset.isEnabled());
    await page.bringToFront();await cycle();const nextFrame=await shown();
    await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());const originalCard=card();await originalCard.locator('#new').click();const edit=originalCard.getByRole('textbox',{name:'复用文本'});await edit.fill('UNSAVED_STAGE3_SETTINGS 中文🙂');
@@ -67,7 +63,6 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
    assert.equal(card(),originalCard,'reset retains original unsaved editor Frame');assert.equal(await edit.inputValue(),draft);assert.equal((await saved()).open,true);assert.deepEqual(await rpc(popup,'PAIA_PROMPT_QUERY',{includeHidden:true}),families,'unsaved draft never becomes a durable Prompt');
    assert.equal(capsule(),undefined,'reset cannot resurrect the hidden-page candidate');assert.equal(await page.evaluate(()=>fixture.text()),composerBefore);assert.equal(await page.evaluate(()=>fixture.send),0);
    await page.bringToFront();await eventually(()=>page.evaluate(()=>!document.hidden),'source document is visible after returning');diagnostics.push({event:'settings-source-returned',value:await page.evaluate(()=>({hidden:document.hidden,focus:document.hasFocus()}))});assert.equal(await edit.inputValue(),draft);await originalCard.getByRole('button',{name:'取消',exact:true}).click();await eventually(async()=>!await originalCard.getByRole('button',{name:'本轮建议'}).isVisible(),'invalidated candidate cannot be reopened after returning');assert.equal(capsule(),undefined);await originalCard.locator('#close').click();await eventually(()=>!card());
-   }finally{await visibilityCDP.send('Emulation.setFocusEmulationEnabled',{enabled:true});await visibilityCDP.detach();}
   });
   await check('revision, regenerate, continue, new user and revoke invalidate stale candidates',async()=>{
    await cycle();await shown();await page.evaluate(()=>fixture.latest.querySelector('p').textContent='回复“停止”');await eventually(()=>!capsule());

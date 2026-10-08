@@ -154,3 +154,39 @@ work/prompt-da1a-failed.log and work/da1a-hosted-artifact/.
 Actual source/release Stage3A under Xvfb remains PENDING. Failure to establish
 real hidden state must remain FAIL; neither this fixture change nor the unit
 results certify the new native journey.
+
+
+## f9682dbd native-visibility precondition diagnosis
+
+Exact Prompt run37710675511 failed both variants at the new actual-hidden
+precondition, before the retained stale-reopen assertion. The first three
+subcases still passed; subsequent unit/contracts/privacy steps were skipped,
+not PASS. Artifacts prove headed Linux Chrome154.0.8037.57 under Xvfb; neither
+variant emitted a visibilitychange event. Preserved evidence:
+work/prompt-f968-failed.log and work/f968-hosted-artifact/.
+
+A local synthetic headless probe of the actual harness confirmed all tabs
+shared one window and the source tab became inactive, yet hidden stayed false.
+Playwright1.63.0 enables focus emulation on its own CDP session. Disabling it on
+a separate newCDPSession was insufficient. A controlled connection using the
+public connectOverCDP noDefaults option, and then the changed actual harness,
+both produced native visible -> hidden -> visible on real tab switches.
+The actual harness probe log work/prompt-native-visibility-probe.log records
+the same window IDs, hidden=true/focus=false with Settings active, and
+hidden=false/focus=true on return. No property patch or synthetic event was used.
+
+FakeChatGPT now has an explicit nativeTabVisibility=false default. Only this
+Stage3A owner opts in, requiring launchThroughPort and passing noDefaults:true
+at connection time before default emulation is installed. Other callers retain
+the exact original connection arguments and behavior. The ineffective per-case
+CDP toggles were removed; actual hidden/visible assertions remain. Existing
+explicit viewport and media settings remain unchanged. Playwright's noDefaults
+also leaves default downloads/media at browser defaults; this owner has no
+download flow and retains its explicit theme/reduced-motion visual coverage.
+No runtime, native actions, timeout or CI change is included here; Xvfb remains.
+
+Syntax checks passed. Six complete related unit files passed141/141, zero
+fail/skip/cancel (the previous five plus settings-touch-device-options), log
+work/prompt-native-visibility-unit.log. These plus the short actual harness probe
+are bounded evidence only. Complete Stage3A source/release on the next exact
+hosted head remains PENDING; this does not retroactively pass either failed run.
