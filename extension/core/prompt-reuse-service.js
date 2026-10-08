@@ -8,7 +8,7 @@ const fail=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const changed=()=>{throw new ArchiveError('MEMORY_STALE');};
 const generation=async t=>(await t.get('meta','backup-data-generation'))?.value||0;
 export class PromptReuseService{
- constructor(store,{clock=()=>Date.now()}={}){this.s=store;this.clock=clock;}
+ constructor(store,{clock=()=>Date.now(),syncJournal=null}={}){this.s=store;this.clock=clock;this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
  async snapshot(){
   await this.s.finishFoundation();
   let after,base,preferences;const inputs=[];
@@ -80,8 +80,12 @@ export class PromptReuseService{
    }else fail();
   }
   p.revision++;if(!validPromptPreferences(p))fail();
+  // Optional local BNS proof: serialize/hash before opening IDB. The canonical
+  // CAS write and durable outbox are acknowledged only after the same commit.
+  const syncPrepared=this.syncJournal?await this.syncJournal.prepare(x.preferences,p):null;
   await this.s.run(()=>this.s.repository.transaction(true,async t=>{
    if(await generation(t)!==x.generation||(await readPromptPreferences(t)).revision!==change.revision)changed();await t.put('meta',p);
+   if(this.syncJournal)await this.syncJournal.commit(t,syncPrepared);
   }));return {revision:p.revision,id:o.id};
  }
  // Only the trusted insertion coordinator calls this after verified read-back.
