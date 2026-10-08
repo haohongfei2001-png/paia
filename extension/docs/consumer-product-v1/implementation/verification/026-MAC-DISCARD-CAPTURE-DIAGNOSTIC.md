@@ -36,3 +36,5 @@ whole-file shard-balance correction for the next exact PR210 full candidate.
 A full candidate pass and exact-main verification are still required. Further
 failure must be diagnosed using the new bounded lifecycle/status metadata; no
 unchanged targeted rerun is requested.
+
+Formal custom-reporter visibility correction: `scripts/test-report.mjs` intentionally emits only pass/fail events, so console-only failure diagnostics were absent from the formal macOS failure log. The same already-whitelisted bounded diagnostic object is now retained and appended to the final thrown lifecycle Error message (`DISCARD_CAPTURE_FAILURE=`). No global reporter/runtime/budget change. An external synthetic Node test uses the exact throw statement extracted from this test and the actual custom reporter: intentional one-test FAIL/exit1 emitted both the marker and isolated controller/status JSON in `/tmp/macos-discard-reporter-diagnostic.log`. This is a successful diagnostic-visibility check, not a browser pass. Initial temporary generator path error was corrected before execution; no browser was rerun.

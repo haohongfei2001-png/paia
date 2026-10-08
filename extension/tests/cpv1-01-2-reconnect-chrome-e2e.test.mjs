@@ -186,6 +186,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await eventually(async () => (await h.state()).records.length === 4, 'restored tab captures new content once');
   } catch (error) {
     let browserState = 'unavailable';
+    let captureDiagnostic={diagnosticUnavailable:true};
     let diagnosticTimer;
     try {
       const page=h?.context?.pages().find(p=>p.url().includes('/c/cpv1-discarded-tab'));
@@ -213,7 +214,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
         }).then(isolated=>snapshot.capture=isolated),
       ]).then(results=>({...snapshot,diagnosticRejected:results.some(x=>x.status==='rejected')}));
       const result=await Promise.race([diagnostic,new Promise(resolve=>{diagnosticTimer=setTimeout(()=>resolve({...snapshot,diagnosticTimedOut:true}),2500);})]);
-      console.error('DISCARD_CAPTURE_FAILURE',JSON.stringify(result));
+      captureDiagnostic=result;console.error('DISCARD_CAPTURE_FAILURE',JSON.stringify(result));
     }catch{console.error('DISCARD_CAPTURE_FAILURE',JSON.stringify({diagnosticUnavailable:true}));}
     finally{clearTimeout(diagnosticTimer);}
     try {
@@ -227,7 +228,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
         })) ?? [],
       });
     } catch { /* Preserve the original failure stage. */ }
-    throw new Error(`discard lifecycle failed at ${stage}: ${error}; browser=${browserState}`, { cause: error });
+    throw new Error(`discard lifecycle failed at ${stage}: ${error}; browser=${browserState}; DISCARD_CAPTURE_FAILURE=${JSON.stringify(captureDiagnostic)}`, { cause: error });
   } finally {
     await h?.close();
     await rm(release, { recursive: true, force: true });
