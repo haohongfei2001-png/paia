@@ -37,3 +37,13 @@ test('fresh entry leaves the saved query and page available to the existing retu
  const {context,seen}=freshFixture(),origin=context.routeStates.get('library:');await context.navigate('library',null,null,{freshArchiveEntry:true});
  assert.equal(context.routeStates.get('library:'),origin);await context.navigate('library');assert.deepEqual(seen.at(-1),{query:'ARCHIVE_A',cursor:'ARCHIVE_A_PAGE_2',history:[null]});
 });
+
+ test('Archive result click delegates reveal solely to completed navigation',()=>{
+ const binding=actual('wireScopeSearchKeyboard(scopeSearch.input,','wireScopeSearchKeyboard(readerScopeSearch.input,');
+ let captured;
+ vm.runInNewContext(binding,{scopeSearch:{input:{}},$:id=>({id}),wireScopeSearchKeyboard:(_input,pages)=>{captured=pages;}});
+ assert.equal(captured.length,1);assert.equal(captured[0].results.id,'document-list');
+ assert.equal(captured[0].revealOnClick,false,'Archive click must not start the unguarded generic reveal before navigation completes');
+ assert.ok(navigateCode.includes('options.searchArrival'));
+ assert.ok(navigateCode.includes('revealSearchResult(contextId,arrival.query,{isCurrent:current,'));
+ });

@@ -1,3 +1,4 @@
+import {withSettingsControlFocus} from './settings-local-state.js';
 import {highlightText} from './search-experience.js';
 import {searchExcerpt,normalizeSearch} from '../core/search-service.js';
 import {request,element,dateLabel} from './common.js';
@@ -5,17 +6,20 @@ const $=id=>document.getElementById(id);
 export class SmartFilterUI {
  constructor({onError,onContext}){
   this.onError=onError;this.onContext=onContext;this.noticeChecked=false;this.recentCursor=null;this.serial=0;this.protectedInputs=new Set();
-  $('filter-recover').addEventListener('click',()=>void this.recover());
+  this.mode=null;this.modeBusy=false;this.modeRead=0;this.modeRefresh=false;
+  $('smart-filter-toggle').addEventListener('click',()=>void withSettingsControlFocus($('smart-filter-toggle'),()=>this.changeMode(this.mode==='light'?'off':'light')));
+  document.addEventListener('paia:preferences-applied',()=>this.paintMode());
   $('document-page').addEventListener('input',e=>{const field=e.target.closest?.('.library-prose[data-edit-id]');if(field)void this.protectUserEdit(field.dataset.editId);});
-  for(const radio of document.querySelectorAll('[name="smart-filter-mode"]'))radio.addEventListener('change',()=>void this.changeMode(radio.value));
+
   $('filter-recent-query').addEventListener('input',()=>void this.recent(false));
   $('filter-recent-open').addEventListener('click',()=>void this.recent(false));
   $('filter-recent-more').addEventListener('click',()=>void this.recent(true));
   $('filter-recent-close').addEventListener('click',()=>{$('filter-recent-dialog').close();$('filter-recent-list').replaceChildren();this.serial++;this.lastRestore=false;$('filter-recent-query').value='';});
  }
- async changeMode(mode){try{await request('FILTER_MODE',{mode});await this.settings();}catch{this.onError('设置未保存，当前过滤程度未更改。');}}
+ paintMode(){const control=$('smart-filter-toggle');if(!control)return;const en=document.documentElement.lang==='en';control.disabled=this.mode===null||this.modeBusy;control.setAttribute('aria-checked',String(this.mode==='light'));control.dataset.on=String(this.mode==='light');control.setAttribute('aria-label',en?'Smart filter':'智能过滤');control.textContent=this.mode===null?(en?'Loading':'读取中'):this.mode==='light'?(en?'On':'开'):(en?'Off':'关');}
+ async changeMode(mode){if(this.modeBusy||this.mode===null||!['light','off'].includes(mode))return;this.modeBusy=true;++this.modeRead;this.paintMode();$('filter-processing').textContent='正在保存…';try{await request('FILTER_MODE',{mode});const status=await request('FILTER_STATUS');if(!['light','off'].includes(status?.mode))throw Error('FILTER_STATUS_UNKNOWN');this.mode=status.mode;$('filter-processing').textContent=document.documentElement.lang==='en'?'Saved':'已保存';}catch{try{const status=await request('FILTER_STATUS');if(['light','off'].includes(status?.mode))this.mode=status.mode;}catch{}$('filter-processing').textContent=document.documentElement.lang==='en'?'Save not confirmed. Please retry.':'保存未获确认，请重试。';}finally{this.modeBusy=false;this.paintMode();if(this.modeRefresh){this.modeRefresh=false;void this.settings();}}}
  async protectUserEdit(id){if(this.protectedInputs.has(id))return;this.protectedInputs.add(id);try{await request('FILTER_PROTECT',{id});}catch{this.protectedInputs.delete(id);this.onError('编辑保留保护尚未保存，请重试。');}}
- async settings(){try{const s=await request('FILTER_STATUS');for(const r of document.querySelectorAll('[name="smart-filter-mode"]'))r.checked=r.value===s.mode;$('filter-processing').textContent='本机规则检查；仅过滤完整的纯控制输入，不确定时保留。';}catch{this.onError('无法读取智能过滤设置。');}}
+ async settings(){if(this.modeBusy){this.modeRefresh=true;return;}const read=++this.modeRead;try{const status=await request('FILTER_STATUS');if(read!==this.modeRead)return;if(!['light','off'].includes(status?.mode))throw Error('FILTER_STATUS_UNKNOWN');this.mode=status.mode;this.paintMode();}catch{if(read!==this.modeRead)return;this.paintMode();$('filter-processing').textContent=document.documentElement.lang==='en'?'Could not read smart filter.':'无法读取智能过滤设置。';}}
  async recover(){const button=$('filter-recover');button.disabled=true;try{await request('FILTER_RECOVER');}catch{this.onError('历史输入检查暂未恢复，请稍后重试。');}finally{button.disabled=false;}}
  async home(eligible){
   if(!eligible){$('filter-onboarding').hidden=true;return;}

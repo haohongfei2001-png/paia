@@ -1,3 +1,4 @@
+import {chooseConsumerGroup} from './harness/settings-consumer-presentation.mjs';
 import {historicalBackupItems} from './harness/historical-backup-browser.mjs';
 import {BackupSegmentWriter} from './harness/historical-backup-segments.mjs';
 import {tmpdir} from 'node:os';
@@ -9,9 +10,7 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 async function openBackup(page){
  await page.locator('.sidebar [data-view=settings]').click();
- const select=page.locator('#ux-settings-group-switch');
- if(await select.isVisible())await select.selectOption('data');
- else await page.locator('[data-settings-group="data"]').click();
+ await chooseConsumerGroup(page,'data');await page.locator('details').filter({has:page.locator('#backup-settings')}).locator(':scope > summary').click();
  await page.locator('#backup-file').waitFor({state:'attached'});assert.equal(await page.locator('#backup-create-segmented').count(),0);
 }
 

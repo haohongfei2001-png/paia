@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {readdir,readFile} from 'node:fs/promises';
 import {group,testShard} from '../scripts/test-groups.mjs';
 
-// Frozen by evaluating exact parent main 4fe2afd328c6e30e6a1d39d68415ad821a7f779c.
-// test-groups blob 63fe2e9c57d001dd53502fbc18bb69c85f9809fa; never generated from the changed router.
+// Frozen from parent main 4fe2afd; reconciled against exact main f1740bc47ff8495bdf3457b5db195075a7404c87.
+// Current main test-groups blob 7269dd60afe91640e0eecbdb9b68de399d08773d.
+// Main moved historical comparison from1 to4 only at width7; no other parent route changes.
 const baseline=[
  ["activation-return-round410-chrome-e2e.test.mjs",1,1,1,1],
  ["ans-01-reader-surfaces-chrome-e2e.test.mjs",2,2,2,2],
@@ -50,7 +51,7 @@ const baseline=[
  ["cpv1-03-backup-segments-chrome-e2e.test.mjs",1,1,1,1],
  ["cpv1-04-conflict-chrome-e2e.test.mjs",2,2,2,2],
  ["cpv1-05-dvn-organize-chrome-e2e.test.mjs",1,1,1,1],
- ["cpv1-07-historical-comparison-chrome-e2e.test.mjs",1,1,1,1],
+ ["cpv1-07-historical-comparison-chrome-e2e.test.mjs",1,1,1,4],
  ["cpv1-09-prompt-compatibility-chrome-e2e.test.mjs",3,3,3,3],
  ["cpv1-09-prompt-insertion-chrome-e2e.test.mjs",3,3,3,3],
  ["cpv1-09-prompt-surface-chrome-e2e.test.mjs",3,3,3,3],

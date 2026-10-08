@@ -1,9 +1,14 @@
+import {withSettingsControlFocus} from './settings-local-state.js';
 import {request,element} from './common.js';
 
 const $=id=>document.getElementById(id);
 let installed=false,storageNode=null,privacyStatus=null,previewToggle=null;
-let privacyRead=0,privacyBusy=false,privacyLoaded=false,previewValue=false;
+let privacyRead=0,privacyBusy=false,privacyLoaded=false,previewValue=true,privacyRefresh=false,privacyReadFailed=false;
 const english=()=>document.documentElement.lang==='en';
+let storageEpoch=0,storageState={state:'loading',usage:null,quota:null};const storageSubscribers=new Set();
+export function subscribeStorageEstimate(listener){storageSubscribers.add(listener);listener({...storageState});return()=>storageSubscribers.delete(listener);}
+export function storageSummaryText(value={},useEnglish=false){if(value?.state==='loading')return useEnglish?'Reading…':'读取中…';if(value?.state==='error')return useEnglish?'Unavailable':'暂时无法读取';return Number.isFinite(value?.usage)&&value.usage>=0?`${mib(value.usage)} MiB`:(useEnglish?'Unknown':'未知');}
+function presentStorage(){if(storageNode)storageNode.textContent=storageState.state==='loading'?(english()?'Reading storage usage…':'正在读取存储空间…'):storageState.state==='error'?(english()?'Could not read local storage usage. Reopen Storage space to retry.':'暂时无法读取本机空间。重新打开“存储空间”可重试。'):storageEstimateText(storageState,english());for(const listener of storageSubscribers)listener({...storageState});}
 const mib=value=>(value/1024/1024).toFixed(value>=100*1024*1024?0:1);
 export function storageEstimateText(estimate={},useEnglish=false){
  const usage=Number.isFinite(estimate.usage)&&estimate.usage>=0?estimate.usage:null;
@@ -25,41 +30,43 @@ function syncLocale(){
  void refreshStorage();
 }
 async function syncPrivacy(){
- if(privacyBusy)return;
+ if(privacyBusy){privacyRefresh=true;return;}
  const read=++privacyRead;
  try{
   const page=await request('GET_PAGE',{page:{view:'settings',limit:1}});if(read!==privacyRead)return;
-  previewValue=page?.preferences?.hideContentPreviews===true;privacyLoaded=true;
-  if(previewToggle){previewToggle.checked=previewValue;previewToggle.disabled=false;}applyMask(previewValue);
+  previewValue=page?.preferences?.hideContentPreviews===true;privacyLoaded=true;if(privacyReadFailed&&privacyStatus)privacyStatus.textContent='';privacyReadFailed=false;
+  if(previewToggle){previewToggle.checked=previewValue;previewToggle.dataset.loaded='true';previewToggle.disabled=false;}applyMask(previewValue);
  }catch{
   // A failed read must never reveal previews that the user previously hid.
   if(read!==privacyRead)return;
-  if(previewToggle)previewToggle.disabled=!privacyLoaded;
+  privacyReadFailed=true;if(previewToggle){previewToggle.disabled=!privacyLoaded;if(!privacyLoaded)previewToggle.dataset.loaded='error';}
   if(privacyStatus)privacyStatus.textContent=english()?'Could not refresh this setting.':'无法刷新此设置。';
  }
 }
 async function setPreviewMask(value){
  if(!previewToggle||privacyBusy||!privacyLoaded)return;
- privacyBusy=true;privacyRead++;previewToggle.disabled=true;privacyStatus.textContent=english()?'Saving…':'正在保存…';
+ privacyBusy=true;privacyRead++;privacyReadFailed=false;previewToggle.disabled=true;privacyStatus.textContent=english()?'Saving…':'正在保存…';
  try{
-  await request('UPDATE_PREFERENCES',{changes:{hideContentPreviews:value}});
-  previewValue=value;applyMask(value);privacyStatus.textContent=english()?'Saved':'已保存';
+  const result=await request('UPDATE_PREFERENCES',{changes:{hideContentPreviews:value}});if(result?.ok!==true)throw Error('PREVIEW_WRITE_UNCONFIRMED');
+  previewValue=value;previewToggle.checked=value;applyMask(value);privacyStatus.textContent=english()?'Saved':'已保存';
  }catch{
-  previewToggle.checked=previewValue;applyMask(previewValue);privacyStatus.textContent=english()?'Not saved. The previous setting is still active.':'未保存，仍使用之前的设置。';
- }finally{privacyBusy=false;previewToggle.disabled=false;}
+  let confirmed=false;try{const page=await request('GET_PAGE',{page:{view:'settings',limit:1}});if(typeof page?.preferences?.hideContentPreviews!=='boolean')throw Error('PREVIEW_STATE_UNKNOWN');previewValue=page.preferences.hideContentPreviews;confirmed=true;}catch{previewValue=true;}
+  previewToggle.checked=previewValue;applyMask(previewValue);privacyStatus.textContent=confirmed?(english()?'Save was not confirmed. The current setting was checked. Retry if needed.':'保存未获确认，已核对当前设置。需要时请重试。'):(english()?'Save state is unknown. Previews remain hidden until it can be checked.':'保存状态尚不明确，核对前继续隐藏预览。');
+ }finally{privacyBusy=false;previewToggle.disabled=false;if(privacyRefresh){privacyRefresh=false;void syncPrivacy();}}
 }
-async function refreshStorage(){
- if(!storageNode)return;
- try{storageNode.textContent=storageEstimateText(await navigator.storage?.estimate?.()||{},english());}
- catch{storageNode.textContent=storageEstimateText({},english());}
+export async function refreshStorage(){
+ const epoch=++storageEpoch;storageState={state:'loading',usage:null,quota:null};presentStorage();
+ try{const estimate=await navigator.storage?.estimate?.()||{};if(epoch!==storageEpoch)return;storageState={state:'ready',usage:Number.isFinite(estimate.usage)&&estimate.usage>=0?estimate.usage:null,quota:Number.isFinite(estimate.quota)&&estimate.quota>=0?estimate.quota:null};}
+ catch{if(epoch!==storageEpoch)return;storageState={state:'error',usage:null,quota:null};}
+ presentStorage();return {...storageState};
 }
 export async function refreshR6Settings(){await Promise.all([syncPrivacy(),refreshStorage()]);}
 function installPrivacy(){
- const host=$('memory-settings');if(!host||$('r6-hide-content-previews'))return;
- const section=element('section','r6-privacy-preview'),label=element('label','setting'),name=text('span','','隐藏内容预览','Hide content previews'),input=document.createElement('input');
- input.id='r6-hide-content-previews';input.type='checkbox';input.disabled=true;previewToggle=input;label.append(name,input);
- const note=text('p','muted','隐藏列表和搜索里的摘句，打开正文仍可阅读。不是加密，也不能阻止截图。','Hides excerpts in lists and search; opening the body still shows it. This is not encryption or screenshot protection.');
- privacyStatus=element('p','muted');privacyStatus.id='r6-preview-status';privacyStatus.setAttribute('role','status');section.append(label,note,privacyStatus);host.append(section);input.addEventListener('change',()=>void setPreviewMask(input.checked));void syncPrivacy();
+ const host=$('settings-privacy-host');if(!host||$('r6-hide-content-previews'))return;
+ const section=element('section','r6-privacy-preview'),label=element('label','setting ux-preview-setting'),copy=element('span','ux-setting-copy'),control=element('span','ux-preview-control'),pill=element('span','ux-preview-pill'),name=text('span','ux-setting-name','隐藏内容预览','Hide content previews'),input=document.createElement('input');
+ input.id='r6-hide-content-previews';input.type='checkbox';input.setAttribute('role','switch');input.disabled=true;input.checked=true;input.dataset.loaded='false';name.id='r6-preview-name';input.setAttribute('aria-labelledby',name.id);input.setAttribute('aria-describedby','r6-preview-description r6-preview-status');pill.setAttribute('aria-hidden','true');previewToggle=input;control.append(input,pill);label.append(copy,control);
+ const note=text('span','ux-setting-description','隐藏列表和搜索里的摘句，打开正文仍可阅读。不是加密，也不能阻止截图。','Hides excerpts in lists and search; opening the body still shows it. This is not encryption or screenshot protection.');
+ note.id='r6-preview-description';copy.append(name,note);privacyStatus=element('p','muted');privacyStatus.id='r6-preview-status';privacyStatus.setAttribute('role','status');section.append(label,privacyStatus);host.append(section);input.addEventListener('change',()=>{const value=input.checked;input.checked=previewValue;void withSettingsControlFocus(input,()=>setPreviewMask(value));});void syncPrivacy();
 }
 function installData(){
  const host=$('backup-settings');if(!host||$('r6-data-status'))return;
@@ -72,7 +79,7 @@ function installData(){
  if(settings)new MutationObserver(()=>{if(!settings.hidden)void refreshR6Settings();}).observe(settings,{attributes:true,attributeFilter:['hidden']});
 }
 export function installR6Settings(){
- if(installed)return;installed=true;installStyles();installPrivacy();installData();new MutationObserver(syncLocale).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+ if(installed)return;installed=true;applyMask(true);installStyles();installPrivacy();installData();new MutationObserver(syncLocale).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
  chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED'&&message.cause==='UPDATE_PREFERENCES')void syncPrivacy();});
  chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&Object.keys(changes).some(key=>['settings','paia-settings'].includes(key)))void syncPrivacy();});
 }

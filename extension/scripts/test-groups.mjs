@@ -18,6 +18,7 @@ const CURRENT_BROWSER=new Set([
  'uir-03-preview-mask-chrome-e2e.test.mjs'
 ]);
 const EXPERIMENTAL=new Set([
+ 'settings-touch-diagnostic-chrome-e2e.test.mjs',
  'cpv1-07-lab-cadence.test.mjs',
  'cpv1-07-official-minilm.test.mjs',
  'cpv1-07-public-model-provenance.test.mjs',
@@ -72,6 +73,9 @@ function priorAdmissionShard(file, position, total, category) {
  // Full37684301966 shard4 used764s plus280s font setup and was cancelled
  // at job completion. Move its complete213s retained Root file to shard7,
  // which finished in553s total. Keep all75 files and the18-minute budget.
+ // Main 37691533146 exhausted shard1 twice; move this complete ~258s file to shard4.
+ // Preserve every case, all older-width routes and the unchanged 18-minute budget.
+ if(category==='browser E2E'&&total===7&&name==='cpv1-07-historical-comparison-chrome-e2e.test.mjs')return 4;
  if(category==='browser E2E'&&total===7)return ['ux-r3-thought-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs'].includes(name)?7:priorAdmissionShard(file,position,6,category);
  // Full37554248921: shard3 took561s of1080s. Add the whole two-case
  // Root journey there, preserving every prior73 placement and every timeout.
