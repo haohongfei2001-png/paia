@@ -116,3 +116,41 @@ real ChatGPT/provider qualification. No duplicate local browser retry was run.
 ### Hosted dependency transport follow-up
 
 At aacf53a, Prompt run37708597552 remained in CJK font setup for over ten minutes before any native lifecycle/Stage3A result. The live job-log endpoint returned404, so this is observed setup delay, not an invented runtime failure diagnosis. The Prompt workflow now reuses the exact signed Ubuntu HTTPS archive URI normalization already present in current certification after its prior Azure mirror stalls. Independent review verified YAML/Bash/Python, synthetic URI conversion, and that removing the added step reproduces the previous workflow byte-for-byte. Packages, suites, signing keys, all cases and the15-minute job budget are unchanged. A superseded/cancelled old run is not PASS; the new exact-head run remains required.
+
+
+## da1a9c4 hosted hidden-tab fixture diagnosis
+
+Prompt run37709538308 completed dependency setup and Stage1/2 lifecycle, but
+both Stage3A variants failed subcase4 at `invalidated candidate cannot be
+reopened after returning` (line65 before this change). The three earlier
+subcases passed per variant; the run is not PASS. Artifact11520404563's
+source/release insert diagnostics contain no visibilitychange events despite
+an installed observer; final content observations retain a ready binding.
+Capsule detachment alone therefore did not establish the claimed hidden-tab
+precondition. This evidence does not prove another worker invalidation bug.
+
+A bounded local headless synthetic two-tab probe showed source hidden=false
+both before and after switching tabs. Disabling Playwright's native CDP focus
+emulation changed hasFocus true to false on switching, but document.hidden
+remained false. No visible browser was opened. That probe is diagnostic only,
+not a substitute for Linux hosted native acceptance.
+
+The owner keeps headless by default, now honors explicit PAIA_HEADLESS=0 for
+the coordinator's existing cloud Xvfb pattern. Only the Settings subcase
+locally disables Playwright focus emulation and restores it in finally; real
+browser tab switches must satisfy document.hidden then visible predicates
+within the existing eventually budget. It records these actual states.
+No synthetic visibility event, property patch, assertion removal or timeout
+increase is used. All draft/frame/position-generation/storage/no-send and
+invalidated-candidate assertions remain. Runtime and shared harness are unchanged.
+The coordinator owns the corresponding single CI command change.
+
+Syntax check passed. Five complete owning files passed139/139, zero
+fail/skip/cancel: prompt-next-reopen-boundary, cpv1-09-prompt-surface,
+cpv1-12-next-security, cpv1-12-next-lifecycle, cpv1-12-next-detector.
+Local logs: work/prompt-visibility-fixture-unit.log (21),
+work/prompt-visibility-next-unit.log (118); original hosted failure remains
+work/prompt-da1a-failed.log and work/da1a-hosted-artifact/.
+Actual source/release Stage3A under Xvfb remains PENDING. Failure to establish
+real hidden state must remain FAIL; neither this fixture change nor the unit
+results certify the new native journey.
