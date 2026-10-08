@@ -173,7 +173,7 @@ export class StagedSyncRestore {
      if(head.revisions.length!==1&&!head.purged)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
      const operation=(await this.stage.get(t,'revision',head.revisions[0])).operation;
      const previousVersions=[];if(current&&!current.purged)for(const revision of current.revisions)previousVersions.push((await this.live.get(t,'revision',revision)).operation);
-     await this.owners[head.type](t,{operation,head,origin:'remote',previousHead:current||null,previousVersions});
+     await this.owners[head.type](t,{operation,head,origin:'remote',previousHead:current||null,previousVersions,core:this.stage,previousCore:this.live});
     }after=page.next;}while(after);
    }
    await this.checkpoint('before-activation',t);
