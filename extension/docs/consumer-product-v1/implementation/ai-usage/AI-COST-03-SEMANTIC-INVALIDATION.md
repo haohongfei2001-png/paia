@@ -29,3 +29,34 @@ Independent review found an already-COMMITTED local child was incorrectly rewrit
 - core/ai-usage/semantic-invalidation.js: 2bbc29a25d16314eebf77004c074a73f442e0590c86606cc91371e0fb7d8ebd0
 - tests/ai-cost-semantic-invalidation.test.mjs: b2e793035b37f4fd8f707d56c0a71eb7dcf3743f3d258850704c5bff88392096
 - tests/cpv1-ai-cost-01-foundation.test.mjs: c9090b303957c1859c69bb742c6fda5f6c5bbd43fd29277330842ab27e5d6f61
+
+## Actual Chrome IndexedDB follow-up
+
+On production checkpoint854803d8 (runtime unchanged), the existing full
+`tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs` was extended in place.
+The original100 captures, body-free queue, separate facet acknowledgement,
+page-reload unknown fence and original rollback assertions all remain.
+New assertions use actual production OrganizerStore and Chrome IndexedDB:
+unknown attempt plus real Working Input edit retains its one attempt/reservation;
+an actual resolveLocal completed child receipt stays byte-identical while its
+unfinished sibling's job is cancelled; cancellation-write failure rolls back both
+canonical Input and jobs;101 active jobs leave the entire set unchanged and
+return INCOMPLETE while the existing reserve gate still rejects stale evidence.
+Fixtures use separate synthetic database names and injected synthetic authority;
+there is no production entitlement, worker restart or real provider evidence.
+
+Complete source/release file2/2PASS,0 failures/skips/cancellations,4742.87ms,
+/tmp/ai-stale-native.log. Source2120.18ms; release2287.88ms. The original120000ms
+per-case budget is unchanged. Release uses the existing fresh mkdtemp builder
+and guard, then removes only its generated temporary directory. One headless
+browser suite ran with explicit PLAYWRIGHT_MODULE1.63.0, matching package.json.
+All zero-network/privacy assertions passed. No visible user browser was opened.
+
+Runtime hashes remain the checkpoint values above. Actual run test hash:
+30613cb0b2bedc3157fac5d09d4667f6dcec6ed15517904bb891dcd7206cd643.
+Harness fake-chatgpt.mjs:
+edeecefc2b0ecb6a6d74083d78fb180a22326178a5499c2b473ea30b424840ed.
+package.json:
+72e1ce7c6c6208601c8ed94d0a6f7f8acd1c575714acc56174e30c5a4d9d6001.
+The browser test increment passed root_finish independent read-only review of the actual assertions and2/2 log; prior129 unit evidence is
+reused only because all runtime and unit-test bytes remain unchanged.
