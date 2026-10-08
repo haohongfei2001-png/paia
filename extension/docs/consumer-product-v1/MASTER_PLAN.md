@@ -28,9 +28,11 @@ IAH-1.1 corrects the same five Archive documents in place. The approved subset i
 
 The detailed implementation states and authorizations belong to current STATUS and each actual receipt, not an assertion that every retained lane is unimplemented or newly active.
 
-## 3. Archive development alignment — design-ready, not selected
+## 3. Archive development alignment — selected minimal execution
 
 Details, current owner/gap mapping, tests, failure handling and exit evidence live only in [INPUT_ARCHIVE_HOME_PLAN.md](INPUT_ARCHIVE_HOME_PLAN.md). KEEP is an affirmative no-redesign decision, not a new certification claim. Legacy HOME identifiers remain for traceability; they do not require a Home page.
+
+These dispositions describe the retained design grouping; current implementation evidence is recorded in STATUS and the owning receipts.
 
 | Retained ID | Corrected necessary outcome | Disposition |
 |---|---|---|
@@ -41,7 +43,7 @@ Details, current owner/gap mapping, tests, failure handling and exit evidence li
 | ARCHIVE-HOME-05 | Actual origin-aware normal-flow Back and restoration; separate verified original-site action | NARROWED / PLANNED; no sticky row or mandatory new host-context action |
 | ARCHIVE-HOME-06 | Affected visual/safety/accessibility/long-content/reliability/resource acceptance | CONSOLIDATED / PLANNED; selected subset only |
 
-When separately scheduled, three coherent batches are the recommended simplification: **01 + 02 with necessary 03 checks -> 04 + 05 -> 06**. These are dependency groupings, not a second queue or three mandatory PR/certification loops. Correct existing search, navigation and Reader functions are reused before a gap is repaired.
+Within the owner-selected lane, three coherent groups are the recommended simplification: **01 + 02 with necessary 03 checks -> 04 + 05 -> 06**. These are dependency groupings, not a second queue or three mandatory PR/certification loops. Correct existing search, navigation and Reader functions are reused before a gap is repaired.
 
 Removed acceptance: new Find welcome/search Main, removal of middle-column Search, exact-one-field across different scopes, Project name-to-scope split, P1/P3/C, sticky Back and copying all B details. A new permanent scope control, unselected M6 copy change, deep-return convenience or new host/public-route entry remains separately scoped follow-up. A callback or placeholder alone is not a working Project-scope action.
 
@@ -55,11 +57,11 @@ Settings receives no new primary row, resume toggle or search-history setting fr
 
 Source Project is not Personal Topic. Thought identity, durable Sections, body ownership, Context access and B-01/B-02 are unchanged. Archive result presentation does not replace Thought's in-place search contract or grant external Archive fallback. Cancelled exports, backup generation, Profile, Material Tray, approval inboxes, ordinary diagnostics and BYO-provider transport remain cancelled.
 
-## 5. Release, economics and evidence
+## 5. Historical adoption-only task evidence
 
-This integration is selective visual adoption, canonical correction and plan alignment only. Relative to its fresh integration parent, no runtime, schema, migration, UI, test/workflow, manifest/version, account/provider/entitlement/payment, cloud resource, build/install/deployment or release is changed. Preserve intervening upstream implementations and their evidence. Existing failed gates remain truthful history, not Archive acceptance.
+The original adoption-only integration described in this section was selective visual adoption, canonical correction and plan alignment only. Its evidence does not describe subsequent authorized runtime development; current implementation and integration facts belong to STATUS and the seven-lane ledger. Relative to its fresh integration parent, no runtime, schema, migration, UI, test/workflow, manifest/version, account/provider/entitlement/payment, cloud resource, build/install/deployment or release is changed. Preserve intervening upstream implementations and their evidence. Existing failed gates remain truthful history, not Archive acceptance.
 
-The selected task traces in the Archive plan are design requirements; production execution is NOT_RUN here. Future local mechanics, exact-hit correctness, supported-entry safety, performance/accessibility, source/release visual conformance, installed delivery and owner production acceptance are separate claims. Package byte equality and prior synthetic prototype checks do not supply them; some prototype behaviors are now explicitly rejected.
+At that original documentation checkpoint, the selected task traces were design requirements and production execution was NOT_RUN. Future local mechanics, exact-hit correctness, supported-entry safety, performance/accessibility, source/release visual conformance, installed delivery and owner production acceptance are separate claims. Package byte equality and prior synthetic prototype checks do not supply them; some prototype behaviors are now explicitly rejected.
 
 ## Paid AI service — not implemented
 
