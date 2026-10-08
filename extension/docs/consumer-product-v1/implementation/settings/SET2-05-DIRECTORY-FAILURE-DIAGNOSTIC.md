@@ -1,0 +1,15 @@
+# SET2-05 directory keyboard/history diagnostic
+
+Base b425105d. Test-only diagnostic successor; no production, CI, version, timeout or original assertion change. Independent root review passed.
+
+Full37792341694 Browser6 job113362783289, tested merge38b7c36fea064518564e9b22df493732d9418263: source D5 six-group case failed `synthetic expected state`; release and other17cases passed. Artifact11558335535 source.json confirms all288 layout rows and3 targets (including the separate exact Chrome155 coarse owner) completed, but only native-select-keyboard and compact-failure-visible interactions were recorded. Failure is therefore one of the three directory focus/Back/Forward waits, not the preceding matrix or following AI-style/Next/Backup work. HTTP Range extracted only relevant JSON; the incomplete full artifact download was stopped and is not evidence.
+
+The helper now labels the same three existing predicates. If this segment fails, a separate source/release directory-failure JSON captures stage, activeElement ID/tag, visible Settings group/index, document.hasFocus and bounded history owner metadata (version/view/settingsGroup/sessionKey/originKey plus shell view/returnTo and length). It records no text, input value, query, body or arbitrary history payload. The original error is rethrown; no retry or synthetic success is introduced. Chrome155/headed/hash/coarse gates and all original matrix/interactions are untouched.
+
+Production inspection found activateGroup already rejects delayed focus callbacks when its expected group is no longer current. A callback racing a just-focused directory link before the next native Enter remains a hypothesis, not demonstrated as the hosted cause. Reader navigation restores decoded Settings state after awaiting its existing navigation owner. No speculative production repair was made.
+
+A separate unchanged-runtime local headless short diagnostic ran the actual directory/Back/Forward sequence12times and passed (/tmp/settings-directory-probe.log). It did not reproduce the Linux Chrome155 full-matrix preceding state, and is not a fix or equivalent coarse certification. The new diagnostic has not been dispatched to CI or passed through a new full browser run.
+
+Validation: Node helper syntax and git diff-check PASS; four complete relevant owner/CI files32/32 PASS96.6ms (/tmp/settings-directory-diagnostic-units.log): settings-return-boundaries, settings-reader-return, settings-consumer-local and d5-settings-presentation-ci. Hosted raw and extracted metadata are retained under coordinator work/topic026-browser6-failure.log and work/topic026-browser6-selected/qa-dvn-settings. The generic old failure remains unresolved until exact stage evidence establishes cause.
+
+Root independent review confirmed unchanged predicates. Final diagnostic safety bounds history values to typed scalars and admitted shell return views; a diagnostic file-write failure is swallowed solely to preserve and rethrow the original test failure. No runtime failure or failed assertion is swallowed.
