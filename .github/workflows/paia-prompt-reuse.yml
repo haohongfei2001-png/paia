@@ -11,6 +11,9 @@ on:
       - 'extension/**/prompt-*'
       - 'extension/adapter/chatgpt-composer.js'
       - 'extension/tests/cpv1-09-*'
+      - 'extension/tests/cpv1-12-next-*'
+      - 'extension/adapter/chatgpt-current-reply.js'
+      - 'extension/core/next-action-detector.js'
       - '.github/workflows/paia-prompt-reuse.yml'
 permissions:
   contents: read
@@ -18,8 +21,35 @@ concurrency:
   group: prompt-reuse-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  foundation:
+  unit:
     if: github.event_name == 'push' || !startsWith(github.head_ref, 'feat/prompt-reuse-vs09-')
+    name: Prompt unit ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4','2/4','3/4','4/4']
+    env:
+      CI: '1'
+      PAIA_TEST_CONCURRENCY: '1'
+      PAIA_TEST_SHARD: ${{ matrix.shard }}
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npm run test:unit
+  foundation:
+    needs: unit
+    if: needs.unit.result == 'success' && (github.event_name == 'push' || !startsWith(github.head_ref, 'feat/prompt-reuse-vs09-'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -50,7 +80,7 @@ jobs:
           # Change only that mirror URI; preserve suites, packages and signing keys.
           sudo python3 - <<'PYAPT'
           from pathlib import Path
-          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt').glob('*mirrors*.txt'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
           for path in paths:
               if path.is_file():
                   text = path.read_text()
@@ -65,10 +95,10 @@ jobs:
           node --test --test-concurrency=1 tests/cpv1-09-prompt-compatibility-chrome-e2e.test.mjs
           node --test --test-concurrency=1 tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
           xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs
-      - run: npm run test:unit
-        env:
-          # Keep the complete unit corpus; isolate resource-heavy fake-IDB cases.
-          PAIA_TEST_CONCURRENCY: '1'
+      - name: Stage 3A-1 source and release direct loop
+        run: xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-12-next-prompt-chrome-e2e.test.mjs
+      - name: Settings Next session owner source and release
+        run: node --test --test-concurrency=1 tests/settings-next-chrome-e2e.test.mjs
       - run: node scripts/test.mjs 'adapter contract'
       - run: node scripts/test.mjs 'privacy/security'
       - run: npm run check && npm run build:release
@@ -85,5 +115,7 @@ jobs:
         if: always()
         with:
           name: prompt-surface-evidence
-          path: extension/work/prompt-surface/
+          path: |
+            extension/work/prompt-surface/
+            extension/work/prompt-next/
           if-no-files-found: warn

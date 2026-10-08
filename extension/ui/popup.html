@@ -40,7 +40,12 @@
       <p id="update-message" role="status" hidden></p>
       <details id="update-details"><summary>更新方式</summary><p>仅检查此安装来源的更新；其他来源的版本需另行核对。不会自动重启或删除资料。</p></details>
     </section>
-
+    <section class="update-status" aria-labelledby="next-heading">
+      <h2 id="next-heading">当前回复建议</h2>
+      <p class="subtle" id="next-explanation">在这台设备上，临时读取当前会话刚完成的 AI 回复，提取可选回复。PAIA 不保存整条 AI 回复，也不将其上传给其他 AI。点击建议只填入输入框，不会发送。</p>
+      <label><input id="next-enabled" type="checkbox" aria-describedby="next-explanation" disabled> 本次浏览器会话开启</label>
+      <p id="next-state" class="subtle" role="status">默认关闭；与捕获暂停独立。</p>
+    </section>
   </main>
 </body>
 </html>

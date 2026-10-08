@@ -78,7 +78,7 @@ iframe{border:1px solid #ffffff75;border-radius:20px;background:linear-gradient(
   if(s.id!==chrome.runtime.id||s.tab)return;
   if(r.type==='PAIA_PROMPT_SURFACE_POSITION_RESET'&&Number.isSafeInteger(r.positionGeneration)&&r.positionGeneration>=0)reconcilePosition({position:null,positionGeneration:r.positionGeneration});
   if(r.type==='PAIA_PROMPT_SURFACE_DIAGNOSTIC_PROBE'&&r.url===location.href){layout();reply({status:availability});}
-  if(r.type==='PAIA_PROMPT_SURFACE_PROBE'){reply({open:!!frame?.isConnected&&open&&!host.hidden,nonce,url:location.href,dark:dark()});}
+  if(r.type==='PAIA_PROMPT_SURFACE_PROBE'){reply({open:!!frame?.isConnected&&open&&!host.hidden,nonce,url:location.href,dark:dark(),dragging:!!drag});}
   if(r.type==='PAIA_PROMPT_SURFACE_CLOSE'&&r.nonce===nonce){close(true);reply({closed:true});}
   if(r.type==='PAIA_PROMPT_SURFACE_ACTIVATE')void activate();
  };
@@ -87,6 +87,6 @@ iframe{border:1px solid #ffffff75;border-radius:20px;background:linear-gradient(
  const observe=()=>{observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','id','role','contenteditable','hidden','inert','disabled','readonly','aria-hidden','aria-disabled','aria-readonly','data-chatgpt-composer','data-composer-markdown','data-testid','data-message-author-role','data-message-id','data-turn']});if(enabled)mount();};
  if(document.documentElement)observe();else listen(document,'DOMContentLoaded',observe);
  listen(appearance,'change',schedule);listen(window,'resize',schedule);listen(window,'scroll',schedule,{passive:true});listen(window,'popstate',schedule);listen(document,'visibilitychange',()=>{if(!document.hidden)void activate();});
- globalThis.PAIAPromptSurface={dispose(){disposed=true;observer.disconnect();listeners.forEach(fn=>fn());chrome.runtime.onMessage.removeListener(messages);adapter.dispose();host?.remove();}};
+ globalThis.PAIAPromptSurface={nextPlacement(){layout();if(!geometry||host?.hidden)return null;const node=adapter.find();if(!node)return null;const b=(node.closest('form')||node).getBoundingClientRect();return {orb:geometry.orb,card:open?geometry.card:null,form:{x:b.x,y:b.y,w:b.width,h:b.height},dragging:!!drag,dark:dark()};},dispose(){disposed=true;observer.disconnect();listeners.forEach(fn=>fn());chrome.runtime.onMessage.removeListener(messages);adapter.dispose();host?.remove();}};
  void activate();
 })();

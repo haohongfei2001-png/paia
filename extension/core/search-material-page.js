@@ -39,7 +39,7 @@ export async function searchMaterialPage(s,o={}){
      // selection explicitly identifies that field and its saved revision.
      for(const field of AI_FIELDS){const raw=row[field],text=typeof raw==='string'?raw:raw.map(x=>x.text).join('\n\n');if(!text.trim()||q&&!normalizeSearch(text).includes(q))continue;body=text;item={kind:'ai',id:row.topicId,topicId:row.topicId,title:topic.name,source:'ai',sourceSentAt:null,aiField:field,ref:{kind:'ai',id:row.topicId,field,revision:row.revision}};break;}
     }
-    if(item&&body&&matches(item,body)){items.push({...item,snippet:searchExcerpt(body,query,240),...(mode==='history'?{body,working}:{})});if(items.length===limit)break;}
+    if(item&&body&&matches(item,body)){items.push({...item,...(item.kind==='input'?{bodyMatched:!!q&&normalizeSearch(body).includes(q)}:{}),snippet:searchExcerpt(body,query,240),...(mode==='history'?{body,working}:{})});if(items.length===limit)break;}
    }
    if(consumed===page.rows.length&&!page.next){stage++;after=undefined;}if(!page.rows.length&&stage>=3)break;
   }

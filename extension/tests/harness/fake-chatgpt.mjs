@@ -52,7 +52,7 @@ async function stopChrome(processHandle) {
   await Promise.race([exited,pause(5000)]);
  }
 }
-async function connectChromeByPort({headless, userDataDir}) {
+async function connectChromeByPort({headless, userDataDir, nativeTabVisibility=false}) {
  const profile=userDataDir||await mkdtemp(join(tmpdir(),'paia-cdp-profile-'));
  const ownedProfile=!userDataDir;
  const executable=process.env.CHROME_PATH||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':chromium.executablePath());
@@ -77,7 +77,8 @@ async function connectChromeByPort({headless, userDataDir}) {
    await pause(100);
   }
   if(!port)throw new Error('Chrome CDP port did not become ready');
-  const browser=await chromium.connectOverCDP('http://127.0.0.1:'+port);
+  // Native lifecycle owners opt out before Playwright enables focus emulation.
+  const browser=await chromium.connectOverCDP('http://127.0.0.1:'+port,...(nativeTabVisibility?[{noDefaults:true}]:[]));
   const context=browser.contexts()[0];
   if(!context)throw new Error('Chrome default context missing');
   return {browser,context,processHandle,profile,ownedProfile};
@@ -88,13 +89,14 @@ async function connectChromeByPort({headless, userDataDir}) {
  }
 }
 export class FakeChatGPT {
- static async start({extensionPath=root,headless=true,deepSeekFixture=null,onboarding=false,userDataDir='',launchThroughPort=false,viewport=undefined,hasTouch=false}={}) {
+ static async start({extensionPath=root,headless=true,deepSeekFixture=null,onboarding=false,userDataDir='',launchThroughPort=false,viewport=undefined,hasTouch=false,nativeTabVisibility=false}={}) {
+  if(typeof nativeTabVisibility!=='boolean'||nativeTabVisibility&&!launchThroughPort)throw Error('NATIVE_TAB_VISIBILITY_REQUIRES_CDP');
   const deviceOptions=fakeDeviceOptions({viewport,hasTouch,launchThroughPort});
   if(process.env.PAIA_HEADLESS==='1')headless=true;
   const h=new FakeChatGPT();h.pages=new Map();h.pending=new Map();h.historyRequests=0;h.externalRequests=0;h.extensionNetworkRequests=0;h.deepSeekRequests=[];h.errors=[];
   h.manifest=JSON.parse(await readFile(extensionPath+'/manifest.json','utf8'));
   if(launchThroughPort){
-   h.externalChrome=await connectChromeByPort({headless,userDataDir});
+   h.externalChrome=await connectChromeByPort({headless,userDataDir,nativeTabVisibility});
    h.context=h.externalChrome.context;
   }else{
    // Omit viewport by default so existing fixtures retain Playwright's default.

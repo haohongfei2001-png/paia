@@ -1,6 +1,9 @@
-const ENTRY_MOVE='topic-entry-section-move-chrome-e2e.test.mjs';
+const settingsNext='settings-next-chrome-e2e.test.mjs';
+const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
+const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
+const IAH_FILES=['iah11-result-presentation-chrome-e2e.test.mjs','iah11-selected-acceptance-chrome-e2e.test.mjs'];
 const AI_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-const CURRENT_BROWSER=new Set([ENTRY_MOVE,AI_BROWSER,
+const CURRENT_BROWSER=new Set([settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,
  'cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs',
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
@@ -59,11 +62,26 @@ export function group(file) {
  */
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
+ const newName=file.replaceAll('\\','/').split('/').at(-1);
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(newName===settingsNext)return 2;if(newName>settingsNext)position--;}
+ return priorSettingsNextShard(file,position,total,category);
+}
+function priorSettingsNextShard(file,position,total,category){
+ const name=file.replaceAll('\\','/').split('/').at(-1);
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(name===next)return 3;if(name>next)position--;}
+ return priorNextShard(file,position,total,category);
+}
+function priorNextShard(file,position,total,category){
  const name=file.split('/').at(-1);
- if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(name===ENTRY_MOVE)return 4;if(name>ENTRY_MOVE)position--;}
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(name===entryMove)return 4;if(name>entryMove)position--;}
  return priorEntryMoveShard(file,position,total,category);
 }
 function priorEntryMoveShard(file,position,total,category){
+ const name=file.split('/').at(-1);
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(IAH_FILES.includes(name))return 4;position-=IAH_FILES.filter(added=>name>added).length;}
+ return priorIahShard(file,position,total,category);
+}
+function priorIahShard(file,position,total,category){
  const name=file.split('/').at(-1);
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(name===AI_BROWSER)return 4;if(name>AI_BROWSER)position--;}
  return priorAiShard(file,position,total,category);
